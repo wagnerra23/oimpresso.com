@@ -1729,11 +1729,6 @@ class ContactController extends Controller
         $customer_groups = CustomerGroup::forDropdown($business_id);
         $selected_type = request()->type;
 
-        $module_form_parts = $this->moduleUtil->getModuleData('contact_form_part');
-
-        //Added check because $users is of no use if enable_contact_assign if false
-        $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
-
         // Pre-fill via query param: vem do cadastro inline em Sells/Create
         // (CustomerSearchAutocomplete "Cadastrar 'NOME'"). Pedido Wagner 2026-05-10.
         // Sanitiza pra evitar XSS — view escapa com {{ }} também (dupla camada).
@@ -1742,24 +1737,21 @@ class ContactController extends Controller
             $prefill_name = mb_substr($prefill_name, 0, 100);
         }
 
-        // W1-B3 MWART branch — Inertia render quando flag cliente_create liga.
-        if ($this->shouldRenderInertiaCliente('cliente_create', (int) $business_id)) {
-            return Inertia::render('Cliente/Create', [
-                'types' => $types,
-                'customer_groups' => $customer_groups instanceof \Illuminate\Support\Collection
-                    ? $customer_groups->map(fn ($v, $k) => ['id' => $k, 'name' => $v])->values()->all()
-                    : (is_array($customer_groups) ? array_map(fn ($v, $k) => ['id' => $k, 'name' => $v], $customer_groups, array_keys($customer_groups)) : []),
-                'selected_type' => $selected_type,
-                'prefill_name' => $prefill_name,
-                'permissions' => [
-                    'create_customer' => auth()->user()->can('customer.create'),
-                    'create_supplier' => auth()->user()->can('supplier.create'),
-                ],
-            ]);
-        }
-
-        return view('contact.create')
-            ->with(compact('types', 'customer_groups', 'selected_type', 'module_form_parts', 'users', 'prefill_name'));
+        // Cutover F5 (2026-10-27): só React. A chave cliente_create estava ligada para todas
+        // as empresas em produção desde 2026-08-26; o ramo Blade era fallback morto. A view
+        // contact.create continua existindo — é incluída pelos modais Blade de POS, Compras e Repair.
+        return Inertia::render('Cliente/Create', [
+            'types' => $types,
+            'customer_groups' => $customer_groups instanceof \Illuminate\Support\Collection
+                ? $customer_groups->map(fn ($v, $k) => ['id' => $k, 'name' => $v])->values()->all()
+                : (is_array($customer_groups) ? array_map(fn ($v, $k) => ['id' => $k, 'name' => $v], $customer_groups, array_keys($customer_groups)) : []),
+            'selected_type' => $selected_type,
+            'prefill_name' => $prefill_name,
+            'permissions' => [
+                'create_customer' => auth()->user()->can('customer.create'),
+                'create_supplier' => auth()->user()->can('supplier.create'),
+            ],
+        ]);
     }
 
     /**
@@ -2375,122 +2367,78 @@ class ContactController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if ($this->isLegacyAjax()) {
-            $business_id = request()->session()->get('user.business_id');
-            $contact = Contact::where('business_id', $business_id)->find($id);
-
-            if (! $this->moduleUtil->isSubscribed($business_id)) {
-                return $this->moduleUtil->expiredResponse();
-            }
-
-            $types = [];
-            if (auth()->user()->can('supplier.create')) {
-                $types['supplier'] = __('report.supplier');
-            }
-            if (auth()->user()->can('customer.create')) {
-                $types['customer'] = __('report.customer');
-            }
-            if (auth()->user()->can('supplier.create') && auth()->user()->can('customer.create')) {
-                $types['both'] = __('lang_v1.both_supplier_customer');
-            }
-
-            $customer_groups = CustomerGroup::forDropdown($business_id);
-
-            $ob_transaction = Transaction::where('contact_id', $id)
-                                            ->where('type', 'opening_balance')
-                                            ->first();
-            $opening_balance = ! empty($ob_transaction->final_total) ? $ob_transaction->final_total : 0;
-
-            //Deduct paid amount from opening balance.
-            if (! empty($opening_balance)) {
-                $opening_balance_paid = $this->transactionUtil->getTotalAmountPaid($ob_transaction->id);
-                if (! empty($opening_balance_paid)) {
-                    $opening_balance = $opening_balance - $opening_balance_paid;
-                }
-
-                $opening_balance = $this->commonUtil->num_f($opening_balance);
-            }
-
-            //Added check because $users is of no use if enable_contact_assign if false
-            $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
-
-            return view('contact.edit')
-                ->with(compact('contact', 'types', 'customer_groups', 'opening_balance', 'users'));
-        }
-
-        // W1-B3 MWART branch (non-ajax full page) — Inertia render quando flag cliente_edit liga.
+        // Cutover F5 (2026-10-27): só React. O modal Blade (contact.edit via AJAX) não tinha
+        // mais quem o abrisse, e a chave cliente_edit estava ligada para todas as empresas.
         $business_id = request()->session()->get('user.business_id');
-        if ($this->shouldRenderInertiaCliente('cliente_edit', (int) $business_id)) {
-            $contact = Contact::where('business_id', $business_id)->findOrFail($id);
+        $contact = Contact::where('business_id', $business_id)->findOrFail($id);
 
-            $types = [];
-            if (auth()->user()->can('supplier.create')) {
-                $types['supplier'] = __('report.supplier');
-            }
-            if (auth()->user()->can('customer.create')) {
-                $types['customer'] = __('report.customer');
-            }
-            if (auth()->user()->can('supplier.create') && auth()->user()->can('customer.create')) {
-                $types['both'] = __('lang_v1.both_supplier_customer');
-            }
-            $customer_groups = CustomerGroup::forDropdown($business_id);
-
-            $ob_transaction = Transaction::where('contact_id', $id)
-                ->where('type', 'opening_balance')
-                ->first();
-            $opening_balance = ! empty($ob_transaction->final_total) ? $ob_transaction->final_total : 0;
-            if (! empty($opening_balance)) {
-                $opening_balance_paid = $this->transactionUtil->getTotalAmountPaid($ob_transaction->id);
-                if (! empty($opening_balance_paid)) {
-                    $opening_balance = $opening_balance - $opening_balance_paid;
-                }
-                $opening_balance = $this->commonUtil->num_f($opening_balance);
-            }
-
-            return Inertia::render('Cliente/Edit', [
-                'contact' => [
-                    'id' => (int) $contact->id,
-                    'type' => (string) ($contact->type ?? 'customer'),
-                    'contact_type' => $contact->contact_type ?? null,
-                    'name' => (string) $contact->name,
-                    'prefix' => $contact->prefix ?? null,
-                    'first_name' => (string) ($contact->first_name ?? $contact->name),
-                    'middle_name' => $contact->middle_name ?? null,
-                    'last_name' => $contact->last_name ?? null,
-                    'supplier_business_name' => $contact->supplier_business_name ?? null,
-                    'tax_number' => $contact->tax_number ?? null,
-                    'mobile' => $contact->mobile ?? null,
-                    'landline' => $contact->landline ?? null,
-                    'email' => $contact->email ?? null,
-                    'address_line_1' => $contact->address_line_1 ?? null,
-                    'city' => $contact->city ?? null,
-                    'state' => $contact->state ?? null,
-                    'zip_code' => $contact->zip_code ?? null,
-                    'shipping_address' => $contact->shipping_address ?? null,
-                    'customer_group_id' => $contact->customer_group_id ?? null,
-                    'credit_limit' => $contact->credit_limit ?? null,
-                    // Dados Fiscais BR (migration 2026_05_21_140000). Diferente do Show()
-                    // que entrega cpf_cnpj MASCARADO, Edit precisa do valor PLAIN pra
-                    // permitir edição. Exposição PII gated por can('customer.update') /
-                    // can('supplier.update') no início do método.
-                    'cpf_cnpj' => $contact->cpf_cnpj ?? null,
-                    'rg' => $contact->rg ?? null,
-                    'inscricao_estadual' => $contact->inscricao_estadual ?? null,
-                    'inscricao_municipal' => $contact->inscricao_municipal ?? null,
-                    'indicador_ie' => $contact->indicador_ie ?? null,
-                    'nome_fantasia' => $contact->nome_fantasia ?? null,
-                    'consumidor_final' => $contact->consumidor_final !== null ? (bool) $contact->consumidor_final : null,
-                    'contribuinte' => $contact->contribuinte !== null ? (bool) $contact->contribuinte : null,
-                    'regime' => $contact->regime ?? null,
-                    'suframa' => $contact->suframa ?? null,
-                ],
-                'types' => $types,
-                'customer_groups' => $customer_groups instanceof \Illuminate\Support\Collection
-                    ? $customer_groups->map(fn ($v, $k) => ['id' => $k, 'name' => $v])->values()->all()
-                    : [],
-                'opening_balance' => (string) $opening_balance,
-            ]);
+        $types = [];
+        if (auth()->user()->can('supplier.create')) {
+            $types['supplier'] = __('report.supplier');
         }
+        if (auth()->user()->can('customer.create')) {
+            $types['customer'] = __('report.customer');
+        }
+        if (auth()->user()->can('supplier.create') && auth()->user()->can('customer.create')) {
+            $types['both'] = __('lang_v1.both_supplier_customer');
+        }
+        $customer_groups = CustomerGroup::forDropdown($business_id);
+
+        $ob_transaction = Transaction::where('contact_id', $id)
+            ->where('type', 'opening_balance')
+            ->first();
+        $opening_balance = ! empty($ob_transaction->final_total) ? $ob_transaction->final_total : 0;
+        if (! empty($opening_balance)) {
+            $opening_balance_paid = $this->transactionUtil->getTotalAmountPaid($ob_transaction->id);
+            if (! empty($opening_balance_paid)) {
+                $opening_balance = $opening_balance - $opening_balance_paid;
+            }
+            $opening_balance = $this->commonUtil->num_f($opening_balance);
+        }
+
+        return Inertia::render('Cliente/Edit', [
+            'contact' => [
+                'id' => (int) $contact->id,
+                'type' => (string) ($contact->type ?? 'customer'),
+                'contact_type' => $contact->contact_type ?? null,
+                'name' => (string) $contact->name,
+                'prefix' => $contact->prefix ?? null,
+                'first_name' => (string) ($contact->first_name ?? $contact->name),
+                'middle_name' => $contact->middle_name ?? null,
+                'last_name' => $contact->last_name ?? null,
+                'supplier_business_name' => $contact->supplier_business_name ?? null,
+                'tax_number' => $contact->tax_number ?? null,
+                'mobile' => $contact->mobile ?? null,
+                'landline' => $contact->landline ?? null,
+                'email' => $contact->email ?? null,
+                'address_line_1' => $contact->address_line_1 ?? null,
+                'city' => $contact->city ?? null,
+                'state' => $contact->state ?? null,
+                'zip_code' => $contact->zip_code ?? null,
+                'shipping_address' => $contact->shipping_address ?? null,
+                'customer_group_id' => $contact->customer_group_id ?? null,
+                'credit_limit' => $contact->credit_limit ?? null,
+                // Dados Fiscais BR (migration 2026_05_21_140000). Diferente do Show()
+                // que entrega cpf_cnpj MASCARADO, Edit precisa do valor PLAIN pra
+                // permitir edição. Exposição PII gated por can('customer.update') /
+                // can('supplier.update') no início do método.
+                'cpf_cnpj' => $contact->cpf_cnpj ?? null,
+                'rg' => $contact->rg ?? null,
+                'inscricao_estadual' => $contact->inscricao_estadual ?? null,
+                'inscricao_municipal' => $contact->inscricao_municipal ?? null,
+                'indicador_ie' => $contact->indicador_ie ?? null,
+                'nome_fantasia' => $contact->nome_fantasia ?? null,
+                'consumidor_final' => $contact->consumidor_final !== null ? (bool) $contact->consumidor_final : null,
+                'contribuinte' => $contact->contribuinte !== null ? (bool) $contact->contribuinte : null,
+                'regime' => $contact->regime ?? null,
+                'suframa' => $contact->suframa ?? null,
+            ],
+            'types' => $types,
+            'customer_groups' => $customer_groups instanceof \Illuminate\Support\Collection
+                ? $customer_groups->map(fn ($v, $k) => ['id' => $k, 'name' => $v])->values()->all()
+                : [],
+            'opening_balance' => (string) $opening_balance,
+        ]);
     }
 
     /**
@@ -2827,33 +2775,19 @@ class ContactController extends Controller
         $zip_loaded = extension_loaded('zip') ? true : false;
         $business_id = request()->session()->get('user.business_id');
 
-        // W1-B3 MWART branch — Inertia render quando flag cliente_import liga.
-        if ($this->shouldRenderInertiaCliente('cliente_import', (int) $business_id)) {
-            $notification = null;
-            if ($zip_loaded === false) {
-                $notification = [
-                    'success' => 0,
-                    'msg' => 'Please install/enable PHP Zip archive for import',
-                ];
-            }
-
-            return Inertia::render('Cliente/Import', [
-                'zip_available' => $zip_loaded,
-                'notification' => $notification,
-            ]);
-        }
-
-        //Check if zip extension it loaded or not.
+        // Cutover F5 (2026-10-27): só React (chave cliente_import ligada para todas as empresas desde 2026-08-26).
+        $notification = null;
         if ($zip_loaded === false) {
-            $output = ['success' => 0,
+            $notification = [
+                'success' => 0,
                 'msg' => 'Please install/enable PHP Zip archive for import',
             ];
-
-            return view('contact.import')
-                ->with('notification', $output);
-        } else {
-            return view('contact.import');
         }
+
+        return Inertia::render('Cliente/Import', [
+            'zip_available' => $zip_loaded,
+            'notification' => $notification,
+        ]);
     }
 
     /**
@@ -3169,62 +3103,53 @@ class ContactController extends Controller
             $mpdf = $this->getMpdf();
             $mpdf->WriteHTML($html);
             $mpdf->Output($output_file_name, 'I');
+
+            // O mPDF já escreveu o PDF; antes o Blade do extrato era anexado depois dele.
+            return response('');
         }
 
-        // W1-B3 MWART branch — Inertia render quando flag cliente_ledger liga.
-        if ($this->shouldRenderInertiaCliente('cliente_ledger', (int) $business_id) && request()->input('action') !== 'pdf') {
-            $lines = collect($ledger_details['ledger'] ?? [])->map(function ($line) {
-                return [
-                    'date' => $line['date'] ?? null,
-                    'ref_no' => $line['ref_no'] ?? '',
-                    'description' => $line['type'] ?? $line['description'] ?? '',
-                    'debit' => (float) ($line['debit'] ?? 0),
-                    'credit' => (float) ($line['credit'] ?? 0),
-                    'balance' => (float) ($line['balance'] ?? 0),
-                    'payment_method' => $line['payment_method'] ?? null,
-                    'doc_type' => (string) ($line['doc_type'] ?? 'invoice'),
-                ];
-            })->all();
+        // Cutover F5 (2026-10-27): só React fora do PDF (chave cliente_ledger ligada para todas as
+        // empresas desde 2026-08-26). As views contact.ledger* seguem para o PDF e o envio por e-mail.
+        $lines = collect($ledger_details['ledger'] ?? [])->map(function ($line) {
+            return [
+                'date' => $line['date'] ?? null,
+                'ref_no' => $line['ref_no'] ?? '',
+                'description' => $line['type'] ?? $line['description'] ?? '',
+                'debit' => (float) ($line['debit'] ?? 0),
+                'credit' => (float) ($line['credit'] ?? 0),
+                'balance' => (float) ($line['balance'] ?? 0),
+                'payment_method' => $line['payment_method'] ?? null,
+                'doc_type' => (string) ($line['doc_type'] ?? 'invoice'),
+            ];
+        })->all();
 
-            return Inertia::render('Cliente/Ledger', [
-                'contact' => [
-                    'id' => (int) $contact->id,
-                    'name' => (string) $contact->name,
-                    'tax_number_masked' => $this->maskTaxNumber($contact->tax_number ?? null),
-                    'mobile' => $contact->mobile ?? null,
-                    'email' => $contact->email ?? null,
-                    'opening_balance' => (float) ($contact->opening_balance ?? 0),
-                    'current_balance' => (float) ($ledger_details['balance_due'] ?? 0),
-                ],
-                'ledger' => [
-                    'lines' => $lines,
-                    'total_debit' => (float) ($ledger_details['total_debit'] ?? array_sum(array_column($lines, 'debit'))),
-                    'total_credit' => (float) ($ledger_details['total_credit'] ?? array_sum(array_column($lines, 'credit'))),
-                    'balance' => (float) ($ledger_details['balance_due'] ?? 0),
-                ],
-                'filters' => [
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'format' => $format,
-                    'location_id' => $location_id ? (int) $location_id : null,
-                ],
-                'locations' => BusinessLocation::where('business_id', $business_id)
-                    ->get(['id', 'name'])
-                    ->map(fn ($l) => ['id' => (int) $l->id, 'name' => (string) $l->name])
-                    ->all(),
-            ]);
-        }
-
-        if ($format == 'format_2') {
-            return view('contact.ledger_format_2')
-             ->with(compact('ledger_details', 'contact', 'location'));
-        } elseif ($format == 'format_3') {
-            return view('contact.ledger_format_3')
-             ->with(compact('ledger_details', 'contact', 'location', 'is_admin'));
-        } else {
-            return view('contact.ledger')
-             ->with(compact('ledger_details', 'contact', 'location', 'is_admin'));
-        }
+        return Inertia::render('Cliente/Ledger', [
+            'contact' => [
+                'id' => (int) $contact->id,
+                'name' => (string) $contact->name,
+                'tax_number_masked' => $this->maskTaxNumber($contact->tax_number ?? null),
+                'mobile' => $contact->mobile ?? null,
+                'email' => $contact->email ?? null,
+                'opening_balance' => (float) ($contact->opening_balance ?? 0),
+                'current_balance' => (float) ($ledger_details['balance_due'] ?? 0),
+            ],
+            'ledger' => [
+                'lines' => $lines,
+                'total_debit' => (float) ($ledger_details['total_debit'] ?? array_sum(array_column($lines, 'debit'))),
+                'total_credit' => (float) ($ledger_details['total_credit'] ?? array_sum(array_column($lines, 'credit'))),
+                'balance' => (float) ($ledger_details['balance_due'] ?? 0),
+            ],
+            'filters' => [
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'format' => $format,
+                'location_id' => $location_id ? (int) $location_id : null,
+            ],
+            'locations' => BusinessLocation::where('business_id', $business_id)
+                ->get(['id', 'name'])
+                ->map(fn ($l) => ['id' => (int) $l->id, 'name' => (string) $l->name])
+                ->all(),
+        ]);
     }
 
     public function postCustomersApi(Request $request)
@@ -3488,33 +3413,28 @@ class ContactController extends Controller
                         ->active()
                         ->get();
 
-        // W1-B3 MWART branch — Inertia render quando flag cliente_map liga.
-        if ($this->shouldRenderInertiaCliente('cliente_map', (int) $business_id)) {
-            $mapContacts = $contacts->map(fn ($c) => [
-                'id' => (int) $c->id,
-                'name' => (string) $c->name,
-                'position' => $c->position,
-                'city' => $c->city ?? null,
-                'state' => $c->state ?? null,
-                'mobile' => $c->mobile ?? null,
-            ])->all();
-            $mapAll = $all_contacts->map(fn ($c) => [
-                'id' => (int) $c->id,
-                'name' => (string) $c->name,
-                'position' => $c->position,
-                'city' => $c->city ?? null,
-                'state' => $c->state ?? null,
-                'mobile' => $c->mobile ?? null,
-            ])->all();
+        // Cutover F5 (2026-10-27): só React (chave cliente_map ligada para todas as empresas desde 2026-08-26).
+        $mapContacts = $contacts->map(fn ($c) => [
+            'id' => (int) $c->id,
+            'name' => (string) $c->name,
+            'position' => $c->position,
+            'city' => $c->city ?? null,
+            'state' => $c->state ?? null,
+            'mobile' => $c->mobile ?? null,
+        ])->all();
+        $mapAll = $all_contacts->map(fn ($c) => [
+            'id' => (int) $c->id,
+            'name' => (string) $c->name,
+            'position' => $c->position,
+            'city' => $c->city ?? null,
+            'state' => $c->state ?? null,
+            'mobile' => $c->mobile ?? null,
+        ])->all();
 
-            return Inertia::render('Cliente/Map', [
-                'contacts' => $mapContacts,
-                'all_contacts' => $mapAll,
-            ]);
-        }
-
-        return view('contact.contact_map')
-             ->with(compact('contacts', 'all_contacts'));
+        return Inertia::render('Cliente/Map', [
+            'contacts' => $mapContacts,
+            'all_contacts' => $mapAll,
+        ]);
     }
 
     public function getContactPayments($contact_id)

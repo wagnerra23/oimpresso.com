@@ -4,8 +4,8 @@
 //   stories: thread sistema/playbook/04 (tela 2 de 3)
 //   permissao: barcode_settings.access (o controller exige em todas as ações)
 //
-// Configurações de etiqueta (folha ou rolo) usadas na impressão de código de barras. Atrás da flag
-// `useV2ConfiguracoesCodigoBarras` (BarcodeController::FLAG_V2); desligada, a rota segue na Blade `barcode/index`.
+// Configurações de etiqueta (folha ou rolo) usadas na impressão de código de barras. Esteve atrás da flag
+// `useV2ConfiguracoesCodigoBarras` até o cutover de 2026-10-27, que apagou a flag e a Blade `barcode/*`.
 // Charter: ./Index.charter.md · Casos: ./Index.casos.md · RUNBOOK: memory/requisitos/Configuracoes/RUNBOOK-codigo-barras.md
 // Âncora de design: prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx → Barras()
 //

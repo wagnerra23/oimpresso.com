@@ -59,10 +59,11 @@ function locBaseLocal(int $businessId, array $campos = []): int
 
 function locBaseNomes($teste): string
 {
-    $r = $teste->withHeaders($teste->ajax)->get('/business-location');
+    // Prop adiada da tela React: a DataTable saiu no cutover de 2026-10-27.
+    $r = $teste->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request()), 'X-Inertia-Partial-Component' => 'Configuracoes/Locais/Index', 'X-Inertia-Partial-Data' => 'locais'])->get('/business-location');
     $r->assertOk();
 
-    return collect($r->json('data'))->pluck(0)->implode('|');
+    return collect($r->json('props.locais'))->pluck('nome')->implode('|');
 }
 
 test('baseline: a lista traz só os locais do negócio', function () {

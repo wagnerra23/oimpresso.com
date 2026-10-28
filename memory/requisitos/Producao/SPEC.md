@@ -640,6 +640,23 @@ Como responsável pela qualidade, quero registrar a inspeção de uma etapa (apr
 
 - Origem: lacunas de 2026-10-25 (P2 "controle de qualidade e não conformidade"). Ordem MRP → cotação → qualidade: **decisão coordenação 2026-10-26**.
 - Amplia o que existe: o refugo com motivo e o "Reprovar no controle" (papel `producao.qualidade`, US-PCP-027) já mandam a OS para retrabalho. Falta a inspeção que aprova, a não conformidade como registro próprio e a ação corretiva.
+
+### US-PCP-034 · Custo do fabricado numa conta só, para Fabricação e Produção — **P2**
+
+> owner: — · priority: p2 · status: doing · type: story
+
+Como dono, quero que o custo de um produto fabricado saia de uma conta só — material pelo custo médio, mais mão de obra, mais perdas —, valendo para a Fabricação (`Modules/Manufacturing`) e a Produção (`Modules/Producao`), para que a receita e a ordem não mostrem dois custos diferentes para o mesmo produto.
+
+**Implementado em:** `app/Domain/Producao/CustoDoFabricado.php` (a conta, atrás de `custo_fabricado.unificado`, desligada) · `config/custo_fabricado.php` (a flag)
+
+**Testado em:** `tests/Feature/Domain/Producao/CustoDoFabricadoContratoTest.php` (UC-PCP34-01..07)
+
+- Origem: lacunas de 2026-10-25 (P2 "custo real unificado Fabricação × Produção"); [W] 2026-10-27 mandou fazer todas.
+- Medido em `origin/main` `e80beef058`: a Fabricação soma `variations.dpp_inc_tax` (último preço) mais o custo extra da receita (`RecipeBomService`, `ManufacturingUtil::getRecipeTotal`); a Produção soma horas apontadas mais o custo do lote que saiu (`CustoRealService::daOs`). Nenhuma das duas usa o custo médio.
+- [x] Fatia 1: a conta no núcleo — material = Σ quantidade × custo **médio** (`App\Contracts\Compras\CustoDoInsumo`, método `medio` qualquer que seja a regra da empresa), mão de obra recebida já calculada, perdas = (material + mão de obra) × perdidas ÷ boas; centavos uma vez por tipo, meio para cima, em DECIMAL. Insumo sem custo sai `incompleto`, nunca zero inventado. Nenhum consumidor troca de conta.
+- [ ] Fatia 2: a Fabricação mostra o custo da receita por esta conta (flag ligada). Mexe no valor que a tela mostra: regra mestre (dupla prova + antes → depois para o [W]) e a tela segue o protótipo `manufacturing-recipe.jsx`.
+- [ ] Fatia 3: a OS da Produção mostra o custo pelo fabricado (mão de obra pelo `App\Contracts\Producao\CustoRealDaOs`, da sessão "Custo real da OS"). Regra mestre.
+- **Bloqueado:** a composição única (D2 da [decisão de 2026-10-09](../../decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md): `product_bom` é a fonte) ainda não tem ADR nem código — os PRs #9811 e #9812 só tiraram o desperdício da tela. Até ela existir, cada módulo entrega os insumos da sua composição; a conta não muda quando a fonte mudar.
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 
 - R-PCP-001 — `pcp_appointments` é append-only (trigger MySQL bloqueia UPDATE não-finished_at + DELETE total)

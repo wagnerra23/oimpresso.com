@@ -527,6 +527,7 @@ jobs:
             tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
+            tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php \
             tests/Feature/Sells/SellsShowEntregaContratoTest.php \
             tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php \

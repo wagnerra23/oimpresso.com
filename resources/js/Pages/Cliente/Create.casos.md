@@ -49,6 +49,15 @@ last_run_nota: "2026-10-05 revalidado por leitura na thread Crm/06: o Create.tsx
 
 ---
 
+## UC-CCRE-04 · Abrir o cadastro de contato serve a tela React
+- **Persona:** Larissa — clica em "Novo cliente" e cai no cadastro React, nunca no formulário Blade antigo.
+- **Aceite:** Dado qualquer empresa, com a chave `MWART_CLIENTE_CREATE` desligada · Quando faço `GET /contacts/create?type=customer` · Então renderiza Inertia **`Cliente/Create`** com os `types` que o usuário pode cadastrar.
+- **Teste:** `tests/Feature/Cliente/ClienteCutoverReactTest.php` (Pest, lane Cliente · MySQL).
+- **Regressão que defende:** a volta do ramo Blade, apagado no cutover F5 de 2026-10-27. A view `contact.create` continua existindo porque os modais Blade de POS, Compras e Repair a incluem.
+- **Status: ⬜** — teste novo; vira 🧪 com o run verde da lane Cliente.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão.
@@ -64,6 +73,7 @@ last_run_nota: "2026-10-05 revalidado por leitura na thread Crm/06: o Create.tsx
 | UC-CCRE-01 | CU-CLI-01 | US-CRM-076 |
 | UC-CCRE-02 | CU-CLI-01 | US-CRM-076 |
 | UC-CCRE-03 | CU-CLI-01 | US-CRM-076 |
+| UC-CCRE-04 | CU-CLI-01 | — |
 
 > A US é declarada porque o `StoreContactRequestTest` **é** o `**Testado em:**` da US-CRM-076 no SPEC e carrega `// @covers-us US-CRM-076` — não por semelhança de tema. Onde o vínculo não é verificável assim, a coluna fica vazia (US sem UC segue aparecendo como lacuna no `requisitos-status.mjs`, que é o certo).
 
@@ -73,5 +83,6 @@ last_run_nota: "2026-10-05 revalidado por leitura na thread Crm/06: o Create.tsx
 3. **Cadência:** rodar ao fim de toda mexida em `Create.tsx` / `_form/ClienteForm` / `StoreContactRequest`.
 
 ## Trilha do tempo
+- 2026-10-27 · [CC] cutover F5: tela só React, fallback Blade apagado (sessão mig-nucleo-contatos-geral).
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito.** Correção factual: "lane ativa" era falso (0 entradas de Cliente em `ci-sqlite-pest.list`) — lane criada no mesmo PR, **advisory**, força declarada; + ponteiro pro SDD §6.1. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente). 3 UCs ancorados no `StoreContactRequestTest` (validação fiscal mod 11). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · US-CRM-076.
