@@ -40,7 +40,7 @@ jobs:
   # Integridade do próprio gerador — HARD (se a lógica de classificação/montagem quebra, nada vale).
   selftest:
     name: Self-test — classificação por papel + montagem determinística
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -56,7 +56,7 @@ jobs:
   # Drift: o SUPERFICIE.md commitado bate com a árvore do PR? Exit code real.
   drift:
     name: SUPERFICIE.md == árvore (módulos vivos + adotados)
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -136,7 +136,7 @@ jobs:
   # `governance/required-checks-baseline.json`; este comentário não afirma enforcement.
   namespaces:
     name: Mapa módulo↔Pages == renders reais
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -160,7 +160,7 @@ jobs:
   # com árvore — os dois arquivos existem, nada drifta).
   colisao:
     name: Uma tela por chave (núcleo × módulos)
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -178,7 +178,7 @@ jobs:
     name: Módulo novo — contrato + projeções derivadas
     # Só faz sentido com diff de PR (impacto base→head); em push de main não há base.
     if: github.event_name != 'push'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4

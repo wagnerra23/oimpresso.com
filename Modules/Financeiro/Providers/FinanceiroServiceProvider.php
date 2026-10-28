@@ -132,6 +132,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\BackfillExtratoOfxCommand::class,
                 // US-FIN-070 — custeio RKW do mês, só leitura (aplicar é ação na tela).
                 \Modules\Financeiro\Console\Commands\CusteioRkwCommand::class,
+                // US-FIN-078 — DDA → contas a pagar sugeridas (FINANCEIRO_DDA_ENABLED, default OFF).
+                \Modules\Financeiro\Console\Commands\DdaSyncCommand::class,
                 // US-FIN-071 · UC-FLX-29 — régua de cobrança D+1/D+5/D+15 (default OFF por business).
                 \Modules\Financeiro\Console\Commands\ReguaCobrancaCommand::class,
                 // US-FIN-074 — extrato Pluggy (Open Finance) → fin_extrato_lancamentos.

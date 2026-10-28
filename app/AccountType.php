@@ -13,7 +13,8 @@ class AccountType extends Model
      */
     protected $guarded = ['id'];
 
-    public function sub_types()
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<AccountType, $this> */
+    public function sub_types(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\AccountType::class, 'parent_account_type_id');
     }

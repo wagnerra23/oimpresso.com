@@ -31,7 +31,9 @@ owner: M
 | 4 | Prova de TELA das 6 regras do §5 (UC-INGRED-08..13): `tests/js/manufacturing-ingredientes-editor.test.tsx`, vitest/jsdom no componente real, na lane `manufacturing-jsdom-gate`. Cada bloco tem controle positivo; 8 mutações provaram a mordida. Fecha o registro da US-MANU-006 no SPEC | este PR |
 
 Até a etapa 3 a janela Blade era a padrão. Desde ela, o "Editar ingredientes" da lista abre a tela nova;
-o mesmo endereço sem `?tela=nova` continua servindo a janela Blade (e a lista antiga `?legacy=1` aponta para ela).
+o mesmo endereço sem `?tela=nova` servia a janela Blade até 2026-10-26.
+
+**Etapa 5 — cutover** (pedido [W] 2026-10-27, *"1 PR por tela, com cutover apagando a Blade"*): `/add-ingredient` abre sempre este editor; a janela Blade, as partials `get-ingredient-row` / `ingredient-group-form`, `recipe/create`, `recipe/{id}` e a lista `?legacy=1` foram apagados. A cópia (`copy_recipe_id`) passou a ser provada pelos props do editor.
 
 ## 2. Quem abre e quem grava (regra 3)
 
