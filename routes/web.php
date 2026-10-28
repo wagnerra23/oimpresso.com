@@ -858,6 +858,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::patch('/sells/{id}/commission-split', [\App\Http\Controllers\SellCommissionSplitController::class, 'update'])
         ->whereNumber('id')
         ->name('sells.commission-split.update');
+    // US-COMM-015 — comissão por regra da venda (só cálculo; flag SELLS_COMISSAO_POR_REGRA).
+    Route::get('/sells/{id}/comissao-por-regra', [\App\Http\Controllers\SellComissaoPorRegraController::class, 'show'])
+        ->whereNumber('id')
+        ->name('sells.comissao-por-regra');
     Route::resource('sells', SellController::class)->except(['show']);
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 

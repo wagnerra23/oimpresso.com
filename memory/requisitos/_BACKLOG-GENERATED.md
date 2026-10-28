@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1077 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1078 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -20,10 +20,10 @@
 | [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
-| [`Marketplaces`](#marketplaces) | 26 | 0 | 0 | 0 | 26 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
+| [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
@@ -32,9 +32,9 @@
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
+| [`Comissao`](#comissao) | 16 | 1 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
-| [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
@@ -752,38 +752,6 @@
 - **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
 - **US-CRM-098** — Segmentação RFM — recência, frequência e valor por cliente
 
-## Marketplaces
-
-
-### todo
-
-- **US-MKT-001** — Schema fundação 9 tabelas + Models global scope — **P0** · 4h
-- **US-MKT-002** — Catálogo `mkt_marketplaces` seed 3 drivers — **P0** · 2h
-- **US-MKT-003** — OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
-- **US-MKT-004** — OAuth2 Shopee + Amazon BR — **P1** · 6h
-- **US-MKT-005** — Importar 1 anúncio manual ML (proof of concept) — **P0** · 5h
-- **US-MKT-006** — Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
-- **US-MKT-007** — Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
-- **US-MKT-008** — UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
-- **US-MKT-009** — NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
-- **US-MKT-010** — Sync rastreamento Correios + auto-fechamento — **P0** · 6h
-- **US-MKT-011** — Sync estoque oimpresso → ML (one-way push) — **P1** · 8h
-- **US-MKT-012** — Sync estoque ML → oimpresso (one-way pull via webhook) — **P1** · 4h
-- **US-MKT-013** — Anúncio em lote (bulk create) — **P1** · 10h
-- **US-MKT-014** — Disputa workflow completo — **P1** · 12h
-- **US-MKT-015** — Reconciliação financeira Mercado Pago split D+X — **P1** · 8h
-- **US-MKT-016** — Reputação ML monitoring + alerta SLA — **P1** · 5h
-- **US-MKT-017** — Pricing rules per marketplace (markup diferenciado) — **P1** · 6h
-- **US-MKT-018** — Jana tool `marketplaces.consulta` (relatórios IA) — **P2** · 4h
-- **US-MKT-019** — Etiquetas envio ML Coletas + integração Correios — **P2** · 6h
-- **US-MKT-020** — Pipeline produção sob demanda marketplace (ComVis) — **P2** · 8h
-- **US-MKT-021** — Shopee orders webhook + NFe (mesmo pattern ML) — **P2** · 10h
-- **US-MKT-022** — Amazon BR orders webhook + NFe (SP-API) — **P2** · 12h
-- **US-MKT-023** — Pricing dinâmico copilot competitor watch — **P3** · 14h
-- **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
-- **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
-- **US-MKT-026** — Nuvemshop — conectar a loja (OAuth, token sem vencimento) — **P1** · 4h
-
 ## RecurringBilling
 
 
@@ -877,6 +845,37 @@
 - **US-INV-023** — Job daily `inventory:expire-batches` (batch.expires_at < today → status=expired) — **P2**
 - **US-INV-024** — Dashboard analytics estoque (giro, lead-time, ruptura, custo real per categoria) — **P3**
 - **US-INV-025** — Multi-location transfer com batch preservation — **P3**
+
+## Marketplaces
+
+
+### todo
+
+- **US-MKT-001** — Schema fundação 9 tabelas + Models global scope — **P0** · 4h
+- **US-MKT-002** — Catálogo `mkt_marketplaces` seed 3 drivers — **P0** · 2h
+- **US-MKT-003** — OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
+- **US-MKT-004** — OAuth2 Shopee + Amazon BR — **P1** · 6h
+- **US-MKT-005** — Importar 1 anúncio manual ML (proof of concept) — **P0** · 5h
+- **US-MKT-006** — Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
+- **US-MKT-007** — Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
+- **US-MKT-008** — UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
+- **US-MKT-009** — NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
+- **US-MKT-010** — Sync rastreamento Correios + auto-fechamento — **P0** · 6h
+- **US-MKT-011** — Sync estoque oimpresso → ML (one-way push) — **P1** · 8h
+- **US-MKT-012** — Sync estoque ML → oimpresso (one-way pull via webhook) — **P1** · 4h
+- **US-MKT-013** — Anúncio em lote (bulk create) — **P1** · 10h
+- **US-MKT-014** — Disputa workflow completo — **P1** · 12h
+- **US-MKT-015** — Reconciliação financeira Mercado Pago split D+X — **P1** · 8h
+- **US-MKT-016** — Reputação ML monitoring + alerta SLA — **P1** · 5h
+- **US-MKT-017** — Pricing rules per marketplace (markup diferenciado) — **P1** · 6h
+- **US-MKT-018** — Jana tool `marketplaces.consulta` (relatórios IA) — **P2** · 4h
+- **US-MKT-019** — Etiquetas envio ML Coletas + integração Correios — **P2** · 6h
+- **US-MKT-020** — Pipeline produção sob demanda marketplace (ComVis) — **P2** · 8h
+- **US-MKT-021** — Shopee orders webhook + NFe (mesmo pattern ML) — **P2** · 10h
+- **US-MKT-022** — Amazon BR orders webhook + NFe (SP-API) — **P2** · 12h
+- **US-MKT-023** — Pricing dinâmico copilot competitor watch — **P3** · 14h
+- **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
+- **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
 
 ## ComunicacaoVisual
 
@@ -1093,6 +1092,31 @@
 - **US-ACCO-009** — Listar Reconcile
 - **US-ACCO-010** — Listar Report
 
+## Comissao
+
+
+### doing
+
+- **US-COMM-015** — Regra única de comissão: vendedor, produto ou categoria; % ou valor; técnico da OS como papel — **P2** _(`p2` · @wagner)_
+
+### todo
+
+- **US-COMM-016** — Relatório de comissão por vendedor pela regra: valor a pagar e detalhe por item — **P2** _(`p2`)_
+- **US-COMM-001** — Schema base + migration + multi-tenant scope — **P0**
+- **US-COMM-002** — Side-effect `CalcularComissaoSells` no `marcar_pago` — **P0**
+- **US-COMM-003** — Side-effect `EstornarComissao` no `cancelar_venda` (clawback) — **P0**
+- **US-COMM-004** — UI cadastro de policy + role distributions — **P0**
+- **US-COMM-005** — Tiers escalonados (3 faixas R$/% per user OU policy) — **P1**
+- **US-COMM-006** — Metas mensais + accelerator — **P1**
+- **US-COMM-007** — Comando `commission:close --month=YYYY-MM` (fechamento) — **P0**
+- **US-COMM-008** — UI relatório mensal per-vendedor (substitui ReportController legacy) — **P1**
+- **US-COMM-009** — Multi-papel split ComVis (vendedor+designer+instalador) — **P1**
+- **US-COMM-010** — Multi-mecânico split OficinaAuto (apontamentos por % mão-de-obra) — **P2**
+- **US-COMM-011** — Comissão sobre líquido (após taxa marketplace) — **P2**
+- **US-COMM-012** — Aprovação workflow + audit trail (manager review) — **P1**
+- **US-COMM-013** — Mobile self-service vendedor — **P2**
+- **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
+
 ## Essentials
 
 
@@ -1135,26 +1159,6 @@
 - **US-AP-013** — Diagnóstico assistido Jana IA ("qual peça pra Civic 2015 freio dianteiro?") — **P1**
 - **US-AP-014** — Cupom fiscal SAT (SP) — **P2**
 - **US-AP-015** — E-commerce mini-loja (catálogo digital + pedido online) — **P2**
-
-## Comissao
-
-
-### todo
-
-- **US-COMM-001** — Schema base + migration + multi-tenant scope — **P0**
-- **US-COMM-002** — Side-effect `CalcularComissaoSells` no `marcar_pago` — **P0**
-- **US-COMM-003** — Side-effect `EstornarComissao` no `cancelar_venda` (clawback) — **P0**
-- **US-COMM-004** — UI cadastro de policy + role distributions — **P0**
-- **US-COMM-005** — Tiers escalonados (3 faixas R$/% per user OU policy) — **P1**
-- **US-COMM-006** — Metas mensais + accelerator — **P1**
-- **US-COMM-007** — Comando `commission:close --month=YYYY-MM` (fechamento) — **P0**
-- **US-COMM-008** — UI relatório mensal per-vendedor (substitui ReportController legacy) — **P1**
-- **US-COMM-009** — Multi-papel split ComVis (vendedor+designer+instalador) — **P1**
-- **US-COMM-010** — Multi-mecânico split OficinaAuto (apontamentos por % mão-de-obra) — **P2**
-- **US-COMM-011** — Comissão sobre líquido (após taxa marketplace) — **P2**
-- **US-COMM-012** — Aprovação workflow + audit trail (manager review) — **P1**
-- **US-COMM-013** — Mobile self-service vendedor — **P2**
-- **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
 
 ## PaymentGateway
 
