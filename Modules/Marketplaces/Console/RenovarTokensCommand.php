@@ -6,6 +6,7 @@ namespace Modules\Marketplaces\Console;
 
 use Illuminate\Console\Command;
 use Modules\Marketplaces\Entities\ContaVendedor;
+use Modules\Marketplaces\Entities\Marketplace;
 use Modules\Marketplaces\Jobs\RenovarTokenContaJob;
 
 /**
@@ -24,6 +25,9 @@ class RenovarTokensCommand extends Command
         // SUPERADMIN: rotina de plataforma varre todas as empresas; cada job recebe a empresa da conta.
         $contas = ContaVendedor::withoutGlobalScopes()
             ->where('status', ContaVendedor::STATUS_ATIVA)
+            // Só o Mercado Livre renova. A Nuvemshop (ADR 0443) não tem vencimento nem refresh token;
+            // sem este filtro o `whereNull` abaixo a mandaria para a renovação do ML e marcaria token_expired.
+            ->whereHas('marketplace', fn ($q) => $q->where('slug', Marketplace::MERCADO_LIVRE))
             ->where(fn ($q) => $q->whereNull('access_token_expires_at')->orWhere('access_token_expires_at', '<', now()->addHour()))
             ->get(['id', 'business_id']);
 

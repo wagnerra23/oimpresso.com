@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Marketplaces\Http\Controllers\ContasController;
+use Modules\Marketplaces\Http\Controllers\ContasNuvemshopController;
 use Modules\Marketplaces\Http\Controllers\InstallController;
 use Modules\Marketplaces\Http\Controllers\NotificacoesMercadoLivreController;
 use Modules\Marketplaces\Http\Controllers\PedidosController;
@@ -31,6 +32,9 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
     ->group(function () {
         Route::get('contas/mercado-livre/conectar', [ContasController::class, 'conectar'])->name('contas.mercado_livre.conectar');
         Route::get('oauth/callback/mercado-livre', [ContasController::class, 'callback'])->name('oauth.mercado_livre.callback');
+        // Nuvemshop (ADR 0443): o controller recusa enquanto a flag MARKETPLACES_NUVEMSHOP_ATIVO estiver desligada.
+        Route::get('contas/nuvemshop/conectar', [ContasNuvemshopController::class, 'conectar'])->name('contas.nuvemshop.conectar');
+        Route::get('oauth/callback/nuvemshop', [ContasNuvemshopController::class, 'callback'])->name('oauth.nuvemshop.callback');
         Route::patch('contas/{conta}/local', [PedidosController::class, 'definirLocal'])->whereNumber('conta')->name('contas.local');
     });
 

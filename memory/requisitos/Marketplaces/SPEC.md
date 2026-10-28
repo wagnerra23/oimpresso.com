@@ -591,6 +591,16 @@ Dashboard margem por SKU/categoria/marketplace + DRE marketplace agregado.
 
 Sob demanda sinal cliente — driver pattern facilita adição.
 
+### US-MKT-026 · Nuvemshop — conectar a loja (OAuth, token sem vencimento) — **P1** · 4h
+
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/Nuvemshop/NuvemshopOAuth.php` · `Modules/Marketplaces/Http/Controllers/ContasNuvemshopController.php` · `Modules/Marketplaces/Database/Migrations/2026_10_27_000004_seed_mkt_nuvemshop.php` · `Modules/Marketplaces/Services/ContasVendedor.php`
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthNuvemshopContratoTest.php`
+
+**DoD:** a Nuvemshop entra no catálogo inativa; com a flag `MARKETPLACES_NUVEMSHOP_ATIVO` desligada, conectar não sai do ERP; ligada, conectar manda para a autorização do app com o `state` da sessão; o callback só aceita esse `state` e grava o token cifrado, sem vencimento, na conta da empresa da sessão; reconectar não duplica; a conta não entra na renovação horária do Mercado Livre.
+
+Fatia a da [ADR 0443](../../decisions/0443-nuvemshop-entra-no-marketplaces-como-driver.md). Parcial: falta a tela com o botão de conectar (fatia e) e as fatias b–d (receptor assinado + LGPD, pedido pago vira venda, estoque ERP → loja).
+
 ## 9. Concorrentes (research consolidada §discovery)
 
 | Concorrente | Pricing | Forte | Calcanhar oimpresso pode bater |

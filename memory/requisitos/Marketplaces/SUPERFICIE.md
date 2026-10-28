@@ -14,11 +14,12 @@ module: Marketplaces
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Marketplaces/**` + `resources/js/Pages/Marketplaces/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 48 arquivos em 16 papéis.
+**Total mapeado:** 52 arquivos em 16 papéis.
 
-## Controllers — 5
+## Controllers — 6
 
 - [ContasController.php](../../../Modules/Marketplaces/Http/Controllers/ContasController.php)
+- [ContasNuvemshopController.php](../../../Modules/Marketplaces/Http/Controllers/ContasNuvemshopController.php)
 - [DataController.php](../../../Modules/Marketplaces/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Marketplaces/Http/Controllers/InstallController.php)
 - [NotificacoesMercadoLivreController.php](../../../Modules/Marketplaces/Http/Controllers/NotificacoesMercadoLivreController.php)
@@ -28,7 +29,7 @@ module: Marketplaces
 
 - [MarketplacesLiberado.php](../../../Modules/Marketplaces/Http/Middleware/MarketplacesLiberado.php)
 
-## Services — 7
+## Services — 8
 
 - [ContasVendedor.php](../../../Modules/Marketplaces/Services/ContasVendedor.php)
 - [CfopDoPedido.php](../../../Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php)
@@ -36,6 +37,7 @@ module: Marketplaces
 - [MarketplacesAcesso.php](../../../Modules/Marketplaces/Services/MarketplacesAcesso.php)
 - [DestinatarioMercadoLivre.php](../../../Modules/Marketplaces/Services/MercadoLivre/DestinatarioMercadoLivre.php)
 - [MercadoLivreOAuth.php](../../../Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php)
+- [NuvemshopOAuth.php](../../../Modules/Marketplaces/Services/Nuvemshop/NuvemshopOAuth.php)
 - [PedidoParaVenda.php](../../../Modules/Marketplaces/Services/PedidoParaVenda.php)
 
 ## Models / Entities — 5
@@ -66,11 +68,12 @@ module: Marketplaces
 
 - [web.php](../../../Modules/Marketplaces/Routes/web.php)
 
-## Migrations (schema) — 3
+## Migrations (schema) — 4
 
 - [2026_10_26_000001_create_mkt_tables.php](../../../Modules/Marketplaces/Database/Migrations/2026_10_26_000001_create_mkt_tables.php)
 - [2026_10_26_000002_seed_mkt_marketplaces.php](../../../Modules/Marketplaces/Database/Migrations/2026_10_26_000002_seed_mkt_marketplaces.php)
 - [2026_10_26_000003_add_location_id_to_mkt_account_credentials.php](../../../Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php)
+- [2026_10_27_000004_seed_mkt_nuvemshop.php](../../../Modules/Marketplaces/Database/Migrations/2026_10_27_000004_seed_mkt_nuvemshop.php)
 
 ## Seeders — 1
 
@@ -92,9 +95,9 @@ module: Marketplaces
 
 - [Pedidos.casos.md](../../../resources/js/Pages/Marketplaces/Pedidos.casos.md)
 
-## Testes (Pest) — 9
+## Testes (Pest) — 10
 
-- 9 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
+- 10 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 5
