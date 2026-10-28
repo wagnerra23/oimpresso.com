@@ -96,6 +96,22 @@ return [
     ],
 
     /*
+     * Loja Nuvemshop — Modules/Marketplaces (ADR 0443). DESLIGADA: `ativo` é a flag que liga a integração inteira, e só o
+     * [W] liga, depois de criar o app de parceiro em partners.nuvemshop.com.br. app_id e
+     * client_secret vêm do ambiente (Vaultwarden → .env), nunca do git. O client_secret também é a
+     * chave do HMAC que assina os webhooks da Nuvemshop. `user_agent` é exigido em toda chamada
+     * à API (sem ele a Nuvemshop devolve 400).
+     */
+    'nuvemshop' => [
+        'ativo' => (bool) env('MARKETPLACES_NUVEMSHOP_ATIVO', false),
+        'app_id' => env('NUVEMSHOP_APP_ID', ''),
+        'client_secret' => env('NUVEMSHOP_CLIENT_SECRET', ''),
+        'authorize_url' => env('NUVEMSHOP_AUTHORIZE_URL', 'https://www.nuvemshop.com.br/apps/{app_id}/authorize'),
+        'token_url' => env('NUVEMSHOP_TOKEN_URL', 'https://www.nuvemshop.com.br/apps/authorize/token'),
+        'user_agent' => env('NUVEMSHOP_USER_AGENT', 'oimpresso ERP (suporte@oimpresso.com)'),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Inter PJ — shared infra Banking API + PIX (US-RB-045..047, US-RB-050..051)
     |--------------------------------------------------------------------------
