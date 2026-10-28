@@ -45,6 +45,20 @@ beforeEach(function () {
     $this->user->assignRole($role);
 });
 
+/**
+ * Versão Inertia que o app anuncia. Partial reload com X-Inertia-Version diferente da do app
+ * leva 409 (o Inertia manda o cliente recarregar a página) — era o caso do '1' fixo. Lida da
+ * primeira visita, como em AssetManagement/Tests/Feature/BensContratoTest.
+ */
+function versaoInertiaPg($test): string
+{
+    $inicial = $test->actingAs($test->user)
+        ->withSession(['user.business_id' => $test->business->id, 'business.id' => $test->business->id])
+        ->get('/settings/payment-gateways');
+
+    return (string) data_get($inicial->viewData('page'), 'version');
+}
+
 it('renderiza Inertia component Settings/PaymentGateways/Index', function () {
     $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
@@ -75,7 +89,7 @@ it('expõe 3 KPIs (ativos, total, fail, cobs_hoje) no partial reload', function 
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/settings/payment-gateways?only=kpis', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => versaoInertiaPg($this),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'kpis',
         ])
@@ -101,7 +115,7 @@ it('lista gateways do business + warn deprecated PesaPal', function () {
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/settings/payment-gateways?only=gateways', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => versaoInertiaPg($this),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'gateways',
         ]);
@@ -130,7 +144,8 @@ it('toggle endpoint inverte ativo do credential', function () {
 });
 
 it('Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global scope', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    // Adversário biz=99 pelo helper canônico: o business cru (só name+currency_id) bate na FK owner_id.
+    $otherBiz = $this->seededSupportClientTenant();
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,
@@ -145,7 +160,7 @@ it('Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global sc
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/settings/payment-gateways?only=gateways', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => versaoInertiaPg($this),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'gateways',
         ]);
@@ -155,7 +170,8 @@ it('Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global sc
 });
 
 it('cross-tenant toggle: 404 ao tentar togglar credencial de outro business', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    // Adversário biz=99 pelo helper canônico: o business cru (só name+currency_id) bate na FK owner_id.
+    $otherBiz = $this->seededSupportClientTenant();
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,

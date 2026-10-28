@@ -40,9 +40,13 @@ beforeEach(function () {
     );
     $role->syncPermissions(['direct_sell.view']);
 
+    // /sells/* passa pelo middleware CheckUserLogin, que dá 403 se user_type != 'user' ou
+    // allow_login != 1. A UserFactory não seta esses campos, então o teste os declara.
     $this->user = User::factory()->create([
         'business_id' => $this->business->id,
         'username' => 'sells_cob_test_'.uniqid(),
+        'user_type' => 'user',
+        'allow_login' => 1,
     ]);
     $this->user->assignRole($role);
 
@@ -142,7 +146,8 @@ it('shape cobranca retorna kind=overdue quando emitida e vencimento passou', fun
 // ─── Onda 4d.5 — Wire-up emissão GUARDs ──────────────────────────────────
 
 it('POST /sells/{id}/emitir-cobranca retorna 404 quando venda de outro business', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    // Adversário biz=99 pelo helper canônico: o business cru (só name+currency_id) bate na FK owner_id.
+    $otherBiz = $this->seededSupportClientTenant();
 
     $otherSale = Transaction::create([
         'business_id' => $otherBiz->id,
@@ -189,7 +194,8 @@ it('POST /sells/{id}/emitir-cobranca exige tipo válido', function () {
 });
 
 it('Tier 0 IRREVOGÁVEL: cobrança de outro business NÃO aparece na venda', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    // Adversário biz=99 pelo helper canônico: o business cru (só name+currency_id) bate na FK owner_id.
+    $otherBiz = $this->seededSupportClientTenant();
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,

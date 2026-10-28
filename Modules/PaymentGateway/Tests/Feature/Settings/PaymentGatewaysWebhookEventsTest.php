@@ -92,7 +92,9 @@ it('NÃO expõe payload completo (LGPD/PCI guard)', function () {
         'payment_gateway_credential_id' => $this->credential->id,
         'gateway_key'                   => 'asaas',
         'evento'                        => 'PAYMENT_RECEIVED',
-        'gateway_event_id'              => 'evt_secret_payload',
+        // O id não pode conter a palavra "payload": o 3º assert abaixo procura o NOME do campo
+        // no corpo, e `gateway_event_id` é exposto (de propósito) pelo endpoint.
+        'gateway_event_id'              => 'evt_secret_lgpd',
         'payload'                       => ['secret_data' => 'must_not_leak', 'cpf' => '12345678900'],
         'signature_valid'               => true,
     ]);
