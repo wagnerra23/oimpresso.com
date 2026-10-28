@@ -289,7 +289,6 @@ export interface PermissoesLista {
   view?: boolean;
   stock_report?: boolean;
   etiquetas?: boolean;
-  comprar?: boolean;
   view_purchase_price?: boolean;
   access_default_selling_price?: boolean;
 }
