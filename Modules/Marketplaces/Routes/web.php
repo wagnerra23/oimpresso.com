@@ -5,6 +5,7 @@ use Modules\Marketplaces\Http\Controllers\ContasController;
 use Modules\Marketplaces\Http\Controllers\ContasNuvemshopController;
 use Modules\Marketplaces\Http\Controllers\InstallController;
 use Modules\Marketplaces\Http\Controllers\NotificacoesMercadoLivreController;
+use Modules\Marketplaces\Http\Controllers\NotificacoesNuvemshopController;
 use Modules\Marketplaces\Http\Controllers\PedidosController;
 use Modules\Marketplaces\Http\Middleware\MarketplacesLiberado;
 
@@ -45,6 +46,18 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
 Route::middleware(['throttle:300,1'])
     ->post('/webhook/marketplaces/mercado-livre', [NotificacoesMercadoLivreController::class, 'receber'])
     ->name('marketplaces.webhook.mercado_livre');
+
+/*
+ * Notificações da Nuvemshop (ADR 0443). Públicas e sem CSRF como a do ML, mas assinadas: o
+ * controller recusa sem HMAC válido e responde 404 com a flag desligada. Os três webhooks LGPD
+ * obrigatórios têm URL própria porque o corpo deles não traz o nome do evento.
+ */
+Route::middleware(['throttle:300,1'])->prefix('webhook/marketplaces/nuvemshop')->name('marketplaces.webhook.nuvemshop')->group(function () {
+    Route::post('/', [NotificacoesNuvemshopController::class, 'receber'])->name('');
+    Route::post('store-redact', [NotificacoesNuvemshopController::class, 'receber'])->defaults('lgpd', 'store/redact')->name('.store_redact');
+    Route::post('customers-redact', [NotificacoesNuvemshopController::class, 'receber'])->defaults('lgpd', 'customers/redact')->name('.customers_redact');
+    Route::post('customers-data-request', [NotificacoesNuvemshopController::class, 'receber'])->defaults('lgpd', 'customers/data_request')->name('.customers_data_request');
+});
 
 /*
  * Tela de pedidos (US-MKT-008). Basta o pacote + `marketplaces.access`; escolher o local da conta

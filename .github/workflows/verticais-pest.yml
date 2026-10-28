@@ -797,6 +797,7 @@ jobs:
             Modules/Marketplaces/Tests/Feature/MarketplacesPedidosTelaContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesDestinatarioContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesOAuthNuvemshopContratoTest.php \
+            Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoNuvemshopContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
