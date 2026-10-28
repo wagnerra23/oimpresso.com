@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 883,
-    "edges": 1199,
+    "nodes": 884,
+    "edges": 1200,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 495,
+      "component": 496,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 495,
+      "hasComponent": 496,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -2169,6 +2169,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/OsPosCalculoController + Services/PosCalculoDaOs",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "OsPosCalculoController + Services/PosCalculoDaOs",
+      "desc": "US-COMVIS-005)"
     },
     {
       "id": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
@@ -8543,6 +8550,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/OsPosCalculoController + Services/PosCalculoDaOs",
       "type": "hasComponent",
       "source": "contains"
     },
