@@ -311,4 +311,17 @@ return [
         ],
     ],
 
+    /*
+     * US-BKP-001 — a empresa exporta os próprios dados (um CSV por tabela, num zip).
+     * Não é o dump do banco inteiro acima (esse segue só superadmin).
+     * Default false: nada é exposto até [W] ligar. Toggle: BACKUP_EXPORTACAO_EMPRESA=true.
+     * Lista de tabelas e exclusões confirmada por [W] em 2026-10-27; mora em
+     * App\Backup\ExportacaoEmpresa\TabelasDaEmpresa.
+     */
+    'exportacao_empresa' => [
+        'enabled' => (bool) env('BACKUP_EXPORTACAO_EMPRESA', false),
+        'disco' => env('BACKUP_EXPORTACAO_EMPRESA_DISCO', 'local'),
+        'horas_validade' => (int) env('BACKUP_EXPORTACAO_EMPRESA_HORAS', 24),
+    ],
+
 ];
