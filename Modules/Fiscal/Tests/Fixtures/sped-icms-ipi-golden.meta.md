@@ -70,3 +70,12 @@ Se o gerador mudar de propósito, o golden é regerado — nunca editado à mão
 de captura vive na descrição do PR desta onda; ele semeia o insumo da tabela acima
 dentro de transação, chama `gerar(98, 2026, 1)` e imprime bytes + linhas + SHA-256 +
 o conteúdo em base64. Rodar no CT 100 ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
+
+## ⚠️ Atrás do gerador desde 2026-10-27 (US-FISCAL-028 fatia 1)
+
+O gerador mudou de propósito e este golden **não foi regerado**: o CT 100 estava fora do ar.
+O arquivo segue sendo a captura fiel de 2026-09-03, mas descreve o leiaute anterior, que o PVA
+recusaria por quatro motivos medidos contra a NT 2025.001 e o Guia Prático v3.2.3:
+`COD_VER 018` num período de 2026 (o código de 2026 é `020`), falta dos blocos B, D, G, K e 1,
+`9990` sem contar o `9999` e `C001` = 0 sem nota. A estrutura nova é provada por
+`SpedEstruturaLeiauteTest` (`UC-FSPED-11..14`). Regerar pela receita acima quando o CT 100 voltar.

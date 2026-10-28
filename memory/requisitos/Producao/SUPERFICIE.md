@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 163 arquivos em 17 papéis.
+**Total mapeado:** 165 arquivos em 17 papéis.
 
 ## Controllers — 22
 
@@ -45,7 +45,7 @@ module: Producao
 
 - [SalvarRoteiroRequest.php](../../../Modules/Producao/Http/Requests/SalvarRoteiroRequest.php)
 
-## Services — 34
+## Services — 35
 
 - [AlocacaoDaEtapa.php](../../../Modules/Producao/Services/AlocacaoDaEtapa.php)
 - [ApontamentoOperadorService.php](../../../Modules/Producao/Services/ApontamentoOperadorService.php)
@@ -59,6 +59,7 @@ module: Producao
 - [CriarOsDaVenda.php](../../../Modules/Producao/Services/CriarOsDaVenda.php)
 - [CustoHoraDoPostoService.php](../../../Modules/Producao/Services/CustoHoraDoPostoService.php)
 - [CustoRealService.php](../../../Modules/Producao/Services/CustoRealService.php)
+- [EnvioDaProva.php](../../../Modules/Producao/Services/EnvioDaProva.php)
 - [FaltaDeMaterialDaOs.php](../../../Modules/Producao/Services/FaltaDeMaterialDaOs.php)
 - [HorasDosPostosService.php](../../../Modules/Producao/Services/HorasDosPostosService.php)
 - [LinhaDaProducao.php](../../../Modules/Producao/Services/LinhaDaProducao.php)
@@ -155,8 +156,9 @@ module: Producao
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.tsx)
 
-## Componentes / apoio de tela — 6
+## Componentes / apoio de tela — 7
 
+- [AcaoDaProva.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/_components/AcaoDaProva.tsx)
 - [EditorPosto.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/_components/EditorPosto.tsx)
 - [Alocar.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/Alocar.tsx)
 - [SimuladorBobina.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/SimuladorBobina.tsx)

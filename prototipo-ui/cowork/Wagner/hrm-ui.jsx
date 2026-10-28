@@ -28,7 +28,9 @@ function Row({ t, s, v }) {
 function Seg({ value, onChange, options }) {
   // Desenho: CliSeg (segmented único do app). A classe .hrm-seg fica pelas regras de
   // LAYOUT do hrm-page.css (margin-right:auto, flex:0 0 auto, 44px em pointer:coarse).
-  return <window.CliSeg role="tablist" options={options} value={value} onChange={onChange} />;
+  // O CliSeg lê `key` de cada opção; aqui as telas passam `id`. Sem o mapeamento, o clique numa
+  // aba grava `undefined` e a área de conteúdo some (medido 27/10 em Licenças › Tipos de licença).
+  return <window.CliSeg role="tablist" options={options.map((o) => ({ ...o, key: o.key ?? o.id }))} value={value} onChange={onChange} />;
 }
 function Nota({ tone = "info", title, children }) {
   const { Alert } = ds();

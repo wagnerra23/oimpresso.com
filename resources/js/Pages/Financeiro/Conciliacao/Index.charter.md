@@ -8,7 +8,7 @@ last_validated: "2026-05-31"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 101, 104, 236]
-related_us: [US-FIN-009]
+related_us: [US-FIN-009, US-FIN-080]
 smoke: "2026-07-02 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; KPIs + upload OFX). Antes: 2026-07-01 render sob sessão matriz biz=0."
 related_prototype: prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx
 related_prototype_nota: '(TelaConciliacao) — tela viva evoluiu além do protótipo (extrato via API, ADR 0236)'
@@ -45,6 +45,7 @@ e de **sync API do banco** — e deixar o usuário conciliá-las com títulos ab
 - Resumo do extrato (prop deferida `resumo`): período + entradas/saídas das duas origens,
   todas as situações — ver `UC-FCC-14` (FIN-4b, 2026-09-23)
 - Resumo do título vinculado em cada linha (`linhas[].titulo`), só exibição — ver `UC-FCC-15`
+- Regras do usuário casam a linha antes do valor + data (US-FIN-080, flag `FINANCEIRO_CONCILIACAO_REGRAS_ENABLED`, desligada) — só vinculam, não baixam — ver `UC-FCC-19..22`
 
 ---
 
@@ -135,3 +136,4 @@ it('upload duplicado double click e idempotente');             // ✅ existe (an
 | 2026-05-19 | Onda 19 #49 | Tela criada (Conciliação OFX MVP) — sem charter na época. |
 | 2026-05-31 | Opus + Wagner | Charter criado na Fase 1 ADR 0236 (tela passou a ler extrato API + coluna Origem). |
 | 2026-08-02 | Claude [C] | v2 — B7: nasce o `Index.casos.md` (`UC-FCC-01..13`). Corrigido o Non-Goal que dizia *"score fixo 0.85 no MVP"*: o 0.85 constante era o **bug B1** (ADR 0236), já substituído por `calcularMatchScore()` (`0.7·valor + 0.3·data`). Precedência teste-verde > charter — `ConciliacaoMatchScoreTest` provou (3 passed, CT 100 2026-08-02) e o charter foi corrigido no mesmo PR. |
+| 2026-10-27 | Claude [C] | US-FIN-080: regras de conciliação rodam antes do casamento por valor e data (`RegrasConciliacaoService`), atrás de flag desligada. Non-Goal "editar regra de match" segue valendo: ele fala da fórmula do score, que não mudou. |

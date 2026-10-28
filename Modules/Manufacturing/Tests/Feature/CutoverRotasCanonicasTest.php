@@ -184,13 +184,13 @@ it('as rotas /v2/* seguem existindo como redirect — link salvo não quebra', f
     }
 });
 
-it('o escape ?legacy=1 que os controllers ANUNCIAM existe de fato nos três', function () {
+it('o escape ?legacy=1 que os controllers ANUNCIAM existe de fato onde a Blade ainda vive', function () {
     // Mesmo espírito do UC-RECIPE-06 (Wave29): mecanismo que anuncia saída tem que honrá-la,
-    // senão a promessa vira instrução falsa pra próxima sessão.
+    // senão a promessa vira instrução falsa pra próxima sessão. Receitas saiu da lista no
+    // cutover de 2026-10-27 (a Blade foi apagada) — o oposto é provado no teste seguinte.
     $alvos = [
         'ProductionController' => 2,   // index() e getManufacturingReport()
         'SettingsController' => 1,     // index()
-        'RecipeController' => 1,       // index() — desde a US-MANU-001
     ];
 
     foreach ($alvos as $classe => $minimo) {
@@ -205,23 +205,58 @@ it('o escape ?legacy=1 que os controllers ANUNCIAM existe de fato nos três', fu
     }
 });
 
-it('nenhuma rota Blade do módulo foi removida no cutover', function () {
-    // Non-Goal vivo do Recipes.charter.md: "não remove nem renomeia rota Blade legacy".
-    // O cutover trocou o que a ação RENDERIZA, nunca o endereço.
+it('as rotas Blade das ordens de produção seguem registradas até o cutover delas', function () {
+    // As ordens ainda não têm tela React de criar/editar: estas rotas são o caminho vivo.
     $registradas = collect(Route::getRoutes())
         ->map(fn ($r) => '/'.ltrim($r->uri(), '/'))
         ->unique()
         ->all();
 
     foreach ([
-        '/manufacturing/recipe/create',
         '/manufacturing/production/create',
         '/manufacturing/add-ingredient',
         '/manufacturing/get-recipe-details',
     ] as $rota) {
         expect(in_array($rota, $registradas, true))
-            ->toBeTrue("Rota Blade {$rota} sumiu — o cutover não podia removê-la.");
+            ->toBeTrue("Rota {$rota} sumiu — ela ainda é o caminho vivo.");
     }
+});
+
+it('o cutover de Receitas apagou as rotas e as Blades legadas (2026-10-27)', function () {
+    // Pedido [W] 2026-10-27: "1 PR por tela, com cutover apagando a Blade". Substitutos React:
+    // recipe/create → NovaReceitaDialog · recipe/{id} → gaveta de Recipes.tsx ·
+    // add-ingredient (Blade) → IngredientesEditor · get-ingredient-row / ingredient-group-form
+    // eram partials só da Blade do add-ingredient.
+    $gets = collect(Route::getRoutes())
+        ->filter(fn ($r) => in_array('GET', $r->methods(), true))
+        ->map(fn ($r) => '/'.ltrim($r->uri(), '/'))
+        ->unique()
+        ->all();
+
+    foreach ([
+        '/manufacturing/recipe/create',
+        '/manufacturing/recipe/{recipe}',
+        '/manufacturing/get-ingredient-row/{variation_id}',
+        '/manufacturing/ingredient-group-form',
+    ] as $rota) {
+        expect(in_array($rota, $gets, true))->toBeFalse("Rota GET {$rota} voltou — a Blade dela foi apagada.");
+    }
+
+    // Âncora positiva: o mesmo filtro enxerga a lista de receitas (o assert acima não é vácuo).
+    expect(in_array('/manufacturing/recipe', $gets, true))->toBeTrue();
+
+    foreach (['index', 'create', 'show', 'add_ingredients', 'ingredient_group', 'ingredient_row'] as $view) {
+        expect(view()->exists("manufacturing::recipe.{$view}"))
+            ->toBeFalse("A Blade manufacturing::recipe.{$view} voltou.");
+    }
+
+    $fonte = (string) file_get_contents(base_path('Modules/Manufacturing/Http/Controllers/RecipeController.php'));
+    expect($fonte)->not->toContain("request()->boolean('legacy')");
+    // `recipe.ingredients_for_production` fica: é a Blade da ordem de produção (get-recipe-details).
+    foreach (['index', 'create', 'show', 'add_ingredients', 'ingredient_group', 'ingredient_row'] as $view) {
+        expect($fonte)->not->toContain("view('manufacturing::recipe.{$view}'");
+    }
+    expect($fonte)->toContain("view('manufacturing::recipe.ingredients_for_production'");
 });
 
 it('a tela de Insumos é alcançável a partir das telas irmãs', function () {

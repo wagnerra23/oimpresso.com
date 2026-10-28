@@ -338,6 +338,8 @@ class SellPosController extends Controller
                     'editPrice'    => $edit_price,
                 ],
                 'posSettings'          => $pos_settings,
+                // US-SELL-079 — resgate de pontos de fidelidade (null = escondido).
+                'pontosFidelidade'     => \App\Services\Sells\ResgatePontosFidelidade::propsDaTela((int) $business_id),
                 'subType'              => $sub_type,
                 // Reparo como tipo de venda (UC-S05): as opções que o POS Blade já monta via
                 // getModuleData('get_pos_screen_view') e o React descartava. Sem query nova.
@@ -571,6 +573,14 @@ class SellPosController extends Controller
                     'discount_amount' => $input['discount_amount'],
                 ];
                 $invoice_total = $this->productUtil->calculateInvoiceTotal($input['products'], $input['tax_rate_id'], $discount);
+
+                // US-SELL-079 — resgate de pontos: o servidor confere pontos e valor (antes só o JS da Blade conferia).
+                $resgate = app(\App\Services\Sells\ResgatePontosFidelidade::class)->conferir(
+                    (int) $business_id, isset($input['contact_id']) ? (int) $input['contact_id'] : null,
+                    $input['rp_redeemed'] ?? 0, $input['rp_redeemed_amount'] ?? 0, (float) ($invoice_total['final_total'] ?? 0),
+                );
+                $input['rp_redeemed'] = $resgate['pontos'];
+                $input['rp_redeemed_amount'] = $resgate['valor'];
 
                 DB::beginTransaction();
 
@@ -900,6 +910,9 @@ class SellPosController extends Controller
                 $msg = $e->getMessage();
                 // Variação do produto que falhou → o frontend contorna a linha.
                 $itemVariationId = $e->variationId;
+            }
+            if ($e instanceof \App\Services\Sells\ResgatePontosException) {
+                $msg = $e->getMessage();
             }
             if ($e instanceof \App\Exceptions\AdvanceBalanceNotAvailable) {
                 $msg = $e->getMessage();
