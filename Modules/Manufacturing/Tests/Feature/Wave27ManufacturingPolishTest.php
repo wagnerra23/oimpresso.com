@@ -139,6 +139,6 @@ it('W27 D5 BOM 7 ingredients: customer journey biz=1 robusto', function () {
 
     expect($bom->count())->toBe(7);
     expect($svc->resolveBom($recipe->id, 99)->count())->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'wave27-bom-7-ingredients')->delete();
 });
