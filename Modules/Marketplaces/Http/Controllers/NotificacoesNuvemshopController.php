@@ -35,11 +35,11 @@ class NotificacoesNuvemshopController extends Controller
 
     public function receber(Request $request, ?string $lgpd = null): JsonResponse
     {
-        if (! config('marketplaces.nuvemshop.ativo', false)) {
+        if (! config('services.nuvemshop.ativo', false)) {
             return response()->json(['ok' => false], 404);
         }
 
-        $segredo = (string) config('marketplaces.nuvemshop.client_secret', '');
+        $segredo = (string) config('services.nuvemshop.client_secret', '');
         $assinatura = (string) $request->header('x-linkedstore-hmac-sha256', '');
         if ($segredo === '' || $assinatura === '' || ! hash_equals(hash_hmac('sha256', $request->getContent(), $segredo), $assinatura)) {
             return response()->json(['ok' => false], 401);

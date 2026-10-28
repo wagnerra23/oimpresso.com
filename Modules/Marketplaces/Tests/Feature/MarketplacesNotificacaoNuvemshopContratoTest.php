@@ -30,7 +30,7 @@ beforeEach(function () {
     if (! Schema::hasTable('mkt_webhook_log')) {
         $this->markTestSkipped('Tabelas mkt_* ausentes — migrations do Modules/Marketplaces não rodaram.');
     }
-    config(['marketplaces.nuvemshop.ativo' => true, 'marketplaces.nuvemshop.client_secret' => 'segredo-app-teste']);
+    config(['services.nuvemshop.ativo' => true, 'services.nuvemshop.client_secret' => 'segredo-app-teste']);
     $this->b98 = (int) $this->seededTenant()->id;
     $this->b99 = (int) $this->seededSupportClientTenant()->id;
     $this->nuvem = (int) Marketplace::query()->where('slug', Marketplace::NUVEMSHOP)->value('id');
@@ -64,7 +64,7 @@ function nsLogs(int $mkt)
 }
 
 it('US-MKT-027 · flag desligada responde 404 e não grava nada', function () {
-    config(['marketplaces.nuvemshop.ativo' => false]);
+    config(['services.nuvemshop.ativo' => false]);
 
     nsPost($this, '/webhook/marketplaces/nuvemshop', ['store_id' => 123, 'event' => 'order/paid', 'id' => 871254203])->assertNotFound();
 
