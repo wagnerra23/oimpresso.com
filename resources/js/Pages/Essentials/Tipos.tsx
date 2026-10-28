@@ -145,7 +145,7 @@ function TipoPainel({ alvo, onClose }: PainelProps) {
       if (r.status === 422 && json?.errors) {
         const porCampo: Record<string, string> = {};
         for (const [campo, msgs] of Object.entries(json.errors as Record<string, string[]>)) {
-          porCampo[campo] = msgs[0];
+          porCampo[campo] = msgs[0] ?? '';
         }
         setErros(porCampo);
         return;
