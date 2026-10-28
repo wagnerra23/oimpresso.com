@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 381 arquivos em 18 papéis.
+**Total mapeado:** 387 arquivos em 18 papéis.
 
 ## Controllers — 30
 
@@ -74,7 +74,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [CheckContactLogin.php](../../../Modules/Crm/Http/Middleware/CheckContactLogin.php)
 - [ContactSidebarMenu.php](../../../Modules/Crm/Http/Middleware/ContactSidebarMenu.php)
 
-## Services — 11
+## Services — 12
 
 - [AgendaDeTarefasDoCrm.php](../../../Modules/Crm/Services/AgendaDeTarefasDoCrm.php)
 - [BrLookupService.php](../../../Modules/Crm/Services/BrLookupService.php)
@@ -85,6 +85,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [CrmLeadService.php](../../../Modules/Crm/Services/CrmLeadService.php)
 - [DealPipelineService.php](../../../Modules/Crm/Services/DealPipelineService.php)
 - [LeadAssignmentService.php](../../../Modules/Crm/Services/LeadAssignmentService.php)
+- [PortalContatoMenu.php](../../../Modules/Crm/Services/PortalContatoMenu.php)
 - [ProposalService.php](../../../Modules/Crm/Services/ProposalService.php)
 - [ScheduleService.php](../../../Modules/Crm/Services/ScheduleService.php)
 
@@ -252,7 +253,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [subscriptions.blade.php](../../../resources/views/contact/partials/subscriptions.blade.php)
 - [show.blade.php](../../../resources/views/contact/show.blade.php)
 
-## Telas (Inertia/React) — 19
+## Telas (Inertia/React) — 20
 
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.tsx)
@@ -263,6 +264,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.tsx)
+- [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Portal/Painel/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Propostas/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Relatorios/Index.tsx)
 - [Create.tsx](../../../resources/js/Pages/Cliente/Create.tsx)
@@ -274,7 +276,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.tsx](../../../resources/js/Pages/Cliente/Map.tsx)
 - [Show.tsx](../../../resources/js/Pages/Cliente/Show.tsx)
 
-## Componentes / apoio de tela — 38
+## Componentes / apoio de tela — 39
 
 - [DrawerAcompanhamento.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/DrawerAcompanhamento.tsx)
 - [FormAcompanhamento.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormAcompanhamento.tsx)
@@ -282,6 +284,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [FormRecorrente.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormRecorrente.tsx)
 - [FormRegistro.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormRegistro.tsx)
 - [FunilQuadro.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/_components/FunilQuadro.tsx)
+- [PortalContatoLayout.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Portal/_layout/PortalContatoLayout.tsx)
 - [ActiveChip.tsx](../../../resources/js/Pages/Cliente/_components/ActiveChip.tsx)
 - [Avatar.tsx](../../../resources/js/Pages/Cliente/_components/Avatar.tsx)
 - [KpiStripClickable.tsx](../../../resources/js/Pages/Cliente/_components/KpiStripClickable.tsx)
@@ -315,7 +318,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [SubscriptionsTab.tsx](../../../resources/js/Pages/Cliente/_show/SubscriptionsTab.tsx)
 - [VehiclesTab.tsx](../../../resources/js/Pages/Cliente/_show/VehiclesTab.tsx)
 
-## Charters (lei da tela) — 19
+## Charters (lei da tela) — 20
 
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.charter.md)
@@ -326,6 +329,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.charter.md)
+- [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Portal/Painel/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Propostas/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Relatorios/Index.charter.md)
 - [Create.charter.md](../../../resources/js/Pages/Cliente/Create.charter.md)
@@ -337,7 +341,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.charter.md](../../../resources/js/Pages/Cliente/Map.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Cliente/Show.charter.md)
 
-## Casos (contrato UC) — 19
+## Casos (contrato UC) — 20
 
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.casos.md)
@@ -348,6 +352,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.casos.md)
+- [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Portal/Painel/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Propostas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Relatorios/Index.casos.md)
 - [Create.casos.md](../../../resources/js/Pages/Cliente/Create.casos.md)
@@ -359,9 +364,9 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.casos.md](../../../resources/js/Pages/Cliente/Map.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Cliente/Show.casos.md)
 
-## Testes (Pest) — 40
+## Testes (Pest) — 41
 
-- 40 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
+- 41 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 47

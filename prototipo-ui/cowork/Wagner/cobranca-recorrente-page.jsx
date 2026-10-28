@@ -45,7 +45,7 @@
   const SUBS = [
   { id: "AS-1042", client: "Padaria Pão Quente", cnpj: "12.448.770/0001-22", plan: "Sinalização Mensal", cycle: "mensal", since: "2024-08-12", method: "pix", status: "em_dia", retry: null, nextAt: "2026-06-10", nextValue: 450, paid: 22, missed: 0, ltv: 9900, fiscal: "nfse", nf: "NFS-e 1188", os: "OS-3307", fav: true, contact: { name: "Dona Marli", phone: "(11) 99632-1180", email: "marli@paoquente.com.br" }, note: null, pixAuto: { status: "APROVADA" } },
   { id: "AS-1051", client: "Auto Posto Trevo", cnpj: "08.911.332/0001-09", plan: "Adesivos Frota Mensal", cycle: "mensal", since: "2025-02-03", method: "boleto", status: "retentando", retry: 1, nextAt: "2026-06-05", nextValue: 680, paid: 15, missed: 1, ltv: 10200, fiscal: "nfe", nf: "NFe 4471", os: "OS-3312", fav: false, contact: { name: "Cláudio Reis", phone: "(11) 98115-4420", email: "financeiro@postotrevo.com.br" }, note: "Boleto venceu — cliente pediu 2ª via no WhatsApp." },
-  { id: "AS-1063", client: "Restaurante Sabor Caseiro", cnpj: "21.005.118/0001-77", plan: "Impressão Trimestral", cycle: "trimestral", since: "2024-11-20", method: "card", status: "em_dia", retry: null, nextAt: "2026-07-20", nextValue: 1200, paid: 6, missed: 0, ltv: 7200, fiscal: "nfe", nf: "NFe 4402", os: null, fav: false, contact: { name: "Sr. Antônio", phone: "(11) 97744-3301", email: "antonio@saborcaseiro.com.br" }, note: null },
+  { id: "AS-1063", client: "Restaurante Sabor Caseiro", cnpj: "21.005.118/0001-77", plan: "Impressão Trimestral", cycle: "trimestral", since: "2024-11-20", method: "card", status: "em_dia", retry: null, nextAt: "2026-07-20", nextValue: 1200, paid: 6, missed: 0, ltv: 7200, fiscal: "nfe", nf: "NFe 4402", os: null, fav: false, contact: { name: "Sr. Antônio", phone: "(11) 97744-3301", email: "antonio@saborcaseiro.com.br" }, note: null, cartao: { ultimos4: "8829", bandeira: "Mastercard", tentativas: [{ n: 1, status: "soft_decline", em: "2026-05-20", motivo: "Transação não autorizada. Saldo insuficiente." }, { n: 2, status: "succeeded", em: "2026-05-21", motivo: null }] } },
   { id: "AS-1070", client: "Academia CorpoForte", cnpj: "33.671.904/0001-50", plan: "Sinalização Mensal", cycle: "mensal", since: "2025-01-15", method: "boleto", status: "falhou", retry: 3, nextAt: "2026-05-28", nextValue: 450, paid: 13, missed: 3, ltv: 5850, fiscal: "nfse", nf: null, os: "OS-3290", fav: true, contact: { name: "Renata Lima", phone: "(11) 99280-7765", email: "renata@corpoforte.com.br" }, note: "3 tentativas sem sucesso. Avaliar suspensão." },
   { id: "AS-1088", client: "Clínica Vida", cnpj: "45.220.661/0001-18", plan: "Manutenção Fachada Anual", cycle: "anual", since: "2024-03-01", method: "pix", status: "em_dia", retry: null, nextAt: "2027-03-01", nextValue: 3600, paid: 2, missed: 0, ltv: 7200, fiscal: "nfse", nf: "NFS-e 1102", os: "OS-3155", fav: false, contact: { name: "Dra. Helena", phone: "(11) 98870-2244", email: "adm@clinicavida.com.br" }, note: null, pixAuto: { status: "CRIADA", copiaCola: "00020126180014br.gov.bcb.pix2558pix.exemplo.com/qr/v2/rec/AS-1088" } },
   { id: "AS-1094", client: "Mercado União", cnpj: "55.118.022/0001-31", plan: "Adesivos Frota Mensal", cycle: "mensal", since: "2024-09-09", method: "boleto", status: "retentando", retry: 2, nextAt: "2026-06-03", nextValue: 680, paid: 19, missed: 2, ltv: 12920, fiscal: "nfe", nf: "NFe 4468", os: null, fav: false, contact: { name: "Jair Souza", phone: "(11) 99044-1199", email: "jair@mercadouniao.com.br" }, note: null },
@@ -245,6 +245,46 @@
 
   }
 
+  // Cartão recorrente (US-RB-011/013 · reaberto por [W] 2026-10-27): só em assinatura no cartão.
+  // O cartão fica salvo como token quando o cliente paga a 1ª fatura no cartão pela página do gateway;
+  // o oimpresso nunca vê o número, por isso o bloco mostra só bandeira + final. Cada fatura é cobrada
+  // nele no vencimento; recusa leve tenta de novo depois de 1, 3 e 7 dias (até 4 tentativas), recusa
+  // definitiva para e avisa o cliente pelo WhatsApp. As tentativas são as da fatura em aberto.
+  function CartaoRecorrenteCard({ sub }) {
+    const c = sub.cartao || { ultimos4: null, bandeira: null, tentativas: [] };
+    const rotulo = {
+      succeeded: ["Aprovada", "em_dia"],
+      sent: ["Enviada ao gateway", "pausada"],
+      soft_decline: ["Recusa leve · tenta de novo", "retentando"],
+      failed: ["Erro do gateway · tenta de novo", "retentando"],
+      hard_decline: ["Recusa definitiva · cliente avisado", "falhou"]
+    };
+    return (
+      <div className="cr-card" data-contract="cartao-recorrente">
+        <div className="cr-blk-label">Cartão recorrente</div>
+        <div style={{ fontSize: 12.5, color: "var(--text-dim)", marginTop: 5 }}>
+          {c.ultimos4 ?
+          `${c.bandeira || "Cartão"} final ${c.ultimos4}. Cada fatura é cobrada nele no vencimento.` :
+          "Nenhum cartão salvo. O cartão fica salvo quando o cliente paga a primeira fatura no cartão."}
+        </div>
+        {c.tentativas.length > 0 &&
+        <ol style={{ listStyle: "none", margin: "10px 0 0", padding: 0, display: "grid", gap: 6 }}>
+            {c.tentativas.map((t) =>
+          <li key={t.n} style={{ fontSize: 11.5, color: "var(--text-mute)" }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <span style={{ color: "var(--text)", fontWeight: 500 }}>{t.n}ª tentativa</span>
+                  <span>{dateFull(t.em)}</span>
+                  <span className={"cr-pill " + rotulo[t.status][1]}>{rotulo[t.status][0]}</span>
+                </div>
+                {t.motivo && <div style={{ marginTop: 2 }}>{t.motivo}</div>}
+              </li>
+          )}
+          </ol>
+        }
+      </div>);
+
+  }
+
   function PaymentHeat({ paid, missed }) {
     const cells = useMemo(() => {
       return Array.from({ length: 12 }, (_, i) => {
@@ -359,6 +399,8 @@
               </div>
 
               {!inactive && <PixAutoCard sub={sub} />}
+
+              {!inactive && sub.method === "card" && <CartaoRecorrenteCard sub={sub} />}
 
               <div>
                 <div className="cr-blk-label">Notas &amp; eventos</div>
