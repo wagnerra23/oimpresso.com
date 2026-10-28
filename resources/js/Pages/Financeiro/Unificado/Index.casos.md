@@ -316,6 +316,17 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
   três vendas; pagar o título paga as três; uma venda não entra em dois grupos; cancelar uma venda do
   grupo antes do pagamento tira o valor dela do título. Mexe em valor: Regra Mestre. Fonte: US-SELL-024
   e o Delphi (`CODFINANCEIRO_GRUPO`). Veio da tela de Contas a receber, aposentada (2026-10-23).
+- **[BACKLOG]** Desfazer ou corrigir o agrupamento de OS `[V0]` — pedido de Zoom, Techpress e Mhundo
+  (2026-10-28), que desfazem agrupamentos por erro de cadastro ou de valor. Dado três OS de um cliente
+  agrupadas numa cobrança só, com uma OS de valor errado ou o grupo feito no cliente errado, Quando desfaço
+  o agrupamento, informando o motivo, Então, se o grupo não tem pagamento, as OS voltam a ficar soltas com
+  os seus valores, o título do grupo é cancelado (não apagado) e o histórico mostra quem agrupou, quem
+  desfez, quando e por quê. Se o erro é numa OS só, tiro só ela do grupo e o título é recalculado com as
+  outras. Se o grupo já tem nota emitida, a nota é cancelada antes, dentro do prazo, ou o desagrupamento é
+  recusado com o motivo. Se já tem pagamento, o pagamento é estornado antes, com motivo, como no caso de
+  desagrupar parcelas já pagas. Hoje o agrupamento não existe nesta tela (bullet acima); o Financeiro já não
+  apaga título, só cancela. Falta decisão [W]: quem pode desfazer um grupo, e se um valor errado numa OS
+  agrupada pode ser corrigido sem desfazer o grupo, só recalculando o título. Mexe em valor: Regra Mestre.
 - **[BACKLOG]** Título de cada parte faturada `[V0]` — Dado uma venda de 1.000,00 faturada em duas
   partes (400,00 e 600,00), Então cada parte tem o seu título; cancelar a nota de uma parte cancela o
   título dela se ainda não estiver pago. Mexe em valor: Regra Mestre. Fonte: Omie (pedido parcial). Veio da tela de Contas a receber, aposentada (2026-10-23).
@@ -325,6 +336,7 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-28 · [F+C] Backlog: desfazer ou corrigir o agrupamento de OS (pedido de Zoom, Techpress e Mhundo). Sem id.
 - 2026-10-23 · [M+C] Backlog vindo da tela de Contas a receber (aposentada): total do serviço, retido e recebido; título de venda agrupada; título de cada parte faturada. Sem id.
 - 2026-07-27 · [CC] onda `sdd-from-source` (passo 5 · Onda 2): nasce o **SDD do módulo**
   (`memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md` — o Financeiro tinha 0 CU) e os UC de
