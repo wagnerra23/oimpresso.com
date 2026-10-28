@@ -198,6 +198,17 @@ Os dois caminhos de **venda interna** guardam; os três de **saída pro cliente 
 > "sem row" → **piora** etiqueta/Woo. Não há uma raiz única; são 3 defeitos independentes
 > (contrato do caller · contrato do writer · validação). Decidir um sem os outros regride.
 
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-10 · Quando o custo sobe, o preço de venda muda sozinho?**
+  - Estado: Em aberto
+  - Texto: Os modelos de Fluxos do Wagner têm a regra "preço aplicar", que aplica o preço sem confirmação (gráfica digital e brindes). Os casos agora dizem: preço fixo não muda, o resto segue a política de preço da US-PROD-030, e enquanto ela não existe nada muda sem confirmação. A pesquisa de mercado de 28/10/2026 está no PR #10101.
+  - Opção: Política com 3 modos por produto — Fixo, sugerir (avisa os itens afetados com atual → novo, como o Conta Azul) e aplicar sozinho (a "preço aplicar"), com trava de variação máxima e registro de antes → depois. É a proposta.
+  - Opção: Sempre sugerir — Ninguém muda preço sem confirmar. Mais seguro, mas a gráfica digital e os brindes perdem a regra que o Wagner desenhou.
+  - Destrava: P-107, P-108
+
 ## Notas de cobertura
 
 - **O que este arquivo NÃO cobre:** a variação (grade cor×tamanho / preço por quantidade) tem
