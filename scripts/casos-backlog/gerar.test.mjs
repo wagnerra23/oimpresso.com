@@ -59,3 +59,10 @@ test('texto com </script> não fecha o script da página', () => {
   const json = html.match(/const DADOS = (.*);/)[1];
   assert.match(JSON.parse(json).casos[0].texto, /<\/script>/, 'o texto volta intacto ao ler o JSON');
 });
+
+test('o próximo pedido livre respeita os números já dados pelo documento de origem', () => {
+  const { dados } = montarDados(repo({ 'resources/js/Pages/Sells/Index.casos.md': caso('P-005', 'US-X') }));
+  assert.equal(dados.proximoPedido, 'P-115', 'P-001 a P-114 ficam reservados, mesmo os que ainda não estão no git');
+  const { dados: d2 } = montarDados(repo({ 'resources/js/Pages/Sells/Index.casos.md': caso('P-120', 'US-X') }));
+  assert.equal(d2.proximoPedido, 'P-121');
+});

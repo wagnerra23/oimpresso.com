@@ -36,6 +36,10 @@ const TELAS = {
   'Financeiro/Unificado/Index': ['Financeiro', 'financeiro'], 'Comissionados/Index': ['Comissionados', 'financeiro'],
   'Report/SalesRepresentative/Index': ['Relatório de comissões', 'financeiro'], 'RecurringBilling/Index': ['Cobrança recorrente', 'financeiro'],
 };
+// O documento de origem (Maiara 23/10, Felipe 27/10) numerou os pedidos de P-001 a P-114. Os que
+// ainda não foram ligados ao git continuam com o número reservado, então o próximo livre nunca é
+// menor que P-115.
+const ULTIMO_RESERVADO = 114;
 const chaveDaTela = arquivo => arquivo.replace(/^.*\/Pages\//, '').replace(/\.casos\.md$/, '');
 
 export function lerRegras(raiz = RAIZ) {
@@ -80,7 +84,8 @@ export function montarDados(raiz = RAIZ) {
     return { id, nome: (TELAS[id] || [id])[0], modulo: moduloDe(t.arquivo), arquivo: t.arquivo, url: REPO_URL + t.arquivo,
       ucs: t.ucs, pedidos: casos.filter(c => c.tela === id).length };
   });
-  return { dados: { geradoEm: new Date().toISOString().slice(0, 10), areas, telas, casos, regras, decisoes: decs, contratos }, problemas };
+  const proximoPedido = 'P-' + String(Math.max(ULTIMO_RESERVADO, ...casos.map(c => c.n)) + 1).padStart(3, '0');
+  return { dados: { geradoEm: new Date().toISOString().slice(0, 10), areas, telas, casos, regras, decisoes: decs, contratos, proximoPedido }, problemas };
 }
 
 export function renderizar(dados) {

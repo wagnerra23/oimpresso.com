@@ -112,6 +112,11 @@ button, input, select { font: inherit; color: inherit }
 .conf-linha { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; border-top: 1px solid var(--line); padding-top: 10px; font-size: 0.9rem }
 .conf-linha label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer }
 .vazio { padding: 28px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--r) }
+.como-entra { margin-top: 18px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface) }
+.como-entra summary { cursor: pointer; padding: 10px 14px; font-weight: 600 }
+.como-entra div { padding: 0 14px 14px; display: grid; gap: 8px; font-size: 0.92rem }
+.como-entra p { margin: 0; max-width: 75ch }
+.como-entra pre { margin: 0; overflow-x: auto; background: var(--sunk); border-radius: 6px; padding: 10px 12px; font-family: var(--f-mono); font-size: 0.82rem; line-height: 1.5 }
 
 /* Regras, decisões, clientes */
 .secao-cab { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: end; margin-bottom: 12px }
@@ -194,6 +199,14 @@ tr.sem-caso td:first-child { box-shadow: inset 3px 0 0 var(--part) }
           <div class="resultado"><span id="resultado"></span> <button type="button" class="limpar" id="limpar" hidden>Limpar filtros</button></div>
         </div>
         <div class="lista" id="lista"></div>
+        <details class="como-entra" id="como-entra">
+          <summary>Como entra um pedido novo</summary>
+          <div>
+            <p>Este documento é gerado a partir dos arquivos. Um pedido novo não se escreve aqui: ele entra no <code>casos.md</code> da tela, como um item de backlog com o subitem <code>Pedido</code>. Na próxima geração ele aparece nesta lista.</p>
+            <pre id="como-entra-exemplo"></pre>
+            <p>O número no exemplo é o próximo livre (de P-001 a P-114 são do documento original e ficam reservados). Se duas pessoas usarem o mesmo número, o gerador avisa e não gera a página. Quando o pedido ganhar um teste e virar caso de uso com id, troque o item pelo bloco do UC e deixe nele a linha <code>- **Pedido de origem:** P-NNN</code>.</p>
+          </div>
+        </details>
       </div>
     </div>
   </section>
@@ -411,7 +424,21 @@ function desenharLista() {
     return art;
   }));
 }
-function desenharCasos() { desenharAreas(); desenharFiltros(); desenharLista(); }
+function desenharComoEntra() {
+  const proximo = DADOS.proximoPedido;
+  $('como-entra-exemplo').textContent = [
+    '- **[BACKLOG] Título curto do pedido** `[V0]`',
+    '  - Pedido: ' + proximo,
+    '  - Aceite: Dado … · Quando … · Então …',
+    '  - Âncora: UC-FLX-NN · US-XXX-NNN',
+    '  - Fazer: o que precisa ser construído',
+    '  - Hoje: miss | Não tem | o que existe hoje',
+    '  - Comunicação visual: ok | Sim | por quê',
+    '  - Clientes: Cliente A, Cliente B',
+    '  - Etiquetas: valor, miss, cv',
+  ].join('\n');
+}
+function desenharCasos() { desenharAreas(); desenharFiltros(); desenharLista(); desenharComoEntra(); }
 function abrirCaso(n) {
   est.recorte = 'tudo'; est.busca = ''; est.cliente = ''; est.filtros.clear(); est.aberto = n;
   $('busca').value = ''; $('cliente').value = '';
