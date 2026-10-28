@@ -1,24 +1,27 @@
 // Painel "Filtros" da lista de produtos — `Filtros` do protótipo (produto-blade.jsx) com as
 // opções da lista Blade (index.blade.php): tipo, categoria, unidade, imposto, marca, local,
 // situação e "Não para venda"; e os dois filtros de módulo que só existem para a empresa que
-// tem o módulo — "Modelo do dispositivo" (assistência técnica) e "WooCommerce habilitado".
+// tem o módulo — "Modelo do dispositivo" (assistência técnica), "WooCommerce habilitado" e
+// "Natureza fiscal" (módulo Fiscal, UC-PIDX-31).
 
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Button } from '@/Components/ui/button';
-import { SITUACOES, TIPOS_PRODUTO, type FiltrosLista, type Opcao, type OpcoesLista } from './tipos';
+import { NATUREZAS_FISCAIS, SITUACOES, TIPOS_PRODUTO, type FiltrosLista, type Opcao, type OpcoesLista } from './tipos';
 
 // O Radix Select não aceita `value=""` (lápide §5 2026-06-29): "Todos" usa uma sentinela.
 const TODOS = '__todos__';
 
-type ChaveSelect = 'type' | 'category_id' | 'unit_id' | 'tax_id' | 'brand_id' | 'location_id' | 'active_state' | 'repair_model_id';
+type ChaveSelect = 'type' | 'category_id' | 'unit_id' | 'tax_id' | 'brand_id' | 'location_id' | 'active_state' | 'repair_model_id' | 'natureza_fiscal';
 
 interface Props {
   filtros: FiltrosLista;
   opcoes: OpcoesLista;
   woocommerce: boolean;
+  /** Empresa com o módulo Fiscal: mostra o filtro "Natureza fiscal" (UC-PIDX-31). */
+  naturezaFiscal?: boolean;
   aplicar: (patch: Partial<FiltrosLista>) => void;
 }
 
@@ -59,7 +62,7 @@ function Campo({
   );
 }
 
-export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, aplicar }: Props) {
+export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, naturezaFiscal = false, aplicar }: Props) {
   const [aberto, setAberto] = useState(true);
   const campo = (k: ChaveSelect) => (v: string | null) => aplicar({ [k]: v } as Partial<FiltrosLista>);
 
@@ -89,6 +92,10 @@ export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, apl
             <Campo rotulo="Marca" valor={filtros.brand_id} opcoes={opcoes.marcas} vazio="Todas" aoMudar={campo('brand_id')} />
             <Campo rotulo="Local do negócio" valor={filtros.location_id} opcoes={opcoes.locais} vazio="Todos" aoMudar={campo('location_id')} />
             <Campo rotulo="Situação" valor={filtros.active_state} opcoes={SITUACOES} vazio="Todos" aoMudar={campo('active_state')} />
+            {/* UC-PIDX-31: só com o módulo Fiscal. */}
+            {naturezaFiscal && (
+              <Campo rotulo="Natureza fiscal" valor={filtros.natureza_fiscal} opcoes={NATUREZAS_FISCAIS} vazio="Todas" aoMudar={campo('natureza_fiscal')} />
+            )}
             {opcoes.modelos_dispositivo && (
               <Campo
                 rotulo="Modelo do dispositivo"

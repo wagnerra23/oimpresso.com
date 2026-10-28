@@ -20,9 +20,9 @@ related_runbook: memory/requisitos/Configuracoes/RUNBOOK-codigo-barras.md
 
 # Page Charter — /barcodes (DRAFT)
 
-> **Status:** draft. Thread `sistema/playbook/04`, tela 2 de 3. `GET /barcodes` responde Inertia só com a flag
-> `useV2ConfiguracoesCodigoBarras` ligada para o negócio; desligada, a Blade `barcode/index` segue. Vira `live` no
-> cutover, decisão [W]. Casos: [`Index.casos.md`](./Index.casos.md).
+> **Status:** draft. Thread `sistema/playbook/04`, tela 2 de 3. `GET /barcodes` responde Inertia para todas as
+> empresas. A flag `useV2ConfiguracoesCodigoBarras` foi ligada em 2026-10-07 (D-CFG-LIGAR) e saiu no cutover de 2026-10-27,
+> junto com a Blade `barcode/*`. Promover a `live` é decisão [W]. Casos: [`Index.casos.md`](./Index.casos.md).
 
 ## Mission
 
@@ -45,7 +45,7 @@ Manter as configurações de etiqueta (folha ou rolo) que a impressão de códig
 | # | Regra | Onde |
 |---|---|---|
 | R1 | Só configurações do negócio da sessão, sem as globais | `BarcodeController::etiquetasDoNegocio` |
-| R2 | Com a flag desligada a rota devolve a Blade | `BarcodeController::index` (`FLAG_V2`) |
+| R2 | Desligar a flag não devolve a Blade (cutover 2026-10-27: flag e Blade saíram) | `BarcodeController::index` |
 | R3 | Excluir e tornar padrão só alcançam o negócio; a padrão não se exclui | `destroy()` · `setDefault()` |
 | R4 | Sem `barcode_settings.access`, 403 | todas as ações |
 

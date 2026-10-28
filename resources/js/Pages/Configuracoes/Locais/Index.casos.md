@@ -26,9 +26,11 @@ last_run: "2026-10-07"
   **`Configuracoes/Locais/Index`**.
 - **Status: 🧪**
 
-## UC-LOCAL-02 · Com a flag desligada, a Blade continua
-- **Aceite:** Dado a flag desligada · Quando faço `GET /business-location` · Então a resposta é a Blade `business_location.index`.
-- **Status: 🧪**
+## UC-LOCAL-02 · Cutover: a Blade saiu, a flag não traz a tela antiga de volta
+- **Aceite:** Dado `useV2ConfiguracoesLocais` desligada · Quando faço `GET /business-location` · Então a resposta segue `Configuracoes/Locais/Index`,
+  e a view `business_location.index` não existe mais.
+- **Status: 🧪** — até 2026-10-27 este caso afirmava o contrário (flag OFF devolvia a Blade). A flag está
+  ligada para todas as empresas desde D-CFG-LIGAR ([W] 2026-10-07); o cutover apagou index/create/edit em Blade.
 
 ## UC-LOCAL-03 · A lista é só do meu negócio e só dos locais que posso ver · `[T0]`
 - **Aceite:** Dado um local meu, um de outro negócio e, para um usuário sem `access_all_locations`, um segundo local

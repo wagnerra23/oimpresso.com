@@ -34,7 +34,9 @@ beforeEach(function () {
     // do manifest) via versão diferente e respondia 409 pedindo recarga da página.
     $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 
-    config(['mwart.cliente_map.enabled' => true, 'mwart.cliente_map.business_ids' => []]);
+    // Cutover F5 (2026-10-27): a chave desligada não volta mais ao Blade. Desligá-la aqui
+    // é a prova — se o fallback voltar, este teste deixa de receber Inertia.
+    config(['mwart.cliente_map.enabled' => false]);
 
     $this->actingAs($this->user);
     session(['user.business_id' => $this->business->id, 'business.id' => $this->business->id]);
@@ -50,17 +52,14 @@ test('GET /contacts/map renderiza Inertia Cliente/Map com contacts/all_contacts'
         ? json_decode($response->getContent(), true)
         : null;
 
-    expect($page)->not->toBeNull('Response não é Inertia — gate cliente_map pode estar off.');
+    expect($page)->not->toBeNull('Response não é Inertia — o Blade legado voltou?');
     expect($page['component'] ?? null)->toBe('Cliente/Map');
     expect($page['props'] ?? [])->toHaveKey('contacts');
     expect($page['props'] ?? [])->toHaveKey('all_contacts');
 });
 
 test('Tier 0 — o mapa não lista cliente de outro business', function () {
-    $otherBusiness = DB::table('business')->where('id', '!=', $this->business->id)->first();
-    if (! $otherBusiness) {
-        $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
-    }
+    $otherBusiness = $this->seededSupportClientTenant(); // adversário fictício 99 (ADR 0358), nunca biz=4
 
     $meuName = 'Cliente Proprio Map '.uniqid();
     DB::table('contacts')->insert([

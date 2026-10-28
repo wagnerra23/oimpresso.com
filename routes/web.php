@@ -902,7 +902,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::resource('group-taxes', GroupTaxController::class);
 
     Route::get('/barcodes/set_default/{id}', [BarcodeController::class, 'setDefault']);
-    Route::resource('barcodes', BarcodeController::class);
+    Route::resource('barcodes', BarcodeController::class)->except(['create', 'show', 'edit']);
 
     //Invoice schemes..
     Route::get('/invoice-schemes/set_default/{id}', [InvoiceSchemeController::class, 'setDefault']);
@@ -966,7 +966,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     //Business Locations...
     Route::post('business-location/check-location-id', [BusinessLocationController::class, 'checkLocationId']);
-    Route::resource('business-location', BusinessLocationController::class);
+    Route::resource('business-location', BusinessLocationController::class)->except(['create', 'show', 'edit']);
 
     //Invoice layouts..
     Route::resource('invoice-layouts', InvoiceLayoutController::class);
@@ -995,7 +995,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::resource('payments', TransactionPaymentController::class);
 
     //Printers...
-    Route::resource('printers', PrinterController::class);
+    Route::resource('printers', PrinterController::class)->except(['create', 'show', 'edit']);
 
     Route::get('/stock-adjustments/remove-expired-stock/{purchase_line_id}', [StockAdjustmentController::class, 'removeExpiredStock']);
     Route::post('/stock-adjustments/get_product_row', [StockAdjustmentController::class, 'getProductRow']);
