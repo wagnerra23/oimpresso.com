@@ -67,6 +67,8 @@ pasta. Registrado também no RUNBOOK.
 - Mostra **Pedidos no ano**: quantas licenças do tenant usaram cada tipo no ano corrente
 - **Explica a exclusão bloqueada**: o servidor devolve `422` com `blocked_by.leaves`; o diálogo
   permanece aberto dizendo **quantas licenças** travam a exclusão
+- **Cria e edita pelo painel lateral**: nome, limite em dias, intervalo (por mês/por ano) e
+  "Conta como férias (CLT)". O servidor valida os campos e devolve 422 por campo (UC-TIPOS-11/12)
 - PT-BR em todo label, placeholder e mensagem
 
 ## Non-Goals — Features (NÃO faz)
@@ -76,8 +78,10 @@ pasta. Registrado também no RUNBOOK.
 - ❌ Não repete a nota do protótipo *"destroy está vazio — o cadastro só cresce"*: isso caducou
   com o [#6789](https://github.com/wagnerra23/oimpresso.com/pull/6789). É protótipo atrasado, não
   bug de produção
-- ❌ Não cria/edita inline — `create` e `edit` seguem no Blade legado (coexistência F5). Fazer o
-  formulário aqui é outro PR, com o seu próprio charter
+- ❌ Não cria nem edita em página separada: o formulário é o painel lateral da lista (PT-02).
+  Até 2026-10-27 este item dizia que `create`/`edit` seguiam no Blade legado. Medido nesse dia:
+  o `create` devolvia uma view inexistente (500) e o `edit` um fragmento de modal sem layout, e
+  as duas rotas passaram a redirecionar para a lista (UC-TIPOS-13)
 - ❌ Não remove o ramo `request()->ajax()` do controller: o datatable Blade ainda o consome
 - ❌ Não usa `router.delete` para excluir — o Inertia converte 422 em `errors` e engoliria o
   `blocked_by`, deixando o usuário com um "erro" genérico

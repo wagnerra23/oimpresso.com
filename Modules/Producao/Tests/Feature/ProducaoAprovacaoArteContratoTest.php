@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCART-01..05 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
+// Cobre UC-PCART-01..07 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
 // e a trava da arte da thread 10 do playbook de Produção.
 
 use App\Utils\ModuleUtil;
@@ -220,4 +220,137 @@ it('UC-PCV-11 · OS de outra empresa não troca nem mostra a arte (404)', functi
     $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/arte/trocar", ['arquivo' => 'https://x.test/v9.png'])->assertNotFound();
     $this->getJson("/producao/ordens/{$this->ordem->id}/arte")->assertNotFound();
     expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+});
+
+// ── UC-PCART-06 · o link da prova vai ao cliente por WhatsApp (US-COMVIS-NEW-004) ──
+// O envio é do Modules/Whatsapp pelo contrato AvisaClienteWhatsapp; aqui ele é um dublê que grava as
+// chamadas. Flag `producao.aprovacao_arte.whatsapp` nasce desligada.
+
+function artVendaComCliente($t, int $biz): array
+{
+    // `transactions.location_id` aceita null; o envio da prova não lê a loja. Criar loja exigiria
+    // invoice_scheme + invoice_layout da empresa (FK NOT NULL), que a 99 do seed não tem.
+    $local = DB::table('business_locations')->where('business_id', $biz)->value('id');
+    $contato = (int) DB::table('contacts')->insertGetId(['business_id' => $biz, 'type' => 'customer', 'name' => 'Marta Prova',
+        'mobile' => '48988887777', 'contact_status' => 'active', 'created_by' => $t->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
+    $venda = (int) DB::table('transactions')->insertGetId(['business_id' => $biz, 'location_id' => $local, 'type' => 'sell', 'status' => 'final',
+        'contact_id' => $contato, 'invoice_no' => 'V-'.substr(uniqid(), -6), 'payment_status' => 'due', 'transaction_date' => now(),
+        'final_total' => 500, 'essentials_duration' => 0, 'created_by' => $t->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
+
+    return [$contato, $venda];
+}
+
+function artDubleDoAviso(): object
+{
+    $duble = new class implements \App\Contracts\Atendimento\AvisaClienteWhatsapp {
+        public array $chamadas = [];
+
+        public function avisar(int $businessId, int $contactId, string $texto): array
+        {
+            $this->chamadas[] = compact('businessId', 'contactId', 'texto');
+
+            return ['enviado' => true, 'motivo' => null];
+        }
+    };
+    app()->instance(\App\Contracts\Atendimento\AvisaClienteWhatsapp::class, $duble);
+
+    return $duble;
+}
+
+it('UC-PCART-06 · com a flag desligada nada é enviado e o link volta ao operador', function () {
+    config(['producao.aprovacao_arte.whatsapp' => false]);
+    $duble = artDubleDoAviso();
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+
+    $r = $this->actingAs($this->designer)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
+        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/c.png'])->assertCreated();
+
+    expect($r->json('whatsapp'))->toBeNull()->and($r->json('link'))->toContain('/arte/')->and($duble->chamadas)->toBe([]);
+});
+
+it('UC-PCART-06 · com a flag ligada o link vai ao cliente da venda da OS, na empresa da OS', function () {
+    config(['producao.aprovacao_arte.whatsapp' => true]);
+    $duble = artDubleDoAviso();
+    [$contato, $venda] = artVendaComCliente($this, $this->b98);
+    DB::table('pcp_ordens')->where('id', $this->ordem->id)->update(['transaction_id' => $venda]);
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+
+    $r = $this->actingAs($this->designer)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
+        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/d.png'])->assertCreated();
+
+    expect($r->json('whatsapp'))->toBe(['enviado' => true, 'motivo' => null])->and($duble->chamadas)->toHaveCount(1);
+    $c = $duble->chamadas[0];
+    expect($c['businessId'])->toBe($this->b98)->and($c['contactId'])->toBe($contato)
+        ->and($c['texto'])->toContain($r->json('link'))->and($c['texto'])->toContain('Olá, Marta!');
+});
+
+it('UC-PCART-06 · venda de outra empresa ou sem cliente não manda nada e pede contato manual', function () {
+    config(['producao.aprovacao_arte.whatsapp' => true]);
+    $duble = artDubleDoAviso();
+    // A OS aponta para uma venda da empresa 99: o cliente dela nunca recebe o link da 98 (Tier 0).
+    [, $vendaAlheia] = artVendaComCliente($this, $this->b99);
+    DB::table('pcp_ordens')->where('id', $this->ordem->id)->update(['transaction_id' => $vendaAlheia]);
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+
+    $r = $this->actingAs($this->designer)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
+        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/e.png'])->assertCreated();
+
+    expect($r->json('whatsapp'))->toBe(['enviado' => false, 'motivo' => 'sem_cliente'])->and($duble->chamadas)->toBe([])
+        ->and(AprovacaoArte::withoutGlobalScopes()->find($r->json('id')))->not->toBeNull();
+});
+
+// ── UC-PCART-07 · fila do Painel: reenviar o link ou enviar a nova prova (Painel/Index.casos.md) ──
+
+function artReenvia($t, array $corpo = [])
+{
+    // partialMock() é protegido no TestCase; fora do it() o dublê entra pelo container.
+    $m = \Mockery::mock(ModuleUtil::class)->makePartial();
+    $m->shouldReceive('hasThePermissionInSubscription')->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module');
+    app()->instance(ModuleUtil::class, $m);
+
+    return $t->actingAs($t->designer)->postJson("/producao/ordens/{$t->ordem->id}/aprovacao-arte/reenviar", $corpo);
+}
+
+it('UC-PCART-07 · aguardando o cliente: reenviar gera link novo para a mesma prova e o anterior deixa de valer', function () {
+    $r = artReenvia($this)->assertCreated();
+
+    expect($r->json('link'))->not->toContain($this->link['token']);
+    $this->get($this->url)->assertStatus(410);
+    $this->get(parse_url($r->json('link'), PHP_URL_PATH))->assertOk()->assertSee('prova-banner.png');
+    $s = app(\Modules\Producao\Services\ArteDasOrdens::class)->travadas($this->b98, [$this->ordem->id]);
+    expect($s[$this->ordem->id]['estado'])->toBe('aguardando')->and(AprovacaoArte::withoutGlobalScopes()
+        ->where('ordem_id', $this->ordem->id)->count())->toBe(2);
+});
+
+it('UC-PCART-07 · ajuste pedido: exige o arquivo novo; com ele, sai link novo e a OS volta a aguardar', function () {
+    $this->post($this->url.'/recusar', ['comentario' => 'Trocar o telefone'])->assertOk();
+
+    artReenvia($this)->assertStatus(422)->assertJsonPath('codigo', ApontamentoRecusado::APROVACAO_ENCERRADA);
+    artReenvia($this, ['arquivo' => 'https://arquivos.exemplo.test/prova-banner.png'])->assertStatus(422);
+    expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+
+    $r = artReenvia($this, ['arquivo' => 'https://arquivos.exemplo.test/prova-banner-v2.png'])->assertCreated();
+    $this->get(parse_url($r->json('link'), PHP_URL_PATH))->assertOk()->assertSee('prova-banner-v2.png');
+    $s = app(\Modules\Producao\Services\ArteDasOrdens::class)->travadas($this->b98, [$this->ordem->id]);
+    expect($s[$this->ordem->id]['estado'])->toBe('aguardando')->and($s[$this->ordem->id]['arquivo'])->toContain('v2');
+});
+
+it('UC-PCART-07 · arte aprovada não reenvia (422) e nada é gravado', function () {
+    $this->post($this->url.'/aprovar')->assertOk();
+
+    artReenvia($this)->assertStatus(422);
+    expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+});
+
+it('UC-PCART-07 · OS de outra empresa não reenvia (404) e o link da 98 segue valendo', function () {
+    $alheio = $this->usuarioComPermissoes(['producao.access'], $this->B99);
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+
+    $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte/reenviar", [])->assertNotFound();
+    expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+    $this->get($this->url)->assertOk();
 });

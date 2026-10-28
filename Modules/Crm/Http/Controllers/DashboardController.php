@@ -4,11 +4,23 @@ namespace Modules\Crm\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Utils\ContactUtil;
+use App\Services\FeatureFlagService;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Modules\Crm\Services\PortalContatoMenu;
 
 class DashboardController extends Controller
 {
+    /**
+     * Flag do Início do portal do contato em React (thread crm/playbook/18, F3). Convenção
+     * `useV2<Modulo><Tela>`: sem a chave no GrowthBook cai no fallbackDefaults, que não a lista —
+     * default OFF, a Blade segue servindo. Ligar é toggle (flag:set --biz=N), não deploy.
+     *
+     * @see memory/requisitos/Crm/RUNBOOK-portal-painel.md
+     */
+    private const FLAG_V2 = 'useV2CrmPortalPainel';
+
     protected $contactUtil;
 
     protected $moduleUtil;
@@ -28,7 +40,7 @@ class DashboardController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -46,8 +58,53 @@ class DashboardController extends Controller
             abort(404);
         }
 
+        // `?classico=1` mantém a Blade alcançável com a flag ligada, até o cutover.
+        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => (int) $business_id])) {
+            return Inertia::render('Crm/Portal/Painel/Index', $this->painel($contact) + [
+                // A casca do contato (D6) substitui a prop `shell` inteira: o menu e o resto do
+                // shell do ERP não descem para quem é contato (UC-CRMPO-03).
+                'shell' => ['portal' => $this->casca($contact)],
+            ]);
+        }
+
         return view('crm::dashboard.index')
             ->with(compact('contact'));
+    }
+
+    /**
+     * Os blocos do Início seguem o tipo do contato, como a Blade: cliente vê vendas, fornecedor vê
+     * compras, `both` vê os dois; abertura só quando existe. Valor só é MOSTRADO — os totais são os
+     * de `ContactUtil::getContactInfo`, sem cálculo novo (a pagar = total − pago, como a Blade).
+     */
+    private function painel($contact): array
+    {
+        $bloco = fn ($total, $pago) => [
+            'total' => $this->decimal($total), 'pago' => $this->decimal($pago), 'a_pagar' => $this->decimal($total - $pago),
+            'total_f' => $this->contactUtil->num_f($total, true), 'pago_f' => $this->contactUtil->num_f($pago, true),
+            'a_pagar_f' => $this->contactUtil->num_f($total - $pago, true),
+        ];
+        $ehCliente = in_array($contact->type, ['customer', 'both']);
+        $ehFornecedor = in_array($contact->type, ['supplier', 'both']);
+        $temAbertura = ! empty($contact->opening_balance) && (float) $contact->opening_balance != 0.0;
+
+        return array_filter([
+            'saudacao' => (string) (auth()->user()->first_name ?: $contact->name),
+            'vendas' => $ehCliente ? $bloco((float) $contact->total_invoice, (float) $contact->invoice_received) : null,
+            'compras' => $ehFornecedor ? $bloco((float) $contact->total_purchase, (float) $contact->purchase_paid) : null,
+            'abertura' => $temAbertura ? $bloco((float) $contact->opening_balance, (float) $contact->opening_balance_paid) : null,
+        ], fn ($v) => $v !== null);
+    }
+
+    private function casca($contact): array
+    {
+        $modulos = ! empty(session('business.enabled_modules')) ? session('business.enabled_modules') : [];
+
+        return app(PortalContatoMenu::class)->casca($contact, $modulos);
+    }
+
+    private function decimal(float $v): string
+    {
+        return number_format($v, 2, '.', '');
     }
 
     /**
