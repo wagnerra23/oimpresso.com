@@ -2121,6 +2121,12 @@ parameters:
 			path: Modules/Crm/Config/retention.php
 
 		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/Crm/Config/config.php
+
+		-
 			message: '#^PHPDoc type array of property Modules\\Crm\\Entities\\Campaign\:\:\$casts is not covariant with PHPDoc type array\<string, string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$casts\.$#'
 			identifier: property.phpDocType
 			count: 1

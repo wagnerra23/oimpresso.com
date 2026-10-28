@@ -201,6 +201,7 @@ jobs:
             Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php \
             Modules/Compras/Tests/Feature/EntradaXmlSchemaTest.php \
             Modules/Compras/Tests/Feature/ComprasExportarContratoTest.php \
+            Modules/Compras/Tests/Feature/CurvaAbcReposicaoTest.php \
             Modules/Compras/Tests/Feature/CustoMedioMovelTest.php
 
 

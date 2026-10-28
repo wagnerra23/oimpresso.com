@@ -194,6 +194,7 @@ class CrmServiceProvider extends ServiceProvider
             \Modules\Crm\Console\CreateRecursiveFollowup::class,
             \Modules\Crm\Console\Commands\CrmHealthCommand::class,
             \Modules\Crm\Console\Commands\RfmCalcularCommand::class,
+            \Modules\Crm\Console\Commands\CriarFormularioCapturaCommand::class,
         ]);
     }
 

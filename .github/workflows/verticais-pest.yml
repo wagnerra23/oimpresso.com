@@ -99,6 +99,11 @@ on:
       - 'Modules/Crm/Http/Controllers/FunilController.php'
       - 'Modules/Crm/Services/DealPipelineService.php'
       - 'Modules/Crm/Tests/Feature/CrmFunilContratoTest.php'
+      # US-CRM-096 — captura pública de lead com origem e UTM.
+      - 'Modules/Crm/Http/Controllers/CapturaLeadController.php'
+      - 'Modules/Crm/Services/CapturaDeLead.php'
+      - 'Modules/Crm/Routes/api.php'
+      - 'Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php'
       # US-CRM-098 — segmentação RFM (contrato App\Contracts\Crm\SegmentacaoRfm).
       - 'Modules/Crm/Services/Fidelidade/**'
       - 'Modules/Crm/Console/Commands/RfmCalcularCommand.php'
@@ -249,6 +254,11 @@ jobs:
               - 'Modules/Crm/Http/Controllers/FunilController.php'
               - 'Modules/Crm/Services/DealPipelineService.php'
               - 'Modules/Crm/Tests/Feature/CrmFunilContratoTest.php'
+              # US-CRM-096 — captura pública de lead com origem e UTM.
+              - 'Modules/Crm/Http/Controllers/CapturaLeadController.php'
+              - 'Modules/Crm/Services/CapturaDeLead.php'
+              - 'Modules/Crm/Routes/api.php'
+              - 'Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php'
               # US-CRM-098 — segmentação RFM (contrato App\Contracts\Crm\SegmentacaoRfm).
               - 'Modules/Crm/Services/Fidelidade/**'
               - 'Modules/Crm/Console/Commands/RfmCalcularCommand.php'
@@ -690,6 +700,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmChamadasContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmFunilContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRfmContratoTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContratoTest.php \
