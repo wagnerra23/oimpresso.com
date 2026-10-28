@@ -851,3 +851,29 @@ Status: 🧪
   guarda a data da produção e a combinada com o cliente (decisão [W] de 2026-10-20). Fonte: Printavo
   (tarefas com responsável e prazo). Hoje cada etapa grava o seu responsável, mas não há tarefas
   paralelas com prazo nem aviso. Verificado contra as regras do [W] em 2026-10-23.
+
+## Cliente desiste com o serviço já em produção (pedido da Copylan, 2026-10-28)
+
+- **[BACKLOG]** Cancelar a OS que já começou e apurar o que foi gasto `[V0]` `[E0]` — Dado uma venda
+  aprovada com sinal pago e a OS em execução, com parte do material já apontado, Quando o cliente
+  desiste e o gerente cancela informando o motivo, Então a OS sai da fila e das máquinas, o material já
+  consumido fica como perda da OS, o que ainda estava reservado volta ao estoque, e a venda mostra o que
+  já foi gasto (material e horas apontadas) para decidir o que cobrar: reter o sinal, cobrar o gasto ou
+  devolver o resto. A nota, se já saiu, segue a regra de cancelamento da nota. Cancelar a venda cancela
+  as OS dela.
+  **Depende do [W]:** no fluxo "OS e produção por item" dele (`prototipo-ui/cowork/Wagner/fluxos-modelos.casos.md`),
+  a OS só é cancelada em Aguardando liberação, com nada consumido ou o consumo lançado como perda, e no
+  fluxo "Orçamento e venda" a venda aprovada é cancelada estornando o sinal. Falta a regra para a OS que
+  já está na fila, em execução, pausada ou em retrabalho, e para o que cobrar do cliente. A proposta é
+  cobrar o que já foi gasto, retendo o sinal até esse valor e devolvendo o resto, com a política de
+  cancelamento escrita no orçamento; a alternativa é o sinal ficar sempre.
+  Hoje "Cancelar item" (`ProcessoDaOrdem::ACOES`, `SituacaoDaOrdem::cancelarItem`) só existe em
+  Aguardando liberação e Aguardando material, e não pede motivo. Cancelar a venda
+  (`CancelarVendaCascade`) libera a reserva de material da OS (`ProducaoServiceProvider`, UC-PCRES-06),
+  mas a OS continua na fila. Não há apuração do gasto nem cobrança parcial.
+  Fontes: Alterdata Wise PCP (no cancelamento da ordem iniciada, informa por insumo o que volta ao
+  estoque e o que foi perdido); shopVOX, DecoNetwork, Cyrious e Omie cancelam a venda iniciada e
+  reembolsam ou dão crédito, sem taxa de cancelamento documentada. Na lei, o serviço sob encomenda se
+  parece com a empreitada (Código Civil, art. 623: quem desiste paga as despesas e o lucro do que já foi
+  feito); a retenção do sinal segue o combinado (arts. 417 a 420), e o [E] confere antes de virar regra.
+  Mexe em valor e estoque: Regra Mestre. Verificado contra as regras do [W] em 2026-10-28.
