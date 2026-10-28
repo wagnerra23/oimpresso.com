@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\PaymentGateway\Http\Controllers\InstallController;
 use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysCnabRetornoController;
 use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysController;
+use Modules\PaymentGateway\Http\Controllers\TefController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\AsaasWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\BcbPixWebhookController;
 use Modules\PaymentGateway\Http\Controllers\Webhooks\C6WebhookController;
@@ -141,4 +142,15 @@ Route::middleware(['web'])
         Route::post('webhooks/inter/{credentialId}', [InterPixWebhookController::class, 'handle'])
             ->whereNumber('credentialId')
             ->name('paymentgateway.webhooks.inter.pix');
+    });
+
+// ─── Maquininha integrada ao caixa — TEF (US-SELL-075) ─────────────────
+// JSON para a linha de pagamento do caixa. Flag SELLS_TEF_ENABLED
+// desligada → 404 no controller.
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'CheckUserLogin'])
+    ->prefix('paymentgateway/tef')
+    ->name('sells.tef.')
+    ->group(function () {
+        Route::post('cobrancas', [TefController::class, 'store'])->name('store');
+        Route::get('cobrancas/{id}', [TefController::class, 'show'])->whereNumber('id')->name('show');
     });

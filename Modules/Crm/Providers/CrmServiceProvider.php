@@ -190,6 +190,7 @@ class CrmServiceProvider extends ServiceProvider
             \Modules\Crm\Console\SendScheduleNotification::class,
             \Modules\Crm\Console\CreateRecursiveFollowup::class,
             \Modules\Crm\Console\Commands\CrmHealthCommand::class,
+            \Modules\Crm\Console\Commands\CriarFormularioCapturaCommand::class,
         ]);
     }
 
