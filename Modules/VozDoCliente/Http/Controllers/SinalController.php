@@ -2,10 +2,8 @@
 
 namespace Modules\VozDoCliente\Http\Controllers;
 
-use App\Services\FeatureFlagService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
-use Illuminate\View\View;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\VozDoCliente\Entities\Sinal;
@@ -24,16 +22,16 @@ class SinalController extends Controller
     private const SITUACOES = [Sinal::STATUS_PENDENTE, Sinal::STATUS_TRIADO, Sinal::STATUS_FECHADO];
 
     /**
-     * Caixa de triagem — os sinais deste business, pendentes primeiro.
+     * Caixa de triagem — os sinais deste business, pendentes primeiro, na Page
+     * `VozDoCliente/Caixa`.
      *
-     * Dual (thread modulos-faltantes/playbook/03, RUNBOOK-caixa): com a flag
-     * `useV2VozDoClienteCaixa` ligada para o negócio responde a Page
-     * `VozDoCliente/Caixa`; desligada no GrowthBook ou com `?legacy=1`, segue a Blade de
-     * sempre. Desde o cutover [W] 2026-10-13 a flag está nos fallbacks do FeatureFlagService com `true`.
+     * Cutover (F5 do MWART, 2026-10-27): a Blade `vozdocliente::caixa`, a flag
+     * `useV2VozDoClienteCaixa` e o `?legacy=1` saíram. A flag valia `true` para
+     * todas as empresas desde o cutover [W] de 2026-10-13 (14 dias de canário).
      *
-     * A permissão é checada ANTES da flag: quem não pode ver não consulta flag.
+     * A permissão é checada antes de qualquer consulta: quem não pode ver não lê nada.
      */
-    public function index(): View|Response
+    public function index(): Response
     {
         abort_unless(
             auth()->user()->can('superadmin') || auth()->user()->can('vozdocliente.triar'),
@@ -42,29 +40,16 @@ class SinalController extends Controller
 
         $businessId = session('user.business_id') ?? session('business.id');
 
-        if (! request()->boolean('legacy')
-            && app(FeatureFlagService::class)->isOn('useV2VozDoClienteCaixa', ['business_id' => $businessId])) {
-            return $this->caixaInertia((int) $businessId);
-        }
-
-        // Tier 0 (ADR 0093): o filtro por `business_id` vem do global scope
-        // declarado em Sinal::booted() — `where('voz_sinais.business_id', <sessão>)`.
-        // Está provado por SinalCrossTenantTest (biz=1 × biz=99), não afirmado.
-        // O `where` explícito abaixo é REDUNDANTE com o scope de propósito:
-        // defesa em profundidade, pra que a consulta continue escopada mesmo se
-        // alguém remover o scope do Model um dia sem rodar o teste.
-        //
-        // Ordenação portável de propósito: `FIELD()` é MySQL-only e quebraria a
-        // suíte em SQLite. O CASE funciona nos dois e diz a mesma coisa —
-        // pendente primeiro, fechado por último.
-        $sinais = $this->consultaDaCaixa($businessId)->paginate(30);
-
-        return view('vozdocliente::caixa', compact('sinais'));
+        return $this->caixaInertia((int) $businessId);
     }
 
     /**
-     * A mesma consulta serve a Blade e a Page — uma fonte só para "o que a caixa
-     * mostra e em que ordem", senão as duas telas divergem durante o dual.
+     * O que a caixa mostra e em que ordem.
+     *
+     * Tier 0 (ADR 0093): o filtro por `business_id` vem do global scope declarado
+     * em Sinal::booted(), provado por SinalCrossTenantTest. O `where` explícito é
+     * redundante de propósito — defesa em profundidade se o scope sumir do Model.
+     * Ordenação por CASE e não `FIELD()`, que é MySQL-only e quebraria o SQLite.
      */
     private function consultaDaCaixa(int|string|null $businessId)
     {

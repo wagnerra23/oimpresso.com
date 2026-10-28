@@ -23,6 +23,8 @@ related_us: [US-CRM-082]
 # Page Charter — /contacts/import (LIVE)
 
 > **Status:** live — reconciliado de draft em 2026-06-24: Wagner confirmou biz=4 (ROTA LIVRE) em React em produção (flag `MWART_CLIENTE_IMPORT` ON; fallback Blade no `ContactController`). Backend canon: `ContactController::getImportContacts()` linha 1057. **Divergência ADR 0149:** Layout wizard 2-step (template + upload) totalmente distinto do Index lista. Não exige novo Cowork F1.5 porque é página utility/admin sem peso visual canônico — Wagner aprovou divergência genérica pra utility pages 2026-05-15.
+>
+> **2026-10-27 · cutover F5:** o `ContactController` passou a servir só React nesta tela; o fallback Blade citado acima foi apagado (a chave estava ligada para todas as empresas desde 2026-08-26).
 
 ## Mission
 
