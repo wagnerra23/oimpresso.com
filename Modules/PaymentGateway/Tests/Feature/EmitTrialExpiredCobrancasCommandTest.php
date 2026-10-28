@@ -31,11 +31,13 @@ it('falha (exit 1) quando NÃO há credencial BCB ativa em biz=1', function () {
     // Garante limpeza: sem credencial bcb_pix ativa
     DB::table('payment_gateway_credentials')
         ->where('business_id', 1)
-        ->where('driver', 'bcb_pix')
+        ->where('gateway_key', 'bcb_pix')
         ->update(['ativo' => false]);
 
+    // Mensagem atual do comando (Onda 5: exige também a Conta destino do step 3 do wizard e
+    // aponta para /settings/payment-gateways; a rota /paymentgateway/credenciais não existe mais).
     $this->artisan('paymentgateway:emit-trial-expired', ['--dry-run' => true])
-        ->expectsOutput('Sem credencial BCB ativa em biz=1. Cadastre em /paymentgateway/credenciais.')
+        ->expectsOutput('Sem credencial BCB ativa em biz=1 com Conta destino vinculada. Cadastre em /settings/payment-gateways e vincule Conta destino no step 3.')
         ->assertExitCode(1);
 });
 
@@ -43,8 +45,9 @@ it('dry-run lista candidatas sem emitir', function () {
     // Pré-condição: precisa credencial + conta cadastradas. Skip se não estiver.
     $temCredencial = DB::table('payment_gateway_credentials')
         ->where('business_id', 1)
-        ->where('driver', 'bcb_pix')
+        ->where('gateway_key', 'bcb_pix')
         ->where('ativo', true)
+        ->whereNotNull('conta_bancaria_id')
         ->exists();
 
     if (!$temCredencial) {
@@ -81,8 +84,9 @@ it('dry-run lista candidatas sem emitir', function () {
 it('skip Subscription com cobrança ativa neste mês', function () {
     $temCredencial = DB::table('payment_gateway_credentials')
         ->where('business_id', 1)
-        ->where('driver', 'bcb_pix')
+        ->where('gateway_key', 'bcb_pix')
         ->where('ativo', true)
+        ->whereNotNull('conta_bancaria_id')
         ->exists();
 
     if (!$temCredencial) {
