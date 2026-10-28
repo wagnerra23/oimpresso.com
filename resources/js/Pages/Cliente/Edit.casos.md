@@ -77,5 +77,6 @@ last_run_nota: "2026-10-06 revalidado na thread Crm/09: o Edit.tsx ganhou o modo
 3. **Cadência:** rodar ao fim de toda mexida em `Edit.tsx` / `_form/ClienteForm` / `ClienteAutosaveController`.
 
 ## Trilha do tempo
+- 2026-10-27 · [CC] cutover F5: tela só React, fallback Blade apagado (sessão mig-nucleo-contatos-geral).
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito.** Correções factuais: "lane ativa" era falso (lane criada agora, **advisory**, força declarada) + o 404 do UC-CEDI-03 **não** vem de global scope (`app/Contact.php` tem 0 `addGlobalScope` — medido), vem do `where()` manual. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) §5.4.2/§6.1 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente). 4 UCs ancorados em `ClienteEditInertiaTest` (edit/update + Tier 0 404) e `ClienteDrawerCadastroAutosaveTest` (PATCH autosave mod 11). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0179](../../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md).
