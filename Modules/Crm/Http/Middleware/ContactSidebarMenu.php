@@ -2,11 +2,10 @@
 
 namespace Modules\Crm\Http\Middleware;
 
-use App\Business;
-use App\Contact;
 use Closure;
 use Illuminate\Http\Request;
 use Menu;
+use Modules\Crm\Services\PortalContatoMenu;
 
 class ContactSidebarMenu
 {
@@ -24,34 +23,25 @@ class ContactSidebarMenu
         }
 
         Menu::create('contact-sidebar-menu', function ($menu) {
-            //retrieve contact type
-            $contact = Contact::where('business_id', auth()->user()->business_id)
-                            ->findOrFail(auth()->user()->crm_contact_id);
-
-            $crm_settings = Business::where('id', auth()->user()->business_id)
-                                ->value('crm_settings');
-            $crm_settings = ! empty($crm_settings) ? json_decode($crm_settings, true) : [];
-
-            $menu->url(action([\Modules\Crm\Http\Controllers\DashboardController::class, 'index']), __('home.home'), ['icon' => 'fa fas fa-tachometer-alt', 'active' => request()->segment(1) == 'contact' && request()->segment(2) == 'contact-dashboard'])->order(1);
-
-            if (in_array($contact->type, ['supplier', 'both'])) {
-                $menu->url(action([\Modules\Crm\Http\Controllers\PurchaseController::class, 'getPurchaseList']), __('purchase.list_purchase'), ['icon' => 'fa fas fa-list', 'active' => request()->segment(1) == 'contact' && request()->segment(2) == 'contact-purchases'])->order(2);
-            }
-
-            if (in_array($contact->type, ['customer', 'both'])) {
-                $menu->url(action([\Modules\Crm\Http\Controllers\SellController::class, 'getSellList']), __('lang_v1.all_sales'), ['icon' => 'fa fas fa-list', 'active' => request()->segment(1) == 'contact' && request()->segment(2) == 'contact-sells'])->order(3);
-
-                if (! empty($crm_settings['enable_order_request'])) {
-                    $menu->url(action([\Modules\Crm\Http\Controllers\OrderRequestController::class, 'index']), __('crm::lang.order_request'), ['icon' => 'fa fas fa-arrow-circle-up', 'active' => request()->segment(1) == 'contact' && request()->segment(2) == 'order-request'])->order(4);
-                }
-            }
-
-            $menu->url(action([\Modules\Crm\Http\Controllers\LedgerController::class, 'index']), __('lang_v1.ledger'), ['icon' => 'fas fa-scroll', 'active' => request()->segment(1) == 'contact' && request()->segment(2) == 'contact-ledger'])->order(3);
-
+            // A condição de cada item vem do PortalContatoMenu, que a casca React do portal
+            // (thread Crm/18) também lê. Aqui só se escolhe rótulo, ícone e ordem da Blade.
+            $fonte = app(PortalContatoMenu::class);
+            $contact = $fonte->contatoDoUsuario();
             $enabled_modules = ! empty(session('business.enabled_modules')) ? session('business.enabled_modules') : [];
+            $ativo = fn (string $segmento) => request()->segment(1) == 'contact' && request()->segment(2) == $segmento;
 
-            if (in_array('booking', $enabled_modules)) {
-                $menu->url(action([\Modules\Crm\Http\Controllers\ContactBookingController::class, 'index']), __('restaurant.bookings'), ['icon' => 'fas fa fa-calendar-check', 'active' => request()->segment(1) == 'bookings'])->order(3);
+            $blade = [
+                'painel' => [__('home.home'), 'fa fas fa-tachometer-alt', $ativo('contact-dashboard'), 1],
+                'compras' => [__('purchase.list_purchase'), 'fa fas fa-list', $ativo('contact-purchases'), 2],
+                'vendas' => [__('lang_v1.all_sales'), 'fa fas fa-list', $ativo('contact-sells'), 3],
+                'pedidos' => [__('crm::lang.order_request'), 'fa fas fa-arrow-circle-up', $ativo('order-request'), 4],
+                'extrato' => [__('lang_v1.ledger'), 'fas fa-scroll', $ativo('contact-ledger'), 3],
+                'agendamentos' => [__('restaurant.bookings'), 'fas fa fa-calendar-check', request()->segment(1) == 'bookings', 3],
+            ];
+
+            foreach ($fonte->itens($contact, $enabled_modules) as $item) {
+                [$rotulo, $icone, $ativa, $ordem] = $blade[$item['chave']];
+                $menu->url($item['href'], $rotulo, ['icon' => $icone, 'active' => $ativa])->order($ordem);
             }
         });
 

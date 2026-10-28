@@ -5,7 +5,6 @@ namespace Modules\Manufacturing\Http\Controllers;
 use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use App\Utils\TransactionUtil;
-use App\Variation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -21,7 +20,6 @@ use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 use Modules\Manufacturing\Http\Requests\StoreRecipeRequest;
 use Modules\Manufacturing\Services\RecipeBomService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
-use Yajra\DataTables\Facades\DataTables;
 
 class RecipeController extends Controller
 {
@@ -60,12 +58,9 @@ class RecipeController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Lista de receitas — a tela React `Manufacturing/Recipes`.
      *
-     * Três saídas por design (§15.2 do handoff — coexistência): DataTables no ramo ajax,
-     * a view Blade quando `?legacy=1`, e a tela Inertia no caminho normal.
-     *
-     * @return \Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View|\Inertia\Response
+     * @return \Inertia\Response
      */
     public function index(\Modules\Manufacturing\Services\ProductionService $productionService)
     {
@@ -74,98 +69,9 @@ class RecipeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
-        // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
-        // `request()->ajax()` é TRUE numa navegação SPA — sem este guarda o controller
-        // devolvia o JSON do DataTables e o Inertia estourava "All Inertia requests must
-        // receive a valid Inertia response". Quebrou ao clicar nas abas depois do cutover.
-        // Mesmo idioma do middleware AdminSidebarMenu (ver CoworkSidebarController §PEGADINHA).
-        if (request()->ajax() && ! request()->header('X-Inertia')) {
-            $recipes = MfgRecipe::join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
-                                ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
-                                ->join('products as p', 'v.product_id', '=', 'p.id')
-                                ->leftjoin('categories as c', 'p.category_id', '=', 'c.id')
-                                ->leftjoin('categories as sc', 'p.sub_category_id', '=', 'sc.id')
-                                ->join('units as u', 'p.unit_id', '=', 'u.id')
-                                ->where('p.business_id', $business_id)
-                                ->with(['ingredients', 'ingredients.variation', 'ingredients.sub_unit', 'sub_unit'])
-                                ->select(
-                                    'mfg_recipes.id',
-                                    DB::raw('IF(
-                                        p.type="variable", 
-                                        CONCAT(p.name, " - ", pv.name, " - ", v.name, " (", v.sub_sku, ")"), 
-                                        CONCAT(p.name, " (", v.sub_sku, ")") 
-                                        ) as recipe_name'),
-                                    'mfg_recipes.extra_cost',
-                                    'mfg_recipes.final_price',
-                                    'mfg_recipes.variation_id',
-                                    'mfg_recipes.total_quantity',
-                                    'mfg_recipes.production_cost_type',
-                                    'mfg_recipes.waste_percent',
-                                    'mfg_recipes.sub_unit_id',
-                                    'u.short_name as unit_name',
-                                    'c.name as category',
-                                    'sc.name as sub_category'
-                                );
-
-            return Datatables::of($recipes)
-                ->addColumn('action', '<button data-href="{{action(\'\Modules\Manufacturing\Http\Controllers\RecipeController@show\', [$id])}}" class="btn btn-xs btn-info btn-modal" data-container=".view_modal"><i class="fa fa-eye"></i> @lang("messages.view")</button> &nbsp; @can("manufacturing.edit_recipe") <a href="{{action(\'\Modules\Manufacturing\Http\Controllers\RecipeController@addIngredients\')}}?variation_id={{$variation_id}}" class="btn btn-xs btn-primary" ><i class="fa fa-edit"></i> @lang("messages.edit")</a>
-                    &nbsp; 
-                    <button data-href="{{action(\'\Modules\Manufacturing\Http\Controllers\RecipeController@destroy\',[$id])}}" class="btn btn-xs btn-danger delete_recipe"><i class="fa fa-trash"></i> @lang("messages.delete")</button> @endcan')
-                ->addColumn('recipe_total', function ($row) {
-                    //Recipe price is dynamically calculated from each ingredients
-                    $price = $this->mfgUtil->getRecipeTotal($row);
-
-                    return '<span class="display_currency" data-currency_symbol="true">'.$price.'</span>';
-                })
-                ->editColumn('total_quantity', function ($row) {
-                    $quantity = $row->total_quantity;
-
-                    if (! empty($row->waste_percent)) {
-                        $quantity = $quantity - ($quantity * $row->waste_percent / 100);
-                    }
-                    $html = '<span class="display_currency" data-currency_symbol="false" data-is_quantity="true">'.$quantity.'</span>';
-                    if (! empty($row->sub_unit_id)) {
-                        $html .= ' '.$row->sub_unit->short_name;
-                    } else {
-                        $html .= ' '.$row->unit_name;
-                    }
-
-                    return $html;
-                })
-                ->addColumn('unit_cost', function ($row) {
-                    //Recipe price is dynamically calculated from each ingredients
-                    $price = $this->mfgUtil->getRecipeTotal($row);
-
-                    $unit_cost = $row->total_quantity > 0 ? $price / $row->total_quantity : 0;
-
-                    return '<span class="display_currency unit_cost" data-unit_cost="'.$unit_cost.'" data-currency_symbol="true">'.$unit_cost.'</span>';
-                })
-                ->filterColumn('recipe_name', function ($query, $keyword) {
-                    $query->whereRaw("CONCAT(p.name, ' - ', pv.name, ' - ', v.name, ' (', v.sub_sku, ')') like ?", ["%{$keyword}%"]);
-                })
-                ->addColumn('row_select', function ($row) {
-                    return  '<input type="checkbox" class="row-select" value="'.$row->id.'">';
-                })
-                ->rawColumns(['action', 'recipe_total', 'total_quantity', 'unit_cost', 'row_select'])
-                ->make(true);
-        }
-
-        // A tela de Fabricação (handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1", §4.2 + §4.3)
-        // passa a ser servida NESTE endereço — `/manufacturing/recipe` — por decisão [W]
-        // 2026-09-02 ("coloque a tela de Fabricação em produção no endereço
-        // https://oimpresso.com/manufacturing/recipe").
-        //
-        // O que NÃO muda, de propósito:
-        //  · nenhuma rota Blade de `Routes/web.php` foi removida (proibição do §15.2 do
-        //    handoff). O ramo `request()->ajax()` acima segue intacto e servindo DataTables.
-        //  · `?legacy=1` devolve a tela Blade antiga no MESMO endereço — rede de segurança
-        //    do cutover, sem rota nova. Coberta por teste (Wave29RecipeInertiaTest).
-        //  · criar receita e editar ingredientes seguem nas telas legadas; a tela nova
-        //    aponta pra elas em vez de reimplementá-las.
-        if (request()->boolean('legacy')) {
-            return view('manufacturing::recipe.index');
-        }
+        // CUTOVER 2026-10-27 ([W]: "1 PR por tela, com cutover apagando a Blade"): a tela Blade
+        // antiga, o `?legacy=1` e o ramo DataTables que a alimentava saíram. Este endereço só
+        // serve a tela React.
 
         $settings = $this->mfgUtil->getSettings($business_id) ?: [];
 
@@ -305,23 +211,6 @@ class RecipeController extends Controller
             'empresa' => $custo->metodoDaEmpresa($business_id),
             'editavel' => auth()->user()->can('purchase.update'),
         ];
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $recipes = MfgRecipe::forDropdown($business_id, false);
-
-        return view('manufacturing::recipe.create')->with(compact('recipes'));
     }
 
     /**
@@ -479,7 +368,7 @@ class RecipeController extends Controller
 
     /**
      * Sub-unidade aceita = uma das que a janela de ingredientes oferece para o produto
-     * (`getSubUnits` da unidade dele, o mesmo de `getIngredientRow`). Vazio é a unidade base.
+     * (`getSubUnits` da unidade dele, o mesmo do antigo `getIngredientRow`, apagado em 2026-10-27). Vazio é a unidade base.
      *
      * @throws ValidationException
      */
@@ -497,161 +386,18 @@ class RecipeController extends Controller
     }
 
     /**
-     * Show the specified resource.
+     * Editor de ingredientes — a tela React `Manufacturing/IngredientesEditor`.
      *
-     * @return Response
-     */
-    public function show($id)
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $recipe = MfgRecipe::with(['variation', 'variation.product', 'variation.product_variation', 'variation.media', 'sub_unit', 'variation.product.unit'])
-                        ->findOrFail($id);
-
-        $ingredients = $this->mfgUtil->getIngredientDetails($recipe, $business_id);
-
-        return view('manufacturing::recipe.show', compact('recipe', 'ingredients'));
-    }
-
-    /**
-     * Get ingredients row while adding recipe.
-     *
-     * @return Response
-     */
-    public function getIngredientRow($variation_id)
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $ingredient = Variation::with('product', 'product_variation', 'product.unit')
-                            ->findOrFail($variation_id);
-
-        $sub_units = $this->moduleUtil->getSubUnits($business_id, $ingredient->product->unit->id);
-
-        $ingredient->unit = $ingredient->product->unit->short_name;
-        $ingredient->sub_units = $sub_units;
-
-        $row_index = request()->input('row_index');
-
-        $ig_index = request()->input('row_ig_index');
-
-        $sort_order = request()->input('sort_order');
-
-        return view('manufacturing::recipe.ingredient_row', compact('ingredient', 'row_index', 'ig_index', 'sort_order'));
-    }
-
-    /**
-     * Shows recipe form. Com `?tela=nova`, o editor React (US-MANU-006).
-     *
-     * @return Response|\Illuminate\Contracts\View\View|\Inertia\Response
+     * @return \Inertia\Response
      */
     public function addIngredients()
     {
         $business_id = request()->session()->get('user.business_id');
 
-        // Editor novo (React, US-MANU-006) atrás de `?tela=nova`; sem ele segue a Blade. Vem ANTES da
-        // barreira `add_recipe` de propósito: quem só tem `manufacturing.access_recipe` abre o editor
-        // em modo leitura (handoff §5 regra 3). Gravar continua exigindo `add_recipe` no `store()`.
-        if (request()->query('tela') === 'nova') {
-            return $this->telaEditor((int) $business_id);
-        }
-
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $variation_id = request()->input('variation_id');
-
-        $variation = Variation::join('products as p', 'p.id', '=', 'variations.product_id')
-                            ->join('product_variations as pv', 'pv.id', '=', 'variations.product_variation_id')
-                            ->join('units as u', 'u.id', '=', 'p.unit_id')
-                            ->where('p.business_id', request()->session()->get('user.business_id'))
-                            ->select('p.name as product_name', 'p.type as product_type', 'variations.*', 'pv.name as product_variation_name', 'p.unit_id as unit_id', 'u.short_name as unit_name')
-                            ->findOrFail($variation_id);
-        $currency_details = $this->transactionUtil->purchaseCurrencyDetails($business_id);
-
-        $with = [
-            'ingredients' => function ($query) {
-                $query->orderBy('sort_order', 'asc');
-            },
-            'ingredients.variation', 'ingredients.variation.product',
-            'ingredients.variation.product.unit',
-            'ingredients.variation.product_variation',
-            'ingredients.sub_unit', 'ingredients.ingredient_group', ];
-
-        $recipe = MfgRecipe::where('variation_id', $variation_id)
-                        ->with($with)
-                        ->first();
-
-        $copy_recipe = null;
-
-        //If new recipe and copy from recipe selected get copy recipe
-        // Tier 0 (ADR 0093): só copia receita do próprio business — o id vem da query string.
-        if (empty($recipe) && ! empty(request()->input('copy_recipe_id'))) {
-            $copy_recipe = $this->recipeBomService->receitaParaCopiar(
-                (int) request()->input('copy_recipe_id'),
-                (int) $business_id,
-                $with
-            );
-        }
-
-        $ingredients = [];
-        $total_production_cost = 0;
-        if (! empty($recipe) || (empty($recipe) && ! empty($copy_recipe))) {
-            $ingredients_obj = ! empty($copy_recipe) ? $copy_recipe->ingredients : $recipe->ingredients;
-
-            if (! empty($recipe)) {
-                $total_production_cost = $this->mfgUtil->getProductionCost($recipe);
-            }
-
-            foreach ($ingredients_obj as $ingredient) {
-                if (empty($ingredient->variation)) {
-                    continue;
-                }
-
-                $ingredient_sub_units = $this->transactionUtil->getSubUnits($business_id, $ingredient->variation->product->unit->id);
-                $multiplier = ! empty($ingredient->sub_unit_id) ? $ingredient->sub_unit->base_unit_multiplier : 1;
-                if (empty($multiplier)) {
-                    $multiplier = 1;
-                }
-                $temp = [
-                    'id' => $ingredient->variation->id,
-                    'dpp_inc_tax' => $ingredient->variation->dpp_inc_tax,
-                    'quantity' => $ingredient->quantity,
-                    'multiplier' => $multiplier,
-                    'sub_units' => $ingredient_sub_units,
-                    'sub_unit_id' => $ingredient->sub_unit_id,
-                    'unit' => $ingredient->variation->product->unit->short_name,
-                    'full_name' => $ingredient->variation->full_name,
-                    'waste_percent' => ! empty($ingredient->waste_percent) ? $ingredient->waste_percent : 0,
-                    'sort_order' => $ingredient->sort_order,
-                    'ingredient_line_id' => empty($copy_recipe) ? $ingredient->id : null,
-                    'mfg_ingredient_group_id' => $ingredient->mfg_ingredient_group_id,
-                    'ingredient_group_name' => ! empty($ingredient->ingredient_group->name) ? $ingredient->ingredient_group->name : '',
-                    'ig_description' => ! empty($ingredient->ingredient_group->description) ? $ingredient->ingredient_group->description : '',
-                ];
-
-                $ingredients[] = $temp;
-            }
-        }
-
-        $sub_units = $this->moduleUtil->getSubUnits($business_id, $variation->unit_id);
-
-        $unit_html = ! empty($sub_units) ? $sub_units : $variation->unit_name;
-
-        // (b) da Nova receita ([W] 2026-10-06): a cópia leva ingredientes, quantidades, desperdício,
-        // custo extra (com o tipo dele — fixo/percentual/por unidade, sem o tipo o número muda de
-        // sentido) e instruções. NÃO leva o preço: `final_price` é o total que o editor recalcula,
-        // e o preço de venda do produto só muda pelo "Atualizar preço de venda" (US-PROD-030).
-        // Quantidade produzida e sub-unidade de saída também ficam de fora: são do produto novo.
-        $campos_base = $recipe ?? $copy_recipe;
-
-        return view('manufacturing::recipe.add_ingredients', compact('variation', 'ingredients', 'recipe', 'campos_base', 'unit_html', 'currency_details', 'total_production_cost'));
+        // Desde o cutover de 2026-10-27 o editor React (US-MANU-006) é a única tela deste endereço.
+        // `?tela=nova` segue aceito (links antigos) e não muda nada. Abrir pede `access_recipe`;
+        // gravar continua exigindo `add_recipe` no `store()` (handoff §5 regra 3).
+        return $this->telaEditor((int) $business_id);
     }
 
     /**
@@ -730,19 +476,6 @@ class RecipeController extends Controller
             'is_sub_unit' => $is_sub_unit,
             'unit_name' => $unit_name,
         ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function getIngredientGroupForm()
-    {
-        $ig_index = request()->input('ig_index');
-
-        return view('manufacturing::recipe.ingredient_group')
-                ->with(compact('ig_index'));
     }
 
     /**

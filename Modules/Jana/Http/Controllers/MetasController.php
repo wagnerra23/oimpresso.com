@@ -5,7 +5,6 @@ namespace Modules\Jana\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Jana\Entities\Meta;
-use Modules\Jana\Entities\MetaApuracao;
 use Modules\Jana\Entities\MetaPeriodo;
 use Modules\Jana\Http\Requests\StoreMetaRequest;
 use Modules\Jana\Http\Requests\UpdateMetaRequest;
@@ -33,9 +32,15 @@ class MetasController extends Controller
         return view('copiloto::metas.index', compact('metas'));
     }
 
+    /**
+     * Cutover (RUNBOOK-metas §9.4 PR-4): criar, ver, editar e a fonte da meta vivem no
+     * drawer do Painel `/ia` (`JanaMetaNovaDrawer` + `JanaMetaDrawer`). As 4 Blades saíram;
+     * as rotas GET ficam como redirect pra quem tem link antigo. `show`/`edit` seguem com
+     * `findOrFail` ANTES do redirect: meta de outro tenant continua 404 (Tier 0).
+     */
     public function create()
     {
-        return view('copiloto::metas.create');
+        return redirect()->route('jana.index');
     }
 
     /**
@@ -141,18 +146,16 @@ class MetasController extends Controller
 
     public function show($id)
     {
-        $meta       = Meta::findOrFail($id);
-        $apuracoes  = MetaApuracao::where('meta_id', $id)
-            ->orderByDesc('data_ref')
-            ->limit(12)
-            ->get();
+        Meta::findOrFail($id);
 
-        return view('copiloto::metas.show', compact('meta', 'apuracoes'));
+        return redirect()->route('jana.index');
     }
 
     public function edit($id)
     {
-        return view('copiloto::metas.edit', ['meta' => Meta::findOrFail($id)]);
+        Meta::findOrFail($id);
+
+        return redirect()->route('jana.index');
     }
 
     public function update(UpdateMetaRequest $request, $id)

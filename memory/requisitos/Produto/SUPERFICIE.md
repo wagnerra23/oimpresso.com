@@ -15,7 +15,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 >
 > **O que isto é:** o módulo `Produto` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Produto/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`products`, `variations`, `product_variations`, `variation_location_details`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 145 arquivos em 9 papéis.
+**Total mapeado:** 142 arquivos em 9 papéis.
 
 ## Controllers — 8
 
@@ -47,16 +47,13 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [VariationTemplate.php](../../../app/VariationTemplate.php)
 - [VariationValueTemplate.php](../../../app/VariationValueTemplate.php)
 
-## Views (Blade) — 43
+## Views (Blade) — 40
 
 - [create.blade.php](../../../resources/views/brand/create.blade.php)
 - [edit.blade.php](../../../resources/views/brand/edit.blade.php)
 - [index.blade.php](../../../resources/views/brand/index.blade.php)
-- [index.blade.php](../../../resources/views/import_products/index.blade.php)
 - [preview.blade.php](../../../resources/views/labels/partials/preview.blade.php)
 - [preview_2.blade.php](../../../resources/views/labels/partials/preview_2.blade.php)
-- [show_table_rows.blade.php](../../../resources/views/labels/partials/show_table_rows.blade.php)
-- [show.blade.php](../../../resources/views/labels/show.blade.php)
 - [add-selling-prices.blade.php](../../../resources/views/product/add-selling-prices.blade.php)
 - [bulk-edit.blade.php](../../../resources/views/product/bulk-edit.blade.php)
 - [create.blade.php](../../../resources/views/product/create.blade.php)
