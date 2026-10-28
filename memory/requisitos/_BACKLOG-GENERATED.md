@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1067 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1068 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -32,8 +32,8 @@
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
+| [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
-| [`Essentials`](#essentials) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
@@ -1086,6 +1086,28 @@
 - **US-ACCO-009** — Listar Reconcile
 - **US-ACCO-010** — Listar Report
 
+## Essentials
+
+
+### todo
+
+- **US-ESS-001** — Listar tarefas (Todo) por business
+- **US-ESS-002** — Criar tarefa Todo
+- **US-ESS-003** — Editar tarefa (status/priority)
+- **US-ESS-004** — Deletar tarefa
+- **US-ESS-005** — Solicitação de Leave (ausência)
+- **US-ESS-006** — Aprovar/Rejeitar Leave
+- **US-ESS-007** — Compartilhar documentos via DocumentShare
+- **US-ESS-008** — Calendário Reminder
+- **US-ESS-009** — Module install/uninstall por business
+- **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
+- **US-ESS-011** — Metas de venda por colaborador (tela Inertia)
+- **US-ESS-012** — Mural de mensagens internas por localidade
+- **US-ESS-013** — Base de conhecimento interna com busca
+- **US-ESS-014** — Configurações do módulo por business (admin)
+- **US-ESS-015** — Folha CLT: modelo de verba (rubrica, vigência, competência, item)
+- **US-ESSE-001** — [TODO — título]
+
 ## Autopecas
 
 
@@ -1106,27 +1128,6 @@
 - **US-AP-013** — Diagnóstico assistido Jana IA ("qual peça pra Civic 2015 freio dianteiro?") — **P1**
 - **US-AP-014** — Cupom fiscal SAT (SP) — **P2**
 - **US-AP-015** — E-commerce mini-loja (catálogo digital + pedido online) — **P2**
-
-## Essentials
-
-
-### todo
-
-- **US-ESS-001** — Listar tarefas (Todo) por business
-- **US-ESS-002** — Criar tarefa Todo
-- **US-ESS-003** — Editar tarefa (status/priority)
-- **US-ESS-004** — Deletar tarefa
-- **US-ESS-005** — Solicitação de Leave (ausência)
-- **US-ESS-006** — Aprovar/Rejeitar Leave
-- **US-ESS-007** — Compartilhar documentos via DocumentShare
-- **US-ESS-008** — Calendário Reminder
-- **US-ESS-009** — Module install/uninstall por business
-- **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- **US-ESS-011** — Metas de venda por colaborador (tela Inertia)
-- **US-ESS-012** — Mural de mensagens internas por localidade
-- **US-ESS-013** — Base de conhecimento interna com busca
-- **US-ESS-014** — Configurações do módulo por business (admin)
-- **US-ESSE-001** — [TODO — título]
 
 ## Comissao
 
