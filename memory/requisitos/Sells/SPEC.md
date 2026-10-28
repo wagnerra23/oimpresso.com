@@ -1191,7 +1191,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-SELL-054 · Offline-first no PDV — fila IndexedDB + reemissão ao reconectar
 
-> owner: — · priority: p1 · estimate: 40h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 40h · status: doing · type: story
 > blocked_by: —
 > parent_plan: programa-ondas-onda-1-sells
 
@@ -1203,6 +1203,15 @@ Persistir a venda em fila local (IndexedDB) quando a rede cai e sincronizar/emit
 - **ADR 0105 (cliente como sinal):** MEDIR a frequência de queda em biz=4 ANTES de executar as 40h — hipótese sem sinal vira feature-wish.
 - Tier 0: fila com `business_id` scopado; ao reemitir, respeitar regra-mestre de valor (arredondar 2 casas, num_uf 3-dígitos-milhar) + smoke biz=1 (ADR 0101).
 - Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-02 + §8.3
+
+**Implementado em:** _pendente_ — em andamento (servidor feito em `VendaOffline` e `SellPosController::store`): o servidor reconhece a chave `offline_uuid` e grava a venda uma vez só, atrás de `SELLS_OFFLINE_ENABLED` (desligada); UC-VOFF-01..04 em `resources/js/Pages/Sells/Create.casos.md`. Falta a fila no navegador e o aviso de "sem internet" no caixa.
+
+**Testado em:** `tests/Feature/Sells/VendaOfflineContratoTest.php`
+
+**Aceite:**
+- [x] O mesmo reenvio grava uma venda e baixa o estoque uma vez (UC-VOFF-01).
+- [x] Chave de uma empresa não acha venda de outra (UC-VOFF-02); flag desligada não muda nada (UC-VOFF-03).
+- [ ] O caixa guarda a venda no navegador quando a rede cai e reenvia ao voltar.
 
 ### US-SELL-055 · Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa
 
