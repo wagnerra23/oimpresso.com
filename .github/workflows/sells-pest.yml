@@ -171,6 +171,8 @@ on:
       - 'app/Http/Controllers/SellComissaoPorRegraController.php'  # US-COMM-015
       - 'app/CommissionRule.php'
       - 'database/migrations/2026_10_27_160000_create_commission_rules_table.php'
+      - 'app/Http/Controllers/SellCupomController.php'  # US-SELL-076 cupom
+      - 'database/migrations/2026_10_27_170000_create_sell_coupons_table.php'
       - 'config/sells.php'
       - 'Modules/NfeBrasil/Services/NfeService.php'  # US-SELL-078 base da nota sem o ST
       - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
@@ -270,6 +272,8 @@ jobs:
               - 'app/Http/Controllers/SellComissaoPorRegraController.php'  # US-COMM-015
               - 'app/CommissionRule.php'
               - 'database/migrations/2026_10_27_160000_create_commission_rules_table.php'
+              - 'app/Http/Controllers/SellCupomController.php'  # US-SELL-076 cupom
+              - 'database/migrations/2026_10_27_170000_create_sell_coupons_table.php'
               - 'config/sells.php'
               - 'Modules/NfeBrasil/Services/NfeService.php'  # US-SELL-078 base da nota sem o ST
               - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
@@ -600,6 +604,7 @@ jobs:
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
             tests/Feature/Sells/ComissaoPorRegraContratoTest.php \
+            tests/Feature/Sells/CupomDaVendaContratoTest.php \
             tests/Feature/Sells/TefCaixaContratoTest.php \
             tests/Feature/Sells/VendaOfflineContratoTest.php \
             tests/Feature/Sells/ValeTrocaContratoTest.php \

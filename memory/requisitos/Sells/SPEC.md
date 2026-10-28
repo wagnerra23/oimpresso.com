@@ -1689,12 +1689,14 @@ Os drivers do `Modules/PaymentGateway` são de cobrança online; não há TEF. A
 
 ### US-SELL-076 · Cupom de desconto e promoção leve X pague Y no caixa novo
 
-> owner: wagner · priority: p2 · estimate: 16h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> owner: wagner · priority: p2 · estimate: 16h · status: doing · type: story · origin: lacunas-concorrencia-2026-10-25
 > blocked_by: —
 
-**Implementado em:** _pendente_ — não iniciada.
+**Implementado em:** _pendente_ — em andamento: cupom pelo servidor feito (`App\Services\Sells\CupomDaVenda`, `POST /sells/cupom`, tabela `sell_coupons`, UC-VCUP-01..05 em `Sells/Create.casos.md`), atrás da flag `SELLS_CUPOM` desligada. Falta o campo do cupom no caixa React, gastar o uso ao gravar a venda, o cadastro dos cupons e a promoção leve X pague Y.
 
 Hoje há desconto por período (`DiscountController`). Faltam cupom com código, validade e limite de uso, e a promoção leve X pague Y aplicada sozinha no caixa. Mexe em valor: regra mestre (antes→depois e dupla prova).
+
+Regra de acúmulo (2026-10-27): a promoção (`discounts`) vale por linha; o cupom vale sobre o carrinho. Cupom que **acumula** incide sobre o subtotal já com a promoção. Cupom que **não acumula** (padrão) dá ao cliente o maior dos dois: só entra se for maior que a promoção e, aí, a substitui. Desconto nunca passa da base.
 ### US-SELL-078 · O ICMS-ST entra no total da venda, pela mesma conta da NF-e
 
 > owner: wagner · priority: p1 · estimate: 16h · status: doing · type: story · origin: coordenacao-lacunas-2026-10-26

@@ -22,7 +22,6 @@ use Modules\Essentials\Http\Requests\ToDoUpdateRequest;
 use Modules\Essentials\Http\Requests\ToDoUploadDocumentRequest;
 use Modules\Essentials\Notifications\NewTaskCommentNotification;
 use Modules\Essentials\Notifications\NewTaskDocumentNotification;
-use Modules\Essentials\Notifications\NewTaskNotification;
 use Modules\Essentials\Services\TodoService;
 use Spatie\Activitylog\Models\Activity;
 
@@ -182,35 +181,13 @@ class ToDoController extends Controller
         $businessId = $this->currentBusinessId();
         $this->authorizeAdd($businessId);
 
-        $createdBy = $request->user()->id;
-        $data = $request->validated();
-
-        $data['date']        = $this->parseDate($data['date']);
-        $data['end_date']    = ! empty($data['end_date']) ? $this->parseDate($data['end_date']) : null;
-        $data['business_id'] = $businessId;
-        $data['created_by']  = $createdBy;
-        $data['status']      = $data['status'] ?? 'new';
-
-        $assignees = $data['users'] ?? [];
-        unset($data['users']);
-
-        if (! auth()->user()->can('essentials.assign_todos') || empty($assignees)) {
-            $assignees = [$createdBy];
-        }
-
-        $refCount = $this->commonUtil->setAndGetReferenceCount('essentials_todos');
         $settings = request()->session()->get('business.essentials_settings');
         $settings = ! empty($settings) ? json_decode($settings, true) : [];
         $prefix   = ! empty($settings['essentials_todos_prefix']) ? $settings['essentials_todos_prefix'] : '';
-        $data['task_id'] = $this->commonUtil->generateReferenceNumber('essentials_todos', $refCount, null, $prefix);
 
-        $todo = ToDo::create($data);
-        $todo->users()->sync($assignees);
-
-        $this->commonUtil->activityLog($todo, 'added');
-
-        $toNotify = $todo->users->filter(fn ($u) => $u->id !== $createdBy);
-        \Notification::send($toNotify, new NewTaskNotification($todo));
+        // A gravação mora no Service desde a ADR 0440: a Jana confirma a tarefa
+        // pelo mesmo caminho, sem um segundo jeito de criar.
+        $todo = $this->todoService->criar($businessId, $request->user(), $request->validated(), $prefix);
 
         return redirect()
             ->route('todo.show', $todo->id)

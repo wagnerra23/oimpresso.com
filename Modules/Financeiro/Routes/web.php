@@ -13,6 +13,7 @@ use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DreController;
+use Modules\Financeiro\Http\Controllers\ExportacaoContabilController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\ImpostosController;
@@ -163,6 +164,11 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('/dre/export-pdf', [DreController::class, 'exportPdf'])->name('dre.export-pdf');
         Route::get('/dre/export-xlsx', [DreController::class, 'exportXlsx'])->name('dre.export-xlsx');
         Route::get('/dre/export-csv', [DreController::class, 'exportCsv'])->name('dre.export-csv');
+
+        // Lançamentos contábeis da competência no leiaute do contador (US-FIN-077).
+        Route::get('/exportacao-contabil/{layout}', [ExportacaoContabilController::class, 'download'])
+            ->whereIn('layout', ['dominio', 'alterdata'])
+            ->name('exportacao-contabil.download');
 
         // Custeio RKW + ponto de equilíbrio (US-FIN-070). GET só lê; aplicar é ação explícita.
         Route::get('/custeio-rkw', [\Modules\Financeiro\Http\Controllers\CusteioRkwController::class, 'show'])->name('custeio-rkw.show');
