@@ -43,7 +43,13 @@ function linkos_criaVeiculo(string $suffix, ?int $currentRentalId = null): Vehic
 
 function linkos_user(): User
 {
-    $user = User::factory()->create(['business_id' => BIZ_LINKOS]);
+    // user_type/allow_login explícitos: User::factory() não relê a linha, o model fica com os
+    // dois em null e o CheckUserLogin devolve 403 antes do controller (store não cria a OS).
+    $user = User::factory()->create([
+        'business_id' => BIZ_LINKOS,
+        'user_type'   => 'user',
+        'allow_login' => 1,
+    ]);
     $user->givePermissionTo('superadmin');
 
     return $user;

@@ -79,7 +79,9 @@ describe('Wave 27 OficinaAuto POLISH', function () {
     });
 
     it('D5: README cita cliente piloto Martinho Caçambas (D5 customer journey)', function () {
-        $readme = __DIR__.'/../../README.md';
+        // README saiu de Modules/OficinaAuto/ para memory/requisitos/OficinaAuto/ no #5548
+        // (2026-08-11); aquele PR atualizou o @see do cabeçalho mas não este caminho relativo.
+        $readme = base_path('memory/requisitos/OficinaAuto/README.md');
         expect(file_exists($readme))->toBeTrue();
         $body = file_get_contents($readme);
         expect($body)->toContain('Martinho');
