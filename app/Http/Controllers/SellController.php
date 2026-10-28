@@ -2778,6 +2778,8 @@ class SellController extends Controller
                     })->values()->toArray(),
                     // UC-FLX-34: custo guardado × custo de hoje no orçamento aberto (nulo fora dele).
                     'custo' => $this->custoDoOrcamento($sell),
+                    // US-PROD-024: margem da venda finalizada pelo custo médio do momento da venda (nulo sem flag ou sem view_purchase_price).
+                    'margem' => $this->margemDaVenda($sell),
                     // UC-FLX-23 · US-SELL-073: protocolo de entrega gravado pelo app (nulo sem entrega).
                     'entrega' => $this->entregaDaVenda($sell),
                     // US-SELL-071: nota da pesquisa depois da entrega e o atendimento aberto (nulo sem pesquisa ou sem sell.view).
@@ -4071,6 +4073,63 @@ class SellController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * US-PROD-024 — margem da venda finalizada pelo custo médio móvel vigente na data da venda.
+     *
+     * Por linha: receita = `unit_price_inc_tax` × (quantidade − devolvida); custo = custo médio
+     * (`App\Contracts\Compras\CustoMedio::noMomento`) × a mesma quantidade. Linha sem custo médio
+     * naquele momento fica fora da receita e do custo e conta em `itens_sem_custo`.
+     * Margem % = (receita − custo) / receita.
+     *
+     * Nulo quando: a venda não está finalizada, o usuário não tem `view_purchase_price`, o módulo
+     * Compras não está ligado ou a flag `compras.custo_medio_movel` está desligada. Só lê.
+     *
+     * Tier 0 (ADR 0093): o custo médio é lido no business da venda, que o show() resolveu pela sessão.
+     */
+    private function margemDaVenda(Transaction $sell): ?array
+    {
+        if ($sell->status !== 'final' || ! auth()->user()?->can('view_purchase_price')
+            || ! app()->bound(\App\Contracts\Compras\CustoMedio::class)) {
+            return null;
+        }
+        $custoMedio = app(\App\Contracts\Compras\CustoMedio::class);
+        if (! $custoMedio->ligado()) {
+            return null;
+        }
+
+        // Valor gravado, sem acessor: o detalhe pode formatar a data para exibição.
+        $momento = (string) $sell->getRawOriginal('transaction_date');
+        $linhas = [];
+        $receita = $custo = 0.0;
+        $semCusto = 0;
+        foreach ($sell->getRelationValue('sell_lines') ?? [] as $line) {
+            $qtd = (float) $line->quantity - (float) ($line->quantity_returned ?? 0);
+            $cm = $line->variation_id ? $custoMedio->noMomento((int) $sell->business_id, (int) $line->variation_id, $momento) : null;
+            $preco = (float) $line->unit_price_inc_tax;
+            if ($cm === null) {
+                $semCusto++;
+                $linhas[] = ['id' => (int) $line->id, 'custo_medio' => null, 'margem_pct' => null];
+
+                continue;
+            }
+            $receita += $preco * $qtd;
+            $custo += $cm * $qtd;
+            $linhas[] = [
+                'id' => (int) $line->id, 'custo_medio' => round($cm, 4),
+                'margem_pct' => $preco > 0 ? round(($preco - $cm) / $preco * 100, 1) : null,
+            ];
+        }
+
+        return [
+            'linhas' => $linhas,
+            'receita' => round($receita, 2),
+            'custo' => round($custo, 2),
+            'margem' => round($receita - $custo, 2),
+            'margem_pct' => $receita > 0 ? round(($receita - $custo) / $receita * 100, 1) : null,
+            'itens_sem_custo' => $semCusto,
+        ];
     }
 
     /** Diferença entre o custo de hoje e o guardado a partir da qual a linha avisa (5%). */

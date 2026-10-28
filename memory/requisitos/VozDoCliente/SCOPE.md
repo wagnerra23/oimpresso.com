@@ -11,7 +11,7 @@ contains:
 excludes:
   - "Captura automática de erro do browser → sinal (é o wire da US-INFRA-003, ainda não construído)"
   - "Roteamento automático ao módulo pelo dicionário de domínio (coluna existe, preenchimento é PR seguinte)"
-  - "Triagem na tela Inertia (a Page VozDoCliente/Caixa existe desde 2026-10-13 só leitura, atrás da flag useV2VozDoClienteCaixa OFF; a Blade segue servindo por padrão)"
+  - "Triagem na tela Inertia (a Page VozDoCliente/Caixa existe desde 2026-10-13 só leitura, é a única tela desde o F5 de 2026-10-27, quando a Blade e a flag useV2VozDoClienteCaixa saíram)"
   - "Tools MCP client-signals-* (previstas na US-INFRA-002, PR seguinte)"
   - "Contagem no brief diário (previsto na US-INFRA-002, PR seguinte)"
 owner: wagner

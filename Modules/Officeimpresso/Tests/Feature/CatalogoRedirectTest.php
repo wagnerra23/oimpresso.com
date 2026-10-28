@@ -93,10 +93,8 @@ it('catálogo 5 · o destino do redirect abre (200) com o dropdown de locais', f
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
 
-    // Desde o #9166 a tela React fica atrás da chave mwart.product_catalogue_qr (ligada por padrão
-    // desde o cutover [W] 2026-10-13); desligada, o destino é a Blade. Fixa ligada como o
-    // CatalogueQrContratoTest, para o caso não depender do .env.
-    config(['mwart.product_catalogue_qr.enabled' => true, 'mwart.product_catalogue_qr.business_ids' => []]);
+    // O destino é sempre a tela React desde o F5 de 2026-10-27 (a chave mwart.product_catalogue_qr
+    // e a Blade catalogue/generate_qr saíram).
 
     $response = $this->followingRedirects()
         ->get('/officeimpresso/catalogue-qr');

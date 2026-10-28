@@ -74,5 +74,5 @@ Vendas (ADR 0180); os testes do módulo em `Modules/ProductCatalogue/Tests` não
 ## 10. Fora desta onda
 
 - Contrato de forma (`governance/design/contracts/catalogo-qr.contract.json`): depois do alvo medido.
-- Remover a Blade `generate_qr.blade.php`: no cutover.
+- ~~Remover a Blade `generate_qr.blade.php`: no cutover.~~ Feito no F5 de 2026-10-27, junto com a chave `mwart.product_catalogue_qr`.
 - PNG maior para impressão A4: pendência do charter, decisão [W].
