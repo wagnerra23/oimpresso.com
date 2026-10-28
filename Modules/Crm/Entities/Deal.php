@@ -90,7 +90,18 @@ class Deal extends Model
         'data_fechamento_prevista',
         'owner_user_id',
         'metadata',
+        // US-CRM-096 — de onde o negócio veio.
+        'origem',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'utm_term',
+        'utm_content',
     ];
+
+    public const ORIGEM_MANUAL = 'manual';
+
+    public const ORIGEM_FORMULARIO = 'formulario';
 
     protected $casts = [
         'metadata' => 'array',

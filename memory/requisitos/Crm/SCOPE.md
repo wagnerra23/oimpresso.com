@@ -8,6 +8,7 @@ purpose: "Pipeline pré-venda herdado do UltimatePOS (leads, follow-ups, campanh
 migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
 contains:
   - "CallLogController"
+  - "CapturaLeadController"       # Captura pública de lead com origem/UTM no funil (US-CRM-096)
   - "CampaignController"
   - "ClienteAuditoriaController"   # Wave F LGPD (#1344 merged 2026-05-21)
   - "ClienteAutosaveController"    # Drawer 760 autosave draft (Wave A-G refinada #1382)
