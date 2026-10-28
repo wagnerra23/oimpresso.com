@@ -16,7 +16,7 @@
 //   - as abas trazem o título de seção do protótipo;
 //   - a aba Estoque mostra os 3 indicadores com os totais que o servidor mandou (nada é somado aqui),
 //     e "—" + aviso quando o valor vem null (sem permissão não é zero);
-//   - o rodapé sai na ordem do protótipo, e "Comprar" some sem permissão ou sem controle de estoque;
+//   - o rodapé sai na ordem do protótipo, sem "Comprar" (a consulta não é a tela de compras);
 //   - a composição traz o "Total líquido" que o servidor somou, o preço de venda da composição, os
 //     preços de cada item (as colunas da Blade) e as imagens dos itens; a aba Variações, as imagens
 //     das variações. Sem permissão, a parte de preço some (nunca zero).
@@ -72,8 +72,8 @@ const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados 
 
 /** O painel com o dono da aba do lado de fora, como em `Produto/Index.tsx`. */
 function Painel({
-  d, abaInicial = 'dados', podeComprar = true, aoFechar, irPara,
-}: { d: DetalheProdutoDados; abaInicial?: AbaDoDetalhe; podeComprar?: boolean; aoFechar: () => void; irPara: (u: string) => void }) {
+  d, abaInicial = 'dados', aoFechar, irPara,
+}: { d: DetalheProdutoDados; abaInicial?: AbaDoDetalhe; aoFechar: () => void; irPara: (u: string) => void }) {
   const [aba, setAba] = useState<AbaDoDetalhe>(abaInicial);
   return (
     <PainelDetalheProduto
@@ -84,16 +84,15 @@ function Painel({
       aoFechar={aoFechar}
       podeEditar
       podePrecos
-      podeComprar={podeComprar}
       irPara={irPara}
     />
   );
 }
 
-function abrir(d: DetalheProdutoDados, opcoes: { podeComprar?: boolean; abaInicial?: AbaDoDetalhe } = {}) {
+function abrir(d: DetalheProdutoDados, opcoes: { abaInicial?: AbaDoDetalhe } = {}) {
   const aoFechar = vi.fn();
   const irPara = vi.fn();
-  render(<Painel d={d} abaInicial={opcoes.abaInicial} podeComprar={opcoes.podeComprar} aoFechar={aoFechar} irPara={irPara} />);
+  render(<Painel d={d} abaInicial={opcoes.abaInicial} aoFechar={aoFechar} irPara={irPara} />);
   return { aoFechar, irPara, painel: within(screen.getByRole('dialog')) };
 }
 
@@ -202,7 +201,7 @@ describe('UC-PIDX-17 · o painel abre na aba que quem abriu pediu', () => {
 
   it('o painel não guarda aba própria: obedece à aba que o dono manda, e só avisa o clique', () => {
     const aoMudarAba = vi.fn();
-    const props = { aberto: true, detalhe: comFiscal(), aoMudarAba, aoFechar: () => undefined, podeEditar: true, podePrecos: true, podeComprar: true, irPara: () => undefined };
+    const props = { aberto: true, detalhe: comFiscal(), aoMudarAba, aoFechar: () => undefined, podeEditar: true, podePrecos: true, irPara: () => undefined };
     const { rerender } = render(<PainelDetalheProduto {...props} aba="fiscal" />);
     const painel = within(screen.getByRole('dialog'));
     expect(painel.getByText('49019900')).toBeTruthy();
@@ -412,25 +411,13 @@ describe('UC-PIDX-11 · rodapé', () => {
       .map((b) => (b.textContent ?? '').trim())
       .filter((t) => ['Editar produto', 'Comprar', 'Preços por grupo', 'Imprimir', 'Fechar'].includes(t));
 
-  it('sai na ordem do protótipo', () => {
-    const { painel } = abrir(detalhe());
-    expect(rotulosDoRodape(painel)).toEqual(['Editar produto', 'Comprar', 'Preços por grupo', 'Imprimir', 'Fechar']);
-  });
-
-  it('"Comprar" leva à nova compra com o produto', () => {
+  it('sai na ordem do protótipo, sem "Comprar"', () => {
+    // Discriminante: produto ativo e com controle de estoque, o caso em que o "Comprar" aparecia até
+    // 2026-10-26. A consulta não é a tela de compras.
     const { painel, irPara } = abrir(detalhe());
-    fireEvent.click(painel.getByRole('button', { name: 'Comprar' }));
-    expect(irPara).toHaveBeenCalledWith('/purchases/create?produto=7');
-  });
-
-  it('"Comprar" some sem a permissão, e some para produto sem controle de estoque ou inativo', () => {
-    expect(rotulosDoRodape(abrir(detalhe(), { podeComprar: false }).painel)).not.toContain('Comprar');
-    cleanup();
-    const semEstoque = detalhe();
-    semEstoque.dados.controla_estoque = false;
-    expect(rotulosDoRodape(abrir(semEstoque).painel)).not.toContain('Comprar');
-    cleanup();
-    expect(rotulosDoRodape(abrir(detalhe({ inativo: true })).painel)).not.toContain('Comprar');
+    expect(rotulosDoRodape(painel)).toEqual(['Editar produto', 'Preços por grupo', 'Imprimir', 'Fechar']);
+    expect(painel.queryByRole('button', { name: /compr/i })).toBeNull();
+    expect(irPara).not.toHaveBeenCalled();
   });
 });
 
@@ -501,7 +488,7 @@ describe('UC-PIDX-20 · composição: total, preço da composição e preços do
     expect(painel.getByRole('heading', { name: 'Preços dos itens' })).toBeTruthy();
     const tabela = painel.getByRole('table', { name: 'Preços dos itens da composição' });
     expect(within(tabela).getAllByRole('columnheader').map((th) => th.textContent)).toEqual([
-      'Item', 'Compra (incl.)', '% lucro', 'Venda (excl.)', 'Venda (incl.)',
+      'Item', 'Compra com imposto', '% lucro', 'Venda sem imposto', 'Venda com imposto',
     ]);
     const caneca = within(tabela).getByText('Caneca branca').closest('tr') as HTMLElement;
     expect(Array.from(caneca.querySelectorAll('td')).map((td) => td.textContent)).toEqual([
