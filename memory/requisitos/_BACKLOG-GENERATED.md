@@ -19,11 +19,11 @@
 | [`NfeBrasil`](#nfebrasil) | 33 | 0 | 0 | 6 | 27 |
 | [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
-| [`Marketplaces`](#marketplaces) | 26 | 0 | 0 | 0 | 26 |
+| [`Crm`](#crm) | 26 | 0 | 0 | 0 | 26 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
-| [`Crm`](#crm) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
+| [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
@@ -50,9 +50,9 @@
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
+| [`Repair`](#repair) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
-| [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
@@ -719,37 +719,37 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
-## Marketplaces
+## Crm
 
 
 ### todo
 
-- **US-MKT-001** — Schema fundação 9 tabelas + Models global scope — **P0** · 4h
-- **US-MKT-002** — Catálogo `mkt_marketplaces` seed 3 drivers — **P0** · 2h
-- **US-MKT-003** — OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
-- **US-MKT-004** — OAuth2 Shopee + Amazon BR — **P1** · 6h
-- **US-MKT-005** — Importar 1 anúncio manual ML (proof of concept) — **P0** · 5h
-- **US-MKT-006** — Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
-- **US-MKT-007** — Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
-- **US-MKT-008** — UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
-- **US-MKT-009** — NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
-- **US-MKT-010** — Sync rastreamento Correios + auto-fechamento — **P0** · 6h
-- **US-MKT-011** — Sync estoque oimpresso → ML (one-way push) — **P1** · 8h
-- **US-MKT-012** — Sync estoque ML → oimpresso (one-way pull via webhook) — **P1** · 4h
-- **US-MKT-013** — Anúncio em lote (bulk create) — **P1** · 10h
-- **US-MKT-014** — Disputa workflow completo — **P1** · 12h
-- **US-MKT-015** — Reconciliação financeira Mercado Pago split D+X — **P1** · 8h
-- **US-MKT-016** — Reputação ML monitoring + alerta SLA — **P1** · 5h
-- **US-MKT-017** — Pricing rules per marketplace (markup diferenciado) — **P1** · 6h
-- **US-MKT-018** — Jana tool `marketplaces.consulta` (relatórios IA) — **P2** · 4h
-- **US-MKT-019** — Etiquetas envio ML Coletas + integração Correios — **P2** · 6h
-- **US-MKT-020** — Pipeline produção sob demanda marketplace (ComVis) — **P2** · 8h
-- **US-MKT-021** — Shopee orders webhook + NFe (mesmo pattern ML) — **P2** · 10h
-- **US-MKT-022** — Amazon BR orders webhook + NFe (SP-API) — **P2** · 12h
-- **US-MKT-023** — Pricing dinâmico copilot competitor watch — **P3** · 14h
-- **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
-- **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
-- **US-MKT-026** — Nuvemshop — conectar a loja (OAuth, token sem vencimento) — **P1** · 4h
+- **US-CRM-001** — Migration estender `contacts` com colunas pipeline · **P0** · 2H
+- **US-CRM-002** — `crm_motivos_perda` catálogo + seeder padrão · **P0** · 2H
+- **US-CRM-003** — `crm_lead_interactions` timeline append-only + observers · **P0** · 4H
+- **US-CRM-004** — `crm_lead_tags` + pivot · **P1** · 2H
+- **US-CRM-010** — Listener `WhatsappMessageReceived` cria/resolve lead · **P0** · 4H
+- **US-CRM-011** — `JanaIntencaoAgent` classifica intenção mensagem entrante · **P0** · 6H
+- **US-CRM-012** — `CrmLeadFromWhatsappService.createOrUpdate` + round-robin · **P0** · 4H
+- **US-CRM-013** — Auto-resposta template WhatsApp ao criar lead · **P1** · 2H
+- **US-CRM-014** — Vincular `whatsapp_conversations.contact_id` ao Lead criado · **P0** · 2H
+- **US-CRM-020** — `ConvertLeadToSaleService` cria Transaction + inicia FSM `quote_draft` · **P0** · 6H
+- **US-CRM-021** — UI kanban "Ganho" dispara ConvertLeadToSale + redireciona SaleSheet · **P0** · 4H
+- **US-CRM-022** — UI kanban "Perdido" modal obrigatório motivo + data reabordagem · **P0** · 4H
+- **US-CRM-023** — Cron `lead:reactivate-cold` reabre leads "perdido_timing" com data atingida · **P1** · 2H
+- **US-CRM-030** — `crm_lead_scoring_log` + cron `lead:rescore` regras simples · **P1** · 6H
+- **US-CRM-031** — SLA novo lead → alerta vendedor superior se sla_responder_em vencido · **P1** · 4H
+- **US-CRM-032** — Dashboard pipeline com forecast (sum valor_estimado per stage) · **P2** · 6H
+- **US-CRM-040** — API REST pública `/api/v1/crm/leads` (token `business_uuid` + reCAPTCHA + rate-limit) · **P1** · 6H
+- **US-CRM-041** — Form embed JS oimpresso.com captura → POST API · **P2** · 4H
+- **US-CRM-050** — `lgpd_consent_at` + opt-in/opt-out + endpoint direito esquecimento · **P0** · 6H
+- **US-CRM-060** — MWART tela Lead Kanban (atual `crm::lead.index lead_view=kanban`) · **P1** · 12H
+- **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
+- **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
+- **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
+- **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
+- **US-CRM-094** — Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
+- **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
 
 ## RecurringBilling
 
@@ -814,37 +814,6 @@
 - **US-ARQ-024** — Migrar `Modules/Ponto/Importacao` (arquivos folha eSocial — médio risco compliance) `p1`
 - **US-ARQ-025** — Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`) `p1`
 
-## Crm
-
-
-### todo
-
-- **US-CRM-001** — Migration estender `contacts` com colunas pipeline · **P0** · 2H
-- **US-CRM-002** — `crm_motivos_perda` catálogo + seeder padrão · **P0** · 2H
-- **US-CRM-003** — `crm_lead_interactions` timeline append-only + observers · **P0** · 4H
-- **US-CRM-004** — `crm_lead_tags` + pivot · **P1** · 2H
-- **US-CRM-010** — Listener `WhatsappMessageReceived` cria/resolve lead · **P0** · 4H
-- **US-CRM-011** — `JanaIntencaoAgent` classifica intenção mensagem entrante · **P0** · 6H
-- **US-CRM-012** — `CrmLeadFromWhatsappService.createOrUpdate` + round-robin · **P0** · 4H
-- **US-CRM-013** — Auto-resposta template WhatsApp ao criar lead · **P1** · 2H
-- **US-CRM-014** — Vincular `whatsapp_conversations.contact_id` ao Lead criado · **P0** · 2H
-- **US-CRM-020** — `ConvertLeadToSaleService` cria Transaction + inicia FSM `quote_draft` · **P0** · 6H
-- **US-CRM-021** — UI kanban "Ganho" dispara ConvertLeadToSale + redireciona SaleSheet · **P0** · 4H
-- **US-CRM-022** — UI kanban "Perdido" modal obrigatório motivo + data reabordagem · **P0** · 4H
-- **US-CRM-023** — Cron `lead:reactivate-cold` reabre leads "perdido_timing" com data atingida · **P1** · 2H
-- **US-CRM-030** — `crm_lead_scoring_log` + cron `lead:rescore` regras simples · **P1** · 6H
-- **US-CRM-031** — SLA novo lead → alerta vendedor superior se sla_responder_em vencido · **P1** · 4H
-- **US-CRM-032** — Dashboard pipeline com forecast (sum valor_estimado per stage) · **P2** · 6H
-- **US-CRM-040** — API REST pública `/api/v1/crm/leads` (token `business_uuid` + reCAPTCHA + rate-limit) · **P1** · 6H
-- **US-CRM-041** — Form embed JS oimpresso.com captura → POST API · **P2** · 4H
-- **US-CRM-050** — `lgpd_consent_at` + opt-in/opt-out + endpoint direito esquecimento · **P0** · 6H
-- **US-CRM-060** — MWART tela Lead Kanban (atual `crm::lead.index lead_view=kanban`) · **P1** · 12H
-- **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
-- **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
-- **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
-- **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
-- **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
-
 ## Inventory
 
 
@@ -875,6 +844,37 @@
 - **US-INV-023** — Job daily `inventory:expire-batches` (batch.expires_at < today → status=expired) — **P2**
 - **US-INV-024** — Dashboard analytics estoque (giro, lead-time, ruptura, custo real per categoria) — **P3**
 - **US-INV-025** — Multi-location transfer com batch preservation — **P3**
+
+## Marketplaces
+
+
+### todo
+
+- **US-MKT-001** — Schema fundação 9 tabelas + Models global scope — **P0** · 4h
+- **US-MKT-002** — Catálogo `mkt_marketplaces` seed 3 drivers — **P0** · 2h
+- **US-MKT-003** — OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
+- **US-MKT-004** — OAuth2 Shopee + Amazon BR — **P1** · 6h
+- **US-MKT-005** — Importar 1 anúncio manual ML (proof of concept) — **P0** · 5h
+- **US-MKT-006** — Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
+- **US-MKT-007** — Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
+- **US-MKT-008** — UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
+- **US-MKT-009** — NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
+- **US-MKT-010** — Sync rastreamento Correios + auto-fechamento — **P0** · 6h
+- **US-MKT-011** — Sync estoque oimpresso → ML (one-way push) — **P1** · 8h
+- **US-MKT-012** — Sync estoque ML → oimpresso (one-way pull via webhook) — **P1** · 4h
+- **US-MKT-013** — Anúncio em lote (bulk create) — **P1** · 10h
+- **US-MKT-014** — Disputa workflow completo — **P1** · 12h
+- **US-MKT-015** — Reconciliação financeira Mercado Pago split D+X — **P1** · 8h
+- **US-MKT-016** — Reputação ML monitoring + alerta SLA — **P1** · 5h
+- **US-MKT-017** — Pricing rules per marketplace (markup diferenciado) — **P1** · 6h
+- **US-MKT-018** — Jana tool `marketplaces.consulta` (relatórios IA) — **P2** · 4h
+- **US-MKT-019** — Etiquetas envio ML Coletas + integração Correios — **P2** · 6h
+- **US-MKT-020** — Pipeline produção sob demanda marketplace (ComVis) — **P2** · 8h
+- **US-MKT-021** — Shopee orders webhook + NFe (mesmo pattern ML) — **P2** · 10h
+- **US-MKT-022** — Amazon BR orders webhook + NFe (SP-API) — **P2** · 12h
+- **US-MKT-023** — Pricing dinâmico copilot competitor watch — **P3** · 14h
+- **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
+- **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
 
 ## ComunicacaoVisual
 
@@ -1398,6 +1398,18 @@
 - **US-NOTIF-005** — QA F4
 - **US-NOTIF-006** — Cutover F5
 
+## Repair
+
+
+### todo
+
+- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
+- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
+- **US-REPA-005** — Manter o catálogo de status e de modelos que as OS usam _(`p2`)_
+- **US-REPA-006** — Indicadores da OS de assistência no Painel _(`p2`)_
+- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
+- **US-REPA-001** — [TODO — título]
+
 ## SRS
 
 
@@ -1420,17 +1432,6 @@
 - **US-AI-003** — Visualizar grafo de permissões
 - **US-AI-004** — Auditoria temporal por subject
 - **US-AI-005** — Chat IA contextual nas telas (rota corrente)
-
-## Repair
-
-
-### todo
-
-- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
-- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
-- **US-REPA-005** — Manter o catálogo de status e de modelos que as OS usam _(`p2`)_
-- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
-- **US-REPA-001** — [TODO — título]
 
 ## Spreadsheet
 

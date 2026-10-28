@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: um painel so vale pelo que ele NAO faz — read-only puro, sem escrita, sem job, sem cruzar tenant; e o KPI precisa continuar contando o que o rotulo promete
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-09-09"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — Painel do Repair
@@ -108,9 +108,73 @@ last_run: "2026-09-09"
 - **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php`
 - **Status: 🧪** _(teste cita o UC e passa — run CT 100 2026-09-05: 12 passed, 57 assertions)_
 
+## Indicadores da OS (US-REPA-006)
+
+> Tudo sai da FSM (ADR 0143): `sale_stage_history` e `repair_job_sheets.current_stage_id`. Nenhum
+> contador paralelo. Janela fixa de 90 dias. O teste fixa o "agora" em 2031 e põe as transições em
+> dez/2030, para que a janela só veja as linhas dele.
+
+## UC-RDSH-06 · Tempo médio por etapa vem das transições
+- **Fonte:** US-REPA-006 (SPEC) · charter §Goals "Indicadores da OS".
+- **Persona:** dono da oficina procurando onde a OS demora.
+- **Aceite:** Dado a OS A 10h em execução e a OS B 20h em execução · Quando abro os indicadores ·
+  Então "em execução" mostra 15h sobre 2 passagens. Etapa de onde a OS ainda não saiu não entra.
+- **Regressão que defende:** média calculada por OS em vez de por passagem, ou par de transições
+  trocado entre OS diferentes. Os dois dariam outro número que não 15h.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php`
+- **Status: ⬜** _(primeira execução é a da lane Verticais MySQL)_
+
+## UC-RDSH-07 · OS parada além do prazo conta na etapa onde está
+- **Persona:** gerente decidindo qual OS cobrar primeiro.
+- **Aceite:** Dado uma OS em execução com entrega vencida, uma com entrega futura, uma sem prazo e
+  uma entregue com prazo vencido · Então só a primeira conta, na linha "em execução". Etapa
+  terminal nunca é "parada".
+- **Regressão que defende:** contar OS já entregue ou sem prazo como atrasada, o que encheria o
+  painel de falso alarme.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php`
+- **Status: ⬜**
+
+## UC-RDSH-08 · Retorno em garantia divide pelas OS entregues na mesma janela
+- **Persona:** dono da oficina medindo a qualidade do conserto.
+- **Aceite:** Dado 2 OS entregues na janela, 1 delas com garantia acionada, e uma 3ª OS entregue
+  antes da janela e com garantia acionada dentro dela · Então `entregues 2 · acionadas 1 · taxa 50`.
+  A 3ª fica fora do numerador: com ela a taxa poderia passar de 100%.
+- **Regressão que defende:** numerador e denominador de universos diferentes (taxa acima de 100%).
+- **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php`
+- **Status: ⬜**
+
+## UC-RDSH-09 · Produtividade por técnico
+- **Persona:** gerente distribuindo OS entre os técnicos.
+- **Aceite:** Dado A concluída 10h e B 20h depois de abertas, do mesmo técnico, e F entregue sem
+  passar por "concluído" · Então o técnico tem 2 concluídas e 15h de média. F não conta.
+- **Regressão que defende:** contar como produção a OS devolvida sem conserto (orçamento rejeitado).
+- **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php`
+- **Status: ⬜**
+
+## UC-RDSH-10 · Indicadores não contam OS de outro tenant
+- **Persona:** duas empresas na mesma instalação.
+- **Aceite:** Dado uma OS do tenant 99 com transição gravada no histórico com o `business_id` do 98
+  e do 99 · Então nada dela aparece no 98.
+- **Regressão que defende:** `transaction_id` é compartilhado entre venda e OS. Sem a junção com
+  `repair_job_sheets` do mesmo business, um id colidente entra na conta.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php`
+- **Status: ⬜**
+
+## UC-RDSH-11 · Os indicadores chegam como prop adiada
+- **Persona:** quem abre o painel e espera ver os KPIs antes dos indicadores.
+- **Aceite:** A primeira resposta não traz `indicadores` e lista a prop em `deferredProps`. O
+  partial reload traz as 5 chaves.
+- **Regressão que defende:** a leitura de 90 dias do histórico rodando no primeiro paint e
+  atrasando a tela inteira.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php`
+- **Status: ⬜**
+
 ---
 
 ## Contrato ainda sem UC (prosa honesta, sem gate)
+
+- **[BACKLOG]** Faturamento de serviço no painel. Mexe em valor: exige dupla prova e antes → depois
+  aprovados pelo [W] antes de virar UC.
 
 > Os quatro GUARD do charter que estes UCs **não** pagam — nomeados para que a promessa deixe de
 > parecer cobertura.
