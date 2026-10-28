@@ -161,7 +161,13 @@ export function parseBullet(linha) {
  *
  * Regra: linha que abre com `- ` inicia bullet; linha INDENTADA que a segue é continuação
  * (junta com espaço); linha vazia, heading ou linha não-indentada fecha o bullet.
+ *
+ * Exceção (2026-10-28): os subitens de metadado do documento "Casos de uso por tela"
+ * (`  - Pedido: P-NNN`, `Âncora`, `Fazer`, `Hoje`, `Comunicação visual`, `Clientes`,
+ * `Etiquetas` — formato lido por scripts/casos-backlog/leitor.mjs) não são prosa do débito.
+ * Sem esta exceção, "... Vargas - Etiquetas: valor, miss" ia para a tela do Fiscal.
  */
+const METADADO_DO_PEDIDO = /^\s+- (Pedido|Âncora|Fazer|Hoje|Comunicação visual|Clientes|Etiquetas): /;
 export function bulletsDe(conteudo) {
   const out = [];
   let atual = null;
@@ -169,6 +175,8 @@ export function bulletsDe(conteudo) {
     if (linha.startsWith('- ')) {
       if (atual !== null) out.push(atual);
       atual = linha;
+    } else if (atual !== null && METADADO_DO_PEDIDO.test(linha)) {
+      continue;
     } else if (atual !== null && /^\s+\S/.test(linha)) {
       atual += ` ${linha.trim()}`;
     } else if (atual !== null) {
@@ -290,6 +298,9 @@ function selftest() {
     ['bulletsDe separa 2 bullets seguidos', bs.length === 2],
     ['bulletsDe une a continuacao indentada', bs[0] === '- **[BACKLOG · sem teste] A** — um dois'],
     ['bulletsDe nao arrasta prosa apos linha vazia', !String(bs[1]).includes('texto solto')],
+    ['bulletsDe ignora o metadado do pedido e segue juntando a prosa depois dele',
+      bulletsDe('- **[BACKLOG · sem teste] C** — um\n  - Pedido: P-040\n  - Etiquetas: valor, miss\n  dois\n')[0]
+        === '- **[BACKLOG · sem teste] C** — um dois'],
   ];
 
   let falhas = 0;
