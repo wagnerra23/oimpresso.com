@@ -26,9 +26,10 @@ interface Props {
   nav: Navegacao;
   atual: string | null;
   escopo: { tipos: string[]; prosa: string };
+  podeVerCasosPorTela?: boolean;
 }
 
-export default function Index({ html, sumario, fonte, blob, atualizadoEm, buscaDisponivel, nav, atual, escopo }: Props) {
+export default function Index({ html, sumario, fonte, blob, atualizadoEm, buscaDisponivel, nav, atual, escopo, podeVerCasosPorTela }: Props) {
   return (
     <AppShellV2 title="Documentação" breadcrumbItems={[{ label: 'Documentação' }]}>
       <div className="doc-page">
@@ -41,6 +42,11 @@ export default function Index({ html, sumario, fonte, blob, atualizadoEm, buscaD
                 <Button asChild variant="outline" size="sm">
                   <a href="/documentacao/casos-de-uso">Casos de uso</a>
                 </Button>
+                {podeVerCasosPorTela ? (
+                  <Button asChild variant="outline" size="sm">
+                    <a href="/documentacao/casos-por-tela">Casos de uso por tela</a>
+                  </Button>
+                ) : null}
                 <Button asChild variant="outline" size="sm">
                   <a href={blob} target="_blank" rel="noopener noreferrer">Ver fonte no git</a>
                 </Button>
