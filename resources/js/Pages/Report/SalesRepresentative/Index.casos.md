@@ -36,3 +36,10 @@ last_run: "2026-10-07"
 - [BACKLOG] As 4 abas de listagem da Blade (vendas, vendas com comissão, despesas, pagamentos com comissão) — PR seguinte, antes do cutover.
 - [BACKLOG] Travar o vendedor no usuário logado quando ele não for gestor — decisão [W] (a Blade não faz).
 - [BACKLOG] Comissão pela regra, com o valor a pagar (pedido de 2026-10-27, US-COMM-016) `[V0]` — Dado um vendedor com vendas no mês, itens com regra de produto de 2% e um item sem regra · Quando abro o relatório do mês · Então ele mostra o total a pagar ao vendedor pela regra da US-COMM-015 e o detalhe por venda e item: base, regra aplicada e comissão; o item sem regra aparece com zero, e o detalhe sai em CSV. Fica atrás da flag `SELLS_COMISSAO_POR_REGRA`; com ela desligada o relatório não muda. O número é calculado na leitura: congelar o que foi pago e estornar são das US-COMM-002 e 003. **Depende do [W]:** nos modelos de Fluxos dele (UC-FLX-05), a comissão nasce no faturamento, lançada sobre o valor faturado; a US-COMM-015 calcula sobre o preço sem imposto, e este caso calcula na leitura. Qual base e qual momento valem é decisão dele. Pedido da CyberStudio, que hoje calcula a comissão à mão a partir do relatório de produtos vendidos.
+  - Pedido: P-109
+  - Âncora: US-COMM-016 (PR #10076) · relatório de comissão por vendedor
+  - Fazer: Somar a regra da US-COMM-015 por vendedor no período, dentro do relatório de comissão que já existe. O número é calculado na leitura; congelar o que foi pago e estornar ficam para as US-COMM-002 e 003.
+  - Hoje: miss | Não tem | O relatório usa só o percentual fixo do vendedor
+  - Comunicação visual: ok | Sim | comissão diferente por serviço
+  - Clientes: CyberStudio
+  - Etiquetas: valor, miss, cv, decisao

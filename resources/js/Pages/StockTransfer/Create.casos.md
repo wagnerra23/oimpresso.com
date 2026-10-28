@@ -73,3 +73,10 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   e a nota fica ligada à transferência; filiais com o mesmo CNPJ não pedem nota. CFOP de exemplo: 5.152
   no mesmo estado e 6.152 entre estados; o contador confirma. Hoje a transferência mexe no estoque e não
   emite nota.
+  - Pedido: P-092
+  - Âncora: `StockTransfer/Create.casos.md`
+  - Fazer: Emitir a NF-e de transferência ao concluir. CFOP de exemplo 5.152 ou 6.152; o contador confirma.
+  - Hoje: miss | Não tem | A transferência mexe no estoque e não emite nota
+  - Comunicação visual: ok | Sim | filial com CNPJ próprio
+  - Clientes: Romaria Store, Gráfica MB
+  - Etiquetas: miss, cv, decisao
