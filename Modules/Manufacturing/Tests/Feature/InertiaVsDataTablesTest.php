@@ -34,8 +34,9 @@ uses(Tests\TestCase::class);
 it('as ações do cutover guardam o ramo DataTables contra requisição Inertia', function () {
     // Ações que (a) renderizam Inertia e (b) têm ramo AJAX no mesmo método. `destroy()` tem
     // ramo AJAX e NÃO renderiza Inertia — fora do escopo de propósito.
+    // `RecipeController@index` saiu da lista no cutover de 2026-10-27: a Blade de receitas foi
+    // apagada e o ramo DataTables junto — não há mais ramo a guardar.
     $alvos = [
-        'RecipeController' => 1,      // index()
         'ProductionController' => 2,  // index() + getManufacturingReport()
     ];
 

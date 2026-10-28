@@ -56,7 +56,7 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         // PR3: tela de login redesenhada em Inertia (com login social Google + Microsoft).
-        // Blade legado disponível em /login/old enquanto a transição se estabiliza.
+        // O Blade legado (/login/old) foi removido em 2026-10-27, por decisão [W].
         return Inertia::render('Site/Login', [
             'socialEnabled' => [
                 'google' => ! empty(config('services.google.client_id')),
@@ -64,14 +64,6 @@ class LoginController extends Controller
             ],
             'allowRegistration' => (bool) config('constants.allow_registration', true),
         ]);
-    }
-
-    /**
-     * Versão Blade legada (UltimatePOS) — mantida em /login/old durante a transição.
-     */
-    public function showLoginFormLegacy()
-    {
-        return view('auth.login');
     }
 
     /**

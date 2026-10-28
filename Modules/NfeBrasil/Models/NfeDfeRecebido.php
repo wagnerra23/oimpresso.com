@@ -35,6 +35,8 @@ class NfeDfeRecebido extends Model
         'num_protocolo',
         'data_emissao',
         'xml_path',
+        'transaction_id',
+        'origem',
         'status_manifestacao',
         'manifestado_em',
         'prazo_confirmacao_em',
@@ -47,6 +49,9 @@ class NfeDfeRecebido extends Model
         'prazo_confirmacao_em' => 'date',
         'nsu'                 => 'integer',
     ];
+
+    public const ORIGEM_NSU    = 'nsu';
+    public const ORIGEM_UPLOAD = 'upload';
 
     public const STATUS_PENDENTE      = 'pendente';
     public const STATUS_CIENCIA       = 'ciencia';

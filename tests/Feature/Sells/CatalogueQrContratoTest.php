@@ -30,9 +30,6 @@ beforeEach(function () {
     $this->business = $this->seededTenant();
     $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
     cqrAssinatura(true);
-    // A tela React fica atrás da chave mwart.product_catalogue_qr — ligada por padrão desde o
-    // cutover [W] 2026-10-13. Os UCs da tela fixam a chave ligada; o UC-CQR-11 prova o lado desligado.
-    config(['mwart.product_catalogue_qr.enabled' => true, 'mwart.product_catalogue_qr.business_ids' => []]);
 });
 
 function cqrAssinatura(bool $temModulo): void
@@ -132,36 +129,14 @@ test('UC-CQR-10 sem product.view é 403; sem o módulo na assinatura também', f
     cqrAbrir($this)->assertOk();
 });
 
-test('UC-CQR-11 sem env a chave vem ligada para todas as empresas (cutover [W] 2026-10-13)', function () {
-    // Precondição: o ambiente de teste não fixa a env; senão o default nem é exercitado.
-    expect(env('MWART_PRODUCT_CATALOGUE_QR'))->toBeNull();
-    expect(env('MWART_PRODUCT_CATALOGUE_QR_BIZ'))->toBeNull();
-
-    $padrao = require base_path('config/mwart.php');
-    expect($padrao['product_catalogue_qr'])->toBe(['enabled' => true, 'business_ids' => []]);
-
-    cqrEntrar($this, ['product.view', 'access_all_locations']);
-    config(['mwart.product_catalogue_qr' => $padrao['product_catalogue_qr']]);
-    $r = cqrAbrir($this);
-    $r->assertOk();
-    expect($r->json('component'))->toBe('ProductCatalogue/CatalogueQr');
-});
-
-test('UC-CQR-11 chave desligada segue a Blade; ligada só para outro negócio também', function () {
+test('UC-CQR-11 a Blade saiu: a rota serve só a tela React (F5 2026-10-27)', function () {
     cqrEntrar($this, ['product.view', 'access_all_locations']);
 
+    expect(view()->exists('productcatalogue::catalogue.generate_qr'))->toBeFalse();
+    // A chave mwart.product_catalogue_qr saiu do config: desligá-la não traz a Blade de volta.
+    expect(config('mwart.product_catalogue_qr'))->toBeNull();
     config(['mwart.product_catalogue_qr.enabled' => false]);
-    $r = cqrAbrir($this);
-    $r->assertOk();
-    expect($r->headers->get('x-inertia'))->toBeNull();
 
-    config(['mwart.product_catalogue_qr.enabled' => true, 'mwart.product_catalogue_qr.business_ids' => [99]]);
-    $r = cqrAbrir($this);
-    $r->assertOk();
-    expect($r->headers->get('x-inertia'))->toBeNull();
-
-    // Controle positivo: na lista, responde Inertia.
-    config(['mwart.product_catalogue_qr.business_ids' => [(int) $this->business->id]]);
     $r = cqrAbrir($this);
     $r->assertOk();
     expect($r->json('component'))->toBe('ProductCatalogue/CatalogueQr');
