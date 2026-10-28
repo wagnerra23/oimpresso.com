@@ -18,4 +18,11 @@ return [
     'rfm' => [
         'enabled' => (bool) env('CRM_RFM_ENABLED', false),
     ],
+
+    // Chamado de garantia com SLA (US-CRM-094). Desligado por padrão.
+    'garantia_sla' => [
+        'enabled' => (bool) env('CRM_GARANTIA_SLA_ENABLED', false),
+        // Prazo quando a empresa não cadastrou política em crm_sla_politicas.
+        'prazo_padrao_horas' => (int) env('CRM_GARANTIA_SLA_PRAZO_PADRAO_HORAS', 48),
+    ],
 ];

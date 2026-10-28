@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1074 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1076 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -19,7 +19,7 @@
 | [`NfeBrasil`](#nfebrasil) | 33 | 0 | 0 | 6 | 27 |
 | [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
-| [`Crm`](#crm) | 26 | 0 | 0 | 0 | 26 |
+| [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
@@ -50,9 +50,9 @@
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
+| [`Repair`](#repair) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
-| [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
@@ -748,6 +748,7 @@
 - **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
 - **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
 - **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
+- **US-CRM-094** — Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
 - **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
 - **US-CRM-098** — Segmentação RFM — recência, frequência e valor por cliente
 
@@ -1398,6 +1399,18 @@
 - **US-NOTIF-005** — QA F4
 - **US-NOTIF-006** — Cutover F5
 
+## Repair
+
+
+### todo
+
+- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
+- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
+- **US-REPA-005** — Manter o catálogo de status e de modelos que as OS usam _(`p2`)_
+- **US-REPA-006** — Indicadores da OS de assistência no Painel _(`p2`)_
+- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
+- **US-REPA-001** — [TODO — título]
+
 ## SRS
 
 
@@ -1420,17 +1433,6 @@
 - **US-AI-003** — Visualizar grafo de permissões
 - **US-AI-004** — Auditoria temporal por subject
 - **US-AI-005** — Chat IA contextual nas telas (rota corrente)
-
-## Repair
-
-
-### todo
-
-- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
-- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
-- **US-REPA-005** — Manter o catálogo de status e de modelos que as OS usam _(`p2`)_
-- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
-- **US-REPA-001** — [TODO — título]
 
 ## Spreadsheet
 

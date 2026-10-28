@@ -87,6 +87,10 @@ on:
       - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
       - 'Modules/Crm/Resources/js/Pages/**'
       - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+      # US-CRM-094 — chamado de garantia com SLA (estende o acompanhamento).
+      - 'Modules/Crm/Services/ChamadoGarantiaService.php'
+      - 'Modules/Crm/Entities/SlaPolitica.php'
+      - 'Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php'
       # Thread Crm/13 F2 — baseline dos dados dos Relatórios antes da tela React.
       - 'Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php'
       - 'Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php'
@@ -242,6 +246,9 @@ jobs:
               - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
               - 'Modules/Crm/Resources/js/Pages/**'
               - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+              - 'Modules/Crm/Services/ChamadoGarantiaService.php'
+              - 'Modules/Crm/Entities/SlaPolitica.php'
+              - 'Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php'
               # Thread Crm/13 F2 — baseline dos dados dos Relatórios antes da tela React.
               - 'Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php'
               - 'Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php'
@@ -668,6 +675,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairListResourceDatasTest.php \
             Modules/Repair/Tests/Feature/RepairShowContratoTest.php \
             Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php \
             Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php \
             Modules/Repair/Tests/Feature/RepairStatusContratoTest.php \
@@ -693,6 +701,7 @@ jobs:
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Cms/Tests/Feature/SitePublicoContratoTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmRelatoriosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php \

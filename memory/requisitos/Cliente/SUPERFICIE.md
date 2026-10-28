@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 398 arquivos em 18 papéis.
+**Total mapeado:** 402 arquivos em 18 papéis.
 
 ## Controllers — 31
 
@@ -75,7 +75,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [CheckContactLogin.php](../../../Modules/Crm/Http/Middleware/CheckContactLogin.php)
 - [ContactSidebarMenu.php](../../../Modules/Crm/Http/Middleware/ContactSidebarMenu.php)
 
-## Services — 14
+## Services — 15
 
 - [AgendaDeTarefasDoCrm.php](../../../Modules/Crm/Services/AgendaDeTarefasDoCrm.php)
 - [BrLookupService.php](../../../Modules/Crm/Services/BrLookupService.php)
@@ -83,6 +83,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [CallLogService.php](../../../Modules/Crm/Services/CallLogService.php)
 - [CampaignService.php](../../../Modules/Crm/Services/CampaignService.php)
 - [CapturaDeLead.php](../../../Modules/Crm/Services/CapturaDeLead.php)
+- [ChamadoGarantiaService.php](../../../Modules/Crm/Services/ChamadoGarantiaService.php)
 - [ContactBookingService.php](../../../Modules/Crm/Services/ContactBookingService.php)
 - [CrmLeadService.php](../../../Modules/Crm/Services/CrmLeadService.php)
 - [DealPipelineService.php](../../../Modules/Crm/Services/DealPipelineService.php)
@@ -92,7 +93,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [ProposalService.php](../../../Modules/Crm/Services/ProposalService.php)
 - [ScheduleService.php](../../../Modules/Crm/Services/ScheduleService.php)
 
-## Models / Entities — 15
+## Models / Entities — 16
 
 - [Campaign.php](../../../Modules/Crm/Entities/Campaign.php)
 - [CrmCallLog.php](../../../Modules/Crm/Entities/CrmCallLog.php)
@@ -107,6 +108,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Schedule.php](../../../Modules/Crm/Entities/Schedule.php)
 - [ScheduleLog.php](../../../Modules/Crm/Entities/ScheduleLog.php)
 - [ScheduleUser.php](../../../Modules/Crm/Entities/ScheduleUser.php)
+- [SlaPolitica.php](../../../Modules/Crm/Entities/SlaPolitica.php)
 - [Contact.php](../../../app/Contact.php)
 - [CustomerGroup.php](../../../app/CustomerGroup.php)
 
@@ -128,7 +130,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [api.php](../../../Modules/Crm/Routes/api.php)
 - [web.php](../../../Modules/Crm/Routes/web.php)
 
-## Migrations (schema) — 29
+## Migrations (schema) — 30
 
 - [2020_03_19_130231_add_contact_id_to_users_table.php](../../../Modules/Crm/Database/Migrations/2020_03_19_130231_add_contact_id_to_users_table.php)
 - [2020_03_27_133605_create_schedules_table.php](../../../Modules/Crm/Database/Migrations/2020_03_27_133605_create_schedules_table.php)
@@ -158,6 +160,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [2022_06_06_073006_add_cc_and_bcc_columns_to_crm_proposals_table.php](../../../Modules/Crm/Database/Migrations/2022_06_06_073006_add_cc_and_bcc_columns_to_crm_proposals_table.php)
 - [2026_05_17_120000_create_crm_deals_table.php](../../../Modules/Crm/Database/Migrations/2026_05_17_120000_create_crm_deals_table.php)
 - [2026_10_27_000002_create_crm_rfm_clientes_table.php](../../../Modules/Crm/Database/Migrations/2026_10_27_000002_create_crm_rfm_clientes_table.php)
+- [2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php](../../../Modules/Crm/Database/Migrations/2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php)
 - [2026_10_27_120000_add_origem_utm_e_formularios_captura_crm.php](../../../Modules/Crm/Database/Migrations/2026_10_27_120000_add_origem_utm_e_formularios_captura_crm.php)
 
 ## Seeders — 1
@@ -372,9 +375,9 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.casos.md](../../../resources/js/Pages/Cliente/Map.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Cliente/Show.casos.md)
 
-## Testes (Pest) — 44
+## Testes (Pest) — 45
 
-- 44 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
+- 45 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 47
