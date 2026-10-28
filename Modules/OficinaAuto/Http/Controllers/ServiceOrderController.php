@@ -717,7 +717,7 @@ class ServiceOrderController extends Controller
                 // global, então o load('transaction:...') devolve a venda de qualquer empresa
                 // para onde o transaction_id apontar. Venda de outra empresa vira null aqui.
                 'venda_derivada' => $order->transaction
-                    && (int) $order->transaction->business_id === (int) $order->business_id
+                    && (int) $order->transaction->getAttribute('business_id') === (int) $order->business_id
                     ? $this->shapeVendaDerivada($order->transaction)
                     : null,
                 'urls' => [
