@@ -5,10 +5,17 @@ declare(strict_types=1);
 /**
  * GUARD — `it(...)->afterEach(fn)` nao roda a limpeza no Pest 4.
  *
- * `afterEach` nao e metodo do `TestCall` (vendor/pestphp/pest/src/PendingCalls/TestCall.php):
- * a chamada cai no `__call`, vira chain, e a chain chama a funcao GLOBAL `afterEach()`
- * (src/Functions.php) ja dentro do teste, depois que os hooks foram montados. A limpeza
- * nunca executa e o teste fica verde. A forma por teste e `->after()` (TestCall::after).
+ * `afterEach` nao e metodo do `TestCall` (vendor/pestphp/pest/src/PendingCalls/TestCall.php:728):
+ * a chamada cai no `__call` e vira chain. A chain roda antes do corpo do teste e chama a
+ * funcao GLOBAL `afterEach()` (src/Functions.php:174), que registra a closure sob a chave
+ * de `Backtrace::testFile()`. Como o corpo e chamado por `call_user_func_array` sem
+ * qualificacao dentro de `namespace Pest\Concerns` (src/Concerns/Testable.php:5,509), o
+ * frame nao tem `file` e o backtrace para cedo (src/Support/Backtrace.php:25-35): a chave
+ * vira `TestCaseMethodFactory.php`. O `tearDown` so le a chave do arquivo de teste
+ * (Testable.php:305), entao a limpeza nunca executa e o teste fica verde.
+ * A forma por teste e `->after()` (TestCall::after). Ela roda tambem quando o corpo chamou
+ * `markTestSkipped` (o Pest marca `__ran` antes do corpo), entao a limpeza tem de aguentar
+ * o caso em que o teste nao chegou a criar nada.
  * Medido no #10120 (ServiceOrderIndexStageFilterTest so ficou verde com ->after()) e no
  * CT 100 em 2026-09-08 (comentario em AssetManagement/Tests/Feature/SmokeRoutesTest.php).
  * Em 2026-10-28 eram 237 sites em 55 arquivos; trocados nos PRs #10135 #10136 #10139 #10140.
@@ -22,6 +29,10 @@ declare(strict_types=1);
  *   237 linhas com `)->afterEach(` · 237 comecam com `})->afterEach(` · 0 sao `uses(`.
  *   Nenhuma classe do Pest declara `afterEach` alem do UsesCall e da funcao global.
  *   => 0 falso-positivo.
+ *
+ * O que o guard NAO pega (0 casos hoje, `git grep '^\s*->afterEach\('` = 0): `->afterEach(`
+ * em linha propria, depois de outro metodo (`})->group('x')->afterEach(`), ou num it() de
+ * arrow function numa linha so (`it('x', fn () => ...)->afterEach(`).
  */
 
 function linhasComAfterEachEncadeado(string $codigo): array
