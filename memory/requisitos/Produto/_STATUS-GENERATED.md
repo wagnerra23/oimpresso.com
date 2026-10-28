@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 12 |
-| CU no SDD | 18 |
+| US no SPEC | 13 |
+| CU no SDD | 19 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
-| UC declarados | 200 |
-| UC com teste que os cita | 183 |
+| UC declarados | 201 |
+| UC com teste que os cita | 184 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -29,6 +29,7 @@ authority: generated
 |---|---|
 | `CU-PROD-09` sem UC | caso de uso que o exercite — Código de barras + etiqueta |
 | `CU-PROD-12` sem UC | caso de uso que o exercite — Correção de valor / agregação de inventário |
+| `CU-PROD-20` sem UC | caso de uso que o exercite — Locais de armazenagem e endereço no estoque |
 
 ### Backlog — NÃO é lacuna
 
@@ -50,6 +51,7 @@ authority: generated
 | US-PROD-029 | `todo` | Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é toc |
 | US-PROD-030 | `todo` | ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o |
 | US-PROD-031 | `todo` | Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha |
+| US-PROD-032 | `todo` | ⚠️Tier0 · Formação de preço: imposto do Simples, comissão e lucro tirados do pre |
 
 ## UC por status
 
@@ -198,6 +200,7 @@ authority: generated
 | UC-PIDX-30 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-32 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-33 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-34 | Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |

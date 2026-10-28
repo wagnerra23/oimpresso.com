@@ -350,6 +350,23 @@ class SpreadsheetController extends Controller
                 $shared_users = $shared_spreadsheets['user']->pluck('shared_id')->toArray();
             }
 
+            // Tela React (lista): as mesmas listas em JSON. A Blade segue recebendo o partial.
+            if ($request->wantsJson()) {
+                $opcoes = fn ($lista) => collect($lista)->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => trim((string) $nome)])
+                    ->filter(fn ($o) => $o['id'] > 0)->values();
+
+                return response()->json([
+                    'usuarios' => $opcoes($users),
+                    'funcoes' => $opcoes($roles),
+                    'tarefas' => $opcoes($todos),
+                    'selecionados' => [
+                        'user' => array_map('intval', $shared_users),
+                        'role' => array_map('intval', $shared_roles),
+                        'todo' => array_map('intval', $shared_todos),
+                    ],
+                ]);
+            }
+
             return view('spreadsheet::sheet.partials.share_sheet')
                 ->with(compact('todos', 'id', 'shared_roles', 'roles', 'users', 'shared_todos', 'shared_users'));
         }

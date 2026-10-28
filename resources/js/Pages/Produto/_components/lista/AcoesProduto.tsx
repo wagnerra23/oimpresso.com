@@ -38,10 +38,12 @@ interface Props {
   linha: LinhaProduto;
   permissoes: PermissoesLista;
   gruposDePreco: number;
+  /** A empresa emite nota (módulo Fiscal no pacote): sem isso não há aba Fiscal para abrir. */
+  emiteNota: boolean;
   aoEscolher: (acao: AcaoProduto, linha: LinhaProduto) => void;
 }
 
-export default function AcoesProduto({ linha, permissoes, gruposDePreco, aoEscolher }: Props) {
+export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNota, aoEscolher }: Props) {
   const pode = (p: keyof PermissoesLista) => permissoes[p] === true;
   const item = (acao: AcaoProduto, rotulo: string, perigo = false) => (
     <DropdownMenuItem
@@ -71,7 +73,8 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, aoEscol
   const grupoFiscal = [
     // Protótipo: "Dados fiscais (NCM/CFOP)" abre o painel de detalhe. Aqui ele abre direto na aba
     // Fiscal — no protótipo o painel não tem como nascer noutra aba e o item cai em "Dados", igual ao "Ver".
-    pode('view') && item('fiscal', 'Dados fiscais (NCM/CFOP)'),
+    // Só em empresa que emite nota, como a aba (decisão [F] 2026-10-26).
+    emiteNota && pode('view') && item('fiscal', 'Dados fiscais (NCM/CFOP)'),
   ].filter(Boolean);
   const grupo3 = [
     // Ativar e desativar exigem `product.update` no servidor (`activate`/`massDeactivate`).

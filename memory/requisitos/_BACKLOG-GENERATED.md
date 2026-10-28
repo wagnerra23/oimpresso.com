@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1067 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1069 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -32,15 +32,15 @@
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
+| [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
-| [`Essentials`](#essentials) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
+| [`Produto`](#produto) | 12 | 0 | 0 | 0 | 12 |
 | [`Superadmin`](#superadmin) | 12 | 0 | 0 | 0 | 12 |
-| [`Produto`](#produto) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
@@ -1086,6 +1086,28 @@
 - **US-ACCO-009** — Listar Reconcile
 - **US-ACCO-010** — Listar Report
 
+## Essentials
+
+
+### todo
+
+- **US-ESS-001** — Listar tarefas (Todo) por business
+- **US-ESS-002** — Criar tarefa Todo
+- **US-ESS-003** — Editar tarefa (status/priority)
+- **US-ESS-004** — Deletar tarefa
+- **US-ESS-005** — Solicitação de Leave (ausência)
+- **US-ESS-006** — Aprovar/Rejeitar Leave
+- **US-ESS-007** — Compartilhar documentos via DocumentShare
+- **US-ESS-008** — Calendário Reminder
+- **US-ESS-009** — Module install/uninstall por business
+- **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
+- **US-ESS-011** — Metas de venda por colaborador (tela Inertia)
+- **US-ESS-012** — Mural de mensagens internas por localidade
+- **US-ESS-013** — Base de conhecimento interna com busca
+- **US-ESS-014** — Configurações do módulo por business (admin)
+- **US-ESS-015** — Folha CLT: modelo de verba (rubrica, vigência, competência, item)
+- **US-ESSE-001** — [TODO — título]
+
 ## Autopecas
 
 
@@ -1106,27 +1128,6 @@
 - **US-AP-013** — Diagnóstico assistido Jana IA ("qual peça pra Civic 2015 freio dianteiro?") — **P1**
 - **US-AP-014** — Cupom fiscal SAT (SP) — **P2**
 - **US-AP-015** — E-commerce mini-loja (catálogo digital + pedido online) — **P2**
-
-## Essentials
-
-
-### todo
-
-- **US-ESS-001** — Listar tarefas (Todo) por business
-- **US-ESS-002** — Criar tarefa Todo
-- **US-ESS-003** — Editar tarefa (status/priority)
-- **US-ESS-004** — Deletar tarefa
-- **US-ESS-005** — Solicitação de Leave (ausência)
-- **US-ESS-006** — Aprovar/Rejeitar Leave
-- **US-ESS-007** — Compartilhar documentos via DocumentShare
-- **US-ESS-008** — Calendário Reminder
-- **US-ESS-009** — Module install/uninstall por business
-- **US-ESS-010** — Isolamento multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- **US-ESS-011** — Metas de venda por colaborador (tela Inertia)
-- **US-ESS-012** — Mural de mensagens internas por localidade
-- **US-ESS-013** — Base de conhecimento interna com busca
-- **US-ESS-014** — Configurações do módulo por business (admin)
-- **US-ESSE-001** — [TODO — título]
 
 ## Comissao
 
@@ -1221,6 +1222,24 @@
 - **US-PONT-011** — Ver detalhe de Importacao
 - **US-PONT-012** — Listar Relatorio
 
+## Produto
+
+
+### todo
+
+- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
+- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
+- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
+- **US-PROD-023** — [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draft→live) + ligar a Consulta na navegação _(`p1` · @wagner)_
+- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
+- **US-PROD-031** — Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha _(`p1`)_
+- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
+- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
+- **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
+- **US-PROD-030** — ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço _(`p2` · @wagner)_
+- **US-PROD-032** — ⚠️Tier0 · Formação de preço: imposto do Simples, comissão e lucro tirados do preço de venda _(`p2`)_
+- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
+
 ## Superadmin
 
 
@@ -1238,23 +1257,6 @@
 - **US-SUPER-009** — Pricing público (`/pricing`)
 - **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
 - **US-SUPER-011** — Visão geral da plataforma (`/superadmin`)
-
-## Produto
-
-
-### todo
-
-- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
-- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
-- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
-- **US-PROD-023** — [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draft→live) + ligar a Consulta na navegação _(`p1` · @wagner)_
-- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
-- **US-PROD-031** — Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha _(`p1`)_
-- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
-- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
-- **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
-- **US-PROD-030** — ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço _(`p2` · @wagner)_
-- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
 
 ## Cms
 
