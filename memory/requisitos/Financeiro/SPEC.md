@@ -176,6 +176,49 @@ owner: wagner
 - [ ] Calcula automaticamente juros de mora se `data_pagamento > vencimento` (config tenant: 0,33% a.d. + 2% multa)
 - [ ] Test Feature: pagamento atrasado calcula juros + multa corretamente
 
+### US-FIN-078 · DDA — boletos contra o CNPJ da empresa viram contas a pagar sugeridas — **P1**
+
+> owner: — · priority: p1 · estimate: 12h · status: doing · type: story
+> blocked_by: fonte do DDA (decisão + credencial [W] — ver BRIEFING §Depende do [W])
+
+**Como** quem cuida do contas a pagar
+**Quero** que os boletos emitidos contra o CNPJ da empresa cheguem sozinhos como contas a pagar sugeridas, já casadas com o fornecedor
+**Para** não digitar boleto nem esquecer conta que o fornecedor registrou
+
+**Implementado em:** _pendente_ — backend pronto (`Modules/Financeiro/Services/DdaService.php`, `Modules/Financeiro/Console/Commands/DdaSyncCommand.php`, teste `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`); faltam a tela de sugestões e a fonte real
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25 (Omie, Conta Azul e Nibo trazem DDA). Em 2026-10-27 a API pública do Inter só cobre emissão/consulta de cobrança, saldo e extrato no código (`InterDriver`, `InterBankingClient`); nenhuma fonte encontrada documenta consulta de DDA no Inter. Por isso a fonte é uma interface (`FonteDda`) sem implementação ligada.
+
+⚠️ **REGRA MESTRE — VALOR**: o boleto vira título a pagar; valor conferido por dois caminhos no teste.
+
+**Aceite:**
+- [x] Boleto da fonte grava sugestão em `fin_dda_boletos`, idempotente por (`business_id`, código de barras), sem criar título.
+- [x] Fornecedor casado pelo CNPJ/CPF do beneficiário (só `supplier`/`both` da própria empresa).
+- [x] Aceitar cria o título a pagar aberto (valor, vencimento, fornecedor, `forma_pagamento=boleto`); descartar encerra sem título; decisão só uma vez.
+- [x] `financeiro:dda-sync` atrás de `FINANCEIRO_DDA_ENABLED` (default `false`), e sai com erro quando falta flag ou fonte.
+- [ ] Tela de sugestões com aceitar/descartar e permissão `financeiro.contas_pagar.create`.
+- [ ] Fonte real ligada (depende do [W]).
+
+### US-FIN-079 · Pagar o título a pagar pelo banco (boleto e Pix), com aprovação e baixa automática — **P1**
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: escopos de pagamento na integração Inter (ação [W] — ver BRIEFING §Depende do [W])
+
+**Como** quem cuida do contas a pagar
+**Quero** pagar o título pelo banco, por boleto ou Pix, a partir do próprio título
+**Para** não redigitar no internet banking e ter a baixa feita quando o banco confirmar
+
+**Implementado em:** _pendente_
+
+⚠️ **REGRA MESTRE — VALOR**: saída de dinheiro. Nunca automático: cada pagamento é aprovado pelo usuário, com permissão própria e trilha de auditoria.
+
+**Aceite:**
+- [ ] Permissão própria `financeiro.contas_pagar.pagar_banco`, separada de registrar baixa.
+- [ ] Cada pagamento exige confirmação explícita do usuário com valor, beneficiário e conta debitada; não há lote nem agendamento automático.
+- [ ] Pedido ao banco idempotente (uma chave por título + tentativa) e registrado em trilha de auditoria (quem, quando, valor, resposta do banco).
+- [ ] Baixa no título só quando o banco confirmar o pagamento (consulta ou webhook), nunca na hora do pedido.
+- [ ] Atrás de flag desligada; teste no tenant 98 com o banco simulado.
+
 ### US-FIN-007 · Visualizar fluxo de caixa projetado
 
 > **Área:** Caixa
