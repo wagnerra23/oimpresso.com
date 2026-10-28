@@ -845,6 +845,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('sells.fsm-execute');
     Route::post('/sells/{id}/fsm-start-pipeline', [\App\Http\Controllers\SaleFsmActionController::class, 'startPipeline'])
         ->name('sells.fsm-start-pipeline');
+    // US-SELL-074 — link para o cliente aprovar o orçamento (flag sells.orcamento_aceite.enabled).
+    Route::post('/sells/{id}/orcamento-link', [\App\Http\Controllers\Sells\OrcamentoAceiteLinkController::class, 'gerar'])
+        ->whereNumber('id')
+        ->name('sells.orcamento-link');
     // ADR 0192 Onda 2 follow-up — Editor UI do split de comissão (mecânico/balcão).
     // Endpoint dedicado pra preservar SoC (não cruza com SellPosController::update).
     Route::patch('/sells/{id}/commission-split', [\App\Http\Controllers\SellCommissionSplitController::class, 'update'])
