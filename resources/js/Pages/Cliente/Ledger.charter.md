@@ -23,6 +23,8 @@ related_us: [US-CRM-084]
 # Page Charter — /contacts/ledger (LIVE)
 
 > **Status:** live — reconciliado de draft em 2026-06-24: Wagner confirmou biz=4 (ROTA LIVRE) em React em produção (flag `MWART_CLIENTE_LEDGER` ON; fallback Blade no `ContactController`). Backend canon: `ContactController::getLedger()` linha 1326. **Divergência ADR 0149:** Layout densidade financeira (similar a extratos bancários) — tabela débito/crédito/saldo distinta do Index card-list. Não exige novo Cowork F1.5; pattern aceito como utility report.
+>
+> **2026-10-27 · cutover F5:** o `ContactController` passou a servir só React nesta tela; o fallback Blade citado acima foi apagado (a chave estava ligada para todas as empresas desde 2026-08-26).
 
 ## Mission
 

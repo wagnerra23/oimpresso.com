@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 183 arquivos em 20 papéis.
+**Total mapeado:** 190 arquivos em 20 papéis.
 
 ## Controllers — 11
 
@@ -40,26 +40,30 @@ module: RecurringBilling
 - [UpdateAssinaturaRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdateAssinaturaRequest.php)
 - [UpdatePlanRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdatePlanRequest.php)
 
-## Services — 14
+## Services — 17
 
 - [AssinaturaCobrancaService.php](../../../Modules/RecurringBilling/Services/AssinaturaCobrancaService.php)
 - [AssinaturaService.php](../../../Modules/RecurringBilling/Services/AssinaturaService.php)
 - [InterPixCobDriver.php](../../../Modules/RecurringBilling/Services/Banking/Drivers/InterPixCobDriver.php)
 - [InterStatementDriver.php](../../../Modules/RecurringBilling/Services/Banking/Drivers/InterStatementDriver.php)
+- [OfxStatementDriver.php](../../../Modules/RecurringBilling/Services/Banking/Drivers/OfxStatementDriver.php)
 - [InterBankingClient.php](../../../Modules/RecurringBilling/Services/Banking/InterBankingClient.php)
+- [StatementPersister.php](../../../Modules/RecurringBilling/Services/Banking/StatementPersister.php)
 - [BoletoCredentialResolver.php](../../../Modules/RecurringBilling/Services/Boleto/BoletoCredentialResolver.php)
 - [BoletoService.php](../../../Modules/RecurringBilling/Services/Boleto/BoletoService.php)
 - [AsaasDriver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/AsaasDriver.php)
 - [C6Driver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/C6Driver.php)
 - [InterDriver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php)
+- [CartaoSalvoService.php](../../../Modules/RecurringBilling/Services/CartaoSalvoService.php)
 - [CobradorPixAutomatico.php](../../../Modules/RecurringBilling/Services/CobradorPixAutomatico.php)
 - [GatewayBackfillService.php](../../../Modules/RecurringBilling/Services/GatewayBackfillService.php)
 - [InvoiceGeneratorService.php](../../../Modules/RecurringBilling/Services/InvoiceGeneratorService.php)
 - [MandatoPixAutomatico.php](../../../Modules/RecurringBilling/Services/MandatoPixAutomatico.php)
 
-## Models / Entities — 8
+## Models / Entities — 9
 
 - [BoletoCredential.php](../../../Modules/RecurringBilling/Models/BoletoCredential.php)
+- [CartaoSalvo.php](../../../Modules/RecurringBilling/Models/CartaoSalvo.php)
 - [ChargeAttempt.php](../../../Modules/RecurringBilling/Models/ChargeAttempt.php)
 - [Invoice.php](../../../Modules/RecurringBilling/Models/Invoice.php)
 - [Plan.php](../../../Modules/RecurringBilling/Models/Plan.php)
@@ -81,12 +85,13 @@ module: RecurringBilling
 - [SyncBankBalancesJob.php](../../../Modules/RecurringBilling/Jobs/SyncBankBalancesJob.php)
 - [SyncBankStatementsJob.php](../../../Modules/RecurringBilling/Jobs/SyncBankStatementsJob.php)
 
-## Events / Listeners — 4
+## Events / Listeners — 5
 
 - [AssinaturaAtualizada.php](../../../Modules/RecurringBilling/Events/AssinaturaAtualizada.php)
 - [InvoicePaid.php](../../../Modules/RecurringBilling/Events/InvoicePaid.php)
 - [AtualizarMandatoDaAssinatura.php](../../../Modules/RecurringBilling/Listeners/AtualizarMandatoDaAssinatura.php)
 - [MarcarFaturaPagaDaCobranca.php](../../../Modules/RecurringBilling/Listeners/MarcarFaturaPagaDaCobranca.php)
+- [SalvarCartaoDaCobrancaPaga.php](../../../Modules/RecurringBilling/Listeners/SalvarCartaoDaCobrancaPaga.php)
 
 ## Console / Commands — 6
 
@@ -107,7 +112,7 @@ module: RecurringBilling
 - [api.php](../../../Modules/RecurringBilling/Routes/api.php)
 - [web.php](../../../Modules/RecurringBilling/Routes/web.php)
 
-## Migrations (schema) — 9
+## Migrations (schema) — 10
 
 - [2026_05_06_000001_create_rb_boleto_credentials_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000001_create_rb_boleto_credentials_table.php)
 - [2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php)
@@ -118,6 +123,7 @@ module: RecurringBilling
 - [2026_05_06_001003_create_rb_charge_attempts_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_001003_create_rb_charge_attempts_table.php)
 - [2026_05_16_120000_recurring_v975_schema.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_16_120000_recurring_v975_schema.php)
 - [2026_10_26_130000_make_plan_id_nullable_on_rb_subscriptions.php](../../../Modules/RecurringBilling/Database/Migrations/2026_10_26_130000_make_plan_id_nullable_on_rb_subscriptions.php)
+- [2026_10_27_100000_create_rb_cartoes_salvos_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_10_27_100000_create_rb_cartoes_salvos_table.php)
 
 ## Seeders — 2
 
@@ -172,9 +178,9 @@ module: RecurringBilling
 - [Edit.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.casos.md)
 
-## Testes (Pest) — 45
+## Testes (Pest) — 46
 
-- 45 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
+- 46 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 36

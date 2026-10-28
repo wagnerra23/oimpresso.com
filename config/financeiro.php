@@ -62,4 +62,22 @@ return [
         'force_mock'       => env('PLUGGY_FORCE_MOCK', false),
     ],
 
+    /*
+    | Conciliação automática por regras (US-FIN-080). Desligada por padrão: com a flag
+    | desligada o motor de regras não roda e a conciliação fica como sempre foi.
+    */
+    'conciliacao' => [
+        'regras_enabled' => env('FINANCEIRO_CONCILIACAO_REGRAS_ENABLED', false),
+        // Distância máxima, em dias, entre a data da linha e o vencimento do título.
+        'janela_dias'    => (int) env('FINANCEIRO_CONCILIACAO_JANELA_DIAS', 5),
+    ],
+
+    /*
+    | Extrato dos bancos além do Inter (US-FIN-084). Desligado por padrão.
+    | ofx_por_conta: importar OFX direto no extrato da conta (fin_extrato_lancamentos).
+    */
+    'extrato_bancos' => [
+        'ofx_por_conta' => env('FINANCEIRO_EXTRATO_OFX_CONTA', false),
+    ],
+
 ];

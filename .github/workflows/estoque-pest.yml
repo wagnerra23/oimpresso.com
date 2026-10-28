@@ -173,7 +173,7 @@ on:
       - 'app/Http/Controllers/Inventory/ProductBomController.php'
       - 'app/Domain/Inventory/Services/BomResolver.php'
       # UC-PIDX-28 a 32 (consulta de produto, #9778 e #9785) — SOB TESTE do ProdutoPrecoPropostoERoteiroContratoTest
-      # e do ProdutoRequisicaoNaturezaCustoContratoTest. Os contratos e serviços que a consulta lê de Compras,
+      # e dos três testes em que o #9785 foi dividido (requisição, natureza fiscal, custo). Os contratos e serviços que a consulta lê de Compras,
       # Produção e NfeBrasil: sem eles aqui, mexer só no serviço não dispara o teste dele no main (§5 2026-08-02).
       - 'app/Contracts/Compras/PropostasDePreco.php'
       - 'Modules/Compras/Services/PropostasDePreco.php'
@@ -276,7 +276,7 @@ jobs:
               - 'app/Http/Controllers/Inventory/ProductBomController.php'
               - 'app/Domain/Inventory/Services/BomResolver.php'
               # UC-PIDX-28 a 32 (consulta de produto, #9778 e #9785) — SOB TESTE do ProdutoPrecoPropostoERoteiroContratoTest
-              # e do ProdutoRequisicaoNaturezaCustoContratoTest. Os contratos e serviços que a consulta lê de Compras,
+              # e dos três testes em que o #9785 foi dividido (requisição, natureza fiscal, custo). Os contratos e serviços que a consulta lê de Compras,
               # Produção e NfeBrasil: sem eles aqui, mexer só no serviço não dispara o teste dele no main (§5 2026-08-02).
               - 'app/Contracts/Compras/PropostasDePreco.php'
               - 'Modules/Compras/Services/PropostasDePreco.php'

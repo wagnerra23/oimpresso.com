@@ -8,8 +8,7 @@ test('Cliente/Create baseline — controller has create() + Inertia branch + mwa
 
     expect($contents)
         ->toContain('public function create(')
-        ->toContain("Inertia::render('Cliente/Create'")
-        ->toContain("shouldRenderInertiaCliente('cliente_create'");
+        ->toContain("Inertia::render('Cliente/Create'");
 });
 
 test('Cliente/Create — config mwart has cliente_create flag', function () {

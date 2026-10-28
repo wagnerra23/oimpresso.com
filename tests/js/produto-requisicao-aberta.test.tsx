@@ -39,7 +39,7 @@ const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados 
 function Painel({ d, abaInicial, irPara }: { d: DetalheProdutoDados; abaInicial: AbaDoDetalhe; irPara: (u: string) => void }) {
   const [aba, setAba] = useState<AbaDoDetalhe>(abaInicial);
   return (
-    <PainelDetalheProduto aberto detalhe={d} aba={aba} aoMudarAba={setAba} aoFechar={() => {}} podeEditar={false} podePrecos={false} podeComprar={false} irPara={irPara} />
+    <PainelDetalheProduto aberto detalhe={d} aba={aba} aoMudarAba={setAba} aoFechar={() => {}} podeEditar={false} podePrecos={false} emiteNota irPara={irPara} />
   );
 }
 

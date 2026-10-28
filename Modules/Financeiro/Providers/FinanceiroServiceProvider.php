@@ -94,6 +94,13 @@ class FinanceiroServiceProvider extends ServiceProvider
             \Modules\Financeiro\Strategies\CnabDirectStrategy::class
         );
 
+        // US-FIN-079 — banco que paga título a pagar. Só é chamado por PagamentoBancoService,
+        // atrás de FINANCEIRO_PAGAMENTO_BANCO_ENABLED e da aprovação do usuário.
+        $this->app->bind(
+            \Modules\Financeiro\Contracts\PagadorBanco::class,
+            \Modules\Financeiro\Services\Banking\InterPagadorBanco::class
+        );
+
         // Wave 18 D4 — Repositories como singleton (sem state, cache OTel friendly).
         // Consumers injetam via type-hint nos Controllers/Services.
         $this->app->singleton(\Modules\Financeiro\Repositories\TituloRepository::class);
@@ -132,10 +139,15 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\BackfillExtratoOfxCommand::class,
                 // US-FIN-070 — custeio RKW do mês, só leitura (aplicar é ação na tela).
                 \Modules\Financeiro\Console\Commands\CusteioRkwCommand::class,
+                // US-FIN-078 — DDA → contas a pagar sugeridas (FINANCEIRO_DDA_ENABLED, default OFF).
+                \Modules\Financeiro\Console\Commands\DdaSyncCommand::class,
                 // US-FIN-071 · UC-FLX-29 — régua de cobrança D+1/D+5/D+15 (default OFF por business).
                 \Modules\Financeiro\Console\Commands\ReguaCobrancaCommand::class,
+                // US-FIN-079 — confirma no banco os pagamentos de título aguardando e baixa os pagos.
+                \Modules\Financeiro\Console\Commands\PagamentosBancoSyncCommand::class,
                 // US-FIN-074 — extrato Pluggy (Open Finance) → fin_extrato_lancamentos.
                 \Modules\Financeiro\Console\Commands\PluggySyncCommand::class,
+                \Modules\Financeiro\Console\Commands\ImportarExtratoOfxCommand::class,
             ]);
         }
     }
@@ -159,6 +171,14 @@ class FinanceiroServiceProvider extends ServiceProvider
             $schedule->command('financeiro:pluggy-sync')
                 ->dailyAt('07:15')
                 ->when(fn () => (bool) config('financeiro.pluggy.enabled', false))
+                ->withoutOverlapping()
+                ->onOneServer();
+
+            // US-FIN-079 — confirmação dos pagamentos pelo banco. Só consulta (nunca envia) e só
+            // com FINANCEIRO_PAGAMENTO_BANCO_ENABLED=true (default false).
+            $schedule->command('financeiro:pagamentos-banco-sync')
+                ->everyFifteenMinutes()
+                ->when(fn () => (bool) config('financeiro.pagamento_banco.enabled', false))
                 ->withoutOverlapping()
                 ->onOneServer();
         });
