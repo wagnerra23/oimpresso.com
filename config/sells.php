@@ -74,6 +74,22 @@ return [
         'limite_sincrono' => (int) env('SELLS_IMPORT_LIMITE_SINCRONO', 200),
     ],
 
+    'tef' => [
+        /*
+         * Maquininha integrada ao caixa (US-SELL-075). Default OFF.
+         * Camada independente da adquirente: o driver vem de SELLS_TEF_DRIVER (hoje só
+         * `simulador`, para homologação). O driver real depende da escolha do integrador
+         * e do contrato, decisão [W] registrada em memory/requisitos/Sells/BRIEFING.md.
+         * SELLS_TEF_BIZ = lista de empresas (vazia = todas, se ligado).
+         */
+        'enabled' => env('SELLS_TEF_ENABLED', false),
+        'business_ids' => array_values(array_filter(array_map(
+            'intval',
+            explode(',', (string) env('SELLS_TEF_BIZ', ''))
+        ))),
+        'driver' => env('SELLS_TEF_DRIVER', 'simulador'),
+    ],
+
     'offline' => [
         /*
          * Venda sem internet no caixa (US-SELL-054). Default OFF.

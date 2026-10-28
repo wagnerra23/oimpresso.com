@@ -2,15 +2,15 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1071 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1072 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
-| [`Whatsapp`](#whatsapp) | 77 | 0 | 0 | 0 | 77 |
-| [`Sells`](#sells) | 73 | 4 | 0 | 0 | 69 |
+| [`Whatsapp`](#whatsapp) | 78 | 0 | 0 | 0 | 78 |
+| [`Sells`](#sells) | 73 | 6 | 0 | 0 | 67 |
 | [`Financeiro`](#financeiro) | 58 | 6 | 1 | 0 | 51 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
@@ -244,6 +244,7 @@
 - **US-WA-326** — Régua de relacionamento por WhatsApp — aniversário e recompra
 - **US-WA-327** — Tela de configurar o menu do bot por canal
 - **US-WA-328** — Tela de configurar a régua de relacionamento da empresa
+- **US-WA-329** — Instagram Direct, Messenger e e-mail na mesma Caixa Unificada
 
 ## Sells
 
@@ -252,6 +253,7 @@
 
 - **US-SELL-077** — Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título _(`p0` · @wagner)_
 - **US-SELL-054** — Offline-first no PDV — fila IndexedDB + reemissão ao reconectar _(`p1`)_
+- **US-SELL-075** — Maquininha integrada ao caixa (TEF): o valor vai para a máquina e a resposta preenche o pagamento _(`p1` · @wagner)_
 - **US-SELL-078** — O ICMS-ST entra no total da venda, pela mesma conta da NF-e _(`p1` · @wagner)_
 - **US-SELL-079** — Resgate de pontos de fidelidade no caixa React _(`p1` · @wagner)_
 - **US-SELL-076** — Cupom de desconto e promoção leve X pague Y no caixa novo _(`p2` · @wagner)_
@@ -260,7 +262,6 @@
 
 - **US-SELL-055** — Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa _(`p1`)_
 - **US-SELL-074** — Cliente aprova o orçamento pelo link público, e a aprovação vira pedido _(`p1` · @wagner)_
-- **US-SELL-075** — Maquininha integrada ao caixa (TEF): o valor vai para a máquina e a resposta preenche o pagamento _(`p1` · @wagner)_
 - **US-SELL-056** — Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pagar _(`p2`)_
 - **US-SELL-057** — Skeleton de carregamento no Create + INP < 200ms _(`p2`)_
 - **US-SELL-001** — Epic — Migrar /sells/create pra MWART
