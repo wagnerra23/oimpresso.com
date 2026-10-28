@@ -21,13 +21,13 @@ class NuvemshopOAuth
     /** Flag desligada ou app sem credencial = conectar recusa sem chamar a Nuvemshop. */
     public function configurado(): bool
     {
-        return (bool) config('marketplaces.nuvemshop.ativo', false)
+        return (bool) config('services.nuvemshop.ativo', false)
             && $this->appId() !== '' && $this->clientSecret() !== '';
     }
 
     public function urlAutorizacao(string $state): string
     {
-        $base = str_replace('{app_id}', rawurlencode($this->appId()), (string) config('marketplaces.nuvemshop.authorize_url'));
+        $base = str_replace('{app_id}', rawurlencode($this->appId()), (string) config('services.nuvemshop.authorize_url'));
 
         return $base.'?'.http_build_query(['state' => $state]);
     }
@@ -39,7 +39,7 @@ class NuvemshopOAuth
             throw new RuntimeException('Aplicativo da Nuvemshop não configurado (MARKETPLACES_NUVEMSHOP_ATIVO/APP_ID/CLIENT_SECRET).');
         }
 
-        $resposta = Http::asJson()->acceptJson()->timeout(15)->post((string) config('marketplaces.nuvemshop.token_url'), [
+        $resposta = Http::asJson()->acceptJson()->timeout(15)->post((string) config('services.nuvemshop.token_url'), [
             'client_id' => $this->appId(),
             'client_secret' => $this->clientSecret(),
             'grant_type' => 'authorization_code',
@@ -64,11 +64,11 @@ class NuvemshopOAuth
 
     private function appId(): string
     {
-        return (string) config('marketplaces.nuvemshop.app_id', '');
+        return (string) config('services.nuvemshop.app_id', '');
     }
 
     private function clientSecret(): string
     {
-        return (string) config('marketplaces.nuvemshop.client_secret', '');
+        return (string) config('services.nuvemshop.client_secret', '');
     }
 }

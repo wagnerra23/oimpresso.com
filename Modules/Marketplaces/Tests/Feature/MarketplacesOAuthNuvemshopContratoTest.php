@@ -27,12 +27,12 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * cifrado, sem vencimento, na conta da empresa da SESSÃO (98), nunca de outra (99); o token sem
  * vencimento não passa pela renovação do Mercado Livre.
  *
- * A resposta de token é a do exemplo da documentação pública (tiendanube.github.io/api-documentation/
- * authentication). HTTP é falso: nenhum teste fala com a Nuvemshop.
+ * A resposta de token tem a forma do exemplo da documentação pública (tiendanube.github.io/api-documentation/
+ * authentication), com o token trocado por um valor sem formato de chave (o gitleaks barrava o do exemplo). HTTP é falso: nenhum teste fala com a Nuvemshop.
  * Tenant 98 contra 99 (ADR 0358). ⚠️ SKIP em SQLite (schema UltimatePOS).
  */
 const NS_RESPOSTA_DOC = [
-    'access_token' => '61181d08b7e328d256736hdcb671c3ce50b8af5',
+    'access_token' => 'token-de-teste-nuvemshop',
     'token_type' => 'bearer',
     'scope' => 'read_orders,write_products',
     'user_id' => '789',
@@ -46,10 +46,10 @@ beforeEach(function () {
         $this->markTestSkipped('Tabelas mkt_* ausentes — migrations do Modules/Marketplaces não rodaram.');
     }
     config([
-        'marketplaces.nuvemshop.ativo' => true,
-        'marketplaces.nuvemshop.app_id' => '4321',
-        'marketplaces.nuvemshop.client_secret' => 'segredo-app-teste',
-        'marketplaces.nuvemshop.token_url' => 'https://nuvem-falsa.example/apps/authorize/token',
+        'services.nuvemshop.ativo' => true,
+        'services.nuvemshop.app_id' => '4321',
+        'services.nuvemshop.client_secret' => 'segredo-app-teste',
+        'services.nuvemshop.token_url' => 'https://nuvem-falsa.example/apps/authorize/token',
     ]);
     $this->b98 = (int) $this->seededTenant()->id;
     $this->b99 = (int) $this->seededSupportClientTenant()->id;
@@ -81,7 +81,7 @@ it('UC-PEDIDO-05 · US-MKT-026 · catálogo traz a Nuvemshop cadastrada e inativ
 });
 
 it('UC-PEDIDO-05 · US-MKT-026 · flag desligada: conectar volta com aviso e não manda para a Nuvemshop', function () {
-    config(['marketplaces.nuvemshop.ativo' => false]);
+    config(['services.nuvemshop.ativo' => false]);
     nsLogar($this, $this->u98);
 
     $this->get('/marketplaces/contas/nuvemshop/conectar')->assertRedirect('/home');
@@ -129,11 +129,11 @@ it('UC-PEDIDO-05 · US-MKT-026 · callback válido grava o token cifrado e sem v
     $contas = ContaVendedor::withoutGlobalScopes()->where('marketplace_id', $this->nuvem)->where('seller_id_external', '789')->get();
     expect($contas)->toHaveCount(1)
         ->and((int) $contas[0]->business_id)->toBe($this->b98)
-        ->and($contas[0]->access_token)->toBe('61181d08b7e328d256736hdcb671c3ce50b8af5')
+        ->and($contas[0]->access_token)->toBe('token-de-teste-nuvemshop')
         ->and($contas[0]->access_token_expires_at)->toBeNull()
         ->and($contas[0]->refresh_token)->toBeNull()
         ->and((string) DB::table('mkt_account_credentials')->where('id', $contas[0]->id)->value('access_token'))
-        ->not->toContain('61181d08b7e328d256736hdcb671c3ce50b8af5');
+        ->not->toContain('token-de-teste-nuvemshop');
 });
 
 it('UC-PEDIDO-05 · US-MKT-026 · token sem vencimento é devolvido sem renovar e fica fora da rotina horária do ML', function () {

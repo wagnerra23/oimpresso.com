@@ -4,7 +4,7 @@ irmaos: Pedidos.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — Marketplaces/Pedidos
@@ -78,3 +78,4 @@ last_run: "2026-10-26"
 ## Trilha do tempo
 - 2026-10-26 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-10-27 · UC-PEDIDO-05 (conectar a loja Nuvemshop, ADR 0443 fatia a). Fonte do caso: ADR 0443 + SPEC US-MKT-026.
+- 2026-10-28 · `last_run` 2026-10-26 → 2026-10-27: a tela não mudou desde que nasceu (#9916, 2026-10-27, mesmo commit do trio); o G-6 acusava só a data do carimbo, anterior ao commit. UC-PEDIDO-01..04 relidos contra o `.tsx`.
