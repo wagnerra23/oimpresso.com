@@ -1,0 +1,48 @@
+# Quarentena da lane "PHP / Pest (PaymentGateway · MySQL)" — .github/workflows/paymentgateway-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em Modules/PaymentGateway/Tests/**/*Test.php
+# MENOS (1) quem tem dono em .github/ci-sqlite-pest.list, (2) quem tem construto
+# destrutivo em código (RefreshDatabase / migrate:fresh / dropIfExists — derivado pelo
+# step) e (3) este arquivo. Arquivo NOVO entra rodando.
+#
+# 1 path por linha · '#' comenta · merge=union no .gitattributes. Depois de mergear o
+# main, confira duplicata como a lane compara:
+#   sed 's/#.*//; s/[[:space:]]*$//' <lista> | grep -vE '^$' | sort | uniq -d   # vazio = ok
+#
+# ── D. Construto destrutivo (o step já barra; listado aqui para não sumir da medição) ──
+# RefreshDatabase dropa o schema semeado (tenants 1/2/98) que os outros arquivos usam.
+# Saída: trocar por DatabaseTransactions, ou mover para .github/ci-sqlite-pest.list se
+# passar no sqlite (onde já moram RetryOrphanWebhookJobTest e WebhookProcessorLinkageTest).
+Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php  # RefreshDatabase
+Modules/PaymentGateway/Tests/Feature/WebhookEndpointsTest.php  # RefreshDatabase
+Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php  # RefreshDatabase
+#
+# ── A. Teste desatualizado em relação ao código (medido no run 40735435457, 1º run da
+# árvore, 2026-10-28). Falham por drift do PRÓPRIO teste, não por dependência da lane.
+# Saída: atualizar o teste para o código atual, um arquivo por PR, e tirar daqui.
+Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysControllerTest.php  # Class "App\Role" not found (classe removida)
+Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysHistoryTest.php  # Class "App\Role" not found
+Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysQuotaTest.php  # Class "App\Role" not found
+Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysWebhookEventsTest.php  # Class "App\Role" not found
+Modules/PaymentGateway/Tests/Feature/Settings/SellsCobrancaChipTest.php  # Class "App\Role" not found
+Modules/PaymentGateway/Tests/Feature/EmitTrialExpiredCobrancasCommandTest.php  # coluna payment_gateway_credentials.driver não existe mais
+Modules/PaymentGateway/Tests/Feature/MigrateCredentialsCommandTest.php  # coluna fin_contas_bancarias.nome não existe mais
+Modules/PaymentGateway/Tests/Feature/PaymentGatewaysControllerStoreTest.php  # cria business sem owner_id (FK business_owner_id_foreign)
+Modules/PaymentGateway/Tests/Feature/InterDriverTest.php  # PaymentGatewayService::for() exige App\Account, teste passa stdClass
+Modules/PaymentGateway/Tests/Feature/InterPixCobTest.php  # idem App\Account × stdClass; resposta sem chave "calendario"
+Modules/PaymentGateway/Tests/Feature/InterRefundCobvTest.php  # idem App\Account × stdClass; resposta sem chave "valor"
+Modules/PaymentGateway/Tests/Feature/C6DriverTest.php  # idem App\Account × stdClass
+Modules/PaymentGateway/Tests/Feature/AsaasDriverTest.php  # idem App\Account × stdClass
+Modules/PaymentGateway/Tests/Feature/OndaUmEsqueletoTest.php  # afirma que os Contracts NÃO têm binding; a Onda 4 já os amarrou
+Modules/PaymentGateway/Tests/Feature/PagarmeDriverTest.php  # espera CredentialMisconfiguredException, recebe DecryptException
+Modules/PaymentGateway/Tests/Feature/SicoobApiDriverTest.php  # Duplicate entry 1-sicoob_api-sandbox (estado vazado entre arquivos)
+Modules/PaymentGateway/Tests/Feature/InterWebhookTest.php  # Duplicate entry 1-inter-sandbox (estado vazado entre arquivos)
+#
+# ── B. era-sqlite que FALHAM também no sqlite (run 40736895552 do ci.yml, 2026-10-28).
+# Pulam no MySQL (schema sintético) e quebram no sqlite por fixture desatualizada. Os outros
+# 12 era-sqlite rodam verdes na ci-sqlite-pest.list. Saída: atualizar a fixture e mover para lá.
+Modules/PaymentGateway/Tests/Feature/AilosCnabDriverTest.php  # config_json sem agenciaDv/contaDv/convenio (adapter passou a exigir)
+Modules/PaymentGateway/Tests/Feature/CaixaCnabDriverTest.php  # config_json sem codigo_cliente
+Modules/PaymentGateway/Tests/Feature/BBCnabDriverTest.php  # config_json sem convenio
+Modules/PaymentGateway/Tests/Feature/ItauCnabDriverTest.php  # config_json sem conta_dv; e "9 >= 11" no tamanho do nosso número
+Modules/PaymentGateway/Tests/Feature/InterImportarRecebimentosCommandTest.php  # schema sintético sem fin_contas_bancarias.deleted_at
