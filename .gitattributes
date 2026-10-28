@@ -3,6 +3,7 @@
 .github/financeiro-pest-quarantine.list merge=union
 .github/estoque-pest-quarantine.list merge=union
 .github/cliente-pest-quarantine.list merge=union
+.github/oficinaauto-pest-quarantine.list merge=union
 .github/paymentgateway-pest-quarantine.list merge=union
 
 # ── Índices append-no-topo: conflito estrutural entre sessões paralelas ──────────

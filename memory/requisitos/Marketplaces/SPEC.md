@@ -601,6 +601,16 @@ Sob demanda sinal cliente — driver pattern facilita adição.
 
 Fatia a da [ADR 0443](../../decisions/0443-nuvemshop-entra-no-marketplaces-como-driver.md). Parcial: falta a tela com o botão de conectar (fatia e) e as fatias b–d (receptor assinado + LGPD, pedido pago vira venda, estoque ERP → loja).
 
+### US-MKT-027 · Nuvemshop — receptor de notificações assinado + webhooks LGPD — **P1** · 4h
+
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Http/Controllers/NotificacoesNuvemshopController.php` · `Modules/Marketplaces/Routes/web.php`
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoNuvemshopContratoTest.php`
+
+**DoD:** com a flag desligada responde 404 e não grava; sem HMAC `x-linkedstore-hmac-sha256` válido responde 401 e não grava; evento assinado grava o log pendente só na empresa da conta ligada à loja; loja não conectada não grava; `store/redact` desconecta a conta e apaga o token; `customers/redact` e `customers/data_request` ficam pendentes e o log não guarda e-mail, telefone nem documento do comprador.
+
+Fatia b da [ADR 0443](../../decisions/0443-nuvemshop-entra-no-marketplaces-como-driver.md). Parcial: o processamento dos eventos de pedido é a fatia c; o tratamento do `customers/redact` espera a decisão do [W] registrada na ADR.
+
 ## 9. Concorrentes (research consolidada §discovery)
 
 | Concorrente | Pricing | Forte | Calcanhar oimpresso pode bater |

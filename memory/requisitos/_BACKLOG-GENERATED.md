@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1079 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1080 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -20,7 +20,7 @@
 | [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
-| [`Marketplaces`](#marketplaces) | 26 | 0 | 0 | 0 | 26 |
+| [`Marketplaces`](#marketplaces) | 27 | 0 | 0 | 0 | 27 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
@@ -783,6 +783,7 @@
 - **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
 - **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
 - **US-MKT-026** — Nuvemshop — conectar a loja (OAuth, token sem vencimento) — **P1** · 4h
+- **US-MKT-027** — Nuvemshop — receptor de notificações assinado + webhooks LGPD — **P1** · 4h
 
 ## RecurringBilling
 
