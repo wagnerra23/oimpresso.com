@@ -277,6 +277,8 @@ export interface ContextoLista {
   empresa: string;
   grupos_de_preco: number;
   woocommerce: boolean;
+  /** Módulo Fiscal no pacote da empresa: decide a aba Fiscal do painel e o "Dados fiscais" do menu. */
+  emite_nota: boolean;
   papel: string | null;
   rotulos_campos: Record<string, string | null>;
 }
@@ -353,7 +355,13 @@ export interface ColunaOpcional {
   padrao: boolean;
 }
 
-export function colunasOpcionais(rotulos: Record<string, string | null>): ColunaOpcional[] {
+/**
+ * `temAliquota`: a empresa tem alguma alíquota de imposto cadastrada (`opcoes.impostos` não vazio).
+ * Sem alíquota não há o que mostrar na coluna Imposto, e ela não existe no menu. Com alíquota ela
+ * existe e nasce desligada: o preço da lista já é o que a venda cobra, com o imposto (decisão [F]
+ * 2026-10-26).
+ */
+export function colunasOpcionais(rotulos: Record<string, string | null>, temAliquota = true): ColunaOpcional[] {
   const base: ColunaOpcional[] = [
     { id: 'imagem', rotulo: 'Imagem', padrao: true },
     { id: 'locais', rotulo: 'Locais', padrao: true },
@@ -363,7 +371,7 @@ export function colunasOpcionais(rotulos: Record<string, string | null>): Coluna
     { id: 'tipo', rotulo: 'Tipo', padrao: true },
     { id: 'categoria', rotulo: 'Categoria', padrao: true },
     { id: 'marca', rotulo: 'Marca', padrao: true },
-    { id: 'imposto', rotulo: 'Imposto', padrao: true },
+    ...(temAliquota ? [{ id: 'imposto', rotulo: 'Imposto', padrao: false }] : []),
     { id: 'sku', rotulo: 'SKU', padrao: true },
     { id: 'serie', rotulo: 'IMEI / série', padrao: false },
   ];
@@ -389,6 +397,21 @@ export const SITUACOES: Opcao[] = [
 /** Colunas que nascem ligadas (PB_COLS_PADRAO do protótipo). */
 export function visibilidadePadrao(colunas: ColunaOpcional[]): Record<string, boolean> {
   return Object.fromEntries(colunas.map((c) => [c.id, c.padrao]));
+}
+
+/**
+ * Marca, no navegador, que a coluna Imposto já foi desligada uma vez. Até 2026-10-26 ela nascia
+ * ligada, e a tela grava a visibilidade de todas as colunas: o "ligada" guardado é o padrão antigo,
+ * não uma escolha. Sem esta marca, a coluna seguiria ligada para quem já usou a lista.
+ */
+export const CHAVE_IMPOSTO_DESLIGADO = 'produto-lista-imposto-desligado-v1';
+
+/** As colunas guardadas no navegador, sem o "Imposto" antigo na primeira vez (ver acima). */
+export function colunasGuardadas(salvas: Record<string, boolean>, impostoJaDesligado: boolean): Record<string, boolean> {
+  if (impostoJaDesligado) return salvas;
+  const resto = { ...salvas };
+  delete resto.imposto;
+  return resto;
 }
 
 /** Chips "Filtrando por" — nada de filtro invisível (protótipo: `chips`). */
