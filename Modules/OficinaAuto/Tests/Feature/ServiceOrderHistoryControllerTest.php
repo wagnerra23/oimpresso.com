@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use App\Scopes\ScopeByBusiness;
+use Modules\OficinaAuto\Database\Seeders\OficinaAutoFsmSeeder;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
 
@@ -25,18 +26,24 @@ uses(Tests\TestCase::class);
  *   2. startPipeline entry (action_id NULL + payload.pipeline_started=true) APARECE
  *   3. Discriminação process_key — sale_stage_history de venda_padrao (transaction_id
  *      colidindo com OS) NÃO aparece (subject_id polimórfico via process_key)
- *   4. Multi-tenant Tier 0 — history de biz=99 não vaza pra biz=1 (ADR 0093)
+ *   4. Multi-tenant Tier 0 — history de biz=99 não vaza pro tenant de teste (ADR 0093)
  *   5. 403 sem permission oficinaauto.service_order.view
  *
  * Pattern: skip SQLite (ADR 0101 — schema MySQL UltimatePOS obrigatório).
- * Setup via factory direta (não OficinaAutoFsmSeeder pra isolamento per-test).
+ *
+ * O controller lê o histórico só dos processos pela CHAVE EXATA (ORDER_TYPE_TO_PROCESS +
+ * 'cacamba_locacao'). Por isso o processo vem do OficinaAutoFsmSeeder (idempotente), que
+ * cria o 'cacamba_locacao' real com disponivel → locada via iniciar_locacao. Um processo
+ * de teste com chave sufixada ('cacamba_locacao_ohc…') nunca casa e o histórico sai vazio.
+ *
+ * Tenant 98 (ADR 0358). A limpeza apaga só as linhas criadas aqui, pelos ids.
  *
  * @see app/Http/Controllers/ServiceOrderFsmActionController.php (método history)
  * @see memory/sessions/2026-05-20-arte-tela-fsm-workflow.md (gap #1)
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
  */
 
-const BIZ_HISTORY_TEST = 1;
+const BIZ_HISTORY_TEST = 98;
 const BIZ_FICTICIO_HISTORY = 99;
 
 beforeEach(function () {
@@ -60,10 +67,34 @@ beforeEach(function () {
         })();
     $this->actingAs($user);
     Gate::before(fn () => true);
+
+    $this->ohcOsIds = [];
+    $this->ohcVehicleIds = [];
+    $this->ohcHistoryIds = [];
 });
 
 /**
- * Helper — cria processo FSM cacamba_locacao com 2 stages + 1 action.
+ * Helper — processo REAL cacamba_locacao do tenant (via seeder): stages disponivel/locada
+ * + action iniciar_locacao.
+ *
+ * @return array{process: SaleProcess, s1: SaleProcessStage, s2: SaleProcessStage, action: SaleStageAction}
+ */
+function ohcProcessoCacambaLocacao(int $bizId): array
+{
+    (new OficinaAutoFsmSeeder)->runForBusiness($bizId);
+
+    $process = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
+        ->where('business_id', $bizId)->where('key', 'cacamba_locacao')->firstOrFail();
+    $s1 = SaleProcessStage::where('process_id', $process->id)->where('key', 'disponivel')->firstOrFail();
+    $s2 = SaleProcessStage::where('process_id', $process->id)->where('key', 'locada')->firstOrFail();
+    $action = SaleStageAction::where('stage_id', $s1->id)->where('key', 'iniciar_locacao')->firstOrFail();
+
+    return compact('process', 's1', 's2', 'action');
+}
+
+/**
+ * Helper — processo FSM de mentira (chave sufixada) num tenant que não tem o seed. Só
+ * serve de origem para a linha de histórico forjada do teste cross-tenant.
  *
  * @return array{process: SaleProcess, s1: SaleProcessStage, s2: SaleProcessStage, action: SaleStageAction}
  */
@@ -104,12 +135,12 @@ function ohcSetupCacambaLocacao(int $bizId): array
 
 function ohcCreateOs(int $bizId): ServiceOrder
 {
-    $vehicle = Vehicle::withoutGlobalScopes()->create([
+    $vehicle = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'  => $bizId,
         'plate'        => 'OHC' . substr((string) random_int(1000, 9999), 0, 4),
         'vehicle_type' => 'caminhao',
     ]);
-    return ServiceOrder::withoutGlobalScopes()->create([
+    $os = ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id' => $bizId,
         'vehicle_id'  => $vehicle->id,
         'order_type'  => 'manutencao', // locação erradicada (ADR 0265); incidental ao teste de histórico
@@ -117,11 +148,16 @@ function ohcCreateOs(int $bizId): ServiceOrder
         'entered_at'  => now(),
         'daily_rate'  => '150.00',
     ]);
+    // test() devolve um proxy sem modificação indireta (`[] =`): reatribui o array inteiro.
+    test()->ohcOsIds = [...test()->ohcOsIds, $os->id];
+    test()->ohcVehicleIds = [...test()->ohcVehicleIds, $vehicle->id];
+
+    return $os;
 }
 
 function ohcLogged(int $bizId, int $txId, ?int $actionId, ?int $fromId, ?int $toId, array $payload = []): SaleStageHistory
 {
-    return SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)->create([
+    $h = SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id'      => $bizId,
         'transaction_id'   => $txId,
         'action_id'        => $actionId,
@@ -131,37 +167,39 @@ function ohcLogged(int $bizId, int $txId, ?int $actionId, ?int $fromId, ?int $to
         'payload_snapshot' => $payload,
         'executed_at'      => now(),
     ]);
+    test()->ohcHistoryIds = [...test()->ohcHistoryIds, $h->id];
+
+    return $h;
 }
 
-function ohcCleanup(int $bizId): void
+/** Apaga só o que este arquivo criou (ids) — o tenant é compartilhado com outros testes. */
+function ohcCleanup(\PHPUnit\Framework\TestCase $t): void
 {
+    // Recebe o $this real: no proxy de test() o `??` nunca vê a propriedade (sem __isset).
+    SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)->whereIn('id', $t->ohcHistoryIds ?? [])->delete();
+    ServiceOrder::withoutGlobalScopes()->whereIn('id', $t->ohcOsIds ?? [])->forceDelete(); // SUPERADMIN: limpeza do teste
+    Vehicle::withoutGlobalScopes()->whereIn('id', $t->ohcVehicleIds ?? [])->forceDelete(); // SUPERADMIN: limpeza do teste
+
+    // Processos de mentira (chave sufixada) — o cacamba_locacao do seeder fica, como nos outros testes.
     $procIds = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
-        ->where('business_id', $bizId)
-        ->where('key', 'like', 'cacamba_locacao_ohc%')
+        ->where(fn ($q) => $q->where('key', 'like', 'cacamba_locacao_ohc%')->orWhere('key', 'like', 'venda_padrao_ohcintruso%'))
         ->pluck('id');
     $stageIds = SaleProcessStage::whereIn('process_id', $procIds)->pluck('id');
-    $actionIds = SaleStageAction::whereIn('stage_id', $stageIds)->pluck('id');
-
-    SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)
-        ->where('business_id', $bizId)
-        ->whereIn('action_id', $actionIds)
-        ->orWhere(function ($q) use ($bizId) {
-            $q->where('business_id', $bizId)
-                ->whereNull('action_id')
-                ->whereJsonContains('payload_snapshot->pipeline_started', true);
-        })
-        ->delete();
-    SaleStageAction::whereIn('id', $actionIds)->delete();
+    SaleStageAction::whereIn('stage_id', $stageIds)->delete();
     SaleProcessStage::whereIn('id', $stageIds)->delete();
-    SaleProcess::whereIn('id', $procIds)->delete();
+    SaleProcess::withoutGlobalScope(ScopeByBusiness::class)->whereIn('id', $procIds)->delete();
 }
+
+afterEach(function () {
+    ohcCleanup($this);
+});
 
 // ─── Specs ────────────────────────────────────────────────────────────────
 
 it('1. retorna entry cacamba_* com shape canônico (action + from_stage + to_stage)', function () {
     session(['user.business_id' => BIZ_HISTORY_TEST]);
 
-    ['s1' => $s1, 's2' => $s2, 'action' => $action] = ohcSetupCacambaLocacao(BIZ_HISTORY_TEST);
+    ['s1' => $s1, 's2' => $s2, 'action' => $action] = ohcProcessoCacambaLocacao(BIZ_HISTORY_TEST);
     $os = ohcCreateOs(BIZ_HISTORY_TEST);
     ohcLogged(BIZ_HISTORY_TEST, $os->id, $action->id, $s1->id, $s2->id, ['motivo' => 'cliente confirmou']);
 
@@ -175,16 +213,12 @@ it('1. retorna entry cacamba_* com shape canônico (action + from_stage + to_sta
     expect($payload['items'][0]['from_stage']['key'])->toBe('disponivel');
     expect($payload['items'][0]['to_stage']['key'])->toBe('locada');
     expect($payload['items'][0]['payload']['motivo'])->toBe('cliente confirmou');
-})->afterEach(function () {
-    Vehicle::withoutGlobalScopes()->where('business_id', BIZ_HISTORY_TEST)->where('plate', 'like', 'OHC%')->forceDelete();
-    ServiceOrder::withoutGlobalScopes()->where('business_id', BIZ_HISTORY_TEST)->forceDelete();
-    ohcCleanup(BIZ_HISTORY_TEST);
 });
 
 it('2. startPipeline entry (action_id NULL + pipeline_started=true) APARECE', function () {
     session(['user.business_id' => BIZ_HISTORY_TEST]);
 
-    ['s1' => $s1] = ohcSetupCacambaLocacao(BIZ_HISTORY_TEST);
+    ['s1' => $s1] = ohcProcessoCacambaLocacao(BIZ_HISTORY_TEST);
     $os = ohcCreateOs(BIZ_HISTORY_TEST);
     ohcLogged(
         BIZ_HISTORY_TEST,
@@ -203,16 +237,12 @@ it('2. startPipeline entry (action_id NULL + pipeline_started=true) APARECE', fu
     expect($payload['items'][0]['action'])->toBeNull();
     expect($payload['items'][0]['to_stage']['key'])->toBe('disponivel');
     expect($payload['items'][0]['payload']['pipeline_started'])->toBeTrue();
-})->afterEach(function () {
-    Vehicle::withoutGlobalScopes()->where('business_id', BIZ_HISTORY_TEST)->where('plate', 'like', 'OHC%')->forceDelete();
-    ServiceOrder::withoutGlobalScopes()->where('business_id', BIZ_HISTORY_TEST)->forceDelete();
-    ohcCleanup(BIZ_HISTORY_TEST);
 });
 
 it('3. discrimina process_key — entry de venda_padrao com transaction_id colidindo NÃO aparece', function () {
     session(['user.business_id' => BIZ_HISTORY_TEST]);
 
-    ['s1' => $s1, 's2' => $s2, 'action' => $cacambaAction] = ohcSetupCacambaLocacao(BIZ_HISTORY_TEST);
+    ['s1' => $s1, 's2' => $s2, 'action' => $cacambaAction] = ohcProcessoCacambaLocacao(BIZ_HISTORY_TEST);
     $os = ohcCreateOs(BIZ_HISTORY_TEST);
 
     // Entry legítima OS cacamba_locacao
@@ -241,28 +271,13 @@ it('3. discrimina process_key — entry de venda_padrao com transaction_id colid
 
     expect($payload['count'])->toBe(1);
     expect($payload['items'][0]['action']['key'])->toBe('iniciar_locacao');
-})->afterEach(function () {
-    SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)
-        ->where('business_id', BIZ_HISTORY_TEST)
-        ->delete();
-    SaleStageAction::whereHas('stage.process', function ($p) {
-        $p->where('key', 'like', 'venda_padrao_ohcintruso%');
-    })->delete();
-    SaleProcessStage::whereHas('process', function ($p) {
-        $p->where('key', 'like', 'venda_padrao_ohcintruso%');
-    })->delete();
-    SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
-        ->where('key', 'like', 'venda_padrao_ohcintruso%')->delete();
-    Vehicle::withoutGlobalScopes()->where('business_id', BIZ_HISTORY_TEST)->where('plate', 'like', 'OHC%')->forceDelete();
-    ServiceOrder::withoutGlobalScopes()->where('business_id', BIZ_HISTORY_TEST)->forceDelete();
-    ohcCleanup(BIZ_HISTORY_TEST);
 });
 
-it('4. multi-tenant Tier 0 — history de biz=99 não aparece quando OS é biz=1', function () {
+it('4. multi-tenant Tier 0 — history de biz=99 não aparece quando a OS é do tenant de teste', function () {
     session(['user.business_id' => BIZ_HISTORY_TEST]);
 
-    // OS de biz=1 (Wagner)
-    ['s1' => $s1, 'action' => $action] = ohcSetupCacambaLocacao(BIZ_HISTORY_TEST);
+    // OS do tenant de teste
+    ['s1' => $s1, 'action' => $action] = ohcProcessoCacambaLocacao(BIZ_HISTORY_TEST);
     $os = ohcCreateOs(BIZ_HISTORY_TEST);
 
     // Entry FAKE de biz=99 com transaction_id colidindo (tentativa de leak cross-tenant)
@@ -274,9 +289,4 @@ it('4. multi-tenant Tier 0 — history de biz=99 não aparece quando OS é biz=1
     $payload = $response->getData(true);
 
     expect($payload['count'])->toBe(0);
-})->afterEach(function () {
-    Vehicle::withoutGlobalScopes()->whereIn('business_id', [BIZ_HISTORY_TEST, BIZ_FICTICIO_HISTORY])->where('plate', 'like', 'OHC%')->forceDelete();
-    ServiceOrder::withoutGlobalScopes()->whereIn('business_id', [BIZ_HISTORY_TEST, BIZ_FICTICIO_HISTORY])->forceDelete();
-    ohcCleanup(BIZ_HISTORY_TEST);
-    ohcCleanup(BIZ_FICTICIO_HISTORY);
 });

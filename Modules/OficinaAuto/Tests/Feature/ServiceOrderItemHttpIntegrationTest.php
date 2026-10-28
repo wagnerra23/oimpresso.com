@@ -115,7 +115,7 @@ it('Inertia GET /ordens-servico/{id} inclui items[] no payload (Show.tsx consume
     // Sem Accept: application/json → Inertia branch (HTML wrapper) — testamos via
     // X-Inertia header que devolve o payload JSON do Inertia::render diretamente.
     $response = $this->actingAs($user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request())])
         ->get("/oficina-auto/ordens-servico/{$os->id}");
 
     $response->assertOk();
@@ -138,7 +138,7 @@ it('Inertia GET /ordens-servico/{id}/edit inclui items[] no payload (Edit.tsx co
     $user->givePermissionTo('superadmin');
 
     $response = $this->actingAs($user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request())])
         ->get("/oficina-auto/ordens-servico/{$os->id}/edit");
 
     $response->assertOk();
@@ -160,7 +160,7 @@ it('Inertia GET /ordens-servico/{id} sem items retorna items=[] (não null)', fu
     $user->givePermissionTo('superadmin');
 
     $response = $this->actingAs($user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request())])
         ->get("/oficina-auto/ordens-servico/{$os->id}");
 
     $response->assertOk();
