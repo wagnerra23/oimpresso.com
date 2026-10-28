@@ -147,6 +147,7 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\PagamentosBancoSyncCommand::class,
                 // US-FIN-074 — extrato Pluggy (Open Finance) → fin_extrato_lancamentos.
                 \Modules\Financeiro\Console\Commands\PluggySyncCommand::class,
+                \Modules\Financeiro\Console\Commands\ImportarExtratoOfxCommand::class,
             ]);
         }
     }

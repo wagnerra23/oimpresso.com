@@ -51,16 +51,12 @@ class StockAdjustmentController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Cutover pelo menu · thread 04 (D1 [W] 2026-10-07): React é o padrão, `?classico=1`
-        // mantém o Blade — molde `UnitController@index`; `?v=2` segue abrindo o React. A decisão
-        // vem ANTES do ramo `ajax()`: o Inertia manda `X-Requested-With` junto do `X-Inertia`, e
-        // com o `ajax()` primeiro o filtro da Page (`router.get`) recebia o JSON do DataTable
-        // (§5 2026-09-08). O DataTable do Blade (AJAX sem `X-Inertia`) segue no ramo de baixo.
-        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
-            return $this->indexInertia();
-        }
-
-        if (request()->ajax()) {
+        // A tela é a Page React; a lista Blade foi apagada (cutover, 2026-10-27). O JSON do
+        // DataTable continua aqui porque o relatório Blade de ajustes
+        // (`report/stock_adjustment_report` + `js/stock_adjustment.js`) lê `/stock-adjustments`.
+        // A visita Inertia manda `X-Requested-With` junto do `X-Inertia` (§5 2026-09-08), por isso
+        // o `X-Inertia` decide antes do `ajax()`.
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $business_id = request()->session()->get('user.business_id');
 
             $stock_adjustments = Transaction::join(
@@ -149,8 +145,7 @@ class StockAdjustmentController extends Controller
                 ->make(true);
         }
 
-        // Blade legacy: só com `?classico=1` (cutover pelo menu · thread 04, ver o topo).
-        return view('stock_adjustment.index');
+        return $this->indexInertia();
     }
 
     /**
@@ -257,14 +252,8 @@ class StockAdjustmentController extends Controller
 
         $business_locations = BusinessLocation::forDropdown($business_id);
 
-        // MWART Wave2 B5 — dual path Inertia (ADR 0104). Cutover pelo menu · thread 04: React
-        // por padrão, Blade só com `?classico=1`; `?v=2` segue valendo.
-        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
-            return $this->createInertia($business_id, $business_locations);
-        }
-
-        return view('stock_adjustment.create')
-                ->with(compact('business_locations'));
+        // A tela é a Page React; o formulário Blade foi apagado (cutover, 2026-10-27).
+        return $this->createInertia($business_id, $business_locations);
     }
 
     /**
@@ -584,13 +573,12 @@ class StockAdjustmentController extends Controller
             $product->lot_numbers = $lot_numbers;
 
             $sub_units = $this->productUtil->getSubUnits($business_id, $product->unit_id, false, $product->id);
-            if ($type == 'stock_transfer') {
-                return view('stock_transfer.partials.product_table_row')
-                    ->with(compact('product', 'row_index', 'sub_units'));
-            } else {
-                return view('stock_adjustment.partials.product_table_row')
-                        ->with(compact('product', 'row_index', 'sub_units'));
-            }
+            // Só o formulário Blade de transferência (edição) ainda pede a linha em HTML; a do
+            // ajuste saiu com o formulário Blade de ajuste (cutover, 2026-10-27).
+            abort_unless($type == 'stock_transfer', 404);
+
+            return view('stock_transfer.partials.product_table_row')
+                ->with(compact('product', 'row_index', 'sub_units'));
         }
     }
 

@@ -72,4 +72,12 @@ return [
         'janela_dias'    => (int) env('FINANCEIRO_CONCILIACAO_JANELA_DIAS', 5),
     ],
 
+    /*
+    | Extrato dos bancos além do Inter (US-FIN-084). Desligado por padrão.
+    | ofx_por_conta: importar OFX direto no extrato da conta (fin_extrato_lancamentos).
+    */
+    'extrato_bancos' => [
+        'ofx_por_conta' => env('FINANCEIRO_EXTRATO_OFX_CONTA', false),
+    ],
+
 ];

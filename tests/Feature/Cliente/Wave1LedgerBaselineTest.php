@@ -8,16 +8,15 @@ test('Cliente/Ledger baseline — controller has getLedger() + Inertia branch', 
 
     expect($contents)
         ->toContain('public function getLedger(')
-        ->toContain("Inertia::render('Cliente/Ledger'")
-        ->toContain("shouldRenderInertiaCliente('cliente_ledger'");
+        ->toContain("Inertia::render('Cliente/Ledger'");
 });
 
 test('Cliente/Ledger — PDF action preserved (legacy flow não impactado)', function () {
     $controllerPath = __DIR__ . '/../../../app/Http/Controllers/ContactController.php';
     $contents = file_get_contents($controllerPath);
 
-    // Branch Inertia exige action !== 'pdf' — preserva fluxo mPDF legacy.
-    expect($contents)->toContain("request()->input('action') !== 'pdf'");
+    // Desde o cutover de 2026-10-27 o ramo PDF devolve logo depois do mPDF; o resto é React.
+    expect($contents)->toContain("\$mpdf->Output(\$output_file_name, 'I');");
 });
 
 test('Cliente/Ledger — config mwart has cliente_ledger flag', function () {

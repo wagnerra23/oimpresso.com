@@ -295,6 +295,8 @@ class ProductController extends Controller
                     // Aba Fiscal e "Dados fiscais" só em empresa que emite nota (UC-PIDX-17 e 25).
                     'emite_nota' => $this->moduloFiscalNoPacote($business_id),
                     'rotulos_campos' => $this->rotulosCamposProduto(),
+                    // UC-PIDX-31: o filtro "Natureza fiscal" só existe com o módulo Fiscal.
+                    'natureza_fiscal' => app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class),
                     // Papel do usuário, como a linha de contexto do protótipo ("papel: Administrador").
                     // O nome do role no UltimatePOS carrega o sufixo `#<business_id>` — sai da tela.
                     'papel' => ($papel = auth()->user()->roles->pluck('name')->first()) ? preg_replace('/#\d+$/', '', (string) $papel) : null,
@@ -463,6 +465,20 @@ class ProductController extends Controller
             $products->where('products.repair_model_id', $f['repair_model_id']);
         }
 
+        // UC-PIDX-31: natureza fiscal decidida pelo contador. Produto sem decisão é mercadoria (é o que a
+        // emissão faz). Sem o módulo Fiscal o filtro não aparece na tela e aqui não filtra.
+        if (! empty($f['natureza_fiscal']) && app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)) {
+            $natureza = app(\App\Contracts\Fiscal\NaturezaDoProduto::class);
+            if ($f['natureza_fiscal'] === 'mercadoria') {
+                $fora = array_merge($natureza->produtosCom($business_id, 'servico'), $natureza->produtosCom($business_id, 'pendente'));
+                if ($fora !== []) {
+                    $products->whereNotIn('products.id', $fora);
+                }
+            } else {
+                $products->whereIn('products.id', $natureza->produtosCom($business_id, (string) $f['natureza_fiscal']) ?: [0]);
+            }
+        }
+
         return $products;
     }
 
@@ -514,6 +530,8 @@ class ProductController extends Controller
             'not_for_selling' => request()->boolean('not_for_selling'),
             'woocommerce_enabled' => request()->boolean('woocommerce_enabled'),
             'repair_model_id' => $texto('repair_model_id'),
+            // UC-PIDX-31: natureza fiscal (módulo Fiscal). Só existe na lista React; o DataTable do Blade não manda.
+            'natureza_fiscal' => in_array(request()->input('natureza_fiscal'), ['mercadoria', 'servico', 'pendente'], true) ? (string) request()->input('natureza_fiscal') : null,
             // Aba ativa (protótipo: "Todos os produtos" | "Relatório de estoque") e a página da aba de estoque.
             'aba' => request()->input('aba') === 'estoque' ? 'estoque' : 'lista',
             'estoque_pagina' => max(1, (int) request()->input('estoque_pagina', 1)),
@@ -761,6 +779,10 @@ class ProductController extends Controller
                 'origem' => (string) ($produto->origem_mercadoria ?? 0),
                 'origem_por_produto' => true,
                 'link_modulo' => $this->linkTributacaoDoProduto($business_id, $id),
+                // UC-PIDX-31: null sem o módulo Fiscal. Sem decisão registrada é mercadoria.
+                'natureza' => app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)
+                    ? (app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, [$id])[$id] ?? ['natureza' => 'mercadoria', 'codigo_servico' => null])
+                    : null,
             ],
             'prateleiras' => [
                 'colunas' => [
@@ -1243,7 +1265,12 @@ class ProductController extends Controller
         // UC-PIDX-30: requisição de compra aberta (sem permissão de ver requisições a chave não vem).
         $requisicoes = $this->requisicoesAbertasDosProdutos($business_id, $idsDaPagina);
 
-        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes) {
+        // UC-PIDX-31: natureza fiscal (sem o módulo Fiscal a chave não vem).
+        $naturezas = app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)
+            ? app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, $idsDaPagina)
+            : null;
+
+        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes, $naturezas) {
             $controla = (bool) $row->enable_stock;
             $estoque = $controla ? (float) ($row->current_stock ?? 0) : null;
             $alerta = $row->alert_quantity === null ? null : (float) $row->alert_quantity;
@@ -1285,6 +1312,9 @@ class ProductController extends Controller
             }
             if ($requisicoes !== null) {
                 $linha['requisicao'] = $requisicoes[(int) $row->id] ?? null;
+            }
+            if ($naturezas !== null) {
+                $linha['natureza_fiscal'] = $naturezas[(int) $row->id]['natureza'] ?? 'mercadoria';
             }
             if ($podeVerCusto) {
                 $linha['compra_min'] = (float) $row->min_purchase_price;

@@ -128,6 +128,7 @@ on:
       - 'Modules/Crm/Http/Controllers/DashboardController.php'
       - 'Modules/Crm/Http/Middleware/ContactSidebarMenu.php'
       - 'Modules/Crm/Services/PortalContatoMenu.php'
+      - 'Modules/Crm/Http/Controllers/ManageProfileController.php'
       - 'Modules/Crm/Tests/Feature/CrmPortal*'
       # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
       - 'Modules/Crm/Utils/CrmUtil.php'
@@ -272,6 +273,7 @@ jobs:
               - 'Modules/Crm/Http/Controllers/DashboardController.php'
               - 'Modules/Crm/Http/Middleware/ContactSidebarMenu.php'
               - 'Modules/Crm/Services/PortalContatoMenu.php'
+              - 'Modules/Crm/Http/Controllers/ManageProfileController.php'
               - 'Modules/Crm/Tests/Feature/CrmPortal*'
               # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
               - 'Modules/Crm/Utils/CrmUtil.php'
@@ -690,6 +692,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmLoginsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsEscritaEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmPortalPainelContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmPortalPerfilContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContatosEscopoTest.php \
