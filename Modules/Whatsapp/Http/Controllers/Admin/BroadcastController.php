@@ -47,6 +47,16 @@ class BroadcastController extends Controller
             ->where('channel_id', $channel->id)
             ->where('is_blocked', false);
 
+        // US-CRM-098 — público por segmento RFM (opcional): todos os números contam só clientes do segmento, pelo contrato do Crm.
+        $segmento = $request->input('segmento_rfm');
+        if (is_string($segmento) && $segmento !== '') {
+            $rfm = app()->bound(\App\Contracts\Crm\SegmentacaoRfm::class) ? app(\App\Contracts\Crm\SegmentacaoRfm::class) : null;
+            if ($rfm === null || ! array_key_exists($segmento, $rfm->segmentos())) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['segmento_rfm' => 'Segmento de clientes desconhecido.']);
+            }
+            $base->whereIn('contact_id', $rfm->contatosDoSegmento($businessId, $segmento) ?: [0]);
+        }
+
         $total = (clone $base)->count();
 
         $optIn = (clone $base)
@@ -70,6 +80,7 @@ class BroadcastController extends Controller
             'in_window' => $inWindow,
             'hsm_only' => $withOptIn - $inWindow,
             'recipient_conversation_ids' => $recipientIds,
+            'segmento_rfm' => is_string($segmento) && $segmento !== '' ? $segmento : null,
         ]);
     }
 
