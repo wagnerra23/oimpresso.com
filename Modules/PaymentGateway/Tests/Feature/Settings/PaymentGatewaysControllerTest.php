@@ -93,12 +93,12 @@ it('expõe 3 KPIs (ativos, total, fail, cobs_hoje) no partial reload', function 
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'kpis',
         ])
-        ->assertInertia(fn ($page) => $page
-            ->has('kpis.ativos')
-            ->has('kpis.total')
-            ->has('kpis.fail')
-            ->has('kpis.cobs_hoje')
-        );
+        // Partial reload responde JSON da página, e o assertInertia desta versão só lê o
+        // viewData('page') da resposta HTML ("Not a valid Inertia response"). Mesmos 4 campos,
+        // lidos do JSON.
+        ->assertOk()
+        ->assertJsonPath('component', 'Settings/PaymentGateways/Index')
+        ->assertJsonStructure(['props' => ['kpis' => ['ativos', 'total', 'fail', 'cobs_hoje']]]);
 });
 
 it('lista gateways do business + warn deprecated PesaPal', function () {
@@ -120,8 +120,9 @@ it('lista gateways do business + warn deprecated PesaPal', function () {
             'X-Inertia-Partial-Data' => 'gateways',
         ]);
 
+    // O aviso do controller (warnFor) é 'Deprecated — migrar pra Asaas…', com D maiúsculo.
     $resp->assertOk();
-    expect($resp->getContent())->toContain('deprecated');
+    expect($resp->getContent())->toContain('Deprecated');
 });
 
 it('toggle endpoint inverte ativo do credential', function () {
