@@ -4,6 +4,7 @@ import { ArrowLeft, Download, FileUp, Save } from 'lucide-react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
+import { Inline } from '@/Components/layout'
 
 /**
  * Editor de planilha — /spreadsheet/sheets/create e /spreadsheet/sheets/{id} (thread telas-soltas/04b).
@@ -156,7 +157,7 @@ export default function SpreadsheetEditor({ planilha, pasta_id, pode_gravar, vol
     >
       <Head title={planilha ? planilha.nome : 'Nova planilha'} />
 
-      <div className="mb-3 flex flex-wrap items-center gap-2" data-contract="barra-editor">
+      <Inline wrap className="mb-3" data-contract="barra-editor">
         <Button asChild variant="outline">
           <a href={voltar}><ArrowLeft className="size-4" aria-hidden="true" /> Voltar</a>
         </Button>
@@ -185,7 +186,7 @@ export default function SpreadsheetEditor({ planilha, pasta_id, pode_gravar, vol
             <Save className="size-4" aria-hidden="true" /> {planilha ? 'Atualizar' : 'Salvar'}
           </Button>
         )}
-      </div>
+      </Inline>
 
       {!pode_gravar && (
         <p className="mb-3 rounded-md border bg-muted/40 px-3 py-2 text-sm">
