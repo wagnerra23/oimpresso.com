@@ -104,7 +104,6 @@ dataset('viewRoutes', [
     'types-of-service.create' => ['/types-of-service/create'],
     'users.create' => ['/users/create'],
     'roles.create' => ['/roles/create'],
-    'sales-commission-agents.create' => ['/sales-commission-agents/create'],
     'cash-register.create' => ['/cash-register/create'],
     'expenses.create' => ['/expenses/create'],
     'expense-categories.create' => ['/expense-categories/create'],

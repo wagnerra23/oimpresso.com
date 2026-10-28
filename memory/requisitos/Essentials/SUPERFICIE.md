@@ -14,7 +14,7 @@ module: Essentials
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 314 arquivos em 17 papéis.
+**Total mapeado:** 320 arquivos em 17 papéis.
 
 ## Controllers — 19
 
@@ -65,7 +65,7 @@ module: Essentials
 - [TarefasDoApp.php](../../../Modules/Essentials/Services/TarefasDoApp.php)
 - [TodoService.php](../../../Modules/Essentials/Services/TodoService.php)
 
-## Models / Entities — 18
+## Models / Entities — 22
 
 - [Document.php](../../../Modules/Essentials/Entities/Document.php)
 - [DocumentShare.php](../../../Modules/Essentials/Entities/DocumentShare.php)
@@ -79,6 +79,10 @@ module: Essentials
 - [EssentialsUserAllowancesAndDeduction.php](../../../Modules/Essentials/Entities/EssentialsUserAllowancesAndDeduction.php)
 - [EssentialsUserSalesTarget.php](../../../Modules/Essentials/Entities/EssentialsUserSalesTarget.php)
 - [EssentialsUserShift.php](../../../Modules/Essentials/Entities/EssentialsUserShift.php)
+- [FolhaCompetencia.php](../../../Modules/Essentials/Entities/FolhaCompetencia.php)
+- [FolhaItem.php](../../../Modules/Essentials/Entities/FolhaItem.php)
+- [FolhaRubrica.php](../../../Modules/Essentials/Entities/FolhaRubrica.php)
+- [FolhaRubricaVigencia.php](../../../Modules/Essentials/Entities/FolhaRubricaVigencia.php)
 - [KnowledgeBase.php](../../../Modules/Essentials/Entities/KnowledgeBase.php)
 - [PayrollGroup.php](../../../Modules/Essentials/Entities/PayrollGroup.php)
 - [PayrollGroupTransaction.php](../../../Modules/Essentials/Entities/PayrollGroupTransaction.php)
@@ -104,7 +108,7 @@ module: Essentials
 - [api.php](../../../Modules/Essentials/Routes/api.php)
 - [web.php](../../../Modules/Essentials/Routes/web.php)
 
-## Migrations (schema) — 37
+## Migrations (schema) — 38
 
 - [2018_10_01_151252_create_documents_table.php](../../../Modules/Essentials/Database/Migrations/2018_10_01_151252_create_documents_table.php)
 - [2018_10_02_151803_create_document_shares_table.php](../../../Modules/Essentials/Database/Migrations/2018_10_02_151803_create_document_shares_table.php)
@@ -143,6 +147,7 @@ module: Essentials
 - [2021_06_17_121451_add_location_id_to_table.php](../../../Modules/Essentials/Database/Migrations/2021_06_17_121451_add_location_id_to_table.php)
 - [2021_09_28_091541_create_essentials_user_sales_targets_table.php](../../../Modules/Essentials/Database/Migrations/2021_09_28_091541_create_essentials_user_sales_targets_table.php)
 - [2026_10_26_000001_add_ferias_clt_to_essentials_leave_types.php](../../../Modules/Essentials/Database/Migrations/2026_10_26_000001_add_ferias_clt_to_essentials_leave_types.php)
+- [2026_10_27_100000_create_essentials_folha_modelo_verba_tables.php](../../../Modules/Essentials/Database/Migrations/2026_10_27_100000_create_essentials_folha_modelo_verba_tables.php)
 
 ## Seeders — 1
 
@@ -296,9 +301,9 @@ module: Essentials
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Todo/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Essentials/Todo/Show.casos.md)
 
-## Testes (Pest) — 29
+## Testes (Pest) — 30
 
-- 29 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
+- 30 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 50

@@ -16,7 +16,7 @@ status: snapshot-complete
 
 ## 1. Identificação
 
-- **Blade legacy:** [show.blade.php](../../../resources/views/purchase/show.blade.php) (modal wrapper) + [show_details.blade.php](../../../resources/views/purchase/partials/show_details.blade.php) (430+ linhas)
+- **Blade legacy:** `resources/views/purchase/show.blade.php` (modal wrapper; apagada no cutover F5 de 2026-10-27) + [show_details.blade.php](../../../resources/views/purchase/partials/show_details.blade.php) (430+ linhas)
 - **Controller:** `PurchaseController@show($id)` linha 555-622
 - **Bug crítico em prod:** linha 430 — `DNS1D::getBarcodePNG()` quebra → **show 500** em qualquer compra
 - **Page destino:** `resources/js/Pages/Purchase/Show.tsx`

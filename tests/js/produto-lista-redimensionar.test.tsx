@@ -37,11 +37,15 @@ const PAG: PaginatorShape<LinhaProduto> = {
 };
 const TUDO: PermissoesLista = {
   create: true, update: true, delete: true, opening_stock: true, view: true, stock_report: true,
-  etiquetas: true, comprar: true, view_purchase_price: true, access_default_selling_price: true,
+  etiquetas: true, view_purchase_price: true, access_default_selling_price: true,
 };
-const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, woocommerce: false, papel: null, rotulos_campos: {} };
+const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, emite_nota: true, woocommerce: false, papel: null, rotulos_campos: {} };
 
-/** As colunas que a tela mostra de saída (o padrão do menu "Colunas"). */
+/**
+ * As colunas de saída do arrasto medido em 2026-10-13, com Imposto ligada: até 2026-10-26 ela nascia
+ * ligada (desde então nasce desligada, UC-PIDX-34). O arrasto é o mesmo com ou sem ela.
+ */
+const COM_IMPOSTO = { ...visibilidadePadrao(colunasOpcionais({})), imposto: true };
 const PADRAO = ['Ação', 'Imagem', 'Produto', 'Locais', 'Preço de compra un.', 'Preço de venda', 'Estoque atual', 'Tipo', 'Categoria', 'Marca', 'Imposto', 'SKU'];
 const COM_ALCA = ['Produto', 'Locais', 'Preço de compra un.', 'Preço de venda', 'Estoque atual', 'Tipo', 'Categoria', 'Marca', 'Imposto'];
 const SEM_ALCA = ['Ação', 'Imagem', 'SKU'];
@@ -98,19 +102,19 @@ afterEach(() => cleanup());
 
 describe('UC-PIDX-16 · arrastar a borda da coluna', () => {
   it('as colunas e as larguras de saída são as do protótipo', () => {
-    render(<Lista visiveis={visibilidadePadrao(colunasOpcionais({}))} />);
+    render(<Lista visiveis={COM_IMPOSTO} />);
     expect(cabecalhos().map(rotulo)).toEqual(PADRAO);
     expect(larguras()).toEqual(['96px', '74px', '300px', '150px', '150px', '150px', '130px', '110px', '160px', '120px', '110px', '120px']);
   });
 
   it('têm alça as 9 colunas do meio; Ação, Imagem e a última (SKU) não', () => {
-    render(<Lista visiveis={visibilidadePadrao(colunasOpcionais({}))} />);
+    render(<Lista visiveis={COM_IMPOSTO} />);
     for (const r of COM_ALCA) expect(alcaDe(r), `"${r}" deveria ter alça`).not.toBeNull();
     for (const r of SEM_ALCA) expect(alcaDe(r), `"${r}" não deveria ter alça`).toBeNull();
   });
 
   it('+50 em Produto: 300 vira 350 e nenhuma outra coluna muda', () => {
-    render(<Lista visiveis={visibilidadePadrao(colunasOpcionais({}))} />);
+    render(<Lista visiveis={COM_IMPOSTO} />);
 
     arrastar('Produto', 300, 784, 834);
 
@@ -118,7 +122,7 @@ describe('UC-PIDX-16 · arrastar a borda da coluna', () => {
   });
 
   it('encolher Locais além do piso para em 48', () => {
-    render(<Lista visiveis={visibilidadePadrao(colunasOpcionais({}))} />);
+    render(<Lista visiveis={COM_IMPOSTO} />);
 
     arrastar('Locais', 150, 984, 784);
 
@@ -126,7 +130,7 @@ describe('UC-PIDX-16 · arrastar a borda da coluna', () => {
   });
 
   it('arrastar não muda a ordenação da lista', () => {
-    render(<Lista visiveis={visibilidadePadrao(colunasOpcionais({}))} />);
+    render(<Lista visiveis={COM_IMPOSTO} />);
 
     arrastar('Produto', 300, 784, 834);
 
@@ -135,7 +139,7 @@ describe('UC-PIDX-16 · arrastar a borda da coluna', () => {
   });
 
   it('desligar "Imagem" no menu Colunas não leva a largura arrastada de Produto para outra coluna', () => {
-    const padrao = visibilidadePadrao(colunasOpcionais({}));
+    const padrao = COM_IMPOSTO;
     const { rerender } = render(<Lista visiveis={padrao} />);
     arrastar('Produto', 300, 784, 834);
 
@@ -149,7 +153,7 @@ describe('UC-PIDX-16 · arrastar a borda da coluna', () => {
   // por "Estoque atual" devolvia Produto de 348 para 300 — a tabela é desmontada enquanto a
   // lista recarrega. Este caso reproduz o intervalo sem tabela.
   it('ordenar, trocar de página ou filtrar (a tabela some e volta) não desfaz a largura arrastada', () => {
-    const padrao = visibilidadePadrao(colunasOpcionais({}));
+    const padrao = COM_IMPOSTO;
     const { rerender } = render(<Lista visiveis={padrao} />);
     arrastar('Produto', 300, 784, 834);
     arrastar('Locais', 150, 984, 784);
@@ -162,7 +166,7 @@ describe('UC-PIDX-16 · arrastar a borda da coluna', () => {
   });
 
   it('com SKU desligado, a última passa a ser Imposto e é ela que fica sem alça', () => {
-    const padrao = visibilidadePadrao(colunasOpcionais({}));
+    const padrao = COM_IMPOSTO;
     render(<Lista visiveis={{ ...padrao, sku: false }} />);
     expect(alcaDe('Imposto')).toBeNull();
     expect(alcaDe('Marca')).not.toBeNull();

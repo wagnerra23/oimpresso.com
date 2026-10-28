@@ -76,7 +76,11 @@ class IndexController extends Controller
             ->with([
                 'periodoAtual',
                 'ultimaApuracao',
-                'apuracoes' => fn ($q) => $q->orderBy('data_ref')->limit(12),
+                // As 12 MAIS RECENTES (era `orderBy('data_ref')`: com 13+ apurações o drawer
+                // mostrava as 12 mais ANTIGAS — a Blade `metas/show`, que este payload
+                // substitui no cutover, sempre mostrou as últimas). A série volta em ordem
+                // crescente no `map` abaixo, que é como o drawer desenha.
+                'apuracoes' => fn ($q) => $q->orderByDesc('data_ref')->limit(12),
                 // A fonte herda tenancy do parent (`BelongsToBusinessViaParent`) e NAO
                 // precisa de dispensa nenhuma — medido em 2026-09-08, depois de eu ter
                 // posto um `withoutGlobalScope` aqui por uma armadilha que NAO existe:
@@ -128,7 +132,7 @@ class IndexController extends Controller
                 'data_ref'         => $meta->ultimaApuracao->data_ref,
                 'valor_realizado'  => (float) $meta->ultimaApuracao->valor_realizado,
             ] : null,
-            'apuracoes_recentes' => $meta->apuracoes->map(fn ($a) => [
+            'apuracoes_recentes' => $meta->apuracoes->sortBy('data_ref')->map(fn ($a) => [
                 'data_ref'        => $a->data_ref,
                 'valor_realizado' => (float) $a->valor_realizado,
             ])->values(),

@@ -35,8 +35,9 @@ está ligada (**default OFF** — não está em `FeatureFlagService::$fallbackDe
 - **Entra:** árvore de pastas recolhível (Sem pasta = `folder_id null`), linha por planilha (nome,
   "Editada há", autor, contagem de compartilhamento), busca por nome, expandir/recolher tudo,
   "Abrir" e "Criar planilha" / "Criar aqui" apontando para o editor Blade.
-- **Fica na Blade nesta onda:** editor (`show`/`create`, Luckysheet — thread 04b), nova pasta,
-  mover, compartilhar e excluir. Na tela React essas ações levam à Blade (`?legacy=1`).
+- **Ficava na Blade até 2026-10-27:** editor (`show`/`create`, Luckysheet — thread 04b), nova pasta,
+  mover, compartilhar e excluir. Desde 2026-10-27 as ações moram em
+  `_components/AcoesPlanilha.tsx` (o editor segue na Blade até a thread 04b), pelos endpoints da Blade (UC-PLAN-06 a 10).
 
 ## Backend (F2)
 
