@@ -4,6 +4,7 @@ use App\Http\Controllers\ServiceOrderFsmActionController;
 use Illuminate\Support\Facades\Route;
 use Modules\OficinaAuto\Http\Controllers\DviInspectionController;
 use Modules\OficinaAuto\Http\Controllers\InstallController;
+use Modules\OficinaAuto\Http\Controllers\PecaCompativelController;
 use Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController;
 use Modules\OficinaAuto\Http\Controllers\Public\AprovacaoOsController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
@@ -124,6 +125,15 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [ServiceOrderItemController::class, 'destroy'])
             ->middleware('throttle:60,1')
             ->name('oficinaauto.orders.items.destroy');
+
+        // US-AUTO-008 — peças compatíveis com o veículo da OS (flag oficina-auto.catalogo_pecas.enabled).
+        Route::get('ordens-servico/{order}/pecas-compativeis',
+            [PecaCompativelController::class, 'index'])
+            ->name('oficinaauto.orders.pecas-compativeis.index');
+        Route::post('ordens-servico/{order}/pecas-compativeis',
+            [PecaCompativelController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.pecas-compativeis.store');
 
         // ─────────────────────────────────────────────────────────────────────
         // Hotfix Wave 7+ — drawer ServiceOrderSheet.fetchData chama URL inglês
