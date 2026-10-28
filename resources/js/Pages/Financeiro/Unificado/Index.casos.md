@@ -85,6 +85,13 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 | UC-F02 (legado) | Recebimento baixa o título e entra no caixa | must `[V0]` | `CU-FIN-08` + `US-FIN-003` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F04 (legado) | Ações em lote respeitam tenant/limite/contabilidade | must `[V0][T0]` | `CU-FIN-07` + `US-FIN-031` | `UnificadoBulkGuardTest` | 🧪 |
 | UC-F05 (legado) | Pill "Conta indefinida" na baixa sem conta | should | `CU-FIN-06` + `US-FIN-038` | `UnificadoContaIndefinidaGuardTest` | 🧪 |
+| UC-DDA-01 | Fornecedor casado pelo CNPJ da própria empresa | must `[T0]` | `US-FIN-078` | `DdaContasPagarSugeridasTest` | ⬜ |
+| UC-DDA-02 | Mesmo boleto vira uma sugestão só | must | `US-FIN-078` | `DdaContasPagarSugeridasTest` | ⬜ |
+| UC-DDA-03 | Sugestão não cria conta a pagar | must `[V0]` | `US-FIN-078` | `DdaContasPagarSugeridasTest` | ⬜ |
+| UC-DDA-04 | Aceitar cria o título a pagar com valor e vencimento do boleto | must `[V0]` | `US-FIN-078` | `DdaContasPagarSugeridasTest` | ⬜ |
+| UC-DDA-05 | Outra empresa não decide a sugestão | must `[T0]` | `US-FIN-078` | `DdaContasPagarSugeridasTest` | ⬜ |
+| UC-DDA-06 | Descartar encerra sem título | must | `US-FIN-078` | `DdaContasPagarSugeridasTest` | ⬜ |
+| UC-DDA-07 | Sync falha visível sem flag ou sem fonte | must | `US-FIN-078` | `DdaContasPagarSugeridasTest` | ⬜ |
 
 > ⚠️ Os ids legados `UC-F0N` **não casam** com a régua estrita do `requisitos-status.mjs`
 > (`UC-[A-Z0-9]{2,10}-\d{2,3}` exige o 2º hífen). Por isso esta tabela os cita **nominalmente**
@@ -134,6 +141,64 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - **Teste:** `BaixaConservacaoValorContratoTest` ("UC-FUNI-04 · Tier 0: conta bancária de outro business é recusada") — precisa de 2 businesses semeados (a lane semeia biz=1 + biz=2).
 - **Regressão que defende:** dinheiro de um tenant caindo na conta de outro.
 - **Status: 🧪**
+
+---
+
+## Contrato do DDA (US-FIN-078)
+
+> Derivam da **US-FIN-078** (`memory/requisitos/Financeiro/SPEC.md`): boleto emitido contra o CNPJ
+> da empresa vira conta a pagar **sugerida**; título só nasce quando o usuário aceita. Backend nesta
+> onda; a lista de sugestões nesta tela entra na próxima, só com `FINANCEIRO_DDA_ENABLED`.
+> **Lane:** `PHP / Pest (Financeiro · MySQL)` (roda a árvore do módulo menos a quarentena). **Veredito:** ⬜ até o primeiro run do CI — quem dá é a lane (G-7).
+
+## UC-DDA-01 · Fornecedor casado pelo CNPJ da própria empresa `[T0]` `[must]`
+- **Persona:** Eliana [E] — cuida do contas a pagar; quer o boleto já com o fornecedor certo, sem procurar cadastro.
+- **Aceite:** Dado um fornecedor da própria empresa com CNPJ formatado e outro de outra empresa com o mesmo CNPJ · Quando chega o boleto DDA desse CNPJ · Então a sugestão aponta o fornecedor da própria empresa; sem cadastro, fica sem fornecedor.
+- **Teste:** `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`, it("UC-DDA-01 · …").
+- **Regressão que defende:** boleto casado com fornecedor de outra empresa (vazamento entre tenants) ou casamento que falha por causa da pontuação do CNPJ.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-DDA-02 · Mesmo boleto vira uma sugestão só `[must]`
+- **Persona:** Eliana [E] — o banco reenvia o mesmo boleto; ela não pode ver a conta duas vezes.
+- **Aceite:** Dado o mesmo código de barras entregue duas vezes, com e sem pontuação · Quando a fonte registra os dois · Então existe uma sugestão só.
+- **Teste:** `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`, it("UC-DDA-02 · …").
+- **Regressão que defende:** conta a pagar duplicada e pagamento em dobro.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-DDA-03 · Sugestão não cria conta a pagar `[V0]` `[must]`
+- **Persona:** Eliana [E] — decide o que entra no contas a pagar; o banco não decide por ela.
+- **Aceite:** Dado um boleto DDA recebido · Quando ele é registrado como sugestão · Então o número de títulos da empresa não muda.
+- **Teste:** `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`, it("UC-DDA-03 · …").
+- **Regressão que defende:** boleto de terceiro (golpe ou engano) virando conta a pagar sem ninguém ver.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-DDA-04 · Aceitar cria o título a pagar do boleto `[V0]` `[must]`
+- **Persona:** Eliana [E] — aceita o boleto e quer a conta com o valor e o vencimento certos, ao centavo.
+- **Aceite:** Dado sugestão de 1234,56 com vencimento em 10/04 · Quando ela aceita · Então nasce título a pagar aberto com valor_total = valor_aberto = 1234.56, o vencimento e o fornecedor do boleto; a sugestão fica aceita e ligada a ele; aceitar de novo é recusado.
+- **Teste:** `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`, it("UC-DDA-04 · …").
+- **Regressão que defende:** valor ou vencimento divergente do boleto, ou dois títulos para a mesma sugestão.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-DDA-05 · Outra empresa não decide a sugestão `[T0]` `[must]`
+- **Persona:** Qualquer usuário — invariante de plataforma (ADR 0093).
+- **Aceite:** Dado uma sugestão da empresa 98 · Quando a empresa 99 tenta aceitar ou descartar · Então é recusado e a sugestão segue sugerida.
+- **Teste:** `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`, it("UC-DDA-05 · …").
+- **Regressão que defende:** uma empresa criando ou apagando conta a pagar de outra.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-DDA-06 · Descartar encerra sem título `[must]`
+- **Persona:** Eliana [E] — o boleto não é da empresa; ela quer tirá-lo da fila.
+- **Aceite:** Dado uma sugestão em aberto · Quando ela descarta · Então a sugestão fica descartada e nenhum título é criado.
+- **Teste:** `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`, it("UC-DDA-06 · …").
+- **Regressão que defende:** descarte que cria título ou que deixa a sugestão voltando.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-DDA-07 · Sync falha visível sem flag ou sem fonte `[must]`
+- **Persona:** Wagner [W] — liga a rotina e precisa saber se ela de fato trouxe boletos.
+- **Aceite:** Dado FINANCEIRO_DDA_ENABLED desligado, ou ligado sem fonte registrada · Quando roda financeiro:dda-sync · Então o comando sai com erro; com uma fonte registrada, grava a sugestão e sai com sucesso.
+- **Teste:** `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`, it("UC-DDA-07 · …").
+- **Regressão que defende:** rotina verde que não leu nada, parecendo que não havia boletos.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
 
 ---
 
