@@ -17,11 +17,11 @@ authority: generated
 | Elo | Quantidade |
 |---|---:|
 | US no SPEC | 13 |
-| CU no SDD | 19 |
+| CU no SDD | 20 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
-| UC declarados | 201 |
-| UC com teste que os cita | 184 |
+| UC declarados | 202 |
+| UC com teste que os cita | 185 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -30,6 +30,8 @@ authority: generated
 | `CU-PROD-09` sem UC | caso de uso que o exercite — Código de barras + etiqueta |
 | `CU-PROD-12` sem UC | caso de uso que o exercite — Correção de valor / agregação de inventário |
 | `CU-PROD-20` sem UC | caso de uso que o exercite — Locais de armazenagem e endereço no estoque |
+| `CU-PROD-21` sem UC | caso de uso que o exercite — Política de preço do produto |
+| `US-PROD-024` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIK |
 
 ### Backlog — NÃO é lacuna
 
@@ -44,7 +46,6 @@ authority: generated
 | US-PROD-021 | `todo` | [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) |
 | US-PROD-022 | `todo` | [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mul |
 | US-PROD-023 | `todo` | [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draf |
-| US-PROD-024 | `todo` | [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta prim |
 | US-PROD-025 | `todo` | [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV |
 | US-PROD-026 | `todo` | Fornecedores/cotação por produto (melhor preço no drawer) |
 | US-PROD-027 | `todo` | [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do P |
@@ -198,6 +199,7 @@ authority: generated
 | UC-PIDX-28 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-29 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-30 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-31 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-32 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-33 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-34 | Index | 🧪 aguarda veredito da lane |
