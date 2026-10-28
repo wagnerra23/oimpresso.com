@@ -482,16 +482,22 @@ Status: 🧪
 
 - `[BACKLOG]` **Compra nasce da nota do fornecedor** `[V0]` `[E0]` — Dado a NF-e do fornecedor
   baixada da SEFAZ para o CNPJ, ou o XML enviado, Quando importo a nota como compra, Então cada item
-  fica ligado ao produto (o vínculo fica lembrado para a próxima nota do mesmo fornecedor), a compra
-  guarda a chave da nota, e o estoque e a conta a pagar nascem pelo caminho da compra de hoje. Uma
-  compra digitada à mão pode ser ligada depois a uma nota baixada. Âncora: US-COM-003 e a ADR de
+  fica ligado ao produto (o vínculo fica lembrado para a próxima nota do mesmo fornecedor) e a compra
+  guarda a chave da nota. O estoque entra no recebimento; a conta a pagar nasce quando a compra é
+  conferida contra a NF-e de entrada, com a divergência dentro da tolerância, e essa conferência
+  manifesta a nota. É o fluxo de Compra dos modelos do [W] (Requisição → Pedido → Recebido →
+  Conferido → Pago, em `prototipo-ui/cowork/Wagner/fluxos-modelos.casos.md`). Uma compra digitada à
+  mão pode ser ligada depois a uma nota baixada. Âncora: US-COM-003 e a ADR de
   entrada por XML (`memory/decisions/proposals/2026-10-06-entrada-xml-compra.md`, aceita). Hoje as
   tabelas da entrada entraram (2026-10-27), o leitor do XML está no PR #10024 e a compra a partir da
   nota ainda não existe.
 - `[BACKLOG]` **Compra de pessoa física emite a nota de entrada** `[V0]` — Dado uma peça ou moto
   usada comprada de um particular, Quando lanço a compra, Então ela oferece "Emitir nota de entrada";
   emitida, a nota fica ligada à compra e o produto passa a ter entrada com nota. Compra de empresa
-  sem nota fica marcada como sem nota: quem emite a nota é o fornecedor. O CFOP e a natureza da nota
+  sem nota fica marcada como sem nota: quem emite a nota é o fornecedor. **Depende do [W]:** no fluxo
+  de Compra dele, a conta a pagar nasce em Conferido, depois de conferir a NF-e de entrada; a compra
+  sem nota não tem o que conferir e ficaria parada em Recebido. Falta a regra para ela (por exemplo,
+  pular a conferência e gerar a conta a pagar no recebimento). O CFOP e a natureza da nota
   de bem usado mudam por estado; o contador confirma. Hoje a nota de entrada que funciona é a da
   devolução de venda (`DevolucaoService`); o código antigo de nota de entrada a partir da compra
   (`NfeEntradaController`) não tem rota.
