@@ -14,13 +14,14 @@ module: OficinaAuto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 192 arquivos em 18 papéis.
+**Total mapeado:** 196 arquivos em 18 papéis.
 
-## Controllers — 10
+## Controllers — 11
 
 - [DataController.php](../../../Modules/OficinaAuto/Http/Controllers/DataController.php)
 - [DviInspectionController.php](../../../Modules/OficinaAuto/Http/Controllers/DviInspectionController.php)
 - [InstallController.php](../../../Modules/OficinaAuto/Http/Controllers/InstallController.php)
+- [PecaCompativelController.php](../../../Modules/OficinaAuto/Http/Controllers/PecaCompativelController.php)
 - [ProducaoOficinaController.php](../../../Modules/OficinaAuto/Http/Controllers/ProducaoOficinaController.php)
 - [AprovacaoOsController.php](../../../Modules/OficinaAuto/Http/Controllers/Public/AprovacaoOsController.php)
 - [ServiceOrderAssinaturaController.php](../../../Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php)
@@ -43,11 +44,12 @@ module: OficinaAuto
 - [UpdateVehicleRequest.php](../../../Modules/OficinaAuto/Http/Requests/UpdateVehicleRequest.php)
 - [UploadDviPhotoRequest.php](../../../Modules/OficinaAuto/Http/Requests/UploadDviPhotoRequest.php)
 
-## Services — 17
+## Services — 18
 
 - [AcoesOsDoApp.php](../../../Modules/OficinaAuto/Services/AcoesOsDoApp.php)
 - [AprovacaoOsService.php](../../../Modules/OficinaAuto/Services/AprovacaoOsService.php)
 - [AssinaturaEntrega.php](../../../Modules/OficinaAuto/Services/AssinaturaEntrega.php)
+- [CatalogoDePecas.php](../../../Modules/OficinaAuto/Services/CatalogoDePecas.php)
 - [DviInspectionService.php](../../../Modules/OficinaAuto/Services/DviInspectionService.php)
 - [LembreteDeRevisao.php](../../../Modules/OficinaAuto/Services/LembreteDeRevisao.php)
 - [HttpPlacaProvider.php](../../../Modules/OficinaAuto/Services/PlacaLookup/HttpPlacaProvider.php)
@@ -100,7 +102,7 @@ module: OficinaAuto
 
 - [web.php](../../../Modules/OficinaAuto/Routes/web.php)
 
-## Migrations (schema) — 24
+## Migrations (schema) — 25
 
 - [2026_05_11_000010_create_vehicles_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_05_11_000010_create_vehicles_table.php)
 - [2026_05_11_000020_create_service_orders_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_05_11_000020_create_service_orders_table.php)
@@ -126,6 +128,7 @@ module: OficinaAuto
 - [2026_10_06_180000_create_oficina_agendamentos_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php)
 - [2026_10_21_120000_create_oficina_os_assinaturas_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_21_120000_create_oficina_os_assinaturas_table.php)
 - [2026_10_26_300000_create_oficina_lembretes_revisao.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_26_300000_create_oficina_lembretes_revisao.php)
+- [2026_10_27_100000_create_oficina_pecas_compativeis.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php)
 
 ## Seeders — 4
 
@@ -200,9 +203,9 @@ module: OficinaAuto
 - [Index.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Show.casos.md)
 
-## Testes (Pest) — 48
+## Testes (Pest) — 49
 
-- 48 em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature)
+- 49 em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 8
