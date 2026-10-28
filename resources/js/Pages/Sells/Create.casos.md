@@ -5,8 +5,13 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-10-27"
 ---
+
+<!-- REVALIDAÇÃO 2026-10-27 (G-6: o .tsx mudou — US-SELL-079, resgate de pontos).
+     O total passa a subtrair `rp_redeemed_amount`, que nasce "0.00" e só muda pelo bloco de resgate,
+     que só aparece com a flag SELLS_RESGATE_PONTOS_ENABLED e a empresa com pontos. Venda sem resgate:
+     total e envio idênticos aos de antes, então UC-S01..S07 e UC-VST-* mantêm o status. UC-SRP-* nascem ⬜. -->
 
 <!-- REVALIDAÇÃO 2026-10-01 (G-6: o .tsx mudou de novo — UC-S04, preço do grupo ao adicionar).
      Mudanças no .tsx: o autocomplete recebe `priceGroupId`, e o preço da linha nova e o da
@@ -195,6 +200,55 @@ last_run: "2026-10-26"
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Resgate de pontos de fidelidade (US-SELL-079 · [W] 2026-10-27)
+
+> **Âncora:** US-SELL-079 (`memory/requisitos/Sells/SPEC.md`). Os pontos nativos (`business.enable_rp`) já ganham,
+> vencem e aparecem na ficha; o caixa React passa a resgatar. Empresa do teste: ponto vale 0,10, resgate mínimo 10
+> pontos, venda mínima 20,00. A tela só mostra o resgate com `SELLS_RESGATE_PONTOS_ENABLED`; a conferência no
+> servidor vale sempre.
+
+## UC-SRP-01 · Valor do resgate = pontos × valor do ponto, 2 casas `[V0]` `[must]`
+- **Persona:** Operador de caixa, conferindo quanto o cliente economiza.
+- **Aceite:** Dado o ponto valendo 0,10, 0,15, 0,3333, 0,005 ou 0,0049 · Quando se resgatam 50, 7, 3, 1 e 1 pontos · Então o resgate vale 5,00, 1,05, 1,00, 0,01 e 0,00, igual na tela e no servidor.
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-01` · `tests/js/resgate-pontos-valor.test.ts` (a mesma tabela, na conta da tela).
+- **Regressão que defende:** Tela e servidor calculando o resgate de formas diferentes, com o total gravado divergindo do mostrado.
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest` e no vitest do `ci.yml`.
+
+## UC-SRP-02 · Resgate válido é gravado com pontos e valor conferidos `[V0]` `[must]`
+- **Persona:** Operador de caixa, com o cliente pedindo para usar os pontos.
+- **Aceite:** Dado cliente com 100 pontos · Quando a venda pede 50 pontos e 5,00 · Então o servidor confirma 50 e 5,00.
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-02`.
+- **Regressão que defende:** Resgate legítimo recusado pela conferência nova.
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
+
+## UC-SRP-03 · Mais pontos que o disponível, abaixo do mínimo ou venda pequena são recusados `[V0]` `[must]`
+- **Persona:** Operador de caixa diante de um pedido de resgate que não cabe.
+- **Aceite:** Dado cliente com 30 pontos, resgate mínimo de 10 e venda mínima de 20,00 · Quando a venda pede 31 pontos, ou 5 pontos, ou 20 pontos numa venda de 19,99 · Então a gravação é recusada com "O cliente pode resgatar até 30 pontos nesta venda.", "O resgate mínimo é de 10 pontos." e "A venda não atinge o valor mínimo para resgatar pontos."
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-03`.
+- **Regressão que defende:** Resgatar mais pontos do que o cliente tem (antes só o JavaScript da Blade barrava).
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
+
+## UC-SRP-04 · Valor que não bate com os pontos é recusado `[V0]` `[must]`
+- **Persona:** Quem envia a venda direto ao servidor (tela desatualizada ou requisição feita à mão).
+- **Aceite:** Dado cliente com 100 pontos e ponto a 0,10 · Quando a venda pede 50 pontos com valor 50,00 · Então é recusada com a mensagem de que o resgate de 50 pontos vale 5,00 (em reais). Com valor 5,01 (1 centavo) passa e grava 5,00.
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-04`.
+- **Regressão que defende:** Venda gravada com desconto de pontos maior que o valor dos pontos.
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
+
+## UC-SRP-05 · Cliente padrão, cliente de outra empresa e empresa sem pontos não resgatam `[V0]` `[must]`
+- **Persona:** Operador de caixa vendendo para o Cliente padrão ou de outra empresa.
+- **Aceite:** Dado o Cliente padrão, ou um cliente da empresa 99, ou a empresa com os pontos desligados · Quando a venda da empresa 98 pede resgate · Então é recusada com "Escolha um cliente cadastrado para resgatar pontos." ou "Os pontos de fidelidade não estão ligados nesta empresa."
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-05`.
+- **Regressão que defende:** Pontos de um cliente usados em venda de outro cliente ou de outra empresa (Tier 0).
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
+
+## UC-SRP-06 · A tela só mostra o resgate com a flag ligada e a empresa com pontos `[should]`
+- **Persona:** Dono da empresa, que liga ou não o resgate no caixa.
+- **Aceite:** Dado a flag `SELLS_RESGATE_PONTOS_ENABLED` desligada, ou a empresa com `enable_rp = 0` · Quando a tela de venda abre · Então não recebe configuração de resgate e o bloco não aparece; com as duas ligadas recebe nome, valor do ponto, venda mínima e resgate mínimo.
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-06`.
+- **Regressão que defende:** Bloco de resgate aparecendo na ROTA LIVRE sem a flag ligada.
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de
@@ -264,8 +318,10 @@ last_run: "2026-10-26"
   fiscal (falta).
 - **[BACKLOG] Item com imposto faltando avisa ao montar a venda** — Aceite: Dado um produto sem NCM
   ou com a natureza fiscal "a decidir pelo contador", Quando o adiciono à venda, Então a linha mostra o
-  que falta para a nota sair, sem impedir salvar a venda. Fonte: CU-PROD-18 (aviso no cadastro do
-  produto) e UC-TRB-16 do protótipo fiscal ("pronto pra emitir").
+  que falta para a nota sair, sem impedir salvar a venda. Quem pode editar produto ganha na linha um
+  "Informar NCM", que grava no produto; quem não pode vê só o aviso. Fonte: CU-PROD-18 (aviso no
+  cadastro do produto) e UC-TRB-16 do protótipo fiscal ("pronto pra emitir"). Pedido da PraMoto
+  (2026-10-27): os produtos comprados sem nota entram sem NCM.
 - **[BACKLOG] Cliente sem dados para a nota avisa ao ser escolhido** — Aceite: Dado um cliente sem
   CPF ou CNPJ, sem endereço com município ou sem a indicação de contribuinte do ICMS, Quando o escolho
   numa venda, Então o resumo mostra "Faltam dados para a nota" e quais, com link para completar o
@@ -347,3 +403,5 @@ last_run: "2026-10-26"
 - 2026-10-23 · [M+C] Backlog de duplicar com a origem e de venda para entrega futura, sem id.
 - 2026-10-23 · [M+C] Backlog: aviso de imposto faltando no item e de dados do cliente faltando para a nota, sem id.
 - 2026-10-23 · [M+C] Revalidado (G-6): as mudanças em `Create.tsx` depois do last_run 2026-10-02 são a venda de reparo (#8426, #8439 e #8447), descritas pelos UC-S05, S06 e S07 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-02 → 2026-10-23.
+- 2026-10-27 · [W+C] Revalidado (G-6): a mudança em `Create.tsx` depois do last_run 2026-10-26 é o resgate de pontos no caixa (US-SELL-079), descrito pelos UC-SRP desta tela. Nenhum outro UC muda de status; last_run 2026-10-26 → 2026-10-27.
+- 2026-10-27 · [F+C] Backlog "Item com imposto faltando": o "Informar NCM" na linha da venda, pedido da PraMoto. Sem id.

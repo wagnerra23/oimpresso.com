@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1057 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1067 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,15 +10,15 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
 | [`Whatsapp`](#whatsapp) | 77 | 0 | 0 | 0 | 77 |
-| [`Sells`](#sells) | 72 | 2 | 0 | 0 | 70 |
-| [`Financeiro`](#financeiro) | 52 | 4 | 0 | 0 | 48 |
+| [`Sells`](#sells) | 73 | 3 | 0 | 0 | 70 |
+| [`Financeiro`](#financeiro) | 57 | 6 | 1 | 0 | 50 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
+| [`NfeBrasil`](#nfebrasil) | 33 | 0 | 0 | 6 | 27 |
 | [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
-| [`NfeBrasil`](#nfebrasil) | 32 | 0 | 0 | 6 | 26 |
+| [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
-| [`Compras`](#compras) | 28 | 4 | 0 | 0 | 23 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
@@ -26,7 +26,7 @@
 | [`Crm`](#crm) | 24 | 0 | 0 | 0 | 24 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
-| [`Vestuario`](#vestuario) | 20 | 1 | 0 | 0 | 19 |
+| [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
@@ -62,11 +62,11 @@
 | [`AssetManagement`](#assetmanagement) | 2 | 0 | 0 | 0 | 2 |
 | [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
+| [`Relatorios`](#relatorios) | 2 | 1 | 0 | 0 | 1 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
 | [`Backup`](#backup) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
-| [`Relatorios`](#relatorios) | 1 | 0 | 0 | 0 | 1 |
 
 
 ## Jana
@@ -252,6 +252,7 @@
 
 - **US-SELL-077** — Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título _(`p0` · @wagner)_
 - **US-SELL-078** — O ICMS-ST entra no total da venda, pela mesma conta da NF-e _(`p1` · @wagner)_
+- **US-SELL-079** — Resgate de pontos de fidelidade no caixa React _(`p1` · @wagner)_
 
 ### todo
 
@@ -332,9 +333,15 @@
 ### doing
 
 - **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p0` · sprint Onda 27)_
+- **US-FIN-078** — DDA — boletos contra o CNPJ da empresa viram contas a pagar sugeridas — **P1** _(`p1`)_
+- **US-FIN-080** — Conciliação automática por regras — **P1** _(`p1`)_
 - **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
 - **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
 - **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
+
+### review
+
+- **US-FIN-081** — Link de pagamento do título a receber (Pix e boleto) _(`p1`)_
 
 ### todo
 
@@ -349,6 +356,8 @@
 - **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
 - **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
 - **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
+- **US-FIN-079** — Pagar o título a pagar pelo banco (boleto e Pix), com aprovação e baixa automática — **P1** _(`p1`)_
+- **US-FIN-082** — Portal do cliente: títulos em aberto, segunda via, histórico e pagamento _(`p1`)_
 - **US-FIN-018** — Boletos — Sheet Remessa/Retorno CNAB upload + processing _(`p2` · @wagner)_
 - **US-FIN-019** — Boletos — Drawer timeline cronológica rica via activity_log Spatie _(`p2` · @wagner)_
 - **US-FIN-020** — Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto) _(`p2` · @wagner)_
@@ -547,6 +556,48 @@
 
 - **US-OFICINA-035** — DVI (Vistoria Digital · Digital Vehicle Inspection) schema + API — **P1** _(`p1`)_
 
+## NfeBrasil
+
+
+### blocked
+
+- **US-NFE-043** — Proposta comercial Gold — diferenciais vs Mubsys + pricing on-prem · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-044** — Upgrade plataforma on-prem Gold pra versão atual com NfeBrasil · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-045** — Configuração fiscal NfeBrasil Gold (cert + IE + regime + template SP) · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-046** — Smoke fiscal homologação SEFAZ-SP biz=Gold (1ª NF-e 55 cstat 100) · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-047** — Treinamento operadora Gold + cutover NF-e produção + canary 7d · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-048** — Refinar runbook on-prem reutilizável pós-Gold (Trilha 1 dormentes) · 🔒 DORMENTE _(`p2` · @wagner · sprint Gold-Reativacao)_
+
+### todo
+
+- **US-NFE-072** — ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal** _(`p0` · sprint —)_
+- **US-NFE-076** — Ler o XML da NF-e de compra, por NSU ou por upload — **P0** _(`p0` · sprint —)_
+- **US-NFE-042** — Discovery técnico instalação Gold Comunicação Visual _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
+- **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
+- **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
+- **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
+- **US-NFE-073** — XML do mês enviado ao contador sem ninguém lembrar — **P1** _(`p1` · sprint —)_
+- **US-NFE-074** — Cutover da emissão Delphi → oimpresso, por empresa — **Backlog** _(`p1` · sprint —)_
+- **US-NFE-075** — NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1** _(`p1` · sprint —)_
+- **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
+- **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
+- **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
+- **US-NFE-058** — Aplicar pattern dual-mode em batch restante — Emitir* + NfeEmissaoController + DistribuicaoDfe (4 files, ~15 fails) _(`p2`)_
+- **US-NFE-059** — Smoke prod end-to-end auto-emissão NFe55 com cliente real que opt-in _(`p2` · @wagner)_
+- **US-NFE-063** — Smoke Browser MCP fresh (screenshot+console) para fluxos Certificado/Auto-emission/Manifestacao _(`p2` · sprint cycle-04)_
+- **US-NFE-001** — Configurar certificado digital A1
+- **US-NFE-002** — Emitir NFC-e a partir de venda finalizada
+- **US-NFE-003** — Visualizar e reimprimir NFCe/NFe emitida
+- **US-NFE-004** — Cancelar NFe/NFC-e dentro do prazo legal
+- **US-NFE-005** — Carta de Correção Eletrônica (CCe)
+- **US-NFE-006** — Modo contingência (EPEC ou FS-DA)
+- **US-NFE-007** — Monitor de rejeições + status SEFAZ
+- **US-NFE-008** — Manifestar NF-e recebida (destinatário)
+- **US-NFE-009** — Gerar SPED Fiscal/EFD ICMS-IPI mensal
+- **US-NFE-010** — Cadastrar regra tributária por NCM (motor)
+
 ## Producao
 
 
@@ -589,46 +640,46 @@
 - **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
 - **US-PCP-032** — OS liberada sem material fica Aguardando material (D3) — **P1**
 
-## NfeBrasil
+## Compras
 
 
-### blocked
+### doing
 
-- **US-NFE-043** — Proposta comercial Gold — diferenciais vs Mubsys + pricing on-prem · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-044** — Upgrade plataforma on-prem Gold pra versão atual com NfeBrasil · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-045** — Configuração fiscal NfeBrasil Gold (cert + IE + regime + template SP) · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-046** — Smoke fiscal homologação SEFAZ-SP biz=Gold (1ª NF-e 55 cstat 100) · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-047** — Treinamento operadora Gold + cutover NF-e produção + canary 7d · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-048** — Refinar runbook on-prem reutilizável pós-Gold (Trilha 1 dormentes) · 🔒 DORMENTE _(`p2` · @wagner · sprint Gold-Reativacao)_
+- **US-COM-029** — Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0** _(`p0`)_
+- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
+- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
+- **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
+- **US-COM-034** — Inspeção de qualidade no recebimento da compra — **P2** _(`p2`)_
 
 ### todo
 
-- **US-NFE-072** — ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal** _(`p0` · sprint —)_
-- **US-NFE-042** — Discovery técnico instalação Gold Comunicação Visual _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
-- **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
-- **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
-- **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
-- **US-NFE-073** — XML do mês enviado ao contador sem ninguém lembrar — **P1** _(`p1` · sprint —)_
-- **US-NFE-074** — Cutover da emissão Delphi → oimpresso, por empresa — **Backlog** _(`p1` · sprint —)_
-- **US-NFE-075** — NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1** _(`p1` · sprint —)_
-- **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
-- **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
-- **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
-- **US-NFE-058** — Aplicar pattern dual-mode em batch restante — Emitir* + NfeEmissaoController + DistribuicaoDfe (4 files, ~15 fails) _(`p2`)_
-- **US-NFE-059** — Smoke prod end-to-end auto-emissão NFe55 com cliente real que opt-in _(`p2` · @wagner)_
-- **US-NFE-063** — Smoke Browser MCP fresh (screenshot+console) para fluxos Certificado/Auto-emission/Manifestacao _(`p2` · sprint cycle-04)_
-- **US-NFE-001** — Configurar certificado digital A1
-- **US-NFE-002** — Emitir NFC-e a partir de venda finalizada
-- **US-NFE-003** — Visualizar e reimprimir NFCe/NFe emitida
-- **US-NFE-004** — Cancelar NFe/NFC-e dentro do prazo legal
-- **US-NFE-005** — Carta de Correção Eletrônica (CCe)
-- **US-NFE-006** — Modo contingência (EPEC ou FS-DA)
-- **US-NFE-007** — Monitor de rejeições + status SEFAZ
-- **US-NFE-008** — Manifestar NF-e recebida (destinatário)
-- **US-NFE-009** — Gerar SPED Fiscal/EFD ICMS-IPI mensal
-- **US-NFE-010** — Cadastrar regra tributária por NCM (motor)
+- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
+- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
+- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
+- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
+- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
+- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
+- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
+- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
+- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
+- **US-COM-030** — MRP: necessidade de compra somando todas as OS, com prazo do fornecedor — **P1** _(`p1`)_
+- **US-COM-031** — Cotação de compra entre fornecedores — **P1** _(`p1`)_
+- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
+- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
+- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
+- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
+- **US-COM-032** — Aprovação do pedido de compra por alçada de valor — **P2** _(`p2`)_
+- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
+- **US-COM-033** — Avaliação automática do fornecedor por entrega — **P3** _(`p3`)_
+- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
+- **US-COM-002** — Criar compra manual
+- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
+- **US-COM-004** — Deprecar `/purchases` legacy
+- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
+
+### retirada
+
+- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
 ## Fiscal
 
@@ -664,46 +715,6 @@
 - **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
-
-## Compras
-
-
-### doing
-
-- **US-COM-029** — Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0** _(`p0`)_
-- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
-- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
-- **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
-
-### todo
-
-- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
-- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
-- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
-- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
-- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
-- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
-- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
-- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
-- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
-- **US-COM-030** — MRP: necessidade de compra somando todas as OS, com prazo do fornecedor — **P1** _(`p1`)_
-- **US-COM-031** — Cotação de compra entre fornecedores — **P1** _(`p1`)_
-- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
-- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
-- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
-- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
-- **US-COM-032** — Aprovação do pedido de compra por alçada de valor — **P2** _(`p2`)_
-- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
-- **US-COM-033** — Avaliação automática do fornecedor por entrega — **P3** _(`p3`)_
-- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
-- **US-COM-002** — Criar compra manual
-- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
-- **US-COM-004** — Deprecar `/purchases` legacy
-- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
-
-### retirada
-
-- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
 ## RecurringBilling
 
@@ -935,6 +946,7 @@
 - **US-VEST-031** — Sugestão de compra por tamanho pela curva de venda `p1` _(`p1`)_
 - **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
 - **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
+- **US-VEST-032** — Remarcação por coleção, com prévia e reversão `p2` _(`p2`)_
 - **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
 - **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
 - **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
@@ -1493,6 +1505,17 @@
 - **US-MEMORIAAUTONOMA-001** — MEM-MIGRACAO Auto-mem → git/MCP (22 candidatos pós-consolidação 2026-05-10) _(`p2` · @wagner)_
 - **US-MEMORIAAUTONOMA-002** — MEM-VERIFICAR 8 pendências stale detectadas pós-consolidação 2026-05-10 _(`p3` · @wagner)_
 
+## Relatorios
+
+
+### doing
+
+- **US-REL-002** — Os relatórios prontos do núcleo abrem em React pelo menu _(`p2` · @wagner)_
+
+### todo
+
+- **US-REL-001** — Relatório montável pelo usuário, salvo e enviado por agenda _(`p2`)_
+
 ## Admin
 
 
@@ -1520,10 +1543,3 @@
 ### todo
 
 - **US-MCP-017** — Tool `module-state <modulo>` (CQRS projection per bounded context) _(`p1` · @wagner)_
-
-## Relatorios
-
-
-### todo
-
-- **US-REL-001** — Relatório montável pelo usuário, salvo e enviado por agenda _(`p2`)_

@@ -171,12 +171,14 @@ status: ativo
 ### US-RB-011 · Salvar cartão tokenizado de cliente
 
 > **Backlog por decisão [W] 2026-10-26 — cartão recorrente fica para depois.** Por enquanto a assinatura é cobrada só por Pix Automático (BCB, US-RB-021) e boleto. Esta US não entra em ciclo até nova decisão do [W]; o levantamento de concorrência de 2026-10-25 a listou como P1 ("cartão recorrente com nova tentativa automática").
+>
+> **Reaberta por decisão [W] 2026-10-27:** sobre a lista do levantamento que incluía "cartão recorrente com nova tentativa", o [W] disse "os do financeiro eu quero todos". A US volta ao ciclo; nasce atrás de flag desligada.
 
 > **Área:** Cards
 > **Rota:** `POST /payment-gateway/cards`
 > **Permissão:** cliente final (portal) ou Larissa (admin)
 
-**Implementado em:** _pendente_ — não há modelo/rota/tabela de cartão tokenizado (`gateway_card_token`, `last_4`, `brand`) no módulo; cobrança recorrente hoje é via boleto/Pix, sem via cartão
+**Implementado em:** _pendente_ — parcial em 2026-10-27: a fatura paga no cartão pela página hospedada do Asaas guarda o token (cifrado), os últimos 4 e a bandeira em `rb_cartoes_salvos` e liga à assinatura (`rb_subscriptions.cartao_salvo_id`) — `Modules/RecurringBilling/Services/CartaoSalvoService.php` · `Modules/RecurringBilling/Listeners/SalvarCartaoDaCobrancaPaga.php` · `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` (UC-RBCC-01..04), flag `RB_SALVAR_CARTAO` desligada. Falta: cobrar a fatura no cartão salvo (US-RB-013), mostrar e remover o cartão no drawer, e a rota `POST /payment-gateway/cards` (não usada: o número nunca chega ao oimpresso, o token vem do webhook).
 
 **Como** Cliente final via portal
 **Quero** salvar cartão pra cobrança recorrente (token, não número cru)
@@ -210,6 +212,8 @@ status: ativo
 ### US-RB-013 · Smart retry em soft decline
 
 > **Backlog por decisão [W] 2026-10-26 — cartão recorrente fica para depois.** Por enquanto a assinatura é cobrada só por Pix Automático (BCB, US-RB-021) e boleto. Esta US não entra em ciclo até nova decisão do [W]; o levantamento de concorrência de 2026-10-25 a listou como P1 ("cartão recorrente com nova tentativa automática").
+>
+> **Reaberta por decisão [W] 2026-10-27:** sobre a lista do levantamento que incluía "cartão recorrente com nova tentativa", o [W] disse "os do financeiro eu quero todos". A US volta ao ciclo; nasce atrás de flag desligada.
 
 > **Área:** SmartRetries
 > **Service:** `SmartRetryScheduler::schedule()`

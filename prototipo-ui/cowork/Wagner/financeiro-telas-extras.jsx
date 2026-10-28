@@ -259,6 +259,7 @@ const TelaConciliacao = ({ onBack }) => {
   const [busca, setBusca] = useState("");
   const [ignorados, setIgnorados] = useState(() => new Set());
   const [aceitos, setAceitos] = useState(() => new Set());
+  const [regrasAberto, setRegrasAberto] = useState(false); // drawer "Regras e maquininha" (US-FIN-080/083)
   const estado = (e) => ignorados.has(e.id) ? "ignorada" : e.match || aceitos.has(e.id) ? "matched" : e.suggest ? "suggest" : "none";
   const linhas = useMemo(() => {
     const q = busca.trim().toLowerCase();
@@ -306,6 +307,13 @@ const TelaConciliacao = ({ onBack }) => {
           </div>
         </div>
       </div>
+
+      {/* Conciliação por regras e do cartão (US-FIN-080/083) — financeiro-conciliacao-regras.jsx */}
+      {window.FinConciliacaoAcoes &&
+        <window.FinConciliacaoAcoes
+          onAplicar={() => setAceitos(new Set([...aceitos, ...EXTRATO.filter((e) => e.suggest && !ignorados.has(e.id)).map((e) => e.id)]))}
+          onAbrir={() => setRegrasAberto(true)} />}
+      {window.FinRegrasMaquininha && <window.FinRegrasMaquininha open={regrasAberto} onClose={() => setRegrasAberto(false)} />}
 
       <div className="px-6 mt-4 mb-4">
         <div className="fin-card overflow-hidden">
