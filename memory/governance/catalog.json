@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 881,
-    "edges": 1197,
+    "nodes": 883,
+    "edges": 1199,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 492,
-      "api": 90
+      "component": 495,
+      "api": 89
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 94,
+      "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 492,
+      "hasComponent": 495,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -1582,14 +1582,6 @@
       ]
     },
     {
-      "id": "api:/post-repair-status",
-      "type": "api",
-      "prefix": "/post-repair-status",
-      "providers": [
-        "Repair"
-      ]
-    },
-    {
       "id": "api:/pricing/*",
       "type": "api",
       "prefix": "/pricing/*",
@@ -2949,6 +2941,20 @@
       "desc": "Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
     },
     {
+      "id": "component:Financeiro/Public/PagamentoPublicoController",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "Public/PagamentoPublicoController",
+      "desc": "US-FIN-081 página pública /pagar/{token}: cliente paga o título a receber por Pix ou boleto (flag FINANCEIRO_LINK_PAGAMENTO_ENABLED)"
+    },
+    {
+      "id": "component:Financeiro/RateioService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "RateioService",
+      "desc": "US-FIN-075 rateio do título em centros de custo (fin_centros_custo + fin_titulo_rateios): soma fecha valor_total em centavos inteiros; título sem rateio segue válido"
+    },
+    {
       "id": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
       "type": "component",
       "module": "Financeiro",
@@ -3899,13 +3905,6 @@
       "module": "NfeBrasil",
       "name": "ManifestacaoController",
       "desc": "Manifestação do Destinatário (US-NFE-052, PR #317)"
-    },
-    {
-      "id": "component:NfeBrasil/NfeBrasilController",
-      "type": "component",
-      "module": "NfeBrasil",
-      "name": "NfeBrasilController",
-      "desc": ""
     },
     {
       "id": "component:NfeBrasil/NfeEmissaoController",
@@ -4956,6 +4955,20 @@
       "module": "Vestuario",
       "name": "GradeCurvaService",
       "desc": "matriz tamanho × cor + proporção curva BR (Wave 27, ADR 0121 §P7)"
+    },
+    {
+      "id": "component:Vestuario/Remarcacao",
+      "type": "component",
+      "module": "Vestuario",
+      "name": "Remarcacao",
+      "desc": "prévia antes → depois por variação, gravação em lote com o antes guardado e reversão que não pisa em preço mexido depois (US-VEST-032 · UC-VREM-01..04)"
+    },
+    {
+      "id": "component:Vestuario/RemarcacaoController",
+      "type": "component",
+      "module": "Vestuario",
+      "name": "RemarcacaoController",
+      "desc": "remarcação por coleção: tela, prévia, gravação, reversão e etiquetas do lote (/vestuario/remarcacao, atrás do setting remarcacao.enabled, US-VEST-032 · UC-VREM-05..07)"
     },
     {
       "id": "component:Vestuario/VestuarioSettingsResolver",
@@ -9541,6 +9554,18 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "component:Financeiro/Public/PagamentoPublicoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/RateioService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
       "type": "hasComponent",
       "source": "contains"
@@ -11942,12 +11967,6 @@
     },
     {
       "from": "module:NfeBrasil",
-      "to": "component:NfeBrasil/NfeBrasilController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/NfeEmissaoController",
       "type": "hasComponent",
       "source": "contains"
@@ -13572,12 +13591,6 @@
     },
     {
       "from": "module:Repair",
-      "to": "api:/post-repair-status",
-      "type": "providesApi",
-      "source": "url_prefixes"
-    },
-    {
-      "from": "module:Repair",
       "to": "api:/repair-status",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -13965,6 +13978,18 @@
     {
       "from": "module:Vestuario",
       "to": "component:Vestuario/GradeCurvaService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "component:Vestuario/Remarcacao",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "component:Vestuario/RemarcacaoController",
       "type": "hasComponent",
       "source": "contains"
     },

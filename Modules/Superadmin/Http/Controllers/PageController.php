@@ -32,9 +32,9 @@ class PageController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Contracts\View\View|\Inertia\Response
+     * Lista de páginas do site — tela React `superadmin/Paginas/Index` (cutover MWART F5,
+     * 2026-10-27). Criar e editar são o drawer da própria tela: as Blades `pages.index`,
+     * `pages.create` e `pages.edit` saíram, e as rotas `create`/`edit`/`show` do resource também.
      */
     public function index(Request $request)
     {
@@ -42,22 +42,13 @@ class PageController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Tela React (thread Superadmin/08) atrás da chave `?tela=nova`. Sem ela, segue a Blade:
-        // tornar a nova o padrão é cutover do [W] (MWART F5). RUNBOOK-paginas.md.
-        if ($request->query('tela') === 'nova') {
-            return Inertia::render('superadmin/Paginas/Index', [
-                'paginas' => Inertia::defer(fn () => $this->paginasPayload()),
-            ]);
-        }
-
-        $pages = SuperadminFrontendPage::orderBy('menu_order', 'asc')->get();
-
-        return view('superadmin::pages.index')
-            ->with(compact('pages'));
+        return Inertia::render('superadmin/Paginas/Index', [
+            'paginas' => Inertia::defer(fn () => $this->paginasPayload()),
+        ]);
     }
 
     /**
-     * Payload da tela nova. Tabela global do site (sem business_id — ADR 0093 §exceções
+     * Payload da tela. Tabela global do site (sem business_id — ADR 0093 §exceções
      * Superadmin). `resumo` vai sem tag: a lista não imprime o HTML da página.
      */
     private function paginasPayload(): array
@@ -74,24 +65,14 @@ class PageController extends Controller
             ])->values()->all();
     }
 
-    /** Resposta da tela nova: slug repetido vira erro de campo; sucesso volta pra `?tela=nova`. */
+    /** Resposta da tela: slug repetido vira erro de campo; sucesso volta para a lista. */
     private function respostaInertia(array $output)
     {
         if (empty($output['success'])) {
             return back()->withErrors(['slug' => $output['msg']]);
         }
 
-        return redirect()->to(action([self::class, 'index']) . '?tela=nova');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        return view('superadmin::pages.create');
+        return redirect()->action([self::class, 'index']);
     }
 
     /**
@@ -152,18 +133,6 @@ class PageController extends Controller
         } else {
             abort(404);
         }
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @return Response
-     */
-    public function edit($id)
-    {
-        $page = SuperadminFrontendPage::findOrFail($id);
-
-        return view('superadmin::pages.edit')->with(compact('page'));
     }
 
     /**

@@ -787,6 +787,45 @@ function App() {
   const janaTab = tweaks.janaMetas !== "aba" && chatTab === "metas" ? "painel" : chatTab;
 
   let content;
+  // Protótipos de 27/10/2026 — entram ANTES dos blocos por prefixo (crm-/cmp-/fin-/vest-/cfg-),
+  // que de outro jeito capturam a rota e mostram o stub do módulo.
+  const PROTO_HTML = {
+    "fin-cc-orcado":           "Centro de custo e orçado × realizado",
+    "crm-segmentos":           "Segmentos de clientes",
+    "crm-nps":                 "NPS e captura de lead",
+    "venda-margem":            "Margem da venda",
+    "cmp-reposicao":           "Reposição e curva ABC",
+    "vest-remarcacao":         "Remarcação por coleção",
+    "cfg-primeiros-passos":    "Primeiros passos",
+    "venda-aprovacao-publica": "Aprovação do orçamento (página pública)",
+    "venda-pagamento-maquininha": "Pagamento do caixa: maquininha e venda sem internet",
+    "fin-extrato-ofx":         "Extrato da conta: importar OFX",
+    "fiscal-das":              "Apuração do DAS",
+    "cmp-entrada-xml":         "Entrada por XML",
+    "fin-contas-bancarias":    "Contas bancárias",
+    "superadmin-pagar":        "Pagar assinatura",
+    "marketplaces-pedidos":    "Pedidos dos marketplaces",
+  };
+  // Rota do menu que passou a abrir uma tela nova sem mudar de id (o resto do protótipo segue linkando nela).
+  const PROTO_HTML_ALIAS = { "fin-bancos": "fin-contas-bancarias" };
+  // Páginas públicas que a tela interna gera: "ver como o cliente vê".
+  // Todas abrem no shell (fora do menu): o Artefato publicado não tem outras páginas para abrir em outra aba.
+  const PUBLICAS = {
+    "fin-receber":    [{ label: "Link de pagamento", route: "fin-link-pagar" }, { label: "Portal do cliente", route: "fin-portal-cliente" }],
+    "venda-cotacoes": [{ label: "Aprovação do orçamento", route: "venda-aprovacao-publica" }],
+    "oficinaauto":    [{ label: "Aprovação da OS e pagamento", route: "oficina-aprovacao-publica" }],
+    "oficina-os":     [{ label: "Aprovação da OS e pagamento", route: "oficina-aprovacao-publica" }],
+  };
+  const protoChave = PROTO_HTML_ALIAS[route] || route;
+  if (PROTO_HTML[protoChave]) content = <window.ProtoHtmlPage key={route} chave={protoChave} titulo={PROTO_HTML[protoChave]} />;else
+  // DDA e pagamento pelo banco: as duas peças lado a lado, até entrarem no menu ··· e na gaveta do título.
+  if (route === "fin-dda") content = <window.FinDdaPagamentoDemo />;else
+  if (route === "oficina-aprovacao-publica") content = <window.OficinaAprovacaoPublica />;else
+  // Cards novos da Nova compra/edição/detalhe (proposta de forma antes do cutover das Blades).
+  if (route === "cmp-cards-novos") content = <window.ComprasCardsNovosPage />;else
+  // fin-link-pagar/fin-portal-cliente: o #9961 usava "fin-pagar", que já é Contas a pagar e casava antes.
+  if (route === "fin-link-pagar" || route === "fin-portal-cliente") content = <window.FinPagamentoPublicoPage key={route} view={route === "fin-link-pagar" ? "pagar" : "portal"} />;else
+  if (route === "fin-contabil") content = <window.FinContabilPage />;else
   if (route === "chat") content = <window.JanaPage company={company} tab={janaTab} metasMode={tweaks.janaMetas === "aba" ? "aba" : "secao"} estado={tweaks.janaEstado} papel={tweaks.janaPapel} onGoTab={setChatTab} />;else
   if (route === "tarefas") content = <window.TasksPage />;else
   if (route === "dash-legacy") content = <window.DashLegacyPage />;else
@@ -797,6 +836,8 @@ function App() {
   if (route === "comissoes") content = <window.ComissoesPage />;else
   if (route === "prefs") content = <window.PrefsPage />;else
   if (route === "notificacoes") content = <window.NotificacoesPage />;else
+  if (route === "exportar-dados") content = <window.ExportarDadosPage />;else
+  if (route === "atendimento-canais") content = <window.CanaisPage />;else
   if (route === "backup") content = <window.BackupPage destino={tweaks.bkpDestino} estado={tweaks.bkpEstado} permissao={tweaks.bkpPermissao} />;else
   if (route === "modulos") content = <window.ModulosPage />;else
   if (route === "os") content = <window.OsListPage />;else
@@ -816,6 +857,8 @@ function App() {
   if (route === "vendas") content = <window.VendasModule />;else
   if (route === "venda-todas") content = <window.VendaTodasPage />;else
   if (route === "venda-pdv") content = <window.VendaBladePage view="pdv" />;else
+  // Nova venda que roda em produção (Sells/Create): o "Adicionar venda" abre a V3; esta mostra a tela atual para aprovação.
+  if (route === "venda-nova-producao") content = <window.VendasCreatePage onDone={() => window.__go && window.__go("vendas")} />;else
   if (route === "venda-nova") content = <window.VendaBladePage view="nova" status="final" />;else
   if (route === "venda-nova-rascunho") content = <window.VendaBladePage view="nova" status="draft" />;else
   if (route === "venda-nova-cotacao") content = <window.VendaBladePage view="nova" status="quotation" />;else
@@ -918,6 +961,7 @@ function App() {
   if (route === "fiscal-config") content = <window.FiscalPage view="config" />;else
   if (route === "fiscal-tributacao") content = <window.FiscalPage view="tributacao" />;else
   if (route === "fiscal-sped") content = <window.FiscalPage view="sped" />;else
+  if (route === "fiscal-transporte") content = <window.FiscalPage view="transporte" />;else
   if (route === "cv") content = <window.ComunicacaoVisualPage estado={tweaks.cvEstado} papel={tweaks.cvPapel} dense={tweaks.cvDensidade === "compacto"} toque={tweaks.cvToque} pcp={tweaks.cvPcp} salvar={tweaks.cvSalvar} />;else
   if (route === "arquivos" || (typeof route === "string" && route.indexOf("arq-") === 0)) content = <window.ArquivosPage view={{ "arquivos": "acervo", "arq-retencao": "retencao", "arq-cofre": "cofre", "arq-trilha": "trilha" }[route]} estado={tweaks.arqEstado} papel={tweaks.arqPapel} dense={tweaks.arqDensidade === "compacto"} toque={tweaks.arqToque} casa={tweaks.arqCasa} />;else
   if (route === "voz") content = <window.VozDoClientePage estado={tweaks.vozEstado} papel={tweaks.vozPapel} dense={tweaks.vozDensidade === "compacto"} />;else
@@ -926,6 +970,7 @@ function App() {
   if (route === "vestuario" || route === "vest-etiquetas") content = <window.VestuarioPage estado={tweaks.vstEstado} papel={tweaks.vstPapel} dense={tweaks.vstDensidade === "compacto"} toque={tweaks.vstToque} previa={tweaks.vstPrevia} hardBlock={tweaks.vstHardBlock} />;else
   if (route === "catalogo-qr") content = <window.CatalogoQrPage estado={tweaks.cqrEstado} papel={tweaks.cqrPapel} dense={tweaks.cqrDensidade === "compacto"} logoCadastrado={tweaks.cqrLogo} />;else
   if (route === "relatorios") content = <window.RelatoriosPage />;else
+  if (route === "relatorio-montavel") content = <window.RelatorioMontavelPage />;else
   if (typeof route === "string" && route.indexOf("rel-") === 0) content = <window.RelatoriosPage grupo={{ "rel-financeiro": "Financeiro", "rel-comercial": "Comercial", "rel-estoque": "Estoque", "rel-fiscal": "Fiscal" }[route]} />;else
   if ([
   "inbox", "equipe",
@@ -933,6 +978,7 @@ function App() {
   "portalos", "auditoria"].
   includes(route)) content = <window.MockupPage route={route} />;else
   content = <ModuleStub routeId={route} />;
+  if (PUBLICAS[route]) content = <><window.ProtoPublicasBar itens={PUBLICAS[route]} />{content}</>;
 
   return (
     <div className={"app app--sb-" + (isMobile ? "expanded" : sbMode) + (isMobile ? " app--mobile" : "") + (isMobile && mobileMenuOpen ? " app--mob-open" : "")}>

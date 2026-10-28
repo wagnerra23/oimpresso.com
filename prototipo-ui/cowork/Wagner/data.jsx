@@ -58,11 +58,14 @@ const MENU = [
       { id: "crm-taxonomias",  icon: "folder",  label: "Fontes e estágios" },
       { id: "crm-config",      icon: "cog",     label: "Configurações do CRM" },
       { id: "crm-portal",      icon: "globe",   label: "Portal do contato" },
+      { id: "crm-segmentos",   icon: "users",   label: "Segmentos de clientes" },
+      { id: "crm-nps",         icon: "chart",   label: "NPS e captura de lead" },
     ]},
     { id: "vendas",      icon: "cash",    label: "Vendas", ghosts: [
       { id: "venda-pedidos",     icon: "orders", label: "Pedido de venda" },
       { id: "venda-todas",       icon: "list",   label: "Todas as vendas" },
       { id: "venda-nova",        icon: "plus",   label: "Adicionar venda" },
+      { id: "venda-nova-producao", icon: "plus", label: "Nova venda (produção atual)" },
       { id: "venda-pos",         icon: "cash",   label: "lista de POS" },
       { id: "venda-pdv",         icon: "cash",   label: "POS" },
       { id: "venda-nova-rascunho", icon: "plus", label: "Adicionar rascunho" },
@@ -75,8 +78,11 @@ const MENU = [
       { id: "venda-assinaturas", icon: "clock",  label: "Assinaturas" },
       { id: "venda-devolver",    icon: "list",   label: "Devolver venda" },
       { id: "venda-importar",    icon: "upload", label: "Importação de vendas" },
+      { id: "venda-margem",      icon: "percent", label: "Margem da venda" },
+      { id: "venda-pagamento-maquininha", icon: "cash", label: "Pagamento: maquininha e offline" },
       { id: "catalogo-qr", icon: "grid",  label: "Catálogo QR" },
       { id: "woocommerce", icon: "plug",  label: "WooCommerce" },
+      { id: "marketplaces-pedidos", icon: "orders", label: "Pedidos dos marketplaces" },
       { id: "portalos",    icon: "globe", label: "Portal Consulta OS" },
     ]},
     { id: "oficinaauto", icon: "car",     label: "Oficina Auto", ghosts: [
@@ -85,6 +91,7 @@ const MENU = [
     // Vestuário (Modules/Vestuario · group 'vender' no vivo, order 35) — entry top-level, ghost Etiquetas
     { id: "vestuario",   icon: "product", label: "Vestuário", ghosts: [
       { id: "vest-etiquetas", icon: "print", label: "Etiquetas" },
+      { id: "vest-remarcacao", icon: "percent", label: "Remarcação por coleção" },
     ]},
   ]},
   { group: "FINANÇAS", items: [
@@ -101,6 +108,10 @@ const MENU = [
       { id: "fin-categorias", icon: "folder", label: "Categorias de despesa" },
       { id: "fin-bancos",   icon: "cash",    label: "Contas bancárias" },
       { id: "fin-extrato",  icon: "list",    label: "Extrato" },
+      { id: "fin-extrato-ofx", icon: "upload", label: "Importar extrato (OFX)" },
+      { id: "fin-dda",       icon: "receipt", label: "Boletos DDA e pagamento" },
+      { id: "fin-cc-orcado", icon: "chart",  label: "Centro de custo e orçado" },
+      { id: "fin-contabil",  icon: "book",   label: "Contabilidade" },
     ]},
     { id: "cobranca",   icon: "receipt", label: "Cobrança", ghosts: [
       { id: "payment-gateways", icon: "shield", label: "Gateways de Pagamento" },
@@ -117,11 +128,13 @@ const MENU = [
     { id: "fiscal", icon: "receipt", label: "Fiscal", ghosts: [
       { id: "fiscal-nfe",     icon: "receipt", label: "NF-e · NFC-e" },
       { id: "fiscal-nfse",    icon: "doc",     label: "NFS-e" },
+      { id: "fiscal-transporte", icon: "truck", label: "MDF-e · CT-e" },
       { id: "fiscal-eventos", icon: "refresh", label: "Eventos" },
       { id: "fiscal-dfe",     icon: "archive", label: "Manifesto DF-e" },
       { id: "fiscal-config",  icon: "shield",  label: "Certificado e configuração" },
       { id: "fiscal-tributacao", icon: "percent", label: "Tributação" },
       { id: "fiscal-sped",    icon: "grid",    label: "SPED e livros" },
+      { id: "fiscal-das",     icon: "calc",    label: "Apuração do DAS" },
     ]},
   ]},
   { group: "PRODUÇÃO", items: [
@@ -155,6 +168,9 @@ const MENU = [
       { id: "cmp-requisicoes", icon: "doc",    label: "Requisições de compra" },
       { id: "cmp-devolucoes",  icon: "truck",  label: "Devoluções de compra" },
       { id: "cmp-grade",       icon: "grid",   label: "Grade matrix (tam × cor)" },
+      { id: "cmp-reposicao",   icon: "chart",  label: "Reposição e curva ABC" },
+      { id: "cmp-entrada-xml", icon: "upload", label: "Entrada por XML" },
+      { id: "cmp-cards-novos", icon: "plus",   label: "Nova compra · cards novos" },
     ]},
     { id: "estoque", icon: "refresh", label: "Movimentações", ghosts: [
       { id: "est-ajustes",            icon: "list",  label: "Ajustes de estoque" },
@@ -208,6 +224,7 @@ const MENU = [
     { id: "prefs",       icon: "cog",   label: "Preferências" },
     // Grupo "Configurações" do menu legado (AdminLTE) — importado do blade business/settings + cadastros
     { id: "cfg-empresa", icon: "cog", label: "Configurações", ghosts: [
+      { id: "cfg-primeiros-passos", icon: "check", label: "Primeiros passos" },
       { id: "cfg-locais",        icon: "globe",  label: "Locais comerciais" },
       { id: "cfg-fatura",        icon: "receipt", label: "Configurações da fatura" },
       { id: "cfg-barras",        icon: "grid",   label: "Código de barras" },
@@ -222,12 +239,16 @@ const MENU = [
       { id: "cfg-cozinha",       icon: "list",   label: "Cozinha" },
       { id: "cfg-pedidos-rest",  icon: "orders", label: "Pedidos do restaurante" },
       { id: "cfg-pacote",        icon: "refresh", label: "Assinatura de pacote" },
+      { id: "superadmin-pagar",  icon: "cash",    label: "Pagar assinatura" },
+      { id: "exportar-dados",    icon: "archive", label: "Exportar dados da empresa" },
+      { id: "atendimento-canais", icon: "inbox",  label: "Canais de atendimento" },
     ]},
     { id: "relatorios",  icon: "chart", label: "Relatórios", ghosts: [
       { id: "rel-financeiro", icon: "cash",    label: "Financeiro" },
       { id: "rel-comercial",  icon: "chart",   label: "Comercial" },
       { id: "rel-estoque",    icon: "archive", label: "Estoque" },
       { id: "rel-fiscal",     icon: "receipt", label: "Fiscal" },
+      { id: "relatorio-montavel", icon: "chart", label: "Montar relatório" },
     ]},
     // Arquivos (Modules/Arquivos · DMS backbone ADR 0123). No vivo o DataController é NO-OP e a
     // UI nasce em Pages/Arquivos dentro do Admin Center (US-ARQ-013) — aqui entra como destino próprio.
@@ -614,6 +635,7 @@ const FIN_SUBNAV_OVERFLOW = [
   { label: "Extrato",           path: "/financeiro/extrato" },
   { label: "Contas Bancárias",  path: "/financeiro/contas-bancarias" },
   { label: "Contador",          path: "/financeiro/configuracoes/contador" },
+  { label: "Contabilidade",     path: "/financeiro/contabilidade", route: "fin-contabil" },
   { label: "Gateway",           path: "/settings/payment-gateways", route: "payment-gateways" },
 ];
 

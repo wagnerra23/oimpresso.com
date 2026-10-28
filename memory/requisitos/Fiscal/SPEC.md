@@ -656,7 +656,13 @@ Como prestador do regime normal, quero que a DPS leve finNFSe, indFinal, cIndOp,
 > owner: — · priority: p2 · estimate: 16h · status: todo · type: epic
 > blocked_by: —
 
-**Implementado em:** _pendente_ — `Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php` gera os blocos básicos + E + H esqueleto (US-FISCAL-016/017). O H com inventário real e o saldo credor do E110 estão na US-FISCAL-011. Falta o bloco D (serviços de transporte/comunicação, quando houver CT-e) e o bloco K (produção e estoque, obrigatório para industrial conforme o faturamento).
+**Implementado em:** _pendente_ — `Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php` gera os blocos básicos + E + H esqueleto (US-FISCAL-016/017). O H com inventário real e o saldo credor do E110 estão na US-FISCAL-011. Falta o bloco D (serviços de transporte/comunicação, quando houver CT-e) e o bloco K (produção e estoque, obrigatório para industrial conforme o faturamento). **Fatia 1 (2026-10-27):** o arquivo passa a ter os 10 blocos obrigatórios na ordem do Guia Prático v3.2.3 (D, G, K, B e 1 sem dados), `COD_VER` por ano pela NT 2025.001 (`Modules/Fiscal/Services/Sped/EfdIcmsIpiLeiaute.php`), `9990` contando o `9999` e `C001`=1 em mês sem nota — `UC-FSPED-11..14` em `resources/js/Pages/Fiscal/Sped.casos.md`. D e K **com dados** seguem pendentes.
+
+**Perguntas abertas ao contador (o sistema não decide):**
+1. Registro `1010`: os 13 indicadores saem `N`. `IND_CART` (registro 1601, vendas com instrumento eletrônico de pagamento) depende da UF e do que a empresa vende no cartão/PIX — qual valor por empresa?
+2. Bloco B: emitente do **DF** precisa do ISS no bloco B (B020…). Hoje sai sempre sem dados. Algum cliente é do DF?
+3. Bloco K: qual empresa é industrial/equiparada (`IND_ATIV`=0) e qual leiaute adota (`K010`: simplificado, completo ou restrito a saldos)? Hoje `IND_ATIV`=1 fixo e K sem dados.
+4. Bloco H: o inventário (H005/H010) vai na EFD de fevereiro com a posição de 31/12 — qual critério de valor (custo médio, último custo) o contador aceita?
 
 ### US-FISCAL-029 · MDF-e e CT-e no módulo novo — **P2**
 
@@ -670,7 +676,7 @@ Como prestador do regime normal, quero que a DPS leve finNFSe, indFinal, cIndOp,
 > owner: — · priority: p3 · estimate: 16h · status: todo · type: epic
 > blocked_by: —
 
-**Implementado em:** _pendente_ — só o Fator R (`Modules/NfeBrasil/Services/FatorRService.php`). A GNRE é a guia do DIFAL/ST quando a empresa não tem inscrição na UF de destino (depende da US-NFE-072).
+**Implementado em:** _pendente_ — o cálculo já existe, mas sem chamador nem tela: `Modules/NfeBrasil/Services/Tributacao/ApuracaoDasService.php` · `Modules/NfeBrasil/Tests/Feature/ApuracaoDasTest.php` · contrato `memory/requisitos/Fiscal/_telas/apuracao-das.casos.md` (apuração do DAS pelo Anexo, só cálculo e sem chamador). Falta a tela, o lançar a pagar (o Financeiro segue com a estimativa ≈6%), a segregação de receitas e as respostas do contador listadas no contrato. Fator R em `Modules/NfeBrasil/Services/FatorRService.php`. A GNRE é a guia do DIFAL/ST quando a empresa não tem inscrição na UF de destino (depende da US-NFE-072).
 
 ### US-FISCAL-031 · Split payment (LC 214/2025) e EFD-Reinf — **P3**
 

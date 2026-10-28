@@ -52,7 +52,7 @@ function rdeLocVisto($teste, array $permissoes, array $locais = []): array
     $teste->actingAs($u);
     session(['user.business_id' => $teste->business->id, 'user.id' => $u->id, 'business.id' => $teste->business->id]);
 
-    $blade = $teste->get('/reports/expense-report');
+    $blade = $teste->get('/reports/expense-report?classico=1');
     $blade->assertOk();
     $naBlade = (float) (collect($blade->viewData('expenses'))->firstWhere('category', $teste->categoria)->total_expense ?? 0);
 
