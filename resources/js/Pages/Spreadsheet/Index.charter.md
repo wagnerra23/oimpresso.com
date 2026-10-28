@@ -41,8 +41,8 @@ autor, contagem de compartilhamento, "Abrir" e kebab.
 
 ## Non-Goals (NÃO faz)
 
-- ❌ Nesta entrega: editor (`show`/`create` seguem Blade — thread 04b), nova pasta, renomear,
-  mover, compartilhar e excluir. Os itens levam à Blade (`?legacy=1`).
+- ❌ Renomear pasta: não há rota no backend. (Nova pasta, mover, compartilhar e excluir entraram em
+  2026-10-27, pelos endpoints da Blade; o editor segue na Blade até a thread 04b.)
 - ❌ Busca no conteúdo das células — só o nome.
 
 ## Anti-hooks
