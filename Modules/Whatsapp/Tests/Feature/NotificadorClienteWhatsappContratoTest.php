@@ -160,3 +160,27 @@ it('US-WA-319 · anexo sem URL absoluta, de tipo desconhecido ou evento inventad
         ->toThrow(\InvalidArgumentException::class);
     expect(notifMensagens($this->biz->id))->toHaveCount(0);
 });
+
+// ── O contrato do núcleo AvisaClienteWhatsapp está ligado ao notificador (consumidores: oficina, prova da arte) ──
+
+it('US-WA-319 · o contrato AvisaClienteWhatsapp está ligado e enfileira pelo canal de saída', function () {
+    expect(app()->bound(\App\Contracts\Atendimento\AvisaClienteWhatsapp::class))->toBeTrue();
+    notifCanal($this->biz->id, ['handles_outbound_default' => true]);
+    $cliente = notifContato($this->biz->id, $this->criador->id, '(48) 98888-7777', null);
+
+    $r = app(\App\Contracts\Atendimento\AvisaClienteWhatsapp::class)->avisar($this->biz->id, $cliente, 'A prova da arte está pronta.');
+
+    expect($r)->toBe(['enviado' => true, 'motivo' => null]);
+    expect(notifMensagens($this->biz->id)->pluck('body')->all())->toContain('A prova da arte está pronta.');
+});
+
+it('US-WA-319 · pelo contrato, cliente de outra empresa não recebe e o motivo é o documentado', function () {
+    notifCanal($this->biz->id, ['handles_outbound_default' => true]);
+    $alheio = notifContato($this->outra->id, $this->criador->id, '(48) 98888-7777', null);
+    $avisa = app(\App\Contracts\Atendimento\AvisaClienteWhatsapp::class);
+
+    expect($avisa->avisar($this->biz->id, $alheio, 'x'))->toBe(['enviado' => false, 'motivo' => 'contato_de_outra_empresa'])
+        ->and(notifMensagens($this->biz->id))->toHaveCount(0);
+    $semConsentimento = notifContato($this->biz->id, $this->criador->id, '(48) 98888-6666', false);
+    expect($avisa->avisar($this->biz->id, $semConsentimento, 'x'))->toBe(['enviado' => false, 'motivo' => 'sem_consentimento']);
+});
