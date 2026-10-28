@@ -13,6 +13,10 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > da tabela) para o contrato `governance/design/contracts/estoque-transferencias.contract.json`. Zero handler, zero dado, zero copy.
 > Nenhum UC afirma âncora; nenhum UC foi reexecutado.
 
+> ℹ️ **2026-10-27 — a lista ganhou o botão "Editar".** Aparece só com `purchase.update` + `purchase.create` e enquanto a
+> transferência não moveu saldo (paridade com a Blade). O comportamento da edição é contrato de `Edit.casos.md` (UC-TREDT-01..03).
+> Os 3 UCs abaixo (isolamento, permissão, detalhe) não tratam do botão e seguem ⬜: revalidados pela leitura, nenhum reexecutado.
+
 # Casos de Uso & Aceite — Transferências de estoque (lista)
 
 > **Fonte:** [DOC-RAIZ-ESTOQUE](../../../../memory/requisitos/Estoque/DOC-RAIZ-ESTOQUE.md) §3/§6/§7 + RUNBOOK da tela (`memory/requisitos/Estoque/_telas/`); o controller só confirma. Nada aqui deriva do `.tsx`.

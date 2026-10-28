@@ -317,6 +317,9 @@ class SpreadsheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Só quem criou a planilha (ou superadmin) mexe no compartilhamento, e só de planilha do negócio da sessão.
+        $this->planilhaDoDono((int) $business_id, (int) $id);
+
         if ($request->ajax()) {
             $module_data = $this->moduleUtil->getModuleData('getTodosDropdown', $business_id);
 
@@ -361,9 +364,13 @@ class SpreadsheetController extends Controller
         }
 
         if ($request->ajax()) {
+            // Antes de 2026-10-27 não havia conferência nenhuma do sheet_id: qualquer usuário com o módulo criava ou
+            // apagava compartilhamento de qualquer planilha pelo id, inclusive de outro negócio. Agora só o dono, no
+            // negócio da sessão, e só para usuário, função ou tarefa deste negócio.
+            $sheet_id = (int) $this->planilhaDoDono((int) $business_id, (int) $request->input('sheet_id'))->id;
+            $shares = $this->compartilhamentosDoNegocio((int) $business_id, (array) $request->input('share', []));
+
             try {
-                $sheet_id = $request->input('sheet_id');
-                $shares = $request->input('share');
                 DB::beginTransaction();
 
                 //Update shared spreadsheets based on selected data
@@ -519,13 +526,40 @@ class SpreadsheetController extends Controller
     }
 
     /**
-     * Planilhas que o usuário da sessão vê no business: as que criou e as compartilhadas com ele
-     * (usuário, função ou tarefa). Superadmin vê todas do business.
-     *
-     * Tier 0 (ADR 0093): o filtro de compartilhamento fica DENTRO de um grupo. A versão anterior
-     * encadeava `orWhere` sem agrupar, e os ramos de compartilhamento escapavam do
-     * `business_id`.
+     * Planilha do negócio da sessão criada pelo usuário (superadmin: qualquer uma do negócio). 404 se não for.
      */
+    private function planilhaDoDono(int $business_id, int $id): Spreadsheet
+    {
+        $query = Spreadsheet::where('business_id', $business_id)->where('id', $id);
+        if (! auth()->user()->can('superadmin')) {
+            $query->where('created_by', auth()->user()->id);
+        }
+
+        return $query->firstOrFail();
+    }
+
+    /**
+     * Mantém só destinatários deste negócio: usuários e funções dos dropdowns do negócio e tarefas do Essentials dele.
+     * Um id de fora some do pedido em vez de virar compartilhamento.
+     */
+    private function compartilhamentosDoNegocio(int $business_id, array $shares): array
+    {
+        $permitidos = [
+            'user' => collect(User::forDropdown($business_id, false))->keys()->map(fn ($k) => (int) $k)->all(),
+            'role' => collect($this->moduleUtil->getDropdownForRoles($business_id))->keys()->map(fn ($k) => (int) $k)->all(),
+            'todo' => collect($this->moduleUtil->getModuleData('getTodosDropdown', $business_id)['Essentials'] ?? [])->keys()->map(fn ($k) => (int) $k)->all(),
+        ];
+
+        $filtrado = [];
+        foreach ($permitidos as $tipo => $ids) {
+            if (! empty($shares[$tipo])) {
+                $filtrado[$tipo] = array_values(array_filter((array) $shares[$tipo], fn ($v) => in_array((int) $v, $ids, true)));
+            }
+        }
+
+        return $filtrado;
+    }
+
     /**
      * Props do editor React. DTO explícito: nada de business_id nem created_by cru.
      *
@@ -603,6 +637,14 @@ class SpreadsheetController extends Controller
         return $query;
     }
 
+    /**
+     * Planilhas que o usuário da sessão vê no business: as que criou e as compartilhadas com ele
+     * (usuário, função ou tarefa). Superadmin vê todas do business.
+     *
+     * Tier 0 (ADR 0093): o filtro de compartilhamento fica DENTRO de um grupo. A versão anterior
+     * encadeava `orWhere` sem agrupar, e os ramos de compartilhamento escapavam do
+     * `business_id`.
+     */
     private function planilhasVisiveis(int $business_id)
     {
         $user_id = (int) request()->session()->get('user.id');
