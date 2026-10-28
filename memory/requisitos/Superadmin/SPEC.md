@@ -67,7 +67,7 @@ related_adrs:
 
 ### US-SUPER-005 — Frontend Pages (site público)
 **Como** superadmin, **quero** editar páginas estáticas do site público (Sobre/Contato/Termos/Privacidade), **pra** manter conteúdo institucional fora do código.
-**Implementado em:** `Modules/Superadmin/Http/Controllers/PageController.php` · `Modules/Superadmin/Entities/SuperadminFrontendPage.php` · `Modules/Superadmin/Resources/views/pages/index.blade.php` · verificado@8af585a (2026-07-02)
+**Implementado em:** `Modules/Superadmin/Http/Controllers/PageController.php` · `Modules/Superadmin/Entities/SuperadminFrontendPage.php` · `Modules/Superadmin/Resources/js/Pages/superadmin/Paginas/Index.tsx` · verificado@7806b8ec7c (2026-10-27)
 - Tela: `pages/index|create|edit|show.blade.php`
 - Controller: `PageController`
 - Entity: `SuperadminFrontendPage` (slug + body HTML)

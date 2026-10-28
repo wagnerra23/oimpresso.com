@@ -13,6 +13,7 @@ use Modules\NfeBrasil\Models\NfeDfeItem;
 use Modules\NfeBrasil\Models\NfeDfeNsuState;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Services\CertificadoService;
+use Modules\NfeBrasil\Services\Entrada\LeitorNfeEntrada;
 use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
 use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use NFePHP\Common\Certificate;
@@ -274,20 +275,7 @@ class DistribuicaoDfeService
             'prazo_confirmacao_em' => $prazo,
         ]);
 
-        if (! empty($extracted['itens'])) {
-            foreach ($extracted['itens'] as $item) {
-                NfeDfeItem::create([
-                    'business_id'     => $businessId,
-                    'dfe_recebido_id' => $recebido->id,
-                    'ncm'             => $item['ncm'] ?? null,
-                    'cfop'            => $item['cfop'] ?? null,
-                    'descricao'       => $item['descricao'] ?? '',
-                    'quantidade'      => $item['quantidade'] ?? 0,
-                    'valor_unitario'  => $item['valor_unitario'] ?? 0,
-                    'valor_total'     => $item['valor_total'] ?? 0,
-                ]);
-            }
-        }
+        NfeDfeItem::gravarDaNota($businessId, $recebido->id, $extracted['itens'] ?? []);
 
         return true;
     }
@@ -310,36 +298,12 @@ class DistribuicaoDfeService
         }
 
         if (str_starts_with($schema, 'procNFe')) {
-            $infNFe = $xml->NFe->infNFe ?? null;
-            if (! $infNFe) {
+            // Mesmo leitor do upload (ADR entrada por XML, fase 2): cProd, cEAN, uCom, CST e ICMS.
+            try {
+                return LeitorNfeEntrada::dadosDaNota($xml);
+            } catch (\InvalidArgumentException) {
                 return null;
             }
-            $itens = [];
-            if (isset($infNFe->det)) {
-                foreach ($infNFe->det as $det) {
-                    $prod = $det->prod ?? null;
-                    if (! $prod) continue;
-                    $itens[] = [
-                        'ncm'            => (string) ($prod->NCM ?? ''),
-                        'cfop'           => (string) ($prod->CFOP ?? ''),
-                        'descricao'      => (string) ($prod->xProd ?? ''),
-                        'quantidade'     => (float) ($prod->qCom ?? 0),
-                        'valor_unitario' => (float) ($prod->vUnCom ?? 0),
-                        'valor_total'    => (float) ($prod->vProd ?? 0),
-                    ];
-                }
-            }
-            return [
-                'chave_44'      => (string) ($infNFe['Id'] ?? '') ? substr((string) $infNFe['Id'], 3) : '',
-                'cnpj_emitente' => (string) ($infNFe->emit->CNPJ ?? ''),
-                'nome_emitente' => (string) ($infNFe->emit->xNome ?? ''),
-                'valor_total'   => (float) ($infNFe->total->ICMSTot->vNF ?? 0),
-                'num_protocolo' => (string) ($xml->protNFe->infProt->nProt ?? ''),
-                'data_emissao'  => isset($infNFe->ide->dhEmi)
-                    ? new \DateTimeImmutable((string) $infNFe->ide->dhEmi)
-                    : null,
-                'itens'         => $itens,
-            ];
         }
 
         return null;

@@ -7,7 +7,6 @@ use Modules\NfeBrasil\Http\Controllers\ContingenciaController;
 use Modules\NfeBrasil\Http\Controllers\EmpresaFiscalLookupController;
 use Modules\NfeBrasil\Http\Controllers\ImportRegrasController;
 use Modules\NfeBrasil\Http\Controllers\InstallController;
-use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
 use Modules\NfeBrasil\Http\Controllers\NfeInutilizacaoController;
 use Modules\NfeBrasil\Http\Controllers\NfeStatusController;
 use Modules\NfeBrasil\Http\Controllers\RevisaoContadorController;
@@ -32,10 +31,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::match(['get', 'post'], 'install/update', [InstallController::class, 'update']);
     });
 
-// Rotas operacionais (placeholder — a expandir nas próximas sub-ondas)
-Route::group([], function () {
-    Route::resource('nfebrasil', NfeBrasilController::class)->names('nfebrasil');
-});
+// O `Route::resource('nfebrasil', NfeBrasilController)` do scaffold nWidart saiu em
+// 2026-10-27: o index devolvia "Hello World" e create/show/edit apontavam pra views que
+// nunca existiram. Nenhum link no app nem acesso registrado em produção. As telas
+// fiscais reais estão nos grupos abaixo.
 
 // US-NFE-041 — gerenciamento do certificado A1 (upload + status)
 // Permissão `nfe.configuracao.manage` validada no FormRequest.
