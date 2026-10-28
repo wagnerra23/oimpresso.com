@@ -207,6 +207,14 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
         // Contas bancarias — cadastro de complemento de boleto (ADR TECH-0003)
         Route::get('/contas-bancarias', [ContaBancariaController::class, 'index'])->name('contas-bancarias.index');
+        // Cadastro da conta (core `accounts`) — tela única de contas desde 2026-10-27, decisão [W].
+        Route::post('/contas-bancarias', [ContaBancariaController::class, 'store'])->name('contas-bancarias.store');
+        Route::put('/contas-bancarias/{accountId}/cadastro', [ContaBancariaController::class, 'atualizar'])
+            ->whereNumber('accountId')->name('contas-bancarias.atualizar');
+        Route::post('/contas-bancarias/{accountId}/encerrar', [ContaBancariaController::class, 'encerrar'])
+            ->whereNumber('accountId')->name('contas-bancarias.encerrar');
+        Route::post('/contas-bancarias/{accountId}/reativar', [ContaBancariaController::class, 'reativar'])
+            ->whereNumber('accountId')->name('contas-bancarias.reativar');
         Route::post('/contas-bancarias/{accountId}', [ContaBancariaController::class, 'upsert'])
             ->whereNumber('accountId')
             ->name('contas-bancarias.upsert');
