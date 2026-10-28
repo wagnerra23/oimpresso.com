@@ -13,9 +13,6 @@
 # RefreshDatabase dropa o schema semeado (tenants 1/2/98) que os outros arquivos usam.
 # Saída: trocar por DatabaseTransactions, ou mover para .github/ci-sqlite-pest.list se
 # passar no sqlite (onde já moram RetryOrphanWebhookJobTest e WebhookProcessorLinkageTest).
-Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php  # RefreshDatabase
-Modules/PaymentGateway/Tests/Feature/WebhookEndpointsTest.php  # RefreshDatabase
-Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php  # RefreshDatabase
 #
 # ── A. Teste desatualizado em relação ao código (medido no run 40735435457, 1º run da
 # árvore, 2026-10-28). Falham por drift do PRÓPRIO teste, não por dependência da lane.
