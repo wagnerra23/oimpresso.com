@@ -790,6 +790,13 @@ Status: 🧪
   cliente 4500012345", e a busca do apontamento acha a OS por esse número. Venda sem o número não mostra
   nada. Fonte: o número entra na venda (Sells/Create.casos.md, mesmo pedido) e vai para a NF-e no campo
   `xPed`.
+  - Pedido: P-022
+  - Âncora: NF-e (`xPed`) · caso 12
+  - Fazer: Copiar o número da venda para a OS; mostrar na OS e na ficha impressa; incluir na busca.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: part | Cliente empresa | redes e construtoras
+  - Clientes: Zoom, Techpress
+  - Etiquetas: miss, cv
 
 ## Instrução de execução do serviço (pedido de 2026-10-23)
 
@@ -797,6 +804,13 @@ Status: 🧪
   "instalar no 2º andar, cliente libera o acesso às 8h", Quando a OS do item nasce, Então a instrução
   aparece no apontamento de cada etapa e na ficha impressa, em destaque. Item sem instrução não mostra
   nada. A instrução nasce na venda (Sells/Create.casos.md, mesmo pedido).
+  - Pedido: P-058
+  - Âncora: `Producao/Apontamento/Index.casos.md`
+  - Fazer: Mostrar a instrução do item no apontamento e na ficha da OS.
+  - Hoje: miss | Não tem | O apontamento não mostra observação do item
+  - Comunicação visual: ok | Sim | instalação e acabamento
+  - Clientes: Extreme, Zoom, Max Comunicação
+  - Etiquetas: miss, cv
 
 ## Datas limite da arte, da qualidade e da entrega (pedido de 2026-10-23)
 
@@ -810,6 +824,13 @@ Status: 🧪
   A data prometida segue a decisão [W] de 2026-10-20 (fica na venda e vai para
   `pcp_ordens.prazo_prometido`), e o número de atrasadas continua um só, pela mesma função do Painel
   (UC-PCV-03): marcar a etapa atrasada não muda essa contagem sem decisão do [W].
+  - Pedido: P-068
+  - Âncora: Prazo prometido da OS (`pcp_ordens.prazo_prometido`) · prazo pela fila (UC-PCPRZ) · `Producao/Apontamento/Index.casos.md`
+  - Fazer: Data limite por etapa na OS (arte e qualidade), além da entrega final, com o atraso de cada uma, sem mudar a contagem de atrasadas do Painel.
+  - Hoje: part | Em parte | A OS tem só a entrega final vinda da venda e o prazo calculado pela fila
+  - Comunicação visual: ok | Sim | arte, conferência e entrega
+  - Clientes: Copylan
+  - Etiquetas: part, cv
 
 ## Imagens e arte anexadas à OS (pedido de 2026-10-23)
 
@@ -818,6 +839,13 @@ Status: 🧪
   impressa (a arte em miniatura), e quem executa abre cada um. Hoje a OS guarda o arquivo da arte que
   passa pela aprovação do cliente (UC-PCART e UC-PCV-11), mas a tela do operador ainda não mostra essa
   arte e não há outros anexos.
+  - Pedido: P-089
+  - Âncora: Arte da aprovação (`UC-PCART`, `UC-PCV-11`) · `Producao/Apontamento/Index.casos.md`
+  - Fazer: Anexos na OS e a arte vigente na tela do operador e na ficha.
+  - Hoje: part | Em parte | A OS guarda a arte da aprovação, mas o operador não a vê e não há outros anexos
+  - Comunicação visual: ok | Sim | arte e fotos do local
+  - Clientes: Chico e Lu, Display Paraná, Plakart, Fixar
+  - Etiquetas: part, cv
 
 ## Terceiro que executa o serviço da OS (pedido de 2026-10-23)
 
@@ -829,6 +857,13 @@ Status: 🧪
   parte do custo próprio. A thread 19 da Produção (`playbook/19-terceiro.md`) é a dona da execução.
   Ficam com o [W], sem regra hoje: a comissão separada desse serviço e o pedido de compra ao terceiro
   gerado da OS (MRPeasy, Tekla). Mexe em valor: Regra Mestre. Verificado contra as regras do [W] em 2026-10-23.
+  - Pedido: P-090
+  - Âncora: Decisão D-TERCEIRO do Wagner · `UC-PCV-48` · thread 19 da Produção
+  - Fazer: Seguir a thread 19 da Produção, que é a dona da execução.
+  - Hoje: miss | Não tem | A OS não registra terceiro
+  - Comunicação visual: ok | Sim | instalação terceirizada
+  - Clientes: Gold
+  - Etiquetas: valor, miss, cv, decisao
 
 ## Despesas da OS cobradas do cliente (comparação com concorrentes, 2026-10-23)
 
@@ -840,6 +875,12 @@ Status: 🧪
   Se a despesa entrar no total da venda, a regra A do [W] de 2026-10-21 (`Fiscal/Nfse.casos.md`)
   divide esse valor entre a NF-e e a NFS-e pelo bruto; como ela fica separada do serviço é decisão do
   [W].
+  - Pedido: P-098
+  - Âncora: Omie (despesas reembolsáveis na OS) · `Producao/Apontamento/Index.casos.md`
+  - Fazer: Despesas na OS, com anexo e marca de reembolsável, levadas ao faturamento. Na nota, segue a regra A do Wagner (divide o acréscimo entre NF-e e NFS-e pelo bruto).
+  - Hoje: miss | Não tem | A OS não tem despesas
+  - Comunicação visual: ok | Sim | instalação fora da cidade
+  - Etiquetas: valor, miss, cv
 
 ## Tarefas da OS com responsável e prazo (comparação com concorrentes, 2026-10-23)
 
@@ -851,6 +892,12 @@ Status: 🧪
   guarda a data da produção e a combinada com o cliente (decisão [W] de 2026-10-20). Fonte: Printavo
   (tarefas com responsável e prazo). Hoje cada etapa grava o seu responsável, mas não há tarefas
   paralelas com prazo nem aviso. Verificado contra as regras do [W] em 2026-10-23.
+  - Pedido: P-099
+  - Âncora: Printavo (tarefas com aviso por e-mail; data de produção e do cliente) · `Producao/Apontamento/Index.casos.md`
+  - Fazer: Tarefas paralelas na OS com responsável, prazo e aviso dentro do sistema (D-AVISO: WhatsApp só para o cliente), e as duas datas da OS.
+  - Hoje: part | Em parte | Cada etapa grava o responsável; não há tarefas com prazo nem aviso
+  - Comunicação visual: ok | Sim | pré-produção: compra, arte e separação
+  - Etiquetas: part, cv
 
 ## Cliente desiste com o serviço já em produção (pedido da Copylan, 2026-10-28)
 
@@ -877,3 +924,10 @@ Status: 🧪
   parece com a empreitada (Código Civil, art. 623: quem desiste paga as despesas e o lucro do que já foi
   feito); a retenção do sinal segue o combinado (arts. 417 a 420), e o [E] confere antes de virar regra.
   Mexe em valor e estoque: Regra Mestre. Verificado contra as regras do [W] em 2026-10-28.
+  - Pedido: P-113
+  - Âncora: Fluxos: "OS e produção por item" e "Orçamento e venda" · `ProcessoDaOrdem` · `CancelarVendaCascade` · PR #10105
+  - Fazer: "Cancelar item" também na fila, em execução, pausada e em retrabalho, com motivo e papel de gerente. Uma apuração do que foi gasto: consumido vira perda, reservado volta, horas apontadas viram custo. A venda cancelada cancela as OS dela. O que cobrar segue a política de cancelamento que o Wagner escolher.
+  - Hoje: miss | Não tem | A OS só é cancelada em Aguardando liberação ou Aguardando material, e sem motivo. Cancelar a venda libera a reserva de material da OS, mas a OS continua na fila; não há apuração do gasto nem cobrança parcial
+  - Comunicação visual: ok | Sim | desistência depois da arte aprovada
+  - Clientes: Copylan
+  - Etiquetas: valor, miss, cv, decisao

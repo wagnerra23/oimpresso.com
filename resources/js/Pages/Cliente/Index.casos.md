@@ -99,21 +99,49 @@ last_run: "2026-10-14"
   mostra "Crédito a favor 120,00" e a lista de onde veio cada parte, com a data. Cliente sem saldo a
   favor não mostra o bloco. Fonte: protótipo `cliente-drawer760.jsx` ("Créditos a favor — abatidos na
   próxima venda; o vendedor pode recusar"); o adiantamento lançado no cliente já existe.
+  - Pedido: P-015
+  - Âncora: Protótipo `cliente-drawer760.jsx`
+  - Fazer: Somar o saldo a favor só da empresa e listar a origem de cada parte.
+  - Hoje: part | Em parte | O protótipo já desenha; a tela não mostra
+  - Comunicação visual: gray | Pouco | veio do vestuário
+  - Clientes: NewPrint
+  - Etiquetas: valor, part
 - **[BACKLOG] Limite de crédito: quanto o cliente ainda pode gastar** `[V0]` — o limite é o quanto o
   cliente pode comprar a prazo. Aceite: Dado um cliente com limite de 2.000,00 e 1.500,00 em aberto,
   Quando abro o drawer, Então a aba Comercial mostra "Limite 2.000,00 · em aberto 1.500,00 · disponível
   500,00"; com o em aberto acima do limite, o disponível fica 0,00 e aparece "acima do limite". Cliente
   sem limite mostra "sem limite". Fonte: US-CRM-081; o campo já existe na aba Comercial
   (`limite_credito`) e o limite padrão em Configurações › Empresa.
+  - Pedido: P-016
+  - Âncora: US-CRM-081
+  - Fazer: Calcular o em aberto e o disponível; mostrar ao lado do campo de limite.
+  - Hoje: part | Em parte | O campo do limite existe na aba Comercial
+  - Comunicação visual: part | Cliente empresa | venda a prazo
+  - Clientes: Madereira Spilere
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] Condição de pagamento do cliente: sinal e prazo** `[V0]` — Aceite: Dado a empresa com
   sinal mínimo de 30%, Quando defino para o cliente sinal de 50% e prazo de 28 dias na aba Comercial,
   Então as vendas dele vêm com essa condição, e o vendedor pode trocar na venda; cliente sem condição
   própria usa a da empresa. Fonte: DecoNetwork (condições por cliente e por empresa cliente);
   UC-FLX-28.
+  - Pedido: P-025
+  - Âncora: `UC-FLX-28` · DecoNetwork
+  - Fazer: Campos de sinal e prazo na aba Comercial, com a condição da empresa como padrão.
+  - Hoje: part | Em parte | O sinal mínimo é um só para a empresa
+  - Comunicação visual: ok | Sim | cliente fixo com sinal diferente
+  - Clientes: NewPrint, Sabor Brasil, ArtLaser
+  - Etiquetas: valor, part, cv, decisao
 - **[BACKLOG] "Faltam dados para nota" no cliente** — Aceite: Dado um cliente sem CPF ou CNPJ, sem
   endereço com município ou sem a indicação de contribuinte do ICMS, Então a lista e o drawer mostram
   "Faltam dados para nota" e quais; com os dados completos, o aviso some. Fonte: grupo do destinatário
   da NF-e.
+  - Pedido: P-049
+  - Âncora: Grupo do destinatário da nf-e
+  - Fazer: Selo na lista e no drawer do cliente.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: part | Cliente empresa | nota para empresa
+  - Clientes: Techpress, PraMoto
+  - Etiquetas: miss, cv
 - **[BACKLOG] Ficha do cliente com OS, devoluções, vendas e orçamentos, cada um com o total**
   (pedido de 2026-10-23) — Aceite: Dado um cliente com 4 vendas, 2 orçamentos, 1 OS e 1 devolução,
   Quando abro a ficha dele, Então vejo uma lista por tipo, cada uma com a quantidade e o valor total
@@ -121,17 +149,37 @@ last_run: "2026-10-14"
   mostra zero. Hoje a aba Operações tem Extrato, Vendas, Pagamentos, Documentos, Pessoas,
   Assinaturas, Pontos e Auditoria; não há OS, orçamentos nem devoluções separados, nem total por tipo.
   O protótipo `cliente-drawer760.jsx` traz os totais "OS no total" e "Valor total".
+  - Pedido: P-064
+  - Âncora: Aba Operações (`OssTab`) · protótipo `cliente-drawer760.jsx`
+  - Fazer: Separar OS, orçamentos e devoluções na aba Operações e somar cada tipo.
+  - Hoje: part | Em parte | Operações tem Extrato, Vendas e Pagamentos; sem OS, orçamentos, devoluções nem total por tipo
+  - Comunicação visual: ok | Sim | histórico do cliente recorrente
+  - Etiquetas: part, cv, decisao
 - **[BACKLOG] Campos obrigatórios no cadastro para a cobrança** (pedido de 2026-10-23) — Aceite: Dado a
   empresa que define quais dados do cliente são obrigatórios para cobrar (por exemplo CPF ou CNPJ,
   endereço completo e e-mail de cobrança), Quando gero um boleto ou uma cobrança para um cliente sem um
   deles, Então a cobrança não sai e a tela lista o que falta, com link para o cadastro; ao salvar o
   cadastro, a tela avisa os campos de cobrança vazios. Hoje o cadastro não tem essa regra; o caso
   "Faltam dados para nota" acima trata só da nota fiscal.
+  - Pedido: P-085
+  - Âncora: `Cliente/Index.casos.md`
+  - Fazer: Lista de campos obrigatórios para cobrança por empresa, conferida ao gerar a cobrança e ao salvar o cliente.
+  - Hoje: miss | Não tem | O cadastro não tem essa regra
+  - Comunicação visual: part | Cliente empresa | cobrança por boleto
+  - Clientes: Zoom
+  - Etiquetas: miss, cv
 - **[BACKLOG] Desconto para boleto pago antes do vencimento** (pedido de 2026-10-23) `[V0]` — Aceite:
   Dado um cliente com 2% de desconto para pagamento até 5 dias antes do vencimento, Quando o boleto dele
   é gerado, Então o boleto já sai com o desconto e a data limite, e o título recebe o desconto só se o
   pagamento chegar dentro do prazo; cliente sem desconto não muda. Hoje o cadastro não tem o campo e os
   boletos saem sem desconto. Mexe em valor: Regra Mestre.
+  - Pedido: P-086
+  - Âncora: `Cliente/Index.casos.md`
+  - Fazer: Campo de desconto e prazo no cadastro do cliente, levado ao boleto e à baixa do título.
+  - Hoje: miss | Não tem | O cadastro não tem o campo; os boletos saem sem desconto
+  - Comunicação visual: part | Cliente empresa | cliente a prazo com boleto
+  - Clientes: Sabor Brasil
+  - Etiquetas: valor, miss, cv, decisao
 
 ## Rastreabilidade (UC → CU do SDD → US do SPEC)
 
