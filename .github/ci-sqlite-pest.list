@@ -683,21 +683,17 @@ Modules/Producao/Tests/Feature/ProducaoModuloAtivacaoTest.php
 tests/Feature/Sidebar/DepartamentoDoModuloSidebarTest.php
 
 # 2026-10-28: PaymentGateway 'era-sqlite' — schema sintético montado no beforeEach, pulam no MySQL
-# (markTestSkipped quando o driver não é sqlite). Saíram da paymentgateway-pest (run 40735435457).
-Modules/PaymentGateway/Tests/Feature/AilosCnabDriverTest.php
-Modules/PaymentGateway/Tests/Feature/BBCnabDriverTest.php
+# (markTestSkipped quando o driver não é sqlite). Saíram da paymentgateway-pest (run 40735435457);
+# 12 dos 17 verdes aqui no run 40736895552, os outros 5 estão na paymentgateway-pest-quarantine.list.
 Modules/PaymentGateway/Tests/Feature/BanrisulCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/BradescoCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/BtgCnabDriverTest.php
-Modules/PaymentGateway/Tests/Feature/CaixaCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/CnabBoletoAdapterContractTest.php
 Modules/PaymentGateway/Tests/Feature/CnabRetornoProcessorTest.php
 Modules/PaymentGateway/Tests/Feature/Cnab/Drivers/SicoobCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/CresolCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/EncryptedCredentialCastTest.php
-Modules/PaymentGateway/Tests/Feature/InterImportarRecebimentosCommandTest.php
 Modules/PaymentGateway/Tests/Feature/InterReconcilePixCommandTest.php
-Modules/PaymentGateway/Tests/Feature/ItauCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/ReconciliarCobrancaServiceTest.php
 Modules/PaymentGateway/Tests/Feature/SantanderCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/SicrediCnabDriverTest.php

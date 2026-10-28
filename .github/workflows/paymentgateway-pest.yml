@@ -136,7 +136,7 @@ jobs:
           mkdir -p test-results
           QUAR_FILE=.github/paymentgateway-pest-quarantine.list
 
-          sed 's/#.*//; s/[[:space:]]*$//' "$QUAR_FILE" | grep -vE '^$' | sort -u > /tmp/quar.txt
+          sed 's/#.*//; s/[[:space:]]*$//' "$QUAR_FILE" | { grep -vE '^$' || true; } | sort -u > /tmp/quar.txt
           RC=0
           while read -r q; do
             [ -f "$q" ] || { echo "::error::quarentena aponta arquivo inexistente: $q"; RC=1; }
