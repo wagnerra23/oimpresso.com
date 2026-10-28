@@ -4,7 +4,7 @@ irmaos: Create.charter.md (lei) · Create.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a transferência tira de uma filial e põe em outra; as duas pontas têm de ser da mesma empresa.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-27"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
 
@@ -51,6 +51,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Teste:** `EstoqueTransferenciaStoreTest` — os 3 casos `UC-TRCRT-05`.
 - **Contrato:** RUNBOOK §3 (multi-tenant) + a linha da Blade (`stock_transfer/partials/product_table_row.blade.php`).
 - **Status: ⬜**
+
+## UC-TRCRT-06 · A tela escolhe o produto de verdade e manda o pedido no formato do `store()` `[V0]` `[must]`
+- **Persona:** quem cuida do estoque.
+- **Aceite:** Dado a origem escolhida · Quando busco o produto (mesma busca `/products/list` da Blade, no local de origem) e escolho a variação · Então a linha vem de `GET /stock-transfers/produto-linha` com o saldo daquele local, e não aceita quantidade acima do saldo (ou do lote), zero, fração em unidade inteira nem a mesma variação duas vezes. Ao salvar, quantidade, custo e frete saem com vírgula decimal e sem milhar (`paraNumUf`), `base_unit_multiplier` sai com ponto (o servidor faz conta com ele sem `num_uf`) e `final_total` sai com ponto em 2 casas (entra cru). Trocar a origem limpa as linhas.
+- **Teste:** [`tests/js/estoque-linhas-dominio.test.ts`](../../../../tests/js/estoque-linhas-dominio.test.ts) — os casos `UC-TRCRT-06`. O segundo caminho é o `EstoqueTransferenciaStoreTest` (UC-TRCRT-03), que grava esse mesmo formato no MySQL e confere origem 10 → 7 e destino 2 → 5.
+- **Regressão que defende:** até 2026-10-27 a tela, aberta por padrão pelo menu desde o #9096, criava linha de texto livre com `product_id` nulo: não havia como transferir um produto real pelo React. E mandava os números com `Number` (ponto decimal), que o `num_uf` lê como milhar.
+- **Status: 🧪**
 
 ## Backlog
 - [BACKLOG] R-XFER-004 (origem ≠ destino) só é conferida no cliente (botão desabilitado). `store()` não compara `location_id` com `transfer_location_id`, nem confere se as duas filiais são do business da sessão. Grava quantidade: decisão [W].

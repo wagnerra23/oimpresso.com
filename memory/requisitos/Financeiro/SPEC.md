@@ -176,6 +176,49 @@ owner: wagner
 - [ ] Calcula automaticamente juros de mora se `data_pagamento > vencimento` (config tenant: 0,33% a.d. + 2% multa)
 - [ ] Test Feature: pagamento atrasado calcula juros + multa corretamente
 
+### US-FIN-078 · DDA — boletos contra o CNPJ da empresa viram contas a pagar sugeridas — **P1**
+
+> owner: — · priority: p1 · estimate: 12h · status: doing · type: story
+> blocked_by: fonte do DDA (decisão + credencial [W] — ver BRIEFING §Depende do [W])
+
+**Como** quem cuida do contas a pagar
+**Quero** que os boletos emitidos contra o CNPJ da empresa cheguem sozinhos como contas a pagar sugeridas, já casadas com o fornecedor
+**Para** não digitar boleto nem esquecer conta que o fornecedor registrou
+
+**Implementado em:** _pendente_ — backend pronto (`Modules/Financeiro/Services/DdaService.php`, `Modules/Financeiro/Console/Commands/DdaSyncCommand.php`, teste `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`); faltam a tela de sugestões e a fonte real
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25 (Omie, Conta Azul e Nibo trazem DDA). Em 2026-10-27 a API pública do Inter só cobre emissão/consulta de cobrança, saldo e extrato no código (`InterDriver`, `InterBankingClient`); nenhuma fonte encontrada documenta consulta de DDA no Inter. Por isso a fonte é uma interface (`FonteDda`) sem implementação ligada.
+
+⚠️ **REGRA MESTRE — VALOR**: o boleto vira título a pagar; valor conferido por dois caminhos no teste.
+
+**Aceite:**
+- [x] Boleto da fonte grava sugestão em `fin_dda_boletos`, idempotente por (`business_id`, código de barras), sem criar título.
+- [x] Fornecedor casado pelo CNPJ/CPF do beneficiário (só `supplier`/`both` da própria empresa).
+- [x] Aceitar cria o título a pagar aberto (valor, vencimento, fornecedor, `forma_pagamento=boleto`); descartar encerra sem título; decisão só uma vez.
+- [x] `financeiro:dda-sync` atrás de `FINANCEIRO_DDA_ENABLED` (default `false`), e sai com erro quando falta flag ou fonte.
+- [ ] Tela de sugestões com aceitar/descartar e permissão `financeiro.contas_pagar.create`.
+- [ ] Fonte real ligada (depende do [W]).
+
+### US-FIN-079 · Pagar o título a pagar pelo banco (boleto e Pix), com aprovação e baixa automática — **P1**
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: escopos de pagamento na integração Inter (ação [W] — ver BRIEFING §Depende do [W])
+
+**Como** quem cuida do contas a pagar
+**Quero** pagar o título pelo banco, por boleto ou Pix, a partir do próprio título
+**Para** não redigitar no internet banking e ter a baixa feita quando o banco confirmar
+
+**Implementado em:** _pendente_
+
+⚠️ **REGRA MESTRE — VALOR**: saída de dinheiro. Nunca automático: cada pagamento é aprovado pelo usuário, com permissão própria e trilha de auditoria.
+
+**Aceite:**
+- [ ] Permissão própria `financeiro.contas_pagar.pagar_banco`, separada de registrar baixa.
+- [ ] Cada pagamento exige confirmação explícita do usuário com valor, beneficiário e conta debitada; não há lote nem agendamento automático.
+- [ ] Pedido ao banco idempotente (uma chave por título + tentativa) e registrado em trilha de auditoria (quem, quando, valor, resposta do banco).
+- [ ] Baixa no título só quando o banco confirmar o pagamento (consulta ou webhook), nunca na hora do pedido.
+- [ ] Atrás de flag desligada; teste no tenant 98 com o banco simulado.
+
 ### US-FIN-007 · Visualizar fluxo de caixa projetado
 
 > **Área:** Caixa
@@ -1256,7 +1299,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 > owner: — · priority: p2 · estimate: 16h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — parcial em 2026-10-27: schema `fin_centros_custo` + `fin_titulo_rateios` e o `RateioService` (soma em centavos inteiros, maior resto no modo %; teste `RateioCentroCustoContratoTest`). Falta o cadastro na tela, o rateio no formulário do título e o filtro da DRE e do fluxo. A âncora vira path quando a US fechar.
 
 **Origem:** lacuna P2 do levantamento de concorrência de 2026-10-25. `fin_titulos` não tem centro de custo nem rateio (o `CusteioRkwService` só custeia posto do PCP).
 
@@ -1297,6 +1340,68 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 - [ ] Sem valor de cliente em fixture versionada.
 
 **Depende de:** especificação oficial de cada layout; coordenar com a frente Plataforma para um exportador só.
+
+### US-FIN-081 · Link de pagamento do título a receber (Pix e boleto)
+
+> owner: — · priority: p1 · estimate: 8h · status: review · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Services/LinkDePagamentoDoTitulo.php`, `Modules/Financeiro/Http/Controllers/Public/PagamentoPublicoController.php`, `Modules/Financeiro/Listeners/OnCobrancaPagaCreateFinanceiroTitulo.php` (`baixarTituloComLink`), `resources/js/Pages/Financeiro/PagamentoPublico.tsx`, `Modules/Financeiro/Tests/Feature/LinkPagamentoTituloContratoTest.php`
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25. O título a receber só tinha o "Gerar boleto" do drawer (Inter, operador logado) e a régua que repete uma cobrança já emitida; o cliente não tinha onde pagar sozinho.
+
+⚠️ **REGRA MESTRE — VALOR**: cobra e baixa título.
+
+**Aceite:**
+- [x] O operador gera o link de um título a receber aberto/parcial (`POST /financeiro/unificado/{id}/link-pagamento`); token de 48 caracteres, só o sha256 no banco, válido 30 dias; gerar outro fecha o anterior.
+- [x] `/pagar/{token}` (sem login) mostra empresa, número, vencimento e o `valor_aberto` gravado; sem documento nem e-mail do cliente; `noindex`, `no-referrer`, throttle 30/min.
+- [x] Pix ou boleto pelo mesmo `PaymentGatewayContract` do drawer, `origem_type = fin_titulo`; cobrança ainda pagável é reaproveitada, não emitida de novo.
+- [x] O webhook dá baixa pelo valor pago: fora da empresa dona do SaaS só para título com link (antes, nenhuma empresa cliente recebia essa baixa).
+- [x] Tudo atrás de `FINANCEIRO_LINK_PAGAMENTO_ENABLED` (desligada: 404 e listener como antes).
+- [ ] Botão no drawer do Unificado para gerar e copiar o link.
+- [ ] Cartão: o contrato do gateway exige token de cartão gerado no navegador; fica para quando o checkout de cartão existir.
+- [ ] Canary com uma empresa antes de ligar para todas (decisão [W]).
+
+### US-FIN-082 · Portal do cliente: títulos em aberto, segunda via, histórico e pagamento
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: US-FIN-081
+
+**Implementado em:** _pendente_
+
+**Origem:** lacuna P1 do levantamento de 2026-10-25. O cliente final não tem onde ver o que deve à empresa.
+
+**Aceite:**
+- [ ] Link assinado por cliente (token, sem conta) mostra só os títulos daquele cliente daquela empresa: em aberto, pagos (histórico) e a segunda via (Pix/boleto já emitidos).
+- [ ] Pagar um título pelo portal usa o mesmo caminho da US-FIN-081.
+- [ ] Token de um cliente não abre outro; o de uma empresa não abre outra; sem dado pessoal na URL; throttle.
+- [ ] Atrás de flag desligada.
+
+### US-FIN-084 · Extrato dos bancos além do Inter: OFX por conta e drivers de API — **P0**
+
+> owner: — · priority: p0 · estimate: 12h · type: story
+> blocked_by: credenciais de API de cada banco ([W])
+
+**Implementado em:** _parcial_ · `Modules/RecurringBilling/Services/Banking/Drivers/OfxStatementDriver.php`, `Modules/RecurringBilling/Services/Banking/StatementPersister.php`, `Modules/Financeiro/Services/Extrato/ImportarExtratoOfxService.php`, `Modules/Financeiro/Console/Commands/ImportarExtratoOfxCommand.php`, `Modules/Financeiro/Tests/Feature/ExtratoOfxContaContratoTest.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/ExtratoOfxContaContratoTest.php`
+
+**Origem:** resto da lacuna P0 "Extrato bancário automático" (levantamento de 2026-10-25); a decisão [W] de 2026-10-26 (US-FIN-074) é banco direto, sem agregador. Medido em produção em 2026-10-27, sem PII: além das 69 contas "caixa", há contas correntes de Bradesco (4), Caixa (3), Banco do Brasil (2), Inter (2), C6 (1), Cora (1) e mais uma instituição (1); **nenhuma credencial de API cadastrada** e **zero** linhas de extrato (nem API, nem OFX). Pesquisa de API de extrato: BB tem API de Extratos (v1 até 20/11/2026, OAuth + certificado A1); Bradesco tem API usada por integradores, sem documentação pública; Caixa e Cora sem API confirmada (OFX/CNAB pelo internet banking).
+
+⚠️ **REGRA MESTRE — VALOR** ([proibicoes.md](../../proibicoes.md)): o sinal do lançamento do extrato é valor exibido e conciliado.
+
+**Aceite:**
+
+_PR 1 — OFX por conta + gravação comum:_
+- [x] OFX (SGML ou XML, vírgula ou ponto decimal, Windows-1252) vira linha em `fin_extrato_lancamentos` da conta escolhida com valor positivo e tipo C/D pelo sinal do `TRNAMT`, no formato de chave do backfill da ADR 0236 (`ofx-<FITID>` / `ofx:<FITID>`); reimportar não duplica (UC-EXT-07). Provado por dois caminhos: o resumo do arquivo e a linha gravada lida pela Conciliação (`normalizeApi`).
+- [x] Conta de outro business não recebe o arquivo (UC-EXT-07). Com `FINANCEIRO_EXTRATO_OFX_CONTA` desligada (padrão) o comando não grava.
+- [x] O sync do Inter (`SyncBankStatementsJob`) grava pelo mesmo `StatementPersister`, agora com `origem=api` e `external_id=api:<id>` (UC-EXT-08).
+
+_Próximos PRs:_
+- [ ] Botão "Importar OFX" na tela do extrato da conta, com protótipo ancorado no DS antes do `.tsx`.
+- [ ] Driver de extrato do Banco do Brasil no mesmo contrato, atrás de flag, à espera da credencial.
+
+**Credenciais que faltam ([W]):** Banco do Brasil (Client ID, Client Secret, chave de aplicação e certificado A1 da conta); Bradesco (par de credenciais de extrato pelo gerente); C6 e Cora a confirmar se oferecem API de extrato. Caixa: OFX.
 
 ### US-FIN-035 · Repetir lançamento próximo mês + Combobox autocomplete contraparte
 
@@ -2143,3 +2248,28 @@ _PR 1 — sync:_
 **Decisão [W] 2026-10-26 — extrato pelo banco direto, sem agregador.** O Pluggy **não** é o caminho escolhido: nada de webhook, tela de vínculo nem contratação. O extrato automático segue pelas APIs dos próprios bancos, começando pelo Inter, que já existe (`SyncBankStatementsJob`, US-RB-045/046). O que este PR deixa (sinal do débito, paginação, comando atrás de `PLUGGY_ENABLED`, que segue **desligada**) fica como base inerte; o `tipoCanonico` vale para qualquer origem que grave em `fin_extrato_lancamentos`.
 
 **Fechada nesta forma:** os itens de webhook e tela de vínculo saem do escopo por decisão [W].
+
+### US-FIN-080 · Conciliação automática por regras — **P1**
+
+> owner: — · priority: p1 · estimate: 12h · status: doing · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — tela de regras no PR 2. Motor e flag já no código: `Modules/Financeiro/Services/Conciliacao/RegrasConciliacaoService.php` (`aplicar`), `Modules/Financeiro/Models/ConciliacaoRegra.php` (`atende`), `Modules/Financeiro/Http/Controllers/ConciliacaoController.php` (`sugerirMatches`, `aplicarRegras`, `reabrir`), `Modules/Financeiro/Database/Migrations/2026_10_27_120000_create_fin_conciliacao_regras_table.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/ConciliacaoRegrasContratoTest.php`
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25. A Conciliação só sugeria pelo valor e pela data (±3 dias); toda linha precisava de um clique, mesmo a mensalidade que entra todo mês com a mesma descrição.
+
+**Como funciona:** o usuário cadastra regras ("descrição contém X, entrada ou saída, faixa de valor, conta → título do cliente / plano de contas / categoria Y"). O motor roda antes do casamento por valor e data, nas duas origens (OFX e API); a primeira regra, por prioridade, que deixa **um só** título aberto de mesmo valor (parcial: o valor em aberto) dentro da janela casa a linha. Zero ou dois+ candidatos: a regra não decide e a linha segue o caminho de sempre. Ação `sugerir` deixa para confirmar; `conciliar` já confirma. Casar só grava o vínculo (`titulo_id` + `regra_id`) — não baixa nem altera o título.
+
+**Aceite:**
+
+_PR 1 — motor + flag:_
+- [x] Regra com alvo cliente casa a linha com o único título dele e o título fica igual (valor, aberto, status, nenhuma baixa) — prova por dois caminhos (UC-FCC-19).
+- [x] Dois títulos possíveis: a regra não decide; ação `sugerir` deixa a linha sugerida; reabrir limpa a regra (UC-FCC-20).
+- [x] Desligado por padrão (`FINANCEIRO_CONCILIACAO_REGRAS_ENABLED=false`): nenhuma regra roda (UC-FCC-21).
+- [x] Regra e título de outro business nunca casam a linha (UC-FCC-22, `[T0]`).
+- [x] `POST /financeiro/conciliacao/aplicar-regras` roda o motor sem upload (o extrato da API chega pelo sync).
+
+_PR 2 — tela:_
+- [ ] Cadastro de regras (criar, editar, desligar) e botão "Aplicar regras" na Conciliação, com a regra que casou visível na linha.

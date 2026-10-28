@@ -248,15 +248,8 @@ return [
         'business_ids' => $parseBizIds('MWART_SISTEMA_USUARIOS_INDEX_BIZ'),
     ],
 
-    // ProductCatalogueController@generateQr → ProductCatalogue/CatalogueQr (thread
-    // modulos-faltantes/playbook/04). A tela entrou ligada no #9103; a chave veio depois, a pedido
-    // de [W], para que ligar em produção seja o cutover dele. Nasceu DESLIGADA; em 2026-10-13 [W]
-    // decidiu ligar para todas as empresas ("pode ligar tudo"): o default passou a `true`. Um `.env`
-    // com MWART_PRODUCT_CATALOGUE_QR=false ainda desliga e volta à Blade catalogue/generate_qr.
-    'product_catalogue_qr' => [
-        'enabled'      => env('MWART_PRODUCT_CATALOGUE_QR', true),
-        'business_ids' => $parseBizIds('MWART_PRODUCT_CATALOGUE_QR_BIZ'),
-    ],
+    // product_catalogue_qr: removida em 2026-10-27 (F5) — ProductCatalogue/CatalogueQr serve todas as
+    // empresas desde o cutover [W] de 2026-10-13, e a Blade catalogue/generate_qr saiu.
 
     // produto_etiquetas: removida em 2026-10-06 (noite) — a tela nova virou padrão sem flag
     // (decisão [W] "etiquetas pode ativar sem tag"); `?classico=1` em /labels/show força a Blade.

@@ -191,7 +191,7 @@ class RecipeBomService
      *  - receita existente → edita a dela (linhas com `linha_id`, grupos com `id`);
      *  - sem receita e com `$copiarDe` → traz a ficha da outra receita, sem `linha_id` nem `id` de
      *    grupo (a cópia ganha grupos próprios — decisão [W] 2026-10-06), e sem preço.
-     * Sub-unidades: as mesmas do `getIngredientRow()` (`Util::getSubUnits` da unidade do produto).
+     * Sub-unidades: as mesmas do antigo `getIngredientRow()` (apagado em 2026-10-27) (`Util::getSubUnits` da unidade do produto).
      *
      * Tier 0 ({@see ADR 0093}): o produto passa por `variacaoDaEmpresa` (404 fora da empresa) e a
      * receita a copiar por `receitaParaCopiar`.

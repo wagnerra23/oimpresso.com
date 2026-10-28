@@ -51,21 +51,9 @@ MWART_CLIENTE_INDEX=true
 # Blade legado e a baseline nasceria da tela VELHA, que e pior que nao ter baseline.
 # Flag de ambiente pra tela poder ENTRAR no gate, nao pra mudar o que ela mostra.
 MWART_BACKUP_INDEX=true
-# MWART_CLIENTE_IMPORT=true: mesma razão do INDEX acima, medida em 2026-08-18 —
-# config/mwart.php traz `'enabled' => env('MWART_CLIENTE_IMPORT', false)`, e o
-# ContactController:2803 só renderiza a Page Inertia sob esse flag. Sem ele
-# /contacts/import cai no Blade e o assertInertia(component) do PixelBaselineTest
-# reprova — a tela ficaria fora do gate por configuração, não por decisão.
-# Escopo: ambiente do runner do visreg. Não toca produção.
-MWART_CLIENTE_IMPORT=true
-# MWART_CLIENTE_MAP=true: mesma razão do IMPORT acima, medida em 2026-08-26 —
-# `config/mwart.php` traz `'enabled' => env('MWART_CLIENTE_MAP', false)` e o
-# `ContactController::contactMap()` (routes/web.php:359 → /contacts/map) só
-# renderiza a Page Inertia sob esse flag. Sem ele o assertInertia do
-# PixelBaselineTest:199 reprova com "Not a valid Inertia response" — a resposta
-# é 200, mas é o Blade `contact.contact_map`. Provado no dispatch 32981167404.
-# Escopo: ambiente do runner do visreg. Não toca produção.
-MWART_CLIENTE_MAP=true
+# MWART_CLIENTE_IMPORT/MAP: até 2026-10-27 o /contacts/import e o /contacts/map só
+# serviam React sob essas chaves. No cutover F5 de 2026-10-27 o ContactController
+# passou a servir só React, e as duas envs saíram daqui.
 # MWART_REPAIR_INDEX / MWART_REPAIR_JOB_SHEET_INDEX=true: mesma razão dos de cima,
 # medida em 2026-10-02 — RepairController::index e JobSheetController::index só
 # renderizam a Page Inertia sob mwartEnabled(...) (config/mwart.php, default false).

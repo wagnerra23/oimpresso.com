@@ -244,3 +244,77 @@ it('UC-TIPOS-10: editar marca e desmarca "conta como férias"; o tipo do vizinho
     $this->assertFalse((bool) $depois->ferias_clt, 'tipo do vizinho não muda');
     $this->assertSame($alheio->leave_type, $depois->leave_type, 'nome do tipo do vizinho não muda');
 });
+
+/** Headers do `fetch` do painel lateral (Tipos.tsx, TipoPainel): JSON, sem X-Inertia. */
+function tiposHeadersPainel(): array
+{
+    return ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'];
+}
+
+it('UC-TIPOS-11: criar pelo painel grava o tipo no MEU negócio, e limite vazio vira "sem limite" (nunca 0)', function () {
+    $nome = 'UC11-'.uniqid();
+
+    $this->withHeaders(tiposHeadersPainel())
+        ->postJson('/hrm/leave-type', [
+            'leave_type' => $nome,
+            'max_leave_count' => null,
+            'leave_count_interval' => 'year',
+        ])
+        ->assertStatus(200)
+        ->assertJson(['success' => true]);
+
+    $criado = EssentialsLeaveType::withoutGlobalScopes()->where('leave_type', $nome)->first(); // SUPERADMIN: leitura de fixture
+    expect($criado)->not->toBeNull();
+    expect((int) $criado->business_id)->toBe((int) $this->tenant->id);
+    expect($criado->max_leave_count)->toBeNull();
+    // Sem limite, intervalo não tem sentido: o servidor zera mesmo que o cliente mande.
+    expect($criado->leave_count_interval)->toBeNull();
+
+    $comLimite = 'UC11-lim-'.uniqid();
+    $this->withHeaders(tiposHeadersPainel())
+        ->postJson('/hrm/leave-type', [
+            'leave_type' => $comLimite,
+            'max_leave_count' => 30,
+            'leave_count_interval' => 'year',
+            'ferias_clt' => 1,
+        ])
+        ->assertStatus(200);
+
+    $outro = EssentialsLeaveType::withoutGlobalScopes()->where('leave_type', $comLimite)->first(); // SUPERADMIN: leitura de fixture
+    expect((int) $outro->max_leave_count)->toBe(30);
+    expect($outro->leave_count_interval)->toBe('year');
+    expect((bool) $outro->ferias_clt)->toBeTrue();
+});
+
+it('UC-TIPOS-12: nome vazio, limite zero e intervalo inventado são recusados com 422 por campo, sem gravar', function () {
+    $antes = EssentialsLeaveType::withoutGlobalScopes()->where('business_id', $this->tenant->id)->count(); // SUPERADMIN: contagem de fixture
+
+    $this->withHeaders(tiposHeadersPainel())
+        ->postJson('/hrm/leave-type', [
+            'leave_type' => '',
+            'max_leave_count' => 0,
+            'leave_count_interval' => 'semana',
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['leave_type', 'max_leave_count', 'leave_count_interval']);
+
+    $depois = EssentialsLeaveType::withoutGlobalScopes()->where('business_id', $this->tenant->id)->count(); // SUPERADMIN: contagem de fixture
+    expect($depois)->toBe($antes);
+
+    // Editar também valida: um nome vazio não apaga o nome do tipo existente.
+    $meu = tiposCriarTipo($this->tenant->id, 'UC12-meu');
+    $this->withHeaders(tiposHeadersPainel())
+        ->putJson("/hrm/leave-type/{$meu->id}", ['leave_type' => ''])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['leave_type']);
+    expect(EssentialsLeaveType::withoutGlobalScopes()->find($meu->id)->leave_type)->toBe($meu->leave_type); // SUPERADMIN: leitura de fixture
+});
+
+it('UC-TIPOS-13: os links antigos de criar e editar levam à lista, não a uma página quebrada', function () {
+    $meu = tiposCriarTipo($this->tenant->id, 'UC13-meu');
+
+    // Antes: `create` devolvia view('essentials::create'), que não existe (500), e `edit`
+    // devolvia um fragmento de modal Blade sem layout.
+    $this->get('/hrm/leave-type/create')->assertRedirect('/hrm/leave-type');
+    $this->get("/hrm/leave-type/{$meu->id}/edit")->assertRedirect('/hrm/leave-type');
+});

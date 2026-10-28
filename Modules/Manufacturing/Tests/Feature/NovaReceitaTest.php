@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 use Modules\Manufacturing\Services\RecipeBomService;
@@ -170,17 +171,25 @@ describe('UC-RECIPE-12 · Nova receita — busca de produto', function () {
 describe('UC-RECIPE-13 · Nova receita — cópia', function () {
     it('a página do editor vem com desperdício, custo extra e instruções da receita copiada', function () {
         $user = mfgEmpUsuario('mfg_nova_receita_test');
+        // Abrir o editor pede `access_recipe` desde o cutover de 2026-10-27 (antes a Blade pedia `add_recipe`).
+        $user->givePermissionTo(\Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'manufacturing.access_recipe', 'guard_name' => 'web']));
         [$original] = mfgNovaOriginal($user->id);
         [, $destino] = mfgEmpProduto(MFG_EMP_BIZ, 'Produto destino da copia', $user->id);
 
         $resposta = $this->actingAs($user)->withSession(mfgNovaSessao())
             ->get('/manufacturing/add-ingredient?variation_id='.$destino.'&copy_recipe_id='.$original);
 
-        $resposta->assertOk();
-        $resposta->assertSee('Insumo da original');
-        $resposta->assertSee('instrucao-da-receita-original');
-        // O tipo do custo extra vem junto (sem ele, 12 viraria valor fixo em vez de percentual).
-        expect(preg_match('/<option[^>]*value="percentage"[^>]*selected/', $resposta->getContent()))->toBe(1);
+        // Desde o cutover de 2026-10-27 o endereço serve só o editor React: a cópia chega nos props.
+        $resposta->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->component('Manufacturing/IngredientesEditor')
+            ->where('receita.copiada_de', $original)
+            ->where('grupos.0.itens.0.nome', fn ($nome) => str_contains((string) $nome, 'Insumo da original'))
+            ->where('receita.instructions', 'instrucao-da-receita-original')
+            ->where('receita.waste_percent', fn ($v) => (float) $v === 5.0)
+            ->where('receita.extra_cost', fn ($v) => (float) $v === 12.0)
+            // O tipo do custo extra vem junto (sem ele, 12 viraria valor fixo em vez de percentual).
+            ->where('receita.production_cost_type', 'percentage')
+        );
     });
 
     it('renomear o grupo na cópia não renomeia o grupo da original', function () {

@@ -104,7 +104,8 @@ window.PcvEventos = { Feed, useEventos };
 function Painel({ onAbrir, ir, filtrar }) {
   const eventos = useEventos();
   const [reenviado, setReenviado] = useState({});
-  const D = P(); const { KpiCard, Widget, Alert, Progress, Button } = DS();
+  const [novaProva, setNovaProva] = useState({});
+  const D = P(); const { KpiCard, Widget, Alert, Progress, Button, Input } = DS();
   const abertas = D.OS.filter((o) => D.atual(o).estado !== "pronto");
   const atrasadas = D.OS.filter((o) => D.atraso(o) === "atrasada" && D.atual(o).estado !== "pronto");
   const hoje = D.OS.filter((o) => D.atraso(o) === "vence hoje");
@@ -131,8 +132,18 @@ function Painel({ onAbrir, ir, filtrar }) {
           {aguardArte.map((o) => (
             <li key={o.id}><div><b className="mono">{o.id}</b> · {o.cliente}<small>{o.arte === "ajuste" ? "pediu ajuste às 08:47 — \"aumentar o logo e trocar o telefone\"" : "link enviado ontem 17:30 · visto 2 vezes"}</small></div>
               <Badge par={ARTE[o.arte]} />
-              <Button size="sm" disabled={reenviado[o.id]} onClick={() => { setReenviado({ ...reenviado, [o.id]: true }); D.registrar({ os: o.id, tipo: "arte", texto: o.arte === "ajuste" ? "Enviou nova prova ao cliente" : "Reenviou o link de prova ao cliente" }); }}>{reenviado[o.id] ? "Reenviado agora" : o.arte === "ajuste" ? "Enviar nova prova" : "Reenviar link"}</Button>
-              <button className="pcv-link" onClick={() => onAbrir(o.id)}>Abrir</button></li>))}
+              <Button size="sm" disabled={reenviado[o.id]} onClick={() => { if (o.arte === "ajuste") { setNovaProva({ ...novaProva, [o.id]: "" }); return; } setReenviado({ ...reenviado, [o.id]: true }); D.registrar({ os: o.id, tipo: "arte", texto: "Reenviou o link de prova ao cliente" }); }}>{reenviado[o.id] ? (o.arte === "ajuste" ? "Nova prova enviada" : "Reenviado agora") : o.arte === "ajuste" ? "Enviar nova prova" : "Reenviar link"}</Button>
+              <button className="pcv-link" onClick={() => onAbrir(o.id)}>Abrir</button>
+              {/* UC-PCART-07 (liberado por [W] 2026-10-27): a nova prova precisa do link do arquivo novo; o link anterior deixa de valer. */}
+              {novaProva[o.id] !== undefined && !reenviado[o.id] && (
+                <form className="pcv-prova-form" style={{ flexBasis: "100%", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "end" }}
+                  onSubmit={(e) => { e.preventDefault(); setReenviado({ ...reenviado, [o.id]: true }); D.registrar({ os: o.id, tipo: "arte", texto: "Enviou nova prova ao cliente" }); }}>
+                  <label style={{ flex: "1 1 320px", display: "flex", flexDirection: "column", gap: 4, fontSize: 12 }}>Arquivo da nova prova (link)
+                    {Input && <Input type="url" required value={novaProva[o.id]} placeholder="https://drive.exemplo.com/prova-v2.pdf" onChange={(e) => setNovaProva({ ...novaProva, [o.id]: e.target.value })} />}</label>
+                  <Button size="sm" type="submit">Enviar ao cliente</Button>
+                  <button type="button" className="pcv-link" onClick={() => { const n = { ...novaProva }; delete n[o.id]; setNovaProva(n); }}>Cancelar</button>
+                </form>)}
+              {reenviado[o.id] && <small style={{ flexBasis: "100%" }}>{o.cliente === "Clínica Sorriso" ? "Cliente sem WhatsApp cadastrado. Mande o link você mesmo: https://oimpresso.com/arte/…" : "Link novo enviado ao cliente pelo WhatsApp. O link anterior deixou de valer."}</small>}</li>))}
         </ul>
       </Widget>}
 

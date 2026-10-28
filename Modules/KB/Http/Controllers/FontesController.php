@@ -31,8 +31,12 @@ class FontesController extends Controller
 
     public function show($metaId)
     {
-        $meta = Meta::findOrFail($metaId);
-        return view('copiloto::fontes.show', compact('meta'));
+        // Cutover (RUNBOOK-metas §9.4 PR-4): a fonte é a seção "Fonte do número" do
+        // drawer da meta no Painel `/ia`. `findOrFail` antes do redirect mantém o 404
+        // cross-tenant.
+        Meta::findOrFail($metaId);
+
+        return redirect()->route('jana.index');
     }
 
     public function update(Request $request, $metaId)

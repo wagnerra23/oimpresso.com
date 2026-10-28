@@ -12,6 +12,7 @@
 //   - US-SELL-006: bloco pagamentos real + frete
 //   - US-SELL-007: atalhos / Esc Cmd+Enter + auto-save draft localStorage
 
+import { Inline } from '@/Components/layout';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -65,6 +66,7 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { toast } from 'sonner';
+import ResgatePontos, { type PontosFidelidadeConfig } from './_components/ResgatePontos';
 
 interface OptionMap {
   [id: number]: string;
@@ -127,6 +129,8 @@ export interface SellsCreatePageProps {
   repairPos?: RepairPosProps | null;
   statuses?: Record<string, string>;
   isOrderRequestEnabled?: boolean;
+  /** US-SELL-079 — resgate de pontos de fidelidade; null = escondido (flag ou empresa sem pontos). */
+  pontosFidelidade?: PontosFidelidadeConfig | null;
 }
 
 const ADVANCED_OPEN_KEY = 'oimpresso.sells.create.advanced.open';
@@ -247,6 +251,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     ] as Payment[],
     discount_type: 'percentage' as 'percentage' | 'fixed',
     discount_amount: 0,
+    // US-SELL-079 — pontos resgatados e o valor deles (o servidor confere os dois).
+    rp_redeemed: 0,
+    rp_redeemed_amount: '0.00',
     notes: '',
     /** Nota interna pra equipe (separada de notes/additional_notes). Backend: TransactionUtil staff_note. */
     staff_note: '',
@@ -338,8 +345,12 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   );
 
   const totalGeral = useMemo(
-    () => Math.max(subtotalProdutos - descontoPedido + data.shipping.cost + additionalExpensesTotal, 0),
-    [subtotalProdutos, descontoPedido, data.shipping.cost, additionalExpensesTotal],
+    () =>
+      Math.max(
+        subtotalProdutos - descontoPedido - Number(data.rp_redeemed_amount) + data.shipping.cost + additionalExpensesTotal,
+        0,
+      ),
+    [subtotalProdutos, descontoPedido, data.rp_redeemed_amount, data.shipping.cost, additionalExpensesTotal],
   );
 
   const formatBRL = (value: number) =>
@@ -1584,6 +1595,19 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             </div>
           </details>
 
+          {props.pontosFidelidade && (
+            <ResgatePontos
+              config={props.pontosFidelidade}
+              contactId={data.contact_id !== props.walkInCustomer.id ? data.contact_id : null}
+              pontos={data.rp_redeemed}
+              totalAntes={subtotalProdutos - descontoPedido}
+              onChange={(pontos, valor) => {
+                setData('rp_redeemed', pontos);
+                setData('rp_redeemed_amount', valor);
+              }}
+            />
+          )}
+
           {/* Total consolidado */}
           <div className="rounded-md border border-border bg-muted/30 p-4 space-y-1.5 text-sm">
             <div className="flex justify-between text-muted-foreground">
@@ -1600,6 +1624,12 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 </span>
                 <span className="tabular-nums">- {formatBRL(descontoPedido)}</span>
               </div>
+            )}
+            {Number(data.rp_redeemed_amount) > 0 && (
+              <Inline gap={0} justify="between" className="text-muted-foreground">
+                <span>Resgate de {props.pontosFidelidade?.nome.toLowerCase()} ({data.rp_redeemed})</span>
+                <span className="tabular-nums">- {formatBRL(Number(data.rp_redeemed_amount))}</span>
+              </Inline>
             )}
             {data.shipping.cost > 0 && (
               <div className="flex justify-between text-muted-foreground">

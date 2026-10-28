@@ -1,0 +1,68 @@
+/* financeiro-contabil.css — /financeiro/contabilidade (financeiro-contabil-page.jsx). Só tokens do DS. */
+.fc-page { display: flex; flex-direction: column; gap: 12px; }
+.fc-page > .fc-tabs, .fc-page > [role="tabpanel"] { margin: 0 24px; }
+.fc-page > [role="tabpanel"] { padding-bottom: 24px; }
+.fc-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+.fc-tab { padding: 8px 12px; min-height: 36px; background: none; border: 0; border-bottom: 2px solid transparent;
+  color: var(--text-dim); font: inherit; font-size: var(--fs-4); cursor: pointer; }
+.fc-tab:hover { color: var(--text); }
+.fc-tab.is-on { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.fc-tab:focus-visible, .fc-seg-b:focus-visible, .fc-chip--btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fc-body { display: flex; flex-direction: column; gap: 12px; }
+.fc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.fc-card h2 { margin: 0; font-size: var(--fs-5); font-weight: 600; color: var(--text); }
+.fc-card p { margin: 0; font-size: var(--fs-3); color: var(--text-dim); }
+.fc-card-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.fc-filtros { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; }
+.fc-campo { display: flex; flex-direction: column; gap: 4px; border: 0; padding: 0; margin: 0; font-size: var(--fs-2); color: var(--text-dim); }
+.fc-campo legend { padding: 0; margin-bottom: 4px; }
+.fc-campo select { height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); font: inherit; font-size: var(--fs-4); }
+.fc-seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.fc-seg-b { height: 32px; padding: 0 12px; border: 0; border-right: 1px solid var(--border); background: var(--surface);
+  color: var(--text); font: inherit; font-size: var(--fs-3); cursor: pointer; }
+.fc-seg-b:last-child { border-right: 0; }
+.fc-seg-b.is-on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.fc-seg-b:disabled { color: var(--text-mute); cursor: not-allowed; }
+.fc-seg-b small { font-size: var(--fs-1); }
+.fc-hint { font-size: var(--fs-2); color: var(--text-mute); }
+.fc-resumo { display: flex; gap: 24px; margin: 0 0 0 auto; flex-wrap: wrap; }
+.fc-resumo div { display: flex; flex-direction: column; gap: 2px; }
+.fc-resumo dt { font-size: var(--fs-1); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-mute); }
+.fc-resumo dd { margin: 0; font-size: var(--fs-5); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.fc-tabela-wrap { overflow-x: auto; }
+.fc-tabela { width: 100%; border-collapse: collapse; font-size: var(--fs-3); }
+.fc-tabela th { text-align: left; font-weight: 500; font-size: var(--fs-2); color: var(--text-mute); padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.fc-tabela td { padding: 7px 8px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+.fc-tabela tr.is-falta td { background: var(--warn-soft); }
+.fc-tabela tr.is-erro td, .fc-tabela tr.is-existe td { color: var(--text-dim); }
+.fc-col-cod { width: 160px; }
+.fc-col-cod input { width: 100%; height: 30px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); font-family: var(--font-mono); font-size: var(--fs-3); }
+.fc-col-cod input:placeholder-shown { border-color: var(--warn); }
+.fc-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fc-mute { color: var(--text-mute); }
+.fc-chip { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 999px;
+  font-size: var(--fs-2); font-weight: 500; border: 1px solid transparent; white-space: nowrap; }
+.fc-chip--ok { background: var(--pos-soft); color: var(--pos); }
+.fc-chip--warn { background: var(--warn-soft); color: var(--warn); }
+.fc-chip--neg { background: var(--neg-soft); color: var(--neg); }
+.fc-chip--btn { background: var(--surface); border-color: var(--border); color: var(--text-dim); cursor: pointer; height: 28px; font: inherit; font-size: var(--fs-2); }
+.fc-chip--btn.is-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.fc-filtro { display: flex; gap: 6px; flex-wrap: wrap; }
+.fc-motivo { margin-top: 3px; font-size: var(--fs-2); color: var(--text-dim); }
+.fc-gerar { gap: 8px; }
+.fc-aviso { color: var(--warn) !important; }
+.fc-ok { color: var(--pos) !important; font-weight: 500; }
+.fc-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.fc-saida { border-top: 1px solid var(--border); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fc-saida-h { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-size: var(--fs-3); }
+.fc-saida-h span { color: var(--text-mute); font-size: var(--fs-2); }
+.fc-saida pre { margin: 0; padding: 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: var(--fs-2); color: var(--text); overflow-x: auto; }
+.fc-passos { flex-direction: row; flex-wrap: wrap; gap: 16px; }
+.fc-passo { flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; min-width: 0; }
+.fc-arquivo { display: flex; gap: 8px; align-items: baseline; font-size: var(--fs-3); color: var(--text); }
+.fc-arquivo span { color: var(--text-mute); font-size: var(--fs-2); }
+.fc-confirma { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: var(--radius-sm); background: var(--accent-soft); font-size: var(--fs-3); color: var(--text); }

@@ -42,18 +42,19 @@ $cfgCutover = [
     'UC-ETQ-01' => ['/barcodes', 'Configuracoes/CodigoBarras/Index', 'useV2ConfiguracoesCodigoBarras', 'barcode.index'],
 ];
 
-test('cutover sem GrowthBook responde React no GET comum do menu', function ($url, $component, $flag) {
-    expect(app(FeatureFlagService::class)->isOn($flag, ['business_id' => 98]))->toBeTrue();
-    expect(app(FeatureFlagService::class)->isOn($flag, ['business_id' => 99]))->toBeTrue();
+test('cutover sem GrowthBook responde React no GET comum do menu', function ($url, $component) {
     $this->get($url)->assertOk()->assertInertia(fn ($page) => $page->component($component));
 })->with($cfgCutover);
 
-test('cutover conserva rollback explícito do GrowthBook para Blade', function ($url, $component, $flag, $view) {
+test('cutover final: OFF explícito no GrowthBook não traz a Blade de volta', function ($url, $component, $flag, $view) {
+    // Até 2026-10-27 este teste provava o rollback (OFF -> Blade). O cutover apagou a Blade e a
+    // leitura da flag; o OFF passa a ser inerte e a tela segue em React.
     putenv('GROWTHBOOK_SDK_KEY=sdk-test-fake');
     putenv('GROWTHBOOK_API_HOST=https://growthbook-cutover.test.invalid');
     Http::fake(['*' => Http::response(['features' => [$flag => ['defaultValue' => false]]])]);
     expect(app(FeatureFlagService::class)->isOn($flag, ['business_id' => $this->business->id]))->toBeFalse();
-    $this->get($url)->assertOk()->assertViewIs($view);
+    $this->get($url)->assertOk()->assertInertia(fn ($page) => $page->component($component));
+    expect(view()->exists($view))->toBeFalse();
 })->with($cfgCutover);
 
 test('cutover não concede acesso a usuário sem permissão', function ($url) {

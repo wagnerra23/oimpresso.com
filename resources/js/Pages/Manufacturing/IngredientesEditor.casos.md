@@ -5,8 +5,14 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §5 e §9 (prototipo-ui/cowork/Felipe/handoff_fabricacao/README.md) — os UC DERIVAM dele
 owner: wagner
-last_run: "2026-10-09"
+last_run: "2026-10-27"
 ---
+
+> ℹ️ **`last_run` 2026-10-09 → 2026-10-27 (G-6): cutover da Blade.** Pedido [W] 2026-10-27, *"1 PR por tela,
+> com cutover apagando a Blade"*. `/add-ingredient` abre sempre este editor; a janela Blade e as partials
+> dela saíram. Só o comentário de cabeçalho do `.tsx` mudou. A cópia de receita (`copy_recipe_id`), que
+> antes era provada pela Blade, agora é provada pelos props deste editor em `CopiarReceitaEmpresaTest` e
+> `NovaReceitaTest`.
 
 # Casos de Uso & Aceite — Manufacturing/IngredientesEditor
 

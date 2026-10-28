@@ -111,6 +111,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-spreadsheet-junit.xml \
             Modules/Spreadsheet/Tests/Feature/SpreadsheetIndexContratoTest.php \
+            Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php \
             Modules/Spreadsheet/Tests/Feature/MultiTenantIsolationTest.php
 
       - name: Sumário JUnit por arquivo (assertions — corpus p/ LC-13)

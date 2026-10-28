@@ -18,11 +18,13 @@ last_run: "2026-10-12"
 > (lane `officeimpresso-pest`, MySQL, tenant 98 × 99).
 > Status: 🧪 escrito e na allowlist, veredito ainda não emitido.
 
-## UC-EMPS-01 · Flag desligada serve a Blade; ligada, a tela React · `must`
+## UC-EMPS-01 · A rota serve a tela React, sem Blade nem flag · `must`
 
-**Dado** a flag `useV2OfficeimpressoEmpresas` desligada (o default) **Quando** o suporte abre a lista
-**Então** recebe a Blade `licenca_computador.businessall`, a rota de fuga até o cutover **E** com a flag
-ligada recebe `Officeimpresso/Empresas/Index`, com `empresas` e `kpis` adiadas.
+**Dado** o cutover ([W] 2026-10-27, RUNBOOK-empresas §F5: flag `useV2OfficeimpressoEmpresas` e Blade
+`licenca_computador.businessall` removidos) **Quando** o suporte abre a lista, mesmo com uma regra no
+GrowthBook desligando a flag antiga **Então** recebe `Officeimpresso/Empresas/Index`, com `empresas` e
+`kpis` adiadas, e a view Blade não existe mais. (Até 2026-10-27 este UC era a rota de fuga: flag OFF
+servia a Blade.)
 
 Status: 🧪
 

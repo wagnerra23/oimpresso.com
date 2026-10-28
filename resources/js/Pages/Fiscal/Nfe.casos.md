@@ -789,6 +789,13 @@ Status: 🧪
   ou pendente do mesmo modelo (`NfeEmissaoController::emitir`), então emitir de novo depois de cancelar
   já passa; não há caso nem teste que prove o vínculo. Fonte: `fluxos-modelos.casos.md` (NF-e:
   Cancelar e Retorno 100; NFS-e: Substituir). Verificado contra as regras do [W] em 2026-10-23.
+- **[BACKLOG · ⬜ sem teste] Nota que deixaria o saldo fiscal negativo avisa** (pedido de 2026-10-27)
+  — Dado um produto sem nenhuma entrada com nota, Quando emito uma NF-e com ele, Então a tela avisa
+  que o saldo fiscal vai ficar negativo e oferece emitir a nota de entrada ou ligar a compra à nota do
+  fornecedor. A venda continua escolhendo com ou sem nota, como hoje; o sistema não decide pela origem
+  da compra. Avisar ou bloquear a emissão é decisão do [W]; a proposta é só avisar. Depende do saldo
+  fiscal (`Produto/Index.casos.md`) e da compra ligada à nota (`Purchase/Create.casos.md`). Pedido da
+  PraMoto.
 
 ## Como rodar a suíte
 1. **Pest:** lane Fiscal no CT 100 (ADR 0062) — comando no §recibo acima. `AcoesContratoTest` roda em
@@ -796,6 +803,7 @@ Status: 🧪
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
+- 2026-10-27 · [F+C] Backlog: nota que deixaria o saldo fiscal negativo avisa, pedido da PraMoto, sem id.
 - 2026-10-23 · [M+C] Backlog: emissão recusada antes da SEFAZ por pendência de imposto ou de cliente, sem id.
 - 2026-10-23 · [M+C] Backlog: NF-e de devolução total ou parcial, remessa para conserto, remessa em garantia e notas da venda para entrega futura, sem id.
 - 2026-10-21 · [C] `UC-FNFE-19`, `20`, `30`, `31` — SVC-AN/SVC-RS e evento EPEC (US-NFE-071 ·

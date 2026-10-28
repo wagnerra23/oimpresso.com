@@ -277,6 +277,7 @@ window.FxConfigPage = function FxConfigPage() {
             <div className="fx-card">
               <div className="fx-card-h"><span>Envio de documentos</span></div>
               <div className="fx-row"><span className="fx-row-l">Contador</span><span className="fx-row-v txt">{c.emails.contador}</span></div>
+              <div className="fx-row"><span className="fx-row-l">CPF do contador</span><span className="fx-row-v txt">{c.emails.contadorCpf || "não informado · exigido no SPED de PIS/COFINS"}</span></div>
               <div className="fx-row"><span className="fx-row-l">Envio automático ao autorizar</span><span className="fx-row-v txt">{c.emails.envioAutomatico ? "Ativo" : "Desligado"}</span></div>
               <div className="fx-row"><span className="fx-row-l">Cópia pro cliente</span><span className="fx-row-v txt">{c.emails.copiaCliente ? "Ativo" : "Desligado"}</span></div>
             </div>

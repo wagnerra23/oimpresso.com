@@ -325,8 +325,8 @@ Status: 🧪
 > e a US-COMVIS-NEW-004 (`memory/requisitos/ComunicacaoVisual/SPEC.md`: link de curta validade, 7 dias,
 > página pública sem login, uso único). A etapa "Aprovação do cliente" é uma etapa do roteiro desta OS;
 > por isso o contrato mora aqui, junto do apontamento que conclui as outras etapas. Nesta entrega são o
-> endpoint do operador (gera o link) e a página pública; o envio por WhatsApp/e-mail com opt-in LGPD e o
-> botão na tela ficam para depois. Prova: `ProducaoAprovacaoArteContratoTest`.
+> endpoint do operador (gera o link) e a página pública; o envio por WhatsApp veio depois (UC-PCART-06,
+> 2026-10-27). E-mail e o botão na tela ficam para depois. Prova: `ProducaoAprovacaoArteContratoTest`.
 
 ## UC-PCART-01 · Aprovar leva a OS para a Impressão · `must`
 
@@ -363,6 +363,21 @@ Status: 🧪
 
 **Quando** um usuário da empresa 99 pede o link de uma OS da empresa 98 **Então** recebe 404 e nada é gravado;
 token desconhecido também é 404.
+
+Status: 🧪
+
+## UC-PCART-06 · O link da prova vai ao cliente por WhatsApp · `must`
+
+> Âncora: US-COMVIS-NEW-004 (`memory/requisitos/ComunicacaoVisual/SPEC.md`, Acceptance: envio pelo WhatsApp,
+> LGPD antes do envio, "sem canal → UI alerta contate manualmente"). O envio é do Modules/Whatsapp pelo
+> contrato `AvisaClienteWhatsapp` (canal, opt-out LGPD e celular conferidos lá, US-WA-319). Flag
+> `producao.aprovacao_arte.whatsapp` (env `PRODUCAO_ARTE_WHATSAPP`) nasce desligada.
+
+**Dado** a flag desligada **Quando** o designer gera o link **Então** nada é enviado e o link volta ao operador
+(`whatsapp: null`) · **Dado** a flag ligada e a venda da OS com cliente **Quando** o link é gerado ou trocado
+**Então** o cliente da venda, na empresa da OS, recebe o texto com o link e a validade, e a resposta diz
+`whatsapp: {enviado: true}` · Venda de outra empresa ou sem cliente: nada é enviado, o link é gerado igual e a
+resposta diz `{enviado: false, motivo: sem_cliente}` para a tela pedir contato manual.
 
 Status: 🧪
 

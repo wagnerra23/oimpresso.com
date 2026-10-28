@@ -2,7 +2,14 @@
 
 ## Resumo
 
-<!-- 1-2 linhas: o que muda + por quê. Foco no "porquê"; o "o quê" o diff mostra. -->
+<!-- 1-2 linhas: o que muda + por quê. Foco no "porquê"; o "o quê" o diff mostra.
+     Escreva para quem não abre o código (o Wagner, a Maiara, o cliente): palavras da tela, não nome de classe. -->
+
+## Exemplo
+
+<!-- Um caso concreto, fácil de entender, de como fica para quem usa. Obrigatório quando muda o que aparece ou o que o sistema faz.
+     Use dado fictício (ex.: "a Lona 440g", "a requisição RQ-12 aberta em 20/10 · Fornecedor X"). Nunca cliente real, CPF/CNPJ ou valor em R$.
+     Quando ajuda, uma tabela "antes → depois". Em PR só de infra ou de CI, o exemplo é o que muda no resultado do check. -->
 
 ## Intent (commit-discipline)
 
@@ -11,6 +18,7 @@
 - Tipo conventional commit: <!-- feat | fix | refactor | docs | test | chore | perf | build | revert -->
 - Escopo: <!-- jana | repair | nfe-brasil | recurring-billing | governance | ct100 | mcp | claude-md | ... -->
 - Posso descrever a mudança em 1 frase sem "e"? Se não → quebrar em 2 PRs.
+- Tamanho: ≤300 linhas. Se passar, dizer quanto é código, teste e documentação, e por quê.
 
 ## Refs
 

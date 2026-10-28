@@ -38,7 +38,7 @@ permissions:
 jobs:
   plan-health:
     name: plan-health ADR 0294 (advisory)
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     # ADVISORY: job inteiro não bloqueia merge. Remover quando virar required
     # (calendário de promoções ADR 0275).
     continue-on-error: true

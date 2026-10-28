@@ -13,6 +13,7 @@ use Inertia\Response;
 use Modules\Financeiro\Models\BankStatementLine;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
+use Modules\Financeiro\Services\Conciliacao\RegrasConciliacaoService;
 use Modules\Financeiro\Services\FinanceiroAuditLogger;
 
 /**
@@ -509,6 +510,10 @@ class ConciliacaoController extends Controller
             'match_score' => null,
             'updated_at'  => now(),
         ];
+        // US-FIN-080: reabrir desfaz também o vínculo com a regra que casou a linha.
+        if (Schema::hasColumn($origem === 'api' ? 'fin_extrato_lancamentos' : 'fin_bank_statement_lines', 'regra_id')) {
+            $update['regra_id'] = null;
+        }
         if ($origem === 'ofx') {
             $update['conciliado_by'] = null;
             $update['conciliado_at'] = null;
@@ -536,6 +541,21 @@ class ConciliacaoController extends Controller
         return back()->with('success', 'Linha reaberta — voltou para pendente.');
     }
 
+    /**
+     * US-FIN-080: roda regras + casamento por valor e data sobre o que está pendente, sem
+     * precisar de upload (o extrato da API chega pelo sync, não pela tela).
+     * POST /financeiro/conciliacao/aplicar-regras.
+     */
+    public function aplicarRegras(Request $request): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $antes = $this->statsConsolidados($businessId)['pendentes'];
+        $this->sugerirMatches($businessId);
+        $depois = $this->statsConsolidados($businessId)['pendentes'];
+
+        return back()->with('success', 'Regras aplicadas: ' . max(0, $antes - $depois) . ' linha(s) casada(s).');
+    }
+
     /** OFX TRNTYPE → enum interno */
     private function detectarTipo(?string $trnType, float $valor): string
     {
@@ -556,6 +576,11 @@ class ConciliacaoController extends Controller
      */
     private function sugerirMatches(int $businessId): void
     {
+        // US-FIN-080: as regras do usuário decidem primeiro (desligado por padrão — flag
+        // financeiro.conciliacao.regras_enabled). O que elas casam sai de `pendente`; o resto
+        // cai no casamento por valor e data abaixo, como sempre.
+        app(RegrasConciliacaoService::class)->aplicar($businessId);
+
         // OFX — data em `data_movimento`, valor já com sinal. Tier 0 (re-impl #2045):
         // candidatas roteadas pela Model (BusinessScope + SoftDeletes); `->toBase()->get()`
         // devolve stdClass com os valores crus (data/decimais idênticos ao DB::table).

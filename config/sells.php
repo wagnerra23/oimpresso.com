@@ -47,6 +47,15 @@ return [
         'timeout_seconds' => (int) env('SELLS_AI_TIMEOUT', 8),
     ],
 
+    'resgate_pontos' => [
+        /*
+         * US-SELL-079 — resgate de pontos de fidelidade no caixa React (Sells/Create). Desligado
+         * por padrão: ligado, a tela mostra o resgate quando a empresa tem os pontos ligados
+         * (business.enable_rp). A conferência no servidor vale sempre, ligado ou não.
+         */
+        'enabled' => (bool) env('SELLS_RESGATE_PONTOS_ENABLED', false),
+    ],
+
     'import' => [
         /*
          * Importação de vendas por planilha (`/import-sales`) — decisão D2 de [W] (2026-10-02):
@@ -55,5 +64,15 @@ return [
          * 0 = toda importação vai para a fila.
          */
         'limite_sincrono' => (int) env('SELLS_IMPORT_LIMITE_SINCRONO', 200),
+    ],
+
+    /*
+     * US-SELL-074 — o cliente aprova o orçamento da venda comum por um link com validade.
+     * Default false: rota do vendedor responde 404 e nenhum link nasce até [W] ligar.
+     * Toggle: SELLS_ORCAMENTO_ACEITE_LINK=true no .env.
+     */
+    'orcamento_aceite' => [
+        'enabled' => (bool) env('SELLS_ORCAMENTO_ACEITE_LINK', false),
+        'dias_validade' => (int) env('SELLS_ORCAMENTO_ACEITE_DIAS', 7),
     ],
 ];

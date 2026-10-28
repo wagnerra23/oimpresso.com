@@ -317,3 +317,20 @@
 .trb-tpl{flex-direction:column;align-items:flex-start !important;cursor:pointer;gap:3px}
 
 .trb-avisos{margin:0 16px 14px;padding:8px 12px 8px 28px;border:1px solid color-mix(in oklch,var(--fx-warn) 30%,var(--border));border-radius:8px;background:color-mix(in oklch,var(--fx-warn) 5%,var(--surface));font-size:var(--fs-3);color:var(--text-dim);display:flex;flex-direction:column;gap:3px}
+
+/* transporte · MDF-e e CT-e (fiscal-transporte.jsx · ADR 0444) */
+.tx-drawer{width:min(760px,100vw)}
+.tx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.tx-full{grid-column:1/-1}
+.tx-chk{cursor:pointer;justify-content:flex-start}
+.tx-chk span:last-child{margin-left:auto}
+.tx-nota{font-size:var(--fs-2);color:var(--text-mute)}
+.tx-acts{display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap}
+.tx-acts .fx-btn{padding:3px 8px;font-size:var(--fs-2)}
+.tx-st{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;white-space:nowrap;color:var(--text-mute)}
+.tx-st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.tx-st[data-s="ok"]{color:var(--fx-ok)}
+.tx-st[data-s="aberto"]{color:var(--accent)}
+.tx-st[data-s="atraso"]{color:var(--fx-warn)}
+.tx-st[data-s="bad"]{color:var(--fx-bad)}
+.tx-tbl td.num b{white-space:nowrap}

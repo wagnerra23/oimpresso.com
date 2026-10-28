@@ -14,8 +14,8 @@ use Spatie\Activitylog\Models\Activity;
  * RepairConsultaOsRepository — portal público lendo as folhas de OS reais do Repair.
  *
  * US-CONSULTA-001 (2026-10-02, decisão [W] "Ligar o ConsultaOs ao Repair"). Substitui o
- * mock de 4 OS fixas. Espelha a consulta de `CustomerRepairStatusController::postRepairStatus`
- * (já endurecida no #8527) e NÃO expõe mais do que ela expõe:
+ * mock de 4 OS fixas. Espelhava a consulta de `CustomerRepairStatusController::postRepairStatus`
+ * (endurecida no #8527, removida no cutover de 2026-10-27) e NÃO expõe mais do que ela expunha:
  *   nº da OS, marca, aparelho, modelo, nº de série, status com cor, data prevista e atividades.
  *
  * Tier 0 (ADR 0093) — leia antes de mexer:

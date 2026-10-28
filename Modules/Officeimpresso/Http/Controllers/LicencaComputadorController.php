@@ -26,9 +26,6 @@ use Modules\Superadmin\Entities\Package;
  */
 class LicencaComputadorController extends Controller
 {
-    /** Tela React de `businessall` (RUNBOOK-empresas). Nasceu OFF; ligada para todas no cutover [W] 2026-10-13 (fallbackDefaults). */
-    private const FLAG_EMPRESAS = 'useV2OfficeimpressoEmpresas';
-
     /** Tela React da ficha (`computadores` e `viewLicencas`, RUNBOOK-empresa). Ligada para todas no cutover [W] 2026-10-13; `?legacy=1` abre a Blade. */
     private const FLAG_EMPRESA = 'useV2OfficeimpressoEmpresa';
 
@@ -323,26 +320,20 @@ class LicencaComputadorController extends Controller
     }
 
     /**
-     * View superadmin: todas empresas com officeimpresso ativo.
+     * View superadmin: todas empresas com officeimpresso ativo — a tela Inertia
+     * `Officeimpresso/Empresas/Index`.
+     *
+     * Cutover (RUNBOOK-empresas §F5, [W] 2026-10-27): a flag `useV2OfficeimpressoEmpresas` e o Blade
+     * `licenca_computador/businessall` saíram. A tela estava ligada para todas desde 2026-10-13.
      */
     public function businessall()
     {
         $this->authorizeAccess();
 
-        $business_id = (int) request()->session()->get('user.business_id');
-
-        // Só a flag decide o caminho (RUNBOOK-empresas §F2 item 4): o 1º carregamento do Inertia é
-        // um GET de HTML comum, sem `X-Inertia`.
-        if (app(FeatureFlagService::class)->isOn(self::FLAG_EMPRESAS, ['business_id' => $business_id])) {
-            return Inertia::render('Officeimpresso/Empresas/Index', [
-                'empresas' => Inertia::defer(fn () => $this->buildEmpresasPayload()),
-                'kpis'     => Inertia::defer(fn () => $this->buildEmpresasKpis()),
-            ]);
-        }
-
-        $business = $this->licencaService->listarEmpresasComDesktop();
-
-        return view('officeimpresso::licenca_computador.businessall', compact('business'));
+        return Inertia::render('Officeimpresso/Empresas/Index', [
+            'empresas' => Inertia::defer(fn () => $this->buildEmpresasPayload()),
+            'kpis'     => Inertia::defer(fn () => $this->buildEmpresasKpis()),
+        ]);
     }
 
     /**

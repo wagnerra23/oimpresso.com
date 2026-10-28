@@ -7,7 +7,7 @@ module: Produto
 status: ativo
 owner: wagner
 version: "1.0.0"
-last_updated: "2026-10-06"
+last_updated: "2026-10-27"
 ---
 
 # Especificação funcional — Produto (cadastro core / catálogo do ERP)
@@ -109,17 +109,25 @@ last_updated: "2026-10-06"
 
 ### US-PROD-024 · [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro
 
-> owner: wagner · priority: p2 · status: todo · type: epic · estimate: 24h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
+> owner: wagner · priority: p2 · status: doing · type: epic · estimate: 24h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
 
-**Implementado em:** _pendente_ — não iniciada: o SPIKE (Fase 1) não produziu inventário algum em `memory/requisitos/Produto/`; as menções a custo médio no módulo são as pré-US (CAPTERRA-FICHA/INVENTARIO + SDD), não entrega desta.
+**Implementado em:** _pendente_ — a US segue aberta (2026-10-27). Já existe o custo médio móvel por variação, atrás da flag `COMPRAS_CUSTO_MEDIO_MOVEL` (desligada): `Modules/Compras/Services/CustoMedioMovel.php` · `Modules/Compras/Observers/CompraRecebidaCustoMedioObserver.php` · `Modules/Compras/Console/Commands/CustoMedioSemearCommand.php` · `Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_custo_medio_tables.php`. Falta: margem da venda lendo o médio, semente aprovada pelo [W] e KPIs do `/unificado`.
 
 **Por quê (Wagner 2026-07-03: "estudar melhor o custo médio, muita coisa já tem pronta").** NÃO é greenfield — o UltimatePOS já calcula custo por compra. Antes de construir agregação, **mapear a máquina de custo que já roda**.
 
+**Testado em:** `Modules/Compras/Tests/Feature/CustoMedioMovelTest.php` (lane `compras-pest.yml`, UC-CMED-01..08) · `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php` (lane `sells-pest.yml`, UC-VSHOW-24..26).
+
+**Aceite:** as caixas das Fases 1 e 2 abaixo.
+
 **Fase 1 — SPIKE de descoberta (obrigatória antes de codar):**
-- [ ] Inventariar o que já existe: `default_purchase_price`/`dpp_inc_tax` por variação, `VariationLocationDetails` (qty_available), fluxo de custo na entrada de compra (`PurchaseController`/`TransactionUtil`), relatórios `stock-report`/`stock-by-sell-price`/`get-opening-stock`.
-- [ ] Documentar: custo médio já é recalculado na compra? Onde? Qual a fonte-de-verdade de "valor em estoque"? Registrar em `casos.md` ou nota.
+- [x] Inventariar o que já existe (2026-10-27): o core grava o **último** preço em `variations.dpp_inc_tax` (`ProductUtil::updateProductFromPurchase`, com `enable_editing_product_from_purchase`). A regra de custo da aba Fluxos (US-COM-026) troca isso pelo método da empresa no recebimento, via `CustoDoInsumoService::naData` (US-COM-024). O lucro dos relatórios usa o custo do **lote** (`transaction_sell_lines_purchase_lines` → `purchase_lines.purchase_price_inc_tax`, FIFO/LIFO).
+- [x] Documentar (2026-10-27): o `medio` do `CustoDoInsumoService` é a média de **todas** as compras até a data; o que já saiu do estoque continua pesando (compra 10 a 10,00, vende 10, compra 10 a 20,00 → 15,00, quando o estoque custa 20,00). Não existia médio **móvel**. Valor em estoque: não há fonte única (lote no relatório, `dpp_inc_tax` no cadastro).
 
 **Fase 2 — só depois do spike:**
+- [x] Custo médio móvel por variação, recalculado a cada compra recebida (qualquer caminho: observer do `Transaction`, depois do commit), guardado em `compras_custo_medio` com o histórico em `compras_custo_medio_movimentos`. Atrás de `COMPRAS_CUSTO_MEDIO_MOVEL` (desligada). Não escreve em `variations`, preço nem estoque. Semente: `php artisan compras:custo-medio-semear {business}` mostra a tabela antes→depois; só grava com `--aplicar`.
+- [x] Margem da venda finalizada pelo custo médio do momento da venda — servidor (2026-10-27): `detail.margem` no `SellController::margemDaVenda`, pela interface `App\Contracts\Compras\CustoMedio`; só com `view_purchase_price` e a flag (UC-VSHOW-24..26, `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php`).
+- [ ] Faixa da margem no detalhe da venda (`Sells/Show.tsx`) — protótipo `prototipo-ui/cowork/Wagner/vendas-detalhe-margem.html`, espera o OK do [W].
+- [ ] Ligar a flag depois da semente aprovada pelo [W] (antes→depois por variação).
 - [ ] Expor agregação valor/custo em estoque + margem média nos KPIs do `/unificado` (hoje `margem_media`/`sem_giro`/`stockQty` zerados; reusa o que já existe).
 - [ ] **⚠️ Tier 0 estoque/valor** — dupla-confirmação (2 caminhos) + antes→depois + aprovação Wagner. Medir demanda (ADR 0105) antes de investir as ~20-30h.
 
@@ -301,6 +309,54 @@ Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — importação pront
 - Começa pelo Bling; Tiny e Omie entram como mapeamentos adicionais.
 - Teste com arquivos de exemplo sintéticos de cada sistema.
 
+### US-PROD-032 · ⚠️Tier0 · Formação de preço: imposto do Simples, comissão e lucro tirados do preço de venda
+
+> owner: — · priority: p2 · estimate: 16h · status: todo · type: story · origin: sinal-cliente-2026-10-27
+> blocked_by: —
+
+**Implementado em:** _pendente_ — não iniciada: o produto tem custo, markup (`profit_percent`) e preço de venda, mas não existe a composição do preço (imposto, comissão, despesas, lucro) nem a alíquota do Simples guardada por empresa. O Financeiro estima o DAS com uma alíquota fixa de ≈6% (`ImpostosController::DAS_RATE`).
+
+**Sinal (ADR 0105), relato do suporte [F] em 2026-10-27:**
+- **Art Laser** quer pôr no preço dos produtos o custo dos impostos de NF-e e NFS-e, cujas alíquotas saem na DAS.
+- **CyberStudio** põe a comissão do vendedor (2%, por produto) na formação de preço do produto e depois calcula a comissão à mão a partir do relatório de produtos vendidos. A parte da comissão é da US-COMM-015 e da US-COMM-016; aqui entra só a linha da comissão na composição do preço.
+
+**O problema da conta.** Imposto do Simples, comissão e lucro são percentuais do **preço de venda**, não do custo. Somar os percentuais em cima do custo faz o lucro sair menor que o desejado. A conta certa é o markup divisor:
+
+`preço sugerido = (custo + valores fixos por unidade) ÷ (1 − soma dos percentuais sobre o preço)`
+
+Exemplo com alíquotas ilustrativas — custo 100,00, imposto 8%, lucro 20%:
+
+| Jeito | Preço | Imposto | Lucro que sobra |
+|---|---|---|---|
+| Divisor: 100 ÷ (1 − 0,08 − 0,20) | 138,89 | 11,11 | 27,78 (20% do preço) |
+| Somando sobre o custo: 100 × 1,28 | 128,00 | 10,24 | 17,76 (13,9% do preço) |
+
+**Como deve funcionar:**
+
+1. **Alíquota do Simples por empresa e competência**, uma para mercadoria (sai em NF-e) e outra para serviço (sai em NFS-e), digitada a partir da DAS do mês. Uma linha por competência, para o histórico ficar. A tela mostra a competência e avisa quando a última é de um mês anterior. Quando a apuração do DAS pelo Anexo existir (US-FISCAL-030), ela preenche a sugestão e a diferença para o número digitado aparece como conferência; o número da DAS prevalece, porque quem diz o anexo é o contador.
+2. **A natureza do produto decide qual alíquota vale:** `nfe_naturezas_produto` (mercadoria · serviço · pendente; produto sem linha = mercadoria). Com natureza *pendente*, a linha do imposto diz que a natureza está a decidir e o preço sugerido não aparece.
+3. **Composição do preço no produto:** custo (o do cadastro) · imposto do Simples (automático, pela natureza) · comissão do vendedor (a regra de produto da US-COMM-015: regra em % entra como % do preço; regra em valor por unidade entra somada ao custo) · despesas fixas % e lucro desejado % (padrão da empresa, ajustável no produto). Resultado: preço sugerido e a decomposição em valores, ao lado do preço de venda atual.
+4. **Produto sem custo** (preço por m², comum em comunicação visual): a conta vira ao contrário, a partir do preço atual — quanto é imposto, comissão e despesas, e quanto sobra. Nunca sugere preço a partir de custo zero (guarda 3 do SDD do cadastro).
+5. **Soma dos percentuais igual ou acima de 100%:** não existe preço possível; a tela diz isso em vez de dividir.
+6. **Aplicar o sugerido é ato da pessoa,** num produto ou em lote, sempre com antes→depois. Quando a alíquota de uma competência nova muda o sugerido, a tela lista os produtos afetados (preço atual × sugerido) para o reajuste em lote. O que cada produto faz sozinho segue a política de preço da US-PROD-030 quando ela existir (atualiza na hora · com confirmação · mantém o preço); até lá, nenhum preço muda sem confirmação.
+7. **Não usa o grupo de imposto do produto** (`tax_rates`): aquele soma o imposto por fora do preço e o destaca na venda. O imposto do Simples fica dentro do preço; a venda e a nota não mudam.
+
+**Onde fica:** fora da aba geral do cadastro, conforme a decisão [W] de 2026-07-17 (`SDD-tela-cadastro-produto-v1.0.md`: a composição vai para tela própria ou para um "Avançado" de um nível). A forma sai do protótipo em `prototipo-ui/` antes do código ([ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md)).
+
+**Aceite:**
+
+- [ ] Alíquotas por empresa × competência × natureza (mercadoria, serviço), com `business_id` indexado + FK; aviso de competência velha.
+- [ ] Preço sugerido pelo markup divisor, com a decomposição em valores; regra de comissão em % e em valor por unidade tratadas como no item 3.
+- [ ] Natureza pendente não sugere preço; produto sem custo mostra a conta ao contrário; soma dos percentuais ≥ 100% não sugere preço.
+- [ ] Aplicar o sugerido (um produto ou em lote) só por ação da pessoa, com antes→depois.
+- [ ] Teste de contrato no tenant de teste 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)): os exemplos fecham por dois caminhos (o divisor e a soma das partes igual ao preço), e trocar a natureza troca a alíquota usada.
+- [ ] Multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)): alíquota e composição lidas pelo `business_id` do produto; outra empresa não vê nem usa.
+- [ ] **REGRA MESTRE** ([proibicoes.md](../../proibicoes.md)): dupla confirmação do cálculo + tabela antes→depois dos produtos afetados + aprovação [W] antes de ligar em produção.
+
+**Fora desta US:** apurar o DAS (US-FISCAL-030); calcular, gravar e pagar a comissão (US-COMM-015 e US-COMM-016); receita com ST retida ou ISS retido, que tem fatia menor do Simples e seria uma terceira alíquota (confirmar com a Art Laser se ela tem esses casos).
+
+**Relações:** US-PROD-030 (política de reajuste) · US-PROD-022 (preço por tabela) · US-FISCAL-030 (apuração do DAS) · US-COMM-015 (regra de comissão por produto) · US-COMM-016 (relatório de comissão pela regra). O `ImpostosController` do Financeiro poderia ler a mesma alíquota no lugar dos ≈6% — fica fora desta US.
+
 ## 4. Backlog fora do batch (sem sinal ainda — ADR 0105)
 
 Viram US quando houver cliente/sinal ou drift de métrica:
@@ -319,6 +375,7 @@ Viram US quando houver cliente/sinal ou drift de métrica:
 
 ## 6. Histórico
 
+- **2026-10-27** — US-PROD-032 registrada: formação de preço com o imposto do Simples tirado do preço de venda (sinal Art Laser) e a linha da comissão por produto (sinal CyberStudio), a partir do relato do suporte [F]. Encaixada na apuração do DAS (US-FISCAL-030) e na regra de comissão por produto (US-COMM-015, PR #9971) em vez de duplicá-las. [F+C]
 - **2026-10-06** — US-PROD-030 registrada: política de preço por produto (atualiza a cada custo novo × mantém o preço), a partir dos dois casos de uso descritos por [W]. Estado atual e paridade com o legado medidos em `origin/main`; 5 perguntas abertas para [W] antes de codar; no mesmo dia [W] respondeu 3 (aviso na receita · propaga em todos os níveis · recalcula na hora OU com confirmação, conforme o produto), e aceitou as sugestões da pesquisa de mercado (1, 2 e os complementos). [W+C]
 - **2026-09-21** — **Reconciliação US-PROD-023 ↔ US-PROD-029 + decisão [W] sobre a navegação.** [W] textual: *"sim, entra na navegação — aplica as duas linhas e a reconciliação"*. **(a)** A 023 passa a ser **6 telas** e a 029 ganha `Create`/`Edit`: o critério é **qual writer a tela toca** — medido submit por submit, só 2 das 8 encostam no `store()`/`update()` compartilhado com a Larissa. **(b)** O `blocked_by: US-PROD-023` saiu da 029: ele contradizia o corpo dela, que declara mudar o desenho da 023 (fazer a 023 antes produziria o trabalho que a 029 descarta). **(c)** O `can:product.view` saiu do aceite da 023 — medição mostrou que o gate **já existe** no controller (`:139`, `view` OU `create`, com `UC-PUNI-06` + teste) e que o middleware seria **regressão**; o `TODO` do código **foi corrigido em vez de cumprido** ([#7583](https://github.com/wagnerra23/oimpresso.com/pull/7583), mergeado 2026-09-21). **(d)** Origem do trabalho: o chip do [#7522](https://github.com/wagnerra23/oimpresso.com/pull/7522) pedia decisão sobre o limbo das telas React, com o enquadramento *"são inalcançáveis"*. **Medido e corrigido:** são **não-linkadas**, não inalcançáveis — `/products/unificado` faz `Inertia::render` incondicional, e de lá `router.visit` alcança `Create`/`Edit` **com** header. Detalhe, recibos e a errata do que eu publiquei errado na [proposal 2026-09-21](../../decisions/proposals/2026-09-21-produto-8-telas-react-limbo-decisao-w.md). [CC]
 - **2026-08-24** — US-PROD-029 registrada: o cadastro de produto ganha rota paralela, decisão de Felipe, execução adiada para sessão própria. Origem: ao fechar as divergências §15 do pacote V3 na Consulta ([PR #6184](https://github.com/wagnerra23/oimpresso.com/pull/6184)), duas do handoff ficaram sem como ser feitas por falta de campo no cadastro. A investigação mediu que a separação Blade↔React é por header `X-Inertia` e que `store()`/`update()` são compartilhados com o caminho da Larissa — daí a rota paralela. O `+N reservado` foi declarado fora do módulo (fluxo de estoque). [M+C]

@@ -16,12 +16,12 @@
 //   - as abas trazem o título de seção do protótipo;
 //   - a aba Estoque mostra os 3 indicadores com os totais que o servidor mandou (nada é somado aqui),
 //     e "—" + aviso quando o valor vem null (sem permissão não é zero);
-//   - o rodapé sai na ordem do protótipo, e "Comprar" some sem permissão ou sem controle de estoque;
+//   - o rodapé sai na ordem do protótipo, sem "Comprar" (a consulta não é a tela de compras);
 //   - a composição traz o "Total líquido" que o servidor somou, o preço de venda da composição, os
 //     preços de cada item (as colunas da Blade) e as imagens dos itens; a aba Variações, as imagens
 //     das variações. Sem permissão, a parte de preço some (nunca zero).
 //
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17, UC-PIDX-19, UC-PIDX-20, UC-PIDX-21 e UC-PIDX-33 (resources/js/Pages/Produto/Index.casos.md).
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17, UC-PIDX-19, UC-PIDX-20, UC-PIDX-21, UC-PIDX-25 e UC-PIDX-33 (resources/js/Pages/Produto/Index.casos.md).
 // ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
 // Comando: npx vitest run tests/js/produto-painel-detalhe.test.tsx
 
@@ -72,8 +72,8 @@ const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados 
 
 /** O painel com o dono da aba do lado de fora, como em `Produto/Index.tsx`. */
 function Painel({
-  d, abaInicial = 'dados', podeComprar = true, aoFechar, irPara,
-}: { d: DetalheProdutoDados; abaInicial?: AbaDoDetalhe; podeComprar?: boolean; aoFechar: () => void; irPara: (u: string) => void }) {
+  d, abaInicial = 'dados', emiteNota = true, aoFechar, irPara,
+}: { d: DetalheProdutoDados; abaInicial?: AbaDoDetalhe; emiteNota?: boolean; aoFechar: () => void; irPara: (u: string) => void }) {
   const [aba, setAba] = useState<AbaDoDetalhe>(abaInicial);
   return (
     <PainelDetalheProduto
@@ -84,16 +84,16 @@ function Painel({
       aoFechar={aoFechar}
       podeEditar
       podePrecos
-      podeComprar={podeComprar}
+      emiteNota={emiteNota}
       irPara={irPara}
     />
   );
 }
 
-function abrir(d: DetalheProdutoDados, opcoes: { podeComprar?: boolean; abaInicial?: AbaDoDetalhe } = {}) {
+function abrir(d: DetalheProdutoDados, opcoes: { abaInicial?: AbaDoDetalhe; emiteNota?: boolean } = {}) {
   const aoFechar = vi.fn();
   const irPara = vi.fn();
-  render(<Painel d={d} abaInicial={opcoes.abaInicial} podeComprar={opcoes.podeComprar} aoFechar={aoFechar} irPara={irPara} />);
+  render(<Painel d={d} abaInicial={opcoes.abaInicial} emiteNota={opcoes.emiteNota} aoFechar={aoFechar} irPara={irPara} />);
   return { aoFechar, irPara, painel: within(screen.getByRole('dialog')) };
 }
 
@@ -202,7 +202,7 @@ describe('UC-PIDX-17 · o painel abre na aba que quem abriu pediu', () => {
 
   it('o painel não guarda aba própria: obedece à aba que o dono manda, e só avisa o clique', () => {
     const aoMudarAba = vi.fn();
-    const props = { aberto: true, detalhe: comFiscal(), aoMudarAba, aoFechar: () => undefined, podeEditar: true, podePrecos: true, podeComprar: true, irPara: () => undefined };
+    const props = { aberto: true, detalhe: comFiscal(), aoMudarAba, aoFechar: () => undefined, podeEditar: true, podePrecos: true, emiteNota: true, irPara: () => undefined };
     const { rerender } = render(<PainelDetalheProduto {...props} aba="fiscal" />);
     const painel = within(screen.getByRole('dialog'));
     expect(painel.getByText('49019900')).toBeTruthy();
@@ -224,40 +224,82 @@ describe('UC-PIDX-17 · o painel abre na aba que quem abriu pediu', () => {
   });
 });
 
-describe('UC-PIDX-19 · a aba Fiscal mostra o tipo de imposto na venda', () => {
+describe('UC-PIDX-19 · o imposto fica junto do preço, na aba Dados', () => {
+  // Decisão [F] 2026-10-26: imposto não é segredo (sai impresso na nota) e a venda cobra o preço com
+  // imposto, com nota ou sem. Então a aba Dados mostra o preço cobrado e, só quando o produto tem
+  // imposto, o sem imposto e o imposto aplicável. A aba Fiscal não repete o imposto.
   /** O valor (`<b>`) do campo com aquele rótulo, dentro do painel. */
   const campo = (painel: ReturnType<typeof within>, rotulo: string) =>
     (painel.getByText(rotulo).closest('.pb-dt') as HTMLElement).querySelector('b')?.textContent;
-  const comTipo = (tipo_imposto: string) => {
+  const frase = 'O preço de venda já inclui o imposto aplicável. É o valor que a venda cobra, com nota ou sem.';
+  const comImposto = (tipo_imposto = 'exclusive') => {
     const base = detalhe();
-    return detalhe({ dados: { ...base.dados, tipo_imposto } });
+    return detalhe({
+      dados: { ...base.dados, imposto: 'ICMS 18%', tipo_imposto },
+      variacoes: [{ nome: 'DUMMY', sku: 'CAM-001', imagens: [], compra_exc: 10, compra_inc: 11.8, lucro_percentual: 50, venda_exc: 42, venda_inc: 49.56, grupos: [] }],
+    });
   };
+  const semImposto = () =>
+    detalhe({ variacoes: [{ nome: 'DUMMY', sku: 'CAM-001', imagens: [], compra_exc: 10, compra_inc: 10, lucro_percentual: 50, venda_exc: 42, venda_inc: 42, grupos: [] }] });
 
-  it('imposto inclusivo: a aba Fiscal diz "Inclusivo"', () => {
-    const { painel } = abrir(comTipo('inclusive'), { abaInicial: 'fiscal' });
-    expect(campo(painel, 'Tipo de imposto na venda')).toBe('Inclusivo');
+  it('com imposto: preço cobrado (com imposto), preço sem imposto, o imposto e a frase', () => {
+    const { painel } = abrir(comImposto());
+    // Discriminante: 49,56 é o com imposto; um painel que mostrasse o sem imposto daria 42,00.
+    expect(campo(painel, 'Preço de venda')).toBe(brl(49.56));
+    expect(campo(painel, 'Preço sem imposto')).toBe(brl(42));
+    expect(campo(painel, 'Imposto aplicável')).toBe('ICMS 18% · exclusivo');
+    expect(painel.getByText(frase)).toBeTruthy();
   });
 
-  it('imposto exclusivo: a aba Fiscal diz "Exclusivo"', () => {
-    const { painel } = abrir(comTipo('exclusive'), { abaInicial: 'fiscal' });
-    expect(campo(painel, 'Tipo de imposto na venda')).toBe('Exclusivo');
+  it('o tipo de imposto vai junto do nome; sem tipo no cadastro, só o nome', () => {
+    const { painel } = abrir(comImposto('inclusive'));
+    expect(campo(painel, 'Imposto aplicável')).toBe('ICMS 18% · inclusivo');
+    cleanup();
+    const { painel: p2 } = abrir(comImposto(''));
+    expect(campo(p2, 'Imposto aplicável')).toBe('ICMS 18%');
   });
 
-  it('cadastro sem o tipo: mostra o traço, não inventa um', () => {
-    const { painel } = abrir(comTipo(''), { abaInicial: 'fiscal' });
-    expect(campo(painel, 'Tipo de imposto na venda')).toBe('—');
+  it('sem imposto: só o preço de venda, sem a linha do imposto nem a frase', () => {
+    const { painel } = abrir(semImposto());
+    expect(campo(painel, 'Preço de venda')).toBe(brl(42)); // anti-vácuo: o preço está lá
+    expect(painel.queryByText('Preço sem imposto')).toBeNull();
+    expect(painel.queryByText('Imposto aplicável')).toBeNull();
+    expect(painel.queryByText(frase)).toBeNull();
   });
 
-  it('é o último campo da aba Fiscal, depois de "Imposto aplicável" (a ordem do protótipo)', () => {
-    const { painel } = abrir(comTipo('exclusive'), { abaInicial: 'fiscal' });
-    const rotulos = Array.from(document.querySelectorAll('[role=dialog] .pb-dt > span')).map((e) => e.textContent);
-    expect(rotulos.slice(-2)).toEqual(['Imposto aplicável', 'Tipo de imposto na venda']);
-    void painel;
+  it('produto com várias variações mostra a faixa do preço cobrado', () => {
+    const base = comImposto();
+    const v = base.variacoes[0]!;
+    const { painel } = abrir({ ...base, variacoes: [v, { ...v, sku: 'CAM-002', venda_exc: 50, venda_inc: 59 }] });
+    expect(campo(painel, 'Preço de venda')).toBe(`${brl(49.56)} – ${brl(59)}`);
+    expect(campo(painel, 'Preço sem imposto')).toBe(`${brl(42)} – ${brl(50)}`);
   });
 
-  it('a aba Dados continua mostrando o mesmo valor', () => {
-    const { painel } = abrir(comTipo('exclusive'));
-    expect(campo(painel, 'Tipo de imposto na venda')).toBe('Exclusivo');
+  it('sem permissão de ver o preço, as linhas de preço somem; o imposto continua (não é segredo)', () => {
+    const base = comImposto();
+    const { painel } = abrir({ ...base, variacoes: [{ nome: 'DUMMY', sku: 'CAM-001', imagens: [], grupos: [] }] });
+    expect(painel.queryByText('Preço de venda')).toBeNull();
+    expect(painel.queryByText('Preço sem imposto')).toBeNull();
+    expect(campo(painel, 'Imposto aplicável')).toBe('ICMS 18% · exclusivo');
+  });
+
+  it('a aba Fiscal não repete o imposto', () => {
+    const { painel } = abrir(comImposto(), { abaInicial: 'fiscal' });
+    expect(painel.getByText('Dados fiscais')).toBeTruthy(); // anti-vácuo: está na aba Fiscal
+    expect(painel.queryByText('Imposto aplicável')).toBeNull();
+    expect(painel.queryByText('Tipo de imposto na venda')).toBeNull();
+  });
+
+  it('a tabela de variações separa "sem" e "com imposto" só quando o produto tem imposto', () => {
+    const cabecalho = (painel: ReturnType<typeof within>) =>
+      within(painel.getByRole('table', { name: 'Variações e preços' })).getAllByRole('columnheader').map((c) => c.textContent);
+    const { painel } = abrir(comImposto(), { abaInicial: 'variacoes' });
+    expect(cabecalho(painel)).toEqual(['Variação', 'SKU', 'Compra sem imposto', 'Compra com imposto', '% lucro', 'Venda sem imposto', 'Venda com imposto']);
+    cleanup();
+    const { painel: p2 } = abrir(semImposto(), { abaInicial: 'variacoes' });
+    expect(cabecalho(p2)).toEqual(['Variação', 'SKU', 'Compra', '% lucro', 'Venda']);
+    const linha = within(p2.getByRole('table', { name: 'Variações e preços' })).getAllByRole('row')[1] as HTMLElement;
+    expect(Array.from(linha.querySelectorAll('td')).map((td) => td.textContent)).toEqual(['Padrão', 'CAM-001', brl(10), '50 %', brl(42)]);
   });
 });
 
@@ -276,10 +318,11 @@ describe('UC-PIDX-25 · aba Fiscal: origem, ajuda e "Abrir no módulo Fiscal"', 
     expect(ajuda()).toContain('A origem é a mesma em todas as notas');
   });
 
-  it('a origem fica antes de "Imposto aplicável" (a ordem do protótipo)', () => {
+  it('a origem fecha a aba Fiscal; o imposto não se repete aqui (fica na aba Dados)', () => {
     abrir(comFiscal({}), { abaInicial: 'fiscal' });
     const rotulos = Array.from(document.querySelectorAll('[role=dialog] .pb-dt > span')).map((e) => e.textContent);
-    expect(rotulos.slice(-3)).toEqual(['Origem da mercadoria', 'Imposto aplicável', 'Tipo de imposto na venda']);
+    expect(rotulos.at(-1)).toBe('Origem da mercadoria');
+    expect(rotulos).not.toContain('Imposto aplicável');
   });
 
   it('código fora da tabela A vira traço, não um rótulo inventado', () => {
@@ -293,10 +336,23 @@ describe('UC-PIDX-25 · aba Fiscal: origem, ajuda e "Abrir no módulo Fiscal"', 
     expect(ajuda()).not.toContain('mesma em todas as notas');
   });
 
-  it('sem NCM, a ajuda diz que a nota usa o NCM padrão — e não chama o produto de serviço', () => {
+  /** A linha do topo da aba: o produto está pronto para nota? */
+  const pronto = () => document.querySelector('[data-contract=produto-fiscal-pronto]')?.textContent ?? '';
+
+  it('sem NCM, a aba começa dizendo que a nota sai com o NCM padrão — e não chama o produto de serviço', () => {
     abrir(comFiscal({ ncm: '0' }), { abaInicial: 'fiscal' });
-    expect(ajuda()).toContain('a NF-e usa o NCM padrão da empresa');
+    expect(pronto()).toContain('Sem NCM');
+    expect(pronto()).toContain('A nota sai com o NCM padrão da empresa');
+    expect(pronto()).not.toContain('Pronto para nota');
     expect(ajuda()).not.toMatch(/Serviço: sai em NFS-e/);
+    // A explicação da regra do NCM não aparece sem NCM: quem fala é a linha do topo.
+    expect(ajuda()).not.toContain('primeiro a exceção do produto');
+  });
+
+  it('com NCM, a aba começa com "Pronto para nota"', () => {
+    abrir(comFiscal({ ncm: '49019900' }), { abaInicial: 'fiscal' });
+    expect(pronto()).toContain('Pronto para nota');
+    expect(pronto()).not.toContain('Sem NCM');
   });
 
   it('com NCM, a ajuda explica a ordem da regra; com CEST, avisa que o CFOP não muda sozinho', () => {
@@ -318,6 +374,32 @@ describe('UC-PIDX-25 · aba Fiscal: origem, ajuda e "Abrir no módulo Fiscal"', 
     const { irPara } = abrir(comFiscal({ link_modulo: url }), { abaInicial: 'fiscal' });
     fireEvent.click(screen.getByRole('button', { name: 'Abrir no módulo Fiscal' }));
     expect(irPara).toHaveBeenCalledWith(url);
+  });
+});
+
+describe('UC-PIDX-25 · a aba Fiscal só existe em empresa que emite nota', () => {
+  // Decisão [F] 2026-10-26: o teste é ter o módulo Fiscal no pacote, o mesmo do botão "Abrir no
+  // módulo Fiscal". Quem vende sem nota não precisa de NCM, CEST nem CFOP.
+  const comNcm = () => {
+    const base = detalhe();
+    return detalhe({ fiscal: { ...base.fiscal, ncm: '49019900' } });
+  };
+
+  it('sem módulo Fiscal no pacote, não há aba Fiscal', () => {
+    const { painel } = abrir(comNcm(), { emiteNota: false });
+    expect(painel.getByRole('tab', { name: 'Prateleira' })).toBeTruthy(); // anti-vácuo: as abas estão lá
+    expect(painel.queryByRole('tab', { name: 'Fiscal' })).toBeNull();
+  });
+
+  it('pedida a aba Fiscal sem o módulo, abre em Dados e não mostra dado fiscal', () => {
+    const { painel } = abrir(comNcm(), { abaInicial: 'fiscal', emiteNota: false });
+    expect(painel.getByRole('tab', { name: 'Dados' }).getAttribute('aria-selected')).toBe('true');
+    expect(painel.queryByText('49019900')).toBeNull();
+  });
+
+  it('com o módulo, a aba existe', () => {
+    const { painel } = abrir(comNcm(), { emiteNota: true });
+    expect(painel.getByRole('tab', { name: 'Fiscal' })).toBeTruthy();
   });
 });
 
@@ -412,25 +494,13 @@ describe('UC-PIDX-11 · rodapé', () => {
       .map((b) => (b.textContent ?? '').trim())
       .filter((t) => ['Editar produto', 'Comprar', 'Preços por grupo', 'Imprimir', 'Fechar'].includes(t));
 
-  it('sai na ordem do protótipo', () => {
-    const { painel } = abrir(detalhe());
-    expect(rotulosDoRodape(painel)).toEqual(['Editar produto', 'Comprar', 'Preços por grupo', 'Imprimir', 'Fechar']);
-  });
-
-  it('"Comprar" leva à nova compra com o produto', () => {
+  it('sai na ordem do protótipo, sem "Comprar"', () => {
+    // Discriminante: produto ativo e com controle de estoque, o caso em que o "Comprar" aparecia até
+    // 2026-10-26. A consulta não é a tela de compras.
     const { painel, irPara } = abrir(detalhe());
-    fireEvent.click(painel.getByRole('button', { name: 'Comprar' }));
-    expect(irPara).toHaveBeenCalledWith('/purchases/create?produto=7');
-  });
-
-  it('"Comprar" some sem a permissão, e some para produto sem controle de estoque ou inativo', () => {
-    expect(rotulosDoRodape(abrir(detalhe(), { podeComprar: false }).painel)).not.toContain('Comprar');
-    cleanup();
-    const semEstoque = detalhe();
-    semEstoque.dados.controla_estoque = false;
-    expect(rotulosDoRodape(abrir(semEstoque).painel)).not.toContain('Comprar');
-    cleanup();
-    expect(rotulosDoRodape(abrir(detalhe({ inativo: true })).painel)).not.toContain('Comprar');
+    expect(rotulosDoRodape(painel)).toEqual(['Editar produto', 'Preços por grupo', 'Imprimir', 'Fechar']);
+    expect(painel.queryByRole('button', { name: /compr/i })).toBeNull();
+    expect(irPara).not.toHaveBeenCalled();
   });
 });
 
@@ -483,12 +553,19 @@ describe('UC-PIDX-20 · composição: total, preço da composição e preços do
     expect(painel.queryByText('Total líquido')).toBeNull();
   });
 
-  it('mostra o preço de venda padrão da composição sem imposto, com imposto e o % de lucro', () => {
+  it('mostra primeiro o preço cobrado (com imposto), depois o sem imposto e o % de lucro', () => {
     const { painel } = abrir(composto(), { abaInicial: 'composicao' });
     const linha = painel.getByText(/Preço de venda padrão da composição/).closest('p') as HTMLElement;
-    expect(linha.textContent).toContain(`${brl(45)} sem imposto`);
-    expect(linha.textContent).toContain(`${brl(49.5)} com imposto`);
+    expect(linha.textContent).toContain(`Preço de venda padrão da composição: ${brl(49.5)} (sem imposto ${brl(45)})`);
     expect(linha.textContent).toContain('% de lucro 50 %');
+  });
+
+  it('composição sem imposto: um preço só, sem o "sem imposto"', () => {
+    const v = composto().variacoes[0]!;
+    const { painel } = abrir(composto({ variacoes: [{ ...v, venda_inc: 45 }] }), { abaInicial: 'composicao' });
+    const linha = painel.getByText(/Preço de venda padrão da composição/).closest('p') as HTMLElement;
+    expect(linha.textContent).toContain(`Preço de venda padrão da composição: ${brl(45)}`);
+    expect(linha.textContent).not.toContain('sem imposto');
   });
 
   it('sem permissão de ver o preço de venda, a linha do preço da composição não aparece', () => {
@@ -501,12 +578,21 @@ describe('UC-PIDX-20 · composição: total, preço da composição e preços do
     expect(painel.getByRole('heading', { name: 'Preços dos itens' })).toBeTruthy();
     const tabela = painel.getByRole('table', { name: 'Preços dos itens da composição' });
     expect(within(tabela).getAllByRole('columnheader').map((th) => th.textContent)).toEqual([
-      'Item', 'Compra (incl.)', '% lucro', 'Venda (excl.)', 'Venda (incl.)',
+      'Item', 'Compra com imposto', '% lucro', 'Venda sem imposto', 'Venda com imposto',
     ]);
     const caneca = within(tabela).getByText('Caneca branca').closest('tr') as HTMLElement;
     expect(Array.from(caneca.querySelectorAll('td')).map((td) => td.textContent)).toEqual([
       'Caneca branca', brl(11), '40 %', brl(14), brl(15.4),
     ]);
+  });
+
+  it('itens sem imposto: uma coluna de compra e uma de venda, sem "sem/com imposto"', () => {
+    const itens = composto().composicao.map((c) => ({ ...c, compra_inc: c.compra_exc, venda_inc: c.venda_exc }));
+    const { painel } = abrir(composto({ composicao: itens }), { abaInicial: 'composicao' });
+    const precos = painel.getByRole('table', { name: 'Preços dos itens da composição' });
+    expect(within(precos).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['Item', 'Compra', '% lucro', 'Venda']);
+    const comp = painel.getByRole('table', { name: 'Composição' });
+    expect(within(comp).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['Produto', 'SKU', 'Qtd', 'Compra', 'Total']);
   });
 
   it('sem nenhuma permissão de preço, "Preços dos itens" não aparece', () => {

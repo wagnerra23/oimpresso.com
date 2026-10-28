@@ -65,7 +65,7 @@ class ProductCatalogueController extends Controller
     /**
      * GET /product-catalogue/catalogue-qr — tela admin pra gerar QR codes do catálogo.
      *
-     * @return \Inertia\Response|\Illuminate\View\View
+     * @return \Inertia\Response
      */
     public function generateQr()
     {
@@ -75,24 +75,9 @@ class ProductCatalogueController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Dual-render atrás de config('mwart.product_catalogue_qr') (thread modulos-faltantes/04).
-        // Ligada por padrão desde o cutover [W] 2026-10-13; desligada (env) segue a Blade. A vitrine
-        // pública (index/show acima) segue Blade e não muda.
-        if ($this->telaReactLigada($businessId)) {
-            return Inertia::render('ProductCatalogue/CatalogueQr', $this->qrService->buildPagePayload($businessId));
-        }
-
-        return view('productcatalogue::catalogue.generate_qr')->with($this->qrService->buildQrPayload($businessId));
-    }
-
-    private function telaReactLigada(int $businessId): bool
-    {
-        if (! config('mwart.product_catalogue_qr.enabled')) {
-            return false;
-        }
-
-        $permitidos = (array) config('mwart.product_catalogue_qr.business_ids', []);
-
-        return $permitidos === [] || in_array($businessId, $permitidos, true);
+        // Cutover F5 em 2026-10-27: a Blade catalogue/generate_qr e a chave
+        // mwart.product_catalogue_qr saíram (a tela React servia todas as empresas desde o
+        // cutover [W] de 2026-10-13). A vitrine pública (index/show acima) segue Blade.
+        return Inertia::render('ProductCatalogue/CatalogueQr', $this->qrService->buildPagePayload($businessId));
     }
 }

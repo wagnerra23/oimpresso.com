@@ -391,6 +391,12 @@ const derivar = (rep, rows, tab) => {
     const anormal = somaSe(rows, "total", "tipoAjuste", "Anormal");
     return { kpis: [["Total normal", normal, "info"], ["Total anormal", anormal, "warning"], ["Total de ajuste", normal + anormal, "danger"], ["Total recuperado", S("recuperado"), "success"]] };
   }
+  if (rep.id === "stock_report") {
+    // Resumo do topo da Blade (stock_report.blade.php, bloco @can view_product_stock_value; /reports/get-stock-value):
+    // estoque final pela compra e pela venda, lucro potencial e margem. Só aparece para quem vê o valor do estoque.
+    const custo = S("estoqueCusto"), venda = S("estoqueVenda"), lucro = S("lucroPot");
+    return { kpis: [["Estoque final (preço de compra)", custo, "info"], ["Estoque final (preço de venda)", venda, "info"], ["Lucro potencial", lucro, "success"], ["Margem de lucro", venda ? lucro / venda * 100 : 0, "info"]] };
+  }
   if (rep.id === "profit_loss") {
     const bruto = S("lucro");
     const despesas = 28740; // linha "Total de despesas" do painel de entradas (opening_stock)

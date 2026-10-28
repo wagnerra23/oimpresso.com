@@ -56,3 +56,45 @@ Status: 🧪
 `create.spreadsheet` a tela recebe `podeCriar = false`.
 
 Status: 🧪
+
+## UC-PLAN-06 · [T0] Não mexo no compartilhamento de planilha de outro negócio · `must`
+- **Persona:** usuário de um negócio com o módulo de planilhas.
+- **Aceite:** Dado uma planilha de outro negócio · Quando peço o compartilhamento dela ou gravo um compartilhamento nela ·
+  Então recebo 404 · E os compartilhamentos dela não mudam.
+- **Teste:** `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php` — `UC-PLAN-06 · [T0] não mexo no compartilhamento de planilha de outro negócio`.
+- **Regressão que defende:** até 2026-10-27 o `post-share-sheet` aceitava qualquer `sheet_id` e criava ou apagava
+  compartilhamento de planilha de outro negócio (ADR 0093).
+- **Status: ⬜** — escrito e na lane `spreadsheet-pest`; sem run do CI ainda.
+
+## UC-PLAN-07 · Só quem criou compartilha · `must`
+- **Persona:** colega que recebeu a planilha.
+- **Aceite:** Dado uma planilha que recebi · Quando tento compartilhá-la com um terceiro · Então recebo 404 · E nada muda.
+- **Teste:** `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php` — `UC-PLAN-07 · só quem criou compartilha; colega que recebeu não redistribui`.
+- **Regressão que defende:** a regra da Blade e da lista (Compartilhar só para quem criou) valer também no endpoint, não só
+  no botão (SPEC US-SHEET-003; charter "quem recebeu abre e edita, mas não redistribui").
+- **Status: ⬜** — escrito e na lane `spreadsheet-pest`; sem run do CI ainda.
+
+## UC-PLAN-08 · [T0] Compartilhar só com gente do negócio · `must`
+- **Persona:** dono da planilha.
+- **Aceite:** Dado uma planilha minha · Quando compartilho com um colega e com um usuário de outro negócio · Então o colega
+  entra · E o id de fora é ignorado.
+- **Teste:** `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php` — `UC-PLAN-08 · [T0] o dono compartilha com gente do negócio; id de outro negócio é ignorado`.
+- **Regressão que defende:** o `post-share-sheet` gravava qualquer id em `shared_id`, inclusive usuário de outro negócio
+  (ADR 0093).
+- **Status: ⬜** — escrito e na lane `spreadsheet-pest`; sem run do CI ainda.
+
+## UC-PLAN-09 · Compartilhamento em JSON para a tela React · `must`
+- **Persona:** dono da planilha abrindo "Compartilhar…" na lista.
+- **Aceite:** Dado uma planilha minha compartilhada com um colega · Quando a tela pede o compartilhamento em JSON · Então
+  recebo usuários, funções e tarefas do negócio, sem usuário de outro negócio · E `selecionados.user` traz o colega.
+- **Teste:** `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php` — `UC-PLAN-09 · a tela React recebe o compartilhamento em JSON, só com gente do negócio`.
+- **Regressão que defende:** a lista da Blade (`share_sheet`) usa os dropdowns do negócio; a tela React não pode ampliar isso
+  (SPEC US-SHEET-003; ADR 0093).
+- **Status: ⬜** — escrito e na lane `spreadsheet-pest`; sem run do CI ainda.
+
+## UC-PLAN-10 · Excluir só a planilha que criei · `must`
+- **Persona:** usuário com planilhas próprias e recebidas.
+- **Aceite:** Dado uma planilha minha e uma recebida de colega · Quando excluo as duas pela tela · Então só a minha some.
+- **Teste:** `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php` — `UC-PLAN-10 · excluir pela tela React só apaga planilha que eu criei`.
+- **Regressão que defende:** a regra da Blade (excluir só quem criou) valer no endpoint chamado pela tela nova.
+- **Status: ⬜** — escrito e na lane `spreadsheet-pest`; sem run do CI ainda.

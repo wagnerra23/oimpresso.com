@@ -14,7 +14,7 @@ module: Repair
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Repair/**` + `resources/js/Pages/Repair/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 219 arquivos em 17 papéis.
+**Total mapeado:** 215 arquivos em 17 papéis.
 
 ## Controllers — 11
 
@@ -98,11 +98,8 @@ module: Repair
 - [config.php](../../../Modules/Repair/Config/config.php)
 - [retention.php](../../../Modules/Repair/Config/retention.php)
 
-## Views (Blade) — 50
+## Views (Blade) — 46
 
-- [index.blade.php](../../../Modules/Repair/Resources/views/customer_repair/index.blade.php)
-- [repair_activities.blade.php](../../../Modules/Repair/Resources/views/customer_repair/repair_activities.blade.php)
-- [repair_details.blade.php](../../../Modules/Repair/Resources/views/customer_repair/repair_details.blade.php)
 - [index.blade.php](../../../Modules/Repair/Resources/views/dashboard/index.blade.php)
 - [create.blade.php](../../../Modules/Repair/Resources/views/device_model/create.blade.php)
 - [edit.blade.php](../../../Modules/Repair/Resources/views/device_model/edit.blade.php)
@@ -132,7 +129,6 @@ module: Repair
 - [javascripts.blade.php](../../../Modules/Repair/Resources/views/layouts/partials/javascripts.blade.php)
 - [pos_header.blade.php](../../../Modules/Repair/Resources/views/layouts/partials/pos_header.blade.php)
 - [plain.blade.php](../../../Modules/Repair/Resources/views/layouts/plain.blade.php)
-- [repair_status.blade.php](../../../Modules/Repair/Resources/views/layouts/repair_status.blade.php)
 - [index.blade.php](../../../Modules/Repair/Resources/views/repair/index.blade.php)
 - [activities.blade.php](../../../Modules/Repair/Resources/views/repair/partials/activities.blade.php)
 - [checklist_modal.blade.php](../../../Modules/Repair/Resources/views/repair/partials/checklist_modal.blade.php)

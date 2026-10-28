@@ -4,6 +4,7 @@ namespace Modules\Essentials\Http\Controllers;
 
 use App\Utils\ModuleUtil;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
@@ -119,17 +120,19 @@ class EssentialsLeaveTypeController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * O formulário de criar mora no painel lateral da lista (Essentials/Tipos).
      *
-     * @return Response
+     * Antes devolvia `view('essentials::create')`, view que não existe no módulo: o botão
+     * "Novo tipo" da tela Inertia levava a um erro 500. Link antigo cai na lista, onde o
+     * botão abre o painel.
      */
-    public function create()
+    public function create(): RedirectResponse
     {
         if (! auth()->user()->can('essentials.crud_leave_type')) {
             abort(403, 'Unauthorized action.');
         }
 
-        return view('essentials::create');
+        return redirect('/hrm/leave-type');
     }
 
     /**
@@ -150,12 +153,10 @@ class EssentialsLeaveTypeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $input = $this->validarTipo($request);
+        $input['business_id'] = $business_id;
+
         try {
-            $input = $request->only(['leave_type', 'max_leave_count', 'leave_count_interval']);
-            $input['ferias_clt'] = $request->boolean('ferias_clt'); // US-PONTO-018
-
-            $input['business_id'] = $business_id;
-
             EssentialsLeaveType::create($input);
             $output = ['success' => true,
                 'msg' => __('lang_v1.added_success'),
@@ -182,11 +183,11 @@ class EssentialsLeaveTypeController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @return Response
+     * O formulário de editar mora no painel lateral da lista, que já tem os dados da linha.
+     * O fragmento de modal Blade que vivia aqui abria sem layout quando a tela Inertia
+     * navegava para ele.
      */
-    public function edit($id)
+    public function edit($id): RedirectResponse
     {
         $business_id = request()->session()->get('user.business_id');
 
@@ -198,10 +199,7 @@ class EssentialsLeaveTypeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $leave_type = EssentialsLeaveType::where('business_id', $business_id)
-                                        ->find($id);
-
-        return view('essentials::leave_type.edit')->with(compact('leave_type'));
+        return redirect('/hrm/leave-type');
     }
 
     /**
@@ -221,14 +219,10 @@ class EssentialsLeaveTypeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        try {
-            $input = $request->only(['leave_type', 'max_leave_count',
-                'leave_count_interval', ]);
-            // US-PONTO-018: o tipo diz por dado se consome o saldo de férias da CLT.
-            // Checkbox desmarcado não vem no POST, logo `boolean()` grava `false`.
-            $input['ferias_clt'] = $request->boolean('ferias_clt');
+        $input = $this->validarTipo($request);
+        $input['business_id'] = $business_id;
 
-            $input['business_id'] = $business_id;
+        try {
 
             EssentialsLeaveType::where('business_id', $business_id)
                             ->where('id', $id)
@@ -311,5 +305,38 @@ class EssentialsLeaveTypeController extends Controller
         }
 
         return response()->json($output);
+    }
+
+    /**
+     * Campos do tipo, validados. Antes store/update gravavam `$request->only()` cru: nome
+     * vazio passava, e limite em branco chegava como '' numa coluna int.
+     *
+     * Limite vazio vira `null` ("sem limite"), nunca 0 — 0 diria "zero dias permitidos"
+     * (charter, Anti-hooks). Sem limite, o intervalo também fica nulo.
+     *
+     * @return array<string, mixed>
+     */
+    private function validarTipo(Request $request): array
+    {
+        $dados = $request->validate([
+            'leave_type' => ['required', 'string', 'max:191'],
+            'max_leave_count' => ['nullable', 'integer', 'min:1', 'max:366'],
+            'leave_count_interval' => ['nullable', 'in:month,year'],
+        ], [], [
+            'leave_type' => 'nome do tipo',
+            'max_leave_count' => 'limite',
+            'leave_count_interval' => 'intervalo',
+        ]);
+
+        $limite = $dados['max_leave_count'] ?? null;
+
+        return [
+            'leave_type' => trim((string) $dados['leave_type']),
+            'max_leave_count' => $limite !== null ? (int) $limite : null,
+            'leave_count_interval' => $limite !== null ? ($dados['leave_count_interval'] ?? null) : null,
+            // US-PONTO-018: o tipo diz por dado se consome o saldo de férias da CLT.
+            // Checkbox desmarcado não vem no POST, logo `boolean()` grava `false`.
+            'ferias_clt' => $request->boolean('ferias_clt'),
+        ];
     }
 }

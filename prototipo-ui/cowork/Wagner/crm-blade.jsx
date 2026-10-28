@@ -124,6 +124,23 @@ const RECORRENTES = [
   { id: 203, status: "canceled", tipo: "email", cat: "prospec", por: "orders", dias: 30, quem: ["Marcos Vinícius"], desc: "Sem pedido em 30 dias — desativado por volume.", extra: "Substituído pelo de 90 dias.", titulo: "Reativação 30 dias", autor: "Wagner Ramos", criado: dia(150) },
 ];
 
+// Chamados de garantia (US-CRM-094) — acompanhamento com garantia=1. Prazo = abertura + horas da
+// política do tipo (crm_sla_politicas); "sla" é o estado do prazo: no prazo · vencendo (dentro da
+// janela de alerta, 4h) · vencido. Ligado a uma venda OU a uma OS do Repair.
+const FILAS = ["Assistência", "Balcão", "Instalação"];
+const POLITICAS_SLA = [
+  { cat: "defeito", tipo: "Defeito de fábrica", horas: 24, fila: "Assistência", quem: "Marcos Vinícius" },
+  { cat: "instalacao", tipo: "Instalação", horas: 48, fila: "Instalação", quem: "Larissa Prado" },
+  { cat: null, tipo: "Padrão da empresa", horas: 72, fila: "Balcão", quem: "" },
+];
+const GARANTIAS = [
+  { id: 301, contato: "Padaria Estrela", origem: "Venda POS-2026-0471", cat: "defeito", fila: "Assistência", quem: "Marcos Vinícius", aberto: dia(-1) + " " + hm(10, 0), vence: dia(0) + " " + hm(10, 0), sla: "vencendo", status: "open", relato: "Lona desbotou em 2 meses na fachada." },
+  { id: 302, contato: "Martinho Oficina", origem: "OS OS-2026-0312", cat: "defeito", fila: "Assistência", quem: "Marcos Vinícius", aberto: dia(-2) + " " + hm(9, 0), vence: dia(-1) + " " + hm(9, 0), sla: "vencido", status: "open", relato: "Voltou com o mesmo ruído no compressor." },
+  { id: 303, contato: "Agência Norte", origem: "Venda POS-2026-0455", cat: "instalacao", fila: "Instalação", quem: "Larissa Prado", aberto: dia(0) + " " + hm(8, 0), vence: dia(2) + " " + hm(8, 0), sla: "ok", status: "open", relato: "Placa do shopping descolou no canto." },
+  { id: 304, contato: "Mercado União", origem: "Venda POS-2026-0390", cat: null, fila: "Balcão", quem: "Wagner Ramos", aberto: dia(-5) + " " + hm(14, 0), vence: dia(-2) + " " + hm(14, 0), sla: "ok", status: "completed", relato: "Adesivo da vitrine com bolha." },
+];
+const SLA = { ok: { l: "No prazo", tom: "ok" }, vencendo: { l: "Vencendo", tom: "warn" }, vencido: { l: "Vencido", tom: "neg" } };
+
 // Painel (CrmDashboardController) — números do crm_dashboard/index.blade.php.
 const PAINEL = {
   todaysFollowups: 4, myLeads: 6, myConversion: 3,
@@ -578,6 +595,31 @@ function TelaAcompanhamentos({ avisar, densa, setDensa, abrir }) {
 
   const contagem = (campo, l) => l.map((x) => ({ l: x.name, n: rows.filter((r) => r[campo] === x.id).length })).filter((x) => x.n);
 
+  // Aba Garantia (US-CRM-094): o chamado é acompanhamento com garantia=1, ordenado pelo prazo.
+  const [garantias, setGarantias] = useState(GARANTIAS);
+  const [chamado, setChamado] = useState(null);
+  const politicaDe = (cat) => POLITICAS_SLA.find((p) => p.cat === cat) || POLITICAS_SLA.find((p) => p.cat === null);
+  const colsGar = [
+    { key: "acao", label: "Ação", width: 92, resizable: false },
+    { key: "prazo", label: "Prazo", width: 118 },
+    { key: "vence", label: "Vence em", width: 150, mono: true, sortable: true },
+    { key: "contato", label: "Contato", width: 190, sortable: true },
+    { key: "origem", label: "Venda / OS", width: 170, mono: true },
+    { key: "cat", label: "Tipo", width: 150 },
+    { key: "fila", label: "Fila", width: 130 },
+    { key: "quem", label: "Responsável", width: 160 },
+    { key: "status", label: "Status", width: 120 },
+    { key: "relato", label: "Defeito relatado", width: 300 },
+  ];
+  const abertos = garantias.filter((g) => g.status !== "completed" && g.status !== "canceled");
+  const gradeGar = [...garantias].sort((a, b) => (a.vence > b.vence ? 1 : -1)).map((g) => ({
+    id: g.id, _s: g,
+    acao: <button className="os-btn sm ghost" onClick={() => setVer({ ...g, titulo: "Garantia: " + g.relato, tipo: "call", desc: g.relato, quem: [g.quem], inicio: g.aberto, fim: g.vence, extra: g.origem + " · fila " + g.fila, por: g.quem })}>Ver</button>,
+    prazo: g.status === "completed" ? <Pill tom="mute">Encerrado</Pill> : <Pill tom={SLA[g.sla].tom}>{SLA[g.sla].l}</Pill>,
+    vence: g.vence, contato: g.contato, origem: g.origem, cat: politicaDe(g.cat).tipo, fila: g.fila, quem: g.quem,
+    status: <Pill tom={TOM[g.status]}>{rotulo(STATUS, g.status)}</Pill>, relato: g.relato,
+  }));
+
   return (
     <>
       <Filtros nota="Contato, responsável, status, tipo, período, acompanhamento por e categoria." f={f} setF={setF} campos={[
@@ -593,10 +635,22 @@ function TelaAcompanhamentos({ avisar, densa, setDensa, abrir }) {
         <Toolbar busca={busca} setBusca={setBusca} ph="Buscar por título ou contato" densa={densa} setDensa={setDensa}>
           <button className="os-btn sm" onClick={() => abrir("recorrente")}><Ic name="plus" size={12} /> Recorrente</button>
           <button className="os-btn sm" onClick={() => abrir("antecipado")}><Ic name="plus" size={12} /> Acompanhamento antecipado</button>
-          <button className="os-btn sm primary" onClick={() => setNovo({ status: "scheduled", tipo: "call", notificar: false, via: { mail: true, sms: false }, antes: 30, unidade: "minute" })}><Ic name="plus" size={12} /> Adicionar</button>
+          {aba === "garantia"
+            ? <button className="os-btn sm primary" onClick={() => setChamado({ cat: "defeito" })}><Ic name="plus" size={12} /> Abrir chamado de garantia</button>
+            : <button className="os-btn sm primary" onClick={() => setNovo({ status: "scheduled", tipo: "call", notificar: false, via: { mail: true, sms: false }, antes: 30, unidade: "minute" })}><Ic name="plus" size={12} /> Adicionar</button>}
         </Toolbar>
-        {window.CliTabs && <window.CliTabs ariaLabel="Abas de acompanhamento" pad={12} tabs={[{ key: "todos", label: "Acompanhamentos" }, { key: "recor", label: "Acompanhamento recorrente" }]} active={aba} onChange={setAba} />}
-        {aba === "todos"
+        {window.CliTabs && <window.CliTabs ariaLabel="Abas de acompanhamento" pad={12} tabs={[{ key: "todos", label: "Acompanhamentos" }, { key: "recor", label: "Acompanhamento recorrente" }, { key: "garantia", label: "Garantia (" + abertos.length + ")" }]} active={aba} onChange={setAba} />}
+        {aba === "garantia"
+          ? <>
+              <Grade columns={colsGar} rows={gradeGar} densa={densa} altura={300} onRowClick={(r) => setVer({ ...r._s, titulo: "Garantia: " + r._s.relato, tipo: "call", desc: r._s.relato, quem: [r._s.quem], inicio: r._s.aberto, fim: r._s.vence, extra: r._s.origem + " · fila " + r._s.fila, por: r._s.quem })} />
+              <Rodape>
+                <span className="pb-help">Abertos: {abertos.length}</span>
+                <div className="sp" />
+                <span className="pb-help">{Object.keys(SLA).map((k) => SLA[k].l + ": " + abertos.filter((g) => g.sla === k).length).join(" · ")}</span>
+                <span className="pb-help">Alerta ao responsável 4h antes do vencimento.</span>
+              </Rodape>
+            </>
+          : aba === "todos"
           ? <>
               <Grade columns={cols} rows={grade} densa={densa} altura={430} onRowClick={(r) => setVer(r._s)} />
               <Rodape>
@@ -608,6 +662,34 @@ function TelaAcompanhamentos({ avisar, densa, setDensa, abrir }) {
             </>
           : <Grade columns={colsRec} rows={gradeRec} densa={densa} altura={300} />}
       </Widget>
+
+      {Modal && chamado &&
+        <Modal titulo="Abrir chamado de garantia" onClose={() => setChamado(null)}
+          acoes={<>
+            <button className="os-btn" onClick={() => setChamado(null)}>Fechar</button>
+            <button className="os-btn primary" onClick={() => {
+              if (!chamado.contato || !chamado.origem) return avisar("Cliente e venda ou OS são obrigatórios.", "warn");
+              if (!chamado.relato || chamado.relato.length < 5) return avisar("Descreva o defeito.", "warn");
+              const p = politicaDe(chamado.cat);
+              setGarantias((gs) => [{
+                id: Date.now(), contato: chamado.contato, origem: chamado.origem, cat: chamado.cat, fila: chamado.fila || p.fila,
+                quem: chamado.quem || p.quem || "Wagner Ramos", aberto: dia(0) + " " + hm(9, 0), vence: "em " + p.horas + "h", sla: "ok", status: "open", relato: chamado.relato,
+              }, ...gs]);
+              setChamado(null); avisar("Chamado de garantia aberto.", "ok");
+            }}>Abrir chamado</button>
+          </>}>
+          <div className="pb-grid c3">
+            <Fld label="Cliente" req><Sel value={chamado.contato || ""} onChange={(v) => setChamado({ ...chamado, contato: v })} options={LEADS.map((l) => ({ id: l.nome, name: l.nome }))} vazio="Selecione" /></Fld>
+            <Fld label="Venda ou OS" req span={2}><input value={chamado.origem || ""} onChange={(e) => setChamado({ ...chamado, origem: e.target.value })} placeholder="POS-2026-0471 ou OS-2026-0312" /></Fld>
+            <Fld label="Tipo" req><Sel value={chamado.cat || ""} onChange={(v) => setChamado({ ...chamado, cat: v })} options={POLITICAS_SLA.filter((p) => p.cat).map((p) => ({ id: p.cat, name: p.tipo }))} vazio="Padrão da empresa" /></Fld>
+            <Fld label="Fila"><Sel value={chamado.fila || ""} onChange={(v) => setChamado({ ...chamado, fila: v })} options={FILAS.map((x) => ({ id: x, name: x }))} vazio={"Da política (" + politicaDe(chamado.cat).fila + ")"} /></Fld>
+            <Fld label="Responsável"><Sel value={chamado.quem || ""} onChange={(v) => setChamado({ ...chamado, quem: v })} options={USUARIOS.map((u) => ({ id: u, name: u }))} vazio={politicaDe(chamado.cat).quem ? "Da política (" + politicaDe(chamado.cat).quem + ")" : "Quem abre"} /></Fld>
+            <Fld label="Defeito relatado" req span={3}><textarea value={chamado.relato || ""} onChange={(e) => setChamado({ ...chamado, relato: e.target.value })} /></Fld>
+          </div>
+          <p className="pb-help" style={{ marginTop: 10 }}>
+            Prazo: {politicaDe(chamado.cat).horas}h a partir da abertura ({politicaDe(chamado.cat).tipo}). O responsável é avisado 4h antes de vencer.
+          </p>
+        </Modal>}
 
       {Modal && novo &&
         <Modal titulo="Adicionar acompanhamento" onClose={() => setNovo(null)}

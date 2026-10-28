@@ -1,5 +1,5 @@
 // @memcofre
-//   tela: /superadmin/frontend-pages?tela=nova
+//   tela: /superadmin/frontend-pages
 //   module: Superadmin
 //   stories: thread Superadmin/08 (Blade/AdminLTE → Inertia) · decisão [W] D-PAG 2026-10-07
 //   permissao: superadmin
@@ -9,8 +9,8 @@
 // Âncora de design: n/a — herda PT-01 Lista + drawer PT-02 (não há sa-paginas no protótipo).
 // RUNBOOK: memory/requisitos/Superadmin/RUNBOOK-paginas.md
 //
-// Entra atrás da chave `?tela=nova`; sem ela o backend serve a Blade. A lista NÃO imprime o HTML
-// da página (a Blade imprimia) — mostra resumo sem tag. O HTML só aparece na página pública.
+// Tela padrão desde o cutover de 2026-10-27 (as Blades pages.index/create/edit saíram). A lista NÃO
+// imprime o HTML da página (a Blade imprimia) — mostra resumo sem tag. O HTML só aparece na página pública.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router, useForm } from '@inertiajs/react';

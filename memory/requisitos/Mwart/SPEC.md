@@ -265,7 +265,7 @@ Domínio J, ≈45 fn que leem TODOS os domínios. **Adversário [CD]:** Metabase
 > owner: — · priority: p3 · estimate: 8h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
 
-**Implementado em:** _parcial_ · `resources/js/Pages/Site/Login.tsx` · verificado@8af585a (2026-07-02) — login React vivo como default (LoginController); critério de desligamento NÃO atingido: /login/old segue registrado em routes/web.php (L178) e register/password-reset/business-register/social-auth/install continuam Blade
+**Implementado em:** _parcial_ · `resources/js/Pages/Site/Login.tsx` · verificado@8af585a (2026-07-02) — login React vivo como default (LoginController); critério de desligamento NÃO atingido: register/password-reset/business-register/social-auth/install continuam Blade (o /login/old foi removido em 2026-10-27, por decisão [W])
 
 Domínio A, ≈10 fn. **Adversário [CD]:** WorkOS + Linear (login limpo, social, sem AdminLTE). Baixa frequência → tarde, mas é a primeira impressão.
 

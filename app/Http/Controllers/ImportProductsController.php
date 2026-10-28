@@ -47,7 +47,7 @@ class ImportProductsController extends Controller
     /**
      * Display import product screen.
      *
-     * @return \Illuminate\View\View|\Inertia\Response
+     * @return \Inertia\Response
      */
     public function index()
     {
@@ -57,29 +57,16 @@ class ImportProductsController extends Controller
 
         $zip_loaded = extension_loaded('zip') ? true : false;
 
-        // Playbook Produto · thread 05: a tela é Inertia; `?classico=1` mantém a Blade.
-        if (! request()->boolean('classico')) {
-            return Inertia::render('Produto/Importacao/Index', [
-                'modo' => 'produtos',
-                'zip' => $zip_loaded,
-                'aviso' => session('notification'),
-                'resultado' => session('status'),
-                'conferencia' => session('conferencia'),
-                'modelo' => asset('files/import_products_csv_template.xls'),
-            ]);
-        }
-
-        //Check if zip extension it loaded or not.
-        if ($zip_loaded === false) {
-            $output = ['success' => 0,
-                'msg' => 'Please install/enable PHP Zip archive for import',
-            ];
-
-            return view('import_products.index')
-                ->with('notification', $output);
-        } else {
-            return view('import_products.index');
-        }
+        // Playbook Produto · thread 05: a tela é Inertia. A Blade `import_products.index` saiu
+        // no cutover de 2026-10-27 (MWART F5, ADR 0104); `?classico=1` não abre mais nada diferente.
+        return Inertia::render('Produto/Importacao/Index', [
+            'modo' => 'produtos',
+            'zip' => $zip_loaded,
+            'aviso' => session('notification'),
+            'resultado' => session('status'),
+            'conferencia' => session('conferencia'),
+            'modelo' => asset('files/import_products_csv_template.xls'),
+        ]);
     }
 
     /**

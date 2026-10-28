@@ -79,6 +79,9 @@ function FichaOs({ id, onClose }) {
   const [refugo, setRefugo] = useState(os ? os.refugo || [] : []);
   const [novo, setNovo] = useState(null);
   const [corr, setCorr] = useState(null);
+  // Terceiros da OS (US-COMVIS-005): serviço comprado fora que entra no custo real. Não mexe em preço.
+  const [terc, setTerc] = useState(os ? os.terceiros || [] : []);
+  const [novoTerc, setNovoTerc] = useState(null);
   if (window.PcvEventos) window.PcvEventos.useEventos();
   if (!os || !Drawer) return null;
   const es = D.etapas(os); const pr = D.progresso(os); const atr = D.atraso(os);
@@ -132,9 +135,24 @@ function FichaOs({ id, onClose }) {
             <thead><tr><th scope="col">Etapa</th><th scope="col" className="ta-r">Previsto</th><th scope="col" className="ta-r">Real</th><th scope="col" className="ta-r">Desvio</th></tr></thead>
             <tbody>{es.map((e, i) => { const p = e.prev * HORA, r = e.real * HORA; return <tr key={i}><td>{e.nome}</td><td className="ta-r mono">{D.fmt(p)}</td><td className="ta-r mono">{e.real ? D.fmt(r) : "—"}</td><td className={"ta-r mono" + (r > p ? " pcv-late" : "")}>{e.real ? (r > p ? "+" : "") + D.fmt(r - p) : "—"}</td></tr>; })}
               <tr className="pcv-tbl-sub"><td>Material (mídia, tinta, ferragem)</td><td className="ta-r mono">{D.fmt(os.orcado * 0.42)}</td><td className="ta-r mono">{D.fmt(os.real * 0.45)}</td><td className="ta-r mono">{os.perda ? "perda " + os.perda.toString().replace(".", ",") + "%" : "—"}</td></tr>
+              <tr className="pcv-tbl-sub"><td>Terceiros (serviço comprado fora)</td><td className="ta-r mono">—</td><td className="ta-r mono">{terc.length ? D.fmt(terc.reduce((s, t) => s + t.valor, 0)) : "—"}</td><td className="ta-r mono">{terc.length ? "+" + D.fmt(terc.reduce((s, t) => s + t.valor, 0)) : "—"}</td></tr>
             </tbody>
           </table>
           <p className="pcv-help">Hora de máquina + operador a {D.fmt(HORA)}/h (configurável por posto). Material real vem da baixa feita no apontamento.</p>
+
+          <h4 className="pcv-eyebrow">Terceiros</h4>
+          {terc.length ? <ul className="pcv-refugo" aria-label="Terceiros lançados nesta OS">{terc.map((t, i) => (
+            <li key={i}><div><b>{t.descricao}</b><small>{(t.fornecedor || "sem fornecedor") + " · " + t.quem + " · " + t.quando}</small></div>
+              <b className="mono">{D.fmt(t.valor)}</b>
+              <Button size="sm" variant="ghost" onClick={() => { D.registrar({ os: os.id, tipo: "pcp", texto: "Removeu terceiro: " + t.descricao + " (" + D.fmt(t.valor) + ")" }); setTerc(terc.filter((_, k) => k !== i)); }}>Remover</Button></li>))}</ul>
+            : <p className="pcv-help">Nenhum terceiro lançado nesta OS.</p>}
+          {novoTerc ? <div className="pcv-form">
+            {Input && <Input label="O que foi comprado fora" value={novoTerc.descricao} placeholder="Ex.: corte CNC, instalação terceirizada, frete" onChange={(e) => setNovoTerc({ ...novoTerc, descricao: e.target.value })} />}
+            {Input && <Input label="Fornecedor (opcional)" value={novoTerc.fornecedor} onChange={(e) => setNovoTerc({ ...novoTerc, fornecedor: e.target.value })} />}
+            {Input && <Input label="Valor (R$)" value={novoTerc.valor} placeholder="0,00" onChange={(e) => setNovoTerc({ ...novoTerc, valor: e.target.value })} />}
+            <div className="pcv-bar"><Button onClick={() => setNovoTerc(null)}>Cancelar</Button><Button variant="primary" disabled={!novoTerc.descricao.trim() || !(parseFloat(String(novoTerc.valor).replace(".", "").replace(",", ".")) > 0)} onClick={() => { const valor = parseFloat(String(novoTerc.valor).replace(".", "").replace(",", ".")); D.registrar({ os: os.id, tipo: "pcp", texto: "Lançou terceiro: " + novoTerc.descricao + " (" + D.fmt(valor) + ")" }); setTerc([...terc, { descricao: novoTerc.descricao.trim(), fornecedor: novoTerc.fornecedor.trim(), valor, quem: "Você", quando: "agora" }]); setNovoTerc(null); }}>Lançar</Button></div>
+          </div> : Button && <Button onClick={() => setNovoTerc({ descricao: "", fornecedor: "", valor: "" })}>Lançar terceiro</Button>}
+          <p className="pcv-help">O terceiro entra no custo real da OS e na margem; o preço da OS não muda. Só quem cuida do custo lança ou remove.</p>
         </div>}
 
         {aba === "refugo" && <div className="pcv-sec">

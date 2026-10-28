@@ -14,7 +14,7 @@ module: Manufacturing
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 163 arquivos em 17 papéis.
+**Total mapeado:** 157 arquivos em 17 papéis.
 
 ## Controllers — 6
 
@@ -86,7 +86,7 @@ module: Manufacturing
 - [config.php](../../../Modules/Manufacturing/Config/config.php)
 - [retention.php](../../../Modules/Manufacturing/Config/retention.php)
 
-## Views (Blade) — 20
+## Views (Blade) — 14
 
 - [index.blade.php](../../../Modules/Manufacturing/Resources/views/index.blade.php)
 - [master.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/master.blade.php)
@@ -99,14 +99,8 @@ module: Manufacturing
 - [production_script.blade.php](../../../Modules/Manufacturing/Resources/views/production/production_script.blade.php)
 - [report.blade.php](../../../Modules/Manufacturing/Resources/views/production/report.blade.php)
 - [show.blade.php](../../../Modules/Manufacturing/Resources/views/production/show.blade.php)
-- [add_ingredients.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/add_ingredients.blade.php)
-- [create.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/create.blade.php)
-- [index.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/index.blade.php)
-- [ingredient_group.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredient_group.blade.php)
-- [ingredient_row.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredient_row.blade.php)
 - [ingredient_row_for_production.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredient_row_for_production.blade.php)
 - [ingredients_for_production.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/ingredients_for_production.blade.php)
-- [show.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/show.blade.php)
 - [index.blade.php](../../../Modules/Manufacturing/Resources/views/settings/index.blade.php)
 
 ## Telas (Inertia/React) — 6

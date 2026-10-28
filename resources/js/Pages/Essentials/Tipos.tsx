@@ -19,7 +19,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { CalendarClock, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -36,7 +36,20 @@ import {
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
-import { Inline } from '@/Components/layout';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/Components/ui/sheet';
+import { Inline, Stack } from '@/Components/layout';
 
 interface LeaveType {
   id: number;
@@ -65,9 +78,184 @@ const intervaloLabel = (t: LeaveType) => {
   return '—';
 };
 
+const csrfToken = () =>
+  (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+
+/** Sem intervalo no Select: o Radix não aceita valor vazio, então "nenhum" tem sentinela. */
+const SEM_INTERVALO = 'none';
+
+interface PainelProps {
+  /** `null` fechado · `'novo'` criando · tipo = editando. */
+  alvo: LeaveType | 'novo' | null;
+  onClose: () => void;
+}
+
+/**
+ * Painel lateral de criar/editar tipo (PT-02). Substitui o `create` Blade, que dava 500
+ * (view inexistente), e o fragmento de modal do `edit`, que abria sem layout.
+ *
+ * POST/PUT por `fetch`, não `router.post`: o store/update devolvem JSON `{success,msg}`
+ * e a validação devolve 422 com `errors` — mesmo motivo da exclusão (ver confirmDelete).
+ */
+function TipoPainel({ alvo, onClose }: PainelProps) {
+  const editando = alvo !== null && alvo !== 'novo' ? alvo : null;
+  const [nome, setNome] = useState('');
+  const [limite, setLimite] = useState('');
+  const [intervalo, setIntervalo] = useState<string>(SEM_INTERVALO);
+  const [feriasClt, setFeriasClt] = useState(false);
+  const [erros, setErros] = useState<Record<string, string>>({});
+  const [salvando, setSalvando] = useState(false);
+  const [abertoPara, setAbertoPara] = useState<LeaveType | 'novo' | null>(null);
+
+  // Preenche ao abrir (ou ao trocar de linha), sem effect: estado derivado do alvo.
+  if (alvo !== abertoPara) {
+    setAbertoPara(alvo);
+    setNome(editando?.leave_type ?? '');
+    setLimite(editando?.max_leave_count ? String(editando.max_leave_count) : '');
+    setIntervalo(editando?.leave_count_interval ?? SEM_INTERVALO);
+    setFeriasClt(editando?.ferias_clt ?? false);
+    setErros({});
+  }
+
+  const salvar = async (e: FormEvent) => {
+    e.preventDefault();
+    setSalvando(true);
+    setErros({});
+    const corpo: Record<string, unknown> = {
+      leave_type: nome,
+      max_leave_count: limite.trim() === '' ? null : Number(limite),
+      leave_count_interval: limite.trim() === '' || intervalo === SEM_INTERVALO ? null : intervalo,
+    };
+    // Desmarcado não vai no corpo: o servidor lê `boolean()` e grava false (UC-TIPOS-10).
+    if (feriasClt) corpo.ferias_clt = 1;
+
+    try {
+      const r = await fetch(editando ? `/hrm/leave-type/${editando.id}` : '/hrm/leave-type', {
+        method: editando ? 'PUT' : 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(corpo),
+      });
+      const json = await r.json().catch(() => ({ success: false }));
+
+      if (r.status === 422 && json?.errors) {
+        const porCampo: Record<string, string> = {};
+        for (const [campo, msgs] of Object.entries(json.errors as Record<string, string[]>)) {
+          porCampo[campo] = msgs[0];
+        }
+        setErros(porCampo);
+        return;
+      }
+      if (!r.ok || !json?.success) {
+        toast.error(json?.msg || 'Não foi possível salvar o tipo de licença.');
+        return;
+      }
+      toast.success(editando ? 'Tipo de licença atualizado.' : 'Tipo de licença criado.');
+      onClose();
+      router.reload({ only: ['tipos'] });
+    } catch {
+      toast.error('Falha de rede ao salvar o tipo de licença.');
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const semLimite = limite.trim() === '';
+
+  return (
+    <Sheet open={alvo !== null} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent className="w-full overflow-y-auto sm:max-w-md" data-contract="drawer">
+        <Stack asChild gap={0} className="h-full">
+        <form onSubmit={salvar}>
+          <SheetHeader>
+            <SheetTitle>{editando ? 'Editar tipo de licença' : 'Novo tipo de licença'}</SheetTitle>
+            <SheetDescription>
+              O limite é informativo hoje: o pedido de licença ainda não o confere.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="space-y-4 px-4">
+            <div className="space-y-1">
+              <Label htmlFor="tipo-nome">Nome *</Label>
+              <Input
+                id="tipo-nome"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                maxLength={191}
+                required
+                autoFocus
+              />
+              {erros.leave_type && <p className="text-xs text-destructive">{erros.leave_type}</p>}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="tipo-limite">Limite em dias</Label>
+              <Input
+                id="tipo-limite"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={366}
+                step={1}
+                placeholder="sem limite"
+                value={limite}
+                onChange={(e) => setLimite(e.target.value)}
+              />
+              {erros.max_leave_count && (
+                <p className="text-xs text-destructive">{erros.max_leave_count}</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="tipo-intervalo">Intervalo</Label>
+              <Select value={semLimite ? SEM_INTERVALO : intervalo} onValueChange={setIntervalo} disabled={semLimite}>
+                <SelectTrigger id="tipo-intervalo">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SafeSelectItem value={SEM_INTERVALO}>—</SafeSelectItem>
+                  <SafeSelectItem value="month">por mês</SafeSelectItem>
+                  <SafeSelectItem value="year">por ano</SafeSelectItem>
+                </SelectContent>
+              </Select>
+              {erros.leave_count_interval && (
+                <p className="text-xs text-destructive">{erros.leave_count_interval}</p>
+              )}
+            </div>
+
+            <Inline align="center" gap={2}>
+              <Checkbox
+                id="tipo-ferias"
+                checked={feriasClt}
+                onCheckedChange={(v) => setFeriasClt(v === true)}
+              />
+              <Label htmlFor="tipo-ferias">Conta como férias (CLT)</Label>
+            </Inline>
+          </div>
+
+          <SheetFooter>
+            <Button type="submit" disabled={salvando}>
+              Salvar
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+          </SheetFooter>
+        </form>
+        </Stack>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 export default function TiposIndex({ tipos, can_manage }: Props) {
   const rows = tipos ?? [];
   const [deleteTarget, setDeleteTarget] = useState<LeaveType | null>(null);
+  const [painel, setPainel] = useState<LeaveType | 'novo' | null>(null);
   // Motivo do 422 vindo do servidor. Mantém o diálogo ABERTO com a explicação —
   // um toast sozinho some, e o usuário fica sem saber por que a exclusão não passou.
   const [blocked, setBlocked] = useState<{ msg: string; leaves: number } | null>(null);
@@ -160,10 +348,8 @@ export default function TiposIndex({ tipos, can_manage }: Props) {
           </Deferred>
           <span className="flex-1" />
           {can_manage && (
-            <Button asChild>
-              <a href="/hrm/leave-type/create">
-                <Plus size={14} className="mr-1.5" /> Novo tipo
-              </a>
+            <Button onClick={() => setPainel('novo')}>
+              <Plus size={14} className="mr-1.5" /> Novo tipo
             </Button>
           )}
         </Inline>
@@ -209,13 +395,14 @@ export default function TiposIndex({ tipos, can_manage }: Props) {
                           {can_manage && (
                             <td className="p-3 text-right">
                               <Inline justify="end" gap={1}>
-                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" asChild>
-                                  <a
-                                    href={`/hrm/leave-type/${t.id}/edit`}
-                                    aria-label={`Editar ${t.leave_type}`}
-                                  >
-                                    <Pencil size={12} />
-                                  </a>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0"
+                                  aria-label={`Editar ${t.leave_type}`}
+                                  onClick={() => setPainel(t)}
+                                >
+                                  <Pencil size={12} />
                                 </Button>
                                 <Button
                                   size="sm"
@@ -242,6 +429,8 @@ export default function TiposIndex({ tipos, can_manage }: Props) {
           </Card>
         </Deferred>
       </div>
+
+      {can_manage && <TipoPainel alvo={painel} onClose={() => setPainel(null)} />}
 
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && closeDelete()}>
         <AlertDialogContent>

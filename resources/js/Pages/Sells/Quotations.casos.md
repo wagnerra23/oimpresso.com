@@ -102,6 +102,56 @@ abertura e "2×", e a de B mostra "Não aberto". Âncora: aceite 2 da US-SELL-07
 
 Status: 🧪
 
+## Aprovação do orçamento pelo link (US-SELL-074)
+
+Fatia 1: o vendedor gera o link e o serviço monta o que o cliente vê. A página pública, a decisão
+do cliente e o movimento da FSM entram nas próximas fatias. Atrás de `SELLS_ORCAMENTO_ACEITE_LINK`
+(default desligada). Não muda valor nem estoque.
+
+## UC-OAC-01 · Gerar o link guarda só o sha256 do token, com validade · `must`
+
+**Dado** no business 98 um orçamento aberto e o vendedor com `quotation.update` **Quando** gera o link
+**Então** recebe `/orcamento/{token}` com token de 48 caracteres, e o banco guarda só o sha256, válido por 7 dias.
+
+- **Persona:** Vendedor (`quotation.update`).
+- **Teste:** `tests/Feature/Sells/OrcamentoAceiteLinkContratoTest.php` — `UC-OAC-01`.
+- **Regressão que defende:** token em claro no banco, ou link que nunca vence (o `invoice_token` legado não vence).
+
+Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do teste, corrigida em 3f0641244e)
+
+## UC-OAC-02 · Gerar de novo fecha o link anterior · `must`
+
+**Dado** um link aberto **Quando** o vendedor gera outro **Então** o anterior fica vencido e só o novo abre.
+
+- **Persona:** Vendedor que reenviou o orçamento.
+- **Teste:** `tests/Feature/Sells/OrcamentoAceiteLinkContratoTest.php` — `UC-OAC-02`.
+- **Regressão que defende:** dois links abertos para o mesmo orçamento, e o cliente aprovando pelo link velho.
+
+Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do teste, corrigida em 3f0641244e)
+
+## UC-OAC-03 · O cliente vê itens, frete e o total gravado, e nada mais · `must`
+
+**Dado** orçamento com 2 × 150,00 + 1 × 49,90 e frete 10,00 **Quando** o link é lido **Então** aparecem os
+subtotais 300,00 e 49,90, frete 10,00 e total 359,90 (o total gravado, sem recálculo), sem nome do cliente
+nem custo. Token desconhecido não devolve nada.
+
+- **Persona:** Cliente que abre o link (sem login).
+- **Teste:** `tests/Feature/Sells/OrcamentoAceiteLinkContratoTest.php` — `UC-OAC-03`.
+- **Regressão que defende:** página pública mostrando custo, margem ou dado do cliente, ou um total recalculado diferente do gravado.
+
+Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do teste, corrigida em 3f0641244e)
+
+## UC-OAC-04 · Não gera link de outra empresa, de venda final, nem com a flag desligada · `[T0]` `must`
+
+**Dado** o vendedor do 98 **Quando** pede link de orçamento do 99 **Então** 404; de venda final, 422; com a
+flag desligada, 404. Nenhum link é gravado.
+
+- **Persona:** Vendedor de outra empresa.
+- **Teste:** `tests/Feature/Sells/OrcamentoAceiteLinkContratoTest.php` — `UC-OAC-04`.
+- **Regressão que defende:** link gerado para orçamento de outra empresa (Tier 0), para venda já final, ou com a feature desligada.
+
+Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do teste, corrigida em 3f0641244e)
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Enviar abre o documento da cotação (título "Orçamento", validade), não o da venda; a venda final segue com o layout de nota (2º caso da ficha `03-orcamentos.md`). **Medido 2026-10-06:** o botão "Enviar" da Page aponta `/sells/{id}/print?quotation=1`, e `SellPosController@printInvoice` só tem ramo `ajax()` — em navegação comum o corpo volta vazio. O Blade usa a impressão por AJAX e `quotation.downloadPdf`. Ganha id junto do conserto do botão.
@@ -114,6 +164,7 @@ Status: 🧪
   (`SellController::duplicateSell`, medido em 23/10/2026).
 
 ## Trilha do tempo
+- 2026-10-27 · [CL] UC-OAC-01..04 (US-SELL-074, fatia 1): gerar o link de aprovação e o que o cliente vê. Teste `OrcamentoAceiteLinkContratoTest`, nasce sem run.
 - 2026-10-23 · [M+C] Backlog: orçamento duplicado mostra de onde veio, sem id.
 - 2026-10-21 · [CL] UC-QUO-09 (US-PCP-028 · UC-FLX-06): entrega prevista na confirmação de converter. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.
 - 2026-10-21 · [CL] UC-QUO-10 (US-SELL-070 · UC-FLX-04): coluna "Aberto" na lista. O item de backlog do detalhe do orçamento saiu daqui e virou UC-VSHOW-20/21 no `Show.casos.md`, que é a tela onde ele mora. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
