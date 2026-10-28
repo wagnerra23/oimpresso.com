@@ -73,8 +73,9 @@ function criarOsCap(int $biz, string $status): ServiceOrder
         'entered_at'  => now(),
     ]);
 
-    test()->capOsIds[] = $os->id;
-    test()->capVehicleIds[] = $v->id;
+    // test() devolve um proxy sem modificação indireta (`[] =`): reatribui o array inteiro.
+    test()->capOsIds = [...test()->capOsIds, $os->id];
+    test()->capVehicleIds = [...test()->capVehicleIds, $v->id];
 
     return $os;
 }

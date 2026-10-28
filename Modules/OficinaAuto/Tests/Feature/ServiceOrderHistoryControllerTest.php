@@ -148,8 +148,9 @@ function ohcCreateOs(int $bizId): ServiceOrder
         'entered_at'  => now(),
         'daily_rate'  => '150.00',
     ]);
-    test()->ohcOsIds[] = $os->id;
-    test()->ohcVehicleIds[] = $vehicle->id;
+    // test() devolve um proxy sem modificação indireta (`[] =`): reatribui o array inteiro.
+    test()->ohcOsIds = [...test()->ohcOsIds, $os->id];
+    test()->ohcVehicleIds = [...test()->ohcVehicleIds, $vehicle->id];
 
     return $os;
 }
@@ -166,15 +167,15 @@ function ohcLogged(int $bizId, int $txId, ?int $actionId, ?int $fromId, ?int $to
         'payload_snapshot' => $payload,
         'executed_at'      => now(),
     ]);
-    test()->ohcHistoryIds[] = $h->id;
+    test()->ohcHistoryIds = [...test()->ohcHistoryIds, $h->id];
 
     return $h;
 }
 
 /** Apaga só o que este arquivo criou (ids) — o tenant é compartilhado com outros testes. */
-function ohcCleanup(): void
+function ohcCleanup(\PHPUnit\Framework\TestCase $t): void
 {
-    $t = test();
+    // Recebe o $this real: no proxy de test() o `??` nunca vê a propriedade (sem __isset).
     SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)->whereIn('id', $t->ohcHistoryIds ?? [])->delete();
     ServiceOrder::withoutGlobalScopes()->whereIn('id', $t->ohcOsIds ?? [])->forceDelete(); // SUPERADMIN: limpeza do teste
     Vehicle::withoutGlobalScopes()->whereIn('id', $t->ohcVehicleIds ?? [])->forceDelete(); // SUPERADMIN: limpeza do teste
@@ -189,7 +190,9 @@ function ohcCleanup(): void
     SaleProcess::withoutGlobalScope(ScopeByBusiness::class)->whereIn('id', $procIds)->delete();
 }
 
-afterEach(fn () => ohcCleanup());
+afterEach(function () {
+    ohcCleanup($this);
+});
 
 // ─── Specs ────────────────────────────────────────────────────────────────
 
