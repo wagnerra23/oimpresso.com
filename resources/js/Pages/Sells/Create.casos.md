@@ -200,6 +200,49 @@ last_run: "2026-10-27"
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+---
+
+## Cupom por código no caixa (US-SELL-076 · lacunas [W] 2026-10-27)
+
+> Só o servidor (`POST /sells/cupom`), atrás da flag `SELLS_CUPOM` desligada; não toca o `Create.tsx`. A promoção por
+> produto, categoria, marca ou período já existe (`discounts`, por linha). Carrinho do exemplo: subtotal 200,00 sem
+> promoção, promoção das linhas 20,00. Prova: `tests/Feature/Sells/CupomDaVendaContratoTest.php`.
+
+## UC-VCUP-01 · Cupom que não acumula e dá mais substitui a promoção `[V0]` `[must]`
+- **Persona:** vendedor no caixa, com o cliente pedindo o desconto do cupom.
+- **Aceite:** Dado um carrinho de 200,00 com promoção de 20,00 e o cupom de 15% que não acumula · Quando o vendedor aplica o cupom · Então o desconto é 30,00, substitui a promoção e o total é 170,00.
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-01`.
+- **Regressão que defende:** somar cupom e promoção quando o cupom não acumula.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
+## UC-VCUP-02 · Cupom que não acumula e dá menos é recusado `[V0]` `[must]`
+- **Persona:** vendedor no caixa, com o cliente pedindo o desconto do cupom.
+- **Aceite:** Dado o mesmo carrinho e o cupom de 5% que não acumula · Quando o vendedor aplica o cupom · Então ele é recusado ("A promoção do carrinho já dá mais desconto que este cupom, e ele não acumula.") e fica a promoção (total 180,00).
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-02`.
+- **Regressão que defende:** o cupom trocar a promoção por um desconto menor.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
+## UC-VCUP-03 · Cupom que acumula incide depois da promoção e não passa da base `[V0]` `[must]`
+- **Persona:** vendedor no caixa, com o cliente pedindo o desconto do cupom.
+- **Aceite:** Dado o cupom de 10% que acumula · Quando é aplicado · Então o desconto é 18,00 (sobre 180,00) e o total 162,00 · Dado um cupom de valor 250,00 que acumula · Quando é aplicado · Então o desconto para em 180,00.
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-03`.
+- **Regressão que defende:** desconto calculado sobre o subtotal cheio, ou total negativo.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
+## UC-VCUP-04 · Validade, limite de uso e valor mínimo `[V0]` `[must]`
+- **Persona:** vendedor no caixa, com o cliente pedindo o desconto do cupom.
+- **Aceite:** Dado um cupom vencido ou ainda não vigente · Quando é aplicado · Então "fora da validade"; dado compra abaixo do mínimo · Então recusado; dado um cupom de uso único já gasto uma vez · Quando se tenta gastar de novo · Então falha, o contador fica em 1 e o cupom passa a "esgotado".
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-04`.
+- **Regressão que defende:** cupom usado além do limite ou fora do período.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
+## UC-VCUP-05 · A rota só existe ligada; cupom de outra empresa é inválido `[T0]` `[must]`
+- **Persona:** vendedor de uma empresa (tenant 98), com outra empresa como adversária.
+- **Aceite:** Dado a flag ligada · Quando o vendedor digita " quinze " · Então vale como QUINZE e dá 30,00; dado um cupom que só existe em outra empresa · Então responde "Cupom não encontrado."; dado a flag desligada (padrão) · Então a rota responde 404.
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-05`.
+- **Regressão que defende:** usar cupom de outra empresa.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
 ## Maquininha integrada ao caixa — TEF (US-SELL-075)
 
 > **Âncora:** US-SELL-075 (`memory/requisitos/Sells/SPEC.md`). O caixa manda o valor para a maquininha e a resposta

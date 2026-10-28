@@ -47,6 +47,14 @@ return [
         'timeout_seconds' => (int) env('SELLS_AI_TIMEOUT', 8),
     ],
 
+    'cupom' => [
+        /*
+         * US-SELL-076 — cupom por código no caixa. Desligado: POST /sells/cupom dá 404 e nada
+         * muda. Ligar é decisão [W] (regra mestre de valor).
+         */
+        'ativo' => env('SELLS_CUPOM', false),
+    ],
+
     'resgate_pontos' => [
         /*
          * US-SELL-079 — resgate de pontos de fidelidade no caixa React (Sells/Create). Desligado
