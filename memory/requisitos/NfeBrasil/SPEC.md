@@ -1935,3 +1935,25 @@ Como empresa que ainda emite pelo Delphi (WR Comercial/OfficeImpresso), quero pa
 - [ ] Credenciamento NFC-e na SEFAZ da UF (SEFAZ-SC para as empresas de hoje)
 - [ ] Série e numeração que **não** colidam com as que o Delphi já usou — medir a última numeração do Delphi por série antes de definir
 - [ ] Desligar a emissão no Delphi e ligar aqui no **mesmo dia**, com aviso prévio ao cliente e canary, conforme a F5 do MWART (ADR 0104)
+
+### US-NFE-076 · Ler o XML da NF-e de compra, por NSU ou por upload — **P0**
+
+> owner: — · sprint: — · priority: p0 · estimate: 3h · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/NfeBrasil/Services/Entrada/LeitorNfeEntrada.php` · `Modules/NfeBrasil/Services/Entrada/ImportarXmlEntradaService.php` · `Modules/NfeBrasil/Models/NfeDfeItem.php` (`gravarDaNota`) · `Modules/NfeBrasil/Tests/Feature/EntradaXmlUploadContratoTest.php`
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/EntradaXmlUploadContratoTest.php` (covers US-NFE-076 · lane `nfebrasil-pest`)
+
+Como empresa que compra de fornecedor, quero que a NF-e que chega pela SEFAZ e a que eu envio em arquivo sejam lidas do mesmo jeito, com o código do item no fornecedor, EAN, unidade, CST/CSOSN e ICMS destacado, para depois virar compra sem digitar.
+
+**Origem:** fase 2 da ADR `proposals/2026-10-06-entrada-xml-compra.md` (D2, D3), ratificada em #9827; schema da fase 1 em #9836. A compra é a US-COM-003 (Compras).
+
+**Aceite:**
+- [x] Um leitor só para a DF-e por NSU e para o upload; aceita `nfeProc` e `NFe` sem protocolo; recusa o que não é NF-e — UC-NFENT-01
+- [x] Por item: `cProd`, `cEAN` (sem "SEM GTIN"), `uCom`, CST com origem (060) ou CSOSN, `vICMS` — UC-NFENT-01
+- [x] Upload grava com `origem=upload`, sem NSU — UC-NFENT-02
+- [x] Nota emitida para outro CNPJ é recusada e nada é gravado (Tier 0, ADR 0093) — UC-NFENT-03
+- [x] A mesma chave não entra duas vezes na empresa — UC-NFENT-04
+- [x] Atrás da flag `nfebrasil.entrada_xml_enabled`, desligada por padrão — UC-NFENT-05
+- [ ] Rota e tela de envio do arquivo (fase 4, tela de conferência)

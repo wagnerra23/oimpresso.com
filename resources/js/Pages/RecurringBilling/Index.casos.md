@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento de cobrar é durável — a assinatura que fatura hoje tem que faturar depois do refactor.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-10-27"
 last_run_ci: "2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloco Pix Automatico no drawer (PixAutomaticoBloco, so com o recurso ligado), coberto pelo UC-RBPA-14 deste arquivo; MandatoPixAutomaticoContratoTest rodou no CT 100 MySQL no head combinado da pilha (29 passed, 104 assertions, com os testes de webhook, cobranca e driver) e o vitest do bloco deu 6 passed. Os demais UCs nao tocam o drawer de mandato. ---- REGISTRO ANTERIOR: last_run 2026-10-13. 2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (ancoras do contrato de tela), sem dado, handler, copy nem classe; nenhum UC afirma ancora. ---- REGISTRO ANTERIOR: last_run 2026-09-11. 2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITICA, suite NAO executada. Por que: Pest so roda no CT 100 (proibicao Tier 0) e o checkout de la nao contem esta mudanca, entao rodar ali produziria recibo de OUTRO codigo. O que a mudanca E: 518 trocas de `className` (cor crua -> token do DS: bg-white->bg-card, text-stone-*->text-foreground/muted-foreground, ring/border-stone-*->ring/border-border). Zero linha de logica, controller, service ou query. MEDIDO, nao lido: (a) grep por `className|bg-white|text-stone|oklch|css|tailwind|style=` nos 14 arquivos de teste citados por estes casos.md devolveu 0 hits em TODOS, com controle positivo (8 a 33 asserts casam por arquivo, logo o grep funciona); (b) as cores de STATUS ficaram INTACTAS — o diff toca emerald/amber/rose em 2 pontos e ambos sao vizinhanca neutra (`border-stone-300`->`border-border` ao lado de um `focus:ring-rose-100` preservado, e o cinza do icone NAO-pinado ao lado de um `fill-amber-500` preservado), o que mantem o UC-RBSUB-07 ("Larissa/Wagner leem a lista por cor") valido; (c) contraste medido no runtime antes/depois: identico (425 passam AA / 27 reprovam / pior 1.00 nos dois estados). Isto NAO substitui execucao: o Status continua vindo do manifesto G-7, que a lane do PR alimenta. ---- REGISTRO ANTERIOR: 2026-08-28 (PR desta sessão) — REVALIDAÇÃO ANALÍTICA, suíte NÃO executada. Por quê: Pest só roda no CT 100 (proibição Ti..."
 ---
 
@@ -293,6 +293,42 @@ Status: 🧪
 sem mandato → status nulo e o botão "Pedir autorização"; `CRIADA` → o QR e o Pix copia e cola; `APROVADA` → sem QR.
 Teste: `MandatoPixAutomaticoContratoTest`.
 Status: 🧪
+
+## Cartão recorrente — cartão salvo como token (US-RB-011 · reaberta por [W] 2026-10-27)
+
+> Motor sem tela nesta fatia: quando a fatura de uma assinatura é paga no cartão pela página hospedada
+> do Asaas, o listener `SalvarCartaoDaCobrancaPaga` (só com `RB_SALVAR_CARTAO=true`) guarda o token do
+> cartão e o liga à assinatura, para as próximas faturas serem cobradas nele. Fonte: SPEC US-RB-011
+> (PCI: o número nunca chega ao oimpresso) + payload `payment.creditCard` do webhook do Asaas. Roda na
+> lane `paymentgateway-pest` (MySQL). Teste: [`CartaoSalvoContratoTest`](../../../../Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php).
+
+## UC-RBCC-01 · Fatura paga no cartão guarda o token e liga à assinatura · `must`
+- **Persona:** cliente da assinatura que paga a 1ª fatura no cartão pela página hospedada do Asaas; o gestor quer que as próximas caiam no mesmo cartão sem pedir os dados de novo.
+- **Aceite:** Dado uma fatura de assinatura paga no cartão, com o webhook do Asaas trazendo token, últimos 4 e bandeira · Quando o `CobrancaPaga` sai · Então nasce 1 cartão salvo com os últimos 4 e a bandeira, o token cifrado no banco (e fora do JSON do modelo), e a assinatura passa a apontar para ele.
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` — `UC-RBCC-01 · fatura paga no cartão salva o token cifrado com últimos 4 e bandeira, e liga à assinatura`.
+- **Regressão que defende:** SPEC US-RB-011 (salvar só o token do gateway; PCI fora do oimpresso).
+- **Status: 🧪** — passou na lane `paymentgateway-pest` (MySQL) do PR #9951, run 40492147242, 8 assertions; ✅ quando `casos:results` regravar o manifesto.
+
+## UC-RBCC-02 · O mesmo cartão não duplica e a assinatura com cartão não troca sozinha · `must`
+- **Persona:** gestor da carteira; o webhook do Asaas pode chegar repetido.
+- **Aceite:** Dado um cartão já salvo · Quando o mesmo webhook é processado de novo · Então o resultado é `ja_salvo` e não nasce outra linha; Dado uma assinatura que já tem cartão · Quando outro cartão é salvo · Então ele não substitui o da assinatura (trocar é ato do cliente ou do gestor).
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` — `UC-RBCC-02 · o mesmo cartão não é salvo duas vezes e a assinatura que já tem cartão não troca`.
+- **Regressão que defende:** SPEC US-RB-011 (idempotência do webhook; o cartão da assinatura não muda sem ato humano).
+- **Status: 🧪** — passou na lane `paymentgateway-pest` (MySQL) do PR #9951, run 40492147242, 5 assertions; ✅ quando `casos:results` regravar o manifesto.
+
+## UC-RBCC-03 · Número de cartão é recusado; boleto e flag desligada não salvam · `must` `[T0]`
+- **Persona:** responsável pela segurança dos dados (PCI e LGPD).
+- **Aceite:** Dado um campo com sequência de 13 a 19 dígitos · Quando o cartão seria salvo · Então nada é gravado (`recusado_numero`) e o log não leva o valor; Dado uma fatura paga no boleto · Então ela é ignorada; Dado `RB_SALVAR_CARTAO` desligada · Então nada é salvo.
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` — `UC-RBCC-03 · campo com sequência de número de cartão é recusado e nada é gravado; boleto e flag desligada não salvam`.
+- **Regressão que defende:** SPEC US-RB-011 (nunca número nem CVV no banco ou log) e a flag desligada por padrão.
+- **Status: 🧪** — passou na lane `paymentgateway-pest` (MySQL) do PR #9951, run 40492147242, 3 assertions; ✅ quando `casos:results` regravar o manifesto.
+
+## UC-RBCC-04 · Um business não salva o cartão da cobrança do outro · `must` `[T0]`
+- **Persona:** dono de outra empresa no mesmo servidor (isolamento Tier 0, ADR 0093).
+- **Aceite:** Dado a cobrança do tenant 99 · Quando chega um evento dizendo tenant 98 · Então `ignorado`, nenhum cartão salvo e a assinatura do 99 intocada.
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` — `UC-RBCC-04 · evento com business errado não salva o cartão da cobrança do outro`.
+- **Regressão que defende:** ADR 0093 (`business_id` em toda leitura e escrita) e ADR 0358 (98 grava, 99 fica intacto).
+- **Status: 🧪** — passou na lane `paymentgateway-pest` (MySQL) do PR #9951, run 40492147242, 3 assertions; ✅ quando `casos:results` regravar o manifesto.
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 

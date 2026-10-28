@@ -38,7 +38,6 @@ parameters:
         # 5x return.missing: scaffold controllers stubs sem `return back();` no fim
         # Owner módulo adiciona em PR docs/<modulo>-* — débito documentado ADR 0208.
         - Modules/Financeiro/Http/Controllers/FinanceiroController.php (?)
-        - Modules/NfeBrasil/Http/Controllers/NfeBrasilController.php (?)
         - Modules/RecurringBilling/Http/Controllers/RecurringBillingController.php (?)
         # 9x class.notFound: Officeimpresso/Transformers/* usam Resource (Laravel 5)
         # em vez de JsonResource (5.6+). Owner Officeimpresso migra em PR dedicado.
@@ -73,8 +72,6 @@ parameters:
         # 5x return.missing — scaffold controllers vazios
         - identifier: return.missing
           path: Modules/Financeiro/Http/Controllers/FinanceiroController.php
-        - identifier: return.missing
-          path: Modules/NfeBrasil/Http/Controllers/NfeBrasilController.php
         - identifier: return.missing
           path: Modules/RecurringBilling/Http/Controllers/RecurringBillingController.php
 

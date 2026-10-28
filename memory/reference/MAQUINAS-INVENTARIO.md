@@ -92,7 +92,7 @@ lifecycle: ativo
 | `fiscal-cockpit-sparklines-gate.yml` | pr+push+manual | `memory/requisitos/Fiscal/fiscal-cockpit-visual-comparison.md` +1 | Fiscal Cockpit Sparklines — as series de 14 dias do ribbon sao desenhadas (3 KPIs · geometria FxSpark) |
 | `fiscal-debitos-gate.yml` | pr+push+manual | — | Fiscal Débitos — a tela declara a própria dívida, e a lista é derivada dos casos.md |
 | `fiscal-densidade-gate.yml` | pr+push+manual | — | Fiscal Densidade — a densidade da tabela acompanha o operador entre as telas (NF-e · NFS-e · Cockpit) |
-| `fiscal-teclado-gate.yml` | pr+push+manual | — | Fiscal Teclado — a lista de notas é operável por teclado (Tab · Enter · Space · J/K) |
+| `fiscal-teclado-gate.yml` | pr+push+manual | `memory/requisitos/NfeBrasil/SPEC.md` | Fiscal Teclado — a lista de notas é operável por teclado (Tab · Enter · Space · J/K) |
 | `fluxo-sistema.yml` | cron+manual | (só sessão/handoff · 1) | Fluxo do sistema (advisory · DORA + Flow do repo inteiro · frequência de deploy + lead time PR + falha/recuperação do PIPELINE + retrabalho + PRs>300 + adoção de telas vi… |
 | `force-clean-rebuild-trigger.yml` | push+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +3 | Force Clean Rebuild (one-shot) |
 | `forja-jsdom-gate.yml` | pr+push+manual | — | Forja jsdom — o que a tela DESENHA (Quadro: uma coluna por fase declarada · painel de papéis) |
@@ -131,7 +131,7 @@ lifecycle: ativo
 | `mutation-gate.yml` | pr+manual | `memory/requisitos/_Governanca/roadmap/P07-instrumentar-pcov-ci-coverage.md` +9 | Mutation Gate (advisory) |
 | `mv-metabolismo.yml` | cron+manual | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +20 | MV metabolismo (batimento nightly do Módulo Vivo · stream MV · sinais vitais + proposta de batch via auto-PR SEM auto-merge — merge Wagner = aprova batch) |
 | `negocio-vs-governanca-ratio.yml` | pr+cron+manual | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +4 | Ratio negócio × governança (sentinela anti-atrofia) — mede o FLUXO de merges (first-parent, janela 4 semanas) classificado em NEGÓCIO (A+B) × GOVERNANÇA-META (C) × INFRA,… |
-| `nfebrasil-pest.yml` | pr+push+manual | `memory/requisitos/NfeBrasil/SPEC.md` +24 | NfeBrasil · Pest (MySQL) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b |
+| `nfebrasil-pest.yml` | pr+push+manual | `memory/decisions/0442-ibscbs-automatico-regime-normal-emenda-0321.md` +25 | NfeBrasil · Pest (MySQL) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b |
 | `no-mock-gate.yml` | pr+push | (só sessão/handoff · 5) | No-mock-in-prod ratchet (stub/mock em controller) |
 | `officeimpresso-pest.yml` | pr+push+manual | `memory/requisitos/Officeimpresso/logs-parity.md` +4 | Officeimpresso · Pest (MySQL) |
 | `outcome-metrics.yml` | pr+manual | (só sessão/handoff · 2) | Outcome metrics (advisory · medidor de aceitação Cowork→code · rework/revert/first-pass via SYNC_LOG proxy + git Pages/*.tsx · Onda O1) |

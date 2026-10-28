@@ -4,7 +4,7 @@ casos: Jana Painel · metas ativas · farol server-side · cockpit deferido · /
 irmaos: Index.charter.md (lei) · memory/requisitos/Jana/RUNBOOK-index.md (runbook) · governance/design/contracts/jana-painel.contract.json (contrato visual)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-22"
+last_run: "2026-10-27"
 ---
 
 # Casos de uso — /ia (Painel da Jana)
@@ -2114,3 +2114,19 @@ criando a meta, sem período. A `MetaFonte` fica **fora** — residual declarado
 > manifesto `scripts/casos-test-results.json` registrava `tests: 7` sob `UC-JPAIN-33`; o ritmo tem 3)
 > — e o caso da gaveta não existia neste arquivo. Mesma forma da §5 2026-09-04 (prova por id casado num
 > corpus global).
+
+## UC-JPAIN-36 · Link antigo de meta leva ao Painel, e meta de outra empresa continua 404
+- **Persona:** usuário do business com um link salvo de `/ia/metas/{id}`, `/edit`, `/create` ou `/fonte` (telas Blade aposentadas).
+- **Fonte:** [RUNBOOK-metas §9.4 PR-4](../../../../memory/requisitos/Jana/RUNBOOK-metas.md) (cutover) + ADR 0093 (Tier 0).
+- **Aceite:** Dado uma meta do meu business · Quando abro ver, editar, criar ou fonte pelo link antigo · Então volto ao Painel `/ia`, onde o drawer faz essas ações, e nenhuma das 4 Blades existe mais; Dado uma meta de OUTRO business (99) · Quando abro a fonte dela · Então recebo 404, nunca o redirect.
+- **Teste:** `Modules/Jana/Tests/Feature/MetasControllerBaselineTest.php` — `UC-JPAIN-36 · cutover: ver, editar, criar e fonte da meta voltam pro Painel, sem Blade` e `UC-JPAIN-36 · Tier 0: fonte de meta de OUTRO tenant → 404, e não redirect`.
+- **Regressão que defende:** link antigo virando 500 (view apagada) e o redirect vazando a existência de meta de outra empresa.
+- **Status: ⬜** — escrito no PR do cutover; aguarda o run da lane `PHP / Pest (Jana · MySQL)`.
+
+## UC-JPAIN-37 · O drawer mostra as 12 apurações MAIS RECENTES, em ordem crescente
+- **Persona:** gestor abrindo o drawer de uma meta com mais de 12 apurações gravadas.
+- **Fonte:** [SPEC US-COPI-011](../../../../memory/requisitos/Jana/SPEC.md) (detalhe da meta com as últimas 12 apurações).
+- **Aceite:** Dado 15 apurações diárias da meta · Quando o Painel monta o payload · Então vêm 12, a de hoje entra, a de 14 dias atrás fica de fora, e a série sai em ordem crescente de data.
+- **Teste:** `Modules/Jana/Tests/Feature/MetasControllerBaselineTest.php` — `UC-JPAIN-37 · US-COPI-011 · o drawer recebe as 12 apurações MAIS RECENTES, em ordem crescente`.
+- **Regressão que defende:** o `orderBy('data_ref')->limit(12)` que entregava as 12 mais ANTIGAS ao drawer.
+- **Status: ⬜** — escrito no PR do cutover; aguarda o run da lane `PHP / Pest (Jana · MySQL)`.

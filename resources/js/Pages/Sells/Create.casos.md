@@ -318,8 +318,10 @@ last_run: "2026-10-27"
   fiscal (falta).
 - **[BACKLOG] Item com imposto faltando avisa ao montar a venda** — Aceite: Dado um produto sem NCM
   ou com a natureza fiscal "a decidir pelo contador", Quando o adiciono à venda, Então a linha mostra o
-  que falta para a nota sair, sem impedir salvar a venda. Fonte: CU-PROD-18 (aviso no cadastro do
-  produto) e UC-TRB-16 do protótipo fiscal ("pronto pra emitir").
+  que falta para a nota sair, sem impedir salvar a venda. Quem pode editar produto ganha na linha um
+  "Informar NCM", que grava no produto; quem não pode vê só o aviso. Fonte: CU-PROD-18 (aviso no
+  cadastro do produto) e UC-TRB-16 do protótipo fiscal ("pronto pra emitir"). Pedido da PraMoto
+  (2026-10-27): os produtos comprados sem nota entram sem NCM.
 - **[BACKLOG] Cliente sem dados para a nota avisa ao ser escolhido** — Aceite: Dado um cliente sem
   CPF ou CNPJ, sem endereço com município ou sem a indicação de contribuinte do ICMS, Quando o escolho
   numa venda, Então o resumo mostra "Faltam dados para a nota" e quais, com link para completar o
@@ -402,3 +404,4 @@ last_run: "2026-10-27"
 - 2026-10-23 · [M+C] Backlog: aviso de imposto faltando no item e de dados do cliente faltando para a nota, sem id.
 - 2026-10-23 · [M+C] Revalidado (G-6): as mudanças em `Create.tsx` depois do last_run 2026-10-02 são a venda de reparo (#8426, #8439 e #8447), descritas pelos UC-S05, S06 e S07 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-02 → 2026-10-23.
 - 2026-10-27 · [W+C] Revalidado (G-6): a mudança em `Create.tsx` depois do last_run 2026-10-26 é o resgate de pontos no caixa (US-SELL-079), descrito pelos UC-SRP desta tela. Nenhum outro UC muda de status; last_run 2026-10-26 → 2026-10-27.
+- 2026-10-27 · [F+C] Backlog "Item com imposto faltando": o "Informar NCM" na linha da venda, pedido da PraMoto. Sem id.
