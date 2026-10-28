@@ -43,9 +43,9 @@ Migrar 4 telas Blade legacy + 1 superadmin pra Inertia/React seguindo padrão Co
 ### Blades-alvo
 
 - [`metas/index.blade.php`](../../../Modules/Jana/Resources/views/metas/index.blade.php) — 27 linhas, table simples 4 colunas
-- [`metas/create.blade.php`](../../../Modules/Jana/Resources/views/metas/create.blade.php) — 28 linhas, form vanilla
-- [`metas/show.blade.php`](../../../Modules/Jana/Resources/views/metas/show.blade.php) — não inspecionado em detalhe nesta fase, mas inclui `route('jana.fontes.show')` cross-link
-- [`metas/edit.blade.php`](../../../Modules/Jana/Resources/views/metas/edit.blade.php) — não inspecionado
+- ~~`metas/create.blade.php`~~ — 28 linhas, form vanilla — **removida em 2026-10-27** (#10092, RUNBOOK-metas §9.4 PR-4): o drawer do Painel `/ia` assumiu, GET vira redirect
+- ~~`metas/show.blade.php`~~ — não inspecionado em detalhe nesta fase, mas inclui `route('jana.fontes.show')` cross-link — **removida em 2026-10-27** (#10092), junto com `fontes/show.blade.php`
+- ~~`metas/edit.blade.php`~~ — não inspecionado — **removida em 2026-10-27** (#10092)
 - ~~`superadmin/metas.blade.php`~~ — **migrado em 2026-09-02** (#6609): virou [`Pages/Jana/Plataforma.tsx`](../../../resources/js/Pages/Jana/Plataforma.tsx), controller `SuperadminController@metas` → Inertia; a aba Plataforma da área
 
 ### Domain models
