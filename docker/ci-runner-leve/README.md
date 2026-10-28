@@ -22,9 +22,13 @@ Medido em 2026-10-27 19:20Z: **1.471 runs na fila** contra **26 rodando**. O gar
 - **Runner persistente:** registra uma vez com um token de **registro** (vale 1 hora) e passa a
   usar a credencial própria que o `config.sh` grava dentro do container. **Nenhum PAT nem token
   fica guardado no host.**
-- O `actions/checkout` limpa o workspace a cada job. Como o runner não é ephemeral, um job pode
-  deixar resíduo para o seguinte na mesma vaga. Isso é aceitável porque só roda código de quem
-  tem push ou de fork aprovado (ver ⚠️ abaixo).
+- **Workspace esvaziado antes de cada job** pelo hook `ACTIONS_RUNNER_HOOK_JOB_STARTED`
+  (`limpa-workspace.sh`). O runner não é ephemeral, e em 2026-10-27 esta linha afirmava que o
+  `actions/checkout` limpava o workspace sozinho. Não limpava: um job com sparse-checkout deixava
+  o índice marcado, e o job seguinte na mesma vaga caía com "Cannot find module" em arquivo
+  versionado (medido 2026-10-28: 14 de 25 falhas nos `ct100-leve-*`). Resíduo em `_temp`/`_tool`
+  ainda passa entre jobs; isso é aceitável porque só roda código de quem tem push ou de fork
+  aprovado (ver ⚠️ abaixo).
 - A conexão é **de saída** para o GitHub: não precisa de porta aberta, IP fixo nem Tailscale.
 
 ## Capacidade do CT 100 (Proxmox `sistema`, 192.168.0.2)
