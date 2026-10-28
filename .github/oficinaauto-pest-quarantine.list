@@ -17,19 +17,12 @@
 # conserto de uma linha, por isso ficam aqui com o motivo, e os outros 17 passam a rodar.
 # Saída: corrigir o arquivo (ou o seed da lane) e tirar daqui, um grupo por PR.
 #
-# A. 403 nas rotas mesmo com a permissão `superadmin` concedida ao usuário do teste.
-#    Causa não isolada (permissão Spatie no seed × gate do controller). Mesma raiz nos 11.
-Modules/OficinaAuto/Tests/Feature/ServiceOrderRichSheetPayloadTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderDviToOrcamentoTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderLaudoPhotoTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderSheetVendaDerivadaTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderStageGateTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderObserverItemsAndHttpTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/DviInspectionItemTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderPrintTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderApprovalGateTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderItemHttpIntegrationTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderEnviarAprovacaoTest.php  # 403 com superadmin
+# A. Resto do grupo A (403). O 403 vinha da factory de usuário e do primeiro usuário do tenant 1;
+#    os outros 10 arquivos saíram daqui no PR do grupo A. Este fica porque o teste está CERTO:
+#    o UC-OSH-11 mostrou que o payload da OS devolve a venda de OUTRA empresa quando o
+#    transaction_id aponta para ela (App\Transaction não tem escopo global; o load não filtra).
+#    Medido no run 40745385221. Sai daqui junto com o conserto do ServiceOrderController.
+Modules/OficinaAuto/Tests/Feature/ServiceOrderSheetVendaDerivadaTest.php  # UC-OSH-11 expõe venda de outra empresa (Tier 0)
 #
 # C. Contagem ou FSM dependem de estado que a lane não tem: biz=1 compartilhado com linhas
 #    de outros arquivos (ex.: "10 is identical to 2") e actions FSM da oficina não semeadas

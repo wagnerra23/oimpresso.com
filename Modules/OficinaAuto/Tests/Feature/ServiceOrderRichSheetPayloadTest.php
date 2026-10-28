@@ -253,7 +253,7 @@ it('GET /service-orders/{id} JSON retorna dvi_items[] ordenado por sort_order co
 
     expect($dvi[1]['descricao'])->toBe('Freios dianteiros · pastilhas');
     expect($dvi[1]['severity'])->toBe('atencao');
-    expect($dvi[1]['valor_recomendado'])->toBe(145.0);
+    expect((float) $dvi[1]['valor_recomendado'])->toBe(145.0); // JSON nao preserva .0: o JsonResponse do Laravel nao usa JSON_PRESERVE_ZERO_FRACTION
 
     expect($dvi[2]['severity'])->toBe('critico');
     expect($dvi[2]['categoria'])->toBe('correia');
