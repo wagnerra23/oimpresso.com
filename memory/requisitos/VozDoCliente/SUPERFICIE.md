@@ -14,7 +14,7 @@ module: VozDoCliente
 >
 > **O que isto é:** o inventário completo das raízes `Modules/VozDoCliente/**` + `resources/js/Pages/VozDoCliente/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 21 arquivos em 14 papéis.
+**Total mapeado:** 20 arquivos em 13 papéis.
 
 ## Controllers — 3
 
@@ -50,10 +50,6 @@ module: VozDoCliente
 ## Config — 1
 
 - [config.php](../../../Modules/VozDoCliente/Config/config.php)
-
-## Views (Blade) — 1
-
-- [caixa.blade.php](../../../Modules/VozDoCliente/Resources/views/caixa.blade.php)
 
 ## Telas (Inertia/React) — 1
 
