@@ -70,10 +70,10 @@ Decisões de [F] em 2026-10-15. A tela da requisição é do [W].
 
 ### US-ESTOQUE-003 · Sugestão de reposição e curva ABC por produto
 
-> owner: wagner · priority: p2 · estimate: 12h · status: doing · type: story · origin: lacunas-concorrencia-2026-10-25
+> owner: wagner · priority: p2 · estimate: 12h · type: story · origin: lacunas-concorrencia-2026-10-25
 > blocked_by: —
 
-**Implementado em:** `Modules/Compras/Services/CurvaAbcReposicao.php` · `Modules/Compras/Tests/Feature/CurvaAbcReposicaoTest.php` — parcial (2026-10-27): o cálculo, atrás da flag `COMPRAS_CURVA_ABC_REPOSICAO` (desligada). Falta a tela.
+**Implementado em:** _parcial_ · `Modules/Compras/Services/CurvaAbcReposicao.php` · `config/compras.php` — (2026-10-27): o cálculo, atrás da flag `COMPRAS_CURVA_ABC_REPOSICAO` (desligada). Falta a tela.
 
 **Testado em:** `Modules/Compras/Tests/Feature/CurvaAbcReposicaoTest.php` (lane `compras-pest.yml`, UC-ABC-01..05).
 
