@@ -1003,7 +1003,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/import-products/store', [ImportProductsController::class, 'store']);
 
     //Sales Commission Agent
-    Route::resource('sales-commission-agents', SalesCommissionAgentController::class);
+    Route::resource('sales-commission-agents', SalesCommissionAgentController::class)->except(['create', 'show', 'edit']);
 
     //Stock Transfer
     Route::get('stock-transfers/print/{id}', [StockTransferController::class, 'printInvoice']);
@@ -1019,7 +1019,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/opening-stock/salvar-da-janela', [OpeningStockController::class, 'salvarDaJanela']);
 
     //Customer Groups
-    Route::resource('customer-group', CustomerGroupController::class);
+    Route::resource('customer-group', CustomerGroupController::class)->except(['create', 'show', 'edit']);
 
     //Import opening stock
     Route::get('/import-opening-stock', [ImportOpeningStockController::class, 'index']);
