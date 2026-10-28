@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 391 arquivos em 18 papéis.
+**Total mapeado:** 388 arquivos em 18 papéis.
 
 ## Controllers — 30
 
@@ -161,7 +161,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [config.php](../../../Modules/Crm/Config/config.php)
 - [retention.php](../../../Modules/Crm/Config/retention.php)
 
-## Views (Blade) — 89
+## Views (Blade) — 86
 
 - [create.blade.php](../../../Modules/Crm/Resources/views/booking/create.blade.php)
 - [index.blade.php](../../../Modules/Crm/Resources/views/booking/index.blade.php)
@@ -232,14 +232,11 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [index.blade.php](../../../Modules/Crm/Resources/views/sell/index.blade.php)
 - [index.blade.php](../../../Modules/Crm/Resources/views/settings/index.blade.php)
 - [contact_basic_info.blade.php](../../../resources/views/contact/contact_basic_info.blade.php)
-- [contact_map.blade.php](../../../resources/views/contact/contact_map.blade.php)
 - [contact_more_info.blade.php](../../../resources/views/contact/contact_more_info.blade.php)
 - [contact_payment_info.blade.php](../../../resources/views/contact/contact_payment_info.blade.php)
 - [contact_tax_info.blade.php](../../../resources/views/contact/contact_tax_info.blade.php)
 - [create-page.blade.php](../../../resources/views/contact/create-page.blade.php)
 - [create.blade.php](../../../resources/views/contact/create.blade.php)
-- [edit.blade.php](../../../resources/views/contact/edit.blade.php)
-- [import.blade.php](../../../resources/views/contact/import.blade.php)
 - [ledger.blade.php](../../../resources/views/contact/ledger.blade.php)
 - [ledger_format_2.blade.php](../../../resources/views/contact/ledger_format_2.blade.php)
 - [ledger_format_3.blade.php](../../../resources/views/contact/ledger_format_3.blade.php)

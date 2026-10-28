@@ -35,13 +35,17 @@ Mostrar o que falta sincronizar com a loja e a situação de cada produto, sem c
 - Lista paginada (50) dos produtos simples e variáveis do local configurado, com SKU, ID na loja e situação.
 - Contagens pela mesma função dos alertas da Blade (`contagensDoPainel`), e situação pelos mesmos predicados.
 - Abas para Log de sincronização e Configuração (esta só para quem pode configurar).
+- Sincronizar categorias, produtos (só novos ou todos) e pedidos, e reiniciar categorias ou produtos sincronizados,
+  pelos mesmos endpoints JSON da Blade, cada bloco com a permissão do bloco da Blade (F3-2, 2026-10-27).
+- Mapear impostos (taxa do ERP → taxa da loja) num painel lateral, gravando pelo `map-taxrates` de sempre (F3-2, 2026-10-27).
 
 ## Non-Goals
 
 - ❌ Chamar a API do WooCommerce ao abrir a tela.
 - ❌ Receber consumer key, secret ou qualquer campo de `woocommerce_api_settings` além do booleano `configurado`.
 - ❌ Mostrar preço ou estoque enviado (regra mestre de valor e estoque — decisão [W]).
-- ❌ Sincronizar, reiniciar ou mapear impostos nesta tela antes da F3-2.
+- ❌ Ler as taxas da loja ao abrir a tela: só quando o mapa de impostos abre (`/woocommerce/tax-rates-map`). (Sincronizar,
+  reiniciar e mapear impostos entraram na F3-2, 2026-10-27.)
 
 ## Regras
 
