@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Business;
-use App\Role;
+use Spatie\Permission\Models\Role;
 use App\User;
 use Carbon\CarbonImmutable;
 use Modules\PaymentGateway\Models\Cobranca;

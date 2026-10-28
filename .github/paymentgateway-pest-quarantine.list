@@ -20,11 +20,6 @@ Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php  # Refre
 # ── A. Teste desatualizado em relação ao código (medido no run 40735435457, 1º run da
 # árvore, 2026-10-28). Falham por drift do PRÓPRIO teste, não por dependência da lane.
 # Saída: atualizar o teste para o código atual, um arquivo por PR, e tirar daqui.
-Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysControllerTest.php  # Class "App\Role" not found (classe removida)
-Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysHistoryTest.php  # Class "App\Role" not found
-Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysQuotaTest.php  # Class "App\Role" not found
-Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysWebhookEventsTest.php  # Class "App\Role" not found
-Modules/PaymentGateway/Tests/Feature/Settings/SellsCobrancaChipTest.php  # Class "App\Role" not found
 Modules/PaymentGateway/Tests/Feature/EmitTrialExpiredCobrancasCommandTest.php  # coluna payment_gateway_credentials.driver não existe mais
 Modules/PaymentGateway/Tests/Feature/MigrateCredentialsCommandTest.php  # coluna fin_contas_bancarias.nome não existe mais
 Modules/PaymentGateway/Tests/Feature/PaymentGatewaysControllerStoreTest.php  # cria business sem owner_id (FK business_owner_id_foreign)
