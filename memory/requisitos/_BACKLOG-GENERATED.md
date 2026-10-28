@@ -19,9 +19,9 @@
 | [`NfeBrasil`](#nfebrasil) | 33 | 0 | 0 | 6 | 27 |
 | [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
+| [`Crm`](#crm) | 26 | 0 | 0 | 0 | 26 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
-| [`Crm`](#crm) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
@@ -719,6 +719,38 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
+## Crm
+
+
+### todo
+
+- **US-CRM-001** — Migration estender `contacts` com colunas pipeline · **P0** · 2H
+- **US-CRM-002** — `crm_motivos_perda` catálogo + seeder padrão · **P0** · 2H
+- **US-CRM-003** — `crm_lead_interactions` timeline append-only + observers · **P0** · 4H
+- **US-CRM-004** — `crm_lead_tags` + pivot · **P1** · 2H
+- **US-CRM-010** — Listener `WhatsappMessageReceived` cria/resolve lead · **P0** · 4H
+- **US-CRM-011** — `JanaIntencaoAgent` classifica intenção mensagem entrante · **P0** · 6H
+- **US-CRM-012** — `CrmLeadFromWhatsappService.createOrUpdate` + round-robin · **P0** · 4H
+- **US-CRM-013** — Auto-resposta template WhatsApp ao criar lead · **P1** · 2H
+- **US-CRM-014** — Vincular `whatsapp_conversations.contact_id` ao Lead criado · **P0** · 2H
+- **US-CRM-020** — `ConvertLeadToSaleService` cria Transaction + inicia FSM `quote_draft` · **P0** · 6H
+- **US-CRM-021** — UI kanban "Ganho" dispara ConvertLeadToSale + redireciona SaleSheet · **P0** · 4H
+- **US-CRM-022** — UI kanban "Perdido" modal obrigatório motivo + data reabordagem · **P0** · 4H
+- **US-CRM-023** — Cron `lead:reactivate-cold` reabre leads "perdido_timing" com data atingida · **P1** · 2H
+- **US-CRM-030** — `crm_lead_scoring_log` + cron `lead:rescore` regras simples · **P1** · 6H
+- **US-CRM-031** — SLA novo lead → alerta vendedor superior se sla_responder_em vencido · **P1** · 4H
+- **US-CRM-032** — Dashboard pipeline com forecast (sum valor_estimado per stage) · **P2** · 6H
+- **US-CRM-040** — API REST pública `/api/v1/crm/leads` (token `business_uuid` + reCAPTCHA + rate-limit) · **P1** · 6H
+- **US-CRM-041** — Form embed JS oimpresso.com captura → POST API · **P2** · 4H
+- **US-CRM-050** — `lgpd_consent_at` + opt-in/opt-out + endpoint direito esquecimento · **P0** · 6H
+- **US-CRM-060** — MWART tela Lead Kanban (atual `crm::lead.index lead_view=kanban`) · **P1** · 12H
+- **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
+- **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
+- **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
+- **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
+- **US-CRM-094** — Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
+- **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
+
 ## RecurringBilling
 
 
@@ -781,37 +813,6 @@
 - **US-ARQ-023** — Migrar `Modules/Financeiro/FinBoletoRemessa` (PDFs boleto gerados — volume razoável, baixo cliente-facing) `p1`
 - **US-ARQ-024** — Migrar `Modules/Ponto/Importacao` (arquivos folha eSocial — médio risco compliance) `p1`
 - **US-ARQ-025** — Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`) `p1`
-
-## Crm
-
-
-### todo
-
-- **US-CRM-001** — Migration estender `contacts` com colunas pipeline · **P0** · 2H
-- **US-CRM-002** — `crm_motivos_perda` catálogo + seeder padrão · **P0** · 2H
-- **US-CRM-003** — `crm_lead_interactions` timeline append-only + observers · **P0** · 4H
-- **US-CRM-004** — `crm_lead_tags` + pivot · **P1** · 2H
-- **US-CRM-010** — Listener `WhatsappMessageReceived` cria/resolve lead · **P0** · 4H
-- **US-CRM-011** — `JanaIntencaoAgent` classifica intenção mensagem entrante · **P0** · 6H
-- **US-CRM-012** — `CrmLeadFromWhatsappService.createOrUpdate` + round-robin · **P0** · 4H
-- **US-CRM-013** — Auto-resposta template WhatsApp ao criar lead · **P1** · 2H
-- **US-CRM-014** — Vincular `whatsapp_conversations.contact_id` ao Lead criado · **P0** · 2H
-- **US-CRM-020** — `ConvertLeadToSaleService` cria Transaction + inicia FSM `quote_draft` · **P0** · 6H
-- **US-CRM-021** — UI kanban "Ganho" dispara ConvertLeadToSale + redireciona SaleSheet · **P0** · 4H
-- **US-CRM-022** — UI kanban "Perdido" modal obrigatório motivo + data reabordagem · **P0** · 4H
-- **US-CRM-023** — Cron `lead:reactivate-cold` reabre leads "perdido_timing" com data atingida · **P1** · 2H
-- **US-CRM-030** — `crm_lead_scoring_log` + cron `lead:rescore` regras simples · **P1** · 6H
-- **US-CRM-031** — SLA novo lead → alerta vendedor superior se sla_responder_em vencido · **P1** · 4H
-- **US-CRM-032** — Dashboard pipeline com forecast (sum valor_estimado per stage) · **P2** · 6H
-- **US-CRM-040** — API REST pública `/api/v1/crm/leads` (token `business_uuid` + reCAPTCHA + rate-limit) · **P1** · 6H
-- **US-CRM-041** — Form embed JS oimpresso.com captura → POST API · **P2** · 4H
-- **US-CRM-050** — `lgpd_consent_at` + opt-in/opt-out + endpoint direito esquecimento · **P0** · 6H
-- **US-CRM-060** — MWART tela Lead Kanban (atual `crm::lead.index lead_view=kanban`) · **P1** · 12H
-- **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
-- **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
-- **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
-- **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
-- **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
 
 ## Inventory
 
