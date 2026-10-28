@@ -19,8 +19,8 @@ related_us: [US-INFRA-002]
 > **Status:** draft. Thread `modulos-faltantes/playbook/03` (executa também `telas-soltas/playbook/05`). Proposto pelo
 > [CC] em `cowork-inbox/modulos-faltantes/voz-do-cliente.charter.md`; este é o charter ao lado do `.tsx`.
 > **Non-Goals e Anti-hooks abaixo são os do [CC] — [W] ainda não aprovou** (a skill `charter-write` não infere esses dois).
-> `GET /voz-do-cliente` serve esta Page só com a flag `useV2VozDoClienteCaixa` ligada para o negócio; desligada
-> (padrão) ou com `?legacy=1`, segue a Blade `vozdocliente::caixa`. Casos: [`Caixa.casos.md`](./Caixa.casos.md).
+> `GET /voz-do-cliente` serve só esta Page desde o F5 de 2026-10-27; até então era dual (flag
+> `useV2VozDoClienteCaixa` + Blade `vozdocliente::caixa`, removidas no F5). Casos: [`Caixa.casos.md`](./Caixa.casos.md).
 
 ## Mission
 

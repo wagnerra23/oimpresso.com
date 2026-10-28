@@ -64,13 +64,16 @@ test('UC-LOCAL-01 com a flag ligada, GET /business-location renderiza Inertia (n
     expect($r->json('component'))->toBe('Configuracoes/Locais/Index');
 });
 
-test('UC-LOCAL-02 com a flag desligada, GET /business-location segue na Blade', function () {
+test('UC-LOCAL-02 cutover: com a flag desligada a tela segue em React (a Blade saiu)', function () {
     config(['feature-flags.forced_on' => '']);
-    // OFF é override explícito, não o default global após D-CFG-LIGAR.
+    // Desde 2026-10-27 o controller não consulta mais useV2ConfiguracoesLocais: OFF no GrowthBook não traz a Blade de volta.
     $this->mock(\App\Services\FeatureFlagService::class, fn ($mock) =>
         $mock->shouldReceive('isOn')->with('useV2ConfiguracoesLocais', \Mockery::any())->andReturn(false));
 
-    $this->get('/business-location')->assertOk()->assertViewIs('business_location.index');
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])->get('/business-location');
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Configuracoes/Locais/Index');
+    expect(view()->exists('business_location.index'))->toBeFalse();
 });
 
 test('UC-LOCAL-03 Tier 0 — a lista adiada é do negócio e respeita os locais permitidos', function () {

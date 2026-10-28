@@ -39,14 +39,14 @@ function impBaseline(int $businessId, int $criadoPor, array $campos = []): int
     ], $campos));
 }
 
-test('baseline: a lista (DataTable) traz só as impressoras do negócio da sessão', function () {
+test('baseline: a lista (prop adiada da tela React; a DataTable saiu no cutover 2026-10-27) traz só as impressoras do negócio da sessão', function () {
     $outro = $this->seededSupportClientTenant();
     $minha = impBaseline($this->business->id, $this->user->id, ['name' => 'Caixa Meu '.uniqid()]);
     $alheia = impBaseline($outro->id, $this->user->id, ['name' => 'Caixa Alheio '.uniqid()]);
 
-    $r = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])->get('/printers');
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request()), 'X-Inertia-Partial-Component' => 'Configuracoes/Impressoras/Index', 'X-Inertia-Partial-Data' => 'impressoras'])->get('/printers');
     $r->assertOk();
-    $nomes = collect($r->json('data'))->pluck(0);
+    $nomes = collect($r->json('props.impressoras'))->pluck('nome');
 
     expect($nomes)->toContain(DB::table('printers')->where('id', $minha)->value('name'));
     expect($nomes)->not->toContain(DB::table('printers')->where('id', $alheia)->value('name'));

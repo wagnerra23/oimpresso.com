@@ -8,8 +8,7 @@ test('Cliente/Map baseline — controller has contactMap() + Inertia branch', fu
 
     expect($contents)
         ->toContain('public function contactMap(')
-        ->toContain("Inertia::render('Cliente/Map'")
-        ->toContain("shouldRenderInertiaCliente('cliente_map'");
+        ->toContain("Inertia::render('Cliente/Map'");
 });
 
 test('Cliente/Map — multi-tenant scope', function () {

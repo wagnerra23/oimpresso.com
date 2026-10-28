@@ -23,6 +23,8 @@ related_visual_comparison: memory/requisitos/Crm/cliente-create-visual-compariso
 # Page Charter — /contacts/create (LIVE)
 
 > **Status:** live — reconciliado de draft em 2026-06-24: Wagner confirmou que biz=4 (ROTA LIVRE) roda esta tela em React em produção (flag `MWART_CLIENTE_CREATE` ON; `ContactController` mantém fallback Blade pros demais tenants). Criado em batch W1-B3 2026-05-15. Backend canon: `app/Http/Controllers/ContactController.php::create()`. Pattern reuse blueprint Cowork Index — formulário derivado da mesma família visual.
+>
+> **2026-10-27 · cutover F5:** o `ContactController` passou a servir só React nesta tela; o fallback Blade citado acima foi apagado (a chave estava ligada para todas as empresas desde 2026-08-26).
 
 ## Mission
 

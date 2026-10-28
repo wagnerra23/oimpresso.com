@@ -21,15 +21,17 @@ related_adrs:
 
 ## Estado final esperado (desta onda)
 
-`GET /voz-do-cliente` (`SinalController::index`) continua devolvendo a Blade `vozdocliente::caixa` com a
-flag `useV2VozDoClienteCaixa` **desligada** (padrão). Com a flag ligada para o negócio, responde Inertia
-`VozDoCliente/Caixa` com:
+`GET /voz-do-cliente` (`SinalController::index`) responde Inertia `VozDoCliente/Caixa` com:
+
+> **Cutover F5 em 2026-10-27.** Até essa data a rota era dual: Blade `vozdocliente::caixa` com a flag
+> `useV2VozDoClienteCaixa` desligada ou com `?legacy=1`, Page com ela ligada. A flag valeu `true` para todas as
+> empresas de 2026-10-13 a 2026-10-27; no F5 a Blade, a flag e o `?legacy=1` saíram.
 
 - `contagem` — total, pendentes, triados, fechados e gravidade alta, do negócio da sessão (eager, barato);
 - `filtro` — situação pedida em `?situacao=` (`pending|triaged|closed`, ou ausente = todos);
 - `sinais` — paginado, adiado (`Inertia::defer`), pendente primeiro e mais novo primeiro, como a Blade.
 
-`?legacy=1` força a Blade mesmo com a flag ligada (mesmo padrão de `NotificationTemplateController`).
+`?legacy=1` não tem mais efeito (UC-VOZ-02).
 
 ## 1. Objetivo
 
@@ -40,12 +42,10 @@ enxerga, nem a ordem.
 
 - `vozdocliente.triar` (ou `superadmin`) — decisão `PERM-VOZ`; a mesma checagem que a Blade já fazia.
 - Módulo `vozdocliente_module` na assinatura, para a entry aparecer na sidebar (`DataController`).
-- Flag `useV2VozDoClienteCaixa` no GrowthBook. Sem a flag no GrowthBook, fica OFF — **não** está em
-  `FeatureFlagService::$fallbackDefaults` de propósito.
 
 ## 3. Passo-a-passo
 
-1. A checagem de permissão roda **antes** de avaliar a flag (quem não pode ver não consulta flag).
+1. A checagem de permissão roda **antes** de qualquer consulta (quem não pode ver não lê nada).
 2. O `business_id` vem da sessão; a consulta tem `where` explícito **e** o global scope de `Sinal`.
 3. A Page mostra cabeçalho, 4 KPIs, os 4 chips de situação e a tabela; a troca de chip recarrega só `sinais` e
    `filtro`.
@@ -82,5 +82,5 @@ Seções `data-contract`: `cabecalho`, `kpis`, `filtros`, `lista` — as do cont
 - **Triagem** (Virar US / Fechar sem ação): escreve `status`, `triado_para_us`, `triado_por`, `triado_em`.
   O "motivo do fechamento" do protótipo **não tem coluna** em `voz_sinais` — precisa de migration, e por
   isso a triagem é PR próprio.
-- Ligar a flag em produção e remover `caixa.blade.php`: cutover (F5).
+- ~~Ligar a flag em produção e remover `caixa.blade.php`: cutover (F5).~~ Feito em 2026-10-27.
 - Contrato de forma em `governance/design/contracts/voz-do-cliente.contract.json`: depois do alvo medido.

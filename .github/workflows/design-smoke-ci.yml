@@ -198,8 +198,6 @@ jobs:
           VIEW_COMPILED_PATH=storage/framework/views
           MWART_CLIENTE_INDEX=true
           MWART_BACKUP_INDEX=true
-          MWART_CLIENTE_IMPORT=true
-          MWART_CLIENTE_MAP=true
           VISREG_FREEZE_CLOCK="2026-06-11 12:00:00"
           EOF
           php artisan key:generate --force

@@ -14,10 +14,9 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\Concerns\BusinessScopeImpl;
 use Modules\Financeiro\Models\ContaBancaria;
-use Modules\Financeiro\Models\ExtratoLancamento;
-use Modules\RecurringBilling\Dto\StatementLineDto;
 use Modules\RecurringBilling\Services\Banking\Drivers\InterStatementDriver;
 use Modules\RecurringBilling\Services\Banking\InterBankingClient;
+use Modules\RecurringBilling\Services\Banking\StatementPersister;
 
 /**
  * Sincroniza extrato dos últimos `$diasRetro` dias pra cada conta com
@@ -93,32 +92,8 @@ class SyncBankStatementsJob implements ShouldQueue
 
         $linhas = $driver->fetchStatement($from, $to);
 
-        $linhas->each(function (StatementLineDto $linha) use ($conta) {
-            // SUPERADMIN: o upsert precisa enxergar a linha já existente da conta
-            // que está sendo sincronizada — de qualquer tenant — pra respeitar o
-            // UNIQUE (conta_bancaria_id, idempotency_key) e continuar idempotente.
-            // Com o scope ativo (se algum dia houver sessão neste caminho) o SELECT
-            // não acharia a linha de outro business e o INSERT violaria o UNIQUE.
-            // O `business_id` gravado é sempre o da PRÓPRIA conta — ver payload.
-            ExtratoLancamento::query()
-                ->withoutGlobalScope(BusinessScopeImpl::class)
-                ->updateOrCreate(
-                    [
-                        'conta_bancaria_id' => $conta->id,
-                        'idempotency_key'   => $linha->idempotencyKey,
-                    ],
-                    [
-                        'business_id'           => $conta->business_id,
-                        'data'                  => $linha->data->toDateString(),
-                        'valor'                 => $linha->valor,
-                        'tipo'                  => $linha->tipo,
-                        'descricao'             => $linha->descricao,
-                        'contraparte_documento' => $linha->contraparteDocumento,
-                        'contraparte_nome'      => $linha->contraparteNome,
-                        'raw_payload'           => $linha->raw,
-                    ]
-                );
-        });
+        // Gravação comum a todos os drivers (Inter, OFX, próximos bancos) — US-FIN-084.
+        (new StatementPersister())->gravar($conta, $linhas, 'api');
     }
 
     private function decryptConfig(array $config): array
