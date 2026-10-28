@@ -172,6 +172,58 @@ class InterBankingClient
     }
 
     /**
+     * Pagamentos de contas (US-FIN-079) — saída de dinheiro. Quem chama é o
+     * `InterPagadorBanco` do Financeiro, depois da aprovação do usuário; nunca automático.
+     * Exigem os escopos `pagamento-boleto.*` / `pagamento-pix.*` na integração do Inter
+     * Empresas (ação do [W]). Nomes de endpoint e de campo seguem a referência Banking v2 e
+     * precisam ser conferidos no sandbox antes da flag subir.
+     */
+    public function pagarBoleto(array $body, string $idempotencia): array
+    {
+        return $this->banking('post', '/banking/v2/pagamento', 'pagamento-boleto.write', $body, $idempotencia);
+    }
+
+    public function consultarPagamentoBoleto(string $codigoTransacao): array
+    {
+        return $this->banking('get', '/banking/v2/pagamento', 'pagamento-boleto.read', ['codigoTransacao' => $codigoTransacao]);
+    }
+
+    public function pagarPix(array $body, string $idempotencia): array
+    {
+        return $this->banking('post', '/banking/v2/pix', 'pagamento-pix.write', $body, $idempotencia);
+    }
+
+    public function consultarPix(string $codigoSolicitacao): array
+    {
+        return $this->banking('get', '/banking/v2/pix/'.rawurlencode($codigoSolicitacao), 'pagamento-pix.read');
+    }
+
+    private function banking(string $metodo, string $path, string $scope, array $dados = [], ?string $idempotencia = null): array
+    {
+        $headers = ['x-conta-corrente' => $this->config['conta_corrente']];
+        if ($idempotencia !== null) {
+            $headers['x-id-idempotente'] = $idempotencia;
+        }
+
+        $response = $this->httpWithMtls()
+            ->withToken($this->oauthToken($scope))
+            ->withHeaders($headers)
+            ->{$metodo}(self::BASE_URL.$path, $dados);
+
+        if ($response->failed()) {
+            Log::warning('InterBankingClient.banking failed', [
+                'business_id' => $this->businessId,
+                'path'        => $path,
+                'status'      => $response->status(),
+                'body'        => '[REDACTED]',
+            ]);
+            $response->throw();
+        }
+
+        return (array) $response->json();
+    }
+
+    /**
      * OAuth client_credentials com mTLS, cacheado 50min por (business, scope).
      * Múltiplos escopos podem ser passados como string com espaço.
      */
