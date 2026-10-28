@@ -1,7 +1,7 @@
 {
   "screen": "Sells/Create",
   "path": "resources/js/Pages/Sells/Create.tsx",
-  "measured_against_sha": "dc94d975b",
+  "measured_against_sha": "dd2c62e159",
   "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
   "shell": [
     "AppShellV2"
@@ -23,15 +23,19 @@
       "EmptyState",
       "MercosulPlate"
     ],
-    "layout": [],
+    "layout": [
+      "Inline"
+    ],
     "local": [
       "PaymentRow (./_components/PaymentRow)",
       "QuickAddVehicleSheet (./_components/QuickAddVehicleSheet)",
       "ReparoSection (./_components/ReparoSection)",
+      "ResgatePontos (./_components/ResgatePontos)",
       "camposDeSubtipo (./_components/subtipoVenda)",
       "dropdownEntries (./_components/dropdownEntries)",
       "precoDaBusca (./_components/precoDaBusca)",
       "type Payment (./_components/PaymentRow)",
+      "type PontosFidelidadeConfig (./_components/ResgatePontos)",
       "type RepairPosProps (./_components/ReparoSection)"
     ]
   },
@@ -48,9 +52,9 @@
     "native_input": 1
   },
   "totals": {
-    "canon_components": 12,
-    "local_components": 8,
-    "uses_layout_primitives": false,
+    "canon_components": 13,
+    "local_components": 10,
+    "uses_layout_primitives": true,
     "structural_violations": 8
   }
 }

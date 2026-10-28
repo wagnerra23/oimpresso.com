@@ -96,7 +96,72 @@ function Painel({ folhas, onIr }) {
             {Chart && <Chart type="bar" height={130} data={D.tendencia(folhas, campo).slice(0, 6)} highlightLast={false} formatValue={(v) => v + " folhas"} />}
           </section>)}
       </div>
+      <Indicadores ind={D.INDICADORES} />
     </div>
+  );
+}
+
+// Indicadores da OS (US-REPA-006). Tudo vem da FSM — o histórico de etapas e a etapa atual —,
+// nunca de contador próprio. Janela fixa: o painel não tem filtro de período (Non-Goal do charter).
+function Indicadores({ ind }) {
+  const D = R();
+  const { KpiCard } = DS();
+  const maxT = Math.max(1, ...ind.tempo_por_etapa.map((e) => e.horas_media));
+  const maxP = Math.max(1, ...ind.paradas_por_etapa.map((e) => e.count));
+  const maxC = Math.max(1, ...ind.produtividade.map((t) => t.concluidas));
+  const g = ind.garantia;
+  const lenta = ind.tempo_por_etapa.reduce((a, e) => (!a || e.horas_media > a.horas_media ? e : a), null);
+  return (
+    <section className="rep-ind" aria-labelledby="rep-ind-t">
+      <h2 id="rep-ind-t" className="rep-ind-t">Indicadores da OS <span>últimos {ind.janela_dias} dias</span></h2>
+      <div className="rep-kpis">
+        {KpiCard && <>
+          <KpiCard label="Retorno em garantia" value={g.taxa == null ? "—" : String(g.taxa).replace(".", ",") + "%"}
+            tone={g.taxa > 10 ? "danger" : "default"} description={g.acionadas + " de " + g.entregues + " OS entregues voltaram"} />
+          <KpiCard label="Paradas além do prazo" value={ind.paradas_por_etapa.reduce((s, e) => s + e.count, 0)}
+            tone={ind.paradas_por_etapa.length ? "danger" : "default"} description="OS no fluxo com entrega vencida" />
+          <KpiCard label="Etapa mais lenta" value={lenta ? D.duracao(lenta.horas_media) : "—"}
+            description={lenta ? lenta.label : "sem transições na janela"} />
+        </>}
+      </div>
+      <div className="rep-grid3">
+        <section className="rep-card">
+          <h3>Tempo médio por etapa</h3>
+          <div className="rep-bars">
+            {ind.tempo_por_etapa.map((e) =>
+              <div key={e.key} className="rep-bar plain" title={e.amostras + " passagens"}>
+                <span className="l" title={e.label}>{e.label}</span>
+                <span className="t" style={{ "--st": "var(--accent)", "--w": (e.horas_media / maxT) * 100 + "%" }} />
+                <b>{D.duracao(e.horas_media)}</b>
+              </div>)}
+          </div>
+        </section>
+        <section className="rep-card">
+          <h3>Paradas além do prazo, por etapa</h3>
+          {ind.paradas_por_etapa.length === 0 ? <p className="rep-vazio">Nenhuma OS parada com prazo vencido.</p> :
+          <div className="rep-bars">
+            {ind.paradas_por_etapa.map((e) =>
+              <div key={e.key} className="rep-bar plain">
+                <span className="l" title={e.label}>{e.label}</span>
+                <span className="t" style={{ "--st": "var(--neg)", "--w": (e.count / maxP) * 100 + "%" }} />
+                <b>{e.count}</b>
+              </div>)}
+          </div>}
+        </section>
+        <section className="rep-card">
+          <h3>Produtividade por técnico</h3>
+          <div className="rep-bars">
+            {ind.produtividade.map((t) =>
+              <div key={t.label} className="rep-bar plain">
+                <span className="l">{t.label}<small className="rep-dim">média {D.duracao(t.horas_media)}</small></span>
+                <span className="t" style={{ "--st": "var(--accent)", "--w": (t.concluidas / maxC) * 100 + "%" }} />
+                <b>{t.concluidas}</b>
+              </div>)}
+          </div>
+          <p className="rep-nota">OS que chegaram a "concluído" na janela. A média vai da abertura da OS até a conclusão.</p>
+        </section>
+      </div>
+    </section>
   );
 }
 
@@ -403,7 +468,8 @@ function ReparoDrawer({ folha, close, avisar }) {
   return (
     <Drawer open onClose={close} width={680} title={"Venda de reparo " + v.repair} subtitle={folha.cliente || "Sem cliente"}
       footer={Button && <>
-        <Button variant="ghost" onClick={() => avisar("Via do cliente abre em nova aba.")}>Via do cliente</Button>
+        <Button variant="ghost" onClick={() => window.RepairVendaEtiqueta ? window.RepairVendaEtiqueta.printEtiquetaVenda(v) : avisar("Etiqueta da venda.")}>Etiqueta</Button>
+        <Button variant="ghost" onClick={() => window.RepairVendaRecibo ? window.RepairVendaRecibo.printReciboVenda(v) : avisar("Via do cliente abre em nova aba.")}>Via do cliente</Button>
         <Button variant="primary" onClick={() => avisar("Editar a venda de reparo abre em Vendas.")}>Editar</Button>
       </>}>
       <DrawerSection title="Detalhes da venda">
@@ -469,7 +535,7 @@ function Status({ folhas, papel, avisar }) {
               <span className="rep-status-meta mono">ordem {s.ordem} · coluna {s.coluna} · {n} folha(s)</span>
               <span className="rep-status-flag">{s.concluido ? "marcado como concluído" : "pendente"}</span>
               <span className="rep-status-tpl">SMS: “{s.sms}”</span>
-              {Button && <Button size="sm" variant="ghost" onClick={() => pode ? avisar("Editar status abre o formulário de " + s.nome + ".") : avisar("Seu papel não edita status.", "warn")}>Editar</Button>}
+              {Button && <Button size="sm" variant="ghost" onClick={() => { if (!pode) return avisar("Seu papel não edita status.", "warn"); window.__repStatusEditar = s.id; window.__go && window.__go("rep-status-editar"); }}>Editar</Button>}
             </div>
           );
         })}
@@ -478,7 +544,7 @@ function Status({ folhas, papel, avisar }) {
         No legado o status é FK das folhas — apagar um status usado deixa folha órfã. Antes de excluir, migre as folhas.
         {" "}Hoje {D.STATUS.filter((s) => folhas.some((f) => f.status === s.id)).length} de {D.STATUS.length} status estão em uso.
       </Alert>}
-      {Button && <div className="rep-cfg-acoes"><Button variant="primary" onClick={() => pode ? avisar("Novo status — nome, cor, ordem, templates.") : avisar("Sem permissão.", "warn")}>Adicionar status</Button>
+      {Button && <div className="rep-cfg-acoes"><Button variant="primary" onClick={() => pode ? (window.__go && window.__go("rep-status-novo")) : avisar("Sem permissão.", "warn")}>Adicionar status</Button>
         <span>Permissão: <b className="mono">access_job_sheet_status</b></span></div>}
     </div>
   );
@@ -889,6 +955,9 @@ const ROTAS = {
   "rep-folha-editar":  { page: "Repair/JobSheet/Edit",         aba: "folhas", modal: { t: "folha", modo: "editar", folhaId: 5 } },
   "rep-folha-pecas":   { page: "Repair/JobSheet/AddParts",     aba: "folhas", modal: { t: "pecas", folhaId: 7 } },
   "rep-status":        { page: "Repair/Status/Index",          aba: "status" },
+  // Cadastro de status é página, não modal (o charter de Repair/Status proíbe editar em modal).
+  "rep-status-novo":   { page: "Repair/Status/Create",         aba: "status", statusForm: { modo: "novo" } },
+  "rep-status-editar": { page: "Repair/Status/Edit",           aba: "status", statusForm: { modo: "editar" } },
   "rep-modelos":       { page: "Repair/DeviceModels/Index",    aba: "modelos" },
   "rep-modelo-novo":   { page: "Repair/DeviceModels/Create",   aba: "modelos", modelo: { modo: "novo" } },
   "rep-modelo-editar": { page: "Repair/DeviceModels/Edit",     aba: "modelos", modelo: { modo: "editar", id: 2 } },
@@ -1023,7 +1092,9 @@ function RepairPage({ view, dense, estado = "dados", papel: papelProp }) {
         {aba === "producao" && <div className="mp-body"><Producao folhas={lista} papel={papel} avisar={avisar} onAbrir={setSel} onMover={mover} /></div>}
         {aba === "folhas" && <Folhas folhas={lista} papel={papel} dense={dense} filtro={filtro} setFiltro={setFiltro} busca={busca} onAbrir={setSel} acoes={acoes} />}
         {aba === "reparos" && <Reparos folhas={lista} dense={dense} onAbrir={setReparo} />}
-        {aba === "status" && <div className="mp-body"><Status folhas={lista} papel={papel} avisar={avisar} /></div>}
+        {aba === "status" && <div className="mp-body">{rota && rota.statusForm && window.RepairStatusForm
+          ? <window.RepairStatusForm.StatusPagina modo={rota.statusForm.modo} statusId={window.__repStatusEditar || (D.STATUS[0] || {}).id} folhas={lista} papel={papel} avisar={avisar} onVoltar={() => window.__go && window.__go("rep-status")} />
+          : <Status folhas={lista} papel={papel} avisar={avisar} />}</div>}
         {aba === "modelos" && <Modelos modelos={modelos} folhas={lista} dense={dense} papel={papel}
           onNovo={() => setModeloForm({ modo: "novo" })} onEditar={(m) => setModeloForm({ modo: "editar", modelo: m })} />}
         {aba === "portal" && <div className="mp-body">{Portal && <Portal folhas={folhas} avisar={avisar} />}</div>}

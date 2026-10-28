@@ -51,7 +51,7 @@ permissions:
 jobs:
   anchor-lint:
     name: anchor-lint ADR 0273
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -80,7 +80,7 @@ jobs:
   # sem entrelaçar com o anchor-lint dead/zombie. Mesmo workflow (teto ADR 0298 — estende, não cria).
   anchor-entry-covers:
     name: anchor entry/covers gate
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -111,7 +111,7 @@ jobs:
 
   doneness-lint:
     name: doneness-lint ADR 0302
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -139,7 +139,7 @@ jobs:
 
   charter-live-signal:
     name: charter status:live precisa de sinal de prod
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -176,7 +176,7 @@ jobs:
   # behavior_unknown → exit 0. Mesmo workflow (teto ADR 0298 — estende, não cria).
   verde-gate-advisory:
     name: gate verde nightly (advisory)
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -220,7 +220,7 @@ jobs:
   # fiscal) — frescor de âncora é higiene, então o caminho natural dele é seguir reportando.
   anchor-stale:
     name: âncora stale — verificado@sha × HEAD
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -251,7 +251,7 @@ jobs:
   # nasceu limpo (0 violações no reaponte 2026-07-01) → morde QUALQUER regressão de lugar, nova ou velha.
   prototipo-lugar-fixo:
     name: protótipo em 1 lugar fixo (ancora-guard)
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
