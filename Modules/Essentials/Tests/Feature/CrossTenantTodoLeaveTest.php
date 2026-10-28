@@ -100,7 +100,7 @@ it('BULK UPDATE em Todo via biz=99 NÃO afeta nenhum registro biz=1', function (
         expect($fresh->status)->toBe('new');
         expect($fresh->priority)->toBe('medium');
     }
-})->afterEach(function () {
+})->after(function () {
     ToDo::where('task', 'like', X_TAG . '-bulk-%')->delete();
 });
 
@@ -124,7 +124,7 @@ it('BULK DELETE em Leave via biz=99 NÃO deleta nenhum registro biz=1', function
         ->count();
 
     expect($survivors)->toBe(2);
-})->afterEach(function () {
+})->after(function () {
     EssentialsLeave::where('reason', 'like', X_TAG . '-lv-bulk-%')->delete();
 });
 
@@ -158,7 +158,7 @@ it('COUNT scoped biz=99 NÃO inclui Todo nem Leave criados em biz=1', function (
 
     expect($todoCountWagner)->toBe(1);
     expect($leaveCountWagner)->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     ToDo::where('task', 'like', X_TAG . '-count-%')->delete();
     EssentialsLeave::where('reason', 'like', X_TAG . '-count-%')->delete();
 });
@@ -189,6 +189,6 @@ it('ID idêntico em biz=1 e biz=99 NÃO causa vazamento via where business_id', 
     expect($resultadoFicticio)->toHaveCount(1);
     expect($resultadoFicticio->first()->id)->toBe($tFicticio->id);
     expect($resultadoFicticio->first()->task)->toContain('pk-ficticio');
-})->afterEach(function () {
+})->after(function () {
     ToDo::where('task', 'like', X_TAG . '-pk-%')->delete();
 });

@@ -64,7 +64,7 @@ it('Todo biz=1 não aparece em listagem scoped biz=99', function () {
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     ToDo::where('task', 'Tarefa Wagner Isolamento')->delete();
 });
 
@@ -80,7 +80,7 @@ it('Todo biz=1 NÃO pode ser carregada via show scoped biz=99', function () {
         ->first();
 
     expect($achado)->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     ToDo::where('task', 'Tarefa Show Isolamento')->delete();
 });
 
@@ -100,7 +100,7 @@ it('Todo biz=1 NÃO pode ser editada via update scoped biz=99', function () {
     // Recarrega do banco — task original preservada
     $fresh = ToDo::find($todo->id);
     expect($fresh->task)->toBe('Tarefa Edit Isolamento');
-})->afterEach(function () {
+})->after(function () {
     ToDo::where('id', '>', 0)
         ->whereIn('task', ['Tarefa Edit Isolamento', 'INVADIDO'])
         ->delete();
@@ -125,7 +125,7 @@ it('Todo biz=1 NÃO pode ser deletada via destroy scoped biz=99', function () {
         ->first();
 
     expect($sobreviveu)->not->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     ToDo::where('task', 'Tarefa Delete Isolamento')->delete();
 });
 
@@ -147,7 +147,7 @@ it('Todo biz=1 NÃO pode ser marcada completed via scope biz=99', function () {
     // Status original preservado
     $fresh = ToDo::find($todo->id);
     expect($fresh->status)->toBe('in_progress');
-})->afterEach(function () {
+})->after(function () {
     ToDo::where('task', 'Tarefa Complete Isolamento')->delete();
 });
 
@@ -164,6 +164,6 @@ it('Todo biz=1 aparece em listagem scoped biz=1', function () {
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->task)->toBe('Tarefa Wagner Visivel');
-})->afterEach(function () {
+})->after(function () {
     ToDo::where('task', 'Tarefa Wagner Visivel')->delete();
 });
