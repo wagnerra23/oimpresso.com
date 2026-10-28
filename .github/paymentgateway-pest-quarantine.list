@@ -32,8 +32,6 @@ Modules/PaymentGateway/Tests/Feature/C6DriverTest.php  # idem App\Account × std
 Modules/PaymentGateway/Tests/Feature/AsaasDriverTest.php  # idem App\Account × stdClass
 Modules/PaymentGateway/Tests/Feature/OndaUmEsqueletoTest.php  # afirma que os Contracts NÃO têm binding; a Onda 4 já os amarrou
 Modules/PaymentGateway/Tests/Feature/PagarmeDriverTest.php  # espera CredentialMisconfiguredException, recebe DecryptException
-Modules/PaymentGateway/Tests/Feature/SicoobApiDriverTest.php  # Duplicate entry 1-sicoob_api-sandbox (estado vazado entre arquivos)
-Modules/PaymentGateway/Tests/Feature/InterWebhookTest.php  # Duplicate entry 1-inter-sandbox (estado vazado entre arquivos)
 #
 # ── B. era-sqlite que FALHAM também no sqlite (run 40736895552 do ci.yml, 2026-10-28).
 # Pulam no MySQL (schema sintético) e quebram no sqlite por fixture desatualizada. Os outros
