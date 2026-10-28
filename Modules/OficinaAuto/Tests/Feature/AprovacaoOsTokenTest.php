@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_APROV = 1;
-const BIZ_APROV_OUTRO = 99;
+const BIZ_APROV_OUTRO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -116,7 +116,7 @@ it('UC-OAP-06 · cenario 6: PIN correto invalida cache (one-shot, nao reutilizav
     expect($svc->validarPin($os, $g['pin']))->toBeFalse();
 });
 
-it('UC-OAP-05 · cenario 7: token gerado pra biz=1 NAO valida em OS de biz=99 (Tier 0)', function () {
+it('UC-OAP-05 · cenario 7: token gerado pra biz=1 NAO valida em OS de biz=2 (Tier 0)', function () {
     $svc = new AprovacaoOsService();
     $osBiz1 = criarOsAprovacao(BIZ_APROV);
     $g1 = $svc->gerarTokenAprovacao($osBiz1);
@@ -127,9 +127,17 @@ it('UC-OAP-05 · cenario 7: token gerado pra biz=1 NAO valida em OS de biz=99 (T
         ->and($resolvedOs->business_id)->toBe(BIZ_APROV);
 
     // Cria outra OS em outro business com mesmo plate — token de biz=1 NAO deve resolver pra ela
-    criarOsAprovacao(BIZ_APROV_OUTRO);
+    $this->osOutroBiz = criarOsAprovacao(BIZ_APROV_OUTRO);
     $resolved2 = $svc->validarToken($g1['token']);
     expect($resolved2->business_id)->toBe(BIZ_APROV);
+})->after(function () {
+    // A OS criada no biz=2 não fica no 2º tenant do seed (compartilhado com as outras lanes).
+    // Apaga por id, não por prefixo de placa: no CT 100 o biz=2 é clone de prod.
+    if (isset($this->osOutroBiz)) {
+        $vehicleId = $this->osOutroBiz->vehicle_id;
+        ServiceOrder::withoutGlobalScopes()->whereKey($this->osOutroBiz->id)->forceDelete();
+        Vehicle::withoutGlobalScopes()->whereKey($vehicleId)->forceDelete();
+    }
 });
 
 it('cenario 8: OS em status diferente de orcamento nao valida via token', function () {

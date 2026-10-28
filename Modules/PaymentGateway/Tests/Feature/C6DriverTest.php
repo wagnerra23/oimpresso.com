@@ -49,7 +49,7 @@ it('emitirBoleto C6 OK', function () {
         ], 200),
     ]);
 
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
     $result = (new PaymentGatewayService())->for($account)->emitirBoleto(new EmitirCobrancaInput(
         businessId: 1, contactId: 300, valorCentavos: 20000,
         vencimento: new DateTimeImmutable('+10 days'),
@@ -72,7 +72,7 @@ it('emitirPix C6 tipo=cob OK', function () {
         ], 200),
     ]);
 
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
     $result = (new PaymentGatewayService())->for($account)->emitirPix(new EmitirCobrancaInput(
         businessId: 1, contactId: 300, valorCentavos: 7777,
         vencimento: new DateTimeImmutable('+1 day'),

@@ -50,12 +50,15 @@ it('PaymentGatewayContract resolve PaymentGatewayService via container', functio
     expect($service)->toBeInstanceOf(PaymentGatewayService::class);
 });
 
-it('InterDriver tem key=inter e supporta apenas boleto na Onda 4a', function () {
+// Onda 4a só tinha boleto; as Ondas 4b/4c (#1132, #1133) ligaram pix_cob e pix_cobv no
+// supports() do InterDriver. O teste segue o código atual: boleto + PIX cob/cobv, sem
+// Pix Automático nem cartão.
+it('InterDriver tem key=inter e suporta boleto + PIX cob/cobv', function () {
     $driver = new InterDriver();
     expect($driver->key())->toBe('inter');
     expect($driver->supports('boleto'))->toBeTrue();
-    expect($driver->supports('pix_cob'))->toBeFalse();
-    expect($driver->supports('pix_cobv'))->toBeFalse();
+    expect($driver->supports('pix_cob'))->toBeTrue();
+    expect($driver->supports('pix_cobv'))->toBeTrue();
     expect($driver->supports('pix_recv'))->toBeFalse();
     expect($driver->supports('card'))->toBeFalse();
 });
@@ -71,7 +74,7 @@ it('emitirBoleto OK — pipeline completa cria Cobranca emitida com artefatos', 
     ]);
 
     // Account stub
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
 
     $service = new PaymentGatewayService();
     $result = $service->for($account)->emitirBoleto(new EmitirCobrancaInput(
@@ -108,7 +111,7 @@ it('emitirBoleto idempotente — 2x mesma key retorna existente sem chamar gatew
         '*/cobranca/v3/cobrancas' => Http::response(['nossoNumero' => '00099887766'], 201),
     ]);
 
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
     $service = new PaymentGatewayService();
     $input = new EmitirCobrancaInput(
         businessId: 1,
@@ -142,7 +145,7 @@ it('emitirBoleto Gateway 5xx → GatewayUnavailableException', function () {
         '*/cobranca/v3/cobrancas' => Http::response(['error' => 'Inter down'], 503),
     ]);
 
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
 
     expect(fn () => (new PaymentGatewayService())->for($account)->emitirBoleto(new EmitirCobrancaInput(
         businessId: 1,
@@ -154,11 +157,14 @@ it('emitirBoleto Gateway 5xx → GatewayUnavailableException', function () {
     )))->toThrow(GatewayUnavailableException::class);
 });
 
-it('emitirPix → DriverNotSupportedException na Onda 4a', function () {
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+// Era "emitirPix → DriverNotSupported na Onda 4a"; PIX cob/cobv passou a ser suportado
+// (InterPixCobTest / InterRefundCobvTest cobrem). O que o Inter segue sem fazer pelo
+// service é Pix Automático (pix_recv — fica com o BcbPix, Onda 4d).
+it('emitirPixAutomatico → DriverNotSupportedException (Inter não faz Pix Automático)', function () {
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
     Http::fake(['*/oauth/v2/token' => Http::response(['access_token' => 'fake'], 200)]);
 
-    expect(fn () => (new PaymentGatewayService())->for($account)->emitirPix(new EmitirCobrancaInput(
+    expect(fn () => (new PaymentGatewayService())->for($account)->emitirPixAutomatico(new EmitirCobrancaInput(
         businessId: 1, contactId: 1, valorCentavos: 100,
         vencimento: new DateTimeImmutable('+1 day'),
         descricao: 'x', idempotencyKey: 'pix:1',
@@ -209,10 +215,12 @@ it('credential gateway_key errado → CredentialMisconfiguredException', functio
 });
 
 it('credential sem client_id → CredentialMisconfiguredException', function () {
+    // ambiente production: o beforeEach já ocupa (1, inter, sandbox), e o índice único
+    // (business_id, gateway_key, ambiente) existe desde a migration de criação da tabela.
     $bad = PaymentGatewayCredential::query()->create([
         'business_id'  => 1,
         'gateway_key'  => 'inter',
-        'ambiente'     => 'sandbox',
+        'ambiente'     => 'production',
         'ativo'        => true,
         'config_json'  => ['client_secret' => 'only-secret'], // sem client_id
     ]);

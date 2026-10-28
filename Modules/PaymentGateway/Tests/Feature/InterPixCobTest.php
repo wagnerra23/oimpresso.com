@@ -31,12 +31,12 @@ beforeEach(function () {
     ]);
 });
 
-it('Inter supports inclui pix_cob na Onda 4b', function () {
+// A nota antiga dizia que supports() ficaria conservador (só boleto) até o service
+// distinguir os tipos. Isso aconteceu: o InterDriver hoje anuncia boleto + pix_cob + pix_cobv.
+it('Inter supports inclui pix_cob', function () {
     $d = new InterDriver();
     expect($d->supports('boleto'))->toBeTrue();
-    expect($d->supports('pix_cob'))->toBeFalse(); // supports() ainda retorna só boleto; método valida tipo internamente
-    // Nota: Onda 4b expandiu emitirPix mas supports() permanece conservador
-    // até PaymentGatewayService.driverFor() distinguir 'boleto' vs 'pix_cob'
+    expect($d->supports('pix_cob'))->toBeTrue();
 });
 
 it('emitirPix Inter tipo=cob OK via PUT /pix/v2/cob/{txid}', function () {
@@ -48,7 +48,7 @@ it('emitirPix Inter tipo=cob OK via PUT /pix/v2/cob/{txid}', function () {
         ], 200),
     ]);
 
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
     $result = (new PaymentGatewayService())->for($account)->emitirPix(new EmitirCobrancaInput(
         businessId: 1, contactId: 400, valorCentavos: 12345,
         vencimento: new DateTimeImmutable('+1 day'),
@@ -66,11 +66,14 @@ it('emitirPix Inter tipo=cob OK via PUT /pix/v2/cob/{txid}', function () {
     expect($result->pixEmv)->toContain('00020126');
 });
 
-it('emitirPix Inter tipo=cobv → DriverNotSupportedException (vai pra Onda 4c)', function () {
+// Era "tipo=cobv → DriverNotSupported (vai pra Onda 4c)". A Onda 4c entregou o cobv; o
+// comportamento atual (emissão cobv + validação de pix_key) é coberto em InterRefundCobvTest.
+// O tipo que o Inter segue recusando é o recv (Pix Automático).
+it('emitirPix Inter tipo=recv → DriverNotSupportedException', function () {
     expect(fn () => (new InterDriver())->emitirPix(
         new EmitirCobrancaInput(businessId: 1, contactId: 1, valorCentavos: 100, vencimento: new DateTimeImmutable(), descricao: 'x', idempotencyKey: 'k'),
         $this->cred,
-        'cobv',
+        'recv',
     ))->toThrow(DriverNotSupportedException::class);
 });
 
