@@ -92,7 +92,7 @@ export const DEBITOS_CONHECIDOS: readonly DebitoConhecido[] = [
   { tela: "nfse", tom: "warning", decisao: true, ancora: "Nfse.casos.md",
     rotulo: "sem teste",
     titulo: "Venda lançada com produto, mas o cliente pede nota de serviço",
-    texto: "[V0] — pedido da Fixar, 2026-10-28. Dado uma venda de placas sob encomenda lançada com itens de natureza mercadoria, Quando o cliente fecha e pede a nota de serviço, Então a venda mostra que esses itens saem em NF-e e por quê; se a operação é mesmo serviço sob encomenda, o contador corrige a natureza do produto e a venda sai em NFS-e sem ser refeita; se é venda de mercadoria, a nota segue NF-e. Hoje a natureza é só do produto, decidida pelo contador (D-NATUREZA, US-NFE-068), e a venda não mostra nem troca a natureza dos itens. Falta o [W] decidir se quem fatura pode trocar a natureza só no item da venda, com justificativa. Mexe em imposto: Regra Mestre." },
+    texto: "pedido da Fixar, 2026-10-28. Dado uma venda de placas sob encomenda lançada com itens de natureza mercadoria, Quando o cliente fecha e pede a nota de serviço, Então a venda mostra que esses itens saem em NF-e e por quê; se a operação é mesmo serviço sob encomenda, o contador corrige a natureza do produto e a venda sai em NFS-e sem ser refeita; se é venda de mercadoria, a nota segue NF-e. Hoje a natureza é só do produto, decidida pelo contador (D-NATUREZA, US-NFE-068), e a venda não mostra nem troca a natureza dos itens. Falta o [W] decidir se quem fatura pode trocar a natureza só no item da venda, com justificativa. Mexe em imposto: Regra Mestre." },
   { tela: "dfe", tom: "warning", decisao: false, ancora: "Dfe.casos.md",
     rotulo: "em revisão",
     titulo: "Nenhuma manifestação chegava à SEFAZ, por nenhum caminho",
