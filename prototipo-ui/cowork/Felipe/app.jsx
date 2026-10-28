@@ -686,6 +686,8 @@ function App() {
     "prodDensidade": "confortável",
     "prodEstado": "dados",
     "prodPapel": "administrador",
+    "prodEmiteNota": "sim",
+    "prodAliquota": "sim",
     "patDensidade": "confortável",
     "repDensidade": "confortável",
     "repEstado": "dados",
@@ -841,7 +843,7 @@ function App() {
   }else
   if (route.startsWith("prod-")) {
     const PROD_VIEW = { "prod-lista": "lista", "prod-novo": "form", "prod-estoque": "estoque", "prod-historico": "historico", "prod-precos": "precos", "prod-massa": "massa", "prod-analises": "analises", "prod-etiquetas": "etiquetas", "prod-atualizar-preco": "atualizar-preco", "prod-importar": "importar-produtos", "prod-importar-estoque": "importar-estoque", "prod-cadastros": "cadastros" };
-    content = <window.ProdutoBladePage view={PROD_VIEW[route] || "lista"} estado={tweaks.prodEstado} dense={tweaks.prodDensidade === "compacto"} papel={tweaks.prodPapel} />;
+    content = <window.ProdutoBladePage view={PROD_VIEW[route] || "lista"} estado={tweaks.prodEstado} dense={tweaks.prodDensidade === "compacto"} papel={tweaks.prodPapel} emiteNota={tweaks.prodEmiteNota !== "não"} temAliquota={tweaks.prodAliquota !== "não"} />;
   }else
   if (route === "vendas") content = <window.VendasModule />;else
   if (route === "venda-todas") content = <window.VendaTodasPage />;else
@@ -1056,6 +1058,17 @@ function App() {
             value={tweaks.prodPapel}
             options={["administrador", "gerente", "balcao", "sem-acesso"]}
             onChange={(v) => setTweak("prodPapel", v)} />
+          {/* Contexto da empresa, não do usuário: decide a aba Fiscal e a coluna/filtro Imposto. */}
+          <TweakRadio
+            label="Empresa emite nota (módulo Fiscal)"
+            value={tweaks.prodEmiteNota}
+            options={["sim", "não"]}
+            onChange={(v) => setTweak("prodEmiteNota", v)} />
+          <TweakRadio
+            label="Empresa tem alíquota de imposto"
+            value={tweaks.prodAliquota}
+            options={["sim", "não"]}
+            onChange={(v) => setTweak("prodAliquota", v)} />
         </>}
 
         {(route === "repair" || route.indexOf("rep-") === 0) && <>

@@ -1109,6 +1109,8 @@ class SellController extends Controller
                 'blAttributes'         => $bl_attributes,
                 'defaultLocation'      => $default_location,
                 'walkInCustomer'       => $walk_in_customer,
+                // US-SELL-079 — resgate de pontos de fidelidade (null = escondido).
+                'pontosFidelidade'     => \App\Services\Sells\ResgatePontosFidelidade::propsDaTela((int) $business_id),
                 'paymentTypes'         => $payment_types,
                 'invoiceSchemes'       => $invoice_schemes,
                 'defaultInvoiceScheme' => $default_invoice_schemes,

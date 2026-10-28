@@ -9,6 +9,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
+use Modules\Fiscal\Services\Sped\EfdIcmsIpiLeiaute;
 use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
 use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
 use Modules\NfeBrasil\Models\NfeEmissao;
@@ -111,7 +112,7 @@ class SpedIcmsIpiGeneratorService
     {
         $this->validar($businessId, $ano, $mes);
 
-        $business = DB::table('business')->where('id', $businessId)->first();
+        $business = $this->carregarBusiness($businessId);
         if (! $business) {
             throw new RuntimeException("Business {$businessId} não encontrado.");
         }
@@ -120,21 +121,14 @@ class SpedIcmsIpiGeneratorService
         $periodoFim = $periodoIni->endOfMonth();
         $ufBusiness = strtoupper((string) ($business->state ?? 'SP'));
 
-        // Carrega NFes autorizadas do período (saídas — modelo 55/65)
-        $emissoes = NfeEmissao::query()
-            ->where('business_id', $businessId)
-            ->where('status', 'autorizada')
-            ->whereBetween('emitido_em', [$periodoIni, $periodoFim])
-            ->orderBy('emitido_em')
-            ->orderBy('numero')
-            ->get();
+        $emissoes = $this->carregarEmissoes($businessId, $periodoIni, $periodoFim);
 
         $this->contadores = [];
         $linhas = [];
 
         // ── Bloco 0: Abertura + cadastros ────────────────────────────────
         $linhas[] = $this->registro0000($business, $periodoIni, $periodoFim);
-        $linhas[] = $this->registro0001(empty($emissoes) ? 1 : 0);
+        $linhas[] = $this->registro0001(0); // Guia 3.2.3: valor válido só [0]
         $linhas[] = $this->registro0005($business);
 
         // 0150: Tabela de participantes (destinatários únicos das NFes)
@@ -154,9 +148,14 @@ class SpedIcmsIpiGeneratorService
 
         $linhas[] = $this->registro0990(count($linhas) + 1); // +1 conta o próprio 0990
 
+        // ── Bloco B: ISS do DF — fora do DF só abertura e encerramento ────
+        // (Guia Prático v3.2.3, registro B001). Emitente do DF: ver US-FISCAL-028.
+        $linhas[] = $this->linha('B001', ['1']);
+        $linhas[] = $this->linha('B990', ['2']);
+
         // ── Bloco C: Notas ───────────────────────────────────────────────
         $bloco_c_inicio = count($linhas);
-        $linhas[] = $this->registroC001(empty($emissoes) ? 1 : 0);
+        $linhas[] = $this->registroC001($emissoes->isEmpty() ? 1 : 0); // empty() sobre Collection é sempre false
 
         $totalizadores = [];
         foreach ($emissoes as $emissao) {
@@ -185,9 +184,13 @@ class SpedIcmsIpiGeneratorService
 
         $linhas[] = $this->registroC990(count($linhas) - $bloco_c_inicio + 1);
 
+        // ── Bloco D: serviços de transporte/comunicação — sem CT-e emitido ──
+        $linhas[] = $this->linha('D001', ['1']);
+        $linhas[] = $this->linha('D990', ['2']);
+
         // ── Bloco E: Apuração ICMS (PR #9 Wave) ──────────────────────────
         $bloco_e_inicio = count($linhas);
-        $linhas[] = $this->registroE001(empty($emissoes) ? 1 : 0);
+        $linhas[] = $this->registroE001(0); // Guia 3.2.3: valor válido só [0] (E100+E110 sempre)
         $linhas[] = $this->registroE100($periodoIni, $periodoFim);
 
         $vlTotalDebitos = array_sum(array_column($totalizadores, 'vl_icms'));
@@ -199,14 +202,30 @@ class SpedIcmsIpiGeneratorService
 
         $linhas[] = $this->registroE990(count($linhas) - $bloco_e_inicio + 1);
 
+        // ── Bloco G: CIAP — sem controle de crédito do ativo permanente ────
+        $linhas[] = $this->linha('G001', ['1']);
+        $linhas[] = $this->linha('G990', ['2']);
+
         // ── Bloco H: Inventário (esqueleto — declaração 31/12 só em janeiro) ──
         $bloco_h_inicio = count($linhas);
         $linhas[] = $this->registroH001(1);
         $linhas[] = $this->registroH990(count($linhas) - $bloco_h_inicio + 1);
 
+        // ── Bloco K: produção e estoque — K010 só existe com K001 IND_MOV=0 ─
+        $linhas[] = $this->linha('K001', ['1']);
+        $linhas[] = $this->linha('K990', ['2']);
+
+        // ── Bloco 1: o 1010 é sempre obrigatório, logo 1001 IND_MOV=0 ─────
+        // (Guia Prático v3.2.3, registro 1001: "sempre deve ser informado o
+        // registro 1010"). Os 13 indicadores S/N saem 'N' até o contador
+        // decidir, sobretudo IND_CART (registro 1601). Ver US-FISCAL-028.
+        $linhas[] = $this->linha('1001', ['0']);
+        $linhas[] = $this->linha('1010', array_fill(0, 13, 'N'));
+        $linhas[] = $this->linha('1990', ['3']);
+
         // ── Bloco 9: Encerramento + contadores ───────────────────────────
         $bloco_9_inicio = count($linhas);
-        $linhas[] = $this->registro9001(empty($emissoes) ? 1 : 0);
+        $linhas[] = $this->registro9001(0); // Guia 3.2.3: valor válido só [0]
 
         $regsExistentes = $this->contadores;
         $qtdNoveCemNoveCem = count($regsExistentes) + 3;
@@ -225,10 +244,32 @@ class SpedIcmsIpiGeneratorService
         $linhas[] = $this->registro9900('9990', 1);
         $linhas[] = $this->registro9900('9999', 1);
 
-        $linhas[] = $this->registro9990(count($linhas) - $bloco_9_inicio + 1);
+        // +2: o próprio 9990 e o 9999 (Guia 3.2.3: "o registro 9999 ... também deve ser contabilizado")
+        $linhas[] = $this->registro9990(count($linhas) - $bloco_9_inicio + 2);
         $linhas[] = $this->registro9999(count($linhas) + 1);
 
         return implode('', $linhas);
+    }
+
+    /**
+     * Leitura isolada em método próprio pra o teste de contrato rodar o gerador
+     * inteiro sem banco (a lane Pest do Fiscal é SQLite sem schema).
+     */
+    protected function carregarBusiness(int $businessId): ?object
+    {
+        return DB::table('business')->where('id', $businessId)->first();
+    }
+
+    /** NF-e autorizadas do período (saídas — modelo 55/65), sempre do business pedido. */
+    protected function carregarEmissoes(int $businessId, CarbonImmutable $ini, CarbonImmutable $fim): \Illuminate\Support\Collection
+    {
+        return NfeEmissao::query()
+            ->where('business_id', $businessId)
+            ->where('status', 'autorizada')
+            ->whereBetween('emitido_em', [$ini, $fim])
+            ->orderBy('emitido_em')
+            ->orderBy('numero')
+            ->get();
     }
 
     private function validar(int $businessId, int $ano, int $mes): void
@@ -385,7 +426,7 @@ class SpedIcmsIpiGeneratorService
     private function registro0000(object $business, CarbonImmutable $ini, CarbonImmutable $fim): string
     {
         return $this->linha('0000', [
-            '018',
+            EfdIcmsIpiLeiaute::codVer((int) $ini->format('Y')),
             '0',
             $ini->format('dmY'),
             $fim->format('dmY'),
