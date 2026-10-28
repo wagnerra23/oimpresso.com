@@ -200,6 +200,41 @@ last_run: "2026-10-27"
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Venda sem internet no caixa (US-SELL-054)
+
+> **Âncora:** US-SELL-054 (`memory/requisitos/Sells/SPEC.md`). O caixa guarda a venda feita sem rede e reenvia o
+> mesmo payload ao voltar a conexão, com uma chave por venda (`offline_uuid`). O servidor grava uma vez só.
+> Flag `SELLS_OFFLINE_ENABLED` desligada. Números à mão: 10 em estoque, venda de 2 × 50,00 = 100,00, saldo 8.
+> Prova: `tests/Feature/Sells/VendaOfflineContratoTest.php`.
+
+## UC-VOFF-01 · A venda reenviada duas vezes grava uma venda e baixa o estoque uma vez `[V0]` `[must]`
+- **Persona:** balconista que vendeu sem internet e viu a conexão voltar.
+- **Aceite:** Dado a mesma venda enviada duas vezes com a mesma chave · Então existe uma venda de 100,00, o saldo vai de 10 para 8 e fica 8, e a segunda resposta diz `duplicada` com o mesmo id.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-01`.
+- **Regressão que defende:** US-SELL-054: venda e baixa de estoque em dobro ao reenviar (regra mestre de estoque).
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-VOFF-02 · A chave de uma empresa não acha venda de outra `[V0]` `[must]`
+- **Persona:** balconista da empresa 98; adversário é a empresa 99.
+- **Aceite:** Dado a chave já usada pela empresa 99 · Quando a 98 envia a mesma chave · Então a 98 grava a própria venda.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-02`.
+- **Regressão que defende:** chave de venda de outra empresa apagando a venda desta (ADR 0093, Tier 0).
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-VOFF-03 · Com a flag desligada a chave é ignorada `[V0]` `[must]`
+- **Persona:** empresa sem a venda offline ligada.
+- **Aceite:** Dado a flag desligada · Então a venda segue o fluxo de hoje (redirect) e nenhuma chave é gravada.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-03`.
+- **Regressão que defende:** mudança de comportamento do caixa de hoje sem a flag.
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-VOFF-04 · Venda offline recusada volta em JSON e não grava a chave `[V0]` `[must]`
+- **Persona:** balconista cuja venda offline o servidor recusou.
+- **Aceite:** Dado uma venda que o servidor recusa · Então a resposta é `success: 0` em JSON, nenhuma chave é gravada e o estoque fica 10, para o caixa manter a venda na fila.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-04`.
+- **Regressão que defende:** venda recusada sumindo da fila, ou chave gravada sem venda.
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
 ## Resgate de pontos de fidelidade (US-SELL-079 · [W] 2026-10-27)
 
 > **Âncora:** US-SELL-079 (`memory/requisitos/Sells/SPEC.md`). Os pontos nativos (`business.enable_rp`) já ganham,
