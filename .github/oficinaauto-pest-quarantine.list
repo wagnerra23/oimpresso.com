@@ -1,0 +1,57 @@
+# Quarentena da lane "PHP / Pest (OficinaAuto · MySQL)" — .github/workflows/oficinaauto-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em Modules/OficinaAuto/Tests/**/*Test.php
+# MENOS (1) quem tem dono em outra lane (sells-pest.yml, .github/ci-sqlite-pest.list),
+# (2) quem tem construto destrutivo em código (derivado pelo step) e (3) este arquivo.
+# Arquivo NOVO entra rodando.
+#
+# Entra aqui só teste MEDIDO falhando por dependência que a lane MySQL não tem, com o
+# motivo e o run de recibo na linha. Nunca enfraquecer assert para tirar daqui.
+#
+# 1 path por linha · '#' comenta · merge=union no .gitattributes. Depois de mergear o
+# main, confira duplicata como a lane compara:
+#   sed 's/#.*//; s/[[:space:]]*$//' <lista> | grep -vE '^$' | sort | uniq -d   # vazio = ok
+#
+# ── Medido no 1º run com Pest (40737260834, 2026-10-28): 184 passed, 76 failed, 6 skipped,
+# 666 assertions. 27 arquivos falham; a causa de cada um veio do JUnit do run. Nenhum é
+# conserto de uma linha, por isso ficam aqui com o motivo, e os outros 17 passam a rodar.
+# Saída: corrigir o arquivo (ou o seed da lane) e tirar daqui, um grupo por PR.
+#
+# A. 403 nas rotas mesmo com a permissão `superadmin` concedida ao usuário do teste.
+#    Causa não isolada (permissão Spatie no seed × gate do controller). Mesma raiz nos 11.
+Modules/OficinaAuto/Tests/Feature/ServiceOrderRichSheetPayloadTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/ServiceOrderDviToOrcamentoTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/ServiceOrderLaudoPhotoTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/ServiceOrderSheetVendaDerivadaTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/ServiceOrderStageGateTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/ServiceOrderObserverItemsAndHttpTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/DviInspectionItemTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/ServiceOrderPrintTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/ServiceOrderApprovalGateTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/ServiceOrderItemHttpIntegrationTest.php  # 403 com superadmin
+Modules/OficinaAuto/Tests/Feature/ServiceOrderEnviarAprovacaoTest.php  # 403 com superadmin
+#
+# B. Fixture grava em business/veículo que o seed da lane não tem (FK fk_vehicles_business,
+#    transactions_business_id_foreign, fk_so_vehicle). O seed tem os tenants 1/2/98.
+Modules/OficinaAuto/Tests/Feature/ServiceOrderItemTest.php  # FK para business/veículo inexistente no seed
+Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php  # FK para business/veículo inexistente no seed
+Modules/OficinaAuto/Tests/Feature/AprovacaoOsTokenTest.php  # FK para business/veículo inexistente no seed
+Modules/OficinaAuto/Tests/Feature/ServiceOrderIndexItemsTotalTest.php  # FK para business/veículo inexistente no seed
+Modules/OficinaAuto/Tests/Feature/EnviarLinkAprovacaoWhatsappJobTest.php  # FK para business/veículo inexistente no seed
+Modules/OficinaAuto/Tests/Feature/OficinaAutoCleanupCommandTest.php  # FK para business/veículo inexistente no seed
+Modules/OficinaAuto/Tests/Feature/ProducaoBoxFilterTest.php  # FK para business/veículo inexistente no seed
+Modules/OficinaAuto/Tests/Feature/ServiceOrderIndexStageFilterTest.php  # FK para business/veículo inexistente no seed
+Modules/OficinaAuto/Tests/Feature/E2EJourneyMartinhoBiz1Test.php  # FK para business/veículo inexistente no seed
+#
+# C. Contagem ou FSM dependem de estado que a lane não tem: biz=1 compartilhado com linhas
+#    de outros arquivos (ex.: "10 is identical to 2") e actions FSM da oficina não semeadas
+#    ("Action 'iniciar_diagnostico' não existe pra stage_id=").
+Modules/OficinaAuto/Tests/Feature/ServiceOrderBoardTest.php  # contagem contaminada no biz=1 / FSM não semeada
+Modules/OficinaAuto/Tests/Feature/CapacidadeServiceTest.php  # contagem contaminada no biz=1 / FSM não semeada
+Modules/OficinaAuto/Tests/Feature/ServiceOrderStoreLinksVehicleTest.php  # contagem contaminada no biz=1 / FSM não semeada
+Modules/OficinaAuto/Tests/Feature/ServiceOrderHistoryControllerTest.php  # contagem contaminada no biz=1 / FSM não semeada
+Modules/OficinaAuto/Tests/Feature/Wave27OficinaAutoSaturationTest.php  # contagem contaminada no biz=1 / FSM não semeada
+#
+# D. Teste desatualizado em relação ao código.
+Modules/OficinaAuto/Tests/Feature/ServiceOrderStagePipelineTest.php  # payload sem a chave stages_pipeline
+Modules/OficinaAuto/Tests/Feature/ServiceOrderSheetVendaDerivadaGuardTest.php  # lê ServiceOrderSheet.tsx, arquivo removido
