@@ -195,6 +195,8 @@ class DocumentacaoController extends Controller
             'buscaDisponivel' => $this->corpusDisponivel(),
             'nav' => $this->navegacao($this->lenteAtiva($request)),
             'atual' => null,   // a capa não é item do rail; é a rota raiz
+            // O botão só aparece pra quem abre a página (equipe da plataforma, não o dono da empresa).
+            'podeVerCasosPorTela' => \App\Http\Controllers\CasosPorTelaController::pode($request->user(), \App\Http\Controllers\CasosPorTelaController::PERMISSAO_VER),
             'escopo' => ['tipos' => self::TIPOS_DOC, 'prosa' => self::escopoEmProsa()],
         ]);
     }

@@ -21,7 +21,7 @@
 use App\User;
 
 it('exige login nas tres rotas de documentacao', function () {
-    foreach (['/documentacao', '/documentacao/buscar', '/documentacao/programa', '/documentacao/casos-de-uso', '/documentacao/qualquer-slug'] as $rota) {
+    foreach (['/documentacao', '/documentacao/buscar', '/documentacao/programa', '/documentacao/casos-de-uso', '/documentacao/casos-por-tela', '/documentacao/qualquer-slug'] as $rota) {
         $r = $this->get($rota);
         expect($r->getStatusCode())->toBe(302, "rota {$rota} deveria redirecionar pro login");
         expect($r->headers->get('Location'))->toContain('login');

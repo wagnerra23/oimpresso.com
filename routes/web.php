@@ -1242,6 +1242,20 @@ Route::middleware(['auth'])->group(function () {
     )->middleware(['setData', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
         ->name('documentacao.casos');
 
+    // Casos de uso por tela: pedidos de clientes e contrato de cada tela, lidos dos *.casos.md
+    // a cada acesso. Antes de /{slug} pelo mesmo motivo de /programa. Acesso da equipe da
+    // plataforma (CasosPorTelaController::pode), não do dono de cada empresa.
+    Route::get('/documentacao/casos-por-tela',
+        [\App\Http\Controllers\CasosPorTelaController::class, 'index']
+    )->middleware(['setData', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+        ->name('documentacao.casos-por-tela');
+    Route::post('/documentacao/casos-por-tela/conferencia/{pedido}',
+        [\App\Http\Controllers\CasosPorTelaController::class, 'conferir']
+    )->where('pedido', 'P-[0-9]{3}')->name('documentacao.casos-por-tela.conferir');
+    Route::post('/documentacao/casos-por-tela/decisao/{decisao}',
+        [\App\Http\Controllers\CasosPorTelaController::class, 'responder']
+    )->where('decisao', 'D-[0-9]{2}')->name('documentacao.casos-por-tela.responder');
+
     // Documento do acervo. Declarada DEPOIS de /buscar e /programa — sem essa ordem,
     // ambas casariam aqui primeiro e virariam 404 de "documento não encontrado".
     //
