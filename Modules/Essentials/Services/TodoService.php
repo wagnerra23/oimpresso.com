@@ -170,7 +170,9 @@ class TodoService
 
         $this->commonUtil->activityLog($todo, 'added');
 
-        $toNotify = $todo->users->filter(fn ($u) => $u->id !== $createdBy);
+        // users() sem tipo de retorno não deixa o Larastan resolver a propriedade mágica `$todo->users`;
+        // a consulta explícita traz a mesma coleção.
+        $toNotify = $todo->users()->get()->filter(fn ($u) => $u->id !== $createdBy);
         \Notification::send($toNotify, new NewTaskNotification($todo));
 
         return $todo;
