@@ -66,31 +66,17 @@ function teuLocal(int $businessId, string $nome): int
     ]);
 }
 
-test('editar impressora: o id de outro negócio dá 404 e o próprio abre o formulário', function () {
-    $alheia = teuImpressora($this->outro->id, $this->user->id);
+test('cutover: as formas Blade de editar impressora, código de barras e local não existem mais', function () {
+    // Até 2026-10-27 aqui se provava que o formulário Blade de edição não abria registro de outro
+    // negócio. O drawer React edita por PUT (o isolamento do update é provado nos testes de
+    // update deste arquivo e em *TenantTest/*BaselineTest); a Blade saiu no cutover.
     $minha = teuImpressora($this->business->id, $this->user->id);
-
-    $this->get("/printers/{$alheia}/edit")->assertNotFound();
-
-    $this->get("/printers/{$minha}/edit")->assertOk()->assertViewIs('printer.edit');
-});
-
-test('editar código de barras: o id de outro negócio dá 404 e o próprio abre o formulário', function () {
-    $alheia = teuEtiqueta($this->outro->id);
-    $minha = teuEtiqueta($this->business->id);
-
-    $this->get("/barcodes/{$alheia}/edit")->assertNotFound();
-
-    $this->get("/barcodes/{$minha}/edit")->assertOk()->assertViewIs('barcode.edit');
-});
-
-test('editar local: o id de outro negócio dá 404 e o próprio abre o formulário', function () {
-    $alheio = teuLocal($this->outro->id, 'Alheio '.uniqid());
+    $etq = teuEtiqueta($this->business->id);
     $meu = teuLocal($this->business->id, 'Meu '.uniqid());
 
-    $this->get("/business-location/{$alheio}/edit")->assertNotFound();
-
-    $this->get("/business-location/{$meu}/edit")->assertOk()->assertViewIs('business_location.edit');
+    $this->get("/printers/{$minha}/edit")->assertNotFound();
+    $this->get("/barcodes/{$etq}/edit")->assertNotFound();
+    $this->get("/business-location/{$meu}/edit")->assertNotFound();
 });
 
 test('atualizar local: o id de outro negócio dá 404 sem alterar e o próprio é atualizado', function () {
