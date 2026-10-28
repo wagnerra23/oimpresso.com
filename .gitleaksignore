@@ -99,5 +99,5 @@ edaf567a860a78952fb36814f70da9b0651461fd:.github/workflows/deploy.yml:curl-auth-
 017d08f03faf15bf7e6a09785a61b458f81b2724:Modules/Connector/Tests/Feature/ObservabilityTest.php:generic-api-key:160
 # 2026-10-05 #8714: senha FICTÍCIA de teste (str_repeat de 12 caracteres) no UC-SANEG-13, commit histórico do PR; a linha atual guarda o valor em variável e não casa a regra.
 5e035ba13e43b2d75d72688bf89be434d58cf7af:Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php:generic-api-key:357
-# 2026-10-28: token falso de fixture num commit antigo do PR #9998 (corrigido depois para token-de-teste-nuvemshop); o scan percorre o histórico do PR.
+# 2026-10-28: token falso de fixture num commit antigo dos PRs #9982/#9998 (corrigido depois para token-de-teste-nuvemshop); o scan percorre o histórico do PR.
 9ded53652e78514c2be5af27f2c7630c17e0e1c7:Modules/Marketplaces/Tests/Feature/MarketplacesOAuthNuvemshopContratoTest.php:generic-api-key:34
