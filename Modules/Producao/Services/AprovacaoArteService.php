@@ -112,6 +112,36 @@ final class AprovacaoArteService
         });
     }
 
+    /**
+     * UC-PCART-07 · Painel: reenviar o link ou enviar a nova prova enquanto a arte não foi aprovada.
+     *
+     * Vale o pedido mais recente da OS. Aguardando o cliente: sai link novo (o arquivo é o mesmo, salvo se
+     * vier outro) e o anterior deixa de valer — o banco só guarda o hash, não dá para reenviar o mesmo.
+     * Ajuste pedido: exige o arquivo da nova prova. Arte aprovada: o caminho é `trocarArquivo`.
+     *
+     * @return array{id: int, token: string, expira_em: Carbon}
+     */
+    public function reenviar(int $businessId, int $ordemId, ?string $arquivo, User $user): array
+    {
+        return DB::transaction(function () use ($businessId, $ordemId, $arquivo, $user) {
+            $ordem = $this->situacao->ordem($businessId, $ordemId);
+            $ultimo = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+                ->where('ordem_id', $ordem->id)->orderByDesc('id')->lockForUpdate()->first()
+                ?? throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'Ainda não há prova enviada: peça a aprovação do cliente.');
+            if ($ultimo->decisao === AprovacaoArte::APROVADA) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'A arte já foi aprovada: para mudar, troque o arquivo.');
+            }
+            if ($ultimo->decisao === AprovacaoArte::RECUSADA && ($arquivo === null || $arquivo === $ultimo->arquivo)) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'O cliente pediu ajuste: informe o arquivo da nova prova.');
+            }
+            if ($ultimo->decisao === null) {
+                $ultimo->forceFill(['expira_em' => now()->subSecond()])->save();
+            }
+
+            return $this->solicitar($businessId, $ordem->id, (int) $ultimo->programacao_id, $arquivo ?? (string) $ultimo->arquivo, $user);
+        });
+    }
+
     /** A OS existe nesta empresa? (404 para OS de outra empresa — Tier 0). */
     public function exigirOrdem(int $businessId, int $ordemId): void
     {
@@ -198,7 +228,9 @@ final class AprovacaoArteService
         if ($pedido->expira_em->isPast()) {
             throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'Este link venceu. Peça um novo à gráfica.');
         }
-        $q = Programacao::query()->where('business_id', $pedido->business_id)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $pedido->ordem_id);
+        // SUPERADMIN: rota pública — a empresa vem do pedido, não da sessão de quem abre o link
+        // (logado noutra empresa, o escopo da sessão escondia a etapa e o link dava 410).
+        $q = Programacao::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $pedido->business_id)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $pedido->ordem_id);
         $etapa = ($travar ? $q->lockForUpdate() : $q)->find($pedido->programacao_id);
         if ($etapa === null || $etapa->status !== 'pendente') {
             throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'Esta prova já foi respondida.');

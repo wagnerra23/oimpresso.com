@@ -5,7 +5,7 @@ component: Modules/Superadmin/Resources/js/Pages/superadmin/Paginas/Index.tsx
 related_prototype: "n/a (herda PT-01 Lista; segue o Padrão de Tela — não há sa-paginas no protótipo)"
 owner: wagner
 status: draft
-last_validated: "2026-10-09"
+last_validated: "2026-10-27"
 related_us: [US-SUPER-005]
 parent_module: Superadmin
 related_adrs: [104, 93]
@@ -17,7 +17,8 @@ runbook: memory/requisitos/Superadmin/RUNBOOK-paginas.md
 # Page Charter — /superadmin/frontend-pages
 
 > Nasce `draft` na thread Superadmin/08 (decisão [W] D-PAG, 2026-10-07), atrás da chave
-> `?tela=nova`. Sem a chave o backend serve a Blade; o cutover é do [W]. Backend:
+> `?tela=nova`. Cutover (MWART F5) em 2026-10-27, pedido pelo [W] na migração das áreas: a tela é
+> o padrão e as Blades `pages.index/create/edit` saíram. Backend:
 > `PageController@index/store/update/destroy`. Ver
 > [RUNBOOK-paginas](../../../../../../../memory/requisitos/Superadmin/RUNBOOK-paginas.md).
 
@@ -45,7 +46,8 @@ endereço, ordem no menu e visibilidade, e abre um drawer para criar, editar ou 
   ([ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) §exceções Superadmin).
 - ❌ **Não imprimir o `conteudo` como HTML na lista** (`dangerouslySetInnerHTML`). A lista mostra
   `resumo` sem tag; a Blade antiga imprimia o HTML cru dentro do painel.
-- ❌ **Não tornar `?tela=nova` o padrão** nem apagar as Blades sem o cutover do [W].
+- ❌ **Não recriar as rotas `create`/`edit`/`show`** do resource: criar e editar são o drawer; `show`
+  nunca teve método (dava 500).
 
 ## Refs
 

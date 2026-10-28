@@ -7,6 +7,7 @@ use App\AccountTransaction;
 use App\AccountType;
 use App\BusinessLocation;
 use App\Media;
+use App\Services\Contas\ContasDoNucleo;
 use App\Services\FeatureFlagService;
 use App\TransactionPayment;
 use App\Utils\ModuleUtil;
@@ -163,59 +164,7 @@ class AccountController extends Controller
      */
     private function consultaContas(int $business_id)
     {
-        $accounts = Account::leftjoin('account_transactions as AT', function ($join) {
-                    $join->on('AT.account_id', '=', 'accounts.id')
-                        ->whereNull('AT.deleted_at');
-                })
-            ->leftjoin(
-                'account_types as ats',
-                'accounts.account_type_id',
-                '=',
-                'ats.id'
-            )
-            ->leftjoin(
-                'account_types as pat',
-                'ats.parent_account_type_id',
-                '=',
-                'pat.id'
-            )
-            ->leftJoin('users AS u', 'accounts.created_by', '=', 'u.id')
-                                ->where('accounts.business_id', $business_id)
-                                ->select(['accounts.name', 'accounts.account_number', 'accounts.note', 'accounts.id', 'accounts.account_type_id',
-                                    'ats.name as account_type_name',
-                                    'pat.name as parent_account_type_name',
-                                    'accounts.account_details',
-                                    'is_closed', DB::raw("SUM( IF(AT.type='credit', amount, -1*amount) ) as balance"),
-                                    DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by"),
-                                ]);
-
-        //check account permissions basaed on location
-        $permitted_locations = auth()->user()->permitted_locations();
-        $account_ids = [];
-        if ($permitted_locations != 'all') {
-            $locations = BusinessLocation::where('business_id', $business_id)
-                            ->whereIn('id', $permitted_locations)
-                            ->get();
-
-            foreach ($locations as $location) {
-                if (! empty($location->default_payment_accounts)) {
-                    $default_payment_accounts = json_decode($location->default_payment_accounts, true);
-                    foreach ($default_payment_accounts as $key => $account) {
-                        if (! empty($account['is_enabled']) && ! empty($account['account'])) {
-                            $account_ids[] = $account['account'];
-                        }
-                    }
-                }
-            }
-
-            $account_ids = array_unique($account_ids);
-        }
-
-        if (! $this->moduleUtil->is_admin(auth()->user(), $business_id) && $permitted_locations != 'all') {
-            $accounts->whereIn('accounts.id', $account_ids);
-        }
-
-        return $accounts;
+        return app(ContasDoNucleo::class)->consulta($business_id, auth()->user());
     }
 
     /**
@@ -297,29 +246,13 @@ class AccountController extends Controller
 
         if (request()->ajax()) {
             try {
-                $input = $request->only(['name', 'account_number', 'note', 'account_type_id', 'account_details']);
-                $business_id = $request->session()->get('user.business_id');
-                $user_id = $request->session()->get('user.id');
-                $input['business_id'] = $business_id;
-                $input['created_by'] = $user_id;
-
-                $account = Account::create($input);
-
-                //Opening Balance
-                $opening_bal = $request->input('opening_balance');
-
-                if (! empty($opening_bal)) {
-                    $ob_transaction_data = [
-                        'amount' => $this->commonUtil->num_uf($opening_bal),
-                        'account_id' => $account->id,
-                        'type' => 'credit',
-                        'sub_type' => 'opening_balance',
-                        'operation_date' => \Carbon::now(),
-                        'created_by' => $user_id,
-                    ];
-
-                    AccountTransaction::createAccountTransaction($ob_transaction_data);
-                }
+                // Mesmo caminho da tela do Financeiro (num_uf do saldo de abertura incluso).
+                app(ContasDoNucleo::class)->criar(
+                    (int) $request->session()->get('user.business_id'),
+                    (int) $request->session()->get('user.id'),
+                    $request->only(['name', 'account_number', 'note', 'account_type_id', 'account_details']),
+                    $request->input('opening_balance')
+                );
 
                 $output = ['success' => true,
                     'msg' => __('account.account_created_success'),

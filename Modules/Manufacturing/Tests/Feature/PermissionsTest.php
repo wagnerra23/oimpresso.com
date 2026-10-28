@@ -74,7 +74,9 @@ function mfgPermissionsBootstrap(): array
 
 dataset('manufacturing_permission_routes', [
     'R-MANU-002 manufacturing.access_recipe (GET /manufacturing/recipe)'         => ['manufacturing.access_recipe', '/manufacturing/recipe'],
-    'R-MANU-003 manufacturing.add_recipe (GET /manufacturing/recipe/create)'     => ['manufacturing.add_recipe', '/manufacturing/recipe/create'],
+    // `recipe/create` saiu no cutover de 2026-10-27; a busca da janela "Nova receita" é a rota
+    // GET que hoje exige `add_recipe` (o `store()` também exige, via StoreRecipeRequest).
+    'R-MANU-003 manufacturing.add_recipe (GET /manufacturing/nova-receita/produtos)' => ['manufacturing.add_recipe', '/manufacturing/nova-receita/produtos'],
     'R-MANU-005 manufacturing.access_production (GET /manufacturing/production)' => ['manufacturing.access_production', '/manufacturing/production'],
 ]);
 

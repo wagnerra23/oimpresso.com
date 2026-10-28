@@ -9,7 +9,7 @@
 // sem redefinir nenhum (ADR UI-0013). As medidas da moldura são as do `DetalheDrawer` do protótipo.
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { Archive, Pencil, Printer, X } from 'lucide-react';
+import { Pencil, Printer, X } from 'lucide-react';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -24,23 +24,60 @@ type Aba = AbaDoDetalhe;
 const qtd = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const dinheiro = (n: number | undefined | null) => (n === undefined || n === null ? '—' : brl(n));
 /** `tax_type` do produto como a tela o chama; vazio quando o cadastro não diz. */
-const tipoDeImposto = (t: string) => (t === 'inclusive' ? 'Inclusivo' : t === 'exclusive' ? 'Exclusivo' : '');
+const tipoDeImposto = (t: string) => (t === 'inclusive' ? 'inclusivo' : t === 'exclusive' ? 'exclusivo' : '');
+
+/** Menor e maior valor, como a faixa de preço da lista ("A – B"); um valor só quando são iguais. */
+function faixa(valores: Array<number | undefined>): string {
+  const v = valores.filter((n): n is number => n !== undefined);
+  if (v.length === 0) return '';
+  const min = Math.min(...v);
+  const max = Math.max(...v);
+  return min === max ? brl(min) : `${brl(min)} – ${brl(max)}`;
+}
+
+/**
+ * A linha tem preço com imposto diferente do sem imposto? Sem imposto os dois são iguais e a tabela
+ * mostra uma coluna só (decisão [F] 2026-10-26). Decide pelos valores que vieram: sem a permissão a
+ * chave não vem e a coluna já some.
+ */
+type ParDePreco = { compra_exc?: number; compra_inc?: number; venda_exc?: number; venda_inc?: number };
+const difere = (a: number | undefined, b: number | undefined) => a !== undefined && b !== undefined && Math.abs(a - b) >= 0.005;
+const temImposto = (linhas: ParDePreco[]) => linhas.some((l) => difere(l.compra_exc, l.compra_inc) || difere(l.venda_exc, l.venda_inc));
 
 // Tabela A da NF-e (origem da mercadoria): os mesmos nomes do campo do cadastro.
 const ORIGENS = new Map(ORIGENS_MERCADORIA.map(([codigo, nome]) => [String(codigo), nome]));
 const rotuloOrigem = (o: string) => (ORIGENS.has(o) ? `${o} — ${ORIGENS.get(o)}` : '');
 
+const temNcm = (f: { ncm: string }) => !!f.ncm && f.ncm !== '0';
+
 /**
- * Texto de ajuda da aba Fiscal (UC-PIDX-25). Parte do protótipo, corrigido onde ele afirma o que a
- * emissão não faz: sem NCM o produto NÃO vira serviço (a nota usa o NCM padrão da empresa), e o CEST
- * NÃO troca o CFOP da nota (a `NfeService` não lê o CEST). A ordem da regra é a do simulador da
- * Tributação: exceção do produto → regra do NCM → padrão da empresa.
+ * A aba Fiscal começa dizendo se o produto está pronto para nota (decisão [F] 2026-10-26). Sem NCM a
+ * nota não trava: sai com o NCM padrão da empresa.
  */
-function ajudaFiscal(f: { ncm: string; cest: string }): string {
-  const temNcm = !!f.ncm && f.ncm !== '0';
-  if (!temNcm) {
-    return 'Sem NCM no cadastro: a NF-e usa o NCM padrão da empresa. Se for serviço, a nota é a NFS-e, que não usa NCM.';
-  }
+function ProntoParaNota({ f }: { f: { ncm: string } }) {
+  return (
+    <p className="pb-help mb-2.5" data-contract="produto-fiscal-pronto">
+      {temNcm(f) ? (
+        <>
+          <span className="pb-pill combo">Pronto para nota</span> NCM preenchido.
+        </>
+      ) : (
+        <>
+          <span className="pb-pill off">Sem NCM</span> A nota sai com o NCM padrão da empresa. Se for serviço, a nota é a NFS-e, que
+          não usa NCM.
+        </>
+      )}
+    </p>
+  );
+}
+
+/**
+ * Texto de ajuda da aba Fiscal quando há NCM (UC-PIDX-25). Parte do protótipo, corrigido onde ele
+ * afirma o que a emissão não faz: o CEST NÃO troca o CFOP da nota (a `NfeService` não lê o CEST). A
+ * ordem da regra é a do simulador da Tributação: exceção do produto → regra do NCM → padrão da empresa.
+ * Sem NCM, quem fala é a linha "Sem NCM" do topo da aba.
+ */
+function ajudaFiscal(f: { cest: string }): string {
   const base = 'O NCM escolhe a tributação da nota: primeiro a exceção do produto, depois a regra do NCM e, por fim, o padrão da empresa. Confira antes de emitir.';
   return f.cest
     ? `${base} CEST preenchido indica produto com substituição tributária; a nota não troca o CFOP sozinha — confira a regra do NCM.`
@@ -159,9 +196,11 @@ function ImagensDasVariacoes({ titulo, itens }: { titulo: string; itens: Array<{
  */
 function PrecoDaComposicao({ v }: { v: DetalheProdutoDados['variacoes'][number] | undefined }) {
   if (!v || (v.venda_exc === undefined && v.venda_inc === undefined)) return null;
+  // Primeiro o preço que a venda cobra (com imposto); o sem imposto só quando é diferente.
   return (
     <p className="pb-help" data-contract="produto-detalhe-preco-composicao">
-      Preço de venda padrão da composição: <b>{dinheiro(v.venda_exc)}</b> sem imposto · <b>{dinheiro(v.venda_inc)}</b> com imposto
+      Preço de venda padrão da composição: <b>{dinheiro(v.venda_inc)}</b>
+      {difere(v.venda_exc, v.venda_inc) && <> (sem imposto {dinheiro(v.venda_exc)})</>}
       {v.lucro_percentual !== undefined && <> · % de lucro {qtd(v.lucro_percentual)} %</>}
     </p>
   );
@@ -271,6 +310,13 @@ function textoMetodoCusto(m: { metodo: 'medio' | 'ultimo' | null; ultima_compra_
   return m.ultima_compra_em ? `${base} · ${dataBr(m.ultima_compra_em)}` : `${base} · sem compra recebida`;
 }
 
+/** UC-PIDX-31: a natureza fiscal como a tela a chama. */
+function rotuloNatureza(n: { natureza: string; codigo_servico: string | null }): string {
+  if (n.natureza === 'servico') return `Serviço (NFS-e)${n.codigo_servico ? ` · item ${n.codigo_servico} da LC 116` : ''}`;
+  if (n.natureza === 'pendente') return 'A decidir pelo contador';
+  return 'Mercadoria (NF-e)';
+}
+
 function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {
   return (
     <div className="pb-dt">
@@ -292,12 +338,12 @@ interface Props {
   aoFechar: () => void;
   podeEditar: boolean;
   podePrecos: boolean;
-  /** `purchase.create` — o "Comprar" abre a nova compra com este produto. */
-  podeComprar: boolean;
+  /** A empresa emite nota (módulo Fiscal no pacote): só então a aba Fiscal existe. */
+  emiteNota: boolean;
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podePrecos, podeComprar, irPara }: Props) {
+export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podePrecos, emiteNota, irPara }: Props) {
   // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
@@ -308,6 +354,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
   // UC-PIDX-32: só quando a empresa gravou a regra de custo (o servidor manda o campo).
   const metodoCusto = (d?.variacoes ?? []).some((v) => v.custo_metodo !== undefined);
   const grupos = d?.variacoes[0]?.grupos ?? [];
+  // Imposto não é segredo (sai impresso na nota), então nada aqui depende de permissão; aparece onde
+  // é útil (decisão [F] 2026-10-26): junto do preço na aba Dados, e as tabelas só separam "sem" e
+  // "com imposto" quando os dois valores diferem.
+  const variacoesComImposto = temImposto(d?.variacoes ?? []);
+  const itensComImposto = temImposto(d?.composicao ?? []);
 
   const abas = d
     ? [
@@ -320,7 +371,9 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
         ...(d.estoque !== null || !d.dados.controla_estoque ? [{ key: 'estoque', label: 'Estoque', href: '#' }] : []),
         // UC-PIDX-29: só aparece quando o produto tem roteiro de produção.
         ...(d.roteiro ? [{ key: 'roteiro', label: 'Roteiro', href: '#', badge: d.roteiro.etapas.length }] : []),
-        { key: 'fiscal', label: 'Fiscal', href: '#' },
+        // NCM, CEST, CFOP e origem só servem a quem emite nota: a mesma regra do botão "Abrir no
+        // módulo Fiscal" (módulo no pacote). Quem vende sem nota não vê a aba.
+        ...(emiteNota ? [{ key: 'fiscal', label: 'Fiscal', href: '#' }] : []),
         { key: 'prateleira', label: 'Prateleira', href: '#' },
       ]
     : [];
@@ -386,14 +439,20 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
               {abaAtiva === 'dados' && (
                 <Grid gap={4} className="grid-cols-[1fr_168px]">
                   <div className="pb-drawer-grid">
+                    {/* O preço que a venda cobra, com nota ou sem: o com imposto (`sell_price_inc_tax`).
+                        É o que o vendedor informa ao cliente. O sem imposto e o imposto só aparecem
+                        quando o produto tem imposto. */}
+                    {venda && <Dt rotulo="Preço de venda" valor={faixa(d.variacoes.map((v) => v.venda_inc))} />}
+                    {venda && variacoesComImposto && <Dt rotulo="Preço sem imposto" valor={faixa(d.variacoes.map((v) => v.venda_exc))} />}
+                    {d.dados.imposto && (
+                      <Dt rotulo="Imposto aplicável" valor={[d.dados.imposto, tipoDeImposto(d.dados.tipo_imposto)].filter(Boolean).join(' · ')} />
+                    )}
                     <Dt rotulo="SKU" valor={d.sku} />
                     <Dt rotulo="Tipo de código de barras" valor={d.dados.codigo_de_barras} />
                     <Dt rotulo="Unidade" valor={d.dados.unidade} />
                     <Dt rotulo="Marca" valor={d.dados.marca} />
                     <Dt rotulo="Categoria" valor={d.dados.categoria} />
                     <Dt rotulo="Subcategoria" valor={d.dados.subcategoria} />
-                    <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
-                    <Dt rotulo="Tipo de imposto na venda" valor={tipoDeImposto(d.dados.tipo_imposto)} />
                     <Dt rotulo="Peso" valor={d.dados.peso} />
                     <Dt rotulo="Gerenciar estoque" valor={d.dados.controla_estoque ? 'Sim' : 'Não'} />
                     <Dt rotulo="Quantidade de alerta" valor={d.dados.alerta === null ? '' : qtd(d.dados.alerta)} />
@@ -422,6 +481,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   ) : (
                     <div className="pb-img">Sem imagem</div>
                   )}
+                  {venda && variacoesComImposto && (
+                    <p className="pb-help" style={{ gridColumn: '1 / -1' }} data-contract="produto-detalhe-preco-cobrado">
+                      O preço de venda já inclui o imposto aplicável. É o valor que a venda cobra, com nota ou sem.
+                    </p>
+                  )}
                   {d.dados.descricao && (
                     <p className="text-[12.5px] leading-relaxed text-[var(--text-dim)]" style={{ gridColumn: '1 / -1' }}>
                       {d.dados.descricao}
@@ -442,12 +506,12 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                       <tr>
                         <th>Variação</th>
                         <th>SKU</th>
-                        {custo && <th className="r">Compra (excl.)</th>}
-                        {custo && <th className="r">Compra (incl.)</th>}
+                        {custo && variacoesComImposto && <th className="r">Compra sem imposto</th>}
+                        {custo && <th className="r">{variacoesComImposto ? 'Compra com imposto' : 'Compra'}</th>}
                         {metodoCusto && <th>Método do custo</th>}
                         {lucro && <th className="r">% lucro</th>}
-                        {venda && <th className="r">Venda (excl.)</th>}
-                        {venda && <th className="r">Venda (incl.)</th>}
+                        {venda && variacoesComImposto && <th className="r">Venda sem imposto</th>}
+                        {venda && <th className="r">{variacoesComImposto ? 'Venda com imposto' : 'Venda'}</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -455,11 +519,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         <tr key={v.sku}>
                           <td>{nomeDaVariacao(v.nome)}</td>
                           <td className="m">{v.sku}</td>
-                          {custo && <td className="r">{dinheiro(v.compra_exc)}</td>}
+                          {custo && variacoesComImposto && <td className="r">{dinheiro(v.compra_exc)}</td>}
                           {custo && <td className="r">{dinheiro(v.compra_inc)}</td>}
                           {metodoCusto && <td data-contract="produto-detalhe-metodo-custo">{v.custo_metodo ? textoMetodoCusto(v.custo_metodo) : '—'}</td>}
                           {lucro && <td className="r">{v.lucro_percentual === undefined ? '—' : `${qtd(v.lucro_percentual)} %`}</td>}
-                          {venda && <td className="r">{dinheiro(v.venda_exc)}</td>}
+                          {venda && variacoesComImposto && <td className="r">{dinheiro(v.venda_exc)}</td>}
                           {venda && <td className="r">{dinheiro(v.venda_inc)}</td>}
                         </tr>
                       ))}
@@ -515,8 +579,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         <th>Produto</th>
                         <th>SKU</th>
                         <th className="r">Qtd</th>
-                        {custo && <th className="r">Compra (excl.)</th>}
-                        {custo && <th className="r">Total (excl.)</th>}
+                        {custo && <th className="r">{itensComImposto ? 'Compra sem imposto' : 'Compra'}</th>}
+                        {custo && <th className="r">{itensComImposto ? 'Total sem imposto' : 'Total'}</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -554,10 +618,10 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         <thead>
                           <tr>
                             <th>Item</th>
-                            {custo && <th className="r">Compra (incl.)</th>}
+                            {custo && <th className="r">{itensComImposto ? 'Compra com imposto' : 'Compra'}</th>}
                             {lucro && <th className="r">% lucro</th>}
-                            {venda && <th className="r">Venda (excl.)</th>}
-                            {venda && <th className="r">Venda (incl.)</th>}
+                            {venda && itensComImposto && <th className="r">Venda sem imposto</th>}
+                            {venda && <th className="r">{itensComImposto ? 'Venda com imposto' : 'Venda'}</th>}
                           </tr>
                         </thead>
                         <tbody>
@@ -566,7 +630,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                               <td>{c.nome}</td>
                               {custo && <td className="r">{dinheiro(c.compra_inc)}</td>}
                               {lucro && <td className="r">{c.lucro_percentual === undefined ? '—' : `${qtd(c.lucro_percentual)} %`}</td>}
-                              {venda && <td className="r">{dinheiro(c.venda_exc)}</td>}
+                              {venda && itensComImposto && <td className="r">{dinheiro(c.venda_exc)}</td>}
                               {venda && <td className="r">{dinheiro(c.venda_inc)}</td>}
                             </tr>
                           ))}
@@ -644,6 +708,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
               )}
 
               {abaAtiva === 'fiscal' && <TituloDaSecao>Dados fiscais</TituloDaSecao>}
+              {abaAtiva === 'fiscal' && <ProntoParaNota f={d.fiscal} />}
               {abaAtiva === 'fiscal' && (
                 <div className="pb-drawer-grid">
                   <Dt rotulo="NCM" valor={d.fiscal.ncm && d.fiscal.ncm !== '0' ? d.fiscal.ncm : ''} />
@@ -655,12 +720,17 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <Dt rotulo="CST COFINS" valor={d.fiscal.cst_cofins} />
                   <Dt rotulo="CST IPI" valor={d.fiscal.cst_ipi} />
                   {/* Origem da mercadoria (UC-PIDX-25): a do próprio produto, a mesma que vai no `orig`
-                      da nota. Na ordem do protótipo: depois do CFOP, antes de "Imposto aplicável". */}
+                      da nota. O imposto aplicável não se repete aqui: fica junto do preço, na aba Dados. */}
                   <Dt rotulo="Origem da mercadoria" valor={rotuloOrigem(d.fiscal.origem)} />
-                  <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
-                  {/* Protótipo: a aba Fiscal fecha com o tipo de imposto. O mesmo dado da aba Dados. */}
-                  <Dt rotulo="Tipo de imposto na venda" valor={tipoDeImposto(d.dados.tipo_imposto)} />
+                  {/* UC-PIDX-31: só com o módulo Fiscal. */}
+                  {d.fiscal.natureza && <Dt rotulo="Natureza fiscal" valor={rotuloNatureza(d.fiscal.natureza)} />}
                 </div>
+              )}
+              {abaAtiva === 'fiscal' && d.fiscal.natureza?.natureza === 'pendente' && (
+                <p className="pb-help mt-2.5 text-[var(--warn)]" data-contract="produto-detalhe-natureza-pendente">
+                  O contador ainda não decidiu se este produto é mercadoria ou serviço. A NF-e comum sai como mercadoria; a emissão
+                  separada (NF-e + NFS-e) fica bloqueada até a decisão.
+                </p>
               )}
               {abaAtiva === 'fiscal' && (
                 <div data-contract="produto-detalhe-fiscal-ajuda">
@@ -669,7 +739,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                       A origem é a mesma em todas as notas: o cadastro ainda não guarda a origem de cada produto.
                     </p>
                   )}
-                  <p className="pb-help mt-1.5">{ajudaFiscal(d.fiscal)}</p>
+                  {temNcm(d.fiscal) && <p className="pb-help mt-1.5">{ajudaFiscal(d.fiscal)}</p>}
                   {d.fiscal.link_modulo && (
                     <Button
                       variant="outline"
@@ -718,11 +788,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <Pencil size={13} aria-hidden /> Editar produto
                 </Button>
               )}
-              {podeComprar && d.dados.controla_estoque && !d.inativo && (
-                <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/purchases/create?produto=${d.id}`)}>
-                  <Archive size={13} aria-hidden /> Comprar
-                </Button>
-              )}
+              {/* Sem "Comprar": a consulta não é a tela de compras (decisão [F] 2026-10-26, UC-PIDX-11). */}
               {podePrecos && (
                 <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/products/add-selling-prices/${d.id}`)}>
                   Preços por grupo

@@ -109,3 +109,22 @@ Suíte sugerida: `tests/Feature/Sells/SellsPosCheckoutBaselineTest.php`. Captura
 
 - **Limitação:** o agente [CX] recebeu o inventário dos mapeadores **truncado** (14k chars) — por isso alguns "missed_routes" que ele lista (sells core, cash-register) **estavam** mapeados, só não couberam no input dele. O valor do [CX] aqui são as **correções de fate** e o **achado hidden-Blade** (§1/§3), não a lista de "missed".
 - **Próximo passo gated [W]:** Onda 1 deixa de ser "matar 3 resources" e vira **construir 3 telas React faltantes** (PDV-balcão puro · Devolução · Fechar-caixa) + remover fallbacks Blade + tratar links guest — cada uma pelo ciclo MWART (F1 Cowork → F1.5 gate visual Square/Stripe → [W] aprova screenshot → F2-F5). **Nada disso roda sem seu screenshot.**
+
+## §7 · Blade de propósito — decisão [W] 2026-10-27
+
+Estas rotas **saem da fila de migração**. Ficam em Blade por decisão, como a Produção fez com
+`/arte/{token}` (ver `memory/requisitos/Producao/SCOPE.md`). Vale sobre os fates `open` e
+`keep-api` das tabelas acima para estas linhas.
+
+| rota | controller@método | por quê fica em Blade |
+|---|---|---|
+| `/invoice/{token}` · `/quote/{token}` | `SellPosController@showInvoice` | página pública sem login; o link já foi mandado ao cliente por WhatsApp/e-mail e não pode mudar |
+| `/pay/{token}` | `SellPosController@invoicePayment` | idem, página pública de pagamento |
+| `/sells/{id}/print` | `SellPosController@printInvoice` | impressão; a tela React chama este endpoint (`urls.print` em `Sells/Show.tsx`) |
+| `/download-sells/{id}/pdf` · `/download-quotation/{id}/pdf` · `/download-packing-list/{id}/pdf` | `SellPosController@downloadPdf` · `downloadQuotationPdf` · `downloadPackingListPdf` | gerador de PDF (mPDF), não é tela |
+| `/sells/invoice-url/{id}` | `SellPosController@showInvoiceUrl` | modal que entrega o link público acima |
+| `/sell-return/print/{id}` | `SellReturnController@printInvoice` | impressão da devolução |
+| `/print-line-order` | `Restaurant\OrderController@printLineOrder` | impressão do pedido da cozinha |
+
+O censo (`blade-migration-census.mjs`) continua contando estas rotas como Blade, porque mede o
+código e não a decisão. Quem ler o número deve descontar estas 10.

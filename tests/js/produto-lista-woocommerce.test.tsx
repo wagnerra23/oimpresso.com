@@ -42,9 +42,9 @@ const PAG: PaginatorShape<LinhaProduto> = {
 };
 const PERMISSOES: PermissoesLista = {
   create: true, update: true, delete: true, opening_stock: true, view: true, stock_report: true,
-  etiquetas: true, comprar: true, view_purchase_price: true, access_default_selling_price: true,
+  etiquetas: true, view_purchase_price: true, access_default_selling_price: true,
 };
-const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, woocommerce: true, papel: null, rotulos_campos: {} };
+const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, emite_nota: true, woocommerce: true, papel: null, rotulos_campos: {} };
 
 function montar(densa: boolean) {
   const colunas = colunasDaLista({

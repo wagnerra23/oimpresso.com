@@ -47,10 +47,10 @@ last_run: "2026-10-09"
   assinatura, 403 mesmo com `product.view`.
 - **Status: 🧪**
 
-## UC-CQR-11 · A tela React só abre com a chave ligada
-- **Aceite:** Dada a chave `mwart.product_catalogue_qr` desligada (padrão) · Quando abro a tela · Então recebo a Blade
-  `catalogue/generate_qr`, não Inertia · E com a chave ligada só para outro negócio, também a Blade · E com o meu
-  negócio na lista (ou lista vazia), a tela React.
+## UC-CQR-11 · A Blade saiu (F5 2026-10-27)
+- **Aceite:** Dado o cutover · Quando abro a tela · Então recebo a tela React `ProductCatalogue/CatalogueQr` · E a view
+  `catalogue/generate_qr` não existe mais · E a chave `mwart.product_catalogue_qr` não existe no config.
+- **Histórico:** até 2026-10-27 este caso dizia "a tela React só abre com a chave ligada" (Blade com ela desligada).
 - **Status: 🧪**
 
 ## Sem teste ainda (comportamento só no navegador — entra com o E2E)

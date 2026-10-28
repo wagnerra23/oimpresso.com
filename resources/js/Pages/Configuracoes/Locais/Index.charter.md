@@ -20,9 +20,9 @@ related_runbook: memory/requisitos/Configuracoes/RUNBOOK-locais.md
 
 # Page Charter — /business-location (DRAFT)
 
-> **Status:** draft. Thread `sistema/playbook/04`, tela 3 de 3. `GET /business-location` responde Inertia só com a flag
-> `useV2ConfiguracoesLocais` ligada para o negócio; desligada, a Blade `business_location/index` segue. Vira `live` no
-> cutover, decisão [W]. Casos: [`Index.casos.md`](./Index.casos.md).
+> **Status:** draft. Thread `sistema/playbook/04`, tela 3 de 3. `GET /business-location` responde Inertia para todas as
+> empresas. A flag `useV2ConfiguracoesLocais` foi ligada em 2026-10-07 (D-CFG-LIGAR) e saiu no cutover de 2026-10-27,
+> junto com a Blade `business_location/*`. Promover a `live` é decisão [W]. Casos: [`Index.casos.md`](./Index.casos.md).
 
 ## Mission
 
@@ -46,7 +46,7 @@ Manter os locais comerciais (filiais) do negócio — cada um com CNPJ, tabela d
 | # | Regra | Onde |
 |---|---|---|
 | R1 | Só locais do negócio da sessão, no recorte do `permitted_locations()` | `BusinessLocationController::locaisDoNegocio` |
-| R2 | Com a flag desligada a rota devolve a Blade | `BusinessLocationController::index` (`FLAG_V2`) |
+| R2 | Desligar a flag não devolve a Blade (cutover 2026-10-27: flag e Blade saíram) | `BusinessLocationController::index` |
 | R3 | Ativar/desativar só alcança local do negócio | `activateDeactivateLocation()` |
 | R4 | Sem `business_settings.access`, 403 | todas as ações |
 

@@ -4,7 +4,7 @@ use Modules\ConsultaOs\Http\Controllers\ConsultaOsController;
 use Modules\ConsultaOs\Http\Controllers\InstallController;
 
 // Portal publico de consulta de OS — sem middleware auth, espelha
-// Modules/Repair/Routes/web.php (rotas /repair-status e /post-repair-status).
+// Modules/Repair/Routes/web.php (rota /repair-status; o /post-repair-status saiu em 2026-10-27).
 // D8.a Security — throttle:30,1 (30 req/min) em consulta pública anti-enumeration.
 Route::prefix('consulta-os')->name('consulta-os.')->group(function () {
 

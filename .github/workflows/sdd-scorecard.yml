@@ -69,7 +69,7 @@ permissions:
 jobs:
   scorecard:
     name: SDD scorecard meta-catraca (advisory · determinismo + staleness + ratchet)
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     # Job-level (não por step): o agregador roda 3× aqui (Medir + Determinismo + Ratchet)
     # e as 3 runs precisam do MESMO ambiente — com token só no Medir, drift_alarms sairia
     # measured na 1ª e not_yet_measured na 2ª → falso-vermelho de determinismo. Sem token

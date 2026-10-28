@@ -41,7 +41,7 @@ Trocar a configuração da loja sem que as chaves dela cheguem à página.
 - ❌ Receber o valor de qualquer segredo (consumer key, consumer secret, 4 de webhook) — nem parte dele.
 - ❌ Apagar segredo pela tela: campo vazio mantém o salvo (`manter_segredos`).
 - ❌ Chamar a API da loja (testar conexão do protótipo).
-- ❌ Mapa de impostos e redefinir produtos/categorias — ficam na Blade do painel.
+- ❌ Mapa de impostos e redefinir produtos/categorias — ficam no painel (`/woocommerce`).
 
 ## Regras
 

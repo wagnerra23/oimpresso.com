@@ -14,7 +14,7 @@ module: Compras
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Compras/**` + `resources/js/Pages/Compras/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 63 arquivos em 18 papéis.
+**Total mapeado:** 71 arquivos em 18 papéis.
 
 ## Controllers — 5
 
@@ -28,13 +28,15 @@ module: Compras
 
 - [ListarComprasRequest.php](../../../Modules/Compras/Http/Requests/ListarComprasRequest.php)
 
-## Services — 9
+## Services — 11
 
 - [AlcadaDoPedido.php](../../../Modules/Compras/Services/AlcadaDoPedido.php)
 - [AplicarCustoDoRecebimento.php](../../../Modules/Compras/Services/AplicarCustoDoRecebimento.php)
 - [ComprasService.php](../../../Modules/Compras/Services/ComprasService.php)
 - [CotacaoDeCompra.php](../../../Modules/Compras/Services/CotacaoDeCompra.php)
 - [CustoDoInsumoService.php](../../../Modules/Compras/Services/CustoDoInsumoService.php)
+- [CustoMedioMovel.php](../../../Modules/Compras/Services/CustoMedioMovel.php)
+- [InspecaoDoRecebimento.php](../../../Modules/Compras/Services/InspecaoDoRecebimento.php)
 - [MetodoCustoDoProduto.php](../../../Modules/Compras/Services/MetodoCustoDoProduto.php)
 - [NecessidadeDeCompra.php](../../../Modules/Compras/Services/NecessidadeDeCompra.php)
 - [PropostasDePreco.php](../../../Modules/Compras/Services/PropostasDePreco.php)
@@ -44,16 +46,18 @@ module: Compras
 
 - [InsumoMetodoCusto.php](../../../Modules/Compras/Entities/InsumoMetodoCusto.php)
 
-## Observers — 1
+## Observers — 2
 
+- [CompraRecebidaCustoMedioObserver.php](../../../Modules/Compras/Observers/CompraRecebidaCustoMedioObserver.php)
 - [TransactionSellLineCustoObserver.php](../../../Modules/Compras/Observers/TransactionSellLineCustoObserver.php)
 
 ## Jobs — 1
 
 - [RequisicaoEstoqueMinimoJob.php](../../../Modules/Compras/Jobs/RequisicaoEstoqueMinimoJob.php)
 
-## Console / Commands — 1
+## Console / Commands — 2
 
+- [CustoMedioSemearCommand.php](../../../Modules/Compras/Console/Commands/CustoMedioSemearCommand.php)
 - [RequisicaoEstoqueMinimoCommand.php](../../../Modules/Compras/Console/Commands/RequisicaoEstoqueMinimoCommand.php)
 
 ## Providers — 2
@@ -65,7 +69,7 @@ module: Compras
 
 - [web.php](../../../Modules/Compras/Routes/web.php)
 
-## Migrations (schema) — 6
+## Migrations (schema) — 8
 
 - [2026_10_20_000001_create_compras_insumo_metodo_custo_table.php](../../../Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php)
 - [2026_10_20_120000_create_compras_propostas_preco_table.php](../../../Modules/Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table.php)
@@ -73,6 +77,8 @@ module: Compras
 - [2026_10_27_100000_create_compras_prazo_fornecedor_table.php](../../../Modules/Compras/Database/Migrations/2026_10_27_100000_create_compras_prazo_fornecedor_table.php)
 - [2026_10_27_200000_create_compras_cotacoes_tables.php](../../../Modules/Compras/Database/Migrations/2026_10_27_200000_create_compras_cotacoes_tables.php)
 - [2026_10_27_300000_create_compras_aprovacoes_pedido_table.php](../../../Modules/Compras/Database/Migrations/2026_10_27_300000_create_compras_aprovacoes_pedido_table.php)
+- [2026_10_27_400000_create_compras_custo_medio_tables.php](../../../Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_custo_medio_tables.php)
+- [2026_10_27_400000_create_compras_inspecoes_table.php](../../../Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_inspecoes_table.php)
 
 ## Config — 1
 
@@ -100,9 +106,9 @@ module: Compras
 
 - [Index.casos.md](../../../resources/js/Pages/Compras/Index.casos.md)
 
-## Testes (Pest) — 24
+## Testes (Pest) — 26
 
-- 24 em [Modules/Compras/Tests/Feature/](../../../Modules/Compras/Tests/Feature)
+- 26 em [Modules/Compras/Tests/Feature/](../../../Modules/Compras/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 3

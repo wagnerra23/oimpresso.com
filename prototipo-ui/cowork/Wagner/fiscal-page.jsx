@@ -21,6 +21,7 @@ const FX_TABS = [
   { id: "fiscal", label: "Notas fiscais" },
   { id: "fiscal-nfe", label: "NF-e · NFC-e" },
   { id: "fiscal-nfse", label: "NFS-e" },
+  { id: "fiscal-transporte", label: "MDF-e · CT-e" },
   { id: "fiscal-eventos", label: "Eventos" },
   { id: "fiscal-dfe", label: "Manifesto DF-e" },
   { id: "fiscal-config", label: "Certificado" },
@@ -559,6 +560,7 @@ Object.assign(window, {
     if (view === "config") return <window.FxConfigPage />;
     if (view === "tributacao") return window.FxTributacaoPage ? <window.FxTributacaoPage /> : null;
     if (view === "sped") return <window.FxSpedPage />;
+    if (view === "transporte") return window.FxTransportePage ? <window.FxTransportePage /> : null;
     if (view === "nfe") return <FxNotasPage route="fiscal-nfe" title="NF-e · NFC-e" preset={["NF-e", "NFC-e"]} crumbExtra="modelos 55 e 65" />;
     if (view === "nfse") return <FxNotasPage route="fiscal-nfse" title="NFS-e" preset={["NFS-e"]} crumbExtra="Sistema Nacional NT 2024-001" />;
     return <FxNotasPage route="fiscal" title="Notas fiscais" />;

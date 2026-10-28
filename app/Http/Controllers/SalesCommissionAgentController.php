@@ -100,19 +100,6 @@ class SalesCommissionAgentController extends Controller
             ->all();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        if (! auth()->user()->can('commission_agent.manage')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        return view('sales_commission_agent.create');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -237,28 +224,6 @@ class SalesCommissionAgentController extends Controller
         return $candidatos->first();
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        if (! auth()->user()->can('commission_agent.manage')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        // Tier 0: so comissionado do negocio da sessao. Ate 2026-10-06 era findOrFail($id) cru,
-        // e o formulario abria nome, e-mail e endereco de usuario de OUTRO negocio pelo id na URL.
-        $user = User::where('id', $id)
-            ->where('business_id', request()->session()->get('user.business_id'))
-            ->where('is_cmmsn_agnt', 1)
-            ->firstOrFail();
-
-        return view('sales_commission_agent.edit')
-                    ->with(compact('user'));
-    }
 
     /**
      * Update the specified resource in storage.
@@ -282,7 +247,7 @@ class SalesCommissionAgentController extends Controller
                 $user = User::where('id', $id)
                             ->where('business_id', $business_id)
                             ->where('is_cmmsn_agnt', 1)
-                            ->first();
+                            ->firstOrFail(); // Tier 0: id de outro negocio cai no catch (success=false), nao em 500
                 $user->update($input);
 
                 $output = ['success' => true,

@@ -1521,7 +1521,10 @@ class ReportController extends Controller
 
         // Tela React (playbook sistema/07): período em ISO (o date_range da Blade vem no formato
         // do negócio). Fora disso, os MESMOS filtros e a MESMA consulta que a Blade recebe.
-        $telaNova = $request->query('tela') === 'nova';
+        // Cutover pelo menu (D1 [W] 2026-10-07): React é o padrão, Blade só com `?classico=1`
+        // (molde `getPurchaseSell`); `?tela=nova` segue abrindo o React. Não há ramo ajax() aqui:
+        // a Blade filtra recarregando a página, e o formulário dela leva `classico=1`.
+        $telaNova = $request->query('tela') === 'nova' || ! $request->boolean('classico');
         if ($telaNova) {
             foreach (['start_date', 'end_date'] as $campo) {
                 $iso = (string) $request->query($campo, '');

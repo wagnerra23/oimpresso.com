@@ -39,6 +39,12 @@ related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camada
 - Controller: `SpreadsheetController::index|show|update`
 - Tela: `sheet/index.blade.php` (DataTable), `sheet/show.blade.php` (editor inline)
 - Aceite: DataTable respeita global scope; editor salva via autosave AJAX
+- Aceite (2026-10-27, quem abre e quem grava no editor — `planilhaAcessivel()`):
+  - UC-PLED-01 · abro a minha e a recebida; a de colega sem compartilhamento dá 404.
+  - UC-PLED-02 · `[T0]` planilha de outro negócio dá 404, mesmo compartilhada com meu usuário.
+  - UC-PLED-03 · ter uma planilha recebida não deixa gravar por cima da de colega (até 2026-10-27 o `orWhere` sem grupo deixava).
+  - Teste: `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php`, lane `spreadsheet-pest`. Status ⬜ até o CI rodar.
+    Os casos passam para `resources/js/Pages/Spreadsheet/Editor.casos.md` quando a tela do editor entrar.
 
 ### US-SHEET-003 — Share via link (público read-only)
 **Implementado em:** _parcial_ · `Modules/Spreadsheet/Http/Controllers/SpreadsheetController.php` · `Modules/Spreadsheet/Entities/SpreadsheetShare.php` · `Modules/Spreadsheet/Resources/views/sheet/partials/share_sheet.blade.php` · `Modules/Spreadsheet/Notifications/SpreadsheetShared.php` · verificado@8af585a (2026-07-02) — falta o link público: share real é interno (shared_with user/role/todo em sheet_spreadsheet_shares, sem colunas token/expires_at/permissions) e a rota pública /sheet/shared/{token} não existe

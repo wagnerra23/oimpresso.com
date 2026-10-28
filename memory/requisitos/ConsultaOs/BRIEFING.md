@@ -17,7 +17,7 @@ Portal público (sem login) onde o cliente final acompanha o reparo informando o
 - Payload por OS = whitelist (paridade com o `/repair-status`): nº, marca, aparelho, modelo, série, status com cor, previsão de entrega e atividades (data, ação, quem, nota). Nada de custo, senha, defeitos, notas internas, cliente ou `business_id`.
 - Critério validado (`ConsultaPublicaRequest`) e revalidado no `RepairConsultaOsRepository` — sem tipo válido e número não vazio, não consulta.
 - Throttle `30,1` nas rotas; auditoria com `PiiRedactor` + IP truncado; spans OTel.
-- `GET /repair-status` (Repair) → 302 pro `/consulta-os`; o `POST /post-repair-status` endurecido (#8527) segue no lugar.
+- `GET /repair-status` (Repair) → 302 pro `/consulta-os`. O portal antigo do Repair (tela Blade + `POST /post-repair-status`) saiu no cutover de 2026-10-27: o ConsultaOs é a única consulta pública de OS.
 - Contrato: `tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php` (UC-COS-01..11, lane sqlite do `ci.yml`).
 
 ## Capacidades PLANEJADAS (NÃO construídas)

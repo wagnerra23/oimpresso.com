@@ -2,7 +2,7 @@
 id: requisitos-produto-briefing
 module: Produto
 status: parcial
-updated_at: "2026-08-18"
+updated_at: "2026-10-27"
 owner: W
 related_adrs: ["0093-multi-tenant-isolation-tier-0", "0104-processo-mwart-canonico-unico-caminho", "0121-oimpresso-modular-especializado-por-vertical"]
 ---
@@ -23,7 +23,7 @@ O domínio nasceu no núcleo herdado do UltimatePOS e recebeu requisitos de pari
 |---|---|---|---|---|
 | Catálogo e consulta | `ProductController@index/show` | `product/index`, `product/show`, modais | `Produto/Index`, `Produto/Show` | 🟡 Coexistência Blade↔Inertia; a fonte de rollout é o charter, não este resumo |
 | Cadastro e manutenção | `ProductController@create/store/edit/update` | `product/create`, `product/edit` + partials | `Produto/Create`, `Produto/Edit` | 🔴 A casca React ainda não cobre toda a função de produto simples, variável e combo já disponível no Blade |
-| Variações e formação de preço | `ProductController`, `VariationTemplateController`, `SellingPriceGroupController` | `product/partials/*`, `variation/*`, `selling_price_group/*` | `Produto/SellingPrices` | 🟡 A persistência por variação e tabela existe; o contrato regra+exceção do protótipo ainda não é a implementação React |
+| Variações e formação de preço | `ProductController`, `VariationTemplateController`, `SellingPriceGroupController` | `product/partials/*`, `variation/*`, `selling_price_group/*` | `Produto/SellingPrices` | 🟡 A persistência por variação e tabela existe; o contrato regra+exceção do protótipo ainda não é a implementação React. A composição do preço (imposto do Simples, comissão, despesas e lucro tirados do preço de venda) não existe: US-PROD-032 |
 | Operações em massa e importação | `ProductController`, `ImportProductsController` | `product/bulk-edit`, `import_products/index` | `Produto/BulkEdit` | 🟡 Fluxo dual; importação permanece Blade |
 | Estoque inicial e histórico | `OpeningStockController`, `ImportOpeningStockController`, `ProductController@productStockHistory` | `opening_stock/*`, `import_opening_stock/index`, `product/stock_history*` | `Produto/StockHistory` | 🔴 A Page espera movimentos que o render não fornece; o caminho AJAX legado também reconcilia saldo durante um GET |
 | Cadastros auxiliares | `BrandController`, `TaxonomyController`, `UnitController`, `WarrantyController` | `brand/*`, `taxonomy/*`, `unit/*`, `warranties/*` | — | 🟡 São parte da entrada de Produto, mas continuam em Blade |

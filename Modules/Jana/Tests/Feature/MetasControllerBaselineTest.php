@@ -215,7 +215,7 @@ it('US-COPI-013 · update é PARCIAL: muda nome sem tocar slug nem tipo_agregaca
         ->and($fresh->tipo_agregacao)->toBe('soma');
 });
 
-it('US-COPI-011 · show devolve no MÁXIMO 12 apurações, da mais recente pra mais antiga', function () {
+it('UC-JPAIN-37 · US-COPI-011 · o drawer recebe as 12 apurações MAIS RECENTES, em ordem crescente', function () {
     for ($i = 0; $i < 15; $i++) {
         // `calculado_em` e `fonte_query_hash` são NOT NULL na migration, e o trio
         // (meta_id, data_ref, fonte_query_hash) é UNIQUE — hash distinto por linha.
@@ -228,17 +228,51 @@ it('US-COPI-011 · show devolve no MÁXIMO 12 apurações, da mais recente pra m
         ]);
     }
 
-    // Mesma razão do caso do index: lido do controller, sem renderizar AdminLTE.
-    $apuracoes = app(\Modules\Jana\Http\Controllers\MetasController::class)
-        ->show($this->metaPropria->id)
-        ->getData()['apuracoes'];
+    // Até o cutover (RUNBOOK-metas §9.4 PR-4) este caso lia `MetasController@show`, que
+    // renderizava `metas/show.blade.php`. A Blade saiu; quem entrega a série agora é o
+    // payload do Painel, lido direto do método (o `/ia` inteiro puxa agregados que não
+    // são deste contrato).
+    $metodo = new ReflectionMethod(\Modules\Jana\Http\Controllers\IndexController::class, 'buildMetasPayload');
+    $metas = $metodo->invoke(
+        app(\Modules\Jana\Http\Controllers\IndexController::class),
+        METAS_BIZ_CANONICO,
+        app(\Modules\Jana\Services\ApuracaoService::class),
+    );
 
-    expect($apuracoes)->toHaveCount(12);
+    $minha = collect($metas)->firstWhere('id', $this->metaPropria->id);
+    expect($minha)->not->toBeNull();
 
-    $datas = $apuracoes->pluck('data_ref')->map(fn ($d) => $d->toDateString())->all();
+    $datas = collect($minha['apuracoes_recentes'])
+        ->map(fn ($a) => \Illuminate\Support\Carbon::parse($a['data_ref'])->toDateString())
+        ->all();
+
+    expect($datas)->toHaveCount(12);
+
+    // As 12 mais RECENTES: hoje entra, e as 3 mais antigas (14, 13 e 12 dias atrás) ficam
+    // de fora. Com o `orderBy('data_ref')->limit(12)` de antes, era o inverso.
+    expect($datas)->toContain(now()->toDateString())
+        ->and($datas)->not->toContain(now()->subDays(14)->toDateString());
+
     $ordenado = $datas;
-    rsort($ordenado);
-    expect($datas)->toBe($ordenado);   // mais recente primeiro
+    sort($ordenado);
+    expect($datas)->toBe($ordenado);   // crescente: é como o drawer desenha a série
+});
+
+it('UC-JPAIN-36 · cutover: ver, editar, criar e fonte da meta voltam pro Painel, sem Blade', function () {
+    $id = $this->metaPropria->id;
+
+    $this->get("/ia/metas/{$id}")->assertRedirect('/ia');
+    $this->get("/ia/metas/{$id}/edit")->assertRedirect('/ia');
+    $this->get('/ia/metas/create')->assertRedirect('/ia');
+    $this->get("/ia/metas/{$id}/fonte")->assertRedirect('/ia');
+
+    foreach (['metas/create', 'metas/show', 'metas/edit', 'fontes/show'] as $view) {
+        expect(file_exists(base_path("Modules/Jana/Resources/views/{$view}.blade.php")))->toBeFalse();
+    }
+});
+
+it('UC-JPAIN-36 · Tier 0: fonte de meta de OUTRO tenant → 404, e não redirect', function () {
+    $this->get("/ia/metas/{$this->metaAdversaria->id}/fonte")->assertNotFound();
 });
 
 it('US-COPI-031 · reapurar enfileira o Job com o businessId EXPLÍCITO da meta', function () {

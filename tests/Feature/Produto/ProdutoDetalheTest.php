@@ -140,18 +140,14 @@ it('UC-PIDX-09 · aberto pela URL (?ver=) o painel chega como prop deferida da p
     expect(collect($r->json('deferredProps'))->flatten()->all())->toContain('detalhe');
 });
 
-it('UC-PIDX-11 · "Comprar" segue a permissão de criar compra (purchase.create)', function () {
+it('UC-PIDX-11 · a consulta não oferece compra, nem a quem pode criar compra', function () {
+    // Discriminante: o usuário TEM purchase.create, que era o que ligava o "Comprar" até 2026-10-26.
     pdtEntrar($this, ['product.view', 'access_all_locations', 'purchase.create']);
-    $com = $this->get('/products', $this->inertia);
-    $com->assertOk();
-    expect($com->json('props.permissions.comprar'))->toBeTrue();
-
-    pdtEntrar($this, ['product.view', 'access_all_locations']);
-    $sem = $this->get('/products', $this->inertia);
-    $sem->assertOk();
-    // Anti-vácuo: as permissões vieram — o false é do gate, não de prop faltando.
-    expect($sem->json('props.permissions'))->toHaveKey('view');
-    expect($sem->json('props.permissions.comprar'))->toBeFalse();
+    $r = $this->get('/products', $this->inertia);
+    $r->assertOk();
+    // Anti-vácuo: as permissões vieram — a ausência é da decisão, não de prop faltando.
+    expect($r->json('props.permissions'))->toHaveKey('view');
+    expect($r->json('props.permissions'))->not->toHaveKey('comprar');
 });
 
 /** Compra recebida do produto num local — é dela que sai o "valor pelo custo" do relatório de estoque. */
@@ -508,4 +504,25 @@ it('UC-PIDX-25 · com a permissão, mas o módulo Fiscal fora do pacote da empre
     pdtPacoteNfe(false);
     pdtEntrar($this, ['product.view', 'access_all_locations', 'fiscal.access', 'nfe.tributacao.manage']);
     expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])->toBeNull();
+});
+
+// A aba Fiscal e o "Dados fiscais" do menu só existem em empresa que emite nota (decisão [F]
+// 2026-10-26). O teste é o pacote, não a permissão: imposto e NCM não são segredo, só não servem a
+// quem vende sem nota. Dois testes à parte pelo mesmo motivo do de cima (controller em cache).
+it('UC-PIDX-25 · com o módulo Fiscal no pacote, a lista sabe que a empresa emite nota', function () {
+    pdtPacoteNfe(true);
+    // Sem `fiscal.access`: emitir nota é da empresa, não da permissão de quem consulta.
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $r = $this->get('/products', $this->inertia);
+    $r->assertOk();
+    expect($r->json('props.contexto.emite_nota'))->toBeTrue();
+});
+
+it('UC-PIDX-25 · sem o módulo Fiscal no pacote, a lista sabe que a empresa não emite nota', function () {
+    pdtPacoteNfe(false);
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'fiscal.access']);
+    $r = $this->get('/products', $this->inertia);
+    $r->assertOk();
+    expect($r->json('props.contexto'))->toHaveKey('grupos_de_preco'); // anti-vácuo: o contexto veio
+    expect($r->json('props.contexto.emite_nota'))->toBeFalse();
 });

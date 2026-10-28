@@ -2,9 +2,10 @@
 //
 // Antes o botão levava a `/manufacturing/recipe/create`, que devolve só o miolo de um modal
 // Bootstrap: a busca de produto dependia do select2 + scripts do layout Blade, que a tela React
-// não carrega — em produção a busca não carregava. Esta janela substitui aquele modal e entrega
-// para o MESMO editor legado (`/manufacturing/add-ingredient`): ela só LÊ, quem grava continua
-// sendo o editor (charter: "Não escreve nada").
+// não carrega — em produção a busca não carregava. Esta janela substitui aquele modal (apagado no
+// cutover de 2026-10-27) e entrega para o editor de ingredientes (`/manufacturing/add-ingredient`,
+// React desde o mesmo cutover): ela só LÊ, quem grava continua sendo o editor (charter: "Não
+// escreve nada").
 //
 // Forma: `MfgNovaReceita` do protótipo (`manufacturing-recipe.jsx`), com as mudanças que o [W]
 // decidiu depois dele:

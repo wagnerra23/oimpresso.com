@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-relatorios-despesas-index-casos
-casos: Despesas · /reports/expense-report?tela=nova
+casos: Despesas · /reports/expense-report
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela mostra quanto o negócio gastou; total diferente da Blade ou despesa de outro negócio é incidente.
@@ -30,6 +30,20 @@ last_run: "2026-10-07"
   · E `categorias` e `locais` não trazem nada do 99 · Dado usuário sem `expense_report.view` · Então 403 na
   tela nova e na Blade.
 - **Status: 🧪**
+
+## UC-RDE-03 · O menu abre a tela nova; a Blade só com `?classico=1` · `must`
+> Fonte: a regra de cutover D1 [W] 2026-10-07 (*por tela, React vira padrão, Blade só com `?classico=1`*), registrada
+> na US-REL-002 do SPEC de Relatorios. O controller só confirma.
+- **Persona:** usuário com `expense_report.view` que entra em Relatórios › Despesas pelo menu.
+- **Aceite:** Dado o cutover pelo menu · Quando abro `/reports/expense-report` como o menu navega (sem `X-Inertia`) ·
+  Então recebo a Page · E a visita Inertia (`X-Inertia` + `X-Requested-With`) também · E `?tela=nova` continua
+  valendo · E com `?classico=1` recebo a Blade, cujo formulário de filtro leva `classico=1` para não cair na Page.
+- **Teste:** `tests/Feature/Relatorios/DespesasReportPageTest.php` — `UC-RDE-03 cutover — o menu abre a Page;
+  ?classico=1 abre a Blade, com o classico no formulário`. Lane `acessos-pest.yml` (MySQL).
+- **Regressão que defende:** o menu voltar a abrir a Blade (cutover desfeito sem decisão), e o filtro da Blade em
+  `?classico=1` jogar o usuário na Page porque o formulário perdeu o `classico`.
+- **Status: ⬜** — o teste cita o UC, mas a lane ainda não rodou neste PR (2026-10-27); vira 🧪 com o run e as
+  assertions do CI.
 
 ## Backlog
 - [BACKLOG] Gráfico por categoria, se [W] quiser manter o da Blade.

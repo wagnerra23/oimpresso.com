@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: indicador que diverge do quadro engana o PCP; alerta decorativo ensina a ignorar alerta; evento de outra empresa no feed é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-10-27"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o ProducaoQuadroContratoTest."
 ---
 
@@ -43,7 +43,20 @@ Status: 🧪
 
 **Dado** OS com arte "aguardando" e "ajuste pedido" **Então** a fila mostra o que o cliente disse e quando, com o
 ajuste primeiro · Vale o pedido mais recente da OS: recusada e depois aprovada não trava · O cartão do Quadro
-leva a mesma situação. Reenviar o link e "Enviar nova prova" ficam para depois (charter, Non-Goals).
+leva a mesma situação. Reenviar o link e "Enviar nova prova" vieram depois (UC-PCART-07).
+
+Status: 🧪
+
+## UC-PCART-07 · Reenviar o link ou enviar a nova prova pela fila · `must`
+
+> Âncora: `Painel` de `prototipo-ui/cowork/Wagner/producao-cv-page.jsx` (botão "Enviar nova prova" no ajuste,
+> com o campo do link do arquivo novo, e "Reenviar link" no aguardando; linha de resultado depois do envio). Liberado por [W] em 2026-10-27. Prova: `ProducaoAprovacaoArteContratoTest`.
+
+**Dado** uma arte aguardando o cliente **Quando** clico em "Reenviar link" **Então** sai um link novo para a mesma
+prova e o anterior deixa de valer (410) · **Dado** um ajuste pedido **Quando** envio a nova prova com o link do
+arquivo **Então** sai um link novo com o arquivo novo e a OS volta a "aguardando"; sem arquivo novo, ou com o
+mesmo, é recusado (422) e nada muda · Arte aprovada não reenvia (o caminho é trocar o arquivo) · OS de outra
+empresa: 404. Com o WhatsApp ligado o cliente recebe o link; senão o link aparece para mandar à mão.
 
 Status: 🧪
 

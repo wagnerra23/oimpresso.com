@@ -467,9 +467,13 @@ function OsCreateDrawer({ initialOs, onClose, onSaved }) {
 // ──────────────────────────────────────────────────────────────
 // ITEMS EDITOR — CRUD inline de peça/MO/terceiro
 // ──────────────────────────────────────────────────────────────
-function ItemsEditor({ items, onChange }) {
+function ItemsEditor({ items, onChange, veiculo }) {
   const [adding, setAdding] = useState(false);
-  const [draft, setDraft] = useState({ tipo: "peca", nome: "", qty: 1, unit: 0, stat: "ok", done: false });
+  const [draft, setDraft] = useState({ tipo: "peca", nome: "", qty: 1, unit: 0, stat: "ok", done: false, compat: false });
+  // US-AUTO-008 — catálogo por marca/modelo em texto: peças que a empresa marcou como "serve em <marca modelo>".
+  const PECAS = window.OFICINA_REF?.PECAS_COMPAT || [];
+  const vLow = (veiculo || "").toLowerCase();
+  const compativeis = vLow ? PECAS.filter(p => p.serve.some(s => vLow.startsWith(s.toLowerCase()))) : [];
 
   const total = items.reduce((s, it) => s + (it.qty * it.unit), 0);
   const doneCount = items.filter(it => it.done).length;
@@ -477,7 +481,7 @@ function ItemsEditor({ items, onChange }) {
   const add = () => {
     if (!draft.nome.trim()) return;
     onChange([...items, { ...draft, id: uid() }]);
-    setDraft({ tipo: "peca", nome: "", qty: 1, unit: 0, stat: "ok", done: false });
+    setDraft({ tipo: "peca", nome: "", qty: 1, unit: 0, stat: "ok", done: false, compat: false });
     setAdding(false);
   };
   const patch = (id, p) => onChange(items.map(it => it.id === id ? { ...it, ...p } : it));
@@ -540,6 +544,84 @@ function ItemsEditor({ items, onChange }) {
           <button className="os-btn ghost sm" onClick={()=>setAdding(false)}>{I.x}</button>
         </div>
       )}
+
+      {adding && draft.tipo === "peca" && veiculo && (
+        <div className="ofc-items-compat" aria-label={"Peças que servem em " + veiculo}>
+          <div className="ofc-items-compat-h">Servem neste veículo · <b>{veiculo}</b></div>
+          {compativeis.length > 0 ? (
+            <div className="ofc-items-compat-list">
+              {compativeis.map(p => (
+                <button key={p.id} type="button" className="ofc-items-compat-chip"
+                  onClick={() => setDraft({ ...draft, nome: p.nome, unit: p.preco, stat: p.estoque > 0 ? "ok" : "warn" })}>
+                  <span>{p.nome}</span>
+                  <span className="mono">{fmtBRL(p.preco)}</span>
+                  <span className={"ofc-items-compat-est" + (p.estoque > 0 ? "" : " zero")}>{p.estoque > 0 ? p.estoque + " em estoque" : "sem estoque"}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="ofc-items-compat-vazio">Nenhuma peça marcada para este veículo ainda.</div>
+          )}
+          <label className="ofc-items-compat-marcar">
+            <input type="checkbox" checked={!!draft.compat} onChange={e => setDraft({ ...draft, compat: e.target.checked })}/>
+            <span>Marcar esta peça como compatível com <b>{veiculo}</b></span>
+          </label>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// MECÂNICOS DA OS — vários mecânicos, horas digitadas (US-AUTO-006)
+// Horas alimentam a comissão do papel técnico (dividida pela fração de horas).
+// Não mudam total, preço nem estoque da OS.
+// ──────────────────────────────────────────────────────────────
+function MecanicosEditor({ value, onChange }) {
+  const TODOS = window.OFICINA_REF?.MECANICOS || [];
+  const linhas = value || [];
+  const total = linhas.reduce((s, l) => s + (Number(l.horas) || 0), 0);
+  const livres = TODOS.filter(m => !linhas.some(l => l.id === m.id));
+  const patch = (id, horas) => onChange(linhas.map(l => l.id === id ? { ...l, horas } : l));
+  const remove = (id) => onChange(linhas.filter(l => l.id !== id));
+  const add = (id) => id && onChange([...linhas, { id, horas: 1 }]);
+
+  return (
+    <div className="ofc-mec">
+      <div className="ofc-items-head">
+        <span>{linhas.length} {linhas.length === 1 ? "mecânico" : "mecânicos"} · <b className="mono">{total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} h</b></span>
+      </div>
+      {linhas.length === 0 && <div className="ofc-items-empty">— nenhum mecânico lançado nesta OS.</div>}
+      <ul className="ofc-mec-list">
+        {linhas.map(l => {
+          const m = TODOS.find(x => x.id === l.id) || { nome: l.id, ini: "?" };
+          const pct = total > 0 ? Math.round((Number(l.horas) || 0) / total * 100) : 0;
+          return (
+            <li key={l.id}>
+              <span className="ofc-mec-ini" aria-hidden="true">{m.ini}</span>
+              <span className="ofc-mec-nome">{m.nome}</span>
+              <label className="ofc-mec-horas">
+                <span className="sr-only">Horas de {m.nome}</span>
+                <input type="number" min="0.25" max="999.99" step="0.25" className="mono" value={l.horas}
+                  onChange={e => patch(l.id, parseFloat(e.target.value) || 0)}/>
+                <span>h</span>
+              </label>
+              <span className="ofc-mec-pct mono" title="parte das horas da OS">{pct}%</span>
+              <button className="ofc-items-del" onClick={() => remove(l.id)} title={"Tirar " + m.nome} aria-label={"Tirar " + m.nome}>{I.trash}</button>
+            </li>
+          );
+        })}
+      </ul>
+      {livres.length > 0 && (
+        <label className="ofc-mec-add">
+          <span className="sr-only">Adicionar mecânico</span>
+          <select value="" onChange={e => add(e.target.value)}>
+            <option value="">+ Adicionar mecânico</option>
+            {livres.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+          </select>
+        </label>
+      )}
+      <p className="ofc-mec-nota">A comissão do técnico é dividida pela parte das horas de cada um.</p>
     </div>
   );
 }
@@ -695,7 +777,7 @@ function DviEditor({ items, onChange, onAprovarWhats, approval, onApproval }) {
 // Export
 // ──────────────────────────────────────────────────────────────
 window.OficinaForms = {
-  OsCreateDrawer, ItemsEditor, DviEditor,
+  OsCreateDrawer, ItemsEditor, DviEditor, MecanicosEditor,
   StageGate, StageGateMini, evalGate,
   Plate,
 };

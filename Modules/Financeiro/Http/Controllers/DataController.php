@@ -50,6 +50,8 @@ class DataController extends Controller
             // O sufixo `.create` já é o padrão do módulo (contas_pagar/contas_receber).
             ['value' => 'financeiro.lancamentos.create',         'label' => __('financeiro::financeiro.permissao_lancamentos_create'),         'default' => false],
             ['value' => 'financeiro.contas_pagar.pagar',         'label' => __('financeiro::financeiro.permissao_contas_pagar_pagar'),         'default' => false],
+            // US-FIN-079 — pagar PELO BANCO (saída de dinheiro real), separada de registrar baixa.
+            ['value' => 'financeiro.contas_pagar.pagar_banco',   'label' => __('financeiro::financeiro.permissao_contas_pagar_pagar_banco'),   'default' => false],
             ['value' => 'financeiro.titulo.aprovar',             'label' => __('financeiro::financeiro.permissao_titulo_aprovar'),             'default' => false],
             ['value' => 'financeiro.caixa.view',                 'label' => __('financeiro::financeiro.permissao_caixa_view'),                 'default' => false],
             ['value' => 'financeiro.contas_bancarias.manage',    'label' => __('financeiro::financeiro.permissao_contas_bancarias_manage'),    'default' => false],

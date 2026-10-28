@@ -30,6 +30,7 @@ use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
 use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
 use Modules\PaymentGateway\Exceptions\InvalidPayerException;
 use Modules\PaymentGateway\Exceptions\PaymentGatewayException;
+use Modules\Financeiro\Services\LinkDePagamentoDoTitulo;
 use Spatie\Activitylog\Models\Activity;
 use Throwable;
 
@@ -946,6 +947,29 @@ class UnificadoController extends Controller
         $titulo->save();
 
         return back()->with('success', 'Boleto Inter gerado: '.($result->linhaDigitavel ?: $result->nossoNumero));
+    }
+
+    /**
+     * POST /financeiro/unificado/{tituloId}/link-pagamento — US-FIN-081.
+     *
+     * Gera o link público para o cliente pagar este título (Pix ou boleto). O token sai uma vez, na
+     * resposta; no banco fica só o hash. Flag desligada = 404.
+     */
+    public function gerarLinkPagamento(Request $request, int $tituloId, LinkDePagamentoDoTitulo $links): JsonResponse
+    {
+        abort_unless(LinkDePagamentoDoTitulo::ligado(), 404);
+        $businessId = (int) session('user.business_id');
+
+        try {
+            $link = $links->gerar($businessId, $tituloId, $request->user()?->id);
+        } catch (\DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'url'       => url('/pagar/'.$link['token']),
+            'expira_em' => $link['expira_em']->toIso8601String(),
+        ]);
     }
 
     // ─────────── Comments + Audit (Onda DB 2026-05-18) ───────────

@@ -76,9 +76,10 @@ função da lista Blade que roda hoje em produção.
   Blade (25 a 1000 e todas) e o mesmo padrão (configuração da empresa).
 - Menu **Ações** por produto — união do protótipo com a lista Blade, com as MESMAS permissões:
   Ver, Editar, Estoque inicial, Histórico de estoque, Duplicar, Gerar código de barras, Preços por
-  grupo, Baixar anexo, Ativar/Desativar, Excluir; Comprar; e Dados fiscais (abre o painel na aba
-  Fiscal). Transferir entra com a requisição de transferência; "Usar em OS" saiu por decisão [F]
-  de 2026-10-11.
+  grupo, Baixar anexo, Ativar/Desativar, Excluir; e Dados fiscais (abre o painel na aba Fiscal).
+  Transferir entra com a requisição de transferência; "Usar em OS" saiu por decisão [F] de
+  2026-10-11; "Comprar" saiu por decisão [F] de 2026-10-26 (a consulta não é a tela de compras,
+  UC-PIDX-11).
 - Seleção em massa: Edição em massa, Adicionar/Remover do local, Etiquetas, Desativar, Excluir e
   WooCommerce Sync (só com o módulo).
 - Painel de detalhe (Sheet) com Dados · Variações/Composição · Estoque · Fiscal · Prateleira. Abre em
@@ -87,6 +88,40 @@ função da lista Blade que roda hoje em produção.
   segue no Blade — US-PROD-029).
 - Multi-tenant: `business_id` explícito em toda consulta (não há global scope em `App\Product`).
 - Permission gate: `product.view` **ou** `product.create` (`ProductController@index`, 403).
+
+> **Decidido por [F] em 2026-10-26 (comentários na âncora e conversa).** O protótipo
+> (`produto-blade.jsx`, PR #9925) já mudou; a produção recebe cada item no PR que o leva, com os
+> casos e os testes reescritos junto. O que já está na produção está marcado **Feito**.
+> - **Quem usa:** o administrador (cadastro, preço, estoque, nota) e o vendedor de balcão, que procura
+>   o produto e informa o preço ao cliente. Muitas vendas saem sem nota ([F]); quem decide é cada
+>   venda, pelo processo "Venda Sem Nota" ou "Venda Com Nota" (`memory/requisitos/Sells/SPEC.md`), e
+>   não o produto.
+> - **Feito:** sai o "Comprar" do menu Ações e do rodapé do painel, porque a consulta não é a tela de
+>   compras (UC-PIDX-11 reescrito, com teste).
+> - O rodapé do painel não tem "Gerar OP": a ordem de produção começa na produção. A produção nunca
+>   teve o botão; o protótipo deixou de ter.
+> - **Imposto aparece por relevância, não por permissão:** imposto não é segredo, sai impresso na nota.
+>   - O preço de venda mostrado é o que a venda cobra: o preço com o imposto do produto
+>     (`sell_price_inc_tax`), com nota ou sem. É o número que o vendedor informa ao cliente, e é o
+>     que a lista já mostra hoje.
+>   - **Feito:** aba Dados com "Preço de venda" primeiro; se o produto tem imposto, também o preço
+>     sem imposto e o imposto aplicável (com o tipo), com uma frase dizendo que o preço já inclui o
+>     imposto (UC-PIDX-19).
+>   - **Feito:** tabelas de Variações e Composição com uma coluna de preço quando sem e com imposto
+>     são iguais; senão as duas, "sem imposto" e "com imposto" (UC-PIDX-19 e 20).
+>   - **Feito:** aba Fiscal e "Dados fiscais (NCM/CFOP)" do menu só em empresa que emite nota (módulo
+>     Fiscal no pacote, o mesmo teste do botão "Abrir no módulo Fiscal"); a aba começa dizendo se o
+>     produto está pronto para nota (UC-PIDX-17 e 25).
+>   - **Feito:** coluna e filtro Imposto da lista só se a empresa tem alíquota cadastrada; a coluna
+>     nasce desligada e fica no menu Colunas; o CSV de "Exportar filtrados" segue a regra (UC-PIDX-34).
+>     O "Baixar Excel" é o arquivo de reimportação da Blade e fica como está, por decisão à parte.
+>
+> Nada disso esconde da tela nova o que a lista Blade mostra, então não entra no Non-Goal "Função a
+> menos que a lista Blade". Uma diferença pequena, de propósito: a janela "Ver" da Blade escreve
+> "Imposto aplicável: Nenhum"; a tela nova omite a linha quando não há imposto, porque o preço
+> mostrado já é o final. **Descartado no mesmo dia:** esconder o imposto por permissão
+> (`fiscal.access`). Escondia de quem vende um dado que a nota imprime, e deixava a tela nova mostrar
+> menos que a Blade.
 
 ---
 

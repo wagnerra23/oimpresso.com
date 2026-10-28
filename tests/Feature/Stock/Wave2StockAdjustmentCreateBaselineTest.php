@@ -14,13 +14,10 @@ function readSACreateController(): string
     return file_get_contents(base_path(SA_CREATE_CONTROLLER));
 }
 
-it('Blade legacy stock_adjustment/create.blade.php existe', function () {
-    expect(file_exists(base_path(SA_CREATE_BLADE)))->toBeTrue();
-});
-
-it('Controller PRESERVA return view("stock_adjustment.create")', function () {
-    $source = readSACreateController();
-    expect($source)->toContain("return view('stock_adjustment.create')");
+it('o formulário Blade foi apagado no cutover (2026-10-27), com a linha de produto do ajuste', function () {
+    expect(file_exists(base_path(SA_CREATE_BLADE)))->toBeFalse();
+    expect(file_exists(base_path('resources/views/stock_adjustment/partials/product_table_row.blade.php')))->toBeFalse();
+    expect(readSACreateController())->not->toContain("view('stock_adjustment.create')");
 });
 
 it('Controller PRESERVA permission purchase.create + isSubscribed', function () {

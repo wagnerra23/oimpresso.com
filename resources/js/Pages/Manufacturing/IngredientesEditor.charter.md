@@ -9,7 +9,7 @@ runbook: memory/requisitos/Manufacturing/RUNBOOK-ingredientes-editor.md
 related_us: [US-MANU-006]
 alcance:
   rota: /manufacturing/add-ingredient
-  rota_nome: null                     # rota legada sem name(); a tela nova vive atrás de ?tela=nova
+  rota_nome: null                     # rota sem name(); desde o cutover de 2026-10-27 só serve esta tela (?tela=nova é ignorado)
   permission: manufacturing.access_recipe   # abrir (leitura); gravar = manufacturing.add_recipe no store()
   menu_hook: null                     # não tem item de menu: chega-se pelo "Editar ingredientes" da lista de Receitas
   pacote: manufacturing_module

@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a etiqueta é a única saída do catálogo que vira papel. Prévia com preço diferente do impresso, ou produto e modelo de outro negócio na folha, viram etiqueta errada no balcão.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-27"
 last_run_ci: "_pendente_ — o trio nasce na thread Produto/04. O veredito por UC entra no manifesto quando a lane estoque-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -24,10 +24,10 @@ Origem: charter R1/R5 · Anti-hooks (outro negócio, permissão) · decisão [W]
 **Dado** que tenho `print_labels.access` no negócio 98, com um grupo de preço ativo e um modelo de etiqueta,
 e o negócio 99 com outro grupo e outro modelo
 **Quando** abro `/labels/show?product_id=<produto do 98>`
-**Então** com a flag `mwart.produto_etiquetas` desligada, ou ligada com só o 99 na lista, recebo a view
-`labels.show` (a Blade de sempre); com a flag ligada e o 98 na lista, recebo Inertia `Produto/Etiquetas/Index`
-com a linha do produto, só o grupo e o modelo do 98 (mais os modelos do sistema); `?classico=1` devolve
-sempre a Blade; e sem `print_labels.access` recebo 403.
+**Então** recebo Inertia `Produto/Etiquetas/Index` com a linha do produto, só o grupo e o modelo do 98
+(mais os modelos do sistema), em qualquer empresa (sem flag desde a decisão [W] de 2026-10-06, noite);
+`?classico=1` também abre a tela React, porque a Blade `labels.show` foi apagada no cutover de 2026-10-27;
+e sem `print_labels.access` recebo 403.
 
 Status: 🧪
 
@@ -71,12 +71,13 @@ Status: 🧪
 
 ---
 
-## UC-PETQ-05 · A Blade segue recebendo o HTML · `should`
+## UC-PETQ-05 · A linha vem sempre em JSON · `should`
 
-Origem: RUNBOOK §1 (`?classico=1` mantém a Blade).
+Origem: RUNBOOK §1. Até 2026-10-27 a Blade (`?classico=1`) pedia a linha em HTML; ela foi apagada no cutover.
 
-**Quando** o formulário da Blade pede a linha sem aceitar JSON
-**Então** recebe a view `labels.partials.show_table_rows`, como antes.
+**Quando** alguém pede a linha sem aceitar JSON
+**Então** recebe a mesma linha em JSON (`linhas`); o HTML `labels.partials.show_table_rows` saiu com a Blade.
+A folha impressa continua em Blade (`/labels/preview`), por decisão [W] de 2026-10-27.
 
 Status: 🧪
 

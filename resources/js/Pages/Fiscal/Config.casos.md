@@ -287,6 +287,14 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
   fiscal, Então o SPED dela sai com `IND_PERFIL` B e com os registros que esse perfil exige; empresa sem
   escolha segue no perfil A. Hoje o gerador escreve sempre o perfil A (`Sped.casos.md`, UC-FSF1-05). O
   perfil vem do enquadramento da empresa no estado; o contador informa qual é.
+- **[BACKLOG · ⬜ sem teste] Alíquota do Simples do mês, para produto e para serviço** (pedido de
+  2026-10-27) — Dado a DAS de outubro com 8% para venda de produto e 12% para serviço, Quando informo
+  as duas alíquotas com a competência, Então a formação de preço passa a usá-las, e a tela avisa
+  quando a última competência informada é de um mês anterior. Uma alíquota por competência e por
+  natureza, guardada por empresa. A apuração do DAS pelo Anexo (US-FISCAL-030, PR #10021), quando
+  existir, entra como sugestão e conferência; se vale a DAS digitada ou a calculada é decisão do [W]
+  (a proposta é a DAS). Hoje o Financeiro estima o DAS com 6% fixo (`ImpostosController::DAS_RATE`).
+  Pedido da Art Laser; US-PROD-032.
 
 ## Como rodar a suíte
 
@@ -296,6 +304,7 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 
 ## Trilha do tempo
 
+- 2026-10-27 · [F+C] Backlog: alíquota do Simples do mês, para produto e para serviço, pedido da Art Laser (US-PROD-032). Sem id.
 - 2026-10-21 · [C] `UC-FCFG-10` — a seção Contingência SEFAZ ganha a escolha de modo (SVC-AN · SVC-RS ·
   EPEC, US-NFE-071). Revalidei os UC-FCFG-01..09: a mudança na tela fica só dentro da seção de
   contingência e nenhum deles a cobre além do UC-FCFG-04 (estado e duração), que segue valendo —

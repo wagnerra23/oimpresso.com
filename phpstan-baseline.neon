@@ -95,6 +95,12 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/Compras/Config/config.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 8
 			path: Modules/Marketplaces/Config/config.php
 
@@ -5231,7 +5237,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 4
+			count: 5
 			path: Modules/Financeiro/Config/config.php
 
 		-
@@ -5576,6 +5582,12 @@ parameters:
 			identifier: property.onlyWritten
 			count: 1
 			path: Modules/Financeiro/Listeners/ProcessAsaasPixWebhookListener.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Financeiro/Models/Concerns/BusinessScope.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
@@ -6287,7 +6299,7 @@ parameters:
 			path: Modules/Jana/Http/Controllers/MetasController.php
 
 		-
-			message: '#^Método `Modules\\Jana\\Http\\Controllers\\MetasController\:\:show\(\)` faz Eloquent query \(2\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			message: '#^Método `Modules\\Jana\\Http\\Controllers\\MetasController\:\:show\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
 			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/Jana/Http/Controllers/MetasController.php
@@ -7848,7 +7860,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 8
+			count: 9
 			path: Modules/NfeBrasil/Config/config.php
 
 		-
@@ -8990,6 +9002,12 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/Producao/Config/config.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 2
 			path: Modules/ProductCatalogue/Config/retention.php
 
@@ -9104,7 +9122,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 2
+			count: 3
 			path: Modules/RecurringBilling/Config/config.php
 
 		-

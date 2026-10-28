@@ -89,6 +89,10 @@ ainda abrem o detalhe como modal AJAX.
 > ⚠️ **O path Blade está quebrado em prod** (§4) — está preservado por retro-compat, não por
 > funcionar; o comentário do próprio controller diz isso. Portanto **não** é um fallback, e a
 > paridade Blade × React aqui **não** é meta: a substituição é.
+>
+> **F5 (2026-10-27, autorizado por [W]):** a Blade `purchase.show` foi apagada. O XHR sem
+> `X-Inertia` agora recebe a Page React, e os links que abriam o modal abrem a tela em nova aba.
+> O parágrafo acima descreve o estado até essa data.
 
 **Ação nova nesta tela abre rota Blade via `window.open`, nunca `router.visit`** — mesma regra do
 [Index §5](RUNBOOK-purchase-index.md). O botão Imprimir já segue

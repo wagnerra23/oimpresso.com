@@ -22,7 +22,6 @@ use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\PurchaseCreatedOrModified;
 use Inertia\Inertia;
@@ -130,7 +129,7 @@ class PurchaseController extends Controller
                             </button>
                             <ul class="dropdown-menu dropdown-menu-left" role="menu">';
                     if (auth()->user()->can('purchase.view')) {
-                        $html .= '<li><a href="#" data-href="'.action([\App\Http\Controllers\PurchaseController::class, 'show'], [$row->id]).'" class="btn-modal" data-container=".view_modal"><i class="fas fa-eye" aria-hidden="true"></i>'.__('messages.view').'</a></li>';
+                        $html .= '<li><a href="'.action([\App\Http\Controllers\PurchaseController::class, 'show'], [$row->id]).'" target="_blank" rel="noopener"><i class="fas fa-eye" aria-hidden="true"></i>'.__('messages.view').'</a></li>';
                     }
                     if (auth()->user()->can('purchase.view')) {
                         $html .= '<li><a href="#" class="print-invoice" data-href="'.action([\App\Http\Controllers\PurchaseController::class, 'printInvoice'], [$row->id]).'"><i class="fas fa-print" aria-hidden="true"></i>'.__('messages.print').'</a></li>';
@@ -220,14 +219,8 @@ class PurchaseController extends Controller
 
                     return $due_html;
                 })
-                ->setRowAttr([
-                    'data-href' => function ($row) {
-                        if (auth()->user()->can('purchase.view')) {
-                            return  action([\App\Http\Controllers\PurchaseController::class, 'show'], [$row->id]);
-                        } else {
-                            return '';
-                        }
-                    }, ])
+                // Sem `data-href` na linha: o clique abria o show como modal AJAX, e a Blade dele saiu
+                // no cutover de 2026-10-27. "Ver" no menu da linha abre a tela React em nova aba.
                 ->rawColumns(['final_total', 'action', 'payment_due', 'payment_status', 'status', 'ref_no', 'name'])
                 ->make(true);
         }
@@ -736,37 +729,11 @@ class PurchaseController extends Controller
             }
         }
 
-        //Purchase orders
-        $purchase_order_nos = '';
-        $purchase_order_dates = '';
-        if (! empty($purchase->purchase_order_ids)) {
-            $purchase_orders = Transaction::find($purchase->purchase_order_ids);
-
-            $purchase_order_nos = implode(', ', $purchase_orders->pluck('ref_no')->toArray());
-            $order_dates = [];
-            foreach ($purchase_orders as $purchase_order) {
-                $order_dates[] = $this->transactionUtil->format_date($purchase_order->transaction_date, true);
-            }
-            $purchase_order_dates = implode(', ', $order_dates);
-        }
-
-        $activities = Activity::forSubject($purchase)
-           ->with(['causer', 'subject'])
-           ->latest()
-           ->get();
-
-        $statuses = $this->productUtil->orderStatuses();
-
-        // === MWART DUAL (skill migracao-blade-react v0.1.0 PR2 piloto-purchase-show, ADR 0141) ===
-        // Blade legacy show_details.blade.php:430 quebra com DNS1D::getBarcodePNG() em prod.
-        // Inertia mata o bug por substituicao. Caminho AJAX modal legacy preservado pra
-        // compat retroativa (mas tambem quebrado em prod — vai morrer junto com index).
-        if (request()->ajax() && ! request()->header('X-Inertia')) {
-            // Modal AJAX legacy (Blade quebrado em prod — preservado pra retro-compat).
-            return view('purchase.show')
-                ->with(compact('taxes', 'purchase', 'payment_methods', 'purchase_taxes', 'activities', 'statuses', 'purchase_order_nos', 'purchase_order_dates'));
-        }
-
+        // Cutover F5 (2026-10-27): a Blade `purchase.show` (fragmento de modal AJAX, já quebrado em
+        // prod pelo `DNS1D::getBarcodePNG()` do show_details) foi apagada. Toda requisição abre a
+        // Page React. Os links que abriam o modal (aba Compras do contato, linha de pagamento e
+        // pagamentos filhos) passaram a abrir esta tela em nova aba. `show_details` segue vivo:
+        // é a impressão (`printInvoice`) e o show do pedido de compra.
         return $this->showInertia($purchase, $taxes, $payment_methods, $purchase_taxes);
     }
 
