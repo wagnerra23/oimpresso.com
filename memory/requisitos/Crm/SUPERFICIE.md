@@ -14,7 +14,7 @@ module: Crm
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 317 arquivos em 18 papéis.
+**Total mapeado:** 321 arquivos em 18 papéis.
 
 ## Controllers — 30
 
@@ -73,7 +73,7 @@ module: Crm
 - [CheckContactLogin.php](../../../Modules/Crm/Http/Middleware/CheckContactLogin.php)
 - [ContactSidebarMenu.php](../../../Modules/Crm/Http/Middleware/ContactSidebarMenu.php)
 
-## Services — 13
+## Services — 14
 
 - [AgendaDeTarefasDoCrm.php](../../../Modules/Crm/Services/AgendaDeTarefasDoCrm.php)
 - [BrLookupService.php](../../../Modules/Crm/Services/BrLookupService.php)
@@ -81,6 +81,7 @@ module: Crm
 - [CallLogService.php](../../../Modules/Crm/Services/CallLogService.php)
 - [CampaignService.php](../../../Modules/Crm/Services/CampaignService.php)
 - [CapturaDeLead.php](../../../Modules/Crm/Services/CapturaDeLead.php)
+- [ChamadoGarantiaService.php](../../../Modules/Crm/Services/ChamadoGarantiaService.php)
 - [ContactBookingService.php](../../../Modules/Crm/Services/ContactBookingService.php)
 - [CrmLeadService.php](../../../Modules/Crm/Services/CrmLeadService.php)
 - [DealPipelineService.php](../../../Modules/Crm/Services/DealPipelineService.php)
@@ -89,7 +90,7 @@ module: Crm
 - [ProposalService.php](../../../Modules/Crm/Services/ProposalService.php)
 - [ScheduleService.php](../../../Modules/Crm/Services/ScheduleService.php)
 
-## Models / Entities — 13
+## Models / Entities — 14
 
 - [Campaign.php](../../../Modules/Crm/Entities/Campaign.php)
 - [CrmCallLog.php](../../../Modules/Crm/Entities/CrmCallLog.php)
@@ -104,6 +105,7 @@ module: Crm
 - [Schedule.php](../../../Modules/Crm/Entities/Schedule.php)
 - [ScheduleLog.php](../../../Modules/Crm/Entities/ScheduleLog.php)
 - [ScheduleUser.php](../../../Modules/Crm/Entities/ScheduleUser.php)
+- [SlaPolitica.php](../../../Modules/Crm/Entities/SlaPolitica.php)
 
 ## Console / Commands — 4
 
@@ -122,7 +124,7 @@ module: Crm
 - [api.php](../../../Modules/Crm/Routes/api.php)
 - [web.php](../../../Modules/Crm/Routes/web.php)
 
-## Migrations (schema) — 28
+## Migrations (schema) — 29
 
 - [2020_03_19_130231_add_contact_id_to_users_table.php](../../../Modules/Crm/Database/Migrations/2020_03_19_130231_add_contact_id_to_users_table.php)
 - [2020_03_27_133605_create_schedules_table.php](../../../Modules/Crm/Database/Migrations/2020_03_27_133605_create_schedules_table.php)
@@ -151,6 +153,7 @@ module: Crm
 - [2022_05_26_061553_create_crm_contact_person_commissions_table.php](../../../Modules/Crm/Database/Migrations/2022_05_26_061553_create_crm_contact_person_commissions_table.php)
 - [2022_06_06_073006_add_cc_and_bcc_columns_to_crm_proposals_table.php](../../../Modules/Crm/Database/Migrations/2022_06_06_073006_add_cc_and_bcc_columns_to_crm_proposals_table.php)
 - [2026_05_17_120000_create_crm_deals_table.php](../../../Modules/Crm/Database/Migrations/2026_05_17_120000_create_crm_deals_table.php)
+- [2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php](../../../Modules/Crm/Database/Migrations/2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php)
 - [2026_10_27_120000_add_origem_utm_e_formularios_captura_crm.php](../../../Modules/Crm/Database/Migrations/2026_10_27_120000_add_origem_utm_e_formularios_captura_crm.php)
 
 ## Seeders — 1
@@ -291,9 +294,9 @@ module: Crm
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Propostas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Relatorios/Index.casos.md)
 
-## Testes (Pest) — 43
+## Testes (Pest) — 44
 
-- 43 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
+- 44 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 47

@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1075 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1074 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -19,9 +19,9 @@
 | [`NfeBrasil`](#nfebrasil) | 33 | 0 | 0 | 6 | 27 |
 | [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
+| [`Crm`](#crm) | 26 | 0 | 0 | 0 | 26 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
-| [`Crm`](#crm) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
@@ -32,9 +32,9 @@
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
-| [`Comissao`](#comissao) | 16 | 1 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
+| [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
@@ -50,9 +50,9 @@
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
+| [`Repair`](#repair) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
-| [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
@@ -719,6 +719,38 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
+## Crm
+
+
+### todo
+
+- **US-CRM-001** — Migration estender `contacts` com colunas pipeline · **P0** · 2H
+- **US-CRM-002** — `crm_motivos_perda` catálogo + seeder padrão · **P0** · 2H
+- **US-CRM-003** — `crm_lead_interactions` timeline append-only + observers · **P0** · 4H
+- **US-CRM-004** — `crm_lead_tags` + pivot · **P1** · 2H
+- **US-CRM-010** — Listener `WhatsappMessageReceived` cria/resolve lead · **P0** · 4H
+- **US-CRM-011** — `JanaIntencaoAgent` classifica intenção mensagem entrante · **P0** · 6H
+- **US-CRM-012** — `CrmLeadFromWhatsappService.createOrUpdate` + round-robin · **P0** · 4H
+- **US-CRM-013** — Auto-resposta template WhatsApp ao criar lead · **P1** · 2H
+- **US-CRM-014** — Vincular `whatsapp_conversations.contact_id` ao Lead criado · **P0** · 2H
+- **US-CRM-020** — `ConvertLeadToSaleService` cria Transaction + inicia FSM `quote_draft` · **P0** · 6H
+- **US-CRM-021** — UI kanban "Ganho" dispara ConvertLeadToSale + redireciona SaleSheet · **P0** · 4H
+- **US-CRM-022** — UI kanban "Perdido" modal obrigatório motivo + data reabordagem · **P0** · 4H
+- **US-CRM-023** — Cron `lead:reactivate-cold` reabre leads "perdido_timing" com data atingida · **P1** · 2H
+- **US-CRM-030** — `crm_lead_scoring_log` + cron `lead:rescore` regras simples · **P1** · 6H
+- **US-CRM-031** — SLA novo lead → alerta vendedor superior se sla_responder_em vencido · **P1** · 4H
+- **US-CRM-032** — Dashboard pipeline com forecast (sum valor_estimado per stage) · **P2** · 6H
+- **US-CRM-040** — API REST pública `/api/v1/crm/leads` (token `business_uuid` + reCAPTCHA + rate-limit) · **P1** · 6H
+- **US-CRM-041** — Form embed JS oimpresso.com captura → POST API · **P2** · 4H
+- **US-CRM-050** — `lgpd_consent_at` + opt-in/opt-out + endpoint direito esquecimento · **P0** · 6H
+- **US-CRM-060** — MWART tela Lead Kanban (atual `crm::lead.index lead_view=kanban`) · **P1** · 12H
+- **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
+- **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
+- **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
+- **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
+- **US-CRM-094** — Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
+- **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
+
 ## RecurringBilling
 
 
@@ -781,37 +813,6 @@
 - **US-ARQ-023** — Migrar `Modules/Financeiro/FinBoletoRemessa` (PDFs boleto gerados — volume razoável, baixo cliente-facing) `p1`
 - **US-ARQ-024** — Migrar `Modules/Ponto/Importacao` (arquivos folha eSocial — médio risco compliance) `p1`
 - **US-ARQ-025** — Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`) `p1`
-
-## Crm
-
-
-### todo
-
-- **US-CRM-001** — Migration estender `contacts` com colunas pipeline · **P0** · 2H
-- **US-CRM-002** — `crm_motivos_perda` catálogo + seeder padrão · **P0** · 2H
-- **US-CRM-003** — `crm_lead_interactions` timeline append-only + observers · **P0** · 4H
-- **US-CRM-004** — `crm_lead_tags` + pivot · **P1** · 2H
-- **US-CRM-010** — Listener `WhatsappMessageReceived` cria/resolve lead · **P0** · 4H
-- **US-CRM-011** — `JanaIntencaoAgent` classifica intenção mensagem entrante · **P0** · 6H
-- **US-CRM-012** — `CrmLeadFromWhatsappService.createOrUpdate` + round-robin · **P0** · 4H
-- **US-CRM-013** — Auto-resposta template WhatsApp ao criar lead · **P1** · 2H
-- **US-CRM-014** — Vincular `whatsapp_conversations.contact_id` ao Lead criado · **P0** · 2H
-- **US-CRM-020** — `ConvertLeadToSaleService` cria Transaction + inicia FSM `quote_draft` · **P0** · 6H
-- **US-CRM-021** — UI kanban "Ganho" dispara ConvertLeadToSale + redireciona SaleSheet · **P0** · 4H
-- **US-CRM-022** — UI kanban "Perdido" modal obrigatório motivo + data reabordagem · **P0** · 4H
-- **US-CRM-023** — Cron `lead:reactivate-cold` reabre leads "perdido_timing" com data atingida · **P1** · 2H
-- **US-CRM-030** — `crm_lead_scoring_log` + cron `lead:rescore` regras simples · **P1** · 6H
-- **US-CRM-031** — SLA novo lead → alerta vendedor superior se sla_responder_em vencido · **P1** · 4H
-- **US-CRM-032** — Dashboard pipeline com forecast (sum valor_estimado per stage) · **P2** · 6H
-- **US-CRM-040** — API REST pública `/api/v1/crm/leads` (token `business_uuid` + reCAPTCHA + rate-limit) · **P1** · 6H
-- **US-CRM-041** — Form embed JS oimpresso.com captura → POST API · **P2** · 4H
-- **US-CRM-050** — `lgpd_consent_at` + opt-in/opt-out + endpoint direito esquecimento · **P0** · 6H
-- **US-CRM-060** — MWART tela Lead Kanban (atual `crm::lead.index lead_view=kanban`) · **P1** · 12H
-- **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
-- **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
-- **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
-- **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
-- **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
 
 ## Inventory
 
@@ -1090,31 +1091,6 @@
 - **US-ACCO-009** — Listar Reconcile
 - **US-ACCO-010** — Listar Report
 
-## Comissao
-
-
-### doing
-
-- **US-COMM-015** — Regra única de comissão: vendedor, produto ou categoria; % ou valor; técnico da OS como papel — **P2** _(`p2` · @wagner)_
-
-### todo
-
-- **US-COMM-016** — Relatório de comissão por vendedor pela regra: valor a pagar e detalhe por item — **P2** _(`p2`)_
-- **US-COMM-001** — Schema base + migration + multi-tenant scope — **P0**
-- **US-COMM-002** — Side-effect `CalcularComissaoSells` no `marcar_pago` — **P0**
-- **US-COMM-003** — Side-effect `EstornarComissao` no `cancelar_venda` (clawback) — **P0**
-- **US-COMM-004** — UI cadastro de policy + role distributions — **P0**
-- **US-COMM-005** — Tiers escalonados (3 faixas R$/% per user OU policy) — **P1**
-- **US-COMM-006** — Metas mensais + accelerator — **P1**
-- **US-COMM-007** — Comando `commission:close --month=YYYY-MM` (fechamento) — **P0**
-- **US-COMM-008** — UI relatório mensal per-vendedor (substitui ReportController legacy) — **P1**
-- **US-COMM-009** — Multi-papel split ComVis (vendedor+designer+instalador) — **P1**
-- **US-COMM-010** — Multi-mecânico split OficinaAuto (apontamentos por % mão-de-obra) — **P2**
-- **US-COMM-011** — Comissão sobre líquido (após taxa marketplace) — **P2**
-- **US-COMM-012** — Aprovação workflow + audit trail (manager review) — **P1**
-- **US-COMM-013** — Mobile self-service vendedor — **P2**
-- **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
-
 ## Essentials
 
 
@@ -1157,6 +1133,26 @@
 - **US-AP-013** — Diagnóstico assistido Jana IA ("qual peça pra Civic 2015 freio dianteiro?") — **P1**
 - **US-AP-014** — Cupom fiscal SAT (SP) — **P2**
 - **US-AP-015** — E-commerce mini-loja (catálogo digital + pedido online) — **P2**
+
+## Comissao
+
+
+### todo
+
+- **US-COMM-001** — Schema base + migration + multi-tenant scope — **P0**
+- **US-COMM-002** — Side-effect `CalcularComissaoSells` no `marcar_pago` — **P0**
+- **US-COMM-003** — Side-effect `EstornarComissao` no `cancelar_venda` (clawback) — **P0**
+- **US-COMM-004** — UI cadastro de policy + role distributions — **P0**
+- **US-COMM-005** — Tiers escalonados (3 faixas R$/% per user OU policy) — **P1**
+- **US-COMM-006** — Metas mensais + accelerator — **P1**
+- **US-COMM-007** — Comando `commission:close --month=YYYY-MM` (fechamento) — **P0**
+- **US-COMM-008** — UI relatório mensal per-vendedor (substitui ReportController legacy) — **P1**
+- **US-COMM-009** — Multi-papel split ComVis (vendedor+designer+instalador) — **P1**
+- **US-COMM-010** — Multi-mecânico split OficinaAuto (apontamentos por % mão-de-obra) — **P2**
+- **US-COMM-011** — Comissão sobre líquido (após taxa marketplace) — **P2**
+- **US-COMM-012** — Aprovação workflow + audit trail (manager review) — **P1**
+- **US-COMM-013** — Mobile self-service vendedor — **P2**
+- **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
 
 ## PaymentGateway
 
@@ -1402,6 +1398,18 @@
 - **US-NOTIF-005** — QA F4
 - **US-NOTIF-006** — Cutover F5
 
+## Repair
+
+
+### todo
+
+- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
+- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
+- **US-REPA-005** — Manter o catálogo de status e de modelos que as OS usam _(`p2`)_
+- **US-REPA-006** — Indicadores da OS de assistência no Painel _(`p2`)_
+- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
+- **US-REPA-001** — [TODO — título]
+
 ## SRS
 
 
@@ -1424,17 +1432,6 @@
 - **US-AI-003** — Visualizar grafo de permissões
 - **US-AI-004** — Auditoria temporal por subject
 - **US-AI-005** — Chat IA contextual nas telas (rota corrente)
-
-## Repair
-
-
-### todo
-
-- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
-- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
-- **US-REPA-005** — Manter o catálogo de status e de modelos que as OS usam _(`p2`)_
-- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
-- **US-REPA-001** — [TODO — título]
 
 ## Spreadsheet
 
