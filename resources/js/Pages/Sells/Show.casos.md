@@ -293,6 +293,47 @@ last_run: "2026-10-21"
 - **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-09`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Comissão por regra da venda (US-COMM-015 · lacunas [W] 2026-10-27)
+
+> Só o cálculo, pelo servidor (`GET /sells/{id}/comissao-por-regra`), atrás da flag `SELLS_COMISSAO_POR_REGRA`
+> desligada. A tela ainda não mostra; não toca o `Show.tsx`. Números do exemplo: linha A 3 × 100,00, linha B
+> 2 × 50,00 (as duas da categoria C), linha D 1 × 80,00 sem categoria.
+
+## UC-COMR-01 · A regra mais específica vale por linha `[V0]` `[must]`
+- **Persona:** gerente que fecha a comissão do mês.
+- **Aceite:** Dado regra geral do vendedor 2%, da categoria C 5% e do produto A só daquele vendedor 10% · Quando a comissão da venda é calculada · Então a linha A paga 30,00 (produto), a B 5,00 (categoria), a D 1,60 (geral) e o vendedor soma 36,60.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-01`.
+- **Regressão que defende:** duas regras somando na mesma linha, ou a geral vencendo a do produto.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
+## UC-COMR-02 · O técnico da OS ganha pela regra do papel técnico `[V0]` `[must]`
+- **Persona:** gerente que fecha a comissão do mês.
+- **Aceite:** Dado a venda faturada de uma OS cujo técnico é T e a regra do papel técnico de 4,50 por unidade do produto A · Quando a comissão é calculada · Então T recebe 13,50, as regras do vendedor não valem para ele e a venda soma 50,10.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-02`.
+- **Regressão que defende:** o técnico herdando a regra do vendedor, ou ficando de fora da venda que veio da OS.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
+## UC-COMR-03 · A quantidade devolvida sai da comissão `[V0]` `[must]`
+- **Persona:** gerente que fecha a comissão do mês.
+- **Aceite:** Dado 1 unidade da linha A devolvida · Quando a comissão é calculada · Então a linha A paga 20,00 ao vendedor e o técnico recebe 9,00.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-03`.
+- **Regressão que defende:** pagar comissão sobre mercadoria que voltou.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
+## UC-COMR-04 · Com a flag desligada nada muda `[must]`
+- **Persona:** cliente que ainda não ligou a comissão por regra.
+- **Aceite:** Dado a flag desligada (padrão) · Quando alguém pede a comissão por regra · Então a rota responde 404.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-04`.
+- **Regressão que defende:** o cálculo novo aparecer para quem não ligou.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
+## UC-COMR-05 · Regra e venda de outra empresa não entram `[T0]` `[must]`
+- **Persona:** gerente de uma empresa (tenant 98), com outra empresa como adversária.
+- **Aceite:** Dado uma regra de 50% em outra empresa · Quando a comissão da venda é calculada · Então a venda continua somando 50,10; e quem é de outra empresa recebe 404 ao pedir a comissão desta venda.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-05`.
+- **Regressão que defende:** vazamento de regra ou de venda entre empresas.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
+
 ## Margem da venda pelo custo médio (US-PROD-024 fase 2)
 
 Na venda finalizada, para quem vê custo, o detalhe traz a margem pelo custo médio vigente na data da venda. Só aparece com a flag `COMPRAS_CUSTO_MEDIO_MOVEL` ligada. Protótipo: `prototipo-ui/cowork/Wagner/vendas-detalhe-margem.html` (a faixa na tela entra depois do OK do [W]).
@@ -335,6 +376,7 @@ Na venda finalizada, para quem vê custo, o detalhe traz a margem pelo custo mé
 
 ## Trilha do tempo
 - 2026-10-27 · [CC] + UC-VSHOW-24/25/26 (US-PROD-024 fase 2): `detail.margem` pelo custo médio da data da venda, atrás da flag. Só servidor; a faixa na tela espera o OK do [W] no protótipo. Teste `SellsShowMargemCustoMedioContratoTest`, nasce sem run.
+- 2026-10-27 · [CC] + UC-COMR-01..05 (US-COMM-015): comissão por regra, só servidor, flag desligada. Teste `ComissaoPorRegraContratoTest`, nasce sem run. `Show.tsx` não muda.
 - 2026-10-21 · [CC] + UC-VSHOW-22/23 (US-SELL-073 · UC-FLX-23): seção Entrega no detalhe, lida de `app_entregas` pelo business da venda. Teste `SellsShowEntregaContratoTest`, nasce sem run.
 - 2026-10-21 · [CC] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o diff do `Show.tsx` neste PR só acrescenta a seção Entrega (import do ícone, tipo `EntregaVenda`, um `<Deferred>` e o componente), sem remover nem alterar linha existente; UC-VSHOW-01..13 não dependem dela. Os casos novos 22/23 estão 🧪 até a lane `sells-pest` rodar.
 - 2026-10-21 · [CL] UC-VSHOW-14 (US-PCP-028 · UC-FLX-06): entrega prometida no cabeçalho. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.
