@@ -308,6 +308,7 @@ Nenhuma das vias altera linha existente: o efeito é só sobre edições futuras
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **Editar produto simples grava os campos do cabeçalho** — o caminho feliz óbvio; vira UC quando o Pest `ProdutoEditContratoTest` cobrir o happy-path (hoje só cobre o cross-tenant; o resto seria tautológico contra o `.tsx`).
+- **Locais de armazenagem e endereço no estoque** — `CU-PROD-20`, pedido da [M] em 2026-10-22, só no protótipo. No Editar: a quantidade aparece como "Em estoque", só leitura (muda por compra, venda, ajuste ou transferência, nunca pelo cadastro), e local com saldo não pode ser tirado. Vira UC quando a tela tiver o bloco e um teste que o cite; decidido em 2026-10-22: endereço em prateleira, fileira e posição, e as duas seções ficam; o local padrão é o local sugerido; a venda continua baixando do local da venda.
 - **Editar Custo/Valor/Margem** (`AR-PROD-006..008`) — só quando a aba Custos existir em git ([F], #4403) e sob a REGRA MESTRE `[V0]`.
 - **[V0] risco a verificar — preço-zero no update via React** (achado lateral do adversário 2026-07-24): `update()` só parseia preço no ramo `type=='single'` lendo `single_dpp` de `$request->only([...])`; a Edit.tsx (`useForm`) **não manda** `single_dpp` → chave ausente → `num_uf(null)` → **potencial gravação de preço 0** (mesmo eixo `[V0]` do incidente ×100k). NÃO afirmado como bug — precisa ler `num_uf(null)` + dupla-confirmação (REGRA MESTRE) + decisão [W]/[F]. Vira UC/US quando investigado (não corrigir cego).
 

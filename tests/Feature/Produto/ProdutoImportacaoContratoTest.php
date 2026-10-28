@@ -109,14 +109,14 @@ beforeEach(function () {
     }
 });
 
-it('UC-PIMP-01 · /import-products abre Produto/Importacao/Index; ?classico=1 segue Blade; sem permissão 403', function () {
+it('UC-PIMP-01 · /import-products abre Produto/Importacao/Index, também com ?classico=1; sem permissão 403', function () {
     $user = pimpUsuario($this->biz->id);
 
     pimpLogin($this, $user)->get('/import-products')->assertOk()
         ->assertInertia(fn (AssertableInertia $p) => $p->component('Produto/Importacao/Index', false)->where('modo', 'produtos'));
-    pimpLogin($this, $user)
-        ->withSession(['currency' => ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']])
-        ->get('/import-products?classico=1')->assertOk()->assertViewIs('import_products.index');
+    // Cutover 2026-10-27: a Blade saiu; o antigo atalho cai na mesma Page.
+    pimpLogin($this, $user)->get('/import-products?classico=1')->assertOk()
+        ->assertInertia(fn (AssertableInertia $p) => $p->component('Produto/Importacao/Index', false)->where('modo', 'produtos'));
     pimpLogin($this, pimpUsuario($this->biz->id, []))->get('/import-products')->assertForbidden();
 });
 

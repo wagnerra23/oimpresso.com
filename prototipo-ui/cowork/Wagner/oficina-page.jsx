@@ -38,6 +38,14 @@ const RECURSOS = [
   { id: "elev2", label: "Elevador 2", kind: "Elevador", cls: "elev" },
 ];
 
+// US-AUTO-008 — peças marcadas como compatíveis (marca/modelo em texto). `serve` casa pelo começo do veículo.
+const PECAS_COMPAT = [
+  { id: "p1", nome: "Pastilha de freio dianteira", preco: 189.9, estoque: 4, serve: ["Honda Civic", "Toyota Corolla"] },
+  { id: "p2", nome: "Filtro de óleo",               preco: 38.5,  estoque: 12, serve: ["Honda"] },
+  { id: "p3", nome: "Kit correia dentada",          preco: 412.0, estoque: 0, serve: ["VW Gol", "VW Saveiro"] },
+  { id: "p4", nome: "Amortecedor dianteiro",        preco: 298.0, estoque: 2, serve: ["VW Gol", "Fiat Strada"] },
+];
+
 const MECANICOS = [
   { id: "m1", nome: "João Lima",    ini: "JL" },
   { id: "m2", nome: "Pedro Souza",  ini: "PS" },
@@ -447,6 +455,8 @@ function Drawer({ os, onClose, onEdit, onAdvance, osItems, setOsItems, osDvi, se
 
   // items por OS — vem do estado liftado (osItems[os.id]) editável via ItemsEditor
   const items = osItems[os.id] || [];
+  // US-AUTO-006 — mecânicos por OS (estado local do drawer, protótipo)
+  const [osMec, setOsMec] = useState({});
   const dviItems = osDvi[os.id] || [];
 
   // ctx pra avaliar gate de etapa
@@ -663,10 +673,19 @@ function Drawer({ os, onClose, onEdit, onAdvance, osItems, setOsItems, osDvi, se
           <div className="ofc-drawer-section">
             <h4>Peças & Mão de obra</h4>
             {F.ItemsEditor ? (
-              <F.ItemsEditor items={items}
+              <F.ItemsEditor items={items} veiculo={os.veh}
                 onChange={(next) => setOsItems({ ...osItems, [os.id]: next })}
               />
             ) : <p className="dim sm">Editor de items não carregado.</p>}
+          </div>
+
+          <div className="ofc-drawer-section">
+            <h4>Mecânicos e horas</h4>
+            {F.MecanicosEditor ? (
+              <F.MecanicosEditor value={osMec[os.id] || (os.mech ? [{ id: os.mech, horas: 1 }] : [])}
+                onChange={(next) => setOsMec({ ...osMec, [os.id]: next })}
+              />
+            ) : <p className="dim sm">Editor de mecânicos não carregado.</p>}
           </div>
 
           {/* StageGate — checklist de bloqueio por etapa (m0193) */}
@@ -800,7 +819,7 @@ function ProducaoOficina({ foco, setFoco, densidade, setDensidade, pressao, setP
     window.__OFICINA_CTX = { osItems, osDvi };
   }, [osItems, osDvi]);
   useEffect(() => {
-    window.OFICINA_REF = { RECURSOS, MECANICOS, STAGES, OS_LIST: osList };
+    window.OFICINA_REF = { RECURSOS, MECANICOS, STAGES, OS_LIST: osList, PECAS_COMPAT };
   }, [osList]);
   // Costura CRM/Ficha → Oficina (segue a convenção `oimpresso:open-venda`/detail._id
   // do Sells/Index.charter@main; aqui `oimpresso:open-os`/os_id é a equivalente p/ OS).
