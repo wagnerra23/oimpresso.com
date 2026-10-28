@@ -225,6 +225,41 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > porque os botões dele não herdam a fonte do sistema — defeito do protótipo, não copiado.
 > **Não medido:** aba Composição em produção (a empresa de teste não tem produto composto), tema
 > claro, estados de passar o mouse e de foco.
+>
+> ### 2026-10-26 — decisões do [F] na âncora: o protótipo mudou, a produção ainda não
+>
+> O [F] comentou a âncora (`prototipo-ui/cowork/Felipe/produto-blade.jsx`) e, na conversa do mesmo
+> dia, fechou a regra do imposto: aparece por relevância, não por permissão. O protótipo mudou no PR
+> #9925. A produção foi **lida no código** do `main` em 3886121, não medida na tela.
+>
+> | Item | Protótipo depois do #9925 | Produção em 2026-10-26 | O que falta |
+> |---|---|---|---|
+> | "Comprar" (menu Ações e rodapé do painel) | não existe | aparecia com `purchase.create` (`AcoesProduto.tsx:74`, `PainelDetalhe.tsx:710`) | **feito** junto com o UC-PIDX-11 reescrito |
+> | "Gerar OP" (rodapé do painel) | não existe | nunca existiu | nada; a pendência registrada em 2026-10-13, acima, deixa de existir |
+> | Preço de venda na lista | com o imposto do produto, como a produção (o protótipo mostrava sem) | com imposto (`ProductController.php:408`, `sell_price_inc_tax`) | nada |
+> | Aba Dados | "Preço de venda" primeiro; com imposto, também o preço sem imposto, o imposto aplicável e a frase de que o preço já o inclui | sem preço; "Imposto aplicável" e "Tipo de imposto na venda" sempre (`PainelDetalhe.tsx:386-387`) | **feito** com o UC-PIDX-19 reescrito |
+> | Tabelas de Variações e Composição | sem imposto, uma coluna de preço; com imposto, "sem imposto" e "com imposto" | sempre as duas colunas, com "(excl.)" e "(incl.)" (`PainelDetalhe.tsx:436-440,507-508,546-549`) | rótulos **feitos** junto com o UC-PIDX-11; coluna única **feita** com o UC-PIDX-19 (decide pelos valores: uma coluna quando sem e com imposto são iguais) |
+> | Aba Fiscal e "Dados fiscais (NCM/CFOP)" do menu | só em empresa que emite nota; a aba começa dizendo se o produto está pronto para nota | sempre (`PainelDetalhe.tsx:314`, `AcoesProduto.tsx:77`) | **feito** (UC-PIDX-17 e 25): o servidor manda `contexto.emite_nota`, com o mesmo teste de pacote do botão "Abrir no módulo Fiscal" |
+> | Coluna e filtro Imposto da lista | só se a empresa tem alíquota; a coluna nasce desligada | sempre (`colunas.tsx:213`, `FiltrosLista.tsx:85`) | **feito** (UC-PIDX-34) |
+> | Coluna Imposto nos dois exports | segue a coluna; Compra e Venda com imposto, como a grade | "Imposto" sempre (`ProductController.php:1086`; `app/Exports/ProductsExport.php`) | CSV **feito** (UC-PIDX-34); o "Baixar Excel" é o arquivo de reimportação da Blade, e mexer nele é decisão à parte |
+>
+> Sem conflito com o Non-Goal "Função a menos que a lista Blade": nada do que a Blade mostra deixa de
+> existir na tela nova. **Descartado no mesmo dia:** esconder o imposto por permissão
+> (`fiscal.access`), que chegou a ir para o protótipo neste PR. Escondia de quem vende um dado que a
+> nota imprime, e deixava a tela nova mostrar menos que a Blade.
+>
+> **Medido no protótipo** (Playwright, 1440px, Tweaks "papel", "empresa emite nota" e "empresa tem
+> alíquota"), produto "Vinil adesivo brilho" (ICMS 18% sobre o preço sem imposto):
+> - Administrador e Balcão veem o mesmo: o preço de venda com os 18% somados, igual na lista, no CSV
+>   e na aba Dados; na aba Dados também o "Preço sem imposto" e "Imposto aplicável ICMS 18% ·
+>   exclusivo"; tabela de Variações com as duas colunas; aba Fiscal com "Pronto para nota".
+> - Produto sem imposto ("Ilhós metálico nº 12"): só "Preço de venda" na aba Dados e uma coluna de
+>   preço na tabela.
+> - Empresa que não emite nota: sem aba Fiscal e sem "Dados fiscais" no menu.
+> - Empresa sem alíquota: sem filtro e sem opção de coluna Imposto (11 opções no menu, não 12), CSV
+>   sem a coluna, preços iguais ao sem imposto.
+> - Serviço sem NCM ("Instalação em fachada"): "Sem NCM — a nota sai com o NCM padrão da empresa".
+> - 0 erro no console nos quatro cenários.
 
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px

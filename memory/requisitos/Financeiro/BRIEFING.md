@@ -28,6 +28,11 @@ Visão unificada de Contas a Receber, Contas a Pagar, Fluxo de Caixa, Cobrança 
 - Testes em quarentena (quarentenado não roda na lane e portanto não produz veredito): lista e razões em `.github/financeiro-pest-quarantine.list` (lane `financeiro-pest.yml`, cujo context `PHP / Pest (Financeiro · MySQL)` consta de `governance/required-checks-baseline.json`); a triagem de 2026-08-02/03 (buckets A–E da própria lista) separou teste podre, RefreshDatabase, DB-dependente falhando, skip total e flake por ordem — re-rode a lista, não copie a triagem.
 - US-FIN-055 aberta (`total_remaining_amount`). Os demais defeitos vivos saem do bucket C de `.github/financeiro-pest-quarantine.list` — re-rode, não copie; em 2026-08-05 a triagem registrou uma suspeita não fechada em `aprovacao_status` (US-FIN-027/028), e nenhum dono a rastreia hoje.
 
+## Depende do [W] — DDA e pagamento de contas (US-FIN-078/079)
+O código nasce atrás de flag desligada; ligar exige, nesta ordem:
+- **Fonte do DDA (US-FIN-078).** Em 2026-10-27 nenhuma fonte consultada documenta consulta de DDA na API do Inter (o código só usa cobrança, saldo e extrato). Decidir a fonte: confirmar com o Inter se a conta PJ tem DDA por API, ou contratar provedor de DDA. Até lá `financeiro:dda-sync` sai com erro "nenhuma fonte registrada". Depois: `FINANCEIRO_DDA_ENABLED=true`.
+- **Escopos de pagamento no Inter (US-FIN-079).** A integração no Inter Empresas precisa dos escopos de pagamento de boleto, de pagamento Pix e de webhook de banking, além dos de extrato que já usa. A aprovação de cada pagamento no app do Inter (se a conta exigir aprovador) também é do [W].
+
 ## Última mudança
 Desde 2026-08-18 o módulo recebeu mudança de segurança Tier 0 (#6335 — superadmin deixa de ver Financeiro/NFSe de todas as empresas, 2026-08-26), fix do `financeiro:install` que gravava fora do gate (#6305), saída de teste da quarentena (#6018) e E2E Browser novos — Conciliação (#6476), Caixa (#6631) e Cobrança (#6632), com fix de `SetSessionData` nas rotas de conciliação (#6629); Plano de Contas (#6457) e Impostos (#6466) ganharam contrato Pest Feature, não Browser. Antes disso, mudanças estruturais sem impacto em capacidade (#5686 telas no módulo dono, #5568 SCOPE fora de `Modules/` por ADR 0375, #5547 fusão dos CHANGELOG).
 
