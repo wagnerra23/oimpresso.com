@@ -1,0 +1,16 @@
+[Unit]
+Description=Runner GitHub Actions ct100-leve (vaga %i)
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+# O firewall vem antes do container: após reboot as regras do iptables somem,
+# e nenhum runner sobe sem elas.
+ExecStartPre=/opt/oimpresso/ci-runner-leve/firewall.sh
+ExecStart=/usr/bin/docker start -a ci-leve-%i
+ExecStop=/usr/bin/docker stop -t 30 ci-leve-%i
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

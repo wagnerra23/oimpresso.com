@@ -4,8 +4,13 @@ irmaos: Tipos.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-10-27"
 ---
+
+> ℹ️ **`last_run` 2026-10-26 → 2026-10-27 (G-6): o último toque em `Tipos.tsx` (6ff1ba6fbb) foi só layout.**
+> O `<form className="flex h-full flex-col">` do painel passou a ser embrulhado pelo primitivo `Stack` (`asChild gap={0} h-full`, ADR 0253) —
+> mesma coluna flex, zero handler, prop, copy ou UC alterado. **Nenhum UC foi reexecutado por causa disso**; o bump registra que o trio
+> foi reconciliado com a tela nesta data, não um re-run.
 
 > ℹ️ **`last_run` 2026-09-05 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Tipos.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
@@ -141,12 +146,44 @@ last_run: "2026-10-26"
 
 ---
 
+## UC-TIPOS-11 · Crio um tipo pelo painel lateral, e "sem limite" fica sem limite
+- **Origem:** charter (Goals: manter o cadastro) · Anti-hook "nunca 0 no lugar de null".
+- **Aceite:** Dado que abro "Novo tipo" · Quando salvo com nome e limite em branco · Então o tipo
+  nasce no meu negócio com limite nulo ("sem limite") e intervalo nulo, mesmo que o intervalo
+  tenha vindo preenchido. Quando salvo com 30 dias por ano e "Conta como férias" · Então grava
+  os três como mandei.
+- **Teste:** `HrmTiposIndexTest.php` — *"UC-TIPOS-11: criar pelo painel grava o tipo no MEU negócio, e limite vazio vira "sem limite" (nunca 0)"*.
+- **Status: 🧪**
+
+---
+
+## UC-TIPOS-12 · O servidor recusa nome vazio, limite zero e intervalo inventado
+- **Origem:** antes deste caso o store/update gravavam `$request->only()` sem validação.
+- **Aceite:** Dado o painel aberto · Quando salvo com nome vazio, limite 0 e intervalo fora de
+  mês/ano · Então recebo 422 com o erro em cada campo e nada é gravado. Editar com nome vazio
+  também é recusado, e o nome antigo continua.
+- **Teste:** `HrmTiposIndexTest.php` — *"UC-TIPOS-12: nome vazio, limite zero e intervalo inventado são recusados com 422 por campo, sem gravar"*.
+- **Status: 🧪**
+
+---
+
+## UC-TIPOS-13 · Link antigo de criar ou editar não cai em página quebrada
+- **Origem:** o `create` devolvia `view('essentials::create')`, que não existe (500); o `edit`
+  devolvia um fragmento de modal Blade sem layout.
+- **Aceite:** Dado um link antigo `/hrm/leave-type/create` ou `/hrm/leave-type/{id}/edit` ·
+  Quando o abro · Então vou para a lista, onde o painel faz o trabalho.
+- **Teste:** `HrmTiposIndexTest.php` — *"UC-TIPOS-13: os links antigos de criar e editar levam à lista, não a uma página quebrada"*.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Criar e editar tipo pela própria tela (hoje `create`/`edit` seguem no Blade legado).
 - **[BACKLOG]** Limite deixar de ser informativo e recusar o pedido que o estoura — é o PR-3 do
   pedido HRM (`LeaveBalance`), noutra superfície.
 
 ## Trilha do tempo
 - 2026-09-05 · [CC] carimbado por `criar-tela.mjs` e preenchido no mesmo PR — HRM-O7 PR-9.
   Refs: UI-0013 · ADR 0264 G-1/G-2 · ADR 0104 (MWART) · PR #6789 (contrato do 422).
+- 2026-10-27 · [C] UC-TIPOS-11/12/13: criar e editar pelo painel lateral; store/update passam a
+  validar; `create`/`edit` redirecionam para a lista (o `create` dava 500).

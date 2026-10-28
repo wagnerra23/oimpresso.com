@@ -156,10 +156,9 @@ it('Controller@show tem permission re-adicionada (não comentada)', function () 
     expect($source)->toContain('view_own_purchase');
 });
 
-it('Controller@show tem dual path (Blade legacy se AJAX puro + Inertia default)', function () {
+it('Controller@show abre sempre a Page React (cutover 2026-10-27, sem dual path)', function () {
     $source = readPurchaseControllerShow();
-    expect($source)->toMatch("/request\\(\\)->ajax\\(\\)\\s*&&\\s*!?\\s*request\\(\\)->header\\('X-Inertia'\\)/");
-    expect($source)->toContain('showInertia');
+    expect($source)->toContain('return $this->showInertia($purchase, $taxes, $payment_methods, $purchase_taxes);');
     expect($source)->toContain("Inertia::render('Purchase/Show'");
 });
 
@@ -177,9 +176,12 @@ it('Controller@showInertia retorna permissions completas', function () {
     expect($source)->toContain("\$user->can('purchase.delete')");
 });
 
-it('Controller@show PRESERVA Blade legacy path (compat retro AJAX modal)', function () {
+it('Controller@show não tem mais a Blade do modal (cutover 2026-10-27)', function () {
     $source = readPurchaseControllerShow();
-    expect($source)->toContain("return view('purchase.show')");
+    expect($source)->not->toContain("view('purchase.show')");
+    expect(file_exists(resource_path('views/purchase/show.blade.php')))->toBeFalse();
+    // show_details segue: é a impressão da compra e o show do pedido de compra.
+    expect(file_exists(resource_path('views/purchase/partials/show_details.blade.php')))->toBeTrue();
 });
 
 // ─── STEP 4: visual-comparison existe ───────────────────────────────────────

@@ -152,7 +152,7 @@ jobs:
             tests/Feature/Essentials/KnowledgeIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/KnowledgeFormsContratoTest.php \
             tests/Feature/Calculo/CalculoValorPayrollTest.php \
-            tests/Feature/Calculo/FolhaCasosVerdadeFixturesTest.php
+            tests/Feature/Calculo/FolhaCasosVerdadeFixturesTest.php \n            Modules/Essentials/Tests/Feature/FolhaModeloVerbaContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
