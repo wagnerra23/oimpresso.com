@@ -70,9 +70,25 @@ Decisões de [F] em 2026-10-15. A tela da requisição é do [W].
 
 ### US-ESTOQUE-003 · Sugestão de reposição e curva ABC por produto
 
-> owner: wagner · priority: p2 · estimate: 12h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> owner: wagner · priority: p2 · estimate: 12h · type: story · origin: lacunas-concorrencia-2026-10-25
 > blocked_by: —
 
-**Implementado em:** _pendente_ — não iniciada.
+**Implementado em:** _parcial_ · `Modules/Compras/Services/CurvaAbcReposicao.php` · `config/compras.php` — (2026-10-27): o cálculo, atrás da flag `COMPRAS_CURVA_ABC_REPOSICAO` (desligada). Falta a tela.
+
+**Testado em:** `Modules/Compras/Tests/Feature/CurvaAbcReposicaoTest.php` (lane `compras-pest.yml`, UC-ABC-01..05).
 
 Hoje existe alerta de estoque baixo e requisição por estoque mínimo (`RequisicaoEstoqueMinimoService`). Faltam a curva ABC (por faturamento e por margem, no período) e a sugestão de quanto comprar pelo giro e pelo prazo do fornecedor. Só leitura: não muda valor nem estoque.
+
+Regras do cálculo (2026-10-27), na empresa inteira, período padrão de 90 dias:
+
+- Vendido e faturamento das vendas finalizadas do período (quantidade − devolvida, preço com imposto).
+- Margem = faturamento − custo do lote da venda (o mesmo do relatório de lucro). Venda sem lote amarrado deixa a margem do item nula.
+- Curva por faturamento e, à parte, por margem: A enquanto o acumulado antes do item é menor que 80%, B até 95%, C o resto. Margem nula ou negativa é C.
+- Sugestão = giro por dia × (prazo do fornecedor da última compra + dias de cobertura) − estoque − a caminho, para cima, nunca negativa. Sem prazo cadastrado, prazo 0.
+- Não duplica o MRP (US-COM-030): o MRP olha reservas das OS e estoque mínimo por local; aqui é a velocidade de venda.
+
+**Aceite:**
+- [x] Curva ABC por faturamento e por margem no período (UC-ABC-01, UC-ABC-02).
+- [x] Sugestão de compra pelo giro, prazo do fornecedor e o que está a caminho (UC-ABC-03).
+- [x] Tier 0: venda e estoque de outra empresa não entram (UC-ABC-04). Só leitura (UC-ABC-05).
+- [ ] Tela com a curva e a sugestão, e o botão que leva a sugestão para a requisição de compra.

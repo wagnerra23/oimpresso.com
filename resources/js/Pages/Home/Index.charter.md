@@ -13,7 +13,7 @@ related_runbook: memory/requisitos/Dashboard/RUNBOOK-home-index.md
 # Proveniência explícita > adivinhação por nome.
 related_visual_comparison: memory/requisitos/Dashboard/Index-visual-comparison.md
 related_adrs: [93, 94, 101, 104]
-related_us: [US-DASH-001, US-DASH-004, US-DASH-005, US-DASH-006]
+related_us: [US-DASH-001, US-DASH-004, US-DASH-005, US-DASH-006, US-SUPER-012]
 related_prototype: prototipo-ui/cowork/Wagner/dash-legacy-page.jsx (Cockpit V2 · PT-04 Dashboard)
 tier: A
 charter_version: 6

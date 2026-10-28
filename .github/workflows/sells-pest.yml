@@ -587,6 +587,7 @@ jobs:
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
+            tests/Feature/Sells/VendaOfflineContratoTest.php \
             tests/Feature/Sells/ValeTrocaContratoTest.php \
             tests/Feature/Sells/ResgatePontosContratoTest.php \
             tests/Feature/Sells/CancelamentoDaVendaContratoTest.php \
