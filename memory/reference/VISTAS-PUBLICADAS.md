@@ -4,7 +4,7 @@ description: Catálogo curado das páginas publicadas em claude.ai — tema, lin
 type: index
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-10-24"
+updated_at: "2026-10-28"
 related_adrs:
   - "0256-knowledge-survival-meia-vida-catraca-sentinela"
   - "0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento"
@@ -338,6 +338,18 @@ publicado junto diz de qual commit ela saiu.
 | Data | Vista | Estado |
 |---|---|---|
 | 2026-10-24 | 👁 [Oimpresso ERP — Chat](https://claude.ai/artifact/24ovtZ7zidbtD2D7BLKzQf) | **viva** |
+
+**Recorte da Produção** (tema `prototipo-pcv`). É o mesmo protótipo inteiro, aberto na rota `pcv`
+(Painel de produção). Republicar com:
+`node scripts/design/build-artefato-prototipo.mjs --out <pasta> --rota-inicial pcv --titulo "Produção — protótipo Wagner"`.
+
+| Data | Vista | Estado |
+|---|---|---|
+| 2026-10-28 | 👁 [Produção — protótipo Wagner](https://claude.ai/artifact/4KoQ2nYs5XcRKp6hkAeZAc) | **viva** |
+
+> Até 2026-10-22 esta página era um recorte montado à mão, com os `.jsx` crus e só os módulos da
+> Produção. Em 2026-10-28 ela estava atrás do git: faltavam a aba Postos e cadastros e as decisões de
+> 20 a 27/10, e foi refeita pelo build.
 
 > Até 2026-10-23 esta página era o pacote antigo do Cowork remendado à mão, segmento a segmento, sem
 > script no repo. Em 2026-10-24 o build passou a gerá-la inteira a partir do git. Antes de republicar,

@@ -626,7 +626,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Multi-tenant: OS de outra empresa → 404; reservas e compras lidas só da empresa (UC-PCMAT-05).
 - [ ] Conferir sozinho quando a compra do insumo é recebida.
 - [ ] Mostrar a falta e o atalho para Compras na tela da OS; ligar a chave na aba Fluxos da empresa.
-- [ ] Pedido ao Cowork: o processo "OS e produção por item" do protótipo (`fluxos-processos.jsx`) ganhar o estado Aguardando material, hoje só no código.
+- [x] O processo "OS e produção por item" do protótipo (`fluxos-processos.jsx`) ganhou o estado Aguardando material em 2026-10-28, e a ficha da OS do protótipo mostra a falta, a compra a caminho e o Conferir material.
 - [ ] Ler a composição do `product_bom` e com a regra de consumo da D6, quando a ADR da Fabricação trocar o contrato `InsumosDaReceita` (§6 da proposta).
 
 

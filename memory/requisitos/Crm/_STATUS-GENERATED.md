@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 0 |
+| US no SPEC | 4 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 10 |
-| Telas com `casos.md` | 10 |
-| UC declarados | 85 |
-| UC com teste que os cita | 85 |
+| Telas (.tsx) | 13 |
+| Telas com `casos.md` | 13 |
+| UC declarados | 98 |
+| UC com teste que os cita | 96 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -34,12 +34,17 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 > ([proibicoes §5](../../proibicoes.md) 2026-07-16 — UC não é canal de pedido). O contrato
 > nasce **junto** com a implementação, não antes.
 
-_Nenhuma._
+| US | status | Título |
+|---|---|---|
+| US-CRM-094 | `desconhecido` | Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta |
+| US-CRM-096 | `desconhecido` | Captura de lead com origem e UTM — o lead entra no funil já com a origem |
+| US-CRM-098 | `desconhecido` | Segmentação RFM — recência, frequência e valor por cliente |
 
 ## UC por status
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-COS-24 | Portal/Painel/Index | 📝 sem_teste |
 | UC-CRMACO-01 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-02 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-03 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
@@ -82,6 +87,11 @@ _Nenhuma._
 | UC-CRMCHA-05 | Chamadas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCHA-06 | Chamadas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCHA-07 | Chamadas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMFN-01 | Funil/Index | 🧪 aguarda veredito da lane |
+| UC-CRMFN-02 | Funil/Index | 🧪 aguarda veredito da lane |
+| UC-CRMFN-03 | Funil/Index | 🧪 aguarda veredito da lane |
+| UC-CRMFN-04 | Funil/Index | 🧪 aguarda veredito da lane |
+| UC-CRMFN-05 | Funil/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-01 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-02 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-03 | Leads/Index | 🧪 aguarda veredito da lane |
@@ -111,6 +121,13 @@ _Nenhuma._
 | UC-CRMPED-03 | Pedidos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPED-04 | Pedidos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPED-05 | Pedidos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPO-01 | Portal/Painel/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPO-02 | Portal/Painel/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPO-03 | Portal/Painel/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPO-04 | Portal/Perfil/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPO-05 | Portal/Perfil/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPO-17 | Portal/Painel/Index | 📝 sem_teste |
+| UC-CRMPO-18 | Portal/Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPRO-01 | Propostas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPRO-02 | Propostas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPRO-03 | Propostas/Index | 🧪 aguarda veredito da lane |

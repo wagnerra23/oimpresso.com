@@ -67,6 +67,7 @@ function CartaoOs({ os, onAbrir, setorAtual, onMover, onPegar, arrastando }) {
       <div className="pcv-card-f">
         <span className={atr ? "pcv-late" : ""}>{atr ? atr : "entrega " + D.d2(os.prazo)}</span>
         {os.arte !== "aprovada" && B2(ARTE[os.arte])}
+        {os.material === "aguardando" && B2(["Aguardando material", "warning"])}
         <span className="pcv-who">{at.resp}</span>
       </div>
     </div>
@@ -124,6 +125,12 @@ function Painel({ onAbrir, ir, filtrar }) {
       <div className="pcv-alertas" role="region" aria-label="Alertas de produção">
         {Alert && <Alert tone="danger" title="Gargalo previsto: Roland VG3-640 passa do turno">Carga de {D.h1(D.cargaMaquina("eco"))} h para um turno de 10 h. Mover a OS-2608 (adesivo de aplicação, 1,1 h) para a HP Latex 365, que tem {D.h1(10 - D.cargaMaquina("latex"))} h livres.<div className="pcv-al-a"><Button size="sm" onClick={() => ir("linha")}>Ver na linha do tempo</Button></div></Alert>}
         {Alert && <Alert tone="warn" title="2 OS esperando arte do cliente">OS-2614 (Clínica Sorriso) trava 6,3 h de CNC e UV hoje. OS-2619 pediu ajuste. O link de aprovação foi reenviado às 09:12.<div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir("OS-2614")}>Abrir OS-2614</Button></div></Alert>}
+        {/* US-PCP-032 · D3: OS liberada sem material. Um alerta por OS, com a ação de abrir a ficha (UC-PCV-01). */}
+        {Alert && D.OS.filter((o) => o.material === "aguardando").map((o) => { const fl = D.faltaDe(o.id); return (
+          <Alert key={o.id} tone="warn" title={o.id + " está aguardando material"}>{fl.length
+            ? "Falta " + fl.map((f) => D.h1(f.falta) + " " + f.un + " de " + f.insumo + (f.caminho.length ? " (compra " + f.caminho.map((c) => c.compra).join(", ") + " chega " + D.d2(f.caminho[0].chega) + ")" : " (nenhuma compra pedida)")).join("; ") + ". Nenhuma etapa começa até o PCP conferir."
+            : "A compra chegou. Falta o PCP conferir para a OS voltar para Na fila."}
+            <div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir(o.id)}>Abrir {o.id}</Button></div></Alert>); })}
         {Alert && <Alert tone="warn" title="OS-2603 vence hoje e está 7,8% acima do orçado">Refugo de 9,4 m² na impressão (banding na cabeça 3). Faltam bainha e ilhós.<div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir("OS-2603")}>Abrir OS-2603</Button></div></Alert>}
       </div>
 

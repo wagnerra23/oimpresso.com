@@ -137,6 +137,8 @@ final class CatalogoProcessos
         // Produção = PCP (Modules/Producao): as etapas vivem em pcp_programacoes, e nenhum código de produção grava nessa tabela.
         'producao' => [
             'Liberar' => ['parcial', 'SituacaoDaOrdem::liberar executa Liberar na OS por item (ADR 0436); as etapas nascem do roteiro do produto quando o cliente aprova (CriarOsDaVenda). Sem tela ainda; não reserva material nem calcula prazo pela fila.'],
+            'Aguardar material' => ['parcial', 'SituacaoDaOrdem::liberar, com a chave producao_aguarda_material da empresa ligada e faltando insumo da receita, leva a OS de Na fila para Aguardando material e guarda no histórico o que faltava (D3, US-PCP-032). A chave ainda não tem campo na aba Fluxos.'],
+            'Conferir material' => ['parcial', 'SituacaoDaOrdem::conferirMaterial (papel producao.liberar) devolve a OS para Na fila quando não falta mais nada e, faltando, devolve a lista. Não confere sozinho quando a compra é recebida, e a tela da OS ainda não mostra a falta.'],
             'Iniciar etapa' => ['parcial', 'ApontamentoOperadorService::iniciar abre o apontamento por QR ou tela e, na OS por item, leva a OS de Na fila a Em execução (SituacaoDaOrdem). A trava é o responsável da etapa, não o setor; etapa sem posto não aponta.'],
             'Pausar' => ['parcial', 'ApontamentoOperadorService::pausar exige motivo do cadastro do posto e, sem outra etapa da OS rodando, leva a OS por item a Pausada. Não há alerta de prazo.'],
             'Retomar' => ['sim', 'Iniciar de novo com a OS por item Pausada executa Retomar (SituacaoDaOrdem::aoIniciar) e o relógio volta.'],
@@ -145,6 +147,7 @@ final class CatalogoProcessos
             'Refazer' => ['parcial', 'SituacaoDaOrdem::refazer volta a OS por item a Em execução. Sem tela ainda.'],
             'Concluir item' => ['parcial', 'A última etapa concluída executa Concluir item (SituacaoDaOrdem::concluirItemSeTerminou): OS pronta e custo real congelado (CustoRealService::daOs). Não baixa o material real (decisão pendente).'],
             'Cancelar item' => ['parcial', 'SituacaoDaOrdem::cancelarItem, antes de liberar, cancela as etapas programadas. Não lança consumo como perda nem libera reserva. Sem tela ainda.'],
+            'Aguardando material → Cancelada · Cancelar item' => ['parcial', 'SituacaoDaOrdem::cancelarItem também cancela a OS em Aguardando material e as etapas programadas. Não lança consumo como perda nem libera reserva. Sem tela ainda.'],
         ],
         // Entrega: as ações vivem no processo os_comunicacao_visual (instalação), que nenhuma tela inicia.
         'entrega' => [

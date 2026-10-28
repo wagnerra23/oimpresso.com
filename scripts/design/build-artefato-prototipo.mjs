@@ -20,6 +20,11 @@
 // Uso:
 //   node scripts/design/build-artefato-prototipo.mjs --out <dir>
 //     [--html prototipo-ui/cowork/Wagner/oimpresso.com.html] [--ds prototipo-ui/design-system]
+//     [--rota-inicial pcv] [--titulo "Produção — protótipo Wagner"]
+// --rota-inicial: a página abre nessa rota do shell, a menos que a rota guardada no navegador já
+//   comece por ela (quem navega dentro do módulo e recarrega continua onde estava). É o que faz um
+//   Artefato de um módulo só, como o da Produção, sem copiar nem cortar o protótipo.
+// --titulo: troca o <title> da página publicada.
 // Sai 1 se algum arquivo citado pelo HTML não existir no repo (não publica página quebrada).
 // Publicar: Artifact publish com url do Artefato, root=<dir>, file_path=<dir>/index.html e
 // files = todos os demais caminhos de <dir>.
@@ -57,6 +62,12 @@ function arg(nome, padrao) {
 const HTML = arg("--html", "prototipo-ui/cowork/Wagner/oimpresso.com.html");
 const DS = arg("--ds", "prototipo-ui/design-system");
 const OUT = arg("--out", null);
+const ROTA = arg("--rota-inicial", null);
+const TITULO = arg("--titulo", null);
+if (ROTA && !/^[a-z0-9-]+$/.test(ROTA)) {
+  console.error("--rota-inicial aceita só letras minúsculas, números e hífen (ex.: pcv).");
+  process.exit(2);
+}
 if (!OUT) {
   console.error("uso: build-artefato-prototipo.mjs --out <dir> [--html <arquivo>] [--ds <pasta>]");
   process.exit(2);
@@ -202,9 +213,16 @@ try {
   sujo = execFileSync("git", ["status", "--porcelain", "--", BASE, DS], { encoding: "utf8" }).trim() !== "";
 } catch {}
 // Bloco que o hook vista-publicada-padrao lê: a página publicada declara de que arquivo do git saiu.
-const blocoVista = `<!-- vista:\ntema: prototipo\nestado: viva\nmedido_em: ${dataCommit}\ndono: ${HTML}\n-->\n`;
+const blocoVista = `<!-- vista:\ntema: prototipo${ROTA ? "-" + ROTA : ""}\nestado: viva\nmedido_em: ${dataCommit}\ndono: ${HTML}\n-->\n`;
+// A rota inicial entra antes de qualquer script do shell ler `oimpresso.route`.
+const rotaInicial = ROTA
+  ? `\n<script>try{var _r=localStorage.getItem("oimpresso.route");if(!_r||_r.indexOf(${JSON.stringify(ROTA)})!==0)localStorage.setItem("oimpresso.route",${JSON.stringify(ROTA)})}catch(e){}</script>`
+  : "";
+const escapa = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+let corpo = saida.join("\n");
+if (TITULO) corpo = corpo.replace(/<title>[^<]*<\/title>/, `<title>${escapa(TITULO)}</title>`);
 const indexHtml =
-  blocoVista + saida.join("\n").replace("<head>", `<head>\n<meta name="oi-fonte" content="${HTML}@${commit}"/>`);
+  blocoVista + corpo.replace("<head>", `<head>\n<meta name="oi-fonte" content="${HTML}@${commit}"/>${rotaInicial}`);
 gerados.set("index.html", Buffer.from(indexHtml));
 
 const sha = (b) => createHash("sha256").update(b).digest("hex");
@@ -214,6 +232,8 @@ const manifesto = {
   commit,
   build_commit: buildCommit,
   arvore_suja: sujo,
+  rota_inicial: ROTA,
+  titulo: TITULO,
   gerado_em: new Date().toISOString(),
   arquivos: Object.fromEntries([...gerados].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, sha(v)])),
 };

@@ -28,8 +28,23 @@ function EtapaLi({ e, i, D }) {
 function situacaoDe(os, es) {
   if (es.every((e) => e.estado === "feito" || e.estado === "pronto")) return "Concluída";
   if (os.arte !== "aprovada" || os.liberada === false) return "Aguardando liberação";
+  // Liberada sem material (US-PCP-032 · D3): nenhuma etapa começa até o PCP conferir.
+  if (os.material === "aguardando") return "Aguardando material";
   return es.some((e) => e.estado === "andamento") ? "Em execução" : "Na fila";
 }
+// O que falta de material para a OS sair de Aguardando material (UC-PCMAT-02/03). Só lê estoque.
+function TabelaFalta({ falta, D }) {
+  const n = (v) => Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return (
+    <table className="pcv-baixa" aria-label="Material que falta">
+      <thead><tr><th>Insumo</th><th className="ta-r">Necessário</th><th className="ta-r">Disponível</th><th className="ta-r">Falta</th><th>A caminho</th></tr></thead>
+      <tbody>{falta.map((f) => <tr key={f.insumo}><td>{f.insumo}</td><td className="ta-r mono">{n(f.necessario)} {f.un}</td><td className="ta-r mono">{n(f.disponivel)} {f.un}</td>
+        <td className="ta-r mono pcv-late">{n(f.falta)} {f.un}</td>
+        <td>{f.caminho.length ? f.caminho.map((c) => c.compra + " · " + n(c.qtd) + " " + f.un + " · chega " + D.d2(c.chega)).join("; ") : "nenhuma compra pedida"}</td></tr>)}</tbody>
+    </table>
+  );
+}
+
 function SituacaoItem({ os, es, D, irAba }) {
   const { Select } = DS();
   if (!window.OiEtapaPainel) return null;
@@ -37,6 +52,7 @@ function SituacaoItem({ os, es, D, irAba }) {
   const falta = es.filter((e) => e.estado !== "feito" && e.estado !== "pronto");
   const feitas = es.filter((e) => e.estado === "feito" || e.estado === "pronto" || e.estado === "andamento");
   const mats = (D.MATERIAIS || {})[os.id] || [];
+  const faltaMat = os.material === "aguardando" && D.faltaDe ? D.faltaDe(os.id) : [];
   const radio = (nome, ops, val, set, k) => <div className="pcv-mot" role="radiogroup" aria-label={nome}>{ops.map((o) => <label key={o}><input type="radio" name={nome} checked={val[k] === o} onChange={() => set({ ...val, [k]: o })} /> {o}</label>)}</div>;
   const pessoas = Object.keys(D.PESSOAS || {});
   const abertas = es.map((e, i) => [e, i]).filter(([e]) => e.estado !== "feito" && e.estado !== "pronto");
@@ -59,6 +75,8 @@ function SituacaoItem({ os, es, D, irAba }) {
       <table className="pcv-baixa"><thead><tr><th>Material</th><th>Estoque antes</th><th>Baixa real</th><th>Depois</th></tr></thead>
         <tbody>{mats.map(([n, u, prev, real]) => { const b = real || prev, antes = Math.ceil(b * 2.5) + 10; return <tr key={n}><td>{n}</td><td className="mono">{D.h1(antes)} {u}</td><td className="mono">− {D.h1(b)} {u}{!real ? " (previsto)" : ""}</td><td className="mono">{D.h1(antes - b)} {u}</td></tr>; })}</tbody></table>
       <p className="oie-dim">Custo congelado em {D.fmt(os.real)}. {org && org.total > 1 ? "A venda " + org.venda + " fica pronta quando as " + org.total + " OS terminarem." : "Esta é a única OS da venda: a venda fica pronta para concluir."}</p></> },
+    "Conferir material": { ok: () => true, texto: () => "nada falta", render: () => <><span className="oie-l">Material da receita</span>
+      <p>Nada falta: a OS volta para Na fila e a primeira etapa pode começar. Conferir só lê o estoque, não baixa nada.</p></> },
     "Cancelar item": { ok: (v) => !!v.consumo, texto: (v) => v.consumo, render: (v, set) => <><span className="oie-l">Consumo até aqui</span>{radio("Consumo", ["Nada consumido", "Lançar consumo como perda"], v, set, "consumo")}</> },
   };
   return (
@@ -66,8 +84,15 @@ function SituacaoItem({ os, es, D, irAba }) {
       {org && <p className="pcv-org">Item {org.item} de {org.total} da venda <b className="mono">{org.venda}</b>{org.irmas.length > 1 ? " · outras OS: " + org.irmas.filter((k) => k !== os.id).join(", ") : ""}{org.outros ? " · " + org.outros : ""}</p>}
       <window.OiEtapaPainel proc="producao" modo="acao" docId={os.id} estado={situacaoDe(os, es)} campos={campos}
         nota={falta.length ? "Roteiro: " + (es.length - falta.length) + " de " + es.length + " etapas feitas — próxima: " + falta[0].nome + "." : null}
-        bloqueios={() => ({ ...(os.arte !== "aprovada" ? { "Liberar": "arte ainda não aprovada pelo cliente" } : {}), ...(falta.length > 1 ? { "Concluir item": falta.length === 2 ? "falta 1 etapa do roteiro" : "faltam " + (falta.length - 1) + " etapas do roteiro" } : {}) })}
-        resolver={() => ({ "Liberar": { label: "Ver arte e arquivos", onClick: () => irAba("arte") }, "Concluir item": { label: "Ver etapas", onClick: () => irAba("etapas") } })} />
+        bloqueios={() => ({ ...(os.arte !== "aprovada" ? { "Liberar": "arte ainda não aprovada pelo cliente" } : {}),
+          ...(faltaMat.length ? { "Conferir material": "ainda falta " + faltaMat.map((f) => D.h1(f.falta) + " " + f.un + " de " + f.insumo).join(" e ") } : {}), ...(falta.length > 1 ? { "Concluir item": falta.length === 2 ? "falta 1 etapa do roteiro" : "faltam " + (falta.length - 1) + " etapas do roteiro" } : {}) })}
+        resolver={() => ({ "Liberar": { label: "Ver arte e arquivos", onClick: () => irAba("arte") }, "Concluir item": { label: "Ver etapas", onClick: () => irAba("etapas") }, "Conferir material": { label: "Ver o que falta", onClick: () => irAba("materiais") } })}
+        interceptar={{ "Conferir material": (t) => {
+          // A tela é dona da situação da OS: muda o dado e informa o painel (sem registrar "mudança feita na tela").
+          os.material = null;
+          window.OiEtapa.registrar("producao", os.id, { quem: "Você", acao: t.acao, de: "Aguardando material", para: t.para }, t.para, t.para);
+          D.registrar({ os: os.id, tipo: "material", texto: "Conferiu o material: nada falta, a OS voltou para Na fila" });
+        } }} />
     </div>
   );
 }
@@ -122,6 +147,15 @@ function FichaOs({ id, onClose }) {
         </div>}
 
         {aba === "materiais" && <div className="pcv-sec">
+          {os.material === "aguardando" && (() => { const falta = D.faltaDe(os.id); return <div className="pcv-falta" role="region" aria-label="Aguardando material">
+            {Alert && <Alert tone={falta.length ? "warn" : "success"} title={falta.length ? "Aguardando material — nenhuma etapa começa" : "O material chegou — falta o PCP conferir"}>
+              {falta.length ? "A OS foi liberada, mas falta insumo da receita no estoque do local da venda. Quando a compra chegar, o PCP confere e a OS volta para Na fila." : "Use Conferir material, no topo da ficha, para a OS voltar para Na fila."}</Alert>}
+            {falta.length > 0 && <TabelaFalta falta={falta} D={D} />}
+            {falta.length > 0 && <div className="pcv-bar">
+              {Button && <Button size="sm" onClick={() => window.__go && window.__go("compras")}>Abrir compras</Button>}
+              {Button && <Button size="sm" variant="ghost" onClick={() => D.receberCompra(os.id)}>Simular: a compra chegou</Button>}
+            </div>}
+          </div>; })()}
           <table className="pcv-tbl">
             <thead><tr><th scope="col">Material</th><th scope="col" className="ta-r">Empenhado</th><th scope="col" className="ta-r">Consumido</th><th scope="col" className="ta-r">Saldo</th></tr></thead>
             <tbody>{(D.MATERIAIS[os.id] || []).map(([n, un, emp, con], i) => { const sal = emp - con; const fmtN = (v) => Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 1 }); return (
