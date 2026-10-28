@@ -41,9 +41,9 @@ class UserController extends Controller
     /**
      * Shows profile of logged in user
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function getProfile()
+    public function getProfile() // @phpstan-ignore oimpresso.nopMutation (GET de leitura e não mutação — alias da URL antiga /user/profile para a tela React /perfil, cutover F5)
     {
         // Cutover F5 (2026-10-27): o perfil é a tela React /perfil (User/Perfil). A URL antiga
         // segue respondendo, para favoritos e links velhos, mas só redireciona.
