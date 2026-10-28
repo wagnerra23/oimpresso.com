@@ -30,6 +30,12 @@ return [
     'auto_emission_on_sell_completed' => env('NFEBRASIL_AUTO_EMISSION_NFCE', false),
 
     /**
+     * Entrada por XML de compra (ADR proposals/2026-10-06-entrada-xml-compra.md, fase 2).
+     * Liga o upload do XML do fornecedor. Desligada até a conferência e a compra existirem.
+     */
+    'entrada_xml_enabled' => env('NFEBRASIL_ENTRADA_XML', false),
+
+    /**
      * US-NFE-044 fase 2 — listener EnviarDanfePorEmail.
      *
      * Quando true, ao receber NFeAutorizada event o listener envia DANFE PDF

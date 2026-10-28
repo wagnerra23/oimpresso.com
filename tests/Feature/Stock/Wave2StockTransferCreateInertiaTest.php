@@ -55,9 +55,13 @@ it('Page importa AppShellV2 + PageHeader (canon V2)', function () {
     expect($source)->toMatch('/StockTransferCreate\\.layout\\s*=/');
 });
 
-it('Page declara TransferLineDraft + Permissions interfaces', function () {
+// 2026-10-27: a linha deixou de ser `TransferLineDraft` (texto livre, product_id nulo) e passou a
+// ser `LinhaEstoque`, vinda de /stock-transfers/produto-linha (UC-TRCRT-06).
+it('Page usa a linha de produto real (LinhaEstoque) + Permissions', function () {
     $source = readSTCreateInertia();
-    expect($source)->toContain('interface TransferLineDraft');
+    expect($source)->not->toContain('interface TransferLineDraft');
+    expect($source)->toContain("from '@/Pages/Estoque/_components/linhas-estoque-dominio'");
+    expect($source)->toContain('<LinhasDeEstoque');
     expect($source)->toContain('interface Permissions');
     expect($source)->toContain('interface StockTransferCreatePageProps');
 });
@@ -66,7 +70,7 @@ it('Page valida R-XFER-004 (origem ≠ destino) client-side', function () {
     $source = readSTCreateInertia();
     expect($source)->toContain('origemDestinoIguais');
     expect($source)->toContain('AlertCircle');
-    expect($source)->toContain('disabled={form.processing || origemDestinoIguais}');
+    expect($source)->toContain('disabled={form.processing || origemDestinoIguais || linhasComErro}');
 });
 
 it('Page filtra destino removendo origem selecionada (UX prevent)', function () {

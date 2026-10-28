@@ -115,17 +115,28 @@ test('UC-CMSN-03 valor — o percentual chega igual por dois caminhos, no cadast
     expect((float) DB::table('users')->where('id', $agente->id)->value('cmmsn_percent'))->toBe(1.25);
 });
 
-test('UC-CMSN-04 Tier 0 — o formulário de edição não abre comissionado de outro negócio', function () {
+test('UC-CMSN-04 Tier 0 — editar não alcança comissionado de outro negócio', function () {
+    // Desde o cutover (2026-10-27) o drawer React edita via PUT; a Blade de edição foi apagada.
     $outro = $this->seededSupportClientTenant();
-    $alheio = cmsnAgente($outro->id);
-    $meu = cmsnAgente($this->business->id);
-    // A Blade de edicao formata o percentual com @num_format, que le session('currency') —
-    // o SetSessionData do login real preenche; o teste precisa preencher (sem isto: 500).
-    session(['currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']]);
+    $alheio = cmsnAgente($outro->id, 7);
+    $meu = cmsnAgente($this->business->id, 5);
+    $h = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
 
-    $this->get("/sales-commission-agents/{$alheio->id}/edit")->assertNotFound();
-    // Contraprova: o do próprio negócio abre (sem isto, o 404 acima podia ser a rota quebrada).
-    $this->get("/sales-commission-agents/{$meu->id}/edit")->assertOk();
+    $r = $this->withHeaders($h)->post("/sales-commission-agents/{$alheio->id}", [
+        '_method' => 'PUT', 'first_name' => 'Invasor', 'cmmsn_percent' => '1,00',
+    ]);
+    expect($r->json('success'))->toBeFalse();
+    expect(DB::table('users')->where('id', $alheio->id)->value('first_name'))->not->toBe('Invasor');
+    expect((float) DB::table('users')->where('id', $alheio->id)->value('cmmsn_percent'))->toBe(7.0);
+
+    // Contraprova: o do próprio negócio é editado (sem isto, o "não mudou" acima podia ser a rota quebrada).
+    $this->withHeaders($h)->post("/sales-commission-agents/{$meu->id}", [
+        '_method' => 'PUT', 'first_name' => 'Meu', 'cmmsn_percent' => '1,00',
+    ])->assertOk();
+    expect(DB::table('users')->where('id', $meu->id)->value('first_name'))->toBe('Meu');
+
+    // A forma Blade não existe mais.
+    $this->get("/sales-commission-agents/{$meu->id}/edit")->assertNotFound();
 });
 
 test('UC-CMSN-05 quem só tem commission_agent.view abre a tela sem as ações', function () {

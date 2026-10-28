@@ -364,9 +364,9 @@ Lacuna "Grade cor e tamanho com curva de compra" (levantamento 2026-10-25, frent
 
 > owner: — · priority: p2 · estimate: 10h · type: story
 > blocked_by: —
-> **Implementado em:** _parcial_ · `Modules/Vestuario/Services/Remarcacao.php` · `Modules/Vestuario/Database/Migrations/2026_10_27_000001_create_vestuario_remarcacoes_tables.php` — prévia, gravação e reversão; falta a tela /vestuario/remarcacao e o envio para as etiquetas
-> **Testado em:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
-> Contrato: `UC-VREM-01..04` em `memory/requisitos/Vestuario/_telas/remarcacao.casos.md`.
+> **Implementado em:** `Modules/Vestuario/Services/Remarcacao.php` · `Modules/Vestuario/Http/Controllers/RemarcacaoController.php` · `resources/js/Pages/Vestuario/Remarcacao/Index.tsx` · `Modules/Vestuario/Database/Migrations/2026_10_27_000001_create_vestuario_remarcacoes_tables.php`
+> **Testado em:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php` · `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
+> Contrato: `UC-VREM-01..04` em `memory/requisitos/Vestuario/_telas/remarcacao.casos.md` · `UC-VREM-05..07` em `resources/js/Pages/Vestuario/Remarcacao/Index.casos.md`.
 
 > **Decisão [W] 2026-10-27:** lacuna P2 "Remarcação por coleção" liberada ("pode destravar todos"). Quem remarca escolhe a coleção ou um filtro de produtos, aplica um novo preço (percentual ou valor), vê a prévia por produto e grava; depois pode reverter; as etiquetas novas saem para impressão. Muda preço em massa: prévia antes → depois obrigatória, nada gravado sem confirmação, histórico para reverter (regra mestre de valor). Teste no tenant 98, nada na biz=4.
 
