@@ -79,7 +79,7 @@ entregues pela existência deste módulo:
 - tools MCP;
 - captura automática de erro do browser;
 - migração da caixa Blade para Inertia — em 2026-10-13 a Page `VozDoCliente/Caixa` (só leitura) entrou atrás da
-  flag `useV2VozDoClienteCaixa`, OFF por padrão; ligar a flag e remover a Blade seguem pendentes
+  flag `useV2VozDoClienteCaixa`, OFF por padrão; a flag foi ligada para todas as empresas em 2026-10-13 e a Blade removida no F5 de 2026-10-27
   ([RUNBOOK-caixa](RUNBOOK-caixa.md)).
 
 ### US-VOZDOCLIENTE-001 · Botão "Relatar" nas telas do app (porta de entrada da caixa)
@@ -103,7 +103,7 @@ entregues pela existência deste módulo:
 
 - Janela planejada: 22 → 29/out/2026.
 - Habilitar com `php artisan vozdocliente:habilitar` (mesmo efeito da UI do pacote) para a biz=1.
-- A flag `useV2VozDoClienteCaixa` já vale para todas as empresas desde 2026-10-13 (D-CUTOVER-1310, `app/Services/FeatureFlagService.php`) — não precisa ligar.
+- A flag `useV2VozDoClienteCaixa` valeu para todas as empresas desde 2026-10-13 (D-CUTOVER-1310) e saiu no F5 de 2026-10-27, junto com a Blade — a caixa é só React.
 - Pronto quando: um relato real entra pelo botão e aparece na Caixa, com smoke em produção (status HTTP + screenshot).
 
 ### US-VOZDOCLIENTE-003 · Teste de 7 dias do VozDoCliente na ROTA LIVRE (biz=4)

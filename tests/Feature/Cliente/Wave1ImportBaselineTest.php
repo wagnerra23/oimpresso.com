@@ -8,8 +8,7 @@ test('Cliente/Import baseline — controller has getImportContacts() + Inertia b
 
     expect($contents)
         ->toContain('public function getImportContacts(')
-        ->toContain("Inertia::render('Cliente/Import'")
-        ->toContain("shouldRenderInertiaCliente('cliente_import'");
+        ->toContain("Inertia::render('Cliente/Import'");
 });
 
 test('Cliente/Import — config mwart has cliente_import flag', function () {

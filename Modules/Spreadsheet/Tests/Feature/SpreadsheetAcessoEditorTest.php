@@ -6,6 +6,7 @@ use App\User;
 use App\Utils\ModuleUtil;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia;
 use Modules\Spreadsheet\Entities\Spreadsheet;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -156,6 +157,58 @@ it('UC-PLED-03 · ter uma planilha recebida não deixa gravar por cima da de col
     // Controle positivo: na que recebi, a gravação passa.
     $this->put('/spreadsheet/sheets/'.$recebida, ['name' => 'ED recebida editada', 'sheet_data' => ['x' => 1]]);
     expect(edNome($recebida))->toBe('ED recebida editada');
+});
+
+// ── Editor React (thread telas-soltas/04b) — UC-PLED-04 a 07 ─────────────────────────────
+
+it('UC-PLED-04 · abrir planilha devolve o editor React sem dado cru', function () {
+    $eu = edUser($this, $this->edBiz);
+    $minha = edPlanilha($this, $this->edBiz, (int) $eu->id, 'ED minha');
+    $this->actingAs($eu);
+
+    $this->get('/spreadsheet/sheets/'.$minha)->assertOk()->assertInertia(fn (AssertableInertia $p) => $p
+        ->component('Spreadsheet/Editor')
+        ->where('planilha.id', $minha)
+        ->where('planilha.nome', 'ED minha')
+        ->where('planilha.minha', true)
+        ->where('pode_gravar', true)
+        ->missing('planilha.business_id')
+        ->missing('planilha.created_by'));
+});
+
+it('UC-PLED-05 · planilha nova abre o editor na pasta pedida', function () {
+    $this->actingAs(edUser($this, $this->edBiz));
+
+    $this->get('/spreadsheet/sheets/create?folder_id=77')->assertOk()->assertInertia(fn (AssertableInertia $p) => $p
+        ->component('Spreadsheet/Editor')
+        ->where('planilha', null)
+        ->where('pasta_id', 77));
+});
+
+it('UC-PLED-06 · planilha recebida abre como não-minha', function () {
+    $eu = edUser($this, $this->edBiz);
+    $colega = edUser($this, $this->edBiz);
+    $recebida = edPlanilha($this, $this->edBiz, (int) $colega->id, 'ED recebida');
+    edCompartilha($recebida, 'user', (int) $eu->id);
+    $this->actingAs($eu);
+
+    $props = $this->get('/spreadsheet/sheets/'.$recebida)->assertOk()->viewData('page')['props'];
+
+    expect($props['planilha']['minha'])->toBeFalse();
+    $tarefas = rescue(fn () => action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'index']), null, false);
+    if ($tarefas !== null) {
+        // Mesmo destino da Blade: quem recebeu volta às tarefas, não à lista de planilhas.
+        expect($props['voltar'])->toBe($tarefas);
+    }
+});
+
+it('UC-PLED-07 · ?legacy=1 abre as Blades até o F5', function () {
+    $eu = edUser($this, $this->edBiz);
+    $minha = edPlanilha($this, $this->edBiz, (int) $eu->id, 'ED minha');
+    $this->actingAs($eu);
+
+    $this->get('/spreadsheet/sheets/'.$minha.'?legacy=1')->assertOk()->assertViewIs('spreadsheet::sheet.show');
+    $this->get('/spreadsheet/sheets/create?legacy=1')->assertOk()->assertViewIs('spreadsheet::sheet.create');
 });
 
 // ── Compartilhar (thread telas-soltas/04, ações da lista) — UC-PLAN-06 a 08 ───────────────
