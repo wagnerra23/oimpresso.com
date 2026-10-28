@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista mostra o que saiu de uma filial e entrou em outra; empresa misturada ou filtro quebrado escondem mercadoria em trânsito.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-10-27"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
 
@@ -12,6 +12,10 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > `data-contract` (`est-tr-cabecalho` num div em volta do `PageHeader`, `est-tr-toolbar` no card de filtros, `est-tr-tabela` no card
 > da tabela) para o contrato `governance/design/contracts/estoque-transferencias.contract.json`. Zero handler, zero dado, zero copy.
 > Nenhum UC afirma âncora; nenhum UC foi reexecutado.
+
+> ℹ️ **2026-10-27 — a lista ganhou o botão "Editar".** Aparece só com `purchase.update` + `purchase.create` e enquanto a
+> transferência não moveu saldo (paridade com a Blade). O comportamento da edição é contrato de `Edit.casos.md` (UC-TREDT-01..03).
+> Os 3 UCs abaixo (isolamento, permissão, detalhe) não tratam do botão e seguem ⬜: revalidados pela leitura, nenhum reexecutado.
 
 # Casos de Uso & Aceite — Transferências de estoque (lista)
 

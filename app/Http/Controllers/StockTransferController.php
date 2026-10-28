@@ -973,7 +973,9 @@ class StockTransferController extends Controller
         $user = auth()->user();
 
         $linhas = [];
-        foreach ($sell_transfer->sell_lines as $sell_line) {
+        // getRelation em vez da propriedade mágica: mesma coleção já carregada em `edit()`,
+        // sem somar mais um `$sell_lines` não tipado ao baseline do PHPStan.
+        foreach ($sell_transfer->getRelation('sell_lines') as $sell_line) {
             $dados = $this->dadosDaLinha($business_id, (int) $sell_line->variation_id, (int) $sell_transfer->location_id, false);
             $sub_unit_id = ! empty($sell_line->sub_unit_id) && (int) $sell_line->sub_unit_id !== $dados['unit_id']
                 ? (int) $sell_line->sub_unit_id
