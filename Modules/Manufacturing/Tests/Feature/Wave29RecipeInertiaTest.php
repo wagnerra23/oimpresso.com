@@ -292,35 +292,36 @@ describe('UC-RECIPE-01/02/06/07 — a rota (schema MySQL real)', function () {
         expect($rota->getActionName())->toContain('RecipeController');
     });
 
-    // UC-RECIPE-06 — o escape `?legacy=1` que o controller ANUNCIA precisa existir de fato
-    // (LC-15: mecanismo que anuncia saída sem honrá-la). Aqui é o contrato do anúncio.
-    it('UC-RECIPE-06 o controller honra ?legacy=1 devolvendo a view Blade', function () {
-        $fonte = file_get_contents(base_path('Modules/Manufacturing/Http/Controllers/RecipeController.php'));
+    // Corpo do `index()` do RecipeController, do cabeçalho até o próximo método público.
+    // Os dois UC abaixo olham só ele: `destroy()` tem ramo ajax próprio, que não é desta tela.
+    $corpoDoIndex = function (): string {
+        $fonte = (string) file_get_contents(base_path('Modules/Manufacturing/Http/Controllers/RecipeController.php'));
+        $ini = strpos($fonte, 'public function index(');
+        $fim = strpos($fonte, 'public function ', $ini + 1);
 
-        expect($fonte)->toContain("request()->boolean('legacy')");
-        expect($fonte)->toContain("view('manufacturing::recipe.index')");
-        expect($fonte)->toContain("Inertia::render('Manufacturing/Recipes'");
+        return substr($fonte, $ini, $fim - $ini);
+    };
+
+    // UC-RECIPE-06 — desde o cutover de 2026-10-27 ([W]: "1 PR por tela, com cutover apagando a
+    // Blade") a lista é só a tela React: não há mais `?legacy=1` nem view Blade no `index()`.
+    it('UC-RECIPE-06 o index sempre devolve a tela React, sem escape ?legacy=1', function () use ($corpoDoIndex) {
+        $corpo = $corpoDoIndex();
+
+        // Âncora positiva: o recorte pegou o método certo (senão os `not` abaixo passam no vazio).
+        expect($corpo)->toContain("Inertia::render('Manufacturing/Recipes'");
+        expect($corpo)->not->toContain("request()->boolean('legacy')");
+        expect($corpo)->not->toContain('view(');
+        expect(view()->exists('manufacturing::recipe.index'))->toBeFalse();
     });
 
-    // UC-RECIPE-07 — o ramo ajax (DataTables legado) continua ANTES do render Inertia.
-    //
-    // ⚠️ A agulha NÃO fecha o parêntese de propósito (ajustada 2026-09-04). Ela era
-    // `'if (request()->ajax())'` — literal exato — e quebrou quando a condição ganhou o guarda
-    // `&& ! request()->header('X-Inertia')` (bug em prod: a navegação SPA caía no ramo AJAX e
-    // recebia JSON). O que este UC defende é a ORDEM dos dois blocos, não o texto da condição;
-    // prender no literal fazia o teste reprovar um endurecimento legítimo da guarda.
-    it('UC-RECIPE-07 o ramo ajax do DataTables vem antes do render Inertia', function () {
-        $fonte = file_get_contents(base_path('Modules/Manufacturing/Http/Controllers/RecipeController.php'));
+    // UC-RECIPE-07 — o ramo ajax do DataTables saiu junto com a Blade que o consumia. Sem ele,
+    // não há caminho em que a navegação do Inertia receba JSON por engano (o bug de 2026-09-04).
+    it('UC-RECIPE-07 o index não tem mais ramo ajax do DataTables', function () use ($corpoDoIndex) {
+        $corpo = $corpoDoIndex();
 
-        $posAjax = strpos($fonte, 'if (request()->ajax()');
-        $posInertia = strpos($fonte, "Inertia::render('Manufacturing/Recipes'");
-
-        expect($posAjax)->not->toBeFalse();
-        expect($posInertia)->not->toBeFalse();
-        expect($posAjax)->toBeLessThan(
-            $posInertia,
-            'O render Inertia passou na frente do ramo ajax — a tabela legada morreria em silêncio.'
-        );
+        expect($corpo)->toContain("Inertia::render('Manufacturing/Recipes'");
+        expect($corpo)->not->toContain('request()->ajax()');
+        expect($corpo)->not->toContain('DataTables::');
     });
 
     // UC-RECIPE-02 — Tier 0. A listagem filtra pela cadeia de tenant e não vaza.
