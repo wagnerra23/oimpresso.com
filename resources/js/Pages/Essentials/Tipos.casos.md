@@ -4,8 +4,13 @@ irmaos: Tipos.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-10-27"
 ---
+
+> ℹ️ **`last_run` 2026-10-26 → 2026-10-27 (G-6): o último toque em `Tipos.tsx` (6ff1ba6fbb) foi só layout.**
+> O `<form className="flex h-full flex-col">` do painel passou a ser embrulhado pelo primitivo `Stack` (`asChild gap={0} h-full`, ADR 0253) —
+> mesma coluna flex, zero handler, prop, copy ou UC alterado. **Nenhum UC foi reexecutado por causa disso**; o bump registra que o trio
+> foi reconciliado com a tela nesta data, não um re-run.
 
 > ℹ️ **`last_run` 2026-09-05 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Tipos.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
