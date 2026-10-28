@@ -53,22 +53,6 @@ class CustomerGroupController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        if (! auth()->user()->can('customer.create')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $business_id = request()->session()->get('user.business_id');
-        $price_groups = SellingPriceGroup::forDropdown($business_id, false);
-
-        return view('customer_group.create')->with(compact('price_groups'));
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -107,29 +91,6 @@ class CustomerGroupController extends Controller
         return $output;
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\CustomerGroup  $customerGroup
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        if (! auth()->user()->can('customer.update')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
-            $customer_group = CustomerGroup::where('business_id', $business_id)->find($id);
-
-            $business_id = request()->session()->get('user.business_id');
-            $price_groups = SellingPriceGroup::forDropdown($business_id, false);
-
-            return view('customer_group.edit')
-                ->with(compact('customer_group', 'price_groups'));
-        }
-    }
 
     /**
      * Update the specified resource in storage.
