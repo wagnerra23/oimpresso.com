@@ -22,9 +22,6 @@ Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysHistoryTest.php  # 
 Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysQuotaTest.php  # Class "App\Role" not found
 Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysWebhookEventsTest.php  # Class "App\Role" not found
 Modules/PaymentGateway/Tests/Feature/Settings/SellsCobrancaChipTest.php  # Class "App\Role" not found
-Modules/PaymentGateway/Tests/Feature/PaymentGatewaysControllerStoreTest.php  # cria business sem owner_id (FK business_owner_id_foreign)
-Modules/PaymentGateway/Tests/Feature/OndaUmEsqueletoTest.php  # afirma que os Contracts NÃO têm binding; a Onda 4 já os amarrou
-Modules/PaymentGateway/Tests/Feature/PagarmeDriverTest.php  # espera CredentialMisconfiguredException, recebe DecryptException
 #
 # ── B. era-sqlite que FALHAM também no sqlite (run 40736895552 do ci.yml, 2026-10-28).
 # Pulam no MySQL (schema sintético) e quebram no sqlite por fixture desatualizada. Os outros
