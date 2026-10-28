@@ -623,6 +623,16 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   serve os dois branches; `route-hits` não distingue. Se confirmado, afeta as 8 telas do módulo e
   qualquer tela em branch dual MWART. É achado de **mecanismo**, não de tela — vira issue de
   governança, não UC.
+- **[BACKLOG] Juntar produtos duplicados** `[V0]` `[E0]` — pedido de PraMoto e Techpress (2026-10-28),
+  cujas notas de compra de fornecedores diferentes criaram o mesmo produto duas ou três vezes. Dado a
+  "Lona 440g" cadastrada três vezes, com 10, 5 e 3 m no estoque, Quando escolho o produto que fica e
+  junto os outros dois, Então o estoque soma 18 m em cada local, o custo médio é recalculado pela
+  quantidade, as compras, as vendas e os vínculos de fornecedor passam a apontar para o que ficou, e os
+  outros dois ficam inativos com "unido em Lona 440g". Nada se apaga, e o histórico mostra quem juntou e
+  quando. A tela mostra a prévia do estoque e do custo antes de confirmar. Hoje não há como juntar: o
+  duplicado só pode ser inativado, com o estoque separado. Evitar a duplicação na entrada é o caso de
+  `Purchase/Create.casos.md` do mesmo dia. Falta decisão [W]: quem pode juntar e se a junção pode ser
+  desfeita. Mexe em estoque e custo: Regra Mestre, com dupla prova e antes e depois.
 
 ### Pesquisa de concorrentes (2026-10-20) — casos que a lista ainda não cobre
 
@@ -797,6 +807,7 @@ há item aqui.
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-28 · [F+C] Backlog: juntar produtos duplicados pela nota de compra (pedido de PraMoto e Techpress). Sem id.
 - 2026-10-27 · [F+C] Revalidado (G-6): o `Index.tsx` ganhou data nova só pelo merge com o `main` de hoje, depois que o #9925 entrou; o conteúdo é o `emiteNota` passado ao painel por este PR (UC-PIDX-17 e 25), já descrito pelos casos acima. Vitest local dos 18 arquivos de produto: 213 testes passaram. Nenhum UC muda de status; last_run 2026-10-26 → 2026-10-27.
 - 2026-10-26 · [F+C] **UC-PIDX-34** (decisão [F]): coluna e filtro Imposto da lista só em empresa com alíquota cadastrada; a coluna nasce desligada e o "ligada" que o navegador guardou antes é desligado uma vez; o CSV de "Exportar filtrados" segue a regra. O UC-PIDX-10 deixa de ter nota pendente e o UC-PIDX-26 diz que o cenário de 12 colunas inclui a Imposto ligada. O backlog das decisões de 26/10 fica vazio.
 - 2026-10-26 · [F+C] **UC-PIDX-19 reescrito, UC-PIDX-17, 20 e 25 ajustados** (decisão [F]): o imposto aparece por relevância no painel. A aba Dados começa com o preço que a venda cobra (com imposto) e, só com imposto, o preço sem imposto, o imposto aplicável e a frase; as tabelas de preço têm uma coluna quando sem e com imposto são iguais; a aba Fiscal e o item "Dados fiscais" só existem em empresa com o módulo Fiscal no pacote (`contexto.emite_nota`) e a aba começa por "Pronto para nota" ou "Sem NCM". O caso antigo do UC-PIDX-19 fica registrado na seção dele; dois itens do backlog viram caso. Falta a coluna e o filtro Imposto da lista (PR seguinte).

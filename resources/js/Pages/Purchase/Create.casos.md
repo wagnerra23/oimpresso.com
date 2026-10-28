@@ -547,6 +547,26 @@ O saldo fiscal do produto e o aviso na emissão estão em `Produto/Index.casos.m
 
 ---
 
+## Produto duplicado pela nota de compra (pedido de 2026-10-28)
+
+> PraMoto e Techpress importam notas de fornecedores diferentes e não ligam o item da nota ao produto já
+> cadastrado: cada nota cria um produto novo, e o mesmo produto fica cadastrado duas ou três vezes. Juntar
+> os que já estão duplicados é o caso de backlog de `Produto/Index.casos.md` do mesmo dia.
+
+- `[BACKLOG]` **Item da nota de outro fornecedor acha o produto já cadastrado** `[E0]` — Dado a "Lona
+  440g" já cadastrada e comprada do fornecedor A, Quando importo a nota do fornecedor B com a mesma lona,
+  com outro código e outra descrição, Então o item já vem ligado ao produto: primeiro pelo vínculo
+  lembrado desse fornecedor (`compras_produto_fornecedor`), depois pelo código de barras, se só um produto
+  o tiver. Sem nenhum dos dois, a compra mostra os produtos parecidos (descrição, NCM, unidade) para
+  escolher, sem ligar sozinha pela descrição. Criar produto novo pela nota pede a confirmação "não é
+  nenhum destes" e permissão própria. A escolha fica lembrada para o fornecedor B. O estoque só entra
+  quando todos os itens da nota estão resolvidos, e uma tela mostra e desfaz vínculos errados. Hoje a
+  tabela de vínculo existe (2026-10-27), mas a compra a partir da nota ainda não (bullet "Compra nasce
+  da nota do fornecedor" acima). O código antigo de importação (`PurchaseXmlController`) não tem rota e
+  não serve de base: ele procurava só o código de barras ou o nome exato, sem filtrar por empresa. Falta
+  decisão [W]: quem pode criar produto pela nota, e se a importação para com item sem vínculo ou deixa
+  entrar marcado como pendente. Mexe em estoque: Regra Mestre.
+
 ## ⚠️ Divergências que precisam de [W] (não corrigidas aqui — são INTENÇÃO)
 
 1. **A grade aguarda smoke/canary de [W].** O charter v2 traz
