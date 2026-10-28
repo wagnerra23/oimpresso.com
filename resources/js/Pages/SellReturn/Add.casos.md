@@ -5,7 +5,7 @@ irmaos: Add.charter.md (lei) · Add.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro grava valor e estoque — a troca de Blade por React não pode mudar nenhum dos dois.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-10-27"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
@@ -104,14 +104,35 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   crédito", com validade de 6 meses). Depende do [W]: o charter desta tela diz "não mudar `store()` nem
   `addSellReturn()`" (regra escrita na migração), e lançar o crédito ao salvar muda isso. Mexe em valor:
   Regra Mestre. Verificado contra as regras do [W] em 2026-10-23.
+  - Pedido: P-017
+  - Âncora: Processo "Devolução, troca e garantia" do Wagner · US-VEST-021
+  - Fazer: Opção "trocar com crédito" aprovada pelo gerente; crédito com validade de 6 meses.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: gray | Pouco | veio do vestuário
+  - Clientes: NewPrint
+  - Etiquetas: valor, miss, decisao
 - **[BACKLOG]** Devolver tudo (pedido de 2026-10-23) `[V0]` `[E0]` — Dado uma venda de 3 itens, Quando
   clico "Devolver tudo", Então cada linha vem com a quantidade que ainda pode voltar e o total é o da
   venda menos o já devolvido; a devolução parcial continua digitando a quantidade de cada linha
   (UC-SRADD-04). Mexe em valor e estoque: Regra Mestre.
+  - Pedido: P-038
+  - Âncora: `UC-SRADD-04` · processo de devolução de Fluxos
+  - Fazer: Botão que preenche as quantidades que faltam voltar.
+  - Hoje: part | Em parte | A devolução parcial existe e trava na vendida
+  - Comunicação visual: gray | Pouco | sob encomenda quase não volta
+  - Clientes: Fixar, Safety, Estilo, Max Comunicação, Ciasul, Extreme, Mecânica Casa Grande, Wow Comunicação, Litoral Comunicação, Placa Fácil, Makan, Lamac, Zoom, Lessa Cortinas, Movesul, Sabor Brasil, DMB, Mecânica Lebrinha, Jo Painéis, CyberStudio, GP, GSX, Molas Patrício, Display Paraná, Ntrogen, MidiaOff, Quimeco, Vargas
+  - Etiquetas: valor, part
 - **[BACKLOG]** A segunda devolução da mesma venda só aceita o que ainda não voltou (pedido de
   2026-10-23) `[E0]` — Dado 3 unidades vendidas e 2 já devolvidas, Quando abro a devolução de novo,
   Então o teto da linha é 1. Fonte: processo "Devolução, troca e garantia" de Fluxos ("quantidade até
   a vendida, devolução total ou parcial").
+  - Pedido: P-039
+  - Âncora: Processo de devolução de Fluxos
+  - Fazer: Descontar do teto o que já foi devolvido.
+  - Hoje: gray | A medir | Não medi se a segunda devolução desconta a primeira
+  - Comunicação visual: gray | Pouco | sob encomenda quase não volta
+  - Clientes: Fixar, Safety, Estilo, Max Comunicação, Ciasul, Extreme, Mecânica Casa Grande, Wow Comunicação, Litoral Comunicação, Placa Fácil, Makan, Lamac, Zoom, Lessa Cortinas, Movesul, Sabor Brasil, DMB, Mecânica Lebrinha, Jo Painéis, CyberStudio, GP, GSX, Molas Patrício, Display Paraná, Ntrogen, MidiaOff, Quimeco, Vargas
+  - Etiquetas: valor, decisao
 - **[BACKLOG]** Receber a nota de devolução emitida pelo cliente (comparação com concorrentes,
   2026-10-23) `[V0]` `[E0]` — Dado um cliente empresa que devolve 2 itens com a própria NF-e de
   devolução, Quando informo a chave dessa nota (ou ela chega pelo DF-e), Então a devolução é registrada
@@ -119,8 +140,15 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   igual ao da devolução que nós emitimos; nota com item que não estava na venda é recusada. Fonte: Omie
   (importação da NF-e de devolução pela chave ou pelo XML, associada ao pedido de venda). Hoje a nota
   do cliente pode chegar pela manifestação do DF-e, mas não vira devolução ligada à venda.
+  - Pedido: P-093
+  - Âncora: Omie (importar a NF-e de devolução pela chave ou XML) · `SellReturn/Add.casos.md`
+  - Fazer: Registrar a devolução a partir da nota do cliente, ligada à venda.
+  - Hoje: part | Em parte | A nota pode chegar pela manifestação do DF-e, mas não vira devolução ligada à venda
+  - Comunicação visual: part | Cliente empresa | cliente empresa devolve com nota
+  - Etiquetas: valor, part, cv
 
 ## Trilha do tempo
+- 2026-10-28 · [CC] `last_run` 2026-10-26 → 2026-10-27, a data do commit que mudou o `.tsx` (6c422a53e1, vale-troca). Ele mexeu no `.tsx` e no casos.md no mesmo commit; ao ligar os pedidos do documento a este arquivo, o commit do casos.md deixou de ser o do `.tsx` e o G-6 passou a cobrar. Prova: os 8 UCs desta tela com veredito pass no manifesto do main (`scripts/casos-test-results.json`). Nenhum caso foi reexecutado agora.
 - 2026-10-23 · [M+C] Backlog: devolver tudo e segunda devolução da mesma venda, sem id.
 - 2026-10-23 · [M+C] Backlog: a devolução pode virar saldo a favor do cliente, sem id.
 - 2026-10-05 · [CL] trio nascido junto (charter + casos + teste) na thread 03 de venda-menu, PR 2 de 2.

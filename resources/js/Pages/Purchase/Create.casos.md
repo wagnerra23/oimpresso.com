@@ -442,27 +442,69 @@ Status: 🧪
   pela subunidade do cadastro ou, no rolo, por largura × comprimento; e a linha avisa quando o custo
   convertido sai muito diferente do último custo do produto. O vínculo produto × fornecedor
   (`compras_produto_fornecedor`, de 2026-10-27) ainda não guarda unidade nem fator.
+  - Pedido: P-069
+  - Âncora: Subunidade do produto (`sub_unit`) · vínculo produto × fornecedor (`compras_produto_fornecedor`, ADR de entrada por XML) · `Purchase/Create.casos.md`
+  - Fazer: A tela faz a conta. Na primeira nota pergunta "1 CX deste fornecedor tem quantos UN?" e mostra "2 CX × 12 = 24 UN · custo 60,00 ÷ 12 = 5,00 por UN"; nas próximas, a conversão já vem e a pessoa confirma. Sugere o fator pela unidade tributável da nota (`qTrib` ÷ `qCom`), pela subunidade do cadastro ou por largura × comprimento no rolo, e avisa quando o custo convertido sai muito diferente do último custo. Aceita mais de uma conversão por fornecedor (Omie aceita até 3).
+  - Hoje: part | Em parte | A tela antiga aceita as subunidades do cadastro; a compra nova não. O vínculo produto × fornecedor (27/10) ainda não guarda unidade nem fator, e o leitor do XML (PR #10024) lê só a unidade comercial
+  - Comunicação visual: ok | Sim | chapa, rolo e bobina
+  - Clientes: Extreme, Techpress, Martinho, Copylan, Mecânica Casa Grande, Max Comunicação, ArtLaser, Zoom
+  - Etiquetas: valor, part, cv
 - `[BACKLOG]` **Notas de compra entram no SPED** `[V0]` — Dado uma compra lançada com a nota do
   fornecedor (modelo 55), Quando gero o SPED da competência, Então a nota sai como entrada (C100 com
   indicador de entrada, C170 e C190), com o crédito de ICMS que o regime da empresa permitir. Hoje o
   SPED não traz nenhuma entrada.
+  - Pedido: P-070
+  - Âncora: SPED da competência (`SpedIcmsIpiGeneratorService` gera só as notas emitidas) · `Purchase/Create.casos.md`
+  - Fazer: Levar as compras com nota ao SPED como entrada; o crédito segue o regime da empresa.
+  - Hoje: miss | Não tem | O SPED não traz nenhuma entrada
+  - Comunicação visual: ok | Sim | empresa no regime normal
+  - Clientes: Extreme, Safety
+  - Etiquetas: valor, miss, cv, decisao
 - `[BACKLOG]` **Nota de energia elétrica entra no SPED** `[V0]` — Dado a conta de energia da empresa
   (modelo 06 ou 66), Quando lanço a nota na entrada com valor, base e ICMS, Então ela sai no SPED da
   competência nos registros C500 e C590, sem mexer em estoque. Hoje a conta pode entrar como despesa,
   sem os dados fiscais da nota, e o SPED não tem esse registro.
+  - Pedido: P-071
+  - Âncora: SPED da competência (`SpedIcmsIpiGeneratorService` gera só as notas emitidas) · `Purchase/Create.casos.md`
+  - Fazer: Lançar a nota de energia com os dados fiscais e gerar C500/C590.
+  - Hoje: miss | Não tem | A conta entra como despesa, sem os dados fiscais; o SPED não tem o registro
+  - Comunicação visual: ok | Sim | empresa no regime normal
+  - Clientes: Extreme, Safety
+  - Etiquetas: valor, miss, cv, decisao
 - `[BACKLOG]` **Nota de comunicação entra no SPED** `[V0]` — Dado a conta de telefone e internet
   (modelo 21, 22 ou 62), Quando lanço a nota na entrada, Então ela sai no SPED nos registros D500 e
   D590, sem mexer em estoque. Hoje a conta pode entrar como despesa, sem os dados fiscais da nota, e o
   SPED não tem esse registro.
+  - Pedido: P-072
+  - Âncora: SPED da competência (`SpedIcmsIpiGeneratorService` gera só as notas emitidas) · `Purchase/Create.casos.md`
+  - Fazer: Lançar a nota de comunicação com os dados fiscais e gerar D500/D590.
+  - Hoje: miss | Não tem | A conta entra como despesa, sem os dados fiscais; o SPED não tem o registro
+  - Comunicação visual: ok | Sim | empresa no regime normal
+  - Clientes: Extreme, Safety
+  - Etiquetas: valor, miss, cv, decisao
 - `[BACKLOG]` **CT-e do frete entra no SPED** `[V0]` — Dado o CT-e (modelo 57) do frete de uma compra,
   Quando o lanço na entrada ligado à nota da compra, Então ele sai no SPED nos registros D100 e D190, e
   o valor do frete pode compor o custo dos itens da compra. Hoje o CT-e não é lançado e o SPED não tem
   o bloco D.
+  - Pedido: P-073
+  - Âncora: SPED da competência (`SpedIcmsIpiGeneratorService` gera só as notas emitidas) · `Purchase/Create.casos.md`
+  - Fazer: Lançar o CT-e na entrada, ligado à compra, e gerar o bloco D.
+  - Hoje: miss | Não tem | O CT-e não é lançado e o SPED não tem o bloco D
+  - Comunicação visual: ok | Sim | frete de chapa e substrato
+  - Clientes: Extreme, Safety
+  - Etiquetas: valor, miss, cv, decisao
 - `[BACKLOG]` **Entrada de nota de serviço** `[V0]` — Dado a NFS-e de um prestador com ISS retido,
   Quando a lanço como entrada de serviço, Então nasce a conta a pagar pelo valor líquido, o ISS retido
   fica registrado como imposto a recolher, nada entra no estoque e a nota aparece nas notas de entrada.
   As demais retenções (IR, PIS, COFINS, CSLL e INSS) seguem a mesma linha. Hoje não há entrada de nota
   de serviço; em que obrigação ela sai é decisão do contador.
+  - Pedido: P-074
+  - Âncora: `Purchase/Create.casos.md`
+  - Fazer: Entrada de NFS-e recebida, com as retenções e a conta a pagar pelo líquido. Em que obrigação ela sai, o contador decide.
+  - Hoje: miss | Não tem | Não há entrada de nota de serviço
+  - Comunicação visual: ok | Sim | instalação e serviço terceirizados
+  - Clientes: Techpress, ArtLaser
+  - Etiquetas: valor, miss, cv, decisao
 - `[BACKLOG]` **Notas de serviço tomado buscadas sozinhas** (comparação com concorrentes,
   2026-10-23) `[V0]` — Dado a empresa com a busca ligada, Quando um prestador emite uma NFS-e contra o
   CNPJ dela, Então a nota aparece numa lista de notas recebidas, o financeiro confere e aprova, e só
@@ -470,6 +512,12 @@ Status: 🧪
   dele. Nota recusada não gera nada. Fonte: Omie (monitoramento das NFS-e tomadas nas prefeituras e no
   Ambiente Nacional). Hoje as notas que chegam sozinhas são as NF-e da distribuição do DF-e; a NFS-e
   tomada não chega.
+  - Pedido: P-096
+  - Âncora: Omie (monitoramento nas prefeituras e no Ambiente Nacional) · `Purchase/Create.casos.md`
+  - Fazer: Buscar as NFS-e tomadas, aprovar e gerar a conta a pagar e as dos impostos retidos.
+  - Hoje: miss | Não tem | Chegam sozinhas só as NF-e da distribuição do DF-e
+  - Comunicação visual: ok | Sim | instalação e serviço terceirizados
+  - Etiquetas: valor, miss, cv, decisao
 
 ---
 
@@ -491,6 +539,13 @@ Status: 🧪
   entrada por XML (`memory/decisions/proposals/2026-10-06-entrada-xml-compra.md`, aceita). Hoje as
   tabelas da entrada entraram (2026-10-27), o leitor do XML está no PR #10024 e a compra a partir da
   nota ainda não existe.
+  - Pedido: P-100
+  - Âncora: US-COM-003 · ADR de entrada por XML (aceita em 06/10)
+  - Fazer: Seguir as fases da ADR: o leitor do XML, a compra a partir da nota com a dupla prova de valor e a aba Entradas.
+  - Hoje: part | Em parte | As tabelas da entrada (o vínculo produto × fornecedor e a chave na compra) entraram em 27/10; o leitor do XML está no PR #10024; a compra a partir da nota ainda não existe
+  - Comunicação visual: ok | Sim | toda compra com nota
+  - Clientes: PraMoto
+  - Etiquetas: valor, part, cv
 - `[BACKLOG]` **Compra de pessoa física emite a nota de entrada** `[V0]` — Dado uma peça ou moto
   usada comprada de um particular, Quando lanço a compra, Então ela oferece "Emitir nota de entrada";
   emitida, a nota fica ligada à compra e o produto passa a ter entrada com nota. Compra de empresa
@@ -501,10 +556,24 @@ Status: 🧪
   de bem usado mudam por estado; o contador confirma. Hoje a nota de entrada que funciona é a da
   devolução de venda (`DevolucaoService`); o código antigo de nota de entrada a partir da compra
   (`NfeEntradaController`) não tem rota.
+  - Pedido: P-101
+  - Âncora: Montagem da nota de entrada da devolução (`DevolucaoService`)
+  - Fazer: Emitir a nota de entrada a partir da compra, reaproveitando a montagem da devolução. O CFOP e a natureza da nota de bem usado, que mudam por estado, o contador confirma.
+  - Hoje: miss | Não tem | A nota de entrada que funciona hoje é a da devolução de venda; existe um código antigo de nota de entrada a partir da compra (`NfeEntradaController`) sem rota
+  - Comunicação visual: gray | Pouco | compra de particular é rara
+  - Clientes: PraMoto
+  - Etiquetas: valor, miss, decisao
 - `[BACKLOG]` **Produto criado na compra pede o NCM** — Dado a empresa que emite nota, Quando
   cadastro um produto novo pela compra ou pelo cadastro rápido, Então o NCM aparece pedido, com uma
   sugestão tirada de produtos parecidos do catálogo; salvar sem NCM continua permitido, com o aviso.
   O Novo produto já avisa (`Produto/Create.casos.md`, UC-PCAD-14); o cadastro rápido e a compra não.
+  - Pedido: P-105
+  - Âncora: `UC-PCAD-14` (o Novo produto já avisa)
+  - Fazer: Levar o aviso e a sugestão de NCM ao cadastro rápido e ao produto criado na compra, por onde nascem os produtos sem nota.
+  - Hoje: part | Em parte | O Novo produto já avisa (`UC-PCAD-14`); o cadastro rápido e a compra não
+  - Comunicação visual: ok | Sim | material cadastrado às pressas
+  - Clientes: PraMoto
+  - Etiquetas: part, cv
 
 O saldo fiscal do produto e o aviso na emissão estão em `Produto/Index.casos.md` e
 `Fiscal/Nfe.casos.md`, com a mesma data.

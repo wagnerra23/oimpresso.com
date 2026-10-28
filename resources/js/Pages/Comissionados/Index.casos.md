@@ -60,10 +60,23 @@ last_run: "2026-10-27"
   UC-FLX-05. Não fica nesta tela: o charter dela não apura período (o relatório é a thread
   `comissoes/02`, ainda sem tela, que depende da D-COM-2 do [W], comissão sobre venda paga ou
   faturada). Verificado contra as regras do [W] em 2026-10-23.
+  - Pedido: P-020
+  - Âncora: `UC-FLX-05`
+  - Fazer: Contador e total no relatório de comissões (thread `comissoes/02`), não na tela de comissionados, que não apura período.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | modelo CV média com PCP
+  - Clientes: Techpress
+  - Etiquetas: miss, cv, decisao
 - [BACKLOG] Agência como comissionado (pedido de 2026-10-23) `[V0]` — Dado uma agência cadastrada com
   10%, Quando a venda indicada por ela é faturada, Então a comissão da agência nasce sobre o valor
   faturado, separada da do vendedor. Fonte: o representante externo já existe em
   `sales_commission_agents`.
+  - Pedido: P-021
+  - Âncora: Representante externo (`sales_commission_agents`)
+  - Fazer: Tipo "agência" no cadastro, ou usar o representante; comissão separada.
+  - Hoje: part | Em parte | Representante externo existe
+  - Comunicação visual: ok | Sim | agência comum em CV
+  - Etiquetas: valor, part, cv, decisao
 - [BACKLOG] Percentual de comissão no produto (pedido de 2026-10-23) `[V0]` — Dado o produto
   "Adesivo recortado" com comissão de 8% e o vendedor com 5%, Quando ele vende esse produto e outro sem
   percentual, Então a comissão do adesivo usa 8% e a do outro usa 5%. O percentual fica no cadastro do
@@ -74,6 +87,13 @@ last_run: "2026-10-27"
   sistema que usa hoje e calcula a comissão à mão; o mesmo percentual entra na formação de preço
   (US-PROD-032), e o valor a pagar sai no relatório de comissão
   (`Report/SalesRepresentative/Index.casos.md`, US-COMM-016).
+  - Pedido: P-067
+  - Âncora: US-COMM-015 (PR #9971) · `Comissionados/Index.casos.md`
+  - Fazer: Regra de comissão por produto, categoria ou geral, em % ou valor por unidade, sobre o item com desconto, sem imposto e sem o devolvido; vale a mais específica. O mesmo percentual entra na formação de preço (caso 107).
+  - Hoje: miss | Não tem | Em andamento no PR #9971: o cálculo pela regra, atrás de uma flag desligada; falta a tela das regras. No main a comissão usa só o percentual do comissionado
+  - Comunicação visual: ok | Sim | comissão diferente por serviço
+  - Clientes: CyberStudio
+  - Etiquetas: valor, miss, cv
 
 ## Trilha do tempo
 - 2026-10-27 · [F+C] Backlog do percentual de comissão no produto: a ordem vem da US-COMM-015 e entra o pedido da CyberStudio.
