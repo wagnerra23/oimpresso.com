@@ -319,12 +319,57 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - **[BACKLOG]** Título de cada parte faturada `[V0]` — Dado uma venda de 1.000,00 faturada em duas
   partes (400,00 e 600,00), Então cada parte tem o seu título; cancelar a nota de uma parte cancela o
   título dela se ainda não estiver pago. Mexe em valor: Regra Mestre. Fonte: Omie (pedido parcial). Veio da tela de Contas a receber, aposentada (2026-10-23).
+- **[BACKLOG]** Recebimento no cartão desconta a taxa da operadora `[V0]` — pedido de NewPrint e ArtLaser
+  (2026-10-28). Dado uma venda de 1.000,00 recebida no crédito à vista, com taxa de 3% para essa operadora,
+  bandeira e modalidade, Quando o recebimento é lançado, Então o título do cliente fica quitado pelo valor
+  cheio; a taxa de 30,00 vira despesa de tarifa de cartão; e nasce um valor a receber da operadora de 970,00,
+  previsto para a data do repasse (D+30). Hoje a baixa registra só que foi cartão (`cartao_credito` ou
+  `cartao_debito`), sem taxa, operadora nem data do repasse. Falta decisão [W]: a taxa entra como despesa
+  separada ou como baixa que reduz o recebido, como a retenção (US-FIN-072), e quem cadastra as taxas por
+  operadora, bandeira, modalidade e número de parcelas. Mexe em valor: Regra Mestre.
+- **[BACKLOG]** Venda parcelada no cartão vira parcelas a receber da operadora `[V0]` — NewPrint e ArtLaser
+  (2026-10-28). Dado uma venda de 1.000,00 em 3 vezes sem juros no cartão, com taxa de 4% no parcelado em 3,
+  Quando o recebimento é lançado, Então o cliente fica quitado; a taxa de 40,00 vira despesa; e nascem três
+  valores a receber da operadora, de 320,00 cada, previstos para D+30, D+60 e D+90 (3 × 320,00 + 40,00 =
+  1.000,00). O título do cliente não fica parcelado, porque ele já pagou tudo. Falta decisão [W]: a mesma do
+  caso acima, e se a antecipação dos recebíveis, com taxa própria, entra agora ou depois. Mexe em valor:
+  Regra Mestre.
+- **[BACKLOG]** Conferir o repasse da operadora com o extrato do banco `[V0]` — NewPrint e ArtLaser
+  (2026-10-28). Dado um valor a receber da operadora de 970,00 previsto para o dia 15, Quando o extrato traz
+  o depósito da operadora, Então o sistema propõe casar o depósito com o previsto, um a um ou somados num
+  repasse. Se a operadora pagou 968,00 porque cobrou mais taxa, a diferença de 2,00 aparece como divergência
+  para alguém conferir; o sistema não ajusta sozinho. Repasse previsto que não chegou na data aparece como
+  atrasado. Hoje a conciliação de extrato existe, com regras e pontuação, mas não há valor a receber da
+  operadora para casar. Falta decisão [W]: conferir só pelo extrato ou também pelo arquivo da operadora, e
+  quem pode aceitar uma diferença de taxa.
+- **[BACKLOG]** Tarifa do boleto pago não deixa o cliente devendo `[V0]` (2026-10-28). Dado um boleto de
+  500,00 pago pelo cliente e um banco que cobra 2,50 por boleto liquidado, Quando o pagamento chega, pelo
+  retorno do banco ou pela consulta da cobrança, Então o título fica quitado pelos 500,00 que o cliente pagou
+  e a tarifa de 2,50 vira despesa bancária ligada ao boleto; no extrato o banco credita 497,50, ou credita
+  500,00 e debita 2,50 à parte. A conta fecha: creditado + tarifa = pago pelo cliente. Hoje a baixa
+  automática não separa a tarifa. Risco lido no código, sem teste: com o Asaas, a consulta da cobrança usa o
+  valor já sem a tarifa (`netValue`) como valor pago, e o título pode ficar com a tarifa em aberto. Falta
+  decisão [W]: a mesma da taxa do cartão. Mexe em valor: Regra Mestre.
+- **[BACKLOG]** Tarifa de registro e de baixa do boleto que não foi pago `[V0]` (2026-10-28). Dado um boleto
+  registrado com tarifa de 1,80, que venceu sem pagamento e foi baixado com tarifa de 1,00, Quando o banco
+  cobra essas tarifas, Então elas viram despesa bancária ligada ao boleto e ao cliente, mesmo sem receita;
+  um boleto novo para o mesmo título lança a nova tarifa de registro. O financeiro vê quanto custou cobrar
+  cada cliente. Hoje essas tarifas só aparecem no extrato, sem vínculo com o boleto. Falta decisão [W]:
+  repassar o custo ao cliente (o cadastro tem `cobrar_custo_boleto`, trazido do sistema antigo, e nenhuma
+  regra o lê) ou deixá-lo só como despesa. Mexe em valor: Regra Mestre.
+- **[BACKLOG]** Conferir as tarifas cobradas pelo banco com as combinadas `[V0]` (2026-10-28). Dado um contrato
+  com o banco de 2,50 por boleto liquidado, Quando o extrato ou o retorno do banco traz 3,50 por boleto,
+  Então a diferença de 1,00 por boleto aparece como divergência para alguém conferir e cobrar do banco; o
+  sistema não ajusta sozinho. No fim do mês o financeiro vê o total de tarifas por banco e por tipo. Hoje a
+  conciliação já reconhece a linha de tarifa do OFX, mas não há tarifa combinada para comparar nem vínculo
+  da tarifa com o boleto. Falta decisão [W]: quem cadastra as tarifas combinadas e quem aceita uma diferença.
 
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane `financeiro-pest.yml` (check required `PHP / Pest (Financeiro · MySQL)`) — JUnit vira manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-28 · [F+C] Backlog: taxa e conciliação do cartão (pedido de NewPrint e ArtLaser) e tarifas do boleto pago, do não pago e cobradas a mais. Sem id.
 - 2026-10-23 · [M+C] Backlog vindo da tela de Contas a receber (aposentada): total do serviço, retido e recebido; título de venda agrupada; título de cada parte faturada. Sem id.
 - 2026-07-27 · [CC] onda `sdd-from-source` (passo 5 · Onda 2): nasce o **SDD do módulo**
   (`memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md` — o Financeiro tinha 0 CU) e os UC de
