@@ -26,20 +26,20 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 883,
-    "edges": 1199,
+    "nodes": 882,
+    "edges": 1198,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
       "component": 494,
-      "api": 90
+      "api": 89
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 94,
+      "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 494,
@@ -1579,14 +1579,6 @@
       "prefix": "/ponto/install/*",
       "providers": [
         "Ponto"
-      ]
-    },
-    {
-      "id": "api:/post-repair-status",
-      "type": "api",
-      "prefix": "/post-repair-status",
-      "providers": [
-        "Repair"
       ]
     },
     {
@@ -13595,12 +13587,6 @@
       "to": "component:Repair/RepairStatusController",
       "type": "hasComponent",
       "source": "contains"
-    },
-    {
-      "from": "module:Repair",
-      "to": "api:/post-repair-status",
-      "type": "providesApi",
-      "source": "url_prefixes"
     },
     {
       "from": "module:Repair",

@@ -5,6 +5,15 @@ return [
     'module_version' => '0.1.0',
 
     /**
+     * DDA — boletos emitidos contra o CNPJ da empresa viram contas a pagar
+     * SUGERIDAS (US-FIN-078). Desligado: a fonte dos boletos (API do banco ou
+     * provedor de DDA) depende de decisão e credencial do [W] — ver BRIEFING.
+     */
+    'dda' => [
+        'enabled' => env('FINANCEIRO_DDA_ENABLED', false), // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
+    ],
+
+    /**
      * Juros de mora padrão BR (config por business pode override).
      * 0,033% ao dia (~1% ao mês) + 2% multa pós-vencimento.
      */

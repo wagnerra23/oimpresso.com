@@ -66,8 +66,14 @@ last_run: "2026-10-06"
   "Adesivo recortado" com comissão de 8% e o vendedor com 5%, Quando ele vende esse produto e outro sem
   percentual, Então a comissão do adesivo usa 8% e a do outro usa 5%. O percentual fica no cadastro do
   produto. Hoje a comissão é só do comissionado (`users.cmmsn_percent`); o produto não tem o campo.
-  Qual percentual prevalece quando os dois existem é decisão do [W].
+  A ordem quando os dois existem vem da US-COMM-015 (PR #9971, 2026-10-27, em andamento atrás de
+  flag): vale a regra mais específica, a do produto, depois a da categoria, depois a regra geral do
+  vendedor. A CyberStudio (pedido de 2026-10-27) guarda 2% por produto na formação de preço do
+  sistema que usa hoje e calcula a comissão à mão; o mesmo percentual entra na formação de preço
+  (US-PROD-032), e o valor a pagar sai no relatório de comissão
+  (`Report/SalesRepresentative/Index.casos.md`, US-COMM-016).
 
 ## Trilha do tempo
+- 2026-10-27 · [F+C] Backlog do percentual de comissão no produto: a ordem vem da US-COMM-015 e entra o pedido da CyberStudio.
 - 2026-10-23 · [M+C] Backlog de vendas sem comissionado e de agência como comissionado, sem id.
 - 2026-10-06 · [CL] criado com a thread `sistema/playbook/03`.
