@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 884,
-    "edges": 1200,
+    "nodes": 883,
+    "edges": 1199,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 496,
+      "component": 495,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 496,
+      "hasComponent": 495,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -3905,13 +3905,6 @@
       "module": "NfeBrasil",
       "name": "ManifestacaoController",
       "desc": "Manifestação do Destinatário (US-NFE-052, PR #317)"
-    },
-    {
-      "id": "component:NfeBrasil/NfeBrasilController",
-      "type": "component",
-      "module": "NfeBrasil",
-      "name": "NfeBrasilController",
-      "desc": ""
     },
     {
       "id": "component:NfeBrasil/NfeEmissaoController",
@@ -11969,12 +11962,6 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/ManifestacaoController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:NfeBrasil",
-      "to": "component:NfeBrasil/NfeBrasilController",
       "type": "hasComponent",
       "source": "contains"
     },

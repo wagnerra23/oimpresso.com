@@ -14,9 +14,9 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 324 arquivos em 19 papéis.
+**Total mapeado:** 321 arquivos em 19 papéis.
 
-## Controllers — 17
+## Controllers — 16
 
 - [CertificadoController.php](../../../Modules/NfeBrasil/Http/Controllers/CertificadoController.php)
 - [ConfigDefaultController.php](../../../Modules/NfeBrasil/Http/Controllers/ConfigDefaultController.php)
@@ -27,7 +27,6 @@ module: NfeBrasil
 - [ImportRegrasController.php](../../../Modules/NfeBrasil/Http/Controllers/ImportRegrasController.php)
 - [InstallController.php](../../../Modules/NfeBrasil/Http/Controllers/InstallController.php)
 - [ManifestacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/ManifestacaoController.php)
-- [NfeBrasilController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeBrasilController.php)
 - [NfeEmissaoController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeEmissaoController.php)
 - [NfeInutilizacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeInutilizacaoController.php)
 - [NfeStatusController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeStatusController.php)
@@ -201,11 +200,9 @@ module: NfeBrasil
 - [config.php](../../../Modules/NfeBrasil/Config/config.php)
 - [retention.php](../../../Modules/NfeBrasil/Config/retention.php)
 
-## Views (Blade) — 5
+## Views (Blade) — 3
 
 - [revisao.blade.php](../../../Modules/NfeBrasil/Resources/views/contador/revisao.blade.php)
-- [index.blade.php](../../../Modules/NfeBrasil/Resources/views/index.blade.php)
-- [master.blade.php](../../../Modules/NfeBrasil/Resources/views/layouts/master.blade.php)
 - [danfe-html.blade.php](../../../Modules/NfeBrasil/Resources/views/mail/danfe-html.blade.php)
 - [danfe-text.blade.php](../../../Modules/NfeBrasil/Resources/views/mail/danfe-text.blade.php)
 
