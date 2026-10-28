@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 886,
-    "edges": 1202,
+    "nodes": 887,
+    "edges": 1203,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 498,
+      "component": 499,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 498,
+      "hasComponent": 499,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -2434,6 +2434,13 @@
       "type": "component",
       "module": "ConsultaOs",
       "name": "InstallController",
+      "desc": ""
+    },
+    {
+      "id": "component:Crm/\"CapturaLeadController\"       # Captura pública de lead com origem/UTM no funil",
+      "type": "component",
+      "module": "Crm",
+      "name": "\"CapturaLeadController\"       # Captura pública de lead com origem/UTM no funil",
       "desc": ""
     },
     {
@@ -9006,6 +9013,12 @@
       "to": "adr:0080",
       "type": "governedByAdr",
       "source": "related_adrs"
+    },
+    {
+      "from": "module:Crm",
+      "to": "component:Crm/\"CapturaLeadController\"       # Captura pública de lead com origem/UTM no funil",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Crm",
