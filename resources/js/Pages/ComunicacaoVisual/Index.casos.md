@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-10-26"
-last_run_ci: "2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
+last_run: "2026-10-27"
+last_run_ci: "2026-10-27 — GH run 40495854452 (verticais-pest, MySQL, PR #9994): OsPosCalculoContratoTest 5 passed (UC-CVPOS-01..05); os outros UCs da tela não foram rodados nesta data; a mudança do Index.tsx pelo #9860 (link de aceite, 2026-10-27) não foi revalidada aqui. ---- 2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -89,6 +89,11 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-09 | A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP | must | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
 | UC-CVOS-10 | O padrão só aceita roteiro ativo da própria empresa | must `[T0]` | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
 | UC-CVOS-11 | O hub mostra e troca o roteiro padrão para quem cuida do catálogo | should | US-COMVIS-003 · decisão [W] 2026-10-26 | `tests/js/cv-roteiro-padrao.test.tsx` | 🧪 |
+| UC-CVPOS-01 | Custo orçado, custo real e as duas margens da OS saem da conta feita à mão | must `[V0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
+| UC-CVPOS-02 | Trecho aberto não entra; etapa sem m² conta a hora e não o material | must `[V0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
+| UC-CVPOS-03 | Peça sem custo deixa o orçado vazio; nenhuma com custo deixa o real vazio | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
+| UC-CVPOS-04 | OS, hora e m² de outra empresa nunca entram | must `[T0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
+| UC-CVPOS-05 | Flag desligada é 404; sem quem vê custo é 403 | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
 | UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -655,6 +660,58 @@ quando a escolha muda; sem roteiro ativo, diz para cadastrar na tela de Roteiros
 Teste: `tests/js/cv-roteiro-padrao.test.tsx`
 
 Status: 🧪
+
+## Pós-cálculo da OS (US-COMVIS-005)
+
+> Âncora: SPEC US-COMVIS-005 (custo orçado × real ao fechar a OS). `GET …/api/os/{os}/pos-calculo`
+> (`OsPosCalculoController` → `PosCalculoDaOs`), atrás de `COMVIS_POS_CALCULO_ENABLED` (desligada),
+> só para quem vê custo (superadmin ou `comvis.material.manage`). Só lê: nenhum valor gravado muda.
+> As horas e o m² impresso vêm do Producao pelo contrato `App\Contracts\Producao\CustoRealDaOs`
+> (a conta das horas é a do `CustoRealService`). Sem tela neste PR; terceiros entram na fatia seguinte.
+
+Conta do arranjo (preço da OS 300,00; peças A 6,000 m² e B 1,440 m², ambas a 8,50/m²; A com 18,00 de máquina prevista):
+
+| | Material | Máquina | Pessoa | Total | Margem |
+|---|---|---|---|---|---|
+| Orçado | 63,24 | 18,00 | — | 81,24 | 218,76 (72,9%) |
+| Real | 8,190 m² × 63,24 ÷ 7,440 = 69,615 → 69,62 | 2h30 × 9,00 = 22,50 | 1h × 15,00 = 15,00 | 107,12 | 192,88 (64,3%) |
+
+2º caminho do material: as duas peças custam 8,50/m², 8,190 × 8,50 = 69,615 → 69,62. Arredonda uma vez, meio para cima.
+
+## UC-CVPOS-01 · Custo orçado, custo real e as duas margens da OS saem da conta feita à mão · `must` `[V0]`
+- **Persona:** dono da gráfica (quem cuida do catálogo, `comvis.material.manage`) conferindo se a OS deu a margem que o orçamento prometeu.
+- **Aceite:** Dado o arranjo acima (preço 300,00; peças A e B a 8,50/m²; 8,190 m² impressos; 2h30 de máquina a 9,00 e 1h de pessoa a 15,00) · Quando pede o pós-cálculo · Então vêm orçado 63,24 + 18,00 = 81,24 e real 69,62 + 22,50 + 15,00 = 107,12, margem orçada 218,76 (72,9%) e real 192,88 (64,3%). O material real é o m² impresso nas etapas × o custo médio do m² das peças no dia do orçamento.
+- **Teste:** `Modules/ComunicacaoVisual/Tests/Feature/OsPosCalculoContratoTest.php` — `UC-CVPOS-01 · custo orçado, custo real e as duas margens saem da conta feita à mão [V0]`.
+- **Regressão que defende:** SPEC US-COMVIS-005 (custo orçado × real ao fechar a OS) e a regra mestre de valor: conta em inteiros, arredonda uma vez, meio para cima; 2º caminho à mão (8,190 × 8,50 = 69,615 → 69,62).
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 40495854452, 2026-10-27 (5 de 5 UC-CVPOS verdes); ✅ quando `casos:results` regravar o manifesto.
+
+## UC-CVPOS-02 · Trecho aberto não entra; etapa sem m² conta a hora e não o material · `must` `[V0]`
+- **Persona:** o mesmo dono olhando uma OS ainda em produção.
+- **Aceite:** Dado um trecho de máquina fechado com 7,440 m², um de pessoa sem m² e um de máquina ainda aberto · Quando pede o pós-cálculo · Então o real é 63,24 + 9,00 + 15,00 = 87,24: o trecho aberto não conta.
+- **Teste:** `Modules/ComunicacaoVisual/Tests/Feature/OsPosCalculoContratoTest.php` — `UC-CVPOS-02 · trecho aberto não entra; etapa concluída sem m² conta a hora e não o material [V0]`.
+- **Regressão que defende:** a regra do `CustoRealService` (só apontamentos FECHADOS) aplicada à OS da CV; hora em andamento contada viraria custo inventado.
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 40495854452, 2026-10-27 (5 de 5 UC-CVPOS verdes); ✅ quando `casos:results` regravar o manifesto.
+
+## UC-CVPOS-03 · Peça sem custo deixa o orçado vazio; nenhuma com custo deixa o real vazio · `must`
+- **Persona:** o mesmo dono, numa OS cujo orçamento tem peça sem material cadastrado.
+- **Aceite:** Dado a peça A sem custo previsto · Quando pede o pós-cálculo · Então orçado e margem orçada vêm vazios ("1 de 2" peças com custo) e o material usa o custo médio só da peça B (2,880 × 12,24 ÷ 1,440 = 24,48). Sem nenhuma peça com custo, material, total e margem real vêm vazios.
+- **Teste:** `Modules/ComunicacaoVisual/Tests/Feature/OsPosCalculoContratoTest.php` — `UC-CVPOS-03 · peça sem custo deixa o orçado vazio; nenhuma com custo deixa o real vazio`.
+- **Regressão que defende:** a mesma regra da margem do orçamento (US-COMVIS-022, UC-CVMRG-03): margem calculada com buraco engana.
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 40495854452, 2026-10-27 (5 de 5 UC-CVPOS verdes); ✅ quando `casos:results` regravar o manifesto.
+
+## UC-CVPOS-04 · OS, hora e m² de outra empresa nunca entram · `must` `[T0]`
+- **Persona:** dono da empresa 98, com a empresa 99 apontando no mesmo id de OS.
+- **Aceite:** Dado a empresa 99 apontando hora e 50 m² no mesmo id da OS da 98 · Quando a 98 pede o pós-cálculo · Então máquina fica 0,00 e m² impresso 0,000; a OS da 99 pedida pela 98 devolve 404.
+- **Teste:** `Modules/ComunicacaoVisual/Tests/Feature/OsPosCalculoContratoTest.php` — `UC-CVPOS-04 · OS, apontamento e hora de outra empresa nunca entram [T0]`.
+- **Regressão que defende:** **Tier 0** (ADR 0093): o contrato `CustoRealDaOs` e as leituras da CV filtram pelo `business_id` recebido.
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 40495854452, 2026-10-27 (5 de 5 UC-CVPOS verdes); ✅ quando `casos:results` regravar o manifesto.
+
+## UC-CVPOS-05 · Flag desligada é 404; sem quem vê custo é 403 · `must`
+- **Persona:** qualquer usuário logado, com a flag `COMVIS_POS_CALCULO_ENABLED` desligada ou ligada.
+- **Aceite:** Dado a flag desligada · Quando alguém pede · Então 404. Ligada, quem só vê orçamento recebe 403 e quem cuida do catálogo recebe 200.
+- **Teste:** `Modules/ComunicacaoVisual/Tests/Feature/OsPosCalculoContratoTest.php` — `UC-CVPOS-05 · com a flag desligada é 404; sem quem vê custo é 403`.
+- **Regressão que defende:** feature nova nasce desligada; custo e margem só para quem vê custo, a mesma regra da calculadora (UC-FLX-03).
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 40495854452, 2026-10-27 (5 de 5 UC-CVPOS verdes); ✅ quando `casos:results` regravar o manifesto.
 
 ## Custo e margem por peça (US-COMVIS-022 · UC-FLX-03)
 

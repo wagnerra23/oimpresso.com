@@ -8,6 +8,7 @@ use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoAceiteController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoArquivoController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
+use Modules\ComunicacaoVisual\Http\Controllers\OsPosCalculoController;
 use Modules\ComunicacaoVisual\Http\Controllers\Public\OrcamentoAceitePublicoController;
 use Modules\ComunicacaoVisual\Http\Controllers\RoteiroPadraoController;
 
@@ -173,6 +174,11 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::post('os/{os}/instalacao', [InstalacaoController::class, 'agendar'])
             ->whereNumber('os')
             ->name('comvis.api.instalacoes.agendar');
+
+        // US-COMVIS-005: custo orçado × real e margem da OS (flag COMVIS_POS_CALCULO_ENABLED, desligada).
+        Route::get('os/{os}/pos-calculo', [OsPosCalculoController::class, 'show'])
+            ->whereNumber('os')
+            ->name('comvis.api.os.pos-calculo');
     });
 
 // ── US-COMVIS-023 · página pública do aceite do orçamento (sem login) ──

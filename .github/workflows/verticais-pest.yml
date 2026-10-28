@@ -666,6 +666,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OsPosCalculoContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
@@ -795,6 +796,7 @@ jobs:
             Modules/Marketplaces/Tests/Feature/MarketplacesNfePedidoContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesPedidosTelaContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesDestinatarioContratoTest.php \
+            Modules/Marketplaces/Tests/Feature/MarketplacesOAuthNuvemshopContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \

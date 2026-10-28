@@ -29,6 +29,9 @@ class Marketplace extends Model
 {
     public const MERCADO_LIVRE = 'mercado_livre';
 
+    /** Segundo canal (ADR 0443). Token sem vencimento: não passa pela renovação do ML. */
+    public const NUVEMSHOP = 'nuvemshop';
+
     protected $table = 'mkt_marketplaces';
 
     protected $fillable = ['slug', 'nome', 'api_base_url', 'oauth_authorize_url', 'oauth_token_url', 'docs_url', 'ativo'];

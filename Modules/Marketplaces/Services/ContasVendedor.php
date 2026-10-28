@@ -13,7 +13,12 @@ use Modules\Marketplaces\Entities\ContaVendedor;
  */
 class ContasVendedor
 {
-    /** @param  array{access_token: string, refresh_token: string, expires_in: int, user_id: string, scope: ?string}  $tokens */
+    /**
+     * `refresh_token`/`expires_in` nulos = token sem vencimento (Nuvemshop, ADR 0443): a conta fica
+     * sem data de vencimento e o tokenValido devolve o token direto, sem tentar renovar.
+     *
+     * @param  array{access_token: string, refresh_token: ?string, expires_in: ?int, user_id: string, scope: ?string}  $tokens
+     */
     public function gravarTokens(int $businessId, int $marketplaceId, array $tokens): ContaVendedor
     {
         if ($tokens['user_id'] === '') {
@@ -30,7 +35,7 @@ class ContasVendedor
         $conta->fill([
             'access_token' => $tokens['access_token'],
             'refresh_token' => $tokens['refresh_token'],
-            'access_token_expires_at' => now()->addSeconds($tokens['expires_in']),
+            'access_token_expires_at' => $tokens['expires_in'] === null ? null : now()->addSeconds($tokens['expires_in']),
             'oauth_state' => ['scope' => $tokens['scope']],
             'last_refresh_at' => now(),
             'status' => ContaVendedor::STATUS_ATIVA,
@@ -47,6 +52,10 @@ class ContasVendedor
     public function tokenValido(ContaVendedor $conta, int $margemMinutos = 5): string
     {
         $vence = $conta->access_token_expires_at;
+        // Token sem vencimento e sem refresh (Nuvemshop): vale até a loja remover o app.
+        if ($conta->access_token && $vence === null && ! $conta->refresh_token) {
+            return (string) $conta->access_token;
+        }
         if ($conta->access_token && $vence !== null && $vence->greaterThan(now()->addMinutes($margemMinutos))) {
             return (string) $conta->access_token;
         }

@@ -25,6 +25,12 @@ return [
     ],
 
     /*
+     * Loja Nuvemshop (ADR 0443): a configuração mora em config/services.php ('nuvemshop'), que é
+     * onde o Laravel guarda credencial de serviço externo — ali o env() é lido no diretório de
+     * config raiz e sobrevive ao config:cache sem depender do merge do módulo.
+     */
+
+    /*
      * NF-e do pedido de marketplace (US-MKT-009 · ADR 0439 D5). DESLIGADA até [W] conferir o CFOP
      * com o contador. O CFOP NÃO tem valor padrão de propósito: depende do contador (D5). Sem ele
      * configurado, a nota do pedido cai em "não pode" com o motivo. O mapeamento provisório do

@@ -29,7 +29,7 @@ ERP vertical para gráfica rápida / comunicação visual BR (CNAE 1813-0/01: lo
 - **Entities sem fluxo:** `OrdemProducao` (`cv_ordens_producao`, só testes a criam — a OS por item da venda é a `pcp_ordens` do Producao, ADR 0436), `Substrato` e `InstalacaoCatalogo` seguem sem controller nem tela. `Acabamento` passa a entrar no preço quando o PR #9852 for mergeado (mínimo por peça + acabamentos no cálculo, US-COMVIS-001).
 - **Cadastro de materiais e de acabamentos**: seed existe (`MaterialSeeder`); sem tela de gestão de nenhum dos dois.
 - Telas próprias de PCP/materiais/apontamento (US-COMVIS-005): TODO.
-- **NF-e da peça + NFS-e da instalação** (US-COMVIS-008/009, NEW-003): os módulos fiscais existem no núcleo, mas nada liga a OS da gráfica a eles. Custo real da OS (pós-cálculo, US-COMVIS-005): a leitura existe no Producao para `pcp_ordens`; a OS da CV ainda não se liga por item.
+- **NF-e da peça + NFS-e da instalação** (US-COMVIS-008/009, NEW-003): os módulos fiscais existem no núcleo, mas nada liga a OS da gráfica a eles. Custo real da OS (pós-cálculo, US-COMVIS-005): desde 2026-10-27 a OS da CV tem a leitura JSON orçado × real e as duas margens (`PosCalculoDaOs`, flag `COMVIS_POS_CALCULO_ENABLED` desligada); faltam terceiros e a tela.
 - **PDF/WhatsApp do orçamento com aceite pelo link** e **aprovação de arte da OS da CV** (a aprovação de arte por link existe no Producao para `pcp_ordens`, UC-FLX-02).
 
 **Dependências reais:** UltimatePOS core (auth, `business_id`, permissões `comvis.*`, install 1-click, sidebar); `Modules/Producao` (produção da OS); `Modules/Whatsapp` (aviso da instalação); `App\Support\Privacy\PiiRedactor`; `App\Util\OtelHelper`. FSM canon (`app/Domain/Fsm/`) referenciado no schema mas **não consumido** em runtime.
