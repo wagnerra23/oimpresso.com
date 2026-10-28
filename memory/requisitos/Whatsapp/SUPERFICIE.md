@@ -14,7 +14,7 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` + `resources/js/Pages/Atendimento/**` (namespaces Inertia `Whatsapp`, `Atendimento`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Whatsapp` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 465 arquivos em 20 papéis.
+**Total mapeado:** 466 arquivos em 20 papéis.
 
 ## Controllers — 26
 
@@ -63,7 +63,7 @@ module: Whatsapp
 - [VerifyWhatsmeowSignature.php](../../../Modules/Whatsapp/Http/Middleware/VerifyWhatsmeowSignature.php)
 - [VerifyZapiSignature.php](../../../Modules/Whatsapp/Http/Middleware/VerifyZapiSignature.php)
 
-## Services — 54
+## Services — 55
 
 - [AudioTranscriber.php](../../../Modules/Whatsapp/Services/Audio/Contracts/AudioTranscriber.php)
 - [WhisperTranscriber.php](../../../Modules/Whatsapp/Services/Audio/WhisperTranscriber.php)
@@ -112,6 +112,7 @@ module: Whatsapp
 - [SlashCommandParser.php](../../../Modules/Whatsapp/Services/Notes/SlashCommandParser.php)
 - [SlashCommandRegistry.php](../../../Modules/Whatsapp/Services/Notes/SlashCommandRegistry.php)
 - [SlashCommandResult.php](../../../Modules/Whatsapp/Services/Notes/SlashCommandResult.php)
+- [AvisoAoClientePeloNotificador.php](../../../Modules/Whatsapp/Services/Notify/AvisoAoClientePeloNotificador.php)
 - [NotificadorClienteWhatsapp.php](../../../Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php)
 - [ResultadoNotificacao.php](../../../Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php)
 - [ReguaDeRelacionamento.php](../../../Modules/Whatsapp/Services/Regua/ReguaDeRelacionamento.php)
