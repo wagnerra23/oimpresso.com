@@ -21,7 +21,7 @@ uses(Tests\TestCase::class);
  * Cobre:
  *   1. actions() retorna stages_pipeline com lista ordenada por sort_order
  *   2. Stage current marcado is_current=true; outros false
- *   3. Multi-tenant Tier 0 — stages do process biz=99 NAO aparecem em request biz=1
+ *   3. Multi-tenant Tier 0 — stages do process biz=99 NAO aparecem em request biz=98
  *   4. Empty: OS sem current_stage_id retorna stages_pipeline vazio (in_pipeline=false)
  *
  * Pattern: skip SQLite (ADR 0101).
@@ -31,7 +31,7 @@ uses(Tests\TestCase::class);
  * @see memory/sessions/2026-05-20-arte-tela-fsm-workflow.md (Gap #2)
  */
 
-const BIZ_PIPELINE_TEST = 1;
+const BIZ_PIPELINE_TEST = 98; // tenant fictício canônico (ADR 0358) — era biz=98, empresa real
 const BIZ_PIPELINE_FICTICIO = 99;
 
 beforeEach(function () {
@@ -97,14 +97,22 @@ function ospCreateOs(int $bizId, ?int $stageId = null): ServiceOrder
         'plate'        => 'OSP' . substr((string) random_int(1000, 9999), 0, 4),
         'vehicle_type' => 'caminhao',
     ]);
-    return ServiceOrder::withoutGlobalScopes()->create([
+    // forceFill, não create(): `current_stage_id` não está no $fillable do ServiceOrder
+    // (nunca esteve — conferido nas 16 versões do model). Com create() o valor era
+    // descartado em silêncio, a OS nascia fora do pipeline e actions() caía no ramo
+    // in_pipeline=false. É INSERT, então a trava GuardsFsmTransitions (só `updating`)
+    // não se aplica — a fixture continua sem burlar o gateway de transição.
+    $os = new ServiceOrder();
+    $os->forceFill([
         'business_id'      => $bizId,
         'vehicle_id'       => $vehicle->id,
         'order_type'       => 'manutencao', // locação erradicada (ADR 0265); incidental — roteamento FSM é via current_stage_id
         'status'           => 'aberta',
         'entered_at'       => now(),
         'current_stage_id' => $stageId,
-    ]);
+    ])->save();
+
+    return $os;
 }
 
 function ospCleanup(int $bizId): void
@@ -115,8 +123,10 @@ function ospCleanup(int $bizId): void
         ->pluck('id');
     $stageIds = SaleProcessStage::whereIn('process_id', $procIds)->pluck('id');
 
-    Vehicle::withoutGlobalScopes()->where('business_id', $bizId)->where('plate', 'like', 'OSP%')->forceDelete();
-    ServiceOrder::withoutGlobalScopes()->where('business_id', $bizId)->forceDelete();
+    // Só as OS dos veículos OSP% deste teste — antes apagava TODAS as OS do tenant.
+    $vehicleIds = Vehicle::withoutGlobalScopes()->where('business_id', $bizId)->where('plate', 'like', 'OSP%')->pluck('id');
+    ServiceOrder::withoutGlobalScopes()->where('business_id', $bizId)->whereIn('vehicle_id', $vehicleIds)->forceDelete();
+    Vehicle::withoutGlobalScopes()->whereIn('id', $vehicleIds)->forceDelete();
     SaleProcessStage::whereIn('id', $stageIds)->delete();
     SaleProcess::whereIn('id', $procIds)->delete();
 }
@@ -159,20 +169,20 @@ it('2. is_current=true apenas no stage atual', function () {
     ospCleanup(BIZ_PIPELINE_TEST);
 });
 
-it('3. multi-tenant Tier 0 — biz=99 process nao vaza stages pra biz=1 OS', function () {
+it('3. multi-tenant Tier 0 — biz=99 process nao vaza stages pra biz=98 OS', function () {
     session(['user.business_id' => BIZ_PIPELINE_TEST]);
 
-    // biz=1 cria process e OS no stage locada
-    ['stages' => $stagesB1] = ospSetupProcess(BIZ_PIPELINE_TEST);
-    $os = ospCreateOs(BIZ_PIPELINE_TEST, $stagesB1['locada']->id);
+    // biz=98 cria process e OS no stage locada
+    ['stages' => $stagesB98] = ospSetupProcess(BIZ_PIPELINE_TEST);
+    $os = ospCreateOs(BIZ_PIPELINE_TEST, $stagesB98['locada']->id);
 
-    // biz=99 cria SEU próprio process — não deve aparecer no stages_pipeline da OS biz=1
+    // biz=99 cria SEU próprio process — não deve aparecer no stages_pipeline da OS biz=98
     ['stages' => $stagesB99] = ospSetupProcess(BIZ_PIPELINE_FICTICIO);
 
     $controller = app(ServiceOrderFsmActionController::class);
     $payload = $controller->actions($os)->getData(true);
 
-    expect($payload['stages_pipeline'])->toHaveCount(4); // só os 4 stages do process biz=1
+    expect($payload['stages_pipeline'])->toHaveCount(4); // só os 4 stages do process biz=98
     $stageIds = array_column($payload['stages_pipeline'], 'key');
     expect($stageIds)->toBe(['disponivel', 'locada', 'recolhida', 'manutencao']);
 
@@ -180,9 +190,9 @@ it('3. multi-tenant Tier 0 — biz=99 process nao vaza stages pra biz=1 OS', fun
     $biz99StageIds = collect($stagesB99)->pluck('id')->all();
     foreach ($payload['stages_pipeline'] as $s) {
         // Não vamos comparar IDs — payload não retorna id, só key.
-        // Aqui validamos que o process foi o do biz=1: cada stage do payload
+        // Aqui validamos que o process foi o do biz=98: cada stage do payload
         // existe no array biz1 stages.
-        $matches = collect($stagesB1)->contains(fn ($stage) => $stage->key === $s['key']);
+        $matches = collect($stagesB98)->contains(fn ($stage) => $stage->key === $s['key']);
         expect($matches)->toBeTrue();
     }
 })->afterEach(function () {
