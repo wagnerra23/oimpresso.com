@@ -18,7 +18,7 @@ const SUBS = [
   '  - Etiquetas: valor, part, cv',
 ].join('\n');
 
-test('as seis grafias de backlog em uso dão o mesmo título', () => {
+test('as sete grafias de backlog em uso dão o mesmo título', () => {
   const grafias = [
     '- **[BACKLOG] Sinal de entrada na linha** `[V0]` — detalha o sinal',
     '- **[BACKLOG]** Sinal de entrada na linha (pedido de 2026-10-23) `[V0]` — Dado',
@@ -26,6 +26,7 @@ test('as seis grafias de backlog em uso dão o mesmo título', () => {
     '- `[BACKLOG]` **Sinal de entrada na linha** `[V0]` — Dado',
     '- **[BACKLOG · ⬜ sem teste] Sinal de entrada na linha** (pedido de 2026-10-23) `[V0]` — Dado',
     '- **Sinal de entrada na linha** (pedido de 2026-10-27, US-PROD-032) `[V0]` — Dado',
+    '- **[BACKLOG · ⬜ sem teste · decisão [W]] Sinal de entrada na linha** — pedido da Fixar',
   ];
   for (const g of grafias) assert.equal(tituloDoBullet(g), 'Sinal de entrada na linha', g);
 });

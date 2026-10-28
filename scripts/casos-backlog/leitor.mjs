@@ -34,8 +34,10 @@ export function arquivosCasos(raiz) {
 /** Título legível a partir da primeira linha de um bullet de backlog, sem os marcadores. */
 export function tituloDoBullet(linha) {
   let s = linha.replace(/^\s*- /, '');
-  s = s.replace(/^\*\*\[BACKLOG[^\]]*\]\*\*\s*/, '').replace(/^\*\*\[BACKLOG[^\]]*\]\s*/, '**')
-    .replace(/^`\[BACKLOG\]`\s*/, '').replace(/^\[BACKLOG[^\]]*\]\s*/, '');
+  // O marcador pode ter colchete dentro: `[BACKLOG · ⬜ sem teste · decisão [W]]`.
+  const MARCADOR = /\[BACKLOG(?:[^[\]]|\[[^\]]*\])*\]/.source;
+  s = s.replace(new RegExp('^\\*\\*' + MARCADOR + '\\*\\*\\s*'), '').replace(new RegExp('^\\*\\*' + MARCADOR + '\\s*'), '**')
+    .replace(/^`\[BACKLOG\]`\s*/, '').replace(new RegExp('^' + MARCADOR + '\\s*'), '');
   const corte = s.indexOf(' — ');
   if (corte > 0) s = s.slice(0, corte);
   s = s.replace(/`\[(V0|E0|T0)\]`/g, '').replace(/\*\*/g, '');
