@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1068 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1069 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -39,8 +39,8 @@
 | [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
+| [`Produto`](#produto) | 12 | 0 | 0 | 0 | 12 |
 | [`Superadmin`](#superadmin) | 12 | 0 | 0 | 0 | 12 |
-| [`Produto`](#produto) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
@@ -1222,6 +1222,24 @@
 - **US-PONT-011** — Ver detalhe de Importacao
 - **US-PONT-012** — Listar Relatorio
 
+## Produto
+
+
+### todo
+
+- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
+- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
+- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
+- **US-PROD-023** — [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draft→live) + ligar a Consulta na navegação _(`p1` · @wagner)_
+- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
+- **US-PROD-031** — Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha _(`p1`)_
+- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
+- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
+- **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
+- **US-PROD-030** — ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço _(`p2` · @wagner)_
+- **US-PROD-032** — ⚠️Tier0 · Formação de preço: imposto do Simples, comissão e lucro tirados do preço de venda _(`p2`)_
+- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
+
 ## Superadmin
 
 
@@ -1239,23 +1257,6 @@
 - **US-SUPER-009** — Pricing público (`/pricing`)
 - **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
 - **US-SUPER-011** — Visão geral da plataforma (`/superadmin`)
-
-## Produto
-
-
-### todo
-
-- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
-- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
-- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
-- **US-PROD-023** — [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draft→live) + ligar a Consulta na navegação _(`p1` · @wagner)_
-- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
-- **US-PROD-031** — Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha _(`p1`)_
-- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
-- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
-- **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
-- **US-PROD-030** — ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço _(`p2` · @wagner)_
-- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
 
 ## Cms
 
