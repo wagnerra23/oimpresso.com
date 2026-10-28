@@ -60,6 +60,10 @@ class ExtratoLancamento extends Model
         'match_score',
         'conciliado_by',
         'conciliado_at',
+        // Fase 2 ADR 0236 — origem + chave unificada (StatementPersister, US-FIN-084).
+        'origem',
+        'external_id',
+        'source_file',
     ];
 
     protected $casts = [
