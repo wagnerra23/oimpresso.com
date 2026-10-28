@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Vestuario\Http\Controllers\CurvaCompraController;
 use Modules\Vestuario\Http\Controllers\EtiquetaTagController;
 use Modules\Vestuario\Http\Controllers\InstallController;
+use Modules\Vestuario\Http\Controllers\RemarcacaoController;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rotas Install 1-click (ADR 0024 / BaseModuleInstallController).
@@ -41,4 +42,17 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
     ->name('vestuario.')
     ->group(function () {
         Route::get('curva-compra', [CurvaCompraController::class, 'show'])->name('curva-compra');
+    });
+
+// ── US-VEST-032 · remarcação por coleção (decisão [W] 2026-10-27) ──
+// Desligada por padrão: setting `remarcacao.enabled` do Vestuário (sem ele, 404). Prévia antes de gravar.
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('vestuario/remarcacao')
+    ->name('vestuario.remarcacao.')
+    ->group(function () {
+        Route::get('/', [RemarcacaoController::class, 'index'])->name('index');
+        Route::post('previa', [RemarcacaoController::class, 'previa'])->name('previa');
+        Route::post('/', [RemarcacaoController::class, 'store'])->name('store');
+        Route::post('{lote}/reverter', [RemarcacaoController::class, 'reverter'])->whereNumber('lote')->name('reverter');
+        Route::get('{lote}/etiquetas', [RemarcacaoController::class, 'etiquetas'])->whereNumber('lote')->name('etiquetas');
     });

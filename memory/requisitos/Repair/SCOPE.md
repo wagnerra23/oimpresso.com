@@ -27,8 +27,7 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /repair/*
-  - /repair-status (consulta publica)
-  - /post-repair-status (consulta publica)
+  - /repair-status (consulta publica — redireciona ao /consulta-os)
 drift_alerts: []
 ---
 

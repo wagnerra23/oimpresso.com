@@ -47,7 +47,8 @@ servidor, filtros de situação e versão, drawer de configuração e "Bloquear 
 
 - ❌ Não serializa o model `Business` — a prop é DTO de 8 campos (empresas-parity item 28).
 - ❌ Não lê `business.dt_ultimo_acesso` — não tem escritor; o último acesso vem de `licenca_computador`.
-- ❌ Não liga a flag `useV2OfficeimpressoEmpresas` por default: ligar em produção é cutover do [W].
+- ❌ Não volta a ter caminho dual: a flag `useV2OfficeimpressoEmpresas` e o Blade `businessall` saíram no
+  cutover ([W] 2026-10-27, RUNBOOK-empresas §F5). Antes disso a flag nasceu OFF e ficou ligada por default desde 2026-10-13.
 
 ## Divergência declarada
 

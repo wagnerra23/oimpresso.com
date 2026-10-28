@@ -53,7 +53,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       enableSorting: false,
       meta: { width: 96, resizable: false },
       cell: ({ row }) => (
-        <AcoesProduto linha={row.original} permissoes={permissions} gruposDePreco={contexto.grupos_de_preco} aoEscolher={aoEscolher} />
+        <AcoesProduto linha={row.original} permissoes={permissions} gruposDePreco={contexto.grupos_de_preco} emiteNota={contexto.emite_nota} aoEscolher={aoEscolher} />
       ),
     },
   ];

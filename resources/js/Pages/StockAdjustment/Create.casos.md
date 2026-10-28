@@ -4,7 +4,7 @@ irmaos: Create.charter.md (lei) · Create.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o ajuste baixa saldo; o formulário não pode oferecer filial de outra empresa nem abrir para quem não pode lançar.
 owner: wagner
-last_run: "2026-10-11"
+last_run: "2026-10-27"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
 
@@ -40,6 +40,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Teste:** `EstoqueAjusteStoreTest` — `UC-AJCRT-04`.
 - **Contrato:** DOC-RAIZ-ESTOQUE §2 (o saldo é por variação × local).
 - **Status: ⬜**
+
+## UC-AJCRT-05 · A tela escolhe o produto de verdade e manda o pedido no formato do `store()` `[V0]` `[must]`
+- **Persona:** quem cuida do estoque e lança perda ou quebra.
+- **Aceite:** Dado o local escolhido · Quando busco o produto (mesma busca `/products/list` da Blade, no local) e escolho a variação · Então a linha vem de `GET /stock-transfers/produto-linha` com o saldo daquele local e o último custo, e não aceita quantidade acima do saldo (ou do lote), zero, fração em unidade inteira nem a mesma variação duas vezes. Ao salvar, quantidade, custo e valor recuperado saem com vírgula decimal e sem milhar (`paraNumUf`), e `final_total` sai com ponto em 2 casas (entra cru). Trocar o local limpa as linhas.
+- **Teste:** [`tests/js/estoque-linhas-dominio.test.ts`](../../../../tests/js/estoque-linhas-dominio.test.ts) — o caso `UC-AJCRT-05`. O segundo caminho é o `EstoqueAjusteStoreTest` (UC-AJCRT-03), que grava esse formato no MySQL e confere a baixa.
+- **Regressão que defende:** até 2026-10-27 a tela, aberta por padrão pelo menu desde o #9096, criava linha de texto livre com `product_id` nulo: não havia como ajustar um produto real pelo React.
+- **Status: 🧪**
 
 ## Backlog
 - [BACKLOG] `store()` não confere se `location_id` é do business da sessão; a filial chega do formulário e vai direto para `decreaseProductQuantity`. Grava quantidade: decisão [W].

@@ -353,7 +353,17 @@ class StockTransferController extends Controller
 
         BusinessLocation::where('business_id', $business_id)->where('id', $location_id)->firstOrFail();
 
-        $product = $this->productUtil->getDetailsFromVariation($variation_id, $business_id, $location_id);
+        return response()->json($this->dadosDaLinha($business_id, $variation_id, $location_id, true));
+    }
+
+    /**
+     * Os campos de uma linha (produto, saldo NO local, custo, unidades, lotes) — o formato de
+     * `linhaDoProduto` e de cada linha da edição. `$check_qty` é o de `getDetailsFromVariation`:
+     * true na linha nova (sem saldo no local cai no `firstOrFail`), false na edição (como a Blade).
+     */
+    private function dadosDaLinha(int $business_id, int $variation_id, int $location_id, bool $check_qty): array
+    {
+        $product = $this->productUtil->getDetailsFromVariation($variation_id, $business_id, $location_id, $check_qty);
         $product_id = (int) $product->getAttribute('product_id');
         $unit_id = (int) $product->getAttribute('unit_id');
 
@@ -367,8 +377,8 @@ class StockTransferController extends Controller
             ];
         }
 
-        $usa_lote = (int) $request->session()->get('business.enable_lot_number') === 1;
-        $usa_validade = (int) $request->session()->get('business.enable_product_expiry') === 1;
+        $usa_lote = (int) request()->session()->get('business.enable_lot_number') === 1;
+        $usa_validade = (int) request()->session()->get('business.enable_product_expiry') === 1;
         $lotes = [];
         if ($usa_lote || $usa_validade) {
             // O docblock legado de getLotNumbersFromVariation diz "@return bool"; ela devolve a coleção.
@@ -386,7 +396,7 @@ class StockTransferController extends Controller
             }
         }
 
-        return response()->json([
+        return [
             'product_id' => $product_id,
             'variation_id' => (int) $product->getAttribute('variation_id'),
             'nome' => (string) $product->getAttribute('product_name'),
@@ -402,7 +412,7 @@ class StockTransferController extends Controller
             'usa_lote' => $usa_lote,
             'usa_validade' => $usa_validade,
             'lotes' => $lotes,
-        ]);
+        ];
     }
 
     private function stockTransferStatuses()
@@ -893,6 +903,11 @@ class StockTransferController extends Controller
      */
     public function edit($id)
     {
+        // Mesma permissão do `update()`, que é quem grava.
+        if (! auth()->user()->can('purchase.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         $business_locations = BusinessLocation::forDropdown($business_id);
@@ -937,8 +952,70 @@ class StockTransferController extends Controller
             $products[] = $product;
         }
 
+        // A tela é a Page React; a Blade só com `?classico=1` até o cutover da transferência.
+        if (! request()->boolean('classico')) {
+            return $this->editInertia($business_id, $sell_transfer, $purchase_transfer, $business_locations, $statuses);
+        }
+
         return view('stock_transfer.edit')
                 ->with(compact('sell_transfer', 'purchase_transfer', 'business_locations', 'statuses', 'products'));
+    }
+
+    /**
+     * Edição em React. Tier 0: `$sell_transfer` e `$purchase_transfer` já vêm filtrados pelo
+     * business da sessão em `edit()`. As linhas usam os dados da linha nova (`dadosDaLinha`, sem
+     * exigir saldo, como a Blade) mais o que está gravado: quantidade (gravada na unidade base,
+     * exibida na unidade da linha), sub-unidade, lote e a linha de venda. O custo segue a Blade:
+     * último custo de compra × multiplicador, não o preço gravado.
+     */
+    private function editInertia(int $business_id, Transaction $sell_transfer, ?Transaction $purchase_transfer, $business_locations, array $statuses)
+    {
+        $user = auth()->user();
+
+        $linhas = [];
+        // getRelation em vez da propriedade mágica: mesma coleção já carregada em `edit()`,
+        // sem somar mais um `$sell_lines` não tipado ao baseline do PHPStan.
+        foreach ($sell_transfer->getRelation('sell_lines') as $sell_line) {
+            $dados = $this->dadosDaLinha($business_id, (int) $sell_line->variation_id, (int) $sell_transfer->location_id, false);
+            $sub_unit_id = ! empty($sell_line->sub_unit_id) && (int) $sell_line->sub_unit_id !== $dados['unit_id']
+                ? (int) $sell_line->sub_unit_id
+                : null;
+            $multiplicador = 1.0;
+            foreach ($dados['sub_unidades'] as $sub) {
+                if ($sub_unit_id !== null && $sub_unit_id === $sub['id'] && $sub['multiplicador'] > 0) {
+                    $multiplicador = $sub['multiplicador'];
+                }
+            }
+            $linhas[] = [
+                'dados' => $dados,
+                'quantidade' => (float) $sell_line->quantity / $multiplicador,
+                'custo' => $dados['custo'] * $multiplicador,
+                'sub_unit_id' => $sub_unit_id,
+                'lot_no_line_id' => ! empty($sell_line->lot_no_line_id) ? (int) $sell_line->lot_no_line_id : null,
+                'transaction_sell_lines_id' => (int) $sell_line->id,
+            ];
+        }
+
+        return Inertia::render('StockTransfer/Edit', [
+            'transferencia' => [
+                'id' => (int) $sell_transfer->id,
+                'ref_no' => (string) $sell_transfer->ref_no,
+                'transaction_date' => \Carbon\Carbon::parse($sell_transfer->transaction_date)->format('Y-m-d H:i'),
+                'status' => (string) $sell_transfer->status,
+                'location_id' => (int) $sell_transfer->location_id,
+                'transfer_location_id' => $purchase_transfer ? (int) $purchase_transfer->location_id : null,
+                'additional_notes' => (string) ($sell_transfer->additional_notes ?? ''),
+                'shipping_charges' => (float) $sell_transfer->shipping_charges,
+                'linhas' => $linhas,
+            ],
+            'business_locations' => $business_locations,
+            'statuses' => $statuses,
+            'permissions' => [
+                'view_purchase_price' => $user->can('view_purchase_price'),
+                // UI-only, como no Create: decide só o `readonly` do custo (US-GOV-059).
+                'edit_price' => $user->can('edit_purchase_price'),
+            ],
+        ]);
     }
 
     /**
@@ -1003,7 +1080,9 @@ class StockTransferController extends Controller
 
             $input_data['total_before_tax'] = $input_data['final_total'];
 
-            $input_data['transaction_date'] = $this->productUtil->uf_date($input_data['transaction_date'], true);
+            // Como no `store()`: a tela React manda ISO, a Blade o formato da empresa.
+            // `uf_datetime_input` aceita os dois. Não mexe em valor nem em estoque.
+            $input_data['transaction_date'] = $this->productUtil->uf_datetime_input($input_data['transaction_date']);
             $input_data['shipping_charges'] = $this->productUtil->num_uf($input_data['shipping_charges']);
             $input_data['status'] = $status == 'completed' ? 'final' : $status;
 

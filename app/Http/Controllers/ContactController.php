@@ -3120,7 +3120,12 @@ class ContactController extends Controller
         $format = request()->format;
         $location_id = request()->location_id;
 
-        $contact = Contact::find($contact_id);
+        // Contato de outra empresa (ou inexistente): 404. Sem o business_id o extrato
+        // devolvia nome, celular e e-mail do contato de outro tenant (Tier 0, ADR 0093).
+        $contact = Contact::where('business_id', $business_id)->find($contact_id);
+        if ($contact === null) {
+            abort(404);
+        }
 
         $is_selected_contacts = User::isSelectedContacts(auth()->user()->id);
         $user_contacts = [];
@@ -3269,6 +3274,14 @@ class ContactController extends Controller
             return $notAllowed;
         }
 
+        // Mesma trava do getLedger, fora do try (o catch genérico engoliria o 404):
+        // sem ela o e-mail levava nome e tags do contato de outra empresa.
+        $contact = Contact::where('business_id', request()->session()->get('business.id'))
+            ->find($request->input('contact_id'));
+        if ($contact === null) {
+            abort(404);
+        }
+
         try {
             $data = $request->only(['to_email', 'subject', 'email_body', 'cc', 'bcc', 'ledger_format']);
             $emails_array = array_map('trim', explode(',', $data['to_email']));
@@ -3279,8 +3292,6 @@ class ContactController extends Controller
             $start_date = request()->input('start_date');
             $end_date = request()->input('end_date');
             $location_id = request()->input('location_id');
-
-            $contact = Contact::find($contact_id);
 
             $ledger_details = $this->transactionUtil->getLedgerDetails($contact_id, $start_date, $end_date, $data['ledger_format'], $location_id);
 
