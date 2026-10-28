@@ -15,7 +15,7 @@ uses(Tests\TestCase::class);
 // @covers-us US-SUPER-005
 
 /**
- * Contrato da tela `/superadmin/frontend-pages?tela=nova` — thread Superadmin/08 (Blade → Inertia).
+ * Contrato da tela `/superadmin/frontend-pages` — thread Superadmin/08 (Blade → Inertia), cutover 2026-10-27.
  * UCs: Modules/Superadmin/Resources/js/Pages/superadmin/Paginas/Index.casos.md
  *
  * A tabela é global (sem business_id). Cada caso cria páginas com slug único e apaga no fim.
@@ -75,27 +75,31 @@ function pagInertia(): array
     return ['X-Inertia' => 'true', 'X-Inertia-Version' => (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request())];
 }
 
-it('UC-SAPAG-01 · com ?tela=nova responde Inertia; sem a chave segue a Blade', function () {
+it('UC-SAPAG-01 · a tela React é o padrão e as telas Blade de criar/editar não existem mais', function () {
     $su = pagUsuario('pag_superadmin_test', true);
+    $p = pagCriar('rotas');
 
-    $this->actingAs($su)->get(ROTA_PAG . '?tela=nova')
+    $this->actingAs($su)->get(ROTA_PAG)
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page->component('superadmin/Paginas/Index'));
 
-    $this->actingAs($su)->get(ROTA_PAG)->assertOk()->assertViewIs('superadmin::pages.index');
+    // Sem rota GET: `/create` casa com o PUT/DELETE de `/{id}` e responde 405; `/{id}/edit`, 404.
+    // As duas formas provam a mesma coisa — não existe mais tela Blade de criar nem de editar.
+    expect($this->actingAs($su)->get(ROTA_PAG . '/create')->getStatusCode())->toBeIn([404, 405]);
+    expect($this->actingAs($su)->get(ROTA_PAG . '/' . $p->id . '/edit')->getStatusCode())->toBeIn([404, 405]);
 });
 
 it('UC-SAPAG-02 · usuário comum é barrado enquanto o superadmin passa', function () {
-    $barrado = $this->actingAs(pagUsuario('pag_comum_test', false))->get(ROTA_PAG . '?tela=nova');
+    $barrado = $this->actingAs(pagUsuario('pag_comum_test', false))->get(ROTA_PAG);
     expect($barrado->getStatusCode())->toBeIn([302, 403]);
 
-    $this->actingAs(pagUsuario('pag_superadmin_test', true))->get(ROTA_PAG . '?tela=nova')->assertOk();
+    $this->actingAs(pagUsuario('pag_superadmin_test', true))->get(ROTA_PAG)->assertOk();
 });
 
 it('UC-SAPAG-03 · a lista traz a página com resumo sem marcação', function () {
     $p = pagCriar('lista');
 
-    $resposta = $this->actingAs(pagUsuario('pag_superadmin_test', true))->get(ROTA_PAG . '?tela=nova', pagInertia() + [
+    $resposta = $this->actingAs(pagUsuario('pag_superadmin_test', true))->get(ROTA_PAG, pagInertia() + [
         'X-Inertia-Partial-Data' => 'paginas',
         'X-Inertia-Partial-Component' => 'superadmin/Paginas/Index',
     ]);
@@ -119,7 +123,7 @@ it('UC-SAPAG-04 · slug repetido é recusado no campo e não duplica', function 
     expect(SuperadminFrontendPage::where('slug', $p->slug)->count())->toBe(1);
 });
 
-it('UC-SAPAG-05 · editar pela tela nova grava e volta para ?tela=nova', function () {
+it('UC-SAPAG-05 · editar pela tela grava e volta para a lista', function () {
     $p = pagCriar('edita');
 
     $resposta = $this->actingAs(pagUsuario('pag_superadmin_test', true))
@@ -128,7 +132,7 @@ it('UC-SAPAG-05 · editar pela tela nova grava e volta para ?tela=nova', functio
         ], pagInertia());
 
     $resposta->assertRedirect();
-    expect((string) $resposta->headers->get('Location'))->toContain('tela=nova');
+    expect((string) $resposta->headers->get('Location'))->toEndWith(ROTA_PAG);
 
     $gravado = SuperadminFrontendPage::find($p->id);
     expect($gravado->title)->toBe('Título novo UC-SAPAG-05');
@@ -136,13 +140,13 @@ it('UC-SAPAG-05 · editar pela tela nova grava e volta para ?tela=nova', functio
     expect((int) $gravado->menu_order)->toBe(3);
 });
 
-it('UC-SAPAG-06 · excluir pela tela nova remove a página e volta para ?tela=nova', function () {
+it('UC-SAPAG-06 · excluir pela tela remove a página e volta para a lista', function () {
     $p = pagCriar('apaga');
 
     $resposta = $this->actingAs(pagUsuario('pag_superadmin_test', true))
         ->delete(ROTA_PAG . '/' . $p->id, [], pagInertia());
 
     $resposta->assertRedirect();
-    expect((string) $resposta->headers->get('Location'))->toContain('tela=nova');
+    expect((string) $resposta->headers->get('Location'))->toEndWith(ROTA_PAG);
     expect(SuperadminFrontendPage::whereKey($p->id)->exists())->toBeFalse();
 });

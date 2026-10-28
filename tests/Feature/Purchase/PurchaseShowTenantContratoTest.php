@@ -177,6 +177,22 @@ it('UC-PURSHW-01 (A · controle positivo) o detalhe da PROPRIA compra responde 2
     );
 });
 
+it('UC-PURSHW-01 (C · cutover 2026-10-27) o AJAX sem X-Inertia, que antes recebia o modal Blade, recebe a tela React', function () {
+    $id = purshwCriarCompra(PURSHW_TENANT, $this->location, $this->user->id, PURSHW_TOTAL_GRAVADO);
+
+    // A mesma requisição que o modal `.view_modal` do jQuery fazia: XHR sem header Inertia.
+    // Até o cutover ela devolvia a view `purchase.show`; a view foi apagada.
+    $r = $this->actingAs($this->user)
+        ->withSession(['user' => ['business_id' => PURSHW_TENANT, 'id' => $this->user->id]])
+        ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+        ->get("/purchases/{$id}");
+
+    $r->assertOk();
+    $r->assertInertia(fn (\Inertia\Testing\AssertableInertia $p) => $p
+        ->component('Purchase/Show', false)
+        ->where('purchase.id', $id));
+});
+
 it('UC-PURSHW-01 (B · contrato T0) o detalhe de compra de OUTRO business responde 404', function () {
     $alheia = DB::table('business_locations')
         ->where('business_id', '!=', PURSHW_TENANT)
