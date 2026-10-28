@@ -713,7 +713,11 @@ class ServiceOrderController extends Controller
                 // que já existe no equivalente Modules/Repair/ProducaoOficinaController
                 // (`buildVendaDerivadaPayload`). Quando trouxer pra OficinaAuto, extrair
                 // helper compartilhado pra App\Services\VendaDerivadaPayloadService.
+                // Multi-tenant Tier 0 (ADR 0093, UC-OSH-11): App\Transaction não tem escopo
+                // global, então o load('transaction:...') devolve a venda de qualquer empresa
+                // para onde o transaction_id apontar. Venda de outra empresa vira null aqui.
                 'venda_derivada' => $order->transaction
+                    && (int) $order->transaction->business_id === (int) $order->business_id
                     ? $this->shapeVendaDerivada($order->transaction)
                     : null,
                 'urls' => [
