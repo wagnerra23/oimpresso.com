@@ -31,18 +31,6 @@ Modules/OficinaAuto/Tests/Feature/ServiceOrderApprovalGateTest.php  # 403 com su
 Modules/OficinaAuto/Tests/Feature/ServiceOrderItemHttpIntegrationTest.php  # 403 com superadmin
 Modules/OficinaAuto/Tests/Feature/ServiceOrderEnviarAprovacaoTest.php  # 403 com superadmin
 #
-# B. Fixture grava em business/veículo que o seed da lane não tem (FK fk_vehicles_business,
-#    transactions_business_id_foreign, fk_so_vehicle). O seed tem os tenants 1/2/98.
-Modules/OficinaAuto/Tests/Feature/ServiceOrderItemTest.php  # FK para business/veículo inexistente no seed
-Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php  # FK para business/veículo inexistente no seed
-Modules/OficinaAuto/Tests/Feature/AprovacaoOsTokenTest.php  # FK para business/veículo inexistente no seed
-Modules/OficinaAuto/Tests/Feature/ServiceOrderIndexItemsTotalTest.php  # FK para business/veículo inexistente no seed
-Modules/OficinaAuto/Tests/Feature/EnviarLinkAprovacaoWhatsappJobTest.php  # FK para business/veículo inexistente no seed
-Modules/OficinaAuto/Tests/Feature/OficinaAutoCleanupCommandTest.php  # FK para business/veículo inexistente no seed
-Modules/OficinaAuto/Tests/Feature/ProducaoBoxFilterTest.php  # FK para business/veículo inexistente no seed
-Modules/OficinaAuto/Tests/Feature/ServiceOrderIndexStageFilterTest.php  # FK para business/veículo inexistente no seed
-Modules/OficinaAuto/Tests/Feature/E2EJourneyMartinhoBiz1Test.php  # FK para business/veículo inexistente no seed
-#
 # C. Contagem ou FSM dependem de estado que a lane não tem: biz=1 compartilhado com linhas
 #    de outros arquivos (ex.: "10 is identical to 2") e actions FSM da oficina não semeadas
 #    ("Action 'iniciar_diagnostico' não existe pra stage_id=").
