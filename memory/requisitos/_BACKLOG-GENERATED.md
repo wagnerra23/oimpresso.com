@@ -2,14 +2,14 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1073 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1072 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
-| [`Whatsapp`](#whatsapp) | 77 | 0 | 0 | 0 | 77 |
+| [`Whatsapp`](#whatsapp) | 78 | 0 | 0 | 0 | 78 |
 | [`Sells`](#sells) | 73 | 4 | 0 | 0 | 69 |
 | [`Financeiro`](#financeiro) | 58 | 6 | 1 | 0 | 51 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
@@ -32,9 +32,9 @@
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
-| [`Comissao`](#comissao) | 16 | 1 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
+| [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
@@ -244,6 +244,7 @@
 - **US-WA-326** — Régua de relacionamento por WhatsApp — aniversário e recompra
 - **US-WA-327** — Tela de configurar o menu do bot por canal
 - **US-WA-328** — Tela de configurar a régua de relacionamento da empresa
+- **US-WA-329** — Instagram Direct, Messenger e e-mail na mesma Caixa Unificada
 
 ## Sells
 
@@ -1088,31 +1089,6 @@
 - **US-ACCO-009** — Listar Reconcile
 - **US-ACCO-010** — Listar Report
 
-## Comissao
-
-
-### doing
-
-- **US-COMM-015** — Regra única de comissão: vendedor, produto ou categoria; % ou valor; técnico da OS como papel — **P2** _(`p2` · @wagner)_
-
-### todo
-
-- **US-COMM-016** — Relatório de comissão por vendedor pela regra: valor a pagar e detalhe por item — **P2** _(`p2`)_
-- **US-COMM-001** — Schema base + migration + multi-tenant scope — **P0**
-- **US-COMM-002** — Side-effect `CalcularComissaoSells` no `marcar_pago` — **P0**
-- **US-COMM-003** — Side-effect `EstornarComissao` no `cancelar_venda` (clawback) — **P0**
-- **US-COMM-004** — UI cadastro de policy + role distributions — **P0**
-- **US-COMM-005** — Tiers escalonados (3 faixas R$/% per user OU policy) — **P1**
-- **US-COMM-006** — Metas mensais + accelerator — **P1**
-- **US-COMM-007** — Comando `commission:close --month=YYYY-MM` (fechamento) — **P0**
-- **US-COMM-008** — UI relatório mensal per-vendedor (substitui ReportController legacy) — **P1**
-- **US-COMM-009** — Multi-papel split ComVis (vendedor+designer+instalador) — **P1**
-- **US-COMM-010** — Multi-mecânico split OficinaAuto (apontamentos por % mão-de-obra) — **P2**
-- **US-COMM-011** — Comissão sobre líquido (após taxa marketplace) — **P2**
-- **US-COMM-012** — Aprovação workflow + audit trail (manager review) — **P1**
-- **US-COMM-013** — Mobile self-service vendedor — **P2**
-- **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
-
 ## Essentials
 
 
@@ -1155,6 +1131,26 @@
 - **US-AP-013** — Diagnóstico assistido Jana IA ("qual peça pra Civic 2015 freio dianteiro?") — **P1**
 - **US-AP-014** — Cupom fiscal SAT (SP) — **P2**
 - **US-AP-015** — E-commerce mini-loja (catálogo digital + pedido online) — **P2**
+
+## Comissao
+
+
+### todo
+
+- **US-COMM-001** — Schema base + migration + multi-tenant scope — **P0**
+- **US-COMM-002** — Side-effect `CalcularComissaoSells` no `marcar_pago` — **P0**
+- **US-COMM-003** — Side-effect `EstornarComissao` no `cancelar_venda` (clawback) — **P0**
+- **US-COMM-004** — UI cadastro de policy + role distributions — **P0**
+- **US-COMM-005** — Tiers escalonados (3 faixas R$/% per user OU policy) — **P1**
+- **US-COMM-006** — Metas mensais + accelerator — **P1**
+- **US-COMM-007** — Comando `commission:close --month=YYYY-MM` (fechamento) — **P0**
+- **US-COMM-008** — UI relatório mensal per-vendedor (substitui ReportController legacy) — **P1**
+- **US-COMM-009** — Multi-papel split ComVis (vendedor+designer+instalador) — **P1**
+- **US-COMM-010** — Multi-mecânico split OficinaAuto (apontamentos por % mão-de-obra) — **P2**
+- **US-COMM-011** — Comissão sobre líquido (após taxa marketplace) — **P2**
+- **US-COMM-012** — Aprovação workflow + audit trail (manager review) — **P1**
+- **US-COMM-013** — Mobile self-service vendedor — **P2**
+- **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
 
 ## PaymentGateway
 

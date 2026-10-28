@@ -589,6 +589,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/home', fn () => redirect('/dashboard-legacy', 302))->name('home');
     Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
+    // Onboarding guiado (US-SUPER-012) — pular/voltar passo, dispensar/retomar o card. Flag onboardingPrimeirosPassos.
+    Route::post('/home/primeiros-passos', [HomeController::class, 'primeirosPassos'])->name('home.primeiros-passos');
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);
     Route::get('/home/purchase-payment-dues', [HomeController::class, 'getPurchasePaymentDues']);
     Route::get('/home/sales-payment-dues', [HomeController::class, 'getSalesPaymentDues']);
