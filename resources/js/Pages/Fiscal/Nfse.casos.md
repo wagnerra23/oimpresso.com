@@ -247,6 +247,27 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
 - **[BACKLOG · ⬜ sem teste] A busca aceita número, código de verificação, nome e documento do tomador** — sem teste do resultado.
 - **[BACKLOG · ⬜ sem teste] O filtro de competência restringe as linhas ao mês escolhido** — só o caminho de mês **inválido** tem teste; o caminho feliz não.
 - **[BACKLOG · ⬜ sem teste · débito de schema] O município da prestação aparece na linha** — a coluna **não existe** no schema em produção (duelo de duas migrations para a mesma tabela, resolvido revertendo o Controller para o schema antigo e traduzindo os estados). Hoje o campo volta vazio por desenho. Ver SDD §5.2.
+- **[BACKLOG · ⬜ sem teste] Venda lançada com produto, mas o cliente pede nota de serviço** `[V0]` — pedido da
+  Fixar, 2026-10-28. Dado uma venda de placas sob encomenda lançada com itens cadastrados como produto, com
+  tributação de produto, que ficou dias em aberto, Quando o cliente fecha e pede a nota de serviço para pagar,
+  Então o sistema mostra, antes de emitir, que esses itens saem em NF-e porque a natureza fiscal deles é
+  mercadoria, e oferece o caminho certo: se a operação é mesmo serviço sob encomenda, o contador corrige a
+  natureza do produto (serviço, com o item da LC 116 e a fonte) e a venda passa a sair em NFS-e sem ser
+  refeita, porque a emissão lê a natureza na hora de faturar (`SeparacaoNotasDaVenda`); se a operação é venda
+  de mercadoria, a nota continua sendo NF-e, mesmo que o cliente prefira a de serviço. A venda mostra a
+  natureza de cada item desde o lançamento, para o vendedor ver antes de o cliente pedir a nota.
+  **Depende do [W]:** pela D-NATUREZA ([W] 2026-10-06, US-NFE-068 · R-NFE-034), a natureza é do produto e só o
+  contador decide. Falta decidir se quem fatura pode trocar a natureza só daquele item da venda, com
+  justificativa e registro, para o produto que às vezes é revenda e às vezes encomenda. A proposta é manter só
+  o contador, no cadastro, com o aviso na venda e o atalho para ele; o caminho seguro para o item misto são
+  dois cadastros (mercadoria e serviço).
+  Hoje: a natureza por produto existe (`nfe_naturezas_produto`) e a NF-e recusa item de serviço
+  (`NfeService::recusarItensDeServico`); a separação da venda já calcula (UC-FNFSE-06..12), mas a NFS-e a
+  partir da venda ainda depende da US-NFE-060; a venda não mostra a natureza dos itens nem permite trocá-la.
+  Fontes: Bling decide pelo tipo do cadastro, Omie pelo documento (pedido vira NF-e, ordem de serviço vira
+  NFS-e), Conta Azul exige duas vendas; nenhum documenta a troca numa venda já lançada. Regra fiscal: decide a
+  natureza real da operação, não o pedido do cliente (LC 116/2003, itens 13.05 e 24.01; Súmula 156 do STJ;
+  SEFAZ-PR, Consulta 36/2010). Mexe em imposto: Regra Mestre. Verificado contra as regras do [W] em 2026-10-28.
 
 ## Como rodar a suíte
 
@@ -263,3 +284,5 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **4 UC** derivados do §6 do SDD; todos herdam testes existentes. Registrado que o cabeçalho do `NfseCockpitControllerTest` ainda descreve a rota como quebrada em produção — texto **desatualizado** (a correção pelo schema antigo foi aplicada); não editado aqui para não misturar escopo, reportado no session log.
 - 2026-10-20 · [C] `UC-FNFSE-06..09` — separação da venda em NF-e + NFS-e (US-NFE-069 PR-1, só o serviço que separa; rateio proposto, pendente [W]).
 - 2026-10-21 · [C] `UC-FNFSE-10..12` — emissão das duas notas pelo botão "Emitir NF-e + NFS-e" do drawer (US-NFE-069 PR-2); rateio decidido por [W] (regra A).
+- 2026-10-28 · [F+C] backlog "Venda lançada com produto, mas o cliente pede nota de serviço" (Fixar), sem id e
+  sem teste; a troca da natureza no item da venda fica como decisão [W] (D-NATUREZA). Nenhum UC muda.
