@@ -18,17 +18,17 @@ uses(Tests\TestCase::class);
 /**
  * Isolamento multi-tenant Tier 0 (ADR 0093) — Vehicle.
  *
- * Dados do biz=1 NÃO podem aparecer em queries com session biz=99 e vice-versa.
+ * Dados do biz=1 NÃO podem aparecer em queries com session biz=2 e vice-versa.
  *
  * NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa produção) — ADR 0101.
- * Tests usam biz=1 (Wagner WR2) e biz=99 (fictício, sem dados).
+ * Tests usam biz=1 (Wagner WR2) e biz=2 (2º tenant mínimo do seed).
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
 const BIZ_WAGNER_VEH = 1;
-const BIZ_FICTICIO_VEH = 99;
+const BIZ_FICTICIO_VEH = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -39,7 +39,7 @@ beforeEach(function () {
     }
 });
 
-it('UC-OVS-02 · Vehicle biz=1 NÃO aparece com session biz=99', function () {
+it('UC-OVS-02 · Vehicle biz=1 NÃO aparece com session biz=2', function () {
     session(['user.business_id' => BIZ_WAGNER_VEH]);
 
     $v = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
@@ -97,7 +97,7 @@ it('UC-OVI-02 · Vehicle::all() respeita escopo (não vaza cross-business)', fun
         'vehicle_type' => 'automovel',
     ]);
 
-    // Insere em biz=99
+    // Insere em biz=2
     Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
         'business_id'  => BIZ_FICTICIO_VEH,
         'plate'        => 'MTT004B',

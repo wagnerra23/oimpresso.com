@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  *
  * Cobre:
  *   1. Filtro box='Box 1' retorna só os veículos cuja OS ativa está nesse box
- *   2. Multi-tenant Tier 0 — box 'Box 1' do biz=99 NÃO vaza pro biz=1
+ *   2. Multi-tenant Tier 0 — box 'Box 1' do biz=2 NÃO vaza pro biz=1
  *   3. buildFilterOptions: boxes distintos só das OS ativas (terminal não entra)
  *
  * Pattern: skip SQLite (ADR 0101 — schema MySQL UltimatePOS). Validação na query.
@@ -29,7 +29,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_BOX_TEST = 1;
-const BIZ_BOX_FICTICIO = 99;
+const BIZ_BOX_FICTICIO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -68,8 +68,10 @@ function boxCreateVehicleWithOs(int $bizId, ?string $box, string $status = 'loca
 
 function boxCleanup(int $bizId): void
 {
-    Vehicle::withoutGlobalScopes()->where('business_id', $bizId)->where('plate', 'like', 'BOX%')->forceDelete();
-    ServiceOrder::withoutGlobalScopes()->where('business_id', $bizId)->where('order_type', 'manutencao')->forceDelete();
+    // Só as OS dos veículos deste arquivo — antes apagava toda OS 'manutencao' do tenant.
+    $vehicleIds = Vehicle::withoutGlobalScopes()->where('business_id', $bizId)->where('plate', 'like', 'BOX%')->pluck('id');
+    ServiceOrder::withoutGlobalScopes()->whereIn('vehicle_id', $vehicleIds)->forceDelete();
+    Vehicle::withoutGlobalScopes()->whereIn('id', $vehicleIds)->forceDelete();
 }
 
 // ─── Specs ────────────────────────────────────────────────────────────────
@@ -77,27 +79,35 @@ function boxCleanup(int $bizId): void
 it('1. filtro box="Box 1" retorna só veículos cuja OS ativa está nesse box', function () {
     session(['user.business_id' => BIZ_BOX_TEST]);
 
-    boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1');
-    boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1');
-    boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 2');
-    boxCreateVehicleWithOs(BIZ_BOX_TEST, null);
+    $ids = collect([
+        boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1'),
+        boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1'),
+        boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 2'),
+        boxCreateVehicleWithOs(BIZ_BOX_TEST, null),
+    ])->pluck('id');
 
-    // Mesma query do controller (loadVehicles → whereHas currentRental box_label)
+    // Mesma query do controller (loadVehicles → whereHas currentRental box_label),
+    // sobre os veículos deste teste: o tenant da lane é compartilhado com outros arquivos.
     $filtered = Vehicle::query()
+        ->whereIn('id', $ids)
         ->whereHas('currentRental', fn ($q) => $q->where('box_label', 'Box 1'))
         ->count();
 
     expect($filtered)->toBe(2);
 })->afterEach(fn () => boxCleanup(BIZ_BOX_TEST));
 
-it('2. multi-tenant Tier 0 — box "Box 1" do biz=99 NÃO vaza pro biz=1', function () {
+it('2. multi-tenant Tier 0 — box "Box 1" do biz=2 NÃO vaza pro biz=1', function () {
     session(['user.business_id' => BIZ_BOX_TEST]);
 
-    boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1');
-    boxCreateVehicleWithOs(BIZ_BOX_FICTICIO, 'Box 1');
+    $ids = [
+        boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1')->id,
+        boxCreateVehicleWithOs(BIZ_BOX_FICTICIO, 'Box 1')->id,
+    ];
 
-    // Global scope do Vehicle filtra biz=1 automaticamente
+    // Global scope do Vehicle filtra biz=1 automaticamente — o veículo do biz=2 está no
+    // universo do whereIn e mesmo assim tem de ficar de fora.
     $filtered = Vehicle::query()
+        ->whereIn('id', $ids)
         ->whereHas('currentRental', fn ($q) => $q->where('box_label', 'Box 1'))
         ->count();
 
@@ -110,15 +120,20 @@ it('2. multi-tenant Tier 0 — box "Box 1" do biz=99 NÃO vaza pro biz=1', funct
 it('3. buildFilterOptions retorna boxes distintos só das OS ativas', function () {
     session(['user.business_id' => BIZ_BOX_TEST]);
 
-    boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1');
-    boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1'); // duplicado → distinct colapsa
-    boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Elevador 2');
+    $veiculos = collect([
+        boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1'),
+        boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 1'), // duplicado → distinct colapsa
+        boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Elevador 2'),
+    ]);
 
     // OS terminal NÃO deve aparecer nas opções
     $terminalVeh = boxCreateVehicleWithOs(BIZ_BOX_TEST, 'Box 9');
     $terminalVeh->currentRental->forceFill(['status' => 'concluida'])->save();
+    $veiculos->push($terminalVeh);
 
+    // Sobre as OS deste teste: o tenant da lane é compartilhado com outros arquivos.
     $boxes = ServiceOrder::query()
+        ->whereIn('vehicle_id', $veiculos->pluck('id'))
         ->whereNotIn('status', ['concluida', 'cancelada', 'recolhida'])
         ->whereNotNull('box_label')
         ->where('box_label', '!=', '')

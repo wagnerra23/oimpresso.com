@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * Cobertura:
  *  - Cenário 1: Observer dispatcha Job quando ServiceOrder.status → orcamento
  *  - Cenário 2: Job idempotência (cache key bloqueia 2º dispatch)
- *  - Cenário 3: Job rejeita cross-tenant (OS biz=1 com job param business_id=99 → skip)
+ *  - Cenário 3: Job rejeita cross-tenant (OS biz=1 com job param business_id=2 → skip)
  *  - Cenário 4: Job skip quando contact ausente (walk-in)
  *  - Cenário 5: Job skip quando status mudou pós-dispatch (race condition)
  *  - Cenário 6: Job dispatch 2 SendWhatsappMessageJob (msg1 link, msg2 PIN delay 60s)
@@ -33,7 +33,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_JOB_A = 1;
-const BIZ_JOB_B = 99;
+const BIZ_JOB_B = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
 const PLATE_JOB_PREFIX = 'WPPJ';
 
 beforeEach(function () {

@@ -44,13 +44,13 @@ it('cenário 1: --dry-run não modifica DB', function () {
     // Criar vehicle fixture pra detectar
     $vehicle = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'  => BIZ_WAGNER_CLEANUP,
-        'plate'        => 'FIXTURECLN1',
+        'plate'        => 'FIXCLN1',
         'vehicle_type' => 'automovel',
     ]);
 
     $countBefore = Vehicle::withoutGlobalScopes()
         ->where('business_id', BIZ_WAGNER_CLEANUP)
-        ->where('plate', 'FIXTURECLN1')
+        ->where('plate', 'FIXCLN1')
         ->count();
 
     expect($countBefore)->toBe(1);
@@ -64,13 +64,13 @@ it('cenário 1: --dry-run não modifica DB', function () {
 
     $countAfter = Vehicle::withoutGlobalScopes()
         ->where('business_id', BIZ_WAGNER_CLEANUP)
-        ->where('plate', 'FIXTURECLN1')
+        ->where('plate', 'FIXCLN1')
         ->count();
 
     // Dry-run NÃO removeu
     expect($countAfter)->toBe(1);
 })->afterEach(function () {
-    Vehicle::withoutGlobalScopes()->where('plate', 'FIXTURECLN1')->forceDelete();
+    Vehicle::withoutGlobalScopes()->where('plate', 'FIXCLN1')->forceDelete();
 });
 
 it('cenário 2: biz argument obrigatório', function () {
@@ -101,10 +101,12 @@ it('cenário 3: sanity-check detecta FK orphan', function () {
         'status'      => 'aberta',
     ]);
 
-    // Force delete vehicle (FK CASCADE pode pegar — então deletamos só por DB raw bypass)
-    $orphanedVehicleId = $vehicle->id;
-    $os->vehicle_id = 99999999; // aponta pra vehicle inexistente
-    ServiceOrder::withoutGlobalScopes()->where('id', $os->id)->update(['vehicle_id' => 99999999]);
+    // Aponta a OS pra vehicle inexistente. O schema tem fk_so_vehicle, então o órfão só
+    // nasce com a checagem de FK desligada — é o estado de dado migrado de legado que o
+    // sanity-check existe pra detectar.
+    Schema::withoutForeignKeyConstraints(function () use ($os) {
+        DB::table('service_orders')->where('id', $os->id)->update(['vehicle_id' => 99999999]);
+    });
 
     // Roda sanity-check
     $exitCode = Artisan::call('oficina:sanity-check', [
@@ -115,7 +117,9 @@ it('cenário 3: sanity-check detecta FK orphan', function () {
 
     // Esperado: detectou orphan e retornou FAILURE
     expect($exitCode)->toBe(1);
-    expect($output)->toContain('FK orphans');
+    // '[FAIL] 2)' e não só 'FK orphans': a linha [OK] também contém 'FK orphans', e o
+    // exit 1 pode vir de outro check do tenant compartilhado.
+    expect($output)->toContain('[FAIL] 2) FK orphans');
 })->afterEach(function () {
     ServiceOrder::withoutGlobalScopes()
         ->where('business_id', BIZ_WAGNER_CLEANUP)
