@@ -42,12 +42,27 @@ Reimportar o mesmo OFX não duplica lançamento (`external_id` único).
 Status: 🧪 (`ExtratoControllerTest` — valida `business_id` do `contaId`)
 `{contaId}` de outro business não vaza dado ([ADR 0093]).
 
+## UC-EXT-07 · OFX de banco sem API entra no extrato da conta com o sinal certo
+- **Persona:** financeiro de uma empresa com conta no Bradesco, Caixa, BB, C6 ou Cora (bancos sem integração de extrato; medido em produção em 2026-10-27).
+- **Aceite:** Dado o OFX exportado do internet banking (SGML ou XML, vírgula ou ponto decimal) · Quando é importado na conta · Então cada transação vira lançamento do extrato com valor positivo e tipo C/D pelo sinal do `TRNAMT`, e a Conciliação lê o mesmo valor com sinal; reimportar o arquivo não duplica. Dado uma conta do business 99 · Quando o 98 tenta importar nela · Então nada é gravado. Com `FINANCEIRO_EXTRATO_OFX_CONTA` desligada, o comando não grava.
+- **Teste:** `Modules/Financeiro/Tests/Feature/ExtratoOfxContaContratoTest.php` — `UC-EXT-07 · OFX entra no extrato da conta com o sinal certo, lido igual pela Conciliação, sem duplicar` · `UC-EXT-07 · Tier 0: conta de outro business não recebe o OFX` · `UC-EXT-07 · comando com a flag desligada não grava; ligada, grava e o --dry só conta`.
+- **Regressão que defende:** SPEC US-FIN-084 (sinal do extrato é valor exibido e conciliado — regra mestre de valor) e ADR 0093 (conta de outro business).
+- **Status: ⬜** — o teste roda na lane `PHP / Pest (Financeiro · MySQL)`, que ainda não executou neste PR.
+
+## UC-EXT-08 · O sync do Inter grava pelo mesmo caminho do OFX
+- **Persona:** financeiro com conta Inter sincronizada pelo cron das 07:00 (US-RB-046).
+- **Aceite:** Dado uma linha de extrato vinda da API do banco · Quando é gravada · Então fica com valor positivo e tipo C/D, `business_id` da própria conta, `origem=api` e `external_id=api:<id>` (formato da ADR 0236), e a Conciliação lê o débito como negativo.
+- **Teste:** `Modules/Financeiro/Tests/Feature/ExtratoOfxContaContratoTest.php` — `UC-EXT-08 · linha de API grava pelo mesmo caminho: positivo + C/D, business da conta, external_id api:`.
+- **Regressão que defende:** SPEC US-FIN-084 (gravação comum a todos os drivers) e ADR 0236 (chave unificada do extrato).
+- **Status: ⬜** — o teste roda na lane `PHP / Pest (Financeiro · MySQL)`, que ainda não executou neste PR.
+
 ## Backlog de casos (sem id)
 - **[BACKLOG] Nenhum side-effect no render** — não chama gateway, não dispara sync, não muta saldo (cron é o gatilho).
 - **[BACKLOG] Guard do defer** — o hotfix #3605 (tela branca por defer sem guard) merece uma prova, não só um smoke.
 
 ## Trilha do tempo
 - 2026-08-17 · [CC] criado no espelho Cowork; achada a âncora podre do charter.
+- 2026-10-27 · [CC] UC-EXT-07/08 — OFX por conta na tabela canônica e gravação comum a todos os drivers (US-FIN-084).
 
 [ADR 0264]: ../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0093]: ../../memory/decisions/0093-multi-tenant-isolation-tier-0.md
