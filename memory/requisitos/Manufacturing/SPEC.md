@@ -246,7 +246,7 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
 `RecipeController@addIngredients/@store/@update/getIngredientRow`.
 **Custo: alto** — é a maior UI da família (tela dentro da tela) e **escreve a receita**.
 
-**Implementado em:** `resources/js/Pages/Manufacturing/IngredientesEditor.tsx` · `resources/js/Pages/Manufacturing/_lib/custo.ts` · `resources/js/Pages/Manufacturing/_components/BuscaInsumo.tsx` · `resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx` · `Modules/Manufacturing/Http/Controllers/RecipeController.php` · `Modules/Manufacturing/Services/RecipeBomService.php` · verificado@ff67c83 (2026-10-09) — etapas 1-3 (#9059 · #9068 · #9072); o editor abre em `/manufacturing/add-ingredient?variation_id=N&tela=nova`, e sem `tela=nova` o endereço segue servindo a janela Blade
+**Implementado em:** `resources/js/Pages/Manufacturing/IngredientesEditor.tsx` · `resources/js/Pages/Manufacturing/_lib/custo.ts` · `resources/js/Pages/Manufacturing/_components/BuscaInsumo.tsx` · `resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx` · `Modules/Manufacturing/Http/Controllers/RecipeController.php` · `Modules/Manufacturing/Services/RecipeBomService.php` · verificado@ff67c83 (2026-10-09) — etapas 1-3 (#9059 · #9068 · #9072); o editor abre em `/manufacturing/add-ingredient?variation_id=N&tela=nova`, e sem `tela=nova` o endereço seguia servindo a janela Blade até o cutover de 2026-10-27, que apagou a Blade (desde então o endereço só serve este editor)
 
 **Testado em:** `Modules/Manufacturing/Tests/Feature/EditorIngredientesTest.php` (servidor, UC-INGRED-01..07, lane `Manufacturing · Pest (MySQL)`) · `tests/js/manufacturing-ingredientes-editor.test.tsx` (tela, UC-INGRED-08..13, lane `manufacturing-jsdom-gate`)
 
@@ -400,7 +400,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.add_recipe')`  
-**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (dataset `manufacturing_permission_routes` — GET `/manufacturing/recipe/create`), criado 2026-09-03.
+**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (dataset `manufacturing_permission_routes` — GET `/manufacturing/recipe/create` de 2026-09-03 a 2026-10-26; desde o cutover de 2026-10-27, que apagou essa rota, GET `/manufacturing/nova-receita/produtos`).
 
 ### R-MANU-004 · Autorização Spatie `manufacturing.edit_recipe`
 
