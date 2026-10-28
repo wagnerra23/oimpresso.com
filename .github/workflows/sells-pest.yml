@@ -81,6 +81,9 @@ on:
       - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
       - 'Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php'  # US-AUTO-014 lembrete de revisão
       - 'Modules/OficinaAuto/Services/LembreteDeRevisao.php'
+      - 'Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php'  # US-AUTO-008 catálogo de peças
+      - 'Modules/OficinaAuto/Services/CatalogoDePecas.php'
+      - 'Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php'
       - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
       - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
       - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -298,6 +301,9 @@ jobs:
               - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
               - 'Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php'  # US-AUTO-014 lembrete de revisão
               - 'Modules/OficinaAuto/Services/LembreteDeRevisao.php'
+              - 'Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php'  # US-AUTO-008 catálogo de peças
+              - 'Modules/OficinaAuto/Services/CatalogoDePecas.php'
+              - 'Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php'
               - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
               - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
               - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -527,6 +533,7 @@ jobs:
             tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
+            tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php \
             tests/Feature/Sells/SellsShowEntregaContratoTest.php \
             tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php \
@@ -552,6 +559,7 @@ jobs:
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php \
             Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php \
+            Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \

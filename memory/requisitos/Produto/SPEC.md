@@ -109,17 +109,25 @@ last_updated: "2026-10-27"
 
 ### US-PROD-024 · [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro
 
-> owner: wagner · priority: p2 · status: todo · type: epic · estimate: 24h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
+> owner: wagner · priority: p2 · status: doing · type: epic · estimate: 24h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
 
-**Implementado em:** _pendente_ — não iniciada: o SPIKE (Fase 1) não produziu inventário algum em `memory/requisitos/Produto/`; as menções a custo médio no módulo são as pré-US (CAPTERRA-FICHA/INVENTARIO + SDD), não entrega desta.
+**Implementado em:** _pendente_ — a US segue aberta (2026-10-27). Já existe o custo médio móvel por variação, atrás da flag `COMPRAS_CUSTO_MEDIO_MOVEL` (desligada): `Modules/Compras/Services/CustoMedioMovel.php` · `Modules/Compras/Observers/CompraRecebidaCustoMedioObserver.php` · `Modules/Compras/Console/Commands/CustoMedioSemearCommand.php` · `Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_custo_medio_tables.php`. Falta: margem da venda lendo o médio, semente aprovada pelo [W] e KPIs do `/unificado`.
 
 **Por quê (Wagner 2026-07-03: "estudar melhor o custo médio, muita coisa já tem pronta").** NÃO é greenfield — o UltimatePOS já calcula custo por compra. Antes de construir agregação, **mapear a máquina de custo que já roda**.
 
+**Testado em:** `Modules/Compras/Tests/Feature/CustoMedioMovelTest.php` (lane `compras-pest.yml`, UC-CMED-01..08) · `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php` (lane `sells-pest.yml`, UC-VSHOW-24..26).
+
+**Aceite:** as caixas das Fases 1 e 2 abaixo.
+
 **Fase 1 — SPIKE de descoberta (obrigatória antes de codar):**
-- [ ] Inventariar o que já existe: `default_purchase_price`/`dpp_inc_tax` por variação, `VariationLocationDetails` (qty_available), fluxo de custo na entrada de compra (`PurchaseController`/`TransactionUtil`), relatórios `stock-report`/`stock-by-sell-price`/`get-opening-stock`.
-- [ ] Documentar: custo médio já é recalculado na compra? Onde? Qual a fonte-de-verdade de "valor em estoque"? Registrar em `casos.md` ou nota.
+- [x] Inventariar o que já existe (2026-10-27): o core grava o **último** preço em `variations.dpp_inc_tax` (`ProductUtil::updateProductFromPurchase`, com `enable_editing_product_from_purchase`). A regra de custo da aba Fluxos (US-COM-026) troca isso pelo método da empresa no recebimento, via `CustoDoInsumoService::naData` (US-COM-024). O lucro dos relatórios usa o custo do **lote** (`transaction_sell_lines_purchase_lines` → `purchase_lines.purchase_price_inc_tax`, FIFO/LIFO).
+- [x] Documentar (2026-10-27): o `medio` do `CustoDoInsumoService` é a média de **todas** as compras até a data; o que já saiu do estoque continua pesando (compra 10 a 10,00, vende 10, compra 10 a 20,00 → 15,00, quando o estoque custa 20,00). Não existia médio **móvel**. Valor em estoque: não há fonte única (lote no relatório, `dpp_inc_tax` no cadastro).
 
 **Fase 2 — só depois do spike:**
+- [x] Custo médio móvel por variação, recalculado a cada compra recebida (qualquer caminho: observer do `Transaction`, depois do commit), guardado em `compras_custo_medio` com o histórico em `compras_custo_medio_movimentos`. Atrás de `COMPRAS_CUSTO_MEDIO_MOVEL` (desligada). Não escreve em `variations`, preço nem estoque. Semente: `php artisan compras:custo-medio-semear {business}` mostra a tabela antes→depois; só grava com `--aplicar`.
+- [x] Margem da venda finalizada pelo custo médio do momento da venda — servidor (2026-10-27): `detail.margem` no `SellController::margemDaVenda`, pela interface `App\Contracts\Compras\CustoMedio`; só com `view_purchase_price` e a flag (UC-VSHOW-24..26, `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php`).
+- [ ] Faixa da margem no detalhe da venda (`Sells/Show.tsx`) — protótipo `prototipo-ui/cowork/Wagner/vendas-detalhe-margem.html`, espera o OK do [W].
+- [ ] Ligar a flag depois da semente aprovada pelo [W] (antes→depois por variação).
 - [ ] Expor agregação valor/custo em estoque + margem média nos KPIs do `/unificado` (hoje `margem_media`/`sem_giro`/`stockQty` zerados; reusa o que já existe).
 - [ ] **⚠️ Tier 0 estoque/valor** — dupla-confirmação (2 caminhos) + antes→depois + aprovação Wagner. Medir demanda (ADR 0105) antes de investir as ~20-30h.
 
