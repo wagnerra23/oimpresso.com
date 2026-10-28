@@ -724,6 +724,19 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
   kits do que isso quando o estoque é controlado. Fonte: Base e Mercado Livre (o estoque do kit sai do
   componente mais escasso) e Omie (o kit só agrupa; o saldo vem dos componentes). Hoje o painel mostra
   a composição do kit, mas não calcula quantos kits os componentes permitem.
+- **[BACKLOG] Saldo fiscal no painel do produto** `[E0]` (pedido de 2026-10-27) — Aceite: Dado um
+  produto com 5 un. no estoque, das quais 3 entraram com nota, Quando abro a aba Fiscal do painel,
+  Então ela mostra "Saldo fiscal 3 un. · Estoque real 5 un." e de onde vem a diferença (compras sem
+  nota). O saldo fiscal é o que entrou com nota (compras com nota, notas de entrada próprias,
+  devoluções de venda com nota) menos o que saiu com nota (NF-e e NFC-e autorizadas, devoluções de
+  compra), lido das próprias notas; não mexe no estoque. É também o número que falta ao inventário do
+  SPED (Bloco H). Pedido da PraMoto, que compra com e sem nota; a compra e o aviso na emissão estão em
+  `Purchase/Create.casos.md` e `Fiscal/Nfe.casos.md`.
+- **[BACKLOG] Produtos sem NCM: filtro e NCM em lote** (pedido de 2026-10-27) — Aceite: Dado produtos
+  que entraram sem NCM, Quando escolho o filtro "Falta NCM", Então a lista mostra só eles e eu informo
+  o NCM de vários de uma vez. O card de Saúde fiscal, que já conta "Produtos ativos sem NCM válido"
+  (`SaudeFiscalService`, `produto_sem_ncm`), abre a lista com esse filtro. Hoje a lista não tem o
+  filtro nem a edição de NCM em lote. Pedido da PraMoto.
 
 Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
 [Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·

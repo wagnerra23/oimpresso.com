@@ -98,7 +98,7 @@ final class PainelDaProducao
             if ($s === null) {
                 continue;
             }
-            $fila[] = ['chave' => $c['chave'], 'numero' => $c['numero'], 'cliente' => $c['cliente'], 'estado' => $s['estado'],
+            $fila[] = ['chave' => $c['chave'], 'os_id' => (int) $c['os_id'], 'numero' => $c['numero'], 'cliente' => $c['cliente'], 'estado' => $s['estado'],
                 'desde' => $s['desde'], 'comentario' => $s['comentario'], 'expira_em' => $s['expira_em']];
         }
         usort($fila, fn ($a, $b) => [$a['estado'] === ArteDasOrdens::AJUSTE ? 0 : 1, $a['desde']] <=> [$b['estado'] === ArteDasOrdens::AJUSTE ? 0 : 1, $b['desde']]);

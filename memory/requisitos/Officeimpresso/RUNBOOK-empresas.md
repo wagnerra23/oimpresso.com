@@ -95,6 +95,10 @@ recorte por sessão. É a lista de *todos* os clientes da WR2, e é literalmente
 ### F5 — CUTOVER
 
 11. Módulo interno, sem cliente externo na tela. Flag ON → observar → remover Blade + flag.
+    **Feito em 2026-10-27** ([W]: "começa pelo cutover F5 do Officeimpresso"): flag ligada para todas
+    desde 2026-10-13 (D-CUTOVER-1310), 14 dias sem rollback; `useV2OfficeimpressoEmpresas` sai do
+    `FeatureFlagService` e `licenca_computador/businessall.blade.php` é apagado. O
+    `LicencaService::listarEmpresasComDesktop()` fica (outros consumidores e `Wave27PolishTest`).
 12. **A tela só entra no gate visual AQUI**, pelo motivo já medido na Onda 1: com a flag OFF a rota
     devolve o Blade e o `assertInertia(component: ...)` não acha nada, deixando o
     `visual-regression` (required) vermelho pro repo inteiro. Os 4 pré-requisitos estão escritos uma

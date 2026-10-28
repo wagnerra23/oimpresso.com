@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o escopo por tenant e a ausência do barcode são duráveis — não mudam quando o detalhe ganhar card novo.
 owner: wagner
 last_run: "2026-10-27"
-last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 6 UC desta tela tem lane; 2 com defesa de COMPORTAMENTO (PurchaseShowTenantContratoTest) e os demais ESTRUTURAL (presence-gate, LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. HISTORICO (fato datado, preservado): 🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] têm contrato de COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100, mordida verificada por mutação. Os UC 02/03/04/06 seguem 🔴 sem lane, e o 03 tem o critério ERRADO (casa o comentário do bug-fix) — ver §Divergências. Ver §Dívida de prova."
+last_run_ci: "2026-10-27: cutover F5, Blade purchase.show apagada; UC-PURSHW-02 reescrito e UC-PURSHW-01 ganhou o caso C, ainda sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 6 UC desta tela tem lane; 2 com defesa de COMPORTAMENTO (PurchaseShowTenantContratoTest) e os demais ESTRUTURAL (presence-gate, LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. HISTORICO (fato datado, preservado): 🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] têm contrato de COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100, mordida verificada por mutação. Os UC 02/03/04/06 seguem 🔴 sem lane, e o 03 tem o critério ERRADO (casa o comentário do bug-fix) — ver §Divergências. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Detalhe da Compra (`/purchases/{id}`)
@@ -117,7 +117,7 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
 | UC-PURSHW-01 | Detalhe nunca resolve compra de outro tenant | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PurchaseShowTenantContratoTest` | ✅ comportamento · na lane |
-| UC-PURSHW-02 | Dual-path: AJAX puro recebe Blade; navegação recebe Inertia | must | charter §Backend · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) | `ShowPageTest` | 🧪 estrutural · na lane |
+| UC-PURSHW-02 | Toda requisição recebe a Page React | must | charter §Backend · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) | `ShowPageTest` | ⬜ não verificado |
 | UC-PURSHW-03 | A tela **não** renderiza barcode (mata o 500 do legado) | must `[reg]` | charter §Backend (bug-fix declarado) | `ShowPageTest` | 🧪 estrutural · na lane |
 | UC-PURSHW-04 | Editar/Excluir só aparecem com a permissão | must | charter Goals · Anti-hooks | `ShowPageTest` | 🧪 estrutural · na lane |
 | UC-PURSHW-05 | A tela não recalcula totais — exibe o que o controller mandou | must `[V0]` | charter Non-Goal 3 | `PurchaseShowTenantContratoTest` | ✅ comportamento (metade backend) · na lane |
@@ -157,24 +157,27 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 
 ---
 
-## UC-PURSHW-02 · Dual-path: AJAX puro recebe Blade; navegação recebe Inertia · `must`
+## UC-PURSHW-02 · Toda requisição recebe a Page React · `must`
 
-- **Persona:** Maiara/Felipe abrem o detalhe pelo SPA; o modal AJAX legado ainda é usado por telas
-  antigas que não foram migradas.
-- **Aceite:** Dado `PurchaseController@show` · Quando o request é AJAX puro · Então devolve a view
-  Blade legacy (compatibilidade do modal). Quando é navegação normal · Então devolve a Page Inertia
-  `Purchase/Show`. Os dois caminhos coexistem — nenhum foi substituído.
+- **Persona:** Maiara/Felipe abrem o detalhe pelo SPA, pela aba Compras do contato ou por um
+  pagamento; em todos os casos cai na mesma tela.
+- **Aceite:** Dado `PurchaseController@show` · Quando o request chega, seja visita Inertia, GET comum
+  ou XHR sem `X-Inertia` (o que o modal antigo fazia) · Então devolve a Page Inertia `Purchase/Show`.
+- **Mudança de 2026-10-27 (cutover F5):** até aqui o XHR sem `X-Inertia` recebia a Blade
+  `purchase.show`, um fragmento de modal já quebrado em prod pelo `DNS1D::getBarcodePNG()` do
+  `show_details`. A Blade foi apagada; os três links que abriam o modal (menu e linha da aba Compras
+  do contato, linha de pagamento do contato e pagamentos filhos) passaram a abrir esta tela em nova
+  aba. `show_details` segue vivo: é a impressão da compra e o show do pedido de compra.
 - **Teste:** [`ShowPageTest`](../../../../tests/Feature/Purchase/ShowPageTest.php) — *"Controller@show
-  tem dual path (Blade legacy se AJAX puro + Inertia default)"* · *"Controller@show PRESERVA Blade
-  legacy path (compat retro AJAX modal)"* · *"Controller@show tem permission re-adicionada (não
-  comentada)"*.
-- **Contrato:** charter §Backend · [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) (F5 CUTOVER é humano e não ocorreu).
+  abre sempre a Page React (cutover 2026-10-27, sem dual path)"* · *"Controller@show não tem mais a
+  Blade do modal (cutover 2026-10-27)"* · *"Controller@show tem permission re-adicionada (não
+  comentada)"*. Comportamento: [`PurchaseShowTenantContratoTest`](../../../../tests/Feature/Purchase/PurchaseShowTenantContratoTest.php)
+  — *"UC-PURSHW-01 (C · cutover 2026-10-27)"*.
+- **Contrato:** charter §Backend · [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) (F5 CUTOVER autorizado por [W] em 2026-10-27).
 - **Regressão que defende:** a asserção *"permission re-adicionada (não comentada)"* existe porque a
   permissão **já esteve comentada** neste método. Um `//` numa linha de autorização é a mudança mais
   barata de escrever e a mais cara de descobrir.
-- **Status: 🧪 estrutural · na lane** — casamento de texto; nenhum request AJAX é emitido para provar a
-  bifurcação — e nenhuma lane roda sequer o casamento de texto. Vale o destaque: o assert *"permission
-  re-adicionada (não comentada)"* guarda uma regressão que **já aconteceu**, e hoje está mudo.
+- **Status: ⬜ não verificado** — o caso mudou no cutover de 2026-10-27 e ainda não rodou. A prova de comportamento é o *"UC-PURSHW-01 (C)"* de `PurchaseShowTenantContratoTest`, na lane `purchase-pest`.
 
 ---
 

@@ -55,8 +55,16 @@ const pedidosLoja = () => (window.VENDAS_MOCK || []).filter((v) => v && v.source
     status: WOO_STATUS[st].l, erp: WOO_STATUS[st].erp,
   };
 });
+// Mapa de impostos (taxes[id_erp] = id_loja; vazio = nenhuma). As taxas da loja vêm da API dela,
+// lidas só quando o mapa abre — o painel não chama a loja ao abrir (charter do Painel).
+const TAXAS_ERP = [
+  { id: 1, nome: "ICMS 17%", aliquota: 17, loja: "2" },
+  { id: 2, nome: "ICMS 12%", aliquota: 12, loja: "" },
+  { id: 3, nome: "Isento", aliquota: 0, loja: "5" },
+];
+const TAXAS_LOJA = [{ id: "2", nome: "Padrão (17%)" }, { id: "3", nome: "Reduzida (12%)" }, { id: "5", nome: "Taxa zero" }];
 // Estado fora do componente (aba/rota remonta a página): um SKU vinculado continua vinculado.
-const WOO_STORE = { produtos: PRODUTOS0 };
+const WOO_STORE = { produtos: PRODUTOS0, taxas: TAXAS_ERP, ultimas: { categorias: "22/08 09:38", produtos: "22/08 09:40", pedidos: "22/08 09:40" } };
 const plural = (n, um, muitos) => n + " " + (n === 1 ? um : muitos);
 
 function WooCommercePage() {
@@ -78,6 +86,31 @@ function WooCommercePage() {
   const fechar = () => setSel(null);
   const selo = (s) => { const l = { ok: "Sincronizado", pendente: "Pendente", erro: "Com erro", desativado: "Desativada" }[s] || s; return StatusBadge ? <StatusBadge kind="documento" value={l} /> : l; };
   const [logAberto, setLogAberto] = useState(null);
+  const Confirm = (window.AcessosDS || {}).Confirm;
+  const [rodando, setRodando] = useState(null);
+  const [reiniciar, setReiniciar] = useState(null);
+  const [certeza, setCerteza] = useState(false);
+  const [mapaAberto, setMapaAberto] = useState(false);
+  const [mapa, setMapa] = useState(null);
+  const ultimas = WOO_STORE.ultimas;
+  // Sincronizar = os mesmos endpoints da tela viva (sync-categories · sync-products em páginas · sync-orders).
+  const sincronizar = (qual, msg) => {
+    setRodando(qual);
+    setTimeout(() => {
+      WOO_STORE.ultimas = { ...WOO_STORE.ultimas, [qual === "novos" || qual === "todos" ? "produtos" : qual]: agora };
+      setRodando(null); avisar(msg, "ok");
+    }, 700);
+  };
+  const confirmarReinicio = () => {
+    const q = reiniciar; setReiniciar(null); setCerteza(false);
+    if (q === "produtos") setProdutos((L) => L.map((x) => x.sync === "desativado" ? x : { ...x, woo: "—", sync: "pendente", quando: "—" }));
+    avisar(q === "produtos" ? "Vínculo dos produtos apagado no ERP — a próxima sincronização cria tudo de novo na loja." : "Vínculo das categorias apagado no ERP — a próxima sincronização cria as categorias de novo.", "warn");
+  };
+  const abrirMapa = () => { setMapaAberto(true); setMapa(null); setTimeout(() => setMapa(Object.fromEntries(WOO_STORE.taxas.map((t) => [t.id, t.loja]))), 500); };
+  const salvarMapa = () => {
+    WOO_STORE.taxas = WOO_STORE.taxas.map((t) => ({ ...t, loja: mapa[t.id] || "" }));
+    setMapaAberto(false); avisar("Mapa de impostos salvo — vale para o próximo envio de produtos.", "ok");
+  };
   const casa = (s) => !busca || String(s).toLowerCase().includes(busca.toLowerCase());
   const conta = produtos.reduce((a, p) => { a[p.sync] = (a[p.sync] || 0) + 1; return a; }, {});
   const agora = "22/08 " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
@@ -167,14 +200,29 @@ function WooCommercePage() {
           atualizadoAs={new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
           glyph={<Ic name="plug" />}
           acoes={<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button className="os-btn" onClick={() => avisar("Sincronizando só os produtos novos — processo mais curto; não saia da tela.", "ok")}>Só novos</button>
-            <button className="os-btn primary" onClick={() => avisar("Sincronizando todos os produtos — processo demorado; não recarregue a página.", "ok")}><Ic name="refresh" size={13} /> Sincronizar todos</button>
+            <button className="os-btn" onClick={abrirMapa}><Ic name="percent" size={13} /> Mapear impostos</button>
           </div>} />}
       <div className="pb-body">
         {window.CliTabs && <window.CliTabs ariaLabel="Áreas do WooCommerce" className="vb-nav" tabs={[["produtos", "Produtos"], ["pedidos", "Pedidos"], ["log", "Log de sincronização"], ["config", "Configuração"]].map(([k, l]) => ({ key: k, label: l }))} active={aba} onChange={setAba} />}
 
         {aba === "produtos" && Grade &&
           <>
+            <div className="pb-grid" data-screen-label="WooCommerce · Sincronizar">
+              <Widget titulo={<><Ic name="tag" size={13} /> Categorias</>} nota={"Última: " + ultimas.categorias}>
+                <button className="os-btn primary" disabled={!!rodando} onClick={() => sincronizar("categorias", "Categorias sincronizadas — novas e alteradas subiram para a loja.")}><Ic name="refresh" size={13} /> {rodando === "categorias" ? "Sincronizando…" : "Sincronizar categorias"}</button>
+                <button className="os-btn ghost" disabled={!!rodando} onClick={() => setReiniciar("categorias")}>Reiniciar categorias sincronizadas</button>
+              </Widget>
+              <Widget titulo={<><Ic name="product" size={13} /> Produtos</>} nota={"Última: " + ultimas.produtos}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button className="os-btn" disabled={!!rodando} title="Só cria na loja os produtos que ainda não estão lá." onClick={() => sincronizar("novos", "Produtos novos criados na loja — páginas de 100 até acabar.")}>{rodando === "novos" ? "Sincronizando…" : "Só os novos"}</button>
+                  <button className="os-btn primary" disabled={!!rodando} title="Cria os novos e atualiza os que mudaram desde a última sincronização." onClick={() => sincronizar("todos", "Todos os produtos sincronizados — processo demorado; não recarregue a página.")}><Ic name="refresh" size={13} /> {rodando === "todos" ? "Sincronizando…" : "Sincronizar todos"}</button>
+                </div>
+                <button className="os-btn ghost" disabled={!!rodando} onClick={() => setReiniciar("produtos")}>Reiniciar produtos sincronizados</button>
+              </Widget>
+              <Widget titulo={<><Ic name="orders" size={13} /> Pedidos</>} nota={"Última: " + ultimas.pedidos}>
+                <button className="os-btn primary" disabled={!!rodando} onClick={() => sincronizar("pedidos", "Pedidos da loja importados — pagos viram venda de origem Online.")}><Ic name="refresh" size={13} /> {rodando === "pedidos" ? "Sincronizando…" : "Sincronizar pedidos"}</button>
+              </Widget>
+            </div>
             <Kpis itens={[
               { l: "Sincronizados", v: String(conta.ok || 0), tom: "pos", n: "preço e estoque na loja" },
               { l: "Pendentes de vínculo", v: String(conta.pendente || 0), tom: conta.pendente ? "warn" : "", n: "SKU sem par no catálogo da loja" },
@@ -244,11 +292,30 @@ function WooCommercePage() {
                   <button className="os-btn" onClick={() => avisar("Conexão testada — a loja respondeu em 240 ms.", "ok")}>Testar conexão</button>
                 </div>
               </div>
-              <p className="cu-nota">Outras seções da tela viva de configurações: mapa de impostos (taxa do ERP ↔ taxa do WooCommerce), campos do produto que sobem na criação e na atualização, equivalência entre status do pedido da loja e status da venda, webhooks de pedido (criado, atualizado, excluído, restaurado) e redefinir produtos/categorias sincronizados.</p>
+              <p className="cu-nota">Outras seções da tela viva de configurações: campos do produto que sobem na criação e na atualização, equivalência entre status do pedido da loja e status da venda, webhooks de pedido (criado, atualizado, excluído, restaurado) (o mapa de impostos e o reinício dos sincronizados ficam no painel, aba Produtos).</p>
             </Widget>
           </>}
       </div>
       {painel()}
+      {Confirm && <Confirm open={!!reiniciar} title={reiniciar === "produtos" ? "Reiniciar produtos sincronizados?" : "Reiniciar categorias sincronizadas?"}
+        cta="Reiniciar" ctaDisabled={!certeza} onClose={() => { setReiniciar(null); setCerteza(false); }} onConfirm={confirmarReinicio}>
+        <p>O vínculo com a loja é apagado no ERP e a próxima sincronização cria tudo de novo. Nada é apagado na loja.</p>
+        <label style={{ display: "flex", gap: 8, alignItems: "center" }}><input type="checkbox" checked={certeza} onChange={(e) => setCerteza(e.target.checked)} /> Sim, quero reiniciar</label>
+      </Confirm>}
+      {mapaAberto && Painel &&
+        <Painel aberto onClose={() => setMapaAberto(false)} titulo="Mapear impostos" sub="Cada taxa do ERP usa a taxa equivalente da loja quando o produto sobe." largura={500}
+          secoes={[{ t: "Taxa do ERP → taxa da loja", c: !mapa ? <p className="cu-nota">Carregando as taxas da loja…</p> :
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, alignItems: "center" }}>
+              {WOO_STORE.taxas.map((t) => [
+                <span key={t.id + "n"}>{t.nome} <span className="pb-help">({t.aliquota}%)</span></span>,
+                <select key={t.id + "s"} aria-label={"Taxa da loja para " + t.nome} value={mapa[t.id] || ""} onChange={(e) => setMapa({ ...mapa, [t.id]: e.target.value })}>
+                  <option value="">Nenhuma</option>
+                  {TAXAS_LOJA.map((l) => <option key={l.id} value={l.id}>{l.nome}</option>)}
+                </select>,
+              ])}
+            </div> },
+            { t: "Se a loja não devolver taxas", c: <p className="cu-nota">A tela avisa que a loja não respondeu ou não tem taxa cadastrada, e não deixa salvar um mapa vazio.</p> }]}
+          acoes={<div className="cu-dr-acoes"><div className="sp" /><button className="os-btn primary" disabled={!mapa} onClick={salvarMapa}>Salvar</button></div>} />}
       {avisoNode}
     </div>
   );
