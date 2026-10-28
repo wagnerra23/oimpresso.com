@@ -22,8 +22,6 @@ Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysHistoryTest.php  # 
 Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysQuotaTest.php  # Class "App\Role" not found
 Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysWebhookEventsTest.php  # Class "App\Role" not found
 Modules/PaymentGateway/Tests/Feature/Settings/SellsCobrancaChipTest.php  # Class "App\Role" not found
-Modules/PaymentGateway/Tests/Feature/EmitTrialExpiredCobrancasCommandTest.php  # coluna payment_gateway_credentials.driver não existe mais
-Modules/PaymentGateway/Tests/Feature/MigrateCredentialsCommandTest.php  # coluna fin_contas_bancarias.nome não existe mais
 Modules/PaymentGateway/Tests/Feature/PaymentGatewaysControllerStoreTest.php  # cria business sem owner_id (FK business_owner_id_foreign)
 Modules/PaymentGateway/Tests/Feature/OndaUmEsqueletoTest.php  # afirma que os Contracts NÃO têm binding; a Onda 4 já os amarrou
 Modules/PaymentGateway/Tests/Feature/PagarmeDriverTest.php  # espera CredentialMisconfiguredException, recebe DecryptException
