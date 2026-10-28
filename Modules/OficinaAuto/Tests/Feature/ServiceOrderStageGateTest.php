@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_GATE5 = 1;
-const BIZ_GATE5_OUTRO = 99;
+const BIZ_GATE5_OUTRO = 2; // tenant que o seed da lane tem (1, 2, 98)
 const PLATE_GATE5_PREFIX = 'WGAT5';
 
 beforeEach(function () {
@@ -38,7 +38,7 @@ beforeEach(function () {
 
 function sg5_user(): ?\App\User
 {
-    return \App\User::withoutGlobalScopes()->where('business_id', BIZ_GATE5)->first();
+    return tap(\App\User::factory()->create(['business_id' => BIZ_GATE5]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
 }
 
 function sg5_criaOs(string $suffix, int $biz = BIZ_GATE5, string $orderType = 'mecanica'): ServiceOrder
@@ -98,7 +98,7 @@ it('execute cross-tenant é 404 (Tier 0) — OS de outra biz não é alcançáve
         $this->markTestSkipped('Sem user disponível em biz=1');
     }
 
-    $os = sg5_criaOs('B', BIZ_GATE5_OUTRO); // OS pertence ao biz=99
+    $os = sg5_criaOs('B', BIZ_GATE5_OUTRO); // OS pertence ao biz=2
 
     $this->actingAs($user)
         ->postJson("/oficina-auto/service-orders/{$os->id}/fsm/execute", [

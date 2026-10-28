@@ -259,7 +259,7 @@ it('printInvoice A4 inclui a seção "Fotos da vistoria" com a legenda quando h�
         ['label' => 'Chassi lateral'],
     )->assertOk();
 
-    $print = $this->actingAs($user)->getJson("/oficina-auto/ordens-servico/{$os->id}/print");
+    $print = $this->actingAs($user)->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])->getJson("/oficina-auto/ordens-servico/{$os->id}/print");
     $print->assertOk();
     $html = $print->json('receipt.html_content');
     expect($html)->toContain('Fotos da vistoria');

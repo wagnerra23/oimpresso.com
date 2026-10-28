@@ -21,7 +21,7 @@ uses(Tests\TestCase::class);
  *     → Transaction derivada `final_total` = sum(valor_total) (substitui hardcode 0.0)
  *   - Observer backward compat: OS manutenção SEM items → Transaction.final_total = 0
  *   - Controller HTTP `POST /oficina-auto/ordens-servico/{order}/items` autenticado retorna 201
- *   - Multi-tenant Tier 0 [ADR 0093]: user biz=1 tentando criar item em OS biz=99 → 422
+ *   - Multi-tenant Tier 0 [ADR 0093]: user biz=1 tentando criar item em OS biz=2 → 422
  *     (Service::addItem rejeita "OS não pertence ao business")
  *   - PUT/DELETE: abort_unless item.service_order_id === order.id (404 se cross-OS)
  *
@@ -35,7 +35,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_US027_A = 1;
-const BIZ_US027_B = 99;
+const BIZ_US027_B = 2; // tenant que o seed da lane tem (1, 2, 98)
 const PLATE_US027_PREFIX = 'US027';
 
 beforeEach(function () {
@@ -170,7 +170,7 @@ it('HTTP POST /items autenticado biz=1 → 201 com item criado', function () {
 
     $response->assertCreated();
     expect($response->json('tipo'))->toBe('peca');
-    expect($response->json('valor_total'))->toBe(35.00);
+    expect((float) $response->json('valor_total'))->toBe(35.00); // JSON nao preserva .0: o JsonResponse do Laravel nao usa JSON_PRESERVE_ZERO_FRACTION
 
     $count = ServiceOrderItem::withoutGlobalScopes()
         ->where('service_order_id', $os->id)
@@ -178,7 +178,7 @@ it('HTTP POST /items autenticado biz=1 → 201 com item criado', function () {
     expect($count)->toBe(1);
 })->after(fn () => us027_cleanup('C'));
 
-it('HTTP POST /items cross-tenant biz=1 tentando OS biz=99 → 422 (Service rejeita)', function () {
+it('HTTP POST /items cross-tenant biz=1 tentando OS biz=2 → 422 (Service rejeita)', function () {
     session(['user.business_id' => BIZ_US027_A]);
     $osBizOutro = us027_criaOs('D', BIZ_US027_B);
 

@@ -35,7 +35,7 @@ beforeEach(function () {
 
 function gate_user(): ?\App\User
 {
-    return \App\User::withoutGlobalScopes()->where('business_id', BIZ_GATE)->first();
+    return tap(\App\User::factory()->create(['business_id' => BIZ_GATE]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
 }
 
 function gate_criaOs(string $suffix, string $status = 'aberta'): ServiceOrder

@@ -39,7 +39,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_WAGNER_VD = 1;
-const BIZ_FICTICIO_VD = 99;
+const BIZ_FICTICIO_VD = 2; // tenant que o seed da lane tem (1, 2, 98)
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -90,7 +90,7 @@ it('OS sem transaction → JSON venda_derivada null (degrade gracioso)', functio
         'transaction_id' => null,
     ]);
 
-    $response = $this->actingAs(\App\User::factory()->create(['business_id' => BIZ_WAGNER_VD]))
+    $response = $this->actingAs(tap(\App\User::factory()->create(['business_id' => BIZ_WAGNER_VD]), fn (\App\User $u) => $u->givePermissionTo('superadmin')))
         ->getJson('/oficina-auto/ordens-servico/'.$os->id);
 
     $response->assertOk();
@@ -114,7 +114,7 @@ it('OS com transaction → JSON venda_derivada populado (4 campos core ADR 0192 
     $tx = vendaDerivadaCreateTransaction(BIZ_WAGNER_VD, 'SO-'.$os->id, 1234.56);
     $os->update(['transaction_id' => $tx->id]);
 
-    $response = $this->actingAs(\App\User::factory()->create(['business_id' => BIZ_WAGNER_VD]))
+    $response = $this->actingAs(tap(\App\User::factory()->create(['business_id' => BIZ_WAGNER_VD]), fn (\App\User $u) => $u->givePermissionTo('superadmin')))
         ->getJson('/oficina-auto/ordens-servico/'.$os->id);
 
     $response->assertOk();
@@ -159,12 +159,12 @@ it('UC-OSH-11 · Multi-tenant Tier 0: OS biz=1 com transaction biz=2 retorna ven
     // FK explicit cross-tenant sem global scope (simula o pior caso DB-level).
     DB::table('service_orders')->where('id', $os->id)->update(['transaction_id' => $txOtherBiz->id]);
 
-    $response = $this->actingAs(\App\User::factory()->create(['business_id' => BIZ_WAGNER_VD]))
+    $response = $this->actingAs(tap(\App\User::factory()->create(['business_id' => BIZ_WAGNER_VD]), fn (\App\User $u) => $u->givePermissionTo('superadmin')))
         ->getJson('/oficina-auto/ordens-servico/'.$os->id);
 
     $response->assertOk();
     // GLOBAL SCOPE Transaction deve resolver Transaction belongsTo como null
-    // porque o tenant ativo (biz=1) não enxerga Transaction biz=99.
+    // porque o tenant ativo (biz=1) não enxerga Transaction biz=2.
     expect($response->json('venda_derivada'))->toBeNull();
 })->after(function () {
     $vs = Vehicle::withoutGlobalScopes()->where('plate', 'VDTEST03')->get();
