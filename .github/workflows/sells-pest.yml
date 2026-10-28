@@ -168,6 +168,9 @@ on:
       - 'app/Http/Controllers/ImportSalesController.php'
       - 'app/Services/Sells/**'
       - 'app/Http/Controllers/SellIcmsStController.php'  # US-SELL-078 ST na venda
+      - 'app/Http/Controllers/SellComissaoPorRegraController.php'  # US-COMM-015
+      - 'app/CommissionRule.php'
+      - 'database/migrations/2026_10_27_160000_create_commission_rules_table.php'
       - 'app/Http/Controllers/SellCupomController.php'  # US-SELL-076 cupom
       - 'database/migrations/2026_10_27_170000_create_sell_coupons_table.php'
       - 'config/sells.php'
@@ -266,6 +269,9 @@ jobs:
               - 'app/Http/Controllers/ImportSalesController.php'
               - 'app/Services/Sells/**'
               - 'app/Http/Controllers/SellIcmsStController.php'  # US-SELL-078 ST na venda
+              - 'app/Http/Controllers/SellComissaoPorRegraController.php'  # US-COMM-015
+              - 'app/CommissionRule.php'
+              - 'database/migrations/2026_10_27_160000_create_commission_rules_table.php'
               - 'app/Http/Controllers/SellCupomController.php'  # US-SELL-076 cupom
               - 'database/migrations/2026_10_27_170000_create_sell_coupons_table.php'
               - 'config/sells.php'
@@ -597,6 +603,7 @@ jobs:
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
+            tests/Feature/Sells/ComissaoPorRegraContratoTest.php \
             tests/Feature/Sells/CupomDaVendaContratoTest.php \
             tests/Feature/Sells/TefCaixaContratoTest.php \
             tests/Feature/Sells/VendaOfflineContratoTest.php \

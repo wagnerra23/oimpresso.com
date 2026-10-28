@@ -108,6 +108,11 @@ on:
       - 'Modules/Crm/Services/CapturaDeLead.php'
       - 'Modules/Crm/Routes/api.php'
       - 'Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php'
+      # US-CRM-098 — segmentação RFM (contrato App\Contracts\Crm\SegmentacaoRfm).
+      - 'Modules/Crm/Services/Fidelidade/**'
+      - 'Modules/Crm/Console/Commands/RfmCalcularCommand.php'
+      - 'app/Contracts/Crm/SegmentacaoRfm.php'
+      - 'Modules/Crm/Tests/Feature/CrmRfm*'
       # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
       - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
       # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
@@ -261,6 +266,11 @@ jobs:
               - 'Modules/Crm/Services/CapturaDeLead.php'
               - 'Modules/Crm/Routes/api.php'
               - 'Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php'
+              # US-CRM-098 — segmentação RFM (contrato App\Contracts\Crm\SegmentacaoRfm).
+              - 'Modules/Crm/Services/Fidelidade/**'
+              - 'Modules/Crm/Console/Commands/RfmCalcularCommand.php'
+              - 'app/Contracts/Crm/SegmentacaoRfm.php'
+              - 'Modules/Crm/Tests/Feature/CrmRfm*'
               # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
               - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
               # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
@@ -700,6 +710,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmFunilContratoTest.php \
             Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmRfmContratoTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \

@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 67 |
+| US no SPEC | 73 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 154 |
-| UC com teste que os cita | 153 |
+| UC declarados | 220 |
+| UC com teste que os cita | 215 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -53,6 +53,7 @@ authority: generated
 | `US-SELL-034` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Side-effect `CancelarVendaCascade` orquestra NFe + boleto +  |
 | `US-SELL-035` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — UI timeline de transições FSM (drawer + page) · **P2 UX/audi |
 | `US-SELL-036` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — FSM rollout — migrar 14 vendas legadas biz=1 via bulk-start- |
+| `US-SELL-076` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Cupom de desconto e promoção leve X pague Y no caixa novo |
 
 ### Backlog — NÃO é lacuna
 
@@ -87,8 +88,6 @@ authority: generated
 | US-SELL-048 | `todo` | Higiene dos snapshots-grep Sells: DELETE/REWRITE por it() (não quarentena) — gat |
 | US-SELL-051 | `todo` | Migrar dados históricos transaction_date (timezone/format) — afeta ROTA LIVRE |
 | US-SELL-052 | `todo` | Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenc |
-| US-SELL-054 | `todo` | Offline-first no PDV — fila IndexedDB + reemissão ao reconectar |
-| US-SELL-055 | `todo` | Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa |
 | US-SELL-056 | `todo` | Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pa |
 | US-SELL-057 | `todo` | Skeleton de carregamento no Create + INP < 200ms |
 | US-SELL-058 | `desconhecido` | Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar |
@@ -101,12 +100,19 @@ authority: generated
 | US-SELL-068 | `desconhecido` | Orçamento aberto avisa que o custo mudou (UC-FLX-34) |
 | US-SELL-069 | `desconhecido` | Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35) |
 | US-SELL-072 | `desconhecido` | Venda com nota ou pagamento trava itens e valores — **P1** |
+| US-SELL-074 | `todo` | Cliente aprova o orçamento pelo link público, e a aprovação vira pedido |
 
 ## UC por status
 
 | UC | Tela | Status |
 |---|---|---|
 | UC-11 | Index | 🧪 aguarda veredito da lane |
+| UC-COMR-01 | Show | 🧪 aguarda veredito da lane |
+| UC-COMR-02 | Show | 🧪 aguarda veredito da lane |
+| UC-COMR-03 | Show | 🧪 aguarda veredito da lane |
+| UC-COMR-04 | Show | 🧪 aguarda veredito da lane |
+| UC-COMR-05 | Show | 🧪 aguarda veredito da lane |
+| UC-CRISS-01 | Index | 🧪 aguarda veredito da lane |
 | UC-DRAFT-01 | Drafts | 🧪 aguarda veredito da lane |
 | UC-DRAFT-02 | Drafts | 🧪 aguarda veredito da lane |
 | UC-DRAFT-03 | Drafts | 🧪 aguarda veredito da lane |
@@ -116,13 +122,25 @@ authority: generated
 | UC-ENTR-02 | Show | 🧪 aguarda veredito da lane |
 | UC-ENTR-03 | Show | 🧪 aguarda veredito da lane |
 | UC-ENTR-04 | Show | 🧪 aguarda veredito da lane |
+| UC-FLX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-FLX-04 | Quotations | 🧪 aguarda veredito da lane |
+| UC-FLX-05 | Create | 📝 sem_teste |
 | UC-FLX-06 | Quotations | 🧪 aguarda veredito da lane |
 | UC-FLX-14 | Drafts | 🧪 aguarda veredito da lane |
+| UC-FLX-19 | Index | 🧪 aguarda veredito da lane |
 | UC-FLX-23 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-25 | Show | 🧪 aguarda veredito da lane |
+| UC-FLX-28 | Create | 🧪 aguarda veredito da lane |
+| UC-FLX-30 | Create | 🧪 aguarda veredito da lane |
 | UC-FLX-34 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-35 | Drafts | 🧪 aguarda veredito da lane |
+| UC-FNFSE-12 | Index | 🧪 aguarda veredito da lane |
+| UC-OAC-01 | Quotations | 🧪 aguarda veredito da lane |
+| UC-OAC-02 | Quotations | 🧪 aguarda veredito da lane |
+| UC-OAC-03 | Quotations | 🧪 aguarda veredito da lane |
+| UC-OAC-04 | Quotations | 🧪 aguarda veredito da lane |
+| UC-PCLIB-04 | Index | 🧪 aguarda veredito da lane |
+| UC-PCLIB-08 | Create | 🧪 aguarda veredito da lane |
 | UC-PCPRZ-01 | Quotations | 🧪 aguarda veredito da lane |
 | UC-POS-01 | Pos/Index | 🧪 aguarda veredito da lane |
 | UC-POS-02 | Pos/Index | 🧪 aguarda veredito da lane |
@@ -146,6 +164,7 @@ authority: generated
 | UC-REM-05 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-06 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-07 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REQMIN-01 | Index | 🧪 aguarda veredito da lane |
 | UC-S01 | Create | 🧪 aguarda veredito da lane |
 | UC-S02 | Create | 🧪 aguarda veredito da lane |
 | UC-S03 | Create | 🧪 aguarda veredito da lane |
@@ -195,11 +214,27 @@ authority: generated
 | UC-SIDX-04 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-05 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-06 | Index | 🧪 aguarda veredito da lane |
+| UC-SRP-01 | Create | 🧪 aguarda veredito da lane |
+| UC-SRP-02 | Create | 🧪 aguarda veredito da lane |
+| UC-SRP-03 | Create | 🧪 aguarda veredito da lane |
+| UC-SRP-04 | Create | 🧪 aguarda veredito da lane |
+| UC-SRP-05 | Create | 🧪 aguarda veredito da lane |
+| UC-SRP-06 | Create | 🧪 aguarda veredito da lane |
 | UC-SSUB-01 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-SSUB-02 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-SSUB-03 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-SSUB-04 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-SSUB-05 | Subscriptions | 🧪 aguarda veredito da lane |
+| UC-TEF-01 | Create | 🧪 aguarda veredito da lane |
+| UC-TEF-02 | Create | 🧪 aguarda veredito da lane |
+| UC-TEF-03 | Create | 🧪 aguarda veredito da lane |
+| UC-TEF-04 | Create | 🧪 aguarda veredito da lane |
+| UC-TEF-05 | Create | 🧪 aguarda veredito da lane |
+| UC-TEF-06 | Create | 🧪 aguarda veredito da lane |
+| UC-TEF-07 | Create | 🧪 aguarda veredito da lane |
+| UC-TRB-16 | Create | 📝 sem_teste |
+| UC-TRB-24 | Create | 📝 sem_teste |
+| UC-TRB-33 | Index | 📝 sem_teste |
 | UC-V301 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V302 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V303 | CreateV3 | 🧪 aguarda veredito da lane |
@@ -241,6 +276,29 @@ authority: generated
 | UC-V372 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V373 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V374 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-VCAN-01 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-02 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-03 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-04 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-05 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-06 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-07 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-08 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-09 | Show | 🧪 aguarda veredito da lane |
+| UC-VCOB-01 | Show | 🧪 aguarda veredito da lane |
+| UC-VCOB-02 | Show | 🧪 aguarda veredito da lane |
+| UC-VCOB-03 | Show | 🧪 aguarda veredito da lane |
+| UC-VCOB-04 | Show | 🧪 aguarda veredito da lane |
+| UC-VCOB-05 | Show | 🧪 aguarda veredito da lane |
+| UC-VCUP-01 | Create | 🧪 aguarda veredito da lane |
+| UC-VCUP-02 | Create | 🧪 aguarda veredito da lane |
+| UC-VCUP-03 | Create | 🧪 aguarda veredito da lane |
+| UC-VCUP-04 | Create | 🧪 aguarda veredito da lane |
+| UC-VCUP-05 | Create | 🧪 aguarda veredito da lane |
+| UC-VOFF-01 | Create | 🧪 aguarda veredito da lane |
+| UC-VOFF-02 | Create | 🧪 aguarda veredito da lane |
+| UC-VOFF-03 | Create | 🧪 aguarda veredito da lane |
+| UC-VOFF-04 | Create | 🧪 aguarda veredito da lane |
 | UC-VSHOW-01 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-03 | Show | 🧪 aguarda veredito da lane |
@@ -260,6 +318,14 @@ authority: generated
 | UC-VSHOW-21 | Quotations | 🧪 aguarda veredito da lane |
 | UC-VSHOW-22 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-23 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-24 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-25 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-26 | Show | 🧪 aguarda veredito da lane |
+| UC-VST-01 | Create | 🧪 aguarda veredito da lane |
+| UC-VST-02 | Create | 🧪 aguarda veredito da lane |
+| UC-VST-03 | Create | 🧪 aguarda veredito da lane |
+| UC-VST-04 | Create | 🧪 aguarda veredito da lane |
+| UC-VST-05 | Create | 🧪 aguarda veredito da lane |
 
 ---
 
