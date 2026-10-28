@@ -321,12 +321,12 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
   agrupadas numa cobrança só, com uma OS de valor errado ou o grupo feito no cliente errado, Quando desfaço
   o agrupamento, informando o motivo, Então, se o grupo não tem pagamento, as OS voltam a ficar soltas com
   os seus valores, o título do grupo é cancelado (não apagado) e o histórico mostra quem agrupou, quem
-  desfez, quando e por quê. Se o erro é numa OS só, tiro só ela do grupo e o título é recalculado com as
-  outras. Se o grupo já tem nota emitida, a nota é cancelada antes, dentro do prazo, ou o desagrupamento é
+  desfez, quando e por quê. Se o erro é numa OS só, tiro só ela do grupo: o título antigo é cancelado e
+  nasce um novo com as OS que ficaram, ligado ao antigo; o valor do título nunca é reescrito no lugar. Se o grupo já tem nota emitida, a nota é cancelada antes, dentro do prazo, ou o desagrupamento é
   recusado com o motivo. Se já tem pagamento, o pagamento é estornado antes, com motivo, como no caso de
   desagrupar parcelas já pagas. Hoje o agrupamento não existe nesta tela (bullet acima); o Financeiro já não
   apaga título, só cancela. Falta decisão [W]: quem pode desfazer um grupo, e se um valor errado numa OS
-  agrupada pode ser corrigido sem desfazer o grupo, só recalculando o título. Mexe em valor: Regra Mestre.
+  agrupada pode ser corrigido sem desfazer o grupo, com um lançamento de ajuste. Mexe em valor: Regra Mestre.
 - **[BACKLOG]** Título de cada parte faturada `[V0]` — Dado uma venda de 1.000,00 faturada em duas
   partes (400,00 e 600,00), Então cada parte tem o seu título; cancelar a nota de uma parte cancela o
   título dela se ainda não estiver pago. Mexe em valor: Regra Mestre. Fonte: Omie (pedido parcial). Veio da tela de Contas a receber, aposentada (2026-10-23).
