@@ -2,14 +2,14 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1071 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1072 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
-| [`Whatsapp`](#whatsapp) | 77 | 0 | 0 | 0 | 77 |
+| [`Whatsapp`](#whatsapp) | 78 | 0 | 0 | 0 | 78 |
 | [`Sells`](#sells) | 73 | 4 | 0 | 0 | 69 |
 | [`Financeiro`](#financeiro) | 58 | 6 | 1 | 0 | 51 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
@@ -244,6 +244,7 @@
 - **US-WA-326** — Régua de relacionamento por WhatsApp — aniversário e recompra
 - **US-WA-327** — Tela de configurar o menu do bot por canal
 - **US-WA-328** — Tela de configurar a régua de relacionamento da empresa
+- **US-WA-329** — Instagram Direct, Messenger e e-mail na mesma Caixa Unificada
 
 ## Sells
 
