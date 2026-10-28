@@ -37,6 +37,11 @@ class SellCupomController extends Controller
         $r = $cupom->avaliar((int) session('user.business_id'), $dados['codigo'],
             round((float) $dados['subtotal'], 2), round((float) ($dados['promocao'] ?? 0), 2), now());
 
-        return response()->json($r + ['mensagem' => $r['motivo'] ? self::MENSAGEM[$r['motivo']] : null]);
+        // JSON_PRESERVE_ZERO_FRACTION: o desconto é dinheiro (float); sem a flag, 30.0 sai como
+        // `30` e o cliente recebe um inteiro — o contrato (UC-VCUP-05) pede o valor monetário.
+        return response()->json(
+            $r + ['mensagem' => $r['motivo'] ? self::MENSAGEM[$r['motivo']] : null],
+            200, [], JSON_PRESERVE_ZERO_FRACTION
+        );
     }
 }
