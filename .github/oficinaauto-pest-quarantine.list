@@ -17,6 +17,13 @@
 # conserto de uma linha, por isso ficam aqui com o motivo, e os outros 17 passam a rodar.
 # Saída: corrigir o arquivo (ou o seed da lane) e tirar daqui, um grupo por PR.
 #
+# A. Resto do grupo A (403). O 403 vinha da factory de usuário e do primeiro usuário do tenant 1;
+#    os outros 10 arquivos saíram daqui no PR do grupo A. Este fica porque o teste está CERTO:
+#    o UC-OSH-11 mostrou que o payload da OS devolve a venda de OUTRA empresa quando o
+#    transaction_id aponta para ela (App\Transaction não tem escopo global; o load não filtra).
+#    Medido no run 40745385221. Sai daqui junto com o conserto do ServiceOrderController.
+Modules/OficinaAuto/Tests/Feature/ServiceOrderSheetVendaDerivadaTest.php  # UC-OSH-11 expõe venda de outra empresa (Tier 0)
+#
 # B. Fixture grava em business/veículo que o seed da lane não tem (FK fk_vehicles_business,
 #    transactions_business_id_foreign, fk_so_vehicle). O seed tem os tenants 1/2/98.
 Modules/OficinaAuto/Tests/Feature/ServiceOrderItemTest.php  # FK para business/veículo inexistente no seed
