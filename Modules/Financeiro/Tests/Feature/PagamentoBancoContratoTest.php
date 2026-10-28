@@ -183,3 +183,18 @@ it('UC-PAGBAN-08 · outra empresa não paga o título nem usa a conta de outra',
         ->toThrow(DomainException::class);
     expect($this->banco->envios)->toBe(0);
 });
+
+it('UC-PAGBAN-11 · o sync só consulta: com a flag desligada não toca nada; ligada, baixa o confirmado', function () {
+    $t = pagbanTitulo($this->bizA, $this->ownerA);
+    $p = $this->svc->solicitar($this->bizA, $t, $this->ownerA, 'boleto', PAGBAN_BOLETO, $this->contaA, '1234.56');
+
+    config(['financeiro.pagamento_banco.enabled' => false]);
+    $this->artisan('financeiro:pagamentos-banco-sync', ['--business' => $this->bizA])->assertExitCode(0);
+    expect(DB::table('fin_pagamentos_banco')->where('id', $p->id)->value('status'))->toBe('aguardando_banco');
+
+    config(['financeiro.pagamento_banco.enabled' => true]);
+    $this->artisan('financeiro:pagamentos-banco-sync', ['--business' => $this->bizA])->assertExitCode(0);
+    expect(DB::table('fin_pagamentos_banco')->where('id', $p->id)->value('status'))->toBe('pago');
+    expect(DB::table('fin_titulos')->where('id', $t)->value('status'))->toBe('quitado');
+    expect($this->banco->envios)->toBe(1);
+});

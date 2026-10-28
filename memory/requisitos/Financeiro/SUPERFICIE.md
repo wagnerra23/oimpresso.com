@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 389 arquivos em 22 papéis.
+**Total mapeado:** 392 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -61,8 +61,9 @@ module: Financeiro
 
 - [AdvisorViewScope.php](../../../Modules/Financeiro/Http/Middleware/AdvisorViewScope.php)
 
-## Services — 18
+## Services — 19
 
+- [InterPagadorBanco.php](../../../Modules/Financeiro/Services/Banking/InterPagadorBanco.php)
 - [BoletoOcrService.php](../../../Modules/Financeiro/Services/BoletoOcrService.php)
 - [CusteioRkwService.php](../../../Modules/Financeiro/Services/CusteioRkwService.php)
 - [DreService.php](../../../Modules/Financeiro/Services/DreService.php)
@@ -130,7 +131,7 @@ module: Financeiro
 - [OnTituloCriadoLog.php](../../../Modules/Financeiro/Listeners/OnTituloCriadoLog.php)
 - [ProcessAsaasPixWebhookListener.php](../../../Modules/Financeiro/Listeners/ProcessAsaasPixWebhookListener.php)
 
-## Console / Commands — 11
+## Console / Commands — 12
 
 - [BackfillExtratoOfxCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillExtratoOfxCommand.php)
 - [BackfillPlanoContaCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillPlanoContaCommand.php)
@@ -139,6 +140,7 @@ module: Financeiro
 - [FinanceiroHealthCommand.php](../../../Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php)
 - [InstallCommand.php](../../../Modules/Financeiro/Console/Commands/InstallCommand.php)
 - [IssRetidoAjusteCommand.php](../../../Modules/Financeiro/Console/Commands/IssRetidoAjusteCommand.php)
+- [PagamentosBancoSyncCommand.php](../../../Modules/Financeiro/Console/Commands/PagamentosBancoSyncCommand.php)
 - [PluggySyncCommand.php](../../../Modules/Financeiro/Console/Commands/PluggySyncCommand.php)
 - [ProvisionSmokeTenantCommand.php](../../../Modules/Financeiro/Console/Commands/ProvisionSmokeTenantCommand.php)
 - [ReguaCobrancaCommand.php](../../../Modules/Financeiro/Console/Commands/ReguaCobrancaCommand.php)
@@ -327,9 +329,9 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 94
+## Testes (Pest) — 95
 
-- 89 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 90 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
