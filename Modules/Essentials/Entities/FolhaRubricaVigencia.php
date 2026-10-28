@@ -10,6 +10,15 @@ use InvalidArgumentException;
  * As três incidências de uma rubrica (INSS, IRRF, FGTS) num intervalo de competências
  * (ADR-mãe da folha §2.2-§2.3). São três booleanos independentes, nunca um enum: o aviso prévio
  * indenizado é ❌ INSS ❌ IRRF ✅ FGTS, combinação que nenhuma escala ordenada expressa.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property int $rubrica_id
+ * @property string $vigencia_inicio
+ * @property string|null $vigencia_fim
+ * @property bool $incide_inss
+ * @property bool $incide_irrf
+ * @property bool $incide_fgts
  */
 class FolhaRubricaVigencia extends Model
 {

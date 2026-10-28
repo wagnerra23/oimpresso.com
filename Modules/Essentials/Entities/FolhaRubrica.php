@@ -11,6 +11,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * A rubrica não carrega incidência: incidência muda por lei sem a rubrica mudar de identidade,
  * então mora na vigência (§2.3). Pergunte sempre "desta rubrica, na competência X".
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string $codigo
+ * @property string $descricao
+ * @property string $natureza
+ * @property string $sentido
  */
 class FolhaRubrica extends Model
 {
@@ -22,6 +29,7 @@ class FolhaRubrica extends Model
 
     protected $fillable = ['business_id', 'codigo', 'descricao', 'natureza', 'sentido'];
 
+    /** @return HasMany<FolhaRubricaVigencia, $this> */
     public function vigencias(): HasMany
     {
         return $this->hasMany(FolhaRubricaVigencia::class, 'rubrica_id');

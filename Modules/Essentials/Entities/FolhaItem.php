@@ -16,6 +16,17 @@ use InvalidArgumentException;
  *
  * Proveniência é obrigatória: ponto (com o id da apuração), manual (com o autor) ou motor (com a
  * versão da regra). Sem ela, conferir divergência com o contador vira arqueologia (§2.7).
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property int $user_id
+ * @property int $rubrica_id
+ * @property string $valor
+ * @property string $competencia_pagamento
+ * @property string $competencia_apuracao
+ * @property string $proveniencia
+ * @property string|null $proveniencia_ref
+ * @property-read FolhaRubrica|null $rubrica
  */
 class FolhaItem extends Model
 {
@@ -32,6 +43,7 @@ class FolhaItem extends Model
 
     protected $casts = ['valor' => 'decimal:4'];
 
+    /** @return BelongsTo<FolhaRubrica, $this> */
     public function rubrica(): BelongsTo
     {
         return $this->belongsTo(FolhaRubrica::class, 'rubrica_id');

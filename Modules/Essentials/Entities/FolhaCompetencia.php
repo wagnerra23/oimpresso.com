@@ -11,6 +11,11 @@ use InvalidArgumentException;
  *
  * Também guarda a validação do formato, que as outras três entidades usam: competência é texto
  * `char(7)` e só ordena cronologicamente se tiver exatamente esse formato.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string $competencia
+ * @property string $estado
  */
 class FolhaCompetencia extends Model
 {
