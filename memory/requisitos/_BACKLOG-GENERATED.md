@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1058 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1063 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,8 +10,8 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
 | [`Whatsapp`](#whatsapp) | 77 | 0 | 0 | 0 | 77 |
-| [`Sells`](#sells) | 72 | 2 | 0 | 0 | 70 |
-| [`Financeiro`](#financeiro) | 52 | 4 | 0 | 0 | 48 |
+| [`Sells`](#sells) | 73 | 3 | 0 | 0 | 70 |
+| [`Financeiro`](#financeiro) | 54 | 5 | 0 | 0 | 49 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
@@ -26,7 +26,7 @@
 | [`Crm`](#crm) | 24 | 0 | 0 | 0 | 24 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
-| [`Vestuario`](#vestuario) | 20 | 1 | 0 | 0 | 19 |
+| [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
@@ -252,6 +252,7 @@
 
 - **US-SELL-077** — Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título _(`p0` · @wagner)_
 - **US-SELL-078** — O ICMS-ST entra no total da venda, pela mesma conta da NF-e _(`p1` · @wagner)_
+- **US-SELL-079** — Resgate de pontos de fidelidade no caixa React _(`p1` · @wagner)_
 
 ### todo
 
@@ -332,6 +333,7 @@
 ### doing
 
 - **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p0` · sprint Onda 27)_
+- **US-FIN-078** — DDA — boletos contra o CNPJ da empresa viram contas a pagar sugeridas — **P1** _(`p1`)_
 - **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
 - **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
 - **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
@@ -349,6 +351,7 @@
 - **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
 - **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
 - **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
+- **US-FIN-079** — Pagar o título a pagar pelo banco (boleto e Pix), com aprovação e baixa automática — **P1** _(`p1`)_
 - **US-FIN-018** — Boletos — Sheet Remessa/Retorno CNAB upload + processing _(`p2` · @wagner)_
 - **US-FIN-019** — Boletos — Drawer timeline cronológica rica via activity_log Spatie _(`p2` · @wagner)_
 - **US-FIN-020** — Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto) _(`p2` · @wagner)_
@@ -936,6 +939,7 @@
 - **US-VEST-031** — Sugestão de compra por tamanho pela curva de venda `p1` _(`p1`)_
 - **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
 - **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
+- **US-VEST-032** — Remarcação por coleção, com prévia e reversão `p2` _(`p2`)_
 - **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
 - **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
 - **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_

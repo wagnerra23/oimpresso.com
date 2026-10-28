@@ -140,18 +140,14 @@ it('UC-PIDX-09 · aberto pela URL (?ver=) o painel chega como prop deferida da p
     expect(collect($r->json('deferredProps'))->flatten()->all())->toContain('detalhe');
 });
 
-it('UC-PIDX-11 · "Comprar" segue a permissão de criar compra (purchase.create)', function () {
+it('UC-PIDX-11 · a consulta não oferece compra, nem a quem pode criar compra', function () {
+    // Discriminante: o usuário TEM purchase.create, que era o que ligava o "Comprar" até 2026-10-26.
     pdtEntrar($this, ['product.view', 'access_all_locations', 'purchase.create']);
-    $com = $this->get('/products', $this->inertia);
-    $com->assertOk();
-    expect($com->json('props.permissions.comprar'))->toBeTrue();
-
-    pdtEntrar($this, ['product.view', 'access_all_locations']);
-    $sem = $this->get('/products', $this->inertia);
-    $sem->assertOk();
-    // Anti-vácuo: as permissões vieram — o false é do gate, não de prop faltando.
-    expect($sem->json('props.permissions'))->toHaveKey('view');
-    expect($sem->json('props.permissions.comprar'))->toBeFalse();
+    $r = $this->get('/products', $this->inertia);
+    $r->assertOk();
+    // Anti-vácuo: as permissões vieram — a ausência é da decisão, não de prop faltando.
+    expect($r->json('props.permissions'))->toHaveKey('view');
+    expect($r->json('props.permissions'))->not->toHaveKey('comprar');
 });
 
 /** Compra recebida do produto num local — é dela que sai o "valor pelo custo" do relatório de estoque. */
