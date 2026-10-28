@@ -14,13 +14,16 @@ uses(Tests\TestCase::class);
  *
  * Refs:
  *  - resources/js/Components/shared/VendaDerivadaCard.tsx (shared cross-módulo)
- *  - resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderSheet.tsx (consumidor)
+ *  - resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx (consumidor)
+ *    O consumidor original, ServiceOrders/_components/ServiceOrderSheet.tsx, foi removido no
+ *    #2544 (2026-06-11, "UNIFICA a tela de OS"); o drawer da OS passou a ser o RichSheet do
+ *    workspace, e o mesmo PR repontou o ServiceOrderSheetSmokeTest para ele.
  *  - Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php (backend payload)
  *  - memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md
  */
 
 const SHARED_VENDA_CARD_TSX = 'resources/js/Components/shared/VendaDerivadaCard.tsx';
-const OFICINA_SHEET_TSX = 'resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderSheet.tsx';
+const OFICINA_SHEET_TSX = 'resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx';
 const OFICINA_CONTROLLER_PHP = 'Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php';
 
 function vendaDerivadaGuardReadFile(string $relativePath): string
@@ -41,12 +44,14 @@ it('GUARD: VendaDerivadaCard shared existe + exporta interfaces canon ADR 0192',
         ->toContain('export default function VendaDerivadaCard(');
 });
 
-it('GUARD: OficinaAuto ServiceOrderSheet importa VendaDerivadaCard do shared', function () {
+it('GUARD: OficinaAuto ServiceOrderRichSheet importa VendaDerivadaCard do shared', function () {
     $src = vendaDerivadaGuardReadFile(OFICINA_SHEET_TSX);
     expect($src)
         ->toContain("from '@/Components/shared/VendaDerivadaCard'")
         ->toContain('venda_derivada?: VendaDerivada | null;')
-        ->toContain('{data.venda_derivada && <VendaDerivadaCard venda={data.venda_derivada} />}');
+        // Card renderizado SÓ quando a OS gerou venda: no RichSheet o render fica num
+        // wrapper (-mx-5), então a condição e o card são casados juntos, não em separado.
+        ->toMatch('/\{data\.venda_derivada && \(\s*<div[^>]*>\s*<VendaDerivadaCard venda=\{data\.venda_derivada\} \/>/');
 });
 
 it('GUARD: OficinaAuto ServiceOrderController eager-loads transaction + entrega venda_derivada', function () {
