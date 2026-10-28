@@ -31,7 +31,7 @@ uses(Tests\TestCase::class);
  * @see memory/sessions/2026-05-20-arte-tela-fsm-workflow.md (Gap #2)
  */
 
-const BIZ_PIPELINE_TEST = 98; // tenant fictício canônico (ADR 0358) — era biz=98, empresa real
+const BIZ_PIPELINE_TEST = 98; // tenant fictício canônico (ADR 0358) — era biz=1, empresa real
 const BIZ_PIPELINE_FICTICIO = 99;
 
 beforeEach(function () {
