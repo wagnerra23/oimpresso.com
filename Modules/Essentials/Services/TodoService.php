@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Essentials\Entities\ToDo;
+use Modules\Essentials\Notifications\NewTaskNotification;
 
 /**
  * TodoService — Service thin extraído de ToDoController (D4.a ratio).
@@ -136,6 +137,45 @@ class TodoService
         }
 
         return $requestedAssignees;
+    }
+
+    /**
+     * Cria a tarefa: o mesmo caminho para a tela e para a Jana (ADR 0440).
+     *
+     * Extraído de `ToDoController::store` sem mudar o comportamento: número de
+     * referência, atribuídos (cai no autor sem `essentials.assign_todos`),
+     * activity log e aviso aos atribuídos. Quem chama já checou `canAdd()`.
+     * `$businessId` vem do servidor (sessão ou proposta), nunca do input.
+     *
+     * @param array<string, mixed> $data campos validados de `ToDoStoreRequest`
+     */
+    public function criar(int $businessId, Model $user, array $data, string $prefix = ''): ToDo
+    {
+        $createdBy = (int) $user->getKey();
+
+        $data['date']        = $this->parseDate($data['date'] ?? null);
+        $data['end_date']    = ! empty($data['end_date']) ? $this->parseDate($data['end_date']) : null;
+        $data['business_id'] = $businessId;
+        $data['created_by']  = $createdBy;
+        $data['status']      = $data['status'] ?? 'new';
+
+        $assignees = $this->resolveAssignees($user, $data['users'] ?? [], $createdBy);
+        unset($data['users']);
+
+        $refCount        = $this->commonUtil->setAndGetReferenceCount('essentials_todos', $businessId);
+        $data['task_id'] = $this->commonUtil->generateReferenceNumber('essentials_todos', $refCount, $businessId, $prefix);
+
+        $todo = ToDo::create($data);
+        $todo->users()->sync($assignees);
+
+        $this->commonUtil->activityLog($todo, 'added');
+
+        // users() sem tipo de retorno não deixa o Larastan resolver a propriedade mágica `$todo->users`;
+        // a consulta explícita traz a mesma coleção.
+        $toNotify = $todo->users()->get()->filter(fn ($u) => $u->id !== $createdBy);
+        \Notification::send($toNotify, new NewTaskNotification($todo));
+
+        return $todo;
     }
 
     /**

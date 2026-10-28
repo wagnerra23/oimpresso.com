@@ -5,9 +5,13 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do atendente + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela concentra a conversa com o cliente de TODOS os canais — se o isolamento por business ou o ACL canal=fila falhar, um tenant lê a conversa do outro. É o comportamento durável que nenhum refactor pode perder.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-10-27"
 ---
 
+> ℹ️ **`last_run` 2026-10-26 → 2026-10-27 (G-6).** O toque em `Index.tsx` é o do [#9863](https://github.com/wagnerra23/oimpresso.com/pull/9863)
+> ("Salvar e disparar" + cancelar campanha), mergeado com data de commit 2026-10-27 — o comportamento é o do UC-CXU-19, que nasceu
+> no mesmo PR. O bump acompanha os UC-CXU-20..23 (US-WA-329), que não tocam a tela: são do recebimento e do envio no servidor.
+> **Nenhum UC foi reexecutado**; o bump é o trio reconciliado com a tela nesta data.
 > ℹ️ **`last_run` 2026-09-25 → 2026-10-06 (G-6), e o que mudou NÃO foi comportamento.**
 > O [#8873](https://github.com/wagnerra23/oimpresso.com/pull/8873) (playbook atendimento, thread 05) só acrescenta **8 atributos
 > `data-contract`** (`atend-header` no `Index.tsx`; os outros 7 em `_components/`) para o contrato
@@ -230,6 +234,15 @@ last_run: "2026-10-26"
 - **Teste:** `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php` — `UC-CXU-19 · US-WA-323 · flag ligada: grava a campanha e agenda o disparo dela, da própria empresa` (+ os 3 casos irmãos do arquivo).
 - **Regressão que defende:** US-WA-322/323 (ADR 0268 fase 2, destravada por [W] em 2026-10-26). Uma campanha por vez por canal é o que faz o limite diário anti-ban valer: duas campanhas simultâneas no mesmo número dobrariam o ritmo e arriscariam o banimento.
 - **Status: 🧪** — CT 100 MySQL 2026-10-26: 4 passed (11 assertions); sem a trava de uma campanha por canal, 1 failed.
+
+---
+
+## UC-CXU-20 · DM do Instagram, Messenger e e-mail caem na mesma caixa, fila e atendente
+- **Persona:** atendente — o cliente escreveu pelo Instagram (ou Messenger, ou e-mail) e não pelo WhatsApp.
+- **Aceite:** Dado um canal Instagram, Messenger ou e-mail ativo na empresa · Quando o cliente manda recado · Então ele vira conversa na mesma lista da Caixa (mesma `conversations`), o 2º recado cai na mesma conversa sem tirar o atendente, reentrega não duplica, e o mesmo e-mail em outra empresa fica na conversa daquela empresa.
+- **Teste:** `Modules/Whatsapp/Tests/Feature/RecebimentoOmnicanalContratoTest.php` — os 5 casos `UC-CXU-20 · US-WA-329 · …` (lane MySQL `whatsapp-pest.yml`, tenant 98 × 99).
+- **Regressão que defende:** criar caixa paralela por canal (ADR 0135 descartou tabelas por canal) e o vazamento de e-mail entre empresas pelo `provider_message_id` único no banco inteiro.
+- **Status: ⬜** — CT 100 fora do ar em 2026-10-27; o veredito vem da lane MySQL do CI.
 
 ---
 

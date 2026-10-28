@@ -31,6 +31,8 @@ on:
     branches: [main]
     paths:
       - 'tests/Feature/Sells/**'
+      - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
+      - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
       - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
       - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
@@ -166,6 +168,9 @@ on:
       - 'app/Http/Controllers/ImportSalesController.php'
       - 'app/Services/Sells/**'
       - 'app/Http/Controllers/SellIcmsStController.php'  # US-SELL-078 ST na venda
+      - 'app/Http/Controllers/SellCupomController.php'  # US-SELL-076 cupom
+      - 'database/migrations/2026_10_27_170000_create_sell_coupons_table.php'
+      - 'config/sells.php'
       - 'Modules/NfeBrasil/Services/NfeService.php'  # US-SELL-078 base da nota sem o ST
       - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
       # Sob teste em SellsTravaAposNotaContratoTest (US-SELL-072): contrato e leitores de nota.
@@ -214,6 +219,8 @@ jobs:
           filters: |
             sells:
               - 'tests/Feature/Sells/**'
+              - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
+              - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
               - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
               - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
@@ -259,6 +266,9 @@ jobs:
               - 'app/Http/Controllers/ImportSalesController.php'
               - 'app/Services/Sells/**'
               - 'app/Http/Controllers/SellIcmsStController.php'  # US-SELL-078 ST na venda
+              - 'app/Http/Controllers/SellCupomController.php'  # US-SELL-076 cupom
+              - 'database/migrations/2026_10_27_170000_create_sell_coupons_table.php'
+              - 'config/sells.php'
               - 'Modules/NfeBrasil/Services/NfeService.php'  # US-SELL-078 base da nota sem o ST
               - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
               - 'app/Contracts/Fiscal/**'
@@ -587,6 +597,8 @@ jobs:
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
+            tests/Feature/Sells/CupomDaVendaContratoTest.php \
+            tests/Feature/Sells/TefCaixaContratoTest.php \
             tests/Feature/Sells/VendaOfflineContratoTest.php \
             tests/Feature/Sells/ValeTrocaContratoTest.php \
             tests/Feature/Sells/ResgatePontosContratoTest.php \

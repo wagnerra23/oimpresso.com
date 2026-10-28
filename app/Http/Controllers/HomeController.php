@@ -7,6 +7,8 @@ use App\Charts\CommonChart;
 use App\Currency;
 use App\Media;
 use App\Services\Dashboard\GradesDoPainelService;
+use App\Services\Dashboard\PrimeirosPassosService;
+use App\Services\FeatureFlagService;
 use App\Transaction;
 use App\User;
 use App\Utils\BusinessUtil;
@@ -215,6 +217,11 @@ class HomeController extends Controller
                     $location_id ? (int) $location_id : null
                 ))
                 : null,
+            // Onboarding guiado (US-SUPER-012): só para quem configura a empresa e só com a flag
+            // ligada. Deferido: são 6 consultas de existência, fora do first-paint.
+            'primeiros_passos' => $this->mostraPrimeirosPassos()
+                ? Inertia::defer(fn () => app(PrimeirosPassosService::class)->estado((int) $business_id))
+                : null,
             'endpoints' => [
                 'totals' => '/home/get-totals',
                 'stock_alert' => '/home/product-stock-alert',
@@ -222,6 +229,34 @@ class HomeController extends Controller
                 'sales_dues' => '/home/sales-payment-dues',
             ],
         ]);
+    }
+
+    /**
+     * Pular / voltar a um passo, dispensar ou retomar o card "Primeiros passos" (US-SUPER-012).
+     * A escolha é da EMPRESA (fica em `business.common_settings`), não do usuário.
+     */
+    public function primeirosPassos(Request $request)
+    {
+        abort_unless($this->mostraPrimeirosPassos(), 404);
+
+        $dados = $request->validate([
+            'acao' => 'required|in:pular,voltar,dispensar,retomar',
+            'passo' => 'required_if:acao,pular,voltar|nullable|in:' . implode(',', array_keys(PrimeirosPassosService::PASSOS)),
+        ]);
+
+        app(PrimeirosPassosService::class)->registrar(
+            (int) $request->session()->get('user.business_id'),
+            $dados['acao'],
+            $dados['passo'] ?? null
+        );
+
+        return back(303);
+    }
+
+    private function mostraPrimeirosPassos(): bool
+    {
+        return app(FeatureFlagService::class)->isOn('onboardingPrimeirosPassos')
+            && (bool) auth()->user()?->can('business_settings.access');
     }
 
     /**
