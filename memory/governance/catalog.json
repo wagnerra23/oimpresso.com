@@ -4054,6 +4054,13 @@
       "desc": ""
     },
     {
+      "id": "component:OficinaAuto/PecaCompativelController",
+      "type": "component",
+      "module": "OficinaAuto",
+      "name": "PecaCompativelController",
+      "desc": "GET/POST /ordens-servico/{order}/pecas-compativeis: peças que servem no veículo da OS, por marca/modelo em texto (US-AUTO-008). Atrás de OFICINA_CATALOGO_PECAS_ENABLED, desligada = 404."
+    },
+    {
       "id": "component:OficinaAuto/ProducaoOficinaController",
       "type": "component",
       "module": "OficinaAuto",
@@ -12407,6 +12414,12 @@
     {
       "from": "module:OficinaAuto",
       "to": "component:OficinaAuto/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:OficinaAuto",
+      "to": "component:OficinaAuto/PecaCompativelController",
       "type": "hasComponent",
       "source": "contains"
     },
