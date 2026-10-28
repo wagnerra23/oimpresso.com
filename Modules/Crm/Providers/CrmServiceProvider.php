@@ -103,6 +103,9 @@ class CrmServiceProvider extends ServiceProvider
 
         // US-FIN-071 · UC-FLX-29: a régua de cobrança do Financeiro cria a tarefa do vendedor por aqui.
         $this->app->bind(\App\Contracts\Crm\AgendaDeTarefas::class, \Modules\Crm\Services\AgendaDeTarefasDoCrm::class);
+
+        // US-CRM-098: segmentação RFM para a campanha e a régua do WhatsApp.
+        $this->app->bind(\App\Contracts\Crm\SegmentacaoRfm::class, \Modules\Crm\Services\Fidelidade\SegmentacaoRfmDoCrm::class);
     }
 
     /**
@@ -190,6 +193,8 @@ class CrmServiceProvider extends ServiceProvider
             \Modules\Crm\Console\SendScheduleNotification::class,
             \Modules\Crm\Console\CreateRecursiveFollowup::class,
             \Modules\Crm\Console\Commands\CrmHealthCommand::class,
+            \Modules\Crm\Console\Commands\RfmCalcularCommand::class,
+            \Modules\Crm\Console\Commands\CriarFormularioCapturaCommand::class,
         ]);
     }
 
@@ -222,6 +227,9 @@ class CrmServiceProvider extends ServiceProvider
                 $schedule = $this->app->make(Schedule::class);
                 $schedule->command('pos:sendScheduleNotification')->everyMinute();
                 $schedule->command('pos:createRecursiveFollowup')->daily();
+                if (config('crm.rfm.enabled', false)) {
+                    $schedule->command('crm:rfm-calcular')->dailyAt('04:30')->withoutOverlapping();
+                }
             });
         }
     }

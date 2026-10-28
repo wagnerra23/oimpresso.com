@@ -116,10 +116,13 @@ related_adrs:
 
 ### US-SUPER-012 · Onboarding guiado da empresa nova e ajuda dentro do sistema
 
-> owner: — · priority: p2 · estimate: 10h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 10h · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); nenhum checklist de primeiros passos encontrado em `resources/js` (busca de 2026-10-26)
+**Implementado em:** _parcial_ · `app/Services/Dashboard/PrimeirosPassosService.php` · `app/Http/Controllers/HomeController.php` · `routes/web.php` — card "Primeiros passos" da Visão geral atrás da flag `onboardingPrimeirosPassos` (desligada); falta a fatia de tela e o link de ajuda contextual
+**Testado em:** `tests/Feature/Home/PrimeirosPassosContratoTest.php`
+**Aceite:** fatia backend, atrás da flag — com a flag desligada a Visão geral não muda (UC-PPAS-01) · quem configura a empresa recebe os 6 passos na ordem, como prop deferida (UC-PPAS-02) · sem `business_settings.access` o card não existe (UC-PPAS-03) · o passo é feito pelo dado real da própria empresa, e o de outra empresa não conta (UC-PPAS-04) · pular e dispensar ficam gravados na empresa sem marcar passo como feito (UC-PPAS-05, UC-PPAS-06) · ação ou passo desconhecido é recusado sem gravar nada (UC-PPAS-07).
+- Casos UC-PPAS-01..07 em `resources/js/Pages/Home/Index.casos.md` · protótipo `prototipo-ui/cowork/Wagner/primeiros-passos-page.jsx` (shell integrado, ADR 0438).
 
 Origem: levantamento de lacunas 2026-10-25 (P2 Plataforma — onboarding guiado e ajuda).
 - Lista de primeiros passos no início para a empresa nova (dados da empresa, primeiro produto, primeiro cliente, primeira venda, certificado fiscal), cada passo marcado como feito a partir do dado real, não de clique.

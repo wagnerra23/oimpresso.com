@@ -13,6 +13,7 @@ contains:
   - "AssinaturaController — FIN-004 atualizar cobrança recorrente (multi-tenant Tier 0, gateway delegado a AssinaturaCobrancaService)"
   - "CaixaController — F6 Soft wrapper Inertia /financeiro/caixa read-only sobre cash_registers core UltimatePOS (não migra dados; lifecycle abrir/fechar continua na header POS via CashRegisterController core)"
   - "CategoriaController"
+  - "ExportacaoContabilController — US-FIN-077 arquivo de lançamentos da competência no leiaute do contador (Domínio 0000/6000/6100, Alterdata texto); de-para em fin_contabil_contas, pendência bloqueia o arquivo"
   - "RateioService — US-FIN-075 rateio do título em centros de custo (fin_centros_custo + fin_titulo_rateios): soma fecha valor_total em centavos inteiros; título sem rateio segue válido"
   - "CobrancaController — F3 PaymentGateway UI Tela 1 (substitui /financeiro/boletos com escopo expandido boleto+pix+pix_recv+card; ADR 0144 + 0170)"
   - "ConciliacaoController — Onda 19 OFX MVP + scaffold Anexos/Aprovação"

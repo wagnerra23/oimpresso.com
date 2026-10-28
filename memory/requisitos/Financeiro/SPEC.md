@@ -1327,10 +1327,12 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 ### US-FIN-077 · Exportar lançamentos contábeis (Domínio, Alterdata, Questor)
 
-> owner: — · priority: p2 · estimate: 16h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 16h · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `Modules/Financeiro/Services/ExportacaoContabilService.php` · `Modules/Financeiro/Http/Controllers/ExportacaoContabilController.php` · `Modules/Financeiro/Tests/Feature/ExportacaoContabilContratoTest.php` · verificado@e80beef (2026-10-27) — fatia 1: Domínio e Alterdata saem por rota de download com de-para em `fin_contabil_contas`; falta a tela (de-para + botões), o Questor (sem leiaute fixo publicado, decisão [W]), o centro de custo (US-FIN-075) e a validação por contador-piloto.
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/ExportacaoContabilContratoTest.php` (UC-EXPC-01..05, lane `financeiro-pest`)
 
 **Origem:** lacuna P2 do levantamento de 2026-10-25 (aparece também na lista da frente Plataforma). Só existe `DreExport`.
 
@@ -1376,6 +1378,32 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 - [ ] Pagar um título pelo portal usa o mesmo caminho da US-FIN-081.
 - [ ] Token de um cliente não abre outro; o de uma empresa não abre outra; sem dado pessoal na URL; throttle.
 - [ ] Atrás de flag desligada.
+
+### US-FIN-084 · Extrato dos bancos além do Inter: OFX por conta e drivers de API — **P0**
+
+> owner: — · priority: p0 · estimate: 12h · type: story
+> blocked_by: credenciais de API de cada banco ([W])
+
+**Implementado em:** _parcial_ · `Modules/RecurringBilling/Services/Banking/Drivers/OfxStatementDriver.php`, `Modules/RecurringBilling/Services/Banking/StatementPersister.php`, `Modules/Financeiro/Services/Extrato/ImportarExtratoOfxService.php`, `Modules/Financeiro/Console/Commands/ImportarExtratoOfxCommand.php`, `Modules/Financeiro/Tests/Feature/ExtratoOfxContaContratoTest.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/ExtratoOfxContaContratoTest.php`
+
+**Origem:** resto da lacuna P0 "Extrato bancário automático" (levantamento de 2026-10-25); a decisão [W] de 2026-10-26 (US-FIN-074) é banco direto, sem agregador. Medido em produção em 2026-10-27, sem PII: além das 69 contas "caixa", há contas correntes de Bradesco (4), Caixa (3), Banco do Brasil (2), Inter (2), C6 (1), Cora (1) e mais uma instituição (1); **nenhuma credencial de API cadastrada** e **zero** linhas de extrato (nem API, nem OFX). Pesquisa de API de extrato: BB tem API de Extratos (v1 até 20/11/2026, OAuth + certificado A1); Bradesco tem API usada por integradores, sem documentação pública; Caixa e Cora sem API confirmada (OFX/CNAB pelo internet banking).
+
+⚠️ **REGRA MESTRE — VALOR** ([proibicoes.md](../../proibicoes.md)): o sinal do lançamento do extrato é valor exibido e conciliado.
+
+**Aceite:**
+
+_PR 1 — OFX por conta + gravação comum:_
+- [x] OFX (SGML ou XML, vírgula ou ponto decimal, Windows-1252) vira linha em `fin_extrato_lancamentos` da conta escolhida com valor positivo e tipo C/D pelo sinal do `TRNAMT`, no formato de chave do backfill da ADR 0236 (`ofx-<FITID>` / `ofx:<FITID>`); reimportar não duplica (UC-EXT-07). Provado por dois caminhos: o resumo do arquivo e a linha gravada lida pela Conciliação (`normalizeApi`).
+- [x] Conta de outro business não recebe o arquivo (UC-EXT-07). Com `FINANCEIRO_EXTRATO_OFX_CONTA` desligada (padrão) o comando não grava.
+- [x] O sync do Inter (`SyncBankStatementsJob`) grava pelo mesmo `StatementPersister`, agora com `origem=api` e `external_id=api:<id>` (UC-EXT-08).
+
+_Próximos PRs:_
+- [ ] Botão "Importar OFX" na tela do extrato da conta, com protótipo ancorado no DS antes do `.tsx`.
+- [ ] Driver de extrato do Banco do Brasil no mesmo contrato, atrás de flag, à espera da credencial.
+
+**Credenciais que faltam ([W]):** Banco do Brasil (Client ID, Client Secret, chave de aplicação e certificado A1 da conta); Bradesco (par de credenciais de extrato pelo gerente); C6 e Cora a confirmar se oferecem API de extrato. Caixa: OFX.
 
 ### US-FIN-035 · Repetir lançamento próximo mês + Combobox autocomplete contraparte
 

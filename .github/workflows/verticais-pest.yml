@@ -87,6 +87,10 @@ on:
       - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
       - 'Modules/Crm/Resources/js/Pages/**'
       - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+      # US-CRM-094 — chamado de garantia com SLA (estende o acompanhamento).
+      - 'Modules/Crm/Services/ChamadoGarantiaService.php'
+      - 'Modules/Crm/Entities/SlaPolitica.php'
+      - 'Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php'
       # Thread Crm/13 F2 — baseline dos dados dos Relatórios antes da tela React.
       - 'Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php'
       - 'Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php'
@@ -99,6 +103,16 @@ on:
       - 'Modules/Crm/Http/Controllers/FunilController.php'
       - 'Modules/Crm/Services/DealPipelineService.php'
       - 'Modules/Crm/Tests/Feature/CrmFunilContratoTest.php'
+      # US-CRM-096 — captura pública de lead com origem e UTM.
+      - 'Modules/Crm/Http/Controllers/CapturaLeadController.php'
+      - 'Modules/Crm/Services/CapturaDeLead.php'
+      - 'Modules/Crm/Routes/api.php'
+      - 'Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php'
+      # US-CRM-098 — segmentação RFM (contrato App\Contracts\Crm\SegmentacaoRfm).
+      - 'Modules/Crm/Services/Fidelidade/**'
+      - 'Modules/Crm/Console/Commands/RfmCalcularCommand.php'
+      - 'app/Contracts/Crm/SegmentacaoRfm.php'
+      - 'Modules/Crm/Tests/Feature/CrmRfm*'
       # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
       - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
       # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
@@ -232,6 +246,9 @@ jobs:
               - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
               - 'Modules/Crm/Resources/js/Pages/**'
               - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+              - 'Modules/Crm/Services/ChamadoGarantiaService.php'
+              - 'Modules/Crm/Entities/SlaPolitica.php'
+              - 'Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php'
               # Thread Crm/13 F2 — baseline dos dados dos Relatórios antes da tela React.
               - 'Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php'
               - 'Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php'
@@ -244,6 +261,16 @@ jobs:
               - 'Modules/Crm/Http/Controllers/FunilController.php'
               - 'Modules/Crm/Services/DealPipelineService.php'
               - 'Modules/Crm/Tests/Feature/CrmFunilContratoTest.php'
+              # US-CRM-096 — captura pública de lead com origem e UTM.
+              - 'Modules/Crm/Http/Controllers/CapturaLeadController.php'
+              - 'Modules/Crm/Services/CapturaDeLead.php'
+              - 'Modules/Crm/Routes/api.php'
+              - 'Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php'
+              # US-CRM-098 — segmentação RFM (contrato App\Contracts\Crm\SegmentacaoRfm).
+              - 'Modules/Crm/Services/Fidelidade/**'
+              - 'Modules/Crm/Console/Commands/RfmCalcularCommand.php'
+              - 'app/Contracts/Crm/SegmentacaoRfm.php'
+              - 'Modules/Crm/Tests/Feature/CrmRfm*'
               # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
               - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
               # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
@@ -649,6 +676,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairListResourceDatasTest.php \
             Modules/Repair/Tests/Feature/RepairShowContratoTest.php \
             Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php \
             Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php \
             Modules/Repair/Tests/Feature/RepairStatusContratoTest.php \
@@ -674,6 +702,7 @@ jobs:
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Cms/Tests/Feature/SitePublicoContratoTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmRelatoriosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php \
@@ -681,6 +710,8 @@ jobs:
             Modules/Crm/Tests/Feature/CrmChamadasContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmFunilContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmRfmContratoTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \

@@ -65,4 +65,10 @@ return [
     'lembrete_revisao' => [
         'enabled' => (bool) env('OFICINA_LEMBRETE_REVISAO_ENABLED', false),
     ],
+
+    // US-AUTO-008 — catálogo de peças por veículo (marca e modelo em texto, decisão [W] 2026-10-26).
+    // Desligado por padrão: feature nova. Ligar = OFICINA_CATALOGO_PECAS_ENABLED=true (decisão [W]).
+    'catalogo_pecas' => [
+        'enabled' => (bool) env('OFICINA_CATALOGO_PECAS_ENABLED', false),
+    ],
 ];

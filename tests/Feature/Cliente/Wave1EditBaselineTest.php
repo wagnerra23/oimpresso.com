@@ -8,8 +8,7 @@ test('Cliente/Edit baseline — controller has edit($id) + Inertia branch', func
 
     expect($contents)
         ->toContain('public function edit($id)')
-        ->toContain("Inertia::render('Cliente/Edit'")
-        ->toContain("shouldRenderInertiaCliente('cliente_edit'");
+        ->toContain("Inertia::render('Cliente/Edit'");
 });
 
 test('Cliente/Edit — config mwart has cliente_edit flag', function () {

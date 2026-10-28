@@ -87,6 +87,21 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
           </span>
           {/* Marca de quem sincroniza com o WooCommerce, como a lista Blade (`fa-wordpress` sob o
               nome). O servidor só manda o campo quando o módulo está instalado. UC-PIDX-23. */}
+          {/* UC-PIDX-31: natureza fiscal decidida pelo contador. Mercadoria não ganha selo (é o padrão). */}
+          {row.original.natureza_fiscal === 'servico' && (
+            <span className="shrink-0 text-[11px] text-[var(--text-mute)]" data-contract="produto-lista-natureza">
+              Serviço
+            </span>
+          )}
+          {row.original.natureza_fiscal === 'pendente' && (
+            <span
+              className="shrink-0 text-[11px] font-medium text-[var(--warn)]"
+              title="O contador ainda não decidiu se é mercadoria ou serviço. A NF-e comum sai como mercadoria; a emissão separada (NF-e + NFS-e) fica bloqueada."
+              data-contract="produto-lista-natureza"
+            >
+              Fiscal a decidir
+            </span>
+          )}
           {row.original.woocommerce_sync === true && (
             <Globe
               size={12}

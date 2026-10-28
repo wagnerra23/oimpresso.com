@@ -31,6 +31,8 @@ on:
     branches: [main]
     paths:
       - 'tests/Feature/Sells/**'
+      - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
+      - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
       - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
       - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
@@ -81,6 +83,9 @@ on:
       - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
       - 'Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php'  # US-AUTO-014 lembrete de revisão
       - 'Modules/OficinaAuto/Services/LembreteDeRevisao.php'
+      - 'Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php'  # US-AUTO-008 catálogo de peças
+      - 'Modules/OficinaAuto/Services/CatalogoDePecas.php'
+      - 'Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php'
       - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
       - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
       - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -163,6 +168,12 @@ on:
       - 'app/Http/Controllers/ImportSalesController.php'
       - 'app/Services/Sells/**'
       - 'app/Http/Controllers/SellIcmsStController.php'  # US-SELL-078 ST na venda
+      - 'app/Http/Controllers/SellComissaoPorRegraController.php'  # US-COMM-015
+      - 'app/CommissionRule.php'
+      - 'database/migrations/2026_10_27_160000_create_commission_rules_table.php'
+      - 'app/Http/Controllers/SellCupomController.php'  # US-SELL-076 cupom
+      - 'database/migrations/2026_10_27_170000_create_sell_coupons_table.php'
+      - 'config/sells.php'
       - 'Modules/NfeBrasil/Services/NfeService.php'  # US-SELL-078 base da nota sem o ST
       - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
       # Sob teste em SellsTravaAposNotaContratoTest (US-SELL-072): contrato e leitores de nota.
@@ -211,6 +222,8 @@ jobs:
           filters: |
             sells:
               - 'tests/Feature/Sells/**'
+              - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
+              - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
               - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
               - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
@@ -256,6 +269,12 @@ jobs:
               - 'app/Http/Controllers/ImportSalesController.php'
               - 'app/Services/Sells/**'
               - 'app/Http/Controllers/SellIcmsStController.php'  # US-SELL-078 ST na venda
+              - 'app/Http/Controllers/SellComissaoPorRegraController.php'  # US-COMM-015
+              - 'app/CommissionRule.php'
+              - 'database/migrations/2026_10_27_160000_create_commission_rules_table.php'
+              - 'app/Http/Controllers/SellCupomController.php'  # US-SELL-076 cupom
+              - 'database/migrations/2026_10_27_170000_create_sell_coupons_table.php'
+              - 'config/sells.php'
               - 'Modules/NfeBrasil/Services/NfeService.php'  # US-SELL-078 base da nota sem o ST
               - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
               - 'app/Contracts/Fiscal/**'
@@ -298,6 +317,9 @@ jobs:
               - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
               - 'Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php'  # US-AUTO-014 lembrete de revisão
               - 'Modules/OficinaAuto/Services/LembreteDeRevisao.php'
+              - 'Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php'  # US-AUTO-008 catálogo de peças
+              - 'Modules/OficinaAuto/Services/CatalogoDePecas.php'
+              - 'Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php'
               - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
               - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
               - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -527,6 +549,7 @@ jobs:
             tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
+            tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php \
             tests/Feature/Sells/SellsShowEntregaContratoTest.php \
             tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php \
@@ -552,6 +575,7 @@ jobs:
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php \
             Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php \
+            Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
@@ -579,6 +603,10 @@ jobs:
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
+            tests/Feature/Sells/ComissaoPorRegraContratoTest.php \
+            tests/Feature/Sells/CupomDaVendaContratoTest.php \
+            tests/Feature/Sells/TefCaixaContratoTest.php \
+            tests/Feature/Sells/VendaOfflineContratoTest.php \
             tests/Feature/Sells/ValeTrocaContratoTest.php \
             tests/Feature/Sells/ResgatePontosContratoTest.php \
             tests/Feature/Sells/CancelamentoDaVendaContratoTest.php \

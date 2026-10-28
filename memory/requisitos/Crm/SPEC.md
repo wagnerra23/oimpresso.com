@@ -636,3 +636,65 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 4. `PATCH /crm/funil/{id}/etapa` exige `crm.funil.editar`: grava a transição (de, para, razão, quando) pelo `DealPipelineService`; ganho/perdido não mudam de etapa; negócio de outra empresa dá 404.
 5. Resumo (prop deferida) por etapa e previsão ponderada do mês, só com negócios da empresa.
 6. Tela kanban (PT-05) em `Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx`, ancorada no protótipo `prototipo-ui/cowork/Felipe/erp-shell-v2/crm-page.jsx` — PR seguinte.
+
+### US-CRM-094 · Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
+
+**Implementado em:** `Modules/Crm/Services/ChamadoGarantiaService.php` · `Modules/Crm/Entities/SlaPolitica.php` · `Modules/Crm/Database/Migrations/2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php` — parcial: abertura com prazo (fatia 1). Alerta de prazo vencendo e tela são as fatias 2 e 3.
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php`
+
+> owner: — · priority: p3 · estimate: 8h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P3 do levantamento de concorrência ("ticket de garantia com SLA"), destravada por [W] em 2026-10-27 ("pode destravar todos os outros vou fazer todos").
+
+**Decisão de casa:** o chamado é um acompanhamento do CRM (`crm_schedules`) marcado como garantia, não um sistema de tickets novo. Responsável, venda, tipo, lista e histórico já existem ali (`crm_schedule_users`, `crm_followup_invoices`, categoria de acompanhamento). A pesquisa pós-entrega (US-SELL-071) já abre atendimento do mesmo jeito. A SPEC de [Garantia](../Garantia/SPEC.md) (`warranty_claims`, FSM própria) segue wish; o chamado guarda a venda e a OS do Repair, que é o que ela precisaria para reaproveitar.
+
+**Critérios de aceite:**
+1. Atrás de `CRM_GARANTIA_SLA_ENABLED`, desligada por padrão; desligada, nada é aberto.
+2. O chamado liga o cliente a uma venda (`crm_followup_invoices`) ou a uma OS (`repair_job_sheet_id`); sem nenhuma das duas, recusa.
+3. Prazo (`sla_vence_em`, também `end_datetime`) = abertura + horas da política do tipo em `crm_sla_politicas`; sem política do tipo, a padrão da empresa (categoria nula); sem nenhuma, `crm.garantia_sla.prazo_padrao_horas` (48h).
+4. Fila e responsável: o pedido, senão a política, senão quem abriu.
+5. Cliente, venda, OS, tipo e responsável de outra empresa são recusados (ADR 0093).
+6. Fatia 2: comando agendado avisa o responsável quando o prazo está vencendo ou vencido, uma vez por chamado (`sla_alertado_em`).
+7. Fatia 3: aba "Garantia" em Acompanhamentos com fila, responsável e prazo, ancorada no protótipo.
+
+### US-CRM-096 · Captura de lead com origem e UTM — o lead entra no funil já com a origem
+
+**Implementado em:** `Modules/Crm/Http/Controllers/CapturaLeadController.php` · `Modules/Crm/Services/CapturaDeLead.php` · `Modules/Crm/Routes/api.php` · `Modules/Crm/Entities/FormularioCaptura.php`
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 6h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P2 do levantamento de concorrência de 2026-10-25 (frente CRM: RD Station, Pipedrive e Agendor capturam o lead do site com a campanha de onde ele veio). Destravada por [W] em 2026-10-27 ("pode destravar todos"). Respeita a [ADR 0441](../../decisions/0441-funil-de-vendas-sai-da-depreciacao-emenda-0301.md): o lead vira **negócio** em `crm_deals` apontando para cliente do cadastro; `contacts.type='lead'` segue em depreciação e não é usado.
+
+**Critérios de aceite:**
+1. `POST /api/crm/captura/{chave}` é público (sem sessão, sem CSRF) e responde 404 com a flag `CRM_CAPTURA_LEAD_ENABLED` desligada (padrão) ou com chave inexistente/inativa.
+2. A empresa vem só da chave do formulário (`crm_formularios_captura`); o visitante nunca informa empresa e a resposta é só `{ok: true}` (ou o redirecionamento para a página de agradecimento que a própria empresa configurou).
+3. O negócio nasce na etapa Lead, com `origem = formulario` e os 5 parâmetros UTM (`utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, até 120 caracteres), responsável = dono do formulário. Negócio criado à mão fica `origem = manual`.
+4. O cliente é procurado por e-mail ou celular **só na empresa do formulário**; existindo, é reaproveitado; senão nasce como cliente. Cliente de outra empresa com o mesmo e-mail nunca é usado.
+5. Nome e e-mail ou telefone obrigatórios (422 sem gravar).
+6. Anti-spam: campo-armadilha `website` preenchido responde sucesso e não grava; 10 envios por minuto por IP (o 11º recebe 429).
+7. Formulário criado por `php artisan crm:formulario-captura {business_id} {owner_user_id} {nome} [--obrigado=URL]` (responsável tem de ser da mesma empresa). Tela de gestão de formulários e a origem no cartão do funil ficam para o PR seguinte.
+
+### US-CRM-098 · Segmentação RFM — recência, frequência e valor por cliente
+
+**Implementado em:** `Modules/Crm/Services/Fidelidade/SegmentacaoRfmDoCrm.php` · `app/Contracts/Crm/SegmentacaoRfm.php` · `Modules/Crm/Console/Commands/RfmCalcularCommand.php` · `Modules/Crm/Database/Migrations/2026_10_27_000002_create_crm_rfm_clientes_table.php` · `Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php`
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmRfmContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 6h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P2 do levantamento de concorrência (segmentação RFM), destravada por [W] em 2026-10-27. Os consumidores são a campanha de WhatsApp (US-WA-323, #9863) e a régua de relacionamento (US-WA-326, #9892), que leem os segmentos pelo contrato `App\Contracts\Crm\SegmentacaoRfm`, sem tocar nas tabelas do Crm.
+
+**Critérios de aceite:**
+1. Por cliente da empresa com venda final (sem o "Cliente padrão"): R = dias desde a última compra, F = vendas nos últimos 365 dias, M = soma dessas vendas (UC-RFM-03).
+2. Notas de 1 a 5 por quintil dentro da empresa; valores iguais têm a mesma nota (UC-RFM-01).
+3. Segmentos: campeões, novos, leais, promissores, em risco, hibernando, perdidos (UC-RFM-02).
+4. `crm:rfm-calcular [--business=]` substitui o cálculo anterior da empresa (UC-RFM-05); agendado às 04:30 com a flag `CRM_RFM_ENABLED`, que nasce desligada.
+5. Tier 0: o contrato devolve só contatos da empresa pedida (UC-RFM-04).
+6. Público da campanha por segmento: `segmento_rfm` no pré-cálculo do público (`BroadcastController::preflight`), com todos os números contados só dentro do segmento e segmento desconhecido recusado (UC-CXU-11b). Na régua de relacionamento — PR seguinte.
+7. Tela com a distribuição por segmento — PR seguinte, ancorada em protótipo.

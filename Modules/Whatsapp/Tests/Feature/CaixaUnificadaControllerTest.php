@@ -924,6 +924,38 @@ it('UC-CXU-11 · R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + jan
         ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
 });
 
+it('UC-CXU-11b · US-CRM-098 — público por segmento RFM: só clientes do segmento, segmento desconhecido recusa', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-011b-uuid');
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+    foreach ([201, 202, 203] as $id) {
+        \Illuminate\Support\Facades\DB::table('contacts')->insert([
+            'id' => $id, 'business_id' => 1, 'name' => "C{$id}", 'mobile' => "+554899{$id}",
+            'whatsapp_opt_in_at' => now()->toDateTimeString(), 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        cuctMakeConv(1, $ch->id)->forceFill(['contact_id' => $id, 'last_inbound_at' => now()->subHours(2)])->save();
+    }
+    // O Crm é dono do cálculo; aqui vale o contrato: 201 e 203 estão em "em_risco" na empresa 1.
+    app()->instance(\App\Contracts\Crm\SegmentacaoRfm::class, new class implements \App\Contracts\Crm\SegmentacaoRfm {
+        public function segmentos(): array { return ['em_risco' => 'Em risco', 'campeoes' => 'Campeões']; }
+        public function contatosDoSegmento(int $businessId, string $segmento): array { return $businessId === 1 && $segmento === 'em_risco' ? [201, 203] : []; }
+    });
+
+    $bcast = new \Modules\Whatsapp\Http\Controllers\Admin\BroadcastController();
+    $pf = $bcast->preflight(cuctPostRequest('/atendimento/broadcast/preflight', ['channel_id' => $ch->id, 'segmento_rfm' => 'em_risco']))->getData(true);
+    expect($pf['total'])->toBe(2)
+        ->and($pf['with_opt_in'])->toBe(2)
+        ->and($pf['segmento_rfm'])->toBe('em_risco');
+    $contatos = \Modules\Whatsapp\Entities\Conversation::withoutGlobalScopes()->whereIn('id', $pf['recipient_conversation_ids'])->pluck('contact_id')->sort()->values()->all();
+    expect($contatos)->toBe([201, 203]);
+
+    // Segmento sem cliente → público vazio; sem filtro → os 3.
+    expect($bcast->preflight(cuctPostRequest('/atendimento/broadcast/preflight', ['channel_id' => $ch->id, 'segmento_rfm' => 'campeoes']))->getData(true)['total'])->toBe(0);
+    expect($bcast->preflight(cuctPostRequest('/atendimento/broadcast/preflight', ['channel_id' => $ch->id]))->getData(true)['total'])->toBe(3);
+
+    expect(fn () => $bcast->preflight(cuctPostRequest('/atendimento/broadcast/preflight', ['channel_id' => $ch->id, 'segmento_rfm' => 'inventado'])))
+        ->toThrow(\Illuminate\Validation\ValidationException::class);
+});
+
 // ============================================================================
 // 10. PR-9 brief [CC] — IA na thread: dry_run gateia custo + Tier 0/ACL
 // ============================================================================

@@ -66,8 +66,29 @@ Do computador de quem tem admin no repo (o `gh` gera o token de registro, que va
 gh api -X POST repos/wagnerra23/oimpresso.com/actions/runners/registration-token --jq .token   | ssh root@192.168.0.50 'cd /opt/oimpresso-ci-src && git pull -q && VAGAS=8 docker/ci-runner-leve/install.sh'
 ```
 
-`/opt/oimpresso-ci-src` é um clone *sparse* do repo, só `docker/ci-runner-leve/`. O `install.sh`
-é idempotente: vaga que já existe fica como está.
+`/opt/oimpresso-ci-src` é um clone *sparse* do repo, só `docker/ci-runner-leve/`, que acompanha
+o `main`. O `install.sh` é idempotente: vaga que já existe fica como está. Ele só é necessário para
+**criar** vagas; para **atualizar**, existe a rotina abaixo.
+
+## Atualização automática
+
+O `ci-runner-leve-atualiza.timer` roda o `atualiza.sh` a cada 15 minutos. Ele busca o `main` e
+compara a árvore de `docker/ci-runner-leve/` com a última implantada
+(`/var/lib/ci-runner-leve/arvore-implantada`). Se mudou, reconstrói a imagem e troca as vagas uma
+por uma:
+
+- vaga com job rodando espera ficar livre (até 30 min; se não liberar, fica para a próxima volta);
+- a credencial do runner (`.runner`, `.credentials`, `.credentials_rsaparams`) passa do container
+  antigo para o novo, então **não precisa de token de registro nem de SSH de ninguém**;
+- se a vaga não estiver rodando 60 s depois, o container antigo volta.
+
+O carimbo só é gravado quando todas as vagas foram trocadas. Ver o que aconteceu:
+`journalctl -u ci-runner-leve-atualiza --since today`. Forçar agora:
+`systemctl start ci-runner-leve-atualiza`.
+
+Origem: em 2026-10-28 o conserto do workspace (#10093) ficou parado no `main` porque a troca das
+vagas dependia de alguém entrar no CT 100. O clone ainda apontava para o branch do PR, que já
+tinha sido apagado.
 
 Depois liga o roteamento no GitHub (sem PR):
 

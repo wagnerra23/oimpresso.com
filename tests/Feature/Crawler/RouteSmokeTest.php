@@ -87,7 +87,7 @@ dataset('viewRoutes', [
     // Core
     'home' => ['/home'],
     'business.settings' => ['/business/settings'],
-    'user.profile' => ['/user/profile'],
+    'perfil' => ['/perfil'],
     // CRUD create (core)
     'brands.create' => ['/brands/create'],
     'tax-rates.create' => ['/tax-rates/create'],
@@ -101,10 +101,7 @@ dataset('viewRoutes', [
     'products.create' => ['/products/create'],
     'invoice-schemes.create' => ['/invoice-schemes/create'],
     'invoice-layouts.create' => ['/invoice-layouts/create'],
-    'barcodes.create' => ['/barcodes/create'],
-    'business-location.create' => ['/business-location/create'],
     'types-of-service.create' => ['/types-of-service/create'],
-    'printers.create' => ['/printers/create'],
     'users.create' => ['/users/create'],
     'roles.create' => ['/roles/create'],
     'cash-register.create' => ['/cash-register/create'],

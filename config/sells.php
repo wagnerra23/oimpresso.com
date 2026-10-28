@@ -47,6 +47,23 @@ return [
         'timeout_seconds' => (int) env('SELLS_AI_TIMEOUT', 8),
     ],
 
+    'comissao' => [
+        /*
+         * US-COMM-015 — comissão por regra (vendedor/produto/categoria, % ou valor; papel
+         * vendedor ou técnico da OS). Desligada: GET /sells/{id}/comissao-por-regra dá 404 e
+         * nada muda. Ligar é decisão [W] (regra mestre de valor).
+         */
+        'por_regra' => env('SELLS_COMISSAO_POR_REGRA', false),
+    ],
+
+    'cupom' => [
+        /*
+         * US-SELL-076 — cupom por código no caixa. Desligado: POST /sells/cupom dá 404 e nada
+         * muda. Ligar é decisão [W] (regra mestre de valor).
+         */
+        'ativo' => env('SELLS_CUPOM', false),
+    ],
+
     'resgate_pontos' => [
         /*
          * US-SELL-079 — resgate de pontos de fidelidade no caixa React (Sells/Create). Desligado
@@ -64,6 +81,37 @@ return [
          * 0 = toda importação vai para a fila.
          */
         'limite_sincrono' => (int) env('SELLS_IMPORT_LIMITE_SINCRONO', 200),
+    ],
+
+    'tef' => [
+        /*
+         * Maquininha integrada ao caixa (US-SELL-075). Default OFF.
+         * Camada independente da adquirente: o driver vem de SELLS_TEF_DRIVER (hoje só
+         * `simulador`, para homologação). O driver real depende da escolha do integrador
+         * e do contrato, decisão [W] registrada em memory/requisitos/Sells/BRIEFING.md.
+         * SELLS_TEF_BIZ = lista de empresas (vazia = todas, se ligado).
+         */
+        'enabled' => env('SELLS_TEF_ENABLED', false),
+        'business_ids' => array_values(array_filter(array_map(
+            'intval',
+            explode(',', (string) env('SELLS_TEF_BIZ', ''))
+        ))),
+        'driver' => env('SELLS_TEF_DRIVER', 'simulador'),
+    ],
+
+    'offline' => [
+        /*
+         * Venda sem internet no caixa (US-SELL-054). Default OFF.
+         * Ligado, o caixa grava a venda numa fila do navegador quando a rede cai e
+         * reenvia ao voltar, com uma chave por venda (`offline_uuid`); o servidor
+         * reconhece a chave e não grava a mesma venda duas vezes (App\Services\Sells\VendaOffline).
+         * `SELLS_OFFLINE_BIZ` = lista de empresas (vazia = todas, se ligado).
+         */
+        'enabled' => env('SELLS_OFFLINE_ENABLED', false),
+        'business_ids' => array_values(array_filter(array_map(
+            'intval',
+            explode(',', (string) env('SELLS_OFFLINE_BIZ', ''))
+        ))),
     ],
 
     /*
