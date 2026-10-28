@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1074 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1076 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -19,7 +19,7 @@
 | [`NfeBrasil`](#nfebrasil) | 33 | 0 | 0 | 6 | 27 |
 | [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
-| [`Crm`](#crm) | 26 | 0 | 0 | 0 | 26 |
+| [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
@@ -750,6 +750,7 @@
 - **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
 - **US-CRM-094** — Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
 - **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
+- **US-CRM-098** — Segmentação RFM — recência, frequência e valor por cliente
 
 ## RecurringBilling
 

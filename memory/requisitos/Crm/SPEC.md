@@ -678,3 +678,23 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 5. Nome e e-mail ou telefone obrigatórios (422 sem gravar).
 6. Anti-spam: campo-armadilha `website` preenchido responde sucesso e não grava; 10 envios por minuto por IP (o 11º recebe 429).
 7. Formulário criado por `php artisan crm:formulario-captura {business_id} {owner_user_id} {nome} [--obrigado=URL]` (responsável tem de ser da mesma empresa). Tela de gestão de formulários e a origem no cartão do funil ficam para o PR seguinte.
+
+### US-CRM-098 · Segmentação RFM — recência, frequência e valor por cliente
+
+**Implementado em:** `Modules/Crm/Services/Fidelidade/SegmentacaoRfmDoCrm.php` · `app/Contracts/Crm/SegmentacaoRfm.php` · `Modules/Crm/Console/Commands/RfmCalcularCommand.php` · `Modules/Crm/Database/Migrations/2026_10_27_000002_create_crm_rfm_clientes_table.php` · `Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php`
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmRfmContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 6h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P2 do levantamento de concorrência (segmentação RFM), destravada por [W] em 2026-10-27. Os consumidores são a campanha de WhatsApp (US-WA-323, #9863) e a régua de relacionamento (US-WA-326, #9892), que leem os segmentos pelo contrato `App\Contracts\Crm\SegmentacaoRfm`, sem tocar nas tabelas do Crm.
+
+**Critérios de aceite:**
+1. Por cliente da empresa com venda final (sem o "Cliente padrão"): R = dias desde a última compra, F = vendas nos últimos 365 dias, M = soma dessas vendas (UC-RFM-03).
+2. Notas de 1 a 5 por quintil dentro da empresa; valores iguais têm a mesma nota (UC-RFM-01).
+3. Segmentos: campeões, novos, leais, promissores, em risco, hibernando, perdidos (UC-RFM-02).
+4. `crm:rfm-calcular [--business=]` substitui o cálculo anterior da empresa (UC-RFM-05); agendado às 04:30 com a flag `CRM_RFM_ENABLED`, que nasce desligada.
+5. Tier 0: o contrato devolve só contatos da empresa pedida (UC-RFM-04).
+6. Público da campanha por segmento: `segmento_rfm` no pré-cálculo do público (`BroadcastController::preflight`), com todos os números contados só dentro do segmento e segmento desconhecido recusado (UC-CXU-11b). Na régua de relacionamento — PR seguinte.
+7. Tela com a distribuição por segmento — PR seguinte, ancorada em protótipo.
