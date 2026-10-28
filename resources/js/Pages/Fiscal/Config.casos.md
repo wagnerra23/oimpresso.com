@@ -287,6 +287,13 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
   fiscal, Então o SPED dela sai com `IND_PERFIL` B e com os registros que esse perfil exige; empresa sem
   escolha segue no perfil A. Hoje o gerador escreve sempre o perfil A (`Sped.casos.md`, UC-FSF1-05). O
   perfil vem do enquadramento da empresa no estado; o contador informa qual é.
+  - Pedido: P-083
+  - Âncora: Gerador do SPED (`UC-FSF1-05`) · `Fiscal/Config.casos.md`
+  - Fazer: Campo de perfil na configuração fiscal, usado pelo gerador do SPED.
+  - Hoje: miss | Não tem | O SPED sai sempre no perfil A
+  - Comunicação visual: ok | Sim | empresa no regime normal
+  - Clientes: Extreme, Safety
+  - Etiquetas: miss, cv
 - **[BACKLOG · ⬜ sem teste] Alíquota do Simples do mês, para produto e para serviço** (pedido de
   2026-10-27) — Dado a DAS de outubro com 8% para venda de produto e 12% para serviço, Quando informo
   as duas alíquotas com a competência, Então a formação de preço passa a usá-las, e a tela avisa
@@ -295,6 +302,13 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
   existir, entra como sugestão e conferência; se vale a DAS digitada ou a calculada é decisão do [W]
   (a proposta é a DAS). Hoje o Financeiro estima o DAS com 6% fixo (`ImpostosController::DAS_RATE`).
   Pedido da Art Laser; US-PROD-032.
+  - Pedido: P-106
+  - Âncora: US-PROD-032 · apuração do DAS pelo Anexo (US-FISCAL-030, PR #10021)
+  - Fazer: Uma alíquota por competência e por natureza (produto ou serviço), digitada da DAS. A apuração pelo Anexo, quando existir, entra como sugestão e conferência.
+  - Hoje: miss | Não tem | O Financeiro estima o DAS com 6% fixo; a apuração pelo Anexo está no PR #10021, sem tela
+  - Comunicação visual: ok | Sim | Simples com NF-e e NFS-e
+  - Clientes: ArtLaser
+  - Etiquetas: miss, cv, decisao
 
 ## Como rodar a suíte
 
