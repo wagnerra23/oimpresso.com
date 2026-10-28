@@ -209,6 +209,7 @@ it('UC-PLED-07 · ?legacy=1 abre as Blades até o F5', function () {
 
     $this->get('/spreadsheet/sheets/'.$minha.'?legacy=1')->assertOk()->assertViewIs('spreadsheet::sheet.show');
     $this->get('/spreadsheet/sheets/create?legacy=1')->assertOk()->assertViewIs('spreadsheet::sheet.create');
+});
 
 // ── Compartilhar (thread telas-soltas/04, ações da lista) — UC-PLAN-06 a 08 ───────────────
 
