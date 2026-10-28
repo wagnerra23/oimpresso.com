@@ -57,7 +57,7 @@ it('emitirPix tipo=cobv OK via PUT /pix/v2/cobv/{txid}', function () {
         ], 200),
     ]);
 
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
     $result = (new PaymentGatewayService())->for($account)->emitirPix(new EmitirCobrancaInput(
         businessId: 1, contactId: 500, valorCentavos: 30000,
         vencimento: new DateTimeImmutable('+30 days'),
@@ -97,7 +97,10 @@ it('emitirPix tipo=cobv usa validade default 30 dias quando não especificado', 
         meta: ['payer_cpf_cnpj' => '11122233344', 'payer_name' => 'X', 'pix_key' => 'k@x'],
     ), $this->cred, 'cobv');
 
-    Http::assertSent(fn ($r) => $r['calendario']['validadeAposVencimento'] === 30);
+    // assertSent roda a closure em TODAS as requisições gravadas — inclusive o POST de
+    // /oauth/v2/token, que não tem "calendario". Filtra pela URL da cobv antes de ler o corpo.
+    Http::assertSent(fn ($r) => str_contains($r->url(), '/pix/v2/cobv/')
+        && $r['calendario']['validadeAposVencimento'] === 30);
 });
 
 it('emitirPix tipo=recv → DriverNotSupportedException (Onda 4d BcbPix)', function () {
@@ -166,7 +169,9 @@ it('refund PIX cobv OK (mesmo endpoint, tipo aceito)', function () {
 
     Http::assertSent(function ($r) {
         // valor=0.00 quando $valorCentavos é null (devolução total — Inter usa valor original do cob)
-        return $r['valor'] === '0.00';
+        // Filtra pela URL da devolução: o POST de /oauth/v2/token também passa por aqui e não tem "valor".
+        return str_contains($r->url(), '/pix/v2/cob/pix-tx-cobv/devolucao/')
+            && $r['valor'] === '0.00';
     });
 });
 

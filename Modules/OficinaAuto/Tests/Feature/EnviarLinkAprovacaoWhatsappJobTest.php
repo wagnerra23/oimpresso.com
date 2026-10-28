@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * Cobertura:
  *  - Cenário 1: Observer dispatcha Job quando ServiceOrder.status → orcamento
  *  - Cenário 2: Job idempotência (cache key bloqueia 2º dispatch)
- *  - Cenário 3: Job rejeita cross-tenant (OS biz=1 com job param business_id=99 → skip)
+ *  - Cenário 3: Job rejeita cross-tenant (OS biz=1 com job param business_id=2 → skip)
  *  - Cenário 4: Job skip quando contact ausente (walk-in)
  *  - Cenário 5: Job skip quando status mudou pós-dispatch (race condition)
  *  - Cenário 6: Job dispatch 2 SendWhatsappMessageJob (msg1 link, msg2 PIN delay 60s)
@@ -33,7 +33,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_JOB_A = 1;
-const BIZ_JOB_B = 99;
+const BIZ_JOB_B = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
 const PLATE_JOB_PREFIX = 'WPPJ';
 
 beforeEach(function () {
@@ -103,7 +103,7 @@ it('Cenário 1: Observer dispatcha EnviarLinkAprovacaoWhatsappJob quando status 
         EnviarLinkAprovacaoWhatsappJob::class,
         fn ($job) => $job->businessId === BIZ_JOB_A && $job->serviceOrderId === $os->id,
     );
-})->afterEach(fn () => jobCleanup('A'));
+})->after(fn () => jobCleanup('A'));
 
 it('Cenário 1b: Observer NÃO dispatcha Job em status concluida (auto-faturar é outro fluxo)', function () {
     Bus::fake([EnviarLinkAprovacaoWhatsappJob::class]);
@@ -114,7 +114,7 @@ it('Cenário 1b: Observer NÃO dispatcha Job em status concluida (auto-faturar �
     $os->save();
 
     Bus::assertNotDispatched(EnviarLinkAprovacaoWhatsappJob::class);
-})->afterEach(fn () => jobCleanup('A2'));
+})->after(fn () => jobCleanup('A2'));
 
 // ---------------------------------------------------------------------------
 // Cenário 2 — Idempotência cache
@@ -134,7 +134,7 @@ it('Cenário 2: Job idempotência — 2º handle no mesmo OS skipa via cache', f
     $job->handle(app(\Modules\OficinaAuto\Services\AprovacaoOsService::class));
 
     Bus::assertNotDispatched(SendWhatsappMessageJob::class);
-})->afterEach(fn () => jobCleanup('B'));
+})->after(fn () => jobCleanup('B'));
 
 // ---------------------------------------------------------------------------
 // Cenário 3 — Cross-tenant guard
@@ -151,7 +151,7 @@ it('Cenário 3: Job rejeita quando OS pertence a outro business (Tier 0)', funct
     $job->handle(app(\Modules\OficinaAuto\Services\AprovacaoOsService::class));
 
     Bus::assertNotDispatched(SendWhatsappMessageJob::class);
-})->afterEach(fn () => jobCleanup('C'));
+})->after(fn () => jobCleanup('C'));
 
 // ---------------------------------------------------------------------------
 // Cenário 4 — Walk-in (sem contact_id)
@@ -180,7 +180,7 @@ it('Cenário 4: Job skip quando OS sem contact_id (walk-in)', function () {
     $job->handle(app(\Modules\OficinaAuto\Services\AprovacaoOsService::class));
 
     Bus::assertNotDispatched(SendWhatsappMessageJob::class);
-})->afterEach(fn () => jobCleanup('D'));
+})->after(fn () => jobCleanup('D'));
 
 // ---------------------------------------------------------------------------
 // Cenário 5 — Race condition status mudou
@@ -196,4 +196,4 @@ it('Cenário 5: Job skip quando status mudou pós-dispatch (race condition)', fu
     $job->handle(app(\Modules\OficinaAuto\Services\AprovacaoOsService::class));
 
     Bus::assertNotDispatched(SendWhatsappMessageJob::class);
-})->afterEach(fn () => jobCleanup('E'));
+})->after(fn () => jobCleanup('E'));

@@ -46,3 +46,11 @@ Modules/OficinaAuto/Tests/Feature/E2EJourneyMartinhoBiz1Test.php  # FK para busi
 # D. Teste desatualizado em relação ao código.
 Modules/OficinaAuto/Tests/Feature/ServiceOrderStagePipelineTest.php  # payload sem a chave stages_pipeline
 Modules/OficinaAuto/Tests/Feature/ServiceOrderSheetVendaDerivadaGuardTest.php  # lê ServiceOrderSheet.tsx, arquivo removido
+# C. Contagem ou FSM dependem de estado que a lane não tem: biz=1 compartilhado com linhas
+#    de outros arquivos (ex.: "10 is identical to 2") e actions FSM da oficina não semeadas
+#    ("Action 'iniciar_diagnostico' não existe pra stage_id=").
+Modules/OficinaAuto/Tests/Feature/ServiceOrderBoardTest.php  # contagem contaminada no biz=1 / FSM não semeada
+Modules/OficinaAuto/Tests/Feature/CapacidadeServiceTest.php  # contagem contaminada no biz=1 / FSM não semeada
+Modules/OficinaAuto/Tests/Feature/ServiceOrderStoreLinksVehicleTest.php  # contagem contaminada no biz=1 / FSM não semeada
+Modules/OficinaAuto/Tests/Feature/ServiceOrderHistoryControllerTest.php  # contagem contaminada no biz=1 / FSM não semeada
+Modules/OficinaAuto/Tests/Feature/Wave27OficinaAutoSaturationTest.php  # contagem contaminada no biz=1 / FSM não semeada
