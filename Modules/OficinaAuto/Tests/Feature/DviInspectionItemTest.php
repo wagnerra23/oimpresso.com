@@ -229,7 +229,7 @@ it('UC-OSH-06 · Service::listarOrdenado coloca críticos no topo', function () 
 
 it('HTTP POST cria item DVI 201 com payload correto (autenticado superadmin)', function () {
     session(['user.business_id' => BIZ_DVI]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_DVI)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_DVI]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1 pra testar HTTP');
     }
@@ -255,7 +255,7 @@ it('HTTP POST cria item DVI 201 com payload correto (autenticado superadmin)', f
 
 it('HTTP PUT cross-OS guard: item de OS diferente retorna 404', function () {
     session(['user.business_id' => BIZ_DVI]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_DVI)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_DVI]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1');
     }

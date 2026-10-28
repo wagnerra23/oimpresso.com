@@ -42,6 +42,12 @@ class UserFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'password' => $password ?: $password = Hash::make('secret'),
             'language' => 'en',
+            // Mesmos valores do DEFAULT da coluna (user_type='user', allow_login=1). O
+            // create() nao rele a linha, entao sem isto o model que vai pro actingAs()
+            // fica com os dois em null e o CheckUserLogin devolve 403 antes do controller.
+            // Era por isso que 102 testes passavam os dois a mao. A linha gravada nao muda.
+            'user_type' => 'user',
+            'allow_login' => 1,
             'remember_token' => Str::random(10),
         ];
     }

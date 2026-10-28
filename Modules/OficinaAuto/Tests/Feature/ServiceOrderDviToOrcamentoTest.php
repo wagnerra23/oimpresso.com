@@ -81,7 +81,7 @@ function dto_cleanup(string $suffix): void
 
 it('UC-OSH-07 · converte item DVI em ServiceOrderItem (valor sugerido vira valor unitário)', function () {
     session(['user.business_id' => BIZ_DTO]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_DTO)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_DTO]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1 pra testar HTTP');
     }
@@ -110,7 +110,7 @@ it('UC-OSH-07 · converte item DVI em ServiceOrderItem (valor sugerido vira valo
 
 it('é idempotente — reconverter o mesmo item DVI retorna 409', function () {
     session(['user.business_id' => BIZ_DTO]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_DTO)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_DTO]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1');
     }
@@ -130,7 +130,7 @@ it('é idempotente — reconverter o mesmo item DVI retorna 409', function () {
 
 it('cross-OS guard — item DVI de outra OS retorna 404', function () {
     session(['user.business_id' => BIZ_DTO]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_DTO)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_DTO]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1');
     }

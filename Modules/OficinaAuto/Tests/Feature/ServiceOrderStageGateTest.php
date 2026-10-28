@@ -38,7 +38,7 @@ beforeEach(function () {
 
 function sg5_user(): ?\App\User
 {
-    return \App\User::withoutGlobalScopes()->where('business_id', BIZ_GATE5)->first();
+    return tap(\App\User::factory()->create(['business_id' => BIZ_GATE5]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
 }
 
 function sg5_criaOs(string $suffix, int $biz = BIZ_GATE5, string $orderType = 'mecanica'): ServiceOrder

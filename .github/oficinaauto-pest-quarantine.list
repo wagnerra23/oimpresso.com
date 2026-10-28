@@ -17,20 +17,6 @@
 # conserto de uma linha, por isso ficam aqui com o motivo, e os outros 17 passam a rodar.
 # Saída: corrigir o arquivo (ou o seed da lane) e tirar daqui, um grupo por PR.
 #
-# A. 403 nas rotas mesmo com a permissão `superadmin` concedida ao usuário do teste.
-#    Causa não isolada (permissão Spatie no seed × gate do controller). Mesma raiz nos 11.
-Modules/OficinaAuto/Tests/Feature/ServiceOrderRichSheetPayloadTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderDviToOrcamentoTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderLaudoPhotoTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderSheetVendaDerivadaTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderStageGateTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderObserverItemsAndHttpTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/DviInspectionItemTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderPrintTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderApprovalGateTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderItemHttpIntegrationTest.php  # 403 com superadmin
-Modules/OficinaAuto/Tests/Feature/ServiceOrderEnviarAprovacaoTest.php  # 403 com superadmin
-#
 # B. Fixture grava em business/veículo que o seed da lane não tem (FK fk_vehicles_business,
 #    transactions_business_id_foreign, fk_so_vehicle). O seed tem os tenants 1/2/98.
 Modules/OficinaAuto/Tests/Feature/ServiceOrderItemTest.php  # FK para business/veículo inexistente no seed
