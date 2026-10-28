@@ -1656,7 +1656,7 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 > owner: wagner · priority: p1 · estimate: 10h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
 > blocked_by: —
 
-**Implementado em:** _pendente_ — não iniciada.
+**Implementado em:** _pendente_ — fatia 1 (gerar o link + o que o cliente vê, atrás de `SELLS_ORCAMENTO_ACEITE_LINK`); falta a página pública, a decisão e o movimento da FSM.
 
 O link público do orçamento (`SellPosController@showInvoice`) só mostra o documento. O cliente passa a aprovar (informando o nome) ou pedir ajuste; a aprovação fica registrada na venda, com data e IP, e o vendedor converte em pedido pelo caminho de conversão que já existe. Não muda valor nem estoque. Tier 0: o token do link só abre o orçamento da própria empresa.
 

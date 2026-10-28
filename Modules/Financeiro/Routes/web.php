@@ -275,6 +275,8 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->name('conciliacao.index');
         Route::post('/conciliacao/upload', [ConciliacaoController::class, 'upload'])
             ->name('conciliacao.upload');
+        Route::post('/conciliacao/aplicar-regras', [ConciliacaoController::class, 'aplicarRegras'])
+            ->name('conciliacao.aplicar-regras');
         Route::post('/conciliacao/{lineId}/match', [ConciliacaoController::class, 'match'])
             ->whereNumber('lineId')
             ->name('conciliacao.match');

@@ -8,7 +8,6 @@ use App\SellingPriceGroup;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class LabelsController extends Controller
@@ -33,9 +32,10 @@ class LabelsController extends Controller
     }
 
     /**
-     * Display labels (Inertia Produto/Etiquetas/Index; `?classico=1` = Blade)
+     * Display labels (Inertia Produto/Etiquetas/Index). A Blade `labels.show` foi apagada no cutover
+     * de 2026-10-27; a folha impressa continua saindo de preview() (Blade, decisão [W] 2026-10-27).
      *
-     * @return \Illuminate\Contracts\View\View|\Inertia\Response
+     * @return \Inertia\Response
      */
     public function show(Request $request)
     {
@@ -53,7 +53,6 @@ class LabelsController extends Controller
 
         //Get products for the business
         $products = [];
-        $price_groups = [];
         if ($purchase_id) {
             $products = $this->transactionUtil->getPurchaseProducts($business_id, $purchase_id);
         } elseif ($product_id) {
@@ -62,31 +61,6 @@ class LabelsController extends Controller
             // O MESMO getDetailsFromProduct de um produto só, um por id. Ele filtra pela empresa
             // (`products.business_id`): id de outra empresa não vem (ADR 0093).
             $products = $product_ids->flatMap(fn (int $id) => $this->productUtil->getDetailsFromProduct($business_id, $id))->values();
-        }
-
-        //get price groups
-        $price_groups = [];
-        if (! empty($purchase_id) || ! empty($product_id) || $product_ids->isNotEmpty()) {
-            $price_groups = SellingPriceGroup::where('business_id', $business_id)
-                                    ->active()
-                                    ->pluck('name', 'id');
-        }
-
-        $barcode_settings = Barcode::where('business_id', $business_id)
-                                ->orWhereNull('business_id')
-                                ->select(DB::raw('CONCAT(name, ", ", COALESCE(description, "")) as name, id, is_default'))
-                                ->get();
-        $default = $barcode_settings->where('is_default', 1)->first();
-        $barcode_settings = $barcode_settings->pluck('name', 'id');
-
-        // Playbook Produto · thread 04: a tela Produto/Etiquetas/Index é a padrão para todas as
-        // empresas, sem flag (decisão [W] 2026-10-06, noite: "etiquetas pode ativar sem tag" —
-        // antes ficava atrás da flag MWART `produto_etiquetas`, biz=1 primeiro). `?classico=1`
-        // ainda força a Blade como saída de emergência. A folha impressa continua saindo de
-        // preview() nos dois casos.
-        if ($request->boolean('classico')) {
-            return view('labels.show')
-                ->with(compact('products', 'barcode_settings', 'default', 'price_groups'));
         }
 
         $grupos = SellingPriceGroup::where('business_id', $business_id)->active()->orderBy('name')->get(['id', 'name']);
@@ -118,9 +92,9 @@ class LabelsController extends Controller
     }
 
     /**
-     * Returns the html for product row (JSON para a tela Inertia — playbook Produto thread 04)
+     * A linha de um produto para a tela de etiquetas, em JSON (playbook Produto thread 04).
      *
-     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View|null
+     * @return \Illuminate\Http\JsonResponse|null
      */
     public function addProductRow(Request $request)
     {
@@ -134,23 +108,17 @@ class LabelsController extends Controller
             $business_id = $request->session()->get('user.business_id');
 
             if (! empty($product_id)) {
-                $index = $request->input('row_count');
                 $products = $this->productUtil->getDetailsFromProduct($business_id, $product_id, $variation_id);
 
                 $price_groups = SellingPriceGroup::where('business_id', $business_id)
                                             ->active()
                                             ->pluck('name', 'id');
 
-                // Playbook Produto · thread 04: a tela Inertia pede a linha em JSON, com o preço
-                // que a impressão sairia por grupo e por tipo. A Blade segue recebendo o HTML.
-                if ($request->wantsJson()) {
-                    return response()->json(['linhas' => $products
-                        ->map(fn ($p) => $this->linhaEtiqueta((int) $business_id, (int) $p->variation_id, $price_groups->keys()))
-                        ->values()]);
-                }
-
-                return view('labels.partials.show_table_rows')
-                        ->with(compact('products', 'index', 'price_groups'));
+                // A tela Inertia pede a linha em JSON, com o preço que a impressão sairia por grupo e
+                // por tipo. O HTML da Blade (`show_table_rows`) saiu com ela no cutover de 2026-10-27.
+                return response()->json(['linhas' => $products
+                    ->map(fn ($p) => $this->linhaEtiqueta((int) $business_id, (int) $p->variation_id, $price_groups->keys()))
+                    ->values()]);
             }
         }
 

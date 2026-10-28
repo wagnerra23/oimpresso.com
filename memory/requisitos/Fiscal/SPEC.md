@@ -676,7 +676,7 @@ Como prestador do regime normal, quero que a DPS leve finNFSe, indFinal, cIndOp,
 > owner: — · priority: p3 · estimate: 16h · status: todo · type: epic
 > blocked_by: —
 
-**Implementado em:** _pendente_ — só o Fator R (`Modules/NfeBrasil/Services/FatorRService.php`). A GNRE é a guia do DIFAL/ST quando a empresa não tem inscrição na UF de destino (depende da US-NFE-072).
+**Implementado em:** _pendente_ — o cálculo já existe, mas sem chamador nem tela: `Modules/NfeBrasil/Services/Tributacao/ApuracaoDasService.php` · `Modules/NfeBrasil/Tests/Feature/ApuracaoDasTest.php` · contrato `memory/requisitos/Fiscal/_telas/apuracao-das.casos.md` (apuração do DAS pelo Anexo, só cálculo e sem chamador). Falta a tela, o lançar a pagar (o Financeiro segue com a estimativa ≈6%), a segregação de receitas e as respostas do contador listadas no contrato. Fator R em `Modules/NfeBrasil/Services/FatorRService.php`. A GNRE é a guia do DIFAL/ST quando a empresa não tem inscrição na UF de destino (depende da US-NFE-072).
 
 ### US-FISCAL-031 · Split payment (LC 214/2025) e EFD-Reinf — **P3**
 
