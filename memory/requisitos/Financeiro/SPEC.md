@@ -1327,10 +1327,12 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 ### US-FIN-077 · Exportar lançamentos contábeis (Domínio, Alterdata, Questor)
 
-> owner: — · priority: p2 · estimate: 16h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 16h · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `Modules/Financeiro/Services/ExportacaoContabilService.php` · `Modules/Financeiro/Http/Controllers/ExportacaoContabilController.php` · `Modules/Financeiro/Tests/Feature/ExportacaoContabilContratoTest.php` · verificado@e80beef (2026-10-27) — fatia 1: Domínio e Alterdata saem por rota de download com de-para em `fin_contabil_contas`; falta a tela (de-para + botões), o Questor (sem leiaute fixo publicado, decisão [W]), o centro de custo (US-FIN-075) e a validação por contador-piloto.
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/ExportacaoContabilContratoTest.php` (UC-EXPC-01..05, lane `financeiro-pest`)
 
 **Origem:** lacuna P2 do levantamento de 2026-10-25 (aparece também na lista da frente Plataforma). Só existe `DreExport`.
 
