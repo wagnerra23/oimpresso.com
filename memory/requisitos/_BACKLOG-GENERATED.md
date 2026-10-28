@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1074 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1076 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -20,10 +20,10 @@
 | [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`Crm`](#crm) | 26 | 0 | 0 | 0 | 26 |
+| [`Marketplaces`](#marketplaces) | 26 | 0 | 0 | 0 | 26 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
-| [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
@@ -751,6 +751,38 @@
 - **US-CRM-094** — Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
 - **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
 
+## Marketplaces
+
+
+### todo
+
+- **US-MKT-001** — Schema fundação 9 tabelas + Models global scope — **P0** · 4h
+- **US-MKT-002** — Catálogo `mkt_marketplaces` seed 3 drivers — **P0** · 2h
+- **US-MKT-003** — OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
+- **US-MKT-004** — OAuth2 Shopee + Amazon BR — **P1** · 6h
+- **US-MKT-005** — Importar 1 anúncio manual ML (proof of concept) — **P0** · 5h
+- **US-MKT-006** — Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
+- **US-MKT-007** — Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
+- **US-MKT-008** — UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
+- **US-MKT-009** — NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
+- **US-MKT-010** — Sync rastreamento Correios + auto-fechamento — **P0** · 6h
+- **US-MKT-011** — Sync estoque oimpresso → ML (one-way push) — **P1** · 8h
+- **US-MKT-012** — Sync estoque ML → oimpresso (one-way pull via webhook) — **P1** · 4h
+- **US-MKT-013** — Anúncio em lote (bulk create) — **P1** · 10h
+- **US-MKT-014** — Disputa workflow completo — **P1** · 12h
+- **US-MKT-015** — Reconciliação financeira Mercado Pago split D+X — **P1** · 8h
+- **US-MKT-016** — Reputação ML monitoring + alerta SLA — **P1** · 5h
+- **US-MKT-017** — Pricing rules per marketplace (markup diferenciado) — **P1** · 6h
+- **US-MKT-018** — Jana tool `marketplaces.consulta` (relatórios IA) — **P2** · 4h
+- **US-MKT-019** — Etiquetas envio ML Coletas + integração Correios — **P2** · 6h
+- **US-MKT-020** — Pipeline produção sob demanda marketplace (ComVis) — **P2** · 8h
+- **US-MKT-021** — Shopee orders webhook + NFe (mesmo pattern ML) — **P2** · 10h
+- **US-MKT-022** — Amazon BR orders webhook + NFe (SP-API) — **P2** · 12h
+- **US-MKT-023** — Pricing dinâmico copilot competitor watch — **P3** · 14h
+- **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
+- **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
+- **US-MKT-026** — Nuvemshop — conectar a loja (OAuth, token sem vencimento) — **P1** · 4h
+
 ## RecurringBilling
 
 
@@ -844,37 +876,6 @@
 - **US-INV-023** — Job daily `inventory:expire-batches` (batch.expires_at < today → status=expired) — **P2**
 - **US-INV-024** — Dashboard analytics estoque (giro, lead-time, ruptura, custo real per categoria) — **P3**
 - **US-INV-025** — Multi-location transfer com batch preservation — **P3**
-
-## Marketplaces
-
-
-### todo
-
-- **US-MKT-001** — Schema fundação 9 tabelas + Models global scope — **P0** · 4h
-- **US-MKT-002** — Catálogo `mkt_marketplaces` seed 3 drivers — **P0** · 2h
-- **US-MKT-003** — OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
-- **US-MKT-004** — OAuth2 Shopee + Amazon BR — **P1** · 6h
-- **US-MKT-005** — Importar 1 anúncio manual ML (proof of concept) — **P0** · 5h
-- **US-MKT-006** — Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
-- **US-MKT-007** — Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
-- **US-MKT-008** — UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
-- **US-MKT-009** — NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
-- **US-MKT-010** — Sync rastreamento Correios + auto-fechamento — **P0** · 6h
-- **US-MKT-011** — Sync estoque oimpresso → ML (one-way push) — **P1** · 8h
-- **US-MKT-012** — Sync estoque ML → oimpresso (one-way pull via webhook) — **P1** · 4h
-- **US-MKT-013** — Anúncio em lote (bulk create) — **P1** · 10h
-- **US-MKT-014** — Disputa workflow completo — **P1** · 12h
-- **US-MKT-015** — Reconciliação financeira Mercado Pago split D+X — **P1** · 8h
-- **US-MKT-016** — Reputação ML monitoring + alerta SLA — **P1** · 5h
-- **US-MKT-017** — Pricing rules per marketplace (markup diferenciado) — **P1** · 6h
-- **US-MKT-018** — Jana tool `marketplaces.consulta` (relatórios IA) — **P2** · 4h
-- **US-MKT-019** — Etiquetas envio ML Coletas + integração Correios — **P2** · 6h
-- **US-MKT-020** — Pipeline produção sob demanda marketplace (ComVis) — **P2** · 8h
-- **US-MKT-021** — Shopee orders webhook + NFe (mesmo pattern ML) — **P2** · 10h
-- **US-MKT-022** — Amazon BR orders webhook + NFe (SP-API) — **P2** · 12h
-- **US-MKT-023** — Pricing dinâmico copilot competitor watch — **P3** · 14h
-- **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
-- **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
 
 ## ComunicacaoVisual
 
