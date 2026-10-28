@@ -544,6 +544,51 @@ function ComprasPage() {
 }
 
 // ─── DRAWER ───
+// Aba Qualidade (US-COM-034 · lacuna P2 de Compras, 2026-10-27). Inspeção de cada linha da compra
+// recebida: aprovado + reprovado = recebido. O reprovado sai do estoque e entra na devolução desta
+// compra (crédito com o fornecedor). Cada linha é inspecionada uma vez. Desligada por padrão na empresa.
+function QualidadeTab({ p }) {
+  const [linhas, setLinhas] = useState(() => (p.products || []).map((it, i) => ({ ...it, ap: it.qty, rep: 0, mot: "" , i })));
+  const [feito, setFeito] = useState(false);
+  const muda = (i, campo, v) => setLinhas(ls => ls.map(l => {
+    if (l.i !== i) return l;
+    if (campo === "mot") return { ...l, mot: v };
+    const n = Math.max(0, Math.min(l.qty, Number(String(v).replace(",", ".")) || 0));
+    return campo === "ap" ? { ...l, ap: n, rep: l.qty - n } : { ...l, rep: n, ap: l.qty - n };
+  }));
+  const res = (l) => l.rep === 0 ? ["Aprovado", "ok"] : l.ap === 0 ? ["Reprovado", "err"] : ["Parcial", "warn"];
+  const devolucao = linhas.reduce((s, l) => s + l.rep * l.net, 0);
+  const semMotivo = linhas.find(l => l.rep > 0 && !l.mot.trim());
+  if (!p.products) return <div className="card" style={{ textAlign: "center", color: "var(--cmp-ink-3)", fontSize: 11.5, padding: 18 }}>Itens detalhados não disponíveis nesta visualização.</div>;
+  return (
+    <div className="sec">
+      <h4>Inspeção de qualidade</h4>
+      <p style={{ fontSize: 11.5, color: "var(--cmp-ink-3)", margin: "0 0 8px" }}>Marque quanto de cada item foi aprovado. O reprovado sai do estoque e entra na devolução desta compra, como crédito com o fornecedor. Cada item é inspecionado uma vez.</p>
+      <table className="items-tbl">
+        <thead><tr>
+          <th scope="col">Produto</th><th scope="col" className="num">Recebido</th><th scope="col" className="num">Aprovado</th><th scope="col" className="num">Reprovado</th><th scope="col">Motivo</th><th scope="col">Resultado</th>
+        </tr></thead>
+        <tbody>
+          {linhas.map(l => { const [rl, tom] = res(l); return (
+            <tr key={l.i}>
+              <td><b>{l.name}</b><small>{fmt(l.net)} / {l.unit}</small></td>
+              <td className="num">{l.qty}</td>
+              <td className="num"><input aria-label={"Aprovado de " + l.name} inputMode="decimal" disabled={feito} value={l.ap} onChange={e => muda(l.i, "ap", e.target.value)} style={{ width: 64, textAlign: "right" }} /></td>
+              <td className="num"><input aria-label={"Reprovado de " + l.name} inputMode="decimal" disabled={feito} value={l.rep} onChange={e => muda(l.i, "rep", e.target.value)} style={{ width: 64, textAlign: "right" }} /></td>
+              <td><input aria-label={"Motivo de " + l.name} disabled={feito} value={l.mot} placeholder={l.rep > 0 ? "obrigatório" : "—"} onChange={e => muda(l.i, "mot", e.target.value)} /></td>
+              <td><span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, background: "var(--cmp-" + tom + "-soft)", color: "var(--cmp-" + tom + ")" }}>{rl}</span></td>
+            </tr>); })}
+        </tbody>
+      </table>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
+        <div><small style={{ color: "var(--cmp-ink-3)" }}>Vai para a devolução</small><div style={{ fontFamily: "var(--cmp-mono)", fontWeight: 600 }}>{fmt(devolucao)}</div>
+          {semMotivo && <small role="alert" style={{ color: "var(--cmp-err)" }}>{semMotivo.name}: informe o motivo da reprovação.</small>}</div>
+        <button type="button" className="btn primary" disabled={feito || !!semMotivo} onClick={() => setFeito(true)}>{feito ? "Inspeção registrada" : "Registrar inspeção"}</button>
+      </div>
+    </div>
+  );
+}
+
 function DrawerView({ p, tab, setTab, stageIdx, close }) {
   const s = SUPPLIERS[p.supplier];
   const idx = stageIdx(p.stage);
@@ -555,6 +600,7 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
   const itemsTabs = [
     { id: "resumo",     l: "Resumo",     ct: null },
     { id: "itens",      l: "Itens",      ct: p.items },
+    { id: "qualidade",  l: "Qualidade",  ct: null },
     { id: "documentos", l: "Documentos", ct: p.xmlChave ? 1 : 0 },
     { id: "pagamentos", l: "Pagamentos", ct: null },
     { id: "historico",  l: "Histórico",  ct: p.timeline ? p.timeline.length : 0 },
@@ -682,6 +728,8 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
             )}
           </div>
         )}
+
+        {tab === "qualidade" && <QualidadeTab p={p} />}
 
         {tab === "documentos" && (
           <>

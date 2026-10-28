@@ -12,6 +12,8 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import { Icon } from '@/Components/Icon';
 import { router } from '@inertiajs/react';
+import { printSaleReceipt } from '@/Lib/printSaleReceipt';
+import { toast } from 'sonner';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -27,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
-import { Plus, Eye, Trash2, Printer, ArrowRight, Truck, FileText } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Printer, ArrowRight, Truck, FileText } from 'lucide-react';
 import DetalheTransferenciaDialog from './_components/DetalheTransferenciaDialog';
 
 // ---------- Tipos ----------
@@ -134,6 +136,17 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
    * tela pode receber tendo o saldo movido. `final` fica no teste por completude do tipo.
    */
   const mexeuNoSaldo = (s: TransferStatus) => s === 'completed' || s === 'final';
+
+  // A rota é `stock-transfers/print/{id}` e responde JSON com o recibo em HTML (o mesmo da
+  // Blade, `stock_transfer.print`). Abrir `/stock-transfers/{id}/print` numa aba dava 404.
+  // `printSaleReceipt` já busca esse JSON e imprime o HTML com o CSS do recibo.
+  const imprimir = async (r: TransferRow) => {
+    try {
+      await printSaleReceipt({ printUrl: `/stock-transfers/print/${r.id}`, invoiceNo: r.ref_no });
+    } catch {
+      toast.error('Não foi possível gerar a impressão desta transferência.');
+    }
+  };
 
   // Confirmação destrutiva pelo DS. O `confirm()` nativo não respeita o tema, não é
   // estilizável e não tem foco/ARIA gerenciados. Padrão imitado de
@@ -276,9 +289,16 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setVerId(r.id)} title="Ver">
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => window.open(`/stock-transfers/${r.id}/print`, '_blank')} title="Imprimir">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => void imprimir(r)} title="Imprimir" aria-label={`Imprimir ${r.ref_no}`}>
                         <Printer className="h-3.5 w-3.5" />
                       </Button>
+                      {/* Paridade Blade: editar só o que ainda não moveu saldo, com `purchase.update`; o
+                          `edit()`/`update()` exigem `purchase.create`. */}
+                      {permissions.update && permissions.create && !mexeuNoSaldo(r.status) && (
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => router.visit(`/stock-transfers/${r.id}/edit`)} title="Editar" aria-label={`Editar ${r.ref_no}`}>
+                          <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Button>
+                      )}
                       {permissions.delete && (
                         <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => setAlvoExclusao(r)} title="Excluir">
                           <Trash2 className="h-3.5 w-3.5" />

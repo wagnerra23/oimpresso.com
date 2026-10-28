@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.10
-last_updated: 2026-10-21
+version: 1.0.16
+last_updated: 2026-10-27
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -694,6 +694,53 @@ A lista Blade (`resources/views/product/partials/product_list.blade.php`, todas 
    do produto (`store`/`update`/`saveQuickProduct`), não deste fluxo, e nenhum teste o exercita.
    Paridade em aberto: o legado tem **dois** limiares (`AR-PROD-053`, Estoque Máx. **e** Mín.); o
    oimpresso tem um (`alert_quantity`).
+   - ✅ **O mínimo já aparece para o comprador** (US-COM-030, #9878, 2026-10-27): a tela de
+     requisições de compra mostra a lista **Necessidade de compra**, com o item abaixo do mínimo,
+     quanto comprar (reservado pelas OS + mínimo − saldo − a caminho), o fornecedor da última compra
+     e até quando pedir. Só na tela React de requisições, que é ligada por empresa
+     (`useV2ComprasRequisicoes`).
+   - 🔴 **Falta a ação do comprador** (comentário do [W] em 2026-10-27): a lista só mostra. Gerar
+     dali a requisição ou a cotação do item ainda não existe, e a cotação é a US-COM-031, pendente.
+     Hoje o comprador cria a requisição pela tela de criar, que já lista os itens no alerta
+     (`PurchaseRequisitionController::getRequisitionProducts`).
+   - ✅ **Requisição automática, opcional** (US-COM-027 · UC-FLX-19): um job diário, ligado pela
+     empresa em Fluxos, põe numa requisição do local o item com saldo abaixo de `alert_quantity`,
+     com quantidade = mínimo − saldo, o fornecedor e o preço da última compra. Desligado por
+     padrão. A requisição cai na lista de requisições, e o comprador a transforma em pedido.
+   - 🔶 **Como calcular o mínimo** (comentário do [W] em 2026-10-27): mínimo = consumo médio por
+     dia × prazo total de reposição em dias, com prazo total = cotação + solicitação/aprovação +
+     compra + entrega do fornecedor. Exemplo do [W]: Lona 440g, 2 m por dia e 5 dias de reposição
+     dão 10 m. Proposta, decisão [W]/[M]: somar uma margem de segurança em dias, porque com 10 m um
+     dia de consumo maior ou de atraso do fornecedor já deixa faltar lona (com 2 dias de margem, a
+     lona fica com 14 m). O sistema sugere o mínimo e a pessoa confirma, porque mexe em estoque e
+     compra.
+   - ⚠️ **O que falta para o sistema sugerir o mínimo** (medido no código em 2026-10-27): o prazo do
+     fornecedor tem tabela (`compras_prazo_fornecedor`, #9878), mas nenhuma tela grava nela; os
+     prazos internos (cotação, aprovação) não têm onde ficar; e o consumo médio não é calculado em
+     lugar nenhum. O giro do #9983 (rascunho, US-ESTOQUE-003) conta só as vendas, e insumo como a
+     lona é gasto na produção: o consumo precisa contar também a baixa de insumo das OS.
+   - ⚠️ **Conflito com o "Pedir até" do MRP:** para item sem OS, o MRP calcula pedir até = hoje −
+     prazo do fornecedor e marca **Atrasado** assim que o item tem prazo cadastrado
+     (`NecessidadeDeCompra::linha`). Se o mínimo já inclui o prazo de reposição, chegar ao mínimo
+     quer dizer "pedir hoje", não "atrasado". Ainda não aparece, porque nenhuma tela cadastra prazo.
+   - 🎨 **No protótipo (2026-10-22):** "Quantidade de alerta" passa a se chamar **Estoque mínimo**
+     (mesmo campo).
+   - 🔶 **Estoque máximo, opcional por produto** (revisão da [M] em 2026-10-27, a partir de um caso
+     do [L]; substitui a decisão de 2026-10-22, que dizia não haver máximo). O mínimo diz **quando**
+     comprar; o máximo diz **até onde** o estoque pode subir. Caso do [L]: uma barra de ferro de pouco
+     giro enferruja parada no estoque; sem teto, uma compra grande demais vira prejuízo. Recupera o
+     Estoque Máx. do legado (`AR-PROD-053`).
+     - **Regra proposta:** o máximo é o teto. A quantidade pedida não pode fazer o estoque passar
+       dele: teto = máximo − saldo − a caminho. Campo vazio = sem máximo, e tudo segue como hoje.
+       Exemplo: barra chata 1/4", mínimo 4, máximo 10, saldo 2, nada a caminho: dá para pedir até
+       8; se alguém pedir 20, a tela avisa que passa do máximo.
+     - **Em aberto, decisão [M]/[W]:** (a) abaixo do teto, a reposição pede até o mínimo (como a
+       US-COM-027 faz hoje) ou até o máximo; (b) material reservado para uma OS conta dentro do teto
+       ou fica fora dele, porque já tem destino e não fica parado.
+     - 🔴 **Não existe no código:** não há coluna de máximo em `products` nem em `variations`, e nem
+       a requisição automática (`RequisicaoEstoqueMinimoService`, US-COM-027) nem a Necessidade de
+       compra (US-COM-030) leem um máximo. Precisa de US no SPEC do Produto e de Compras antes de
+       virar código.
 3. `enable_product_expiry`/`enable_lot_number` habilitam validade/lote. — 🟡 **lote sim, validade
    em aberto**: `UC-PINIC-04` trava o lote; a **validade** fica fora do assert porque os **dois
    writers a parseiam de formas diferentes** (`uf_date` no controller × `Carbon::createFromFormat
@@ -1005,19 +1052,81 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
      "Mercadoria" ou "A decidir pelo contador", com o link para a Tributação. Produto de serviço não recebe
      o aviso de "sem NCM". O núcleo pede o dado ao NfeBrasil pelo gancho `getModuleData`, sem importá-lo.
      Ainda não aparece no **Novo produto** (produto novo não tem decisão) nem na ficha.
-  4. 🟡 Na NFS-e o código da LC 116 vem do padrão da empresa (`nfse_provider_configs.lc116_codigo_default`),
-     não do produto. O código de tributação nacional (`ctrib_nac`) só existe na emissão.
+     - 🎨 **Proposta no protótipo (2026-10-22): o Novo produto mostra "A decidir pelo contador" e,
+       ao salvar, marca a natureza como `pendente`** (`NaturezaFiscalService::marcarPendente`, que já
+       existe), para nenhum serviço novo sair como mercadoria sem o contador ver. ⚠️ **Efeito medido
+       no código (2026-10-22):** `pendente` fica do lado da mercadoria na separação da venda
+       (`SeparacaoNotasDaVenda`) e **trava a NFS-e da venda** — `NfseController::parteServico`
+       devolve `natureza_pendente`: *"o contador decide antes de faturar"*. Ou seja, com a proposta,
+       a venda de um produto recém-cadastrado só emite a NFS-e depois da decisão do contador.
+       Decisão [M]/[W] antes de virar código.
+  4. ✅ **Na NFS-e da venda, o item da LC 116 sai do produto** desde a US-NFE-069 (#9727, 2026-10-21):
+     a separação leva o `codigo_servico` de cada linha, e o `NfseController::parteServico` usa esse
+     código; serviços com códigos diferentes na mesma venda são recusados (uma NFS-e leva um código só).
+     O padrão da empresa (`nfse_provider_configs.lc116_codigo_default`) só vale quando o produto não tem
+     código. _(Correção 2026-10-22: até a v1.0.13 este item dizia que o código vinha sempre do padrão da
+     empresa — era verdade antes do #9727.)_ O protótipo mostra isso no quadro "Editar produto de
+     serviço". O código de tributação nacional (`ctrib_nac`) só existe na emissão.
   5. 🔴 Código de tributação municipal e NBS não existem no código (o único `cTribMun` é um comentário em
      `SnNfseAdapter.php:209`).
 - **No cadastro, o que muda:** mostrar a natureza e o item da LC 116 decididos pelo contador (só
   leitura para quem não tem `nfe.tributacao.manage`) e usar a natureza na regra do aviso
   (`CU-PROD-16`/`18`).
-- 🔶 **Decisão [W]:** hoje a natureza é **uma por produto**. Se o mesmo item for serviço numa venda e
-  mercadoria em outra (banner sob encomenda × banner de prateleira), ou a empresa cadastra dois
-  produtos ou a natureza passa a ser decidida na venda.
+- ✅ **Decidido [W] (D-NATUREZA, 2026-10-06), mantido pela [M] em 2026-10-22:** a natureza é **uma por
+  produto**, decidida pelo contador com a fonte; enquanto `pendente`, a NF-e sai pelo padrão da UF com
+  aviso na Saúde fiscal (R-NFE-034). Se o mesmo item for serviço numa venda e mercadoria em outra
+  (banner sob encomenda × banner para revenda), a empresa cadastra dois produtos, como no Bling e no
+  Omie.
 - ⚠️ **Reforma tributária (IBS/CBS), não medido:** fontes secundárias falam em `cClassTrib` errado
   quando derivado só do NCM, o que sustentaria uma **exceção por produto** (hoje a regra fica em
   `nfe_fiscal_rules`, por NCM). Conferir na NT 2025.002 oficial antes de virar caso.
+
+#### CU-PROD-20 — Locais de armazenagem e endereço no estoque `[should]` 🎨 **só no protótipo** (2026-10-22)
+
+<!-- curado: pedido [M] 2026-10-22 em comentário no protótipo do cadastro + medição do código (business_locations · variation_location_details · product_racks) -->
+
+*Dado* uma empresa com mais de um local de estoque; *quando* cadastro ou edito um produto; *então*
+digo em quais locais ele fica e **onde, dentro de cada local** (corredor, prateleira, nível, box), e
+qual é o local padrão.
+
+- **Origem:** pedido da [M] em 2026-10-22, num comentário no protótipo: *"Empresas podem ter mais de
+  um local de estoque, e aqui não me possibilita informar em qual está, além de ter um campo de
+  endereço, para poder descrever a localização do produto dentro de X estoque."*
+- **No protótipo** (artefato do cadastro, Novo e Editar): seção Estoque, bloco "Locais de
+  armazenagem", uma linha por local com Padrão (rádio), Local de estoque, Endereço no estoque e a
+  quantidade; "+ Adicionar local de estoque"; total embaixo. Desde 2026-10-22 o endereço é
+  prateleira, fileira e posição.
+  - **Novo:** a quantidade é **Qtd. inicial**, digitada.
+  - **Editar:** a quantidade é **Em estoque**, só leitura. Ela muda por compra, venda, ajuste ou
+    transferência, nunca pelo cadastro (senão o estoque muda sem movimento registrado). Local com
+    saldo não pode ser tirado; o botão de remover fica desligado.
+- **O que o sistema já tem (medido em 2026-10-22, não é preciso inventar tabela):**
+  1. O **local de estoque** é o local do negócio (`business_locations`). O saldo por local já existe
+     em `variation_location_details`, e o produto já é ligado aos locais em `product_locations` (a
+     seção "Locais do negócio" do cadastro).
+  2. A **Qtd. inicial** por local é o estoque inicial que já existe (`CU-PROD-04` item 1,
+     `OpeningStockController`), hoje numa tela separada.
+  3. O **endereço dentro do local** já existe como prateleira, fileira e posição por local
+     (`product_racks`: `rack`, `row`, `position`, com `location_id`). Aparece só quando a empresa liga
+     `enable_racks`, `enable_row` ou `enable_position`. O `store()` e o `update()` gravam pelo campo
+     `product_racks` (`ProductUtil::addRackDetails`); a ficha mostra (`CU-PROD-14`).
+- **Decisões ([M] 2026-10-22):**
+  1. ✅ **Local padrão = local sugerido.** O padrão é o local que aparece já preenchido na compra, na
+     transferência e na separação; a pessoa pode trocar. A venda continua baixando do local onde ela
+     é feita (`ProductUtil::decreaseProductQuantity` recebe o `location_id` da transação), então a
+     regra de estoque não muda. Não havia decisão do [W] sobre isso: as regras de fluxo (ADR 0435,
+     `fluxos-modelos.casos.md`, `FLUXOS-POR-TIPO-E-PORTE.md`) definem **quando** o material sai
+     (venda, separação, etapa), e o local vem do próprio movimento. É como o Omie faz: o local de
+     estoque marcado como padrão é sugerido no pedido de venda.
+  2. ✅ **Endereço em três campos: prateleira, fileira e posição.** Reaproveita o que o sistema já
+     guarda (`product_racks`) e permite ordenar a separação de pedidos. O protótipo já mostra os três
+     campos. Os campos só aparecem quando a empresa liga `enable_racks`, `enable_row` e
+     `enable_position`, como hoje.
+  3. ✅ **As duas seções ficam.** "Locais do negócio" diz onde o produto é vendido; "Locais de
+     armazenagem" diz onde ele fica guardado. Podem ser diferentes (por exemplo, guardado no
+     depósito e vendido na loja).
+- **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
+  ganham id quando houver teste que os defenda (G-2).
 
 ### 6.2 Vertical comunicação visual (`CV`)
 
@@ -1239,6 +1348,12 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
 
 **Histórico:**
 
+- 2026-10-27 — **Estoque mínimo: o comprador e o cálculo** (v1.0.16), a partir do comentário do [W] no #9930: `CU-PROD-04` item 2 passa a dizer que o item abaixo do mínimo já aparece na lista Necessidade de compra (US-COM-030, #9878), que falta gerar a requisição ou a cotação dali (US-COM-031), e como calcular o mínimo (consumo médio × prazo total de reposição, com margem de segurança proposta). Registra o que falta para o sistema sugerir o mínimo e o conflito com o "Pedir até" do MRP. Texto sobreposto com autorização da [M]. Na mesma versão, revisão da [M] a partir de um caso do [L]: o **estoque máximo volta, opcional por produto**, como teto da compra (barra de pouco giro enferruja parada); substitui a decisão de 2026-10-22 de não ter máximo. [F+C] [M+C]
+- 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]
+- 2026-10-22 — **Três pendências das regras de fluxo registradas** (v1.0.14): natureza "a decidir" no Novo produto (`CU-PROD-19` item 3, proposta; trava a NFS-e da venda até o contador decidir), item da LC 116 do produto na NFS-e (`CU-PROD-19` item 4, corrigido: já funciona desde o #9727) e estoque mínimo e máximo (`CU-PROD-04` item 2; a requisição pelo mínimo já existe na US-COM-027, o máximo é proposta). [M+C]
+- 2026-10-22 — **`CU-PROD-20`: local padrão decidido pela [M]** (v1.0.13): é o local sugerido na compra, na transferência e na separação; a venda continua baixando do local da venda. O protótipo foi revisado contra as regras de fluxo e ganhou o Método de custo (UC-FLX-38) e os campos que a tela real já tem (Venda com imposto, Não está à venda, Expira em, Garantia). [M+C]
+- 2026-10-22 — **`CU-PROD-20`: duas decisões da [M]** (v1.0.12): endereço em prateleira, fileira e posição (`product_racks`); as duas seções de locais ficam. O local padrão segue em aberto: não há decisão [W] registrada, e a venda baixa do local da venda. [M+C]
+- 2026-10-22 — **§6.1 ganha o `CU-PROD-20`** (v1.0.11): locais de armazenagem e endereço no estoque, pedido da [M] no protótipo. Só no protótipo; três decisões abertas antes de virar código (local padrão × baixa pelo local da venda, endereço em um texto × três campos, seção repetida). [M+C]
 - 2026-10-21 — **`CU-PROD-18` ganha o aviso de EAN** (v1.0.10): `UC-PCAD-17` e `UC-PEDIT-15`. O aviso protege a etiqueta; a nota fiscal não usa o EAN hoje. [M+C]
 - 2026-10-21 — **`CU-PROD-19` item 3 passa de 🔴 a 🟡** (v1.0.9): o Editar mostra a natureza fiscal decidida pelo contador (`UC-PEDIT-14`) e o aviso de NCM deixa de aparecer para produto de serviço. Falta: Novo produto, ficha, e o item da LC 116 por produto na NFS-e (item 4). [M+C]
 - 2026-10-20 — **§6.1 ganha `CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`** (v1.0.8): dados fiscais para nota, peso e dimensões, aviso de pendência fiscal. Origem: benchmark de concorrentes da tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify), registrado também na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md). Mesmo dia: [M] decidiu que o NCM entra no cadastro; pesquisa refeita com ERPs de comunicação visual, que trouxe `CU-PROD-19` (natureza mercadoria × serviço) e `CV-06`…`CV-11`. Nenhum UC novo em `casos.md` ainda. [M+C]

@@ -20,16 +20,17 @@ last_run: "2026-10-13"
 
 ---
 
-## UC-VOZ-01 · Abrir a caixa em React (flag ligada)
+## UC-VOZ-01 · Abrir a caixa em React
 - **Persona:** quem prioriza o produto.
-- **Aceite:** Dado `vozdocliente.triar` e a flag `useV2VozDoClienteCaixa` ligada para o negócio · Quando faço
+- **Aceite:** Dado `vozdocliente.triar` · Quando faço
   `GET /voz-do-cliente` como o browser faz (`X-Inertia` **e** `X-Requested-With`) · Então renderiza Inertia
   **`VozDoCliente/Caixa`** com `contagem` (3 pendentes / 2 triados / 1 fechado para esse cenário) e `sinais` adiado.
 - **Status: 🧪**
 
-## UC-VOZ-02 · Flag desligada mantém a Blade
-- **Aceite:** Dado a flag desligada (padrão) **ou** `?legacy=1` com ela ligada · Quando abro a caixa · Então a resposta é a
-  Blade `vozdocliente::caixa`, como antes.
+## UC-VOZ-02 · A Blade saiu (F5 2026-10-27)
+- **Aceite:** Dado o cutover · Quando abro a caixa, inclusive com `?legacy=1` · Então a resposta é a Page
+  `VozDoCliente/Caixa`, e a view `vozdocliente::caixa` não existe mais.
+- **Histórico:** até 2026-10-27 este caso dizia "flag desligada ou `?legacy=1` mantém a Blade".
 - **Status: 🧪**
 
 ## UC-VOZ-03 · Filtro por situação
@@ -48,8 +49,7 @@ last_run: "2026-10-13"
 - **Status: 🧪**
 
 ## UC-VOZ-12 · Papel sem acesso · `[T0]`
-- **Aceite:** Dado um usuário do negócio sem `vozdocliente.triar` · Quando abre a caixa · Então 403 **antes** de a flag
-  ser consultada; nenhum texto de relato na resposta.
+- **Aceite:** Dado um usuário do negócio sem `vozdocliente.triar` · Quando abre a caixa · Então 403; nenhum texto de relato na resposta.
 - **Status: 🧪**
 
 ## UC-VOZ-13 · Só os relatos do meu negócio · `[T0]`

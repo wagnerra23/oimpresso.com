@@ -387,6 +387,13 @@
 .jc-action.done .aic{ stroke: var(--pos); }
 .jc-action.error{ background: var(--neg-soft); border-color: color-mix(in oklch, var(--neg) 30%, transparent); }
 .jc-action.error .aic{ stroke: var(--neg); }
+/* ADR 0440 — desfechos sem clique: a proposta venceu (neutro) ou a gravação falhou (negativo). */
+.jc-action.expirada{ background: var(--sunken); border-color: var(--border); }
+.jc-action.expirada .aic{ stroke: var(--text-3); }
+.jc-action.falhou{ background: var(--neg-soft); border-color: color-mix(in oklch, var(--neg) 30%, transparent); }
+.jc-action.falhou .aic{ stroke: var(--neg); }
+.jc-action-link{ display: inline-block; margin-top: 6px; font: 600 11.5px/1.3 var(--sans); color: var(--accent); text-decoration: none; }
+.jc-action-link:hover{ text-decoration: underline; }
 .jc-action-bd{ flex: 1; min-width: 0; }
 .jc-action-bd b{ display: block; font: 650 13px/1.35 var(--sans); color: var(--text); }
 .jc-action-bd small{ display: block; font-size: 11.5px; color: var(--text-2); margin-top: 3px; }
