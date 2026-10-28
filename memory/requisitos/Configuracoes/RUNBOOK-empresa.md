@@ -66,7 +66,12 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - [x] App das lojas (UC-EMP-17) — **18 de 18 abas da Blade** na tela nova (medido 2026-10-26: 19 parciais `business/partials/settings_*.blade.php`; a balança é seção da aba Venda no PDV)
 - [x] Cutover (F5, [W] 2026-10-27): `useV2ConfiguracoesEmpresa => true` no `$fallbackDefaults` do `FeatureFlagService`;
   rollback = remover a linha (ou flag OFF no GrowthBook) · `?classico=1` abre a Blade · `#pos` abre a aba Venda no PDV (UC-EMP-18)
-- [ ] Smoke em produção biz=1 com a flag ligada para todos (18 abas + `?classico=1` + salvar sem mudar nada = linha `business` igual)
+- [x] Smoke em produção biz=1 com a flag ligada para todos (18 abas + `?classico=1` + salvar sem mudar nada = linha `business` igual)
+  - **Medido em 2026-10-27, autorizado por [W].** "Salvar sem mudar nada" não é possível: o botão Salvar fica desabilitado enquanto nenhum campo muda. A prova foi uma ida e volta em `transaction_edit_days` (150 → 151 → 150), com o md5 de cada uma das 132 colunas da linha `business` id=1 (sem `updated_at`) tirado antes, no meio e no fim.
+  - **128 colunas idênticas** no fim, incluindo `transaction_edit_days` de volta a 150.
+  - **`email_settings` e `sms_settings`**: só a ordem das chaves mudou. O salvar recoloca as chaves secretas no fim do JSON. Prova: o JSON atual, com cada segredo de volta logo após o seu par (`mail_password` após `mail_username` etc.), reproduz o md5 de antes byte a byte.
+  - **`pos_settings`**: mesmas chaves e mesmos valores. As flags de liga/desliga passaram de número (`0`/`1`) a texto (`"0"`/`"1"`), porque a tela nova envia todas as chaves e a Blade só enviava as marcadas (o controller completava as outras com o `0` numérico de `defaultPosSettings`). Prova: o JSON atual com essas flags convertidas para inteiro e os 2 segredos reposicionados reproduz o md5 de antes. Sem efeito em comportamento: todo leitor PHP compara essas flags com `== 0`, `!= 0` ou `empty()`, em que `"0"` e `0` dão o mesmo resultado, e nenhum código de front as lê (varredura em `origin/main` de `*.php`, `resources/js/**` e `public/js/*.js`).
+  - As 3 colunas JSON saíram iguais no 2º salvar e no 1º, ou seja, a gravação é estável.
 
 ## 10. Pegadinhas
 

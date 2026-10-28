@@ -14,7 +14,7 @@ module: Fiscal
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 110 arquivos em 12 papéis.
+**Total mapeado:** 112 arquivos em 12 papéis.
 
 ## Controllers — 11
 
@@ -30,10 +30,11 @@ module: Fiscal
 - [PaletteSearchController.php](../../../Modules/Fiscal/Http/Controllers/PaletteSearchController.php)
 - [SpedController.php](../../../Modules/Fiscal/Http/Controllers/SpedController.php)
 
-## Services — 4
+## Services — 5
 
 - [NotasUnifiedService.php](../../../Modules/Fiscal/Services/NotasUnifiedService.php)
 - [SefazCstatService.php](../../../Modules/Fiscal/Services/SefazCstatService.php)
+- [EfdIcmsIpiLeiaute.php](../../../Modules/Fiscal/Services/Sped/EfdIcmsIpiLeiaute.php)
 - [SpedIcmsIpiGeneratorService.php](../../../Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php)
 - [SpedReferenciaArquivoService.php](../../../Modules/Fiscal/Services/SpedReferenciaArquivoService.php)
 
@@ -108,9 +109,9 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 32
+## Testes (Pest) — 33
 
-- 32 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 33 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 16

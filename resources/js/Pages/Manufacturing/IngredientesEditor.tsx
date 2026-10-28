@@ -1,5 +1,6 @@
-// Manufacturing/IngredientesEditor — o editor de ingredientes da receita (US-MANU-006), atrás de
-// `/manufacturing/add-ingredient?variation_id=N&tela=nova`. Sem `?tela=nova` segue a janela Blade.
+// Manufacturing/IngredientesEditor — o editor de ingredientes da receita (US-MANU-006), em
+// `/manufacturing/add-ingredient?variation_id=N`. Desde o cutover de 2026-10-27 é a única tela desse
+// endereço (a janela Blade foi apagada); `&tela=nova` segue aceito e não muda nada.
 // Carimbado do PT-02 Form por criar-tela.mjs (UI-0013). Forma: protótipo
 // `prototipo-ui/cowork/Wagner/manufacturing-recipe.jsx` → `MfgIngredientesEditor` (handoff §5).
 // Plano e etapas: memory/requisitos/Manufacturing/RUNBOOK-ingredientes-editor.md.

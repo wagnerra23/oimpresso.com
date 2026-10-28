@@ -78,7 +78,7 @@ describe('UC-TRCRT-06 · pedido da transferência — o formato que o EstoqueTra
   });
 });
 
-describe('pedido do ajuste — o formato que o StockAdjustmentController@store lê', () => {
+describe('UC-AJCRT-05 · pedido do ajuste — o formato que o StockAdjustmentController@store lê', () => {
   it('2 unidades a 8 saem como "2" e "8", sem unidade', () => {
     const l = { ...linhaNova(dados({ custo: 8 })), quantidade: 2 };
     expect(itemAjuste(l)).toEqual({ product_id: 11, variation_id: 21, enable_stock: 1, quantity: '2', unit_price: '8' });

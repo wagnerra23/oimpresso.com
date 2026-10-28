@@ -5,8 +5,14 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-10-27"
 ---
+
+> ℹ️ **`last_run` 2026-10-19 → 2026-10-27 (G-6): cutover da Blade.** Pedido [W] 2026-10-27, *"1 PR por tela,
+> com cutover apagando a Blade"*. Saíram `?legacy=1`, o ramo DataTables, `recipe/create`, `recipe/{id}`,
+> as partials `get-ingredient-row` / `ingredient-group-form` e as 6 Blades de receita. `add-ingredient`
+> abre sempre o editor React. UC-RECIPE-06/07 foram reescritos (defendiam a coexistência). A tela React
+> não mudou.
 
 > ℹ️ **`last_run` 2026-10-08 → 2026-10-19 (G-6): forma da gaveta, não comportamento.** A gaveta de leitura
 > da receita passou a usar a moldura do protótipo (`_components/Gaveta.tsx`, a mesma da ordem): grupos direto no
@@ -137,32 +143,32 @@ last_run: "2026-10-19"
 
 ---
 
-## UC-RECIPE-06 · A tela Blade legada continua alcançável no mesmo endereço
-- **Persona:** Wagner — rede de segurança do cutover.
-- **Aceite:** Dado o comentário do controller que ANUNCIA `?legacy=1` · Quando se lê o `index()` ·
-  Então o ramo `request()->boolean('legacy')` existe e devolve `view('manufacturing::recipe.index')`.
-- **Fonte:** proibição do §15.2 (*"não remover nenhuma rota Blade legacy"*) + §6 do RUNBOOK (rollback).
-- **Teste:** `Wave29RecipeInertiaTest.php`
-- **Regressão que defende:** o escape ser anunciado no comentário e **não existir** — a classe LC-15
-  (mecanismo que anuncia saída que não honra).
-- ⚠️ **O que este teste NÃO prova:** que a rota responde **200 com a view** pra um usuário real.
-  O assert é sobre a ESTRUTURA do controller, não sobre a resposta HTTP — chamá-lo de prova de
-  comportamento seria presence-gate (LC-11). O 200 é smoke (`curl` do RUNBOOK §5), não Pest.
-- **Status: 🧪** — do que ele mede: o ramo existe.
+## UC-RECIPE-06 · A lista de receitas é só a tela React (a Blade saiu)
+- **Persona:** Wagner — dono do cutover.
+- **Aceite:** Dado o `index()` do controller · Quando se lê o método · Então ele devolve
+  `Inertia::render('Manufacturing/Recipes'`, não tem ramo `request()->boolean('legacy')` nem `view(`, e a
+  view `manufacturing::recipe.index` não existe mais.
+- **Fonte:** pedido [W] 2026-10-27, *"1 PR por tela, com cutover apagando a Blade"*. Substitui a
+  coexistência do §15.2 do handoff (até 2026-10-26 este UC defendia o oposto: o `?legacy=1` existir).
+- **Teste:** `Wave29RecipeInertiaTest.php` + `CutoverRotasCanonicasTest.php` (rotas e views apagadas)
+- **Regressão que defende:** a Blade voltar por um `?legacy=1` ressuscitado — duas telas para a mesma
+  lista, e a antiga sem as regras de custo da nova.
+- ⚠️ **O que este teste NÃO prova:** a resposta HTTP real. O assert é sobre a ESTRUTURA do controller;
+  o 200 é smoke (`curl` do RUNBOOK §5), não Pest.
+- **Status: 🧪**
 
 ---
 
-## UC-RECIPE-07 · O DataTables legado do módulo continua respondendo
-- **Persona:** Wagner — o ramo ajax é o que a tela Blade consome.
-- **Aceite:** Dado o `index()` do controller · Quando se compara a posição dos dois ramos ·
-  Então `if (request()->ajax())` aparece **antes** de `Inertia::render('Manufacturing/Recipes'`.
-- **Fonte:** §15.2 (coexistência) — o ramo `request()->ajax()` do controller não foi tocado.
+## UC-RECIPE-07 · Navegar pela tela nunca recebe o JSON do DataTables
+- **Persona:** qualquer usuário — o bug de prod de 2026-09-04 (a navegação SPA caía no ramo ajax).
+- **Aceite:** Dado o `index()` do controller · Quando se lê o método · Então não existe ramo
+  `request()->ajax()` nem `DataTables::` nele.
+- **Fonte:** pedido [W] 2026-10-27 (cutover). O ramo alimentava só a Blade apagada; sem ele, a causa do
+  bug de 2026-09-04 deixa de existir neste endereço.
 - **Teste:** `Wave29RecipeInertiaTest.php`
-- **Regressão que defende:** mover o `return Inertia::render` para antes do `if (ajax)` e matar
-  a tabela legada em silêncio — o defeito é de ORDEM, e ordem é o que o assert mede.
-- ⚠️ **O que este teste NÃO prova:** que uma requisição ajax real recebe o JSON do DataTables.
-  Mesma limitação de fixture do UC-RECIPE-08.
-- **Status: 🧪** — do que ele mede: a ordem dos ramos.
+- **Regressão que defende:** alguém recolocar um ramo DataTables e reabrir o bug do JSON no Inertia.
+- ⚠️ **O que este teste NÃO prova:** uma navegação real. Mesma limitação de fixture do UC-RECIPE-08.
+- **Status: 🧪**
 
 ---
 
@@ -318,11 +324,10 @@ last_run: "2026-10-19"
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** (não só "o ramo existe") e uma
-  requisição **ajax real** recebe o JSON do DataTables. É a metade comportamental que os
-  UC-RECIPE-06/07 não alcançam: precisa de fixture autenticada (user + business + permissão)
-  que a suíte deste módulo ainda não tem — hoje **todos** os testes dela pulam HTTP. Enquanto
-  não existir, a prova é o `curl` do RUNBOOK §5. Vira UC quando o teste existir.
+- ~~**[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** e uma requisição **ajax real** recebe o
+  JSON do DataTables.~~ — **SAIU em 2026-10-27**: a Blade e o ramo DataTables foram apagados no cutover
+  (pedido [W]). A metade comportamental que sobra é a do UC-RECIPE-06/07 reescritos: uma navegação real
+  recebe a tela React, com a mesma limitação de fixture HTTP.
 - **[BACKLOG]** `/` foca o campo de busca (R-04). A metade de BUSCA virou o UC-RECIPE-09.
 - **[BACKLOG]** 10 por página com `a–b de N receitas` (R-07) — o corte vive no `RecipeController@index`,
   que só se prova com a fixture HTTP que a suíte ainda não tem (mesma limitação do item acima).

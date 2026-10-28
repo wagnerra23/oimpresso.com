@@ -306,8 +306,7 @@ class ProductController extends Controller
                     'stock_report' => auth()->user()->can('stock_report.view'),
                     // "Etiquetas" da barra de seleção abre a tela de etiquetas, que pede esta permissão.
                     'etiquetas' => auth()->user()->can('print_labels.access'),
-                    // "Comprar este produto" abre /purchases/create?produto={id}, que pede esta permissão.
-                    'comprar' => auth()->user()->can('purchase.create'),
+                    // Sem `comprar`: a consulta não oferece compra (decisão [F] 2026-10-26, UC-PIDX-11).
                     // EAGER (não defer): são 2 booleanos já resolvidos — o `.tsx` aplica default
                     // fail-closed, então ausência da prop nunca vira permissão.
                     'view_purchase_price' => $podeVerCusto,

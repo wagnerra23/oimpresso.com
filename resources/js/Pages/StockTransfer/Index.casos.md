@@ -41,6 +41,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** o botão fazia `router.visit` e o `show()` devolvia o fragmento de modal da tela Blade, que não é resposta Inertia (achado 2026-10-13, depois do cutover #9096). E id de outro business caía em 500 em vez de 404.
 - **Status: ⬜**
 
+## UC-TRIDX-04 · O "Imprimir" gera o recibo da transferência, só do próprio business `[T0]` `[must]`
+- **Persona:** quem separa e despacha a mercadoria e leva o recibo junto com a carga.
+- **Aceite:** Dado uma transferência do business 98 · Quando a lista pede `GET /stock-transfers/print/{id}` · Então recebe `success = 1` e o recibo em HTML com a referência dela (o mesmo `stock_transfer.print` da Blade); pedida por outro business, recebe `success = 0` e nenhum HTML.
+- **Teste:** [`tests/Feature/Estoque/EstoqueTransferenciaImpressaoTest.php`](../../../../tests/Feature/Estoque/EstoqueTransferenciaImpressaoTest.php) — os casos `UC-TRIDX-04`.
+- **Regressão que defende:** até 2026-10-27 o botão abria `/stock-transfers/{id}/print` numa aba, rota que não existe (404). A impressão continua sendo o HTML da Blade, por decisão [W] de 2026-10-27.
+- **Status: 🧪**
+
 ## Backlog
 - [BACKLOG] O filtro não volta a página: mesmo defeito de ordem `ajax()` × `X-Inertia` do `index()` de ajustes (ver `StockAdjustment/Index.casos.md`). **Consertado em 2026-10-09** no cutover pelo menu · thread 04: a decisão React/Blade passou pra antes do ramo `ajax()`; a visita Inertia com `X-Requested-With` recebe a Page (`tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php`). Vira UC quando um caso citar o filtro.
 - [BACKLOG] `destroy()` busca a transferência só por `id` + `type`, sem `business_id` (mesmo achado do `destroy()` de ajuste). Grava quantidade: decisão [W].

@@ -70,9 +70,11 @@ describe('Wave 28 ComVis — D2 cross-tenant defesa Model-level (10 entities)', 
         $srcOrc = file_get_contents((new ReflectionClass(Orcamento::class))->getFileName());
         $srcItem = file_get_contents((new ReflectionClass(\Modules\ComunicacaoVisual\Entities\OrcamentoItem::class))->getFileName());
 
-        // Orcamento: boot() + addGlobalScope
-        expect($srcOrc)->toContain('protected static function boot');
-        expect($srcOrc)->toContain("addGlobalScope('business_id'");
+        // Orcamento: escopo + creating. Desde o #9852 o escopo vem da trait EscopoPorNegocioDaSessao
+        // e o creating fica em booted(): confere o escopo registrado, não o texto.
+        new Orcamento();
+        expect(Orcamento::hasGlobalScope('business_id'))->toBeTrue();
+        expect($srcOrc)->toContain('static::creating');
 
         // OrcamentoItem: boot() + addGlobalScope (filhote do Orcamento via FK orcamento_id mas também scoped por biz)
         // O escopo vem da trait EscopoPorNegocioDaSessao: confere o escopo registrado, não o texto.

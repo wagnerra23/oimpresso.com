@@ -18,6 +18,7 @@ use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\ImpostosController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\PlanoContaController;
+use Modules\Financeiro\Http\Controllers\Public\PagamentoPublicoController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 use Modules\Financeiro\Http\Controllers\UnificadoController;
 
@@ -84,6 +85,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::post('/unificado/{tituloId}/boleto', [UnificadoController::class, 'emitirBoletoTitulo'])
             ->whereNumber('tituloId')
             ->name('unificado.emitir-boleto');
+        // US-FIN-081 — link público para o cliente pagar o título (flag FINANCEIRO_LINK_PAGAMENTO_ENABLED).
+        Route::post('/unificado/{tituloId}/link-pagamento', [UnificadoController::class, 'gerarLinkPagamento'])
+            ->whereNumber('tituloId')
+            ->name('unificado.link-pagamento');
         // Onda 15 (2026-05-20): bulk update categoria em lote
         Route::post('/unificado/bulk-update-categoria', [UnificadoController::class, 'bulkUpdateCategoria'])
             ->name('unificado.bulk-update-categoria');
@@ -202,6 +207,14 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
         // Contas bancarias — cadastro de complemento de boleto (ADR TECH-0003)
         Route::get('/contas-bancarias', [ContaBancariaController::class, 'index'])->name('contas-bancarias.index');
+        // Cadastro da conta (core `accounts`) — tela única de contas desde 2026-10-27, decisão [W].
+        Route::post('/contas-bancarias', [ContaBancariaController::class, 'store'])->name('contas-bancarias.store');
+        Route::put('/contas-bancarias/{accountId}/cadastro', [ContaBancariaController::class, 'atualizar'])
+            ->whereNumber('accountId')->name('contas-bancarias.atualizar');
+        Route::post('/contas-bancarias/{accountId}/encerrar', [ContaBancariaController::class, 'encerrar'])
+            ->whereNumber('accountId')->name('contas-bancarias.encerrar');
+        Route::post('/contas-bancarias/{accountId}/reativar', [ContaBancariaController::class, 'reativar'])
+            ->whereNumber('accountId')->name('contas-bancarias.reativar');
         Route::post('/contas-bancarias/{accountId}', [ContaBancariaController::class, 'upsert'])
             ->whereNumber('accountId')
             ->name('contas-bancarias.upsert');
@@ -262,6 +275,8 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->name('conciliacao.index');
         Route::post('/conciliacao/upload', [ConciliacaoController::class, 'upload'])
             ->name('conciliacao.upload');
+        Route::post('/conciliacao/aplicar-regras', [ConciliacaoController::class, 'aplicarRegras'])
+            ->name('conciliacao.aplicar-regras');
         Route::post('/conciliacao/{lineId}/match', [ConciliacaoController::class, 'match'])
             ->whereNumber('lineId')
             ->name('conciliacao.match');
@@ -344,4 +359,16 @@ Route::middleware(['web'])
         Route::get('/', [AdvisorPortalController::class, 'index'])
             ->middleware('auth:web-advisor')
             ->name('dashboard');
+    });
+
+// ── US-FIN-081 · página pública para o cliente pagar o título (sem login) ──
+// A empresa vem do token (só o sha256 fica no banco), nunca da URL. Throttle 30/min/IP contra
+// varredura de token; `web` dá sessão + CSRF ao formulário. Flag desligada = 404 (no controller).
+Route::middleware(['web', 'throttle:30,1'])
+    ->prefix('pagar')
+    ->name('financeiro.pagamento-publico.')
+    ->group(function () {
+        Route::get('{token}', [PagamentoPublicoController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
+        Route::post('{token}/{metodo}', [PagamentoPublicoController::class, 'pagar'])
+            ->where(['token' => '[A-Za-z0-9]{48}', 'metodo' => 'pix|boleto'])->name('pagar');
     });
