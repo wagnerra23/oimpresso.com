@@ -44,6 +44,7 @@ on:
       - 'tests/Feature/PaymentGateway/**'
       - 'tests/Support/WithSeededTenant.php'
       - 'database/schema/mysql-schema.sql'
+      - 'Modules/RecurringBilling/**'
       - '.github/workflows/paymentgateway-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
 
@@ -83,6 +84,7 @@ jobs:
               - 'tests/Feature/PaymentGateway/**'
               - 'tests/Support/WithSeededTenant.php'
               - 'database/schema/mysql-schema.sql'
+              - 'Modules/RecurringBilling/**'
               - '.github/workflows/paymentgateway-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
 
@@ -106,6 +108,9 @@ jobs:
           EOF
 
       - name: Run Pest (PaymentGateway · MySQL)
+        # Cartão recorrente do RecurringBilling (US-RB-011/013) usa o driver de cartão do
+        # PaymentGateway e precisa do schema MySQL: o contrato dele roda aqui, na lane que já tem o
+        # banco semeado. Fora daqui só a nightly do CT 100 o executaria.
         if: steps.changes.outputs.paymentgateway == 'true'
         # phpunit.xml aponta DB_CONNECTION=sqlite sem force="true", então a env daqui vence e
         # a suíte roda no MySQL semeado pela action (dona dos tenants 1/2/98). O teste usa
@@ -121,7 +126,8 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-paymentgateway-junit.xml \
-            tests/Feature/PaymentGateway/
+            tests/Feature/PaymentGateway/ \
+            Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php
 
       # A régua honesta é `assertions`, NÃO "0 failed": skip sai exit 0 (LC-13).
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)

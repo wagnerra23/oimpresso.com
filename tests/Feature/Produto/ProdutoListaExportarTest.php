@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-10 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-10 e UC-PIDX-34 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -100,4 +100,43 @@ it('UC-PIDX-10 · as colunas de preço só saem com a permissão de ver o preço
     pexEntrar($this, ['product.view', 'access_all_locations', 'view_purchase_price', 'access_default_selling_price']);
     $comPermissao = pexCsv($this, ['q' => $marca])[0];
     expect($comPermissao)->toContain('Preço de compra (mín.)', 'Preço de venda (mín.)');
+});
+
+// A coluna Imposto do CSV segue a da lista: só em empresa com alíquota cadastrada (decisão [F]
+// 2026-10-26). "Sem alíquota" é produzido apagando, dentro da transação do teste, as alíquotas da
+// empresa (`tax_rates` usa SoftDeletes; nada fica gravado).
+it('UC-PIDX-34 · com alíquota cadastrada, o CSV tem a coluna Imposto com o imposto do produto', function () {
+    $marca = 'PEXIMP' . strtoupper(bin2hex(random_bytes(3)));
+    $p = EstoqueFixture::singleProduct($this->business->id);
+    $taxa = (int) DB::table('tax_rates')->insertGetId([
+        'business_id' => $this->business->id, 'name' => "IVA {$marca}", 'amount' => 10,
+        'created_by' => EstoqueFixture::userId($this->business->id), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('products')->where('id', $p->productId)->update(['name' => $marca, 'tax' => $taxa]);
+    pexEntrar($this, ['product.view', 'access_all_locations']);
+
+    $csv = pexCsv($this, ['q' => $marca]);
+    $coluna = array_search('Imposto', $csv[0], true);
+    expect($coluna)->not->toBeFalse();
+    expect($csv)->toHaveCount(2);
+    expect($csv[1][$coluna])->toBe("IVA {$marca}");
+    expect(count($csv[1]))->toBe(count($csv[0]));
+});
+
+it('UC-PIDX-34 · sem alíquota cadastrada, o CSV não tem a coluna Imposto', function () {
+    $marca = 'PEXSEMIMP' . strtoupper(bin2hex(random_bytes(3)));
+    $p = EstoqueFixture::singleProduct($this->business->id);
+    DB::table('products')->where('id', $p->productId)->update(['name' => $marca]);
+    DB::table('tax_rates')->where('business_id', $this->business->id)->update(['deleted_at' => now()]);
+    pexEntrar($this, ['product.view', 'access_all_locations']);
+
+    $csv = pexCsv($this, ['q' => $marca]);
+    // Anti-vácuo: o arquivo veio, com o produto e as colunas vizinhas.
+    expect($csv)->toHaveCount(2);
+    expect($csv[1][0])->toBe($marca);
+    $unidade = array_search('Unidade', $csv[0], true);
+    expect($unidade)->not->toBeFalse();
+    expect($csv[0][$unidade + 1])->toBe('Locais');
+    expect($csv[0])->not->toContain('Imposto');
+    expect(count($csv[1]))->toBe(count($csv[0]));
 });
