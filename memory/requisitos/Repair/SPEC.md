@@ -133,6 +133,31 @@ Escopo derivado do F1 PLAN em [`RUNBOOK-repair-settings.md`](RUNBOOK-repair-sett
 - [ ] `DeviceModelController::index()` sem `return` no caminho flag-off/não-ajax — devolve 200 com corpo vazio (registrado em UC-DMIDX-02). Decisão [W].
 - [ ] Smoke autenticado 1280px com screenshot — pendente por ambiente, como na US-REPA-003.
 
+### US-REPA-006 · Indicadores da OS de assistência no Painel
+
+> owner: — · priority: p2 · type: story
+> blocked_by: —
+
+**Como** dono ou gerente da oficina
+**Quero** ver quanto tempo a OS fica em cada etapa, quais estão paradas com o prazo vencido, quantas voltam em garantia e quanto cada técnico conclui
+**Para** achar o gargalo sem montar planilha
+
+**Implementado em:** _parcial_ · `Modules/Repair/Services/IndicadoresOsService.php` · `Modules/Repair/Http/Controllers/DashboardController.php` — os 4 indicadores saem da FSM (`sale_stage_history` + `repair_job_sheets.current_stage_id`, ADR 0143), sem contador paralelo, numa prop `indicadores` adiada (`Inertia::defer`). Falta a tela e o faturamento de serviço.
+
+**Testado em:** `Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php` (UC-RDSH-06..11) — lane **Verticais · Pest (MySQL)**, allowlist.
+
+**Regras que o contrato fixa:**
+- Janela fixa de 90 dias. Não é filtro: o charter põe "filtro por período" como Non-Goal.
+- `sale_stage_history.transaction_id` guarda o id da OS no processo do Repair e o id da venda nos processos de venda, e esses ids colidem. Toda leitura filtra pelas etapas do processo do Repair **e** junta com `repair_job_sheets` do mesmo `business_id`.
+- Taxa de garantia = OS com `garantia_acionada` ÷ OS com `entregue_completo`, as duas na janela. Garantia de OS entregue antes da janela fica fora, senão a taxa passa de 100%.
+- Produtividade conta as OS que entraram em `concluido_aguardando_retirada`. Um orçamento rejeitado e devolvido sem conserto não conta.
+
+**Definition of Done:**
+- [x] Serviço e prop adiada com teste de contrato no tenant 98, inclusive o isolamento cross-tenant.
+- [ ] Painéis na tela, seguindo o protótipo `repair-page.jsx` região `Painel`.
+- [ ] Faturamento de serviço. Mexe em valor, então exige dupla prova e antes → depois aprovados pelo [W] (regra mestre, `proibicoes.md`).
+- [ ] Smoke 1280px com screenshot.
+
 ## 4. Regras de negócio (Gherkin)
 
 > Formato: `Dado ... Quando ... Então ...`. Cada regra deve ser

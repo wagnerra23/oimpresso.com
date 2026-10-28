@@ -658,6 +658,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairListResourceDatasTest.php \
             Modules/Repair/Tests/Feature/RepairShowContratoTest.php \
             Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php \
             Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php \
             Modules/Repair/Tests/Feature/RepairStatusContratoTest.php \
