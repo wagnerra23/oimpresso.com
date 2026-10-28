@@ -1,0 +1,527 @@
+<title>Casos de uso por tela</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: ferramenta de triagem. Topo com os números, faixa de visões, e na visão Casos
+   uma coluna de áreas/telas à esquerda e a lista de casos que abre no lugar. */
+:root {
+  --bg: #f4f6f5; --surface: #ffffff; --sunk: #eaeeec; --fg: #16201d; --muted: #56635e;
+  --line: #d8dfdc; --accent: #0d6b66; --accent-soft: #d9efed;
+  --ok: #1d7a3e; --ok-soft: #dcf1e2; --part: #9a5b00; --part-soft: #fbecd2;
+  --miss: #b3261e; --miss-soft: #f9dedb; --dec: #6a3fa0; --dec-soft: #ece2f7;
+  --val: #8a3b12; --val-soft: #f6e3d6;
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --r: 8px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1514; --surface: #161e1c; --sunk: #1d2725; --fg: #e3ebe8; --muted: #9aa9a3;
+  --line: #2b3633; --accent: #4fc2ba; --accent-soft: #143a37;
+  --ok: #6fd18f; --ok-soft: #173a24; --part: #f0b357; --part-soft: #3d2c0f;
+  --miss: #ff8a80; --miss-soft: #43201d; --dec: #c3a3f0; --dec-soft: #2e2240;
+  --val: #f2a273; --val-soft: #3d2416; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1514; --surface: #161e1c; --sunk: #1d2725; --fg: #e3ebe8; --muted: #9aa9a3;
+  --line: #2b3633; --accent: #4fc2ba; --accent-soft: #143a37;
+  --ok: #6fd18f; --ok-soft: #173a24; --part: #f0b357; --part-soft: #3d2c0f;
+  --miss: #ff8a80; --miss-soft: #43201d; --dec: #c3a3f0; --dec-soft: #2e2240;
+  --val: #f2a273; --val-soft: #3d2416; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5 }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 64px }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em }
+h1 { font-size: 1.9rem } h2 { font-size: 1.25rem } h3 { font-size: 1.02rem }
+code, .mono { font-family: var(--f-mono); font-size: 0.86em }
+code { background: var(--sunk); padding: 0.05em 0.35em; border-radius: 4px }
+a { color: var(--accent) }
+button, input, select { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.muted { color: var(--muted) }
+.eyebrow { font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600 }
+
+/* Topo */
+.topo { display: grid; gap: 14px; margin-bottom: 18px }
+.fonte { font-size: 0.9rem; color: var(--muted); max-width: 72ch }
+.numeros { display: flex; flex-wrap: wrap; gap: 8px }
+.num { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 12px; min-width: 0; display: grid }
+.num b { font-family: var(--f-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; line-height: 1.1 }
+.num span { font-size: 0.82rem; color: var(--muted) }
+.num.alerta b { color: var(--dec) }
+.ciclo { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow: hidden }
+.etapa { flex: 1 1 140px; padding: 8px 12px; border-right: 1px solid var(--line); display: grid; gap: 2px }
+.etapa:last-child { border-right: 0 }
+.etapa b { font-variant-numeric: tabular-nums; font-family: var(--f-display); font-size: 1.1rem }
+.etapa small { color: var(--muted); font-size: 0.8rem }
+.barra { height: 4px; background: var(--sunk); border-radius: 2px; overflow: hidden }
+.barra i { display: block; height: 100%; background: var(--accent) }
+
+/* Visões */
+.visoes { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 16px; overflow-x: auto }
+.visoes button { background: none; border: 0; padding: 10px 14px; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 600; color: var(--muted); white-space: nowrap }
+.visoes button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent) }
+.visoes .q { font-family: var(--f-mono); font-size: 0.78rem; margin-left: 6px; color: var(--muted) }
+
+/* Casos */
+.casos-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 20px; align-items: start }
+.areas { position: sticky; top: env(safe-area-inset-top, 0px); display: grid; gap: 12px; font-size: 0.92rem }
+.areas button { width: 100%; display: flex; justify-content: space-between; gap: 8px; background: none; border: 0; text-align: left; padding: 4px 8px; border-radius: 6px; cursor: pointer }
+.areas button:hover { background: var(--sunk) }
+.areas button[aria-pressed="true"] { background: var(--accent-soft); color: var(--fg); font-weight: 600 }
+.areas .n { font-family: var(--f-mono); font-size: 0.8rem; color: var(--muted) }
+.areas .grupo > button { font-weight: 700; font-family: var(--f-display) }
+.areas .grupo ul { list-style: none; margin: 2px 0 0; padding: 0 0 0 8px; display: grid; gap: 1px }
+.tela-select { display: none }
+
+.ferramentas { display: grid; gap: 10px; margin-bottom: 12px }
+.busca-linha { display: flex; flex-wrap: wrap; gap: 8px }
+.busca-linha input[type="search"] { flex: 1 1 260px; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface) }
+.busca-linha select { padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); max-width: 100% }
+.filtros { display: flex; flex-wrap: wrap; gap: 6px }
+.filtros button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 11px; cursor: pointer; font-size: 0.88rem; display: inline-flex; gap: 6px; align-items: center }
+.filtros button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+.filtros .q { font-family: var(--f-mono); font-size: 0.76rem; opacity: 0.75 }
+.limpar { background: none; border: 0; color: var(--accent); cursor: pointer; text-decoration: underline; padding: 3px 4px; font-size: 0.88rem }
+.resultado { font-size: 0.88rem; color: var(--muted) }
+
+.lista { display: grid; gap: 6px }
+.caso { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r) }
+.caso.conferido { border-left: 3px solid var(--ok) }
+.caso-cab { width: 100%; display: grid; grid-template-columns: 3.2em minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 12px; background: none; border: 0; text-align: left; cursor: pointer }
+.caso-cab .num-caso { font-family: var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 1px }
+.caso-titulo { font-weight: 600; display: grid; gap: 5px; min-width: 0 }
+.selos { display: flex; flex-wrap: wrap; gap: 4px }
+.selo { font-size: 0.76rem; padding: 1px 8px; border-radius: 999px; font-weight: 600; white-space: nowrap; background: var(--sunk); color: var(--muted) }
+.selo.ok { background: var(--ok-soft); color: var(--ok) }
+.selo.part { background: var(--part-soft); color: var(--part) }
+.selo.miss { background: var(--miss-soft); color: var(--miss) }
+.selo.dec { background: var(--dec-soft); color: var(--dec) }
+.selo.val { background: var(--val-soft); color: var(--val) }
+.selo.regra { background: var(--accent-soft); color: var(--accent); font-family: var(--f-mono); font-weight: 600 }
+.selo.semregra { background: none; border: 1px dashed var(--line); color: var(--muted) }
+.selo.novo { background: var(--fg); color: var(--bg) }
+.seta { color: var(--muted); transition: transform 0.15s }
+.caso[data-aberto] .seta { transform: rotate(90deg) }
+.caso-corpo { padding: 0 14px 14px calc(3.2em + 22px); display: grid; gap: 12px }
+.campos { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 6px 14px; margin: 0 }
+.campos dt { color: var(--muted); font-size: 0.86rem }
+.campos dd { margin: 0; min-width: 0; overflow-wrap: anywhere }
+.conf-linha { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; border-top: 1px solid var(--line); padding-top: 10px; font-size: 0.9rem }
+.conf-linha label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer }
+.vazio { padding: 28px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--r) }
+
+/* Regras, decisões, clientes */
+.secao-cab { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: end; margin-bottom: 12px }
+.secao-cab p { margin: 4px 0 0; color: var(--muted); max-width: 70ch }
+.tabela-box { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface) }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top }
+th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--sunk) }
+tr:last-child td { border-bottom: 0 }
+tr.sem-caso td:first-child { box-shadow: inset 3px 0 0 var(--part) }
+.links-casos { display: flex; flex-wrap: wrap; gap: 4px }
+.link-caso { font-family: var(--f-mono); font-size: 0.8rem; border: 1px solid var(--line); background: var(--surface); border-radius: 5px; padding: 0 6px; cursor: pointer; color: var(--accent) }
+.link-caso:hover { border-color: var(--accent) }
+
+.decisoes { display: grid; gap: 10px }
+.decisao { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--dec); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px }
+.decisao.respondida { border-left-color: var(--ok) }
+.decisao p { margin: 0; max-width: 75ch }
+.opcoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px }
+.opcao { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; display: grid; gap: 4px; cursor: pointer; background: var(--bg) }
+.opcao:has(input:checked) { border-color: var(--ok); background: var(--ok-soft) }
+.opcao input { margin: 0 8px 0 0 }
+.opcao span { font-size: 0.9rem; color: var(--muted) }
+.resposta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.resposta input[type="text"] { flex: 1 1 260px; min-width: 0; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface) }
+.btn { border: 1px solid var(--accent); background: var(--accent); color: var(--surface); border-radius: 6px; padding: 6px 14px; cursor: pointer; font-weight: 600 }
+.btn:disabled { opacity: 0.5; cursor: default }
+.quem { font-size: 0.85rem; color: var(--muted) }
+.aviso { font-size: 0.88rem; padding: 8px 12px; border-radius: 6px; background: var(--part-soft); color: var(--part); margin-bottom: 12px }
+
+.clientes { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px }
+.cliente { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 8px; align-content: start }
+.cliente-cab { display: flex; justify-content: space-between; gap: 8px; align-items: baseline }
+.cliente-cab b { font-family: var(--f-display) }
+.cliente-cab .n { font-family: var(--f-mono); font-size: 0.82rem; color: var(--muted) }
+
+@media (max-width: 760px) {
+  .casos-layout { grid-template-columns: minmax(0, 1fr) }
+  .areas { display: none }
+  .tela-select { display: block; width: 100% }
+  .caso-corpo { padding-left: 14px }
+  .campos { grid-template-columns: minmax(0, 1fr) }
+  .campos dt { margin-top: 6px }
+}
+@media (prefers-reduced-motion: reduce) { .seta { transition: none } }
+</style>
+
+<div class="wrap">
+  <header class="topo">
+    <div>
+      <div class="eyebrow">Backlog de casos de uso · oimpresso</div>
+      <h1>Casos de uso por tela</h1>
+    </div>
+    <p class="fonte" id="fonte"></p>
+    <div class="numeros" id="numeros"></div>
+    <div class="ciclo" id="ciclo" aria-label="Ciclo de vida dos casos"></div>
+  </header>
+
+  <nav class="visoes" role="tablist" aria-label="Visões">
+    <button type="button" role="tab" id="v-casos" data-visao="casos" aria-selected="true">Casos<span class="q" id="q-casos"></span></button>
+    <button type="button" role="tab" id="v-regras" data-visao="regras" aria-selected="false">Regras<span class="q" id="q-regras"></span></button>
+    <button type="button" role="tab" id="v-decisoes" data-visao="decisoes" aria-selected="false">Decisões para o Wagner<span class="q" id="q-decisoes"></span></button>
+    <button type="button" role="tab" id="v-clientes" data-visao="clientes" aria-selected="false">Clientes<span class="q" id="q-clientes"></span></button>
+  </nav>
+
+  <p class="aviso" id="aviso" hidden></p>
+
+  <section id="p-casos" role="tabpanel" aria-labelledby="v-casos">
+    <div class="casos-layout">
+      <aside class="areas" id="areas" aria-label="Áreas e telas"></aside>
+      <div style="min-width:0">
+        <div class="ferramentas">
+          <select class="tela-select" id="tela-select" aria-label="Área ou tela"></select>
+          <div class="busca-linha">
+            <input type="search" id="busca" placeholder="Buscar no título, aceite, âncora ou número (#45)" aria-label="Buscar casos">
+            <select id="cliente" aria-label="Cliente"></select>
+          </div>
+          <div class="filtros" id="filtros" role="group" aria-label="Filtros (somam entre si)"></div>
+          <div class="resultado"><span id="resultado"></span> <button type="button" class="limpar" id="limpar" hidden>Limpar filtros</button></div>
+        </div>
+        <div class="lista" id="lista"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="p-regras" role="tabpanel" aria-labelledby="v-regras" hidden>
+    <div class="secao-cab">
+      <div>
+        <h2>Regras do catálogo de Fluxos</h2>
+        <p id="regras-resumo"></p>
+      </div>
+      <div class="filtros"><button type="button" id="so-sem-caso" aria-pressed="false">Só as regras sem caso</button></div>
+    </div>
+    <div class="tabela-box">
+      <table>
+        <thead><tr><th>Regra</th><th>O que diz</th><th>Etapa</th><th>No sistema</th><th>Casos que dependem dela</th></tr></thead>
+        <tbody id="regras-corpo"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="p-decisoes" role="tabpanel" aria-labelledby="v-decisoes" hidden>
+    <div class="secao-cab">
+      <div>
+        <h2>Decisões para o Wagner</h2>
+        <p id="decisoes-resumo"></p>
+      </div>
+    </div>
+    <div class="decisoes" id="decisoes"></div>
+  </section>
+
+  <section id="p-clientes" role="tabpanel" aria-labelledby="v-clientes" hidden>
+    <div class="secao-cab">
+      <div>
+        <h2>Clientes</h2>
+        <p id="clientes-resumo"></p>
+      </div>
+    </div>
+    <div class="clientes" id="clientes"></div>
+  </section>
+</div>
+
+<script>
+const DADOS = /*__DADOS__*/null;
+const $ = id => document.getElementById(id);
+const el = (tag, attrs, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const k of kids.flat()) if (k !== null && k !== undefined && k !== false) e.append(k instanceof Node ? k : String(k));
+  return e;
+};
+// Texto com `código` vira <code>, sem passar HTML do dado para o DOM.
+const rico = txt => {
+  const out = document.createDocumentFragment();
+  String(txt || '').split('`').forEach((parte, i) => out.append(i % 2 ? el('code', {}, parte) : parte));
+  return out;
+};
+const fmtData = iso => { try { return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }); } catch (e) { return ''; } };
+
+const C = DADOS.casos;
+const porN = Object.fromEntries(C.map(c => [c.n, c]));
+const telaDe = Object.fromEntries(DADOS.telas.map(t => [t.id, t]));
+const areaDaTela = {};
+DADOS.areas.forEach(a => a.telas.forEach(t => { areaDaTela[t] = a.id; }));
+const regraPorId = Object.fromEntries(DADOS.regras.map(r => [r.id, r]));
+const clientes = [...new Set(C.flatMap(c => c.clientes))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+// Estado vivo (do banco do artefato) e da tela.
+let conf = {};      // n -> {por, em}
+let resp = {};      // decisão id -> {opcao, nota, por, em}
+let nomes = {};     // id de usuário -> nome
+let podeConferir = false, podeDecidir = false, db = null, user = null, meuId = null;
+const est = { recorte: 'tudo', busca: '', cliente: '', filtros: new Set(), aberto: null };
+
+const FILTROS = [
+  ['valor', 'Mexe em valor ou estoque', c => c.tags.includes('valor')],
+  ['cv', 'Comunicação visual', c => c.tags.includes('cv')],
+  ['part', 'Existe em parte', c => c.hoje.tipo === 'part'],
+  ['miss', 'Não existe', c => c.hoje.tipo === 'miss'],
+  ['decisao', 'Depende do Wagner', c => c.tags.includes('decisao')],
+  ['semregra', 'Sem regra citada', c => !c.regras.length],
+  ['naoconf', 'Não conferido', c => !conf[c.n]],
+  ['uc', 'Já viraram caso de uso', c => c.estagio !== 'pedido'],
+];
+const noRecorte = c => est.recorte === 'tudo' || c.tela === est.recorte || areaDaTela[c.tela] === est.recorte;
+const naBusca = c => {
+  const q = est.busca.trim().toLowerCase();
+  if (!q) return true;
+  const m = q.match(/^#?([0-9]+)$/);
+  if (m) return c.n === Number(m[1]);
+  return [c.titulo, c.aceite, c.texto, c.ancora, c.fazer, c.uc, c.hoje.nota, c.clientes.join(' ')].join(' ').toLowerCase().includes(q);
+};
+const passa = (c, ignorar) => noRecorte(c) && naBusca(c) && (!est.cliente || c.clientes.includes(est.cliente))
+  && FILTROS.every(([id, , f]) => id === ignorar || !est.filtros.has(id) || f(c));
+
+/* ---------- topo ---------- */
+function desenharTopo() {
+  $('fonte').replaceChildren(rico(`Gerado do git em ${fmtData(DADOS.geradoEm)}. Cada caso é um item do casos.md da sua tela, ligado a este documento pelo subitem \`Pedido: P-NNN\`; as regras vêm do catálogo de Fluxos (\`UC-FLX\`). Para mudar um caso, edite o casos.md da tela e gere a página de novo.`));
+  const decCasos = C.filter(c => c.tags.includes('decisao')).length;
+  const semRegra = C.filter(c => !c.regras.length).length;
+  const nums = [
+    [C.length, `casos em ${DADOS.telas.length} telas`],
+    [clientes.length, 'clientes ligados'],
+    [C.filter(c => c.tags.includes('valor')).length, 'mexem em valor ou estoque'],
+    [decCasos, 'dependem do Wagner', 'alerta'],
+    [semRegra, 'não citam regra de Fluxos'],
+  ];
+  $('numeros').replaceChildren(...nums.map(([n, t, cl]) => el('div', { class: 'num' + (cl ? ' ' + cl : '') }, el('b', {}, n), el('span', {}, t))));
+  const nConf = Object.keys(conf).length;
+  const etapas = [
+    ['Pedido', C.length, 'ligados a este documento'],
+    ['Conferido', nConf, 'contra as regras'],
+    ['Virou caso de uso', C.filter(c => c.estagio !== 'pedido').length, 'tem id UC no casos.md'],
+    ['Testado', C.filter(c => c.estagio === 'testado').length, 'com o teste verde'],
+  ];
+  $('ciclo').replaceChildren(...etapas.map(([nome, n, sub]) => el('div', { class: 'etapa' },
+    el('span', { class: 'eyebrow' }, nome), el('b', {}, n), el('small', {}, sub),
+    el('div', { class: 'barra', 'aria-hidden': 'true' }, el('i', { style: `width:${C.length ? Math.round(100 * n / C.length) : 0}%` })))));
+  $('q-casos').textContent = C.length;
+  $('q-regras').textContent = DADOS.regras.length;
+  $('q-decisoes').textContent = DADOS.decisoes.filter(d => !resp[d.id]).length;
+  $('q-clientes').textContent = clientes.length;
+}
+
+/* ---------- casos ---------- */
+function desenharAreas() {
+  const conta = pred => C.filter(c => pred(c) && naBusca(c) && (!est.cliente || c.clientes.includes(est.cliente)) && FILTROS.every(([id, , f]) => !est.filtros.has(id) || f(c))).length;
+  const botao = (id, rotulo, n) => el('button', { type: 'button', 'aria-pressed': String(est.recorte === id), onclick: () => { est.recorte = id; desenharCasos(); } }, el('span', {}, rotulo), el('span', { class: 'n' }, n));
+  $('areas').replaceChildren(
+    botao('tudo', 'Todas as telas', conta(() => true)),
+    ...DADOS.areas.map(a => el('div', { class: 'grupo' },
+      botao(a.id, a.nome, conta(c => areaDaTela[c.tela] === a.id)),
+      el('ul', {}, ...a.telas.map(t => el('li', {}, botao(t, telaDe[t].nome, conta(c => c.tela === t))))))));
+  const sel = $('tela-select');
+  sel.replaceChildren(el('option', { value: 'tudo' }, 'Todas as telas'),
+    ...DADOS.areas.map(a => el('optgroup', { label: a.nome }, el('option', { value: a.id }, 'Toda a área: ' + a.nome),
+      ...a.telas.map(t => el('option', { value: t }, telaDe[t].nome)))));
+  sel.value = est.recorte;
+}
+function desenharFiltros() {
+  $('filtros').replaceChildren(...FILTROS.map(([id, rotulo]) => {
+    const n = C.filter(c => passa(c, id) && FILTROS.find(f => f[0] === id)[2](c)).length;
+    return el('button', { type: 'button', 'aria-pressed': String(est.filtros.has(id)), onclick: () => { est.filtros.has(id) ? est.filtros.delete(id) : est.filtros.add(id); desenharCasos(); } }, rotulo, el('span', { class: 'q' }, n));
+  }));
+}
+function selosDe(c) {
+  const s = [];
+  if (c.uc) s.push(el('span', { class: 'selo ok', title: c.estagio === 'testado' ? 'Virou caso de uso, com o teste verde' : 'Virou caso de uso' }, c.uc));
+  c.marcas.forEach(m => s.push(el('span', { class: 'selo val', title: m === 'V0' ? 'Mexe em valor' : m === 'E0' ? 'Mexe em estoque' : 'Mexe em tributo' }, m)));
+  if (c.hoje.texto) s.push(el('span', { class: 'selo ' + c.hoje.tipo }, c.hoje.texto));
+  if (c.tags.includes('decisao')) s.push(el('span', { class: 'selo dec' }, 'Depende do Wagner'));
+  if (c.regras.length) c.regras.forEach(r => s.push(el('span', { class: 'selo regra', title: regraPorId[r] ? regraPorId[r].titulo : '' }, r)));
+  else s.push(el('span', { class: 'selo semregra' }, 'sem regra citada'));
+  if (conf[c.n]) s.push(el('span', { class: 'selo ok' }, 'Conferido'));
+  return s;
+}
+function corpoDe(c) {
+  const t = telaDe[c.tela];
+  const selecao = s => s.texto ? el('span', {}, el('span', { class: 'selo ' + s.tipo }, s.texto), ' ', rico(s.nota)) : null;
+  const linhas = [
+    c.aceite ? ['Aceite', rico(c.aceite)] : c.texto ? ['Descrição', rico(c.texto)] : null,
+    c.fazer ? ['O que fazer', rico(c.fazer)] : null,
+    c.hoje.texto ? ['Hoje no sistema', selecao(c.hoje)] : null,
+    c.cv.texto ? ['Comunicação visual', selecao(c.cv)] : null,
+    c.ancora ? ['Regra e âncora', rico(c.ancora)] : null,
+    ['Clientes', c.clientes.length ? c.clientes.join(', ') : el('span', { class: 'muted' }, 'nenhum ligado')],
+    ['Onde está', el('span', {}, t.nome, ' · ', el('a', { href: `${t.url}?plain=1#L${c.linha}`, target: '_blank', rel: 'noopener' }, el('code', {}, `${t.arquivo}:${c.linha}`)))],
+  ].filter(Boolean);
+  const d = conf[c.n];
+  const caixa = el('input', { type: 'checkbox', id: 'conf-' + c.n, checked: !!d, disabled: !podeConferir });
+  caixa.addEventListener('change', () => marcarConferido(c.n, caixa));
+  return el('div', { class: 'caso-corpo', id: 'corpo-' + c.n },
+    el('dl', { class: 'campos' }, ...linhas.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)])),
+    el('div', { class: 'conf-linha' },
+      el('label', { for: 'conf-' + c.n }, caixa, 'Conferido contra as regras'),
+      el('span', { class: 'quem' }, d ? `${nomes[d.por] || 'Alguém'} · ${fmtData(d.em)}` : (podeConferir ? '' : 'Abra com a sua conta para conferir.'))));
+}
+function desenharLista() {
+  const vis = C.filter(c => passa(c));
+  $('resultado').textContent = vis.length === C.length ? `${C.length} casos` : `${vis.length} de ${C.length} casos`;
+  $('limpar').hidden = !(est.filtros.size || est.busca || est.cliente || est.recorte !== 'tudo');
+  if (!C.length) { $('lista').replaceChildren(el('div', { class: 'vazio' }, 'Nenhum caso ligado ainda. Um caso entra aqui quando o item dele no casos.md da tela ganha o subitem "Pedido: P-NNN".')); return; }
+  if (!vis.length) { $('lista').replaceChildren(el('div', { class: 'vazio' }, 'Nenhum caso com esses filtros. Tire um filtro ou limpe a busca.')); return; }
+  $('lista').replaceChildren(...vis.map(c => {
+    const aberto = est.aberto === c.n;
+    const art = el('article', { class: 'caso' + (conf[c.n] ? ' conferido' : ''), id: 'caso-' + c.n, 'data-aberto': aberto || null },
+      el('button', { type: 'button', class: 'caso-cab', 'aria-expanded': String(aberto), 'aria-controls': 'corpo-' + c.n, onclick: () => { est.aberto = aberto ? null : c.n; desenharLista(); } },
+        el('span', { class: 'num-caso' }, '#' + c.n),
+        el('span', { class: 'caso-titulo' }, el('span', {}, c.titulo), el('span', { class: 'selos' }, ...selosDe(c))),
+        el('span', { class: 'seta', 'aria-hidden': 'true' }, '›')));
+    if (aberto) art.append(corpoDe(c));
+    return art;
+  }));
+}
+function desenharCasos() { desenharAreas(); desenharFiltros(); desenharLista(); }
+function abrirCaso(n) {
+  est.recorte = 'tudo'; est.busca = ''; est.cliente = ''; est.filtros.clear(); est.aberto = n;
+  $('busca').value = ''; $('cliente').value = '';
+  mostrar('casos'); desenharCasos();
+  const a = $('caso-' + n); if (a) a.scrollIntoView({ block: 'center' });
+}
+const linkCaso = n => el('button', { type: 'button', class: 'link-caso', title: porN[n] ? porN[n].titulo : '', onclick: () => abrirCaso(n) }, '#' + n);
+
+/* ---------- regras ---------- */
+let soSemCaso = false;
+function desenharRegras() {
+  const casosDa = id => C.filter(c => c.regras.includes(id)).map(c => c.n);
+  const citadas = DADOS.regras.filter(r => casosDa(r.id).length).length;
+  $('regras-resumo').textContent = `${citadas} das ${DADOS.regras.length} regras são citadas por algum caso. As outras ${DADOS.regras.length - citadas} não aparecem em nenhum: ou não se aplicam a estes pedidos, ou ninguém conferiu. ${C.filter(c => !c.regras.length).length} casos não citam regra nenhuma.`;
+  const rotStatus = { producao: ['ok', 'Em produção'], parcial: ['part', 'Em parte'], planejado: ['miss', 'Planejado'] };
+  $('regras-corpo').replaceChildren(...DADOS.regras.filter(r => !soSemCaso || !casosDa(r.id).length).map(r => {
+    const ns = casosDa(r.id); const st = rotStatus[r.status] || ['', r.status];
+    return el('tr', { class: ns.length ? '' : 'sem-caso' },
+      el('td', {}, el('code', {}, r.id)),
+      el('td', {}, el('div', {}, el('b', {}, r.titulo)), el('div', { class: 'muted' }, r.efeito)),
+      el('td', {}, r.etapa),
+      el('td', {}, el('span', { class: 'selo ' + st[0] }, st[1])),
+      el('td', {}, ns.length ? el('div', { class: 'links-casos' }, ...ns.map(linkCaso)) : el('span', { class: 'muted' }, 'nenhum')));
+  }));
+}
+
+/* ---------- decisões ---------- */
+function desenharDecisoes() {
+  const dep = C.filter(c => c.tags.includes('decisao')).map(c => c.n);
+  const cobertos = new Set(DADOS.decisoes.flatMap(d => d.casos));
+  const soltos = dep.filter(n => !cobertos.has(n));
+  const abertas = DADOS.decisoes.filter(d => !resp[d.id]).length;
+  $('decisoes-resumo').replaceChildren(
+    `${abertas} de ${DADOS.decisoes.length} perguntas em aberto. ${dep.length} casos dependem de você; ${dep.length - soltos.length} deles estão ligados a uma pergunta abaixo. `,
+    soltos.length ? el('span', {}, `Os outros ${soltos.length} ainda não têm pergunta escrita: `, el('span', { class: 'links-casos', style: 'display:inline-flex' }, ...soltos.map(linkCaso))) : '');
+  $('decisoes').replaceChildren(...DADOS.decisoes.map(d => {
+    const r = resp[d.id];
+    const nome = 'op-' + d.id;
+    const escolha = () => (document.querySelector(`input[name="${nome}"]:checked`) || {}).value || '';
+    const nota = el('input', { type: 'text', id: 'nota-' + d.id, placeholder: d.opcoes.length ? 'Observação (opcional)' : 'Sua resposta', value: r ? r.nota || '' : '', disabled: !podeDecidir });
+    const salvar = el('button', { type: 'button', class: 'btn', disabled: !podeDecidir, onclick: () => responder(d.id, escolha(), nota.value, salvar) }, r ? 'Atualizar resposta' : 'Registrar resposta');
+    return el('article', { class: 'decisao' + (r ? ' respondida' : '') },
+      el('div', { class: 'eyebrow' }, r ? 'Respondida' : d.estado),
+      el('h3', {}, d.pergunta),
+      d.texto ? el('p', {}, d.texto) : null,
+      d.opcoes.length ? el('div', { class: 'opcoes', role: 'radiogroup', 'aria-label': d.pergunta },
+        ...d.opcoes.map((o, i) => el('label', { class: 'opcao' },
+          el('b', {}, el('input', { type: 'radio', name: nome, value: o.nome, checked: r && r.opcao === o.nome, disabled: !podeDecidir }), o.nome),
+          el('span', {}, o.texto)))) : null,
+      d.casos.length ? el('div', { class: 'links-casos' }, el('span', { class: 'muted' }, 'Destrava: '), ...d.casos.map(linkCaso)) : null,
+      el('div', { class: 'resposta' }, nota, salvar),
+      r ? el('div', { class: 'quem' }, `Respondida por ${nomes[r.por] || 'Alguém'} em ${fmtData(r.em)}${r.opcao ? ' · ' + r.opcao : ''}`) : (podeDecidir ? null : el('div', { class: 'quem' }, 'Só o dono do documento registra a resposta.')));
+  }));
+}
+
+/* ---------- clientes ---------- */
+function desenharClientes() {
+  const lista = clientes.map(nome => ({ nome, casos: C.filter(c => c.clientes.includes(nome)) })).sort((a, b) => b.casos.length - a.casos.length || a.nome.localeCompare(b.nome, 'pt-BR'));
+  $('clientes-resumo').textContent = `${lista.length} clientes ligados a algum caso, os que mais pediram primeiro. Clique num número para abrir o caso ou no nome para ver só os casos dele.`;
+  $('clientes').replaceChildren(...lista.map(cl => el('article', { class: 'cliente' },
+    el('div', { class: 'cliente-cab' },
+      el('button', { type: 'button', class: 'limpar', style: 'padding:0;font-weight:600', onclick: () => { est.cliente = cl.nome; $('cliente').value = cl.nome; est.recorte = 'tudo'; est.filtros.clear(); est.aberto = null; mostrar('casos'); desenharCasos(); } }, cl.nome),
+      el('span', { class: 'n' }, cl.casos.length + (cl.casos.length === 1 ? ' caso' : ' casos'))),
+    el('div', { class: 'selos' }, ...[...new Set(cl.casos.map(c => areaDaTela[c.tela]))].map(a => el('span', { class: 'selo' }, DADOS.areas.find(x => x.id === a).nome))),
+    el('div', { class: 'links-casos' }, ...cl.casos.map(c => linkCaso(c.n))))));
+}
+
+/* ---------- visões ---------- */
+const VISOES = ['casos', 'regras', 'decisoes', 'clientes'];
+function mostrar(v) {
+  if (!VISOES.includes(v)) v = 'casos';
+  VISOES.forEach(x => { $('p-' + x).hidden = x !== v; $('v-' + x).setAttribute('aria-selected', String(x === v)); });
+  if (location.hash !== '#' + v) history.replaceState(null, '', '#' + v);
+}
+function desenharTudo() { desenharTopo(); desenharCasos(); desenharRegras(); desenharDecisoes(); desenharClientes(); }
+
+document.querySelectorAll('.visoes button').forEach(b => b.addEventListener('click', () => mostrar(b.dataset.visao)));
+$('busca').addEventListener('input', e => { est.busca = e.target.value; est.aberto = null; desenharCasos(); });
+$('cliente').replaceChildren(el('option', { value: '' }, 'Todos os clientes'), ...clientes.map(c => el('option', { value: c }, c)));
+$('cliente').addEventListener('change', e => { est.cliente = e.target.value; desenharCasos(); });
+$('tela-select').addEventListener('change', e => { est.recorte = e.target.value; desenharCasos(); });
+$('limpar').addEventListener('click', () => { est.recorte = 'tudo'; est.busca = ''; est.cliente = ''; est.filtros.clear(); $('busca').value = ''; $('cliente').value = ''; desenharCasos(); });
+$('so-sem-caso').addEventListener('click', e => { soSemCaso = !soSemCaso; e.currentTarget.setAttribute('aria-pressed', String(soSemCaso)); desenharRegras(); });
+mostrar((location.hash || '').slice(1));
+desenharTudo();
+
+/* ---------- banco do artefato: conferência e respostas ---------- */
+function avisar(t) { $('aviso').textContent = t; $('aviso').hidden = !t; }
+async function resolverNomes() {
+  const ids = [...new Set([...Object.values(conf), ...Object.values(resp)].map(x => x.por).filter(Boolean))];
+  if (!user || !ids.length) return;
+  try { const ps = await user.profiles(ids); ids.forEach(id => { nomes[id] = (ps[id] && ps[id].name) || ''; }); } catch (e) { /* nomes ficam como "Alguém" */ }
+}
+async function marcarConferido(n, caixa) {
+  if (!db) return;
+  const marcar = caixa.checked; caixa.disabled = true;
+  try {
+    const ref = db.doc('conferencia/c' + n);
+    if (marcar) await ref.set({ conferido: true, por: meuId, em: new Date().toISOString() }); else await ref.delete();
+  } catch (e) {
+    caixa.checked = !marcar;
+    avisar(e && e.code === 'invalid_argument' ? 'Você pode ver o que foi conferido, mas não marcar.' : `Não deu para salvar a conferência do caso ${n}. Tente de novo.`);
+  }
+  caixa.disabled = !podeConferir;
+}
+async function responder(id, opcao, nota, botao) {
+  if (!db) return;
+  if (!opcao && !nota.trim()) { avisar('Escolha uma opção ou escreva a resposta antes de registrar.'); return; }
+  botao.disabled = true;
+  try { await db.doc('decisoes/' + id).set({ opcao: opcao || '', nota: nota.trim(), por: meuId, em: new Date().toISOString() }); avisar(''); }
+  catch (e) { avisar('Não deu para registrar a resposta. Só o dono do documento pode responder.'); }
+  botao.disabled = !podeDecidir;
+}
+(async () => {
+  if (!window.claude || typeof window.claude.use !== 'function') { avisar('Conferência e respostas só funcionam com o documento aberto no Claude.'); return; }
+  [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+  if (!db) { avisar('Conferência e respostas não estão disponíveis nesta visualização. Abra o documento com a sua conta.'); return; }
+  try {
+    const [escrever, dono, id] = await Promise.all([
+      user ? user.can('data.write') : null, user ? user.isOwner() : false, user ? user.id() : null]);
+    podeConferir = escrever !== false; podeDecidir = !!dono; meuId = id;
+  } catch (e) { podeConferir = true; }
+  db.collection('conferencia').onSnapshot(async snap => {
+    const novo = {};
+    snap.docs.forEach(doc => { const v = doc.data(); if (v && v.conferido) novo[doc.id.replace(/^c/, '')] = { por: v.por || null, em: v.em || null }; });
+    conf = novo; await resolverNomes(); desenharTopo(); desenharCasos();
+  }, () => avisar('A conferência parou de atualizar. Recarregue a página.'));
+  db.collection('decisoes').onSnapshot(async snap => {
+    const novo = {};
+    snap.docs.forEach(doc => { const v = doc.data(); if (v) novo[doc.id] = v; });
+    resp = novo; await resolverNomes(); desenharTopo(); desenharDecisoes();
+  }, () => avisar('As respostas pararam de atualizar. Recarregue a página.'));
+  desenharTudo();
+})();
+</script>
