@@ -34,12 +34,86 @@ Um POST com campos de credencial ainda salva os dados bancários e **descarta** 
 Status: 🧪 (`MultiTenantIsolationTest`)
 Conta de outro business não aparece nem é editável ([ADR 0093]).
 
+## Cadastro da conta (tela única de contas — decisão [W] 2026-10-27)
+
+Desde 2026-10-27 esta tela também cadastra a conta do núcleo (`accounts`), antes feita em `/account/account`
+(decisão [W], opção A). Fontes dos casos: a decisão do [W], o `RUNBOOK-contas-bancarias.md`, o charter v3 e a paridade
+do cadastro antigo (`memory/requisitos/Configuracoes/contas-parity.md`); o código só confirma. O saldo e o saldo de
+abertura saem do mesmo serviço do núcleo (`App\Services\Contas\ContasDoNucleo`).
+
+**Onde roda:** `tests/Feature/Configuracoes/ContasNoFinanceiroContratoTest.php`, lane `acessos-pest` (MySQL), que roda a
+pasta `tests/Feature/Configuracoes/`. Tenant 98 (`seededTenant()`) × 99 (`seededSupportClientTenant()`).
+
+---
+
+## UC-CTB-05 · A lista traz só as contas da empresa, com o saldo do núcleo
+- **Persona:** financeiro da empresa abrindo `/financeiro/contas-bancarias`.
+- **Aceite:** Dado uma conta da empresa 98 com crédito de 1.000,50, débito de 200,25 e um crédito apagado de 999,00, e uma conta da empresa 99 · Quando abro a tela · Então só a conta da 98 aparece e o saldo dela é 800,25 — igual à conta feita à mão (dois caminhos) e com o texto formatado pelo servidor.
+- **Teste:** `tests/Feature/Configuracoes/ContasNoFinanceiroContratoTest.php` — `UC-CTB-05 a lista traz só as contas da empresa, com o saldo do mesmo SQL do núcleo — por dois caminhos`.
+- **Regressão que defende:** regra mestre de valor (o saldo não ganha segunda conta) e Tier 0 (lista de outra empresa).
+- **Status: ⬜** — aguardando o CI do PR #10046.
+
+---
+
+## UC-CTB-06 · Nova conta com saldo de abertura
+- **Persona:** financeiro cadastrando uma conta nova.
+- **Aceite:** Dado o formulário com nome, número, saldo de abertura "1.234,56", um detalhe preenchido e um vazio, e `business_id` de outra empresa no pedido · Quando salvo · Então a conta nasce na empresa da sessão, o detalhe vazio é descartado e é gravado um crédito `opening_balance` de 1.234,56 — o mesmo valor que o `num_uf` do núcleo dá para o texto (dois caminhos).
+- **Teste:** `ContasNoFinanceiroContratoTest.php` — `UC-CTB-06 nova conta grava em accounts da empresa da sessão, com o saldo de abertura pelo num_uf — por dois caminhos`.
+- **Regressão que defende:** paridade com o cadastro antigo (`AccountController::store` + `num_uf`) e Tier 0 (`business_id` só da sessão).
+- **Status: ⬜** — aguardando o CI do PR #10046.
+
+---
+
+## UC-CTB-07 · Sem saldo de abertura, sem lançamento
+- **Persona:** financeiro cadastrando conta sem saldo inicial.
+- **Aceite:** Dado o formulário só com o nome · Quando salvo · Então a conta não ganha nenhum lançamento.
+- **Teste:** `ContasNoFinanceiroContratoTest.php` — `UC-CTB-07 sem saldo de abertura não nasce lançamento`.
+- **Regressão que defende:** lançamento de valor zero ou fantasma no extrato da conta.
+- **Status: ⬜** — aguardando o CI do PR #10046.
+
+---
+
+## UC-CTB-08 · Tipo de conta de outra empresa é recusado
+- **Persona:** usuário mal-intencionado enviando o id de um tipo de outra empresa.
+- **Aceite:** Dado um tipo de conta da empresa 99 · Quando a empresa 98 cria conta com esse tipo · Então dá erro no campo do tipo e nenhuma conta é gravada.
+- **Teste:** `ContasNoFinanceiroContratoTest.php` — `UC-CTB-08 tipo de conta de outra empresa é recusado`.
+- **Regressão que defende:** Tier 0 (ADR 0093) — referência cruzada entre empresas.
+- **Status: ⬜** — aguardando o CI do PR #10046.
+
+---
+
+## UC-CTB-09 · Editar muda o cadastro e não toca no saldo
+- **Persona:** financeiro corrigindo nome e observação de uma conta.
+- **Aceite:** Dado uma conta da 98 com crédito de 50 e uma conta da 99 · Quando edito a da 98 · Então nome e observação mudam e o saldo continua 50; Quando tento editar a da 99 · Então 404 e ela fica intacta.
+- **Teste:** `ContasNoFinanceiroContratoTest.php` — `UC-CTB-09 editar muda o cadastro e não toca no saldo; conta de outra empresa dá 404`.
+- **Regressão que defende:** regra mestre de valor (editar não mexe em saldo) e isolamento 98×99 na escrita.
+- **Status: ⬜** — aguardando o CI do PR #10046.
+
+---
+
+## UC-CTB-10 · Encerrar e reativar
+- **Persona:** financeiro encerrando uma conta que não usa mais.
+- **Aceite:** Dado uma conta ativa da 98 · Quando encerro · Então ela sai das ativas e aparece em "encerrada"; Quando reativo · Então volta às ativas; Quando tento encerrar uma conta da 99 · Então 404 e ela continua ativa.
+- **Teste:** `ContasNoFinanceiroContratoTest.php` — `UC-CTB-10 encerrar tira da lista de ativas, reativar devolve; outra empresa dá 404`.
+- **Regressão que defende:** paridade com encerrar/reativar do cadastro antigo (conta não se apaga, o movimento fica) e isolamento 98×99.
+- **Status: ⬜** — aguardando o CI do PR #10046.
+
+---
+
+## UC-CTB-11 · Sem permissão, não cria
+- **Persona:** usuário sem `financeiro.contas_bancarias.manage`.
+- **Aceite:** Dado um usuário da 98 sem a permissão · Quando tenta criar conta · Então 403 e nada é gravado.
+- **Teste:** `ContasNoFinanceiroContratoTest.php` — `UC-CTB-11 sem a permissão do Financeiro, criar dá 403`.
+- **Regressão que defende:** gate do controller (Camada 3 Spatie, permissão do Financeiro).
+- **Status: ⬜** — aguardando o CI do PR #10046.
+
 ## Backlog de casos (sem id)
 - **[BACKLOG] Sem side-effect ao abrir** — não testa conectividade de gateway, não emite boleto, não chama driver Inter/Asaas/C6.
 - **[BACKLOG] Pill "Conta indefinida" (US-FIN-038 PR2/3)** — herdar da Unificada quando a baixa não tem conta vinculada.
 
 ## Trilha do tempo
 - 2026-08-17 · [CC] criado no espelho Cowork; achada a âncora podre do charter.
+- 2026-10-27 · [CL] UC-CTB-05..11: cadastro da conta do núcleo nesta tela (decisão [W], opção A).
 
 [ADR 0264]: ../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0093]: ../../memory/decisions/0093-multi-tenant-isolation-tier-0.md
