@@ -55,6 +55,7 @@ use App\Utils\TransactionUtil;
 use App\Variation;
 use App\Warranty;
 use Illuminate\Http\Request;
+use App\Services\Sells\VendaOffline;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -498,7 +499,7 @@ class SellPosController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|array<string, mixed>
      */
     public function store(Request $request)
     {
@@ -516,8 +517,17 @@ class SellPosController extends Controller
             return redirect()->action([\App\Http\Controllers\CashRegisterController::class, 'create']);
         }
 
+        // US-SELL-054: venda feita sem internet e reenviada pelo caixa. Com a flag
+        // desligada `chave()` devolve null e nada abaixo muda.
+        $offlineBiz = (int) $request->session()->get('user.business_id');
+        $offlineUuid = VendaOffline::chave($request, $offlineBiz);
+
         try {
-            $input = $request->except('_token');
+            if ($offlineUuid && ($jaGravada = VendaOffline::jaRecebida($offlineBiz, $offlineUuid))) {
+                return response()->json(VendaOffline::resposta(true, $jaGravada, trans('sale.pos_sale_added'), true));
+            }
+
+            $input = $request->except('_token', 'offline_uuid', 'offline_vendida_em');
 
             $input['is_quotation'] = 0;
             //status is send as quotation from Add sales screen.
@@ -736,6 +746,10 @@ class SellPosController extends Controller
 
                 $transaction = $this->transactionUtil->createSellTransaction($business_id, $input, $invoice_total, $user_id);
 
+                if ($offlineUuid) {
+                    VendaOffline::registrar($business_id, $offlineUuid, (int) $transaction->id, $request->input('offline_vendida_em'));
+                }
+
                 //Upload Shipping documents
                 Media::uploadMedia($business_id, $transaction, $request, 'shipping_documents', false, 'shipping_document');
 
@@ -927,6 +941,12 @@ class SellPosController extends Controller
             if ($itemVariationId !== null) {
                 $output['item_variation_id'] = $itemVariationId;
             }
+        }
+
+        if ($offlineUuid) {
+            $gravada = $output['success'] === 1 && isset($transaction) ? (int) $transaction->id : null;
+
+            return response()->json(VendaOffline::resposta($output['success'] === 1, $gravada, $output['msg']));
         }
 
         if (!$is_direct_sale) {

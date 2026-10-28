@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1072 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1071 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,7 +10,7 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
 | [`Whatsapp`](#whatsapp) | 77 | 0 | 0 | 0 | 77 |
-| [`Sells`](#sells) | 73 | 3 | 0 | 0 | 70 |
+| [`Sells`](#sells) | 73 | 4 | 0 | 0 | 69 |
 | [`Financeiro`](#financeiro) | 58 | 6 | 1 | 0 | 51 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
@@ -50,9 +50,9 @@
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
-| [`Repair`](#repair) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
+| [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
@@ -251,12 +251,12 @@
 ### doing
 
 - **US-SELL-077** — Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título _(`p0` · @wagner)_
+- **US-SELL-054** — Offline-first no PDV — fila IndexedDB + reemissão ao reconectar _(`p1`)_
 - **US-SELL-078** — O ICMS-ST entra no total da venda, pela mesma conta da NF-e _(`p1` · @wagner)_
 - **US-SELL-079** — Resgate de pontos de fidelidade no caixa React _(`p1` · @wagner)_
 
 ### todo
 
-- **US-SELL-054** — Offline-first no PDV — fila IndexedDB + reemissão ao reconectar _(`p1`)_
 - **US-SELL-055** — Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa _(`p1`)_
 - **US-SELL-074** — Cliente aprova o orçamento pelo link público, e a aprovação vira pedido _(`p1` · @wagner)_
 - **US-SELL-075** — Maquininha integrada ao caixa (TEF): o valor vai para a máquina e a resposta preenche o pagamento _(`p1` · @wagner)_
@@ -1395,18 +1395,6 @@
 - **US-NOTIF-005** — QA F4
 - **US-NOTIF-006** — Cutover F5
 
-## Repair
-
-
-### todo
-
-- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
-- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
-- **US-REPA-005** — Manter o catálogo de status e de modelos que as OS usam _(`p2`)_
-- **US-REPA-006** — Indicadores da OS de assistência no Painel _(`p2`)_
-- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
-- **US-REPA-001** — [TODO — título]
-
 ## SRS
 
 
@@ -1429,6 +1417,17 @@
 - **US-AI-003** — Visualizar grafo de permissões
 - **US-AI-004** — Auditoria temporal por subject
 - **US-AI-005** — Chat IA contextual nas telas (rota corrente)
+
+## Repair
+
+
+### todo
+
+- **US-REPA-002** — 3 testes do Wave18 quebram com `base_path()` fora do bootstrap do app _(`p2`)_
+- **US-REPA-003** — Configurar os padrões da folha de OS e o que sai impresso _(`p2`)_
+- **US-REPA-005** — Manter o catálogo de status e de modelos que as OS usam _(`p2`)_
+- **US-REPA-004** — Listar e filtrar as ordens de serviço abertas _(`p3`)_
+- **US-REPA-001** — [TODO — título]
 
 ## Spreadsheet
 
