@@ -247,27 +247,13 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
 - **[BACKLOG · ⬜ sem teste] A busca aceita número, código de verificação, nome e documento do tomador** — sem teste do resultado.
 - **[BACKLOG · ⬜ sem teste] O filtro de competência restringe as linhas ao mês escolhido** — só o caminho de mês **inválido** tem teste; o caminho feliz não.
 - **[BACKLOG · ⬜ sem teste · débito de schema] O município da prestação aparece na linha** — a coluna **não existe** no schema em produção (duelo de duas migrations para a mesma tabela, resolvido revertendo o Controller para o schema antigo e traduzindo os estados). Hoje o campo volta vazio por desenho. Ver SDD §5.2.
-- **[BACKLOG · ⬜ sem teste] Venda lançada com produto, mas o cliente pede nota de serviço** `[V0]` — pedido da
-  Fixar, 2026-10-28. Dado uma venda de placas sob encomenda lançada com itens cadastrados como produto, com
-  tributação de produto, que ficou dias em aberto, Quando o cliente fecha e pede a nota de serviço para pagar,
-  Então o sistema mostra, antes de emitir, que esses itens saem em NF-e porque a natureza fiscal deles é
-  mercadoria, e oferece o caminho certo: se a operação é mesmo serviço sob encomenda, o contador corrige a
-  natureza do produto (serviço, com o item da LC 116 e a fonte) e a venda passa a sair em NFS-e sem ser
-  refeita, porque a emissão lê a natureza na hora de faturar (`SeparacaoNotasDaVenda`); se a operação é venda
-  de mercadoria, a nota continua sendo NF-e, mesmo que o cliente prefira a de serviço. A venda mostra a
-  natureza de cada item desde o lançamento, para o vendedor ver antes de o cliente pedir a nota.
-  **Depende do [W]:** pela D-NATUREZA ([W] 2026-10-06, US-NFE-068 · R-NFE-034), a natureza é do produto e só o
-  contador decide. Falta decidir se quem fatura pode trocar a natureza só daquele item da venda, com
-  justificativa e registro, para o produto que às vezes é revenda e às vezes encomenda. A proposta é manter só
-  o contador, no cadastro, com o aviso na venda e o atalho para ele; o caminho seguro para o item misto são
-  dois cadastros (mercadoria e serviço).
-  Hoje: a natureza por produto existe (`nfe_naturezas_produto`) e a NF-e recusa item de serviço
-  (`NfeService::recusarItensDeServico`); a separação da venda já calcula (UC-FNFSE-06..12), mas a NFS-e a
-  partir da venda ainda depende da US-NFE-060; a venda não mostra a natureza dos itens nem permite trocá-la.
-  Fontes: Bling decide pelo tipo do cadastro, Omie pelo documento (pedido vira NF-e, ordem de serviço vira
-  NFS-e), Conta Azul exige duas vendas; nenhum documenta a troca numa venda já lançada. Regra fiscal: decide a
-  natureza real da operação, não o pedido do cliente (LC 116/2003, itens 13.05 e 24.01; Súmula 156 do STJ;
-  SEFAZ-PR, Consulta 36/2010). Mexe em imposto: Regra Mestre. Verificado contra as regras do [W] em 2026-10-28.
+- **[BACKLOG · ⬜ sem teste · decisão [W]] Venda lançada com produto, mas o cliente pede nota de serviço** `[V0]` —
+  pedido da Fixar, 2026-10-28. Dado uma venda de placas sob encomenda lançada com itens de natureza mercadoria,
+  Quando o cliente fecha e pede a nota de serviço, Então a venda mostra que esses itens saem em NF-e e por quê;
+  se a operação é mesmo serviço sob encomenda, o contador corrige a natureza do produto e a venda sai em NFS-e
+  sem ser refeita; se é venda de mercadoria, a nota segue NF-e. Hoje a natureza é só do produto, decidida pelo
+  contador (D-NATUREZA, US-NFE-068), e a venda não mostra nem troca a natureza dos itens. Falta o [W] decidir
+  se quem fatura pode trocar a natureza só no item da venda, com justificativa. Mexe em imposto: Regra Mestre.
 
 ## Como rodar a suíte
 
