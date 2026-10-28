@@ -14,14 +14,15 @@ module: Vestuario
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Vestuario/**` + `resources/js/Pages/Vestuario/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 47 arquivos em 16 papéis.
+**Total mapeado:** 52 arquivos em 16 papéis.
 
-## Controllers — 4
+## Controllers — 5
 
 - [CurvaCompraController.php](../../../Modules/Vestuario/Http/Controllers/CurvaCompraController.php)
 - [DataController.php](../../../Modules/Vestuario/Http/Controllers/DataController.php)
 - [EtiquetaTagController.php](../../../Modules/Vestuario/Http/Controllers/EtiquetaTagController.php)
 - [InstallController.php](../../../Modules/Vestuario/Http/Controllers/InstallController.php)
+- [RemarcacaoController.php](../../../Modules/Vestuario/Http/Controllers/RemarcacaoController.php)
 
 ## Requests (validação) — 2
 
@@ -73,21 +74,24 @@ module: Vestuario
 
 - [pdf.blade.php](../../../Modules/Vestuario/Resources/views/etiquetas/pdf.blade.php)
 
-## Telas (Inertia/React) — 1
+## Telas (Inertia/React) — 2
 
 - [Index.tsx](../../../resources/js/Pages/Vestuario/Etiquetas/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Vestuario/Remarcacao/Index.tsx)
 
-## Charters (lei da tela) — 1
+## Charters (lei da tela) — 2
 
 - [Index.charter.md](../../../resources/js/Pages/Vestuario/Etiquetas/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Vestuario/Remarcacao/Index.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
 - [Index.casos.md](../../../resources/js/Pages/Vestuario/Etiquetas/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Vestuario/Remarcacao/Index.casos.md)
 
-## Testes (Pest) — 18
+## Testes (Pest) — 19
 
-- 18 em [Modules/Vestuario/Tests/Feature/](../../../Modules/Vestuario/Tests/Feature)
+- 19 em [Modules/Vestuario/Tests/Feature/](../../../Modules/Vestuario/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 2

@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 881,
-    "edges": 1197,
+    "nodes": 883,
+    "edges": 1199,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 493,
+      "component": 495,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 493,
+      "hasComponent": 495,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -4955,6 +4955,20 @@
       "module": "Vestuario",
       "name": "GradeCurvaService",
       "desc": "matriz tamanho × cor + proporção curva BR (Wave 27, ADR 0121 §P7)"
+    },
+    {
+      "id": "component:Vestuario/Remarcacao",
+      "type": "component",
+      "module": "Vestuario",
+      "name": "Remarcacao",
+      "desc": "prévia antes → depois por variação, gravação em lote com o antes guardado e reversão que não pisa em preço mexido depois (US-VEST-032 · UC-VREM-01..04)"
+    },
+    {
+      "id": "component:Vestuario/RemarcacaoController",
+      "type": "component",
+      "module": "Vestuario",
+      "name": "RemarcacaoController",
+      "desc": "remarcação por coleção: tela, prévia, gravação, reversão e etiquetas do lote (/vestuario/remarcacao, atrás do setting remarcacao.enabled, US-VEST-032 · UC-VREM-05..07)"
     },
     {
       "id": "component:Vestuario/VestuarioSettingsResolver",
@@ -13964,6 +13978,18 @@
     {
       "from": "module:Vestuario",
       "to": "component:Vestuario/GradeCurvaService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "component:Vestuario/Remarcacao",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "component:Vestuario/RemarcacaoController",
       "type": "hasComponent",
       "source": "contains"
     },
