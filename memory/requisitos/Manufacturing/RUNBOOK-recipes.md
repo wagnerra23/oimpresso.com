@@ -23,8 +23,10 @@ owner: W
 > **Decisão [W] 2026-09-02:** a tela nova é servida **neste endereço**, não numa rota `/v2`.
 > O handoff §15.2 *propunha* `/manufacturing/v2/recipe`; a palavra do dono decide o endereço
 > ([ADR 0382](../../decisions/0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w.md)).
-> A proibição que o handoff impõe — *"não remover nenhuma rota Blade legacy"* — foi **cumprida**:
-> nenhuma linha saiu de `Routes/web.php`.
+> A proibição que o handoff impõe — *"não remover nenhuma rota Blade legacy"* — foi **cumprida**
+> até 2026-10-26. Em **2026-10-27** o [W] pediu o cutover (*"1 PR por tela, com cutover apagando a
+> Blade"*): saíram `?legacy=1`, o ramo DataTables, `recipe/create`, `recipe/{id}`, as partials
+> `get-ingredient-row` / `ingredient-group-form` e as 6 Blades de receita.
 
 ## 1. Quando esta tela quebra (sintomas)
 
@@ -110,10 +112,10 @@ evidência" — merge que toca `Pages/**/*.tsx` exige Chrome MCP + print).
 
 Três degraus, do mais barato ao mais caro:
 
-1. **Sem deploy:** `?legacy=1` no mesmo endereço devolve a tela Blade antiga. É a rede de
-   segurança do cutover e tem teste de contrato — não é promessa de comentário.
-2. **Reverter o PR** (`gh pr revert`): a rota volta a servir o Blade por default. Nada de
-   schema muda, porque este PR **não tem migration**.
+1. ~~**Sem deploy:** `?legacy=1` no mesmo endereço devolve a tela Blade antiga.~~ — **saiu em
+   2026-10-27** com o cutover (a Blade foi apagada). Não há mais rollback sem deploy.
+2. **Reverter o PR do cutover** (`gh pr revert`): as Blades, as rotas e o `?legacy=1` voltam.
+   Nada de schema muda: o cutover **não tem migration**.
 3. Nada a desfazer no banco: a tela é 100% leitura.
 
 ## 7. Tier 0 — invariantes que NUNCA podem quebrar
@@ -138,7 +140,7 @@ Três degraus, do mais barato ao mais caro:
 | Item do handoff | Por que ficou fora |
 |---|---|
 | Aba **Insumos** (§4.4) | §18.3: *"não tem backend"* — `usosDoInsumo` é cálculo novo no `RecipeBomService`. O handoff diz *"sem isso, a aba não sai"*. |
-| **Editor de ingredientes** (§5) | segue na tela legada; o drawer aponta pra ela (`/manufacturing/add-ingredient`) |
+| **Editor de ingredientes** (§5) | saiu depois: editor React (US-MANU-006), padrão em `/manufacturing/add-ingredient` desde o cutover de 2026-10-27 |
 | **Ordem de produção** (§6) | tem tela própria — `/manufacturing/v2/production` (Wave J) e o formulário legado |
 | **Relatório** / **Configurações** (§4.6/§4.7) | seguem nas telas legadas; as abas navegam pra elas |
 | **"Atualizar preço de venda"** na BulkBar | §18.1 + Tier 0 de valor (ver §7 acima) |

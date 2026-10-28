@@ -14,6 +14,8 @@
         <div class="col-md-12">
             @component('components.filters', ['title' => __('report.filters')])
               {!! Form::open(['url' => action([\App\Http\Controllers\ReportController::class, 'getExpenseReport']), 'method' => 'get' ]) !!}
+                {{-- Sem isto, filtrar na Blade cairia na tela React, que é o padrão do endereço. --}}
+                {!! Form::hidden('classico', 1) !!}
                 <div class="col-md-4">
                     <div class="form-group">
                         {!! Form::label('location_id',  __('purchase.business_location') . ':') !!}

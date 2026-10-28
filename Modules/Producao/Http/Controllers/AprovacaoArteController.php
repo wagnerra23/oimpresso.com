@@ -12,13 +12,14 @@ use Modules\Producao\Entities\AprovacaoArte;
 use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 use Modules\Producao\Services\AprovacaoArteService;
+use Modules\Producao\Services\EnvioDaProva;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Cliente aprova a arte por link (UC-FLX-02 · US-COMVIS-NEW-004).
  *
  * `solicitar` (logado, `producao.access`): gera o link da prova da OS por item e devolve ao
- * operador. O envio por WhatsApp/e-mail com opt-in LGPD é follow-up — aqui o operador copia o link.
+ * operador; com `producao.aprovacao_arte.whatsapp` ligado, também manda ao cliente (UC-PCART-06).
  *
  * `trocar` (logado, `producao.access` · UC-PCV-11): troca o arquivo de uma arte já aprovada e devolve o
  * link novo; a OS volta a esperar o cliente. `vigente` devolve a última arte aprovada, a que vale para produzir.
@@ -28,7 +29,11 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class AprovacaoArteController extends Controller
 {
-    public function __construct(private readonly AprovacaoArteService $service, private readonly ModuleUtil $moduleUtil) {}
+    public function __construct(
+        private readonly AprovacaoArteService $service,
+        private readonly ModuleUtil $moduleUtil,
+        private readonly EnvioDaProva $envio,
+    ) {}
 
     public function solicitar(Request $request, int $id): JsonResponse
     {
@@ -46,7 +51,7 @@ class AprovacaoArteController extends Controller
             return response()->json(['codigo' => $e->codigo, 'mensagem' => $e->getMessage()], $e->codigo === ApontamentoRecusado::NAO_ENCONTRADO ? 404 : 422);
         }
 
-        return response()->json(['id' => $r['id'], 'link' => route('producao.arte.mostrar', $r['token']), 'expira_em' => $r['expira_em']->toIso8601String()], 201);
+        return $this->linkGerado($biz, $id, $r);
     }
 
     public function trocar(Request $request, int $id): JsonResponse
@@ -60,7 +65,22 @@ class AprovacaoArteController extends Controller
             return response()->json(['codigo' => $e->codigo, 'mensagem' => $e->getMessage()], $e->codigo === ApontamentoRecusado::NAO_ENCONTRADO ? 404 : 422);
         }
 
-        return response()->json(['id' => $r['id'], 'link' => route('producao.arte.mostrar', $r['token']), 'expira_em' => $r['expira_em']->toIso8601String()], 201);
+        return $this->linkGerado($biz, $id, $r);
+    }
+
+    /** UC-PCART-07 · Painel: reenviar o link (aguardando) ou enviar a nova prova (ajuste pedido). */
+    public function reenviar(Request $request, int $id): JsonResponse
+    {
+        $biz = $this->empresaComAcesso($request);
+        $arquivo = $request->validate(['arquivo' => ['nullable', 'url:http,https', 'max:500']])['arquivo'] ?? null;
+
+        try {
+            $r = $this->service->reenviar($biz, $id, $arquivo, $request->user());
+        } catch (ApontamentoRecusado $e) {
+            return response()->json(['codigo' => $e->codigo, 'mensagem' => $e->getMessage()], $e->codigo === ApontamentoRecusado::NAO_ENCONTRADO ? 404 : 422);
+        }
+
+        return $this->linkGerado($biz, $id, $r);
     }
 
     public function vigente(Request $request, int $id): JsonResponse
@@ -73,6 +93,20 @@ class AprovacaoArteController extends Controller
         }
 
         return response()->json(['arte' => $this->service->arteVigente($biz, $id)]);
+    }
+
+    /**
+     * UC-PCART-06 · devolve o link ao operador e, com a flag ligada, manda ao cliente por WhatsApp.
+     * `whatsapp` null = envio desligado; `{enviado: false, motivo}` = a tela pede contato manual.
+     *
+     * @param  array{id: int, token: string, expira_em: \Illuminate\Support\Carbon}  $r
+     */
+    private function linkGerado(int $biz, int $ordemId, array $r): JsonResponse
+    {
+        $link = route('producao.arte.mostrar', $r['token']);
+
+        return response()->json(['id' => $r['id'], 'link' => $link, 'expira_em' => $r['expira_em']->toIso8601String(),
+            'whatsapp' => $this->envio->enviar($biz, $ordemId, $link, $r['expira_em'])], 201);
     }
 
     private function empresaComAcesso(Request $request): int

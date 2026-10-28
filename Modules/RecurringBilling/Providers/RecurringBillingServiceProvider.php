@@ -30,6 +30,12 @@ class RecurringBillingServiceProvider extends ServiceProvider
             [\Modules\RecurringBilling\Listeners\MarcarFaturaPagaDaCobranca::class, 'handle'],
         );
 
+        // US-RB-011: fatura paga no cartão → token do cartão salvo na assinatura (desligado por config).
+        \Illuminate\Support\Facades\Event::listen(
+            \Modules\PaymentGateway\Events\CobrancaPaga::class,
+            [\Modules\RecurringBilling\Listeners\SalvarCartaoDaCobrancaPaga::class, 'handle'],
+        );
+
         // US-RB-020/021: o banco mudou o status da recorrência Pix Automático → o mandato acompanha.
         \Illuminate\Support\Facades\Event::listen(
             \Modules\PaymentGateway\Events\RecorrenciaPixAtualizada::class,

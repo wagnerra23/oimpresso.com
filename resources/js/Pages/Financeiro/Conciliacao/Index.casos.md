@@ -246,6 +246,34 @@ Com `PLUGGY_ENABLED=false` o comando não chama a API. Ligado, sincroniza só as
 **Pronto quando:** flag desligada → zero linhas e zero chamadas HTTP; ligada → as linhas da conta do
 98 ficam no 98, a conta do 99 sem vínculo fica sem linha, e o 2º run atualiza em vez de inserir.
 
+## UC-FCC-19 · Regra casa a linha com o único título do alvo, sem mexer no título
+- **Persona:** Eliana [E], financeiro, com a regra "mensalidade → cliente X, conciliar sozinho" cadastrada.
+- **Aceite:** Dado a flag ligada, a regra e dois títulos abertos de 249,90 (um do cliente X, outro de outro cliente) · Quando entra no extrato a linha "PIX RECEBIDO Mensalidade abril" de 249,90 · Então a linha fica `conciliado` com o título do cliente X e a regra, sem `conciliado_by`; o título tem o mesmo valor total, o mesmo aberto e o mesmo status, e nenhuma baixa nasce.
+- **Teste:** `Modules/Financeiro/Tests/Feature/ConciliacaoRegrasContratoTest.php` — `UC-FCC-19 · regra casa a linha com o único título do cliente e não mexe no título`.
+- **Regressão que defende:** SPEC US-FIN-080 (regra casa sem revisão) + Anti-hook do charter "não cria/edita Título".
+- **Status: ⬜** — o teste cita o UC e ainda não rodou (CT 100 fora do ar; lane `PHP / Pest (Financeiro · MySQL)`, que roda `find Modules/Financeiro/Tests`). Vira 🧪 com o run do CI e as assertions.
+
+## UC-FCC-20 · Regra só decide com um candidato; "sugerir" espera a pessoa; reabrir solta a regra
+- **Persona:** Eliana [E] revisando a fila da Conciliação.
+- **Aceite:** Dado dois títulos abertos de 80,00 e uma regra de faixa 50–100 · Quando entra a linha "Mensalidade sem cliente" de 80,00 · Então a linha não recebe regra nem fica conciliada; Dado uma regra "tarifa, saída, sugerir" e um título a pagar de 33,33 · Quando entra "TARIFA PACOTE" de −33,33 · Então a linha fica `sugerido` com o título e a regra; Quando reabro a linha · Então status, título e regra voltam a vazio.
+- **Teste:** `Modules/Financeiro/Tests/Feature/ConciliacaoRegrasContratoTest.php` — `UC-FCC-20 · com dois títulos possíveis a regra não decide; sugerir deixa para revisão; reabrir limpa a regra`.
+- **Regressão que defende:** SPEC US-FIN-080 ("deixando para revisão só o que não casou") + CU-FIN-12 (reabrir é reversível).
+- **Status: ⬜** — o teste cita o UC e ainda não rodou (CT 100 fora do ar; lane `PHP / Pest (Financeiro · MySQL)`, que roda `find Modules/Financeiro/Tests`). Vira 🧪 com o run do CI e as assertions.
+
+## UC-FCC-21 · Flag desligada, regra nenhuma roda
+- **Persona:** empresa em produção antes de ligar a função.
+- **Aceite:** Dado `FINANCEIRO_CONCILIACAO_REGRAS_ENABLED=false`, uma regra e um título que ela casaria · Quando o motor roda · Então a linha não ganha regra nem fica conciliada.
+- **Teste:** `Modules/Financeiro/Tests/Feature/ConciliacaoRegrasContratoTest.php` — `UC-FCC-21 · com a flag desligada nenhuma regra roda`.
+- **Regressão que defende:** SPEC US-FIN-080 (casar sozinho nasce atrás de flag desligada).
+- **Status: ⬜** — o teste cita o UC e ainda não rodou (CT 100 fora do ar; lane `PHP / Pest (Financeiro · MySQL)`, que roda `find Modules/Financeiro/Tests`). Vira 🧪 com o run do CI e as assertions.
+
+## UC-FCC-22 · Regra e título de outro business não casam a linha `[T0]`
+- **Persona:** empresa 98 com extrato; empresa 99 com regra e título de mesmo valor.
+- **Aceite:** Dado a regra e o título de 412,00 no business 99 e a linha de 412,00 no 98 · Quando o motor roda para o 98 e para o 99 · Então a linha do 98 continua sem status, sem título e sem regra.
+- **Teste:** `Modules/Financeiro/Tests/Feature/ConciliacaoRegrasContratoTest.php` — `UC-FCC-22 · regra e título de outro business nunca casam a linha [T0]`.
+- **Regressão que defende:** ADR 0093 (business_id Tier 0) — o motor roda também sem sessão, com o business por parâmetro.
+- **Status: ⬜** — o teste cita o UC e ainda não rodou (CT 100 fora do ar; lane `PHP / Pest (Financeiro · MySQL)`, que roda `find Modules/Financeiro/Tests`). Vira 🧪 com o run do CI e as assertions.
+
 ---
 
 ---

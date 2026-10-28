@@ -1656,7 +1656,7 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 > owner: wagner · priority: p1 · estimate: 10h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
 > blocked_by: —
 
-**Implementado em:** _pendente_ — não iniciada.
+**Implementado em:** _pendente_ — fatia 1 (gerar o link + o que o cliente vê, atrás de `SELLS_ORCAMENTO_ACEITE_LINK`); falta a página pública, a decisão e o movimento da FSM.
 
 O link público do orçamento (`SellPosController@showInvoice`) só mostra o documento. O cliente passa a aprovar (informando o nome) ou pedir ajuste; a aprovação fica registrada na venda, com data e IP, e o vendedor converte em pedido pelo caminho de conversão que já existe. Não muda valor nem estoque. Tier 0: o token do link só abre o orçamento da própria empresa.
 
@@ -1696,6 +1696,21 @@ Aceite:
 - Venda sem ST: nada muda.
 - Tier 0: produto, cliente e local resolvidos no business da sessão.
 
+
+### US-SELL-079 · Resgate de pontos de fidelidade no caixa React
+
+> owner: wagner · priority: p1 · estimate: 6h · status: doing · type: story · origin: coordenacao-lacunas-2026-10-27
+
+**Implementado em:** _pendente_ — em andamento: `App\Services\Sells\ResgatePontosFidelidade` chamado pelo `SellPosController::store` e o bloco `Sells/_components/ResgatePontos.tsx` na `Sells/Create` (UC-SRP-01..06 em `Sells/Create.casos.md`). Falta: ligar `SELLS_RESGATE_PONTOS_ENABLED` depois do teste no caixa.
+
+Os pontos de fidelidade nativos (`business.enable_rp`) já tinham regra de ganho, validade, configuração em React (`Configuracoes/Empresa`, aba Pontos de fidelidade) e extrato na ficha do cliente. Faltava resgatar no caixa React: o `store` aceitava `rp_redeemed` e `rp_redeemed_amount` como vinham, e quem conferia era o JavaScript da Blade. Decisão [W] 2026-10-27: "constrói o resgate de pontos de fidelidade no caixa React, usando o rp_redeemed que o backend já aceita" (no lugar do cashback em dinheiro, que duplicava os pontos).
+
+Aceite (UC-SRP-01..06 em `resources/js/Pages/Sells/Create.casos.md`):
+
+- Com cliente cadastrado, a venda mostra os pontos disponíveis (`POST /sells/pos/get-reward-details`) e aceita um resgate; o valor (pontos × valor do ponto, 2 casas) sai do total da venda.
+- O servidor confere antes de gravar: pontos ligados, cliente da empresa e não padrão, pontos entre o mínimo e o disponível, venda acima do mínimo, valor batendo com os pontos (±0,01). Senão recusa e a tela mantém o carrinho.
+- A tela só mostra o resgate com `SELLS_RESGATE_PONTOS_ENABLED` (nasce desligada). A conferência no servidor vale sempre, para a Blade também.
+- Fora: resgate na edição da venda e na Venda V3 (que ainda não grava).
 ### US-SELL-077 · Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título
 
 > owner: wagner · priority: p0 · estimate: 12h · status: doing · type: story · origin: coordenacao-lacunas-2026-10-26

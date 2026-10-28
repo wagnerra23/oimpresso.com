@@ -32,8 +32,10 @@ smoke: "2026-09-03 — render prod OK (Chrome MCP, sessão WR2 Sistemas): /manuf
 > **A rota é decisão [W] 2026-09-02**, textual: *"coloque a tela de Fabricação em produção no
 > endereço https://oimpresso.com/manufacturing/recipe"*. O handoff §15.2 propunha `/v2/recipe`;
 > o endereço é do dono ([ADR 0382](../../../../memory/decisions/0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w.md)).
-> A proibição do §15.2 — *"não remover nenhuma rota Blade legacy"* — foi cumprida: `Routes/web.php`
-> não perdeu uma linha, e `?legacy=1` devolve a tela antiga no mesmo endereço.
+> A proibição do §15.2 — *"não remover nenhuma rota Blade legacy"* — foi cumprida até 2026-10-26.
+> Em **2026-10-27** o [W] pediu o cutover (*"1 PR por tela, com cutover apagando a Blade"*): saíram
+> `?legacy=1`, o ramo DataTables, `recipe/create`, `recipe/{id}`, as partials do editor Blade e as 6
+> Blades de receita. Pedido do dono é decisão (ADR 0382) e vale sobre o handoff.
 
 ## Mission
 
@@ -52,11 +54,11 @@ apontar as consequências disso: qual receita está com margem magra e quanto o 
   por que o número muda sozinho
 - Ficha técnica impressa PT-07 em duas variantes: **com custo** (orçamento) e **via de produção**
   (bancada, sem nenhum valor de compra) — avulsa ou em lote
-- Aponta pro CRUD legado (nova receita · editar ingredientes · produzir) em vez de duplicá-lo. A
-  **Nova receita** abre uma janela da própria tela (`_components/NovaReceitaDialog.tsx`, desde
-  2026-10-06): busca o produto, mostra Categoria/Subcategoria do produto, avisa quando ele já tem
-  receita e entrega para o mesmo editor legado (`/add-ingredient`). A janela só LÊ — quem grava
-  continua sendo o editor (decisões [W] 2026-10-06, US-MANU-006)
+- Aponta para as telas que escrevem (nova receita · editar ingredientes · produzir) em vez de
+  duplicá-las. A **Nova receita** abre uma janela da própria tela (`_components/NovaReceitaDialog.tsx`,
+  desde 2026-10-06): busca o produto, mostra Categoria/Subcategoria do produto, avisa quando ele já tem
+  receita e entrega para o editor de ingredientes (`/add-ingredient`, React desde o cutover de
+  2026-10-27). A janela só LÊ — quem grava continua sendo o editor (decisões [W] 2026-10-06, US-MANU-006)
 - PT-BR em todo label, placeholder e mensagem
 
 ## Non-Goals — Features (NÃO faz)
@@ -71,7 +73,8 @@ apontar as consequências disso: qual receita está com margem magra e quanto o 
   descrever uma intenção e passa a instruir regressão — a tela ficaria inalcançável.
   ⚠️ Non-Goal é território [W]: se ele discordar, o lugar de barrar é este PR.
 - ❌ **Não edita ingredientes nem lança produção** — as duas têm tela própria.
-- ❌ **Não remove nem renomeia rota Blade legacy** do módulo.
+- ~~❌ **Não remove nem renomeia rota Blade legacy** do módulo.~~ — **REVOGADO em 2026-10-27** pelo
+  [W] (*"1 PR por tela, com cutover apagando a Blade"*). As Blades de receita saíram nesse dia.
 - ❌ **Não calcula custo no cliente.** Todo número vem derivado do servidor (§9).
 
 ## Automation Anti-hooks (o que agente nenhum pode fazer aqui)

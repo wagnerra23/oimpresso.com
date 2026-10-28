@@ -360,6 +360,29 @@ Lacuna "Grade cor e tamanho com curva de compra" (levantamento 2026-10-25, frent
 - Sem venda no produto nem na categoria: não sugere (diz por quê).
 - Tier 0: vendas e produtos só da empresa.
 
+### US-VEST-032 · Remarcação por coleção, com prévia e reversão `p2`
+
+> owner: — · priority: p2 · estimate: 10h · type: story
+> blocked_by: —
+> **Implementado em:** `Modules/Vestuario/Services/Remarcacao.php` · `Modules/Vestuario/Http/Controllers/RemarcacaoController.php` · `resources/js/Pages/Vestuario/Remarcacao/Index.tsx` · `Modules/Vestuario/Database/Migrations/2026_10_27_000001_create_vestuario_remarcacoes_tables.php`
+> **Testado em:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php` · `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
+> Contrato: `UC-VREM-01..04` em `memory/requisitos/Vestuario/_telas/remarcacao.casos.md` · `UC-VREM-05..07` em `resources/js/Pages/Vestuario/Remarcacao/Index.casos.md`.
+
+> **Decisão [W] 2026-10-27:** lacuna P2 "Remarcação por coleção" liberada ("pode destravar todos"). Quem remarca escolhe a coleção ou um filtro de produtos, aplica um novo preço (percentual ou valor), vê a prévia por produto e grava; depois pode reverter; as etiquetas novas saem para impressão. Muda preço em massa: prévia antes → depois obrigatória, nada gravado sem confirmação, histórico para reverter (regra mestre de valor). Teste no tenant 98, nada na biz=4.
+
+Diferente da US-VEST-023 (liquidação aplicada em runtime no carrinho): aqui o preço do cadastro muda e fica registrado em lote.
+
+**DoD:**
+
+- Filtro por categoria, subcategoria, marca ou trecho do nome (a "coleção" vira atributo na US-VEST-029); sem filtro, recusa. Até 2000 variações por lote.
+- Novo preço de etiqueta por percentual (ex.: −30%) ou valor fixo, arredondado a 2 casas; preço sem imposto e margem derivados pela taxa do produto.
+- Prévia antes → depois por variação; gravar só com a prévia em dia (se algum preço mudou, pede nova prévia).
+- Lote guarda o antes de cada variação; reverter devolve o antes e não pisa em preço mexido depois (conta como conflito).
+- Tabelas de preço (`variation_group_prices`) não são tocadas.
+- Liga por empresa: setting `remarcacao.enabled` do Vestuário, desligado por padrão.
+- Depois de gravar, as variações remarcadas vão para a tela de etiquetas.
+- Tier 0: produtos, lotes e reversão só da empresa.
+
 ### US-VEST-030 · Ecommerce (loja virtual / WhatsApp catálogo) `p3`
 
 > owner: — · priority: p3 · estimate: 60h+ · status: todo · type: epic

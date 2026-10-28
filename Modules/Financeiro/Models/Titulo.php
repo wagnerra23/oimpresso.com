@@ -113,6 +113,12 @@ class Titulo extends Model
         return $this->hasMany(TituloBaixa::class, 'titulo_id');
     }
 
+    /** Rateio por centro de custo (US-FIN-075). Vazio = título sem rateio, que segue válido. */
+    public function rateios(): HasMany
+    {
+        return $this->hasMany(TituloRateio::class, 'titulo_id');
+    }
+
     /**
      * NÃO permite hard delete; status='cancelado' é a forma correta.
      */

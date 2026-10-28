@@ -189,9 +189,22 @@ function getJanaData(company) {
           { causa:"Sazonalidade maio",     valor:"−R$ 13k", peso:"13%" },
           { causa:"Não explicado",         valor:"−R$ 10k", peso:"10%" },
         ] },
-      { from:"jana", kind:"action_card", state:"confirm",
+      { from:"jana", kind:"action_card", state:"confirm", acao:"regua",
         title:"Disparar régua de reativação para os 8 clientes ouro?",
-        sub:"LTV combinado R$ 612k · cada mensagem passa pela sua aprovação (HITL) antes de enviar." },
+        sub:"LTV combinado R$ 612k · cada mensagem passa pela sua aprovação (HITL) antes de enviar.",
+        done:{ title:"Régua aprovada — Jana vai enviar com HITL" } },
+      // ADR 0440 — criar tarefa: a 1ª ação que a Jana propõe. A tarefa fica com o próprio usuário.
+      { from:"user", kind:"text", text:"Me lembra de ligar pro fornecedor da lona amanhã." },
+      { from:"jana", kind:"action_card", state:"confirm", acao:"criar-tarefa",
+        title:"Criar a tarefa \"Ligar pro fornecedor da lona\" para 28/10, prioridade média?",
+        sub:"A tarefa fica com você. Nada é gravado até você confirmar.",
+        done:{ title:"Tarefa criada", sub:"T-2026/0142 · para 28/10 · prioridade média",
+               link:{ label:"Abrir tarefa", href:"#tarefa" } } },
+      // Os dois desfechos que não dependem do clique: a proposta venceu, ou a gravação falhou.
+      { from:"jana", kind:"action_card", state:"expirada", acao:"criar-tarefa",
+        title:"Criar a tarefa \"Conferir estoque de vinil\" para 25/10?" },
+      { from:"jana", kind:"action_card", state:"falhou", acao:"criar-tarefa",
+        title:"Criar a tarefa \"Enviar arte para aprovação\" para 27/10?" },
     ],
     suggestions:[
       { icon:"coins",   label:"Quem deve mais?" },
@@ -469,13 +482,35 @@ function JanaBubble({ m, onCite }) {
     );
   }
   if (m.kind === "action_card") {
+    // ADR 0440 — a Jana PROPÕE, o usuário confirma, e só então grava.
+    // Estados: confirm (aguarda) · done (feito, texto por ação) · error (cancelada)
+    //          · expirada (passou o prazo da proposta) · falhou (a gravação não deu certo).
+    // O "feito" vem da AÇÃO (`m.done`), não é fixo: tarefa criada ≠ régua aprovada.
     const st = m.state || "confirm";
+    const icone = { confirm:"shield", done:"check", error:"x", expirada:"clock", falhou:"alert" }[st] || "shield";
+    const titulo = {
+      confirm:  m.title,
+      done:     (m.done && m.done.title) || "Feito",
+      error:    "Ação cancelada",
+      expirada: "A proposta expirou",
+      falhou:   "Não foi possível executar",
+    }[st];
+    const sub = {
+      confirm:  m.sub,
+      done:     m.done && m.done.sub,
+      error:    "Nada foi gravado.",
+      expirada: "Nada foi gravado. Peça de novo à Jana.",
+      falhou:   "Nada foi gravado. Tente de novo; se repetir, fale com o suporte.",
+    }[st];
     return (
-      <div className={"jc-action " + (st !== "confirm" ? st : "")}>
-        <JcIcon name={st === "done" ? "check" : st === "error" ? "x" : "shield"} className="aic"/>
+      <div className={"jc-action " + (st !== "confirm" ? st : "")} data-acao={m.acao}>
+        <JcIcon name={icone} className="aic"/>
         <div className="jc-action-bd">
-          <b>{st === "done" ? "Régua aprovada — Jana vai enviar com HITL" : st === "error" ? "Ação cancelada" : m.title}</b>
-          {st === "confirm" && <small>{m.sub}</small>}
+          <b>{titulo}</b>
+          {sub && <small>{sub}</small>}
+          {st === "done" && m.done && m.done.link && (
+            <a className="jc-action-link" href={m.done.link.href}>{m.done.link.label}</a>
+          )}
           {st === "confirm" && (
             <div className="jc-action-btns">
               <button className="jc-cta primary sm" onClick={m.onConfirm}><JcIcon name="check" className="ic"/> Confirmar</button>
@@ -601,8 +636,10 @@ function ConverseComJana({ data }) {
     streamReply(linhas, fontes);
   }
 
-  function answerAction(state) {
-    setMsgs(m => m.map(x => x.kind === "action_card" ? { ...x, state } : x));
+  // Decide UM cartão (pelo índice) — antes respondia todos de uma vez, o que não vale
+  // quando há mais de uma proposta na conversa. Só cartão "confirm" muda de estado.
+  function answerAction(idx, state) {
+    setMsgs(m => m.map((x, j) => j === idx && x.kind === "action_card" && (x.state || "confirm") === "confirm" ? { ...x, state } : x));
   }
 
   const onCite = (n) => {
@@ -640,7 +677,7 @@ function ConverseComJana({ data }) {
             {msgs.map((m, i) =>
               m.from === "user"
                 ? <div key={i} className="jc-msg me"><div className="jc-bub me">{m.text}</div></div>
-                : <JanaBubble key={i} m={{ ...m, onConfirm:() => answerAction("done"), onCancel:() => answerAction("error") }} onCite={onCite}/>
+                : <JanaBubble key={i} m={{ ...m, onConfirm:() => answerAction(i, "done"), onCancel:() => answerAction(i, "error") }} onCite={onCite}/>
             )}
             {typing && (
               <div className="jc-typing"><span className="jc-dots"><i/><i/><i/></span> Jana está pensando…</div>

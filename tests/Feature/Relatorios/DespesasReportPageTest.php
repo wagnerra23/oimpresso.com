@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RDE-01, UC-RDE-02 (resources/js/Pages/Relatorios/Despesas/Index.casos.md).
+// Cobre UC-RDE-01, UC-RDE-02, UC-RDE-03 (resources/js/Pages/Relatorios/Despesas/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -78,7 +78,7 @@ test('UC-RDE-01 valor — linhas e total da Page = o que a Blade recebe = soma d
     rdeDespesa($this->business->id, $this->user->id, null, 40); // sem categoria → "Outros"
 
     // Caminho 1: o que a Blade recebe.
-    $blade = $this->get('/reports/expense-report');
+    $blade = $this->get('/reports/expense-report?classico=1');
     $blade->assertOk();
     $linhasBlade = collect($blade->viewData('expenses'))->mapWithKeys(fn ($e) => [$e->category ?? '' => (float) $e->total_expense])->all();
     $totalBlade = (float) collect($blade->viewData('expenses'))->sum('total_expense'); // o tfoot da Blade soma as linhas
@@ -124,5 +124,20 @@ test('UC-RDE-02 Tier 0 — o negócio 99 não entra nas linhas, categorias nem l
     // Sem a permissão: 403 na tela nova e na Blade.
     $this->actingAs($this->usuarioComPermissoes([], $this->business));
     $this->withHeaders($this->inertia)->get('/reports/expense-report?tela=nova')->assertForbidden();
-    $this->get('/reports/expense-report')->assertForbidden();
+    $this->get('/reports/expense-report?classico=1')->assertForbidden();
+});
+
+test('UC-RDE-03 cutover — o menu abre a Page; ?classico=1 abre a Blade, com o classico no formulário', function () {
+    // GET comum, como o menu navega (carga cheia, sem X-Inertia).
+    $this->get('/reports/expense-report')->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $p) => $p->component('Relatorios/Despesas/Index', false));
+
+    // Visita Inertia real (X-Inertia e X-Requested-With) e o opt-in antigo.
+    expect($this->withHeaders($this->inertia)->get('/reports/expense-report')->json('component'))->toBe('Relatorios/Despesas/Index');
+    expect($this->withHeaders($this->inertia)->get('/reports/expense-report?tela=nova')->json('component'))->toBe('Relatorios/Despesas/Index');
+
+    // A Blade só com ?classico=1, e o formulário de filtro dela leva o classico adiante.
+    $blade = $this->flushHeaders()->get('/reports/expense-report?classico=1'); // withHeaders acumula entre requisições
+    $blade->assertOk()->assertViewIs('report.expense_report');
+    expect($blade->getContent())->toMatch('/<input[^>]*name="classico"[^>]*value="1"/');
 });

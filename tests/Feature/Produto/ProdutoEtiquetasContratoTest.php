@@ -105,7 +105,9 @@ it('UC-PETQ-01 · com a flag ligada para o negócio abre Produto/Etiquetas/Index
             ->where('modelos', fn ($m) => collect($m)->pluck('id')->contains($proprio) && ! collect($m)->pluck('id')->contains($alheio)
                 && collect($m)->firstWhere('id', $proprio)['por_folha'] === 20));
 
-    $this->get('/labels/show?classico=1')->assertOk()->assertViewIs('labels.show');
+    // Cutover 2026-10-27: a Blade `labels.show` foi apagada; `?classico=1` também abre a tela React.
+    $this->get('/labels/show?classico=1')->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->component('Produto/Etiquetas/Index', false));
 
     $semPermissao = User::findOrFail(DB::table('users')->insertGetId([
         'first_name' => 'Sem etiqueta', 'username' => 'petq_sem_' . uniqid(), 'password' => bcrypt('ci'),
@@ -173,14 +175,15 @@ it('UC-PETQ-04 · produto e grupo de outro negócio não entram na linha', funct
     expect(array_key_exists((string) $grupoAlheio, $precos))->toBeFalse();
 });
 
-it('UC-PETQ-05 · a Blade segue recebendo o HTML da linha', function () {
+it('UC-PETQ-05 · sem pedir JSON, a linha também vem em JSON (o HTML saiu com a Blade)', function () {
     $p = EstoqueFixture::singleProduct($this->biz->id);
     $this->actingAs(petqUsuario($this->biz->id));
     session(['user.business_id' => (int) $this->biz->id]);
 
-    $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
-        ->get('/labels/add-product-row?product_id=' . $p->productId . '&row_count=0')
-        ->assertOk()->assertViewIs('labels.partials.show_table_rows');
+    $r = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/labels/add-product-row?product_id=' . $p->productId . '&row_count=0');
+    $r->assertOk();
+    expect((int) $r->json('linhas.0.variation_id'))->toBe($p->variationId());
 });
 
 it('UC-PETQ-06 · vários produtos da seleção da lista entram de uma vez; o de outra empresa não', function () {

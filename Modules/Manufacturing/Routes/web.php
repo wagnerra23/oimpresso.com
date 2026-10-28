@@ -12,9 +12,7 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'la
     Route::match(['get', 'post'], '/install/uninstall', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'uninstall']);
 
     Route::get('/is-recipe-exist/{variation_id}', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'isRecipeExist']);
-    Route::get('/ingredient-group-form', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'getIngredientGroupForm']);
     Route::get('/get-recipe-details', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'getRecipeDetails']);
-    Route::get('/get-ingredient-row/{variation_id}', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'getIngredientRow']);
     Route::get('/add-ingredient', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'addIngredients']);
     // Janela "Nova receita" da tela React (US-MANU-006) — busca de produto, só leitura.
     Route::get('/nova-receita/produtos', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'produtosNovaReceita'])
@@ -22,7 +20,7 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'la
     // Editor de ingredientes da tela React (US-MANU-006) — busca de insumo, só leitura.
     Route::get('/editor-receita/insumos', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'insumosParaReceita'])
         ->name('manufacturing.editor-receita.insumos');
-    Route::resource('/recipe', 'Modules\Manufacturing\Http\Controllers\RecipeController')->except('edit', 'update');
+    Route::resource('/recipe', 'Modules\Manufacturing\Http\Controllers\RecipeController')->except('create', 'show', 'edit', 'update');
     Route::resource('/production', 'Modules\Manufacturing\Http\Controllers\ProductionController');
 
     Route::resource('/settings', 'Modules\Manufacturing\Http\Controllers\SettingsController')->only('index', 'store');

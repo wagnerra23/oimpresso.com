@@ -20,7 +20,7 @@ _Descrição funcional:_ [TODO]
 ### 2.1. Customer Repair Status
 
 **Controller(s):** `CustomerRepairStatusController`  
-**Ações (2):** `index`, `postRepairStatus`
+**Ações (1):** `index` (redireciona ao `/consulta-os`; o `postRepairStatus` saiu no cutover de 2026-10-27)
 
 _Descrição funcional:_ [TODO]
 

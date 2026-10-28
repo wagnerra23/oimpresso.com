@@ -124,6 +124,10 @@ on:
       - 'app/Jobs/QuoteFollowUpJob.php'
       - 'app/Console/Commands/Sells/QuoteFollowUpCommand.php'
       - 'database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php'
+      # Sob teste em OrcamentoAceiteLinkContratoTest (US-SELL-074).
+      - 'app/Services/Sells/AceiteDoOrcamentoVenda.php'
+      - 'app/Http/Controllers/Sells/OrcamentoAceiteLinkController.php'
+      - 'database/migrations/2026_10_27_120000_create_transaction_orcamento_aceites_table.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
       - 'app/Http/Controllers/SellsV3Controller.php'
@@ -523,6 +527,7 @@ jobs:
             tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
+            tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php \
             tests/Feature/Sells/SellsShowEntregaContratoTest.php \
             tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php \
@@ -576,12 +581,14 @@ jobs:
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
             tests/Feature/Sells/ValeTrocaContratoTest.php \
+            tests/Feature/Sells/ResgatePontosContratoTest.php \
             tests/Feature/Sells/CancelamentoDaVendaContratoTest.php \
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/QuotationConvertTest.php \
             tests/Feature/Sells/QuoteAccessTermometroContratoTest.php \
             tests/Feature/Sells/QuoteAccessTelaContratoTest.php \
+            tests/Feature/Sells/OrcamentoAceiteLinkContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
             tests/Feature/Sells/VendasMwartCutoverTest.php \

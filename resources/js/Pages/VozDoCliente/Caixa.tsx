@@ -10,8 +10,8 @@
 // Âncora de design: prototipo-ui/cowork/Wagner/voz-do-cliente-page.jsx → VozDoClientePage()
 //
 // Só leitura nesta onda: a triagem (Virar US / Fechar sem ação) é o PR seguinte — o "motivo do
-// fechamento" do protótipo ainda não tem coluna em voz_sinais. Atrás da flag
-// useV2VozDoClienteCaixa (OFF por padrão); com ela desligada a rota segue servindo a Blade.
+// fechamento" do protótipo ainda não tem coluna em voz_sinais. Única tela da rota desde o
+// F5 de 2026-10-27 (a Blade e a flag useV2VozDoClienteCaixa saíram).
 
 import { Deferred, Head, router } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';

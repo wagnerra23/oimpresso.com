@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { CompartilharPlanilha, Excluir, Mover, NovaPasta, type Alvo } from './_components/AcoesPlanilha'
 import { Deferred, Head } from '@inertiajs/react'
 import { ChevronRight, FileSpreadsheet, Folder, MoreVertical, Plus, Search } from 'lucide-react'
 import AppShellV2 from '@/Layouts/AppShellV2'
@@ -24,9 +25,9 @@ import {
  * `memory/requisitos/Spreadsheet/RUNBOOK-spreadsheet-index.md`. Forma:
  * `prototipo-ui/cowork/Wagner/planilhas-page.jsx`.
  *
- * Atrás da flag `useV2SpreadsheetIndex` (default OFF). O editor (Luckysheet) e as ações de
- * escrita — nova pasta, mover, compartilhar, excluir — seguem na Blade nesta onda: os links
- * levam à tela antiga (`?legacy=1`).
+ * Atrás da flag `useV2SpreadsheetIndex`. Nova pasta, mover, compartilhar e excluir acontecem aqui
+ * (`_components/AcoesPlanilha`, mesmos endpoints da Blade). O editor (Luckysheet) segue na Blade
+ * até o #10033 (thread 04b).
  */
 
 type Planilha = {
@@ -42,7 +43,6 @@ type Pasta = { id: number; nome: string }
 type Props = { podeCriar: boolean; planilhas?: Planilha[]; pastas?: Pasta[] }
 
 const SEM_PASTA = 0
-const LEGADO = '/spreadsheet/sheets?legacy=1'
 const abrir = (id: number) => `/spreadsheet/sheets/${id}`
 const criar = (pasta?: number) => `/spreadsheet/sheets/create${pasta ? `?folder_id=${pasta}` : ''}`
 
@@ -57,7 +57,9 @@ function editada(iso: string | null): string {
 
 const plural = (n: number, um: string, varios: string) => (n ? `${n} ${n > 1 ? varios : um}` : null)
 
-function Linha({ s }: { s: Planilha }) {
+type Acoes = { compartilhar: (a: Alvo) => void; mover: (a: Alvo) => void; excluir: (a: Alvo) => void }
+
+function Linha({ s, acoes }: { s: Planilha; acoes: Acoes }) {
   const c = s.compartilhada
   const compart = [
     plural(c.usuarios, 'usuário', 'usuários'),
@@ -92,15 +94,15 @@ function Linha({ s }: { s: Planilha }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild><a href={abrir(s.id)}>Abrir planilha</a></DropdownMenuItem>
-          <DropdownMenuItem asChild disabled={!s.minha} title={soCriador}>
-            <a href={LEGADO}>Compartilhar…</a>
+          <DropdownMenuItem disabled={!s.minha} title={soCriador} onSelect={() => acoes.compartilhar(s)}>
+            Compartilhar…
           </DropdownMenuItem>
-          <DropdownMenuItem asChild disabled={!s.minha} title={soCriador}>
-            <a href={LEGADO}>Mover para outra pasta…</a>
+          <DropdownMenuItem disabled={!s.minha} title={soCriador} onSelect={() => acoes.mover(s)}>
+            Mover para outra pasta…
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild disabled={!s.minha} title={soCriador}>
-            <a href={LEGADO}>Excluir planilha</a>
+          <DropdownMenuItem disabled={!s.minha} title={soCriador} onSelect={() => acoes.excluir(s)}>
+            Excluir planilha
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -108,7 +110,7 @@ function Linha({ s }: { s: Planilha }) {
   )
 }
 
-function Arvore({ planilhas, pastas, podeCriar }: { planilhas: Planilha[]; pastas: Pasta[]; podeCriar: boolean }) {
+function Arvore({ planilhas, pastas, podeCriar, acoes }: { planilhas: Planilha[]; pastas: Pasta[]; podeCriar: boolean; acoes: Acoes }) {
   const [busca, setBusca] = useState('')
   const [abertas, setAbertas] = useState<Set<number>>(() => new Set())
   const q = busca.trim().toLowerCase()
@@ -179,7 +181,7 @@ function Arvore({ planilhas, pastas, podeCriar }: { planilhas: Planilha[]; pasta
                         Pasta vazia{podeCriar ? ' — crie a primeira planilha aqui.' : '.'}
                       </li>
                     ) : (
-                      g.itens.map((s) => <Linha key={s.id} s={s} />)
+                      g.itens.map((s) => <Linha key={s.id} s={s} acoes={acoes} />)
                     )}
                   </ul>
                 )}
@@ -194,6 +196,11 @@ function Arvore({ planilhas, pastas, podeCriar }: { planilhas: Planilha[]; pasta
 
 export default function SpreadsheetIndex({ podeCriar, planilhas, pastas }: Props) {
   const lista = planilhas ?? []
+  const [novaPasta, setNovaPasta] = useState(false)
+  const [compartilhar, setCompartilhar] = useState<Alvo | null>(null)
+  const [mover, setMover] = useState<Alvo | null>(null)
+  const [excluir, setExcluir] = useState<Alvo | null>(null)
+  const acoes: Acoes = { compartilhar: setCompartilhar, mover: setMover, excluir: setExcluir }
   const subtitulo = planilhas && pastas
     ? `${lista.length} planilhas em ${pastas.length} pastas · ${lista.filter((s) => s.minha).length} criadas por você`
     : undefined
@@ -208,9 +215,7 @@ export default function SpreadsheetIndex({ podeCriar, planilhas, pastas }: Props
           actions={
             podeCriar ? (
               <>
-                <Button asChild variant="outline">
-                  <a href={LEGADO}>Nova pasta</a>
-                </Button>
+                <Button variant="outline" onClick={() => setNovaPasta(true)}>Nova pasta</Button>
                 <Button asChild>
                   <a href={criar()}><Plus className="size-4" aria-hidden="true" /> Criar planilha</a>
                 </Button>
@@ -232,12 +237,17 @@ export default function SpreadsheetIndex({ podeCriar, planilhas, pastas }: Props
       )}
 
       <Deferred data={['planilhas', 'pastas']} fallback={<Skeleton className="h-64 w-full" />}>
-        <Arvore planilhas={lista} pastas={pastas ?? []} podeCriar={podeCriar} />
+        <Arvore planilhas={lista} pastas={pastas ?? []} podeCriar={podeCriar} acoes={acoes} />
       </Deferred>
 
       <p className="mt-3 text-xs text-muted-foreground">
         Compartilhar, mover e excluir aparecem só para quem criou a planilha — quem recebeu abre e edita, mas não redistribui.
       </p>
+
+      <NovaPasta aberto={novaPasta} onFechar={() => setNovaPasta(false)} />
+      <CompartilharPlanilha alvo={compartilhar} onFechar={() => setCompartilhar(null)} />
+      <Mover alvo={mover} pastas={pastas ?? []} onFechar={() => setMover(null)} />
+      <Excluir alvo={excluir} onFechar={() => setExcluir(null)} />
     </AppShellV2>
   )
 }

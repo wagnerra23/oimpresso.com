@@ -31,13 +31,15 @@ beforeEach(function () {
     $this->user = $this->usuarioComPermissoes(['customer.create'], $this->business);
 
     // Força o branch Inertia pra qualquer tenant (sem gate por biz).
-    config(['mwart.cliente_import.enabled' => true, 'mwart.cliente_import.business_ids' => []]);
+    // Cutover F5 (2026-10-27): a chave desligada não volta mais ao Blade. Desligá-la aqui
+    // é a prova — se o fallback voltar, este teste deixa de receber Inertia.
+    config(['mwart.cliente_import.enabled' => false]);
 
     $this->actingAs($this->user);
     session(['user.business_id' => $this->business->id, 'business.id' => $this->business->id]);
 });
 
-test('GET /contacts/import renderiza Inertia Cliente/Import quando a flag liga', function () {
+test('GET /contacts/import renderiza Inertia Cliente/Import mesmo com a chave desligada', function () {
     // Versão de assets pedida ao próprio middleware: com '1' fixo, o servidor (que usa o md5
     // do manifest) via versão diferente e respondia 409 pedindo recarga da página.
     $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
@@ -50,7 +52,7 @@ test('GET /contacts/import renderiza Inertia Cliente/Import quando a flag liga',
         ? json_decode($response->getContent(), true)
         : null;
 
-    expect($page)->not->toBeNull('Response não é Inertia — gate cliente_import pode estar off.');
+    expect($page)->not->toBeNull('Response não é Inertia — o Blade legado voltou?');
     expect($page['component'] ?? null)->toBe('Cliente/Import');
     // O wizard sempre reporta se o PHP Zip está disponível (banner de aviso).
     expect($page['props'] ?? [])->toHaveKey('zip_available');

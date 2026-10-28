@@ -43,7 +43,11 @@ export interface LinhaProduto {
   preco_proposto?: { quantidade: number; preco: number | null } | null;
   /** Requisição de compra aberta (UC-PIDX-30). Ausente = sem permissão de ver requisições; null = nenhuma. */
   requisicao?: RequisicaoAberta | null;
+  /** Natureza fiscal decidida pelo contador (UC-PIDX-31). Ausente = sem o módulo Fiscal. */
+  natureza_fiscal?: NaturezaFiscal;
 }
+
+export type NaturezaFiscal = 'mercadoria' | 'servico' | 'pendente';
 
 /** Requisição de compra aberta do produto, criada pelo estoque mínimo ou à mão (UC-PIDX-30 · UC-FLX-19). */
 export interface RequisicaoAberta {
@@ -74,6 +78,8 @@ export interface FiltrosLista {
   not_for_selling: boolean;
   woocommerce_enabled: boolean;
   repair_model_id: string | null;
+  /** UC-PIDX-31 — só com o módulo Fiscal. */
+  natureza_fiscal: NaturezaFiscal | null;
   q: string;
   sort: string;
   dir: 'asc' | 'desc';
@@ -246,6 +252,8 @@ export interface DetalheProdutoDados {
     origem_por_produto: boolean;
     /** Tributação do NfeBrasil com este produto no simulador; null sem o módulo Fiscal no pacote, sem `fiscal.access` ou sem `nfe.tributacao.manage`. */
     link_modulo: string | null;
+    /** UC-PIDX-31: null sem o módulo Fiscal. */
+    natureza?: { natureza: NaturezaFiscal; codigo_servico: string | null } | null;
   };
   prateleiras: {
     colunas: { prateleira: boolean; fileira: boolean; posicao: boolean };
@@ -277,8 +285,12 @@ export interface ContextoLista {
   empresa: string;
   grupos_de_preco: number;
   woocommerce: boolean;
+  /** Módulo Fiscal no pacote da empresa: decide a aba Fiscal do painel e o "Dados fiscais" do menu. */
+  emite_nota: boolean;
   papel: string | null;
   rotulos_campos: Record<string, string | null>;
+  /** O filtro "Natureza fiscal" existe (módulo Fiscal ligado). */
+  natureza_fiscal?: boolean;
 }
 
 export interface PermissoesLista {
@@ -289,7 +301,6 @@ export interface PermissoesLista {
   view?: boolean;
   stock_report?: boolean;
   etiquetas?: boolean;
-  comprar?: boolean;
   view_purchase_price?: boolean;
   access_default_selling_price?: boolean;
 }
@@ -354,7 +365,13 @@ export interface ColunaOpcional {
   padrao: boolean;
 }
 
-export function colunasOpcionais(rotulos: Record<string, string | null>): ColunaOpcional[] {
+/**
+ * `temAliquota`: a empresa tem alguma alíquota de imposto cadastrada (`opcoes.impostos` não vazio).
+ * Sem alíquota não há o que mostrar na coluna Imposto, e ela não existe no menu. Com alíquota ela
+ * existe e nasce desligada: o preço da lista já é o que a venda cobra, com o imposto (decisão [F]
+ * 2026-10-26).
+ */
+export function colunasOpcionais(rotulos: Record<string, string | null>, temAliquota = true): ColunaOpcional[] {
   const base: ColunaOpcional[] = [
     { id: 'imagem', rotulo: 'Imagem', padrao: true },
     { id: 'locais', rotulo: 'Locais', padrao: true },
@@ -364,7 +381,7 @@ export function colunasOpcionais(rotulos: Record<string, string | null>): Coluna
     { id: 'tipo', rotulo: 'Tipo', padrao: true },
     { id: 'categoria', rotulo: 'Categoria', padrao: true },
     { id: 'marca', rotulo: 'Marca', padrao: true },
-    { id: 'imposto', rotulo: 'Imposto', padrao: true },
+    ...(temAliquota ? [{ id: 'imposto', rotulo: 'Imposto', padrao: false }] : []),
     { id: 'sku', rotulo: 'SKU', padrao: true },
     { id: 'serie', rotulo: 'IMEI / série', padrao: false },
   ];
@@ -382,6 +399,11 @@ export const TIPOS_PRODUTO: Opcao[] = [
   { id: 'variable', nome: 'Variável' },
   { id: 'combo', nome: 'Composição' },
 ];
+export const NATUREZAS_FISCAIS: Opcao[] = [
+  { id: 'mercadoria', nome: 'Mercadoria (NF-e)' },
+  { id: 'servico', nome: 'Serviço (NFS-e)' },
+  { id: 'pendente', nome: 'A decidir pelo contador' },
+];
 export const SITUACOES: Opcao[] = [
   { id: 'active', nome: 'Ativo' },
   { id: 'inactive', nome: 'Inativo' },
@@ -390,6 +412,21 @@ export const SITUACOES: Opcao[] = [
 /** Colunas que nascem ligadas (PB_COLS_PADRAO do protótipo). */
 export function visibilidadePadrao(colunas: ColunaOpcional[]): Record<string, boolean> {
   return Object.fromEntries(colunas.map((c) => [c.id, c.padrao]));
+}
+
+/**
+ * Marca, no navegador, que a coluna Imposto já foi desligada uma vez. Até 2026-10-26 ela nascia
+ * ligada, e a tela grava a visibilidade de todas as colunas: o "ligada" guardado é o padrão antigo,
+ * não uma escolha. Sem esta marca, a coluna seguiria ligada para quem já usou a lista.
+ */
+export const CHAVE_IMPOSTO_DESLIGADO = 'produto-lista-imposto-desligado-v1';
+
+/** As colunas guardadas no navegador, sem o "Imposto" antigo na primeira vez (ver acima). */
+export function colunasGuardadas(salvas: Record<string, boolean>, impostoJaDesligado: boolean): Record<string, boolean> {
+  if (impostoJaDesligado) return salvas;
+  const resto = { ...salvas };
+  delete resto.imposto;
+  return resto;
 }
 
 /** Chips "Filtrando por" — nada de filtro invisível (protótipo: `chips`). */
@@ -406,6 +443,7 @@ export function chipsDosFiltros(
   if (f.brand_id) out.push({ chave: 'brand_id', rotulo: `Marca: ${nome(o.marcas, f.brand_id)}` });
   if (f.location_id) out.push({ chave: 'location_id', rotulo: `Local: ${nome(o.locais, f.location_id)}` });
   if (f.active_state) out.push({ chave: 'active_state', rotulo: `Situação: ${nome(SITUACOES, f.active_state)}` });
+  if (f.natureza_fiscal) out.push({ chave: 'natureza_fiscal', rotulo: `Natureza fiscal: ${nome(NATUREZAS_FISCAIS, f.natureza_fiscal)}` });
   if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
   if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
   if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });

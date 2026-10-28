@@ -51,7 +51,7 @@
         @elseif($transaction_type == 'purchase_return')
             <a data-href="{{action([\App\Http\Controllers\PurchaseReturnController::class, 'show'], [$return_parent_id])}}" href="#" data-container=".view_modal" class="btn-modal">{{$ref_no}}</a> <br> <small>({{__('lang_v1.purchase_return')}}) </small>
         @elseif ($transaction_type == 'purchase')
-            <a data-href="{{action([\App\Http\Controllers\PurchaseController::class, 'show'], [$transaction_id])}}" href="#" data-container=".view_modal" class="btn-modal">{{$ref_no}}</a> <br> <small>({{__('lang_v1.purchase')}}) </small>
+            <a href="{{action([\App\Http\Controllers\PurchaseController::class, 'show'], [$transaction_id])}}" target="_blank" rel="noopener">{{$ref_no}}</a> <br> <small>({{__('lang_v1.purchase')}}) </small>
         @else 
             @if(!empty($transaction_id))
                 {{$ref_no}} <br> <small>({{__('lang_v1.' . $transaction_type)}}) </small>

@@ -46,7 +46,7 @@ permissions:
 jobs:
   card-anatomia:
     name: Card · slots aditivos (badge/note/flush) sem mexer no default de 733033864088
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

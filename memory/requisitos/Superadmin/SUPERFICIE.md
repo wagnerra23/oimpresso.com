@@ -14,7 +14,7 @@ module: Superadmin
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 203 arquivos em 19 papéis.
+**Total mapeado:** 200 arquivos em 19 papéis.
 
 ## Controllers — 14
 
@@ -106,7 +106,7 @@ module: Superadmin
 - [config.php](../../../Modules/Superadmin/Config/config.php)
 - [retention.php](../../../Modules/Superadmin/Config/retention.php)
 
-## Views (Blade) — 38
+## Views (Blade) — 35
 
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/business/index.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/communicator/index.blade.php)
@@ -116,9 +116,6 @@ module: Superadmin
 - [sidebar.blade.php](../../../Modules/Superadmin/Resources/views/layouts/partials/sidebar.blade.php)
 - [subscription.blade.php](../../../Modules/Superadmin/Resources/views/layouts/partials/subscription.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/packages/index.blade.php)
-- [create.blade.php](../../../Modules/Superadmin/Resources/views/pages/create.blade.php)
-- [edit.blade.php](../../../Modules/Superadmin/Resources/views/pages/edit.blade.php)
-- [index.blade.php](../../../Modules/Superadmin/Resources/views/pages/index.blade.php)
 - [show.blade.php](../../../Modules/Superadmin/Resources/views/pages/show.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/pricing/index.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/subscription/index.blade.php)

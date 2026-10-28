@@ -30,8 +30,8 @@ ninguém sabe dizer de onde veio. O módulo fecha esse buraco na origem.
 |---|---|
 | Relatar (autenticado, com URL da tela) | entregue |
 | Dedup de relato idêntico | entregue |
-| Caixa de triagem (Blade) | entregue |
-| Caixa em React (`VozDoCliente/Caixa`, só leitura + filtro por situação) | entregue atrás da flag `useV2VozDoClienteCaixa`, OFF por padrão (2026-10-13, modulos-faltantes/03) |
+| Caixa de triagem (Blade) | removida no F5 de 2026-10-27 (substituída pela Page) |
+| Caixa em React (`VozDoCliente/Caixa`, só leitura + filtro por situação) | entregue (2026-10-13, modulos-faltantes/03); flag ligada para todas em 2026-10-13, única tela desde o F5 de 2026-10-27 |
 | Isolamento cross-tenant Tier 0 | entregue + teste |
 | Roteamento ao módulo dono | não construído |
 | Triagem que vira US | não construído |

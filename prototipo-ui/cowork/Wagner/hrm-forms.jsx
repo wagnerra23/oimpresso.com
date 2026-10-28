@@ -155,6 +155,43 @@ function FormTurno({ item, onClose, onSalvar }) {
   );
 }
 
+// ── Tipo de licença ──
+// essentials_leave_types: leave_type · max_leave_count · leave_count_interval · ferias_clt.
+// Limite vazio = sem limite, e aí o intervalo não se aplica (o servidor grava null nos dois).
+function FormTipo({ item, onClose, onSalvar }) {
+  const [nome, setNome] = useState(item?.nome || "");
+  const [max, setMax] = useState(item?.max ? String(item.max) : "");
+  const [intervalo, setIntervalo] = useState(item?.intervalo || "year");
+  const [clt, setClt] = useState(!!item?.clt);
+  const [erros, setErros] = useState({});
+  const semLimite = max.trim() === "";
+  const salvar = () => {
+    const e = {};
+    if (!nome.trim()) e.nome = "Dê um nome ao tipo.";
+    const n = Number(max);
+    if (!semLimite && (!Number.isInteger(n) || n < 1 || n > 366)) e.max = "Use um número inteiro de 1 a 366, ou deixe vazio para sem limite.";
+    setErros(e);
+    if (!Object.keys(e).length) onSalvar({ ...(item || {}), nome:nome.trim(), max:semLimite ? 0 : n, intervalo:semLimite ? null : intervalo, clt });
+  };
+  return (
+    <Drawer title={item ? "Editar tipo de licença" : "Novo tipo de licença"} sub="O limite é informativo hoje: o pedido de licença ainda não o confere." onClose={onClose}
+      footer={<><button className="os-btn ghost" onClick={onClose}>Cancelar</button><button className="os-btn primary" onClick={salvar}>Salvar tipo</button></>}>
+      <Sec title="Tipo de licença">
+        <div className="hrm-campos">
+          <Campo label="Nome" valor={nome} erro={erros.nome} onChange={setNome} placeholder="Ex.: Licença-casamento"/>
+          <Campo label="Limite em dias" tipo="number" valor={max} erro={erros.max} onChange={setMax} placeholder="Vazio = sem limite"/>
+          <Escolha label="Intervalo" valor={semLimite ? "" : intervalo} onChange={setIntervalo}
+            help={semLimite ? "Sem limite, o intervalo não se aplica." : null}
+            opcoes={semLimite ? [{ v:"", l:"Não se aplica" }] : [{ v:"year", l:"Por ano" }, { v:"month", l:"Por mês" }]}/>
+        </div>
+      </Sec>
+      <Sec title="Férias">
+        <label className="hrm-row hrm-pick"><span className="hrm-row-l"><span className="hrm-row-t"><input type="checkbox" checked={clt} onChange={() => setClt(!clt)}/> Conta como férias (CLT)</span><span className="hrm-row-s">Marca o tipo que entra no controle de férias do colaborador</span></span></label>
+      </Sec>
+    </Drawer>
+  );
+}
+
 // ── Gerar folha do mês ──
 function FormFolha({ onClose, onGerar }) {
   const [mes, setMes] = useState("09");
@@ -284,5 +321,5 @@ function FormMeta({ emp, faixas, onClose, onSalvar }) {
   );
 }
 
-window.HrmForms = { FormLicenca, FormFeriado, FormTurno, FormFolha, FormPagamento, FormMeta };
+window.HrmForms = { FormLicenca, FormFeriado, FormTurno, FormTipo, FormFolha, FormPagamento, FormMeta };
 })();

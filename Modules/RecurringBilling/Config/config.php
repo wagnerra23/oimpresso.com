@@ -10,4 +10,7 @@ return [
     // US-RB-021: cobrança automática da fatura pelo Pix Automático do BCB (decisão [W] 2026-10-26).
     // Default OFF. Ligar é decisão [W] — mexe em valor (cobra o cliente).
     'cobrar_pix_automatico' => env('RB_COBRAR_PIX_AUTOMATICO', false),
+    // US-RB-011 (reaberta [W] 2026-10-27): fatura paga no cartão guarda o TOKEN do cartão (nunca o
+    // número) e liga à assinatura. Default OFF; não mexe em valor.
+    'salvar_cartao' => env('RB_SALVAR_CARTAO', false),
 ];

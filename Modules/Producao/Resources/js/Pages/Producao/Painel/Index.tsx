@@ -1,15 +1,16 @@
 // @memcofre
 //   tela: /producao/painel
 //   module: Producao
-//   stories: playbook Produção thread 06 (UC-PCV-01, UC-PCV-02, UC-PCV-03, UC-PCV-04, UC-PCV-29) · US-PCP-017
+//   stories: playbook Produção thread 06 (UC-PCV-01, UC-PCV-02, UC-PCV-03, UC-PCV-04, UC-PCV-29) · US-PCP-017 · UC-PCART-07
 //   permissao: producao.access
 //
 // Painel do gestor: o que trava a produção hoje e onde agir. Âncora visual: `Painel` de
 // prototipo-ui/cowork/Wagner/producao-cv-page.jsx (classes `pcv-*` do bundle). Os indicadores abrem o
 // Quadro já filtrado; "atrasadas ou vencendo" e "arte travando" vêm dos mesmos cartões do Quadro, então
-// o número é igual nas duas telas (UC-PCV-03). Só leitura.
-// Fora deste corte: refugo em R$ e o link para o Custo (thread 08), reenviar o link da prova (o token
-// só guarda o hash — decisão [W]), produtividade por setor (UC-PCV-27) e aproveitamento de mídia (UC-PCV-26).
+// o número é igual nas duas telas (UC-PCV-03). A única escrita é na fila de arte: "Reenviar link" e
+// "Enviar nova prova" geram link novo (o token só guarda o hash; liberado por [W] 2026-10-27, UC-PCART-07).
+// Fora deste corte: refugo em R$ e o link para o Custo (thread 08), produtividade por setor (UC-PCV-27)
+// e aproveitamento de mídia (UC-PCV-26).
 import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
@@ -22,13 +23,14 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Skeleton } from '@/Components/ui/skeleton';
 import ProducaoAbas from '../_components/ProducaoAbas';
+import AcaoDaProva from './_components/AcaoDaProva';
 
 interface Indicadores {
   em_producao: number; vencem_hoje: number; atrasadas_ou_vencendo: number; atrasadas_numeros: string[];
   atrasadas_so_atraso: number; arte_travando: number; refugo_semana: { ocorrencias: number; quantidade: string };
 }
 interface Alerta { tipo: string; tom: 'danger' | 'warn'; titulo: string; texto: string; acao: { rotulo: string; href: string } }
-interface ItemArte { chave: string; numero: string; cliente: string | null; estado: 'aguardando' | 'ajuste'; desde: string; comentario: string | null; expira_em: string }
+interface ItemArte { chave: string; os_id: number; numero: string; cliente: string | null; estado: 'aguardando' | 'ajuste'; desde: string; comentario: string | null; expira_em: string }
 interface Carga { posto_id: number; nome: string; setor: string | null; horas: number; capacidade: number; pct: number }
 interface Evento { quando: string; texto: string; etapa: string | null; quem: string | null; os: string | null }
 interface Dados { indicadores: Indicadores; alertas: Alerta[]; fila_arte: ItemArte[]; carga: Carga[]; eventos: Evento[] }
@@ -106,6 +108,7 @@ function Conteudo({ d }: { d: Dados }) {
                       : `link enviado em ${quando(f.desde)} · vale até ${quando(f.expira_em)}`}</small>
                   </div>
                   <Badge variant={f.estado === 'ajuste' ? 'danger' : 'warning'}>{f.estado === 'ajuste' ? 'Ajuste pedido' : 'Aguardando cliente'}</Badge>
+                  <AcaoDaProva osId={f.os_id} ajuste={f.estado === 'ajuste'} />
                   <Button size="sm" variant="ghost" asChild><a href={`${QUADRO}?so=arte`}>Ver no quadro</a></Button>
                 </li>
               ))}

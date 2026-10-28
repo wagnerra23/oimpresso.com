@@ -55,7 +55,10 @@ Route::middleware(['web', 'auth', 'language', 'AdminSidebarMenu', 'superadmin', 
     Route::post('/communicator/send', [Modules\Superadmin\Http\Controllers\CommunicatorController::class, 'send']);
     Route::get('/communicator/get-history', [Modules\Superadmin\Http\Controllers\CommunicatorController::class, 'getHistory']);
 
-    Route::resource('/frontend-pages', 'Modules\Superadmin\Http\Controllers\PageController');
+    // `create`/`edit` saíram no cutover de Páginas (2026-10-27): o drawer da tela React cria e
+    // edita. `show` nunca teve método no controller (GET /frontend-pages/{id} dava 500).
+    Route::resource('/frontend-pages', Modules\Superadmin\Http\Controllers\PageController::class)
+        ->except(['create', 'edit', 'show']);
 });
 
 Route::middleware('web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu')->group(function () {

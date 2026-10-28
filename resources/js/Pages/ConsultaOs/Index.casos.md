@@ -6,8 +6,8 @@ tecnica: Caso de uso = o que o cliente final faz + critério de aceite verificá
 por_que: é a única tela do ERP que fala com o cliente final sem login — o que ela expõe e o que ela recusa não pode mudar sem alguém ver.
 owner: wagner
 related_us: [US-CONSULTA-001, US-CONSULTA-004]
-last_run: "2026-10-20"
-last_run_ci: "0 UC executado — UC-COS-08..11 nascem e UC-COS-01..07 mudam neste PR (fonte real do Repair); veredito pendente da lane PHP / Pest (Unit) (ci-sqlite-pest.list)"
+last_run: "2026-10-27"
+last_run_ci: "2026-10-27: UC-COS-07 e UC-COS-11 mudam (cutover do portal antigo do Repair); veredito pendente da lane PHP / Pest (Unit) (ci-sqlite-pest.list)"
 ---
 
 # Casos de Uso & Aceite — Consulta pública de OS (`/consulta-os`)
@@ -38,11 +38,11 @@ last_run_ci: "0 UC executado — UC-COS-08..11 nascem e UC-COS-01..07 mudam nest
 | UC-COS-04 | Payload é a whitelist — nada interno, financeiro ou do cliente | must `[T0]` | Non-Goals "NÃO expõe dados internos/financeiros" + "NÃO expõe dados do cliente" | 🧪 |
 | UC-COS-05 | Sem critério válido não há busca nem lista | must `[T0]` | Non-Goals "NÃO lista todas as OS" · aceite US-CONSULTA-001 | 🧪 |
 | UC-COS-06 | Só leitura: nada grava, nada edita | must | Non-Goals "NÃO permite editar/cancelar" · Anti-hooks "NÃO grava nada em GET" | 🧪 |
-| UC-COS-07 | Não deixa enumerar OS | must `[T0]` | Anti-hooks "NÃO indexa/expõe OS por enumeração" | 🧪 |
+| UC-COS-07 | Não deixa enumerar OS | must `[T0]` | Anti-hooks "NÃO indexa/expõe OS por enumeração" | ⬜ |
 | UC-COS-08 | Busca por nº da venda e por celular; série só estreita | must | Goals "busca por nº da OS, nº da venda ou celular" | 🧪 |
 | UC-COS-09 | Busca cruza empresas — comportamento atual documentado | must `[T0]` | Pendências do charter "identificar a empresa" | 🧪 |
 | UC-COS-10 | Celular desligado na config é recusado | must | Goals "celular só se a config ligar" | 🧪 |
-| UC-COS-11 | `/repair-status` leva ao `/consulta-os` | must | charter §2026-10-02 (D-PORTAL) | 🧪 |
+| UC-COS-11 | `/repair-status` leva ao `/consulta-os` | must | charter §2026-10-02 (D-PORTAL) | ⬜ |
 | UC-COS-12 | Mudar o status da OS avisa o cliente e o portal mostra o status novo | must `[T0]` | US-CONSULTA-004 (UC-FLX-24) | 🧪 |
 | UC-COS-13 | Status com o nome que a empresa deu avisa quando está marcado | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | 🧪 |
 | UC-COS-14 | Transição pela FSM hoje não avisa nem muda o portal (limite) | must | US-CONSULTA-004 limite (2) | 🧪 |
@@ -108,10 +108,10 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 
 ## UC-COS-07 · Não deixa enumerar OS · `must` `[T0]`
 
-- **Aceite:** Dado `consulta-os.index`, `consulta-os.buscar`, `repair-status` e `post-repair-status`
-  · Então as quatro têm `throttle:` · E um número com aspas, `%` ou mais de 20 caracteres é recusado
+- **Aceite:** Dado `consulta-os.index`, `consulta-os.buscar` e `repair-status`
+  · Então as três têm `throttle:` · E um número com aspas, `%` ou mais de 20 caracteres é recusado
   com 422 · E, como controle, o formato real do nº de OS do Repair (`JS2026/0001`, com barra) é aceito.
-- **Status:** 🧪
+- **Status:**⬜ (mudou em 2026-10-27; veredito da lane PHP / Pest (Unit) pendente)
 
 ## UC-COS-08 · Busca por nº da venda e por celular; série só estreita · `must`
 
@@ -139,8 +139,9 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 ## UC-COS-11 · `/repair-status` leva ao `/consulta-os` · `must`
 
 - **Aceite:** Dado um visitante sem sessão · Quando abre o antigo `/repair-status` · Então é
-  redirecionado para `/consulta-os` · E a rota `post-repair-status` continua registrada.
-- **Status:** 🧪
+  redirecionado para `/consulta-os` · E a rota `post-repair-status` não existe mais (o portal antigo
+  saiu no cutover de 2026-10-27; o `POST /post-repair-status` responde 404).
+- **Status:** ⬜ (mudou em 2026-10-27; veredito da lane PHP / Pest (Unit) pendente)
 
 ## Cliente acompanha o status — catálogo UC-FLX-24 (US-CONSULTA-004)
 

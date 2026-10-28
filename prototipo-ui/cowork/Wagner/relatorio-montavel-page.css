@@ -1,0 +1,20 @@
+/* relatorio-montavel-page.css — Relatório montável (US-REL-001). Herda o casco rel-* de
+   relatorios-page.css; aqui só o painel de montagem e o gráfico. Só tokens do DS. */
+.rm-corpo{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:1100px){.rm-corpo{grid-template-columns:1fr}}
+.rm-montar{display:flex;flex-direction:column;gap:10px}
+.rm-bloco{border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.rm-bloco h3{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--fs-2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-mute)}
+.rm-fontes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rm-fonte,.rm-salvo{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);padding:8px 10px;min-height:44px;cursor:pointer;font:inherit;font-size:var(--fs-3)}
+.rm-fonte small,.rm-salvo small{color:var(--text-mute);font-size:var(--fs-2)}
+.rm-fonte:hover,.rm-salvo:hover{border-color:color-mix(in oklch,var(--accent) 30%,var(--border))}
+.rm-fonte[data-on],.rm-salvo[data-on]{border-color:var(--accent);background:var(--accent-soft)}
+.rm-fonte:focus-visible,.rm-salvo:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-soft);border-color:var(--accent)}
+.rm-resultado{display:flex;flex-direction:column;gap:12px;min-width:0}
+.rm-grafico{margin:0;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:12px 14px}
+.rm-grafico svg{width:100%;height:auto;display:block}
+.rm-barra{fill:var(--accent)}
+.rm-linha{stroke:var(--accent);stroke-width:2.5}
+.rm-eixo{fill:var(--text-mute);font-size:11px;font-family:var(--font-mono)}
+.rm-papel{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-3);color:var(--text-dim)}

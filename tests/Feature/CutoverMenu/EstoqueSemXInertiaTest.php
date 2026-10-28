@@ -21,7 +21,7 @@ use Spatie\Permission\Models\Permission;
  *
  * Os caminhos que importam, por tela:
  *   GET comum            → Page React
- *   ?classico=1          → Blade
+ *   ?classico=1          → Blade (só transferências; a Blade dos ajustes foi apagada em 2026-10-27)
  *   visita Inertia real  → Page (X-Inertia **e** X-Requested-With — §5 2026-09-08)
  *   ?v=2                 → Page (o opt-in antigo continua valendo)
  * e, nas listas, o AJAX sem X-Inertia (DataTable do Blade) → JSON.
@@ -69,14 +69,14 @@ function esxVersao(): string
     return file_exists($manifest) ? md5_file($manifest) : '1';
 }
 
-/** As 4 telas: rota, componente, Blade e as permissões que abrem cada uma. */
+/** As 4 telas: rota, componente, Blade (null = apagada) e as permissões que abrem cada uma. */
 function esxTelas(): array
 {
     return [
         'transferências' => ['/stock-transfers', 'StockTransfer/Index', 'stock_transfer.index', ['purchase.view', 'access_all_locations']],
         'nova transferência' => ['/stock-transfers/create', 'StockTransfer/Create', 'stock_transfer.create', ['purchase.create', 'access_all_locations']],
-        'ajustes' => ['/stock-adjustments', 'StockAdjustment/Index', 'stock_adjustment.index', ['purchase.view', 'access_all_locations']],
-        'novo ajuste' => ['/stock-adjustments/create', 'StockAdjustment/Create', 'stock_adjustment.create', ['purchase.create', 'access_all_locations']],
+        'ajustes' => ['/stock-adjustments', 'StockAdjustment/Index', null, ['purchase.view', 'access_all_locations']],
+        'novo ajuste' => ['/stock-adjustments/create', 'StockAdjustment/Create', null, ['purchase.create', 'access_all_locations']],
     ];
 }
 
@@ -101,12 +101,26 @@ it('GET comum (como o menu navega) abre a Page React das 4 telas', function () {
     }
 });
 
-it('?classico=1 mantém o Blade das 4 telas', function () {
+it('?classico=1 mantém o Blade das transferências', function () {
     foreach (esxTelas() as $nome => [$rota, , $blade, $permissoes]) {
+        if ($blade === null) {
+            continue;
+        }
         esxLogin($this, esxUsuario($this->bizId, $permissoes))
             ->get($rota . '?classico=1')
             ->assertOk()
             ->assertViewIs($blade);
+    }
+});
+
+it('ajustes: ?classico=1 abre a Page React, porque a Blade foi apagada (cutover 2026-10-27)', function () {
+    foreach (esxTelas() as $nome => [$rota, $componente, $blade, $permissoes]) {
+        if ($blade !== null) {
+            continue;
+        }
+        $resp = esxLogin($this, esxUsuario($this->bizId, $permissoes))->get($rota . '?classico=1');
+        $resp->assertOk();
+        $resp->assertInertia(fn (AssertableInertia $p) => $p->component($componente, false));
     }
 });
 

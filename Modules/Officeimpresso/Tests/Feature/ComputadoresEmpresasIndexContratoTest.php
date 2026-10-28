@@ -57,13 +57,13 @@ afterEach(function () {
     }
 });
 
-it('UC-EMPS-01 · flag desligada serve a Blade; ligada serve a tela React com a lista adiada', function () {
+it('UC-EMPS-01 · serve a tela React com a lista adiada, mesmo com a flag antiga desligada', function () {
     $this->actingAs(oiEmpUser($this));
 
+    // Cutover 2026-10-27: a flag `useV2OfficeimpressoEmpresas` saiu. Uma regra no GrowthBook que
+    // ainda a desligue não pode trazer a Blade de volta — a view nem existe mais.
     oiEmpFlag(false);
-    $this->get('/officeimpresso/businessall')->assertOk()->assertViewIs('officeimpresso::licenca_computador.businessall');
-
-    oiEmpFlag(true);
+    expect(view()->exists('officeimpresso::licenca_computador.businessall'))->toBeFalse();
     $this->get('/officeimpresso/businessall')
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page

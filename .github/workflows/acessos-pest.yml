@@ -24,8 +24,8 @@ name: Acessos · Pest (MySQL)
 #   - SuporteLogContratoTest — Modo Suporte (ADR 0305): /suporte/log lê a trilha append-only,
 #     nunca mostra a operadora e barra não-agente. Entra por ARQUIVO, não por diretório: os
 #     outros 7 testes de tests/Feature/Support/ nunca rodaram em PR, e ligá-los é outro PR.
-#   - CaixaContratoTest — Voz do Cliente (modulos-faltantes/03): /voz-do-cliente em Inertia atrás da
-#     flag useV2VozDoClienteCaixa (OFF), 403 sem vozdocliente.triar e isolamento 98×99. O controller
+#   - CaixaContratoTest — Voz do Cliente (modulos-faltantes/03): /voz-do-cliente em Inertia (Blade e flag
+#     removidas no F5 de 2026-10-27), 403 sem vozdocliente.triar e isolamento 98×99. O controller
 #     e a Page do módulo estão no gatilho.
 #   - RoleTenantIsolationTest — Tier 0 (ADR 0093): /roles/{id} não alcança papel de outro
 #     negócio. Traz o controle POSITIVO junto, senão um filtro largo demais passaria no
@@ -131,6 +131,8 @@ on:
       - 'app/Http/Controllers/GroupTaxController.php'
       - 'app/Http/Controllers/TypesOfServiceController.php'
       - 'app/Http/Controllers/AccountController.php'
+      - 'app/Services/Contas/**'
+      - 'Modules/Financeiro/Http/Controllers/ContaBancariaController.php'
       - 'app/Http/Controllers/Restaurant/TableController.php'
       - 'app/Http/Controllers/Restaurant/ModifierSetsController.php'
       - 'app/Utils/RestaurantUtil.php'
@@ -245,6 +247,8 @@ jobs:
               - 'app/Http/Controllers/GroupTaxController.php'
               - 'app/Http/Controllers/TypesOfServiceController.php'
               - 'app/Http/Controllers/AccountController.php'
+              - 'app/Services/Contas/**'
+              - 'Modules/Financeiro/Http/Controllers/ContaBancariaController.php'
               - 'app/Http/Controllers/Restaurant/TableController.php'
               - 'app/Http/Controllers/Restaurant/ModifierSetsController.php'
               - 'app/Utils/RestaurantUtil.php'

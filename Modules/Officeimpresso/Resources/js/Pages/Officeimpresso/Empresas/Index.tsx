@@ -1,7 +1,7 @@
 // Empresas licenciadas — Officeimpresso (clientes da WR2 com o desktop WR Comercial / Delphi).
 //
-//   rota:     /officeimpresso/businessall (LicencaComputadorController::businessall, atrás da flag
-//             useV2OfficeimpressoEmpresas; flag OFF = Blade businessall, rota de fuga — RUNBOOK-empresas §F5)
+//   rota:     /officeimpresso/businessall (LicencaComputadorController::businessall; sem flag nem
+//             Blade desde o cutover de 2026-10-27, RUNBOOK-empresas §F5)
 //   padrão:   PT-01 Lista
 //   charter:  ./Index.charter.md · casos: ./Index.casos.md
 //   âncora:   prototipo-ui/cowork/Wagner/officeimpresso-page.jsx → ViewEmpresas() (rota oi-empresas)

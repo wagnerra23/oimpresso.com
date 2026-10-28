@@ -249,9 +249,14 @@ last_run: "2026-10-23"
   drawer lista as notas de remessa já emitidas. Fonte: UC-TRB-24 do protótipo fiscal (falta).
 - **[BACKLOG] Emitir a nota com imposto faltando** — Aceite: Dado uma venda com um item sem NCM e
   outro com a natureza fiscal "a decidir pelo contador", Quando clico em emitir a nota no drawer,
-  Então a nota não sai e a tela lista o que falta em cada item, com link para o cadastro do produto e
-  para a Tributação; a venda continua salva. Fonte: UC-TRB-05 do protótipo fiscal (sem NCM bloqueia),
-  UC-FNFSE-12 (natureza pendente bloqueia as duas notas) e CU-PROD-18 (aviso no cadastro).
+  Então a tela confere a nota antes de enviar: o item sem NCM aparece "vai sair com o NCM padrão da
+  empresa", com "Informar NCM agora" ou "Emitir assim"; o item com natureza a decidir não sai, com o
+  motivo e o link para a Tributação; a venda continua salva. A conferência usa as mesmas regras do
+  card de Saúde fiscal e do simulador da Tributação. Fonte: UC-TRB-33 do protótipo fiscal (decidido:
+  o bloqueio nunca é beco sem saída; sem NCM, a saída é o NCM padrão da empresa, marcado para
+  revisão), UC-FNFSE-12 (natureza pendente bloqueia as duas notas) e CU-PROD-18 (aviso no cadastro).
+  Pedido da PraMoto (2026-10-27): os produtos comprados sem nota entram sem NCM, e o problema só
+  aparece na emissão.
 - **[BACKLOG] Emitir a nota com dados do cliente faltando** — Aceite: Dado um cliente empresa sem
   endereço completo (CEP e município) ou sem a indicação de contribuinte do ICMS, Quando clico em
   emitir a nota, Então a nota não sai e a tela lista o que falta, com link para o cadastro do cliente;
@@ -284,6 +289,7 @@ last_run: "2026-10-23"
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-27 · [F+C] Backlog "Emitir a nota com imposto faltando": a conferência antes de emitir segue o UC-TRB-33 (sem NCM sai com o NCM padrão, marcado para revisão), pedido da PraMoto. Sem id.
 - 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito, pedido de compra do cliente, ISS retido, venda sem comissionado e venda agrupada, sem id e sem mudança de comportamento da tela.
 - 2026-10-23 · [M+C] Backlog: faturar só parte da venda, da comparação com concorrentes (Omie), sem id.
 - 2026-10-23 · [M+C] Backlog de venda duplicada com a origem, devolução total ou parcial, garantia e entrega futura, sem id.

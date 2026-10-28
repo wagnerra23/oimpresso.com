@@ -151,10 +151,12 @@ function Licencas({ lic, setLic }) {
   const [sel, setSel] = useState(null);
   const [marcadas, setMarcadas] = useState([]);
   const [form, setForm] = useState(false);
+  const [tipos, setTipos] = useState(A.dados.tipos);
+  const [formTipo, setFormTipo] = useState(null);
   const [aviso, setAviso] = useAviso();
   const buscaRef = useRef(null);
   const carregando = useCarga();
-  useAtalhos({ busca:buscaRef, onNovo:() => setForm(true), onEsc:() => { if (sel) setSel(null); else if (form) setForm(false); else if (q) setQ(""); } });
+  useAtalhos({ busca:buscaRef, onNovo:() => setForm(true), onEsc:() => { if (sel) setSel(null); else if (formTipo) setFormTipo(null); else if (form) setForm(false); else if (q) setQ(""); } });
 
   const visiveis = A.pode("ver_todos") ? lic : lic.filter((l) => l.emp === A.eu);
   const filtradas = visiveis.filter((l) => {
@@ -180,6 +182,12 @@ function Licencas({ lic, setLic }) {
     setLic((ls) => [...novas, ...ls]);
     setForm(false);
     setAviso(H.plural(novas.length, "Pedido registrado — administradores notificados.", "{n} pedidos registrados — administradores notificados."));
+  };
+
+  const salvarTipo = (item) => {
+    setTipos((ts) => item.id && ts.some((t) => t.id === item.id) ? ts.map((t) => t.id === item.id ? item : t) : [...ts, { ...item, id:Math.max(0, ...ts.map((t) => t.id)) + 1, usadas:0 }]);
+    setFormTipo(null);
+    setAviso(`Tipo “${item.nome}” salvo.`);
   };
 
   // O3 — saldo por tipo × colaborador
@@ -284,19 +292,19 @@ function Licencas({ lic, setLic }) {
         <Nota tone="warn" title="Tipo de licença não pode ser excluído">
           <code>EssentialsLeaveTypeController::destroy</code> está vazio — o cadastro só cresce. O limite é <b>informativo</b>: nada bloqueia o pedido que passa dele.
         </Nota>
-        <div className="hrm-toolbar"><span className="usr-count">{A.dados.tipos.length} tipos</span><span className="hrm-spacer"></span><button className="os-btn primary" disabled={!A.pode("gerir_licenca") || A.demo}>Novo tipo</button></div>
-        {A.dados.tipos.length ? <div className="os-table-wrap"><table className="os-table">
+        <div className="hrm-toolbar"><span className="usr-count">{tipos.length} tipos</span><span className="hrm-spacer"></span><button className="os-btn primary" disabled={!A.pode("gerir_licenca") || A.demo} onClick={() => setFormTipo({})}>Novo tipo</button></div>
+        {tipos.length ? <div className="os-table-wrap"><table className="os-table">
           <thead><tr><th scope="col">Tipo</th><th scope="col" className="hrm-num">Limite</th><th scope="col">Intervalo</th><th scope="col" className="hrm-num">Pedidos no ano</th><th scope="col"></th></tr></thead>
-          <tbody>{A.dados.tipos.map((t) => (
+          <tbody>{tipos.map((t) => (
             <tr key={t.id}>
               <td className="hrm-name">{t.nome}</td>
               <td className="hrm-num">{t.max ? `${t.max} dias` : "sem limite"}</td>
-              <td>{t.intervalo === "year" ? "por ano" : "por mês"}</td>
+              <td>{!t.intervalo ? "—" : t.intervalo === "year" ? "por ano" : "por mês"}</td>
               <td className="hrm-num">{lic.filter((l) => l.tipo === t.id).length}</td>
-              <td style={{ textAlign:"right" }}><button className="os-btn ghost" disabled={!A.pode("gerir_licenca")}>Editar</button></td>
+              <td style={{ textAlign:"right" }}><button className="os-btn ghost" disabled={!A.pode("gerir_licenca")} onClick={() => setFormTipo(t)} aria-label={`Editar ${t.nome}`}>Editar</button></td>
             </tr>))}</tbody>
         </table></div>
-        : <Vazio variante="first" titulo="Nenhum tipo de licença cadastrado" desc="Sem tipo não dá para pedir licença — comece por Férias (30 dias/ano) e Licença médica." acao={<button className="os-btn primary" disabled={A.demo}>Cadastrar o primeiro tipo</button>}/>}
+        : <Vazio variante="first" titulo="Nenhum tipo de licença cadastrado" desc="Sem tipo não dá para pedir licença — comece por Férias (30 dias/ano) e Licença médica." acao={<button className="os-btn primary" disabled={A.demo} onClick={() => setFormTipo({})}>Cadastrar o primeiro tipo</button>}/>}
       </>}
 
       <Bulk n={marcadas.length} rotulo="licenças selecionadas" onFechar={() => setMarcadas([])} acoes={[
@@ -305,6 +313,7 @@ function Licencas({ lic, setLic }) {
       ]}/>
 
       {form && <F.FormLicenca onClose={() => setForm(false)} onSalvar={criar}/>}
+      {formTipo && <F.FormTipo item={formTipo.id ? formTipo : null} onClose={() => setFormTipo(null)} onSalvar={salvarTipo}/>}
 
       {sel && (() => { const e = H.emp(sel.emp); const t = H.TIPOS.find((x) => x.id === sel.tipo) || {}; return (
         <Drawer title={`${sel.ref} · ${tipoNome(sel.tipo)}`} sub={`${e.nome} · ${H.dt(sel.ini)} – ${H.dt(sel.fim)} (${H.dias(sel.ini, sel.fim)} dias)`} onClose={() => setSel(null)}

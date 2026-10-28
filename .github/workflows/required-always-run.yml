@@ -33,7 +33,7 @@ concurrency:
 jobs:
   lint:
     name: Required always-run — todo context required nasce em todo PR
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -62,7 +62,7 @@ jobs:
   # (NÃO MEDIDO) e diz que não mediu — nunca verde silencioso.
   rename:
     name: Required rename — PRs abertos sobrevivem à promoção (advisory)
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
         with:

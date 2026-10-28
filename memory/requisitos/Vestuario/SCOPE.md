@@ -10,6 +10,8 @@ contains:
   - "DevolucaoService — CDC art. 49 7d devolução + crédito vest_creditos_cliente (US-VEST-021, scaffold)"
   - "CurvaCompraController — sugestão de compra por tamanho pela curva de venda, só leitura (GET /vestuario/curva-compra, US-VEST-031 · UC-VCUR-01..03)"
   - "CurvaDeCompra — proporção vendida por variação nos últimos 90 dias (ou da categoria), dividida pelo maior resto; diferente do GradeCurvaService, que guarda proporção fixa em configuração (US-VEST-031)"
+  - "RemarcacaoController — remarcação por coleção: tela, prévia, gravação, reversão e etiquetas do lote (/vestuario/remarcacao, atrás do setting remarcacao.enabled, US-VEST-032 · UC-VREM-05..07)"
+  - "Remarcacao — prévia antes → depois por variação, gravação em lote com o antes guardado e reversão que não pisa em preço mexido depois (US-VEST-032 · UC-VREM-01..04)"
 not_contains:
   - "Núcleo transactions/contacts → UltimatePOS core (compartilhado entre verticais)"
   - "NFe/NFC-e → Modules/NfeBrasil (backbone)"

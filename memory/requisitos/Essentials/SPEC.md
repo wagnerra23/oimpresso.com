@@ -293,6 +293,27 @@ Então recebe `403 Unauthorized`
 
 ---
 
+### US-ESS-015 · Folha CLT: modelo de verba (rubrica, vigência, competência, item)
+
+**Implementado em:** `Modules/Essentials/Database/Migrations/2026_10_27_100000_create_essentials_folha_modelo_verba_tables.php` · `Modules/Essentials/Entities/FolhaRubrica.php` · `Modules/Essentials/Entities/FolhaRubricaVigencia.php` · `Modules/Essentials/Entities/FolhaCompetencia.php` · `Modules/Essentials/Entities/FolhaItem.php`
+
+**Testado em:** `Modules/Essentials/Tests/Feature/FolhaModeloVerbaContratoTest.php` (UC-FOLHA-VERBA-01 a 07)
+
+**Como** responsável pela folha do business
+**Quero** que cada verba diga em que incide (INSS, IRRF, FGTS) e em que competência foi apurada
+**Para** que o motor de cálculo, quando vier, consiga montar as bases e reprocessar retroativos
+
+**Regras** (passo 3 do §9 da [ADR-mãe da folha](../../decisions/proposals/2026-09-05-folha-com-encargos-modelo-e-fronteira.md), §2.7):
+
+- As três incidências são booleanos independentes por vigência `AAAA-MM`, nunca um enum (§2.2).
+- A incidência é resolvida pela competência pedida (§2.3). O item a lê pela competência de **apuração**, não pela de pagamento (§2.5).
+- O item tem proveniência obrigatória (ponto, manual ou motor) e não aceita rubrica de outra empresa (Tier 0).
+- Só o contrato: nenhum cálculo de valor, nenhuma tela, e nada lê estas tabelas na folha gerencial atual. A flag `essentials.folha_clt.enabled` nasce desligada. A folha não declara ao eSocial (§3).
+
+**DoD:** os 7 casos de contrato passam na lane `essentials-pest`.
+
+---
+
 ## Cobertura de testes Pest (2026-05-16 Wave Massive)
 
 | Arquivo | Casos | Pré-req |
