@@ -46,6 +46,25 @@ class PortalContatoMenu
         return $itens;
     }
 
+    /**
+     * Dado da casca do contato (prop `shell.portal`): a loja, o contato e as telas que ele pode abrir.
+     * As Pages do portal substituem a prop `shell` inteira por `['portal' => casca()]`, então o menu
+     * do ERP não desce para quem é contato (UC-CRMPO-03).
+     */
+    public function casca(Contact $contato, array $modulosLigados): array
+    {
+        $usuario = auth()->user();
+
+        return [
+            'empresa' => (string) (Business::where('id', $contato->business_id)->value('name') ?? ''),
+            'contato' => ['nome' => (string) $contato->name, 'pessoa' => (string) trim($usuario->first_name.' '.$usuario->last_name), 'tipo' => (string) $contato->type],
+            'menu' => $this->itens($contato, $modulosLigados),
+            'perfil' => action([\Modules\Crm\Http\Controllers\ManageProfileController::class, 'getProfile']),
+            'novo_pedido' => action([\Modules\Crm\Http\Controllers\OrderRequestController::class, 'create']),
+            'agendar' => action([\Modules\Crm\Http\Controllers\ContactBookingController::class, 'create']),
+        ];
+    }
+
     /** O contato do usuário logado, neste negócio — ou 404. */
     public function contatoDoUsuario(): Contact
     {
