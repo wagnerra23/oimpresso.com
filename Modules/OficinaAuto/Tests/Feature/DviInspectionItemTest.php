@@ -94,7 +94,7 @@ it('cria OaInspectionItem com auto-set business_id via creating hook', function 
     expect($item->business_id)->toBe(BIZ_DVI);
     expect($item->severity)->toBe('ok');
     expect($item->metadata)->toBe(['km_restantes' => 4500]);
-})->afterEach(fn () => dvi_cleanup('A'));
+})->after(fn () => dvi_cleanup('A'));
 
 it('escopa por business_id global scope (biz=99 não enxerga itens biz=1)', function () {
     session(['user.business_id' => BIZ_DVI]);
@@ -116,7 +116,7 @@ it('escopa por business_id global scope (biz=99 não enxerga itens biz=1)', func
     // SUPERADMIN bypass mostra
     $todos = OaInspectionItem::withoutGlobalScopes()->where('service_order_id', $os->id)->get();
     expect($todos)->toHaveCount(1);
-})->afterEach(fn () => dvi_cleanup('B'));
+})->after(fn () => dvi_cleanup('B'));
 
 // ---------------------------------------------------------------------------
 // Service tests
@@ -139,7 +139,7 @@ it('Service::addItem cria item válido e respeita severity', function () {
     expect($item->id)->toBeGreaterThan(0);
     expect($item->severity)->toBe('critico');
     expect((float) $item->valor_recomendado)->toBe(480.00);
-})->afterEach(fn () => dvi_cleanup('C'));
+})->after(fn () => dvi_cleanup('C'));
 
 it('Service::addItem rejeita categoria inválida', function () {
     session(['user.business_id' => BIZ_DVI]);
@@ -151,7 +151,7 @@ it('Service::addItem rejeita categoria inválida', function () {
         'descricao' => 'X',
         'severity'  => OaInspectionItem::SEVERITY_OK,
     ]))->toThrow(InvalidArgumentException::class, "categoria inválida");
-})->afterEach(fn () => dvi_cleanup('D'));
+})->after(fn () => dvi_cleanup('D'));
 
 it('Service::addItem rejeita severity inválida', function () {
     session(['user.business_id' => BIZ_DVI]);
@@ -163,7 +163,7 @@ it('Service::addItem rejeita severity inválida', function () {
         'descricao' => 'X',
         'severity'  => 'amarelo', // inválido
     ]))->toThrow(InvalidArgumentException::class, "severity inválida");
-})->afterEach(fn () => dvi_cleanup('E'));
+})->after(fn () => dvi_cleanup('E'));
 
 it('Service::addItem rejeita OS de outro business (cross-tenant defense)', function () {
     session(['user.business_id' => BIZ_DVI]);
@@ -175,7 +175,7 @@ it('Service::addItem rejeita OS de outro business (cross-tenant defense)', funct
         'descricao' => 'X',
         'severity'  => OaInspectionItem::SEVERITY_OK,
     ]))->toThrow(InvalidArgumentException::class, 'não pertence ao business');
-})->afterEach(fn () => dvi_cleanup('F'));
+})->after(fn () => dvi_cleanup('F'));
 
 it('Service::breakdownPorSeverity retorna agregados corretos (5 items mistos)', function () {
     session(['user.business_id' => BIZ_DVI]);
@@ -196,7 +196,7 @@ it('Service::breakdownPorSeverity retorna agregados corretos (5 items mistos)', 
     expect($bd['atencao'])->toBe(2);
     expect($bd['critico'])->toBe(1);
     expect($bd['total_recomendado'])->toBe(1825.00); // 145 + 1200 + 480
-})->afterEach(fn () => dvi_cleanup('G'));
+})->after(fn () => dvi_cleanup('G'));
 
 it('Service::totalRecomendado soma apenas atencao + critico (ignora ok)', function () {
     session(['user.business_id' => BIZ_DVI]);
@@ -208,7 +208,7 @@ it('Service::totalRecomendado soma apenas atencao + critico (ignora ok)', functi
     $service->addItem(BIZ_DVI, $os->id, ['categoria' => 'correia', 'descricao' => 'C', 'severity' => 'critico', 'valor_recomendado' => 250.50]);
 
     expect($service->totalRecomendado($os->id))->toBe(350.50);
-})->afterEach(fn () => dvi_cleanup('H'));
+})->after(fn () => dvi_cleanup('H'));
 
 it('UC-OSH-06 · Service::listarOrdenado coloca críticos no topo', function () {
     session(['user.business_id' => BIZ_DVI]);
@@ -221,7 +221,7 @@ it('UC-OSH-06 · Service::listarOrdenado coloca críticos no topo', function () 
 
     $rows = $service->listarOrdenado($os->id);
     expect($rows->pluck('severity')->all())->toBe(['critico', 'atencao', 'ok']);
-})->afterEach(fn () => dvi_cleanup('I'));
+})->after(fn () => dvi_cleanup('I'));
 
 // ---------------------------------------------------------------------------
 // HTTP Controller tests — store + cross-OS guard
@@ -251,7 +251,7 @@ it('HTTP POST cria item DVI 201 com payload correto (autenticado superadmin)', f
     $resp->assertJsonPath('item.severity', 'atencao');
     $resp->assertJsonPath('item.categoria', 'freios');
     $resp->assertJsonPath('item.valor_recomendado', 145.00);
-})->afterEach(fn () => dvi_cleanup('J'));
+})->after(fn () => dvi_cleanup('J'));
 
 it('HTTP PUT cross-OS guard: item de OS diferente retorna 404', function () {
     session(['user.business_id' => BIZ_DVI]);
@@ -278,7 +278,7 @@ it('HTTP PUT cross-OS guard: item de OS diferente retorna 404', function () {
     );
 
     $resp->assertStatus(404);
-})->afterEach(function () {
+})->after(function () {
     dvi_cleanup('K1');
     dvi_cleanup('K2');
 });

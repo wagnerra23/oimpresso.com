@@ -149,7 +149,7 @@ it('1. actions retorna stages_pipeline ordenado por sort_order', function () {
     expect($payload['stages_pipeline'][1]['key'])->toBe('locada');
     expect($payload['stages_pipeline'][2]['key'])->toBe('recolhida');
     expect($payload['stages_pipeline'][3]['key'])->toBe('manutencao');
-})->afterEach(function () {
+})->after(function () {
     ospCleanup(BIZ_PIPELINE_TEST);
 });
 
@@ -165,7 +165,7 @@ it('2. is_current=true apenas no stage atual', function () {
     $currents = array_filter($payload['stages_pipeline'], fn ($s) => $s['is_current'] === true);
     expect($currents)->toHaveCount(1);
     expect(array_values($currents)[0]['key'])->toBe('locada');
-})->afterEach(function () {
+})->after(function () {
     ospCleanup(BIZ_PIPELINE_TEST);
 });
 
@@ -195,7 +195,7 @@ it('3. multi-tenant Tier 0 — biz=99 process nao vaza stages pra biz=98 OS', fu
         $matches = collect($stagesB98)->contains(fn ($stage) => $stage->key === $s['key']);
         expect($matches)->toBeTrue();
     }
-})->afterEach(function () {
+})->after(function () {
     ospCleanup(BIZ_PIPELINE_TEST);
     ospCleanup(BIZ_PIPELINE_FICTICIO);
 });
@@ -213,6 +213,6 @@ it('4. OS sem current_stage_id retorna in_pipeline=false e nao popula stages_pip
     expect($payload['current_stage'])->toBeNull();
     // stages_pipeline ausente OU vazio quando out-of-pipeline
     expect($payload['stages_pipeline'] ?? [])->toBeArray()->toBeEmpty();
-})->afterEach(function () {
+})->after(function () {
     ospCleanup(BIZ_PIPELINE_TEST);
 });

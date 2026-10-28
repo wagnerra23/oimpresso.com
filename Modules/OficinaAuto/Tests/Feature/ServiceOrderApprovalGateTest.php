@@ -85,7 +85,7 @@ it('enviarAprovacao carimba approval_requested_at e o estado vira pending', func
     expect($fresh->approval_decision)->toBeNull();
     expect($fresh->approval_state)->toBe('pending');
     Queue::assertPushed(EnviarLinkAprovacaoWhatsappJob::class);
-})->afterEach(fn () => gate_cleanup('A'));
+})->after(fn () => gate_cleanup('A'));
 
 it('UC-OSH-08 · show() JSON expõe o bloco approval com o estado derivado', function () {
     session(['user.business_id' => BIZ_GATE]);
@@ -103,7 +103,7 @@ it('UC-OSH-08 · show() JSON expõe o bloco approval com o estado derivado', fun
     $resp->assertOk();
     $resp->assertJsonPath('approval.state', 'pending');
     expect($resp->json('approval'))->toHaveKeys(['state', 'total', 'requested_at', 'decided_at', 'decision']);
-})->afterEach(fn () => gate_cleanup('B'));
+})->after(fn () => gate_cleanup('B'));
 
 it('re-envio (Cobrar) em OS já em orcamento re-dispara o WhatsApp', function () {
     Queue::fake();
@@ -124,7 +124,7 @@ it('re-envio (Cobrar) em OS já em orcamento re-dispara o WhatsApp', function ()
     // Cobrar limpa a idempotência + redispara o Job (Observer não dispara: status não muda).
     expect(Cache::has("oficina:approval_dispatched:{$os->id}"))->toBeFalse();
     Queue::assertPushed(EnviarLinkAprovacaoWhatsappJob::class);
-})->afterEach(fn () => gate_cleanup('C'));
+})->after(fn () => gate_cleanup('C'));
 
 it('accessor approval_state deriva approved e declined das colunas de decisão', function () {
     session(['user.business_id' => BIZ_GATE]);
@@ -140,7 +140,7 @@ it('accessor approval_state deriva approved e declined das colunas de decisão',
         'approval_decision'     => 'declined',
     ])->saveQuietly();
     expect($recusada->fresh()->approval_state)->toBe('declined');
-})->afterEach(function () {
+})->after(function () {
     gate_cleanup('D');
     gate_cleanup('E');
 });

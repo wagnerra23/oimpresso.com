@@ -69,7 +69,7 @@ it('envia aprovação: status vira orcamento e dispara job WhatsApp', function (
 
     expect(ServiceOrder::withoutGlobalScopes()->find($os->id)->status)->toBe('orcamento');
     Queue::assertPushed(EnviarLinkAprovacaoWhatsappJob::class);
-})->afterEach(fn () => apr_cleanup('A'));
+})->after(fn () => apr_cleanup('A'));
 
 it('não reenvia aprovação em OS já aprovada (status preservado)', function () {
     Queue::fake();
@@ -87,4 +87,4 @@ it('não reenvia aprovação em OS já aprovada (status preservado)', function (
     // status NÃO muda + nenhum job de aprovação disparado
     expect(ServiceOrder::withoutGlobalScopes()->find($os->id)->status)->toBe('aprovada');
     Queue::assertNotPushed(EnviarLinkAprovacaoWhatsappJob::class);
-})->afterEach(fn () => apr_cleanup('B'));
+})->after(fn () => apr_cleanup('B'));

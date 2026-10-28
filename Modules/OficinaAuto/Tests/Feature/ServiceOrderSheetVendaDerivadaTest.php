@@ -95,7 +95,7 @@ it('OS sem transaction → JSON venda_derivada null (degrade gracioso)', functio
 
     $response->assertOk();
     expect($response->json('venda_derivada'))->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()
         ->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'VDTEST01'))
         ->forceDelete();
@@ -125,7 +125,7 @@ it('OS com transaction → JSON venda_derivada populado (4 campos core ADR 0192 
     expect($vd['invoice_no'])->toBe($tx->invoice_no);
     expect((float) $vd['final_total'])->toBe(1234.56);
     expect($vd['transaction_date'])->toBe(now()->toDateString());
-})->afterEach(function () {
+})->after(function () {
     $vs = Vehicle::withoutGlobalScopes()->where('plate', 'VDTEST02')->get();
     foreach ($vs as $v) {
         ServiceOrder::withoutGlobalScopes()
@@ -166,7 +166,7 @@ it('UC-OSH-11 · Multi-tenant Tier 0: OS biz=1 com transaction biz=2 retorna ven
     // GLOBAL SCOPE Transaction deve resolver Transaction belongsTo como null
     // porque o tenant ativo (biz=1) não enxerga Transaction biz=99.
     expect($response->json('venda_derivada'))->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     $vs = Vehicle::withoutGlobalScopes()->where('plate', 'VDTEST03')->get();
     foreach ($vs as $v) {
         ServiceOrder::withoutGlobalScopes()
