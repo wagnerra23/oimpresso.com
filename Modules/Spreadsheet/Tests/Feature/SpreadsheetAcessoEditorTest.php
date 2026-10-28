@@ -215,3 +215,35 @@ it('UC-PLAN-08 · [T0] o dono compartilha com gente do negócio; id de outro neg
     expect((bool) $r->json('success'))->toBeTrue();
     expect(edShares($sheet))->toBe(['user:'.$colega->id]);
 });
+
+it('UC-PLAN-09 · a tela React recebe o compartilhamento em JSON, só com gente do negócio', function () {
+    $dono = edUser($this, $this->edBiz);
+    $colega = edUser($this, $this->edBiz);
+    $alheio = edUser($this, $this->edAlheio);
+    $sheet = edPlanilha($this, $this->edBiz, (int) $dono->id, 'ED do dono');
+    edCompartilha($sheet, 'user', (int) $colega->id);
+    $this->actingAs($dono);
+
+    $r = edXhr($this)->get('/spreadsheet/get-sheet/'.$sheet.'/share');
+
+    $r->assertOk();
+    $usuarios = collect($r->json('usuarios'))->pluck('id')->all();
+    expect($usuarios)->toContain((int) $colega->id);
+    expect($usuarios)->not->toContain((int) $alheio->id);
+    expect($r->json('selecionados.user'))->toBe([(int) $colega->id]);
+});
+
+it('UC-PLAN-10 · excluir pela tela React só apaga planilha que eu criei', function () {
+    $eu = edUser($this, $this->edBiz);
+    $colega = edUser($this, $this->edBiz);
+    $minha = edPlanilha($this, $this->edBiz, (int) $eu->id, 'ED minha');
+    $doColega = edPlanilha($this, $this->edBiz, (int) $colega->id, 'ED do colega');
+    edCompartilha($doColega, 'user', (int) $eu->id);
+    $this->actingAs($eu);
+
+    edXhr($this)->delete('/spreadsheet/sheets/'.$doColega)->assertOk();
+    edXhr($this)->delete('/spreadsheet/sheets/'.$minha)->assertOk();
+
+    expect(DB::table('sheet_spreadsheets')->where('id', $doColega)->exists())->toBeTrue();
+    expect(DB::table('sheet_spreadsheets')->where('id', $minha)->exists())->toBeFalse();
+});
