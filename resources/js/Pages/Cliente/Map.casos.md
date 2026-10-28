@@ -5,7 +5,7 @@ irmaos: Map.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o mapa abrir em React e não vazar cliente de outro tenant não muda no refactor.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-27"
 ---
 
 > ℹ️ **`last_run` 2026-07-08 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -27,9 +27,9 @@ last_run: "2026-09-11"
 
 ## UC-CMAP-01 · Abrir o mapa dos clientes (React, com as duas listas)
 - **Persona:** Larissa — quer ver onde estão os clientes no mapa; abre a tela e vê o mapa + a lista lateral.
-- **Aceite:** Dado a flag `MWART_CLIENTE_MAP` ligada · Quando faço `GET /contacts/map` · Então renderiza Inertia **`Cliente/Map`** (não o Blade `contact.contact_map`) com os props `contacts` (os que têm posição) e `all_contacts` (todos, pra lista pesquisável).
+- **Aceite:** Dado qualquer empresa, com a chave `MWART_CLIENTE_MAP` ligada ou não (cutover F5 de 2026-10-27; o teste roda com ela desligada) · Quando faço `GET /contacts/map` · Então renderiza Inertia **`Cliente/Map`** (não o Blade `contact.contact_map`) com os props `contacts` (os que têm posição) e `all_contacts` (todos, pra lista pesquisável).
 - **Teste:** `tests/Feature/Cliente/ClienteMapInertiaTest.php` — `GET /contacts/map renderiza Inertia Cliente/Map com contacts/all_contacts`.
-- **Status: 🧪** — feature test HTTP passa no CI; ✅ com o manifesto regravado.
+- **Status: 🧪** — passou com a chave DESLIGADA no run 40496144297 da lane Cliente (2026-10-27, PR #10007); ✅ com o manifesto regravado.
 
 ---
 
@@ -38,7 +38,7 @@ last_run: "2026-09-11"
 - **Aceite:** Dado um cliente cadastrado em OUTRO `business_id` · Quando abro `/contacts/map` no meu negócio · Então esse cliente estrangeiro **não** aparece em `all_contacts` (o global scope por `business_id` o esconde).
 - **Teste:** `tests/Feature/Cliente/ClienteMapInertiaTest.php` — `Tier 0 — o mapa não lista cliente de outro business`.
 - **Regressão que defende:** vazamento cross-tenant na listagem do mapa (`Contact::where('business_id')`).
-- **Status: 🧪** — feature test HTTP passa no CI; ✅ com o manifesto regravado.
+- **Status: ⬜** — adversário trocado para o tenant fictício 99 em 2026-10-27 (antes: a primeira outra empresa do banco); vira 🧪 com o próximo run verde da lane Cliente.
 
 ---
 
@@ -63,5 +63,6 @@ last_run: "2026-09-11"
 3. **Cadência:** rodar ao fim de toda mexida em `Map.tsx` / `ContactController::contactMap`.
 
 ## Trilha do tempo
+- 2026-10-27 · [CC] cutover F5: tela só React, fallback Blade apagado (sessão mig-nucleo-contatos-geral).
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito.** Lane `PHP / Pest (Cliente · MySQL)` criada (**advisory**) — antes o teste não rodava em lane de PR nenhuma; + ponteiro pro SDD §6.4. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente). Teste-âncora `ClienteMapInertiaTest` (render Inertia + Tier 0) escrito nesta onda. Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).

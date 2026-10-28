@@ -43,7 +43,11 @@ export interface LinhaProduto {
   preco_proposto?: { quantidade: number; preco: number | null } | null;
   /** Requisição de compra aberta (UC-PIDX-30). Ausente = sem permissão de ver requisições; null = nenhuma. */
   requisicao?: RequisicaoAberta | null;
+  /** Natureza fiscal decidida pelo contador (UC-PIDX-31). Ausente = sem o módulo Fiscal. */
+  natureza_fiscal?: NaturezaFiscal;
 }
+
+export type NaturezaFiscal = 'mercadoria' | 'servico' | 'pendente';
 
 /** Requisição de compra aberta do produto, criada pelo estoque mínimo ou à mão (UC-PIDX-30 · UC-FLX-19). */
 export interface RequisicaoAberta {
@@ -74,6 +78,8 @@ export interface FiltrosLista {
   not_for_selling: boolean;
   woocommerce_enabled: boolean;
   repair_model_id: string | null;
+  /** UC-PIDX-31 — só com o módulo Fiscal. */
+  natureza_fiscal: NaturezaFiscal | null;
   q: string;
   sort: string;
   dir: 'asc' | 'desc';
@@ -246,6 +252,8 @@ export interface DetalheProdutoDados {
     origem_por_produto: boolean;
     /** Tributação do NfeBrasil com este produto no simulador; null sem o módulo Fiscal no pacote, sem `fiscal.access` ou sem `nfe.tributacao.manage`. */
     link_modulo: string | null;
+    /** UC-PIDX-31: null sem o módulo Fiscal. */
+    natureza?: { natureza: NaturezaFiscal; codigo_servico: string | null } | null;
   };
   prateleiras: {
     colunas: { prateleira: boolean; fileira: boolean; posicao: boolean };
@@ -281,6 +289,8 @@ export interface ContextoLista {
   emite_nota: boolean;
   papel: string | null;
   rotulos_campos: Record<string, string | null>;
+  /** O filtro "Natureza fiscal" existe (módulo Fiscal ligado). */
+  natureza_fiscal?: boolean;
 }
 
 export interface PermissoesLista {
@@ -389,6 +399,11 @@ export const TIPOS_PRODUTO: Opcao[] = [
   { id: 'variable', nome: 'Variável' },
   { id: 'combo', nome: 'Composição' },
 ];
+export const NATUREZAS_FISCAIS: Opcao[] = [
+  { id: 'mercadoria', nome: 'Mercadoria (NF-e)' },
+  { id: 'servico', nome: 'Serviço (NFS-e)' },
+  { id: 'pendente', nome: 'A decidir pelo contador' },
+];
 export const SITUACOES: Opcao[] = [
   { id: 'active', nome: 'Ativo' },
   { id: 'inactive', nome: 'Inativo' },
@@ -428,6 +443,7 @@ export function chipsDosFiltros(
   if (f.brand_id) out.push({ chave: 'brand_id', rotulo: `Marca: ${nome(o.marcas, f.brand_id)}` });
   if (f.location_id) out.push({ chave: 'location_id', rotulo: `Local: ${nome(o.locais, f.location_id)}` });
   if (f.active_state) out.push({ chave: 'active_state', rotulo: `Situação: ${nome(SITUACOES, f.active_state)}` });
+  if (f.natureza_fiscal) out.push({ chave: 'natureza_fiscal', rotulo: `Natureza fiscal: ${nome(NATUREZAS_FISCAIS, f.natureza_fiscal)}` });
   if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
   if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
   if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
