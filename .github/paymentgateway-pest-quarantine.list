@@ -1,0 +1,18 @@
+# Quarentena da lane "PHP / Pest (PaymentGateway · MySQL)" — .github/workflows/paymentgateway-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em Modules/PaymentGateway/Tests/**/*Test.php
+# MENOS (1) quem tem dono em .github/ci-sqlite-pest.list, (2) quem tem construto
+# destrutivo em código (RefreshDatabase / migrate:fresh / dropIfExists — derivado pelo
+# step) e (3) este arquivo. Arquivo NOVO entra rodando.
+#
+# 1 path por linha · '#' comenta · merge=union no .gitattributes. Depois de mergear o
+# main, confira duplicata como a lane compara:
+#   sed 's/#.*//; s/[[:space:]]*$//' <lista> | grep -vE '^$' | sort | uniq -d   # vazio = ok
+#
+# ── D. Construto destrutivo (o step já barra; listado aqui para não sumir da medição) ──
+# RefreshDatabase dropa o schema semeado (tenants 1/2/98) que os outros arquivos usam.
+# Saída: trocar por DatabaseTransactions, ou mover para .github/ci-sqlite-pest.list se
+# passar no sqlite (onde já moram RetryOrphanWebhookJobTest e WebhookProcessorLinkageTest).
+Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php  # RefreshDatabase
+Modules/PaymentGateway/Tests/Feature/WebhookEndpointsTest.php  # RefreshDatabase
+Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php  # RefreshDatabase
