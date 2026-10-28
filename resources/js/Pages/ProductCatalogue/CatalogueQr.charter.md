@@ -18,9 +18,9 @@ related_us: [US-PCAT-003]
 
 > **Status:** draft, com Non-Goals, Anti-hooks e screenshot aprovados por [W] em 2026-10-09. Vira `live` com o smoke de produção (campo `smoke:` datado), que o gate `charter status:live precisa de sinal de prod` exige. Thread `modulos-faltantes/playbook/04`. Proposto pelo [CC] em
 > `cowork-inbox/modulos-faltantes/catalogo-qr.charter.md`; este é o charter ao lado do `.tsx`.
-> `GET /product-catalogue/catalogue-qr` responde Inertia só com a chave `mwart.product_catalogue_qr` ligada
-> (env `MWART_PRODUCT_CATALOGUE_QR`, desligada por padrão); desligada, segue a Blade `catalogue/generate_qr.blade.php`
-> até o cutover de [W]. Casos: [`CatalogueQr.casos.md`](./CatalogueQr.casos.md).
+> `GET /product-catalogue/catalogue-qr` responde só Inertia desde o F5 de 2026-10-27. Até então era dual: chave
+> `mwart.product_catalogue_qr` (ligada para todas desde 2026-10-13) e Blade `catalogue/generate_qr.blade.php`, as duas
+> removidas no F5. Casos: [`CatalogueQr.casos.md`](./CatalogueQr.casos.md).
 > A entry é **ghost do hub Vendas** (ADR 0180): `DataController::modifyAdminMenu()` do módulo é NO-OP de propósito.
 
 ## Mission
