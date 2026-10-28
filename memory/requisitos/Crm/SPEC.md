@@ -637,6 +637,28 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 5. Resumo (prop deferida) por etapa e previsão ponderada do mês, só com negócios da empresa.
 6. Tela kanban (PT-05) em `Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx`, ancorada no protótipo `prototipo-ui/cowork/Felipe/erp-shell-v2/crm-page.jsx` — PR seguinte.
 
+### US-CRM-094 · Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
+
+**Implementado em:** `Modules/Crm/Services/ChamadoGarantiaService.php` · `Modules/Crm/Entities/SlaPolitica.php` · `Modules/Crm/Database/Migrations/2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php` — parcial: abertura com prazo (fatia 1). Alerta de prazo vencendo e tela são as fatias 2 e 3.
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php`
+
+> owner: — · priority: p3 · estimate: 8h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P3 do levantamento de concorrência ("ticket de garantia com SLA"), destravada por [W] em 2026-10-27 ("pode destravar todos os outros vou fazer todos").
+
+**Decisão de casa:** o chamado é um acompanhamento do CRM (`crm_schedules`) marcado como garantia, não um sistema de tickets novo. Responsável, venda, tipo, lista e histórico já existem ali (`crm_schedule_users`, `crm_followup_invoices`, categoria de acompanhamento). A pesquisa pós-entrega (US-SELL-071) já abre atendimento do mesmo jeito. A SPEC de [Garantia](../Garantia/SPEC.md) (`warranty_claims`, FSM própria) segue wish; o chamado guarda a venda e a OS do Repair, que é o que ela precisaria para reaproveitar.
+
+**Critérios de aceite:**
+1. Atrás de `CRM_GARANTIA_SLA_ENABLED`, desligada por padrão; desligada, nada é aberto.
+2. O chamado liga o cliente a uma venda (`crm_followup_invoices`) ou a uma OS (`repair_job_sheet_id`); sem nenhuma das duas, recusa.
+3. Prazo (`sla_vence_em`, também `end_datetime`) = abertura + horas da política do tipo em `crm_sla_politicas`; sem política do tipo, a padrão da empresa (categoria nula); sem nenhuma, `crm.garantia_sla.prazo_padrao_horas` (48h).
+4. Fila e responsável: o pedido, senão a política, senão quem abriu.
+5. Cliente, venda, OS, tipo e responsável de outra empresa são recusados (ADR 0093).
+6. Fatia 2: comando agendado avisa o responsável quando o prazo está vencendo ou vencido, uma vez por chamado (`sla_alertado_em`).
+7. Fatia 3: aba "Garantia" em Acompanhamentos com fila, responsável e prazo, ancorada no protótipo.
+
 ### US-CRM-096 · Captura de lead com origem e UTM — o lead entra no funil já com a origem
 
 **Implementado em:** `Modules/Crm/Http/Controllers/CapturaLeadController.php` · `Modules/Crm/Services/CapturaDeLead.php` · `Modules/Crm/Routes/api.php` · `Modules/Crm/Entities/FormularioCaptura.php`
