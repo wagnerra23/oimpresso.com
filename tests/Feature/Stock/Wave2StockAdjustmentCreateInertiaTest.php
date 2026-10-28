@@ -48,7 +48,8 @@ it('Charter + Runbook + Visual existem (ADR 0149 + 0114)', function () {
 it('Page importa AppShellV2 + PageHeader', function () {
     $source = readSACreateInertia();
     expect($source)->toContain('@/Layouts/AppShellV2');
-    expect($source)->toContain('@/Components/shared/PageHeader');
+    expect($source)->toContain("from '@/Components/PageHeader'");
+    expect($source)->not->toContain('@/Components/shared/PageHeader');
     expect($source)->toMatch('/StockAdjustmentCreate\\.layout\\s*=/');
 });
 

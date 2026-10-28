@@ -6,7 +6,7 @@
 //   adrs: 0104, 0093, 0114, 0149
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { router, useForm } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { paraNumUf } from '@/Lib/numberPtBR';
@@ -23,7 +23,7 @@ import { Input } from '@/Components/ui/input';
 import { NumericInputPtBR } from '@/Components/ui/numeric-input-ptbr';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
-import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, AlertCircle, Package } from 'lucide-react';
 
 // ---------- Tipos ----------
 
@@ -109,10 +109,10 @@ function StockAdjustmentCreate({
   return (
     <form onSubmit={enviar}>
       <PageHeader
-        icon="package"
+        leading={<Package className="mr-2 inline h-5 w-5 align-middle text-primary" aria-hidden="true" />}
         title="Novo ajuste de estoque"
-        description="Ajustes manuais (perda, quebra, inventário) registrados em audit trail."
-        action={
+        subtitle="Ajustes manuais (perda, quebra, inventário) registrados em audit trail."
+        actions={
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => router.visit('/stock-adjustments')}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Cancelar
