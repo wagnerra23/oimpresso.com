@@ -40,13 +40,16 @@ test('UC-ETQ-01 com a flag ligada, GET /barcodes renderiza Inertia (não a DataT
     expect($r->json('component'))->toBe('Configuracoes/CodigoBarras/Index');
 });
 
-test('UC-ETQ-02 com a flag desligada, GET /barcodes segue na Blade', function () {
+test('UC-ETQ-02 cutover: com a flag desligada a tela segue em React (a Blade saiu)', function () {
     config(['feature-flags.forced_on' => '']);
-    // OFF é override explícito, não o default global após D-CFG-LIGAR.
+    // Desde 2026-10-27 o controller não consulta mais useV2ConfiguracoesCodigoBarras: OFF no GrowthBook não traz a Blade de volta.
     $this->mock(\App\Services\FeatureFlagService::class, fn ($mock) =>
         $mock->shouldReceive('isOn')->with('useV2ConfiguracoesCodigoBarras', \Mockery::any())->andReturn(false));
 
-    $this->get('/barcodes')->assertOk()->assertViewIs('barcode.index');
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])->get('/barcodes');
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Configuracoes/CodigoBarras/Index');
+    expect(view()->exists('barcode.index'))->toBeFalse();
 });
 
 test('UC-ETQ-03 Tier 0 — a lista adiada traz só as configurações do negócio, padrão primeiro, em polegada', function () {

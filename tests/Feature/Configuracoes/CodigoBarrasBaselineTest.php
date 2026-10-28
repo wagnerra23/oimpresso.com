@@ -37,7 +37,7 @@ function etqBaseCorpo(string $nome, array $extra = []): array
         'col_distance' => '0', 'stickers_in_one_row' => '3', 'stickers_in_one_sheet' => '24'], $extra);
 }
 
-test('baseline: a lista (DataTable) traz só as configurações do negócio, com a padrão marcada', function () {
+test('baseline: a lista (prop adiada da tela React; a DataTable saiu no cutover 2026-10-27) traz só as configurações do negócio, com a padrão marcada', function () {
     $outro = $this->seededSupportClientTenant();
     $nomeMeu = 'Folha Minha '.uniqid();
     $nomeAlheio = 'Folha Alheia '.uniqid();
@@ -48,12 +48,13 @@ test('baseline: a lista (DataTable) traz só as configurações do negócio, com
         ['business_id' => null, 'name' => $nomeGlobal, 'is_default' => 0, 'is_continuous' => 0],
     ]);
 
-    $r = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])->get('/barcodes');
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request()), 'X-Inertia-Partial-Component' => 'Configuracoes/CodigoBarras/Index', 'X-Inertia-Partial-Data' => 'etiquetas'])->get('/barcodes');
     $r->assertOk();
-    $nomes = collect($r->json('data'))->pluck(0)->implode('|');
+    $linhas = collect($r->json('props.etiquetas'));
+    $nomes = $linhas->pluck('nome')->implode('|');
 
     expect($nomes)->toContain($nomeMeu);
-    expect($nomes)->toContain(__('barcode.default'));
+    expect($linhas->firstWhere('nome', $nomeMeu)['padrao'] ?? null)->toBeTrue();
     expect($nomes)->not->toContain($nomeAlheio);
     expect($nomes)->not->toContain($nomeGlobal);
 });
