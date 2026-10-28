@@ -90,7 +90,7 @@
     },
     {
       "screen": "ComunicacaoVisual",
-      "note": "2 arquivo(s)",
+      "note": "4 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -112,7 +112,7 @@
     },
     {
       "screen": "Crm",
-      "note": "16 arquivo(s)",
+      "note": "18 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -243,6 +243,17 @@
       }
     },
     {
+      "screen": "Marketplaces",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "NotificationTemplate",
       "note": "4 arquivo(s)",
       "cells": {
@@ -310,7 +321,7 @@
     },
     {
       "screen": "PurchaseRequisition",
-      "note": "1 arquivo(s)",
+      "note": "2 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -332,7 +343,7 @@
     },
     {
       "screen": "RecurringBilling",
-      "note": "16 arquivo(s)",
+      "note": "17 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -574,7 +585,7 @@
     },
     {
       "screen": "OficinaAuto",
-      "note": "33 arquivo(s)",
+      "note": "32 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -596,7 +607,7 @@
     },
     {
       "screen": "Produto",
-      "note": "56 arquivo(s)",
+      "note": "57 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -607,7 +618,7 @@
     },
     {
       "screen": "Purchase",
-      "note": "8 arquivo(s)",
+      "note": "10 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -640,7 +651,7 @@
     },
     {
       "screen": "Whatsapp",
-      "note": "46 arquivo(s)",
+      "note": "48 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -662,7 +673,7 @@
     },
     {
       "screen": "Ponto",
-      "note": "36 arquivo(s)",
+      "note": "37 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -694,18 +705,18 @@
       }
     }
   ],
-  "progressPct": 62,
+  "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "b2f7a301d",
-  "generatedAt": "2026-10-26T17:49:07.799Z",
+  "measuredAgainstSha": "ec67832b7",
+  "generatedAt": "2026-10-27T19:30:25.136Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 63,
-    "done": 39,
+    "screens": 64,
+    "done": 40,
     "references": 0
   }
 }

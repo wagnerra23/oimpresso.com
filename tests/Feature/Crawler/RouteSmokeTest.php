@@ -107,7 +107,6 @@ dataset('viewRoutes', [
     'printers.create' => ['/printers/create'],
     'users.create' => ['/users/create'],
     'roles.create' => ['/roles/create'],
-    'sales-commission-agents.create' => ['/sales-commission-agents/create'],
     'cash-register.create' => ['/cash-register/create'],
     'expenses.create' => ['/expenses/create'],
     'expense-categories.create' => ['/expense-categories/create'],

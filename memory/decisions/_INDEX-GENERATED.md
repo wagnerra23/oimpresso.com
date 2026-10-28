@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **447** arquivos · **432** números únicos · máx **0442**
-- **ADRs ATIVOS (lifecycle ativo): 400** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 386 · superseded 27 · proposto 20 · deprecated 11 · recusado 2 · rascunho 1
-- Por lifecycle: ativo 400 · substituido 27 · arquivado 20
+- **449** arquivos · **434** números únicos · máx **0444**
+- **ADRs ATIVOS (lifecycle ativo): 402** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 387 · superseded 27 · proposto 21 · deprecated 11 · recusado 2 · rascunho 1
+- Por lifecycle: ativo 402 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 - **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
-## Todas as ADRs (447)
+## Todas as ADRs (449)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -486,3 +486,5 @@ _(nenhuma)_
 | 0440 | proposto | ativo | decision | A Jana propõe a ação, o usuário confirma, e só então o sistema grava |
 | 0441 | proposto | ativo | decision | O funil de vendas (negócios em kanban) sai da depreciação do pipeline CRM |
 | 0442 | aceito | ativo | decision | IBS/CBS automático para todo emissor do regime normal (CRT 3) — emenda a 0321 |
+| 0443 | aceito | ativo | decision | Nuvemshop entra no Modules/Marketplaces como segundo canal, não no Woocommerce |
+| 0444 | proposto | ativo | decision | MDF-e e CT-e entram pelas bibliotecas sped-mdfe e sped-cte, dentro do Modules/Nf |

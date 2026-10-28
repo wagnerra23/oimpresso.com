@@ -40,12 +40,13 @@ e o que a produção fez por último.
 - "Acontecendo agora": os eventos da produção da empresa, sem os que falam de uma pessoa — UC-PCV-29.
 - Carga das máquinas hoje: horas das etapas previstas para hoje ÷ horas do dia do posto.
 - É a entrada do item Produção no menu (vista inicial do protótipo).
+- Na fila de arte, "Reenviar link" (aguardando) e "Enviar nova prova" (ajuste pedido, com o link do arquivo
+  novo) geram link novo e o anterior deixa de valer; com WhatsApp ligado o cliente recebe, senão o link aparece
+  para mandar à mão — UC-PCART-07. Liberado por [W] em 2026-10-27 (antes era Non-Goal: o banco só guarda o hash).
 
 ## Non-Goals — Features (NÃO faz, nesta entrega)
 
 - ❌ Refugo em R$ e o indicador levando ao Custo (a fórmula de custo e a tela de Custo são da thread 08).
-- ❌ Reenviar o link da prova ou "Enviar nova prova" (UC-PCV-04 🟡: o pedido só guarda o hash do token,
-  reenviar o mesmo link exige guardar o token — decisão [W]).
 - ❌ Gargalo com sugestão de reprogramação e "Ver na linha do tempo" (UC-PCV-09 · thread 07).
 - ❌ Produtividade por setor (UC-PCV-27, LGPD) e aproveitamento de mídia agregado (UC-PCV-26).
 

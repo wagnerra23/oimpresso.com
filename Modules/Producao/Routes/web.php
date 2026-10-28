@@ -100,6 +100,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('ordens/{id}/aprovacao-arte', [AprovacaoArteController::class, 'solicitar'])->whereNumber('id')->name('ordens.aprovacao-arte');
         // UC-PCV-11 · arte aprovada travada: trocar o arquivo pede nova aprovação; a vigente é a última aprovada (JSON).
         Route::post('ordens/{id}/arte/trocar', [AprovacaoArteController::class, 'trocar'])->whereNumber('id')->name('ordens.arte.trocar');
+        // UC-PCART-07 · fila do Painel: reenviar o link ou enviar a nova prova (JSON).
+        Route::post('ordens/{id}/aprovacao-arte/reenviar', [AprovacaoArteController::class, 'reenviar'])->whereNumber('id')->name('ordens.aprovacao-arte.reenviar');
         Route::get('ordens/{id}/arte', [AprovacaoArteController::class, 'vigente'])->whereNumber('id')->name('ordens.arte.vigente');
         // US-PCP-028 · UC-FLX-06 — prazo de entrega da venda pela fila dos postos (JSON, só leitura).
         Route::get('vendas/{id}/prazo', [PrazoDaVendaController::class, 'show'])->whereNumber('id')->name('vendas.prazo');
