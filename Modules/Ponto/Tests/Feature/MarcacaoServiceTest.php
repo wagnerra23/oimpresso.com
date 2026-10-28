@@ -75,8 +75,6 @@ it('registrar() persiste marcacao com hash SHA-256 + NSR + business_id (Portaria
         ->and($marcacao->nsr)->toBeGreaterThan(0)
         ->and($marcacao->hash)->toMatch('/^[a-f0-9]{64}$/') // SHA-256 hex
         ->and($marcacao->hash_anterior)->toBeNull(); // primeira do REP virtual
-})->afterEach(function () {
-    marcsvcCleanup();
 });
 
 // ------------------------------------------------------------------
@@ -156,8 +154,6 @@ it('anular() cria nova marcacao ORIGEM_ANULACAO sem UPDATE/DELETE (append-only C
     $originalRefetch = DB::table('ponto_marcacoes')->where('id', $originalId)->first();
     expect($originalRefetch)->not->toBeNull()
         ->and($originalRefetch->hash)->toBe($originalHash); // hash preservado
-})->afterEach(function () {
-    marcsvcCleanup();
 });
 
 // ------------------------------------------------------------------
@@ -177,34 +173,7 @@ function marcsvcEnsureColaborador(int $businessId): int
     test()->markTestSkipped("Sem ponto_colaborador_config seedado pra biz={$businessId}.");
 }
 
-function marcsvcCleanup(): void
-{
-    // ponto_marcacoes tem triggers MySQL bloqueando DELETE.
-    // Tenta drop temporario do trigger pra limpar markers de teste.
-    try {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_ponto_marcacoes_no_delete');
-        DB::table('ponto_marcacoes')
-            ->where('ip', MARCSVC_MARKER)
-            ->delete();
-        // Tambem limpa anulacoes (rastreadas por dispositivo_id prefix 'anulacao:')
-        DB::table('ponto_marcacoes')
-            ->where('origem', Marcacao::ORIGEM_ANULACAO)
-            ->where('dispositivo_id', 'like', 'anulacao:%')
-            ->whereIn('marcacao_anulada_id', function ($q) {
-                $q->select('id')->from('ponto_marcacoes')->where('ip', MARCSVC_MARKER);
-            })
-            ->delete();
-
-        DB::unprepared(<<<SQL
-            CREATE TRIGGER trg_ponto_marcacoes_no_delete
-            BEFORE DELETE ON ponto_marcacoes
-            FOR EACH ROW
-            BEGIN
-                SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'ponto_marcacoes e append-only (Portaria 671/2021).';
-            END;
-        SQL);
-    } catch (\Throwable $e) {
-        // User sem permissao DROP TRIGGER — deixa marker isolar registros de teste.
-    }
-}
+// Sem limpeza de ponto_marcacoes: a tabela e append-only por lei (Portaria 671/2021) e o
+// trigger trg_ponto_marcacoes_no_delete nao se derruba em teste. As linhas levam marcador
+// proprio e os asserts comparam contagem antes/depois. A limpeza que derrubava o trigger
+// estava num ->afterEach() por teste, que nunca rodou no Pest 4 (#10120).
