@@ -7,6 +7,7 @@ contains:
   - "AdvisorAccessController — Onda 31 US-FIN-037 grant/revoke acesso contador parceiro (biz-side, consent LGPD)"
   - "Advisor/AdvisorAuthController — Onda 31 US-FIN-037 login/logout guard web-advisor isolado"
   - "Advisor/AdvisorPortalController — Onda 31 US-FIN-037 dashboard /advisor (cards Meus clientes)"
+  - "Public/PagamentoPublicoController — US-FIN-081 página pública /pagar/{token}: cliente paga o título a receber por Pix ou boleto (flag FINANCEIRO_LINK_PAGAMENTO_ENABLED)"
   - "TituloAutoService — espelha venda/compra/despesa em fin_titulos (Observers de transactions e transaction_payments); aberto de venda/compra = bruto − baixas do título (US-FIN-073)"
   - "ResyncFromCoreCommand — financeiro:resync-from-core re-espelha valor_total inflado (num_uf) com --apply; modo --aberto só leitura lista títulos parciais com aberto divergente das baixas (US-FIN-073)"
   - "AssinaturaController — FIN-004 atualizar cobrança recorrente (multi-tenant Tier 0, gateway delegado a AssinaturaCobrancaService)"
