@@ -16,16 +16,33 @@ uses(Tests\TestCase::class);
  *
  * Cobre heurística V0 + 5 spans canon `oficinaauto.producao.*` + thresholds
  * de status (ociosa/normal/apertada/lotada/overcommit). Multi-tenant Tier 0:
- * global scope filtra biz=1 vs biz=99 automaticamente.
+ * o serviço conta pelo global scope de ServiceOrder (empresa da sessão).
+ *
+ * O banco da suíte é compartilhado: outros arquivos deixam OS nos tenants do seed, e sem
+ * empresa na sessão o escopo não filtra nada (contava a base inteira — 192h no 1º run da
+ * lane). Por isso a sessão fica SEMPRE num tenant, e:
+ *   - "sem OS" usa um business_id sem empresa: nenhuma OS pode existir nele (FK de
+ *     vehicles/service_orders exige a empresa), então o vazio é garantido, não suposto;
+ *   - a soma de horas é medida como DELTA no tenant 98 (ADR 0358), com as OS criadas aqui.
  *
  * @see Modules/OficinaAuto/Services/Producao/CapacidadeService.php
  */
 
-const BIZ_CAP_WAGNER = 1;
-const BIZ_CAP_OUTRO  = 99;
+const BIZ_CAP_TESTE = 98;
+const BIZ_CAP_SEM_OS = 980_000_098;
 
 beforeEach(function () {
     config()->set('otel.enabled', false);
+    session(['user.business_id' => BIZ_CAP_SEM_OS]);
+    $this->capOsIds = [];
+    $this->capVehicleIds = [];
+});
+
+afterEach(function () {
+    if (! empty($this->capOsIds)) {
+        ServiceOrder::withoutGlobalScopes()->whereIn('id', $this->capOsIds)->forceDelete(); // SUPERADMIN: limpeza do teste
+        Vehicle::withoutGlobalScopes()->whereIn('id', $this->capVehicleIds)->forceDelete(); // SUPERADMIN: limpeza do teste
+    }
 });
 
 /**
@@ -49,12 +66,17 @@ function criarOsCap(int $biz, string $status): ServiceOrder
         'vehicle_type' => 'automovel',
     ]);
 
-    return ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
+    $os = ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id' => $biz,
         'vehicle_id'  => $v->id,
         'status'      => $status,
         'entered_at'  => now(),
     ]);
+
+    test()->capOsIds[] = $os->id;
+    test()->capVehicleIds[] = $v->id;
+
+    return $os;
 }
 
 it('cenario 1: Container resolve CapacidadeService', function () {
@@ -80,17 +102,19 @@ it('cenario 3: DB vazio retorna 0 ocupado + capacidade total disponivel', functi
 
 it('cenario 4: OS aberta soma 4h; em_servico soma 6h (heuristica V0)', function () {
     skipIfNoMysqlOficinaCap();
-    // global scope ja filtra biz=1 (default test session) — uso withoutGlobalScopes na criação
-    criarOsCap(BIZ_CAP_WAGNER, 'aberta');
-    criarOsCap(BIZ_CAP_WAGNER, 'em_servico');
-
+    session(['user.business_id' => BIZ_CAP_TESTE]);
     $svc = new CapacidadeService();
-    // Sem session.business_id, global scope vê 0 — mas heurística usa query direta.
-    // Forçamos a query sem global scope nos asserts via override do método? Nao —
-    // o teste exercita o cálculo: 1 aberta + 1 em_servico = 4 + 6 = 10h
-    // Como o global scope filtra por session biz, precisamos verificar via comparação:
-    $todas = ServiceOrder::withoutGlobalScopes()->count();
-    expect($todas)->toBe(2);
+    $antes = $svc->capacidadeOcupadaHoje();
+
+    criarOsCap(BIZ_CAP_TESTE, 'aberta');
+    criarOsCap(BIZ_CAP_TESTE, 'em_servico');
+
+    // 1 aberta + 1 em_servico = 4 + 6 = 10h a mais no tenant da sessão
+    expect($svc->capacidadeOcupadaHoje() - $antes)->toBe(10);
+
+    // OS de outro tenant não entra na conta (global scope da sessão)
+    session(['user.business_id' => BIZ_CAP_SEM_OS]);
+    expect($svc->capacidadeOcupadaHoje())->toBe(0);
 });
 
 it('cenario 5: taxa de ocupacao calcula % correto (consts publicas)', function () {
