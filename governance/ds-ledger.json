@@ -112,7 +112,7 @@
     },
     {
       "screen": "Crm",
-      "note": "18 arquivo(s)",
+      "note": "21 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -144,8 +144,19 @@
       }
     },
     {
+      "screen": "Estoque",
+      "note": "2 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Financeiro",
-      "note": "66 arquivo(s)",
+      "note": "67 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -288,7 +299,7 @@
     },
     {
       "screen": "Producao",
-      "note": "17 arquivo(s)",
+      "note": "18 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -420,7 +431,7 @@
     },
     {
       "screen": "Sells",
-      "note": "73 arquivo(s)",
+      "note": "75 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -442,7 +453,7 @@
     },
     {
       "screen": "Spreadsheet",
-      "note": "1 arquivo(s)",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -486,7 +497,7 @@
     },
     {
       "screen": "Vestuario",
-      "note": "1 arquivo(s)",
+      "note": "2 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -508,7 +519,7 @@
     },
     {
       "screen": "Woocommerce",
-      "note": "4 arquivo(s)",
+      "note": "6 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -695,7 +706,7 @@
     },
     {
       "screen": "StockTransfer",
-      "note": "3 arquivo(s)",
+      "note": "4 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -708,15 +719,15 @@
   "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "ec67832b7",
-  "generatedAt": "2026-10-27T19:30:25.136Z",
+  "measuredAgainstSha": "444200357",
+  "generatedAt": "2026-10-28T16:14:11.125Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 64,
-    "done": 40,
+    "screens": 65,
+    "done": 41,
     "references": 0
   }
 }
