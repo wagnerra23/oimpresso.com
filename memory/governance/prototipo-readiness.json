@@ -786,6 +786,16 @@
       ]
     },
     {
+      "tela": "Spreadsheet/Editor",
+      "arquivo": "resources/js/Pages/Spreadsheet/Editor.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/planilhas-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Spreadsheet/Index",
       "arquivo": "resources/js/Pages/Spreadsheet/Index.tsx",
       "modulo": "core",
@@ -811,6 +821,16 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/usuarios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Vestuario/Remarcacao/Index",
+      "arquivo": "resources/js/Pages/Vestuario/Remarcacao/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/vestuario-remarcacao-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -901,6 +921,26 @@
       "modulo": "Crm",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Portal/Painel/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Portal/Painel/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-portal.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Portal/Perfil/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Portal/Perfil/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-portal.jsx",
       "falta": [
         "scorecard"
       ]
@@ -1066,5 +1106,5 @@
       ]
     }
   ],
-  "total": 190
+  "total": 194
 }
