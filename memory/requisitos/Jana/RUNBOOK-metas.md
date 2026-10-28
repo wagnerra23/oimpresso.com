@@ -430,3 +430,29 @@ formulário do drawer.** O `PeriodosController` é o backend dele e já existe. 
 3. **Enum de `tipo_periodo`** (§10.3) — `semanal` entra no backend, ou sai do formulário?
 
 O que **não** sobra mais: regerar o bundle (o #6379 resolveu por outra rota) e destravar a âncora.
+
+---
+
+## 11. Estado em 2026-10-27 — PR-2, PR-2b e PR-3 entregues; cutover de 4 das 5 Blades
+
+Medido em `origin/main` `ec67832b75`, pelos testes que já existiam em
+`MetasControllerBaselineTest.php` (§9.4 PR-2 e PR-2b) e pelo próprio `JanaMetaDrawer.tsx`:
+editar, desativar e reapurar (PR-2), criar com período e alvo (PR-2b, `JanaMetaNovaDrawer`) e as
+seções "Apurações gravadas" e "Fonte do número" (PR-3) já estão no drawer do Painel.
+
+**PR-4 (parte 1):** `metas/{create,show,edit}` e `fontes/show` saem. As rotas GET ficam como
+redirect para `/ia`, com `findOrFail` antes, de modo que meta de outro tenant segue 404.
+No mesmo PR: o payload do Painel passa a mandar as **12 apurações mais recentes**. Com
+`orderBy('data_ref')->limit(12)` ele mandava as 12 mais **antigas**, ao contrário da Blade que
+sai.
+
+**Falta:** `metas/index`. O Painel lista só metas ativas, e a Blade lista também as inativas e as
+de plataforma. Quem cobre é a view "Cadastro" do `jana-metas.jsx` (`JmMetasCadastro`, filtro
+ativas/inativas/plataforma/todas). Ela é o próximo PR, e o ghost `metas` do topnav passa a
+apontar para ela.
+
+**Respostas de [W] ao §10.4:**
+- **3 · enum de `tipo_periodo`** (2026-10-27): o formulário oferece só o que o banco já aceita,
+  sem migration. `semanal` fica fora. O `JanaMetaNovaDrawer` já estava assim.
+- **1 · permissão**: caiu em 2026-09-23 (UC-JPERM-03, `middlewareFor(...'can:jana.metas.manage')`).
+- **2 · `SPEC.md` US-COPI-148**: segue em aberto.

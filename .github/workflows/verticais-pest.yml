@@ -124,6 +124,12 @@ on:
       # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
       - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
       - 'Modules/Crm/Tests/Feature/CrmLogins*'
+      # Thread Crm/18 — Início do portal do contato (D6): Page Inertia + a fonte única do menu.
+      - 'Modules/Crm/Http/Controllers/DashboardController.php'
+      - 'Modules/Crm/Http/Middleware/ContactSidebarMenu.php'
+      - 'Modules/Crm/Services/PortalContatoMenu.php'
+      - 'Modules/Crm/Http/Controllers/ManageProfileController.php'
+      - 'Modules/Crm/Tests/Feature/CrmPortal*'
       # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
       - 'Modules/Crm/Utils/CrmUtil.php'
       - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
@@ -263,6 +269,12 @@ jobs:
               # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
               - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
               - 'Modules/Crm/Tests/Feature/CrmLogins*'
+              # Thread Crm/18 — Início do portal do contato (D6): Page Inertia + a fonte única do menu.
+              - 'Modules/Crm/Http/Controllers/DashboardController.php'
+              - 'Modules/Crm/Http/Middleware/ContactSidebarMenu.php'
+              - 'Modules/Crm/Services/PortalContatoMenu.php'
+              - 'Modules/Crm/Http/Controllers/ManageProfileController.php'
+              - 'Modules/Crm/Tests/Feature/CrmPortal*'
               # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
               - 'Modules/Crm/Utils/CrmUtil.php'
               - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
@@ -643,6 +655,8 @@ jobs:
             Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php \
+            Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php \
+            Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php \
@@ -677,6 +691,8 @@ jobs:
             Modules/Crm/Tests/Feature/CrmLoginsBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsEscritaEscopoTest.php \
+            Modules/Crm/Tests/Feature/CrmPortalPainelContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmPortalPerfilContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContatosEscopoTest.php \
