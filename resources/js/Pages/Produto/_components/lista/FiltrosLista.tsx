@@ -71,7 +71,7 @@ export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, apl
       <div className="pb-widget-b">
         <div className="pb-filters-h" style={{ marginBottom: aberto ? 12 : 0 }}>
           <span className="pb-help">
-            Mesmos filtros do índice de produtos: tipo, categoria, unidade, imposto, marca, local e situação.
+            Mesmos filtros do índice de produtos: tipo, categoria, unidade, {opcoes.impostos.length > 0 && 'imposto, '}marca, local e situação.
           </span>
           <Button variant="ghost" size="sm" onClick={() => setAberto((a) => !a)}>
             {aberto ? 'Recolher' : 'Expandir'}
@@ -82,7 +82,10 @@ export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, apl
             <Campo rotulo="Tipo de produto" valor={filtros.type} opcoes={TIPOS_PRODUTO} vazio="Todos" aoMudar={campo('type')} />
             <Campo rotulo="Categoria" valor={filtros.category_id} opcoes={opcoes.categorias} vazio="Todas" aoMudar={campo('category_id')} />
             <Campo rotulo="Unidade" valor={filtros.unit_id} opcoes={opcoes.unidades} vazio="Todas" aoMudar={campo('unit_id')} />
-            <Campo rotulo="Imposto" valor={filtros.tax_id} opcoes={opcoes.impostos} vazio="Todos" aoMudar={campo('tax_id')} />
+            {/* Só com alíquota cadastrada: sem ela não há imposto para filtrar (decisão [F] 2026-10-26). */}
+            {opcoes.impostos.length > 0 && (
+              <Campo rotulo="Imposto" valor={filtros.tax_id} opcoes={opcoes.impostos} vazio="Todos" aoMudar={campo('tax_id')} />
+            )}
             <Campo rotulo="Marca" valor={filtros.brand_id} opcoes={opcoes.marcas} vazio="Todas" aoMudar={campo('brand_id')} />
             <Campo rotulo="Local do negócio" valor={filtros.location_id} opcoes={opcoes.locais} vazio="Todos" aoMudar={campo('location_id')} />
             <Campo rotulo="Situação" valor={filtros.active_state} opcoes={SITUACOES} vazio="Todos" aoMudar={campo('active_state')} />

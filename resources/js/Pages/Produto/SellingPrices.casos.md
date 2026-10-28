@@ -125,6 +125,20 @@ ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como
   (Wagner 2026-07-15): o modelo é tabela vinculada ao cadastro do cliente; o produto nunca é
   vinculado direto. Não é backlog, é divergência consciente — registrado aqui só pra não ser
   redescoberto como "gap" na próxima auditoria.
+- **Formação de preço com o imposto do Simples, a comissão e o lucro** (pedido de 2026-10-27,
+  US-PROD-032) `[V0]` — Dado custo 100,00, imposto da DAS de 8% para produto, comissão do produto de
+  2% e lucro desejado de 20%, Quando abro a formação de preço, Então o preço sugerido é 142,86
+  (100 ÷ 0,70), com a conta em valores: imposto 11,43, comissão 2,86 e lucro 28,57. Somar os
+  percentuais sobre o custo daria 130,00 e um lucro menor que o desejado. Serviço usa a alíquota de
+  serviço; produto sem custo mostra a conta ao contrário, a partir do preço atual. Aplicar o sugerido
+  é ato da pessoa, com antes→depois. Não usa o grupo de imposto do produto, que soma o imposto por
+  fora do preço. A tela própria da US-PROD-032 ainda não existe; o caso fica aqui, na tela de preço
+  do produto, até ela existir. Pedido da Art Laser e da CyberStudio.
+- **Reajuste em lote quando a alíquota muda** (pedido de 2026-10-27, US-PROD-032) `[V0]` — Dado a
+  alíquota de produto que passa de 8% para 8,5% na competência nova, Quando abro a formação de
+  preço, Então a tela lista os produtos cujo preço sugerido mudou, com o preço atual e o sugerido, e
+  eu reajusto os que quiser; nenhum preço muda sozinho. O que cada produto faz sozinho segue a
+  política de preço da US-PROD-030 quando ela existir. Pedido da Art Laser.
 
 ---
 

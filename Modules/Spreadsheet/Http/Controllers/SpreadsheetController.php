@@ -117,7 +117,7 @@ class SpreadsheetController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return Response
+     * @return \Inertia\Response|\Illuminate\View\View
      */
     public function create()
     {
@@ -127,6 +127,16 @@ class SpreadsheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
         $folder_id = request()->input('folder_id', null);
+
+        // Editor em React (thread telas-soltas/04b, RUNBOOK-editor). `?legacy=1` serve a Blade até o F5.
+        if (! request()->boolean('legacy')) {
+            return Inertia::render('Spreadsheet/Editor', [
+                'planilha'    => null,
+                'pasta_id'    => $folder_id !== null && $folder_id !== '' ? (int) $folder_id : null,
+                'pode_gravar' => true,
+                'voltar'      => action([self::class, 'index']),
+            ]);
+        }
 
         return view('spreadsheet::sheet.create')->with(compact('folder_id'));
     }
@@ -167,7 +177,7 @@ class SpreadsheetController extends Controller
      * Show the specified resource.
      *
      * @param  int  $id
-     * @return Response
+     * @return \Inertia\Response|\Illuminate\View\View
      */
     public function show($id)
     {
@@ -177,42 +187,14 @@ class SpreadsheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $user_id = request()->session()->get('user.id');
-        $role_id = User::find($user_id)->roles()->first()->id;
+        $spreadsheet = $this->planilhaAcessivel((int) $business_id, (int) $id)
+            ->select('sheet_spreadsheets.business_id', 'sheet_spreadsheets.id', 'sheet_spreadsheets.name', 'sheet_spreadsheets.sheet_data', 'sheet_spreadsheets.created_by')
+            ->firstOrFail();
 
-        $module_data = $this->moduleUtil->getModuleData('getAssignedTaskForUser', $user_id);
-        $todo_ids = $module_data['Essentials'];
-
-        $query = Spreadsheet::where('business_id', $business_id)
-                    ->where('sheet_spreadsheets.id', $id)
-                    ->leftJoin('sheet_spreadsheet_shares as SSS', function($join) use($id){
-                        $join->on('sheet_spreadsheets.id', '=', 'SSS.sheet_spreadsheet_id')
-                            ->where('SSS.sheet_spreadsheet_id', '=', $id);
-                    });
-
-        if (! auth()->user()->can('superadmin')) {
-            $query->where('created_by', auth()->user()->id)
-                    ->orWhere(function ($query) use ($role_id) {
-                        $query->where('SSS.shared_id', '=', $role_id)
-                            ->where('SSS.shared_with', '=', 'role');
-                    })
-                    ->orwhere(function ($query) use ($user_id) {
-                        $query->where('SSS.shared_id', '=', $user_id)
-                            ->where('SSS.shared_with', '=', 'user');
-                    });
-
-            if (! empty($todo_ids)) {
-                $query->orwhere(function ($query) use ($todo_ids) {
-                    $query->whereIn('SSS.shared_id', $todo_ids)
-                            ->where('SSS.shared_with', '=', 'todo');
-                });
-            }
+        if (! request()->boolean('legacy')) {
+            return Inertia::render('Spreadsheet/Editor', $this->propsDoEditor($spreadsheet));
         }
 
-        $spreadsheet = $query
-                        ->select('sheet_spreadsheets.business_id', 'sheet_spreadsheets.id', 'sheet_spreadsheets.name', 'sheet_spreadsheets.sheet_data', 'sheet_spreadsheets.created_by')
-                        ->firstOrFail();
-                        
         return view('spreadsheet::sheet.show')
             ->with(compact('spreadsheet'));
     }
@@ -252,37 +234,8 @@ class SpreadsheetController extends Controller
             $input['name'] = ! empty($validated['name']) ? $validated['name'] : 'My Spreasheet';
             $input['sheet_data'] = json_encode($validated['sheet_data'] ?? $request->input('sheet_data'));
 
-            $user_id = request()->session()->get('user.id');
-            $role_id = User::find($user_id)->roles()->first()->id;
-
-            $module_data = $this->moduleUtil->getModuleData('getAssignedTaskForUser', $user_id);
-            $todo_ids = $module_data['Essentials'];
-
             DB::beginTransaction();
-            $query = Spreadsheet::where('business_id', $business_id)
-                        ->where('sheet_spreadsheets.id', $id)
-                        ->leftJoin('sheet_spreadsheet_shares as SSS', 'sheet_spreadsheets.id', '=', 'SSS.sheet_spreadsheet_id');
-
-            if (! auth()->user()->can('superadmin')) {
-                $query->where('created_by', auth()->user()->id)
-                            ->orWhere(function ($query) use ($role_id) {
-                                $query->where('SSS.shared_id', '=', $role_id)
-                                    ->where('SSS.shared_with', '=', 'role');
-                            })
-                            ->orwhere(function ($query) use ($user_id) {
-                                $query->where('SSS.shared_id', '=', $user_id)
-                                    ->where('SSS.shared_with', '=', 'user');
-                            });
-
-                if (! empty($todo_ids)) {
-                    $query->orwhere(function ($query) use ($todo_ids) {
-                        $query->whereIn('SSS.shared_id', $todo_ids)
-                                    ->where('SSS.shared_with', '=', 'todo');
-                    });
-                }
-            }
-
-            $spreadsheet = $query
+            $spreadsheet = $this->planilhaAcessivel((int) $business_id, (int) $id)
                                 ->select('sheet_spreadsheets.business_id', 'sheet_spreadsheets.id', 'sheet_spreadsheets.name', 'sheet_spreadsheets.sheet_data')
                                 ->firstOrFail();
 
@@ -364,6 +317,9 @@ class SpreadsheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Só quem criou a planilha (ou superadmin) mexe no compartilhamento, e só de planilha do negócio da sessão.
+        $this->planilhaDoDono((int) $business_id, (int) $id);
+
         if ($request->ajax()) {
             $module_data = $this->moduleUtil->getModuleData('getTodosDropdown', $business_id);
 
@@ -394,6 +350,23 @@ class SpreadsheetController extends Controller
                 $shared_users = $shared_spreadsheets['user']->pluck('shared_id')->toArray();
             }
 
+            // Tela React (lista): as mesmas listas em JSON. A Blade segue recebendo o partial.
+            if ($request->wantsJson()) {
+                $opcoes = fn ($lista) => collect($lista)->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => trim((string) $nome)])
+                    ->filter(fn ($o) => $o['id'] > 0)->values();
+
+                return response()->json([
+                    'usuarios' => $opcoes($users),
+                    'funcoes' => $opcoes($roles),
+                    'tarefas' => $opcoes($todos),
+                    'selecionados' => [
+                        'user' => array_map('intval', $shared_users),
+                        'role' => array_map('intval', $shared_roles),
+                        'todo' => array_map('intval', $shared_todos),
+                    ],
+                ]);
+            }
+
             return view('spreadsheet::sheet.partials.share_sheet')
                 ->with(compact('todos', 'id', 'shared_roles', 'roles', 'users', 'shared_todos', 'shared_users'));
         }
@@ -408,9 +381,13 @@ class SpreadsheetController extends Controller
         }
 
         if ($request->ajax()) {
+            // Antes de 2026-10-27 não havia conferência nenhuma do sheet_id: qualquer usuário com o módulo criava ou
+            // apagava compartilhamento de qualquer planilha pelo id, inclusive de outro negócio. Agora só o dono, no
+            // negócio da sessão, e só para usuário, função ou tarefa deste negócio.
+            $sheet_id = (int) $this->planilhaDoDono((int) $business_id, (int) $request->input('sheet_id'))->id;
+            $shares = $this->compartilhamentosDoNegocio((int) $business_id, (array) $request->input('share', []));
+
             try {
-                $sheet_id = $request->input('sheet_id');
-                $shares = $request->input('share');
                 DB::beginTransaction();
 
                 //Update shared spreadsheets based on selected data
@@ -563,6 +540,118 @@ class SpreadsheetController extends Controller
     {
         return ! request()->boolean('legacy')
             && app(FeatureFlagService::class)->isOn(self::FLAG_INDEX, ['business_id' => $business_id]);
+    }
+
+    /**
+     * Planilha do negócio da sessão criada pelo usuário (superadmin: qualquer uma do negócio). 404 se não for.
+     */
+    private function planilhaDoDono(int $business_id, int $id): Spreadsheet
+    {
+        $query = Spreadsheet::where('business_id', $business_id)->where('id', $id);
+        if (! auth()->user()->can('superadmin')) {
+            $query->where('created_by', auth()->user()->id);
+        }
+
+        return $query->firstOrFail();
+    }
+
+    /**
+     * Mantém só destinatários deste negócio: usuários e funções dos dropdowns do negócio e tarefas do Essentials dele.
+     * Um id de fora some do pedido em vez de virar compartilhamento.
+     */
+    private function compartilhamentosDoNegocio(int $business_id, array $shares): array
+    {
+        $permitidos = [
+            'user' => collect(User::forDropdown($business_id, false))->keys()->map(fn ($k) => (int) $k)->all(),
+            'role' => collect($this->moduleUtil->getDropdownForRoles($business_id))->keys()->map(fn ($k) => (int) $k)->all(),
+            'todo' => collect($this->moduleUtil->getModuleData('getTodosDropdown', $business_id)['Essentials'] ?? [])->keys()->map(fn ($k) => (int) $k)->all(),
+        ];
+
+        $filtrado = [];
+        foreach ($permitidos as $tipo => $ids) {
+            if (! empty($shares[$tipo])) {
+                $filtrado[$tipo] = array_values(array_filter((array) $shares[$tipo], fn ($v) => in_array((int) $v, $ids, true)));
+            }
+        }
+
+        return $filtrado;
+    }
+
+    /**
+     * Props do editor React. DTO explícito: nada de business_id nem created_by cru.
+     *
+     * `sheet_data` é gravado como string JSON dentro de JSON (o cast `array` do Model codifica a string
+     * que a tela manda), então a leitura devolve a string; linha antiga com array de verdade também vale.
+     */
+    private function propsDoEditor(Spreadsheet $spreadsheet): array
+    {
+        $minha = (int) $spreadsheet->created_by === (int) auth()->user()->id;
+        // Valor cru do banco: o cast `array` devolve a string interna, e o Model declara array. Decodifica até
+        // duas vezes (string JSON dentro de JSON, como a tela grava; ou array de verdade, linha antiga).
+        $dados = json_decode((string) $spreadsheet->getRawOriginal('sheet_data'), true);
+        if (is_string($dados)) {
+            $dados = json_decode($dados, true);
+        }
+
+        $voltar = action([self::class, 'index']);
+        if (! $minha) {
+            // Mesmo destino da Blade para quem recebeu: as tarefas do Essentials, quando o módulo existe.
+            try {
+                $voltar = action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'index']);
+            } catch (\Throwable $e) {
+                $voltar = action([self::class, 'index']);
+            }
+        }
+
+        return [
+            'planilha' => [
+                'id'    => (int) $spreadsheet->id,
+                'nome'  => (string) $spreadsheet->name,
+                'dados' => is_array($dados) ? array_values($dados) : null,
+                'minha' => $minha,
+            ],
+            'pasta_id'    => null,
+            'pode_gravar' => auth()->user()->can('superadmin') || auth()->user()->can('create.spreadsheet'),
+            'voltar'      => $voltar,
+        ];
+    }
+
+    /**
+     * Uma planilha do negócio que o usuário pode abrir: criou, ou recebeu por usuário, função ou tarefa.
+     *
+     * Antes de 2026-10-27 show() e update() montavam esta consulta à mão com `->where(created_by)
+     * ->orWhere(...)` sem agrupar: o OR escapava do `business_id` e do `id`. No update() o join não
+     * filtrava a planilha, então qualquer planilha compartilhada com o usuário fazia o `firstOrFail`
+     * passar e o UPDATE (que filtra só business e id) gravava por cima de planilha de colega.
+     * Agora o OR fica dentro de um grupo, como em planilhasVisiveis().
+     */
+    private function planilhaAcessivel(int $business_id, int $id)
+    {
+        $user_id = (int) request()->session()->get('user.id');
+        $role_id = User::find($user_id)?->roles()->first()?->id;
+        $todo_ids = $this->moduleUtil->getModuleData('getAssignedTaskForUser', $user_id)['Essentials'] ?? [];
+
+        $query = Spreadsheet::where('sheet_spreadsheets.business_id', $business_id)
+            ->where('sheet_spreadsheets.id', $id)
+            ->leftJoin('sheet_spreadsheet_shares as SSS', function ($join) use ($id) {
+                $join->on('sheet_spreadsheets.id', '=', 'SSS.sheet_spreadsheet_id')
+                    ->where('SSS.sheet_spreadsheet_id', '=', $id);
+            });
+
+        if (! auth()->user()->can('superadmin')) {
+            $query->where(function ($q) use ($user_id, $role_id, $todo_ids) {
+                $q->where('sheet_spreadsheets.created_by', $user_id)
+                    ->orWhere(fn ($q) => $q->where('SSS.shared_id', $user_id)->where('SSS.shared_with', 'user'));
+                if ($role_id !== null) {
+                    $q->orWhere(fn ($q) => $q->where('SSS.shared_id', $role_id)->where('SSS.shared_with', 'role'));
+                }
+                if (! empty($todo_ids)) {
+                    $q->orWhere(fn ($q) => $q->whereIn('SSS.shared_id', $todo_ids)->where('SSS.shared_with', 'todo'));
+                }
+            });
+        }
+
+        return $query;
     }
 
     /**
