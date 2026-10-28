@@ -47,13 +47,16 @@ test('UC-IMPR-01 com a flag ligada, GET /printers renderiza Inertia (não a Data
     expect($r->json('props.opcoes.conexao'))->toHaveKey('network');
 });
 
-test('UC-IMPR-02 com a flag desligada, GET /printers segue na Blade', function () {
+test('UC-IMPR-02 cutover: com a flag desligada a tela segue em React (a Blade saiu)', function () {
     config(['feature-flags.forced_on' => '']);
-    // OFF é override explícito, não o default global após D-CFG-LIGAR.
+    // Desde 2026-10-27 o controller não consulta mais useV2ConfiguracoesImpressoras: OFF no GrowthBook não traz a Blade de volta.
     $this->mock(\App\Services\FeatureFlagService::class, fn ($mock) =>
         $mock->shouldReceive('isOn')->with('useV2ConfiguracoesImpressoras', \Mockery::any())->andReturn(false));
 
-    $this->get('/printers')->assertOk()->assertViewIs('printer.index');
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])->get('/printers');
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Configuracoes/Impressoras/Index');
+    expect(view()->exists('printer.index'))->toBeFalse();
 });
 
 test('UC-IMPR-03 Tier 0 — a lista adiada traz só as impressoras do negócio da sessão', function () {
