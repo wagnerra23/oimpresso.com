@@ -51,7 +51,3 @@ Modules/OficinaAuto/Tests/Feature/CapacidadeServiceTest.php  # contagem contamin
 Modules/OficinaAuto/Tests/Feature/ServiceOrderStoreLinksVehicleTest.php  # contagem contaminada no biz=1 / FSM não semeada
 Modules/OficinaAuto/Tests/Feature/ServiceOrderHistoryControllerTest.php  # contagem contaminada no biz=1 / FSM não semeada
 Modules/OficinaAuto/Tests/Feature/Wave27OficinaAutoSaturationTest.php  # contagem contaminada no biz=1 / FSM não semeada
-#
-# D. Teste desatualizado em relação ao código.
-Modules/OficinaAuto/Tests/Feature/ServiceOrderStagePipelineTest.php  # payload sem a chave stages_pipeline
-Modules/OficinaAuto/Tests/Feature/ServiceOrderSheetVendaDerivadaGuardTest.php  # lê ServiceOrderSheet.tsx, arquivo removido
