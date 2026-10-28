@@ -81,6 +81,17 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 | UC-FUNI-02 | Baixa acima do aberto quita exatamente o aberto | must `[V0]` | `CU-FIN-03` + `US-FIN-003` | `BaixaConservacaoValorContratoTest` | 🧪 |
 | UC-FUNI-03 | Quitado/cancelado recusa baixa | must | `CU-FIN-04` + `US-FIN-003` | `BaixaConservacaoValorContratoTest` | 🧪 |
 | UC-FUNI-04 | Conta de outro business recusada | must `[T0]` | `CU-FIN-05` + ADR 0093 | `BaixaConservacaoValorContratoTest` | 🧪 |
+| UC-PAGBAN-01 | Desligado, nada vai ao banco | must | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
+| UC-PAGBAN-02 | Valor confirmado diferente do aberto não envia | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
+| UC-PAGBAN-03 | Pedir não baixa; a trilha guarda quem, quanto e para onde | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
+| UC-PAGBAN-04 | Um pedido em aberto por título | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
+| UC-PAGBAN-05 | Banco confirma → baixa uma vez e quita | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
+| UC-PAGBAN-06 | Banco recusa → sem baixa, pode pedir de novo | must | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
+| UC-PAGBAN-07 | Título quitado por outro caminho não recebe 2ª baixa | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
+| UC-PAGBAN-08 | Outra empresa não paga o título nem usa a conta de outra | must `[T0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
+| UC-PAGBAN-09 | Envio ao Inter nunca devolve pago | must `[V0]` | `US-FIN-079` | `InterPagadorBancoTest` | ⬜ |
+| UC-PAGBAN-10 | Só status conhecido de débito vira pago | must `[V0]` | `US-FIN-079` | `InterPagadorBancoTest` | ⬜ |
+| UC-PAGBAN-11 | Sync só consulta, e só com a flag | must | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
 | UC-F01 (legado) | Venda a prazo gera título a receber | must `[V0]` | `CU-FIN-01` + `US-FIN-013` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F02 (legado) | Recebimento baixa o título e entra no caixa | must `[V0]` | `CU-FIN-08` + `US-FIN-003` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F04 (legado) | Ações em lote respeitam tenant/limite/contabilidade | must `[V0][T0]` | `CU-FIN-07` + `US-FIN-031` | `UnificadoBulkGuardTest` | 🧪 |
@@ -97,6 +108,93 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 > (`UC-[A-Z0-9]{2,10}-\d{2,3}` exige o 2º hífen). Por isso esta tabela os cita **nominalmente**
 > e a linha `> **Âncora:**` acima é o que liga os CU — renomeá-los exigiria editar
 > `tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php`, fora da área deste chip.
+
+---
+
+## Contrato do pagamento pelo banco (US-FIN-079)
+
+> Derivam da **US-FIN-079** (`memory/requisitos/Financeiro/SPEC.md`): saída de dinheiro, então nunca
+> automático — cada pedido exige o valor confirmado pelo usuário, e a baixa só vem da confirmação do
+> banco. Banco simulado nos testes (o adaptador do Inter usa HTTP simulado). O botão na gaveta do título a pagar entra na próxima onda, só com
+> a flag e a permissão `financeiro.contas_pagar.pagar_banco`.
+> **Lane:** `PHP / Pest (Financeiro · MySQL)` (roda a árvore do módulo menos a quarentena). **Veredito:** ⬜ até o primeiro run do CI — quem dá é a lane (G-7).
+
+## UC-PAGBAN-01 · Desligado, nada vai ao banco `[must]`
+- **Persona:** Wagner [W] — pagamento pelo banco só existe quando ele ligar a flag.
+- **Aceite:** Dado FINANCEIRO_PAGAMENTO_BANCO_ENABLED desligado · Quando o usuário pede o pagamento de um título · Então é recusado e o banco não é chamado.
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-01 · …").
+- **Regressão que defende:** dinheiro saindo da conta antes de a integração ser liberada.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-02 · Valor confirmado diferente do aberto não envia `[V0]` `[must]`
+- **Persona:** Eliana [E] — aprova cada pagamento conferindo o valor; um centavo errado não pode passar.
+- **Aceite:** Dado título a pagar com aberto de 1234.56 · Quando o valor confirmado é 1234.55, 1234,56, 1234.5 ou 1234.560 · Então nada é enviado ao banco e nenhum pedido é gravado.
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-02 · …").
+- **Regressão que defende:** pagamento sem aprovação explícita ou com valor diferente do título.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-03 · Pedir não baixa; a trilha guarda quem, quanto e para onde `[V0]` `[must]`
+- **Persona:** Eliana [E] — precisa provar depois quem pagou, quanto e para onde.
+- **Aceite:** Dado título a pagar aberto · Quando o pedido vai ao banco · Então fin_pagamentos_banco guarda solicitante, valor, destino normalizado e código do banco, e o título segue aberto, sem baixa.
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-03 · …").
+- **Regressão que defende:** título quitado antes de o banco pagar, e saída de dinheiro sem trilha.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-04 · Um pedido em aberto por título `[V0]` `[must]`
+- **Persona:** Eliana [E] — clicou duas vezes ou outra pessoa pediu ao mesmo tempo.
+- **Aceite:** Dado um pedido do título aguardando o banco · Quando alguém pede de novo · Então é recusado e o banco recebeu um envio só.
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-04 · …").
+- **Regressão que defende:** o mesmo boleto pago duas vezes.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-05 · Banco confirma → baixa uma vez e quita `[V0]` `[must]`
+- **Persona:** Eliana [E] — quer o título quitado sozinho quando o banco confirma, sem baixa manual.
+- **Aceite:** Dado pedido aguardando o banco · Quando a consulta devolve pago, duas vezes · Então existe UMA baixa de 1234.56 com o meio do pedido e a mesma chave de idempotência, e o título fica quitado com aberto 0.00.
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-05 · …").
+- **Regressão que defende:** baixa em dobro ou com valor diferente do que saiu da conta.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-06 · Banco recusa → sem baixa, pode pedir de novo `[must]`
+- **Persona:** Eliana [E] — o banco recusou (saldo, boleto vencido); ela vai tentar de novo.
+- **Aceite:** Dado título a pagar aberto · Quando o banco recusa o pedido · Então não há baixa, o título segue aberto e um novo pedido é aceito.
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-06 · …").
+- **Regressão que defende:** título dado como pago sem débito, ou travado para nova tentativa.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-07 · Título quitado por outro caminho não recebe 2ª baixa `[V0]` `[must]`
+- **Persona:** Eliana [E] — alguém deu baixa manual enquanto o banco processava.
+- **Aceite:** Dado pedido aguardando e o título quitado à mão no meio · Quando o banco confirma · Então nenhuma baixa nova; o pedido fica pago com o motivo conferir duplicidade.
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-07 · …").
+- **Regressão que defende:** segunda baixa no mesmo título, inflando o pago do mês.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-08 · Outra empresa não paga o título nem usa a conta de outra `[T0]` `[must]`
+- **Persona:** Qualquer usuário — invariante de plataforma (ADR 0093).
+- **Aceite:** Dado título e conta da empresa 98 · Quando a empresa 99 tenta pagar o título de 98, ou debitar a conta de 98; e quando alguém tenta pagar um título a receber · Então tudo é recusado e o banco não é chamado.
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-08 · …").
+- **Regressão que defende:** uma empresa pagando com a conta de outra, ou dinheiro saindo para título a receber.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-09 · Envio ao Inter nunca devolve pago `[V0]` `[must]`
+- **Persona:** Eliana [E] — só quer ver pago o que o banco de fato debitou.
+- **Aceite:** Dado o Inter respondendo realizado logo no envio do boleto · Quando o pedido é enviado · Então o status fica aguardando o banco; a chave de idempotência vai no cabeçalho x-id-idempotente e o valor sai em 2 casas (1234.56).
+- **Teste:** `Modules/Financeiro/Tests/Feature/InterPagadorBancoTest.php`, it("UC-PAGBAN-09 · …").
+- **Regressão que defende:** título quitado na hora do envio, antes da confirmação, e reenvio que o banco não reconhece como o mesmo pedido.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-10 · Só status conhecido de débito vira pago `[V0]` `[must]`
+- **Persona:** Eliana [E] — o banco devolve status que o sistema não conhece; ela não pode ver isso como pago.
+- **Aceite:** Dado consultas do Pix que devolvem EM_PROCESSAMENTO, PAGO e REJEITADO, e uma conta sem credencial Inter ativa · Quando o sistema consulta ou tenta enviar · Então desconhecido fica aguardando, PAGO vira pago, REJEITADO vira recusado, e a conta sem credencial não chama o banco.
+- **Teste:** `Modules/Financeiro/Tests/Feature/InterPagadorBancoTest.php`, it("UC-PAGBAN-10 · …").
+- **Regressão que defende:** status novo do banco lido como pago, ou chamada ao banco com conta não habilitada.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
+
+## UC-PAGBAN-11 · Sync só consulta, e só com a flag `[must]`
+- **Persona:** Wagner [W] — a rotina agendada não pode mover dinheiro, só confirmar.
+- **Aceite:** Dado um pedido aguardando o banco · Quando roda financeiro:pagamentos-banco-sync com a flag desligada e depois ligada · Então desligada não toca nada; ligada, baixa o confirmado e o banco recebeu um envio só (o do usuário).
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-11 · …").
+- **Regressão que defende:** rotina agendada enviando pagamento sozinha, ou deixando título pago sem baixa.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
 
 ---
 

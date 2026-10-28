@@ -21,6 +21,15 @@ return [
     'multa_atraso' => 0.02,
 
     /**
+     * Pagar título a pagar pelo banco — boleto e Pix (US-FIN-079). Desligado:
+     * exige escopos de pagamento na integração do banco (ação do [W] — BRIEFING).
+     * Mesmo ligado, cada pagamento é aprovado pelo usuário; nunca automático.
+     */
+    'pagamento_banco' => [
+        'enabled' => env('FINANCEIRO_PAGAMENTO_BANCO_ENABLED', false), // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
+    ],
+
+    /**
      * Asaas — gateway de cobrança SaaS BR.
      *
      * Wave 28-5: Pix Automático (subscriptions billingType=PIX). Default
