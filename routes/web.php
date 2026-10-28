@@ -483,12 +483,6 @@ Route::middleware(['setData'])->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.social.callback');
 
-    // Blade legado (UltimatePOS) — mantém /login/old e /register/old durante a transição.
-    // throttle:5,1 — anti-bruteforce de exibição (consistente com /login canônico).
-    Route::get('/login/old', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginFormLegacy'])
-        ->middleware('throttle:5,1')
-        ->name('login.legacy');
-
     // /business/register — registro público novo business; alvo de enum/bruteforce + spam.
     // throttle:5,1 no POST (cria business); throttle:30,1 nas checagens AJAX (UX permite mais).
     Route::get('/business/register', [BusinessController::class, 'getRegister'])->name('business.getRegister');
@@ -853,6 +847,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('sells.fsm-execute');
     Route::post('/sells/{id}/fsm-start-pipeline', [\App\Http\Controllers\SaleFsmActionController::class, 'startPipeline'])
         ->name('sells.fsm-start-pipeline');
+    // US-SELL-074 — link para o cliente aprovar o orçamento (flag sells.orcamento_aceite.enabled).
+    Route::post('/sells/{id}/orcamento-link', [\App\Http\Controllers\Sells\OrcamentoAceiteLinkController::class, 'gerar'])
+        ->whereNumber('id')
+        ->name('sells.orcamento-link');
     // ADR 0192 Onda 2 follow-up — Editor UI do split de comissão (mecânico/balcão).
     // Endpoint dedicado pra preservar SoC (não cruza com SellPosController::update).
     Route::patch('/sells/{id}/commission-split', [\App\Http\Controllers\SellCommissionSplitController::class, 'update'])
@@ -1011,7 +1009,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/import-products/store', [ImportProductsController::class, 'store']);
 
     //Sales Commission Agent
-    Route::resource('sales-commission-agents', SalesCommissionAgentController::class);
+    Route::resource('sales-commission-agents', SalesCommissionAgentController::class)->except(['create', 'show', 'edit']);
 
     //Stock Transfer
     Route::get('stock-transfers/print/{id}', [StockTransferController::class, 'printInvoice']);
@@ -1027,7 +1025,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/opening-stock/salvar-da-janela', [OpeningStockController::class, 'salvarDaJanela']);
 
     //Customer Groups
-    Route::resource('customer-group', CustomerGroupController::class);
+    Route::resource('customer-group', CustomerGroupController::class)->except(['create', 'show', 'edit']);
 
     //Import opening stock
     Route::get('/import-opening-stock', [ImportOpeningStockController::class, 'index']);

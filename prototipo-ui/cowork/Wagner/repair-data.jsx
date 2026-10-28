@@ -190,6 +190,38 @@ const DOCS = {
   7: [{ nome: "nf-damper.pdf", tam: "88 KB", em: "2026-08-15" }],
 };
 
+// Indicadores da OS (US-REPA-006) — mesmo formato da prop `indicadores` do DashboardController,
+// que IndicadoresOsService monta da FSM (sale_stage_history + current_stage_id). Janela fixa 90d.
+const INDICADORES = {
+  janela_dias: 90,
+  tempo_por_etapa: [
+    { key: "recebido_para_diagnostico", label: "Recebido pra diagnóstico", horas_media: 6.5, amostras: 41 },
+    { key: "em_diagnostico", label: "Em diagnóstico", horas_media: 19.2, amostras: 40 },
+    { key: "diagnosticado_aguardando_aprovacao", label: "Diagnosticado — aguardando aprovação", horas_media: 52.8, amostras: 37 },
+    { key: "aguardando_pecas", label: "Aguardando peças", horas_media: 96.4, amostras: 18 },
+    { key: "em_execucao", label: "Em execução", horas_media: 14.1, amostras: 33 },
+    { key: "concluido_aguardando_retirada", label: "Concluído — aguardando retirada", horas_media: 30.6, amostras: 29 },
+  ],
+  paradas_por_etapa: [
+    { key: "aguardando_pecas", label: "Aguardando peças", count: 4 },
+    { key: "diagnosticado_aguardando_aprovacao", label: "Diagnosticado — aguardando aprovação", count: 2 },
+    { key: "em_execucao", label: "Em execução", count: 1 },
+  ],
+  garantia: { entregues: 27, acionadas: 2, taxa: 7.4 },
+  produtividade: [
+    { label: "Anderson Prado", concluidas: 14, horas_media: 61.0 },
+    { label: "Bruna Lacerda", concluidas: 11, horas_media: 74.5 },
+    { label: "Sem técnico", concluidas: 2, horas_media: 120.0 },
+  ],
+};
+// 52.8 → "2d 5h" · 6.5 → "6,5h". Até 24h fica em horas; daí pra cima, dias e horas.
+const duracao = (h) => {
+  if (h == null) return "—";
+  if (h < 24) return String(h).replace(".", ",") + "h";
+  const d = Math.floor(h / 24), r = Math.round(h % 24);
+  return r ? d + "d " + r + "h" : d + "d";
+};
+
 const proximoNumero = (fs) => {
   const n = fs.reduce((m, f) => Math.max(m, parseInt(String(f.os).split("-").pop(), 10) || 0), 0) + 1;
   return CONFIG.prefixo + "2026-" + String(n).padStart(4, "0");
@@ -198,7 +230,7 @@ const proximoNumero = (fs) => {
 window.RepData = {
   HOJE, iso, fmt, d2, dias, STATUS, statusDe, COLUNAS, FASES, faseDe, DISPOSITIVOS, MARCAS, MODELOS, modeloDe,
   LOCAIS, TECNICOS, SERVICO, FOLHAS, REPAROS, ATIVIDADES, CONFIG, PAPEIS, PERMISSOES, can, visiveis,
-  SUGESTOES, CLIENTES, PECAS_ESTOQUE, DOCS, proximoNumero,
+  SUGESTOES, CLIENTES, PECAS_ESTOQUE, DOCS, proximoNumero, INDICADORES, duracao,
   pendentes, concluidas, atrasada, vencendoHoje, porColuna, contagemStatus, tendencia, porTecnico, ticketMedio,
 };
 })();
