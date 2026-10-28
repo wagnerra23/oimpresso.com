@@ -200,6 +200,97 @@ last_run: "2026-10-27"
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Maquininha integrada ao caixa — TEF (US-SELL-075)
+
+> **Âncora:** US-SELL-075 (`memory/requisitos/Sells/SPEC.md`). O caixa manda o valor para a maquininha e a resposta
+> (bandeira, NSU, autorização) preenche a linha de pagamento. Camada independente da adquirente; o integrador real é
+> decisão [W] (`memory/requisitos/Sells/BRIEFING.md`). Driver `simulador`: valor terminado em ,99 é negado.
+> Flag `SELLS_TEF_ENABLED` desligada. Prova: `tests/Feature/Sells/TefCaixaContratoTest.php`.
+
+## UC-TEF-01 · Com a flag desligada a maquininha não existe para a empresa `[V0]` `[must]`
+- **Persona:** dono da empresa sem a maquininha contratada.
+- **Aceite:** Dado a flag desligada, ou ligada só para outra empresa · Quando o caixa pede uma cobrança · Então recebe 404 e nada é gravado.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-01`.
+- **Regressão que defende:** US-SELL-075 (nasce atrás de flag): a cobrança não pode existir para quem não ligou.
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-TEF-02 · O valor vai para a máquina e a aprovação traz bandeira, NSU e autorização `[V0]` `[must]`
+- **Persona:** balconista cobrando no cartão.
+- **Aceite:** Dado crédito de 204,90 em 3x · Quando o caixa envia e depois consulta · Então a cobrança nasce `pendente`, vira `aprovada` com bandeira, NSU e autorização, e grava 20.490 centavos.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-02`.
+- **Regressão que defende:** US-SELL-075 aceite: a resposta da máquina preenche o pagamento, sem digitação dupla.
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-TEF-03 · O mesmo clique reenviado não cobra duas vezes `[V0]` `[must]`
+- **Persona:** balconista que clicou duas vezes ou perdeu a rede no meio.
+- **Aceite:** Dado duas chamadas com a mesma chave de idempotência · Então existe uma só cobrança e as duas respostas têm o mesmo id.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-03`.
+- **Regressão que defende:** cobrança em dobro no cartão do cliente.
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-TEF-04 · Cartão recusado volta como negada `[V0]` `[must]`
+- **Persona:** balconista com cartão recusado.
+- **Aceite:** Dado débito de 12,99 · Quando a máquina responde · Então o status é `negada` e a autorização fica vazia.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-04`.
+- **Regressão que defende:** pagamento marcado como pago sem aprovação do emissor.
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-TEF-05 · Cobrança de outra empresa não aparece `[V0]` `[must]`
+- **Persona:** balconista da empresa 98; adversário é a empresa 99.
+- **Aceite:** Dado uma cobrança da empresa 99 · Quando o caixa da 98 consulta pelo id · Então recebe 404.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-05`.
+- **Regressão que defende:** vazamento cross-tenant de cobrança (ADR 0093, Tier 0).
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-TEF-06 · Valor com mais de 2 casas é recusado; centavos batem por dois caminhos `[V0]` `[must]`
+- **Persona:** balconista com desconto percentual no total.
+- **Aceite:** Dado `204.99605` · Então a validação recusa. E 204,99 / 12,5 / 0,1 / 1.000 / 1.234,05 viram 20.499 / 1.250 / 10 / 100.000 / 123.405 centavos.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-06`.
+- **Regressão que defende:** regra mestre de valor: float ambíguo inflando o valor (incidente 2026-06-05).
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-TEF-07 · Sem resposta da adquirente a cobrança vira erro visível `[V0]` `[must]`
+- **Persona:** balconista com a adquirente fora do ar.
+- **Aceite:** Dado o driver sem resposta · Quando o caixa envia · Então a cobrança fica `erro`, nunca pendurada.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-07`.
+- **Regressão que defende:** cobrança presa em "aguardando" sem saída para o caixa.
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## Venda sem internet no caixa (US-SELL-054)
+
+> **Âncora:** US-SELL-054 (`memory/requisitos/Sells/SPEC.md`). O caixa guarda a venda feita sem rede e reenvia o
+> mesmo payload ao voltar a conexão, com uma chave por venda (`offline_uuid`). O servidor grava uma vez só.
+> Flag `SELLS_OFFLINE_ENABLED` desligada. Números à mão: 10 em estoque, venda de 2 × 50,00 = 100,00, saldo 8.
+> Prova: `tests/Feature/Sells/VendaOfflineContratoTest.php`.
+
+## UC-VOFF-01 · A venda reenviada duas vezes grava uma venda e baixa o estoque uma vez `[V0]` `[must]`
+- **Persona:** balconista que vendeu sem internet e viu a conexão voltar.
+- **Aceite:** Dado a mesma venda enviada duas vezes com a mesma chave · Então existe uma venda de 100,00, o saldo vai de 10 para 8 e fica 8, e a segunda resposta diz `duplicada` com o mesmo id.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-01`.
+- **Regressão que defende:** US-SELL-054: venda e baixa de estoque em dobro ao reenviar (regra mestre de estoque).
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-VOFF-02 · A chave de uma empresa não acha venda de outra `[V0]` `[must]`
+- **Persona:** balconista da empresa 98; adversário é a empresa 99.
+- **Aceite:** Dado a chave já usada pela empresa 99 · Quando a 98 envia a mesma chave · Então a 98 grava a própria venda.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-02`.
+- **Regressão que defende:** chave de venda de outra empresa apagando a venda desta (ADR 0093, Tier 0).
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-VOFF-03 · Com a flag desligada a chave é ignorada `[V0]` `[must]`
+- **Persona:** empresa sem a venda offline ligada.
+- **Aceite:** Dado a flag desligada · Então a venda segue o fluxo de hoje (redirect) e nenhuma chave é gravada.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-03`.
+- **Regressão que defende:** mudança de comportamento do caixa de hoje sem a flag.
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
+## UC-VOFF-04 · Venda offline recusada volta em JSON e não grava a chave `[V0]` `[must]`
+- **Persona:** balconista cuja venda offline o servidor recusou.
+- **Aceite:** Dado uma venda que o servidor recusa · Então a resposta é `success: 0` em JSON, nenhuma chave é gravada e o estoque fica 10, para o caixa manter a venda na fila.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-04`.
+- **Regressão que defende:** venda recusada sumindo da fila, ou chave gravada sem venda.
+- **Status: ⬜** — aguarda o run da lane `sells-pest` deste PR (CT 100 fora do ar).
+
 ## Resgate de pontos de fidelidade (US-SELL-079 · [W] 2026-10-27)
 
 > **Âncora:** US-SELL-079 (`memory/requisitos/Sells/SPEC.md`). Os pontos nativos (`business.enable_rp`) já ganham,

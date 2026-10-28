@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 884,
-    "edges": 1200,
+    "nodes": 885,
+    "edges": 1201,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 496,
+      "component": 497,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 496,
+      "hasComponent": 497,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -2899,13 +2899,6 @@
       "desc": "Wave reaplicação canon 2026-05-20 US-FIN-014a (tela dedicada /financeiro/dre, hierarquia clássica header/item/subtotal com highlight, % RL sinal preservado, Δ% mês ant., export PDF/Excel/CSV; substitui tab DRE legada em RelatoriosController)"
     },
     {
-      "id": "component:Financeiro/ExportacaoContabilController",
-      "type": "component",
-      "module": "Financeiro",
-      "name": "ExportacaoContabilController",
-      "desc": "US-FIN-077 arquivo de lançamentos da competência no leiaute do contador (Domínio 0000/6000/6100, Alterdata texto); de-para em fin_contabil_contas, pendência bloqueia o arquivo"
-    },
-    {
       "id": "component:Financeiro/ExtratoController",
       "type": "component",
       "module": "Financeiro",
@@ -4054,6 +4047,13 @@
       "desc": ""
     },
     {
+      "id": "component:OficinaAuto/PecaCompativelController",
+      "type": "component",
+      "module": "OficinaAuto",
+      "name": "PecaCompativelController",
+      "desc": "GET/POST /ordens-servico/{order}/pecas-compativeis: peças que servem no veículo da OS, por marca/modelo em texto (US-AUTO-008). Atrás de OFICINA_CATALOGO_PECAS_ENABLED, desligada = 404."
+    },
+    {
       "id": "component:OficinaAuto/ProducaoOficinaController",
       "type": "component",
       "module": "OficinaAuto",
@@ -4234,6 +4234,13 @@
       "module": "PaymentGateway",
       "name": "Settings/PaymentGatewaysController",
       "desc": "F3 PaymentGateway UI Tela 2 (CRUD credenciais + health check + toggle, Onda 4d.3)"
+    },
+    {
+      "id": "component:PaymentGateway/TefController",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "TefController",
+      "desc": "POST/GET /paymentgateway/tef/cobrancas, maquininha integrada ao caixa (US-SELL-075); Services/Tef/TefService + SimuladorTefDriver, contrato TefDriver; flag SELLS_TEF_ENABLED"
     },
     {
       "id": "component:PaymentGateway/Webhooks/AsaasWebhookController",
@@ -9525,12 +9532,6 @@
     },
     {
       "from": "module:Financeiro",
-      "to": "component:Financeiro/ExportacaoContabilController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Financeiro",
       "to": "component:Financeiro/ExtratoController",
       "type": "hasComponent",
       "source": "contains"
@@ -12412,6 +12413,12 @@
     },
     {
       "from": "module:OficinaAuto",
+      "to": "component:OficinaAuto/PecaCompativelController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:OficinaAuto",
       "to": "component:OficinaAuto/ProducaoOficinaController",
       "type": "hasComponent",
       "source": "contains"
@@ -12681,6 +12688,12 @@
     {
       "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/Settings/PaymentGatewaysController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/TefController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -87,7 +87,7 @@ dataset('viewRoutes', [
     // Core
     'home' => ['/home'],
     'business.settings' => ['/business/settings'],
-    'user.profile' => ['/user/profile'],
+    'perfil' => ['/perfil'],
     // CRUD create (core)
     'brands.create' => ['/brands/create'],
     'tax-rates.create' => ['/tax-rates/create'],

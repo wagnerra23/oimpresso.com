@@ -31,6 +31,8 @@ on:
     branches: [main]
     paths:
       - 'tests/Feature/Sells/**'
+      - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
+      - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
       - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
       - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
@@ -81,6 +83,9 @@ on:
       - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
       - 'Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php'  # US-AUTO-014 lembrete de revisão
       - 'Modules/OficinaAuto/Services/LembreteDeRevisao.php'
+      - 'Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php'  # US-AUTO-008 catálogo de peças
+      - 'Modules/OficinaAuto/Services/CatalogoDePecas.php'
+      - 'Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php'
       - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
       - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
       - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -211,6 +216,8 @@ jobs:
           filters: |
             sells:
               - 'tests/Feature/Sells/**'
+              - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
+              - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
               - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
               - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
@@ -298,6 +305,9 @@ jobs:
               - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
               - 'Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php'  # US-AUTO-014 lembrete de revisão
               - 'Modules/OficinaAuto/Services/LembreteDeRevisao.php'
+              - 'Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php'  # US-AUTO-008 catálogo de peças
+              - 'Modules/OficinaAuto/Services/CatalogoDePecas.php'
+              - 'Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php'
               - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
               - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
               - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -553,6 +563,7 @@ jobs:
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php \
             Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php \
+            Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
@@ -580,6 +591,8 @@ jobs:
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
+            tests/Feature/Sells/TefCaixaContratoTest.php \
+            tests/Feature/Sells/VendaOfflineContratoTest.php \
             tests/Feature/Sells/ValeTrocaContratoTest.php \
             tests/Feature/Sells/ResgatePontosContratoTest.php \
             tests/Feature/Sells/CancelamentoDaVendaContratoTest.php \
