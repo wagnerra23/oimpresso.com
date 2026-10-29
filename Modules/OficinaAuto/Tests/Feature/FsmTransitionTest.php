@@ -76,7 +76,7 @@ it('Cenário 1 — fluxo Simples Martinho: aberta → em_servico → concluida (
     $final = $os->fresh();
     expect($final->status)->toBe('concluida');
     expect($final->completed_at)->not->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'FSM001'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'FSM001')->forceDelete();
 });
@@ -111,7 +111,7 @@ it('Cenário 2 — fluxo Complexa Vargas: aberta → orcamento → aprovada → 
     $final = $os->fresh();
     expect($final->completed_at)->not->toBeNull();
     expect($final->delivered_at)->not->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'FSM002'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'FSM002')->forceDelete();
 });
@@ -145,7 +145,7 @@ it('Cenário 5 — isolamento multi-tenant: transição em biz=1 não vaza pra b
     $semGlobal = ServiceOrder::withoutGlobalScopes()->find($os->id);
     expect($semGlobal->business_id)->toBe(BIZ_WAGNER_FSM);
     expect($semGlobal->status)->toBe('em_servico');
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'FSM005'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'FSM005')->forceDelete();
 });

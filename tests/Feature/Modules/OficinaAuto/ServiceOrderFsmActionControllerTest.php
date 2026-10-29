@@ -198,7 +198,7 @@ it('actions() retorna actions disponíveis pra OS locação stage disponivel', f
     expect(collect($data['actions'])->pluck('key')->all())
         ->toContain('iniciar_locacao')
         ->toContain('enviar_manutencao');
-})->afterEach(function () {
+})->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-A');
 });
 
@@ -221,7 +221,7 @@ it('actions() retorna actions disponíveis pra OS manutenção stage em_servico'
     expect(collect($data['actions'])->pluck('key')->all())
         ->toContain('concluir')
         ->toContain('cancelar');
-})->afterEach(function () {
+})->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-B');
 });
 
@@ -242,7 +242,7 @@ it('actions() retorna in_pipeline=false pra OS sem current_stage_id', function (
     expect($data['actions'])->toBe([]);
     // ADR 0265: order_type='manutencao' → cacamba_manutencao (mapa ServiceOrderPipelineStarter)
     expect($data['process_key'])->toBe('cacamba_manutencao');
-})->afterEach(function () {
+})->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-C');
 });
 
@@ -278,7 +278,7 @@ it('execute() action recolher move stage + cria history entry', function () {
     expect($history)->not->toBeNull();
     expect($history->to_stage_id)->toBe($stageRecolhida->id);
     expect($history->business_id)->toBe(BIZ_WAGNER_SOFAC);
-})->afterEach(function () {
+})->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-D');
 });
 
@@ -318,7 +318,7 @@ it('execute() permission denied retorna 403', function () {
     }
 
     User::where('id', $user->id)->delete();
-})->afterEach(function () {
+})->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-E');
 });
 
@@ -342,7 +342,7 @@ it('execute() action invalida retorna 422', function () {
 
     expect($response->getStatusCode())->toBe(422);
     expect($response->getData(true))->toHaveKey('error');
-})->afterEach(function () {
+})->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-F');
 });
 
@@ -379,7 +379,7 @@ it('startPipeline() cria entry sale_stage_history Pipeline iniciado', function (
     expect($history)->not->toBeNull();
     expect($history->payload_snapshot['pipeline_started'] ?? false)->toBeTrue();
     expect($history->payload_snapshot['process_key'] ?? null)->toBe('cacamba_manutencao');
-})->afterEach(function () {
+})->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-G');
 });
 
@@ -399,7 +399,7 @@ it('startPipeline() recusa OS já em pipeline (422)', function () {
 
     expect($response->getStatusCode())->toBe(422);
     expect($response->getData(true)['error'])->toContain('já está em pipeline');
-})->afterEach(function () {
+})->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-H');
 });
 
@@ -434,7 +434,7 @@ it('cross-tenant biz=99 NÃO acessa OS biz=1 (Tier 0 ADR 0093)', function () {
         // OK — qualquer um dos dois é fail-secure aceitável
         expect(true)->toBeTrue();
     }
-})->afterEach(function () {
+})->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-I');
     cleanupSofac(BIZ_FICTICIO_SOFAC, 'SOFAC-I');
 });

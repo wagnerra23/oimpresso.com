@@ -211,7 +211,7 @@ it('emitirBoleto gera cnab remessa e retorna nosso numero', function () {
     expect($result->tipo)->toBe('boleto');
     expect($result->gatewayExternalId)->not->toBe('');
     expect($result->nossoNumero)->not->toBe('')
-        ->and(strlen($result->nossoNumero))->toBeGreaterThanOrEqual(11); // Bradesco: 11 + DV
+        ->and($result->nossoNumero)->toMatch('/^\d{9}$/'); // Itaú: 8 dígitos + DV (lib Itau::gerarNossoNumero)
     expect($result->payloadGateway)->toHaveKey('cnab_remessa_path');
     expect($result->payloadGateway['layout'])->toBe(240);
     expect($result->payloadGateway['gateway_key'])->toBe('itau_cnab');
@@ -261,7 +261,8 @@ it('respeita business id global scope (biz=2 não enxerga credencial biz=1)', fu
         'config_json'  => [
             'agencia'           => '9876',
             'conta'             => '0111222',
-            'carteira'          => '09',
+            'carteira'          => '109',
+            'conta_dv'          => '3',
             'cedente_nome'      => 'Outra Empresa S/A',
             'cedente_documento' => '99999999000199',
         ],

@@ -34,7 +34,7 @@ beforeEach(function () {
 
 it('o group `landing` sobrevive à serialização — é o que tira a entry dos grupos', function () {
     \Menu::create('admin-sidebar-menu', function ($menu) {
-        $menu->url('/dashboard-legacy', 'Visão geral', [
+        $menu->url('/home', 'Visão geral', [
             'icon'  => '<svg></svg>',
             'group' => 'landing',
         ])->order(5);
@@ -49,17 +49,17 @@ it('o group `landing` sobrevive à serialização — é o que tira a entry dos 
     // → MAIS. Este assert é a fronteira entre "topo" e "fim do menu".
     expect($built[0]['group'])->toBe('landing')
         ->and($built[0]['label'])->toBe('Visão geral')
-        ->and($built[0]['href'])->toBe('/dashboard-legacy');
+        ->and($built[0]['href'])->toBe('/home');
 });
 
-it('a entry aponta pra /dashboard-legacy — /home é 302, não destino', function () {
-    // `action([HomeController::class,'index'])` resolve pra `/dashboard-legacy`:
-    // é a ÚNICA rota que declara esse controller/método (varredura contada
-    // 2026-08-28). `/home` é um redirect e não serve de âncora de `active`.
+it('a entry aponta pra /home — /dashboard-legacy é 302, não destino', function () {
+    // [W] 2026-10-29: a Visão geral voltou a morar em `/home`. `action()` resolve
+    // pra `/home` porque é a ÚNICA rota que declara HomeController@index —
+    // `/dashboard-legacy` virou um redirect (closure) e não serve de âncora.
     $url = action([\App\Http\Controllers\HomeController::class, 'index']);
 
-    expect($url)->toContain('/dashboard-legacy')
-        ->and($url)->not->toEndWith('/home');
+    expect($url)->toEndWith('/home')
+        ->and($url)->not->toContain('dashboard-legacy');
 });
 
 it('`home.visao_geral` existe nos dois locales e NÃO reusa `home.home`', function () {

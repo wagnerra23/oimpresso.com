@@ -586,8 +586,20 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // uma permissão de feature — que é o que o bloco acima já pedia desde o
     // incidente da Maiara. A Jana não perde nada: `/ia` segue de pé, com o gate
     // `can:jana.access` intacto, e é o PRIMEIRO item do sidebar.
-    Route::get('/home', fn () => redirect('/dashboard-legacy', 302))->name('home');
-    Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
+    //
+    // ── 2026-10-29 [W]: a Visão geral volta a MORAR em `/home` ────────────────
+    // [W]: "/dashboard-legacy pode passar para home como era antes?". A tela é a
+    // mesma (HomeController@index); só o endereço volta a ser `/home`, que é o
+    // que o login e `route('home')` já abrem — some o 302 do meio do caminho.
+    // `/dashboard-legacy` fica como redirect (preserva a query, ex. `?aba=caixa`)
+    // pra link salvo/favorito não quebrar; o name `home.legacy` segue com ele.
+    // Os parágrafos acima ficam como estão: eram verdade nas datas deles.
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/dashboard-legacy', function (\Illuminate\Http\Request $request) {
+        $query = $request->getQueryString();
+
+        return redirect('/home'.($query ? '?'.$query : ''), 302);
+    })->name('home.legacy');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
     // Onboarding guiado (US-SUPER-012) — pular/voltar passo, dispensar/retomar o card. Flag onboardingPrimeirosPassos.
     Route::post('/home/primeiros-passos', [HomeController::class, 'primeirosPassos'])->name('home.primeiros-passos');
@@ -1241,6 +1253,20 @@ Route::middleware(['auth'])->group(function () {
         [\App\Http\Controllers\DocumentacaoController::class, 'casos']
     )->middleware(['setData', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
         ->name('documentacao.casos');
+
+    // Casos de uso por tela: pedidos de clientes e contrato de cada tela, lidos dos *.casos.md
+    // a cada acesso. Antes de /{slug} pelo mesmo motivo de /programa. Acesso da equipe da
+    // plataforma (CasosPorTelaController::pode), não do dono de cada empresa.
+    Route::get('/documentacao/casos-por-tela',
+        [\App\Http\Controllers\CasosPorTelaController::class, 'index']
+    )->middleware(['setData', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+        ->name('documentacao.casos-por-tela');
+    Route::post('/documentacao/casos-por-tela/conferencia/{pedido}',
+        [\App\Http\Controllers\CasosPorTelaController::class, 'conferir']
+    )->where('pedido', 'P-[0-9]{3}')->name('documentacao.casos-por-tela.conferir');
+    Route::post('/documentacao/casos-por-tela/decisao/{decisao}',
+        [\App\Http\Controllers\CasosPorTelaController::class, 'responder']
+    )->where('decisao', 'D-[0-9]{2}')->name('documentacao.casos-por-tela.responder');
 
     // Documento do acervo. Declarada DEPOIS de /buscar e /programa — sem essa ordem,
     // ambas casariam aqui primeiro e virariam 404 de "documento não encontrado".

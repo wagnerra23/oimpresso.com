@@ -333,6 +333,8 @@ const SUPERADMIN_MENU = [
 // Rodapé fixo (fora do shell.menu, como no vivo): Documentação é o único ponto de entrada.
 const FOOTER_LINKS = [
   { id: "documentacao", icon: "book", label: "Documentação" },
+  // Filho da Documentação, como /documentacao/casos-por-tela no vivo (casos-por-tela-page.jsx).
+  { id: "documentacao-casos", icon: "book", label: "Casos de uso por tela", sub: true },
 ];
 
 // ── Papel simulado: no vivo o item some quando o can() falha. Lista = ids visíveis;

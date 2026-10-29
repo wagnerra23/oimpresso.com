@@ -668,6 +668,7 @@ function DocumentacaoPage(){
    </div>
    <div className="os-page-h-r">
     <button className="os-btn ghost" onClick={()=>setPalette(true)}>⌘K Buscar</button>
+    <button className="os-btn ghost" onClick={()=>window.__go&&window.__go("documentacao-casos")}>Casos de uso por tela</button>
     <a className="os-btn ghost" href={BLOB+doc.git} target="_blank" rel="noopener">Ver fonte no git</a>
    </div>
   </header>

@@ -97,7 +97,7 @@ it('cross-tenant: JOIN assets-maintenance filtrado pelo dono NÃO vaza manutenç
 
     expect($resultado->pluck('id')->all())->not->toContain($maintAdversario->id);
     expect($resultado->pluck('details')->all())->not->toContain('Manutenção sigilosa do adversário');
-})->afterEach(function () {
+})->after(function () {
     foreach (['AST-CRS-X91', 'AST-CRS-X12'] as $code) {
         $asset = Asset::where('asset_code', $code)->first();
         if ($asset) {
@@ -138,7 +138,7 @@ it('cross-tenant: JOIN filtrado pelo adversário NÃO vaza manutenção do dono 
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     $asset = Asset::where('asset_code', 'AST-CRS-X13')->first();
     if ($asset) {
         AssetMaintenance::where('asset_id', $asset->id)->forceDelete();
@@ -201,7 +201,7 @@ it('cross-tenant: Asset::forDropdown($biz) sanity — só retorna assets do busi
 
     // Controle positivo: sem ele o caso passaria por VACUIDADE se o dropdown viesse vazio.
     expect($dropdown['assets'])->toHaveKey($assetDono->id);
-})->afterEach(function () {
+})->after(function () {
     foreach (['AST-CRS-X99D', 'AST-CRS-X1D'] as $code) {
         Asset::where('asset_code', $code)->forceDelete();
     }
@@ -272,7 +272,7 @@ it('cross-tenant: revoke do adversário NÃO altera quantidadeDisponivel do tena
 
     expect($depois)->toBe($antes);
     expect($depois)->toBe(10);
-})->afterEach(function () {
+})->after(function () {
     $bem = Asset::where('asset_code', ASSET_CODE_TNT01)->first();
     if ($bem) {
         AssetTransaction::where('asset_id', $bem->id)->forceDelete();

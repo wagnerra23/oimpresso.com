@@ -85,7 +85,7 @@ it('Activity biz=1 nao aparece em query filtrada por biz=99', function () {
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Activity::where('log_name', AUDIT_LOG_NAME_TEST)
         ->where('business_id', AUDIT_BIZ_WAGNER)
         ->delete();
@@ -109,7 +109,7 @@ it('Activity biz=1 aparece em query filtrada por biz=1', function () {
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->event)->toBe('updated');
     expect((int) $resultado->first()->business_id)->toBe(AUDIT_BIZ_WAGNER);
-})->afterEach(function () {
+})->after(function () {
     Activity::where('log_name', AUDIT_LOG_NAME_TEST)
         ->where('business_id', AUDIT_BIZ_WAGNER)
         ->delete();
@@ -135,7 +135,7 @@ it('listing scoped biz=99 nao vaza Activity de outro tenant biz=1', function () 
         ->count();
 
     expect($vazamento)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     Activity::where('log_name', AUDIT_LOG_NAME_TEST)
         ->where('business_id', AUDIT_BIZ_WAGNER)
         ->delete();
@@ -169,7 +169,7 @@ it('RevertService::canRevert bloqueia cross-tenant biz=99 user tentando reverter
 
     expect($check->allowed)->toBeFalse();
     expect($check->reason)->toContain('Tier 0');
-})->afterEach(function () {
+})->after(function () {
     Activity::where('log_name', AUDIT_LOG_NAME_TEST)
         ->where('business_id', AUDIT_BIZ_WAGNER)
         ->delete();

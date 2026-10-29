@@ -2266,6 +2266,7 @@
     "requisitos-documentacao-briefing": "memory/requisitos/Documentacao/BRIEFING.md",
     "requisitos-documentacao-runbook-busca": "memory/requisitos/Documentacao/RUNBOOK-busca.md",
     "requisitos-documentacao-runbook-casos-de-uso": "memory/requisitos/Documentacao/RUNBOOK-casos-de-uso.md",
+    "requisitos-documentacao-runbook-casos-por-tela": "memory/requisitos/Documentacao/RUNBOOK-casos-por-tela.md",
     "requisitos-documentacao-runbook-doc": "memory/requisitos/Documentacao/RUNBOOK-doc.md",
     "requisitos-documentacao-runbook-documentacao": "memory/requisitos/Documentacao/RUNBOOK-documentacao.md",
     "requisitos-documentacao-runbook-index": "memory/requisitos/Documentacao/RUNBOOK-index.md",
@@ -4507,14 +4508,14 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4501,
-    "resolved": 3013,
+    "total": 4502,
+    "resolved": 3014,
     "unstamped": 1488,
     "collisions": 0,
     "by_source": {
       "unstamped": 1488,
       "derived-adr": 449,
-      "stamped": 1171,
+      "stamped": 1172,
       "derived-handoffs": 619,
       "derived-sessions": 774
     }

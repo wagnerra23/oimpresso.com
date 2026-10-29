@@ -60,7 +60,7 @@ it('Spreadsheet biz=1 não aparece em query filtrada por biz=99', function () {
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Spreadsheet::where('name', 'Planilha Teste Wagner Isolamento')->delete();
 });
 
@@ -78,7 +78,7 @@ it('Spreadsheet biz=1 aparece em query filtrada por biz=1', function () {
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->name)->toBe('Planilha Teste Wagner Visivel');
-})->afterEach(function () {
+})->after(function () {
     Spreadsheet::where('name', 'Planilha Teste Wagner Visivel')->delete();
 });
 
@@ -122,7 +122,7 @@ it('SpreadsheetShare herda tenant via FK sheet_spreadsheet_id', function () {
     })->where('id', $share->id)->get();
 
     expect($resultadoBiz1)->toHaveCount(1);
-})->afterEach(function () {
+})->after(function () {
     $ids = Spreadsheet::where('name', 'Planilha Pai Share Teste')->pluck('id');
     SpreadsheetShare::whereIn('sheet_spreadsheet_id', $ids)->delete();
     Spreadsheet::whereIn('id', $ids)->delete();
