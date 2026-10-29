@@ -21,7 +21,8 @@ const RAIZ = path.resolve(AQUI, '..', '..');
 const REPO_URL = 'https://github.com/wagnerra23/oimpresso.com/blob/main/';
 
 // Nome e área de cada tela, e o último número de pedido reservado pelo documento de origem
-// (Maiara 23/10, Felipe 27/10: P-001 a P-114; o próximo livre nunca é menor que P-115). Moram em
+// (Maiara 23/10, Felipe 27/10: P-001 a P-114; Felipe e Maiara 28/10: até P-152, que o documento já
+// numerou e ainda não estão todos no git; o próximo livre nunca é menor que P-153). Moram em
 // telas.json porque a página dentro do sistema (app/Services/Documentacao/CasosPorTela.php) lê o
 // mesmo arquivo.
 const MAPA = JSON.parse(fs.readFileSync(path.join(AQUI, 'telas.json'), 'utf8'));

@@ -62,7 +62,7 @@ test('texto com </script> não fecha o script da página', () => {
 
 test('o próximo pedido livre respeita os números já dados pelo documento de origem', () => {
   const { dados } = montarDados(repo({ 'resources/js/Pages/Sells/Index.casos.md': caso('P-005', 'US-X') }));
-  assert.equal(dados.proximoPedido, 'P-115', 'P-001 a P-114 ficam reservados, mesmo os que ainda não estão no git');
-  const { dados: d2 } = montarDados(repo({ 'resources/js/Pages/Sells/Index.casos.md': caso('P-120', 'US-X') }));
-  assert.equal(d2.proximoPedido, 'P-121');
+  assert.equal(dados.proximoPedido, 'P-153', 'P-001 a P-152 ficam reservados, mesmo os que ainda não estão no git');
+  const { dados: d2 } = montarDados(repo({ 'resources/js/Pages/Sells/Index.casos.md': caso('P-160', 'US-X') }));
+  assert.equal(d2.proximoPedido, 'P-161');
 });

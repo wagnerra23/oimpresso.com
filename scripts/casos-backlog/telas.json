@@ -1,6 +1,6 @@
 {
   "_leia": "Nome e área de cada tela na página 'Casos de uso por tela'. Lido por gerar.mjs e por app/Services/Documentacao/CasosPorTela.php: um lugar só. Tela fora daqui aparece pelo caminho, na área 'Outras telas'.",
-  "ultimoReservado": 114,
+  "ultimoReservado": 152,
   "areas": [
     ["vendas", "Vendas"], ["producao", "Produção"], ["compras", "Compras e estoque"],
     ["fiscal", "Fiscal"], ["financeiro", "Financeiro"], ["outras", "Outras telas"]

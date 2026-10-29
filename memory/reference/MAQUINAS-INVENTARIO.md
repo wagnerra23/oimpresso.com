@@ -465,13 +465,14 @@ lifecycle: ativo
 |---|---|---|---|---|---|
 | `sqlite-test-corruptors.mjs` | ci, script | 🟢 só lê | selftest | `memory/requisitos/_Governanca/roadmap/P03-us-gov-021-isolamento-era-sqlite.md` +11 | auditor READ-ONLY de testes que corrompem o |
 
-### 5.3 `scripts/casos-backlog/` — 3
+### 5.3 `scripts/casos-backlog/` — 4
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `dados-prototipo.mjs` | — | 🔴 disco | — | — | os dados da tela "Casos de uso por tela" para o protótipo do shell. |
-| `gerar.mjs` | npm, script | 🔴 disco | test | — | monta a página "Casos de uso por tela" a partir do git. |
-| `leitor.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | lê os pedidos de clientes e as decisões pendentes que vivem nos *.casos.md. |
+| `gerar.mjs` | npm, script | 🔴 disco | test | `memory/requisitos/Documentacao/RUNBOOK-casos-por-tela.md` | monta a página "Casos de uso por tela" a partir do git. |
+| `leitor.mjs` | script | 🟢 só lê | test | `memory/requisitos/Documentacao/RUNBOOK-casos-por-tela.md` +1 | lê os pedidos de clientes e as decisões pendentes que vivem nos *.casos.md. |
+| `novo.mjs` | agente, npm | 🔴 disco | test | `memory/requisitos/Documentacao/RUNBOOK-casos-por-tela.md` | registra um pedido de cliente no casos.md da tela, já no formato que a página lê. |
 
 ### 5.4 `scripts/cc-watcher/` — 2
 
@@ -835,7 +836,7 @@ lifecycle: ativo
 | `config/typecheck-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` | Catraca: congela o débito atual de tsc e falha só em REGRESSÃO. Débito cai quando o arquivo for tocado — não fazer backfill em massa (proibicoes §5 20… |
 | `config/ui-lint-baseline.json` | ci | `memory/decisions/0209-eslint-9-flat-config.md` +19 | (baseline/estado) |
 | `scripts/casos-coverage-baseline.json` | ci, script | `memory/decisions/0403-errata-0402-denominador-ja-inclui-pages-de-modulo.md` +23 | casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado) |
-| `scripts/casos-test-results.json` | agente, ci, script | `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md` +16 | casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste) |
+| `scripts/casos-test-results.json` | agente, ci, script | `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md` +17 | casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste) |
 | `scripts/domain-dict-baseline.json` | ci, script | `memory/requisitos/OficinaAuto/RUNBOOK-erradicacao-locacao.md` +3 | dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3) |
 | `scripts/layout-primitives-baseline.json` | ci, script | `memory/requisitos/_DesignSystem/CHANGELOG.md` +3 | Contagem de flex/grid solto POR ARQUIVO. Gate falha se um arquivo AUMENTAR ou se arquivo novo nascer com flex/grid solto. |
 | `scripts/no-mock-baseline.json` | ci, script | `memory/LICOES_CODE.md` +3 | Contagem por REGRA. Gate falha so se uma regra AUMENTAR vs este baseline. |
