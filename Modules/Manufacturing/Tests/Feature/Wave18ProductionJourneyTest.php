@@ -80,7 +80,7 @@ it('journey biz=1: criar recipe + 2 ingredients + resolver BOM via Service', fun
     // Mesma chamada biz=99 → vazio (Tier 0)
     $bomVazio = $svc->resolveBom($recipe->id, 99);
     expect($bomVazio->count())->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'wave18-journey-bom')->delete();
 });
 
@@ -124,7 +124,7 @@ it('journey biz=1: calculateCost + calculateUnitCost respeitam total_quantity', 
     // Custo total ≥ extra_cost (5) — independe de dpp_inc_tax existir
     expect($cost)->toBeGreaterThanOrEqual(10.0);
     expect($unit)->toBe($cost / 5.0);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'wave18-journey-cost')->delete();
 });
 

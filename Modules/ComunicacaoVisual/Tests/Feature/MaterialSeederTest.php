@@ -80,7 +80,7 @@ it('MaterialSeeder cria exatamente 5 materiais default para biz=1', function () 
         ->count();
 
     expect($count)->toBe(5);
-})->afterEach(function () {
+})->after(function () {
     Material::withoutGlobalScopes() // SUPERADMIN: cleanup de teste
         ->where('business_id', SEEDER_BIZ_WAGNER)
         ->whereIn('nome', [
@@ -128,7 +128,7 @@ it('MaterialSeeder é idempotente: rodar 2x resulta em 5 rows (não 10)', functi
         ->count();
 
     expect($count)->toBe(5);
-})->afterEach(function () {
+})->after(function () {
     Material::withoutGlobalScopes() // SUPERADMIN: cleanup de teste
         ->where('business_id', SEEDER_BIZ_WAGNER)
         ->whereIn('nome', [
@@ -185,7 +185,7 @@ it('MaterialSeeder isola por business_id: run(1) e run(99) criam rows independen
 
     expect($countBiz1)->toBe(5);
     expect($countBiz99)->toBe(5);
-})->afterEach(function () {
+})->after(function () {
     Material::withoutGlobalScopes() // SUPERADMIN: cleanup de teste
         ->whereIn('business_id', [SEEDER_BIZ_WAGNER, SEEDER_BIZ_FICTICIO])
         ->whereIn('nome', [
@@ -230,7 +230,7 @@ it('Material::find() via global scope não retorna rows de outro business', func
     $resultado = Material::find($materialBiz1->id);
 
     expect($resultado)->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     Material::withoutGlobalScopes() // SUPERADMIN: cleanup de teste
         ->where('business_id', SEEDER_BIZ_WAGNER)
         ->whereIn('nome', [
