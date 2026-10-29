@@ -57,7 +57,8 @@ function makeOrderSOI(array $attrs): ServiceOrder
 
 function cleanupSOI(string $platePrefix): void
 {
-    $vehicleIds = Vehicle::withoutGlobalScopes()
+    $vehicleIds = Vehicle::withoutGlobalScopes() // SUPERADMIN: cleanup de teste
+        ->whereIn('business_id', [BIZ_WAGNER_SOI, BIZ_FICTICIO_SOI]) // so o tenant do teste: o prefixo forma placa real valida (AAA9999)
         ->where('plate', 'like', $platePrefix . '%')
         ->pluck('id')->toArray();
 
@@ -129,7 +130,7 @@ it('Index retorna 3 KPIs corretos (manutencao_ativas, concluidas_mes, atrasadas 
     expect($kpis['manutencao_ativas'])->toBeGreaterThanOrEqual(2);
     expect($kpis['atrasadas'])->toBeGreaterThanOrEqual(1);
     expect($kpis['concluidas_mes'])->toBeGreaterThanOrEqual(1);
-})->afterEach(function () {
+})->after(function () {
     cleanupSOI('SOI001');
 });
 
@@ -163,7 +164,7 @@ it('Filter ?status=atrasada retorna apenas OS overdue (expected_completion venci
 
     expect($atrasadas)->toContain($late->id);
     expect($atrasadas)->not->toContain($ok->id);
-})->afterEach(function () {
+})->after(function () {
     cleanupSOI('SOI002');
 });
 
@@ -189,7 +190,7 @@ it('Filter ?type=manutencao filtra apenas manutenções (mecanica fora)', functi
 
     expect($somenteManutencao)->toContain($man->id);
     expect($somenteManutencao)->not->toContain($mec->id);
-})->afterEach(function () {
+})->after(function () {
     cleanupSOI('SOI003');
 });
 
@@ -212,7 +213,7 @@ it('Cross-tenant biz=99 NÃO vê OS biz=1 (Tier 0 ADR 0093)', function () {
     // E KPIs (que rodam sob global scope) também devem zerar pra biz=99
     $kpiAtivas = ServiceOrder::whereNotIn('status', ['concluida', 'cancelada'])->count();
     expect($kpiAtivas)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     cleanupSOI('SOI004');
 });
 
@@ -227,6 +228,6 @@ it('Search "q" busca por placa do vehicle', function () {
     })->get();
 
     expect($found->pluck('id')->toArray())->toContain($os->id);
-})->afterEach(function () {
+})->after(function () {
     cleanupSOI('SOI005');
 });

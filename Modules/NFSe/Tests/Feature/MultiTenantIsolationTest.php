@@ -83,7 +83,7 @@ it('NfseEmissao biz=1 não aparece com session biz=99', function () {
     $resultado = NfseEmissao::where('id', $emissao->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     NfseEmissao::withoutGlobalScopes()
         ->where('rps_numero', 'RPS-TESTE-ISOL-001')
         ->forceDelete();
@@ -111,7 +111,7 @@ it('NfseEmissao biz=1 aparece com session biz=1', function () {
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->rps_numero)->toBe('RPS-TESTE-ISOL-002');
-})->afterEach(function () {
+})->after(function () {
     NfseEmissao::withoutGlobalScopes()
         ->where('rps_numero', 'RPS-TESTE-ISOL-002')
         ->forceDelete();
@@ -154,7 +154,7 @@ it('NfseEmissao all() com session biz=99 retorna apenas dados do biz=99', functi
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->rps_numero)->toBe('RPS-TESTE-ISOL-CROSS-F');
     expect($resultado->first()->business_id)->toBe(BIZ_NFSE_FICTICIO);
-})->afterEach(function () {
+})->after(function () {
     NfseEmissao::withoutGlobalScopes()
         ->whereIn('rps_numero', ['RPS-TESTE-ISOL-CROSS-W', 'RPS-TESTE-ISOL-CROSS-F'])
         ->forceDelete();
@@ -175,17 +175,17 @@ it('NfseProviderConfig biz=1 não aparece com session biz=99', function () {
         'aliquota_iss'          => 0.02,
         'ambiente'              => 'homologacao',
     ]);
+    $this->nfseCfgIds = [$config->id];
 
     // Consulta com session biz=99 — NÃO deve aparecer
     setNfseBizSession(BIZ_NFSE_FICTICIO);
     $resultado = NfseProviderConfig::where('id', $config->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
-    NfseProviderConfig::withoutGlobalScopes()
-        ->where('business_id', BIZ_NFSE_WAGNER)
-        ->where('municipio_codigo_ibge', '4218905')
-        ->forceDelete();
+})->after(function () {
+    // SUPERADMIN: cleanup de teste — só as configs que o teste criou, pelo id. Apagar por
+    // (business_id, município) levaria a config real de biz=1 se o create() falhasse no unique.
+    NfseProviderConfig::withoutGlobalScopes()->whereIn('id', $this->nfseCfgIds ?? [])->forceDelete();
 });
 
 it('NfseProviderConfig biz=1 aparece com session biz=1', function () {
@@ -199,6 +199,7 @@ it('NfseProviderConfig biz=1 aparece com session biz=1', function () {
         'aliquota_iss'          => 0.05,
         'ambiente'              => 'homologacao',
     ]);
+    $this->nfseCfgIds = [$config->id];
 
     setNfseBizSession(BIZ_NFSE_WAGNER);
     $resultado = NfseProviderConfig::where('id', $config->id)->get();
@@ -206,11 +207,10 @@ it('NfseProviderConfig biz=1 aparece com session biz=1', function () {
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->municipio_codigo_ibge)->toBe('3550308');
     expect($resultado->first()->ambiente)->toBe('homologacao');
-})->afterEach(function () {
-    NfseProviderConfig::withoutGlobalScopes()
-        ->where('business_id', BIZ_NFSE_WAGNER)
-        ->where('municipio_codigo_ibge', '3550308')
-        ->forceDelete();
+})->after(function () {
+    // SUPERADMIN: cleanup de teste — só as configs que o teste criou, pelo id. Apagar por
+    // (business_id, município) levaria a config real de biz=1 se o create() falhasse no unique.
+    NfseProviderConfig::withoutGlobalScopes()->whereIn('id', $this->nfseCfgIds ?? [])->forceDelete();
 });
 
 it('NfseProviderConfig biz=1 e biz=99 coexistem isolados no mesmo município', function () {
@@ -230,6 +230,7 @@ it('NfseProviderConfig biz=1 e biz=99 coexistem isolados no mesmo município', f
         'ambiente'              => 'homologacao',
         'aliquota_iss'          => 0.02,
     ]);
+    $this->nfseCfgIds = [$configWagner->id, $configFicticio->id];
 
     // Session biz=99 SÓ enxerga config do biz=99 (não vaza ambiente=producao do biz=1)
     setNfseBizSession(BIZ_NFSE_FICTICIO);
@@ -238,9 +239,8 @@ it('NfseProviderConfig biz=1 e biz=99 coexistem isolados no mesmo município', f
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->business_id)->toBe(BIZ_NFSE_FICTICIO);
     expect($resultado->first()->ambiente)->toBe('homologacao');
-})->afterEach(function () {
-    NfseProviderConfig::withoutGlobalScopes()
-        ->where('municipio_codigo_ibge', '4314902')
-        ->whereIn('business_id', [BIZ_NFSE_WAGNER, BIZ_NFSE_FICTICIO])
-        ->forceDelete();
+})->after(function () {
+    // SUPERADMIN: cleanup de teste — só as configs que o teste criou, pelo id. Apagar por
+    // (business_id, município) levaria a config real de biz=1 se o create() falhasse no unique.
+    NfseProviderConfig::withoutGlobalScopes()->whereIn('id', $this->nfseCfgIds ?? [])->forceDelete();
 });

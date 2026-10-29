@@ -65,7 +65,7 @@ it('Asset do tenant dono não aparece em query filtrada pelo adversário', funct
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Asset::where('asset_code', 'AST-TST-9991')->forceDelete();
 });
 
@@ -90,7 +90,7 @@ it('Asset do tenant dono aparece em query filtrada por ele mesmo', function () {
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->name)->toBe('Impressora Teste');
     expect((int) $resultado->first()->business_id)->toBe((int) $dono->id);
-})->afterEach(function () {
+})->after(function () {
     Asset::where('asset_code', 'AST-TST-9992')->forceDelete();
 });
 
@@ -128,7 +128,7 @@ it('AssetMaintenance do dono não aparece em join filtrado pelo adversário', fu
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     $asset = Asset::where('asset_code', 'AST-TST-9993')->first();
     if ($asset) {
         AssetMaintenance::where('asset_id', $asset->id)->forceDelete();
@@ -166,7 +166,7 @@ it('AssetMaintenance do dono aparece em join filtrado por ele mesmo', function (
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->details)->toBe('Manutenção teste positivo');
-})->afterEach(function () {
+})->after(function () {
     $asset = Asset::where('asset_code', 'AST-TST-9994')->first();
     if ($asset) {
         AssetMaintenance::where('asset_id', $asset->id)->forceDelete();

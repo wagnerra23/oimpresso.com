@@ -81,7 +81,7 @@ function dto_cleanup(string $suffix): void
 
 it('UC-OSH-07 · converte item DVI em ServiceOrderItem (valor sugerido vira valor unitário)', function () {
     session(['user.business_id' => BIZ_DTO]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_DTO)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_DTO]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1 pra testar HTTP');
     }
@@ -95,7 +95,7 @@ it('UC-OSH-07 · converte item DVI em ServiceOrderItem (valor sugerido vira valo
 
     $resp->assertStatus(201);
     $resp->assertJsonPath('item.tipo', 'mao_obra');
-    $resp->assertJsonPath('item.valor_unitario', 480.0);
+    expect((float) $resp->json('item.valor_unitario'))->toBe(480.0); // JSON nao preserva .0: o JsonResponse do Laravel nao usa JSON_PRESERVE_ZERO_FRACTION
     $resp->assertJsonPath('inspection_item_id', $dvi->id);
 
     // ServiceOrderItem criado de fato
@@ -106,11 +106,11 @@ it('UC-OSH-07 · converte item DVI em ServiceOrderItem (valor sugerido vira valo
     // DVI marcado como orçado (metadata.budget_item_id)
     $dvi->refresh();
     expect($dvi->metadata['budget_item_id'] ?? null)->toBe($item->id);
-})->afterEach(fn () => dto_cleanup('A'));
+})->after(fn () => dto_cleanup('A'));
 
 it('é idempotente — reconverter o mesmo item DVI retorna 409', function () {
     session(['user.business_id' => BIZ_DTO]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_DTO)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_DTO]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1');
     }
@@ -126,11 +126,11 @@ it('é idempotente — reconverter o mesmo item DVI retorna 409', function () {
 
     // Não duplicou o ServiceOrderItem
     expect(ServiceOrderItem::withoutGlobalScopes()->where('service_order_id', $os->id)->count())->toBe(1);
-})->afterEach(fn () => dto_cleanup('B'));
+})->after(fn () => dto_cleanup('B'));
 
 it('cross-OS guard — item DVI de outra OS retorna 404', function () {
     session(['user.business_id' => BIZ_DTO]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_DTO)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_DTO]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1');
     }
@@ -144,7 +144,7 @@ it('cross-OS guard — item DVI de outra OS retorna 404', function () {
         "/oficina-auto/ordens-servico/{$os2->id}/dvi/{$dvi->id}/to-orcamento"
     );
     $resp->assertStatus(404);
-})->afterEach(function () {
+})->after(function () {
     dto_cleanup('C1');
     dto_cleanup('C2');
 });

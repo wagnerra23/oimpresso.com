@@ -73,7 +73,7 @@ it('Package é entity global — sem BusinessScope, visível cross-tenant', func
 
     expect($vistoBiz1)->toBe(1, 'Package deve aparecer com session biz=1');
     expect($vistoBiz99)->toBe(1, 'Package deve aparecer com session biz=99 (cross-tenant intencional)');
-})->afterEach(function () {
+})->after(function () {
     Package::where('name', 'Pacote Teste Cross-Tenant')->forceDelete();
 });
 

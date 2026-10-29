@@ -29,6 +29,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_ITOTAL = 1;
+const BIZ_ITOTAL_OUTRO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
 const PLATE_ITOTAL_PREFIX = 'ITOT';
 
 beforeEach(function () {
@@ -107,7 +108,7 @@ it('1. withSum items_total soma valor_total dos itens da OS (mesma query do inde
         ->find($os->id);
 
     expect((float) $row->items_total)->toBe(800.0);
-})->afterEach(fn () => itotal_cleanup());
+})->after(fn () => itotal_cleanup());
 
 it('2. OS sem itens → items_total NULL (frontend renderiza "—")', function () {
     session(['user.business_id' => BIZ_ITOTAL]);
@@ -118,17 +119,17 @@ it('2. OS sem itens → items_total NULL (frontend renderiza "—")', function (
         ->find($os->id);
 
     expect($row->items_total)->toBeNull();
-})->afterEach(fn () => itotal_cleanup());
+})->after(fn () => itotal_cleanup());
 
 it('3. multi-tenant Tier 0 — global scope filtra a OS de outro business inteira', function () {
     session(['user.business_id' => BIZ_ITOTAL]);
 
     $osBiz1 = itotal_criaOs('C');
-    $osBiz99 = itotal_criaOs('D', 99);
+    $osOutroBiz = itotal_criaOs('D', BIZ_ITOTAL_OUTRO);
 
     ServiceOrderItem::withoutGlobalScopes()->create([
-        'business_id'      => 99,
-        'service_order_id' => $osBiz99->id,
+        'business_id'      => BIZ_ITOTAL_OUTRO,
+        'service_order_id' => $osOutroBiz->id,
         'tipo'             => 'peca',
         'descricao'        => 'Item de outro tenant',
         'quantidade'       => 1,
@@ -137,9 +138,9 @@ it('3. multi-tenant Tier 0 — global scope filtra a OS de outro business inteir
 
     $rows = ServiceOrder::query()
         ->withSum('items as items_total', 'valor_total')
-        ->whereIn('id', [$osBiz1->id, $osBiz99->id])
+        ->whereIn('id', [$osBiz1->id, $osOutroBiz->id])
         ->get();
 
-    // Global scope (biz=1): só a OS do tenant aparece; a OS biz=99 (e os R$ dela) não vazam.
+    // Global scope (biz=1): só a OS do tenant aparece; a OS do biz=2 (e os R$ dela) não vazam.
     expect($rows->pluck('id')->all())->toBe([$osBiz1->id]);
-})->afterEach(fn () => itotal_cleanup());
+})->after(fn () => itotal_cleanup());

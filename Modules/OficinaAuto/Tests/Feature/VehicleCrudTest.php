@@ -49,7 +49,7 @@ it('UC-OVC-01 · cria veículo com placa única (caso Martinho — caçamba avul
     expect($vehicle->plate)->toBe('TEST001');
     expect($vehicle->business_id)->toBe(BIZ_WAGNER);
     expect($vehicle->secondary_plate)->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST001')->forceDelete();
 });
 
@@ -69,7 +69,7 @@ it('UC-OVC-02 · cria veículo multi-placa (caso Vargas — cavalo+reboque)', fu
     expect($vehicle->secondary_plate)->toBe('REB001');
     expect($vehicle->vehicle_type)->toBe('cavalo');
     expect($vehicle->secondary_chassis)->toBe('9BWZZZ377VT004252');
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST002')->forceDelete();
 });
 
@@ -84,7 +84,7 @@ it('UC-OVI-01 · lista veículos (Vehicle::all filtrado por scope)', function ()
 
     $vehicles = Vehicle::where('plate', 'TEST003')->get();
     expect($vehicles)->toHaveCount(1);
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST003')->forceDelete();
 });
 
@@ -101,7 +101,7 @@ it('UC-OVE-01 · atualiza veículo', function () {
     $vehicle->update(['color' => 'Branco']);
 
     expect($vehicle->fresh()->color)->toBe('Branco');
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST004')->forceDelete();
 });
 
@@ -123,7 +123,7 @@ it('UC-OVI-03 · soft delete preserva registro', function () {
     $trashed = Vehicle::withoutGlobalScopes()->withTrashed()->find($id);
     expect($trashed)->not->toBeNull();
     expect($trashed->deleted_at)->not->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST005')->forceDelete();
 });
 
@@ -138,6 +138,6 @@ it('UC-OVE-02 · UC-OIM-03 · preserva legacy_id para futuro importer Firebird (
     ]);
 
     expect($vehicle->legacy_id)->toBe('FB-12345');
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'TEST006')->forceDelete();
 });

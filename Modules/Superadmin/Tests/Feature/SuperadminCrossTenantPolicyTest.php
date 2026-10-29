@@ -94,7 +94,7 @@ it('Package::withoutGlobalScopes — superadmin enxerga pacotes de qualquer busi
         ->count();
 
     expect($count)->toBe(2, 'withoutGlobalScopes deve trazer ambos packages cross-tenant');
-})->afterEach(function () {
+})->after(function () {
     Package::whereIn('name', ['Pacote Policy A', 'Pacote Policy B'])->forceDelete();
 });
 

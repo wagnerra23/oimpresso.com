@@ -124,7 +124,7 @@ describe('Wave 18 — comportamento DB-dependent (MySQL only)', function () {
             ->where('id', $recipe->id)
             ->count();
         expect($proprio)->toBe(1);
-    })->afterEach(function () {
+    })->after(function () {
         MfgRecipe::where('instructions', 'wave18-trait-chain-test')->delete();
     });
 
@@ -155,7 +155,7 @@ describe('Wave 18 — comportamento DB-dependent (MySQL only)', function () {
         expect($instance->belongsToBusinessChain($recipe->id, 1))->toBeTrue();
         expect($instance->belongsToBusinessChain($recipe->id, 99))->toBeFalse();
         expect($instance->belongsToBusinessChain(9999999, 1))->toBeFalse('ID inexistente jamais pertence.');
-    })->afterEach(function () {
+    })->after(function () {
         MfgRecipe::where('instructions', 'wave18-belongs-chain-test')->delete();
     });
 });

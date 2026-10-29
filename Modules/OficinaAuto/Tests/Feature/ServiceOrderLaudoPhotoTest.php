@@ -123,7 +123,7 @@ it('store anexa foto à OS escopada por business → 201 + arquivo morphTo Servi
         ->first();
     expect($arquivo)->not->toBeNull();
     expect((int) $arquivo->business_id)->toBe(BIZ_LAUDO);
-})->afterEach(fn () => laudo_cleanup('A'));
+})->after(fn () => laudo_cleanup('A'));
 
 it('store rejeita arquivo que não é imagem → 422', function () {
     session(['user.business_id' => BIZ_LAUDO]);
@@ -144,7 +144,7 @@ it('store rejeita arquivo que não é imagem → 422', function () {
             ->where('arquivable_id', $os->id)
             ->count()
     )->toBe(0);
-})->afterEach(fn () => laudo_cleanup('B'));
+})->after(fn () => laudo_cleanup('B'));
 
 // ---------------------------------------------------------------------------
 // multi-tenant + cross-owner guard
@@ -162,7 +162,7 @@ it('store em OS de outro business → 404 (global scope route binding)', functio
     );
 
     $response->assertNotFound();
-})->afterEach(fn () => laudo_cleanup('C'));
+})->after(fn () => laudo_cleanup('C'));
 
 it('cross-owner guard: arquivo de uma OS não pode ser apagado pela rota de outra OS → 404', function () {
     session(['user.business_id' => BIZ_LAUDO]);
@@ -185,7 +185,7 @@ it('cross-owner guard: arquivo de uma OS não pode ser apagado pela rota de outr
 
     // Foto continua viva na OS B.
     expect(Arquivo::withoutGlobalScopes()->whereKey($arquivoId)->whereNull('deleted_at')->exists())->toBeTrue();
-})->afterEach(function () {
+})->after(function () {
     laudo_cleanup('D');
 });
 
@@ -222,7 +222,7 @@ it('updateLabel persiste a legenda (original_name) + destroy soft-deleta', funct
     $del = $this->actingAs($user)->deleteJson("/oficina-auto/ordens-servico/{$os->id}/fotos/{$arquivoId}");
     $del->assertNoContent();
     expect(Arquivo::withoutGlobalScopes()->whereKey($arquivoId)->whereNull('deleted_at')->exists())->toBeFalse();
-})->afterEach(fn () => laudo_cleanup('E'));
+})->after(fn () => laudo_cleanup('E'));
 
 // ---------------------------------------------------------------------------
 // payload do drawer + laudo no print A4
@@ -242,7 +242,7 @@ it('GET /service-orders/{id} JSON inclui laudo_photos após upload', function ()
     $response->assertOk();
     expect($response->json('laudo_photos'))->toBeArray()->toHaveCount(1);
     expect($response->json('laudo_photos.0.label'))->toBe('laudo.jpg');
-})->afterEach(fn () => laudo_cleanup('F'));
+})->after(fn () => laudo_cleanup('F'));
 
 it('printInvoice A4 inclui a seção "Fotos da vistoria" com a legenda quando há fotos', function () {
     session(['user.business_id' => BIZ_LAUDO]);
@@ -259,9 +259,9 @@ it('printInvoice A4 inclui a seção "Fotos da vistoria" com a legenda quando h�
         ['label' => 'Chassi lateral'],
     )->assertOk();
 
-    $print = $this->actingAs($user)->getJson("/oficina-auto/ordens-servico/{$os->id}/print");
+    $print = $this->actingAs($user)->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])->getJson("/oficina-auto/ordens-servico/{$os->id}/print");
     $print->assertOk();
     $html = $print->json('receipt.html_content');
     expect($html)->toContain('Fotos da vistoria');
     expect($html)->toContain('Chassi lateral');
-})->afterEach(fn () => laudo_cleanup('G'));
+})->after(fn () => laudo_cleanup('G'));

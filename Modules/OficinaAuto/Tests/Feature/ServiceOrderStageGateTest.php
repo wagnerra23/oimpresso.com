@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_GATE5 = 1;
-const BIZ_GATE5_OUTRO = 99;
+const BIZ_GATE5_OUTRO = 2; // tenant que o seed da lane tem (1, 2, 98)
 const PLATE_GATE5_PREFIX = 'WGAT5';
 
 beforeEach(function () {
@@ -38,7 +38,7 @@ beforeEach(function () {
 
 function sg5_user(): ?\App\User
 {
-    return \App\User::withoutGlobalScopes()->where('business_id', BIZ_GATE5)->first();
+    return tap(\App\User::factory()->create(['business_id' => BIZ_GATE5]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
 }
 
 function sg5_criaOs(string $suffix, int $biz = BIZ_GATE5, string $orderType = 'mecanica'): ServiceOrder
@@ -89,7 +89,7 @@ it('UC-OSH-10 · bloqueia (422) enviar_orcamento sem DVI/foto/orçamento — gat
     $resp->assertJsonPath('gate.satisfied', false);
     expect($resp->json('gate.blocking_unmet'))->toBe(3);
     expect($resp->json('error'))->toContain('Checklist de etapa');
-})->afterEach(fn () => sg5_cleanup('A'));
+})->after(fn () => sg5_cleanup('A'));
 
 it('execute cross-tenant é 404 (Tier 0) — OS de outra biz não é alcançável', function () {
     session(['user.business_id' => BIZ_GATE5]);
@@ -98,14 +98,14 @@ it('execute cross-tenant é 404 (Tier 0) — OS de outra biz não é alcançáve
         $this->markTestSkipped('Sem user disponível em biz=1');
     }
 
-    $os = sg5_criaOs('B', BIZ_GATE5_OUTRO); // OS pertence ao biz=99
+    $os = sg5_criaOs('B', BIZ_GATE5_OUTRO); // OS pertence ao biz=2
 
     $this->actingAs($user)
         ->postJson("/oficina-auto/service-orders/{$os->id}/fsm/execute", [
             'action_key' => 'enviar_orcamento',
         ])
         ->assertNotFound();
-})->afterEach(fn () => sg5_cleanup('B'));
+})->after(fn () => sg5_cleanup('B'));
 
 // ─── Evaluator data-driven ──────────────────────────────────────────────────
 
@@ -120,7 +120,7 @@ it('StageGateEvaluator deriva os 3 requisitos bloqueantes de enviar_orcamento', 
     expect($gate['blocking_unmet'])->toBe(3);
     expect(collect($gate['requirements'])->pluck('key')->all())
         ->toBe(['dvi_min', 'dvi_foto', 'orcamento']);
-})->afterEach(fn () => sg5_cleanup('C'));
+})->after(fn () => sg5_cleanup('C'));
 
 it('StageGateEvaluator não bloqueia transição sem regra cadastrada (ex: cancelar_os)', function () {
     session(['user.business_id' => BIZ_GATE5]);
@@ -131,4 +131,4 @@ it('StageGateEvaluator não bloqueia transição sem regra cadastrada (ex: cance
     expect($gate['satisfied'])->toBeTrue();
     expect($gate['total'])->toBe(0);
     expect($gate['requirements'])->toBe([]);
-})->afterEach(fn () => sg5_cleanup('D'));
+})->after(fn () => sg5_cleanup('D'));

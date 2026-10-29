@@ -68,7 +68,7 @@ it('cria OS Simples (caso Martinho — fluxo 3 estados)', function () {
     expect($os->status)->toBe('aberta');
     expect($os->vehicle_id)->toBe($vehicle->id);
     expect($os->business_id)->toBe(BIZ_WAGNER_SO);
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'SOC001'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'SOC001')->forceDelete();
 });
@@ -86,7 +86,7 @@ it('relaciona OS → Vehicle (eager load)', function () {
     $loaded = ServiceOrder::with('vehicle')->find($os->id);
     expect($loaded->vehicle)->not->toBeNull();
     expect($loaded->vehicle->plate)->toBe('SOC002');
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'SOC002'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'SOC002')->forceDelete();
 });
@@ -100,7 +100,7 @@ it('UC-OVS-01 · relaciona Vehicle → ServiceOrders (hasMany)', function () {
 
     $fresh = Vehicle::with('serviceOrders')->find($vehicle->id);
     expect($fresh->serviceOrders)->toHaveCount(2);
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'SOC003'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'SOC003')->forceDelete();
 });
@@ -121,7 +121,7 @@ it('atualiza status da OS (status livre na V0 — FSM em US-OFICINA-003)', funct
     $os->update(['status' => 'concluida', 'completed_at' => now()]);
     expect($os->fresh()->status)->toBe('concluida');
     expect($os->fresh()->completed_at)->not->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'SOC004'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'SOC004')->forceDelete();
 });
@@ -140,7 +140,7 @@ it('isolamento multi-tenant — OS biz=1 não aparece com session biz=99', funct
     $resultado = ServiceOrder::where('id', $os->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'SOC005'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'SOC005')->forceDelete();
 });
@@ -162,7 +162,7 @@ it('soft delete preserva OS', function () {
     $trashed = ServiceOrder::withoutGlobalScopes()->withTrashed()->find($id);
     expect($trashed)->not->toBeNull();
     expect($trashed->deleted_at)->not->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'SOC006'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'SOC006')->forceDelete();
 });
