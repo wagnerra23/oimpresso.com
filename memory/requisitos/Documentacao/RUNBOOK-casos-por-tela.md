@@ -5,7 +5,7 @@ module: Documentacao
 tela: Documentacao/CasosPorTela
 owner: W
 status: rascunho
-last_validated: "2026-10-28"
+last_validated: "2026-10-29"
 related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
@@ -43,6 +43,32 @@ resultado; ele é o que garante que a página no sistema mostra os mesmos númer
 `paths-ignore: '**.md'` e o sync leve faz `git reset` sem publicar bundle. Um JSON do build
 ficaria parado justo quando só os casos.md mudam; os arquivos no disco, não. O checkout de
 produção tinha os mesmos 351 casos.md do git e o manifesto de testes.
+
+## Como entra um pedido novo
+
+Pedido de cliente (ou do [W]) entra pelo comando, não escrito à mão:
+
+```bash
+npm run casos:novo -- --proximo                 # só mostra o próximo P-NNN livre
+npm run casos:novo -- --caso caso.json --dry-run   # mostra o texto sem gravar
+npm run casos:novo -- --caso caso.json             # grava no casos.md da tela
+```
+
+O `caso.json` tem `tela`, `titulo`, `texto` (Dado · Quando · Então), `ancora`, `fazer`, `hoje`,
+`clientes` e, opcionais, `marcas`, `decisao`, `cv`, `etiquetas`, `autor` e `data`; o formato
+completo está no topo de `scripts/casos-backlog/novo.mjs`. O comando reserva o próximo P-NNN,
+escreve o bullet com os subitens na seção `## Pedidos de clientes` do casos.md (cria a seção se
+faltar), acrescenta a linha na `## Trilha do tempo` quando o arquivo tem trilha, e relê o arquivo
+com o leitor da página antes de gravar. Recusa pedido sem cliente, `hoje`/`cv` fora do
+vocabulário (`ok`, `part`, `miss`, `gray`) e valor em R$.
+
+Dívida técnica (caso sem teste, débito de schema) não entra por aqui: segue como `[BACKLOG]` sem
+`Pedido`, fora da página.
+
+Numeração: `telas.json` → `ultimoReservado` guarda até onde o documento de origem já numerou
+(P-152 em 2026-10-29, inclusive os casos que ainda não estão no git). O número vem do git no disco;
+rode com o main atualizado. Dois PRs abertos ao mesmo tempo podem pegar o mesmo número, e aí o
+leitor acusa o repetido (ver Pegadinhas).
 
 ## Quem vê, confere e decide
 
