@@ -42,6 +42,26 @@ last_run: "2026-10-07"
 - Teste: [`tests/Feature/Sells/ComissaoPorClienteContratoTest.php`](../../../../../tests/Feature/Sells/ComissaoPorClienteContratoTest.php), lane `sells-pest.yml`.
 - **Status: 🧪**
 
+## UC-SBCOM-02 · Cada parcela gera parcela × % da venda; só a recebida é liberada · `must` `[T0]` `[valor]`
+- **Medido antes:** no Delphi a comissão é uma linha por parcela e `VALOR_COMISSAO = VALOR × PERC / 100` em
+  1.643 de 1.643; `VALOR` é o valor da parcela do financeiro em 1.641 de 1.643, e a soma das parcelas é o total
+  da nota, com ST, em 981 de 1.011 vendas (325 das 330 com ST). Nenhuma venda tinha frete.
+- **Aceite:** Dado venda de 3.000,00 a 10% com três parcelas (1.200,00 quitada · 900,00 vencida · 900,00 a
+  vencer) · Quando calculo o período · Então liberada 120,00, vencida 90,00, aberta 90,00 · E a soma é 300,00 =
+  3.000,00 × 10% (segundo caminho).
+- **Status: 🧪**
+
+## UC-SBCOM-03 · Venda sem % não entra; parcela paga depois passa a liberada · `must` `[T0]` `[valor]`
+- **Aceite:** Dado uma venda sem % do cliente no mesmo período · Então ela não aparece · Quando a parcela
+  vencida é quitada · Então liberada 210,00, vencida 0, aberta 90,00.
+- **Status: 🧪**
+
+## UC-SBCOM-04 · Rota com a permissão do relatório; outra empresa fora · `must` `[T0]`
+- **Aceite:** `GET /reports/comissao-por-cliente?inicio&fim` · Dado usuário sem `sales_representative.view` ·
+  Então 403 · Dado venda de outra empresa com % · Então não entra na soma · Dado representante de outra
+  empresa no filtro · Então 404.
+- **Status: 🧪**
+
 ## Backlog
 - [BACKLOG] As 4 abas de listagem da Blade (vendas, vendas com comissão, despesas, pagamentos com comissão) — PR seguinte, antes do cutover.
 - [BACKLOG] Travar o vendedor no usuário logado quando ele não for gestor — decisão [W] (a Blade não faz).
@@ -70,6 +90,6 @@ last_run: "2026-10-07"
   - Pedido: P-156
   - Âncora: US-COMM-016 · Comissionados/Index.casos.md
   - Fazer: Percentual de comissão por cliente e liberação por parcela recebida, com o relatório mostrando aberto, liberado e vencido por representante.
-  - Hoje: part | UC-SBCOM-01 | a venda já nasce com o % do cliente; falta o cálculo por parcela (PR seguinte), a seção na tela e o campo % no cadastro do cliente
+  - Hoje: part | UC-SBCOM-01..04 | cálculo e rota JSON `GET /reports/comissao-por-cliente` feitos; falta a seção na tela e o campo % no cadastro do cliente
   - Clientes: Sabor Brasil
   - Etiquetas: valor, miss, decisao

@@ -954,6 +954,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/reports/sales-representative-total-expense', [ReportController::class, 'getSalesRepresentativeTotalExpense']);
     Route::get('/reports/sales-representative-total-sell', [ReportController::class, 'getSalesRepresentativeTotalSell']);
     Route::get('/reports/sales-representative-total-commission', [ReportController::class, 'getSalesRepresentativeTotalCommission']);
+    // P-156 — comissão do representante por cliente, liberada por parcela recebida (só cálculo).
+    Route::get('/reports/comissao-por-cliente', [\App\Http\Controllers\ComissaoPorClienteController::class, 'index'])
+        ->name('reports.comissao-por-cliente');
     Route::get('/reports/stock-expiry', [ReportController::class, 'getStockExpiryReport']);
     Route::get('/reports/stock-expiry-edit-modal/{purchase_line_id}', [ReportController::class, 'getStockExpiryReportEditModal']);
     Route::post('/reports/stock-expiry-update', [ReportController::class, 'updateStockExpiryReport'])->name('updateStockExpiryReport');
