@@ -916,6 +916,7 @@ function App() {
   if (route === "planilhas") content = <window.PlanilhasPage view="lista" />;else
   if (route === "planilha-nova") content = <window.PlanilhasPage view="nova" />;else
   if (route === "programa-doc") content = <window.ProgramaDocPage />;else
+  if (route === "documentacao-casos") content = window.CasosPorTelaPage ? <window.CasosPorTelaPage /> : <ModuleStub routeId={route} />;else
   if (route === "site") content = <window.CmsPage view="paginas" />;else
   if (route === "cms-blog") content = <window.CmsPage view="blog" />;else
   if (route === "cms-depoimentos") content = <window.CmsPage view="depoimentos" />;else

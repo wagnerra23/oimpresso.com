@@ -465,10 +465,11 @@ lifecycle: ativo
 |---|---|---|---|---|---|
 | `sqlite-test-corruptors.mjs` | ci, script | 🟢 só lê | selftest | `memory/requisitos/_Governanca/roadmap/P03-us-gov-021-isolamento-era-sqlite.md` +11 | auditor READ-ONLY de testes que corrompem o |
 
-### 5.3 `scripts/casos-backlog/` — 2
+### 5.3 `scripts/casos-backlog/` — 3
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
+| `dados-prototipo.mjs` | — | 🔴 disco | — | — | os dados da tela "Casos de uso por tela" para o protótipo do shell. |
 | `gerar.mjs` | npm, script | 🔴 disco | test | — | monta a página "Casos de uso por tela" a partir do git. |
 | `leitor.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | lê os pedidos de clientes e as decisões pendentes que vivem nos *.casos.md. |
 
