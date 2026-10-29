@@ -9,6 +9,7 @@
 // Uso:
 //   node scripts/casos-backlog/gerar.mjs --out <arquivo.html>   gera a página
 //   node scripts/casos-backlog/gerar.mjs --resumo               só imprime as contagens
+//   node scripts/casos-backlog/gerar.mjs --json                 resumo + dados, para o teste de paridade
 // Sai 1 se um pedido cita regra que não existe ou se uma decisão destrava pedido inexistente.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,27 +20,14 @@ const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const RAIZ = path.resolve(AQUI, '..', '..');
 const REPO_URL = 'https://github.com/wagnerra23/oimpresso.com/blob/main/';
 
-// Nome e área de cada tela. Tela fora daqui aparece pelo caminho, na área "Outras telas".
-const AREAS = [
-  ['vendas', 'Vendas'], ['producao', 'Produção'], ['compras', 'Compras e estoque'],
-  ['fiscal', 'Fiscal'], ['financeiro', 'Financeiro'], ['outras', 'Outras telas'],
-];
-const TELAS = {
-  'Sells/Index': ['Consulta de vendas', 'vendas'], 'Sells/Create': ['Nova venda', 'vendas'],
-  'Sells/Quotations': ['Orçamentos', 'vendas'], 'Sells/Drafts': ['Rascunhos', 'vendas'],
-  'Cliente/Index': ['Cliente', 'vendas'], 'SellReturn/Add': ['Devolução', 'vendas'],
-  'Producao/Apontamento/Index': ['OS da produção', 'producao'], 'Repair/JobSheet/Create': ['OS da assistência', 'producao'],
-  'Purchase/Create': ['Nova compra', 'compras'], 'PurchaseRequisition/Index': ['Requisição de compra', 'compras'],
-  'StockTransfer/Create': ['Transferência de estoque', 'compras'], 'Produto/Index': ['Consulta de produto', 'compras'],
-  'Produto/SellingPrices': ['Formação de preço', 'compras'],
-  'Fiscal/Nfe': ['NF-e', 'fiscal'], 'Fiscal/Nfse': ['NFS-e', 'fiscal'], 'Fiscal/Config': ['Configuração fiscal', 'fiscal'],
-  'Financeiro/Unificado/Index': ['Financeiro', 'financeiro'], 'Comissionados/Index': ['Comissionados', 'financeiro'],
-  'Report/SalesRepresentative/Index': ['Relatório de comissões', 'financeiro'], 'RecurringBilling/Index': ['Cobrança recorrente', 'financeiro'],
-};
-// O documento de origem (Maiara 23/10, Felipe 27/10) numerou os pedidos de P-001 a P-114. Os que
-// ainda não foram ligados ao git continuam com o número reservado, então o próximo livre nunca é
-// menor que P-115.
-const ULTIMO_RESERVADO = 114;
+// Nome e área de cada tela, e o último número de pedido reservado pelo documento de origem
+// (Maiara 23/10, Felipe 27/10: P-001 a P-114; o próximo livre nunca é menor que P-115). Moram em
+// telas.json porque a página dentro do sistema (app/Services/Documentacao/CasosPorTela.php) lê o
+// mesmo arquivo.
+const MAPA = JSON.parse(fs.readFileSync(path.join(AQUI, 'telas.json'), 'utf8'));
+const AREAS = MAPA.areas;
+const TELAS = MAPA.telas;
+const ULTIMO_RESERVADO = MAPA.ultimoReservado;
 const chaveDaTela = arquivo => arquivo.replace(/^.*\/Pages\//, '').replace(/\.casos\.md$/, '');
 
 export function lerRegras(raiz = RAIZ) {
@@ -111,9 +99,17 @@ if (principal) {
     telasComContrato: dados.contratos.length, casosDeUso: dados.contratos.reduce((s, t) => s + t.ucs.length, 0),
     casosDeUsoVerdes: dados.contratos.reduce((s, t) => s + t.ucs.filter(u => u.veredito === 'pass').length, 0),
   };
-  console.log(JSON.stringify(resumo));
-  for (const p of problemas) console.error('PROBLEMA: ' + p);
+  if (!args.includes('--json')) {
+    console.log(JSON.stringify(resumo));
+    for (const p of problemas) console.error('PROBLEMA: ' + p);
+  }
   const i = args.indexOf('--out');
+  if (args.includes('--json')) {
+    // Os dados inteiros, sem a data: é o que o teste de paridade compara com a leitura do PHP.
+    const { geradoEm, ...resto } = dados;
+    console.log(JSON.stringify({ resumo, ...resto, problemas }));
+    process.exit(0);
+  }
   if (i >= 0) {
     if (!args[i + 1]) { console.error('--out precisa do caminho do arquivo'); process.exit(2); }
     fs.writeFileSync(args[i + 1], renderizar(dados));
