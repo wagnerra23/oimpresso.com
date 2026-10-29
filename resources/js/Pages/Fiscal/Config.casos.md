@@ -302,6 +302,23 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 2. **Noturna CT 100:** `phpunit.xml` inclui `./Modules/Fiscal/Tests/Feature`; é onde eles correm contra MySQL real.
 3. ⛔ **Nunca local** ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
+## Pedidos de clientes
+
+> Pedidos de clientes registrados com `node scripts/casos-backlog/novo.mjs`. Cada um aparece na
+> página "Casos de uso por tela"; quando ganhar teste, vira caso de uso com id e a linha `Pedido de origem`.
+
+- `[BACKLOG]` **Dois CNPJs com regimes diferentes na mesma conta** — Dado uma conta com um CNPJ no Regime
+  Normal e outro no Simples Nacional, Quando emito uma venda por cada um, Então a nota sai com o CNPJ, a série
+  e o regime certos: CST na empresa normal, CSOSN na do Simples. O Sabor Brasil emite pelos dois desde 2024
+  (372 vendas pela empresa do regime normal, 174 pela do Simples). Pedido de Sabor Brasil. Falta decisão [W]:
+  Uma empresa com dois locais emissores ou duas empresas no oimpresso.
+  - Pedido: P-155
+  - Âncora: Playbook Fiscal thread 26 · nfe_locais_emissores
+  - Fazer: Regime por local emissor, ou o caminho de duas empresas, conforme a decisão do Wagner.
+  - Hoje: part | Em parte | O local emissor já tem CNPJ, IE e série próprios; o regime vem da empresa
+  - Clientes: Sabor Brasil
+  - Etiquetas: part, decisao
+
 ## Trilha do tempo
 
 - 2026-10-27 · [F+C] Backlog: alíquota do Simples do mês, para produto e para serviço, pedido da Art Laser (US-PROD-032). Sem id.
@@ -325,3 +342,4 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
   [`fiscal-config.map.json`](../../../../memory/requisitos/Fiscal/fiscal-config.map.json)); e nasce
   o 4º card, **Envio de documentos**, com `UC-FCFG-05`. **Nenhum teste re-executado** (Pest = CT 100).
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **3 UC** derivados do §6 do SDD; 2 herdam testes existentes, 1 nasce com teste novo. Os 5 itens de backlog que citavam a feature flag do SPED foram **movidos** para a tela dona (`Sped`) em vez de duplicados. Divergência charter × código registrada, **não** resolvida (intenção é de [W]).
+- 2026-10-29 · [W+C] Pedido P-155 "Dois CNPJs com regimes diferentes na mesma conta" (Sabor Brasil), registrado com casos-backlog/novo.mjs. Sem id de UC.
