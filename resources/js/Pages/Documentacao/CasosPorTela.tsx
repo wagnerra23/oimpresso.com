@@ -14,6 +14,11 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid, Inline } from '@/Components/layout';
+import SubNav from '@/Components/shared/SubNav';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import {
   FILTROS, TOM, fmtData, partesRicas,
   type Caso, type Contrato, type Dados, type Marca, type Marcas, type Tom,
@@ -27,6 +32,9 @@ interface Props {
   podeConferir: boolean;
   podeDecidir: boolean;
 }
+
+/** Sentinela do item "Todos" (Radix Select não aceita value vazio — §5 2026-06-29). */
+const TODOS = '__todos__';
 
 type Visao = 'casos' | 'contratos' | 'regras' | 'decisoes' | 'clientes';
 const VISOES: [Visao, string][] = [
@@ -42,10 +50,10 @@ function Rico({ texto }: { texto: string }) {
 
 function Num({ n, rotulo, alerta }: { n: number; rotulo: string; alerta?: boolean }) {
   return (
-    <div className="grid min-w-0 rounded-md border bg-card px-3 py-2">
+    <Grid gap={null} className="min-w-0 rounded-md border bg-card px-3 py-2">
       <b className={`text-xl tabular-nums leading-tight ${alerta ? 'text-primary' : ''}`}>{n}</b>
       <span className="text-xs text-muted-foreground">{rotulo}</span>
-    </div>
+    </Grid>
   );
 }
 
@@ -59,7 +67,7 @@ function Pilula({ ativo, onClick, children }: { ativo: boolean; onClick: () => v
 }
 
 function Carregando() {
-  return <div className="grid gap-2" data-contract="lista"><Skeleton className="h-16" /><Skeleton className="h-10" /><Skeleton className="h-10" /><Skeleton className="h-10" /></div>;
+  return <Grid gap={null} className="gap-2" data-contract="lista"><Skeleton className="h-16" /><Skeleton className="h-10" /><Skeleton className="h-10" /><Skeleton className="h-10" /></Grid>;
 }
 
 export default function CasosPorTela({ dados, marcas, podeConferir, podeDecidir }: Props) {
@@ -123,30 +131,30 @@ function Pagina({ dados, marcas, podeConferir, podeDecidir }: { dados: Dados; ma
   };
 
   return (
-    <div className="grid gap-4">
-      <div className="grid gap-3" data-contract="filtros">
+    <Grid gap={null} className="gap-4">
+      <Grid gap={null} className="gap-3" data-contract="filtros">
         <p className="max-w-[72ch] text-sm text-muted-foreground">
           <Rico texto="Cada caso é um item do casos.md da sua tela, ligado a este documento pelo subitem `Pedido: P-NNN`; as regras vêm do catálogo de Fluxos (`UC-FLX`). Para mudar um caso, edite o casos.md da tela: a página muda no próximo acesso." />
         </p>
-        <div className="flex flex-wrap gap-2" data-contract="numeros">
+        <Inline gap={null} align={null} className="flex-wrap gap-2" data-contract="numeros">
           <Num n={C.length} rotulo={`casos em ${dados.telas.length} telas`} />
           <Num n={clientes.length} rotulo="clientes ligados" />
           <Num n={C.filter((c) => c.tags.includes('valor')).length} rotulo="mexem em valor ou estoque" />
           <Num n={C.filter((c) => c.tags.includes('decisao')).length} rotulo="dependem do Wagner" alerta />
           <Num n={C.filter((c) => !c.regras.length).length} rotulo="não citam regra de Fluxos" />
-        </div>
-        <div className="flex flex-wrap overflow-hidden rounded-md border bg-card" aria-label="Ciclo de vida dos casos">
+        </Inline>
+        <Inline gap={null} align={null} className="flex-wrap overflow-hidden rounded-md border bg-card" aria-label="Ciclo de vida dos casos">
           {etapas.map(([nome, n, sub]) => (
-            <div key={nome} className="grid flex-[1_1_140px] gap-0.5 border-r px-3 py-2 last:border-r-0">
+            <Grid gap={null} key={nome} className="flex-[1_1_140px] gap-0.5 border-r px-3 py-2 last:border-r-0">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{nome}</span>
               <b className="text-lg tabular-nums">{n}</b>
               <small className="text-xs text-muted-foreground">{sub}</small>
               <div className="h-1 overflow-hidden rounded bg-muted" aria-hidden="true">
                 <i className="block h-full bg-primary" style={{ width: `${C.length ? Math.round((100 * n) / C.length) : 0}%` }} />
               </div>
-            </div>
+            </Grid>
           ))}
-        </div>
+        </Inline>
         {marcas === null ? <p className="rounded-md bg-muted px-3 py-2 text-sm">A conferência e as respostas não estão disponíveis agora (a tabela das marcas não existe neste ambiente).</p> : null}
         {dados.problemas.length ? (
           <div className="rounded-md border px-3 py-2 text-sm" role="status">
@@ -154,16 +162,10 @@ function Pagina({ dados, marcas, podeConferir, podeDecidir }: { dados: Dados; ma
             <ul className="ml-4 list-disc">{dados.problemas.map((p) => <li key={p}>{p}</li>)}</ul>
           </div>
         ) : null}
-      </div>
+      </Grid>
 
-      <nav className="flex gap-1 overflow-x-auto border-b" role="tablist" aria-label="Visões">
-        {VISOES.map(([v, rotulo]) => (
-          <button key={v} type="button" role="tab" aria-selected={visao === v} onClick={() => mostrar(v)}
-            className={`whitespace-nowrap border-b-[3px] px-3.5 py-2.5 font-semibold ${visao === v ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground'}`}>
-            {rotulo}<span className="ml-1.5 font-mono text-xs text-muted-foreground">{contagem[v]}</span>
-          </button>
-        ))}
-      </nav>
+      <SubNav ariaLabel="Visões" value={visao} onChange={(v) => mostrar(v as Visao)}
+        items={VISOES.map(([v, rotulo]) => ({ value: v, label: rotulo, badge: contagem[v] }))} />
 
       <div data-contract="lista" role="tabpanel">
         {visao === 'casos' ? (
@@ -180,7 +182,7 @@ function Pagina({ dados, marcas, podeConferir, podeDecidir }: { dados: Dados; ma
           <VisaoClientes dados={dados} clientes={clientes} irParaCaso={irParaCaso} irParaCliente={irParaCliente} />
         )}
       </div>
-    </div>
+    </Grid>
   );
 }
 
@@ -219,55 +221,63 @@ function VisaoCasos(p: {
   const limpar = () => { setFiltros(new Set()); setBusca(''); p.setCliente(''); p.setRecorte('tudo'); };
 
   const BotaoRecorte = ({ id, rotulo, n, forte }: { id: string; rotulo: string; n: number; forte?: boolean }) => (
-    <button type="button" aria-pressed={p.recorte === id} onClick={() => p.setRecorte(id)}
-      className={`flex w-full justify-between gap-2 rounded px-2 py-1 text-left hover:bg-muted ${p.recorte === id ? 'bg-accent font-semibold' : ''} ${forte ? 'font-bold' : ''}`}>
+    <Inline asChild gap={null} align={null} className={`w-full justify-between gap-2 rounded px-2 py-1 text-left hover:bg-muted ${p.recorte === id ? 'bg-accent font-semibold' : ''} ${forte ? 'font-bold' : ''}`}><button type="button" aria-pressed={p.recorte === id} onClick={() => p.setRecorte(id)}>
       <span>{rotulo}</span><span className="font-mono text-xs text-muted-foreground">{n}</span>
-    </button>
+    </button></Inline>
   );
 
   return (
-    <div className="grid items-start gap-5 md:grid-cols-[230px_minmax(0,1fr)]">
-      <aside className="hidden gap-3 text-sm md:sticky md:top-0 md:grid" aria-label="Áreas e telas">
+    <Grid gap={null} className="items-start gap-5 md:grid-cols-[230px_minmax(0,1fr)]">
+      <Grid asChild gap={null} className="gap-3 text-sm max-md:hidden md:sticky md:top-0"><aside aria-label="Áreas e telas">
         <BotaoRecorte id="tudo" rotulo="Todas as telas" n={conta(() => true)} />
         {dados.areas.map((a) => (
           <div key={a.id}>
             <BotaoRecorte id={a.id} rotulo={a.nome} n={conta((c) => areaDaTela[c.tela] === a.id)} forte />
-            <ul className="mt-0.5 grid gap-px pl-2">
+            <Grid asChild gap={null} className="mt-0.5 gap-px pl-2"><ul>
               {a.telas.map((t) => <li key={t}><BotaoRecorte id={t} rotulo={telaDe[t]?.nome ?? t} n={conta((c) => c.tela === t)} /></li>)}
-            </ul>
+            </ul></Grid>
           </div>
         ))}
-      </aside>
-      <div className="grid min-w-0 gap-3">
-        <select className="rounded-md border bg-card px-2 py-2 md:hidden" aria-label="Área ou tela" value={p.recorte} onChange={(e) => p.setRecorte(e.target.value)}>
-          <option value="tudo">Todas as telas</option>
-          {dados.areas.map((a) => (
-            <optgroup key={a.id} label={a.nome}>
-              <option value={a.id}>Toda a área: {a.nome}</option>
-              {a.telas.map((t) => <option key={t} value={t}>{telaDe[t]?.nome ?? t}</option>)}
-            </optgroup>
-          ))}
-        </select>
-        <div className="flex flex-wrap gap-2">
+      </aside></Grid>
+      <Grid gap={null} className="min-w-0 gap-3">
+        <div className="md:hidden">
+          <Select value={p.recorte} onValueChange={p.setRecorte}>
+            <SelectTrigger aria-label="Área ou tela" className="w-full bg-card"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="tudo">Todas as telas</SelectItem>
+              {dados.areas.map((a) => (
+                <SelectGroup key={a.id}>
+                  <SelectLabel>{a.nome}</SelectLabel>
+                  <SafeSelectItem value={a.id}>Toda a área: {a.nome}</SafeSelectItem>
+                  {a.telas.map((t) => <SafeSelectItem key={t} value={t}>{telaDe[t]?.nome ?? t}</SafeSelectItem>)}
+                </SelectGroup>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Inline gap={null} align={null} className="flex-wrap gap-2">
           <Input type="search" className="min-w-0 flex-[1_1_260px]" value={busca} onChange={(e) => { setBusca(e.target.value); p.setAberto(null); }}
             placeholder="Buscar no título, aceite, âncora ou número (#45)" aria-label="Buscar casos" />
-          <select className="max-w-full rounded-md border bg-card px-2" aria-label="Cliente" value={p.cliente} onChange={(e) => p.setCliente(e.target.value)}>
-            <option value="">Todos os clientes</option>
-            {p.clientes.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtros (somam entre si)">
+          <Select value={p.cliente || TODOS} onValueChange={(v) => p.setCliente(v === TODOS ? '' : v)}>
+            <SelectTrigger aria-label="Cliente" className="w-auto max-w-full bg-card"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={TODOS}>Todos os clientes</SelectItem>
+              {p.clientes.map((c) => <SafeSelectItem key={c} value={c}>{c}</SafeSelectItem>)}
+            </SelectContent>
+          </Select>
+        </Inline>
+        <Inline gap={null} align={null} className="flex-wrap gap-1.5" role="group" aria-label="Filtros (somam entre si)">
           {FILTROS.map(([id, rotulo, f]) => (
             <Pilula key={id} ativo={filtros.has(id)} onClick={() => alternar(id)}>
               {rotulo}<span className="font-mono text-xs opacity-75">{C.filter((c) => noRecorte(c) && base(c, id) && f(c, conf)).length}</span>
             </Pilula>
           ))}
-        </div>
+        </Inline>
         <div className="text-sm text-muted-foreground" data-contract="resultado">
           {vis.length === C.length ? `${C.length} casos` : `${vis.length} de ${C.length} casos`}{' '}
           {sujo ? <button type="button" className="text-primary underline" onClick={limpar}>Limpar filtros</button> : null}
         </div>
-        <div className="grid gap-1.5">
+        <Grid gap={null} className="gap-1.5">
           {!C.length ? (
             <div className="rounded-md border border-dashed p-7 text-center text-muted-foreground">Nenhum caso ligado ainda. Um caso entra aqui quando o item dele no casos.md da tela ganha o subitem "Pedido: P-NNN".</div>
           ) : !vis.length ? (
@@ -277,10 +287,10 @@ function VisaoCasos(p: {
               marca={conf[c.id]} podeConferir={p.podeConferir} tela={telaDe[c.tela]} contrato={contratoDe[c.tela]}
               regraTitulo={(r) => regraPorId[r]?.titulo ?? ''} irParaContrato={p.irParaContrato} />
           ))}
-        </div>
+        </Grid>
         <details className="rounded-md border bg-card">
           <summary className="cursor-pointer px-3.5 py-2.5 font-semibold">Como entra um pedido novo</summary>
-          <div className="grid gap-2 px-3.5 pb-3.5 text-sm">
+          <Grid gap={null} className="gap-2 px-3.5 pb-3.5 text-sm">
             <p className="max-w-[75ch]"><Rico texto="Um pedido novo não se escreve aqui: ele entra no `casos.md` da tela, como um item de backlog com o subitem `Pedido`. No próximo acesso ele aparece nesta lista." /></p>
             <pre className="overflow-x-auto rounded bg-muted px-3 py-2.5 font-mono text-xs leading-normal">{[
               '- **[BACKLOG] Título curto do pedido** `[V0]`', `  - Pedido: ${dados.proximoPedido}`,
@@ -289,10 +299,10 @@ function VisaoCasos(p: {
               '  - Comunicação visual: ok | Sim | por quê', '  - Clientes: Cliente A, Cliente B', '  - Etiquetas: valor, miss, cv',
             ].join('\n')}</pre>
             <p className="max-w-[75ch]"><Rico texto="O número no exemplo é o próximo livre. Se duas pessoas usarem o mesmo número, a página avisa e não monta a lista. Quando o pedido ganhar um teste e virar caso de uso com id, troque o item pelo bloco do UC e deixe nele a linha `- **Pedido de origem:** P-NNN`." /></p>
-          </div>
+          </Grid>
         </details>
-      </div>
-    </div>
+      </Grid>
+    </Grid>
   );
 }
 
@@ -320,11 +330,11 @@ function CasoItem({ c, aberto, alternar, marca, podeConferir, tela, contrato, re
 
   return (
     <article className={`rounded-md border bg-card ${marca ? 'border-l-[3px] border-l-success' : ''}`} data-caso={c.id}>
-      <button type="button" aria-expanded={aberto} onClick={alternar} className="grid w-full grid-cols-[3.2em_minmax(0,1fr)_auto] items-start gap-2.5 px-3 py-2.5 text-left">
+      <Grid asChild gap={null} className="w-full grid-cols-[3.2em_minmax(0,1fr)_auto] items-start gap-2.5 px-3 py-2.5 text-left"><button type="button" aria-expanded={aberto} onClick={alternar}>
         <span className="font-mono tabular-nums text-muted-foreground">#{c.n}</span>
-        <span className="grid min-w-0 gap-1 font-semibold">
+        <Grid asChild gap={null} className="min-w-0 gap-1 font-semibold"><span>
           <span>{c.titulo}</span>
-          <span className="flex flex-wrap gap-1 font-normal">
+          <Inline asChild gap={null} align={null} className="flex-wrap gap-1 font-normal"><span>
             {c.uc ? <Badge variant="success" title={c.estagio === 'testado' ? 'Virou caso de uso, com o teste verde' : 'Virou caso de uso'}>{c.uc}</Badge> : null}
             {c.marcas.map((m) => <Badge key={m} variant="warning" title={m === 'V0' ? 'Mexe em valor' : m === 'E0' ? 'Mexe em estoque' : 'Mexe em tributo'}>{m}</Badge>)}
             {c.hoje.texto ? <Badge variant={TOM[c.hoje.tipo] ?? 'neutral'}>{c.hoje.texto}</Badge> : null}
@@ -332,23 +342,23 @@ function CasoItem({ c, aberto, alternar, marca, podeConferir, tela, contrato, re
             {c.regras.length ? c.regras.map((r) => <Badge key={r} variant="neutral" title={regraTitulo(r)} className="font-mono">{r}</Badge>)
               : <Badge variant="outline">sem regra citada</Badge>}
             {marca ? <Badge variant="success">Conferido</Badge> : null}
-          </span>
-        </span>
+          </span></Inline>
+        </span></Grid>
         <span className={`text-muted-foreground transition-transform motion-reduce:transition-none ${aberto ? 'rotate-90' : ''}`} aria-hidden="true">›</span>
-      </button>
+      </button></Grid>
       {aberto ? (
-        <div className="grid gap-3 px-3.5 pb-3.5 md:pl-[calc(3.2em+22px)]">
-          <dl className="m-0 grid gap-x-3.5 gap-y-1.5 md:grid-cols-[9.5em_minmax(0,1fr)]">
+        <Grid gap={null} className="gap-3 px-3.5 pb-3.5 md:pl-[calc(3.2em+22px)]">
+          <Grid asChild gap={null} className="m-0 gap-x-3.5 gap-y-1.5 md:grid-cols-[9.5em_minmax(0,1fr)]"><dl>
             {linhas.map(([k, v]) => [<dt key={k + 't'} className="text-sm text-muted-foreground">{k}</dt>, <dd key={k + 'd'} className="m-0 min-w-0 [overflow-wrap:anywhere]">{v}</dd>])}
-          </dl>
-          <div className="flex flex-wrap items-center gap-2.5 border-t pt-2.5 text-sm">
-            <label className="inline-flex cursor-pointer items-center gap-2">
-              <Checkbox checked={!!marca} disabled={!podeConferir || salvando} onCheckedChange={(v) => conferir(v === true)} aria-label={`Conferido contra as regras: caso ${c.n}`} />
+          </dl></Grid>
+          <Inline gap={null} align={null} className="flex-wrap items-center gap-2.5 border-t pt-2.5 text-sm">
+            <label htmlFor={`conferido-${c.id}`} className="inline-flex cursor-pointer items-center gap-2">
+              <Checkbox id={`conferido-${c.id}`} checked={!!marca} disabled={!podeConferir || salvando} onCheckedChange={(v) => conferir(v === true)} aria-label={`Conferido contra as regras: caso ${c.n}`} />
               Conferido contra as regras
             </label>
             <span className="text-muted-foreground">{marca ? `${marca.por} · ${fmtData(marca.em)}` : podeConferir ? '' : 'Você pode ver o que foi conferido, mas não marcar.'}</span>
-          </div>
-        </div>
+          </Inline>
+        </Grid>
       ) : null}
     </article>
   );
@@ -369,39 +379,42 @@ function VisaoContratos({ contratos, aberta, setAberta, irParaTela }: { contrato
   const nUcs = vis.reduce((s, x) => s + x.ucs.length, 0);
 
   return (
-    <div className="grid gap-3">
+    <Grid gap={null} className="gap-3">
       <div>
         <h2 className="text-lg font-semibold">O que as telas já garantem</h2>
         <p className="max-w-[70ch] text-sm text-muted-foreground">{total} casos de uso em {contratos.length} telas, {verdes} com o teste verde. É o contrato do que o sistema já faz: cada caso tem id e um teste que o prova. O veredito vem do resultado dos testes, não do que está escrito no arquivo.</p>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <Inline gap={null} align={null} className="flex-wrap gap-2">
         <Input type="search" className="min-w-0 flex-[1_1_260px]" value={busca} onChange={(e) => { setBusca(e.target.value); setAberta(null); }} placeholder="Buscar tela, módulo, id ou título do caso de uso" aria-label="Buscar casos de uso" />
-        <select className="max-w-full rounded-md border bg-card px-2" aria-label="Módulo" value={modulo} onChange={(e) => { setModulo(e.target.value); setAberta(null); }}>
-          <option value="">Todos os módulos</option>
-          {modulos.map((m) => <option key={m} value={m}>{m}</option>)}
-        </select>
+        <Select value={modulo || TODOS} onValueChange={(v) => { setModulo(v === TODOS ? '' : v); setAberta(null); }}>
+          <SelectTrigger aria-label="Módulo" className="w-auto max-w-full bg-card"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={TODOS}>Todos os módulos</SelectItem>
+            {modulos.map((m) => <SafeSelectItem key={m} value={m}>{m}</SafeSelectItem>)}
+          </SelectContent>
+        </Select>
         <Pilula ativo={semProva} onClick={() => setSemProva(!semProva)}>Só os casos sem teste verde</Pilula>
-      </div>
+      </Inline>
       <div className="text-sm text-muted-foreground">{vis.length} {vis.length === 1 ? 'tela' : 'telas'} · {nUcs} {nUcs === 1 ? 'caso de uso' : 'casos de uso'}</div>
-      <div className="grid gap-1.5">
+      <Grid gap={null} className="gap-1.5">
         {!vis.length ? <div className="rounded-md border border-dashed p-7 text-center text-muted-foreground">Nenhum caso de uso com essa busca.</div> : vis.map(({ t, ucs }) => {
           const ok = t.ucs.filter((u) => u.veredito === 'pass').length;
           const aberto = aberta === t.id;
           return (
             <article key={t.id} className="rounded-md border bg-card" data-tela={t.id}>
-              <button type="button" aria-expanded={aberto} onClick={() => setAberta(aberto ? null : t.id)} className="grid w-full grid-cols-[6em_minmax(0,1fr)_auto] items-start gap-2.5 px-3 py-2.5 text-left">
+              <Grid asChild gap={null} className="w-full grid-cols-[6em_minmax(0,1fr)_auto] items-start gap-2.5 px-3 py-2.5 text-left"><button type="button" aria-expanded={aberto} onClick={() => setAberta(aberto ? null : t.id)}>
                 <span className="truncate font-mono text-xs text-muted-foreground">{t.modulo}</span>
-                <span className="grid min-w-0 gap-1 font-semibold">
+                <Grid asChild gap={null} className="min-w-0 gap-1 font-semibold"><span>
                   <span>{t.nome}</span>
-                  <span className="flex flex-wrap gap-1 font-normal">
+                  <Inline asChild gap={null} align={null} className="flex-wrap gap-1 font-normal"><span>
                     <Badge variant={ok === t.ucs.length ? 'success' : 'warning'}>{ok} de {t.ucs.length} com teste verde</Badge>
                     {t.pedidos ? <Badge variant="info">{t.pedidos} pedido{t.pedidos > 1 ? 's' : ''} em aberto</Badge> : null}
-                  </span>
-                </span>
+                  </span></Inline>
+                </span></Grid>
                 <span className={`text-muted-foreground ${aberto ? 'rotate-90' : ''}`} aria-hidden="true">›</span>
-              </button>
+              </button></Grid>
               {aberto ? (
-                <div className="grid gap-2 px-3.5 pb-3.5">
+                <Grid gap={null} className="gap-2 px-3.5 pb-3.5">
                   <div className="overflow-x-auto rounded-md border">
                     <table className="w-full text-sm">
                       <thead><tr className="bg-muted text-left text-xs uppercase text-muted-foreground"><th className="px-3 py-2">Caso de uso</th><th className="px-3 py-2">O que garante</th><th className="px-3 py-2">Teste</th></tr></thead>
@@ -416,13 +429,13 @@ function VisaoContratos({ contratos, aberta, setAberta, irParaTela }: { contrato
                     </table>
                   </div>
                   {t.pedidos ? <div><button type="button" className="text-sm text-primary underline" onClick={() => irParaTela(t.id)}>Ver os {t.pedidos} pedidos desta tela</button></div> : null}
-                </div>
+                </Grid>
               ) : null}
             </article>
           );
         })}
-      </div>
-    </div>
+      </Grid>
+    </Grid>
   );
 }
 
@@ -431,14 +444,14 @@ function VisaoRegras({ dados, irParaCaso }: { dados: Dados; irParaCaso: (n: numb
   const casosDa = (id: string) => dados.casos.filter((c) => c.regras.includes(id));
   const citadas = dados.regras.filter((r) => casosDa(r.id).length).length;
   return (
-    <div className="grid gap-3">
-      <div className="flex flex-wrap items-end justify-between gap-2.5">
+    <Grid gap={null} className="gap-3">
+      <Inline gap={null} align={null} className="flex-wrap items-end justify-between gap-2.5">
         <div>
           <h2 className="text-lg font-semibold">Regras do catálogo de Fluxos</h2>
           <p className="max-w-[70ch] text-sm text-muted-foreground">{citadas} das {dados.regras.length} regras são citadas por algum caso. As outras {dados.regras.length - citadas} não aparecem em nenhum: ou não se aplicam a estes pedidos, ou ninguém conferiu. {dados.casos.filter((c) => !c.regras.length).length} casos não citam regra nenhuma.</p>
         </div>
         <Pilula ativo={soSemCaso} onClick={() => setSoSemCaso(!soSemCaso)}>Só as regras sem caso</Pilula>
-      </div>
+      </Inline>
       <div className="overflow-x-auto rounded-md border bg-card">
         <table className="w-full text-sm">
           <thead><tr className="bg-muted text-left text-xs uppercase text-muted-foreground"><th className="px-3 py-2">Regra</th><th className="px-3 py-2">O que diz</th><th className="px-3 py-2">Etapa</th><th className="px-3 py-2">No sistema</th><th className="px-3 py-2">Casos que dependem dela</th></tr></thead>
@@ -451,14 +464,14 @@ function VisaoRegras({ dados, irParaCaso }: { dados: Dados; irParaCaso: (n: numb
                   <td className="px-3 py-2"><div className="font-semibold">{r.titulo}</div><div className="text-muted-foreground">{r.efeito}</div></td>
                   <td className="px-3 py-2">{r.etapa}</td>
                   <td className="px-3 py-2"><Badge variant={tom}>{rot}</Badge></td>
-                  <td className="px-3 py-2">{cs.length ? <div className="flex flex-wrap gap-1">{cs.map((c) => <LinkCaso key={c.id} n={c.n} titulo={c.titulo} onClick={() => irParaCaso(c.n)} />)}</div> : <span className="text-muted-foreground">nenhum</span>}</td>
+                  <td className="px-3 py-2">{cs.length ? <Inline gap={null} align={null} className="flex-wrap gap-1">{cs.map((c) => <LinkCaso key={c.id} n={c.n} titulo={c.titulo} onClick={() => irParaCaso(c.n)} />)}</Inline> : <span className="text-muted-foreground">nenhum</span>}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-    </div>
+    </Grid>
   );
 }
 
@@ -468,7 +481,7 @@ function VisaoDecisoes({ dados, resp, podeDecidir, irParaCaso }: { dados: Dados;
   const soltos = dep.filter((n) => !cobertos.has(n));
   const abertas = dados.decisoes.filter((d) => !resp[d.id]).length;
   return (
-    <div className="grid gap-3">
+    <Grid gap={null} className="gap-3">
       <div>
         <h2 className="text-lg font-semibold">Decisões para o Wagner</h2>
         <p className="max-w-[70ch] text-sm text-muted-foreground">
@@ -479,7 +492,7 @@ function VisaoDecisoes({ dados, resp, podeDecidir, irParaCaso }: { dados: Dados;
       {!dados.decisoes.length ? <div className="rounded-md border border-dashed p-7 text-center text-muted-foreground">Nenhuma decisão escrita nos casos.md ainda.</div> : dados.decisoes.map((d) => (
         <DecisaoItem key={d.id} d={d} r={resp[d.id]} podeDecidir={podeDecidir} irParaCaso={irParaCaso} />
       ))}
-    </div>
+    </Grid>
   );
 }
 
@@ -498,31 +511,32 @@ function DecisaoItem({ d, r, podeDecidir, irParaCaso }: { d: Dados['decisoes'][n
     });
   };
   return (
-    <article className={`grid gap-2.5 rounded-md border border-l-[3px] bg-card px-4 py-3.5 ${r ? 'border-l-success' : 'border-l-primary'}`} data-decisao={d.id}>
+    <Grid asChild gap={null} className={`gap-2.5 rounded-md border border-l-[3px] bg-card px-4 py-3.5 ${r ? 'border-l-success' : 'border-l-primary'}`}><article data-decisao={d.id}>
       <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{r ? 'Respondida' : d.estado}</div>
       <h3 className="font-semibold">{d.pergunta}</h3>
       {d.texto ? <p className="max-w-[75ch]">{d.texto}</p> : null}
       {d.opcoes.length ? (
-        <div className="grid gap-2 sm:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]" role="radiogroup" aria-label={d.pergunta}>
+        <RadioGroup value={opcao} onValueChange={setOpcao} disabled={!podeDecidir} aria-label={d.pergunta}
+          className="gap-2 sm:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]">
           {d.opcoes.map((o) => (
-            <label key={o.nome} className={`grid cursor-pointer gap-1 rounded-md border px-3 py-2.5 ${opcao === o.nome ? 'border-success' : ''}`}>
-              <b><input type="radio" className="mr-2" name={`op-${d.id}`} value={o.nome} checked={opcao === o.nome} disabled={!podeDecidir} onChange={() => setOpcao(o.nome)} />{o.nome}</b>
+            <Grid key={o.nome} asChild gap={null} className={`cursor-pointer gap-1 rounded-md border px-3 py-2.5 ${opcao === o.nome ? 'border-success' : ''}`}><label htmlFor={`op-${d.id}-${o.nome}`}>
+              <Inline gap={2} align="center" className="font-bold"><RadioGroupItem id={`op-${d.id}-${o.nome}`} value={o.nome} />{o.nome}</Inline>
               <span className="text-sm text-muted-foreground">{o.texto}</span>
-            </label>
+            </label></Grid>
           ))}
-        </div>
+        </RadioGroup>
       ) : null}
-      {d.casos.length ? <div className="flex flex-wrap items-center gap-1"><span className="text-muted-foreground">Destrava: </span>{d.casos.map((n) => <LinkCaso key={n} n={n} onClick={() => irParaCaso(n)} />)}</div> : null}
-      <div className="flex flex-wrap items-center gap-2">
+      {d.casos.length ? <Inline gap={null} align={null} className="flex-wrap items-center gap-1"><span className="text-muted-foreground">Destrava: </span>{d.casos.map((n) => <LinkCaso key={n} n={n} onClick={() => irParaCaso(n)} />)}</Inline> : null}
+      <Inline gap={null} align={null} className="flex-wrap items-center gap-2">
         <Input className="min-w-0 flex-[1_1_260px]" value={nota} onChange={(e) => setNota(e.target.value)} disabled={!podeDecidir}
           placeholder={d.opcoes.length ? 'Observação (opcional)' : 'Sua resposta'} aria-label={`Resposta da decisão ${d.id}`} />
         <Button type="button" size="sm" disabled={!podeDecidir || salvando} onClick={responder}>{r ? 'Atualizar resposta' : 'Registrar resposta'}</Button>
-      </div>
+      </Inline>
       {erro ? <p className="text-sm text-destructive" role="alert">{erro}</p> : null}
       <div className="text-sm text-muted-foreground">
         {r ? `Respondida por ${r.por} em ${fmtData(r.em)}${r.opcao ? ' · ' + r.opcao : ''}` : podeDecidir ? null : 'Só o Wagner registra a resposta.'}
       </div>
-    </article>
+    </article></Grid>
   );
 }
 
@@ -531,23 +545,23 @@ function VisaoClientes({ dados, clientes, irParaCaso, irParaCliente }: { dados: 
   const lista = clientes.map((nome) => ({ nome, casos: dados.casos.filter((c) => c.clientes.includes(nome)) }))
     .sort((a, b) => b.casos.length - a.casos.length || a.nome.localeCompare(b.nome, 'pt-BR'));
   return (
-    <div className="grid gap-3">
+    <Grid gap={null} className="gap-3">
       <div>
         <h2 className="text-lg font-semibold">Clientes</h2>
         <p className="max-w-[70ch] text-sm text-muted-foreground">{lista.length} clientes ligados a algum caso, os que mais pediram primeiro. Clique num número para abrir o caso ou no nome para ver só os casos dele.</p>
       </div>
-      <div className="grid gap-2 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
+      <Grid gap={null} className="gap-2 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
         {lista.map((cl) => (
-          <article key={cl.nome} className="grid content-start gap-2 rounded-md border bg-card px-3.5 py-3">
-            <div className="flex items-baseline justify-between gap-2">
+          <Grid key={cl.nome} asChild gap={null} className="content-start gap-2 rounded-md border bg-card px-3.5 py-3"><article>
+            <Inline gap={null} align={null} className="items-baseline justify-between gap-2">
               <button type="button" className="font-semibold text-primary underline" onClick={() => irParaCliente(cl.nome)}>{cl.nome}</button>
               <span className="font-mono text-xs text-muted-foreground">{cl.casos.length} {cl.casos.length === 1 ? 'caso' : 'casos'}</span>
-            </div>
-            <div className="flex flex-wrap gap-1">{[...new Set(cl.casos.map((c) => areaDaTela[c.tela]?.nome ?? 'Outras telas'))].map((a) => <Badge key={a} variant="neutral">{a}</Badge>)}</div>
-            <div className="flex flex-wrap gap-1">{cl.casos.map((c) => <LinkCaso key={c.id} n={c.n} titulo={c.titulo} onClick={() => irParaCaso(c.n)} />)}</div>
-          </article>
+            </Inline>
+            <Inline gap={null} align={null} className="flex-wrap gap-1">{[...new Set(cl.casos.map((c) => areaDaTela[c.tela]?.nome ?? 'Outras telas'))].map((a) => <Badge key={a} variant="neutral">{a}</Badge>)}</Inline>
+            <Inline gap={null} align={null} className="flex-wrap gap-1">{cl.casos.map((c) => <LinkCaso key={c.id} n={c.n} titulo={c.titulo} onClick={() => irParaCaso(c.n)} />)}</Inline>
+          </article></Grid>
         ))}
-      </div>
-    </div>
+      </Grid>
+    </Grid>
   );
 }

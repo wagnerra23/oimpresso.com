@@ -1,8 +1,8 @@
 {
   "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-01 Lista de Documentacao/CasosPorTela (2026-10-28). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w.",
   "tela": "Documentacao/CasosPorTela",
-  "fonte": "resources/js/Pages/Documentacao/CasosPorTela.tsx",
-  "_nota_fonte": "`fonte` aponta pra própria tela porque esta não tem protótipo Cowork: a estrutura vem do arquétipo PT-01 materializado no .tsx. Mesma situação (e mesma redação) do jana-painel.contract.json. Quando a tela ganhar protótipo versionado, aponte aqui.",
+  "fonte": "scripts/casos-backlog/template.html",
+  "_nota_fonte": "A âncora é o layout aprovado por [W] e Maiara no artefato gerado por scripts/casos-backlog/template.html (charter: related_prototype n/a, herda PT-01 Lista). Não há protótipo Cowork; apontar para o .tsx tornaria o contrato tautológico (catraca anti-tautologia do contrato-de-tela.mjs).",
   "alvo": [
     "resources/js/Pages/Documentacao/CasosPorTela.tsx"
   ],
