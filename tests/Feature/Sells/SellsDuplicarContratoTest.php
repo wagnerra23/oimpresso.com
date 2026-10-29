@@ -10,10 +10,11 @@ use Spatie\Permission\Models\Permission;
 use Tests\Support\EstoqueFixture;
 
 /**
- * Duplicar a venda guardando a origem (`GET /sells/duplicate/{id}` → `SellController::duplicateSell`).
+ * Duplicar a venda guardando a origem (`GET /sells/duplicate/{id}` → `SellController::duplicateSell`)
+ * e o vínculo nos dois sentidos (`/sells-list-json` e `/sells/{id}/sheet-data`).
  *
- * Casos: P-035 em `Sells/Create.casos.md` (UC-SDUP-01..03). Derivados do aceite do pedido,
- * não do código.
+ * Casos: P-035 em `Sells/Create.casos.md` (UC-SDUP-01..03) e P-031 em `Sells/Index.casos.md`
+ * (UC-SDUP-04..06). Derivados do aceite dos pedidos, não do código.
  *
  * REGRA MESTRE (valor e estoque): esta mudança não muda conta nenhuma. A cópia continua com o
  * preço da origem (D-05 segue em aberto para o [W]) e nasce rascunho, que não mexe em estoque.
@@ -43,6 +44,30 @@ function sdupUsuario(int $bizId, array $permissoes): User
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     return $user;
+}
+
+/** Venda final do business com o prefixo do teste, para filtrar a lista por `q`. */
+function sdupVendaFinal(object $t, int $bizId, string $sufixo, ?int $duplicadaDe = null): int
+{
+    return (int) DB::table('transactions')->insertGetId([
+        'business_id' => $bizId,
+        'created_by' => $t->user->id,
+        'type' => 'sell',
+        'status' => 'final',
+        'payment_status' => 'due',
+        'invoice_no' => $t->prefixo . $sufixo,
+        'transaction_date' => now()->format('Y-m-d') . ' 15:00:00',
+        'total_before_tax' => 10,
+        'final_total' => 10,
+        'duplicated_from_id' => $duplicadaDe,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
+
+function sdupHeaders(): array
+{
+    return ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'];
 }
 
 beforeEach(function () {
@@ -121,4 +146,60 @@ it('UC-SDUP-03 a cópia nasce fora do pipeline FSM, sem herdar o estágio da ori
     expect($copia->current_stage_id)->toBeNull();
     // A origem não foi tocada.
     expect((int) DB::table('transactions')->where('id', $this->origemId)->value('current_stage_id'))->toBe(987002);
+});
+
+it('UC-SDUP-04 a linha da venda duplicada mostra de qual venda ela veio', function () {
+    $origem = sdupVendaFinal($this, $this->bizId, 'V150');
+    $copia = sdupVendaFinal($this, $this->bizId, 'V200', $origem);
+
+    $dados = collect($this->withHeaders(sdupHeaders())
+        ->get('/sells-list-json?' . http_build_query(['q' => $this->prefixo]))
+        ->assertOk()->json('data'))->keyBy('id');
+
+    expect($dados->has($copia))->toBeTrue('A cópia não veio na lista — o contrato não foi exercitado.');
+    expect($dados[$copia]['duplicated_from'])->toBe(['id' => $origem, 'invoice_no' => $this->prefixo . 'V150']);
+    expect($dados[$origem]['duplicated_from'])->toBeNull();
+});
+
+it('UC-SDUP-05 o drawer mostra o vínculo nos dois sentidos', function () {
+    $origem = sdupVendaFinal($this, $this->bizId, 'V150');
+    $copia = sdupVendaFinal($this, $this->bizId, 'V200', $origem);
+
+    $daCopia = $this->withHeaders(sdupHeaders())->get("/sells/{$copia}/sheet-data")->assertOk()->json();
+    expect($daCopia['duplicated_from'])->toBe(['id' => $origem, 'invoice_no' => $this->prefixo . 'V150']);
+    expect($daCopia['duplicated_into'])->toBe([]);
+
+    $daOrigem = $this->withHeaders(sdupHeaders())->get("/sells/{$origem}/sheet-data")->assertOk()->json();
+    expect($daOrigem['duplicated_from'])->toBeNull();
+    expect($daOrigem['duplicated_into'])->toBe([['id' => $copia, 'invoice_no' => $this->prefixo . 'V200']]);
+});
+
+it('UC-SDUP-06 [T0] venda de outra empresa não duplica nem aparece no vínculo', function () {
+    $alheia = (int) DB::table('transactions')->insertGetId([
+        'business_id' => $this->outroBizId, 'created_by' => $this->user->id, 'type' => 'sell',
+        'status' => 'final', 'payment_status' => 'due', 'invoice_no' => $this->prefixo . 'ALHEIA',
+        'transaction_date' => now(), 'total_before_tax' => 5, 'final_total' => 5,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    // Controle positivo: a origem da própria empresa duplica (o mecanismo funciona).
+    [, $propria] = ($this->duplicar)($this->origemId);
+    expect($propria)->not->toBeNull();
+
+    [$resp, $copia] = ($this->duplicar)($alheia);
+    expect($resp->getStatusCode())->toBe(404);
+    expect($copia)->toBeNull();
+
+    // Vínculo cruzado gravado à força não vaza: nem a origem alheia aparece na cópia,
+    // nem a cópia alheia aparece no drawer da origem.
+    $minha = sdupVendaFinal($this, $this->bizId, 'MINHA', $alheia);
+    DB::table('transactions')->insert([
+        'business_id' => $this->outroBizId, 'created_by' => $this->user->id, 'type' => 'sell',
+        'status' => 'final', 'payment_status' => 'due', 'invoice_no' => $this->prefixo . 'COPIA-ALHEIA',
+        'transaction_date' => now(), 'total_before_tax' => 5, 'final_total' => 5,
+        'duplicated_from_id' => $minha, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $drawer = $this->withHeaders(sdupHeaders())->get("/sells/{$minha}/sheet-data")->assertOk()->json();
+    expect($drawer['duplicated_from'])->toBeNull();
+    expect($drawer['duplicated_into'])->toBe([]);
 });

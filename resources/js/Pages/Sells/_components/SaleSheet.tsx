@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  Copy,
   CreditCard,
   Edit,
   ExternalLink,
@@ -118,6 +119,15 @@ interface SaleDetail {
   };
   /** F3 PaymentGateway — cobrança vinculada (ADR 0144 + 0170). null = não emitida. */
   cobranca?: CobrancaState | null;
+  /** P-031 — venda de onde esta foi duplicada (null = não duplicada). */
+  duplicated_from?: VendaRef | null;
+  /** P-031 — vendas duplicadas a partir desta. */
+  duplicated_into?: VendaRef[];
+}
+
+interface VendaRef {
+  id: number;
+  invoice_no: string;
 }
 
 interface Props {
@@ -441,6 +451,26 @@ export default function SaleSheet({
                     <Clock size={12} />
                     {formatDate(data.transaction_date)}
                   </div>
+                  {data.duplicated_from && (
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs" data-testid="sale-duplicada-de">
+                      <Copy size={12} />
+                      Duplicada de{' '}
+                      <Link href={`/sells/${data.duplicated_from.id}`} className="underline">
+                        #{data.duplicated_from.invoice_no}
+                      </Link>
+                    </div>
+                  )}
+                  {(data.duplicated_into?.length ?? 0) > 0 && (
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs flex-wrap" data-testid="sale-duplicada-em">
+                      <Copy size={12} />
+                      Duplicada em
+                      {data.duplicated_into!.map((v) => (
+                        <Link key={v.id} href={`/sells/${v.id}`} className="underline">
+                          #{v.invoice_no}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </Section>
 
