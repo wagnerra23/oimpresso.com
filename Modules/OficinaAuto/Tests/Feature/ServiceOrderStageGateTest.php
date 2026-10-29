@@ -89,7 +89,7 @@ it('UC-OSH-10 · bloqueia (422) enviar_orcamento sem DVI/foto/orçamento — gat
     $resp->assertJsonPath('gate.satisfied', false);
     expect($resp->json('gate.blocking_unmet'))->toBe(3);
     expect($resp->json('error'))->toContain('Checklist de etapa');
-})->afterEach(fn () => sg5_cleanup('A'));
+})->after(fn () => sg5_cleanup('A'));
 
 it('execute cross-tenant é 404 (Tier 0) — OS de outra biz não é alcançável', function () {
     session(['user.business_id' => BIZ_GATE5]);
@@ -105,7 +105,7 @@ it('execute cross-tenant é 404 (Tier 0) — OS de outra biz não é alcançáve
             'action_key' => 'enviar_orcamento',
         ])
         ->assertNotFound();
-})->afterEach(fn () => sg5_cleanup('B'));
+})->after(fn () => sg5_cleanup('B'));
 
 // ─── Evaluator data-driven ──────────────────────────────────────────────────
 
@@ -120,7 +120,7 @@ it('StageGateEvaluator deriva os 3 requisitos bloqueantes de enviar_orcamento', 
     expect($gate['blocking_unmet'])->toBe(3);
     expect(collect($gate['requirements'])->pluck('key')->all())
         ->toBe(['dvi_min', 'dvi_foto', 'orcamento']);
-})->afterEach(fn () => sg5_cleanup('C'));
+})->after(fn () => sg5_cleanup('C'));
 
 it('StageGateEvaluator não bloqueia transição sem regra cadastrada (ex: cancelar_os)', function () {
     session(['user.business_id' => BIZ_GATE5]);
@@ -131,4 +131,4 @@ it('StageGateEvaluator não bloqueia transição sem regra cadastrada (ex: cance
     expect($gate['satisfied'])->toBeTrue();
     expect($gate['total'])->toBe(0);
     expect($gate['requirements'])->toBe([]);
-})->afterEach(fn () => sg5_cleanup('D'));
+})->after(fn () => sg5_cleanup('D'));

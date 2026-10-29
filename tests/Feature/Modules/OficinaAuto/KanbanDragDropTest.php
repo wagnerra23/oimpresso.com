@@ -208,7 +208,7 @@ it('mapping locada → manutencao dispara FSM action enviar_manutencao', functio
         expect($data['to_stage']['key'])->toBe('manutencao');
         expect($data['new_stage_id'])->toBe($stageManutencao->id);
     }
-})->afterEach(function () {
+})->after(function () {
     cleanupKanbanDnd(BIZ_KANBAN_DND, 'KDND-A');
 });
 
@@ -242,7 +242,7 @@ it('mapping aguardando → disponivel dispara FSM action recolher', function () 
     expect($data['ok'])->toBeTrue();
     expect($data['to_stage']['key'])->toBe('recolhida');
     expect($data['new_stage_id'])->toBe($stageRecolhida->id);
-})->afterEach(function () {
+})->after(function () {
     cleanupKanbanDnd(BIZ_KANBAN_DND, 'KDND-B');
 });
 
@@ -275,7 +275,7 @@ it('mapping manutencao → disponivel dispara FSM action voltar_disponivel', fun
     expect($data['ok'])->toBeTrue();
     expect($data['to_stage']['key'])->toBe('disponivel');
     expect($data['new_stage_id'])->toBe($stageDisponivel->id);
-})->afterEach(function () {
+})->after(function () {
     cleanupKanbanDnd(BIZ_KANBAN_DND, 'KDND-C');
 });
 
@@ -304,7 +304,7 @@ it('action key inexistente retorna 422 — defense pro mapping bloqueado client-
 
     expect($response->getStatusCode())->toBe(422);
     expect($response->getData(true))->toHaveKey('error');
-})->afterEach(function () {
+})->after(function () {
     cleanupKanbanDnd(BIZ_KANBAN_DND, 'KDND-D');
 });
 
@@ -340,7 +340,7 @@ it('cross-tenant biz=99 NÃO pode disparar FSM action em OS biz=1', function () 
         |\App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException $e) {
         expect(true)->toBeTrue(); // OK — fail-secure
     }
-})->afterEach(function () {
+})->after(function () {
     cleanupKanbanDnd(BIZ_KANBAN_DND, 'KDND-E');
     cleanupKanbanDnd(BIZ_KANBAN_DND_CROSS, 'KDND-E');
 });

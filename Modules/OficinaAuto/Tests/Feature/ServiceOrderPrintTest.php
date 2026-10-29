@@ -133,7 +133,7 @@ it('returns receipt JSON when AJAX request', function () {
     expect($response->json('success'))->toBe(1);
     expect($response->json('receipt.html_content'))->toBeString()->not->toBeEmpty();
     expect($response->json('receipt.print_title'))->toContain('OS-');
-})->afterEach(fn () => gap3_cleanup('A1'));
+})->after(fn () => gap3_cleanup('A1'));
 
 // ---------------------------------------------------------------------------
 // Spec 2 — Sem X-Requested-With (non-AJAX) retorna 404
@@ -151,7 +151,7 @@ it('returns 404 without AJAX header', function () {
         ->get("/oficina-auto/ordens-servico/{$os->id}/print");
 
     $response->assertNotFound();
-})->afterEach(fn () => gap3_cleanup('A2'));
+})->after(fn () => gap3_cleanup('A2'));
 
 // ---------------------------------------------------------------------------
 // Spec 3 — Cross-tenant guard (ADR 0093 Tier 0)
@@ -176,7 +176,7 @@ it('returns 404 cross-tenant', function () {
     // Route Model Binding já filtra via global scope = 404 antes mesmo do controller.
     // Defensive guard explícito reforça no controller.
     $response->assertNotFound();
-})->afterEach(fn () => gap3_cleanup('B1'));
+})->after(fn () => gap3_cleanup('B1'));
 
 // ---------------------------------------------------------------------------
 // Spec 4 — HTML content inclui número OS + valor total + zone labels
@@ -215,4 +215,4 @@ it('includes correct total in receipt HTML', function () {
     expect($html)->toContain('Veículo');
     expect($html)->toContain('Itens da OS');
     expect($html)->toContain('TOTAL');
-})->afterEach(fn () => gap3_cleanup('A3'));
+})->after(fn () => gap3_cleanup('A3'));

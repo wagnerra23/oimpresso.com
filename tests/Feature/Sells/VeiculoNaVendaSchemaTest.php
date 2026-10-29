@@ -68,6 +68,7 @@ it('Vehicle do biz=1 não vaza pro escopo de outro business (Tier 0 ADR 0093)', 
     $visiveis = Vehicle::pluck('plate')->all();
     expect($visiveis)->toContain('VND0251');
     expect($visiveis)->not->toContain('OTR0251');
-})->afterEach(function () {
-    Vehicle::withoutGlobalScopes()->whereIn('plate', ['VND0251', 'OTR0251'])->forceDelete();
+})->after(function () {
+    // SUPERADMIN: cleanup de teste — so os dois tenants do teste: as placas sao formato real (AAA9999)
+    Vehicle::withoutGlobalScopes()->whereIn('business_id', [BIZ_WAGNER, 99])->whereIn('plate', ['VND0251', 'OTR0251'])->forceDelete();
 });
