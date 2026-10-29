@@ -85,7 +85,6 @@ jobs:
               - 'app/Rules/BR/CpfCnpj.php'
               - 'database/schema/mysql-schema.sql'
               - 'scripts/legacy-migration/data/sabor-brasil-regras-fiscais.csv'
-      - 'scripts/legacy-migration/data/sabor-brasil-regras-fiscais.csv'
               - '.github/workflows/nfebrasil-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
 
