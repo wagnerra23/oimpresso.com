@@ -175,6 +175,8 @@ function Painel({ onAbrir, ir, filtrar }) {
         </Widget>}
       </div>
 
+      {window.PcvQualidade && <window.PcvQualidade.NcsPainel onAbrir={onAbrir} />}
+
       {Widget && <Widget title="Produtividade por setor (semana)" note="horas apontadas ÷ previstas" flush>
         <table className="pcv-tbl">
           <thead><tr><th scope="col">Setor</th><th scope="col" className="ta-r">Previsto</th><th scope="col" className="ta-r">Apontado</th><th scope="col" className="ta-r">Eficiência</th><th scope="col">Quem</th></tr></thead>

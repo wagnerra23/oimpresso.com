@@ -57,6 +57,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-15 | Custo real × esperado para o progresso, por OS | Gestor | Custo | must | ✅ |
 | UC-PCV-16 | Material empenhado × consumido, com estouro sinalizado | Gestor | Ficha · Materiais | must | ✅ |
 | UC-PCV-17 | Refugo com motivo entra no custo real | Operador · Gestor | Ficha · Apontamento | must | ✅ |
+| UC-PCV-53 | Inspeção da etapa e não conformidade até a ação corretiva | Qualidade · Gestor | Ficha · Painel | should | ✅ |
 | UC-PCV-18 | Perdas por motivo e por máquina | Gestor | Custo | should | ✅ |
 | UC-PCV-19 | O operador vê só as etapas dele hoje, na ordem | Operador | Apontamento | must | ✅ |
 | UC-PCV-20 | QR abre a etapa certa e o cronômetro aponta início, pausa e fim | Operador | Apontamento | must | ✅ |
@@ -144,6 +145,12 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 
 ### UC-PCV-17 · Refugo com motivo · `must` valor · ✅
 - **Aceite:** Quando o operador registra refugo (etapa, motivo da lista fechada, m²) · Então o refugo entra na aba Refugo e no custo real da OS · E o motivo é obrigatório.
+
+### UC-PCV-53 · Inspeção e não conformidade · `should` · ✅
+- **Origem:** US-PCP-033 (P2), lacunas de 2026-10-25 (referência TOTVS e SAP).
+- **Aceite:** Dado uma etapa já feita ou em andamento · Quando quem tem o papel de qualidade registra a inspeção · Então "aprovada" fica no histórico da OS · E "não conforme" exige motivo e foto e abre uma não conformidade · E a não conformidade passa por "aberta" → "em ação" (ação corretiva com responsável e prazo, avisado no app) → "encerrada" (com a verificação de que resolveu) · E o Painel lista as não encerradas, e não aparece quando não há nenhuma.
+- **Regra:** a inspeção não se apaga; corrigir é inspecionar de novo. Refazer a peça continua no "Reprovar no controle" (US-PCP-027), que manda a etapa de origem para retrabalho.
+- **Teste:** duas inspeções na mesma OS, uma aprovada e uma não conforme; só a não conforme gera não conformidade. Encerrar sem ação corretiva não é possível.
 
 ### UC-PCV-18 · Perdas por motivo e por máquina · `should` · ✅
 - **Aceite:** Dado refugos de 30 dias · Então o Custo mostra o total e o ranking por motivo e por máquina · E a soma das barras = o total (dupla prova).

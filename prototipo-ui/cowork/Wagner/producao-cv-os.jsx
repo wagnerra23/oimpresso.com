@@ -133,7 +133,7 @@ function FichaOs({ id, onClose }) {
         </div>
         {FsmStepper && <div className="pcv-fsm"><FsmStepper variant="inline" hue={295} steps={steps} /></div>}
         <SituacaoItem os={os} es={es} D={D} irAba={setAba} />
-        {TabBar && <TabBar ariaLabel="Seções da OS" size="sm" tabs={[{ key: "etapas", label: "Etapas", count: es.length }, { key: "arte", label: "Arte e arquivos" }, { key: "materiais", label: "Materiais" }, { key: "custo", label: "Custo" }, { key: "refugo", label: "Refugo", count: refugo.length }, { key: "historico", label: "Histórico" }]} active={aba} onChange={setAba} />}
+        {TabBar && <TabBar ariaLabel="Seções da OS" size="sm" tabs={[{ key: "etapas", label: "Etapas", count: es.length }, { key: "arte", label: "Arte e arquivos" }, { key: "materiais", label: "Materiais" }, { key: "custo", label: "Custo" }, { key: "refugo", label: "Refugo", count: refugo.length }, ...(window.PcvQualidade ? [{ key: "qualidade", label: "Qualidade", count: window.PcvQualidade.ncsDe(os.id).filter((n) => n.estado !== "encerrada").length }] : []), { key: "historico", label: "Histórico" }]} active={aba} onChange={setAba} />}
 
         {aba === "etapas" && <ol className="pcv-etapas">
           {(() => { const out = []; let i = 0; while (i < es.length) { if (es[i].trilha) { const bloco = []; while (i < es.length && es[i].trilha) { bloco.push([es[i], i]); i++; } out.push({ par: bloco }); } else { out.push({ e: es[i], i }); i++; } } return out; })().map((it, k) => it.par
@@ -209,6 +209,8 @@ function FichaOs({ id, onClose }) {
           </div> : Button && <Button onClick={() => setNovo({ etapa: es[0].nome, motivo: MOTIVOS[0], m2: "" })}>Registrar refugo ou retrabalho</Button>}
           <p className="pcv-help">O refugo entra no custo real da OS e no relatório de perdas por motivo e por máquina.</p>
         </div>}
+
+        {aba === "qualidade" && window.PcvQualidade && <window.PcvQualidade.AbaQualidade os={os} />}
 
         {aba === "historico" && <div className="pcv-sec">
           <div className="pcv-autofecha">
