@@ -640,6 +640,7 @@ Como responsável pela qualidade, quero registrar a inspeção de uma etapa (apr
 
 - Origem: lacunas de 2026-10-25 (P2 "controle de qualidade e não conformidade"). Ordem MRP → cotação → qualidade: **decisão coordenação 2026-10-26**.
 - Amplia o que existe: o refugo com motivo e o "Reprovar no controle" (papel `producao.qualidade`, US-PCP-027) já mandam a OS para retrabalho. Falta a inspeção que aprova, a não conformidade como registro próprio e a ação corretiva.
+- [x] O protótipo da Produção desenha a inspeção e a não conformidade em 2026-10-29: aba Qualidade na ficha da OS e não conformidades abertas no Painel (`prototipo-ui/cowork/Wagner/producao-cv-qualidade.jsx`, UC-PCV-53).
 
 ### US-PCP-034 · Custo do fabricado numa conta só, para Fabricação e Produção — **P2**
 
