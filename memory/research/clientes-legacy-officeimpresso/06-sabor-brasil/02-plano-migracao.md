@@ -115,6 +115,67 @@ Ordem prática do pattern, sem a fase de veículos (não é oficina), com dry-ru
 - Retorno de boleto (baixa automática) conferido no primeiro mês.
 - Fecha quando: perfil vai para `status: migrado`, com a data e o link do último recibo.
 
+## Casos de uso: o que falta (medido em 2026-10-29)
+
+Fonte: os pedidos com `Clientes: Sabor Brasil` nos `.casos.md` do `main` em `15432d80c0` e os PRs abertos. Um pedido só conta como provado com teste verde no CI. A lista da Maiara (Etapa 1) ainda não chegou e pode acrescentar linhas. A coluna "Trava a virada?" é uma proposta minha para ela confirmar.
+
+**Entregues hoje, aguardando o CI do `main`:**
+
+| Pedido | O quê | PR |
+|---|---|---|
+| P-153 | ICMS-ST dentro do estado para contribuinte | [#10162](https://github.com/wagnerra23/oimpresso.com/pull/10162) |
+| P-155 | dois CNPJs, regime por local emissor | [#10161](https://github.com/wagnerra23/oimpresso.com/pull/10161) |
+| P-157 | boleto BB por CNAB (remessa, PDF, retorno) | [#10168](https://github.com/wagnerra23/oimpresso.com/pull/10168) |
+| P-086 | desconto de pontualidade no boleto e na baixa | [#10166](https://github.com/wagnerra23/oimpresso.com/pull/10166) |
+| P-035 | duplicar guarda a venda de origem (UC-SDUP-01..06) | [#10164](https://github.com/wagnerra23/oimpresso.com/pull/10164), [#10175](https://github.com/wagnerra23/oimpresso.com/pull/10175) |
+
+O campo "Hoje" de P-153 e P-086 nos `.casos.md` ainda diz "em parte" ou "não tem". Ele precisa ser atualizado junto com o teste verde.
+
+**Em andamento (PR aberto, testes ainda não rodaram):**
+
+| Pedido | Caso de uso | PR |
+|---|---|---|
+| P-154 bonificação, venda | UC-SBON-01 | [#10177](https://github.com/wagnerra23/oimpresso.com/pull/10177) |
+| P-154 bonificação, Financeiro | UC-FBON-01..05 | [#10176](https://github.com/wagnerra23/oimpresso.com/pull/10176) |
+| P-154 bonificação, NF-e | UC-FNFE-57, UC-FNFE-58 | [#10178](https://github.com/wagnerra23/oimpresso.com/pull/10178) |
+
+**Faltam:**
+
+| # | Pedido / área | O que falta | Trava a virada? | Depende de |
+|---|---|---|---|---|
+| 1 | P-156 comissão por cliente | % no cliente, liberada quando a parcela é paga (1.643 lançamentos no Delphi) | sim | decisão [W]: momento da comissão (pergunta 5) |
+| 2 | Bonificação e venda "sem ST" | o Delphi tem os tipos "BONIFICAÇÃO SEM ST" e venda sem ST (184 vendas sem ST desde 2024); o P-154 não trata nenhum dos dois | sim | conferir com o contador como sai a nota |
+| 3 | 22 regras tributárias | carregar as 22 e conferir CST 20 (redução de base) nos dois regimes | sim | Etapa 3 |
+| 4 | Juros e multa no boleto | conferir no Inter (API) e no BB (CNAB) | sim | — |
+| 5 | P-087 tabela de preço do cliente | hoje funciona pelo grupo do cliente; o cliente não tem tabela própria | não (o grupo cobre as 74 tabelas) | Maiara confirmar |
+| 6 | P-026 condição do cliente preenche a venda | a venda usa a regra da empresa | não | Maiara confirmar |
+| 7 | P-025 sinal e prazo por cliente | o sinal mínimo é um só para a empresa | não | Maiara confirmar |
+| 8 | P-035 resto | o topo do rascunho mostrar a origem; decisão D-05 | não | decisão [W] D-05 |
+| 9 | P-031 / P-037 orçamento duplicado | a lista de orçamentos mostrar de onde veio; a cópia do orçamento guardar a origem | não | — |
+| 10 | P-032 / P-038 devolver tudo | a devolução parcial existe; falta "devolver tudo" | não | — |
+| 11 | P-039 segunda devolução | medir se a segunda devolução desconta a primeira | não (medir antes) | — |
+| 12 | Manifesto de NF-e de entrada | o último é de 2023 | a decidir | pergunta 3 |
+| 13 | Contas a receber | 188 boletos e só 18 baixados no Delphi | não trava o código; trava a fase 7 da migração | pergunta 2 |
+
+## Cronograma (proposta de 2026-10-29)
+
+As datas valem se o CT 100 voltar ao ar e as dependências da tabela acima chegarem no prazo. Tarefas de código seguem o fator de [ADR 0106](../../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md). Homologação e acompanhamento seguem o relógio real.
+
+| Quando | Etapa | O quê | Dono |
+|---|---|---|---|
+| 29–30/10 | 2 | P-154: CI verde, [W] vê o impacto antes→depois, merge dos 3 PRs | Claude · [W] |
+| 30/10 | 0 | ~~adapter 1514~~ feito ([schema](03-schema-v1514.md)): os 10 importadores rodam em dry-run | — |
+| até 03/11 | 1 | lista de casos da Maiara + respostas das perguntas 2, 3 e 5 | [M] · Ricardo · [W] |
+| 03–05/11 | 2 | itens 1 a 4 da tabela (os que travam), um PR por item | Claude · merge [W] |
+| 05–06/11 | 3 | empresa 199: dois locais emissores, 22 regras, contas Inter e BB, usuários | Claude · [M] confere |
+| 06–11/11 | 4 | 8 fases de dados, dry-run e aprovação [W] em cada | Claude · [W] |
+| 12/11 | 5 | conferência dos números por ano (dupla prova) | Claude · [W] |
+| 13–20/11 | 6 | homologação: Ricardo emite e opera uma semana em paralelo | [M] · Ricardo |
+| 23/11 | 7 | virada | [W] · [M] |
+| até 23/12 | 8 | 30 dias sem incidente; perfil vira `status: migrado` | [M] |
+
+Os itens 5 a 11 (não travam) entram depois da virada, na ordem que a Maiara pedir.
+
 ## Perguntas abertas
 
 | # | Pergunta | Para quem | Bloqueia |
