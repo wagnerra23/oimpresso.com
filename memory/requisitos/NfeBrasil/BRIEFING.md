@@ -2,9 +2,9 @@
 id: requisitos-nfe-brasil-briefing
 module: NfeBrasil
 status: producao
-updated_at: "2026-10-21"
-distilled_at: "2026-10-21"
-distilled_by: "agente (2026-10-21: re-leitura manual restrita à emissão da venda separada, US-NFE-069 PR-2 — NfeService, NfeEmissaoController e o NfseController do módulo NFSe; 2026-10-21 (outra): re-leitura manual restrita à contingência — ModoContingencia, NfeService::resolverTpEmis/registrarEpec, ContingenciaService::ativar, US-NFE-071; 2026-10-13: re-leitura manual restrita ao RetencoesNfseService da thread 23 do playbook Fiscal; 2026-10-01: re-leitura manual restrita ao que o lote 4 de install fora de GET mudou — InstallController e rotas install/*; antes, 2026-09-06: jana:distill-module-truth)"
+updated_at: "2026-10-29"
+distilled_at: "2026-10-29"
+distilled_by: "agente (2026-10-29: re-leitura manual restrita ao que o Sabor Brasil pediu — regime próprio do local emissor e regra fiscal por regime, P-155, e ICMS-ST dentro do estado para contribuinte, P-153 — NfeService::resolverEmitente/montarItensNfe/internaDoSt, MotorTributarioService::calcularComRegimeDoLocal; 2026-10-21: re-leitura manual restrita à emissão da venda separada, US-NFE-069 PR-2 — NfeService, NfeEmissaoController e o NfseController do módulo NFSe; 2026-10-21 (outra): re-leitura manual restrita à contingência — ModoContingencia, NfeService::resolverTpEmis/registrarEpec, ContingenciaService::ativar, US-NFE-071; 2026-10-13: re-leitura manual restrita ao RetencoesNfseService da thread 23 do playbook Fiscal; 2026-10-01: re-leitura manual restrita ao que o lote 4 de install fora de GET mudou — InstallController e rotas install/*; antes, 2026-09-06: jana:distill-module-truth)"
 ---
 
 # BRIEFING — NfeBrasil (verdade destilada)
@@ -22,6 +22,7 @@ Emissor fiscal integrado — NFC-e e NF-e (a emissão de NFS-e modelo 56 é stub
 - Venda com mercadoria e serviço sai em duas notas (US-NFE-069 · UC-FLX-27): `SeparacaoNotasDaVenda` divide a venda pela natureza fiscal do produto e o botão "Emitir NF-e + NFS-e" do drawer de Vendas emite a NF-e só com a parte mercadoria e a NFS-e só com a parte serviço, com o código LC 116 do contador. Rateio decidido por [W] em 2026-10-21: desconto/acréscimo proporcional ao bruto, frete inteiro na NF-e. Natureza pendente bloqueia; sem o botão, a NF-e segue recusando serviço (R-NFE-034).
 - Cancelamento NFC-e/NF-e com notificações (evento 110111) e Carta de Correção (evento 110110, US-FISCAL-013).
 - Status da nota por polling após a autorização (US-NFE-002 fase 2C); broadcast Centrifugo/Reverb segue fora — ADR 0058/0062, Hostinger não roda daemon — e a integração via bridge HTTP é decisão [W] em aberto.
+- ICMS-ST dentro do estado para contribuinte (P-153, 2026-10-29): a NF-e e o ST da tela de venda leem a interna da própria UF quando o destinatário é contribuinte (`NfeService::internaDoSt`); consumidor final da mesma UF segue sem ST, e outra UF como antes. Sem a interna da UF cadastrada, sem ST.
 
 ## Gaps
 - MDF-e (modelo 58) e CT-e (modelo 57) ainda não suportados (o código ainda rotula CT-e como 67 em `NfeEmissao`/`NfeService`/migration — divergência doc×código não resolvida).
