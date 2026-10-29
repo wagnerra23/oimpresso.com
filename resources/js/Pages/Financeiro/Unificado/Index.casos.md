@@ -316,6 +316,23 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
   três vendas; pagar o título paga as três; uma venda não entra em dois grupos; cancelar uma venda do
   grupo antes do pagamento tira o valor dela do título. Mexe em valor: Regra Mestre. Fonte: US-SELL-024
   e o Delphi (`CODFINANCEIRO_GRUPO`). Veio da tela de Contas a receber, aposentada (2026-10-23).
+- **[BACKLOG]** Desagrupar parcelas já pagas não apaga o pagamento nem o histórico `[V0]` — pedido de
+  Zoom, ArtLaser, Vargas e Max Comunicação (2026-10-28). Dado três parcelas agrupadas num título só, e esse
+  título já pago, Quando outro usuário tenta desagrupar, Então o sistema recusa e diz que o grupo tem
+  pagamento. Para desfazer, alguém com permissão primeiro estorna o pagamento, com motivo; o estorno entra
+  como lançamento novo e o pagamento original fica registrado. Só então o grupo pode ser desfeito, e as
+  parcelas voltam a A receber ou A pagar com o histórico completo: quem agrupou, quem pagou, quem estornou e
+  quem desagrupou, com data e motivo. Grupo sem pagamento pode ser desfeito por quem tem permissão, também
+  com registro. Hoje o agrupamento não existe nesta tela (bullet acima); segundo o suporte, no Delphi
+  desagrupar devolve as parcelas e perde o histórico. O Financeiro já não apaga título e já estorna baixa
+  como lançamento novo. Mexe em valor: Regra Mestre.
+  - Pedido: P-115
+  - Âncora: Casos 9 e 19 · fluxo de Cobrança do Wagner (renegociar com alçada do gerente) · estorno de baixa no Financeiro · Delphi `CODFINANCEIRO_GRUPO` · PR #10126
+  - Fazer: Quando o agrupamento existir (caso 19): desagrupar só sem pagamento ativo; com pagamento, exigir o estorno antes, com permissão e motivo; nunca apagar título nem pagamento; gravar agrupar, estornar e desagrupar no histórico do título, com usuário, data e motivo.
+  - Hoje: miss | Não tem | O agrupamento ainda não existe no oimpresso (caso 19). Segundo o suporte, no Delphi desagrupar devolve as parcelas e perde o histórico. No Financeiro novo, título não pode ser apagado e o estorno de pagamento já entra como lançamento novo, sem apagar o original
+  - Comunicação visual: ok | Sim | cliente que paga várias parcelas de uma vez
+  - Clientes: Zoom, ArtLaser, Vargas, Max Comunicação
+  - Etiquetas: valor, miss, cv
 - **[BACKLOG]** Título de cada parte faturada `[V0]` — Dado uma venda de 1.000,00 faturada em duas
   partes (400,00 e 600,00), Então cada parte tem o seu título; cancelar a nota de uma parte cancela o
   título dela se ainda não estiver pago. Mexe em valor: Regra Mestre. Fonte: Omie (pedido parcial). Veio da tela de Contas a receber, aposentada (2026-10-23).
@@ -325,6 +342,8 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-28 · [F+C] Backlog: desagrupar parcelas já pagas não apaga o pagamento nem o histórico (pedido de Zoom, ArtLaser, Vargas e Max Comunicação). Sem id.
+- 2026-10-29 · [F+C] Caso 115 ligado ao documento "Casos de uso por tela" (Pedido P-115). Nenhum caso nem teste mudou.
 - 2026-10-23 · [M+C] Backlog vindo da tela de Contas a receber (aposentada): total do serviço, retido e recebido; título de venda agrupada; título de cada parte faturada. Sem id.
 - 2026-07-27 · [CC] onda `sdd-from-source` (passo 5 · Onda 2): nasce o **SDD do módulo**
   (`memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md` — o Financeiro tinha 0 CU) e os UC de
