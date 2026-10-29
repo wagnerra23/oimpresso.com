@@ -107,7 +107,7 @@ function Painel({ onAbrir, ir, filtrar }) {
   const [reenviado, setReenviado] = useState({});
   const [novaProva, setNovaProva] = useState({});
   const D = P(); const { KpiCard, Widget, Alert, Progress, Button, Input } = DS();
-  const abertas = D.OS.filter((o) => D.atual(o).estado !== "pronto");
+  const abertas = D.emProducao();
   const atrasadas = D.OS.filter((o) => D.atraso(o) === "atrasada" && D.atual(o).estado !== "pronto");
   const hoje = D.OS.filter((o) => D.atraso(o) === "vence hoje");
   const aguardArte = D.OS.filter((o) => o.arte !== "aprovada");
@@ -397,7 +397,7 @@ function ProducaoCvPage({ view = "painel", estado = "dados" }) {
   return (
     <div className="pcv-root" data-screen-label={"Produção · " + (VISTAS.find((v) => v.key === vista) || {}).label}>
       {PageHeader && <div className="pcv-ph"><PageHeader title="Produção" context="COMUNICAÇÃO VISUAL · OS COMO PROJETO"
-        stats={estado === "dados" ? [{ label: "em produção", value: D.OS.length - 1 }, { label: "atrasadas ou vencendo", value: atrasadas, tone: atrasadas ? "danger" : undefined }] : undefined}
+        stats={estado === "dados" ? [{ label: "em produção", value: D.emProducao().length }, { label: "atrasadas ou vencendo", value: atrasadas, tone: atrasadas ? "danger" : undefined }] : undefined}
         actions={Button && <Button variant="primary" onClick={() => setNova(true)}><Ic name="plus" size={13} /> Nova OS do orçamento</Button>} /></div>}
       {TabBar && <TabBar ariaLabel="Vistas da produção" tabs={VISTAS} active={vista} onChange={setVista} inset={24} />}
       {corpo}

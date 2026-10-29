@@ -219,6 +219,9 @@ const etapaObj = (e) => ({ setor: e[0], nome: e[1], resp: e[2], estado: e[3], pr
 const etapas = (os) => os.etapas.map(etapaObj);
 const atual = (os) => etapas(os).find((e) => e.estado === "andamento") || etapas(os).find((e) => e.estado !== "feito" && e.estado !== "pronto") || etapas(os)[etapas(os).length - 1];
 const progresso = (os) => { const es = etapas(os); const t = es.reduce((s, e) => s + e.prev, 0); const f = es.reduce((s, e) => s + (e.estado === "feito" || e.estado === "pronto" ? e.prev : e.estado === "andamento" ? Math.min(e.real, e.prev) : 0), 0); return t ? Math.round((f / t) * 100) : 0; };
+// OS em produção = OS cuja etapa atual ainda não está pronta. Um número só: o indicador do Painel e o cabeçalho da
+// página leem daqui (antes o cabeçalho mostrava o total menos 1, fixo, e divergia do indicador).
+const emProducao = () => OS.filter((o) => atual(o).estado !== "pronto");
 const atraso = (os) => { const d = dias(HOJE, os.prazo); return d < 0 ? "atrasada" : d === 0 ? "vence hoje" : d === 1 ? "amanhã" : null; };
 const desvio = (os) => os.orcado ? ((os.real - os.orcado * progresso(os) / 100) / os.orcado) * 100 : 0;
 const setorDe = (id) => SETORES.find((s) => s.id === id) || SETORES[0];
@@ -233,5 +236,5 @@ const origemDe = (id) => { const o = ORIGEM[id]; return o ? { venda: o[0], item:
 const cargaMaquina = (id) => AGENDA.filter((b) => b.maq === id).reduce((s, b) => s + (b.fim - b.ini), 0);
 
 window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
-  etapas, atual, progresso, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
+  etapas, atual, progresso, emProducao, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();
