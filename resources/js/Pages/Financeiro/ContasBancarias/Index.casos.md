@@ -107,6 +107,30 @@ pasta `tests/Feature/Configuracoes/`. Tenant 98 (`seededTenant()`) × 99 (`seede
 - **Regressão que defende:** gate do controller (Camada 3 Spatie, permissão do Financeiro).
 - **Status: ⬜** — aguardando o CI do PR #10046.
 
+---
+
+## Juros e multa da carteira no boleto (Sabor Brasil, item 4 do plano de migração)
+
+Os percentuais moram no `config_json` da credencial do banco (a carteira): `juros_mes_pct`
+(% ao mês) e `multa_pct` (% do valor). No Delphi vinham de `CONTAS.JUROS` e `CONTAS.MULTA`.
+Teste de todos: `Modules/PaymentGateway/Tests/Feature/JurosMultaCarteiraBoletoTest.php`.
+
+## UC-CTB-12 · A carteira diz juros ao mês e multa em %
+- **Aceite:** Dado `juros_mes_pct = 1` e `multa_pct = "2,00"` · Então o boleto leva 1,00% a.m. e 2,00%; Quando o valor é 0, negativo, acima de 100 ou não é número · Então aquele item sai isento.
+- **Status: ⬜** — aguardando o CI do PR.
+
+## UC-CTB-13 · BB: juros no segmento P, multa no R, desconto mantido
+- **Aceite:** Dado a carteira BB com 1% a.m. e 2% e o cliente com 5% de pontualidade · Quando emite boleto de 1.234,56 · Então a remessa CNAB 240 tem P118 = 2, P127-141 = 1,00, R66 = 2, R75-89 = 2,00 e o desconto de 61,73 em P151-165.
+- **Status: ⬜** — aguardando o CI do PR.
+
+## UC-CTB-14 · BB: carteira sem juros e multa sai isenta
+- **Aceite:** Dado a carteira sem as chaves · Então P118 = 3 e R66 = 0, valores zerados — o boleto de hoje.
+- **Status: ⬜** — aguardando o CI do PR.
+
+## UC-CTB-15 · Inter: mora ao mês e multa em % na API
+- **Aceite:** Dado a carteira Inter com 1% a.m. e 2% · Quando emite · Então a API recebe `mora` TAXAMENSAL 1,00 e `multa` PERCENTUAL 2,00, junto do desconto de pontualidade.
+- **Status: ⬜** — aguardando o CI do PR.
+
 ## Backlog de casos (sem id)
 - **[BACKLOG] Sem side-effect ao abrir** — não testa conectividade de gateway, não emite boleto, não chama driver Inter/Asaas/C6.
 - **[BACKLOG] Pill "Conta indefinida" (US-FIN-038 PR2/3)** — herdar da Unificada quando a baixa não tem conta vinculada.
@@ -134,3 +158,4 @@ pasta `tests/Feature/Configuracoes/`. Tenant 98 (`seededTenant()`) × 99 (`seede
 [ADR 0264]: ../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0093]: ../../memory/decisions/0093-multi-tenant-isolation-tier-0.md
 - 2026-10-29 · [W+C] Pedido P-157 "Boleto do Banco do Brasil gerado pelo sistema" (Sabor Brasil), registrado com casos-backlog/novo.mjs. Sem id de UC.
+- 2026-10-29 · [W+C] UC-CTB-12..15: juros e multa da carteira no boleto, Inter e BB (Sabor Brasil, item 4).

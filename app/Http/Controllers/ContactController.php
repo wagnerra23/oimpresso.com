@@ -550,6 +550,15 @@ class ContactController extends Controller
                 ->get(['id', 'name'])
                 ->map(fn ($g) => ['id' => (int) $g->id, 'name' => (string) $g->name])
                 ->all(),
+            // P-087 — tabelas de preço (selling_price_groups) do business, para a tabela
+            // própria do cliente no drawer Comercial. Tier 0: só as da empresa da sessão.
+            'sellingPriceGroups' => DB::table('selling_price_groups')
+                ->where('business_id', $business_id)
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn ($g) => ['id' => (int) $g->id, 'name' => (string) $g->name])
+                ->all(),
             // Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer.
             // Daniela @ Martinho: ve placas no drawer apenas se OficinaAuto
             // ativo. biz=4 Larissa vestuario nao ve (graceful default false).
@@ -813,6 +822,11 @@ class ContactController extends Controller
             $selectCols[] = 'contacts.bloqueado';
             // P-086 — mesma migration; ComercialTab mostra e edita.
             $selectCols[] = 'contacts.boleto_desconto_pontualidade_pct';
+        }
+        // P-087 — tabela de preço própria do cliente (migration 2026_10_29_150000).
+        $hasTabelaPropria = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'selling_price_group_id');
+        if ($hasTabelaPropria) {
+            $selectCols[] = 'contacts.selling_price_group_id';
         }
         // Daniela 2026-05-27 — `contato` (nome do responsavel principal PJ).
         // Migration 2026_05_27_180000_add_contato_to_contacts.
@@ -1137,6 +1151,9 @@ class ContactController extends Controller
             // P-086 — desconto de pontualidade no boleto (coluna da migration 2026_05_27_120000).
             $payload['boleto_desconto_pontualidade_pct'] = ($contact->boleto_desconto_pontualidade_pct ?? null) !== null
                 ? (float) $contact->boleto_desconto_pontualidade_pct : null;
+            // P-087 — tabela própria do cliente; null = vale a do grupo.
+            $payload['selling_price_group_id'] = ($contact->selling_price_group_id ?? null) !== null
+                ? (int) $contact->selling_price_group_id : null;
 
             // ── ClassificacaoTab: contact_status enum UPOS ───────────────────
             // NOTA: `status` (linha ~559) é DERIVADO do payment_status das OS
@@ -2648,6 +2665,17 @@ class ContactController extends Controller
                             ->leftjoin('customer_groups as cg', 'cg.id', '=', 'contacts.customer_group_id')
                             ->active();
 
+            // P-087 — a tabela própria do cliente vale no lugar da do grupo. O join exige a
+            // mesma empresa (Tier 0): um id de outro tenant gravado por fora não vira preço.
+            $tabelaPropria = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'selling_price_group_id');
+            if ($tabelaPropria) {
+                $contacts->leftJoin('selling_price_groups as spg_cli', function ($j) {
+                    $j->on('spg_cli.id', '=', 'contacts.selling_price_group_id')
+                        ->on('spg_cli.business_id', '=', 'contacts.business_id')
+                        ->whereNull('spg_cli.deleted_at');
+                });
+            }
+
             if (! request()->has('all_contact')) {
                 $contacts->onlyCustomers();
             }
@@ -2681,7 +2709,9 @@ class ContactController extends Controller
                 'contacts.mensagem_venda',
                 'cg.amount as discount_percent',
                 'cg.price_calculation_type',
-                'cg.selling_price_group_id',
+                $tabelaPropria
+                    ? DB::raw('COALESCE(spg_cli.id, cg.selling_price_group_id) AS selling_price_group_id')
+                    : 'cg.selling_price_group_id',
                 'shipping_custom_field_details',
                 'is_export',
                 'export_custom_field_1',

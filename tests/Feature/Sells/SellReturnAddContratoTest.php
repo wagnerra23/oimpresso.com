@@ -264,6 +264,56 @@ it('UC-SRADD-04 [E0] o teto da linha é a quantidade vendida e o excesso é recu
     expect(EstoqueFixture::currentStock($this->produto, 0, $this->loc))->toBe(10.0);
 });
 
+/*
+ * P-039 — a segunda devolução da mesma venda desconta a primeira. Medição antes de consertar.
+ *
+ * O campo "Devolver" da tela é ACUMULADO: a devolução da venda é uma só (store() faz update
+ * dela) e cada linha guarda o total já devolvido. Reabrir traz o que já voltou preenchido; o
+ * teto continua sendo a vendida, então o que ainda pode voltar é vendida − já devolvida.
+ *
+ *   venda A: 3 un × 1.234,50, desconto 10% · estoque 10
+ *   1ª devolução, 2 un:  total 2.222,10 · estoque 12
+ *   2ª devolução, acumulado 3 (volta mais 1):
+ *     subtotal 3 × 1.234,50 = 3.703,50 · desconto 370,35 · total 3.333,15 · estoque 13 (não 15)
+ *   3ª tentativa, acumulado 4: recusada · total e estoque não mudam
+ * Caminho B: a venda B devolve as 3 de uma vez e tem de gravar o mesmo total e a mesma linha.
+ */
+it('UC-SRADD-07 [V0][E0] a segunda devolução da mesma venda desconta a primeira', function () {
+    $post = fn (array $payload) => $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->post('/sell-return', $payload);
+    $estoque = fn () => EstoqueFixture::currentStock($this->produto, 0, $this->loc);
+    $a = $this->vendaA['transaction_id'];
+    $devolucoesDeA = fn () => DB::table('transactions')->where('type', 'sell_return')->where('return_parent_id', $a)->count();
+
+    expect($estoque())->toBe(10.0);
+
+    $post(sraddPayloadPage(sraddVenda($this, $a), '2'))->assertJson(['success' => 1]);
+    expect($estoque())->toBe(12.0);
+
+    // Reabrir: a devolução existe e a linha traz as 2 já devolvidas; o teto segue 3.
+    $reaberta = sraddVenda($this, $a);
+    expect($reaberta['devolucao'])->not->toBeNull();
+    expect($reaberta['linhas'][0]['quantidade_devolvida_txt'])->toBe('2,00');
+    expect((float) $reaberta['linhas'][0]['quantidade_vendida'])->toBe(3.0);
+
+    $post(sraddPayloadPage($reaberta, '3'))->assertJson(['success' => 1]);
+    expect($estoque())->toBe(13.0);
+    expect($devolucoesDeA())->toBe(1);
+    $depois = sraddRetrato($a, $this->vendaA['sell_line_id']);
+    expect($depois['final_total'])->toBe(3333.15);
+    expect($depois['quantity_returned'])->toBe(3.0);
+
+    // Acima da vendida: recusado, nada muda.
+    $post(sraddPayloadPage(sraddVenda($this, $a), '4'))->assertJson(['success' => 0]);
+    expect($estoque())->toBe(13.0);
+    expect(sraddRetrato($a, $this->vendaA['sell_line_id']))->toBe($depois);
+
+    // Caminho B: as 3 de uma vez gravam o mesmo da devolução em duas vezes.
+    $post(sraddPayloadPage(sraddVenda($this, $this->vendaB['transaction_id']), '3'))->assertJson(['success' => 1]);
+    expect($estoque())->toBe(16.0);
+    expect(sraddRetrato($this->vendaB['transaction_id'], $this->vendaB['sell_line_id']))->toBe($depois);
+});
+
 it('UC-SRADD-05 [V0][E0] o payload da tela e o da Blade gravam o mesmo valor e o mesmo estoque', function () {
     // ANTES — medido, não assumido.
     expect(EstoqueFixture::currentStock($this->produto, 0, $this->loc))->toBe(10.0);

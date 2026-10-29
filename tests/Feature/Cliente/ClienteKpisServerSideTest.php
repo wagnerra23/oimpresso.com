@@ -42,14 +42,14 @@ test('P0 — Novos do mês = created_at >= início do mês', function () use ($c
     expect($src)->toContain("->where('contacts.created_at', '>=', now()->startOfMonth())");
 });
 
-test('P0 — Sem compra 90d (risco churn) = já comprou (não-draft) mas nada nos últimos 90d', function () use ($controller) {
+test('P0 — Sem compra 90d (risco churn) = já comprou (não rascunho nem cancelada, US-SELL-077) mas nada nos últimos 90d', function () use ($controller) {
     $src = file_get_contents($controller);
     // Bloco sem_compra_90d: whereExists (comprou) + whereNotExists (não nos 90d).
     expect($src)
         ->toContain('$sem_compra_90d = (clone $base)')
         ->toContain('->whereExists(function ($q) use ($business_id) {')
         ->toContain('->whereNotExists(function ($q) use ($business_id) {')
-        ->toContain("->where('transactions.status', '!=', 'draft')")
+        ->toContain("->whereNotIn('transactions.status', ['draft', 'cancelled'])")
         ->toContain("->where('transactions.transaction_date', '>=', now()->subDays(90))");
 });
 

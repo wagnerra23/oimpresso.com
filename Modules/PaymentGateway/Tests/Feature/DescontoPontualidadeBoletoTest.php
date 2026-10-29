@@ -107,6 +107,7 @@ function descBbConfig(): array
 {
     return [
         'agencia' => '1234', 'conta' => '12345678', 'convenio' => '1234567', 'carteira' => '17',
+        'variacao_carteira' => '019', // obrigatória desde o P-157 (#10168)
         'cedente_nome' => 'Empresa Ficticia', 'cedente_documento' => '00000000000000', // pii-allowlist — fixture
     ];
 }

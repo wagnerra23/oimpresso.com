@@ -3281,6 +3281,8 @@ class SellController extends Controller
                 'type' => (string) $transaction->type,
                 'status' => (string) $transaction->status,
                 'current_stage_key' => null,  // FSM ADR 0143 (lazy)
+                // P-035 — o rascunho duplicado mostra no topo de qual venda veio (mesma empresa).
+                'duplicated_from' => $this->origensDaDuplicacao((int) $business_id, [(int) $transaction->id])->get((int) $transaction->id),
             ];
 
             $formPayload = function () use ($transaction, $business_details, $taxes, $sell_details, $commission_agent, $types, $customer_groups, $pos_settings, $waiters, $invoice_schemes, $default_invoice_schemes, $redeem_details, $edit_discount, $edit_price, $shipping_statuses, $warranties, $statuses, $sales_orders, $payment_types, $accounts, $payment_lines, $change_return, $is_order_request_enabled, $customer_due, $customer_due_raw, $users) {
@@ -3597,6 +3599,17 @@ class SellController extends Controller
                     DB::raw('MAX(tqa.last_opened_at) as quote_last_opened_at'),
                     DB::raw('COALESCE(MAX(tqa.open_count), 0) as quote_open_count')
                 );
+
+                // P-037: de qual orçamento esta cópia veio ("Copiar orçamento" grava a origem).
+                // Tier 0 (ADR 0093): a origem também tem de ser da empresa da sessão. Subconsulta
+                // e não join: o select acima tem colunas sem tabela (invoice_no, transaction_date)
+                // que um 2º `transactions` no FROM tornaria ambíguas.
+                if (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'duplicated_from_id')) {
+                    $daOrigem = fn (string $coluna, string $alias) => DB::raw("(SELECT origem.{$coluna} FROM transactions AS origem"
+                        .' WHERE origem.id = transactions.duplicated_from_id'
+                        ." AND origem.business_id = transactions.business_id) AS {$alias}");
+                    $sells->addSelect($daOrigem('id', 'duplicated_from_tx_id'), $daOrigem('invoice_no', 'duplicated_from_invoice_no'));
+                }
 
                 if (! auth()->user()->can('quotation.view_all') && auth()->user()->can('quotation.view_own')) {
                     $sells->where('transactions.created_by', request()->session()->get('user.id'));

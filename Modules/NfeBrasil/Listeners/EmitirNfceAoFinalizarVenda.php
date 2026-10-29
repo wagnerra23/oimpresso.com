@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Modules\NfeBrasil\Jobs\EmitirNfceJob;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
+use Modules\NfeBrasil\Services\NfeService;
 
 /**
  * US-NFE-002 fase 1 · Listener `SellCreatedOrModified` → dispatch `EmitirNfceJob`.
@@ -58,6 +59,8 @@ class EmitirNfceAoFinalizarVenda implements ShouldQueue
         if (($tx->type ?? null) !== 'sell') return;
         if (($tx->status ?? null) !== 'final') return;
         if (! in_array($tx->payment_status ?? null, ['paid', 'partial'], true)) return;
+        // P-154 · bonificação sai em NF-e (CFOP 5910/6910), nunca em NFC-e.
+        if (NfeService::ehBonificacao($tx)) return;
 
         if (! config('nfebrasil.auto_emission_on_sell_completed', false)) {
             Log::info('NFC-e auto-emission DISABLED — listener no-op (global flag)', [

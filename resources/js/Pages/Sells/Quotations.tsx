@@ -40,6 +40,8 @@ interface QuoteRow {
   // UC-FLX-04: abertura do link público pelo cliente ('AAAA-MM-DD HH:MM:SS' do banco).
   aberto_em: string | null;
   aberto_vezes: number;
+  // P-037: orçamento de onde esta cópia veio ("Copiar orçamento"); null quando não é cópia.
+  copia_de: { id: number; numero: string } | null;
 }
 
 export interface SellsQuotationsPageProps {
@@ -146,6 +148,9 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
         added_by: r.added_by ? String(r.added_by) : null,
         aberto_em: r.quote_first_opened_at ? String(r.quote_first_opened_at) : null,
         aberto_vezes: Number(r.quote_open_count ?? 0),
+        copia_de: r.duplicated_from_tx_id
+          ? { id: Number(r.duplicated_from_tx_id), numero: String(r.duplicated_from_invoice_no ?? '') }
+          : null,
       }));
       setRows(items);
     } catch {
@@ -285,7 +290,17 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
                     className={`border-b border-border last:border-0 ${idx % 2 === 1 ? 'bg-muted/20' : ''}`}
                   >
                     <td className="px-5 py-3 tabular-nums">{formatDateTime(r.transaction_date)}</td>
-                    <td className="px-3 py-3 font-mono text-xs">{r.invoice_no}</td>
+                    <td className="px-3 py-3 font-mono text-xs">
+                      {r.invoice_no}
+                      {r.copia_de && (
+                        <div className="font-sans text-muted-foreground" data-testid="quote-copia-de">
+                          Cópia de{' '}
+                          <Link href={`/sells/${r.copia_de.id}`} className="underline">
+                            {r.copia_de.numero}
+                          </Link>
+                        </div>
+                      )}
+                    </td>
                     <td className="px-3 py-3">{r.customer_name ?? '—'}</td>
                     <td className="px-3 py-3 text-muted-foreground">{r.business_location}</td>
                     <td className="px-3 py-3 text-right tabular-nums">{r.total_items}</td>

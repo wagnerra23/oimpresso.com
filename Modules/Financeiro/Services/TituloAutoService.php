@@ -43,6 +43,12 @@ use Modules\Financeiro\Models\TituloBaixa;
 class TituloAutoService
 {
     /**
+     * P-154 — venda bonificada (`transactions.sub_type`). Sai com nota de bonificação e baixa
+     * estoque, mas não é cobrada: não nasce título a receber nem baixa de pagamento.
+     */
+    public const SUB_TYPE_BONIFICACAO = 'bonificacao';
+
+    /**
      * Cria ou atualiza Titulo a partir de Transaction (sell, purchase ou expense).
      * No-op se transaction não for sell/purchase/expense.
      * Para sell/purchase quitada no caixa (payment_status='paid'), cancela o título.
@@ -74,6 +80,12 @@ class TituloAutoService
 
         if ($tipo === null) {
             return null;
+        }
+
+        // P-154 — bonificação não é cobrada. Venda que virou bonificação depois perde o título
+        // pelo caminho de sempre (status cancelado, nunca delete).
+        if ($this->ehBonificacao($tx)) {
+            return $this->cancelarTituloDeBonificacao($tx);
         }
 
         // US-FIN-072 — título que recebeu baixa de RETENÇÃO da NFS-e. O aberto da venda parcial
@@ -238,6 +250,44 @@ class TituloAutoService
         return $titulo;
     }
 
+    private function ehBonificacao(Transaction $tx): bool
+    {
+        return $tx->type === 'sell' && $tx->sub_type === self::SUB_TYPE_BONIFICACAO;
+    }
+
+    /**
+     * Cancela o título da venda que virou bonificação. Título que já recebeu baixa fica como
+     * está: cancelar esconderia dinheiro que entrou no caixa, e isso é decisão de quem estorna.
+     */
+    private function cancelarTituloDeBonificacao(Transaction $tx): ?Titulo
+    {
+        // SUPERADMIN: Observer Transaction sem session — business_id da Transaction recebida
+        $titulo = Titulo::query()
+            ->withoutGlobalScope(BusinessScopeImpl::class)
+            ->where('business_id', $tx->business_id)
+            ->where('origem', 'venda')
+            ->where('origem_id', $tx->id)
+            ->whereNull('parcela_numero')
+            ->first();
+
+        if (! $titulo || $titulo->status === 'cancelado') {
+            return $titulo;
+        }
+
+        if (in_array($titulo->status, ['parcial', 'quitado'], true)) {
+            Log::warning('TituloAutoService: venda virou bonificação com título já baixado — título mantido', [
+                'business_id' => $tx->business_id,
+                'tx_id' => $tx->id,
+                'titulo_id' => $titulo->id,
+                'status' => $titulo->status,
+            ]);
+
+            return $titulo;
+        }
+
+        return $this->cancelarSeExistir($tx, motivo: 'venda marcada como bonificação (sem cobrança)');
+    }
+
     /**
      * Registra pagamento (TransactionPayment) → cria TituloBaixa + CaixaMovimento.
      *
@@ -253,6 +303,11 @@ class TituloAutoService
     {
         $tx = Transaction::find($tp->transaction_id);
         if (! $tx) {
+            return null;
+        }
+
+        // P-154 — bonificação não tem título, então não tem baixa nem entrada no caixa.
+        if ($this->ehBonificacao($tx)) {
             return null;
         }
 
