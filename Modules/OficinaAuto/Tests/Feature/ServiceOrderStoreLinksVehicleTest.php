@@ -87,7 +87,7 @@ it('store vincula OS nova ao veículo LIVRE (current_rental_id NULL → id da OS
     // O veículo agora aponta pra OS — é isso que faz o card do kanban mostrar a OS
     // (e não "sem OS") e o drawer rico abrir no clique.
     expect((int) $vehicle->fresh()->current_rental_id)->toBe((int) $os->id);
-})->afterEach(fn () => linkos_cleanup('A'));
+})->after(fn () => linkos_cleanup('A'));
 
 it('store NÃO clobbera vínculo de veículo que JÁ tem OS ativa', function () {
     session(['user.business_id' => BIZ_LINKOS]);
@@ -113,4 +113,4 @@ it('store NÃO clobbera vínculo de veículo que JÁ tem OS ativa', function () 
     // Vínculo original preservado (a 2ª OS existe, mas não vira o "documento vivo" do card).
     expect((int) $vehicle->fresh()->current_rental_id)->toBe((int) $osAtiva->id);
     expect(ServiceOrder::withoutGlobalScopes()->where('vehicle_id', $vehicle->id)->count())->toBe(2);
-})->afterEach(fn () => linkos_cleanup('B'));
+})->after(fn () => linkos_cleanup('B'));

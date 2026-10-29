@@ -411,6 +411,12 @@ jobs:
       - name: casos-backlog — leitor das grafias de backlog e gerador da página
         if: always() && steps.setup.outcome == 'success'
         run: node --test scripts/casos-backlog/leitor.test.mjs scripts/casos-backlog/gerar.test.mjs
+      # A página dentro do sistema lê os casos.md com o leitor PHP (CasosPorTela.php). Este teste
+      # roda os dois leitores no repositório inteiro e exige a mesma saída. Usa o `php` da imagem
+      # ubuntu do runner; sem ele o teste falha, não pula.
+      - name: casos-backlog — leitor PHP lê o mesmo que o leitor Node
+        if: always() && steps.setup.outcome == 'success'
+        run: php -v | head -1 && node --test scripts/casos-backlog/paridade-php.test.mjs
       # Detector ADVISORY de DONO-DE-TEMA (pedido [W] 2026-07-21 "como sei que a Maiara não
       # está duplicando estrutura?"). Consome o catalog.json + tópicos; mede sobreposição de
       # ENTIDADE declarada (não nome de arquivo). O selftest é a MORDIDA: prova que casa por
