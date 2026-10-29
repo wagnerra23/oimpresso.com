@@ -369,6 +369,16 @@ abstract class CnabBoletoAdapter implements PaymentDriverContract
         // Default: derivado do idempotencyKey (estável + único per business).
         $numeroSequencial = (int) abs(crc32($input->idempotencyKey)) % 99999999;
 
+        // P-086 — desconto de pontualidade. A lib grava no segmento P do CNAB 240
+        // (pos. 142 código '1' = valor fixo até a data · 143-150 data · 151-165 valor).
+        $descontoCentavos = (int) ($input->desconto['valor_centavos'] ?? 0);
+        $desconto = $descontoCentavos > 0 && ! empty($input->desconto['data_limite'])
+            ? [
+                'desconto'     => round($descontoCentavos / 100, 2),
+                'dataDesconto' => Carbon::parse((string) $input->desconto['data_limite']),
+            ]
+            : [];
+
         return array_merge(
             $this->configToBoletoArgs($config),
             [
@@ -382,7 +392,8 @@ abstract class CnabBoletoAdapter implements PaymentDriverContract
                 'instrucoes'     => array_filter([
                     $input->instrucoesPagador ?? 'Não receber após o vencimento',
                 ]),
-            ]
+            ],
+            $desconto
         );
     }
 

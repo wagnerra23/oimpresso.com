@@ -12,6 +12,7 @@ use Modules\Financeiro\Models\TituloBaixa;
 use Modules\Financeiro\Services\LinkDePagamentoDoTitulo;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Models\Cobranca;
+use Modules\PaymentGateway\Services\DescontoPontualidade;
 
 /**
  * Auto-baixa: cobrança paga → Titulo a receber + TituloBaixa quitada em fin_titulos.
@@ -84,8 +85,10 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
 
         DB::transaction(function () use ($event, $cobranca, $contaBancariaId): void {
             $valor = $cobranca->valor_centavos / 100;
-            $valorPago = ($cobranca->valor_pago_centavos ?? $cobranca->valor_centavos) / 100;
+            $pagoCentavos = (int) ($cobranca->valor_pago_centavos ?? $cobranca->valor_centavos);
+            $valorPago = $pagoCentavos / 100;
             $pagaEm = $event->pagaEm;
+            $desconto = $this->descontoReconhecido($cobranca, (int) $cobranca->valor_centavos, $pagoCentavos, $pagaEm) / 100;
             $clienteDescricao = $cobranca->payer_name
                 ?? ($cobranca->descricao !== '' ? $cobranca->descricao : null);
 
@@ -137,7 +140,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                 'valor_baixa'        => $valorPago,
                 'juros'              => 0,
                 'multa'              => 0,
-                'desconto'           => 0,
+                'desconto'           => $desconto,
                 'data_baixa'         => $pagaEm->format('Y-m-d'),
                 'meio_pagamento'     => $this->mapMeioPagamento($cobranca->tipo, $cobranca->forma_pagamento),
                 'idempotency_key'    => $this->buildIdempotencyKey($event->cobrancaId),
@@ -212,10 +215,13 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
         }
 
         $contaBancariaId = $this->resolveContaBancaria($cobranca, $biz);
-        $valorPago = ($cobranca->valor_pago_centavos ?? $cobranca->valor_centavos) / 100;
+        $pagoCentavos = (int) ($cobranca->valor_pago_centavos ?? $cobranca->valor_centavos);
+        $valorPago = $pagoCentavos / 100;
         $pagaEm = $event->pagaEm;
+        // P-086: desconto de pontualidade só entra se o pagamento chegou até a data limite.
+        $desconto = $this->descontoReconhecido($cobranca, (int) round(((float) $titulo->valor_aberto) * 100), $pagoCentavos, $pagaEm) / 100;
 
-        DB::transaction(function () use ($titulo, $contaBancariaId, $valorPago, $pagaEm, $event, $cobranca, $idemKey, $biz, $autor): void {
+        DB::transaction(function () use ($titulo, $contaBancariaId, $valorPago, $desconto, $pagaEm, $event, $cobranca, $idemKey, $biz, $autor): void {
             if ($contaBancariaId) {
                 TituloBaixa::create([
                     'business_id'       => $biz,
@@ -224,7 +230,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                     'valor_baixa'       => $valorPago,
                     'juros'             => 0,
                     'multa'             => 0,
-                    'desconto'          => 0,
+                    'desconto'          => $desconto,
                     'data_baixa'        => $pagaEm->format('Y-m-d'),
                     'meio_pagamento'    => $this->mapMeioPagamento($cobranca->tipo, $cobranca->forma_pagamento),
                     'idempotency_key'   => $idemKey,
@@ -233,7 +239,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                 ]);
             }
 
-            $novoAberto = round(((float) $titulo->valor_aberto) - $valorPago, 2);
+            $novoAberto = round(((float) $titulo->valor_aberto) - $valorPago - ($contaBancariaId ? $desconto : 0), 2);
             $titulo->valor_aberto = max(0, $novoAberto);
             if ($contaBancariaId && $titulo->valor_aberto <= 0.001) {
                 $titulo->status = 'quitado';
@@ -298,6 +304,23 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
             ->first();
 
         return $conta ? (int) $conta->id : null;
+    }
+
+    /**
+     * P-086 — desconto de pontualidade que a baixa reconhece, em centavos.
+     *
+     * Lê o desconto que foi ao banco (gravado na cobrança na emissão) e só o aceita se o
+     * pagamento chegou até a data limite e cobre o valor menos o desconto. Fora disso, 0:
+     * o título fica com o restante em aberto, como antes.
+     */
+    private function descontoReconhecido(Cobranca $cobranca, int $abertoCentavos, int $pagoCentavos, \DateTimeImmutable $pagaEm): int
+    {
+        $desconto = $cobranca->payload_gateway['desconto_pontualidade'] ?? null;
+        if (! is_array($desconto)) {
+            return 0;
+        }
+
+        return DescontoPontualidade::reconhecidoNaBaixaCentavos($desconto, $abertoCentavos, $pagoCentavos, $pagaEm);
     }
 
     private function mapMeioPagamento(?string $cobrancaTipo, ?string $formaPagamento): string
