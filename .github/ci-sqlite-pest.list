@@ -697,6 +697,12 @@ Modules/PaymentGateway/Tests/Feature/InterReconcilePixCommandTest.php
 Modules/PaymentGateway/Tests/Feature/ReconciliarCobrancaServiceTest.php
 Modules/PaymentGateway/Tests/Feature/SantanderCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/SicrediCnabDriverTest.php
+# 2026-10-28 (lote 3): os 5 que estavam na paymentgateway-pest-quarantine.list, com a fixture corrigida.
+Modules/PaymentGateway/Tests/Feature/AilosCnabDriverTest.php
+Modules/PaymentGateway/Tests/Feature/CaixaCnabDriverTest.php
+Modules/PaymentGateway/Tests/Feature/BBCnabDriverTest.php
+Modules/PaymentGateway/Tests/Feature/ItauCnabDriverTest.php
+Modules/PaymentGateway/Tests/Feature/InterImportarRecebimentosCommandTest.php
 
 # 2026-10-28: 3 era-sqlite do PaymentGateway que a paymentgateway-pest barrava como
 # "destrutivos" (dropIfExists só no ramo sqlite) e listava como RefreshDatabase — os três
