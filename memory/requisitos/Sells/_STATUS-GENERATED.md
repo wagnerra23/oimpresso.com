@@ -20,7 +20,7 @@ authority: generated
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 220 |
+| UC declarados | 221 |
 | UC com teste que os cita | 215 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
@@ -232,6 +232,7 @@ authority: generated
 | UC-TEF-05 | Create | 🧪 aguarda veredito da lane |
 | UC-TEF-06 | Create | 🧪 aguarda veredito da lane |
 | UC-TEF-07 | Create | 🧪 aguarda veredito da lane |
+| UC-TRB-05 | Index | 📝 sem_teste |
 | UC-TRB-16 | Create | 📝 sem_teste |
 | UC-TRB-24 | Create | 📝 sem_teste |
 | UC-TRB-33 | Index | 📝 sem_teste |

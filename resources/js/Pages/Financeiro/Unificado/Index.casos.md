@@ -316,15 +316,139 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
   três vendas; pagar o título paga as três; uma venda não entra em dois grupos; cancelar uma venda do
   grupo antes do pagamento tira o valor dela do título. Mexe em valor: Regra Mestre. Fonte: US-SELL-024
   e o Delphi (`CODFINANCEIRO_GRUPO`). Veio da tela de Contas a receber, aposentada (2026-10-23).
+- **[BACKLOG]** Desagrupar parcelas já pagas não apaga o pagamento nem o histórico `[V0]` — pedido de
+  Zoom, ArtLaser, Vargas e Max Comunicação (2026-10-28). Dado três parcelas agrupadas num título só, e esse
+  título já pago, Quando outro usuário tenta desagrupar, Então o sistema recusa e diz que o grupo tem
+  pagamento. Para desfazer, alguém com permissão primeiro estorna o pagamento, com motivo; o estorno entra
+  como lançamento novo e o pagamento original fica registrado. Só então o grupo pode ser desfeito, e as
+  parcelas voltam a A receber ou A pagar com o histórico completo: quem agrupou, quem pagou, quem estornou e
+  quem desagrupou, com data e motivo. Grupo sem pagamento pode ser desfeito por quem tem permissão, também
+  com registro. Hoje o agrupamento não existe nesta tela (bullet acima); segundo o suporte, no Delphi
+  desagrupar devolve as parcelas e perde o histórico. O Financeiro já não apaga título e já estorna baixa
+  como lançamento novo. Mexe em valor: Regra Mestre.
+  - Pedido: P-115
+  - Âncora: Casos 9 e 19 · fluxo de Cobrança do Wagner (renegociar com alçada do gerente) · estorno de baixa no Financeiro · Delphi `CODFINANCEIRO_GRUPO` · PR #10126
+  - Fazer: Quando o agrupamento existir (caso 19): desagrupar só sem pagamento ativo; com pagamento, exigir o estorno antes, com permissão e motivo; nunca apagar título nem pagamento; gravar agrupar, estornar e desagrupar no histórico do título, com usuário, data e motivo.
+  - Hoje: miss | Não tem | O agrupamento ainda não existe no oimpresso (caso 19). Segundo o suporte, no Delphi desagrupar devolve as parcelas e perde o histórico. No Financeiro novo, título não pode ser apagado e o estorno de pagamento já entra como lançamento novo, sem apagar o original
+  - Comunicação visual: ok | Sim | cliente que paga várias parcelas de uma vez
+  - Clientes: Zoom, ArtLaser, Vargas, Max Comunicação
+  - Etiquetas: valor, miss, cv
+- **[BACKLOG]** Desfazer ou corrigir o agrupamento de OS `[V0]` — pedido de Zoom, Techpress e Mhundo
+  (2026-10-28), que desfazem agrupamentos por erro de cadastro ou de valor. Dado três OS de um cliente
+  agrupadas numa cobrança só, com uma OS de valor errado ou o grupo feito no cliente errado, Quando desfaço
+  o agrupamento, informando o motivo, Então, se o grupo não tem pagamento, as OS voltam a ficar soltas com
+  os seus valores, o título do grupo é cancelado (não apagado) e o histórico mostra quem agrupou, quem
+  desfez, quando e por quê. Se o erro é numa OS só, tiro só ela do grupo: o título antigo é cancelado e
+  nasce um novo com as OS que ficaram, ligado ao antigo; o valor do título nunca é reescrito no lugar. Se o grupo já tem nota emitida, a nota é cancelada antes, dentro do prazo, ou o desagrupamento é
+  recusado com o motivo. Se já tem pagamento, o pagamento é estornado antes, com motivo, como no caso de
+  desagrupar parcelas já pagas. Hoje o agrupamento não existe nesta tela ("Título de venda agrupada", acima); o Financeiro já não
+  apaga título, só cancela. Falta decisão [W]: quem pode desfazer um grupo, e se um valor errado numa OS
+  agrupada pode ser corrigido sem desfazer o grupo, com um lançamento de ajuste. Mexe em valor: Regra Mestre.
+  - Pedido: P-150
+  - Âncora: Casos 9, 19, 115 e 135 · Delphi `CODFINANCEIRO_GRUPO` · título não pode ser apagado, só cancelado (`Titulo`) · cancelar a nota e emitir outra (caso 84) · PR #10145
+  - Fazer: Duas ações no grupo: desfazer o grupo inteiro e tirar uma OS do grupo, com permissão e motivo. O título do grupo é cancelado, e ao tirar uma OS nasce um título novo ligado ao antigo; nunca se apaga nem se reescreve o valor. Com nota emitida, cancelar a nota antes; com pagamento, estornar antes (caso 115). Histórico no grupo e em cada OS.
+  - Hoje: miss | Não tem | O agrupamento ainda não existe no oimpresso (caso 19). Segundo o suporte, no sistema antigo esses clientes desfazem agrupamentos com frequência por erro de cadastro ou de valor
+  - Comunicação visual: ok | Sim | várias OS do mesmo cliente cobradas juntas
+  - Clientes: Zoom, Techpress, Mhundo
+  - Etiquetas: valor, miss, cv, decisao
 - **[BACKLOG]** Título de cada parte faturada `[V0]` — Dado uma venda de 1.000,00 faturada em duas
   partes (400,00 e 600,00), Então cada parte tem o seu título; cancelar a nota de uma parte cancela o
   título dela se ainda não estiver pago. Mexe em valor: Regra Mestre. Fonte: Omie (pedido parcial). Veio da tela de Contas a receber, aposentada (2026-10-23).
+- **[BACKLOG]** Recebimento no cartão desconta a taxa da operadora `[V0]` — pedido de NewPrint e ArtLaser
+  (2026-10-28). Dado uma venda de 1.000,00 recebida no crédito à vista, com taxa de 3% para essa operadora,
+  bandeira e modalidade, Quando o recebimento é lançado, Então o título do cliente fica quitado pelo valor
+  cheio; a taxa de 30,00 vira despesa de tarifa de cartão; e nasce um valor a receber da operadora de 970,00,
+  previsto para a data do repasse (D+30). Hoje a baixa registra só que foi cartão (`cartao_credito` ou
+  `cartao_debito`), sem taxa, operadora nem data do repasse. Falta decisão [W]: a taxa entra como despesa
+  separada ou como baixa que reduz o recebido, como a retenção (US-FIN-072), e quem cadastra as taxas por
+  operadora, bandeira, modalidade e número de parcelas. Mexe em valor: Regra Mestre.
+  - Pedido: P-117
+  - Âncora: Meio de baixa `cartao_credito` e `cartao_debito` (`fin_titulo_baixas`) · baixa por retenção como precedente (US-FIN-072) · TEF da maquininha com bandeira e NSU (US-SELL-075) · PR #10144
+  - Fazer: Cadastro de taxa por operadora, bandeira, modalidade (débito, crédito à vista, parcelado) e número de parcelas. No recebimento por cartão, calcular a taxa e a data do repasse, quitar o cliente pelo valor cheio e criar o valor a receber da operadora pelo líquido.
+  - Hoje: miss | Não tem | A baixa registra que foi cartão e tem campos de juros, multa e desconto, mas não tem taxa, operadora nem data do repasse
+  - Comunicação visual: ok | Sim | cartão é forma de pagamento comum no balcão
+  - Clientes: NewPrint, ArtLaser
+  - Etiquetas: valor, miss, cv, decisao
+- **[BACKLOG]** Venda parcelada no cartão vira parcelas a receber da operadora `[V0]` — NewPrint e ArtLaser
+  (2026-10-28). Dado uma venda de 1.000,00 em 3 vezes sem juros no cartão, com taxa de 4% no parcelado em 3,
+  Quando o recebimento é lançado, Então o cliente fica quitado; a taxa de 40,00 vira despesa; e nascem três
+  valores a receber da operadora, de 320,00 cada, previstos para D+30, D+60 e D+90 (3 × 320,00 + 40,00 =
+  1.000,00). O título do cliente não fica parcelado, porque ele já pagou tudo. Falta decisão [W]: a mesma do
+  caso acima, e se a antecipação dos recebíveis, com taxa própria, entra agora ou depois. Mexe em valor:
+  Regra Mestre.
+  - Pedido: P-118
+  - Âncora: Caso 117 · parcelas do título (`fin_titulos`) · precedente de baixa por retenção (US-FIN-072) · PR #10144
+  - Fazer: Gerar um valor a receber da operadora por parcela do cartão, com o líquido e a data de cada repasse; o título do cliente não fica parcelado, porque o cliente já pagou tudo.
+  - Hoje: miss | Não tem | Não existe valor a receber da operadora; parcelar no cartão hoje só pode ser registrado como uma baixa única ou como parcelas do próprio cliente
+  - Comunicação visual: ok | Sim | parcelar no cartão é comum em pedidos maiores
+  - Clientes: NewPrint, ArtLaser
+  - Etiquetas: valor, miss, cv, decisao
+- **[BACKLOG]** Conferir o repasse da operadora com o extrato do banco `[V0]` — NewPrint e ArtLaser
+  (2026-10-28). Dado um valor a receber da operadora de 970,00 previsto para o dia 15, Quando o extrato traz
+  o depósito da operadora, Então o sistema propõe casar o depósito com o previsto, um a um ou somados num
+  repasse. Se a operadora pagou 968,00 porque cobrou mais taxa, a diferença de 2,00 aparece como divergência
+  para alguém conferir; o sistema não ajusta sozinho. Repasse previsto que não chegou na data aparece como
+  atrasado. Hoje a conciliação de extrato existe, com regras e pontuação, mas não há valor a receber da
+  operadora para casar. Falta decisão [W]: conferir só pelo extrato ou também pelo arquivo da operadora, e
+  quem pode aceitar uma diferença de taxa.
+  - Pedido: P-119
+  - Âncora: Conciliação de extrato com regras e pontuação de casamento (`ConciliacaoController`, `RegrasConciliacaoService`) · fluxo de Cobrança do Wagner (Pago → Conciliado) · casos 117 e 118 · PR #10144
+  - Fazer: Casar o depósito da operadora com os valores previstos, um a um ou somados num repasse; mostrar diferença de taxa e repasse atrasado como pendência de conferência, com quem aceitou e por quê.
+  - Hoje: part | Em parte | A conciliação de extrato bancário existe, com regras e pontuação, mas não há valor a receber da operadora para casar, então o depósito do cartão não tem com o que bater
+  - Comunicação visual: ok | Sim | conferir o repasse das maquininhas é tarefa mensal
+  - Clientes: NewPrint, ArtLaser
+  - Etiquetas: valor, part, cv, decisao
+- **[BACKLOG]** Tarifa do boleto pago não deixa o cliente devendo `[V0]` (2026-10-28). Dado um boleto de
+  500,00 pago pelo cliente e um banco que cobra 2,50 por boleto liquidado, Quando o pagamento chega, pelo
+  retorno do banco ou pela consulta da cobrança, Então o título fica quitado pelos 500,00 que o cliente pagou
+  e a tarifa de 2,50 vira despesa bancária ligada ao boleto; no extrato o banco credita 497,50, ou credita
+  500,00 e debita 2,50 à parte. A conta fecha: creditado + tarifa = pago pelo cliente. Hoje a baixa
+  automática não separa a tarifa. Risco lido no código, sem teste: com o Asaas, a consulta da cobrança usa o
+  valor já sem a tarifa (`netValue`) como valor pago, e o título pode ficar com a tarifa em aberto. Falta
+  decisão [W]: a mesma da taxa do cartão. Mexe em valor: Regra Mestre.
+  - Pedido: P-120
+  - Âncora: Cobrança por boleto do PaymentGateway (Inter, Sicoob, C6, Asaas, CNAB) · baixa automática do título quando a cobrança é paga · conta "Tarifas e Taxas" no plano de contas · precedente da retenção (US-FIN-072) · PR #10144
+  - Fazer: Quitar o título pelo valor que o cliente pagou e lançar a tarifa como despesa da cobrança, com o banco e o boleto de origem. A conta fecha: valor creditado + tarifa = valor pago pelo cliente.
+  - Hoje: miss | Não tem | A baixa automática não separa a tarifa. Risco lido no código, sem teste: com o Asaas, a consulta da cobrança usa o valor já sem a tarifa como valor pago, e o título pode ficar com a diferença em aberto
+  - Comunicação visual: ok | Sim | boleto é a forma de cobrança mais comum entre empresas
+  - Etiquetas: valor, miss, cv, decisao
+- **[BACKLOG]** Tarifa de registro e de baixa do boleto que não foi pago `[V0]` (2026-10-28). Dado um boleto
+  registrado com tarifa de 1,80, que venceu sem pagamento e foi baixado com tarifa de 1,00, Quando o banco
+  cobra essas tarifas, Então elas viram despesa bancária ligada ao boleto e ao cliente, mesmo sem receita;
+  um boleto novo para o mesmo título lança a nova tarifa de registro. O financeiro vê quanto custou cobrar
+  cada cliente. Hoje essas tarifas só aparecem no extrato, sem vínculo com o boleto. Falta decisão [W]:
+  repassar o custo ao cliente (o cadastro tem `cobrar_custo_boleto`, trazido do sistema antigo, e nenhuma
+  regra o lê) ou deixá-lo só como despesa. Mexe em valor: Regra Mestre.
+  - Pedido: P-121
+  - Âncora: Caso 120 · cancelamento e reemissão de cobrança no PaymentGateway · conta "Tarifas e Taxas" no plano de contas · PR #10144
+  - Fazer: Lançar cada tarifa cobrada pelo banco (registro, baixa, protesto, alteração de vencimento) como despesa ligada ao boleto e ao cliente, inclusive no boleto não pago.
+  - Hoje: miss | Não tem | As tarifas de registro e de baixa não são lançadas; só aparecem no extrato do banco, sem vínculo com o boleto
+  - Comunicação visual: ok | Sim | boleto reemitido por atraso é comum
+  - Etiquetas: valor, miss, cv, decisao
+- **[BACKLOG]** Conferir as tarifas cobradas pelo banco com as combinadas `[V0]` (2026-10-28). Dado um contrato
+  com o banco de 2,50 por boleto liquidado, Quando o extrato ou o retorno do banco traz 3,50 por boleto,
+  Então a diferença de 1,00 por boleto aparece como divergência para alguém conferir e cobrar do banco; o
+  sistema não ajusta sozinho. No fim do mês o financeiro vê o total de tarifas por banco e por tipo. Hoje a
+  conciliação já reconhece a linha de tarifa do OFX, mas não há tarifa combinada para comparar nem vínculo
+  da tarifa com o boleto. Falta decisão [W]: quem cadastra as tarifas combinadas e quem aceita uma diferença.
+  - Pedido: P-122
+  - Âncora: Conciliação de extrato com regras e pontuação (`ConciliacaoController`, `RegrasConciliacaoService`) · linha de extrato do tipo tarifa (`fee`, do OFX) · caso 119 · PR #10144
+  - Fazer: Cadastro da tarifa combinada por banco e por tipo (registro, liquidação, baixa, protesto); casar cada tarifa do extrato com o boleto e marcar a que veio acima do combinado.
+  - Hoje: part | Em parte | A conciliação de extrato existe e já reconhece a linha de tarifa do OFX, e as regras podem sugerir a classificação; não há tarifa combinada por banco para comparar nem vínculo da tarifa com o boleto
+  - Comunicação visual: ok | Sim | empresa com mais de um banco de cobrança
+  - Etiquetas: valor, part, cv, decisao
 
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane `financeiro-pest.yml` (check required `PHP / Pest (Financeiro · MySQL)`) — JUnit vira manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-29 · [F+C] Caso 150 ligado ao documento "Casos de uso por tela" (Pedido P-150). Nenhum caso nem teste mudou.
+- 2026-10-29 · [F+C] Casos 117 a 122 ligados ao documento "Casos de uso por tela" (Pedidos P-117 a P-122). Nenhum caso nem teste mudou.
+- 2026-10-29 · [F+C] Caso 115 ligado ao documento "Casos de uso por tela" (Pedido P-115). Nenhum caso nem teste mudou.
+- 2026-10-28 · [F+C] Backlog: desagrupar parcelas já pagas não apaga o pagamento nem o histórico (pedido de Zoom, ArtLaser, Vargas e Max Comunicação). Sem id.
+- 2026-10-28 · [F+C] Backlog: taxa e conciliação do cartão (pedido de NewPrint e ArtLaser) e tarifas do boleto pago, do não pago e cobradas a mais. Sem id.
+- 2026-10-28 · [F+C] Backlog: desfazer ou corrigir o agrupamento de OS (pedido de Zoom, Techpress e Mhundo). Sem id.
 - 2026-10-23 · [M+C] Backlog vindo da tela de Contas a receber (aposentada): total do serviço, retido e recebido; título de venda agrupada; título de cada parte faturada. Sem id.
 - 2026-07-27 · [CC] onda `sdd-from-source` (passo 5 · Onda 2): nasce o **SDD do módulo**
   (`memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md` — o Financeiro tinha 0 CU) e os UC de

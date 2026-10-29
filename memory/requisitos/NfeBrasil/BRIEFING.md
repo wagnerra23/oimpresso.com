@@ -14,6 +14,7 @@ Emissor fiscal integrado — NFC-e e NF-e (a emissão de NFS-e modelo 56 é stub
 
 ## Capacidades
 - Emissão NFC-e/NF-e com pipeline pronto para homologação SEFAZ (`NfeService`).
+- Local emissor com regime próprio (P-155, 2026-10-29): `nfe_locais_emissores.crt` (1, 2, 3 ou 4) vale para o CRT do XML, a escolha CST × CSOSN do item, a base do ICMS e o ST; `nfe_fiscal_rules.crt` marca a regra só para o local daquele regime (o `REGIME_EMPRESA` do Delphi). Vazio, tudo como antes. Para a empresa com um CNPJ no regime normal e outro no Simples (Sabor Brasil). Ainda sem tela para preencher os dois campos.
 - Certificado A1 criptografado; trocar ambiente exige destino digitado + motivo, e substituir certificado exige o mesmo gate `fiscal.config.ambiente` (2026-09-04).
 - Manifestação do destinatário (ciência, confirmação, desconhecimento, não realizada), sincronização de DF-e recebidos e manifestação em lote com falha parcial nomeada.
 - Contingência SEFAZ — ativação por tenant com escolha de modo para a NF-e (SVC-AN `tpEmis` 6 e SVC-RS 7 transmitem na hora para a SEFAZ Virtual da UF; EPEC 4 guarda a nota e envia o evento 110140 ao Ambiente Nacional, US-NFE-071 2026-10-21), NFC-e off-line (9), saúde da SEFAZ por UF e retentativa. A marcação de contingência no DANFE e o smoke em homologação seguem pendentes. US-NFE-006 fases 1–6 (2026-09-02); o `_pendente_` do SPEC ficou atrás do código.

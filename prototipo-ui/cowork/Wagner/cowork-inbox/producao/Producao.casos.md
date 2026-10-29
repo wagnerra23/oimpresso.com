@@ -65,7 +65,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-23 | Apontamento sem internet guarda e envia depois | Operador | Apontamento | should | ⬜ |
 | UC-PCV-24 | Agenda de instalação da equipe de campo | Gestor · Instalador | Instalação | must | ✅ |
 | UC-PCV-25 | Checklist de campo com foto antes/depois e assinatura gera protocolo | Instalador | Instalação | must | 🟡 |
-| UC-PCV-26 | Aproveitamento de mídia com sugestão de encaixe | Gestor | Painel | could | 🟡 |
+| UC-PCV-26 | Aproveitamento de mídia (sugestão de encaixe na versão 2) | Gestor | Painel | could | 🟡 |
 | UC-PCV-27 | Produtividade por setor sem expor o indivíduo sem permissão | Gestor | Painel | should `[LGPD]` | 🟡 |
 | UC-PCV-28 | Cada empresa vê só a sua produção | todos | todas | must `[T0]` | ⬜ |
 | UC-PCV-29 | Uma fonte de eventos alimenta quadro, painel, linha, ficha, celular e instalação | todos | todas | must | ✅ |
@@ -177,8 +177,9 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ## Transversais
 
 ### UC-PCV-26 · Encaixe de mídia · `could` · 🟡
-- **Aceite:** Dado as OS da fila de uma bobina · Então mostra % aproveitado e uma sugestão de agrupamento com a economia em m² e R$.
-- **Falta:** o cálculo de encaixe (nesting). Hoje é número fixo.
+- **Aceite (versão 1, D-ENCAIXE de 15/10):** Dado a mídia que o operador informou no apontamento das OS de uma bobina · Então mostra o % aproveitado e a sobra · E não mostra sugestão de agrupamento.
+- **Versão 2:** a sugestão de agrupamento com a economia em m² e R$ (encaixe na bobina).
+- **Falta:** o % ainda vem fixo no protótipo; deve sair da mídia informada no apontamento.
 
 ### UC-PCV-27 · Produtividade sem expor o indivíduo · `should` `[LGPD]` · 🟡
 - **Aceite:** Sem `producao.desempenho.ver` · Então a produtividade aparece só por setor · Com a permissão · Então aparece por pessoa · E o acesso fica no log.

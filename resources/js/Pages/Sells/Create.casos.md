@@ -688,6 +688,36 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate, gate de PR desde Onda Q1) — vereditos viram manifesto via `npm run casos:results`.
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Create. UC ❌ = regressão → lição + conserto antes de seguir.
 
+## Pedidos de clientes
+
+> Pedidos de clientes registrados com `node scripts/casos-backlog/novo.mjs`. Cada um aparece na
+> página "Casos de uso por tela"; quando ganhar teste, vira caso de uso com id e a linha `Pedido de origem`.
+
+- `[BACKLOG]` **O ICMS-ST de cada item sai certo para o supermercado em SP** `[V0]` — Dado um tempero com CST
+  10, MVA de 62,3% e alíquota interna de 18%, e o cliente supermercado contribuinte em SP, Quando ele entra na
+  venda, Então a venda calcula o ST do item e soma ao total, com o mesmo valor que vai na nota. O tempero com
+  CST 20 entra com a base reduzida e sem ST, e a venda pela empresa do Simples (CSOSN 500, ST já retido) não
+  calcula ST. Hoje o Sabor Brasil emite assim pelo Delphi: 215 itens com ST desde 2024, todos com o mesmo MVA
+  e alíquota. Mexe em valor: Regra Mestre. Pedido de Sabor Brasil. Mexe em valor ou estoque: Regra Mestre.
+  - Pedido: P-153
+  - Âncora: US-SELL-078 · seção ICMS-ST deste arquivo
+  - Fazer: Conferir os três cenários do cliente (CST 10 com MVA, CST 20 com redução, CSOSN 500) contra o cálculo da US-SELL-078 antes da virada.
+  - Hoje: part | Em parte | O ST vai no XML só na venda para outro estado; dentro do estado (SP→SP, o caso do Sabor Brasil) a emissão não busca a alíquota interna e o ST sai zero, na nota e no total da venda (medido no código em 2026-10-29)
+  - Clientes: Sabor Brasil
+  - Etiquetas: valor, part
+
+- `[BACKLOG]` **Bonificação sai como nota de bonificação, sem cobrança** `[V0]` `[E0]` — Dado uma venda
+  marcada como bonificação para um supermercado, Quando ela é finalizada, Então a nota sai com CFOP 5910,
+  nenhum título nasce no Financeiro e o estoque baixa como numa venda. O Sabor Brasil fez 12 bonificações
+  desde 2024 pelo Delphi. Mexe em valor e estoque: Regra Mestre. Pedido de Sabor Brasil. Mexe em valor ou
+  estoque: Regra Mestre.
+  - Pedido: P-154
+  - Âncora: Delphi: VENDA_TIPO BONIFICACAO e BONIFICAÇÃO SEM ST · CFOP 5910
+  - Fazer: Tipo de operação bonificação na venda, com CFOP próprio, sem título a receber e com baixa de estoque.
+  - Hoje: miss | Não tem | A venda não tem o tipo bonificação; só o módulo de marketplaces conhece o CFOP
+  - Clientes: Sabor Brasil
+  - Etiquetas: valor, miss
+
 ## Trilha do tempo
 - 2026-10-28 · [W+C] Decisões pendentes D-05, D-06 do documento "Casos de uso por tela", sem id de caso.
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S01 venda a prazo + spec Playwright `sells-venda-balcao.spec.ts`; produto E2E-0001 entrou no VisregTenantSeeder (enable_stock=0).
@@ -705,3 +735,5 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 - 2026-10-23 · [M+C] Revalidado (G-6): as mudanças em `Create.tsx` depois do last_run 2026-10-02 são a venda de reparo (#8426, #8439 e #8447), descritas pelos UC-S05, S06 e S07 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-02 → 2026-10-23.
 - 2026-10-27 · [W+C] Revalidado (G-6): a mudança em `Create.tsx` depois do last_run 2026-10-26 é o resgate de pontos no caixa (US-SELL-079), descrito pelos UC-SRP desta tela. Nenhum outro UC muda de status; last_run 2026-10-26 → 2026-10-27.
 - 2026-10-27 · [F+C] Backlog "Item com imposto faltando": o "Informar NCM" na linha da venda, pedido da PraMoto. Sem id.
+- 2026-10-29 · [W+C] Pedido P-153 "O ICMS-ST de cada item sai certo para o supermercado em SP" (Sabor Brasil), registrado com casos-backlog/novo.mjs. Sem id de UC.
+- 2026-10-29 · [W+C] Pedido P-154 "Bonificação sai como nota de bonificação, sem cobrança" (Sabor Brasil), registrado com casos-backlog/novo.mjs. Sem id de UC.

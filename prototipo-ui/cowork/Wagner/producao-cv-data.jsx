@@ -79,7 +79,8 @@ const OS = [
     etapas: [["arte","Arte e prova","Ana","feito",1,0.8],["impressao","Impressão látex","Diego","feito",10,11.5,"latex"],["acabamento","Bainha + ilhós","Felipe","andamento",6,4.5],["expedicao","Embalar e liberar","Larissa","fila",0.5,0]],
     refugo: [{ etapa: "Impressão látex", motivo: "Banding na cabeça 3", m2: 9.4, custo: 338, quem: "Diego", quando: "14/10 15:20" }] },
   { id: "OS-2617", cliente: "Academia Força Total", titulo: "Letra-caixa iluminada \"FORÇA\"", produto: "letra", qtd: "5 letras", prazo: "2026-10-24", prioridade: "normal",
-    arte: "aprovada", liberada: false, aprovadaEm: "2026-10-14 10:30", resp: "Larissa", orcado: 7650, real: 900, perda: 0,
+    // Sinal mínimo (US-PCP-025 · UC-FLX-28): a empresa só libera a produção com 30% da venda pago. Arte aprovada, sinal não.
+    arte: "aprovada", liberada: false, sinal: { pct: 30, venda: 12400, pago: 0 }, aprovadaEm: "2026-10-14 10:30", resp: "Larissa", orcado: 7650, real: 900, perda: 0,
     etapas: [["arte","Vetor e gabarito","Ana","feito",1,1],["serralheria","Corte CNC das faces","Marcos","fila",1.7,0,"cnc","A"],["serralheria","Dobra e solda das laterais","Marcos","fila",4,0,"solda","A"],["acabamento","Elétrica: LED e fonte","Felipe","fila",2,0,null,"B"],["serralheria","Montagem + teste de acendimento","Marcos","fila",1.5,0],["instalacao","Instalação","Rafa","a agendar",3,0]], junta: "Montagem + teste de acendimento" },
   { id: "OS-2619", cliente: "Supermercado Bom Preço", titulo: "Banner roll-up 0,8×2 m (4 un)", produto: "lona", qtd: "6,4 m²", prazo: "2026-10-18", prioridade: "normal",
     arte: "ajuste", resp: "Larissa", orcado: 960, real: 120, perda: 0,
@@ -101,7 +102,7 @@ const AGENDA = [
   { maq: "latex",   os: "OS-2598", ini: 13, fim: 14,   estado: "feito" },
   { maq: "eco",     os: "OS-2611", ini: 8,  fim: 14.2, estado: "andamento" },
   { maq: "eco",     os: "OS-2608", ini: 14.5, fim: 15.6, estado: "fila" },
-  { maq: "eco",     os: "OS-2611", ini: 15.8, fim: 18.9, estado: "fila", conflito: "termina 18h54 — passa do turno (18h)" },
+  { maq: "eco",     os: "OS-2611", ini: 15.8, fim: 18.9, estado: "fila" },
   { maq: "uv",      os: "OS-2614", ini: 13, fim: 16.6, estado: "fila", bloqueio: "arte aguardando aprovação" },
   { maq: "recorte", os: "OS-2611", ini: 15, fim: 17.5, estado: "fila" },
   { maq: "lamin",   os: "OS-2611", ini: 14.3, fim: 15,  estado: "fila", material: "aguardando material: laminado fosco 1,37 m (compra a caminho)" },
@@ -116,6 +117,11 @@ const ORCAMENTOS = [
   { id: "ORC-1184", cliente: "Mercado União", produto: "adesivo", desc: "Adesivo de vitrine 4 portas", qtd: 18, un: "m²", valor: 1620, opcoes: { "com laminação": true, "com aplicação": true }, prazo: "2026-10-21" },
   { id: "ORC-1187", cliente: "Pet Shop Amigo", produto: "fachada", desc: "Fachada ACM 6×1 m", qtd: 6, un: "m²", valor: 6900, opcoes: { "com laminação": false }, prazo: "2026-10-28" },
 ];
+
+// Estouro de turno (D-TURNO): sai do fim do turno da empresa, não de um "18h" escrito à mão. Mesmo texto que a
+// Linha do tempo monta quando o PCP arrasta um bloco para depois do turno.
+const hhmm = (h) => String(Math.floor(h)).padStart(2, "0") + ":" + String(Math.round((h % 1) * 60)).padStart(2, "0");
+AGENDA.forEach((b) => { if (b.fim > TURNO.fim) b.conflito = "termina " + hhmm(b.fim) + " — passa do fim do turno (" + hhmm(TURNO.fim) + ")"; });
 
 // Próximo dia útil (sex 16/10) — usado pela linha do tempo. OS-2608 tem entrega prometida para este dia.
 const AGENDA_AMANHA = [
@@ -200,7 +206,7 @@ const INSTALACOES = [
 ];
 
 // Aproveitamento de mídia (encaixe na bobina 1,60 m) — por máquina, hoje
-const ENCAIXE = { bobina: "Lona 440 g · 1,60 m", usado: 92.4, desperdicio: 7.6, sugestao: "Agrupar OS-2619 (roll-up) com a sobra lateral da OS-2603 economiza 3,1 m² (R$ 59)." };
+const ENCAIXE = { bobina: "Lona 440 g · 1,60 m", usado: 92.4, desperdicio: 7.6 };
 
 // Falta de material da OS em Aguardando material (US-PCP-032 · UC-PCMAT-02/03). Por insumo da receita:
 // necessário = receita × quantidade da OS · disponível = saldo no local da venda menos reservas ativas de outras OS e
@@ -219,6 +225,9 @@ const etapaObj = (e) => ({ setor: e[0], nome: e[1], resp: e[2], estado: e[3], pr
 const etapas = (os) => os.etapas.map(etapaObj);
 const atual = (os) => etapas(os).find((e) => e.estado === "andamento") || etapas(os).find((e) => e.estado !== "feito" && e.estado !== "pronto") || etapas(os)[etapas(os).length - 1];
 const progresso = (os) => { const es = etapas(os); const t = es.reduce((s, e) => s + e.prev, 0); const f = es.reduce((s, e) => s + (e.estado === "feito" || e.estado === "pronto" ? e.prev : e.estado === "andamento" ? Math.min(e.real, e.prev) : 0), 0); return t ? Math.round((f / t) * 100) : 0; };
+// OS em produção = OS cuja etapa atual ainda não está pronta. Um número só: o indicador do Painel e o cabeçalho da
+// página leem daqui (antes o cabeçalho mostrava o total menos 1, fixo, e divergia do indicador).
+const emProducao = () => OS.filter((o) => atual(o).estado !== "pronto");
 const atraso = (os) => { const d = dias(HOJE, os.prazo); return d < 0 ? "atrasada" : d === 0 ? "vence hoje" : d === 1 ? "amanhã" : null; };
 const desvio = (os) => os.orcado ? ((os.real - os.orcado * progresso(os) / 100) / os.orcado) * 100 : 0;
 const setorDe = (id) => SETORES.find((s) => s.id === id) || SETORES[0];
@@ -227,11 +236,20 @@ const osDe = (id) => OS.find((o) => o.id === id);
 // OS por item: cada OS nasce de UM item da venda quando o cliente aprova. [venda, nº do item, itens que geram OS, outros itens]
 const ORIGEM = { "OS-2611": ["V-8406", 1, 1, ""], "OS-2608": ["V-8398", 1, 1, ""], "OS-2617": ["V-8413", 1, 1, ""], "OS-2614": ["V-8411", 1, 1, "projeto de sinalização (serviço, sem OS)"],
   "OS-2603": ["V-8401", 1, 2, ""], "OS-2619": ["V-8401", 2, 2, ""], "OS-2598": ["V-8390", 1, 1, ""], "OS-2622": ["V-8417", 1, 1, ""] };
+// Sinal da venda (US-PCP-025 · UC-PCLIB-04..07): exigido = % da empresa sobre o total da venda, arredondado ao
+// centavo. Sem a regra (OS sem `sinal`), o Liberar segue como antes.
+const sinalDe = (os) => { if (!os.sinal) return null; const exigido = Math.round(os.sinal.venda * os.sinal.pct) / 100; return { ...os.sinal, exigido, ok: os.sinal.pago >= exigido }; };
+// Simulação do protótipo: o pagamento do sinal chega e libera a OS sozinho (UC-PCLIB-07), com o sistema como autor.
+const pagarSinal = (id) => {
+  const o = OS.find((x) => x.id === id); const s = o && sinalDe(o); if (!s || s.ok) return;
+  o.sinal.pago = s.exigido; o.liberada = true;
+  registrar({ os: id, quem: "Sistema", tipo: "pcp", texto: "Liberou a OS pelo sinal pago: " + fmt(s.exigido) + " (" + s.pct + "% da venda)" });
+};
 const origemDe = (id) => { const o = ORIGEM[id]; return o ? { venda: o[0], item: o[1], total: o[2], outros: o[3], irmas: Object.keys(ORIGEM).filter((k) => ORIGEM[k][0] === o[0]) } : null; };
 
 // Gargalos: carga hoje por máquina (h previstas na agenda) contra a capacidade do posto (horasDia)
 const cargaMaquina = (id) => AGENDA.filter((b) => b.maq === id).reduce((s, b) => s + (b.fim - b.ini), 0);
 
-window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
-  etapas, atual, progresso, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
+window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
+  etapas, atual, progresso, emProducao, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();

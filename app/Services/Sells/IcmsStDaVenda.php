@@ -87,7 +87,8 @@ final class IcmsStDaVenda
             if ($business === null || $contato === null) {
                 return 0.0;
             }
-            $ufOrigem = $nfe->resolverEmitente($business, $locationId, '55')['uf'];
+            $emitente = $nfe->resolverEmitente($business, $locationId, '55');
+            $ufOrigem = $emitente['uf'];
             $dest = $nfe->destinatarioDoContato($contato, $ufOrigem);
             if ($dest === null) {
                 return 0.0; // sem destinatário identificado: a NF-e não leva ST
@@ -106,6 +107,7 @@ final class IcmsStDaVenda
                 motor: app(\Modules\NfeBrasil\Services\MotorTributarioService::class),
                 businessId: $businessId, ufOrigem: $ufOrigem, ufDestino: $dest['uf'],
                 internaDestino: $interna, destinatarioContribuinte: $dest['ind_ie_dest'] === '1',
+                crtEmitente: $emitente['crt'] ?? null, // P-155: o regime do local que vai emitir
             );
 
             return (float) $itens['total']['v_st'];

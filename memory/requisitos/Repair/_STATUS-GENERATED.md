@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 5 |
+| US no SPEC | 6 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 14 |
 | Telas com `casos.md` | 14 |
-| UC declarados | 87 |
-| UC com teste que os cita | 87 |
+| UC declarados | 97 |
+| UC com teste que os cita | 96 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -41,6 +41,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | US-REPA-003 | `desconhecido` | Configurar os padrões da folha de OS e o que sai impresso |
 | US-REPA-004 | `o` | Listar e filtrar as ordens de serviço abertas |
 | US-REPA-005 | `desconhecido` | Manter o catálogo de status e de modelos que as OS usam |
+| US-REPA-006 | `desconhecido` | Indicadores da OS de assistência no Painel |
 
 ## UC por status
 
@@ -62,6 +63,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-DMIDX-06 | DeviceModels/Index | 🧪 aguarda veredito da lane |
 | UC-DMIDX-07 | DeviceModels/Index | 🧪 aguarda veredito da lane |
 | UC-DMIDX-08 | DeviceModels/Index | 🧪 aguarda veredito da lane |
+| UC-FLX-24 | Status/Index | 🧪 aguarda veredito da lane |
 | UC-JSC-01 | JobSheet/Create | 🧪 aguarda veredito da lane |
 | UC-JSC-02 | JobSheet/Create | 🧪 aguarda veredito da lane |
 | UC-JSC-03 | JobSheet/Create | 🧪 aguarda veredito da lane |
@@ -98,6 +100,12 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-RDSH-03 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-RDSH-04 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-RDSH-05 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-RDSH-06 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-RDSH-07 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-RDSH-08 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-RDSH-09 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-RDSH-10 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-RDSH-11 | Dashboard/Index | 🧪 aguarda veredito da lane |
 | UC-RIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-RIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-RIDX-03 | Index | 🧪 aguarda veredito da lane |
@@ -133,6 +141,9 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-RSTIDX-06 | Status/Index | 🧪 aguarda veredito da lane |
 | UC-RSTIDX-07 | Status/Index | 🧪 aguarda veredito da lane |
 | UC-RSTIDX-08 | Status/Index | 🧪 aguarda veredito da lane |
+| UC-RSTIDX-09 | Status/Index | 🧪 aguarda veredito da lane |
+| UC-RSTIDX-10 | Status/Index | 🧪 aguarda veredito da lane |
+| UC-TRB-23 | JobSheet/Create | 📝 sem_teste |
 
 ---
 

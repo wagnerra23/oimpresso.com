@@ -107,7 +107,7 @@ function Painel({ onAbrir, ir, filtrar }) {
   const [reenviado, setReenviado] = useState({});
   const [novaProva, setNovaProva] = useState({});
   const D = P(); const { KpiCard, Widget, Alert, Progress, Button, Input } = DS();
-  const abertas = D.OS.filter((o) => D.atual(o).estado !== "pronto");
+  const abertas = D.emProducao();
   const atrasadas = D.OS.filter((o) => D.atraso(o) === "atrasada" && D.atual(o).estado !== "pronto");
   const hoje = D.OS.filter((o) => D.atraso(o) === "vence hoje");
   const aguardArte = D.OS.filter((o) => o.arte !== "aprovada");
@@ -123,7 +123,7 @@ function Painel({ onAbrir, ir, filtrar }) {
       </div>
 
       <div className="pcv-alertas" role="region" aria-label="Alertas de produção">
-        {Alert && <Alert tone="danger" title="Gargalo previsto: Roland VG3-640 passa do turno">Carga de {D.h1(D.cargaMaquina("eco"))} h para um turno de 10 h. Mover a OS-2608 (adesivo de aplicação, 1,1 h) para a HP Latex 365, que tem {D.h1(10 - D.cargaMaquina("latex"))} h livres.<div className="pcv-al-a"><Button size="sm" onClick={() => ir("linha")}>Ver na linha do tempo</Button></div></Alert>}
+        {Alert && <Alert tone="danger" title="Gargalo previsto: Roland VG3-640 passa da capacidade do dia">Carga de {D.h1(D.cargaMaquina("eco"))} h para uma capacidade de {D.maqDe("eco").horasDia} h no dia. Mover a OS-2608 (adesivo de aplicação, 1,1 h) para a HP Latex 365, que tem {D.h1(D.maqDe("latex").horasDia - D.cargaMaquina("latex"))} h livres.<div className="pcv-al-a"><Button size="sm" onClick={() => ir("linha")}>Ver na linha do tempo</Button></div></Alert>}
         {Alert && <Alert tone="warn" title="2 OS esperando arte do cliente">OS-2614 (Clínica Sorriso) trava 6,3 h de CNC e UV hoje. OS-2619 pediu ajuste. O link de aprovação foi reenviado às 09:12.<div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir("OS-2614")}>Abrir OS-2614</Button></div></Alert>}
         {/* US-PCP-032 · D3: OS liberada sem material. Um alerta por OS, com a ação de abrir a ficha (UC-PCV-01). */}
         {Alert && D.OS.filter((o) => o.material === "aguardando").map((o) => { const fl = D.faltaDe(o.id); return (
@@ -157,17 +157,20 @@ function Painel({ onAbrir, ir, filtrar }) {
       {Widget && <Widget title="Acontecendo agora" note="o que a fábrica fez por último — vem do apontamento, do cliente e do PCP" flush><Feed eventos={eventos} onAbrir={onAbrir} max={6} /></Widget>}
 
       <div className="pcv-grid2">
-        {Widget && <Widget title="Carga das máquinas hoje" note="horas programadas · turno de 10 h">
+        {/* D4: a capacidade é a de cada posto (pcp_postos.horas_por_dia), não um turno fixo de 10 h. */}
+        {Widget && <Widget title="Carga das máquinas hoje" note="horas programadas · capacidade de cada posto no dia">
           <ul className="pcv-carga">
-            {D.MAQUINAS.filter((m) => m.capH).map((m) => { const c = D.cargaMaquina(m.id); const pct = Math.round((c / 10) * 100); return (
-              <li key={m.id}><span>{m.nome}</span>{Progress && <Progress value={Math.min(pct, 100)} size={6} tone={pct > 100 ? "danger" : pct > 85 ? "warning" : "default"} label={m.nome + " " + pct + "%"} />}<b className={pct > 100 ? "pcv-late" : ""}>{D.h1(c)} h</b></li>); })}
+            {D.MAQUINAS.filter((m) => m.horasDia).map((m) => { const c = D.cargaMaquina(m.id); const pct = Math.round((c / m.horasDia) * 100); return (
+              <li key={m.id}><span>{m.nome}</span>{Progress && <Progress value={Math.min(pct, 100)} size={6} tone={pct > 100 ? "danger" : pct > 85 ? "warning" : "default"} label={m.nome + " " + pct + "%"} />}<b className={pct > 100 ? "pcv-late" : ""}>{D.h1(c)} de {m.horasDia} h</b></li>); })}
           </ul>
         </Widget>}
         {Widget && <Widget title="Aproveitamento de mídia" note={D.ENCAIXE.bobina}>
           <div className="pcv-encaixe">
-            <div className="pcv-enc-bar" role="img" aria-label={`Usado ${D.ENCAIXE.usado}%, desperdício ${D.ENCAIXE.desperdicio}%`}><i style={{ width: D.ENCAIXE.usado + "%" }} /><span style={{ width: D.ENCAIXE.desperdicio + "%" }} /></div>
-            <div className="pcv-enc-l"><span><b>{D.ENCAIXE.usado}%</b> aproveitado</span><span><b>{D.ENCAIXE.desperdicio}%</b> sobra</span></div>
-            <p className="pcv-help">{D.ENCAIXE.sugestao}</p>
+            <div className="pcv-enc-bar" role="img" aria-label={`Usado ${D.h1(D.ENCAIXE.usado)}%, desperdício ${D.h1(D.ENCAIXE.desperdicio)}%`}><i style={{ width: D.ENCAIXE.usado + "%" }} /><span style={{ width: D.ENCAIXE.desperdicio + "%" }} /></div>
+            <div className="pcv-enc-l"><span><b>{D.h1(D.ENCAIXE.usado)}%</b> aproveitado</span><span><b>{D.h1(D.ENCAIXE.desperdicio)}%</b> sobra</span></div>
+            {/* D-ENCAIXE (15/10): na 1ª versão só o % aproveitado, com a mídia que o operador informa. A sugestão de
+                encaixe na bobina, com economia em m² e R$, é da versão 2. */}
+            <p className="pcv-help">Calculado com a mídia que o operador informa no apontamento. A sugestão de encaixe na bobina fica para a versão 2.</p>
           </div>
         </Widget>}
       </div>
@@ -397,7 +400,7 @@ function ProducaoCvPage({ view = "painel", estado = "dados" }) {
   return (
     <div className="pcv-root" data-screen-label={"Produção · " + (VISTAS.find((v) => v.key === vista) || {}).label}>
       {PageHeader && <div className="pcv-ph"><PageHeader title="Produção" context="COMUNICAÇÃO VISUAL · OS COMO PROJETO"
-        stats={estado === "dados" ? [{ label: "em produção", value: D.OS.length - 1 }, { label: "atrasadas ou vencendo", value: atrasadas, tone: atrasadas ? "danger" : undefined }] : undefined}
+        stats={estado === "dados" ? [{ label: "em produção", value: D.emProducao().length }, { label: "atrasadas ou vencendo", value: atrasadas, tone: atrasadas ? "danger" : undefined }] : undefined}
         actions={Button && <Button variant="primary" onClick={() => setNova(true)}><Ic name="plus" size={13} /> Nova OS do orçamento</Button>} /></div>}
       {TabBar && <TabBar ariaLabel="Vistas da produção" tabs={VISTAS} active={vista} onChange={setVista} inset={24} />}
       {corpo}

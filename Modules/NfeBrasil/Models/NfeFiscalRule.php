@@ -54,6 +54,8 @@ class NfeFiscalRule extends Model
         'operacao_id', 'valida_de', 'valida_ate', 'versao_origem_id',
         // Playbook Fiscal thread 25 · benefício fiscal (R-NFE-030)
         'reducao_base', 'c_benef', 'beneficio_fundamento',
+        // P-155 · regra só do local com esse regime (CRT); nulo = qualquer emitente
+        'crt',
     ];
 
     protected $casts = [
@@ -69,10 +71,14 @@ class NfeFiscalRule extends Model
         'metadata'        => 'array',
         'valida_de'       => 'date:Y-m-d',
         'valida_ate'      => 'date:Y-m-d',
+        'crt'             => 'integer',
     ];
 
     /** @var array<string,bool> cache por conexão — a migração da thread 07 rodou? */
     private static array $versionamento = [];
+
+    /** @var array<string,bool> */
+    private static array $porRegime = [];
 
     public function scopeDoBusinessAtual(Builder $q): Builder
     {
@@ -93,6 +99,15 @@ class NfeFiscalRule extends Model
     public static function esquecerVersionamento(): void
     {
         self::$versionamento = [];
+        self::$porRegime = [];
+    }
+
+    /** A tabela tem a coluna `crt` (migração 2026_10_29_000002)? Sem ela, regra vale para qualquer emitente. */
+    public static function temRegraPorRegime(): bool
+    {
+        $conn = (new self())->getConnectionName() ?? config('database.default');
+
+        return self::$porRegime[$conn] ??= Schema::connection($conn)->hasColumn('nfe_fiscal_rules', 'crt');
     }
 
     /** Versões vigentes na data (Y-m-d): NULL nas pontas = sem limite. */
