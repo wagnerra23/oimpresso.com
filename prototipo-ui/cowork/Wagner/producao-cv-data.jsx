@@ -101,7 +101,7 @@ const AGENDA = [
   { maq: "latex",   os: "OS-2598", ini: 13, fim: 14,   estado: "feito" },
   { maq: "eco",     os: "OS-2611", ini: 8,  fim: 14.2, estado: "andamento" },
   { maq: "eco",     os: "OS-2608", ini: 14.5, fim: 15.6, estado: "fila" },
-  { maq: "eco",     os: "OS-2611", ini: 15.8, fim: 18.9, estado: "fila", conflito: "termina 18h54 — passa do turno (18h)" },
+  { maq: "eco",     os: "OS-2611", ini: 15.8, fim: 18.9, estado: "fila" },
   { maq: "uv",      os: "OS-2614", ini: 13, fim: 16.6, estado: "fila", bloqueio: "arte aguardando aprovação" },
   { maq: "recorte", os: "OS-2611", ini: 15, fim: 17.5, estado: "fila" },
   { maq: "lamin",   os: "OS-2611", ini: 14.3, fim: 15,  estado: "fila", material: "aguardando material: laminado fosco 1,37 m (compra a caminho)" },
@@ -116,6 +116,11 @@ const ORCAMENTOS = [
   { id: "ORC-1184", cliente: "Mercado União", produto: "adesivo", desc: "Adesivo de vitrine 4 portas", qtd: 18, un: "m²", valor: 1620, opcoes: { "com laminação": true, "com aplicação": true }, prazo: "2026-10-21" },
   { id: "ORC-1187", cliente: "Pet Shop Amigo", produto: "fachada", desc: "Fachada ACM 6×1 m", qtd: 6, un: "m²", valor: 6900, opcoes: { "com laminação": false }, prazo: "2026-10-28" },
 ];
+
+// Estouro de turno (D-TURNO): sai do fim do turno da empresa, não de um "18h" escrito à mão. Mesmo texto que a
+// Linha do tempo monta quando o PCP arrasta um bloco para depois do turno.
+const hhmm = (h) => String(Math.floor(h)).padStart(2, "0") + ":" + String(Math.round((h % 1) * 60)).padStart(2, "0");
+AGENDA.forEach((b) => { if (b.fim > TURNO.fim) b.conflito = "termina " + hhmm(b.fim) + " — passa do fim do turno (" + hhmm(TURNO.fim) + ")"; });
 
 // Próximo dia útil (sex 16/10) — usado pela linha do tempo. OS-2608 tem entrega prometida para este dia.
 const AGENDA_AMANHA = [
