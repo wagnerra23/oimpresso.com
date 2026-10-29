@@ -49,6 +49,8 @@ on:
       - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
       - 'Modules/Compras/Services/CustoDoInsumoService.php'
       - 'app/Http/Controllers/SellCommissionSplitController.php'
+      - 'app/Concerns/CongelaComissaoDoCliente.php'
+      - 'database/migrations/2026_10_29_200000_add_comissao_por_cliente_columns.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
       - 'app/Services/AppLojas/EtiquetaProducao.php'  # QR da OS/etapa (AppProducaoApontamentoContratoTest)
@@ -241,6 +243,8 @@ jobs:
               - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
               - 'Modules/Compras/Services/CustoDoInsumoService.php'
               - 'app/Http/Controllers/SellCommissionSplitController.php'
+              - 'app/Concerns/CongelaComissaoDoCliente.php'
+              - 'database/migrations/2026_10_29_200000_add_comissao_por_cliente_columns.php'
               - 'app/Http/Controllers/SellPosController.php'
               - 'app/Services/Sells/QuoteAccessRecorder.php'
               - 'app/Jobs/QuoteFollowUpJob.php'
@@ -606,6 +610,7 @@ jobs:
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
             tests/Feature/Sells/ComissaoPorRegraContratoTest.php \
+            tests/Feature/Sells/ComissaoPorClienteContratoTest.php \
             tests/Feature/Sells/CupomDaVendaContratoTest.php \
             tests/Feature/Sells/TefCaixaContratoTest.php \
             tests/Feature/Sells/VendaOfflineContratoTest.php \

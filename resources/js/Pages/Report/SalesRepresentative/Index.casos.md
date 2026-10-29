@@ -32,6 +32,16 @@ last_run: "2026-10-07"
   de outro negócio · Dado usuário sem a permissão · Então 403, na tela nova e na Blade.
 - **Status: 🧪**
 
+## UC-SBCOM-01 · A venda nasce com o % de comissão do cliente congelado · `must` `[T0]` `[valor]`
+- **Medido antes (Delphi Sabor Brasil, `COMISSAO_FINANCEIRO`, 2026-10-29):** o % do lançamento é o gravado na
+  venda (`VENDA.COMISSAO_REPRESENTANTE`) em 1.318 de 1.643 lançamentos, e o % atual do cliente em só 1.105 —
+  o cliente muda de % e a venda antiga não.
+- **Aceite:** Dado cliente com `comissao_representante_percentual = 7,5` · Quando nasce a venda dele · Então
+  `transactions.comissao_cliente_percentual = 7,5` · E mudar o cliente para 15 depois não muda a venda · Dado
+  cliente sem % · Então a venda nasce sem % (a regra não liga para ele).
+- Teste: [`tests/Feature/Sells/ComissaoPorClienteContratoTest.php`](../../../../../tests/Feature/Sells/ComissaoPorClienteContratoTest.php), lane `sells-pest.yml`.
+- **Status: 🧪**
+
 ## Backlog
 - [BACKLOG] As 4 abas de listagem da Blade (vendas, vendas com comissão, despesas, pagamentos com comissão) — PR seguinte, antes do cutover.
 - [BACKLOG] Travar o vendedor no usuário logado quando ele não for gestor — decisão [W] (a Blade não faz).
@@ -60,6 +70,6 @@ last_run: "2026-10-07"
   - Pedido: P-156
   - Âncora: US-COMM-016 · Comissionados/Index.casos.md
   - Fazer: Percentual de comissão por cliente e liberação por parcela recebida, com o relatório mostrando aberto, liberado e vencido por representante.
-  - Hoje: miss | Não tem | O percentual é do vendedor e a comissão sai da venda, não da parcela
+  - Hoje: part | UC-SBCOM-01 | a venda já nasce com o % do cliente; falta o cálculo por parcela (PR seguinte), a seção na tela e o campo % no cadastro do cliente
   - Clientes: Sabor Brasil
   - Etiquetas: valor, miss, decisao
