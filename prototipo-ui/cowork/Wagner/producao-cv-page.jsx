@@ -68,6 +68,7 @@ function CartaoOs({ os, onAbrir, setorAtual, onMover, onPegar, arrastando }) {
         <span className={atr ? "pcv-late" : ""}>{atr ? atr : "entrega " + D.d2(os.prazo)}</span>
         {os.arte !== "aprovada" && B2(ARTE[os.arte])}
         {os.material === "aguardando" && B2(["Aguardando material", "warning"])}
+        {window.PcvTarefas && <window.PcvTarefas.SeloCartao id={os.id} />}
         <span className="pcv-who">{at.resp}</span>
       </div>
     </div>
@@ -153,6 +154,8 @@ function Painel({ onAbrir, ir, filtrar }) {
               {reenviado[o.id] && <small style={{ flexBasis: "100%" }}>{o.cliente === "Clínica Sorriso" ? "Cliente sem WhatsApp cadastrado. Mande o link você mesmo: https://oimpresso.com/arte/…" : "Link novo enviado ao cliente pelo WhatsApp. O link anterior deixou de valer."}</small>}</li>))}
         </ul>
       </Widget>}
+
+      {window.PcvTarefas && <window.PcvTarefas.TarefasPainel onAbrir={onAbrir} />}
 
       {Widget && <Widget title="Acontecendo agora" note="o que a fábrica fez por último — vem do apontamento, do cliente e do PCP" flush><Feed eventos={eventos} onAbrir={onAbrir} max={6} /></Widget>}
 
