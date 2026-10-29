@@ -3598,6 +3598,17 @@ class SellController extends Controller
                     DB::raw('COALESCE(MAX(tqa.open_count), 0) as quote_open_count')
                 );
 
+                // P-037: de qual orçamento esta cópia veio ("Copiar orçamento" grava a origem).
+                // Tier 0 (ADR 0093): a origem também tem de ser da empresa da sessão. Subconsulta
+                // e não join: o select acima tem colunas sem tabela (invoice_no, transaction_date)
+                // que um 2º `transactions` no FROM tornaria ambíguas.
+                if (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'duplicated_from_id')) {
+                    $daOrigem = fn (string $coluna, string $alias) => DB::raw("(SELECT origem.{$coluna} FROM transactions AS origem"
+                        .' WHERE origem.id = transactions.duplicated_from_id'
+                        ." AND origem.business_id = transactions.business_id) AS {$alias}");
+                    $sells->addSelect($daOrigem('id', 'duplicated_from_tx_id'), $daOrigem('invoice_no', 'duplicated_from_invoice_no'));
+                }
+
                 if (! auth()->user()->can('quotation.view_all') && auth()->user()->can('quotation.view_own')) {
                     $sells->where('transactions.created_by', request()->session()->get('user.id'));
                 }
