@@ -44,6 +44,13 @@ resultado; ele é o que garante que a página no sistema mostra os mesmos númer
 ficaria parado justo quando só os casos.md mudam; os arquivos no disco, não. O checkout de
 produção tinha os mesmos 351 casos.md do git e o manifesto de testes.
 
+⚠️ **Corrigido em 2026-10-29:** a frase acima valia só quando algum merge com código vinha
+depois. Com `paths-ignore: '**.md'`, um merge **só** de casos.md não gerava run de deploy nenhum,
+nem o sync leve (o #10153 entrou no main às 14:48 e ficou fora do site até o deploy do #10154).
+Desde então o `deploy.yml` abre a exceção `**.casos.md` no filtro do push, e esse push vai pelo
+sync leve (`.md` é não-runtime no `classifica-push.sh`). O contrato está em
+`scripts/governance/deploy-workflow.test.mjs`.
+
 ## Como entra um pedido novo
 
 Pedido de cliente (ou do [W]) entra pelo comando, não escrito à mão:
