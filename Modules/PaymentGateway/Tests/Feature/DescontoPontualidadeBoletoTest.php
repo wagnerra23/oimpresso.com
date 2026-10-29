@@ -15,6 +15,8 @@ use Modules\PaymentGateway\Services\Cnab\Drivers\BBCnabDriver;
 use Modules\PaymentGateway\Services\DescontoPontualidade;
 use Modules\PaymentGateway\Services\PaymentGatewayService;
 
+uses(Tests\TestCase::class);
+
 /**
  * P-086 (Sabor Brasil) — o % de desconto de pontualidade do cliente chega ao boleto e à baixa.
  *
