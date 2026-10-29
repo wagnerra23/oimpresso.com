@@ -33,8 +33,9 @@ class TransactionObserver
 
     public function updated(Transaction $tx): void
     {
-        // So re-sincroniza se algo financeiramente relevante mudou.
-        if (! $tx->wasChanged(['payment_status', 'final_total', 'pay_term_number', 'pay_term_type', 'due_date'])) {
+        // So re-sincroniza se algo financeiramente relevante mudou. `sub_type` entra pela
+        // bonificação (P-154): a venda que vira bonificação perde o título.
+        if (! $tx->wasChanged(['payment_status', 'final_total', 'pay_term_number', 'pay_term_type', 'due_date', 'sub_type'])) {
             return;
         }
 
