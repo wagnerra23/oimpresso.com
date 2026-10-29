@@ -312,3 +312,91 @@ it('UC-SRADD-06 [V0] a tela recebe os campos como texto no formato da empresa', 
     expect($venda['tax_id'])->toBeNull();
     expect(preg_match('#^\d{2}/\d{2}/\d{4} \d{2}:\d{2}$#', $venda['data_devolucao_txt']))->toBe(1);
 });
+
+/*
+ * P-038 — "Devolver tudo": a tela põe a vendida em cada linha (o campo é acumulado) e o
+ * servidor grava a devolução da venda inteira, descontando o que já tinha voltado.
+ *
+ *   venda C: linha 1 = 3 un × 1.234,50 (produto P) · linha 2 = 2 un × 50,00 (produto Q)
+ *            desconto 10% · estoque P 10 · Q 10
+ *   antes: 1 un da linha 1 já devolvida → total 1.234,50 − 123,45 = 1.111,05 · P 11
+ *   Devolver tudo (3 e 2):
+ *     subtotal 3.703,50 + 100,00 = 3.803,50 · desconto 380,35 · total 3.423,15
+ *     volta agora = 3.423,15 − 1.111,05 = 2.312,10 = (2 × 1.234,50 + 2 × 50,00) × 0,9
+ *     estoque P 11 → 13 · Q 10 → 12 · uma devolução só
+ * Caminho B: a venda gêmea D devolve tudo de uma vez pelo payload da Blade — mesmo total e
+ * mesma situação; estoque P 13 → 16, Q 12 → 14.
+ */
+function sraddVendaDuasLinhas(object $t, \Tests\Support\EstoqueProduto $q): array
+{
+    $v = EstoqueFixture::saleWithLine($t->produto, 0, $t->loc, 3.0, 1234.50);
+    $l2 = (int) DB::table('transaction_sell_lines')->insertGetId([
+        'transaction_id' => $v['transaction_id'],
+        'product_id' => $q->productId,
+        'variation_id' => $q->variations[0]['variation_id'],
+        'quantity' => 2,
+        'quantity_returned' => 0,
+        'unit_price' => 50,
+        'unit_price_inc_tax' => 50,
+        'item_tax' => 0,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    DB::table('transactions')->where('id', $v['transaction_id'])
+        ->update(['discount_type' => 'percentage', 'discount_amount' => 10, 'invoice_no' => 'SRADD-' . uniqid()]);
+
+    return ['id' => $v['transaction_id'], 'l1' => $v['sell_line_id'], 'l2' => $l2];
+}
+
+/** Payload da Page depois de "Devolver tudo": cada linha com a sua `quantidade_vendida_txt`. */
+function sraddPayloadDevolverTudo(array $venda): array
+{
+    $payload = sraddPayloadPage($venda, '0');
+    foreach ($venda['linhas'] as $i => $l) {
+        $payload['products'][$i]['quantity'] = $l['quantidade_vendida_txt'];
+    }
+
+    return $payload;
+}
+
+it('UC-SRADD-08 [V0][E0] devolver tudo devolve a venda inteira descontando o que já voltou', function () {
+    $q = EstoqueFixture::singleProduct($this->bizId);
+    EstoqueFixture::setStock($q, 0, $this->loc, 10.0);
+    $c = sraddVendaDuasLinhas($this, $q);
+    $d = sraddVendaDuasLinhas($this, $q);
+    $post = fn (array $payload) => $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->post('/sell-return', $payload);
+    $estoque = fn ($p) => EstoqueFixture::currentStock($p, 0, $this->loc);
+    $devolucao = fn (int $venda) => DB::table('transactions')->where('type', 'sell_return')->where('return_parent_id', $venda);
+
+    // Antes: 1 un da linha 1 já devolvida.
+    $primeira = sraddPayloadPage(sraddVenda($this, $c['id']), '0');
+    $primeira['products'][0]['quantity'] = '1';
+    $post($primeira)->assertJson(['success' => 1]);
+    expect(round((float) $devolucao($c['id'])->value('final_total'), 2))->toBe(1111.05);
+    expect($estoque($this->produto))->toBe(11.0);
+
+    // A tela reaberta: as quantidades que "Devolver tudo" põe são as vendidas.
+    $reaberta = sraddVenda($this, $c['id']);
+    expect(array_column($reaberta['linhas'], 'quantidade_vendida_txt'))->toBe(['3,00', '2,00']);
+    expect(array_column($reaberta['linhas'], 'quantidade_devolvida_txt'))->toBe(['1,00', '0,00']);
+
+    $post(sraddPayloadDevolverTudo($reaberta))->assertJson(['success' => 1]);
+    $totalC = round((float) $devolucao($c['id'])->value('final_total'), 2);
+    expect($totalC)->toBe(3423.15);
+    expect(round($totalC - 1111.05, 2))->toBe(2312.10);
+    expect($devolucao($c['id'])->count())->toBe(1);
+    expect($estoque($this->produto))->toBe(13.0);
+    expect($estoque($q))->toBe(12.0);
+    expect(DB::table('transaction_sell_lines')->whereIn('id', [$c['l1'], $c['l2']])->orderBy('id')->pluck('quantity_returned')->map(fn ($x) => (float) $x)->all())
+        ->toBe([3.0, 2.0]);
+
+    // Caminho B: a gêmea D devolve tudo de uma vez pelo payload da Blade.
+    $blade = sraddPayloadBlade($d['id'], $d['l1'], 1234.50, '3');
+    $blade['products'][] = ['quantity' => '2', 'unit_price_inc_tax' => '50,00', 'sell_line_id' => $d['l2']];
+    $post($blade)->assertJson(['success' => 1]);
+    expect(round((float) $devolucao($d['id'])->value('final_total'), 2))->toBe($totalC);
+    expect($devolucao($d['id'])->value('payment_status'))->toBe($devolucao($c['id'])->value('payment_status'));
+    expect($estoque($this->produto))->toBe(16.0);
+    expect($estoque($q))->toBe(14.0);
+});

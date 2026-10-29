@@ -72,6 +72,14 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** a Page receber número cru e mandar `1234.5` ao parser pt-BR.
 - **Status: 🧪**
 
+## UC-SRADD-08 · "Devolver tudo" devolve a venda inteira descontando o que já voltou `[V0]` `[E0]` `[must]`
+- **Origem:** pedido P-038 (processo "Devolução, troca e garantia" de Fluxos: devolução total ou parcial).
+- **Persona:** Larissa — o cliente traz de volta tudo o que levou, e uma peça já tinha voltado antes.
+- **Aceite:** Dado uma venda de 3 × 1.234,50 + 2 × 50,00 com 10% de desconto e 1 unidade já devolvida (1.111,05) · Quando clico "Devolver tudo" · Então cada linha recebe a vendida (o campo é acumulado: 3 e 2), a tela mostra "Já devolvido antes 1.111,05 · Volta agora 2.312,10" · E ao salvar a devolução da venda vai a 3.423,15, segue uma só, e o estoque sobe só o que faltava (P 11 → 13, Q 10 → 12) — o mesmo total de uma venda gêmea devolvida inteira de uma vez.
+- **Teste:** `SellReturnAddContratoTest` — `UC-SRADD-08 [V0][E0] devolver tudo devolve a venda inteira descontando o que já voltou`. O botão em si só copia `quantidade_vendida_txt` para cada linha; o teste posta esse payload.
+- **Regressão que defende:** devolver tudo creditar de novo o que já tinha voltado (estoque e valor em dobro).
+- **Status: 🧪**
+
 ---
 
 ## Pagamento ao cliente com vale-troca (US-VEST-021 · R7)
@@ -118,7 +126,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - Pedido: P-038
   - Âncora: `UC-SRADD-04` · processo de devolução de Fluxos
   - Fazer: Botão que preenche as quantidades que faltam voltar.
-  - Hoje: part | Em parte | A devolução parcial existe e trava na vendida
+  - Hoje: ok | Tem | Botão "Devolver tudo", coluna "Já devolvida" e "Volta agora" (UC-SRADD-08)
   - Comunicação visual: gray | Pouco | sob encomenda quase não volta
   - Clientes: Fixar, Safety, Estilo, Max Comunicação, Ciasul, Extreme, Mecânica Casa Grande, Wow Comunicação, Litoral Comunicação, Placa Fácil, Makan, Lamac, Zoom, Lessa Cortinas, Movesul, Sabor Brasil, DMB, Mecânica Lebrinha, Jo Painéis, CyberStudio, GP, GSX, Molas Patrício, Display Paraná, Ntrogen, MidiaOff, Quimeco, Vargas
   - Etiquetas: valor, part
