@@ -203,13 +203,14 @@ class MotorTributarioService
         }
 
         // Nível 2 — regra exata
-        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, $ufDestino, $operacao, $versionado ? $data : null);
+        $crt = isset($destino['crt']) ? (int) $destino['crt'] : null;
+        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, $ufDestino, $operacao, $versionado ? $data : null, $crt);
         if ($regra) {
             return $this->aplicarRegra($regra, $produto, nivel: 2, destino: $destino);
         }
 
         // Nível 3 — regra padrão NCM (uf_destino NULL)
-        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, null, $operacao, $versionado ? $data : null);
+        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, null, $operacao, $versionado ? $data : null, $crt);
         if ($regra) {
             return $this->aplicarRegra($regra, $produto, nivel: 3, destino: $destino);
         }
@@ -277,9 +278,10 @@ class MotorTributarioService
         ?string $ufDestino,
         ?NfeOperacaoFiscal $operacao = null,
         ?string $data = null,
+        ?int $crt = null,
     ): ?NfeFiscalRule {
         $cacheKey = "{$businessId}|{$ncm}|{$ufOrigem}|" . ($ufDestino ?? 'NULL')
-            . '|' . ($operacao?->id ?? 'padrao') . '|' . ($data ?? '-');
+            . '|' . ($operacao?->id ?? 'padrao') . '|' . ($data ?? '-') . '|' . ($crt ?? '-');
 
         if (array_key_exists($cacheKey, $this->cacheRegras)) {
             return $this->cacheRegras[$cacheKey];
@@ -292,6 +294,17 @@ class MotorTributarioService
         $query = $ufDestino === null
             ? $query->whereNull('uf_destino')
             : $query->where('uf_destino', $ufDestino);
+
+        // P-155 · regra marcada com um regime (CRT) só vale para o local desse regime, e ganha da
+        // regra sem regime. Emitente sem CRT próprio usa só as regras sem regime — as de sempre.
+        if (NfeFiscalRule::temRegraPorRegime()) {
+            if ($crt === null) {
+                $query->whereNull('crt');
+            } else {
+                $query->where(fn ($q) => $q->whereNull('crt')->orWhere('crt', $crt))
+                    ->orderByRaw('crt IS NULL');
+            }
+        }
 
         if ($data !== null) {
             // Operação: a padrão enxerga as regras sem operação (todas as de antes da thread 07);

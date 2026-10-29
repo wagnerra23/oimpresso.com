@@ -30,8 +30,9 @@ uses(Tests\TestCase::class);
  * em SP, ICMS próprio 18%, MVA 62,3%, interna 18%, sem IPI.
  *   ICMS próprio = 1.000,00 × 0,18 = 180,00
  *   base ST = 1.000,00 × 1,623 = 1.623,00 · ST = 1.623,00 × 0,18 − 180,00 = 292,14 − 180,00 = 112,14
- * A mesma regra traz CST 10 (para o local do regime normal) e CSOSN 500 (para o do Simples, ST já
- * retido). Antes, sem regime por local, o CSOSN 500 zerava o ST dos dois.
+ * Regras como no Delphi do cliente (`REGRA_TRIBUTARIA.REGIME_EMPRESA`): uma do regime normal (CRT 3,
+ * CST 10, ICMS 18%, MVA 62,3%), uma do Simples (CRT 1, CSOSN 500, ST já retido, sem ICMS próprio) e a
+ * regra sem regime de sempre (CSOSN 102). Emitente sem CRT próprio só enxerga a regra sem regime.
  */
 
 const P155_NCM = '77155001';
@@ -74,14 +75,22 @@ function p155Config(int $biz, int $locationId, ?int $crt): void
     ]);
 }
 
-function p155Regra(int $biz): void
+function p155Regra(int $biz, array $props): void
 {
-    NfeFiscalRule::create([
+    NfeFiscalRule::create(array_merge([
         'business_id' => $biz, 'ncm' => P155_NCM, 'uf_origem' => 'SP', 'uf_destino' => 'SP',
-        'cfop' => '5405', 'csosn' => '500', 'cst' => '10',
-        'aliquota_icms' => 0.18, 'aliquota_pis' => 0.0, 'aliquota_cofins' => 0.0, 'aliquota_ipi' => 0.0,
-        'mva' => 0.623,
-    ]);
+        'cfop' => '5405', 'csosn' => null, 'cst' => null, 'crt' => null,
+        'aliquota_icms' => 0.0, 'aliquota_pis' => 0.0, 'aliquota_cofins' => 0.0, 'aliquota_ipi' => 0.0,
+        'mva' => null,
+    ], $props));
+}
+
+/** As três regras do NCM: regime normal, Simples e a sem regime (a de sempre). */
+function p155Regras(int $biz): void
+{
+    p155Regra($biz, ['crt' => 3, 'cst' => '10', 'aliquota_icms' => 0.18, 'mva' => 0.623]);
+    p155Regra($biz, ['crt' => 1, 'csosn' => '500', 'mva' => 0.623]);
+    p155Regra($biz, ['cfop' => '5102', 'csosn' => '102']);
 }
 
 function p155Itens(?int $crt): array
@@ -110,9 +119,10 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('MySQL-only: business_locations do UltimatePOS + nfe_fiscal_rules.');
     }
-    if (! Schema::hasColumn('nfe_locais_emissores', 'crt')) {
-        $this->markTestSkipped('Migração 2026_10_29_000001 não rodou.');
+    if (! Schema::hasColumn('nfe_locais_emissores', 'crt') || ! Schema::hasColumn('nfe_fiscal_rules', 'crt')) {
+        $this->markTestSkipped('Migrações 2026_10_29_000001/000002 não rodaram.');
     }
+    NfeFiscalRule::esquecerVersionamento();
     Event::fake([FiscalRuleCreated::class, FiscalRuleUpdated::class, FiscalRuleDeleted::class]);
     p155Limpar();
 });
@@ -158,10 +168,10 @@ it('P-155 · regime que não existe é recusado com a saída', function () {
         ->toThrow(RuntimeException::class, 'CRT');
 });
 
-// ── O ST e o código do item seguem o regime do local ───────────────────────
+// ── A regra, o ST e o código do item seguem o regime do local ──────────────
 
-it('P-155 · motor: no regime normal a regra com CST 10 calcula o ST (112,14)', function () {
-    p155Regra(p155Biz());
+it('P-155 · motor: o local do regime normal usa a regra dele e calcula o ST (112,14)', function () {
+    p155Regras(p155Biz());
     $produto = new ProdutoFiscalContext(ncm: P155_NCM, valor: 1000.00);
 
     $t = (new MotorTributarioService())->calcularComRegimeDoLocal(
@@ -169,12 +179,14 @@ it('P-155 · motor: no regime normal a regra com CST 10 calcula o ST (112,14)', 
         aliquotaInternaDestino: 0.18, destinatarioContribuinte: true,
     );
 
+    expect($t->cst)->toBe('10');
+    expect($t->valor_icms)->toBe(180.0);
     expect($t->base_st)->toBe(1623.0);
     expect($t->valor_st)->toBe(112.14);
 });
 
-it('P-155 · motor: no Simples a mesma regra (CSOSN 500, ST já retido) não calcula ST', function () {
-    p155Regra(p155Biz());
+it('P-155 · motor: o local do Simples usa a regra dele (CSOSN 500, ST já retido, sem ICMS próprio)', function () {
+    p155Regras(p155Biz());
     $produto = new ProdutoFiscalContext(ncm: P155_NCM, valor: 1000.00);
 
     $t = (new MotorTributarioService())->calcularComRegimeDoLocal(
@@ -182,11 +194,13 @@ it('P-155 · motor: no Simples a mesma regra (CSOSN 500, ST já retido) não cal
         aliquotaInternaDestino: 0.18, destinatarioContribuinte: true,
     );
 
+    expect($t->csosn)->toBe('500');
+    expect($t->valor_icms)->toBe(0.0);
     expect($t->valor_st)->toBe(0.0);
 });
 
-it('P-155 · controle: sem regime do local, o motor faz o de antes (CSOSN 500 zera o ST)', function () {
-    p155Regra(p155Biz());
+it('P-155 · controle: sem regime do local, o motor só enxerga a regra sem regime, como antes', function () {
+    p155Regras(p155Biz());
     $produto = new ProdutoFiscalContext(ncm: P155_NCM, valor: 1000.00);
 
     $t = (new MotorTributarioService())->calcularComDestino(
@@ -194,34 +208,56 @@ it('P-155 · controle: sem regime do local, o motor faz o de antes (CSOSN 500 ze
         aliquotaInternaDestino: 0.18, destinatarioContribuinte: true,
     );
 
+    expect($t->csosn)->toBe('102');
+    expect($t->cfop)->toBe('5102');
     expect($t->valor_st)->toBe(0.0);
 });
 
-it('P-155 · item: regime normal leva CST 10, base do ICMS 1.000,00 e ST 112,14 no total', function () {
-    p155Regra(p155Biz());
+it('P-155 · motor: regra sem regime com CST e CSOSN — o local do regime normal leva o ST pelo CST', function () {
+    p155Regra(p155Biz(), ['cst' => '10', 'csosn' => '500', 'aliquota_icms' => 0.18, 'mva' => 0.623]);
+    $produto = new ProdutoFiscalContext(ncm: P155_NCM, valor: 1000.00);
+
+    $normal = (new MotorTributarioService())->calcularComRegimeDoLocal(
+        $produto, businessId: p155Biz(), ufOrigem: 'SP', ufDestino: 'SP', crtEmitente: 3,
+        aliquotaInternaDestino: 0.18, destinatarioContribuinte: true,
+    );
+    $antes = (new MotorTributarioService())->calcularComDestino(
+        $produto, businessId: p155Biz(), ufOrigem: 'SP', ufDestino: 'SP',
+        aliquotaInternaDestino: 0.18, destinatarioContribuinte: true,
+    );
+
+    expect($normal->valor_st)->toBe(112.14);
+    expect($antes->valor_st)->toBe(0.0); // sem regime do local, o CSOSN 500 zera o ST como antes
+});
+
+it('P-155 · item: regime normal leva CST 10, base do ICMS 1.000,00, ICMS 180,00 e ST 112,14', function () {
+    p155Regras(p155Biz());
 
     $r = p155Itens(3);
 
     expect($r['dets'][0]['icms']['cst_csosn'])->toBe('10');
     expect($r['dets'][0]['icms']['vbc'])->toBe(1000.0);
+    expect($r['dets'][0]['icms']['st']['vicmsst'])->toBe(112.14);
+    expect($r['total']['v_icms'])->toBe(180.0);
     expect($r['total']['v_st'])->toBe(112.14);
 });
 
-it('P-155 · item: Simples leva CSOSN 500, sem base do ICMS e sem ST', function () {
-    p155Regra(p155Biz());
+it('P-155 · item: Simples leva CSOSN 500, sem base, sem ICMS e sem ST', function () {
+    p155Regras(p155Biz());
 
     $r = p155Itens(1);
 
     expect($r['dets'][0]['icms']['cst_csosn'])->toBe('500');
     expect($r['dets'][0]['icms']['vbc'])->toBe(0.0);
+    expect($r['total']['v_icms'])->toBe(0.0);
     expect($r['total']['v_st'])->toBe(0.0);
 });
 
-it('P-155 · controle: item sem regime do local sai igual a antes (CSOSN 500, sem ST)', function () {
-    p155Regra(p155Biz());
+it('P-155 · controle: item sem regime do local sai pela regra de sempre (CSOSN 102, sem ST)', function () {
+    p155Regras(p155Biz());
 
     $r = p155Itens(null);
 
-    expect($r['dets'][0]['icms']['cst_csosn'])->toBe('500');
+    expect($r['dets'][0]['icms']['cst_csosn'])->toBe('102');
     expect($r['total']['v_st'])->toBe(0.0);
 });

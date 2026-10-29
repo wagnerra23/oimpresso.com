@@ -570,12 +570,13 @@ class NfeService
      *
      * @return array<string,float|int>|null
      */
-    private function stDoItem(TributoCalculado $tributo, ?float $internaDestino): ?array
+    private function stDoItem(TributoCalculado $tributo, ?float $internaDestino, ?string $codigoIcms = null): ?array
     {
         if ($tributo->valor_st <= 0) {
             return null;
         }
-        $cst = (string) ($tributo->csosn ?? $tributo->cst ?? '');
+        // P-155: confere o código que o item leva (o do regime do local), não o primeiro da regra.
+        $cst = $codigoIcms ?? (string) ($tributo->csosn ?? $tributo->cst ?? '');
         if (! in_array($cst, self::CST_COM_ST, true)) {
             throw new RuntimeException("A regra fiscal calcula ICMS-ST (MVA) mas o CST/CSOSN {$cst} não leva ST — ajuste a regra em Tributação (ex.: CST 10 ou CSOSN 202).");
         }
@@ -798,6 +799,10 @@ class NfeService
             };
 
             $vprod = $it['vprod_cent'] / 100.0;
+            // P-155: no local do regime normal (CRT 3) vale o CST da regra; sem CRT, como antes.
+            $codigoIcms = $crtEmitente === 3
+                ? ($tributo->cst ?? $tributo->csosn ?? '102')
+                : ($tributo->csosn ?? $tributo->cst ?? '102');
             $dets[] = [
                 'cprod'   => substr((string) $it['cprod'], 0, 60),
                 'xprod'   => substr((string) $it['xprod'], 0, 120),
@@ -819,10 +824,7 @@ class NfeService
                 // percentual de redução. Sem benefício, as chaves ficam ausentes/0 como antes.
                 'cbenef'  => $tributo->c_benef,
                 'icms'    => [
-                    // P-155: no local do regime normal (CRT 3) vale o CST da regra; sem CRT, como antes.
-                    'cst_csosn' => $crtEmitente === 3
-                        ? ($tributo->cst ?? $tributo->csosn ?? '102')
-                        : ($tributo->csosn ?? $tributo->cst ?? '102'),
+                    'cst_csosn' => $codigoIcms,
                     // Origem do produto (tabela A). Linha montada sem a chave (teste, chamada
                     // antiga) segue com 0 — a origem que toda nota usava.
                     'orig'      => (int) ($it['origem'] ?? 0),
@@ -832,7 +834,7 @@ class NfeService
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
                     // R-NFE-043: ICMS-ST do motor (R-NFE-015) no grupo do CST/CSOSN com ST.
-                    'st'        => $this->stDoItem($tributo, $internaDestino),
+                    'st'        => $this->stDoItem($tributo, $internaDestino, $codigoIcms),
                 ],
                 // R-NFE-025b: `nfe_fiscal_rules` não guarda CST de PIS/COFINS hoje — o
                 // motor não devolve. '07' segue como fallback, logado abaixo.
