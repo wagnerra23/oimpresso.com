@@ -540,7 +540,7 @@ last_run: "2026-10-27"
   - Pedido: P-035
   - Âncora: `SellController::duplicateSell`
   - Fazer: Guardar a origem ao duplicar; decidir se os preços vêm da origem ou da tabela de hoje.
-  - Hoje: part | Em parte | A cópia guarda a origem (UC-SDUP-01..03); falta o topo do rascunho mostrar a origem e a D-05
+  - Hoje: part | Em parte | A cópia guarda a origem (UC-SDUP-01..03) e o topo do rascunho mostra "Duplicada de" (UC-SDUP-07, `Edit.casos.md`, 2026-10-29); falta só a D-05 do [W] (preço da origem ou tabela de hoje)
   - Comunicação visual: ok | Sim | recompra do mesmo serviço
   - Clientes: Zoom, Techpress, Sabor Brasil, Display Paraná, Estilo
   - Etiquetas: part, cv, decisao
