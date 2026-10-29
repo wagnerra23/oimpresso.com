@@ -91,7 +91,7 @@ function chavesDasAbas(array $abas): array
 it('UC-DASH-07 · aba sem permissão NÃO aparece — cada grade tem o seu próprio gate', function () {
     $user = gradesBootstrap(['dashboard.data', 'sell.view']);
 
-    $response = $this->actingAs($user)->get('/dashboard-legacy');
+    $response = $this->actingAs($user)->get('/home');
 
     $response->assertStatus(200);
     $response->assertInertia(function (AssertableInertia $page) {
@@ -109,7 +109,7 @@ it('UC-DASH-08 · sem dashboard.data NÃO há aba nenhuma, mesmo com a permissã
     // que abre na linha 369 e fecha na 1013 — medido em 2026-08-27.
     $user = gradesBootstrap(['sell.view', 'purchase.view', 'stock_report.view']);
 
-    $response = $this->actingAs($user)->get('/dashboard-legacy');
+    $response = $this->actingAs($user)->get('/home');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -124,7 +124,7 @@ it('UC-DASH-09 · setting desligado esconde a aba condicional (Lotes a vencer)',
     $user = gradesBootstrap(['dashboard.data', 'stock_report.view']);
 
     session(['business.enable_product_expiry' => 0]);
-    $comSettingDesligado = $this->actingAs($user)->get('/dashboard-legacy');
+    $comSettingDesligado = $this->actingAs($user)->get('/home');
 
     $comSettingDesligado->assertInertia(function (AssertableInertia $page) {
         $abas = chavesDasAbas($page->toArray()['props']['abas']);
@@ -134,7 +134,7 @@ it('UC-DASH-09 · setting desligado esconde a aba condicional (Lotes a vencer)',
     });
 
     session(['business.enable_product_expiry' => 1]);
-    $comSettingLigado = $this->actingAs($user)->get('/dashboard-legacy');
+    $comSettingLigado = $this->actingAs($user)->get('/home');
 
     $comSettingLigado->assertInertia(function (AssertableInertia $page) {
         expect(chavesDasAbas($page->toArray()['props']['abas']))->toContain('validade');
@@ -145,7 +145,7 @@ it('UC-DASH-10 · aba desconhecida na query string cai na primeira PERMITIDA, se
     $user = gradesBootstrap(['dashboard.data', 'purchase.view']);
 
     // `caixa` é a 9ª aba do protótipo — ela não existe no Blade e não existe aqui.
-    $response = $this->actingAs($user)->get('/dashboard-legacy?aba=caixa');
+    $response = $this->actingAs($user)->get('/home?aba=caixa');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page->where('aba', 'venc-compra'));
@@ -154,7 +154,7 @@ it('UC-DASH-10 · aba desconhecida na query string cai na primeira PERMITIDA, se
 it('UC-DASH-10 · aba que o usuário NÃO pode ver não é servida nem quando pedida na URL', function () {
     $user = gradesBootstrap(['dashboard.data', 'purchase.view']);
 
-    $response = $this->actingAs($user)->get('/dashboard-legacy?aba=venc-venda');
+    $response = $this->actingAs($user)->get('/home?aba=venc-venda');
 
     $response->assertStatus(200);
     // Pediu a de venda (sem permissão) e recebeu a de compra (a única permitida).
@@ -364,7 +364,7 @@ it('UC-DASH-19 · pendência de aba sem permissão não aparece no painel', func
 it('UC-DASH-19 · sem dashboard.data a prop pendencias nem é registrada', function () {
     $user = gradesBootstrap(['sell.view', 'purchase.view']);
 
-    $response = $this->actingAs($user)->get('/dashboard-legacy');
+    $response = $this->actingAs($user)->get('/home');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page

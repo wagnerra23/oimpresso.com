@@ -103,8 +103,8 @@ it('NÃO TRANCA O ERP: sem jana.access, /home leva ao dashboard legado — nunca
 
     $response = $this->actingAs($this->user)->get('/home');
 
-    expect($response->status())->not->toBe(403);
-    $response->assertRedirect('/dashboard-legacy');
+    // [W] 2026-10-29: `/home` voltou a SERVIR a Visão geral (não é mais 302).
+    $response->assertOk();
 });
 
 // [W] 2026-09-08 — o destino pós-login DEIXOU de depender de `jana.access`.
@@ -126,7 +126,8 @@ it('a porta de entrada é UMA só: com jana.access, /home também leva à Visão
     $this->user->givePermissionTo('jana.access');
     $this->user->forgetCachedPermissions();
 
-    $this->actingAs($this->user)->get('/home')->assertRedirect('/dashboard-legacy');
+    // [W] 2026-10-29: a Visão geral mora em `/home` — mesma tela pros dois.
+    $this->actingAs($this->user)->get('/home')->assertOk();
 });
 
 it('LIMITE HONESTO: admin passa MESMO sem a permissão (Gate::before)', function () {

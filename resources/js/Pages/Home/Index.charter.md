@@ -1,5 +1,5 @@
 ---
-page: /dashboard-legacy
+page: /home
 component: resources/js/Pages/Home/Index.tsx
 owner: wagner
 status: live
