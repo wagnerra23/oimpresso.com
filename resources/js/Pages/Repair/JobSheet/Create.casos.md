@@ -96,17 +96,36 @@ last_run: "2026-09-05"
   empresa em "avisar" a OS abre com o aviso "passa 300,00 do limite"; em "bloquear" ela não abre. É a
   mesma escolha da venda (`Sells/Create.casos.md`). Mexe em valor: Regra Mestre. Fonte: Omie (o limite
   vale para OS, contrato e pedido); US-CRM-081.
+  - Pedido: P-029
+  - Âncora: US-CRM-081 · Omie
+  - Fazer: Checar o limite ao abrir a OS, com a mesma escolha da venda.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | OS de serviço
+  - Etiquetas: valor, miss, cv, decisao
 - **[BACKLOG]** OS de bem recebido para conserto com nota (pedido de 2026-10-23) — Dado um cliente
   empresa que manda o equipamento com nota de remessa para conserto, Quando abro a OS, Então informo a
   chave dessa nota e, na entrega, a nota de retorno sai ligada a ela, separada da cobrança do serviço.
   CFOP de exemplo: 1.915 na entrada e 5.916 no retorno; o contador confirma. Fonte: UC-TRB-23 do
   protótipo fiscal (falta).
+  - Pedido: P-044
+  - Âncora: `UC-TRB-23` · CFOP de exemplo 1.915 e 5.916
+  - Fazer: Campo da chave da nota de entrada na OS; nota de retorno ligada na entrega.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: gray | Pouco | é da assistência técnica
+  - Etiquetas: miss
 - **[BACKLOG]** Funcionário que executou cada serviço da OS (pedido de 2026-10-23) — Dado uma OS com
   "troca de pneu" e "balanceamento", Quando cada serviço é feito por um mecânico diferente, Então
   indico quem executou cada um, o nome sai na ficha da OS e na comissão. Hoje a OS tem um só "Técnico
   responsável" (`service_staff`) e a OS da Oficina tem um só mecânico responsável
   (`assigned_user_id`); nenhuma das duas registra quem fez cada serviço. A venda tem o caso irmão
   (Sells/Create.casos.md).
+  - Pedido: P-061
+  - Âncora: `Repair/JobSheet/Create.casos.md`
+  - Fazer: Executor por serviço da OS, além do técnico responsável.
+  - Hoje: part | Em parte | A OS tem um só técnico responsável; a OS da Oficina, um só mecânico
+  - Comunicação visual: ok | Sim | equipe de instalação
+  - Clientes: Global Pneus, PraMoto, Mecânica Casa Grande
+  - Etiquetas: part, cv, decisao
 
 ---
 

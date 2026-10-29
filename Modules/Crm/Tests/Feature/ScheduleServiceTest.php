@@ -66,7 +66,7 @@ it('scopedQuery filtra por business_id (biz=1 não vaza pra query biz=99)', func
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Schedule::where('title', 'SVC-TEST Followup BIZ1 11111')->delete();
 });
 
@@ -97,7 +97,7 @@ it('scopedQuery encontra follow-up biz=1 quando query escopada por biz=1', funct
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->title)->toBe('SVC-TEST Followup BIZ1 22222');
     expect((int) $resultado->first()->business_id)->toBe(SCHED_BIZ_WAGNER);
-})->afterEach(function () {
+})->after(function () {
     Schedule::where('title', 'SVC-TEST Followup BIZ1 22222')->delete();
 });
 
@@ -136,6 +136,6 @@ it('scopedQuery aplica filtro access_own quando canAccessAll=false', function ()
         ->get();
 
     expect($resultadoCriador)->toHaveCount(1);
-})->afterEach(function () {
+})->after(function () {
     Schedule::where('title', 'SVC-TEST Followup OWN 33333')->delete();
 });

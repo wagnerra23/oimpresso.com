@@ -69,7 +69,7 @@ it('Marcacao biz=1 nao aparece em query filtrada biz=99 (Tier 0)', function () {
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     cleanupPontoTestRows();
 });
 
@@ -79,7 +79,7 @@ it('Marcacao::update() lanca RuntimeException (append-only Portaria 671/2021)', 
 
     expect(fn () => $marcacao->update(['tipo' => Marcacao::TIPO_SAIDA]))
         ->toThrow(\RuntimeException::class, 'append-only');
-})->afterEach(function () {
+})->after(function () {
     cleanupPontoTestRows();
 });
 
@@ -89,7 +89,7 @@ it('Marcacao::delete() lanca RuntimeException (imutabilidade Portaria 671/2021)'
 
     expect(fn () => $marcacao->delete())
         ->toThrow(\RuntimeException::class);
-})->afterEach(function () {
+})->after(function () {
     cleanupPontoTestRows();
 });
 
@@ -108,7 +108,7 @@ it('listing scoped biz=99 nao vaza nenhuma das marcacoes biz=1', function () {
         ->count();
 
     expect($vazamento)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     cleanupPontoTestRows();
 });
 
@@ -173,7 +173,7 @@ it('BancoHorasMovimento biz=1 nao vaza em query filtrada biz=99', function () {
 
     // cleanup so deste movimento
     DB::table('ponto_banco_horas_movimentos')->where('id', $movId)->delete();
-})->afterEach(function () {
+})->after(function () {
     cleanupPontoTestRows();
 });
 
@@ -215,7 +215,7 @@ it('Intercorrencia biz=1 nao aparece em query filtrada biz=99', function () {
     expect($resultado)->toHaveCount(0);
 
     DB::table('ponto_intercorrencias')->where('id', $intId)->delete();
-})->afterEach(function () {
+})->after(function () {
     cleanupPontoTestRows();
 });
 
@@ -253,7 +253,7 @@ it('Intercorrencia scoped biz=99 nao vaza workflow PENDENTE de biz=1', function 
         ->count();
 
     expect($vazamento)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     cleanupPontoTestRows();
 });
 
@@ -350,21 +350,6 @@ function cleanupPontoTestRows(): void
             ->delete();
     }
 
-    // ponto_marcacoes — triggers MySQL bloqueiam DELETE. Tenta drop temporario.
-    try {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_ponto_marcacoes_no_delete');
-        DB::table('ponto_marcacoes')->where('ip', PONTO_MARCADOR_TEST)->delete();
-        // Restaura trigger
-        DB::unprepared(<<<SQL
-            CREATE TRIGGER trg_ponto_marcacoes_no_delete
-            BEFORE DELETE ON ponto_marcacoes
-            FOR EACH ROW
-            BEGIN
-                SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'ponto_marcacoes e append-only (Portaria 671/2021).';
-            END;
-        SQL);
-    } catch (\Throwable $e) {
-        // User sem permissao DROP TRIGGER — deixa marker isolar registros de teste
-    }
+    // ponto_marcacoes: append-only por lei. Nao se derruba trigger em teste; as
+    // linhas levam o marcador e os asserts contam antes/depois.
 }

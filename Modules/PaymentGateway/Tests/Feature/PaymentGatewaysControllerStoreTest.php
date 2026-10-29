@@ -85,9 +85,14 @@ it('store rejeita duplicate (business_id, gateway_key, ambiente)', function () {
 
 it('store rejeita conta_bancaria_id de outro business (Tier 0)', function () {
     $user = User::factory()->create(['business_id' => 1]);
-    $otherBiz = Business::firstOrCreate(['id' => 99999], ['name' => 'Outro Tenant', 'currency_id' => 1]);
+    // Tenant adversário = biz=2, semeado pelo pest-mysql-setup com owner_id. Criar um
+    // business cru (só name/currency_id) quebra a FK business_owner_id_foreign no MySQL.
+    $otherBiz = Business::query()->find(2);
+    if ($otherBiz === null) {
+        $this->markTestSkipped('Tenant adversário biz=2 ausente (o seed do pest-mysql-setup cria).');
+    }
     $otherAccount = Account::create([
-        'business_id' => 99999,
+        'business_id' => $otherBiz->id,
         'name' => 'Conta de outro biz',
         'account_number' => 'DUMMY-' . uniqid(),
         'created_by' => 1,

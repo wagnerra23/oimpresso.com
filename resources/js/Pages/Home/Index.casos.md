@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-home-index-casos
-casos: Dashboard · Visão geral · /dashboard-legacy
+casos: Dashboard · Visão geral · /home
 irmaos: Index.charter.md (lei) · Index.tsx (tela) · _components/GradesPainel.tsx
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
@@ -14,7 +14,7 @@ last_run: "2026-10-27"
 > só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
 > significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
-# Casos de uso — /dashboard-legacy (Visão geral)
+# Casos de uso — /home (Visão geral)
 
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
@@ -28,7 +28,7 @@ last_run: "2026-10-27"
 
 ## UC-DASH-01 — A tela responde "como foi o período" numa carga só
 Status: 🧪 (1 teste em `HomeIndexInertiaTest` cita este UC — o componente Inertia e as 5 chaves de payload que o charter promete.)
-Missão do charter: o usuário abre `/dashboard-legacy` e a janela escolhida responde sem segunda navegação. O controller devolve o componente `Home/Index` com `user_name`, `is_admin`, `can_dashboard_data`, `totals` e `endpoints`.
+Missão do charter: o usuário abre `/home` e a janela escolhida responde sem segunda navegação. O controller devolve o componente `Home/Index` com `user_name`, `is_admin`, `can_dashboard_data`, `totals` e `endpoints`.
 **Pronto quando:** a rota renderiza o componente `Home/Index` com as 5 chaves presentes, sem 500 e sem tela branca.
 
 ## UC-DASH-02 — Cliente final não entra no painel interno
@@ -44,7 +44,7 @@ Goal do charter: *permission gate `dashboard.data` — sem permission, KPI cards
 ## UC-DASH-04 — Não existe mais fallback Blade
 Status: 🧪 (1 teste em `HomeIndexInertiaTest` cita este UC.)
 Charter v5: o Blade legado saiu (`views/home/index.blade.php`, os 8 partials, `public/js/home.js`, `indexLegacy()` e o ramo `?legacy=1`). A query string sobrevive como **inerte** — quem tiver o link velho salvo cai na tela React em vez de num 404.
-**Pronto quando:** `GET /dashboard-legacy?legacy=1` devolve 200 renderizando o componente React `Home/Index`, e nenhuma view Blade de home é resolvida no caminho.
+**Pronto quando:** `GET /home?legacy=1` devolve 200 renderizando o componente React `Home/Index`, e nenhuma view Blade de home é resolvida no caminho.
 
 ## UC-DASH-05 — Tier 0: o filtro de loja não vaza location de outro business
 Status: 🧪 (1 teste em `HomeIndexInertiaTest` cita este UC.)

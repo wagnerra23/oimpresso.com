@@ -73,7 +73,7 @@ it('slug CmsPage biz=1 não aparece com session biz=99', function () {
     $resultado = CmsPage::where('id', $page->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     CmsPage::withoutGlobalScopes()
         ->where('title', 'Pagina Privada Biz1 Teste')
         ->forceDelete();
@@ -94,7 +94,7 @@ it('slug CmsPage biz=1 aparece com session biz=1', function () {
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->title)->toBe('Pagina Publica Biz1 Teste');
-})->afterEach(function () {
+})->after(function () {
     CmsPage::withoutGlobalScopes()
         ->where('title', 'Pagina Publica Biz1 Teste')
         ->forceDelete();
@@ -116,7 +116,7 @@ it('lista getEnabledPages biz=99 não vê páginas biz=1', function () {
 
     $titulos = $pages->pluck('title')->toArray();
     expect($titulos)->not->toContain('Termos Biz1 Teste');
-})->afterEach(function () {
+})->after(function () {
     CmsPage::withoutGlobalScopes()
         ->where('title', 'Termos Biz1 Teste')
         ->forceDelete();
@@ -136,7 +136,7 @@ it('count getPagesCount não vaza contagem entre tenants', function () {
     $countBiz99 = CmsPage::where('title', 'Contagem Biz1 Teste')->count();
 
     expect($countBiz99)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     CmsPage::withoutGlobalScopes()
         ->where('title', 'Contagem Biz1 Teste')
         ->forceDelete();
@@ -158,7 +158,7 @@ it('rota pública /c/page/{slug} biz=99 retorna 404 quando slug é de biz=1', fu
 
     // 404 esperado — slug não pertence ao tenant que serve a request
     expect($response->status())->toBe(404);
-})->afterEach(function () {
+})->after(function () {
     CmsPage::withoutGlobalScopes()
         ->where('title', 'Slug Privado Biz1 Teste')
         ->forceDelete();

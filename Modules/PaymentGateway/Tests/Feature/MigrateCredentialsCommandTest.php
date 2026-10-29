@@ -131,11 +131,27 @@ it('vincula fin_contas_bancarias.payment_gateway_credential_id se conta_bancaria
         $this->markTestSkipped('fin_contas_bancarias ausente — Financeiro não instalado neste env.');
     }
 
+    // fin_contas_bancarias nunca teve coluna `nome`: a migration de criação guarda só os dados
+    // CNAB e aponta 1-1 para accounts (accounts.name é o nome). A fixture segue o schema real —
+    // mesma forma de Financeiro/Tests/Feature/BackfillExtratoOfxTest.
+    $accountId = DB::table('accounts')->insertGetId([
+        'business_id'    => 1,
+        'name'           => 'Conta Teste',
+        'account_number' => '777',
+        'created_by'     => 1,
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
     $contaId = DB::table('fin_contas_bancarias')->insertGetId([
-        'business_id'                  => 1,
-        'nome'                         => 'Conta Teste',
-        'created_at'                   => now(),
-        'updated_at'                   => now(),
+        'business_id'                   => 1,
+        'account_id'                    => $accountId,
+        'banco_codigo'                  => '077',
+        'agencia'                       => '0001',
+        'carteira'                      => '112',
+        'beneficiario_documento'        => '00.000.000/0000-00', // pii-allowlist — fixture de teste
+        'beneficiario_razao_social'     => 'Conta Teste',
+        'created_at'                    => now(),
+        'updated_at'                    => now(),
         'payment_gateway_credential_id' => null,
     ]);
 

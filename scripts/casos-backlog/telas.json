@@ -1,0 +1,30 @@
+{
+  "_leia": "Nome e área de cada tela na página 'Casos de uso por tela'. Lido por gerar.mjs e por app/Services/Documentacao/CasosPorTela.php: um lugar só. Tela fora daqui aparece pelo caminho, na área 'Outras telas'.",
+  "ultimoReservado": 152,
+  "areas": [
+    ["vendas", "Vendas"], ["producao", "Produção"], ["compras", "Compras e estoque"],
+    ["fiscal", "Fiscal"], ["financeiro", "Financeiro"], ["outras", "Outras telas"]
+  ],
+  "telas": {
+    "Sells/Index": ["Consulta de vendas", "vendas"],
+    "Sells/Create": ["Nova venda", "vendas"],
+    "Sells/Quotations": ["Orçamentos", "vendas"],
+    "Sells/Drafts": ["Rascunhos", "vendas"],
+    "Cliente/Index": ["Cliente", "vendas"],
+    "SellReturn/Add": ["Devolução", "vendas"],
+    "Producao/Apontamento/Index": ["OS da produção", "producao"],
+    "Repair/JobSheet/Create": ["OS da assistência", "producao"],
+    "Purchase/Create": ["Nova compra", "compras"],
+    "PurchaseRequisition/Index": ["Requisição de compra", "compras"],
+    "StockTransfer/Create": ["Transferência de estoque", "compras"],
+    "Produto/Index": ["Consulta de produto", "compras"],
+    "Produto/SellingPrices": ["Formação de preço", "compras"],
+    "Fiscal/Nfe": ["NF-e", "fiscal"],
+    "Fiscal/Nfse": ["NFS-e", "fiscal"],
+    "Fiscal/Config": ["Configuração fiscal", "fiscal"],
+    "Financeiro/Unificado/Index": ["Financeiro", "financeiro"],
+    "Comissionados/Index": ["Comissionados", "financeiro"],
+    "Report/SalesRepresentative/Index": ["Relatório de comissões", "financeiro"],
+    "RecurringBilling/Index": ["Cobrança recorrente", "financeiro"]
+  }
+}

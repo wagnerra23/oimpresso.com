@@ -190,63 +190,161 @@ last_run: "2026-10-23"
   "Aguardando liberação"; pago o sinal, a coluna Sinal mostra "Pago · falta o saldo" e a OS sai da
   espera. Empresa sem sinal mínimo não mostra a coluna por padrão. Fonte: US-PCP-025 (a OS espera o
   sinal; UC-PCLIB-04 a 08 no Apontamento).
+  - Pedido: P-001
+  - Âncora: `UC-FLX-28` · US-PCP-025
+  - Fazer: Levar o sinal exigido × pago e a situação da OS para a consulta; esconder a coluna em empresa sem sinal mínimo.
+  - Hoje: part | Em parte | A OS já espera o sinal (`UC-PCLIB-04` a `08`); a consulta não mostra. Desenhado no protótipo
+  - Comunicação visual: ok | Sim | sinal em serviço sob encomenda
+  - Clientes: Ecopias, Fixar
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] Situação da arte na linha (UC-FLX-02)** — detalha o item "Situação da arte na linha"
   acima. Aceite: Dado uma venda com OS em Arte, Então a coluna Arte mostra "Aguardando cliente · link
   enviado", "Ajuste pedido" com o comentário do cliente ou "Aprovada em <data> por <nome>", lidos da
   aprovação por link da OS. Venda sem arte não mostra nada. Fonte: US-COMVIS-NEW-004 (UC-PCART no
   Apontamento).
+  - Pedido: P-002
+  - Âncora: `UC-FLX-02` · US-COMVIS-NEW-004
+  - Fazer: Ler a aprovação por link da OS e levá-la à consulta; nada em venda sem arte.
+  - Hoje: part | Em parte | Aprovação por link existe na OS (`UC-PCART`); a consulta não mostra. Desenhado no protótipo
+  - Comunicação visual: ok | Sim | nos 3 modelos de CV
+  - Clientes: Plakart
+  - Etiquetas: part, cv
 - **[BACKLOG] Item que deixou o estoque abaixo do mínimo (UC-FLX-19)** — Aceite: Dado a regra
   "Requisição pelo estoque mínimo" ligada e uma venda cujo item deixou o produto abaixo do mínimo,
   Quando abro a venda no drawer, Então o item mostra "abaixo do mínimo · requisição <número> aberta".
   Regra desligada (padrão), nada aparece. Fonte: US-COM-027 (a requisição nasce sozinha; UC-REQMIN-01 a
   08 em Requisição de compra).
+  - Pedido: P-003
+  - Âncora: `UC-FLX-19` · US-COM-027
+  - Fazer: Buscar a requisição aberta do produto e mostrar na linha do item, no drawer.
+  - Hoje: part | Em parte | A requisição já nasce sozinha (`UC-REQMIN-01` a `08`); a venda não mostra
+  - Comunicação visual: part | Em parte | modelo CV média com PCP
+  - Clientes: Martinho
+  - Etiquetas: part, cv
 - **[BACKLOG] Saldo a favor usado na venda** `[V0]` — Aceite: Dado uma venda de 500,00 que usou 120,00
   do saldo a favor do cliente, Então a coluna Pagamento mostra "120,00 do saldo a favor", a aba
   Pagamento do drawer mostra de onde veio o saldo (devolução, troca ou pagamento a mais, com a data) e o
   A receber dos totais conta 380,00. Fonte: o adiantamento do cliente já paga a venda pela forma
   "Adiantamento"; US-VEST-021.
+  - Pedido: P-004
+  - Âncora: Forma Adiantamento · US-VEST-021
+  - Fazer: Identificar o pagamento por Adiantamento e a origem do saldo; mostrar na coluna e no drawer.
+  - Hoje: part | Em parte | Pagar com Adiantamento existe; a consulta não diz de onde veio
+  - Comunicação visual: gray | Pouco | veio do vestuário
+  - Clientes: NewPrint
+  - Etiquetas: valor, part
 - **[BACKLOG] Venda que passou do limite de crédito** `[V0]` — Aceite: Dado um cliente com limite de
   2.000,00 e uma venda a prazo salva com o aviso de limite, Então o Status mostra "Acima do limite ·
   300,00", e o filtro "Acima do limite" lista só essas vendas. Fonte: US-CRM-081.
+  - Pedido: P-005
+  - Âncora: US-CRM-081
+  - Fazer: Gravar na venda que ela passou do limite e quanto; selo e filtro.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: part | Cliente empresa | venda a prazo
+  - Clientes: Madereira Spilere
+  - Etiquetas: valor, miss, cv
 - **[BACKLOG] Número do pedido de compra do cliente** — Aceite: Dado uma venda com o pedido do
   cliente "4500012345", Quando busco "4500012345", Então a venda aparece, e a linha mostra "Ped.
   cliente 4500012345" abaixo do nome do cliente. A coluna "Pedido do cliente" fica disponível no botão
   Colunas. Fonte: campo `xPed` da NF-e e da NFS-e (o mesmo número vai na nota).
+  - Pedido: P-006
+  - Âncora: NF-e e NFS-e (`xPed`)
+  - Fazer: Incluir o número na busca, na linha e no botão Colunas.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: part | Cliente empresa | redes e construtoras
+  - Clientes: Zoom, Techpress
+  - Etiquetas: miss, cv
 - **[BACKLOG] Venda com ISS retido: total do serviço × o que o cliente paga (UC-FLX-30)** `[V0]` —
   Aceite: Dado uma venda de 1.000,00 com a NFS-e autorizada e 96,50 retidos (ISS + federais), Então o
   drawer mostra "Total do serviço 1.000,00 · retido 96,50 · cliente paga 903,50", o Total da linha
   segue 1.000,00, a coluna Pagamento diz "retido 96,50" e o A receber dos totais conta só o que falta
   do líquido. Fonte: US-FIN-072 (a retenção é baixa sem caixa; UC-CRISS-01 a 03 em Contas a receber).
+  - Pedido: P-007
+  - Âncora: `UC-FLX-30` · US-FIN-072
+  - Fazer: Ler o pagamento de retenção da venda; mostrar os três valores e tirar o retido do A receber.
+  - Hoje: part | Em parte | A retenção já vira baixa (`UC-CRISS-01` a `03`); a consulta não separa. Desenhado no protótipo
+  - Comunicação visual: ok | Sim | NFS-e com retenção
+  - Clientes: Techpress
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] Venda sem comissionado** — Aceite: Dado vendas com vendedor, com representante ou
   agência, e vendas sem ninguém vinculado, Quando filtro "Comissionado: nenhum", Então só aparecem as
   vendas sem ninguém vinculado, e no Foco Comissão elas mostram "sem comissionado" em vez de 0,00.
   Fonte: Comissionados (`sales_commission_agents`); UC-FLX-05.
+  - Pedido: P-008
+  - Âncora: `UC-FLX-05`
+  - Fazer: Filtro novo e o texto "sem comissionado" no Foco Comissão.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | modelo CV média com PCP
+  - Clientes: Techpress
+  - Etiquetas: miss, cv
 - **[BACKLOG] Venda agrupada (US-SELL-024)** — várias vendas do mesmo cliente juntadas numa cobrança
   só. Aceite: Dado três vendas de um cliente agrupadas, Então cada uma mostra o selo "Agrupada" com o
   número da cobrança, o filtro "Agrupadas" lista só elas e o selo leva às outras vendas do grupo. Venda
   fora de grupo não mostra selo. Fonte: US-SELL-024 (coluna `is_grouped_invoice`, já no banco) e o
   Delphi (`CODFINANCEIRO_GRUPO`, em 34% a 65% das vendas dos clientes medidos).
+  - Pedido: P-009
+  - Âncora: US-SELL-024
+  - Fazer: Selo, filtro e link para as outras vendas do grupo, depois do agrupamento existir em Contas a receber.
+  - Hoje: part | Em parte | A coluna `is_grouped_invoice` existe; agrupar não
+  - Comunicação visual: ok | Sim | agrupamento do Delphi
+  - Clientes: Techpress, Vargas, Gold, EBG Comunicação Visual, ArtLaser
+  - Etiquetas: part, cv
 - **[BACKLOG] Faturar só parte da venda** `[V0]` — detalha o "Faturar só parte da venda" acima.
   Aceite: Dado uma venda de 10 placas, Quando faturo 4 · Então nasce a parte "<venda>/1" com as 4
   placas, a nota e o título dela, e a venda mostra "4 de 10 faturadas · faltam 6"; cancelar a nota da
   parte devolve as 4 à venda. Mexe em valor e estoque: Regra Mestre. Fonte: Omie (pedido parcial).
+  - Pedido: P-023
+  - Âncora: Omie (pedido parcial)
+  - Fazer: Ação de faturar parte da venda, com a quantidade de cada item; dupla confirmação do cálculo e do estoque.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | entrega e instalação em etapas
+  - Clientes: GP
+  - Etiquetas: valor, miss, cv
 - **[BACKLOG] Venda duplicada mostra de onde veio** — Aceite: Dado a V-200 duplicada da V-150, Então
   a linha e o drawer da V-200 mostram "Duplicada de V-150" com link, e o drawer da V-150 mostra
   "Duplicada em V-200"; vale também para orçamento duplicado. Hoje `SellController::duplicateSell`
   copia a venda para um rascunho e não guarda a origem (medido em 23/10/2026). Fonte: o backlog
   "Duplicar a venda (recompra)" acima.
+  - Pedido: P-031
+  - Âncora: `SellController::duplicateSell`
+  - Fazer: Gravar a origem na cópia; mostrar o vínculo nos dois sentidos.
+  - Hoje: part | Em parte | Duplicar existe; hoje a cópia não guarda a origem
+  - Comunicação visual: ok | Sim | recompra do mesmo serviço
+  - Clientes: Zoom, Techpress, Sabor Brasil, Display Paraná, Estilo
+  - Etiquetas: part, cv
 - **[BACKLOG] Venda devolvida no todo ou em parte** — detalha o UC-S12. Aceite: Dado uma venda de 3
   itens com 2 devolvidos, Então o Status mostra "Devolução parcial · 2 de 3"; com os 3 devolvidos,
   "Devolvida"; o ícone de devolução do UC-S12 continua. Fonte: processo "Devolução, troca e garantia"
   de Fluxos (devolução total ou parcial).
+  - Pedido: P-032
+  - Âncora: `UC-S12` · processo de devolução de Fluxos
+  - Fazer: Status de devolução parcial e total, ao lado do ícone que já existe.
+  - Hoje: part | Em parte | O ícone de devolução existe (UC-S12)
+  - Comunicação visual: gray | Pouco | sob encomenda quase não volta
+  - Clientes: Fixar, Safety, Estilo, Max Comunicação, Ciasul, Extreme, Mecânica Casa Grande, Wow Comunicação, Litoral Comunicação, Placa Fácil, Makan, Lamac, Zoom, Lessa Cortinas, Movesul, Sabor Brasil, DMB, Mecânica Lebrinha, Jo Painéis, CyberStudio, GP, GSX, Molas Patrício, Display Paraná, Ntrogen, MidiaOff, Quimeco, Vargas
+  - Etiquetas: part
 - **[BACKLOG] Garantia aberta pela venda** `[E0]` — Aceite: Dado uma venda entregue com um item na
   garantia, Quando abro a garantia pelo menu da venda, Então a troca sai sem cobrança, com a nota de
   remessa em garantia ligada à venda, e a venda mostra "Garantia aberta"; fora do prazo, a troca pede
   aprovação do gerente. Fonte: SPEC de Garantia (planejado, cenários A a E) e o processo "Devolução,
   troca e garantia" de Fluxos.
+  - Pedido: P-033
+  - Âncora: SPEC de Garantia (planejado) · processo de garantia de Fluxos
+  - Fazer: Ação "Abrir garantia" na venda, ligada à nota de remessa em garantia.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | banner que descolou (SPEC de Garantia, cenário C)
+  - Clientes: Martinho, Molas Patrício, Vargas
+  - Etiquetas: valor, miss, cv, decisao
 - **[BACKLOG] Venda para entrega futura: o que falta entregar** — Aceite: Dado uma venda para entrega
   futura de 1.000 folhetos com 400 entregues, Então a linha mostra "Entrega futura · faltam 600" e o
   drawer lista as notas de remessa já emitidas. Fonte: UC-TRB-24 do protótipo fiscal (falta).
+  - Pedido: P-034
+  - Âncora: `UC-TRB-24` (protótipo fiscal)
+  - Fazer: Saldo a entregar na linha e notas de remessa no drawer.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | entrega em lotes
+  - Clientes: Mil Letras
+  - Etiquetas: miss, cv
 - **[BACKLOG] Emitir a nota com imposto faltando** — Aceite: Dado uma venda com um item sem NCM e
   outro com a natureza fiscal "a decidir pelo contador", Quando clico em emitir a nota no drawer,
   Então a tela confere a nota antes de enviar: o item sem NCM aparece "vai sair com o NCM padrão da
@@ -257,11 +355,25 @@ last_run: "2026-10-23"
   revisão), UC-FNFSE-12 (natureza pendente bloqueia as duas notas) e CU-PROD-18 (aviso no cadastro).
   Pedido da PraMoto (2026-10-27): os produtos comprados sem nota entram sem NCM, e o problema só
   aparece na emissão.
+  - Pedido: P-045
+  - Âncora: `UC-TRB-05` · `UC-FNFSE-12` · `CU-PROD-18`
+  - Fazer: Conferir a nota inteira antes de emitir, com as mesmas regras da Saúde fiscal e do simulador da Tributação, e corrigir ali mesmo. Sem NCM a nota sai com o NCM padrão da empresa (decisão do Wagner de 06/10).
+  - Hoje: part | Em parte | A NFS-e já bloqueia natureza pendente; a NF-e não lista o que falta
+  - Comunicação visual: ok | Sim | mercadoria × serviço em cada item
+  - Clientes: PraMoto, Estilo
+  - Etiquetas: part, cv
 - **[BACKLOG] Emitir a nota com dados do cliente faltando** — Aceite: Dado um cliente empresa sem
   endereço completo (CEP e município) ou sem a indicação de contribuinte do ICMS, Quando clico em
   emitir a nota, Então a nota não sai e a tela lista o que falta, com link para o cadastro do cliente;
   a venda a consumidor final sem identificação segue como hoje. Fonte: grupo do destinatário da NF-e
   (documento, nome, endereço com município e indicador de IE).
+  - Pedido: P-046
+  - Âncora: Grupo do destinatário da NF-e
+  - Fazer: Conferir o cliente antes de emitir e listar o que falta.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: part | Cliente empresa | nota para empresa
+  - Clientes: Techpress, PraMoto
+  - Etiquetas: miss, cv
 - **[BACKLOG] Em que etapa da produção está cada venda** — detalha o "Ver na linha a etapa da
   produção" acima. Aceite: Dado uma venda com 2 OS, uma em Impressão e outra em Acabamento, Então a
   linha mostra "Produção: 0 de 2 prontas · mais atrasada: Impressão", e o filtro "Etapa da produção"
@@ -269,26 +381,76 @@ last_run: "2026-10-23"
   Pipeline mostra a etapa da venda (`pipeline_label`), não a da OS (medido em `Index.tsx`,
   23/10/2026). Fonte: processo "OS e produção por item" de Fluxos; o protótipo da consulta (PR #9771)
   desenha a coluna Produção (OS).
+  - Pedido: P-053
+  - Âncora: Processo "OS e produção por item" de Fluxos · protótipo da consulta (PR #9771)
+  - Fazer: Levar à consulta a etapa das OS de cada venda e criar o filtro por etapa.
+  - Hoje: part | Em parte | A coluna Pipeline mostra a etapa da venda, não a da OS (medido em `Index.tsx`, 23/10/2026)
+  - Comunicação visual: ok | Sim | arte, impressão, acabamento, instalação
+  - Clientes: Extreme, Zoom, Max Comunicação, Copylan
+  - Etiquetas: part, cv
 - **[BACKLOG] Pedidos em aberto** — Aceite: Dado vendas aprovadas ainda não entregues e outras já
   entregues ou canceladas, Quando escolho a visão "Em aberto", Então aparecem só as não entregues e
   não canceladas, pagas ou não, com a etapa de cada uma, e o total da visão soma só elas. Hoje as
   visões "Pendentes" e "Pendentes pgto." olham o pagamento, não a entrega (medido em `Index.tsx`,
   23/10/2026).
+  - Pedido: P-054
+  - Âncora: Visões da consulta (`Index.tsx`)
+  - Fazer: Visão "Em aberto" pela etapa da venda, separada das visões de pagamento.
+  - Hoje: part | Em parte | "Pendentes" e "Pendentes pgto." olham o pagamento (medido em `Index.tsx`, 23/10/2026)
+  - Comunicação visual: ok | Sim | pedido sob encomenda em andamento
+  - Clientes: *
+  - Etiquetas: part, cv
 - **[BACKLOG] Vendas que falta emitir nota** — Aceite: Dado uma venda paga sem nota e outra a receber
   sem nota, Quando escolho "Falta emitir nota", Então as duas aparecem; a venda com nota autorizada e
   a venda marcada para não emitir nota ficam de fora, e a nota rejeitada aparece com o motivo. Hoje a
   visão "Aguardando faturamento" exige `payment_status !== 'paid'`, então a venda paga sem nota não
   aparece em nenhuma visão de nota (medido em `Index.tsx`, 23/10/2026).
+  - Pedido: P-055
+  - Âncora: Visão "Aguardando faturamento" (`Index.tsx`)
+  - Fazer: Visão que inclui a venda paga sem nota.
+  - Hoje: part | Em parte | "Aguardando faturamento" exige venda não paga: a paga sem nota não aparece (medido em `Index.tsx`, 23/10/2026)
+  - Comunicação visual: ok | Sim | nota no faturamento
+  - Clientes: *, Techpress
+  - Etiquetas: part, cv
 - **[BACKLOG] Tipos de venda lançadas** — Aceite: Dado o período escolhido, Então a consulta mostra
   quantas vendas e quanto de cada tipo (balcão, oficina, online, reparo, entrega futura, venda
   agrupada), e clicar num tipo filtra a lista. Hoje a visão Origem conta e soma só balcão, oficina e
   online (medido em `Index.tsx`, 23/10/2026); reparo não entra, e assinatura fica numa tela à parte.
+  - Pedido: P-056
+  - Âncora: Visão Origem (`Index.tsx`)
+  - Fazer: Incluir reparo, entrega futura e venda agrupada na contagem por tipo.
+  - Hoje: part | Em parte | Origem conta só balcão, oficina e online (medido em `Index.tsx`, 23/10/2026)
+  - Comunicação visual: ok | Sim | balcão, sob encomenda e instalação
+  - Clientes: *
+  - Etiquetas: part, cv
+
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-01 · Saldo a favor vira regra no catálogo de Fluxos?**
+  - Estado: Em aberto
+  - Texto: Os casos propõem oferecer o saldo na próxima venda, e o vendedor pode recusar. A regra fica para a revisão dos fluxos, junto com os modelos e as configurações.
+  - Destrava: P-004, P-011, P-015, P-017
+  - Ligação: o documento não cita caso para esta decisão; a ligação com P-004, P-011, P-015, P-017 é inferida pelo assunto.
+- **[DECISÃO] D-02 · Acima do limite de crédito: avisar ou bloquear?**
+  - Estado: Em aberto
+  - Opção: Avisar — A venda salva e mostra quanto passou do limite. É o que o sistema faz hoje, e é o que a Madereira Spilere quer.
+  - Opção: Bloquear — A venda não salva e o carrinho fica como estava. A proposta é deixar a escolha por empresa.
+  - Destrava: P-005, P-029, P-030
+  - Ligação: o documento não cita caso para esta decisão; a ligação com P-005, P-029, P-030 é inferida pelo assunto.
+- **[DECISÃO] D-03 · "Venda agrupada" é juntar várias vendas numa cobrança só?**
+  - Estado: Em aberto
+  - Texto: Os casos 9 e 19 seguem o agrupamento do Delphi. Se for outra coisa, os dois mudam.
+  - Destrava: P-009
+  - Ligação: também destrava P-019, que ainda não está no git.
 
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-28 · [W+C] Decisões pendentes D-01, D-02, D-03 do documento "Casos de uso por tela", sem id de caso.
 - 2026-10-27 · [F+C] Backlog "Emitir a nota com imposto faltando": a conferência antes de emitir segue o UC-TRB-33 (sem NCM sai com o NCM padrão, marcado para revisão), pedido da PraMoto. Sem id.
 - 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito, pedido de compra do cliente, ISS retido, venda sem comissionado e venda agrupada, sem id e sem mudança de comportamento da tela.
 - 2026-10-23 · [M+C] Backlog: faturar só parte da venda, da comparação com concorrentes (Omie), sem id.

@@ -393,7 +393,7 @@ it('credential gateway_key errado → CredentialMisconfigured', function () {
     $bad->setRawAttributes([
         'id' => 88, 'business_id' => 1, 'gateway_key' => 'asaas',
         'ambiente' => 'sandbox', 'ativo' => true,
-        'config_json' => json_encode(['api_key' => 'x']),
+        'config_json' => Crypt::encryptString(json_encode(['api_key' => 'x'])),
     ], true);
     expect(fn () => (new PagarmeDriver())->healthCheck($bad))
         ->toThrow(CredentialMisconfiguredException::class);
@@ -404,7 +404,8 @@ it('credential sem secret_key → CredentialMisconfigured', function () {
     $bad->setRawAttributes([
         'id' => 87, 'business_id' => 1, 'gateway_key' => 'pagarme',
         'ambiente' => 'sandbox', 'ativo' => true,
-        'config_json' => json_encode(['webhook_secret' => 'x']), // sem secret_key
+        // cast encrypted:array (#1568): cru, o model estoura DecryptException antes do driver ler.
+        'config_json' => Crypt::encryptString(json_encode(['webhook_secret' => 'x'])), // sem secret_key
     ], true);
     expect(fn () => (new PagarmeDriver())->healthCheck($bad))
         ->toThrow(CredentialMisconfiguredException::class);

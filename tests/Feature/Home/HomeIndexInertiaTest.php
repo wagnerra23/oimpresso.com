@@ -62,7 +62,7 @@ function homeBootstrap(): User
 it('UC-DASH-01 · renderiza Inertia component Home/Index com shape esperado', function () {
     $user = homeBootstrap();
 
-    $response = $this->actingAs($user)->get('/dashboard-legacy');
+    $response = $this->actingAs($user)->get('/home');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -95,7 +95,7 @@ it('UC-DASH-02 · customer redirect preservado (user_type=user_customer → 302)
         'business.id' => $business->id,
     ]);
 
-    $response = $this->actingAs($customer)->get('/dashboard-legacy');
+    $response = $this->actingAs($customer)->get('/home');
 
     expect($response->status())->toBe(302);
 });
@@ -107,7 +107,7 @@ it('UC-DASH-03 · sem permission dashboard.data → totals null (shell minimal)'
         $user->revokePermissionTo('dashboard.data');
     }
 
-    $response = $this->actingAs($user)->get('/dashboard-legacy');
+    $response = $this->actingAs($user)->get('/home');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -123,7 +123,7 @@ it('UC-DASH-04 · ?legacy=1 é inerte — não existe mais fallback Blade', func
     // Até 2026-08-28 esta query servia `view('home.index')`. O Blade foi removido junto
     // com o ramo que o chamava; a query sobrevive apenas como link velho em favorito, e
     // tem de cair na MESMA tela React — nunca em 500 nem numa view fantasma.
-    $response = $this->actingAs($user)->get('/dashboard-legacy?legacy=1');
+    $response = $this->actingAs($user)->get('/home?legacy=1');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page->component('Home/Index'));
@@ -172,7 +172,7 @@ it('UC-DASH-05 · Tier 0 multi-tenant — não vaza locations de outro business'
         'updated_at' => now(),
     ]);
 
-    $response = $this->actingAs($userA)->get('/dashboard-legacy');
+    $response = $this->actingAs($userA)->get('/home');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -189,7 +189,7 @@ it('UC-DASH-05 · Tier 0 multi-tenant — não vaza locations de outro business'
 it('UC-DASH-06 · totals expõe 8 campos canônicos (guard charter v2)', function () {
     $user = homeBootstrap();
 
-    $response = $this->actingAs($user)->get('/dashboard-legacy');
+    $response = $this->actingAs($user)->get('/home');
 
     $response->assertStatus(200);
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -204,4 +204,14 @@ it('UC-DASH-06 · totals expõe 8 campos canônicos (guard charter v2)', functio
         ->has('totals.total_sell_return')
         ->has('totals.total_purchase_return')
     );
+});
+
+// [W] 2026-10-29: a Visão geral voltou a morar em `/home`. O endereço antigo
+// segue de pé como redirect — link salvo/favorito não quebra, e a query
+// (`?aba=...`) chega intacta na tela.
+it('UC-DASH-01 · /dashboard-legacy redireciona pra /home preservando a query', function () {
+    $user = homeBootstrap();
+
+    $this->actingAs($user)->get('/dashboard-legacy')->assertRedirect('/home');
+    $this->actingAs($user)->get('/dashboard-legacy?aba=caixa')->assertRedirect('/home?aba=caixa');
 });

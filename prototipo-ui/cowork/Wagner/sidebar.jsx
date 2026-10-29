@@ -380,8 +380,8 @@ function UserMenu({ onClose }) {
       {(MOCK.USER_MENU || []).map((it) => {
         const Icon = I[it.icon] || I.cog;
         return (
-          <button type="button" key={it.id} className="um-item" onClick={() => go(it.id)}>
-            <Icon className="ic" /> <span className="label">{it.label}</span>
+          <button type="button" key={it.id} className="um-item" onClick={() => go(it.id)} style={it.sub ? { paddingLeft: 28 } : undefined}>
+            <Icon className="ic" /> <span className="label">{it.sub ? "› " : ""}{it.label}</span>
           </button>);
 
       })}
@@ -469,8 +469,8 @@ function UserMenu({ onClose }) {
       {(MOCK.FOOTER_LINKS || []).map((it) => {
         const Icon = I[it.icon] || I.book;
         return (
-          <button type="button" key={it.id} className="um-item" onClick={() => go(it.id)}>
-            <Icon className="ic" /> <span className="label">{it.label}</span>
+          <button type="button" key={it.id} className="um-item" onClick={() => go(it.id)} style={it.sub ? { paddingLeft: 28 } : undefined}>
+            <Icon className="ic" /> <span className="label">{it.sub ? "› " : ""}{it.label}</span>
           </button>);
 
       })}

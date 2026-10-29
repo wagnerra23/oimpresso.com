@@ -1,0 +1,35 @@
+{
+  "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-01 Lista de Documentacao/CasosPorTela (2026-10-28). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w.",
+  "tela": "Documentacao/CasosPorTela",
+  "fonte": "scripts/casos-backlog/template.html",
+  "_nota_fonte": "A âncora é o layout aprovado por [W] e Maiara no artefato gerado por scripts/casos-backlog/template.html (charter: related_prototype n/a, herda PT-01 Lista). Não há protótipo Cowork; apontar para o .tsx tornaria o contrato tautológico (catraca anti-tautologia do contrato-de-tela.mjs).",
+  "alvo": [
+    "resources/js/Pages/Documentacao/CasosPorTela.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": []
+    },
+    {
+      "id": "filtros",
+      "copy": []
+    },
+    {
+      "id": "lista",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "filtros",
+    "lista"
+  ],
+  "_pendente_w": [
+    "COPY DE CADA SEÇÃO — hoje todas as `copy` estão vazias, e o gate passa sem exigir string nenhuma. A copy literal que o design exige é decisão [W] (how-trabalhar.md §Pedido de tela: \"`## Contrato visual` (copy literal + ordem)\"). Preencha seção a seção conforme os TODO do .tsx forem virando texto real — cada string vira match exato no alvo.",
+    "ESTADOS — `estados` foi omitido de propósito (empty/loading/erro dependem do domínio, não do arquétipo). Declare quando a tela tiver os estados de verdade.",
+    "seção `cabecalho` — PageHeader — identidade da tela. Copy pendente.",
+    "seção `filtros` — faixa de filtros/busca acima da tabela. Copy pendente.",
+    "seção `lista` — a DataTable em si (colunas + paginação). Copy pendente."
+  ]
+}

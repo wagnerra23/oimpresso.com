@@ -50,7 +50,7 @@ it('emitirBoleto Asaas pipeline OK', function () {
     ]);
 
     $service = new PaymentGatewayService();
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
 
     $result = $service->for($account)->emitirBoleto(new EmitirCobrancaInput(
         businessId: 1,
@@ -80,7 +80,7 @@ it('emitirPix Asaas tipo=cob OK', function () {
     ]);
 
     $service = new PaymentGatewayService();
-    $account = (object) ['id' => 1, 'payment_gateway_credential_id' => $this->cred->id];
+    $account = (new \App\Account())->forceFill(['id' => 1, 'payment_gateway_credential_id' => $this->cred->id]);
 
     $result = $service->for($account)->emitirPix(new EmitirCobrancaInput(
         businessId: 1, contactId: 200, valorCentavos: 5000,

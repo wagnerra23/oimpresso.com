@@ -19,14 +19,14 @@ uses(Tests\TestCase::class);
 /**
  * W27 G1 — Smoke ServiceOrderItem entity + Service.
  *
- * Tests biz=1 conforme ADR 0101 (biz=99 só usado pra isolamento cross-tenant).
+ * Tests biz=1 conforme ADR 0101 (biz=2, 2º tenant do seed, só usado pra isolamento cross-tenant).
  *
  * @see Modules/OficinaAuto/Entities/ServiceOrderItem.php
  * @see Modules/OficinaAuto/Services/ServiceOrderItemService.php
  */
 
 const BIZ_W27 = 1;
-const BIZ_W27_OUTRO = 99;
+const BIZ_W27_OUTRO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
 const PLATE_W27_PREFIX = 'W27ITM';
 
 beforeEach(function () {
@@ -95,7 +95,7 @@ it('cria ServiceOrderItem com auto-cálculo valor_total', function () {
     expect($item->id)->toBeGreaterThan(0);
     expect((float) $item->valor_total)->toBe(180.00); // auto-calculado no creating
     expect($item->business_id)->toBe(BIZ_W27);
-})->afterEach(fn () => w27_cleanup('A'));
+})->after(fn () => w27_cleanup('A'));
 
 it('recalcula valor_total no update quando quantidade muda', function () {
     session(['user.business_id' => BIZ_W27]);
@@ -113,9 +113,9 @@ it('recalcula valor_total no update quando quantidade muda', function () {
 
     $item->update(['quantidade' => 1.0]);
     expect((float) $item->fresh()->valor_total)->toBe(120.00);
-})->afterEach(fn () => w27_cleanup('B'));
+})->after(fn () => w27_cleanup('B'));
 
-it('escopa por business_id global scope (biz=99 não enxerga itens biz=1)', function () {
+it('escopa por business_id global scope (biz=2 não enxerga itens biz=1)', function () {
     session(['user.business_id' => BIZ_W27]);
     $os = w27_criaOsParaItens('C', BIZ_W27);
     ServiceOrderItem::withoutGlobalScopes()->create([
@@ -127,7 +127,7 @@ it('escopa por business_id global scope (biz=99 não enxerga itens biz=1)', func
         'valor_unitario'   => 35.00,
     ]);
 
-    // Switch session pra biz=99 — global scope deve esconder o item
+    // Switch session pra biz=2 — global scope deve esconder o item
     session(['user.business_id' => BIZ_W27_OUTRO]);
     $visiveis = ServiceOrderItem::where('service_order_id', $os->id)->get();
     expect($visiveis)->toHaveCount(0);
@@ -135,7 +135,7 @@ it('escopa por business_id global scope (biz=99 não enxerga itens biz=1)', func
     // SUPERADMIN bypass mostra os 1
     $todos = ServiceOrderItem::withoutGlobalScopes()->where('service_order_id', $os->id)->get();
     expect($todos)->toHaveCount(1);
-})->afterEach(fn () => w27_cleanup('C'));
+})->after(fn () => w27_cleanup('C'));
 
 // ---------------------------------------------------------------------------
 // Service tests
@@ -167,7 +167,7 @@ it('Service::addItem cria peça + mão-de-obra e recalcularTotal soma correto', 
 
     $total = $service->recalcularTotal($os->id);
     expect($total)->toBe(320.00); // 180 + 60 + 80
-})->afterEach(fn () => w27_cleanup('D'));
+})->after(fn () => w27_cleanup('D'));
 
 it('Service::addItem rejeita tipo inválido', function () {
     session(['user.business_id' => BIZ_W27]);
@@ -180,21 +180,21 @@ it('Service::addItem rejeita tipo inválido', function () {
         'quantidade'     => 1,
         'valor_unitario' => 10,
     ]))->toThrow(InvalidArgumentException::class, "tipo inválido");
-})->afterEach(fn () => w27_cleanup('E'));
+})->after(fn () => w27_cleanup('E'));
 
 it('Service::addItem rejeita OS de outro business (cross-tenant defense)', function () {
     session(['user.business_id' => BIZ_W27]);
-    $osBiz99 = w27_criaOsParaItens('F', BIZ_W27_OUTRO);
+    $osOutroBiz = w27_criaOsParaItens('F', BIZ_W27_OUTRO);
     $service = new ServiceOrderItemService();
 
-    // Tentando adicionar item biz=1 numa OS biz=99 → deve rejeitar
-    expect(fn () => $service->addItem(BIZ_W27, $osBiz99->id, [
+    // Tentando adicionar item biz=1 numa OS biz=2 → deve rejeitar
+    expect(fn () => $service->addItem(BIZ_W27, $osOutroBiz->id, [
         'tipo'           => ServiceOrderItem::TIPO_PECA,
         'descricao'      => 'X',
         'quantidade'     => 1,
         'valor_unitario' => 10,
     ]))->toThrow(InvalidArgumentException::class, 'não pertence ao business');
-})->afterEach(fn () => w27_cleanup('F'));
+})->after(fn () => w27_cleanup('F'));
 
 it('Service::breakdownPorTipo retorna agregado correto', function () {
     session(['user.business_id' => BIZ_W27]);
@@ -210,7 +210,7 @@ it('Service::breakdownPorTipo retorna agregado correto', function () {
     expect($bd['mao_obra'])->toBe(100.00);
     expect($bd['servico_terceiro'])->toBe(0.00);
     expect($bd['total'])->toBe(230.00);
-})->afterEach(fn () => w27_cleanup('G'));
+})->after(fn () => w27_cleanup('G'));
 
 it('Service::listarPorTipo filtra estritamente', function () {
     session(['user.business_id' => BIZ_W27]);
@@ -223,4 +223,4 @@ it('Service::listarPorTipo filtra estritamente', function () {
     expect($service->listarPorTipo($os->id, ServiceOrderItem::TIPO_PECA))->toHaveCount(1);
     expect($service->listarPorTipo($os->id, ServiceOrderItem::TIPO_MAO_OBRA))->toHaveCount(1);
     expect($service->listarPorTipo($os->id, ServiceOrderItem::TIPO_SERVICO_TERCEIRO))->toHaveCount(0);
-})->afterEach(fn () => w27_cleanup('H'));
+})->after(fn () => w27_cleanup('H'));
