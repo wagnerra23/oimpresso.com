@@ -33,7 +33,7 @@ module: PaymentGateway
 - [SicoobApiWebhookController.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php)
 - [WebhookProcessor.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php)
 
-## Services — 26
+## Services — 27
 
 - [CnabBoletoAdapter.php](../../../Modules/PaymentGateway/Services/Cnab/CnabBoletoAdapter.php)
 - [AilosCnabDriver.php](../../../Modules/PaymentGateway/Services/Cnab/Drivers/AilosCnabDriver.php)
@@ -48,6 +48,7 @@ module: PaymentGateway
 - [SicoobCnabDriver.php](../../../Modules/PaymentGateway/Services/Cnab/Drivers/SicoobCnabDriver.php)
 - [SicrediCnabDriver.php](../../../Modules/PaymentGateway/Services/Cnab/Drivers/SicrediCnabDriver.php)
 - [CobrancaDoAppGateway.php](../../../Modules/PaymentGateway/Services/CobrancaDoAppGateway.php)
+- [DescontoPontualidade.php](../../../Modules/PaymentGateway/Services/DescontoPontualidade.php)
 - [AsaasDriver.php](../../../Modules/PaymentGateway/Services/Drivers/AsaasDriver.php)
 - [BcbPixDriver.php](../../../Modules/PaymentGateway/Services/Drivers/BcbPixDriver.php)
 - [C6Driver.php](../../../Modules/PaymentGateway/Services/Drivers/C6Driver.php)

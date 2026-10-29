@@ -176,7 +176,7 @@ last_run: "2026-10-14"
   - Pedido: P-086
   - Âncora: `Cliente/Index.casos.md`
   - Fazer: Campo de desconto e prazo no cadastro do cliente, levado ao boleto e à baixa do título.
-  - Hoje: miss | Não tem | O cadastro não tem o campo; os boletos saem sem desconto
+  - Hoje: miss | Não tem | A coluna `contacts.boleto_desconto_pontualidade_pct` existe no banco (migration de 2026-05-27), mas nenhuma tela mostra e nenhum boleto usa (medido em 2026-10-29); no Delphi o Sabor Brasil dá 3%, 5% ou 7% até o próprio vencimento
   - Comunicação visual: part | Cliente empresa | cliente a prazo com boleto
   - Clientes: Sabor Brasil
   - Etiquetas: valor, miss, cv, decisao

@@ -690,7 +690,7 @@ class InterDriver implements PaymentDriverContract
     {
         $valorReais = number_format($input->valorCentavos / 100, 2, '.', '');
 
-        return [
+        $payload = [
             'seuNumero'           => substr($input->idempotencyKey, 0, 15),
             'valorNominal'        => (float) $valorReais,
             'dataVencimento'      => Carbon::instance($input->vencimento)->toDateString(),
@@ -710,6 +710,20 @@ class InterDriver implements PaymentDriverContract
                 'linha2' => $input->instrucoesPagador ?? 'Não receber após o vencimento',
             ],
         ];
+
+        // P-086 — desconto de pontualidade: API v3 usa UM objeto `desconto` (changelog Inter
+        // 18/05/2026). Valor fixo em reais, válido até `quantidadeDias` antes do vencimento;
+        // 0 = até o próprio vencimento (BOLETOS.DIADESCONTO = 0 no Delphi).
+        $descontoCentavos = (int) ($input->desconto['valor_centavos'] ?? 0);
+        if ($descontoCentavos > 0) {
+            $payload['desconto'] = [
+                'codigo'         => 'VALORFIXODATAINFORMADA',
+                'quantidadeDias' => 0,
+                'valor'          => (float) number_format($descontoCentavos / 100, 2, '.', ''),
+            ];
+        }
+
+        return $payload;
     }
 
     private function detectTipoPessoa(?string $cpfCnpj): string

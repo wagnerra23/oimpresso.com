@@ -85,11 +85,54 @@ class MotorTributarioService
         ?int $operacaoId = null,
         ?string $dataEmissao = null,
     ): TributoCalculado {
+        return $this->calcularComCrt(
+            $produto, $businessId, $ufOrigem, $ufDestino,
+            $aliquotaInternaDestino, $destinatarioContribuinte, $operacaoId, $dataEmissao, null,
+        );
+    }
+
+    /**
+     * P-155 · o mesmo cálculo de `calcularComDestino`, para o local que emite com regime próprio
+     * (Sabor Brasil: um CNPJ no Simples e outro no regime normal na mesma empresa). Com o CRT do
+     * local, o ST retido sai do código do regime dele (CSOSN 500 no Simples, CST 60 no normal) e o
+     * "é Simples" do DIFAL também.
+     *
+     * Método à parte, e não parâmetro novo em `calcularComDestino`: três testes sobrescrevem
+     * aquele método com a assinatura de hoje, e acrescentar parâmetro tornaria a sobrescrita
+     * incompatível (o mesmo Fatal do `calcular` no #8874).
+     */
+    public function calcularComRegimeDoLocal(
+        ProdutoFiscalContext $produto,
+        int $businessId,
+        string $ufOrigem,
+        string $ufDestino,
+        int $crtEmitente,
+        ?float $aliquotaInternaDestino = null,
+        ?bool $destinatarioContribuinte = null,
+    ): TributoCalculado {
+        return $this->calcularComCrt(
+            $produto, $businessId, $ufOrigem, $ufDestino,
+            $aliquotaInternaDestino, $destinatarioContribuinte, null, null, $crtEmitente,
+        );
+    }
+
+    private function calcularComCrt(
+        ProdutoFiscalContext $produto,
+        int $businessId,
+        string $ufOrigem,
+        string $ufDestino,
+        ?float $aliquotaInternaDestino,
+        ?bool $destinatarioContribuinte,
+        ?int $operacaoId,
+        ?string $dataEmissao,
+        ?int $crtEmitente,
+    ): TributoCalculado {
         $destino = [
             'uf_origem'     => $ufOrigem,
             'uf_destino'    => $ufDestino,
             'interna'       => $aliquotaInternaDestino,
             'contribuinte'  => $destinatarioContribuinte,
+            'crt'           => $crtEmitente,
         ];
 
         // D9 Wave 26 observabilidade — wrap calcular() em span com business_id (Tier 0).
@@ -160,13 +203,14 @@ class MotorTributarioService
         }
 
         // Nível 2 — regra exata
-        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, $ufDestino, $operacao, $versionado ? $data : null);
+        $crt = isset($destino['crt']) ? (int) $destino['crt'] : null;
+        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, $ufDestino, $operacao, $versionado ? $data : null, $crt);
         if ($regra) {
             return $this->aplicarRegra($regra, $produto, nivel: 2, destino: $destino);
         }
 
         // Nível 3 — regra padrão NCM (uf_destino NULL)
-        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, null, $operacao, $versionado ? $data : null);
+        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, null, $operacao, $versionado ? $data : null, $crt);
         if ($regra) {
             return $this->aplicarRegra($regra, $produto, nivel: 3, destino: $destino);
         }
@@ -234,9 +278,10 @@ class MotorTributarioService
         ?string $ufDestino,
         ?NfeOperacaoFiscal $operacao = null,
         ?string $data = null,
+        ?int $crt = null,
     ): ?NfeFiscalRule {
         $cacheKey = "{$businessId}|{$ncm}|{$ufOrigem}|" . ($ufDestino ?? 'NULL')
-            . '|' . ($operacao?->id ?? 'padrao') . '|' . ($data ?? '-');
+            . '|' . ($operacao?->id ?? 'padrao') . '|' . ($data ?? '-') . '|' . ($crt ?? '-');
 
         if (array_key_exists($cacheKey, $this->cacheRegras)) {
             return $this->cacheRegras[$cacheKey];
@@ -249,6 +294,17 @@ class MotorTributarioService
         $query = $ufDestino === null
             ? $query->whereNull('uf_destino')
             : $query->where('uf_destino', $ufDestino);
+
+        // P-155 · regra marcada com um regime (CRT) só vale para o local desse regime, e ganha da
+        // regra sem regime. Emitente sem CRT próprio usa só as regras sem regime — as de sempre.
+        if (NfeFiscalRule::temRegraPorRegime()) {
+            if ($crt === null) {
+                $query->whereNull('crt');
+            } else {
+                $query->where(fn ($q) => $q->whereNull('crt')->orWhere('crt', $crt))
+                    ->orderByRaw('crt IS NULL');
+            }
+        }
 
         if ($data !== null) {
             // Operação: a padrão enxerga as regras sem operação (todas as de antes da thread 07);
@@ -373,7 +429,7 @@ class MotorTributarioService
      * Sem alíquota interna do destino o motor devolve ST e DIFAL = 0 (comportamento de antes):
      * nunca inventa a interna. O erro explicável "interna não cadastrada" é R-NFE-021 (thread 09).
      *
-     * @param array{uf_origem?:string,uf_destino?:string,interna?:float|null,contribuinte?:bool|null} $destino
+     * @param array{uf_origem?:string,uf_destino?:string,interna?:float|null,contribuinte?:bool|null,crt?:int|null} $destino
      * @return array{base_st:float,valor_st:float,valor_fcp:float,valor_difal:float,aviso:string|null}
      */
     private function calcularStFcpDifal(NfeFiscalRule $regra, ProdutoFiscalContext $produto, array $destino): array
@@ -387,7 +443,13 @@ class MotorTributarioService
 
         $baseSt = 0.0;
         $valorSt = 0.0;
-        $stRetidaAntes = (string) $regra->csosn === '500';
+        // P-155: com o CRT do local, vale o código do regime dele — CSOSN 500 no Simples, CST 60 no
+        // regime normal. A mesma regra pode trazer os dois (um CNPJ de cada regime na empresa). Sem
+        // CRT, como antes.
+        $crt = isset($destino['crt']) ? (int) $destino['crt'] : null;
+        $stRetidaAntes = $crt === null
+            ? (string) $regra->csosn === '500'
+            : ($crt === 3 ? (string) $regra->cst === '60' : (string) $regra->csosn === '500');
         if ($mva > 0 && $interna !== null && ! $stRetidaAntes) {
             $baseSt  = $this->fmt(($valor + $ipi) * (1 + $mva));
             $valorSt = max(0.0, $this->fmt($baseSt * $interna - $icmsProprio));
@@ -406,7 +468,8 @@ class MotorTributarioService
         // (`nfe_icms_uf.cobra_difal_simples`). Empresa fora do Simples, ou sem regime cadastrado,
         // segue a regra de antes.
         $aviso = null;
-        if ($valorDifal > 0 && $this->ehSimples((int) $regra->business_id)
+        $simples = $crt === null ? $this->ehSimples((int) $regra->business_id) : $crt !== 3;
+        if ($valorDifal > 0 && $simples
             && ! $this->ufCobraDifalSimples((int) $regra->business_id, (string) $destino['uf_origem'], (string) $destino['uf_destino'])) {
             $valorDifal = 0.0;
             $aviso = 'DIFAL não recolhido: empresa do Simples Nacional (STF ADI 5.464). '

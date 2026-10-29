@@ -420,6 +420,8 @@ class ClienteAutosaveController extends Controller
             // Mensagem exibida como alerta ao vendedor no POS.
             'mensagem_venda' => ['nullable', 'string', 'max:5000'],
             'obs_comercial' => ['nullable', 'string', 'max:5000'],
+            // P-086 — % de desconto no boleto pago até o vencimento (Delphi BOLETO_PERC_DESCONTO_PADRAO).
+            'boleto_desconto_pontualidade_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ], $this->messages());
 
         if ($validator->fails()) {
@@ -674,6 +676,8 @@ class ClienteAutosaveController extends Controller
             'pgto_padrao' => $contact->pgto_padrao ?? null,
             'mensagem_venda' => $contact->mensagem_venda ?? null,
             'obs_comercial' => $contact->obs_comercial ?? null,
+            'boleto_desconto_pontualidade_pct' => $contact->boleto_desconto_pontualidade_pct !== null
+                ? (float) $contact->boleto_desconto_pontualidade_pct : null,
             'segmento' => $contact->segmento ?? null,
             'tags' => $this->decodeTags($contact->tags ?? null),
             'contact_status' => $contact->contact_status ?? null,
