@@ -43,6 +43,7 @@ on:
       - 'app/Observers/TransactionMargemMinimaObserver.php'
       - 'app/Exceptions/MargemAbaixoDoMinimo.php'
       - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
+      - 'database/migrations/2026_10_29_120000_add_duplicated_from_id_to_transactions.php'  # P-031/P-035 duplicar com origem
       - 'database/migrations/2026_10_19_220100_add_sell_aprovar_margem_baixa_permission.php'
       - 'app/TransactionSellLine.php'
       - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
@@ -234,6 +235,7 @@ jobs:
               - 'app/Observers/TransactionMargemMinimaObserver.php'
               - 'app/Exceptions/MargemAbaixoDoMinimo.php'
               - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
+              - 'database/migrations/2026_10_29_120000_add_duplicated_from_id_to_transactions.php'  # P-031/P-035 duplicar com origem
               - 'database/migrations/2026_10_19_220100_add_sell_aprovar_margem_baixa_permission.php'
               - 'app/TransactionSellLine.php'
               - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
@@ -624,6 +626,7 @@ jobs:
             tests/Feature/Sells/SellsSubscriptionsContratoTest.php \
             tests/Feature/Sells/SellsDraftsContratoTest.php \
             tests/Feature/Sells/SellsIndexRascunhosContratoTest.php \
+            tests/Feature/Sells/SellsDuplicarContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
