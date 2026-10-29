@@ -46,6 +46,8 @@ export interface ContactInfo {
   // Mensagem exibida como alerta ao vendedor no POS (migrado do Delphi).
   mensagem_venda?: string | null;
   obs_comercial?: string | null;
+  // P-086 — % de desconto no boleto pago até o vencimento (Delphi BOLETO_PERC_DESCONTO_PADRAO).
+  boleto_desconto_pontualidade_pct?: number | null;
 }
 
 export interface ComercialTabProps {
@@ -82,6 +84,18 @@ function toNumberOrNull(v: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+// Aceita "5", "5,5" ou "5.25" → número com até 2 casas; vazio → null (sem desconto).
+function toPctOrNull(v: string): number | null {
+  const t = v.trim().replace(',', '.');
+  if (t === '') return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : null;
+}
+
+function pctToInput(v: number | null | undefined): string {
+  return v != null ? String(v).replace('.', ',') : '';
+}
+
 // Sentinel pro item "sem tabela" — shadcn Select proíbe SelectItem value="".
 const NO_GROUP = '__none__';
 
@@ -105,6 +119,9 @@ export default function ComercialTab({
   const [pgto, setPgto] = useState<string>(contact.pgto_padrao ?? '');
   const [mensagemVenda, setMensagemVenda] = useState<string>(contact.mensagem_venda ?? '');
   const [obs, setObs] = useState<string>(contact.obs_comercial ?? '');
+  const [descontoBoleto, setDescontoBoleto] = useState<string>(
+    pctToInput(contact.boleto_desconto_pontualidade_pct)
+  );
 
   const [savingField, setSavingField] = useState<string | null>(null);
   const [savedField, setSavedField] = useState<string | null>(null);
@@ -120,6 +137,7 @@ export default function ComercialTab({
     setPgto(contact.pgto_padrao ?? '');
     setMensagemVenda(contact.mensagem_venda ?? '');
     setObs(contact.obs_comercial ?? '');
+    setDescontoBoleto(pctToInput(contact.boleto_desconto_pontualidade_pct));
     setErrorField(null);
     setSavedField(null);
   }, [contact.id]);
@@ -131,6 +149,7 @@ export default function ComercialTab({
     else if (field === 'pgto_padrao') setPgto((prev as string) ?? '');
     else if (field === 'mensagem_venda') setMensagemVenda((prev as string) ?? '');
     else if (field === 'obs_comercial') setObs((prev as string) ?? '');
+    else if (field === 'boleto_desconto_pontualidade_pct') setDescontoBoleto(pctToInput(prev as number | null));
   }, []);
 
   const performSave = useCallback(
@@ -296,6 +315,42 @@ export default function ComercialTab({
             saving={savingField === 'prazo_padrao_dias'}
             saved={savedField === 'prazo_padrao_dias'}
             backendError={errorField?.field === 'prazo_padrao_dias' ? errorField.message : null}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <Label htmlFor="cm-desconto-boleto" className="cw-label">
+            Desconto no boleto pago até o vencimento{' '}
+            <span className="text-muted-foreground font-normal">(%, vazio = sem desconto)</span>
+          </Label>
+          <Input
+            variant="cowork"
+            id="cm-desconto-boleto"
+            value={descontoBoleto}
+            placeholder="0"
+            disabled={disabled}
+            inputMode="decimal"
+            onChange={(e) => {
+              const prev = descontoBoleto;
+              const v = e.target.value.replace(/[^\d,.]/g, '');
+              setDescontoBoleto(v);
+              scheduleAutosave('boleto_desconto_pontualidade_pct', toPctOrNull(v), toPctOrNull(prev));
+            }}
+            onBlur={(e) => {
+              const field = 'boleto_desconto_pontualidade_pct';
+              if (debounceTimersRef.current[field]) {
+                clearTimeout(debounceTimersRef.current[field]);
+                delete debounceTimersRef.current[field];
+              }
+              performSave(field, toPctOrNull(e.target.value), previousValuesRef.current[field]);
+            }}
+          />
+          <FieldStatus
+            saving={savingField === 'boleto_desconto_pontualidade_pct'}
+            saved={savedField === 'boleto_desconto_pontualidade_pct'}
+            backendError={
+              errorField?.field === 'boleto_desconto_pontualidade_pct' ? errorField.message : null
+            }
           />
         </div>
 
