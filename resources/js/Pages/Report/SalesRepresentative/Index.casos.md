@@ -43,3 +43,23 @@ last_run: "2026-10-07"
   - Comunicação visual: ok | Sim | comissão diferente por serviço
   - Clientes: CyberStudio
   - Etiquetas: valor, miss, cv, decisao
+
+## Pedidos de clientes
+
+> Pedidos de clientes registrados com `node scripts/casos-backlog/novo.mjs`. Cada um aparece na
+> página "Casos de uso por tela"; quando ganhar teste, vira caso de uso com id e a linha `Pedido de origem`.
+
+- `[BACKLOG]` **Comissão do representante por cliente, liberada quando o cliente paga a parcela** `[V0]` — Dado
+  um representante com 10% no cliente A e 2% no cliente B, Quando o cliente A paga a primeira de três
+  parcelas, Então só a comissão dessa parcela fica liberada para pagar; as outras duas seguem em aberto e a
+  parcela vencida fica pendente. O percentual mora no cadastro do cliente. O Sabor Brasil trabalha assim no
+  Delphi: 1.643 lançamentos de comissão por parcela, percentuais de 2% a 15%, três representantes ativos. Mexe
+  em valor: Regra Mestre. Pedido de Sabor Brasil. Falta decisão [W]: Momento da comissão: na parcela recebida
+  (como o Sabor Brasil) ou no faturamento (modelos de Fluxos do Wagner). Mexe em valor ou estoque: Regra
+  Mestre.
+  - Pedido: P-156
+  - Âncora: US-COMM-016 · Comissionados/Index.casos.md
+  - Fazer: Percentual de comissão por cliente e liberação por parcela recebida, com o relatório mostrando aberto, liberado e vencido por representante.
+  - Hoje: miss | Não tem | O percentual é do vendedor e a comissão sai da venda, não da parcela
+  - Clientes: Sabor Brasil
+  - Etiquetas: valor, miss, decisao

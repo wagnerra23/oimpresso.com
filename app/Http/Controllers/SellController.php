@@ -1494,8 +1494,12 @@ class SellController extends Controller
                 ->pluck('vehicles.plate', 'transactions.id');
         }
 
+        // P-031 — "Duplicada de V-x" na linha. Lookup separado (como a placa), escopado por
+        // business_id nos DOIS lados: a origem só aparece se for da mesma empresa (ADR 0093).
+        $duplicadaDeByTx = $this->origensDaDuplicacao($business_id, $txIds);
+
         $rows = $rows
-            ->map(function ($r) use ($fiscalByTx, $vehiclePlateByTx) {
+            ->map(function ($r) use ($fiscalByTx, $vehiclePlateByTx, $duplicadaDeByTx) {
                 // Calcula overdue inline (boolean derivado, evita re-query).
                 $overdue = false;
                 $daysToDue = null;
@@ -1645,6 +1649,8 @@ class SellController extends Controller
                     // de retorno ao lado do #invoice. Derivado de return_exists (subquery acima),
                     // NÃO mexe em valor/estoque.
                     'has_return' => (int) ($r->return_exists ?? 0) > 0,
+                    // P-031 — venda de origem quando esta nasceu de "Duplicar". null = não duplicada.
+                    'duplicated_from' => $duplicadaDeByTx->get($r->id),
                 ];
             });
 
@@ -1994,6 +2000,9 @@ class SellController extends Controller
                     ? '/sell-return/add/' . $sale->id
                     : null,
             ],
+            // P-031 — vínculo de duplicação nos dois sentidos, escopado pela empresa.
+            'duplicated_from' => $this->origensDaDuplicacao($business_id, [$sale->id])->get($sale->id),
+            'duplicated_into' => $this->copiasDaDuplicacao($business_id, $sale->id),
             // F3 PaymentGateway UI Tela 3 — cobrança vinculada à venda (ADR 0144 + 0170).
             // null = não emitida ainda; UI mostra chip "Emitir cobrança" no footer drawer.
             'cobranca' => $this->buildCobrancaState($sale),
@@ -3766,6 +3775,43 @@ class SellController extends Controller
     }
 
     /**
+     * P-031 — venda de origem de cada venda duplicada: [id_da_copia => ['id', 'invoice_no']].
+     *
+     * Tier 0 (ADR 0093): `App\Transaction` não tem global scope, então o escopo é explícito
+     * nos dois lados — a cópia E a origem têm de ser da empresa da sessão.
+     */
+    private function origensDaDuplicacao(int $business_id, array $ids): \Illuminate\Support\Collection
+    {
+        if (empty($ids) || ! \Illuminate\Support\Facades\Schema::hasColumn('transactions', 'duplicated_from_id')) {
+            return collect();
+        }
+
+        return \DB::table('transactions as copia')
+            ->join('transactions as origem', 'origem.id', '=', 'copia.duplicated_from_id')
+            ->whereIn('copia.id', $ids)
+            ->where('copia.business_id', $business_id)
+            ->where('origem.business_id', $business_id)
+            ->get(['copia.id as copia_id', 'origem.id', 'origem.invoice_no'])
+            ->mapWithKeys(fn ($r) => [(int) $r->copia_id => ['id' => (int) $r->id, 'invoice_no' => (string) $r->invoice_no]]);
+    }
+
+    /** P-031 — vendas duplicadas a partir desta, da mesma empresa: [['id', 'invoice_no'], ...]. */
+    private function copiasDaDuplicacao(int $business_id, int $id): array
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('transactions', 'duplicated_from_id')) {
+            return [];
+        }
+
+        return \DB::table('transactions')
+            ->where('business_id', $business_id)
+            ->where('duplicated_from_id', $id)
+            ->orderBy('id')
+            ->get(['id', 'invoice_no'])
+            ->map(fn ($r) => ['id' => (int) $r->id, 'invoice_no' => (string) $r->invoice_no])
+            ->all();
+    }
+
+    /**
      * Creates copy of the requested sale.
      *
      * @param  int  $id
@@ -3795,6 +3841,13 @@ class SellController extends Controller
             $duplicate_transaction_data['transaction_date'] = \Carbon::now();
             $duplicate_transaction_data['created_by'] = $user_id;
             $duplicate_transaction_data['invoice_token'] = null;
+            // P-031 / P-035 — a cópia guarda a venda de origem (mostrada nos dois sentidos).
+            $duplicate_transaction_data['duplicated_from_id'] = $transaction->id;
+            // A cópia nasce fora do pipeline FSM, como toda venda nova: copiar o estágio da
+            // origem punha um rascunho em "concluída" sem histórico (ADR 0143). Não é transição
+            // de estágio — é registro novo, criado com as colunas nulas.
+            $duplicate_transaction_data['process_id'] = null;
+            $duplicate_transaction_data['current_stage_id'] = null;
 
             DB::beginTransaction();
             $duplicate_transaction_data['invoice_no'] = $this->transactionUtil->getInvoiceNumber($business_id, 'draft', $duplicate_transaction_data['location_id']);

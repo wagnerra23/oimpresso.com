@@ -373,9 +373,7 @@ class NfeService
             : null;
         $ufDestino = $destReal['uf'] ?? $ufOrigem;
         $contribuinte = $destReal === null ? null : $destReal['ind_ie_dest'] === '1';
-        $interna = $destReal === null || $ufDestino === $ufOrigem
-            ? null
-            : $this->internaDoDestino($businessId, $ufOrigem, $ufDestino);
+        $interna = $destReal === null ? null : $this->internaDoSt($businessId, $ufOrigem, $ufDestino, $contribuinte);
         // R-NFE-037: venda a não contribuinte de outra UF leva o grupo ICMSUFDest, que exige a
         // alíquota interna do destino (a SEFAZ rejeita a nota sem o grupo). Sem a interna
         // cadastrada a nota é recusada com a saída — nunca sai com DIFAL zero por falta de dado.
@@ -392,6 +390,7 @@ class NfeService
             ufDestino:      $ufDestino,
             internaDestino: $interna,
             destinatarioContribuinte: $contribuinte,
+            crtEmitente:    $emitente['crt'] ?? null,
         );
         if ($cfop !== null) {
             $itens['dets'] = self::comCfop($itens['dets'], $cfop);
@@ -569,12 +568,13 @@ class NfeService
      *
      * @return array<string,float|int>|null
      */
-    private function stDoItem(TributoCalculado $tributo, ?float $internaDestino): ?array
+    private function stDoItem(TributoCalculado $tributo, ?float $internaDestino, ?string $codigoIcms = null): ?array
     {
         if ($tributo->valor_st <= 0) {
             return null;
         }
-        $cst = (string) ($tributo->csosn ?? $tributo->cst ?? '');
+        // P-155: confere o código que o item leva (o do regime do local), não o primeiro da regra.
+        $cst = $codigoIcms ?? (string) ($tributo->csosn ?? $tributo->cst ?? '');
         if (! in_array($cst, self::CST_COM_ST, true)) {
             throw new RuntimeException("A regra fiscal calcula ICMS-ST (MVA) mas o CST/CSOSN {$cst} não leva ST — ajuste a regra em Tributação (ex.: CST 10 ou CSOSN 202).");
         }
@@ -594,6 +594,21 @@ class NfeService
         if ($temDestinatario && $ufDestino !== $ufOrigem && $contribuinte === false && $interna === null) {
             throw AliquotaInternaNaoCadastradaException::para($ufDestino);
         }
+    }
+
+    /**
+     * Interna que vai ao motor (ST e DIFAL) para um destinatário identificado. Outra UF: a do
+     * destino, como antes. P-153: dentro do estado o ST também vale, mas só para contribuinte (quem
+     * revende — o substituto recolhe pela etapa seguinte da cadeia); consumidor final da mesma UF
+     * segue sem ST, como antes. A NF-e e o ST da tela de venda (IcmsStDaVenda) leem daqui.
+     */
+    public function internaDoSt(int $businessId, string $ufOrigem, string $ufDestino, ?bool $contribuinte): ?float
+    {
+        if ($ufDestino !== $ufOrigem) {
+            return $this->internaDoDestino($businessId, $ufOrigem, $ufDestino);
+        }
+
+        return $contribuinte === true ? $this->internaDoDestino($businessId, $ufOrigem, $ufOrigem) : null;
     }
 
     /** Interna do destino (decimal) da tabela por UF; null se o contador ainda não cadastrou. */
@@ -710,6 +725,7 @@ class NfeService
         string $ufDestino,
         ?float $internaDestino = null,
         ?bool $destinatarioContribuinte = null,
+        ?int $crtEmitente = null,
     ): array {
         // R-NFE-024 controle: sem NCM padrão válido não há saída — mesma recusa do
         // R-NFE-022 em emitirParaTransaction (defesa em profundidade, sem DB).
@@ -772,18 +788,34 @@ class NfeService
                 description: (string) $it['xprod'],
             );
             // R-NFE-036: sem dado de destino (NFC-e, consumidor anônimo) a chamada é a de sempre.
-            $tributo = $internaDestino === null && $destinatarioContribuinte === null
-                ? $motor->calcular($contexto, businessId: $businessId, ufOrigem: $ufOrigem, ufDestino: $ufDestino)
-                : $motor->calcularComDestino(
+            // P-155: local com regime próprio usa o cálculo com o CRT dele; sem CRT, como antes.
+            $tributo = match (true) {
+                $crtEmitente !== null => $motor->calcularComRegimeDoLocal(
+                    $contexto,
+                    businessId: $businessId,
+                    ufOrigem: $ufOrigem,
+                    ufDestino: $ufDestino,
+                    crtEmitente: $crtEmitente,
+                    aliquotaInternaDestino: $internaDestino,
+                    destinatarioContribuinte: $destinatarioContribuinte,
+                ),
+                $internaDestino === null && $destinatarioContribuinte === null
+                    => $motor->calcular($contexto, businessId: $businessId, ufOrigem: $ufOrigem, ufDestino: $ufDestino),
+                default => $motor->calcularComDestino(
                     $contexto,
                     businessId: $businessId,
                     ufOrigem: $ufOrigem,
                     ufDestino: $ufDestino,
                     aliquotaInternaDestino: $internaDestino,
                     destinatarioContribuinte: $destinatarioContribuinte,
-                );
+                ),
+            };
 
             $vprod = $it['vprod_cent'] / 100.0;
+            // P-155: no local do regime normal (CRT 3) vale o CST da regra; sem CRT, como antes.
+            $codigoIcms = $crtEmitente === 3
+                ? ($tributo->cst ?? $tributo->csosn ?? '102')
+                : ($tributo->csosn ?? $tributo->cst ?? '102');
             $dets[] = [
                 'cprod'   => substr((string) $it['cprod'], 0, 60),
                 'xprod'   => substr((string) $it['xprod'], 0, 120),
@@ -805,17 +837,17 @@ class NfeService
                 // percentual de redução. Sem benefício, as chaves ficam ausentes/0 como antes.
                 'cbenef'  => $tributo->c_benef,
                 'icms'    => [
-                    'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
+                    'cst_csosn' => $codigoIcms,
                     // Origem do produto (tabela A). Linha montada sem a chave (teste, chamada
                     // antiga) segue com 0 — a origem que toda nota usava.
                     'orig'      => (int) ($it['origem'] ?? 0),
-                    'vbc'       => $this->baseIcmsDoItem($tributo, $base),
+                    'vbc'       => $this->baseIcmsDoItem($tributo, $base, $crtEmitente),
                     // R-NFE-040: a régua guarda fração (0,18); o XML leva percentual (18,00).
                     'picms'     => round($tributo->aliquota_icms * 100, 4),
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
                     // R-NFE-043: ICMS-ST do motor (R-NFE-015) no grupo do CST/CSOSN com ST.
-                    'st'        => $this->stDoItem($tributo, $internaDestino),
+                    'st'        => $this->stDoItem($tributo, $internaDestino, $codigoIcms),
                 ],
                 // R-NFE-025b: `nfe_fiscal_rules` não guarda CST de PIS/COFINS hoje — o
                 // motor não devolve. '07' segue como fallback, logado abaixo.
@@ -862,7 +894,7 @@ class NfeService
                 $tot['v_st']    += $tributo->valor_st;
             }
 
-            $tot['v_bc_icms'] += $this->baseIcmsDoItem($tributo, $base); // R-NFE-040 (thread 25: benefício)
+            $tot['v_bc_icms'] += $this->baseIcmsDoItem($tributo, $base, $crtEmitente); // R-NFE-040 (thread 25: benefício)
             $tot['v_icms']   += $tributo->valor_icms;
             $tot['v_pis']    += $tributo->valor_pis;
             $tot['v_cofins'] += $tributo->valor_cofins;
@@ -905,13 +937,15 @@ class NfeService
      * R-NFE-040 · base do ICMS que vai ao item. Com benefício (base reduzida, thread 25) é a do
      * motor. Sem ela, item do regime normal com CST tributado e alíquota leva a base do item —
      * o vICMS é base × alíquota e a SEFAZ confere a conta. Simples e CST sem ICMS seguem 0.
+     * P-155: com o CRT do local, o regime é o dele, não a falta de CSOSN na regra.
      */
-    private function baseIcmsDoItem(TributoCalculado $tributo, float $base): float
+    private function baseIcmsDoItem(TributoCalculado $tributo, float $base, ?int $crtEmitente = null): float
     {
         if ($tributo->base_icms !== null) {
             return $tributo->base_icms;
         }
-        $regimeNormalTributado = $tributo->csosn === null
+        $regimeNormal = $crtEmitente === null ? $tributo->csosn === null : $crtEmitente === 3;
+        $regimeNormalTributado = $regimeNormal
             && in_array((string) $tributo->cst, ['00', '10', '51', '90'], true)
             && $tributo->aliquota_icms > 0;
 
@@ -2139,11 +2173,11 @@ class NfeService
      * Recusa em vez de completar com dado da matriz: filial sem CNPJ, UF, endereço ou série, ou
      * com a mesma série do business, sairia com o emitente ou o número errados.
      *
-     * @return array{uf:string,emit:array<string,mixed>,serie:?string,location_id:?int}
+     * @return array{uf:string,emit:array<string,mixed>,serie:?string,location_id:?int,crt:?int}
      */
     public function resolverEmitente(object $business, ?int $locationId, string $modelo): array
     {
-        $padrao = ['uf' => $this->resolverUF($business), 'emit' => [], 'serie' => null, 'location_id' => null];
+        $padrao = ['uf' => $this->resolverUF($business), 'emit' => [], 'serie' => null, 'location_id' => null, 'crt' => null];
         if ($locationId === null || ! \Illuminate\Support\Facades\Schema::hasTable('nfe_locais_emissores')) {
             return $padrao;
         }
@@ -2179,6 +2213,11 @@ class NfeService
                 "Local {$locationId} está cadastrado como emissor mas falta: " . implode(', ', $falta) . '.'
             );
         }
+        // P-155: regime próprio do local (CRT 1, 2, 3 ou 4). Vazio = o regime da empresa.
+        $crt = $config->crt !== null ? (int) $config->crt : null;
+        if ($crt !== null && ! in_array($crt, NfeLocalEmissor::CRTS, true)) {
+            throw new RuntimeException("Local {$locationId} tem regime (CRT) {$crt}, que não existe — use 1, 2, 3 ou 4.");
+        }
         if ($serie === $this->seriePadrao((int) $business->id)) {
             throw new RuntimeException(
                 "Local {$locationId} usa a série {$serie}, que é a série padrão da empresa — cada estabelecimento precisa de série própria."
@@ -2199,9 +2238,10 @@ class NfeService
                 'cod_municipio' => (string) $config->cod_municipio,
                 'municipio'     => (string) ($loc->city ?? ''),
                 'cep'           => (string) $config->cep,
-            ],
+            ] + ($crt !== null ? ['crt' => $crt] : []),
             'serie'       => $serie,
             'location_id' => $locationId,
+            'crt'         => $crt,
         ];
     }
 

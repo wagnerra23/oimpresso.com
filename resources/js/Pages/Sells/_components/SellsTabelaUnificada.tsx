@@ -13,7 +13,7 @@
 // adicionando `export`). Evita duplicação de ~70 LOC.
 
 import type { ReactNode } from 'react';
-import { Archive, CreditCard, DollarSign, Edit, Eye, FileText, MoreVertical, Printer, Trash2, Undo2 } from 'lucide-react';
+import { Archive, Copy, CreditCard, DollarSign, Edit, Eye, FileText, MoreVertical, Printer, Trash2, Undo2 } from 'lucide-react';
 import {
   PipelineDots,
   FiscalBadgesCell,
@@ -88,6 +88,8 @@ export interface SaleRow {
   /** Venda com devolução (existe sell_return apontando pra ela). Restaura a
    *  setinha de retorno perdida no rewrite Cowork #1032 (incidente 2026-07-03). */
   has_return?: boolean;
+  /** P-031 — venda de onde esta foi duplicada. null/ausente = não duplicada. */
+  duplicated_from?: { id: number; invoice_no: string } | null;
 }
 
 // Identificadores canônicos das colunas. Ordem desta enumeração = ordem default
@@ -347,6 +349,11 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
               <Undo2 size={12} aria-hidden />
             </span>
           )}
+          {v.duplicated_from && (
+            <span className="block text-[11px] font-normal text-muted-foreground" data-testid="vd-duplicada-de">
+              Duplicada de #{v.duplicated_from.invoice_no}
+            </span>
+          )}
         </td>
       );
     case 'date':
@@ -549,6 +556,13 @@ function ActionsMenu({
           <a href={`/sells/${row.id}/print`} target="_blank" rel="noopener noreferrer">
             <Printer size={14} className="mr-2" />
             Imprimir nota
+          </a>
+        </DropdownMenuItem>
+        {/* P-031/P-035 — copia para um rascunho que guarda a origem (SellController::duplicateSell). */}
+        <DropdownMenuItem asChild>
+          <a href={`/sells/duplicate/${row.id}`}>
+            <Copy size={14} className="mr-2" />
+            Duplicar
           </a>
         </DropdownMenuItem>
         {!isDraft && (

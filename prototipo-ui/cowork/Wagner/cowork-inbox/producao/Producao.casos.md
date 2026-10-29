@@ -44,12 +44,14 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-02 | Os indicadores levam ao quadro já filtrado | Gestor | Painel | should | ✅ |
 | UC-PCV-03 | "Atrasadas ou vencendo" é o mesmo número em toda a tela | Gestor | Painel · Quadro · Linha | must | ✅ |
 | UC-PCV-04 | Fila de aprovação de arte com reenvio do link | Balcão | Painel | must | 🟡 |
+| UC-PCV-54 | Manutenção preventiva por máquina, com aviso no Painel | Gestor | Postos · Painel | could | ✅ |
 | UC-PCV-05 | Quadro por setor ou por máquina, com a etapa atual | Gestor · Balcão | Quadro | must | ✅ |
 | UC-PCV-06 | Filtro por texto, situação e responsável, igual no quadro e na linha | Gestor · Balcão | Quadro · Linha | must | ✅ |
 | UC-PCV-07 | O PCP move uma etapa à mão, e isso fica registrado | Gestor | Quadro | should | 🟡 |
 | UC-PCV-08 | Linha do tempo por máquina com fim de turno, bloqueio por arte e estouro | Gestor | Linha | must | ✅ |
 | UC-PCV-09 | Gargalo previsto com sugestão de reprogramação aplicável e reversível | Gestor | Painel · Linha | should | ✅ |
 | UC-PCV-10 | A OS é um projeto: etapas, responsável, máquina, previsto × apontado | Gestor · Balcão | Ficha | must | ✅ |
+| UC-PCV-51 | Tarefas da OS com responsável e prazo, e as duas datas da OS | Gestor · Balcão | Ficha · Painel · Quadro | should | ✅ |
 | UC-PCV-11 | A arte aprovada fica travada e anda com a OS | Balcão · Operador | Ficha · Apontamento | must | 🟡 |
 | UC-PCV-12 | Roteiro por família vira as etapas da OS sem redigitar | Balcão | Roteiros → Ficha | must | 🟡 |
 | UC-PCV-13 | Roteiro tem no máximo 2 trilhas em paralelo que se juntam | Gestor | Roteiros | must | ✅ |
@@ -58,6 +60,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-16 | Material empenhado × consumido, com estouro sinalizado | Gestor | Ficha · Materiais | must | ✅ |
 | UC-PCV-52 | Despesas da OS com recibo, cobradas do cliente ou só no custo | Gestor · Instalador | Ficha · Custo | should | 🟡 |
 | UC-PCV-17 | Refugo com motivo entra no custo real | Operador · Gestor | Ficha · Apontamento | must | ✅ |
+| UC-PCV-53 | Inspeção da etapa e não conformidade até a ação corretiva | Qualidade · Gestor | Ficha · Painel | should | ✅ |
 | UC-PCV-18 | Perdas por motivo e por máquina | Gestor | Custo | should | ✅ |
 | UC-PCV-19 | O operador vê só as etapas dele hoje, na ordem | Operador | Apontamento | must | ✅ |
 | UC-PCV-20 | QR abre a etapa certa e o cronômetro aponta início, pausa e fim | Operador | Apontamento | must | ✅ |
@@ -92,6 +95,11 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Aceite:** Dado OS com arte "aguardando" e "ajuste pedido" · Então a fila mostra o que o cliente disse e quando · E "Reenviar link" reenvia o **mesmo** link de prova (não gera arte nova) · E "Enviar nova prova" só aparece em "ajuste pedido".
 - **Falta:** o link de prova em si (tela pública de aprovação) não existe no protótipo da Produção. Reaproveitar o padrão do link com código do Repair (UC-COS-12..16) é decisão do Code com [W].
 
+### UC-PCV-54 · Manutenção preventiva · `could` · ✅
+- **Origem:** backlog P3 do `ROADMAP.md` da Produção ("Manutenção preventiva máquinas", referência SAP PM e Odoo Maintenance). Ainda sem US no SPEC: o id US-PCP-023 que o ROADMAP usa é hoje o Romaneio de impressão.
+- **Aceite:** Dado um plano por horas de uso (Mimaki, a cada 80 h, com 76 h desde a última) e um por dias (CNC, a cada 30 dias, última em 10/09) · Quando abro o Painel em 15/10 · Então aparece um alerta "vence em breve" para a Mimaki e um "vencida" para a CNC, cada um com "Ver o plano" · E os planos em dia não geram alerta · E "Registrar feita" em Postos e cadastros recomeça o plano no dia e tira o alerta.
+- **Regra:** a pausa "Manutenção" do celular continua sendo a corretiva (a máquina parou); o plano é a preventiva.
+
 ## Quadro e linha do tempo
 
 ### UC-PCV-05 · Quadro por setor ou por máquina · `must` · ✅
@@ -116,6 +124,12 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-10 · Ficha da OS · `must` · ✅
 - **Aceite:** Abrir a OS mostra progresso, tempo apontado/previsto, custo real/orçado e as abas Etapas · Arte e arquivos · Materiais · Custo · Refugo · Histórico · Em Etapas cada linha traz setor, máquina, responsável, previsto × apontado (vermelho quando passa) e situação.
 - **Forma:** drawer lateral de 760px (PT-02), não modal.
+
+### UC-PCV-51 · Tarefas da OS · `should` · ✅
+- **Origem:** P-099, comparação com concorrentes de 2026-10-23 (Printavo). Backlog em `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md`.
+- **Aceite:** Dado uma OS que precisa de "separar as chapas" e "fechar o arquivo de corte" · Quando crio as duas tarefas com responsável e prazo · Então cada responsável é avisado no app (D-AVISO: WhatsApp só para o cliente) · E a aba Tarefas e o cartão do quadro mostram quantas faltam · E a tarefa vencida aparece como atrasada no Painel · E a ficha mostra a data da produção e a combinada com o cliente (decisão [W] de 2026-10-20).
+- **Regra:** falta de material não vira tarefa; segue o fluxo de Aguardando material (UC-PCMAT-02), que abre a compra.
+- **Teste:** duas tarefas na mesma OS, uma com prazo vencido e uma no prazo; o Painel lista só a vencida. Sem tarefa vencida, o widget não aparece.
 
 ### UC-PCV-11 · Arte aprovada travada · `must` · 🟡
 - **Aceite:** Dado a arte aprovada às 16:40 · Quando alguém troca o arquivo da arte · Então a OS volta para "aguardando aprovação" e um novo link é enviado · E o operador, no celular, abre sempre a versão aprovada.
@@ -152,6 +166,12 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-17 · Refugo com motivo · `must` valor · ✅
 - **Aceite:** Quando o operador registra refugo (etapa, motivo da lista fechada, m²) · Então o refugo entra na aba Refugo e no custo real da OS · E o motivo é obrigatório.
 
+### UC-PCV-53 · Inspeção e não conformidade · `should` · ✅
+- **Origem:** US-PCP-033 (P2), lacunas de 2026-10-25 (referência TOTVS e SAP).
+- **Aceite:** Dado uma etapa já feita ou em andamento · Quando quem tem o papel de qualidade registra a inspeção · Então "aprovada" fica no histórico da OS · E "não conforme" exige motivo e foto e abre uma não conformidade · E a não conformidade passa por "aberta" → "em ação" (ação corretiva com responsável e prazo, avisado no app) → "encerrada" (com a verificação de que resolveu) · E o Painel lista as não encerradas, e não aparece quando não há nenhuma.
+- **Regra:** a inspeção não se apaga; corrigir é inspecionar de novo. Refazer a peça continua no "Reprovar no controle" (US-PCP-027), que manda a etapa de origem para retrabalho.
+- **Teste:** duas inspeções na mesma OS, uma aprovada e uma não conforme; só a não conforme gera não conformidade. Encerrar sem ação corretiva não é possível.
+
 ### UC-PCV-18 · Perdas por motivo e por máquina · `should` · ✅
 - **Aceite:** Dado refugos de 30 dias · Então o Custo mostra o total e o ranking por motivo e por máquina · E a soma das barras = o total (dupla prova).
 
@@ -171,6 +191,8 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 
 ### UC-PCV-23 · Sem internet · `should` · ⬜
 - **Aceite:** Dado o celular offline · Quando o operador aponta · Então o evento fica guardado com a hora real · E ao voltar a rede é enviado uma vez só (sem duplicar).
+
+> **Modo terminal (tablet preso à máquina).** O caso é o UC-PCV-41, em `Producao-celular.casos.md` (forma T1 do `Mobile Producao.dc.html`, thread 12). Desde 2026-10-29 ele também está neste protótipo, na vista **Terminal**: romaneio do posto, entrada por crachá ou PIN, recusa de quem não opera o posto (US-PCP-030), botões de 88px e volta ao crachá depois de 2 minutos sem toque.
 
 ## Instalação
 

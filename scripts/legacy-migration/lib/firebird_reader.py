@@ -195,7 +195,7 @@ def get_table_columns(con, table_name: str) -> list[dict[str, Any]]:
             f.RDB$FIELD_SUB_TYPE AS subtype,
             f.RDB$FIELD_LENGTH AS length,
             COALESCE(rf.RDB$NULL_FLAG, 0) AS not_null,
-            rf.RDB$FIELD_POSITION AS position
+            rf.RDB$FIELD_POSITION AS field_position  -- "position" é reservada no FB 3
         FROM RDB$RELATION_FIELDS rf
         JOIN RDB$FIELDS f ON f.RDB$FIELD_NAME = rf.RDB$FIELD_SOURCE
         WHERE rf.RDB$RELATION_NAME = ?
@@ -215,6 +215,32 @@ def get_table_columns(con, table_name: str) -> list[dict[str, Any]]:
         })
     cur.close()
     return cols
+
+
+def get_column_names(con, table_name: str) -> set[str]:
+    """Nomes das colunas de uma tabela, lidos de RDB$RELATION_FIELDS.
+
+    Lê só o catálogo (não abre linha da tabela). Tabela inexistente devolve
+    conjunto vazio.
+    """
+    cur = con.cursor()
+    cur.execute(
+        "SELECT TRIM(RDB$FIELD_NAME) FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = ?",
+        (table_name.upper(),),
+    )
+    names = {row[0] for row in cur.fetchall()}
+    cur.close()
+    return names
+
+
+def has_column(con, table_name: str, column_name: str) -> bool:
+    """True se a coluna existe na tabela, nesta versão do banco.
+
+    Importado por import-contacts-from-venda.py e import-contacts-from-nfe.py desde
+    o pipeline de 2026-05; faltava aqui, e os dois quebravam no import em qualquer
+    versão (medido na 1514 do Sabor Brasil, 2026-10-29).
+    """
+    return column_name.upper() in get_column_names(con, table_name)
 
 
 def query(con, sql: str, params: tuple = ()) -> list[dict[str, Any]]:

@@ -81,6 +81,7 @@ beforeEach(function () {
             'conta'               => '0012345',
             'convenio'            => '1234567',
             'carteira'            => '17', // Cobrança Simples Eletrônica BB (mais comum PJ)
+            'variacao_carteira'   => '019', // P-157: obrigatória no CNAB 240 do BB (header pos. 48-50)
             'cedente_nome'        => 'Empresa Teste LTDA',
             'cedente_documento'   => '12345678000199',
             'cedente_endereco'    => 'Rua das Couves, 100',
@@ -263,6 +264,7 @@ it('respeita business id global scope (biz=2 não enxerga credencial biz=1)', fu
             'conta'             => '0111222',
             'carteira'          => '17',
             'convenio'          => '7654321',
+            'variacao_carteira' => '019',
             'cedente_nome'      => 'Outra Empresa S/A',
             'cedente_documento' => '99999999000199',
         ],

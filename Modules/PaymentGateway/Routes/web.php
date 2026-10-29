@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\PaymentGateway\Http\Controllers\InstallController;
+use Modules\PaymentGateway\Http\Controllers\Settings\CobrancaCnabArquivosController;
 use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysCnabRetornoController;
 use Modules\PaymentGateway\Http\Controllers\Settings\PaymentGatewaysController;
 use Modules\PaymentGateway\Http\Controllers\TefController;
@@ -95,6 +96,15 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('payment-gateways/{credentialId}/cnab-retorno', [PaymentGatewaysCnabRetornoController::class, 'store'])
             ->whereNumber('credentialId')
             ->name('payment-gateways.cnab-retorno.store');
+
+        // P-157 — arquivos de um boleto emitido por CNAB: remessa (.rem pro banco) e PDF pro cliente.
+        Route::get('payment-gateways/cobrancas/{cobrancaId}/remessa', [CobrancaCnabArquivosController::class, 'remessa'])
+            ->whereNumber('cobrancaId')
+            ->name('payment-gateways.cobrancas.remessa');
+
+        Route::get('payment-gateways/cobrancas/{cobrancaId}/boleto', [CobrancaCnabArquivosController::class, 'boleto'])
+            ->whereNumber('cobrancaId')
+            ->name('payment-gateways.cobrancas.boleto');
     });
 
 // ─── Webhooks (Onda 3) ───────────────────────────────────────────────────

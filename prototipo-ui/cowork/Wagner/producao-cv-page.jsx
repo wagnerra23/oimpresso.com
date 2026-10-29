@@ -1,6 +1,6 @@
 // producao-cv-page.jsx — módulo Produção (comunicação visual): a OS como projeto.
 // Vistas: Painel do gestor · Quadro por setor · Linha do tempo por máquina · Custo real × orçado ·
-// Instalação · Apontamento (celular) · Roteiros · Postos e cadastros. A ficha da OS (projeto) abre em drawer PT-02 de 760px.
+// Instalação · Apontamento (celular) · Terminal (tablet preso à máquina) · Roteiros · Postos e cadastros. A ficha da OS (projeto) abre em drawer PT-02 de 760px.
 // Diferenciais sobre o Mubisys (grade 33-grade-producao-concorrentes.md): quadro + linha do tempo, custo real × orçado,
 // refugo com motivo, instalação com foto e assinatura, aprovação de arte online, encaixe na bobina, alerta de gargalo.
 // Casos de uso e como testar: cowork-inbox/producao/Producao.casos.md (UC-PCV-01..28).
@@ -14,7 +14,7 @@ const Ic = ({ name, size = 14 }) => { const F = (window.I || {})[name]; return F
 const VISTAS = [
   { key: "painel", label: "Painel" }, { key: "quadro", label: "Quadro" }, { key: "linha", label: "Linha do tempo" },
   { key: "custo", label: "Custo real × orçado" }, { key: "instalacao", label: "Instalação" },
-  { key: "apontamento", label: "Apontamento" }, { key: "roteiros", label: "Roteiros" },
+  { key: "apontamento", label: "Apontamento" }, { key: "terminal", label: "Terminal" }, { key: "roteiros", label: "Roteiros" },
   { key: "postos", label: "Postos e cadastros" },
 ];
 const PRIO = { urgente: ["Urgente", "danger"], alta: ["Alta", "warning"], normal: ["Normal", "neutral"] };
@@ -68,6 +68,7 @@ function CartaoOs({ os, onAbrir, setorAtual, onMover, onPegar, arrastando }) {
         <span className={atr ? "pcv-late" : ""}>{atr ? atr : "entrega " + D.d2(os.prazo)}</span>
         {os.arte !== "aprovada" && B2(ARTE[os.arte])}
         {os.material === "aguardando" && B2(["Aguardando material", "warning"])}
+        {window.PcvTarefas && <window.PcvTarefas.SeloCartao id={os.id} />}
         <span className="pcv-who">{at.resp}</span>
       </div>
     </div>
@@ -131,6 +132,11 @@ function Painel({ onAbrir, ir, filtrar }) {
             ? "Falta " + fl.map((f) => D.h1(f.falta) + " " + f.un + " de " + f.insumo + (f.caminho.length ? " (compra " + f.caminho.map((c) => c.compra).join(", ") + " chega " + D.d2(f.caminho[0].chega) + ")" : " (nenhuma compra pedida)")).join("; ") + ". Nenhuma etapa começa até o PCP conferir."
             : "A compra chegou. Falta o PCP conferir para a OS voltar para Na fila."}
             <div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir(o.id)}>Abrir {o.id}</Button></div></Alert>); })}
+        {/* Manutenção preventiva (backlog P3 do ROADMAP): só o plano vencido ou que vence em breve vira alerta. */}
+        {Alert && window.PcvPostos && window.PcvPostos.manutencaoAlertas().map((m) => { const maq = D.maqDe(m.maq); return (
+          <Alert key={m.maq} tone={m.sit === "vencida" ? "danger" : "warn"} title={"Manutenção preventiva " + (m.sit === "vencida" ? "vencida" : "vence em breve") + ": " + (maq ? maq.nome : m.maq)}>
+            {m.o}. {m.msg} Faça a parada antes de programar mais OS nesta máquina; depois registre em Postos e cadastros.
+            <div className="pcv-al-a"><Button size="sm" onClick={() => ir("postos")}>Ver o plano</Button><Button size="sm" onClick={() => ir("linha")}>Ver a carga na linha do tempo</Button></div></Alert>); })}
         {Alert && <Alert tone="warn" title="OS-2603 vence hoje e está 7,8% acima do orçado">Refugo de 9,4 m² na impressão (banding na cabeça 3). Faltam bainha e ilhós.<div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir("OS-2603")}>Abrir OS-2603</Button></div></Alert>}
       </div>
 
@@ -154,6 +160,8 @@ function Painel({ onAbrir, ir, filtrar }) {
         </ul>
       </Widget>}
 
+      {window.PcvTarefas && <window.PcvTarefas.TarefasPainel onAbrir={onAbrir} />}
+
       {Widget && <Widget title="Acontecendo agora" note="o que a fábrica fez por último — vem do apontamento, do cliente e do PCP" flush><Feed eventos={eventos} onAbrir={onAbrir} max={6} /></Widget>}
 
       <div className="pcv-grid2">
@@ -174,6 +182,8 @@ function Painel({ onAbrir, ir, filtrar }) {
           </div>
         </Widget>}
       </div>
+
+      {window.PcvQualidade && <window.PcvQualidade.NcsPainel onAbrir={onAbrir} />}
 
       {Widget && <Widget title="Produtividade por setor (semana)" note="horas apontadas ÷ previstas" flush>
         <table className="pcv-tbl">
@@ -392,6 +402,7 @@ function ProducaoCvPage({ view = "painel", estado = "dados" }) {
     : vista === "postos" && window.PcvPostos ? <window.PcvPostos.Postos />
     : vista === "instalacao" && C.Instalacao ? <C.Instalacao onAbrir={setAberta} />
     : vista === "apontamento" && C.Apontamento ? <C.Apontamento />
+    : vista === "terminal" && C.Terminal ? <C.Terminal />
     : <p className="pcv-help" style={{ padding: 24 }}>Carregando…</p>;
   const corpo = estado === "carregando" ? <div className="pcv-body" aria-busy="true">{Skeleton ? <Skeleton variant="card" count={3} /> : <p className="pcv-help">Carregando…</p>}</div>
     : estado === "erro" ? <div className="pcv-body">{EmptyState && <EmptyState variant="error" title="Não foi possível carregar a produção" description="Nada foi alterado. Tente de novo; se continuar, os apontamentos do celular ficam guardados e entram quando voltar." action={Button && <Button onClick={() => location.reload()}>Tentar de novo</Button>} />}</div>

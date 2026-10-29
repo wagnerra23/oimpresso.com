@@ -1,4 +1,4 @@
-// producao-cv-campo.jsx — as duas pontas de celular da Produção:
+// producao-cv-campo.jsx — as pontas de chão de fábrica da Produção (celular e terminal):
 //   · Apontamento do operador: lê o QR da OS → etapa dele → cronômetro (iniciar/pausar/concluir) → baixa de
 //     material e refugo. Append-only (pcp_appointments, SPEC do Pcp). Toque ≥ 44px.
 //   · Instalação: agenda da equipe de campo + checklist com foto antes/depois e assinatura do cliente.
@@ -122,5 +122,88 @@ function Instalacao({ onAbrir }) {
   );
 }
 
-window.PcvCampo = { Apontamento, Instalacao };
+// ── Modo terminal (T1 · UC-PCV-41 · thread 12) ── forma: mobile/ref/design-v4/project/Mobile Producao.dc.html, T1.
+// Mesma PWA presa ao posto (/producao/terminal/{posto}), para quem não pode usar o celular pessoal (D-APARELHO: os
+// dois, configurável por empresa). Romaneio do dia daquele posto + apontamento rodando. Troca de operador pelo
+// crachá QR ou por PIN de 4 dígitos; cada toque grava com quem está no crachá. Botões de 88px. 2 min sem toque →
+// volta à tela do crachá. Só quem opera o posto entra (US-PCP-030).
+const PINS = { Ana: "1184", Diego: "4821", Paula: "7310", Felipe: "5562", Marcos: "9047" };
+const MOTIVOS_PAUSA = ["Troca de bobina", "Setup", "Falta de material", "Manutenção", "Dúvida na arte", "Intervalo"];
+const OCIOSO = 120;
+function Terminal() {
+  const D = P(); const { Button, Avatar, Select } = DS();
+  const postos = D.MAQUINAS.filter((m) => D.AGENDA.some((b) => b.maq === m.id));
+  const [maq, setMaq] = useState("eco");
+  const [op, setOp] = useState(null);
+  const [pin, setPin] = useState(null);
+  const [msg, setMsg] = useState(null);
+  const [rodando, setRodando] = useState(true);
+  const [pausa, setPausa] = useState(false);
+  const [seg, setSeg] = useState(2 * 3600 + 14 * 60 + 8);
+  const [ocioso, setOcioso] = useState(0);
+  const m = D.maqDe(maq);
+  useEffect(() => { const t = setInterval(() => { if (rodando) setSeg((s) => s + 1); if (op) setOcioso((o) => o + 1); }, 1000); return () => clearInterval(t); }, [rodando, op]);
+  useEffect(() => { if (op && ocioso >= OCIOSO) { setOp(null); setPausa(false); setMsg("Ninguém tocou por 2 minutos: o terminal voltou à tela do crachá."); } }, [ocioso, op]);
+  const blocos = D.AGENDA.filter((b) => b.maq === maq).sort((a, b) => a.ini - b.ini);
+  const atual = blocos.find((b) => b.estado === "andamento") || blocos.find((b) => b.estado === "fila" && !b.bloqueio && !b.material);
+  const osA = atual && D.osDe(atual.os); const etA = osA && D.etapas(osA).find((e) => e.maq === maq && e.estado !== "feito");
+  const hhmm = (h) => String(Math.floor(h)).padStart(2, "0") + ":" + String(Math.round((h % 1) * 60)).padStart(2, "0");
+  const tag = (b) => b.estado === "feito" ? ["FEITA", ""] : b.estado === "andamento" ? ["RODANDO", "run"] : b.bloqueio ? ["SEM ARTE", "warn"] : b.material ? ["FALTA MATERIAL", "warn"] : b.conflito ? ["PASSA DO TURNO", "late"] : ["", ""];
+  const toque = (fn) => (...a) => { setOcioso(0); fn(...a); };
+  const grava = (texto, tipo = "etapa") => D.registrar({ os: atual ? atual.os : undefined, quem: op, tipo, maq, texto: texto + " (terminal da " + m.nome + ")" });
+  const entrar = (nome, via) => {
+    setPin(null);
+    if (m.operadores.length && !m.operadores.includes(nome)) { setMsg(nome + " não opera a " + m.nome + ". Neste posto só " + m.operadores.join(", ") + " começa etapa."); return; }
+    setOp(nome); setOcioso(0); setMsg(null); D.registrar({ quem: nome, tipo: "etapa", maq, texto: "Entrou no terminal da " + m.nome + " pelo " + via });
+  };
+  const digito = (d) => { const v = (pin || "") + d; if (v.length < 4) return setPin(v); const nome = Object.keys(PINS).find((k) => PINS[k] === v); if (nome) entrar(nome, "PIN"); else { setPin(null); setMsg("PIN não encontrado. Tente de novo ou use o crachá."); } };
+  return (
+    <div className="pcv-body">
+      <div className="pcv-bar">
+        {Select && <div className="pcv-filtro-r"><Select label="Terminal do posto" value={maq} onChange={(e) => { setMaq(e.target.value); setOp(null); setPin(null); setMsg(null); }} options={postos.map((x) => ({ value: x.id, label: x.nome }))} /></div>}
+        <span className="pcv-help">Para quem não pode usar o celular pessoal na produção. O tablet fica preso à máquina; cada toque grava com quem está no crachá. 2 minutos sem toque e ele volta ao crachá.</span>
+      </div>
+      <div className="pcv-term" role="region" aria-label={"Terminal da " + m.nome}>
+        <div className="pcv-term-rom">
+          <div className="pcv-term-rh"><span className="pcv-eyebrow">Romaneio · {D.DIAS.hoje.rotulo.replace("Hoje, ", "")}</span><b>{m.nome}</b><small>{D.h1(D.cargaMaquina(maq))} de {m.horasDia} h programadas</small></div>
+          <ol className="pcv-term-fila">{blocos.map((b) => { const o = D.osDe(b.os); const e = o && D.etapas(o).find((x) => x.maq === maq); const [t, k] = tag(b); return (
+            <li key={b.os + b.ini} className={k ? "is-" + k : ""}><span className="mono">{hhmm(b.ini)}</span><div><b>{b.os} · {e ? e.nome : ""}</b><small>{o ? o.cliente : ""}</small></div>{t && <em>{t}</em>}</li>); })}</ol>
+        </div>
+        <div className="pcv-term-main">
+          {msg && <p className="pcv-term-msg" role="status">{msg}</p>}
+          {op ? <>
+            <div className="pcv-term-run">
+              {Avatar && <Avatar name={op} size="lg" />}
+              <div><span className="pcv-term-k">{rodando ? "Rodando agora" : "Pausado"} · {op}</span><b>{atual ? atual.os + " · " + (etA ? etA.nome : "") : "Nada programado agora"}</b><small>{osA ? osA.cliente + " · arte-final aprovada" : ""}</small></div>
+              <span className="pcv-term-crono mono" role="timer" aria-label={"Tempo apontado " + hms(seg)}>{hms(seg)}</span>
+            </div>
+            {pausa ? <div className="pcv-term-acts" role="group" aria-label="Motivo da pausa">{MOTIVOS_PAUSA.map((x) => <button key={x} className="pcv-term-btn" onClick={toque(() => { setPausa(false); setRodando(false); grava("Pausou — " + x.toLowerCase()); })}>{x}</button>)}</div>
+              : <div className="pcv-term-acts">
+                <button className="pcv-term-btn" disabled={!atual} onClick={toque(() => { if (rodando) setPausa(true); else { setRodando(true); grava("Retomou"); } })}>{rodando ? "Pausar" : "Retomar"}</button>
+                <button className="pcv-term-btn is-neg" disabled={!atual} onClick={toque(() => grava("Refugo: 1,2 m² — mídia com defeito", "refugo"))}>Refugo</button>
+                <button className="pcv-term-btn is-pri" disabled={!atual} onClick={toque(() => { setRodando(false); grava("Concluiu " + (etA ? etA.nome : "a etapa")); setMsg(atual.os + " concluída por " + op + ". O próximo responsável foi avisado no app."); })}>Concluir</button>
+              </div>}
+            <div className="pcv-bar"><span className="pcv-help">Volta ao crachá em {Math.floor((OCIOSO - ocioso) / 60)}:{String((OCIOSO - ocioso) % 60).padStart(2, "0")} sem toque.</span>{Button && <Button onClick={() => { setOp(null); setPausa(false); setMsg(null); }}>Trocar de operador</Button>}</div>
+          </> : <div className="pcv-term-cracha">
+            <div className="pcv-term-cam" aria-hidden="true">câmera</div>
+            <div className="pcv-term-ct">
+              <b>Trocou de operador?<br />Mostre o crachá para a câmera.</b>
+              <small>Cada um entra com o próprio QR, e o tempo fica no nome certo. Quem não tem crachá digita o PIN de 4 dígitos.</small>
+              {pin === null ? <div className="pcv-term-ops">
+                {[...m.operadores, "Felipe"].filter((x, i, a) => a.indexOf(x) === i).map((x) => <button key={x} className="pcv-term-sm" onClick={() => entrar(x, "crachá")}>Simular crachá de {x}</button>)}
+                <button className="pcv-term-sm" onClick={() => { setPin(""); setMsg(null); }}>Digitar PIN</button>
+              </div> : <div className="pcv-term-pin" role="group" aria-label="PIN de 4 dígitos">
+                <span className="mono" aria-live="polite">{"●".repeat(pin.length).padEnd(4, "○")}</span>
+                {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((d) => <button key={d} className="pcv-term-sm mono" onClick={() => digito(d)}>{d}</button>)}
+                <button className="pcv-term-sm" onClick={() => setPin(null)}>Voltar</button>
+              </div>}
+            </div>
+          </div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+window.PcvCampo = { Apontamento, Instalacao, Terminal };
 })();

@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\PaymentGateway\Services\Cnab\Drivers;
 
+use Eduardokum\LaravelBoleto\Boleto\AbstractBoleto;
 use Eduardokum\LaravelBoleto\Boleto\Banco\Bb as BbBoleto;
+use Eduardokum\LaravelBoleto\Cnab\Remessa\Cnab240\Banco\Bb as BbRemessa240;
+use Illuminate\Support\Facades\Storage;
+use Modules\PaymentGateway\Dto\CobrancaEmitidaResult;
+use Modules\PaymentGateway\Dto\EmitirCobrancaInput;
+use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
 use Modules\PaymentGateway\Services\Cnab\CnabBoletoAdapter;
 
 /**
@@ -90,6 +96,81 @@ final class BBCnabDriver extends CnabBoletoAdapter
             'carteira',
             'cedente_nome',
             'cedente_documento',
+            // P-157: o header e o header de lote do CNAB 240 do BB levam a variação (pos. 48-50);
+            // sem ela o arquivo não é aceito. Vem do contrato do convênio, não tem default.
+            'variacao_carteira',
         ];
+    }
+
+    /**
+     * P-157 — remessa CNAB 240 de verdade (a fundação grava um texto de conferência) e o PDF
+     * do boleto para o cliente, os dois em Storage por empresa e credencial.
+     *
+     * A remessa sai da lib (`Cnab/Remessa/Cnab240/Banco/Bb`): header, header de lote,
+     * segmentos P/Q/R, trailers. Um boleto por arquivo, como antes; o envio ao banco segue
+     * pelo internet banking (upload do arquivo) — não há API do BB aqui.
+     *
+     * O PDF é gerado pela própria lib (`renderPDF`). Falha do PDF não derruba a emissão: o
+     * boleto já está na remessa, e o erro fica gravado em `boleto_pdf_erro` no payload.
+     */
+    protected function gravarRemessa(AbstractBoleto $boleto, EmitirCobrancaInput $input, object $cred): string
+    {
+        $config = $cred->config_json ?? [];
+        $base = sprintf(
+            'biz-%d/cred-%d/%s',
+            (int) $cred->business_id,
+            (int) $cred->id,
+            substr(preg_replace('/[^a-z0-9_-]/i', '-', $input->idempotencyKey), 0, 60)
+        );
+
+        try {
+            $remessa = new BbRemessa240(array_merge($this->configToBoletoArgs($config), [
+                'beneficiario'     => $boleto->getBeneficiario(),
+                'convenioLider'    => $config['convenio_lider'] ?? $config['convenio'],
+                'variacaoCarteira' => $config['variacao_carteira'],
+            ]));
+            $remessa->addBoleto($boleto);
+            $conteudo = $remessa->gerar();
+        } catch (\Throwable $e) {
+            throw new CredentialMisconfiguredException('Remessa CNAB 240 do BB não gerada: ' . $e->getMessage());
+        }
+
+        $path = "cnab-remessas/{$base}.rem";
+        Storage::disk($this->remessaDisk())->put($path, $conteudo);
+
+        $this->pdfPath = null;
+        $this->pdfErro = null;
+        try {
+            $pdfPath = "cnab-boletos/{$base}.pdf";
+            Storage::disk($this->remessaDisk())->put($pdfPath, $boleto->renderPDF());
+            $this->pdfPath = $pdfPath;
+        } catch (\Throwable $e) {
+            $this->pdfErro = substr($e->getMessage(), 0, 200);
+        }
+
+        return $path;
+    }
+
+    private ?string $pdfPath = null;
+
+    private ?string $pdfErro = null;
+
+    public function emitirBoleto(EmitirCobrancaInput $input, object $cred): CobrancaEmitidaResult
+    {
+        $result = parent::emitirBoleto($input, $cred);
+
+        return new CobrancaEmitidaResult(
+            cobrancaId: $result->cobrancaId,
+            gatewayExternalId: $result->gatewayExternalId,
+            tipo: $result->tipo,
+            emitidaEm: $result->emitidaEm,
+            linhaDigitavel: $result->linhaDigitavel,
+            codigoBarras: $result->codigoBarras,
+            nossoNumero: $result->nossoNumero,
+            payloadGateway: array_merge($result->payloadGateway, array_filter([
+                'boleto_pdf_path' => $this->pdfPath,
+                'boleto_pdf_erro' => $this->pdfErro,
+            ])),
+        );
     }
 }
