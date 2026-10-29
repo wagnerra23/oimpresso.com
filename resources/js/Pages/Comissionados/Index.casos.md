@@ -95,7 +95,25 @@ last_run: "2026-10-27"
   - Clientes: CyberStudio
   - Etiquetas: valor, miss, cv
 
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-04 · Agência é um tipo próprio de comissionado?**
+  - Estado: Em aberto
+  - Opção: Tipo "agência" — Muda o cadastro de comissionados e separa a comissão da agência da do vendedor.
+  - Opção: Entra como representante — Usa o representante externo que já existe, sem campo novo.
+  - Destrava: P-021
+  - Ligação: o documento não cita caso para esta decisão; a ligação com P-021 é inferida pelo assunto.
+- **[DECISÃO] D-11 · Comissão: sobre qual valor e em que momento?**
+  - Estado: Em aberto
+  - Texto: Três textos discordam: o UC-FLX-05 lança no faturamento sobre o valor faturado, a US-COMM-015 calcula sobre o preço sem imposto, e o caso 109 calcula na leitura. A pesquisa de mercado de 28/10/2026 está no PR #10102.
+  - Opção: Apura no faturamento, libera no recebimento — A comissão é gravada no faturamento, como no UC-FLX-05, e liberada por regra do vendedor (padrão: proporcional às parcelas recebidas). A base também é por vendedor. O caso 109 passa a ler o registro gravado. É a proposta.
+  - Opção: Tudo no faturamento — Mais simples e igual ao fluxo atual do Wagner, mas pode contrariar a lei para representante e para vendedor que vende a prazo.
+  - Destrava: P-109
+
 ## Trilha do tempo
+- 2026-10-28 · [W+C] Decisões pendentes D-04, D-11 do documento "Casos de uso por tela", sem id de caso.
 - 2026-10-27 · [F+C] Backlog do percentual de comissão no produto: a ordem vem da US-COMM-015 e entra o pedido da CyberStudio.
 - 2026-10-23 · [M+C] Backlog de vendas sem comissionado e de agência como comissionado, sem id.
 - 2026-10-06 · [CL] criado com a thread `sistema/playbook/03`.

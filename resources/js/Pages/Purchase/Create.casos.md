@@ -628,3 +628,14 @@ O saldo fiscal do produto e o aviso na emissão estão em `Produto/Index.casos.m
    antes. Risco declarado, não conserto silencioso.
 3. **O charter está `status: draft`.** Os UC derivam dos Non-Goals dele; se [W] mudar algum, este
    arquivo muda junto.
+
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-09 · Compra de pessoa física: como sai de "Recebido" se não há NF-e para conferir?**
+  - Estado: Em aberto
+  - Texto: No fluxo de Compra do Wagner, a conta a pagar nasce em Conferido, depois de conferir a NF-e de entrada com tolerância. A pesquisa de mercado de 28/10/2026 está no PR #10100.
+  - Opção: A nota de entrada própria é a conferência — O fornecedor tem a marca "não emite NF-e". A empresa emite a nota de entrada; autorizada, a compra vai a Conferido e gera a conta a pagar como qualquer outra. É a proposta.
+  - Opção: Conferir sem nota — Um botão que pula a conferência. Mais simples, mas deixa a compra sem documento fiscal, o que vai contra a lei.
+  - Destrava: P-101
