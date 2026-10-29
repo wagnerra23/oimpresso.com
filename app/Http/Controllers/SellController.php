@@ -3281,6 +3281,8 @@ class SellController extends Controller
                 'type' => (string) $transaction->type,
                 'status' => (string) $transaction->status,
                 'current_stage_key' => null,  // FSM ADR 0143 (lazy)
+                // P-035 — o rascunho duplicado mostra no topo de qual venda veio (mesma empresa).
+                'duplicated_from' => $this->origensDaDuplicacao((int) $business_id, [(int) $transaction->id])->get((int) $transaction->id),
             ];
 
             $formPayload = function () use ($transaction, $business_details, $taxes, $sell_details, $commission_agent, $types, $customer_groups, $pos_settings, $waiters, $invoice_schemes, $default_invoice_schemes, $redeem_details, $edit_discount, $edit_price, $shipping_statuses, $warranties, $statuses, $sales_orders, $payment_types, $accounts, $payment_lines, $change_return, $is_order_request_enabled, $customer_due, $customer_due_raw, $users) {
