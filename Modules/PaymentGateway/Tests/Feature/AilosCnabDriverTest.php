@@ -263,7 +263,10 @@ it('respeita business id global scope (biz=2 não enxerga credencial biz=1)', fu
         'config_json'  => [
             'agencia'           => '9876',
             'conta'             => '0111222',
-            'carteira'          => '09',
+            'carteira'          => '1',
+            'agenciaDv'         => '1',
+            'contaDv'           => '2',
+            'convenio'          => '7654321',
             'cedente_nome'      => 'Outra Empresa S/A',
             'cedente_documento' => '99999999000199',
         ],
