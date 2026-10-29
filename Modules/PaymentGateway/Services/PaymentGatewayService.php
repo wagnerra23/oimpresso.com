@@ -159,7 +159,7 @@ class PaymentGatewayService implements PaymentGatewayContract
     public function emitirBoleto(EmitirCobrancaInput $input): CobrancaEmitidaResult
     {
         return $this->emitir($input, 'boleto', function ($driver, $cred) use (&$input) {
-            $input = $this->comDescontoPontualidade($input, $driver);
+            $input = $this->comJurosMultaDaCarteira($this->comDescontoPontualidade($input, $driver), $driver, $cred);
 
             return $driver->emitirBoleto($input, $cred);
         }, function () use (&$input) {
@@ -202,6 +202,41 @@ class PaymentGatewayService implements PaymentGatewayContract
             multa: $input->multa,
             juros: $input->juros,
             desconto: $desconto,
+            instrucoesPagador: $input->instrucoesPagador,
+            callbackUrl: $input->callbackUrl,
+            meta: $input->meta,
+        );
+    }
+
+    /**
+     * Juros e multa da carteira (`config_json` da credencial) vão ao boleto quando o chamador não
+     * mandou os seus e o driver sabe enviá-los (Inter pela API; BB e demais CNAB pelos segmentos
+     * P e R). Não mexe no desconto.
+     */
+    private function comJurosMultaDaCarteira(EmitirCobrancaInput $input, PaymentDriverContract $driver, object $cred): EmitirCobrancaInput
+    {
+        if (! ($driver instanceof InterDriver || $driver instanceof CnabBoletoAdapter)) {
+            return $input;
+        }
+        $carteira = JurosMultaCarteira::daCarteira((array) ($cred->config_json ?? []));
+        $juros = $input->juros !== [] ? $input->juros : $carteira['juros'];
+        $multa = $input->multa !== [] ? $input->multa : $carteira['multa'];
+        if ($juros === $input->juros && $multa === $input->multa) {
+            return $input;
+        }
+
+        return new EmitirCobrancaInput(
+            businessId: $input->businessId,
+            contactId: $input->contactId,
+            valorCentavos: $input->valorCentavos,
+            vencimento: $input->vencimento,
+            descricao: $input->descricao,
+            idempotencyKey: $input->idempotencyKey,
+            origemType: $input->origemType,
+            origemId: $input->origemId,
+            multa: $multa,
+            juros: $juros,
+            desconto: $input->desconto,
             instrucoesPagador: $input->instrucoesPagador,
             callbackUrl: $input->callbackUrl,
             meta: $input->meta,

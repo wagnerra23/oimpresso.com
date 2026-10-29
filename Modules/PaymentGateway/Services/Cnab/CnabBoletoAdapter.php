@@ -379,6 +379,13 @@ abstract class CnabBoletoAdapter implements PaymentDriverContract
             ]
             : [];
 
+        // Juros (taxa mensal, segmento P pos. 118 código 2 + 127-141) e multa (percentual,
+        // segmento R pos. 66 código 2 + 75-89), vindos da carteira (JurosMultaCarteira).
+        $jurosMulta = array_filter([
+            'juros' => round((float) ($input->juros['percentual'] ?? 0), 2),
+            'multa' => round((float) ($input->multa['percentual'] ?? 0), 2),
+        ], fn (float $v) => $v > 0);
+
         return array_merge(
             $this->configToBoletoArgs($config),
             [
@@ -393,7 +400,8 @@ abstract class CnabBoletoAdapter implements PaymentDriverContract
                     $input->instrucoesPagador ?? 'Não receber após o vencimento',
                 ]),
             ],
-            $desconto
+            $desconto,
+            $jurosMulta
         );
     }
 
