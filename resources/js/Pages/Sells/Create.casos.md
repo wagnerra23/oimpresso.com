@@ -5,8 +5,14 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-27"
+last_run: "2026-10-29"
 ---
+
+<!-- REVALIDAÇÃO 2026-10-29 (G-6: o .tsx mudou — UC-SBON-01, marca de bonificação, P-154).
+     O form ganha `bonificacao: false` e o envio ganha `...camposDeSubtipo(props.subType, d.bonificacao)`,
+     que devolve `{}` com a marca desligada; a chave `bonificacao` é removida do envio. Venda comum e
+     venda de reparo: payload idêntico ao de antes, então UC-S01..S07, UC-VST-*, UC-SRP-* e UC-SDUP-*
+     mantêm o status. UC-SBON-01 nasce ⬜. -->
 
 <!-- REVALIDAÇÃO 2026-10-27 (G-6: o .tsx mudou — US-SELL-079, resgate de pontos).
      O total passa a subtrair `rp_redeemed_amount`, que nasce "0.00" e só muda pelo bloco de resgate,
@@ -389,6 +395,19 @@ last_run: "2026-10-27"
 - **Regressão que defende:** Bloco de resgate aparecendo na ROTA LIVRE sem a flag ligada.
 - **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
 
+## Bonificação (P-154)
+
+## UC-SBON-01 · Venda marcada como bonificação é gravada como bonificação, sem mudar valor nem estoque `[V0]` `[E0]` `[must]`
+- **Persona:** vendedor do Sabor Brasil que entrega mercadoria de bonificação a um supermercado.
+- **Como usa:** monta a venda com os itens, marca **Bonificação** (ao lado de "Assinatura recorrente") e finaliza. A marca não aparece na venda de reparo: reparo é outro tipo.
+- **Aceite:** Dado a venda de 2 un a 50,00 com 10 em estoque · Quando marco Bonificação e salvo · Então o envio carrega `sub_type=bonificacao`, a venda grava `transactions.sub_type='bonificacao'` com total 100,00 e o estoque fica 8 — os mesmos `final_total`, `total_before_tax`, `tax_amount`, `discount_amount`, linhas e baixa de uma venda comum com os mesmos itens. **E** um `sub_type` fora de `repair`/`bonificacao` é gravado como venda comum.
+- **Âncora de contrato:** pedido P-154 (backlog abaixo) · Delphi `VENDA_TIPO BONIFICACAO` · **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — dupla prova no teste (conta à mão + venda comum gravada pelo mesmo `store()`).
+- **Teste:** `tests/Feature/Sells/SellsBonificacaoContratoTest.php` (POST `/pos` real, tenant 98, lane `PHP / Pest (Sells · MySQL)`) — `UC-SBON-01 …` + `tests/js/sells-subtipo-venda.test.ts` (o que o envio carrega).
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+- **Fora deste UC (outras partes do P-154):** a nota com CFOP 5910/6910 (NF-e) e não nascer título a receber (Financeiro).
+
+---
+
 ## Duplicar a venda guardando a origem (P-035)
 
 ## UC-SDUP-01 · Duplicar cria um rascunho novo que guarda a venda de origem `[must]`
@@ -746,7 +765,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Pedido: P-154
   - Âncora: Delphi: VENDA_TIPO BONIFICACAO e BONIFICAÇÃO SEM ST · CFOP 5910
   - Fazer: Tipo de operação bonificação na venda, com CFOP próprio, sem título a receber e com baixa de estoque.
-  - Hoje: miss | Não tem | A venda não tem o tipo bonificação; só o módulo de marketplaces conhece o CFOP
+  - Hoje: part | Em parte | A venda já é marcada e gravada como bonificação (UC-SBON-01, 2026-10-29); falta a nota sair com CFOP 5910/6910 e o Financeiro não criar título
   - Clientes: Sabor Brasil
   - Etiquetas: valor, miss
 
@@ -770,3 +789,4 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 - 2026-10-27 · [F+C] Backlog "Item com imposto faltando": o "Informar NCM" na linha da venda, pedido da PraMoto. Sem id.
 - 2026-10-29 · [W+C] Pedido P-153 "O ICMS-ST de cada item sai certo para o supermercado em SP" (Sabor Brasil), registrado com casos-backlog/novo.mjs. Sem id de UC.
 - 2026-10-29 · [W+C] Pedido P-154 "Bonificação sai como nota de bonificação, sem cobrança" (Sabor Brasil), registrado com casos-backlog/novo.mjs. Sem id de UC.
+- 2026-10-29 · [W+C] **UC-SBON-01** (P-154, parte 1 de 3): a venda pode ser marcada como bonificação e grava `sub_type='bonificacao'`, com o mesmo valor e a mesma baixa de estoque da venda comum; o `store()` passou a aceitar só `repair` e `bonificacao` como tipo. Nota CFOP 5910 e Financeiro sem título seguem pendentes. Teste `SellsBonificacaoContratoTest.php`.
