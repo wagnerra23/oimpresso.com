@@ -102,7 +102,7 @@ const AGENDA = [
   { maq: "latex",   os: "OS-2598", ini: 13, fim: 14,   estado: "feito" },
   { maq: "eco",     os: "OS-2611", ini: 8,  fim: 14.2, estado: "andamento" },
   { maq: "eco",     os: "OS-2608", ini: 14.5, fim: 15.6, estado: "fila" },
-  { maq: "eco",     os: "OS-2611", ini: 15.8, fim: 18.9, estado: "fila", conflito: "termina 18h54 — passa do turno (18h)" },
+  { maq: "eco",     os: "OS-2611", ini: 15.8, fim: 18.9, estado: "fila" },
   { maq: "uv",      os: "OS-2614", ini: 13, fim: 16.6, estado: "fila", bloqueio: "arte aguardando aprovação" },
   { maq: "recorte", os: "OS-2611", ini: 15, fim: 17.5, estado: "fila" },
   { maq: "lamin",   os: "OS-2611", ini: 14.3, fim: 15,  estado: "fila", material: "aguardando material: laminado fosco 1,37 m (compra a caminho)" },
@@ -117,6 +117,11 @@ const ORCAMENTOS = [
   { id: "ORC-1184", cliente: "Mercado União", produto: "adesivo", desc: "Adesivo de vitrine 4 portas", qtd: 18, un: "m²", valor: 1620, opcoes: { "com laminação": true, "com aplicação": true }, prazo: "2026-10-21" },
   { id: "ORC-1187", cliente: "Pet Shop Amigo", produto: "fachada", desc: "Fachada ACM 6×1 m", qtd: 6, un: "m²", valor: 6900, opcoes: { "com laminação": false }, prazo: "2026-10-28" },
 ];
+
+// Estouro de turno (D-TURNO): sai do fim do turno da empresa, não de um "18h" escrito à mão. Mesmo texto que a
+// Linha do tempo monta quando o PCP arrasta um bloco para depois do turno.
+const hhmm = (h) => String(Math.floor(h)).padStart(2, "0") + ":" + String(Math.round((h % 1) * 60)).padStart(2, "0");
+AGENDA.forEach((b) => { if (b.fim > TURNO.fim) b.conflito = "termina " + hhmm(b.fim) + " — passa do fim do turno (" + hhmm(TURNO.fim) + ")"; });
 
 // Próximo dia útil (sex 16/10) — usado pela linha do tempo. OS-2608 tem entrega prometida para este dia.
 const AGENDA_AMANHA = [
@@ -201,7 +206,7 @@ const INSTALACOES = [
 ];
 
 // Aproveitamento de mídia (encaixe na bobina 1,60 m) — por máquina, hoje
-const ENCAIXE = { bobina: "Lona 440 g · 1,60 m", usado: 92.4, desperdicio: 7.6, sugestao: "Agrupar OS-2619 (roll-up) com a sobra lateral da OS-2603 economiza 3,1 m² (R$ 59)." };
+const ENCAIXE = { bobina: "Lona 440 g · 1,60 m", usado: 92.4, desperdicio: 7.6 };
 
 // Falta de material da OS em Aguardando material (US-PCP-032 · UC-PCMAT-02/03). Por insumo da receita:
 // necessário = receita × quantidade da OS · disponível = saldo no local da venda menos reservas ativas de outras OS e
@@ -220,6 +225,9 @@ const etapaObj = (e) => ({ setor: e[0], nome: e[1], resp: e[2], estado: e[3], pr
 const etapas = (os) => os.etapas.map(etapaObj);
 const atual = (os) => etapas(os).find((e) => e.estado === "andamento") || etapas(os).find((e) => e.estado !== "feito" && e.estado !== "pronto") || etapas(os)[etapas(os).length - 1];
 const progresso = (os) => { const es = etapas(os); const t = es.reduce((s, e) => s + e.prev, 0); const f = es.reduce((s, e) => s + (e.estado === "feito" || e.estado === "pronto" ? e.prev : e.estado === "andamento" ? Math.min(e.real, e.prev) : 0), 0); return t ? Math.round((f / t) * 100) : 0; };
+// OS em produção = OS cuja etapa atual ainda não está pronta. Um número só: o indicador do Painel e o cabeçalho da
+// página leem daqui (antes o cabeçalho mostrava o total menos 1, fixo, e divergia do indicador).
+const emProducao = () => OS.filter((o) => atual(o).estado !== "pronto");
 const atraso = (os) => { const d = dias(HOJE, os.prazo); return d < 0 ? "atrasada" : d === 0 ? "vence hoje" : d === 1 ? "amanhã" : null; };
 const desvio = (os) => os.orcado ? ((os.real - os.orcado * progresso(os) / 100) / os.orcado) * 100 : 0;
 const setorDe = (id) => SETORES.find((s) => s.id === id) || SETORES[0];
@@ -243,5 +251,5 @@ const origemDe = (id) => { const o = ORIGEM[id]; return o ? { venda: o[0], item:
 const cargaMaquina = (id) => AGENDA.filter((b) => b.maq === id).reduce((s, b) => s + (b.fim - b.ini), 0);
 
 window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
-  etapas, atual, progresso, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
+  etapas, atual, progresso, emProducao, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();

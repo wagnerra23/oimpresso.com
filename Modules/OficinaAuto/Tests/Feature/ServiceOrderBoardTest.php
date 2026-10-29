@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Schema;
 use App\Scopes\ScopeByBusiness;
 use Modules\OficinaAuto\Database\Seeders\OficinaAutoFsmSeeder;
 use Modules\OficinaAuto\Entities\ServiceOrder;
+use Modules\OficinaAuto\Entities\ServiceOrderItem;
 use Modules\OficinaAuto\Entities\Vehicle;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
 
@@ -33,16 +34,21 @@ uses(Tests\TestCase::class);
  *   2. GUARD: drag entre colunas avança via ExecuteStageActionService (move
  *      current_stage_id + grava sale_stage_history) — NUNCA UPDATE direto.
  *   3. Transição inválida lança InvalidActionForCurrentStageException.
- *   4. Multi-tenant Tier 0 (ADR 0093): subject biz=99 não transiciona em processo biz=1.
+ *   4. Multi-tenant Tier 0 (ADR 0093): subject de outro tenant não transiciona no processo do tenant de teste.
  *   5. board() agrupa OS por etapa em colunas (só não-terminais) + exclui terminal.
  *   6. Card aplica mods [W]: dvi_done/dvi_total + thumb_url null sem foto.
  *   7. Smoke resiliente: fluxo feliz recepcao→…→pronto_retirada (5 transições).
  *
  * Pattern: skip SQLite (ADR 0101 — requer schema MySQL UltimatePOS).
+ *
+ * Tenant 98 (ADR 0358) e adversário 2 (2º tenant do seed da lane, criado pra Tier 0
+ * cross-tenant). Outros arquivos da suíte também deixam OS no 98, então contagem e KPI
+ * são medidos como DELTA (depois − antes) e os cards são achados pelo id da OS criada
+ * aqui, nunca pela posição na coluna.
  */
 
-const BIZ_BOARD = 1;
-const BIZ_BOARD_FICT = 99;
+const BIZ_BOARD = 98;
+const BIZ_BOARD_FICT = 2;
 const PLATE_PREFIX = 'BRD';
 
 beforeEach(function () {
@@ -94,14 +100,47 @@ function boardVehicle(int $bizId, string $plate): Vehicle
 function boardOs(int $bizId, string $plate, ?int $stageId, string $orderType = 'mecanica'): ServiceOrder
 {
     $v = boardVehicle($bizId, $plate);
-    return ServiceOrder::withoutGlobalScopes()->create([
+    // current_stage_id não é fillable: num create([...]) ele é descartado em silêncio e a
+    // OS nasce sem etapa. Atribuir direto no INSERT é permitido (a trava GuardsFsmTransitions
+    // só olha UPDATE) — mesmo caminho do OficinaBoardDemoCommand.
+    $os = new ServiceOrder();
+    $os->forceFill([
         'business_id'      => $bizId,
         'vehicle_id'       => $v->id,
         'order_type'       => $orderType,
         'status'           => 'aberta',
         'entered_at'       => now(),
         'current_stage_id' => $stageId,
+    ])->save();
+
+    return $os;
+}
+
+/** total_items é accessor (soma dos itens): o valor da OS vem de um item, não de update(). */
+function boardItem(ServiceOrder $os, float $valor): void
+{
+    ServiceOrderItem::withoutGlobalScopes()->create([
+        'business_id'      => $os->business_id,
+        'service_order_id' => $os->id,
+        'tipo'             => 'mao_obra',
+        'descricao'        => 'Item board-test',
+        'quantidade'       => 1,
+        'valor_unitario'   => $valor,
     ]);
+}
+
+/** Card da OS no quadro, achado pelo id (a coluna também tem OS de outros arquivos). */
+function boardCard(array $props, string $columnKey, int $osId): ?array
+{
+    $col = collect($props['columns'])->firstWhere('key', $columnKey);
+
+    return collect($col['cards'] ?? [])->firstWhere('id', $osId);
+}
+
+/** @return array<string, int> key da coluna → count */
+function boardCounts(array $props): array
+{
+    return collect($props['columns'])->mapWithKeys(fn ($c) => [$c['key'] => $c['count']])->all();
 }
 
 /** Cria user real e atribui EXATAMENTE as roles exigidas pela action (suffix-agnóstico). */
@@ -122,11 +161,14 @@ function boardUserForAction(int $bizId, SaleStageAction $action): User
 
 function boardCleanup(): void
 {
-    ServiceOrder::withoutGlobalScopes()
+    // So os dois tenants do teste: 'BRD%' tambem casa placa real (AAA9999) de outra empresa.
+    $bizs = [BIZ_BOARD, BIZ_BOARD_FICT];
+    ServiceOrder::withoutGlobalScopes() // SUPERADMIN: cleanup de teste
+        ->whereIn('business_id', $bizs)
         ->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'like', PLATE_PREFIX . '%'))
         ->forceDelete();
-    Vehicle::withoutGlobalScopes()->where('plate', 'like', PLATE_PREFIX . '%')->forceDelete();
-    User::withoutGlobalScopes()->where('username', 'like', 'boardmec_%')->forceDelete();
+    Vehicle::withoutGlobalScopes()->whereIn('business_id', $bizs)->where('plate', 'like', PLATE_PREFIX . '%')->forceDelete(); // SUPERADMIN: cleanup de teste
+    User::withoutGlobalScopes()->whereIn('business_id', $bizs)->where('username', 'like', 'boardmec_%')->forceDelete(); // SUPERADMIN: cleanup de teste
 }
 
 // ─── Specs ────────────────────────────────────────────────────────────────
@@ -148,7 +190,7 @@ it('1. seeder cria oficina_mecanica_os com 6 etapas de board + 3 terminais', fun
     expect($terminals)->toBe(['cancelado', 'entregue', 'garantia_acionada']);
 
     expect($stages->firstWhere('is_initial', true)->key)->toBe('recepcao');
-})->afterEach(fn () => boardCleanup());
+})->after(fn () => boardCleanup());
 
 it('2. GUARD — drag avança via ExecuteStageActionService (move stage + grava history)', function () {
     (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
@@ -172,7 +214,7 @@ it('2. GUARD — drag avança via ExecuteStageActionService (move stage + grava 
     $logged = SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)
         ->where('transaction_id', $os->id)->where('to_stage_id', $stages['em_diagnostico']->id)->exists();
     expect($logged)->toBeTrue();
-})->afterEach(fn () => boardCleanup());
+})->after(fn () => boardCleanup());
 
 it('3. transição inválida lança InvalidActionForCurrentStageException', function () {
     (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
@@ -189,14 +231,14 @@ it('3. transição inválida lança InvalidActionForCurrentStageException', func
         ->toThrow(InvalidActionForCurrentStageException::class);
 
     expect($os->fresh()->current_stage_id)->toBe($stages['recepcao']->id);
-})->afterEach(fn () => boardCleanup());
+})->after(fn () => boardCleanup());
 
-it('4. multi-tenant Tier 0 — subject biz=99 não transiciona em processo biz=1', function () {
+it('4. multi-tenant Tier 0 — subject de outro tenant não transiciona em processo do tenant de teste', function () {
     (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
     session(['user.business_id' => BIZ_BOARD]);
 
     $stages = boardStages(BIZ_BOARD);
-    // OS forjada com business_id=99 apontando pra stage do processo biz=1 (ataque cross-tenant)
+    // OS forjada em outro tenant apontando pra stage do processo do tenant de teste (ataque cross-tenant)
     $os = boardOs(BIZ_BOARD_FICT, PLATE_PREFIX . '099', $stages['recepcao']->id);
     $action = SaleStageAction::with('roles')
         ->where('stage_id', $stages['recepcao']->id)->where('key', 'iniciar_diagnostico')->firstOrFail();
@@ -204,21 +246,24 @@ it('4. multi-tenant Tier 0 — subject biz=99 não transiciona em processo biz=1
 
     expect(fn () => (new ExecuteStageActionService)->execute($os, 'iniciar_diagnostico', $user))
         ->toThrow(UnauthorizedActionException::class);
-})->afterEach(fn () => boardCleanup());
+})->after(fn () => boardCleanup());
 
 it('5. board() agrupa OS por etapa em colunas (só não-terminais)', function () {
     (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
     session(['user.business_id' => BIZ_BOARD]);
 
     $stages = boardStages(BIZ_BOARD);
-    boardOs(BIZ_BOARD, PLATE_PREFIX . '010', $stages['recepcao']->id);
-    boardOs(BIZ_BOARD, PLATE_PREFIX . '011', $stages['em_execucao']->id);
+    $antes = boardCounts(invokeBoard());
+
+    $osRecepcao = boardOs(BIZ_BOARD, PLATE_PREFIX . '010', $stages['recepcao']->id);
+    $osExecucao = boardOs(BIZ_BOARD, PLATE_PREFIX . '011', $stages['em_execucao']->id);
     // OS em etapa terminal NÃO deve aparecer no quadro
-    boardOs(BIZ_BOARD, PLATE_PREFIX . '012', $stages['entregue']->id);
+    $entregueOs = boardOs(BIZ_BOARD, PLATE_PREFIX . '012', $stages['entregue']->id);
     // OS mecanica sem pipeline cai na coluna inicial com in_pipeline=false
-    boardOs(BIZ_BOARD, PLATE_PREFIX . '013', null);
+    $osSemPipeline = boardOs(BIZ_BOARD, PLATE_PREFIX . '013', null);
 
     $props = invokeBoard();
+    $depois = boardCounts($props);
 
     $columns = collect($props['columns']);
     expect($columns)->toHaveCount(6); // só etapas não-terminais
@@ -227,22 +272,22 @@ it('5. board() agrupa OS por etapa em colunas (só não-terminais)', function ()
         'aguardando_pecas', 'em_execucao', 'pronto_retirada',
     ]);
 
-    $recepcao = $columns->firstWhere('key', 'recepcao');
-    $execucao = $columns->firstWhere('key', 'em_execucao');
-    // recepcao tem a OS em recepcao + a OS sem pipeline
-    expect($recepcao['count'])->toBe(2);
-    expect($execucao['count'])->toBe(1);
+    // recepcao ganhou a OS em recepcao + a OS sem pipeline; execução ganhou 1; a terminal não entra
+    expect($depois['recepcao'] - $antes['recepcao'])->toBe(2);
+    expect($depois['em_execucao'] - $antes['em_execucao'])->toBe(1);
+    expect(array_sum($depois) - array_sum($antes))->toBe(3);
+    expect(boardCard($props, 'recepcao', $osRecepcao->id))->not->toBeNull();
+    expect(boardCard($props, 'em_execucao', $osExecucao->id))->not->toBeNull();
 
     // a OS entregue (terminal) sumiu do board
     $allCardIds = $columns->flatMap(fn ($c) => collect($c['cards'])->pluck('id'))->all();
-    $entregueOs = ServiceOrder::withoutGlobalScopes()
-        ->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', PLATE_PREFIX . '012'))->first();
     expect($allCardIds)->not->toContain($entregueOs->id);
 
     // in_pipeline=false pra OS sem stage
-    $semPipeline = collect($recepcao['cards'])->firstWhere('in_pipeline', false);
+    $semPipeline = boardCard($props, 'recepcao', $osSemPipeline->id);
     expect($semPipeline)->not->toBeNull();
-})->afterEach(fn () => boardCleanup());
+    expect($semPipeline['in_pipeline'])->toBeFalse();
+})->after(fn () => boardCleanup());
 
 it('6. card aplica mods [W] — dvi x/y + thumb_url null sem foto', function () {
     (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
@@ -262,15 +307,14 @@ it('6. card aplica mods [W] — dvi x/y + thumb_url null sem foto', function () 
         $this->markTestSkipped('oa_inspection_items ausente');
     }
 
-    $props = invokeBoard();
-    $card = collect($props['columns'])->firstWhere('key', 'em_diagnostico')['cards'][0] ?? null;
+    $card = boardCard(invokeBoard(), 'em_diagnostico', $os->id);
 
     expect($card)->not->toBeNull();
     expect($card['dvi_total'])->toBe(3);
     expect($card['dvi_done'])->toBe(2);     // approved + rejected
     expect($card['dvi_critico'])->toBe(1);
     expect($card['thumb_url'])->toBeNull();  // sem foto → null (frontend esconde, sem placeholder)
-})->afterEach(fn () => boardCleanup());
+})->after(fn () => boardCleanup());
 
 it('7. smoke resiliente — fluxo feliz recepcao → pronto_retirada (5 transições)', function () {
     (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
@@ -301,29 +345,30 @@ it('7. smoke resiliente — fluxo feliz recepcao → pronto_retirada (5 transiç
         $service->execute($os, $actionKey, $u);
         expect($os->fresh()->current_stage_id)->toBe($stages[$expectedStage]->id);
     }
-})->afterEach(fn () => boardCleanup());
+})->after(fn () => boardCleanup());
 
 it('8. Onda 1.5 — KPIs do protótipo (recepcao, em_diagnostico, valor_em_curso, boxes_total)', function () {
     (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
     session(['user.business_id' => BIZ_BOARD]);
 
     $stages = boardStages(BIZ_BOARD);
+    $antes = invokeBoard()['kpis'];
     // 2 em recepção, 1 em diagnóstico, 1 em execução — com valores pra somar.
-    boardOs(BIZ_BOARD, PLATE_PREFIX . '040', $stages['recepcao']->id)->update(['total_items' => 100]);
-    boardOs(BIZ_BOARD, PLATE_PREFIX . '041', $stages['recepcao']->id)->update(['total_items' => 200]);
-    boardOs(BIZ_BOARD, PLATE_PREFIX . '042', $stages['em_diagnostico']->id)->update(['total_items' => 300]);
-    boardOs(BIZ_BOARD, PLATE_PREFIX . '043', $stages['em_execucao']->id)->update(['total_items' => 400]);
+    boardItem(boardOs(BIZ_BOARD, PLATE_PREFIX . '040', $stages['recepcao']->id), 100);
+    boardItem(boardOs(BIZ_BOARD, PLATE_PREFIX . '041', $stages['recepcao']->id), 200);
+    boardItem(boardOs(BIZ_BOARD, PLATE_PREFIX . '042', $stages['em_diagnostico']->id), 300);
+    boardItem(boardOs(BIZ_BOARD, PLATE_PREFIX . '043', $stages['em_execucao']->id), 400);
 
     $kpis = invokeBoard()['kpis'];
 
-    expect($kpis['recepcao'])->toBe(2);
-    expect($kpis['em_diagnostico'])->toBe(1);
-    expect($kpis['em_execucao'])->toBe(1);
+    expect($kpis['recepcao'] - $antes['recepcao'])->toBe(2);
+    expect($kpis['em_diagnostico'] - $antes['em_diagnostico'])->toBe(1);
+    expect($kpis['em_execucao'] - $antes['em_execucao'])->toBe(1);
     // valor em curso = soma do total_items das OS não-terminais do quadro.
-    expect((float) $kpis['valor_em_curso'])->toBe(1000.0);
+    expect(round((float) $kpis['valor_em_curso'] - (float) $antes['valor_em_curso'], 2))->toBe(1000.0);
     // chaves backward-compat continuam presentes
     expect($kpis)->toHaveKeys(['total', 'aguardando_aprovacao', 'aguardando_pecas', 'pronto_retirada', 'atrasadas', 'boxes_total']);
-})->afterEach(fn () => boardCleanup());
+})->after(fn () => boardCleanup());
 
 it('9. Onda 1.5 — card carrega km, progress e last_activity (dado real)', function () {
     (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
@@ -332,11 +377,12 @@ it('9. Onda 1.5 — card carrega km, progress e last_activity (dado real)', func
     $stages = boardStages(BIZ_BOARD);
     $v = boardVehicle(BIZ_BOARD, PLATE_PREFIX . '050');
     $v->update(['mileage_at_entry' => 84220]);
-    $os = ServiceOrder::withoutGlobalScopes()->create([
+    $os = new ServiceOrder(); // forceFill: current_stage_id não é fillable (ver boardOs)
+    $os->forceFill([
         'business_id' => BIZ_BOARD, 'vehicle_id' => $v->id, 'order_type' => 'mecanica',
         'status' => 'aberta', 'current_stage_id' => $stages['em_diagnostico']->id,
         'entered_at' => now()->subDay(),
-    ]);
+    ])->save();
 
     // 1 transição auditada → last_activity preenchido (via execute real, dado honesto).
     $action = SaleStageAction::where('stage_id', $stages['em_diagnostico']->id)
@@ -353,8 +399,7 @@ it('9. Onda 1.5 — card carrega km, progress e last_activity (dado real)', func
     }
 
     // a OS agora está em aguardando_aprovacao (transicionou) — pega o card lá.
-    $cols = collect(invokeBoard()['columns']);
-    $card = $cols->firstWhere('key', 'aguardando_aprovacao')['cards'][0] ?? null;
+    $card = boardCard(invokeBoard(), 'aguardando_aprovacao', $os->id);
 
     expect($card)->not->toBeNull();
     expect($card['km'])->toBe(84220);
@@ -363,7 +408,7 @@ it('9. Onda 1.5 — card carrega km, progress e last_activity (dado real)', func
     }
     expect($card['last_activity'])->not->toBeNull();
     expect($card['last_activity']['label'])->toBeString();
-})->afterEach(fn () => boardCleanup());
+})->after(fn () => boardCleanup());
 
 /**
  * Invoca ServiceOrderController@board e extrai os props do Inertia\Response

@@ -67,7 +67,7 @@ it('site_details biz=1 não aparece em queries biz=99', function () {
     $valor = CmsSiteDetail::getValue('home_headline_teste');
 
     expect($valor)->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     CmsSiteDetail::withoutGlobalScopes()
         ->where('site_key', 'home_headline_teste')
         ->forceDelete();
@@ -98,7 +98,7 @@ it('home pública carrega config do tenant correto', function () {
     setBizSessionHome(BIZ_FICTICIO_HOME);
     $valorBiz99 = CmsSiteDetail::getValue('home_titulo_teste');
     expect($valorBiz99)->toBe('Tenant fictício 99');
-})->afterEach(function () {
+})->after(function () {
     CmsSiteDetail::withoutGlobalScopes()
         ->where('site_key', 'home_titulo_teste')
         ->forceDelete();
@@ -118,7 +118,7 @@ it('getSiteDetails não retorna chaves de outro tenant', function () {
     $details = CmsSiteDetail::getSiteDetails();
 
     expect($details)->not->toHaveKey('chave_exclusiva_biz1_teste');
-})->afterEach(function () {
+})->after(function () {
     CmsSiteDetail::withoutGlobalScopes()
         ->where('site_key', 'chave_exclusiva_biz1_teste')
         ->forceDelete();

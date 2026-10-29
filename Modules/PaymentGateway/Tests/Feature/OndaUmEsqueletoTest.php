@@ -47,8 +47,13 @@ it('PaymentDriverContract é interface (não classe)', function () {
     expect($reflection->isInterface())->toBeTrue();
 });
 
-it('Contracts ainda NÃO têm binding no container (Onda 4 amarra)', function () {
-    expect(app()->bound(PaymentGatewayContract::class))->toBeFalse();
+// Reescrito 2026-10-28: na Onda 1 o contrato nascia sem binding e este teste afirmava
+// isso. A Onda 4a (#1130) amarrou PaymentGatewayContract → PaymentGatewayService no
+// PaymentGatewayServiceProvider::registerContracts(); o teste passa a travar o binding atual.
+it('PaymentGatewayContract tem binding no container e resolve PaymentGatewayService (Onda 4a)', function () {
+    expect(app()->bound(PaymentGatewayContract::class))->toBeTrue();
+    expect(app(PaymentGatewayContract::class))
+        ->toBeInstanceOf(\Modules\PaymentGateway\Services\PaymentGatewayService::class);
 });
 
 it('DTOs são readonly e instanciáveis', function () {

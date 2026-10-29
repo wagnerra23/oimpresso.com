@@ -618,6 +618,11 @@ tests/Feature/Console/BackupMonitorScheduleTest.php
 # e o CONTADOR da lane no run deste PR — nao este comentario.
 Modules/PaymentGateway/Tests/Feature/ProcessarWebhookPixInterJobContratoTest.php
 tests/Feature/Architecture/QueueablePropertyCollisionTest.php
+#
+# `it(...)->afterEach(fn)` nao roda a limpeza no Pest 4 (afterEach nao e metodo do
+# TestCall). Guard so LE arquivos, sqlite-safe. Nasce vermelho ate os PRs #10135 #10136
+# #10139 #10140 (e os 3 arquivos do #10124) zerarem os sites.
+tests/Feature/Architecture/PestAfterEachEncadeadoTest.php
 tests/Feature/Sidebar/Biz4RotaLivreSidebarTest.php
 
 # ADR 0380 — bite-test do rebaixamento de `distiller_freshness` a ADVISORY.
@@ -697,3 +702,17 @@ Modules/PaymentGateway/Tests/Feature/InterReconcilePixCommandTest.php
 Modules/PaymentGateway/Tests/Feature/ReconciliarCobrancaServiceTest.php
 Modules/PaymentGateway/Tests/Feature/SantanderCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/SicrediCnabDriverTest.php
+# 2026-10-28 (lote 3): os 5 que estavam na paymentgateway-pest-quarantine.list, com a fixture corrigida.
+Modules/PaymentGateway/Tests/Feature/AilosCnabDriverTest.php
+Modules/PaymentGateway/Tests/Feature/CaixaCnabDriverTest.php
+Modules/PaymentGateway/Tests/Feature/BBCnabDriverTest.php
+Modules/PaymentGateway/Tests/Feature/ItauCnabDriverTest.php
+Modules/PaymentGateway/Tests/Feature/InterImportarRecebimentosCommandTest.php
+
+# 2026-10-28: 3 era-sqlite do PaymentGateway que a paymentgateway-pest barrava como
+# "destrutivos" (dropIfExists só no ramo sqlite) e listava como RefreshDatabase — os três
+# já usam DatabaseTransactions. WebhookEndpoints/WebhookSignatureValidation pulam inteiros no
+# MySQL; RetryOrphanWebhookCommand tem o GUARD 4 só-sqlite. Aqui rodam inteiros.
+Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php
+Modules/PaymentGateway/Tests/Feature/WebhookEndpointsTest.php
+Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php

@@ -111,7 +111,8 @@ function fioUsuarioSemRoles(): User
 
 function fioCleanup(): void
 {
-    $vehicleIds = Vehicle::withoutGlobalScopes()
+    $vehicleIds = Vehicle::withoutGlobalScopes() // SUPERADMIN: cleanup de teste
+        ->where('business_id', BIZ_FIO) // so o tenant do teste: o prefixo forma placa real valida (AAA9999)
         ->where('plate', 'like', PLATE_FIO . '%')
         ->pluck('id')->toArray();
 
@@ -284,7 +285,7 @@ it('fio usável: criar OS → recepcao → entregue → imprimir, sem role mecan
     $print->assertOk();
     expect($print->json('success'))->toBe(1);
     expect($print->json('receipt.html_content'))->not->toBeEmpty();
-})->afterEach(fn () => fioCleanup());
+})->after(fn () => fioCleanup());
 
 it('OS nova de manutenção roteia pra cacamba_manutencao — JAMAIS pro pipeline de locação', function () {
     session(['user.business_id' => BIZ_FIO]);
@@ -318,4 +319,4 @@ it('OS nova de manutenção roteia pra cacamba_manutencao — JAMAIS pro pipelin
     $actions->assertOk();
     $actions->assertJsonPath('process_key', 'cacamba_manutencao');
     $actions->assertJsonPath('current_stage.key', 'aberta');
-})->afterEach(fn () => fioCleanup());
+})->after(fn () => fioCleanup());

@@ -57,7 +57,7 @@ function apr_cleanup(string $suffix): void
 it('envia aprovação: status vira orcamento e dispara job WhatsApp', function () {
     Queue::fake();
     session(['user.business_id' => BIZ_APR]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_APR)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_APR]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1');
     }
@@ -69,12 +69,12 @@ it('envia aprovação: status vira orcamento e dispara job WhatsApp', function (
 
     expect(ServiceOrder::withoutGlobalScopes()->find($os->id)->status)->toBe('orcamento');
     Queue::assertPushed(EnviarLinkAprovacaoWhatsappJob::class);
-})->afterEach(fn () => apr_cleanup('A'));
+})->after(fn () => apr_cleanup('A'));
 
 it('não reenvia aprovação em OS já aprovada (status preservado)', function () {
     Queue::fake();
     session(['user.business_id' => BIZ_APR]);
-    $user = \App\User::withoutGlobalScopes()->where('business_id', BIZ_APR)->first();
+    $user = tap(\App\User::factory()->create(['business_id' => BIZ_APR]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
         $this->markTestSkipped('Sem user disponível em biz=1');
     }
@@ -87,4 +87,4 @@ it('não reenvia aprovação em OS já aprovada (status preservado)', function (
     // status NÃO muda + nenhum job de aprovação disparado
     expect(ServiceOrder::withoutGlobalScopes()->find($os->id)->status)->toBe('aprovada');
     Queue::assertNotPushed(EnviarLinkAprovacaoWhatsappJob::class);
-})->afterEach(fn () => apr_cleanup('B'));
+})->after(fn () => apr_cleanup('B'));

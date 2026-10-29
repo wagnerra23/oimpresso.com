@@ -110,7 +110,7 @@ use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
 
-const VISAO_ROTA = '/dashboard-legacy';
+const VISAO_ROTA = '/home';
 
 /**
  * Ordem canônica das âncoras, na ordem do fonte — a MESMA que

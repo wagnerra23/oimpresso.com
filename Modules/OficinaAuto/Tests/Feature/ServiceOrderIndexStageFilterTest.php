@@ -17,7 +17,7 @@ uses(Tests\TestCase::class);
  *
  * Cobre:
  *   1. Filtro stage=disponivel mostra só OS biz=1 com current_stage_id matching
- *   2. Multi-tenant Tier 0 — OS biz=99 mesmo stage_id NÃO vaza pra biz=1
+ *   2. Multi-tenant Tier 0 — OS biz=2 mesmo stage_id NÃO vaza pra biz=1
  *   3. stages payload retorna counts corretos por stage cacamba_*
  *   4. stage=all retorna todas as OS (sem filtro)
  *
@@ -30,7 +30,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_STAGE_TEST = 1;
-const BIZ_STAGE_FICTICIO = 99;
+const BIZ_STAGE_FICTICIO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -85,7 +85,11 @@ function osfCreateOs(int $bizId, ?int $stageId = null): ServiceOrder
         'plate'        => 'OSF' . substr((string) random_int(1000, 9999), 0, 4),
         'vehicle_type' => 'caminhao',
     ]);
-    return ServiceOrder::withoutGlobalScopes()->create([
+    // current_stage_id NÃO está no $fillable do ServiceOrder (guarda FSM US-OFICINA-006):
+    // via create() ele era descartado em silêncio e a OS nascia sem stage. forceFill num
+    // model NOVO vira INSERT — o GuardsFsmTransitions só barra UPDATE. É fixture de estado,
+    // não transição.
+    $order = (new ServiceOrder())->forceFill([
         'business_id'      => $bizId,
         'vehicle_id'       => $vehicle->id,
         'order_type'       => 'manutencao', // locação erradicada (ADR 0265); incidental — roteamento FSM é via current_stage_id
@@ -94,6 +98,9 @@ function osfCreateOs(int $bizId, ?int $stageId = null): ServiceOrder
         'daily_rate'       => '150.00',
         'current_stage_id' => $stageId,
     ]);
+    $order->save();
+
+    return $order;
 }
 
 function osfCleanupTest(int $bizId): void
@@ -104,8 +111,10 @@ function osfCleanupTest(int $bizId): void
         ->pluck('id');
     $stageIds = SaleProcessStage::whereIn('process_id', $procIds)->pluck('id');
 
-    Vehicle::withoutGlobalScopes()->where('business_id', $bizId)->where('plate', 'like', 'OSF%')->forceDelete();
-    ServiceOrder::withoutGlobalScopes()->where('business_id', $bizId)->forceDelete();
+    // Só as OS dos veículos deste arquivo — antes apagava TODA OS do tenant (dado de outros testes).
+    $vehicleIds = Vehicle::withoutGlobalScopes()->where('business_id', $bizId)->where('plate', 'like', 'OSF%')->pluck('id');
+    ServiceOrder::withoutGlobalScopes()->whereIn('vehicle_id', $vehicleIds)->forceDelete();
+    Vehicle::withoutGlobalScopes()->whereIn('id', $vehicleIds)->forceDelete();
     SaleProcessStage::whereIn('id', $stageIds)->delete();
     SaleProcess::whereIn('id', $procIds)->delete();
 }
@@ -128,7 +137,8 @@ it('1. filtro stage=disponivel filtra apenas OS com current_stage_id matching ke
         ->whereHas('process', function ($p) {
             $p->withoutGlobalScope(ScopeByBusiness::class)
                 ->where('business_id', BIZ_STAGE_TEST)
-                ->whereIn('key', ['cacamba_locacao', 'cacamba_manutencao', 'cacamba_locacao_osf' . BIZ_STAGE_TEST . '_%']);
+                // whereIn não expande '%': o processo do teste tem key com uniqid e nunca casava.
+                ->where('key', 'like', 'cacamba_locacao_osf' . BIZ_STAGE_TEST . '_%');
         })
         ->where('key', 'disponivel')
         ->pluck('id');
@@ -138,20 +148,20 @@ it('1. filtro stage=disponivel filtra apenas OS com current_stage_id matching ke
         ->count();
 
     expect($filtered)->toBe(2);
-})->afterEach(function () {
+})->after(function () {
     osfCleanupTest(BIZ_STAGE_TEST);
 });
 
-it('2. multi-tenant Tier 0 — OS biz=99 com mesmo stage_id NAO vaza pra biz=1', function () {
+it('2. multi-tenant Tier 0 — OS biz=2 com mesmo stage_id NAO vaza pra biz=1', function () {
     session(['user.business_id' => BIZ_STAGE_TEST]);
 
     // biz=1 cria seu próprio process+stage
     ['disponivel' => $dispBiz1] = osfSetupCacambaProcess(BIZ_STAGE_TEST);
     osfCreateOs(BIZ_STAGE_TEST, $dispBiz1->id);
 
-    // biz=99 cria process+stage DIFERENTE (mesmo key 'disponivel' mas process_id diferente)
-    ['disponivel' => $dispBiz99] = osfSetupCacambaProcess(BIZ_STAGE_FICTICIO);
-    osfCreateOs(BIZ_STAGE_FICTICIO, $dispBiz99->id);
+    // biz=2 cria process+stage DIFERENTE (mesmo key 'disponivel' mas process_id diferente)
+    ['disponivel' => $dispOutroBiz] = osfSetupCacambaProcess(BIZ_STAGE_FICTICIO);
+    osfCreateOs(BIZ_STAGE_FICTICIO, $dispOutroBiz->id);
 
     // Resolve stage_ids do BIZ_STAGE_TEST (deve achar APENAS o do biz=1)
     $stageIdsBiz1 = SaleProcessStage::query()
@@ -172,7 +182,7 @@ it('2. multi-tenant Tier 0 — OS biz=99 com mesmo stage_id NAO vaza pra biz=1',
         ->count();
 
     expect($filtered)->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     osfCleanupTest(BIZ_STAGE_TEST);
     osfCleanupTest(BIZ_STAGE_FICTICIO);
 });
@@ -205,7 +215,7 @@ it('3. buildStagesPayload retorna counts corretos por stage', function () {
 
     expect((int) $counts[$disp->id])->toBe(3);
     expect((int) $counts[$loc->id])->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     osfCleanupTest(BIZ_STAGE_TEST);
 });
 
@@ -214,17 +224,21 @@ it('4. sem filtro stage retorna todas as OS do business (multi-tenant preservado
 
     ['disponivel' => $disp] = osfSetupCacambaProcess(BIZ_STAGE_TEST);
 
-    osfCreateOs(BIZ_STAGE_TEST, $disp->id);
-    osfCreateOs(BIZ_STAGE_TEST, null);
-    osfCreateOs(BIZ_STAGE_TEST, $disp->id);
+    $ids = [
+        osfCreateOs(BIZ_STAGE_TEST, $disp->id)->id,
+        osfCreateOs(BIZ_STAGE_TEST, null)->id,
+        osfCreateOs(BIZ_STAGE_TEST, $disp->id)->id,
+    ];
 
-    // Mesmo biz=99 com OS, não conta porque global scope
-    ['disponivel' => $dispB99] = osfSetupCacambaProcess(BIZ_STAGE_FICTICIO);
-    osfCreateOs(BIZ_STAGE_FICTICIO, $dispB99->id);
+    // Mesmo biz=2 com OS, não conta porque global scope
+    ['disponivel' => $dispOutro] = osfSetupCacambaProcess(BIZ_STAGE_FICTICIO);
+    $ids[] = osfCreateOs(BIZ_STAGE_FICTICIO, $dispOutro->id)->id;
 
-    $total = ServiceOrder::query()->count();
+    // Universo = as 4 OS criadas aqui (3 do tenant + 1 do biz=2): o tenant da lane é
+    // compartilhado com outros arquivos, então contar o tenant inteiro media o vizinho.
+    $total = ServiceOrder::query()->whereIn('id', $ids)->count();
     expect($total)->toBe(3);
-})->afterEach(function () {
+})->after(function () {
     osfCleanupTest(BIZ_STAGE_TEST);
     osfCleanupTest(BIZ_STAGE_FICTICIO);
 });

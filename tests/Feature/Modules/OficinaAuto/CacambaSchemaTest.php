@@ -80,7 +80,7 @@ it('Vehicle status_badge_color retorna emerald quando disponivel', function () {
     ]);
 
     expect($v->status_badge_color)->toBe('emerald');
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'CAC001')->forceDelete();
 });
 
@@ -96,7 +96,7 @@ it('Vehicle status_badge_color retorna blue quando locada (sem atraso)', functio
     ]);
 
     expect($v->status_badge_color)->toBe('blue');
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'CAC002')->forceDelete();
 });
 
@@ -112,7 +112,7 @@ it('Vehicle status_badge_color retorna amber quando manutencao', function () {
     ]);
 
     expect($v->status_badge_color)->toBe('amber');
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'CAC003')->forceDelete();
 });
 
@@ -128,7 +128,7 @@ it('Vehicle status_badge_color retorna slate quando indisponivel', function () {
     ]);
 
     expect($v->status_badge_color)->toBe('slate');
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'CAC004')->forceDelete();
 });
 
@@ -154,7 +154,7 @@ it('ServiceOrder dias_locacao calcula dias decorridos desde entered_at', functio
     ]);
 
     expect($os->dias_locacao)->toBe(7);
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->where('vehicle_id', function ($q) {
         $q->select('id')->from('vehicles')->where('plate', 'CAC005');
     })->forceDelete();
@@ -179,7 +179,7 @@ it('ServiceOrder dias_locacao retorna 0 quando entered_at é null', function () 
     ]);
 
     expect($os->dias_locacao)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->where('vehicle_id', function ($q) {
         $q->select('id')->from('vehicles')->where('plate', 'CAC006');
     })->forceDelete();
@@ -211,7 +211,7 @@ it('ServiceOrder is_overdue=false quando order_type=manutencao', function () {
     ]);
 
     expect($os->is_overdue)->toBeFalse();
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->where('vehicle_id', function ($q) {
         $q->select('id')->from('vehicles')->where('plate', 'CAC009');
     })->forceDelete();
@@ -241,7 +241,7 @@ it('ServiceOrder valor_receber = 0.0 quando manutencao (não cobra diária)', fu
     ]);
 
     expect($os->valor_receber)->toBe(0.0);
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->where('vehicle_id', function ($q) {
         $q->select('id')->from('vehicles')->where('plate', 'CAC011');
     })->forceDelete();
@@ -263,7 +263,7 @@ it('Vehicle cross-tenant: biz=99 NÃO vê vehicles biz=1 (Tier 0 — ADR 0093)',
     $resultado = Vehicle::where('id', $v->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'CAC012')->forceDelete();
 });
 

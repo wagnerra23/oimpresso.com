@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 48 |
+| US no SPEC | 50 |
 | CU no SDD | 19 |
 | Telas (.tsx) | 9 |
 | Telas com `casos.md` | 10 |
-| UC declarados | 51 |
-| UC com teste que os cita | 51 |
+| UC declarados | 69 |
+| UC com teste que os cita | 69 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -61,12 +61,10 @@ authority: generated
 | US-AUTO-004 | `desconhecido` | Tabela tempária (preço hora-homem por tipo serviço) — **P0** |
 | US-AUTO-006 | `desconhecido` | OS multi-mecânico (1 OS, N mecânicos com peças/horas distintas) — **P0** |
 | US-AUTO-007 | `desconhecido` | Diagnóstico assistido por Jana IA (sintoma → hipóteses + tempário sugerido) — ** |
-| US-AUTO-008 | `desconhecido` | Catálogo peças OEM + similares (cód fabricante + equivalentes) — **P1** |
 | US-AUTO-010 | `desconhecido` | NFC-e (peça) + NFS-e (serviço) automática a partir de boleto pago — **P0** |
 | US-AUTO-011 | `desconhecido` | Comissão por OS (vendedor + mecânico, % escalonado) — **P1** |
 | US-AUTO-012 | `desconhecido` | App mobile mecânico (PWA — vê OS, marca status, sobe foto) — **P0** |
 | US-AUTO-013 | `desconhecido` | Garantia serviço (registro + lembrete pós-X dias) — **P1** |
-| US-AUTO-014 | `desconhecido` | Lembrete revisão (km/tempo) — **P1** |
 | US-AUTO-015 | `desconhecido` | Pré-cadastro fornecedores + cotação (RFQ) — **P2** |
 | US-AUTO-016 | `desconhecido` | Apontamento horas mecânico (clock-in/out por OS) — **P2** |
 | US-AUTO-017 | `desconhecido` | Painel cliente público (status OS online) — **P1** |
@@ -87,6 +85,7 @@ authority: generated
 | UC-07 | ServiceOrders/Board | 🧪 aguarda veredito da lane |
 | UC-09 | ServiceOrders/Board | 🧪 aguarda veredito da lane |
 | UC-11 | ServiceOrders/Board | 🧪 aguarda veredito da lane |
+| UC-FLX-22 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OAP-01 | AprovacaoPublica | 🧪 aguarda veredito da lane |
 | UC-OAP-02 | AprovacaoPublica | 🧪 aguarda veredito da lane |
 | UC-OAP-03 | AprovacaoPublica | 🧪 aguarda veredito da lane |
@@ -119,6 +118,21 @@ authority: generated
 | UC-OSH-09 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSH-10 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSH-11 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-12 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-13 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-14 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-15 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-16 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-17 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-18 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-19 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-20 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-21 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-22 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSPECA-01 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSPECA-02 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSPECA-03 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSPECA-04 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OVC-01 | Vehicles/Create | 🧪 aguarda veredito da lane |
 | UC-OVC-02 | Vehicles/Create | 🧪 aguarda veredito da lane |
 | UC-OVC-03 | Vehicles/Create | 🧪 aguarda veredito da lane |
@@ -127,6 +141,8 @@ authority: generated
 | UC-OVI-01 | Vehicles/Index | 🧪 aguarda veredito da lane |
 | UC-OVI-02 | Vehicles/Index | 🧪 aguarda veredito da lane |
 | UC-OVI-03 | Vehicles/Index | 🧪 aguarda veredito da lane |
+| UC-OVREV-01 | Vehicles/Edit | 🧪 aguarda veredito da lane |
+| UC-OVREV-02 | Vehicles/Edit | 🧪 aguarda veredito da lane |
 | UC-OVS-01 | Vehicles/Show | 🧪 aguarda veredito da lane |
 | UC-OVS-02 | Vehicles/Show | 🧪 aguarda veredito da lane |
 

@@ -351,6 +351,12 @@ Status: 🧪
   acima do limite de crédito, Quando crio uma assinatura para ele, Então com a empresa em "avisar" ela
   nasce com o aviso de quanto passou; em "bloquear" ela não nasce. É a mesma escolha da venda. Fonte:
   Omie (o limite vale para OS, contrato e pedido); US-CRM-081.
+  - Pedido: P-030
+  - Âncora: US-CRM-081 · Omie
+  - Fazer: Checar o limite ao criar a assinatura, com a mesma escolha da venda.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: part | Cliente empresa | contrato mensal
+  - Etiquetas: valor, miss, cv
 
 ---
 

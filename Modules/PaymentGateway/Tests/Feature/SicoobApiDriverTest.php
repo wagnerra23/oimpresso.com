@@ -280,13 +280,11 @@ it('assertCredential rejeita credential com gateway_key diferente', function () 
 });
 
 it('assertCredential rejeita config_json sem numero_cliente nem convenio', function () {
-    $cred = PaymentGatewayCredential::query()->create([
-        'business_id' => 1,
-        'gateway_key' => 'sicoob_api',
-        'ambiente'    => 'sandbox',
-        'ativo'       => true,
-        'config_json' => ['client_id' => 'x', 'client_secret' => 'y'], // sem numero_cliente
-    ]);
+    // Reusa a credencial do beforeEach: (business_id, gateway_key, ambiente) é UNIQUE
+    // (pg_cred_biz_gw_amb_unique), e uma 2ª sicoob_api/sandbox no biz=1 estoura no MySQL.
+    $cred = $this->cred;
+    $cred->config_json = ['client_id' => 'x', 'client_secret' => 'y']; // sem numero_cliente
+    $cred->save();
 
     expect(fn () => (app(SicoobApiDriver::class))->emitirBoleto(sicoobPr2Input(), $cred))
         ->toThrow(CredentialMisconfiguredException::class, 'numero_cliente');

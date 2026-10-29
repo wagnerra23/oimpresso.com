@@ -30,10 +30,22 @@ uses(Tests\TestCase::class);
  */
 
 const E2E_OFICINA_BIZ_WAGNER = 1;
+const E2E_OFICINA_BIZ_OUTRO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
 
 beforeEach(function () {
     config()->set('otel.enabled', false);
     Cache::flush();
+    $this->e2eOsIds = [];
+});
+
+// Apaga só o que o teste criou, por id: o tenant da lane é compartilhado com outros arquivos.
+afterEach(function () {
+    if (empty($this->e2eOsIds)) {
+        return;
+    }
+    $vehicleIds = ServiceOrder::withoutGlobalScopes()->whereIn('id', $this->e2eOsIds)->pluck('vehicle_id');
+    ServiceOrder::withoutGlobalScopes()->whereIn('id', $this->e2eOsIds)->forceDelete();
+    Vehicle::withoutGlobalScopes()->whereIn('id', $vehicleIds)->forceDelete();
 });
 
 function skipIfNoMysqlOficinaE2E(): void
@@ -65,6 +77,7 @@ it('cenario E2E 1: journey full Martinho (vehicle → OS orcamento → aprovacao
         'status'      => 'orcamento',
         'entered_at'  => now(),
     ]);
+    $this->e2eOsIds[] = $os->id;
     expect($os->status)->toBe('orcamento');
 
     // Passo 3: gerar token + PIN aprovacao
@@ -97,28 +110,31 @@ it('cenario E2E 2: 3 OS abertas + 1 em_servico → capacidade ocupada 18h (4+4+4
             'plate'       => 'CAP'.random_int(1000, 9999),
             'vehicle_type' => 'automovel',
         ]);
-        ServiceOrder::withoutGlobalScopes()->create([
+        $this->e2eOsIds[] = ServiceOrder::withoutGlobalScopes()->create([
             'business_id' => E2E_OFICINA_BIZ_WAGNER,
             'vehicle_id'  => $v->id,
             'status'      => 'aberta',
             'entered_at'  => now(),
-        ]);
+        ])->id;
     }
     $v4 = Vehicle::withoutGlobalScopes()->create([
         'business_id' => E2E_OFICINA_BIZ_WAGNER,
         'plate'       => 'CAP9999',
         'vehicle_type' => 'automovel',
     ]);
-    ServiceOrder::withoutGlobalScopes()->create([
+    $this->e2eOsIds[] = ServiceOrder::withoutGlobalScopes()->create([
         'business_id' => E2E_OFICINA_BIZ_WAGNER,
         'vehicle_id'  => $v4->id,
         'status'      => 'em_servico',
         'entered_at'  => now(),
-    ]);
+    ])->id;
 
-    // Bypass global scope pra que test enxergue dados (test session pode nao ter biz=1)
-    $cap = ServiceOrder::withoutGlobalScopes()->whereIn('status', ['aberta', 'orcamento', 'aprovada'])->count() * 4
-         + ServiceOrder::withoutGlobalScopes()->whereIn('status', ['em_servico', 'em_producao'])->count() * 6;
+    // Bypass global scope pra que test enxergue dados (test session pode nao ter biz=1).
+    // Sobre as 4 OS deste teste: sem o whereIn a conta somava as OS de TODOS os tenants
+    // do banco (medido: 512 em vez de 18 no 1º run da lane).
+    $minhas = fn () => ServiceOrder::withoutGlobalScopes()->whereIn('id', $this->e2eOsIds);
+    $cap = $minhas()->whereIn('status', ['aberta', 'orcamento', 'aprovada'])->count() * 4
+         + $minhas()->whereIn('status', ['em_servico', 'em_producao'])->count() * 6;
 
     expect($cap)->toBe(3 * 4 + 1 * 6);
 });
@@ -132,38 +148,41 @@ it('cenario E2E 3: contagem global por status reflete realidade cross-biz isolad
             'plate'       => 'WAG'.random_int(1000, 9999),
             'vehicle_type' => 'automovel',
         ]);
-        ServiceOrder::withoutGlobalScopes()->create([
+        $this->e2eOsIds[] = ServiceOrder::withoutGlobalScopes()->create([
             'business_id' => E2E_OFICINA_BIZ_WAGNER,
             'vehicle_id'  => $v->id,
             'status'      => $s,
             'entered_at'  => now(),
-        ]);
+        ])->id;
     }
-    // biz=99: 5 abertas (NÃO devem aparecer)
+    // biz=2: 5 abertas (NÃO devem aparecer)
     for ($i = 0; $i < 5; $i++) {
         $v = Vehicle::withoutGlobalScopes()->create([
-            'business_id' => 99,
+            'business_id' => E2E_OFICINA_BIZ_OUTRO,
             'plate'       => 'OUT'.random_int(1000, 9999),
             'vehicle_type' => 'automovel',
         ]);
-        ServiceOrder::withoutGlobalScopes()->create([
-            'business_id' => 99,
+        $this->e2eOsIds[] = ServiceOrder::withoutGlobalScopes()->create([
+            'business_id' => E2E_OFICINA_BIZ_OUTRO,
             'vehicle_id'  => $v->id,
             'status'      => 'aberta',
             'entered_at'  => now(),
-        ]);
+        ])->id;
     }
 
-    // Contagem direta multi-tenant (skipa global scope, where explicito)
+    // Contagem direta multi-tenant (skipa global scope, where explicito), sobre as 8 OS
+    // deste teste — os dois tenants do seed são compartilhados com outros arquivos.
     $countBiz1 = ServiceOrder::withoutGlobalScopes()
+        ->whereIn('id', $this->e2eOsIds)
         ->where('business_id', E2E_OFICINA_BIZ_WAGNER)
         ->count();
-    $countBiz99 = ServiceOrder::withoutGlobalScopes()
-        ->where('business_id', 99)
+    $countOutro = ServiceOrder::withoutGlobalScopes()
+        ->whereIn('id', $this->e2eOsIds)
+        ->where('business_id', E2E_OFICINA_BIZ_OUTRO)
         ->count();
 
     expect($countBiz1)->toBe(3)
-        ->and($countBiz99)->toBe(5);
+        ->and($countOutro)->toBe(5);
 });
 
 it('cenario E2E 4: Services instanciaveis sem deps externas (Container OK)', function () {

@@ -59,6 +59,7 @@ if (! function_exists('pgImportEnsureSchema')) {
                 $t->integer('account_id')->unsigned()->nullable();
                 $t->unsignedBigInteger('payment_gateway_credential_id')->nullable();
                 $t->timestamps();
+                $t->softDeletes(); // ContaBancaria usa SoftDeletes (Modules/Financeiro/Models/ContaBancaria.php)
             });
         }
         if (! Schema::hasTable('fin_titulos')) {

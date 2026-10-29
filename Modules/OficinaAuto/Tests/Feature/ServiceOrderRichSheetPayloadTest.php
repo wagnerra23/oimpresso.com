@@ -152,7 +152,7 @@ it('GET /service-orders/{id} JSON retorna items[] + items_total + campos manuten
     expect($response->json('vehicle.model_year'))->toBe(2022);
     expect($response->json('vehicle.color'))->toBe('branco');
     expect($response->json('vehicle.vehicle_type'))->toBe('caminhao');
-})->afterEach(fn () => rich_cleanup('A'));
+})->after(fn () => rich_cleanup('A'));
 
 it('GET /service-orders/{id} OS sem items → items=[] + items_total=0 (backward compat)', function () {
     session(['user.business_id' => BIZ_RICH]);
@@ -167,7 +167,7 @@ it('GET /service-orders/{id} OS sem items → items=[] + items_total=0 (backward
     $response->assertOk();
     expect($response->json('items'))->toBeArray()->toHaveCount(0);
     expect((float) $response->json('items_total'))->toBe(0.0);
-})->afterEach(fn () => rich_cleanup('B'));
+})->after(fn () => rich_cleanup('B'));
 
 it('GET /service-orders/{id} com assigned_user populado → name concatenado UltimatePOS canon', function () {
     session(['user.business_id' => BIZ_RICH]);
@@ -193,7 +193,7 @@ it('GET /service-orders/{id} com assigned_user populado → name concatenado Ult
     expect($response->json('assigned_user.id'))->toBe($mecanico->id);
     // Concat trimmed: "Pedro Souza" (sem surname)
     expect($response->json('assigned_user.name'))->toBe('Pedro Souza');
-})->afterEach(fn () => rich_cleanup('C'));
+})->after(fn () => rich_cleanup('C'));
 
 // ---------------------------------------------------------------------------
 // F3 OS-V2-2 — JSON payload com dvi_items[] pro semáforo inline do drawer
@@ -253,12 +253,12 @@ it('GET /service-orders/{id} JSON retorna dvi_items[] ordenado por sort_order co
 
     expect($dvi[1]['descricao'])->toBe('Freios dianteiros · pastilhas');
     expect($dvi[1]['severity'])->toBe('atencao');
-    expect($dvi[1]['valor_recomendado'])->toBe(145.0);
+    expect((float) $dvi[1]['valor_recomendado'])->toBe(145.0); // JSON nao preserva .0: o JsonResponse do Laravel nao usa JSON_PRESERVE_ZERO_FRACTION
 
     expect($dvi[2]['severity'])->toBe('critico');
     expect($dvi[2]['categoria'])->toBe('correia');
     expect($dvi[2])->toHaveKeys(['id', 'categoria', 'descricao', 'severity', 'recomendacao', 'valor_recomendado', 'sort_order', 'budget_item_id']);
-})->afterEach(fn () => rich_cleanup('D'));
+})->after(fn () => rich_cleanup('D'));
 
 it('GET /service-orders/{id} OS sem DVI → dvi_items=[] (backward compat)', function () {
     session(['user.business_id' => BIZ_RICH]);
@@ -272,7 +272,7 @@ it('GET /service-orders/{id} OS sem DVI → dvi_items=[] (backward compat)', fun
 
     $response->assertOk();
     expect($response->json('dvi_items'))->toBeArray()->toHaveCount(0);
-})->afterEach(fn () => rich_cleanup('E'));
+})->after(fn () => rich_cleanup('E'));
 
 // ---------------------------------------------------------------------------
 // Polish drawer 2026-06-11 — current_stage (etapa FSM) pro eyebrow "OS #103 · <etapa>"
@@ -298,4 +298,4 @@ it('GET /service-orders/{id} JSON inclui current_stage (etapa FSM pro eyebrow do
         expect($stage)->toHaveKeys(['key', 'name']);
         expect($stage['name'])->toBeString();
     }
-})->afterEach(fn () => rich_cleanup('F'));
+})->after(fn () => rich_cleanup('F'));

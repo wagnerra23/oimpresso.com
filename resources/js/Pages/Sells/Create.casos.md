@@ -401,6 +401,13 @@ last_run: "2026-10-27"
   venda com 100% de adiantamento passa mesmo com o limite estourado, como no Omie. Hoje
   o sistema calcula (`TransactionUtil::isCustomerCreditLimitExeeded()`) e só avisa. Mexe em valor:
   Regra Mestre.
+  - Pedido: P-010
+  - Âncora: US-CRM-081
+  - Fazer: Escolha por empresa (avisar ou bloquear); checar ao salvar; mensagem com o valor.
+  - Hoje: part | Em parte | O sistema calcula o limite e só avisa
+  - Comunicação visual: part | Cliente empresa | venda a prazo
+  - Clientes: Madereira Spilere
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] Usar o saldo a favor do cliente na venda** `[V0]` — Aceite: Dado um cliente com 120,00 a
   favor e uma venda de 500,00, Quando escolho o cliente, Então a venda já abate os 120,00 (entra um
   pagamento "Adiantamento" de 120,00, ficam 380,00 a receber e o saldo do cliente vai a 0,00), e o
@@ -408,41 +415,97 @@ last_run: "2026-10-27"
   que o total da venda (o Adiantamento já trava no saldo hoje). Mexe em valor: Regra Mestre. Fonte:
   protótipo do [W] `cliente-drawer760.jsx` ("créditos a favor, abatidos na próxima venda; o vendedor
   pode recusar"); US-VEST-021. Verificado contra as regras do [W] em 2026-10-23: o abatimento é automático, e recusar é a exceção.
+  - Pedido: P-011
+  - Âncora: Protótipo do drawer do cliente · US-VEST-021
+  - Fazer: Abater o saldo ao escolher o cliente, com o botão de recusar; nunca passar do saldo nem do total.
+  - Hoje: part | Em parte | Pagar com Adiantamento existe; a venda não oferece
+  - Comunicação visual: gray | Pouco | veio do vestuário
+  - Clientes: NewPrint
+  - Etiquetas: valor, part
 - **[BACKLOG] Número do pedido de compra do cliente** — o cliente empresa manda o próprio número de
   pedido e quer vê-lo na nota. Aceite: Dado um cliente que enviou o pedido "4500012345", Quando
   preencho "Pedido do cliente" na venda, Então o número fica gravado na venda, sai em cada OS da venda
   e vai para a NF-e e a NFS-e no campo `xPed` (o número do item do pedido em `nItemPed`, quando houver).
   Campo opcional; venda sem ele segue como hoje. Fonte: layout da NF-e (grupo do produto) e o schema
   da NFS-e nacional no módulo NfeBrasil (`xPed`).
+  - Pedido: P-012
+  - Âncora: NF-e e NFS-e (`xPed`, `nItemPed`)
+  - Fazer: Campo novo na venda; copiar para a OS; preencher o campo da nota na emissão.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: part | Cliente empresa | redes e construtoras
+  - Clientes: Zoom, Techpress
+  - Etiquetas: miss, cv
 - **[BACKLOG] Venda de serviço para cliente que retém ISS (UC-FLX-30)** `[V0]` — Aceite: Dado um
   cliente marcado no cadastro como tomador que retém ISS e uma venda com instalação de 660,00 (ISS de
   5%), Quando monto a venda, Então o resumo mostra "ISS retido previsto 33,00 · cliente paga" o total
   menos 33,00, avisando que o valor exato sai na NFS-e; o total da venda não muda. Mexe em valor: Regra
   Mestre. Fonte: US-FIN-072 (a retenção vira baixa quando a NFS-e é autorizada).
+  - Pedido: P-013
+  - Âncora: `UC-FLX-30` · US-FIN-072
+  - Fazer: Marca "retém ISS" no cadastro do cliente; prever o retido pela alíquota do serviço; só aviso.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | NFS-e com retenção
+  - Clientes: Techpress
+  - Etiquetas: valor, miss, cv
 - **[BACKLOG] Quem recebe comissão: vendedor, representante, agência ou ninguém** `[V0]` — Aceite:
   Dado a venda, Quando escolho quem recebe comissão (o vendedor, um representante ou uma agência) ou
   deixo "Sem comissionado", Então a venda grava a escolha; sem comissionado, nenhuma comissão nasce no
   faturamento; com comissionado, a comissão nasce pela regra dele (UC-FLX-05). Comissionado de outra
   empresa nunca aparece na lista. Fonte: Comissionados (`sales_commission_agents`, representante
   externo).
+  - Pedido: P-014
+  - Âncora: `UC-FLX-05` · Comissionados
+  - Fazer: Opção "Sem comissionado"; lista só da empresa; comissão pela regra de cada comissionado.
+  - Hoje: part | Em parte | O cadastro de comissionados existe
+  - Comunicação visual: ok | Sim | agência comum em CV
+  - Clientes: Techpress
+  - Etiquetas: part, cv, decisao
 - **[BACKLOG] Crédito disponível ao escolher o cliente** `[V0]` — Aceite: Dado um cliente com limite
   de 2.000,00 e 1.500,00 em aberto, Quando escolho o cliente na venda, Então o resumo mostra
   "Disponível 500,00" antes de salvar; cliente sem limite não mostra nada. Fonte: DecoNetwork (crédito
   restante no orçamento e no pedido); US-CRM-081.
+  - Pedido: P-027
+  - Âncora: US-CRM-081 · DecoNetwork
+  - Fazer: Mostrar o disponível no resumo da venda, com o mesmo cálculo do caso 16.
+  - Hoje: part | Em parte | O cálculo do limite existe e só avisa ao salvar
+  - Comunicação visual: part | Cliente empresa | venda a prazo
+  - Clientes: Madereira Spilere
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] A condição do cliente preenche a venda** `[V0]` — Aceite: Dado o cliente com condição
   própria de sinal de 50% e prazo de 28 dias, Quando faço uma venda para ele, Então a venda vem com
   esse sinal e esse prazo, e o vendedor pode trocar; cliente sem condição usa a da empresa. Fonte:
   DecoNetwork (condições por cliente); o caso irmão está em `Cliente/Index.casos.md`.
+  - Pedido: P-026
+  - Âncora: `UC-FLX-28` · DecoNetwork
+  - Fazer: Ler a condição do cliente ao escolhê-lo; permitir trocar na venda.
+  - Hoje: part | Em parte | A venda usa a regra da empresa
+  - Comunicação visual: ok | Sim | cliente fixo com sinal diferente
+  - Clientes: NewPrint, Sabor Brasil, ArtLaser
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] Cobrar o sinal por link** `[V0]` — Aceite: Dado o sinal mínimo de 30% e uma venda
   aprovada de 1.000,00, Quando gero a cobrança do sinal, Então sai uma cobrança de 300,00 (Pix ou
   boleto) com link para o cliente, e o vendedor pode trocar o valor; paga, o retorno do banco lança o
   pagamento na venda e libera a OS (UC-PCLIB-08). Mexe em valor: Regra Mestre. Fonte: Printavo
   (pedido de pagamento com o valor escolhido); UC-FLX-28.
+  - Pedido: P-028
+  - Âncora: `UC-FLX-28` · `UC-PCLIB-08` · Printavo
+  - Fazer: Gerar a cobrança do sinal pelo valor exigido, com o valor editável pelo vendedor.
+  - Hoje: part | Em parte | O retorno do banco já libera a OS
+  - Comunicação visual: ok | Sim | cobrar o sinal antes de produzir
+  - Clientes: Ecopias, Fixar
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] Duplicar abre a venda nova com a origem** — Aceite: Quando duplico a V-150, Então abre um
   rascunho com o mesmo cliente e os mesmos itens, sem pagamento, sem nota e com número novo, e o topo
   mostra "Duplicada de V-150"; a origem fica gravada na venda nova. Hoje a cópia não guarda a origem
   (`SellController::duplicateSell`, medido em 23/10/2026). Em aberto para o [W]: a cópia mantém os
   preços da origem ou recalcula pela tabela de hoje.
+  - Pedido: P-035
+  - Âncora: `SellController::duplicateSell`
+  - Fazer: Guardar a origem ao duplicar; decidir se os preços vêm da origem ou da tabela de hoje.
+  - Hoje: part | Em parte | Duplicar existe; hoje a cópia não guarda a origem
+  - Comunicação visual: ok | Sim | recompra do mesmo serviço
+  - Clientes: Zoom, Techpress, Sabor Brasil, Display Paraná, Estilo
+  - Etiquetas: part, cv, decisao
 - **[BACKLOG] Venda para entrega futura** `[V0]` `[E0]` — Aceite: Dado uma venda marcada "entrega
   futura" de 1.000 folhetos, Quando faturo, Então sai a nota de simples faturamento com o valor total
   e o estoque não baixa; a cada entrega sai uma nota de remessa com a quantidade entregue, ligada à de
@@ -450,38 +513,86 @@ last_run: "2026-10-27"
   5.922 no faturamento, 5.116 (produção própria) ou 5.117 (revenda) na remessa; o CFOP e o destaque
   do ICMS ficam com o contador. Mexe em valor e estoque: Regra Mestre. Fonte: UC-TRB-24 do protótipo
   fiscal (falta).
+  - Pedido: P-036
+  - Âncora: `UC-TRB-24` · CFOP de exemplo 5.922 e 5.116/5.117
+  - Fazer: Marca "entrega futura" na venda; notas de faturamento e de remessa; estoque só na remessa; o contador decide o CFOP.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | entrega em lotes
+  - Clientes: Mil Letras
+  - Etiquetas: valor, miss, cv
 - **[BACKLOG] Item com imposto faltando avisa ao montar a venda** — Aceite: Dado um produto sem NCM
   ou com a natureza fiscal "a decidir pelo contador", Quando o adiciono à venda, Então a linha mostra o
   que falta para a nota sair, sem impedir salvar a venda. Quem pode editar produto ganha na linha um
   "Informar NCM", que grava no produto; quem não pode vê só o aviso. Fonte: CU-PROD-18 (aviso no
   cadastro do produto) e UC-TRB-16 do protótipo fiscal ("pronto pra emitir"). Pedido da PraMoto
   (2026-10-27): os produtos comprados sem nota entram sem NCM.
+  - Pedido: P-047
+  - Âncora: `CU-PROD-18` · `UC-TRB-16`
+  - Fazer: Levar à venda o aviso que hoje existe só no cadastro do produto, com um "Informar NCM" que grava no produto para quem pode editar produto.
+  - Hoje: part | Em parte | O aviso existe só no cadastro do produto
+  - Comunicação visual: ok | Sim | mercadoria × serviço em cada item
+  - Clientes: PraMoto, Estilo
+  - Etiquetas: part, cv
 - **[BACKLOG] Cliente sem dados para a nota avisa ao ser escolhido** — Aceite: Dado um cliente sem
   CPF ou CNPJ, sem endereço com município ou sem a indicação de contribuinte do ICMS, Quando o escolho
   numa venda, Então o resumo mostra "Faltam dados para a nota" e quais, com link para completar o
   cadastro, sem impedir salvar a venda. Fonte: grupo do destinatário da NF-e.
+  - Pedido: P-048
+  - Âncora: Grupo do destinatário da nf-e
+  - Fazer: Aviso no resumo da venda ao escolher o cliente.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: part | Cliente empresa | nota para empresa
+  - Clientes: Techpress, PraMoto
+  - Etiquetas: miss, cv
 - **[BACKLOG] Instrução de execução no item da venda** (pedido de 2026-10-23) — Aceite: Dado uma
   venda com o item "Fachada em ACM 3 x 1 m", Quando escrevo no item "instalar no 2º andar, cliente
   libera o acesso às 8h", Então a instrução fica gravada no item, sai na ficha da OS e aparece para
   quem executa na produção. Item sem instrução não mostra nada. Hoje o Blade grava a nota do item
   (`sell_line_note`); a venda React não tem o campo. A produção mostra a instrução
   (Producao/Apontamento/Index.casos.md, mesmo pedido).
+  - Pedido: P-057
+  - Âncora: Nota do item do Blade (`sell_line_note`) · `Sells/Create.casos.md`
+  - Fazer: Campo de instrução em cada item da venda, levado à OS e à ficha impressa.
+  - Hoje: part | Em parte | O Blade grava a nota do item; a venda nova não tem o campo
+  - Comunicação visual: ok | Sim | instalação e acabamento
+  - Clientes: Extreme, Zoom, Max Comunicação
+  - Etiquetas: part, cv
 - **[BACKLOG] Venda condicional** (pedido de 2026-10-23) `[V0]` `[E0]` — Aceite: Dado uma venda
   marcada "condicional" com 5 peças, Quando o cliente leva as peças, Então elas saem do estoque
   disponível, a venda fica "Condicional em aberto" e não gera conta a receber nem nota de venda; Quando
   o cliente devolve 3 peças e fica com 2, Então as 3 voltam ao estoque e a venda vira venda normal das 2
   peças, com valor e conta a receber só delas. Mexe em valor e estoque: Regra Mestre. A nota de
   remessa, se houver, é decisão do contador.
+  - Pedido: P-059
+  - Âncora: `Sells/Create.casos.md`
+  - Fazer: Tipo "Condicional" na venda, com retorno das peças e conversão no que ficou. A nota de remessa, se houver, o contador decide.
+  - Hoje: miss | Não tem | Não há venda condicional
+  - Comunicação visual: gray | Pouco | é do vestuário
+  - Clientes: Rota Livre
+  - Etiquetas: valor, miss
 - **[BACKLOG] Funcionário que executou o serviço, por item** (pedido de 2026-10-23) — Aceite: Dado uma
   venda com os serviços "troca de óleo" e "alinhamento", Quando indico quem executou cada um, Então o
   nome fica gravado no item e aparece na consulta da venda e na comissão de quem executou. Hoje o
   backend grava `res_service_staff_id` por item (vindo do Blade de restaurante); a venda React não tem
   o campo. A OS tem o caso irmão (Repair/JobSheet/Create.casos.md).
+  - Pedido: P-060
+  - Âncora: `res_service_staff_id` por item · `Sells/Create.casos.md`
+  - Fazer: Campo "Executado por" em cada item de serviço da venda.
+  - Hoje: part | Em parte | O backend grava o funcionário por item; a venda nova não tem o campo
+  - Comunicação visual: ok | Sim | instalador de cada serviço
+  - Clientes: Global Pneus, PraMoto, Mecânica Casa Grande
+  - Etiquetas: part, cv, decisao
 - **[BACKLOG] Modelo e série do aparelho na venda da pilha** (pedido de 2026-10-23) — Aceite: Dado um
   produto do tipo pilha ou bateria, Quando o adiciono à venda, Então informo o modelo e o número de
   série do aparelho onde ela vai; os dois saem na consulta da venda e na garantia. Produto de outro
   tipo não pede nada. O cadastro do produto diz quais modelos usam a pilha
   (Produto/Index.casos.md, mesmo pedido).
+  - Pedido: P-063
+  - Âncora: `Sells/Create.casos.md`
+  - Fazer: Campos de modelo e série do aparelho no item, só para produto do tipo pilha.
+  - Hoje: miss | Não tem | Não há o campo
+  - Comunicação visual: gray | Pouco | não é do ramo
+  - Etiquetas: miss
 - **[BACKLOG] Montar o kit dentro da venda** (pedido de 2026-10-23) `[V0]` `[E0]` — Aceite: Dado o
   kit "Cortina completa", Quando o adiciono à venda e escolho os componentes (tecido 4,2 m, trilho 2 m e
   2 suportes), Então a linha mostra o kit com os componentes e as quantidades, o preço do kit é o da
@@ -490,18 +601,39 @@ last_run: "2026-10-27"
   Hoje o produto do tipo combo (kit) e a composição existem no cadastro
   (`memory/requisitos/Produto/_telas/bom-combo.casos.md`); a busca da venda reconhece o tipo `combo`,
   mas não monta os componentes na venda.
+  - Pedido: P-066
+  - Âncora: Combo e composição do cadastro (`bom-combo.casos.md`) · `Sells/Create.casos.md`
+  - Fazer: Montar os componentes do kit na linha da venda, com preço e baixa por componente.
+  - Hoje: part | Em parte | O cadastro tem o kit e a composição; a venda não monta os componentes
+  - Comunicação visual: ok | Sim | placa com suporte e fixação
+  - Clientes: Lessa Cortinas, Display Paraná, MidiaOff
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] A tabela de preço do cliente preenche os preços** (pedido de 2026-10-23) `[V0]` — Aceite:
   Dado um cliente ligado à tabela "Atacado", Quando o escolho na venda, Então os itens passam a usar os
   preços dessa tabela, e o vendedor vê qual tabela está valendo; cliente sem tabela usa a padrão. Hoje
   isso já funciona pelo grupo do cliente (o grupo aponta a tabela e a venda reprecifica ao escolher o
   cliente), mas não há tabela no próprio cliente: um cliente com preço só dele precisa de um grupo só
   dele. Sem caso nem teste até agora.
+  - Pedido: P-087
+  - Âncora: Grupo do cliente (`Cliente/Grupos`) · `Sells/Create.casos.md`
+  - Fazer: Permitir a tabela no próprio cliente, além do grupo, e mostrar na venda qual está valendo.
+  - Hoje: part | Em parte | Funciona pelo grupo do cliente; não há tabela no próprio cliente
+  - Comunicação visual: ok | Sim | preço combinado por cliente
+  - Clientes: Sabor Brasil
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] A tabela de preço segue o canal de venda** (pedido de 2026-10-23) `[V0]` — Aceite: Dado as
   tabelas Varejo e Atacado, Quando escolho o canal "Atacado", Então os itens usam a tabela de
   atacado, e trocar o canal refaz os preços dos itens já lançados. Hoje a venda tem o seletor de tabela
   de preço (`price_group_id`), mas não um canal que escolha a tabela.
   Chamado de canal, e não de tipo de venda, porque o [W] já usa "tipo de venda" para balcão, reparo e
   OS (decisão de 2026-10-01). Verificado contra as regras do [W] em 2026-10-23.
+  - Pedido: P-088
+  - Âncora: Seletor de tabela da venda (`price_group_id`) · `Sells/Create.casos.md`
+  - Fazer: Canal de venda (varejo, atacado) ligado a uma tabela de preço, escolhido na venda. Não chamar de "tipo de venda": o Wagner usa esse nome para balcão, reparo e OS.
+  - Hoje: part | Em parte | A venda tem o seletor de tabela, não um canal de venda
+  - Comunicação visual: ok | Sim | revenda e consumidor final
+  - Clientes: Martinho, ArtLaser, Medeiros Produto de Limpeza
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] Consignação para revendedor** (comparação com concorrentes, 2026-10-23) `[V0]` `[E0]` —
   Aceite: Dado um revendedor que recebe 20 placas em consignação, Quando faço a remessa, Então as 20
   saem do estoque próprio e ficam como "em poder de terceiros", sem conta a receber; Quando ele presta
@@ -509,6 +641,12 @@ last_run: "2026-10-27"
   estoque e o saldo em consignação zera. Mexe em valor e estoque: Regra Mestre. Os CFOP da remessa e
   do retorno são decisão do contador. Fonte: Omie (consignação, com estoque de terceiros e devolução
   simbólica). Hoje não existe; a venda condicional (acima) é para o consumidor final.
+  - Pedido: P-094
+  - Âncora: Omie (consignação com estoque de terceiros) · `Sells/Create.casos.md`
+  - Fazer: Remessa em consignação, saldo por revendedor e prestação de contas. O contador decide os CFOP.
+  - Hoje: miss | Não tem | Não existe; a venda condicional (caso 59) é para o consumidor
+  - Comunicação visual: gray | Pouco | revenda em consignação
+  - Etiquetas: valor, miss
 - **[BACKLOG] Tabela de preço com validade e por forma de pagamento, vendedor ou região** (comparação
   com concorrentes, 2026-10-23) `[V0]` — Aceite: Dado a tabela "Promoção de outubro" válida de 01/10 a
   31/10 e ligada à forma de pagamento Pix, Quando faço uma venda em 15/10 com Pix, Então os itens usam
@@ -516,14 +654,36 @@ last_run: "2026-10-27"
   para a tabela ligada a um vendedor, a uma região ou a uma loja. Fonte: Bling (lista de preços com
   vigência, ligada a contato, vendedor, forma de pagamento, região ou loja). Hoje a tabela vem do grupo
   do cliente ou do seletor da venda, sem validade nem esses vínculos.
+  - Pedido: P-095
+  - Âncora: Bling (lista de preços com vigência e vínculos) · `Sells/Create.casos.md`
+  - Fazer: Validade na tabela de preço e vínculo com forma de pagamento, vendedor, região e loja.
+  - Hoje: part | Em parte | A tabela vem do grupo do cliente ou do seletor da venda, sem validade nem esses vínculos
+  - Comunicação visual: ok | Sim | preço à vista e a prazo
+  - Etiquetas: valor, part, cv
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
+
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-05 · Ao duplicar, os preços vêm da venda de origem ou da tabela de hoje?**
+  - Estado: Em aberto
+  - Opção: Preço da origem — É o que a cópia faz hoje: copia os itens como estavam. Bom para repetir um pedido negociado.
+  - Opção: Tabela de hoje — Recalcula pelo preço atual. Evita vender abaixo do custo quando o material subiu.
+  - Destrava: P-035, P-037
+- **[DECISÃO] D-06 · Quem confirma os CFOP das remessas e da entrega futura?**
+  - Estado: Em aberto
+  - Texto: Os casos citam CFOP só como exemplo (5.915 e 1.916 no conserto, 5.949 e 1.949 na garantia, 5.922 e 5.116 ou 5.117 na entrega futura). A nota de entrada de bem usado comprado de pessoa física (caso 101) entra na mesma pergunta. Quem decide é o contador, como já acontece na natureza fiscal do produto.
+  - Destrava: P-036, P-101
+  - Ligação: também destrava P-041, P-042, P-043, que ainda não está no git.
 
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate, gate de PR desde Onda Q1) — vereditos viram manifesto via `npm run casos:results`.
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Create. UC ❌ = regressão → lição + conserto antes de seguir.
 
 ## Trilha do tempo
+- 2026-10-28 · [W+C] Decisões pendentes D-05, D-06 do documento "Casos de uso por tela", sem id de caso.
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S01 venda a prazo + spec Playwright `sells-venda-balcao.spec.ts`; produto E2E-0001 entrou no VisregTenantSeeder (enable_stock=0).
 - 2026-06-18 · [CC] refactor só-de-layout (Wagner): total de itens no rodapé do card Produtos + card de desconto (Resumo) movido pra antes do Pagamento. Sem mudança de comportamento — UC-S01 baixado pra 🧪 até re-rodar o e2e (G-7 frescor).
 - 2026-08-26 · [CC] Fechar o diálogo de recuperação parou de apagar o rascunho (o `onOpenChange` chamava `handleDraftDiscard()` → `localStorage.removeItem()`, irreversível; agora só o botão "Descartar" apaga). Mudança de COMPORTAMENTO, não de layout. UC-S01 e UC-S02 revalidados por medição de alcance (0 ocorrências do diálogo nos testes de ambos; controle positivo 55 no `.tsx`) — nenhum dos dois é atingido, então nenhum foi rebaixado. Comportamento novo entrou no Backlog sem id (G-2) até haver teste que o exercite. Origem: ROTA LIVRE perdendo venda montada nas janelas de 503 do deploy.

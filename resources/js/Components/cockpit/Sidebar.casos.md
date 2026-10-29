@@ -33,7 +33,7 @@ last_run: "2026-09-29"
 
 ### UC-SB-02 · "Visão geral" fica no topo, fora dos grupos ⬜
 - **Aceite:** a entry de landing (`group: landing`) não cai em grupo nenhum e aponta pra
-  `/dashboard-legacy`.
+  `/home` (era `/dashboard-legacy` até 2026-10-29, hoje redirect).
 - **Teste:** `tests/Feature/Sidebar/VisaoGeralLandingTest.php` (Pest, lane sqlite). Prova o
   **contrato** do adapter, não o render. Não rodei aqui (PHP só no CI/CT 100).
 

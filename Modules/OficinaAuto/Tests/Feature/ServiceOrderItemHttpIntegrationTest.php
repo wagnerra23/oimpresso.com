@@ -115,7 +115,7 @@ it('Inertia GET /ordens-servico/{id} inclui items[] no payload (Show.tsx consume
     // Sem Accept: application/json → Inertia branch (HTML wrapper) — testamos via
     // X-Inertia header que devolve o payload JSON do Inertia::render diretamente.
     $response = $this->actingAs($user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request())])
         ->get("/oficina-auto/ordens-servico/{$os->id}");
 
     $response->assertOk();
@@ -128,7 +128,7 @@ it('Inertia GET /ordens-servico/{id} inclui items[] no payload (Show.tsx consume
         'id', 'tipo', 'descricao', 'quantidade', 'valor_unitario', 'valor_total',
     ]);
     expect($props['order']['items'][0]['tipo'])->toBe('peca');
-})->afterEach(fn () => wave5_cleanup('A'));
+})->after(fn () => wave5_cleanup('A'));
 
 it('Inertia GET /ordens-servico/{id}/edit inclui items[] no payload (Edit.tsx consumer)', function () {
     session(['user.business_id' => BIZ_WAVE5]);
@@ -138,7 +138,7 @@ it('Inertia GET /ordens-servico/{id}/edit inclui items[] no payload (Edit.tsx co
     $user->givePermissionTo('superadmin');
 
     $response = $this->actingAs($user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request())])
         ->get("/oficina-auto/ordens-servico/{$os->id}/edit");
 
     $response->assertOk();
@@ -150,7 +150,7 @@ it('Inertia GET /ordens-servico/{id}/edit inclui items[] no payload (Edit.tsx co
     expect($props['order']['items'][0])->toHaveKeys([
         'id', 'tipo', 'descricao', 'quantidade', 'valor_unitario', 'valor_total',
     ]);
-})->afterEach(fn () => wave5_cleanup('B'));
+})->after(fn () => wave5_cleanup('B'));
 
 it('Inertia GET /ordens-servico/{id} sem items retorna items=[] (não null)', function () {
     session(['user.business_id' => BIZ_WAVE5]);
@@ -160,7 +160,7 @@ it('Inertia GET /ordens-servico/{id} sem items retorna items=[] (não null)', fu
     $user->givePermissionTo('superadmin');
 
     $response = $this->actingAs($user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request())])
         ->get("/oficina-auto/ordens-servico/{$os->id}");
 
     $response->assertOk();
@@ -168,7 +168,7 @@ it('Inertia GET /ordens-servico/{id} sem items retorna items=[] (não null)', fu
 
     expect($props['order']['items'])->toBeArray();
     expect($props['order']['items'])->toHaveCount(0);
-})->afterEach(fn () => wave5_cleanup('C'));
+})->after(fn () => wave5_cleanup('C'));
 
 // ---------------------------------------------------------------------------
 // HTTP DELETE — happy path + cross-OS guard
@@ -193,7 +193,7 @@ it('HTTP DELETE /items/{item} autenticado retorna 200 com deleted=true', functio
     $fresh = ServiceOrderItem::withoutGlobalScopes()->withTrashed()->find($item->id);
     expect($fresh)->not->toBeNull();
     expect($fresh->trashed())->toBeTrue();
-})->afterEach(fn () => wave5_cleanup('D'));
+})->after(fn () => wave5_cleanup('D'));
 
 it('HTTP DELETE cross-OS (item de OS1 via URL OS2) → 404 abort guard', function () {
     session(['user.business_id' => BIZ_WAVE5]);
@@ -214,7 +214,7 @@ it('HTTP DELETE cross-OS (item de OS1 via URL OS2) → 404 abort guard', functio
     $fresh = ServiceOrderItem::withoutGlobalScopes()->find($itemOs1->id);
     expect($fresh)->not->toBeNull();
     expect($fresh->trashed())->toBeFalse();
-})->afterEach(function () {
+})->after(function () {
     wave5_cleanup('E1');
     wave5_cleanup('E2');
 });

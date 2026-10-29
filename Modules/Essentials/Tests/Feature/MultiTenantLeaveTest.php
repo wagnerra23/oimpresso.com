@@ -62,7 +62,7 @@ it('Leave biz=1 não aparece em listagem scoped biz=99', function () {
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     EssentialsLeave::where('reason', 'Férias Wagner Isolamento')->delete();
 });
 
@@ -78,7 +78,7 @@ it('Leave biz=1 NÃO pode ser carregada via show scoped biz=99', function () {
         ->first();
 
     expect($achado)->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     EssentialsLeave::where('reason', 'Atestado Show Isolamento')->delete();
 });
 
@@ -97,7 +97,7 @@ it('Leave biz=1 NÃO pode ter status mudado via update scoped biz=99', function 
 
     $fresh = EssentialsLeave::find($leave->id);
     expect($fresh->status)->toBe('pending');
-})->afterEach(function () {
+})->after(function () {
     EssentialsLeave::where('reason', 'Approval Edit Isolamento')->delete();
 });
 
@@ -119,7 +119,7 @@ it('Leave biz=1 NÃO pode ser deletada via destroy scoped biz=99', function () {
         ->first();
 
     expect($sobreviveu)->not->toBeNull();
-})->afterEach(function () {
+})->after(function () {
     EssentialsLeave::where('reason', 'Leave Delete Isolamento')->delete();
 });
 
@@ -136,6 +136,6 @@ it('Leave biz=1 aparece em listagem scoped biz=1', function () {
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->reason)->toBe('Leave Visivel');
-})->afterEach(function () {
+})->after(function () {
     EssentialsLeave::where('reason', 'Leave Visivel')->delete();
 });
