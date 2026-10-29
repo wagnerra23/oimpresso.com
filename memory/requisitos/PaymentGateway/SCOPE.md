@@ -19,6 +19,7 @@ contains:
   - "CobrancaController"
   - "Settings/PaymentGatewaysController — F3 PaymentGateway UI Tela 2 (CRUD credenciais + health check + toggle, Onda 4d.3)"
   - "Settings/PaymentGatewaysCnabRetornoController — POST /settings/payment-gateways/{credential}/cnab-retorno (upload arquivo retorno + histórico processamento, Onda 4f.0)"
+  - "CobrancaCnabArquivosController — (Settings/) GET /settings/payment-gateways/cobrancas/{cobranca}/remessa|boleto (baixar a remessa CNAB e o PDF do boleto da cobrança, só da empresa da sessão — P-157)"
   - "DataController — 3 hooks UltimatePOS (Onda 1)"
   - "TefController — POST/GET /paymentgateway/tef/cobrancas, maquininha integrada ao caixa (US-SELL-075); Services/Tef/TefService + SimuladorTefDriver, contrato TefDriver; flag SELLS_TEF_ENABLED"
   - "InstallController — extends BaseModuleInstallController (Onda 1)"
