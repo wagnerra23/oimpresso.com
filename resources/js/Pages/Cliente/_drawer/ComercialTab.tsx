@@ -42,6 +42,8 @@ export interface ContactInfo {
   prazo_padrao_dias?: number | null;
   // Tabela de preço REAL (FK customer_groups). Fonte de verdade do drawer.
   customer_group_id?: number | null;
+  // P-087 — tabela própria do cliente (FK selling_price_groups); vale no lugar da do grupo.
+  selling_price_group_id?: number | null;
   pgto_padrao?: string | null;
   // Mensagem exibida como alerta ao vendedor no POS (migrado do Delphi).
   mensagem_venda?: string | null;
@@ -58,6 +60,8 @@ export interface ComercialTabProps {
    * dropdown fake hardcoded. `undefined`/`[]` → dropdown vazio com aviso.
    */
   priceGroups?: PriceGroupOption[];
+  /** P-087 — tabelas de preço (selling_price_groups) do business. */
+  sellingPriceGroups?: PriceGroupOption[];
   onSaved?: (field: string, value: unknown) => void;
   disabled?: boolean;
 }
@@ -102,6 +106,7 @@ const NO_GROUP = '__none__';
 export default function ComercialTab({
   contact,
   priceGroups = [],
+  sellingPriceGroups = [],
   onSaved,
   disabled = false,
 }: ComercialTabProps) {
@@ -115,6 +120,9 @@ export default function ComercialTab({
   // Select (NO_GROUP = sem tabela); convertido pra number|null no autosave.
   const [grupoPreco, setGrupoPreco] = useState<string>(
     contact.customer_group_id != null ? String(contact.customer_group_id) : NO_GROUP
+  );
+  const [tabelaPropria, setTabelaPropria] = useState<string>(
+    contact.selling_price_group_id != null ? String(contact.selling_price_group_id) : NO_GROUP
   );
   const [pgto, setPgto] = useState<string>(contact.pgto_padrao ?? '');
   const [mensagemVenda, setMensagemVenda] = useState<string>(contact.mensagem_venda ?? '');
@@ -134,6 +142,7 @@ export default function ComercialTab({
     setLimite(contact.limite_credito != null ? String(contact.limite_credito) : '');
     setPrazo(contact.prazo_padrao_dias != null ? String(contact.prazo_padrao_dias) : '');
     setGrupoPreco(contact.customer_group_id != null ? String(contact.customer_group_id) : NO_GROUP);
+    setTabelaPropria(contact.selling_price_group_id != null ? String(contact.selling_price_group_id) : NO_GROUP);
     setPgto(contact.pgto_padrao ?? '');
     setMensagemVenda(contact.mensagem_venda ?? '');
     setObs(contact.obs_comercial ?? '');
@@ -146,6 +155,7 @@ export default function ComercialTab({
     if (field === 'limite_credito') setLimite(prev != null ? String(prev) : '');
     else if (field === 'prazo_padrao_dias') setPrazo(prev != null ? String(prev) : '');
     else if (field === 'customer_group_id') setGrupoPreco(prev != null ? String(prev) : NO_GROUP);
+    else if (field === 'selling_price_group_id') setTabelaPropria(prev != null ? String(prev) : NO_GROUP);
     else if (field === 'pgto_padrao') setPgto((prev as string) ?? '');
     else if (field === 'mensagem_venda') setMensagemVenda((prev as string) ?? '');
     else if (field === 'obs_comercial') setObs((prev as string) ?? '');
@@ -261,6 +271,19 @@ export default function ComercialTab({
       performSave('customer_group_id', id, prevId);
     },
     [grupoPreco, performSave]
+  );
+
+  // P-087 — tabela própria: mesmo vaivém string↔number|null do grupo.
+  const handleTabelaPropriaChange = useCallback(
+    (v: string) => {
+      const prev = tabelaPropria;
+      if (prev === v) return;
+      setTabelaPropria(v);
+      const id = v === NO_GROUP ? null : Number.parseInt(v, 10);
+      const prevId = prev === NO_GROUP ? null : Number.parseInt(prev, 10);
+      performSave('selling_price_group_id', id, prevId);
+    },
+    [tabelaPropria, performSave]
   );
 
   return (
@@ -384,6 +407,35 @@ export default function ComercialTab({
             saving={savingField === 'customer_group_id'}
             saved={savedField === 'customer_group_id'}
             backendError={errorField?.field === 'customer_group_id' ? errorField.message : null}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <Label htmlFor="cm-tabela-propria" className="cw-label">
+            Tabela própria do cliente{' '}
+            <span className="text-muted-foreground font-normal">(vale no lugar da tabela do grupo)</span>
+          </Label>
+          <Select
+            value={tabelaPropria}
+            onValueChange={handleTabelaPropriaChange}
+            disabled={disabled || sellingPriceGroups.length === 0}
+          >
+            <SelectTrigger id="cm-tabela-propria" variant="cowork" className="w-full">
+              <SelectValue placeholder="Selecionar tabela" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_GROUP}>Usar a tabela do grupo</SelectItem>
+              {sellingPriceGroups.map((g) => (
+                <SelectItem key={g.id} value={String(g.id)}>
+                  {g.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FieldStatus
+            saving={savingField === 'selling_price_group_id'}
+            saved={savedField === 'selling_price_group_id'}
+            backendError={errorField?.field === 'selling_price_group_id' ? errorField.message : null}
           />
         </div>
 

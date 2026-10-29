@@ -655,7 +655,7 @@ last_run: "2026-10-27"
   - Pedido: P-087
   - Âncora: Grupo do cliente (`Cliente/Grupos`) · `Sells/Create.casos.md`
   - Fazer: Permitir a tabela no próprio cliente, além do grupo, e mostrar na venda qual está valendo.
-  - Hoje: part | Em parte | Funciona pelo grupo do cliente; não há tabela no próprio cliente
+  - Hoje: part | Em parte | A tabela própria do cliente vale no lugar da do grupo na busca de cliente da venda (UC-CIDX-06..08, `Cliente/Index.casos.md`, 2026-10-29); falta conferir no runtime que a venda mostra qual tabela está valendo
   - Comunicação visual: ok | Sim | preço combinado por cliente
   - Clientes: Sabor Brasil
   - Etiquetas: valor, part, cv

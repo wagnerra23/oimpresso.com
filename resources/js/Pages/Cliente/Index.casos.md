@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-29"
 ---
 
 > ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -81,6 +81,27 @@ last_run: "2026-10-14"
 - **Teste:** `tests/Feature/Cliente/ClienteUltimaOsTest.php` — maior data ≠ maior id · venda mais nova em outra empresa ignorada · sem venda = `null`.
 - **Fonte:** protótipo `clientes-page.jsx` (coluna "Última OS", `.cli-lastos-link`) + decisão [W] 2026-10-14 (thread cliente/02). Não há CU no SDD para esta coluna.
 - **Status: 🧪** — teste cita o UC; ✅ com o manifesto regravado.
+
+## UC-CIDX-06 · A tabela própria do cliente vale no lugar da do grupo na venda `[V0]` `[must]`
+- **Persona:** vendedor do Sabor Brasil — cada rede de supermercado tem o seu preço.
+- **Aceite:** Dado a tabela "Atacado" no grupo do cliente e a tabela "Rede X" no próprio cliente · Quando escolho o cliente na venda · Então a busca de cliente devolve a "Rede X" e a venda reprecifica por ela; cliente só com grupo recebe "Atacado"; sem grupo e sem tabela, nenhuma (preço padrão).
+- **Âncora de contrato:** pedido P-087 (`Sells/Create.casos.md`). Medido no Delphi do Sabor Brasil em 2026-10-29: 192 clientes ligados a 61 tabelas, 48 tabelas com 1 cliente só, e 87 dos 192 também com grupo (`PESSOAS.CODPESSOAS_GRUPO`) — o grupo sozinho não carrega os dois vínculos. **REGRA MESTRE valor**: muda qual preço a venda usa.
+- **Teste:** `tests/Feature/Cliente/ClienteTabelaPropriaContratoTest.php` (lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-06 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-07 · O drawer grava a tabela própria; "Usar a tabela do grupo" a apaga
+- **Persona:** quem cadastra o cliente.
+- **Aceite:** Dado um cliente · Quando escolho "Rede X" em "Tabela própria do cliente" na aba Comercial · Então ela é gravada e devolvida no autosave; voltando para "Usar a tabela do grupo", o campo fica vazio.
+- **Âncora de contrato:** pedido P-087 · `ClienteAutosaveController::comercial`.
+- **Teste:** `tests/Feature/Cliente/ClienteTabelaPropriaContratoTest.php` — `UC-CIDX-07 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-08 · Tabela de outra empresa não entra `[must]`
+- **Persona:** dono da empresa — preço de outro tenant nunca vale aqui.
+- **Aceite:** Dado uma tabela de outra empresa · Quando tento gravá-la no cliente · Então 422 e nada gravado; e se o id chegar ao banco por fora (import, SQL), a busca da venda não devolve tabela.
+- **Âncora de contrato:** [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteTabelaPropriaContratoTest.php` — `UC-CIDX-08 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
 ---
 
@@ -190,6 +211,9 @@ last_run: "2026-10-14"
 | UC-CIDX-03 | CU-CLI-06 | — |
 | UC-CIDX-04 | CU-CLI-07 · CU-CLI-11 | — |
 | UC-CIDX-05 | — (protótipo + [W] 2026-10-14) | — |
+| UC-CIDX-06 | — (pedido P-087, Sabor Brasil) | — |
+| UC-CIDX-07 | — (pedido P-087) | — |
+| UC-CIDX-08 | — (pedido P-087 · ADR 0093) | — |
 
 > Coluna US vazia de propósito: a US-CRM-071 (KB-9.75 Slice A no Index) declara `ClienteIndexDrawer760CharterTest` como `**Testado em:**`, não estes 4. Vínculo por tema não conta.
 
@@ -199,6 +223,7 @@ last_run: "2026-10-14"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-10-29 · [W+C] **UC-CIDX-06..08** (P-087): tabela de preço no próprio cliente (`contacts.selling_price_group_id`), que vale no lugar da do grupo na busca de cliente da venda. Comportamento novo na aba Comercial (campo "Tabela própria do cliente"); `last_run` sobe por isso.
 - 2026-10-23 · [M+C] Backlog de saldo a favor e limite de crédito no drawer, sem id.
 - 2026-10-23 · [M+C] Backlog: condição de pagamento do cliente (sinal e prazo), da comparação com concorrentes (DecoNetwork), sem id.
 - 2026-10-23 · [M+C] Backlog: aviso de dados faltando para a nota, sem id.
