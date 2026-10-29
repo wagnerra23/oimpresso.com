@@ -36,6 +36,51 @@ const postosIniciais = (D) => [
 const ferramentasIniciais = (D) => D.FERRAMENTAS.filter((f) => f.tipo !== "veículo").map((f) => ({ qr: f.id, nome: f.nome }));
 const CUSTO_PESSOA = { Ana: 48, Diego: 42, Paula: 44, Felipe: 38, Marcos: 46, Jonas: 40, Rafa: 36, Larissa: "" };
 
+// Manutenção preventiva por máquina (backlog P3 do ROADMAP da Produção, "Manutenção preventiva máquinas",
+// referência SAP PM e Odoo Maintenance; ainda sem US no SPEC). O plano vence por horas de uso apontadas ou por
+// dias. A pausa "Manutenção" do celular continua sendo a corretiva, a que acontece quando a máquina para.
+const MANUT = [
+  { maq: "uv", o: "Limpeza das cabeças e troca do filtro de tinta", cada: 80, un: "h", uso: 76, ultima: "2026-09-29", quem: "Paula" },
+  { maq: "cnc", o: "Lubrificação dos fusos e troca da fresa", cada: 30, un: "dias", ultima: "2026-09-10", quem: "Marcos" },
+  { maq: "latex", o: "Troca do rolo de manutenção e limpeza do carro", cada: 120, un: "h", uso: 64, ultima: "2026-10-02", quem: "Diego" },
+  { maq: "lamin", o: "Limpeza e regulagem dos rolos", cada: 60, un: "dias", ultima: "2026-09-01", quem: "Felipe" },
+];
+const addDias = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+// Situação do plano: vencida, vence em breve (até 10% do intervalo ou 3 dias) ou em dia.
+const situacaoManut = (m, D) => {
+  if (m.un === "h") { const falta = m.cada - m.uso; return { falta: falta <= 0 ? "passou " + -falta + " h do plano" : "faltam " + falta + " h de uso", sit: falta <= 0 ? "vencida" : falta <= m.cada * 0.1 ? "em breve" : "em dia",
+    msg: falta <= 0 ? "Passou " + -falta + " h do plano." : "Faltam " + falta + " h de uso." }; }
+  const prox = addDias(m.ultima, m.cada); const d = D.dias(D.HOJE, prox);
+  return { falta: d < 0 ? "venceu em " + D.d2(prox) : "próxima em " + D.d2(prox), sit: d < 0 ? "vencida" : d <= 3 ? "em breve" : "em dia",
+    msg: d < 0 ? "Venceu em " + D.d2(prox) + ", há " + -d + " dias." : "Vence em " + D.d2(prox) + "." };
+};
+const SIT_MANUT = { vencida: ["Vencida", "danger"], "em breve": ["Vence em breve", "warning"], "em dia": ["Em dia", "success"] };
+// Para o Painel: só o que venceu ou vence em breve.
+const manutencaoAlertas = () => { const D = P(); return MANUT.map((m) => ({ ...m, ...situacaoManut(m, D) })).filter((m) => m.sit !== "em dia"); };
+
+function Manutencao({ D, aviso }) {
+  const { Button, Input } = DS();
+  const [, setN] = useState(0);
+  const [feita, setFeita] = useState(null);
+  return (
+    <Bloco titulo="Manutenção preventiva" nota="Plano por máquina, por horas de uso apontadas ou por dias. O Painel avisa o PCP quando vence. A parada inesperada continua sendo a pausa “Manutenção” no celular.">
+      <ul className="pcv-postos">{MANUT.map((m, i) => { const s = situacaoManut(m, D); const maq = D.maqDe(m.maq); return (
+        <li key={m.maq} className="pcv-posto">
+          <div className="pcv-posto-m"><b>{maq ? maq.nome : m.maq}</b>
+            <small>{m.o} · a cada {m.cada} {m.un === "h" ? "h de uso" : "dias"}</small>
+            <small>Última em {D.d2(m.ultima)} ({m.quem}){m.un === "h" ? " · " + m.uso + " h de uso desde então" : ""} · {s.falta}</small>
+            {feita && feita.i === i && <div className="pcv-form">
+              {Input && <Input label="O que foi feito" value={feita.txt} onChange={(e) => setFeita({ ...feita, txt: e.target.value })} />}
+              <div className="pcv-bar"><Button onClick={() => setFeita(null)}>Cancelar</Button><Button variant="primary" disabled={feita.txt.trim().length < 3} onClick={() => { m.ultima = D.HOJE; m.uso = 0; m.quem = "Você"; D.registrar({ quem: "Você", tipo: "pcp", maq: m.maq, texto: "Manutenção preventiva feita em " + (maq ? maq.nome : m.maq) + ": " + feita.txt.trim() }); setFeita(null); setN((x) => x + 1); aviso("Manutenção de " + (maq ? maq.nome : m.maq) + " registrada. O plano recomeça hoje."); }}>Registrar</Button></div>
+            </div>}
+          </div>
+          {B(SIT_MANUT[s.sit])}
+          {Button && !(feita && feita.i === i) && <Button size="sm" onClick={() => setFeita({ i, txt: m.o })}>Registrar feita</Button>}
+        </li>); })}</ul>
+    </Bloco>
+  );
+}
+
 const linhas = (t) => t.split("\n").map((x) => x.trim()).filter(Boolean);
 const dec = (v) => (v === "" || v === null || v === undefined ? "" : String(v).replace(",", "."));
 
@@ -181,6 +226,7 @@ function Postos() {
       <Bloco titulo="Postos e máquinas" nota="Capacidade e custo-hora são da sua empresa. Os motivos de pausa e de refugo do posto são a lista que o operador vê no celular." acao={novo("posto")}>
         <ListaPostos D={D} itens={postos.filter((p) => !p.veiculo)} onEditar={setEditando} />
       </Bloco>
+      <Manutencao D={D} aviso={setAviso} />
       <Bloco titulo="Veículos" nota="Veículo é posto de máquina: entra no custo da OS por hora e por km." acao={novo("veiculo")}>
         <ListaPostos D={D} itens={postos.filter((p) => p.veiculo)} onEditar={setEditando} />
       </Bloco>
@@ -193,5 +239,5 @@ function Postos() {
   );
 }
 
-window.PcvPostos = { Postos };
+window.PcvPostos = { Postos, manutencaoAlertas };
 })();

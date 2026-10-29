@@ -132,6 +132,11 @@ function Painel({ onAbrir, ir, filtrar }) {
             ? "Falta " + fl.map((f) => D.h1(f.falta) + " " + f.un + " de " + f.insumo + (f.caminho.length ? " (compra " + f.caminho.map((c) => c.compra).join(", ") + " chega " + D.d2(f.caminho[0].chega) + ")" : " (nenhuma compra pedida)")).join("; ") + ". Nenhuma etapa começa até o PCP conferir."
             : "A compra chegou. Falta o PCP conferir para a OS voltar para Na fila."}
             <div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir(o.id)}>Abrir {o.id}</Button></div></Alert>); })}
+        {/* Manutenção preventiva (backlog P3 do ROADMAP): só o plano vencido ou que vence em breve vira alerta. */}
+        {Alert && window.PcvPostos && window.PcvPostos.manutencaoAlertas().map((m) => { const maq = D.maqDe(m.maq); return (
+          <Alert key={m.maq} tone={m.sit === "vencida" ? "danger" : "warn"} title={"Manutenção preventiva " + (m.sit === "vencida" ? "vencida" : "vence em breve") + ": " + (maq ? maq.nome : m.maq)}>
+            {m.o}. {m.msg} Faça a parada antes de programar mais OS nesta máquina; depois registre em Postos e cadastros.
+            <div className="pcv-al-a"><Button size="sm" onClick={() => ir("postos")}>Ver o plano</Button><Button size="sm" onClick={() => ir("linha")}>Ver a carga na linha do tempo</Button></div></Alert>); })}
         {Alert && <Alert tone="warn" title="OS-2603 vence hoje e está 7,8% acima do orçado">Refugo de 9,4 m² na impressão (banding na cabeça 3). Faltam bainha e ilhós.<div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir("OS-2603")}>Abrir OS-2603</Button></div></Alert>}
       </div>
 
