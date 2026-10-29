@@ -655,6 +655,23 @@ de quem chama. Âncora: R-NFE-046 / US-NFE-075.
 
 Status: 🧪
 
+## UC-FNFE-57 · Venda bonificada sai como nota de bonificação · `must`
+
+**Dado** uma venda com `sub_type` `bonificacao` **Quando** sai a NF-e (modelo 55) **Então** todos os itens
+levam CFOP 5910 (destinatário da mesma UF) ou 6910 (outra UF), a natureza é BONIFICACAO e o pagamento é
+tPag 90 com vPag 0; itens, tributação, vProd e vNF são os da venda. CFOP informado por quem chama ainda
+vence; destino exterior recusa. Âncora: R-NFE-047 / US-NFE-077 (pedido P-154).
+
+Status: 🧪
+
+## UC-FNFE-58 · Bonificação não sai em NFC-e · `must`
+
+**Dado** uma venda bonificada **Quando** se pede a NFC-e (modelo 65) **Então** a emissão recusa com
+"emita NF-e (modelo 55)", e a NFC-e automática do PDV não é disparada para ela; venda sem esse
+`sub_type` segue o fluxo de antes. Âncora: R-NFE-047 / US-NFE-077.
+
+Status: 🧪
+
 ---
 
 ## Boleto pago emite a NF-e (US-RB-044 · UC-FLX-26)

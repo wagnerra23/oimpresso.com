@@ -267,6 +267,8 @@ export interface ClienteIndexPageProps {
    * tabela de preço no drawer ComercialTab — substitui o enum fake hardcoded.
    */
   priceGroups?: PriceGroupOption[];
+  /** P-087 — tabelas de preço (selling_price_groups) do business, pra tabela própria do cliente. */
+  sellingPriceGroups?: PriceGroupOption[];
   /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer. true se modulo
    *  OficinaAuto ativo no business. Default false (biz=4 Larissa vestuario). */
   oficinaauto_enabled?: boolean;
@@ -1373,6 +1375,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         rows={rows}
         draftContact={draftContact}
         priceGroups={props.priceGroups ?? []}
+        sellingPriceGroups={props.sellingPriceGroups ?? []}
         oficinaAutoEnabled={props.oficinaauto_enabled ?? false}
         onOpenChange={(open) => {
           if (!open) setDraftContact(null);
@@ -1875,6 +1878,7 @@ function ClienteSheet({
   rows,
   draftContact,
   priceGroups = [],
+  sellingPriceGroups = [],
   oficinaAutoEnabled = false,
   onOpenChange,
   onContactUpdated,
@@ -1891,6 +1895,8 @@ function ClienteSheet({
   draftContact?: ClienteRow | null;
   /** Tabelas de preço REAIS (customer_groups) pro dropdown do ComercialTab. */
   priceGroups?: PriceGroupOption[];
+  /** P-087 — tabelas de preço (selling_price_groups) pra tabela própria do cliente. */
+  sellingPriceGroups?: PriceGroupOption[];
   /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab. */
   oficinaAutoEnabled?: boolean;
   onOpenChange: (open: boolean) => void;
@@ -2180,7 +2186,7 @@ function ClienteSheet({
                 />
               </div>
               <div hidden={activeTab !== 'comercial'}>
-                <ComercialTab contact={contact} priceGroups={priceGroups} />
+                <ComercialTab contact={contact} priceGroups={priceGroups} sellingPriceGroups={sellingPriceGroups} />
               </div>
               <div hidden={activeTab !== 'classificacao'}>
                 <ClassificacaoTab contact={contact} />

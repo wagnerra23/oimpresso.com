@@ -300,6 +300,46 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 
 ---
 
+## Contrato da bonificação (Pedido P-154)
+
+> **Âncora:** Pedido P-154 (Sabor Brasil, `Sells/Create.casos.md`): a venda bonificada sai com nota de
+> bonificação e baixa estoque, e não é cobrada. Contrato entre as partes: `transactions.sub_type = 'bonificacao'`.
+> Nesta tela isso se vê pela ausência: a bonificação não aparece como título a receber.
+> Prova: `Modules/Financeiro/Tests/Feature/BonificacaoSemTituloContratoTest.php`. VALOR: regra mestre —
+> cada caso confere por dois caminhos (títulos da venda e total a receber do business, antes e depois).
+
+## UC-FBON-01 · Bonificação não vira título a receber `[V0]` `[must]`
+**Dado** uma venda bonificada de 1.000,00 e uma venda comum de 1.000,00 **Quando** as duas são gravadas
+**Então** só a comum vira título a receber de 1.000,00, e o total a receber sobe 1.000,00, não 2.000,00.
+
+Status: 🧪
+
+## UC-FBON-02 · Venda que vira bonificação tem o título cancelado `[V0]` `[must]`
+**Dado** uma venda de 640,00 com título aberto **Quando** ela passa a ser bonificação **Então** o mesmo título
+fica cancelado (não é apagado) e sai do total a receber. Título que já recebeu baixa fica como está.
+
+Status: 🧪
+
+## UC-FBON-03 · Pagamento numa bonificação não gera baixa `[V0]` `[must]`
+**Dado** uma bonificação de 300,00 **Quando** alguém lança um pagamento nela **Então** não nasce baixa, não
+entra nada no caixa e continua sem título.
+
+Status: 🧪
+
+## UC-FBON-04 · Compra e venda de reparo seguem como antes `[must]`
+**Dado** uma compra de 500,00 e uma venda de reparo de 250,00 **Quando** são gravadas **Então** nascem o título
+a pagar de 500,00 e o título a receber de 250,00, como sempre.
+
+Status: 🧪
+
+## UC-FBON-05 · Bonificação de uma empresa não mexe no título de outra `[T0]` `[must]`
+**Dado** uma venda de 410,00 com título aberto em outra empresa **Quando** uma venda desta empresa vira
+bonificação **Então** só o título desta é cancelado; o da outra segue aberto, com o mesmo total a receber.
+
+Status: 🧪
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -443,6 +483,7 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-29 · [W+C] Pedido P-154: UC-FBON-01..05 (bonificação não vira título a receber), provados por `BonificacaoSemTituloContratoTest` na lane financeiro-pest.
 - 2026-10-29 · [F+C] Caso 150 ligado ao documento "Casos de uso por tela" (Pedido P-150). Nenhum caso nem teste mudou.
 - 2026-10-29 · [F+C] Casos 117 a 122 ligados ao documento "Casos de uso por tela" (Pedidos P-117 a P-122). Nenhum caso nem teste mudou.
 - 2026-10-29 · [F+C] Caso 115 ligado ao documento "Casos de uso por tela" (Pedido P-115). Nenhum caso nem teste mudou.
