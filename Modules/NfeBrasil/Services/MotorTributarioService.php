@@ -429,7 +429,7 @@ class MotorTributarioService
      * Sem alíquota interna do destino o motor devolve ST e DIFAL = 0 (comportamento de antes):
      * nunca inventa a interna. O erro explicável "interna não cadastrada" é R-NFE-021 (thread 09).
      *
-     * @param array{uf_origem?:string,uf_destino?:string,interna?:float|null,contribuinte?:bool|null} $destino
+     * @param array{uf_origem?:string,uf_destino?:string,interna?:float|null,contribuinte?:bool|null,crt?:int|null} $destino
      * @return array{base_st:float,valor_st:float,valor_fcp:float,valor_difal:float,aviso:string|null}
      */
     private function calcularStFcpDifal(NfeFiscalRule $regra, ProdutoFiscalContext $produto, array $destino): array

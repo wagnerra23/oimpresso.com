@@ -2160,7 +2160,7 @@ class NfeService
      * Recusa em vez de completar com dado da matriz: filial sem CNPJ, UF, endereço ou série, ou
      * com a mesma série do business, sairia com o emitente ou o número errados.
      *
-     * @return array{uf:string,emit:array<string,mixed>,serie:?string,location_id:?int}
+     * @return array{uf:string,emit:array<string,mixed>,serie:?string,location_id:?int,crt:?int}
      */
     public function resolverEmitente(object $business, ?int $locationId, string $modelo): array
     {

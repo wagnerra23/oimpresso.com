@@ -132,7 +132,8 @@ it('R-NFE-031 · controle: local sem cadastro de emissor, ou venda sem local, em
     $ufDoBusiness = (new ReflectionMethod(NfeService::class, 'resolverUF'))->invoke($svc, $business);
     foreach ([$semCadastro, null] as $loc) {
         $e = $svc->resolverEmitente($business, $loc, '65');
-        expect($e)->toBe(['uf' => $ufDoBusiness, 'emit' => [], 'serie' => null, 'location_id' => null]);
+        // P-155: o emitente padrão também diz que não há regime próprio do local (crt null).
+        expect($e)->toBe(['uf' => $ufDoBusiness, 'emit' => [], 'serie' => null, 'location_id' => null, 'crt' => null]);
     }
 })->group('nfe', 'R-NFE-031');
 
