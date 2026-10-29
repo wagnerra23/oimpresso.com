@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 888,
-    "edges": 1204,
+    "nodes": 889,
+    "edges": 1205,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 500,
+      "component": 501,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 500,
+      "hasComponent": 501,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -4241,6 +4241,13 @@
       "module": "PaymentGateway",
       "name": "Services/PaymentGatewayService",
       "desc": "implementa PaymentGatewayContract; for(Account) resolve credential; idempotência (Onda 4a); DRIVERS mapa atualizado Onda 4b com 3 drivers"
+    },
+    {
+      "id": "component:PaymentGateway/Settings/CobrancaCnabArquivosController",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "Settings/CobrancaCnabArquivosController",
+      "desc": "GET /settings/payment-gateways/cobrancas/{cobranca}/remessa|boleto (baixar a remessa CNAB e o PDF do boleto da cobrança, só da empresa da sessão — P-157)"
     },
     {
       "id": "component:PaymentGateway/Settings/PaymentGatewaysCnabRetornoController",
@@ -12715,6 +12722,12 @@
     {
       "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/Services/PaymentGatewayService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/Settings/CobrancaCnabArquivosController",
       "type": "hasComponent",
       "source": "contains"
     },
