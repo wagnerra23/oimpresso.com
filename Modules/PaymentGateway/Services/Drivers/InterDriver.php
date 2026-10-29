@@ -723,6 +723,17 @@ class InterDriver implements PaymentDriverContract
             ];
         }
 
+        // Juros e multa da carteira (JurosMultaCarteira): taxa em % — mora ao mês, multa sobre o valor.
+        // A partir do dia seguinte ao vencimento, regra do próprio Inter (v3 não leva data).
+        $jurosPct = (float) ($input->juros['percentual'] ?? 0);
+        if ($jurosPct > 0) {
+            $payload['mora'] = ['codigo' => 'TAXAMENSAL', 'taxa' => round($jurosPct, 2)];
+        }
+        $multaPct = (float) ($input->multa['percentual'] ?? 0);
+        if ($multaPct > 0) {
+            $payload['multa'] = ['codigo' => 'PERCENTUAL', 'taxa' => round($multaPct, 2)];
+        }
+
         return $payload;
     }
 

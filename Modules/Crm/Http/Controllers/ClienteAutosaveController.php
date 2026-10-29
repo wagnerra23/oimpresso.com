@@ -379,7 +379,8 @@ class ClienteAutosaveController extends Controller
     /**
      * PATCH /cliente/{id}/comercial
      *
-     * Campos: credit_limit, pay_term_number, customer_group_id, tabela_preco_padrao,
+     * Campos: credit_limit, pay_term_number, customer_group_id, selling_price_group_id (P-087),
+     *         tabela_preco_padrao,
      *         pgto_padrao, mensagem_venda, obs_comercial.
      *
      * `customer_group_id` é a tabela de preço REAL (UPOS canon — FK pra
@@ -413,6 +414,14 @@ class ClienteAutosaveController extends Controller
                 'nullable', 'integer',
                 Rule::exists('customer_groups', 'id')->where(
                     fn ($q) => $q->where('business_id', $businessId)
+                ),
+            ],
+            // P-087 — tabela própria do cliente (vale no lugar da do grupo). FK selling_price_groups
+            // da MESMA empresa da sessão (Tier 0: id de outro tenant → 422).
+            'selling_price_group_id' => [
+                'nullable', 'integer',
+                Rule::exists('selling_price_groups', 'id')->where(
+                    fn ($q) => $q->where('business_id', $businessId)->whereNull('deleted_at')
                 ),
             ],
             'tabela_preco_padrao' => ['nullable', 'string', 'in:' . implode(',', self::TABELAS_PRECO)],
@@ -672,6 +681,8 @@ class ClienteAutosaveController extends Controller
             'pay_term_number' => $contact->pay_term_number !== null ? (int) $contact->pay_term_number : null,
             // Tabela de preço REAL (FK customer_groups) — fonte de verdade do drawer.
             'customer_group_id' => $contact->customer_group_id !== null ? (int) $contact->customer_group_id : null,
+            // P-087 — tabela própria do cliente; null = vale a do grupo.
+            'selling_price_group_id' => $contact->selling_price_group_id !== null ? (int) $contact->selling_price_group_id : null,
             'tabela_preco_padrao' => $contact->tabela_preco_padrao ?? null,
             'pgto_padrao' => $contact->pgto_padrao ?? null,
             'mensagem_venda' => $contact->mensagem_venda ?? null,

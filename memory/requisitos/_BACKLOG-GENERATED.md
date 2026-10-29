@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1080 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1081 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -15,8 +15,8 @@
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
+| [`NfeBrasil`](#nfebrasil) | 34 | 0 | 0 | 6 | 28 |
 | [`Producao`](#producao) | 34 | 2 | 0 | 0 | 32 |
-| [`NfeBrasil`](#nfebrasil) | 33 | 0 | 0 | 6 | 27 |
 | [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
@@ -558,6 +558,49 @@
 
 - **US-OFICINA-035** — DVI (Vistoria Digital · Digital Vehicle Inspection) schema + API — **P1** _(`p1`)_
 
+## NfeBrasil
+
+
+### blocked
+
+- **US-NFE-043** — Proposta comercial Gold — diferenciais vs Mubsys + pricing on-prem · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-044** — Upgrade plataforma on-prem Gold pra versão atual com NfeBrasil · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-045** — Configuração fiscal NfeBrasil Gold (cert + IE + regime + template SP) · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-046** — Smoke fiscal homologação SEFAZ-SP biz=Gold (1ª NF-e 55 cstat 100) · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-047** — Treinamento operadora Gold + cutover NF-e produção + canary 7d · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-048** — Refinar runbook on-prem reutilizável pós-Gold (Trilha 1 dormentes) · 🔒 DORMENTE _(`p2` · @wagner · sprint Gold-Reativacao)_
+
+### todo
+
+- **US-NFE-072** — ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal** _(`p0` · sprint —)_
+- **US-NFE-076** — Ler o XML da NF-e de compra, por NSU ou por upload — **P0** _(`p0` · sprint —)_
+- **US-NFE-042** — Discovery técnico instalação Gold Comunicação Visual _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
+- **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
+- **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
+- **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
+- **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
+- **US-NFE-073** — XML do mês enviado ao contador sem ninguém lembrar — **P1** _(`p1` · sprint —)_
+- **US-NFE-074** — Cutover da emissão Delphi → oimpresso, por empresa — **Backlog** _(`p1` · sprint —)_
+- **US-NFE-075** — NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1** _(`p1` · sprint —)_
+- **US-NFE-077** — NF-e de bonificação (CFOP 5910/6910, sem pagamento) — **P1** _(`p1` · sprint —)_
+- **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
+- **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
+- **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
+- **US-NFE-058** — Aplicar pattern dual-mode em batch restante — Emitir* + NfeEmissaoController + DistribuicaoDfe (4 files, ~15 fails) _(`p2`)_
+- **US-NFE-059** — Smoke prod end-to-end auto-emissão NFe55 com cliente real que opt-in _(`p2` · @wagner)_
+- **US-NFE-063** — Smoke Browser MCP fresh (screenshot+console) para fluxos Certificado/Auto-emission/Manifestacao _(`p2` · sprint cycle-04)_
+- **US-NFE-001** — Configurar certificado digital A1
+- **US-NFE-002** — Emitir NFC-e a partir de venda finalizada
+- **US-NFE-003** — Visualizar e reimprimir NFCe/NFe emitida
+- **US-NFE-004** — Cancelar NFe/NFC-e dentro do prazo legal
+- **US-NFE-005** — Carta de Correção Eletrônica (CCe)
+- **US-NFE-006** — Modo contingência (EPEC ou FS-DA)
+- **US-NFE-007** — Monitor de rejeições + status SEFAZ
+- **US-NFE-008** — Manifestar NF-e recebida (destinatário)
+- **US-NFE-009** — Gerar SPED Fiscal/EFD ICMS-IPI mensal
+- **US-NFE-010** — Cadastrar regra tributária por NCM (motor)
+
 ## Producao
 
 
@@ -600,48 +643,6 @@
 - **US-PCP-030** — Operadores por posto: só eles são responsáveis e começam a etapa (UC-FLX-08) — **P1**
 - **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
 - **US-PCP-032** — OS liberada sem material fica Aguardando material (D3) — **P1**
-
-## NfeBrasil
-
-
-### blocked
-
-- **US-NFE-043** — Proposta comercial Gold — diferenciais vs Mubsys + pricing on-prem · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-044** — Upgrade plataforma on-prem Gold pra versão atual com NfeBrasil · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-045** — Configuração fiscal NfeBrasil Gold (cert + IE + regime + template SP) · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-046** — Smoke fiscal homologação SEFAZ-SP biz=Gold (1ª NF-e 55 cstat 100) · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-047** — Treinamento operadora Gold + cutover NF-e produção + canary 7d · 🔒 DORMENTE _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-048** — Refinar runbook on-prem reutilizável pós-Gold (Trilha 1 dormentes) · 🔒 DORMENTE _(`p2` · @wagner · sprint Gold-Reativacao)_
-
-### todo
-
-- **US-NFE-072** — ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal** _(`p0` · sprint —)_
-- **US-NFE-076** — Ler o XML da NF-e de compra, por NSU ou por upload — **P0** _(`p0` · sprint —)_
-- **US-NFE-042** — Discovery técnico instalação Gold Comunicação Visual _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
-- **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
-- **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
-- **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
-- **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
-- **US-NFE-073** — XML do mês enviado ao contador sem ninguém lembrar — **P1** _(`p1` · sprint —)_
-- **US-NFE-074** — Cutover da emissão Delphi → oimpresso, por empresa — **Backlog** _(`p1` · sprint —)_
-- **US-NFE-075** — NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1** _(`p1` · sprint —)_
-- **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
-- **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
-- **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
-- **US-NFE-058** — Aplicar pattern dual-mode em batch restante — Emitir* + NfeEmissaoController + DistribuicaoDfe (4 files, ~15 fails) _(`p2`)_
-- **US-NFE-059** — Smoke prod end-to-end auto-emissão NFe55 com cliente real que opt-in _(`p2` · @wagner)_
-- **US-NFE-063** — Smoke Browser MCP fresh (screenshot+console) para fluxos Certificado/Auto-emission/Manifestacao _(`p2` · sprint cycle-04)_
-- **US-NFE-001** — Configurar certificado digital A1
-- **US-NFE-002** — Emitir NFC-e a partir de venda finalizada
-- **US-NFE-003** — Visualizar e reimprimir NFCe/NFe emitida
-- **US-NFE-004** — Cancelar NFe/NFC-e dentro do prazo legal
-- **US-NFE-005** — Carta de Correção Eletrônica (CCe)
-- **US-NFE-006** — Modo contingência (EPEC ou FS-DA)
-- **US-NFE-007** — Monitor de rejeições + status SEFAZ
-- **US-NFE-008** — Manifestar NF-e recebida (destinatário)
-- **US-NFE-009** — Gerar SPED Fiscal/EFD ICMS-IPI mensal
-- **US-NFE-010** — Cadastrar regra tributária por NCM (motor)
 
 ## Compras
 

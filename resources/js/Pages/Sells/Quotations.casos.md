@@ -102,6 +102,31 @@ abertura e "2×", e a de B mostra "Não aberto". Âncora: aceite 2 da US-SELL-07
 
 Status: 🧪
 
+## UC-QUO-11 · Copiar o orçamento cria um orçamento novo que guarda de qual veio · `[V0]` `[E0]` `must`
+
+**Dado** no business 98 o orçamento O-75 com 3 un × 20,00 (60,00), link público e etapa de pipeline **Quando**
+clico "Copiar orçamento" (`GET /sells/copy-quotation/{id}`) **Então** nasce um orçamento novo com outro
+número, que guarda o O-75 como origem, sem o link público dele e fora da etapa dele, com os mesmos itens e o
+mesmo total 60,00; o estoque não muda. Âncora: pedido P-037 · mesmo vínculo da venda duplicada (UC-SDUP-01).
+
+- **Persona:** vendedor que manda um orçamento parecido para outro cliente.
+- **Teste:** `tests/Feature/Sells/SellsQuotationsContratoTest.php` — `UC-QUO-11`.
+- **Regressão que defende:** a cópia herdar o link público da origem (o cliente da cópia abriria o orçamento do outro) ou não saber de onde veio.
+
+Status: 🧪
+
+## UC-QUO-12 · A lista de orçamentos mostra de qual orçamento a cópia veio · `[T0]` `must`
+
+**Dado** no business 98 o O-80 copiado do O-75 e um orçamento com vínculo apontando para orçamento do 99
+**Quando** abro a lista de cotações **Então** o O-80 mostra "Cópia de O-75" com link e o vínculo para outra
+empresa não mostra nada. Âncora: pedido P-037.
+
+- **Dados da lista:** `duplicated_from_tx_id` e `duplicated_from_invoice_no` no `GET /sells/draft-dt?is_quotation=1`, lidos só da mesma empresa.
+- **Teste:** `tests/Feature/Sells/SellsQuotationsContratoTest.php` — `UC-QUO-12 [T0]`.
+- **Regressão que defende:** número de orçamento de outra empresa vazando pela coluna de origem.
+
+Status: 🧪
+
 ## Aprovação do orçamento pelo link (US-SELL-074)
 
 Fatia 1: o vendedor gera o link e o serviço monta o que o cliente vê. A página pública, a decisão
@@ -165,7 +190,7 @@ Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do tes
   - Pedido: P-037
   - Âncora: `SellController::duplicateSell`
   - Fazer: Mesma origem gravada no orçamento, levada à venda na conversão.
-  - Hoje: part | Em parte | Duplicar existe; hoje a cópia não guarda a origem
+  - Hoje: part | Em parte | Copiar orçamento guarda a origem e a lista mostra (UC-QUO-11/12); converter atualiza o mesmo registro (`convertToInvoice`), então a origem segue na venda, sem teste próprio; falta o orçamento de origem listar as cópias
   - Comunicação visual: ok | Sim | orçamento parecido para outro cliente
   - Clientes: Zoom, Techpress, Sabor Brasil, Display Paraná, Estilo
   - Etiquetas: part, cv

@@ -338,7 +338,7 @@ last_run: "2026-10-29"
   - Pedido: P-031
   - Âncora: `SellController::duplicateSell`
   - Fazer: Gravar a origem na cópia; mostrar o vínculo nos dois sentidos.
-  - Hoje: part | Em parte | Lista e drawer de vendas mostram o vínculo (UC-SDUP-04..06); falta a lista de orçamentos
+  - Hoje: part | Em parte | Lista e drawer de vendas mostram o vínculo (UC-SDUP-04..06); a lista de orçamentos mostra a origem da cópia (UC-QUO-11/12 em `Quotations.casos.md`)
   - Comunicação visual: ok | Sim | recompra do mesmo serviço
   - Clientes: Zoom, Techpress, Sabor Brasil, Display Paraná, Estilo
   - Etiquetas: part, cv

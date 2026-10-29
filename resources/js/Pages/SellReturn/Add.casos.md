@@ -72,6 +72,15 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** a Page receber número cru e mandar `1234.5` ao parser pt-BR.
 - **Status: 🧪**
 
+## UC-SRADD-07 · A segunda devolução da mesma venda desconta a primeira `[V0]` `[E0]` `[must]`
+- **Origem:** pedido P-039 (processo "Devolução, troca e garantia" de Fluxos: "quantidade até a vendida").
+- **Persona:** Larissa — o cliente devolveu 2 de 3 e volta depois com a terceira.
+- **Aceite:** Dado 3 unidades vendidas e 2 já devolvidas · Quando reabro a devolução · Então a linha traz as 2 já devolvidas e o teto segue 3, logo só 1 ainda pode voltar · E ao salvar 3 o estoque sobe só 1 (12 → 13), a devolução continua uma só e o total vai a 3.333,15, o mesmo de devolver as 3 de uma vez · E 4 é recusado sem mexer em nada.
+- **Como a tela conta:** o campo "Devolver" é acumulado (store() atualiza a devolução da venda); é por isso que o teto não cai para 1 — o que volta agora é o acumulado menos o já devolvido.
+- **Teste:** `SellReturnAddContratoTest` — `UC-SRADD-07 [V0][E0] a segunda devolução da mesma venda desconta a primeira`.
+- **Regressão que defende:** a segunda devolução somar de novo as unidades da primeira (estoque e valor em dobro).
+- **Status: 🧪**
+
 ## UC-SRADD-08 · "Devolver tudo" devolve a venda inteira descontando o que já voltou `[V0]` `[E0]` `[must]`
 - **Origem:** pedido P-038 (processo "Devolução, troca e garantia" de Fluxos: devolução total ou parcial).
 - **Persona:** Larissa — o cliente traz de volta tudo o que levou, e uma peça já tinha voltado antes.
@@ -137,7 +146,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - Pedido: P-039
   - Âncora: Processo de devolução de Fluxos
   - Fazer: Descontar do teto o que já foi devolvido.
-  - Hoje: gray | A medir | Não medi se a segunda devolução desconta a primeira
+  - Hoje: ok | Tem | Medido em 29/10/2026: desconta. O campo é acumulado (reabrir traz as 2 já devolvidas, teto 3) e salvar 3 sobe o estoque só 1 — UC-SRADD-07
   - Comunicação visual: gray | Pouco | sob encomenda quase não volta
   - Clientes: Fixar, Safety, Estilo, Max Comunicação, Ciasul, Extreme, Mecânica Casa Grande, Wow Comunicação, Litoral Comunicação, Placa Fácil, Makan, Lamac, Zoom, Lessa Cortinas, Movesul, Sabor Brasil, DMB, Mecânica Lebrinha, Jo Painéis, CyberStudio, GP, GSX, Molas Patrício, Display Paraná, Ntrogen, MidiaOff, Quimeco, Vargas
   - Etiquetas: valor, decisao

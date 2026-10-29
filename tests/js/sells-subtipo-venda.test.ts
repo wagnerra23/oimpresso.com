@@ -19,3 +19,18 @@ describe('UC-S03 · camposDeSubtipo', () => {
     expect(camposDeSubtipo('REPAIR')).toEqual({});
   });
 });
+
+// UC-SBON-01 (Sells/Create.casos.md, P-154) — bonificação marcada na tela.
+describe('UC-SBON-01 · camposDeSubtipo com bonificação', () => {
+  it('venda marcada como bonificação envia sub_type=bonificacao', () => {
+    expect(camposDeSubtipo(null, true)).toEqual({ sub_type: 'bonificacao' });
+  });
+
+  it('sem a marca, a venda comum segue sem tipo', () => {
+    expect(camposDeSubtipo(null, false)).toEqual({});
+  });
+
+  it('reparo vence a marca de bonificação', () => {
+    expect(camposDeSubtipo('repair', true)).toEqual({ sub_type: 'repair', print_label: 0 });
+  });
+});
