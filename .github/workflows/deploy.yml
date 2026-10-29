@@ -2,7 +2,12 @@ name: Deploy to Hostinger
 
 # AUTOMÁTICO (ADR 0269) — merge na main publica sozinho.
 # Trigger:
-#  - push em main (exceto paths de docs/memória) → build no runner + deploy
+#  - push em main (exceto paths de docs/memória) → build no runner + deploy.
+#    Exceção: `*.casos.md` publica. A página /documentacao/casos-por-tela lê esses arquivos do
+#    disco a cada acesso; sem deploy, um merge só de casos.md ficava fora do site até o próximo
+#    merge com código (medido 2026-10-29: #10153 entrou no main e não gerou run). O classificador
+#    (scripts/deploy/classifica-push.sh) trata `.md` como não-runtime, então esse push vai pelo
+#    sync leve: git reset sem maintenance.
 #  - workflow_dispatch → mesmo fluxo, com inputs de escape (skip backup/migrate, artisan extra)
 #
 # Política anterior (até 2026-06-10): deploy era 100% manual (workflow_dispatch) E
@@ -12,10 +17,14 @@ name: Deploy to Hostinger
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'memory/**'
-      - '**.md'
-      - 'prototipo-ui/**'
+    # `paths` com negação, e não `paths-ignore`, porque só assim dá para reabrir uma exceção.
+    # A ordem importa: o último padrão que casa decide.
+    paths:
+      - '**'
+      - '!memory/**'
+      - '!**.md'
+      - '**.casos.md'
+      - '!prototipo-ui/**'
   workflow_dispatch:
     inputs:
       skip_backup:
