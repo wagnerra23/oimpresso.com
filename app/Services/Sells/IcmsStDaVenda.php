@@ -89,10 +89,11 @@ final class IcmsStDaVenda
             }
             $ufOrigem = $nfe->resolverEmitente($business, $locationId, '55')['uf'];
             $dest = $nfe->destinatarioDoContato($contato, $ufOrigem);
-            if ($dest === null || $dest['uf'] === $ufOrigem) {
-                return 0.0; // sem destinatário identificado ou operação interna: a NF-e não leva ST hoje
+            if ($dest === null) {
+                return 0.0; // sem destinatário identificado: a NF-e não leva ST
             }
-            $interna = $nfe->internaDoDestino($businessId, $ufOrigem, $dest['uf']);
+            // P-153: a mesma regra da NF-e — na mesma UF, só o contribuinte (quem revende) paga ST.
+            $interna = $nfe->internaDoSt($businessId, $ufOrigem, $dest['uf'], $dest['ind_ie_dest'] === '1');
             if ($interna === null) {
                 return 0.0;
             }
