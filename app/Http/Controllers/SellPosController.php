@@ -3422,6 +3422,14 @@ class SellPosController extends Controller
             $quotation->transaction_date = \Carbon::now()->format('Y-m-d H:i:s');
             $quotation->invoice_no = $this->transactionUtil->getInvoiceNumber($business_id, 'draft',
                 $transaction->location_id);
+            // P-037 — o mesmo que SellController::duplicateSell faz com a venda (P-031/P-035):
+            // a cópia guarda de qual orçamento veio e nasce sem o link público e fora do pipeline
+            // FSM da origem. replicate() copiava os três da origem: o link da cópia abria o
+            // orçamento original (o token é único por link) e o rascunho ficava na etapa dela.
+            $quotation->duplicated_from_id = $transaction->id;
+            $quotation->invoice_token = null;
+            $quotation->process_id = null;
+            $quotation->current_stage_id = null;
             $quotation->save();
 
             $sell_lines = TransactionSellLine::where('transaction_id', $transaction->id)->get();
