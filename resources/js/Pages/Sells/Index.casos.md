@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-23"
+last_run: "2026-10-29"
 ---
 
 > ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -135,6 +135,36 @@ last_run: "2026-10-23"
 - **Âncora de contrato:** US-SELL-017 (totalizador do filtro inteiro, não da página) · **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — a tela só exibe o número calculado no servidor, não soma nada · UC-SIDX-02 (o total do servidor não soma outra empresa) e UC-SIDX-05 (rascunho fora dos totais de faturado) · forma do protótipo `prototipo-ui/cowork/Wagner/vendas-page.jsx` (`vd-totalbar`).
 - **Teste:** `tests/js/sells-index-totais.test.tsx` — `UC-SIDX-06 …` (lane Vitest do `Frontend / Vite build`).
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane Vitest.
+
+---
+
+## UC-SDUP-04 · A venda duplicada mostra na linha de qual venda veio `[must]`
+- **Persona:** vendedor que repete o pedido de um cliente (recompra) — Sabor Brasil, Zoom, Techpress.
+- **Como usa:** no menu ⋮ da linha escolhe **Duplicar**; a venda nova aparece na lista com "Duplicada de #V-150" embaixo do número.
+- **Aceite:** Dado a V-200 duplicada da V-150 · Quando a lista é montada · Então a linha da V-200 traz a V-150 como origem (`duplicated_from`) e a linha da V-150 não traz origem.
+- **Âncora de contrato:** pedido P-031 (backlog abaixo) · `SellController::duplicateSell`.
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-04 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SDUP-05 · O drawer mostra o vínculo de duplicação nos dois sentidos `[must]`
+- **Persona:** quem abre a venda e quer saber de onde ela saiu, ou em que vendas ela foi repetida.
+- **Como usa:** clica na linha; no bloco do cliente o drawer mostra "Duplicada de #V-150" na cópia e "Duplicada em #V-200" na origem, com link.
+- **Aceite:** Dado a V-200 duplicada da V-150 · Quando abro o drawer da V-200 · Então ele mostra "Duplicada de V-150" e nenhuma cópia · Quando abro o drawer da V-150 · Então ele mostra "Duplicada em V-200" e nenhuma origem.
+- **Âncora de contrato:** pedido P-031 · `SellController::sheetData`.
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-05 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SDUP-06 · Duplicar e o vínculo ficam dentro da empresa `[T0]` `[must]`
+- **Persona:** qualquer empresa — a lista e o drawer não podem mostrar venda de outra.
+- **Como usa:** não usa: é a garantia por trás do UC-SDUP-04 e 05.
+- **Aceite:** Dado uma venda de outra empresa · Quando peço para duplicá-la · Então a resposta é 404 e nada é gravado · E Dado um vínculo gravado à força entre empresas · Quando abro o drawer · Então nem a origem nem a cópia da outra empresa aparecem. Controle positivo no mesmo teste: a venda da própria empresa duplica.
+- **Âncora de contrato:** [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — `App\Transaction` não tem global scope, então a consulta do vínculo filtra `business_id` nos dois lados.
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-06 [T0] …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
 ---
 
@@ -308,7 +338,7 @@ last_run: "2026-10-23"
   - Pedido: P-031
   - Âncora: `SellController::duplicateSell`
   - Fazer: Gravar a origem na cópia; mostrar o vínculo nos dois sentidos.
-  - Hoje: part | Em parte | Duplicar existe; hoje a cópia não guarda a origem
+  - Hoje: part | Em parte | Lista e drawer de vendas mostram o vínculo (UC-SDUP-04..06); falta a lista de orçamentos
   - Comunicação visual: ok | Sim | recompra do mesmo serviço
   - Clientes: Zoom, Techpress, Sabor Brasil, Display Paraná, Estilo
   - Etiquetas: part, cv
@@ -450,6 +480,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-29 · [W+C] **UC-SDUP-04..06** (P-031): duplicar guarda a origem em `transactions.duplicated_from_id`; a linha mostra "Duplicada de" e o drawer mostra o vínculo nos dois sentidos, escopado por empresa. Menu ⋮ ganha **Duplicar**. Teste `SellsDuplicarContratoTest.php`.
 - 2026-10-28 · [W+C] Decisões pendentes D-01, D-02, D-03 do documento "Casos de uso por tela", sem id de caso.
 - 2026-10-27 · [F+C] Backlog "Emitir a nota com imposto faltando": a conferência antes de emitir segue o UC-TRB-33 (sem NCM sai com o NCM padrão, marcado para revisão), pedido da PraMoto. Sem id.
 - 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito, pedido de compra do cliente, ISS retido, venda sem comissionado e venda agrupada, sem id e sem mudança de comportamento da tela.
