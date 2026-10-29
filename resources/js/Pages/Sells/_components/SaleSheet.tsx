@@ -452,16 +452,16 @@ export default function SaleSheet({
                     {formatDate(data.transaction_date)}
                   </div>
                   {data.duplicated_from && (
-                    <div className="flex items-center gap-2 text-muted-foreground text-xs" data-testid="sale-duplicada-de">
+                    <Inline gap={2} className="text-muted-foreground text-xs" data-testid="sale-duplicada-de">
                       <Copy size={12} />
                       Duplicada de{' '}
                       <Link href={`/sells/${data.duplicated_from.id}`} className="underline">
                         #{data.duplicated_from.invoice_no}
                       </Link>
-                    </div>
+                    </Inline>
                   )}
                   {(data.duplicated_into?.length ?? 0) > 0 && (
-                    <div className="flex items-center gap-2 text-muted-foreground text-xs flex-wrap" data-testid="sale-duplicada-em">
+                    <Inline gap={2} wrap className="text-muted-foreground text-xs" data-testid="sale-duplicada-em">
                       <Copy size={12} />
                       Duplicada em
                       {data.duplicated_into!.map((v) => (
@@ -469,7 +469,7 @@ export default function SaleSheet({
                           #{v.invoice_no}
                         </Link>
                       ))}
-                    </div>
+                    </Inline>
                   )}
                 </div>
               </Section>

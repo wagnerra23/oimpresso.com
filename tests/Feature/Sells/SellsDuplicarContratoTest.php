@@ -185,10 +185,6 @@ it('UC-SDUP-06 [T0] venda de outra empresa não duplica nem aparece no vínculo'
     [, $propria] = ($this->duplicar)($this->origemId);
     expect($propria)->not->toBeNull();
 
-    [$resp, $copia] = ($this->duplicar)($alheia);
-    expect($resp->getStatusCode())->toBe(404);
-    expect($copia)->toBeNull();
-
     // Vínculo cruzado gravado à força não vaza: nem a origem alheia aparece na cópia,
     // nem a cópia alheia aparece no drawer da origem.
     $minha = sdupVendaFinal($this, $this->bizId, 'MINHA', $alheia);
@@ -202,4 +198,10 @@ it('UC-SDUP-06 [T0] venda de outra empresa não duplica nem aparece no vínculo'
     $drawer = $this->withHeaders(sdupHeaders())->get("/sells/{$minha}/sheet-data")->assertOk()->json();
     expect($drawer['duplicated_from'])->toBeNull();
     expect($drawer['duplicated_into'])->toBe([]);
+
+    // Por último: no 404 o `duplicateSell` faz `DB::rollBack()`, que dentro do teste desfaz também a
+    // transação do `DatabaseTransactions` (o usuário do `beforeEach` some). Nada roda depois disto.
+    [$resp, $copia] = ($this->duplicar)($alheia);
+    expect($resp->getStatusCode())->toBe(404);
+    expect($copia)->toBeNull();
 });
