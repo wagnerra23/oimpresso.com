@@ -247,6 +247,13 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
 - **[BACKLOG · ⬜ sem teste] A busca aceita número, código de verificação, nome e documento do tomador** — sem teste do resultado.
 - **[BACKLOG · ⬜ sem teste] O filtro de competência restringe as linhas ao mês escolhido** — só o caminho de mês **inválido** tem teste; o caminho feliz não.
 - **[BACKLOG · ⬜ sem teste · débito de schema] O município da prestação aparece na linha** — a coluna **não existe** no schema em produção (duelo de duas migrations para a mesma tabela, resolvido revertendo o Controller para o schema antigo e traduzindo os estados). Hoje o campo volta vazio por desenho. Ver SDD §5.2.
+- **[BACKLOG · ⬜ sem teste · decisão [W]] Venda lançada com produto, mas o cliente pede nota de serviço** — pedido
+  da Fixar, 2026-10-28. Dado uma venda de placas sob encomenda lançada com itens de natureza mercadoria,
+  Quando o cliente fecha e pede a nota de serviço, Então a venda mostra que esses itens saem em NF-e e por quê;
+  se a operação é mesmo serviço sob encomenda, o contador corrige a natureza do produto e a venda sai em NFS-e
+  sem ser refeita; se é venda de mercadoria, a nota segue NF-e. Hoje a natureza é só do produto, decidida pelo
+  contador (D-NATUREZA, US-NFE-068), e a venda não mostra nem troca a natureza dos itens. Falta o [W] decidir
+  se quem fatura pode trocar a natureza só no item da venda, com justificativa. Mexe em imposto: Regra Mestre.
 
 ## Como rodar a suíte
 
@@ -263,3 +270,5 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **4 UC** derivados do §6 do SDD; todos herdam testes existentes. Registrado que o cabeçalho do `NfseCockpitControllerTest` ainda descreve a rota como quebrada em produção — texto **desatualizado** (a correção pelo schema antigo foi aplicada); não editado aqui para não misturar escopo, reportado no session log.
 - 2026-10-20 · [C] `UC-FNFSE-06..09` — separação da venda em NF-e + NFS-e (US-NFE-069 PR-1, só o serviço que separa; rateio proposto, pendente [W]).
 - 2026-10-21 · [C] `UC-FNFSE-10..12` — emissão das duas notas pelo botão "Emitir NF-e + NFS-e" do drawer (US-NFE-069 PR-2); rateio decidido por [W] (regra A).
+- 2026-10-28 · [F+C] backlog "Venda lançada com produto, mas o cliente pede nota de serviço" (Fixar), sem id e
+  sem teste; a troca da natureza no item da venda fica como decisão [W] (D-NATUREZA). Nenhum UC muda.
