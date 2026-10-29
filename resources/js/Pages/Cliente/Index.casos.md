@@ -176,7 +176,7 @@ last_run: "2026-10-14"
   - Pedido: P-086
   - Âncora: `Cliente/Index.casos.md`
   - Fazer: Campo de desconto e prazo no cadastro do cliente, levado ao boleto e à baixa do título.
-  - Hoje: miss | Não tem | A coluna `contacts.boleto_desconto_pontualidade_pct` existe no banco (migration de 2026-05-27), mas nenhuma tela mostra e nenhum boleto usa (medido em 2026-10-29); no Delphi o Sabor Brasil dá 3%, 5% ou 7% até o próprio vencimento
+  - Hoje: part | Em parte | Campo na aba Comercial; o boleto (BB por CNAB e Inter) leva o desconto e a baixa só o aceita até o vencimento (#10166). No `main` de 2026-10-29 a lane PaymentGateway (run 40956162015) passou 6 dos 7 casos do `DescontoPontualidadeBoletoTest`; o UC-DESC-02 (BB por CNAB) cai com `CredentialMisconfiguredException`. No Delphi, 52 clientes do Sabor Brasil têm o desconto (3%, 5% ou 7%)
   - Comunicação visual: part | Cliente empresa | cliente a prazo com boleto
   - Clientes: Sabor Brasil
   - Etiquetas: valor, miss, cv, decisao
