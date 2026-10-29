@@ -50,6 +50,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-08 | Linha do tempo por máquina com fim de turno, bloqueio por arte e estouro | Gestor | Linha | must | ✅ |
 | UC-PCV-09 | Gargalo previsto com sugestão de reprogramação aplicável e reversível | Gestor | Painel · Linha | should | ✅ |
 | UC-PCV-10 | A OS é um projeto: etapas, responsável, máquina, previsto × apontado | Gestor · Balcão | Ficha | must | ✅ |
+| UC-PCV-51 | Tarefas da OS com responsável e prazo, e as duas datas da OS | Gestor · Balcão | Ficha · Painel · Quadro | should | ✅ |
 | UC-PCV-11 | A arte aprovada fica travada e anda com a OS | Balcão · Operador | Ficha · Apontamento | must | 🟡 |
 | UC-PCV-12 | Roteiro por família vira as etapas da OS sem redigitar | Balcão | Roteiros → Ficha | must | 🟡 |
 | UC-PCV-13 | Roteiro tem no máximo 2 trilhas em paralelo que se juntam | Gestor | Roteiros | must | ✅ |
@@ -116,6 +117,12 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-10 · Ficha da OS · `must` · ✅
 - **Aceite:** Abrir a OS mostra progresso, tempo apontado/previsto, custo real/orçado e as abas Etapas · Arte e arquivos · Materiais · Custo · Refugo · Histórico · Em Etapas cada linha traz setor, máquina, responsável, previsto × apontado (vermelho quando passa) e situação.
 - **Forma:** drawer lateral de 760px (PT-02), não modal.
+
+### UC-PCV-51 · Tarefas da OS · `should` · ✅
+- **Origem:** P-099, comparação com concorrentes de 2026-10-23 (Printavo). Backlog em `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md`.
+- **Aceite:** Dado uma OS que precisa de "separar as chapas" e "fechar o arquivo de corte" · Quando crio as duas tarefas com responsável e prazo · Então cada responsável é avisado no app (D-AVISO: WhatsApp só para o cliente) · E a aba Tarefas e o cartão do quadro mostram quantas faltam · E a tarefa vencida aparece como atrasada no Painel · E a ficha mostra a data da produção e a combinada com o cliente (decisão [W] de 2026-10-20).
+- **Regra:** falta de material não vira tarefa; segue o fluxo de Aguardando material (UC-PCMAT-02), que abre a compra.
+- **Teste:** duas tarefas na mesma OS, uma com prazo vencido e uma no prazo; o Painel lista só a vencida. Sem tarefa vencida, o widget não aparece.
 
 ### UC-PCV-11 · Arte aprovada travada · `must` · 🟡
 - **Aceite:** Dado a arte aprovada às 16:40 · Quando alguém troca o arquivo da arte · Então a OS volta para "aguardando aprovação" e um novo link é enviado · E o operador, no celular, abre sempre a versão aprovada.

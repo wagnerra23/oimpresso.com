@@ -18,6 +18,7 @@ use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Exceptions\IdempotencyConflictException;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\Cnab\CnabBoletoAdapter;
 use Modules\PaymentGateway\Services\Cnab\Drivers\AilosCnabDriver;
 use Modules\PaymentGateway\Services\Cnab\Drivers\BBCnabDriver;
 use Modules\PaymentGateway\Services\Cnab\Drivers\BanrisulCnabDriver;
@@ -157,7 +158,54 @@ class PaymentGatewayService implements PaymentGatewayContract
 
     public function emitirBoleto(EmitirCobrancaInput $input): CobrancaEmitidaResult
     {
-        return $this->emitir($input, 'boleto', fn ($driver, $cred) => $driver->emitirBoleto($input, $cred));
+        return $this->emitir($input, 'boleto', function ($driver, $cred) use (&$input) {
+            $input = $this->comDescontoPontualidade($input, $driver);
+
+            return $driver->emitirBoleto($input, $cred);
+        }, function () use (&$input) {
+            return $input->desconto;
+        });
+    }
+
+    /**
+     * P-086 — leva o desconto de pontualidade do cliente ao boleto, quando o chamador não mandou
+     * desconto e o driver sabe enviá-lo ao banco (Inter pela API; BB e demais CNAB pelo segmento P).
+     * Outros drivers seguem sem desconto: gravar um desconto que o banco não conhece seria mentir.
+     */
+    private function comDescontoPontualidade(EmitirCobrancaInput $input, PaymentDriverContract $driver): EmitirCobrancaInput
+    {
+        if ($input->desconto !== [] || ! ($driver instanceof InterDriver || $driver instanceof CnabBoletoAdapter)) {
+            return $input;
+        }
+
+        $desconto = DescontoPontualidade::calcular(
+            $input->businessId,
+            $input->contactId,
+            $input->valorCentavos,
+            $input->vencimento,
+            $input->origemType,
+            $input->origemId,
+        );
+        if ($desconto === []) {
+            return $input;
+        }
+
+        return new EmitirCobrancaInput(
+            businessId: $input->businessId,
+            contactId: $input->contactId,
+            valorCentavos: $input->valorCentavos,
+            vencimento: $input->vencimento,
+            descricao: $input->descricao,
+            idempotencyKey: $input->idempotencyKey,
+            origemType: $input->origemType,
+            origemId: $input->origemId,
+            multa: $input->multa,
+            juros: $input->juros,
+            desconto: $desconto,
+            instrucoesPagador: $input->instrucoesPagador,
+            callbackUrl: $input->callbackUrl,
+            meta: $input->meta,
+        );
     }
 
     public function emitirPix(EmitirCobrancaInput $input, string $tipo = 'cob'): CobrancaEmitidaResult
@@ -248,7 +296,7 @@ class PaymentGatewayService implements PaymentGatewayContract
      *   3. Delega driver
      *   4. Atualiza Cobranca com artefatos retornados
      */
-    private function emitir(EmitirCobrancaInput $input, string $tipo, callable $driverCall): CobrancaEmitidaResult
+    private function emitir(EmitirCobrancaInput $input, string $tipo, callable $driverCall, ?callable $descontoEnviado = null): CobrancaEmitidaResult
     {
         $cred = $this->requireCredential();
         $driver = $this->driverFor($cred);
@@ -301,7 +349,10 @@ class PaymentGatewayService implements PaymentGatewayContract
             'pix_qr_code_path'    => $result->pixQrCodePath,
             'boleto_pdf_url'      => $result->boletoPdfUrl,
             'nosso_numero'        => $result->nossoNumero,
-            'payload_gateway'     => $result->payloadGateway,
+            // P-086: o desconto que foi ao banco fica gravado na cobrança; a baixa lê daqui.
+            'payload_gateway'     => ($desconto = $descontoEnviado ? $descontoEnviado() : []) !== []
+                ? array_merge($result->payloadGateway ?? [], ['desconto_pontualidade' => $desconto])
+                : $result->payloadGateway,
         ]);
 
         // Retorna result com cobrancaId real (driver retornou 0).
