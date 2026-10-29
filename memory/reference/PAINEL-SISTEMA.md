@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-28**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-29**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -33,7 +33,7 @@ lente: [construir]
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-10-27 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-10-28 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-10-26 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-10-29 |
 | Fisio | [BRIEFING](../requisitos/Fisio/BRIEFING.md) | 2026-10-18 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
@@ -134,13 +134,13 @@ lente: [construir]
 - Contratos de tela (fidelidade + intenção)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 154 workflows por classe
+### Censo — 155 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 118 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 119 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 25 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -155,7 +155,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 262 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 263 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -420,6 +420,7 @@ lente: [construir]
 - ~~2026-10-13 — EMENDA da emenda acima (retenção no Patrimônio): a reabertura foi REVOGADA por [W] no mesmo dia, e a ADR 0430 foi recusada~~
 - ~~2026-10-14 — Cor por classe utilitária numa célula que o bundle da tela pinta fora de `@layer`: o lucro verde nunca apareceu, e o teste checava a classe (4ª vez do mecanismo, a 1ª no ledger)~~
 - ~~2026-10-19 — EMENDA da lápide 2026-07-10 (redeclaração de token em portal): "re-aplicar o wrapper" faz o seletor casar, mas não entrega token~~
+- ~~2026-10-28 — Limpeza de teste em `it(...)->afterEach(fn)`: no Pest 4 ela nunca roda, e 237 sites ficaram verdes assim~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -440,4 +441,4 @@ lente: [construir]
   - `2026-10-18-refutacao-gt-g5-lote-9536-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-28 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-29 · deriva das fontes canônicas, não as substitui._

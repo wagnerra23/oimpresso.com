@@ -83,7 +83,7 @@ it('journey real biz=1: receita Camiseta Personalizada com 3 ingredientes', func
     expect($fresh->ingredients->count())->toBe(3);
     expect($fresh->waste_percent)->toEqual(5);
     expect((float) $fresh->final_price)->toEqual(35.00);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'wave25-camiseta-personalizada-real')->delete();
 });
 

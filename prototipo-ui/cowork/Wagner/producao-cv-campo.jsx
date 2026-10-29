@@ -40,7 +40,7 @@ function Apontamento() {
         <ul className="pcv-pontos">
           <li><b>Sem digitar OS</b> — o QR já diz qual OS e qual etapa.</li>
           <li><b>Arquivo certo</b> — abre a versão aprovada da arte, não uma prova antiga.</li>
-          <li><b>Esqueceu de parar?</b> — às 18h o sistema fecha o cronômetro e avisa o PCP.</li>
+          <li><b>Esqueceu de parar?</b> — no fim do turno da empresa ({D.TURNO.rotulo}) o sistema fecha o cronômetro e avisa o PCP.</li>
           <li><b>Sem internet</b> — guarda no celular e envia quando voltar.</li>
         </ul>
       </div>

@@ -76,7 +76,7 @@ it('UC-OSH-05 · persiste fuel_level_at_entry e entry_damages (cast array roundt
 
     expect($reloaded->fuel_level_at_entry)->toBe(35);
     expect($reloaded->entry_damages)->toBe(['Risco porta dir.', 'Amassado para-choque']);
-})->afterEach(fn () => checkin_cleanup('A'));
+})->after(fn () => checkin_cleanup('A'));
 
 it('aceita check-in vazio (campos nullable)', function () {
     session(['user.business_id' => BIZ_CHECKIN]);
@@ -92,7 +92,7 @@ it('aceita check-in vazio (campos nullable)', function () {
 
     expect($reloaded->fuel_level_at_entry)->toBeNull();
     expect($reloaded->entry_damages)->toBeNull();
-})->afterEach(fn () => checkin_cleanup('B'));
+})->after(fn () => checkin_cleanup('B'));
 
 // ---------------------------------------------------------------------------
 // FormRequest — regras de validação do combustível (0–100)

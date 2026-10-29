@@ -82,7 +82,7 @@ it('Cenário 1 — OS em status orcamento é elegível pra envio de link aprova�
     //   - $os->approval_token ≠ null (UUID signed URL)
     //   - $os->approval_expires_at = now()->addDays(7)
     expect($os->business_id)->toBe(BIZ_WAGNER_WPP);
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP001'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP001')->forceDelete();
 });
@@ -114,7 +114,7 @@ it('Cenário 2 — OS sem status orcamento NÃO deve receber link aprovação (a
     ]);
 
     expect(in_array($osConcluida->status, ['orcamento'], true))->toBeFalse();
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP002'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP002')->forceDelete();
 });
@@ -139,7 +139,7 @@ it('Cenário 3 — aprovação cliente move OS orcamento → aprovada (transiç�
     // Próximo passo natural: em_producao (mecânico inicia trabalho)
     $os->update(['status' => 'em_producao']);
     expect($os->fresh()->status)->toBe('em_producao');
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP003'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP003')->forceDelete();
 });
@@ -165,7 +165,7 @@ it('Cenário 4 — link aprovação respeita isolamento multi-tenant (biz=1 ≠ 
     $original = ServiceOrder::withoutGlobalScopes()->find($os->id);
     expect($original->business_id)->toBe(BIZ_WAGNER_WPP);
     expect($original->status)->toBe('orcamento');
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP004'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP004')->forceDelete();
 });
@@ -187,7 +187,7 @@ it('UC-OAP-07 · Cenário 5 — rejeição cliente preserva OS em orcamento (ide
     // Cobertura Cenário 5 do AprovacaoOsControllerTest: HTTP submit decisao=rejeitar
     // retorna flash info SEM mudar status (idempotente).
     expect($os->fresh()->status)->toBe('orcamento');
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP005'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP005')->forceDelete();
 });
@@ -222,7 +222,7 @@ it('UC-OAP-01 · Cenário 6 — GET /aprovar-os/{token} com token VÁLIDO → 20
             ->where('os.order_type', 'manutencao')
             ->where('tentativasRestantes', 5)
         );
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP006'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP006')->forceDelete();
 });
@@ -251,7 +251,7 @@ it('UC-OAP-02 · Cenário 7 — POST /aprovar-os/{token} com PIN correto + decis
 
     $fresh = ServiceOrder::withoutGlobalScopes()->find($os->id);
     expect($fresh->status)->toBe('aprovada');
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'WPP007'))->forceDelete();
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP007')->forceDelete();
 });

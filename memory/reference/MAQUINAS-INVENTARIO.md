@@ -64,7 +64,7 @@ lifecycle: ativo
 | `dashboard-pest.yml` | pr+push+manual | `memory/decisions/proposals/2026-09-08-lane-modules-pest-sem-mysql.md` | Dashboard · Pest (MySQL) |
 | `datatable-nome-acessivel-gate.yml` | pr+push+manual | — | DataTable Nome Acessível — a tabela do DS não volta a ser anônima (caption sr-only + scope col) |
 | `deadlink-gate.yml` | pr | `memory/decisions/0347-deadlink-gate-required-emenda-0314.md` +44 | deadlink-gate (ratchet · integridade referencial) — catraca de integridade referencial doc↔doc: links markdown internos mortos no corpo VIVO (memory/** menos história app… |
-| `deploy.yml` | push+manual | `memory/decisions/0425-webhook-sync-memory-so-memory-codigo-so-pelo-deploy.md` +78 | Deploy to Hostinger |
+| `deploy.yml` | push+manual | `memory/decisions/0425-webhook-sync-memory-so-memory-codigo-so-pelo-deploy.md` +79 | Deploy to Hostinger |
 | `design-coverage.yml` | pr+manual | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +15 | ds-design-coverage (advisory) — catraca da cobertura de DESIGN por tela: quantas telas DECLARAM a fonte de design (protótipo via related_prototype ou 'segue DS' explícito… |
 | `design-identity-gate.yml` | pr+manual | `memory/requisitos/Jana/AUDITORIA-design-as-code-token-driven-2026-06-22.md` +4 | Design Identity Gate (soft) |
 | `design-memory-gate.yml` | pr+manual | `memory/decisions/0327-anchor-content-required-emenda-0314.md` +29 | Design-memory gate (advisory · FUNDIDO ADR 0314 F2 de 3 workflows: registry-check ex-component-registry O2 + gates ex-design-memory-gates §8/§15 + prove ex-dtcg-equivalen… |
@@ -465,12 +465,14 @@ lifecycle: ativo
 |---|---|---|---|---|---|
 | `sqlite-test-corruptors.mjs` | ci, script | 🟢 só lê | selftest | `memory/requisitos/_Governanca/roadmap/P03-us-gov-021-isolamento-era-sqlite.md` +11 | auditor READ-ONLY de testes que corrompem o |
 
-### 5.3 `scripts/casos-backlog/` — 2
+### 5.3 `scripts/casos-backlog/` — 4
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
-| `gerar.mjs` | npm, script | 🔴 disco | test | — | monta a página "Casos de uso por tela" a partir do git. |
-| `leitor.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | lê os pedidos de clientes e as decisões pendentes que vivem nos *.casos.md. |
+| `dados-prototipo.mjs` | — | 🔴 disco | — | — | os dados da tela "Casos de uso por tela" para o protótipo do shell. |
+| `gerar.mjs` | npm, script | 🔴 disco | test | `memory/requisitos/Documentacao/RUNBOOK-casos-por-tela.md` | monta a página "Casos de uso por tela" a partir do git. |
+| `leitor.mjs` | script | 🟢 só lê | test | `memory/requisitos/Documentacao/RUNBOOK-casos-por-tela.md` +1 | lê os pedidos de clientes e as decisões pendentes que vivem nos *.casos.md. |
+| `novo.mjs` | agente, npm | 🔴 disco | test | `memory/requisitos/Documentacao/RUNBOOK-casos-por-tela.md` | registra um pedido de cliente no casos.md da tela, já no formato que a página lê. |
 
 ### 5.4 `scripts/cc-watcher/` — 2
 
@@ -834,7 +836,7 @@ lifecycle: ativo
 | `config/typecheck-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` | Catraca: congela o débito atual de tsc e falha só em REGRESSÃO. Débito cai quando o arquivo for tocado — não fazer backfill em massa (proibicoes §5 20… |
 | `config/ui-lint-baseline.json` | ci | `memory/decisions/0209-eslint-9-flat-config.md` +19 | (baseline/estado) |
 | `scripts/casos-coverage-baseline.json` | ci, script | `memory/decisions/0403-errata-0402-denominador-ja-inclui-pages-de-modulo.md` +23 | casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado) |
-| `scripts/casos-test-results.json` | agente, ci, script | `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md` +16 | casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste) |
+| `scripts/casos-test-results.json` | agente, ci, script | `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md` +17 | casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste) |
 | `scripts/domain-dict-baseline.json` | ci, script | `memory/requisitos/OficinaAuto/RUNBOOK-erradicacao-locacao.md` +3 | dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3) |
 | `scripts/layout-primitives-baseline.json` | ci, script | `memory/requisitos/_DesignSystem/CHANGELOG.md` +3 | Contagem de flex/grid solto POR ARQUIVO. Gate falha se um arquivo AUMENTAR ou se arquivo novo nascer com flex/grid solto. |
 | `scripts/no-mock-baseline.json` | ci, script | `memory/LICOES_CODE.md` +3 | Contagem por REGRA. Gate falha so se uma regra AUMENTAR vs este baseline. |

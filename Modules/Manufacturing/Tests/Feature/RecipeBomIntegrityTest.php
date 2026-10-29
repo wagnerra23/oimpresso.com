@@ -82,7 +82,7 @@ it('cenário válido: recipe e ingredient pertencem ao mesmo business via chain 
 
     expect((int) $bizIngredient)->toBe((int) $bizRecipe);
     expect((int) $bizRecipe)->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'bom-integrity-cenario-valido')->delete();
 });
 
@@ -190,6 +190,6 @@ it('tentativa cross-tenant: ingredient apontando pra variation de outro business
         ->count();
 
     expect($vazamento)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'bom-integrity-cross-tenant-attack')->delete();
 });

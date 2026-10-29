@@ -162,6 +162,13 @@ Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do tes
   O-80 duplicado do O-75, Então o O-80 mostra "Duplicado de O-75" com link e o O-75 mostra "Duplicado
   em O-80"; converter o O-80 em venda leva a origem junto. Hoje a duplicação não guarda a origem
   (`SellController::duplicateSell`, medido em 23/10/2026).
+  - Pedido: P-037
+  - Âncora: `SellController::duplicateSell`
+  - Fazer: Mesma origem gravada no orçamento, levada à venda na conversão.
+  - Hoje: part | Em parte | Duplicar existe; hoje a cópia não guarda a origem
+  - Comunicação visual: ok | Sim | orçamento parecido para outro cliente
+  - Clientes: Zoom, Techpress, Sabor Brasil, Display Paraná, Estilo
+  - Etiquetas: part, cv
 
 ## Trilha do tempo
 - 2026-10-27 · [CL] UC-OAC-01..04 (US-SELL-074, fatia 1): gerar o link de aprovação e o que o cliente vê. Teste `OrcamentoAceiteLinkContratoTest`, nasce sem run.

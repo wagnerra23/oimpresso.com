@@ -111,6 +111,7 @@
     "casos:baseline:shrink-check": "node scripts/casos-coverage-guard.mjs --check-baseline-shrink",
     "casos:results": "node scripts/casos-results-collect.mjs",
     "casos:pagina": "node scripts/casos-backlog/gerar.mjs",
+    "casos:novo": "node scripts/casos-backlog/novo.mjs",
     "sdd-output-lint": "node scripts/governance/sdd-output-lint.mjs --measure",
     "sdd-output-lint:check": "node scripts/governance/sdd-output-lint.mjs --check-novos --base origin/main",
     "sdd-output-lint:selftest": "node scripts/governance/sdd-output-lint.mjs --selftest",

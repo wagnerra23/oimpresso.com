@@ -337,7 +337,7 @@ const HIDDEN_GROUP = '__hidden__';
 /**
  * LANDING_GROUP — entry FIXA no topo, fora dos grupos ([W] 2026-08-28).
  *
- * É o destino pós-login (a "Visão geral", /dashboard-legacy). Antes ela caía em
+ * É o destino pós-login (a "Visão geral", /home — era /dashboard-legacy até 2026-10-29). Antes ela caía em
  * SISTEMA — o ÚLTIMO grupo — por match de label ('Dashboard' está em
  * `SIDEBAR_GROUPS.sistema.items`), ao lado de Auditoria e Planilha: a tela que
  * responde "como foi o período" classificada como ferramenta de sistema.

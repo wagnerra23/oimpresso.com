@@ -270,7 +270,7 @@ jobs:
       - name: Revisão dos fluxos (documento, máquina, wiring e prova · sem baseline)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/revisar-fluxos.test.mjs
-      - name: Deploy workflow (build → artefato → SHA → smoke · RELEASE + 4 BITE)
+      - name: Deploy workflow (build → artefato → SHA → smoke · casos.md publica · RELEASE + 6 BITE)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/deploy-workflow.test.mjs
       - name: Deploy — classificação por último deploy OK (push cancelado não esconde migration · RELEASE + 6 BITE)
@@ -408,9 +408,16 @@ jobs:
       # Página "Casos de uso por tela" gerada do git (scripts/casos-backlog). O leitor aceita as
       # seis grafias de backlog em uso sem reescrevê-las; o teste também prova que o id P-NNN não
       # casa o regex de UC acima, e que um </script> no texto de um caso não quebra a página.
+      # novo.test: o pedido registrado por `npm run casos:novo` volta inteiro pelo mesmo leitor.
       - name: casos-backlog — leitor das grafias de backlog e gerador da página
         if: always() && steps.setup.outcome == 'success'
-        run: node --test scripts/casos-backlog/leitor.test.mjs scripts/casos-backlog/gerar.test.mjs
+        run: node --test scripts/casos-backlog/leitor.test.mjs scripts/casos-backlog/gerar.test.mjs scripts/casos-backlog/novo.test.mjs
+      # A página dentro do sistema lê os casos.md com o leitor PHP (CasosPorTela.php). Este teste
+      # roda os dois leitores no repositório inteiro e exige a mesma saída. Usa o `php` da imagem
+      # ubuntu do runner; sem ele o teste falha, não pula.
+      - name: casos-backlog — leitor PHP lê o mesmo que o leitor Node
+        if: always() && steps.setup.outcome == 'success'
+        run: php -v | head -1 && node --test scripts/casos-backlog/paridade-php.test.mjs
       # Detector ADVISORY de DONO-DE-TEMA (pedido [W] 2026-07-21 "como sei que a Maiara não
       # está duplicando estrutura?"). Consome o catalog.json + tópicos; mede sobreposição de
       # ENTIDADE declarada (não nome de arquivo). O selftest é a MORDIDA: prova que casa por

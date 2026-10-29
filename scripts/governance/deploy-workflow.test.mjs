@@ -44,5 +44,43 @@ check('BITE: smoke que registra erro mas retorna verde é detectado', lacunas(sm
 const shaMovel = workflow.replaceAll('git reset --hard ${{ github.sha }}', 'git reset --hard origin/main');
 check('BITE: publicar tip móvel em vez do SHA medido é detectado', lacunas(shaMovel).includes('publicação fixa o SHA do run'));
 
-console.log(fails ? `\n${fails} falha(s)` : '\nOK — contrato do deploy tem RELEASE e quatro mutações que mordem.');
+// ── Quais pushes publicam ────────────────────────────────────────────────────
+// Filtro de paths do GitHub: o ÚLTIMO padrão que casa decide; `!` exclui. `**` casa qualquer
+// coisa (inclusive `/`), `*` não passa de `/`. Lê os padrões do próprio workflow.
+export function padroesDoPush(texto) {
+  const bloco = texto.match(/\n  push:\n[\s\S]*?\n    paths:\n((?:\s*#.*\n|      - .*\n)+)/);
+  if (!bloco) return null;
+  return [...bloco[1].matchAll(/^      - '([^']+)'/gm)].map(m => m[1]);
+}
+const paraRegex = glob => new RegExp('^' + glob.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+  .replace(/\*\*/g, '\u0000').replace(/\*/g, '[^/]*').replace(/\u0000/g, '.*') + '$');
+export function publica(padroes, arquivo) {
+  let sim = false;
+  for (const p of padroes) {
+    const neg = p.startsWith('!');
+    if (paraRegex(neg ? p.slice(1) : p).test(arquivo)) sim = !neg;
+  }
+  return sim;
+}
+const ESPERADO = [
+  ['resources/js/Pages/Fiscal/Nfse.casos.md', true],          // a página lê do disco
+  ['memory/requisitos/Produto/_telas/quick-add.casos.md', true],// também lida pela página
+  ['prototipo-ui/cowork/Wagner/venda.casos.md', false],        // espelho: a página ignora
+  ['app/Http/Controllers/CasosPorTelaController.php', true],
+  ['resources/js/Pages/Fiscal/Nfse.charter.md', false],
+  ['memory/decisions/0001-x.md', false],
+  ['memory/requisitos/Fiscal/BRIEFING.md', false],
+  ['README.md', false],
+  ['prototipo-ui/cowork/Wagner/venda.jsx', false],
+];
+const padroes = padroesDoPush(workflow);
+check('RELEASE: o workflow declara os paths do push', Array.isArray(padroes) && padroes.length > 0);
+const erros = (padroes || []).length ? ESPERADO.filter(([f, esp]) => publica(padroes, f) !== esp).map(([f]) => f) : ['sem padrões'];
+check(`RELEASE: casos.md publica; docs, memória e protótipo não${erros.length ? ` [errado: ${erros.join(', ')}]` : ''}`, erros.length === 0);
+const semExcecao = (padroes || []).filter(p => p !== '**.casos.md');
+check('BITE: sem a exceção, um merge só de casos.md volta a não publicar', !publica(semExcecao, 'resources/js/Pages/Fiscal/Nfse.casos.md'));
+const ordemTrocada = ['**', '**.casos.md', ...(padroes || []).filter(p => p !== '**' && p !== '**.casos.md')];
+check('BITE: com a exceção antes do !**.md, ela não vale', !publica(ordemTrocada, 'resources/js/Pages/Fiscal/Nfse.casos.md'));
+
+console.log(fails ? `\n${fails} falha(s)` : '\nOK — contrato do deploy tem RELEASE e seis mutações que mordem.');
 process.exit(fails ? 1 : 0);

@@ -84,7 +84,7 @@ it('Substrato biz=1 NÃO aparece com session biz=99 (Tier 0 IRREVOGÁVEL)', func
     $resultado = Substrato::where('id', $sub->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Substrato::withoutGlobalScopes()->where('nome', 'Lona Frontlight 440g GUARD')->forceDelete();
 });
 
@@ -101,7 +101,7 @@ it('Acabamento biz=1 NÃO aparece com session biz=99', function () {
 
     session(['user.business_id' => COMVIS_BIZ_FICTICIO]);
     expect(Acabamento::where('id', $acab->id)->get())->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Acabamento::withoutGlobalScopes()->where('nome', 'Ilhós metálico GUARD')->forceDelete();
 });
 
@@ -119,7 +119,7 @@ it('InstalacaoCatalogo biz=1 NÃO aparece com session biz=99', function () {
 
     session(['user.business_id' => COMVIS_BIZ_FICTICIO]);
     expect(InstalacaoCatalogo::where('id', $cat->id)->get())->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     InstalacaoCatalogo::withoutGlobalScopes()->where('nome', 'Fachada Andaime GUARD')->forceDelete();
 });
 
@@ -137,7 +137,7 @@ it('OrdemProducao biz=1 NÃO aparece com session biz=99', function () {
 
     session(['user.business_id' => COMVIS_BIZ_FICTICIO]);
     expect(OrdemProducao::where('id', $op->id)->get())->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     OrdemProducao::withoutGlobalScopes()->where('codigo', 'OP-GUARD-99991')->forceDelete();
 });
 
@@ -162,7 +162,7 @@ it('Instalacao biz=1 NÃO aparece com session biz=99', function () {
 
     session(['user.business_id' => COMVIS_BIZ_FICTICIO]);
     expect(Instalacao::where('id', $inst->id)->get())->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Instalacao::withoutGlobalScopes()->whereHas('ordem', function ($q) {
         $q->withoutGlobalScopes()->where('codigo', 'OP-GUARD-99992');
     })->forceDelete();
@@ -181,7 +181,7 @@ it('creating event auto-popula business_id da sessão (Substrato)', function () 
     ]);
 
     expect($sub->business_id)->toBe(COMVIS_BIZ_WAGNER);
-})->afterEach(function () {
+})->after(function () {
     Substrato::withoutGlobalScopes()->where('nome', 'Vinil Adesivo GUARD')->forceDelete();
 });
 
@@ -262,7 +262,7 @@ it('OrdemProducao.area_m2 é calculável server-side (largura × altura × qtd)'
     expect((float) $op->largura_m)->toBe(3.0);
     expect((float) $op->altura_m)->toBe(1.5);
     expect($op->qtd)->toBe(2);
-})->afterEach(function () {
+})->after(function () {
     OrdemProducao::withoutGlobalScopes()->where('codigo', 'OP-GUARD-AREA-001')->forceDelete();
 });
 
@@ -326,7 +326,7 @@ it('OrdemProducao bloqueia UPDATE direto em current_stage_id (GuardsFsmTransitio
     $op->current_stage_id = $next->id;
 
     expect(fn () => $op->save())->toThrow(UnauthorizedActionException::class);
-})->afterEach(function () {
+})->after(function () {
     OrdemProducao::withoutGlobalScopes()->where('codigo', 'OP-GUARD-FSM-001')->forceDelete();
 });
 

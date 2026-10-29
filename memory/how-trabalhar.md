@@ -57,6 +57,7 @@ Canal de entrada REAL do [W] = **chat** (linguagem natural; o agente materializa
 | **Non-Goals + Automation Anti-hooks** | `<Tela>.charter.md` | cada item vira Pest GUARD (CI); `charter-write` é proibida de inferir — só [W] preenche |
 | `## Contrato visual` (copy literal + ordem) | charter + `governance/design/contracts/` | gate `contrato-de-tela` (always-run; required = passo 4 pendente, [W] admin-only) |
 | `[BACKLOG] <frase>` sem id | `<Tela>.casos.md` | prosa visível sem gate — vira UC quando ganhar teste que o cite |
+| **Pedido de cliente** (ou do [W]) que ainda não é UC | `npm run casos:novo -- --caso <caso.json>` | grava o bullet com os subitens (`Pedido: P-NNN`, Âncora, Fazer, Hoje, Clientes…) no `<Tela>.casos.md` e reserva o próximo número; aparece na página "Casos de uso por tela". Dívida técnica segue `[BACKLOG]` sem Pedido |
 
 ### Quando [W] pede explícito "o contrato da tela X" (verificado 2026-07-17)
 

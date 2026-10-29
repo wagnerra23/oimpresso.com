@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 29 |
+| US no SPEC | 30 |
 | CU no SDD | 15 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 36 |
-| UC com teste que os cita | 36 |
+| UC declarados | 54 |
+| UC com teste que os cita | 54 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -38,6 +38,7 @@ authority: generated
 | `US-RB-047` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Inter PJ — PIX cob imediata + webhook receiver (Fase 3) |
 | `US-RB-048` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — RUNBOOK operacional antes do Inter PJ Banking API ir pra pro |
 | `US-RB-051` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Inter PJ — webhook PIX receiver (CYCLE-06 G1 wiring Martinho |
+| `US-RB-057` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Cobrança paga pelo PaymentGateway marca a fatura da assinatu |
 
 ### Backlog — NÃO é lacuna
 
@@ -74,6 +75,10 @@ authority: generated
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-RBCC-01 | Index | 🧪 aguarda veredito da lane |
+| UC-RBCC-02 | Index | 🧪 aguarda veredito da lane |
+| UC-RBCC-03 | Index | 🧪 aguarda veredito da lane |
+| UC-RBCC-04 | Index | 🧪 aguarda veredito da lane |
 | UC-RBCFG-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-RBCFG-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-RBCFG-03 | Configuracoes/Index | 🧪 aguarda veredito da lane |
@@ -95,6 +100,20 @@ authority: generated
 | UC-RBFAT-11 | Faturas/Index | 🧪 aguarda veredito da lane |
 | UC-RBFAT-12 | Faturas/Index | 🧪 aguarda veredito da lane |
 | UC-RBFAT-13 | Faturas/Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-01 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-02 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-03 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-04 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-05 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-06 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-07 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-08 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-09 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-10 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-11 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-12 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-13 | Index | 🧪 aguarda veredito da lane |
+| UC-RBPA-14 | Index | 🧪 aguarda veredito da lane |
 | UC-RBPLN-01 | Planos/Index | 🧪 aguarda veredito da lane |
 | UC-RBPLN-02 | Planos/Index | 🧪 aguarda veredito da lane |
 | UC-RBPLN-03 | Planos/Index | 🧪 aguarda veredito da lane |
