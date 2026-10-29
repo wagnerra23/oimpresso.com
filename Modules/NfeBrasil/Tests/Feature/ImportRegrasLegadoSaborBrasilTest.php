@@ -29,9 +29,13 @@ uses(Tests\TestCase::class);
 const SB_CSV = __DIR__ . '/../../../../scripts/legacy-migration/data/sabor-brasil-regras-fiscais.csv';
 const SB_NCMS = ['07032090', '07129090', '21039021', '21039029'];
 
-function sbLimpar(int $biz): void
+function sbLimpar(): void
 {
-    DB::table('nfe_fiscal_rules')->where('business_id', $biz)->whereIn('ncm', SB_NCMS)->delete();
+    // O afterEach roda também no teste pulado (sqlite): sem a tabela, não há o que limpar.
+    if (DB::connection()->getDriverName() === 'sqlite' || ! Schema::hasColumn('nfe_fiscal_rules', 'reducao_base')) {
+        return;
+    }
+    DB::table('nfe_fiscal_rules')->where('business_id', test()->seededTenant()->id)->whereIn('ncm', SB_NCMS)->delete();
 }
 
 function sbMotor(string $ncm, int $crt)
@@ -52,10 +56,10 @@ beforeEach(function () {
     }
     NfeFiscalRule::esquecerVersionamento();
     Event::fake([FiscalRuleCreated::class, FiscalRuleUpdated::class, FiscalRuleDeleted::class]);
-    sbLimpar(test()->seededTenant()->id);
+    sbLimpar();
 });
 
-afterEach(fn () => sbLimpar(test()->seededTenant()->id));
+afterEach(fn () => sbLimpar());
 
 it('UC-NFIM-06 · sem --apply o comando confere as 8 regras e não grava nenhuma', function () {
     $biz = test()->seededTenant()->id;
