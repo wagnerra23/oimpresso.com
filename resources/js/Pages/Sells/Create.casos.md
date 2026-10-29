@@ -696,7 +696,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Pedido: P-153
   - Âncora: US-SELL-078 · seção ICMS-ST deste arquivo
   - Fazer: Conferir os três cenários do cliente (CST 10 com MVA, CST 20 com redução, CSOSN 500) contra o cálculo da US-SELL-078 antes da virada.
-  - Hoje: part | Em parte | O ST vai no XML da nota; o ST no total da venda está em andamento (US-SELL-078)
+  - Hoje: part | Em parte | O ST vai no XML só na venda para outro estado; dentro do estado (SP→SP, o caso do Sabor Brasil) a emissão não busca a alíquota interna e o ST sai zero, na nota e no total da venda (medido no código em 2026-10-29)
   - Clientes: Sabor Brasil
   - Etiquetas: valor, part
 
