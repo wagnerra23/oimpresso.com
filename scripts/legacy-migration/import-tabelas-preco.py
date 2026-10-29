@@ -15,8 +15,23 @@ Cadeia oimpresso: contacts.customer_group_id → customer_groups.selling_price_g
 Multi-tenant Tier 0: tudo business_id scoped. "FABRICANTE" do Martinho (biz 164)
 ≠ "FABRICANTE" de outro cliente — FK isola. Generaliza pra qualquer cliente.
 
+Preço de cada item (PRODUTO_TABELA_PRECO → variation_group_prices.price_type):
+  Regra do Delphi na venda (Componentes/uWRCalculaConfiguracoes.pas,
+  ProdutoMemoriaCalculaQuantEValor): a tabela só entra se a linha tiver
+  PERC_DESCONTO ou PERC_ACRESCIMO diferente de zero. Aí:
+    - TEM_MARGEM_FIXA_CONTIBUICAO='S' → vale o % sobre o preço atual do produto
+      (e o Delphi regrava VALOR quando o preço muda na entrada de nota)
+      → price_type='percentage', price_inc_tax = 100 - desconto  ou  100 + acréscimo
+    - qualquer outro valor ('N' ou nulo) → o % é recalculado a partir do VALOR,
+      ou seja, chega no VALOR gravado → price_type='fixed', price_inc_tax = VALOR
+  Linha sem % nenhum: o Delphi ignora a tabela e cobra o preço base → nenhuma
+  linha em variation_group_prices (o oimpresso também cai no preço base).
+  Combinação que o modelo não representa sem decisão (VALOR zero com %, desconto
+  de 100% ou mais, desconto e acréscimo juntos) fica de fora e é listada.
+
 Uso:
     python import-tabelas-preco.py --alias "Martinho online" --target-business 164 --target prod --confirm
+    python import-tabelas-preco.py --alias Camargo --target-business 199 --dry-run
 """
 from __future__ import annotations
 import argparse, os, sys
@@ -48,6 +63,52 @@ def dec(v):
     except (ValueError, TypeError): return 0.0
 
 
+SQL_PRECOS = ("SELECT CODPRODUTO_TABELA, CODPRODUTO, VALOR, PERC_DESCONTO, PERC_ACRESCIMO, "
+              "TEM_MARGEM_FIXA_CONTIBUICAO FROM PRODUTO_TABELA_PRECO ORDER BY CODPRODUTO_TABELA, CODPRODUTO")
+
+
+def classificar(valor, perc_desc, perc_acr, margem_fixa):
+    """Linha de PRODUTO_TABELA_PRECO → (acao, price_type, price_inc_tax, motivo).
+
+    acao: 'gravar' | 'sem_tabela' (vale o preço base) | 'pergunta' (fora, decisão [W]).
+    """
+    valor, d, a = dec(valor), dec(perc_desc), dec(perc_acr)
+    if d == 0 and a == 0:
+        return "sem_tabela", None, None, "sem % — o Delphi não aplica a tabela, vale o preço base"
+    if d != 0 and a != 0:
+        return "pergunta", None, None, "desconto e acréscimo na mesma linha"
+    if (margem_fixa or "").strip().upper() == "S":
+        pct = round(100 - d if d else 100 + a, 4)
+        if pct <= 0:
+            return "pergunta", None, None, "margem fixa com desconto de 100% ou mais"
+        return "gravar", "percentage", pct, "margem fixa — vale o %"
+    if valor <= 0:
+        return "pergunta", None, None, "% sem margem fixa e VALOR zero (preço final zero)"
+    return "gravar", "fixed", round(valor, 4), "sem margem fixa — vale o VALOR"
+
+
+def preco_delphi(base, valor, perc_desc, perc_acr, margem_fixa):
+    """Preço na venda do Delphi (transcrição de ProdutoMemoriaCalculaQuantEValor)."""
+    base, valor, d, a = dec(base), dec(valor), dec(perc_desc), dec(perc_acr)
+    if d == 0 and a == 0:
+        return base
+    fixa = (margem_fixa or "").strip().upper() == "S"
+    if d:
+        perc = d if fixa else (100 - valor / base * 100 if base else 0)
+        return base - base * perc / 100
+    perc = a if fixa else (valor / base * 100 - 100 if base else 0)
+    return base + base * perc / 100
+
+
+def preco_oimpresso(base, price_type, price_inc_tax):
+    """Preço que o oimpresso cobra (ProductUtil::getVariationGroupPrice + calc_percentage)."""
+    if price_type is None:
+        return dec(base)
+    if price_type == "percentage":
+        return dec(base) * dec(price_inc_tax) / 100
+    return dec(price_inc_tax)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--alias", required=True)
@@ -61,7 +122,11 @@ def main():
     p.add_argument("--firebird-password", default=os.environ.get("FIREBIRD_PASSWORD", "masterkey"))
     p.add_argument("--created-by", type=int, default=int(os.environ.get("CREATED_BY", "1")))
     p.add_argument("--confirm", action="store_true")
+    p.add_argument("--dry-run", action="store_true",
+                   help="só lê: não grava nada; MySQL é opcional (sem ele, base = PRODUTO.VALOR)")
     args = p.parse_args()
+    if args.dry_run:
+        return dry_run(args)
 
     if args.target == "prod" and not args.confirm:
         print("[ERRO] --target prod requer --confirm", file=sys.stderr); return 2
@@ -69,7 +134,8 @@ def main():
     print(f"== Import Tabelas de Preço (dinâmico) biz={args.target_business} ==")
 
     stats = {"tabelas": 0, "spg_ins": 0, "cg_ins": 0, "precos_ins": 0,
-             "contacts_linked": 0, "precos_skip_no_prod": 0}
+             "contacts_linked": 0, "precos_skip_no_prod": 0,
+             "precos_sem_tabela": 0, "precos_pergunta": 0}
 
     my = pymysql.connect(
         host=args.mysql_host, port=args.mysql_port,
@@ -142,22 +208,27 @@ def main():
             print(f"  variations indexadas: {len(sku_to_var)}")
 
             cur = fb.cursor()
-            cur.execute("SELECT CODPRODUTO_TABELA, CODPRODUTO, VALOR FROM PRODUTO_TABELA_PRECO WHERE VALOR > 0")
+            cur.execute(SQL_PRECOS)
             batch = 0
             with my.cursor() as w:
                 for r in cur:
-                    cod_tab, cod_prod, valor = str(r[0]), str(r[1]).strip(), dec(r[2])
+                    cod_tab, cod_prod = str(r[0]), str(r[1]).strip()
                     tm = tabela_map.get(cod_tab)
                     vid = sku_to_var.get(cod_prod)
-                    if not tm or not vid or valor <= 0:
+                    if not tm or not vid:
                         stats["precos_skip_no_prod"] += 1
                         continue
-                    # idempotente: delete + insert
+                    acao, price_type, price_inc_tax, _ = classificar(r[2], r[3], r[4], r[5])
+                    # idempotente: delete + insert (chave variation × grupo); linha sem % só apaga
                     w.execute("DELETE FROM variation_group_prices WHERE variation_id=%s AND price_group_id=%s",
                               (vid, tm["spg"]))
+                    if acao != "gravar":
+                        stats["precos_" + acao] += 1
+                        continue
                     w.execute(
-                        "INSERT INTO variation_group_prices (variation_id, price_group_id, price_inc_tax, created_at, updated_at) "
-                        "VALUES (%s, %s, %s, NOW(), NOW())", (vid, tm["spg"], valor))
+                        "INSERT INTO variation_group_prices (variation_id, price_group_id, price_inc_tax, price_type, "
+                        "created_at, updated_at) VALUES (%s, %s, %s, %s, NOW(), NOW())",
+                        (vid, tm["spg"], price_inc_tax, price_type))
                     stats["precos_ins"] += 1
                     batch += 1
                     if batch >= 1000:
@@ -165,7 +236,8 @@ def main():
                         print(f"  ... precos_ins {stats['precos_ins']}", flush=True)
             cur.close()
             my.commit()
-            print(f"  variation_group_prices INSERT: {stats['precos_ins']} · skip(sem prod): {stats['precos_skip_no_prod']}")
+            print(f"  variation_group_prices INSERT: {stats['precos_ins']} · skip(sem prod): {stats['precos_skip_no_prod']} "
+                  f"· sem % (preço base): {stats['precos_sem_tabela']} · fora (decisão [W]): {stats['precos_pergunta']}")
 
             # ===== 3. PESSOAS.CODPRODUTO_TABELA → contacts.customer_group_id =====
             print("\n[3/4] PESSOAS.CODPRODUTO_TABELA → contacts.customer_group_id")
@@ -224,6 +296,79 @@ def main():
     for k, v in stats.items():
         print(f"  {k:22s}: {v}")
     print("[OK] Tabelas de preço concluido")
+    return 0
+
+
+def dry_run(args):
+    """Só leitura. Firebird obrigatório; MySQL opcional (lookups de grupo e variação)."""
+    print(f"== DRY-RUN Tabelas de Preço biz={args.target_business} (nada é gravado) ==")
+    my, spg_by_name, sku_base = None, {}, {}
+    try:
+        my = pymysql.connect(
+            host=args.mysql_host, port=args.mysql_port, user=args.mysql_user,
+            password=args.mysql_password, database=args.mysql_database, charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor, connect_timeout=5)
+        with my.cursor() as w:
+            w.execute("SELECT name FROM selling_price_groups WHERE business_id=%s AND deleted_at IS NULL",
+                      (args.target_business,))
+            spg_by_name = {r["name"].upper() for r in w.fetchall()}
+            w.execute("SELECT p.sku, v.sell_price_inc_tax FROM products p JOIN variations v ON v.product_id=p.id "
+                      "WHERE p.business_id=%s", (args.target_business,))
+            sku_base = {str(r["sku"]).strip(): dec(r["sell_price_inc_tax"]) for r in w.fetchall() if r["sku"]}
+        print(f"  MySQL: {len(spg_by_name)} grupos e {len(sku_base)} variações já existentes no biz")
+    except Exception as e:
+        print(f"  MySQL indisponível ({type(e).__name__}) — base = PRODUTO.VALOR do Delphi, "
+              f"que é o que import-produtos.py grava em sell_price_inc_tax")
+
+    with firebird_connect(args.alias, password_override=args.firebird_password) as fb:
+        cur = fb.cursor()
+        cur.execute("SELECT CODIGO, DESCRICAO FROM PRODUTO_TABELA WHERE ATIVO='S' ORDER BY CODIGO")
+        tabelas = {str(r[0]): (norm(r[1], 191) or f"Tabela {r[0]}") for r in cur.fetchall()}
+        cur.execute("SELECT CODIGO, VALOR FROM PRODUTO")
+        base_delphi = {str(r[0]).strip(): dec(r[1]) for r in cur.fetchall()}
+        cur.execute(SQL_PRECOS)
+        linhas = cur.fetchall()
+        cur.close()
+    if my:
+        my.close()
+
+    novos = sum(1 for d in tabelas.values() if d.upper() not in spg_by_name)
+    print(f"  tabelas ativas: {len(tabelas)} (grupos a criar: {novos})")
+
+    from collections import Counter
+    por_tipo, perguntas, divergentes, amostra = Counter(), [], [], {}
+    for n, (cod_tab, cod_prod, valor, pd, pa, mf) in enumerate(linhas, 1):
+        cod_tab, cod_prod = str(cod_tab), str(cod_prod).strip()
+        if cod_tab not in tabelas:
+            por_tipo["tabela inativa"] += 1
+            continue
+        base = sku_base.get(cod_prod, base_delphi.get(cod_prod, 0.0))
+        acao, price_type, price_inc_tax, motivo = classificar(valor, pd, pa, mf)
+        chave = price_type or acao
+        por_tipo[chave] += 1
+        if acao == "pergunta":
+            perguntas.append((n, motivo, dec(valor), dec(pd), dec(pa), mf, base))
+            continue
+        delphi = round(preco_delphi(base, valor, pd, pa, mf), 2)
+        oimp = round(preco_oimpresso(base, price_type, price_inc_tax), 2)
+        if abs(delphi - oimp) > 0.005:
+            divergentes.append((n, delphi, oimp))
+        amostra.setdefault(chave, []).append(
+            (n, base, dec(valor), dec(pd), dec(pa), mf, price_type, price_inc_tax, delphi, oimp))
+
+    print("\n  Linhas de PRODUTO_TABELA_PRECO por destino:")
+    for k, v in sorted(por_tipo.items()):
+        print(f"    {k:15s}: {v}")
+    print(f"\n  Divergências Delphi × oimpresso (> 0,005): {len(divergentes)}")
+    for d in divergentes[:20]:
+        print(f"    linha {d[0]}: delphi={d[1]} oimpresso={d[2]}")
+    print(f"\n  Fora (decisão [W]): {len(perguntas)}")
+    for q in perguntas:
+        print(f"    linha {q[0]}: {q[1]} · VALOR={q[2]} desc={q[3]} acr={q[4]} margem_fixa={q[5]} base={q[6]}")
+    print("\n  Amostra (até 3 por destino) — item | base | VALOR | %desc | %acr | margem | tipo | price_inc_tax | Delphi | oimpresso:")
+    for k in sorted(amostra):
+        for a in amostra[k][:3]:
+            print("    linha " + " | ".join(str(x) for x in a))
     return 0
 
 

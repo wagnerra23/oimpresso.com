@@ -811,6 +811,8 @@ class ContactController extends Controller
         $hasBucketACols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'bloqueado');
         if ($hasBucketACols) {
             $selectCols[] = 'contacts.bloqueado';
+            // P-086 — mesma migration; ComercialTab mostra e edita.
+            $selectCols[] = 'contacts.boleto_desconto_pontualidade_pct';
         }
         // Daniela 2026-05-27 — `contato` (nome do responsavel principal PJ).
         // Migration 2026_05_27_180000_add_contato_to_contacts.
@@ -1132,6 +1134,9 @@ class ContactController extends Controller
             // mensagem_venda (alerta ao vendedor no POS · editavel no drawer).
             $payload['mensagem_venda'] = $hasMensagemVendaCol ? ($contact->mensagem_venda ?? null) : null;
             $payload['obs_comercial'] = $hasDrawerCols ? ($contact->obs_comercial ?? null) : null;
+            // P-086 — desconto de pontualidade no boleto (coluna da migration 2026_05_27_120000).
+            $payload['boleto_desconto_pontualidade_pct'] = ($contact->boleto_desconto_pontualidade_pct ?? null) !== null
+                ? (float) $contact->boleto_desconto_pontualidade_pct : null;
 
             // ── ClassificacaoTab: contact_status enum UPOS ───────────────────
             // NOTA: `status` (linha ~559) é DERIVADO do payment_status das OS

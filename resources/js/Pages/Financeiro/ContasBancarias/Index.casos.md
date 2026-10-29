@@ -111,9 +111,26 @@ pasta `tests/Feature/Configuracoes/`. Tenant 98 (`seededTenant()`) × 99 (`seede
 - **[BACKLOG] Sem side-effect ao abrir** — não testa conectividade de gateway, não emite boleto, não chama driver Inter/Asaas/C6.
 - **[BACKLOG] Pill "Conta indefinida" (US-FIN-038 PR2/3)** — herdar da Unificada quando a baixa não tem conta vinculada.
 
+## Pedidos de clientes
+
+> Pedidos de clientes registrados com `node scripts/casos-backlog/novo.mjs`. Cada um aparece na
+> página "Casos de uso por tela"; quando ganhar teste, vira caso de uso com id e a linha `Pedido de origem`.
+
+- `[BACKLOG]` **Boleto do Banco do Brasil gerado pelo sistema** — Dado a conta do Banco do Brasil cadastrada
+  com convênio e carteira, Quando o título a receber pede boleto, Então o boleto é registrado no banco, sai em
+  PDF para o cliente e a baixa volta sozinha pelo retorno. O Sabor Brasil passou a emitir boleto pelo BB em
+  2026; antes era pelo Inter (desde 2023). Pedido de Sabor Brasil.
+  - Pedido: P-157
+  - Âncora: Modules/PaymentGateway · BBCnabDriver
+  - Fazer: Conferir o boleto BB de ponta a ponta (remessa, PDF e retorno) na conta do cliente; decidir se basta a remessa por arquivo ou se precisa de API.
+  - Hoje: part | Em parte | O BB existe por arquivo de remessa (CNAB); o Inter tem API
+  - Clientes: Sabor Brasil
+  - Etiquetas: part
+
 ## Trilha do tempo
 - 2026-08-17 · [CC] criado no espelho Cowork; achada a âncora podre do charter.
 - 2026-10-27 · [CL] UC-CTB-05..11: cadastro da conta do núcleo nesta tela (decisão [W], opção A).
 
 [ADR 0264]: ../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0093]: ../../memory/decisions/0093-multi-tenant-isolation-tier-0.md
+- 2026-10-29 · [W+C] Pedido P-157 "Boleto do Banco do Brasil gerado pelo sistema" (Sabor Brasil), registrado com casos-backlog/novo.mjs. Sem id de UC.

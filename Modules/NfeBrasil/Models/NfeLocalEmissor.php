@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $bairro
  * @property string|null $cod_municipio
  * @property string|null $cep
+ * @property int|null $crt  regime do local (P-155); null = o da empresa
  */
 class NfeLocalEmissor extends Model
 {
@@ -29,14 +30,18 @@ class NfeLocalEmissor extends Model
 
     protected $table = 'nfe_locais_emissores';
 
+    /** CRT da NF-e: 1 Simples, 2 Simples com excesso de sublimite, 3 regime normal, 4 MEI. */
+    public const CRTS = [1, 2, 3, 4];
+
     protected $fillable = [
         'business_id', 'location_id', 'serie_nfe', 'serie_nfce',
-        'logradouro', 'numero', 'bairro', 'cod_municipio', 'cep',
+        'logradouro', 'numero', 'bairro', 'cod_municipio', 'cep', 'crt',
     ];
 
     protected $casts = [
         'business_id' => 'integer',
         'location_id' => 'integer',
+        'crt'         => 'integer',
     ];
 
     /** Série deste local para o modelo (55 = NF-e, 65 = NFC-e); null = usa a do business. */
