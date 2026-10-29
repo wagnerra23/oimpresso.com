@@ -44,6 +44,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-02 | Os indicadores levam ao quadro já filtrado | Gestor | Painel | should | ✅ |
 | UC-PCV-03 | "Atrasadas ou vencendo" é o mesmo número em toda a tela | Gestor | Painel · Quadro · Linha | must | ✅ |
 | UC-PCV-04 | Fila de aprovação de arte com reenvio do link | Balcão | Painel | must | 🟡 |
+| UC-PCV-54 | Manutenção preventiva por máquina, com aviso no Painel | Gestor | Postos · Painel | could | ✅ |
 | UC-PCV-05 | Quadro por setor ou por máquina, com a etapa atual | Gestor · Balcão | Quadro | must | ✅ |
 | UC-PCV-06 | Filtro por texto, situação e responsável, igual no quadro e na linha | Gestor · Balcão | Quadro · Linha | must | ✅ |
 | UC-PCV-07 | O PCP move uma etapa à mão, e isso fica registrado | Gestor | Quadro | should | 🟡 |
@@ -90,6 +91,11 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-04 · Fila de aprovação de arte · `must` · 🟡
 - **Aceite:** Dado OS com arte "aguardando" e "ajuste pedido" · Então a fila mostra o que o cliente disse e quando · E "Reenviar link" reenvia o **mesmo** link de prova (não gera arte nova) · E "Enviar nova prova" só aparece em "ajuste pedido".
 - **Falta:** o link de prova em si (tela pública de aprovação) não existe no protótipo da Produção. Reaproveitar o padrão do link com código do Repair (UC-COS-12..16) é decisão do Code com [W].
+
+### UC-PCV-54 · Manutenção preventiva · `could` · ✅
+- **Origem:** backlog P3 do `ROADMAP.md` da Produção ("Manutenção preventiva máquinas", referência SAP PM e Odoo Maintenance). Ainda sem US no SPEC: o id US-PCP-023 que o ROADMAP usa é hoje o Romaneio de impressão.
+- **Aceite:** Dado um plano por horas de uso (Mimaki, a cada 80 h, com 76 h desde a última) e um por dias (CNC, a cada 30 dias, última em 10/09) · Quando abro o Painel em 15/10 · Então aparece um alerta "vence em breve" para a Mimaki e um "vencida" para a CNC, cada um com "Ver o plano" · E os planos em dia não geram alerta · E "Registrar feita" em Postos e cadastros recomeça o plano no dia e tira o alerta.
+- **Regra:** a pausa "Manutenção" do celular continua sendo a corretiva (a máquina parou); o plano é a preventiva.
 
 ## Quadro e linha do tempo
 
