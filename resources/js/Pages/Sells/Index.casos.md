@@ -424,11 +424,33 @@ last_run: "2026-10-23"
   - Clientes: *
   - Etiquetas: part, cv
 
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-01 · Saldo a favor vira regra no catálogo de Fluxos?**
+  - Estado: Em aberto
+  - Texto: Os casos propõem oferecer o saldo na próxima venda, e o vendedor pode recusar. A regra fica para a revisão dos fluxos, junto com os modelos e as configurações.
+  - Destrava: P-004, P-011, P-015, P-017
+  - Ligação: o documento não cita caso para esta decisão; a ligação com P-004, P-011, P-015, P-017 é inferida pelo assunto.
+- **[DECISÃO] D-02 · Acima do limite de crédito: avisar ou bloquear?**
+  - Estado: Em aberto
+  - Opção: Avisar — A venda salva e mostra quanto passou do limite. É o que o sistema faz hoje, e é o que a Madereira Spilere quer.
+  - Opção: Bloquear — A venda não salva e o carrinho fica como estava. A proposta é deixar a escolha por empresa.
+  - Destrava: P-005, P-029, P-030
+  - Ligação: o documento não cita caso para esta decisão; a ligação com P-005, P-029, P-030 é inferida pelo assunto.
+- **[DECISÃO] D-03 · "Venda agrupada" é juntar várias vendas numa cobrança só?**
+  - Estado: Em aberto
+  - Texto: Os casos 9 e 19 seguem o agrupamento do Delphi. Se for outra coisa, os dois mudam.
+  - Destrava: P-009
+  - Ligação: também destrava P-019, que ainda não está no git.
+
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-28 · [W+C] Decisões pendentes D-01, D-02, D-03 do documento "Casos de uso por tela", sem id de caso.
 - 2026-10-27 · [F+C] Backlog "Emitir a nota com imposto faltando": a conferência antes de emitir segue o UC-TRB-33 (sem NCM sai com o NCM padrão, marcado para revisão), pedido da PraMoto. Sem id.
 - 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito, pedido de compra do cliente, ISS retido, venda sem comissionado e venda agrupada, sem id e sem mudança de comportamento da tela.
 - 2026-10-23 · [M+C] Backlog: faturar só parte da venda, da comparação com concorrentes (Omie), sem id.

@@ -65,7 +65,7 @@ it('marcacao biz=1 nao retorna em SELECT scoped biz=99', function () {
         ->first();
 
     expect($vaza)->toBeNull();
-})->afterEach(fn () => ctmCleanup());
+});
 
 it('marcacao biz=99 nao retorna em SELECT scoped biz=1', function () {
     // Pode nao ter colab seedado pra biz=99 — usa um id "neutro" sem FK valida
@@ -83,7 +83,7 @@ it('marcacao biz=99 nao retorna em SELECT scoped biz=1', function () {
         ->first();
 
     expect($vaza)->toBeNull();
-})->afterEach(fn () => ctmCleanup());
+});
 
 it('count agregado biz=99 nao soma marcacoes de biz=1', function () {
     $colab = ctmEnsureColab(CTM_BIZ_WAGNER);
@@ -122,7 +122,7 @@ it('count agregado biz=99 nao soma marcacoes de biz=1', function () {
         ->count();
 
     expect($totalBiz1)->toBeGreaterThanOrEqual(5);
-})->afterEach(fn () => ctmCleanup());
+});
 
 it('bulk insert N biz=1 + N biz=99 — cada tenant ve somente as suas', function () {
     $colabBiz1 = ctmEnsureColab(CTM_BIZ_WAGNER);
@@ -159,7 +159,7 @@ it('bulk insert N biz=1 + N biz=99 — cada tenant ve somente as suas', function
 
     expect(count(array_intersect($vistasBiz99, $idsBiz99)))->toBe(4);
     expect(count(array_intersect($vistasBiz99, $idsBiz1)))->toBe(0);
-})->afterEach(fn () => ctmCleanup());
+});
 
 it('marcacao ANULACAO biz=1 nao vaza em listing biz=99 via marcacao_anulada_id', function () {
     $colab = ctmEnsureColab(CTM_BIZ_WAGNER);
@@ -194,7 +194,7 @@ it('marcacao ANULACAO biz=1 nao vaza em listing biz=99 via marcacao_anulada_id',
         ->count();
 
     expect($vaza)->toBe(0);
-})->afterEach(fn () => ctmCleanup());
+});
 
 // ------------------------------------------------------------------
 // Helpers
@@ -304,21 +304,7 @@ function ctmInsertMarcacao(int $businessId, int $colabId): string
     return $id;
 }
 
-function ctmCleanup(): void
-{
-    try {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_ponto_marcacoes_no_delete');
-        DB::table('ponto_marcacoes')->where('ip', CTM_MARCADOR)->delete();
-        DB::unprepared(<<<SQL
-            CREATE TRIGGER trg_ponto_marcacoes_no_delete
-            BEFORE DELETE ON ponto_marcacoes
-            FOR EACH ROW
-            BEGIN
-                SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'ponto_marcacoes e append-only (Portaria 671/2021).';
-            END;
-        SQL);
-    } catch (\Throwable $e) {
-        // sem permissao DROP TRIGGER — marker isola
-    }
-}
+// Sem limpeza de ponto_marcacoes: a tabela e append-only por lei (Portaria 671/2021) e o
+// trigger trg_ponto_marcacoes_no_delete nao se derruba em teste. As linhas levam marcador
+// proprio e os asserts comparam contagem antes/depois. A limpeza que derrubava o trigger
+// estava num ->afterEach() por teste, que nunca rodou no Pest 4 (#10120).

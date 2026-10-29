@@ -74,7 +74,7 @@ it('expand: BOM com 5 ingredients via Service resolve corretamente biz=1', funct
 
     // Tier 0 — biz=99 não enxerga
     expect($svc->resolveBom($recipe->id, 99)->count())->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'wave25-bom-expand-5')->delete();
 });
 
@@ -115,7 +115,7 @@ it('expand: calculateCost com waste_percent=10 aplica fator 1.10 sobre ingredien
     $cost = $svc->calculateCost($recipe);
     // Independe do dpp_inc_tax real — o que validamos é que o service não quebra com waste≠0
     expect($cost)->toBeGreaterThanOrEqual(0.0);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'wave25-waste-10')->delete();
 });
 
@@ -165,6 +165,6 @@ it('expand: trait companion via instância anônima conta por business chain', f
     // Tier 0 — biz=99 não enxerga
     $countBiz99 = $stub->countForBusinessChain(99);
     expect($countBiz99)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'wave25-trait-count')->delete();
 });

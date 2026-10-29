@@ -74,7 +74,7 @@ it('Schedule biz=1 NÃO aparece em query where business_id=99', function () {
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Schedule::where('title', 'Followup TESTE ISO 99991')->delete();
 });
 
@@ -102,7 +102,7 @@ it('Schedule biz=1 aparece em query where business_id=1', function () {
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->title)->toBe('Followup TESTE ISO 99992');
     expect((int) $resultado->first()->business_id)->toBe(CRM_BIZ_WAGNER);
-})->afterEach(function () {
+})->after(function () {
     Schedule::where('title', 'Followup TESTE ISO 99992')->delete();
 });
 
@@ -126,7 +126,7 @@ it('Campaign biz=1 NÃO aparece em query where business_id=99', function () {
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Campaign::where('name', 'Campanha TESTE ISO 99991')->delete();
 });
 
@@ -147,7 +147,7 @@ it('Campaign biz=1 aparece em query where business_id=1', function () {
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->name)->toBe('Campanha TESTE ISO 99992');
     expect((int) $resultado->first()->business_id)->toBe(CRM_BIZ_WAGNER);
-})->afterEach(function () {
+})->after(function () {
     Campaign::where('name', 'Campanha TESTE ISO 99992')->delete();
 });
 
@@ -172,6 +172,7 @@ it('Leaduser pivot herda isolamento via contacts.business_id (cross-tenant query
         'contact_id' => $contactBiz1,
         'user_id'    => $userIdWagner,
     ]);
+    $this->leadPivotId = $pivot->id;
 
     // Cross-tenant join: pivot só aparece via contacts cujo business_id casa.
     $vazaCrossTenant = Leaduser::join('contacts', 'crm_lead_users.contact_id', '=', 'contacts.id')
@@ -180,16 +181,10 @@ it('Leaduser pivot herda isolamento via contacts.business_id (cross-tenant query
         ->count();
 
     expect($vazaCrossTenant)->toBe(0);
-})->afterEach(function () {
-    // Cleanup defensivo — só os pivots recém criados sem afetar legacy
-    DB::table('crm_lead_users')
-        ->whereIn('contact_id', function ($q) {
-            $q->select('id')->from('contacts')->where('business_id', CRM_BIZ_WAGNER);
-        })
-        ->where('user_id', DB::table('users')->where('business_id', CRM_BIZ_WAGNER)->value('id'))
-        ->orderByDesc('id')
-        ->limit(1)
-        ->delete();
+})->after(function () {
+    // Só o pivot que este teste criou, pelo id. A versão anterior apagava "o mais
+    // recente do primeiro user de biz=1", que pode ser um pivot real.
+    DB::table('crm_lead_users')->where('id', $this->leadPivotId ?? 0)->delete();
 });
 
 // ------------------------------------------------------------------
