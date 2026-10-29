@@ -1,6 +1,6 @@
 // producao-cv-page.jsx — módulo Produção (comunicação visual): a OS como projeto.
 // Vistas: Painel do gestor · Quadro por setor · Linha do tempo por máquina · Custo real × orçado ·
-// Instalação · Apontamento (celular) · Roteiros · Postos e cadastros. A ficha da OS (projeto) abre em drawer PT-02 de 760px.
+// Instalação · Apontamento (celular) · Terminal (tablet preso à máquina) · Roteiros · Postos e cadastros. A ficha da OS (projeto) abre em drawer PT-02 de 760px.
 // Diferenciais sobre o Mubisys (grade 33-grade-producao-concorrentes.md): quadro + linha do tempo, custo real × orçado,
 // refugo com motivo, instalação com foto e assinatura, aprovação de arte online, encaixe na bobina, alerta de gargalo.
 // Casos de uso e como testar: cowork-inbox/producao/Producao.casos.md (UC-PCV-01..28).
@@ -14,7 +14,7 @@ const Ic = ({ name, size = 14 }) => { const F = (window.I || {})[name]; return F
 const VISTAS = [
   { key: "painel", label: "Painel" }, { key: "quadro", label: "Quadro" }, { key: "linha", label: "Linha do tempo" },
   { key: "custo", label: "Custo real × orçado" }, { key: "instalacao", label: "Instalação" },
-  { key: "apontamento", label: "Apontamento" }, { key: "roteiros", label: "Roteiros" },
+  { key: "apontamento", label: "Apontamento" }, { key: "terminal", label: "Terminal" }, { key: "roteiros", label: "Roteiros" },
   { key: "postos", label: "Postos e cadastros" },
 ];
 const PRIO = { urgente: ["Urgente", "danger"], alta: ["Alta", "warning"], normal: ["Normal", "neutral"] };
@@ -392,6 +392,7 @@ function ProducaoCvPage({ view = "painel", estado = "dados" }) {
     : vista === "postos" && window.PcvPostos ? <window.PcvPostos.Postos />
     : vista === "instalacao" && C.Instalacao ? <C.Instalacao onAbrir={setAberta} />
     : vista === "apontamento" && C.Apontamento ? <C.Apontamento />
+    : vista === "terminal" && C.Terminal ? <C.Terminal />
     : <p className="pcv-help" style={{ padding: 24 }}>Carregando…</p>;
   const corpo = estado === "carregando" ? <div className="pcv-body" aria-busy="true">{Skeleton ? <Skeleton variant="card" count={3} /> : <p className="pcv-help">Carregando…</p>}</div>
     : estado === "erro" ? <div className="pcv-body">{EmptyState && <EmptyState variant="error" title="Não foi possível carregar a produção" description="Nada foi alterado. Tente de novo; se continuar, os apontamentos do celular ficam guardados e entram quando voltar." action={Button && <Button onClick={() => location.reload()}>Tentar de novo</Button>} />}</div>

@@ -165,6 +165,8 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-23 · Sem internet · `should` · ⬜
 - **Aceite:** Dado o celular offline · Quando o operador aponta · Então o evento fica guardado com a hora real · E ao voltar a rede é enviado uma vez só (sem duplicar).
 
+> **Modo terminal (tablet preso à máquina).** O caso é o UC-PCV-41, em `Producao-celular.casos.md` (forma T1 do `Mobile Producao.dc.html`, thread 12). Desde 2026-10-29 ele também está neste protótipo, na vista **Terminal**: romaneio do posto, entrada por crachá ou PIN, recusa de quem não opera o posto (US-PCP-030), botões de 88px e volta ao crachá depois de 2 minutos sem toque.
+
 ## Instalação
 
 ### UC-PCV-24 · Agenda de instalação · `must` · ✅
