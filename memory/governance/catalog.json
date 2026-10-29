@@ -4138,6 +4138,13 @@
       "desc": ""
     },
     {
+      "id": "component:PaymentGateway/CobrancaCnabArquivosController",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "CobrancaCnabArquivosController",
+      "desc": "(Settings/) GET /settings/payment-gateways/cobrancas/{cobranca}/remessa|boleto (baixar a remessa CNAB e o PDF do boleto da cobrança, só da empresa da sessão — P-157)"
+    },
+    {
       "id": "component:PaymentGateway/CobrancaController",
       "type": "component",
       "module": "PaymentGateway",
@@ -4241,13 +4248,6 @@
       "module": "PaymentGateway",
       "name": "Services/PaymentGatewayService",
       "desc": "implementa PaymentGatewayContract; for(Account) resolve credential; idempotência (Onda 4a); DRIVERS mapa atualizado Onda 4b com 3 drivers"
-    },
-    {
-      "id": "component:PaymentGateway/Settings/CobrancaCnabArquivosController",
-      "type": "component",
-      "module": "PaymentGateway",
-      "name": "Settings/CobrancaCnabArquivosController",
-      "desc": "GET /settings/payment-gateways/cobrancas/{cobranca}/remessa|boleto (baixar a remessa CNAB e o PDF do boleto da cobrança, só da empresa da sessão — P-157)"
     },
     {
       "id": "component:PaymentGateway/Settings/PaymentGatewaysCnabRetornoController",
@@ -12637,6 +12637,12 @@
     },
     {
       "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/CobrancaCnabArquivosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/CobrancaController",
       "type": "hasComponent",
       "source": "contains"
@@ -12722,12 +12728,6 @@
     {
       "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/Services/PaymentGatewayService",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/Settings/CobrancaCnabArquivosController",
       "type": "hasComponent",
       "source": "contains"
     },
