@@ -19,8 +19,8 @@
 .pcv-al-a{margin-top:8px}
 /* carga + encaixe */
 .pcv-carga{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-.pcv-carga li{display:grid;grid-template-columns:170px minmax(0,1fr) 60px;gap:12px;align-items:center;font-size:13px}
-.pcv-carga b{font:600 13px var(--font-mono);text-align:right}
+.pcv-carga li{display:grid;grid-template-columns:170px minmax(0,1fr) 100px;gap:12px;align-items:center;font-size:13px}
+.pcv-carga b{font:600 13px var(--font-mono);text-align:right;white-space:nowrap}
 .pcv-encaixe{display:flex;flex-direction:column;gap:10px}
 .pcv-enc-bar{display:flex;height:28px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
 .pcv-enc-bar i{background:color-mix(in oklch,var(--accent) 55%,transparent)}

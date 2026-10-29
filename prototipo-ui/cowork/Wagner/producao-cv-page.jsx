@@ -123,7 +123,7 @@ function Painel({ onAbrir, ir, filtrar }) {
       </div>
 
       <div className="pcv-alertas" role="region" aria-label="Alertas de produção">
-        {Alert && <Alert tone="danger" title="Gargalo previsto: Roland VG3-640 passa do turno">Carga de {D.h1(D.cargaMaquina("eco"))} h para um turno de 10 h. Mover a OS-2608 (adesivo de aplicação, 1,1 h) para a HP Latex 365, que tem {D.h1(10 - D.cargaMaquina("latex"))} h livres.<div className="pcv-al-a"><Button size="sm" onClick={() => ir("linha")}>Ver na linha do tempo</Button></div></Alert>}
+        {Alert && <Alert tone="danger" title="Gargalo previsto: Roland VG3-640 passa da capacidade do dia">Carga de {D.h1(D.cargaMaquina("eco"))} h para uma capacidade de {D.maqDe("eco").horasDia} h no dia. Mover a OS-2608 (adesivo de aplicação, 1,1 h) para a HP Latex 365, que tem {D.h1(D.maqDe("latex").horasDia - D.cargaMaquina("latex"))} h livres.<div className="pcv-al-a"><Button size="sm" onClick={() => ir("linha")}>Ver na linha do tempo</Button></div></Alert>}
         {Alert && <Alert tone="warn" title="2 OS esperando arte do cliente">OS-2614 (Clínica Sorriso) trava 6,3 h de CNC e UV hoje. OS-2619 pediu ajuste. O link de aprovação foi reenviado às 09:12.<div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir("OS-2614")}>Abrir OS-2614</Button></div></Alert>}
         {/* US-PCP-032 · D3: OS liberada sem material. Um alerta por OS, com a ação de abrir a ficha (UC-PCV-01). */}
         {Alert && D.OS.filter((o) => o.material === "aguardando").map((o) => { const fl = D.faltaDe(o.id); return (
@@ -157,10 +157,11 @@ function Painel({ onAbrir, ir, filtrar }) {
       {Widget && <Widget title="Acontecendo agora" note="o que a fábrica fez por último — vem do apontamento, do cliente e do PCP" flush><Feed eventos={eventos} onAbrir={onAbrir} max={6} /></Widget>}
 
       <div className="pcv-grid2">
-        {Widget && <Widget title="Carga das máquinas hoje" note="horas programadas · turno de 10 h">
+        {/* D4: a capacidade é a de cada posto (pcp_postos.horas_por_dia), não um turno fixo de 10 h. */}
+        {Widget && <Widget title="Carga das máquinas hoje" note="horas programadas · capacidade de cada posto no dia">
           <ul className="pcv-carga">
-            {D.MAQUINAS.filter((m) => m.capH).map((m) => { const c = D.cargaMaquina(m.id); const pct = Math.round((c / 10) * 100); return (
-              <li key={m.id}><span>{m.nome}</span>{Progress && <Progress value={Math.min(pct, 100)} size={6} tone={pct > 100 ? "danger" : pct > 85 ? "warning" : "default"} label={m.nome + " " + pct + "%"} />}<b className={pct > 100 ? "pcv-late" : ""}>{D.h1(c)} h</b></li>); })}
+            {D.MAQUINAS.filter((m) => m.horasDia).map((m) => { const c = D.cargaMaquina(m.id); const pct = Math.round((c / m.horasDia) * 100); return (
+              <li key={m.id}><span>{m.nome}</span>{Progress && <Progress value={Math.min(pct, 100)} size={6} tone={pct > 100 ? "danger" : pct > 85 ? "warning" : "default"} label={m.nome + " " + pct + "%"} />}<b className={pct > 100 ? "pcv-late" : ""}>{D.h1(c)} de {m.horasDia} h</b></li>); })}
           </ul>
         </Widget>}
         {Widget && <Widget title="Aproveitamento de mídia" note={D.ENCAIXE.bobina}>
