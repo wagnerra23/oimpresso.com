@@ -31,7 +31,7 @@ controlador: Wagner
 ## Etapa 0 — Preparação técnica
 
 1. **Adapter da versão 1514.** O intervalo conhecido vai até 1474. Rodar a introspecção de schema (`RDB$RELATION_FIELDS`) em `VENDA`, `VENDA_PRODUTO`, `FINANCEIRO`, `PESSOAS`, `PRODUTO`, `BOLETOS`, `COMISSAO_FINANCEIRO` e comparar com o que os importers esperam. Saída: diferenças registradas em `03-schema-v1514.md` nesta pasta + ajustes no `lib/firebird_reader.py`. (O agente cita um `firebird-schema-drift-by-version.md` em `memory/reference/`, mas ele **não existe** no repo em 2026-10-29.)
-2. **Dois CNPJs, dois regimes.** Empresa 4 é Regime Normal, empresa 5 é Simples Nacional, e as duas vendem. Decidir com [W]: (a) uma empresa 199 com dois locais emissores (`nfe_locais_emissores`) — só serve se o regime puder ser **por local**; ou (b) duas empresas no oimpresso. **Bloqueia as Etapas 3 e 4.** A conferir no código: `nfe_locais_emissores` herda o regime do business; regime por local não foi encontrado.
+2. **Dois CNPJs, dois regimes.** Empresa 4 é Regime Normal, empresa 5 é Simples Nacional, e as duas vendem. **Decisão [W] 2026-10-29: uma empresa (199) com dois locais emissores**, não duas empresas. Consequência medida no código: o local emissor (`nfe_locais_emissores`) já tem CNPJ, IE e série próprios, mas o regime é um só por empresa (`nfe_business_configs.regime`, lido em 7 arquivos do NfeBrasil). Falta o **regime por local** — caso P-155 em `Fiscal/Config.casos.md`, que entra na Etapa 2 como trava da virada. **Bloqueia as Etapas 3 e 4** até ele estar pronto.
 3. **Segredos.** Certificado A1, senhas de SEFAZ e credenciais de banco (Inter, BB) **não saem do Delphi pelo importer** (`EMPRESA_SECRET_FIELDS`). Ricardo/[W] cadastram direto no oimpresso; cópia em Vaultwarden.
 4. **Congelar a foto de origem.** Registrar as contagens do [perfil §3](01-perfil.md) com data — é a régua da Etapa 5.
 
@@ -46,7 +46,7 @@ controlador: Wagner
 |---|---|---|
 | ICMS-ST com MVA, CST 10/20/60 e CSOSN 500 | 215 itens com ST, MVA 62,3% | 🟡 cálculo no XML existe (`NfeIcmsStNoXmlTest`); ST no total da venda em andamento (US-SELL-078, `Sells/Create.casos.md`) |
 | Regras tributárias por regime/UF/CFOP | 22 regras | 🟡 `nfe_fiscal_rules` existe; falta carregar as 22 e conferir CST 20 (redução de base) |
-| Duas empresas, dois regimes | 4 = Normal, 5 = Simples | ❓ ver Etapa 0.2 |
+| Duas empresas, dois regimes | 4 = Normal, 5 = Simples | 🟡 decidido: uma empresa com dois locais; falta o regime por local (P-155) |
 | Bonificação (CFOP 5910) e "venda sem ST" | 8 + 184 vendas desde 2024 | ❓ a conferir como natureza de operação |
 | Tabela de preço por cliente | 74 tabelas, 192 clientes | ✅ grupo de preço por cliente (`selling_price_groups` → `customer_groups` → `contacts`); importer `import-tabelas-preco.py` existe. ⚠️ ele grava só o **valor**; % de desconto/acréscimo por item (453/213 linhas) não é importado |
 | Comissão por cliente, paga por parcela recebida | 1.643 lançamentos, 2%–15% | ❌ o oimpresso tem % por **vendedor** (`users.cmmsn_percent`), não por cliente, e calcula pela venda, não pelo recebimento |
@@ -66,7 +66,7 @@ controlador: Wagner
 
 ## Etapa 3 — Configurar a empresa 199
 
-- Loja(s) e locais emissores conforme a decisão da Etapa 0.2; certificado A1 e séries.
+- Duas lojas na empresa 199, cada uma local emissor com o próprio CNPJ, IE, série e regime (Etapa 0.2); certificado A1 de cada CNPJ.
 - As 22 regras tributárias, conferidas contra os CST/CFOP mais usados (perfil §3).
 - Contas bancárias Inter (API) e BB; carteira, juros, multa, desconto.
 - Usuários (4 no Delphi) com permissões; representantes como vendedores com o % certo.
@@ -119,7 +119,7 @@ Ordem prática do pattern, sem a fase de veículos (não é oficina), com dry-ru
 
 | # | Pergunta | Para quem | Bloqueia |
 |---|---|---|---|
-| 1 | Uma empresa com dois locais ou duas empresas no oimpresso? | [W] | Etapas 3 e 4 |
+| 1 | ~~Uma empresa com dois locais ou duas empresas no oimpresso?~~ Respondida: uma empresa com dois locais ([W] 2026-10-29) | [W] | — |
 | 2 | Por que, em 12 meses, 188 boletos a receber e só 18 baixados no Delphi? A baixa acontece fora do sistema? | [M] / Ricardo | Etapa 4 (financeiro) |
 | 3 | O manifesto de NF-e de entrada ainda é usado? O último é de 2023 | [M] / Ricardo | Etapa 1 |
 | 4 | O BB em 2026 é a conta nova ou um teste? Inter continua? | Ricardo | Etapa 3 |
