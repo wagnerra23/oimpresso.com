@@ -56,6 +56,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-14 | Etapa opcional entra pela opção marcada no orçamento | Balcão | Roteiros → Ficha | must | 🟡 |
 | UC-PCV-15 | Custo real × esperado para o progresso, por OS | Gestor | Custo | must | ✅ |
 | UC-PCV-16 | Material empenhado × consumido, com estouro sinalizado | Gestor | Ficha · Materiais | must | ✅ |
+| UC-PCV-52 | Despesas da OS com recibo, cobradas do cliente ou só no custo | Gestor · Instalador | Ficha · Custo | should | 🟡 |
 | UC-PCV-17 | Refugo com motivo entra no custo real | Operador · Gestor | Ficha · Apontamento | must | ✅ |
 | UC-PCV-18 | Perdas por motivo e por máquina | Gestor | Custo | should | ✅ |
 | UC-PCV-19 | O operador vê só as etapas dele hoje, na ordem | Operador | Apontamento | must | ✅ |
@@ -141,6 +142,12 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-16 · Empenhado × consumido · `must` · ✅
 - **Aceite:** Dado 124 m² de lona empenhados e 133,4 m² baixados · Então o saldo mostra "estourou 9,4 m²" em vermelho · E o estouro entra no custo real e gera alerta ao PCP.
 - **Integração:** empenho nasce do orçamento aprovado e reserva estoque; baixa vem do apontamento.
+
+### UC-PCV-52 · Despesas da OS · `should` valor · 🟡
+- **Origem:** P-098, comparação com concorrentes de 2026-10-23 (Omie). Backlog em `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md`.
+- **Aceite:** Dado uma instalação fora da cidade · Quando lanço na OS o deslocamento e o almoço da equipe, cada um com o recibo anexado · Então a despesa marcada "cobrar do cliente" soma em "A cobrar do cliente" e vai para o faturamento da venda, separada do serviço · E a não reembolsável soma em "Fica só no custo" e entra no custo real.
+- **Falta (decisão [W]):** como a despesa reembolsável aparece na nota. Se entrar no total da venda, a regra A de 2026-10-21 (`Fiscal/Nfse.casos.md`) divide pelo bruto entre NF-e e NFS-e.
+- **Valor:** regra mestre. A soma dos dois totais tem de bater com a soma das despesas lançadas (dupla prova), e o antes → depois do faturamento vai ao [W] antes de ligar.
 
 ### UC-PCV-17 · Refugo com motivo · `must` valor · ✅
 - **Aceite:** Quando o operador registra refugo (etapa, motivo da lista fechada, m²) · Então o refugo entra na aba Refugo e no custo real da OS · E o motivo é obrigatório.

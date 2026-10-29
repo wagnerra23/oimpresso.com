@@ -10,6 +10,17 @@ const Ic = ({ name, size = 14 }) => { const F = (window.I || {})[name]; return F
 const EST = { feito: ["Feito", "success"], pronto: ["Pronto", "success"], andamento: ["Em andamento", "info"], fila: ["Na fila", "neutral"], agendada: ["Agendada", "info"], "a agendar": ["A agendar", "warning"] };
 const MOTIVOS = ["Banding / falha de cabeça", "Cor fora do padrão", "Medida errada", "Mídia com defeito", "Erro de arte", "Dano no manuseio"];
 const HORA = 85; // R$/h de máquina+operador (custo-hora configurável por posto no real)
+// Despesas da OS (P-098, comparação com concorrentes de 2026-10-23, fonte: Omie): deslocamento, hospedagem e afins,
+// com o recibo anexado. Reembolsável = cobrada do cliente, separada do serviço; não reembolsável = fica só no custo.
+// Mexe em valor: no ERP segue a regra mestre (dupla prova + antes → depois para o [W]). Como a despesa aparece na
+// nota (NF-e/NFS-e) é decisão do [W]; a regra A de 2026-10-21 divide o que entra na venda pelo bruto.
+const TIPOS_DESP = ["Deslocamento", "Hospedagem", "Alimentação", "Pedágio e estacionamento", "Outra"];
+const DESPESAS = {
+  "OS-2608": [
+    { tipo: "Deslocamento", descricao: "Combustível e pedágio até Jaú (ida e volta)", valor: 186.4, reembolsavel: true, recibo: "recibo-posto-1510.jpg", quem: "Jonas", quando: "15/10 07:40" },
+    { tipo: "Alimentação", descricao: "Almoço da equipe de instalação", valor: 64, reembolsavel: false, recibo: "nota-restaurante.jpg", quem: "Jonas", quando: "15/10 12:50" },
+  ],
+};
 
 function EtapaLi({ e, i, D }) {
   return (
@@ -116,6 +127,8 @@ function FichaOs({ id, onClose }) {
   // Terceiros da OS (US-COMVIS-005): serviço comprado fora que entra no custo real. Não mexe em preço.
   const [terc, setTerc] = useState(os ? os.terceiros || [] : []);
   const [novoTerc, setNovoTerc] = useState(null);
+  const [desp, setDesp] = useState(os ? DESPESAS[os.id] || [] : []);
+  const [novaDesp, setNovaDesp] = useState(null);
   if (window.PcvEventos) window.PcvEventos.useEventos();
   if (!os || !Drawer) return null;
   const es = D.etapas(os); const pr = D.progresso(os); const atr = D.atraso(os);
@@ -179,6 +192,7 @@ function FichaOs({ id, onClose }) {
             <tbody>{es.map((e, i) => { const p = e.prev * HORA, r = e.real * HORA; return <tr key={i}><td>{e.nome}</td><td className="ta-r mono">{D.fmt(p)}</td><td className="ta-r mono">{e.real ? D.fmt(r) : "—"}</td><td className={"ta-r mono" + (r > p ? " pcv-late" : "")}>{e.real ? (r > p ? "+" : "") + D.fmt(r - p) : "—"}</td></tr>; })}
               <tr className="pcv-tbl-sub"><td>Material (mídia, tinta, ferragem)</td><td className="ta-r mono">{D.fmt(os.orcado * 0.42)}</td><td className="ta-r mono">{D.fmt(os.real * 0.45)}</td><td className="ta-r mono">{os.perda ? "perda " + os.perda.toString().replace(".", ",") + "%" : "—"}</td></tr>
               <tr className="pcv-tbl-sub"><td>Terceiros (serviço comprado fora)</td><td className="ta-r mono">—</td><td className="ta-r mono">{terc.length ? D.fmt(terc.reduce((s, t) => s + t.valor, 0)) : "—"}</td><td className="ta-r mono">{terc.length ? "+" + D.fmt(terc.reduce((s, t) => s + t.valor, 0)) : "—"}</td></tr>
+              {(() => { const so = desp.filter((d) => !d.reembolsavel).reduce((s, d) => s + d.valor, 0); return <tr className="pcv-tbl-sub"><td>Despesas não reembolsáveis</td><td className="ta-r mono">—</td><td className="ta-r mono">{so ? D.fmt(so) : "—"}</td><td className="ta-r mono">{so ? "+" + D.fmt(so) : "—"}</td></tr>; })()}
             </tbody>
           </table>
           <p className="pcv-help">Hora de máquina + operador a {D.fmt(HORA)}/h (configurável por posto). Material real vem da baixa feita no apontamento.</p>
@@ -196,6 +210,28 @@ function FichaOs({ id, onClose }) {
             <div className="pcv-bar"><Button onClick={() => setNovoTerc(null)}>Cancelar</Button><Button variant="primary" disabled={!novoTerc.descricao.trim() || !(parseFloat(String(novoTerc.valor).replace(".", "").replace(",", ".")) > 0)} onClick={() => { const valor = parseFloat(String(novoTerc.valor).replace(".", "").replace(",", ".")); D.registrar({ os: os.id, tipo: "pcp", texto: "Lançou terceiro: " + novoTerc.descricao + " (" + D.fmt(valor) + ")" }); setTerc([...terc, { descricao: novoTerc.descricao.trim(), fornecedor: novoTerc.fornecedor.trim(), valor, quem: "Você", quando: "agora" }]); setNovoTerc(null); }}>Lançar</Button></div>
           </div> : Button && <Button onClick={() => setNovoTerc({ descricao: "", fornecedor: "", valor: "" })}>Lançar terceiro</Button>}
           <p className="pcv-help">O terceiro entra no custo real da OS e na margem; o preço da OS não muda. Só quem cuida do custo lança ou remove.</p>
+
+          <h4 className="pcv-eyebrow">Despesas da OS</h4>
+          {(() => { const cobrar = desp.filter((d) => d.reembolsavel).reduce((s, d) => s + d.valor, 0), custo = desp.filter((d) => !d.reembolsavel).reduce((s, d) => s + d.valor, 0); const org = D.origemDe ? D.origemDe(os.id) : null; return desp.length ? <>
+            <ul className="pcv-refugo" aria-label="Despesas lançadas nesta OS">{desp.map((d, i) => (
+              <li key={i}><div><b>{d.descricao}</b><small>{d.tipo + " · recibo " + (d.recibo || "não anexado") + " · " + d.quem + " · " + d.quando}</small></div>
+                {B(d.reembolsavel ? ["Cobrar do cliente", "info"] : ["Só no custo", "neutral"])}
+                <b className="mono">{D.fmt(d.valor)}</b>
+                <Button size="sm" variant="ghost" onClick={() => { D.registrar({ os: os.id, tipo: "pcp", texto: "Removeu despesa: " + d.descricao + " (" + D.fmt(d.valor) + ")" }); const nv = desp.filter((_, k) => k !== i); DESPESAS[os.id] = nv; setDesp(nv); }}>Remover</Button></li>))}</ul>
+            <div className="pcv-dp-tot">
+              <span><small className="pcv-eyebrow">A cobrar do cliente</small><b className="mono">{D.fmt(cobrar)}</b><small>vai para o faturamento{org ? " da venda " + org.venda : ""}, separada do serviço</small></span>
+              <span><small className="pcv-eyebrow">Fica só no custo</small><b className="mono">{D.fmt(custo)}</b><small>entra no custo real e na margem</small></span>
+            </div></> : <p className="pcv-help">Nenhuma despesa lançada nesta OS.</p>; })()}
+          {novaDesp ? <div className="pcv-form">
+            {Select && <Select label="Tipo" value={novaDesp.tipo} onChange={(e) => setNovaDesp({ ...novaDesp, tipo: e.target.value })} options={TIPOS_DESP.map((t) => ({ value: t, label: t }))} />}
+            {Input && <Input label="Descrição" value={novaDesp.descricao} placeholder="Ex.: hospedagem da equipe em Bauru, 1 diária" onChange={(e) => setNovaDesp({ ...novaDesp, descricao: e.target.value })} />}
+            {Input && <Input label="Valor (R$)" value={novaDesp.valor} placeholder="0,00" onChange={(e) => setNovaDesp({ ...novaDesp, valor: e.target.value })} />}
+            <label className="pcv-dp-arq">Recibo (foto ou PDF)<input type="file" accept="image/*,application/pdf" onChange={(e) => setNovaDesp({ ...novaDesp, recibo: e.target.files && e.target.files[0] ? e.target.files[0].name : "" })} /></label>
+            <label className="pcv-dp-ck"><input type="checkbox" checked={novaDesp.reembolsavel} onChange={(e) => setNovaDesp({ ...novaDesp, reembolsavel: e.target.checked })} /> Cobrar do cliente (reembolsável)</label>
+            <p className="pcv-help">{novaDesp.reembolsavel ? "Vai para o faturamento, separada do serviço. Como aparece na nota (NF-e ou NFS-e) é decisão do Wagner, ainda pendente." : "Não é cobrada do cliente: fica só no custo real da OS."}</p>
+            <div className="pcv-bar"><Button onClick={() => setNovaDesp(null)}>Cancelar</Button><Button variant="primary" disabled={!novaDesp.descricao.trim() || !(parseFloat(String(novaDesp.valor).replace(".", "").replace(",", ".")) > 0)} onClick={() => { const valor = parseFloat(String(novaDesp.valor).replace(".", "").replace(",", ".")); const d = { tipo: novaDesp.tipo, descricao: novaDesp.descricao.trim(), valor, reembolsavel: novaDesp.reembolsavel, recibo: novaDesp.recibo, quem: "Você", quando: "agora" }; D.registrar({ os: os.id, tipo: "pcp", texto: "Lançou despesa: " + d.descricao + " (" + D.fmt(valor) + (d.reembolsavel ? ", cobrar do cliente" : ", só no custo") + ")" }); const nv = [...desp, d]; DESPESAS[os.id] = nv; setDesp(nv); setNovaDesp(null); }}>Lançar</Button></div>
+          </div> : Button && <Button onClick={() => setNovaDesp({ tipo: TIPOS_DESP[0], descricao: "", valor: "", recibo: "", reembolsavel: true })}>Lançar despesa</Button>}
+          <p className="pcv-help">Despesa de instalação ou visita, com o recibo anexado. A reembolsável é cobrada do cliente e não pesa na margem; a não reembolsável entra no custo real. Só quem cuida do custo lança ou remove.</p>
         </div>}
 
         {aba === "refugo" && <div className="pcv-sec">
