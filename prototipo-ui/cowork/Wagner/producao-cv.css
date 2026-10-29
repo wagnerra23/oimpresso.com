@@ -91,6 +91,11 @@
 .pcv-arq li>div,.pcv-refugo li>div{flex:1;display:flex;flex-direction:column;gap:2px}
 .pcv-arq small,.pcv-refugo small{font-size:12px;color:var(--text-mute)}
 .pcv-form{display:flex;flex-direction:column;gap:12px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg)}
+/* Tarefas da OS (P-099): as duas datas da OS e a tarefa concluída */
+.pcv-tf-datas{display:flex;gap:24px;flex-wrap:wrap}
+.pcv-tf-datas span{display:flex;flex-direction:column;gap:2px}
+.pcv-tf-ck{width:18px;height:18px;flex:none;accent-color:var(--accent)}
+.pcv-tf-feita{text-decoration:line-through;color:var(--text-mute)}
 .pcv-hist{list-style:none;margin:0;padding:0 0 0 14px;border-left:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
 .pcv-hist li{position:relative;display:flex;flex-direction:column;gap:2px;font-size:13px}
 .pcv-hist li::before{content:"";position:absolute;left:-19px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
