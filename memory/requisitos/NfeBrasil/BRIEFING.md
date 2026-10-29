@@ -2,9 +2,9 @@
 id: requisitos-nfe-brasil-briefing
 module: NfeBrasil
 status: producao
-updated_at: "2026-10-21"
-distilled_at: "2026-10-21"
-distilled_by: "agente (2026-10-21: re-leitura manual restrita à emissão da venda separada, US-NFE-069 PR-2 — NfeService, NfeEmissaoController e o NfseController do módulo NFSe; 2026-10-21 (outra): re-leitura manual restrita à contingência — ModoContingencia, NfeService::resolverTpEmis/registrarEpec, ContingenciaService::ativar, US-NFE-071; 2026-10-13: re-leitura manual restrita ao RetencoesNfseService da thread 23 do playbook Fiscal; 2026-10-01: re-leitura manual restrita ao que o lote 4 de install fora de GET mudou — InstallController e rotas install/*; antes, 2026-09-06: jana:distill-module-truth)"
+updated_at: "2026-10-29"
+distilled_at: "2026-10-29"
+distilled_by: "agente (2026-10-29: re-leitura manual restrita ao que o Sabor Brasil pediu — regime próprio do local emissor e regra fiscal por regime, P-155, e ICMS-ST dentro do estado para contribuinte, P-153 — NfeService::resolverEmitente/montarItensNfe/internaDoSt, MotorTributarioService::calcularComRegimeDoLocal; 2026-10-21: re-leitura manual restrita à emissão da venda separada, US-NFE-069 PR-2 — NfeService, NfeEmissaoController e o NfseController do módulo NFSe; 2026-10-21 (outra): re-leitura manual restrita à contingência — ModoContingencia, NfeService::resolverTpEmis/registrarEpec, ContingenciaService::ativar, US-NFE-071; 2026-10-13: re-leitura manual restrita ao RetencoesNfseService da thread 23 do playbook Fiscal; 2026-10-01: re-leitura manual restrita ao que o lote 4 de install fora de GET mudou — InstallController e rotas install/*; antes, 2026-09-06: jana:distill-module-truth)"
 ---
 
 # BRIEFING — NfeBrasil (verdade destilada)
@@ -14,6 +14,7 @@ Emissor fiscal integrado — NFC-e e NF-e (a emissão de NFS-e modelo 56 é stub
 
 ## Capacidades
 - Emissão NFC-e/NF-e com pipeline pronto para homologação SEFAZ (`NfeService`).
+- Local emissor com regime próprio (P-155, 2026-10-29): `nfe_locais_emissores.crt` (1, 2, 3 ou 4) vale para o CRT do XML, a escolha CST × CSOSN do item, a base do ICMS e o ST; `nfe_fiscal_rules.crt` marca a regra só para o local daquele regime (o `REGIME_EMPRESA` do Delphi). Vazio, tudo como antes. Para a empresa com um CNPJ no regime normal e outro no Simples (Sabor Brasil). Ainda sem tela para preencher os dois campos.
 - Certificado A1 criptografado; trocar ambiente exige destino digitado + motivo, e substituir certificado exige o mesmo gate `fiscal.config.ambiente` (2026-09-04).
 - Manifestação do destinatário (ciência, confirmação, desconhecimento, não realizada), sincronização de DF-e recebidos e manifestação em lote com falha parcial nomeada.
 - Contingência SEFAZ — ativação por tenant com escolha de modo para a NF-e (SVC-AN `tpEmis` 6 e SVC-RS 7 transmitem na hora para a SEFAZ Virtual da UF; EPEC 4 guarda a nota e envia o evento 110140 ao Ambiente Nacional, US-NFE-071 2026-10-21), NFC-e off-line (9), saúde da SEFAZ por UF e retentativa. A marcação de contingência no DANFE e o smoke em homologação seguem pendentes. US-NFE-006 fases 1–6 (2026-09-02); o `_pendente_` do SPEC ficou atrás do código.
