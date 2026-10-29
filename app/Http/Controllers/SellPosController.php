@@ -3426,10 +3426,12 @@ class SellPosController extends Controller
             // a cópia guarda de qual orçamento veio e nasce sem o link público e fora do pipeline
             // FSM da origem. replicate() copiava os três da origem: o link da cópia abria o
             // orçamento original (o token é único por link) e o rascunho ficava na etapa dela.
-            $quotation->duplicated_from_id = $transaction->id;
-            $quotation->invoice_token = null;
-            $quotation->process_id = null;
-            $quotation->current_stage_id = null;
+            $quotation->fill([
+                'duplicated_from_id' => $transaction->id,
+                'invoice_token' => null,
+                'process_id' => null,
+                'current_stage_id' => null,
+            ]);
             $quotation->save();
 
             $sell_lines = TransactionSellLine::where('transaction_id', $transaction->id)->get();
