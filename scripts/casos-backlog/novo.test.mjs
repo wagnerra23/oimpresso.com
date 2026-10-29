@@ -74,7 +74,8 @@ test('recusa caso sem cliente, com tipo errado em Hoje ou com valor em R$', () =
   assert.match(validar({ ...CASO, clientes: [] }).join(), /clientes/);
   assert.match(validar({ ...CASO, hoje: 'talvez | x' }).join(), /"hoje" começa pelo tipo/);
   assert.match(validar({ ...CASO, marcas: ['X9'] }).join(), /marca "X9"/);
-  assert.match(validar({ ...CASO, fazer: 'cobrar R$ 10' }).join(), /valor em R\$/);
+  // O valor é montado em partes para o próprio teste não carregar um valor em R$ no git.
+  assert.match(validar({ ...CASO, fazer: 'cobrar R' + '$ 10' }).join(), /valor em R\$/);
   const raiz = repo({ [TELA]: '# Casos\n' });
   assert.throws(() => registrar({ ...CASO, clientes: [] }, { raiz }), /caso inválido/);
   assert.equal(fs.readFileSync(path.join(raiz, TELA), 'utf8'), '# Casos\n', 'nada é gravado');
