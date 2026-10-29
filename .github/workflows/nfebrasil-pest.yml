@@ -307,6 +307,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeDestinatarioExternoCfopTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeBonificacaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeRegimePorLocalTest.php \

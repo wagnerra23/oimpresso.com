@@ -19,6 +19,7 @@ use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeIcmsUf;
 use Modules\NfeBrasil\Models\NfeLocalEmissor;
+use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
@@ -300,6 +301,12 @@ class NfeService
             );
         }
 
+        // P-154 · bonificação (CFOP 5910/6910) sai só em NF-e; NFC-e é venda a consumidor.
+        $bonificacao = self::ehBonificacao($tx);
+        if ($bonificacao && (string) $modelo === '65') {
+            throw new RuntimeException("Venda {$tx->id} é bonificação: emita NF-e (modelo 55), não NFC-e.");
+        }
+
         $config = NfeBusinessConfig::where('business_id', $businessId)->first();
         $business = DB::table('business')->where('id', $businessId)->first();
         if (! $business) {
@@ -431,6 +438,9 @@ class NfeService
                 ? "Venda PDV #{$tx->id}."
                 : "Venda PDV #{$tx->id}. Parte mercadoria; os servicos da venda saem em NFS-e.",
         ];
+        if ($bonificacao) {
+            $dadosNfe = self::comoBonificacao($dadosNfe, $ufOrigem, $ufDestino, $cfop);
+        }
         if ($emitente['location_id'] !== null) {
             $dadosNfe['emit']        = $emitente['emit'];
             $dadosNfe['serie']       = $emitente['serie'];
@@ -438,6 +448,36 @@ class NfeService
         }
 
         return $this->emitir($businessId, $dadosNfe);
+    }
+
+    /** P-154 · valor de `transactions.sub_type` que marca a venda como bonificação. */
+    public const SUB_TYPE_BONIFICACAO = 'bonificacao';
+
+    public static function ehBonificacao(object $tx): bool
+    {
+        return ($tx->sub_type ?? null) === self::SUB_TYPE_BONIFICACAO;
+    }
+
+    /**
+     * P-154 · nota de bonificação: CFOP 5910 dentro do estado e 6910 fora (o informado por quem chama
+     * ainda vence), natOp BONIFICACAO e pagamento tPag 90 (sem pagamento, vPag 0). Itens, tributação
+     * e totais seguem os da venda — vProd e vNF não mudam.
+     *
+     * @param array<string,mixed> $dadosNfe
+     * @return array<string,mixed>
+     */
+    public static function comoBonificacao(array $dadosNfe, string $ufOrigem, string $ufDestino, ?string $cfopInformado = null): array
+    {
+        $cfop = $cfopInformado ?? NfeOperacaoFiscal::resolverCfop('?910', $ufOrigem, $ufDestino);
+        if ($cfop[0] === '7') {
+            throw new RuntimeException('Bonificação para o exterior não tem CFOP de bonificação (5910/6910).');
+        }
+
+        $dadosNfe['dets']   = self::comCfop($dadosNfe['dets'], $cfop);
+        $dadosNfe['nat_op'] = 'BONIFICACAO';
+        $dadosNfe['pag']    = [['tpag' => '90', 'vpag' => 0]];
+
+        return $dadosNfe;
     }
 
     /**

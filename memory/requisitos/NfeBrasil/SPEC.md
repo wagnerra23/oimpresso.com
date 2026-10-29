@@ -904,6 +904,23 @@ E sem destinatário nem CFOP informados a emissão é a do R-NFE-036
 **Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `destinatarioDaEmissao`, `comCfop`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioExternoCfopTest.php` (lane `nfebrasil-pest`).
 
+### R-NFE-047 · Nota de bonificação
+
+```gherkin
+Dado uma venda com transactions.sub_type = 'bonificacao'
+Quando emito a NF-e (modelo 55) sem CFOP informado
+Então todos os itens saem com CFOP 5910 (destinatário da mesma UF) ou 6910 (outra UF)
+E a natureza da operação é BONIFICACAO e o pagamento é tPag 90 (sem pagamento) com vPag 0
+E a tributação do item e os totais (vProd, vNF) são os mesmos da venda
+Quando o CFOP é informado por quem chama, ele vence; destino exterior recusa
+Quando peço NFC-e (modelo 65) dessa venda, a emissão recusa
+```
+
+**Contrato:** NF-e leiaute 4.00 — CFOP 5910/6910 (remessa em bonificação, doação ou brinde), grupo YA tPag 90 = sem pagamento, que exige vPag 0.
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `ehBonificacao`, `comoBonificacao`) · `Modules/NfeBrasil/Listeners/EmitirNfceAoFinalizarVenda.php`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeBonificacaoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** bonificação "sem ST" do Delphi (decisão pendente); a tela que grava o `sub_type` e o Financeiro sem título.
+
 ### R-NFSE-004 · A NFS-e lê o certificado da config pelo CertificadoService
 
 ```gherkin
@@ -1900,6 +1917,23 @@ Como empresa que vende para outro estado, quero que a NF-e saia para o meu clien
 - [x] Interestadual a não contribuinte sem interna cadastrada recusa a nota com a saída (cadastrar a interna), em vez de emitir DIFAL zero — UC-FNFE-36
 - [ ] Multi-tenant: o contato e a tabela por UF são lidos só do tenant da venda (Pest com os tenants 98 e 99)
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação (depende do certificado A1 de biz=1; em 2026-05-09 ele valia até 2026-08-06 — conferir antes)
+
+### US-NFE-077 · NF-e de bonificação (CFOP 5910/6910, sem pagamento) — **P1**
+
+> owner: — · sprint: — · priority: p1 · estimate: 2h · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `ehBonificacao`, `comoBonificacao`) · `Modules/NfeBrasil/Listeners/EmitirNfceAoFinalizarVenda.php` · `Modules/NfeBrasil/Tests/Feature/NfeBonificacaoTest.php`
+
+Como empresa que bonifica cliente (ex. supermercado), quero que a venda marcada como bonificação saia em NF-e de bonificação, para que a nota leve o CFOP certo e nenhum pagamento.
+
+**Origem:** pedido P-154 (Sabor Brasil, migração do Delphi, VENDA_TIPO BONIFICACAO). A venda é marcada por `transactions.sub_type = 'bonificacao'` (gravado pela tela de venda); o Financeiro não gera título para ela (outras partes do mesmo pedido).
+
+**Aceite:**
+- [x] CFOP 5910 dentro do estado e 6910 fora; natOp BONIFICACAO; tPag 90 com vPag 0 — R-NFE-047, UC-FNFE-57
+- [x] Tributação do item (CST/CSOSN, ICMS, ST) e totais seguem os do motor; vProd e vNF iguais aos da venda — UC-FNFE-57
+- [x] NFC-e de bonificação recusa; a NFC-e automática do PDV não dispara — UC-FNFE-58
+- [ ] "Bonificação sem ST" do Delphi (VENDA_TIPO "BONIFICAÇÃO SEM ST"): decisão pendente — hoje o ST vem da regra do motor, como na venda
 
 ### US-NFE-075 · NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1**
 
