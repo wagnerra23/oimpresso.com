@@ -383,6 +383,38 @@ last_run: "2026-10-27"
 - **Regressão que defende:** Bloco de resgate aparecendo na ROTA LIVRE sem a flag ligada.
 - **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
 
+## Duplicar a venda guardando a origem (P-035)
+
+## UC-SDUP-01 · Duplicar cria um rascunho novo que guarda a venda de origem `[must]`
+- **Persona:** vendedor que repete o pedido de um cliente (recompra).
+- **Como usa:** na lista, menu ⋮ → **Duplicar**; abre o rascunho novo para editar.
+- **Aceite:** Dado a V-150 · Quando duplico · Então nasce um rascunho da mesma empresa, sem pagamento, com número novo, que guarda a V-150 como origem.
+- **Âncora de contrato:** pedido P-035 (backlog abaixo) · `SellController::duplicateSell`.
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-01 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SDUP-02 · A cópia leva os mesmos itens e preços e não mexe no estoque `[V0]` `[must]`
+- **Persona:** vendedor — o pedido repetido sai como estava.
+- **Como usa:** abre o rascunho duplicado e confere os itens antes de finalizar.
+- **Aceite:** Dado a origem com 3 un a 20,00 (60,00) e 10 un em estoque · Quando duplico · Então a cópia tem 3 un a 20,00 e total 60,00, linha igual à da origem, e o estoque continua 10.
+- **Âncora de contrato:** **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — dupla prova no teste (conta à mão + linhas da cópia contra as da origem). O preço vir da origem é o comportamento de hoje; a D-05 (origem ou tabela de hoje) segue em aberto para o [W].
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-02 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SDUP-03 · A cópia nasce fora do pipeline FSM `[must]`
+- **Persona:** quem acompanha a venda pelo pipeline.
+- **Como usa:** não usa: a cópia não aparece numa etapa que não percorreu.
+- **Aceite:** Dado a origem numa etapa do pipeline · Quando duplico · Então a cópia não tem processo nem etapa e a origem continua na etapa dela.
+- **Âncora de contrato:** [ADR 0143](../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — etapa só muda pelo `ExecuteStageActionService`; antes a cópia herdava a etapa da origem sem histórico.
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-03 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de
@@ -502,7 +534,7 @@ last_run: "2026-10-27"
   - Pedido: P-035
   - Âncora: `SellController::duplicateSell`
   - Fazer: Guardar a origem ao duplicar; decidir se os preços vêm da origem ou da tabela de hoje.
-  - Hoje: part | Em parte | Duplicar existe; hoje a cópia não guarda a origem
+  - Hoje: part | Em parte | A cópia guarda a origem (UC-SDUP-01..03); falta o topo do rascunho mostrar a origem e a D-05
   - Comunicação visual: ok | Sim | recompra do mesmo serviço
   - Clientes: Zoom, Techpress, Sabor Brasil, Display Paraná, Estilo
   - Etiquetas: part, cv, decisao
@@ -713,6 +745,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Etiquetas: valor, miss
 
 ## Trilha do tempo
+- 2026-10-29 · [W+C] **UC-SDUP-01..03** (P-035): a cópia guarda a origem, leva itens e preços da origem sem mexer no estoque e nasce fora do pipeline FSM. Falta o topo do rascunho e a D-05. Teste `SellsDuplicarContratoTest.php`.
 - 2026-10-28 · [W+C] Decisões pendentes D-05, D-06 do documento "Casos de uso por tela", sem id de caso.
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S01 venda a prazo + spec Playwright `sells-venda-balcao.spec.ts`; produto E2E-0001 entrou no VisregTenantSeeder (enable_stock=0).
 - 2026-06-18 · [CC] refactor só-de-layout (Wagner): total de itens no rodapé do card Produtos + card de desconto (Resumo) movido pra antes do Pagamento. Sem mudança de comportamento — UC-S01 baixado pra 🧪 até re-rodar o e2e (G-7 frescor).

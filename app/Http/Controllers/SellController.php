@@ -3795,6 +3795,13 @@ class SellController extends Controller
             $duplicate_transaction_data['transaction_date'] = \Carbon::now();
             $duplicate_transaction_data['created_by'] = $user_id;
             $duplicate_transaction_data['invoice_token'] = null;
+            // P-031 / P-035 — a cópia guarda a venda de origem (mostrada nos dois sentidos).
+            $duplicate_transaction_data['duplicated_from_id'] = $transaction->id;
+            // A cópia nasce fora do pipeline FSM, como toda venda nova: copiar o estágio da
+            // origem punha um rascunho em "concluída" sem histórico (ADR 0143). Não é transição
+            // de estágio — é registro novo, criado com as colunas nulas.
+            $duplicate_transaction_data['process_id'] = null;
+            $duplicate_transaction_data['current_stage_id'] = null;
 
             DB::beginTransaction();
             $duplicate_transaction_data['invoice_no'] = $this->transactionUtil->getInvoiceNumber($business_id, 'draft', $duplicate_transaction_data['location_id']);
