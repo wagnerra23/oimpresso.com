@@ -301,6 +301,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/DanfeServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeStDentroDoEstadoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php \

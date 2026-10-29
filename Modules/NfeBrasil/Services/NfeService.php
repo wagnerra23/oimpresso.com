@@ -373,9 +373,7 @@ class NfeService
             : null;
         $ufDestino = $destReal['uf'] ?? $ufOrigem;
         $contribuinte = $destReal === null ? null : $destReal['ind_ie_dest'] === '1';
-        $interna = $destReal === null || $ufDestino === $ufOrigem
-            ? null
-            : $this->internaDoDestino($businessId, $ufOrigem, $ufDestino);
+        $interna = $destReal === null ? null : $this->internaDoSt($businessId, $ufOrigem, $ufDestino, $contribuinte);
         // R-NFE-037: venda a não contribuinte de outra UF leva o grupo ICMSUFDest, que exige a
         // alíquota interna do destino (a SEFAZ rejeita a nota sem o grupo). Sem a interna
         // cadastrada a nota é recusada com a saída — nunca sai com DIFAL zero por falta de dado.
@@ -596,6 +594,21 @@ class NfeService
         if ($temDestinatario && $ufDestino !== $ufOrigem && $contribuinte === false && $interna === null) {
             throw AliquotaInternaNaoCadastradaException::para($ufDestino);
         }
+    }
+
+    /**
+     * Interna que vai ao motor (ST e DIFAL) para um destinatário identificado. Outra UF: a do
+     * destino, como antes. P-153: dentro do estado o ST também vale, mas só para contribuinte (quem
+     * revende — o substituto recolhe pela etapa seguinte da cadeia); consumidor final da mesma UF
+     * segue sem ST, como antes. A NF-e e o ST da tela de venda (IcmsStDaVenda) leem daqui.
+     */
+    public function internaDoSt(int $businessId, string $ufOrigem, string $ufDestino, ?bool $contribuinte): ?float
+    {
+        if ($ufDestino !== $ufOrigem) {
+            return $this->internaDoDestino($businessId, $ufOrigem, $ufDestino);
+        }
+
+        return $contribuinte === true ? $this->internaDoDestino($businessId, $ufOrigem, $ufOrigem) : null;
     }
 
     /** Interna do destino (decimal) da tabela por UF; null se o contador ainda não cadastrou. */

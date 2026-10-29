@@ -190,9 +190,15 @@ last_run: "2026-10-27"
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-03`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
-## UC-VST-04 · Cliente da mesma UF não tem ST `[V0]` `[must]`
-- **Aceite:** Dado cliente contribuinte em SC (mesma UF do emitente) · Então o ST é 0 e a venda segue como hoje.
+## UC-VST-04 · Consumidor final da mesma UF não tem ST `[V0]` `[must]`
+- **Aceite:** Dado cliente **sem inscrição estadual** em SC (mesma UF do emitente) · Então o ST é 0 e a venda segue como hoje.
+- **Reescrito em 2026-10-29 (P-153, [W] "conserte"):** o aceite de 2026-10-26 dizia *"cliente contribuinte em SC … o ST é 0"*. Era corte de escopo da US-SELL-078, não regra tributária: dentro do estado o contribuinte (quem revende) também paga ST — é o caso do Sabor Brasil, tempero para supermercado em SP com CST 10. O contribuinte da mesma UF passou para o UC-VST-06.
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VST-06 · Contribuinte da mesma UF paga o ST pela mesma conta da NF-e `[V0]` `[must]`
+- **Aceite:** Dado cliente contribuinte em SC (mesma UF do emitente) e a interna da UF cadastrada · Quando a venda grava com ST enviado 132,00 e total 1.132,00 · Então a venda guarda `icms_st_valor = 132`, pela mesma conta da NF-e (a interna da própria UF vai ao motor, `NfeService::internaDoSt`).
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-06`; o lado da nota em `Modules/NfeBrasil/Tests/Feature/NfeStDentroDoEstadoTest.php`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
 ## UC-VST-05 · Venda sem cliente identificado não tem ST `[V0]` `[must]`

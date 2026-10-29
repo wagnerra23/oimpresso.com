@@ -60,11 +60,12 @@ beforeEach(function () {
         $m->shouldReceive('internaDoDestino')->andReturn(0.18);
     });
 
-    $this->cliente = function (string $uf) {
+    // Contribuinte = tem IE (indicador 1); consumidor final = sem IE (indicador 9).
+    $this->cliente = function (string $uf, bool $contribuinte = true) {
         return (int) DB::table('contacts')->insertGetId([
             'business_id' => $this->biz, 'type' => 'customer', 'name' => 'Cliente ST ' . $uf,
             'contact_id' => 'ST-' . uniqid(), 'tax_number' => substr(str_pad((string) random_int(1, PHP_INT_MAX), 14, '7'), 0, 14),
-            'state' => $uf, 'inscricao_estadual' => '123456789', 'indicador_ie' => 1,
+            'state' => $uf, 'inscricao_estadual' => $contribuinte ? '123456789' : null, 'indicador_ie' => $contribuinte ? 1 : 9,
             'created_by' => $this->user, 'created_at' => now(), 'updated_at' => now(),
         ]);
     };
@@ -129,12 +130,22 @@ it('UC-VST-03 total enviado sem o ST é recusado com o valor certo', function ()
         ->toThrow(IcmsStDivergenteException::class, 'O ICMS-ST desta venda é R$ 132,00');
 });
 
-it('UC-VST-04 cliente da mesma UF não tem ST', function () {
-    $venda = ($this->venda)(($this->cliente)('SC'), 1000.0);
+it('UC-VST-04 consumidor final da mesma UF não tem ST', function () {
+    $venda = ($this->venda)(($this->cliente)('SC', false), 1000.0);
 
     $this->svc->conferirEGravar($venda, '0');
 
     expect((string) DB::table('transactions')->where('id', $venda->id)->value('icms_st_valor'))->toBe('0.0000');
+});
+
+it('UC-VST-06 contribuinte da mesma UF paga o ST pela mesma conta da NF-e', function () {
+    // P-153 · Sabor Brasil: tempero vendido a supermercado da mesma UF, com ST. Mesma conta do
+    // UC-VST-01 (o motor do fixture devolve 132,00); antes deste caso a mesma UF dava sempre 0.
+    $venda = ($this->venda)(($this->cliente)('SC'), 1132.0);
+
+    $this->svc->conferirEGravar($venda, '132.00');
+
+    expect((string) DB::table('transactions')->where('id', $venda->id)->value('icms_st_valor'))->toBe('132.0000');
 });
 
 it('UC-VST-05 venda sem cliente identificado não tem ST', function () {

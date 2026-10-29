@@ -23,6 +23,7 @@ Emissor fiscal integrado — NFC-e e NF-e (a emissão de NFS-e modelo 56 é stub
 - Venda com mercadoria e serviço sai em duas notas (US-NFE-069 · UC-FLX-27): `SeparacaoNotasDaVenda` divide a venda pela natureza fiscal do produto e o botão "Emitir NF-e + NFS-e" do drawer de Vendas emite a NF-e só com a parte mercadoria e a NFS-e só com a parte serviço, com o código LC 116 do contador. Rateio decidido por [W] em 2026-10-21: desconto/acréscimo proporcional ao bruto, frete inteiro na NF-e. Natureza pendente bloqueia; sem o botão, a NF-e segue recusando serviço (R-NFE-034).
 - Cancelamento NFC-e/NF-e com notificações (evento 110111) e Carta de Correção (evento 110110, US-FISCAL-013).
 - Status da nota por polling após a autorização (US-NFE-002 fase 2C); broadcast Centrifugo/Reverb segue fora — ADR 0058/0062, Hostinger não roda daemon — e a integração via bridge HTTP é decisão [W] em aberto.
+- ICMS-ST dentro do estado para contribuinte (P-153, 2026-10-29): a NF-e e o ST da tela de venda leem a interna da própria UF quando o destinatário é contribuinte (`NfeService::internaDoSt`); consumidor final da mesma UF segue sem ST, e outra UF como antes. Sem a interna da UF cadastrada, sem ST.
 
 ## Gaps
 - MDF-e (modelo 58) e CT-e (modelo 57) ainda não suportados (o código ainda rotula CT-e como 67 em `NfeEmissao`/`NfeService`/migration — divergência doc×código não resolvida).
