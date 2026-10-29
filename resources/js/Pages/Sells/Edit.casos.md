@@ -5,7 +5,7 @@ irmaos: Edit.charter.md (lei) · tests/Feature/Sells/SellsEditContratoTest.php (
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-29"
 ---
 
 <!-- REVALIDAÇÃO 2026-10-20 (US-SELL-072, trava após nota). Este PR não muda o .tsx; a última
@@ -220,6 +220,13 @@ last_run: "2026-10-20"
 ## UC-SEDIT-18 · Sem nota nem pagamento, a edição é a de antes
 - **Aceite:** Dado uma venda de 2 × 50,00 = 100,00 sem nota nem pagamento · Quando a quantidade vai a 3 · Então o total fica 150,00 e o estoque cai de 8 para 7, como antes desta US.
 - **Status: 🧪** _(nasce sem run.)_
+
+## UC-SDUP-07 · O topo do rascunho duplicado mostra de qual venda veio
+- **Persona:** vendedor que duplicou um pedido e abre o rascunho para conferir.
+- **Aceite:** Dado a V-150 duplicada · Quando o rascunho abre na edição · Então o topo mostra "Duplicada de #V-150" com link para a origem; uma venda que não nasceu de duplicação não mostra nada. A origem vem da mesma empresa (o mesmo `origensDaDuplicacao` da lista e do drawer, UC-SDUP-04..06).
+- **Âncora de contrato:** pedido P-035 (`Create.casos.md`). Os preços da cópia seguem os da origem; se devem vir da tabela de hoje é a **D-05**, em aberto para o [W] (não decidida aqui).
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-07 …`.
+- **Status: ⬜** — contrato nasce neste PR (2026-10-29); veredito pendente da lane. É a primeira mudança de comportamento do `.tsx` desde 2026-10-03: o `last_run` sobe por ela.
 
 ---
 

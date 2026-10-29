@@ -13,14 +13,28 @@
  *
  * `print_label` vai junto porque o redirect de reparo no store lê essa chave.
  *
- * Só `repair` é aceito. Qualquer outro valor da query string continua venda comum —
- * nenhum outro tipo foi pedido nem medido.
+ * Só `repair` é aceito da query string. Qualquer outro valor continua venda comum.
+ *
+ * Bonificação (P-154, Sabor Brasil) é marcada na própria tela, não na URL: a venda vai
+ * com `sub_type=bonificacao`, mesmo cálculo e mesma baixa de estoque. Quem lê o tipo é
+ * o Financeiro (não cria título) e a NF-e (CFOP 5910/6910). Reparo vence: venda de
+ * reparo não é bonificação. O servidor aceita só estes dois valores (SellPosController@store).
  */
-export type CamposSubtipo = { sub_type: 'repair'; print_label: 0 } | Record<string, never>;
+export type CamposSubtipo =
+  | { sub_type: 'repair'; print_label: 0 }
+  | { sub_type: 'bonificacao' }
+  | Record<string, never>;
 
-export function camposDeSubtipo(subType: string | null | undefined): CamposSubtipo {
+export function camposDeSubtipo(
+  subType: string | null | undefined,
+  bonificacao = false,
+): CamposSubtipo {
   if (subType === 'repair') {
     return { sub_type: 'repair', print_label: 0 };
+  }
+
+  if (bonificacao) {
+    return { sub_type: 'bonificacao' };
   }
 
   return {};

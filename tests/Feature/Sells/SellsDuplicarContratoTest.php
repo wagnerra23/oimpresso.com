@@ -13,7 +13,7 @@ use Tests\Support\EstoqueFixture;
  * Duplicar a venda guardando a origem (`GET /sells/duplicate/{id}` → `SellController::duplicateSell`)
  * e o vínculo nos dois sentidos (`/sells-list-json` e `/sells/{id}/sheet-data`).
  *
- * Casos: P-035 em `Sells/Create.casos.md` (UC-SDUP-01..03) e P-031 em `Sells/Index.casos.md`
+ * Casos: P-035 em `Sells/Create.casos.md` (UC-SDUP-01..03), UC-SDUP-07 em `Sells/Edit.casos.md` e P-031 em `Sells/Index.casos.md`
  * (UC-SDUP-04..06). Derivados do aceite dos pedidos, não do código.
  *
  * REGRA MESTRE (valor e estoque): esta mudança não muda conta nenhuma. A cópia continua com o
@@ -204,4 +204,37 @@ it('UC-SDUP-06 [T0] venda de outra empresa não duplica nem aparece no vínculo'
     [$resp, $copia] = ($this->duplicar)($alheia);
     expect($resp->getStatusCode())->toBe(404);
     expect($copia)->toBeNull();
+});
+
+it('UC-SDUP-07 o topo do rascunho duplicado mostra de qual venda ele veio', function () {
+    // Sessão como o `SetSessionData` monta em produção (mesmo bloco do SellsEditContratoTest).
+    session([
+        'business.transaction_edit_days' => 30,
+        'business.date_format' => 'd/m/Y',
+        'business.time_format' => 24,
+        'business.enabled_modules' => (array) json_decode(
+            (string) DB::table('business')->where('id', $this->bizId)->value('enabled_modules'), true
+        ),
+    ]);
+    $moeda = DB::table('currencies')->where('id', DB::table('business')->where('id', $this->bizId)->value('currency_id'))->first();
+    session(['currency' => [
+        'id' => (int) ($moeda->id ?? 1), 'code' => (string) ($moeda->code ?? 'BRL'), 'symbol' => (string) ($moeda->symbol ?? 'R$'),
+        'thousand_separator' => (string) ($moeda->thousand_separator ?? '.'), 'decimal_separator' => (string) ($moeda->decimal_separator ?? ','),
+    ]]);
+    Permission::findOrCreate('direct_sell.update', 'web');
+    $this->user->givePermissionTo('direct_sell.update');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    [, $copia] = ($this->duplicar)($this->origemId);
+    expect($copia)->not->toBeNull();
+
+    $versao = file_exists(public_path('build-inertia/manifest.json')) ? md5_file(public_path('build-inertia/manifest.json')) : '1';
+    $abrir = fn (int $id) => $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $versao])->get("/sells/{$id}/edit");
+
+    $daCopia = $abrir((int) $copia->id)->assertOk();
+    expect($daCopia->json('component'))->toBe('Sells/Edit')
+        ->and($daCopia->json('props.headline.duplicated_from'))->toBe(['id' => $this->origemId, 'invoice_no' => $this->prefixo . 'ORIG']);
+
+    // A origem não nasceu de duplicação: o topo dela não mostra nada.
+    expect($abrir($this->origemId)->assertOk()->json('props.headline.duplicated_from'))->toBeNull();
 });

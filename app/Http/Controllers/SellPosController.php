@@ -529,6 +529,13 @@ class SellPosController extends Controller
 
             $input = $request->except('_token', 'offline_uuid', 'offline_vendida_em');
 
+            // sub_type é TIPO de venda, nunca texto livre: o TransactionUtil grava o que vier.
+            // Aceitos: reparo (UC-S03) e bonificação (P-154, UC-SBON-01). Outro valor vira
+            // venda comum. O tipo não entra em valor nem em estoque.
+            if (! in_array($input['sub_type'] ?? null, ['repair', 'bonificacao'], true)) {
+                unset($input['sub_type']);
+            }
+
             $input['is_quotation'] = 0;
             //status is send as quotation from Add sales screen.
             if ($input['status'] == 'quotation') {
@@ -3422,6 +3429,16 @@ class SellPosController extends Controller
             $quotation->transaction_date = \Carbon::now()->format('Y-m-d H:i:s');
             $quotation->invoice_no = $this->transactionUtil->getInvoiceNumber($business_id, 'draft',
                 $transaction->location_id);
+            // P-037 — o mesmo que SellController::duplicateSell faz com a venda (P-031/P-035):
+            // a cópia guarda de qual orçamento veio e nasce sem o link público e fora do pipeline
+            // FSM da origem. replicate() copiava os três da origem: o link da cópia abria o
+            // orçamento original (o token é único por link) e o rascunho ficava na etapa dela.
+            $quotation->fill([
+                'duplicated_from_id' => $transaction->id,
+                'invoice_token' => null,
+                'process_id' => null,
+                'current_stage_id' => null,
+            ]);
             $quotation->save();
 
             $sell_lines = TransactionSellLine::where('transaction_id', $transaction->id)->get();

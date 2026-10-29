@@ -62,6 +62,8 @@ interface Headline {
   type: string;
   status: string;
   current_stage_key: string | null;
+  /** P-035 — venda de origem quando este rascunho nasceu de "Duplicar" (mesma empresa). */
+  duplicated_from?: { id: number; invoice_no: string } | null;
 }
 
 interface EditFormPayload {
@@ -469,6 +471,14 @@ export default function SellsEdit(props: SellsEditPageProps) {
                   {headline.current_stage_key && (
                     <span className="ml-2">
                       · Pipeline: <span className="font-mono text-xs">{headline.current_stage_key}</span>
+                    </span>
+                  )}
+                  {headline.duplicated_from && (
+                    <span className="ml-2" data-testid="sells-edit-duplicada-de">
+                      · Duplicada de{' '}
+                      <Link href={`/sells/${headline.duplicated_from.id}`} className="underline">
+                        #{headline.duplicated_from.invoice_no}
+                      </Link>
                     </span>
                   )}
                 </p>
