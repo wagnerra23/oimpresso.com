@@ -333,6 +333,24 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
   - Comunicação visual: ok | Sim | cliente que paga várias parcelas de uma vez
   - Clientes: Zoom, ArtLaser, Vargas, Max Comunicação
   - Etiquetas: valor, miss, cv
+- **[BACKLOG]** Desfazer ou corrigir o agrupamento de OS `[V0]` — pedido de Zoom, Techpress e Mhundo
+  (2026-10-28), que desfazem agrupamentos por erro de cadastro ou de valor. Dado três OS de um cliente
+  agrupadas numa cobrança só, com uma OS de valor errado ou o grupo feito no cliente errado, Quando desfaço
+  o agrupamento, informando o motivo, Então, se o grupo não tem pagamento, as OS voltam a ficar soltas com
+  os seus valores, o título do grupo é cancelado (não apagado) e o histórico mostra quem agrupou, quem
+  desfez, quando e por quê. Se o erro é numa OS só, tiro só ela do grupo: o título antigo é cancelado e
+  nasce um novo com as OS que ficaram, ligado ao antigo; o valor do título nunca é reescrito no lugar. Se o grupo já tem nota emitida, a nota é cancelada antes, dentro do prazo, ou o desagrupamento é
+  recusado com o motivo. Se já tem pagamento, o pagamento é estornado antes, com motivo, como no caso de
+  desagrupar parcelas já pagas. Hoje o agrupamento não existe nesta tela ("Título de venda agrupada", acima); o Financeiro já não
+  apaga título, só cancela. Falta decisão [W]: quem pode desfazer um grupo, e se um valor errado numa OS
+  agrupada pode ser corrigido sem desfazer o grupo, com um lançamento de ajuste. Mexe em valor: Regra Mestre.
+  - Pedido: P-150
+  - Âncora: Casos 9, 19, 115 e 135 · Delphi `CODFINANCEIRO_GRUPO` · título não pode ser apagado, só cancelado (`Titulo`) · cancelar a nota e emitir outra (caso 84) · PR #10145
+  - Fazer: Duas ações no grupo: desfazer o grupo inteiro e tirar uma OS do grupo, com permissão e motivo. O título do grupo é cancelado, e ao tirar uma OS nasce um título novo ligado ao antigo; nunca se apaga nem se reescreve o valor. Com nota emitida, cancelar a nota antes; com pagamento, estornar antes (caso 115). Histórico no grupo e em cada OS.
+  - Hoje: miss | Não tem | O agrupamento ainda não existe no oimpresso (caso 19). Segundo o suporte, no sistema antigo esses clientes desfazem agrupamentos com frequência por erro de cadastro ou de valor
+  - Comunicação visual: ok | Sim | várias OS do mesmo cliente cobradas juntas
+  - Clientes: Zoom, Techpress, Mhundo
+  - Etiquetas: valor, miss, cv, decisao
 - **[BACKLOG]** Título de cada parte faturada `[V0]` — Dado uma venda de 1.000,00 faturada em duas
   partes (400,00 e 600,00), Então cada parte tem o seu título; cancelar a nota de uma parte cancela o
   título dela se ainda não estiver pago. Mexe em valor: Regra Mestre. Fonte: Omie (pedido parcial). Veio da tela de Contas a receber, aposentada (2026-10-23).
@@ -425,10 +443,12 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-29 · [F+C] Caso 150 ligado ao documento "Casos de uso por tela" (Pedido P-150). Nenhum caso nem teste mudou.
 - 2026-10-29 · [F+C] Casos 117 a 122 ligados ao documento "Casos de uso por tela" (Pedidos P-117 a P-122). Nenhum caso nem teste mudou.
 - 2026-10-29 · [F+C] Caso 115 ligado ao documento "Casos de uso por tela" (Pedido P-115). Nenhum caso nem teste mudou.
 - 2026-10-28 · [F+C] Backlog: desagrupar parcelas já pagas não apaga o pagamento nem o histórico (pedido de Zoom, ArtLaser, Vargas e Max Comunicação). Sem id.
 - 2026-10-28 · [F+C] Backlog: taxa e conciliação do cartão (pedido de NewPrint e ArtLaser) e tarifas do boleto pago, do não pago e cobradas a mais. Sem id.
+- 2026-10-28 · [F+C] Backlog: desfazer ou corrigir o agrupamento de OS (pedido de Zoom, Techpress e Mhundo). Sem id.
 - 2026-10-23 · [M+C] Backlog vindo da tela de Contas a receber (aposentada): total do serviço, retido e recebido; título de venda agrupada; título de cada parte faturada. Sem id.
 - 2026-07-27 · [CC] onda `sdd-from-source` (passo 5 · Onda 2): nasce o **SDD do módulo**
   (`memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md` — o Financeiro tinha 0 CU) e os UC de
