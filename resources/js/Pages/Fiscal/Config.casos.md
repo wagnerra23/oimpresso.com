@@ -310,14 +310,14 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - `[BACKLOG]` **Dois CNPJs com regimes diferentes na mesma conta** — Dado uma conta com um CNPJ no Regime
   Normal e outro no Simples Nacional, Quando emito uma venda por cada um, Então a nota sai com o CNPJ, a série
   e o regime certos: CST na empresa normal, CSOSN na do Simples. O Sabor Brasil emite pelos dois desde 2024
-  (372 vendas pela empresa do regime normal, 174 pela do Simples). Pedido de Sabor Brasil. Falta decisão [W]:
-  Uma empresa com dois locais emissores ou duas empresas no oimpresso.
+  (372 vendas pela empresa do regime normal, 174 pela do Simples). Pedido de Sabor Brasil. Decisão [W]
+  2026-10-29: **uma empresa com dois locais emissores**, não duas empresas.
   - Pedido: P-155
   - Âncora: Playbook Fiscal thread 26 · nfe_locais_emissores
-  - Fazer: Regime por local emissor, ou o caminho de duas empresas, conforme a decisão do Wagner.
-  - Hoje: part | Em parte | O local emissor já tem CNPJ, IE e série próprios; o regime vem da empresa
+  - Fazer: Regime próprio no local emissor (`nfe_locais_emissores`); local sem regime segue o da empresa. A nota, o motor tributário e a sugestão de tributação passam a ler o regime do local que emite.
+  - Hoje: part | Em parte | O local emissor já tem CNPJ, IE e série próprios; o regime é um só por empresa (`nfe_business_configs.regime`, lido em 7 arquivos do NfeBrasil, medido em 2026-10-29)
   - Clientes: Sabor Brasil
-  - Etiquetas: part, decisao
+  - Etiquetas: part
 
 ## Trilha do tempo
 
