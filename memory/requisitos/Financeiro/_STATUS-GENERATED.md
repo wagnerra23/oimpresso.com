@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 64 |
+| US no SPEC | 74 |
 | CU no SDD | 16 |
-| Telas (.tsx) | 22 |
-| Telas com `casos.md` | 22 |
-| UC declarados | 136 |
-| UC com teste que os cita | 119 |
+| Telas (.tsx) | 23 |
+| Telas com `casos.md` | 23 |
+| UC declarados | 190 |
+| UC com teste que os cita | 173 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -38,12 +38,16 @@ authority: generated
 | `US-FIN-028` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Spatie permission financeiro.titulo.aprovar + gate UI |
 | `US-FIN-029` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — OCR boleto upload — OpenAI Vision API extrai linha digitável |
 | `US-FIN-032` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Inter API webhook PIX recebido → titulo auto-pago (auto-conc |
+| `US-FIN-033` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Notificações vencimento próximo (e-mail + WhatsApp X dias an |
 | `US-FIN-037` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Customer service network — Portal Advisor Contadores parceir |
 | `US-FIN-046` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Sicoob mTLS reusa NfeCertificado (single source of truth) |
 | `US-FIN-053` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — WR2 backfill recorrência 2026 biz=1 — assinaturas+invoices+c |
 | `US-FIN-062` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Tela Impostos & obrigações (/financeiro/impostos) — estimati |
 | `US-FIN-063` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Tela Atualizar Cobrança de assinatura (/financeiro/assinatur |
 | `US-FIN-068` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — BridgeExpenseToTitulosCommand filtra transactions.deleted_at |
+| `US-FIN-070` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-F |
+| `US-FIN-074` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Extrato automático via Pluggy (Open Finance) entra na concil |
+| `US-FIN-080` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Conciliação automática por regras — **P1** |
 
 ### Backlog — NÃO é lacuna
 
@@ -77,8 +81,12 @@ authority: generated
 | US-FIN-024 | `todo` | Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1) |
 | US-FIN-025 | `todo` | Onda 6 — Cleanup colunas legacy + remover redirects 301 |
 | US-FIN-030 | `todo` | Aging buckets <30/30-60/60-90/90+ no header Unificado + filtro |
-| US-FIN-033 | `todo` | Notificações vencimento próximo (e-mail + WhatsApp X dias antes) |
 | US-FIN-034 | `todo` | Importação massiva CSV/Excel — mapping wizard + dry-run + commit |
+| US-FIN-075 | `todo` | Centro de custo com rateio no título |
+| US-FIN-076 | `todo` | Orçado × realizado no fluxo de caixa |
+| US-FIN-077 | `desconhecido` | Exportar lançamentos contábeis (Domínio, Alterdata, Questor) |
+| US-FIN-082 | `todo` | Portal do cliente: títulos em aberto, segunda via, histórico e pagamento |
+| US-FIN-084 | `desconhecido` | Extrato dos bancos além do Inter: OFX por conta e drivers de API — **P0** |
 | US-FIN-035 | `desconhecido` | Repetir lançamento próximo mês + Combobox autocomplete contraparte |
 | US-FIN-036 | `desconhecido` | PWA básico Financeiro — manifest + service worker + offline cache + install prom |
 | US-FIN-039 | `todo` | Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior |
@@ -98,8 +106,6 @@ authority: generated
 | US-FIN-066 | `todo` | Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) |
 | US-FIN-067 | `todo` | Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) |
 | US-FIN-069 | `todo` | Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression |
-| US-FIN-070 | `todo` | Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** |
-| US-FIN-072 | `todo` | ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX- |
 
 ## UC por status
 
@@ -139,6 +145,14 @@ authority: generated
 | UC-CRAB-02 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-CRAB-03 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-CRAB-04 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRISS-01 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRISS-02 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRISS-03 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRISS-04 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRISS-05 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRISS-06 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRISS-07 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRISS-08 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-CRREG-01 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-CRREG-02 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-CRREG-03 | ContasReceber/Index | 🧪 aguarda veredito da lane |
@@ -146,16 +160,34 @@ authority: generated
 | UC-CRREG-05 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-CRREG-06 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-CRREG-07 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-08 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-09 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-10 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-11 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-CTB-01 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
 | UC-CTB-02 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
 | UC-CTB-03 | ContasBancarias/Index | 📝 sem_teste |
 | UC-CTB-04 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-05 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-06 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-07 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-08 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-09 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-10 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
+| UC-CTB-11 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
 | UC-CTD-01 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-CTD-02 | Configuracoes/Contador | 📝 sem_teste |
 | UC-CTD-03 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-CTD-04 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-CTD-05 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-DASH-01 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-DDA-01 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-DDA-02 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-DDA-03 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-DDA-04 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-DDA-05 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-DDA-06 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-DDA-07 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-DESPES-01 | Despesas/Index | 🧪 aguarda veredito da lane |
 | UC-DESPES-02 | Despesas/Index | 🧪 aguarda veredito da lane |
 | UC-DESPES-03 | Despesas/Index | 🧪 aguarda veredito da lane |
@@ -171,12 +203,15 @@ authority: generated
 | UC-DRE-06 | Dre/Index | 🧪 aguarda veredito da lane |
 | UC-DRE-07 | Dre/Index | 🧪 aguarda veredito da lane |
 | UC-DRE-08 | Dre/Index | 🧪 aguarda veredito da lane |
+| UC-EMP-15 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-EXT-01 | Extrato/Index | 🧪 aguarda veredito da lane |
 | UC-EXT-02 | Extrato/Index | 📝 sem_teste |
 | UC-EXT-03 | Extrato/Index | 📝 sem_teste |
 | UC-EXT-04 | Extrato/Index | 🧪 aguarda veredito da lane |
 | UC-EXT-05 | Extrato/Index | 🧪 aguarda veredito da lane |
 | UC-EXT-06 | Extrato/Index | 🧪 aguarda veredito da lane |
+| UC-EXT-07 | Extrato/Index | 🧪 aguarda veredito da lane |
+| UC-EXT-08 | Extrato/Index | 🧪 aguarda veredito da lane |
 | UC-F01 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-F02 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-F03 | Unificado/Index | 🧪 aguarda veredito da lane |
@@ -199,11 +234,22 @@ authority: generated
 | UC-FCC-14 | Conciliacao/Index | 🧪 aguarda veredito da lane |
 | UC-FCC-15 | Conciliacao/Index | 🧪 aguarda veredito da lane |
 | UC-FCC-16 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-17 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-18 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-19 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-20 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-21 | Conciliacao/Index | 🧪 aguarda veredito da lane |
+| UC-FCC-22 | Conciliacao/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-01 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-02 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-03 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-04 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-FCX-05 | Caixa/Index | 🧪 aguarda veredito da lane |
+| UC-FINPAG-01 | PagamentoPublico | 🧪 aguarda veredito da lane |
+| UC-FINPAG-02 | PagamentoPublico | 🧪 aguarda veredito da lane |
+| UC-FINPAG-03 | PagamentoPublico | 🧪 aguarda veredito da lane |
+| UC-FINPAG-04 | PagamentoPublico | 🧪 aguarda veredito da lane |
+| UC-FINPAG-05 | PagamentoPublico | 🧪 aguarda veredito da lane |
 | UC-FLX-01 | Fluxo/Index | 🧪 aguarda veredito da lane |
 | UC-FLX-02 | Fluxo/Index | 🧪 aguarda veredito da lane |
 | UC-FLX-03 | Fluxo/Index | 🧪 aguarda veredito da lane |
@@ -212,6 +258,7 @@ authority: generated
 | UC-FLX-06 | Fluxo/Index | 🧪 aguarda veredito da lane |
 | UC-FLX-07 | Fluxo/Index | 🧪 aguarda veredito da lane |
 | UC-FLX-29 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-FLX-30 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-FPC-01 | PlanoContas/Index | 🧪 aguarda veredito da lane |
 | UC-FPC-02 | PlanoContas/Index | 🧪 aguarda veredito da lane |
 | UC-FPC-03 | PlanoContas/Index | 🧪 aguarda veredito da lane |
@@ -235,6 +282,19 @@ authority: generated
 | UC-IMP-10 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-11 | Impostos/Index | 🧪 aguarda veredito da lane |
 | UC-NOV-01 | Unificado/Novo | 📝 sem_teste |
+| UC-PAGBAN-01 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-02 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-03 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-04 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-05 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-06 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-07 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-08 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-09 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-10 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PAGBAN-11 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PCCH-07 | Dre/Index | 🧪 aguarda veredito da lane |
+| UC-PCCH-08 | PlanoContas/Index | 🧪 aguarda veredito da lane |
 | UC-REL-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-REL-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-REL-03 | Relatorios/Index | 🧪 aguarda veredito da lane |

@@ -53,6 +53,9 @@ function SituacaoItem({ os, es, D, irAba }) {
   const feitas = es.filter((e) => e.estado === "feito" || e.estado === "pronto" || e.estado === "andamento");
   const mats = (D.MATERIAIS || {})[os.id] || [];
   const faltaMat = os.material === "aguardando" && D.faltaDe ? D.faltaDe(os.id) : [];
+  // Sinal mínimo pendente: o Liberar é recusado com o motivo, inclusive para quem tem producao.liberar (UC-PCLIB-05).
+  const sin = D.sinalDe ? D.sinalDe(os) : null;
+  const sinalFalta = os.arte === "aprovada" && sin && !sin.ok;
   const radio = (nome, ops, val, set, k) => <div className="pcv-mot" role="radiogroup" aria-label={nome}>{ops.map((o) => <label key={o}><input type="radio" name={nome} checked={val[k] === o} onChange={() => set({ ...val, [k]: o })} /> {o}</label>)}</div>;
   const pessoas = Object.keys(D.PESSOAS || {});
   const abertas = es.map((e, i) => [e, i]).filter(([e]) => e.estado !== "feito" && e.estado !== "pronto");
@@ -85,8 +88,14 @@ function SituacaoItem({ os, es, D, irAba }) {
       <window.OiEtapaPainel proc="producao" modo="acao" docId={os.id} estado={situacaoDe(os, es)} campos={campos}
         nota={falta.length ? "Roteiro: " + (es.length - falta.length) + " de " + es.length + " etapas feitas — próxima: " + falta[0].nome + "." : null}
         bloqueios={() => ({ ...(os.arte !== "aprovada" ? { "Liberar": "arte ainda não aprovada pelo cliente" } : {}),
+          ...(sinalFalta ? { "Liberar": "a empresa só libera a produção com " + sin.pct + "% da venda pago: exigido " + D.fmt(sin.exigido) + ", pago " + D.fmt(sin.pago) } : {}),
           ...(faltaMat.length ? { "Conferir material": "ainda falta " + faltaMat.map((f) => D.h1(f.falta) + " " + f.un + " de " + f.insumo).join(" e ") } : {}), ...(falta.length > 1 ? { "Concluir item": falta.length === 2 ? "falta 1 etapa do roteiro" : "faltam " + (falta.length - 1) + " etapas do roteiro" } : {}) })}
-        resolver={() => ({ "Liberar": { label: "Ver arte e arquivos", onClick: () => irAba("arte") }, "Concluir item": { label: "Ver etapas", onClick: () => irAba("etapas") }, "Conferir material": { label: "Ver o que falta", onClick: () => irAba("materiais") } })}
+        resolver={() => ({ "Liberar": sinalFalta
+            ? { label: "Simular: o cliente pagou o sinal", onClick: () => {
+                D.pagarSinal(os.id);
+                window.OiEtapa.registrar("producao", os.id, { quem: "Sistema", acao: "Liberar pelo sinal", de: "Aguardando liberação", para: "Na fila" }, "Na fila", "Na fila");
+              } }
+            : { label: "Ver arte e arquivos", onClick: () => irAba("arte") }, "Concluir item": { label: "Ver etapas", onClick: () => irAba("etapas") }, "Conferir material": { label: "Ver o que falta", onClick: () => irAba("materiais") } })}
         interceptar={{ "Conferir material": (t) => {
           // A tela é dona da situação da OS: muda o dado e informa o painel (sem registrar "mudança feita na tela").
           os.material = null;
