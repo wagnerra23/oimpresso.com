@@ -529,6 +529,13 @@ class SellPosController extends Controller
 
             $input = $request->except('_token', 'offline_uuid', 'offline_vendida_em');
 
+            // sub_type é TIPO de venda, nunca texto livre: o TransactionUtil grava o que vier.
+            // Aceitos: reparo (UC-S03) e bonificação (P-154, UC-SBON-01). Outro valor vira
+            // venda comum. O tipo não entra em valor nem em estoque.
+            if (! in_array($input['sub_type'] ?? null, ['repair', 'bonificacao'], true)) {
+                unset($input['sub_type']);
+            }
+
             $input['is_quotation'] = 0;
             //status is send as quotation from Add sales screen.
             if ($input['status'] == 'quotation') {

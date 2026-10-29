@@ -259,6 +259,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     staff_note: '',
     /** Assinatura recorrente (Blade legacy is_recurring). Paridade com Edit.tsx. */
     is_recurring: 0 as 0 | 1,
+    /** P-154 — venda de bonificação (vai como sub_type=bonificacao; ver subtipoVenda.ts). */
+    bonificacao: false,
     /** Endereço cobrança ≠ entrega (Blade legacy customer_secondary_address). Paridade Edit. */
     customer_secondary_address: '',
     /** Documento anexo (file upload Blade legacy sell_document). Paridade Edit. */
@@ -687,7 +689,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       is_direct_sale: 1,
       // Reparo é um TIPO de venda (decisão [W] 2026-10-01): aberto por ?sub_type=repair,
       // o envio carrega o tipo. Não muda valor nem estoque — ver subtipoVenda.ts.
-      ...camposDeSubtipo(props.subType),
+      ...camposDeSubtipo(props.subType, d.bonificacao),
+      bonificacao: undefined,
       // O estado aninhado não vai pro servidor; vão só os campos repair_* (UC-S05).
       reparo: undefined,
       ...(isReparo && props.repairPos
@@ -1877,6 +1880,24 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 </p>
               </div>
             </div>
+            {!isReparo && (
+              <div className="flex items-start gap-2 pt-7">
+                <Checkbox
+                  id="bonificacao"
+                  checked={data.bonificacao}
+                  onCheckedChange={(c) => setData('bonificacao', c === true)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="bonificacao" className="cursor-pointer">
+                    Bonificação
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Mercadoria dada ao cliente, sem cobrança. O estoque baixa como numa venda.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Paridade Edit — endereço de cobrança ≠ entrega (NF-e faturamento separado) */}
