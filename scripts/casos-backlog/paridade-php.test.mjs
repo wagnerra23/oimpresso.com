@@ -31,7 +31,7 @@ function lerNode() {
   return { ...resto, problemas };
 }
 
-test('PHP e Node leem os mesmos pedidos, decisões e contratos no repositório inteiro', () => {
+test('UC-CASOSP-05: PHP e Node leem os mesmos pedidos, decisões e contratos no repositório inteiro', () => {
   const php = lerPhp();
   const node = lerNode();
   // Controle positivo: o repositório tem pedidos e contratos; comparar dois vazios não provaria nada.
@@ -42,7 +42,7 @@ test('PHP e Node leem os mesmos pedidos, decisões e contratos no repositório i
   }
 });
 
-test('o resumo da página no sistema é o mesmo do npm run casos:pagina -- --resumo', () => {
+test('UC-CASOSP-05: o resumo da página no sistema é o mesmo do npm run casos:pagina -- --resumo', () => {
   const resumo = JSON.parse(execFileSync(process.execPath, [path.join(AQUI, 'gerar.mjs'), '--resumo'], { encoding: 'utf8', cwd: RAIZ }).split('\n')[0]);
   assert.deepStrictEqual(lerPhp().resumo, resumo);
 });
