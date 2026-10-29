@@ -254,6 +254,13 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
   sem ser refeita; se é venda de mercadoria, a nota segue NF-e. Hoje a natureza é só do produto, decidida pelo
   contador (D-NATUREZA, US-NFE-068), e a venda não mostra nem troca a natureza dos itens. Falta o [W] decidir
   se quem fatura pode trocar a natureza só no item da venda, com justificativa. Mexe em imposto: Regra Mestre.
+  - Pedido: P-114
+  - Âncora: US-NFE-068 (natureza por produto) · US-NFE-069 (a natureza do item escolhe a nota) · UC-FLX-27 e UC-FLX-31 · D-NATUREZA · `Fiscal/Nfse.casos.md`
+  - Fazer: Avisar a natureza fiscal dos itens já na venda e de novo ao faturar. Dar o atalho para o contador corrigir a natureza do produto, com fonte. A emissão lê a natureza na hora de faturar, então a venda aberta não precisa ser refeita.
+  - Hoje: part | Em parte | A natureza por produto existe e a NF-e recusa item de serviço. Não há aviso na venda nem troca por item; a NFS-e a partir da venda ainda depende da US-NFE-060
+  - Comunicação visual: ok | Sim | placa, adesivo e banner sob encomenda
+  - Clientes: Fixar
+  - Etiquetas: valor, part, cv, decisao
 
 ## Como rodar a suíte
 
@@ -272,3 +279,4 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
 - 2026-10-21 · [C] `UC-FNFSE-10..12` — emissão das duas notas pelo botão "Emitir NF-e + NFS-e" do drawer (US-NFE-069 PR-2); rateio decidido por [W] (regra A).
 - 2026-10-28 · [F+C] backlog "Venda lançada com produto, mas o cliente pede nota de serviço" (Fixar), sem id e
   sem teste; a troca da natureza no item da venda fica como decisão [W] (D-NATUREZA). Nenhum UC muda.
+- 2026-10-29 · [F+C] Caso 114 ligado ao documento "Casos de uso por tela" (Pedido P-114), com os subitens do #10141. Nenhum caso nem teste mudou.
