@@ -16,6 +16,8 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\PaymentGatewayService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+uses(Tests\TestCase::class);
+
 /**
  * P-157 (Sabor Brasil) — boleto do Banco do Brasil de ponta a ponta, por arquivo CNAB 240.
  *
