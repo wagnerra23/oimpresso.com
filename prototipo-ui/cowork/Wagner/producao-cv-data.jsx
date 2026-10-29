@@ -205,7 +205,7 @@ const INSTALACOES = [
 ];
 
 // Aproveitamento de mídia (encaixe na bobina 1,60 m) — por máquina, hoje
-const ENCAIXE = { bobina: "Lona 440 g · 1,60 m", usado: 92.4, desperdicio: 7.6, sugestao: "Agrupar OS-2619 (roll-up) com a sobra lateral da OS-2603 economiza 3,1 m² (R$ 59)." };
+const ENCAIXE = { bobina: "Lona 440 g · 1,60 m", usado: 92.4, desperdicio: 7.6 };
 
 // Falta de material da OS em Aguardando material (US-PCP-032 · UC-PCMAT-02/03). Por insumo da receita:
 // necessário = receita × quantidade da OS · disponível = saldo no local da venda menos reservas ativas de outras OS e

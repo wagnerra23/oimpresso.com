@@ -166,9 +166,11 @@ function Painel({ onAbrir, ir, filtrar }) {
         </Widget>}
         {Widget && <Widget title="Aproveitamento de mídia" note={D.ENCAIXE.bobina}>
           <div className="pcv-encaixe">
-            <div className="pcv-enc-bar" role="img" aria-label={`Usado ${D.ENCAIXE.usado}%, desperdício ${D.ENCAIXE.desperdicio}%`}><i style={{ width: D.ENCAIXE.usado + "%" }} /><span style={{ width: D.ENCAIXE.desperdicio + "%" }} /></div>
-            <div className="pcv-enc-l"><span><b>{D.ENCAIXE.usado}%</b> aproveitado</span><span><b>{D.ENCAIXE.desperdicio}%</b> sobra</span></div>
-            <p className="pcv-help">{D.ENCAIXE.sugestao}</p>
+            <div className="pcv-enc-bar" role="img" aria-label={`Usado ${D.h1(D.ENCAIXE.usado)}%, desperdício ${D.h1(D.ENCAIXE.desperdicio)}%`}><i style={{ width: D.ENCAIXE.usado + "%" }} /><span style={{ width: D.ENCAIXE.desperdicio + "%" }} /></div>
+            <div className="pcv-enc-l"><span><b>{D.h1(D.ENCAIXE.usado)}%</b> aproveitado</span><span><b>{D.h1(D.ENCAIXE.desperdicio)}%</b> sobra</span></div>
+            {/* D-ENCAIXE (15/10): na 1ª versão só o % aproveitado, com a mídia que o operador informa. A sugestão de
+                encaixe na bobina, com economia em m² e R$, é da versão 2. */}
+            <p className="pcv-help">Calculado com a mídia que o operador informa no apontamento. A sugestão de encaixe na bobina fica para a versão 2.</p>
           </div>
         </Widget>}
       </div>
