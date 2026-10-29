@@ -50,6 +50,8 @@ export interface ContactInfo {
   obs_comercial?: string | null;
   // P-086 — % de desconto no boleto pago até o vencimento (Delphi BOLETO_PERC_DESCONTO_PADRAO).
   boleto_desconto_pontualidade_pct?: number | null;
+  // P-025 — sinal mínimo do cliente (%); vazio = segue a empresa, 0 = sem sinal.
+  sinal_minimo_pct?: number | null;
 }
 
 export interface ComercialTabProps {
@@ -131,6 +133,8 @@ export default function ComercialTab({
     pctToInput(contact.boleto_desconto_pontualidade_pct)
   );
 
+  const [sinal, setSinal] = useState<string>(pctToInput(contact.sinal_minimo_pct));
+
   const [savingField, setSavingField] = useState<string | null>(null);
   const [savedField, setSavedField] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<{ field: string; message: string } | null>(null);
@@ -147,6 +151,7 @@ export default function ComercialTab({
     setMensagemVenda(contact.mensagem_venda ?? '');
     setObs(contact.obs_comercial ?? '');
     setDescontoBoleto(pctToInput(contact.boleto_desconto_pontualidade_pct));
+    setSinal(pctToInput(contact.sinal_minimo_pct));
     setErrorField(null);
     setSavedField(null);
   }, [contact.id]);
@@ -160,6 +165,7 @@ export default function ComercialTab({
     else if (field === 'mensagem_venda') setMensagemVenda((prev as string) ?? '');
     else if (field === 'obs_comercial') setObs((prev as string) ?? '');
     else if (field === 'boleto_desconto_pontualidade_pct') setDescontoBoleto(pctToInput(prev as number | null));
+    else if (field === 'sinal_minimo_pct') setSinal(pctToInput(prev as number | null));
   }, []);
 
   const performSave = useCallback(
@@ -374,6 +380,40 @@ export default function ComercialTab({
             backendError={
               errorField?.field === 'boleto_desconto_pontualidade_pct' ? errorField.message : null
             }
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <Label htmlFor="cm-sinal" className="cw-label">
+            Sinal mínimo para liberar a produção{' '}
+            <span className="text-muted-foreground font-normal">(%, vazio = o da empresa, 0 = sem sinal)</span>
+          </Label>
+          <Input
+            variant="cowork"
+            id="cm-sinal"
+            value={sinal}
+            placeholder="o da empresa"
+            disabled={disabled}
+            inputMode="decimal"
+            onChange={(e) => {
+              const prev = sinal;
+              const v = e.target.value.replace(/[^\d,.]/g, '');
+              setSinal(v);
+              scheduleAutosave('sinal_minimo_pct', toPctOrNull(v), toPctOrNull(prev));
+            }}
+            onBlur={(e) => {
+              const field = 'sinal_minimo_pct';
+              if (debounceTimersRef.current[field]) {
+                clearTimeout(debounceTimersRef.current[field]);
+                delete debounceTimersRef.current[field];
+              }
+              performSave(field, toPctOrNull(e.target.value), previousValuesRef.current[field]);
+            }}
+          />
+          <FieldStatus
+            saving={savingField === 'sinal_minimo_pct'}
+            saved={savedField === 'sinal_minimo_pct'}
+            backendError={errorField?.field === 'sinal_minimo_pct' ? errorField.message : null}
           />
         </div>
 

@@ -828,6 +828,10 @@ class ContactController extends Controller
         if ($hasTabelaPropria) {
             $selectCols[] = 'contacts.selling_price_group_id';
         }
+        // P-025 — sinal mínimo do cliente (migration 2026_10_29_160000).
+        if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', 'sinal_minimo_pct')) {
+            $selectCols[] = 'contacts.sinal_minimo_pct';
+        }
         // Daniela 2026-05-27 — `contato` (nome do responsavel principal PJ).
         // Migration 2026_05_27_180000_add_contato_to_contacts.
         $hasContatoCol = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'contato');
@@ -1154,6 +1158,9 @@ class ContactController extends Controller
             // P-087 — tabela própria do cliente; null = vale a do grupo.
             $payload['selling_price_group_id'] = ($contact->selling_price_group_id ?? null) !== null
                 ? (int) $contact->selling_price_group_id : null;
+            // P-025 — sinal mínimo do cliente; null = segue a empresa.
+            $payload['sinal_minimo_pct'] = ($contact->sinal_minimo_pct ?? null) !== null
+                ? (float) $contact->sinal_minimo_pct : null;
 
             // ── ClassificacaoTab: contact_status enum UPOS ───────────────────
             // NOTA: `status` (linha ~559) é DERIVADO do payment_status das OS
