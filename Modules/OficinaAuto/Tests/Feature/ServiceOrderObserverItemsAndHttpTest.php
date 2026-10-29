@@ -135,7 +135,7 @@ it('UC-OSH-09 · Observer: OS manutenção com 3 items lançados → Transaction
     expect((float) $tx->final_total)->toBe(6010.00);
     expect($tx->source)->toBe('oficina');
     expect($tx->business_id)->toBe(BIZ_US027_A);
-})->afterEach(fn () => us027_cleanup('A'));
+})->after(fn () => us027_cleanup('A'));
 
 it('Observer: OS manutenção SEM items lançados → Transaction.final_total = 0 (backward compat)', function () {
     session(['user.business_id' => BIZ_US027_A]);
@@ -147,7 +147,7 @@ it('Observer: OS manutenção SEM items lançados → Transaction.final_total = 
     $tx = Transaction::where('os_ref', "SO-{$os->id}")->first();
     expect($tx)->not->toBeNull();
     expect((float) $tx->final_total)->toBe(0.0);
-})->afterEach(fn () => us027_cleanup('B'));
+})->after(fn () => us027_cleanup('B'));
 
 // ---------------------------------------------------------------------------
 // Wave 1.3 — Controller HTTP CRUD items
@@ -176,7 +176,7 @@ it('HTTP POST /items autenticado biz=1 → 201 com item criado', function () {
         ->where('service_order_id', $os->id)
         ->count();
     expect($count)->toBe(1);
-})->afterEach(fn () => us027_cleanup('C'));
+})->after(fn () => us027_cleanup('C'));
 
 it('HTTP POST /items cross-tenant biz=1 tentando OS biz=2 → 422 (Service rejeita)', function () {
     session(['user.business_id' => BIZ_US027_A]);
@@ -201,7 +201,7 @@ it('HTTP POST /items cross-tenant biz=1 tentando OS biz=2 → 422 (Service rejei
         ->where('service_order_id', $osBizOutro->id)
         ->count();
     expect($count)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     us027_cleanup('D');
 });
 
@@ -230,7 +230,7 @@ it('HTTP PUT /items/{item} cross-OS (item de OS diferente da URL) → 404 abort 
 
     $response->assertNotFound();
     expect($item->fresh()->descricao)->toBe('Item de OS1');
-})->afterEach(function () {
+})->after(function () {
     us027_cleanup('E1');
     us027_cleanup('E2');
 });

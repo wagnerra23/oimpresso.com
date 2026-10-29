@@ -60,7 +60,7 @@ it('Licenca_Computador biz=1 nao aparece em query scoped por biz=99', function (
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Licenca_Computador::where('hd', 'HD-TESTE-ISOL-991')->delete();
 });
 
@@ -80,7 +80,7 @@ it('Licenca_Computador biz=1 aparece em query scoped por biz=1', function () {
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->hostname)->toBe('pc-teste-isol-992');
-})->afterEach(function () {
+})->after(function () {
     Licenca_Computador::where('hd', 'HD-TESTE-ISOL-992')->delete();
 });
 
@@ -104,7 +104,7 @@ it('LicencaLog biz=1 nao aparece em query scoped por biz=99', function () {
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     LicencaLog::where('user_agent', 'pest-teste-isol-991')->delete();
 });
 
@@ -126,7 +126,7 @@ it('LicencaLog biz=1 aparece em query scoped por biz=1', function () {
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->event)->toBe('login_success');
     expect($resultado->first()->user_agent)->toBe('pest-teste-isol-992');
-})->afterEach(function () {
+})->after(function () {
     LicencaLog::where('user_agent', 'pest-teste-isol-992')->delete();
 });
 

@@ -89,7 +89,7 @@ it('catalogo publico: location_id de outro business retorna 404 (anti-cross-tena
     // Deve dar 404 (findOrFail) — location não pertence ao business=1
     expect($resposta->status())->toBeIn([404, 302])
         ->and($resposta->status())->not->toBe(200);
-})->afterEach(function () {
+})->after(function () {
     DB::table('business_locations')
         ->where('business_id', BIZ_FICTICIO_PC)
         ->where('location_id', 'LOC-X99-TEST')
@@ -126,7 +126,7 @@ it('show-catalogue: product_id de outro business retorna 404 (anti-enumeration)'
 
     expect($resposta->status())->toBeIn([404, 302])
         ->and($resposta->status())->not->toBe(200);
-})->afterEach(function () {
+})->after(function () {
     DB::table('products')->where('sku', 'SKU-X99-SEC-TEST')->delete();
 });
 

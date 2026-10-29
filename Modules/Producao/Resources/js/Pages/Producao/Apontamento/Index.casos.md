@@ -931,3 +931,14 @@ Status: 🧪
   - Comunicação visual: ok | Sim | desistência depois da arte aprovada
   - Clientes: Copylan
   - Etiquetas: valor, miss, cv, decisao
+
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-12 · Cliente desiste com o serviço já em produção: o que acontece e o que se cobra?**
+  - Estado: Em aberto
+  - Texto: No fluxo do Wagner, a OS só é cancelada antes de ser liberada, e a venda aprovada é cancelada estornando o sinal. Não há regra para a OS que já começou nem para cobrar o que já foi feito. A pesquisa de mercado de 28/10/2026 está no PR #10105.
+  - Opção: Cobrar o que já foi gasto — Cancelar a OS em qualquer etapa, com motivo e papel de gerente. O sistema apura material e horas já gastos e propõe reter o sinal até esse valor, devolvendo o resto. A política fica escrita no orçamento. É a proposta.
+  - Opção: Sinal fica sempre — Mais simples: desistiu depois da produção, perde o sinal, sem apuração. Pode ser pouco quando o gasto passa do sinal, ou demais quando quase nada foi feito.
+  - Destrava: P-113

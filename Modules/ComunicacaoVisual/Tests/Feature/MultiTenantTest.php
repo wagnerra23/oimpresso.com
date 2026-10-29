@@ -81,7 +81,7 @@ it('Material biz=1 não aparece com session biz=99', function () {
     $resultado = Material::where('id', $material->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Material::withoutGlobalScopes()->where('business_id', BIZ_WAGNER)
         ->where('nome', 'Lona Blackout Teste')
         ->forceDelete();
@@ -104,7 +104,7 @@ it('Material biz=1 aparece com session biz=1', function () {
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->nome)->toBe('Vinil Adesivo Teste');
-})->afterEach(function () {
+})->after(function () {
     Material::withoutGlobalScopes()->where('business_id', BIZ_WAGNER)
         ->where('nome', 'Vinil Adesivo Teste')
         ->forceDelete();
@@ -134,7 +134,7 @@ it('Orcamento biz=1 não aparece com session biz=99', function () {
     $resultado = Orcamento::where('id', $orc->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Orcamento::withoutGlobalScopes()->where('numero', 'ORC-TESTE-99991')->forceDelete();
 });
 
@@ -158,7 +158,7 @@ it('Orcamento biz=1 aparece com session biz=1', function () {
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->numero)->toBe('ORC-TESTE-99992');
-})->afterEach(function () {
+})->after(function () {
     Orcamento::withoutGlobalScopes()->where('numero', 'ORC-TESTE-99992')->forceDelete();
 });
 
@@ -180,7 +180,7 @@ it('Os biz=1 não aparece com session biz=99', function () {
     $resultado = Os::where('id', $os->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Os::withoutGlobalScopes()->where('numero', 'OS-TESTE-99991')->forceDelete();
 });
 
@@ -199,7 +199,7 @@ it('Os biz=1 aparece com session biz=1', function () {
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->numero)->toBe('OS-TESTE-99992');
     expect($resultado->first()->status_etapa)->toBe('producao');
-})->afterEach(function () {
+})->after(function () {
     Os::withoutGlobalScopes()->where('numero', 'OS-TESTE-99992')->forceDelete();
 });
 
@@ -236,7 +236,7 @@ it('OrcamentoItem biz=1 não aparece com session biz=99', function () {
     $resultado = OrcamentoItem::where('id', $item->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     OrcamentoItem::withoutGlobalScopes()->whereHas('orcamento', function ($q) {
         $q->withoutGlobalScopes()->where('numero', 'ORC-TESTE-99993');
     })->delete();

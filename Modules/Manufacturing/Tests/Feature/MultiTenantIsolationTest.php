@@ -100,7 +100,7 @@ it('MfgIngredientGroup biz=1 não aparece quando filtrado por biz=99', function 
         ->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     MfgIngredientGroup::where('name', 'Grupo Teste Isolamento Wagner')->delete();
 });
 
@@ -118,7 +118,7 @@ it('MfgIngredientGroup biz=1 aparece quando filtrado por biz=1', function () {
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->name)->toBe('Grupo Teste Visivel Wagner');
     expect((int) $resultado->first()->business_id)->toBe(BIZ_WAGNER);
-})->afterEach(function () {
+})->after(function () {
     MfgIngredientGroup::where('name', 'Grupo Teste Visivel Wagner')->delete();
 });
 
@@ -138,7 +138,7 @@ it('listagem MfgIngredientGroup com filtro biz=99 não vaza grupos do biz=1', fu
         ->count();
 
     expect($vazamento)->toBe(0);
-})->afterEach(function () {
+})->after(function () {
     MfgIngredientGroup::where('description', 'lote-isolamento')->delete();
 });
 
@@ -186,7 +186,7 @@ it('MfgRecipe pertence a apenas um business via chain variation→product.busine
         ->count();
 
     expect($proprio)->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     MfgRecipe::where('instructions', 'recipe-teste-isolamento-chain')->delete();
 });
 
@@ -241,7 +241,7 @@ it('MfgRecipeIngredient herda isolamento via parent MfgRecipe (cascade)', functi
         ->count();
 
     expect($proprio)->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     // FK cascade delete já remove os ingredients quando a recipe é apagada
     MfgRecipe::where('instructions', 'recipe-teste-ingredient-cascade')->delete();
 });
