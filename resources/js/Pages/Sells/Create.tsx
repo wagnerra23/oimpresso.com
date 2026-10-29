@@ -1881,7 +1881,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               </div>
             </div>
             {!isReparo && (
-              <div className="flex items-start gap-2 pt-7">
+              <Inline gap={2} align="start" className="pt-7">
                 <Checkbox
                   id="bonificacao"
                   checked={data.bonificacao}
@@ -1896,7 +1896,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                     Mercadoria dada ao cliente, sem cobrança. O estoque baixa como numa venda.
                   </p>
                 </div>
-              </div>
+              </Inline>
             )}
           </div>
 
