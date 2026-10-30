@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Business;
 use App\BusinessLocation;
 use App\Services\FeatureFlagService;
+use App\Utils\BusinessUtil;
 use App\Utils\ContactUtil;
 use Inertia\Inertia;
 
@@ -80,7 +82,7 @@ class SellsV3Controller extends Controller
      * mesmo que o Create.tsx lê. A trava é na tela — o store de /pos não as confere,
      * nem para o Create (medido em 2026-10-30).
      *
-     * @return array{locationId:int, contactId:int, clienteNome:string, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null}}|null
+     * @return array{locationId:int, contactId:int, clienteNome:string, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null}, prazo:array{numero:mixed, tipo:mixed}, config:array<string, mixed>}|null
      */
     private function dadosDeGravacao(int $businessId): ?array
     {
@@ -100,6 +102,48 @@ class SellsV3Controller extends Controller
                 'editarDesconto' => (bool) $user->can('edit_product_discount_from_sale_screen'),
                 'descontoMaximo' => $user->max_sales_discount_percent !== null ? (float) $user->max_sales_discount_percent : null,
             ],
+            // Prazo do cliente padrão: o Blade preenche pay_term com o do cliente (sell/create.blade.php:181).
+            'prazo' => [
+                'numero' => $cliente['pay_term_number'] ?? null,
+                'tipo' => $cliente['pay_term_type'] ?? null,
+            ],
+            'config' => self::configDaVenda(Business::findOrFail($businessId)),
+        ];
+    }
+
+    /**
+     * Configurações do business que a tela de venda obedece (UC-V386), lidas como o
+     * `SellPosController@create` e o Blade leem: `pos_settings` (JSON, com o default de
+     * `BusinessUtil::defaultPosSettings`) e colunas de `business`. Só dados, nenhuma regra:
+     * a regra mora em `config-business-dominio.ts`.
+     *
+     * @return array<string, mixed>
+     */
+    public static function configDaVenda(Business $business): array
+    {
+        $pos = empty($business->pos_settings)
+            ? app(BusinessUtil::class)->defaultPosSettings()
+            : (json_decode((string) $business->pos_settings, true) ?: []);
+        $liga = fn (string $k): bool => ! empty($pos[$k]);
+
+        return [
+            'dataEditavel' => $liga('enable_transaction_date'),
+            'descontoDaVenda' => ! $liga('disable_discount'),
+            'descontoPadrao' => (float) ($business->default_sales_discount ?? 0),
+            'impostoDoPedido' => ! $liga('disable_order_tax'),
+            'precoMinimo' => $liga('enable_msp'),
+            'venderSemEstoque' => $liga('allow_overselling'),
+            'comissionado' => [
+                'tipo' => $business->sales_cmsn_agnt ?: null,
+                'obrigatorio' => $liga('is_commission_agent_required'),
+            ],
+            'prazoObrigatorio' => $liga('is_pay_term_required'),
+            'rascunho' => ! $liga('disable_draft'),
+            'aPrazo' => ! $liga('disable_credit_sale_button'),
+            'recorrente' => ! $liga('disable_recurring_invoice'),
+            'arredondamento' => (float) ($pos['amount_rounding_method'] ?? 0),
+            // 1 = lançar o mesmo produto soma na linha; 0 = linha nova (pos.js, pos_product_row).
+            'somaNaLinha' => (int) $business->item_addition_method === 1,
         ];
     }
 

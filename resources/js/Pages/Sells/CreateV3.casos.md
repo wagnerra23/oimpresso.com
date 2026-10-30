@@ -174,6 +174,31 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 - **Dado** a gravação ligada e um usuário sem `access_all_locations` e sem `location.{id}`,
 - **Então** a prop `gravacao` não vem e a tela segue preview: `BusinessLocation::forDropdown` só lista os locais permitidos, e sem local não há onde gravar.
 
+## UC-V386 · Gravando, a tela recebe as configurações do business
+
+**Status:** 🧪 — `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Então** `gravacao.config` traz o que o `SellPosController@create` e o Blade leem: `pos_settings` (com o default de `BusinessUtil::defaultPosSettings` quando vazio, e os `disable_*` invertidos para "liberado") e as colunas `default_sales_discount`, `sales_cmsn_agnt` e `item_addition_method` de `business`; e `gravacao.prazo` traz o prazo do cliente padrão. Com a flag desligada nada disso vem.
+
+## UC-V387 · Comissionado e prazo obrigatórios impedem a gravação
+
+**Status:** 🧪 — `tests/js/config-business-dominio.test.ts` (lane Sells V3 domínio), sem veredito no manifesto ainda.
+
+- **Dado** `is_commission_agent_required` com `sales_cmsn_agnt` = `user` ou `cmsn_agnt` (os dois que mostram o select no Blade, `sell/create.blade.php:194-200`),
+- **Então** a V3 não grava e diz por quê: ela ainda não escolhe comissionado (grupo 3). Com `logged_in_user` não bloqueia, porque o store põe o próprio usuário.
+- **Dado** `is_pay_term_required` e o cliente sem prazo (número e tipo) no cadastro,
+- **Então** não grava. Com prazo, o prazo do cliente vai no payload (`pay_term_number`/`pay_term_type`), como o Blade preenche; sem a regra, segue vazio como antes.
+
+## UC-V388 · Lançar o mesmo produto soma na linha, conforme `item_addition_method`
+
+**Status:** 🧪 — `tests/js/config-business-dominio.test.ts`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e `item_addition_method` = 1,
+- **Quando** o operador lança um produto que já está na venda,
+- **Então** a quantidade soma na linha existente (pos.js `pos_product_row`). Com 0, abre linha nova.
+- Só soma quando é o mesmo pedido: mesma variação, sem medidas e mesmo preço, desconto e acréscimo. A V3 deixa mudar o preço no lançamento, e somar numa linha de outro preço gravaria a quantidade nova pelo preço antigo — nesse caso abre linha nova.
+
 Ainda no grupo de permissões, gravando a consulta de clientes some: a lista dela é de cena, e trocar o cliente ali mostraria um cliente e gravaria outro (a venda vai para o cliente padrão). A troca real de cliente é o grupo 3.
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
@@ -1082,8 +1107,8 @@ a V3 passar a obedecer.
 - **[BACKLOG]** **Imposto do pedido** some com `disable_order_tax`; o padrão vem de `default_sales_tax`, e o desconto padrão de `default_sales_discount`. `[V0]`
 - **[BACKLOG]** **Preço mínimo** (`enable_msp`) define o piso de preço, no lugar dos 85% fixos. `[V0]`
 - **[BACKLOG]** **Vender sem estoque** só com `allow_overselling`; sem ele a quantidade acima do estoque bloqueia (hoje o protótipo só avisa). `[E0]`
-- **[BACKLOG]** **Comissionado** obrigatório com `is_commission_agent_required`; o tipo de comissionado vem de `sales_cmsn_agnt` (usuário, agente ou desligado).
-- **[BACKLOG]** **Prazo de pagamento** obrigatório com `is_pay_term_required`.
+- **Comissionado** obrigatório com `is_commission_agent_required` → **UC-V387** (bloqueia a gravação). **[BACKLOG]** escolher o comissionado na tela, pelo tipo de `sales_cmsn_agnt`, fica para o grupo 3.
+- **Prazo de pagamento** obrigatório com `is_pay_term_required` → **UC-V387**.
 - **[BACKLOG]** **Profissional por item** obrigatório com `is_service_staff_required`, e na própria linha com `inline_service_staff`.
 - **[BACKLOG]** **Esquema e layout da fatura** visíveis só com `show_invoice_scheme` / `show_invoice_layout`.
 - **[BACKLOG]** **Pedido de venda vinculado** só com `enable_sales_order`.
@@ -1091,7 +1116,7 @@ a V3 passar a obedecer.
 - **[BACKLOG]** **Arredondamento** do total segue `amount_rounding_method`. `[V0]`
 - **[BACKLOG]** **Pontos**: só com `enable_rp`; nome, valor por ponto e pedido mínimo vêm de `rp_name`, `redeem_amount_per_unit_rp`, `min_order_total_for_redeem`. `[V0]`
 - **[BACKLOG]** **Garantia** só com `enable_product_warranty`; **exportação** só com `is_enabled_export`.
-- **[BACKLOG]** Lançar o mesmo produto de novo soma na linha ou abre linha nova, conforme `item_addition_method`.
+- Lançar o mesmo produto de novo soma na linha ou abre linha nova, conforme `item_addition_method` → **UC-V388**.
 - **[BACKLOG]** **Campos personalizados** usam os rótulos de `custom_labels`. _(o protótipo já faz)_
 
 ### Módulos ligados no pacote
