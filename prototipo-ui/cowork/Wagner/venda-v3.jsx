@@ -353,7 +353,7 @@ window.SD = (() => {
   /* Configuração do business usada pela venda. `sinalPadrao`: % de sinal que a empresa exige
      quando o cliente não tem o seu (UC-SCOND). `aliqSt`: alíquota de cena do ICMS ST — em produção
      o valor vem do servidor pela mesma conta da NF-e (POST /sells/icms-st, UC-VST-01). */
-  const config = { sinalPadrao: 30, aliqSt: 0.132 };
+  const config = { sinalPadrao: 30, aliqSt: 0.132, tef: true };
   /* Garantias do business (warranties): prazo que sai impresso na venda. */
   const garantias = ['Sem garantia', '90 dias', '6 meses', '12 meses', '24 meses'];
 
@@ -2598,7 +2598,7 @@ const Res = ({ l, v, c, forte }) => (
   </div>
 );
 
-function Create({ onOpen, modo = 'create', registro }) {
+function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
   const meta = useMeta();
   const estreito = useEstreito();
   const edit = modo === 'edit';
@@ -2606,8 +2606,10 @@ function Create({ onOpen, modo = 'create', registro }) {
   const [erroSistema, setErroSistema] = React.useState(null);
   const [mostrarTodos, setMostrarTodos] = React.useState(false);
   React.useEffect(() => { const t = setTimeout(() => setCarregando(false), 550); return () => clearTimeout(t); }, []);
-  const [cliente, setCliente] = React.useState(edit ? (registro ? registro.cliente : 'Prefeitura de Joinville') : 'Consumidor final');
-  const [itens, setItens] = React.useState(edit
+  const [cliente, setCliente] = React.useState(copia ? copia.cliente : edit ? (registro ? registro.cliente : 'Prefeitura de Joinville') : 'Consumidor final');
+  /* Duplicar (UC-SDUP-01..03): a cópia leva os mesmos itens e preços, nasce rascunho, sem
+     pagamento e fora do pipeline; o estoque só muda quando ela for gravada. */
+  const [itens, setItens] = React.useState(copia ? copia.itens.map((l, i) => ({ ...l, k: Date.now() + i })) : edit
     ? [{ k: 1, sku: 'LON-440-BR', nome: 'Lona 440g branca fosca', un: 'm²', qtd: '120,00', preco: '68,90', desc: '0' },
        { k: 2, sku: 'BAN-ACAB-IL', nome: 'Acabamento com ilhós', un: 'un', qtd: '48', preco: '3,50', desc: '0' }]
     : [{ k: 1, sku: 'LON-440-BR', nome: 'Lona 440g branca fosca', un: 'm²', qtd: '12,50', preco: '68,90', desc: '0', pecas: '5', altura: '0,50', largura: '5,00' },
@@ -2638,6 +2640,9 @@ function Create({ onOpen, modo = 'create', registro }) {
      depois do imposto, como na Blade. No máximo 4. */
   const [despesas, setDespesas] = React.useState([]);
   const [bonificacao, setBonificacao] = React.useState(false);
+  /* Maquininha (UC-TEF-01..07): o valor vai para a máquina e só vira pagamento quando ela aprova.
+     Enquanto a cobrança está pendente não há botão de enviar — o mesmo clique não cobra duas vezes. */
+  const [tef, setTef] = React.useState(null);
   /* Sinal da venda (UC-SCOND): vem do cliente, ou da empresa quando o cliente não tem; o vendedor
      troca nesta venda e o valor vale para as OS dela. */
   const [sinal, setSinal] = React.useState('');
@@ -2762,6 +2767,22 @@ function Create({ onOpen, modo = 'create', registro }) {
 
   const registrar = (acao, de, para, efeitos) => setHistorico((h) => [...h, { acao, de, para, efeitos, por: window.SD.permissoes.usuario, em: new Date() }]);
 
+  /* Valor da maquininha: até 2 casas e maior que zero (UC-TEF-06 — `204,99605` é recusado). */
+  const tefValido = !!tef && /^(\d{1,3}(\.\d{3})*|\d+)(,\d{1,2})?$/.test(String(tef.valor).trim()) && parseBR(tef.valor) > 0;
+  const enviarTef = () => {
+    if (!tef || !tefValido || tef.etapa === 'pendente') return;
+    const pedido = { ...tef };
+    setTef({ ...pedido, etapa: 'pendente' });
+    setTimeout(() => {
+      /* Cena: sem resposta → erro; débito terminado em ,99 → negada (UC-TEF-04); o resto aprova. */
+      if (pedido.semResposta) { setTef({ ...pedido, etapa: 'erro' }); return; }
+      if (pedido.tipo === 'debito' && /,99$/.test(String(pedido.valor).trim())) { setTef({ ...pedido, etapa: 'negada' }); return; }
+      const ok = { ...pedido, etapa: 'aprovada', bandeira: pedido.tipo === 'debito' ? 'Visa Débito' : 'Mastercard', nsu: String(Date.now()).slice(-6), autorizacao: 'A' + String(Date.now()).slice(-5) };
+      setTef(ok);
+      setPags((s) => [...s, { k: Date.now(), m: 'Cartão na maquininha', v: fmtBR(parseBR(pedido.valor)), par: pedido.tipo === 'credito' ? pedido.parcelas : '1', nsu: ok.nsu }]);
+    }, 900);
+  };
+
   /* ExecuteStageActionService::execute — nunca UPDATE direto no estágio */
   const executarAcao = (forcarErro, acao) => {
     const a = acao || acaoPrincipal;
@@ -2802,6 +2823,8 @@ function Create({ onOpen, modo = 'create', registro }) {
   const esquerda = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
       {edit && <Meta><Alert tone="warn" title="Editar venda emitida — US-SELL-059">Mexe em <code>final_total</code> e estoque de venda já finalizada. As travas desta tela são as de <code>Edit.casos.md</code>: tenant, permissão, devolução e prazo de edição.</Alert></Meta>}
+      {copia && <Alert tone="info" title={'Duplicada de #' + copia.de}>Rascunho novo com os mesmos itens e preços, sem pagamento e fora do pipeline. O estoque só muda quando esta venda for gravada; a de origem continua na etapa dela.</Alert>}
+      {edit && registro && onDuplicar && <div><Button size="sm" onClick={() => onDuplicar({ de: registro.inv, cliente, itens })}>Duplicar venda</Button></div>}
       {bloqueioEdicao && <Alert tone="danger" title={bloqueioEdicao.titulo}>{bloqueioEdicao.texto}</Alert>}
       {!bloqueioEdicao && travaNota && <Alert tone="warn" title="Venda com nota autorizada">Cancele a nota para alterar itens e valores. A observação ainda pode ser editada.</Alert>}
       {!bloqueioEdicao && travaPagamento && <Alert tone="warn" title="Venda com pagamento">Valores não podem ser alterados; estorne o pagamento antes. O cliente e a observação ainda podem ser editados.</Alert>}
@@ -3174,6 +3197,10 @@ function Create({ onOpen, modo = 'create', registro }) {
             style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px solid var(--pos)', background: 'color-mix(in oklch, var(--pos) 12%, var(--surface))', color: tomFg('var(--pos)'), font: '600 11.5px/1 var(--font-sans)' }}>
             + Adiantamento {brl(cli.adiantamento)}
           </button>}
+          {window.SD.config.tef && <button type="button" onClick={() => setTef({ etapa: 'form', valor: fmtBR(Math.max(saldo, 0)), tipo: 'credito', parcelas: '1', semResposta: false })}
+            style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px solid var(--accent)', background: 'color-mix(in oklch, var(--accent) 12%, var(--surface))', color: 'var(--text)', font: '600 11.5px/1 var(--font-sans)' }}>
+            + Maquininha
+          </button>}
           {RAPIDO.map((m) => (
             <button key={m} type="button" onClick={() => addPag(m)} style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px dashed var(--border)', background: 'var(--bg-2)', color: 'var(--text-dim)', font: '600 11.5px/1 var(--font-sans)' }}>+ {m}</button>
           ))}
@@ -3199,7 +3226,7 @@ function Create({ onOpen, modo = 'create', registro }) {
         {pags.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
           {pags.map((p) => (
             <div key={p.k} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={p.m === 'Adiantamento do cliente' ? ['Adiantamento do cliente', ...METODOS] : METODOS} /></div>
+              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={p.m === 'Adiantamento do cliente' || p.m === 'Cartão na maquininha' ? [p.m, ...METODOS] : METODOS} /></div>
               <div style={{ width: 106, flex: 'none' }}><Money aria={'Valor recebido em ' + p.m} value={p.v} onChange={(v) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, v } : x))} /></div>
               <button type="button" title="Remover pagamento" onClick={() => setPags((s) => s.filter((x) => x.k !== p.k))} style={{ width: 26, height: 26, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}>×</button>
             </div>
@@ -3258,6 +3285,27 @@ function Create({ onOpen, modo = 'create', registro }) {
         <button type="button" onClick={() => { undo.undo(); setUndo(null); }} style={{ border: 0, background: 'transparent', color: 'var(--accent-2)', cursor: 'pointer', font: '600 12.5px/1 var(--font-sans)' }}>Desfazer</button>
       </div>}
 
+      <Modal open={!!tef} onClose={() => tef && tef.etapa !== 'pendente' && setTef(null)} width={460} title="Cobrar na maquininha"
+        footer={tef && <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+          {tef.etapa !== 'pendente' && <Button onClick={() => setTef(null)}>{tef.etapa === 'aprovada' ? 'Fechar' : 'Cancelar'}</Button>}
+          {(tef.etapa === 'form' || tef.etapa === 'negada' || tef.etapa === 'erro') && <span style={{ marginLeft: 'auto' }}>
+            <Button variant="primary" disabled={!tefValido} onClick={enviarTef}>{tef.etapa === 'form' ? 'Enviar para a máquina' : 'Tentar de novo'}</Button>
+          </span>}
+        </div>}>
+        {tef && <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Grid cols={3} gap={12}>
+            <Money label="Valor" value={tef.valor} onChange={(v) => setTef({ ...tef, valor: v })} readOnly={tef.etapa !== 'form'} />
+            <div><Select label="Tipo" value={tef.tipo} disabled={tef.etapa !== 'form'} onChange={(e) => setTef({ ...tef, tipo: e.target.value, parcelas: '1' })} options={[{ value: 'credito', label: 'Crédito' }, { value: 'debito', label: 'Débito' }]} /></div>
+            <div><Select label="Parcelas" value={tef.parcelas} disabled={tef.etapa !== 'form' || tef.tipo === 'debito'} onChange={(e) => setTef({ ...tef, parcelas: e.target.value })} options={['1', '2', '3', '4', '5', '6']} /></div>
+          </Grid>
+          {!tefValido && tef.etapa === 'form' && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)') }}>Valor com até 2 casas decimais e maior que zero.</span>}
+          {tef.etapa === 'form' && <Switch label="Máquina sem resposta" sublabel="simula a adquirente fora do ar" checked={tef.semResposta} onChange={(v) => setTef({ ...tef, semResposta: v })} />}
+          {tef.etapa === 'pendente' && <Alert tone="info" title="Aguardando a máquina">Peça para o cliente aproximar ou inserir o cartão. A cobrança de {brl(parseBR(tef.valor))} está pendente.</Alert>}
+          {tef.etapa === 'aprovada' && <Alert tone="success" title="Aprovada">{tef.bandeira} · NSU {tef.nsu} · autorização {tef.autorizacao}. Entrou como pagamento da venda.</Alert>}
+          {tef.etapa === 'negada' && <Alert tone="danger" title="Negada pelo cartão">A máquina recusou. Nada foi cobrado; tente outro cartão ou outra forma de pagamento.</Alert>}
+          {tef.etapa === 'erro' && <Alert tone="danger" title="Sem resposta da adquirente">A cobrança ficou como erro e não foi feita. Confira a máquina e tente de novo.</Alert>}
+        </div>}
+      </Modal>
       <CancelarVenda open={cancelarOpen} estagio={estagio} itens={itens.length} recebido={pago} onClose={() => setCancelarOpen(false)} onConfirmar={cancelarVenda} />
       <ColunasModal open={colunasOpen} onClose={() => setColunasOpen(false)} ativas={colunas} setAtivas={setColunas} />
       <ComissaoModal open={comOpen} onClose={() => setComOpen(false)} bens={comBens} setBens={setComBens}
@@ -3313,6 +3361,7 @@ function Create({ onOpen, modo = 'create', registro }) {
 /* ── adaptador do host: a sidebar e o header de topo vêm do app único; o page header
    da TELA (título + voltar, o que o sells-app.jsx fazia) fica aqui — PT-02. ── */
 function VendaV3Create({ registro, modo = 'create', onVoltar }) {
+  const [copia, setCopia] = React.useState(null);
   React.useEffect(() => {
     if (!onVoltar) return;
     const t = (e) => {
@@ -3328,10 +3377,12 @@ function VendaV3Create({ registro, modo = 'create', onVoltar }) {
     <MetaCtx.Provider value={false}>
       <div className="venda-v3">
         <PageHeader
-          title={modo === 'edit' ? 'Editar venda' + (registro && registro.inv ? ' ' + registro.inv : '') : 'Nova venda'}
-          subtitle={modo === 'edit' ? 'Venda emitida — alterar refaz totais e estoque.' : 'Cliente, itens, pagamento. O resto tem valor padrão.'}
+          title={copia ? 'Nova venda' : modo === 'edit' ? 'Editar venda' + (registro && registro.inv ? ' ' + registro.inv : '') : 'Nova venda'}
+          subtitle={copia ? 'Duplicada de #' + copia.de : modo === 'edit' ? 'Venda emitida — alterar refaz totais e estoque.' : 'Cliente, itens, pagamento. O resto tem valor padrão.'}
           actions={onVoltar ? <Button size="sm" onClick={onVoltar} kbd="esc">Voltar para Vendas</Button> : null} />
-        <Create modo={modo} registro={registro || null} onOpen={() => {}} />
+        {copia
+          ? <Create key={'dup-' + copia.de} modo="create" copia={copia} onOpen={() => {}} />
+          : <Create modo={modo} registro={registro || null} onDuplicar={setCopia} onOpen={() => {}} />}
       </div>
     </MetaCtx.Provider>
   );
