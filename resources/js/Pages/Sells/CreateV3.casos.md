@@ -945,6 +945,12 @@ A V3 só substitui as duas telas quando cumprir o contrato delas. Comparando `Cr
 `Edit.casos.md` (lidos em `main @ 9874a36972`) com o protótipo depois do #10210, faltam os itens
 abaixo. Cada um cita o UC de origem: é ele que diz o que "pronto" significa.
 
+> **Atualização 2026-10-30, mesmo dia:** os itens de **Valor e estoque**, **Travas da edição** e
+> **Venda de reparo** abaixo entraram no **protótipo** nos PRs #10212 (travas por nota, pagamento e
+> cliente vencido), #10213 (ICMS ST, bonificação, sinal), #10214 (maquininha, duplicar) e #10215
+> (venda de reparo). Continuam `[BACKLOG]` porque **o código da V3 ainda não faz** e nenhum teste
+> cita — o protótipo mostra a forma e a regra, não prova o comportamento gravado.
+
 ### Valor e estoque — entram com dupla prova `[V0]`
 
 - **[BACKLOG]** O total da venda inclui o **ICMS ST** do carrinho pela mesma conta da NF-e; total, vNF e título batem (UC-VST-01 a 06). Hoje o protótipo mostra ST por item, mas não soma no total.
