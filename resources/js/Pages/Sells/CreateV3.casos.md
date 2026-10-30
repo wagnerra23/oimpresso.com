@@ -965,9 +965,60 @@ abaixo. Cada um cita o UC de origem: é ele que diz o que "pronto" significa.
 - **[BACKLOG]** Venda aberta como reparo grava como reparo, com aparelho, atendimento, checklist pré-reparo e senha ou padrão do aparelho, e pode nascer de uma OS (UC-S03, S05, S06, S07).
 - **[BACKLOG]** Editar venda de reparo mostra e salva a seção Reparo sem apagar as datas (UC-SEDIT-11, 12).
 
-### Decisão [W] pendente — dentro ou fora da V3
+### O PDV rápido continua tela própria — decisão [W] 2026-10-30
 
-- **[BACKLOG]** **Venda offline** (UC-VOFF-01 a 04): reenviar a mesma venda grava uma vez e baixa o estoque uma vez. Hoje é do PDV rápido, que o protótipo declara fora da V3 (NG-03). Falta decidir se a V3 também vende sem internet.
+[W], textual: *"acho que pode ter um POS dentro do sistema como era antes, ficava muito bom"*. A V3
+substitui o cadastro (`Sells/Create`) e a edição (`Sells/Edit`); o PDV de balcão segue como tela
+própria (NG-03). Por isso ficam **fora** da lista da V3, e com o PDV:
+
+- **Venda offline** (UC-VOFF-01 a 04): reenviar a mesma venda grava uma vez e baixa o estoque uma vez.
+- Suspender venda, venda expressa, cédulas do caixa e vendas recentes do balcão (`disable_suspend`, `disable_express_checkout`, `cash_denominations`, `hide_recent_trans`).
+
+## Permissões e configurações do business — o que a V3 precisa obedecer
+
+Medido em `main @ 9874a36972`, nas views `sell/create`, `sale_pos/create` e parciais (`pos_form`,
+`pos_form_totals`, `pos_form_actions`, `payment_modal`, `payment_row_form`, `product_row`) e nos
+métodos `create/store/edit/update` de `SellController` e `SellPosController`. O protótipo hoje só
+tem a permissão de editar preço, e a alçada de desconto (10%) e o piso de preço (85% da tabela)
+estão **fixos**, quando deveriam vir da configuração. Cada linha abaixo vira caso com teste quando
+a V3 passar a obedecer.
+
+### Permissões (Spatie, por usuário ou papel)
+
+- **[BACKLOG]** Abrir a tela exige `sell.create`, `direct_sell.access` ou `superadmin`; pedido de venda exige `so.create`. _(o preview já exige `sell.create` ou `superadmin`)_
+- **[BACKLOG]** "Novo cliente" só aparece com `customer.create`.
+- **[BACKLOG]** Preço do item só é editável com `edit_product_price_from_sale_screen` (`..._from_pos_screen` no PDV). _(o protótipo tem a chave, sem o nome real)_
+- **[BACKLOG]** Desconto da linha só é editável com `edit_product_discount_from_sale_screen`.
+- **[BACKLOG]** Número da fatura manual só com `edit_invoice_number`.
+- **[BACKLOG]** Registrar pagamento na venda exige `sell.payments`; editar pagamento do PDV, `edit_pos_payment`.
+- **[BACKLOG]** Imprimir exige `print_invoice`.
+- **[BACKLOG]** Só aparecem as **tabelas de preço** que o usuário pode usar (`selling_price_group.{id}`) e o preço padrão só com `access_default_selling_price`. `[V0]`
+- **[BACKLOG]** O **local da venda** lista só os locais permitidos ao usuário (`permitted_locations`). `[T0]` `[E0]`
+- **[BACKLOG]** Editar exige `direct_sell.update`, `sell.update` ou `so.update` (UC-SEDIT-02).
+- **[BACKLOG]** Venda de reparo exige `repair.create` / `repair.update` e o módulo Repair no pacote.
+
+### Configurações do business (`pos_settings`, `common_settings`, cadastro)
+
+- **[BACKLOG]** **Data da venda** editável só com `enable_transaction_date`.
+- **[BACKLOG]** **Desconto da venda** some com `disable_discount`; o teto vem de `max_sales_discount_percent`, não fixo. `[V0]`
+- **[BACKLOG]** **Imposto do pedido** some com `disable_order_tax`; o padrão vem de `default_sales_tax`, e o desconto padrão de `default_sales_discount`. `[V0]`
+- **[BACKLOG]** **Preço mínimo** (`enable_msp`) define o piso de preço, no lugar dos 85% fixos. `[V0]`
+- **[BACKLOG]** **Vender sem estoque** só com `allow_overselling`; sem ele a quantidade acima do estoque bloqueia (hoje o protótipo só avisa). `[E0]`
+- **[BACKLOG]** **Comissionado** obrigatório com `is_commission_agent_required`; o tipo de comissionado vem de `sales_cmsn_agnt` (usuário, agente ou desligado).
+- **[BACKLOG]** **Prazo de pagamento** obrigatório com `is_pay_term_required`.
+- **[BACKLOG]** **Profissional por item** obrigatório com `is_service_staff_required`, e na própria linha com `inline_service_staff`.
+- **[BACKLOG]** **Esquema e layout da fatura** visíveis só com `show_invoice_scheme` / `show_invoice_layout`.
+- **[BACKLOG]** **Pedido de venda vinculado** só com `enable_sales_order`.
+- **[BACKLOG]** **Rascunho**, **venda a prazo** e **venda recorrente** somem com `disable_draft`, `disable_credit_sale_button`, `disable_recurring_invoice`.
+- **[BACKLOG]** **Arredondamento** do total segue `amount_rounding_method`. `[V0]`
+- **[BACKLOG]** **Pontos**: só com `enable_rp`; nome, valor por ponto e pedido mínimo vêm de `rp_name`, `redeem_amount_per_unit_rp`, `min_order_total_for_redeem`. `[V0]`
+- **[BACKLOG]** **Garantia** só com `enable_product_warranty`; **exportação** só com `is_enabled_export`.
+- **[BACKLOG]** Lançar o mesmo produto de novo soma na linha ou abre linha nova, conforme `item_addition_method`.
+- **[BACKLOG]** **Campos personalizados** usam os rótulos de `custom_labels`. _(o protótipo já faz)_
+
+### Módulos ligados no pacote
+
+- **[BACKLOG]** Tipos de serviço (`types_of_service`), profissional (`service_staff`), contas de pagamento (`account`), Repair (`repair_module`) e Oficina (`oficina_auto_module`) aparecem só com o módulo ligado. Mesas, cozinha e modificadores (`tables`, `kitchen`, `modifiers`) ficam com o PDV.
 
 ## Fronteira que os testes desta tela devem preservar
 
