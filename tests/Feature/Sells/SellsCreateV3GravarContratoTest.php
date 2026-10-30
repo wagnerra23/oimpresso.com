@@ -373,3 +373,86 @@ it('UC-V392 · com amount_rounding_method = 1 a venda da fixture grava 156,00 e 
     expect($v['venda']->payment_status)->toBe('paid');
     expect($v['saldos'])->toBe([7.0, 8.0]);
 });
+
+it('UC-V393 · o cliente escolhido na consulta grava a venda com o contact_id, o prazo e o comissionado dele', function () {
+    // Um 2º cliente do MESMO tenant, com prazo — o que a consulta (/contacts/customers) traria.
+    $outro = (int) DB::table('contacts')->insertGetId([
+        'business_id' => $this->bizId, 'type' => 'customer', 'name' => 'Cliente V3 Grupo 3',
+        'contact_status' => 'active', 'mobile' => '', 'pay_term_number' => 30, 'pay_term_type' => 'days',
+        'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $montar = function (object $test, object $a, object $b) use ($outro): array {
+        $p = v3gravarPayloadV3($test, $a, $b);
+        $p['contact_id'] = $outro;
+        $p['pay_term_number'] = 30;
+        $p['pay_term_type'] = 'days';
+        $p['commission_agent'] = $test->user->id;
+
+        return $p;
+    };
+    $v = v3gravarVender($this, $montar);
+
+    expect((int) $v['venda']->contact_id)->toBe($outro);
+    expect((int) $v['venda']->pay_term_number)->toBe(30);
+    expect($v['venda']->pay_term_type)->toBe('days');
+    expect((int) $v['venda']->commission_agent)->toBe((int) $this->user->id);
+    // Trocar de cliente sem tabela não muda valor: o mesmo total do UC-V380.
+    expect((float) $v['venda']->final_total)->toBe(156.23);
+});
+
+it('UC-V393 · a busca de clientes da consulta só alcança cadastros desta empresa', function () {
+    $alheio = (int) DB::table('business')->where('id', '!=', $this->bizId)->orderBy('id')->value('id');
+    if ($alheio === 0) {
+        $this->markTestSkipped('Sem um segundo business no seed para a prova cross-tenant.');
+    }
+    $nome = 'V3Grupo3Isolamento';
+    $comum = ['type' => 'customer', 'contact_status' => 'active', 'mobile' => '', 'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now()];
+    $meu = (int) DB::table('contacts')->insertGetId(['business_id' => $this->bizId, 'name' => "$nome nosso"] + $comum);
+    $dele = (int) DB::table('contacts')->insertGetId(['business_id' => $alheio, 'name' => "$nome alheio"] + $comum);
+
+    $ids = collect($this->getJson('/contacts/customers?q='.$nome, ['X-Requested-With' => 'XMLHttpRequest'])->json())->pluck('id')->map(fn ($i) => (int) $i);
+
+    expect($ids)->toContain($meu);   // controle positivo: a busca acha
+    expect($ids)->not->toContain($dele);
+});
+
+it('UC-V394 · "Novo cliente" na consulta só vem com customer.create', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+    expect($this->user->can('customer.create'))->toBeFalse();
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.permissoes.criarCliente', false));
+
+    v3gravarPermitir($this->user, ['customer.create']);
+    $this->user->refresh();
+    $this->actingAs($this->user);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.permissoes.criarCliente', true));
+});
+
+it('UC-V395 · a lista de comissionados segue sales_cmsn_agnt e é só desta empresa', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+
+    DB::table('business')->where('id', $this->bizId)->update(['sales_cmsn_agnt' => null]);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.comissionados', []));
+
+    DB::table('business')->where('id', $this->bizId)->update(['sales_cmsn_agnt' => 'user']);
+    $doTenant = User::where('business_id', $this->bizId)->pluck('id')->map(fn ($i) => (int) $i)->all();
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.comissionados', function ($lista) use ($doTenant) {
+        $ids = collect($lista)->pluck('id')->map(fn ($i) => (int) $i);
+
+        return $ids->contains((int) $this->user->id) && $ids->diff($doTenant)->isEmpty();
+    }));
+});
+
+it('UC-V396 · a seção de pagamento só vem com sell.payments', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+    expect($this->user->can('sell.payments'))->toBeFalse();
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.permissoes.registrarPagamento', false));
+
+    v3gravarPermitir($this->user, ['sell.payments']);
+    $this->user->refresh();
+    $this->actingAs($this->user);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.permissoes.registrarPagamento', true));
+});

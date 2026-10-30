@@ -228,6 +228,7 @@ jobs:
             tests/js/sells-reparo-venda.test.ts \
             tests/js/gravacao-dominio.test.ts \
             tests/js/config-business-dominio.test.ts \
+            tests/js/cliente-gravacao-dominio.test.ts \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml

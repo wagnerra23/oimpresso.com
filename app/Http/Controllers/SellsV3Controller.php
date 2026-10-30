@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Business;
 use App\BusinessLocation;
 use App\Services\FeatureFlagService;
+use App\User;
 use App\Utils\BusinessUtil;
 use App\Utils\ContactUtil;
 use Inertia\Inertia;
@@ -82,7 +83,7 @@ class SellsV3Controller extends Controller
      * mesmo que o Create.tsx lê. A trava é na tela — o store de /pos não as confere,
      * nem para o Create (medido em 2026-10-30).
      *
-     * @return array{locationId:int, contactId:int, clienteNome:string, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null}, prazo:array{numero:mixed, tipo:mixed}, config:array<string, mixed>}|null
+     * @return array{locationId:int, contactId:int, clienteNome:string, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null, criarCliente:bool, registrarPagamento:bool}, prazo:array{numero:mixed, tipo:mixed}, config:array<string, mixed>, comissionados:list<array{id:int, nome:string}>}|null
      */
     private function dadosDeGravacao(int $businessId): ?array
     {
@@ -101,14 +102,37 @@ class SellsV3Controller extends Controller
                 'editarPreco' => (bool) $user->can('edit_product_price_from_sale_screen'),
                 'editarDesconto' => (bool) $user->can('edit_product_discount_from_sale_screen'),
                 'descontoMaximo' => $user->max_sales_discount_percent !== null ? (float) $user->max_sales_discount_percent : null,
+                // "Novo cliente" na consulta: o Blade mostra o + só com customer.create (SellPosController:1358).
+                'criarCliente' => (bool) $user->can('customer.create'),
+                // Seção de pagamento: o Blade só a mostra com sell.payments (sell/create.blade.php:775).
+                'registrarPagamento' => (bool) $user->can('sell.payments'),
             ],
             // Prazo do cliente padrão: o Blade preenche pay_term com o do cliente (sell/create.blade.php:181).
             'prazo' => [
                 'numero' => $cliente['pay_term_number'] ?? null,
                 'tipo' => $cliente['pay_term_type'] ?? null,
             ],
-            'config' => self::configDaVenda(Business::findOrFail($businessId)),
+            'config' => self::configDaVenda($business = Business::findOrFail($businessId)),
+            'comissionados' => self::comissionados($businessId, $business->sales_cmsn_agnt),
         ];
+    }
+
+    /**
+     * Quem pode ser o comissionado da venda (UC-V395), a mesma lista do `SellPosController@create`:
+     * usuários com `sales_cmsn_agnt` = user, agentes com `cmsn_agnt`; nos demais não há select.
+     * As duas consultas filtram por business_id (ADR 0093).
+     *
+     * @return list<array{id:int, nome:string}>
+     */
+    public static function comissionados(int $businessId, ?string $tipo): array
+    {
+        $lista = match ($tipo) {
+            'user' => User::forDropdown($businessId, false),
+            'cmsn_agnt' => User::saleCommissionAgentsDropdown($businessId, false),
+            default => [],
+        };
+
+        return collect($lista)->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values()->all();
     }
 
     /**
