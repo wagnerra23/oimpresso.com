@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Business;
 use App\BusinessLocation;
+use App\SellingPriceGroup;
 use App\Services\FeatureFlagService;
 use App\User;
 use App\Utils\BusinessUtil;
@@ -83,7 +84,7 @@ class SellsV3Controller extends Controller
      * mesmo que o Create.tsx lê. A trava é na tela — o store de /pos não as confere,
      * nem para o Create (medido em 2026-10-30).
      *
-     * @return array{locationId:int, contactId:int, clienteNome:string, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null, criarCliente:bool, registrarPagamento:bool}, prazo:array{numero:mixed, tipo:mixed}, config:array<string, mixed>, comissionados:list<array{id:int, nome:string}>}|null
+     * @return array{locationId:int, contactId:int, clienteNome:string, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null, criarCliente:bool, registrarPagamento:bool}, prazo:array{numero:mixed, tipo:mixed}, config:array<string, mixed>, comissionados:list<array{id:int, nome:string}>, tabelas:list<array{id:int, nome:string}>, tabelaPadraoId:int|null}|null
      */
     private function dadosDeGravacao(int $businessId): ?array
     {
@@ -114,6 +115,26 @@ class SellsV3Controller extends Controller
             ],
             'config' => self::configDaVenda($business = Business::findOrFail($businessId)),
             'comissionados' => self::comissionados($businessId, $business->sales_cmsn_agnt),
+            ...self::tabelasDePreco($businessId, (int) $locationId),
+        ];
+    }
+
+    /**
+     * Tabelas de preço da venda (UC-V397), como o `SellPosController@create`: a lista é
+     * `SellingPriceGroup::forDropdown`, que só traz as permitidas (`selling_price_group.{id}`) e o
+     * preço padrão (id 0) só com `access_default_selling_price`; a tabela inicial é a do local, se
+     * estiver na lista. As duas consultas filtram por business_id (ADR 0093).
+     *
+     * @return array{tabelas:list<array{id:int, nome:string}>, tabelaPadraoId:int|null}
+     */
+    public static function tabelasDePreco(int $businessId, int $locationId): array
+    {
+        $lista = SellingPriceGroup::forDropdown($businessId);
+        $doLocal = BusinessLocation::where('business_id', $businessId)->where('id', $locationId)->value('selling_price_group_id');
+
+        return [
+            'tabelas' => collect($lista)->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values()->all(),
+            'tabelaPadraoId' => ! empty($doLocal) && array_key_exists($doLocal, $lista) ? (int) $doLocal : null,
         ];
     }
 

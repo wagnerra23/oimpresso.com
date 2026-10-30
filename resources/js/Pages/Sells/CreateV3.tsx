@@ -77,7 +77,15 @@ import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, fmtQtd, num, parseBR, submitSafe } from './_components/v3/numeros';
 import { descontoAcimaDoTeto, montarPayloadVenda, totalParaGravar } from './_components/v3/gravacao-dominio';
 import { descontoInicial, linhaParaSomar, temSelectDeComissionado, type ConfigVenda, type PrazoDoCliente } from './_components/v3/config-business-dominio';
-import { bloqueioDoCliente, type ClienteDaGravacao } from './_components/v3/cliente-gravacao-dominio';
+import { type ClienteDaGravacao } from './_components/v3/cliente-gravacao-dominio';
+import {
+  aplicarPrecos,
+  nomeDaTabela,
+  parametrosDaBusca,
+  precoDaBusca,
+  tabelaAposCliente,
+  type TabelaDePreco,
+} from './_components/v3/tabela-preco-dominio';
 import { buscarClientes, criarCliente } from './_components/v3/cliente-gravacao-api';
 import {
   Aviso,
@@ -115,7 +123,7 @@ type Item = {
 };
 
 /* precoVenda = preço de venda do cadastro na busca: é o piso com `enable_msp` (UC-V390). */
-type IdsDoCadastro = { productId: number; variationId: number; enableStock: boolean; tipoProduto: string; precoVenda: number };
+type IdsDoCadastro = { productId: number; variationId: number; enableStock: boolean; tipoProduto: string; precoVenda: number; termo: string };
 
 /* O contrato do catálogo mora em `_components/v3/LancarItem.tsx` — quem consome
    o produto por inteiro é o lançamento, não esta Page. */
@@ -157,6 +165,9 @@ type Props = {
     config: ConfigVenda;
     /* Usuários ou agentes da empresa conforme `sales_cmsn_agnt` (UC-V395); [] = sem select. */
     comissionados: { id: number; nome: string }[];
+    /* Tabelas permitidas ao usuário e a do local (UC-V397); id 0 = preço padrão. */
+    tabelas: TabelaDePreco[];
+    tabelaPadraoId: number | null;
   };
   cena: {
     cliente: Cliente;
@@ -210,6 +221,7 @@ type LinhaDaBusca = {
   enable_stock: number | string;
   qty_available: number | string | null;
   selling_price: number | string | null;
+  variation_group_price?: number | string | null;
   sub_sku: string | null;
   unit: string | null;
 };
@@ -251,6 +263,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const [cliGravacao, setCliGravacao] = useState<ClienteDaGravacao | null>(null);
   const [comissionadoId, setComissionadoId] = useState<number | null>(null);
   const semPagamento = !!gravacao && !gravacao.permissoes.registrarPagamento;
+  /* Tabela de preço da venda gravando (UC-V397): começa na do local, como o Create. */
+  const [tabelaId, setTabelaId] = useState<number | null>(gravacao?.tabelaPadraoId ?? null);
+  const [reprecificando, setReprecificando] = useState(false);
+  const [avisoPreco, setAvisoPreco] = useState<string | null>(null);
 
   const [itens, setItens] = useState<Item[]>(cena.itens);
   const [busca, setBusca] = useState('');
@@ -312,9 +328,17 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const [undo, setUndo] = useState<{ msg: string; desfazer: () => void } | null>(null);
 
   /* ─── derivados (nunca em estado — handoff §13) ────────────────────────── */
-  const tabelaCadastro = cli.tabela ?? tabelas[0];
-  const tabelaAtiva = tabela ?? tabelaCadastro;
-  const tabelaTrocada = !!tabela && tabela !== tabelaCadastro;
+  /* Gravando, o cartão mostra as tabelas permitidas e a tabela vira id (UC-V397). A do cadastro é
+     a do cliente, senão a do local; trocar ou voltar muda `tabelaId`, que reprecifica as linhas. */
+  const opcoesTabela = gravacao ? gravacao.tabelas.map((t) => t.nome) : tabelas;
+  const idDoCadastro = gravacao ? (cliGravacao?.grupoPrecoId ?? gravacao.tabelaPadraoId) : null;
+  const tabelaCadastro = gravacao ? nomeDaTabela(gravacao.tabelas, idDoCadastro) : (cli.tabela ?? tabelas[0]);
+  const tabelaAtiva = gravacao ? nomeDaTabela(gravacao.tabelas, tabelaId) : (tabela ?? tabelaCadastro);
+  const tabelaTrocada = gravacao ? tabelaId !== idDoCadastro : !!tabela && tabela !== tabelaCadastro;
+  const escolherTabela = (nome: string | null) => {
+    if (!gravacao) return setTabela(nome);
+    setTabelaId(nome === null ? idDoCadastro : (gravacao.tabelas.find((t) => t.nome === nome)?.id ?? tabelaId));
+  };
 
   const subtotal = useMemo(() => submitSafe(itens.reduce((s, l) => s + linhaTotal(l), 0)), [itens]);
   const descAplicado =
@@ -380,7 +404,8 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
     }
     const ctrl = new AbortController();
     const t = setTimeout(async () => {
-      const q = new URLSearchParams({ term: busca.trim(), location_id: String(gravacao.locationId) });
+      // Com tabela, a busca já traz o preço dela (Create: busca com `price_group`, precoDaBusca).
+      const q = parametrosDaBusca(busca.trim(), gravacao.locationId, tabelaId);
       try {
         const res = await fetch(`/products/list?${q}`, {
           headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -396,13 +421,14 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
               variationId: l.variation_id,
               enableStock: Number(l.enable_stock) === 1,
               tipoProduto: l.type,
-              precoVenda: Number(l.selling_price ?? 0),
+              precoVenda: precoDaBusca(l),
+              termo: l.name,
             });
             return {
               sku,
               nome: l.variation && l.variation !== 'DUMMY' ? `${l.name} - ${l.variation}` : l.name,
               un: l.unit ?? 'un',
-              preco: Number(l.selling_price ?? 0),
+              preco: precoDaBusca(l),
               estoque: Number(l.enable_stock) === 1 ? Number(l.qty_available ?? 0) : null,
               tipo: Number(l.enable_stock) === 1 ? 'produto' : 'servico',
               ean: null,
@@ -419,7 +445,61 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       clearTimeout(t);
       ctrl.abort();
     };
-  }, [busca, gravacao]);
+  }, [busca, gravacao, tabelaId]);
+
+  /* Trocou a tabela (no cartão ou pelo cliente): refaz a busca de cada linha com o grupo novo e
+     troca o preço — o `handlePriceGroupChange` do Create (UC-V398). A primeira passada é a
+     montagem: nada a reprecificar. */
+  const tabelaMontada = useRef(false);
+  useEffect(() => {
+    if (!gravacao) return;
+    if (!tabelaMontada.current) {
+      tabelaMontada.current = true;
+      return;
+    }
+    const linhas = itens.filter((l) => l.ids);
+    if (linhas.length === 0) return;
+    let vivo = true;
+    setReprecificando(true);
+    void Promise.all(
+      linhas.map(async (l) => {
+        try {
+          const ids = l.ids as IdsDoCadastro;
+          const res = await fetch(`/products/list?${parametrosDaBusca(ids.termo, gravacao.locationId, tabelaId)}`, {
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+          });
+          const achada = res.ok ? ((await res.json()) as LinhaDaBusca[]).find((r) => r.variation_id === ids.variationId) : undefined;
+          return achada ? ([ids.variationId, precoDaBusca(achada)] as const) : null;
+        } catch {
+          return null;
+        }
+      }),
+    ).then((pares) => {
+      if (!vivo) return;
+      const novos = new Map(pares.filter((x): x is readonly [number, number] => x !== null));
+      const mantidas = linhas.filter((l) => !novos.has((l.ids as IdsDoCadastro).variationId)).length;
+      setAvisoPreco(mantidas > 0 ? `${mantidas} linha(s) mantiveram o preço anterior: a busca não devolveu o preço da tabela.` : null);
+      setItens((s) => {
+        const r = aplicarPrecos(
+          s.map((l) => ({ ...l, variationId: l.ids?.variationId ?? null })),
+          novos,
+          fmtBR,
+        );
+        return r.itens.map(({ variationId, ...l }) => {
+          const preco = variationId ? novos.get(variationId) : undefined;
+          return preco !== undefined && l.ids ? { ...l, ids: { ...l.ids, precoVenda: preco } } : l;
+        });
+      });
+      setReprecificando(false);
+    });
+    return () => {
+      vivo = false;
+      setReprecificando(false);
+    };
+    // Só a troca de tabela dispara; os itens são lidos no momento da troca, como no Create.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabelaId]);
 
   const achados = gravacao
     ? daBusca
@@ -449,7 +529,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       config: gravacao.config,
       comissionadoId,
       sinal: cliGravacao?.sinal ?? '',
-      bloqueioDoCliente: cliGravacao ? bloqueioDoCliente(cliGravacao) : null,
+      tabelaId,
     });
     if (!r.ok) {
       setErroGravar(r.motivo);
@@ -967,12 +1047,12 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
              * `#` + 3-8 dígitos hex, e `#3405` é hex válido. Ele só pula linha
              * que COMEÇA com `//`, `*` ou `/*` — daí o bloco estrelado aqui.
              */}
-            <Select value={tabelaAtiva} onValueChange={setTabela}>
+            <Select value={tabelaAtiva} onValueChange={escolherTabela}>
               <SelectTrigger className="h-9 w-full text-[13px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {tabelas.map((t) => (
+                {opcoesTabela.map((t) => (
                   <SafeSelectItem key={t} value={t}>
                     {t}
                   </SafeSelectItem>
@@ -986,7 +1066,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setTabela(null)}
+                  onClick={() => escolherTabela(null)}
                   className="flex-none cursor-pointer text-[11.5px] font-semibold leading-none text-primary"
                 >
                   Voltar
@@ -1270,9 +1350,14 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
               </div>
             )}
             {gravacao && (
-              <Button size="lg" variant="outline" className="w-full" disabled={!itens.length || temInvalida || gravando} onClick={gravar}>
-                {gravando ? 'Gravando…' : 'Gravar venda'}
+              <Button size="lg" variant="outline" className="w-full" disabled={!itens.length || temInvalida || gravando || reprecificando} onClick={gravar}>
+                {gravando ? 'Gravando…' : reprecificando ? 'Aplicando a tabela…' : 'Gravar venda'}
               </Button>
+            )}
+            {avisoPreco && (
+              <span role="status" className="block text-center text-[11.5px] leading-[1.35] text-warning-fg">
+                {avisoPreco}
+              </span>
             )}
             {erroGravar && (
               <span role="alert" className="block text-center text-[11.5px] leading-[1.35] text-destructive-fg">
@@ -1409,15 +1494,18 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
                 buscar: buscarClientes,
                 criar: gravacao.permissoes.criarCliente ? criarCliente : null,
                 onEscolher: (c) => {
-                  const antes = { cli, cliGravacao };
-                  setCli(c.consulta);
+                  const antes = { cli, cliGravacao, tabelaId };
+                  setCli({ ...c.consulta, tabela: c.grupoPrecoId ? nomeDaTabela(gravacao.tabelas, c.grupoPrecoId) : null });
                   setCliGravacao(c);
+                  // Cliente com tabela aplica a dele; sem tabela mantém a atual (Create).
+                  setTabelaId(tabelaAposCliente(tabelaId, c.grupoPrecoId));
                   setDestAberto(true);
                   setUndo({
                     msg: `Cliente trocado — ${c.consulta.nome}`,
                     desfazer: () => {
                       setCli(antes.cli);
                       setCliGravacao(antes.cliGravacao);
+                      setTabelaId(antes.tabelaId);
                     },
                   });
                 },

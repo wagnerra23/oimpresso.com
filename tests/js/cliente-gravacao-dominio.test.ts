@@ -8,7 +8,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  bloqueioDoCliente,
   clienteDaBusca,
   corpoNovoCliente,
 } from '@/Pages/Sells/_components/v3/cliente-gravacao-dominio';
@@ -77,7 +76,7 @@ describe('UC-V393 · a consulta escolhe o cliente de verdade, e ele vai no paylo
 
   it('UC-V393 · o cliente escolhido vai como contact_id, com o prazo e o sinal dele', () => {
     const c = clienteDaBusca(daBusca);
-    const r = montarPayloadVenda({ ...venda, contactId: c.id, prazo: c.prazo, sinal: c.sinal, bloqueioDoCliente: bloqueioDoCliente(c) });
+    const r = montarPayloadVenda({ ...venda, contactId: c.id, prazo: c.prazo, sinal: c.sinal });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.payload.contact_id).toBe(42);
@@ -89,14 +88,10 @@ describe('UC-V393 · a consulta escolhe o cliente de verdade, e ele vai no paylo
     expect(padrao.ok && r.total === padrao.total).toBe(true);
   });
 
-  it('UC-V393 · cliente com tabela de preço recusa: o Create reprecificaria, a V3 ainda não', () => {
-    const c = clienteDaBusca({ ...daBusca, selling_price_group_id: 5 });
-    expect(c.grupoPrecoId).toBe(5);
-    expect(c.consulta.tabela).toMatch(/ainda não aplicada/);
-    const r = montarPayloadVenda({ ...venda, contactId: c.id, bloqueioDoCliente: bloqueioDoCliente(c) });
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.motivo).toMatch(/tabela de preço/);
-    expect(bloqueioDoCliente(clienteDaBusca({ ...daBusca, selling_price_group_id: '0' }))).toBeNull();
+  it('UC-V393 · a tabela do cliente vem como id (0 ou vazio = sem tabela)', () => {
+    expect(clienteDaBusca({ ...daBusca, selling_price_group_id: 5 }).grupoPrecoId).toBe(5);
+    expect(clienteDaBusca({ ...daBusca, selling_price_group_id: '0' }).grupoPrecoId).toBeNull();
+    expect(clienteDaBusca({ ...daBusca, selling_price_group_id: null }).grupoPrecoId).toBeNull();
   });
 });
 
