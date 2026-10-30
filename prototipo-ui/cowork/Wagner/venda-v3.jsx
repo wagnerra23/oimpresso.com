@@ -242,7 +242,7 @@ window.SD = (() => {
       ie: 'ISENTO', contrib: 'nao', fone: '—', email: '—', cidade: 'Joinville', uf: 'SC', endereco: 'Venda no balcão — sem endereço de entrega' },
     { id: 2, cod: '0142', nome: 'Prefeitura de Joinville', im: '00.412.775', regime: 'Órgão público', contato: 'Sandra Küster · compras', nascimento: '', creditoIcms: false, issRetido: true, rural: false, emailNfe: 'nfe@joinville.sc.gov.br', doc: '83.169.623/0001-10', tipo: 'pj', grupo: 'Governo', prazo: '30 dias', tabela: 'Governo 2026 — pregão 041/2026',
       ie: '255.618.240', contrib: 'isento', fone: '(47) 3431-3200', email: 'compras@joinville.sc.gov.br', cidade: 'Joinville', uf: 'SC', endereco: 'Rua XV de Novembro, 1400 — Centro · 89201-601' },
-    { id: 3, cod: '0288', nome: 'Rota Livre Comércio', im: '55.109.220', regime: 'Simples Nacional', contato: 'Rodrigo Bastos · sócio', nascimento: '', creditoIcms: true, issRetido: false, rural: false, emailNfe: 'fiscal@rotalivre.com.br', doc: '41.882.507/0001-44', tipo: 'pj', grupo: 'Atacado', prazo: '28 dias', tabela: 'Atacado — a partir de 50m²',
+    { id: 3, cod: '0288', nome: 'Rota Livre Comércio', adiantamento: 350.0, im: '55.109.220', regime: 'Simples Nacional', contato: 'Rodrigo Bastos · sócio', nascimento: '', creditoIcms: true, issRetido: false, rural: false, emailNfe: 'fiscal@rotalivre.com.br', doc: '41.882.507/0001-44', tipo: 'pj', grupo: 'Atacado', prazo: '28 dias', tabela: 'Atacado — a partir de 50m²',
       ie: '254.099.771', contrib: 'sim', fone: '(47) 99812-4470', email: 'financeiro@rotalivre.com.br', cidade: 'Blumenau', uf: 'SC', endereco: 'Rod. BR-470, km 62 — Itoupava · 89066-000' },
     { id: 4, cod: '0391', nome: 'Marina Bordignon', im: '—', regime: 'Pessoa física', contato: 'Marina Bordignon', nascimento: '1988-03-14', creditoIcms: false, issRetido: false, rural: false, emailNfe: 'marina.bordignon@gmail.com', doc: '045.882.119-30', tipo: 'pf', grupo: 'Varejo', prazo: 'À vista', tabela: null,
       ie: '—', contrib: 'nao', fone: '(47) 98844-1207', email: 'marina.bordignon@gmail.com', cidade: 'Joinville', uf: 'SC', endereco: 'Rua Blumenau, 890 — América · 89204-250' },
@@ -1772,8 +1772,10 @@ function EntregaFiscal({ itens, cli, frete, setFrete, freteModo, setFreteModo, o
               <div><DataCampo label="Data da coleta" /></div>
             </Grid>
           </div>
-          <div style={{ marginTop: 12 }}><Grid cols={3} gap={12}>
+          <div style={{ marginTop: 12 }}><Grid cols={4} gap={12}>
             <div><Select label="Status da remessa" options={['Pendente', 'Em separação', 'Despachado', 'Entregue', 'Devolvido']} /></div>
+            {/* `delivery_person` da Blade: quem leva, quando a entrega é própria */}
+            <div><Select label="Entregador" options={['—', ...window.SD.pessoasDe('funcionario').map((x) => x.nome)]} /></div>
             <div><DataCampo label="Previsão de entrega" /></div>
             <div><Input label="Rastreio / conhecimento" placeholder="CT-e ou código de rastreio" /></div>
           </Grid></div>
@@ -2624,6 +2626,11 @@ function Create({ onOpen, modo = 'create', registro }) {
   const [pontos, setPontos] = React.useState(0);
   const [freteModo, setFreteModo] = React.useState('hoje');
   const [frete, setFrete] = React.useState('0,00');
+  /* Despesas adicionais da venda (additional_expense_key/value_1..4 da Blade): somam no total
+     depois do imposto, como na Blade. No máximo 4. */
+  const [despesas, setDespesas] = React.useState([]);
+  /* Documentos da venda (`sell_document` da Blade): pedido de compra, contrato, autorização. */
+  const [docsVenda, setDocsVenda] = React.useState([]);
   const [acr, setAcr] = React.useState('0,00');
   const [pags, setPags] = React.useState(edit ? [{ k: 1, m: 'Boleto', v: '0,00', par: '1' }] : []);
   const [status, setStatus] = React.useState('final');
@@ -2683,7 +2690,8 @@ function Create({ onOpen, modo = 'create', registro }) {
   const vFrete = submitSafe(parseBR(frete));
   const vAcr = submitSafe(parseBR(acr));
   const vResgate = submitSafe(pontos * PONTO_VALOR);
-  const total = submitSafe(baseTrib + vImposto + vFrete + vAcr - vResgate);
+  const vDesp = submitSafe(despesas.reduce((s, x) => s + parseBR(x.v || '0'), 0));
+  const total = submitSafe(baseTrib + vImposto + vFrete + vAcr + vDesp - vResgate);
   const pago = submitSafe(pags.reduce((s, p) => s + parseBR(p.v), 0) + parcelas.filter((p) => p.lanc === 'RECEBIDA').reduce((s, p) => s + parseBR(p.valor), 0));
   const saldo = submitSafe(total - pago);
   const payStatus = pago <= 0 ? 'due' : saldo > 0.005 ? 'partial' : 'paid';
@@ -2973,6 +2981,23 @@ function Create({ onOpen, modo = 'create', registro }) {
             <div><Select label="Prazo de pagamento" defaultValue={cli.prazo} options={['À vista', '7 dias', '14 dias', '28 dias', '30 dias', '30/60']} /></div>
             <div style={{ display: 'flex', alignItems: 'flex-end' }}><Switch label="Abrir OS de produção" sublabel="Venda Com Produção" checked={os} onChange={setOs} /></div>
           </Grid></div>
+          <div style={{ marginTop: 12 }}>
+            <Lbl>Documentos da venda</Lbl>
+            {docsVenda.map((d) => (
+              <div key={d.k} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--border)', font: '12.5px/1.35 var(--font-sans)' }}>
+                <Icon name="Paperclip" size={14} />
+                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.nome}</span>
+                <span style={{ font: '11.5px/1 var(--font-mono)', color: 'var(--text-dim)' }}>{num(d.kb, 0)} KB</span>
+                <button type="button" aria-label={'Remover ' + d.nome} onClick={() => setDocsVenda((s) => s.filter((x) => x.k !== d.k))}
+                  style={{ width: 30, height: 30, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}><Icon name="X" size={13} /></button>
+              </div>
+            ))}
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, height: 32, padding: '0 12px', borderRadius: 6, border: '1px dashed var(--border)', cursor: 'pointer', font: '600 12px/1 var(--font-sans)', color: 'var(--text)' }}>
+              <Icon name="Upload" size={14} /> Anexar arquivo
+              <input type="file" multiple style={{ display: 'none' }} onChange={(e) => { const fs = [...e.target.files].map((f, i) => ({ k: Date.now() + i, nome: f.name, kb: f.size / 1024 })); setDocsVenda((s) => [...s, ...fs]); e.target.value = ''; }} />
+            </label>
+            <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>pedido de compra, contrato, autorização — fica com a venda, não sai no documento</span>
+          </div>
         </Sec>
       </div>
     </div>
@@ -3025,6 +3050,7 @@ function Create({ onOpen, modo = 'create', registro }) {
             <Res l="Imposto" v={fmtBR(vImposto)} />
             <Res l="Acréscimo" v={vAcr ? '+ ' + fmtBR(vAcr) : fmtBR(0)} c={vAcr ? 'var(--warn)' : 'var(--text-dim)'} />
             <Res l="Frete" v={fmtBR(vFrete)} c={vFrete ? 'var(--text)' : 'var(--text-dim)'} />
+            {vDesp > 0 && <Res l="Despesas da venda" v={'+ ' + fmtBR(vDesp)} />}
             {vResgate > 0 && <Res l={'Pontos (' + pontos + ')'} v={'− ' + fmtBR(vResgate)} c="var(--neg)" />}
           </div>
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -3061,6 +3087,22 @@ function Create({ onOpen, modo = 'create', registro }) {
               <Money label="Acréscimo" value={acr} onChange={setAcr} hue="color-mix(in oklch, var(--warn) 62%, var(--text))" />
               <Money label="Frete" value={frete} onChange={setFrete} />
             </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Lbl>Despesas da venda</Lbl>
+                <span style={{ marginLeft: 'auto' }}><Button size="sm" variant="ghost" disabled={despesas.length >= 4 || travada}
+                  onClick={() => setDespesas((s) => [...s, { k: Date.now(), d: '', v: '0,00' }])}>+ Despesa</Button></span>
+              </div>
+              {despesas.length === 0 && <span style={{ display: 'block', font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>taxa de embalagem, montagem, deslocamento — soma no total depois do imposto</span>}
+              {despesas.map((x) => (
+                <div key={x.k} style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 8 }}>
+                  <div style={{ flex: '1 1 0', minWidth: 0 }}><Input label="Descrição" value={x.d} placeholder="Taxa de embalagem" onChange={(e) => setDespesas((s) => s.map((y) => y.k === x.k ? { ...y, d: e.target.value } : y))} /></div>
+                  <div style={{ width: 120, flex: 'none' }}><Money label="Valor" value={x.v} onChange={(v) => setDespesas((s) => s.map((y) => y.k === x.k ? { ...y, v } : y))} /></div>
+                  <button type="button" aria-label="Remover despesa" onClick={() => setDespesas((s) => s.filter((y) => y.k !== x.k))}
+                    style={{ width: 34, height: 34, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}><Icon name="X" size={14} /></button>
+                </div>
+              ))}
+            </div>
           </div>
           {alcada && <div style={{ marginTop: 8 }}><Alert tone="warn" title="Acima da alçada de 10%">Precisa de liberação de supervisor para finalizar.</Alert></div>}
         </div>
@@ -3072,6 +3114,11 @@ function Create({ onOpen, modo = 'create', registro }) {
           {meta && <span style={{ marginLeft: 'auto' }}><CuRow ids={['CU-SELL-06', 'CU-SELL-09']} onOpen={onOpen} /></span>}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+          {cli.adiantamento > 0 && <button type="button" onClick={() => setPags((s) => s.some((x) => x.m === 'Adiantamento do cliente') ? s : [...s, { k: Date.now(), m: 'Adiantamento do cliente', v: fmtBR(Math.min(Math.max(saldo, 0), cli.adiantamento)), par: '1' }])}
+            title={'Saldo a favor do cliente: ' + brl(cli.adiantamento)}
+            style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px solid var(--pos)', background: 'color-mix(in oklch, var(--pos) 12%, var(--surface))', color: tomFg('var(--pos)'), font: '600 11.5px/1 var(--font-sans)' }}>
+            + Adiantamento {brl(cli.adiantamento)}
+          </button>}
           {RAPIDO.map((m) => (
             <button key={m} type="button" onClick={() => addPag(m)} style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px dashed var(--border)', background: 'var(--bg-2)', color: 'var(--text-dim)', font: '600 11.5px/1 var(--font-sans)' }}>+ {m}</button>
           ))}
@@ -3097,7 +3144,7 @@ function Create({ onOpen, modo = 'create', registro }) {
         {pags.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
           {pags.map((p) => (
             <div key={p.k} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={METODOS} /></div>
+              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={p.m === 'Adiantamento do cliente' ? ['Adiantamento do cliente', ...METODOS] : METODOS} /></div>
               <div style={{ width: 106, flex: 'none' }}><Money aria={'Valor recebido em ' + p.m} value={p.v} onChange={(v) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, v } : x))} /></div>
               <button type="button" title="Remover pagamento" onClick={() => setPags((s) => s.filter((x) => x.k !== p.k))} style={{ width: 26, height: 26, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}>×</button>
             </div>
