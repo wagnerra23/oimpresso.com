@@ -813,7 +813,19 @@ há item aqui.
 - Mecanismo: [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md) (`sdd-from-source`) · [errata 0352](../../../../memory/decisions/0352-errata-0351-venue-distiller-citacao-taxonomia.md)
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-19 · Quem junta produtos duplicados, e a junção pode ser desfeita?**
+  - Estado: Em aberto
+  - Texto: O caso 152 soma o estoque, recalcula o custo médio e passa compras, vendas e vínculos de fornecedor para o produto que fica; os outros ficam inativos, sem apagar nada.
+  - Opção: Permissão própria, sem desfazer — Só quem tem a permissão junta, com prévia e confirmação; se errar, separa à mão com ajuste de estoque.
+  - Opção: Pode desfazer — A junção guarda o que era de cada produto e pode ser desfeita enquanto não houver movimento novo no produto que ficou. Mais seguro, mas dá mais trabalho para construir.
+  - Destrava: P-152
+
 ## Trilha do tempo
+- 2026-10-30 · [W+C] Decisão pendente D-19 do documento "Casos de uso por tela", para casos marcados como decisão do [W] que não tinham pergunta.
 - 2026-10-28 · [F+C] Backlog: juntar produtos duplicados pela nota de compra (pedido de PraMoto e Techpress). Sem id.
 - 2026-10-28 · [F+C] `last_run` 2026-10-27 → 2026-10-28 (G-6). O `Index.tsx` mudou por último no #9897 (natureza fiscal, UC-PIDX-31), que entrou no main em 28/10 junto com estes casos revalidados; a data só acompanha o merge. Nenhum caso nem teste mudou.
 - 2026-10-27 · [F+C] Revalidado (G-6): o `Index.tsx` ganhou data nova só pelo merge com o `main` de hoje, depois que o #9925 entrou; o conteúdo é o `emiteNota` passado ao painel por este PR (UC-PIDX-17 e 25), já descrito pelos casos acima. Vitest local dos 18 arquivos de produto: 213 testes passaram. Nenhum UC muda de status; last_run 2026-10-26 → 2026-10-27.

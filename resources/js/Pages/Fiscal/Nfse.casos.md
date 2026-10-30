@@ -262,6 +262,17 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
   - Clientes: Fixar
   - Etiquetas: valor, part, cv, decisao
 
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-21 · Quem fatura pode trocar a natureza fiscal só no item da venda?**
+  - Estado: Em aberto
+  - Texto: Hoje a natureza é do produto, e quem decide é o contador (D-NATUREZA, US-NFE-068). No caso 114, a venda de placas sob encomenda foi lançada como mercadoria e o cliente pede nota de serviço.
+  - Opção: Só o contador, no produto — A venda avisa a natureza e dá o atalho para o contador corrigir o produto; a venda não precisa ser refeita. É a proposta.
+  - Opção: Troca no item, com justificativa — Quem fatura troca a natureza só naquele item, com o motivo registrado. Resolve na hora, mas o produto continua errado para a próxima venda.
+  - Destrava: P-114
+
 ## Como rodar a suíte
 
 1. **Lane required:** `PHP / Pest (NfeBrasil · MySQL)` roda `NfseCockpitMultiTenantTest`.
@@ -269,6 +280,7 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
 3. ⛔ **Nunca local** ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ## Trilha do tempo
+- 2026-10-30 · [W+C] Decisão pendente D-21 do documento "Casos de uso por tela", para casos marcados como decisão do [W] que não tinham pergunta.
 - 2026-09-04 · [C] `UC-FNFSE-05` — a tela ganha o controle de densidade, que nasce
   compartilhado com Cockpit e NF-e (`_components/DensidadeToggle.tsx`). Os 4 UC anteriores
   seguem intactos: conferi um a um — todos assertam backend e nenhum toca a tabela.

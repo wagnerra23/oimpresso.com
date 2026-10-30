@@ -124,5 +124,29 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - Etiquetas: miss
 - **Venda condicional não entra aqui:** o controle de peças que saíram, voltaram e foram compradas é o caso "Venda condicional" de `Sells/Create.casos.md` (caso 59 do documento de casos de uso). A ROTA LIVRE usa o rascunho no lugar dele hoje. Fonte: UNA (pedido condicional com histórico das peças).
 
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-23 · Rascunho excluído some de vez ou fica recuperável?**
+  - Estado: Em aberto
+  - Texto: Os casos 76 e 77 excluem o rascunho pelo menu da linha e em lote, com a permissão de excluir rascunho. A lista antiga apagava, e o Omie também apaga sem volta.
+  - Opção: Some de vez — Como na lista antiga: confirmou, apagou.
+  - Opção: Fica como cancelado — O rascunho sai da lista, mas fica no histórico com quem excluiu e quando, e pode ser reaberto.
+  - Destrava: P-076, P-077
+- **[DECISÃO] D-24 · Liga a conversão de rascunho em venda pela lista?**
+  - Estado: Em aberto
+  - Texto: A conversão existe e está desligada por uma chave nas duas telas, a antiga e a nova. O caso 78 põe "Converter em venda" e "Converter em proforma" no menu da linha; mexe em valor e estoque, então exige a dupla confirmação do cálculo antes de produção.
+  - Opção: Ligar — As duas conversões no menu da linha, depois da dupla confirmação.
+  - Opção: Manter desligada — O rascunho vira venda só abrindo pelo "Continuar venda" e salvando.
+  - Destrava: P-078
+- **[DECISÃO] D-25 · Rascunho pago pelo link vira venda sozinho?**
+  - Estado: Em aberto
+  - Texto: No caso 80, o cliente recebe o resumo com um link para pagar. No Shopify, o pagamento cria o pedido sem ninguém conferir.
+  - Opção: Vira venda sozinho — Pago, a venda nasce e o estoque baixa, como no Shopify.
+  - Opção: O vendedor confirma — Pago, o rascunho fica marcado como pago e o vendedor finaliza a venda.
+  - Destrava: P-080
+
 ## Trilha do tempo
+- 2026-10-30 · [W+C] Decisões pendentes D-23, D-24, D-25 do documento "Casos de uso por tela", para casos marcados como decisão do [W] que não tinham pergunta.
 - 2026-10-14 · [CL] trio completado (etapa E1 do regime de evolução: tela saía em `missing_casos`). Refs: ADR 0104 · ADR 0264 G-1/G-2 · ADR 0358 · US-SELL-060.

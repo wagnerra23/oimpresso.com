@@ -942,3 +942,9 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Cobrar o que já foi gasto — Cancelar a OS em qualquer etapa, com motivo e papel de gerente. O sistema apura material e horas já gastos e propõe reter o sinal até esse valor, devolvendo o resto. A política fica escrita no orçamento. É a proposta.
   - Opção: Sinal fica sempre — Mais simples: desistiu depois da produção, perde o sinal, sem apuração. Pode ser pouco quando o gasto passa do sinal, ou demais quando quase nada foi feito.
   - Destrava: P-113
+- **[DECISÃO] D-27 · Serviço de terceiro gera pedido de compra e comissão própria?**
+  - Estado: Em aberto
+  - Texto: A decisão D-TERCEIRO já define o link para o terceiro e a conta a pagar pelo valor combinado (caso 90, thread 19 da Produção). Ficaram sem regra o pedido de compra ao terceiro gerado da OS e a comissão separada desse serviço.
+  - Opção: Só a conta a pagar — Segue a D-TERCEIRO como está, sem pedido de compra e sem comissão separada.
+  - Opção: Pedido de compra da OS — A OS gera o pedido de compra ao terceiro, como no MRPeasy e no Tekla, e a conta a pagar nasce dele.
+  - Destrava: P-090
