@@ -95,7 +95,7 @@ export interface SaleRow {
 }
 
 /** P-032 — "Devolvida" ou "Devolução parcial · 2 de 3" (quantidades somadas das linhas). */
-export function rotuloDevolucao(d: { devolvida: number; vendida: number; total: boolean } | null | undefined): string | null {
+function rotuloDevolucao(d: { devolvida: number; vendida: number; total: boolean } | null | undefined): string | null {
   if (!d || d.devolvida <= 0) return null;
   if (d.total) return 'Devolvida';
   const fmt = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
