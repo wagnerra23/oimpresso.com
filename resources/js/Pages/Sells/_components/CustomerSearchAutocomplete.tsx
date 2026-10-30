@@ -45,6 +45,8 @@ export interface CustomerSearchResult {
   pay_term_number?: number | string | null;
   /** Tipo prazo — 'days' | 'months'. */
   pay_term_type?: 'days' | 'months' | string | null;
+  /** P-026 — sinal mínimo do cliente (%) para liberar a produção; null = segue a empresa. */
+  sinal_minimo_pct?: number | string | null;
   /** Endereço entrega — pré-fill no campo shipping. */
   shipping_address?: string | null;
   /** ADR 0251 — veículos do cliente (catálogo OficinaAuto), pro seletor na venda. */

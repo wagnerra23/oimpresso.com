@@ -18,8 +18,9 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  * venda de origem (`transaction_payments`, troco descontado) alcança esse percentual do
  * `final_total`. Desligada, nada muda.
  *
- * O cliente pode ter a condição própria (`contacts.sinal_minimo_pct`, P-025): preenchida, vale no
- * lugar da da empresa, e 0 dispensa o sinal daquele cliente. Vazia, vale a da empresa.
+ * O cliente pode ter a condição própria (`contacts.sinal_minimo_pct`, P-025) e a venda a dela
+ * (`transactions.sinal_minimo_pct`, P-026 — o vendedor trocou o que veio do cliente). Vale a da
+ * venda, senão a do cliente, senão a da empresa; 0 dispensa o sinal.
  *
  * Só LÊ valor: nada é gravado em dinheiro. A conta é feita no MySQL em DECIMAL (sem float):
  * exigido = ROUND(final_total × % / 100, 2); pago = soma das entradas − troco.
@@ -30,9 +31,9 @@ final class SinalDaOrdem
     public function __construct(private readonly RegrasDaEmpresa $regras) {}
 
     /**
-     * Percentual exigido, ou nulo sem sinal. Com a venda, vale a condição do cliente dela quando
-     * existe (0 = cliente dispensado); sem condição própria, a da empresa. Tier 0: venda e cliente
-     * lidos pela `$businessId`.
+     * Percentual exigido, ou nulo sem sinal. Com a venda, vale o sinal gravado nela; sem ele, a
+     * condição do cliente dela; sem as duas, a da empresa. 0 = dispensado. Tier 0: venda e
+     * cliente lidos pela `$businessId`.
      */
     public function minimo(int $businessId, ?int $transactionId = null): ?string
     {
@@ -44,18 +45,25 @@ final class SinalDaOrdem
         return $this->regras->sinalMinimo($businessId);
     }
 
-    /** Condição própria do cliente da venda (texto decimal), ou nula. */
+    /** Sinal gravado na venda (P-026) ou, sem ele, a condição do cliente dela (P-025); texto decimal ou nulo. */
     private function doCliente(int $businessId, int $transactionId): ?string
     {
-        if (! Schema::hasColumn('contacts', 'sinal_minimo_pct')) {
+        $daVenda = Schema::hasColumn('transactions', 'sinal_minimo_pct');
+        $doCliente = Schema::hasColumn('contacts', 'sinal_minimo_pct');
+        if (! $daVenda && ! $doCliente) {
             return null;
         }
-        $v = DB::table('transactions as t')
-            ->join('contacts as c', function ($j) {
+        $q = DB::table('transactions as t')->where('t.id', $transactionId)->where('t.business_id', $businessId);
+        if ($doCliente) {
+            $q->leftJoin('contacts as c', function ($j) {
                 $j->on('c.id', '=', 't.contact_id')->on('c.business_id', '=', 't.business_id');
-            })
-            ->where('t.id', $transactionId)->where('t.business_id', $businessId)
-            ->value('c.sinal_minimo_pct');
+            });
+        }
+        $linha = $q->first([
+            $daVenda ? 't.sinal_minimo_pct as venda' : DB::raw('NULL as venda'),
+            $doCliente ? 'c.sinal_minimo_pct as cliente' : DB::raw('NULL as cliente'),
+        ]);
+        $v = $linha?->venda ?? $linha?->cliente;
 
         return $v === null ? null : (string) $v;
     }

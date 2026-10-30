@@ -147,6 +147,7 @@ const COLLAPSED_FIELD_KEYS = [
   'document',
   'pay_term_number',
   'pay_term_type',
+  'sinal_minimo_pct',
   'price_group_id',
   'commission_agent_id',
   'tax_rate_id',
@@ -212,6 +213,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     invoice_no: '',
     pay_term_number: '' as string | number,
     pay_term_type: 'days' as 'days' | 'months',
+    // P-026 — sinal mínimo (%) para liberar a produção; vem do cliente e o vendedor pode trocar.
+    // Vazio = segue o cliente/empresa (SinalDaOrdem::minimo).
+    sinal_minimo_pct: '' as string,
     price_group_id: props.defaultPriceGroupId,
     commission_agent_id: null as number | null,
     tax_rate_id: null as number | null,
@@ -521,6 +525,13 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     if (c.pay_term_type === 'days' || c.pay_term_type === 'months') {
       setData('pay_term_type', c.pay_term_type);
     }
+    // P-026 — o sinal do cliente preenche a venda; trocar de cliente troca o sinal.
+    setData(
+      'sinal_minimo_pct',
+      c.sinal_minimo_pct !== null && c.sinal_minimo_pct !== undefined && c.sinal_minimo_pct !== ''
+        ? String(Number(c.sinal_minimo_pct)).replace('.', ',')
+        : '',
+    );
     // Shipping address — `data.shipping.address` é nested. Usa spread pra preservar
     // outros campos (details, cost, status, deliver_to) que user pode ter editado.
     if (c.shipping_address && c.shipping_address !== '') {
@@ -544,6 +555,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     setData('contact_id', props.walkInCustomer.id);
     setData('pay_term_number', '');
     setData('pay_term_type', 'days');
+    setData('sinal_minimo_pct', '');
     // ADR 0251 — sem cliente, não há catálogo de veículos.
     setCustomerVehicles([]);
     setData('vehicle_id', null);
@@ -707,6 +719,13 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       payment: d.payments,
       commission_agent: d.commission_agent_id,
       price_group: d.price_group_id,
+      // P-026 — "50,5" → 50.5 (2 casas); vazio → null (segue cliente/empresa).
+      sinal_minimo_pct: (() => {
+        const t = String(d.sinal_minimo_pct ?? '').trim().replace(',', '.');
+        if (t === '') return null;
+        const n = Number(t);
+        return Number.isFinite(n) ? Math.round(n * 100) / 100 : t;
+      })(),
       sale_note: d.notes,
       additional_notes: d.notes,
       // Paridade Edit — nota interna equipe + assinatura recorrente (Blade legacy).
@@ -1805,6 +1824,18 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="sinal_minimo_pct">Sinal para liberar a produção (%)</Label>
+              <Input
+                id="sinal_minimo_pct"
+                inputMode="decimal"
+                value={data.sinal_minimo_pct}
+                onChange={(e) => setData('sinal_minimo_pct', e.target.value.replace(/[^\d,.]/g, ''))}
+                placeholder="o do cliente ou da empresa"
+              />
+              <FieldError message={errors.sinal_minimo_pct as string | undefined} />
             </div>
 
             {hasCommissionAgent && (
