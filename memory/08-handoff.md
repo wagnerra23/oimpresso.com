@@ -1,5 +1,7 @@
 # 08 — Handoff (índice)
 
+- [2026-10-30 — Venda V3: fechamento da onda 2 preparado](handoffs/2026-10-30-venda-v3-fechamento-onda2.md) (domínio isolado de imposto/despesas/ST/sinal/adiantamento/parcelas · 55 testes verdes · sem integração da Page · dependências da onda 1 e persistência do plano no Financeiro no RUNBOOK)
+
 - [2026-10-14 15:45 BRT — **Painel do produto: cores pendentes e o que falta na lista**](handoffs/2026-10-14-1545-painel-produto-cores-e-pendencias-lista.md) (#9354 #9357 #9373 #9386 #9397 mergeados e conferidos · FAZER: itens 1–3 decididos por [F] — imagem sem foto (painel + lista), botões e abas só no painel · paradas: faixa "Você veio de", Transferir, Gerar OP, WooCommerce na linha, Ctrl+K, casos.md desatualizado)
 
 - [2026-10-14 10:06 BRT — **Contratos da thread 01 e subida ao Cowork**](handoffs/2026-10-14-1006-contratos-thread01-e-subida-cowork.md) (contratos de telas-soltas e modulos-faltantes já estavam em main · errata dos 2 índices pedida ao Cowork #9353 · 14 recibos subidos ao projeto w e conferidos 14/14 #9361 · pendente: Cowork corrigir as provas home→dashboard-visao-geral e suporte→suporte-log)
