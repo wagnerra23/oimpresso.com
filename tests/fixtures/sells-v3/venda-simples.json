@@ -1,0 +1,55 @@
+{
+  "_leia": "Pedido único da prova dupla da V3 (UC-V380). O vitest prova que a V3 monta 'payload' a partir de 'entrada'; o Pest posta 'payload' em /pos (trocando os ids pelos do tenant 98) e compara com a mesma venda feita pelo payload do Create. Conta à mão: 3 × 19,90 − 10% = 53,73 · 2 × 50,00 = 100,00 · subtotal 153,73 − 5,00 + frete 7,50 = 156,23.",
+  "entrada": {
+    "locationId": 900,
+    "contactId": 800,
+    "transactionDate": "30/10/2026 10:00",
+    "descTipo": "fixo",
+    "descVal": "5,00",
+    "acr": "0,00",
+    "frete": "7,50",
+    "pagamentos": [{ "m": "Dinheiro", "v": "156,23" }],
+    "itens": [
+      { "productId": 101, "variationId": 201, "nome": "Produto A", "sku": "A-1", "qtd": "3", "preco": "19,90", "desc": "10", "acr": "0", "enableStock": true, "tipoProduto": "single" },
+      { "productId": 102, "variationId": 202, "nome": "Produto B", "sku": "B-1", "qtd": "2", "preco": "50,00", "desc": "0", "acr": "0", "enableStock": true, "tipoProduto": "single" }
+    ]
+  },
+  "total": 156.23,
+  "payload": {
+    "location_id": 900,
+    "contact_id": 800,
+    "transaction_date": "30/10/2026 10:00",
+    "status": "final",
+    "invoice_no": "",
+    "pay_term_number": "",
+    "pay_term_type": "days",
+    "sinal_minimo_pct": null,
+    "commission_agent": null,
+    "price_group": null,
+    "default_price_group": null,
+    "tax_rate_id": null,
+    "vehicle_id": null,
+    "products": [
+      { "product_id": 101, "variation_id": 201, "name": "Produto A", "variation": null, "sku": "A-1", "quantity": 3, "unit_price": 19.9, "discount": 10, "discount_type": "percentage", "imei_number": "", "unit_price_inc_tax": 19.9, "item_tax": 0, "tax_id": null, "line_discount_type": "percentage", "line_discount_amount": 10, "enable_stock": 1, "product_type": "single" },
+      { "product_id": 102, "variation_id": 202, "name": "Produto B", "variation": null, "sku": "B-1", "quantity": 2, "unit_price": 50, "discount": 0, "discount_type": "percentage", "imei_number": "", "unit_price_inc_tax": 50, "item_tax": 0, "tax_id": null, "line_discount_type": "percentage", "line_discount_amount": 0, "enable_stock": 1, "product_type": "single" }
+    ],
+    "payment": [{ "amount": 156.23, "method": "cash", "paid_on": "", "account_id": null, "note": "" }],
+    "discount_type": "fixed",
+    "discount_amount": 5,
+    "rp_redeemed": 0,
+    "rp_redeemed_amount": "0.00",
+    "sale_note": "",
+    "additional_notes": "",
+    "staff_note": "",
+    "is_recurring": 0,
+    "customer_secondary_address": "",
+    "shipping_details": "",
+    "shipping_address": "",
+    "shipping_charges": 7.5,
+    "shipping_status": "",
+    "delivered_to": "",
+    "is_direct_sale": 1,
+    "is_save_and_print": 0,
+    "final_total": 156.23
+  }
+}

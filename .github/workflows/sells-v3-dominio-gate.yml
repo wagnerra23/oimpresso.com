@@ -61,6 +61,7 @@ on:
     paths:
       - 'resources/js/Pages/Sells/_components/v3/*-dominio.ts'
       - 'tests/js/*-dominio.test.ts'
+      - 'tests/fixtures/sells-v3/**'
       # o grid consome o domínio de colunas, então a prova dele é de RENDER, não de
       # domínio — e o arquivo SOB TESTE entra no gatilho junto: sem a Page aqui,
       # mexer no grid não acorda a lane que o defende (gate mudo com cara de cobertura).
@@ -107,6 +108,7 @@ on:
     paths:
       - 'resources/js/Pages/Sells/_components/v3/*-dominio.ts'
       - 'tests/js/*-dominio.test.ts'
+      - 'tests/fixtures/sells-v3/**'
       # o grid consome o domínio de colunas, então a prova dele é de RENDER, não de
       # domínio — e o arquivo SOB TESTE entra no gatilho junto: sem a Page aqui,
       # mexer no grid não acorda a lane que o defende (gate mudo com cara de cobertura).
@@ -224,6 +226,7 @@ jobs:
             tests/js/sells-subtipo-venda.test.ts \
             tests/js/sells-busca-preco-grupo.test.tsx \
             tests/js/sells-reparo-venda.test.ts \
+            tests/js/gravacao-dominio.test.ts \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml
