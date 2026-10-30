@@ -1,7 +1,7 @@
 {
-  "measured_against_sha": "434bd1e7",
+  "measured_against_sha": "40d2c8c49c",
   "generated_by": "reuse-index.mjs --write-baseline",
-  "count": 17,
+  "count": 18,
   "keys": [
     "component:Avatar",
     "component:Caixa",
@@ -19,6 +19,7 @@
     "util:brl",
     "util:cn",
     "util:lsGet",
-    "util:lsSet"
+    "util:lsSet",
+    "util:precoDaBusca"
   ]
 }

@@ -5,10 +5,8 @@
 // filtra por `contacts.business_id` da sessão (ContactController@getCustomers, ADR 0093).
 // Aqui mora só a tradução da resposta e o que a troca de cliente impede de gravar.
 //
-// ⚠️ VALOR: este grupo NÃO reprecifica. O Create, ao escolher um cliente com
-// `selling_price_group_id`, refaz o preço das linhas (`handlePriceGroupChange`). A V3 ainda
-// não aplica tabela de preço (grupo 3b, `[V0]`), então cliente com tabela RECUSA a gravação
-// com motivo — gravar pelo preço padrão seria gravar outro valor que o Create gravaria.
+// ⚠️ VALOR: daqui sai só o `grupoPrecoId` do cliente. Quem reprecifica as linhas por ele é a
+// Page, pela regra do Create (`tabela-preco-dominio.ts`, UC-V398).
 
 import type { ClienteConsulta } from './cliente-consulta-dominio';
 import type { PrazoDoCliente } from './config-business-dominio';
@@ -40,8 +38,6 @@ export type ClienteDaGravacao = {
   /** `contacts.sinal_minimo_pct` — o Create preenche a venda com ele; '' = sem sinal. */
   sinal: string;
 };
-
-export const TABELA_NAO_APLICADA = 'Tabela do cadastro — ainda não aplicada pela V3';
 
 const vazio = (v: unknown): boolean => v === null || v === undefined || String(v).trim() === '';
 const ou = (v: string | null | undefined, padrao = '—'): string => (vazio(v) ? padrao : String(v).trim());
@@ -82,24 +78,13 @@ export function clienteDaBusca(c: ClienteDaBusca): ClienteDaGravacao {
       uf: ou(c.state),
       grupo: '—',
       prazo: vazio(c.pay_term_number) || !tipo ? 'À vista' : `${c.pay_term_number} ${tipo === 'days' ? 'dias' : 'meses'}`,
-      // Só o rótulo: a tabela não entra em preço nenhum aqui (o card "Tabela de preço" mostra).
-      tabela: temTabela ? `${TABELA_NAO_APLICADA} (#${grupo})` : null,
+      // O nome da tabela é a Page que dá (ela tem a lista); aqui a consulta só sabe o id.
+      tabela: null,
     },
     prazo: { numero: vazio(c.pay_term_number) ? null : c.pay_term_number ?? null, tipo },
     grupoPrecoId: temTabela ? grupo : null,
     sinal: vazio(c.sinal_minimo_pct) ? '' : String(Number(c.sinal_minimo_pct)),
   };
-}
-
-/**
- * Motivo para não gravar com este cliente, ou null.
- * Cliente com tabela de preço: o Create reprecificaria as linhas por ela, e a V3 ainda não
- * aplica tabela (grupo 3b). Gravar assim sairia com o preço padrão — outro valor.
- */
-export function bloqueioDoCliente(cliente: Pick<ClienteDaGravacao, 'grupoPrecoId'>): string | null {
-  return cliente.grupoPrecoId !== null
-    ? 'Este cliente tem tabela de preço, e a V3 ainda não aplica tabela — grave pela tela de venda.'
-    : null;
 }
 
 /**
