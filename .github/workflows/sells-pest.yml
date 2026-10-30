@@ -31,6 +31,7 @@ on:
     branches: [main]
     paths:
       - 'tests/Feature/Sells/**'
+      - 'tests/fixtures/sells-v3/**'  # fixture da prova dupla da V3 (UC-V380)
       - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
       - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
@@ -227,6 +228,7 @@ jobs:
           filters: |
             sells:
               - 'tests/Feature/Sells/**'
+              - 'tests/fixtures/sells-v3/**'  # fixture da prova dupla da V3 (UC-V380)
               - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
               - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
@@ -603,6 +605,7 @@ jobs:
             tests/Feature/Sells/AppPagamentosApiContratoTest.php \
             tests/Feature/Sells/AppPagamentosEscritaContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
+            tests/Feature/Sells/SellsCreateV3GravarContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
             tests/Feature/Sells/SellsCaixaContratoTest.php \

@@ -113,6 +113,40 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 
 ---
 
+## UC-V380 · A venda da V3 grava pelo payload do Create, com o mesmo total, linhas, pagamento e estoque
+
+**Status:** 🧪 — testes escritos, sem veredito no manifesto do G-7 ainda.
+
+> Este PR traz o domínio e a prova. O botão **Gravar venda** e a flag `useV3SellsGravar` que o liga entram no PR seguinte (UC-V382); até lá a tela não posta nada.
+
+- **Dado** uma venda nova, final, com 3 × 19,90 (10% de desconto na linha) + 2 × 50,00, desconto de R$ 5,00, frete de R$ 7,50 e R$ 156,23 em dinheiro,
+- **Quando** o operador clica em **Gravar venda**,
+- **Então** a tela posta em `/pos` o payload no formato do `transform()` do `Sells/Create.tsx`, e o store grava `final_total` 156,23, frete 7,50, desconto 5,00, pagamento 156,23 (`paid`) e baixa 3 e 2 do estoque — **igual**, campo a campo, à mesma venda feita pelo payload do Create.
+
+Prova em duas metades que dividem uma fixture (`tests/fixtures/sells-v3/venda-simples.json`):
+`tests/js/gravacao-dominio.test.ts` prova que a tela monta aquele payload e que o total bate com a
+fórmula do `totalGeral` do Create em mais dois pedidos; `tests/Feature/Sells/SellsCreateV3GravarContratoTest.php`
+posta o payload em `/pos` (tenant 98) e compara com a venda do Create.
+
+⚠️ O servidor **não recalcula** o `final_total`: `TransactionUtil::createSellTransaction` grava o que
+recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem os 18% de imposto da cena.
+
+## UC-V381 · O que o store não sabe gravar é recusado com motivo, não descartado
+
+**Status:** 🧪 — mesmo arquivo de teste, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** a venda tem acréscimo (na linha ou na venda), pagamento em PIX ou boleto, item que não veio do cadastro ou nenhum item,
+- **Então** a tela não posta e diz o motivo (ex.: *"PIX ainda não é gravado — use Dinheiro ou Cartão."*). Venda sem pagamento vai com a linha zerada, como o Create faz (venda a prazo).
+
+### O que a gravação ainda não cobre (fica para os próximos PRs)
+
+Edição, pipeline FSM real, venda de reparo, orçamento/rascunho, parcelas, comissão, entrega,
+imposto do pedido, acréscimo, PIX/boleto/TEF, tabela de preço, troca de cliente e local, permissões
+Spatie e `pos_settings` — a lista completa segue em "Paridade para substituir Create e Edit".
+
+---
+
 ## Parcelas — onda 3 (`ParcelasDrawer` · CU-SELL-09)
 
 > ⚠️ **Território Tier 0 — VALOR.** Diferente da onda 2 (que só derivava peso), esta onda
