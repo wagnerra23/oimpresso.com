@@ -25,6 +25,8 @@ charter_version: 2
 Ensaiar o redesenho do cadastro de venda **sem tocar na tela que o cliente opera**.
 
 > **Destino — decisão [W] 2026-10-30, textual: *"Sim, absorve as duas"*.** A V3 vai substituir a `Sells/Create.tsx` e a `Sells/Edit.tsx`. Primeiro o protótipo ganha o que a produção faz (FSM real, cabeçalho, itens, fechamento, edição); depois o código; a troca segue o MWART F5. Até lá, tudo abaixo continua valendo: a tela não grava e não toca a tela viva.
+>
+> **Exceção, só com a flag `useV3SellsGravar` ligada (desligada por padrão; ligar é decisão [W]):** a tela grava venda nova pelo store que já existe (`POST /pos`, o mesmo do `Create.tsx`) — UC-V380/V382. Continua sem tocar a tela viva: nenhum arquivo do `Create.tsx` muda (UC-V303) e o controller da V3 segue sem rota de escrita (UC-V302). A declaração do [L] de 2026-08-31 (estoque e financeiro bloqueados, ligação depois) está levada ao [W] no PR que trouxe a flag.
 
 A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVRE** (`business_id=4` — Larissa dona, Guilherme retaguarda), 99% do volume de vendas. Restrição de negócio declarada por [L] em 2026-08-06, textual:
 
@@ -87,6 +89,12 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
   > que o caso normal não se move — detalhe em [`CreateV3.casos.md`](CreateV3.casos.md).
 
 - ❌ **Não grava.** Sem `store()`, sem POST, sem rota de escrita, sem migration. _(Este segue intacto e é o que sustenta o item acima.)_
+
+  > **Atualização 2026-10-30 — com a flag `useV3SellsGravar` ligada, grava.** A decisão [W] de
+  > substituir Create e Edit pede isso. A gravação é pelo store de produção (`POST /pos`), nunca
+  > por rota deste controller (UC-V302 segue verdadeiro), e o total postado vira autoridade — por
+  > isso nasce com a prova dupla do UC-V380. Desligada (o padrão), este Non-Goal vale como antes.
+  > Ligar é decisão [W].
 - ❌ **Não substitui `/pos/create`.** Não há cutover previsto (RUNBOOK §F5).
 - _pendente [W]/[L]_ — demais Non-Goals.
 

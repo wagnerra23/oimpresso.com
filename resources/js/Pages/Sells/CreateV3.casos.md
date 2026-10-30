@@ -75,13 +75,19 @@ não "a rota está registrada" ([§5](../../../../memory/proibicoes.md), 2026-07
 
 ---
 
-## UC-V302 · A tela não grava — nenhuma rota de escrita aponta pro controller do preview
+## UC-V302 · Nenhuma rota de escrita aponta pro controller do preview
 
 **Status:** ✅ — verde no mesmo [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574), veredito no manifesto do G-7.
 
 - **Dado** que o preview existe para ensaiar desenho, não para vender,
 - **Quando** se enumeram todas as rotas cujo controller é `SellsV3Controller`,
 - **Então** nenhuma delas aceita `POST`, `PUT`, `PATCH` ou `DELETE`, e o controller não declara `store()`, `update()` nem `destroy()`.
+
+> **Atualização 2026-10-30 (UC-V380).** O título dizia *"A tela não grava"*. Com a flag
+> `useV3SellsGravar` ligada a tela passa a gravar — **pelo store que já existe** (`POST /pos`,
+> `SellPosController@store`), nunca por rota deste controller. O que o teste prova continua
+> verdadeiro e foi o que ficou no título: o controller do preview não tem rota de escrita nem
+> `store()`. Com a flag desligada (o padrão) a tela segue sem gravar, como antes.
 
 Anti-vácuo: o teste primeiro prova que o controller **está roteado** — sem isso, "zero rotas de
 escrita" também seria verdade num mundo onde o controller não existe.
@@ -117,9 +123,7 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 
 **Status:** 🧪 — testes escritos, sem veredito no manifesto do G-7 ainda.
 
-> Este PR traz o domínio e a prova. O botão **Gravar venda** e a flag `useV3SellsGravar` que o liga entram no PR seguinte (UC-V382); até lá a tela não posta nada.
-
-- **Dado** uma venda nova, final, com 3 × 19,90 (10% de desconto na linha) + 2 × 50,00, desconto de 5,00, frete de 7,50 e 156,23 em dinheiro (vetor de teste sintético),
+- **Dado** a flag `useV3SellsGravar` ligada e uma venda nova, final, com 3 × 19,90 (10% de desconto na linha) + 2 × 50,00, desconto de 5,00, frete de 7,50 e 156,23 em dinheiro (vetor de teste sintético),
 - **Quando** o operador clica em **Gravar venda**,
 - **Então** a tela posta em `/pos` o payload no formato do `transform()` do `Sells/Create.tsx`, e o store grava `final_total` 156,23, frete 7,50, desconto 5,00, pagamento 156,23 (`paid`) e baixa 3 e 2 do estoque — **igual**, campo a campo, à mesma venda feita pelo payload do Create.
 
@@ -138,6 +142,13 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 - **Dado** a gravação ligada,
 - **Quando** a venda tem acréscimo (na linha ou na venda), pagamento em PIX ou boleto, item que não veio do cadastro ou nenhum item,
 - **Então** a tela não posta e diz o motivo (ex.: *"PIX ainda não é gravado — use Dinheiro ou Cartão."*). Venda sem pagamento vai com a linha zerada, como o Create faz (venda a prazo).
+
+## UC-V382 · A flag decide; ligada, o local e o cliente são da empresa do usuário
+
+**Status:** 🧪 — `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a flag desligada, **então** a tela é o preview de sempre: sem a prop `gravacao`.
+- **Dado** a flag ligada, **então** vêm `gravacao.locationId` (de `BusinessLocation::forDropdown`, que respeita os locais permitidos) e `gravacao.contactId` (o cliente padrão da empresa), os dois do mesmo `business_id` da sessão; os itens e o catálogo de cena somem e a busca passa a ser `/products/list`.
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
