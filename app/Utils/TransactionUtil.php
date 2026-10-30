@@ -300,6 +300,8 @@ class TransactionUtil extends Util
         $modifiers_formatted = [];
         $combo_lines = [];
         $products_modified_combo = [];
+        //Tier 0 (ADR 0093): linha de pedido e linha editada só valem se forem desta empresa
+        $business_id = is_object($transaction) ? $transaction->business_id : Transaction::where('id', $transaction)->value('business_id');
         foreach ($products as $product) {
             $multiplier = 1;
             if (isset($product['sub_unit_id']) && $product['sub_unit_id'] == $product['product_unit_id']) {
@@ -312,7 +314,7 @@ class TransactionUtil extends Util
 
             //Check if transaction_sell_lines_id is set, used when editing.
             if (! empty($product['transaction_sell_lines_id'])) {
-                $edit_id_temp = $this->editSellLine($product, $location_id, $status_before, $multiplier, $uf_data);
+                $edit_id_temp = $this->editSellLine($product, $location_id, $status_before, $multiplier, $uf_data, $business_id);
                 $edit_ids = array_merge($edit_ids, $edit_id_temp);
 
                 //update or create modifiers for existing sell lines
@@ -320,7 +322,7 @@ class TransactionUtil extends Util
                     if (! empty($product['modifier'])) {
                         foreach ($product['modifier'] as $key => $value) {
                             if (! empty($product['modifier_sell_line_id'][$key])) {
-                                $edit_modifier = TransactionSellLine::find($product['modifier_sell_line_id'][$key]);
+                                $edit_modifier = $this->sellLineDoNegocio($product['modifier_sell_line_id'][$key], $business_id);
                                 $edit_modifier->quantity = isset($product['modifier_quantity'][$key]) ? $product['modifier_quantity'][$key] : 1;
                                 $modifiers_formatted[] = $edit_modifier;
                                 //Dont delete modifier sell line if exists
@@ -390,7 +392,7 @@ class TransactionUtil extends Util
                     'discount_id' => ! empty($product['discount_id']) ? $product['discount_id'] : null,
                     'res_service_staff_id' => ! empty($product['res_service_staff_id']) ? $product['res_service_staff_id'] : null,
                     'res_line_order_status' => ! empty($product['res_service_staff_id']) ? 'received' : null,
-                    'so_line_id' => ! empty($product['so_line_id']) ? $product['so_line_id'] : null,
+                    'so_line_id' => ! empty($product['so_line_id']) ? $this->salesOrderLineIdDoNegocio($product['so_line_id'], $business_id) : null,
                     'secondary_unit_quantity' => ! empty($product['secondary_unit_quantity']) ? $this->num_uf($product['secondary_unit_quantity']) : 0,
                 ];
 
@@ -499,6 +501,28 @@ class TransactionUtil extends Util
         return true;
     }
 
+    /**
+     * Linha de venda pelo id, só se a venda dela for da empresa informada.
+     * O id vem do formulário; sem esta conferência, um id de outra empresa editava a linha dela.
+     */
+    private function sellLineDoNegocio($sell_line_id, $business_id)
+    {
+        return TransactionSellLine::where('id', $sell_line_id)
+            ->whereIn('transaction_id', DB::table('transactions')->select('id')->where('business_id', $business_id))
+            ->firstOrFail();
+    }
+
+    /**
+     * Id da linha de pedido de venda, só se o pedido for da empresa informada; senão null.
+     * Sem esta conferência, faturar com o id de outra empresa mudava a quantidade faturada do pedido dela.
+     */
+    private function salesOrderLineIdDoNegocio($so_line_id, $business_id)
+    {
+        return TransactionSellLine::where('id', $so_line_id)
+            ->whereIn('transaction_id', DB::table('transactions')->select('id')->where('business_id', $business_id)->where('type', 'sales_order'))
+            ->value('id');
+    }
+
     private function updateSalesOrderLine($so_line_id, $new_qty, $old_qty = 0)
     {
         $diff = $new_qty - $old_qty;
@@ -561,11 +585,19 @@ class TransactionUtil extends Util
      * @param  int  $location_id
      * @return bool
      */
-    public function editSellLine($product, $location_id, $status_before, $multiplier = 1, $uf_data = true)
+    public function editSellLine($product, $location_id, $status_before, $multiplier = 1, $uf_data = true, $business_id = null)
     {
         //Get the old order quantity
         $sell_line = TransactionSellLine::with(['product', 'warranties'])
                     ->find($product['transaction_sell_lines_id']);
+        //Tier 0: linha de venda de outra empresa não é editada (404)
+        if ($business_id !== null && ! DB::table('transaction_sell_lines as l')
+            ->join('transactions as t', 't.id', '=', 'l.transaction_id')
+            ->where('l.id', $product['transaction_sell_lines_id'])
+            ->where('t.business_id', $business_id)
+            ->exists()) {
+            abort(404);
+        }
 
         $old_qty = $sell_line->quantity;
         $edit_ids[] = $product['transaction_sell_lines_id'];
