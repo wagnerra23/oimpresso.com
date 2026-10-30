@@ -39,6 +39,16 @@ class ImportRegrasCsvService
         'aliquota_icms', 'aliquota_pis', 'aliquota_cofins', 'aliquota_ipi',
     ];
 
+    /**
+     * Colunas opcionais (P-155 / thread 25). Ausentes do cabeçalho = comportamento de antes, byte a
+     * byte: a linha não carrega o campo e a chave de idempotência continua sem regime.
+     *   - `crt`          1 (Simples) · 2 · 3 (Regime Normal) — entra na CHAVE quando presente: o
+     *                    mesmo NCM pode ter uma regra por regime (empresa com dois locais emissores)
+     *   - `reducao_base` fração reduzida da base do ICMS (0.6111 = 61,11%, CST 20)
+     *   - `mva`          fração da MVA do ST (0.623 = 62,3%)
+     */
+    public const COLUNAS_OPCIONAIS = ['crt', 'reducao_base', 'mva'];
+
     private const UFS_VALIDAS = [
         'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
         'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
@@ -136,6 +146,9 @@ class ImportRegrasCsvService
                             ? $q->whereNull('uf_destino')
                             : $q->where('uf_destino', $linha['uf_destino']);
                     })
+                    ->when(array_key_exists('crt', $linha), fn ($q) => $linha['crt'] === null
+                        ? $q->whereNull('crt')
+                        : $q->where('crt', $linha['crt']))
                     ->first();
 
                 // Thread 15a: as versões que este lote cria/edita entram na revisão do contador
@@ -188,6 +201,18 @@ class ImportRegrasCsvService
             }
         }
 
+        if (($row['crt'] ?? '') !== '' && ! in_array((string) $row['crt'], ['1', '2', '3'], true)) {
+            return 'CRT deve ser 1 (Simples), 2 ou 3 (Regime Normal)';
+        }
+        foreach (['reducao_base' => 1, 'mva' => 5] as $field => $teto) {
+            if (($row[$field] ?? '') === '') {
+                continue;
+            }
+            if (! is_numeric($row[$field]) || (float) $row[$field] < 0 || (float) $row[$field] >= $teto) {
+                return "{$field} deve ser fração (ex: 0.6111 = 61,11%)";
+            }
+        }
+
         return null;
     }
 
@@ -204,6 +229,20 @@ class ImportRegrasCsvService
             'aliquota_pis'    => (float) $row['aliquota_pis'],
             'aliquota_cofins' => (float) $row['aliquota_cofins'],
             'aliquota_ipi'    => (float) $row['aliquota_ipi'],
-        ];
+        ] + $this->opcionais($row);
+    }
+
+    /** Só as colunas opcionais que vieram no cabeçalho; vazio = nulo. */
+    private function opcionais(array $row): array
+    {
+        $saida = [];
+        foreach (self::COLUNAS_OPCIONAIS as $field) {
+            if (array_key_exists($field, $row)) {
+                $saida[$field] = $row[$field] === '' ? null
+                    : ($field === 'crt' ? (int) $row[$field] : (float) $row[$field]);
+            }
+        }
+
+        return $saida;
     }
 }

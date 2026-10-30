@@ -122,6 +122,7 @@ class NfeBrasilServiceProvider extends ServiceProvider
             \Modules\NfeBrasil\Console\Commands\NfeHealthCommand::class,
             \Modules\NfeBrasil\Console\Commands\RetentarContingenciaCommand::class,
             \Modules\NfeBrasil\Console\Commands\EnviarXmlContadorCommand::class,
+            \Modules\NfeBrasil\Console\Commands\ImportarRegrasCsvCommand::class,
         ]);
     }
 

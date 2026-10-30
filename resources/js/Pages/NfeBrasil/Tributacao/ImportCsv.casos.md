@@ -38,6 +38,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-02 | Aplicar sem preview não grava nada | must `[V0]` | SDD `CU-NFE-07` item 2 | `TributacaoGatesContratoTest` | 🧪 |
 | UC-NFIM-03 | Aplicar exige a permissão fiscal | must `[T0]` `[V0]` | charter §Backend · US-NFE-010 | `TributacaoGatesContratoTest` | 🧪 |
 | UC-NFIM-04 | O que foi conferido num tenant não pode ser gravado noutro | must `[T0]` `[V0]` | ADR 0093 · charter §Non-Goals | `TributacaoGatesContratoTest` | 🧪 (verde no CT 100 em 2026-10-06; sem veredito de lane) |
+| UC-NFIM-05 | Mesmo NCM, uma regra por regime (coluna `crt`) com redução de base | must `[V0]` | P-155 · R-NFE-030 · SDD `CU-NFE-07` | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
+| UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
@@ -141,6 +143,35 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   não ✅, porque o arquivo de teste ainda não está na allowlist da lane. SDD §5.3 F8 e §9 R2
   reconciliados no mesmo PR. (Até 2026-10-06 este status era `❌ esperado`; o parágrafo "Por que
   nasce ❌" acima é o retrato de antes.)
+
+---
+
+## UC-NFIM-05 · Mesmo NCM, uma regra por regime, com redução de base · `must` `[V0]`
+
+- **Persona:** empresa com dois locais emissores de regimes diferentes (Sabor Brasil: um CNPJ no
+  Regime Normal, outro no Simples) importando as regras do mesmo produto.
+- **Aceite:** Dado um CSV com as colunas opcionais `crt`, `reducao_base` e `mva` · Quando o mesmo NCM
+  vem duas vezes, uma com `crt=3` e outra com `crt=1` · Então ficam **duas** regras, e o motor do
+  local de cada regime usa a sua: NCM 07129090, valor 1.000,00 → Normal CST 20, base 388,90, ICMS
+  70,00; Simples CSOSN 400, ICMS 0. CSV sem essas colunas segue como antes (chave sem regime).
+- **Teste:** [`ImportRegrasLegadoSaborBrasilTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php)
+  — os dois `UC-NFIM-05 · …`.
+- **Contrato:** P-155 (regime por local emissor) + R-NFE-030 (redução de base). Os números vêm do
+  Delphi do cliente por dois caminhos: a configuração (redução 61,11% e 33,33%, ICMS 18%) e as
+  notas emitidas desde 2024 (base ÷ valor = 0,3889 em 689 itens CST 20 e 0,6667 em 444 itens CST 10).
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
+## UC-NFIM-06 · Carga do legado por arquivo, com conferência antes · `must` `[V0]`
+
+- **Persona:** quem migra um cliente legado e precisa carregar as regras dele sem tela, de um
+  arquivo versionado no git (`scripts/legacy-migration/data/`).
+- **Aceite:** Dado o CSV gerado do Firebird · Quando rodo `php artisan nfe:importar-regras-csv
+  <business> <arquivo>` · Então vejo a regra de hoje e a que ficaria, linha a linha, e **nada** é
+  gravado. Com `--apply` as regras entram, numa transação; rodar de novo dá `criadas 0 · atualizadas
+  8` e nenhuma regra aparece em outro business.
+- **Teste:** [`ImportRegrasLegadoSaborBrasilTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php)
+  — os dois `UC-NFIM-06 · …`.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
 
 ---
 

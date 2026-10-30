@@ -108,6 +108,23 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
   const algumaQuantidade = quantidades.some((q) => numUf(q) > 0);
   const podeSalvar = algumaQuantidade && erros.every((e) => e === null) && !salvando;
 
+  // P-038 · UC-SRADD-08: o campo "Devolver" é ACUMULADO (a devolução da venda é uma só e o
+  // store() a atualiza). "Devolver tudo" põe a vendida em cada linha; o que volta agora é o
+  // total novo menos o já devolvido. Nenhuma conta nova: as duas somas são calcularTotais().
+  const totaisJaDevolvidos = useMemo(
+    () =>
+      calcularTotais(
+        venda.linhas.map((l) => ({ quantidade_txt: l.quantidade_devolvida_txt, preco_unitario_txt: l.preco_unitario_txt })),
+        descontoTipo,
+        descontoValor,
+        venda.imposto?.percentual ?? null,
+      ),
+    [venda, descontoTipo, descontoValor],
+  );
+  const jaDevolveu = venda.linhas.some((l) => numUf(l.quantidade_devolvida_txt) > 0);
+  const tudoMarcado = venda.linhas.every((l, i) => numUf(quantidades[i] ?? '') === l.quantidade_vendida);
+  const devolverTudo = () => setQuantidades(venda.linhas.map((l) => l.quantidade_vendida_txt));
+
   const mudarQuantidade = (i: number, texto: string) => {
     const linha = venda.linhas[i];
     if (!linha) return;
@@ -201,6 +218,11 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
             </Stack>
           </Grid>
 
+          <Inline justify="end" className="mb-2">
+            <Button type="button" variant="outline" size="sm" onClick={devolverTudo} disabled={tudoMarcado} data-contract="devolver-tudo">
+              Devolver tudo
+            </Button>
+          </Inline>
           <div className="overflow-x-auto">
             <table className="w-full text-sm" aria-label="Itens da venda e quantidade a devolver">
               <thead>
@@ -208,6 +230,7 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                   <th className="py-2 pr-2">Produto</th>
                   <th className="py-2 pr-2 text-right">Preço unitário</th>
                   <th className="py-2 pr-2 text-right">Vendida</th>
+                  <th className="py-2 pr-2 text-right">Já devolvida</th>
                   <th className="py-2 pr-2">Devolver</th>
                   <th className="py-2 text-right">Subtotal</th>
                 </tr>
@@ -221,6 +244,7 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                     </td>
                     <td className="py-2 pr-2 text-right tabular-nums">{fmtBRL(numUf(l.preco_unitario_txt))}</td>
                     <td className="py-2 pr-2 text-right tabular-nums">{l.quantidade_vendida_txt} {l.unidade}</td>
+                    <td className="py-2 pr-2 text-right tabular-nums">{l.quantidade_devolvida_txt}</td>
                     <td className="w-40 py-2 pr-2">
                       <Input
                         inputMode="decimal"
@@ -268,6 +292,11 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
               (+) Imposto{venda.imposto ? ` (${venda.imposto.nome} · ${venda.imposto.percentual}%)` : ''}: {fmtBRL(totais.imposto)}
             </span>
             <strong className="text-base">Total devolvido: {fmtBRL(totais.total)}</strong>
+            {jaDevolveu && (
+              <span data-contract="volta-agora">
+                Já devolvido antes: {fmtBRL(totaisJaDevolvidos.total)} · Volta agora: {fmtBRL(totais.total - totaisJaDevolvidos.total)}
+              </span>
+            )}
           </Stack>
         </FormSection>
 
