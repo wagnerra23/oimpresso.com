@@ -252,7 +252,9 @@ window.SD = (() => {
     editarPrecoItem: true,
     descontoAcimaDaAlcada: false,
     usuario: 'wagner',
-    roles: ['vendas.criar', 'vendas.aprovar', 'producao.iniciar', 'expedicao.entregar', 'vendas.encerrar'],
+    /* Papéis do seeder FsmProcessoVendaComProducaoSeeder. A cena deixa de fora fiscal.emitir
+       de propósito, para a negação por papel (CU-SELL-21) aparecer na ação "Emitir NF-e". */
+    roles: ['vendas.criar', 'vendas.enviar', 'vendas.confirmar_aprovacao', 'vendas.gerente', 'producao.iniciar', 'producao.pausar', 'producao.concluir', 'financeiro.faturar', 'financeiro.baixar', 'logistica.entregar'],
   };
 
   const catalogo = [
@@ -264,25 +266,63 @@ window.SD = (() => {
   ];
 
   const vendas = [
-    { id: 4821, inv: 'VD-2026-4821', cliente: 'Prefeitura de Joinville', tipo: 'pj', data: '27/07/2026', total: 12480.0, pago: 0, pay: 'due', st: 'final', estagio: 'producao', nfe: 'autorizada', ret: false, venc: '26/08/2026', comiss: 'Kamila' },
-    { id: 4820, inv: 'VD-2026-4820', cliente: 'Rota Livre Comércio', tipo: 'pj', data: '27/07/2026', total: 3890.5, pago: 1890.5, pay: 'partial', st: 'final', estagio: 'faturada', nfe: 'autorizada', ret: true, venc: '24/08/2026', comiss: 'Guilherme' },
-    { id: 4819, inv: 'VD-2026-4819', cliente: 'Marina Bordignon', tipo: 'pf', data: '26/07/2026', total: 486.0, pago: 486.0, pay: 'paid', st: 'final', estagio: 'entregue', nfe: 'autorizada', ret: false, venc: '—', comiss: '—' },
-    { id: 4818, inv: 'VD-2026-4818', cliente: 'Consumidor final', tipo: 'pf', data: '26/07/2026', total: 137.8, pago: 137.8, pay: 'paid', st: 'final', estagio: 'entregue', nfe: 'nao_emitida', ret: false, venc: '—', comiss: '—' },
-    { id: 4817, inv: 'VD-2026-4817', cliente: 'Prefeitura de Joinville', tipo: 'pj', data: '22/07/2026', total: 8760.0, pago: 8760.0, pay: 'paid', st: 'final', estagio: 'entregue', nfe: 'autorizada', ret: true, venc: '—', comiss: 'Kamila' },
-    { id: 4816, inv: 'VD-2026-4816', cliente: 'Rota Livre Comércio', tipo: 'pj', data: '18/07/2026', total: 2145.0, pago: 0, pay: 'due', st: 'final', estagio: 'aprovada', nfe: 'pendente', ret: false, venc: '15/07/2026', comiss: 'Guilherme', atraso: true },
-    { id: 4815, inv: 'VD-2026-4815', cliente: 'Marina Bordignon', tipo: 'pf', data: '15/07/2026', total: 1290.0, pago: 645.0, pay: 'partial', st: 'final', estagio: 'producao', nfe: 'autorizada', ret: false, venc: '14/08/2026', comiss: '—' },
-    { id: 4814, inv: 'VD-2026-4814', cliente: 'Consumidor final', tipo: 'pf', data: '14/07/2026', total: 320.0, pago: 320.0, pay: 'paid', st: 'final', estagio: 'cancelada', nfe: 'cancelada', ret: false, venc: '—', comiss: '—' },
+    { id: 4821, inv: 'VD-2026-4821', cliente: 'Prefeitura de Joinville', tipo: 'pj', data: '27/07/2026', total: 12480.0, pago: 0, pay: 'due', st: 'final', estagio: 'in_production', nfe: 'autorizada', ret: false, venc: '26/08/2026', comiss: 'Kamila' },
+    { id: 4820, inv: 'VD-2026-4820', cliente: 'Rota Livre Comércio', tipo: 'pj', data: '27/07/2026', total: 3890.5, pago: 1890.5, pay: 'partial', st: 'final', estagio: 'invoiced', nfe: 'autorizada', ret: true, venc: '24/08/2026', comiss: 'Guilherme' },
+    { id: 4819, inv: 'VD-2026-4819', cliente: 'Marina Bordignon', tipo: 'pf', data: '26/07/2026', total: 486.0, pago: 486.0, pay: 'paid', st: 'final', estagio: 'delivered', nfe: 'autorizada', ret: false, venc: '—', comiss: '—' },
+    { id: 4818, inv: 'VD-2026-4818', cliente: 'Consumidor final', tipo: 'pf', data: '26/07/2026', total: 137.8, pago: 137.8, pay: 'paid', st: 'final', estagio: 'delivered', nfe: 'nao_emitida', ret: false, venc: '—', comiss: '—' },
+    { id: 4817, inv: 'VD-2026-4817', cliente: 'Prefeitura de Joinville', tipo: 'pj', data: '22/07/2026', total: 8760.0, pago: 8760.0, pay: 'paid', st: 'final', estagio: 'completed', nfe: 'autorizada', ret: true, venc: '—', comiss: 'Kamila' },
+    { id: 4816, inv: 'VD-2026-4816', cliente: 'Rota Livre Comércio', tipo: 'pj', data: '18/07/2026', total: 2145.0, pago: 0, pay: 'due', st: 'final', estagio: 'quote_approved', nfe: 'pendente', ret: false, venc: '15/07/2026', comiss: 'Guilherme', atraso: true },
+    { id: 4815, inv: 'VD-2026-4815', cliente: 'Marina Bordignon', tipo: 'pf', data: '15/07/2026', total: 1290.0, pago: 645.0, pay: 'partial', st: 'final', estagio: 'in_production', nfe: 'autorizada', ret: false, venc: '14/08/2026', comiss: '—' },
+    { id: 4814, inv: 'VD-2026-4814', cliente: 'Consumidor final', tipo: 'pf', data: '14/07/2026', total: 320.0, pago: 320.0, pay: 'paid', st: 'final', estagio: 'cancelled', nfe: 'cancelada', ret: false, venc: '—', comiss: '—' },
   ];
 
-  /* FSM — processo "Venda Com Produção" (ADR 0143) */
+  /* FSM — processo "Venda Com Produção" (ADR 0143), copiado do seeder
+     database/seeders/FsmProcessoVendaComProducaoSeeder.php: 11 etapas e 23 ações.
+     Chaves, rótulos, papéis e efeitos são os do seeder; o protótipo não inventa etapa.
+     `lateral` = etapa que sai do caminho principal e volta (em espera);
+     `terminal` = etapa sem ação de saída. */
   const fsm = [
-    { key: 'orcamento', l: 'Orçamento', acao: 'Aprovar orçamento', role: 'vendas.aprovar', efeitos: [] },
-    { key: 'aprovada', l: 'Aprovada', acao: 'Iniciar produção', role: 'producao.iniciar', efeitos: ['ReservarEstoque'] },
-    { key: 'producao', l: 'Em produção', acao: 'Faturar', role: 'financeiro.faturar', efeitos: ['ConsumirEstoque', 'BaixarFinanceiro'] },
-    { key: 'faturada', l: 'Faturada', acao: 'Entregar', role: 'expedicao.entregar', efeitos: [] },
-    { key: 'entregue', l: 'Entregue', acao: 'Encerrar', role: 'vendas.encerrar', efeitos: [] },
-    { key: 'cancelada', l: 'Cancelada', acao: null, role: null, efeitos: ['CancelarVendaCascade', 'LiberarReserva'] },
+    { key: 'quote_draft', l: 'Orçamento — rascunho' },
+    { key: 'quote_sent', l: 'Orçamento enviado' },
+    { key: 'quote_approved', l: 'Aprovado pelo cliente' },
+    { key: 'in_production', l: 'Em produção' },
+    { key: 'on_hold', l: 'Produção em espera', lateral: true },
+    { key: 'ready_for_invoice', l: 'Pronto pra faturar' },
+    { key: 'invoiced', l: 'Faturada' },
+    { key: 'paid', l: 'Paga' },
+    { key: 'delivered', l: 'Entregue' },
+    { key: 'completed', l: 'Concluída', terminal: true },
+    { key: 'cancelled', l: 'Cancelada', terminal: true },
   ];
+  /* 14 ações de avanço + `cancelar_venda` saindo das 9 etapas não terminais = 23.
+     `critica` = exige papel cadastrado (fail-secure, CU-SELL-21). `para: null` = ação que
+     não muda a etapa (Emitir NF-e grava o documento e a venda continua Faturada). */
+  const CANCELA = { key: 'cancelar_venda', l: 'Cancelar venda', para: 'cancelled', role: 'vendas.gerente', critica: true, efeitos: ['CancelarVendaCascade'] };
+  const acoesFsm = [
+    { de: 'quote_draft', key: 'enviar_orcamento', l: 'Enviar orçamento ao cliente', para: 'quote_sent', role: 'vendas.enviar', critica: false, efeitos: [] },
+    { de: 'quote_sent', key: 'cliente_aprovou', l: 'Cliente aprovou', para: 'quote_approved', role: 'vendas.confirmar_aprovacao', critica: true, efeitos: ['ReservarEstoque'] },
+    { de: 'quote_sent', key: 'cliente_rejeitou', l: 'Cliente rejeitou', para: 'cancelled', role: 'vendas.confirmar_aprovacao', critica: false, efeitos: [] },
+    { de: 'quote_approved', key: 'iniciar_producao', l: 'Iniciar produção', para: 'in_production', role: 'producao.iniciar', critica: true, efeitos: [] },
+    { de: 'quote_approved', key: 'reabrir_para_revisao', l: 'Reabrir para revisão', para: 'quote_sent', role: 'vendas.gerente', critica: true, efeitos: ['LiberarReserva'] },
+    { de: 'in_production', key: 'pausar_producao', l: 'Pausar produção', para: 'on_hold', role: 'producao.pausar', critica: false, efeitos: [] },
+    { de: 'on_hold', key: 'retomar_producao', l: 'Retomar produção', para: 'in_production', role: 'producao.iniciar', critica: false, efeitos: [] },
+    { de: 'in_production', key: 'concluir_producao', l: 'Concluir produção', para: 'ready_for_invoice', role: 'producao.concluir', critica: true, efeitos: ['ConsumirEstoque'] },
+    { de: 'ready_for_invoice', key: 'faturar', l: 'Faturar', para: 'invoiced', role: 'financeiro.faturar', critica: true, efeitos: [] },
+    { de: 'invoiced', key: 'emitir_nfe', l: 'Emitir NF-e', para: null, role: 'fiscal.emitir', critica: true, efeitos: [] },
+    { de: 'invoiced', key: 'entregar', l: 'Entregar ao cliente', para: 'delivered', role: 'logistica.entregar', critica: false, efeitos: [] },
+    { de: 'invoiced', key: 'marcar_pago', l: 'Marcar como pago', para: 'paid', role: 'financeiro.baixar', critica: true, efeitos: [] },
+    { de: 'paid', key: 'entregar', l: 'Entregar ao cliente', para: 'delivered', role: 'logistica.entregar', critica: false, efeitos: [] },
+    { de: 'delivered', key: 'concluir', l: 'Concluir venda', para: 'completed', role: 'vendas.gerente', critica: false, efeitos: [] },
+    ...['quote_draft', 'quote_sent', 'quote_approved', 'in_production', 'on_hold', 'ready_for_invoice', 'invoiced', 'paid', 'delivered']
+      .map((de) => ({ de, ...CANCELA })),
+  ];
+  /* Etapa em que a venda NASCE ao salvar — espelha app/Domain/Fsm/Services/InitialStageResolver.php:
+     rascunho → quote_draft · cotação → quote_sent · venda paga → paid · venda a prazo ou parcial → invoiced. */
+  const estagioInicial = (status, payStatus) => {
+    if (status === 'draft' || status === 'proforma') return 'quote_draft';
+    if (status === 'quotation') return 'quote_sent';
+    return payStatus === 'paid' ? 'paid' : 'invoiced';
+  };
 
   let simularFalha = false;
 
@@ -315,7 +355,7 @@ window.SD = (() => {
 
   const cuById = (id) => cus.find((c) => c.id === id);
   const telaByKey = (k) => telas.find((t) => t.key === k);
-  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, simularFalha, cuById, telaByKey };
+  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, simularFalha, cuById, telaByKey };
 })();
 
 /* ── sells-ui.jsx ── */
@@ -536,7 +576,7 @@ function PayPill({ p, atraso }) { const [l, c, s] = PAY[p] || PAY.due; return <P
 const FISCAL = { autorizada: ['NF-e autorizada', 'var(--pos)'], pendente: ['NF-e pendente', 'var(--warn)'], cancelada: ['NF-e cancelada', 'var(--neg)'], nao_emitida: ['sem NF', 'var(--text-mute)'] };
 function FiscalPill({ f }) { const [l, c] = FISCAL[f] || FISCAL.nao_emitida; return <Pill c={c} s={'color-mix(in oklch, ' + c + ' 10%, transparent)'} mono>{l}</Pill>; }
 
-const ESTAGIO_HUE = { orcamento: 'var(--text-mute)', aprovada: 'var(--color-info)', producao: 'var(--warn)', faturada: 'var(--accent)', entregue: 'var(--pos)', cancelada: 'var(--neg)' };
+const ESTAGIO_HUE = { quote_draft: 'var(--text-mute)', quote_sent: 'var(--text-mute)', quote_approved: 'var(--color-info)', in_production: 'var(--warn)', on_hold: 'var(--warn)', ready_for_invoice: 'var(--accent)', invoiced: 'var(--accent)', paid: 'var(--pos)', delivered: 'var(--pos)', completed: 'var(--pos)', cancelled: 'var(--neg)' };
 function EstagioPill({ k }) { const f = window.SD.fsm.find((x) => x.key === k) || {}; const c = ESTAGIO_HUE[k] || 'var(--text-mute)'; return <Pill c={c} s={'color-mix(in oklch, ' + c + ' 12%, transparent)'}>{f.l || k}</Pill>; }
 
 /* DataCampo — campo de data com calendário em PORTAL.
@@ -2011,40 +2051,54 @@ function ConsultaProduto({ open, onClose, onPick }) {
 
 /* ── sells-fsm.jsx ── */
 /* FSM da venda na tela — ExecuteStageActionService no plano do operador (ADR 0143 · CU-SELL-20..26).
-   Regras que a tela obedece:
-   · o estágio só muda por AÇÃO NOMEADA (não há select de estágio);
-   · ação com role que o perfil não tem NEGA (fail-secure · CU-SELL-21);
+   Fonte do processo: SD.fsm + SD.acoesFsm, copiados do FsmProcessoVendaComProducaoSeeder
+   (11 etapas, 23 ações). Regras que a tela obedece:
+   · o estágio só muda por AÇÃO NOMEADA (não há select de estágio); a etapa mostra TODAS as
+     ações que saem dela, não só "a próxima" — o processo tem desvios (rejeitar, pausar, pagar
+     antes ou depois de entregar);
+   · ação com papel que o perfil não tem NEGA (fail-secure · CU-SELL-21);
    · efeito colateral é declarado antes de executar (ReservarEstoque, ConsumirEstoque…);
-   · de 'producao' em diante a venda TRAVA para edição — reabrir é outra ação nomeada;
+   · de 'in_production' em diante a venda TRAVA para edição. O único "reabrir" do processo é
+     `reabrir_para_revisao`, e ele só sai de 'quote_approved';
+   · cancelar roda CancelarVendaCascade, que RECUSA venda com dinheiro recebido ([W] 2026-10-26);
    · toda transição escreve uma linha append-only no histórico (sale_stage_history · CU-SELL-26). */
 
-const PRE = { key: 'rascunho', l: 'Rascunho', acao: 'Finalizar venda', role: 'vendas.criar', efeitos: [] };
-const ETAPAS = () => [PRE, ...window.SD.fsm.filter((f) => f.key !== 'cancelada')];
-const TRAVA_A_PARTIR_DE = ['producao', 'faturada', 'entregue', 'cancelada'];
+const PRE = { key: 'rascunho', l: 'Não gravada' };
+/* Caminho principal mostrado na linha do tempo. 'on_hold' é desvio de 'in_production' e
+   'cancelled' é saída de qualquer etapa — os dois aparecem como marca, não como degrau. */
+const CAMINHO = ['quote_draft', 'quote_sent', 'quote_approved', 'in_production', 'ready_for_invoice', 'invoiced', 'paid', 'delivered', 'completed'];
+const ETAPAS = () => CAMINHO.map((k) => fsmDe(k));
+const TRAVA_A_PARTIR_DE = ['in_production', 'on_hold', 'ready_for_invoice', 'invoiced', 'paid', 'delivered', 'completed', 'cancelled'];
 const estagioTrava = (k) => TRAVA_A_PARTIR_DE.includes(k);
 
 function fsmDe(k) { return k === 'rascunho' ? PRE : window.SD.fsm.find((f) => f.key === k) || PRE; }
-function proximoDe(k) {
-  const seq = ETAPAS().map((f) => f.key);
-  const i = seq.indexOf(k);
-  return i >= 0 && i < seq.length - 1 ? fsmDe(seq[i + 1]) : null;
+/* Ações que saem da etapa, sem o cancelar — ele tem botão e confirmação próprios. */
+function acoesDe(k) { return window.SD.acoesFsm.filter((a) => a.de === k && a.key !== 'cancelar_venda'); }
+function cancelaDe(k) { return window.SD.acoesFsm.find((a) => a.de === k && a.key === 'cancelar_venda') || null; }
+/* Gravar a venda nova: a etapa em que ela nasce depende do tipo de documento e do pagamento
+   (InitialStageResolver). Não é ação do seeder — é o INSERT que abre o pipeline. */
+function acaoDeGravar(status, payStatus) {
+  const para = window.SD.estagioInicial(status, payStatus);
+  const l = status === 'quotation' ? 'Salvar e enviar orçamento' : status === 'final' ? 'Finalizar venda' : 'Salvar orçamento';
+  return { de: 'rascunho', key: 'gravar', l, para, role: 'vendas.criar', critica: false, efeitos: [] };
 }
 function podeRole(role) { return !role || window.SD.permissoes.roles.includes(role); }
 
-/* Barra de estágio — pipeline + ação disponível + o que a ação dispara */
-/* Situação da venda — pipeline + histórico num só bloco, para a coluna do fechamento.
+/* Situação da venda — pipeline + histórico + ações num só bloco, para a coluna do fechamento.
    Etapa cumprida mostra quem fez e quando (era o "Histórico de estágios"). */
-function SituacaoVenda({ estagio, historico, onExecutar, onCancelar, onReabrir, onOpen, salvando }) {
+function SituacaoVenda({ estagio, historico, onExecutar, onCancelar, onOpen, salvando }) {
   const meta = useMeta();
   const [aberto, setAberto] = React.useState(false);
   const atual = fsmDe(estagio);
-  const prox = proximoDe(estagio);
   const seq = ETAPAS();
-  const cancelada = estagio === 'cancelada';
+  const cancelada = estagio === 'cancelled';
+  const pausada = estagio === 'on_hold';
   const ultima = historico[historico.length - 1];
   const morreuEm = cancelada && ultima ? ultima.de : null;
-  const iAtual = cancelada ? seq.findIndex((x) => x.key === morreuEm) : seq.findIndex((f) => f.key === estagio);
-  const permitido = podeRole(atual.role);
+  const naLinha = (k) => (k === 'on_hold' ? 'in_production' : k);
+  const iAtual = cancelada ? seq.findIndex((x) => x.key === naLinha(morreuEm)) : seq.findIndex((f) => f.key === naLinha(estagio));
+  const acoes = acoesDe(estagio);
+  const cancela = cancelaDe(estagio);
   const travada = estagioTrava(estagio);
   const feitoPor = (k) => historico.find((h) => h.para === k);
   const rascunho = estagio === 'rascunho' && !cancelada;
@@ -2081,6 +2135,7 @@ function SituacaoVenda({ estagio, historico, onExecutar, onCancelar, onReabrir, 
                   <span style={{ display: 'block', font: (agora || morte ? '600 ' : '') + '12px/1.35 var(--font-sans)', color: morte ? tomFg('var(--neg)') : agora ? 'var(--text)' : feito ? 'var(--text-dim)' : 'var(--text-dim)', textDecoration: morte ? 'line-through' : 'none' }}>{e.l}</span>
                   {h && <span style={{ display: 'block', font: '11px/1.3 var(--font-mono)', color: 'var(--text-dim)' }}>{h.em.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} · {h.por}</span>}
                   {morte && <span style={{ display: 'block', font: '11px/1.3 var(--font-sans)', color: tomFg('var(--neg)') }}>cancelada aqui</span>}
+                  {agora && pausada && <span style={{ display: 'block', font: '11px/1.3 var(--font-sans)', color: tomFg('var(--warn)') }}>produção em espera</span>}
                 </span>
               </li>
             );
@@ -2089,34 +2144,48 @@ function SituacaoVenda({ estagio, historico, onExecutar, onCancelar, onReabrir, 
         {meta && <div style={{ paddingTop: 2 }}><CuRow ids={['CU-SELL-20', 'CU-SELL-21', 'CU-SELL-22', 'CU-SELL-26']} onOpen={onOpen} /></div>}
       </div>}
 
-      {!cancelada && prox && <div style={{ padding: '9px 12px', borderTop: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
-          <span style={{ font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>Próxima: <b style={{ color: 'var(--text)' }}>{atual.acao}</b></span>
-          {atual.role && <Pill mono c={permitido ? 'var(--pos)' : 'var(--neg)'} s={permitido ? 'color-mix(in oklch, var(--pos) 12%, var(--surface))' : 'color-mix(in oklch, var(--neg) 12%, var(--surface))'}>{atual.role}</Pill>}
-          {prox.efeitos.map((e) => <Pill key={e} mono c="var(--warn)" s="color-mix(in oklch, var(--warn) 12%, var(--surface))">{e}</Pill>)}
-        </div>
-        {!permitido && <span style={{ font: '11px/1.35 var(--font-sans)', color: tomFg('var(--neg)') }}>Seu perfil não tem <b>{atual.role}</b> — a ação fica negada.</span>}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {travada && <Button size="sm" onClick={onReabrir}>Reabrir para correção</Button>}
-          <Button size="sm" onClick={onCancelar}>{rascunho ? 'Descartar' : 'Cancelar venda'}</Button>
-        </div>
+      {/* Rascunho: a ação de gravar é o botão do finalizador, aqui só fica o descartar. */}
+      {!cancelada && (rascunho || acoes.length > 0 || cancela) && <div style={{ padding: '9px 12px', borderTop: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {!rascunho && acoes.length > 0 && <span style={{ font: '600 11px/1 var(--font-sans)', letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--text-dim)' }}>{acoes.length === 1 ? 'Ação desta etapa' : 'Ações desta etapa'}</span>}
+        {!rascunho && acoes.map((a) => {
+          const ok = podeRole(a.role);
+          return (
+            <div key={a.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+                <Button size="sm" disabled={!ok || salvando} onClick={() => onExecutar(false, a)}>{a.l}</Button>
+                <Pill mono c={ok ? 'var(--pos)' : 'var(--neg)'} s={ok ? 'color-mix(in oklch, var(--pos) 12%, var(--surface))' : 'color-mix(in oklch, var(--neg) 12%, var(--surface))'}>{a.role}</Pill>
+                {a.efeitos.map((e) => <Pill key={e} mono c="var(--warn)" s="color-mix(in oklch, var(--warn) 12%, var(--surface))">{e}</Pill>)}
+              </div>
+              <span style={{ font: '11px/1.35 var(--font-sans)', color: ok ? 'var(--text-dim)' : tomFg('var(--neg)') }}>
+                {!ok ? <>Seu perfil não tem <b>{a.role}</b> — a ação fica negada.</> : a.para ? <>Vai para <b style={{ color: 'var(--text)' }}>{fsmDe(a.para).l}</b>.</> : <>Não muda a etapa — fica registrada no histórico.</>}
+              </span>
+            </div>
+          );
+        })}
+        {(rascunho || cancela) && <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <Button size="sm" onClick={onCancelar} disabled={!rascunho && !podeRole(cancela.role)}>{rascunho ? 'Descartar' : 'Cancelar venda'}</Button>
+        </div>}
+      </div>}
+      {!cancelada && !rascunho && acoes.length === 0 && !cancela && <div style={{ padding: '9px 12px', borderTop: '1px solid var(--border)', background: 'var(--bg-2)' }}>
+        <span style={{ font: '11.5px/1.4 var(--font-sans)', color: 'var(--text-dim)' }}>Venda concluída — fim do fluxo, nenhuma ação sai daqui.</span>
       </div>}
       {cancelada && <div style={{ padding: '9px 12px', borderTop: '1px solid var(--border)', background: 'var(--bg-2)' }}>
-        <span style={{ font: '11.5px/1.4 var(--font-sans)', color: 'var(--text-dim)' }}>Estoque liberado por <code>LiberarReserva</code>. Para retomar, duplique a venda.</span>
+        <span style={{ font: '11.5px/1.4 var(--font-sans)', color: 'var(--text-dim)' }}>A cascata de cancelamento devolveu o estoque reservado. Para retomar, duplique a venda.</span>
       </div>}
     </div>
   );
 }
 
 /* Confirmação de cancelamento — a cascata é nomeada antes de rodar */
-function CancelarVenda({ open, onClose, onConfirmar, estagio, itens = 0 }) {
-  const f = window.SD.fsm.find((x) => x.key === 'cancelada');
+function CancelarVenda({ open, onClose, onConfirmar, estagio, itens = 0, recebido = 0 }) {
   const rascunho = estagio === 'rascunho';
+  /* CancelarVendaCascade recusa venda com dinheiro recebido ([W] 2026-10-26): o estorno vem antes. */
+  const recusa = !rascunho && recebido > 0.005;
   return (
     <Modal open={open} onClose={onClose} width={520} title={rascunho ? 'Descartar este rascunho?' : 'Cancelar esta venda?'}
       footer={<div style={{ display: 'flex', gap: 8, width: '100%' }}>
         <Button onClick={onClose}>Voltar</Button>
-        <span style={{ marginLeft: 'auto' }}><Button variant="danger" onClick={onConfirmar}>{rascunho ? 'Descartar rascunho' : 'Cancelar a venda'}</Button></span>
+        <span style={{ marginLeft: 'auto' }}><Button variant="danger" disabled={recusa} onClick={onConfirmar}>{rascunho ? 'Descartar rascunho' : 'Cancelar a venda'}</Button></span>
       </div>}>
       {rascunho ? <>
         <p style={{ margin: '0 0 12px', font: '13.5px/1.5 var(--font-sans)' }}>
@@ -2124,11 +2193,15 @@ function CancelarVenda({ open, onClose, onConfirmar, estagio, itens = 0 }) {
         </p>
         <Alert tone="info" title="Nada foi gravado">Este rascunho não gerou registro de venda, não reservou estoque e não entrou em cobrança — descartar não desfaz nada no sistema, só limpa o que está na tela.</Alert>
       </> : <>
-        <p style={{ margin: '0 0 12px', font: '13.5px/1.5 var(--font-sans)' }}>A venda está em <b>{fsmDe(estagio).l}</b>. Cancelar executa a cascata abaixo e a venda deixa de contar em faturamento e cobrança.</p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-          {f.efeitos.map((e) => <Pill key={e} mono c="var(--neg)" s="color-mix(in oklch, var(--neg) 12%, var(--surface))">{e}</Pill>)}
-        </div>
-        <Alert tone="danger" title="Não tem desfazer">Reverter um cancelamento é outra ação nomeada, com role próprio — não é este botão ao contrário.</Alert>
+        <p style={{ margin: '0 0 12px', font: '13.5px/1.5 var(--font-sans)' }}>A venda está em <b>{fsmDe(estagio).l}</b>. Cancelar roda <code>CancelarVendaCascade</code> e a venda deixa de contar em faturamento e cobrança:</p>
+        <ul style={{ margin: '0 0 12px', paddingLeft: 18, font: '12.5px/1.6 var(--font-sans)', color: 'var(--text-dim)' }}>
+          <li>devolve o estoque reservado (<code>LiberarReserva</code>) e cancela o título a receber;</li>
+          <li>cancela na SEFAZ a NF-e ou NFS-e autorizada e estorna o boleto pendente;</li>
+          <li>avisa o cliente por WhatsApp ou e-mail, se ele aceitou receber.</li>
+        </ul>
+        {recusa
+          ? <Alert tone="danger" title="Esta venda já recebeu dinheiro">Há {brl(recebido)} recebido. O cancelamento é recusado até o pagamento ser estornado no financeiro.</Alert>
+          : <Alert tone="danger" title="Não tem desfazer">Reverter um cancelamento é outra ação nomeada, com papel próprio — não é este botão ao contrário.</Alert>}
       </>}
     </Modal>
   );
@@ -2450,7 +2523,7 @@ function Create({ onOpen, modo = 'create', registro }) {
   const abrirItem = (i, aba) => { setAbaItem(aba || 'geral'); setItemAberto(i); };
   const [parcelasOpen, setParcelasOpen] = React.useState(false);
   const [parcelas, setParcelas] = React.useState([]);
-  const [estagio, setEstagio] = React.useState(edit ? (registro ? registro.estagio : 'producao') : 'rascunho');
+  const [estagio, setEstagio] = React.useState(edit ? (registro ? registro.estagio : 'in_production') : 'rascunho');
   const [historico, setHistorico] = React.useState([]);
   const [cancelarOpen, setCancelarOpen] = React.useState(false);
   const [salvo, setSalvo] = React.useState(null);
@@ -2513,14 +2586,20 @@ function Create({ onOpen, modo = 'create', registro }) {
   };
   const travada = estagioTrava(estagio);
   const atualFsm = fsmDe(estagio);
-  const proxFsm = proximoDe(estagio);
-  const podeExecutar = podeRole(atualFsm.role) && !!proxFsm && estagio !== 'cancelada';
+  /* Ação do botão grande: no rascunho é gravar (a etapa de destino sai do tipo de documento e
+     do pagamento); depois, a primeira ação que AVANÇA a etapa e que o perfil pode executar
+     (Emitir NF-e não muda etapa e pode estar negada). As outras ficam na Situação. */
+  const acoesEtapa = acoesDe(estagio);
+  const acaoPrincipal = estagio === 'rascunho' ? acaoDeGravar(status, payStatus)
+    : (acoesEtapa.find((x) => x.para && podeRole(x.role)) || acoesEtapa[0] || null);
+  const podeExecutar = !!acaoPrincipal && podeRole(acaoPrincipal.role) && estagio !== 'cancelled';
 
   const registrar = (acao, de, para, efeitos) => setHistorico((h) => [...h, { acao, de, para, efeitos, por: window.SD.permissoes.usuario, em: new Date() }]);
 
   /* ExecuteStageActionService::execute — nunca UPDATE direto no estágio */
-  const executarAcao = (forcarErro) => {
-    if (!podeExecutar || salvando) return;
+  const executarAcao = (forcarErro, acao) => {
+    const a = acao || acaoPrincipal;
+    if (!a || !podeRole(a.role) || salvando || estagio === 'cancelled') return;
     setErroSistema(null);
     setSalvando(true);
     setTimeout(() => {
@@ -2530,8 +2609,8 @@ function Create({ onOpen, modo = 'create', registro }) {
         setErroSistema({ codigo: 'HTTP 503', em: new Date() });
         return;
       }
-      registrar(atualFsm.acao, atualFsm.key, proxFsm.key, proxFsm.efeitos);
-      setEstagio(proxFsm.key);
+      registrar(a.l, estagio, a.para || estagio, a.efeitos);
+      if (a.para) setEstagio(a.para);
       if (estagio === 'rascunho') {
         setSalvo({ payStatus, total, em: new Date() });
         try { localStorage.removeItem(LS_DRAFT); } catch (e) {}
@@ -2548,10 +2627,10 @@ function Create({ onOpen, modo = 'create', registro }) {
       setDraftEm(null);
       return;
     }
-    registrar('Cancelar venda', estagio, 'cancelada', ['CancelarVendaCascade', 'LiberarReserva']);
-    setEstagio('cancelada');
+    if (pago > 0.005) return; /* CancelarVendaCascade recusa: o modal já explicou */
+    registrar('Cancelar venda', estagio, 'cancelled', ['CancelarVendaCascade']);
+    setEstagio('cancelled');
   };
-  const reabrir = () => { registrar('Reabrir para correção', estagio, 'aprovada', ['LiberarReserva']); setEstagio('aprovada'); };
   const salvar = executarAcao;
 
   const esquerda = (
@@ -2565,12 +2644,12 @@ function Create({ onOpen, modo = 'create', registro }) {
         Total {brl(salvo.total)}{salvo.payStatus === 'due' && ' — entra na lista de cobrança como “a receber”.'}
       </Alert>}
 
-      {estagio === 'cancelada'
+      {estagio === 'cancelled'
         ? <Alert tone="danger" title="Venda cancelada">
-            O cancelamento rodou <code>LiberarReserva</code>, então o estoque desta venda voltou para o saldo — nada aqui está mais comprometido. Esta venda não recebe alteração nem ação de fluxo: para retomar o pedido, <b>duplique</b> a venda; para acertar valor já faturado, lance uma <b>devolução</b>.
+            A cascata de cancelamento devolveu o estoque reservado, então o estoque desta venda voltou para o saldo — nada aqui está mais comprometido. Esta venda não recebe alteração nem ação de fluxo: para retomar o pedido, <b>duplique</b> a venda; para acertar valor já faturado, lance uma <b>devolução</b>.
           </Alert>
         : travada && <Alert tone="warn" title={'Venda ' + atualFsm.l.toLowerCase() + ' — itens e valores travados'}>
-            A partir de <b>Em produção</b> o estoque já está comprometido: mudar quantidade ou preço aqui adulteraria venda em curso. Use <b>Reabrir para correção</b> (registra no histórico) ou lance uma devolução.
+            A partir de <b>Em produção</b> o estoque já está comprometido: mudar quantidade ou preço aqui adulteraria venda em curso. O processo só reabre um orçamento aprovado que ainda não entrou em produção; daqui em diante, cancele a venda ou lance uma devolução.
           </Alert>}
 
       {/* 1 · Cliente — uma linha, não um formulário */}
@@ -2881,7 +2960,7 @@ function Create({ onOpen, modo = 'create', registro }) {
       <ComissaoResumo bens={comBens} tot={totComissao} gatilho={comGatilho} onAbrir={() => setComOpen(true)}
         parcelas={parcelas} totalVenda={total} />
       <SituacaoVenda estagio={estagio} historico={historico} onOpen={onOpen} salvando={salvando}
-        onExecutar={executarAcao} onCancelar={() => setCancelarOpen(true)} onReabrir={reabrir} />
+        onExecutar={executarAcao} onCancelar={() => setCancelarOpen(true)} />
       <div className="venda-acoes" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'end' }}>
         <div><Button disabled={estagio !== 'rascunho'} onClick={() => setStatus('draft')}>Salvar rascunho</Button></div>
         <div><Select label="Tipo de documento" value={status} onChange={(e) => setStatus(e.target.value)} options={[{ value: 'final', label: 'Venda' }, { value: 'quotation', label: 'Cotação' }, { value: 'proforma', label: 'Proforma' }]} /></div>
@@ -2900,11 +2979,12 @@ function Create({ onOpen, modo = 'create', registro }) {
         {saldo > 0.005 && <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, font: '11.5px/1.3 var(--font-sans)', color: tomFg('var(--warn)') }}>
           <span>Falta receber</span><b style={{ fontFamily: 'var(--font-mono)' }}>{brl(saldo)}</b>
         </div>}
-        <Button variant="primary" size="lg" disabled={!itens.length || salvando || !podeExecutar || temInvalida} onClick={() => executarAcao(false)}>{salvando ? 'Executando…' : atualFsm.acao || 'Sem ação disponível'}</Button>
-        {proxFsm && proxFsm.efeitos.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
-          {proxFsm.efeitos.map((e) => <Pill key={e} mono c="var(--warn)" s="color-mix(in oklch, var(--warn) 12%, var(--surface))">{e}</Pill>)}
+        <Button variant="primary" size="lg" disabled={!itens.length || salvando || !podeExecutar || temInvalida} onClick={() => executarAcao(false)}>{salvando ? 'Executando…' : acaoPrincipal ? acaoPrincipal.l : 'Sem ação disponível'}</Button>
+        {acaoPrincipal && acaoPrincipal.para && estagio === 'rascunho' && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)', textAlign: 'center' }}>A venda nasce em <b style={{ color: 'var(--text)' }}>{fsmDe(acaoPrincipal.para).l}</b>.</span>}
+        {acaoPrincipal && acaoPrincipal.efeitos.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
+          {acaoPrincipal.efeitos.map((e) => <Pill key={e} mono c="var(--warn)" s="color-mix(in oklch, var(--warn) 12%, var(--surface))">{e}</Pill>)}
         </div>}
-        {!podeExecutar && estagio !== 'cancelada' && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)', textAlign: 'center' }}>{proxFsm ? 'Exige o papel ' + atualFsm.role : 'Venda no fim do fluxo'}</span>}
+        {!podeExecutar && estagio !== 'cancelled' && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)', textAlign: 'center' }}>{acaoPrincipal ? 'Exige o papel ' + acaoPrincipal.role : 'Venda no fim do fluxo'}</span>}
         {temInvalida && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)'), textAlign: 'center' }}>Há item com dado fiscal inválido — corrija antes de fechar.</span>}
         {draftEm && <span style={{ font: '11.5px/1.3 var(--font-sans)', color: 'var(--text-dim)', textAlign: 'center' }}>Rascunho salvo às {draftEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>}
       </div>
@@ -2922,7 +3002,7 @@ function Create({ onOpen, modo = 'create', registro }) {
         <button type="button" onClick={() => { undo.undo(); setUndo(null); }} style={{ border: 0, background: 'transparent', color: 'var(--accent-2)', cursor: 'pointer', font: '600 12.5px/1 var(--font-sans)' }}>Desfazer</button>
       </div>}
 
-      <CancelarVenda open={cancelarOpen} estagio={estagio} itens={itens.length} onClose={() => setCancelarOpen(false)} onConfirmar={cancelarVenda} />
+      <CancelarVenda open={cancelarOpen} estagio={estagio} itens={itens.length} recebido={pago} onClose={() => setCancelarOpen(false)} onConfirmar={cancelarVenda} />
       <ColunasModal open={colunasOpen} onClose={() => setColunasOpen(false)} ativas={colunas} setAtivas={setColunas} />
       <ComissaoModal open={comOpen} onClose={() => setComOpen(false)} bens={comBens} setBens={setComBens}
         tot={totComissao} gatilho={comGatilho} setGatilho={setComGatilho}
