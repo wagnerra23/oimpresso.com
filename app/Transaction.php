@@ -391,6 +391,30 @@ class Transaction extends Model
         return $properties;
     }
 
+    /**
+     * P-154 — venda marcada como bonificação (`sub_type`). Mercadoria dada ao cliente: sai com
+     * NF-e de bonificação e baixa estoque, mas não é receita nem dívida.
+     */
+    public const SUB_TYPE_BONIFICACAO = 'bonificacao';
+
+    /**
+     * Venda comum (`sub_type` nulo) ou bonificação. Reparo e fatura de projeto continuam de
+     * fora: o `sub_type` preenchido sempre separou o que não é venda da lista de Vendas.
+     * Aceita qualquer builder (Eloquent ou `DB::table`); passe a coluna qualificada quando
+     * houver join (`transactions.sub_type`, `t.sub_type`).
+     */
+    public static function filtrarVendaComumOuBonificacao($query, string $coluna = 'sub_type')
+    {
+        return $query->where(function ($q) use ($coluna) {
+            $q->whereNull($coluna)->orWhere($coluna, self::SUB_TYPE_BONIFICACAO);
+        });
+    }
+
+    public function scopeVendaComumOuBonificacao($query, string $coluna = 'sub_type')
+    {
+        return self::filtrarVendaComumOuBonificacao($query, $coluna);
+    }
+
     public function scopeOverDue($query)
     {
         return $query->whereIn('transactions.payment_status', ['due', 'partial'])
