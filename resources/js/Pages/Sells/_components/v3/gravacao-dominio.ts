@@ -56,6 +56,12 @@ export type VendaParaGravar = {
   prazo?: { numero: number | string | null; tipo: string | null };
   /** Configurações do business (UC-V386..V392). Ausente = regras de antes, sem config. */
   config?: ConfigVenda;
+  /** Comissionado escolhido (UC-V395); null = nenhum. */
+  comissionadoId?: number | null;
+  /** Sinal mínimo do cliente, em % ('' = sem sinal) — o Create preenche com o do cliente. */
+  sinal?: string;
+  /** Motivo do cliente para não gravar (cliente com tabela de preço, UC-V393). */
+  bloqueioDoCliente?: string | null;
 };
 
 /**
@@ -121,9 +127,10 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
   // Com o desconto da venda desligado ele vale 0, e o teto não tem o que conferir.
   const acimaDoTeto = descontoAcimaDoTeto(v.config ? { ...v, ...descontoDaVendaEfetivo(v.config, v.descTipo, v.descVal) } : v);
   if (acimaDoTeto) return { ok: false, motivo: acimaDoTeto };
+  if (v.bloqueioDoCliente) return { ok: false, motivo: v.bloqueioDoCliente };
   if (v.config) {
     const motivo =
-      bloqueioDaConfig(v.config, v.prazo ?? { numero: null, tipo: null }) ??
+      bloqueioDaConfig(v.config, v.prazo ?? { numero: null, tipo: null }, v.comissionadoId ?? null) ??
       abaixoDoPrecoMinimo(v.config, v.itens) ??
       estoqueInsuficiente(v.config, v.itens.map((l) => ({ ...l, estoque: l.estoque ?? null })));
     if (motivo) return { ok: false, motivo };
@@ -186,8 +193,8 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
       invoice_no: '',
       pay_term_number: v.prazo?.numero ?? '',
       pay_term_type: v.prazo?.tipo || 'days',
-      sinal_minimo_pct: null,
-      commission_agent: null,
+      sinal_minimo_pct: v.sinal ? Number(v.sinal) : null,
+      commission_agent: v.comissionadoId ?? null,
       price_group: null,
       default_price_group: null,
       tax_rate_id: null,

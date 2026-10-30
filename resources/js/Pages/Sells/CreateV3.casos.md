@@ -186,7 +186,7 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 **Status:** 🧪 — `tests/js/config-business-dominio.test.ts` (lane Sells V3 domínio), sem veredito no manifesto ainda.
 
 - **Dado** `is_commission_agent_required` com `sales_cmsn_agnt` = `user` ou `cmsn_agnt` (os dois que mostram o select no Blade, `sell/create.blade.php:194-200`),
-- **Então** a V3 não grava e diz por quê: ela ainda não escolhe comissionado (grupo 3). Com `logged_in_user` não bloqueia, porque o store põe o próprio usuário.
+- **Então** a V3 não grava sem um comissionado escolhido e diz por quê (a escolha veio no grupo 3, UC-V395). Com `logged_in_user` não bloqueia, porque o store põe o próprio usuário.
 - **Dado** `is_pay_term_required` e o cliente sem prazo (número e tipo) no cadastro,
 - **Então** não grava. Com prazo, o prazo do cliente vai no payload (`pay_term_number`/`pay_term_type`), como o Blade preenche; sem a regra, segue vazio como antes.
 
@@ -234,14 +234,50 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 - **Então** o total de 2 casas, já com desconto e frete, fecha no múltiplo mais próximo, metade para cima (`functions.js __round`, `Decimal.toNearest`), o resumo mostra a linha "Arredondamento" e o payload leva `round_off_amount` com a diferença. Sem múltiplo, o payload é o de antes, sem a chave.
 - Prova dupla: a função contra conta à mão em centavos inteiros (5.000 totais × 4 múltiplos) no vitest; e o store grava a fixture arredondada (156,23 → 156,00, `round_off_amount` −0,23) no Pest, com a mesma baixa de estoque do UC-V380.
 
-Ainda no grupo de permissões, gravando a consulta de clientes some: a lista dela é de cena, e trocar o cliente ali mostraria um cliente e gravaria outro (a venda vai para o cliente padrão). A troca real de cliente é o grupo 3.
+## UC-V393 · Gravando, a consulta escolhe o cliente de verdade e ele vai no payload
+
+**Status:** 🧪 — `tests/js/cliente-gravacao-dominio.test.ts` + `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** o operador abre a consulta e busca (2 letras ou mais),
+- **Então** a lista vem de `/contacts/customers`, o endpoint do Create, que filtra por `business_id` da sessão: cliente de outra empresa não aparece.
+- **E** o cliente escolhido vai como `contact_id`, com o prazo (`pay_term_number`/`pay_term_type`, só com tipo `days`/`months`) e o sinal (`sinal_minimo_pct`) do cadastro, como o `handleCustomerSelect` do Create. A troca entra no desfazer.
+- **Dado** um cliente com tabela de preço (própria ou do grupo), **então** a V3 não grava e diz por quê: o Create reprecificaria as linhas por ela, e a V3 ainda não aplica tabela (grupo 3b). Gravar pelo preço padrão seria outro valor. O card "Tabela de preço" mostra que o cadastro tem tabela ainda não aplicada.
+- Cliente sem tabela não muda valor: o total gravado é o mesmo do cliente padrão (156,23 na fixture do UC-V380).
+
+Até o grupo 3, gravando, a consulta de clientes ficava escondida (a lista era de cena e a venda ia sempre para o cliente padrão).
+
+## UC-V394 · "Novo cadastro" só com `customer.create`, e grava de verdade
+
+**Status:** 🧪 — mesmos arquivos de teste, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e o usuário sem `customer.create`, **então** o botão "Novo cadastro" não aparece na consulta (o Blade mostra o + só com a permissão, `SellPosController@create`).
+- **Com** a permissão, o cadastro mínimo (nome, CPF/CNPJ, telefone) posta em `/contacts` como o `QuickAddCustomerSheet` do Create e o cliente volta já selecionado. Nasce sem prazo e sem tabela de preço; o grupo de preço de cena não aparece. Erro de validação fica no modal, com os campos preenchidos.
+
+## UC-V395 · O comissionado é escolhido e vai no payload
+
+**Status:** 🧪 — mesmos arquivos de teste, sem veredito no manifesto ainda.
+
+- **Dado** `sales_cmsn_agnt` = `user` ou `cmsn_agnt`, **então** a V3 mostra o select de comissionado com a lista do `SellPosController@create`: usuários (`User::forDropdown`) ou agentes (`User::saleCommissionAgentsDropdown`), só desta empresa. Com `logged_in_user` ou desligado não há select.
+- O escolhido vai como `commission_agent`; sem escolha vai `null`. Obrigatório sem escolha bloqueia (UC-V387).
+
+## UC-V396 · A seção de pagamento só vem com `sell.payments`
+
+**Status:** 🧪 — `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e o usuário sem `sell.payments`, **então** a V3 não mostra os meios de pagamento e grava sem pagamento (venda a prazo), como o Blade, que esconde a seção (`sell/create.blade.php:775`).
+- Com a permissão, a seção é a de sempre.
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, pipeline FSM real, venda de reparo, orçamento/rascunho, parcelas, comissão, entrega,
 imposto do pedido, acréscimo, PIX/boleto/TEF, tabela de preço (e `selling_price_group.{id}` /
-`access_default_selling_price`), troca de cliente e local, `customer.create`, `edit_invoice_number`,
-`sell.payments`, `print_invoice` e `pos_settings` — a lista completa segue em "Paridade para substituir Create e Edit".
+`access_default_selling_price`), troca de local e `pos_settings` — a lista completa segue em "Paridade para substituir Create e Edit".
+
+- **[BACKLOG]** Tabela de preço `[V0]` (grupo 3b): as tabelas visíveis são só as permitidas (`selling_price_group.{id}`), o preço padrão só com `access_default_selling_price` (`SellingPriceGroup::forDropdown`), e trocar a tabela ou escolher cliente com tabela reprecifica as linhas pela regra do `handlePriceGroupChange` do Create (refaz `/products/list` com `price_group`). Até lá, cliente com tabela recusa a gravação (UC-V393).
+- **[BACKLOG]** `edit_invoice_number`: a V3 não tem campo de número da nota; quando tiver, ele só aparece com a permissão (`sell/create.blade.php:238`).
+- **[BACKLOG]** `print_invoice`: a V3 não tem impressão; o store já não devolve o recibo sem a permissão (`SellPosController@store`), então gravar não vaza nada.
+- **[BACKLOG]** Endereço de entrega do cliente: o Create preenche `shipping_address` com o do cadastro ao escolher o cliente; a V3 grava `shipping_address` vazio, como antes do grupo 3.
 
 ---
 

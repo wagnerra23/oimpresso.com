@@ -76,7 +76,9 @@ import {
 import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, fmtQtd, num, parseBR, submitSafe } from './_components/v3/numeros';
 import { descontoAcimaDoTeto, montarPayloadVenda, totalParaGravar } from './_components/v3/gravacao-dominio';
-import { descontoInicial, linhaParaSomar, type ConfigVenda, type PrazoDoCliente } from './_components/v3/config-business-dominio';
+import { descontoInicial, linhaParaSomar, temSelectDeComissionado, type ConfigVenda, type PrazoDoCliente } from './_components/v3/config-business-dominio';
+import { bloqueioDoCliente, type ClienteDaGravacao } from './_components/v3/cliente-gravacao-dominio';
+import { buscarClientes, criarCliente } from './_components/v3/cliente-gravacao-api';
 import {
   Aviso,
   Chip,
@@ -149,10 +151,12 @@ type Props = {
     contactId: number;
     clienteNome: string;
     /* Do usuário, não da cena (UC-V384). descontoMaximo null = sem teto. */
-    permissoes: { editarPreco: boolean; editarDesconto: boolean; descontoMaximo: number | null };
+    permissoes: { editarPreco: boolean; editarDesconto: boolean; descontoMaximo: number | null; criarCliente: boolean; registrarPagamento: boolean };
     /* Prazo do cliente padrão e configurações do business (UC-V386..V388). */
     prazo: PrazoDoCliente;
     config: ConfigVenda;
+    /* Usuários ou agentes da empresa conforme `sales_cmsn_agnt` (UC-V395); [] = sem select. */
+    comissionados: { id: number; nome: string }[];
   };
   cena: {
     cliente: Cliente;
@@ -243,6 +247,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
      inicial — o padrão do balcão — e é a primeira linha de `cena.clientes`. */
   const [cli, setCli] = useState<Cliente>(cena.cliente);
   const [consultaAberta, setConsultaAberta] = useState(false);
+  /* Gravando, o cliente escolhido na consulta (UC-V393); null = o cliente padrão da empresa. */
+  const [cliGravacao, setCliGravacao] = useState<ClienteDaGravacao | null>(null);
+  const [comissionadoId, setComissionadoId] = useState<number | null>(null);
+  const semPagamento = !!gravacao && !gravacao.permissoes.registrarPagamento;
 
   const [itens, setItens] = useState<Item[]>(cena.itens);
   const [busca, setBusca] = useState('');
@@ -427,17 +435,21 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
     const dois = (n: number) => String(n).padStart(2, '0');
     const r = montarPayloadVenda({
       locationId: gravacao.locationId,
-      contactId: gravacao.contactId,
+      contactId: cliGravacao?.id ?? gravacao.contactId,
       transactionDate: `${dois(agora.getDate())}/${dois(agora.getMonth() + 1)}/${agora.getFullYear()} ${dois(agora.getHours())}:${dois(agora.getMinutes())}`,
       itens: itens.map(paraGravar),
       descTipo,
       descVal,
       acr,
       frete,
-      pagamentos: pags.map((p) => ({ m: p.m, v: p.v })),
+      // Sem sell.payments o Blade não mostra a seção de pagamento: a venda vai a prazo (UC-V396).
+      pagamentos: semPagamento ? [] : pags.map((p) => ({ m: p.m, v: p.v })),
       descontoMaximo: gravacao.permissoes.descontoMaximo,
-      prazo: gravacao.prazo,
+      prazo: cliGravacao?.prazo ?? gravacao.prazo,
       config: gravacao.config,
+      comissionadoId,
+      sinal: cliGravacao?.sinal ?? '',
+      bloqueioDoCliente: cliGravacao ? bloqueioDoCliente(cliGravacao) : null,
     });
     if (!r.ok) {
       setErroGravar(r.motivo);
@@ -553,14 +565,11 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         hue="primary"
         pad={12}
         right={
-          /* Gravando, a venda vai sempre para o cliente padrão (gravacao.contactId): a lista
-             da consulta é de cena, e trocar aqui mostraria um cliente e gravaria outro. A troca
-             real de cliente é o próximo grupo da paridade. */
-          gravacao ? undefined : (
-            <Button type="button" variant="outline" size="sm" onClick={() => setConsultaAberta(true)}>
-              Consultar cadastro… F2
-            </Button>
-          )
+          /* Gravando, a consulta busca no cadastro de verdade e o cliente escolhido vai no
+             payload (UC-V393); sem gravar, a lista é a da cena. */
+          <Button type="button" variant="outline" size="sm" onClick={() => setConsultaAberta(true)}>
+            Consultar cadastro… F2
+          </Button>
         }
       >
         <Inline gap={3} align="end" className="flex-wrap">
@@ -1074,6 +1083,12 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         {/* Pagamento */}
         <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
           <Lbl>Pagamento</Lbl>
+          {semPagamento ? (
+            <p className="text-[11.5px] leading-[1.5] text-muted-foreground">
+              Seu usuário não registra pagamento: a venda grava a prazo, como na tela de venda.
+            </p>
+          ) : (
+          <>
           <Inline gap={2} align="center" wrap className="mb-3">
             {METODOS_RAPIDOS.map((m) => (
               <Chip
@@ -1119,6 +1134,8 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           <p className="mt-2.5 text-[11.5px] leading-[1.5] text-muted-foreground">
             Fechar sem pagamento é caminho normal do balcão: grava <code>payment_status=due</code> e não bloqueia.
           </p>
+          </>
+          )}
         </div>
 
         {/* Comissão — resumo */}
@@ -1233,6 +1250,25 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
               {atual.acao ?? 'Sem ação disponível'}
             </Button>
 
+            {gravacao && temSelectDeComissionado(gravacao.config) && (
+              <div>
+                <Label htmlFor="v3-comissionado" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                  Comissionado{gravacao.config.comissionado.obrigatorio ? ' *' : ''}
+                </Label>
+                <Select value={comissionadoId ? String(comissionadoId) : ''} onValueChange={(v) => setComissionadoId(v ? Number(v) : null)}>
+                  <SelectTrigger id="v3-comissionado" className="w-full">
+                    <SelectValue placeholder="Escolha o comissionado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {gravacao.comissionados.map((u) => (
+                      <SafeSelectItem key={u.id} value={String(u.id)} className="text-[12.5px]">
+                        {u.nome}
+                      </SafeSelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {gravacao && (
               <Button size="lg" variant="outline" className="w-full" disabled={!itens.length || temInvalida || gravando} onClick={gravar}>
                 {gravando ? 'Gravando…' : 'Gravar venda'}
@@ -1367,6 +1403,27 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         onFechar={() => setConsultaAberta(false)}
         clientes={cena.clientes ?? [cli]}
         selecionado={cli.cod}
+        remoto={
+          gravacao
+            ? {
+                buscar: buscarClientes,
+                criar: gravacao.permissoes.criarCliente ? criarCliente : null,
+                onEscolher: (c) => {
+                  const antes = { cli, cliGravacao };
+                  setCli(c.consulta);
+                  setCliGravacao(c);
+                  setDestAberto(true);
+                  setUndo({
+                    msg: `Cliente trocado — ${c.consulta.nome}`,
+                    desfazer: () => {
+                      setCli(antes.cli);
+                      setCliGravacao(antes.cliGravacao);
+                    },
+                  });
+                },
+              }
+            : undefined
+        }
         onEscolher={(c) => {
           setCli(c);
           /* Abre os detalhes do destinatário — quem acabou de trocar de cliente

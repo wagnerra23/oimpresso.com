@@ -94,7 +94,8 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
   > substituir Create e Edit pede isso. A gravação é pelo store de produção (`POST /pos`), nunca
   > por rota deste controller (UC-V302 segue verdadeiro), e o total postado vira autoridade — por
   > isso nasce com a prova dupla do UC-V380. Desligada (o padrão), este Non-Goal vale como antes.
-  > Ligar é decisão [W].
+  > Ligar é decisão [W]. Desde o grupo 3 (2026-10-30), com a flag ligada o cadastro mínimo de
+  > cliente também grava, pelo store de contatos do Create (`POST /contacts`, UC-V394).
 - ❌ **Não substitui `/pos/create`.** Não há cutover previsto (RUNBOOK §F5).
 - _pendente [W]/[L]_ — demais Non-Goals.
 
