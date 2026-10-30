@@ -713,7 +713,7 @@ O CST também é por imposto: o ICMS tem lista própria (`CST_ICMS`), os demais 
 - **[BACKLOG]** Desconto e acréscimo incidem sobre o **preço unitário**, nunca sobre o total — aplicar sobre o total daria outro número quando a quantidade é fracionada, que é o caso normal em item dimensional.
 - **[BACKLOG]** Preço abaixo de **85% da tabela** sai da alçada do vendedor e é sinalizado; no empate exato o erro é pedir liberação a mais, nunca deixar passar preço baixo demais.
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
-- **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
+- **[BACKLOG]** Quantidade acima do estoque **bloqueia** o lançamento, a não ser que a empresa permita vender sem estoque (`allow_overselling`); com a permissão, só avisa que vai gerar saldo negativo. _(Corrigido em 2026-10-30: dizia que nunca bloqueia, mas a Blade limita a quantidade ao estoque sem `allow_overselling` — `sale_pos/product_row.blade.php`, revisão adversarial da V3.)_
 
 ### Consulta de clientes (extra — `ConsultaCliente`)
 
