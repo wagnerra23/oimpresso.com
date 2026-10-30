@@ -30,11 +30,11 @@ describe('UC-SEDIT-05/06/07/09 · carregamento e envio da edição V3', () => {
     expect(carregarEdicaoV3({ ...origem, form: undefined })).toBeUndefined();
     const antes = structuredClone(origem);
     const edicao = carregarEdicaoV3(origem)!;
-    expect(edicao.itens[0]).toMatchObject({ sell_line_id: 7, quantity: 2, unit_price: 100, discount: 10, discount_type: 'fixed' });
-    edicao.itens[0].quantity = 3;
-    edicao.pagamentos[0].amount = '99';
+    expect(edicao.itens[0]!).toMatchObject({ sell_line_id: 7, quantity: 2, unit_price: 100, discount: 10, discount_type: 'fixed' });
+    edicao.itens[0]!.quantity = 3;
+    edicao.pagamentos[0]!.amount = '99';
     expect(origem).toEqual(antes);
-    expect(edicao.fonte.form.sellDetails[0].quantity_ordered).toBe('2.0000');
+    expect(edicao.fonte.form.sellDetails[0]!.quantity_ordered).toBe('2.0000');
   });
 
   it('não reaplica desconto nem troca pagamento por atalho; preserva prazo e dados não expostos', () => {
@@ -53,14 +53,14 @@ describe('UC-SEDIT-05/06/07/09 · carregamento e envio da edição V3', () => {
     expect(pedido.payload).not.toHaveProperty('current_stage_id');
     expect(edicao.pagamentos).toEqual(fonte().form!.paymentLines);
     // Caminho independente: 2 × (100 − 10) = 180; subtotal enviado 2 × 90 = 180.
-    const linha = (pedido.payload.products as Record<string, unknown>[])[0];
+    const linha = (pedido.payload.products as Record<string, unknown>[])[0]!;
     const decimal = (n: unknown) => Number(String(n).replace(',', '.'));
     expect(decimal(linha.quantity) * decimal(linha.unit_price_inc_tax)).toBe(180);
   });
 
   it('muda quantidade sem alterar preço gravado nem calcular total no cliente', () => {
     const edicao = carregarEdicaoV3(fonte())!;
-    const pedido = montarEdicaoV3(edicao, { itens: [{ ...edicao.itens[0], quantity: 3 }] });
+    const pedido = montarEdicaoV3(edicao, { itens: [{ ...edicao.itens[0]!, quantity: 3 }] });
     expect(pedido.ok).toBe(true);
     if (pedido.ok) expect(pedido.payload.products).toMatchObject([{ quantity: '3,0000', unit_price_inc_tax: '90,0000' }]);
   });
@@ -68,13 +68,13 @@ describe('UC-SEDIT-05/06/07/09 · carregamento e envio da edição V3', () => {
   it.each(['editPrice', 'editDiscount', 'update'] as const)('UC-SEDIT-02 · respeita %s', (permissao) => {
     const origem = fonte(); origem.permissions[permissao] = false;
     const edicao = carregarEdicaoV3(origem)!;
-    const item = { ...edicao.itens[0], ...(permissao === 'editDiscount' ? { discount: 12 } : { unit_price: 110 }) };
+    const item = { ...edicao.itens[0]!, ...(permissao === 'editDiscount' ? { discount: 12 } : { unit_price: 110 }) };
     expect(montarEdicaoV3(edicao, { itens: [item] }).ok).toBe(false);
   });
 
   it('recusa linha alheia, duplicada, variação trocada, quantidade inválida e campo FSM', () => {
     const edicao = carregarEdicaoV3(fonte())!;
-    const item = edicao.itens[0];
+    const item = edicao.itens[0]!;
     for (const itens of [[{ ...item, sell_line_id: 999 }], [item, item], [{ ...item, variation_id: 999 }], [{ ...item, quantity: NaN }], []]) {
       expect(montarEdicaoV3(edicao, { itens }).ok).toBe(false);
     }
@@ -86,7 +86,7 @@ describe('UC-SEDIT-05/06/07/09 · carregamento e envio da edição V3', () => {
     origem.trava = { ...origem.trava, nota: true, itens_valores: true, cliente: true, motivo: 'Cancele a nota.' };
     const edicao = carregarEdicaoV3(origem)!;
     expect(montarEdicaoV3(edicao, { campos: { contact_id: 99 } }).ok).toBe(false);
-    expect(montarEdicaoV3(edicao, { itens: [{ ...edicao.itens[0], quantity: 3 }] }).ok).toBe(false);
+    expect(montarEdicaoV3(edicao, { itens: [{ ...edicao.itens[0]!, quantity: 3 }] }).ok).toBe(false);
     expect(montarEdicaoV3(edicao, { campos: { sale_note: 'Texto alterado' } })).toMatchObject({ ok: true,
       payload: { status: 'final', sale_note: 'Texto alterado' } });
     const pedido = montarEdicaoV3(edicao, { campos: { sale_note: 'Texto alterado' } });
@@ -99,13 +99,13 @@ describe('UC-SEDIT-05/06/07/09 · carregamento e envio da edição V3', () => {
     const edicao = carregarEdicaoV3(origem)!;
     expect(montarEdicaoV3(edicao, { campos: { shipping_charges: 10 } }).ok).toBe(false);
     expect(montarEdicaoV3(edicao, { campos: { contact_id: 99, staff_note: 'Texto' } }).ok).toBe(true);
-    expect(montarEdicaoV3(carregarEdicaoV3(fonte())!, { itens: [{ ...edicao.itens[0], quantity: 3 }] }).ok).toBe(true);
+    expect(montarEdicaoV3(carregarEdicaoV3(fonte())!, { itens: [{ ...edicao.itens[0]!, quantity: 3 }] }).ok).toBe(true);
   });
 
   it.each(['subunidade', 'combo', 'reparo'] as const)('recusa %s sem perder dado silenciosamente', (tipo) => {
     const origem = fonte();
-    if (tipo === 'subunidade') origem.form!.sellDetails[0].sub_unit_id = 123;
-    if (tipo === 'combo') origem.form!.sellDetails[0].product_type = 'combo';
+    if (tipo === 'subunidade') origem.form!.sellDetails[0]!.sub_unit_id = 123;
+    if (tipo === 'combo') origem.form!.sellDetails[0]!.product_type = 'combo';
     if (tipo === 'reparo') origem.form!.reparo = { valor: {} };
     expect(montarEdicaoV3(carregarEdicaoV3(origem)!).ok).toBe(false);
   });

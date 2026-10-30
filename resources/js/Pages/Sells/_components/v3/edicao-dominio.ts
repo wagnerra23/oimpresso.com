@@ -123,8 +123,8 @@ export function montarEdicaoV3(edicao: EdicaoV3, mudancas: Mudancas = {}): Pedid
       payload[k] = numeroParaEnvio(valor);
     }
   }
-  payload.products = produtos.map((p, i) => {
-    const original = form.sellDetails.find((l) => Number(l.transaction_sell_lines_id ?? l.id) === itens[i].sell_line_id)!;
+  payload.products = produtos.map((p) => {
+    const original = form.sellDetails.find((l) => Number(l.transaction_sell_lines_id ?? l.id) === p.transaction_sell_lines_id)!;
     return { ...p, enable_stock: original.enable_stock, product_type: original.product_type,
       product_unit_id: original.unit_id, sell_line_note: original.sell_line_note,
       lot_no_line_id: original.lot_no_line_id, so_line_id: original.so_line_id,
