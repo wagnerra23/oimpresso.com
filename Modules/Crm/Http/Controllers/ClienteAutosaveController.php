@@ -431,6 +431,8 @@ class ClienteAutosaveController extends Controller
             'obs_comercial' => ['nullable', 'string', 'max:5000'],
             // P-086 — % de desconto no boleto pago até o vencimento (Delphi BOLETO_PERC_DESCONTO_PADRAO).
             'boleto_desconto_pontualidade_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            // P-025 — sinal mínimo do cliente; vazio = segue a empresa, 0 = sem sinal para ele.
+            'sinal_minimo_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ], $this->messages());
 
         if ($validator->fails()) {
@@ -683,6 +685,8 @@ class ClienteAutosaveController extends Controller
             'customer_group_id' => $contact->customer_group_id !== null ? (int) $contact->customer_group_id : null,
             // P-087 — tabela própria do cliente; null = vale a do grupo.
             'selling_price_group_id' => $contact->selling_price_group_id !== null ? (int) $contact->selling_price_group_id : null,
+            // P-025 — sinal mínimo do cliente; null = segue a empresa.
+            'sinal_minimo_pct' => $contact->sinal_minimo_pct !== null ? (float) $contact->sinal_minimo_pct : null,
             'tabela_preco_padrao' => $contact->tabela_preco_padrao ?? null,
             'pgto_padrao' => $contact->pgto_padrao ?? null,
             'mensagem_venda' => $contact->mensagem_venda ?? null,
