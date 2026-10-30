@@ -254,14 +254,15 @@ it('UC-SIDX-02 [V0] o somatório do rodapé não se move por venda de OUTRO busi
 // Leitura pura: o teste não chama store() e a lista não mexe em valor nem estoque.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Põe na venda 2 linhas (2 un e 1 un) de um produto do business A. */
+/** Põe na venda 2 linhas (2 un e 1 un), de 2 produtos do business A. */
 function sidxLinhas(object $t): array
 {
-    $produto = \Tests\Support\EstoqueFixture::singleProduct((int) $t->businessA->id);
     // Linhas do setup zeradas (não apagadas: podem ter FK de lote/compra) — somam 0.
     DB::table('transaction_sell_lines')->where('transaction_id', $t->vendaId)->update(['quantity' => 0, 'quantity_returned' => 0]);
     $ids = [];
     foreach ([2, 1] as $qtd) {
+        // Um produto por linha: transaction_sell_lines tem chave única (venda, produto, variação).
+        $produto = \Tests\Support\EstoqueFixture::singleProduct((int) $t->businessA->id);
         $ids[] = (int) DB::table('transaction_sell_lines')->insertGetId([
             'transaction_id' => $t->vendaId,
             'product_id' => $produto->productId,
