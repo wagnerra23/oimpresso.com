@@ -287,11 +287,12 @@ it('UC-SDEV-01 a venda com parte devolvida mostra 2 de 3 e com tudo devolvido mo
     DB::table('transaction_sell_lines')->where('id', $l1)->update(['quantity_returned' => 2]);
     $linha = sidxLinhaPorId($this->getJson('/sells-list-json')->assertOk()->json(), $this->vendaId);
     expect($linha)->not->toBeNull('A venda não apareceu na lista — setup inválido.');
-    expect($linha['devolucao'] ?? null)->toBe(['devolvida' => 2.0, 'vendida' => 3.0, 'total' => false]);
+    // toEqual: o JSON decodifica 2.0 como 2; o número é o mesmo.
+    expect($linha['devolucao'] ?? null)->toEqual(['devolvida' => 2.0, 'vendida' => 3.0, 'total' => false]);
 
     DB::table('transaction_sell_lines')->where('id', $l2)->update(['quantity_returned' => 1]);
     $linha = sidxLinhaPorId($this->getJson('/sells-list-json')->assertOk()->json(), $this->vendaId);
-    expect($linha['devolucao'] ?? null)->toBe(['devolvida' => 3.0, 'vendida' => 3.0, 'total' => true]);
+    expect($linha['devolucao'] ?? null)->toEqual(['devolvida' => 3.0, 'vendida' => 3.0, 'total' => true]);
 });
 
 it('UC-SDEV-02 [T0] venda sem devolução da própria empresa não mostra situação de devolução', function () {
