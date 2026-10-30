@@ -250,6 +250,22 @@ const origemDe = (id) => { const o = ORIGEM[id]; return o ? { venda: o[0], item:
 // Gargalos: carga hoje por máquina (h previstas na agenda) contra a capacidade do posto (horasDia)
 const cargaMaquina = (id) => AGENDA.filter((b) => b.maq === id).reduce((s, b) => s + (b.fim - b.ini), 0);
 
-window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
+// Despesas da OS (P-098 · UC-PCV-52). Quem gasta é a equipe de campo: o instalador lança pelo celular, com a foto do
+// recibo, e a despesa fica "aguardando". Quem cuida do custo confere e decide se é cobrada do cliente (reembolsável)
+// ou fica só no custo — o instalador não sabe o que foi combinado no orçamento. Só despesa conferida entra nos totais.
+const TIPOS_DESP = ["Deslocamento", "Hospedagem", "Alimentação", "Pedágio e estacionamento", "Outra"];
+const DESPESAS = {
+  "OS-2608": [
+    { tipo: "Deslocamento", descricao: "Combustível e pedágio até Jaú (ida e volta)", valor: 186.4, estado: "conferida", reembolsavel: true, recibo: "recibo-posto-1510.jpg", quem: "Jonas", quando: "15/10 07:40", conferiu: "Eliana" },
+    { tipo: "Alimentação", descricao: "Almoço da equipe de instalação", valor: 64, estado: "conferida", reembolsavel: false, recibo: "nota-restaurante.jpg", quem: "Jonas", quando: "15/10 12:50", conferiu: "Eliana" },
+    { tipo: "Pedágio e estacionamento", descricao: "Estacionamento na R. Edgard Ferraz", valor: 18, estado: "aguardando", reembolsavel: null, recibo: "ticket-estac.jpg", quem: "Rafa", quando: "16/10 08:10" },
+  ],
+};
+const despesasDe = (os) => DESPESAS[os] || [];
+const lancarDespesa = (os, d) => { DESPESAS[os] = [...despesasDe(os), d]; registrar({ os, quem: d.quem, tipo: "pcp", texto: "Lançou despesa: " + d.descricao + " (" + fmt(d.valor) + (d.estado === "aguardando" ? ", aguardando conferência" : d.reembolsavel ? ", cobrar do cliente" : ", só no custo") + ")" }); };
+const conferirDespesa = (os, i, reembolsavel) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).map((x, k) => k === i ? { ...x, estado: "conferida", reembolsavel, conferiu: "Você" } : x); registrar({ os, tipo: "pcp", texto: "Conferiu despesa: " + d.descricao + " (" + fmt(d.valor) + (reembolsavel ? ", cobrar do cliente" : ", só no custo") + ")" }); };
+const removerDespesa = (os, i) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).filter((_, k) => k !== i); registrar({ os, tipo: "pcp", texto: "Removeu despesa: " + d.descricao + " (" + fmt(d.valor) + ")" }); };
+
+window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE, TIPOS_DESP, despesasDe, lancarDespesa, conferirDespesa, removerDespesa,
   etapas, atual, progresso, emProducao, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();
