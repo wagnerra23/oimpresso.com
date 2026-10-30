@@ -507,6 +507,9 @@ class SellPosController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // P-026 — sinal mínimo da venda (vem do cliente; o vendedor pode trocar). Vazio = segue cliente/empresa.
+        $request->validate(['sinal_minimo_pct' => ['nullable', 'numeric', 'min:0', 'max:100']]);
+
         $is_direct_sale = false;
         if (!empty($request->input('is_direct_sale'))) {
             $is_direct_sale = true;
@@ -752,6 +755,12 @@ class SellPosController extends Controller
                 $input['document'] = $this->transactionUtil->uploadFile($request, 'sell_document', 'documents');
 
                 $transaction = $this->transactionUtil->createSellTransaction($business_id, $input, $invoice_total, $user_id);
+
+                // P-026 — o sinal combinado na tela vale para as OS desta venda (SinalDaOrdem::minimo).
+                if ($request->filled('sinal_minimo_pct') && \Illuminate\Support\Facades\Schema::hasColumn('transactions', 'sinal_minimo_pct')) {
+                    DB::table('transactions')->where('id', $transaction->id)->where('business_id', $business_id)
+                        ->update(['sinal_minimo_pct' => round((float) $request->input('sinal_minimo_pct'), 2)]);
+                }
 
                 if ($offlineUuid) {
                     VendaOffline::registrar($business_id, $offlineUuid, (int) $transaction->id, $request->input('offline_vendida_em'));

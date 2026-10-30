@@ -2675,6 +2675,7 @@ class ContactController extends Controller
             // P-087 — a tabela própria do cliente vale no lugar da do grupo. O join exige a
             // mesma empresa (Tier 0): um id de outro tenant gravado por fora não vira preço.
             $tabelaPropria = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'selling_price_group_id');
+            $sinalDoCliente = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'sinal_minimo_pct');
             if ($tabelaPropria) {
                 $contacts->leftJoin('selling_price_groups as spg_cli', function ($j) {
                     $j->on('spg_cli.id', '=', 'contacts.selling_price_group_id')
@@ -2714,6 +2715,8 @@ class ContactController extends Controller
                 // mensagem_venda — alerta ao vendedor no POS quando o cliente é
                 // selecionado (migrado de PESSOAS.MENSAGEM_PARA_VENDA Delphi).
                 'contacts.mensagem_venda',
+                // P-026 — sinal do cliente (P-025): a venda mostra e o vendedor pode trocar.
+                $sinalDoCliente ? 'contacts.sinal_minimo_pct' : DB::raw('NULL as sinal_minimo_pct'),
                 'cg.amount as discount_percent',
                 'cg.price_calculation_type',
                 $tabelaPropria

@@ -438,6 +438,29 @@ last_run: "2026-10-29"
 - **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-03 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
+## A condição do cliente preenche a venda (P-026)
+
+## UC-SCOND-01 · A busca de cliente traz o sinal e o prazo do cliente
+- **Persona:** vendedor que atende cliente fixo com condição própria.
+- **Como usa:** escolhe o cliente; o prazo e o sinal da venda já vêm preenchidos (em "Mais opções").
+- **Aceite:** Dado o cliente com sinal de 50% e prazo de 28 dias · Quando a busca de cliente da venda o devolve · Então vêm o sinal 50 e o prazo 28; cliente sem condição vem sem sinal (segue a empresa).
+- **Âncora de contrato:** pedido P-026 · condição do cliente do P-025 (`Cliente/Index.casos.md`, UC-CIDX-09..11) · `ContactController::getCustomers`.
+- **Teste:** `tests/Feature/Sells/SellsCondicaoClienteContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`) — `UC-SCOND-01 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-SCOND-02 · O vendedor troca o sinal na venda, e ele vale para as OS dela `[V0]` `[must]`
+- **Persona:** vendedor que negocia um sinal diferente para este pedido.
+- **Aceite:** Dado a empresa com 30% e o cliente com 50% · Quando a venda é gravada com 40% · Então a venda guarda 40% e as OS dela exigem 40,00 de 100,00; gravada sem sinal, vale o do cliente (50%); gravada com 0, não exige sinal. O total da venda é o mesmo nos três casos.
+- **Âncora de contrato:** pedido P-026 · `SinalDaOrdem::minimo` (venda > cliente > empresa) · **REGRA MESTRE valor** — dupla prova no teste (100,00 à mão e igual à venda sem sinal; 40,00 à mão e pelo MySQL).
+- **Teste:** `tests/Feature/Sells/SellsCondicaoClienteContratoTest.php` — `UC-SCOND-02 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-SCOND-03 · Sinal acima de 100% é recusado
+- **Aceite:** Dado uma venda com sinal de 101% · Quando é enviada · Então volta com erro no campo do sinal e nenhuma venda é gravada.
+- **Âncora de contrato:** pedido P-026 · `SellPosController@store`.
+- **Teste:** `tests/Feature/Sells/SellsCondicaoClienteContratoTest.php` — `UC-SCOND-03 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -535,7 +558,7 @@ last_run: "2026-10-29"
   - Pedido: P-026
   - Âncora: `UC-FLX-28` · DecoNetwork
   - Fazer: Ler a condição do cliente ao escolhê-lo; permitir trocar na venda.
-  - Hoje: part | Em parte | A venda usa a regra da empresa
+  - Hoje: part | Em parte | A busca de cliente traz sinal e prazo, a tela preenche os dois e o vendedor pode trocar; o sinal gravado na venda vale para as OS dela (UC-SCOND-01..03, 2026-10-29). Falta conferir no runtime
   - Comunicação visual: ok | Sim | cliente fixo com sinal diferente
   - Clientes: NewPrint, Sabor Brasil, ArtLaser
   - Etiquetas: valor, part, cv
@@ -770,6 +793,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Etiquetas: valor, miss
 
 ## Trilha do tempo
+- 2026-10-29 · [W+C] **UC-SCOND-01..03** (P-026): o sinal do cliente vem na busca, preenche a venda ("Sinal para liberar a produção", em Mais opções) e o vendedor pode trocar; `transactions.sinal_minimo_pct` guarda a troca. O `Create.tsx` muda por isso.
 - 2026-10-29 · [W+C] **UC-SDUP-01..03** (P-035): a cópia guarda a origem, leva itens e preços da origem sem mexer no estoque e nasce fora do pipeline FSM. Falta o topo do rascunho e a D-05. Teste `SellsDuplicarContratoTest.php`.
 - 2026-10-28 · [W+C] Decisões pendentes D-05, D-06 do documento "Casos de uso por tela", sem id de caso.
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S01 venda a prazo + spec Playwright `sells-venda-balcao.spec.ts`; produto E2E-0001 entrou no VisregTenantSeeder (enable_stock=0).

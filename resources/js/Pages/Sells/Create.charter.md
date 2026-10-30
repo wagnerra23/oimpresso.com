@@ -33,7 +33,7 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 - Click pill faz `scrollToSection(id)` smooth scroll + scroll-spy via IntersectionObserver marca pill ativa
 - 4 KPIs gigantes (Itens / Total venda / Pago / Status pgto) com tone semântico rose/emerald/amber
 - 8 campos sempre visíveis: Cliente / Data / Status / Local + Produtos + Pagamentos + Desconto + Notas
-- 10 campos colapsáveis em `<details>` "Mais opções" com persist localStorage `oimpresso.sells.create.advanced.open`
+- 11 campos colapsáveis em `<details>` "Mais opções" (o 11º é o sinal para liberar a produção, P-026, que vem do cliente) com persist localStorage `oimpresso.sells.create.advanced.open`
 - ProductSearchAutocomplete (debounce + min query) + tabela editável produtos (5 cols)
 - PaymentRow split de pagamento + indicador saldo (falta/troco/exato)
 - Footer sticky no bottom: Cancelar + Salvar venda (sempre visíveis em form longo)
