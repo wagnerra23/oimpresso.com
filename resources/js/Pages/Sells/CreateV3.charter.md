@@ -24,6 +24,8 @@ charter_version: 2
 
 Ensaiar o redesenho do cadastro de venda **sem tocar na tela que o cliente opera**.
 
+> **Destino — decisão [W] 2026-10-30, textual: *"Sim, absorve as duas"*.** A V3 vai substituir a `Sells/Create.tsx` e a `Sells/Edit.tsx`. Primeiro o protótipo ganha o que a produção faz (FSM real, cabeçalho, itens, fechamento, edição); depois o código; a troca segue o MWART F5. Até lá, tudo abaixo continua valendo: a tela não grava e não toca a tela viva.
+
 A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVRE** (`business_id=4` — Larissa dona, Guilherme retaguarda), 99% do volume de vendas. Restrição de negócio declarada por [L] em 2026-08-06, textual:
 
 > *"Tela do Guilherme e da Larissa não pode ser alterada de forma alguma, se não eles quebram contrato e perdemos dinheiro."*

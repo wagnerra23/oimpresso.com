@@ -1277,6 +1277,8 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 **Origem:** restrição de negócio declarada por **[L] Luiz** em 2026-08-06, textual: *"Tela do Guilherme e da Larissa não pode ser alterada de forma alguma, se não eles quebram contrato e perdemos dinheiro."*
 
+> **Decisão [W] 2026-10-30 — a V3 vai substituir a Create e a Edit.** Perguntado se a V3 vira a única tela de venda, absorvendo `Sells/Create.tsx` e `Sells/Edit.tsx`, [W] respondeu, textual: *"Sim, absorve as duas"*. A V3 deixa de ser só ensaio. A ordem é: protótipo primeiro (FSM real, cabeçalho, itens, fechamento e edição — PRs #10206 a #10210), depois o código, e só então a troca, que segue o MWART F5 (aviso à ROTA LIVRE e 7 dias de canary). Até a troca, o contrato de não-regressão abaixo continua valendo: nenhum PR desta US toca a tela viva.
+
 **Problema:** o cadastro de venda precisa de redesenho, mas a tela viva (`Sells/Create.tsx` em `/pos/create`) é operada pela **ROTA LIVRE** (`biz=4` — Larissa dona, Guilherme retaguarda), 99% do volume. E a feature flag **não protege**: `FeatureFlagService::$fallbackDefaults['useV2SellsCreate'] = true` desde 2026-05-27 — a V2 React está ligada por padrão pra todos, então editar `Create.tsx` e deployar atinge o cliente direto. Daí **arquivo novo + rota nova**, não branch de flag.
 
 **Aceite:**
