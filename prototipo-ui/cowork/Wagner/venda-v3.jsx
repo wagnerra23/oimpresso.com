@@ -242,7 +242,7 @@ window.SD = (() => {
       ie: 'ISENTO', contrib: 'nao', fone: '—', email: '—', cidade: 'Joinville', uf: 'SC', endereco: 'Venda no balcão — sem endereço de entrega' },
     { id: 2, cod: '0142', nome: 'Prefeitura de Joinville', im: '00.412.775', regime: 'Órgão público', contato: 'Sandra Küster · compras', nascimento: '', creditoIcms: false, issRetido: true, rural: false, emailNfe: 'nfe@joinville.sc.gov.br', doc: '83.169.623/0001-10', tipo: 'pj', grupo: 'Governo', prazo: '30 dias', tabela: 'Governo 2026 — pregão 041/2026',
       ie: '255.618.240', contrib: 'isento', fone: '(47) 3431-3200', email: 'compras@joinville.sc.gov.br', cidade: 'Joinville', uf: 'SC', endereco: 'Rua XV de Novembro, 1400 — Centro · 89201-601' },
-    { id: 3, cod: '0288', nome: 'Rota Livre Comércio', im: '55.109.220', regime: 'Simples Nacional', contato: 'Rodrigo Bastos · sócio', nascimento: '', creditoIcms: true, issRetido: false, rural: false, emailNfe: 'fiscal@rotalivre.com.br', doc: '41.882.507/0001-44', tipo: 'pj', grupo: 'Atacado', prazo: '28 dias', tabela: 'Atacado — a partir de 50m²',
+    { id: 3, cod: '0288', nome: 'Rota Livre Comércio', adiantamento: 350.0, im: '55.109.220', regime: 'Simples Nacional', contato: 'Rodrigo Bastos · sócio', nascimento: '', creditoIcms: true, issRetido: false, rural: false, emailNfe: 'fiscal@rotalivre.com.br', doc: '41.882.507/0001-44', tipo: 'pj', grupo: 'Atacado', prazo: '28 dias', tabela: 'Atacado — a partir de 50m²',
       ie: '254.099.771', contrib: 'sim', fone: '(47) 99812-4470', email: 'financeiro@rotalivre.com.br', cidade: 'Blumenau', uf: 'SC', endereco: 'Rod. BR-470, km 62 — Itoupava · 89066-000' },
     { id: 4, cod: '0391', nome: 'Marina Bordignon', im: '—', regime: 'Pessoa física', contato: 'Marina Bordignon', nascimento: '1988-03-14', creditoIcms: false, issRetido: false, rural: false, emailNfe: 'marina.bordignon@gmail.com', doc: '045.882.119-30', tipo: 'pf', grupo: 'Varejo', prazo: 'À vista', tabela: null,
       ie: '—', contrib: 'nao', fone: '(47) 98844-1207', email: 'marina.bordignon@gmail.com', cidade: 'Joinville', uf: 'SC', endereco: 'Rua Blumenau, 890 — América · 89204-250' },
@@ -263,6 +263,30 @@ window.SD = (() => {
     { sku: 'BAN-ACAB-IL', nome: 'Acabamento com ilhós', un: 'un', preco: 3.5, tipo: 'servico', estoque: null, ncm: '—', localEstoque: null, peso: 0.01, ean: '—', fabrica: '—', categoria: 'Acabamentos', obs: 'ilhós latão 12 mm' },
     { sku: 'PLA-ACM-3MM', nome: 'Placa ACM 3mm cinza', un: 'm²', preco: 189.0, tipo: 'm2', estoque: 42.0, ncm: '7606.12.90', localEstoque: 'Pátio · chapas', peso: 4.5, ean: '7899123400046', fabrica: 'ACM3-CZ', categoria: 'Chapas', obs: 'chapa 1,22 × 3,05 m' },
     { sku: 'INS-MO-HORA', nome: 'Instalação — hora técnica', un: 'h', preco: 120.0, tipo: 'servico', estoque: null, ncm: '—', localEstoque: null, peso: 0, ean: '—', fabrica: '—', categoria: 'Serviços', obs: 'hora técnica em obra' },
+    /* Produto com VARIAÇÃO (tamanho × cor): o caso do vestuário (ROTA LIVRE). A venda escolhe a
+       variação, e é ela que tem SKU, estoque e preço próprios (product_variations / variations). */
+    { sku: 'CAM-ALG', nome: 'Camiseta algodão básica', un: 'un', preco: 39.9, tipo: 'variavel', estoque: 38, ncm: '6109.10.00', localEstoque: 'Loja · balcão', peso: 0.18, ean: '—', fabrica: 'CAM-ALG', categoria: 'Vestuário', obs: '100% algodão, fio 30',
+      variacoes: [
+        { v: 'P · Branca', sku: 'CAM-ALG-P-BR', estoque: 14, preco: 39.9 },
+        { v: 'M · Branca', sku: 'CAM-ALG-M-BR', estoque: 18, preco: 39.9 },
+        { v: 'G · Preta', sku: 'CAM-ALG-G-PR', estoque: 6, preco: 42.9 },
+        { v: 'GG · Preta', sku: 'CAM-ALG-GG-PR', estoque: 0, preco: 44.9 },
+      ] },
+    /* Produto com LOTE e validade (lot_no_line_id): a venda escolhe de qual lote sai; o que vence antes vem primeiro. */
+    { sku: 'TIN-SOL-1L', nome: 'Tinta solvente ciano 1 L', un: 'un', preco: 289.0, tipo: 'lote', estoque: 11, ncm: '3215.11.00', localEstoque: 'Almoxarifado · insumos', peso: 1.1, ean: '7899123400053', fabrica: 'SOL-CY-1L', categoria: 'Insumos', obs: 'para plotter eco-solvente',
+      lotes: [
+        { lote: 'L2026-05C', validade: '2026-11-30', saldo: 3 },
+        { lote: 'L2026-07A', validade: '2027-01-15', saldo: 8 },
+      ], garantia: 'Sem garantia' },
+    /* Produto com GARANTIA (warranty_id): a garantia sai no documento da venda. */
+    { sku: 'PLT-REC-60', nome: 'Plotter de recorte 60 cm', un: 'un', preco: 3890.0, tipo: 'produto', estoque: 2, ncm: '8477.80.90', localEstoque: 'Loja · balcão', peso: 9.5, ean: '7899123400060', fabrica: 'PR-60', categoria: 'Equipamentos', obs: 'acompanha software de corte', garantia: '12 meses' },
+    /* KIT (produto combo): vende como um item e baixa o estoque de cada componente. */
+    { sku: 'KIT-FACH-P', nome: 'Kit fachada pequena', un: 'un', preco: 980.0, tipo: 'kit', estoque: null, ncm: '—', localEstoque: null, peso: 0, ean: '—', fabrica: '—', categoria: 'Kits', obs: 'placa + adesivo + instalação',
+      componentes: [
+        { sku: 'PLA-ACM-3MM', qtd: 2 },
+        { sku: 'ADE-VIN-BR', qtd: 3 },
+        { sku: 'INS-MO-HORA', qtd: 4 },
+      ] },
   ];
 
   const vendas = [
@@ -324,6 +348,9 @@ window.SD = (() => {
     return payStatus === 'paid' ? 'paid' : 'invoiced';
   };
 
+  /* Garantias do business (warranties): prazo que sai impresso na venda. */
+  const garantias = ['Sem garantia', '90 dias', '6 meses', '12 meses', '24 meses'];
+
   let simularFalha = false;
 
   /* Cadastro único de pessoas comissionáveis — papel em campo próprio, nunca sufixo no nome.
@@ -352,10 +379,22 @@ window.SD = (() => {
   ];
   const setores = ['Criação', 'Impressão', 'Acabamento', 'Usinagem', 'Expedição', 'Balcão', 'Instalação'];
   const locaisEstoque = ['Depósito · bobinas', 'Pátio · chapas', 'Almoxarifado · insumos', 'Loja · balcão'];
+  /* Locais de venda do business (business_locations, `location_id` da Blade): a venda baixa
+     estoque e numera a fatura pelo local escolhido. */
+  const locaisVenda = [{ id: 1, nome: 'Matriz · Joinville' }, { id: 2, nome: 'Filial · Blumenau' }];
+  /* Pedidos de venda em aberto (`sales_order_ids` da Blade): vincular puxa os itens pendentes. */
+  const pedidosAbertos = [
+    { id: 'PV-2026-0112', cliente: 'Prefeitura de Joinville', itens: 3, data: '20/07/2026' },
+    { id: 'PV-2026-0118', cliente: 'Prefeitura de Joinville', itens: 1, data: '24/07/2026' },
+    { id: 'PV-2026-0121', cliente: 'Rota Livre Comércio', itens: 5, data: '25/07/2026' },
+  ];
+  /* Campos personalizados da venda (`custom_field_1..4`): o rótulo de cada um vem da
+     configuração do business (custom_labels.sell). Campo sem rótulo não aparece. */
+  const camposVenda = ['Nº do pedido de compra', 'Obra', 'Contrato', ''];
 
   const cuById = (id) => cus.find((c) => c.id === id);
   const telaByKey = (k) => telas.find((t) => t.key === k);
-  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, simularFalha, cuById, telaByKey };
+  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, locaisVenda, pedidosAbertos, camposVenda, garantias, simularFalha, cuById, telaByKey };
 })();
 
 /* ── sells-ui.jsx ── */
@@ -1669,6 +1708,7 @@ function EntregaFiscal({ itens, cli, frete, setFrete, freteModo, setFreteModo, o
   const [pesoBrutoM, setPesoBrutoM] = React.useState('0,000');
   const [pesoLiqM, setPesoLiqM] = React.useState('0,000');
   const [entregaOutro, setEntregaOutro] = React.useState(false);
+  const [exportacao, setExportacao] = React.useState(false);
   const [saiEm, setSaiEm] = React.useState({ orc: false, vd: true, nf: false });
   const [transp, setTransp] = React.useState(null);
   const [buscaT, setBuscaT] = React.useState('');
@@ -1732,8 +1772,10 @@ function EntregaFiscal({ itens, cli, frete, setFrete, freteModo, setFreteModo, o
               <div><DataCampo label="Data da coleta" /></div>
             </Grid>
           </div>
-          <div style={{ marginTop: 12 }}><Grid cols={3} gap={12}>
+          <div style={{ marginTop: 12 }}><Grid cols={4} gap={12}>
             <div><Select label="Status da remessa" options={['Pendente', 'Em separação', 'Despachado', 'Entregue', 'Devolvido']} /></div>
+            {/* `delivery_person` da Blade: quem leva, quando a entrega é própria */}
+            <div><Select label="Entregador" options={['—', ...window.SD.pessoasDe('funcionario').map((x) => x.nome)]} /></div>
             <div><DataCampo label="Previsão de entrega" /></div>
             <div><Input label="Rastreio / conhecimento" placeholder="CT-e ou código de rastreio" /></div>
           </Grid></div>
@@ -1791,6 +1833,13 @@ function EntregaFiscal({ itens, cli, frete, setFrete, freteModo, setFreteModo, o
           <div><Select label="Imposto do pedido" options={['ICMS 18% — exclusivo', 'ICMS 12% — exclusivo', 'Isento']} /></div>
         </Grid>
         <div style={{ marginTop: 12 }}><Textarea label="Informações complementares da NF-e" rows={2} placeholder="Pedido de compra 4471. Entregar em horário comercial." /></div>
+        {/* `is_export` da Blade: a NF-e sai com CFOP de exportação e pede país e local de embarque. */}
+        <div style={{ marginTop: 12 }}><Switch label="Venda para exportação" sublabel="NF-e com CFOP 7.xxx; o cliente fica no exterior" checked={exportacao} onChange={setExportacao} /></div>
+        {exportacao && <div style={{ marginTop: 12 }}><Grid cols={3} gap={12}>
+          <div><Input label="País de destino" placeholder="Paraguai" /></div>
+          <div><Select label="UF de embarque" options={['SC', 'PR', 'RS', 'SP']} /></div>
+          <div><Input label="Local de embarque" placeholder="Porto de Itajaí" /></div>
+        </Grid></div>}
       </div>
 
       <Modal open={consulta} onClose={() => setConsulta(false)} width={880} title="Consulta de transportadoras"
@@ -1871,9 +1920,17 @@ function LancarItem({ produto, onClose, onConfirm }) {
   const [prazoEquipe, setPrazoEquipe] = React.useState('');
   const [prazoEtapa, setPrazoEtapa] = React.useState('');
   const [adicAberto, setAdicAberto] = React.useState(false);
+  const [variacao, setVariacao] = React.useState(null);
+  const [lote, setLote] = React.useState('');
+  const [garantia, setGarantia] = React.useState('Sem garantia');
 
   React.useEffect(() => {
     if (!produto) return;
+    setVariacao(null);
+    /* o lote que vence antes sai antes (FEFO) — o operador pode trocar */
+    const lotes = (produto.lotes || []).slice().sort((a, b) => a.validade.localeCompare(b.validade));
+    setLote(lotes.length ? lotes[0].lote : '');
+    setGarantia(produto.garantia || 'Sem garantia');
     setPreco(fmtBR(produto.preco)); setPecas('1'); setQtdDireta('1'); setDesc('0'); setAcr('0');
     setAltura(produto.un === 'm²' || produto.un === 'm³' ? '0,50' : '0,00');
     setLargura(produto.un === 'm²' || produto.un === 'm³' || produto.un === 'm' ? '0,10' : '0,00');
@@ -1898,10 +1955,23 @@ function LancarItem({ produto, onClose, onConfirm }) {
      deixar passar preço baixo demais (git · calculo-item.ts::PISO_DA_TABELA). */
   const abaixoDoPiso = parseBR(preco) < produto.preco * PISO_DA_TABELA;
   const preenchidos = [obs, obsProd, local, impressao, prazoEquipe, prazoEtapa].filter((v) => v && v.trim()).length;
-  const semEstoque = produto.estoque !== null && qtd > produto.estoque;
+  /* Estoque que vale para este lançamento: o da variação, o do lote, ou o do componente que
+     acaba primeiro no kit. */
+  const lotesOrd = (produto.lotes || []).slice().sort((a, b) => a.validade.localeCompare(b.validade));
+  const loteSel = lotesOrd.find((x) => x.lote === lote) || null;
+  const comps = (produto.componentes || []).map((c) => ({ ...c, p: window.SD.catalogo.find((x) => x.sku === c.sku) || {} }));
+  const estoqueKit = comps.length ? Math.min(...comps.filter((c) => c.p.estoque !== null && c.p.estoque !== undefined).map((c) => Math.floor(c.p.estoque / c.qtd))) : null;
+  const estoqueEf = produto.variacoes ? (variacao ? variacao.estoque : null)
+    : loteSel ? loteSel.saldo
+    : comps.length ? estoqueKit
+    : produto.estoque;
+  const faltaVariacao = !!produto.variacoes && !variacao;
+  const semEstoque = estoqueEf !== null && qtd > estoqueEf;
 
   const confirmar = () => onConfirm({
-    k: Date.now(), sku: produto.sku, nome: produto.nome, un: produto.un,
+    k: Date.now(), sku: variacao ? variacao.sku : produto.sku, nome: variacao ? produto.nome + ' — ' + variacao.v : produto.nome, un: produto.un,
+    variacao: variacao ? variacao.v : null, lote: loteSel ? loteSel.lote : null, garantia: servico ? null : garantia,
+    componentes: comps.length ? comps.map((c) => ({ sku: c.sku, qtd: c.qtd * qtd })) : null,
     qtd: fmtQtd(qtd), preco: fmtBR(parseBR(preco)), desc: String(parseBR(desc)), acr: String(parseBR(acr)),
     pecas: fmtBR(nPecas), altura, largura, esp, func: servico ? func : null, obsItem: obs,
     obsProd, local, impressao, prazoEquipe, prazoEtapa,
@@ -1917,7 +1987,7 @@ function LancarItem({ produto, onClose, onConfirm }) {
         </div>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" disabled={qtd <= 0} onClick={confirmar}>Adicionar à venda</Button>
+          <Button variant="primary" disabled={qtd <= 0 || faltaVariacao} onClick={confirmar}>{faltaVariacao ? 'Escolha a variação' : 'Adicionar à venda'}</Button>
         </span>
       </div>}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1925,10 +1995,53 @@ function LancarItem({ produto, onClose, onConfirm }) {
           <Pill mono>{produto.sku}</Pill>
           <Pill c={servico ? 'var(--color-info)' : 'var(--accent)'} s={servico ? 'color-mix(in oklch, var(--color-info) 12%, transparent)' : 'color-mix(in oklch, var(--accent) 12%, var(--surface))'}>{servico ? 'serviço' : 'produto'}</Pill>
           <Pill mono>unidade {produto.un}</Pill>
-          {produto.estoque !== null
-            ? <Pill c={semEstoque ? 'var(--neg)' : 'var(--pos)'} s={semEstoque ? 'color-mix(in oklch, var(--neg) 12%, var(--surface))' : 'color-mix(in oklch, var(--pos) 12%, var(--surface))'} mono>estoque {num(produto.estoque, 2)} {produto.un}</Pill>
+          {estoqueEf !== null || produto.variacoes
+            ? <Pill c={semEstoque ? 'var(--neg)' : 'var(--pos)'} s={semEstoque ? 'color-mix(in oklch, var(--neg) 12%, var(--surface))' : 'color-mix(in oklch, var(--pos) 12%, var(--surface))'} mono>{produto.variacoes && !variacao ? 'escolha a variação' : (comps.length ? 'kits montáveis ' : loteSel ? 'saldo do lote ' : 'estoque ') + num(estoqueEf, 2) + ' ' + produto.un}</Pill>
             : <Pill mono>não controla estoque</Pill>}
         </div>
+
+        {/* Variação — tamanho × cor. Sem escolher, o item não entra (é a variação que tem estoque e preço). */}
+        {produto.variacoes && <div>
+          <Lbl>Variação</Lbl>
+          <div role="radiogroup" aria-label="Variação" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {produto.variacoes.map((va) => {
+              const sel = variacao && variacao.sku === va.sku;
+              const zerada = va.estoque <= 0;
+              return (
+                <button key={va.sku} type="button" role="radio" aria-checked={sel} onClick={() => { setVariacao(va); setPreco(fmtBR(va.preco)); }}
+                  style={{ minWidth: 112, minHeight: 44, padding: '6px 10px', borderRadius: 8, cursor: 'pointer', textAlign: 'left', border: '1px solid ' + (sel ? 'var(--accent)' : 'var(--border)'), background: sel ? 'color-mix(in oklch, var(--accent) 12%, var(--surface))' : 'var(--surface)', color: 'var(--text)' }}>
+                  <span style={{ display: 'block', font: '600 12.5px/1.3 var(--font-sans)' }}>{va.v}</span>
+                  <span style={{ display: 'block', font: '11.5px/1.3 var(--font-mono)', color: zerada ? tomFg('var(--neg)') : 'var(--text-dim)' }}>{zerada ? 'sem estoque' : 'estoque ' + num(va.estoque, 0)} · {brl(va.preco)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>}
+
+        {/* Lote — o que vence antes vem selecionado (FEFO); o operador pode trocar. */}
+        {lotesOrd.length > 0 && <div>
+          <Grid cols={2} gap={12}>
+            <div><Select label="Lote" value={lote} onChange={(e) => setLote(e.target.value)}
+              options={lotesOrd.map((x) => ({ value: x.lote, label: x.lote + ' · vence ' + dTexto(dParse(x.validade)) + ' · saldo ' + num(x.saldo, 0) }))} /></div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 8, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>{loteSel && lotesOrd[0].lote === loteSel.lote ? 'o lote que vence antes sai antes' : 'lote escolhido à mão — fica no histórico do item'}</div>
+          </Grid>
+        </div>}
+
+        {/* Kit — vende como um item, baixa cada componente. */}
+        {comps.length > 0 && <div>
+          <Lbl>Componentes do kit</Lbl>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+            {comps.map((c, i) => (
+              <div key={c.sku} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 12px', borderTop: i ? '1px solid var(--border)' : 0, font: '12.5px/1.35 var(--font-sans)' }}>
+                <span style={{ flex: 1, minWidth: 0 }}>{c.p.nome || c.sku}</span>
+                <span style={{ font: '12px/1 var(--font-mono)', color: 'var(--text-dim)' }}>{num(c.qtd, 0)} {c.p.un} por kit</span>
+                <b style={{ font: '600 12.5px/1 var(--font-mono)' }}>{num(c.qtd * qtd, 2)} {c.p.un}</b>
+                <span style={{ width: 96, textAlign: 'right', font: '11.5px/1 var(--font-mono)', color: c.p.estoque === null || c.p.estoque === undefined ? 'var(--text-dim)' : c.p.estoque < c.qtd * qtd ? tomFg('var(--neg)') : 'var(--text-dim)' }}>{c.p.estoque === null || c.p.estoque === undefined ? 'não controla estoque' : 'estoque ' + num(c.p.estoque, 0)}</span>
+              </div>
+            ))}
+          </div>
+          <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>a venda baixa o estoque de cada componente, não do kit</span>
+        </div>}
 
         {dims && <div>
           <Lbl>Medidas</Lbl>
@@ -1959,6 +2072,10 @@ function LancarItem({ produto, onClose, onConfirm }) {
           </Grid>
         </div>}
 
+        {!servico && <div style={{ maxWidth: 260 }}>
+          <Select label="Garantia" value={garantia} onChange={(e) => setGarantia(e.target.value)} options={window.SD.garantias} />
+        </div>}
+
         <div>
           <Lbl>Valores</Lbl>
           <Grid cols={4} gap={12}>
@@ -1975,7 +2092,7 @@ function LancarItem({ produto, onClose, onConfirm }) {
           </div>
           {!podePreco && <div style={{ marginTop: 8 }}><Alert tone="info" title="Preço travado pelo perfil">O valor vem da tabela aplicada na venda. Pedir liberação ao supervisor para alterar.</Alert></div>}
           {podePreco && abaixoDoPiso && <div style={{ marginTop: 8 }}><Alert tone="warn" title="Abaixo do piso de preço">{brl(parseBR(preco))} está mais de 15% abaixo da tabela ({brl(produto.preco)}). Finalizar exige liberação de supervisor.</Alert></div>}
-          {semEstoque && <div style={{ marginTop: 8 }}><Alert tone="danger" title="Quantidade acima do estoque">Pedido de {fmtQtd(qtd)} {produto.un} com {num(produto.estoque, 2)} em estoque — vai gerar saldo negativo ou pedido de compra.</Alert></div>}
+          {semEstoque && <div style={{ marginTop: 8 }}><Alert tone="danger" title="Quantidade acima do estoque">Pedido de {fmtQtd(qtd)} {produto.un} com {num(estoqueEf, 2)} em estoque — vai gerar saldo negativo ou pedido de compra.</Alert></div>}
         </div>
 
         {servico && <div>
@@ -2509,6 +2626,11 @@ function Create({ onOpen, modo = 'create', registro }) {
   const [pontos, setPontos] = React.useState(0);
   const [freteModo, setFreteModo] = React.useState('hoje');
   const [frete, setFrete] = React.useState('0,00');
+  /* Despesas adicionais da venda (additional_expense_key/value_1..4 da Blade): somam no total
+     depois do imposto, como na Blade. No máximo 4. */
+  const [despesas, setDespesas] = React.useState([]);
+  /* Documentos da venda (`sell_document` da Blade): pedido de compra, contrato, autorização. */
+  const [docsVenda, setDocsVenda] = React.useState([]);
   const [acr, setAcr] = React.useState('0,00');
   const [pags, setPags] = React.useState(edit ? [{ k: 1, m: 'Boleto', v: '0,00', par: '1' }] : []);
   const [status, setStatus] = React.useState('final');
@@ -2517,6 +2639,10 @@ function Create({ onOpen, modo = 'create', registro }) {
   const [consultaCli, setConsultaCli] = React.useState(false);
   const [buscaCli, setBuscaCli] = React.useState('');
   const [destAberto, setDestAberto] = React.useState(false);
+  const [localVenda, setLocalVenda] = React.useState(window.SD.locaisVenda[0].nome);
+  const [dataVenda, setDataVenda] = React.useState(edit ? '2026-07-27' : new Date().toISOString().slice(0, 10));
+  const [pedidoVinc, setPedidoVinc] = React.useState('');
+  const [camposAbertos, setCamposAbertos] = React.useState(false);
   const [tabela, setTabela] = React.useState(null); /* null = herda do cadastro do cliente */
   const [itemAberto, setItemAberto] = React.useState(-1);
   const [abaItem, setAbaItem] = React.useState('geral'); /* aba inicial do drawer de detalhe */
@@ -2564,7 +2690,8 @@ function Create({ onOpen, modo = 'create', registro }) {
   const vFrete = submitSafe(parseBR(frete));
   const vAcr = submitSafe(parseBR(acr));
   const vResgate = submitSafe(pontos * PONTO_VALOR);
-  const total = submitSafe(baseTrib + vImposto + vFrete + vAcr - vResgate);
+  const vDesp = submitSafe(despesas.reduce((s, x) => s + parseBR(x.v || '0'), 0));
+  const total = submitSafe(baseTrib + vImposto + vFrete + vAcr + vDesp - vResgate);
   const pago = submitSafe(pags.reduce((s, p) => s + parseBR(p.v), 0) + parcelas.filter((p) => p.lanc === 'RECEBIDA').reduce((s, p) => s + parseBR(p.valor), 0));
   const saldo = submitSafe(total - pago);
   const payStatus = pago <= 0 ? 'due' : saldo > 0.005 ? 'partial' : 'paid';
@@ -2585,6 +2712,9 @@ function Create({ onOpen, modo = 'create', registro }) {
     setUndo({ msg: 'Item removido — ' + l.nome, undo: () => setItens((s) => { const c = [...s]; c.splice(pos, 0, l); return c; }) });
   };
   const travada = estagioTrava(estagio);
+  const pedidosDoCliente = window.SD.pedidosAbertos.filter((p) => p.cliente === cliente);
+  const camposDaVenda = window.SD.camposVenda.filter(Boolean);
+  React.useEffect(() => { setPedidoVinc(''); }, [cliente]);
   const atualFsm = fsmDe(estagio);
   /* Ação do botão grande: no rascunho é gravar (a etapa de destino sai do tipo de documento e
      do pagamento); depois, a primeira ação que AVANÇA a etapa e que o perfil pode executar
@@ -2696,6 +2826,37 @@ function Create({ onOpen, modo = 'create', registro }) {
           </div>
           <div style={{ marginTop: 12 }}><Button size="sm">Abrir cadastro completo</Button></div>
         </div>}
+
+        {/* Dados da venda — o que a Blade pede no topo e o protótipo não tinha: local, data,
+            pedido de venda vinculado e campos personalizados do business. */}
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+          <Grid cols={3} gap={12}>
+            <div>
+              <Select label="Local da venda" value={localVenda} onChange={(ev) => setLocalVenda(ev.target.value)} disabled={travada} options={window.SD.locaisVenda.map((l) => l.nome)} />
+              <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>o estoque sai deste local</span>
+            </div>
+            <div>
+              <Input label="Data da venda" type="date" value={dataVenda} onChange={(ev) => setDataVenda(ev.target.value)} disabled={travada} />
+              <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>{dataVenda === new Date().toISOString().slice(0, 10) ? 'hoje' : 'venda com data retroativa — fica no histórico'}</span>
+            </div>
+            <div>
+              <Select label="Pedido de venda vinculado" value={pedidoVinc} onChange={(ev) => setPedidoVinc(ev.target.value)} disabled={travada}
+                options={[{ value: '', label: pedidosDoCliente.length ? 'Nenhum' : 'Cliente sem pedido em aberto' }, ...pedidosDoCliente.map((p) => ({ value: p.id, label: p.id + ' · ' + p.data + ' · ' + (p.itens === 1 ? '1 item' : p.itens + ' itens') }))]} />
+              <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>{pedidoVinc ? 'os itens pendentes do pedido entram na grade' : 'só pedidos em aberto deste cliente'}</span>
+            </div>
+          </Grid>
+          {camposDaVenda.length > 0 && <>
+            <button type="button" onClick={() => setCamposAbertos(!camposAbertos)} aria-expanded={camposAbertos}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, padding: '4px 0', border: 0, background: 'transparent', cursor: 'pointer', color: 'color-mix(in oklch, var(--accent) 62%, var(--text))', font: '600 11.5px/1 var(--font-sans)' }}>
+              <Icon name="ChevronDown" size={14} style={{ transform: camposAbertos ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
+              Campos personalizados
+              <span style={{ font: '11.5px/1 var(--font-mono)', color: 'var(--text-dim)' }}>{camposDaVenda.length}</span>
+            </button>
+            {camposAbertos && <div style={{ marginTop: 8 }}><Grid cols={3} gap={12}>
+              {camposDaVenda.map((rot) => <div key={rot}><Input label={rot} disabled={travada} /></div>)}
+            </Grid></div>}
+          </>}
+        </div>
         <Meta><div style={{ marginTop: 12 }}><TierBar tone="accent">Cliente, produto e comissionista só alcançam registros do <b>business atual</b>. <code>App\Transaction</code> não tem global scope — o escopo é declarado <b>em cada query</b> (ADR 0093 · CU-SELL-15).</TierBar></div></Meta>
       </Sec>
 
@@ -2820,6 +2981,23 @@ function Create({ onOpen, modo = 'create', registro }) {
             <div><Select label="Prazo de pagamento" defaultValue={cli.prazo} options={['À vista', '7 dias', '14 dias', '28 dias', '30 dias', '30/60']} /></div>
             <div style={{ display: 'flex', alignItems: 'flex-end' }}><Switch label="Abrir OS de produção" sublabel="Venda Com Produção" checked={os} onChange={setOs} /></div>
           </Grid></div>
+          <div style={{ marginTop: 12 }}>
+            <Lbl>Documentos da venda</Lbl>
+            {docsVenda.map((d) => (
+              <div key={d.k} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--border)', font: '12.5px/1.35 var(--font-sans)' }}>
+                <Icon name="Paperclip" size={14} />
+                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.nome}</span>
+                <span style={{ font: '11.5px/1 var(--font-mono)', color: 'var(--text-dim)' }}>{num(d.kb, 0)} KB</span>
+                <button type="button" aria-label={'Remover ' + d.nome} onClick={() => setDocsVenda((s) => s.filter((x) => x.k !== d.k))}
+                  style={{ width: 30, height: 30, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}><Icon name="X" size={13} /></button>
+              </div>
+            ))}
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, height: 32, padding: '0 12px', borderRadius: 6, border: '1px dashed var(--border)', cursor: 'pointer', font: '600 12px/1 var(--font-sans)', color: 'var(--text)' }}>
+              <Icon name="Upload" size={14} /> Anexar arquivo
+              <input type="file" multiple style={{ display: 'none' }} onChange={(e) => { const fs = [...e.target.files].map((f, i) => ({ k: Date.now() + i, nome: f.name, kb: f.size / 1024 })); setDocsVenda((s) => [...s, ...fs]); e.target.value = ''; }} />
+            </label>
+            <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>pedido de compra, contrato, autorização — fica com a venda, não sai no documento</span>
+          </div>
         </Sec>
       </div>
     </div>
@@ -2872,6 +3050,7 @@ function Create({ onOpen, modo = 'create', registro }) {
             <Res l="Imposto" v={fmtBR(vImposto)} />
             <Res l="Acréscimo" v={vAcr ? '+ ' + fmtBR(vAcr) : fmtBR(0)} c={vAcr ? 'var(--warn)' : 'var(--text-dim)'} />
             <Res l="Frete" v={fmtBR(vFrete)} c={vFrete ? 'var(--text)' : 'var(--text-dim)'} />
+            {vDesp > 0 && <Res l="Despesas da venda" v={'+ ' + fmtBR(vDesp)} />}
             {vResgate > 0 && <Res l={'Pontos (' + pontos + ')'} v={'− ' + fmtBR(vResgate)} c="var(--neg)" />}
           </div>
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -2908,6 +3087,22 @@ function Create({ onOpen, modo = 'create', registro }) {
               <Money label="Acréscimo" value={acr} onChange={setAcr} hue="color-mix(in oklch, var(--warn) 62%, var(--text))" />
               <Money label="Frete" value={frete} onChange={setFrete} />
             </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Lbl>Despesas da venda</Lbl>
+                <span style={{ marginLeft: 'auto' }}><Button size="sm" variant="ghost" disabled={despesas.length >= 4 || travada}
+                  onClick={() => setDespesas((s) => [...s, { k: Date.now(), d: '', v: '0,00' }])}>+ Despesa</Button></span>
+              </div>
+              {despesas.length === 0 && <span style={{ display: 'block', font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>taxa de embalagem, montagem, deslocamento — soma no total depois do imposto</span>}
+              {despesas.map((x) => (
+                <div key={x.k} style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 8 }}>
+                  <div style={{ flex: '1 1 0', minWidth: 0 }}><Input label="Descrição" value={x.d} placeholder="Taxa de embalagem" onChange={(e) => setDespesas((s) => s.map((y) => y.k === x.k ? { ...y, d: e.target.value } : y))} /></div>
+                  <div style={{ width: 120, flex: 'none' }}><Money label="Valor" value={x.v} onChange={(v) => setDespesas((s) => s.map((y) => y.k === x.k ? { ...y, v } : y))} /></div>
+                  <button type="button" aria-label="Remover despesa" onClick={() => setDespesas((s) => s.filter((y) => y.k !== x.k))}
+                    style={{ width: 34, height: 34, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}><Icon name="X" size={14} /></button>
+                </div>
+              ))}
+            </div>
           </div>
           {alcada && <div style={{ marginTop: 8 }}><Alert tone="warn" title="Acima da alçada de 10%">Precisa de liberação de supervisor para finalizar.</Alert></div>}
         </div>
@@ -2919,6 +3114,11 @@ function Create({ onOpen, modo = 'create', registro }) {
           {meta && <span style={{ marginLeft: 'auto' }}><CuRow ids={['CU-SELL-06', 'CU-SELL-09']} onOpen={onOpen} /></span>}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+          {cli.adiantamento > 0 && <button type="button" onClick={() => setPags((s) => s.some((x) => x.m === 'Adiantamento do cliente') ? s : [...s, { k: Date.now(), m: 'Adiantamento do cliente', v: fmtBR(Math.min(Math.max(saldo, 0), cli.adiantamento)), par: '1' }])}
+            title={'Saldo a favor do cliente: ' + brl(cli.adiantamento)}
+            style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px solid var(--pos)', background: 'color-mix(in oklch, var(--pos) 12%, var(--surface))', color: tomFg('var(--pos)'), font: '600 11.5px/1 var(--font-sans)' }}>
+            + Adiantamento {brl(cli.adiantamento)}
+          </button>}
           {RAPIDO.map((m) => (
             <button key={m} type="button" onClick={() => addPag(m)} style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px dashed var(--border)', background: 'var(--bg-2)', color: 'var(--text-dim)', font: '600 11.5px/1 var(--font-sans)' }}>+ {m}</button>
           ))}
@@ -2944,7 +3144,7 @@ function Create({ onOpen, modo = 'create', registro }) {
         {pags.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
           {pags.map((p) => (
             <div key={p.k} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={METODOS} /></div>
+              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={p.m === 'Adiantamento do cliente' ? ['Adiantamento do cliente', ...METODOS] : METODOS} /></div>
               <div style={{ width: 106, flex: 'none' }}><Money aria={'Valor recebido em ' + p.m} value={p.v} onChange={(v) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, v } : x))} /></div>
               <button type="button" title="Remover pagamento" onClick={() => setPags((s) => s.filter((x) => x.k !== p.k))} style={{ width: 26, height: 26, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}>×</button>
             </div>
