@@ -2721,7 +2721,13 @@ function Create({ onOpen, modo = 'create', registro }) {
     : registro.devolucao ? { titulo: 'Venda com devolução — não pode ser editada', texto: 'Esta venda já tem devolução lançada. Corrigir valor ou quantidade agora desencontraria a devolução; lance uma nova devolução ou cancele a venda.' }
     : (registro.dias || 0) > window.SD.permissoes.prazoEdicaoDias ? { titulo: 'Prazo de edição vencido', texto: 'A venda tem ' + registro.dias + ' dias e o prazo de edição é de ' + window.SD.permissoes.prazoEdicaoDias + ' dias. Para corrigir, lance uma devolução.' }
     : null;
-  const travada = estagioTrava(estagio) || !!bloqueioEdicao;
+  /* Travas por nota e por pagamento (Edit.casos.md UC-SEDIT-13..17). Com NF-e autorizada, itens,
+     valores e cliente não mudam e a observação ainda se edita; nota cancelada não trava. Com
+     pagamento e sem nota, só os valores travam: o cliente ainda se troca. */
+  const travaNota = edit && !!registro && registro.nfe === 'autorizada';
+  const travaPagamento = edit && !!registro && !travaNota && (registro.pago || 0) > 0;
+  const travada = estagioTrava(estagio) || !!bloqueioEdicao || travaNota || travaPagamento;
+  const travaCliente = estagioTrava(estagio) || !!bloqueioEdicao || travaNota;
   const pedidosDoCliente = window.SD.pedidosAbertos.filter((p) => p.cliente === cliente);
   const camposDaVenda = window.SD.camposVenda.filter(Boolean);
   React.useEffect(() => { setPedidoVinc(''); }, [cliente]);
@@ -2777,6 +2783,9 @@ function Create({ onOpen, modo = 'create', registro }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
       {edit && <Meta><Alert tone="warn" title="Editar venda emitida — US-SELL-059">Mexe em <code>final_total</code> e estoque de venda já finalizada. As travas desta tela são as de <code>Edit.casos.md</code>: tenant, permissão, devolução e prazo de edição.</Alert></Meta>}
       {bloqueioEdicao && <Alert tone="danger" title={bloqueioEdicao.titulo}>{bloqueioEdicao.texto}</Alert>}
+      {!bloqueioEdicao && travaNota && <Alert tone="warn" title="Venda com nota autorizada">Cancele a nota para alterar itens e valores. A observação ainda pode ser editada.</Alert>}
+      {!bloqueioEdicao && travaPagamento && <Alert tone="warn" title="Venda com pagamento">Valores não podem ser alterados; estorne o pagamento antes. O cliente e a observação ainda podem ser editados.</Alert>}
+      {edit && registro && (registro.dividaCliente || 0) > 0 && <Alert tone="warn" title="Cliente vencido">{cliente} tem {brl(registro.dividaCliente)} vencido em outras vendas.</Alert>}
       {erroSistema && <Alert tone="danger" title={'Não foi possível salvar a venda (' + erroSistema.codigo + ')'}
         action={<Button size="sm" variant="primary" onClick={() => executarAcao(false)}>Tentar de novo</Button>}>
         O servidor não respondeu às {erroSistema.em.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}. <b>Nada foi perdido</b> — a venda continua aqui e o rascunho está salvo. Tente de novo; se repetir, salve como rascunho e chame o suporte.
@@ -2798,9 +2807,9 @@ function Create({ onOpen, modo = 'create', registro }) {
       {/* 1 · Cliente — uma linha, não um formulário */}
       <Sec title={<><Passo n="1" />Cliente</>} hue="var(--accent)" ico={false} pad={12}
         cus={['CU-SELL-01', 'CU-SELL-02', 'CU-SELL-03', 'CU-SELL-15']} onOpen={onOpen}
-        right={<Button size="sm" onClick={() => setConsultaCli(true)}>Consultar cadastro… F2</Button>}>
+        right={<Button size="sm" disabled={travaCliente} onClick={() => setConsultaCli(true)}>Consultar cadastro… F2</Button>}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: 12 }}>
-          <div style={{ width: 104, flex: 'none' }}><Input label="Código" value={cli.cod} onChange={(ev) => { const x = window.SD.clientes.find((y) => y.cod === ev.target.value.trim()); if (x) setCliente(x.nome); }} /></div>
+          <div style={{ width: 104, flex: 'none' }}><Input label="Código" value={cli.cod} readOnly={travaCliente} onChange={(ev) => { const x = window.SD.clientes.find((y) => y.cod === ev.target.value.trim()); if (x) setCliente(x.nome); }} /></div>
           <div style={{ flex: '1 1 320px', minWidth: 240 }}>
             <Input label="Cliente / destinatário" value={cliente} readOnly onChange={() => {}} />
           </div>
