@@ -353,7 +353,19 @@ window.SD = (() => {
   /* Configuração do business usada pela venda. `sinalPadrao`: % de sinal que a empresa exige
      quando o cliente não tem o seu (UC-SCOND). `aliqSt`: alíquota de cena do ICMS ST — em produção
      o valor vem do servidor pela mesma conta da NF-e (POST /sells/icms-st, UC-VST-01). */
-  const config = { sinalPadrao: 30, aliqSt: 0.132 };
+  const config = { sinalPadrao: 30, aliqSt: 0.132, tef: true };
+  /* Reparo (módulo Repair): status, modelos com checklist e OS em aberto — só do próprio business
+     (UC-S05, UC-S06). A peça da OS vem com o preço de venda da variação (UC-S07). */
+  const reparo = {
+    status: ['Recebido', 'Em diagnóstico', 'Aguardando peça', 'Em reparo', 'Pronto para retirada'],
+    modelos: [
+      { id: 1, nome: 'Impressora HP Latex 315', checklist: ['Liga', 'Puxa mídia', 'Cabeças limpas', 'Painel sem trinca'] },
+      { id: 2, nome: 'Plotter de recorte 60 cm', checklist: ['Liga', 'Lâmina inteira', 'Cabo USB'] },
+    ],
+    os: [
+      { id: 318, cliente: 'Rota Livre Comércio', aparelho: 'Plotter de recorte 60 cm', pecas: [{ sku: 'BAN-ACAB-IL', nome: 'Lâmina de recorte 45°', un: 'un', qtd: '2', preco: '37,50' }] },
+    ],
+  };
   /* Garantias do business (warranties): prazo que sai impresso na venda. */
   const garantias = ['Sem garantia', '90 dias', '6 meses', '12 meses', '24 meses'];
 
@@ -400,7 +412,7 @@ window.SD = (() => {
 
   const cuById = (id) => cus.find((c) => c.id === id);
   const telaByKey = (k) => telas.find((t) => t.key === k);
-  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, locaisVenda, pedidosAbertos, camposVenda, garantias, config, simularFalha, cuById, telaByKey };
+  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, locaisVenda, pedidosAbertos, camposVenda, garantias, config, reparo, simularFalha, cuById, telaByKey };
 })();
 
 /* ── sells-ui.jsx ── */
@@ -2598,7 +2610,7 @@ const Res = ({ l, v, c, forte }) => (
   </div>
 );
 
-function Create({ onOpen, modo = 'create', registro }) {
+function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
   const meta = useMeta();
   const estreito = useEstreito();
   const edit = modo === 'edit';
@@ -2606,8 +2618,10 @@ function Create({ onOpen, modo = 'create', registro }) {
   const [erroSistema, setErroSistema] = React.useState(null);
   const [mostrarTodos, setMostrarTodos] = React.useState(false);
   React.useEffect(() => { const t = setTimeout(() => setCarregando(false), 550); return () => clearTimeout(t); }, []);
-  const [cliente, setCliente] = React.useState(edit ? (registro ? registro.cliente : 'Prefeitura de Joinville') : 'Consumidor final');
-  const [itens, setItens] = React.useState(edit
+  const [cliente, setCliente] = React.useState(copia ? copia.cliente : edit ? (registro ? registro.cliente : 'Prefeitura de Joinville') : 'Consumidor final');
+  /* Duplicar (UC-SDUP-01..03): a cópia leva os mesmos itens e preços, nasce rascunho, sem
+     pagamento e fora do pipeline; o estoque só muda quando ela for gravada. */
+  const [itens, setItens] = React.useState(copia ? copia.itens.map((l, i) => ({ ...l, k: Date.now() + i })) : edit
     ? [{ k: 1, sku: 'LON-440-BR', nome: 'Lona 440g branca fosca', un: 'm²', qtd: '120,00', preco: '68,90', desc: '0' },
        { k: 2, sku: 'BAN-ACAB-IL', nome: 'Acabamento com ilhós', un: 'un', qtd: '48', preco: '3,50', desc: '0' }]
     : [{ k: 1, sku: 'LON-440-BR', nome: 'Lona 440g branca fosca', un: 'm²', qtd: '12,50', preco: '68,90', desc: '0', pecas: '5', altura: '0,50', largura: '5,00' },
@@ -2638,6 +2652,9 @@ function Create({ onOpen, modo = 'create', registro }) {
      depois do imposto, como na Blade. No máximo 4. */
   const [despesas, setDespesas] = React.useState([]);
   const [bonificacao, setBonificacao] = React.useState(false);
+  /* Maquininha (UC-TEF-01..07): o valor vai para a máquina e só vira pagamento quando ela aprova.
+     Enquanto a cobrança está pendente não há botão de enviar — o mesmo clique não cobra duas vezes. */
+  const [tef, setTef] = React.useState(null);
   /* Sinal da venda (UC-SCOND): vem do cliente, ou da empresa quando o cliente não tem; o vendedor
      troca nesta venda e o valor vale para as OS dela. */
   const [sinal, setSinal] = React.useState('');
@@ -2647,6 +2664,21 @@ function Create({ onOpen, modo = 'create', registro }) {
   const [pags, setPags] = React.useState(edit ? [{ k: 1, m: 'Boleto', v: '0,00', par: '1' }] : []);
   const [status, setStatus] = React.useState('final');
   const [os, setOs] = React.useState(false);
+  /* Venda de reparo (UC-S03, S05..S07, SEDIT-11/12). Grava como reparo, sem mudar valor nem estoque
+     em relação à venda comum. Sem status do reparo não dá para gravar. */
+  const rpIni = edit && registro && registro.reparo ? registro.reparo : null;
+  const [ehReparo, setEhReparo] = React.useState(!!rpIni);
+  const [rp, setRp] = React.useState(rpIni || { status: '', modelo: '', serie: '', entrega: '', defeitos: '', senha: '', padrao: '', checklist: {}, os: '' });
+  const setR = (k, v) => setRp((x) => ({ ...x, [k]: v }));
+  const modeloRp = window.SD.reparo.modelos.find((m) => String(m.id) === String(rp.modelo)) || null;
+  const padraoInvalido = !!rp.padrao && !/^[1-9]{4,9}$/.test(rp.padrao);
+  const osDoCliente = window.SD.reparo.os.filter((o) => o.cliente === cliente);
+  const faturarOs = (id) => {
+    setR('os', id);
+    const o = window.SD.reparo.os.find((x) => String(x.id) === String(id));
+    if (!o) return;
+    setItens(o.pecas.map((pc, i) => ({ k: Date.now() + i, ...pc, desc: '0' })));
+  };
   const [novoCli, setNovoCli] = React.useState(false);
   const [consultaCli, setConsultaCli] = React.useState(false);
   const [buscaCli, setBuscaCli] = React.useState('');
@@ -2758,9 +2790,26 @@ function Create({ onOpen, modo = 'create', registro }) {
   const sinalPadrao = cli.sinal !== undefined ? cli.sinal : window.SD.config.sinalPadrao;
   const sinalPct = sinal === '' ? sinalPadrao : parseBR(sinal);
   const sinalInvalido = sinalPct < 0 || sinalPct > 100;
-  const podeExecutar = !!acaoPrincipal && podeRole(acaoPrincipal.role) && estagio !== 'cancelled' && !sinalInvalido;
+  const faltaReparo = ehReparo && (!rp.status || padraoInvalido);
+  const podeExecutar = !!acaoPrincipal && podeRole(acaoPrincipal.role) && estagio !== 'cancelled' && !sinalInvalido && !faltaReparo;
 
   const registrar = (acao, de, para, efeitos) => setHistorico((h) => [...h, { acao, de, para, efeitos, por: window.SD.permissoes.usuario, em: new Date() }]);
+
+  /* Valor da maquininha: até 2 casas e maior que zero (UC-TEF-06 — `204,99605` é recusado). */
+  const tefValido = !!tef && /^(\d{1,3}(\.\d{3})*|\d+)(,\d{1,2})?$/.test(String(tef.valor).trim()) && parseBR(tef.valor) > 0;
+  const enviarTef = () => {
+    if (!tef || !tefValido || tef.etapa === 'pendente') return;
+    const pedido = { ...tef };
+    setTef({ ...pedido, etapa: 'pendente' });
+    setTimeout(() => {
+      /* Cena: sem resposta → erro; débito terminado em ,99 → negada (UC-TEF-04); o resto aprova. */
+      if (pedido.semResposta) { setTef({ ...pedido, etapa: 'erro' }); return; }
+      if (pedido.tipo === 'debito' && /,99$/.test(String(pedido.valor).trim())) { setTef({ ...pedido, etapa: 'negada' }); return; }
+      const ok = { ...pedido, etapa: 'aprovada', bandeira: pedido.tipo === 'debito' ? 'Visa Débito' : 'Mastercard', nsu: String(Date.now()).slice(-6), autorizacao: 'A' + String(Date.now()).slice(-5) };
+      setTef(ok);
+      setPags((s) => [...s, { k: Date.now(), m: 'Cartão na maquininha', v: fmtBR(parseBR(pedido.valor)), par: pedido.tipo === 'credito' ? pedido.parcelas : '1', nsu: ok.nsu }]);
+    }, 900);
+  };
 
   /* ExecuteStageActionService::execute — nunca UPDATE direto no estágio */
   const executarAcao = (forcarErro, acao) => {
@@ -2802,6 +2851,8 @@ function Create({ onOpen, modo = 'create', registro }) {
   const esquerda = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
       {edit && <Meta><Alert tone="warn" title="Editar venda emitida — US-SELL-059">Mexe em <code>final_total</code> e estoque de venda já finalizada. As travas desta tela são as de <code>Edit.casos.md</code>: tenant, permissão, devolução e prazo de edição.</Alert></Meta>}
+      {copia && <Alert tone="info" title={'Duplicada de #' + copia.de}>Rascunho novo com os mesmos itens e preços, sem pagamento e fora do pipeline. O estoque só muda quando esta venda for gravada; a de origem continua na etapa dela.</Alert>}
+      {edit && registro && onDuplicar && <div><Button size="sm" onClick={() => onDuplicar({ de: registro.inv, cliente, itens })}>Duplicar venda</Button></div>}
       {bloqueioEdicao && <Alert tone="danger" title={bloqueioEdicao.titulo}>{bloqueioEdicao.texto}</Alert>}
       {!bloqueioEdicao && travaNota && <Alert tone="warn" title="Venda com nota autorizada">Cancele a nota para alterar itens e valores. A observação ainda pode ser editada.</Alert>}
       {!bloqueioEdicao && travaPagamento && <Alert tone="warn" title="Venda com pagamento">Valores não podem ser alterados; estorne o pagamento antes. O cliente e a observação ainda podem ser editados.</Alert>}
@@ -2901,6 +2952,46 @@ function Create({ onOpen, modo = 'create', registro }) {
         </div>
         <Meta><div style={{ marginTop: 12 }}><TierBar tone="accent">Cliente, produto e comissionista só alcançam registros do <b>business atual</b>. <code>App\Transaction</code> não tem global scope — o escopo é declarado <b>em cada query</b> (ADR 0093 · CU-SELL-15).</TierBar></div></Meta>
       </Sec>
+
+      {/* Reparo — só com o módulo Repair; a venda grava como reparo e os campos ficam com ela */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Switch label="Venda de reparo" sublabel="aparelho do cliente, status e checklist; grava como reparo" checked={ehReparo} onChange={setEhReparo} disabled={travada || !!rpIni} />
+      </div>
+      {ehReparo && <Sec title="Reparo" hue="var(--color-info)" ico={false} pad={14}>
+        {osDoCliente.length > 0 && !rpIni && <div style={{ marginBottom: 12, maxWidth: 360 }}>
+          <Select label="Faturar uma OS" value={rp.os} onChange={(e) => faturarOs(e.target.value)}
+            options={[{ value: '', label: 'Não — reparo novo' }, ...osDoCliente.map((o) => ({ value: String(o.id), label: 'OS #' + o.id + ' · ' + o.aparelho }))]} />
+          <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>{rp.os ? 'as peças da OS entraram nos itens, com o preço de venda' : 'as peças da OS entram nos itens'}</span>
+        </div>}
+        <Grid cols={3} gap={12}>
+          <div><Select label="Status do reparo" value={rp.status} onChange={(e) => setR('status', e.target.value)} disabled={travada}
+            options={[{ value: '', label: 'Escolha o status' }, ...window.SD.reparo.status.map((x) => ({ value: x, label: x }))]} />
+            {!rp.status && <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)') }}>sem status não dá para gravar</span>}</div>
+          <div><Select label="Modelo do aparelho" value={String(rp.modelo)} onChange={(e) => setR('modelo', e.target.value)} disabled={travada}
+            options={[{ value: '', label: '—' }, ...window.SD.reparo.modelos.map((m) => ({ value: String(m.id), label: m.nome }))]} /></div>
+          <div><Input label="Nº de série" value={rp.serie} onChange={(e) => setR('serie', e.target.value)} disabled={travada} /></div>
+          <div><Input label="Previsão de entrega" type="datetime-local" value={rp.entrega} onChange={(e) => setR('entrega', e.target.value)} disabled={travada} /></div>
+          <div><Input label="Senha do aparelho" value={rp.senha} onChange={(e) => setR('senha', e.target.value)} disabled={travada} /></div>
+          <div><Input label="Padrão de desbloqueio" placeholder="ex.: 14789" value={rp.padrao} onChange={(e) => setR('padrao', e.target.value.replace(/[^0-9]/g, ''))} disabled={travada} aria-invalid={padraoInvalido} />
+            <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: padraoInvalido ? tomFg('var(--neg)') : 'var(--text-dim)' }}>{padraoInvalido ? 'sequência de 4 a 9 pontos, de 1 a 9' : 'pontos de 1 a 9, na ordem'}</span></div>
+        </Grid>
+        <div style={{ marginTop: 12 }}><Input label="Defeitos relatados" placeholder="separe por vírgula: não liga, risca a mídia" value={rp.defeitos} onChange={(e) => setR('defeitos', e.target.value)} disabled={travada} /></div>
+        {modeloRp && <div style={{ marginTop: 12 }}>
+          <Lbl>Checklist de entrada — {modeloRp.nome}</Lbl>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {modeloRp.checklist.map((item) => (
+              <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12, font: '12.5px/1.35 var(--font-sans)' }}>
+                <span style={{ flex: 1 }}>{item}</span>
+                {['sim', 'não', 'não testado'].map((r) => (
+                  <label key={r} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                    <input type="radio" name={'ck-' + item} checked={rp.checklist[item] === r} disabled={travada} onChange={() => setR('checklist', { ...rp.checklist, [item]: r })} /> {r}
+                  </label>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>}
+      </Sec>}
 
       {/* 2 · Itens — o trabalho de verdade */}
       <Sec title={<><Passo n="2" />Itens<span style={{ marginLeft: 8, font: '600 11.5px/1 var(--font-mono)', color: 'var(--text-dim)' }}>{qtdItens}</span></>}
@@ -3174,6 +3265,10 @@ function Create({ onOpen, modo = 'create', registro }) {
             style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px solid var(--pos)', background: 'color-mix(in oklch, var(--pos) 12%, var(--surface))', color: tomFg('var(--pos)'), font: '600 11.5px/1 var(--font-sans)' }}>
             + Adiantamento {brl(cli.adiantamento)}
           </button>}
+          {window.SD.config.tef && <button type="button" onClick={() => setTef({ etapa: 'form', valor: fmtBR(Math.max(saldo, 0)), tipo: 'credito', parcelas: '1', semResposta: false })}
+            style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px solid var(--accent)', background: 'color-mix(in oklch, var(--accent) 12%, var(--surface))', color: 'var(--text)', font: '600 11.5px/1 var(--font-sans)' }}>
+            + Maquininha
+          </button>}
           {RAPIDO.map((m) => (
             <button key={m} type="button" onClick={() => addPag(m)} style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px dashed var(--border)', background: 'var(--bg-2)', color: 'var(--text-dim)', font: '600 11.5px/1 var(--font-sans)' }}>+ {m}</button>
           ))}
@@ -3199,7 +3294,7 @@ function Create({ onOpen, modo = 'create', registro }) {
         {pags.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
           {pags.map((p) => (
             <div key={p.k} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={p.m === 'Adiantamento do cliente' ? ['Adiantamento do cliente', ...METODOS] : METODOS} /></div>
+              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={p.m === 'Adiantamento do cliente' || p.m === 'Cartão na maquininha' ? [p.m, ...METODOS] : METODOS} /></div>
               <div style={{ width: 106, flex: 'none' }}><Money aria={'Valor recebido em ' + p.m} value={p.v} onChange={(v) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, v } : x))} /></div>
               <button type="button" title="Remover pagamento" onClick={() => setPags((s) => s.filter((x) => x.k !== p.k))} style={{ width: 26, height: 26, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}>×</button>
             </div>
@@ -3242,6 +3337,7 @@ function Create({ onOpen, modo = 'create', registro }) {
         </div>}
         {!podeExecutar && estagio !== 'cancelled' && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)', textAlign: 'center' }}>{acaoPrincipal ? 'Exige o papel ' + acaoPrincipal.role : 'Venda no fim do fluxo'}</span>}
         {temInvalida && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)'), textAlign: 'center' }}>Há item com dado fiscal inválido — corrija antes de fechar.</span>}
+        {faltaReparo && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)'), textAlign: 'center' }}>Venda de reparo: escolha o status{padraoInvalido ? ' e corrija o padrão' : ''} antes de gravar.</span>}
         {draftEm && <span style={{ font: '11.5px/1.3 var(--font-sans)', color: 'var(--text-dim)', textAlign: 'center' }}>Rascunho salvo às {draftEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>}
       </div>
     </aside>
@@ -3258,6 +3354,27 @@ function Create({ onOpen, modo = 'create', registro }) {
         <button type="button" onClick={() => { undo.undo(); setUndo(null); }} style={{ border: 0, background: 'transparent', color: 'var(--accent-2)', cursor: 'pointer', font: '600 12.5px/1 var(--font-sans)' }}>Desfazer</button>
       </div>}
 
+      <Modal open={!!tef} onClose={() => tef && tef.etapa !== 'pendente' && setTef(null)} width={460} title="Cobrar na maquininha"
+        footer={tef && <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+          {tef.etapa !== 'pendente' && <Button onClick={() => setTef(null)}>{tef.etapa === 'aprovada' ? 'Fechar' : 'Cancelar'}</Button>}
+          {(tef.etapa === 'form' || tef.etapa === 'negada' || tef.etapa === 'erro') && <span style={{ marginLeft: 'auto' }}>
+            <Button variant="primary" disabled={!tefValido} onClick={enviarTef}>{tef.etapa === 'form' ? 'Enviar para a máquina' : 'Tentar de novo'}</Button>
+          </span>}
+        </div>}>
+        {tef && <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Grid cols={3} gap={12}>
+            <Money label="Valor" value={tef.valor} onChange={(v) => setTef({ ...tef, valor: v })} readOnly={tef.etapa !== 'form'} />
+            <div><Select label="Tipo" value={tef.tipo} disabled={tef.etapa !== 'form'} onChange={(e) => setTef({ ...tef, tipo: e.target.value, parcelas: '1' })} options={[{ value: 'credito', label: 'Crédito' }, { value: 'debito', label: 'Débito' }]} /></div>
+            <div><Select label="Parcelas" value={tef.parcelas} disabled={tef.etapa !== 'form' || tef.tipo === 'debito'} onChange={(e) => setTef({ ...tef, parcelas: e.target.value })} options={['1', '2', '3', '4', '5', '6']} /></div>
+          </Grid>
+          {!tefValido && tef.etapa === 'form' && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)') }}>Valor com até 2 casas decimais e maior que zero.</span>}
+          {tef.etapa === 'form' && <Switch label="Máquina sem resposta" sublabel="simula a adquirente fora do ar" checked={tef.semResposta} onChange={(v) => setTef({ ...tef, semResposta: v })} />}
+          {tef.etapa === 'pendente' && <Alert tone="info" title="Aguardando a máquina">Peça para o cliente aproximar ou inserir o cartão. A cobrança de {brl(parseBR(tef.valor))} está pendente.</Alert>}
+          {tef.etapa === 'aprovada' && <Alert tone="success" title="Aprovada">{tef.bandeira} · NSU {tef.nsu} · autorização {tef.autorizacao}. Entrou como pagamento da venda.</Alert>}
+          {tef.etapa === 'negada' && <Alert tone="danger" title="Negada pelo cartão">A máquina recusou. Nada foi cobrado; tente outro cartão ou outra forma de pagamento.</Alert>}
+          {tef.etapa === 'erro' && <Alert tone="danger" title="Sem resposta da adquirente">A cobrança ficou como erro e não foi feita. Confira a máquina e tente de novo.</Alert>}
+        </div>}
+      </Modal>
       <CancelarVenda open={cancelarOpen} estagio={estagio} itens={itens.length} recebido={pago} onClose={() => setCancelarOpen(false)} onConfirmar={cancelarVenda} />
       <ColunasModal open={colunasOpen} onClose={() => setColunasOpen(false)} ativas={colunas} setAtivas={setColunas} />
       <ComissaoModal open={comOpen} onClose={() => setComOpen(false)} bens={comBens} setBens={setComBens}
@@ -3313,6 +3430,7 @@ function Create({ onOpen, modo = 'create', registro }) {
 /* ── adaptador do host: a sidebar e o header de topo vêm do app único; o page header
    da TELA (título + voltar, o que o sells-app.jsx fazia) fica aqui — PT-02. ── */
 function VendaV3Create({ registro, modo = 'create', onVoltar }) {
+  const [copia, setCopia] = React.useState(null);
   React.useEffect(() => {
     if (!onVoltar) return;
     const t = (e) => {
@@ -3328,10 +3446,12 @@ function VendaV3Create({ registro, modo = 'create', onVoltar }) {
     <MetaCtx.Provider value={false}>
       <div className="venda-v3">
         <PageHeader
-          title={modo === 'edit' ? 'Editar venda' + (registro && registro.inv ? ' ' + registro.inv : '') : 'Nova venda'}
-          subtitle={modo === 'edit' ? 'Venda emitida — alterar refaz totais e estoque.' : 'Cliente, itens, pagamento. O resto tem valor padrão.'}
+          title={copia ? 'Nova venda' : modo === 'edit' ? 'Editar venda' + (registro && registro.inv ? ' ' + registro.inv : '') : 'Nova venda'}
+          subtitle={copia ? 'Duplicada de #' + copia.de : modo === 'edit' ? 'Venda emitida — alterar refaz totais e estoque.' : 'Cliente, itens, pagamento. O resto tem valor padrão.'}
           actions={onVoltar ? <Button size="sm" onClick={onVoltar} kbd="esc">Voltar para Vendas</Button> : null} />
-        <Create modo={modo} registro={registro || null} onOpen={() => {}} />
+        {copia
+          ? <Create key={'dup-' + copia.de} modo="create" copia={copia} onOpen={() => {}} />
+          : <Create modo={modo} registro={registro || null} onDuplicar={setCopia} onOpen={() => {}} />}
       </div>
     </MetaCtx.Provider>
   );

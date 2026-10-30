@@ -108,10 +108,13 @@ const noPeriodo = (id, dias) => !id || dias <= ((PERIODOS.find((p) => p.id === i
 // NF-e de cena por venda (a lista de POS não carrega a nota): 0481 e 0482 com nota autorizada,
 // 0478 com a nota cancelada. A dívida vencida do cliente soma as vendas "overdue" dele.
 const NFE_DE = { 1: "autorizada", 2: "autorizada", 4: "cancelada" };
+// Venda de reparo de cena (UC-SEDIT-12): a 0479 é o reparo de uma impressora.
+const REPARO_DE = { 3: { status: "Aguardando peça", modelo: "1", serie: "HP315-88231", entrega: "2026-10-10T14:00", defeitos: "não puxa a mídia, mancha no canto", senha: "", padrao: "", checklist: { "Liga": "sim", "Puxa mídia": "não" }, os: "" } };
 const vendaParaV3 = (s) => ({
   inv: s.inv, cliente: s.cli, dias: DIAS[s.id] ?? 0, devolucao: (s.devDev || 0) > 0,
   estagio: s.envio === "delivered" ? "delivered" : s.pg === "paid" ? "paid" : "invoiced",
   nfe: NFE_DE[s.id] || null, pago: s.pago || 0,
+  reparo: REPARO_DE[s.id] || null,
   dividaCliente: POS.filter((x) => x.cli === s.cli && x.pg === "overdue").reduce((a, x) => a + x.saldo, 0),
 });
 // Permissões com os nomes LITERAIS do legado, lidos nos controllers no `main`:
