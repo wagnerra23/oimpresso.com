@@ -30,7 +30,8 @@ final class BaseEdicaoVendaV3
                 $campos[] = "{$prefixo}_{$i}";
             }
         }
-        $base = $venda->only($campos);
+        // Só atributos, nunca métodos com o mesmo nome (Transaction::shipping_address é legado).
+        $base = array_intersect_key($venda->attributesToArray(), array_flip($campos));
         $base['sale_note'] = $venda->additional_notes;
         $base['tax_rate_id'] = $venda->tax_id;
         $base['price_group'] = $venda->selling_price_group_id;

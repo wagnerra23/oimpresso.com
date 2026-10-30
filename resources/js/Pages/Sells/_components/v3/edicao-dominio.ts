@@ -118,8 +118,9 @@ export function montarEdicaoV3(edicao: EdicaoV3, mudancas: Mudancas = {}): Pedid
   for (const k of ['discount_amount', 'shipping_charges'] as const) {
     if (k in campos) {
       // Os controles entregam número cru. Texto pt-BR já é responsabilidade do domínio de inputs.
-      if (typeof campos[k] !== 'number' || !Number.isFinite(campos[k]) || campos[k] < 0) return recusar('Valor inválido.');
-      payload[k] = numeroParaEnvio(campos[k]);
+      const valor = campos[k];
+      if (typeof valor !== 'number' || !Number.isFinite(valor) || valor < 0) return recusar('Valor inválido.');
+      payload[k] = numeroParaEnvio(valor);
     }
   }
   payload.products = produtos.map((p, i) => {
