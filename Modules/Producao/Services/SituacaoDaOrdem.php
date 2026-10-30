@@ -183,7 +183,7 @@ final class SituacaoDaOrdem
      */
     public function liberarPeloSinalDaVenda(int $businessId, int $transactionId): int
     {
-        if ($this->sinal->minimo($businessId) === null) {
+        if ($this->sinal->minimo($businessId, $transactionId) === null) {
             return 0;
         }
         $ids = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
@@ -220,7 +220,7 @@ final class SituacaoDaOrdem
             if ($sem !== []) {
                 throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Escolha o responsável de: '.implode(', ', $sem).'.');
             }
-            $s = $this->sinal->situacao($businessId, (int) $ordem->transaction_id, (string) $this->sinal->minimo($businessId));
+            $s = $this->sinal->situacao($businessId, (int) $ordem->transaction_id, (string) $this->sinal->minimo($businessId, (int) $ordem->transaction_id));
             $this->fsm->execute($ordem, 'liberar_pelo_sinal', null, ['ator' => 'sistema', 'sinal_pago' => $s['pago'], 'sinal_exigido' => $s['exigido']]);
             $this->aguardarMaterialSeFaltar($businessId, $ordem->fresh(), null);
 

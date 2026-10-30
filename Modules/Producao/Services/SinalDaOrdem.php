@@ -6,6 +6,7 @@ namespace Modules\Producao\Services;
 
 use App\Domain\Fsm\Modelos\RegrasDaEmpresa;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Producao\Entities\Ordem;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 
@@ -17,6 +18,9 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  * venda de origem (`transaction_payments`, troco descontado) alcança esse percentual do
  * `final_total`. Desligada, nada muda.
  *
+ * O cliente pode ter a condição própria (`contacts.sinal_minimo_pct`, P-025): preenchida, vale no
+ * lugar da da empresa, e 0 dispensa o sinal daquele cliente. Vazia, vale a da empresa.
+ *
  * Só LÊ valor: nada é gravado em dinheiro. A conta é feita no MySQL em DECIMAL (sem float):
  * exigido = ROUND(final_total × % / 100, 2); pago = soma das entradas − troco.
  * Tier 0: venda e pagamentos sempre filtrados pelo `$businessId`.
@@ -25,10 +29,35 @@ final class SinalDaOrdem
 {
     public function __construct(private readonly RegrasDaEmpresa $regras) {}
 
-    /** Percentual exigido pela empresa, ou nulo com a regra desligada. */
-    public function minimo(int $businessId): ?string
+    /**
+     * Percentual exigido, ou nulo sem sinal. Com a venda, vale a condição do cliente dela quando
+     * existe (0 = cliente dispensado); sem condição própria, a da empresa. Tier 0: venda e cliente
+     * lidos pela `$businessId`.
+     */
+    public function minimo(int $businessId, ?int $transactionId = null): ?string
     {
+        $doCliente = $transactionId === null ? null : $this->doCliente($businessId, $transactionId);
+        if ($doCliente !== null) {
+            return (float) $doCliente > 0 ? $doCliente : null;
+        }
+
         return $this->regras->sinalMinimo($businessId);
+    }
+
+    /** Condição própria do cliente da venda (texto decimal), ou nula. */
+    private function doCliente(int $businessId, int $transactionId): ?string
+    {
+        if (! Schema::hasColumn('contacts', 'sinal_minimo_pct')) {
+            return null;
+        }
+        $v = DB::table('transactions as t')
+            ->join('contacts as c', function ($j) {
+                $j->on('c.id', '=', 't.contact_id')->on('c.business_id', '=', 't.business_id');
+            })
+            ->where('t.id', $transactionId)->where('t.business_id', $businessId)
+            ->value('c.sinal_minimo_pct');
+
+        return $v === null ? null : (string) $v;
     }
 
     /**
@@ -56,7 +85,7 @@ final class SinalDaOrdem
     /** Recusa o Liberar quando a regra está ligada e o sinal da venda da OS não chegou ao mínimo. */
     public function conferir(int $businessId, Ordem $ordem): void
     {
-        $pct = $this->minimo($businessId);
+        $pct = $this->minimo($businessId, (int) $ordem->transaction_id);
         if ($pct === null) {
             return;
         }

@@ -103,6 +103,26 @@ last_run: "2026-10-29"
 - **Teste:** `tests/Feature/Cliente/ClienteTabelaPropriaContratoTest.php` — `UC-CIDX-08 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
+## UC-CIDX-09 · O sinal do cliente vale no lugar do da empresa para liberar a produção `[V0]` `[must]`
+- **Persona:** dono da gráfica com cliente fixo de sinal diferente (NewPrint, ArtLaser); PCP que libera a OS.
+- **Aceite:** Dado a empresa com sinal mínimo de 30% · Quando o cliente tem 50% na aba Comercial · Então a OS da venda dele (1.000,00) exige 500,00 para liberar; cliente sem condição própria exige o da empresa (300,00); cliente com 0 não exige sinal; com a regra da empresa desligada, o cliente com sinal ainda exige o dele.
+- **Âncora de contrato:** pedido P-025 · `UC-FLX-28` · `SinalDaOrdem::minimo` (lido pelo Liberar e pela liberação automática da US-PCP-025). **REGRA MESTRE valor**: muda quanto precisa estar pago — dupla prova no teste (500,00 à mão e pelo MySQL).
+- **Teste:** `tests/Feature/Cliente/ClienteSinalPrazoContratoTest.php` (lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-09 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-10 · O drawer grava o sinal e o prazo do cliente; a venda recebe o prazo
+- **Persona:** quem cadastra o cliente.
+- **Aceite:** Dado um cliente · Quando gravo sinal 50% e prazo 28 dias na aba Comercial · Então os dois ficam gravados, a busca de cliente da venda devolve o prazo 28, sinal acima de 100% é recusado (422) e o sinal vazio volta a seguir a empresa.
+- **Âncora de contrato:** pedido P-025 · `ClienteAutosaveController::comercial` · `ContactController::getCustomers`.
+- **Teste:** `tests/Feature/Cliente/ClienteSinalPrazoContratoTest.php` — `UC-CIDX-10 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-11 · A condição do cliente não atravessa empresa `[must]`
+- **Aceite:** Dado uma venda de outra empresa cujo cliente tem 90% · Quando a empresa da sessão pede o sinal dessa venda · Então não lê a condição dele (vale a regra da própria empresa).
+- **Âncora de contrato:** [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteSinalPrazoContratoTest.php` — `UC-CIDX-11 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -148,7 +168,7 @@ last_run: "2026-10-29"
   - Pedido: P-025
   - Âncora: `UC-FLX-28` · DecoNetwork
   - Fazer: Campos de sinal e prazo na aba Comercial, com a condição da empresa como padrão.
-  - Hoje: part | Em parte | O sinal mínimo é um só para a empresa
+  - Hoje: part | Em parte | Sinal e prazo por cliente na aba Comercial; o sinal do cliente vale no Liberar da OS (UC-CIDX-09..11, 2026-10-29). Falta a venda mostrar e deixar trocar o sinal (P-026). No Sabor Brasil (Delphi, 2026-10-29) nenhum cliente usa sinal: as 14 condições têm `PERC_ENTRADA` vazio e "SINAL + 1" tem 0 clientes; 81 clientes têm prazo próprio (6 condições, 5 a 45 dias, 1 parcela)
   - Comunicação visual: ok | Sim | cliente fixo com sinal diferente
   - Clientes: NewPrint, Sabor Brasil, ArtLaser
   - Etiquetas: valor, part, cv, decisao
@@ -214,6 +234,9 @@ last_run: "2026-10-29"
 | UC-CIDX-06 | — (pedido P-087, Sabor Brasil) | — |
 | UC-CIDX-07 | — (pedido P-087) | — |
 | UC-CIDX-08 | — (pedido P-087 · ADR 0093) | — |
+| UC-CIDX-09 | — (pedido P-025 · UC-FLX-28) | US-PCP-025 |
+| UC-CIDX-10 | — (pedido P-025) | — |
+| UC-CIDX-11 | — (pedido P-025 · ADR 0093) | — |
 
 > Coluna US vazia de propósito: a US-CRM-071 (KB-9.75 Slice A no Index) declara `ClienteIndexDrawer760CharterTest` como `**Testado em:**`, não estes 4. Vínculo por tema não conta.
 
@@ -223,6 +246,7 @@ last_run: "2026-10-29"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-10-29 · [W+C] **UC-CIDX-09..11** (P-025): sinal mínimo por cliente (`contacts.sinal_minimo_pct`), campo na aba Comercial, lido por `SinalDaOrdem::minimo` no Liberar da OS. O prazo do cliente já existia (`pay_term_number`).
 - 2026-10-29 · [W+C] **UC-CIDX-06..08** (P-087): tabela de preço no próprio cliente (`contacts.selling_price_group_id`), que vale no lugar da do grupo na busca de cliente da venda. Comportamento novo na aba Comercial (campo "Tabela própria do cliente"); `last_run` sobe por isso.
 - 2026-10-23 · [M+C] Backlog de saldo a favor e limite de crédito no drawer, sem id.
 - 2026-10-23 · [M+C] Backlog: condição de pagamento do cliente (sinal e prazo), da comparação com concorrentes (DecoNetwork), sem id.
