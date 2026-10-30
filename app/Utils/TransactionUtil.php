@@ -508,7 +508,7 @@ class TransactionUtil extends Util
     private function sellLineDoNegocio($sell_line_id, $business_id)
     {
         return TransactionSellLine::where('id', $sell_line_id)
-            ->whereHas('transaction', fn ($q) => $q->where('business_id', $business_id))
+            ->whereIn('transaction_id', DB::table('transactions')->select('id')->where('business_id', $business_id))
             ->firstOrFail();
     }
 
@@ -519,7 +519,7 @@ class TransactionUtil extends Util
     private function salesOrderLineIdDoNegocio($so_line_id, $business_id)
     {
         return TransactionSellLine::where('id', $so_line_id)
-            ->whereHas('transaction', fn ($q) => $q->where('business_id', $business_id)->where('type', 'sales_order'))
+            ->whereIn('transaction_id', DB::table('transactions')->select('id')->where('business_id', $business_id)->where('type', 'sales_order'))
             ->value('id');
     }
 
@@ -591,7 +591,11 @@ class TransactionUtil extends Util
         $sell_line = TransactionSellLine::with(['product', 'warranties'])
                     ->find($product['transaction_sell_lines_id']);
         //Tier 0: linha de venda de outra empresa não é editada (404)
-        if ($business_id !== null && (! $sell_line || (int) $sell_line->transaction?->business_id !== (int) $business_id)) {
+        if ($business_id !== null && ! DB::table('transaction_sell_lines as l')
+            ->join('transactions as t', 't.id', '=', 'l.transaction_id')
+            ->where('l.id', $product['transaction_sell_lines_id'])
+            ->where('t.business_id', $business_id)
+            ->exists()) {
             abort(404);
         }
 
