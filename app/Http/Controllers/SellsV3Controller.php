@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\BusinessLocation;
+use App\Services\FeatureFlagService;
+use App\Utils\ContactUtil;
 use Inertia\Inertia;
 
 /**
@@ -17,9 +20,12 @@ use Inertia\Inertia;
  * O QUE ESTE CONTROLLER DELIBERADAMENTE NÃO FAZ
  * - não monta as ~24 props reais de SellPosController@create (duplicar 200
  *   linhas de orquestração garantiria drift);
- * - não grava nada: não há store(), não há POST;
- * - não consulta tabela de negócio: a cena é estática, então não há query a
- *   escopar por business_id (ADR 0093 satisfeito por ausência, não por sorte).
+ * - não grava por conta própria: não há store() aqui. Com a flag `useV3SellsGravar`
+ *   (desligada por padrão) a tela posta em `/pos` — SellPosController@store, o mesmo
+ *   caminho do Create.tsx — e este controller só entrega o local e o cliente padrão
+ *   (UC-V380/V382). Total, linhas e estoque saem do store que já está em produção;
+ * - com a flag desligada não consulta tabela de negócio: a cena é estática. Com ela
+ *   ligada, as duas consultas (local e cliente padrão) filtram por business_id.
  *
  * A CENA ESPELHA O HANDOFF `design_handoff_cadastro_venda/design/sells-data.js`.
  * Os valores monetários vão como STRING já em pt-BR de propósito: quem formata
@@ -41,10 +47,47 @@ class SellsV3Controller extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return Inertia::render('Sells/CreateV3', [
-            'businessId' => $businessId,
-            'cena' => $this->dadosDeCena(),
-        ]);
+        $props = ['businessId' => $businessId, 'cena' => $this->dadosDeCena()];
+
+        $gravacao = app(FeatureFlagService::class)->isOn(self::FLAG_GRAVAR, ['business_id' => $businessId])
+            ? $this->dadosDeGravacao((int) $businessId)
+            : null;
+        if ($gravacao !== null) {
+            $props['gravacao'] = $gravacao;
+            // Gravando, a cena não serve: itens e clientes dela não têm id do cadastro.
+            // A busca passa a ser /products/list (a mesma do Create) e o cliente é o padrão.
+            $props['cena']['itens'] = [];
+            $props['cena']['catalogo'] = [];
+            $props['cena']['cliente']['nome'] = $gravacao['clienteNome'];
+            $props['cena']['clientes'] = [$props['cena']['cliente']];
+        }
+
+        return Inertia::render('Sells/CreateV3', $props);
+    }
+
+    /** Desligada por padrão (fora do fallbackDefaults): ligar é decisão [W] no GrowthBook. */
+    public const FLAG_GRAVAR = 'useV3SellsGravar';
+
+    /**
+     * Local e cliente padrão para gravar, os dois DESTA empresa: o local vem de
+     * `forDropdown` (que respeita os locais permitidos ao usuário) e o cliente de
+     * `getWalkInCustomer`; ambos filtram por business_id (ADR 0093).
+     *
+     * @return array{locationId:int, contactId:int, clienteNome:string}|null
+     */
+    private function dadosDeGravacao(int $businessId): ?array
+    {
+        $locationId = BusinessLocation::forDropdown($businessId)->keys()->first();
+        $cliente = app(ContactUtil::class)->getWalkInCustomer($businessId);
+        if (empty($locationId) || empty($cliente['id'])) {
+            return null;
+        }
+
+        return [
+            'locationId' => (int) $locationId,
+            'contactId' => (int) $cliente['id'],
+            'clienteNome' => (string) ($cliente['name'] ?? 'Consumidor final'),
+        ];
     }
 
     /**

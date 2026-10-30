@@ -9,7 +9,7 @@ use Spatie\Permission\Models\Permission;
 use Tests\Support\EstoqueFixture;
 
 /**
- * UC-V380 (resources/js/Pages/Sells/CreateV3.casos.md) — a V3 grava a venda.
+ * UC-V380 / UC-V382 (resources/js/Pages/Sells/CreateV3.casos.md) — a V3 grava a venda.
  *
  * A V3 não tem store: ela posta em `/pos` (SellPosController@store, o caminho de produção)
  * o payload montado por `_components/v3/gravacao-dominio.ts`. A fixture
@@ -195,4 +195,29 @@ it('UC-V380 · a venda da V3 grava o mesmo total, as mesmas linhas, o mesmo paga
     expect($v3['pago'])->toBe($create['pago']);
     expect($v3['saldos'])->toBe($create['saldos']);
     expect((int) $v3['venda']->business_id)->toBe($this->bizId);
+});
+
+it('UC-V382 · com a flag desligada a tela segue preview; ligada, entrega o local e o cliente padrão DESTA empresa', function () {
+    // Cliente padrão da empresa (o "consumidor final" do getWalkInCustomer). O seed pode não
+    // marcar nenhum; aqui marca o contato do tenant 98 dentro da transação do teste.
+    if (! DB::table('contacts')->where('business_id', $this->bizId)->where('is_default', 1)->whereIn('type', ['customer', 'both'])->exists()) {
+        DB::table('contacts')->where('id', $this->contactId)->update(['is_default' => 1, 'type' => 'customer']);
+    }
+
+    config(['feature-flags.forced_on' => '']);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page
+        ->component('Sells/CreateV3')
+        ->missing('gravacao'));
+
+    config(['feature-flags.forced_on' => 'useV3SellsGravar']);
+    $resposta = $this->get('/sells/create-v3');
+    $resposta->assertInertia(fn ($page) => $page
+        ->component('Sells/CreateV3')
+        ->has('gravacao.locationId')
+        ->has('gravacao.contactId')
+        ->where('cena.itens', []));
+
+    $props = $resposta->viewData('page')['props'];
+    expect((int) DB::table('business_locations')->where('id', $props['gravacao']['locationId'])->value('business_id'))->toBe($this->bizId);
+    expect((int) DB::table('contacts')->where('id', $props['gravacao']['contactId'])->value('business_id'))->toBe($this->bizId);
 });

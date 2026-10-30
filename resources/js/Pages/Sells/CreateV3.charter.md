@@ -87,6 +87,12 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
   > que o caso normal não se move — detalhe em [`CreateV3.casos.md`](CreateV3.casos.md).
 
 - ❌ **Não grava.** Sem `store()`, sem POST, sem rota de escrita, sem migration. _(Este segue intacto e é o que sustenta o item acima.)_
+
+  > **Atualização 2026-10-30 — com a flag `useV3SellsGravar` ligada, grava.** A decisão [W] de
+  > substituir Create e Edit pede isso. A gravação é pelo store de produção (`POST /pos`), nunca
+  > por rota deste controller (UC-V302 segue verdadeiro), e o total postado vira autoridade — por
+  > isso nasce com a prova dupla do UC-V380. Desligada (o padrão), este Non-Goal vale como antes.
+  > Ligar é decisão [W].
 - ❌ **Não substitui `/pos/create`.** Não há cutover previsto (RUNBOOK §F5).
 - _pendente [W]/[L]_ — demais Non-Goals.
 

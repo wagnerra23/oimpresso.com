@@ -31,7 +31,8 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Search, Settings } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { router } from '@inertiajs/react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -74,6 +75,7 @@ import {
 } from './_components/v3/colunas-dominio';
 import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
+import { montarPayloadVenda, totalParaGravar } from './_components/v3/gravacao-dominio';
 import {
   Aviso,
   Chip,
@@ -105,7 +107,11 @@ type Item = {
   desc: string;
   acr: string;
   estoque: number | null;
+  /* Só com a gravação ligada (UC-V380): ids do cadastro, vindos de /products/list. */
+  ids?: IdsDoCadastro;
 };
+
+type IdsDoCadastro = { productId: number; variationId: number; enableStock: boolean; tipoProduto: string };
 
 /* O contrato do catálogo mora em `_components/v3/LancarItem.tsx` — quem consome
    o produto por inteiro é o lançamento, não esta Page. */
@@ -135,6 +141,8 @@ const SEM_PIPELINE: Estagio = {
 
 type Props = {
   businessId: number;
+  /* Flag useV3SellsGravar ligada: a venda grava em /pos pelo payload do Create (UC-V380). */
+  gravacao?: { locationId: number; contactId: number; clienteNome: string };
   cena: {
     cliente: Cliente;
     itens: Item[];
@@ -177,6 +185,36 @@ function alinhaADireita(k: string): boolean {
   return COLUNAS_A_DIREITA.has(k);
 }
 
+/** Linha de /products/list (ProductUtil::filterProduct), só os campos que a V3 usa. */
+type LinhaDaBusca = {
+  product_id: number;
+  variation_id: number;
+  name: string;
+  variation: string | null;
+  type: string;
+  enable_stock: number | string;
+  qty_available: number | string | null;
+  selling_price: number | string | null;
+  sub_sku: string | null;
+  unit: string | null;
+};
+
+/** Linha da tela → linha para gravar. Sem ids, o domínio recusa com o nome do item. */
+function paraGravar(l: Item) {
+  return {
+    productId: l.ids?.productId ?? null,
+    variationId: l.ids?.variationId ?? null,
+    nome: l.nome,
+    sku: l.sku,
+    qtd: l.qtd,
+    preco: l.preco,
+    desc: l.desc,
+    acr: l.acr,
+    enableStock: l.ids?.enableStock ?? true,
+    tipoProduto: l.ids?.tipoProduto ?? 'single',
+  };
+}
+
 /** Total da linha — mesma fórmula do handoff, com o parse pt-BR em cada fator. */
 function linhaTotal(l: Item): number {
   return submitSafe(
@@ -184,7 +222,7 @@ function linhaTotal(l: Item): number {
   );
 }
 
-export default function SellsCreateV3({ cena }: Props) {
+export default function SellsCreateV3({ cena, gravacao }: Props) {
   const { catalogo, tabelas, fsm, papeisDoUsuario, executantes, permissoes } = cena;
 
   /* O cliente virou ESTADO na onda extra (consulta de clientes). Antes era const
@@ -260,10 +298,14 @@ export default function SellsCreateV3({ cena }: Props) {
   const descAplicado =
     descTipo === 'percentual' ? submitSafe((subtotal * parseBR(descVal)) / 100) : submitSafe(parseBR(descVal));
   const baseTrib = submitSafe(subtotal - descAplicado);
-  const vImposto = submitSafe(baseTrib * 0.18);
+  /* Gravando, não há imposto do pedido: o store grava o final_total que recebe, e o
+     Create não manda imposto. Os 18% são número de cena do preview. */
+  const vImposto = gravacao ? 0 : submitSafe(baseTrib * 0.18);
   const vFrete = submitSafe(parseBR(frete));
   const vAcr = submitSafe(parseBR(acr));
-  const total = submitSafe(baseTrib + vImposto + vFrete + vAcr);
+  const total = gravacao
+    ? totalParaGravar({ itens: itens.map(paraGravar), descTipo, descVal, frete })
+    : submitSafe(baseTrib + vImposto + vFrete + vAcr);
   const pago = submitSafe(pags.reduce((s, p) => s + parseBR(p.v), 0));
   const saldo = submitSafe(total - pago);
   const payStatus = pago <= 0 ? 'due' : saldo > 0.005 ? 'partial' : 'paid';
@@ -281,9 +323,91 @@ export default function SellsCreateV3({ cena }: Props) {
   const cancelada = estagio === 'cancelada';
   const podeExecutar = temPapel && !!prox && !cancelada;
 
-  const achados = busca
-    ? catalogo.filter((p) => (p.nome + p.sku).toLowerCase().includes(busca.toLowerCase()))
-    : [];
+  /* Gravando, a busca é a do Create (/products/list, ProductUtil::filterProduct) e cada
+     resultado guarda os ids do cadastro pelo SKU, para a linha levar ao payload. */
+  const [daBusca, setDaBusca] = useState<ProdutoCatalogo[]>([]);
+  const idsPorSku = useRef(new Map<string, IdsDoCadastro>());
+  useEffect(() => {
+    if (!gravacao || busca.trim().length < 2) {
+      setDaBusca([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      const q = new URLSearchParams({ term: busca.trim(), location_id: String(gravacao.locationId) });
+      try {
+        const res = await fetch(`/products/list?${q}`, {
+          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          credentials: 'same-origin',
+          signal: ctrl.signal,
+        });
+        const linhas = res.ok ? ((await res.json()) as LinhaDaBusca[]) : [];
+        setDaBusca(
+          linhas.slice(0, 12).map((l) => {
+            const sku = l.sub_sku || String(l.variation_id);
+            idsPorSku.current.set(sku, {
+              productId: l.product_id,
+              variationId: l.variation_id,
+              enableStock: Number(l.enable_stock) === 1,
+              tipoProduto: l.type,
+            });
+            return {
+              sku,
+              nome: l.variation && l.variation !== 'DUMMY' ? `${l.name} - ${l.variation}` : l.name,
+              un: l.unit ?? 'un',
+              preco: Number(l.selling_price ?? 0),
+              estoque: Number(l.enable_stock) === 1 ? Number(l.qty_available ?? 0) : null,
+              tipo: Number(l.enable_stock) === 1 ? 'produto' : 'servico',
+              ean: null,
+              fabrica: null,
+              categoria: null,
+            };
+          }),
+        );
+      } catch {
+        /* busca cancelada ou rede fora: fica a lista anterior */
+      }
+    }, 250);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [busca, gravacao]);
+
+  const achados = gravacao
+    ? daBusca
+    : busca
+      ? catalogo.filter((p) => (p.nome + p.sku).toLowerCase().includes(busca.toLowerCase()))
+      : [];
+
+  const [gravando, setGravando] = useState(false);
+  const [erroGravar, setErroGravar] = useState<string | null>(null);
+  const gravar = () => {
+    if (!gravacao) return;
+    const agora = new Date();
+    const dois = (n: number) => String(n).padStart(2, '0');
+    const r = montarPayloadVenda({
+      locationId: gravacao.locationId,
+      contactId: gravacao.contactId,
+      transactionDate: `${dois(agora.getDate())}/${dois(agora.getMonth() + 1)}/${agora.getFullYear()} ${dois(agora.getHours())}:${dois(agora.getMinutes())}`,
+      itens: itens.map(paraGravar),
+      descTipo,
+      descVal,
+      acr,
+      frete,
+      pagamentos: pags.map((p) => ({ m: p.m, v: p.v })),
+    });
+    if (!r.ok) {
+      setErroGravar(r.motivo);
+      return;
+    }
+    setErroGravar(null);
+    router.post('/pos', r.payload as never, {
+      onStart: () => setGravando(true),
+      onFinish: () => setGravando(false),
+      onError: (errs) => setErroGravar(Object.values(errs)[0] ?? 'A venda não foi gravada.'),
+    });
+  };
 
   const setLinha = (k: number, campo: keyof Item, v: string) =>
     setItens((s) => s.map((l) => (l.k === k ? { ...l, [campo]: v } : l)));
@@ -321,6 +445,7 @@ export default function SellsCreateV3({ cena }: Props) {
         desc: item.desc,
         acr: item.acr,
         estoque: item.estoque,
+        ids: idsPorSku.current.get(item.sku),
       },
     ]);
     setLancando(null);
@@ -1037,6 +1162,17 @@ export default function SellsCreateV3({ cena }: Props) {
             >
               {atual.acao ?? 'Sem ação disponível'}
             </Button>
+
+            {gravacao && (
+              <Button size="lg" variant="outline" className="w-full" disabled={!itens.length || temInvalida || gravando} onClick={gravar}>
+                {gravando ? 'Gravando…' : 'Gravar venda'}
+              </Button>
+            )}
+            {erroGravar && (
+              <span role="alert" className="block text-center text-[11.5px] leading-[1.35] text-destructive-fg">
+                {erroGravar}
+              </span>
+            )}
 
             {prox && prox.efeitos.length > 0 && (
               <Inline gap={1} align="center" justify="center" wrap>
