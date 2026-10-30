@@ -1498,8 +1498,25 @@ class SellController extends Controller
         // business_id nos DOIS lados: a origem só aparece se for da mesma empresa (ADR 0093).
         $duplicadaDeByTx = $this->origensDaDuplicacao($business_id, $txIds);
 
+        // P-032 — "Devolução parcial · 2 de 3" / "Devolvida": quanto já voltou de quanto saiu,
+        // só para as vendas com devolução. `quantity_returned` é o acumulado que addSellReturn
+        // grava por linha. Leitura, não mexe em valor nem estoque. Escopo por empresa (ADR 0093).
+        $comDevolucao = $rows->filter(fn ($r) => (int) ($r->return_exists ?? 0) > 0)->pluck('id')->all();
+        $devolucaoByTx = empty($comDevolucao) ? collect() : \DB::table('transaction_sell_lines as l')
+            ->join('transactions as t', 't.id', '=', 'l.transaction_id')
+            ->whereIn('l.transaction_id', $comDevolucao)
+            ->where('t.business_id', $business_id)
+            ->whereNull('l.parent_sell_line_id')
+            ->groupBy('l.transaction_id')
+            ->get([\DB::raw('l.transaction_id as tx_id'), \DB::raw('SUM(l.quantity) as vendida'), \DB::raw('SUM(l.quantity_returned) as devolvida')])
+            ->mapWithKeys(fn ($d) => [(int) $d->tx_id => [
+                'devolvida' => round((float) $d->devolvida, 4),
+                'vendida' => round((float) $d->vendida, 4),
+                'total' => (float) $d->vendida > 0 && (float) $d->devolvida >= (float) $d->vendida,
+            ]]);
+
         $rows = $rows
-            ->map(function ($r) use ($fiscalByTx, $vehiclePlateByTx, $duplicadaDeByTx) {
+            ->map(function ($r) use ($fiscalByTx, $vehiclePlateByTx, $duplicadaDeByTx, $devolucaoByTx) {
                 // Calcula overdue inline (boolean derivado, evita re-query).
                 $overdue = false;
                 $daysToDue = null;
@@ -1649,6 +1666,8 @@ class SellController extends Controller
                     // de retorno ao lado do #invoice. Derivado de return_exists (subquery acima),
                     // NÃO mexe em valor/estoque.
                     'has_return' => (int) ($r->return_exists ?? 0) > 0,
+                    // P-032 — null sem devolução; {devolvida, vendida, total} com devolução.
+                    'devolucao' => $devolucaoByTx->get($r->id),
                     // P-031 — venda de origem quando esta nasceu de "Duplicar". null = não duplicada.
                     'duplicated_from' => $duplicadaDeByTx->get($r->id),
                 ];

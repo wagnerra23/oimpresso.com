@@ -120,6 +120,8 @@ interface SaleRow {
   /** Venda com devolução (existe sell_return apontando pra ela). Badge de retorno
    *  na coluna #invoice — restaura a setinha perdida no rewrite #1032 (2026-07-03). */
   has_return?: boolean;
+  // P-032 — quanto já voltou de quanto saiu; null sem devolução.
+  devolucao?: { devolvida: number; vendida: number; total: boolean } | null;
 }
 
 interface SellKpis {

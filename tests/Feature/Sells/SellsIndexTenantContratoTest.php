@@ -245,3 +245,66 @@ it('UC-SIDX-02 [V0] o somatório do rodapé não se move por venda de OUTRO busi
         . 'venda de OUTRO business — o agregado não herdou o escopo `business_id`.'
     );
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// P-032 — devolução parcial ou total na coluna Status (UC-SDEV-01 · UC-SDEV-02)
+//
+// Venda com 2 linhas: 2 un + 1 un = 3 vendidas. `quantity_returned` é o acumulado que
+// addSellReturn grava por linha. Conta à mão: 2 de 3 → parcial; 3 de 3 → devolvida.
+// Leitura pura: o teste não chama store() e a lista não mexe em valor nem estoque.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Põe na venda 2 linhas (2 un e 1 un) de um produto do business A. */
+function sidxLinhas(object $t): array
+{
+    $produto = \Tests\Support\EstoqueFixture::singleProduct((int) $t->businessA->id);
+    // Linhas do setup zeradas (não apagadas: podem ter FK de lote/compra) — somam 0.
+    DB::table('transaction_sell_lines')->where('transaction_id', $t->vendaId)->update(['quantity' => 0, 'quantity_returned' => 0]);
+    $ids = [];
+    foreach ([2, 1] as $qtd) {
+        $ids[] = (int) DB::table('transaction_sell_lines')->insertGetId([
+            'transaction_id' => $t->vendaId,
+            'product_id' => $produto->productId,
+            'variation_id' => $produto->variations[0]['variation_id'],
+            'quantity' => $qtd,
+            'quantity_returned' => 0,
+            'unit_price' => 50,
+            'unit_price_inc_tax' => 50,
+            'item_tax' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    return $ids;
+}
+
+it('UC-SDEV-01 a venda com parte devolvida mostra 2 de 3 e com tudo devolvido mostra Devolvida', function () {
+    [$l1, $l2] = sidxLinhas($this);
+    ($this->criarDevolucao)($this->businessA->id);
+
+    DB::table('transaction_sell_lines')->where('id', $l1)->update(['quantity_returned' => 2]);
+    $linha = sidxLinhaPorId($this->getJson('/sells-list-json')->assertOk()->json(), $this->vendaId);
+    expect($linha)->not->toBeNull('A venda não apareceu na lista — setup inválido.');
+    expect($linha['devolucao'] ?? null)->toBe(['devolvida' => 2.0, 'vendida' => 3.0, 'total' => false]);
+
+    DB::table('transaction_sell_lines')->where('id', $l2)->update(['quantity_returned' => 1]);
+    $linha = sidxLinhaPorId($this->getJson('/sells-list-json')->assertOk()->json(), $this->vendaId);
+    expect($linha['devolucao'] ?? null)->toBe(['devolvida' => 3.0, 'vendida' => 3.0, 'total' => true]);
+});
+
+it('UC-SDEV-02 [T0] venda sem devolução da própria empresa não mostra situação de devolução', function () {
+    [$l1] = sidxLinhas($this);
+    DB::table('transaction_sell_lines')->where('id', $l1)->update(['quantity_returned' => 2]);
+
+    // Controle: sem devolução nenhuma, nada aparece mesmo com quantity_returned na linha.
+    $linha = sidxLinhaPorId($this->getJson('/sells-list-json')->assertOk()->json(), $this->vendaId);
+    expect($linha)->not->toBeNull('A venda não apareceu na lista — setup inválido.');
+    expect(array_key_exists('devolucao', $linha))->toBeTrue();
+    expect($linha['devolucao'])->toBeNull();
+
+    // Devolução de OUTRA empresa apontando para esta venda também não acende.
+    ($this->criarDevolucao)($this->businessB->id);
+    $linha = sidxLinhaPorId($this->getJson('/sells-list-json')->assertOk()->json(), $this->vendaId);
+    expect($linha['devolucao'])->toBeNull();
+});
