@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-08-27"
+last_run: "2026-10-30"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -1036,6 +1036,8 @@ pertence a `Sells/Create`, não aqui:
 ---
 
 ## Pendências declaradas
+
+- **Revalidação de 2026-10-30 (G-6):** desde o `last_run` anterior (2026-08-27), `CreateV3.tsx` mudou só no comentário que aponta a âncora de design (#7224 e #7620). Nenhum comportamento da tela mudou, então os UCs acima seguem valendo como estavam.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
