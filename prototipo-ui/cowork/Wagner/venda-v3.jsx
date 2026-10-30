@@ -354,6 +354,18 @@ window.SD = (() => {
      quando o cliente não tem o seu (UC-SCOND). `aliqSt`: alíquota de cena do ICMS ST — em produção
      o valor vem do servidor pela mesma conta da NF-e (POST /sells/icms-st, UC-VST-01). */
   const config = { sinalPadrao: 30, aliqSt: 0.132, tef: true };
+  /* Reparo (módulo Repair): status, modelos com checklist e OS em aberto — só do próprio business
+     (UC-S05, UC-S06). A peça da OS vem com o preço de venda da variação (UC-S07). */
+  const reparo = {
+    status: ['Recebido', 'Em diagnóstico', 'Aguardando peça', 'Em reparo', 'Pronto para retirada'],
+    modelos: [
+      { id: 1, nome: 'Impressora HP Latex 315', checklist: ['Liga', 'Puxa mídia', 'Cabeças limpas', 'Painel sem trinca'] },
+      { id: 2, nome: 'Plotter de recorte 60 cm', checklist: ['Liga', 'Lâmina inteira', 'Cabo USB'] },
+    ],
+    os: [
+      { id: 318, cliente: 'Rota Livre Comércio', aparelho: 'Plotter de recorte 60 cm', pecas: [{ sku: 'BAN-ACAB-IL', nome: 'Lâmina de recorte 45°', un: 'un', qtd: '2', preco: '37,50' }] },
+    ],
+  };
   /* Garantias do business (warranties): prazo que sai impresso na venda. */
   const garantias = ['Sem garantia', '90 dias', '6 meses', '12 meses', '24 meses'];
 
@@ -400,7 +412,7 @@ window.SD = (() => {
 
   const cuById = (id) => cus.find((c) => c.id === id);
   const telaByKey = (k) => telas.find((t) => t.key === k);
-  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, locaisVenda, pedidosAbertos, camposVenda, garantias, config, simularFalha, cuById, telaByKey };
+  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, locaisVenda, pedidosAbertos, camposVenda, garantias, config, reparo, simularFalha, cuById, telaByKey };
 })();
 
 /* ── sells-ui.jsx ── */
@@ -2652,6 +2664,21 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
   const [pags, setPags] = React.useState(edit ? [{ k: 1, m: 'Boleto', v: '0,00', par: '1' }] : []);
   const [status, setStatus] = React.useState('final');
   const [os, setOs] = React.useState(false);
+  /* Venda de reparo (UC-S03, S05..S07, SEDIT-11/12). Grava como reparo, sem mudar valor nem estoque
+     em relação à venda comum. Sem status do reparo não dá para gravar. */
+  const rpIni = edit && registro && registro.reparo ? registro.reparo : null;
+  const [ehReparo, setEhReparo] = React.useState(!!rpIni);
+  const [rp, setRp] = React.useState(rpIni || { status: '', modelo: '', serie: '', entrega: '', defeitos: '', senha: '', padrao: '', checklist: {}, os: '' });
+  const setR = (k, v) => setRp((x) => ({ ...x, [k]: v }));
+  const modeloRp = window.SD.reparo.modelos.find((m) => String(m.id) === String(rp.modelo)) || null;
+  const padraoInvalido = !!rp.padrao && !/^[1-9]{4,9}$/.test(rp.padrao);
+  const osDoCliente = window.SD.reparo.os.filter((o) => o.cliente === cliente);
+  const faturarOs = (id) => {
+    setR('os', id);
+    const o = window.SD.reparo.os.find((x) => String(x.id) === String(id));
+    if (!o) return;
+    setItens(o.pecas.map((pc, i) => ({ k: Date.now() + i, ...pc, desc: '0' })));
+  };
   const [novoCli, setNovoCli] = React.useState(false);
   const [consultaCli, setConsultaCli] = React.useState(false);
   const [buscaCli, setBuscaCli] = React.useState('');
@@ -2763,7 +2790,8 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
   const sinalPadrao = cli.sinal !== undefined ? cli.sinal : window.SD.config.sinalPadrao;
   const sinalPct = sinal === '' ? sinalPadrao : parseBR(sinal);
   const sinalInvalido = sinalPct < 0 || sinalPct > 100;
-  const podeExecutar = !!acaoPrincipal && podeRole(acaoPrincipal.role) && estagio !== 'cancelled' && !sinalInvalido;
+  const faltaReparo = ehReparo && (!rp.status || padraoInvalido);
+  const podeExecutar = !!acaoPrincipal && podeRole(acaoPrincipal.role) && estagio !== 'cancelled' && !sinalInvalido && !faltaReparo;
 
   const registrar = (acao, de, para, efeitos) => setHistorico((h) => [...h, { acao, de, para, efeitos, por: window.SD.permissoes.usuario, em: new Date() }]);
 
@@ -2924,6 +2952,46 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
         </div>
         <Meta><div style={{ marginTop: 12 }}><TierBar tone="accent">Cliente, produto e comissionista só alcançam registros do <b>business atual</b>. <code>App\Transaction</code> não tem global scope — o escopo é declarado <b>em cada query</b> (ADR 0093 · CU-SELL-15).</TierBar></div></Meta>
       </Sec>
+
+      {/* Reparo — só com o módulo Repair; a venda grava como reparo e os campos ficam com ela */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Switch label="Venda de reparo" sublabel="aparelho do cliente, status e checklist; grava como reparo" checked={ehReparo} onChange={setEhReparo} disabled={travada || !!rpIni} />
+      </div>
+      {ehReparo && <Sec title="Reparo" hue="var(--color-info)" ico={false} pad={14}>
+        {osDoCliente.length > 0 && !rpIni && <div style={{ marginBottom: 12, maxWidth: 360 }}>
+          <Select label="Faturar uma OS" value={rp.os} onChange={(e) => faturarOs(e.target.value)}
+            options={[{ value: '', label: 'Não — reparo novo' }, ...osDoCliente.map((o) => ({ value: String(o.id), label: 'OS #' + o.id + ' · ' + o.aparelho }))]} />
+          <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>{rp.os ? 'as peças da OS entraram nos itens, com o preço de venda' : 'as peças da OS entram nos itens'}</span>
+        </div>}
+        <Grid cols={3} gap={12}>
+          <div><Select label="Status do reparo" value={rp.status} onChange={(e) => setR('status', e.target.value)} disabled={travada}
+            options={[{ value: '', label: 'Escolha o status' }, ...window.SD.reparo.status.map((x) => ({ value: x, label: x }))]} />
+            {!rp.status && <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)') }}>sem status não dá para gravar</span>}</div>
+          <div><Select label="Modelo do aparelho" value={String(rp.modelo)} onChange={(e) => setR('modelo', e.target.value)} disabled={travada}
+            options={[{ value: '', label: '—' }, ...window.SD.reparo.modelos.map((m) => ({ value: String(m.id), label: m.nome }))]} /></div>
+          <div><Input label="Nº de série" value={rp.serie} onChange={(e) => setR('serie', e.target.value)} disabled={travada} /></div>
+          <div><Input label="Previsão de entrega" type="datetime-local" value={rp.entrega} onChange={(e) => setR('entrega', e.target.value)} disabled={travada} /></div>
+          <div><Input label="Senha do aparelho" value={rp.senha} onChange={(e) => setR('senha', e.target.value)} disabled={travada} /></div>
+          <div><Input label="Padrão de desbloqueio" placeholder="ex.: 14789" value={rp.padrao} onChange={(e) => setR('padrao', e.target.value.replace(/[^0-9]/g, ''))} disabled={travada} aria-invalid={padraoInvalido} />
+            <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: padraoInvalido ? tomFg('var(--neg)') : 'var(--text-dim)' }}>{padraoInvalido ? 'sequência de 4 a 9 pontos, de 1 a 9' : 'pontos de 1 a 9, na ordem'}</span></div>
+        </Grid>
+        <div style={{ marginTop: 12 }}><Input label="Defeitos relatados" placeholder="separe por vírgula: não liga, risca a mídia" value={rp.defeitos} onChange={(e) => setR('defeitos', e.target.value)} disabled={travada} /></div>
+        {modeloRp && <div style={{ marginTop: 12 }}>
+          <Lbl>Checklist de entrada — {modeloRp.nome}</Lbl>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {modeloRp.checklist.map((item) => (
+              <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12, font: '12.5px/1.35 var(--font-sans)' }}>
+                <span style={{ flex: 1 }}>{item}</span>
+                {['sim', 'não', 'não testado'].map((r) => (
+                  <label key={r} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                    <input type="radio" name={'ck-' + item} checked={rp.checklist[item] === r} disabled={travada} onChange={() => setR('checklist', { ...rp.checklist, [item]: r })} /> {r}
+                  </label>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>}
+      </Sec>}
 
       {/* 2 · Itens — o trabalho de verdade */}
       <Sec title={<><Passo n="2" />Itens<span style={{ marginLeft: 8, font: '600 11.5px/1 var(--font-mono)', color: 'var(--text-dim)' }}>{qtdItens}</span></>}
@@ -3269,6 +3337,7 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
         </div>}
         {!podeExecutar && estagio !== 'cancelled' && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)', textAlign: 'center' }}>{acaoPrincipal ? 'Exige o papel ' + acaoPrincipal.role : 'Venda no fim do fluxo'}</span>}
         {temInvalida && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)'), textAlign: 'center' }}>Há item com dado fiscal inválido — corrija antes de fechar.</span>}
+        {faltaReparo && <span style={{ font: '11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)'), textAlign: 'center' }}>Venda de reparo: escolha o status{padraoInvalido ? ' e corrija o padrão' : ''} antes de gravar.</span>}
         {draftEm && <span style={{ font: '11.5px/1.3 var(--font-sans)', color: 'var(--text-dim)', textAlign: 'center' }}>Rascunho salvo às {draftEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>}
       </div>
     </aside>
