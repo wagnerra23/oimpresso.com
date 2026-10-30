@@ -239,10 +239,13 @@ function descBaixa(object $t, string $pagaEm, int $pagoCentavos): object
 it('UC-DESC-05 — pago até o vencimento com o desconto: baixa registra o desconto e quita o título', function () {
     $r = descBaixa($this, '2031-03-10 15:00:00', 95000);
 
-    // caminho 1: literais · caminho 2: valor_baixa + desconto fecha o valor do título
-    expect((float) $r->baixa->valor_baixa)->toBe(950.0);
+    // valor_baixa é o principal abatido e o desconto vai à parte: é o padrão que Dashboard,
+    // Relatórios, Impostos e a exportação contábil leem (recebido = valor_baixa + juros + multa − desconto).
+    // caminho 1: literais · caminho 2: o principal fecha o título e o recebido fecha o que o cliente pagou
+    expect((float) $r->baixa->valor_baixa)->toBe(1000.0);
     expect((float) $r->baixa->desconto)->toBe(50.0);
-    expect(round((float) $r->baixa->valor_baixa + (float) $r->baixa->desconto, 2))->toBe((float) $r->titulo->valor_total);
+    expect((float) $r->baixa->valor_baixa)->toBe((float) $r->titulo->valor_total);
+    expect(round((float) $r->baixa->valor_baixa + (float) $r->baixa->juros + (float) $r->baixa->multa - (float) $r->baixa->desconto, 2))->toBe(950.0);
     expect((float) $r->titulo->valor_aberto)->toBe(0.0);
     expect($r->titulo->status)->toBe('quitado');
 });
