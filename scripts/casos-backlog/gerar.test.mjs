@@ -61,8 +61,13 @@ test('texto com </script> não fecha o script da página', () => {
 });
 
 test('o próximo pedido livre respeita os números já dados pelo documento de origem', () => {
+  // A reserva sobe quando o documento de origem numera mais casos (#10202 levou de P-152 a P-257);
+  // o teste lê o mesmo telas.json do gerador para não quebrar a cada nova reserva.
+  const reservado = JSON.parse(fs.readFileSync(new URL('./telas.json', import.meta.url), 'utf8')).ultimoReservado;
+  const pedido = n => 'P-' + String(n).padStart(3, '0');
   const { dados } = montarDados(repo({ 'resources/js/Pages/Sells/Index.casos.md': caso('P-005', 'US-X') }));
-  assert.equal(dados.proximoPedido, 'P-153', 'P-001 a P-152 ficam reservados, mesmo os que ainda não estão no git');
-  const { dados: d2 } = montarDados(repo({ 'resources/js/Pages/Sells/Index.casos.md': caso('P-160', 'US-X') }));
-  assert.equal(d2.proximoPedido, 'P-161');
+  assert.equal(dados.proximoPedido, pedido(reservado + 1), `P-001 a ${pedido(reservado)} ficam reservados, mesmo os que ainda não estão no git`);
+  const acima = reservado + 3;
+  const { dados: d2 } = montarDados(repo({ 'resources/js/Pages/Sells/Index.casos.md': caso(pedido(acima), 'US-X') }));
+  assert.equal(d2.proximoPedido, pedido(acima + 1), 'um número do git acima da reserva vence');
 });
