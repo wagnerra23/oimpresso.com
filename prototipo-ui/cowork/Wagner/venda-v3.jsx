@@ -242,7 +242,7 @@ window.SD = (() => {
       ie: 'ISENTO', contrib: 'nao', fone: '—', email: '—', cidade: 'Joinville', uf: 'SC', endereco: 'Venda no balcão — sem endereço de entrega' },
     { id: 2, cod: '0142', nome: 'Prefeitura de Joinville', im: '00.412.775', regime: 'Órgão público', contato: 'Sandra Küster · compras', nascimento: '', creditoIcms: false, issRetido: true, rural: false, emailNfe: 'nfe@joinville.sc.gov.br', doc: '83.169.623/0001-10', tipo: 'pj', grupo: 'Governo', prazo: '30 dias', tabela: 'Governo 2026 — pregão 041/2026',
       ie: '255.618.240', contrib: 'isento', fone: '(47) 3431-3200', email: 'compras@joinville.sc.gov.br', cidade: 'Joinville', uf: 'SC', endereco: 'Rua XV de Novembro, 1400 — Centro · 89201-601' },
-    { id: 3, cod: '0288', nome: 'Rota Livre Comércio', adiantamento: 350.0, im: '55.109.220', regime: 'Simples Nacional', contato: 'Rodrigo Bastos · sócio', nascimento: '', creditoIcms: true, issRetido: false, rural: false, emailNfe: 'fiscal@rotalivre.com.br', doc: '41.882.507/0001-44', tipo: 'pj', grupo: 'Atacado', prazo: '28 dias', tabela: 'Atacado — a partir de 50m²',
+    { id: 3, cod: '0288', nome: 'Rota Livre Comércio', adiantamento: 350.0, sinal: 50, im: '55.109.220', regime: 'Simples Nacional', contato: 'Rodrigo Bastos · sócio', nascimento: '', creditoIcms: true, issRetido: false, rural: false, emailNfe: 'fiscal@rotalivre.com.br', doc: '41.882.507/0001-44', tipo: 'pj', grupo: 'Atacado', prazo: '28 dias', tabela: 'Atacado — a partir de 50m²',
       ie: '254.099.771', contrib: 'sim', fone: '(47) 99812-4470', email: 'financeiro@rotalivre.com.br', cidade: 'Blumenau', uf: 'SC', endereco: 'Rod. BR-470, km 62 — Itoupava · 89066-000' },
     { id: 4, cod: '0391', nome: 'Marina Bordignon', im: '—', regime: 'Pessoa física', contato: 'Marina Bordignon', nascimento: '1988-03-14', creditoIcms: false, issRetido: false, rural: false, emailNfe: 'marina.bordignon@gmail.com', doc: '045.882.119-30', tipo: 'pf', grupo: 'Varejo', prazo: 'À vista', tabela: null,
       ie: '—', contrib: 'nao', fone: '(47) 98844-1207', email: 'marina.bordignon@gmail.com', cidade: 'Joinville', uf: 'SC', endereco: 'Rua Blumenau, 890 — América · 89204-250' },
@@ -261,7 +261,7 @@ window.SD = (() => {
 
   const catalogo = [
     { sku: 'LON-440-BR', nome: 'Lona 440g branca fosca', un: 'm²', preco: 68.9, tipo: 'm2', estoque: 412.5, ncm: '3921.90.19', localEstoque: 'Depósito · bobinas', peso: 0.55, ean: '7899123400015', fabrica: 'LN440-BR-FO', categoria: 'Lonas', obs: 'largura útil 3,20 m' },
-    { sku: 'ADE-VIN-BR', nome: 'Adesivo vinil branco brilho', un: 'm²', preco: 74.5, tipo: 'm2', estoque: 188.0, ncm: '3919.10.00', localEstoque: 'Depósito · bobinas', peso: 0.18, ean: '7899123400022', fabrica: 'VN-BR-BRI', categoria: 'Adesivos', obs: 'vinil monomérico 80µ' },
+    { sku: 'ADE-VIN-BR', nome: 'Adesivo vinil branco brilho', un: 'm²', preco: 74.5, tipo: 'm2', st: true, estoque: 188.0, ncm: '3919.10.00', localEstoque: 'Depósito · bobinas', peso: 0.18, ean: '7899123400022', fabrica: 'VN-BR-BRI', categoria: 'Adesivos', obs: 'vinil monomérico 80µ' },
     { sku: 'BAN-ACAB-IL', nome: 'Acabamento com ilhós', un: 'un', preco: 3.5, tipo: 'servico', estoque: null, ncm: '—', localEstoque: null, peso: 0.01, ean: '—', fabrica: '—', categoria: 'Acabamentos', obs: 'ilhós latão 12 mm' },
     { sku: 'PLA-ACM-3MM', nome: 'Placa ACM 3mm cinza', un: 'm²', preco: 189.0, tipo: 'm2', estoque: 42.0, ncm: '7606.12.90', localEstoque: 'Pátio · chapas', peso: 4.5, ean: '7899123400046', fabrica: 'ACM3-CZ', categoria: 'Chapas', obs: 'chapa 1,22 × 3,05 m' },
     { sku: 'INS-MO-HORA', nome: 'Instalação — hora técnica', un: 'h', preco: 120.0, tipo: 'servico', estoque: null, ncm: '—', localEstoque: null, peso: 0, ean: '—', fabrica: '—', categoria: 'Serviços', obs: 'hora técnica em obra' },
@@ -275,7 +275,7 @@ window.SD = (() => {
         { v: 'GG · Preta', sku: 'CAM-ALG-GG-PR', estoque: 0, preco: 44.9 },
       ] },
     /* Produto com LOTE e validade (lot_no_line_id): a venda escolhe de qual lote sai; o que vence antes vem primeiro. */
-    { sku: 'TIN-SOL-1L', nome: 'Tinta solvente ciano 1 L', un: 'un', preco: 289.0, tipo: 'lote', estoque: 11, ncm: '3215.11.00', localEstoque: 'Almoxarifado · insumos', peso: 1.1, ean: '7899123400053', fabrica: 'SOL-CY-1L', categoria: 'Insumos', obs: 'para plotter eco-solvente',
+    { sku: 'TIN-SOL-1L', nome: 'Tinta solvente ciano 1 L', un: 'un', preco: 289.0, tipo: 'lote', st: true, estoque: 11, ncm: '3215.11.00', localEstoque: 'Almoxarifado · insumos', peso: 1.1, ean: '7899123400053', fabrica: 'SOL-CY-1L', categoria: 'Insumos', obs: 'para plotter eco-solvente',
       lotes: [
         { lote: 'L2026-05C', validade: '2026-11-30', saldo: 3 },
         { lote: 'L2026-07A', validade: '2027-01-15', saldo: 8 },
@@ -350,6 +350,10 @@ window.SD = (() => {
     return payStatus === 'paid' ? 'paid' : 'invoiced';
   };
 
+  /* Configuração do business usada pela venda. `sinalPadrao`: % de sinal que a empresa exige
+     quando o cliente não tem o seu (UC-SCOND). `aliqSt`: alíquota de cena do ICMS ST — em produção
+     o valor vem do servidor pela mesma conta da NF-e (POST /sells/icms-st, UC-VST-01). */
+  const config = { sinalPadrao: 30, aliqSt: 0.132 };
   /* Garantias do business (warranties): prazo que sai impresso na venda. */
   const garantias = ['Sem garantia', '90 dias', '6 meses', '12 meses', '24 meses'];
 
@@ -396,7 +400,7 @@ window.SD = (() => {
 
   const cuById = (id) => cus.find((c) => c.id === id);
   const telaByKey = (k) => telas.find((t) => t.key === k);
-  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, locaisVenda, pedidosAbertos, camposVenda, garantias, simularFalha, cuById, telaByKey };
+  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, locaisVenda, pedidosAbertos, camposVenda, garantias, config, simularFalha, cuById, telaByKey };
 })();
 
 /* ── sells-ui.jsx ── */
@@ -2633,6 +2637,10 @@ function Create({ onOpen, modo = 'create', registro }) {
   /* Despesas adicionais da venda (additional_expense_key/value_1..4 da Blade): somam no total
      depois do imposto, como na Blade. No máximo 4. */
   const [despesas, setDespesas] = React.useState([]);
+  const [bonificacao, setBonificacao] = React.useState(false);
+  /* Sinal da venda (UC-SCOND): vem do cliente, ou da empresa quando o cliente não tem; o vendedor
+     troca nesta venda e o valor vale para as OS dela. */
+  const [sinal, setSinal] = React.useState('');
   /* Documentos da venda (`sell_document` da Blade): pedido de compra, contrato, autorização. */
   const [docsVenda, setDocsVenda] = React.useState([]);
   const [acr, setAcr] = React.useState('0,00');
@@ -2691,13 +2699,22 @@ function Create({ onOpen, modo = 'create', registro }) {
   }, 0));
   const totComissao = { bruto: subtotal, liquido: baseTrib, margem: Math.max(0, submitSafe(baseTrib - custoEstimado)) };
   const vImposto = submitSafe(baseTrib * 0.18);
+  /* ICMS ST (UC-VST): só para cliente contribuinte (com IE), sobre os itens com ST; consumidor
+     final e venda sem cliente não têm ST. Entra no total, e o total = vNF = título. */
+  const comSt = cli.contrib === 'sim' && !cli.padrao;
+  const vST = comSt ? submitSafe(itens.reduce((acc, l) => {
+    const p = window.SD.catalogo.find((x) => x.sku === l.sku || (x.variacoes || []).some((v) => v.sku === l.sku));
+    return acc + (p && p.st ? submitSafe(linhaTotal(l) * window.SD.config.aliqSt) : 0);
+  }, 0)) : 0;
   const vFrete = submitSafe(parseBR(frete));
   const vAcr = submitSafe(parseBR(acr));
   const vResgate = submitSafe(pontos * PONTO_VALOR);
   const vDesp = submitSafe(despesas.reduce((s, x) => s + parseBR(x.v || '0'), 0));
-  const total = submitSafe(baseTrib + vImposto + vFrete + vAcr + vDesp - vResgate);
+  const total = submitSafe(baseTrib + vImposto + vST + vFrete + vAcr + vDesp - vResgate);
   const pago = submitSafe(pags.reduce((s, p) => s + parseBR(p.v), 0) + parcelas.filter((p) => p.lanc === 'RECEBIDA').reduce((s, p) => s + parseBR(p.valor), 0));
-  const saldo = submitSafe(total - pago);
+  /* Bonificação (UC-SBON-01): grava com os mesmos valores e baixa o estoque, mas não vira conta a
+     receber nem receita — não há saldo a cobrar. */
+  const saldo = bonificacao ? 0 : submitSafe(total - pago);
   const payStatus = pago <= 0 ? 'due' : saldo > 0.005 ? 'partial' : 'paid';
   const alcada = descTipo === 'percentual' ? parseBR(descVal) > 10 : descAplicado > submitSafe(subtotal * 0.1);
   const qtdItens = itens.length;
@@ -2730,7 +2747,7 @@ function Create({ onOpen, modo = 'create', registro }) {
   const travaCliente = estagioTrava(estagio) || !!bloqueioEdicao || travaNota;
   const pedidosDoCliente = window.SD.pedidosAbertos.filter((p) => p.cliente === cliente);
   const camposDaVenda = window.SD.camposVenda.filter(Boolean);
-  React.useEffect(() => { setPedidoVinc(''); }, [cliente]);
+  React.useEffect(() => { setPedidoVinc(''); setSinal(''); }, [cliente]);
   const atualFsm = fsmDe(estagio);
   /* Ação do botão grande: no rascunho é gravar (a etapa de destino sai do tipo de documento e
      do pagamento); depois, a primeira ação que AVANÇA a etapa e que o perfil pode executar
@@ -2738,7 +2755,10 @@ function Create({ onOpen, modo = 'create', registro }) {
   const acoesEtapa = acoesDe(estagio);
   const acaoPrincipal = estagio === 'rascunho' ? acaoDeGravar(status, payStatus)
     : (acoesEtapa.find((x) => x.para && podeRole(x.role)) || acoesEtapa[0] || null);
-  const podeExecutar = !!acaoPrincipal && podeRole(acaoPrincipal.role) && estagio !== 'cancelled';
+  const sinalPadrao = cli.sinal !== undefined ? cli.sinal : window.SD.config.sinalPadrao;
+  const sinalPct = sinal === '' ? sinalPadrao : parseBR(sinal);
+  const sinalInvalido = sinalPct < 0 || sinalPct > 100;
+  const podeExecutar = !!acaoPrincipal && podeRole(acaoPrincipal.role) && estagio !== 'cancelled' && !sinalInvalido;
 
   const registrar = (acao, de, para, efeitos) => setHistorico((h) => [...h, { acao, de, para, efeitos, por: window.SD.permissoes.usuario, em: new Date() }]);
 
@@ -3070,6 +3090,7 @@ function Create({ onOpen, modo = 'create', registro }) {
             <Res l="Desconto" v={descAplicado ? '− ' + fmtBR(descAplicado) : fmtBR(0)} c={descAplicado ? 'var(--neg)' : 'var(--text-dim)'} />
             {cupomRes && cupomRes.ok && <Res l={'Cupom ' + cupom.toUpperCase()} v={'− ' + fmtBR(descCupom)} c="var(--neg)" />}
             <Res l="Imposto" v={fmtBR(vImposto)} />
+            {vST > 0 && <Res l="ICMS ST" v={'+ ' + fmtBR(vST)} />}
             <Res l="Acréscimo" v={vAcr ? '+ ' + fmtBR(vAcr) : fmtBR(0)} c={vAcr ? 'var(--warn)' : 'var(--text-dim)'} />
             <Res l="Frete" v={fmtBR(vFrete)} c={vFrete ? 'var(--text)' : 'var(--text-dim)'} />
             {vDesp > 0 && <Res l="Despesas da venda" v={'+ ' + fmtBR(vDesp)} />}
@@ -3135,6 +3156,18 @@ function Create({ onOpen, modo = 'create', registro }) {
           <Lbl>Pagamento</Lbl>
           {meta && <span style={{ marginLeft: 'auto' }}><CuRow ids={['CU-SELL-06', 'CU-SELL-09']} onOpen={onOpen} /></span>}
         </div>
+        {bonificacao && <div style={{ marginBottom: 12 }}><Alert tone="info" title="Bonificação">O total de {brl(total)} fica registrado e o estoque é baixado, mas a venda não gera conta a receber nem entra como receita.</Alert></div>}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginBottom: 12 }}>
+          <div style={{ width: 120, flex: 'none' }}>
+            <Input label="Sinal %" inputMode="decimal" value={sinal === '' ? String(sinalPadrao) : sinal} onChange={(e) => setSinal(e.target.value)} disabled={travada}
+              aria-invalid={sinalInvalido} />
+          </div>
+          <span style={{ paddingBottom: 8, font: '11.5px/1.35 var(--font-sans)', color: sinalInvalido ? tomFg('var(--neg)') : 'var(--text-dim)' }}>
+            {sinalInvalido ? 'O sinal vai de 0 a 100%.'
+              : sinalPct === 0 ? 'Sem sinal: a produção não espera pagamento.'
+              : 'Exige ' + brl(submitSafe(total * sinalPct / 100)) + ' antes da produção — vale para as OS desta venda. ' + (sinal === '' ? (cli.sinal !== undefined ? 'Padrão do cliente.' : 'Padrão da empresa.') : 'Trocado nesta venda.')}
+          </span>
+        </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
           {cli.adiantamento > 0 && <button type="button" onClick={() => setPags((s) => s.some((x) => x.m === 'Adiantamento do cliente') ? s : [...s, { k: Date.now(), m: 'Adiantamento do cliente', v: fmtBR(Math.min(Math.max(saldo, 0), cli.adiantamento)), par: '1' }])}
             title={'Saldo a favor do cliente: ' + brl(cli.adiantamento)}
@@ -3187,6 +3220,7 @@ function Create({ onOpen, modo = 'create', registro }) {
         <div><Button disabled={estagio !== 'rascunho'} onClick={() => setStatus('draft')}>Salvar rascunho</Button></div>
         <div><Select label="Tipo de documento" value={status} onChange={(e) => setStatus(e.target.value)} options={[{ value: 'final', label: 'Venda' }, { value: 'quotation', label: 'Cotação' }, { value: 'proforma', label: 'Proforma' }]} /></div>
       </div>
+      <Switch label="Bonificação" sublabel="mercadoria dada ao cliente: baixa estoque, não vira conta a receber" checked={bonificacao} onChange={setBonificacao} disabled={travada} />
       <Meta><TierBar tone="accent">Rascunho em <code>{LS_DRAFT}</code> — a chave é <b>{'{business_id}.{user_id}'}</b>, nunca só usuário (CU-SELL-13 [T0]). Cada transição é um INSERT append-only em <code>sale_stage_history</code> (ADR 0143 · CU-SELL-22).</TierBar></Meta>
 
       <div className="venda-finalizador">
