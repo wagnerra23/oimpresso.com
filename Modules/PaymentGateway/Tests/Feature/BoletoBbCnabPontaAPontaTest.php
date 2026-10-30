@@ -214,3 +214,70 @@ it('UC-BBC-04 — remessa e PDF só baixam na própria empresa', function () {
     expect(fn () => $ctl->remessa($req, $this->res->cobrancaId))->toThrow(NotFoundHttpException::class);
     expect(fn () => $ctl->boleto($req, $this->res->cobrancaId))->toThrow(NotFoundHttpException::class);
 });
+
+/** Emite mais um boleto BB na mesma credencial e devolve o resultado. */
+function bbEmitirOutro(object $t)
+{
+    return (new PaymentGatewayService())->comCredencial($t->cred)->emitirBoleto(new EmitirCobrancaInput(
+        businessId: $t->bizId,
+        contactId: $t->contato,
+        valorCentavos: 5000,
+        vencimento: new DateTimeImmutable('2031-03-20'),
+        descricao: 'Teste caso 165',
+        idempotencyKey: 'zz-c165-'.uniqid(),
+        meta: [
+            'payer_name' => 'Pagador Ficticio', 'payer_cpf_cnpj' => '00000000191', // pii-allowlist — fixture
+            'payer_address' => 'Rua Ficticia, 2', 'payer_cep' => '88000000', 'payer_uf' => 'SC', 'payer_city' => 'Cidade',
+        ],
+    ));
+}
+
+it('caso 165 — o nosso número é o próximo da credencial, sem repetir', function () {
+    expect((int) DB::table('payment_gateway_credentials')->where('id', $this->cred->id)->value('cnab_ultimo_numero'))->toBe(1);
+
+    $segundo = bbEmitirOutro($this);
+
+    expect($segundo->nossoNumero)->not->toBe($this->res->nossoNumero);
+    expect((int) DB::table('payment_gateway_credentials')->where('id', $this->cred->id)->value('cnab_ultimo_numero'))->toBe(2);
+    // BB, convênio de 7 dígitos: o nosso número é o convênio seguido do número com 10 dígitos.
+    expect($this->res->nossoNumero)->toBe('1234567'.'0000000001');
+    expect($segundo->nossoNumero)->toBe('1234567'.'0000000002');
+});
+
+it('caso 165 — número já usado por um boleto antigo é pulado', function () {
+    // Volta o contador: a próxima emissão calcularia o mesmo número do boleto do beforeEach.
+    DB::table('payment_gateway_credentials')->where('id', $this->cred->id)->update(['cnab_ultimo_numero' => 0]);
+
+    $outro = bbEmitirOutro($this);
+
+    expect($outro->nossoNumero)->not->toBe($this->res->nossoNumero);
+    expect((int) DB::table('payment_gateway_credentials')->where('id', $this->cred->id)->value('cnab_ultimo_numero'))->toBe(2);
+});
+
+it('caso 165 — retorno com o mesmo nosso número em duas cobranças não quita nenhuma', function () {
+    // Uma segunda cobrança da mesma credencial com o nosso número da primeira (como o hash antigo podia gerar).
+    $copia = (array) DB::table('cobrancas')->where('id', $this->res->cobrancaId)->first();
+    unset($copia['id']);
+    $copia['idempotency_key'] = 'zz-c165-dup-'.uniqid();
+    $copia['origem_id'] = null;
+    $duplicada = (int) DB::table('cobrancas')->insertGetId($copia);
+
+    $nosso = substr(bbRemessa($this->payload)[2], 37, 20);
+    $retorno = implode("\r\n", [
+        bbLinha([1 => '00100000', 18 => '2', 19 => '00000000000191', 143 => '2', 144 => '11032031']),
+        bbLinha([1 => '00100011', 9 => 'T', 192 => '11032031', 200 => '11032031']),
+        bbLinha([1 => '00100013', 9 => '00001', 14 => 'T', 16 => '06', 38 => $nosso, 74 => '10032031', 82 => '000000000123456'], '0'),
+        bbLinha([1 => '00100013', 9 => '00002', 14 => 'U', 16 => '06', 78 => '000000000123456', 93 => '000000000123456', 138 => '11032031', 146 => '11032031'], '0'),
+        bbLinha([1 => '00100015', 18 => '000004']),
+        bbLinha([1 => '00199999', 18 => '000001', 24 => '000006']),
+    ]);
+    $arquivo = "cnab-retornos/biz-{$this->bizId}/cred-{$this->cred->id}/dup.ret";
+    Storage::disk('local')->put($arquivo, $retorno);
+
+    Event::fake([CobrancaPaga::class]);
+    (new CnabRetornoProcessor(credentialId: $this->cred->id, arquivoRetornoPath: $arquivo, disk: 'local'))->handle();
+
+    // O mesmo arquivo com uma cobrança só quita (UC-BBC-03); com duas, nenhuma é tocada.
+    expect(DB::table('cobrancas')->whereIn('id', [$this->res->cobrancaId, $duplicada])->pluck('status')->unique()->values()->all())->toBe(['emitida']);
+    Event::assertNotDispatched(CobrancaPaga::class);
+});
