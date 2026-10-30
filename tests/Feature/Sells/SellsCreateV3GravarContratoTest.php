@@ -350,3 +350,26 @@ it('UC-V386 · gravando, a tela recebe as configurações do business lidas de p
     config(['feature-flags.forced_on' => '']);
     $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->missing('gravacao'));
 });
+
+it('UC-V392 · com amount_rounding_method = 1 a venda da fixture grava 156,00 e round_off_amount −0,23', function () {
+    // Caminho 2 (servidor): o vitest prova que montarPayloadVenda, com arredondamento 1, leva
+    // final_total 156 e round_off_amount −0,23 para esta fixture; aqui o store grava isso.
+    $montar = function (object $test, object $a, object $b): array {
+        $p = v3gravarPayloadV3($test, $a, $b);
+        $p['final_total'] = 156;
+        $p['round_off_amount'] = -0.23;
+        $p['payment'][0]['amount'] = 156;
+
+        return $p;
+    };
+    $v = v3gravarVender($this, $montar);
+
+    expect((float) $v['venda']->final_total)->toBe(156.0);
+    expect((float) $v['venda']->round_off_amount)->toBe(-0.23);
+    // O resto da venda é o mesmo do UC-V380: só o total fecha no múltiplo.
+    expect((float) $v['venda']->discount_amount)->toBe(5.0);
+    expect((float) $v['venda']->shipping_charges)->toBe(7.5);
+    expect($v['pago'])->toBe(156.0);
+    expect($v['venda']->payment_status)->toBe('paid');
+    expect($v['saldos'])->toBe([7.0, 8.0]);
+});

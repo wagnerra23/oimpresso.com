@@ -14,6 +14,14 @@
 // Create não sabe gravar (acréscimo, imposto do pedido, PIX/boleto) RECUSA com motivo
 // em vez de sumir em silêncio — perder um acréscimo seria gravar valor errado.
 
+import {
+  abaixoDoPrecoMinimo,
+  arredondarTotal,
+  bloqueioDaConfig,
+  descontoDaVendaEfetivo,
+  estoqueInsuficiente,
+  type ConfigVenda,
+} from './config-business-dominio';
 import { parseBR, submitSafe } from './numeros';
 
 export type ItemParaGravar = {
@@ -27,6 +35,9 @@ export type ItemParaGravar = {
   acr: string; // % da linha — não suportado pelo store
   enableStock: boolean;
   tipoProduto: string;
+  /** Preço de venda do cadastro (piso com `enable_msp`) e saldo na busca; só com config. */
+  precoVenda?: number | null;
+  estoque?: number | null;
 };
 
 export type VendaParaGravar = {
@@ -43,6 +54,8 @@ export type VendaParaGravar = {
   descontoMaximo?: number | null;
   /** Prazo do cliente (`pay_term_number`/`pay_term_type`); ausente = vai vazio, como antes. */
   prazo?: { numero: number | string | null; tipo: string | null };
+  /** Configurações do business (UC-V386..V392). Ausente = regras de antes, sem config. */
+  config?: ConfigVenda;
 };
 
 /**
@@ -72,7 +85,21 @@ function linhaCreate(qtd: number, preco: number, descPct: number): number {
 }
 
 /** Total da venda pela fórmula do Create.tsx (`totalGeral`), arredondado a 2 casas. */
-export function totalParaGravar(v: Pick<VendaParaGravar, 'itens' | 'descTipo' | 'descVal' | 'frete'>): number {
+export function totalParaGravar(v: Pick<VendaParaGravar, 'itens' | 'descTipo' | 'descVal' | 'frete' | 'config'>): number {
+  return totalEArredondamento(v).total;
+}
+
+/**
+ * Total com as configurações aplicadas: desconto da venda zerado com `disable_discount` e
+ * arredondamento por `amount_rounding_method` SÓ NO FIM, sobre o total de 2 casas (UC-V392).
+ */
+function totalEArredondamento(v: Pick<VendaParaGravar, 'itens' | 'descTipo' | 'descVal' | 'frete' | 'config'>): { total: number; diferenca: number } {
+  const efetivo = v.config ? { ...v, ...descontoDaVendaEfetivo(v.config, v.descTipo, v.descVal) } : v;
+  const base = totalSemArredondar(efetivo);
+  return v.config ? arredondarTotal(base, v.config.arredondamento) : { total: base, diferenca: 0 };
+}
+
+function totalSemArredondar(v: Pick<VendaParaGravar, 'itens' | 'descTipo' | 'descVal' | 'frete'>): number {
   const subtotal = v.itens.reduce((s, l) => s + linhaCreate(parseBR(l.qtd), parseBR(l.preco), parseBR(l.desc)), 0);
   const desconto = v.descTipo === 'percentual' ? (subtotal * parseBR(v.descVal)) / 100 : parseBR(v.descVal);
   return submitSafe(Math.max(subtotal - desconto + parseBR(v.frete), 0));
@@ -91,14 +118,22 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
   if (v.itens.some((l) => parseBR(l.acr || '0') !== 0) || parseBR(v.acr) !== 0) {
     return { ok: false, motivo: 'Acréscimo ainda não é gravado — zere o acréscimo para salvar.' };
   }
-  const acimaDoTeto = descontoAcimaDoTeto(v);
+  // Com o desconto da venda desligado ele vale 0, e o teto não tem o que conferir.
+  const acimaDoTeto = descontoAcimaDoTeto(v.config ? { ...v, ...descontoDaVendaEfetivo(v.config, v.descTipo, v.descVal) } : v);
   if (acimaDoTeto) return { ok: false, motivo: acimaDoTeto };
+  if (v.config) {
+    const motivo =
+      bloqueioDaConfig(v.config, v.prazo ?? { numero: null, tipo: null }) ??
+      abaixoDoPrecoMinimo(v.config, v.itens) ??
+      estoqueInsuficiente(v.config, v.itens.map((l) => ({ ...l, estoque: l.estoque ?? null })));
+    if (motivo) return { ok: false, motivo };
+  }
   const metodoDesconhecido = v.pagamentos.find((p) => !METODO_DO_PAGAMENTO[p.m]);
   if (metodoDesconhecido) {
     return { ok: false, motivo: `${metodoDesconhecido.m} ainda não é gravado — use Dinheiro ou Cartão.` };
   }
 
-  const total = totalParaGravar(v);
+  const { total, diferenca } = totalEArredondamento(v);
   const frete = submitSafe(parseBR(v.frete));
   const pagamentos = v.pagamentos.length
     ? v.pagamentos.map((p) => ({
@@ -136,8 +171,9 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
     };
   });
 
-  const discountType = v.descTipo === 'percentual' ? 'percentage' : 'fixed';
-  const discountAmount = submitSafe(parseBR(v.descVal));
+  const desconto = v.config ? descontoDaVendaEfetivo(v.config, v.descTipo, v.descVal) : v;
+  const discountType = desconto.descTipo === 'percentual' ? 'percentage' : 'fixed';
+  const discountAmount = submitSafe(parseBR(desconto.descVal));
 
   return {
     ok: true,
@@ -175,6 +211,8 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
       is_direct_sale: 1,
       is_save_and_print: 0,
       final_total: total,
+      // Só com arredondamento: o store grava round_off_amount (TransactionUtil:131).
+      ...(diferenca !== 0 ? { round_off_amount: diferenca } : {}),
     },
   };
 }

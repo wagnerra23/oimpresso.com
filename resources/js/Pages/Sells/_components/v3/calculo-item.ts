@@ -107,6 +107,6 @@ export function totalDoItem(qtd: number, unitario: number): number {
  */
 export const PISO_DA_TABELA = 0.85;
 
-export function abaixoDoPiso(precoDigitado: number, precoTabela: number): boolean {
-  return precoDigitado < precoTabela * PISO_DA_TABELA;
+export function abaixoDoPiso(precoDigitado: number, precoTabela: number, fator: number = PISO_DA_TABELA): boolean {
+  return precoDigitado < precoTabela * fator;
 }
