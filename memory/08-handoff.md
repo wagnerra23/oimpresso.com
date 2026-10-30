@@ -1,6 +1,6 @@
 # 08 — Handoff (índice)
 
-- [2026-10-30 — Venda V3: preparação da edição, onda 1](handoffs/2026-10-30-1700-venda-v3-edicao-onda1.md) (guards por empresa antes do prazo · base preservada · adaptador sem alteração da Page · 19 testes JS; integração e homologação pendentes)
+- [2026-10-30 — Venda V3: preparação da edição, onda 1](handoffs/2026-10-30-1700-venda-v3-edicao-onda1.md) (guards por empresa antes do prazo · base preservada · adaptador sem alteração da Page · 19 testes JS · CT100 56 pass/2 falhas de reparo reproduzidas no main · PHPStan verde; integração e homologação pendentes)
 
 - [2026-10-14 15:45 BRT — **Painel do produto: cores pendentes e o que falta na lista**](handoffs/2026-10-14-1545-painel-produto-cores-e-pendencias-lista.md) (#9354 #9357 #9373 #9386 #9397 mergeados e conferidos · FAZER: itens 1–3 decididos por [F] — imagem sem foto (painel + lista), botões e abas só no painel · paradas: faixa "Você veio de", Transferir, Gerar OP, WooCommerce na linha, Ctrl+K, casos.md desatualizado)
 

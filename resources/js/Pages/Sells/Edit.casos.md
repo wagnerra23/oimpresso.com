@@ -65,10 +65,10 @@ last_run: "2026-10-29"
 
 ## UC-SEDIT-01 · Editar uma venda que não é da minha empresa não abre nada
 - **Persona:** qualquer operador — o isolamento entre empresas não pode depender de ninguém "não digitar o id errado". Aqui o risco é maior que na leitura: quem abre o editor recebe o payload inteiro da venda alheia (linhas, preços, cliente, pagamentos).
-- **Aceite:** Dado uma venda de OUTRO business, dentro do prazo de edição · Quando abro `/sells/{id}/edit` · Então recebo 404 e nenhum dado da venda alheia viaja no payload.
+- **Aceite:** Dado uma venda de OUTRO business, dentro ou fora do prazo de edição · Quando abro `/sells/{id}/edit` · Então recebo 404 e nenhum dado da venda alheia viaja no payload.
 - **Âncora:** `Edit.charter.md` §Non-Goals ("❌ Edição de venda doutra biz (Tier 0 firstOrFail → 404)") + `RUNBOOK-edit.md` §10 ("NÃO usar `Transaction::find($id)` sem scope `business_id` — Tier 0 viola") + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` — lane `sells-pest.yml` (MySQL real, tenant 98 vs o 2º business semeado).
-- **Status: 🧪** — o arquivo **nunca foi executado** (Pest só roda no CI/CT 100 · ADR 0062). Sobe a ✅ quando o manifesto G-7 for regravado a partir de um run VERDE de `main`. Sem fingir prova.
+- **Status: 🧪** — a prova de main ainda não foi capturada no manifesto (Pest só roda no CI/CT 100 · ADR 0062; o run desta preparação está registrado no fechamento do backlog). Sobe a ✅ quando o manifesto G-7 for regravado a partir de um run VERDE de `main`. Sem fingir prova.
 
 ---
 
@@ -237,16 +237,13 @@ last_run: "2026-10-29"
 Itens medidos ao derivar os casos acima. **Não são UC** (nenhum teste os cita) e nenhum foi
 corrigido — mexer em guard de venda é Tier 0, decisão [W].
 
-- **[BACKLOG]** Os dois guards (`canBeEdited`, `isReturnExist`) rodam **antes** do escopo por
-  `business_id` (`SellController@edit:2643-2668`, contra o `findOrFail` escopado em `:2673`).
-  Consequência: uma venda de OUTRO business **fora do prazo** devolve **422** ("prazo expirou") em
-  vez de 404 — o que confirma ao chamador que aquele id existe e é antigo. O UC-SEDIT-01 fixa de
-  propósito o caminho dentro do prazo (404); a variante fora do prazo fica declarada aqui.
-- **[BACKLOG]** `TransactionUtil::isReturnExist` (`:4259`) consulta
-  `Transaction::where('return_parent_id', $id)` **sem escopo de business** — e `App\Transaction`
-  não tem global scope. Mesma família do **D-1** do SDD (`has_return` derivado de subquery não
-  escopada): defesa em profundidade, sem vazamento provado, porque `return_parent_id` não é
-  controlado pelo usuário no fluxo normal.
+- **Preparação da edição V3, 2026-10-30 (sem merge/ativação):** `AcessoEdicaoVenda`
+  resolveu a venda por `business_id` antes do prazo e consultou devolução na mesma empresa.
+  UC-SEDIT-01 foi ampliado para venda alheia recente e antiga (404 em ambas); UC-SEDIT-03
+  ganhou controle positivo com devolução de outro business, sem bloquear a venda local.
+  Os dois cenários passaram no CT100, banco `_test`, tenant fictício 98.
+  Recibo completo e limites: `memory/sessions/2026-10-30-session-02-venda-v3-edicao.md`.
+  Os status deste contrato não foram promovidos: o manifesto de main ainda precisa do run.
 - **[BACKLOG]** O charter §Goals promete "Header h1 24px ... + stage FSM", mas o `headline`
   entrega `current_stage_key => null` fixo (`SellController@edit:2955`, comentado como "FSM ADR
   0143 (lazy)"). Contrato do charter à frente do código — pela precedência (`proibicoes.md`),

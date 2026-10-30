@@ -37,9 +37,35 @@ não autoriza substituir o editor em produção para todos os documentos.
 ## Validação e impacto
 
 Vitest: 19 testes passaram em `edicao-dominio.test.ts` e `sells-edicao-venda.test.ts`.
-ESLint do adaptador: sem erro (o arquivo de teste não pertence à configuração de lint).
-Sintaxe PHP dos dois serviços e do controller: válida. Pest/PHPStan: execução CT100 pendente
-no primeiro registro; o acesso LAN foi confirmado com a chave canônica, sem depender do Tailscale local.
+ESLint do adaptador e TypeScript dos arquivos novos: sem erro (o teste não pertence à configuração
+de lint). Sintaxe PHP dos dois serviços e do controller: válida.
+
+CT100, banco dedicado com sufixo `_test`, tenant 98 confirmado antes de executar, transações
+revertidas pelos testes: **56 passaram, 2 falharam, 206 assertions** na rodada final.
+As falhas UC-SEDIT-11/12 (reparo) foram reproduzidas no main `f23fe1a021` sem esta mudança
+(2 falhas, 5 assertions), com os mesmos erros: serial não atualizado e seção de reparo nula.
+Nenhuma causa de infraestrutura/módulo foi inferida como provada. Reparo continuou fora desta onda.
+Os testes novos da base, o GET por empresa/prazo, as travas de nota/pagamento e o novo salvamento
+sem alteração com `sell.payments` passaram. O último confirmou igualdade de total, linhas,
+estoque, registros completos de pagamentos, campo customizado e nota interna.
+
+PHPStan dos dois serviços: **sem erros** no CT100. A rodada validou o código `95d1c6c02c`;
+depois a branch foi rebaseada sobre `664a23fb92` (#10226 já mergeado), sem diferença nos arquivos
+de produção/testes PHP/TS desta frente (conferido por diff). Os 19 testes JS, a tipagem e o lint
+foram repetidos após o rebase. O único arquivo em comum com #10226 foi a lista de specs do workflow.
+
+O teste real encontrou e permitiu corrigir dois efeitos de serialização: `only()` tentava
+resolver `shipping_address` como relação em modelos parciais; `attributesToArray()` executava
+`due_date` depois da formatação de `transaction_date` no editor. A solução leu somente os
+atributos selecionados, preservando casts e sem executar accessors de campos fora do contrato.
+
+JUnit final e controle do main foram guardados no diretório local de artefatos desta conversa,
+subdiretório `venda-v3-edicao`, arquivos `edicao-v3-junit.xml` e `edicao-v3-main-reparo-junit.xml`.
+Os checkouts temporários, caches, armazenamento e pacotes desta frente no CT100 foram removidos após guardar os recibos. O staging compartilhado foi preservado.
+
+A revisão automática de aprovação recusou `git push`: faltou autorização explícita de publicação
+no GitHub. Nenhum push/PR foi realizado. Os commits locais e os recibos ficaram disponíveis
+para revisão; a transferência para o CT100 atendeu exclusivamente à validação já autorizada.
 
 | Caso sintético | Antes | Depois esperado |
 |---|---|---|
@@ -61,3 +87,5 @@ continuaram dependentes de aprovação humana após revisão do impacto e homolo
 disponíveis no catálogo da sessão. Foi usado o fallback filesystem: CLAUDE.md, Tier 0,
 imports operacionais, handoff/sessão recentes, SPEC, RUNBOOK-edit, charter/casos/testes de Edit,
 serviço canônico de trava e histórico remoto. Nenhuma consulta MCP foi alegada como realizada.
+
+O relatório de casos terminou com exit 0, 5 órfãos herdados, sem casos stale nem declaração de verde sem prova. Nenhum status foi promovido ou manifesto regravado por esta frente.
