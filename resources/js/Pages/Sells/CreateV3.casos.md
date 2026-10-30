@@ -882,6 +882,93 @@ O CST também é por imposto: o ICMS tem lista própria (`CST_ICMS`), os demais 
 
 ---
 
+## O que o protótipo ganhou em 2026-10-30 (#10206 a #10210)
+
+Decisão [W] 2026-10-30, textual: *"Sim, absorve as duas"* — a V3 vai substituir `Sells/Create` e
+`Sells/Edit`. Antes do código, o protótipo [`venda-v3.jsx`](../../../../prototipo-ui/cowork/Wagner/venda-v3.jsx)
+ganhou o que segue. Tudo aqui é `[BACKLOG]`: nenhum teste cita ainda, e cada item vira `UC-V3xx` no
+PR que trouxer o teste.
+
+### Pipeline FSM real (#10206)
+
+Fonte: `database/seeders/FsmProcessoVendaComProducaoSeeder.php` (11 etapas, 23 ações) e
+`app/Domain/Fsm/Services/InitialStageResolver.php`.
+
+- **[BACKLOG]** A venda nasce na etapa que o `InitialStageResolver` escolhe: rascunho e proforma → `quote_draft`; cotação → `quote_sent`; venda paga → `paid`; venda a prazo ou parcial → `invoiced`.
+- **[BACKLOG]** A situação da venda mostra **todas** as ações que saem da etapa atual, cada uma com o papel exigido e os efeitos que vai disparar — não só "a próxima".
+- **[BACKLOG]** Ação com papel que o perfil não tem aparece **negada**, com o nome do papel que falta (CU-SELL-21).
+- **[BACKLOG]** "Emitir NF-e" não muda a etapa: grava o documento e a venda continua Faturada.
+- **[BACKLOG]** O único reabrir do processo é `reabrir_para_revisao`, de "Aprovado pelo cliente" para "Orçamento enviado", e ele roda `LiberarReserva`.
+- **[BACKLOG]** Pausar e retomar a produção leva a "Produção em espera" e volta para "Em produção" sem perder o histórico.
+- **[BACKLOG]** Cancelar descreve a cascata antes de rodar e é **recusado** quando a venda já recebeu dinheiro (`CancelarVendaCascade`, [W] 2026-10-26). `[V0]`
+- **[BACKLOG]** A edição trava durante a produção (`in_production`, `on_hold`, `ready_for_invoice`) e em concluída ou cancelada; faturada, paga e entregue seguem editáveis pelas travas da Edit.
+
+### Dados da venda (#10207)
+
+Fonte: `resources/views/sell/create.blade.php`.
+
+- **[BACKLOG]** A venda tem **local** (`location_id`), e o estoque sai desse local. `[E0]`
+- **[BACKLOG]** A **data da venda** (`transaction_date`) é editável; data diferente de hoje fica no histórico.
+- **[BACKLOG]** **Pedido de venda vinculado** (`sales_order_ids`) lista só pedidos em aberto do cliente da venda e zera ao trocar de cliente. `[T0]`
+- **[BACKLOG]** **Campos personalizados** da venda (`custom_field_1..4`) aparecem com o rótulo da configuração do business; campo sem rótulo não aparece.
+- **[BACKLOG]** **Venda para exportação** (`is_export`) pede país de destino, UF e local de embarque.
+
+### Itens: variação, lote, garantia e kit (#10208)
+
+Fonte: `resources/views/sale_pos/product_row.blade.php`.
+
+- **[BACKLOG]** Produto com **variação** (tamanho × cor) só entra na venda depois de escolhida a variação; preço, SKU e estoque vêm da variação. É o caso do vestuário. `[V0]` `[E0]`
+- **[BACKLOG]** Produto com **lote** vem com o lote que vence antes já escolhido; o estoque conferido é o saldo do lote. `[E0]`
+- **[BACKLOG]** **Garantia** por item, vinda do cadastro do produto; serviço não tem garantia.
+- **[BACKLOG]** **Kit** mostra os componentes, a quantidade de cada um e quantos kits dá para montar; a venda baixa o estoque de cada componente, não do kit. `[E0]`
+
+### Fechamento (#10209)
+
+Fonte: `resources/views/sell/create.blade.php`.
+
+- **[BACKLOG]** Cliente com **adiantamento** (`advance_balance`) usa o saldo como pagamento, até o que falta receber e nunca mais que o saldo. `[V0]`
+- **[BACKLOG]** **Despesas da venda** (`additional_expense_key/value_1..4`): até 4, somadas no total depois do imposto. Conferido no protótipo: 1.115,40 + 25,00 = 1.140,40. `[V0]`
+- **[BACKLOG]** **Entregador** (`delivery_person`) na entrega.
+- **[BACKLOG]** **Documentos da venda** (`sell_document`) anexados ficam com a venda e não saem no documento.
+
+### Edição (#10210)
+
+Fonte: `Edit.casos.md` (US-SELL-059).
+
+- **[BACKLOG]** "Adicionar venda" e "Editar venda" abrem a V3.
+- **[BACKLOG]** Venda com devolução abre travada, com o motivo na tela (UC-SEDIT-03).
+- **[BACKLOG]** Passado o prazo de edição do business (`transaction_edit_days`), a venda abre travada (UC-SEDIT-04).
+
+## Paridade para substituir Create e Edit — o que a V3 ainda não tem
+
+A V3 só substitui as duas telas quando cumprir o contrato delas. Comparando `Create.casos.md` e
+`Edit.casos.md` (lidos em `main @ 9874a36972`) com o protótipo depois do #10210, faltam os itens
+abaixo. Cada um cita o UC de origem: é ele que diz o que "pronto" significa.
+
+### Valor e estoque — entram com dupla prova `[V0]`
+
+- **[BACKLOG]** O total da venda inclui o **ICMS ST** do carrinho pela mesma conta da NF-e; total, vNF e título batem (UC-VST-01 a 06). Hoje o protótipo mostra ST por item, mas não soma no total.
+- **[BACKLOG]** **Maquininha (TEF)**: o valor vai para a máquina, a aprovação traz bandeira, NSU e autorização, e o mesmo clique reenviado não cobra duas vezes (UC-TEF-01 a 07).
+- **[BACKLOG]** **Sinal** da venda: vem do cliente, o vendedor pode trocar e ele vale para as OS da venda; acima de 100% é recusado (UC-SCOND-01 a 03).
+- **[BACKLOG]** **Bonificação** como tipo de venda, gravada sem mudar valor nem estoque (UC-SBON-01). Hoje existe só como natureza da operação. `[E0]`
+- **[BACKLOG]** **Duplicar** venda: cria um rascunho novo com os mesmos itens e preços, fora do pipeline, e o topo mostra de qual venda veio (UC-SDUP-01 a 03, 07).
+
+### Travas da edição que vêm da Edit
+
+- **[BACKLOG]** Com **NF-e autorizada**, itens, valores e cliente não mudam; a observação ainda se edita (UC-SEDIT-13, 14).
+- **[BACKLOG]** NF-e **cancelada** não trava a venda; nota de outro business também não (UC-SEDIT-15, 17). `[T0]`
+- **[BACKLOG]** Com **pagamento**, só os valores travam (UC-SEDIT-16).
+- **[BACKLOG]** Alerta de **cliente vencido** mostra a dívida no valor certo (UC-SEDIT-10). `[V0]`
+
+### Venda de reparo
+
+- **[BACKLOG]** Venda aberta como reparo grava como reparo, com aparelho, atendimento, checklist pré-reparo e senha ou padrão do aparelho, e pode nascer de uma OS (UC-S03, S05, S06, S07).
+- **[BACKLOG]** Editar venda de reparo mostra e salva a seção Reparo sem apagar as datas (UC-SEDIT-11, 12).
+
+### Decisão [W] pendente — dentro ou fora da V3
+
+- **[BACKLOG]** **Venda offline** (UC-VOFF-01 a 04): reenviar a mesma venda grava uma vez e baixa o estoque uma vez. Hoje é do PDV rápido, que o protótipo declara fora da V3 (NG-03). Falta decidir se a V3 também vende sem internet.
+
 ## Fronteira que os testes desta tela devem preservar
 
 Não é caso de uso desta tela, mas é o contrato que a existência dela serve — e o teste que o provar
