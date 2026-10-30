@@ -30,8 +30,13 @@ final class BaseEdicaoVendaV3
                 $campos[] = "{$prefixo}_{$i}";
             }
         }
-        // Só atributos, nunca métodos com o mesmo nome (Transaction::shipping_address é legado).
-        $base = array_intersect_key($venda->attributesToArray(), array_flip($campos));
+        // Só atributos selecionados, com seus casts. Serializar o modelo inteiro invocaria
+        // accessors como due_date, enquanto edit() já formatou transaction_date para a tela.
+        // Também não acessa métodos homônimos de atributos ausentes em um modelo parcial.
+        $base = [];
+        foreach (array_intersect_key($venda->getAttributes(), array_flip($campos)) as $campo => $_) {
+            $base[$campo] = $venda->getAttribute($campo);
+        }
         $base['sale_note'] = $venda->additional_notes;
         $base['tax_rate_id'] = $venda->tax_id;
         $base['price_group'] = $venda->selling_price_group_id;

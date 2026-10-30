@@ -2983,6 +2983,7 @@ class SellController extends Controller
             (int) $business_id,
             request()->session()->get('business.transaction_edit_days'),
         );
+        $transaction->load(['price_group', 'types_of_service', 'media', 'media.uploaded_by_user']);
 
         $business_details = $this->businessUtil->getDetails($business_id);
         $taxes = TaxRate::forBusinessDropdown($business_id, true, true);

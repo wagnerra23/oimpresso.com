@@ -23,10 +23,9 @@ final class AcessoEdicaoVenda
         // ou devolução impede que um id alheio revele sua existência por um 422 (ADR 0093).
         $venda = Transaction::where('business_id', $businessId)
             ->whereIn('type', ['sell', 'sales_order'])
-            ->with(['price_group', 'types_of_service', 'media', 'media.uploaded_by_user'])
             ->findOrFail($id);
 
-        if ($venda->type === 'sales_order' && ! auth()->user()->can('so.update')) {
+        if ((string) $venda->getRawOriginal('type') === 'sales_order' && ! auth()->user()->can('so.update')) {
             abort(403, 'Unauthorized action.');
         }
 
