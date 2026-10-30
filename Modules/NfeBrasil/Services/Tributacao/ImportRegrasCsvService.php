@@ -6,6 +6,7 @@ namespace Modules\NfeBrasil\Services\Tributacao;
 
 use Illuminate\Http\UploadedFile;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
+use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 
 /**
  * US-NFE-010 fase 3 · Import CSV em massa de regras tributárias.
@@ -46,8 +47,11 @@ class ImportRegrasCsvService
      *                    mesmo NCM pode ter uma regra por regime (empresa com dois locais emissores)
      *   - `reducao_base` fração reduzida da base do ICMS (0.6111 = 61,11%, CST 20)
      *   - `mva`          fração da MVA do ST (0.623 = 62,3%)
+     *   - `operacao`     slug da operação fiscal da empresa (ex. `bonificacao`); entra na CHAVE.
+     *                    Vazio = sem operação (a padrão). Slug que a empresa não cadastrou = falha
+     *                    da linha, nunca regra órfã.
      */
-    public const COLUNAS_OPCIONAIS = ['crt', 'reducao_base', 'mva'];
+    public const COLUNAS_OPCIONAIS = ['crt', 'reducao_base', 'mva', 'operacao'];
 
     private const UFS_VALIDAS = [
         'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
@@ -138,6 +142,9 @@ class ImportRegrasCsvService
 
         foreach ($linhas as $linha) {
             try {
+                if (array_key_exists('operacao', $linha)) {
+                    $linha = $this->comOperacaoResolvida($businessId, $linha);
+                }
                 $existente = NfeFiscalRule::where('business_id', $businessId)
                     ->where('ncm', $linha['ncm'])
                     ->where('uf_origem', $linha['uf_origem'])
@@ -149,6 +156,12 @@ class ImportRegrasCsvService
                     ->when(array_key_exists('crt', $linha), fn ($q) => $linha['crt'] === null
                         ? $q->whereNull('crt')
                         : $q->where('crt', $linha['crt']))
+                    // Sem a coluna `operacao`, a linha é da operação padrão: nunca reescreve a regra de
+                    // outra operação (thread 07) que tenha o mesmo NCM.
+                    ->when(array_key_exists('operacao_id', $linha) || NfeFiscalRule::temVersionamento(),
+                        fn ($q) => ($linha['operacao_id'] ?? null) === null
+                            ? $q->whereNull('operacao_id')
+                            : $q->where('operacao_id', $linha['operacao_id']))
                     ->first();
 
                 // Thread 15a: as versões que este lote cria/edita entram na revisão do contador
@@ -232,6 +245,18 @@ class ImportRegrasCsvService
         ] + $this->opcionais($row);
     }
 
+    /** Troca o slug da operação pelo id dela no business; slug inexistente lança (vira falha da linha). */
+    private function comOperacaoResolvida(int $businessId, array $linha): array
+    {
+        $slug = $linha['operacao'];
+        unset($linha['operacao']);
+        $linha['operacao_id'] = $slug === null ? null : NfeOperacaoFiscal::withoutGlobalScopes() // SUPERADMIN: roda em console; o escopo é o where explícito
+            ->where('business_id', $businessId)->where('slug', $slug)->whereNull('deleted_at')
+            ->value('id') ?? throw new \RuntimeException("Operação fiscal '{$slug}' não existe no business {$businessId}.");
+
+        return $linha;
+    }
+
     /** Só as colunas opcionais que vieram no cabeçalho; vazio = nulo. */
     private function opcionais(array $row): array
     {
@@ -239,7 +264,11 @@ class ImportRegrasCsvService
         foreach (self::COLUNAS_OPCIONAIS as $field) {
             if (array_key_exists($field, $row)) {
                 $saida[$field] = $row[$field] === '' ? null
-                    : ($field === 'crt' ? (int) $row[$field] : (float) $row[$field]);
+                    : match ($field) {
+                        'crt'      => (int) $row[$field],
+                        'operacao' => (string) $row[$field],
+                        default    => (float) $row[$field],
+                    };
             }
         }
 

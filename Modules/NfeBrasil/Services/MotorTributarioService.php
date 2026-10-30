@@ -116,6 +116,41 @@ class MotorTributarioService
         );
     }
 
+    /**
+     * Item 2 do Sabor Brasil · cálculo dentro de uma operação fiscal que não é a padrão (ex. a
+     * bonificação). Vale a regra da operação para o NCM; sem regra dela (o motor caiu no default da
+     * empresa, nível 4, ou nem default achou), vale a da venda, como antes. Assim a operação só
+     * precisa das regras que mudam.
+     *
+     * Método à parte pelo mesmo motivo do `calcularComRegimeDoLocal`: testes sobrescrevem os outros.
+     */
+    public function calcularNaOperacao(
+        ProdutoFiscalContext $produto,
+        int $businessId,
+        string $ufOrigem,
+        string $ufDestino,
+        int $operacaoId,
+        ?int $crtEmitente = null,
+        ?float $aliquotaInternaDestino = null,
+        ?bool $destinatarioContribuinte = null,
+    ): TributoCalculado {
+        $semOperacao = fn () => $this->calcularComCrt(
+            $produto, $businessId, $ufOrigem, $ufDestino,
+            $aliquotaInternaDestino, $destinatarioContribuinte, null, null, $crtEmitente,
+        );
+
+        try {
+            $tributo = $this->calcularComCrt(
+                $produto, $businessId, $ufOrigem, $ufDestino,
+                $aliquotaInternaDestino, $destinatarioContribuinte, $operacaoId, null, $crtEmitente,
+            );
+        } catch (TributacaoNaoConfiguradaException) {
+            return $semOperacao();
+        }
+
+        return $tributo->nivel_usado >= 4 ? $semOperacao() : $tributo;
+    }
+
     private function calcularComCrt(
         ProdutoFiscalContext $produto,
         int $businessId,

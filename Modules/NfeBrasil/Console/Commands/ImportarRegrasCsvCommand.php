@@ -7,6 +7,7 @@ namespace Modules\NfeBrasil\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
+use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 
 /**
@@ -52,8 +53,8 @@ class ImportarRegrasCsvCommand extends Command
             return self::FAILURE;
         }
 
-        $this->table(['NCM', 'regime', 'CFOP', 'hoje', 'fica'], array_map(
-            fn (array $l) => [$l['ncm'], $l['crt'] ?? '-', $l['cfop'], $this->hoje($businessId, $l), $this->descrever($l)],
+        $this->table(['NCM', 'regime', 'operação', 'CFOP', 'hoje', 'fica'], array_map(
+            fn (array $l) => [$l['ncm'], $l['crt'] ?? '-', $l['operacao'] ?? 'padrão', $l['cfop'], $this->hoje($businessId, $l), $this->descrever($l)],
             $resultado['linhas'],
         ));
 
@@ -71,7 +72,17 @@ class ImportarRegrasCsvCommand extends Command
 
     private function hoje(int $businessId, array $linha): string
     {
+        $operacaoId = null;
+        if (($linha['operacao'] ?? null) !== null) {
+            $operacaoId = NfeOperacaoFiscal::withoutGlobalScopes() // SUPERADMIN: console; o escopo é o where explícito
+                ->where('business_id', $businessId)->where('slug', $linha['operacao'])->whereNull('deleted_at')->value('id');
+            if ($operacaoId === null) {
+                return "(operação {$linha['operacao']} não existe — a linha vai falhar)";
+            }
+        }
+
         $regra = NfeFiscalRule::where('business_id', $businessId)
+            ->when(array_key_exists('operacao', $linha) || NfeFiscalRule::temVersionamento(), fn ($q) => $operacaoId === null ? $q->whereNull('operacao_id') : $q->where('operacao_id', $operacaoId))
             ->where('ncm', $linha['ncm'])
             ->where('uf_origem', $linha['uf_origem'])
             ->when($linha['uf_destino'] === null, fn ($q) => $q->whereNull('uf_destino'), fn ($q) => $q->where('uf_destino', $linha['uf_destino']))

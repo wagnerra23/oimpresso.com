@@ -659,7 +659,8 @@ Status: 🧪
 
 **Dado** uma venda com `sub_type` `bonificacao` **Quando** sai a NF-e (modelo 55) **Então** todos os itens
 levam CFOP 5910 (destinatário da mesma UF) ou 6910 (outra UF), a natureza é BONIFICACAO e o pagamento é
-tPag 90 com vPag 0; itens, tributação, vProd e vNF são os da venda. CFOP informado por quem chama ainda
+tPag 90 com vPag 0; itens, vProd e vNF são os da venda, e a tributação também, salvo quando a empresa
+cadastrou a operação `bonificacao` (UC-FNFE-59). CFOP informado por quem chama ainda
 vence; destino exterior recusa. Âncora: R-NFE-047 / US-NFE-077 (pedido P-154).
 
 Status: 🧪
@@ -669,6 +670,27 @@ Status: 🧪
 **Dado** uma venda bonificada **Quando** se pede a NFC-e (modelo 65) **Então** a emissão recusa com
 "emita NF-e (modelo 55)", e a NFC-e automática do PDV não é disparada para ela; venda sem esse
 `sub_type` segue o fluxo de antes. Âncora: R-NFE-047 / US-NFE-077.
+
+Status: 🧪
+
+## UC-FNFE-59 · Bonificação usa a regra da operação dela · `must` `[V0]`
+
+**Dado** uma empresa com a operação fiscal `bonificacao` cadastrada e regras dela por NCM **Quando** sai a
+NF-e de uma venda bonificada **Então** cada item tributa pela regra da operação. Sabor Brasil (Delphi,
+natureza 992 "BONIFICAÇÃO SEM ST", medido 2026-10-29): o condimento sai CST 10 / 5910 sem ICMS e sem ST
+(52 itens no Delphi, 0 com ICMS), enquanto a venda do mesmo item leva ICMS 120,01 sobre 1.000,00; o
+desidratado mantém CST 20 com redução de 61,11% (base 388,90, ICMS 70,00). Sem a operação cadastrada,
+tudo segue o UC-FNFE-57. Teste: `NfeBonificacaoSemStTest`. Âncora: R-NFE-047 · P-154 · item 2 do plano
+Sabor Brasil.
+
+Status: 🧪
+
+## UC-FNFE-60 · Operação sem regra para o NCM cai na regra da venda · `must` `[V0]`
+
+**Dado** a operação `bonificacao` sem regra para um NCM ou um regime (o Simples do Sabor Brasil não tem
+bonificação no Delphi) **Quando** sai a nota **Então** o item tributa pela regra da venda (CSOSN 400), nunca
+pelo default genérico da empresa. CSV que cita uma operação que a empresa não cadastrou falha a linha e
+não grava regra solta. Teste: `NfeBonificacaoSemStTest`. Âncora: R-NFE-020d (operação do próprio business).
 
 Status: 🧪
 
