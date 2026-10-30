@@ -119,7 +119,7 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 
 > Este PR traz o domínio e a prova. O botão **Gravar venda** e a flag `useV3SellsGravar` que o liga entram no PR seguinte (UC-V382); até lá a tela não posta nada.
 
-- **Dado** uma venda nova, final, com 3 × 19,90 (10% de desconto na linha) + 2 × 50,00, desconto de R$ 5,00, frete de R$ 7,50 e R$ 156,23 em dinheiro,
+- **Dado** uma venda nova, final, com 3 × 19,90 (10% de desconto na linha) + 2 × 50,00, desconto de 5,00, frete de 7,50 e 156,23 em dinheiro (vetor de teste sintético),
 - **Quando** o operador clica em **Gravar venda**,
 - **Então** a tela posta em `/pos` o payload no formato do `transform()` do `Sells/Create.tsx`, e o store grava `final_total` 156,23, frete 7,50, desconto 5,00, pagamento 156,23 (`paid`) e baixa 3 e 2 do estoque — **igual**, campo a campo, à mesma venda feita pelo payload do Create.
 
