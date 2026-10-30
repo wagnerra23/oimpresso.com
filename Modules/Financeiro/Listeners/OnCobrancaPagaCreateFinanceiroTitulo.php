@@ -137,7 +137,10 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                 'business_id'        => 1,
                 'titulo_id'          => $titulo->id,
                 'conta_bancaria_id'  => $contaBancariaId,
-                'valor_baixa'        => $valorPago,
+                // valor_baixa é o principal abatido; o recebido é valor_baixa + juros + multa − desconto
+                // (Dashboard, Relatórios, Impostos, ExportacaoContabilService). Com desconto de pontualidade
+                // o cliente pagou menos que o principal: o desconto entra à parte, não no valor_baixa.
+                'valor_baixa'        => round($valorPago + $desconto, 2),
                 'juros'              => 0,
                 'multa'              => 0,
                 'desconto'           => $desconto,
@@ -227,7 +230,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                     'business_id'       => $biz,
                     'titulo_id'         => $titulo->id,
                     'conta_bancaria_id' => $contaBancariaId,
-                    'valor_baixa'       => $valorPago,
+                    'valor_baixa'       => round($valorPago + $desconto, 2), // principal; desconto à parte (ver acima)
                     'juros'             => 0,
                     'multa'             => 0,
                     'desconto'          => $desconto,
