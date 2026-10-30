@@ -292,13 +292,13 @@ window.SD = (() => {
   ];
 
   const vendas = [
-    { id: 4821, inv: 'VD-2026-4821', cliente: 'Prefeitura de Joinville', tipo: 'pj', data: '27/07/2026', total: 12480.0, pago: 0, pay: 'due', st: 'final', estagio: 'in_production', nfe: 'autorizada', ret: false, venc: '26/08/2026', comiss: 'Kamila' },
+    { id: 4821, inv: 'VD-2026-4821', cliente: 'Prefeitura de Joinville', tipo: 'pj', data: '27/07/2026', total: 12480.0, pago: 0, pay: 'due', st: 'final', estagio: 'in_production', nfe: 'pendente', ret: false, venc: '26/08/2026', comiss: 'Kamila' },
     { id: 4820, inv: 'VD-2026-4820', cliente: 'Rota Livre Comércio', tipo: 'pj', data: '27/07/2026', total: 3890.5, pago: 1890.5, pay: 'partial', st: 'final', estagio: 'invoiced', nfe: 'autorizada', ret: true, venc: '24/08/2026', comiss: 'Guilherme' },
     { id: 4819, inv: 'VD-2026-4819', cliente: 'Marina Bordignon', tipo: 'pf', data: '26/07/2026', total: 486.0, pago: 486.0, pay: 'paid', st: 'final', estagio: 'delivered', nfe: 'autorizada', ret: false, venc: '—', comiss: '—' },
     { id: 4818, inv: 'VD-2026-4818', cliente: 'Consumidor final', tipo: 'pf', data: '26/07/2026', total: 137.8, pago: 137.8, pay: 'paid', st: 'final', estagio: 'delivered', nfe: 'nao_emitida', ret: false, venc: '—', comiss: '—' },
     { id: 4817, inv: 'VD-2026-4817', cliente: 'Prefeitura de Joinville', tipo: 'pj', data: '22/07/2026', total: 8760.0, pago: 8760.0, pay: 'paid', st: 'final', estagio: 'completed', nfe: 'autorizada', ret: true, venc: '—', comiss: 'Kamila' },
-    { id: 4816, inv: 'VD-2026-4816', cliente: 'Rota Livre Comércio', tipo: 'pj', data: '18/07/2026', total: 2145.0, pago: 0, pay: 'due', st: 'final', estagio: 'quote_approved', nfe: 'pendente', ret: false, venc: '15/07/2026', comiss: 'Guilherme', atraso: true },
-    { id: 4815, inv: 'VD-2026-4815', cliente: 'Marina Bordignon', tipo: 'pf', data: '15/07/2026', total: 1290.0, pago: 645.0, pay: 'partial', st: 'final', estagio: 'in_production', nfe: 'autorizada', ret: false, venc: '14/08/2026', comiss: '—' },
+    { id: 4816, inv: 'VD-2026-4816', cliente: 'Rota Livre Comércio', tipo: 'pj', data: '18/07/2026', total: 2145.0, pago: 0, pay: 'due', st: 'quotation', estagio: 'quote_approved', nfe: 'pendente', ret: false, venc: '15/07/2026', comiss: 'Guilherme', atraso: true },
+    { id: 4815, inv: 'VD-2026-4815', cliente: 'Marina Bordignon', tipo: 'pf', data: '15/07/2026', total: 1290.0, pago: 645.0, pay: 'partial', st: 'final', estagio: 'in_production', nfe: 'pendente', ret: false, venc: '14/08/2026', comiss: '—' },
     { id: 4814, inv: 'VD-2026-4814', cliente: 'Consumidor final', tipo: 'pf', data: '14/07/2026', total: 320.0, pago: 320.0, pay: 'paid', st: 'final', estagio: 'cancelled', nfe: 'cancelada', ret: false, venc: '—', comiss: '—' },
   ];
 
@@ -353,7 +353,11 @@ window.SD = (() => {
   /* Configuração do business usada pela venda. `sinalPadrao`: % de sinal que a empresa exige
      quando o cliente não tem o seu (UC-SCOND). `aliqSt`: alíquota de cena do ICMS ST — em produção
      o valor vem do servidor pela mesma conta da NF-e (POST /sells/icms-st, UC-VST-01). */
-  const config = { sinalPadrao: 30, aliqSt: 0.132, tef: true };
+  const config = { sinalPadrao: 30, aliqSt: 0.132, tef: true,
+    /* `allow_overselling`: sem ele, quantidade acima do estoque não entra (product_row.blade.php). */
+    venderSemEstoque: false,
+    /* Pontos (UC-SRP-03): resgate mínimo e pedido mínimo para resgatar. */
+    rpMinPontos: 10, rpMinPedido: 50 };
   /* Reparo (módulo Repair): status, modelos com checklist e OS em aberto — só do próprio business
      (UC-S05, UC-S06). A peça da OS vem com o preço de venda da variação (UC-S07). */
   const reparo = {
@@ -1917,6 +1921,10 @@ const IMPRESSOES = ['Digital — látex', 'Digital — UV', 'Offset', 'Recorte e
 /* data guardada em ISO (o DataCampo aceita Date|ISO|dd/mm/aaaa e exibe dd/mm/aaaa) */
 const dISO = (d) => (d instanceof Date && !isNaN(d)) ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : '';
 
+/* Percentual guardado na linha com vírgula decimal e sem separador de milhar. `String(3.333)` dava
+   "3.333", que o parse pt-BR lê como 3333% — a mesma classe do incidente `num_uf`. */
+const pctBR = (x) => String(Math.round((Number(x) || 0) * 1e4) / 1e4).replace('.', ',');
+
 function LancarItem({ produto, onClose, onConfirm }) {
   const meta = useMeta();
   const podePreco = window.SD.permissoes.editarPrecoItem;
@@ -1967,8 +1975,10 @@ function LancarItem({ produto, onClose, onConfirm }) {
   /* medida arredonda a 4 casas, não a 2 — cobre recorte fino e m³ sem propagar ruído de float */
   const arredondarMedida = (x) => Math.round((x + Number.EPSILON) * 1e4) / 1e4;
   const qtd = dims ? arredondarMedida(nPecas * areaUn) : arredondarMedida(parseBR(qtdDireta));
-  const unitario = submitSafe(parseBR(preco) * (1 - parseBR(desc) / 100) * (1 + parseBR(acr) / 100));
-  const total = submitSafe(qtd * unitario);
+  /* Mesma conta da linha na grade (`linhaTotal`): arredonda só no fim. Arredondar o unitário antes
+     dava outro total (12,5 m² a 68,90 com 3,33% de desconto: 832,63 no modal, 832,57 na grade). */
+  const total = submitSafe(qtd * parseBR(preco) * (1 - parseBR(desc) / 100) * (1 + parseBR(acr) / 100));
+  const unitario = qtd > 0 ? submitSafe(total / qtd) : 0;
   /* No limite EXATO cai como "abaixo": no empate o erro é pedir liberação a mais, nunca
      deixar passar preço baixo demais (git · calculo-item.ts::PISO_DA_TABELA). */
   const abaixoDoPiso = parseBR(preco) < produto.preco * PISO_DA_TABELA;
@@ -1985,12 +1995,13 @@ function LancarItem({ produto, onClose, onConfirm }) {
     : produto.estoque;
   const faltaVariacao = !!produto.variacoes && !variacao;
   const semEstoque = estoqueEf !== null && qtd > estoqueEf;
+  const barraEstoque = semEstoque && !window.SD.config.venderSemEstoque;
 
   const confirmar = () => onConfirm({
     k: Date.now(), sku: variacao ? variacao.sku : produto.sku, nome: variacao ? produto.nome + ' — ' + variacao.v : produto.nome, un: produto.un,
     variacao: variacao ? variacao.v : null, lote: loteSel ? loteSel.lote : null, garantia: servico ? null : garantia,
     componentes: comps.length ? comps.map((c) => ({ sku: c.sku, qtd: c.qtd * qtd })) : null,
-    qtd: fmtQtd(qtd), preco: fmtBR(parseBR(preco)), desc: String(parseBR(desc)), acr: String(parseBR(acr)),
+    qtd: fmtQtd(qtd), preco: fmtBR(parseBR(preco)), desc: pctBR(parseBR(desc)), acr: pctBR(parseBR(acr)),
     pecas: fmtBR(nPecas), altura, largura, esp, func: servico ? func : null, obsItem: obs,
     obsProd, local, impressao, prazoEquipe, prazoEtapa,
   });
@@ -2005,7 +2016,7 @@ function LancarItem({ produto, onClose, onConfirm }) {
         </div>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" disabled={qtd <= 0 || faltaVariacao} onClick={confirmar}>{faltaVariacao ? 'Escolha a variação' : 'Adicionar à venda'}</Button>
+          <Button variant="primary" disabled={qtd <= 0 || faltaVariacao || barraEstoque} onClick={confirmar}>{faltaVariacao ? 'Escolha a variação' : 'Adicionar à venda'}</Button>
         </span>
       </div>}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -2110,7 +2121,7 @@ function LancarItem({ produto, onClose, onConfirm }) {
           </div>
           {!podePreco && <div style={{ marginTop: 8 }}><Alert tone="info" title="Preço travado pelo perfil">O valor vem da tabela aplicada na venda. Pedir liberação ao supervisor para alterar.</Alert></div>}
           {podePreco && abaixoDoPiso && <div style={{ marginTop: 8 }}><Alert tone="warn" title="Abaixo do piso de preço">{brl(parseBR(preco))} está mais de 15% abaixo da tabela ({brl(produto.preco)}). Finalizar exige liberação de supervisor.</Alert></div>}
-          {semEstoque && <div style={{ marginTop: 8 }}><Alert tone="danger" title="Quantidade acima do estoque">Pedido de {fmtQtd(qtd)} {produto.un} com {num(estoqueEf, 2)} em estoque — vai gerar saldo negativo ou pedido de compra.</Alert></div>}
+          {semEstoque && <div style={{ marginTop: 8 }}><Alert tone="danger" title="Quantidade acima do estoque">Pedido de {fmtQtd(qtd)} {produto.un} com {num(estoqueEf, 2)} em estoque — {barraEstoque ? 'a empresa não vende sem estoque; reduza a quantidade.' : 'vai gerar saldo negativo ou pedido de compra.'}</Alert></div>}
         </div>
 
         {servico && <div>
@@ -2651,7 +2662,9 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
   /* Despesas adicionais da venda (additional_expense_key/value_1..4 da Blade): somam no total
      depois do imposto, como na Blade. No máximo 4. */
   const [despesas, setDespesas] = React.useState([]);
-  const [bonificacao, setBonificacao] = React.useState(false);
+  const [bonificacao, setBonificacaoBruto] = React.useState(false);
+  /* Bonificação não recebe: ligar tira os pagamentos lançados (os já recebidos da edição ficam). */
+  const setBonificacao = (v) => { setBonificacaoBruto(v); if (v) { setPags((s) => s.filter((x) => x.fixo)); setParcelas([]); } };
   /* Maquininha (UC-TEF-01..07): o valor vai para a máquina e só vira pagamento quando ela aprova.
      Enquanto a cobrança está pendente não há botão de enviar — o mesmo clique não cobra duas vezes. */
   const [tef, setTef] = React.useState(null);
@@ -2661,7 +2674,9 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
   /* Documentos da venda (`sell_document` da Blade): pedido de compra, contrato, autorização. */
   const [docsVenda, setDocsVenda] = React.useState([]);
   const [acr, setAcr] = React.useState('0,00');
-  const [pags, setPags] = React.useState(edit ? [{ k: 1, m: 'Boleto', v: '0,00', par: '1' }] : []);
+  /* Na edição, o que a venda já recebeu entra como pagamento fixo: soma no pago, não se remove e
+     faz o cancelamento ser recusado (CancelarVendaCascade). */
+  const [pags, setPags] = React.useState(edit && registro && (registro.pago || 0) > 0 ? [{ k: 1, m: 'Já recebido', v: fmtBR(registro.pago), par: '1', fixo: true }] : []);
   const [status, setStatus] = React.useState('final');
   const [os, setOs] = React.useState(false);
   /* Venda de reparo (UC-S03, S05..S07, SEDIT-11/12). Grava como reparo, sem mudar valor nem estoque
@@ -2677,7 +2692,7 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
     setR('os', id);
     const o = window.SD.reparo.os.find((x) => String(x.id) === String(id));
     if (!o) return;
-    setItens(o.pecas.map((pc, i) => ({ k: Date.now() + i, ...pc, desc: '0' })));
+    setItens(o.pecas.map((pc, i) => ({ k: Date.now() + i, ...pc, desc: '0', daOs: o.id })));
   };
   const [novoCli, setNovoCli] = React.useState(false);
   const [consultaCli, setConsultaCli] = React.useState(false);
@@ -2710,7 +2725,12 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
     return () => clearTimeout(t);
   }, [cliente, itens, descVal, pags, edit]);
 
-  const cli = window.SD.clientes.find((c) => c.nome === cliente) || window.SD.clientes[0];
+  /* Cliente fora do cadastro de cena (vendas da lista de POS) não vira "Consumidor final": mantém o
+     nome, sem ST nem pontos. */
+  const cli = window.SD.clientes.find((c) => c.nome === cliente)
+    || (cliente && cliente !== window.SD.clientes[0].nome
+      ? { ...window.SD.clientes[0], nome: cliente, cod: '—', padrao: false, contrib: 'nao', doc: '—', pontos: 0, endereco: 'cadastro do cliente' }
+      : window.SD.clientes[0]);
   React.useEffect(() => { setTabela(null); setPontos(0); }, [cliente]);
   const pontosDisp = cli.padrao ? 0 : (cli.pontos ?? 120);
   const tabelaCadastro = cli.tabela || TABELAS[0];
@@ -2736,11 +2756,20 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
   const comSt = cli.contrib === 'sim' && !cli.padrao;
   const vST = comSt ? submitSafe(itens.reduce((acc, l) => {
     const p = window.SD.catalogo.find((x) => x.sku === l.sku || (x.variacoes || []).some((v) => v.sku === l.sku));
-    return acc + (p && p.st ? submitSafe(linhaTotal(l) * window.SD.config.aliqSt) : 0);
+    /* base da linha na nota: o desconto do pedido e o cupom saem proporcionalmente de cada linha */
+    const fator = subtotal > 0 ? baseTrib / subtotal : 0;
+    return acc + (p && p.st ? submitSafe(linhaTotal(l) * fator * window.SD.config.aliqSt) : 0);
   }, 0)) : 0;
   const vFrete = submitSafe(parseBR(frete));
   const vAcr = submitSafe(parseBR(acr));
-  const vResgate = submitSafe(pontos * PONTO_VALOR);
+  /* Recusas do resgate (UC-SRP-03): abaixo do mínimo de pontos, pedido pequeno, ou mais que o total. */
+  const resgateBruto = submitSafe(pontos * PONTO_VALOR);
+  const resgateErro = pontos <= 0 ? null
+    : pontos < window.SD.config.rpMinPontos ? 'Resgate mínimo de ' + window.SD.config.rpMinPontos + ' pontos.'
+    : baseTrib < window.SD.config.rpMinPedido ? 'Pedido mínimo para resgatar: ' + brl(window.SD.config.rpMinPedido) + '.'
+    : resgateBruto > baseTrib ? 'O resgate passa do valor da venda.'
+    : null;
+  const vResgate = resgateErro ? 0 : resgateBruto;
   const vDesp = submitSafe(despesas.reduce((s, x) => s + parseBR(x.v || '0'), 0));
   const total = submitSafe(baseTrib + vImposto + vST + vFrete + vAcr + vDesp - vResgate);
   const pago = submitSafe(pags.reduce((s, p) => s + parseBR(p.v), 0) + parcelas.filter((p) => p.lanc === 'RECEBIDA').reduce((s, p) => s + parseBR(p.valor), 0));
@@ -2748,6 +2777,7 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
      receber nem receita — não há saldo a cobrar. */
   const saldo = bonificacao ? 0 : submitSafe(total - pago);
   const payStatus = pago <= 0 ? 'due' : saldo > 0.005 ? 'partial' : 'paid';
+  const SeloPag = () => bonificacao ? <Pill c="var(--color-info)" s="color-mix(in oklch, var(--color-info) 12%, var(--surface))">bonificação</Pill> : <PayPill p={payStatus} />;
   const alcada = descTipo === 'percentual' ? parseBR(descVal) > 10 : descAplicado > submitSafe(subtotal * 0.1);
   const qtdItens = itens.length;
   const invalidas = itens.filter((l) => parseBR(l.qtd) <= 0 || parseBR(l.preco) <= 0);
@@ -2779,19 +2809,25 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
   const travaCliente = estagioTrava(estagio) || !!bloqueioEdicao || travaNota;
   const pedidosDoCliente = window.SD.pedidosAbertos.filter((p) => p.cliente === cliente);
   const camposDaVenda = window.SD.camposVenda.filter(Boolean);
-  React.useEffect(() => { setPedidoVinc(''); setSinal(''); }, [cliente]);
+  React.useEffect(() => {
+    setPedidoVinc(''); setSinal('');
+    /* a OS faturada é do cliente anterior: sai a OS e saem as peças que vieram dela (UC-S07) */
+    setRp((x) => (x.os ? { ...x, os: '' } : x));
+    setItens((s) => (s.some((l) => l.daOs) ? s.filter((l) => !l.daOs) : s));
+  }, [cliente]);
   const atualFsm = fsmDe(estagio);
   /* Ação do botão grande: no rascunho é gravar (a etapa de destino sai do tipo de documento e
      do pagamento); depois, a primeira ação que AVANÇA a etapa e que o perfil pode executar
      (Emitir NF-e não muda etapa e pode estar negada). As outras ficam na Situação. */
   const acoesEtapa = acoesDe(estagio);
   const acaoPrincipal = estagio === 'rascunho' ? acaoDeGravar(status, payStatus)
-    : (acoesEtapa.find((x) => x.para && podeRole(x.role)) || acoesEtapa[0] || null);
+    : (acoesEtapa.find((x) => x.para && CAMINHO.indexOf(x.para) > CAMINHO.indexOf(estagio === 'on_hold' ? 'in_production' : estagio) && podeRole(x.role))
+      || acoesEtapa.find((x) => x.para && podeRole(x.role)) || acoesEtapa[0] || null);
   const sinalPadrao = cli.sinal !== undefined ? cli.sinal : window.SD.config.sinalPadrao;
   const sinalPct = sinal === '' ? sinalPadrao : parseBR(sinal);
   const sinalInvalido = sinalPct < 0 || sinalPct > 100;
   const faltaReparo = ehReparo && (!rp.status || padraoInvalido);
-  const podeExecutar = !!acaoPrincipal && podeRole(acaoPrincipal.role) && estagio !== 'cancelled' && !sinalInvalido && !faltaReparo;
+  const podeExecutar = !!acaoPrincipal && podeRole(acaoPrincipal.role) && estagio !== 'cancelled' && !sinalInvalido && !faltaReparo && !resgateErro;
 
   const registrar = (acao, de, para, efeitos) => setHistorico((h) => [...h, { acao, de, para, efeitos, por: window.SD.permissoes.usuario, em: new Date() }]);
 
@@ -2827,7 +2863,7 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
       registrar(a.l, estagio, a.para || estagio, a.efeitos);
       if (a.para) setEstagio(a.para);
       if (estagio === 'rascunho') {
-        setSalvo({ payStatus, total, em: new Date() });
+        setSalvo({ payStatus, total, bonificacao, em: new Date() });
         try { localStorage.removeItem(LS_DRAFT); } catch (e) {}
         setDraftEm(null);
       }
@@ -2836,7 +2872,10 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
   const cancelarVenda = () => {
     setCancelarOpen(false);
     if (estagio === 'rascunho') { /* nada gravado: só limpa a tela */
-      setItens([]); setPags([]); setParcelas([]); setDescVal('0,00'); setAcr('0,00'); setFrete('0,00');
+      setItens([]); setPags([]); setParcelas([]); setDescVal('0,00'); setDescTipo('percentual'); setAcr('0,00'); setFrete('0,00');
+      setCupom(null); setCupomCod(''); setPontos(0); setDespesas([]); setBonificacaoBruto(false); setSinal(''); setDocsVenda([]);
+      setEhReparo(false); setRp({ status: '', modelo: '', serie: '', entrega: '', defeitos: '', senha: '', padrao: '', checklist: {}, os: '' });
+      setStatus('final'); setPedidoVinc('');
       setCliente('Consumidor final'); setSalvo(null);
       try { localStorage.removeItem(LS_DRAFT); } catch (e) {}
       setDraftEm(null);
@@ -2861,7 +2900,8 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
         action={<Button size="sm" variant="primary" onClick={() => executarAcao(false)}>Tentar de novo</Button>}>
         O servidor não respondeu às {erroSistema.em.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}. <b>Nada foi perdido</b> — a venda continua aqui e o rascunho está salvo. Tente de novo; se repetir, salve como rascunho e chame o suporte.
       </Alert>}
-      {salvo && <Alert tone={salvo.payStatus === 'due' ? 'warn' : 'success'} title={salvo.payStatus === 'due' ? 'Venda salva a prazo — ficou saldo devedor' : 'Venda salva'}>
+      {salvo && salvo.bonificacao && <Alert tone="success" title="Bonificação gravada">Total {brl(salvo.total)} registrado; não entra na lista de cobrança.</Alert>}
+      {salvo && !salvo.bonificacao && <Alert tone={salvo.payStatus === 'due' ? 'warn' : 'success'} title={salvo.payStatus === 'due' ? 'Venda salva a prazo — ficou saldo devedor' : 'Venda salva'}>
         Total {brl(salvo.total)}{salvo.payStatus === 'due' && ' — entra na lista de cobrança como “a receber”.'}
       </Alert>}
 
@@ -3167,7 +3207,7 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: 'var(--shadow-soft)', overflow: 'hidden' }}>
         <header style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'color-mix(in oklch, var(--pos) 5%, var(--surface))' }}>
           <h3 style={{ margin: 0, font: '600 15px/1.3 var(--font-sans)', color: 'var(--text)' }}><Passo n="3" />Fechamento</h3>
-          <span style={{ marginLeft: 'auto' }}><PayPill p={payStatus} /></span>
+          <span style={{ marginLeft: 'auto' }}><SeloPag /></span>
         </header>
         <div style={{ padding: 16 }}>
           <div className="v3-total-plate" style={{ padding: '14px 16px', borderRadius: 12, background: 'var(--text)', color: 'var(--bg)' }}>
@@ -3189,18 +3229,18 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
           </div>
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
-              <div style={{ width: 124, flex: 'none' }}><Select label="Tipo de desconto" value={descTipo} onChange={(e) => setDescTipo(e.target.value)} options={[{ value: 'percentual', label: 'Percentual %' }, { value: 'fixo', label: 'Valor R$' }]} /></div>
-              <div style={{ flex: 1, minWidth: 0 }}><Money label="Desconto do pedido" aria={descTipo === 'percentual' ? 'Desconto do pedido em percentual' : 'Desconto do pedido em reais'} value={descVal} onChange={setDescVal} prefix={descTipo === 'percentual' ? '%' : 'R$'} hue={alcada ? 'var(--neg)' : 'var(--text-dim)'} /></div>
+              <div style={{ width: 124, flex: 'none' }}><Select label="Tipo de desconto" value={descTipo} disabled={travada} onChange={(e) => setDescTipo(e.target.value)} options={[{ value: 'percentual', label: 'Percentual %' }, { value: 'fixo', label: 'Valor R$' }]} /></div>
+              <div style={{ flex: 1, minWidth: 0 }}><Money label="Desconto do pedido" aria={descTipo === 'percentual' ? 'Desconto do pedido em percentual' : 'Desconto do pedido em reais'} value={descVal} onChange={setDescVal} readOnly={travada} prefix={descTipo === 'percentual' ? '%' : 'R$'} hue={alcada ? 'var(--neg)' : 'var(--text-dim)'} /></div>
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <Input label="Cupom" placeholder="Código do cupom" value={cupom ? cupom.toUpperCase() : cupomCod} readOnly={!!cupom}
+                  <Input label="Cupom" placeholder="Código do cupom" value={cupom ? cupom.toUpperCase() : cupomCod} readOnly={!!cupom || travada}
                     onChange={(e) => setCupomCod(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && cupomCod.trim()) setCupom(cupomCod.trim()); }} />
                 </div>
                 {cupom
-                  ? <Button variant="ghost" onClick={() => { setCupom(null); setCupomCod(''); }}>Tirar</Button>
-                  : <Button variant="secondary" disabled={!cupomCod.trim()} onClick={() => setCupom(cupomCod.trim())}>Aplicar</Button>}
+                  ? <Button variant="ghost" disabled={travada} onClick={() => { setCupom(null); setCupomCod(''); }}>Tirar</Button>
+                  : <Button variant="secondary" disabled={!cupomCod.trim() || travada} onClick={() => setCupom(cupomCod.trim())}>Aplicar</Button>}
               </div>
               {cupomRes && (cupomRes.ok
                 ? <span role="status" style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>
@@ -3213,13 +3253,13 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
                   </span>)}
             </div>
             <div>
-              <Input label="Resgatar pontos" inputMode="numeric" placeholder="0" disabled={pontosDisp === 0}
-                help={pontosDisp === 0 ? 'Escolha um cliente cadastrado para resgatar pontos.' : 'Disponível: ' + pontosDisp + ' pontos · cada um vale R$ ' + fmtBR(PONTO_VALOR) + '.'}
+              <Input label="Resgatar pontos" inputMode="numeric" placeholder="0" disabled={pontosDisp === 0 || travada}
+                help={pontosDisp === 0 ? 'Escolha um cliente cadastrado para resgatar pontos.' : resgateErro || 'Disponível: ' + pontosDisp + ' pontos · cada um vale R$ ' + fmtBR(PONTO_VALOR) + '.'}
                 value={pontos ? String(pontos) : ''} onChange={(e) => setPontos(Math.min(pontosDisp, Math.max(0, parseInt(e.target.value, 10) || 0)))} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Money label="Acréscimo" value={acr} onChange={setAcr} hue="color-mix(in oklch, var(--warn) 62%, var(--text))" />
-              <Money label="Frete" value={frete} onChange={setFrete} />
+              <Money label="Acréscimo" value={acr} onChange={setAcr} readOnly={travada} hue="color-mix(in oklch, var(--warn) 62%, var(--text))" />
+              <Money label="Frete" value={frete} onChange={setFrete} readOnly={travada} />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -3255,11 +3295,11 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
           </div>
           <span style={{ paddingBottom: 8, font: '11.5px/1.35 var(--font-sans)', color: sinalInvalido ? tomFg('var(--neg)') : 'var(--text-dim)' }}>
             {sinalInvalido ? 'O sinal vai de 0 a 100%.'
-              : sinalPct === 0 ? 'Sem sinal: a produção não espera pagamento.'
-              : 'Exige ' + brl(submitSafe(total * sinalPct / 100)) + ' antes da produção — vale para as OS desta venda. ' + (sinal === '' ? (cli.sinal !== undefined ? 'Padrão do cliente.' : 'Padrão da empresa.') : 'Trocado nesta venda.')}
+              : sinalPct === 0 ? 'Sem sinal: as OS desta venda não esperam pagamento.'
+              : 'Sinal de ' + brl(submitSafe(total * sinalPct / 100)) + ' — vale para as OS desta venda. ' + (sinal === '' ? (cli.sinal !== undefined ? 'Padrão do cliente.' : 'Padrão da empresa.') : 'Trocado nesta venda.')}
           </span>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+        {!bonificacao && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
           {cli.adiantamento > 0 && <button type="button" onClick={() => setPags((s) => s.some((x) => x.m === 'Adiantamento do cliente') ? s : [...s, { k: Date.now(), m: 'Adiantamento do cliente', v: fmtBR(Math.min(Math.max(saldo, 0), cli.adiantamento)), par: '1' }])}
             title={'Saldo a favor do cliente: ' + brl(cli.adiantamento)}
             style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px solid var(--pos)', background: 'color-mix(in oklch, var(--pos) 12%, var(--surface))', color: tomFg('var(--pos)'), font: '600 11.5px/1 var(--font-sans)' }}>
@@ -3273,7 +3313,7 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
             <button key={m} type="button" onClick={() => addPag(m)} style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px dashed var(--border)', background: 'var(--bg-2)', color: 'var(--text-dim)', font: '600 11.5px/1 var(--font-sans)' }}>+ {m}</button>
           ))}
           <button type="button" onClick={() => setParcelasOpen(true)} style={{ height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer', border: '1px solid var(--accent)', background: 'color-mix(in oklch, var(--accent) 12%, var(--surface))', color: 'color-mix(in oklch, var(--accent) 38%, var(--text))', font: '600 11.5px/1 var(--font-sans)' }}>Parcelar…</button>
-        </div>
+        </div>}
         {parcelas.length > 0 && <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 12, background: 'var(--bg-2)', border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <Pill c="var(--accent)" s="color-mix(in oklch, var(--accent) 12%, var(--surface))" mono>{parcelas.length}x</Pill>
@@ -3294,9 +3334,9 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
         {pags.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
           {pags.map((p) => (
             <div key={p.k} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={p.m === 'Adiantamento do cliente' || p.m === 'Cartão na maquininha' ? [p.m, ...METODOS] : METODOS} /></div>
-              <div style={{ width: 106, flex: 'none' }}><Money aria={'Valor recebido em ' + p.m} value={p.v} onChange={(v) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, v } : x))} /></div>
-              <button type="button" title="Remover pagamento" onClick={() => setPags((s) => s.filter((x) => x.k !== p.k))} style={{ width: 26, height: 26, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}>×</button>
+              <div style={{ flex: '1 1 96px', minWidth: 0 }}><Select value={p.m} disabled={p.fixo} onChange={(e) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, m: e.target.value } : x))} options={p.m === 'Adiantamento do cliente' || p.m === 'Cartão na maquininha' || p.fixo ? [p.m, ...METODOS] : METODOS} /></div>
+              <div style={{ width: 106, flex: 'none' }}><Money aria={'Valor recebido em ' + p.m} value={p.v} readOnly={p.fixo} onChange={(v) => setPags((s) => s.map((x) => x.k === p.k ? { ...x, v } : x))} /></div>
+              {!p.fixo && <button type="button" title="Remover pagamento" onClick={() => setPags((s) => s.filter((x) => x.k !== p.k))} style={{ width: 26, height: 26, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer' }}>×</button>}
             </div>
           ))}
         </div>}
@@ -3312,10 +3352,10 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
       <SituacaoVenda estagio={estagio} historico={historico} onOpen={onOpen} salvando={salvando}
         onExecutar={executarAcao} onCancelar={() => setCancelarOpen(true)} />
       <div className="venda-acoes" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'end' }}>
-        <div><Button disabled={estagio !== 'rascunho'} onClick={() => setStatus('draft')}>Salvar rascunho</Button></div>
+        <div><Button disabled={estagio !== 'rascunho' || salvando || !itens.length} onClick={() => executarAcao(false, acaoDeGravar('draft', payStatus))}>Salvar rascunho</Button></div>
         <div><Select label="Tipo de documento" value={status} onChange={(e) => setStatus(e.target.value)} options={[{ value: 'final', label: 'Venda' }, { value: 'quotation', label: 'Cotação' }, { value: 'proforma', label: 'Proforma' }]} /></div>
       </div>
-      <Switch label="Bonificação" sublabel="mercadoria dada ao cliente: baixa estoque, não vira conta a receber" checked={bonificacao} onChange={setBonificacao} disabled={travada} />
+      <Switch label="Bonificação" sublabel="mercadoria dada ao cliente: baixa estoque, não vira conta a receber" checked={bonificacao} onChange={setBonificacao} disabled={travada || edit} />
       <Meta><TierBar tone="accent">Rascunho em <code>{LS_DRAFT}</code> — a chave é <b>{'{business_id}.{user_id}'}</b>, nunca só usuário (CU-SELL-13 [T0]). Cada transição é um INSERT append-only em <code>sale_stage_history</code> (ADR 0143 · CU-SELL-22).</TierBar></Meta>
 
       <div className="venda-finalizador">
@@ -3324,7 +3364,7 @@ function Create({ onOpen, modo = 'create', registro, copia, onDuplicar }) {
           <b style={{ font: '600 20px/1 var(--font-mono)', fontVariantNumeric: 'tabular-nums', color: 'var(--text)' }}>{brl(total)}</b>
           <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
             {itens.length > 0 && <span style={{ font: '11.5px/1.3 var(--font-sans)', color: 'var(--text-dim)' }}>{itens.length === 1 ? '1 item' : itens.length + ' itens'}</span>}
-            <PayPill p={payStatus} />
+            <SeloPag />
           </span>
         </div>
         {saldo > 0.005 && <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, font: '11.5px/1.3 var(--font-sans)', color: tomFg('var(--warn)') }}>
