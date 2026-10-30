@@ -52,10 +52,16 @@ function sbrUsuario(int $bizId, array $permissoes): User
 
 function sbrCliente(int $bizId, int $userId, string $nome): int
 {
-    return (int) DB::table('contacts')->insertGetId([
+    $dados = [
         'business_id' => $bizId, 'type' => 'customer', 'name' => $nome, 'contact_status' => 'active',
         'created_by' => $userId, 'created_at' => now(), 'updated_at' => now(),
-    ]);
+    ];
+    // ADR 0188 — a lista de clientes filtra pela flag `is_customer` quando ela existe.
+    if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', 'is_customer')) {
+        $dados['is_customer'] = 1;
+    }
+
+    return (int) DB::table('contacts')->insertGetId($dados);
 }
 
 /** Venda de 100,00 a receber (sem pagamento), no dia fixo do teste. */
