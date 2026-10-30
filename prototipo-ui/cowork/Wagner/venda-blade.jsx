@@ -105,9 +105,14 @@ const PERIODOS = [{ id: "hoje", name: "Hoje", d: 0 }, { id: "7", name: "Últimos
 const noPeriodo = (id, dias) => !id || dias <= ((PERIODOS.find((p) => p.id === id) || {}).d ?? 9999);
 // Linha da lista de POS → o registro que a Venda V3 abre no modo edição. A etapa vem do
 // pagamento e da entrega; devolução e idade da venda alimentam as travas da edição.
+// NF-e de cena por venda (a lista de POS não carrega a nota): 0481 e 0482 com nota autorizada,
+// 0478 com a nota cancelada. A dívida vencida do cliente soma as vendas "overdue" dele.
+const NFE_DE = { 1: "autorizada", 2: "autorizada", 4: "cancelada" };
 const vendaParaV3 = (s) => ({
   inv: s.inv, cliente: s.cli, dias: DIAS[s.id] ?? 0, devolucao: (s.devDev || 0) > 0,
   estagio: s.envio === "delivered" ? "delivered" : s.pg === "paid" ? "paid" : "invoiced",
+  nfe: NFE_DE[s.id] || null, pago: s.pago || 0,
+  dividaCliente: POS.filter((x) => x.cli === s.cli && x.pg === "overdue").reduce((a, x) => a + x.saldo, 0),
 });
 // Permissões com os nomes LITERAIS do legado, lidos nos controllers no `main`:
 // `sell.view|create|delete` (SellController/SellPosController/ImportSalesController),
