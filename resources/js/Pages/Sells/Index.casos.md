@@ -72,6 +72,23 @@ last_run: "2026-10-29"
 
 ---
 
+## UC-SDEV-01 · Na lista, a venda devolvida em parte mostra "2 de 3" e a devolvida inteira mostra "Devolvida" `[must]`
+- **Origem:** pedido P-032 (processo "Devolução, troca e garantia" de Fluxos: devolução total ou parcial). Detalha o UC-S12.
+- **Persona:** Larissa / Guilherme — saber na lista, sem abrir a venda, se a devolução foi de tudo ou de uma parte.
+- **Aceite:** Dado uma venda de 3 unidades (2 + 1) com devolução · Quando 2 já voltaram · Então o Status mostra "Devolução parcial · 2 de 3" · E quando as 3 voltaram, "Devolvida"; o ícone do UC-S12 continua no número.
+- **Dados da lista:** `devolucao` = `{devolvida, vendida, total}` no `/sells-list-json`, somando `quantity` e `quantity_returned` (acumulado que `addSellReturn` grava) das linhas da venda, só para venda com devolução e só da mesma empresa. Leitura: não mexe em valor nem estoque.
+- **Teste:** `tests/Feature/Sells/SellsIndexTenantContratoTest.php` — `UC-SDEV-01` (lane `PHP / Pest (Sells · MySQL)`).
+- **Regressão que defende:** a lista tratar devolução parcial como venda devolvida (ou o contrário).
+- **Status: 🧪**
+
+## UC-SDEV-02 · Sem devolução da própria empresa, nada de situação de devolução `[T0]` `[must]`
+- **Aceite:** Dado uma venda sem devolução (mesmo com quantidade devolvida gravada na linha) · Então `devolucao` vem `null` · E uma devolução de OUTRA empresa apontando para a venda também não acende.
+- **Teste:** `tests/Feature/Sells/SellsIndexTenantContratoTest.php` — `UC-SDEV-02 [T0]`.
+- **Regressão que defende:** devolução de outra empresa aparecendo na lista (ADR 0093).
+- **Status: 🧪**
+
+---
+
 ## UC-SIDX-01 · O indicador de devolução só conta devoluções DO MESMO business `[T0]` `[must]`
 - **Persona:** Larissa @ ROTA LIVRE (biz=4) — a lista dela não pode reagir a dado de outro tenant.
 - **Como usa:** abre `/sells`. Cada linha mostra (ou não) o indicador de retorno. O que decide isso é o payload `has_return` de `/sells-list-json`.
@@ -349,7 +366,7 @@ last_run: "2026-10-29"
   - Pedido: P-032
   - Âncora: `UC-S12` · processo de devolução de Fluxos
   - Fazer: Status de devolução parcial e total, ao lado do ícone que já existe.
-  - Hoje: part | Em parte | O ícone de devolução existe (UC-S12)
+  - Hoje: ok | Tem | Status mostra "Devolução parcial · 2 de 3" ou "Devolvida" ao lado do ícone (UC-SDEV-01/02)
   - Comunicação visual: gray | Pouco | sob encomenda quase não volta
   - Clientes: Fixar, Safety, Estilo, Max Comunicação, Ciasul, Extreme, Mecânica Casa Grande, Wow Comunicação, Litoral Comunicação, Placa Fácil, Makan, Lamac, Zoom, Lessa Cortinas, Movesul, Sabor Brasil, DMB, Mecânica Lebrinha, Jo Painéis, CyberStudio, GP, GSX, Molas Patrício, Display Paraná, Ntrogen, MidiaOff, Quimeco, Vargas
   - Etiquetas: part

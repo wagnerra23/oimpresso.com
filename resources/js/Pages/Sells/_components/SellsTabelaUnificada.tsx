@@ -90,6 +90,16 @@ export interface SaleRow {
   has_return?: boolean;
   /** P-031 — venda de onde esta foi duplicada. null/ausente = não duplicada. */
   duplicated_from?: { id: number; invoice_no: string } | null;
+  /** P-032 — quanto já voltou de quanto saiu (acumulado por linha). null = sem devolução. */
+  devolucao?: { devolvida: number; vendida: number; total: boolean } | null;
+}
+
+/** P-032 — "Devolvida" ou "Devolução parcial · 2 de 3" (quantidades somadas das linhas). */
+function rotuloDevolucao(d: { devolvida: number; vendida: number; total: boolean } | null | undefined): string | null {
+  if (!d || d.devolvida <= 0) return null;
+  if (d.total) return 'Devolvida';
+  const fmt = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
+  return `Devolução parcial · ${fmt(d.devolvida)} de ${fmt(d.vendida)}`;
 }
 
 // Identificadores canônicos das colunas. Ordem desta enumeração = ordem default
@@ -431,6 +441,11 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
       return (
         <td key={id}>
           <span className="os-stage" style={{ background: ctx.ps.bg, color: ctx.ps.fg }}>{ctx.ps.label}</span>
+          {rotuloDevolucao(v.devolucao) && (
+            <span className="block text-[11px] text-muted-foreground" data-testid="vd-devolucao">
+              {rotuloDevolucao(v.devolucao)}
+            </span>
+          )}
           <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
             {v.payment_status !== 'paid' && v.status !== 'draft' && (
               <QuickPaymentPopover
