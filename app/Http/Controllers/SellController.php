@@ -1299,7 +1299,7 @@ class SellController extends Controller
             ->leftJoin('users as cmsn_user', 'transactions.commission_agent', '=', 'cmsn_user.id')
             ->where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
-            ->whereNull('transactions.sub_type');
+            ->vendaComumOuBonificacao('transactions.sub_type');
 
         if ($somenteRascunhos) {
             $q->where('transactions.status', 'draft')->whereNull('transactions.sub_status');
@@ -1752,7 +1752,7 @@ class SellController extends Controller
         $query = \App\Transaction::where('business_id', $business_id)
             ->where('type', 'sell')
             ->where('status', 'final')
-            ->whereNull('sub_type')
+            ->vendaComumOuBonificacao('sub_type')
             ->whereIn('id', $ids);
 
         // Permission scope (mesmo padrão do inertiaList — defesa em profundidade).
@@ -1870,7 +1870,7 @@ class SellController extends Controller
             ->where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
-            ->whereNull('transactions.sub_type')
+            ->vendaComumOuBonificacao('transactions.sub_type')
             ->whereIn('transactions.id', $ids);
 
         // Permission scope (mesmo padrão do inertiaList — defesa em profundidade).
@@ -1957,7 +1957,7 @@ class SellController extends Controller
         ])
             ->where('business_id', $business_id)
             ->where('type', 'sell')
-            ->whereNull('sub_type')
+            ->vendaComumOuBonificacao('sub_type')
             ->find($id);
 
         if (!$sale) {
@@ -2292,7 +2292,7 @@ class SellController extends Controller
         ])
             ->where('business_id', $business_id)
             ->where('type', 'sell')
-            ->whereNull('sub_type')
+            ->vendaComumOuBonificacao('sub_type')
             ->find($id);
 
         if (! $sale) {

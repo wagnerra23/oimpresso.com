@@ -185,6 +185,42 @@ last_run: "2026-10-29"
 
 ---
 
+## UC-SBON-02 · A lista de vendas mostra a bonificação `[must]`
+- **Persona:** quem bonifica cliente (Sabor Brasil → supermercado) e precisa achar a bonificação depois de gravar.
+- **Aceite:** Dado uma venda comum, uma bonificação, um reparo e uma fatura de projeto · Quando a lista é montada · Então aparecem a venda comum e a bonificação · E o reparo e a fatura de projeto continuam fora.
+- **Âncora de contrato:** pedido P-154 (`Create.casos.md`, UC-SBON-01) · decisão [W] 2026-10-30: a bonificação continua em `sub_type = 'bonificacao'` e aparece em Vendas; o critério único é `Transaction::scopeVendaComumOuBonificacao`.
+- **Teste:** `tests/Feature/Sells/SellsBonificacaoVisivelContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SBON-02 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SBON-03 · O drawer abre a bonificação (onde se emite a NF-e) `[must]`
+- **Persona:** o mesmo vendedor, que emite a NF-e de bonificação pelo botão do drawer (`FiscalSection`).
+- **Aceite:** Dado uma bonificação · Quando abro o drawer · Então ele abre · E o drawer de reparo e de fatura de projeto continua sem abrir.
+- **Âncora de contrato:** pedido P-154 (`Create.casos.md`, UC-SBON-01) · decisão [W] 2026-10-30: a bonificação continua em `sub_type = 'bonificacao'` e aparece em Vendas; o critério único é `Transaction::scopeVendaComumOuBonificacao`.
+- **Teste:** `tests/Feature/Sells/SellsBonificacaoVisivelContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SBON-03 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SBON-04 · Exportação e impressão em lote incluem a bonificação `[must]`
+- **Persona:** quem imprime ou exporta as vendas do dia.
+- **Aceite:** Dado as quatro vendas selecionadas · Quando exporto · Então o arquivo traz a venda comum e a bonificação, sem reparo nem fatura de projeto · E a impressão em lote aceita a bonificação.
+- **Âncora de contrato:** pedido P-154 (`Create.casos.md`, UC-SBON-01) · decisão [W] 2026-10-30: a bonificação continua em `sub_type = 'bonificacao'` e aparece em Vendas; o critério único é `Transaction::scopeVendaComumOuBonificacao`.
+- **Teste:** `tests/Feature/Sells/SellsBonificacaoVisivelContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SBON-04 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SBON-05 · Pagamento rápido fica fora da bonificação; a de outra empresa não aparece `[T0]` `[must]`
+- **Persona:** qualquer empresa. A bonificação não é cobrada, então o pagamento rápido não a aceita.
+- **Aceite:** Dado uma bonificação · Quando peço pagamento rápido · Então a resposta é 404 · E Dado uma bonificação de outra empresa · Quando abro o drawer ou a lista · Então ela não aparece.
+- **Âncora de contrato:** decisão [W] 2026-10-30 (pagamento rápido e criar OS ficam de fora) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Sells/SellsBonificacaoVisivelContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SBON-05 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -497,6 +533,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-30 · [W+C] P-154: a bonificação aparece na lista, no drawer e na impressão/exportação em lote (UC-SBON-02..05). Pagamento rápido, criar OS, Caixa do dia e os totais de cliente na IA seguem só com venda comum.
 - 2026-10-29 · [W+C] **UC-SDUP-04..06** (P-031): duplicar guarda a origem em `transactions.duplicated_from_id`; a linha mostra "Duplicada de" e o drawer mostra o vínculo nos dois sentidos, escopado por empresa. Menu ⋮ ganha **Duplicar**. Teste `SellsDuplicarContratoTest.php`.
 - 2026-10-28 · [W+C] Decisões pendentes D-01, D-02, D-03 do documento "Casos de uso por tela", sem id de caso.
 - 2026-10-27 · [F+C] Backlog "Emitir a nota com imposto faltando": a conferência antes de emitir segue o UC-TRB-33 (sem NCM sai com o NCM padrão, marcado para revisão), pedido da PraMoto. Sem id.
