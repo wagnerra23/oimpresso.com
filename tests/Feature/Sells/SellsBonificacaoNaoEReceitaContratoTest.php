@@ -148,6 +148,12 @@ it('UC-SBON-08 relatórios de venda e lucro do core não contam a bonificação 
     $vendasDepois = $util->getSellTotals($this->bizId, SBR_DIA, SBR_DIA);
     $lucroDepois = (float) $util->getGrossProfit($this->bizId, SBR_DIA, SBR_DIA, null, null, 'all');
 
+    // Relatório de lucro do core (aba por venda): a bonificação não aparece como venda lucrativa.
+    $porVenda = sbrPrivado(app(\App\Http\Controllers\ReportController::class), 'consultaLucro', $this->bizId, 'invoice', ['start_date' => SBR_DIA, 'end_date' => SBR_DIA])
+        ->get()->pluck('transaction_id')->map(fn ($i) => (int) $i)->all();
+    expect($porVenda)->toContain($comum)
+        ->and($porVenda)->not->toContain($bonif);
+
     expect(round((float) $vendasDepois['total_sell_inc_tax'] - (float) $vendasAntes['total_sell_inc_tax'], 2))->toBe(100.0)
         ->and(round((float) $vendasDepois['invoice_due'] - (float) $vendasAntes['invoice_due'], 2))->toBe(100.0)
         ->and(round($lucroDepois - $lucroAntes, 2))->toBe(100.0);
