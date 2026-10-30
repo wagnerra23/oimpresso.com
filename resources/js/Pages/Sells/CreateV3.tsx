@@ -76,7 +76,7 @@ import {
 import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, fmtQtd, num, parseBR, submitSafe } from './_components/v3/numeros';
 import { descontoAcimaDoTeto, montarPayloadVenda, totalParaGravar } from './_components/v3/gravacao-dominio';
-import { bloqueioDaConfig, linhaParaSomar, type ConfigVenda, type PrazoDoCliente } from './_components/v3/config-business-dominio';
+import { descontoInicial, linhaParaSomar, type ConfigVenda, type PrazoDoCliente } from './_components/v3/config-business-dominio';
 import {
   Aviso,
   Chip,
@@ -112,7 +112,8 @@ type Item = {
   ids?: IdsDoCadastro;
 };
 
-type IdsDoCadastro = { productId: number; variationId: number; enableStock: boolean; tipoProduto: string };
+/* precoVenda = preço de venda do cadastro na busca: é o piso com `enable_msp` (UC-V390). */
+type IdsDoCadastro = { productId: number; variationId: number; enableStock: boolean; tipoProduto: string; precoVenda: number };
 
 /* O contrato do catálogo mora em `_components/v3/LancarItem.tsx` — quem consome
    o produto por inteiro é o lançamento, não esta Page. */
@@ -222,6 +223,8 @@ function paraGravar(l: Item) {
     acr: l.acr,
     enableStock: l.ids?.enableStock ?? true,
     tipoProduto: l.ids?.tipoProduto ?? 'single',
+    precoVenda: l.ids?.precoVenda ?? null,
+    estoque: l.estoque,
   };
 }
 
@@ -249,7 +252,8 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const [obsAberta, setObsAberta] = useState(false);
   const [tabela, setTabela] = useState<string | null>(null); // null = herda do cadastro
   const [descTipo, setDescTipo] = useState<'percentual' | 'fixo'>('percentual');
-  const [descVal, setDescVal] = useState('0,00');
+  /* Gravando, a venda nasce com o desconto padrão do business (UC-V389). */
+  const [descVal, setDescVal] = useState(() => (gravacao ? descontoInicial(gravacao.config) : '0,00'));
   const [acr, setAcr] = useState('0,00');
   const [frete, setFrete] = useState('0,00');
   const [pags, setPags] = useState<{ k: number; m: string; v: string }[]>([]);
@@ -314,8 +318,21 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const vFrete = submitSafe(parseBR(frete));
   const vAcr = submitSafe(parseBR(acr));
   const total = gravacao
-    ? totalParaGravar({ itens: itens.map(paraGravar), descTipo, descVal, frete })
+    ? totalParaGravar({ itens: itens.map(paraGravar), descTipo, descVal, frete, config: gravacao.config })
     : submitSafe(baseTrib + vImposto + vFrete + vAcr);
+  /* O que o arredondamento da empresa somou ao total (UC-V392) — vira linha no resumo. */
+  const arredondamento = gravacao
+    ? submitSafe(
+        total -
+          totalParaGravar({
+            itens: itens.map(paraGravar),
+            descTipo,
+            descVal,
+            frete,
+            config: { ...gravacao.config, arredondamento: 0 },
+          }),
+      )
+    : 0;
   const pago = submitSafe(pags.reduce((s, p) => s + parseBR(p.v), 0));
   const saldo = submitSafe(total - pago);
   const payStatus = pago <= 0 ? 'due' : saldo > 0.005 ? 'partial' : 'paid';
@@ -371,6 +388,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
               variationId: l.variation_id,
               enableStock: Number(l.enable_stock) === 1,
               tipoProduto: l.type,
+              precoVenda: Number(l.selling_price ?? 0),
             });
             return {
               sku,
@@ -405,11 +423,6 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const [erroGravar, setErroGravar] = useState<string | null>(null);
   const gravar = () => {
     if (!gravacao) return;
-    const bloqueio = bloqueioDaConfig(gravacao.config, gravacao.prazo);
-    if (bloqueio) {
-      setErroGravar(bloqueio);
-      return;
-    }
     const agora = new Date();
     const dois = (n: number) => String(n).padStart(2, '0');
     const r = montarPayloadVenda({
@@ -424,6 +437,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       pagamentos: pags.map((p) => ({ m: p.m, v: p.v })),
       descontoMaximo: gravacao.permissoes.descontoMaximo,
       prazo: gravacao.prazo,
+      config: gravacao.config,
     });
     if (!r.ok) {
       setErroGravar(r.motivo);
@@ -1006,9 +1020,14 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
               <Res l="Imposto" v={fmtBR(vImposto)} />
               <Res l="Acréscimo" v={vAcr ? `+ ${fmtBR(vAcr)}` : fmtBR(0)} tom={vAcr ? 'warning' : undefined} />
               <Res l="Frete" v={fmtBR(vFrete)} />
+              {arredondamento !== 0 && (
+                <Res l="Arredondamento" v={`${arredondamento > 0 ? '+ ' : '− '}${fmtBR(Math.abs(arredondamento))}`} />
+              )}
             </div>
 
             <Stack gap={3} className="mt-3 border-t border-border pt-3">
+              {/* Gravando com `disable_discount`, o desconto da venda não existe (UC-V389). */}
+              {(!gravacao || gravacao.config.descontoDaVenda) && (
               <Inline gap={3} align="end">
                 <div className="w-[124px] flex-none">
                   <Lbl>Tipo de desconto</Lbl>
@@ -1035,6 +1054,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
                   />
                 </div>
               </Inline>
+              )}
               <Grid gap={3} className="grid-cols-2">
                 <MoneyInput label="Acréscimo" value={acr} onChange={setAcr} />
                 <MoneyInput label="Frete" value={frete} onChange={setFrete} />
@@ -1289,6 +1309,9 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         produto={lancando}
         executantes={executantes}
         podeEditarPreco={permissoes.editarPrecoItem}
+        /* Gravando, piso e estoque seguem a empresa (UC-V390/V391); na cena, 85% e só aviso. */
+        piso={gravacao ? (gravacao.config.precoMinimo ? 1 : null) : undefined}
+        estoqueBloqueia={!!gravacao && !gravacao.config.venderSemEstoque}
         onFechar={() => setLancando(null)}
         onConfirmar={adicionarLancado}
       />

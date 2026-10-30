@@ -199,6 +199,41 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 - **Então** a quantidade soma na linha existente (pos.js `pos_product_row`). Com 0, abre linha nova.
 - Só soma quando é o mesmo pedido: mesma variação, sem medidas e mesmo preço, desconto e acréscimo. A V3 deixa mudar o preço no lançamento, e somar numa linha de outro preço gravaria a quantidade nova pelo preço antigo — nesse caso abre linha nova.
 
+## UC-V389 · Desconto da venda: some com `disable_discount` e nasce com `default_sales_discount` `[V0]`
+
+**Status:** 🧪 — `tests/js/config-business-dominio.test.ts`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e `disable_discount`,
+- **Então** o campo de desconto da venda some (como `pos_details.blade.php:81`) e o desconto vale 0 no total e no payload, mesmo que algo tenha sido digitado; o teto do usuário não tem o que conferir.
+- **Dado** `business.default_sales_discount` > 0 com o desconto liberado,
+- **Então** a venda nasce com esse desconto em % (`pos_form_totals.blade.php:33`). O teto do usuário (UC-V384) continua valendo sobre ele.
+- Números: 3 × 49,90 = 149,70; com 10% digitados, liberado grava 134,73, desligado grava 149,70 e `discount_amount` 0.
+
+## UC-V390 · Preço mínimo com `enable_msp`, no lugar dos 85% fixos `[V0]`
+
+**Status:** 🧪 — `tests/js/config-business-dominio.test.ts`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e `enable_msp`,
+- **Então** preço unitário abaixo do preço de venda do cadastro (o `selling_price` da busca) não grava, e o lançamento avisa "Abaixo do preço mínimo" (`row_edit_product_price_modal.blade.php:14`, `data-rule-min-value`). O desconto da linha é campo à parte e não entra, como no Blade. Um centavo abaixo (49,89 contra 49,90) bloqueia; igual passa.
+- **Dado** a gravação ligada sem `enable_msp`,
+- **Então** não há piso: o Blade não tem nenhum, e os 85% eram regra de cena. Na cena (flag desligada) o aviso de 85% segue igual.
+
+## UC-V391 · Vender sem estoque só com `allow_overselling` `[E0]`
+
+**Status:** 🧪 — `tests/js/config-business-dominio.test.ts`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada sem `allow_overselling`,
+- **Então** quantidade acima do saldo (o `qty_available` da busca) não grava, somando as linhas da mesma variação, e o lançamento diz que a venda não grava assim. Saldo 10: 10 grava, 10,001 não, 6 + 5 em duas linhas não. Produto que não controla estoque não entra (pos.js:440; o store também recusa a baixa sem lastro).
+- **Com** `allow_overselling`, grava, e o aviso segue o de hoje (saldo negativo ou pedido de compra).
+
+## UC-V392 · Arredondamento do total por `amount_rounding_method`, só no fim `[V0]`
+
+**Status:** 🧪 — `tests/js/config-business-dominio.test.ts` + `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e o múltiplo da empresa (1 · 0,5 · 0,1 · 0,05),
+- **Então** o total de 2 casas, já com desconto e frete, fecha no múltiplo mais próximo, metade para cima (`functions.js __round`, `Decimal.toNearest`), o resumo mostra a linha "Arredondamento" e o payload leva `round_off_amount` com a diferença. Sem múltiplo, o payload é o de antes, sem a chave.
+- Prova dupla: a função contra conta à mão em centavos inteiros (5.000 totais × 4 múltiplos) no vitest; e o store grava a fixture arredondada (156,23 → 156,00, `round_off_amount` −0,23) no Pest, com a mesma baixa de estoque do UC-V380.
+
 Ainda no grupo de permissões, gravando a consulta de clientes some: a lista dela é de cena, e trocar o cliente ali mostraria um cliente e gravaria outro (a venda vai para o cliente padrão). A troca real de cliente é o grupo 3.
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
@@ -1103,17 +1138,17 @@ a V3 passar a obedecer.
 ### Configurações do business (`pos_settings`, `common_settings`, cadastro)
 
 - **[BACKLOG]** **Data da venda** editável só com `enable_transaction_date`.
-- **[BACKLOG]** **Desconto da venda** some com `disable_discount`; o teto vem de `max_sales_discount_percent`, não fixo. `[V0]`
-- **[BACKLOG]** **Imposto do pedido** some com `disable_order_tax`; o padrão vem de `default_sales_tax`, e o desconto padrão de `default_sales_discount`. `[V0]`
-- **[BACKLOG]** **Preço mínimo** (`enable_msp`) define o piso de preço, no lugar dos 85% fixos. `[V0]`
-- **[BACKLOG]** **Vender sem estoque** só com `allow_overselling`; sem ele a quantidade acima do estoque bloqueia (hoje o protótipo só avisa). `[E0]`
+- **Desconto da venda** some com `disable_discount` → **UC-V389**; o teto vem de `max_sales_discount_percent` → UC-V384. `[V0]`
+- **[BACKLOG]** **Imposto do pedido** some com `disable_order_tax`; o padrão vem de `default_sales_tax` (a V3 gravando ainda não tem imposto do pedido). O desconto padrão de `default_sales_discount` → **UC-V389**. `[V0]`
+- **Preço mínimo** (`enable_msp`) define o piso de preço, no lugar dos 85% fixos → **UC-V390**. `[V0]`
+- **Vender sem estoque** só com `allow_overselling`; sem ele a quantidade acima do estoque bloqueia → **UC-V391**. `[E0]`
 - **Comissionado** obrigatório com `is_commission_agent_required` → **UC-V387** (bloqueia a gravação). **[BACKLOG]** escolher o comissionado na tela, pelo tipo de `sales_cmsn_agnt`, fica para o grupo 3.
 - **Prazo de pagamento** obrigatório com `is_pay_term_required` → **UC-V387**.
 - **[BACKLOG]** **Profissional por item** obrigatório com `is_service_staff_required`, e na própria linha com `inline_service_staff`.
 - **[BACKLOG]** **Esquema e layout da fatura** visíveis só com `show_invoice_scheme` / `show_invoice_layout`.
 - **[BACKLOG]** **Pedido de venda vinculado** só com `enable_sales_order`.
 - **[BACKLOG]** **Rascunho**, **venda a prazo** e **venda recorrente** somem com `disable_draft`, `disable_credit_sale_button`, `disable_recurring_invoice`.
-- **[BACKLOG]** **Arredondamento** do total segue `amount_rounding_method`. `[V0]`
+- **Arredondamento** do total segue `amount_rounding_method` → **UC-V392**. `[V0]`
 - **[BACKLOG]** **Pontos**: só com `enable_rp`; nome, valor por ponto e pedido mínimo vêm de `rp_name`, `redeem_amount_per_unit_rp`, `min_order_total_for_redeem`. `[V0]`
 - **[BACKLOG]** **Garantia** só com `enable_product_warranty`; **exportação** só com `is_enabled_export`.
 - Lançar o mesmo produto de novo soma na linha ou abre linha nova, conforme `item_addition_method` → **UC-V388**.

@@ -98,12 +98,18 @@ export function LancarItem({
   produto,
   executantes,
   podeEditarPreco,
+  piso,
+  estoqueBloqueia = false,
   onFechar,
   onConfirmar,
 }: {
   produto: ProdutoCatalogo | null;
   executantes: Executante[];
   podeEditarPreco: boolean;
+  /** Fator do piso sobre o preço de tabela: undefined = 85% da cena; 1 = preço mínimo da empresa; null = sem piso. */
+  piso?: number | null;
+  /** Gravando sem `allow_overselling`: acima do estoque a venda não grava. */
+  estoqueBloqueia?: boolean;
   onFechar: () => void;
   onConfirmar: (item: ItemLancado) => void;
 }) {
@@ -152,7 +158,7 @@ export function LancarItem({
   const unitario = unitarioLiquido(parseBR(preco), parseBR(desc), parseBR(acr));
   const total = totalDoItem(qtd, unitario);
 
-  const abaixoDoPiso = !!produto && ehAbaixoDoPiso(parseBR(preco), produto.preco);
+  const abaixoDoPiso = !!produto && piso !== null && ehAbaixoDoPiso(parseBR(preco), produto.preco, piso);
   const semEstoque = !!produto && produto.estoque !== null && qtd > produto.estoque;
   const preenchidas = useMemo(
     () => [obsInterna, obsProducao, local, impressao].filter((v) => v.trim()).length,
@@ -306,17 +312,26 @@ export function LancarItem({
             )}
             {podeEditarPreco && abaixoDoPiso && (
               <div className="mt-2">
-                <Aviso tom="warning" titulo="Abaixo do piso de preço">
-                  {brl(parseBR(preco))} está mais de 15% abaixo da tabela ({brl(produto.preco)}). Finalizar exige
-                  liberação de supervisor.
-                </Aviso>
+                {piso === 1 ? (
+                  <Aviso tom="destructive" titulo="Abaixo do preço mínimo">
+                    {brl(parseBR(preco))} está abaixo do preço de venda ({brl(produto.preco)}). Esta empresa não grava
+                    venda abaixo do preço mínimo.
+                  </Aviso>
+                ) : (
+                  <Aviso tom="warning" titulo="Abaixo do piso de preço">
+                    {brl(parseBR(preco))} está mais de 15% abaixo da tabela ({brl(produto.preco)}). Finalizar exige
+                    liberação de supervisor.
+                  </Aviso>
+                )}
               </div>
             )}
             {semEstoque && (
               <div className="mt-2">
                 <Aviso tom="destructive" titulo="Quantidade acima do estoque">
-                  Pedido de {fmtQtd(qtd)} {produto.un} com {num(produto.estoque ?? 0, 2)} em estoque — vai gerar saldo
-                  negativo ou pedido de compra.
+                  Pedido de {fmtQtd(qtd)} {produto.un} com {num(produto.estoque ?? 0, 2)} em estoque —{' '}
+                  {estoqueBloqueia
+                    ? 'esta empresa não vende sem estoque, e a venda não grava assim.'
+                    : 'vai gerar saldo negativo ou pedido de compra.'}
                 </Aviso>
               </div>
             )}
