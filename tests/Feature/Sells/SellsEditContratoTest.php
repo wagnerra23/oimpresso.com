@@ -161,7 +161,7 @@ beforeEach(function () {
 //   + RUNBOOK-edit §10 ("NÃO usar Transaction::find sem scope business_id").
 // =============================================================================
 
-it('UC-SEDIT-01 · venda de outro business não abre pra edição (multi-tenant Tier 0)', function () {
+it('UC-SEDIT-01 · venda de outro business não abre pra edição em qualquer prazo', function (int $dias) {
     $outroBizId = EstoqueFixture::secondBusinessId();
     if ($outroBizId === null) {
         $this->markTestSkipped('DB só tem 1 business — sem par cross-tenant pra provar isolamento.');
@@ -173,15 +173,11 @@ it('UC-SEDIT-01 · venda de outro business não abre pra edição (multi-tenant 
     // não "isolamento de tenant" — verde por não haver o que vazar).
     expect(DB::table('transactions')->where('id', $alheia['transaction_id'])->exists())->toBeTrue();
 
-    // PRÉ-CONDIÇÃO ANTI-VÁCUO (b): ela está DENTRO do prazo de edição. Sem isto o 404 poderia
-    // ser mascarado pelo 422 do guard de prazo, que roda ANTES do escopo por business
-    // (a variante fora-do-prazo está declarada no §Backlog do Edit.casos.md).
-    $data = DB::table('transactions')->where('id', $alheia['transaction_id'])->value('transaction_date');
-    expect(\Carbon\Carbon::parse($data)->greaterThanOrEqualTo(now()->subDays(30)))->toBeTrue(
-        'A venda alheia nasceu fora da janela de edição — o 422 do guard de prazo mascararia o 404.');
-
+    DB::table('transactions')->where('id', $alheia['transaction_id'])->update([
+        'transaction_date' => now()->subDays($dias),
+    ]);
     sellsEditGet($this, $alheia['transaction_id'])->assertStatus(404);
-});
+})->with(['dentro do prazo' => 0, 'fora do prazo' => 90]);
 
 // =============================================================================
 // UC-SEDIT-02 — RUNBOOK-edit §2 pré-condições / §9 DoD: "Permission gate direct_sell.update
@@ -709,4 +705,22 @@ it('UC-SEDIT-12 · venda de reparo abre a edição com as opções do Repair e o
     expect($secao['valor']['repair_completed_on'])->toBe('');
     expect($secao['valor']['defeitos'])->toBe(['tela', 'bateria']);
     expect($secao['valor']['checklist'])->toBe(['Liga' => 'yes']);
+});
+
+it('UC-SEDIT-03 · devolução de outro business não bloqueia venda desta empresa', function () {
+    $outro = EstoqueFixture::secondBusinessId();
+    if ($outro === null) {
+        $this->markTestSkipped('Segundo business fictício ausente.');
+    }
+    $venda = sellsEditVenda($this->bizId);
+    DB::table('transactions')->insert([
+        'business_id' => $outro, 'location_id' => EstoqueFixture::locationId($outro),
+        'type' => 'sell_return', 'status' => 'final', 'payment_status' => 'paid',
+        'return_parent_id' => $venda['transaction_id'], 'transaction_date' => now(),
+        'total_before_tax' => 0, 'final_total' => 0, 'created_by' => $this->user->id,
+        'essentials_duration' => 0, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    expect(DB::table('transactions')->where('business_id', $outro)
+        ->where('return_parent_id', $venda['transaction_id'])->exists())->toBeTrue();
+    sellsEditGet($this, $venda['transaction_id'])->assertOk();
 });
