@@ -638,6 +638,7 @@ jobs:
             tests/Feature/Sells/SellsDuplicarContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoVisivelContratoTest.php \
+            tests/Feature/Sells/SellsBonificacaoNaoEReceitaContratoTest.php \
             tests/Feature/Sells/SellsCondicaoClienteContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php

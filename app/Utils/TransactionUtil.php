@@ -2547,6 +2547,9 @@ class TransactionUtil extends Util
                         DB::raw('SUM(additional_expense_value_1 + additional_expense_value_2 + additional_expense_value_3 + additional_expense_value_4) as total_expense')
                     );
 
+        // P-154 — bonificação não é receita nem valor a receber.
+        Transaction::filtrarSemBonificacao($query, 'transactions.sub_type');
+
         //Check for permitted locations of a user
         if(!empty($permitted_locations)) {
             if ($permitted_locations != 'all') {
@@ -4626,6 +4629,8 @@ class TransactionUtil extends Util
             ->join('products as P', 'transaction_sell_lines.product_id', '=', 'P.id')
             ->where('sale.business_id', $business_id)
             ->where('transaction_sell_lines.children_type', '!=', 'combo');
+        // P-154 — bonificação não entra no lucro bruto como venda.
+        Transaction::filtrarSemBonificacao($query, 'sale.sub_type');
         //If type combo: find childrens, sale price parent - get PP of childrens
         $query->select(DB::raw('SUM(IF (TSPL.id IS NULL AND P.type="combo", ( 
             SELECT Sum((tspl2.quantity - tspl2.qty_returned) * (tsl.unit_price_inc_tax - pl2.purchase_price_inc_tax)) AS total

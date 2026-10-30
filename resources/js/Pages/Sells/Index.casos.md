@@ -221,6 +221,42 @@ last_run: "2026-10-29"
 
 ---
 
+## UC-SBON-06 · O rodapé da lista deixa a bonificação fora dos valores `[V0]` `[must]`
+- **Persona:** quem lê o total do filtro (UC-SIDX-06) e não pode ver a bonificação como venda a receber.
+- **Aceite:** Dado uma venda comum e uma bonificação de 100,00 cada, sem pagamento · Quando a lista é montada · Então o rodapé conta 2 vendas · E Total = 100,00, Pago = 0,00, A receber = 100,00.
+- **Âncora de contrato:** pedido P-154 · decisão [W] 2026-10-30: a bonificação não é receita nem dívida · **REGRA MESTRE valor** ([proibicoes.md](../../../../memory/proibicoes.md)) — cada medida conferida antes e depois de uma venda comum e uma bonificada de 100,00.
+- **Teste:** `tests/Feature/Sells/SellsBonificacaoNaoEReceitaContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SBON-06 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SBON-07 · Faturamento do dia não inclui bonificação `[V0]` `[must]`
+- **Persona:** dono que olha o faturado de hoje no painel de vendas.
+- **Aceite:** Dado uma venda comum e uma bonificação de 100,00 hoje · Quando o painel calcula o faturado · Então ele sobe 100,00, não 200,00.
+- **Âncora de contrato:** pedido P-154 · decisão [W] 2026-10-30: a bonificação não é receita nem dívida · **REGRA MESTRE valor** ([proibicoes.md](../../../../memory/proibicoes.md)) — cada medida conferida antes e depois de uma venda comum e uma bonificada de 100,00.
+- **Teste:** `tests/Feature/Sells/SellsBonificacaoNaoEReceitaContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SBON-07 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SBON-08 · Relatórios de venda e lucro do core não contam bonificação `[V0]` `[must]`
+- **Persona:** contador / dono que tira o relatório de vendas e o de lucro.
+- **Aceite:** Dado uma venda comum e uma bonificação de 2 × 50,00 no mesmo dia · Quando calculo total de vendas, valor a receber e lucro bruto do dia · Então cada um sobe 100,00, não 200,00.
+- **Âncora de contrato:** pedido P-154 · decisão [W] 2026-10-30: a bonificação não é receita nem dívida · **REGRA MESTRE valor** ([proibicoes.md](../../../../memory/proibicoes.md)) — cada medida conferida antes e depois de uma venda comum e uma bonificada de 100,00.
+- **Teste:** `tests/Feature/Sells/SellsBonificacaoNaoEReceitaContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SBON-08 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SBON-09 · A bonificação não entra no saldo em aberto do cliente `[V0]` `[T0]` `[must]`
+- **Persona:** financeiro que cobra o cliente; o supermercado bonificado não deve aparecer devendo a mercadoria dada.
+- **Aceite:** Dado um cliente com uma venda comum e uma bonificação de 100,00 a receber, e outro só com bonificação · Quando a lista de clientes calcula os indicadores · Então o valor em aberto sobe 100,00, um cliente a mais fica com venda em aberto e em atraso · E a linha do cliente só bonificado mostra 0,00 · E venda de outra empresa não muda nada aqui.
+- **Âncora de contrato:** pedido P-154 · decisão [W] 2026-10-30: a bonificação não é receita nem dívida · **REGRA MESTRE valor** ([proibicoes.md](../../../../memory/proibicoes.md)) — cada medida conferida antes e depois de uma venda comum e uma bonificada de 100,00.
+- **Teste:** `tests/Feature/Sells/SellsBonificacaoNaoEReceitaContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SBON-09 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -533,6 +569,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-30 · [W+C] P-154: a bonificação fica fora do rodapé da lista, do faturado do dia, dos relatórios de venda e lucro e do saldo do cliente (UC-SBON-06..09).
 - 2026-10-30 · [W+C] P-154: a bonificação aparece na lista, no drawer e na impressão/exportação em lote (UC-SBON-02..05). Pagamento rápido, criar OS, Caixa do dia e os totais de cliente na IA seguem só com venda comum.
 - 2026-10-29 · [W+C] **UC-SDUP-04..06** (P-031): duplicar guarda a origem em `transactions.duplicated_from_id`; a linha mostra "Duplicada de" e o drawer mostra o vínculo nos dois sentidos, escopado por empresa. Menu ⋮ ganha **Duplicar**. Teste `SellsDuplicarContratoTest.php`.
 - 2026-10-28 · [W+C] Decisões pendentes D-01, D-02, D-03 do documento "Casos de uso por tela", sem id de caso.

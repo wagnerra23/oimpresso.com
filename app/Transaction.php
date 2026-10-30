@@ -415,6 +415,23 @@ class Transaction extends Model
         return self::filtrarVendaComumOuBonificacao($query, $coluna);
     }
 
+    /**
+     * Tira a bonificação de onde a venda conta como receita ou dívida (faturamento, saldo em
+     * aberto do cliente, relatórios de venda e lucro). Reparo e os outros tipos continuam.
+     */
+    public static function filtrarSemBonificacao($query, string $coluna = 'sub_type')
+    {
+        return $query->where(function ($q) use ($coluna) {
+            $q->whereNull($coluna)->orWhere($coluna, '<>', self::SUB_TYPE_BONIFICACAO);
+        });
+    }
+
+    /** O mesmo critério para `CASE WHEN` / `IF()` em SQL cru. */
+    public static function sqlSemBonificacao(string $coluna = 'sub_type'): string
+    {
+        return "COALESCE({$coluna}, '') <> '".self::SUB_TYPE_BONIFICACAO."'";
+    }
+
     public function scopeOverDue($query)
     {
         return $query->whereIn('transactions.payment_status', ['due', 'partial'])

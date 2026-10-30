@@ -1382,11 +1382,14 @@ class SellController extends Controller
         // (não só página corrente). Clone do builder antes do paginate pra preservar
         // joins/wheres mas remover orderBy/limit. Subquery separada pra somar
         // total_paid (mesma lógica do select da grid — coluna não existe direta).
+        // P-154 — a bonificação aparece na lista (UC-SBON-02), mas não é receita nem valor a
+        // receber: fica fora dos três valores do rodapé; a contagem de linhas segue com ela.
+        $semBonif = \App\Transaction::sqlSemBonificacao('transactions.sub_type');
         $totalsQuery = (clone $q);
         $totalsRow = $totalsQuery->selectRaw(
             'COUNT(transactions.id) as count_rows, '.
-            'COALESCE(SUM(transactions.final_total), 0) as sum_final_total, '.
-            'COALESCE(SUM((SELECT COALESCE(SUM(IF(tp.is_return = 0, tp.amount, tp.amount * -1)), 0) FROM transaction_payments as tp WHERE tp.transaction_id = transactions.id)), 0) as sum_total_paid'
+            "COALESCE(SUM(IF({$semBonif}, transactions.final_total, 0)), 0) as sum_final_total, ".
+            "COALESCE(SUM(IF({$semBonif}, (SELECT COALESCE(SUM(IF(tp.is_return = 0, tp.amount, tp.amount * -1)), 0) FROM transaction_payments as tp WHERE tp.transaction_id = transactions.id), 0)), 0) as sum_total_paid"
         )->first();
         $sumFinalTotal = (float) ($totalsRow->sum_final_total ?? 0);
         $sumTotalPaid = (float) ($totalsRow->sum_total_paid ?? 0);

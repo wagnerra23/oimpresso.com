@@ -40,6 +40,7 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ## UC-F01 · Venda a prazo gera título a receber (CU-3→CU-5)
 - **Persona:** Kamila (financeiro) — confiança de que NENHUMA venda a prazo fica sem cobrança.
 - **Aceite:** Dado venda final a prazo 30 dias · Então nasce `fin_titulos` tipo `receber`, status `aberto`, valor total = valor da venda, vencimento +30d da data da venda.
+- **Exceção — bonificação (P-154, decisão [W] 2026-10-30):** a venda com `sub_type = 'bonificacao'` não é cobrada e não gera título, mesmo a prazo. Contrato: UC-FBON-01..05 abaixo.
 - **Teste:** `RetencaoLoopE2ETest` ("UC-F01 · CU-3→CU-5") — Observer da venda, DB MySQL real.
 - **Status: 🧪** (o teste existe e é real, mas **pulou** na captura do manifesto — `verdict: skip`. Vira ✅ quando o manifesto trouxer `pass`.)
 
@@ -483,6 +484,7 @@ Status: 🧪
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-30 · [W+C] UC-F01 ganha a exceção da bonificação (P-154): venda bonificada não gera título. O teste do UC-F01 não mudou.
 - 2026-10-29 · [W+C] Pedido P-154: UC-FBON-01..05 (bonificação não vira título a receber), provados por `BonificacaoSemTituloContratoTest` na lane financeiro-pest.
 - 2026-10-29 · [F+C] Caso 150 ligado ao documento "Casos de uso por tela" (Pedido P-150). Nenhum caso nem teste mudou.
 - 2026-10-29 · [F+C] Casos 117 a 122 ligados ao documento "Casos de uso por tela" (Pedidos P-117 a P-122). Nenhum caso nem teste mudou.

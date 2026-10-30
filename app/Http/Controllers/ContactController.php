@@ -615,7 +615,8 @@ class ContactController extends Controller
                   ->from('transactions')
                   ->whereColumn('transactions.contact_id', 'contacts.id')
                   ->where('transactions.type', 'sell')
-                  ->whereIn('transactions.payment_status', ['due', 'partial']);
+                  ->whereIn('transactions.payment_status', ['due', 'partial'])
+                  ->where(fn ($w) => Transaction::filtrarSemBonificacao($w, 'transactions.sub_type'));
             })
             ->count();
         $com_atraso = (clone $base)
@@ -625,6 +626,7 @@ class ContactController extends Controller
                   ->whereColumn('transactions.contact_id', 'contacts.id')
                   ->where('transactions.type', 'sell')
                   ->whereIn('transactions.payment_status', ['due', 'partial'])
+                  ->where(fn ($w) => Transaction::filtrarSemBonificacao($w, 'transactions.sub_type'))
                   ->whereNotNull('transactions.due_date')
                   ->where('transactions.due_date', '<', now());
             })
@@ -635,6 +637,7 @@ class ContactController extends Controller
         $valor_total_aberto = (float) Transaction::where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
             ->whereIn('transactions.payment_status', ['due', 'partial'])
+            ->where(fn ($w) => Transaction::filtrarSemBonificacao($w, 'transactions.sub_type'))
             ->sum(DB::raw("final_total - {$totalPaidSub}"));
 
         // Onda 3 (2026-06-12) — counts reais server-side dos 3 KPIs que vinham
@@ -917,7 +920,7 @@ class ContactController extends Controller
                     'contact_id',
                     DB::raw('COUNT(*) AS total_os'),
                     DB::raw('MAX(transaction_date) AS last_os_at'),
-                    DB::raw("SUM(CASE WHEN payment_status IN ('due','partial') THEN (final_total - {$totalPaidSub}) ELSE 0 END) AS valor_aberto"),
+                    DB::raw("SUM(CASE WHEN payment_status IN ('due','partial') AND ".Transaction::sqlSemBonificacao()." THEN (final_total - {$totalPaidSub}) ELSE 0 END) AS valor_aberto"),
                 );
             // $sortInput é whitelisted (in_array $AGG) → seguro no orderByRaw.
             $contactsQuery->leftJoinSub($aggSub, 'cli_agg', 'cli_agg.contact_id', '=', 'contacts.id')
@@ -987,10 +990,10 @@ class ContactController extends Controller
             ->select(
                 'contact_id',
                 DB::raw('COUNT(*) AS total_os'),
-                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN 1 ELSE 0 END) AS os_abertas'),
-                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') AND due_date IS NOT NULL AND due_date < NOW() THEN 1 ELSE 0 END) AS os_atrasadas'),
+                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') AND '.Transaction::sqlSemBonificacao().' THEN 1 ELSE 0 END) AS os_abertas'),
+                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') AND '.Transaction::sqlSemBonificacao().' AND due_date IS NOT NULL AND due_date < NOW() THEN 1 ELSE 0 END) AS os_atrasadas'),
                 // FIX 2026-05-21: subquery em transaction_payments (total_paid NÃO existe no schema).
-                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') THEN (final_total - (SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id)) ELSE 0 END) AS valor_aberto'),
+                DB::raw('SUM(CASE WHEN payment_status IN (\'due\',\'partial\') AND '.Transaction::sqlSemBonificacao().' THEN (final_total - (SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id)) ELSE 0 END) AS valor_aberto'),
                 DB::raw('MAX(transaction_date) AS last_os_at'),
                 // Wave G — última compra real (qualquer status, não só due/partial) pra FrescorPill.
                 // Distingue de last_os_at que é última OS aberta. Wave G FrescorPill calcula
