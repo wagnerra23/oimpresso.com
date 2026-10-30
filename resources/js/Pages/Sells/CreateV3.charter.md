@@ -24,7 +24,7 @@ charter_version: 2
 
 Ensaiar o redesenho do cadastro de venda **sem tocar na tela que o cliente opera**.
 
-> **Destino — decisão [W] 2026-10-30, textual: *"Sim, absorve as duas"*.** A V3 vai substituir a `Sells/Create.tsx` e a `Sells/Edit.tsx`. Primeiro o protótipo ganha o que a produção faz (FSM real, cabeçalho, itens, fechamento, edição); depois o código; a troca segue o MWART F5. Até lá, tudo abaixo continua valendo: a tela não grava e não toca a tela viva.
+> **Destino — decisão [W] 2026-10-30, textual: *"Sim, absorve as duas"*.** A V3 vai substituir a `Sells/Create.tsx` e a `Sells/Edit.tsx`. Primeiro o protótipo ganha o que a produção faz (FSM real, cabeçalho, itens, fechamento, edição); depois o código; a troca segue o MWART F5. Até lá, tudo abaixo continua valendo: a tela não toca a tela viva, e só grava com a flag `useV3SellsGravar` ligada, pelos stores de produção (ver o Non-Goal "Não grava").
 >
 > **Exceção, só com a flag `useV3SellsGravar` ligada (desligada por padrão; ligar é decisão [W]):** a tela grava venda nova pelo store que já existe (`POST /pos`, o mesmo do `Create.tsx`) — UC-V380/V382. Continua sem tocar a tela viva: nenhum arquivo do `Create.tsx` muda (UC-V303) e o controller da V3 segue sem rota de escrita (UC-V302). A declaração do [L] de 2026-08-31 (estoque e financeiro bloqueados, ligação depois) está levada ao [W] no PR que trouxe a flag.
 
