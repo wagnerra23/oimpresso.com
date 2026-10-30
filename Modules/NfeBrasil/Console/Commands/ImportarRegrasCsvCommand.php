@@ -6,6 +6,7 @@ namespace Modules\NfeBrasil\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
 use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
@@ -23,7 +24,8 @@ class ImportarRegrasCsvCommand extends Command
     protected $signature = 'nfe:importar-regras-csv
         {business : business_id que recebe as regras}
         {arquivo : caminho do CSV}
-        {--apply : grava (sem isto é só a conferência)}';
+        {--apply : grava (sem isto é só a conferência)}
+        {--criar-operacoes : cria as operações citadas na coluna `operacao` e ausentes na empresa (segue o dry-run)}';
 
     protected $description = 'Carrega regras tributárias de um CSV (dry-run por padrão)';
 
@@ -53,21 +55,60 @@ class ImportarRegrasCsvCommand extends Command
             return self::FAILURE;
         }
 
+        $criar = $this->option('criar-operacoes') ? $this->operacoesAusentes($businessId, $resultado['linhas']) : [];
+        foreach ($criar as $slug) {
+            $this->line("criaria operação {$slug} ({$this->nomeDaOperacao($slug)})");
+        }
+
         $this->table(['NCM', 'regime', 'operação', 'CFOP', 'hoje', 'fica'], array_map(
             fn (array $l) => [$l['ncm'], $l['crt'] ?? '-', $l['operacao'] ?? 'padrão', $l['cfop'], $this->hoje($businessId, $l), $this->descrever($l)],
             $resultado['linhas'],
         ));
 
         if (! $this->option('apply')) {
-            $this->info(count($resultado['linhas']) . ' regra(s) conferida(s). DRY-RUN: nada gravado. Use --apply para gravar.');
+            $this->info(count($resultado['linhas']) . ' regra(s) e ' . count($criar) . ' operação(ões) a criar conferida(s). DRY-RUN: nada gravado. Use --apply para gravar.');
 
             return self::SUCCESS;
         }
 
-        $totais = DB::transaction(fn () => $service->aplicar($businessId, $resultado['linhas']));
+        $totais = DB::transaction(function () use ($service, $businessId, $resultado, $criar) {
+            $agora = now();
+            foreach ($criar as $slug) {
+                // Mesmos campos da migration de seed da operação "venda"; regra_geral NULL = usa a regra da operação.
+                NfeOperacaoFiscal::withoutGlobalScopes() // SUPERADMIN: console; o escopo é o business_id explícito
+                    ->insertOrIgnore([[
+                        'business_id' => $businessId, 'slug' => $slug, 'nome' => $this->nomeDaOperacao($slug),
+                        'finalidade' => 1, 'cfop' => null, 'regra_geral' => null, 'padrao' => false,
+                        'created_at' => $agora, 'updated_at' => $agora,
+                    ]]);
+            }
+            if ($criar !== []) {
+                $this->info('operações criadas: ' . implode(', ', $criar));
+            }
+
+            return $service->aplicar($businessId, $resultado['linhas']);
+        });
         $this->info("criadas {$totais['criadas']} · atualizadas {$totais['atualizadas']} · falhas {$totais['falhas']}");
 
         return $totais['falhas'] === 0 ? self::SUCCESS : self::FAILURE;
+    }
+
+    /** @return list<string> slugs citados no CSV que a empresa ainda não tem */
+    private function operacoesAusentes(int $businessId, array $linhas): array
+    {
+        $citadas = array_values(array_unique(array_filter(array_map(fn (array $l) => $l['operacao'] ?? null, $linhas))));
+        if ($citadas === []) {
+            return [];
+        }
+        $existentes = NfeOperacaoFiscal::withoutGlobalScopes() // SUPERADMIN: console; o escopo é o where explícito
+            ->where('business_id', $businessId)->whereIn('slug', $citadas)->whereNull('deleted_at')->pluck('slug')->all();
+
+        return array_values(array_diff($citadas, $existentes));
+    }
+
+    private function nomeDaOperacao(string $slug): string
+    {
+        return ['bonificacao' => 'Bonificação'][$slug] ?? Str::headline($slug);
     }
 
     private function hoje(int $businessId, array $linha): string
