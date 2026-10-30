@@ -77,7 +77,7 @@ class SellsV3Controller extends Controller
      */
     private function dadosDeGravacao(int $businessId): ?array
     {
-        $locationId = BusinessLocation::forDropdown($businessId)->keys()->first();
+        $locationId = collect(BusinessLocation::forDropdown($businessId))->keys()->first();
         $cliente = app(ContactUtil::class)->getWalkInCustomer($businessId);
         if (empty($locationId) || empty($cliente['id'])) {
             return null;

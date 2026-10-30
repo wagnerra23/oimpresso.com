@@ -204,6 +204,19 @@ it('UC-V382 · com a flag desligada a tela segue preview; ligada, entrega o loca
         DB::table('contacts')->where('id', $this->contactId)->update(['is_default' => 1, 'type' => 'customer']);
     }
 
+    // `forDropdown` só lista os locais permitidos ao usuário. Medido no 1º run do CI: sem esta
+    // permissão a lista vinha vazia e a prop não nascia (o controller devolve null de propósito).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    Permission::findOrCreate('access_all_locations', 'web');
+    $this->user->givePermissionTo('access_all_locations');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    // Diagnóstico das três pernas, para o vermelho dizer qual faltou.
+    config(['feature-flags.forced_on' => 'useV3SellsGravar']);
+    expect(app(\App\Services\FeatureFlagService::class)->isOn('useV3SellsGravar'))->toBeTrue();
+    expect(collect(\App\BusinessLocation::forDropdown($this->bizId))->keys()->first())->not->toBeNull();
+    expect(app(\App\Utils\ContactUtil::class)->getWalkInCustomer($this->bizId)['id'] ?? null)->not->toBeNull();
+
     config(['feature-flags.forced_on' => '']);
     $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page
         ->component('Sells/CreateV3')
