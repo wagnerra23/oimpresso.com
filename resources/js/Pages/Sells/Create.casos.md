@@ -751,12 +751,19 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Estado: Em aberto
   - Opção: Preço da origem — É o que a cópia faz hoje: copia os itens como estavam. Bom para repetir um pedido negociado.
   - Opção: Tabela de hoje — Recalcula pelo preço atual. Evita vender abaixo do custo quando o material subiu.
-  - Destrava: P-035, P-037
+  - Destrava: P-035, P-037, P-079
+  - Ligação: P-079 (duplicar o rascunho) cita esta decisão.
 - **[DECISÃO] D-06 · Quem confirma os CFOP das remessas e da entrega futura?**
   - Estado: Em aberto
-  - Texto: Os casos citam CFOP só como exemplo (5.915 e 1.916 no conserto, 5.949 e 1.949 na garantia, 5.922 e 5.116 ou 5.117 na entrega futura). A nota de entrada de bem usado comprado de pessoa física (caso 101) entra na mesma pergunta. Quem decide é o contador, como já acontece na natureza fiscal do produto.
-  - Destrava: P-036, P-101
+  - Texto: Os casos citam CFOP só como exemplo (5.915 e 1.916 no conserto, 5.949 e 1.949 na garantia, 5.922 e 5.116 ou 5.117 na entrega futura; 5.152 e 6.152 na transferência entre filiais com CNPJ diferente, caso 92). A nota de entrada de bem usado comprado de pessoa física (caso 101) entra na mesma pergunta. Quem decide é o contador, como já acontece na natureza fiscal do produto.
+  - Destrava: P-036, P-101, P-092
   - Ligação: também destrava P-041, P-042, P-043, que ainda não está no git.
+- **[DECISÃO] D-26 · Quem executou o serviço ganha comissão própria?**
+  - Estado: Em aberto
+  - Texto: Os casos 60 e 61 gravam quem executou cada serviço da venda e da OS e falam em "comissão de quem executou". Hoje a comissão é só do vendedor ou do comissionado da venda.
+  - Opção: Comissão do executor, além da do vendedor — Cada serviço paga a comissão do executor pela regra dele, sem tirar a do vendedor.
+  - Opção: Só registra o nome — O executor fica gravado para consulta e produtividade, sem comissão.
+  - Destrava: P-060, P-061
 
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate, gate de PR desde Onda Q1) — vereditos viram manifesto via `npm run casos:results`.
@@ -793,6 +800,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Etiquetas: valor, miss
 
 ## Trilha do tempo
+- 2026-10-30 · [W+C] Decisão pendente D-26 do documento "Casos de uso por tela" (casos 60 e 61, que não tinham pergunta); o caso 79 passa a destravar com a D-05 e o caso 92 com a D-06.
 - 2026-10-29 · [W+C] **UC-SCOND-01..03** (P-026): o sinal do cliente vem na busca, preenche a venda ("Sinal para liberar a produção", em Mais opções) e o vendedor pode trocar; `transactions.sinal_minimo_pct` guarda a troca. O `Create.tsx` muda por isso.
 - 2026-10-29 · [W+C] **UC-SDUP-01..03** (P-035): a cópia guarda a origem, leva itens e preços da origem sem mexer no estoque e nasce fora do pipeline FSM. Falta o topo do rascunho e a D-05. Teste `SellsDuplicarContratoTest.php`.
 - 2026-10-28 · [W+C] Decisões pendentes D-05, D-06 do documento "Casos de uso por tela", sem id de caso.

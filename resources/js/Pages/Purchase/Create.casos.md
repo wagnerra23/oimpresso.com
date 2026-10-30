@@ -666,3 +666,15 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: A nota de entrada própria é a conferência — O fornecedor tem a marca "não emite NF-e". A empresa emite a nota de entrada; autorizada, a compra vai a Conferido e gera a conta a pagar como qualquer outra. É a proposta.
   - Opção: Conferir sem nota — Um botão que pula a conferência. Mais simples, mas deixa a compra sem documento fiscal, o que vai contra a lei.
   - Destrava: P-101
+- **[DECISÃO] D-20 · Nota com item sem vínculo: a compra para ou entra com o item pendente?**
+  - Estado: Em aberto
+  - Texto: No caso 151, o item da nota acha o produto pelo vínculo do fornecedor ou pelo código de barras. Sem nenhum dos dois, alguém escolhe entre os parecidos ou cria produto novo. Falta dizer também quem pode criar produto pela nota.
+  - Opção: Para até resolver — O estoque só entra com todos os itens ligados, e criar produto pela nota pede permissão própria. É a proposta.
+  - Opção: Entra pendente — A compra entra, o item sem vínculo fica marcado e só o estoque dele espera.
+  - Destrava: P-151
+- **[DECISÃO] D-22 · As notas de entrada saem no SPED do oimpresso ou no sistema do contador?**
+  - Estado: Em aberto
+  - Texto: Os casos 70 a 74 e 96 levam ao SPED as notas de compra, de energia, de comunicação, o CT-e do frete e as notas de serviço tomadas. Hoje o SPED do oimpresso traz só as notas emitidas. Se o contador escritura as entradas no sistema dele, esses casos viram exportação, não SPED.
+  - Opção: O oimpresso gera o SPED completo — Entradas e saídas no mesmo arquivo, com os registros de cada modelo. Em que obrigação a nota de serviço sai, o contador decide.
+  - Opção: Exportar para o contador — O oimpresso registra as entradas com os dados fiscais e as exporta; o SPED de entrada fica com o contador.
+  - Destrava: P-070, P-071, P-072, P-073, P-074, P-096

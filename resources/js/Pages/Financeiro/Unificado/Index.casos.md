@@ -479,11 +479,53 @@ Status: 🧪
   - Comunicação visual: ok | Sim | empresa com mais de um banco de cobrança
   - Etiquetas: valor, part, cv, decisao
 
+## Decisões pendentes [W]
+
+Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
+
+- **[DECISÃO] D-13 · Taxa do cartão e tarifa do boleto: despesa à parte ou recebido menor?**
+  - Estado: Em aberto
+  - Texto: Os casos 117, 118 e 120 quitam o cliente pelo valor cheio e lançam a taxa ou a tarifa como despesa. O precedente da retenção (US-FIN-072) faz o contrário: a baixa registra o valor recebido.
+  - Opção: Despesa à parte — O cliente fica quitado pelo valor cheio, a taxa vira despesa ligada à venda ou ao boleto, e nasce o valor a receber da operadora pelo líquido. É a proposta dos casos.
+  - Opção: Baixa pelo líquido — Como na retenção: a baixa registra o que entrou e a diferença como desconto da operadora ou do banco. Mais simples, mas a tarifa não aparece como despesa.
+  - Destrava: P-117, P-118, P-120
+- **[DECISÃO] D-14 · A antecipação dos recebíveis do cartão entra agora ou depois?**
+  - Estado: Em aberto
+  - Texto: O caso 118 gera um valor a receber da operadora por parcela. Antecipar esses valores tem taxa própria e muda a data e o líquido de cada parcela.
+  - Opção: Depois — Entra primeiro o parcelado, com os repasses nas datas da operadora; a antecipação vira um caso próprio.
+  - Opção: Agora — O recebimento já permite antecipar, com a taxa da antecipação lançada como despesa.
+  - Destrava: P-118
+- **[DECISÃO] D-15 · Quem cadastra as taxas e tarifas combinadas e quem aceita uma diferença?**
+  - Estado: Em aberto
+  - Texto: Os casos 117, 119 e 122 pedem o cadastro da taxa por operadora, bandeira, modalidade e parcelas, e da tarifa por banco e tipo. Quando a operadora ou o banco cobra diferente do combinado, a diferença fica pendente até alguém aceitar ou cobrar.
+  - Opção: Permissão própria no Financeiro — Uma permissão para cadastrar e outra para aceitar diferença, dadas por empresa; o aceite grava quem aceitou e por quê.
+  - Opção: Só o administrador — O cadastro e o aceite ficam com o administrador da empresa, sem permissão nova.
+  - Destrava: P-117, P-119, P-122
+- **[DECISÃO] D-16 · O repasse da operadora é conferido só pelo extrato ou também pelo arquivo da operadora?**
+  - Estado: Em aberto
+  - Texto: O caso 119 casa o depósito com o valor previsto. O extrato mostra o valor creditado; o arquivo da operadora mostra venda a venda, com taxa e parcela, mas cada operadora tem o seu formato.
+  - Opção: Só pelo extrato — Usa a conciliação de extrato que já existe; a diferença aparece no total do repasse.
+  - Opção: Extrato e arquivo da operadora — Lê também o arquivo de cada operadora e mostra a diferença venda a venda, com uma leitura para cada operadora.
+  - Destrava: P-119
+- **[DECISÃO] D-17 · A tarifa do boleto não pago é repassada ao cliente?**
+  - Estado: Em aberto
+  - Texto: O caso 121 lança as tarifas de registro e de baixa como despesa ligada ao boleto e ao cliente. O cadastro do cliente tem "cobrar custo do boleto", trazido do sistema antigo, e nenhuma regra o lê.
+  - Opção: Só despesa — A tarifa fica como despesa ligada ao cliente, e o financeiro vê quanto custou cobrar cada um.
+  - Opção: Repassar quando marcado — Para o cliente com "cobrar custo do boleto", a tarifa entra no próximo título dele; os outros ficam só com a despesa.
+  - Destrava: P-121
+- **[DECISÃO] D-18 · Quem desfaz um agrupamento de OS, e um valor errado se corrige com ajuste?**
+  - Estado: Em aberto
+  - Texto: O caso 150 desfaz o grupo ou tira uma OS dele, cancelando o título antigo e criando outro, sem reescrever o valor no lugar.
+  - Opção: Tirar a OS e reagrupar — Para corrigir um valor, a OS sai do grupo, é corrigida e volta. Com permissão própria e motivo. É a proposta.
+  - Opção: Ajuste no grupo — Um lançamento de ajuste corrige o valor sem desfazer o grupo, também com permissão e motivo. Mais rápido, mas o título passa a ter um crédito ou débito à parte.
+  - Destrava: P-150
+
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane `financeiro-pest.yml` (check required `PHP / Pest (Financeiro · MySQL)`) — JUnit vira manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-30 · [W+C] Decisões pendentes D-13, D-14, D-15, D-16, D-17, D-18 do documento "Casos de uso por tela", para casos marcados como decisão do [W] que não tinham pergunta.
 - 2026-10-30 · [W+C] UC-F01 ganha a exceção da bonificação (P-154): venda bonificada não gera título. O teste do UC-F01 não mudou.
 - 2026-10-29 · [W+C] Pedido P-154: UC-FBON-01..05 (bonificação não vira título a receber), provados por `BonificacaoSemTituloContratoTest` na lane financeiro-pest.
 - 2026-10-29 · [F+C] Caso 150 ligado ao documento "Casos de uso por tela" (Pedido P-150). Nenhum caso nem teste mudou.
