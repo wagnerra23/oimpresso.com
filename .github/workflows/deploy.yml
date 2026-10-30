@@ -162,6 +162,12 @@ jobs:
     env:
       RDIR: /home/u906587222/domains/oimpresso.com/public_html
     steps:
+      # Só o script do passo de git (scripts/deploy/sync-leve-remoto.sh), que vai por stdin ao servidor.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/deploy
+          sparse-checkout-cone-mode: true
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -210,23 +216,12 @@ jobs:
         # esse código sem dump-autoload, sem cache clear e sem OPcache reset — a
         # receita exata dos 500 de boot de 2026-06-18 e 2026-06-23.
         #
-        # A classificação runtime_changed vale pro SHA deste run e só pra ele. Se a
-        # main andou, este sync não tem mais o que garantir: sai limpo e deixa o run
-        # do commit mais novo publicar tudo (ele faz a própria classificação).
-        run: |
-          /tmp/ssh_exec.sh "
-            cd $RDIR &&
-            git fetch origin &&
-            TIP=\$(git rev-parse origin/main) &&
-            if [ \"\$TIP\" != \"${{ github.sha }}\" ]; then
-              echo \"main avancou (tip=\$TIP != sha deste run) — PULANDO o sync leve.\" &&
-              echo 'O run do commit mais novo publica tudo, com a classificacao dele.' &&
-              exit 0
-            fi &&
-            git checkout main &&
-            git reset --hard ${{ github.sha }} &&
-            git log --oneline -3
-          "
+        # Se a main andou, o servidor vai ao SHA DESTE run quando está atrás dele, em vez
+        # de pular: o commit mais novo pode não gerar run (filtro `paths` do push), e o
+        # pulo deixava o casos.md fora do site (#10147, 2026-10-29). A lógica e os casos
+        # moram em scripts/deploy/sync-leve-remoto.sh, testado por
+        # scripts/governance/deploy-sync-leve.test.mjs.
+        run: /tmp/ssh_exec.sh "cd $RDIR && bash -s -- ${{ github.sha }}" < scripts/deploy/sync-leve-remoto.sh
 
       - name: Prova de que o site NÃO caiu (espera 200, não 503)
         # O ponto do job inteiro. 503 aqui significaria que a classificação de
