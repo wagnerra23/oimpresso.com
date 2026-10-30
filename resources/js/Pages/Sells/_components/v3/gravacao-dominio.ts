@@ -90,7 +90,10 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
     : [{ amount: 0, method: 'cash', paid_on: '', account_id: null, note: '' }];
 
   const products = v.itens.map((l) => {
-    const descPct = submitSafe(parseBR(l.desc));
+    // Sem arredondar: o total usa o valor cheio, e a linha gravada tem de ser a mesma conta
+    // (3,333% arredondado a 3,33 na linha divergiria do final_total). Só o total arredonda.
+    const descPct = parseBR(l.desc);
+    const preco = parseBR(l.preco);
     return {
       product_id: l.productId,
       variation_id: l.variationId,
@@ -98,11 +101,11 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
       variation: null,
       sku: l.sku,
       quantity: parseBR(l.qtd),
-      unit_price: submitSafe(parseBR(l.preco)),
+      unit_price: preco,
       discount: descPct,
       discount_type: 'percentage',
       imei_number: '',
-      unit_price_inc_tax: submitSafe(parseBR(l.preco)),
+      unit_price_inc_tax: preco,
       item_tax: 0,
       tax_id: null,
       line_discount_type: 'percentage',
