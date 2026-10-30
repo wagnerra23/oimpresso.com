@@ -126,9 +126,20 @@ it('UC-SBON-04 exportação e impressão em lote incluem a bonificação e segue
 });
 
 it('UC-SBON-05 [T0] pagamento rápido fica fora da bonificação e o drawer não abre a de outra empresa', function () {
+    // Com a permissão de receber (sem ela o 403 viria antes de olhar a venda): o 404 tem de ser
+    // o "venda não encontrada" do filtro, e a venda comum, no mesmo pedido, passa desse ponto.
+    $this->user->givePermissionTo(Permission::findOrCreate('sell.payments', 'web'));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
     $this->withHeaders(sbvHeaders())
         ->post("/sells/{$this->bonif}/quick-payment", ['amount' => 100, 'method' => 'cash'])
-        ->assertNotFound();
+        ->assertNotFound()
+        ->assertJsonPath('msg', 'Venda não encontrada.');
+    expect(DB::table('transaction_payments')->where('transaction_id', $this->bonif)->count())->toBe(0);
+
+    $comum = $this->withHeaders(sbvHeaders())
+        ->post("/sells/{$this->comum}/quick-payment", ['amount' => 100, 'method' => 'cash']);
+    expect($comum->status())->not->toBe(404)->not->toBe(403);
 
     if ($this->outroBizId === null) {
         $this->markTestSkipped('Lane sem 2º business semeado — perna cross-tenant não exercitável.');
