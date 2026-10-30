@@ -1991,3 +1991,23 @@ Como empresa que compra de fornecedor, quero que a NF-e que chega pela SEFAZ e a
 - [x] A mesma chave não entra duas vezes na empresa — UC-NFENT-04
 - [x] Atrás da flag `nfebrasil.entrada_xml_enabled`, desligada por padrão — UC-NFENT-05
 - [ ] Rota e tela de envio do arquivo (fase 4, tela de conferência)
+
+### US-NFE-078 · Empresas diferentes (CNPJs de raízes diferentes) emitindo no mesmo business — **P1**
+
+> owner: F · sprint: — · priority: p1 · estimate: 5d · status: todo · type: story
+> blocked_by: aprovação [W] da ADR ARQ-0007
+
+**Implementado em:** _pendente_ — fase 1 (ADR); código nas fases 2–7 da ADR ARQ-0007.
+
+Como grupo de empresas que trabalha num banco só (cadastros compartilhados, cada CNPJ com seu certificado e seu regime), quero que cada unidade emita a própria nota no mesmo business, para migrar do Delphi sem duplicar clientes e produtos.
+
+**Origem:** migração do cliente Sabor Brasil (Firebird v1525, 6 CNPJs, um no Simples e cinco no Regime Normal), 2026-10-30. Hoje o local emissor (R-NFE-031) troca CNPJ, IE e série, mas o certificado e o regime continuam os do business.
+
+**Aceite:**
+- [ ] Local emissor com certificado próprio assina com ele; sem certificado próprio usa o do business (como hoje)
+- [ ] Certificado cuja raiz de CNPJ não é a do local é recusado
+- [ ] Local com regime próprio sai com o CRT dele e o motor usa CST ou CSOSN conforme esse regime
+- [ ] Dois CNPJs diferentes podem usar a mesma série; cada CNPJ numera sozinho, sem pular nem repetir, e começa do número informado no cutover
+- [ ] Cancelamento, CC-e, inutilização, manifestação e DF-e usam o certificado do local da nota
+- [ ] Business sem local emissor emite exatamente como antes
+- [ ] Homologação SEFAZ com 2 CNPJs de raízes e regimes diferentes no mesmo business
