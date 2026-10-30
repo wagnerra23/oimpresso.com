@@ -724,3 +724,28 @@ it('UC-SEDIT-03 · devolução de outro business não bloqueia venda desta empre
         ->where('return_parent_id', $venda['transaction_id'])->exists())->toBeTrue();
     sellsEditGet($this, $venda['transaction_id'])->assertOk();
 });
+it('UC-SEDIT-09/16 · base V3 salva sem mexer e preserva pagamentos mesmo com sell.payments', function () {
+    sedit9Sessao($this);
+    Permission::findOrCreate('sell.payments', 'web');
+    $this->user->givePermissionTo('sell.payments');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    $v = sedit9Venda($this);
+    DB::table('transactions')->where('id', $v['id'])->update(['custom_field_1' => 'Pedido fictício', 'staff_note' => 'Texto original']);
+    DB::table('transaction_payments')->insert([
+        'transaction_id' => $v['id'], 'payment_for' => $v['contato'], 'business_id' => $this->bizId,
+        'amount' => 30, 'method' => 'cash', 'is_return' => 0, 'paid_on' => now(),
+        'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $pagamentos = fn () => DB::table('transaction_payments')->where('transaction_id', $v['id'])->orderBy('id')->get()->toJson();
+    $antesPagamentos = $pagamentos();
+    $antes = sedit9Estado($v);
+    $transacao = \App\Transaction::where('business_id', $this->bizId)->findOrFail($v['id']);
+    $base = app(\App\Services\Sells\BaseEdicaoVendaV3::class)->daVenda($transacao);
+    $payload = array_replace($base, sedit9Payload($v, []), ['is_credit_sale' => 1]);
+    $this->put("/pos/{$v['id']}", $payload)->assertSessionHasNoErrors();
+    expect((int) data_get(session('status'), 'success', 0))->toBe(1, json_encode(session('status')));
+    expect(sedit9Estado($v))->toBe($antes);
+    expect($pagamentos())->toBe($antesPagamentos);
+    expect(DB::table('transactions')->where('id', $v['id'])->value('custom_field_1'))->toBe('Pedido fictício');
+    expect(DB::table('transactions')->where('id', $v['id'])->value('staff_note'))->toBe('Texto original');
+});

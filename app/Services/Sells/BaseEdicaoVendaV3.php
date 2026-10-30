@@ -14,7 +14,7 @@ final class BaseEdicaoVendaV3
     {
         $campos = [
             'status', 'invoice_no', 'contact_id', 'location_id', 'customer_group_id',
-            'discount_type', 'discount_amount', 'staff_note', 'commission_agent',
+            'discount_type', 'discount_amount', 'additional_notes', 'staff_note', 'commission_agent',
             'shipping_details', 'shipping_address', 'shipping_status', 'shipping_charges',
             'customer_secondary_address', 'delivered_to', 'delivery_person', 'exchange_rate',
             'selling_price_group_id', 'pay_term_number', 'pay_term_type', 'is_suspend',
@@ -43,7 +43,7 @@ final class BaseEdicaoVendaV3
         }
         // Só os campos que updateSellTransaction lê com num_uf. Sem cálculo nem arredondamento:
         // DECIMAL cru do banco -> vírgula decimal, sem passar por float (incidente num_uf).
-        foreach (['discount_amount', 'shipping_charges', 'exchange_rate', 'additional_expense_value_1',
+        foreach (['discount_amount', 'shipping_charges', 'exchange_rate', 'packing_charge', 'additional_expense_value_1',
             'additional_expense_value_2', 'additional_expense_value_3', 'additional_expense_value_4'] as $campo) {
             $base[$campo] = str_replace('.', ',', (string) ($venda->getRawOriginal($campo) ?? '0'));
         }

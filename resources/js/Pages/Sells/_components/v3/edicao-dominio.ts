@@ -115,6 +115,7 @@ export function montarEdicaoV3(edicao: EdicaoV3, mudancas: Mudancas = {}): Pedid
     return { ok: true, url: fonte.urls.submit, method: 'put', payload: { status: form.edicaoV3.status, ...livres } };
   }
   const payload: Registro = { ...structuredClone(form.edicaoV3), ...campos };
+  if ('sale_note' in campos) payload.additional_notes = campos.sale_note;
   for (const k of ['discount_amount', 'shipping_charges'] as const) {
     if (k in campos) {
       // Os controles entregam número cru. Texto pt-BR já é responsabilidade do domínio de inputs.
