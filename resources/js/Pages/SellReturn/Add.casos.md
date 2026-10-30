@@ -5,9 +5,14 @@ irmaos: Add.charter.md (lei) · Add.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro grava valor e estoque — a troca de Blade por React não pode mudar nenhum dos dois.
 owner: wagner
-last_run: "2026-10-27"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
+last_run: "2026-10-29"
+last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40976713795 (634 passed · 5182 assertions)"
 ---
+
+<!-- REVALIDAÇÃO 2026-10-29 (G-6: o .tsx mudou depois do last_run de 27/10).
+     A mudança no Add.tsx é a do P-038: botão "Devolver tudo", coluna "Já devolvida" e
+     "Já devolvido antes · Volta agora", cobertos pelo UC-SRADD-08. Nenhum dos UC-SRADD-01..07
+     nem UC-SRADDV-01/02 muda: o payload de salvar e a regra de cálculo são os mesmos. -->
 
 <!-- REVALIDAÇÃO 2026-10-26 (G-6: o .tsx mudou depois do last_run de 05/10).
      A única mudança no Add.tsx depois de 05/10 é a do #9903 (26/10): o bloco "Pagamento ao
