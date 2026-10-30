@@ -198,7 +198,19 @@ class CnabRetornoProcessor implements ShouldQueue
                 $q->where('gateway_external_id', $nossoNumero)
                   ->orWhere('nosso_numero', $nossoNumero);
             })
-            ->first();
+            ->limit(10)
+            ->get();
+
+        // Caso 165: com o mesmo nosso número em mais de uma cobrança, a primeira podia quitar o
+        // título errado. Fica a da credencial deste arquivo; se ainda sobrar mais de uma, o detalhe
+        // não é aplicado e vai para os erros do upload, para alguém conferir.
+        if ($cobranca->count() > 1) {
+            $cobranca = $cobranca->where('payment_gateway_credential_id', $cred->id)->values();
+        }
+        if ($cobranca->count() > 1) {
+            throw new \RuntimeException('nosso número em ' . $cobranca->count() . ' cobranças (ids ' . $cobranca->pluck('id')->implode(', ') . '); nada aplicado');
+        }
+        $cobranca = $cobranca->first();
 
         if (! $cobranca) {
             $contadores['sem_match']++;

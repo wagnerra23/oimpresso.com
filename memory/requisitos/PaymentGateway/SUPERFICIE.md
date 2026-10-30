@@ -14,7 +14,7 @@ module: PaymentGateway
 >
 > **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**` + `resources/js/Pages/Settings/**` (namespaces Inertia `PaymentGateway`, `Settings`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `PaymentGateway` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 170 arquivos em 16 papéis.
+**Total mapeado:** 171 arquivos em 16 papéis.
 
 ## Controllers — 14
 
@@ -110,7 +110,7 @@ module: PaymentGateway
 
 - [web.php](../../../Modules/PaymentGateway/Routes/web.php)
 
-## Migrations (schema) — 12
+## Migrations (schema) — 13
 
 - [2026_05_19_120000_create_payment_gateway_credentials_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_05_19_120000_create_payment_gateway_credentials_table.php)
 - [2026_05_19_120001_create_cobrancas_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_05_19_120001_create_cobrancas_table.php)
@@ -124,6 +124,7 @@ module: PaymentGateway
 - [2026_06_08_120000_add_fin_titulo_to_cobrancas_origem_type.php](../../../Modules/PaymentGateway/Database/Migrations/2026_06_08_120000_add_fin_titulo_to_cobrancas_origem_type.php)
 - [2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php](../../../Modules/PaymentGateway/Database/Migrations/2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php)
 - [2026_10_27_150000_create_tef_transacoes_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_10_27_150000_create_tef_transacoes_table.php)
+- [2026_10_30_120000_add_cnab_ultimo_numero_to_payment_gateway_credentials.php](../../../Modules/PaymentGateway/Database/Migrations/2026_10_30_120000_add_cnab_ultimo_numero_to_payment_gateway_credentials.php)
 
 ## Config — 1
 

@@ -7,6 +7,8 @@ namespace Modules\PaymentGateway\Services\Cnab;
 use Carbon\Carbon;
 use Eduardokum\LaravelBoleto\Boleto\AbstractBoleto;
 use Eduardokum\LaravelBoleto\Pessoa;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Dto\CardToken;
@@ -116,13 +118,23 @@ abstract class CnabBoletoAdapter implements PaymentDriverContract
             );
         }
 
-        try {
-            /** @var AbstractBoleto $boleto */
-            $boleto = new $boletoClass($this->buildBoletoData($input, $config));
-        } catch (\Throwable $e) {
-            throw new InvalidPayerException(
-                "Erro ao montar Boleto {$this->key()}: " . $e->getMessage()
-            );
+        // Caso 165: o nosso número é o próximo da credencial, nunca um hash que pode repetir. Se um
+        // boleto antigo (do tempo do hash) já usa o número, pula para o seguinte.
+        for ($tentativa = 0; ; $tentativa++) {
+            try {
+                /** @var AbstractBoleto $boleto */
+                $boleto = new $boletoClass($this->buildBoletoData($input, $config, $this->proximoNumero($cred)));
+            } catch (\Throwable $e) {
+                throw new InvalidPayerException(
+                    "Erro ao montar Boleto {$this->key()}: " . $e->getMessage()
+                );
+            }
+            if (! $this->nossoNumeroEmUso((string) $boleto->getNossoNumero(), $cred)) {
+                break;
+            }
+            if ($tentativa >= 20) {
+                throw new InvalidPayerException("Driver {$this->key()}: 20 números seguidos já em uso — confira o contador da credencial.");
+            }
         }
 
         $nossoNumero = (string) $boleto->getNossoNumero();
@@ -341,7 +353,40 @@ abstract class CnabBoletoAdapter implements PaymentDriverContract
      *
      * @return array<string, mixed>
      */
-    protected function buildBoletoData(EmitirCobrancaInput $input, array $config): array
+    /**
+     * Próximo número sequencial da credencial (coluna `cnab_ultimo_numero`), com a linha travada
+     * para duas emissões ao mesmo tempo não pegarem o mesmo. Sem id (credencial em memória, nos
+     * testes de driver, ou schema sem a coluna, como o sintético da lane sqlite), devolve null e o
+     * número cai no cálculo antigo do buildBoletoData.
+     */
+    protected function proximoNumero(object $cred): ?int
+    {
+        if (empty($cred->id) || ! Schema::hasColumn('payment_gateway_credentials', 'cnab_ultimo_numero')) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($cred): int {
+            $atual = (int) DB::table('payment_gateway_credentials')->where('id', $cred->id)->lockForUpdate()->value('cnab_ultimo_numero');
+            DB::table('payment_gateway_credentials')->where('id', $cred->id)->update(['cnab_ultimo_numero' => $atual + 1]);
+
+            return $atual + 1;
+        });
+    }
+
+    /** Já existe cobrança desta empresa com este nosso número? */
+    protected function nossoNumeroEmUso(string $nossoNumero, object $cred): bool
+    {
+        if ($nossoNumero === '' || empty($cred->business_id) || ! Schema::hasTable('cobrancas')) {
+            return false;
+        }
+
+        return DB::table('cobrancas')
+            ->where('business_id', $cred->business_id)
+            ->where(fn ($q) => $q->where('gateway_external_id', $nossoNumero)->orWhere('nosso_numero', $nossoNumero))
+            ->exists();
+    }
+
+    protected function buildBoletoData(EmitirCobrancaInput $input, array $config, ?int $numero = null): array
     {
         $vencimento = Carbon::instance($input->vencimento);
         $valorReais = round($input->valorCentavos / 100, 2);
@@ -364,10 +409,10 @@ abstract class CnabBoletoAdapter implements PaymentDriverContract
             'cidade'    => $config['cedente_cidade'] ?? 'São Paulo',
         ]);
 
-        // `numero` (sequencial do nosso número) — driver concreto deve
-        // sobrescrever buildBoletoData se quiser gerar sequencial persistente.
-        // Default: derivado do idempotencyKey (estável + único per business).
-        $numeroSequencial = (int) abs(crc32($input->idempotencyKey)) % 99999999;
+        // `numero` (sequencial do nosso número): vem de proximoNumero() na emissão. O hash do
+        // idempotencyKey fica só para quem monta o boleto sem credencial gravada (testes de driver):
+        // ele pode repetir, e foi por isso que deixou de ser o número da emissão (caso 165).
+        $numeroSequencial = $numero ?? (int) abs(crc32($input->idempotencyKey)) % 99999999;
 
         // P-086 — desconto de pontualidade. A lib grava no segmento P do CNAB 240
         // (pos. 142 código '1' = valor fixo até a data · 143-150 data · 151-165 valor).
