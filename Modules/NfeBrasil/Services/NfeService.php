@@ -398,6 +398,7 @@ class NfeService
             internaDestino: $interna,
             destinatarioContribuinte: $contribuinte,
             crtEmitente:    $emitente['crt'] ?? null,
+            operacaoId:     $bonificacao ? $this->operacaoDaBonificacao($businessId) : null,
         );
         if ($cfop !== null) {
             $itens['dets'] = self::comCfop($itens['dets'], $cfop);
@@ -452,6 +453,24 @@ class NfeService
 
     /** P-154 · valor de `transactions.sub_type` que marca a venda como bonificação. */
     public const SUB_TYPE_BONIFICACAO = 'bonificacao';
+
+    /**
+     * Item 2 Sabor Brasil · a operação fiscal "bonificacao" da empresa, se ela cadastrou. Sem ela a
+     * bonificação tributa como a venda (o P-154 de antes, byte a byte).
+     */
+    private function operacaoDaBonificacao(int $businessId): ?int
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('nfe_operacoes_fiscais')) {
+            return null;
+        }
+        $id = NfeOperacaoFiscal::withoutGlobalScopes() // SUPERADMIN: emissão roda em fila; o escopo é o where explícito
+            ->where('business_id', $businessId)
+            ->where('slug', self::SUB_TYPE_BONIFICACAO)
+            ->whereNull('deleted_at')
+            ->value('id');
+
+        return $id === null ? null : (int) $id;
+    }
 
     public static function ehBonificacao(object $tx): bool
     {
@@ -766,6 +785,7 @@ class NfeService
         ?float $internaDestino = null,
         ?bool $destinatarioContribuinte = null,
         ?int $crtEmitente = null,
+        ?int $operacaoId = null,
     ): array {
         // R-NFE-024 controle: sem NCM padrão válido não há saída — mesma recusa do
         // R-NFE-022 em emitirParaTransaction (defesa em profundidade, sem DB).
@@ -830,6 +850,17 @@ class NfeService
             // R-NFE-036: sem dado de destino (NFC-e, consumidor anônimo) a chamada é a de sempre.
             // P-155: local com regime próprio usa o cálculo com o CRT dele; sem CRT, como antes.
             $tributo = match (true) {
+                // Item 2 Sabor Brasil: bonificação usa a regra da operação dela quando houver.
+                $operacaoId !== null => $motor->calcularNaOperacao(
+                    $contexto,
+                    businessId: $businessId,
+                    ufOrigem: $ufOrigem,
+                    ufDestino: $ufDestino,
+                    operacaoId: $operacaoId,
+                    crtEmitente: $crtEmitente,
+                    aliquotaInternaDestino: $internaDestino,
+                    destinatarioContribuinte: $destinatarioContribuinte,
+                ),
                 $crtEmitente !== null => $motor->calcularComRegimeDoLocal(
                     $contexto,
                     businessId: $businessId,

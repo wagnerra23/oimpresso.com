@@ -34,7 +34,7 @@ from firebird_reader import firebird_connect, query  # noqa: E402
 CST_VALIDOS = {"00", "10", "20", "30", "40", "41", "50", "51", "60", "70", "90"}
 CSOSN_VALIDOS = {"101", "102", "103", "201", "202", "203", "300", "400", "500", "900"}
 COLUNAS = ["ncm", "uf_origem", "uf_destino", "cfop", "csosn", "cst", "aliquota_icms",
-           "aliquota_pis", "aliquota_cofins", "aliquota_ipi", "crt", "reducao_base", "mva"]
+           "aliquota_pis", "aliquota_cofins", "aliquota_ipi", "crt", "reducao_base", "mva", "operacao"]
 
 
 def frac(v) -> str:
@@ -46,10 +46,10 @@ def main() -> int:
     ap.add_argument("--alias", required=True)
     ap.add_argument("--password", default="masterkey")
     ap.add_argument("--uf", default="SP")
-    ap.add_argument("--natureza", action="append", required=True, help="NAT:CRT, ex 998:3")
+    ap.add_argument("--natureza", action="append", required=True, help="NAT:CRT[:operacao], ex 998:3 ou 992:3:bonificacao")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
-    escolhidas = {int(n.split(":")[0]): int(n.split(":")[1]) for n in a.natureza}
+    escolhidas = {int(n.split(":")[0]): (int(n.split(":")[1]), (n.split(":") + [""])[2]) for n in a.natureza}
 
     with firebird_connect(a.alias, password_override=a.password) as con:
         inertes = query(con, "SELECT (SELECT COUNT(*) FROM REGRA_TRIBUTARIA) R, "
@@ -70,9 +70,9 @@ def main() -> int:
             ncms[r["NCM"]].add(r["G"])
 
         linhas, vistos = [], {}
-        for nat, crt in escolhidas.items():
+        for nat, (crt, operacao) in escolhidas.items():
             for r in query(con, "SELECT TRIM(CODPRODUTO_GRUPO) G, TRIM(CODNF_CST) CST, TRIM(CODNF_CFOP) CFOP, "
-                                "PREDBC, PICMS, CALCULA_ICMS_ST, PMVAST, PIS_PPIS, COFINS_PCOFINS, IPI_PIPI FROM NF_NATUREZA_OPERACAO_PRODGRUPO "
+                                "PREDBC, PICMS, CALCULA_ICMS, CALCULA_ICMS_ST, PMVAST, PIS_PPIS, COFINS_PCOFINS, IPI_PIPI FROM NF_NATUREZA_OPERACAO_PRODGRUPO "
                                 "WHERE CODNF_NATUREZA_OPERACAO = ? AND ATIVO = 'S'", (nat,)):
                 codigo, cfop = r["CST"] or "", r["CFOP"] or ""
                 valido = (codigo in CST_VALIDOS) if crt == 3 else (codigo in CSOSN_VALIDOS)
@@ -80,18 +80,19 @@ def main() -> int:
                     print(f"  pulado nat {nat} grupo {r['G']}: código {codigo or '-'} / CFOP {cfop or '-'} fora do regime {crt}")
                     continue
                 for ncm in sorted(n for n, gs in ncms.items() if r["G"] in gs):
-                    chave = (ncm, crt)
+                    chave = (ncm, crt, operacao)
                     if chave in vistos:
                         print(f"  CONFLITO NCM {ncm} regime {crt}: grupo {vistos[chave]} e {r['G']} — mantido o 1º")
                         continue
                     vistos[chave] = r["G"]
                     st = r["CALCULA_ICMS_ST"] == "S"
+                    sem_icms = r["CALCULA_ICMS"] == "N"  # o Delphi não calcula ICMS nesta natureza × grupo
                     linhas.append({
                         "ncm": ncm, "uf_origem": a.uf, "uf_destino": a.uf, "cfop": cfop,
                         "csosn": codigo if crt != 3 else "", "cst": codigo if crt == 3 else "",
-                        "aliquota_icms": frac(r["PICMS"]) or "0", "aliquota_pis": frac(r["PIS_PPIS"]) or "0",
-                        "aliquota_cofins": frac(r["COFINS_PCOFINS"]) or "0", "aliquota_ipi": frac(r["IPI_PIPI"]) or "0", "crt": str(crt), "reducao_base": frac(r["PREDBC"]),
-                        "mva": frac(r["PMVAST"]) if st else "",
+                        "aliquota_icms": "0" if sem_icms else (frac(r["PICMS"]) or "0"), "aliquota_pis": frac(r["PIS_PPIS"]) or "0",
+                        "aliquota_cofins": frac(r["COFINS_PCOFINS"]) or "0", "aliquota_ipi": frac(r["IPI_PIPI"]) or "0", "crt": str(crt), "reducao_base": "" if sem_icms else frac(r["PREDBC"]),
+                        "mva": frac(r["PMVAST"]) if st else "", "operacao": operacao,
                     })
 
     with open(a.out, "w", newline="", encoding="utf-8") as f:

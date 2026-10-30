@@ -36,6 +36,7 @@ on:
       - 'app/Rules/BR/CpfCnpj.php'
       - 'database/schema/mysql-schema.sql'
       - 'scripts/legacy-migration/data/sabor-brasil-regras-fiscais.csv'
+      - 'scripts/legacy-migration/data/sabor-brasil-regras-fiscais-bonificacao.csv'
       - '.github/workflows/nfebrasil-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
 
@@ -85,6 +86,7 @@ jobs:
               - 'app/Rules/BR/CpfCnpj.php'
               - 'database/schema/mysql-schema.sql'
               - 'scripts/legacy-migration/data/sabor-brasil-regras-fiscais.csv'
+              - 'scripts/legacy-migration/data/sabor-brasil-regras-fiscais-bonificacao.csv'
               - '.github/workflows/nfebrasil-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
 
@@ -311,6 +313,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeDestinatarioExternoCfopTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeBonificacaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeBonificacaoSemStTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeRegimePorLocalTest.php \
