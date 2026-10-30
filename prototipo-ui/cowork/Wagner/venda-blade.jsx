@@ -103,6 +103,12 @@ const CAMPOS_IMPORT = [
 const DIAS = { 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 3, 7: 4, 8: 5 };
 const PERIODOS = [{ id: "hoje", name: "Hoje", d: 0 }, { id: "7", name: "Últimos 7 dias", d: 7 }, { id: "30", name: "Últimos 30 dias", d: 30 }];
 const noPeriodo = (id, dias) => !id || dias <= ((PERIODOS.find((p) => p.id === id) || {}).d ?? 9999);
+// Linha da lista de POS → o registro que a Venda V3 abre no modo edição. A etapa vem do
+// pagamento e da entrega; devolução e idade da venda alimentam as travas da edição.
+const vendaParaV3 = (s) => ({
+  inv: s.inv, cliente: s.cli, dias: DIAS[s.id] ?? 0, devolucao: (s.devDev || 0) > 0,
+  estagio: s.envio === "delivered" ? "delivered" : s.pg === "paid" ? "paid" : "invoiced",
+});
 // Permissões com os nomes LITERAIS do legado, lidos nos controllers no `main`:
 // `sell.view|create|delete` (SellController/SellPosController/ImportSalesController),
 // `direct_sell.access`, `access_shipping`, `access_sell_return`, `discount.access`
@@ -225,7 +231,8 @@ function TelaPos({ avisar, densa, setDensa, onIr, perms, editarInicial = null })
     id: s.id, _s: s, state: s.pg === "overdue" ? "urgent" : undefined,
     acao: Kebab ? <Kebab acoes={[
       { l: "Ver detalhe", ic: "search", on: () => setVer(s) },
-      { l: "Editar venda", ic: "pencil", on: () => setEditar(s) },
+      // Decisão [W] 2026-10-30: editar abre a Venda V3 no modo edição (o VendaEditarModal, réplica da Edit atual, sai do caminho).
+      { l: "Editar venda", ic: "pencil", on: () => onIr("editar", s) },
       { l: "Imprimir recibo", ic: "print", on: () => setRecibo(s) },
       "-",
       ...(s.saldo ? [{ l: "Adicionar pagamento", ic: "cash", on: () => setPagar(s) }] : []),
@@ -699,7 +706,9 @@ function VendaBladePage({ view = "pos", dense = false, papel = "administrador", 
 
   // Ir pra outra tela do módulo — reflete na rota do shell (senão a sidebar mente).
   const onIr = (destino, alvoVenda) => {
-    if (destino === "editar") { avisar("Abrindo " + (alvoVenda.inv || alvoVenda.ref) + " para edição.", "ok"); return; }
+    /* Decisão [W] 2026-10-30: a Venda V3 absorve a Create e a Edit — editar abre a V3 no modo edição. */
+    // a troca de rota remonta esta página: o alvo vai numa global, como o da devolução
+    if (destino === "editar" && alvoVenda) window.__vendaEditarAlvo = alvoVenda;
     if (destino === "devolver") { window.__vendaDevolverAlvo = alvoVenda || window.__vendaDevolverAlvo; setAlvo(window.__vendaDevolverAlvo); }
     if (destino === "nova") window.__vendaNovaStatus = (alvoVenda || {}).status || "final";
     setTela(destino);
@@ -709,10 +718,11 @@ function VendaBladePage({ view = "pos", dense = false, papel = "administrador", 
 
   const corpo =
     tela === "pdv" ? (window.VendaPos ? <window.VendaPos avisar={avisar} onSair={() => onIr("pos")} /> : null) :
-    tela === "nova" ? (window.VendaNova ? <window.VendaNova status={window.__vendaNovaStatus || status} avisar={avisar} onVoltar={() => onIr("pos")} /> : null) :
+    /* Decisão [W] 2026-10-30: "Adicionar venda" abre a Venda V3 (a réplica da Blade, VendaNova, sai do caminho). */
+    tela === "nova" ? (window.VendaV3Create ? <window.VendaV3Create onVoltar={() => onIr("pos")} /> : null) :
     tela === "v3" ? (window.VendaV3Create ? <window.VendaV3Create /> : null) :
     tela === "ver" ? (window.VendaShow ? <window.VendaShow venda={POS[1]} avisar={avisar} perms={perms} onVoltar={() => onIr("pos")} /> : null) :
-    tela === "editar" ? <TelaPos avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} perms={perms} editarInicial={POS[2]} /> :
+    tela === "editar" ? (window.VendaV3Create ? <window.VendaV3Create key={(window.__vendaEditarAlvo || POS[2]).inv} modo="edit" registro={vendaParaV3(window.__vendaEditarAlvo || POS[2])} onVoltar={() => onIr("pos")} /> : null) :
     tela === "pos" ? <TelaPos avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} perms={perms} /> :
     tela === "rascunhos" ? <TelaDraft tipo="rascunhos" avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} perms={perms} /> :
     tela === "cotacoes" ? <TelaDraft tipo="cotacoes" avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} /> :

@@ -252,6 +252,8 @@ window.SD = (() => {
     editarPrecoItem: true,
     descontoAcimaDaAlcada: false,
     usuario: 'wagner',
+    /* `transaction_edit_days` do business: passado o prazo, a venda não abre para edição. */
+    prazoEdicaoDias: 30,
     /* Papéis do seeder FsmProcessoVendaComProducaoSeeder. A cena deixa de fora fiscal.emitir
        de propósito, para a negação por papel (CU-SELL-21) aparecer na ação "Emitir NF-e". */
     roles: ['vendas.criar', 'vendas.enviar', 'vendas.confirmar_aprovacao', 'vendas.gerente', 'producao.iniciar', 'producao.pausar', 'producao.concluir', 'financeiro.faturar', 'financeiro.baixar', 'logistica.entregar'],
@@ -2175,8 +2177,10 @@ function ConsultaProduto({ open, onClose, onPick }) {
      antes ou depois de entregar);
    · ação com papel que o perfil não tem NEGA (fail-secure · CU-SELL-21);
    · efeito colateral é declarado antes de executar (ReservarEstoque, ConsumirEstoque…);
-   · de 'in_production' em diante a venda TRAVA para edição. O único "reabrir" do processo é
-     `reabrir_para_revisao`, e ele só sai de 'quote_approved';
+   · durante a produção (in_production, on_hold, ready_for_invoice) a venda TRAVA para edição:
+     o estoque está comprometido. O único "reabrir" do processo é `reabrir_para_revisao`, e ele
+     só sai de 'quote_approved'. Faturada, paga e entregue seguem editáveis, como na Edit de
+     produção, com as travas dela (prazo de edição e devolução). Concluída e cancelada não editam;
    · cancelar roda CancelarVendaCascade, que RECUSA venda com dinheiro recebido ([W] 2026-10-26);
    · toda transição escreve uma linha append-only no histórico (sale_stage_history · CU-SELL-26). */
 
@@ -2185,7 +2189,7 @@ const PRE = { key: 'rascunho', l: 'Não gravada' };
    'cancelled' é saída de qualquer etapa — os dois aparecem como marca, não como degrau. */
 const CAMINHO = ['quote_draft', 'quote_sent', 'quote_approved', 'in_production', 'ready_for_invoice', 'invoiced', 'paid', 'delivered', 'completed'];
 const ETAPAS = () => CAMINHO.map((k) => fsmDe(k));
-const TRAVA_A_PARTIR_DE = ['in_production', 'on_hold', 'ready_for_invoice', 'invoiced', 'paid', 'delivered', 'completed', 'cancelled'];
+const TRAVA_A_PARTIR_DE = ['in_production', 'on_hold', 'ready_for_invoice', 'completed', 'cancelled'];
 const estagioTrava = (k) => TRAVA_A_PARTIR_DE.includes(k);
 
 function fsmDe(k) { return k === 'rascunho' ? PRE : window.SD.fsm.find((f) => f.key === k) || PRE; }
@@ -2711,7 +2715,13 @@ function Create({ onOpen, modo = 'create', registro }) {
     setItens((s) => s.filter((x) => x.k !== l.k));
     setUndo({ msg: 'Item removido — ' + l.nome, undo: () => setItens((s) => { const c = [...s]; c.splice(pos, 0, l); return c; }) });
   };
-  const travada = estagioTrava(estagio);
+  /* Travas da edição — as mesmas do SellController@edit (US-SELL-059): venda com devolução
+     não edita, e passado o prazo de edição do business também não. */
+  const bloqueioEdicao = !edit || !registro ? null
+    : registro.devolucao ? { titulo: 'Venda com devolução — não pode ser editada', texto: 'Esta venda já tem devolução lançada. Corrigir valor ou quantidade agora desencontraria a devolução; lance uma nova devolução ou cancele a venda.' }
+    : (registro.dias || 0) > window.SD.permissoes.prazoEdicaoDias ? { titulo: 'Prazo de edição vencido', texto: 'A venda tem ' + registro.dias + ' dias e o prazo de edição é de ' + window.SD.permissoes.prazoEdicaoDias + ' dias. Para corrigir, lance uma devolução.' }
+    : null;
+  const travada = estagioTrava(estagio) || !!bloqueioEdicao;
   const pedidosDoCliente = window.SD.pedidosAbertos.filter((p) => p.cliente === cliente);
   const camposDaVenda = window.SD.camposVenda.filter(Boolean);
   React.useEffect(() => { setPedidoVinc(''); }, [cliente]);
@@ -2765,7 +2775,8 @@ function Create({ onOpen, modo = 'create', registro }) {
 
   const esquerda = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
-      {edit && <Meta><Alert tone="danger" title="Editar venda emitida — sem casos.md, sem teste">Esta tela mexe em <code>final_total</code> e estoque de venda <b>já finalizada</b> e nenhum CU a defende hoje. Escrever <code>Edit.casos.md</code> é o item <b>O6-1</b>.</Alert></Meta>}
+      {edit && <Meta><Alert tone="warn" title="Editar venda emitida — US-SELL-059">Mexe em <code>final_total</code> e estoque de venda já finalizada. As travas desta tela são as de <code>Edit.casos.md</code>: tenant, permissão, devolução e prazo de edição.</Alert></Meta>}
+      {bloqueioEdicao && <Alert tone="danger" title={bloqueioEdicao.titulo}>{bloqueioEdicao.texto}</Alert>}
       {erroSistema && <Alert tone="danger" title={'Não foi possível salvar a venda (' + erroSistema.codigo + ')'}
         action={<Button size="sm" variant="primary" onClick={() => executarAcao(false)}>Tentar de novo</Button>}>
         O servidor não respondeu às {erroSistema.em.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}. <b>Nada foi perdido</b> — a venda continua aqui e o rascunho está salvo. Tente de novo; se repetir, salve como rascunho e chame o suporte.
@@ -2778,8 +2789,10 @@ function Create({ onOpen, modo = 'create', registro }) {
         ? <Alert tone="danger" title="Venda cancelada">
             A cascata de cancelamento devolveu o estoque reservado, então o estoque desta venda voltou para o saldo — nada aqui está mais comprometido. Esta venda não recebe alteração nem ação de fluxo: para retomar o pedido, <b>duplique</b> a venda; para acertar valor já faturado, lance uma <b>devolução</b>.
           </Alert>
-        : travada && <Alert tone="warn" title={'Venda ' + atualFsm.l.toLowerCase() + ' — itens e valores travados'}>
-            A partir de <b>Em produção</b> o estoque já está comprometido: mudar quantidade ou preço aqui adulteraria venda em curso. O processo só reabre um orçamento aprovado que ainda não entrou em produção; daqui em diante, cancele a venda ou lance uma devolução.
+        : estagioTrava(estagio) && <Alert tone="warn" title={'Venda ' + atualFsm.l.toLowerCase() + ' — itens e valores travados'}>
+            {estagio === 'completed'
+              ? <>A venda foi concluída. Para corrigir quantidade ou valor, lance uma devolução.</>
+              : <>Durante a produção o estoque já está comprometido: mudar quantidade ou preço aqui adulteraria venda em curso. O processo só reabre um orçamento aprovado que ainda não entrou em produção; daqui em diante, conclua a produção, cancele a venda ou lance uma devolução.</>}
           </Alert>}
 
       {/* 1 · Cliente — uma linha, não um formulário */}
@@ -3272,7 +3285,7 @@ function VendaV3Create({ registro, modo = 'create', onVoltar }) {
     <MetaCtx.Provider value={false}>
       <div className="venda-v3">
         <PageHeader
-          title={modo === 'edit' ? 'Editar venda' : 'Nova venda'}
+          title={modo === 'edit' ? 'Editar venda' + (registro && registro.inv ? ' ' + registro.inv : '') : 'Nova venda'}
           subtitle={modo === 'edit' ? 'Venda emitida — alterar refaz totais e estoque.' : 'Cliente, itens, pagamento. O resto tem valor padrão.'}
           actions={onVoltar ? <Button size="sm" onClick={onVoltar} kbd="esc">Voltar para Vendas</Button> : null} />
         <Create modo={modo} registro={registro || null} onOpen={() => {}} />
