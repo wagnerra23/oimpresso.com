@@ -75,7 +75,7 @@ import {
 } from './_components/v3/colunas-dominio';
 import { type Transportadora } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
-import { montarPayloadVenda, totalParaGravar } from './_components/v3/gravacao-dominio';
+import { descontoAcimaDoTeto, montarPayloadVenda, totalParaGravar } from './_components/v3/gravacao-dominio';
 import {
   Aviso,
   Chip,
@@ -142,7 +142,13 @@ const SEM_PIPELINE: Estagio = {
 type Props = {
   businessId: number;
   /* Flag useV3SellsGravar ligada: a venda grava em /pos pelo payload do Create (UC-V380). */
-  gravacao?: { locationId: number; contactId: number; clienteNome: string };
+  gravacao?: {
+    locationId: number;
+    contactId: number;
+    clienteNome: string;
+    /* Do usuário, não da cena (UC-V384). descontoMaximo null = sem teto. */
+    permissoes: { editarPreco: boolean; editarDesconto: boolean; descontoMaximo: number | null };
+  };
   cena: {
     cliente: Cliente;
     itens: Item[];
@@ -309,7 +315,18 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const pago = submitSafe(pags.reduce((s, p) => s + parseBR(p.v), 0));
   const saldo = submitSafe(total - pago);
   const payStatus = pago <= 0 ? 'due' : saldo > 0.005 ? 'partial' : 'paid';
-  const alcada = descTipo === 'percentual' ? parseBR(descVal) > 10 : descAplicado > submitSafe(subtotal * 0.1);
+  /* Gravando, a alçada é o teto do usuário (users.max_sales_discount_percent), como no Create;
+     na cena segue o 10% de exemplo. */
+  const acimaDoTeto = gravacao
+    ? descontoAcimaDoTeto({ itens: itens.map(paraGravar), descTipo, descVal, descontoMaximo: gravacao.permissoes.descontoMaximo })
+    : null;
+  const alcada = gravacao
+    ? acimaDoTeto !== null
+    : descTipo === 'percentual' ? parseBR(descVal) > 10 : descAplicado > submitSafe(subtotal * 0.1);
+  /* Campo da linha travado pela permissão do usuário (preço e desconto), só gravando. */
+  const linhaSemPermissao = (campo: string) =>
+    !!gravacao &&
+    ((campo === 'preco' && !gravacao.permissoes.editarPreco) || (campo === 'desc' && !gravacao.permissoes.editarDesconto));
 
   const invalidas = itens.filter((l) => parseBR(l.qtd) <= 0 || parseBR(l.preco) <= 0);
   const temInvalida = invalidas.length > 0;
@@ -396,6 +413,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       acr,
       frete,
       pagamentos: pags.map((p) => ({ m: p.m, v: p.v })),
+      descontoMaximo: gravacao.permissoes.descontoMaximo,
     });
     if (!r.ok) {
       setErroGravar(r.motivo);
@@ -494,9 +512,14 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         hue="primary"
         pad={12}
         right={
-          <Button type="button" variant="outline" size="sm" onClick={() => setConsultaAberta(true)}>
-            Consultar cadastro… F2
-          </Button>
+          /* Gravando, a venda vai sempre para o cliente padrão (gravacao.contactId): a lista
+             da consulta é de cena, e trocar aqui mostraria um cliente e gravaria outro. A troca
+             real de cliente é o próximo grupo da paridade. */
+          gravacao ? undefined : (
+            <Button type="button" variant="outline" size="sm" onClick={() => setConsultaAberta(true)}>
+              Consultar cadastro… F2
+            </Button>
+          )
         }
       >
         <Inline gap={3} align="end" className="flex-wrap">
@@ -693,7 +716,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
                           <td key={c.k} className="border-b border-border/60 px-2 py-1">
                             <input
                               value={l[campo] ?? '0'}
-                              readOnly={travada || cancelada}
+                              readOnly={travada || cancelada || linhaSemPermissao(campo)}
                               inputMode="decimal"
                               aria-label={`${c.label} — ${l.nome}`}
                               onChange={(e) => setLinha(l.k, campo, e.target.value)}
@@ -703,7 +726,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
                                 // — a tabela NÃO tem campo menor; o que a compacta é o padding do
                                 // `<td>` (`4px 8px` lá, `px-2 py-1` aqui — já idênticos).
                                 'w-full rounded-md border border-input bg-background px-[10px] py-[7px] text-right font-mono text-[13px] leading-[1.4] tabular-nums outline-none focus:border-primary',
-                                (travada || cancelada) && 'cursor-default bg-muted',
+                                (travada || cancelada || linhaSemPermissao(campo)) && 'cursor-default bg-muted',
                               )}
                             />
                           </td>
@@ -993,7 +1016,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
 
             {alcada && (
               <div className="mt-2">
-                <Aviso tom="warning" titulo="Acima da alçada de 10%">
+                <Aviso tom="warning" titulo={acimaDoTeto ?? 'Acima da alçada de 10%'}>
                   Precisa de liberação de supervisor para finalizar.
                 </Aviso>
               </div>
