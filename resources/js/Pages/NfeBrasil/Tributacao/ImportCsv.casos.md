@@ -40,6 +40,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-04 | O que foi conferido num tenant não pode ser gravado noutro | must `[T0]` `[V0]` | ADR 0093 · charter §Non-Goals | `TributacaoGatesContratoTest` | 🧪 (verde no CT 100 em 2026-10-06; sem veredito de lane) |
 | UC-NFIM-05 | Mesmo NCM, uma regra por regime (coluna `crt`) com redução de base | must `[V0]` | P-155 · R-NFE-030 · SDD `CU-NFE-07` | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
+| UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
@@ -171,6 +172,21 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   8` e nenhuma regra aparece em outro business.
 - **Teste:** [`ImportRegrasLegadoSaborBrasilTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php)
   — os dois `UC-NFIM-06 · …`.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
+---
+
+## UC-NFIM-07 · Criar a operação fiscal que o CSV cita e a empresa ainda não tem · `must` `[T0]` `[V0]`
+
+- **Persona:** quem migra um cliente legado cujo CSV traz regras de uma operação (ex. `bonificacao`)
+  que ainda não existe na empresa — hoje essas linhas falham e não há tela que crie a operação.
+- **Aceite:** Dado o CSV de bonificação e uma empresa sem a operação · Quando rodo
+  `nfe:importar-regras-csv <business> <arquivo> --criar-operacoes` · Então vejo `criaria operação
+  bonificacao (Bonificação)` e nada é gravado. Com `--apply` a operação e as regras entram na mesma
+  transação; rodar de novo não duplica; outra empresa continua sem a operação. Sem a opção, a linha
+  de operação ausente segue falhando.
+- **Teste:** [`ImportRegrasCriarOperacoesTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCriarOperacoesTest.php)
+  — os três `UC-NFIM-07 · …`.
 - **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
 
 ---
