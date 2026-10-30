@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-08-27"
+last_run: "2026-10-30"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -713,7 +713,7 @@ O CST também é por imposto: o ICMS tem lista própria (`CST_ICMS`), os demais 
 - **[BACKLOG]** Desconto e acréscimo incidem sobre o **preço unitário**, nunca sobre o total — aplicar sobre o total daria outro número quando a quantidade é fracionada, que é o caso normal em item dimensional.
 - **[BACKLOG]** Preço abaixo de **85% da tabela** sai da alçada do vendedor e é sinalizado; no empate exato o erro é pedir liberação a mais, nunca deixar passar preço baixo demais.
 - **[BACKLOG]** Peças negativas contam como **0** — quantidade negativa viraria total negativo e, no dia em que isto gravar, estoque somando em vez de baixar.
-- **[BACKLOG]** Quantidade acima do estoque **não bloqueia** o lançamento; avisa que vai gerar saldo negativo.
+- **[BACKLOG]** Quantidade acima do estoque **bloqueia** o lançamento, a não ser que a empresa permita vender sem estoque (`allow_overselling`); com a permissão, só avisa que vai gerar saldo negativo. _(Corrigido em 2026-10-30: dizia que nunca bloqueia, mas a Blade limita a quantidade ao estoque sem `allow_overselling` — `sale_pos/product_row.blade.php`, revisão adversarial da V3.)_
 
 ### Consulta de clientes (extra — `ConsultaCliente`)
 
@@ -882,6 +882,150 @@ O CST também é por imposto: o ICMS tem lista própria (`CST_ICMS`), os demais 
 
 ---
 
+## O que o protótipo ganhou em 2026-10-30 (#10206 a #10210)
+
+Decisão [W] 2026-10-30, textual: *"Sim, absorve as duas"* — a V3 vai substituir `Sells/Create` e
+`Sells/Edit`. Antes do código, o protótipo [`venda-v3.jsx`](../../../../prototipo-ui/cowork/Wagner/venda-v3.jsx)
+ganhou o que segue. Tudo aqui é `[BACKLOG]`: nenhum teste cita ainda, e cada item vira `UC-V3xx` no
+PR que trouxer o teste.
+
+### Pipeline FSM real (#10206)
+
+Fonte: `database/seeders/FsmProcessoVendaComProducaoSeeder.php` (11 etapas, 23 ações) e
+`app/Domain/Fsm/Services/InitialStageResolver.php`.
+
+- **[BACKLOG]** A venda nasce na etapa que o `InitialStageResolver` escolhe: rascunho e proforma → `quote_draft`; cotação → `quote_sent`; venda paga → `paid`; venda a prazo ou parcial → `invoiced`.
+- **[BACKLOG]** A situação da venda mostra **todas** as ações que saem da etapa atual, cada uma com o papel exigido e os efeitos que vai disparar — não só "a próxima".
+- **[BACKLOG]** Ação com papel que o perfil não tem aparece **negada**, com o nome do papel que falta (CU-SELL-21).
+- **[BACKLOG]** "Emitir NF-e" não muda a etapa: grava o documento e a venda continua Faturada.
+- **[BACKLOG]** O único reabrir do processo é `reabrir_para_revisao`, de "Aprovado pelo cliente" para "Orçamento enviado", e ele roda `LiberarReserva`.
+- **[BACKLOG]** Pausar e retomar a produção leva a "Produção em espera" e volta para "Em produção" sem perder o histórico.
+- **[BACKLOG]** Cancelar descreve a cascata antes de rodar e é **recusado** quando a venda já recebeu dinheiro (`CancelarVendaCascade`, [W] 2026-10-26). `[V0]`
+- **[BACKLOG]** A edição trava durante a produção (`in_production`, `on_hold`, `ready_for_invoice`) e em concluída ou cancelada; faturada, paga e entregue seguem editáveis pelas travas da Edit.
+
+### Dados da venda (#10207)
+
+Fonte: `resources/views/sell/create.blade.php`.
+
+- **[BACKLOG]** A venda tem **local** (`location_id`), e o estoque sai desse local. `[E0]`
+- **[BACKLOG]** A **data da venda** (`transaction_date`) é editável; data diferente de hoje fica no histórico.
+- **[BACKLOG]** **Pedido de venda vinculado** (`sales_order_ids`) lista só pedidos em aberto do cliente da venda e zera ao trocar de cliente. `[T0]`
+- **[BACKLOG]** **Campos personalizados** da venda (`custom_field_1..4`) aparecem com o rótulo da configuração do business; campo sem rótulo não aparece.
+- **[BACKLOG]** **Venda para exportação** (`is_export`) pede país de destino, UF e local de embarque.
+
+### Itens: variação, lote, garantia e kit (#10208)
+
+Fonte: `resources/views/sale_pos/product_row.blade.php`.
+
+- **[BACKLOG]** Produto com **variação** (tamanho × cor) só entra na venda depois de escolhida a variação; preço, SKU e estoque vêm da variação. É o caso do vestuário. `[V0]` `[E0]`
+- **[BACKLOG]** Produto com **lote** vem com o lote que vence antes já escolhido; o estoque conferido é o saldo do lote. `[E0]`
+- **[BACKLOG]** **Garantia** por item, vinda do cadastro do produto; serviço não tem garantia.
+- **[BACKLOG]** **Kit** mostra os componentes, a quantidade de cada um e quantos kits dá para montar; a venda baixa o estoque de cada componente, não do kit. `[E0]`
+
+### Fechamento (#10209)
+
+Fonte: `resources/views/sell/create.blade.php`.
+
+- **[BACKLOG]** Cliente com **adiantamento** (`advance_balance`) usa o saldo como pagamento, até o que falta receber e nunca mais que o saldo. `[V0]`
+- **[BACKLOG]** **Despesas da venda** (`additional_expense_key/value_1..4`): até 4, somadas no total depois do imposto. Conferido no protótipo: 1.115,40 + 25,00 = 1.140,40. `[V0]`
+- **[BACKLOG]** **Entregador** (`delivery_person`) na entrega.
+- **[BACKLOG]** **Documentos da venda** (`sell_document`) anexados ficam com a venda e não saem no documento.
+
+### Edição (#10210)
+
+Fonte: `Edit.casos.md` (US-SELL-059).
+
+- **[BACKLOG]** "Adicionar venda" e "Editar venda" abrem a V3.
+- **[BACKLOG]** Venda com devolução abre travada, com o motivo na tela (UC-SEDIT-03).
+- **[BACKLOG]** Passado o prazo de edição do business (`transaction_edit_days`), a venda abre travada (UC-SEDIT-04).
+
+## Paridade para substituir Create e Edit — o que a V3 ainda não tem
+
+A V3 só substitui as duas telas quando cumprir o contrato delas. Comparando `Create.casos.md` e
+`Edit.casos.md` (lidos em `main @ 9874a36972`) com o protótipo depois do #10210, faltam os itens
+abaixo. Cada um cita o UC de origem: é ele que diz o que "pronto" significa.
+
+> **Atualização 2026-10-30, mesmo dia:** os itens de **Valor e estoque**, **Travas da edição** e
+> **Venda de reparo** abaixo entraram no **protótipo** nos PRs #10212 (travas por nota, pagamento e
+> cliente vencido), #10213 (ICMS ST, bonificação, sinal), #10214 (maquininha, duplicar) e #10215
+> (venda de reparo). Continuam `[BACKLOG]` porque **o código da V3 ainda não faz** e nenhum teste
+> cita — o protótipo mostra a forma e a regra, não prova o comportamento gravado.
+
+### Valor e estoque — entram com dupla prova `[V0]`
+
+- **[BACKLOG]** O total da venda inclui o **ICMS ST** do carrinho pela mesma conta da NF-e; total, vNF e título batem (UC-VST-01 a 06). Hoje o protótipo mostra ST por item, mas não soma no total.
+- **[BACKLOG]** **Maquininha (TEF)**: o valor vai para a máquina, a aprovação traz bandeira, NSU e autorização, e o mesmo clique reenviado não cobra duas vezes (UC-TEF-01 a 07).
+- **[BACKLOG]** **Sinal** da venda: vem do cliente, o vendedor pode trocar e ele vale para as OS da venda; acima de 100% é recusado (UC-SCOND-01 a 03).
+- **[BACKLOG]** **Bonificação** como tipo de venda, gravada sem mudar valor nem estoque (UC-SBON-01). Hoje existe só como natureza da operação. `[E0]`
+- **[BACKLOG]** **Duplicar** venda: cria um rascunho novo com os mesmos itens e preços, fora do pipeline, e o topo mostra de qual venda veio (UC-SDUP-01 a 03, 07).
+
+### Travas da edição que vêm da Edit
+
+- **[BACKLOG]** Com **NF-e autorizada**, itens, valores e cliente não mudam; a observação ainda se edita (UC-SEDIT-13, 14).
+- **[BACKLOG]** NF-e **cancelada** não trava a venda; nota de outro business também não (UC-SEDIT-15, 17). `[T0]`
+- **[BACKLOG]** Com **pagamento**, só os valores travam (UC-SEDIT-16).
+- **[BACKLOG]** Alerta de **cliente vencido** mostra a dívida no valor certo (UC-SEDIT-10). `[V0]`
+
+### Venda de reparo
+
+- **[BACKLOG]** Venda aberta como reparo grava como reparo, com aparelho, atendimento, checklist pré-reparo e senha ou padrão do aparelho, e pode nascer de uma OS (UC-S03, S05, S06, S07).
+- **[BACKLOG]** Editar venda de reparo mostra e salva a seção Reparo sem apagar as datas (UC-SEDIT-11, 12).
+
+### O PDV rápido continua tela própria — decisão [W] 2026-10-30
+
+[W], textual: *"acho que pode ter um POS dentro do sistema como era antes, ficava muito bom"*. A V3
+substitui o cadastro (`Sells/Create`) e a edição (`Sells/Edit`); o PDV de balcão segue como tela
+própria (NG-03). Por isso ficam **fora** da lista da V3, e com o PDV:
+
+- **Venda offline** (UC-VOFF-01 a 04): reenviar a mesma venda grava uma vez e baixa o estoque uma vez.
+- Suspender venda, venda expressa, cédulas do caixa e vendas recentes do balcão (`disable_suspend`, `disable_express_checkout`, `cash_denominations`, `hide_recent_trans`).
+
+## Permissões e configurações do business — o que a V3 precisa obedecer
+
+Medido em `main @ 9874a36972`, nas views `sell/create`, `sale_pos/create` e parciais (`pos_form`,
+`pos_form_totals`, `pos_form_actions`, `payment_modal`, `payment_row_form`, `product_row`) e nos
+métodos `create/store/edit/update` de `SellController` e `SellPosController`. O protótipo hoje só
+tem a permissão de editar preço, e a alçada de desconto (10%) e o piso de preço (85% da tabela)
+estão **fixos**, quando deveriam vir da configuração. Cada linha abaixo vira caso com teste quando
+a V3 passar a obedecer.
+
+### Permissões (Spatie, por usuário ou papel)
+
+- **[BACKLOG]** Abrir a tela exige `sell.create`, `direct_sell.access` ou `superadmin`; pedido de venda exige `so.create`. _(o preview já exige `sell.create` ou `superadmin`)_
+- **[BACKLOG]** "Novo cliente" só aparece com `customer.create`.
+- **[BACKLOG]** Preço do item só é editável com `edit_product_price_from_sale_screen` (`..._from_pos_screen` no PDV). _(o protótipo tem a chave, sem o nome real)_
+- **[BACKLOG]** Desconto da linha só é editável com `edit_product_discount_from_sale_screen`.
+- **[BACKLOG]** Número da fatura manual só com `edit_invoice_number`.
+- **[BACKLOG]** Registrar pagamento na venda exige `sell.payments`; editar pagamento do PDV, `edit_pos_payment`.
+- **[BACKLOG]** Imprimir exige `print_invoice`.
+- **[BACKLOG]** Só aparecem as **tabelas de preço** que o usuário pode usar (`selling_price_group.{id}`) e o preço padrão só com `access_default_selling_price`. `[V0]`
+- **[BACKLOG]** O **local da venda** lista só os locais permitidos ao usuário (`permitted_locations`). `[T0]` `[E0]`
+- **[BACKLOG]** Editar exige `direct_sell.update`, `sell.update` ou `so.update` (UC-SEDIT-02).
+- **[BACKLOG]** Venda de reparo exige `repair.create` / `repair.update` e o módulo Repair no pacote.
+
+### Configurações do business (`pos_settings`, `common_settings`, cadastro)
+
+- **[BACKLOG]** **Data da venda** editável só com `enable_transaction_date`.
+- **[BACKLOG]** **Desconto da venda** some com `disable_discount`; o teto vem de `max_sales_discount_percent`, não fixo. `[V0]`
+- **[BACKLOG]** **Imposto do pedido** some com `disable_order_tax`; o padrão vem de `default_sales_tax`, e o desconto padrão de `default_sales_discount`. `[V0]`
+- **[BACKLOG]** **Preço mínimo** (`enable_msp`) define o piso de preço, no lugar dos 85% fixos. `[V0]`
+- **[BACKLOG]** **Vender sem estoque** só com `allow_overselling`; sem ele a quantidade acima do estoque bloqueia (hoje o protótipo só avisa). `[E0]`
+- **[BACKLOG]** **Comissionado** obrigatório com `is_commission_agent_required`; o tipo de comissionado vem de `sales_cmsn_agnt` (usuário, agente ou desligado).
+- **[BACKLOG]** **Prazo de pagamento** obrigatório com `is_pay_term_required`.
+- **[BACKLOG]** **Profissional por item** obrigatório com `is_service_staff_required`, e na própria linha com `inline_service_staff`.
+- **[BACKLOG]** **Esquema e layout da fatura** visíveis só com `show_invoice_scheme` / `show_invoice_layout`.
+- **[BACKLOG]** **Pedido de venda vinculado** só com `enable_sales_order`.
+- **[BACKLOG]** **Rascunho**, **venda a prazo** e **venda recorrente** somem com `disable_draft`, `disable_credit_sale_button`, `disable_recurring_invoice`.
+- **[BACKLOG]** **Arredondamento** do total segue `amount_rounding_method`. `[V0]`
+- **[BACKLOG]** **Pontos**: só com `enable_rp`; nome, valor por ponto e pedido mínimo vêm de `rp_name`, `redeem_amount_per_unit_rp`, `min_order_total_for_redeem`. `[V0]`
+- **[BACKLOG]** **Garantia** só com `enable_product_warranty`; **exportação** só com `is_enabled_export`.
+- **[BACKLOG]** Lançar o mesmo produto de novo soma na linha ou abre linha nova, conforme `item_addition_method`.
+- **[BACKLOG]** **Campos personalizados** usam os rótulos de `custom_labels`. _(o protótipo já faz)_
+
+### Módulos ligados no pacote
+
+- **[BACKLOG]** Tipos de serviço (`types_of_service`), profissional (`service_staff`), contas de pagamento (`account`), Repair (`repair_module`) e Oficina (`oficina_auto_module`) aparecem só com o módulo ligado. Mesas, cozinha e modificadores (`tables`, `kitchen`, `modifiers`) ficam com o PDV.
+
 ## Fronteira que os testes desta tela devem preservar
 
 Não é caso de uso desta tela, mas é o contrato que a existência dela serve — e o teste que o provar
@@ -892,6 +1036,8 @@ pertence a `Sells/Create`, não aqui:
 ---
 
 ## Pendências declaradas
+
+- **Revalidação de 2026-10-30 (G-6):** desde o `last_run` anterior (2026-08-27), `CreateV3.tsx` mudou só no comentário que aponta a âncora de design (#7224 e #7620). Nenhum comportamento da tela mudou, então os UCs acima seguem valendo como estavam.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
