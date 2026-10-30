@@ -41,6 +41,8 @@ export type VendaParaGravar = {
   pagamentos: { m: string; v: string }[];
   /** Teto de desconto da venda do usuário (`users.max_sales_discount_percent`); null = sem teto. */
   descontoMaximo?: number | null;
+  /** Prazo do cliente (`pay_term_number`/`pay_term_type`); ausente = vai vazio, como antes. */
+  prazo?: { numero: number | string | null; tipo: string | null };
 };
 
 /**
@@ -146,8 +148,8 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
       transaction_date: v.transactionDate,
       status: 'final',
       invoice_no: '',
-      pay_term_number: '',
-      pay_term_type: 'days',
+      pay_term_number: v.prazo?.numero ?? '',
+      pay_term_type: v.prazo?.tipo || 'days',
       sinal_minimo_pct: null,
       commission_agent: null,
       price_group: null,

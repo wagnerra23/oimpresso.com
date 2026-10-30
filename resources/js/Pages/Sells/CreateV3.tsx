@@ -74,8 +74,9 @@ import {
   textoDaColuna,
 } from './_components/v3/colunas-dominio';
 import { type Transportadora } from './_components/v3/entrega-dominio';
-import { brl, fmtBR, num, parseBR, submitSafe } from './_components/v3/numeros';
+import { brl, fmtBR, fmtQtd, num, parseBR, submitSafe } from './_components/v3/numeros';
 import { descontoAcimaDoTeto, montarPayloadVenda, totalParaGravar } from './_components/v3/gravacao-dominio';
+import { bloqueioDaConfig, linhaParaSomar, type ConfigVenda, type PrazoDoCliente } from './_components/v3/config-business-dominio';
 import {
   Aviso,
   Chip,
@@ -148,6 +149,9 @@ type Props = {
     clienteNome: string;
     /* Do usuário, não da cena (UC-V384). descontoMaximo null = sem teto. */
     permissoes: { editarPreco: boolean; editarDesconto: boolean; descontoMaximo: number | null };
+    /* Prazo do cliente padrão e configurações do business (UC-V386..V388). */
+    prazo: PrazoDoCliente;
+    config: ConfigVenda;
   };
   cena: {
     cliente: Cliente;
@@ -401,6 +405,11 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const [erroGravar, setErroGravar] = useState<string | null>(null);
   const gravar = () => {
     if (!gravacao) return;
+    const bloqueio = bloqueioDaConfig(gravacao.config, gravacao.prazo);
+    if (bloqueio) {
+      setErroGravar(bloqueio);
+      return;
+    }
     const agora = new Date();
     const dois = (n: number) => String(n).padStart(2, '0');
     const r = montarPayloadVenda({
@@ -414,6 +423,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       frete,
       pagamentos: pags.map((p) => ({ m: p.m, v: p.v })),
       descontoMaximo: gravacao.permissoes.descontoMaximo,
+      prazo: gravacao.prazo,
     });
     if (!r.ok) {
       setErroGravar(r.motivo);
@@ -449,6 +459,23 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
      DERIVADA das medidas — deixar o operador calcular a área de cabeça é onde
      nasce quantidade errada, e quantidade errada é estoque e valor errados. */
   const adicionarLancado = (item: ItemLancado) => {
+    const ids = idsPorSku.current.get(item.sku);
+    /* Gravando, o mesmo produto soma na linha conforme `item_addition_method` (UC-V388). */
+    const comoLinha = (l: Item) => ({ ...l, variationId: l.ids?.variationId });
+    const alvo = gravacao
+      ? linhaParaSomar(itens.map(comoLinha), { ...item, variationId: ids?.variationId }, gravacao.config.somaNaLinha)
+      : -1;
+    const antes = alvo >= 0 ? itens[alvo] : undefined;
+    if (antes) {
+      setItens((s) => s.map((l) => (l.k === antes.k ? { ...l, qtd: fmtQtd(parseBR(l.qtd) + parseBR(item.qtd)) } : l)));
+      setLancando(null);
+      setBusca('');
+      setUndo({
+        msg: `Quantidade somada — ${item.nome}`,
+        desfazer: () => setItens((s) => s.map((l) => (l.k === antes.k ? { ...l, qtd: antes.qtd } : l))),
+      });
+      return;
+    }
     const k = Date.now();
     setItens((s) => [
       ...s,
@@ -463,7 +490,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         desc: item.desc,
         acr: item.acr,
         estoque: item.estoque,
-        ids: idsPorSku.current.get(item.sku),
+        ids,
       },
     ]);
     setLancando(null);

@@ -295,3 +295,58 @@ it('UC-V385 · gravando, usuário sem nenhum local permitido não recebe a grava
     expect($this->user->permitted_locations($this->bizId))->not->toBe('all');
     $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->missing('gravacao'));
 });
+
+it('UC-V386 · gravando, a tela recebe as configurações do business lidas de pos_settings e de business', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+
+    // Sem pos_settings: vale o default do BusinessUtil (desconto e imposto liberados, rascunho ligado).
+    DB::table('business')->where('id', $this->bizId)->update([
+        'pos_settings' => null,
+        'item_addition_method' => 0,
+        'sales_cmsn_agnt' => null,
+        'default_sales_discount' => null,
+    ]);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page
+        ->where('gravacao.config.descontoDaVenda', true)
+        ->where('gravacao.config.impostoDoPedido', true)
+        ->where('gravacao.config.rascunho', true)
+        ->where('gravacao.config.venderSemEstoque', false)
+        ->where('gravacao.config.somaNaLinha', false)
+        ->where('gravacao.config.comissionado.tipo', null)
+        ->where('gravacao.config.arredondamento', fn ($v) => (float) $v === 0.0));
+
+    // Configurado: cada chave chega com o sentido do Blade (disable_* invertido).
+    DB::table('business')->where('id', $this->bizId)->update([
+        'pos_settings' => json_encode([
+            'disable_discount' => 1, 'disable_order_tax' => 1, 'disable_draft' => 1,
+            'disable_credit_sale_button' => 1, 'disable_recurring_invoice' => 1,
+            'enable_transaction_date' => 1, 'enable_msp' => 1, 'allow_overselling' => 1,
+            'is_commission_agent_required' => 1, 'is_pay_term_required' => 1,
+            'amount_rounding_method' => '0.5',
+        ]),
+        'item_addition_method' => 1,
+        'sales_cmsn_agnt' => 'cmsn_agnt',
+        'default_sales_discount' => 2.5,
+    ]);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page
+        ->where('gravacao.config.descontoDaVenda', false)
+        ->where('gravacao.config.impostoDoPedido', false)
+        ->where('gravacao.config.rascunho', false)
+        ->where('gravacao.config.aPrazo', false)
+        ->where('gravacao.config.recorrente', false)
+        ->where('gravacao.config.dataEditavel', true)
+        ->where('gravacao.config.precoMinimo', true)
+        ->where('gravacao.config.venderSemEstoque', true)
+        ->where('gravacao.config.comissionado.tipo', 'cmsn_agnt')
+        ->where('gravacao.config.comissionado.obrigatorio', true)
+        ->where('gravacao.config.prazoObrigatorio', true)
+        ->where('gravacao.config.somaNaLinha', true)
+        ->where('gravacao.config.descontoPadrao', fn ($v) => (float) $v === 2.5)
+        ->where('gravacao.config.arredondamento', fn ($v) => (float) $v === 0.5)
+        ->has('gravacao.prazo'));
+
+    // Flag desligada: nada de config (a cena não consulta tabela de negócio).
+    config(['feature-flags.forced_on' => '']);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->missing('gravacao'));
+});
