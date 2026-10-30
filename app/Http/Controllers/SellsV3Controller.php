@@ -60,6 +60,8 @@ class SellsV3Controller extends Controller
             $props['cena']['catalogo'] = [];
             $props['cena']['cliente']['nome'] = $gravacao['clienteNome'];
             $props['cena']['clientes'] = [$props['cena']['cliente']];
+            // A permissão de preço da cena (sempre true) dá lugar à do usuário (UC-V384).
+            $props['cena']['permissoes']['editarPrecoItem'] = $gravacao['permissoes']['editarPreco'];
         }
 
         return Inertia::render('Sells/CreateV3', $props);
@@ -73,10 +75,16 @@ class SellsV3Controller extends Controller
      * `forDropdown` (que respeita os locais permitidos ao usuário) e o cliente de
      * `getWalkInCustomer`; ambos filtram por business_id (ADR 0093).
      *
-     * @return array{locationId:int, contactId:int, clienteNome:string}|null
+     * As permissões são as da venda direta no Blade (`SellController`, tela de venda):
+     * `edit_product_*_from_sale_screen` e o teto `users.max_sales_discount_percent`, o
+     * mesmo que o Create.tsx lê. A trava é na tela — o store de /pos não as confere,
+     * nem para o Create (medido em 2026-10-30).
+     *
+     * @return array{locationId:int, contactId:int, clienteNome:string, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null}}|null
      */
     private function dadosDeGravacao(int $businessId): ?array
     {
+        $user = auth()->user();
         $locationId = collect(BusinessLocation::forDropdown($businessId))->keys()->first();
         $cliente = app(ContactUtil::class)->getWalkInCustomer($businessId);
         if (empty($locationId) || empty($cliente['id'])) {
@@ -87,6 +95,11 @@ class SellsV3Controller extends Controller
             'locationId' => (int) $locationId,
             'contactId' => (int) $cliente['id'],
             'clienteNome' => (string) ($cliente['name'] ?? 'Consumidor final'),
+            'permissoes' => [
+                'editarPreco' => (bool) $user->can('edit_product_price_from_sale_screen'),
+                'editarDesconto' => (bool) $user->can('edit_product_discount_from_sale_screen'),
+                'descontoMaximo' => $user->max_sales_discount_percent !== null ? (float) $user->max_sales_discount_percent : null,
+            ],
         ];
     }
 

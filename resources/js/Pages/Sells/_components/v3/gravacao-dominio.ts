@@ -39,7 +39,24 @@ export type VendaParaGravar = {
   acr: string;
   frete: string;
   pagamentos: { m: string; v: string }[];
+  /** Teto de desconto da venda do usuário (`users.max_sales_discount_percent`); null = sem teto. */
+  descontoMaximo?: number | null;
 };
+
+/**
+ * Desconto da venda acima do teto do usuário — a regra do `validateDiscount` do Create.tsx:
+ * em % compara direto; em R$ compara com teto% do subtotal dos produtos. Teto nulo ou 0 = livre.
+ * Devolve o texto do aviso, ou null quando está dentro.
+ */
+export function descontoAcimaDoTeto(v: Pick<VendaParaGravar, 'itens' | 'descTipo' | 'descVal' | 'descontoMaximo'>): string | null {
+  const teto = v.descontoMaximo ?? null;
+  if (teto === null || teto <= 0) return null;
+  const valor = parseBR(v.descVal);
+  const tetoBR = String(teto).replace('.', ',');
+  if (v.descTipo === 'percentual') return valor > teto ? `Desconto acima do seu teto de ${tetoBR}%.` : null;
+  const subtotal = v.itens.reduce((s, l) => s + linhaCreate(parseBR(l.qtd), parseBR(l.preco), parseBR(l.desc)), 0);
+  return valor > (subtotal * teto) / 100 ? `Desconto acima do seu teto de ${tetoBR}% do subtotal.` : null;
+}
 
 /** Rótulo da tela → chave de `Util::payment_types`. Só o que é à vista sem integração. */
 export const METODO_DO_PAGAMENTO: Record<string, string> = {
@@ -72,6 +89,8 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
   if (v.itens.some((l) => parseBR(l.acr || '0') !== 0) || parseBR(v.acr) !== 0) {
     return { ok: false, motivo: 'Acréscimo ainda não é gravado — zere o acréscimo para salvar.' };
   }
+  const acimaDoTeto = descontoAcimaDoTeto(v);
+  if (acimaDoTeto) return { ok: false, motivo: acimaDoTeto };
   const metodoDesconhecido = v.pagamentos.find((p) => !METODO_DO_PAGAMENTO[p.m]);
   if (metodoDesconhecido) {
     return { ok: false, motivo: `${metodoDesconhecido.m} ainda não é gravado — use Dinheiro ou Cartão.` };

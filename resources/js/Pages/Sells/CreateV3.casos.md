@@ -150,11 +150,38 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 - **Dado** a flag desligada, **então** a tela é o preview de sempre: sem a prop `gravacao`.
 - **Dado** a flag ligada, **então** vêm `gravacao.locationId` (de `BusinessLocation::forDropdown`, que respeita os locais permitidos) e `gravacao.contactId` (o cliente padrão da empresa), os dois do mesmo `business_id` da sessão; os itens e o catálogo de cena somem e a busca passa a ser `/products/list`.
 
+## UC-V383 · O desconto da venda respeita o teto do usuário
+
+**Status:** 🧪 — `tests/js/gravacao-dominio.test.ts`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e um usuário com `max_sales_discount_percent` preenchido,
+- **Quando** o desconto da venda passa do teto (em %, direto; em R$, contra o teto % do subtotal — a regra do `validateDiscount` do Create),
+- **Então** a tela avisa no lugar da "alçada de 10%" de cena e **Gravar venda** recusa com o motivo. Teto vazio ou 0 não limita, como no Create.
+
+## UC-V384 · Preço e desconto da linha só se editam com a permissão do usuário
+
+**Status:** 🧪 — `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Então** `gravacao.permissoes` traz `edit_product_price_from_sale_screen`, `edit_product_discount_from_sale_screen` e o teto do usuário, e a permissão de preço da cena (sempre liberada) passa a ser a dele: sem a permissão, preço e desconto ficam só de leitura no grid e no lançamento.
+
+⚠️ Medido em 2026-10-30: a trava é **na tela**, como no Blade. O store de `/pos` não confere essas permissões, e o `Sells/Create.tsx` de venda direta nem as lê (`SellController` manda `editPrice`/`editDiscount` = `true` fixos). Travar no servidor mexe no store da ROTA LIVRE — decisão [W].
+
+## UC-V385 · Sem local permitido, a tela não grava
+
+**Status:** 🧪 — mesmo arquivo de teste, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e um usuário sem `access_all_locations` e sem `location.{id}`,
+- **Então** a prop `gravacao` não vem e a tela segue preview: `BusinessLocation::forDropdown` só lista os locais permitidos, e sem local não há onde gravar.
+
+Ainda no grupo de permissões, gravando a consulta de clientes some: a lista dela é de cena, e trocar o cliente ali mostraria um cliente e gravaria outro (a venda vai para o cliente padrão). A troca real de cliente é o grupo 3.
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, pipeline FSM real, venda de reparo, orçamento/rascunho, parcelas, comissão, entrega,
-imposto do pedido, acréscimo, PIX/boleto/TEF, tabela de preço, troca de cliente e local, permissões
-Spatie e `pos_settings` — a lista completa segue em "Paridade para substituir Create e Edit".
+imposto do pedido, acréscimo, PIX/boleto/TEF, tabela de preço (e `selling_price_group.{id}` /
+`access_default_selling_price`), troca de cliente e local, `customer.create`, `edit_invoice_number`,
+`sell.payments`, `print_invoice` e `pos_settings` — a lista completa segue em "Paridade para substituir Create e Edit".
 
 ---
 

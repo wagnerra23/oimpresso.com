@@ -101,3 +101,29 @@ describe('UC-V381 · o que o store não sabe gravar é recusado, não descartado
     expect(r.ok && r.payload.payment).toEqual([{ amount: 0, method: 'cash', paid_on: '', account_id: null, note: '' }]);
   });
 });
+
+describe('UC-V383 · o desconto da venda respeita o teto do usuário', () => {
+  // Regra do validateDiscount do Create.tsx: % compara direto; R$ compara com teto% do subtotal.
+  // Subtotal da fixture: 53,73 + 100,00 = 153,73. Teto 3% de 153,73 = 4,6119.
+  it('UC-V383 · desconto fixo de 5,00 passa do teto de 3% (4,61) e recusa', () => {
+    const r = montarPayloadVenda({ ...fixture.entrada, descontoMaximo: 3 });
+    expect(r).toEqual({ ok: false, motivo: 'Desconto acima do seu teto de 3% do subtotal.' });
+  });
+
+  it('UC-V383 · com teto de 4% (6,15) o mesmo desconto de 5,00 grava', () => {
+    expect(montarPayloadVenda({ ...fixture.entrada, descontoMaximo: 4 }).ok).toBe(true);
+  });
+
+  it('UC-V383 · em %, 8% passa do teto de 7,5% e 7,5% não passa', () => {
+    const acima = montarPayloadVenda({ ...fixture.entrada, descTipo: 'percentual', descVal: '8', descontoMaximo: 7.5 });
+    const noTeto = montarPayloadVenda({ ...fixture.entrada, descTipo: 'percentual', descVal: '7,5', descontoMaximo: 7.5 });
+    expect(acima).toEqual({ ok: false, motivo: 'Desconto acima do seu teto de 7,5%.' });
+    expect(noTeto.ok).toBe(true);
+  });
+
+  it('UC-V383 · teto nulo ou zero não limita (como o Create)', () => {
+    const grande = { ...fixture.entrada, descTipo: 'percentual' as const, descVal: '90', pagamentos: [] };
+    expect(montarPayloadVenda({ ...grande, descontoMaximo: null }).ok).toBe(true);
+    expect(montarPayloadVenda({ ...grande, descontoMaximo: 0 }).ok).toBe(true);
+  });
+});

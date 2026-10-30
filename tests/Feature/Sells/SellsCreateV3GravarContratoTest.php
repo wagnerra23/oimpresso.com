@@ -234,3 +234,64 @@ it('UC-V382 · com a flag desligada a tela segue preview; ligada, entrega o loca
     expect((int) DB::table('business_locations')->where('id', $props['gravacao']['locationId'])->value('business_id'))->toBe($this->bizId);
     expect((int) DB::table('contacts')->where('id', $props['gravacao']['contactId'])->value('business_id'))->toBe($this->bizId);
 });
+
+/** Liga a gravação e garante o cliente padrão do tenant 98 (getWalkInCustomer). */
+function v3gravarLigar(object $test): void
+{
+    if (! DB::table('contacts')->where('business_id', $test->bizId)->where('is_default', 1)->whereIn('type', ['customer', 'both'])->exists()) {
+        DB::table('contacts')->where('id', $test->contactId)->update(['is_default' => 1, 'type' => 'customer']);
+    }
+    config(['feature-flags.forced_on' => 'useV3SellsGravar']);
+}
+
+function v3gravarPermitir(User $user, array $nomes): void
+{
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    foreach ($nomes as $nome) {
+        Permission::findOrCreate($nome, 'web');
+        $user->givePermissionTo($nome);
+    }
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+}
+
+it('UC-V384 · gravando, preço, desconto da linha e teto de desconto vêm do usuário, não da cena', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+    DB::table('users')->where('id', $this->user->id)->update(['max_sales_discount_percent' => 5]);
+    $this->user->refresh();
+    $this->actingAs($this->user);
+
+    // Sem as duas permissões: preço e desconto travados, teto 5%. A cena dizia editarPrecoItem=true.
+    expect($this->user->can('edit_product_price_from_sale_screen'))->toBeFalse();
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page
+        ->where('gravacao.permissoes.editarPreco', false)
+        ->where('gravacao.permissoes.editarDesconto', false)
+        ->where('gravacao.permissoes.descontoMaximo', fn ($v) => (float) $v === 5.0)
+        ->where('cena.permissoes.editarPrecoItem', false));
+
+    // Com as permissões e sem teto: tudo liberado.
+    v3gravarPermitir($this->user, ['edit_product_price_from_sale_screen', 'edit_product_discount_from_sale_screen']);
+    DB::table('users')->where('id', $this->user->id)->update(['max_sales_discount_percent' => null]);
+    $this->user->refresh();
+    $this->actingAs($this->user);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page
+        ->where('gravacao.permissoes.editarPreco', true)
+        ->where('gravacao.permissoes.editarDesconto', true)
+        ->where('gravacao.permissoes.descontoMaximo', null)
+        ->where('cena.permissoes.editarPrecoItem', true));
+});
+
+it('UC-V385 · gravando, usuário sem nenhum local permitido não recebe a gravação (a tela segue preview)', function () {
+    v3gravarLigar($this);
+    // Controle positivo: com todos os locais a gravação nasce.
+    v3gravarPermitir($this->user, ['access_all_locations']);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->has('gravacao.locationId'));
+
+    // Sem access_all_locations e sem location.{id}: forDropdown volta vazio e não há onde gravar.
+    $this->user->revokePermissionTo('access_all_locations');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    $this->user->refresh();
+    $this->actingAs($this->user);
+    expect($this->user->permitted_locations($this->bizId))->not->toBe('all');
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->missing('gravacao'));
+});
