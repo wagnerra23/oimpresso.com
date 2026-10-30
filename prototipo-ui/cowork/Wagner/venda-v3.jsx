@@ -352,10 +352,22 @@ window.SD = (() => {
   ];
   const setores = ['Criação', 'Impressão', 'Acabamento', 'Usinagem', 'Expedição', 'Balcão', 'Instalação'];
   const locaisEstoque = ['Depósito · bobinas', 'Pátio · chapas', 'Almoxarifado · insumos', 'Loja · balcão'];
+  /* Locais de venda do business (business_locations, `location_id` da Blade): a venda baixa
+     estoque e numera a fatura pelo local escolhido. */
+  const locaisVenda = [{ id: 1, nome: 'Matriz · Joinville' }, { id: 2, nome: 'Filial · Blumenau' }];
+  /* Pedidos de venda em aberto (`sales_order_ids` da Blade): vincular puxa os itens pendentes. */
+  const pedidosAbertos = [
+    { id: 'PV-2026-0112', cliente: 'Prefeitura de Joinville', itens: 3, data: '20/07/2026' },
+    { id: 'PV-2026-0118', cliente: 'Prefeitura de Joinville', itens: 1, data: '24/07/2026' },
+    { id: 'PV-2026-0121', cliente: 'Rota Livre Comércio', itens: 5, data: '25/07/2026' },
+  ];
+  /* Campos personalizados da venda (`custom_field_1..4`): o rótulo de cada um vem da
+     configuração do business (custom_labels.sell). Campo sem rótulo não aparece. */
+  const camposVenda = ['Nº do pedido de compra', 'Obra', 'Contrato', ''];
 
   const cuById = (id) => cus.find((c) => c.id === id);
   const telaByKey = (k) => telas.find((t) => t.key === k);
-  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, simularFalha, cuById, telaByKey };
+  return { telas, cus, ondas, tier0, nfr, rollout, portas, suites, personas, nonGoals, dividas, clientes, catalogo, permissoes, pessoas, pessoasDe, equipamentos, setores, locaisEstoque, vendas, fsm, acoesFsm, estagioInicial, locaisVenda, pedidosAbertos, camposVenda, simularFalha, cuById, telaByKey };
 })();
 
 /* ── sells-ui.jsx ── */
@@ -1669,6 +1681,7 @@ function EntregaFiscal({ itens, cli, frete, setFrete, freteModo, setFreteModo, o
   const [pesoBrutoM, setPesoBrutoM] = React.useState('0,000');
   const [pesoLiqM, setPesoLiqM] = React.useState('0,000');
   const [entregaOutro, setEntregaOutro] = React.useState(false);
+  const [exportacao, setExportacao] = React.useState(false);
   const [saiEm, setSaiEm] = React.useState({ orc: false, vd: true, nf: false });
   const [transp, setTransp] = React.useState(null);
   const [buscaT, setBuscaT] = React.useState('');
@@ -1791,6 +1804,13 @@ function EntregaFiscal({ itens, cli, frete, setFrete, freteModo, setFreteModo, o
           <div><Select label="Imposto do pedido" options={['ICMS 18% — exclusivo', 'ICMS 12% — exclusivo', 'Isento']} /></div>
         </Grid>
         <div style={{ marginTop: 12 }}><Textarea label="Informações complementares da NF-e" rows={2} placeholder="Pedido de compra 4471. Entregar em horário comercial." /></div>
+        {/* `is_export` da Blade: a NF-e sai com CFOP de exportação e pede país e local de embarque. */}
+        <div style={{ marginTop: 12 }}><Switch label="Venda para exportação" sublabel="NF-e com CFOP 7.xxx; o cliente fica no exterior" checked={exportacao} onChange={setExportacao} /></div>
+        {exportacao && <div style={{ marginTop: 12 }}><Grid cols={3} gap={12}>
+          <div><Input label="País de destino" placeholder="Paraguai" /></div>
+          <div><Select label="UF de embarque" options={['SC', 'PR', 'RS', 'SP']} /></div>
+          <div><Input label="Local de embarque" placeholder="Porto de Itajaí" /></div>
+        </Grid></div>}
       </div>
 
       <Modal open={consulta} onClose={() => setConsulta(false)} width={880} title="Consulta de transportadoras"
@@ -2517,6 +2537,10 @@ function Create({ onOpen, modo = 'create', registro }) {
   const [consultaCli, setConsultaCli] = React.useState(false);
   const [buscaCli, setBuscaCli] = React.useState('');
   const [destAberto, setDestAberto] = React.useState(false);
+  const [localVenda, setLocalVenda] = React.useState(window.SD.locaisVenda[0].nome);
+  const [dataVenda, setDataVenda] = React.useState(edit ? '2026-07-27' : new Date().toISOString().slice(0, 10));
+  const [pedidoVinc, setPedidoVinc] = React.useState('');
+  const [camposAbertos, setCamposAbertos] = React.useState(false);
   const [tabela, setTabela] = React.useState(null); /* null = herda do cadastro do cliente */
   const [itemAberto, setItemAberto] = React.useState(-1);
   const [abaItem, setAbaItem] = React.useState('geral'); /* aba inicial do drawer de detalhe */
@@ -2585,6 +2609,9 @@ function Create({ onOpen, modo = 'create', registro }) {
     setUndo({ msg: 'Item removido — ' + l.nome, undo: () => setItens((s) => { const c = [...s]; c.splice(pos, 0, l); return c; }) });
   };
   const travada = estagioTrava(estagio);
+  const pedidosDoCliente = window.SD.pedidosAbertos.filter((p) => p.cliente === cliente);
+  const camposDaVenda = window.SD.camposVenda.filter(Boolean);
+  React.useEffect(() => { setPedidoVinc(''); }, [cliente]);
   const atualFsm = fsmDe(estagio);
   /* Ação do botão grande: no rascunho é gravar (a etapa de destino sai do tipo de documento e
      do pagamento); depois, a primeira ação que AVANÇA a etapa e que o perfil pode executar
@@ -2696,6 +2723,37 @@ function Create({ onOpen, modo = 'create', registro }) {
           </div>
           <div style={{ marginTop: 12 }}><Button size="sm">Abrir cadastro completo</Button></div>
         </div>}
+
+        {/* Dados da venda — o que a Blade pede no topo e o protótipo não tinha: local, data,
+            pedido de venda vinculado e campos personalizados do business. */}
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+          <Grid cols={3} gap={12}>
+            <div>
+              <Select label="Local da venda" value={localVenda} onChange={(ev) => setLocalVenda(ev.target.value)} disabled={travada} options={window.SD.locaisVenda.map((l) => l.nome)} />
+              <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>o estoque sai deste local</span>
+            </div>
+            <div>
+              <Input label="Data da venda" type="date" value={dataVenda} onChange={(ev) => setDataVenda(ev.target.value)} disabled={travada} />
+              <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>{dataVenda === new Date().toISOString().slice(0, 10) ? 'hoje' : 'venda com data retroativa — fica no histórico'}</span>
+            </div>
+            <div>
+              <Select label="Pedido de venda vinculado" value={pedidoVinc} onChange={(ev) => setPedidoVinc(ev.target.value)} disabled={travada}
+                options={[{ value: '', label: pedidosDoCliente.length ? 'Nenhum' : 'Cliente sem pedido em aberto' }, ...pedidosDoCliente.map((p) => ({ value: p.id, label: p.id + ' · ' + p.data + ' · ' + (p.itens === 1 ? '1 item' : p.itens + ' itens') }))]} />
+              <span style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>{pedidoVinc ? 'os itens pendentes do pedido entram na grade' : 'só pedidos em aberto deste cliente'}</span>
+            </div>
+          </Grid>
+          {camposDaVenda.length > 0 && <>
+            <button type="button" onClick={() => setCamposAbertos(!camposAbertos)} aria-expanded={camposAbertos}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, padding: '4px 0', border: 0, background: 'transparent', cursor: 'pointer', color: 'color-mix(in oklch, var(--accent) 62%, var(--text))', font: '600 11.5px/1 var(--font-sans)' }}>
+              <Icon name="ChevronDown" size={14} style={{ transform: camposAbertos ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
+              Campos personalizados
+              <span style={{ font: '11.5px/1 var(--font-mono)', color: 'var(--text-dim)' }}>{camposDaVenda.length}</span>
+            </button>
+            {camposAbertos && <div style={{ marginTop: 8 }}><Grid cols={3} gap={12}>
+              {camposDaVenda.map((rot) => <div key={rot}><Input label={rot} disabled={travada} /></div>)}
+            </Grid></div>}
+          </>}
+        </div>
         <Meta><div style={{ marginTop: 12 }}><TierBar tone="accent">Cliente, produto e comissionista só alcançam registros do <b>business atual</b>. <code>App\Transaction</code> não tem global scope — o escopo é declarado <b>em cada query</b> (ADR 0093 · CU-SELL-15).</TierBar></div></Meta>
       </Sec>
 
