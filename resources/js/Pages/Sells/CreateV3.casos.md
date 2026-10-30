@@ -165,7 +165,7 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 - **Dado** a gravação ligada,
 - **Então** `gravacao.permissoes` traz `edit_product_price_from_sale_screen`, `edit_product_discount_from_sale_screen` e o teto do usuário, e a permissão de preço da cena (sempre liberada) passa a ser a dele: sem a permissão, preço e desconto ficam só de leitura no grid e no lançamento.
 
-⚠️ Medido em 2026-10-30: a trava é **na tela**, como no Blade. O store de `/pos` não confere essas permissões, e o `Sells/Create.tsx` de venda direta nem as lê (`SellController` manda `editPrice`/`editDiscount` = `true` fixos). Travar no servidor mexe no store da ROTA LIVRE — decisão [W].
+⚠️ Medido em 2026-10-30: a trava é **na tela**, como no Blade. O store de `/pos` não confere essas permissões, e o `Sells/Create.tsx` de venda direta nem as lê (`SellController` manda `editPrice`/`editDiscount` = `true` fixos). Travar no servidor mexeria no store da ROTA LIVRE. **Decisão [W] 2026-10-30, textual: *"Não, só na tela"*** — a trava fica na tela; não reabrir sem decisão nova.
 
 ## UC-V385 · Sem local permitido, a tela não grava
 
