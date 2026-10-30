@@ -4709,6 +4709,8 @@ class ReportController extends Controller
             ->join('products as P', 'transaction_sell_lines.product_id', '=', 'P.id')
             ->where('sale.business_id', $business_id)
             ->where('transaction_sell_lines.children_type', '!=', 'combo');
+        // P-154 — bonificação não é venda lucrativa (mesmo critério do lucro bruto do core).
+        \App\Transaction::filtrarSemBonificacao($query, 'sale.sub_type');
         //If type combo: find childrens, sale price parent - get PP of childrens
         $query->select(DB::raw('SUM(IF (TSPL.id IS NULL AND P.type="combo", ( 
             SELECT Sum((tspl2.quantity - tspl2.qty_returned) * (tsl.unit_price_inc_tax - pl2.purchase_price_inc_tax)) AS total
