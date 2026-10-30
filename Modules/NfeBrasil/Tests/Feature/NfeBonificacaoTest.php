@@ -136,7 +136,7 @@ it('UC-FNFE-57 · dupla prova no XML: mesmos itens, vProd e vNF iguais; CFOP, na
 
 it('UC-FNFE-58 · NFC-e de bonificação recusa antes de montar a nota', function () {
     $tx = (new Transaction())->forceFill([
-        'id' => 999154, 'business_id' => test()->seededTenant()->id, 'type' => 'sell',
+        'id' => 999154, 'business_id' => Tests\TestCase::SEEDED_TENANT_ID, 'type' => 'sell',
         'sub_type' => 'bonificacao', 'final_total' => 150.00,
     ]);
 
@@ -154,7 +154,7 @@ it('UC-FNFE-58 · só sub_type bonificacao é bonificação (venda comum, devolu
 it('UC-FNFE-58 · a NFC-e automática do PDV não dispara para bonificação; a venda comum segue o fluxo', function () {
     config(['nfebrasil.auto_emission_on_sell_completed' => false]);
     $venda = fn (?string $sub) => (new Transaction())->forceFill([
-        'id' => 999154, 'business_id' => test()->seededTenant()->id, 'type' => 'sell',
+        'id' => 999154, 'business_id' => Tests\TestCase::SEEDED_TENANT_ID, 'type' => 'sell',
         'status' => 'final', 'payment_status' => 'paid', 'sub_type' => $sub,
     ]);
     $msgFlag = 'NFC-e auto-emission DISABLED — listener no-op (global flag)';
