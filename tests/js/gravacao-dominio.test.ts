@@ -55,6 +55,20 @@ describe('UC-V380 · a V3 monta o payload do Create', () => {
     expect(casos[2].create).toBe(1447.46);
   });
 
+  it('UC-V380 · desconto da linha com vírgula vai cheio (3,333%), e o total usa a mesma conta da linha', () => {
+    const item = { ...fixture.entrada.itens[0], qtd: '7', preco: '12,345', desc: '3,333' };
+    const r = montarPayloadVenda({ ...fixture.entrada, itens: [item], descVal: '0,00', frete: '0,00', pagamentos: [] });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const linha = (r.payload.products as Record<string, number>[])[0];
+    // String(3.333) lido como milhar daria 3333% — a classe do num_uf. Nem isso, nem 3,33.
+    expect(linha.line_discount_amount).toBe(3.333);
+    expect(linha.unit_price).toBe(12.345);
+    // À mão: 7 × 12,345 = 86,415 − 3,333% (2,8802…) = 83,5348… → 83,53, arredondado só no fim.
+    expect(r.total).toBe(83.53);
+    expect(r.total).toBe(totalDoCreate([{ q: 7, p: 12.345, d: 3.333 }], 'fixed', 0, 0));
+  });
+
   it('UC-V380 · o total vai com no máximo 2 casas, nunca float de 5 casas (incidente num_uf)', () => {
     const r = montarPayloadVenda({ ...fixture.entrada, descTipo: 'percentual', descVal: '3', frete: '0,00' });
     expect(r.ok).toBe(true);
