@@ -431,7 +431,7 @@
     },
     {
       "screen": "Sells",
-      "note": "75 arquivo(s)",
+      "note": "80 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -719,8 +719,8 @@
   "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "a07be9a23",
-  "generatedAt": "2026-10-30T16:09:44.612Z",
+  "measuredAgainstSha": "ae4ac5a3c",
+  "generatedAt": "2026-10-31T15:29:37.920Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
