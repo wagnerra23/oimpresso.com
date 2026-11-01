@@ -1,5 +1,9 @@
 # Venda V3 — preparação da edição (onda 1)
 
+## TL;DR
+
+A V3 ganhou o carregamento e o envio preparados da edição (guards por empresa, base dos campos que o update sobrescreve, adaptador de domínio), sem tela consumindo e sem flag ligada.
+
 Em 2026-10-30, a frente de edição foi preparada em `codex/venda-v3-edicao`, worktree
 `D:/oimpresso.com/.worktrees/venda-v3-edicao`, a partir de `origin/main` `f23fe1a021`.
 O PR #10226 de cliente/comissionado estava aberto na consulta inicial; #10225 já estava no main.
