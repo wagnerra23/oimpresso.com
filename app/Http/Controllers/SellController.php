@@ -2977,50 +2977,16 @@ class SellController extends Controller
      */
     public function edit($id)
     {
-        if (! auth()->user()->can('direct_sell.update') && ! auth()->user()->can('so.update')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        //Check if the transaction can be edited or not.
-        $edit_days = request()->session()->get('business.transaction_edit_days');
-        if (! $this->transactionUtil->canBeEdited($id, $edit_days)) {
-            // Wave 1 W1-A — resposta 422 JSON se header X-Inertia (frontend trata via onError).
-            if (request()->header('X-Inertia')) {
-                return response()->json([
-                    'success' => 0,
-                    'msg' => __('messages.transaction_edit_not_allowed', ['days' => $edit_days]),
-                ], 422);
-            }
-            return back()
-                ->with('status', ['success' => 0,
-                    'msg' => __('messages.transaction_edit_not_allowed', ['days' => $edit_days]), ]);
-        }
-
-        //Check if return exist then not allowed
-        if ($this->transactionUtil->isReturnExist($id)) {
-            if (request()->header('X-Inertia')) {
-                return response()->json([
-                    'success' => 0,
-                    'msg' => __('lang_v1.return_exist'),
-                ], 422);
-            }
-            return back()->with('status', ['success' => 0,
-                'msg' => __('lang_v1.return_exist'), ]);
-        }
-
         $business_id = request()->session()->get('user.business_id');
+        $transaction = app(\App\Services\Sells\AcessoEdicaoVenda::class)->carregar(
+            (int) $id,
+            (int) $business_id,
+            request()->session()->get('business.transaction_edit_days'),
+        );
+        $transaction->load(['price_group', 'types_of_service', 'media', 'media.uploaded_by_user']);
 
         $business_details = $this->businessUtil->getDetails($business_id);
         $taxes = TaxRate::forBusinessDropdown($business_id, true, true);
-
-        $transaction = Transaction::where('business_id', $business_id)
-                            ->with(['price_group', 'types_of_service', 'media', 'media.uploaded_by_user'])
-                            ->whereIn('type', ['sell', 'sales_order'])
-                            ->findorfail($id);
-
-        if ($transaction->type == 'sales_order' && ! auth()->user()->can('so.update')) {
-            abort(403, 'Unauthorized action.');
-        }
 
         $location_id = $transaction->location_id;
         $location_printer_type = BusinessLocation::find($location_id)->receipt_printer_type;
@@ -3346,6 +3312,7 @@ class SellController extends Controller
                     // (combo/modificador) e o gap de keys faria o JSON virar OBJETO
                     // em vez de array — .map() no Edit.tsx quebraria a tela inteira.
                     'sellDetails' => $sell_details->values(),
+                    'edicaoV3' => app(\App\Services\Sells\BaseEdicaoVendaV3::class)->daVenda($transaction),
                     'taxes' => $taxes,
                     'commissionAgents' => $commission_agent,
                     'types' => $types,
@@ -3396,6 +3363,7 @@ class SellController extends Controller
                     'editPrice' => (bool) $edit_price,
                     'editDiscount' => (bool) $edit_discount,
                     'update' => true,
+                    'payments' => (bool) auth()->user()->can('sell.payments'),
                 ],
                 // US-SELL-072 — o que a nota/pagamento travam (o servidor recusa no update; a tela
                 // pode desabilitar os campos): nota, pagamento, itens_valores, cliente, motivo.

@@ -226,6 +226,7 @@ jobs:
             tests/js/sells-subtipo-venda.test.ts \
             tests/js/sells-busca-preco-grupo.test.tsx \
             tests/js/sells-reparo-venda.test.ts \
+            tests/js/edicao-dominio.test.ts \
             tests/js/gravacao-dominio.test.ts \
             tests/js/config-business-dominio.test.ts \
             tests/js/cliente-gravacao-dominio.test.ts \

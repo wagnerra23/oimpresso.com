@@ -30,7 +30,8 @@ function readEditMethod(): string
 {
     $source = file_get_contents(base_path(EDIT_CONTROLLER_PATH));
     preg_match('/public function edit\(\$id\).*?(?=public function )/s', $source, $matches);
-    return $matches[0] ?? '';
+    expect($matches[0] ?? '')->toContain('AcessoEdicaoVenda::class');
+    return ($matches[0] ?? '') . file_get_contents(base_path('app/Services/Sells/AcessoEdicaoVenda.php'));
 }
 
 it('Page Edit.tsx + Charter Edit.charter.md existem', function () {
@@ -89,7 +90,7 @@ it('Controller edit() tem branch X-Inertia render', function () {
 it('Controller edit() canBeEdited guard retorna 422 JSON quando X-Inertia (back-compat 422)', function () {
     $method = readEditMethod();
     // Tem 2 if (X-Inertia) — um pra canBeEdited, outro pra isReturnExist
-    expect($method)->toContain('response()->json([');
+    expect($method)->toContain('response()->json($status');
     expect($method)->toContain('transaction_edit_not_allowed');
     expect($method)->toContain(', 422');
 });
@@ -105,7 +106,7 @@ it('Controller edit() usa Inertia::defer pro form payload (skill inertia-defer-d
 });
 
 it('Controller edit() preserva multi-tenant Tier 0 (ADR 0093)', function () {
-    expect(readEditMethod())->toContain("where('business_id', \$business_id)");
+    expect(readEditMethod())->toContain("where('business_id', \$businessId)");
 });
 
 it('Controller edit() NÃO usa withoutGlobalScopes', function () {
