@@ -84,7 +84,9 @@ function Apontamento() {
 }
 
 function Instalacao({ onAbrir }) {
-  const D = P(); const { Button, Alert, Widget } = DS();
+  const D = P(); const { Button, Alert, Widget, Select, Input } = DS();
+  if (window.PcvEventos) window.PcvEventos.useEventos();
+  const [desp, setDesp] = useState(null); // despesa da equipe de campo (UC-PCV-52): lança, o escritório confere
   const [sel, setSel] = useState("I-118");
   const [feitos, setFeitos] = useState({ 0: true, 1: true });
   const [assinado, setAssinado] = useState(false);
@@ -116,6 +118,18 @@ function Instalacao({ onAbrir }) {
               </button></li>); })}
           </ul>
           {assinado && Alert && <Alert tone="success" title="Protocolo de instalação gerado">PDF com fotos antes/depois, checklist, horário e assinatura vai para o cliente por WhatsApp e fica na OS.</Alert>}
+          {D.despesasDe && <div className="pcv-dp-campo">
+            <span className="pcv-eyebrow">Despesas desta instalação</span>
+            {D.despesasDe(inst.os).length > 0 && <ul aria-label="Despesas lançadas nesta OS">{D.despesasDe(inst.os).map((d, i) => <li key={i}><span>{d.descricao}<small>{d.quem + " · " + d.quando}</small></span><b className="mono">{D.fmt(d.valor)}</b>{B(d.estado === "aguardando" ? ["Aguardando conferência", "warning"] : ["Conferida", "success"])}</li>)}</ul>}
+            {desp ? <div className="pcv-form">
+              {Select && <Select label="Tipo" value={desp.tipo} onChange={(e) => setDesp({ ...desp, tipo: e.target.value })} options={D.TIPOS_DESP.map((t) => ({ value: t, label: t }))} />}
+              {Input && <Input label="O que foi" value={desp.descricao} placeholder="Ex.: combustível até a obra" onChange={(e) => setDesp({ ...desp, descricao: e.target.value })} />}
+              {Input && <Input label="Valor (R$)" value={desp.valor} placeholder="0,00" inputMode="decimal" onChange={(e) => setDesp({ ...desp, valor: e.target.value })} />}
+              <label className="pcv-dp-arq">Foto do recibo<input type="file" accept="image/*" capture="environment" onChange={(e) => setDesp({ ...desp, recibo: e.target.files && e.target.files[0] ? e.target.files[0].name : "" })} /></label>
+              <p className="pcv-help">Sem a foto do recibo a despesa não é lançada. O escritório confere e decide se ela é cobrada do cliente.</p>
+              <div className="pcv-bar"><Button onClick={() => setDesp(null)}>Cancelar</Button><Button variant="primary" disabled={!desp.descricao.trim() || !desp.recibo || !(parseFloat(String(desp.valor).replace(".", "").replace(",", ".")) > 0)} onClick={() => { D.lancarDespesa(inst.os, { tipo: desp.tipo, descricao: desp.descricao.trim(), valor: parseFloat(String(desp.valor).replace(".", "").replace(",", ".")), estado: "aguardando", reembolsavel: null, recibo: desp.recibo, quem: inst.equipe[0], quando: "agora" }); setDesp(null); }}>Lançar despesa</Button></div>
+            </div> : Button && <Button onClick={() => setDesp({ tipo: D.TIPOS_DESP[0], descricao: "", valor: "", recibo: "" })}>Lançar despesa</Button>}
+          </div>}
         </div>
       </Celular>
     </div>
