@@ -228,6 +228,8 @@ jobs:
             tests/js/sells-reparo-venda.test.ts \
             tests/js/gravacao-dominio.test.ts \
             tests/js/config-business-dominio.test.ts \
+            tests/js/cliente-gravacao-dominio.test.ts \
+            tests/js/tabela-preco-dominio.test.ts \
             tests/js/fechamento-dominio.test.ts \
             --reporter=default \
             --reporter=junit \

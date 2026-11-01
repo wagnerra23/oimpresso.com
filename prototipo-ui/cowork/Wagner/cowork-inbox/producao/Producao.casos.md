@@ -58,6 +58,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-14 | Etapa opcional entra pela opção marcada no orçamento | Balcão | Roteiros → Ficha | must | 🟡 |
 | UC-PCV-15 | Custo real × esperado para o progresso, por OS | Gestor | Custo | must | ✅ |
 | UC-PCV-16 | Material empenhado × consumido, com estouro sinalizado | Gestor | Ficha · Materiais | must | ✅ |
+| UC-PCV-52 | Despesas da OS: o instalador lança com recibo, o escritório confere e decide se cobra do cliente | Instalador · Gestor | Celular · Instalação + Ficha · Custo | should | 🟡 |
 | UC-PCV-17 | Refugo com motivo entra no custo real | Operador · Gestor | Ficha · Apontamento | must | ✅ |
 | UC-PCV-53 | Inspeção da etapa e não conformidade até a ação corretiva | Qualidade · Gestor | Ficha · Painel | should | ✅ |
 | UC-PCV-18 | Perdas por motivo e por máquina | Gestor | Custo | should | ✅ |
@@ -155,6 +156,14 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-16 · Empenhado × consumido · `must` · ✅
 - **Aceite:** Dado 124 m² de lona empenhados e 133,4 m² baixados · Então o saldo mostra "estourou 9,4 m²" em vermelho · E o estouro entra no custo real e gera alerta ao PCP.
 - **Integração:** empenho nasce do orçamento aprovado e reserva estoque; baixa vem do apontamento.
+
+### UC-PCV-52 · Despesas da OS · `should` valor · 🟡
+- **Origem:** P-098, comparação com concorrentes de 2026-10-23 (Omie). Backlog em `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md`.
+- **Quem lança:** quem gasta é a equipe de campo. O instalador lança pelo celular, na tela de Instalação, com a foto do recibo obrigatória, e **não** escolhe se a despesa é cobrada do cliente — ele não sabe o que foi combinado no orçamento. Quem cuida do custo confere na ficha da OS (aba Custo) e decide; também lança o que chegou por outro caminho, já conferido.
+- **Aceite (campo):** Dado uma instalação fora da cidade · Quando o instalador lança o estacionamento pelo celular sem a foto do recibo · Então o lançamento fica bloqueado · E com a foto a despesa entra na OS como "Aguardando conferência", com o nome dele.
+- **Aceite (escritório):** Dado uma despesa aguardando conferência · Quando quem cuida do custo marca "Cobrar do cliente" ou "Só no custo" · Então ela sai de "Aguardando conferência" e soma no total escolhido · E a marcada "cobrar do cliente" vai para o faturamento da venda, separada do serviço · E a não reembolsável entra no custo real · E despesa aguardando não entra em nenhum dos dois totais.
+- **Falta (decisão [W]):** como a despesa reembolsável aparece na nota. Se entrar no total da venda, a regra A de 2026-10-21 (`Fiscal/Nfse.casos.md`) divide pelo bruto entre NF-e e NFS-e.
+- **Valor:** regra mestre. A soma dos dois totais tem de bater com a soma das despesas lançadas (dupla prova), e o antes → depois do faturamento vai ao [W] antes de ligar.
 
 ### UC-PCV-17 · Refugo com motivo · `must` valor · ✅
 - **Aceite:** Quando o operador registra refugo (etapa, motivo da lista fechada, m²) · Então o refugo entra na aba Refugo e no custo real da OS · E o motivo é obrigatório.

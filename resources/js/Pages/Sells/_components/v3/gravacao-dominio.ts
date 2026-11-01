@@ -56,6 +56,12 @@ export type VendaParaGravar = {
   prazo?: { numero: number | string | null; tipo: string | null };
   /** Configurações do business (UC-V386..V392). Ausente = regras de antes, sem config. */
   config?: ConfigVenda;
+  /** Comissionado escolhido (UC-V395); null = nenhum. */
+  comissionadoId?: number | null;
+  /** Sinal mínimo do cliente, em % ('' = sem sinal) — o Create preenche com o do cliente. */
+  sinal?: string;
+  /** Tabela de preço da venda (UC-V397): vai como `price_group`; null = preço padrão. */
+  tabelaId?: number | null;
 };
 
 /**
@@ -123,7 +129,7 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
   if (acimaDoTeto) return { ok: false, motivo: acimaDoTeto };
   if (v.config) {
     const motivo =
-      bloqueioDaConfig(v.config, v.prazo ?? { numero: null, tipo: null }) ??
+      bloqueioDaConfig(v.config, v.prazo ?? { numero: null, tipo: null }, v.comissionadoId ?? null) ??
       abaixoDoPrecoMinimo(v.config, v.itens) ??
       estoqueInsuficiente(v.config, v.itens.map((l) => ({ ...l, estoque: l.estoque ?? null })));
     if (motivo) return { ok: false, motivo };
@@ -186,10 +192,11 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
       invoice_no: '',
       pay_term_number: v.prazo?.numero ?? '',
       pay_term_type: v.prazo?.tipo || 'days',
-      sinal_minimo_pct: null,
-      commission_agent: null,
-      price_group: null,
-      default_price_group: null,
+      sinal_minimo_pct: v.sinal ? Number(v.sinal) : null,
+      commission_agent: v.comissionadoId ?? null,
+      // O Create manda o mesmo grupo nas duas chaves; o store grava em selling_price_group_id.
+      price_group: v.tabelaId ?? null,
+      default_price_group: v.tabelaId ?? null,
       tax_rate_id: null,
       vehicle_id: null,
       products,

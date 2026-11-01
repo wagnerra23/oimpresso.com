@@ -24,7 +24,7 @@
  * `Sells/Create` nem de `Sells/_components` — é o que `UC-V303` prova a cada PR.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Grid, Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
@@ -49,6 +49,7 @@ import {
   tomIcms,
   type ClienteConsulta,
 } from './cliente-consulta-dominio';
+import type { ClienteDaGravacao } from './cliente-gravacao-dominio';
 import { Lbl, Pill } from './primitivos';
 
 /* ─── cadastro mínimo ─────────────────────────────────────────────────────── */
@@ -57,10 +58,15 @@ function NovoCliente({
   aberto,
   onFechar,
   onCriar,
+  semGrupo = false,
+  erro = null,
 }: {
   aberto: boolean;
   onFechar: () => void;
   onCriar: (dados: { nome: string; doc: string; fone: string; grupo: string }) => void;
+  /** Gravando: cliente novo nasce sem tabela de preço, então o grupo de cena não aparece. */
+  semGrupo?: boolean;
+  erro?: string | null;
 }) {
   const [nome, setNome] = useState('');
   const [doc, setDoc] = useState('');
@@ -80,6 +86,11 @@ function NovoCliente({
     limpar();
     onFechar();
   };
+
+  // Fechado de fora (cadastro gravado com sucesso): o próximo abre limpo.
+  useEffect(() => {
+    if (!aberto) limpar();
+  }, [aberto]);
 
   return (
     <Dialog
@@ -119,6 +130,7 @@ function NovoCliente({
               onChange={(e) => setFone(e.target.value)}
             />
           </div>
+          {!semGrupo && (
           <div>
             <Lbl>Grupo de preço</Lbl>
             {/* `SafeSelectItem` e não `SelectItem`: opção com value vazio derruba o
@@ -136,12 +148,19 @@ function NovoCliente({
               </SelectContent>
             </Select>
           </div>
+          )}
         </Grid>
 
         <p className="text-[11.5px] leading-snug text-muted-foreground">
           Cadastro mínimo: o cliente volta <b>já selecionado</b> na venda. Sem tabela de preço no
           cadastro, vale o <b>padrão do balcão</b> — nada é reprecificado por esta escolha.
         </p>
+
+        {erro && (
+          <span role="alert" className="text-[11.5px] text-destructive-fg">
+            {erro}
+          </span>
+        )}
 
         <DialogFooter className="sm:justify-end">
           <Button type="button" variant="outline" size="sm" onClick={fechar}>
@@ -153,7 +172,8 @@ function NovoCliente({
             disabled={!podeCriar}
             onClick={() => {
               onCriar({ nome, doc, fone, grupo });
-              limpar();
+              // Gravando, o cadastro é assíncrono e pode falhar: os campos ficam até dar certo.
+              if (!semGrupo) limpar();
             }}
           >
             Criar e selecionar
@@ -172,6 +192,7 @@ export default function ConsultaCliente({
   clientes,
   selecionado,
   onEscolher,
+  remoto,
 }: {
   aberta: boolean;
   onFechar: () => void;
@@ -179,14 +200,50 @@ export default function ConsultaCliente({
   /** Código do cliente já na venda — marca a linha, não filtra. */
   selecionado: string;
   onEscolher: (cliente: ClienteConsulta) => void;
+  /**
+   * Gravando (UC-V393/V394): a lista vem de `/contacts/customers` e o cadastro mínimo é gravado
+   * de verdade. `criar` null = sem `customer.create`, e o "Novo cadastro" não aparece.
+   */
+  remoto?: {
+    buscar: (termo: string, signal: AbortSignal) => Promise<ClienteDaGravacao[]>;
+    criar: ((dados: { nome: string; doc: string; fone: string }) => Promise<ClienteDaGravacao>) | null;
+    onEscolher: (cliente: ClienteDaGravacao) => void;
+  };
 }) {
   const [busca, setBusca] = useState('');
   const [novoAberto, setNovoAberto] = useState(false);
+  const [doBanco, setDoBanco] = useState<ClienteDaGravacao[]>([]);
+  const [erroNovo, setErroNovo] = useState<string | null>(null);
 
-  const encontrados = useMemo(() => filtrarClientes(clientes, busca), [clientes, busca]);
+  const buscar = remoto?.buscar;
+  useEffect(() => {
+    if (!buscar || busca.trim().length < 2) {
+      setDoBanco([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      buscar(busca.trim(), ctrl.signal)
+        .then(setDoBanco)
+        .catch(() => {
+          /* busca cancelada ou rede fora: fica a lista anterior */
+        });
+    }, 250);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [busca, buscar]);
 
-  const escolher = (c: ClienteConsulta) => {
-    onEscolher(c);
+  const encontrados = useMemo(
+    () => (remoto ? doBanco.map((c) => c.consulta) : filtrarClientes(clientes, busca)),
+    [remoto, doBanco, clientes, busca],
+  );
+
+  const escolher = (c: ClienteConsulta, i: number) => {
+    const doCadastro = doBanco[i];
+    if (remoto && doCadastro) remoto.onEscolher(doCadastro);
+    else if (!remoto) onEscolher(c);
     setBusca('');
     onFechar();
   };
@@ -224,8 +281,8 @@ export default function ConsultaCliente({
                 </tr>
               </thead>
               <tbody>
-                {encontrados.map((c) => (
-                  <tr key={c.cod} className={selecionado === c.cod ? 'bg-primary/10' : undefined}>
+                {encontrados.map((c, i) => (
+                  <tr key={remoto ? (doBanco[i]?.id ?? c.cod) : c.cod} className={selecionado === c.cod ? 'bg-primary/10' : undefined}>
                     {/* a linha inteira é clicável, mas quem recebe o clique é um <button>
                         de verdade — div com onClick não é alcançável por teclado, e o
                         `a11y:check` reprova com razão. */}
@@ -237,7 +294,7 @@ export default function ConsultaCliente({
                       >
                         <button
                           type="button"
-                          onClick={() => escolher(c)}
+                          onClick={() => escolher(c, i)}
                           className="w-full px-3 py-2 text-left hover:bg-muted/50"
                         >
                           <span className="font-mono">{c.cod}</span>
@@ -262,7 +319,7 @@ export default function ConsultaCliente({
                     </td>
                   </tr>
                 ))}
-                {encontrados.length === 0 && (
+                {encontrados.length === 0 && (!remoto || busca.trim().length >= 2) && (
                   <tr>
                     <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
                       Nenhum cliente encontrado para “{busca}”.
@@ -281,16 +338,18 @@ export default function ConsultaCliente({
           <DialogFooter className="sm:justify-start">
             <Inline gap={2} align="center" className="w-full flex-wrap">
               <span className="text-[11.5px] text-muted-foreground">
-                {clientes.length} cadastros ativos no business atual
+                {remoto ? 'Digite 2 letras para buscar nos cadastros do business atual' : `${clientes.length} cadastros ativos no business atual`}
               </span>
               <span className="ml-auto">
                 <Inline gap={2} align="center">
                   <Button type="button" variant="outline" size="sm" onClick={onFechar}>
                     Fechar
                   </Button>
-                  <Button type="button" size="sm" onClick={() => setNovoAberto(true)}>
-                    Novo cadastro
-                  </Button>
+                  {(!remoto || remoto.criar) && (
+                    <Button type="button" size="sm" onClick={() => setNovoAberto(true)}>
+                      Novo cadastro
+                    </Button>
+                  )}
                 </Inline>
               </span>
             </Inline>
@@ -300,10 +359,30 @@ export default function ConsultaCliente({
 
       <NovoCliente
         aberto={novoAberto}
-        onFechar={() => setNovoAberto(false)}
-        onCriar={(dados) => {
+        semGrupo={!!remoto}
+        erro={erroNovo}
+        onFechar={() => {
+          setErroNovo(null);
           setNovoAberto(false);
-          escolher(criarClienteDeCadastroMinimo(dados, clientes));
+        }}
+        onCriar={(dados) => {
+          if (remoto?.criar) {
+            remoto
+              .criar(dados)
+              .then((c) => {
+                setErroNovo(null);
+                setNovoAberto(false);
+                remoto.onEscolher(c);
+                setBusca('');
+                onFechar();
+              })
+              .catch((e: Error) => setErroNovo(e.message));
+            return;
+          }
+          setNovoAberto(false);
+          onEscolher(criarClienteDeCadastroMinimo(dados, clientes));
+          setBusca('');
+          onFechar();
         }}
       />
     </>

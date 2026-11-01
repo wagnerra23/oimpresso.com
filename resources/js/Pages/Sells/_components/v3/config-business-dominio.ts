@@ -35,19 +35,23 @@ export type PrazoDoCliente = { numero: number | string | null; tipo: string | nu
  * - Comissionado obrigatório (`is_commission_agent_required`): no Blade o select só existe com
  *   `sales_cmsn_agnt` = 'user' ou 'cmsn_agnt' (sell/create.blade.php:194-200). Com
  *   'logged_in_user' o store põe o próprio usuário (SellPosController@store), então não bloqueia.
- *   A V3 ainda não escolhe comissionado (grupo 3), então com o select obrigatório ela não grava.
+ *   Com o select obrigatório, a V3 só grava com um comissionado escolhido (UC-V395).
  * - Prazo obrigatório (`is_pay_term_required`): o Blade marca `pay_term_number` e `pay_term_type`
  *   como required, preenchidos com o prazo do cliente (sell/create.blade.php:177-187).
  */
-export function bloqueioDaConfig(config: ConfigVenda, prazo: PrazoDoCliente): string | null {
-  const { tipo, obrigatorio } = config.comissionado;
-  if (obrigatorio && (tipo === 'user' || tipo === 'cmsn_agnt')) {
-    return 'Esta empresa exige comissionado na venda, e a V3 ainda não escolhe comissionado.';
+export function bloqueioDaConfig(config: ConfigVenda, prazo: PrazoDoCliente, comissionadoId: number | null = null): string | null {
+  if (temSelectDeComissionado(config) && config.comissionado.obrigatorio && !(comissionadoId && comissionadoId > 0)) {
+    return 'Esta empresa exige comissionado na venda — escolha o comissionado.';
   }
   if (config.prazoObrigatorio && (!prazoPreenchido(prazo))) {
     return 'Esta empresa exige prazo de pagamento, e o cliente da venda não tem prazo no cadastro.';
   }
   return null;
+}
+
+/** O Blade só mostra o select de comissionado com `sales_cmsn_agnt` = user ou cmsn_agnt. */
+export function temSelectDeComissionado(config: ConfigVenda): boolean {
+  return config.comissionado.tipo === 'user' || config.comissionado.tipo === 'cmsn_agnt';
 }
 
 export function prazoPreenchido(prazo: PrazoDoCliente): boolean {

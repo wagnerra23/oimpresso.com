@@ -373,3 +373,177 @@ it('UC-V392 · com amount_rounding_method = 1 a venda da fixture grava 156,00 e 
     expect($v['venda']->payment_status)->toBe('paid');
     expect($v['saldos'])->toBe([7.0, 8.0]);
 });
+
+it('UC-V393 · o cliente escolhido na consulta grava a venda com o contact_id, o prazo e o comissionado dele', function () {
+    // Um 2º cliente do MESMO tenant, com prazo — o que a consulta (/contacts/customers) traria.
+    $outro = (int) DB::table('contacts')->insertGetId([
+        'business_id' => $this->bizId, 'type' => 'customer', 'name' => 'Cliente V3 Grupo 3',
+        'contact_status' => 'active', 'mobile' => '', 'pay_term_number' => 30, 'pay_term_type' => 'days',
+        'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $montar = function (object $test, object $a, object $b) use ($outro): array {
+        $p = v3gravarPayloadV3($test, $a, $b);
+        $p['contact_id'] = $outro;
+        $p['pay_term_number'] = 30;
+        $p['pay_term_type'] = 'days';
+        $p['commission_agent'] = $test->user->id;
+
+        return $p;
+    };
+    $v = v3gravarVender($this, $montar);
+
+    expect((int) $v['venda']->contact_id)->toBe($outro);
+    expect((int) $v['venda']->pay_term_number)->toBe(30);
+    expect($v['venda']->pay_term_type)->toBe('days');
+    expect((int) $v['venda']->commission_agent)->toBe((int) $this->user->id);
+    // Trocar de cliente sem tabela não muda valor: o mesmo total do UC-V380.
+    expect((float) $v['venda']->final_total)->toBe(156.23);
+});
+
+it('UC-V393 · a busca de clientes da consulta só alcança cadastros desta empresa', function () {
+    $alheio = (int) DB::table('business')->where('id', '!=', $this->bizId)->orderBy('id')->value('id');
+    if ($alheio === 0) {
+        $this->markTestSkipped('Sem um segundo business no seed para a prova cross-tenant.');
+    }
+    $nome = 'V3Grupo3Isolamento';
+    $comum = ['type' => 'customer', 'contact_status' => 'active', 'mobile' => '', 'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now()];
+    $meu = (int) DB::table('contacts')->insertGetId(['business_id' => $this->bizId, 'name' => "$nome nosso"] + $comum);
+    $dele = (int) DB::table('contacts')->insertGetId(['business_id' => $alheio, 'name' => "$nome alheio"] + $comum);
+
+    $ids = collect($this->getJson('/contacts/customers?q='.$nome, ['X-Requested-With' => 'XMLHttpRequest'])->json())->pluck('id')->map(fn ($i) => (int) $i);
+
+    expect($ids)->toContain($meu);   // controle positivo: a busca acha
+    expect($ids)->not->toContain($dele);
+});
+
+it('UC-V394 · "Novo cliente" na consulta só vem com customer.create', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+    expect($this->user->can('customer.create'))->toBeFalse();
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.permissoes.criarCliente', false));
+
+    v3gravarPermitir($this->user, ['customer.create']);
+    $this->user->refresh();
+    $this->actingAs($this->user);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.permissoes.criarCliente', true));
+});
+
+it('UC-V395 · a lista de comissionados segue sales_cmsn_agnt e é só desta empresa', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+
+    DB::table('business')->where('id', $this->bizId)->update(['sales_cmsn_agnt' => null]);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.comissionados', []));
+
+    DB::table('business')->where('id', $this->bizId)->update(['sales_cmsn_agnt' => 'user']);
+    $doTenant = User::where('business_id', $this->bizId)->pluck('id')->map(fn ($i) => (int) $i)->all();
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.comissionados', function ($lista) use ($doTenant) {
+        $ids = collect($lista)->pluck('id')->map(fn ($i) => (int) $i);
+
+        return $ids->contains((int) $this->user->id) && $ids->diff($doTenant)->isEmpty();
+    }));
+});
+
+it('UC-V396 · a seção de pagamento só vem com sell.payments', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+    expect($this->user->can('sell.payments'))->toBeFalse();
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.permissoes.registrarPagamento', false));
+
+    v3gravarPermitir($this->user, ['sell.payments']);
+    $this->user->refresh();
+    $this->actingAs($this->user);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page->where('gravacao.permissoes.registrarPagamento', true));
+});
+
+it('UC-V397 · gravando, as tabelas de preço são só as permitidas e a inicial é a do local', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+    $novo = fn (string $nome) => (int) DB::table('selling_price_groups')->insertGetId([
+        'name' => $nome.'-'.uniqid(), 'business_id' => $this->bizId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $permitida = $novo('V3-Permitida');
+    $proibida = $novo('V3-Proibida');
+    v3gravarPermitir($this->user, ["selling_price_group.$permitida"]);
+    // O local da gravação é o primeiro permitido, como no controller (e no SellPosController@create).
+    $local = (int) collect(\App\BusinessLocation::forDropdown($this->bizId))->keys()->first();
+    DB::table('business_locations')->where('id', $local)->update(['selling_price_group_id' => $permitida]);
+    $this->user->refresh();
+    $this->actingAs($this->user);
+
+    // Sem access_default_selling_price: sem o id 0; só a permitida; a do local vem como inicial.
+    expect($this->user->can('access_default_selling_price'))->toBeFalse();
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page
+        ->where('gravacao.tabelaPadraoId', $permitida)
+        ->where('gravacao.tabelas', function ($lista) use ($permitida, $proibida) {
+            $ids = collect($lista)->pluck('id')->map(fn ($i) => (int) $i);
+
+            return $ids->contains($permitida) && ! $ids->contains($proibida) && ! $ids->contains(0);
+        }));
+
+    // Com a permissão do preço padrão: o id 0 entra. Local apontando para a proibida: sem inicial.
+    v3gravarPermitir($this->user, ['access_default_selling_price']);
+    DB::table('business_locations')->where('id', $local)->update(['selling_price_group_id' => $proibida]);
+    $this->user->refresh();
+    $this->actingAs($this->user);
+    $this->get('/sells/create-v3')->assertInertia(fn ($page) => $page
+        ->where('gravacao.tabelaPadraoId', null)
+        ->where('gravacao.tabelas', fn ($lista) => collect($lista)->pluck('id')->map(fn ($i) => (int) $i)->contains(0)));
+});
+
+it('UC-V398 · com a tabela, a busca devolve 15,00 para A e nada para B, e a venda grava 143,00 (sem tabela, 156,23)', function () {
+    // Caminho 2 da REGRA MESTRE: o preço sai do filterProduct real (o /products/list da V3) e o
+    // total do store real. O caminho 1 é tests/js/tabela-preco-dominio.test.ts (mesma conta).
+    $grupo = null;
+    $montar = function (object $test, object $a, object $b) use (&$grupo): array {
+        $va = (int) $a->variations[0]['variation_id'];
+        $vb = (int) $b->variations[0]['variation_id'];
+        DB::table('variations')->where('id', $va)->update(['sell_price_inc_tax' => 19.9]);
+        DB::table('variations')->where('id', $vb)->update(['sell_price_inc_tax' => 50]);
+        $grupo = (int) DB::table('selling_price_groups')->insertGetId([
+            'name' => 'V3-Grupo3b-'.uniqid(), 'business_id' => $test->bizId, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('variation_group_prices')->insert([
+            'variation_id' => $va, 'price_group_id' => $grupo, 'price_inc_tax' => 15, 'price_type' => 'fixed',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        // A regra do precoDaBusca sobre a linha que o /products/list devolve com price_group.
+        $preco = function (object $produto, int $variacao) use ($test, $grupo): float {
+            $nome = (string) DB::table('products')->where('id', $produto->productId)->value('name');
+            $linha = app(\App\Utils\ProductUtil::class)
+                ->filterProduct($test->bizId, $nome, null, null, $grupo, [], ['name'])
+                ->firstWhere('variation_id', $variacao);
+            expect($linha)->not->toBeNull();
+
+            return $linha->variation_group_price !== null ? (float) $linha->variation_group_price : (float) $linha->selling_price;
+        };
+        $pa = $preco($a, $va);
+        $pb = $preco($b, $vb);
+        expect([$pa, $pb])->toBe([15.0, 50.0]);
+
+        $p = v3gravarPayloadV3($test, $a, $b);
+        $p['products'][0]['unit_price'] = $pa;
+        $p['products'][0]['unit_price_inc_tax'] = $pa;
+        $p['products'][1]['unit_price'] = $pb;
+        $p['products'][1]['unit_price_inc_tax'] = $pb;
+        $p['price_group'] = $grupo;
+        $p['default_price_group'] = $grupo;
+        // Conta à mão: 3 × 15,00 − 10% = 40,50 · 2 × 50,00 = 100,00 · 140,50 − 5,00 + 7,50 = 143,00.
+        $p['final_total'] = 143;
+        $p['payment'][0]['amount'] = 143;
+
+        return $p;
+    };
+    $v = v3gravarVender($this, $montar);
+
+    expect((float) $v['venda']->final_total)->toBe(143.0);
+    expect((int) $v['venda']->selling_price_group_id)->toBe($grupo);
+    // Preço da linha antes do desconto dela: o da tabela para A, o base para B.
+    expect($v['linhas']->map(fn ($l) => (float) $l->unit_price_before_discount)->sort()->values()->all())->toBe([15.0, 50.0]);
+    expect($v['pago'])->toBe(143.0);
+    expect($v['venda']->payment_status)->toBe('paid');
+    // Estoque não muda com a tabela: as mesmas baixas do UC-V380.
+    expect($v['saldos'])->toBe([7.0, 8.0]);
+});

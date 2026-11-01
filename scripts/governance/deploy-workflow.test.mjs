@@ -17,6 +17,7 @@ export function lacunas(texto) {
     ['publicação fixa o SHA do run', /git reset --hard \$\{\{ github\.sha \}\}/],
     ['maintenance tem saída normal', /name:\s*Maintenance mode OFF[\s\S]{0,180}?php artisan up/],
     ['failsafe executa mesmo após falha', /name:\s*Failsafe[^\n]*[\s\S]{0,2200}?if:\s*always\(\)/],
+    ['sync leve leva o servidor ao SHA do run pelo script testado', /bash -s -- \$\{\{ github\.sha \}\}"\s*<\s*scripts\/deploy\/sync-leve-remoto\.sh/],
     ['smoke consulta produção por HTTP', /name:\s*Smoke test[^\n]*[\s\S]{0,500}?https:\/\/oimpresso\.com\/login/],
     ['smoke vermelho encerra com falha', /name:\s*Falha smoke[^\n]*[\s\S]{0,300}?exit 1/],
   ];
@@ -43,6 +44,9 @@ check('BITE: smoke que registra erro mas retorna verde é detectado', lacunas(sm
 
 const shaMovel = workflow.replaceAll('git reset --hard ${{ github.sha }}', 'git reset --hard origin/main');
 check('BITE: publicar tip móvel em vez do SHA medido é detectado', lacunas(shaMovel).includes('publicação fixa o SHA do run'));
+
+const syncSemScript = workflow.replace('< scripts/deploy/sync-leve-remoto.sh', '');
+check('BITE: sync leve sem o script testado é detectado', lacunas(syncSemScript).includes('sync leve leva o servidor ao SHA do run pelo script testado'));
 
 // ── Quais pushes publicam ────────────────────────────────────────────────────
 // Filtro de paths do GitHub: o ÚLTIMO padrão que casa decide; `!` exclui. `**` casa qualquer
@@ -82,5 +86,5 @@ check('BITE: sem a exceção, um merge só de casos.md volta a não publicar', !
 const ordemTrocada = ['**', '**.casos.md', ...(padroes || []).filter(p => p !== '**' && p !== '**.casos.md')];
 check('BITE: com a exceção antes do !**.md, ela não vale', !publica(ordemTrocada, 'resources/js/Pages/Fiscal/Nfse.casos.md'));
 
-console.log(fails ? `\n${fails} falha(s)` : '\nOK — contrato do deploy tem RELEASE e seis mutações que mordem.');
+console.log(fails ? `\n${fails} falha(s)` : '\nOK — contrato do deploy tem RELEASE e sete mutações que mordem.');
 process.exit(fails ? 1 : 0);

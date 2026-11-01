@@ -186,7 +186,7 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 **Status:** 🧪 — `tests/js/config-business-dominio.test.ts` (lane Sells V3 domínio), sem veredito no manifesto ainda.
 
 - **Dado** `is_commission_agent_required` com `sales_cmsn_agnt` = `user` ou `cmsn_agnt` (os dois que mostram o select no Blade, `sell/create.blade.php:194-200`),
-- **Então** a V3 não grava e diz por quê: ela ainda não escolhe comissionado (grupo 3). Com `logged_in_user` não bloqueia, porque o store põe o próprio usuário.
+- **Então** a V3 não grava sem um comissionado escolhido e diz por quê (a escolha veio no grupo 3, UC-V395). Com `logged_in_user` não bloqueia, porque o store põe o próprio usuário.
 - **Dado** `is_pay_term_required` e o cliente sem prazo (número e tipo) no cadastro,
 - **Então** não grava. Com prazo, o prazo do cliente vai no payload (`pay_term_number`/`pay_term_type`), como o Blade preenche; sem a regra, segue vazio como antes.
 
@@ -234,14 +234,71 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 - **Então** o total de 2 casas, já com desconto e frete, fecha no múltiplo mais próximo, metade para cima (`functions.js __round`, `Decimal.toNearest`), o resumo mostra a linha "Arredondamento" e o payload leva `round_off_amount` com a diferença. Sem múltiplo, o payload é o de antes, sem a chave.
 - Prova dupla: a função contra conta à mão em centavos inteiros (5.000 totais × 4 múltiplos) no vitest; e o store grava a fixture arredondada (156,23 → 156,00, `round_off_amount` −0,23) no Pest, com a mesma baixa de estoque do UC-V380.
 
-Ainda no grupo de permissões, gravando a consulta de clientes some: a lista dela é de cena, e trocar o cliente ali mostraria um cliente e gravaria outro (a venda vai para o cliente padrão). A troca real de cliente é o grupo 3.
+## UC-V393 · Gravando, a consulta escolhe o cliente de verdade e ele vai no payload
+
+**Status:** 🧪 — `tests/js/cliente-gravacao-dominio.test.ts` + `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** o operador abre a consulta e busca (2 letras ou mais),
+- **Então** a lista vem de `/contacts/customers`, o endpoint do Create, que filtra por `business_id` da sessão: cliente de outra empresa não aparece.
+- **E** o cliente escolhido vai como `contact_id`, com o prazo (`pay_term_number`/`pay_term_type`, só com tipo `days`/`months`) e o sinal (`sinal_minimo_pct`) do cadastro, como o `handleCustomerSelect` do Create. A troca entra no desfazer.
+- **Dado** um cliente com tabela de preço (própria ou do grupo), **então** a tabela dele é aplicada e as linhas são reprecificadas (UC-V399). _(No grupo 3a, até o 3b entrar, esse cliente recusava a gravação.)_
+- Cliente sem tabela não muda valor: o total gravado é o mesmo do cliente padrão (156,23 na fixture do UC-V380).
+
+Até o grupo 3, gravando, a consulta de clientes ficava escondida (a lista era de cena e a venda ia sempre para o cliente padrão).
+
+## UC-V394 · "Novo cadastro" só com `customer.create`, e grava de verdade
+
+**Status:** 🧪 — mesmos arquivos de teste, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e o usuário sem `customer.create`, **então** o botão "Novo cadastro" não aparece na consulta (o Blade mostra o + só com a permissão, `SellPosController@create`).
+- **Com** a permissão, o cadastro mínimo (nome, CPF/CNPJ, telefone) posta em `/contacts` como o `QuickAddCustomerSheet` do Create e o cliente volta já selecionado. Nasce sem prazo e sem tabela de preço; o grupo de preço de cena não aparece. Erro de validação fica no modal, com os campos preenchidos.
+
+## UC-V395 · O comissionado é escolhido e vai no payload
+
+**Status:** 🧪 — mesmos arquivos de teste, sem veredito no manifesto ainda.
+
+- **Dado** `sales_cmsn_agnt` = `user` ou `cmsn_agnt`, **então** a V3 mostra o select de comissionado com a lista do `SellPosController@create`: usuários (`User::forDropdown`) ou agentes (`User::saleCommissionAgentsDropdown`), só desta empresa. Com `logged_in_user` ou desligado não há select.
+- O escolhido vai como `commission_agent`; sem escolha vai `null`. Obrigatório sem escolha bloqueia (UC-V387).
+
+## UC-V397 · Tabelas de preço: só as permitidas, e a inicial é a do local `[V0]`
+
+**Status:** 🧪 — `tests/js/tabela-preco-dominio.test.ts` + `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada, **então** o cartão "Tabela de preço" lista `SellingPriceGroup::forDropdown` (como o `SellPosController@create`): só as tabelas com `selling_price_group.{id}`, e o preço padrão (id 0) só com `access_default_selling_price`.
+- A venda nasce com a tabela do local, se ela estiver na lista; senão, sem tabela (preço base).
+- A busca de produto leva a tabela (`price_group`) e o preço que entra é o `precoDaBusca` do Create: o preço do grupo quando a variação tem, senão o preço base. O piso do preço mínimo (UC-V390) passa a ser esse preço, como a linha do Blade.
+- A tabela vai no payload como `price_group` e `default_price_group`; o store grava em `transactions.selling_price_group_id`. O preço gravado é o de cada linha.
+
+## UC-V398 · Trocar a tabela reprecifica as linhas `[V0]`
+
+**Status:** 🧪 — mesmos arquivos de teste, sem veredito no manifesto ainda.
+
+- **Quando** a tabela muda (no cartão, no "Voltar" ou pelo cliente), **então** cada linha é buscada de novo em `/products/list` com a tabela nova e ganha o preço dela (`handlePriceGroupChange` do Create). A linha que a busca não devolve fica com o preço que tinha, e a tela avisa quantas ficaram.
+- Enquanto reprecifica, **Gravar venda** fica desabilitado ("Aplicando a tabela…").
+- Prova por dois caminhos, na venda da fixture do UC-V380 com uma tabela que dá 15,00 ao Produto A e nada ao B: à mão, 3 × 15,00 − 10% = 40,50 · 2 × 50,00 = 100,00 · 140,50 − 5,00 + frete 7,50 = **143,00** (sem tabela, 156,23). O vitest chega a 143 pela regra da tela; o Pest busca no `filterProduct` real (15,00 e 50,00) e grava 143,00 no store, com o grupo em `selling_price_group_id` e o estoque igual ao do UC-V380.
+
+## UC-V399 · Cliente com tabela aplica a dele; sem tabela mantém a atual `[V0]`
+
+**Status:** 🧪 — `tests/js/tabela-preco-dominio.test.ts`, sem veredito no manifesto ainda.
+
+- **Dado** a consulta escolhendo um cliente com tabela, **então** a tabela da venda passa a ser a dele e as linhas são reprecificadas (UC-V398). Cliente sem tabela mantém a tabela atual, como o `handleCustomerSelect` do Create. Desfazer a troca volta a tabela também.
+
+## UC-V396 · A seção de pagamento só vem com `sell.payments`
+
+**Status:** 🧪 — `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e o usuário sem `sell.payments`, **então** a V3 não mostra os meios de pagamento e grava sem pagamento (venda a prazo), como o Blade, que esconde a seção (`sell/create.blade.php:775`).
+- Com a permissão, a seção é a de sempre.
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, pipeline FSM real, venda de reparo, orçamento/rascunho, parcelas, comissão, entrega,
-imposto do pedido, acréscimo, PIX/boleto/TEF, tabela de preço (e `selling_price_group.{id}` /
-`access_default_selling_price`), troca de cliente e local, `customer.create`, `edit_invoice_number`,
-`sell.payments`, `print_invoice` e `pos_settings` — a lista completa segue em "Paridade para substituir Create e Edit".
+imposto do pedido, acréscimo, PIX/boleto/TEF, troca de local e `pos_settings` — a lista completa segue em "Paridade para substituir Create e Edit".
+
+- **[BACKLOG]** `edit_invoice_number`: a V3 não tem campo de número da nota; quando tiver, ele só aparece com a permissão (`sell/create.blade.php:238`).
+- **[BACKLOG]** `print_invoice`: a V3 não tem impressão; o store já não devolve o recibo sem a permissão (`SellPosController@store`), então gravar não vaza nada.
+- **[BACKLOG]** Endereço de entrega do cliente: o Create preenche `shipping_address` com o do cadastro ao escolher o cliente; a V3 grava `shipping_address` vazio, como antes do grupo 3.
 
 ---
 
@@ -1124,13 +1181,13 @@ a V3 passar a obedecer.
 ### Permissões (Spatie, por usuário ou papel)
 
 - **[BACKLOG]** Abrir a tela exige `sell.create`, `direct_sell.access` ou `superadmin`; pedido de venda exige `so.create`. _(o preview já exige `sell.create` ou `superadmin`)_
-- **[BACKLOG]** "Novo cliente" só aparece com `customer.create`.
+- "Novo cliente" só aparece com `customer.create` → **UC-V394**.
 - **[BACKLOG]** Preço do item só é editável com `edit_product_price_from_sale_screen` (`..._from_pos_screen` no PDV). _(o protótipo tem a chave, sem o nome real)_
 - **[BACKLOG]** Desconto da linha só é editável com `edit_product_discount_from_sale_screen`.
 - **[BACKLOG]** Número da fatura manual só com `edit_invoice_number`.
-- **[BACKLOG]** Registrar pagamento na venda exige `sell.payments`; editar pagamento do PDV, `edit_pos_payment`.
+- Registrar pagamento na venda exige `sell.payments` → **UC-V396**. **[BACKLOG]** editar pagamento do PDV, `edit_pos_payment` (edição ainda não existe na V3).
 - **[BACKLOG]** Imprimir exige `print_invoice`.
-- **[BACKLOG]** Só aparecem as **tabelas de preço** que o usuário pode usar (`selling_price_group.{id}`) e o preço padrão só com `access_default_selling_price`. `[V0]`
+- Só aparecem as **tabelas de preço** que o usuário pode usar (`selling_price_group.{id}`) e o preço padrão só com `access_default_selling_price` → **UC-V397** `[V0]`.
 - **[BACKLOG]** O **local da venda** lista só os locais permitidos ao usuário (`permitted_locations`). `[T0]` `[E0]`
 - **[BACKLOG]** Editar exige `direct_sell.update`, `sell.update` ou `so.update` (UC-SEDIT-02).
 - **[BACKLOG]** Venda de reparo exige `repair.create` / `repair.update` e o módulo Repair no pacote.
@@ -1142,7 +1199,7 @@ a V3 passar a obedecer.
 - **[BACKLOG]** **Imposto do pedido** some com `disable_order_tax`; o padrão vem de `default_sales_tax` (a V3 gravando ainda não tem imposto do pedido). O desconto padrão de `default_sales_discount` → **UC-V389**. `[V0]`
 - **Preço mínimo** (`enable_msp`) define o piso de preço, no lugar dos 85% fixos → **UC-V390**. `[V0]`
 - **Vender sem estoque** só com `allow_overselling`; sem ele a quantidade acima do estoque bloqueia → **UC-V391**. `[E0]`
-- **Comissionado** obrigatório com `is_commission_agent_required` → **UC-V387** (bloqueia a gravação). **[BACKLOG]** escolher o comissionado na tela, pelo tipo de `sales_cmsn_agnt`, fica para o grupo 3.
+- **Comissionado** obrigatório com `is_commission_agent_required` → **UC-V387** (bloqueia a gravação). Escolher o comissionado na tela, pelo tipo de `sales_cmsn_agnt` → **UC-V395**.
 - **Prazo de pagamento** obrigatório com `is_pay_term_required` → **UC-V387**.
 - **[BACKLOG]** **Profissional por item** obrigatório com `is_service_staff_required`, e na própria linha com `inline_service_staff`.
 - **[BACKLOG]** **Esquema e layout da fatura** visíveis só com `show_invoice_scheme` / `show_invoice_layout`.
