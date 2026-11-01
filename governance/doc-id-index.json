@@ -2619,6 +2619,7 @@
     "requisitos-nfe-brasil-adr-arq-0004-schema-flexivel-cbs-ibs-reforma-tributaria": "memory/requisitos/NfeBrasil/adr/arq/0004-schema-flexivel-cbs-ibs-reforma-tributaria.md",
     "requisitos-nfe-brasil-adr-arq-0005-tax-rates-core-vs-fiscal-rules": "memory/requisitos/NfeBrasil/adr/arq/0005-tax-rates-core-vs-fiscal-rules.md",
     "requisitos-nfe-brasil-adr-arq-0006-cascade-defaults-ncm-produto": "memory/requisitos/NfeBrasil/adr/arq/0006-cascade-defaults-ncm-produto.md",
+    "requisitos-nfe-brasil-adr-arq-0007-emissor-por-location-certificado-regime": "memory/requisitos/NfeBrasil/adr/arq/0007-emissor-por-location-certificado-regime.md",
     "requisitos-nfe-brasil-adr-tech-0001-numeracao-com-lock-for-update": "memory/requisitos/NfeBrasil/adr/tech/0001-numeracao-com-lockForUpdate.md",
     "requisitos-nfe-brasil-adr-tech-0002-contingencia-epec-fsda-retentativa-ordenada": "memory/requisitos/NfeBrasil/adr/tech/0002-contingencia-epec-fsda-retentativa-ordenada.md",
     "requisitos-nfe-brasil-adr-tech-0003-retencao-xml-5-anos-write-once": "memory/requisitos/NfeBrasil/adr/tech/0003-retencao-xml-5-anos-write-once.md",
@@ -4511,14 +4512,14 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4505,
-    "resolved": 3014,
+    "total": 4506,
+    "resolved": 3015,
     "unstamped": 1491,
     "collisions": 0,
     "by_source": {
       "unstamped": 1491,
       "derived-adr": 449,
-      "stamped": 1172,
+      "stamped": 1173,
       "derived-handoffs": 619,
       "derived-sessions": 774
     }
