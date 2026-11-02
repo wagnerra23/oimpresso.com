@@ -1,0 +1,32 @@
+{
+  "id": "Financeiro/Cobranca/Index",
+  "module": "Financeiro",
+  "source": "pg-cobranca-page.jsx",
+  "target": "resources/js/Pages/Financeiro/Cobranca/Index.tsx",
+  "token": "cobranca",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/cobranca.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "a74daaea99d408fd1ed80037e304f1ac255d12ee5340ac8d9c2f8c78a87d8e11",
+  "prodSha": "96f2e3ec0263586f32befde7102c7234a3db18fc93a4aa1114d2247f022b1dd7",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/financeiro/cobranca",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-11-02T07:56:21.532Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

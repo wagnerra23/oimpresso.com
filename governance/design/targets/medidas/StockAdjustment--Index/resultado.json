@@ -1,0 +1,32 @@
+{
+  "id": "StockAdjustment/Index",
+  "module": "StockAdjustment",
+  "source": "estoque-page.jsx",
+  "target": "resources/js/Pages/StockAdjustment/Index.tsx",
+  "token": "est-ajustes",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/estoque-ajustes.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "0616f3ab4e099423a3b04bde7e7176b2f639f1b78dc8482d6617bdd8b0aa2b94",
+  "prodSha": "4c9781abff6a60ba9fd041cf3ac5a498544d3b71705cdfb782ade99e0a3ac937",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/stock-adjustments",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-11-02T07:56:21.536Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

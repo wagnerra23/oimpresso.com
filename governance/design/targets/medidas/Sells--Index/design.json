@@ -1,0 +1,108 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Vendas 6 vendas hoje · R$ 9,4k faturado · 3 estouradas Buscar venda, cliente, chave SEFAZ… Nova venda CRM Oficina Vendas Caixa do dia Devoluções Comissões Relatórios PDV balcão Faturado hoje R$ 9,4k ↑ +18% vs ontem · 6 vendas Ticket médio R$ 1,6k ↑ 12% vs semana passada A receber R$ 34,8k ✕ 3 estourados ● 6 frescos 0–30d 31–60d +60d → ver estouradas PIX hoje R$ 2,9k / R$ 9,4k 30 % do faturamento — imediato Todas 6 Paga 3 Pendente 1 Faturada 2 Cancelada 0 Foco Caixa Faturamento Comissão Hoje Venda Data Cliente Atendido por Origem Pipeline Fiscal Pagamento Total Status 0 selecionadas Faturar em lote (NF-e/NFS-e) Receber pagamento em lote Exportar XML/PDF Lembrete interno ✕ Últimas vendas V-7821 · Padaria Estrela do Vale R$ 1.840,00 · PIX V-7822 · Mercado União Atacarejo R$ 3.420,00 · Boleto 30d V-7823 · Auto Posto Águia I-95 R$ 2.180,00 · Cartão Ações Nova venda Página completa de cadastro Emitir NF-e em lote Pra todas vendas selecionadas Buscar Buscar por chave SEFAZ 44 dígitos da NF-e ou NFS-e Filtrar Rejeitadas SEFAZ Saved view Navegar Ir pra Orçamentos Módulo Sells/Orçamentos Ir pra Clientes Módulo Clientes navegar abrir ID · vendedor · valor · ações fechar",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 100,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 6,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "Cliente/Index",
+  "module": "Cliente",
+  "source": "clientes-page.jsx",
+  "target": "resources/js/Pages/Cliente/Index.tsx",
+  "token": "clientes",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/cliente-index.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "c8e2274f9c837e8a1ccc034b5a590e9e7ead1407d78cfd5465a031c7d486c048",
+  "prodSha": "052ab5d600abff15c48743b566274d5ec5408a110ed8638e18eba6e005afa4a1",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/cliente",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-11-02T07:56:21.531Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

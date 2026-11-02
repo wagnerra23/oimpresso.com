@@ -1,0 +1,32 @@
+{
+  "id": "Fiscal/Nfe",
+  "module": "Fiscal",
+  "source": "fiscal-page.jsx",
+  "target": "resources/js/Pages/Fiscal/Nfe.tsx",
+  "token": "fiscal-nfe",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/fiscal-nfe.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "4c304b6a2c50a5bc64778c5f1c9da463343766804817f8d8f38f0d6e703e189f",
+  "prodSha": "659e2ac13ea96468ddfdedb21a7ac7aad369feb06175c760d1f6fb46a2be99fc",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/fiscal/nfe",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-11-02T07:56:21.533Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

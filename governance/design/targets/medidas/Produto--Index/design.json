@@ -1,0 +1,209 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Produtos 36 cadastrados · ROTA LIVRE Novo produto Todos 36 Produtos 15 Serviços 4 Matéria-prima 14 Kits 3 Inativos 1 Abaixo do mínimo 3 repor Sem saldo 1 bloqueado Sem venda 60d 1 sem giro Margem baixa 10 sob o piso Categoria Tipo Unidade Marca Disponível Margem Código ↑ 36 registros Código ↑ Produto ⇅ Tipo ⇅ Disponível ⇅ Custo ⇅ Preço de venda ⇅ Margem ⇅ Ações 1001 Cartão de visita 9x5cm milh. · Impressos 3 de 4 com saldo PROD Disponível 15400 milh. 2 locais R$ 128,00 R$ 220,00 42% 1002 Banner lona 440g m² · Comunicação Visual 4 de 4 com saldo PROD Disponível 1400 m² 2 locais R$ 21,00 R$ 38,00 45% 1003 Adesivo vinil recortado m² · Comunicação Visual 4 de 4 com saldo PROD Disponível 752 m² R$ 36,00 R$ 65,00 45% 1004 Folder A4 colorido f/v milh. · Impressos Dobra em 3 partes só na máquina da Matriz — programar com 1 dia. 3 de 3 com saldo PROD Disponível 7400 milh. R$ 292,00 R$ 480,00 39% 1005 Sacola kraft personalizada milh. · Embalagens 2 de 3 com saldo PROD Disponível 2000 milh. R$ 640,00 R$ 980,00 35% 1006 Catálogo A4 lombada quadrada unidade · Impressos Sob encomenda: lombada quadrada exige tiragem mínima de 100 un. 2 de 3 com saldo PROD Disponível 320 unidade R$ 11,50 R$ 18,00 36% 1007 Placa PVC 3mm m² · Comunicação Visual 3 de 3 com saldo PROD Disponível 50 m² 2 locais R$ 68,00 R$ 110,00 38% 1008 Cartão fidelidade milh. · Impressos 2 de 2 com saldo PROD Disponível 4800 milh. R$ 232,00 R$ 380,00 39% 1009 Tapume canteiro de obras m² · Comunicação Visual 1 de 2 com saldo PROD Disponível 180 m² R$ 52,00 R$ 78,00 33% 1010 Cardápio plastificado unidade · Impressos 2 de 2 com saldo PROD Disponível 440 unidade R$ 4,90 R$ 8,50 42% 1012 Pastilha de freio cerâmica jogo · Mecânica 2 de 2 com saldo PROD Disponível 42 jogo 2 locais R$ 78,00 R$ 145,00 46% 1013 Disco de freio ventilado un · Mecânica Par obrigatório: vender sempre em 2 un por eixo. 2 de 2 com saldo PROD Abaixo do mínimo 12 un R$ 128,00 R$ 220,00 42% 1014 Filtro de óleo un · Mecânica 2 de 2 com saldo PROD Disponível 106 un R$ 14,50 R$ 28,00 48% 1015 Bateria 60Ah selada un · Mecânica 2 de 2 com saldo PROD Disponível 20 un R$ 320,00 R$ 480,00 33% 1016 Vela ignição iridium jogo · Mecânica PROD Disponível 36 jogo R$ 96,00 R$ 180,00 47% 1017 Alinhamento de direção 4 rodas h · Serviços SERV Não estocável R$ 42,00 R$ 120,00 65% 1018 Balanceamento (4 rodas) h · Serviços SERV Não estocável R$ 28,00 R$ 80,00 65% 1019 Troca de óleo + filtro h · Serviços SERV Não estocável R$ 22,00 R$ 60,00 63% 1020 Diagnóstico c/ scanner h · Serviços SERV Não estocável R$ 30,00 R$ 90,00 67% 1021 Revisão 20.000 km · Civic un · Composições KIT Não estocável R$ 268,00 R$ 480,00 44% 1022 Kit freios dianteiro · Civic jg · Composições KIT Não estocável R$ 430,00 R$ 720,00 40% 1023 Pacote pré-viagem un · Composições KIT Não estocável R$ 208,00 R$ 380,00 45% 2001 Papel couché 300g folha · Insumos M-PRIMA Disponível 12400 folha R$ 0,42 2002 Papel couché 150g folha · Insumos M-PRIMA Disponível 18600 folha R$ 0,28 2003 Couché 250g folha · Insumos M-PRIMA Disponível 9200 folha R$ 0,36 1 – 25 de 36 · em estoque R$ 6.663.811,00 · repor R$ 1.904,00 Por página 25 50 100 « ‹ 1 / 2 › »",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 3.8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 7.6,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 29.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 3,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 18.1,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 8,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklab(0.76 -0.155885 0.09 / 0.16)",
+          "dot": true
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 9.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 11.7,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 7.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 8,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 25,
+      "linhasComEstado": 10
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

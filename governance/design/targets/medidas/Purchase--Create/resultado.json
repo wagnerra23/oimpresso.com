@@ -1,0 +1,32 @@
+{
+  "id": "Purchase/Create",
+  "module": "Purchase",
+  "source": "compras-grade-matrix.jsx",
+  "target": "resources/js/Pages/Purchase/Create.tsx",
+  "token": "cmp-grade",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/purchase-create.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "573145321349e44e4f915dddd923c74fb7c7307bbc65b66f6e3b035a2c48bee8",
+  "prodSha": "accd6833e47c085ed32d46a914d044616653af996d21f5101fa867f8f4edbf5d",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/purchases/create",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-11-02T07:56:21.535Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}
