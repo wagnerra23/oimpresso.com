@@ -2,24 +2,24 @@
 ---
 status: parcial
 cycle: CYCLE-08
-window: "2026-05-31..2026-10-30"
-generated: "2026-10-30"
+window: "2026-05-31..2026-11-02"
+generated: "2026-11-02"
 ---
 
 # Shipped log (PARCIAL) · CYCLE-08
 
 > ⚠️ **PARCIAL** — janela ainda aberta. Regenerar ao fechar o cycle.
-> **Rótulo honesto:** lista o que foi **mergeado em `main`** em `2026-05-31..2026-10-30` (BRT). Merge ≠ deploy ≠ funciona em produção.
+> **Rótulo honesto:** lista o que foi **mergeado em `main`** em `2026-05-31..2026-11-02` (BRT). Merge ≠ deploy ≠ funciona em produção.
 > Fonte: REST por sub-janela de dia (sem teto da Search API) + API `/commits` pra push-direto + revert reconciliado. **Não** depende de `Refs: US-XXX`.
 > 🚀 = no ar (mergeado ≤ deploy de produção) · ⏳ = mergeado, aguardando deploy (G8, via /api/mcp/version, por data). Limite: área = scope do título (G5 paths-por-PR fora por custo).
 
 ## Contagem
 
-- **7568 PRs** mergeados em `main` · 3807 de produto · 3761 de manutenção (docs/chore/test/ci/build)
+- **7593 PRs** mergeados em `main` · 3816 de produto · 3777 de manutenção (docs/chore/test/ci/build)
 - **37 entregas push-direto** (commits sem objeto-PR — invisíveis a query de PR)
 - **5 revert reconciliado** (par riscado — entrega líquida zero)
-- **982 tocam Design System**
-- 🚀 **Deploy de produção:** `e322a8117` (2026-10-30T11:48:36-03:00) · **7568** no ar · **0** mergeados **aguardando deploy**
+- **983 tocam Design System**
+- 🚀 **Deploy de produção:** `4a06264fe` (2026-11-02T10:03:41-03:00) · **7593** no ar · **0** mergeados **aguardando deploy**
 
 ## Reconciliação — merge ≠ entrega
 
@@ -73,7 +73,7 @@ generated: "2026-10-30"
 
 ## Por área (PRs mergeados)
 
-### governance — 592 (+945 manutenção)
+### governance — 592 (+955 manutenção)
 - fix: guard automático de base STALE vs origin/main + PROTOCOL §10.4 Passo 0 (#2033) 🚀
 - feat: G4 retorno automático §10.2 — design_return_skipped + workflow pós-merge (#2064) 🚀
 - feat: governanca:scorecard — placar [CC]×Jana mecanizado (graduação de lições) (#2151) 🚀
@@ -1925,6 +1925,63 @@ generated: "2026-10-30"
 - feat: Recorrências do Financeiro na API (tela 06) [CL] (#9523) 🚀
 - feat: novo lançamento e ações do Financeiro na API (tela 06) [CL] (#9526) 🚀
 
+### prototipo — 55 (+17 manutenção)
+- fix: completa o SSOT na main (squash da #3259 entrou prematuro) (#3262) 🚀
+- fix: Fase 0.0 de sanidade de checkout + baseline Perfil (#3332) 🚀
+- feat: detectar-telas.mjs — Fase 0/0.5 vira mecanismo (gate anti-órfão) (#3350) 🚀
+- feat: máquina de âncora + import atômico (fecha incidente #7) [CL] (#3421) 🚀
+- feat: desambigua format-2 por @memcofre + wira selftests no CI (#7 follow-ups) [CL] (#3422) 🚀
+- feat: adversário permanente + fecha fail-open do hook de âncora [CL] (#3423) 🚀
+- feat: guarda de âncora vira allowlist de proveniência (mata rename-bypass) [CL] (#3424) 🚀
+- fix: guarda de âncora charter-aware (mata o backfire da allowlist) [CL] (#3425) 🚀
+- feat: W0 — prova 'região = unidade de aceite' (processo região-a-região) [CL] (#3427) 🚀
+- feat: W1 — gerar-contrato deriva contrato-região do gap.md (não no olho) [CL] (#3428) 🚀
+- feat: W2 — recortar-regiao (aceite por região, não pela tela) [CL] (#3429) 🚀
+- refactor: W3+W4 + limpa os 3 focos da auditoria [CL] (#3430) 🚀
+- fix: detecção de tela charter-first via bundle_source (mata o silêncio do A_CRIAR) (#3431) 🚀
+- fix: detecção lê visual_source + desarma a mina oficina/os (#3432) 🚀
+- refactor: _lib-charter.mjs — fonte única read/frontmatter/walk (passo 0 dente charter) (#3435) 🚀
+- feat: arma sentinela ALIAS↔charter em CI + check C fonte-única (dente nº 2) (#3436) 🚀
+- fix: protótipo em 1 lugar fixo (apaga cowork-preview antigo + reaponta âncoras + catraca) (#3520) 🚀
+- feat: SSOT cowork/ import build-only + refresh handoff ComVis (#3528) 🚀
+- feat: style-fingerprint — comparador exaustivo proto×prod (mecanismo das regras 4/5/7) [CC] (#3934) 🚀
+- fix: style-fingerprint conta linhas só do text node (falso-positivo ícone+texto) [CC] (#3937) 🚀
+- feat: fingerprint v2 — glifo-strip recupera headers do ruído SO_* (#3939) 🚀
+- feat: fingerprint furo 1 — captura divisórias/bordas (constar tudo) (#3944) 🚀
+- feat: fingerprint furo 6 — captura posição (xnorm), mata o IDENTICO mentiroso (#3948) 🚀
+- feat: fingerprint resumoCampos — a máquina nomeia o padrão dominante (#3953) 🚀
+- feat: fonte única executável do protocolo (protocolo.config.mjs) + selftest no CI [CC] (#4001) 🚀
+- fix: P34 charter fonte-unica — §14 → resources/js/Pages + IT2 charter↔.tsx (advisory) [CC] (#4005) 🚀
+- fix: PR-4 auditoria — IT5 detecta benchmark stale (não só presença) [CC] (#4018) 🚀
+- feat: jana-merge desce pro git — a fonte de design da Jana existia e não estava versionada [C] (#5572) 🚀
+- fix: portão de frescor gravava sha ABREVIADO e dava falso-vermelho [C] (#5775) 🚀
+- fix: resolveGap casava o gap do IRMÃO — exato antes de substring [C] (#5774) 🚀
+- fix: 3º consumidor do sha ficou de fora do #5775 — 8 falso-STALE em main [C] (#5794) 🚀
+- fix: design-diff morde lados trocados + painel declara que a emissão do bundle não tem dono [C] (#6490) 🚀
+- feat: design-diff-lote — sonda D1–D9 em N telas de uma vez, sob demanda [C] (#6904) 🚀
+- refactor: separar fontes por dono e remover paralelos (#7224) 🚀
+- fix: regra "só fontes" do espelho cobre os DOIS donos (via .gitignore raiz) (#7314) 🚀
+- fix: portais de CRM e Repair usam o segmented do DS [CC] (#9466) 🚀
+- feat: devolução completa e processos de OS na aba Processos [W+C] (#9498) 🚀
+- feat: indicador de cobertura no ERP na aba Processos [W+C] (#9506) 🚀
+- feat: OS por item — situação do item, motivos e OS na venda [W+C] (#9517) 🚀
+- feat: Liberar pede o responsável de cada etapa da OS [W+C] (#9530) 🚀
+- feat: Linha do tempo da Produção segue as regras de Fluxos [W+C] (#9763) 🚀
+- feat: vista Postos e cadastros da Produção, trazida da tela do main [W+C] (#9788) 🚀
+- design: protótipos de 27/10 integrados ao shell e ao sidebar (#10055) · `DS` 🚀
+- feat: OS em "Aguardando material" no protótipo da Produção (US-PCP-032) (#10107) 🚀
+- feat: Documentação › Casos de uso por tela no shell do protótipo (#10151) · `DS` 🚀
+- fix: cabeçalho "em produção" do Painel usa a mesma conta do indicador (#10116) 🚀
+- fix: carga das máquinas usa a capacidade de cada posto (D4) (#10130) 🚀
+- fix: fim do turno sai da configuração da empresa, não de "18h" fixo (#10131) 🚀
+- fix: aproveitamento de mídia mostra só o % na 1ª versão (D-ENCAIXE) (#10132) 🚀
+- fix: Liberar a OS respeita o sinal mínimo pago (US-PCP-025) (#10133) 🚀
+- feat: tarefas da OS com responsável e prazo na Produção (P-099) (#10169) 🚀
+- feat: manutenção preventiva das máquinas na Produção (#10173) 🚀
+- feat: modo terminal fixo na máquina na Produção (T1 · UC-PCV-41) (#10174) 🚀
+- feat: inspeção da etapa e não conformidade na Produção (US-PCP-033) (#10171) 🚀
+- feat: despesas da OS com recibo na Produção (P-098) (#10170) 🚀
+
 ### whatsapp — 55 (+19 manutenção)
 - fix: inbound usa hora real do evento, não now() (fuso London na fila) (#2057) 🚀
 - refactor: dedup formatBytes → re-export de @/Lib/utils (#2346) 🚀
@@ -1981,62 +2038,6 @@ generated: "2026-10-30"
 - feat: notificador reutilizável de aviso automático ao cliente [C] (#9817) 🚀
 - feat: liga o contrato AvisaClienteWhatsapp ao notificador (US-WA-319) (#9992) 🚀
 - feat: Instagram, Messenger e e-mail na mesma Caixa Unificada — recebimento (US-WA-329 fatia 1) (#9969) 🚀
-
-### prototipo — 54 (+17 manutenção)
-- fix: completa o SSOT na main (squash da #3259 entrou prematuro) (#3262) 🚀
-- fix: Fase 0.0 de sanidade de checkout + baseline Perfil (#3332) 🚀
-- feat: detectar-telas.mjs — Fase 0/0.5 vira mecanismo (gate anti-órfão) (#3350) 🚀
-- feat: máquina de âncora + import atômico (fecha incidente #7) [CL] (#3421) 🚀
-- feat: desambigua format-2 por @memcofre + wira selftests no CI (#7 follow-ups) [CL] (#3422) 🚀
-- feat: adversário permanente + fecha fail-open do hook de âncora [CL] (#3423) 🚀
-- feat: guarda de âncora vira allowlist de proveniência (mata rename-bypass) [CL] (#3424) 🚀
-- fix: guarda de âncora charter-aware (mata o backfire da allowlist) [CL] (#3425) 🚀
-- feat: W0 — prova 'região = unidade de aceite' (processo região-a-região) [CL] (#3427) 🚀
-- feat: W1 — gerar-contrato deriva contrato-região do gap.md (não no olho) [CL] (#3428) 🚀
-- feat: W2 — recortar-regiao (aceite por região, não pela tela) [CL] (#3429) 🚀
-- refactor: W3+W4 + limpa os 3 focos da auditoria [CL] (#3430) 🚀
-- fix: detecção de tela charter-first via bundle_source (mata o silêncio do A_CRIAR) (#3431) 🚀
-- fix: detecção lê visual_source + desarma a mina oficina/os (#3432) 🚀
-- refactor: _lib-charter.mjs — fonte única read/frontmatter/walk (passo 0 dente charter) (#3435) 🚀
-- feat: arma sentinela ALIAS↔charter em CI + check C fonte-única (dente nº 2) (#3436) 🚀
-- fix: protótipo em 1 lugar fixo (apaga cowork-preview antigo + reaponta âncoras + catraca) (#3520) 🚀
-- feat: SSOT cowork/ import build-only + refresh handoff ComVis (#3528) 🚀
-- feat: style-fingerprint — comparador exaustivo proto×prod (mecanismo das regras 4/5/7) [CC] (#3934) 🚀
-- fix: style-fingerprint conta linhas só do text node (falso-positivo ícone+texto) [CC] (#3937) 🚀
-- feat: fingerprint v2 — glifo-strip recupera headers do ruído SO_* (#3939) 🚀
-- feat: fingerprint furo 1 — captura divisórias/bordas (constar tudo) (#3944) 🚀
-- feat: fingerprint furo 6 — captura posição (xnorm), mata o IDENTICO mentiroso (#3948) 🚀
-- feat: fingerprint resumoCampos — a máquina nomeia o padrão dominante (#3953) 🚀
-- feat: fonte única executável do protocolo (protocolo.config.mjs) + selftest no CI [CC] (#4001) 🚀
-- fix: P34 charter fonte-unica — §14 → resources/js/Pages + IT2 charter↔.tsx (advisory) [CC] (#4005) 🚀
-- fix: PR-4 auditoria — IT5 detecta benchmark stale (não só presença) [CC] (#4018) 🚀
-- feat: jana-merge desce pro git — a fonte de design da Jana existia e não estava versionada [C] (#5572) 🚀
-- fix: portão de frescor gravava sha ABREVIADO e dava falso-vermelho [C] (#5775) 🚀
-- fix: resolveGap casava o gap do IRMÃO — exato antes de substring [C] (#5774) 🚀
-- fix: 3º consumidor do sha ficou de fora do #5775 — 8 falso-STALE em main [C] (#5794) 🚀
-- fix: design-diff morde lados trocados + painel declara que a emissão do bundle não tem dono [C] (#6490) 🚀
-- feat: design-diff-lote — sonda D1–D9 em N telas de uma vez, sob demanda [C] (#6904) 🚀
-- refactor: separar fontes por dono e remover paralelos (#7224) 🚀
-- fix: regra "só fontes" do espelho cobre os DOIS donos (via .gitignore raiz) (#7314) 🚀
-- fix: portais de CRM e Repair usam o segmented do DS [CC] (#9466) 🚀
-- feat: devolução completa e processos de OS na aba Processos [W+C] (#9498) 🚀
-- feat: indicador de cobertura no ERP na aba Processos [W+C] (#9506) 🚀
-- feat: OS por item — situação do item, motivos e OS na venda [W+C] (#9517) 🚀
-- feat: Liberar pede o responsável de cada etapa da OS [W+C] (#9530) 🚀
-- feat: Linha do tempo da Produção segue as regras de Fluxos [W+C] (#9763) 🚀
-- feat: vista Postos e cadastros da Produção, trazida da tela do main [W+C] (#9788) 🚀
-- design: protótipos de 27/10 integrados ao shell e ao sidebar (#10055) · `DS` 🚀
-- feat: OS em "Aguardando material" no protótipo da Produção (US-PCP-032) (#10107) 🚀
-- feat: Documentação › Casos de uso por tela no shell do protótipo (#10151) · `DS` 🚀
-- fix: cabeçalho "em produção" do Painel usa a mesma conta do indicador (#10116) 🚀
-- fix: carga das máquinas usa a capacidade de cada posto (D4) (#10130) 🚀
-- fix: fim do turno sai da configuração da empresa, não de "18h" fixo (#10131) 🚀
-- fix: aproveitamento de mídia mostra só o % na 1ª versão (D-ENCAIXE) (#10132) 🚀
-- fix: Liberar a OS respeita o sinal mínimo pago (US-PCP-025) (#10133) 🚀
-- feat: tarefas da OS com responsável e prazo na Produção (P-099) (#10169) 🚀
-- feat: manutenção preventiva das máquinas na Produção (#10173) 🚀
-- feat: modo terminal fixo na máquina na Produção (T1 · UC-PCV-41) (#10174) 🚀
-- feat: inspeção da etapa e não conformidade na Produção (US-PCP-033) (#10171) 🚀
 
 ### hooks — 53 (+4 manutenção)
 - feat: gatilho block-test-fora-ct100 — testes/PHPStan só no CT 100 (#2081) 🚀
@@ -2193,7 +2194,7 @@ generated: "2026-10-30"
 - fix: SPED EFD-ICMS/IPI com os 10 blocos e COD_VER do leiaute (US-FISCAL-028 fatia 1) (#9985) 🚀
 - feat: apuração do DAS pelo Anexo, só cálculo (US-FISCAL-030 fatia 1) [W+C] (#10021) 🚀
 
-### nfebrasil — 44 (+14 manutenção)
+### nfebrasil — 44 (+15 manutenção)
 - fix: reconcilia dead_tests do SPEC (refs de teste reais · ADR 0303) (#3312) 🚀
 - feat: IBS/CBS camada de cálculo no MotorTributarioService (US-FISCAL-021 PR-B) [CC] (#3771) 🚀
 - feat: feature flag reforma_tributaria_modo + seleção schema PL_010 (US-FISCAL-021 PR-C) [CC] (#3774) 🚀
@@ -2765,7 +2766,7 @@ generated: "2026-10-30"
 - feat: Configuração da empresa em React para todas as empresas [C] (#9938) 🚀
 - refactor: cutover de Locais, Impressoras e Código de barras (flag e Blade saem) (#9957) 🚀
 
-### deploy — 29 (+7 manutenção)
+### deploy — 29 (+8 manutenção)
 - fix: forçar invalidação OPcache pra novas mudanças entrarem em prod (#2288) 🚀
 - fix: remove --no-dev do dump-autoload OPcache — destrava prod (Scribe 500) (#2316) 🚀
 - fix: set -o pipefail nos comandos críticos remotos — fim do mascaramento (#2321) 🚀
@@ -3277,7 +3278,7 @@ generated: "2026-10-30"
 - fix: AdminSidebarMenu no stack da rota /suporte (sidebar vazio) [CC] (#3950) · `DS` 🚀
 - feat: tela Log de acessos do Modo Suporte — thread 02 [CL] (#8847) 🚀
 
-### casos — 12 (+16 manutenção)
+### casos — 12 (+17 manutenção)
 - feat: ancora 4 UCs de Impostos em testes vivos + fix colisao de id no meta-test (#3252) · `DS` 🚀
 - fix: UC-ids fictícios UC-ZZx nos meta-tests (anti cobertura-fantasma latente) [US-GOV-031] (#3253) · `DS` 🚀
 - fix: regex de UC em fonte unica — G-5/G-7/coletor cegos a hifen + heading-only extractor (#3254) · `DS` 🚀
@@ -3357,6 +3358,19 @@ generated: "2026-10-30"
 - fix: $queue redeclarada colide com trait Queueable e é FATAL na carga [C] (#5987) 🚀
 - feat: contrato de tela da lista de gateways [CL] (#8505) 🚀
 - feat: retorno do banco grava o pagamento da venda e libera a OS (US-PCP-025) (#9715) 🚀
+
+### sells-v3 — 11 (+3 manutenção)
+- fix: a preferência de colunas não chegava no grid [C] (#6313) 🚀
+- feat: o fechamento passa a MOSTRAR as parcelas geradas [C] (#6349) 🚀
+- feat: aba Tributação igual à âncora — acordeão, valor, DIFAL [C] (#6351) 🚀
+- feat: payload de gravação da Venda V3 no formato do Create + prova dupla (#10216) 🚀
+- feat: botão Gravar venda na V3, atrás da flag useV3SellsGravar (desligada) (#10217) 🚀
+- feat: permissões do usuário na gravação da V3 (grupo 1 da paridade) (#10223) 🚀
+- feat: configurações do business na gravação da V3 (grupo 2a, sem valor) (#10224) 🚀
+- feat: desconto, preço mínimo, estoque e arredondamento seguem a empresa (grupo 2b, [V0]) (#10225) 🚀
+- feat: cliente de verdade, novo cadastro, comissionado e sell.payments (grupo 3a) (#10226) 🚀
+- feat: tabelas de preço permitidas e reprecificação pela regra do Create (grupo 3b, [V0]) (#10228) 🚀
+- feat: carregar venda existente para edição na V3 (onda 1, flag OFF) (#10238) 🚀
 
 ### contrato-de-tela — 10 (+2 manutenção)
 - feat: catraca semântica + hardening (anti backdoor-de-prosa) + base do eixo escopo/verdict (ADR 0286 §5) (#2986) · `DS` 🚀
@@ -3809,7 +3823,7 @@ generated: "2026-10-30"
 - feat: drawer de cadastrar/editar função em React — thread sistema 02 (F3-2) [CL] (#9170) · `DS` 🚀
 - fix: índice do radio_option sem undefined (TS2538) — regressão do #9170 [CL] (#9191) 🚀
 
-### matriz — 4 (+97 manutenção)
+### matriz — 4 (+100 manutenção)
 - feat: painel do sistema gerado (system-map.mjs) — índice derivado anti-drift (#4150) 🚀
 - feat: system-map gera COMECE-AQUI.md — onboarding que não apodrece (#4169) 🚀
 - fix: system-map se mantém via auto-PR (commit-back direto era rejeitado por GH013) (#4177) 🚀
@@ -3961,11 +3975,6 @@ generated: "2026-10-30"
 - feat: lista de devoluções em React — thread 03, PR 1 de 2 [CL] (#8487) 🚀
 - feat: registro de devolução em React (SellReturn/Add) pelo mesmo store (#8634) 🚀
 - feat: botão "Devolver tudo" na devolução de venda (P-038) (#10186) 🚀
-
-### sells-v3 — 3 (+3 manutenção)
-- fix: a preferência de colunas não chegava no grid [C] (#6313) 🚀
-- feat: o fechamento passa a MOSTRAR as parcelas geradas [C] (#6349) 🚀
-- feat: aba Tributação igual à âncora — acordeão, valor, DIFAL [C] (#6351) 🚀
 
 ### voz-do-cliente — 3
 - feat: módulo Voz do Cliente — canal de sinal dentro do login [C] (#4917) 🚀
