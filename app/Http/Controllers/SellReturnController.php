@@ -355,7 +355,8 @@ class SellReturnController extends Controller
         // (SellReturn/Add); carga completa de página → Blade abaixo, intacta. A Page grava
         // pelo MESMO store() sem mudar a regra de cálculo: ela só monta o payload que o
         // form Blade monta. Casos: resources/js/Pages/SellReturn/Add.casos.md (UC-SRADD-*).
-        if (request()->header('X-Inertia')) {
+        // Virada por empresa no GET comum: flag `mwart.vendas_sell_return_add` (nasce desligada).
+        if (\App\Support\Mwart::telaReact('vendas_sell_return_add', (int) $business_id)) {
             return $this->inertiaAdd((int) $business_id, (int) $id);
         }
 

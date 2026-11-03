@@ -205,6 +205,15 @@ return [
         'business_ids' => $parseBizIds('MWART_VENDAS_SELL_RETURN_INDEX_BIZ', '1'),
     ],
 
+    // SellReturnController@add → SellReturn/Add (registro de devolução). NASCE DESLIGADA:
+    // grava valor e estoque, e o GET comum (recarregar a página, URL direta, link de tela Blade)
+    // ainda cai no Blade `sell_return.add`. Ligar por empresa é decisão [W] (MWART F5, ADR 0104).
+    // As telas React já abrem por visita Inertia, que serve o React com a flag desligada.
+    'vendas_sell_return_add' => [
+        'enabled'      => env('MWART_VENDAS_SELL_RETURN_ADD', false),
+        'business_ids' => $parseBizIds('MWART_VENDAS_SELL_RETURN_ADD_BIZ', ''),
+    ],
+
     // C1 do cutover (venda-menu/playbook/02, thread C1): Descontos, Importação e Pedido de venda
     // LIGADAS só para biz=1 — decisão [W] 2026-10-13 ("pode ligar tudo"). O default do _BIZ é '1';
     // C4 (todas as empresas) segue esperando o aviso do [W] à ROTA LIVRE. Um `.env` com
