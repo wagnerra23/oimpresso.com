@@ -255,6 +255,6 @@ it('com config cacheado (env vazio) lê a chave do config e respeita a regra por
     $service = new FeatureFlagService();
 
     expect($service->isOn('flagPorEmpresa', ['business_id' => 1]))->toBeTrue();
-    expect($service->isOn('flagPorEmpresa', ['business_id' => 4]))->toBeFalse();
+    expect($service->isOn('flagPorEmpresa', ['business_id' => 99]))->toBeFalse();
     Http::assertSent(fn ($r) => str_starts_with($r->url(), 'https://growthbook-cfg.test.local/api/features/sdk-test-fake'));
 });
