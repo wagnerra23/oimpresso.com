@@ -65,7 +65,8 @@ function vmcStubsBlade(): void
 {
     $dir = sys_get_temp_dir().'/vmc-blade-stubs';
     $views = ['sale_pos.index', 'sell.shipments', 'sell_return.index', 'discount.index',
-        'import_sales.index', 'import_sales.preview', 'sales_order.index', 'sale_pos.quotations'];
+        'import_sales.index', 'import_sales.preview', 'sales_order.index', 'sale_pos.quotations',
+        'sell_return.add'];
     foreach ($views as $view) {
         $arquivo = $dir.'/'.str_replace('.', '/', $view).'.blade.php';
         if (! is_dir(dirname($arquivo))) {
@@ -286,4 +287,37 @@ it('Q2 com X-Inertia a cotação é React mesmo com a chave desligada', function
     $res = $this->withHeaders(vmcInertiaHeaders())->get('/sells/quotations');
     $res->assertOk();
     expect(json_decode($res->getContent(), true)['component'] ?? null)->toBe('Sells/Quotations');
+});
+
+/*
+ * Registro de devolução (`/sell-return/add/{venda}` → SellReturn/Add) — virada F5 da tela que
+ * grava valor e estoque. A flag `vendas_sell_return_add` NASCE DESLIGADA (decisão [W] por
+ * empresa). Mesmas quatro situações das telas acima, numa venda real do tenant.
+ */
+it('registro de devolução: desligada no Blade, ligada para a empresa no React, outra empresa no Blade, X-Inertia no React', function () {
+    if (! Schema::hasTable('transaction_sell_lines')) {
+        $this->markTestSkipped('Schema UltimatePOS ausente — roda na lane MySQL / CT 100.');
+    }
+    $loc = \Tests\Support\EstoqueFixture::locationId($this->bizId);
+    $produto = \Tests\Support\EstoqueFixture::singleProduct($this->bizId);
+    $venda = \Tests\Support\EstoqueFixture::saleWithLine($produto, 0, $loc, 1.0, 10.0);
+    $url = "/sell-return/add/{$venda['transaction_id']}";
+    vmcFlag('vendas_sell_return_add', false, []);
+
+    // (a) desligada → Blade
+    $this->get($url)->assertOk()->assertViewIs('sell_return.add');
+
+    // (c) ligada só para outra empresa → Blade
+    vmcFlag('vendas_sell_return_add', true, [$this->outraEmpresa]);
+    $this->get($url)->assertOk()->assertViewIs('sell_return.add');
+
+    // (b) ligada para a empresa → React no GET comum
+    vmcFlag('vendas_sell_return_add', true, [$this->bizId]);
+    $this->get($url)->assertOk()->assertInertia(fn (AssertableInertia $p) => $p->component('SellReturn/Add'));
+
+    // (d) desligada + X-Inertia → React, como hoje
+    vmcFlag('vendas_sell_return_add', false, []);
+    $res = $this->withHeaders(vmcInertiaHeaders())->get($url);
+    $res->assertOk();
+    expect(json_decode($res->getContent(), true)['component'] ?? null)->toBe('SellReturn/Add');
 });
