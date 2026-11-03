@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-IMPOS-01, UC-IMPOS-02, UC-IMPOS-03, UC-IMPOS-04 (Configuracoes/Impostos/Index.casos.md).
+// Cobre UC-IMPOS-01, UC-IMPOS-02, UC-IMPOS-03, UC-IMPOS-04, UC-IMPOS-05 (Configuracoes/Impostos/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -103,4 +103,42 @@ test('UC-IMPOS-04 valor — o texto que o drawer monta volta ao banco como o mes
         $this->withHeaders($ajax)->put("/tax-rates/{$id}", ['name' => $nome.' editada', 'amount' => $texto])->assertOk();
         expect((float) DB::table('tax_rates')->where('id', $id)->value('amount'))->toBe($esperado);
     }
+});
+
+test('UC-IMPOS-05 Tier 0 e valor — o drawer de grupo reenvia os ids da tela e o servidor grava a mesma soma', function () {
+    config(['feature-flags.forced_on' => 'useV2ConfiguracoesImpostos']);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+    $this->actingAs($this->usuarioComPermissoes(['tax_rate.view', 'tax_rate.create', 'tax_rate.update'], $this->business));
+    $outro = $this->seededSupportClientTenant();
+    $pis = impContratoAliquota($this->business->id, $this->user->id, 'PIS '.uniqid(), 1.65);
+    $cofins = impContratoAliquota($this->business->id, $this->user->id, 'COFINS '.uniqid(), 7.6);
+    $iss = impContratoAliquota($this->business->id, $this->user->id, 'ISS '.uniqid(), 5);
+    $alheia = impContratoAliquota($outro->id, $this->user->id, 'Alheia '.uniqid(), 18);
+
+    // Cadastro: a tela manda name + taxes[] (ids marcados), nada de percentual.
+    $nome = 'Grupo drawer '.uniqid();
+    $r = $this->withHeaders($ajax)->post('/group-taxes', ['name' => $nome, 'taxes' => [$pis, $cofins]]);
+    expect($r->json('success'))->toBeTrue();
+    $grupo = (int) DB::table('tax_rates')->where('business_id', $this->business->id)->where('name', $nome)->value('id');
+    // Caminho 1: o banco. Caminho 2: a soma das alíquotas lidas uma a uma (é o que somaGrupo() da tela mostra).
+    $soma = (float) DB::table('tax_rates')->whereIn('id', [$pis, $cofins])->sum('amount');
+    expect((float) DB::table('tax_rates')->where('id', $grupo)->value('amount'))->toBe(9.25)->toBe($soma);
+
+    // A lista entrega os ids do grupo, e só do próprio negócio — é com eles que o drawer marca as caixas.
+    $lista = $this->withHeaders([
+        'X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia,
+        'X-Inertia-Partial-Component' => 'Configuracoes/Impostos/Index', 'X-Inertia-Partial-Data' => 'impostos',
+    ])->get('/tax-rates');
+    $ids = collect($lista->json('props.impostos.grupos'))->firstWhere('id', $grupo)['sub_ids'];
+    sort($ids);
+    expect($ids)->toBe([$pis, $cofins]);
+
+    // Edição: reenviar os ids marcados + ISS recalcula; pôr a alheia é recusado e nada anda.
+    $r = $this->withHeaders($ajax)->put("/group-taxes/{$grupo}", ['name' => $nome, 'taxes' => [...$ids, $iss]]);
+    expect($r->json('success'))->toBeTrue();
+    expect((float) DB::table('tax_rates')->where('id', $grupo)->value('amount'))->toBe(14.25);
+
+    $r = $this->withHeaders($ajax)->put("/group-taxes/{$grupo}", ['name' => $nome, 'taxes' => [$pis, $alheia]]);
+    expect($r->json('success'))->toBeFalse();
+    expect((float) DB::table('tax_rates')->where('id', $grupo)->value('amount'))->toBe(14.25);
 });

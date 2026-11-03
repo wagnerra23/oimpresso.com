@@ -110,6 +110,8 @@ class TaxRateController extends Controller
             ->orderBy('t.name')->get(['g.group_tax_id', 'g.tax_id', 't.name']);
         $emGrupo = $pivo->pluck('tax_id')->unique()->flip();
         $nomesPorGrupo = $pivo->groupBy('group_tax_id')->map(fn ($linhas) => $linhas->pluck('name')->all());
+        // Ids dos sub-impostos: o drawer de grupo marca as caixas por id (o GroupTaxController recebe `taxes[]`).
+        $idsPorGrupo = $pivo->groupBy('group_tax_id')->map(fn ($linhas) => $linhas->pluck('tax_id')->map(fn ($i) => (int) $i)->all());
 
         return [
             'aliquotas' => $todos->where('is_tax_group', 0)->values()->map(fn (TaxRate $t) => [
@@ -119,6 +121,7 @@ class TaxRateController extends Controller
             'grupos' => $todos->where('is_tax_group', 1)->values()->map(fn (TaxRate $t) => [
                 'id' => $t->id, 'nome' => $t->name, 'aliquota' => (float) $t->amount,
                 'sub_impostos' => $nomesPorGrupo->get($t->id, []),
+                'sub_ids' => $idsPorGrupo->get($t->id, []),
             ])->all(),
         ];
     }
