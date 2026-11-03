@@ -509,7 +509,8 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
 
   const [gravando, setGravando] = useState(false);
   const [erroGravar, setErroGravar] = useState<string | null>(null);
-  const gravar = () => {
+  /* `orcamento`: "Salvar como orçamento" grava pelo mesmo /pos com status de orçamento (UC-V401). */
+  const gravar = (orcamento = false) => {
     if (!gravacao) return;
     const agora = new Date();
     const dois = (n: number) => String(n).padStart(2, '0');
@@ -530,6 +531,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       comissionadoId,
       sinal: cliGravacao?.sinal ?? '',
       tabelaId,
+      orcamento,
     });
     if (!r.ok) {
       setErroGravar(r.motivo);
@@ -612,6 +614,12 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
      FORMA é a do backend de propósito: transição só por ação nomeada. */
   const executarAcao = () => {
     if (!podeExecutar || !prox) return;
+    /* Gravando, a primeira ação ("Salvar como orçamento") grava de verdade e a venda nasce no
+       estágio do InitialStageResolver (quote_sent) — o estado em memória é só da cena. */
+    if (gravacao) {
+      if (atual.key === 'rascunho') gravar(true);
+      return;
+    }
     setHistorico((h) => [...h, { acao: atual.acao ?? '—', de: atual.key, para: prox.key }]);
     setEstagio(prox.key);
   };
@@ -1324,7 +1332,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             <Button
               size="lg"
               className="w-full"
-              disabled={!itens.length || !podeExecutar || temInvalida}
+              disabled={!itens.length || !podeExecutar || temInvalida || gravando || reprecificando}
               onClick={executarAcao}
             >
               {atual.acao ?? 'Sem ação disponível'}
@@ -1350,7 +1358,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
               </div>
             )}
             {gravacao && (
-              <Button size="lg" variant="outline" className="w-full" disabled={!itens.length || temInvalida || gravando || reprecificando} onClick={gravar}>
+              <Button size="lg" variant="outline" className="w-full" disabled={!itens.length || temInvalida || gravando || reprecificando} onClick={() => gravar()}>
                 {gravando ? 'Gravando…' : reprecificando ? 'Aplicando a tabela…' : 'Gravar venda'}
               </Button>
             )}

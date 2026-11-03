@@ -509,6 +509,9 @@ class SellPosController extends Controller
 
         // P-026 — sinal mínimo da venda (vem do cliente; o vendedor pode trocar). Vazio = segue cliente/empresa.
         $request->validate(['sinal_minimo_pct' => ['nullable', 'numeric', 'min:0', 'max:100']]);
+        // Venda V3 (UC-V400): a tela marca a origem para a venda nascer no pipeline FSM. Só esse
+        // valor é aceito; sem a marca (Sells/Create, PDV, offline) nada muda.
+        $request->validate(['origem_tela' => ['nullable', 'string', 'in:'.\App\Services\Sells\IniciarPipelineVendaV3::ORIGEM]]);
 
         $is_direct_sale = false;
         if (!empty($request->input('is_direct_sale'))) {
@@ -873,6 +876,12 @@ class SellPosController extends Controller
 
                 if (!empty($transaction->sales_order_ids)) {
                     $this->transactionUtil->updateSalesOrderStatus($transaction->sales_order_ids);
+                }
+
+                // Venda V3 (UC-V400/V401): entra no pipeline FSM no estágio do InitialStageResolver,
+                // dentro da mesma transação — se o início falhar, a venda não fica gravada pela metade.
+                if ($request->input('origem_tela') === \App\Services\Sells\IniciarPipelineVendaV3::ORIGEM) {
+                    app(\App\Services\Sells\IniciarPipelineVendaV3::class)->iniciar($transaction, (int) $user_id);
                 }
 
                 $this->moduleUtil->getModuleData('after_sale_saved', ['transaction' => $transaction, 'input' => $input]);
