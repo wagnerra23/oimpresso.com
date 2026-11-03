@@ -3958,6 +3958,7 @@
     "memory/requisitos/Estoque/_telas/UI-CATALOG-stock-transfer.md",
     "memory/requisitos/Financeiro/RUNBOOK-bridge-sells-titulos-backfill.md",
     "memory/requisitos/Financeiro/RUNBOOK-cobranca.md",
+    "memory/requisitos/Financeiro/RUNBOOK-contabilidade.md",
     "memory/requisitos/Financeiro/RUNBOOK-despesas.md",
     "memory/requisitos/Financeiro/RUNBOOK-index.md",
     "memory/requisitos/Financeiro/RUNBOOK-pagamento-publico.md",
@@ -4514,12 +4515,12 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4508,
+    "total": 4509,
     "resolved": 3017,
-    "unstamped": 1491,
+    "unstamped": 1492,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1491,
+      "unstamped": 1492,
       "derived-adr": 449,
       "stamped": 1173,
       "derived-handoffs": 620,
