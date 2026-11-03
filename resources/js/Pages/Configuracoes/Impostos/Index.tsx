@@ -10,8 +10,8 @@
 // Âncora de design: prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx → Impostos()
 //
 // A alíquota entra no imposto da venda (regra mestre de valor). A tela só MOSTRA aqui; cadastrar e editar (F3-2)
-// mandam texto pt-BR e o num_uf do store/update segue único parser. Grupos são do GroupTaxController (fora do
-// prefixo da thread): a tela lista, não edita.
+// mandam texto pt-BR e o num_uf do store/update segue único parser. Grupos vão ao GroupTaxController: a tela manda
+// só os ids das alíquotas (`taxes[]`) e o servidor soma o percentual, com sub-impostos só da própria empresa.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -35,7 +35,7 @@ import { Inline, Stack } from '@/Components/layout';
 import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
 
 export interface Aliquota { id: number; nome: string; aliquota: number; so_grupo: boolean; em_grupo: boolean }
-export interface Grupo { id: number; nome: string; aliquota: number; sub_impostos: string[] }
+export interface Grupo { id: number; nome: string; aliquota: number; sub_impostos: string[]; sub_ids: number[] }
 interface Props {
   impostos?: { aliquotas: Aliquota[]; grupos: Grupo[] };
   pode: { criar: boolean; editar: boolean; excluir: boolean };
@@ -48,13 +48,18 @@ const pct = (n: number) => `${paraTexto(n)} %`;
 const paraTexto = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4, useGrouping: false });
 
 interface Edicao { id?: number; nome: string; aliquota: string; so_grupo: boolean }
+interface EdicaoGrupo { id?: number; nome: string; taxas: number[] }
+
+/** Soma que o servidor vai gravar (GroupTaxController soma `amount` das alíquotas escolhidas). Só mostra — não é enviada. */
+const somaGrupo = (aliquotas: Aliquota[], ids: number[]) =>
+  aliquotas.filter((a) => ids.includes(a.id)).reduce((t, a) => t + a.aliquota, 0);
 
 function xsrf(): string {
   return decodeURIComponent(document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)?.[1] ?? '');
 }
 
 /** store/update/destroy respondem a ajax() com `{success, msg}` — igual aos modais da Blade. */
-async function enviar(url: string, campos: Record<string, string>): Promise<{ success: boolean; msg?: string }> {
+async function enviar(url: string, campos: Record<string, string> | URLSearchParams): Promise<{ success: boolean; msg?: string }> {
   const r = await fetch(url, {
     method: 'POST',
     credentials: 'same-origin',
@@ -71,6 +76,8 @@ function ImpostosIndex({ impostos, pode, nfe_ativo }: Props) {
   const grupos = useMemo(() => impostos?.grupos ?? [], [impostos]);
   const [q, setQ] = useState('');
   const [excluir, setExcluir] = useState<Aliquota | null>(null);
+  const [excluirGrupo, setExcluirGrupo] = useState<Grupo | null>(null);
+  const [grupo, setGrupo] = useState<EdicaoGrupo | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [edicao, setEdicao] = useState<Edicao | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -102,6 +109,29 @@ function ImpostosIndex({ impostos, pode, nfe_ativo }: Props) {
     setEdicao(null);
     setAviso(r.msg ?? null);
     router.reload({ only: ['impostos'] });
+  };
+
+  const novoGrupo = () => { setErro(null); setGrupo({ nome: '', taxas: [] }); };
+  const podeSalvarGrupo = !!grupo && grupo.nome.trim() !== '' && grupo.taxas.length > 0;
+  const salvarGrupo = async () => {
+    if (!grupo || !podeSalvarGrupo) return;
+    setSalvando(true); setErro(null);
+    const campos = new URLSearchParams({ name: grupo.nome.trim() });
+    grupo.taxas.forEach((id) => campos.append('taxes[]', String(id)));
+    if (grupo.id) campos.append('_method', 'PUT');
+    const r = await enviar(grupo.id ? `/group-taxes/${grupo.id}` : '/group-taxes', campos);
+    setSalvando(false);
+    if (!r.success) { setErro(r.msg || 'Não foi possível salvar o grupo.'); return; }
+    setGrupo(null);
+    setAviso(r.msg ?? null);
+    router.reload({ only: ['impostos'] });
+  };
+  const confirmarExclusaoGrupo = async () => {
+    if (!excluirGrupo) return;
+    const r = await enviar(`/group-taxes/${excluirGrupo.id}`, { _method: 'DELETE' });
+    setExcluirGrupo(null);
+    setAviso(r.msg ?? null);
+    if (r.success) router.reload({ only: ['impostos'] });
   };
 
   const termo = q.trim().toLowerCase();
@@ -148,6 +178,20 @@ function ImpostosIndex({ impostos, pode, nfe_ativo }: Props) {
     { id: 'nome', header: 'Grupo', cell: ({ row: { original: g } }) => <span className="font-medium">{g.nome}</span> },
     { id: 'aliquota', header: 'Percentual', meta: { align: 'right', mono: true }, cell: ({ row: { original: g } }) => pct(g.aliquota) },
     { id: 'sub', header: 'Composição', cell: ({ row: { original: g } }) => <span className="text-muted-foreground">{g.sub_impostos.join(' + ') || '—'}</span> },
+    {
+      id: 'acoes', header: '', meta: { align: 'right' },
+      cell: ({ row: { original: g } }) => (pode.editar || pode.excluir) && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label={`Ações de ${g.nome}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {pode.editar && (
+              <DropdownMenuItem onSelect={() => { setErro(null); setGrupo({ id: g.id, nome: g.nome, taxas: g.sub_ids }); }}>Editar grupo</DropdownMenuItem>
+            )}
+            {pode.excluir && <DropdownMenuItem className="text-destructive" onSelect={() => setExcluirGrupo(g)}>Excluir grupo</DropdownMenuItem>}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
   ];
 
   return (
@@ -190,7 +234,10 @@ function ImpostosIndex({ impostos, pode, nfe_ativo }: Props) {
               </div>
             )}
             <Stack gap={2} data-contract="grupos-table">
-              <h2 className="m-0 text-sm font-semibold">Grupos de imposto</h2>
+              <Inline gap={2} justify="between">
+                <h2 className="m-0 text-sm font-semibold">Grupos de imposto</h2>
+                {pode.criar && aliquotas.length > 0 && <Button variant="outline" size="sm" onClick={novoGrupo}><Plus className="size-4" /> Adicionar grupo</Button>}
+              </Inline>
               {grupos.length > 0
                 ? <DataTable columns={colGrupos} data={filtrar(grupos)} caption="Grupos de imposto do negócio" rowKey={(g) => g.id} emptyMessage="Nenhum grupo com esse termo." />
                 : <p className="text-sm text-muted-foreground">Nenhum grupo. Um grupo soma alíquotas (ex.: PIS + COFINS).</p>}
@@ -232,6 +279,54 @@ function ImpostosIndex({ impostos, pode, nfe_ativo }: Props) {
           )}
         </SheetContent>
       </Sheet>
+
+      <Sheet open={!!grupo} onOpenChange={(v) => !v && setGrupo(null)}>
+        <SheetContent className="w-full overflow-y-auto p-0 sm:max-w-md">
+          <header className="os-drawer-head">
+            <div className="os-drawer-head-l">
+              <SheetTitle asChild><h2 className="m-0">{grupo?.id ? `Editar ${grupo.nome}` : 'Adicionar grupo de imposto'}</h2></SheetTitle>
+              <SheetDescription asChild><p>Combinação de taxas aplicada de uma vez.</p></SheetDescription>
+            </div>
+          </header>
+          {grupo && (
+            <Stack data-contract="grupo-form" gap={3} className="p-5 text-sm">
+              <Stack gap={1}>
+                <label htmlFor="grp-nome">Nome *</label>
+                <Input id="grp-nome" value={grupo.nome} placeholder="Ex.: PIS + COFINS" onChange={(e) => setGrupo({ ...grupo, nome: e.target.value })} />
+              </Stack>
+              <Stack gap={2} role="group" aria-labelledby="grp-taxas">
+                <span id="grp-taxas">Impostos do grupo *</span>
+                {aliquotas.map((a) => (
+                  <Inline key={a.id} gap={2}>
+                    <Checkbox id={`grp-t-${a.id}`} checked={grupo.taxas.includes(a.id)}
+                      onCheckedChange={(v) => setGrupo({ ...grupo, taxas: v === true ? [...grupo.taxas, a.id] : grupo.taxas.filter((i) => i !== a.id) })} />
+                    <label htmlFor={`grp-t-${a.id}`}>{a.nome} <span className="text-muted-foreground">({pct(a.aliquota)})</span></label>
+                  </Inline>
+                ))}
+                <span className="text-xs text-muted-foreground" data-contract="grupo-soma">
+                  Some as alíquotas das taxas escolhidas: <strong>{pct(somaGrupo(aliquotas, grupo.taxas))}</strong>
+                </span>
+              </Stack>
+              {erro && <p role="alert" className="text-destructive">{erro}</p>}
+              <Inline gap={2} justify="end" className="border-t pt-4">
+                <Button variant="ghost" onClick={() => setGrupo(null)}>Cancelar</Button>
+                <Button disabled={!podeSalvarGrupo || salvando} onClick={salvarGrupo}>{grupo.id ? 'Salvar' : 'Cadastrar'}</Button>
+              </Inline>
+            </Stack>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={!!excluirGrupo} onOpenChange={(v) => !v && setExcluirGrupo(null)}>
+        <AlertDialogContent data-contract="confirm-excluir-grupo">
+          <AlertDialogHeader><AlertDialogTitle>Excluir {excluirGrupo?.nome}?</AlertDialogTitle></AlertDialogHeader>
+          <p className="text-sm">As taxas do grupo continuam cadastradas; só a combinação desaparece.</p>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={confirmarExclusaoGrupo}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!excluir} onOpenChange={(v) => !v && setExcluir(null)}>
         <AlertDialogContent data-contract="confirm-excluir">

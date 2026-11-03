@@ -835,6 +835,34 @@ class SellReturnController extends Controller
     }
 
     /**
+     * Prévia financeira — POST /sell-return/previa-financeira/{vendaId} (UC-SRADD-09).
+     *
+     * Só leitura: recebe o mesmo `products[]`/desconto que a tela vai postar no store() e diz
+     * quanto a devolução abate do título da venda e quanto vira crédito do cliente, antes de
+     * salvar. A conta é a do servidor (App\Services\Sells\PreviaFinanceiraDevolucao), não a da
+     * tela. Mesma permissão do add(); venda de outra empresa → 404 (ADR 0093).
+     */
+    public function previaFinanceira(Request $request, int $vendaId)
+    {
+        if (! auth()->user()->can('access_sell_return') && ! auth()->user()->can('access_own_sell_return')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $r = app(\App\Services\Sells\PreviaFinanceiraDevolucao::class)->calcular(
+            (int) $request->session()->get('user.business_id'),
+            $vendaId,
+            (array) $request->input('products', []),
+            $request->input('discount_type'),
+            $request->input('discount_amount'),
+        );
+        if ($r === null) {
+            abort(404);
+        }
+
+        return response()->json($r);
+    }
+
+    /**
      * Vale-troca pela venda — POST /sell-return/vale-troca-da-venda/{vendaId}.
      *
      * A tela de registro (SellReturn/Add) salva pelo `store()`, que não devolve o id da devolução

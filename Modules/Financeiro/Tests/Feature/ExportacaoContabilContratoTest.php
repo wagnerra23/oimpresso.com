@@ -177,3 +177,75 @@ it('UC-EXPC-05: baixa de outra empresa não entra no arquivo', function () {
     expect(collect($r['lancamentos'])->pluck('documento')->all())->not->toContain('ZZ-R4')
         ->and(app(ExportacaoContabilService::class)->lancamentos($this->bizId, EXPC_MES)['lancamentos'])->toHaveCount(1);
 });
+
+// ── Tela /financeiro/exportacao-contabil (de-para + botões) ─────────────────────────────────
+
+function expcNaTela($teste)
+{
+    $user = $teste->usuarioComPermissoes(['financeiro.relatorios.view']);
+
+    return $teste->actingAs($user)->withSession(['user.business_id' => $teste->bizId, 'business.id' => $teste->bizId]);
+}
+
+it('UC-EXPC-06: a tela lista o de-para só com as origens da empresa, com o código já gravado', function () {
+    expcDepara($this->bizId, 'conta_bancaria', $this->bancoId, '5');
+    $outro = (int) DB::table('business')->where('id', '!=', $this->bizId)->value('id');
+    $planoOutro = DB::table('fin_planos_conta')->insertGetId([
+        'business_id' => $outro, 'codigo' => '9.9.31.099', 'nome' => 'ZZ EXPC outra empresa', 'tipo' => 'receita',
+        'nivel' => 4, 'natureza' => 'credito', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    expcNaTela($this)->get('/financeiro/exportacao-contabil')
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Financeiro/Contabilidade')
+            ->where('layouts', ExportacaoContabilService::LAYOUTS)
+            ->loadDeferredProps(fn (\Inertia\Testing\AssertableInertia $r) => $r->where('depara', function ($depara) use ($planoOutro) {
+                $l = collect($depara);
+                $banco = $l->first(fn ($d) => $d['origem_tipo'] === 'conta_bancaria' && $d['origem_id'] === $this->bancoId);
+                $plano = $l->first(fn ($d) => $d['origem_tipo'] === 'plano_conta' && $d['origem_id'] === $this->planoId);
+
+                return $banco !== null && $banco['codigo'] === '5'
+                    && $plano !== null && $plano['codigo'] === ''
+                    && $l->where('origem_tipo', 'juros')->count() === 1
+                    && $l->where('origem_tipo', 'desconto')->count() === 1
+                    && $l->first(fn ($d) => $d['origem_tipo'] === 'plano_conta' && $d['origem_id'] === $planoOutro) === null;
+            })));
+});
+
+it('UC-EXPC-07: salvar o de-para grava, troca e apaga (código vazio) só na empresa da sessão', function () {
+    expcDepara($this->bizId, 'conta_bancaria', $this->bancoId, '5');
+
+    expcNaTela($this)->put('/financeiro/exportacao-contabil/de-para', ['itens' => [
+        ['origem_tipo' => 'conta_bancaria', 'origem_id' => $this->bancoId, 'codigo' => ''],
+        ['origem_tipo' => 'plano_conta', 'origem_id' => $this->planoId, 'codigo' => '55'],
+        ['origem_tipo' => 'juros', 'origem_id' => 0, 'codigo' => '70'],
+    ]])->assertRedirect()->assertSessionHasNoErrors();
+
+    $grav = DB::table('fin_contabil_contas')->where('business_id', $this->bizId)
+        ->get()->mapWithKeys(fn ($r) => [$r->origem_tipo.':'.$r->origem_id => $r->codigo])->all();
+    expect($grav)->not->toHaveKey('conta_bancaria:'.$this->bancoId);
+    expect($grav['plano_conta:'.$this->planoId] ?? null)->toBe('55');
+    expect($grav['juros:0'] ?? null)->toBe('70');
+});
+
+it('UC-EXPC-08: origem de outra empresa é recusada e nada é gravado', function () {
+    $outro = (int) DB::table('business')->where('id', '!=', $this->bizId)->value('id');
+    $planoOutro = DB::table('fin_planos_conta')->insertGetId([
+        'business_id' => $outro, 'codigo' => '9.9.31.098', 'nome' => 'ZZ EXPC outra empresa', 'tipo' => 'receita',
+        'nivel' => 4, 'natureza' => 'credito', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    expcNaTela($this)->put('/financeiro/exportacao-contabil/de-para', ['itens' => [
+        ['origem_tipo' => 'plano_conta', 'origem_id' => $this->planoId, 'codigo' => '55'],
+        ['origem_tipo' => 'plano_conta', 'origem_id' => $planoOutro, 'codigo' => '66'],
+    ]])->assertSessionHasErrors('itens.1.origem_id');
+
+    expect(DB::table('fin_contabil_contas')->whereIn('origem_id', [$this->planoId, $planoOutro])->where('origem_tipo', 'plano_conta')->count())->toBe(0);
+});
+
+it('UC-EXPC-09: sem a permissão de relatórios do Financeiro a tela dá 403', function () {
+    $user = $this->usuarioComPermissoes([]);
+    $this->actingAs($user)->withSession(['user.business_id' => $this->bizId, 'business.id' => $this->bizId])
+        ->get('/financeiro/exportacao-contabil')->assertForbidden();
+});

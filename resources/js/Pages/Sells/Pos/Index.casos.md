@@ -5,8 +5,11 @@ irmaos: Index.charter.md (lei) · tests/Feature/Sells/SellsPosIndexContratoTest.
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-11-03"
 ---
+
+<!-- REVALIDAÇÃO 2026-11-03 (G-6): o .tsx mudou só no item "Devolver venda" do menu da linha, de <a> para <Link>
+     do Inertia (UC-POS-08). Nenhum outro caso desta tela foi tocado; os testes que os defendem não mudaram. -->
 
 # Casos de Uso & Aceite — Lista de POS
 
@@ -78,7 +81,7 @@ last_run: "2026-10-01"
 ---
 
 ## UC-POS-08 · "Devolver venda" leva à devolução com a venda no contexto
-- **Aceite:** Dado clique em "Devolver venda", então vou pra tela de devolução com a venda no contexto.
+- **Aceite:** Dado clique em "Devolver venda", então vou pra tela de devolução com a venda no contexto, por visita Inertia (cai no React `SellReturn/Add`; carga completa cairia no Blade legado — 2026-11-03).
 - **Teste:** `e2e/sells-pos-index.spec.ts` (stub `test.fixme`, pendente).
 - **Status: ⬜**
 

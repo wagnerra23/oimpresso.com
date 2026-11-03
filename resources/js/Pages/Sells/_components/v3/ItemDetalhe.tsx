@@ -79,6 +79,7 @@ import {
   UNIDADES,
 } from './item-fiscal-dominio';
 import { Lbl, Pill, Sec } from './primitivos';
+import { useCockpit } from './cockpit-portal';
 
 export type LinhaDoItem = {
   k: number;
@@ -261,6 +262,7 @@ export default function ItemDetalhe({
   onNavegar?: (delta: number) => void;
   abaInicial?: Aba;
 }) {
+  const cockpit = useCockpit();
   const [aba, setAba] = useState<Aba>(abaInicial);
 
   /* fiscal */
@@ -383,6 +385,7 @@ export default function ItemDetalhe({
           aqui, as regras de `resources/css/venda-v3.css` não alcançam nada do
           que está dentro (§5 proibicoes, 2026-07-10). */}
       <SheetContent
+        container={cockpit}
         side="right"
         className="venda-v3 w-full overflow-hidden p-0 sm:max-w-[880px]"
       >

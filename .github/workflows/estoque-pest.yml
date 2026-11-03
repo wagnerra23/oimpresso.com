@@ -152,6 +152,8 @@ on:
       # Playbook Produto · thread 03 — SOB TESTE do ProdutoCadastrosContratoTest (UC-PCADAP-13..16).
       - 'app/Http/Controllers/VariationTemplateController.php'
       - 'app/Http/Controllers/WarrantyController.php'
+      # UC-PCADAP-23 (drawer de grupo de preço) — SOB TESTE do ProdutoCadastrosContratoTest.
+      - 'app/Http/Controllers/SellingPriceGroupController.php'
       - 'app/VariationTemplate.php'
       - 'resources/js/Pages/Produto/Cadastros/**'
       # Playbook Produto · thread 05 — SOB TESTE do ProdutoImportacaoContratoTest.
@@ -256,6 +258,8 @@ jobs:
               # Playbook Produto · thread 03 — SOB TESTE do ProdutoCadastrosContratoTest (UC-PCADAP-13..16).
               - 'app/Http/Controllers/VariationTemplateController.php'
               - 'app/Http/Controllers/WarrantyController.php'
+              # UC-PCADAP-23 (drawer de grupo de preço) — SOB TESTE do ProdutoCadastrosContratoTest.
+              - 'app/Http/Controllers/SellingPriceGroupController.php'
               - 'app/VariationTemplate.php'
               - 'resources/js/Pages/Produto/Cadastros/**'
               # Playbook Produto · thread 05 — SOB TESTE do ProdutoImportacaoContratoTest.

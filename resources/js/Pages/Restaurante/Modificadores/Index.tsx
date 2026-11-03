@@ -57,10 +57,13 @@ function ModificadoresIndex({ conjuntos, pode_gerenciar }: Props) {
     || [c.nome, ...c.modificadores, ...c.produtos].join(' ').toLowerCase().includes(termo));
 
   const colunas: ColumnDef<Conjunto, unknown>[] = [
-    { id: 'nome', header: 'Conjunto', cell: ({ row: { original: c } }) => <span className="font-medium">{c.nome}</span> },
-    { id: 'modificadores', header: 'Modificadores', cell: ({ row: { original: c } }) => c.modificadores.join(' · ') || '—' },
+    // Larguras do protótipo (configuracoes-cadastros.jsx, Modificadores: 190/400/190): declaradas, põem a tabela em
+    // `table-layout: fixed` como no design (medido 2026-11-03, design-diff D2). A coluna Ações do protótipo fica na
+    // tela clássica (RUNBOOK-modificadores §10).
+    { id: 'nome', header: 'Conjunto', meta: { width: 190 }, cell: ({ row: { original: c } }) => <span className="font-medium">{c.nome}</span> },
+    { id: 'modificadores', header: 'Modificadores', meta: { width: 400 }, cell: ({ row: { original: c } }) => c.modificadores.join(' · ') || '—' },
     {
-      id: 'produtos', header: 'Produtos',
+      id: 'produtos', header: 'Produtos', meta: { width: 190 },
       cell: ({ row: { original: c } }) => c.produtos.length > 0
         ? c.produtos.join(', ')
         : <span className="text-muted-foreground">nenhum produto ligado</span>,

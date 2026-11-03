@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 890,
-    "edges": 1206,
+    "nodes": 892,
+    "edges": 1208,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 502,
+      "component": 504,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 502,
+      "hasComponent": 504,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -3837,6 +3837,13 @@
       "desc": "conectar a conta do vendedor no Mercado Livre por OAuth (US-MKT-003)"
     },
     {
+      "id": "component:Marketplaces/ContasNuvemshopController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "ContasNuvemshopController",
+      "desc": "conectar a loja Nuvemshop por OAuth, empresa sempre da sessão (ADR 0443 fatia a · US-MKT-026)"
+    },
+    {
       "id": "component:Marketplaces/DataController",
       "type": "component",
       "module": "Marketplaces",
@@ -3856,6 +3863,13 @@
       "module": "Marketplaces",
       "name": "NotificacoesMercadoLivreController",
       "desc": "recebe as notificações do ML e busca o pedido na API com o token da conta (US-MKT-006)"
+    },
+    {
+      "id": "component:Marketplaces/NotificacoesNuvemshopController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "NotificacoesNuvemshopController",
+      "desc": "recebe as notificações assinadas da Nuvemshop (HMAC) e os webhooks LGPD; empresa sai da conta da loja (ADR 0443 fatia b · US-MKT-027)"
     },
     {
       "id": "component:Marketplaces/PedidosController",
@@ -11858,6 +11872,12 @@
     },
     {
       "from": "module:Marketplaces",
+      "to": "component:Marketplaces/ContasNuvemshopController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
       "to": "component:Marketplaces/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -11871,6 +11891,12 @@
     {
       "from": "module:Marketplaces",
       "to": "component:Marketplaces/NotificacoesMercadoLivreController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/NotificacoesNuvemshopController",
       "type": "hasComponent",
       "source": "contains"
     },

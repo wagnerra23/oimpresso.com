@@ -8,7 +8,7 @@
 // Refs: Add.charter.md · Add.casos.md (UC-SRADD-*) ·
 //       memory/requisitos/Sells/RUNBOOK-sell-return-add.md · ADR 0104 · ADR 0093
 
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { toast } from 'sonner';
@@ -22,6 +22,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { calcularTotais, numUf } from './_components/devolucaoCalculo';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
+import { TriangleAlert } from 'lucide-react';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — paridade SellReturnController@inertiaAddVenda
@@ -53,6 +55,20 @@ interface VendaOrigem {
   desconto_tipo: string;
   desconto_valor_txt: string;
   linhas: LinhaVenda[];
+}
+
+/** POST /sell-return/previa-financeira/{venda} — conta do servidor (UC-SRADD-09). */
+interface PreviaFinanceira {
+  total: number;
+  ja_pago_ao_cliente: number;
+  devido_ao_cliente: number;
+  financeiro: {
+    tem_titulo: boolean;
+    em_aberto_na_venda: number;
+    ja_abatido: number;
+    abate: number;
+    credito: number;
+  } | null;
 }
 
 interface SellReturnAddProps {
@@ -131,6 +147,55 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
     const valor = numUf(texto) > linha.quantidade_vendida ? linha.quantidade_vendida_txt : texto;
     setQuantidades((qs) => qs.map((q, j) => (j === i ? valor : q)));
   };
+
+  // UC-SRADD-09 · prévia financeira: quanto abate do que o cliente deve na venda e quanto vira
+  // crédito. A conta é do servidor (mesmo calculateInvoiceTotal do store + a regra do #10249);
+  // a tela só mostra. Pedida 400 ms depois da última digitação.
+  const [previa, setPrevia] = useState<PreviaFinanceira | null>(null);
+  const [previaErro, setPreviaErro] = useState(false);
+  const chavePrevia = JSON.stringify([quantidades, descontoTipo, descontoValor]);
+  useEffect(() => {
+    if (!algumaQuantidade) {
+      setPrevia(null);
+      return;
+    }
+    const corpo = new URLSearchParams();
+    venda.linhas.forEach((l, i) => {
+      corpo.append(`products[${i}][quantity]`, quantidades[i] ?? '');
+      corpo.append(`products[${i}][unit_price_inc_tax]`, l.preco_unitario_txt);
+    });
+    corpo.append('discount_type', descontoTipo);
+    corpo.append('discount_amount', descontoValor);
+    const controle = new AbortController();
+    const espera = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/sell-return/previa-financeira/${venda.id}`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          signal: controle.signal,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrf(),
+          },
+          body: corpo.toString(),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        setPrevia((await res.json()) as PreviaFinanceira);
+        setPreviaErro(false);
+      } catch (err) {
+        if ((err as Error)?.name !== 'AbortError') setPreviaErro(true);
+      }
+    }, 400);
+    return () => {
+      window.clearTimeout(espera);
+      controle.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chavePrevia, algumaQuantidade, venda]);
+  // Dupla prova à vista: o total da tela (espelho) e o do servidor têm de bater.
+  const totalDivergente = previa !== null && Math.abs(previa.total - totais.total) > 0.005;
 
   const salvar = async (e: FormEvent) => {
     e.preventDefault();
@@ -228,10 +293,10 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
                   <th className="py-2 pr-2">Produto</th>
-                  <th className="py-2 pr-2 text-right">Preço unitário</th>
                   <th className="py-2 pr-2 text-right">Vendida</th>
+                  <th className="py-2 pr-2 text-right">Preço unitário</th>
                   <th className="py-2 pr-2 text-right">Já devolvida</th>
-                  <th className="py-2 pr-2">Devolver</th>
+                  <th className="py-2 pr-2 text-right">Devolver</th>
                   <th className="py-2 text-right">Subtotal</th>
                 </tr>
               </thead>
@@ -240,13 +305,14 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                   <tr key={l.sell_line_id} className="border-b border-border align-top">
                     <td className="py-2 pr-2">
                       <strong>{l.produto}</strong>
-                      {l.sku && <div className="text-xs text-muted-foreground">{l.sku}</div>}
+                      {l.sku && <div className="font-mono text-xs text-muted-foreground">{l.sku}</div>}
                     </td>
-                    <td className="py-2 pr-2 text-right tabular-nums">{fmtBRL(numUf(l.preco_unitario_txt))}</td>
-                    <td className="py-2 pr-2 text-right tabular-nums">{l.quantidade_vendida_txt} {l.unidade}</td>
-                    <td className="py-2 pr-2 text-right tabular-nums">{l.quantidade_devolvida_txt}</td>
-                    <td className="w-40 py-2 pr-2">
+                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{l.quantidade_vendida_txt} {l.unidade}</td>
+                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{fmtBRL(numUf(l.preco_unitario_txt))}</td>
+                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{l.quantidade_devolvida_txt}</td>
+                    <td className="w-40 py-2 pr-2 text-right">
                       <Input
+                        className="text-right"
                         inputMode="decimal"
                         value={quantidades[i] ?? ''}
                         placeholder="0"
@@ -256,7 +322,7 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                       />
                       {erros[i] && <p className="mt-1 text-xs text-destructive">{erros[i]}</p>}
                     </td>
-                    <td className="py-2 text-right tabular-nums">
+                    <td className="py-2 text-right font-mono tabular-nums">
                       {fmtBRL(numUf(quantidades[i] ?? '') * numUf(l.preco_unitario_txt))}
                     </td>
                   </tr>
@@ -299,6 +365,54 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
             )}
           </Stack>
         </FormSection>
+
+        {algumaQuantidade && (
+          <FormSection title="No Financeiro" data-contract="previa-financeira">
+            {previaErro && !previa && (
+              <p className="text-sm text-muted-foreground">Não foi possível calcular o efeito no Financeiro agora. A devolução pode ser salva normalmente.</p>
+            )}
+            {!previa && !previaErro && <Skeleton className="h-12 w-full" />}
+            {previa && (
+              <Stack gap={1} className="text-sm" aria-live="polite">
+                {totalDivergente && (
+                  <p className="text-destructive" data-contract="previa-divergente">
+                    O servidor calculou {fmtBRL(previa.total)} para esta devolução, diferente do total acima. Confira antes de salvar.
+                  </p>
+                )}
+                {previa.ja_pago_ao_cliente > 0 && (
+                  <span>Já pago ao cliente nesta devolução: {fmtBRL(previa.ja_pago_ao_cliente)}</span>
+                )}
+                {pagamento === 'depois' ? (
+                  previa.financeiro?.tem_titulo ? (
+                    <>
+                      <span>
+                        Abate do que o cliente deve nesta venda: <strong>{fmtBRL(previa.financeiro.abate)}</strong>
+                        {' '}(em aberto hoje: {fmtBRL(previa.financeiro.em_aberto_na_venda)})
+                      </span>
+                      <span>
+                        Fica de crédito para o cliente: <strong>{fmtBRL(previa.financeiro.credito)}</strong>
+                        {previa.financeiro.credito > 0 && ' — a devolução fica "A pagar" na lista de devoluções'}
+                      </span>
+                    </>
+                  ) : (
+                    <span>
+                      A venda não tem conta a receber em aberto no Financeiro: os <strong>{fmtBRL(previa.devido_ao_cliente)}</strong> ficam de crédito para o cliente.
+                    </span>
+                  )
+                ) : (
+                  <>
+                    <span>Vale-troca no saldo do cliente: <strong>{fmtBRL(previa.devido_ao_cliente)}</strong></span>
+                    {previa.financeiro?.tem_titulo && (
+                      <span className="text-muted-foreground">
+                        O vale não abate o que o cliente deve: a venda continua com {fmtBRL(previa.financeiro.em_aberto_na_venda)} em aberto no Financeiro.
+                      </span>
+                    )}
+                  </>
+                )}
+              </Stack>
+            )}
+          </FormSection>
+        )}
 
         <FormSection title="Pagamento ao cliente" data-contract="pagamento-cliente">
           <RadioGroup value={pagamento} onValueChange={(v) => setPagamento(v as 'depois' | 'vale')} className="gap-3">
@@ -352,6 +466,16 @@ export default function SellReturnAdd({ venda }: SellReturnAddProps) {
           subtitle="O que volta ao estoque e quanto fica a pagar ao cliente"
         />
       </div>
+
+      {/* Aviso do protótipo (venda-blade-caixa.jsx, VendaDevolucaoForm), texto literal. */}
+      <Alert className="mt-4" data-contract="aviso-devolucao">
+        <TriangleAlert aria-hidden="true" />
+        <AlertTitle>Devolução de venda</AlertTitle>
+        <AlertDescription>
+          A devolução volta o item pro estoque e gera crédito pro cliente. O que já foi produzido sob medida costuma não
+          voltar — confira antes de confirmar.
+        </AlertDescription>
+      </Alert>
 
       <Deferred data="venda" fallback={<Skeleton className="mt-4 h-96 w-full" />}>
         {venda ? <FormularioDevolucao venda={venda} /> : <></>}

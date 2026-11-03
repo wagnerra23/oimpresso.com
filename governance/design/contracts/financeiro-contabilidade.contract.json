@@ -1,0 +1,32 @@
+{
+  "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-02 Form/Drawer de Financeiro/Contabilidade (2026-11-03). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w. Copy preenchida em 2026-11-03 com o literal do protótipo financeiro-contabil-page.jsx (aba Exportar).",
+  "tela": "Financeiro/Contabilidade",
+  "fonte": "prototipo-ui/cowork/Wagner/financeiro-contabil-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Financeiro/Contabilidade.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "formulario",
+      "copy": [
+        "Competência",
+        "Sistema do contador",
+        "Códigos no sistema do contador",
+        "Código no contador"
+      ]
+    },
+    {
+      "id": "acoes",
+      "copy": [
+        "O arquivo só sai completo. Falta código para:"
+      ]
+    }
+  ],
+  "ordem": [
+    "formulario",
+    "acoes"
+  ],
+  "_pendente_w": [
+    "ESTADOS — `estados` foi omitido de propósito (empty/loading/erro dependem do domínio, não do arquétipo). Declare quando a tela tiver os estados de verdade."
+  ]
+}

@@ -291,9 +291,40 @@ Até o grupo 3, gravando, a consulta de clientes ficava escondida (a lista era d
 - **Dado** a gravação ligada e o usuário sem `sell.payments`, **então** a V3 não mostra os meios de pagamento e grava sem pagamento (venda a prazo), como o Blade, que esconde a seção (`sell/create.blade.php:775`).
 - Com a permissão, a seção é a de sempre.
 
+## UC-V400 · A venda gravada pela V3 nasce no pipeline FSM, no estágio do `InitialStageResolver`
+
+**Status:** 🧪 — `SellsCreateV3PipelineContratoTest.php` (lane `Pest (Sells · MySQL)`) + `tests/js/gravacao-dominio.test.ts`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** o operador grava a venda,
+- **Então** o payload leva `origem_tela: 'venda_v3'` e o store de `/pos` põe a venda no processo `venda_com_producao` no estágio que o `InitialStageResolver` dá (venda paga → "Paga"; a prazo ou parcial → "Faturada"), dentro da mesma transação da venda.
+- O início é o caminho auditado da ADR 0143: `FsmAuthorizationFlag::mark` + uma linha em `sale_stage_history` com `action_id` nulo, `from_stage_id` nulo, o usuário e `origem: venda_v3` no `payload_snapshot`. Empresa sem o processo ganha o processo na hora (seeder idempotente, como o marketplace); processo desativado pela empresa deixa a venda fora, com aviso no log.
+- `origem_tela` só aceita `venda_v3`: outro valor é recusado pela validação e nada grava.
+- Total e estoque são os do UC-V380: entrar no pipeline não muda a venda.
+
+Origem: em 2026-11-03, com a flag ligada na empresa 1, a venda OS00135 gravou com `current_stage_id` nulo — nenhuma venda criada por `/pos` entrava no pipeline sozinha. Por que uma marca no payload e não a flag no servidor: o store é o da ROTA LIVRE e não deve ler a flag da V3; a marca só chega de quem a manda, e só a V3 manda.
+
+## UC-V401 · "Salvar como orçamento" grava o orçamento e ele nasce em "Orçamento enviado"
+
+**Status:** 🧪 — mesmos arquivos de teste, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e a venda em "Rascunho",
+- **Quando** o operador clica em **Salvar como orçamento**,
+- **Então** a tela posta em `/pos` o mesmo payload com `status: 'quotation'` (como o `Sells/Create.tsx` manda o orçamento), e o store grava `status` `draft`, `sub_status` `quotation`, `is_quotation` 1, com o mesmo total — 156,23 na fixture do UC-V380.
+- O orçamento vai sem pagamento e sem conferir estoque, porque o store não lança pagamento nem baixa estoque de orçamento: o saldo fica em 10. Meio de pagamento que a venda não grava (PIX) não impede o orçamento.
+- A venda nasce em `quote_sent` ("Orçamento enviado"), o estágio do resolver para cotação, com a linha de início no histórico.
+- Sem a gravação (preview das outras empresas), o botão só avança o estágio em memória, como antes.
+
+## UC-V402 · Venda pelo `/pos` sem a marca da V3 continua sem pipeline
+
+**Status:** 🧪 — `SellsCreateV3PipelineContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** o mesmo pedido postado em `/pos` sem `origem_tela` (é o que o `Sells/Create.tsx`, o PDV e a venda offline mandam),
+- **Então** a venda grava como sempre, com `current_stage_id` nulo e nenhuma linha em `sale_stage_history`. É a fronteira abaixo: `/pos/create` não muda de comportamento.
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
-Edição, pipeline FSM real, venda de reparo, orçamento/rascunho, parcelas, comissão, entrega,
+Edição, venda de reparo, rascunho e proforma, parcelas, comissão, entrega,
 imposto do pedido, acréscimo, PIX/boleto/TEF, troca de local e `pos_settings` — a lista completa segue em "Paridade para substituir Create e Edit".
 
 - **[BACKLOG]** `edit_invoice_number`: a V3 não tem campo de número da nota; quando tiver, ele só aparece com a permissão (`sell/create.blade.php:238`).
@@ -1083,7 +1114,7 @@ PR que trouxer o teste.
 Fonte: `database/seeders/FsmProcessoVendaComProducaoSeeder.php` (11 etapas, 23 ações) e
 `app/Domain/Fsm/Services/InitialStageResolver.php`.
 
-- **[BACKLOG]** A venda nasce na etapa que o `InitialStageResolver` escolhe: rascunho e proforma → `quote_draft`; cotação → `quote_sent`; venda paga → `paid`; venda a prazo ou parcial → `invoiced`.
+- A venda nasce na etapa que o `InitialStageResolver` escolhe: cotação → `quote_sent`; venda paga → `paid`; venda a prazo ou parcial → `invoiced` → **UC-V400** e **UC-V401**. **[BACKLOG]** rascunho e proforma → `quote_draft` (a V3 ainda não grava rascunho nem proforma).
 - **[BACKLOG]** A situação da venda mostra **todas** as ações que saem da etapa atual, cada uma com o papel exigido e os efeitos que vai disparar — não só "a próxima".
 - **[BACKLOG]** Ação com papel que o perfil não tem aparece **negada**, com o nome do papel que falta (CU-SELL-21).
 - **[BACKLOG]** "Emitir NF-e" não muda a etapa: grava o documento e a venda continua Faturada.
@@ -1213,7 +1244,8 @@ a V3 passar a obedecer.
 
 ### Módulos ligados no pacote
 
-- **[BACKLOG]** Tipos de serviço (`types_of_service`), profissional (`service_staff`), contas de pagamento (`account`), Repair (`repair_module`) e Oficina (`oficina_auto_module`) aparecem só com o módulo ligado. Mesas, cozinha e modificadores (`tables`, `kitchen`, `modifiers`) ficam com o PDV.
+- **[BACKLOG]** Tipos de serviço (`types_of_service`), profissional (`service_staff`), contas de pagamento (`account`), Repair (`repair_module`) e Oficina (`oficina_auto_module`) aparecem só com o módulo ligado. Mesas, cozinha e modificadores (`tables`, `kitchen`, `modifiers`) também entram na V3, por decisão [W] em 2026-11-03.
+- **[BACKLOG]** **Restaurante na V3** (decisão [W] 2026-11-03, *"Sim, V3 cobre"*): com `tables` ligado a venda escolhe a mesa (`res_table_id`); com `service_staff`, o atendente (`res_waiter_id`); com `kitchen`, marca o pedido de cozinha (`is_kitchen_order`). Medido em 2026-11-03: a venda React de `/pos/create` não manda nenhum dos três (`grep res_table_id\|is_kitchen_order\|res_waiter_id` em `resources/js/Pages/Sells/` = 0), e por isso nenhum pedido da empresa 1 chega às telas React de Cozinha e Pedidos. Paridade com o PDV de restaurante.
 
 ## Fronteira que os testes desta tela devem preservar
 
@@ -1228,6 +1260,7 @@ pertence a `Sells/Create`, não aqui:
 
 - **Revalidação de 2026-10-30 (G-6):** desde o `last_run` anterior (2026-08-27), `CreateV3.tsx` mudou só no comentário que aponta a âncora de design (#7224 e #7620). Nenhum comportamento da tela mudou, então os UCs acima seguem valendo como estavam.
 - **Revalidação de 2026-11-03 (G-6):** desde 2026-10-30, `CreateV3.tsx` mudou só em quando os dois avisos "Preview de design — não grava" aparecem: agora somem quando a tela recebe `gravacao` (flag `useV3SellsGravar`, ligada para a empresa 1 em 2026-11-03), porque ali a tela grava pelos stores de produção. Sem `gravacao` os avisos seguem iguais. Nenhum UC acima cita os avisos; UC-V302 (nenhuma rota de escrita no controller do preview) segue valendo, pois a gravação usa os stores de produção, não rota do `SellsV3Controller`.
+- **Revalidação de 2026-11-03, segunda (G-6):** com a gravação ligada, "Salvar como orçamento" passou a gravar e a venda e o orçamento da V3 passaram a nascer no pipeline (UC-V400 a UC-V402, novos). Sem `gravacao` o botão segue avançando o estágio em memória e nenhum UC anterior mudou; o payload da fixture ganhou `origem_tela`, e o vitest e o Pest do UC-V380 seguem comparando o mesmo total e o mesmo estoque.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.

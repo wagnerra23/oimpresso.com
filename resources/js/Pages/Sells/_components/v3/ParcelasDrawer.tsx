@@ -73,6 +73,7 @@ import {
   type Parcela,
 } from './parcelas-dominio';
 import { Lbl, MoneyInput, Pill, Sec } from './primitivos';
+import { useCockpit } from './cockpit-portal';
 
 function Campo({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -127,6 +128,7 @@ export default function ParcelasDrawer({
   onParcelasChange: (p: Parcela[]) => void;
   documentoBase: string;
 }) {
+  const cockpit = useCockpit();
   const [condicao, setCondicao] = useState('18');
   const [quantidade, setQuantidade] = useState('2');
   const [intervalo, setIntervalo] = useState('30');
@@ -224,6 +226,7 @@ export default function ParcelasDrawer({
           wrapper da Page — sem a classe, nada de `venda-v3.css` alcança o que
           está dentro (§5 proibicoes, 2026-07-10). */}
       <SheetContent
+        container={cockpit}
         side="right"
         className="venda-v3 w-full overflow-hidden p-0 sm:max-w-[860px]"
       >
@@ -476,7 +479,7 @@ export default function ParcelasDrawer({
         Modal (não outro drawer) porque é decisão pontual sobre UMA linha, com
         o drawer atrás ainda visível — a mesma escolha da âncora. */}
     <Dialog open={!!emEdicao} onOpenChange={(v) => !v && setEmEdicao(null)}>
-      <DialogContent className="venda-v3 sm:max-w-[420px]">
+      <DialogContent container={cockpit} className="venda-v3 sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle>
             {emEdicao ? `Parcela ${emEdicao.num}/${emEdicao.de}` : 'Parcela'}
