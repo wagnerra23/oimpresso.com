@@ -3,6 +3,7 @@
 namespace Modules\Superadmin\Http\Controllers;
 
 use App\Business;
+use App\Services\FeatureFlagService;
 use App\System;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
@@ -26,6 +27,14 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SubscriptionController extends BaseController
 {
+    /**
+     * Flag da tela React de pagar (`useV2<Modulo><Tela>`). Sem a chave no GrowthBook o
+     * FeatureFlagService cai no fallbackDefaults, que não a lista: default OFF, a Blade segue.
+     *
+     * @see memory/requisitos/Superadmin/RUNBOOK-pagar.md
+     */
+    private const FLAG_PAGAR = 'useV2SuperadminPagar';
+
     protected $provider;
 
     public function __construct(ModuleUtil $moduleUtil = null)
@@ -187,6 +196,38 @@ class SubscriptionController extends BaseController
     }
 
     /**
+     * Payload da tela de pagar. Decisão [W] 2026-10-27: só Pix automático e offline — e só os que
+     * `_payment_gateways()` já considera configurados. Preço é texto pronto (`moedaComoBlade`); o valor
+     * cobrado continua sendo calculado no `confirm()`.
+     */
+    protected function montarPagamento(Package $package, array $gateways, $offline_payment_details): array
+    {
+        $formas = collect(['paymentgateway_pix_automatico' => 'pix_automatico', 'offline' => 'offline'])
+            ->filter(fn ($tipo, $chave) => isset($gateways[$chave]))
+            ->map(fn ($tipo, $chave) => ['gateway' => $chave, 'tipo' => $tipo])
+            ->values();
+
+        return [
+            'pacote' => [
+                'id' => $package->id,
+                'nome' => $package->name,
+                'preco' => $this->moedaComoBlade($package->price),
+                'intervalo' => $package->interval,
+                'intervalo_count' => (int) $package->interval_count,
+                'trial_dias' => (int) $package->trial_days,
+                'locais' => (int) $package->location_count,
+                'usuarios' => (int) $package->user_count,
+                'produtos' => (int) $package->product_count,
+                'faturas' => (int) $package->invoice_count,
+            ],
+            'formas' => $formas,
+            'offline_detalhes' => (string) $offline_payment_details,
+            'confirmar_url' => action([self::class, 'confirm'], [$package->id]),
+            'voltar_url' => action([self::class, 'index']),
+        ];
+    }
+
+    /**
      * Show pay form for a new package.
      *
      * @return Response
@@ -268,6 +309,15 @@ class SubscriptionController extends BaseController
             $user = request()->session()->get('user');
 
             $offline_payment_details = System::getProperty('offline_payment_details');
+
+            // Tela React (protótipo superadmin-pagar-page.jsx). Só o render muda: os botões postam no
+            // mesmo `confirm()`. `/register-pay` (layout de cadastro) segue Blade; `?classico=1` também.
+            if (empty($form_register) && ! request()->boolean('classico')
+                && app(FeatureFlagService::class)->isOn(self::FLAG_PAGAR, ['business_id' => (int) $business_id])) {
+                return Inertia::render('superadmin/Pagar/Index', [
+                    'pagamento' => $this->montarPagamento($package, $gateways, $offline_payment_details),
+                ]);
+            }
 
             return view('superadmin::subscription.pay')
                 ->with(compact('package', 'gateways', 'system_currency', 'layout', 'user', 'offline_payment_details'));
