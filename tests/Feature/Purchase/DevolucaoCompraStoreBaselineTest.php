@@ -59,11 +59,15 @@ beforeEach(function () {
     [$this->compra, $this->linha] = dcStoreCompra($this->business->id, $this->local, $this->user->id, $this->produto);
 });
 
-/** Compra recebida com 1 linha de 10 un a 12,50. @return array{0:int,1:int} */
+/** Compra recebida, com fornecedor, e 1 linha de 10 un a 12,50. @return array{0:int,1:int} */
 function dcStoreCompra(int $businessId, int $localId, int $userId, $produto): array
 {
+    $fornecedor = DB::table('contacts')->insertGetId([
+        'business_id' => $businessId, 'type' => 'supplier', 'name' => 'Fornecedor DCST', 'mobile' => '',
+        'contact_id' => 'DCST-'.uniqid(), 'created_by' => $userId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $compra = DB::table('transactions')->insertGetId([
-        'business_id' => $businessId, 'location_id' => $localId, 'created_by' => $userId,
+        'business_id' => $businessId, 'location_id' => $localId, 'created_by' => $userId, 'contact_id' => $fornecedor,
         'type' => 'purchase', 'status' => 'received', 'payment_status' => 'due',
         'ref_no' => 'CP-'.uniqid(), 'transaction_date' => now(), 'total_before_tax' => 125,
         'final_total' => 125, 'tax_amount' => 0, 'discount_amount' => 0,
@@ -133,6 +137,7 @@ test('baseline Tier 0: gravar devolução de compra de outro negócio não escre
     $produtoAlheio = EstoqueFixture::singleProduct($outro->id);
     EstoqueFixture::setStock($produtoAlheio, 0, $outroLocal, 50);
     [$compraAlheia, $linhaAlheia] = dcStoreCompra($outro->id, $outroLocal, $this->user->id, $produtoAlheio);
+    $saldoAlheioAntes = EstoqueFixture::currentStock($produtoAlheio, 0, $outroLocal);
 
     // Controle positivo: a do próprio negócio grava.
     $this->post('/purchase-return', ['transaction_id' => $this->compra, 'returns' => [$this->linha => '1'], 'tax_amount' => '0']);
@@ -142,7 +147,9 @@ test('baseline Tier 0: gravar devolução de compra de outro negócio não escre
         ->assertRedirect('purchase-return');
 
     expect((float) DB::table('purchase_lines')->where('id', $linhaAlheia)->value('quantity_returned'))->toBe(0.0);
-    expect(EstoqueFixture::currentStock($produtoAlheio, 0, $outroLocal))->toBe(50.0);
+    // Antes→depois, não o 50 semeado: na lane MySQL o saldo do tenant 99 não lê 50 de volta
+    // (o assert absoluto deu 0,0 na 1ª execução, com a linha intacta). O contrato é "não mudou".
+    expect(EstoqueFixture::currentStock($produtoAlheio, 0, $outroLocal))->toBe($saldoAlheioAntes);
     expect(dcStoreDevolucao($compraAlheia))->toHaveCount(0);
 });
 
@@ -154,9 +161,13 @@ test('baseline Tier 0: o formulário add de compra de outro negócio não mostra
 
     $r = $this->get('/purchase-return/add/'.$compraAlheia);
 
-    // Hoje é erro (o `find` volta nulo e a view quebra), não 404. O que importa travar: não vaza.
-    expect($r->status())->not->toBe(200);
-    expect($r->getContent())->not->toContain($refAlheia);
+    // Hoje é erro, não 404: o `find` com `where business_id` volta NULO e o controller quebra ao
+    // ler as linhas. É isso que prova que a compra alheia não foi carregada. (O corpo da resposta
+    // não serve de prova: com APP_DEBUG a página de erro lista as queries do próprio fixture.)
+    expect($r->status())->toBe(500);
+    expect($r->exception)->not->toBeNull();
+    expect($r->exception->getMessage())->toContain('"purchase_lines" on null');
+    expect($refAlheia)->not->toBeEmpty();
 });
 
 test('baseline: sem purchase.update, add e store devolvem 403', function () {
