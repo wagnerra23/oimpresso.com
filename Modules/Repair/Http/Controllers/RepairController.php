@@ -2,6 +2,7 @@
 
 namespace Modules\Repair\Http\Controllers;
 
+use Modules\Repair\Concerns\TelaReactPorEmpresa;
 use App\Barcode;
 use App\BusinessLocation;
 use App\Contact;
@@ -30,6 +31,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class RepairController extends Controller
 {
+    use TelaReactPorEmpresa;
     use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
 
     /**
@@ -443,21 +445,6 @@ class RepairController extends Controller
         }
 
         return view('repair::repair.index')->with(compact('business_locations', 'customers', 'service_staffs', 'repair_status_dropdown', 'sales_representative', 'is_service_staff'));
-    }
-
-    /**
-     * MWART-0001 — verifica se flag MWART está habilitada pro business atual.
-     *
-     * Lista vazia em `business_ids` = todos liberados. Lista populada = só os
-     * businesses listados. Permite rollout gradual sem deploy.
-     */
-    private function mwartEnabled(string $key, int $business_id): bool
-    {
-        if (! config("mwart.{$key}.enabled")) {
-            return false;
-        }
-        $beta = (array) config("mwart.{$key}.business_ids", []);
-        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**

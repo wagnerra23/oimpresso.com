@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: conjunto ou produto de outro negócio na tela é incidente Tier 0; esconder a lista de quem cadastra é a classe A (#5432).
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-11-03"
 ---
 
 # Casos de Uso & Aceite — Modificadores

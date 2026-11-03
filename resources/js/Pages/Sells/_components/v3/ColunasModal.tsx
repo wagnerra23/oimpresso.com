@@ -30,6 +30,7 @@ import {
   moverColuna,
 } from './colunas-dominio';
 import { Lbl, Pill } from './primitivos';
+import { useCockpit } from './cockpit-portal';
 
 export default function ColunasModal({
   aberto,
@@ -42,6 +43,7 @@ export default function ColunasModal({
   ativas: string[];
   onAtivasChange: (c: string[]) => void;
 }) {
+  const cockpit = useCockpit();
   const [selecionada, setSelecionada] = useState<string | null>(null);
 
   const mover = (delta: number) => {
@@ -52,7 +54,7 @@ export default function ColunasModal({
 
   return (
     <Dialog open={aberto} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="venda-v3 max-h-[88vh] sm:max-w-[900px]">
+      <DialogContent container={cockpit} className="venda-v3 max-h-[88vh] sm:max-w-[900px]">
         <DialogHeader>
           <DialogTitle>Colunas do grid ({ativas.length} de {COLUNAS.length})</DialogTitle>
         </DialogHeader>

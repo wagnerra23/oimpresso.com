@@ -1065,6 +1065,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // US-VEST-021 — vale-troca: o valor da devolução vira saldo de Adiantamento do cliente.
     Route::post('/sell-return/{id}/vale-troca', [SellReturnController::class, 'valeTroca'])->whereNumber('id');
     Route::post('/sell-return/vale-troca-da-venda/{vendaId}', [SellReturnController::class, 'valeTrocaDaVenda'])->whereNumber('vendaId');
+    Route::post('/sell-return/previa-financeira/{vendaId}', [SellReturnController::class, 'previaFinanceira'])->whereNumber('vendaId');
 
     //Backup
     Route::get('backup/download/{file_name}', [BackUpController::class, 'download']);

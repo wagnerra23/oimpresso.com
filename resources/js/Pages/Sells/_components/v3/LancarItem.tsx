@@ -35,6 +35,7 @@ import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import { Aviso, Lbl, MoneyInput, Pill } from './primitivos';
+import { useCockpit } from './cockpit-portal';
 import { abaixoDoPiso as ehAbaixoDoPiso, areaUnitaria, quantidadeFaturada, totalDoItem, unitarioLiquido } from './calculo-item';
 import { brl, fmtBR, fmtQtd, num, parseBR } from './numeros';
 
@@ -113,6 +114,7 @@ export function LancarItem({
   onFechar: () => void;
   onConfirmar: (item: ItemLancado) => void;
 }) {
+  const cockpit = useCockpit();
   const dims = produto ? DIMENSIONAL[produto.un] : undefined;
   const servico = produto?.tipo === 'servico';
 
@@ -191,7 +193,7 @@ export function LancarItem({
 
   return (
     <Dialog open onOpenChange={(aberto) => !aberto && onFechar()}>
-      <DialogContent className="venda-v3 sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]">
+      <DialogContent container={cockpit} className="venda-v3 sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]">
         <DialogHeader>
           <DialogTitle className="text-[15px] leading-[1.3]">Lançar {produto.nome}</DialogTitle>
           <DialogDescription className="text-[11.5px] leading-[1.35]">

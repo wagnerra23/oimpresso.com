@@ -176,7 +176,7 @@ class DataController extends Controller
                 // restante das telas legacy (Fluxo/DRE/Pagar/Categorias/etc).
                 $financeiroAtiva = in_array($seg2, [
                     'unificado','lancamentos','contas-pagar','fluxo','dre','plano-contas',
-                    'categorias','dashboard','configuracoes','relatorios',
+                    'categorias','dashboard','configuracoes','relatorios','exportacao-contabil',
                 ]);
                 $menu->url(
                     url('/financeiro/unificado'),
@@ -204,6 +204,8 @@ class DataController extends Controller
                             ['key' => 'plano-contas',  'label' => 'Plano de Contas','href' => '/financeiro/plano-contas'],
                             ['key' => 'categorias',    'label' => 'Categorias',     'href' => '/financeiro/categorias'],
                             ['key' => 'contador',      'label' => 'Contador',       'href' => '/financeiro/configuracoes/contador'],
+                            // US-FIN-077 — arquivo de lançamentos para o sistema do contador.
+                            ['key' => 'exportacao-contabil', 'label' => 'Contabilidade', 'href' => '/financeiro/exportacao-contabil'],
                         ],
                     ]
                 )->order(85.20);

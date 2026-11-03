@@ -1,0 +1,49 @@
+# Scorecard de tela — SellReturn/Add (primeira medição, lote de devolução em React, 2026-11-03).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), 16 dim × persona.
+# A nota 16-dim é LLM-as-judge — NÃO editar à mão.
+# Evidência: .tsx + charter + casos + SellReturnController na árvore do PR #10258, mais a tela viva
+# em produção (empresa 1, devolução DEV2026/0003, só leitura) medida com design-diff contra o
+# protótipo venda-blade-caixa.jsx (VendaDevolucaoForm), 1280×800, tema escuro.
+# Persona usada só como perfil (balcão, 1280px) — nenhum dado do biz=4.
+screen: SellReturn/Add
+path: resources/js/Pages/SellReturn/Add.tsx
+archetype: form
+persona: larissa
+nota: 77
+nivel: "Advanced"
+baseline_anterior: 77   # ratchet — 1ª medição
+peso_real: 1.0          # grava valor e estoque (REGRA MESTRE)
+source: lote-devolucao-react-2026-11-03
+graded_at: "2026-11-03"
+resumo: "Registro de devolução por linha com teto na vendida, 'Devolver tudo', total antes de salvar e vale-troca. Fica para trás em descoberta (só abre pelo menu da venda), em carga cognitiva (número da devolução e desconto editáveis à vista) e no efeito financeiro, que só aparece com o #10254."
+dimensoes: { density: 78, discoverability: 74, speed_to_task: 76, error_recovery: 72, cognitive_load: 70, aesthetic_usability: 76, affordance: 75, brand_confidence: 72, mobile_fit: 70, a11y_wcag: 78, i18n_ptbr: 92, performance_perceived: 80, information_hierarchy: 76, microcopy: 80, internal_consistency: 78, preflight_conformance: 82 }
+gaps:
+  - dim: "Cognitive-load"
+    best_of_class: "Shopify Admin: refund mostra só itens e quantidade; ajustes ficam recolhidos"
+    fix: "Recolher 'Número da devolução' e o desconto num 'Ajustes' fechado por padrão — hoje ficam editáveis no fluxo principal"
+    esforco: baixo
+  - dim: "Brand-confidence"
+    best_of_class: "Shopify Admin: refund mostra o destino do dinheiro antes de confirmar"
+    fix: "Mostrar quanto abate do que o cliente deve e quanto vira crédito antes de salvar (feito no #10254)"
+    esforco: medio
+  - dim: "Speed-to-task"
+    best_of_class: "Linear/Stripe: depois de criar, volta ao objeto de origem"
+    fix: "Depois de salvar, voltar à venda de origem (ou abrir o comprovante) em vez de cair na lista de devoluções"
+    esforco: baixo
+  - dim: "Discoverability"
+    best_of_class: "Bling: 'Devolver' no detalhe da venda e na lista"
+    fix: "Recarregar a página cai no Blade até a flag por empresa (#10256, decisão [W])"
+    esforco: baixo
+  - dim: "Mobile-fit"
+    best_of_class: "Stripe refund: lista de itens empilha em telas estreitas"
+    fix: "Tabela de 6 colunas rola na horizontal abaixo de ~900px"
+    esforco: medio
+
+# ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — não entra na nota ─────────
+casos_coverage:
+  fonte: resources/js/Pages/SellReturn/Add.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+d1_calculo:
+  aplica: true
+  nivel: "🟢"          # o total da tela é espelho de calculateInvoiceTotal; o store() recalcula e é quem grava
+  provas: { property: false, golden: true, cross_check: true }   # UC-SRADD-05 (Blade × Page, conta à mão) · UC-SRADD-09 (prévia × gravação)

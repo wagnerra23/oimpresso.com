@@ -127,3 +127,26 @@ describe('UC-V383 · o desconto da venda respeita o teto do usuário', () => {
     expect(montarPayloadVenda({ ...grande, descontoMaximo: 0 }).ok).toBe(true);
   });
 });
+
+describe('UC-V400 / UC-V401 · a V3 marca a origem e grava orçamento', () => {
+  it('UC-V400 · o payload da V3 leva origem_tela=venda_v3 (o store põe a venda no pipeline)', () => {
+    const r = montarPayloadVenda(fixture.entrada);
+    expect(r.ok && r.payload.origem_tela).toBe('venda_v3');
+  });
+
+  it('UC-V401 · orçamento vai com status quotation, sem pagamento e com o mesmo total', () => {
+    const r = montarPayloadVenda({ ...fixture.entrada, orcamento: true });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.payload.status).toBe('quotation');
+    expect(r.payload.payment).toEqual([{ amount: 0, method: 'cash', paid_on: '', account_id: null, note: '' }]);
+    expect(r.payload.final_total).toBe(156.23);
+    expect(r.payload.origem_tela).toBe('venda_v3');
+  });
+
+  it('UC-V401 · orçamento não recusa por meio de pagamento que a venda não grava', () => {
+    const pix = { ...fixture.entrada, pagamentos: [{ m: 'PIX', v: '1,00' }] };
+    expect(montarPayloadVenda(pix).ok).toBe(false);
+    expect(montarPayloadVenda({ ...pix, orcamento: true }).ok).toBe(true);
+  });
+});

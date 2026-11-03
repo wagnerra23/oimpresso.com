@@ -41,6 +41,10 @@ Devolver item de uma venda: quanto volta pro estoque e quanto vira saldo a pagar
 - R6 Venda de outra empresa não abre (404) e não pode ser devolvida pelo POST (ADR 0093).
 - R7 Pagamento ao cliente ([W] 2026-10-26): "Pagar depois" (padrão, como hoje) ou "Vale-troca". O vale só existe para cliente cadastrado — o Cliente padrão é de todos. O `store()` segue intacto: o vale é pedido depois de salvar, pela venda (`POST /sell-return/vale-troca-da-venda/{venda}`).
 
+- R8 Efeito no Financeiro antes de salvar (#10249, [W] 2026-11-03): a tela mostra quanto a devolução abate do
+  título a receber da venda e quanto vira crédito do cliente, lendo `POST /sell-return/previa-financeira/{venda}`
+  (só leitura; a conta é a do servidor). Com vale-troca, diz que o vale não abate (UC-SRADD-09).
+
 ## Fora desta tela (do texto revisado, não implementado)
 
 - R3 Motivo em texto livre no histórico: o `store()` não grava motivo — exigiria mudar a escrita.

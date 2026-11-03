@@ -607,6 +607,7 @@ jobs:
             tests/Feature/Sells/AppPagamentosEscritaContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/SellsCreateV3GravarContratoTest.php \
+            tests/Feature/Sells/SellsCreateV3PipelineContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
             tests/Feature/Sells/SellsCaixaContratoTest.php \

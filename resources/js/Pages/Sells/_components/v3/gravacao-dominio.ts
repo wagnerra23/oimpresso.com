@@ -62,6 +62,11 @@ export type VendaParaGravar = {
   sinal?: string;
   /** Tabela de preço da venda (UC-V397): vai como `price_group`; null = preço padrão. */
   tabelaId?: number | null;
+  /**
+   * "Salvar como orçamento" (UC-V401): grava com `status: 'quotation'`, como o Create, sem
+   * pagamento e sem conferir estoque — o store não baixa estoque nem lança pagamento de orçamento.
+   */
+  orcamento?: boolean;
 };
 
 /**
@@ -131,18 +136,19 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
     const motivo =
       bloqueioDaConfig(v.config, v.prazo ?? { numero: null, tipo: null }, v.comissionadoId ?? null) ??
       abaixoDoPrecoMinimo(v.config, v.itens) ??
-      estoqueInsuficiente(v.config, v.itens.map((l) => ({ ...l, estoque: l.estoque ?? null })));
+      (v.orcamento ? null : estoqueInsuficiente(v.config, v.itens.map((l) => ({ ...l, estoque: l.estoque ?? null }))));
     if (motivo) return { ok: false, motivo };
   }
-  const metodoDesconhecido = v.pagamentos.find((p) => !METODO_DO_PAGAMENTO[p.m]);
+  const pagamentosDaVenda = v.orcamento ? [] : v.pagamentos;
+  const metodoDesconhecido = pagamentosDaVenda.find((p) => !METODO_DO_PAGAMENTO[p.m]);
   if (metodoDesconhecido) {
     return { ok: false, motivo: `${metodoDesconhecido.m} ainda não é gravado — use Dinheiro ou Cartão.` };
   }
 
   const { total, diferenca } = totalEArredondamento(v);
   const frete = submitSafe(parseBR(v.frete));
-  const pagamentos = v.pagamentos.length
-    ? v.pagamentos.map((p) => ({
+  const pagamentos = pagamentosDaVenda.length
+    ? pagamentosDaVenda.map((p) => ({
         amount: submitSafe(parseBR(p.v)),
         method: METODO_DO_PAGAMENTO[p.m],
         paid_on: '',
@@ -188,7 +194,7 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
       location_id: v.locationId,
       contact_id: v.contactId,
       transaction_date: v.transactionDate,
-      status: 'final',
+      status: v.orcamento ? 'quotation' : 'final',
       invoice_no: '',
       pay_term_number: v.prazo?.numero ?? '',
       pay_term_type: v.prazo?.tipo || 'days',
@@ -218,6 +224,8 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
       is_direct_sale: 1,
       is_save_and_print: 0,
       final_total: total,
+      // Marca a venda como da V3: o store põe ela no pipeline FSM (UC-V400). Sells/Create não manda.
+      origem_tela: 'venda_v3',
       // Só com arredondamento: o store grava round_off_amount (TransactionUtil:131).
       ...(diferenca !== 0 ? { round_off_amount: diferenca } : {}),
     },
