@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Throwable;
 
 /**
- * `php artisan flag:env-toggle <key> --enabled=true|false [--env=production]`
+ * `php artisan flag:env-toggle <key> --enabled=true|false [--environment=production]`
  *
  * Mata-switch: liga/desliga uma feature inteira em um environment. Diferente de
  * `flag:set` (que mexe em rule específica de biz_id), este toca o `enabled` do
@@ -23,7 +23,7 @@ class FlagEnvToggleCommand extends Command
     protected $signature = 'flag:env-toggle
         {key : Feature key (ex: useV2SellsCreate)}
         {--enabled= : true|false — liga/desliga o environment inteiro}
-        {--env=production : Environment}
+        {--environment=production : Environment do GrowthBook (o --env é opção global do Laravel)}
         {--clear-cache : Limpa cache local Laravel pós-mudança}';
 
     protected $description = 'Mata-switch: liga/desliga feature inteira em um environment';
@@ -31,7 +31,7 @@ class FlagEnvToggleCommand extends Command
     public function handle(GrowthBookAdminService $service): int
     {
         $key = (string) $this->argument('key');
-        $env = (string) $this->option('env');
+        $env = (string) $this->option('environment');
         $enabledRaw = $this->option('enabled');
 
         if ($enabledRaw === null) {

@@ -41,6 +41,9 @@ class GrowthBookAdminService
 
     private string $apiToken;
 
+    /** Projeto GrowthBook das features criadas por createBooleanFeature. */
+    private string $project;
+
     public function __construct()
     {
         // A REST API admin do GrowthBook vive no MESMO host do SDK read
@@ -59,6 +62,8 @@ class GrowthBookAdminService
             env('GROWTHBOOK_ADMIN_API_HOST') ?: ($gb['admin_api_host'] ?? '') ?: rtrim($sdkHost, '/') . '/api/v1'
         ), '/');
         $this->apiToken = (string) (env('GROWTHBOOK_ADMIN_API_TOKEN') ?: ($gb['admin_api_token'] ?? ''));
+        // Só config(): a chave nova não entra no baseline do larastan.noEnvCallsOutsideOfConfig.
+        $this->project = (string) ($gb['project'] ?? '');
     }
 
     public function isConfigured(): bool
@@ -118,6 +123,55 @@ class GrowthBookAdminService
     }
 
     /**
+     * Cria uma feature booleana DESLIGADA: defaultValue false, sem rule, environment ligado
+     * (com o environment desligado nem a rule por empresa vale). Ligar pra uma empresa é
+     * `setBizRule` depois. Idempotente: se a feature já existe, devolve a existente sem tocar.
+     *
+     * @return array{criada: bool, feature: array}
+     */
+    public function createBooleanFeature(string $key, string $descricao, string $env = self::DEFAULT_ENV): array
+    {
+        $this->assertConfigured();
+        $this->assertKeyValid($key);
+
+        $existente = $this->getFeature($key);
+        if ($existente !== null) {
+            return ['criada' => false, 'feature' => $existente];
+        }
+
+        $payload = [
+            'id'           => $key,
+            'owner'        => 'oimpresso-api',
+            'description'  => $descricao,
+            'valueType'    => 'boolean',
+            'defaultValue' => 'false',
+            'environments' => [$env => ['enabled' => true, 'rules' => []]],
+        ];
+        if ($this->project !== '') {
+            $payload['project'] = $this->project;
+        }
+
+        $response = $this->http()->post($this->apiHost . '/features', $payload);
+
+        if (! $response->successful()) {
+            throw new RuntimeException(
+                "GrowthBook POST /features ({$key}) falhou: HTTP {$response->status()} — {$response->body()}"
+            );
+        }
+
+        $this->audit(
+            action: 'feature_create',
+            flagKey: $key,
+            environment: $env,
+            payloadBefore: [],
+            payloadAfter: ['defaultValue' => 'false', 'rules' => []],
+            summary: "Feature {$key} criada desligada (defaultValue=false, sem rule)"
+        );
+
+        return ['criada' => true, 'feature' => (array) $response->json('feature')];
+    }
+
+    /**
      * Adiciona/atualiza uma rule de targeting pra um business_id específico.
      *
      * Convenção: 1 business_id = 1 rule com id `biz-{N}` e
@@ -153,7 +207,7 @@ class GrowthBookAdminService
         $rulesByEnv = $this->upsertRule($rulesByEnv, $newRule);
 
         $beforeRules = $this->extractRulesByEnv($feature, $env);
-        $updated = $this->updateFeatureRules($key, $env, $rulesByEnv);
+        $updated = $this->updateFeatureRules($key, $env, $rulesByEnv, $feature);
 
         $this->audit(
             action: 'rule_upsert',
@@ -190,7 +244,7 @@ class GrowthBookAdminService
             return $feature;  // No-op
         }
 
-        $updated = $this->updateFeatureRules($key, $env, $filtered);
+        $updated = $this->updateFeatureRules($key, $env, $filtered, $feature);
 
         $this->audit(
             action: 'rule_remove',
@@ -342,12 +396,16 @@ class GrowthBookAdminService
      * PUT-style: substitui rules do environment inteiro. GrowthBook não tem
      * endpoint dedicado pra rules; passa pela atualização da feature inteira.
      */
-    private function updateFeatureRules(string $key, string $env, array $rules): array
+    private function updateFeatureRules(string $key, string $env, array $rules, array $feature): array
     {
+        // O GrowthBook exige `enabled` em todo environment enviado: só com `rules` ele responde
+        // HTTP 400 "environments.production.enabled expected boolean" e nenhuma regra por
+        // empresa grava. Repete o estado atual (padrão ligado) para não mudar o mata-switch.
         $payload = [
             'environments' => [
                 $env => [
-                    'rules' => $rules,
+                    'enabled' => (bool) ($feature['environments'][$env]['enabled'] ?? true),
+                    'rules'   => $rules,
                 ],
             ],
         ];
