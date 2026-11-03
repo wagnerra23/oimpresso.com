@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 891,
-    "edges": 1207,
+    "nodes": 892,
+    "edges": 1208,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 503,
+      "component": 504,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 503,
+      "hasComponent": 504,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -3030,6 +3030,13 @@
       "module": "Fiscal",
       "name": "ConfigController",
       "desc": "sub-página 6 (Cert A1 + regime + tributação default read-only)"
+    },
+    {
+      "id": "component:Fiscal/DasController",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "DasController",
+      "desc": "apuração do DAS pelo Anexo, só leitura sobre o ApuracaoDasService (US-FISCAL-030), flag useV2FiscalDas"
     },
     {
       "id": "component:Fiscal/DataController",
@@ -9799,6 +9806,12 @@
     {
       "from": "module:Fiscal",
       "to": "component:Fiscal/ConfigController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/DasController",
       "type": "hasComponent",
       "source": "contains"
     },

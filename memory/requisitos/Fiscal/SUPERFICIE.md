@@ -14,13 +14,14 @@ module: Fiscal
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 112 arquivos em 12 papéis.
+**Total mapeado:** 117 arquivos em 12 papéis.
 
-## Controllers — 11
+## Controllers — 12
 
 - [AcoesController.php](../../../Modules/Fiscal/Http/Controllers/AcoesController.php)
 - [CockpitController.php](../../../Modules/Fiscal/Http/Controllers/CockpitController.php)
 - [ConfigController.php](../../../Modules/Fiscal/Http/Controllers/ConfigController.php)
+- [DasController.php](../../../Modules/Fiscal/Http/Controllers/DasController.php)
 - [DataController.php](../../../Modules/Fiscal/Http/Controllers/DataController.php)
 - [DfeController.php](../../../Modules/Fiscal/Http/Controllers/DfeController.php)
 - [EventosController.php](../../../Modules/Fiscal/Http/Controllers/EventosController.php)
@@ -57,10 +58,11 @@ module: Fiscal
 - [api.php](../../../Modules/Fiscal/Routes/api.php)
 - [web.php](../../../Modules/Fiscal/Routes/web.php)
 
-## Telas (Inertia/React) — 7
+## Telas (Inertia/React) — 8
 
 - [Cockpit.tsx](../../../resources/js/Pages/Fiscal/Cockpit.tsx)
 - [Config.tsx](../../../resources/js/Pages/Fiscal/Config.tsx)
+- [Das.tsx](../../../resources/js/Pages/Fiscal/Das.tsx)
 - [Dfe.tsx](../../../resources/js/Pages/Fiscal/Dfe.tsx)
 - [Eventos.tsx](../../../resources/js/Pages/Fiscal/Eventos.tsx)
 - [Nfe.tsx](../../../resources/js/Pages/Fiscal/Nfe.tsx)
@@ -89,29 +91,31 @@ module: Fiscal
 - [linkify.tsx](../../../resources/js/Pages/Fiscal/_lib/linkify.tsx)
 - [paginas-fiscais.tsx](../../../resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx)
 
-## Charters (lei da tela) — 7
+## Charters (lei da tela) — 8
 
 - [Cockpit.charter.md](../../../resources/js/Pages/Fiscal/Cockpit.charter.md)
 - [Config.charter.md](../../../resources/js/Pages/Fiscal/Config.charter.md)
+- [Das.charter.md](../../../resources/js/Pages/Fiscal/Das.charter.md)
 - [Dfe.charter.md](../../../resources/js/Pages/Fiscal/Dfe.charter.md)
 - [Eventos.charter.md](../../../resources/js/Pages/Fiscal/Eventos.charter.md)
 - [Nfe.charter.md](../../../resources/js/Pages/Fiscal/Nfe.charter.md)
 - [Nfse.charter.md](../../../resources/js/Pages/Fiscal/Nfse.charter.md)
 - [Sped.charter.md](../../../resources/js/Pages/Fiscal/Sped.charter.md)
 
-## Casos (contrato UC) — 7
+## Casos (contrato UC) — 8
 
 - [Cockpit.casos.md](../../../resources/js/Pages/Fiscal/Cockpit.casos.md)
 - [Config.casos.md](../../../resources/js/Pages/Fiscal/Config.casos.md)
+- [Das.casos.md](../../../resources/js/Pages/Fiscal/Das.casos.md)
 - [Dfe.casos.md](../../../resources/js/Pages/Fiscal/Dfe.casos.md)
 - [Eventos.casos.md](../../../resources/js/Pages/Fiscal/Eventos.casos.md)
 - [Nfe.casos.md](../../../resources/js/Pages/Fiscal/Nfe.casos.md)
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 33
+## Testes (Pest) — 34
 
-- 33 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 34 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 16
