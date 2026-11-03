@@ -1213,7 +1213,8 @@ a V3 passar a obedecer.
 
 ### Módulos ligados no pacote
 
-- **[BACKLOG]** Tipos de serviço (`types_of_service`), profissional (`service_staff`), contas de pagamento (`account`), Repair (`repair_module`) e Oficina (`oficina_auto_module`) aparecem só com o módulo ligado. Mesas, cozinha e modificadores (`tables`, `kitchen`, `modifiers`) ficam com o PDV.
+- **[BACKLOG]** Tipos de serviço (`types_of_service`), profissional (`service_staff`), contas de pagamento (`account`), Repair (`repair_module`) e Oficina (`oficina_auto_module`) aparecem só com o módulo ligado. Mesas, cozinha e modificadores (`tables`, `kitchen`, `modifiers`) também entram na V3, por decisão [W] em 2026-11-03.
+- **[BACKLOG]** **Restaurante na V3** (decisão [W] 2026-11-03, *"Sim, V3 cobre"*): com `tables` ligado a venda escolhe a mesa (`res_table_id`); com `service_staff`, o atendente (`res_waiter_id`); com `kitchen`, marca o pedido de cozinha (`is_kitchen_order`). Medido em 2026-11-03: a venda React de `/pos/create` não manda nenhum dos três (`grep res_table_id\|is_kitchen_order\|res_waiter_id` em `resources/js/Pages/Sells/` = 0), e por isso nenhum pedido da empresa 1 chega às telas React de Cozinha e Pedidos. Paridade com o PDV de restaurante.
 
 ## Fronteira que os testes desta tela devem preservar
 
