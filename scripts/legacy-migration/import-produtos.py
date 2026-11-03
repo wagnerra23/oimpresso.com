@@ -121,6 +121,9 @@ def main() -> int:
     parser.add_argument("--target-business", type=int, required=True)
     parser.add_argument("--target", choices=["dry-run", "local", "prod"], default="dry-run")
     parser.add_argument("--only-ativo", action="store_true", default=True)
+    # Itens de venda antigos apontam para produto que hoje está inativo; sem ele o item
+    # se perde. Inativo entra com not_for_selling=1.
+    parser.add_argument("--incluir-inativos", dest="only_ativo", action="store_false")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--batch-size", type=int, default=500)
     parser.add_argument("--mysql-host", default=os.environ.get("MYSQL_HOST", "127.0.0.1"))
@@ -258,18 +261,32 @@ def main() -> int:
                     if not var_existing:
                         # Precisa de variation_template_id default ou variation_value_id?
                         # Schema simples: só product_id + name + sub_sku + default_purchase_price/sell_price
-                        try:
+                        # variations.product_variation_id é NOT NULL: produto simples do
+                        # UltimatePOS tem 1 product_variations 'DUMMY' (is_dummy=1) e a
+                        # variation pendura nele. Sem isso o INSERT falha e o item da venda
+                        # fica sem variation.
+                        wcur.execute(
+                            "SELECT id FROM product_variations WHERE product_id=%s LIMIT 1",
+                            (product_id,),
+                        )
+                        pv = wcur.fetchone()
+                        if pv:
+                            pv_id = int(pv["id"])
+                        else:
                             wcur.execute(
-                                "INSERT INTO variations (product_id, name, sub_sku, "
-                                "default_purchase_price, dpp_inc_tax, profit_percent, "
-                                "default_sell_price, sell_price_inc_tax, created_at, updated_at) "
-                                "VALUES (%s, 'DUMMY', %s, %s, %s, 0, %s, %s, NOW(), NOW())",
-                                (product_id, data["sku"], 0, 0, valor, valor),
+                                "INSERT INTO product_variations (product_id, name, is_dummy, "
+                                "created_at, updated_at) VALUES (%s, 'DUMMY', 1, NOW(), NOW())",
+                                (product_id,),
                             )
-                            stats["variations_inserts"] += 1
-                        except pymysql.err.IntegrityError as e:
-                            # variation_template_id NOT NULL? race? skip
-                            pass
+                            pv_id = wcur.lastrowid
+                        wcur.execute(
+                            "INSERT INTO variations (product_id, product_variation_id, name, sub_sku, "
+                            "default_purchase_price, dpp_inc_tax, profit_percent, "
+                            "default_sell_price, sell_price_inc_tax, created_at, updated_at) "
+                            "VALUES (%s, %s, 'DUMMY', %s, %s, %s, 0, %s, %s, NOW(), NOW())",
+                            (product_id, pv_id, data["sku"], 0, 0, valor, valor),
+                        )
+                        stats["variations_inserts"] += 1
                     else:
                         stats["variations_existing"] += 1
 

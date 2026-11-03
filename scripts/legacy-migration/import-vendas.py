@@ -230,6 +230,11 @@ def map_venda_to_transaction(
     contact_id = contact_lookup.get(cnpj_norm) if cnpj_norm else None
 
     razao = normalize_str(venda.get("RAZAOSOCIAL")) or f"Legacy {legacy_id}"
+    # Venda sem CNPJ/CPF no Delphi (balcão, cadastro sem documento): vai para o cliente
+    # padrão da empresa, e o nome que estava na venda fica na observação.
+    sem_documento = cnpj_norm is None and contact_lookup.get("__default__") is not None
+    if sem_documento:
+        contact_id = contact_lookup["__default__"]
 
     data = {
         "business_id": business_id,
@@ -251,7 +256,11 @@ def map_venda_to_transaction(
         "total_before_tax": normalize_decimal(venda.get("TOTAL")) or 0,
         "discount_amount": normalize_decimal(venda.get("VDESC")) or 0,
         "shipping_charges": normalize_decimal(venda.get("NF_VFRETE")) or 0,
-        "additional_notes": normalize_str(venda.get("OBSERVACAO")),
+        "additional_notes": (
+            " | ".join(x for x in (f"Cliente no sistema anterior: {razao}",
+                                    normalize_str(venda.get("OBSERVACAO"))) if x)
+            if sem_documento else normalize_str(venda.get("OBSERVACAO"))
+        ),
         "sub_type": derive_subtype(venda),
         "created_by": 1,  # Wagner system user — sobrescrito via --created-by
         # NOT NULL sem default no schema UltimatePOS — fallbacks seguros:
@@ -455,12 +464,20 @@ def main() -> int:
                     )
                     for r in cur.fetchall():
                         vehicle_lookup[str(r["legacy_id"])] = int(r["id"])
+                    # Pelo documento também: a empresa do grupo entrou com legacy_id = CODIGO
+                    # da EMPRESA, não com o CNPJ (mesmo caso do import-contacts-from-venda).
                     cur.execute(
-                        "SELECT id, legacy_id FROM contacts WHERE business_id=%s AND legacy_id IS NOT NULL",
+                        "SELECT id, legacy_id, tax_number, is_default FROM contacts WHERE business_id=%s",
                         (args.target_business,),
                     )
                     for r in cur.fetchall():
-                        contact_lookup[str(r["legacy_id"])] = int(r["id"])
+                        doc = re.sub(r"\D", "", str(r["tax_number"] or ""))
+                        if len(doc) in (11, 14):
+                            contact_lookup.setdefault(doc, int(r["id"]))
+                        if r["legacy_id"] is not None:
+                            contact_lookup[str(r["legacy_id"])] = int(r["id"])
+                        if r["is_default"]:
+                            contact_lookup.setdefault("__default__", int(r["id"]))
             finally:
                 tmp_con.close()
             print(f"[Vehicle lookup] {len(vehicle_lookup)} vehicles biz={args.target_business}")
