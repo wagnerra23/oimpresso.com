@@ -4,8 +4,10 @@ irmaos: Tipos.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-10-27"
+last_run: "2026-11-03"
 ---
+
+> ℹ️ **`last_run` 2026-10-27 → 2026-11-03 (G-6): o toque em `Tipos.tsx` foi só de tipo.** No tratamento do 422 do salvar, `porCampo[campo] = msgs[0]` virou `if (msgs[0]) porCampo[campo] = msgs[0]`: o erro do campo só é guardado quando há mensagem, que é o que já acontecia (o Laravel sempre manda ao menos uma). Nenhum UC muda.
 
 > ℹ️ **`last_run` 2026-10-26 → 2026-10-27 (G-6): o último toque em `Tipos.tsx` (6ff1ba6fbb) foi só layout.**
 > O `<form className="flex h-full flex-col">` do painel passou a ser embrulhado pelo primitivo `Stack` (`asChild gap={0} h-full`, ADR 0253) —
