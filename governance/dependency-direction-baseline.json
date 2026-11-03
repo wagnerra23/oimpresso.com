@@ -31,9 +31,11 @@
     "app/Services/CriarOsPorVendaService.php"
   ],
   "allowlist": [
+    "app/Services/Sells/PreviaFinanceiraDevolucao.php",
     "app/Utils/NotificationUtil.php"
   ],
   "allowlist_razoes": {
+    "app/Services/Sells/PreviaFinanceiraDevolucao.php": "Dependencia opcional do modulo Financeiro (UC-SRADD-09, previa da devolucao antes de salvar): so leitura, reusa os metodos publicos do DevolucaoVendaTituloService (#10249) para mostrar o mesmo abatimento que a gravacao vai fazer; sem a classe ou sem fin_titulos devolve financeiro=null e a tela segue sem a previa. Nao curado no PR de origem porque Modules/Financeiro estava fora do escopo daquela sessao. Curar = interface de previa de abatimento em app/ implementada pelo modulo (opcao b).",
     "app/Utils/NotificationUtil.php": "Dependencia opcional do modulo Whatsapp (US-WA-320, #9817; registrada no #9946): so age com a flag whatsapp.aviso_automatico.enabled e class_exists(NotificadorClienteWhatsapp); sem o modulo devolve null e o caller segue o link manual sem ler o enum. Curar = interface de notificador em app/ implementada pelo modulo (opcao b)."
   }
 }
