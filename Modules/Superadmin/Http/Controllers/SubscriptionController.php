@@ -294,6 +294,8 @@ class SubscriptionController extends BaseController
                 }
             }
 
+            // `_payment_gateways()` declara `@return Response`; o tipo real vai aqui.
+            /** @var array<string, string> $gateways */
             $gateways = $this->_payment_gateways();
 
             $system_currency = System::getCurrency();
