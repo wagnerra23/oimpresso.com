@@ -74,6 +74,7 @@ const kpiCardVariants = cva(
         default: 'p-4 gap-2',
         compact: 'p-3 gap-1',
         large: 'p-6 gap-3',
+        catchup: 'p-4 gap-2',
       },
       // Declarado POR ÚLTIMO de propósito: o `cva` concatena as variants na ordem das chaves
       // e o `cn` deste arquivo é `twMerge` — então `variant` vence `size`/base nos eixos em
@@ -112,6 +113,7 @@ const iconContainerVariants = cva(
         default: 'h-9 w-9',
         compact: 'h-7 w-7',
         large: 'h-11 w-11',
+        catchup: 'h-9 w-9',
       },
     },
     defaultVariants: { tone: 'default', size: 'default' },
@@ -192,12 +194,19 @@ export default function KpiCard({
   // Casa com a regra de acabamento da ramp ("lh 1 números") e com --fs-8/--fs-9 no Financeiro.
   // size=large 36px (text-4xl) vem da tabela da ADR 0110; size=compact 20px (text-xl) não tem
   // dono declarado — os dois estão FORA da ramp (…18 · 22 · 28 · 38…) e não foram tocados aqui.
+  // size=catchup 19px: telas cuja âncora é o helper `Kpis` do protótipo catch-up
+  // (`prototipo-ui/cowork/Wagner/catchup-shared.jsx` + `catchup.css` `.cu-kpi b{font-size:19px}`):
+  // Compras extras, Financeiro legado, Integrações e Restaurante. O Design System segue em
+  // --fs-7 (22px) no default — decisão [W] 2026-11-03 ("Sim, só nas catch-up"), medida pelo
+  // lote Restaurante (22px × 19px em Cozinha, Reservas e Mesas).
   const valueClass =
     size === 'compact'
       ? 'text-xl font-semibold'
       : size === 'large'
         ? 'text-4xl font-semibold'
-        : 'text-[length:var(--fs-7)] leading-none font-semibold';
+        : size === 'catchup'
+          ? 'text-[19px] leading-none font-semibold tabular-nums'
+          : 'text-[length:var(--fs-7)] leading-none font-semibold';
 
   const defaultContent = (
     <>
