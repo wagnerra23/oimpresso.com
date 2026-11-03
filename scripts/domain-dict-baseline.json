@@ -1,12 +1,12 @@
 {
   "_meta": {
-    "generated_at": "2026-10-20T11:48:49.036Z",
+    "generated_at": "2026-11-03T13:04:59.969Z",
     "gate": "dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3)",
     "stats": {
       "modules_with_dict": 9,
       "modules_with_enums": 22,
       "divergences": 0,
-      "code_divergences": 26,
+      "code_divergences": 24,
       "forbidden_ui_terms": 76,
       "modules_no_dict": 17
     },
@@ -118,8 +118,6 @@
     "dominio:undeclared-code-value:Financeiro:origem:sells",
     "dominio:undeclared-code-value:Financeiro:status:close",
     "dominio:undeclared-code-value:Financeiro:status:ok",
-    "dominio:undeclared-code-value:Financeiro:type:expense",
-    "dominio:undeclared-code-value:Financeiro:type:sell",
     "dominio:undeclared-code-value:FiscalFaturamento:ambiente:1",
     "dominio:undeclared-code-value:FiscalFaturamento:ambiente:2",
     "dominio:undeclared-code-value:FiscalFaturamento:status:emitida",

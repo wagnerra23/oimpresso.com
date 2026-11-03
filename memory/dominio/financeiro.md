@@ -42,7 +42,8 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0175-conta-bancaria-
   "tables_scope": ["fin_bank_statement_lines", "fin_boleto_remessas", "fin_caixa_movimentos", "fin_categorias", "fin_extrato_lancamentos", "fin_planos_conta", "fin_titulo_baixas", "fin_titulos", "accounts", "account_transactions"],
   "code_paths": ["Modules/Financeiro/Http", "Modules/Financeiro/Services", "Modules/Financeiro/Models", "Modules/Financeiro/Observers", "Modules/Financeiro/Jobs"],
   "vocab": {
-    "fin_cobrancas.tipo": ["boleto", "pix_cob", "pix_cobv", "pix_recv", "card"]
+    "fin_cobrancas.tipo": ["boleto", "pix_cob", "pix_cobv", "pix_recv", "card"],
+    "transactions.type": ["sell", "purchase", "expense", "sell_return"]
   },
   "enums": {
     "fin_titulos.tipo": ["receber", "pagar"],
