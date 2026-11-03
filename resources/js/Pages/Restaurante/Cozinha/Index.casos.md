@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: pedido de outro negócio na fila é incidente Tier 0; pedido que some da fila antes de ficar pronto atrasa a mesa.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-11-03"
 ---
 
 # Casos de Uso & Aceite — Cozinha

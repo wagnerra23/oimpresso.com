@@ -133,9 +133,9 @@ function ReservasIndex({ reservas, locais }: Props) {
       <Stack gap={4} className="px-6 pt-4">
         <Deferred data="reservas" fallback={<p className="py-6 text-sm text-muted-foreground">Carregando reservas…</p>}>
           <Grid data-contract="kpis" min="sm" gap={4}>
-            <KpiCard label="Hoje e adiante" value={adiante} description="reservado + aguardando" tone="info" />
-            <KpiCard label="Aguardando confirmação" value={aguardando} description="cliente ainda não confirmou" tone={aguardando ? 'warning' : 'success'} />
-            <KpiCard label="Concluídas" value={concluidas} description="atendimento feito" tone="success" />
+            <KpiCard size="catchup" label="Hoje e adiante" value={adiante} description="reservado + aguardando" tone="info" />
+            <KpiCard size="catchup" label="Aguardando confirmação" value={aguardando} description="cliente ainda não confirmou" tone={aguardando ? 'warning' : 'success'} />
+            <KpiCard size="catchup" label="Concluídas" value={concluidas} description="atendimento feito" tone="success" />
           </Grid>
 
           {todas.length > 0 ? (

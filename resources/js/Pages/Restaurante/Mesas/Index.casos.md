@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a mesa de outro negócio na tela é incidente Tier 0; uma mesa dada como livre com pedido em aberto engana o salão.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-11-03"
 ---
 
 # Casos de Uso & Aceite — Mesas
