@@ -33,7 +33,7 @@ import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import NovaDespesaSheet, { type OpcoesNova } from './_components/NovaDespesaSheet';
 
 export interface Despesa {
-  id: number; data: string; ref: string; estorno: boolean; recorrente: boolean; gerada_de: string | null;
+  id: number; data: string; ref: string; estorno: boolean; recorrente: boolean; gerada_de: string | null; recorrencia: string;
   categoria: string | null; subcategoria: string | null; local: string | null; status: 'paid' | 'due' | 'partial' | string;
   imposto: string | null; total: number; devido: number; para: string; contato: string | null; nota: string | null;
   criado_por: string; documento: string | null;
@@ -70,9 +70,10 @@ function Filtro({ rotulo, k, filtros, opcoes }: { rotulo: string; k: keyof Filtr
 }
 
 const colunas: ColumnDef<Despesa>[] = [
+  // Rótulos literais da Blade expense/index (os mesmos do protótipo financeiro-legado.jsx).
   { accessorKey: 'data', header: 'Data' },
   {
-    accessorKey: 'ref', header: 'Referência',
+    accessorKey: 'ref', header: 'Nº de referência',
     cell: ({ row: { original: d } }) => (
       <Inline gap={1}>
         <span className="font-mono">{d.ref}</span>
@@ -82,17 +83,18 @@ const colunas: ColumnDef<Despesa>[] = [
       </Inline>
     ),
   },
-  { accessorKey: 'categoria', header: 'Categoria' },
+  { accessorKey: 'recorrencia', header: 'Detalhes de recorrência', cell: ({ getValue }) => getValue<string>() || 'não recorrente' },
+  { accessorKey: 'categoria', header: 'Categoria de despesa' },
   { accessorKey: 'subcategoria', header: 'Subcategoria' },
   { accessorKey: 'local', header: 'Local' },
-  { accessorKey: 'status', header: 'Pagamento', cell: ({ getValue }) => <Badge variant="outline">{STATUS[getValue<string>()] ?? getValue<string>()}</Badge> },
+  { accessorKey: 'status', header: 'Status do pagamento', cell: ({ getValue }) => <Badge variant="outline">{STATUS[getValue<string>()] ?? getValue<string>()}</Badge> },
   { accessorKey: 'imposto', header: 'Imposto' },
-  { accessorKey: 'total', header: 'Total', meta: { align: 'right', mono: true }, cell: ({ getValue }) => brl(getValue<number>()) },
-  { accessorKey: 'devido', header: 'Devido', meta: { align: 'right', mono: true }, cell: ({ getValue }) => brl(getValue<number>()) },
+  { accessorKey: 'total', header: 'Valor total', meta: { align: 'right', mono: true }, cell: ({ getValue }) => brl(getValue<number>()) },
+  { accessorKey: 'devido', header: 'Valor devido', meta: { align: 'right', mono: true }, cell: ({ getValue }) => brl(getValue<number>()) },
   { accessorKey: 'para', header: 'Despesa para' },
   { accessorKey: 'contato', header: 'Contato' },
-  { accessorKey: 'nota', header: 'Nota' },
-  { accessorKey: 'criado_por', header: 'Criado por' },
+  { accessorKey: 'nota', header: 'Nota de despesas' },
+  { accessorKey: 'criado_por', header: 'Adicionado por' },
 ];
 
 function xsrf(): string {

@@ -53,6 +53,14 @@ last_run: "2026-10-14"
 
 ---
 
+## UC-DESPES-08 · Detalhes de recorrência iguais aos da tela antiga
+- **Aceite:** Dado uma despesa recorrente (1 mês, 3 repetições), uma gerada por ela e uma avulsa · Quando abro a lista nova · Então a coluna "Detalhes de recorrência" traz o mesmo texto da coluna da Blade, a gerada cita a de origem e a avulsa fica vazia (a tela mostra "não recorrente").
+- **Teste:** `tests/Feature/Expense/DespesasIndexContratoTest.php` — `UC-DESPES-08` (payload Inertia × coluna `recur_details` do DataTable).
+- **Regressão que defende:** as duas telas descreverem a recorrência de jeitos diferentes; uma regra só (`ExpenseController::detalhesRecorrencia`).
+- **Status: ⬜** — até o CI do PR rodar.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Chego à tela pelo menu: o dropdown core "Despesas" fica escondido com o Financeiro habilitado (decisão [W] 2026-05-20), e a sub-navegação do Financeiro ainda não tem a aba. O caminho de entrada é decisão antes de ligar a flag.
