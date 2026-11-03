@@ -16,7 +16,7 @@ use Tests\Support\EstoqueFixture;
  * ramo Inertia → `SellReturn/Add`; grava por `POST /sell-return` → `store()`, INTACTO).
  * Thread 03 de venda-menu, PR 2 de 2.
  *
- * UCs: resources/js/Pages/SellReturn/Add.casos.md (UC-SRADD-01..06).
+ * UCs: resources/js/Pages/SellReturn/Add.casos.md (UC-SRADD-01..09).
  * Tenants: 98 (canônico, ADR 0358) × 99 (adversário). Nunca biz=4.
  *
  * REGRA MESTRE (valor + estoque) — conta à mão, independente do código:
@@ -449,4 +449,131 @@ it('UC-SRADD-08 [V0][E0] devolver tudo devolve a venda inteira descontando o que
     expect($devolucao($d['id'])->value('payment_status'))->toBe($devolucao($c['id'])->value('payment_status'));
     expect($estoque($this->produto))->toBe(16.0);
     expect($estoque($q))->toBe(14.0);
+});
+
+/*
+ * UC-SRADD-09 — prévia financeira (#10249): antes de salvar, a tela mostra quanto a devolução
+ * abate do título a receber da venda e quanto vira crédito do cliente. Conta à mão:
+ *
+ *   venda E: 3 un × 1.234,50 · desconto 10% → total 3.333,15 · em aberto 3.333,15 (título)
+ *   devolver 2 un → total 2.222,10
+ *     prévia: abate 2.222,10 · crédito 0,00
+ *     depois de salvar: título em aberto 3.333,15 − 2.222,10 = 1.111,05
+ *   venda F: igual, com 2.500,00 já recebidos → em aberto 833,15
+ *     prévia: abate 833,15 · crédito 2.222,10 − 833,15 = 1.388,95
+ *     depois de salvar: título em aberto 0,00 · a devolução segue "A pagar" por 2.222,10
+ *
+ * Dupla prova (REGRA MESTRE): (a) a prévia bate com a conta à mão; (b) a gravação de verdade
+ * pelo store() produz no título exatamente o que a prévia disse. A prévia não grava nada.
+ */
+function sraddVendaComTitulo(object $t, ?float $recebido = null): array
+{
+    $v = EstoqueFixture::saleWithLine($t->produto, 0, $t->loc, 3.0, 1234.50);
+    DB::table('transactions')->where('id', $v['transaction_id'])
+        ->update(['discount_type' => 'percentage', 'discount_amount' => 10, 'invoice_no' => 'SRADD-' . uniqid()]);
+    // Eloquent, para o TransactionObserver do Financeiro abrir o título da venda.
+    $venda = \App\Transaction::findOrFail($v['transaction_id']);
+    $venda->final_total = 3333.15;
+    $venda->payment_status = 'due';
+    $venda->save();
+    if ($recebido !== null) {
+        \App\TransactionPayment::create([
+            'transaction_id' => $venda->id,
+            'business_id' => $venda->business_id,
+            'amount' => $recebido,
+            'method' => 'cash',
+            'paid_on' => now()->format('Y-m-d H:i:s'),
+            'created_by' => $venda->created_by,
+        ]);
+        $venda->payment_status = 'partial';
+        $venda->save();
+    }
+
+    return $v;
+}
+
+function sraddAbertoDoTitulo(int $vendaId): ?float
+{
+    $v = DB::table('fin_titulos')->where('origem', 'venda')->where('origem_id', $vendaId)->whereNull('parcela_numero')->value('valor_aberto');
+
+    return $v === null ? null : round((float) $v, 2);
+}
+
+function sraddPrevia(object $t, array $payload): array
+{
+    $res = $t->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->post("/sell-return/previa-financeira/{$payload['transaction_id']}", [
+            'products' => $payload['products'],
+            'discount_type' => $payload['discount_type'],
+            'discount_amount' => $payload['discount_amount'],
+        ]);
+    $res->assertStatus(200);
+
+    return $res->json();
+}
+
+it('UC-SRADD-09 [V0] a prévia diz quanto abate do título da venda e quanto vira crédito, e a gravação confirma', function () {
+    if (! Schema::hasTable('fin_titulos')) {
+        $this->markTestSkipped('Financeiro ausente — roda na lane MySQL.');
+    }
+    $post = fn (array $payload) => $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->post('/sell-return', $payload);
+
+    // Venda E — tudo abate.
+    $e = sraddVendaComTitulo($this);
+    expect(sraddAbertoDoTitulo($e['transaction_id']))->toBe(3333.15); // anti-vácuo: o título existe
+    $payloadE = sraddPayloadPage(sraddVenda($this, $e['transaction_id']), '2');
+    $previaE = sraddPrevia($this, $payloadE);
+    expect($previaE['total'])->toEqual(2222.10);
+    expect($previaE['devido_ao_cliente'])->toEqual(2222.10);
+    expect($previaE['financeiro'])->toEqual([
+        'tem_titulo' => true, 'em_aberto_na_venda' => 3333.15, 'ja_abatido' => 0, 'abate' => 2222.10, 'credito' => 0,
+    ]);
+    // A prévia não grava nada.
+    expect(sraddAbertoDoTitulo($e['transaction_id']))->toBe(3333.15);
+    expect(DB::table('transactions')->where('type', 'sell_return')->where('return_parent_id', $e['transaction_id'])->exists())->toBeFalse();
+
+    $post($payloadE)->assertJson(['success' => 1]);
+    expect(sraddAbertoDoTitulo($e['transaction_id']))->toBe(round(3333.15 - (float) $previaE['financeiro']['abate'], 2));
+    expect(sraddAbertoDoTitulo($e['transaction_id']))->toBe(1111.05);
+
+    // Venda F — abate só o aberto; a sobra é crédito.
+    $f = sraddVendaComTitulo($this, 2500.00);
+    expect(sraddAbertoDoTitulo($f['transaction_id']))->toBe(833.15);
+    $payloadF = sraddPayloadPage(sraddVenda($this, $f['transaction_id']), '2');
+    $previaF = sraddPrevia($this, $payloadF);
+    expect($previaF['financeiro']['abate'])->toEqual(833.15);
+    expect($previaF['financeiro']['credito'])->toEqual(1388.95);
+    expect(round((float) $previaF['financeiro']['abate'] + (float) $previaF['financeiro']['credito'], 2))->toEqual($previaF['total']);
+
+    $post($payloadF)->assertJson(['success' => 1]);
+    expect(sraddAbertoDoTitulo($f['transaction_id']))->toBe(0.0);
+    $devF = DB::table('transactions')->where('type', 'sell_return')->where('return_parent_id', $f['transaction_id'])->first();
+    expect(round((float) $devF->final_total, 2))->toBe(2222.10);
+    expect($devF->payment_status)->toBe('due');
+
+    // Reabrir a venda E: a prévia reconhece o que já foi abatido e não conta duas vezes.
+    $previaE2 = sraddPrevia($this, sraddPayloadPage(sraddVenda($this, $e['transaction_id']), '2'));
+    expect($previaE2['financeiro'])->toEqual([
+        'tem_titulo' => true, 'em_aberto_na_venda' => 3333.15, 'ja_abatido' => 2222.10, 'abate' => 2222.10, 'credito' => 0,
+    ]);
+});
+
+it('UC-SRADD-09 [T0] prévia de venda de outra empresa é 404, e sem permissão é 403', function () {
+    $locOutro = EstoqueFixture::locationId($this->outroBizId);
+    $produtoOutro = EstoqueFixture::singleProduct($this->outroBizId);
+    $vendaOutro = EstoqueFixture::saleWithLine($produtoOutro, 0, $locOutro, 3.0, 50.0);
+    expect((int) DB::table('transactions')->where('id', $vendaOutro['transaction_id'])->value('business_id'))->toBe($this->outroBizId);
+
+    $corpo = ['products' => [['quantity' => '1', 'unit_price_inc_tax' => '50,00']], 'discount_type' => '', 'discount_amount' => '0'];
+    $previa = fn (int $venda) => $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->post("/sell-return/previa-financeira/{$venda}", $corpo);
+
+    $previa($vendaOutro['transaction_id'])->assertStatus(404);
+    // Controle: a mesma chamada na venda do próprio tenant responde.
+    $previa($this->vendaA['transaction_id'])->assertStatus(200);
+
+    $semPermissao = sraddUsuario($this->bizId, ['access_all_locations']);
+    $this->actingAs($semPermissao)->withSession(sraddSessao($semPermissao));
+    $previa($this->vendaA['transaction_id'])->assertStatus(403);
 });
