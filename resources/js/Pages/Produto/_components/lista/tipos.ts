@@ -293,6 +293,8 @@ export interface ContextoLista {
   rotulos_campos: Record<string, string | null>;
   /** O filtro "Natureza fiscal" existe (módulo Fiscal ligado). */
   natureza_fiscal?: boolean;
+  /** Chave `useV2ProdutoCadastro` ligada para a empresa: as ações abrem as telas React prontas. */
+  telas_react?: boolean;
 }
 
 export interface PermissoesLista {

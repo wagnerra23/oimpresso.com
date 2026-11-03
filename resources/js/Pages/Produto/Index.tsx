@@ -18,7 +18,8 @@
 
 import '../../../css/cowork-produto-bundle.css';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { modoDeNavegar } from './_components/lista/navegacao';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Download, FileSpreadsheet, Package, Plus, RefreshCw, Search, Tag } from 'lucide-react';
 import { toast } from 'sonner';
@@ -134,7 +135,6 @@ function enviarFormulario(url: string, campos: Record<string, string>) {
   form.submit();
 }
 
-const irPara = (url: string) => window.location.assign(url);
 
 function lerLocal<T>(chave: string, padrao: T): T {
   try {
@@ -197,6 +197,16 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
     ...colunasGuardadas(lerLocal<Record<string, boolean>>(CHAVE_COLUNAS, {}), lerLocal<boolean>(CHAVE_IMPOSTO_DESLIGADO, false)),
   }));
   const [densa, setDensa] = useState<boolean>(() => lerLocal<boolean>(CHAVE_DENSIDADE, false));
+  // Com a chave `useV2ProdutoCadastro` ligada, as telas React prontas abrem por visita Inertia
+  // (por GET de página inteira o servidor serve o Blade). Desligada, tudo segue em página inteira.
+  const telasReact = contexto.telas_react === true;
+  const irPara = useCallback(
+    (url: string) => {
+      if (modoDeNavegar(url, telasReact) === 'inertia') router.visit(url);
+      else window.location.assign(url);
+    },
+    [telasReact],
+  );
   const [busca, setBusca] = useState(filtros.q);
   const [selecionados, setSelecionados] = useState<number[]>([]);
   // Larguras que o usuário arrastou. Moram AQUI, e não na tabela, porque a tabela vive dentro de
@@ -282,7 +292,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [permissions.create]);
+  }, [permissions.create, irPara]);
 
   const recarregar = () => {
     setSelecionados([]);
