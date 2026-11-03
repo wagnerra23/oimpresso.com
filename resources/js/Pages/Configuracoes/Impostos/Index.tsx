@@ -51,7 +51,7 @@ interface Edicao { id?: number; nome: string; aliquota: string; so_grupo: boolea
 interface EdicaoGrupo { id?: number; nome: string; taxas: number[] }
 
 /** Soma que o servidor vai gravar (GroupTaxController soma `amount` das alíquotas escolhidas). Só mostra — não é enviada. */
-export const somaGrupo = (aliquotas: Aliquota[], ids: number[]) =>
+const somaGrupo = (aliquotas: Aliquota[], ids: number[]) =>
   aliquotas.filter((a) => ids.includes(a.id)).reduce((t, a) => t + a.aliquota, 0);
 
 function xsrf(): string {

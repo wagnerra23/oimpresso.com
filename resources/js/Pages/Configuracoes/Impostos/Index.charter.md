@@ -8,6 +8,7 @@ status: draft
 last_validated: "2026-10-07"
 parent_module: Configuracoes
 related_adrs: [93, 104, 358]
+related_us: [US-MWART-010]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
