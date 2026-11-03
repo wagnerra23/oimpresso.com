@@ -46,7 +46,7 @@
         "req_sem_lane_total": 14,
         "behavior_known": false,
         "servido_total": 21,
-        "nao_servido_total": 98,
+        "nao_servido_total": 99,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
