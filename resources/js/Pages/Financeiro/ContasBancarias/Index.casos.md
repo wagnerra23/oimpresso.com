@@ -5,7 +5,7 @@ irmaos: charter ao lado (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-17"
+last_run: "2026-11-03"
 ---
 
 # Casos de uso — /financeiro/contas-bancarias
@@ -159,3 +159,4 @@ Teste de todos: `Modules/PaymentGateway/Tests/Feature/JurosMultaCarteiraBoletoTe
 [ADR 0093]: ../../memory/decisions/0093-multi-tenant-isolation-tier-0.md
 - 2026-10-29 · [W+C] Pedido P-157 "Boleto do Banco do Brasil gerado pelo sistema" (Sabor Brasil), registrado com casos-backlog/novo.mjs. Sem id de UC.
 - 2026-10-29 · [W+C] UC-CTB-12..15: juros e multa da carteira no boleto, Inter e BB (Sabor Brasil, item 4).
+- 2026-11-03 · [W+C] Casos revalidados com a tela única de contas (lista, menu da linha e painel Nova/Editar conta usam os mesmos endpoints de UC-CTB-05..11; nenhum aceite mudou).
