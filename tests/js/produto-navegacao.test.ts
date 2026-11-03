@@ -1,4 +1,4 @@
-// Navegação da lista de produtos para as telas React (UC-PIDX-35 · resources/js/Pages/Produto/Index.casos.md).
+// Navegação da lista de produtos para as telas React (UC-PIDX-36 · resources/js/Pages/Produto/Index.casos.md).
 //
 // A lista só navega por Inertia com a chave `useV2ProdutoCadastro` ligada e para as telas React
 // prontas (Novo/duplicar, Histórico de estoque, Preços por tabela). Editar segue em página inteira
@@ -8,7 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { abreTelaReact, modoDeNavegar } from '@/Pages/Produto/_components/lista/navegacao';
 
-describe('UC-PIDX-35 navegação da lista para as telas React', () => {
+describe('UC-PIDX-36 navegação da lista para as telas React', () => {
   it('com a chave ligada, Novo, duplicar, Histórico e Preços abrem por Inertia', () => {
     for (const url of ['/products/create', '/products/create?d=7', '/products/stock-history/7', '/products/add-selling-prices/7']) {
       expect(modoDeNavegar(url, true)).toBe('inertia');
