@@ -47,6 +47,7 @@ import {
 } from './comissao-dominio';
 import { brl, num } from './numeros';
 import { Lbl, Pill } from './primitivos';
+import { useCockpit } from './cockpit-portal';
 
 function Campo({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -115,6 +116,7 @@ export default function ComissaoDrawer({
   totalDaVenda: number;
   pessoas: { id: string; nome: string; papel: string }[];
 }) {
+  const cockpit = useCockpit();
   const [novoTipo, setNovoTipo] = useState<TipoBeneficiario>('funcionario');
 
   const total = useMemo(() => comissaoTotal(beneficiarios, totais), [beneficiarios, totais]);
@@ -137,7 +139,7 @@ export default function ComissaoDrawer({
 
   return (
     <Dialog open={aberto} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="venda-v3 max-h-[88vh] sm:max-w-[1000px]">
+      <DialogContent container={cockpit} className="venda-v3 max-h-[88vh] sm:max-w-[1000px]">
         <DialogHeader>
           <DialogTitle>Modelo de comissão da venda</DialogTitle>
         </DialogHeader>

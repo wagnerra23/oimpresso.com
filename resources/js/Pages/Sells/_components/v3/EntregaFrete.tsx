@@ -57,6 +57,7 @@ import {
 } from './entrega-dominio';
 import { num, parseBR } from './numeros';
 import { Lbl, MoneyInput, Pill } from './primitivos';
+import { useCockpit } from './cockpit-portal';
 
 /* ─── campos ─────────────────────────────────────────────────────────────── */
 
@@ -167,6 +168,7 @@ export default function EntregaFrete({
   onFreteChange: (v: string) => void;
   transportadoras: Transportadora[];
 }) {
+  const cockpit = useCockpit();
   const [porConta, setPorConta] = useState(FRETE_CIF);
   const [transp, setTransp] = useState<Transportadora | null>(null);
   const [consultaAberta, setConsultaAberta] = useState(false);
@@ -367,7 +369,7 @@ export default function EntregaFrete({
 
       {/* ─── consulta de transportadoras ────────────────────────────────── */}
       <Dialog open={consultaAberta} onOpenChange={setConsultaAberta}>
-        <DialogContent className="venda-v3 max-h-[80vh] sm:max-w-[880px]">
+        <DialogContent container={cockpit} className="venda-v3 max-h-[80vh] sm:max-w-[880px]">
           <DialogHeader>
             <DialogTitle>Consulta de transportadoras</DialogTitle>
           </DialogHeader>
