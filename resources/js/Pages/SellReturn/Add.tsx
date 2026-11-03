@@ -22,6 +22,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { calcularTotais, numUf } from './_components/devolucaoCalculo';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
+import { TriangleAlert } from 'lucide-react';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — paridade SellReturnController@inertiaAddVenda
@@ -228,10 +230,10 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
                   <th className="py-2 pr-2">Produto</th>
-                  <th className="py-2 pr-2 text-right">Preço unitário</th>
                   <th className="py-2 pr-2 text-right">Vendida</th>
+                  <th className="py-2 pr-2 text-right">Preço unitário</th>
                   <th className="py-2 pr-2 text-right">Já devolvida</th>
-                  <th className="py-2 pr-2">Devolver</th>
+                  <th className="py-2 pr-2 text-right">Devolver</th>
                   <th className="py-2 text-right">Subtotal</th>
                 </tr>
               </thead>
@@ -240,13 +242,14 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                   <tr key={l.sell_line_id} className="border-b border-border align-top">
                     <td className="py-2 pr-2">
                       <strong>{l.produto}</strong>
-                      {l.sku && <div className="text-xs text-muted-foreground">{l.sku}</div>}
+                      {l.sku && <div className="font-mono text-xs text-muted-foreground">{l.sku}</div>}
                     </td>
-                    <td className="py-2 pr-2 text-right tabular-nums">{fmtBRL(numUf(l.preco_unitario_txt))}</td>
-                    <td className="py-2 pr-2 text-right tabular-nums">{l.quantidade_vendida_txt} {l.unidade}</td>
-                    <td className="py-2 pr-2 text-right tabular-nums">{l.quantidade_devolvida_txt}</td>
-                    <td className="w-40 py-2 pr-2">
+                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{l.quantidade_vendida_txt} {l.unidade}</td>
+                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{fmtBRL(numUf(l.preco_unitario_txt))}</td>
+                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{l.quantidade_devolvida_txt}</td>
+                    <td className="w-40 py-2 pr-2 text-right">
                       <Input
+                        className="text-right"
                         inputMode="decimal"
                         value={quantidades[i] ?? ''}
                         placeholder="0"
@@ -256,7 +259,7 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                       />
                       {erros[i] && <p className="mt-1 text-xs text-destructive">{erros[i]}</p>}
                     </td>
-                    <td className="py-2 text-right tabular-nums">
+                    <td className="py-2 text-right font-mono tabular-nums">
                       {fmtBRL(numUf(quantidades[i] ?? '') * numUf(l.preco_unitario_txt))}
                     </td>
                   </tr>
@@ -352,6 +355,16 @@ export default function SellReturnAdd({ venda }: SellReturnAddProps) {
           subtitle="O que volta ao estoque e quanto fica a pagar ao cliente"
         />
       </div>
+
+      {/* Aviso do protótipo (venda-blade-caixa.jsx, VendaDevolucaoForm), texto literal. */}
+      <Alert className="mt-4" data-contract="aviso-devolucao">
+        <TriangleAlert aria-hidden="true" />
+        <AlertTitle>Devolução de venda</AlertTitle>
+        <AlertDescription>
+          A devolução volta o item pro estoque e gera crédito pro cliente. O que já foi produzido sob medida costuma não
+          voltar — confira antes de confirmar.
+        </AlertDescription>
+      </Alert>
 
       <Deferred data="venda" fallback={<Skeleton className="mt-4 h-96 w-full" />}>
         {venda ? <FormularioDevolucao venda={venda} /> : <></>}
