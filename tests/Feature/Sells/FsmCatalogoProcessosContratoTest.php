@@ -265,8 +265,9 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
         ->and(str_contains($acoes, "can('fiscal.nfe.acoes')"))->toBeTrue()
         ->and(flxChamadores('registrarDevolucao('))->toBe([flxCaminho('Modules/Vestuario/Services/DevolucaoService.php')])
         ->and(collect(flxChamadores('DevolucaoController'))->filter(fn ($p) => str_contains(strtolower($p), '/routes/'))->all())->toBe([])
-        // "o Financeiro não lê sell_return" (controle positivo: ele lê 'sell').
-        ->and(collect(flxChamadores("'sell_return'"))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->all())->toBe([])
+        // "o Financeiro lê sell_return para abater o título" (#10249): o leitor é o serviço da devolução.
+        ->and(collect(flxChamadores("'sell_return'"))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->values()->all())
+            ->toContain(flxCaminho('Modules/Financeiro/Services/DevolucaoVendaTituloService.php'))
         ->and(collect(flxChamadores("'sell'"))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->isNotEmpty())->toBeTrue();
 
     // Venda, NF-e, NFS-e e cobrança.
