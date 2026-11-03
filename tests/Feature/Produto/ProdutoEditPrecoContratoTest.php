@@ -21,18 +21,37 @@ use Tests\Support\EstoqueFixture;
  */
 uses(DatabaseTransactions::class);
 
+/**
+ * As chaves que o `useForm` do Edit.tsx manda sempre (o mesmo envio do `payloadDaTelaReact` do
+ * ProdutoEditPayloadContratoTest). Sem uma delas o `update()` aborta antes do save (medido no CI em
+ * 2026-11-03: `Undefined array key "brand_id"`), e um caso que espera "nada gravou" ficaria verde no vácuo.
+ */
 function pedit15Payload(Product $produto, array $extra = []): array
 {
-    return [
+    $campos = [];
+    for ($i = 1; $i <= 20; $i++) {
+        $campos['product_custom_field' . $i] = $produto->{'product_custom_field' . $i} ?? '';
+    }
+
+    return $extra + $campos + [
         'name' => $produto->name,
         'sku' => $produto->sku,
+        'brand_id' => $produto->brand_id ?? '',
         'unit_id' => $produto->unit_id,
-        'tax' => '',
+        'category_id' => $produto->category_id ?? '',
+        'sub_category_id' => $produto->sub_category_id ?? '',
+        'tax' => $produto->tax ?? '',
         'tax_type' => $produto->tax_type,
         'barcode_type' => $produto->barcode_type,
+        'alert_quantity' => $produto->alert_quantity ?? '',
+        'weight' => $produto->weight ?? '',
+        'product_description' => $produto->product_description ?? '',
         'product_locations' => [],
+        'warranty_id' => $produto->warranty_id ?? '',
+        'expiry_period' => '',
+        'expiry_period_type' => '',
         'preparation_time_in_minutes' => '',
-    ] + $extra;
+    ];
 }
 
 function pedit15Preco(int $variacaoId, float $compra, float $margem, float $venda): void
@@ -121,6 +140,17 @@ it('UC-PEDIT-16 · variação de produto de outra empresa não tem o preço regr
     $variacaoAlheia = $alheio->variations[0]['variation_id'];
     pedit15Preco($variacaoAlheia, 50, 20, 60);
     $produto = Product::findOrFail($meu->productId);
+
+    // Controle positivo: o MESMO envio, com a variação do próprio produto, chega ao save. Sem isto,
+    // "o preço alheio ficou" não distingue a trava de um envio que nem chega a gravar.
+    $this->put("/products/{$meu->productId}", pedit15Payload($produto, [
+        'name' => $produto->name . ' (controle)',
+        'single_variation_id' => $meu->variations[0]['variation_id'],
+        'single_dpp' => '2', 'single_dpp_inc_tax' => '2', 'profit_percent' => '0',
+        'single_dsp' => '2', 'single_dsp_inc_tax' => '2',
+    ]));
+    expect(Product::findOrFail($meu->productId)->name)->toBe($produto->name . ' (controle)');
+    expect((float) Variation::findOrFail($meu->variations[0]['variation_id'])->default_sell_price)->toBe(2.0);
 
     $this->put("/products/{$meu->productId}", pedit15Payload($produto, [
         'single_variation_id' => $variacaoAlheia,
