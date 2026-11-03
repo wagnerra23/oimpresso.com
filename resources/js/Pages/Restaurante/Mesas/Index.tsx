@@ -122,9 +122,9 @@ function RestauranteMesasIndex({ mesas, pedidos_hoje, pode_gerenciar }: Props) {
 
         <Deferred data={['mesas', 'pedidos_hoje']} fallback={<p className="py-6 text-sm text-muted-foreground">Carregando mesas…</p>}>
           <Grid data-contract="kpis" min="sm" gap={4}>
-            <KpiCard label="Mesas ocupadas" value={`${ocupadas} de ${todas.length}`} description="com pedido ainda não servido" tone={ocupadas ? 'warning' : 'success'} />
-            <KpiCard label="Livres" value={todas.length - ocupadas} description="prontas para receber cliente" tone="success" />
-            <KpiCard label="Pedidos hoje" value={pedidos_hoje ?? 0} description="vendas finalizadas com mesa" />
+            <KpiCard size="catchup" label="Mesas ocupadas" value={`${ocupadas} de ${todas.length}`} description="com pedido ainda não servido" tone={ocupadas ? 'warning' : 'success'} />
+            <KpiCard size="catchup" label="Livres" value={todas.length - ocupadas} description="prontas para receber cliente" tone="success" />
+            <KpiCard size="catchup" label="Pedidos hoje" value={pedidos_hoje ?? 0} description="vendas finalizadas com mesa" />
           </Grid>
 
           {todas.length > 0 ? (

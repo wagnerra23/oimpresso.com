@@ -113,9 +113,9 @@ function CozinhaIndex({ pedidos }: Props) {
       <Stack gap={4} className="px-6 pt-4">
         <Deferred data="pedidos" fallback={<p className="py-6 text-sm text-muted-foreground">Carregando a fila…</p>}>
           <Grid data-contract="kpis" min="sm" gap={4}>
-            <KpiCard label="Na fila" value={fila.length} description="pedidos com item por preparar" tone="info" />
-            <KpiCard label="Itens por preparar" value={itensPorPreparar} description="somando as quantidades" />
-            <KpiCard label={`Esperando há ${ATRASO_MIN} min ou mais`} value={atrasados} description="o mais antigo fica primeiro"
+            <KpiCard size="catchup" label="Na fila" value={fila.length} description="pedidos com item por preparar" tone="info" />
+            <KpiCard size="catchup" label="Itens por preparar" value={itensPorPreparar} description="somando as quantidades" />
+            <KpiCard size="catchup" label={`Esperando há ${ATRASO_MIN} min ou mais`} value={atrasados} description="o mais antigo fica primeiro"
               tone={atrasados ? 'warning' : 'success'} />
           </Grid>
 
