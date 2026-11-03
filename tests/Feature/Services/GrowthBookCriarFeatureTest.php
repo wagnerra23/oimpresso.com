@@ -18,13 +18,13 @@ use Illuminate\Support\Facades\Http;
 beforeEach(function () {
     putenv('GROWTHBOOK_ADMIN_API_TOKEN=secret_admin_test_xxx');
     putenv('GROWTHBOOK_ADMIN_API_HOST=https://growthbook.test.local/api/v1');
-    putenv('GROWTHBOOK_PROJECT=prj_teste');
+    config(['feature-flags.growthbook.project' => 'prj_teste']);
 });
 
 afterEach(function () {
     putenv('GROWTHBOOK_ADMIN_API_TOKEN=');
     putenv('GROWTHBOOK_ADMIN_API_HOST=');
-    putenv('GROWTHBOOK_PROJECT=');
+    config(['feature-flags.growthbook.project' => null]);
 });
 
 it('cria a feature booleana desligada, sem rule e com o environment ligado', function () {

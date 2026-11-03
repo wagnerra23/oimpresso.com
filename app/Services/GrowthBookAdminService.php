@@ -62,7 +62,8 @@ class GrowthBookAdminService
             env('GROWTHBOOK_ADMIN_API_HOST') ?: ($gb['admin_api_host'] ?? '') ?: rtrim($sdkHost, '/') . '/api/v1'
         ), '/');
         $this->apiToken = (string) (env('GROWTHBOOK_ADMIN_API_TOKEN') ?: ($gb['admin_api_token'] ?? ''));
-        $this->project = (string) (env('GROWTHBOOK_PROJECT') ?: ($gb['project'] ?? ''));
+        // Só config(): a chave nova não entra no baseline do larastan.noEnvCallsOutsideOfConfig.
+        $this->project = (string) ($gb['project'] ?? '');
     }
 
     public function isConfigured(): bool
