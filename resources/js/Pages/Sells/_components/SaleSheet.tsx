@@ -895,10 +895,12 @@ export default function SaleSheet({
               </Button>
               {data.urls.sell_return_add && data.status !== 'draft' && (
                 <Button size="sm" variant="outline" asChild title="Devolução — retorno da peça pro estoque">
-                  <a href={data.urls.sell_return_add}>
+                  {/* Visita Inertia: o SellReturnController@add só serve o React (SellReturn/Add)
+                      quando recebe X-Inertia; uma carga completa cai no Blade legado. */}
+                  <Link href={data.urls.sell_return_add}>
                     <Undo2 size={14} className="mr-1.5" />
                     Devolução
-                  </a>
+                  </Link>
                 </Button>
               )}
               <Button size="sm" asChild>
