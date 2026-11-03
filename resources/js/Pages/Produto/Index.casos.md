@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-10-28"
+last_run: "2026-11-03"
 last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com a requisição aberta e o método de custo do #9896 e do #9898 já no main), head 2c43ba7: lane PHP / Pest (Estoque · MySQL), job 121847889045: 550 passed, 0 pulados (2701 assertions), com ProdutoRequisicaoAbertaContratoTest 4, ProdutoNaturezaFiscalConsultaContratoTest 3 e ProdutoMetodoDeCustoContratoTest 2 verdes; job Frontend / Vite build 121847886774: 114 testes passaram em 14 arquivos. Antes: 2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, disparada à mão): 497 testes, 0 falhas, 0 pulados, com todos os arquivos Pest da lista; job 120384523098 (Frontend / Vite build, mesmo commit): os 2 arquivos Vitest da lista que rodam em lane passaram; os outros 8 arquivos Vitest da lista não rodam em lane e passaram local (133 de 133). Antes: 2026-10-19, job 118208572139."
 ---
 
@@ -89,6 +89,8 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-31 | Natureza fiscal: selo na linha, filtro no servidor e a natureza na aba Fiscal, com o aviso do pendente | should `[T0]` | UC-FLX-31 + NfeBrasil US-NFE-068/069 (`NfeService` recusa só a emissão separada com pendente) | `ProdutoNaturezaFiscalConsultaContratoTest` (Pest, roda em lane) + `produto-natureza-fiscal-consulta.test.tsx` (Vitest) | 🧪 escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23) |
 | UC-PIDX-32 | Método de custo do insumo na aba Variações, só quando a empresa gravou a regra de custo no Recebido | should | UC-FLX-38 + Compras SPEC US-COM-024/026 (`AplicarCustoDoRecebimento`) + gate de custo (UC-PIDX-03) | `ProdutoMetodoDeCustoContratoTest` (Pest, roda em lane) + `produto-metodo-custo.test.tsx` (Vitest) | 🧪 escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23) |
 | UC-PIDX-33 | Aba Estoque do painel: a tabela de locais mostra quanto foi vendido em cada local | should | protótipo (artefato "Consulta de Produto", 22/10: coluna "Vendido" por local) + pedido da ROTA LIVRE (2026-10-23) | `ProdutoDetalheTest` (lane Estoque · MySQL) + `produto-painel-detalhe.test.tsx` (Vitest, não roda em lane) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-35 | Os indicadores "Abaixo do alerta" e "Inativos" filtram a lista ao clicar | should | pesquisa de concorrentes D6 (2026-10-20) + item 2.1 de `absorcao-v2-em-todos-os-produtos.md` + protótipo `produto-blade.jsx` (2026-11-03) | `ProdutoListaAbaixoDoAlertaTest` (lane Estoque · MySQL) + `produto-lista-indicadores-filtro.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-36 | Com a chave do cadastro React, Novo, Preços e Histórico abrem na tela React | should | `ProductController` (render Inertia de create/addSellingPrices/productStockHistory) + chave `useV2ProdutoCadastro` | `produto-navegacao.test.ts` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -503,6 +505,14 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** o "Baixar Excel" do cabeçalho (`app/Exports/ProductsExport.php`) é o arquivo de reimportação da Blade e segue com a coluna Imposto; mexer nele é decisão à parte.
 - **Status: ⬜** — nasce neste PR; verde esperado. Vitest local em 2026-10-26 (este PR): os 17 arquivos de teste de produto (211 testes) passaram; o Pest aguarda a lane.
 
+## UC-PIDX-35 · Os indicadores "Abaixo do alerta" e "Inativos" filtram a lista ao clicar · `should`
+- **Persona:** quem cuida do estoque vê "3 abaixo do alerta" no topo e quer saber quais são, sem montar o filtro à mão.
+- **Aceite:** Dado 3 produtos com estoque gerenciado, alerta definido e estoque igual ou abaixo do alerta · Quando clico no indicador "Abaixo do alerta" · Então a lista mostra exatamente esses 3 (o total da lista é o número do indicador), o chip "Abaixo do alerta" aparece em "Filtrando por" e o indicador fica marcado · Quando clico de novo, ou tiro o chip · Então a lista volta a ter todos · Produto acima do alerta, sem alerta ou que não controla estoque não entra · Clicar em "Inativos" põe a situação "Inativo" no filtro (o mesmo do select Situação), e o 2º clique tira · "Produtos cadastrados" e "Valor em estoque" continuam de leitura, sem clique.
+- **Teste:** [`ProdutoListaAbaixoDoAlertaTest`](../../../../tests/Feature/Produto/ProdutoListaAbaixoDoAlertaTest.php) — `UC-PIDX-35` (o filtro devolve os produtos que o indicador conta, inclusive no limite e inativo; fora os de cada um dos 3 motivos; o total é o do indicador; sem o filtro voltam todos; junta com a situação; não enxerga outra empresa; o CSV de "Exportar filtrados" segue o filtro — lane Estoque · MySQL) e [`produto-lista-indicadores-filtro.test.tsx`](../../../../tests/js/produto-lista-indicadores-filtro.test.tsx) — `UC-PIDX-35` (o clique liga e desliga cada filtro, as duas placas de leitura não são botão, o chip — roda no Vitest do `Frontend / Vite build`). Mutações em 2026-11-03: o clique que sempre liga e o chip que some derrubam um caso cada.
+- **Contrato:** pesquisa de concorrentes D6 (2026-10-20: Zoho, Conta Azul, Nuvemshop) e item 2.1 de [`absorcao-v2-em-todos-os-produtos.md`](../../../../prototipo-ui/cowork/Felipe/absorcao-v2-em-todos-os-produtos.md) ("Abaixo do alerta" e "Inativos" clicáveis, com anel de seleção, escrevendo no mesmo estado dos filtros; as outras duas de leitura). O protótipo `produto-blade.jsx` passou a fazer o mesmo neste PR. A regra do filtro é a do indicador e da linha (`buildProdutoListaKpis`, `abaixo_do_alerta` em `buildProdutoListaPaginada`): estoque gerenciado, alerta definido e estoque somado nos locais permitidos ≤ alerta.
+- **Fora daqui:** o filtro vale para a aba "Todos os produtos" e para "Exportar filtrados"; a aba "Relatório de estoque" segue os filtros do relatório da Blade, que não têm "abaixo do alerta". O indicador continua contando o catálogo inteiro, como antes: com outros filtros ligados, a lista pode mostrar menos que o número dele.
+- **Status: ⬜** — nasce neste PR; verde esperado. Vitest local em 2026-11-03: os 20 arquivos de teste de produto (220 testes) passaram; o Pest aguarda a lane.
+
 ## UC-PIDX-36 · Com a chave do cadastro React, Novo, Preços e Histórico abrem na tela React · `should`
 - **Persona:** quem cadastra ou consulta produto na empresa onde a chave está ligada. Sem isto, as três telas React existiam mas a lista abria o Blade (navegava por página inteira, e por página inteira o servidor serve o Blade).
 - **Aceite:** Dada a empresa com a chave `useV2ProdutoCadastro` ligada · Quando escolho Novo produto (botão, tecla N ou "Duplicar"), "Histórico de estoque" ou "Preços por tabela" · Então a tela React abre por visita Inertia · Dada a chave desligada (o padrão) · Então tudo segue em página inteira, no Blade, como antes · E "Editar" segue no Blade com a chave ligada ou não, porque a edição React ainda não tem o preço do produto (UC-PCAD-09 §Fora deste UC).
@@ -672,10 +682,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 
 **Vestuário (ROTA LIVRE)**
 
-- **[BACKLOG] Clicar em "Abaixo do alerta" mostra só esses produtos (D6)** — hoje o indicador conta,
-  mas o clique não filtra. Aceite: Dado 3 produtos com estoque ≤ alerta, Quando clico no indicador,
-  Então a lista mostra exatamente esses 3, com a etiqueta do filtro, e um 2º clique devolve a lista
-  inteira. Fonte: Zoho (filtro Low Stock), Conta Azul (aba Esgotado), Nuvemshop (filtro sem estoque).
+- Clicar em "Abaixo do alerta" filtra a lista (D6) saiu deste backlog em 2026-11-03: virou UC-PIDX-35, com teste, junto do "Inativos" (item 2.1 do protótipo).
 - **[BACKLOG] Ver cada cor e tamanho, com saldo, na própria lista (D7)** `[V0]` — hoje a lista diz
   só "N variações"; cada uma aparece no painel. Aceite: Dado um produto variável com 8 variações,
   Quando abro a linha, Então vejo cada variação com SKU e saldo, e a soma das variações é o saldo
@@ -697,6 +704,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   recorte com nome. Aceite: Dado um conjunto de filtros, Quando salvo como "Lonas abaixo do alerta",
   Então ele aparece numa lista de recortes do usuário e abre com os mesmos filtros. Fonte: Shopify
   (visões salvas), Odoo (favoritos).
+  Espera a decisão D-28 (abaixo): o [W] reprovou as visões salvas da lista de Clientes em 2026-05-24.
 
 **Comunicação visual**
 
@@ -831,8 +839,14 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Permissão própria, sem desfazer — Só quem tem a permissão junta, com prévia e confirmação; se errar, separa à mão com ajuste de estoque.
   - Opção: Pode desfazer — A junção guarda o que era de cada produto e pode ser desfeita enquanto não houver movimento novo no produto que ficou. Mais seguro, mas dá mais trabalho para construir.
   - Destrava: P-152
+- **[DECISÃO] D-28 · Recortes salvos com nome voltam, agora na consulta de produto?**
+  - Estado: Em aberto
+  - Texto: A pesquisa de concorrentes (D1, 2026-10-20) propôs salvar um conjunto de filtros com nome, como "Lonas abaixo do alerta", e reabrir com um clique (Shopify, Odoo). Em 2026-05-24 o [W] reprovou as visões salvas da lista de Clientes na validação em produção, e elas foram removidas (`Cliente/Index.charter.md`). Por isso o D1 não foi feito junto com o D6.
+  - Opção: Não — Os filtros já ficam no endereço da página; quem quer guardar um recorte salva o link. Nada a construir.
+  - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 
 ## Trilha do tempo
+- 2026-11-03 · [F+C] **UC-PIDX-35**: "Abaixo do alerta" e "Inativos" filtram a lista ao clicar (D6 e item 2.1 do protótipo), com o filtro `abaixo_do_alerta` no servidor e o protótipo atualizado. O D1 (recortes salvos) não foi feito e virou a decisão D-28. `last_run` 2026-10-28 → 2026-11-03.
 - 2026-10-30 · [W+C] Decisão pendente D-19 do documento "Casos de uso por tela", para casos marcados como decisão do [W] que não tinham pergunta.
 - 2026-10-28 · [F+C] Backlog: juntar produtos duplicados pela nota de compra (pedido de PraMoto e Techpress). Sem id.
 - 2026-10-28 · [F+C] `last_run` 2026-10-27 → 2026-10-28 (G-6). O `Index.tsx` mudou por último no #9897 (natureza fiscal, UC-PIDX-31), que entrou no main em 28/10 junto com estes casos revalidados; a data só acompanha o merge. Nenhum caso nem teste mudou.

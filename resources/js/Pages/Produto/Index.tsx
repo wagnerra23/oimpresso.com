@@ -163,6 +163,7 @@ function paraUrl(f: FiltrosLista): Record<string, string | number> {
   }
   if (f.not_for_selling) out.not_for_selling = 1;
   if (f.woocommerce_enabled) out.woocommerce_enabled = 1;
+  if (f.abaixo_do_alerta) out.abaixo_do_alerta = 1;
   if (f.q) out.q = f.q;
   if (f.sort && f.sort !== 'produto') out.sort = f.sort;
   if (f.dir === 'desc') out.dir = 'desc';
@@ -425,6 +426,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       natureza_fiscal: null,
       not_for_selling: false,
       woocommerce_enabled: false,
+      abaixo_do_alerta: false,
       q: '',
     });
   };
@@ -469,7 +471,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                 <Skeleton key={i} className="h-[92px] rounded-xl" />
               ))}
             >
-              {kpis ? <IndicadoresLista kpis={kpis} /> : null}
+              {kpis ? <IndicadoresLista kpis={kpis} filtros={filtros} aplicar={ir} /> : null}
             </Deferred>
           </div>
 
@@ -554,7 +556,12 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                     label={c.rotulo}
                     onRemove={() => {
                       if (c.chave === 'q') setBusca('');
-                      const vazio = c.chave === 'not_for_selling' || c.chave === 'woocommerce_enabled' ? false : c.chave === 'q' ? '' : null;
+                      const vazio =
+                        c.chave === 'not_for_selling' || c.chave === 'woocommerce_enabled' || c.chave === 'abaixo_do_alerta'
+                          ? false
+                          : c.chave === 'q'
+                            ? ''
+                            : null;
                       ir({ [c.chave]: vazio } as Partial<FiltrosLista>);
                     }}
                   />

@@ -80,6 +80,8 @@ export interface FiltrosLista {
   repair_model_id: string | null;
   /** UC-PIDX-31 — só com o módulo Fiscal. */
   natureza_fiscal: NaturezaFiscal | null;
+  /** UC-PIDX-35 — ligado pelo clique no indicador "Abaixo do alerta". */
+  abaixo_do_alerta: boolean;
   q: string;
   sort: string;
   dir: 'asc' | 'desc';
@@ -447,6 +449,7 @@ export function chipsDosFiltros(
   if (f.active_state) out.push({ chave: 'active_state', rotulo: `Situação: ${nome(SITUACOES, f.active_state)}` });
   if (f.natureza_fiscal) out.push({ chave: 'natureza_fiscal', rotulo: `Natureza fiscal: ${nome(NATUREZAS_FISCAIS, f.natureza_fiscal)}` });
   if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
+  if (f.abaixo_do_alerta) out.push({ chave: 'abaixo_do_alerta', rotulo: 'Abaixo do alerta' });
   if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
   if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
   if (f.q) out.push({ chave: 'q', rotulo: `Busca: ${f.q}` });
