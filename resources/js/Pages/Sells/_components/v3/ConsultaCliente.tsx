@@ -51,6 +51,7 @@ import {
 } from './cliente-consulta-dominio';
 import type { ClienteDaGravacao } from './cliente-gravacao-dominio';
 import { Lbl, Pill } from './primitivos';
+import { useCockpit } from './cockpit-portal';
 
 /* ─── cadastro mínimo ─────────────────────────────────────────────────────── */
 
@@ -68,6 +69,7 @@ function NovoCliente({
   semGrupo?: boolean;
   erro?: string | null;
 }) {
+  const cockpit = useCockpit();
   const [nome, setNome] = useState('');
   const [doc, setDoc] = useState('');
   const [fone, setFone] = useState('');
@@ -99,7 +101,7 @@ function NovoCliente({
         if (!v) fechar();
       }}
     >
-      <DialogContent className="venda-v3 sm:max-w-[560px]">
+      <DialogContent container={cockpit} className="venda-v3 sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>Novo cliente — sem sair da venda</DialogTitle>
         </DialogHeader>
@@ -210,6 +212,7 @@ export default function ConsultaCliente({
     onEscolher: (cliente: ClienteDaGravacao) => void;
   };
 }) {
+  const cockpit = useCockpit();
   const [busca, setBusca] = useState('');
   const [novoAberto, setNovoAberto] = useState(false);
   const [doBanco, setDoBanco] = useState<ClienteDaGravacao[]>([]);
@@ -256,7 +259,7 @@ export default function ConsultaCliente({
           if (!v) onFechar();
         }}
       >
-        <DialogContent className="venda-v3 max-h-[80vh] sm:max-w-[880px]">
+        <DialogContent container={cockpit} className="venda-v3 max-h-[80vh] sm:max-w-[880px]">
           <DialogHeader>
             <DialogTitle>Consulta de clientes</DialogTitle>
           </DialogHeader>

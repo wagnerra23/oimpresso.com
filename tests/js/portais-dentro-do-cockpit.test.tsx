@@ -8,8 +8,11 @@
 //   - lista de produtos: o aviso da exclusão (`text-[var(--warn)]`) saía branco, sem o laranja.
 // O conserto é a prop `container` apontando para o `.cockpit` — a mesma do `ui/sheet`, agora
 // também no `ui/dialog` e no `ui/alert-dialog`.
-// A janela de lançar item da Venda V3 tem o mesmo defeito (fundo transparente) e ficou de fora
-// deste conserto: a Venda é do Wagner por enquanto.
+// A janela de lançar item da Venda V3 tinha o mesmo defeito e ficou de fora daquele conserto. Medido
+// em produção em 2026-11-03 (empresa 1, escuro): `background-color: rgba(0, 0, 0, 0)` — o
+// `.sells-cowork { background: var(--bg) }` fora de @layer vence o `bg-background`, e `--bg` é vazio
+// no <body>. Os 9 portais da V3 passaram a montar no `.cockpit` pelo hook `useCockpit`
+// (`Sells/_components/v3/cockpit-portal.ts`); os casos abaixo cobrem dois deles.
 //
 // ── O QUE ELE MEDE (componentes REAIS) ───────────────────────────────────────
 // Onde o conteúdo fica na árvore, que é o que decide se os tokens chegam. Cada consumidor tem
@@ -46,6 +49,9 @@ vi.mock('@inertiajs/react', () => ({
 
 // Import depois do mock: o EditorPosto usa `useForm` do Inertia.
 const { default: EditorPosto } = await import('../../Modules/Producao/Resources/js/Pages/Producao/Postos/_components/EditorPosto');
+
+const { LancarItem } = await import('@/Pages/Sells/_components/v3/LancarItem');
+const { default: ColunasModal } = await import('@/Pages/Sells/_components/v3/ColunasModal');
 
 const conteudo = (sel: string) => document.querySelector<HTMLElement>(sel);
 
@@ -130,5 +136,33 @@ describe('Produção · o editor de posto monta dentro do .cockpit', () => {
   it('com .cockpit na página, o drawer monta dentro dele', () => {
     render(<div className="cockpit">{editor()}</div>);
     expect(drawer()!.closest('.cockpit')).not.toBeNull();
+  });
+});
+
+describe('Venda V3 · os diálogos montam dentro do .cockpit', () => {
+  const produto = {
+    sku: 'P-1', nome: 'Martelo', un: 'UNID', preco: 157, estoque: 0,
+    tipo: 'produto' as const, ean: null, fabrica: null, categoria: null,
+  };
+  const lancar = () => (
+    <LancarItem produto={produto} executantes={[]} podeEditarPreco onFechar={() => {}} onConfirmar={() => {}} />
+  );
+  const colunas = () => <ColunasModal aberto onFechar={() => {}} ativas={[]} onAtivasChange={() => {}} />;
+  const dialogo = () => conteudo('[data-slot="dialog-content"]');
+
+  it('controle: sem .cockpit na página, o lançar item cai no body', () => {
+    render(lancar());
+    expect(dialogo()).not.toBeNull();
+    expect(dialogo()!.closest('.cockpit')).toBeNull();
+  });
+
+  it('com .cockpit na página, o lançar item monta dentro dele', () => {
+    render(<div className="cockpit">{lancar()}</div>);
+    expect(dialogo()!.closest('.cockpit')).not.toBeNull();
+  });
+
+  it('com .cockpit na página, o diálogo de colunas monta dentro dele', () => {
+    render(<div className="cockpit">{colunas()}</div>);
+    expect(dialogo()!.closest('.cockpit')).not.toBeNull();
   });
 });
