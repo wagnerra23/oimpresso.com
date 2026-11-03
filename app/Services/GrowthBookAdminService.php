@@ -41,6 +41,9 @@ class GrowthBookAdminService
 
     private string $apiToken;
 
+    /** Projeto GrowthBook das features criadas por createBooleanFeature. */
+    private string $project;
+
     public function __construct()
     {
         // A REST API admin do GrowthBook vive no MESMO host do SDK read
@@ -59,6 +62,7 @@ class GrowthBookAdminService
             env('GROWTHBOOK_ADMIN_API_HOST') ?: ($gb['admin_api_host'] ?? '') ?: rtrim($sdkHost, '/') . '/api/v1'
         ), '/');
         $this->apiToken = (string) (env('GROWTHBOOK_ADMIN_API_TOKEN') ?: ($gb['admin_api_token'] ?? ''));
+        $this->project = (string) (env('GROWTHBOOK_PROJECT') ?: ($gb['project'] ?? ''));
     }
 
     public function isConfigured(): bool
@@ -142,6 +146,9 @@ class GrowthBookAdminService
             'defaultValue' => 'false',
             'environments' => [$env => ['enabled' => true, 'rules' => []]],
         ];
+        if ($this->project !== '') {
+            $payload['project'] = $this->project;
+        }
 
         $response = $this->http()->post($this->apiHost . '/features', $payload);
 

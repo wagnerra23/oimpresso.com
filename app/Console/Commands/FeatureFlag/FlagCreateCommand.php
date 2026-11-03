@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Throwable;
 
 /**
- * `php artisan flag:create <key> --descricao="..." [--ambiente=production]`
+ * `php artisan flag:create <key> --descricao="..." [--environment=production]`
  *
  * Cria no GrowthBook uma feature booleana DESLIGADA (defaultValue false, sem rule).
  * Sem ela o `flag:set` recusa ("Feature não existe") e a tela fica no Blade pra todo mundo.
@@ -21,7 +21,7 @@ class FlagCreateCommand extends Command
     protected $signature = 'flag:create
         {key : Feature key (ex: useV2ComprasPedidos)}
         {--descricao= : O que a flag liga (obrigatório)}
-        {--ambiente=production : Environment do GrowthBook (o --env é opção global do Laravel)}';
+        {--environment=production : Environment do GrowthBook (o --env é opção global do Laravel)}';
 
     protected $description = 'Cria feature flag booleana desligada no GrowthBook';
 
@@ -29,7 +29,7 @@ class FlagCreateCommand extends Command
     {
         $key = (string) $this->argument('key');
         $descricao = trim((string) $this->option('descricao'));
-        $env = (string) $this->option('ambiente');
+        $env = (string) $this->option('environment');
 
         if ($descricao === '') {
             $this->error('--descricao é obrigatório.');

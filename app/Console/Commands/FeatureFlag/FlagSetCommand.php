@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Throwable;
 
 /**
- * `php artisan flag:set <key> --biz=N --enabled=true|false [--ambiente=production]`
+ * `php artisan flag:set <key> --biz=N --enabled=true|false [--environment=production]`
  *
  * Liga/desliga feature pra um business_id específico (rule id `biz-{N}`).
  *
@@ -25,7 +25,9 @@ class FlagSetCommand extends Command
         {--biz= : business_id alvo (obrigatório)}
         {--enabled= : true|false — valor que será forçado pro biz alvo}
         {--remove : Em vez de toggle, remove a rule biz-{N} (volta pro defaultValue)}
-        {--ambiente=production : Environment do GrowthBook (o --env é opção global do Laravel)}
+        {--criar : Se a feature não existe, cria desligada antes (exige --descricao)}
+        {--descricao= : Descrição da feature criada por --criar}
+        {--environment=production : Environment do GrowthBook (o --env é opção global do Laravel)}
         {--clear-cache : Limpa cache local Laravel pós-mudança}';
 
     protected $description = 'Liga/desliga feature flag pra um business_id específico';
@@ -34,7 +36,7 @@ class FlagSetCommand extends Command
     {
         $key = (string) $this->argument('key');
         $bizRaw = $this->option('biz');
-        $env = (string) $this->option('ambiente');
+        $env = (string) $this->option('environment');
         $remove = (bool) $this->option('remove');
 
         if ($bizRaw === null || $bizRaw === '') {
@@ -64,6 +66,16 @@ class FlagSetCommand extends Command
                     return self::FAILURE;
                 }
                 $forceValue = in_array(strtolower((string) $enabledRaw), ['true', '1', 'on', 'yes'], true);
+                if ($this->option('criar')) {
+                    $descricao = trim((string) $this->option('descricao'));
+                    if ($descricao === '') {
+                        $this->error('--criar exige --descricao.');
+                        return self::FAILURE;
+                    }
+                    if ($service->createBooleanFeature($key, $descricao, $env)['criada']) {
+                        $this->info("✓ Feature '{$key}' criada desligada ({$env}).");
+                    }
+                }
                 $service->setBizRule($key, $bizId, $forceValue, $env);
                 $valueStr = $forceValue ? 'true' : 'false';
                 $this->info("✓ Rule biz-{$bizId} em '{$key}' ({$env}) → value={$valueStr}.");

@@ -66,6 +66,9 @@ return [
         'api_host' => env('GROWTHBOOK_API_HOST', ''),
         'admin_api_token' => env('GROWTHBOOK_ADMIN_API_TOKEN', ''),
         'admin_api_host' => env('GROWTHBOOK_ADMIN_API_HOST', ''),
+        // Projeto onde nascem as features criadas pela API (flag:create) — o mesmo das
+        // flags de tela existentes, ex. useV2SellsCreate.
+        'project' => env('GROWTHBOOK_PROJECT', 'prj_2Capwu9qVnLDJ1Z2wJrMmk'),
     ],
 
 ];

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Criar feature flag desligada (GrowthBookAdminService::createBooleanFeature + flag:create)
- * e o --ambiente dos comandos flag:* (o --env é opção global do Laravel e derrubava
+ * e o --environment dos comandos flag:* (o --env é opção global do Laravel e derrubava
  * flag:set/flag:get/flag:env-toggle).
  *
  * DB-less: o audit falha em silêncio sem a tabela (try/catch do serviço), então roda
@@ -18,11 +18,13 @@ use Illuminate\Support\Facades\Http;
 beforeEach(function () {
     putenv('GROWTHBOOK_ADMIN_API_TOKEN=secret_admin_test_xxx');
     putenv('GROWTHBOOK_ADMIN_API_HOST=https://growthbook.test.local/api/v1');
+    putenv('GROWTHBOOK_PROJECT=prj_teste');
 });
 
 afterEach(function () {
     putenv('GROWTHBOOK_ADMIN_API_TOKEN=');
     putenv('GROWTHBOOK_ADMIN_API_HOST=');
+    putenv('GROWTHBOOK_PROJECT=');
 });
 
 it('cria a feature booleana desligada, sem rule e com o environment ligado', function () {
@@ -43,6 +45,7 @@ it('cria a feature booleana desligada, sem rule e com o environment ligado', fun
         return $b['id'] === 'useV2Teste'
             && $b['valueType'] === 'boolean'
             && $b['defaultValue'] === 'false'
+            && $b['project'] === 'prj_teste'
             && $b['environments']['production'] === ['enabled' => true, 'rules' => []];
     });
 });
@@ -80,15 +83,48 @@ it('flag:create exige descrição e cria pelo comando', function () {
     Http::assertSent(fn ($req) => $req->method() === 'POST' && $req->url() === 'https://growthbook.test.local/api/v1/features');
 });
 
-it('flag:set aceita --ambiente e chega ao environment pedido', function () {
+it('flag:set aceita --environment e chega ao environment pedido', function () {
     Http::fake([
         'growthbook.test.local/api/v1/features/useV2Teste' => Http::sequence()
             ->push(['feature' => ['id' => 'useV2Teste', 'environments' => ['staging' => ['enabled' => true, 'rules' => []]]]], 200)
             ->push(['feature' => ['id' => 'useV2Teste']], 200),
     ]);
 
-    $rc = Artisan::call('flag:set', ['key' => 'useV2Teste', '--biz' => 1, '--enabled' => 'true', '--ambiente' => 'staging']);
+    $rc = Artisan::call('flag:set', ['key' => 'useV2Teste', '--biz' => 1, '--enabled' => 'true', '--environment' => 'staging']);
 
     expect($rc)->toBe(0);
     Http::assertSent(fn ($req) => $req->method() === 'POST' && isset($req->data()['environments']['staging']));
+});
+
+it('flag:set --criar cria a feature ausente e depois põe a regra biz-1', function () {
+    Http::fake([
+        'growthbook.test.local/api/v1/features/useV2Teste' => Http::sequence()
+            ->push(['message' => 'Could not find a feature with that key'], 404)
+            ->push(['feature' => ['id' => 'useV2Teste', 'environments' => ['production' => ['enabled' => true, 'rules' => []]]]], 200)
+            ->push(['feature' => ['id' => 'useV2Teste']], 200),
+        'growthbook.test.local/api/v1/features' => Http::response(['feature' => ['id' => 'useV2Teste']], 200),
+    ]);
+
+    expect(Artisan::call('flag:set', ['key' => 'useV2Teste', '--biz' => 1, '--enabled' => 'true', '--criar' => true]))->toBe(1); // sem --descricao
+    expect(Artisan::call('flag:set', ['key' => 'useV2Teste', '--biz' => 1, '--enabled' => 'true', '--criar' => true, '--descricao' => 'Tela de teste']))->toBe(0);
+
+    Http::assertSent(fn ($req) => $req->method() === 'POST' && $req->url() === 'https://growthbook.test.local/api/v1/features');
+    Http::assertSent(function ($req) {
+        if ($req->method() !== 'POST' || ! str_ends_with($req->url(), '/features/useV2Teste')) {
+            return false;
+        }
+        $rule = $req->data()['environments']['production']['rules'][0] ?? [];
+
+        return ($rule['id'] ?? null) === 'biz-1' && ($rule['value'] ?? null) === 'true'
+            && ($rule['condition'] ?? null) === '{"business_id":1}';
+    });
+});
+
+it('sem --criar, flag:set continua recusando feature inexistente', function () {
+    Http::fake([
+        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response([], 404),
+    ]);
+
+    expect(Artisan::call('flag:set', ['key' => 'useV2Teste', '--biz' => 1, '--enabled' => 'true']))->toBe(1);
+    Http::assertNotSent(fn ($req) => $req->method() === 'POST');
 });
