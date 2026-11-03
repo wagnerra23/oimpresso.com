@@ -3,6 +3,7 @@
 namespace Modules\Financeiro\Observers;
 
 use App\Transaction;
+use Modules\Financeiro\Services\DevolucaoVendaTituloService;
 use Modules\Financeiro\Services\TituloAutoService;
 
 /**
@@ -19,6 +20,9 @@ use Modules\Financeiro\Services\TituloAutoService;
  *
  * Onda 2 (2026-04-25): cobre type='sell' E type='purchase' via
  * sincronizarDeTransacao() (Service unificado).
+ *
+ * 2026-11-03: type='sell_return' abate o título da venda devolvida
+ * (DevolucaoVendaTituloService — decisão [W] "Abater o título aberto").
  */
 class TransactionObserver
 {
@@ -28,6 +32,12 @@ class TransactionObserver
 
     public function created(Transaction $tx): void
     {
+        if ($tx->type === 'sell_return') {
+            app(DevolucaoVendaTituloService::class)->sincronizar($tx);
+
+            return;
+        }
+
         $this->service->sincronizarDeTransacao($tx);
     }
 
@@ -39,11 +49,23 @@ class TransactionObserver
             return;
         }
 
+        if ($tx->type === 'sell_return') {
+            app(DevolucaoVendaTituloService::class)->sincronizar($tx);
+
+            return;
+        }
+
         $this->service->sincronizarDeTransacao($tx);
     }
 
     public function deleted(Transaction $tx): void
     {
+        if ($tx->type === 'sell_return') {
+            app(DevolucaoVendaTituloService::class)->estornarSeExistir($tx);
+
+            return;
+        }
+
         $motivo = match ($tx->type) {
             'sell' => 'venda excluida',
             'purchase' => 'compra excluida',

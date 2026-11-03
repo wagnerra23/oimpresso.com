@@ -148,6 +148,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 // US-FIN-074 — extrato Pluggy (Open Finance) → fin_extrato_lancamentos.
                 \Modules\Financeiro\Console\Commands\PluggySyncCommand::class,
                 \Modules\Financeiro\Console\Commands\ImportarExtratoOfxCommand::class,
+                // 2026-11-03 — devoluções antigas abatem o título da venda (dry-run por padrão).
+                \Modules\Financeiro\Console\Commands\DevolucoesAbaterCommand::class,
             ]);
         }
     }
