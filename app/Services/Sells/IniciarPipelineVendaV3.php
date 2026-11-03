@@ -61,10 +61,10 @@ class IniciarPipelineVendaV3
         }
 
         $stageKey = $this->resolver->resolve($venda);
-        $stage = $processo->stages()->where('key', $stageKey)->firstOrFail();
+        $stageId = (int) $processo->stages()->where('key', $stageKey)->firstOrFail()->getKey();
 
         FsmAuthorizationFlag::mark($venda::class, $venda->getKey());
-        $venda->current_stage_id = $stage->id;
+        $venda->current_stage_id = $stageId;
         $venda->save();
 
         SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)->create([
@@ -72,7 +72,7 @@ class IniciarPipelineVendaV3
             'transaction_id' => (int) $venda->id,
             'action_id' => null,
             'from_stage_id' => null,
-            'to_stage_id' => (int) $stage->id,
+            'to_stage_id' => $stageId,
             'user_id' => $userId,
             'payload_snapshot' => [
                 'pipeline_started' => true,
