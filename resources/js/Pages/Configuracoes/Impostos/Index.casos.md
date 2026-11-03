@@ -43,8 +43,16 @@ last_run: "2026-10-07"
   E editar só o nome, reenviando o percentual, não muda o número.
 - **Status: 🧪**
 
+## UC-IMPOS-05 · Cadastrar e editar grupo de imposto pela tela · `[T0]` `[valor]`
+- **Persona:** quem monta "PIS + COFINS" para a venda aplicar de uma vez.
+- **Aceite:** Dado PIS 1,65, COFINS 7,6 e ISS 5 meus, e uma alíquota de outro negócio · Quando o drawer de grupo manda
+  `name` + `taxes[]` (só ids — o percentual nunca sai da tela) · Então o grupo grava 9.25, igual à soma das alíquotas lidas
+  uma a uma · E a lista devolve em `sub_ids` exatamente os ids do grupo · E reenviar esses ids + ISS grava 14.25 · E pôr a
+  alíquota alheia é recusado e o número não anda.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
-- [BACKLOG] Editar grupos — depende do conserto do `GroupTaxController` (decisão [W]).
 
 ## Trilha do tempo
 - 2026-10-07 · [CL] criado com a F3 da thread `sistema/playbook/05`.
+- 2026-11-03 · [CL] UC-IMPOS-05: grupos editados na tela (o `GroupTaxController` já recusava sub-imposto alheio, UC-GIMP-02..05).
