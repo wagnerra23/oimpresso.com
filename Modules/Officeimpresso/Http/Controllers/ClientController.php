@@ -138,7 +138,9 @@ class ClientController extends Controller
     {
         $this->authorizeLiberar();
 
-        return view('officeimpresso::create');
+        // Não há view de criação: as duas telas da lista (React e Blade) criam o cliente
+        // no próprio formulário. A view officeimpresso::create não existe e dava 500.
+        return redirect('/officeimpresso/client');
     }
 
     /**

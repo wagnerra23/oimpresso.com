@@ -186,7 +186,8 @@ class DataController extends Controller
                                 ['key' => 'follow-ups',     'label' => 'Follow-ups',     'href' => '/crm/follow-ups'],
                                 ['key' => 'campaigns',      'label' => 'Campanhas',      'href' => '/crm/campaigns'],
                                 ['key' => 'contacts-login', 'label' => 'Contatos Login', 'href' => '/crm/all-contacts-login'],
-                                ['key' => 'call-log',       'label' => 'Call Log',       'href' => '/crm/call-log'],
+                                // A tela dá 403 com o registro de ligações desligado (constants.enable_crm_call_log).
+                                config('constants.enable_crm_call_log') ? ['key' => 'call-log', 'label' => 'Call Log', 'href' => '/crm/call-log'] : null,
                                 ['key' => 'reports',        'label' => 'Relatórios',     'href' => '/crm/reports'],
                                 ['key' => 'proposals',      'label' => 'Propostas',      'href' => '/crm/proposals'],
                                 ['key' => 'settings',       'label' => 'Configurações',  'href' => '/crm/settings'],
