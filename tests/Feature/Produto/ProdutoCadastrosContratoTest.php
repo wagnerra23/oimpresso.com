@@ -14,7 +14,7 @@ use Tests\Support\EstoqueFixture;
  * Contrato da tela Produto/Cadastros (`/units` e as rotas das outras abas) — playbook Produto · threads 02 e 03.
  *
  * Os UCs vêm do contrato, não do código:
- *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..16)
+ *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..23)
  *
  * ⛔ Tenant 98 (ADR 0358) contra o cliente fictício 99. NUNCA biz=4.
  * ⚠️ SKIP sem schema MySQL: leia assertions, não "0 failed" (LC-13).
@@ -576,4 +576,26 @@ it('UC-PCADAP-22 · drawer de garantia cria e edita; a lista devolve o prazo cru
     pcadapLogin($this, $user)->putJson("/warranties/{$vizinha}", ['name' => 'Tomada', 'duration' => '9', 'duration_type' => 'days'], $ajax)
         ->assertOk()->assertJson(['success' => false]);
     expect(DB::table('warranties')->where('id', $vizinha)->value('name'))->toBe('Vizinha ' . PCADAP_TAG);
+});
+
+it('UC-PCADAP-23 · drawer de grupo de preço cria e edita só no meu negócio [T0]', function () {
+    $user = pcadapUsuario($this->biz->id, ['product.create', 'product.update']);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+    $vizinho = (int) DB::table('selling_price_groups')->insertGetId(['business_id' => $this->vizinho->id,
+        'name' => 'Vizinho ' . PCADAP_TAG, 'description' => 'Não é meu.', 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()]);
+
+    pcadapLogin($this, $user)->postJson('/selling-price-group', ['name' => 'Atacado ' . PCADAP_TAG, 'description' => 'Revenda.'], $ajax)
+        ->assertOk()->assertJson(['success' => true]);
+    $linha = collect(pcadapProps($this, $user, 'grupos', '?aba=grupos')['grupos'] ?? [])->firstWhere('nome', 'Atacado ' . PCADAP_TAG);
+    expect($linha)->not->toBeNull();
+    expect($linha['descricao'])->toBe('Revenda.');
+    expect((int) DB::table('selling_price_groups')->where('id', $linha['id'])->value('business_id'))->toBe((int) $this->biz->id);
+
+    pcadapLogin($this, $user)->putJson("/selling-price-group/{$linha['id']}", ['name' => 'Atacado SC ' . PCADAP_TAG, 'description' => 'Revenda SC.'], $ajax)
+        ->assertOk()->assertJson(['success' => true]);
+    expect(DB::table('selling_price_groups')->where('id', $linha['id'])->value('name'))->toBe('Atacado SC ' . PCADAP_TAG);
+
+    pcadapLogin($this, $user)->putJson("/selling-price-group/{$vizinho}", ['name' => 'Tomado', 'description' => ''], $ajax)
+        ->assertOk()->assertJson(['success' => false]);
+    expect(DB::table('selling_price_groups')->where('id', $vizinho)->value('name'))->toBe('Vizinho ' . PCADAP_TAG);
 });

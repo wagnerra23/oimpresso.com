@@ -5,7 +5,7 @@ module: Crm
 # (a antiga memory/requisitos/Cliente/ foi consolidada aqui em 2026-06-01).
 # Ver memory/reference/crm-e-o-modulo-de-cliente.md
 purpose: "Pipeline pré-venda herdado do UltimatePOS (leads, follow-ups, campanhas, propostas, call logs) — EM DEPRECAÇÃO por ADR 0301. Hospeda ainda, por acidente histórico, os endpoints JSON do drawer de Cliente (/cliente/*) e o portal do contato (/contact/*), cujo dono real é o ContactController do core."
-migracao_ui: "bloqueado-escopo — aguarda decisao [W]; ver proibicoes e o SCOPE deste modulo"
+migracao_ui: "liberado — decisao [W] 2026-11-03 ('crm pode sim'); cada tela segue o MWART da ADR 0104 e liga por flag so na empresa 1; a captura publica de lead segue desligada ate o [W]"
 contains:
   - "CallLogController"
   - "CapturaLeadController"       # Captura pública de lead com origem/UTM no funil (US-CRM-096)
@@ -72,4 +72,5 @@ Ver `not_contains[]` no frontmatter. Em dúvida, consulte
 
 ---
 
+- **2026-11-03** — `migracao_ui` passa de `bloqueado-escopo` a `liberado` por decisão [W] ("crm pode sim"), no programa de levar o protótipo à produção. A ADR 0301 (pipeline em depreciação) segue aceita; a liberação não a revoga.
 - **v1.0.0** (2026-05-05) — SCOPE.md inicial. Gerado em batch via Fase 3.4 do ADR 0079.

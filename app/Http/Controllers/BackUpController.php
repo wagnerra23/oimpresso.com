@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\RunBackupJob;
+use App\Services\FeatureFlagService;
 use App\Utils\Util;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
@@ -27,6 +28,24 @@ class BackUpController extends Controller
         $this->commonUtil = $commonUtil;
     }
 
+    /** Flag por empresa no GrowthBook (canario). Desconhecida no GrowthBook = desligada. */
+    private const FLAG_V2 = 'useV2BackupIndex';
+
+    private function usaTelaNova(): bool
+    {
+        if (request()->boolean('classico')) {
+            return false;
+        }
+
+        if (config('mwart.backup_index.enabled')) {
+            return true;
+        }
+
+        $business_id = (int) request()->session()->get('user.business_id');
+
+        return app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -38,8 +57,10 @@ class BackUpController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Onda 3 — dual-render atras da flag. Desligada: segue o Blade legado.
-        if (config('mwart.backup_index.enabled')) {
+        // Onda 3 — dual-render. A tela React vale para a empresa quando a flag do GrowthBook
+        // `useV2BackupIndex` estiver ligada para ela (canario por business_id) ou quando o .env
+        // ligar para todas (`MWART_BACKUP_INDEX`). `?classico=1` abre o Blade. Desligada: Blade.
+        if ($this->usaTelaNova()) {
             return $this->renderInertia();
         }
 

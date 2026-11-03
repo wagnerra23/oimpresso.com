@@ -300,9 +300,23 @@ Status: 🧪
 
 ---
 
+## UC-PCADAP-23 · Drawer de grupo de preço cria e edita só no meu negócio · `must` `[T0]`
+
+Origem: UC-CAD-01/02 (charter R2) + protótipo `produto-cadastros.jsx` AbaGrupos (:281-287) + ADR 0093. Até 2026-11-03
+era backlog: a aba abria o modal da Blade (`/selling-price-group?classico=1`).
+
+**Dado** um grupo de preço do negócio vizinho
+**Quando** crio "Atacado" pelo drawer (nome e descrição), reabro e troco o nome, e tento editar o do vizinho
+**Então** o meu nasce no meu negócio e a lista o devolve com a descrição pro drawer abrir preenchido; a troca grava; o do vizinho fica como estava.
+
+O "Grupo ativo" do formulário do protótipo fica fora: o `store`/`update` do grupo não gravam a situação (ver backlog UC-CAD-09).
+
+Status: 🧪
+
+---
+
 ## Backlog (sem teste ainda — não é contrato até ganhar teste que o cite)
 
-- [BACKLOG] Criar e editar Grupos de preço no drawer (UC-CAD-01/02) — fora da ficha da thread 10; segue no modal da Blade. As outras 5 abas estão no drawer (UC-PCADAP-17..22).
 - [BACKLOG] Remover valor já gravado de um modelo de variação pelo drawer — o servidor só renomeia; remover pede rota e regra de uso.
 - [BACKLOG] Desativar/ativar grupo de preço na própria linha (UC-CAD-09) — hoje a linha mostra Ativo/Inativo e a troca vai pela tela clássica.
 - [BACKLOG] Contagem de produtos da variação clicável (filtro do índice por modelo de variação) — `/products/unificado` não tem esse filtro e é `nao_toca` da thread 03.
