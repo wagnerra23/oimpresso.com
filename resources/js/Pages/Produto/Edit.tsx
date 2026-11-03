@@ -7,6 +7,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 import { Save, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -14,6 +15,8 @@ import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
+import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
+import type { PrecoSimples } from './_components/formulario/precos';
 import type {
   NaturezaFiscalProduto,
   NumeroCampoPersonalizado,
@@ -58,6 +61,8 @@ interface ProdutoEditModel {
   expiryPeriod: number | null;
   /** `months` · `days` · null (não aplicável). */
   expiryPeriodType: string | null;
+  /** UC-PEDIT-16: preço gravado do produto simples (sem imposto). Variável e composto: null. */
+  precoSimples?: { variacaoId: number; compra: number; margem: number; venda: number } | null;
 }
 
 export interface ProdutoEditPageProps {
@@ -87,6 +92,13 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
   const ncmGravado = ncmDoCadastro(p.ncm);
   // UC-PEDIT-12: o CEST segue a mesma regra do NCM.
   const cestGravado = cestDoCadastro(p.cest);
+  // UC-PEDIT-16: o preço do produto simples. Só vai no envio se a pessoa mexeu: devolver o gravado
+  // arredondado a 2 casas reescreveria custo/venda de 4 casas sem ninguém pedir (REGRA MESTRE de valor).
+  const precoGravado = p.precoSimples ?? null;
+  const impostoGravado = p.tax ?? '';
+  const [preco, setPreco] = useState<PrecoSimples | null>(() =>
+    precoGravado ? { compra: precoGravado.compra, margem: precoGravado.margem, venda: precoGravado.venda } : null,
+  );
   const { data, setData, put, transform, processing, errors } = useForm({
     name: p.name,
     sku: p.sku,
@@ -125,6 +137,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
         ...resto,
         ...(ncm !== ncmGravado ? { ncm } : {}),
         ...(cest !== cestGravado ? { cest } : {}),
+        ...camposDoPrecoEditado(precoGravado, preco, aliquotaDoImposto(d.tax, props.taxAttributes), String(d.tax) !== String(impostoGravado)),
       };
     });
     put(`/products/${p.id}`);
@@ -177,6 +190,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
             tipoAtual={props.productTypes[p.type] ?? p.type}
             chaveMaisOpcoes={ADVANCED_OPEN_KEY}
             naturezaFiscal={p.naturezaFiscal ?? null}
+            preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) } : undefined}
           />
         </div>
       </div>

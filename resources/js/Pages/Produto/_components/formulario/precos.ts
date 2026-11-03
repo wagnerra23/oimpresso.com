@@ -133,3 +133,26 @@ export function camposDePreco(p: PrecoSimples, aliquota: number): CamposPrecoSer
     single_dsp_inc_tax: paraNumUf(arredondar(somarPercentual(p.venda, aliquota)), CASAS_PRECO),
   };
 }
+
+/** Preço gravado do produto simples, como a tela Editar recebe (UC-PEDIT-16). */
+export interface PrecoGravado extends PrecoSimples {
+  variacaoId: number;
+}
+
+/**
+ * O que a tela Editar manda de preço (UC-PEDIT-16). Nada, se a pessoa não mexeu no preço nem no
+ * imposto: o `update()` preserva o que não vem, e devolver o gravado arredondado a 2 casas
+ * reescreveria custo/venda de 4 casas sem ninguém pedir. Mexeu: os cinco campos do cadastro (a conta
+ * do Blade) e a variação, que o `update()` exige para gravar.
+ */
+export function camposDoPrecoEditado(
+  gravado: PrecoGravado | null,
+  atual: PrecoSimples | null,
+  aliquota: number,
+  impostoMudou: boolean,
+): Partial<CamposPrecoServidor> & { single_variation_id?: number } {
+  if (!gravado || !atual) return {};
+  const mexeu = atual.compra !== gravado.compra || atual.margem !== gravado.margem || atual.venda !== gravado.venda;
+  if (!mexeu && !impostoMudou) return {};
+  return { single_variation_id: gravado.variacaoId, ...camposDePreco(atual, aliquota) };
+}

@@ -1902,6 +1902,30 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+    /**
+     * UC-PEDIT-16 — preço gravado do produto simples para a tela Editar React: a variação única,
+     * com os valores sem imposto (os "com imposto" a tela deriva da alíquota, como no cadastro).
+     *
+     * @return array{variacaoId: int, compra: float, margem: float, venda: float}|null
+     */
+    private function precoSimplesDoProduto(Product $product): ?array
+    {
+        if ($product->type !== 'single') {
+            return null;
+        }
+        $variacao = Variation::where('product_id', $product->id)->orderBy('id')->first();
+        if ($variacao === null) {
+            return null;
+        }
+
+        return [
+            'variacaoId' => (int) $variacao->id,
+            'compra' => (float) $variacao->default_purchase_price,
+            'margem' => (float) $variacao->profit_percent,
+            'venda' => (float) $variacao->default_sell_price,
+        ];
+    }
+
     public function edit($id)
     {
         if (! auth()->user()->can('product.update')) {
@@ -1992,6 +2016,9 @@ class ProductController extends Controller
                     'camposPersonalizados' => $this->valoresCamposPersonalizados($product),
                     'expiryPeriod' => $product->expiry_period !== null ? (float) $product->expiry_period : null,
                     'expiryPeriodType' => $product->expiry_period_type,
+                    // UC-PEDIT-16: o preço gravado do produto simples (a variação única), como o
+                    // edit_single_product_form_part.blade.php mostra. Variável e composto: null.
+                    'precoSimples' => $this->precoSimplesDoProduto($product),
                 ],
                 'categories' => $categories,
                 'brands' => $brands,
@@ -2222,7 +2249,10 @@ class ProductController extends Controller
                 // virar `num_uf(null)` = 0. Ausência = "o formulário não declarou" -> PRESERVA.
                 // O Blade (product/edit.blade.php) manda os 6, então nada muda pra ele.
                 if (array_key_exists('single_variation_id', $single_data)) {
-                    $variation = Variation::find($single_data['single_variation_id']);
+                    // UC-PEDIT-16 [T0]: a variação tem que ser DESTE produto (o produto já é da empresa).
+                    // `Variation::find` cru aceitava o id de uma variação de outra empresa e regravava
+                    // o preço dela. Id alheio -> ModelNotFoundException -> rollback, nada grava.
+                    $variation = Variation::where('product_id', $product->id)->findOrFail($single_data['single_variation_id']);
 
                     $variation->sub_sku = $product->sku;
                     if (array_key_exists('single_dpp', $single_data)) {
