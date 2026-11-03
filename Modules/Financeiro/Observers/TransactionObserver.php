@@ -32,7 +32,7 @@ class TransactionObserver
 
     public function created(Transaction $tx): void
     {
-        if ($tx->type === 'sell_return') {
+        if (DevolucaoVendaTituloService::ehDevolucao($tx)) {
             app(DevolucaoVendaTituloService::class)->sincronizar($tx);
 
             return;
@@ -49,7 +49,7 @@ class TransactionObserver
             return;
         }
 
-        if ($tx->type === 'sell_return') {
+        if (DevolucaoVendaTituloService::ehDevolucao($tx)) {
             app(DevolucaoVendaTituloService::class)->sincronizar($tx);
 
             return;
@@ -60,7 +60,7 @@ class TransactionObserver
 
     public function deleted(Transaction $tx): void
     {
-        if ($tx->type === 'sell_return') {
+        if (DevolucaoVendaTituloService::ehDevolucao($tx)) {
             app(DevolucaoVendaTituloService::class)->estornarSeExistir($tx);
 
             return;

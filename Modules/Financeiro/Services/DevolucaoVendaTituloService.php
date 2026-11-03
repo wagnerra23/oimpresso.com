@@ -33,10 +33,19 @@ class DevolucaoVendaTituloService
     {
     }
 
+    /**
+     * `transactions.type = sell_return`. Lido por getAttribute: o PHPDoc do Transaction
+     * estreita `type` a 'sell'|'purchase', e com `->type` o PHPStan dá a devolução como impossível.
+     */
+    public static function ehDevolucao(Transaction $tx): bool
+    {
+        return (string) $tx->getAttribute('type') === 'sell_return';
+    }
+
     /** Abate o título da venda pelo valor devido da devolução. Idempotente. */
     public function sincronizar(Transaction $devolucao): ?TituloBaixa
     {
-        if ($devolucao->type !== 'sell_return' || empty($devolucao->return_parent_id)) {
+        if (! self::ehDevolucao($devolucao) || empty($devolucao->return_parent_id)) {
             return null;
         }
 
@@ -91,7 +100,7 @@ class DevolucaoVendaTituloService
     /** Devolução excluída: estorna a baixa que ela fez. */
     public function estornarSeExistir(Transaction $devolucao): ?TituloBaixa
     {
-        if ($devolucao->type !== 'sell_return') {
+        if (! self::ehDevolucao($devolucao)) {
             return null;
         }
 
