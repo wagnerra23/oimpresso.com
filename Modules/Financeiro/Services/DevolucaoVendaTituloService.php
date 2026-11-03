@@ -159,7 +159,7 @@ class DevolucaoVendaTituloService
             ->first();
     }
 
-    private function estornar(TituloBaixa $ativa, Transaction $devolucao, string $motivo): TituloBaixa
+    protected function estornar(TituloBaixa $ativa, Transaction $devolucao, string $motivo): TituloBaixa
     {
         // SUPERADMIN: Observer sem session — INSERT estorno com business_id da baixa original
         return TituloBaixa::query()
@@ -179,7 +179,7 @@ class DevolucaoVendaTituloService
             ]);
     }
 
-    private function recalcular(int $tituloId): void
+    protected function recalcular(int $tituloId): void
     {
         // SUPERADMIN: Observer sem session — título pelo id da baixa (business preservado pela FK)
         $titulo = Titulo::query()->withoutGlobalScope(BusinessScopeImpl::class)->find($tituloId);
@@ -200,7 +200,7 @@ class DevolucaoVendaTituloService
         return $chaves;
     }
 
-    private function chave(Transaction $devolucao): string
+    protected function chave(Transaction $devolucao): string
     {
         // SUPERADMIN: Observer sem session — versões anteriores pelo business_id da devolução
         $versoes = TituloBaixa::query()
