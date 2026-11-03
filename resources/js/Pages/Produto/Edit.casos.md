@@ -198,6 +198,15 @@ last_run_ci: "PR #9747 (aviso de SKU que não vira código EAN, UC-PEDIT-15), 20
 - **Contrato:** `CU-PROD-18` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md). A regra é a mesma do `UC-PCAD-17` (`Create.casos.md`): a etiqueta recusa esses códigos; a nota fiscal não usa o código hoje.
 - **Status: 🧪** — escrito junto do código, sem veredito do job `Frontend / Vite build` (G-7).
 
+## UC-PEDIT-16 · Editar o preço do produto simples · `must` `[V0]` `[T0]`
+- **Persona:** Larissa — corrige o custo ou o preço de venda de um produto já cadastrado. Sem os campos, a edição React não tinha preço e o produto precisava voltar ao Blade.
+- **Aceite:** Dado um produto **simples** · Quando abro o Editar · Então o card "Preço & Imposto" mostra compra, % de lucro e venda gravados (com imposto derivados da alíquota) · Quando salvo sem mexer no preço nem no imposto · Então nada de preço vai no envio e o gravado fica igual, inclusive com 4 casas · Quando mexo na compra, no lucro ou na venda, ou troco o imposto · Então vão a variação e os cinco campos, com a conta do Blade, vírgula decimal e sem milhar · E a variação tem que ser do próprio produto: id de variação de outra empresa não regrava nada · Produto variável e composto não têm preço nesta tela.
+- **Teste:** [`ProdutoEditPrecoContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPrecoContratoTest.php) — `UC-PEDIT-16` (o servidor: entrega o preço gravado, grava sem inflar 1.234,56, preserva sem os campos, recusa a variação de outra empresa; lane Estoque · MySQL) · [`produto-editar-preco.test.tsx`](../../../../tests/js/produto-editar-preco.test.tsx) — `UC-PEDIT-16` (a tela: sem mexer não envia, mexer envia, variável sem preço, trocar o imposto reenvia).
+- **Contrato:** `CU-PROD-01` item 4 `[V0]` + REGRA MESTRE de valor + ADR 0093. A conta é a mesma do `UC-PCAD-09` (`Create.casos.md`, prova por dois caminhos contra o Blade). Os campos e a regra de "o que não vem fica" são os do `edit_single_product_form_part.blade.php` e do `update()`.
+- **Achado [T0] corrigido aqui:** o `update()` fazia `Variation::find($request->single_variation_id)` sem conferir o produto — um envio com o id de uma variação de outra empresa regravava o preço dela. Passa a exigir a variação do próprio produto (`where('product_id', …)->findOrFail`); id alheio cai no `catch` e nada grava.
+- **Mutação (2026-11-03):** a tela mandando o preço sempre derruba 2 casos do Vitest.
+- **Status: 🧪** — nasce neste PR; Pest aguarda a lane Estoque · MySQL.
+
 ## Diagnóstico do remédio (2026-07-29) — a correção óbvia é a errada
 
 > ## ⚠️ DESFECHO (2026-09-18): a Via B foi ADOTADA — **com a compensação que faltava**
