@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-03"
 ---
 
 # Casos de Uso & Aceite — Financeiro/CategoriasDespesa/Index
@@ -36,6 +36,11 @@ last_run: "2026-10-14"
 - **Aceite:** Dado a flag desligada · Quando abro `/expense-categories` · Então recebo a Blade; com a flag ligada e `?classico=1`, também.
 - **Status: 🧪**
 
+## UC-CATD-06 · Com o Financeiro habilitado, a flag abre a tela própria e `?classico=1` abre a Blade
+- **Aceite:** Dado uma empresa com o Financeiro habilitado e a flag ligada · Quando abro `/expense-categories` · Então recebo a tela React; com `?classico=1`, a Blade. Com a flag desligada · Então vou às categorias do Financeiro por redirect temporário (302).
+- **Regressão que defende:** o `RedirectLegacyFinanceiro` chegava antes do controller e deixava a UC-CATD-05 verdadeira só no teste (o tenant de teste não tem o pacote Financeiro).
+- **Status: ⬜** — até o CI do PR rodar.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -46,3 +51,4 @@ last_run: "2026-10-14"
 
 ## Trilha do tempo
 - 2026-10-14 · [CL] carimbado por criar-tela.mjs e preenchido na US-MWART-018 parte 2 (thread financeiro/13).
+- 2026-11-03 · [W+C] UC-CATD-06: o redirect da Fase 2 do Financeiro passa a respeitar a flag e o `?classico=1` (smoke prod empresa 1).

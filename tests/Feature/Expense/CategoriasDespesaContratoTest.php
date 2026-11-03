@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Schema;
  * UC-CATD-03 `[T0]` — editar altera a minha categoria e não alcança a de outro negócio.
  * UC-CATD-04 `[T0]` — excluir leva as minhas subcategorias junto e não alcança outro negócio.
  * UC-CATD-05        — flag desligada, ou `?classico=1`, servem a Blade.
+ * UC-CATD-06        — com o Financeiro habilitado, o RedirectLegacyFinanceiro deixa passar a flag e o ?classico=1.
  *
  * Trio: resources/js/Pages/Financeiro/CategoriasDespesa/{Index.charter.md,Index.casos.md}
  * Tier 0 (ADR 0093 + ADR 0358): tenant 98 x business 2. NUNCA biz=4.
@@ -138,4 +139,24 @@ it('UC-CATD-05 · flag desligada ou ?classico=1 servem a Blade', function () {
         $mock->shouldReceive('isOn')->andReturn(false)); // todas as flags desligadas, inclusive a desta tela
 
     $this->get('/expense-categories')->assertOk()->assertViewIs('expense_category.index');
+});
+
+it('UC-CATD-06 · com o Financeiro habilitado, a flag abre a tela própria e ?classico=1 a Blade; sem a flag, vai às categorias do Financeiro', function () {
+    // Empresa com o Financeiro habilitado: é aí que o RedirectLegacyFinanceiro age (o tenant de teste não tem o pacote).
+    app()->bind(\App\Http\Middleware\RedirectLegacyFinanceiro::class, fn () => new class extends \App\Http\Middleware\RedirectLegacyFinanceiro {
+        protected function isFinanceiroEnabled(): bool
+        {
+            return true;
+        }
+    });
+
+    $this->get('/expense-categories', ['X-Inertia' => 'true', 'X-Inertia-Version' => catdInertiaVersion()])
+        ->assertOk()->assertJsonPath('component', 'Financeiro/CategoriasDespesa/Index');
+    $this->get('/expense-categories?classico=1')->assertOk()->assertViewIs('expense_category.index');
+
+    config(['feature-flags.forced_on' => '']);
+    $this->mock(\App\Services\FeatureFlagService::class, fn ($mock) =>
+        $mock->shouldReceive('isOn')->andReturn(false));
+
+    $this->get('/expense-categories')->assertStatus(302)->assertRedirect('/financeiro/categorias');
 });

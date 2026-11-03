@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Schema;
  * UC-DESPES-05 `[T0]` — excluir pela tela apaga a minha despesa e não alcança a de outro negócio.
  * UC-DESPES-06 `[V0]` — nova despesa: o total que a tela manda ("1234,56") grava 1234.56, conferido por 2 leituras.
  * UC-DESPES-07        — data da Blade (4 formatos de empresa) grava o que o uf_date original grava; a da tela nova, o mesmo minuto.
+ * UC-DESPES-09        — com o Financeiro habilitado, o RedirectLegacyFinanceiro deixa passar a flag e o ?classico=1.
  *
  * Trio: resources/js/Pages/Financeiro/Despesas/{Index.charter.md,Index.casos.md}
  * Tier 0 (ADR 0093 + ADR 0358): tenant 98 x business 2; a despesa alheia usa o MEU local, então só o
@@ -289,4 +290,33 @@ it('UC-DESPES-08 · detalhes de recorrência da tela nova são o mesmo texto da 
     expect($nova["$tag-filha"]['recorrencia'])->toContain("$tag-pai");
     expect($nova["$tag-filha"]['recorrencia'])->toBe($antiga["$tag-filha"]);
     expect($nova["$tag-avulsa"]['recorrencia'])->toBe('');
+});
+
+/** Empresa com o Financeiro habilitado: é aí que o RedirectLegacyFinanceiro age (o tenant de teste não tem o pacote). */
+function dicComFinanceiroHabilitado(): void
+{
+    app()->bind(\App\Http\Middleware\RedirectLegacyFinanceiro::class, fn () => new class extends \App\Http\Middleware\RedirectLegacyFinanceiro {
+        protected function isFinanceiroEnabled(): bool
+        {
+            return true;
+        }
+    });
+}
+
+it('UC-DESPES-09 · com o Financeiro habilitado, a flag abre a tela própria e ?classico=1 a Blade; sem a flag, vai ao unificado', function () {
+    dicComFinanceiroHabilitado();
+
+    // Flag ligada (beforeEach): quem responde é o controller, não o redirect.
+    $this->get('/expenses', ['X-Inertia' => 'true', 'X-Inertia-Version' => dicInertiaVersion()])
+        ->assertOk()->assertJsonPath('component', 'Financeiro/Despesas/Index');
+    $this->get('/expenses?classico=1')->assertOk()->assertViewIs('expense.index');
+
+    config(['feature-flags.forced_on' => '']);
+    $this->mock(\App\Services\FeatureFlagService::class, fn ($mock) =>
+        $mock->shouldReceive('isOn')->andReturn(false));
+
+    // Sem a flag segue o Financeiro unificado, agora em 302 (o destino depende da flag).
+    $this->get('/expenses')->assertStatus(302)->assertRedirect('/financeiro/unificado');
+    // Controle: rota sem tela própria continua no 301 de sempre.
+    $this->get('/account/cash-flow')->assertStatus(301)->assertRedirect('/financeiro/fluxo');
 });
