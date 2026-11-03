@@ -264,6 +264,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [colunas-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/colunas-dominio.ts)
 - [comissao-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/comissao-dominio.ts)
 - [config-business-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/config-business-dominio.ts)
+- [edicao-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/edicao-dominio.ts)
 - [entrega-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/entrega-dominio.ts)
 - [fechamento-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/fechamento-dominio.ts)
 - [gravacao-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/gravacao-dominio.ts)

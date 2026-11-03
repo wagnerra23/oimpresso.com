@@ -1385,9 +1385,12 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
                 Há item com dado inválido — corrija antes de fechar.
               </span>
             )}
-            <span className="block text-center text-[11.5px] leading-[1.3] text-muted-foreground">
-              Preview de design — não grava.
-            </span>
+            {/* Com `gravacao` (flag useV3SellsGravar) a venda é gravada pelos stores de produção. */}
+            {!gravacao && (
+              <span className="block text-center text-[11.5px] leading-[1.3] text-muted-foreground">
+                Preview de design — não grava.
+              </span>
+            )}
           </Stack>
         </div>
       </aside>
@@ -1400,16 +1403,19 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   // a classe, senão o campo do drawer fica 30px enquanto a página fica 34,19px.
   return (
     <Stack gap={4} className="venda-v3 mx-auto max-w-[1400px] p-4">
-      {/* Marcador honesto: quem abrir por engano precisa saber em 1 segundo. */}
-      <Inline gap={3} align="center" wrap className="rounded-lg border border-warning/30 bg-warning-soft px-4 py-3">
-        <div className="min-w-0 text-sm">
-          <b className="font-semibold">Preview de design — não é a tela de produção.</b>{' '}
-          <span className="text-muted-foreground">
-            Dados de cena, não do banco. Não salva e não move estoque. A venda real continua em{' '}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">/pos/create</code>.
-          </span>
-        </div>
-      </Inline>
+      {/* Marcador honesto: quem abrir por engano precisa saber em 1 segundo.
+          Só sem `gravacao` — com a flag useV3SellsGravar ligada a tela grava de verdade. */}
+      {!gravacao && (
+        <Inline gap={3} align="center" wrap className="rounded-lg border border-warning/30 bg-warning-soft px-4 py-3">
+          <div className="min-w-0 text-sm">
+            <b className="font-semibold">Preview de design — não é a tela de produção.</b>{' '}
+            <span className="text-muted-foreground">
+              Dados de cena, não do banco. Não salva e não move estoque. A venda real continua em{' '}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">/pos/create</code>.
+            </span>
+          </div>
+        </Inline>
+      )}
 
       <Inline gap={3} align="center" wrap>
         {/* 22px/1.3 + tracking = o h1 do `PageHeader` do DS vivo (DesignSync

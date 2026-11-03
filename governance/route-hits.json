@@ -14,68 +14,40 @@
     "sample_rate": 1,
     "rotas": {
         "/": {
-            "hits": 104,
-            "ultima_data": "2026-10-20"
+            "hits": 66,
+            "ultima_data": "2026-10-30"
         },
         "ads.admin.tools.index": {
             "hits": 1,
             "ultima_data": "2026-10-11"
         },
-        "assets.index": {
-            "hits": 2,
-            "ultima_data": "2026-09-28"
+        "atendimento.index": {
+            "hits": 4045,
+            "ultima_data": "2026-10-29"
         },
-        "atendimento.caixa-unificada.index": {
-            "hits": 13624,
-            "ultima_data": "2026-10-01"
-        },
-        "atendimento.inbox.index": {
-            "hits": 3,
-            "ultima_data": "2026-10-01"
-        },
-        "atendimento.midia.show": {
-            "hits": 4,
-            "ultima_data": "2026-09-26"
-        },
-        "auth.social.redirect": {
+        "business.getRegister": {
             "hits": 1,
-            "ultima_data": "2026-09-28"
-        },
-        "backup.index": {
-            "hits": 1,
-            "ultima_data": "2026-09-26"
+            "ultima_data": "2026-10-28"
         },
         "catalogue/{business_id}/{location_id}": {
-            "hits": 9,
+            "hits": 1,
             "ultima_data": "2026-10-06"
         },
-        "check-mobile": {
-            "hits": 2,
-            "ultima_data": "2026-10-02"
-        },
         "cms.contact.us": {
-            "hits": 3,
+            "hits": 2,
             "ultima_data": "2026-10-11"
         },
         "compras.index": {
             "hits": 2,
             "ultima_data": "2026-10-20"
         },
-        "consent.store": {
-            "hits": 2,
-            "ultima_data": "2026-09-26"
-        },
-        "contacts.store": {
-            "hits": 3,
-            "ultima_data": "2026-10-02"
+        "contact-dashboard.index": {
+            "hits": 1,
+            "ultima_data": "2026-10-28"
         },
         "contacts/customers": {
-            "hits": 20,
-            "ultima_data": "2026-10-01"
-        },
-        "discount.index": {
-            "hits": 1,
-            "ultima_data": "2026-10-02"
+            "hits": 10,
+            "ultima_data": "2026-10-28"
         },
         "documentacao.buscar": {
             "hits": 2,
@@ -84,10 +56,6 @@
         "documentacao.documento": {
             "hits": 4,
             "ultima_data": "2026-10-06"
-        },
-        "financeiro.dre.index": {
-            "hits": 2,
-            "ultima_data": "2026-09-26"
         },
         "fisio.biblioteca.index": {
             "hits": 2,
@@ -98,15 +66,15 @@
             "ultima_data": "2026-10-20"
         },
         "get-total-unread": {
-            "hits": 462,
+            "hits": 147,
             "ultima_data": "2026-10-10"
         },
         "home": {
-            "hits": 7,
+            "hits": 1,
             "ultima_data": "2026-10-05"
         },
         "home.legacy": {
-            "hits": 8,
+            "hits": 2,
             "ultima_data": "2026-10-05"
         },
         "labels/show": {
@@ -114,8 +82,8 @@
             "ultima_data": "2026-10-11"
         },
         "login": {
-            "hits": 267,
-            "ultima_data": "2026-10-20"
+            "hits": 215,
+            "ultima_data": "2026-10-29"
         },
         "manufacturing.editor-receita.insumos": {
             "hits": 1,
@@ -129,14 +97,6 @@
             "hits": 1,
             "ultima_data": "2026-10-08"
         },
-        "modules/data/get-pos-details": {
-            "hits": 2,
-            "ultima_data": "2026-09-26"
-        },
-        "nfe-brasil.api.transactions.emissoes": {
-            "hits": 4,
-            "ultima_data": "2026-09-26"
-        },
         "nfe-brasil.tributacao.config.show": {
             "hits": 3,
             "ultima_data": "2026-10-11"
@@ -149,97 +109,33 @@
             "hits": 2,
             "ultima_data": "2026-10-11"
         },
-        "officeimpresso.catalogue": {
-            "hits": 4,
-            "ultima_data": "2026-10-01"
-        },
-        "old": {
-            "hits": 1,
-            "ultima_data": "2026-09-26"
-        },
         "password.request": {
             "hits": 2,
             "ultima_data": "2026-10-11"
         },
-        "ponto.dashboard": {
-            "hits": 568,
-            "ultima_data": "2026-09-29"
-        },
-        "ponto.escalas.index": {
-            "hits": 1,
-            "ultima_data": "2026-10-02"
-        },
-        "ponto.espelho.index": {
-            "hits": 1,
-            "ultima_data": "2026-09-26"
-        },
-        "ponto.fechamento": {
-            "hits": 1,
-            "ultima_data": "2026-09-26"
-        },
-        "ponto.importacoes.index": {
-            "hits": 1,
-            "ultima_data": "2026-09-26"
-        },
-        "ponto.mobile": {
-            "hits": 1,
-            "ultima_data": "2026-10-02"
-        },
-        "ponto.relatorios.index": {
-            "hits": 2,
-            "ultima_data": "2026-09-26"
-        },
-        "pos.destroy": {
-            "hits": 1,
-            "ultima_data": "2026-09-26"
-        },
-        "pos.index": {
-            "hits": 1,
-            "ultima_data": "2026-09-28"
-        },
         "pos.store": {
-            "hits": 12,
-            "ultima_data": "2026-10-01"
-        },
-        "pos.update": {
-            "hits": 2,
-            "ultima_data": "2026-09-26"
+            "hits": 1,
+            "ultima_data": "2026-10-28"
         },
         "pricing": {
-            "hits": 3,
-            "ultima_data": "2026-10-01"
+            "hits": 1,
+            "ultima_data": "2026-10-28"
         },
         "production.index": {
             "hits": 3,
             "ultima_data": "2026-10-05"
         },
-        "products.create": {
-            "hits": 8,
-            "ultima_data": "2026-10-02"
-        },
         "products.index": {
-            "hits": 168,
-            "ultima_data": "2026-10-12"
+            "hits": 72,
+            "ultima_data": "2026-10-28"
         },
         "products.show": {
             "hits": 20,
             "ultima_data": "2026-10-12"
         },
-        "products.store": {
-            "hits": 8,
-            "ultima_data": "2026-10-02"
-        },
-        "products/get_variation_template": {
-            "hits": 1,
-            "ultima_data": "2026-10-02"
-        },
         "products/list": {
-            "hits": 51,
-            "ultima_data": "2026-10-11"
-        },
-        "products/product_form_part": {
-            "hits": 8,
-            "ultima_data": "2026-10-02"
+            "hits": 41,
+            "ultima_data": "2026-10-28"
         },
         "products/quick_add": {
             "hits": 8,
@@ -249,52 +145,40 @@
             "hits": 1,
             "ultima_data": "2026-10-12"
         },
-        "products/validate_variation_skus": {
-            "hits": 8,
-            "ultima_data": "2026-10-02"
-        },
-        "products/view/{id}": {
-            "hits": 14,
-            "ultima_data": "2026-10-02"
-        },
         "publico.privacidade": {
-            "hits": 20,
-            "ultima_data": "2026-10-11"
+            "hits": 21,
+            "ultima_data": "2026-10-28"
         },
         "purchases.create": {
-            "hits": 10,
+            "hits": 8,
             "ultima_data": "2026-10-11"
-        },
-        "purchases.edit": {
-            "hits": 1,
-            "ultima_data": "2026-10-02"
         },
         "purchases.grade-matrix": {
             "hits": 1,
             "ultima_data": "2026-10-11"
         },
         "purchases.index": {
-            "hits": 24,
+            "hits": 10,
             "ultima_data": "2026-10-05"
+        },
+        "purchases.pedidos-abertos": {
+            "hits": 1,
+            "ultima_data": "2026-10-27"
         },
         "purchases.store": {
-            "hits": 6,
+            "hits": 4,
             "ultima_data": "2026-10-05"
         },
-        "purchases.update": {
-            "hits": 1,
-            "ultima_data": "2026-10-02"
-        },
         "purchases/get_products": {
-            "hits": 79,
+            "hits": 76,
             "ultima_data": "2026-10-05"
         },
         "purchases/get_purchase_entry_row": {
-            "hits": 45,
+            "hits": 42,
             "ultima_data": "2026-10-05"
         },
         "purchases/get_suppliers": {
-            "hits": 24,
+            "hits": 8,
             "ultima_data": "2026-10-05"
         },
         "purchases/{id}": {
@@ -305,65 +189,33 @@
             "hits": 3,
             "ultima_data": "2026-10-11"
         },
-        "repair-status": {
-            "hits": 2,
-            "ultima_data": "2026-09-28"
-        },
         "reports/purchase-sell": {
             "hits": 6,
             "ultima_data": "2026-10-08"
         },
-        "reports/stock-report": {
-            "hits": 14,
-            "ultima_data": "2026-10-02"
-        },
         "sells-list-json": {
-            "hits": 19,
-            "ultima_data": "2026-10-01"
-        },
-        "sells.audit": {
-            "hits": 4,
-            "ultima_data": "2026-09-26"
+            "hits": 2,
+            "ultima_data": "2026-10-29"
         },
         "sells.create": {
-            "hits": 14,
-            "ultima_data": "2026-09-26"
-        },
-        "sells.edit": {
-            "hits": 4,
-            "ultima_data": "2026-09-26"
-        },
-        "sells.fsm-actions": {
-            "hits": 4,
-            "ultima_data": "2026-09-26"
+            "hits": 2,
+            "ultima_data": "2026-10-29"
         },
         "sells.index": {
-            "hits": 37,
-            "ultima_data": "2026-10-01"
-        },
-        "sells.timeline-unified": {
             "hits": 4,
-            "ultima_data": "2026-09-26"
+            "ultima_data": "2026-10-29"
         },
         "sells/draft-dt": {
-            "hits": 4,
-            "ultima_data": "2026-09-26"
+            "hits": 1,
+            "ultima_data": "2026-10-29"
         },
-        "sells/drafts": {
-            "hits": 3,
-            "ultima_data": "2026-09-26"
-        },
-        "sells/{id}": {
+        "sells/quotations": {
             "hits": 2,
-            "ultima_data": "2026-09-26"
-        },
-        "sells/{id}/sheet-data": {
-            "hits": 4,
-            "ultima_data": "2026-09-26"
+            "ultima_data": "2026-10-29"
         },
         "show_invoice": {
-            "hits": 2,
-            "ultima_data": "2026-09-26"
+            "hits": 1,
+            "ultima_data": "2026-10-28"
         },
         "stock-adjustments.create": {
             "hits": 1,
@@ -384,16 +236,16 @@
     },
     "pages": {
         "Atendimento/CaixaUnificada/Index": {
-            "hits": 13624,
-            "ultima_data": "2026-10-01"
+            "hits": 4045,
+            "ultima_data": "2026-10-29"
         },
         "Compras/Index": {
             "hits": 2,
             "ultima_data": "2026-10-20"
         },
-        "Financeiro/Dre/Index": {
-            "hits": 2,
-            "ultima_data": "2026-09-26"
+        "Crm/Portal/Painel/Index": {
+            "hits": 1,
+            "ultima_data": "2026-10-28"
         },
         "Fisio/Biblioteca/Index": {
             "hits": 2,
@@ -404,7 +256,7 @@
             "ultima_data": "2026-10-20"
         },
         "Home/Index": {
-            "hits": 8,
+            "hits": 1,
             "ultima_data": "2026-10-05"
         },
         "NfeBrasil/Tributacao/ConfigDefault": {
@@ -415,45 +267,13 @@
             "hits": 2,
             "ultima_data": "2026-10-11"
         },
-        "Ponto/Dashboard/Index": {
-            "hits": 568,
-            "ultima_data": "2026-09-29"
-        },
-        "Ponto/Escalas/Index": {
-            "hits": 1,
-            "ultima_data": "2026-10-02"
-        },
-        "Ponto/Espelho/Index": {
-            "hits": 1,
-            "ultima_data": "2026-09-26"
-        },
-        "Ponto/Fechamento/Index": {
-            "hits": 1,
-            "ultima_data": "2026-09-26"
-        },
-        "Ponto/Importacoes/Index": {
-            "hits": 1,
-            "ultima_data": "2026-09-26"
-        },
-        "Ponto/Mobile/Index": {
-            "hits": 1,
-            "ultima_data": "2026-10-02"
-        },
-        "Ponto/Relatorios/Index": {
-            "hits": 2,
-            "ultima_data": "2026-09-26"
-        },
-        "Produto/Create": {
-            "hits": 8,
-            "ultima_data": "2026-10-02"
-        },
         "Produto/Etiquetas/Index": {
             "hits": 3,
             "ultima_data": "2026-10-11"
         },
         "Produto/Index": {
-            "hits": 168,
-            "ultima_data": "2026-10-12"
+            "hits": 72,
+            "ultima_data": "2026-10-28"
         },
         "Produto/Show": {
             "hits": 20,
@@ -464,44 +284,32 @@
             "ultima_data": "2026-10-08"
         },
         "Sells/Create": {
-            "hits": 14,
-            "ultima_data": "2026-09-26"
-        },
-        "Sells/Drafts": {
-            "hits": 3,
-            "ultima_data": "2026-09-26"
-        },
-        "Sells/Edit": {
-            "hits": 4,
-            "ultima_data": "2026-09-26"
+            "hits": 2,
+            "ultima_data": "2026-10-29"
         },
         "Sells/Index": {
-            "hits": 37,
-            "ultima_data": "2026-10-01"
+            "hits": 4,
+            "ultima_data": "2026-10-29"
         },
-        "Sells/Pos/Index": {
-            "hits": 1,
-            "ultima_data": "2026-09-28"
-        },
-        "Sells/Show": {
+        "Sells/Quotations": {
             "hits": 2,
-            "ultima_data": "2026-09-26"
+            "ultima_data": "2026-10-29"
         },
         "Site/Home": {
-            "hits": 104,
-            "ultima_data": "2026-10-20"
+            "hits": 66,
+            "ultima_data": "2026-10-30"
         },
         "Site/Login": {
-            "hits": 534,
-            "ultima_data": "2026-10-20"
+            "hits": 430,
+            "ultima_data": "2026-10-29"
         },
         "Site/Pricing": {
-            "hits": 3,
-            "ultima_data": "2026-10-01"
+            "hits": 1,
+            "ultima_data": "2026-10-28"
         },
         "Site/PrivacidadeApp": {
-            "hits": 20,
-            "ultima_data": "2026-10-11"
+            "hits": 21,
+            "ultima_data": "2026-10-28"
         },
         "Site/Register": {
             "hits": 3,

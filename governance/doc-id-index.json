@@ -1843,6 +1843,8 @@
     "2026-10-18-refutacao-gt-g5-lote-9536-r2": "memory/sessions/2026-10-18-refutacao-gt-g5-lote-9536-r2.md",
     "2026-10-18-refutacao-gt-g5-lote-9536-r3": "memory/sessions/2026-10-18-refutacao-gt-g5-lote-9536-r3.md",
     "2026-10-20-pesquisa-consulta-venda-concorrentes-cv": "memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md",
+    "2026-10-30-1700-venda-v3-edicao-onda1": "memory/handoffs/2026-10-30-1700-venda-v3-edicao-onda1.md",
+    "2026-10-30-session-02-venda-v3-edicao": "memory/sessions/2026-10-30-session-02-venda-v3-edicao.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -4512,16 +4514,16 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4506,
-    "resolved": 3015,
+    "total": 4508,
+    "resolved": 3017,
     "unstamped": 1491,
     "collisions": 0,
     "by_source": {
       "unstamped": 1491,
       "derived-adr": 449,
       "stamped": 1173,
-      "derived-handoffs": 619,
-      "derived-sessions": 774
+      "derived-handoffs": 620,
+      "derived-sessions": 775
     }
   }
 }

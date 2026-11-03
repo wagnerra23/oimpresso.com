@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-10-30"
+last_run: "2026-11-03"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -1227,6 +1227,7 @@ pertence a `Sells/Create`, não aqui:
 ## Pendências declaradas
 
 - **Revalidação de 2026-10-30 (G-6):** desde o `last_run` anterior (2026-08-27), `CreateV3.tsx` mudou só no comentário que aponta a âncora de design (#7224 e #7620). Nenhum comportamento da tela mudou, então os UCs acima seguem valendo como estavam.
+- **Revalidação de 2026-11-03 (G-6):** desde 2026-10-30, `CreateV3.tsx` mudou só em quando os dois avisos "Preview de design — não grava" aparecem: agora somem quando a tela recebe `gravacao` (flag `useV3SellsGravar`, ligada para a empresa 1 em 2026-11-03), porque ali a tela grava pelos stores de produção. Sem `gravacao` os avisos seguem iguais. Nenhum UC acima cita os avisos; UC-V302 (nenhuma rota de escrita no controller do preview) segue valendo, pois a gravação usa os stores de produção, não rota do `SellsV3Controller`.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.

@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-01**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-02**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -431,14 +431,14 @@ lente: [construir]
 
 ## Rastro
 
-- **624** handoffs · **801** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **625** handoffs · **802** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-10-30-session-02-venda-v3-edicao`
   - `2026-10-26-fase0-nsu-dfe-seco-medicao`
   - `2026-10-20-pesquisa-consulta-venda-concorrentes-cv`
   - `2026-10-20-arte-casos-de-uso-fabricacao`
   - `2026-10-18-refutacao-gt-g5-lote-9536-r3`
   - `2026-10-18-refutacao-gt-g5-lote-9536-r2`
-  - `2026-10-18-refutacao-gt-g5-lote-9536-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-11-01 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-11-02 · deriva das fontes canônicas, não as substitui._

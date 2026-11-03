@@ -25,6 +25,7 @@ beforeEach(function () {
 
 it('retorna fallback default quando GROWTHBOOK_SDK_KEY ausente no .env', function () {
     config(['env.GROWTHBOOK_SDK_KEY' => '']);
+    config(['feature-flags.growthbook.sdk_key' => '', 'feature-flags.growthbook.api_host' => '']);
     putenv('GROWTHBOOK_SDK_KEY=');
     putenv('GROWTHBOOK_API_HOST=');
 
@@ -226,4 +227,34 @@ it('FAIL-CLOSED: em producao o override e ignorado mesmo preenchido', function (
     // GrowthBook ou no $fallbackDefaults — nunca por env de harness.
     expect(app()->isProduction())->toBeTrue();
     expect($service->isOn('useV2FlagDeTesteSemDefault'))->toBeFalse();
+});
+
+it('com config cacheado (env vazio) lê a chave do config e respeita a regra por business_id', function () {
+    // Produção roda `config:cache`: env('GROWTHBOOK_*') fora de config/ volta vazio.
+    // Antes deste teste o serviço lia só env() e o GrowthBook nunca era consultado
+    // no site — a regra biz-1 da useV3SellsGravar ficava inerte (medido 2026-11-03).
+    putenv('GROWTHBOOK_SDK_KEY=');
+    putenv('GROWTHBOOK_API_HOST=');
+    config([
+        'feature-flags.growthbook.sdk_key' => 'sdk-test-fake',
+        'feature-flags.growthbook.api_host' => 'https://growthbook-cfg.test.local',
+    ]);
+
+    Http::fake([
+        'growthbook-cfg.test.local/*' => Http::response([
+            'status' => 200,
+            'features' => [
+                'flagPorEmpresa' => [
+                    'defaultValue' => false,
+                    'rules' => [['condition' => ['business_id' => 1], 'force' => true]],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $service = new FeatureFlagService();
+
+    expect($service->isOn('flagPorEmpresa', ['business_id' => 1]))->toBeTrue();
+    expect($service->isOn('flagPorEmpresa', ['business_id' => 99]))->toBeFalse();
+    Http::assertSent(fn ($r) => str_starts_with($r->url(), 'https://growthbook-cfg.test.local/api/features/sdk-test-fake'));
 });
