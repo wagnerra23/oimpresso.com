@@ -34,7 +34,9 @@ function dasPagina(string $query = '', bool $parcial = false): array
     if ($parcial) {
         $headers += ['X-Inertia-Partial-Component' => 'Fiscal/Das', 'X-Inertia-Partial-Data' => 'apuracao'];
     }
-    $r = test()->withHeaders($headers)->get('/fiscal/das'.$query);
+    // flushHeaders: withHeaders() acumula no teste — sem isso, a chamada que segue uma parcial
+    // continua parcial e devolve só `apuracao`.
+    $r = test()->flushHeaders()->withHeaders($headers)->get('/fiscal/das'.$query);
     $r->assertOk();
 
     return json_decode($r->getContent(), true);
