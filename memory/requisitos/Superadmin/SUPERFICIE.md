@@ -14,7 +14,7 @@ module: Superadmin
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 200 arquivos em 19 papéis.
+**Total mapeado:** 204 arquivos em 19 papéis.
 
 ## Controllers — 14
 
@@ -144,7 +144,7 @@ module: Superadmin
 - [super_admin_settings.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/super_admin_settings.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_subscription/index.blade.php)
 
-## Telas (Inertia/React) — 11
+## Telas (Inertia/React) — 12
 
 - [Pricing.tsx](../../../Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx)
@@ -154,6 +154,7 @@ module: Superadmin
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/MinhaAssinatura/Index.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx)
+- [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pagar/Index.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Paginas/Index.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.tsx)
 - [Show.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.tsx)
@@ -167,7 +168,7 @@ module: Superadmin
 - [PacoteForm.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/_components/PacoteForm.tsx)
 - [assinatura.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/_components/assinatura.tsx)
 
-## Charters (lei da tela) — 11
+## Charters (lei da tela) — 12
 
 - [Pricing.charter.md](../../../Modules/Superadmin/Resources/js/Pages/Site/Pricing.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.charter.md)
@@ -177,11 +178,12 @@ module: Superadmin
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/MinhaAssinatura/Index.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.charter.md)
+- [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pagar/Index.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Paginas/Index.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.charter.md)
 - [Show.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.charter.md)
 
-## Casos (contrato UC) — 11
+## Casos (contrato UC) — 12
 
 - [Pricing.casos.md](../../../Modules/Superadmin/Resources/js/Pages/Site/Pricing.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.casos.md)
@@ -191,13 +193,14 @@ module: Superadmin
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/MinhaAssinatura/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.casos.md)
+- [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pagar/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Paginas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.casos.md)
 - [Show.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.casos.md)
 
-## Testes (Pest) — 26
+## Testes (Pest) — 27
 
-- 25 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
+- 26 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
 - 1 em [Modules/Superadmin/Tests/Feature/Lgpd/](../../../Modules/Superadmin/Tests/Feature/Lgpd)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 

@@ -230,7 +230,7 @@ class SubscriptionController extends BaseController
     /**
      * Show pay form for a new package.
      *
-     * @return Response
+     * @return Response|\Inertia\Response
      */
     public function pay($package_id, $form_register = null)
     {
@@ -340,7 +340,7 @@ class SubscriptionController extends BaseController
     /**
      * Show pay form for a new package.
      *
-     * @return Response
+     * @return Response|\Inertia\Response
      */
     public function registerPay($package_id)
     {
