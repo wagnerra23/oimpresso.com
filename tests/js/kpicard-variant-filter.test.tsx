@@ -230,3 +230,24 @@ describe('KpiCard — variant="filter" (o tile do protótipo)', () => {
     expect(valor.className.split(/\s+/)).toContain('text-destructive');
   });
 });
+
+describe('KpiCard — size="catchup" (19px das telas catch-up, decisão [W] 2026-11-03)', () => {
+  it('size="catchup" põe o valor em 19px, fora da ramp do default', () => {
+    const { container } = render(<KpiCard label="Mesas ocupadas" value={3} size="catchup" />);
+    expect(container.innerHTML).toContain('text-[19px]');
+    expect(container.innerHTML).not.toContain('var(--fs-7)');
+  });
+
+  it('sem `size`, o default segue em --fs-7 (22px) e não pega os 19px', () => {
+    const { container } = render(<KpiCard label="Mesas ocupadas" value={3} />);
+    expect(container.innerHTML).toContain('var(--fs-7)');
+    expect(container.innerHTML).not.toContain('text-[19px]');
+  });
+
+  it('size="catchup" mantém a caixa do default (coluna, p-4)', () => {
+    const { container } = render(<KpiCard label="Reservas hoje" value={2} size="catchup" />);
+    const el = card(container);
+    expect(el.className.split(/\s+/)).toContain('flex-col');
+    expect(el.className.split(/\s+/)).toContain('p-4');
+  });
+});
