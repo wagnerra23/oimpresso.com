@@ -300,6 +300,8 @@ class ProductController extends Controller
                     // Papel do usuário, como a linha de contexto do protótipo ("papel: Administrador").
                     // O nome do role no UltimatePOS carrega o sufixo `#<business_id>` — sai da tela.
                     'papel' => ($papel = auth()->user()->roles->pluck('name')->first()) ? preg_replace('/#\d+$/', '', (string) $papel) : null,
+                    // Com a chave ligada, Novo, Preços e Histórico abrem pela navegação Inertia (navegacao.ts).
+                    'telas_react' => app(FeatureFlagService::class)->isOn(self::FLAG_CADASTRO_REACT, ['business_id' => $business_id]),
                 ],
                 'permissions' => [
                     'create' => auth()->user()->can('product.create'),
@@ -1481,8 +1483,8 @@ class ProductController extends Controller
         // GET de página inteira (o "Novo produto" da /products navega assim) abre o React só com a
         // chave useV2ProdutoCadastro ligada para a empresa; `?classico=1` mantém o Blade.
         // Chave desligada (o default): o Blade segue sendo o cadastro, como antes. [F] 2026-10-16.
-        // ⚠️ Ligar para cliente exige antes o preço no formulário React (Create.casos.md §Pendência
-        // de CONTRATO: a tela ainda não manda preço).
+        // Em 2026-07-17 a tela React não mandava preço; o preço entrou em 2026-10-16 (Create.casos.md
+        // UC-PCAD-09). Variável e composto seguem no Blade (UC-PCAD-11).
         $telaReact = request()->header('X-Inertia')
             || (! request()->boolean('classico')
                 && app(FeatureFlagService::class)->isOn(self::FLAG_CADASTRO_REACT, ['business_id' => $business_id]));

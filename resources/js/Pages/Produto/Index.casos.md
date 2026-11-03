@@ -503,6 +503,14 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** o "Baixar Excel" do cabeçalho (`app/Exports/ProductsExport.php`) é o arquivo de reimportação da Blade e segue com a coluna Imposto; mexer nele é decisão à parte.
 - **Status: ⬜** — nasce neste PR; verde esperado. Vitest local em 2026-10-26 (este PR): os 17 arquivos de teste de produto (211 testes) passaram; o Pest aguarda a lane.
 
+## UC-PIDX-35 · Com a chave do cadastro React, Novo, Preços e Histórico abrem na tela React · `should`
+- **Persona:** quem cadastra ou consulta produto na empresa onde a chave está ligada. Sem isto, as três telas React existiam mas a lista abria o Blade (navegava por página inteira, e por página inteira o servidor serve o Blade).
+- **Aceite:** Dada a empresa com a chave `useV2ProdutoCadastro` ligada · Quando escolho Novo produto (botão, tecla N ou "Duplicar"), "Histórico de estoque" ou "Preços por tabela" · Então a tela React abre por visita Inertia · Dada a chave desligada (o padrão) · Então tudo segue em página inteira, no Blade, como antes · E "Editar" segue no Blade com a chave ligada ou não, porque a edição React ainda não tem o preço do produto (UC-PCAD-09 §Fora deste UC).
+- **Teste:** [`produto-navegacao.test.ts`](../../../../tests/js/produto-navegacao.test.ts) — `UC-PIDX-35` (os três casos). Roda no Vitest do `Frontend / Vite build`. Mutação em 2026-11-03: navegar por Inertia sem olhar a chave derruba o caso da chave desligada.
+- **Contrato:** `ProductController@create/addSellingPrices/productStockHistory` renderizam a Page React só para visita `X-Inertia` (o `create` também por página inteira com a chave). A chave é decisão por empresa no GrowthBook (canary só na empresa 1).
+- **Não coberto por teste:** a ligação dentro de `Produto/Index.tsx` (o `contexto.telas_react` vindo do servidor e chegando ao `irPara`) — nenhum teste renderiza a página inteira. Conferir em produção com a chave ligada.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
