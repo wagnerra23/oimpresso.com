@@ -131,14 +131,15 @@ class ClientController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     * @return Response
+     * Não há formulário próprio: volta para a lista, que cria o cliente.
      */
-    public function create()
+    public function create(): \Illuminate\Http\RedirectResponse
     {
         $this->authorizeLiberar();
 
-        return view('officeimpresso::create');
+        // Não há view de criação: as duas telas da lista (React e Blade) criam o cliente
+        // no próprio formulário. A view officeimpresso::create não existe e dava 500.
+        return redirect('/officeimpresso/client');
     }
 
     /**

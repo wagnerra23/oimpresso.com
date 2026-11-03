@@ -189,7 +189,7 @@ class DataController extends Controller
                         'shortcut' => 'G F',
                         'primary'  => [
                             'label'    => 'Novo título',
-                            'href'     => '/financeiro/lancamentos/create',
+                            'href'     => '/financeiro/unificado/novo',
                             'shortcut' => 'N',
                         ],
                         'ghosts'   => [

@@ -152,7 +152,7 @@ class DataController extends Controller
         if ($canLiberarClientes) {
             $options['primary'] = [
                 'label'    => 'Novo cliente',
-                'href'     => '/officeimpresso/client/create',
+                'href'     => '/officeimpresso/client', // a lista cria o cliente no próprio formulário
                 'shortcut' => 'N',
             ];
         }
