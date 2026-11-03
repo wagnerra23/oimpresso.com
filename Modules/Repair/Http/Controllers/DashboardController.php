@@ -2,6 +2,7 @@
 
 namespace Modules\Repair\Http\Controllers;
 
+use Modules\Repair\Concerns\TelaReactPorEmpresa;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
@@ -13,6 +14,7 @@ use Modules\Repair\Utils\RepairUtil;
 
 class DashboardController extends Controller
 {
+    use TelaReactPorEmpresa;
     /**
      * All Utils instance.
      */
@@ -159,18 +161,6 @@ class DashboardController extends Controller
             'completed' => (int) ($linha->concluidas ?? 0),
             'overdue' => (int) ($linha->vencidas ?? 0),
         ];
-    }
-
-    /**
-     * MWART-0002 — verifica se flag MWART está habilitada pro business.
-     */
-    private function mwartEnabled(string $key, int $business_id): bool
-    {
-        if (! config("mwart.{$key}.enabled")) {
-            return false;
-        }
-        $beta = (array) config("mwart.{$key}.business_ids", []);
-        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Modules\Repair\Http\Controllers;
 
+use Modules\Repair\Concerns\TelaReactPorEmpresa;
 use App\Brands;
 use App\Category;
 use App\Transaction;
@@ -19,6 +20,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class DeviceModelController extends Controller
 {
+    use TelaReactPorEmpresa;
     use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
     /**
      * All Utils instance.
@@ -203,18 +205,6 @@ class DeviceModelController extends Controller
             'brands'     => $brands,
             'categories' => $categories,
         ];
-    }
-
-    /**
-     * MWART-0002 — verifica se flag MWART está habilitada pro business.
-     */
-    private function mwartEnabled(string $key, int $business_id): bool
-    {
-        if (! config("mwart.{$key}.enabled")) {
-            return false;
-        }
-        $beta = (array) config("mwart.{$key}.business_ids", []);
-        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**
