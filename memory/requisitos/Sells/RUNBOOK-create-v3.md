@@ -20,6 +20,66 @@ date: 2026-08-06
 
 # RUNBOOK — Venda V3 (`/sells/create-v3`)
 
+## Preparação do fechamento — 2026-10-30, onda 2
+
+Pedido [W]: preparar a V3 para substituir Create/Edit; PDV separado (contrato atualizado em
+`CreateV3.casos.md`). As seções históricas abaixo descreveram o preview em agosto; não são
+autorização de cutover. Nesta frente não houve integração em `CreateV3.tsx`, merge, deploy ou flip.
+
+Base conferida: `origin/main @ f23fe1a021`, depois de fetch; #10216/#10217/#10223/#10224/#10225
+incorporados e #10226 aberto. O módulo independente `v3/fechamento-dominio.ts` preparou:
+despesas (até quatro, após imposto), imposto do pedido por alíquota real ou desligado,
+cotação de ST vinculada ao corpo da consulta, sinal nulo/zero/0–100, limite do adiantamento
+e separação de parcelas recebidas/a receber. `fechamento-dominio.test.ts` entrou na lane existente.
+
+### Entradas exigidas na integração sequencial
+
+- **Cliente/preço (onda 1):** cliente e local reais, prazo, sinal do cliente, saldo de adiantamento
+  (`advance_balance` na busca), impostos permitidos com ID/alíquota e padrão da empresa.
+  `ConfigVenda.impostoDoPedido` já existe: passar sua negação como `impostoDesligado`.
+- **Itens (onda 1):** valor líquido após descontos, sem imposto/frete/despesas/ST/arredondamento;
+  quantidade faturada e preço líquido unitário por variação, iguais aos gravados. Não alimentar
+  o fechamento com `totalParaGravar`, que já incluiu frete e arredondamento.
+- **ST:** montar `ConsultaSt` no formato de `SellIcmsStController`, chamar `POST /sells/icms-st`
+  e guardar a resposta com `receberCotacaoSt`. Mudança de cliente/local/itens/total/frete invalida
+  a cotação. Bloquear Gravar enquanto pendente/erro. Não inferir ST por UF ou copiar 13,2% da cena:
+  UC-VST-06 também cobriu contribuinte da mesma UF. Depois de `concluirComSt`, enviar ST e total
+  juntos; a conferência canônica continuou em `IcmsStDaVenda::conferirEGravar`.
+- **Arredondamento:** passar `config.arredondamento` a `concluirComSt`, só depois do ST.
+  Preservar `round_off_amount`; validar o total/note/título pelo backend antes de integrar.
+- **Pagamentos:** exigir `sell.payments` (frente cliente #10226). Adiantamento usa `method=advance`,
+  conta nula, sem reduzir preço; conferir o total agregado de todos os adiantamentos contra o saldo
+  e o que falta receber, não cada linha isoladamente. O servidor continua responsável pela recusa.
+- **Parcelas:** `separarParcelas` preserva todos os campos e só soma RECEBIDA em `pago`.
+  Não converter A RECEBER em `payment[]`: `TransactionUtil::createOrUpdatePaymentLines` registra
+  pagamento efetivo. `TituloAutoService::sincronizarDeTransacao` sincronizou título agregado
+  (`parcela_numero=null`); esta frente não criou endpoint de plano nem títulos paralelos.
+  É dependência concreta definir a gravação atômica do plano no Financeiro, com idempotência,
+  datas/contas reais e dupla prova. Não liberar gravação de plano sem esse caminho.
+- **Edição (onda 1):** conservar IDs de pagamentos/parcelas já gravados e respeitar as travas de
+  nota/pagamento. Este módulo não monta payload de update nem recria baixa existente.
+
+TEF não foi implementado nesta preparação: `TefService/TefController` e flag própria já existiam;
+driver de adquirente e integração visual tiveram pendências na US-SELL-075. Pagamento de cartão
+manual não significa cobrança TEF. PDV/offline/caixa mantiveram a fronteira de `CreateV3.casos.md`.
+
+### Impacto de referência e prova
+
+| Cenário sintético | Antes | Depois |
+|---|---:|---:|
+| Despesa de 25 sobre líquido 930 + imposto 167,40 + frete 18 | 1.115,40 | 1.140,40 |
+| ST retornado 132,00 sobre base 1.140,40 | 1.140,40 | 1.272,40 |
+| ST 132,03 + arredondamento de 0,05 | 1.272,43 | 1.272,45 (+0,02) |
+| Adiantamento 40 sobre venda 100 | Preço 100 / saldo a receber 100 | Preço 100 / saldo a receber 60 |
+| Parcelamento 100 em 3; primeira recebida | 100 a distribuir | 33,34 recebido + 66,66 previsto |
+
+Provas independentes: funções reais + contas fixas em centavos nos testes (sem derivar esperado
+do código). Foram 55 testes verdes em quatro arquivos (8 novos); ESLint do domínio passou,
+o spec foi ignorado pela configuração atual do lint. JUnit local em
+`test-results/vitest-fechamento-junit.xml`. Sem Pest/PHPStan local e sem execução no CT100 nesta
+frente de domínio TS. Nenhum registro ou estoque foi alterado; os números são sintéticos.
+Faltou prova HTTP/NF-e/título e smoke real após a fiação. Nenhum UC da Page foi promovido a ✅.
+
 > **Tipo:** runbook de tela NOVA e PARALELA — não é migração, não substitui nada.
 > **Refs:** [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) (MWART) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant) · [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md) (staging CT 100)
 > **Dono:** [L] Luiz — assumiu a tela de cadastro de venda em 2026-08-06.
