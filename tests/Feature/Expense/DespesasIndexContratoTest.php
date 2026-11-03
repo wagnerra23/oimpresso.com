@@ -267,3 +267,26 @@ it('UC-DESPES-07 · a data da Blade grava o que o uf_date original grava, e a da
     expect($blade)->toBe($oraculo);              // a Blade grava o que gravava
     expect($tela)->toBe('2026-03-05 14:30');     // a tela nova grava o mesmo minuto
 })->with('formatos_da_blade');
+
+it('UC-DESPES-08 · detalhes de recorrência da tela nova são o mesmo texto da coluna da Blade', function () {
+    $tag = 'DIC8'.uniqid();
+    $pai = dicDespesa($this, $this->business->id, "$tag-pai", [
+        'is_recurring' => 1, 'recur_interval' => 1, 'recur_interval_type' => 'months', 'recur_repetitions' => 3,
+    ]);
+    dicDespesa($this, $this->business->id, "$tag-filha", ['recur_parent_id' => $pai]);
+    dicDespesa($this, $this->business->id, "$tag-avulsa");
+
+    // Caminho 1: payload Inertia da tela nova.
+    $nova = dicLinhas($this, $tag);
+    // Caminho 2: a coluna recur_details do DataTable da Blade, sem as tags.
+    $antiga = collect($this->get('/expenses?length=-1', ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->assertOk()->json('data'))
+        ->filter(fn ($l) => str_starts_with((string) $l['ref_no'], $tag))
+        ->mapWithKeys(fn ($l) => [explode(' ', (string) $l['ref_no'])[0] => trim(html_entity_decode(strip_tags((string) $l['recur_details'])))])->all();
+
+    expect($nova["$tag-pai"]['recorrencia'])->not->toBe('');
+    expect($nova["$tag-pai"]['recorrencia'])->toBe($antiga["$tag-pai"]);
+    expect($nova["$tag-filha"]['recorrencia'])->toContain("$tag-pai");
+    expect($nova["$tag-filha"]['recorrencia'])->toBe($antiga["$tag-filha"]);
+    expect($nova["$tag-avulsa"]['recorrencia'])->toBe('');
+});

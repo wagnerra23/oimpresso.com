@@ -119,25 +119,13 @@ class ExpenseController extends Controller
                     return '<span class="display_currency payment_due" data-currency_symbol="true" data-orig-value="'.$due.'">'.$this->transactionUtil->num_f($due, true).'</span>';
                 })
                 ->addColumn('recur_details', function ($row) {
-                    $details = '<small>';
-                    if ($row->is_recurring == 1) {
-                        $type = $row->recur_interval == 1 ? Str::singular(__('lang_v1.'.$row->recur_interval_type)) : __('lang_v1.'.$row->recur_interval_type);
-                        $recur_interval = $row->recur_interval.$type;
-
-                        $details .= __('lang_v1.recur_interval').': '.$recur_interval;
-                        if (! empty($row->recur_repetitions)) {
-                            $details .= ', '.__('lang_v1.no_of_repetitions').': '.$row->recur_repetitions;
-                        }
-                        if ($row->recur_interval_type == 'months' && ! empty($row->subscription_repeat_on)) {
-                            $details .= '<br><small class="text-muted">'.
-                            __('lang_v1.repeat_on').': '.str_ordinal($row->subscription_repeat_on);
-                        }
-                    } elseif (! empty($row->recur_parent_id)) {
-                        $details .= __('lang_v1.recurred_from').': '.$row->recurring_parent->ref_no;
+                    $partes = $this->detalhesRecorrencia($row);
+                    $details = '<small>'.e($partes[0] ?? '');
+                    if (isset($partes[1])) {
+                        $details .= '<br><small class="text-muted">'.e($partes[1]);
                     }
-                    $details .= '</small>';
 
-                    return $details;
+                    return $details.'</small>';
                 })
                 ->editColumn('ref_no', function ($row) {
                     $ref_no = $row->ref_no;
@@ -225,6 +213,34 @@ class ExpenseController extends Controller
     }
 
     /**
+     * Texto de "Detalhes de recorrência" — uma regra só para o DataTable da Blade e a Page React.
+     * [linha principal, linha "repete em" opcional]; vazio quando a despesa não é nem gerou recorrência.
+     *
+     * @return list<string>
+     */
+    private function detalhesRecorrencia($row): array
+    {
+        if ($row->is_recurring == 1) {
+            $type = $row->recur_interval == 1 ? Str::singular(__('lang_v1.'.$row->recur_interval_type)) : __('lang_v1.'.$row->recur_interval_type);
+            $linha = __('lang_v1.recur_interval').': '.$row->recur_interval.$type;
+            if (! empty($row->recur_repetitions)) {
+                $linha .= ', '.__('lang_v1.no_of_repetitions').': '.$row->recur_repetitions;
+            }
+            $partes = [$linha];
+            if ($row->recur_interval_type == 'months' && ! empty($row->subscription_repeat_on)) {
+                $partes[] = __('lang_v1.repeat_on').': '.str_ordinal($row->subscription_repeat_on);
+            }
+
+            return $partes;
+        }
+        if (! empty($row->recur_parent_id)) {
+            return [__('lang_v1.recurred_from').': '.optional($row->recurring_parent)->ref_no];
+        }
+
+        return [];
+    }
+
+    /**
      * Página de 25, como o DataTable. Total e devido com o MESMO sinal e a MESMA conta do ramo
      * DataTables (`final-total` / `payment_due`): estorno negativo, devido = total − pagamentos.
      */
@@ -246,6 +262,7 @@ class ExpenseController extends Controller
                 'estorno' => $r->type == 'expense_refund',
                 'recorrente' => ! empty($r->is_recurring),
                 'gerada_de' => ! empty($r->recur_parent_id) ? optional($r->recurring_parent)->ref_no : null,
+                'recorrencia' => implode(' · ', $this->detalhesRecorrencia($r)),
                 'categoria' => $r->category,
                 'subcategoria' => $r->sub_category,
                 'local' => $r->location_name,
