@@ -109,7 +109,11 @@ class GrowthBookAdminService
 
         $response = $this->http()->get($this->apiHost . '/features/' . rawurlencode($key));
 
-        if ($response->status() === 404) {
+        // Feature inexistente: a API do GrowthBook responde HTTP 400 com
+        // "Could not find a feature with that key" (medido em prod 2026-11-03),
+        // não 404. Outro 400 segue sendo erro.
+        if ($response->status() === 404
+            || ($response->status() === 400 && str_contains((string) $response->json('message'), 'Could not find a feature'))) {
             return null;
         }
 

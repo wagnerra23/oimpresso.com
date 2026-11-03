@@ -29,7 +29,7 @@ afterEach(function () {
 
 it('cria a feature booleana desligada, sem rule e com o environment ligado', function () {
     Http::fake([
-        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response(['message' => 'Could not find a feature with that key'], 404),
+        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response(['message' => 'Could not find a feature with that key'], 400),
         'growthbook.test.local/api/v1/features' => Http::response(['feature' => ['id' => 'useV2Teste']], 200),
     ]);
 
@@ -64,7 +64,7 @@ it('não recria nem altera uma feature que já existe', function () {
 
 it('propaga erro do GrowthBook na criação', function () {
     Http::fake([
-        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response([], 404),
+        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response(['message' => 'Could not find a feature with that key'], 400),
         'growthbook.test.local/api/v1/features' => Http::response(['message' => 'sem permissão'], 403),
     ]);
 
@@ -74,7 +74,7 @@ it('propaga erro do GrowthBook na criação', function () {
 
 it('flag:create exige descrição e cria pelo comando', function () {
     Http::fake([
-        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response([], 404),
+        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response(['message' => 'Could not find a feature with that key'], 400),
         'growthbook.test.local/api/v1/features' => Http::response(['feature' => ['id' => 'useV2Teste']], 200),
     ]);
 
@@ -99,7 +99,7 @@ it('flag:set aceita --environment e chega ao environment pedido', function () {
 it('flag:set --criar cria a feature ausente e depois põe a regra biz-1', function () {
     Http::fake([
         'growthbook.test.local/api/v1/features/useV2Teste' => Http::sequence()
-            ->push(['message' => 'Could not find a feature with that key'], 404)
+            ->push(['message' => 'Could not find a feature with that key'], 400)
             ->push(['feature' => ['id' => 'useV2Teste', 'environments' => ['production' => ['enabled' => true, 'rules' => []]]]], 200)
             ->push(['feature' => ['id' => 'useV2Teste']], 200),
         'growthbook.test.local/api/v1/features' => Http::response(['feature' => ['id' => 'useV2Teste']], 200),
@@ -122,7 +122,7 @@ it('flag:set --criar cria a feature ausente e depois põe a regra biz-1', functi
 
 it('sem --criar, flag:set continua recusando feature inexistente', function () {
     Http::fake([
-        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response([], 404),
+        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response(['message' => 'Could not find a feature with that key'], 400),
     ]);
 
     expect(Artisan::call('flag:set', ['key' => 'useV2Teste', '--biz' => 1, '--enabled' => 'true']))->toBe(1);
@@ -146,4 +146,14 @@ it('setBizRule manda o enabled atual do environment junto com as regras (sem ele
     expect($posts)->toHaveCount(2);
     expect($posts[0]->data()['environments']['production']['enabled'])->toBeFalse();
     expect($posts[1]->data()['environments']['production']['enabled'])->toBeTrue();
+});
+
+it('outro HTTP 400 na leitura da feature continua sendo erro', function () {
+    Http::fake([
+        'growthbook.test.local/api/v1/features/useV2Teste' => Http::response(['message' => 'Invalid API key'], 400),
+    ]);
+
+    expect(fn () => (new GrowthBookAdminService())->createBooleanFeature('useV2Teste', 'x'))
+        ->toThrow(RuntimeException::class, 'HTTP 400');
+    Http::assertNotSent(fn ($req) => $req->method() === 'POST');
 });
