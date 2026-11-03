@@ -4,7 +4,8 @@
 // abre um modal central; a ficha da thread pede o drawer PT-02 — a forma é a do PT-02, o conteúdo é o do protótipo.
 //
 // Grava nas MESMAS rotas do modal clássico e com os mesmos nomes de campo (POST/PUT de /units, /brands,
-// /taxonomies, /variation-templates e /warranties). Unidade: o múltiplo vai como digitado e o num_uf do
+// /taxonomies, /variation-templates, /warranties e /selling-price-group). Grupos de preço (AbaGrupos :281-287): nome e
+// descrição; o "Grupo ativo" do protótipo fica fora — o store/update do grupo não gravam a situação. Unidade: o múltiplo vai como digitado e o num_uf do
 // servidor lê; desmarcar na edição manda `define_base_unit=0` explícito (UC-PCADAP-12) — é ESTOQUE.
 
 import { useState, type FormEvent, type ReactNode } from 'react';
@@ -24,7 +25,8 @@ export type Pedido =
   | { tipo: 'marca'; id?: number; oficina: boolean; v: { nome: string; descricao: string; oficina: boolean } }
   | { tipo: 'categoria'; id?: number; pais: Opcao[]; temFilhas: boolean; v: { nome: string; codigo: string; descricao: string; pai_id: number | null } }
   | { tipo: 'variacao'; id?: number; v: { nome: string; valores: { id?: number; nome: string }[] } }
-  | { tipo: 'garantia'; id?: number; v: { nome: string; descricao: string; duracao: string; tipo_prazo: string } };
+  | { tipo: 'garantia'; id?: number; v: { nome: string; descricao: string; duracao: string; tipo_prazo: string } }
+  | { tipo: 'grupo'; id?: number; v: { nome: string; descricao: string } };
 
 const META = {
   unidade: { rota: '/units', novo: 'Nova unidade', editar: 'Editar unidade',
@@ -35,6 +37,8 @@ const META = {
     ajuda: 'Categoria e subcategoria do produto — as mesmas do filtro do índice e do relatório de lucro por categoria. Código curto entra no SKU automático.' },
   variacao: { rota: '/variation-templates', novo: 'Nova variação', editar: 'Editar variação',
     ajuda: 'Modelo reaproveitado no cadastro de produto variável: escolher “Cor” já traz os valores abaixo como variações.' },
+  grupo: { rota: '/selling-price-group', novo: 'Novo grupo de preço', editar: 'Editar grupo de preço',
+    ajuda: 'Cada grupo ativo vira uma coluna em Preços por grupo e uma opção de preço no PDV e no orçamento.' },
   garantia: { rota: '/warranties', novo: 'Nova garantia', editar: 'Editar garantia',
     ajuda: 'Prazo de garantia do produto — imprime na OS e na nota, e serve de base pro atendimento aceitar ou recusar retorno.' },
 } as const;
@@ -93,6 +97,8 @@ function corpo(p: Pedido): Record<string, unknown> {
     }
     case 'garantia':
       return { name: p.v.nome.trim(), description: p.v.descricao.trim(), duration: p.v.duracao.trim(), duration_type: p.v.tipo_prazo };
+    case 'grupo':
+      return { name: p.v.nome.trim(), description: p.v.descricao.trim() };
   }
 }
 
@@ -201,6 +207,13 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
           <Button type="button" variant="outline" size="sm" className="self-start" disabled={!valores[valores.length - 1]?.nome.trim()}
             onClick={() => set({ valores: [...valores, { nome: '' }] })}>Adicionar valor</Button>
         </Stack>
+      </>
+    );
+  } else if (p.tipo === 'grupo') {
+    campos = (
+      <>
+        <Campo id="dr-nome" label="Nome *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="Atacado" onChange={(e) => set({ nome: e.target.value })} /></Campo>
+        <Campo id="dr-desc" label="Descrição"><Textarea id="dr-desc" value={p.v.descricao} placeholder="Quando este grupo se aplica." onChange={(e) => set({ descricao: e.target.value })} /></Campo>
       </>
     );
   } else {

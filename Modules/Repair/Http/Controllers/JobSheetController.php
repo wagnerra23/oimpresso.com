@@ -2,6 +2,7 @@
 
 namespace Modules\Repair\Http\Controllers;
 
+use Modules\Repair\Concerns\TelaReactPorEmpresa;
 use App\Brands;
 use App\Business;
 use App\BusinessLocation;
@@ -31,6 +32,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class JobSheetController extends Controller
 {
+    use TelaReactPorEmpresa;
     use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
     /**
      * All Utils instance.
@@ -343,18 +345,6 @@ class JobSheetController extends Controller
 
         return view('repair::job_sheet.index')
             ->with(compact('business_locations', 'customers', 'status_dropdown', 'service_staffs', 'is_user_service_staff', 'repair_settings'));
-    }
-
-    /**
-     * MWART-0002 — verifica se flag MWART está habilitada pro business.
-     */
-    private function mwartEnabled(string $key, int $business_id): bool
-    {
-        if (! config("mwart.{$key}.enabled")) {
-            return false;
-        }
-        $beta = (array) config("mwart.{$key}.business_ids", []);
-        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**

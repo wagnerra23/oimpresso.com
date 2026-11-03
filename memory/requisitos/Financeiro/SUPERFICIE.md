@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 423 arquivos em 22 papéis.
+**Total mapeado:** 426 arquivos em 22 papéis.
 
 ## Controllers — 27
 
@@ -229,7 +229,7 @@ module: Financeiro
 - [master.blade.php](../../../Modules/Financeiro/Resources/views/layouts/master.blade.php)
 - [dre.blade.php](../../../Modules/Financeiro/Resources/views/pdf/dre.blade.php)
 
-## Telas (Inertia/React) — 23
+## Telas (Inertia/React) — 24
 
 - [Dashboard.tsx](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.tsx)
 - [Login.tsx](../../../resources/js/Pages/Financeiro/Advisor/Login.tsx)
@@ -240,6 +240,7 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Cobranca/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Conciliacao/Index.tsx)
 - [Contador.tsx](../../../resources/js/Pages/Financeiro/Configuracoes/Contador.tsx)
+- [Contabilidade.tsx](../../../resources/js/Pages/Financeiro/Contabilidade.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasBancarias/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasPagar/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasReceber/Index.tsx)
@@ -299,7 +300,7 @@ module: Financeiro
 - [FinStatStrip.tsx](../../../resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx)
 - [FinanceiroSubNav.tsx](../../../resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx)
 
-## Charters (lei da tela) — 23
+## Charters (lei da tela) — 24
 
 - [Dashboard.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.charter.md)
 - [Login.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Login.charter.md)
@@ -310,6 +311,7 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Cobranca/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Conciliacao/Index.charter.md)
 - [Contador.charter.md](../../../resources/js/Pages/Financeiro/Configuracoes/Contador.charter.md)
+- [Contabilidade.charter.md](../../../resources/js/Pages/Financeiro/Contabilidade.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/ContasBancarias/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/ContasPagar/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/ContasReceber/Index.charter.md)
@@ -325,7 +327,7 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 - [Novo.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.charter.md)
 
-## Casos (contrato UC) — 23
+## Casos (contrato UC) — 24
 
 - [Dashboard.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.casos.md)
 - [Login.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Login.casos.md)
@@ -336,6 +338,7 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Cobranca/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Conciliacao/Index.casos.md)
 - [Contador.casos.md](../../../resources/js/Pages/Financeiro/Configuracoes/Contador.casos.md)
+- [Contabilidade.casos.md](../../../resources/js/Pages/Financeiro/Contabilidade.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasBancarias/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasPagar/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasReceber/Index.casos.md)

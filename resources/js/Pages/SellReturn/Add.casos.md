@@ -5,7 +5,7 @@ irmaos: Add.charter.md (lei) · Add.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro grava valor e estoque — a troca de Blade por React não pode mudar nenhum dos dois.
 owner: wagner
-last_run: "2026-10-29"
+last_run: "2026-11-03"
 last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40976713795 (634 passed · 5182 assertions)"
 ---
 
@@ -94,6 +94,12 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 - **Regressão que defende:** devolver tudo creditar de novo o que já tinha voltado (estoque e valor em dobro).
 - **Status: 🧪**
 
+## UC-SRADD-09 · Antes de salvar, a tela diz quanto abate do que o cliente deve e quanto vira crédito `[V0]` `[T0]` `[must]`
+- **Âncora:** #10249 — decisão [W] 2026-11-03 "Abater o título aberto": a devolução dá baixa no título a receber da venda até o que está em aberto; a sobra é crédito do cliente na própria devolução. O protótipo (`prototipo-ui/cowork/Wagner/venda-blade-caixa.jsx`, `VendaDevolucaoForm`) avisa que *a devolução gera crédito pro cliente*.
+- **Aceite:** Dado uma venda de 3.333,15 em aberto · Quando marco 2 un (total 2.222,10) · Então a seção **No Financeiro** mostra "Abate do que o cliente deve nesta venda" = 2.222,10 e "Fica de crédito para o cliente" = 0,00, e depois de salvar o título fica com 1.111,05. Dado a mesma venda com 2.500,00 já recebidos (em aberto 833,15) · Então abate 833,15 e ficam 1.388,95 de crédito; salvo, o título zera e a devolução segue "A pagar". Os números vêm de `POST /sell-return/previa-financeira/{venda}` (só leitura — mesma conta do `store()` e do `DevolucaoVendaTituloService`), não de conta da tela; se o total do servidor diferir do da tela, a tela avisa. Com **Vale-troca**, a tela diz que o vale não abate e que a venda continua em aberto (o vale paga a devolução, e devolução paga não abate — UC-FDEV-04). Venda de outra empresa → `404`; sem permissão → `403`.
+- **Teste:** `tests/Feature/Sells/SellReturnAddContratoTest.php` — `UC-SRADD-09` (dois casos: valor e Tier 0).
+- **Status: 🧪**
+
 ---
 
 ## Pagamento ao cliente com vale-troca (US-VEST-021 · R7)
@@ -170,6 +176,7 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
   - Etiquetas: valor, part, cv
 
 ## Trilha do tempo
+- 2026-11-03 · [CC] `last_run` → 2026-11-03: o `.tsx` mudou só na forma (ordem Vendida/Preço, números em mono, coluna Devolver à direita, aviso do protótipo no topo — comparação medida com `design-diff`). Nenhum dado lido ou enviado mudou; UC-SRADD-01..08 seguem defendidos pelos mesmos testes, que rodam na lane deste PR.
 - 2026-10-28 · [CC] `last_run` 2026-10-26 → 2026-10-27, a data do commit que mudou o `.tsx` (6c422a53e1, vale-troca). Ele mexeu no `.tsx` e no casos.md no mesmo commit; ao ligar os pedidos do documento a este arquivo, o commit do casos.md deixou de ser o do `.tsx` e o G-6 passou a cobrar. Prova: os 8 UCs desta tela com veredito pass no manifesto do main (`scripts/casos-test-results.json`). Nenhum caso foi reexecutado agora.
 - 2026-10-23 · [M+C] Backlog: devolver tudo e segunda devolução da mesma venda, sem id.
 - 2026-10-23 · [M+C] Backlog: a devolução pode virar saldo a favor do cliente, sem id.

@@ -166,6 +166,8 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('/dre/export-csv', [DreController::class, 'exportCsv'])->name('dre.export-csv');
 
         // Lançamentos contábeis da competência no leiaute do contador (US-FIN-077).
+        Route::get('/exportacao-contabil', [ExportacaoContabilController::class, 'index'])->name('exportacao-contabil.index');
+        Route::put('/exportacao-contabil/de-para', [ExportacaoContabilController::class, 'salvarDePara'])->name('exportacao-contabil.de-para');
         Route::get('/exportacao-contabil/{layout}', [ExportacaoContabilController::class, 'download'])
             ->whereIn('layout', ['dominio', 'alterdata'])
             ->name('exportacao-contabil.download');
