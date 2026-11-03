@@ -9,8 +9,8 @@
 // Contrato: governance/design/contracts/produto-cadastros.contract.json
 //
 // As 6 abas são vivas: lista, contagem de uso clicável e exclusão com a recusa dita antes (threads
-// 02 e 03). Cinco abas criam e editam no drawer (thread 10, PR-a e PR-b); Grupos de preço segue no modal
-// da Blade (`?classico=1`) — a ficha da thread não o inclui.
+// 02 e 03). As seis abas criam e editam no drawer: cinco na thread 10 (PR-a e PR-b) e Grupos de preço
+// em 2026-11-03 (UC-PCADAP-23). Até então Grupos de preço abria o modal da Blade (`?classico=1`).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
@@ -61,18 +61,18 @@ type Linha = { id: number; nome: string; busca: string; em_uso: number; filhas: 
 
 // Copy de cada aba, tirada de produto-cadastros.jsx (AbaVariacoes :214 · AbaGrupos :264 · AbaUnidades :310 ·
 // AbaCategorias :374 · AbaMarcas :425 · AbaGarantias :463). `rota` recebe o DELETE (JSON do legado);
-// `escrita` abre os modais da Blade; `uso: false` = aba sem coluna Produtos; `corpo` = confirmação de excluir livre.
+// `uso: false` = aba sem coluna Produtos; `corpo` = confirmação de excluir livre.
 const LIVRE = 'Nenhum produto usa este registro — sai limpo. Ação sem volta.';
 const ABA = {
   variacoes: {
-    o: 'variações', base: 'variation', rota: '/variation-templates', escrita: '/variation-templates?classico=1', novo: 'Nova variação',
+    o: 'variações', base: 'variation', rota: '/variation-templates', novo: 'Nova variação',
     busca: 'Buscar variação ou valor…', uso: true, corpo: 'O modelo deixa de aparecer no cadastro novo. Nenhum produto usa esses valores hoje.',
     ajuda: 'Modelo reaproveitado no cadastro de produto variável: escolher “Cor” já traz os valores abaixo como variações.',
     primeiro: 'Modelo de variação é o atalho do produto variável: cadastre “Cor” uma vez e todo produto novo já oferece os valores.',
     colunas: ['Variação', 'Valores', 'Produtos', 'Ações'],
   },
   grupos: {
-    o: 'grupos de preço', base: 'product', rota: '/selling-price-group', escrita: '/selling-price-group?classico=1', novo: 'Novo grupo',
+    o: 'grupos de preço', base: 'product', rota: '/selling-price-group', novo: 'Novo grupo',
     busca: 'Buscar grupo…', uso: false,
     corpo: 'Os preços digitados neste grupo somem junto. Vendas já emitidas mantêm o valor praticado. Se a ideia é só esconder, desative.',
     ajuda: 'Cada grupo ativo vira uma coluna em Preços por grupo e uma opção de preço no PDV e no orçamento. Desativar esconde o grupo sem apagar os preços já digitados.',
@@ -80,28 +80,28 @@ const ABA = {
     colunas: ['Grupo', 'Descrição', 'Situação', 'Ações'],
   },
   unidades: {
-    o: 'unidades', base: 'unit', rota: '/units', escrita: '/units?classico=1', novo: 'Nova unidade',
+    o: 'unidades', base: 'unit', rota: '/units', novo: 'Nova unidade',
     busca: 'Buscar unidade…', uso: true, corpo: LIVRE,
     ajuda: 'Unidade decimal aceita quantidade fracionada (m², kg). Múltiplo de unidade base converte compra em caixa para venda em peça.',
     primeiro: 'Todo produto precisa de unidade. Comece pelas três da gráfica: Unidade (Un), Metro quadrado (m²) e Metro linear (m).',
     colunas: ['Unidade', 'Aceita decimal', 'Múltiplo da base', 'Produtos', 'Ações'],
   },
   categorias: {
-    o: 'categorias', base: 'category', rota: '/taxonomies', escrita: '/taxonomies?type=product', novo: 'Nova categoria',
+    o: 'categorias', base: 'category', rota: '/taxonomies', novo: 'Nova categoria',
     busca: 'Buscar categoria ou código…', uso: true, corpo: LIVRE,
     ajuda: 'Categoria e subcategoria do produto — as mesmas do filtro do índice e do relatório de lucro por categoria. Código curto entra no SKU automático.',
     primeiro: 'Categoria é o que faz o relatório de lucro por categoria existir e o SKU sair automático. Comece pelas famílias que você orça.',
     colunas: ['Categoria', 'Código', 'Descrição', 'Produtos', 'Ações'],
   },
   marcas: {
-    o: 'marcas', base: 'brand', rota: '/brands', escrita: '/brands?classico=1', novo: 'Nova marca',
+    o: 'marcas', base: 'brand', rota: '/brands', novo: 'Nova marca',
     busca: 'Buscar marca…', uso: true, corpo: LIVRE,
     ajuda: 'Marca do produto — filtro do índice, relatório por marca e, quando marcada, lista de marcas de aparelho da Oficina.',
     primeiro: 'Marca é opcional no produto, mas é ela que faz o relatório por marca e a lista de aparelhos da Oficina.',
     colunas: ['Marca', 'Descrição curta', 'Produtos', 'Ações'],
   },
   garantias: {
-    o: 'garantias', base: 'warranty', rota: '/warranties', escrita: '/warranties?classico=1', novo: 'Nova garantia',
+    o: 'garantias', base: 'warranty', rota: '/warranties', novo: 'Nova garantia',
     busca: 'Buscar garantia…', uso: false, corpo: LIVRE,
     ajuda: 'Prazo de garantia do produto — imprime na OS e na nota, e serve de base pro atendimento aceitar ou recusar retorno.',
     primeiro: 'Sem prazo cadastrado o atendimento decide retorno de cabeça. Cadastre os prazos que você já pratica.',
@@ -197,6 +197,10 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
       return { tipo: 'variacao', id: x?.id,
         v: x ? { nome: x.nome, valores: x.valores.map((nome, i) => ({ id: x.valor_ids[i], nome })) } : { nome: '', valores: [{ nome: '' }] } };
     }
+    if (aba === 'grupos') {
+      const x = grupos?.find((r) => r.id === id);
+      return { tipo: 'grupo', id: x?.id, v: x ? { nome: x.nome, descricao: x.descricao } : { nome: '', descricao: '' } };
+    }
     if (aba === 'garantias') {
       const x = garantias?.find((r) => r.id === id);
       return { tipo: 'garantia', id: x?.id,
@@ -204,10 +208,8 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
     }
     return null;
   };
-  const noDrawer = aba !== 'grupos';
-  const botaoEscrita = (rotulo: string, id?: number, props: { size?: 'sm'; variant?: 'outline'; className?: string } = {}) => (noDrawer
-    ? <Button {...props} onClick={() => setDrawer(abrir(id))}>{rotulo}</Button>
-    : <Button asChild {...props}><a href={cfg.escrita}>{rotulo}</a></Button>);
+  const botaoEscrita = (rotulo: string, id?: number, props: { size?: 'sm'; variant?: 'outline'; className?: string } = {}) => (
+    <Button {...props} onClick={() => setDrawer(abrir(id))}>{rotulo}</Button>);
 
   const termo = busca.trim().toLowerCase();
   const filtradas = linhas?.filter((l) => !termo || l.busca.toLowerCase().includes(termo)) ?? [];

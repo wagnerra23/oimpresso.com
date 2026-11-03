@@ -13,6 +13,7 @@
 // adicionando `export`). Evita duplicação de ~70 LOC.
 
 import type { ReactNode } from 'react';
+import { Link } from '@inertiajs/react';
 import { Archive, Copy, CreditCard, DollarSign, Edit, Eye, FileText, MoreVertical, Printer, Trash2, Undo2 } from 'lucide-react';
 import {
   PipelineDots,
@@ -495,7 +496,7 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
 // Restaurado do commit d6f4dddcdc (perdido no rewrite Cowork KB-9.75 #1032).
 // Ver/Editar/Adicionar pagamento/Imprimir/Devolução/Excluir. As ações são
 // enforcadas no backend (403/permissão); Devolução → /sell-return/add/{id}
-// (rota Blade, navegação full). onView abre o drawer; onChange faz refetch.
+// por visita Inertia (SellReturn/Add — carga completa cairia no Blade legado). onView abre o drawer; onChange faz refetch.
 // ──────────────────────────────────────────────────────────────
 function ActionsMenu({
   row,
@@ -582,10 +583,10 @@ function ActionsMenu({
         </DropdownMenuItem>
         {!isDraft && (
         <DropdownMenuItem asChild>
-          <a href={`/sell-return/add/${row.id}`}>
+          <Link href={`/sell-return/add/${row.id}`}>
             <Undo2 size={14} className="mr-2" />
             Devolução
-          </a>
+          </Link>
         </DropdownMenuItem>
         )}
         <DropdownMenuItem variant="destructive" onClick={handleDelete}>
