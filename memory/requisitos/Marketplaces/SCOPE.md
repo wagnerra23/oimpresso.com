@@ -8,6 +8,8 @@ contains:
   - "ContasController — conectar a conta do vendedor no Mercado Livre por OAuth (US-MKT-003)"
   - "NotificacoesMercadoLivreController — recebe as notificações do ML e busca o pedido na API com o token da conta (US-MKT-006)"
   - "PedidosController — tela Pedidos dos marketplaces (lista, filtro com/sem venda, local de venda da conta) — US-MKT-008"
+  - "ContasNuvemshopController — conectar a loja Nuvemshop por OAuth, empresa sempre da sessão (ADR 0443 fatia a · US-MKT-026)"
+  - "NotificacoesNuvemshopController — recebe as notificações assinadas da Nuvemshop (HMAC) e os webhooks LGPD; empresa sai da conta da loja (ADR 0443 fatia b · US-MKT-027)"
   - "Renovação do token do vendedor sob demanda e de hora em hora (marketplaces:renovar-tokens, US-MKT-003)"
   - "Catálogo global de marketplaces (mkt_marketplaces) e conta do vendedor por empresa com token cifrado (mkt_account_credentials)"
   - "Anúncios (mkt_listings), pedidos recebidos (mkt_orders) e log de webhook append-only (mkt_webhook_log) — US-MKT-001"
