@@ -30,7 +30,7 @@ class PreviaFinanceiraDevolucao
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $produtos  `products[]` do form (texto no formato da empresa)
+     * @param  array<array-key, mixed>  $produtos  `products[]` do form (texto no formato da empresa)
      */
     public function calcular(int $businessId, int $vendaId, array $produtos, ?string $descontoTipo, ?string $descontoValor): ?array
     {
