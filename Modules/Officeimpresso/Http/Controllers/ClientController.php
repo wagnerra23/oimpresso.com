@@ -131,10 +131,9 @@ class ClientController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     * @return Response
+     * Não há formulário próprio: volta para a lista, que cria o cliente.
      */
-    public function create()
+    public function create(): \Illuminate\Http\RedirectResponse
     {
         $this->authorizeLiberar();
 
