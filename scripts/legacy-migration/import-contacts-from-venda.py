@@ -406,9 +406,13 @@ def main() -> int:
                     assert con is not None
                     data_filtered = {k: v for k, v in data.items() if v is not None}
                     with con.cursor() as wcur:
+                        # Também pelo CNPJ: a empresa do grupo que compra dela mesma já entrou
+                        # pelo import-empresas (legacy_id = CODIGO da EMPRESA), e o índice
+                        # uk_contacts_biz_tax recusa o segundo contato com o mesmo documento.
                         wcur.execute(
-                            "SELECT id FROM contacts WHERE business_id=%s AND legacy_id=%s LIMIT 1",
-                            (args.target_business, data["legacy_id"]),
+                            "SELECT id FROM contacts WHERE business_id=%s AND (legacy_id=%s OR tax_number=%s) "
+                            "ORDER BY legacy_id=%s DESC LIMIT 1",
+                            (args.target_business, data["legacy_id"], data.get("tax_number"), data["legacy_id"]),
                         )
                         existing = wcur.fetchone()
                         if existing:
