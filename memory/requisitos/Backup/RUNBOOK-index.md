@@ -123,6 +123,17 @@ curl -sv 'https://oimpresso.com/backup/download/..%2F..%2F.env' 2>&1 | grep '^< 
 Além disso: gerar um backup pela tela e conferir, ~1 min depois, que o zip apareceu — é a
 **consequência**, e é o que prova que o worker está vivo (o banner sozinho não prova nada).
 
+### Ligar a tela React (canário por empresa)
+
+Em 2026-11-03 o `.env` de produção não tinha nenhuma `MWART_BACKUP*`, logo a tela seguia no Blade
+para todas as empresas. A tela React passa a valer quando uma destas condições vale:
+
+- a flag `useV2BackupIndex` do GrowthBook está ligada para a empresa do usuário (canário por
+  `business_id`, sem mexer no `.env`; flag desconhecida no GrowthBook = desligada);
+- `MWART_BACKUP_INDEX=true` no `.env` (liga para todas).
+
+`?classico=1` abre o Blade nos dois casos. Rollback do canário: regra da empresa OFF no GrowthBook.
+
 ## 11. O que NÃO fazer
 
 - ⛔ **Redeclarar `public $queue` em job.** O trait `Queueable` declara `public $queue;` sem

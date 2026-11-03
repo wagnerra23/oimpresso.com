@@ -465,6 +465,14 @@ class ProductController extends Controller
             $products->where('products.repair_model_id', $f['repair_model_id']);
         }
 
+        // UC-PIDX-35: "Abaixo do alerta" — a MESMA regra do indicador (`buildProdutoListaKpis`) e da
+        // linha (`abaixo_do_alerta` em `buildProdutoListaPaginada`): estoque gerenciado, alerta definido
+        // e estoque somado nos locais permitidos ≤ alerta. HAVING porque o estoque é o SUM do grupo.
+        // Só a lista React manda; o DataTable do Blade não.
+        if (! empty($f['abaixo_do_alerta'])) {
+            $products->havingRaw('products.enable_stock = 1 AND products.alert_quantity IS NOT NULL AND COALESCE(SUM(vld.qty_available), 0) <= products.alert_quantity');
+        }
+
         // UC-PIDX-31: natureza fiscal decidida pelo contador. Produto sem decisão é mercadoria (é o que a
         // emissão faz). Sem o módulo Fiscal o filtro não aparece na tela e aqui não filtra.
         if (! empty($f['natureza_fiscal']) && app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)) {
@@ -532,6 +540,8 @@ class ProductController extends Controller
             'repair_model_id' => $texto('repair_model_id'),
             // UC-PIDX-31: natureza fiscal (módulo Fiscal). Só existe na lista React; o DataTable do Blade não manda.
             'natureza_fiscal' => in_array(request()->input('natureza_fiscal'), ['mercadoria', 'servico', 'pendente'], true) ? (string) request()->input('natureza_fiscal') : null,
+            // UC-PIDX-35: o clique no indicador "Abaixo do alerta". Só a lista React manda.
+            'abaixo_do_alerta' => request()->boolean('abaixo_do_alerta'),
             // Aba ativa (protótipo: "Todos os produtos" | "Relatório de estoque") e a página da aba de estoque.
             'aba' => request()->input('aba') === 'estoque' ? 'estoque' : 'lista',
             'estoque_pagina' => max(1, (int) request()->input('estoque_pagina', 1)),
