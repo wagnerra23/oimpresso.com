@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Throwable;
 
 /**
- * `php artisan flag:set <key> --biz=N --enabled=true|false [--env=production]`
+ * `php artisan flag:set <key> --biz=N --enabled=true|false [--ambiente=production]`
  *
  * Liga/desliga feature pra um business_id específico (rule id `biz-{N}`).
  *
@@ -25,7 +25,7 @@ class FlagSetCommand extends Command
         {--biz= : business_id alvo (obrigatório)}
         {--enabled= : true|false — valor que será forçado pro biz alvo}
         {--remove : Em vez de toggle, remove a rule biz-{N} (volta pro defaultValue)}
-        {--env=production : Environment}
+        {--ambiente=production : Environment do GrowthBook (o --env é opção global do Laravel)}
         {--clear-cache : Limpa cache local Laravel pós-mudança}';
 
     protected $description = 'Liga/desliga feature flag pra um business_id específico';
@@ -34,7 +34,7 @@ class FlagSetCommand extends Command
     {
         $key = (string) $this->argument('key');
         $bizRaw = $this->option('biz');
-        $env = (string) $this->option('env');
+        $env = (string) $this->option('ambiente');
         $remove = (bool) $this->option('remove');
 
         if ($bizRaw === null || $bizRaw === '') {

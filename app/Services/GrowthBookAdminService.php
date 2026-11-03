@@ -118,6 +118,52 @@ class GrowthBookAdminService
     }
 
     /**
+     * Cria uma feature booleana DESLIGADA: defaultValue false, sem rule, environment ligado
+     * (com o environment desligado nem a rule por empresa vale). Ligar pra uma empresa é
+     * `setBizRule` depois. Idempotente: se a feature já existe, devolve a existente sem tocar.
+     *
+     * @return array{criada: bool, feature: array}
+     */
+    public function createBooleanFeature(string $key, string $descricao, string $env = self::DEFAULT_ENV): array
+    {
+        $this->assertConfigured();
+        $this->assertKeyValid($key);
+
+        $existente = $this->getFeature($key);
+        if ($existente !== null) {
+            return ['criada' => false, 'feature' => $existente];
+        }
+
+        $payload = [
+            'id'           => $key,
+            'owner'        => 'oimpresso-api',
+            'description'  => $descricao,
+            'valueType'    => 'boolean',
+            'defaultValue' => 'false',
+            'environments' => [$env => ['enabled' => true, 'rules' => []]],
+        ];
+
+        $response = $this->http()->post($this->apiHost . '/features', $payload);
+
+        if (! $response->successful()) {
+            throw new RuntimeException(
+                "GrowthBook POST /features ({$key}) falhou: HTTP {$response->status()} — {$response->body()}"
+            );
+        }
+
+        $this->audit(
+            action: 'feature_create',
+            flagKey: $key,
+            environment: $env,
+            payloadBefore: [],
+            payloadAfter: ['defaultValue' => 'false', 'rules' => []],
+            summary: "Feature {$key} criada desligada (defaultValue=false, sem rule)"
+        );
+
+        return ['criada' => true, 'feature' => (array) $response->json('feature')];
+    }
+
+    /**
      * Adiciona/atualiza uma rule de targeting pra um business_id específico.
      *
      * Convenção: 1 business_id = 1 rule com id `biz-{N}` e

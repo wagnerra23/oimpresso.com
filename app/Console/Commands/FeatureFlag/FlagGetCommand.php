@@ -9,20 +9,20 @@ use Illuminate\Console\Command;
 use Throwable;
 
 /**
- * `php artisan flag:get <key> [--env=production]`
+ * `php artisan flag:get <key> [--ambiente=production]`
  *
  * Mostra detalhe de 1 feature flag incluindo rules de targeting por environment.
  */
 class FlagGetCommand extends Command
 {
-    protected $signature = 'flag:get {key : Feature key (ex: useV2SellsCreate)} {--env=production : Environment} {--json : Saída JSON crua}';
+    protected $signature = 'flag:get {key : Feature key (ex: useV2SellsCreate)} {--ambiente=production : Environment do GrowthBook (o --env é opção global do Laravel)} {--json : Saída JSON crua}';
 
     protected $description = 'Mostra detalhe de 1 feature flag (rules, defaults, environment)';
 
     public function handle(GrowthBookAdminService $service): int
     {
         $key = (string) $this->argument('key');
-        $env = (string) $this->option('env');
+        $env = (string) $this->option('ambiente');
 
         if (! $service->isConfigured()) {
             $this->error('GrowthBookAdminService não configurado.');
