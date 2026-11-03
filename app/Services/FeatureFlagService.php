@@ -123,8 +123,10 @@ class FeatureFlagService
 
     private function getFeatures(): ?array
     {
-        $sdkKey = (string) env('GROWTHBOOK_SDK_KEY', '');
-        $apiHost = (string) env('GROWTHBOOK_API_HOST', '');
+        // env() primeiro (testes usam putenv); config() quando o config está
+        // cacheado em produção e env() vem vazio — ver config/feature-flags.php.
+        $sdkKey = (string) (env('GROWTHBOOK_SDK_KEY') ?: config('feature-flags.growthbook.sdk_key', ''));
+        $apiHost = (string) (env('GROWTHBOOK_API_HOST') ?: config('feature-flags.growthbook.api_host', ''));
 
         if ($sdkKey === '' || $apiHost === '') {
             return null;
