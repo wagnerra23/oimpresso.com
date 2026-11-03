@@ -303,6 +303,12 @@ it('registro de devolução: desligada no Blade, ligada para a empresa no React,
     $venda = \Tests\Support\EstoqueFixture::saleWithLine($produto, 0, $loc, 1.0, 10.0);
     $url = "/sell-return/add/{$venda['transaction_id']}";
     vmcFlag('vendas_sell_return_add', false, []);
+    // O ramo Blade formata quantidade com Util::num_f, que lê a moeda e a precisão da sessão
+    // (o SetSessionData monta isso em produção).
+    session([
+        'business' => ['id' => $this->bizId, 'quantity_precision' => 2, 'currency_precision' => 2, 'date_format' => 'd/m/Y', 'time_format' => 24],
+        'currency' => ['thousand_separator' => '.', 'decimal_separator' => ',', 'symbol' => 'R$', 'code' => 'BRL'],
+    ]);
 
     // (a) desligada → Blade
     $this->get($url)->assertOk()->assertViewIs('sell_return.add');
