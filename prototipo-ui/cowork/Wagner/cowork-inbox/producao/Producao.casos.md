@@ -53,7 +53,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-10 | A OS é um projeto: etapas, responsável, máquina, previsto × apontado | Gestor · Balcão | Ficha | must | ✅ |
 | UC-PCV-51 | Tarefas da OS com responsável e prazo, e as duas datas da OS | Gestor · Balcão | Ficha · Painel · Quadro | should | ✅ |
 | UC-PCV-11 | A arte aprovada fica travada e anda com a OS | Balcão · Operador | Ficha · Apontamento | must | 🟡 |
-| UC-PCV-12 | Roteiro por família vira as etapas da OS sem redigitar | Balcão | Roteiros → Ficha | must | 🟡 |
+| UC-PCV-12 | Roteiro por família vira as etapas da OS sem redigitar | Balcão | Roteiros → Ficha | must | ✅ |
 | UC-PCV-13 | Roteiro tem no máximo 2 trilhas em paralelo que se juntam | Gestor | Roteiros | must | ✅ |
 | UC-PCV-14 | Etapa opcional entra pela opção marcada no orçamento | Balcão | Roteiros → Ficha | must | ✅ |
 | UC-PCV-15 | Custo real × esperado para o progresso, por OS | Gestor | Custo | must | ✅ |
@@ -65,7 +65,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-19 | O operador vê só as etapas dele hoje, na ordem | Operador | Apontamento | must | ✅ |
 | UC-PCV-20 | QR abre a etapa certa e o cronômetro aponta início, pausa e fim | Operador | Apontamento | must | ✅ |
 | UC-PCV-21 | Fechar a etapa passa a OS adiante e avisa o próximo | Operador | Apontamento | must | ✅ |
-| UC-PCV-22 | Cronômetro esquecido fecha sozinho no fim do turno | Operador · Gestor | Apontamento | must | ⬜ |
+| UC-PCV-22 | Cronômetro esquecido fecha sozinho no fim do turno | Operador · Gestor | Apontamento | must | 🟡 |
 | UC-PCV-23 | Apontamento sem internet guarda e envia depois | Operador | Apontamento | should | ⬜ |
 | UC-PCV-24 | Agenda de instalação da equipe de campo | Gestor · Instalador | Instalação | must | ✅ |
 | UC-PCV-25 | Checklist de campo com foto antes/depois e assinatura gera protocolo | Instalador | Instalação | must | 🟡 |
@@ -135,10 +135,10 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Aceite:** Dado a arte aprovada às 16:40 · Quando alguém troca o arquivo da arte · Então a OS volta para "aguardando aprovação" e um novo link é enviado · E o operador, no celular, abre sempre a versão aprovada.
 - **Falta:** a troca de arquivo e o versionamento não estão no protótipo (só a lista).
 
-### UC-PCV-12 · Roteiro vira etapas · `must` · 🟡
+### UC-PCV-12 · Roteiro vira etapas · `must` · ✅
 - **Aceite:** Dado o orçamento aprovado de um produto da família "Projeto com instalação" · Então a OS nasce com as etapas do roteiro, máquinas e tempos calculados (quantidade ÷ capacidade do posto) · E ninguém redigita etapa.
 - **Onde:** botão "Nova OS do orçamento" no topo da Produção. O orçamento escolhido traz o roteiro da família, as etapas com máquina e tempo, e a OS entra no quadro.
-- **Falta:** posto que mede em outra unidade recebe a quantidade do orçamento sem conversão. Ex.: a Router CNC trabalha em chapas e recebe os m² da fachada, então o tempo de corte sai de m² ÷ chapas/h. Precisa da conversão no roteiro (m² por chapa).
+- **Conversão de unidade:** quando o posto mede em outra unidade, o roteiro diz quanto vale. A Router CNC recebe chapas (chapa de ACM de 6,1 m², arredondando para cima) e o recorte recebe metros lineares (4 m por m² de adesivo, média da família). Posto com unidade diferente e sem conversão no roteiro não ganha tempo inventado: a tela avisa e o tempo fica fora da previsão.
 
 ### UC-PCV-13 · No máximo 2 trilhas · `must` · ✅
 - **Aceite:** O roteiro aceita até 2 trilhas em paralelo, e elas sempre terminam numa etapa de junção nomeada · Uma 3ª trilha ou trilha sem junção é recusada ao salvar.
@@ -190,8 +190,10 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-21 · Fechar a etapa passa adiante · `must` · ✅
 - **Aceite:** Quando o operador conclui a etapa · Então a OS vai para a próxima etapa do roteiro (ou para a junção, se a outra trilha já terminou) · E o responsável seguinte é avisado.
 
-### UC-PCV-22 · Cronômetro esquecido · `must` · ⬜
+### UC-PCV-22 · Cronômetro esquecido · `must` · 🟡
 - **Aceite:** Dado um apontamento aberto às 18h · Então o sistema fecha às 18h com marca "fechado automaticamente" e avisa o PCP · E o operador pode corrigir no dia seguinte com justificativa (o original fica).
+- **Onde:** ficha da OS › Histórico mostra o apontamento "fechado automaticamente às 18:00" e o botão Corrigir, com justificativa obrigatória; a correção entra no histórico e o registro original fica.
+- **Falta:** o aviso ao PCP quando o fechamento acontece.
 
 ### UC-PCV-23 · Sem internet · `should` · ⬜
 - **Aceite:** Dado o celular offline · Quando o operador aponta · Então o evento fica guardado com a hora real · E ao voltar a rede é enviado uma vez só (sem duplicar).
@@ -247,7 +249,7 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 
 **Forma (dá para fazer aqui, no protótipo)**
 4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
-5. Conversão de unidade no roteiro para posto que não mede em m² (UC-PCV-12). O passo "orçamento aprovado → OS" já existe.
+5. Aviso ao PCP quando o cronômetro esquecido fecha sozinho (UC-PCV-22). O fechamento e a correção já existem.
 6. Estados carregando / vazio / erro em todas as vistas.
 7. Link público de prova de arte (UC-PCV-04, 11) no padrão do link com código do Repair.
 8. Correção de apontamento com justificativa (UC-PCV-22).

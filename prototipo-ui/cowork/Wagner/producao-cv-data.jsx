@@ -48,14 +48,18 @@ const PESSOAS = {
 //   · no máximo 2 trilhas em paralelo, que sempre se juntam numa etapa de junção;
 //   · etapa opcional liga pela opção marcada no orçamento ("com laminação", "com instalação") — ninguém escolhe na hora;
 //   · sem editor livre de fluxograma: o PCP escolhe a família e ajusta tempos, não desenha caminhos.
+// Conversão (UC-PCV-12): o orçamento vem numa unidade (m²) e o posto pode medir em outra (chapa na CNC, metro
+// linear no recorte). `conv` diz, por unidade do posto, quantas unidades dele cabem em 1 unidade do orçamento
+// (`fator`), se arredonda para cima (`inteiro`, chapa não se corta pela metade) e de onde vem o número (`nota`).
+// Posto com unidade diferente e sem `conv` não ganha tempo inventado: a tela avisa que falta a conversão.
 // Formato: lista de passos; um passo é [setor, nome, máquina|horas, opcional?] ou { paralelo: [trilhaA, trilhaB], junta: "nome" }.
 const ROTEIROS = {
   lona:    { nome: "Lona impressa", familia: "Impresso simples", etapas: [["arte","Arte e prova",0.5],["impressao","Impressão látex","latex"],["acabamento","Bainha + ilhós",1],["acabamento","Bastão e corda",0.5,"com bastão"],["expedicao","Embalar e liberar",0.25]] },
-  adesivo: { nome: "Adesivo impresso e recortado", familia: "Impresso simples", etapas: [["arte","Arte e prova",0.5],["impressao","Impressão eco-solvente","eco"],["acabamento","Laminação","lamin","com laminação"],["acabamento","Recorte eletrônico","recorte"],["instalacao","Aplicação em campo",2,"com aplicação"],["expedicao","Embalar",0.25]] },
-  acm:     { nome: "Placa em ACM com UV", familia: "Placa rígida", etapas: [["arte","Arte e arquivo de corte",1],
+  adesivo: { nome: "Adesivo impresso e recortado", familia: "Impresso simples", conv: { m: { fator: 4, nota: "4 m de recorte por m² de adesivo (média da família)" } }, etapas: [["arte","Arte e prova",0.5],["impressao","Impressão eco-solvente","eco"],["acabamento","Laminação","lamin","com laminação"],["acabamento","Recorte eletrônico","recorte"],["instalacao","Aplicação em campo",2,"com aplicação"],["expedicao","Embalar",0.25]] },
+  acm:     { nome: "Placa em ACM com UV", familia: "Placa rígida", conv: { chapa: { fator: 1 / 6.1, inteiro: true, nota: "chapa de ACM 1,22 × 5,00 m = 6,1 m²" } }, etapas: [["arte","Arte e arquivo de corte",1],
              { paralelo: [[["serralheria","Corte CNC","cnc"]], [["impressao","Preparo da mesa UV",0.3]]], junta: "Impressão UV na placa" },
              ["impressao","Impressão UV na placa","uv"],["expedicao","Proteção e embalagem",0.5]] },
-  fachada: { nome: "Fachada em ACM + estrutura", familia: "Projeto com instalação", etapas: [["arte","Projeto e medição",2],
+  fachada: { nome: "Fachada em ACM + estrutura", familia: "Projeto com instalação", conv: { chapa: { fator: 1 / 6.1, inteiro: true, nota: "chapa de ACM 1,22 × 5,00 m = 6,1 m²" } }, etapas: [["arte","Projeto e medição",2],
              { paralelo: [[["serralheria","Estrutura metálica",6],["serralheria","Corte CNC do ACM","cnc"]], [["impressao","Adesivo de aplicação","eco"],["acabamento","Laminação","lamin","com laminação"]]], junta: "Montagem na fábrica" },
              ["serralheria","Montagem na fábrica",2],["instalacao","Instalação em campo",6]] },
   letra:   { nome: "Letra-caixa iluminada", familia: "Projeto com instalação", etapas: [["arte","Vetor e gabarito",1],
@@ -233,6 +237,16 @@ const atraso = (os) => { const d = dias(HOJE, os.prazo); return d < 0 ? "atrasad
 const desvio = (os) => os.orcado ? ((os.real - os.orcado * progresso(os) / 100) / os.orcado) * 100 : 0;
 const setorDe = (id) => SETORES.find((s) => s.id === id) || SETORES[0];
 const maqDe = (id) => MAQUINAS.find((m) => m.id === id);
+// Quantidade e horas de uma etapa de máquina a partir do orçamento (UC-PCV-12), com a conversão do roteiro.
+const noPosto = (rot, qtd, un, maqId) => {
+  const m = maqDe(maqId); if (!m || !m.capH) return { horas: 0 };
+  if (m.un === un) return { qtd, horas: qtd / m.capH };
+  const c = rot.conv && rot.conv[m.un];
+  if (!c) return { horas: null, falta: "sem conversão de " + un + " para " + m.un + " no roteiro" };
+  let q = qtd * c.fator; if (c.inteiro) q = Math.ceil(q - 1e-9);
+  const qs = Number.isInteger(q) ? String(q) : h1(q);
+  return { qtd: q, horas: q / m.capH, nota: qs + " " + (m.un === "chapa" && q !== 1 ? "chapas" : m.un) + " (" + c.nota + ")" };
+};
 const osDe = (id) => OS.find((o) => o.id === id);
 // OS por item: cada OS nasce de UM item da venda quando o cliente aprova. [venda, nº do item, itens que geram OS, outros itens]
 const ORIGEM = { "OS-2611": ["V-8406", 1, 1, ""], "OS-2608": ["V-8398", 1, 1, ""], "OS-2617": ["V-8413", 1, 1, ""], "OS-2614": ["V-8411", 1, 1, "projeto de sinalização (serviço, sem OS)"],
@@ -267,6 +281,6 @@ const lancarDespesa = (os, d) => { DESPESAS[os] = [...despesasDe(os), d]; regist
 const conferirDespesa = (os, i, reembolsavel) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).map((x, k) => k === i ? { ...x, estado: "conferida", reembolsavel, conferiu: "Você" } : x); registrar({ os, tipo: "pcp", texto: "Conferiu despesa: " + d.descricao + " (" + fmt(d.valor) + (reembolsavel ? ", cobrar do cliente" : ", só no custo") + ")" }); };
 const removerDespesa = (os, i) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).filter((_, k) => k !== i); registrar({ os, tipo: "pcp", texto: "Removeu despesa: " + d.descricao + " (" + fmt(d.valor) + ")" }); };
 
-window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE, TIPOS_DESP, despesasDe, lancarDespesa, conferirDespesa, removerDespesa,
+window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, noPosto, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE, TIPOS_DESP, despesasDe, lancarDespesa, conferirDespesa, removerDespesa,
   etapas, atual, progresso, emProducao, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();

@@ -321,6 +321,7 @@ function Roteiros() {
               : <Passo key={k} p={p} />)}
           </ol>
           <p className="pcv-help">Tempo de máquina = quantidade ÷ capacidade do posto. Etapa marcada "só com…" entra na OS quando a opção vem marcada no orçamento.</p>
+          {r.conv && <p className="pcv-help">Conversão do orçamento para o posto: {Object.entries(r.conv).map(([un, c]) => un + " — " + c.nota + (c.inteiro ? ", arredonda para cima" : "")).join("; ")}.</p>}
           <div className="pcv-rot-prod">
             <span className="pcv-eyebrow">Produtos que usam este roteiro</span>
             <div className="pcv-rot-chips">{(PROD_ROT[sel] || []).map((x) => <span key={x} className="pcv-chip">{x}</span>)}<Button size="sm">Ligar produto</Button></div>
@@ -343,13 +344,15 @@ function NovaOs({ onClose, onCriada }) {
   const o = D.ORCAMENTOS.find((x) => x.id === orc);
   const ops = o.opcoes;
   const r = D.ROTEIROS[o.produto];
-  const tempo = (x) => { if (typeof x !== "string") return x; const m = D.maqDe(x); return m && m.capH ? o.qtd / m.capH : 0; };
+  const calc = (x) => typeof x === "string" ? D.noPosto(r, o.qtd, o.un, x) : { horas: x }; // UC-PCV-12: com a conversão do roteiro
+  const tempo = (x) => calc(x).horas || 0;
   // Cada passo vira { setor, nome, x (máquina ou horas), opc, trilha }. O opcional dentro de uma trilha paralela
   // continua naquela trilha (antes o "A"/"B" ia para a posição do opcional e a etapa saía do bloco em paralelo).
   const lista = []; r.etapas.forEach((p) => { if (p.paralelo) p.paralelo.forEach((t, ti) => t.forEach((q) => lista.push({ setor: q[0], nome: q[1], x: q[2], opc: q[3] || null, trilha: ti ? "B" : "A" }))); else lista.push({ setor: p[0], nome: p[1], x: p[2], opc: p[3] || null, trilha: null }); });
   const etapas = lista.filter((e) => !e.opc || ops[e.opc]);
   const fora = lista.filter((e) => e.opc && !ops[e.opc]);
   const total = etapas.reduce((s, e) => s + tempo(e.x), 0);
+  const semConv = etapas.filter((e) => calc(e.x).falta);
   return (
     <Drawer open width={760} onClose={onClose} title="Nova OS a partir do orçamento" subtitle="o roteiro da família vira as etapas — ninguém redigita"
       footer={<div className="pcv-bar" style={{ justifyContent: "flex-end" }}><Button onClick={onClose}>Cancelar</Button><Button variant="primary" onClick={() => onCriada(o, etapas.map((e) => ({ setor: e.setor, nome: e.nome, prev: Math.round(tempo(e.x) * 10) / 10, maq: typeof e.x === "string" ? e.x : null, trilha: e.trilha })), r)}>Criar OS com {etapas.length} etapas</Button></div>}>
@@ -358,13 +361,14 @@ function NovaOs({ onClose, onCriada }) {
           {D.ORCAMENTOS.map((x) => <button key={x.id} role="radio" aria-checked={orc === x.id} onClick={() => setOrc(x.id)}><b className="mono">{x.id}</b><span>{x.cliente} · {x.desc}</span><small>{x.qtd} {x.un} · {D.fmt(x.valor)} · entrega {D.d2(x.prazo)}</small></button>)}
         </div>
         {Alert && <Alert tone="info" title={"Roteiro: " + r.nome}>Família {r.familia}. Previsto {D.h1(total)} h de produção.</Alert>}
+        {semConv.length > 0 && Alert && <Alert tone="warn" title="Falta conversão de unidade no roteiro">{semConv.map((e) => e.nome + ": " + calc(e.x).falta).join("; ")}. O tempo dessa etapa não entra na previsão até o roteiro ter a conversão.</Alert>}
         {Object.keys(ops).length > 0 && <div className="pcv-sec"><span className="pcv-eyebrow">Opções marcadas no orçamento {o.id}</span>
           <ul className="pcv-orc-ops" aria-label="Opções do orçamento">{Object.keys(ops).map((k) => <li key={k}>{B(ops[k] ? ["Sim", "success"] : ["Não", "neutral"])}<span>{k}</span><small>{ops[k] ? "a etapa entra na OS" : "a etapa fica de fora"}</small></li>)}</ul>
           <p className="pcv-help">Vêm do orçamento aprovado e não mudam aqui. Para incluir ou tirar uma opção, refaça o orçamento: ela muda o preço.</p></div>}
         <ol className="pcv-etapas">{etapas.map((e, i) => { const m = typeof e.x === "string" ? D.maqDe(e.x) : null; return (
           <li key={i} className="is-fila" style={{ "--c": D.setorDe(e.setor).cor }}><span className="pcv-et-n" aria-hidden="true">{i + 1}</span>
-            <div className="pcv-et-m"><b>{e.nome}</b><small>{D.setorDe(e.setor).nome}{m ? " · " + m.nome : ""}{e.trilha ? " · trilha " + e.trilha : ""}{e.opc ? " · " + e.opc : ""}</small></div>
-            <div className="pcv-et-t mono">{D.h1(tempo(e.x))} h</div></li>); })}</ol>
+            <div className="pcv-et-m"><b>{e.nome}</b><small>{D.setorDe(e.setor).nome}{m ? " · " + m.nome : ""}{e.trilha ? " · trilha " + e.trilha : ""}{e.opc ? " · " + e.opc : ""}{calc(e.x).nota ? " · " + calc(e.x).nota : ""}</small></div>
+            <div className="pcv-et-t mono">{calc(e.x).horas === null ? "—" : D.h1(tempo(e.x)) + " h"}</div></li>); })}</ol>
         {fora.length > 0 && <p className="pcv-help">Fora desta OS pelo orçamento: {fora.map((e) => e.nome + " (" + e.opc + ")").join(", ")}.</p>}
       </div>
     </Drawer>
