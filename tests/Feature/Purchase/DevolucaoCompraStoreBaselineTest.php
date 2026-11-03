@@ -137,20 +137,28 @@ test('baseline Tier 0: gravar devolução de compra de outro negócio não escre
     $produtoAlheio = EstoqueFixture::singleProduct($outro->id);
     EstoqueFixture::setStock($produtoAlheio, 0, $outroLocal, 50);
     [$compraAlheia, $linhaAlheia] = dcStoreCompra($outro->id, $outroLocal, $this->user->id, $produtoAlheio);
-    $saldoAlheioAntes = EstoqueFixture::currentStock($produtoAlheio, 0, $outroLocal);
 
     // Controle positivo: a do próprio negócio grava.
     $this->post('/purchase-return', ['transaction_id' => $this->compra, 'returns' => [$this->linha => '1'], 'tax_amount' => '0']);
     expect(dcStoreDevolucao($this->compra))->toHaveCount(1);
 
-    $this->post('/purchase-return', ['transaction_id' => $compraAlheia, 'returns' => [$linhaAlheia => '4'], 'tax_amount' => '0'])
-        ->assertRedirect('purchase-return');
+    // Prova pelas ESCRITAS da requisição, não pelo banco depois dela: o `findOrFail` lança antes
+    // do `DB::beginTransaction()` e o `DB::rollBack()` do catch desfaz a transação do PRÓPRIO
+    // teste (DatabaseTransactions) — o fixture inteiro some e qualquer leitura posterior volta
+    // vazia, passando por vácuo. Em produção não há transação externa e esse rollBack é no-op.
+    $escritas = [];
+    DB::listen(function ($q) use (&$escritas) {
+        if (preg_match('/^\s*(insert|update|delete)/i', $q->sql)) {
+            $escritas[] = $q->sql;
+        }
+    });
 
-    expect((float) DB::table('purchase_lines')->where('id', $linhaAlheia)->value('quantity_returned'))->toBe(0.0);
-    // Antes→depois, não o 50 semeado: na lane MySQL o saldo do tenant 99 não lê 50 de volta
-    // (o assert absoluto deu 0,0 na 1ª execução, com a linha intacta). O contrato é "não mudou".
-    expect(EstoqueFixture::currentStock($produtoAlheio, 0, $outroLocal))->toBe($saldoAlheioAntes);
-    expect(dcStoreDevolucao($compraAlheia))->toHaveCount(0);
+    $r = $this->post('/purchase-return', ['transaction_id' => $compraAlheia, 'returns' => [$linhaAlheia => '4'], 'tax_amount' => '0']);
+
+    $r->assertRedirect('purchase-return');
+    expect(session('status.success'))->toBe(0);
+    $tocadas = collect($escritas)->filter(fn ($sql) => preg_match('/`?(purchase_lines|variation_location_details|transactions|reference_counts)`?/i', $sql));
+    expect($tocadas->all())->toBe([]);
 });
 
 test('baseline Tier 0: o formulário add de compra de outro negócio não mostra a compra', function () {
