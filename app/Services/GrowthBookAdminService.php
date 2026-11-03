@@ -206,7 +206,7 @@ class GrowthBookAdminService
         $rulesByEnv = $this->upsertRule($rulesByEnv, $newRule);
 
         $beforeRules = $this->extractRulesByEnv($feature, $env);
-        $updated = $this->updateFeatureRules($key, $env, $rulesByEnv);
+        $updated = $this->updateFeatureRules($key, $env, $rulesByEnv, $feature);
 
         $this->audit(
             action: 'rule_upsert',
@@ -243,7 +243,7 @@ class GrowthBookAdminService
             return $feature;  // No-op
         }
 
-        $updated = $this->updateFeatureRules($key, $env, $filtered);
+        $updated = $this->updateFeatureRules($key, $env, $filtered, $feature);
 
         $this->audit(
             action: 'rule_remove',
@@ -395,12 +395,16 @@ class GrowthBookAdminService
      * PUT-style: substitui rules do environment inteiro. GrowthBook não tem
      * endpoint dedicado pra rules; passa pela atualização da feature inteira.
      */
-    private function updateFeatureRules(string $key, string $env, array $rules): array
+    private function updateFeatureRules(string $key, string $env, array $rules, array $feature): array
     {
+        // O GrowthBook exige `enabled` em todo environment enviado: só com `rules` ele responde
+        // HTTP 400 "environments.production.enabled expected boolean" e nenhuma regra por
+        // empresa grava. Repete o estado atual (padrão ligado) para não mudar o mata-switch.
         $payload = [
             'environments' => [
                 $env => [
-                    'rules' => $rules,
+                    'enabled' => (bool) ($feature['environments'][$env]['enabled'] ?? true),
+                    'rules'   => $rules,
                 ],
             ],
         ];

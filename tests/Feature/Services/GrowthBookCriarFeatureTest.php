@@ -128,3 +128,22 @@ it('sem --criar, flag:set continua recusando feature inexistente', function () {
     expect(Artisan::call('flag:set', ['key' => 'useV2Teste', '--biz' => 1, '--enabled' => 'true']))->toBe(1);
     Http::assertNotSent(fn ($req) => $req->method() === 'POST');
 });
+
+it('setBizRule manda o enabled atual do environment junto com as regras (sem ele o GrowthBook dá 400)', function () {
+    Http::fake([
+        'growthbook.test.local/api/v1/features/useV2Teste' => Http::sequence()
+            ->push(['feature' => ['id' => 'useV2Teste', 'environments' => ['production' => ['enabled' => false, 'rules' => []]]]], 200)
+            ->push(['feature' => ['id' => 'useV2Teste']], 200)
+            ->push(['feature' => ['id' => 'useV2Teste', 'environments' => ['production' => ['rules' => [['id' => 'biz-1', 'type' => 'force', 'value' => 'true']]]]]], 200)
+            ->push(['feature' => ['id' => 'useV2Teste']], 200),
+    ]);
+
+    $svc = new GrowthBookAdminService();
+    $svc->setBizRule('useV2Teste', 1, true);   // environment desligado: preserva false
+    $svc->removeBizRule('useV2Teste', 1);       // feature sem enabled: padrão true
+
+    $posts = collect(Http::recorded())->map(fn ($par) => $par[0])->filter(fn ($req) => $req->method() === 'POST')->values();
+    expect($posts)->toHaveCount(2);
+    expect($posts[0]->data()['environments']['production']['enabled'])->toBeFalse();
+    expect($posts[1]->data()['environments']['production']['enabled'])->toBeTrue();
+});
