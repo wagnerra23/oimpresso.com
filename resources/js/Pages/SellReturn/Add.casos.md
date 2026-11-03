@@ -5,7 +5,7 @@ irmaos: Add.charter.md (lei) · Add.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro grava valor e estoque — a troca de Blade por React não pode mudar nenhum dos dois.
 owner: wagner
-last_run: "2026-10-29"
+last_run: "2026-11-03"
 last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40976713795 (634 passed · 5182 assertions)"
 ---
 
@@ -170,6 +170,7 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
   - Etiquetas: valor, part, cv
 
 ## Trilha do tempo
+- 2026-11-03 · [CC] `last_run` → 2026-11-03: o `.tsx` mudou só na forma (ordem Vendida/Preço, números em mono, coluna Devolver à direita, aviso do protótipo no topo — comparação medida com `design-diff`). Nenhum dado lido ou enviado mudou; UC-SRADD-01..08 seguem defendidos pelos mesmos testes, que rodam na lane deste PR.
 - 2026-10-28 · [CC] `last_run` 2026-10-26 → 2026-10-27, a data do commit que mudou o `.tsx` (6c422a53e1, vale-troca). Ele mexeu no `.tsx` e no casos.md no mesmo commit; ao ligar os pedidos do documento a este arquivo, o commit do casos.md deixou de ser o do `.tsx` e o G-6 passou a cobrar. Prova: os 8 UCs desta tela com veredito pass no manifesto do main (`scripts/casos-test-results.json`). Nenhum caso foi reexecutado agora.
 - 2026-10-23 · [M+C] Backlog: devolver tudo e segunda devolução da mesma venda, sem id.
 - 2026-10-23 · [M+C] Backlog: a devolução pode virar saldo a favor do cliente, sem id.
