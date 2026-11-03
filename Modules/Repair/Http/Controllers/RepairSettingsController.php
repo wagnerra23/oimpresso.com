@@ -2,6 +2,7 @@
 
 namespace Modules\Repair\Http\Controllers;
 
+use Modules\Repair\Concerns\TelaReactPorEmpresa;
 use App\Barcode;
 use App\Brands;
 use App\Business;
@@ -18,6 +19,7 @@ use Modules\Repair\Utils\RepairUtil;
 
 class RepairSettingsController extends Controller
 {
+    use TelaReactPorEmpresa;
     use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
     /**
      * All Utils instance.
@@ -122,21 +124,6 @@ class RepairSettingsController extends Controller
                 ->with(compact('barcode_settings', 'repair_settings', 'default_product_name',
                 'barcode_types', 'repair_statuses', 'brands', 'devices',
                 'module_category_data', 'jobsheet_pdf_settings'));
-    }
-
-    /**
-     * Coexistência MWART (ADR 0104): flag global + whitelist opcional por business.
-     * Espelha DeviceModelController::mwartEnabled — mesmo contrato, mesma leitura.
-     */
-    private function mwartEnabled(string $key, int $business_id): bool
-    {
-        if (! config("mwart.{$key}.enabled")) {
-            return false;
-        }
-
-        $beta = (array) config("mwart.{$key}.business_ids", []);
-
-        return empty($beta) || in_array($business_id, $beta, true);
     }
 
     /**

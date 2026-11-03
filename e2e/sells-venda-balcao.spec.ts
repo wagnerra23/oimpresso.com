@@ -67,4 +67,12 @@ test('UC-S11 · menu de Ações da venda oferece Devolução → /sell-return/ad
   const devolucao = page.getByRole('menuitem', { name: 'Devolução' });
   await expect(devolucao).toBeVisible();
   await expect(devolucao).toHaveAttribute('href', /\/sell-return\/add\/\d+/);
+
+  // E abre por visita Inertia: o SellReturnController@add só serve o React (SellReturn/Add)
+  // quando recebe X-Inertia — um <a> comum faria carga completa e cairia no Blade legado.
+  const [req] = await Promise.all([
+    page.waitForRequest((r) => /\/sell-return\/add\/\d+/.test(r.url())),
+    devolucao.click(),
+  ]);
+  expect(req.headers()['x-inertia']).toBe('true');
 });

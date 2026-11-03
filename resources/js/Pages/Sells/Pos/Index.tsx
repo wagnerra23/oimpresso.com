@@ -318,7 +318,7 @@ function AcoesVenda({ r, saldo, permissions, onVer, onExcluir }: {
         {saldo > 0 && permissions.payments && (
           <DropdownMenuItem onClick={onVer}><Wallet className="mr-2 h-4 w-4" />Adicionar pagamento</DropdownMenuItem>
         )}
-        <DropdownMenuItem asChild><a href={`/sell-return/add/${r.id}`}><Undo2 className="mr-2 h-4 w-4" />Devolver venda</a></DropdownMenuItem>
+        <DropdownMenuItem asChild><Link href={`/sell-return/add/${r.id}`}><Undo2 className="mr-2 h-4 w-4" />Devolver venda</Link></DropdownMenuItem>
         <DropdownMenuSeparator />
         {permissions.delete ? (
           <DropdownMenuItem variant="destructive" onClick={onExcluir}><Trash2 className="mr-2 h-4 w-4" />Excluir</DropdownMenuItem>
