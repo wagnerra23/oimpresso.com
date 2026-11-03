@@ -55,7 +55,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-11 | A arte aprovada fica travada e anda com a OS | Balcão · Operador | Ficha · Apontamento | must | 🟡 |
 | UC-PCV-12 | Roteiro por família vira as etapas da OS sem redigitar | Balcão | Roteiros → Ficha | must | 🟡 |
 | UC-PCV-13 | Roteiro tem no máximo 2 trilhas em paralelo que se juntam | Gestor | Roteiros | must | ✅ |
-| UC-PCV-14 | Etapa opcional entra pela opção marcada no orçamento | Balcão | Roteiros → Ficha | must | 🟡 |
+| UC-PCV-14 | Etapa opcional entra pela opção marcada no orçamento | Balcão | Roteiros → Ficha | must | ✅ |
 | UC-PCV-15 | Custo real × esperado para o progresso, por OS | Gestor | Custo | must | ✅ |
 | UC-PCV-16 | Material empenhado × consumido, com estouro sinalizado | Gestor | Ficha · Materiais | must | ✅ |
 | UC-PCV-52 | Despesas da OS: o instalador lança com recibo, o escritório confere e decide se cobra do cliente | Instalador · Gestor | Celular · Instalação + Ficha · Custo | should | 🟡 |
@@ -137,15 +137,17 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 
 ### UC-PCV-12 · Roteiro vira etapas · `must` · 🟡
 - **Aceite:** Dado o orçamento aprovado de um produto da família "Projeto com instalação" · Então a OS nasce com as etapas do roteiro, máquinas e tempos calculados (quantidade ÷ capacidade do posto) · E ninguém redigita etapa.
-- **Falta:** o passo "orçamento aprovado → OS" não existe no protótipo; a ficha usa etapas já criadas.
+- **Onde:** botão "Nova OS do orçamento" no topo da Produção. O orçamento escolhido traz o roteiro da família, as etapas com máquina e tempo, e a OS entra no quadro.
+- **Falta:** posto que mede em outra unidade recebe a quantidade do orçamento sem conversão. Ex.: a Router CNC trabalha em chapas e recebe os m² da fachada, então o tempo de corte sai de m² ÷ chapas/h. Precisa da conversão no roteiro (m² por chapa).
 
 ### UC-PCV-13 · No máximo 2 trilhas · `must` · ✅
 - **Aceite:** O roteiro aceita até 2 trilhas em paralelo, e elas sempre terminam numa etapa de junção nomeada · Uma 3ª trilha ou trilha sem junção é recusada ao salvar.
 - **Por quê:** linha reta faz a impressão esperar a serralheria sem motivo; fluxograma livre ninguém treina.
 
-### UC-PCV-14 · Etapa opcional pelo orçamento · `must` · 🟡
+### UC-PCV-14 · Etapa opcional pelo orçamento · `must` · ✅
 - **Aceite:** Dado o roteiro de adesivo com "Laminação · só com laminação" · Quando o orçamento vem **sem** laminação · Então a OS nasce sem essa etapa · Com laminação · Então nasce com ela.
-- **Falta:** depende do UC-PCV-12.
+- **Regra:** as opções aparecem só para leitura no passo "orçamento aprovado → OS". Ligar uma etapa na hora criaria trabalho que o cliente não pagou; para mudar, refaz-se o orçamento. A etapa opcional dentro de uma trilha paralela continua na trilha dela.
+- **Exemplos no protótipo:** ORC-1184 (adesivo com laminação) nasce com a Laminação; ORC-1190 (adesivo sem laminação) nasce sem ela.
 
 ## Custo, material e perdas
 
@@ -245,7 +247,7 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 
 **Forma (dá para fazer aqui, no protótipo)**
 4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
-5. Passo "orçamento aprovado → OS" com escolha da família e das opções (UC-PCV-12, 14).
+5. Conversão de unidade no roteiro para posto que não mede em m² (UC-PCV-12). O passo "orçamento aprovado → OS" já existe.
 6. Estados carregando / vazio / erro em todas as vistas.
 7. Link público de prova de arte (UC-PCV-04, 11) no padrão do link com código do Repair.
 8. Correção de apontamento com justificativa (UC-PCV-22).

@@ -115,6 +115,7 @@ const AGENDA = [
 // Orçamentos aprovados que ainda não viraram OS (passo orçamento → OS)
 const ORCAMENTOS = [
   { id: "ORC-1184", cliente: "Mercado União", produto: "adesivo", desc: "Adesivo de vitrine 4 portas", qtd: 18, un: "m²", valor: 1620, opcoes: { "com laminação": true, "com aplicação": true }, prazo: "2026-10-21" },
+  { id: "ORC-1190", cliente: "Farmácia Vida", produto: "adesivo", desc: "Adesivo de vitrine sem laminação", qtd: 9, un: "m²", valor: 640, opcoes: { "com laminação": false, "com aplicação": false }, prazo: "2026-10-23" },
   { id: "ORC-1187", cliente: "Pet Shop Amigo", produto: "fachada", desc: "Fachada ACM 6×1 m", qtd: 6, un: "m²", valor: 6900, opcoes: { "com laminação": false }, prazo: "2026-10-28" },
 ];
 
