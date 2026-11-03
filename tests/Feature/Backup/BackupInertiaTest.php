@@ -177,9 +177,52 @@ test('em demo as acoes vem desabilitadas com motivo e o cron fica vazio', functi
 // o dual-render precisa continuar servindo o Blade com a flag desligada
 test('com a flag desligada a rota segue no Blade legado', function () {
     config(['mwart.backup_index.enabled' => false]);
+    backupFlagPorEmpresa(null);
 
     $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])->get('/backup');
 
     $r->assertOk();
     expect($r->headers->get('x-inertia'))->toBeNull();   // Blade nao responde como Inertia
+});
+
+/**
+ * Stub do FeatureFlagService: liga `useV2BackupIndex` so para a empresa indicada (null = nenhuma).
+ * Isola o teste do GrowthBook real, que no CI pode estar acessivel e responder outra coisa.
+ */
+function backupFlagPorEmpresa(?int $biz): void
+{
+    app()->instance(\App\Services\FeatureFlagService::class, new class($biz) extends \App\Services\FeatureFlagService
+    {
+        public function __construct(private ?int $biz) {}
+
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $flag === 'useV2BackupIndex' && $this->biz !== null
+                && (int) ($attrs['business_id'] ?? 0) === $this->biz;
+        }
+    });
+}
+
+// Canario por empresa: o .env desligado, a flag do GrowthBook ligada SO para a empresa do usuario.
+test('a flag por empresa liga a tela React so para a empresa dela', function () {
+    config(['mwart.backup_index.enabled' => false]);
+    backupFlagPorEmpresa($this->biz->id);
+
+    $page = backupPage($this);
+    expect($page['component'])->toBe('Backup/Index');
+
+    // outra empresa na flag: esta segue no Blade
+    backupFlagPorEmpresa($this->biz->id + 100000);
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])->get('/backup');
+    $r->assertOk();
+    expect($r->headers->get('x-inertia'))->toBeNull();
+});
+
+// Rota de fuga: `?classico=1` abre o Blade mesmo com a tela React ligada.
+test('com ?classico=1 a rota abre o Blade mesmo com a tela ligada', function () {
+    config(['mwart.backup_index.enabled' => true]);
+
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => backupInertiaVersion()])->get('/backup?classico=1');
+    $r->assertOk();
+    expect($r->headers->get('x-inertia'))->toBeNull();
 });

@@ -57,7 +57,8 @@ função da lista Blade que roda hoje em produção.
   (`/products/download-excel`) e **Novo produto** (`/products/create`, Blade).
 - 4 indicadores (protótipo): produtos cadastrados (variáveis · composições), abaixo do alerta,
   **valor em estoque pelo custo** (o MESMO total do Relatório de estoque — regra mestre de valor:
-  prova dupla antes de subir) e inativos.
+  prova dupla antes de subir) e inativos. "Abaixo do alerta" e "Inativos" filtram a lista ao
+  clicar, e o 2º clique desliga (UC-PIDX-35, 2026-11-03); as outras duas são só leitura.
 - Filtros (recolhíveis): tipo, categoria, unidade, imposto, marca, local do negócio, situação,
   "Não para venda"; e os de módulo, só para quem tem o módulo: "Modelo do dispositivo"
   (assistência técnica) e "WooCommerce habilitado". Chips "Filtrando por" + "Limpar tudo".

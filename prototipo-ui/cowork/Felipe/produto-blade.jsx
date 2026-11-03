@@ -795,7 +795,7 @@ function exportarCsv(lista, empresa) {
 
 // ─────────── Tela lista (index.blade.php) ───────────
 function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
-  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false };
+  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false };
   // Chegou filtrada de outro lugar? (contagem clicada em Cadastros de apoio → window.__PBFiltro)
   const [f, setF] = useState(() => { const x = window.__PBFiltro; window.__PBFiltro = null; return x ? { ...VAZIO_F, ...x } : VAZIO_F; });
   const [busca, setBusca] = useState("");
@@ -844,6 +844,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     if (f.active === "active" && !p.active) return false;
     if (f.active === "inactive" && p.active) return false;
     if (f.nfs && !p.notForSelling) return false;
+    if (f.alerta && !(p.stockOn && p.alert != null && p.stock <= p.alert)) return false;
     if (busca && !(p.name + p.sku).toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
   }), [f, busca, empresa]);
@@ -862,8 +863,9 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   if (f.loc) chips.push({ k: "loc", l: "Local", v: (LOCATIONS.find((l) => l.id === Number(f.loc)) || {}).name });
   if (f.active) chips.push({ k: "active", l: "Situação", v: f.active === "active" ? "Ativo" : "Inativo" });
   if (f.nfs) chips.push({ k: "nfs", l: "", v: "Não para venda" });
+  if (f.alerta) chips.push({ k: "alerta", l: "", v: "Abaixo do alerta" });
   if (busca) chips.push({ k: "__busca", l: "Busca", v: busca });
-  const tirarChip = (k) => k === "__busca" ? setBusca("") : setF({ ...f, [k]: k === "nfs" ? false : "" });
+  const tirarChip = (k) => k === "__busca" ? setBusca("") : setF({ ...f, [k]: k === "nfs" || k === "alerta" ? false : "" });
 
   const kpi = useMemo(() => ({
     total: PRODUCTS.length,
@@ -898,20 +900,22 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   };
 
   // Onda 0c (28/08): as quatro placas passam a ser o `KpiCard` do DS — o `.pb-kpi` local fica só
-  // como plano B enquanto o bundle não chegou (o script é `defer`). Continuam LEITURA: as duas que
-  // viram filtro só ganham `KpiFilterCard` + onClick no item 2.1, para não existir botão morto
-  // (o `KpiFilterCard` é um <button aria-pressed> — sem onClick ele anuncia um poder que não há).
-  // Rótulos e tons preservam o que a tela já dizia; renomear é decisão do §4, não desta onda.
+  // como plano B enquanto o bundle não chegou (o script é `defer`).
+  // Item 2.1 (2026-11-03, UC-PIDX-35): "Abaixo do alerta" e "Inativos" viram o tile de filtro do DS
+  // (`variant="filter"`, ex-`KpiFilterCard`) e escrevem no MESMO `f` dos Filtros — o chip aparece em
+  // "Filtrando por" e o 2º clique desliga. As outras duas seguem leitura: placa que não recorta não
+  // pode parecer botão. Rótulos preservam o que a tela já dizia.
   const kpisNode = KpiCard ? (
     <>
       <KpiCard label="Produtos cadastrados" value={kpi.total}
         description={`${PRODUCTS.filter((p) => p.type === "variable").length} variáveis · ${PRODUCTS.filter((p) => p.type === "combo").length} composições`} />
-      <KpiCard label="Abaixo do alerta" value={kpi.baixo} tone={kpi.baixo ? "danger" : "default"}
-        description="quantidade de alerta atingida" />
+      <KpiCard variant="filter" label="Abaixo do alerta" value={kpi.baixo} icon="⚠" tone="rose"
+        description="quantidade de alerta atingida" selected={!!f.alerta} onClick={() => setF({ ...f, alerta: !f.alerta })} />
       <KpiCard label="Valor em estoque (custo)" value={fmtBRL(kpi.valor)}
         description="só produtos com estoque gerenciado" />
-      <KpiCard label="Inativos" value={kpi.inativos} tone="warning"
-        description="fora da venda, dentro do histórico" />
+      <KpiCard variant="filter" label="Inativos" value={kpi.inativos} icon="⏸" tone="amber"
+        description="fora da venda, dentro do histórico" selected={f.active === "inactive"}
+        onClick={() => setF({ ...f, active: f.active === "inactive" ? "" : "inactive" })} />
     </>
   ) : (
     <>
@@ -963,7 +967,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
             {chips.map((c) => (FilterChip
               ? <FilterChip key={c.k} label={c.l || c.v} value={c.l ? c.v : undefined} onRemove={() => tirarChip(c.k)} />
               : <button key={c.k} className="pb-chip" onClick={() => tirarChip(c.k)}>{c.v} ✕</button>))}
-            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false }); setBusca(""); }}>Limpar tudo</button>
+            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false }); setBusca(""); }}>Limpar tudo</button>
           </div>}
 
         {aba === "lista"
