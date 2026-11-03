@@ -46,4 +46,26 @@ return [
 
     'forced_on' => env('FEATURE_FLAGS_FORCED_ON', ''),
 
+    /*
+    |----------------------------------------------------------------------
+    | growthbook — credenciais lidas pelos serviços via config()
+    |----------------------------------------------------------------------
+    |
+    | Medido em produção (2026-11-03): com `php artisan config:cache` o
+    | `env()` chamado fora de config/ devolve vazio. `FeatureFlagService` e
+    | `GrowthBookAdminService` liam `env('GROWTHBOOK_*')` direto, então o
+    | GrowthBook NUNCA era consultado no site: toda regra por business_id
+    | ficava inerte e a flag caía no fallback. Os serviços leem `env()`
+    | primeiro (os testes trocam a variável com putenv() em runtime) e caem
+    | aqui quando ele vem vazio.
+    |
+    */
+
+    'growthbook' => [
+        'sdk_key' => env('GROWTHBOOK_SDK_KEY', ''),
+        'api_host' => env('GROWTHBOOK_API_HOST', ''),
+        'admin_api_token' => env('GROWTHBOOK_ADMIN_API_TOKEN', ''),
+        'admin_api_host' => env('GROWTHBOOK_ADMIN_API_HOST', ''),
+    ],
+
 ];

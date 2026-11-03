@@ -51,11 +51,14 @@ class GrowthBookAdminService
         // Derivar de GROWTHBOOK_API_HOST mantém consistência com FeatureFlagService
         // (leitura) e evita divergência de host. Override explícito via
         // GROWTHBOOK_ADMIN_API_HOST continua respeitado.
-        $this->apiHost = rtrim((string) env(
-            'GROWTHBOOK_ADMIN_API_HOST',
-            rtrim((string) env('GROWTHBOOK_API_HOST', 'https://growthbook-api.oimpresso.com'), '/') . '/api/v1'
+        // env() primeiro (testes usam putenv); config() quando o config está
+        // cacheado em produção e env() vem vazio — ver config/feature-flags.php.
+        $gb = (array) config('feature-flags.growthbook', []);
+        $sdkHost = (string) (env('GROWTHBOOK_API_HOST') ?: ($gb['api_host'] ?? '') ?: 'https://growthbook-api.oimpresso.com');
+        $this->apiHost = rtrim((string) (
+            env('GROWTHBOOK_ADMIN_API_HOST') ?: ($gb['admin_api_host'] ?? '') ?: rtrim($sdkHost, '/') . '/api/v1'
         ), '/');
-        $this->apiToken = (string) env('GROWTHBOOK_ADMIN_API_TOKEN', '');
+        $this->apiToken = (string) (env('GROWTHBOOK_ADMIN_API_TOKEN') ?: ($gb['admin_api_token'] ?? ''));
     }
 
     public function isConfigured(): bool
