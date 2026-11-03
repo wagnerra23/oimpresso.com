@@ -1330,7 +1330,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 > owner: — · priority: p2 · estimate: 16h · type: story
 > blocked_by: —
 
-**Implementado em:** _parcial_ · `Modules/Financeiro/Services/ExportacaoContabilService.php` · `Modules/Financeiro/Http/Controllers/ExportacaoContabilController.php` · `Modules/Financeiro/Tests/Feature/ExportacaoContabilContratoTest.php` · verificado@e80beef (2026-10-27) — fatia 1: Domínio e Alterdata saem por rota de download com de-para em `fin_contabil_contas`; falta a tela (de-para + botões), o Questor (sem leiaute fixo publicado, decisão [W]), o centro de custo (US-FIN-075) e a validação por contador-piloto.
+**Implementado em:** _parcial_ · `Modules/Financeiro/Services/ExportacaoContabilService.php` · `Modules/Financeiro/Http/Controllers/ExportacaoContabilController.php` · `Modules/Financeiro/Tests/Feature/ExportacaoContabilContratoTest.php` · verificado@e80beef (2026-10-27) — fatia 1: Domínio e Alterdata saem por rota de download com de-para em `fin_contabil_contas`. Fatia 2 (2026-11-03): a tela `resources/js/Pages/Financeiro/Contabilidade.tsx` (`/financeiro/exportacao-contabil`, competência + sistema + de-para + gerar; UC-EXPC-06..09). Falta o Questor (sem leiaute fixo publicado, decisão [W]), o centro de custo (US-FIN-075) e a validação por contador-piloto.
 
 **Testado em:** `Modules/Financeiro/Tests/Feature/ExportacaoContabilContratoTest.php` (UC-EXPC-01..05, lane `financeiro-pest`)
 
