@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-03"
 ---
 
 # Casos de Uso & Aceite — Financeiro/Despesas/Index
@@ -73,3 +73,4 @@ last_run: "2026-10-14"
 - 2026-10-13 · [CL] US-MWART-017: drawer 760 com os dados da linha + Editar, Documento, Excluir; UC-DESPES-05.
 - 2026-10-13 · [CL] US-MWART-018 (parte 1): Nova despesa; UC-DESPES-06/07.
 - 2026-10-14 · [CL] revalidado (bump `last_run`): o `Index.tsx` mudou só em lint e layout (`linhas` em `useMemo`, cabeçalho em `Inline` do DS). Nenhum handler, prop ou texto de UC mudou; UC-DESPES-01..04 seguem provados (run 38473422467); o drawer em `Grid` do DS, UC-DESPES-05 pelo run 38467901444; o cabeçalho com o botão Nova despesa em `Inline` e o `totalParaEnvio` em `_lib/total-envio.ts`, UC-DESPES-06/07 pelo run 38467905171.
+- 2026-11-03 · [W+C] revalidado: o `Index.tsx` mudou só em rótulo de coluna (literais da Blade) e ganhou a coluna "Detalhes de recorrência" (UC-DESPES-08). Total, devido, filtros e ações intactos; UC-DESPES-01..07 sem mudança de aceite.
