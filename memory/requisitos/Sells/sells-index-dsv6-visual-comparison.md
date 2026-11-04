@@ -106,3 +106,20 @@ refs_prs:
 3. Algum ajuste nas decisões acima (ex: manter alguma cor específica, ou incluir os `-soft` chroma)?
 
 Após teu OK eu: atualizo `status: approved` + assino, abro PR3 (worktree off main, single-intent CSS-token), rodo CI + screenshot real, e só mergeio com teu de-novo-OK no screenshot pós-impl (F3 design-critique ≥80).
+
+## Medição 2026-11-04 — cabeçalho (título e subtítulo) contra `vendas-page.jsx`
+
+Âncora: `prototipo-ui/cowork/Wagner/vendas-page.jsx` (`ancora.mjs Sells/Index`), sub `lista` do `VendasModule`, servida da raiz do repo. Produção: `https://oimpresso.com/sells`. Os dois lados em tema escuro, 1280px, com a mesma sonda de `getComputedStyle` em `.vd-head-clean .os-head-l h1`, `.os-head-l p` e nos números do subtítulo. O `design-diff --probe` sem mapa de papéis devolve `title: null` nesta tela, por isso a sonda complementar.
+
+A premissa vinda da Caixa (#10367, título com peso 400) não vale aqui: o Sells/Index já tem a regra `.vendas-aplus .vd-head-clean .os-head-l h1` com peso 700.
+
+| Propriedade | Protótipo | Produção antes | Depois (regra aplicada na página real) |
+|---|---|---|---|
+| h1 font-size / peso / letter-spacing | 22px / 700 / -0.396px | igual | igual |
+| h1 line-height | 30.25px (1.375) | 33px (1.5, herdado) | 30.25px |
+| p line-height | 18.125px (1.45) | 18.75px (1.5) | 18.125px |
+| p font-variant-numeric | tabular-nums | normal | tabular-nums |
+| números do subtítulo | 600, `--text` | 700, `--text-mute` | 600, `--text` |
+| altura do header | 89.375px | 91.75px | 88.375px |
+
+Resíduo, que depende de markup no `.tsx` e não de CSS: no protótipo o separador `·` é um span com opacidade 0.4 dentro de uma linha flex, e a palavra "estouradas" inteira sai em `--neg`. Em produção o separador é texto e só o número sai vermelho, com a cor crua `!important` de `.sells-cowork .vd-delta-dn` em `resources/css/inertia.css`.
