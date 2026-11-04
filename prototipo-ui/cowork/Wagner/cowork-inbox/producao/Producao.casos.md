@@ -70,7 +70,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-24 | Agenda de instalação da equipe de campo | Gestor · Instalador | Instalação | must | ✅ |
 | UC-PCV-25 | Checklist de campo com foto antes/depois e assinatura gera protocolo | Instalador | Instalação | must | 🟡 |
 | UC-PCV-26 | Aproveitamento de mídia (sugestão de encaixe na versão 2) | Gestor | Painel | could | 🟡 |
-| UC-PCV-27 | Produtividade por setor sem expor o indivíduo sem permissão | Gestor | Painel | should `[LGPD]` | 🟡 |
+| UC-PCV-27 | Produtividade por setor sem expor o indivíduo sem permissão | Gestor | Painel | should `[LGPD]` | ✅ |
 | UC-PCV-28 | Cada empresa vê só a sua produção | todos | todas | must `[T0]` | ⬜ |
 | UC-PCV-29 | Uma fonte de eventos alimenta quadro, painel, linha, ficha, celular e instalação | todos | todas | must | ✅ |
 | UC-PCV-30 | Reprogramar arrastando o bloco na linha do tempo (ou Alt + setas) | Gestor | Linha | must | ✅ |
@@ -215,9 +215,9 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Versão 2:** a sugestão de agrupamento com a economia em m² e R$ (encaixe na bobina).
 - **Falta:** o % ainda vem fixo no protótipo; deve sair da mídia informada no apontamento.
 
-### UC-PCV-27 · Produtividade sem expor o indivíduo · `should` `[LGPD]` · 🟡
+### UC-PCV-27 · Produtividade sem expor o indivíduo · `should` `[LGPD]` · ✅
 - **Aceite:** Sem `producao.desempenho.ver` · Então a produtividade aparece só por setor · Com a permissão · Então aparece por pessoa · E o acesso fica no log.
-- **Falta:** a vista por pessoa. Permissão: `producao.desempenho.ver` (aprovada).
+- **Onde:** Painel › "Produtividade por setor (semana)". Sem a permissão, só a tabela por setor, sem nenhum nome (antes ela mostrava uma coluna "Quem" com os nomes, o que contrariava este caso). Com a permissão (no protótipo, o checkbox "Ver como quem tem producao.desempenho.ver"), aparece também a tabela por pessoa, e cada abertura vai para o log em nome de quem abriu. Permissão: `producao.desempenho.ver` (aprovada).
 
 ### UC-PCV-28 · Cada empresa vê só a sua produção · `must` `[T0]` · ⬜
 - **Aceite:** Dado OS, máquinas, apontamentos e instalações das empresas 98 e 99 · Então nenhuma vista, contagem ou alerta da 98 mostra dado da 99 · E o QR de uma OS da 99 lido por operador da 98 responde "OS não encontrada".
@@ -248,7 +248,7 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 
 **Forma (dá para fazer aqui, no protótipo)**
 4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
-5. Produtividade por pessoa, só com a permissão `producao.desempenho.ver` (UC-PCV-27).
+5. Link público de prova de arte (UC-PCV-04, 11), esperando a decisão de reaproveitar o link do Repair.
 6. Estados carregando / vazio / erro em todas as vistas.
 7. Link público de prova de arte (UC-PCV-04, 11) no padrão do link com código do Repair.
 8. Correção de apontamento com justificativa (UC-PCV-22).
