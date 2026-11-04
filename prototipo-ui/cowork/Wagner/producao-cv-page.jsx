@@ -224,7 +224,17 @@ function Quadro({ onAbrir, f, setF }) {
   const lista = D.OS.filter((o) => passa(D, o, f));
   const cols = agrupar === "setor" ? D.SETORES.map((s) => ({ id: s.id, nome: s.nome, cor: s.cor, itens: lista.filter((o) => setorDe(o) === s.id) }))
     : D.MAQUINAS.map((m) => ({ id: m.id, nome: m.nome, cor: D.setorDe(m.setor).cor, itens: lista.filter((o) => D.atual(o).maq === m.id) })).filter((c) => c.itens.length);
-  const mover = (id, setor) => { setMov({ ...mov, [id]: setor }); D.registrar({ os: id, tipo: "pcp", texto: "Moveu para " + D.setorDe(setor).nome + " (à mão)" }); setAviso(id + " movida para " + D.setorDe(setor).nome + " pelo PCP. Fica no histórico da OS com o seu nome."); };
+  // UC-PCV-07: mover à mão registra de onde para onde, e o apontamento que estava aberto na etapa de origem é fechado
+  // com o motivo "movida pelo PCP" — senão o cronômetro do operador seguiria contando numa etapa que saiu do setor.
+  const fechados = React.useRef({});
+  const mover = (id, setor) => {
+    const o = D.osDe(id), de = setorDe(o), at = D.atual(o);
+    const aberto = at.estado === "andamento" && at.setor === de && !fechados.current[id];
+    setMov({ ...mov, [id]: setor });
+    D.registrar({ os: id, tipo: "pcp", texto: "Movida de " + D.setorDe(de).nome + " para " + D.setorDe(setor).nome + " (à mão)" });
+    if (aberto) { fechados.current[id] = true; D.registrar({ os: id, quem: "Sistema", tipo: "pcp", texto: "Fechou o apontamento aberto de " + at.nome + " (" + at.resp + ") — motivo: movida pelo PCP" }); }
+    setAviso(id + " movida de " + D.setorDe(de).nome + " para " + D.setorDe(setor).nome + " pelo PCP." + (aberto ? " O apontamento aberto de " + at.nome + " (" + at.resp + ") foi fechado com o motivo \"movida pelo PCP\"." : "") + " Fica no histórico da OS com o seu nome.");
+  };
   return (
     <div className="pcv-body">
       <BarraFiltro f={f} setF={setF} />
