@@ -2,7 +2,8 @@
 id: modules-fisio-pages-fisio-painel-charter
 page: /fisio
 component: Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx
-related_prototype: "n/a (herda PT-04 Dashboard; o canvas Prescreve Pro desenha a tela Painel, mas em 2026-10-18 não havia fonte resolvível: 0 arquivos de Fisio/Prescreve em prototipo-ui/ e o DesignSync não estava acessível na sessão que criou a tela — reconciliar quando o canvas descer ao espelho)"
+related_prototype: prototipo-ui/cowork/Wagner/prototipos/fisio/Main.dc.html
+related_us: [US-FISIO-010]
 owner: wagner
 status: draft
 last_validated: "2026-10-18"
