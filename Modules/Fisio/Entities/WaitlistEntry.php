@@ -11,6 +11,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * `fisio_waitlist` — paciente esperando vaga (A7), com preferência de dias, turnos e prazo.
  * Escopo por empresa (ADR 0093). US-FISIO-013.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property int $patient_id
+ * @property ?int $professional_id
+ * @property ?int $type_id
+ * @property ?array{dias?: list<int>, turnos?: list<string>, ate?: string} $preferences
+ * @property string $status
+ * @property ?\Illuminate\Support\Carbon $offered_starts_at
+ * @property ?\Illuminate\Support\Carbon $offer_expires_at
  */
 class WaitlistEntry extends Model
 {
