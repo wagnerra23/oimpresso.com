@@ -485,7 +485,7 @@ class NfeService
             $codigo = $det['icms']['cst_csosn'] ?? null;
             $codigo = $codigo === null ? null : (string) $codigo;
             $ehCsosn = $codigo !== null && strlen(preg_replace('/\D/', '', $codigo)) === 3 && ! str_starts_with($codigo, '0');
-            $pid = $det['product_id'] ?? null;
+            $pid = $det['product_id'] ?? $linhas[$i]['product_id'] ?? null;
             $avisos = Tributacao\CoerenciaFiscalDoItem::avisos(
                 $crt,
                 isset($det['cfop']) ? (string) $det['cfop'] : null,
@@ -496,7 +496,7 @@ class NfeService
             );
             if ($avisos !== []) {
                 $saida[] = [
-                    'sell_line_id' => isset($det['sell_line_id']) ? (int) $det['sell_line_id'] : null,
+                    'sell_line_id' => isset($det['sell_line_id']) ? (int) $det['sell_line_id'] : (isset($linhas[$i]['sell_line_id']) ? (int) $linhas[$i]['sell_line_id'] : null),
                     'product_id'   => $pid === null ? null : (int) $pid,
                     'cfop'         => isset($det['cfop']) ? (string) $det['cfop'] : null,
                     'cst_csosn'    => $codigo,
