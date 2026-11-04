@@ -137,6 +137,8 @@ const MENU = [
       { id: "fiscal-das",     icon: "calc",    label: "Apuração do DAS" },
     ]},
   ]},
+  // No vivo também aparecem Reservas, Cozinha e Pedidos (restaurante) aqui e Fisio em COMERCIAL,
+  // só para a empresa que tem o módulo no pacote. O protótipo desenha uma empresa sem eles.
   { group: "PRODUÇÃO", items: [
     // Produção (comunicação visual) — OS como projeto. Entra 1º: é a visão do PCP sobre as OS abaixo.
     { id: "pcv", icon: "layers", label: "Painel de produção", ghosts: [
@@ -290,11 +292,9 @@ const NFE_CERT = { status: "vencendo", dias_restantes: 12 };
 const SIDEBAR_COUNTS = { chat: 3, atendimento: 6, tarefas: 6 };
 
 // ── Itens de usuário → user dropdown do rodapé (canon repo: fora do corpo) ──
-const USER_MENU = [
-  { id: "prefs",    icon: "cog",    label: "Preferências" },
-  { id: "usuarios", icon: "shield", label: "Usuários & permissões" },
-  { id: "funcoes",  icon: "shield", label: "Funções e permissões" },
-];
+// Vazio desde [W] 2026-11-04: o menu do avatar não carrega item de módulo (vivo: USER_MENU_LABELS
+// vazio, #10310). Preferências, Usuários e Funções e permissões ficam só no grupo SISTEMA acima.
+const USER_MENU = [];
 
 // ── Cascata "Superadmin" do rodapé (SUPERADMIN_LABELS do Sidebar.tsx vivo):
 // admin de plataforma sai do menu principal — Módulos · Backup · CMS · Conector ·
