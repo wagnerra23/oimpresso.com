@@ -165,6 +165,12 @@ export function varrer(dir) {
     const texto = readFileSync(f, 'utf8');
     for (const m of texto.matchAll(/window\.([A-Za-z_$][\w$]*)\s*=(?!=)/g)) {
       const k = m[1];
+      // `window.X = window.X || {}` e INICIALIZACAO idempotente de um registro compartilhado
+      // (cada arquivo poe uma chave nele, em qualquer ordem de carga), nao uma 2a publicacao:
+      // apagar a "segunda" quebra a tela. Medido 2026-11-04: as 15 ocorrencias do idioma no
+      // espelho sao todas `window.PROTO_HTML` (#10055), e nenhuma outra chave do baseline muda.
+      const resto = texto.slice(m.index + m[0].length).trimStart();
+      if (resto.startsWith(`window.${k}`) && /^\s*(\|\||\?\?)/.test(resto.slice(`window.${k}`.length))) continue;
       if (!publicados.has(k)) publicados.set(k, new Set());
       publicados.get(k).add(rel(f, dir));
     }
@@ -266,6 +272,14 @@ function selftest() {
     writeFileSync(join(dir, 'dup-b.jsx'), 'window.Dobrado = 2;\n');
     r = rodar(dir, base);
     casos.push(['fixture RUIM (R4 duplicata) -> exit != 0', r.status !== 0, `exit=${r.status}`]);
+    // BOA R4 — registro compartilhado inicializado por dois arquivos NAO e duplicata.
+    rmSync(join(dir, 'dup-a.jsx')); rmSync(join(dir, 'dup-b.jsx'));
+    writeFileSync(join(dir, 'reg-a.jsx'), '(window.Reg = window.Reg || {})["a"] = 1;');
+    writeFileSync(join(dir, 'reg-b.jsx'), '(window.Reg = window.Reg || {})["b"] = 2;');
+    casos.push(['registro `window.X = window.X ||` em 2 arquivos NAO e R4', !varrer(dir).achados.some((a) => a.chave === 'R4:Reg'), 'R4:Reg acusado']);
+    rmSync(join(dir, 'reg-a.jsx')); rmSync(join(dir, 'reg-b.jsx'));
+    writeFileSync(join(dir, 'dup-a.jsx'), 'window.Dobrado = 1;');
+    writeFileSync(join(dir, 'dup-b.jsx'), 'window.Dobrado = 2;');
 
     // RUIM R5 — nome publicado que colide com componente do DS.
     // CONTROLE POSITIVO obrigatorio (§5 2026-08-01): no corpus real R5 da 0 achados, e
