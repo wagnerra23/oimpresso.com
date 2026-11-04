@@ -1322,7 +1322,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
           {/* 4º card — varia por foco. Na vista Caixa é o PIX hoje, como no protótipo
               (vendas-page.jsx); antes era "Pagos hoje" e o PIX ficava como 5º card fixo,
-              que a 1280 caía sozinho numa 2ª linha (#1666 · medição 2026-11-04, PR-1b). */}
+              que a 1280 caía sozinho numa 2ª linha (PR 1666 · medição 2026-11-04, PR-1b). */}
           {foco === 'caixa' && (
             <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
               <span className="os-kpi-label">PIX hoje</span>
