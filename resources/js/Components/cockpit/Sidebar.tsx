@@ -1559,6 +1559,13 @@ function SidebarUserMenu({
           <BookOpen size={14} className="ic" />
           <span className="label">Documentação</span>
         </a>
+        {/* Filho da Documentação, como no protótipo (data.jsx FOOTER_LINKS, `sub: true`):
+            recuo de 28px e prefixo "› ". [W] 2026-11-04 viu a tela e liberou o link —
+            até aqui /documentacao/casos-por-tela só abria digitando o endereço. */}
+        <a href="/documentacao/casos-por-tela" className="um-item" style={{ paddingLeft: 28 }}>
+          <BookOpen size={14} className="ic" />
+          <span className="label">› Casos de uso por tela</span>
+        </a>
         {/* Até 2026-11-04 apontava pra /business/settings: quem pedia ajuda caía nas
             configurações da empresa. Não há central de ajuda própria (/ajuda/ dá 404 em
             produção), então leva pra /documentacao, a ajuda que existe hoje. */}
