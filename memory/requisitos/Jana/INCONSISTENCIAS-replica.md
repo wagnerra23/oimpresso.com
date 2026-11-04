@@ -6,43 +6,52 @@
 > **Gerado por máquina** — não edite contagem; mude só `status`/`nota` no JSON em
 > `governance/replica-inconsistencias/jana.json` e regenere.
 >
-> Gerado em 2026-09-03 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Jana --prototipo …` · **33 aberta(s)** de 33.
+> Gerado em 2026-11-04 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Jana --prototipo …` · **42 aberta(s)** de 42.
 > `origem = aplicado` mede o que está no repo; `origem = prototipo` mede o que VAI entrar quando a onda copiar o JSX.
 
 | status | regra | arquivo | contagem | exemplo | dono da regra | origem |
 |---|---|---|---:|---|---|---|
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/Alertas.tsx` | 1 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/Alertas.tsx` | 1 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R1` | `resources/js/Pages/Jana/Chat.tsx` | 1 | #3889 | UiLintCommand.php R1 · conformance-gate | aplicado |
-| 🔴 aberta | `R3` | `resources/js/Pages/Jana/Chat.tsx` | 13 | → ⇧ ↑ ↓ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R1` | `resources/js/Pages/Jana/Chat.tsx` | 2 | #3889 · #5901 | UiLintCommand.php R1 · conformance-gate | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/Chat.tsx` | 14 | → ⇧ ↑ ↓ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/Chat.tsx` | 6 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R3` | `resources/js/Pages/Jana/Index.tsx` | 12 | ⛔ ⚠ → | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R1` | `resources/js/Pages/Jana/Index.tsx` | 2 | #7653 · #7653 | UiLintCommand.php R1 · conformance-gate | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/Index.tsx` | 15 | ⛔ ⚠ → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `resources/js/Pages/Jana/Index.tsx` | 1 | PageHeader=não · DataTable=não | UiLintCommand.php R4 | aplicado |
-| 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/Index.tsx` | 8 |  | layout-primitives-guard.mjs | aplicado |
+| 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/Index.tsx` | 5 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R1` | `resources/js/Pages/Jana/Memoria.tsx` | 1 | #5401 | UiLintCommand.php R1 · conformance-gate | aplicado |
-| 🔴 aberta | `R3` | `resources/js/Pages/Jana/Memoria.tsx` | 3 | → | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/Memoria.tsx` | 3 |  | layout-primitives-guard.mjs | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/Memoria.tsx` | 6 | → ⚠ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R1` | `resources/js/Pages/Jana/Plataforma.tsx` | 1 | #6421 | UiLintCommand.php R1 · conformance-gate | aplicado |
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/Plataforma.tsx` | 1 | → | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `R3` | `resources/js/Pages/Jana/Pro.tsx` | 12 | → | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/Pro.tsx` | 25 |  | layout-primitives-guard.mjs | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/Pro.tsx` | 13 | → | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/Pro.tsx` | 20 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/AssistantUiChat.tsx` | 1 | → | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/_components/AssistantUiChat.tsx` | 10 |  | layout-primitives-guard.mjs | aplicado |
+| 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/_components/AssistantUiChat.tsx` | 11 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/_components/FabJana.tsx` | 1 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaAcaoModal.tsx` | 3 | ⚠ → | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `R1` | `resources/js/Pages/Jana/_components/JanaAreaHeader.tsx` | 1 | #1053 | UiLintCommand.php R1 · conformance-gate | aplicado |
-| 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaAreaHeader.tsx` | 15 | → | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R1` | `resources/js/Pages/Jana/_components/JanaAreaHeader.tsx` | 2 | #1053 · #1477 | UiLintCommand.php R1 · conformance-gate | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaAreaHeader.tsx` | 16 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/_components/JanaAreaHeader.tsx` | 2 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R1` | `resources/js/Pages/Jana/_components/JanaCockpit.tsx` | 1 | #6111 | UiLintCommand.php R1 · conformance-gate | aplicado |
-| 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaCockpit.tsx` | 29 | ⚠ → ⛔ ✓ ✗ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R1` | `resources/js/Pages/Jana/_components/JanaCockpit.tsx` | 5 | #6111 · oklch(0.68 0.13 162) | UiLintCommand.php R1 · conformance-gate | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaCockpit.tsx` | 58 | ⚠ → ⛔ ✓ ✗ ← | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `resources/js/Pages/Jana/_components/JanaCockpit.tsx` | 32 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaConfigDrawer.tsx` | 1 | → | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaConversaHeader.tsx` | 1 | ❌ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaDrillDrawer.tsx` | 2 | ⚠ → | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx` | 2 | ⛔ ⚠ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R1` | `resources/js/Pages/Jana/_components/JanaKpiGrid.tsx` | 1 | #7653 | UiLintCommand.php R1 · conformance-gate | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaKpiGrid.tsx` | 2 | ⚠ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaMetaDrawer.tsx` | 4 | ⛔ ⚠ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaMetaNovaDrawer.tsx` | 2 | ⚠ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/_components/JanaPlanoBadge.tsx` | 6 | → ⚠ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `resources/js/Pages/Jana/_shared/JanaSubNav.tsx` | 7 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/jana-merge.jsx` | 10 | → • ⇧ | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/Wagner/jana-merge.jsx` | 4 |  | layout-primitives-guard.mjs | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/jana-metas.jsx` | 7 | #164 · #164 | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/jana-metas.jsx` | 8 | → | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/jana-pro.jsx` | 6 | → ↵ ✓ ✕ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/Wagner/jana-pro.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/jana-telas-novas.jsx` | 3 | → | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `ds/no-inline-tablist` | `resources/js/Pages/Jana/Chat.tsx` | 1 | não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Component | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 
 ## Soluções por regra (a receita que [W] pediu)
