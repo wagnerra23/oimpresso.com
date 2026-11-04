@@ -40,6 +40,17 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
   haver licença comercial.
 - **Status do programa** (`fisio_programs.status`, texto, fora do bloco `json`): `ativo` ou
   `encerrado` — um ativo por paciente.
+- **Agenda** (US-FISIO-013, etapa 04 §3.2): tipo de atendimento em `presencial` ou `teleconsulta`
+  (`fisio_appointment_types.modality`). Atendimento (`fisio_appointments.status`, fora do bloco `json`
+  porque a lista mora numa constante da migration, espelhada em `Appointment::STATUS`) anda
+  `agendado → confirmado → chegou → em_atendimento → realizado`, ou termina em `faltou` ou `cancelado`;
+  "realizado" só com evolução assinada. Ninguém apaga atendimento: desmarcar é `cancelado`, com quem
+  desmarcou (`cancelled_by`: `clinica` ou `paciente`). Origem (`source`): `clinica` (marcado pela
+  recepção), `online` (pelo app do paciente) ou `lista_espera` (vaga liberada que foi oferecida).
+- **Lista de espera** (`fisio_waitlist.status`, fora do bloco `json` como os outros `status`): `ativo` (esperando), `oferecido` (vaga oferecida, com prazo),
+  `atendido` (ficou com a vaga), `saiu` (o paciente ou a clínica tirou) ou `expirado`. **Quem marca pelo app**
+  (`fisio_booking_settings.who_can_book`): `pacote` (só com pacote ativo; enquanto o pacote não existir, ninguém),
+  `todos` (em tratamento) ou `ninguem` (o app só mostra e confirma).
 
 ## Enums canônicos (machine-checked por `dominio:check`)
 
@@ -51,7 +62,11 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
     "fisio_programs.origin": ["manual", "protocolo"],
     "fisio_programs.pain_alert_mode": ["absoluto", "sobre_basal"],
     "fisio_game_ledger.reason": ["exercicio_concluido", "checkin", "missao", "desafio_semanal"],
-    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"]
+    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"],
+    "fisio_appointment_types.modality": ["presencial", "teleconsulta"],
+    "fisio_appointments.source": ["clinica", "online", "lista_espera"],
+    "fisio_appointments.cancelled_by": ["clinica", "paciente"],
+    "fisio_booking_settings.who_can_book": ["pacote", "todos", "ninguem"]
   }
 }
 ```
