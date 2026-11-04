@@ -29,6 +29,7 @@ import {
   TIPO_ROTULO,
   dataBr,
   estoqueTexto,
+  embalagemTexto,
   separadoTexto,
   faixaDePreco,
   subLinhaProduto,
@@ -209,12 +210,23 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
         const req = row.original.requisicao;
         // UC-PIDX-38 (D5 · CV4): o que reserva ativa já separou do saldo, e o que sobra livre.
         const separado = separadoTexto(row.original);
-        if (!req && !separado) return saldo;
+        // UC-PIDX-39 (CV2): o mesmo saldo em embalagens inteiras (ex.: rolos) e o resto.
+        const embalagem = embalagemTexto(row.original);
+        if (!req && !separado && !embalagem) return saldo;
         // UC-PIDX-30 (UC-FLX-19): requisição de compra aberta, do estoque mínimo ou feita à mão.
         const texto = req ? `Requisição ${req.numero} aberta em ${dataBr(req.data).slice(0, 5)}${req.fornecedor ? ` · ${req.fornecedor}` : ''}` : '';
         return (
           <div className="min-w-0">
             {saldo}
+            {embalagem && (
+              <div
+                className="truncate text-[11px] text-[var(--text-mute)]"
+                title={`1 ${row.original.embalagem?.nome} = ${qtdComUnidade(row.original.embalagem?.fator ?? 0, row.original.unidade_curta ?? row.original.unidade ?? '')}`}
+                data-contract="produto-lista-embalagem"
+              >
+                {embalagem}
+              </div>
+            )}
             {separado && (
               <div
                 className={'text-[11px] ' + ((row.original.livre ?? 0) <= 0 ? 'font-semibold text-[var(--neg)]' : 'text-[var(--text-mute)]')}

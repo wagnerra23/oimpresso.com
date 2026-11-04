@@ -53,7 +53,7 @@ const v = (name, sku, dpp, profit, dsp) => ({ name, sku, dpp, profit, dsp });
 const PRODUCTS = [
   { id: 1, name: "Lona 380g brilho impressa", sku: "PRD-0001", type: "variable", cat: "Comunicação visual", sub: "Lonas", brand: "Vinilcor", unit: "m²", tax: "ICMS 18%", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 50, notForSelling: false, active: true, weight: "0,45", expiry: "", expiryType: "", locs: [1, 2], desc: "Lona vinílica 380g com impressão digital solvente, acabamento em bastão e ilhós.", prep: 120, cf: { 1: "Fornecedor A" }, fiscal: { ncm: "3921.90.90", cest: "", cfop: "5101", origem: "0" },
     racks: { 1: { rack: "A2", row: "3", pos: "01" }, 2: { rack: "B1", row: "1", pos: "04" } },
-    variations: [v("Acabamento - Bastão + ilhós", "PRD-0001-1", 7.5, 633, 55), v("Acabamento - Solda simples", "PRD-0001-2", 6.9, 622, 49.8), v("Acabamento - Sem acabamento", "PRD-0001-3", 6.2, 616, 44.4)], stock: 1240, sep: 120 },
+    variations: [v("Acabamento - Bastão + ilhós", "PRD-0001-1", 7.5, 633, 55), v("Acabamento - Solda simples", "PRD-0001-2", 6.9, 622, 49.8), v("Acabamento - Sem acabamento", "PRD-0001-3", 6.2, 616, 44.4)], stock: 1240, sep: 120, emb: { nome: "Rolo", fator: 80 } },
   { id: 2, name: "Vinil adesivo brilho", sku: "PRD-0002", type: "single", cat: "Adesivos", sub: "Vinil", brand: "3M", unit: "m²", tax: "ICMS 18%", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 80, notForSelling: false, active: true, weight: "0,18", locs: [1], desc: "Vinil adesivo monomérico brilho, impressão + laminação opcional.", fiscal: { ncm: "3919.10.00", cest: "", cfop: "5102", origem: "2" }, fiscal: { ncm: "3921.90.90", cest: "", cfop: "5101", origem: "0" }, racks: { 1: { rack: "C1", row: "2", pos: "07" } },
     variations: [v("Padrão", "PRD-0002", 5.8, 624, 42)], stock: 62, sep: 70 },
   { id: 3, name: "Placa ACM 3mm recortada", sku: "PRD-0003", type: "single", cat: "Comunicação visual", sub: "Placas", brand: "Sem marca", unit: "m²", tax: "ICMS 18%", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 10, notForSelling: false, active: true, weight: "4,20", locs: [1, 2], desc: "Chapa ACM 3mm com recorte em router CNC.", fiscal: { ncm: "7606.12.10", cest: "", cfop: "5102", origem: "2" }, racks: { 1: { rack: "D4", row: "1", pos: "02" } },
@@ -417,6 +417,9 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, empresa
             {p.type === "variable" && p.variations.length > 1
               ? <SaldoVariacoes p={p}><span className={"pb-stock" + (p.alert != null && p.stock <= p.alert ? " low" : "")}>{fmtQty(p.stock)} {p.unit}</span></SaldoVariacoes>
               : <span className={"pb-stock" + (p.alert != null && p.stock <= p.alert ? " low" : "")}>{fmtQty(p.stock)} {p.unit}</span>}
+            {/* CV2 · UC-PIDX-39: o mesmo saldo em embalagens inteiras e o resto (1.240 m² = 15 × Rolo + 40 m²). */}
+            {p.emb && p.stock >= p.emb.fator && <span className="pb-emb" title={"1 " + p.emb.nome + " = " + fmtQty(p.emb.fator) + " " + p.unit}>
+              {Math.floor(p.stock / p.emb.fator)} × {p.emb.nome}{p.stock % p.emb.fator > 0 ? " + " + fmtQty(p.stock % p.emb.fator) + " " + p.unit : ""}</span>}
             {/* D5 · CV4 · UC-PIDX-38: o que a venda já separou e o que sobra livre. */}
             {p.sep > 0 && <span className={"pb-sep" + (p.stock - p.sep <= 0 ? " neg" : "")} title={fmtQty(p.sep) + " " + p.unit + " separados para vendas · " + fmtQty(p.stock - p.sep) + " " + p.unit + " livres"}><span>{fmtQty(p.sep)} {p.unit} separados</span><span>{fmtQty(p.stock - p.sep)} {p.unit} livres</span></span>}
           </>

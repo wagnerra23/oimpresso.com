@@ -56,6 +56,11 @@ export interface LinhaProduto {
    */
   separado?: number;
   livre?: number;
+  /**
+   * A maior unidade cadastrada como múltiplo da unidade do produto (UC-PIDX-39 · CV2), ex.:
+   * { nome: 'Rolo', fator: 80 } para m². Só com subunidades ligadas na empresa.
+   */
+  embalagem?: { nome: string; fator: number };
 }
 
 export interface SaldoDaVariacao {
@@ -351,6 +356,29 @@ export function faixaDePreco(tipo: TipoProduto, min: number | undefined, max: nu
 export function estoqueTexto(l: LinhaProduto): string {
   if (!l.controla_estoque || l.estoque === null) return '—';
   return qtdComUnidade(l.estoque, l.unidade_curta ?? l.unidade ?? '');
+}
+
+/**
+ * Saldo em embalagens inteiras e o resto (UC-PIDX-39 · CV2): 170 m² com Rolo = 80 m² dá
+ * { inteiras: 2, resto: 10 } — 2 × 80 + 10 = 170, as duas contas fecham. Conta em décimos de
+ * milésimo (4 casas, como a quantidade do estoque) para não errar no ponto flutuante.
+ * null quando não há embalagem, o produto não controla estoque ou o saldo não chega a 1 embalagem.
+ */
+export function saldoEmEmbalagens(l: LinhaProduto): { inteiras: number; resto: number } | null {
+  if (!l.controla_estoque || l.estoque === null || !l.embalagem || l.embalagem.fator <= 1) return null;
+  const saldo = Math.round(l.estoque * 10000);
+  const fator = Math.round(l.embalagem.fator * 10000);
+  if (saldo < fator) return null;
+  const inteiras = Math.floor(saldo / fator);
+  return { inteiras, resto: (saldo - inteiras * fator) / 10000 };
+}
+
+/** "2 × Rolo + 10 m²" (ou "2 × Rolo" sem resto) — null quando `saldoEmEmbalagens` é null. */
+export function embalagemTexto(l: LinhaProduto): string | null {
+  const e = saldoEmEmbalagens(l);
+  if (!e || !l.embalagem) return null;
+  const un = l.unidade_curta ?? l.unidade ?? '';
+  return `${qtdComUnidade(e.inteiras, '')}× ${l.embalagem.nome}` + (e.resto > 0 ? ` + ${qtdComUnidade(e.resto, un)}` : '');
 }
 
 /** "3 Un separados para vendas · 7 Un livres" — null sem reserva (UC-PIDX-38). */
