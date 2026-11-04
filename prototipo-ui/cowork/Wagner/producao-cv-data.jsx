@@ -276,11 +276,21 @@ const DESPESAS = {
     { tipo: "Pedágio e estacionamento", descricao: "Estacionamento na R. Edgard Ferraz", valor: 18, estado: "aguardando", reembolsavel: null, recibo: "ticket-estac.jpg", quem: "Rafa", quando: "16/10 08:10" },
   ],
 };
+// Cronômetro esquecido (UC-PCV-22): apontamento que ficou aberto no fim do turno é fechado pelo sistema na hora
+// do fim do turno (TURNO.fim, não um "18h" fixo) e o PCP é avisado no painel. O operador corrige depois, com
+// justificativa; o registro original fica no histórico. O aviso some quando a correção é registrada.
+const AUTOFECHA = [
+  { os: "OS-2611", etapa: "Impressão eco-solvente", quem: "Diego", dia: "14/10", corrigido: null },
+];
+const horaFimTurno = () => String(TURNO.fim).padStart(2, "0") + ":00";
+const autofechaDe = (os) => AUTOFECHA.find((a) => a.os === os) || null;
+const corrigirAutofecha = (os, hora, just) => { const a = autofechaDe(os); if (!a) return; a.corrigido = { hora, just }; registrar({ os, tipo: "pcp", texto: "Corrigiu o fim do apontamento de " + a.etapa + " (" + a.quem + ", " + a.dia + ") de " + horaFimTurno() + " para " + hora + " — " + just }); };
+
 const despesasDe = (os) => DESPESAS[os] || [];
 const lancarDespesa = (os, d) => { DESPESAS[os] = [...despesasDe(os), d]; registrar({ os, quem: d.quem, tipo: "pcp", texto: "Lançou despesa: " + d.descricao + " (" + fmt(d.valor) + (d.estado === "aguardando" ? ", aguardando conferência" : d.reembolsavel ? ", cobrar do cliente" : ", só no custo") + ")" }); };
 const conferirDespesa = (os, i, reembolsavel) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).map((x, k) => k === i ? { ...x, estado: "conferida", reembolsavel, conferiu: "Você" } : x); registrar({ os, tipo: "pcp", texto: "Conferiu despesa: " + d.descricao + " (" + fmt(d.valor) + (reembolsavel ? ", cobrar do cliente" : ", só no custo") + ")" }); };
 const removerDespesa = (os, i) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).filter((_, k) => k !== i); registrar({ os, tipo: "pcp", texto: "Removeu despesa: " + d.descricao + " (" + fmt(d.valor) + ")" }); };
 
-window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, noPosto, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE, TIPOS_DESP, despesasDe, lancarDespesa, conferirDespesa, removerDespesa,
+window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, noPosto, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE, AUTOFECHA, horaFimTurno, autofechaDe, corrigirAutofecha, TIPOS_DESP, despesasDe, lancarDespesa, conferirDespesa, removerDespesa,
   etapas, atual, progresso, emProducao, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();

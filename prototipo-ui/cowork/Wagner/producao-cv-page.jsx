@@ -137,6 +137,9 @@ function Painel({ onAbrir, ir, filtrar }) {
           <Alert key={m.maq} tone={m.sit === "vencida" ? "danger" : "warn"} title={"Manutenção preventiva " + (m.sit === "vencida" ? "vencida" : "vence em breve") + ": " + (maq ? maq.nome : m.maq)}>
             {m.o}. {m.msg} Faça a parada antes de programar mais OS nesta máquina; depois registre em Postos e cadastros.
             <div className="pcv-al-a"><Button size="sm" onClick={() => ir("postos")}>Ver o plano</Button><Button size="sm" onClick={() => ir("linha")}>Ver a carga na linha do tempo</Button></div></Alert>); })}
+        {Alert && D.AUTOFECHA && D.AUTOFECHA.filter((a) => !a.corrigido).map((a) => (
+          <Alert key={"af-" + a.os} tone="warn" title={"Cronômetro fechado sozinho no fim do turno: " + a.os}>{a.quem} deixou {a.etapa} aberto em {a.dia}. O sistema fechou às {D.horaFimTurno()}, fim do turno. Confira com {a.quem} e corrija o horário na ficha da OS, com justificativa.
+            <div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir(a.os)}>Abrir {a.os}</Button></div></Alert>))}
         {Alert && <Alert tone="warn" title="OS-2603 vence hoje e está 7,8% acima do orçado">Refugo de 9,4 m² na impressão (banding na cabeça 3). Faltam bainha e ilhós.<div className="pcv-al-a"><Button size="sm" onClick={() => onAbrir("OS-2603")}>Abrir OS-2603</Button></div></Alert>}
       </div>
 

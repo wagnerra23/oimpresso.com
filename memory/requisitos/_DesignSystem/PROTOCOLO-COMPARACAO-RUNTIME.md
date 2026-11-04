@@ -178,10 +178,16 @@ shared de 37 telas. Mudar o compartilhado para servir uma tela é o **mesmo erro
 
 ## Camada BUILDADA (pixel) — regressão vs baseline própria (complementar, não substituta)
 
-Existe uma terceira camada, **já viva e REQUIRED no CI**, que este protocolo não substitui — e que
-não substitui este protocolo: a **comparação pixel-a-pixel oficial do app BUILDADO**.
+> **Errata 2026-11-04:** esta camada **não existe mais.** A comparação de pixel saiu do projeto
+> por decisão [W] ([ADR 0445](../../decisions/0445-comparacao-de-pixel-sai-do-projeto.md)): os
+> testes de baseline, as fotos `.snap` e o modo update foram apagados. O texto abaixo descreve
+> como ela era e fica como registro; os testes de comportamento no browser seguem no mesmo
+> workflow. Para comparar design × produção, valem D1–D8 acima.
 
-**Onde vive:** [`tests/Browser/CoreScreens/PixelBaselineTest.php`](../../../tests/Browser/CoreScreens/PixelBaselineTest.php)
+Existia uma terceira camada, que este protocolo não substituía — e que
+não substituía este protocolo: a **comparação pixel-a-pixel oficial do app BUILDADO**.
+
+**Onde vivia:** `tests/Browser/CoreScreens/PixelBaselineTest.php` (apagado em 2026-11-04)
 rodando em [`.github/workflows/visual-regression.yml`](../../../.github/workflows/visual-regression.yml)
 (Pest 4 Browser + Playwright chromium): builda o Vite (React/CSS reais), navega logado
 (auth-bridge `/_visreg-login`), tira screenshot de viewport das **núcleo-6** (Financeiro/Unificado ·

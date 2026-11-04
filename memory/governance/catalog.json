@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 892,
-    "edges": 1208,
+    "nodes": 894,
+    "edges": 1211,
     "by_node_type": {
       "module": 43,
       "table": 108,
-      "adr": 148,
+      "adr": 150,
       "component": 504,
       "api": 89
     },
@@ -46,9 +46,9 @@
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
-      "supersedes": 26,
-      "supersedesPartially": 75,
-      "supersededBy": 30
+      "supersedes": 27,
+      "supersedesPartially": 76,
+      "supersededBy": 31
     },
     "dangling": 0
   },
@@ -388,6 +388,13 @@
       "type": "adr",
       "num": "0105",
       "slug": "0105-cliente-como-sinal-guiar-sem-mandar",
+      "exists": true
+    },
+    {
+      "id": "adr:0108",
+      "type": "adr",
+      "num": "0108",
+      "slug": "0108-regressao-visual-pest-browser-tier-2",
       "exists": true
     },
     {
@@ -1088,6 +1095,13 @@
       "type": "adr",
       "num": "0441",
       "slug": "0441-funil-de-vendas-sai-da-depreciacao-emenda-0301",
+      "exists": true
+    },
+    {
+      "id": "adr:0445",
+      "type": "adr",
+      "num": "0445",
+      "slug": "0445-comparacao-de-pixel-sai-do-projeto",
       "exists": true
     },
     {
@@ -7753,6 +7767,12 @@
     },
     {
       "from": "adr:0411",
+      "to": "adr:0445",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0411",
       "to": "adr:0409",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
@@ -7880,6 +7900,18 @@
     {
       "from": "adr:0441",
       "to": "adr:0301",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0445",
+      "to": "adr:0411",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0445",
+      "to": "adr:0108",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },

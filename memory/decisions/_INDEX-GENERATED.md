@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **449** arquivos · **434** números únicos · máx **0444**
+- **450** arquivos · **435** números únicos · máx **0445**
 - **ADRs ATIVOS (lifecycle ativo): 402** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 387 · superseded 27 · proposto 21 · deprecated 11 · recusado 2 · rascunho 1
-- Por lifecycle: ativo 402 · substituido 27 · arquivado 20
+- Por status: aceito 387 · superseded 28 · proposto 21 · deprecated 11 · recusado 2 · rascunho 1
+- Por lifecycle: ativo 402 · substituido 28 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 - **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
-## Todas as ADRs (449)
+## Todas as ADRs (450)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -454,7 +454,7 @@ _(nenhuma)_
 | 0408 | aceito | ativo | decision | Medição de paridade protótipo×prod pode ser AGENDADA e advisory — o que a 0290 r |
 | 0409 | aceito | ativo | decision | Zero baseline de tolerância — conformidade absoluta e dívida acordada por toque |
 | 0410 | aceito | ativo | decision | Ratificação do zero baseline no funil de design e validação exclusiva em produçã |
-| 0411 | aceito | ativo | decision | Snapshot de pixel do VRT fica fora do passo 3 da ADR 0409 — referência de regres |
+| 0411 | superseded | substituido | decision | Snapshot de pixel do VRT fica fora do passo 3 da ADR 0409 — referência de regres |
 | 0412 | aceito | ativo | decision | Retorno de canon já mergeado ao projeto Cowork de telas dispensa opt-in (emenda  |
 | 0413 | aceito | ativo | decision | Ponto — fechamento da competência, painel de Conformidade e relatórios legais (D |
 | 0414 | aceito | ativo | decision | Patrimônio: a Auditoria é um deep-link para o Modules/Auditoria, e os formulário |
@@ -488,3 +488,4 @@ _(nenhuma)_
 | 0442 | aceito | ativo | decision | IBS/CBS automático para todo emissor do regime normal (CRT 3) — emenda a 0321 |
 | 0443 | aceito | ativo | decision | Nuvemshop entra no Modules/Marketplaces como segundo canal, não no Woocommerce |
 | 0444 | proposto | ativo | decision | MDF-e e CT-e entram pelas bibliotecas sped-mdfe e sped-cte, dentro do Modules/Nf |
+| 0445 | aceito | ativo | decision | A comparação de pixel (snapshots do VRT) sai do projeto; os testes de comportame |

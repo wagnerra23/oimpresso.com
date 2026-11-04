@@ -11,6 +11,7 @@ use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\BaixaDeBoletoMigrado;
 use Modules\PaymentGateway\Services\Drivers\InterDriver;
 
 /**
@@ -26,6 +27,15 @@ use Modules\PaymentGateway\Services\Drivers\InterDriver;
  * Idempotente: dedup por metadata->inter_ref (codigoSolicitacao/nossoNumero).
  * Re-run NÃO duplica. Multi-tenant Tier 0 (biz=1).
  *
+ * Sabor Brasil (2026-11-04) — antes de criar título novo, o recebimento:
+ *   - é pulado se a cobrança foi emitida pelo oimpresso (o listener da CobrancaPaga já baixa);
+ *   - baixa o título que já existe, quando ele veio do Delphi com o nosso número
+ *     (BaixaDeBoletoMigrado). Ambíguo ou com diferença acima de 10% fica para conferência.
+ * `--pendencias` lista no fim os boletos ainda em aberto e vencidos, por banco, para o
+ * cliente conferir (inclui BB e Santander, que não têm API de consulta aqui).
+ * Janelas de até 90 dias por chamada ao Inter (pedidos longos, como o acerto pré-migração,
+ * são divididos).
+ *
  * Uso:
  *   php artisan paymentgateway:inter-importar-recebimentos --dry-run        # só lista
  *   php artisan paymentgateway:inter-importar-recebimentos --conta=12        # importa
@@ -36,11 +46,12 @@ class InterImportarRecebimentosCommand extends Command
                             {--business=1 : business_id (default 1 = WR2)}
                             {--days=60 : Janela de pagamentos a importar (dias atrás)}
                             {--conta= : ID da fin_contas_bancarias destino da baixa}
-                            {--dry-run : Só lista o que importaria, sem gravar}';
+                            {--dry-run : Só lista o que importaria, sem gravar}
+                            {--pendencias : No fim, lista os boletos em aberto e vencidos por banco}';
 
     protected $description = 'Importa boletos pagos no Inter como título recebido + baixa no Financeiro (US-PG-008)';
 
-    public function handle(InterDriver $driver): int
+    public function handle(InterDriver $driver, BaixaDeBoletoMigrado $migrado): int
     {
         $dryRun = (bool) $this->option('dry-run');
         $businessId = (int) $this->option('business');
@@ -64,11 +75,15 @@ class InterImportarRecebimentosCommand extends Command
             return self::FAILURE;
         }
 
-        $ini = new \DateTimeImmutable("-{$days} days");
         $fim = new \DateTimeImmutable('today');
 
         try {
-            $itens = $driver->listarCobrancasPagas($cred, $ini, $fim);
+            $itens = [];
+            for ($ate = $fim, $resta = $days; $resta > 0; $resta -= 90) {
+                $de = $ate->modify('-' . (min(90, $resta) - 1) . ' days');
+                array_push($itens, ...$driver->listarCobrancasPagas($cred, $de, $ate));
+                $ate = $de->modify('-1 day');
+            }
         } catch (\Throwable $e) {
             $this->error('Falha ao listar cobranças no Inter: ' . $e->getMessage());
 
@@ -85,6 +100,8 @@ class InterImportarRecebimentosCommand extends Command
         $importados = 0;
         $pulados = 0;
         $erros = 0;
+        $baixados = 0;
+        $conferir = [];
 
         foreach ($itens as $item) {
             $cob = $item['cobranca'] ?? $item;
@@ -109,6 +126,43 @@ class InterImportarRecebimentosCommand extends Command
 
             if ($jaExiste) {
                 $pulados++;
+                continue;
+            }
+
+            // Cobrança emitida pelo oimpresso: quem baixa é o listener da CobrancaPaga.
+            if ($this->emitidaPeloOimpresso($businessId, $codigo, $nossoNumero)) {
+                $pulados++;
+                continue;
+            }
+
+            // Título que já existe (migrado do Delphi): baixa ele em vez de criar outro.
+            $rec = [
+                'ref' => $refId, 'seu_numero' => $seuNumero, 'nosso_numero' => $nossoNumero, 'banco' => '077',
+                'valor_nominal' => $valor,
+                'valor_pago' => (float) ($cob['valorTotalRecebido'] ?? $cob['valorTotalRecebimento'] ?? $valor),
+                'vencimento' => isset($cob['dataVencimento']) ? (string) $cob['dataVencimento'] : null,
+                'pago_em' => $pagaEm->format('Y-m-d'),
+                'pagador_doc' => isset($cob['pagador']['cpfCnpj']) ? (string) $cob['pagador']['cpfCnpj'] : null,
+            ];
+            if ($dryRun) {
+                DB::beginTransaction();
+            }
+            try {
+                $r = $migrado->baixar($businessId, $rec, $contaId);
+            } finally {
+                if ($dryRun) {
+                    DB::rollBack();
+                }
+            }
+            if ($r['resultado'] === BaixaDeBoletoMigrado::BAIXADO) {
+                $baixados++;
+                $this->line(sprintf('  %s baixa título #%d · seuNumero=%s · juros %s · desconto %s',
+                    $dryRun ? '[dry-run]' : '✓', $r['titulo_id'], $seuNumero ?: '-',
+                    number_format($r['juros'], 2, ',', '.'), number_format($r['desconto'], 2, ',', '.')));
+                continue;
+            }
+            if ($r['resultado'] !== BaixaDeBoletoMigrado::NENHUM) {
+                $conferir[] = [$r['resultado'], $seuNumero ?: '-', $nossoNumero ?: '-', number_format($valor, 2, ',', '.'), $r['titulo_id'] ?? '-'];
                 continue;
             }
 
@@ -183,14 +237,63 @@ class InterImportarRecebimentosCommand extends Command
 
         $this->newLine();
         $this->info(sprintf(
-            '✓ Resumo: %d %s · %d já existentes (pulados) · %d erro(s)',
+            '✓ Resumo: %d título(s) existente(s) %s · %d %s · %d já existentes (pulados) · %d para conferir · %d erro(s)',
+            $baixados,
+            $dryRun ? 'a baixar' : 'baixados',
             $importados,
             $dryRun ? 'a importar' : 'importados',
             $pulados,
+            count($conferir),
             $erros,
         ));
+        if ($conferir !== []) {
+            $this->warn('Recebimentos que não foram baixados nem importados (conferir à mão):');
+            $this->table(['motivo', 'seuNumero', 'nossoNumero', 'valor', 'título'], $conferir);
+        }
+        if ($this->option('pendencias')) {
+            $this->listarPendencias($businessId);
+        }
 
         return $erros > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function emitidaPeloOimpresso(int $businessId, string $codigo, string $nossoNumero): bool
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('cobrancas')) {
+            return false;
+        }
+
+        return DB::table('cobrancas')->where('business_id', $businessId)
+            ->where(function ($w) use ($codigo, $nossoNumero) {
+                $w->when($codigo !== '', fn ($q) => $q->orWhere('gateway_external_id', $codigo))
+                    ->when($nossoNumero !== '', fn ($q) => $q->orWhere('nosso_numero', $nossoNumero));
+            })
+            ->when($codigo === '' && $nossoNumero === '', fn ($q) => $q->whereRaw('1 = 0'))
+            ->exists();
+    }
+
+    /** Boletos a receber ainda em aberto e vencidos, por banco — a lista que vai ao cliente conferir. */
+    private function listarPendencias(int $businessId): void
+    {
+        $linhas = DB::table('fin_titulos')->where('business_id', $businessId)
+            ->where('tipo', 'receber')->whereIn('status', ['aberto', 'parcial'])->whereNull('deleted_at')
+            ->whereDate('vencimento', '<', now()->toDateString())
+            ->orderBy('vencimento')
+            ->get(['numero', 'cliente_descricao', 'vencimento', 'valor_aberto', 'forma_pagamento', 'metadata'])
+            ->filter(fn ($l) => $l->forma_pagamento === 'boleto'
+                || ! empty(json_decode((string) $l->metadata, true)['boleto_nosso_numero'] ?? null))
+            ->values();
+
+        $this->newLine();
+        $this->warn(sprintf('%d boleto(s) em aberto e vencido(s):', $linhas->count()));
+        $porBanco = $linhas->groupBy(fn ($l) => (string) (json_decode((string) $l->metadata, true)['boleto_banco'] ?? 'sem banco'));
+        foreach ($porBanco as $banco => $grupo) {
+            $this->line(sprintf('  banco %s: %d', $banco, $grupo->count()));
+        }
+        $this->table(['título', 'cliente', 'vencimento', 'em aberto', 'banco'], $linhas->map(fn ($l) => [
+            $l->numero, $l->cliente_descricao, $l->vencimento, number_format((float) $l->valor_aberto, 2, ',', '.'),
+            (string) (json_decode((string) $l->metadata, true)['boleto_banco'] ?? '-'),
+        ])->all());
     }
 
     /**
