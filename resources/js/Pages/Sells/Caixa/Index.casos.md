@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o que a tela garante é o agregado do dia (valor, forma de pagamento, origem, caixa aberto) — isso não muda num refactor visual.
 owner: wagner
-last_run: "2026-10-05"
+last_run: "2026-11-04"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
