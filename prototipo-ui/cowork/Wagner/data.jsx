@@ -93,6 +93,18 @@ const MENU = [
       { id: "vest-etiquetas", icon: "print", label: "Etiquetas" },
       { id: "vest-remarcacao", icon: "percent", label: "Remarcação por coleção" },
     ]},
+    // Fisio (Modules/Fisio · COMERCIAL no vivo, só para a empresa com o módulo no pacote). As telas são
+    // as do canvas Prescreve Pro (prototipos/fisio/); a ordem segue a ADR 0437 §3.3. O canvas não desenha
+    // a lista de pacientes, por isso ela não entra aqui. As outras telas ficam no seletor da página.
+    { id: "fisio",       icon: "users",   label: "Fisio", ghosts: [
+      { id: "fisio-prescrever",  icon: "doc",   label: "Prescrever" },
+      { id: "fisio-biblioteca",  icon: "book",  label: "Biblioteca" },
+      { id: "fisio-agenda",      icon: "clock", label: "Agenda" },
+      { id: "fisio-protocolos",  icon: "list",  label: "Protocolos" },
+      { id: "fisio-tele",        icon: "phone", label: "Teleconsulta" },
+      { id: "fisio-financeiro",  icon: "cash",  label: "Financeiro" },
+      { id: "fisio-p-hoje",      icon: "globe", label: "Portal do paciente" },
+    ]},
   ]},
   { group: "FINANÇAS", items: [
     { id: "venda-caixa", icon: "cash", label: "Caixa" },
@@ -137,8 +149,8 @@ const MENU = [
       { id: "fiscal-das",     icon: "calc",    label: "Apuração do DAS" },
     ]},
   ]},
-  // No vivo também aparecem Reservas, Cozinha e Pedidos (restaurante) aqui e Fisio em COMERCIAL,
-  // só para a empresa que tem o módulo no pacote. O protótipo desenha uma empresa sem eles.
+  // No vivo também aparecem Reservas, Cozinha e Pedidos (restaurante) aqui, só para a empresa que
+  // tem o módulo no pacote. O protótipo desenha uma empresa sem eles. (A Fisio entrou em COMERCIAL.)
   { group: "PRODUÇÃO", items: [
     // Produção (comunicação visual) — OS como projeto. Entra 1º: é a visão do PCP sobre as OS abaixo.
     { id: "pcv", icon: "layers", label: "Painel de produção", ghosts: [
