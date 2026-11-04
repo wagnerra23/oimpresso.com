@@ -609,6 +609,33 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                       </tfoot>
                     )}
                   </table>
+                  {/* UC-PIDX-40: o saldo do kit sai do componente mais escasso. */}
+                  {d.kits_por_local && d.kits_por_local.length > 0 && (
+                    <div className="pt-[6px]" data-contract="produto-detalhe-kits">
+                      <TituloDaSecao>Quantos kits dá para vender</TituloDaSecao>
+                      <table className="pb-tbl">
+                        <caption className="sr-only">Kits disponíveis por local</caption>
+                        <thead>
+                          <tr>
+                            <th>Local</th>
+                            <th className="r">Kits</th>
+                            <th>Limita</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {d.kits_por_local.map((k) => (
+                            <tr key={k.local}>
+                              <td>{k.local}</td>
+                              <td className={'r' + (k.kits === 0 ? ' font-semibold text-[var(--neg)]' : '')}>
+                                {k.kits} {k.kits === 1 ? 'kit' : 'kits'}
+                              </td>
+                              <td>{k.limita}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                   <PrecoDaComposicao v={d.variacoes[0]} />
                   {(custo || venda) && d.composicao.length > 0 && (
                     <div className="pt-[6px]">

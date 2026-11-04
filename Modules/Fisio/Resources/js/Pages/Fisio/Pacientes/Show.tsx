@@ -28,6 +28,7 @@ import ResponsavelPaciente, { type Profissional, type Transferencia } from '../_
 import EvolucaoPaciente, { type Evolucao, type PontoDor } from '../_components/EvolucaoPaciente';
 import EditorPrograma, { type ExercicioBiblioteca, type Programa, type ProtocoloModelo } from '../_components/EditorPrograma';
 import ExportarProntuarioPdf from '../_components/ExportarProntuarioPdf';
+import AvaliacaoEstruturada from '../_components/AvaliacaoEstruturada';
 import LinkPortal from '../_components/LinkPortal';
 
 interface Paciente {
@@ -162,6 +163,8 @@ function NovoRegistro({ pacienteId, corrigindo, onPronto }: { pacienteId: number
     });
   };
   const erros = form.errors as Record<string, string>;
+  // Avaliação usa o formulário em seções do protótipo (Lote 2); evolução e adendo seguem aqui.
+  if (!corrigindo && tipo === 'avaliacao') return <AvaliacaoEstruturada pacienteId={pacienteId} onPronto={onPronto} onEvolucao={() => setTipo('evolucao')} />;
 
   return (
     <form onSubmit={assinar} className="flex flex-col gap-3 rounded-lg border border-border p-4">
