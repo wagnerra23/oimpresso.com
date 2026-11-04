@@ -1513,7 +1513,11 @@ verde nos dois planos por vacuidade — um teste que não pode reprovar (§5 202
 > detalhe: afirmação de impossibilidade vira instrução de desistência pra próxima sessão
 > (§5 2026-09-01). O smoke autenticado EXISTE, e quem o produziu foi o próprio CI.**
 >
-> O `visual-regression` renderiza a tela **logada** (`tests/Browser/CoreScreens/PixelBaselineTest.php`,
+> ⚠️ **Nota 2026-11-04:** esse caminho deixou de existir. A comparação de pixel saiu do projeto
+> ([ADR 0445](../../../../memory/decisions/0445-comparacao-de-pixel-sai-do-projeto.md)), com o
+> `PixelBaselineTest.php` e o artifact `pixel-diff-views`. O parágrafo abaixo é registro de 2026-09-21.
+>
+> O `visual-regression` renderizava a tela **logada** (`tests/Browser/CoreScreens/PixelBaselineTest.php`,
 > escopo `VISREG_SCREENS=["Jana"]`) e publica `pixel-diff-views/jana.html` com **baseline × atual ×
 > diff**. Medido no run `35592531986` do [#7587](https://github.com/wagnerra23/oimpresso.com/pull/7587):
 > `VisregThreshold [Jana]: diff 2.0169% > τ_alto 2.0000%`.

@@ -1,43 +1,25 @@
-name: Visual Regression (Pest 4 Browser)
+name: Browser E2E (Pest 4 Browser)
 
-# ADR 0108 — Camada Tier 2 de validação visual.
-# Roda Pest browser snapshot tests em PRs cujo diff pode alterar o render.
-# O double-threshold separa ruído, zona cinza revisável e regressão clara.
+# Testes de comportamento no browser (Pest 4 Browser): render das telas, contratos do shell,
+# axe de acessibilidade, smoke cross-browser, sondas de dimensão e o perf budget do Lighthouse.
 #
-# REQUIRED-READINESS (2026-06-11, aprovação Wagner — padrão ADR 0271 onda 2 item 4,
-# idêntico ao financeiro-pest.yml): `pull_request` SEM paths (always-run) pra ser
-# promovível a required sem deadlock "Expected — waiting". O custo (PHP + composer +
-# playwright + migrate + Pest ~10min) é evitado por skip-as-pass interno: o classificador
-# `ui-impact.mjs` detecta se algo visual mudou; se não, pula o pesado e conclui
-# verde (~1-2min, só checkout + boot do service).
+# A COMPARAÇÃO DE PIXEL SAIU em 2026-11-04 por decisão [W] ("visual regressão já foi desativado,
+# remova do projeto"): os testes de baseline (PixelBaseline, estados isolados, fluxos visuais),
+# as fotos `.snap`, o modo update que regravava baseline e o canário que contava telas comparadas.
+# O arquivo e o id do job `visual-regression` ficaram por enquanto porque dezenas de scripts e
+# docs citam esse nome; renomear é outro PR.
+#
+# `pull_request` SEM paths (always-run) com skip-as-pass interno: o classificador
+# `ui-impact.mjs` detecta se algo de UI mudou; se não, pula o pesado e conclui verde.
 
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, labeled, unlabeled]
-  # MODO UPDATE (criado em 2026-07-07 pela ADR UI-0020 §4; a lei do dark hoje é a
-  # UI-0027, mas o mecanismo é o mesmo e serve a qualquer Fundação): dispatch manual re-gera as baselines
-  # NO MESMO runner que sempre as gerou (rendering determinístico) e abre PR com os
-  # .snap novos — o gate do PR re-roda e PROVA que a baseline nova bate (anti-#3297).
-  # Uso: mudança de Fundação aprovada [W] (ex.: retune dark warm). Desde 2026-07-10 um PR
-  # que toca `resources/css/tokens/**` RODA o gate pesado (não é mais skip-as-pass — ver o
-  # classificador abaixo): a baseline antiga falha e prova a mudança visual. O dispatch serve
-  # pra REGENERAR as baselines no runner canônico quando a mudança é intencional/aprovada.
+  # Dispatch manual re-roda os testes de browser num ref (sem modo update de baseline).
   workflow_dispatch:
-    inputs:
-      screens:
-        description: >-
-          JSON array de telas do manifesto pra regenerar SÓ elas (ex: ["superadmin/Dashboard"]).
-          Vazio = comportamento de sempre (matriz inteira + estados + flows). Existe porque o
-          job tem timeout-minutes 15 e o update completo NÃO cabe nele: medido em 2026-08-19,
-          6 dispatches seguidos morreram em 15min02s marcados como `cancelled` — o que parece
-          concorrência e não é. Baseline de UMA tela nova cabe folgado.
-        required: false
-        default: ""
 
 permissions:
-  # O modo update autentica push/PR exclusivamente com COWORK_BOT_PAT. O GITHUB_TOKEN
-  # do job não precisa escrever no repositório em nenhum evento.
   contents: read
   pull-requests: write
 
@@ -60,65 +42,7 @@ concurrency:
 jobs:
   visual-regression:
     runs-on: ubuntu-24.04
-    # 35 min so no dispatch manual: MEDIDO em 2026-08-19 que o modo update NAO cabe em 15,
-    # e o gargalo e o SETUP (composer + npm + playwright + mysql + migrate + seed), nao o
-    # numero de telas — um dispatch escopado a UMA tela morreu igual, em 15min15s.
-    #
-    # PR: 15 -> 25 (2026-09-02). O 15 e MARGINAL para um run VERDE, e isso ficou invisivel
-    # enquanto a zona cinza existia: o pixel-diff reprovava e o run terminava em 11-14 min.
-    # Com as baselines alinhadas o gate passa e TODOS os steps rodam ate o fim. Os dois
-    # runs verdes medidos no mesmo dia caem em lados opostos do teto:
-    #   · 33670313000 (PR de baselines #6576) — 5/5 ENFORCING verdes, job 15min10s -> `cancelled`
-    #   · 33670634977 (PR #6579)              — 6/6 verdes (incl. Canario), job 14min22s -> `success`
-    # ~48s separam os dois, entao o run verde e uma MOEDA no teto de 15, nao um impossivel
-    # — a 1a redacao deste comentario dizia "nao consegue nem em principio" e o proprio
-    # 33670634977 refutou. `cancelled` e lido como bloqueio pela branch protection (mesmo
-    # efeito ja catalogado no comentario de `concurrency` acima), entao meia chance de
-    # `cancelled` num gate verde e ruido que se aprende a ignorar.
-    # Nenhum step novo entrou no caminho de PR — a alteracao de 2026-09-02 (alinhar com
-    # origin/main) roda SO em workflow_dispatch. O caminho barato segue barato: PR sem
-    # mudanca de UI conclui por skip-as-pass em ~1 min (medido: 0.8/1.1/1.2/1.3 min).
-    # Contexto do teto anterior: 17 de 51 runs de PR na janela de 2026-09-02 terminaram
-    # `cancelled`, agrupados em 11-15 min — o teto ja mordia antes deste PR.
-    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 35 || 25 }}
-    env:
-      # ZONA CINZA — bloqueio DESLIGADO por decisão [W] em 2026-09-04.
-      #
-      # A banda do meio pedia a label `visreg-gray-approved` por PR (gate F1.5). [W] textual:
-      # "todos são aprovados agora, vou usar isso quando o software estiver maduro" — enquanto
-      # o produto muda todo dia, a aprovação era dada em 100% dos casos, então o mecanismo só
-      # custava runner e vermelho que se aprende a ignorar.
-      #
-      # O QUE FOI MEDIDO NO DIA (não é impressão): as 3 telas que travaram o #6753 — Jana
-      # 1.6746%, Fiscal/Config 0.1812%, Fiscal/Cockpit 0.1200% — tinham 5 PRs abertos mexendo
-      # justamente nelas (#6738 Config, #6736 e #6732 Cockpit, #6425 e #6427 Jana). Regenerar
-      # baseline ali carimbaria foto que morre em horas; exigir aprovação, idem.
-      #
-      # ⚠️ EMENDA 2026-09-04 (revisão adversarial, mesmo dia): a redação original seguia
-      # "a Jana repetia o ratio IDÊNTICO de #6742/#6745, prova de que a divergência vinha da
-      # main". O ratio idêntico prova herança **só para a Jana**. `Fiscal/Config` e
-      # `Fiscal/Cockpit` NÃO estavam cinzas naqueles runs — em #6745 o Config estava VERDE,
-      # 1h20 antes. O recibo que sustenta as outras duas é outro, e é mais incômodo: entre
-      # 12:19Z e 13:39Z entraram no main 3 PRs de Fiscal tocando exatamente essas telas
-      # (#6719, #6733 Cockpit.tsx · #6725 Config.tsx), TODOS com 0 `.snap` no diff, e DOIS
-      # deles (#6733, #6725) mergearam com `visual-regression` em `conclusion: failure` —
-      # o job é advisory. É a §5 2026-08-24 inteira: a divergência entra pelo advisory, não
-      # deixa rastro na baseline, e reaparece como vermelho de terceiro. Desligar a banda do
-      # meio remove o ALARME; o DÉBITO segue na baseline e volta no próximo PR de escopo global.
-      #
-      # O QUE **NÃO** MUDOU — e é o que sustenta a defesa:
-      #  · REGRESSÃO CLARA (> τ_alto) segue reprovando. O double-threshold continua com as
-      #    duas bandas e segue MEDINDO e reportando a cinza no log, no step summary e no
-      #    artifact `pixel-diff-views`. Desligou-se o BLOQUEIO da banda do meio, não a medição.
-      #  · O filtro de raio (só bloqueia tela dentro do raio do PR — bite-test de 2026-08-24
-      #    em tests/Unit/VisregGrayApprovalTest.php) segue intacto e é ortogonal a isto.
-      #  · A label `visreg-gray-approved` continua existindo e sendo aceita; ela só deixou de
-      #    ser NECESSÁRIA. Nada que a aplique hoje quebra.
-      #
-      # COMO RELIGAR (é uma linha, quando o software amadurecer — [W] 2026-09-04):
-      #   VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visreg-gray-approved') && '1' || '0' }}
-      VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && '1' || '0' }}
-
+    timeout-minutes: 25
     services:
       mysql:
         image: mysql:8.0
@@ -142,95 +66,14 @@ jobs:
           # — mexer nisso lá encareceria todo PR sem nenhum ganho.
           fetch-depth: ${{ github.event_name == 'workflow_dispatch' && 0 || 100 }}
 
-      # ── PRÉ-CONDIÇÃO DO MODO UPDATE — fotografar o MESMO mundo que o verify vai renderizar ──
-      # POR QUE EXISTE (medido em 2026-09-02; 6 rebakes seguidos falharam por isto):
-      #   Os dois modos deste workflow fazem checkout de árvores DIFERENTES, e o próprio
-      #   workflow já documentava metade disso no classificador de impacto (L118-129):
-      #     · `pull_request`      → MERGE REF: "Merge <head> into <tip de main NAQUELE momento>"
-      #     · `workflow_dispatch` → o ref CRU, sem merge com main
-      #   Logo o update fotografa `ref` e o verify compara contra `merge(ref, main)`. Quando o
-      #   ref está atrás de main, a baseline nasce sendo foto de UI velha — e o PR de baselines
-      #   reprova contra o render atual. Como o `vrt/baselines-*` é criado a partir do ref do
-      #   dispatch (step "Abrir PR...") e vai `--base main`, essa foto velha ATERRISSA em main e
-      #   passa a reprovar TODO PR seguinte. É por isso que a zona cinza vinha bit-idêntica em
-      #   16 branches independentes (spread 0.0000%): não era flake nem tela não-determinística,
-      #   era a baseline de main sendo retrato de código que main já não tem.
-      #
-      #   Decodificado com `scripts/tests/snap-diff.mjs` + os diff-views do run 33653847851
-      #   (PR de baselines `vrt/baselines-33653333470`, dispatch em `claude/forja-onda2-recibo-prod`):
-      #   na foto velha o sidebar não tinha o contador `sb-group-n` (que entrou em main no #6444,
-      #   2026-08-29) e a régua de KPI da Jana tinha 4 cards; no render atual, contador presente e
-      #   3 cards. Diferença de CÓDIGO, não de dado — nenhum rebake fecharia isso.
-      #
-      # O QUE ESTE STEP FAZ: alinha o ref com `origin/main` ANTES de instalar/buildar, para que a
-      # foto do update seja de `merge(ref, main)` — exatamente a árvore que o verify do PR usa.
-      # Os dois usos legítimos do modo update continuam corretos:
-      #   (a) Fundação já em main  → o merge é no-op, fotografa main;
-      #   (b) UI nova numa branch  → fotografa a branch JÁ integrada com main, que é o que o
-      #       gate do PR daquela branch vai renderizar.
-      # Conflito NÃO é resolvido aqui: falha alto, porque baseline tirada de merge inventado
-      # seria pior que baseline velha.
-      - name: Alinhar com origin/main (pré-condição do modo update)
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch --no-tags origin main
-          ATRAS=$(git rev-list --count HEAD..origin/main)
-          FRENTE=$(git rev-list --count origin/main..HEAD)
-          echo "ref do dispatch: ${{ github.ref_name }}"
-          echo "distância p/ origin/main: ${ATRAS} atrás · ${FRENTE} à frente"
-          {
-            echo "### Modo update — alinhamento com \`origin/main\`"
-            echo ""
-            echo "- ref: \`${{ github.ref_name }}\`"
-            echo "- **${ATRAS} commit(s) atrás** de \`origin/main\` · ${FRENTE} à frente"
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [ "$ATRAS" = "0" ]; then
-            echo "✅ Já alinhado — merge dispensado."
-            echo "- merge: dispensado (já alinhado)" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          if ! git merge --no-edit --no-ff origin/main; then
-            git merge --abort || true
-            echo "::error::Conflito ao alinhar '${{ github.ref_name }}' com origin/main. Rebase a branch e dispare de novo — baseline tirada sem esse alinhamento nasce sendo foto de UI velha e reprova o próprio PR de baselines."
-            echo "- merge: **CONFLITO — abortado**" >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-          echo "✅ Alinhado: ${ATRAS} commit(s) de origin/main integrados antes de fotografar."
-          echo "- merge: ✅ ${ATRAS} commit(s) integrados antes de fotografar" >> "$GITHUB_STEP_SUMMARY"
-
-      # Gate L2 — lint charter `states:` ⇄ manifesto (cheap, node pre-instalado no runner).
-      # Roda SEMPRE (antes do classificador de UI): drift charter↔manifesto precisa falhar
-      # mesmo em PR documental. --selftest prova o comparador
-      # (L-31, dois lados) antes do lint real.
-      # PROMOVIDO A ENFORCING (2026-07-06, ADR 0271/0275 "promover = remover o continue-on-error"):
-      # verde em todos os runs desde a criação (0 fail em 30+), critério "2 verdes" cumprido com
-      # folga. Não precisou de clique de branch protection: NAQUELA DATA o check
-      # `visual-regression` era required. Remover o continue-on-error parou de mascarar a falha —
-      # drift charter↔JSON passou a REPROVAR O JOB.
-      # ⚠️ Reprovar o job ≠ bloquear merge: o context foi DEMOVIDO de required em 2026-08-26
-      # (nota completa no step `E2E de render · Patrimonio/Bens`). Quem é required vive em
-      # `governance/required-checks-baseline.json` — não restatear aqui.
-      # REPROVAÇÃO MOVIDA PRO FIM (2026-09-28): sem `continue-on-error`, a falha deste step fazia
-      # TODOS os passos com `success()` implícito pularem — medido no run 36192630403 (PR #7994):
-      # 44 steps `skipped`, incluindo `Classificar impacto` e `Modo de execução`, e o `Canário`
-      # (que tem `always()`) reprovou com IMPACT/MODE vazios; o comentário no PR nomeou o
-      # Canário, não o L2. Agora o step continua (`continue-on-error`) e quem reprova o job é
-      # `Veredito do Lint L2`, depois do Canário: a reprovação do job é a MESMA, e o resto da
-      # cadeia (classificação, pixel, estados, fluxos) roda e dá o próprio veredito.
-      - name: Lint L2 — charter states ⇄ manifesto
+      # Selftest do classificador de impacto (cheap, node pré-instalado no runner). Até 2026-11-04
+      # este step também rodava os lints dos manifestos de estado e fluxo da comparação de pixel,
+      # que saiu do projeto (ADR 0445). `continue-on-error`: quem reprova o job é o
+      # `Veredito do selftest do classificador de impacto`, no fim, para o resto da cadeia rodar.
+      - name: Selftest do classificador de impacto
         id: lint-l2
         continue-on-error: true
-        run: |
-          node scripts/visreg-states-lint.mjs --selftest
-          node scripts/visreg-states-lint.mjs
-          node scripts/visreg-flows-lint.mjs --selftest
-          node scripts/visreg-flows-lint.mjs
-          node scripts/visreg-sells-lint.mjs --selftest
-          node scripts/visreg-sells-lint.mjs
-          node scripts/governance/ui-impact.mjs --selftest
+        run: node scripts/governance/ui-impact.mjs --selftest
 
       # Fonte única do skip-as-pass. Diferente da antiga allowlist duplicada, cobre
       # CSS global, assets/fontes, Blade, toolchain e Controllers/rotas Inertia.
@@ -472,178 +315,6 @@ jobs:
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: ./vendor/bin/pest tests/Browser/CoreScreens/AuthBridgeSmokeTest.php --browser safari
 
-      # ── Onda Q4 (US-GOV-013) — GATE VISUAL DE PIXEL das núcleo-6 ─────────────────────
-      # FASE ENFORCING (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing).
-      # Promoção L1 = remover o continue-on-error deste step (não mexe na lista de
-      # required checks, só para de mascarar a falha — o step passa a reprovar o JOB).
-      # ⚠️ Reprovar o job ≠ bloquear merge: `visual-regression` saiu do required em
-      # 2026-08-26; o dono da lista é `governance/required-checks-baseline.json`.
-      # O contrato source→rota→âncora→baseline
-      # vive em tests/Browser/visreg-screens.json. Diff targeted executa exatamente as
-      # telas mapeadas; diff global executa a matriz núcleo-6. Baseline ausente BLOQUEIA.
-      # Mudança intencional: npm run visreg:update (CI) + aprovação [W] (F1.5).
-      - name: Pixel-diff afetadas/núcleo-6 (ENFORCING · double-threshold L7)
-        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
-        id: pixel-diff
-        env:
-          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
-          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
-          # Diz se `VISREG_SCREENS` cobre TUDO o que o PR pode ter mexido. Em `global` a lista
-          # tambem vem preenchida, mas so como raio informativo — quando algum item do diff
-          # nao declara proveniencia (tokens, CSS de fundacao, toolchain), ela e incompleta e
-          # este valor sai `false`, mantendo o bloqueio absoluto de sempre. Com `true`, a zona
-          # cinza de tela FORA do raio vira divida herdada: reportada, nunca bloqueante.
-          # Sem isto, `Governance/DsRollout` (drift da main vindo do #6175, que mergeou com o
-          # label sem regenerar a baseline) reprovava PRs que nao a tocaram — medido em 3
-          # branches independentes com o MESMO ratio 0.1226% em 2026-08-24.
-          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
-        # DOUBLE-THRESHOLD (L7): o teste roteia cada tela por 3 bandas (PixelBaselineTest
-        # + Tests\Browser\Support\VisregThreshold) — auto-aprova < τ_baixo (VISREG_TAU_LOW,
-        # default 0.1%), auto-falha > τ_alto (VISREG_TAU_HIGH, default 2%), e o MEIO é a
-        # ZONA CINZA coleta evidência e bloqueia até o label explícito de revisão [W].
-        # Calibrar sem mexer no código: setar VISREG_TAU_LOW / VISREG_TAU_HIGH aqui.
-        #
-        # PROMOVIDO A ENFORCING (L1) — `continue-on-error` REMOVIDO: o step agora BLOQUEIA
-        # o merge se ao menos 1 tela núcleo-6 passar de τ_alto (VISREG_TAU_HIGH, 2%). Seguro
-        # porque o L7 (double-threshold) absorve os diffs pequenos na ZONA CINZA — que NÃO
-        # falha e segue indo pro step summary + artifact pixel-diff-views pro [W] revisar.
-        run: ./vendor/bin/pest tests/Browser/CoreScreens/PixelBaselineTest.php
-
-      # ── Gate L2 (US derivada do mandato VRT) — SNAPSHOTS DE ESTADOS ISOLADOS ───────────
-      # Fecha o maior gap de cobertura: o pixel-diff (L7) acima só snapshota o estado SEEDADO
-      # (default). Aqui cada (tela × estado) declarado no charter `states:` + no manifesto
-      # tests/Browser/visreg-states.json (empty/loading/dark/error) vira baseline — o estado é
-      # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
-      # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
-      # mesmo princípio não-invasivo do L3).
-      # L2-v2 usa a mesma classificação 3-bandas do L7: ruído não interrompe PR, mas uma
-      # regressão clara falha no step e a zona cinza sobe diff-view para revisão humana.
-      #
-      # ONDA 3 — MATRIZ GLOBAL 100% ENFORCING (2026-07-14): a matriz de estados isolados deixa
-      # de ter QUALQUER estado advisory. Agora TODAS as 6 telas × estados rodam num único step
-      # enforcing.
-      #
-      # HISTÓRICO do drift `oficina-os · dark` (por que ele voltou — leia antes de "corrigir
-      # baseline" na mão):
-      #   - 2026-07-14 (#4248): a baseline stale mostrava "Quadro não configurado" (pipeline FSM
-      #     ausente) enquanto o render do verify era o kanban. Corrigiu-se a FOTO (baseline
-      #     regravada pro kanban) e o gate ficou verde (run 29285558238: oficina 3/3 pass).
-      #   - 2026-07-16: o drift REAPARECEU no primeiro dispatch seguinte (baseline do modo update
-      #     rejeitada pelo verify, diff 6.7793% > τ_alto, idêntico nos runs 29512533782/
-      #     29514784095). Motivo: o #4248 tratou o SINTOMA (a foto), não a CAUSA — o render do
-      #     Quadro dependia do processo FSM `oficina_mecanica_os`, que NENHUM seeder semeava;
-      #     ele só existia por VAZAMENTO do ConformanceProbesTest, e aquele step é pulado no
-      #     workflow_dispatch → update e verify fotografavam telas diferentes.
-      #   - Causa fechada no step "Seed demo tenant" (VisregOficinaFsmSeeder), que estabelece a
-      #     pré-condição nos DOIS modos. Se `oficina-os · dark` divergir de novo, cheque PRIMEIRO
-      #     a sonda `oficina_stages_biz1=` daquele step: 0 = pré-condição perdida (regravar a
-      #     baseline só re-esconderia o problema).
-      - name: Estados isolados matriz (ENFORCING — matriz global completa · 6 telas)
-        # MATRIZ GLOBAL ENFORCING COMPLETA. Ondas: 1 Financeiro (#4239) · 2 Sells+Clientes+
-        # Compras+Caixa (#4243) · 3 Oficina (#4248 baseline fix + esta promoção). Cada tela com
-        # ≥2 runs VERDES determinísticos contra a baseline commitada (ADR 0261 "advisory → 2
-        # verdes → enforcing" cumprido por tela). Sem continue-on-error: regressão clara em
-        # QUALQUER estado das 6 telas BLOQUEIA o merge. Não há mais radar advisory — a matriz
-        # inteira é gate duro.
-        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
-        id: matriz-states
-        # RETRY-ONCE anti-flake (scripts/tests/visreg-flake-retry.sh, mesma política do #4241):
-        # re-roda UMA vez SÓ na assinatura de EXECUÇÃO (browser não sobe/timeout/socket). Uma
-        # REGRESSÃO DE PIXEL real (double-threshold "REGRESSÃO CLARA" > τ_alto) NUNCA re-roda —
-        # o wrapper falha com o código original, preservando o que o gate enforcing existe p/ pegar.
-        # Sem --filter: a matriz inteira (todas as telas do manifesto) é enforcing.
-        env:
-          # A partição própria × herdada do `VisregThreshold` depende do RAIO do PR, e este
-          # step nascia sem ele: sem `VISREG_SCREENS`/`SCOPE`/`RAIO_CONFIAVEL` toda tela em zona
-          # cinza vira PRÓPRIA, e a dívida herdada da main reprova quem não a causou. O conserto
-          # do #6188 chegou ao `Pixel-diff afetadas` e não aos 4 irmãos ENFORCING (medido: 1 de 5
-          # steps tinha as envs). Reprodução em 2026-08-25, PR #6269: `raio_confiavel: true`, o PR
-          # toca 2 arquivos de `Jana/Index`, e o bloqueio veio de 3 telas `financeiro-unificado`
-          # (0.1199% cada) — fora do raio, com os 20 testes PASSANDO.
-          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
-          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
-          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
-        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
-
-      - name: Fluxos visuais Financeiro (ENFORCING — L2.5 · interação × viewport)
-        # Executa mesmo se o núcleo-6 falhar: o fluxo novo não pode ficar sem
-        # evidência por uma regressão independente de outra tela.
-        # PROMOVIDO A ENFORCING (2026-07-13): os 12 fluxos × viewport foram armados
-        # via #4237/#4238. Sem continue-on-error: regressão clara pós-clique agora
-        # BLOQUEIA merge.
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
-        id: financeiro-flows
-        # RETRY-ONCE anti-flake (mesma política do financeiro-states): re-roda UMA vez só na
-        # assinatura de execução (o fluxo levou 11 patches por relógio cross-processo → o
-        # residual é flake de timing/browser, não pixel). Diff de pixel real NUNCA re-roda.
-        env:
-          # A partição própria × herdada do `VisregThreshold` depende do RAIO do PR, e este
-          # step nascia sem ele: sem `VISREG_SCREENS`/`SCOPE`/`RAIO_CONFIAVEL` toda tela em zona
-          # cinza vira PRÓPRIA, e a dívida herdada da main reprova quem não a causou. O conserto
-          # do #6188 chegou ao `Pixel-diff afetadas` e não aos 4 irmãos ENFORCING (medido: 1 de 5
-          # steps tinha as envs). Reprodução em 2026-08-25, PR #6269: `raio_confiavel: true`, o PR
-          # toca 2 arquivos de `Jana/Index`, e o bloqueio veio de 3 telas `financeiro-unificado`
-          # (0.1199% cada) — fora do raio, com os 20 testes PASSANDO.
-          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
-          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
-          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
-        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
-
-      - name: Fluxos visuais Compras (ENFORCING — L2.5 · interação × viewport)
-        # PROMOVIDO A ENFORCING (2026-07-14, ADR 0261 "promover = remover o continue-on-error"):
-        # os 9 baselines (3 fluxos pós-clique do cockpit /compras — visibilidade de colunas,
-        # menu de Ações da linha, drawer × 3 viewports) foram armados via #4251 e provaram
-        # match (9 passed nos runs 29297033941 e 29298250328). Sem continue-on-error: regressão
-        # clara pós-clique de Compras agora BLOQUEIA merge. O double-threshold (VisregThreshold)
-        # roteia por bandas; a zona cinza bloqueia e sobe diff-view pro [W]. Baseline via modo
-        # update (dispatch) NO runner canônico — nunca local (Tier 0: testes no CT100/CI).
-        # `always()`: roda mesmo se um passo anterior falhar (fluxo novo não pode ficar
-        # sem evidência por regressão independente de outra tela).
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
-        id: compras-flows
-        # RETRY-ONCE anti-flake (scripts/tests/visreg-flake-retry.sh, mesmo do Sells/Financeiro):
-        # re-roda só em FLAKE de execução (browser/socket/timeout), NUNCA em regressão de pixel
-        # (double-threshold é veredito duro). Sem ele, um flake de browser travaria o merge do time.
-        env:
-          # A partição própria × herdada do `VisregThreshold` depende do RAIO do PR, e este
-          # step nascia sem ele: sem `VISREG_SCREENS`/`SCOPE`/`RAIO_CONFIAVEL` toda tela em zona
-          # cinza vira PRÓPRIA, e a dívida herdada da main reprova quem não a causou. O conserto
-          # do #6188 chegou ao `Pixel-diff afetadas` e não aos 4 irmãos ENFORCING (medido: 1 de 5
-          # steps tinha as envs). Reprodução em 2026-08-25, PR #6269: `raio_confiavel: true`, o PR
-          # toca 2 arquivos de `Jana/Index`, e o bloqueio veio de 3 telas `financeiro-unificado`
-          # (0.1199% cada) — fora do raio, com os 20 testes PASSANDO.
-          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
-          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
-          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
-        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/ComprasFlowBaselineTest.php
-
-      - name: Fluxos visuais Sells/Create (ENFORCING — L2.5 · interação × viewport)
-        # PROMOVIDO A ENFORCING (2026-07-14, ADR 0261 "promover = remover o continue-on-error"):
-        # as 12 baselines (4 fluxos × 3 viewports) foram armadas no runner canônico (#4251) e o
-        # gate comparou verde. Cobre a tela de 99% do volume (venda balcão, ROTA LIVRE):
-        # adicionar produto, abrir a busca, aplicar desconto e adicionar pagamento em
-        # compact/desktop/wide — estado pós-clique, antes de persistir. Baselines geradas via
-        # workflow_dispatch (modo update), nunca local (Tier 0). Sem continue-on-error:
-        # regressão clara pós-clique agora BLOQUEIA merge (o double-threshold absorve a zona
-        # cinza; só > τ_alto falha). Roda mesmo se o Financeiro falhar (always()).
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
-        id: sells-flows
-        # Retry-once guard (mesmo do Financeiro/Compras): re-roda só em FLAKE de execução
-        # (browser/socket/timeout), NUNCA em regressão de pixel (double-threshold é veredito
-        # duro). O motor VisregThreshold segue intocado.
-        env:
-          # A partição própria × herdada do `VisregThreshold` depende do RAIO do PR, e este
-          # step nascia sem ele: sem `VISREG_SCREENS`/`SCOPE`/`RAIO_CONFIAVEL` toda tela em zona
-          # cinza vira PRÓPRIA, e a dívida herdada da main reprova quem não a causou. O conserto
-          # do #6188 chegou ao `Pixel-diff afetadas` e não aos 4 irmãos ENFORCING (medido: 1 de 5
-          # steps tinha as envs). Reprodução em 2026-08-25, PR #6269: `raio_confiavel: true`, o PR
-          # toca 2 arquivos de `Jana/Index`, e o bloqueio veio de 3 telas `financeiro-unificado`
-          # (0.1199% cada) — fora do raio, com os 20 testes PASSANDO.
-          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
-          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
-          VISREG_RAIO_CONFIAVEL: ${{ steps.impact.outputs.raio_confiavel }}
-        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/SellsCreateFlowBaselineTest.php
-
       # ── E2E DE RENDER POR TELA — Financeiro/Conciliacao (NASCE ADVISORY) ──────────────
       # O buraco medido em 2026-08-31 por `node scripts/qa/screen-coverage-map.mjs --screen
       # Financeiro/Conciliacao/Index`: trio ✓ · scorecard ✓ · RUNBOOK ✓ · visual-comparison ✓ ·
@@ -661,7 +332,7 @@ jobs:
       # only, e `php`/`vendor` não existem na worktree do autor), e NA DATA em que este step
       # nasceu o job `visual-regression` era required — sem o `continue-on-error` um assert mal
       # calibrado bloquearia o merge de todo mundo. Promoção a ENFORCING = REMOVER o
-      # `continue-on-error` deste step, exatamente como os steps de pixel/estados/flows acima
+      # `continue-on-error` deste step, exatamente como os steps de pixel/estados/flows (removidos em 2026-11-04)
       # registram ter feito. ⚠️ Hoje isso reprova o JOB, não o merge: o context saiu do required
       # em 2026-08-26 (`governance/required-checks-baseline.json` é o dono da lista).
       #
@@ -1193,225 +864,6 @@ jobs:
           # de um step de relatório.
           exit 0
 
-      # ── MODO UPDATE (dispatch): PROVA o relógio congelado ANTES de assar baseline ──
-      # Ordem é o ponto: se o shim de VISREG_FREEZE_CLOCK estiver quebrado, a baseline
-      # nasceria com o relógio VIVO e voltaria a drifar por minuto — que é exatamente o
-      # defeito que ele conserta. Este bite-test roda em Chromium real e prova 4 pernas:
-      # controle-negativo (sem shim as capturas DIFEREM), libera (com shim ficam idênticas
-      # após >1min de separação real), morde (regressão de pixel proposital AINDA difere)
-      # e semântica (`new Date(x)` com argumento segue real, instanceof intacto).
-      #
-      # Só no dispatch de propósito: é o momento em que as baselines são ASSADAS, e ali o
-      # job pula toda a bateria Pest (`!= workflow_dispatch`), então os ~90s de espera —
-      # que são o próprio instrumento, não overhead — saem de graça. Em PR o consumidor
-      # do shim é o gate em si.
-      - name: Bite-test do relógio congelado (pré-condição do update)
-        if: github.event_name == 'workflow_dispatch'
-        run: node scripts/tests/visreg-clock-bite.mjs
-
-      # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
-      - name: Regenerar baselines (pixel + estados + fluxos) — modo update
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          # Escopo opcional: com `screens`, o PixelBaselineTest filtra o manifesto e as suítes
-          # de estados/flows ficam de fora — elas cobrem OUTRAS telas e não têm o que
-          # regenerar quando o alvo é uma tela só.
-          #
-          # O PAR É OBRIGATÓRIO — `VISREG_SCREENS` sozinho NÃO restringe nada. O filtro do
-          # PixelBaselineTest (tests/Browser/CoreScreens/PixelBaselineTest.php:98) vive dentro
-          # de `if ($scope === 'targeted')`, e `$scope` sai de `VISREG_SCOPE` com default
-          # `global` — sem esta linha o `if` nunca entrava e o dispatch escopado regenerava o
-          # manifesto INTEIRO. Medido em 2026-08-25 no run 32873274799: disparado com
-          # screens=["Arquivos"], concluiu `Tests: 27 passed` — as 27 telas do manifesto.
-          # O custo não é só runner: as outras 26 baselines voltam regravadas no PR, e
-          # carimbar tela que ninguém mediu é a lápide §5 2026-07-17 (drift-sentinel).
-          # O mesmo par já estava documentado como indivisível em VisregThreshold.php:727.
-          VISREG_SCOPE: ${{ inputs.screens != '' && 'targeted' || 'global' }}
-          VISREG_SCREENS: ${{ inputs.screens }}
-        run: |
-          npm run visreg:update
-          # L2 (estados isolados) roda TAMBEM no escopo targeted: desde 2026-09-03 a suite
-          # honra o mesmo par VISREG_SCOPE/VISREG_SCREENS (filtra por `source`), entao com
-          # screens=["Jana"] ela regrava so `jana · estado=default` e nada das outras 18.
-          # Antes era pulada aqui — e o run 33782104647 (PR #6665) provou o buraco: o L1 da
-          # Jana saiu regenerado, o L2 nao, e o proprio PR de baselines reprovou em zona cinza
-          # no estado isolado da tela que acabara de mudar. Flows continuam so no global:
-          # as suites de fluxo nao filtram por tela.
-          npm run visreg:states:update
-          if [ -z "${{ inputs.screens }}" ]; then
-            npm run visreg:flows:update
-            npm run visreg:sells:update
-            npm run visreg:flows:compras:update
-          else
-            echo "escopo=${{ inputs.screens }} — flows pulados (cobrem outras telas); estados filtrados por source."
-          fi
-
-      # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
-      # workflows `pull_request` em eventos causados pelo GITHUB_TOKEN → PR de baselines
-      # criado com ele nascia SEM NENHUM check e ficava órfão nos required ("Expected —
-      # waiting"). Evidência 2026-07-10: #3987/#3994 órfãos por 1 dia (0 checks);
-      # #4081/#4086 só destravaram com close/reopen manual. PR criado com o PAT dispara
-      # CI normal (ex.: #3985 do shipped-log-cron, 80 checks). Mesmo padrão de
-      # shipped-log-cron.yml / sdd-scorecard-publish.yml. NÃO "simplificar" de volta pra
-      # GITHUB_TOKEN. Merge continua humano — ADR 0283 bloqueia auto-merge; o PAT aqui só
-      # CRIA o PR.
-      #
-      # ⚠️ CORREÇÃO 2026-08-17: esta nota afirmava que "o push do branch também usa o PAT
-      # (URL autenticada) porque o checkout persiste credencial do GITHUB_TOKEN no remote
-      # origin". A premissa estava certa e a conclusão errada — pôr o PAT no userinfo da
-      # URL NÃO vence o `extraheader` que o checkout grava, e o push seguia autenticando
-      # como github-actions[bot]. A afirmação sobreviveu porque, na época, o GITHUB_TOKEN
-      # tinha `contents: write` e o push passava por ele. Quem fizer o próximo ajuste de
-      # permissão: o que faz a URL valer é o `git config --unset-all` do extraheader, no
-      # step abaixo — não a URL sozinha.
-      - name: Abrir PR com as baselines regeneradas — modo update
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          BR="vrt/baselines-${{ github.run_id }}"
-          git checkout -b "$BR"
-          git add tests/.pest/snapshots
-          if git diff --cached --quiet; then
-            echo "Baselines já em dia — nada a commitar."; exit 0
-          fi
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::error::COWORK_BOT_PAT ausente. Baixe o artifact pixel-snapshots e publique manualmente."
-            exit 1
-          fi
-          if [ "$(gh api "repos/${{ github.repository }}" --jq '.permissions.push // false')" != "true" ]; then
-            echo "::error::COWORK_BOT_PAT sem contents:write. Artifact pixel-snapshots preservado para recuperação; corrija a permissão antes do próximo dispatch."
-            exit 1
-          fi
-          # A URL autenticada abaixo NÃO bastava — e este bloco é o que faz ela valer.
-          # O `actions/checkout` roda com `persist-credentials: true` e grava
-          # `http.https://github.com/.extraheader = AUTHORIZATION: basic <GITHUB_TOKEN>`.
-          # Esse header vale pra TODO request a github.com e SOBREPÕE o userinfo da URL,
-          # então o push sempre autenticou como github-actions[bot] — nunca com o PAT.
-          # Funcionou enquanto o GITHUB_TOKEN tinha `contents: write`; o #4348 (2026-07-16)
-          # estreitou pra `contents: read` acreditando que o PAT é que empurrava, e o
-          # dispatch passou a morrer com 403 "Permission denied to github-actions[bot]".
-          # Quebrou em silêncio porque ninguém dispatchou entre 07-16 e 08-17.
-          # Medido no run 32058066203: o header é gravado no setup do checkout e segue lá
-          # no cleanup; último push de baseline bem-sucedido foi o run 29296837435, de
-          # 2026-07-14 — dois dias ANTES da troca de permissão.
-          # Remover o header aqui preserva a redução de escopo do #4348 em vez de desfazê-la.
-          if git config --get http.https://github.com/.extraheader >/dev/null 2>&1; then
-            git config --unset-all http.https://github.com/.extraheader
-          fi
-          git commit -m "test(visreg): baselines regeneradas no runner canônico (modo update) [CC]" -m "Disparo manual pós-mudança de Fundação aprovada [W]: o PR de tokens sofre skip-as-pass neste gate e as baselines antigas quebrariam o próximo PR de UI. O gate do PR destas baselines re-roda e PROVA que batem com o render atual (anti-#3297). O mecanismo nasceu na ADR UI-0020 §4 e serve a qualquer Fundação."
-          git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" -u "$BR"
-          gh pr create --title "test(visreg): baselines regeneradas (modo update) [CC]" --base main --head "$BR" --body "Baselines de pixel + estados isolados regeneradas NO runner canônico via workflow_dispatch (modo update). Motivo: Fundação aprovada [W]. O gate visual deste PR re-roda os testes contra estas baselines e prova que batem (anti-#3297) — ele é ADVISORY (o context saiu do required em 2026-08-26), então o verde dele não é gate de merge: a revisão é humana."
-
-      - name: Veredito advisory dos fluxos Financeiro (L2.5 · visível no log)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
-        run: |
-          if [ "${{ steps.financeiro-flows.outcome }}" = "failure" ]; then
-            # NÃO afirma a banda: este step só enxerga o outcome, não mediu ratio nenhum.
-            # Em 2026-08-19 ele anunciou "acima de τ_alto" numa falha que era ZONA CINZA
-            # (0.1158%, τ_alto = 2%) — causa não medida. O ratio de cada tela sai do log do
-            # próprio step de fluxos (VisregThreshold) e do $GITHUB_STEP_SUMMARY.
-            echo "🔴 L2.5 Financeiro FALHOU. A causa está no log do step de fluxos acima:"
-            echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · ou o fluxo não montou."
-          elif [ "${{ steps.financeiro-flows.outcome }}" = "success" ]; then
-            echo "✅ fluxos Financeiro OK — criar, drawer, baixa e lote capturados em compact/desktop/wide."
-          fi
-
-      - name: Veredito advisory dos fluxos Sells/Create (L2.5 · visível no log)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
-        run: |
-          if [ "${{ steps.sells-flows.outcome }}" = "failure" ]; then
-            echo "🔴 L2.5 Sells/Create FALHOU. A causa está no log do step de fluxos acima:"
-            echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · baseline ausente na 1ª execução · ou o fluxo não montou."
-          elif [ "${{ steps.sells-flows.outcome }}" = "success" ]; then
-            echo "✅ fluxos Sells/Create OK — adicionar produto, abrir busca, aplicar desconto e adicionar pagamento capturados em compact/desktop/wide."
-          fi
-
-      - name: Veredito advisory dos fluxos Compras (L2.5 · visível no log)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
-        run: |
-          if [ "${{ steps.compras-flows.outcome }}" = "failure" ]; then
-            echo "🔴 L2.5 COMPRAS FALHOU. A causa está no log do step de fluxos acima:"
-            echo "   REGRESSÃO CLARA (> τ_alto) · ZONA CINZA (entre limiares, precisa de [W]) · dimensões divergentes · ou o fluxo não montou."
-            # A razão da mudança mora no docblock de VisregThreshold::assertBandedScreenshot
-            # (ramo "baseline ausente"), e NÃO é citada aqui de propósito: o Check L do
-            # memory-health trata citação de ADR não-ratificada em .github/workflows/** como
-            # dependência viva de decisão não-aceita, e ele está certo — o comportamento vive
-            # no PHP, esta linha é só a mensagem pro humano.
-            echo "   1ª execução sem baseline GERA o snapshot e PULA o caso (skipped, não passed — mudou em 2026-09-21: verde sem comparação não é conformidade; ver o docblock de VisregThreshold). Pegue o .snap no artifact pixel-snapshots e versione. Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
-          elif [ "${{ steps.compras-flows.outcome }}" = "success" ]; then
-            echo "✅ fluxos Compras OK — visibilidade de colunas, menu de Ações e drawer capturados em compact/desktop/wide."
-          fi
-
-      # Prova contrafactual final: mudança visual nunca pode concluir verde se o
-      # classificador, o modo e a execução real do pixel-diff divergirem.
-      - name: Canário anti-verde-vazio
-        id: canario
-        # Setup quebrado já reprova o job no passo certo; sem esta guarda o canário lia o pixel
-        # `skipped` como verde-vazio e virava a 2ª falha falsa do mesmo run.
-        if: always() && github.event_name == 'pull_request' && (steps.mode.outputs.ui != 'true' || steps.setup-ok.outcome == 'success')
-        env:
-          IMPACT: ${{ steps.impact.outputs.visual_required }}
-          MODE: ${{ steps.mode.outputs.ui }}
-          PIXEL_OUTCOME: ${{ steps.pixel-diff.outcome }}
-          UNCOVERED_SCREENS: ${{ steps.impact.outputs.uncovered_screens }}
-          # `scope` decide se `uncovered_screens` é cobrança ou só raio informativo:
-          # targeted → a lista É a comparação (morde aqui e no PixelBaselineTest);
-          # global   → o pixel roda o núcleo-6 e ignora a lista. Vazio = conservador
-          # (trata como targeted e mantém o fail-closed).
-          SCOPE: ${{ steps.impact.outputs.scope }}
-          EXPECTED: ${{ steps.pixel-diff.outputs.expected }}
-          EXECUTED: ${{ steps.pixel-diff.outputs.executed }}
-          COMPARED: ${{ steps.pixel-diff.outputs.compared }}
-        run: |
-          node scripts/governance/ui-impact.mjs --assert-execution \
-            --visual-required="$IMPACT" --mode="$MODE" --pixel-outcome="$PIXEL_OUTCOME" \
-            --uncovered-screens="${UNCOVERED_SCREENS:-[]}" --scope="$SCOPE" \
-            --expected="$EXPECTED" --executed="$EXECUTED" --compared="$COMPARED"
-
-      - name: Upload baseline/snapshots de pixel (sempre que rodou)
-        if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: pixel-snapshots
-          path: tests/.pest/snapshots/
-          retention-days: 14
-          if-no-files-found: ignore
-
-      - name: Upload diff views do pixel (falha OU zona cinza — double-threshold L7)
-        # Sobe os diff-views SEMPRE que o pixel-diff rodou: a ZONA CINZA (L7) bloqueia o step
-        # sem o label de aprovação e grava os diff-views em storage/app/visreg-diffs/ — fora do
-        # diretório que o Pest limpa entre suítes (#4360) — pro [W] revisar. Só uploadar
-        # on-failure perderia exatamente o caso de uso do L7.
-        # `if-no-files-found: ignore` cobre o caso "nenhuma tela na zona cinza nem falhou".
-        if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: pixel-diff-views
-          path: storage/app/visreg-diffs/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Veredito advisory do pixel-diff (visível no log · double-threshold L7)
-        # `always() &&` porque o step do pixel-diff é ENFORCING (não tem continue-on-error):
-        # quando ele falha, o job aborta e ESTE veredito saía `skipped` — justamente no caso
-        # que ele existe pra explicar. Medido 2026-09-04 no run 33886331185: step 25
-        # `Pixel-diff … (ENFORCING)` = failure, step 46 `Veredito advisory` = skipped. Os 16
-        # steps de relatório vizinhos (641, 669, 696, 755, 761, 792, 830, 862, 902, 932, 1121,
-        # 1135, 1145, 1159, 1180, 1194) já usam always()/!cancelled(); este era o único fora.
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
-        run: |
-          if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
-            echo "🔴 PIXEL-DIFF ADVISORY FALHOU — ao menos 1 tela com diff > τ_alto (regressão clara) contra baseline."
-            echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing (L1)."
-            echo "   Telas em ZONA CINZA saem no resumo + artifact pixel-diff-views (o enforcement da banda do meio é o env VISREG_GRAY_APPROVED, no topo deste workflow)."
-          else
-            echo "✅ pixel-diff afetadas/núcleo-6 OK — nenhuma tela acima de τ_alto."
-            echo "   Se houve ZONA CINZA, ela está no step summary (resumo 'Pixel-diff — Zona Cinza') + artifact pixel-diff-views pro [W] revisar."
-          fi
-
       # ── Camada L5 — PERF BUDGET QUE MORDE (Lighthouse CI · median-of-3) ───────────────
       # Hoje LCP/CLS só eram coletados pós-merge advisory e nada falhava. Esta camada mede
       # as telas núcleo AUTENTICADAS no MESMO boot+seed do gate, reusando o auth-bridge
@@ -1488,15 +940,15 @@ jobs:
 
       # Onde o L2 reprova o job (ver o comentário do step `Lint L2`). Fica ANTES dos steps de
       # falha para que `failure()` já esteja verdadeiro neles e o comentário nomeie este step.
-      - name: Veredito do Lint L2 — charter states ⇄ manifesto
+      - name: Veredito do selftest do classificador de impacto
         id: veredito-l2
         if: always() && steps.lint-l2.outcome != 'success'
         env:
           L2_OUTCOME: ${{ steps.lint-l2.outcome }}
         run: |
-          echo "::error title=Lint L2::o step 'Lint L2 — charter states ⇄ manifesto' terminou em '$L2_OUTCOME' — o motivo está no log daquele step (linhas com ✗)."
+          echo "::error title=Selftest do classificador::o step 'Selftest do classificador de impacto' terminou em '$L2_OUTCOME' — o motivo está no log daquele step."
           bt='`'   # crase em variavel: o bloco fica sem barra invertida
-          echo "- Lint L2: ❌ ${bt}${L2_OUTCOME}${bt} — drift charter ${bt}states:${bt} ⇄ ${bt}tests/Browser/visreg-states.json${bt} (ou flows/sells). Detalhe no log do step." >> "$GITHUB_STEP_SUMMARY"
+          echo "- Selftest do ${bt}ui-impact.mjs${bt}: ❌ ${bt}${L2_OUTCOME}${bt}. Detalhe no log do step." >> "$GITHUB_STEP_SUMMARY"
           exit 1
 
       - name: Upload screenshots on failure
@@ -1518,24 +970,17 @@ jobs:
         env:
           SCOPE: ${{ steps.impact.outputs.scope }}
           UNCOVERED: ${{ steps.impact.outputs.uncovered_screens }}
-          GRAY: ${{ steps.pixel-diff.outputs.gray }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PASSOS: >-
             [{"nome":"Preparação do ambiente (setup antes dos testes)","tipo":"setup","outcome":"${{ steps.mode.outputs.ui == 'true' && steps.setup-ok.outcome != 'success' && 'failure' || 'success' }}","causa":"${{ steps.playwright-deps.outcome == 'failure' && 'Install Playwright system dependencies' || '' }}"},
-             {"nome":"Veredito do Lint L2 — charter states ⇄ manifesto","outcome":"${{ steps.veredito-l2.outcome }}"},
+             {"nome":"Veredito do selftest do classificador de impacto","outcome":"${{ steps.veredito-l2.outcome }}"},
              {"nome":"Classificar impacto visual do diff","outcome":"${{ steps.impact.outcome }}"},
              {"nome":"Run Pest Browser tests","outcome":"${{ steps.pest-browser.outcome }}"},
-             {"nome":"Pixel-diff afetadas/núcleo-6 (ENFORCING · double-threshold L7)","outcome":"${{ steps.pixel-diff.outcome }}"},
-             {"nome":"Estados isolados matriz (ENFORCING · 6 telas)","outcome":"${{ steps.matriz-states.outcome }}"},
-             {"nome":"Fluxos visuais Financeiro (ENFORCING · L2.5)","outcome":"${{ steps.financeiro-flows.outcome }}"},
-             {"nome":"Fluxos visuais Compras (ENFORCING · L2.5)","outcome":"${{ steps.compras-flows.outcome }}"},
-             {"nome":"Fluxos visuais Sells/Create (ENFORCING · L2.5)","outcome":"${{ steps.sells-flows.outcome }}"},
-             {"nome":"Canário anti-verde-vazio","outcome":"${{ steps.canario.outcome }}"},
              {"nome":"E2E de render · Patrimonio/Bens (ENFORCING)","outcome":"${{ steps.e2e-patrimonio-bens.outcome }}"}]
         run: |
           node scripts/governance/ui-impact.mjs --explain-failure \
             --scope="$SCOPE" --uncovered-screens="${UNCOVERED:-[]}" \
-            --gray-zone="${GRAY:-[]}" --steps="$PASSOS" --run-url="$RUN_URL" \
+            --gray-zone="[]" --steps="$PASSOS" --run-url="$RUN_URL" \
             | tee /tmp/visreg-comment.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment on PR if regression detected

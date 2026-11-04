@@ -1,10 +1,16 @@
 // configuracoes-page.jsx — grupo "Configurações" do menu legado (AdminLTE), importado do blade
 // (espelho local do main): business/settings.blade.php + os 16 partials, e as 9 telas de cadastro.
-// Esta tela é a "Configuração da empresa" (BusinessController::getBusinessSettings) — 16 abas, campo a campo.
+// Esta tela é a "Configuração da empresa" (BusinessController::getBusinessSettings) — 18 abas, campo a campo.
 // Onda C2 — fidelidade de campo: rótulos personalizados completos (7 pagamento · 10 contato · 20 produto ·
 // 4 local · 4 usuário · 4+5 compra · 4+5 venda · 6 serviço), SMS com os 3+10 pares de cabeçalho/parâmetro,
 // logo do negócio, ação na validade do produto.
 // Onda C5 — papel e plano: o que cada papel altera, e o que o pacote libera.
+// Onda C6 (2026-11-04) — o que a tela em produção já tinha e o protótipo não desenhava: abas Financeiro
+// (régua de cobrança) e App das lojas; em Produtos, unidade padrão, como informar a validade e o que o
+// cadastro mostra; em Vendas, preço zero no app e pesquisa de satisfação; no PDV, balança e atalhos;
+// fidelidade com o resgate completo; rótulos com obrigatório e tipo do campo. Fonte do conteúdo:
+// resources/js/Pages/Configuracoes/Empresa/Index.tsx e App\Services\AppLojas\AjustesDaEmpresa::CHAVES.
+// Forma é deste arquivo; nome e regra do campo vêm da produção.
 // Copy em PT-BR sentence case (o legado mistura inglês do UltimatePOS — não serve como UI cliente-facing).
 // Expõe window.ConfiguracoesPage.
 (() => {
@@ -75,6 +81,7 @@ const ABAS = [
   { g:"Operação", itens:[
     { id:"venda", label:"Vendas" }, { id:"pdv", label:"Venda no PDV" },
     { id:"compra", label:"Compras" }, { id:"pagto", label:"Pagamento" },
+    { id:"financeiro", label:"Financeiro" },
   ]},
   { g:"Sistema", itens:[
     { id:"painel", label:"Painel" }, { id:"sistema", label:"Sistema" }, { id:"prefixos", label:"Prefixos" },
@@ -82,7 +89,7 @@ const ABAS = [
   { g:"Integrações", itens:[
     { id:"email", label:"E-mail" }, { id:"sms", label:"SMS" },
     { id:"fidelidade", label:"Pontos de fidelidade" }, { id:"modulos", label:"Módulos" },
-    { id:"rotulos", label:"Rótulos personalizados" },
+    { id:"rotulos", label:"Rótulos personalizados" }, { id:"app_lojas", label:"App das lojas" },
   ]},
 ];
 
@@ -161,7 +168,49 @@ const PADRAO = {
   venda:["Instalação", "Endereço da obra", "Contato no local", ""],
   freteVenda:["Veículo", "Motorista", "Placa", "", ""],
   servico:["Prazo de montagem", "Equipe", "Ferramenta", "", "", ""],
+  // Onda C6 — campos que a produção já tinha
+  unidadePadrao:"Unidade (un)", validadeTipo:"Informar a validade", pararDias:"7",
+  cad:{ marca:true, categoria:true, subcategoria:true, precoImposto:false, subunidades:false, segundaUnidade:false,
+    prateleira:false, linha:false, posicao:false, garantia:false, imagem:false },
+  precoZeroApp:true, pesquisa:true, pesquisaNota:"2",
+  balPrefixo:"2", balSku:"5", balQtd:"3", balQtdDec:"2",
+  atalhos:{ finalizarRapido:"shift+e", pagarFinalizar:"shift+p", rascunho:"shift+d", cancelar:"shift+c",
+    qtdUltimo:"f2", balanca:"", desconto:"shift+i", impostoPedido:"shift+t", linhaPagto:"shift+r",
+    concluirPagto:"shift+f", novoProduto:"f4" },
+  rpMinVendaResgate:"0,00", rpMaxResgate:"",
+  rotObrig:{ compra:[false, false, false, false], freteCompra:[false, false, false, false, false],
+    venda:[true, false, false, false], freteVenda:[false, false, false, false, false] },
+  rotDoContato:[false, true, false, false, false],
+  rotTipo:["Lista", "Texto", "Lista", "Texto", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+  reguaAtiva:true, reguaDias:"1,7,15", reguaDiasAntes:"3",
+  app:{ assinatura:true, localizacao:false, camera:true, qr:false, orcamento:false, atalhosConversa:true,
+    comissaoPropria:true, biometria:true },
 };
+
+// Itens que a produção monta a partir de listas — mesmos nomes da tela viva.
+const CADASTRO = [
+  ["marca", "Marca"], ["categoria", "Categoria"], ["subcategoria", "Subcategoria"], ["precoImposto", "Preço com imposto"],
+  ["subunidades", "Subunidades"], ["segundaUnidade", "Segunda unidade"], ["prateleira", "Prateleira"],
+  ["linha", "Linha da prateleira"], ["posicao", "Posição na prateleira"], ["garantia", "Garantia"],
+  ["imagem", "Imagem obrigatória"],
+];
+const ATALHOS = [
+  ["finalizarRapido", "Finalizar rápido"], ["pagarFinalizar", "Pagar e finalizar"], ["rascunho", "Rascunho"],
+  ["cancelar", "Cancelar"], ["qtdUltimo", "Quantidade do último produto"], ["balanca", "Balança"],
+  ["desconto", "Editar desconto"], ["impostoPedido", "Editar imposto do pedido"], ["linhaPagto", "Nova linha de pagamento"],
+  ["concluirPagto", "Concluir pagamento"], ["novoProduto", "Novo produto"],
+];
+// App das lojas — AjustesDaEmpresa::CHAVES (só os `na_tela` booleanos), mesmo rótulo e ajuda.
+const APP_LOJAS = [
+  ["assinatura", "Entrega exige assinatura de quem recebe", "Ligado, o app não oferece “Recebido sem assinatura”."],
+  ["localizacao", "Entrega exige a localização do celular", "Ligado, sem GPS a entrega não é registrada."],
+  ["camera", "Anexar foto tirada na hora", "Desligado, o anexo da OS só vem da galeria."],
+  ["qr", "Apontamento só pelo QR da etiqueta", "Ligado, o app não deixa digitar o número do pedido."],
+  ["orcamento", "Orçamento rápido no app", "Ligado, aparece “+ Novo” em Orçamentos."],
+  ["atalhosConversa", "Atalhos na conversa do atendimento", "Orçamento, status e arte direto na conversa. O consentimento LGPD vale sempre."],
+  ["comissaoPropria", "Vendedor vê a própria comissão", "Desligado, só quem tem permissão de ver comissões."],
+  ["biometria", "Entrar no app com biometria", "Desligado, a opção some em Conta. O ponto nunca usa biometria."],
+];
 
 const MODULOS = [
   ["Compras", true, false], ["Adicionar venda", true, false], ["PDV", true, false], ["Estoque", true, false],
@@ -173,6 +222,22 @@ const MODULOS = [
 
 function Rotulos({ f, set, travado }) {
   const [todos, setTodos] = useState(false);
+  // Campo de compra, venda e frete pode ser obrigatório; frete da venda pode vir do contato;
+  // campo do produto tem tipo (texto, data ou lista).
+  const extras = (chave, i) => (
+    <>
+      {f.rotObrig[chave] && (
+        <label className={`cfg-ck ${f.rotObrig[chave][i] ? "on" : ""}`}><input type="checkbox" checked={!!f.rotObrig[chave][i]} disabled={travado}
+          onChange={() => set("rotObrig")({ ...f.rotObrig, [chave]:f.rotObrig[chave].map((x, j) => j === i ? !x : x) })} />obrigatório</label>)}
+      {chave === "freteVenda" && (
+        <label className={`cfg-ck ${f.rotDoContato[i] ? "on" : ""}`}><input type="checkbox" checked={!!f.rotDoContato[i]} disabled={travado}
+          onChange={() => set("rotDoContato")(f.rotDoContato.map((x, j) => j === i ? !x : x))} />puxar do contato</label>)}
+      {chave === "produto" && (
+        <Sel label="Tipo" valor={f.rotTipo[i] || "Texto"} travado={travado} opcoes={["Texto", "Data", "Lista"]}
+          ajuda={f.rotTipo[i] === "Lista" ? "As opções vão uma por linha." : undefined}
+          onChange={(v) => set("rotTipo")(f.rotTipo.map((x, j) => j === i ? v : x))} />)}
+    </>
+  );
   const grupo = (chave, titulo, n, ajuda, nota) => (
     <Bloco titulo={titulo} key={chave}
       acao={chave === "produto" && n > 4
@@ -181,8 +246,11 @@ function Rotulos({ f, set, travado }) {
       {nota && <p className="cfg-p">{nota}</p>}
       <div className="cfg-prefixos">
         {Array.from({ length:chave === "produto" && !todos ? 4 : n }).map((_, i) => (
-          <Campo key={i} label={`${ajuda} ${i + 1}`} valor={f[chave][i] || ""} travado={travado}
-            onChange={(v) => set(chave)(f[chave].map((x, j) => j === i ? v : x))} />))}
+          <div key={i} className="cfg-rot">
+            <Campo label={`${ajuda} ${i + 1}`} valor={f[chave][i] || ""} travado={travado}
+              onChange={(v) => set(chave)(f[chave].map((x, j) => j === i ? v : x))} />
+            {extras(chave, i)}
+          </div>))}
       </div>
     </Bloco>
   );
@@ -331,15 +399,27 @@ function Empresa({ A }) {
               <div className="pf-form">
                 <Duas>
                   <Campo label="Prefixo do SKU" valor={f.sku} onChange={set("sku")} mono travado={T} ajuda="Entra antes do número quando o SKU é automático." />
-                  <span />
+                  <Sel label="Unidade padrão" valor={f.unidadePadrao} onChange={set("unidadePadrao")} travado={T}
+                    opcoes={["Nenhuma", "Unidade (un)", "Metro quadrado (m²)", "Metro (m)", "Quilo (kg)"]} />
                 </Duas>
                 <Liga label="Controlar validade do produto" sub="Liga data de validade na compra e no estoque." on={f.validade} onToggle={liga("validade")} travado={T} />
                 {f.validade && (
                   <Duas>
+                    <Sel label="Como informar" valor={f.validadeTipo} onChange={set("validadeTipo")} travado={T}
+                      opcoes={["Informar a validade", "Informar a fabricação (validade calculada)"]} />
                     <Sel label="Ao vencer" valor={f.validadeAcao} onChange={set("validadeAcao")} travado={T}
                       opcoes={["Manter vendendo", "Parar de vender"]} ajuda="“Parar de vender” bloqueia o item no caixa a partir da data." />
+                  </Duas>)}
+                {f.validade && f.validadeAcao === "Parar de vender" && (
+                  <Duas>
+                    <Campo label="Parar quantos dias antes" valor={f.pararDias} onChange={set("pararDias")} mono tipo="number" travado={T} />
                     <span />
                   </Duas>)}
+                <Bloco titulo="O que o cadastro de produto mostra">
+                  {CADASTRO.map(([k, l]) => (
+                    <Liga key={k} label={l} on={f.cad[k]} travado={T}
+                      onToggle={() => set("cad")({ ...f.cad, [k]:!f.cad[k] })} />))}
+                </Bloco>
               </div>
             </>)}
 
@@ -382,10 +462,20 @@ function Empresa({ A }) {
                 <Bloco titulo="Regras da venda">
                   <Liga label="Respeitar preço mínimo de venda" sub="Bloqueia desconto abaixo do MSP do produto." on={f.msp} onToggle={liga("msp")} travado={T} />
                   <Liga label="Vender sem estoque" sub="Deixa faturar item com saldo negativo — comum em serviço." on={f.oversell} onToggle={liga("oversell")} travado={T} />
+                  <Liga label="Bloquear venda com preço zero no app" sub="O app das lojas não fecha venda com item a R$ 0,00." on={f.precoZeroApp} onToggle={liga("precoZeroApp")} travado={T} />
                   <Liga label="Usar pedido de venda" sub="Pedido antes da venda, com faturamento parcial." on={f.pedidoVenda} onToggle={liga("pedidoVenda")} travado={T} />
                   <Liga label="Exigir prazo de pagamento" sub="Não fecha venda a prazo sem prazo informado." on={f.prazoObrigatorio} onToggle={liga("prazoObrigatorio")} travado={T} />
                   <Liga label="Exigir comissionado" sub="Toda venda tem que ter um responsável pela comissão." on={f.agenteObrigatorio} onToggle={liga("agenteObrigatorio")} travado={T} />
                   <Liga label="Link de pagamento no documento" sub="No legado usa Razorpay/Stripe — aqui é Pix e boleto." on={f.linkPagto} onToggle={liga("linkPagto")} travado={T} />
+                </Bloco>
+                <Bloco titulo="Pesquisa de satisfação">
+                  <Liga label="Enviar pesquisa 2 dias depois da entrega" sub="Nota baixa abre um atendimento no CRM para o vendedor." on={f.pesquisa} onToggle={liga("pesquisa")} travado={T} />
+                  {f.pesquisa && (
+                    <Duas>
+                      <Sel label="Nota baixa abre atendimento quando for até" valor={f.pesquisaNota} onChange={set("pesquisaNota")} travado={T}
+                        opcoes={["1", "2", "3", "4"]} ajuda="Escala de 1 a 5." />
+                      <span />
+                    </Duas>)}
                 </Bloco>
               </div>
             </>)}
@@ -419,6 +509,25 @@ function Empresa({ A }) {
                   <Liga label="Mostrar layout da fatura no caixa" on={f.pdv.mostraLayout} onToggle={ligaPdv("mostraLayout")} travado={T} />
                   <Liga label="Imprimir ao suspender" on={f.pdv.imprimeSuspenso} onToggle={ligaPdv("imprimeSuspenso")} travado={T} />
                   <Liga label="Usar balança" sub="Lê o código da etiqueta de peso." on={f.pdv.balanca} onToggle={ligaPdv("balanca")} travado={T} />
+                </Bloco>
+                {f.pdv.balanca && (
+                  <Bloco titulo="Balança de código de barras">
+                    <Duas>
+                      <Campo label="Prefixo da etiqueta" valor={f.balPrefixo} onChange={set("balPrefixo")} mono travado={T} ajuda="Em branco se a balança não usa prefixo." />
+                      <Sel label="Dígitos do SKU" valor={f.balSku} onChange={set("balSku")} travado={T} opcoes={["1", "2", "3", "4", "5", "6", "7", "8", "9"]} />
+                    </Duas>
+                    <Duas>
+                      <Sel label="Dígitos inteiros da quantidade" valor={f.balQtd} onChange={set("balQtd")} travado={T} opcoes={["1", "2", "3", "4", "5"]} />
+                      <Sel label="Dígitos decimais da quantidade" valor={f.balQtdDec} onChange={set("balQtdDec")} travado={T} opcoes={["1", "2", "3", "4"]} />
+                    </Duas>
+                  </Bloco>)}
+                <Bloco titulo="Atalhos de teclado">
+                  <p className="cfg-p">Ex.: ctrl+shift+b, ctrl+h. Em branco = sem atalho.</p>
+                  <div className="cfg-prefixos">
+                    {ATALHOS.map(([k, l]) => (
+                      <Campo key={k} label={l} valor={f.atalhos[k]} mono travado={T}
+                        onChange={(v) => set("atalhos")({ ...f.atalhos, [k]:v })} />))}
+                  </div>
                 </Bloco>
               </div>
             </>)}
@@ -455,6 +564,21 @@ function Empresa({ A }) {
                   <Sel label="Para quais formas" valor={f.contagemFormas} onChange={set("contagemFormas")} travado={T} opcoes={["Dinheiro", "Dinheiro e cartão", "Todas"]} />
                 </Duas>
                 <Liga label="Conferência estrita" sub="Não fecha o caixa se a contagem não bater com o sistema." on={f.conferencia} onToggle={liga("conferencia")} travado={T} />
+              </div>
+            </>)}
+
+          {aba === "financeiro" && (
+            <>
+              <div className="pf-h"><h2>Financeiro</h2><p>Lembrete por e-mail ao cliente com título a receber vencido.</p></div>
+              <div className="pf-form">
+                <Liga label="Enviar lembrete de cobrança" sub="E-mail ao cliente antes de o título vencer e depois, se não for pago." on={f.reguaAtiva} onToggle={liga("reguaAtiva")} travado={T} />
+                <Duas>
+                  <Campo label="Dias após o vencimento" valor={f.reguaDias} onChange={set("reguaDias")} mono travado={T || !f.reguaAtiva}
+                    ajuda="Separados por vírgula. Na última etapa o vendedor recebe uma tarefa para cobrar." />
+                  <Campo label="Dias antes do vencimento" valor={f.reguaDiasAntes} onChange={set("reguaDiasAntes")} mono travado={T || !f.reguaAtiva}
+                    ajuda="Vazio = não avisa antes. Ex.: 3 avisa três dias antes de vencer." />
+                </Duas>
+                <p className="pf-nota">Cliente que recusou e-mail não recebe; o lembrete fica registrado com o motivo em Contas a Receber.</p>
               </div>
             </>)}
 
@@ -581,6 +705,10 @@ function Empresa({ A }) {
                       <Campo label="Mínimo de pontos pra resgatar" valor={f.rpMinResgate} onChange={set("rpMinResgate")} mono travado={T} />
                     </Duas>
                     <Duas>
+                      <Campo label="Mínimo do pedido pra resgatar (R$)" valor={f.rpMinVendaResgate} onChange={set("rpMinVendaResgate")} mono travado={T} />
+                      <Campo label="Máximo de pontos por resgate" valor={f.rpMaxResgate} onChange={set("rpMaxResgate")} mono travado={T} ajuda="Em branco = sem teto." />
+                    </Duas>
+                    <Duas>
                       <Sel label="Validade dos pontos" valor={f.rpValidade} onChange={set("rpValidade")} travado={T}
                         opcoes={["6 meses", "12 meses", "24 meses", "Sem validade"]} />
                       <span />
@@ -617,12 +745,21 @@ function Empresa({ A }) {
                 <p className="pf-nota">Campo sem nome não aparece em tela nenhuma — é assim que o legado esconde os 20 do produto.</p>
               </div>
             </>)}
+          {aba === "app_lojas" && (
+            <>
+              <div className="pf-h"><h2>App das lojas</h2><p>O app das lojas lê estes ajustes ao abrir. Cada um passa a valer quando a função chega ao app.</p></div>
+              <div className="pf-form">
+                {APP_LOJAS.map(([k, l, sub]) => (
+                  <Liga key={k} label={l} sub={sub} on={f.app[k]} travado={T}
+                    onToggle={() => set("app")({ ...f.app, [k]:!f.app[k] })} />))}
+              </div>
+            </>)}
         </section>
       </div>
 
       <div className="cfg-salvar">
         {Nota && <Nota tone="info" title="Uma tela, um botão">
-          No legado o formulário inteiro (as 16 abas) salva de uma vez em <code>POST /business/update</code> — trocar de aba não perde o que você digitou.
+          O formulário inteiro (todas as abas) salva de uma vez em <code>POST /business/update</code> — trocar de aba não perde o que você digitou.
         </Nota>}
         <button className="os-btn primary" disabled={!editavel || !sujo} onClick={() => { setSujo(false); A.guardarRotulos(f); }}>Atualizar configurações</button>
       </div>

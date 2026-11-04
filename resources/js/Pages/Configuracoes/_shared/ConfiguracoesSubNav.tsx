@@ -25,7 +25,12 @@ function acharGrupo(itens: ItemDeMenu[] | undefined, rota: string): ItemDeMenu[]
   return null;
 }
 
-export default function ConfiguracoesSubNav() {
+/**
+ * `emLinha`: todas as abas visíveis, sem o "Mais" — é como o protótipo desenha a faixa de abas
+ * (configuracoes-page.jsx, CliTabs abaixo do cabeçalho). Só serve em faixa própria (`PageHeader below`);
+ * dentro da linha do título (slot `subnav`) nove abas não cabem, por isso o padrão segue 6.
+ */
+export default function ConfiguracoesSubNav({ emLinha = false }: { emLinha?: boolean }) {
   const { shell } = usePage<{ shell?: { menu?: ItemDeMenu[] } }>().props;
   const rota = window.location.pathname;
   const filhos = acharGrupo(shell?.menu, rota)?.filter((c) => c.href && c.href !== '#') ?? [];
@@ -36,16 +41,19 @@ export default function ConfiguracoesSubNav() {
   const ghosts: PageHeaderGhost[] = filhos.map((c) => ({ key: caminho(c.href!), label: c.label, href: caminho(c.href!) }));
   const porChave = new Map(filhos.map((c) => [caminho(c.href!), c]));
 
-  return (
+  const abas = (
     <PageHeaderTabs
       ghosts={ghosts}
       activeGhostKey={rota}
       group="sistema"
-      maxVisible={6}
+      maxVisible={emLinha ? filhos.length : 6}
       onGhostChange={(key) => {
         if (porChave.get(key)?.inertia) router.visit(key);
         else window.location.assign(key);
       }}
     />
   );
+  // Em linha, a faixa rola por dentro (como .hrm-tabs do protótipo); sem isto o PageHeaderTabs, que é
+  // overflow-visible a partir de md, empurra o <main> inteiro para rolar na horizontal.
+  return emLinha ? <div className="min-w-0 overflow-x-auto [scrollbar-width:thin]" data-contract="abas-telas">{abas}</div> : abas;
 }

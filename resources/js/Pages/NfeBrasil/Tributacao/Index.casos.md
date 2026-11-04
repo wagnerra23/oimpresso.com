@@ -568,6 +568,48 @@ last_run: "2026-10-20"
 - **Contrato:** D-NATUREZA (a Jana só marca pendente) · ADR 0093.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## CST/CFOP incoerente: avisa, não bloqueia (Sabor Brasil, 2026-11-04)
+
+> Pedido [F] 2026-11-04: *"Não vamos passar por cima de nenhuma regra fiscal. O Ricardo vai poder
+> emitir com CST e CFOP que está emitindo (ele sabe que não é recomendável, mas faz para não perder o
+> cliente), mas o sistema vai avisar que está errado."* Nada aqui recusa: a regra salva e a nota sai.
+> Combinações pelo Ajuste SINIEF 07/2005 (CFOP), tabela B (CST/CSOSN) e Convênio ICMS 142/2018 (CEST).
+
+## UC-NFTR-40 · Combinação incoerente de CFOP, CST/CSOSN e regime gera aviso · `must` `[fiscal]`
+
+- **Aceite:** **Dado** CFOP 5401 com CST 60, ou 5405 com CST 10, ou 5102 com CSOSN 500, ou Regime
+  Normal com CSOSN, ou item com ST sem CEST, ou empresa marcada como substituta saindo com 5405/500
+  **Quando** a combinação é avaliada **Então** volta um aviso que diz o esperado; 5401+CST 10,
+  5401+CSOSN 201, 5405+CSOSN 500 e 5102+CSOSN 102 não avisam.
+- **Teste:** [`CoerenciaFiscalAvisoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php) — `UC-NFTR-40 …`.
+- **Contrato:** `CoerenciaFiscalDoItem::avisos`. Ao salvar regra ou configuração padrão o aviso vai no
+  `flash.info` (toast) e a gravação acontece igual.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-41 · A nota guarda o aviso por item · `must` `[fiscal]`
+
+- **Aceite:** **Dado** a empresa do Simples marcada como substituta, um item com 5405/CSOSN 500 sem CEST e
+  outro com 5401/CSOSN 201 com CEST **Quando** a nota é montada **Então** `metadata.avisos_fiscais` tem
+  só o primeiro item, com 2 avisos (substituta + CEST); a nota não é recusada.
+- **Teste:** [`CoerenciaFiscalAvisoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php) — `UC-NFTR-41 …`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-42 · CEST de produto de outra empresa não é lido · `must` `[T0]`
+
+- **Aceite:** **Dado** um item cujo produto é de outra empresa **Quando** os avisos são calculados **Então**
+  o CEST dele não é lido e o item conta como sem CEST.
+- **Teste:** [`CoerenciaFiscalAvisoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php) — `UC-NFTR-42 …`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-43 · A Saúde fiscal lista os produtos que saíram com aviso · `should` `[fiscal]`
+
+- **Aceite:** **Dado** uma nota dos últimos 30 dias com aviso no item do produto P **Quando** a Saúde fiscal é
+  avaliada **Então** aparece "Produtos que saíram em nota com CST/CFOP incoerente" com P, como aviso
+  (não bloqueante).
+- **Teste:** [`CoerenciaFiscalAvisoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php) — `UC-NFTR-43 …`.
+- **Contrato:** `SaudeFiscalService` (`emitido_com_cst_cfop_incoerente`).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).

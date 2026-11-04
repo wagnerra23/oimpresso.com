@@ -361,6 +361,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfseCertificadoPayloadTest.php \
             Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php \
             Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php \
+            Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeBloqueioComSaidaTest.php \
             Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php \
             Modules/NfeBrasil/Tests/Feature/ApuracaoDasTest.php \

@@ -243,16 +243,17 @@ function FichaOs({ id, onClose }) {
         {aba === "qualidade" && window.PcvQualidade && <window.PcvQualidade.AbaQualidade os={os} />}
 
         {aba === "historico" && <div className="pcv-sec">
+          {(() => { const af = D.autofechaDe ? D.autofechaDe(os.id) : null; if (!af) return null; return <>
           <div className="pcv-autofecha">
-            <div><b>Apontamento fechado automaticamente às 18:00</b><small>14/10 · {D.atual(os).resp} · {D.atual(os).nome} — o cronômetro ficou aberto no fim do turno</small></div>
-            {corr === null && Button && <Button size="sm" onClick={() => setCorr({ hora: "16:40", just: "" })}>Corrigir</Button>}
-            {corr && corr.ok && <span className="pcv-help">Corrigido para {corr.hora} — "{corr.just}". O registro original continua no histórico.</span>}
+            <div><b>Apontamento fechado automaticamente às {D.horaFimTurno()}</b><small>{af.dia} · {af.quem} · {af.etapa} — o cronômetro ficou aberto no fim do turno ({D.TURNO.rotulo})</small></div>
+            {!af.corrigido && corr === null && Button && <Button size="sm" onClick={() => setCorr({ hora: "16:40", just: "" })}>Corrigir</Button>}
+            {af.corrigido && <span className="pcv-help">Corrigido para {af.corrigido.hora} — "{af.corrigido.just}". O registro original continua no histórico.</span>}
           </div>
-          {corr && !corr.ok && <div className="pcv-form">
+          {!af.corrigido && corr && <div className="pcv-form">
             {Input && <Input label="Horário real do fim" value={corr.hora} onChange={(e) => setCorr({ ...corr, hora: e.target.value })} />}
             {Input && <Input label="Justificativa (obrigatória)" value={corr.just} placeholder="Ex.: esqueci de concluir ao trocar de máquina" onChange={(e) => setCorr({ ...corr, just: e.target.value })} />}
-            <div className="pcv-bar"><Button onClick={() => setCorr(null)}>Cancelar</Button><Button variant="primary" disabled={corr.just.trim().length < 5} onClick={() => { setCorr({ ...corr, ok: true }); D.registrar({ os: os.id, tipo: "pcp", texto: "Corrigiu o fim do apontamento para " + corr.hora + " — " + corr.just.trim() }); }}>Registrar correção</Button></div>
-          </div>}
+            <div className="pcv-bar"><Button onClick={() => setCorr(null)}>Cancelar</Button><Button variant="primary" disabled={corr.just.trim().length < 5} onClick={() => { D.corrigirAutofecha(os.id, corr.hora, corr.just.trim()); setCorr(null); }}>Registrar correção</Button></div>
+          </div>}</>; })()}
           {window.PcvEventos && <window.PcvEventos.Feed eventos={D.eventosDe(os.id)} max={30} vazio="Sem eventos nesta OS ainda." />}
         </div>}
       </div>

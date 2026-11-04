@@ -258,9 +258,9 @@ class TributacaoController extends Controller
             ])
             ->log('regra.created');
 
-        return redirect()
+        return $this->comAvisos(redirect()
             ->route('nfe-brasil.tributacao.index')
-            ->with('success', 'Regra tributária criada.');
+            ->with('success', 'Regra tributária criada.'), $businessId, $request->validated());
     }
 
     /** GET /nfe-brasil/tributacao/regras/{id}/edit */
@@ -318,9 +318,37 @@ class TributacaoController extends Controller
             ->withProperties(['business_id' => $businessId])
             ->log('regra.updated');
 
-        return redirect()
+        return $this->comAvisos(redirect()
             ->route('nfe-brasil.tributacao.index')
-            ->with('success', 'Regra tributária atualizada.');
+            ->with('success', 'Regra tributária atualizada.'), $businessId, $request->validated());
+    }
+
+    /**
+     * Sabor Brasil 2026-11-04 — CST/CFOP incoerente salva (a empresa decide), mas avisa.
+     * O aviso vai no flash `info`, que o `app.tsx` mostra em toast.
+     *
+     * @param array<string,mixed> $dados
+     */
+    private function comAvisos(RedirectResponse $resp, int $businessId, array $dados): RedirectResponse
+    {
+        $config = \Illuminate\Support\Facades\DB::table('nfe_business_configs')->where('business_id', $businessId)
+            ->first(['regime', 'tributacao_default']);
+        $crt = match ($config->regime ?? null) {
+            'lucro_presumido', 'lucro_real' => 3,
+            'simples', 'mei' => 1,
+            default => null,
+        };
+        $substituto = (bool) (json_decode((string) ($config->tributacao_default ?? ''), true)['substituto_tributario'] ?? false);
+        $avisos = \Modules\NfeBrasil\Services\Tributacao\CoerenciaFiscalDoItem::avisos(
+            $crt,
+            isset($dados['cfop']) ? (string) $dados['cfop'] : null,
+            isset($dados['cst']) ? (string) $dados['cst'] : null,
+            isset($dados['csosn']) ? (string) $dados['csosn'] : null,
+            null,
+            $substituto,
+        );
+
+        return $avisos === [] ? $resp : $resp->with('info', 'Salva, mas confira: '.implode(' ', $avisos));
     }
 
     /**

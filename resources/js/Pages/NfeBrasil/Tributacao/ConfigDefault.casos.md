@@ -5,7 +5,7 @@ irmaos: ConfigDefault.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o que esta tela grava vira imposto na nota — o comportamento é durável mesmo se o form mudar de layout.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-11-04"
 ---
 
 # Casos de Uso & Aceite — Defaults tributários (cascade Nível 4)
@@ -174,6 +174,20 @@ last_run: "2026-07-27"
   visivelmente faltando. O `.tsx` limpa o campo oposto no submit, mas isso é conveniência de UI: o
   contrato tem que valer para qualquer cliente do endpoint.
 - **Status: 🧪** — ver §Recibo.
+
+---
+
+## UC-NFCD-07 · CST/CFOP incoerente salva e avisa · `must` `[fiscal]`
+
+- **Persona:** Ricardo (Sabor Brasil), que envasa temperos e às vezes emite como substituído para não perder o cliente.
+- **Aceite:** Dado a marca "esta empresa industrializa ou envasa produto do ICMS-ST" e o padrão CFOP 5405 com
+  CSOSN 500 · Quando salvo · Então a configuração é gravada igual e volta um aviso (`flash.info`) dizendo que
+  quem fabrica retém o ST (CFOP 5401). Controle: 5102 com CSOSN 102 salva sem aviso.
+- **Teste:** [`ConfigDefaultContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php)
+  — `UC-NFCD-07 · empresa substituta com CFOP 5405 e CSOSN 500 salva e recebe aviso`.
+- **Contrato:** pedido [F] 2026-11-04 — *"não vamos passar por cima de nenhuma regra fiscal… o sistema vai avisar que está errado"* ·
+  `CoerenciaFiscalDoItem` (UC-NFTR-40 em `Index.casos.md`).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ---
 

@@ -29,6 +29,8 @@ class UpsertConfigDefaultRequest extends FormRequest
             'aliquota_pis'    => ['required', 'numeric', 'min:0', 'max:1'],
             'aliquota_cofins' => ['required', 'numeric', 'min:0', 'max:1'],
             'aliquota_ipi'    => ['nullable', 'numeric', 'min:0', 'max:1'],
+            // Sabor Brasil 2026-11-04: empresa que industrializa/envasa produto do ST retém o imposto.
+            'substituto_tributario' => ['nullable', 'boolean'],
         ];
     }
 
