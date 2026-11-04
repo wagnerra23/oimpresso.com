@@ -25,9 +25,10 @@ import { Info } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
 import { Switch } from '@/Components/ui/switch';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader } from '@/Components/PageHeader';
-import { Grid, Inline, Stack } from '@/Components/layout';
+import { Grid, Stack } from '@/Components/layout';
 import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
 import '../../../../css/cowork-configuracoes-bundle.css';
 
@@ -87,16 +88,16 @@ const HORA: Lista = { 24: '24 horas', 12: '12 horas' };
 const VALIDADE: Lista = { add_expiry: 'Informar a validade', add_manufacturing: 'Informar a fabricação (validade calculada)' };
 const AO_VENCER: Lista = { keep_selling: 'Manter vendendo', stop_selling: 'Parar de vender' };
 const NENHUM = '__nenhum__';
-const PRECO_IMPOSTO: Lista = { includes: 'Inclui o imposto', excludes: 'Sem o imposto (calculado sobre o preço)' };
+const PRECO_IMPOSTO: Lista = { includes: 'Com imposto', excludes: 'Sem imposto' };
 const ADICAO: Lista = { 0: 'Adiciona linha nova', 1: 'Aumenta a quantidade' };
-const ARREDONDA: Lista = { 1: 'Para o inteiro mais próximo', '0.05': 'Para 0,05', '0.1': 'Para 0,10', '0.5': 'Para 0,50' };
+const ARREDONDA: Lista = { 1: 'Arredondar para o inteiro mais próximo', '0.05': 'Arredondar para 0,05', '0.1': 'Arredondar para 0,10', '0.5': 'Arredondar para 0,50' };
 const CALC_COMISSAO: Lista = { invoice_value: 'Sobre o valor da fatura', payment_received: 'Sobre o pagamento recebido' };
 const LINHAS: Lista = { 25: '25', 50: '50', 100: '100', 200: '200', 500: '500', 1000: '1000', '-1': 'Todas' };
 const PREFIXOS: [string, string][] = [['purchase', 'Compra'], ['purchase_return', 'Devolução de compra'],
-  ['purchase_requisition', 'Requisição de compra'], ['purchase_order', 'Pedido de compra'], ['stock_transfer', 'Transferência de estoque'],
+  ['purchase_requisition', 'Requisição de compra'], ['purchase_order', 'Ordem de compra'], ['stock_transfer', 'Transferência de estoque'],
   ['stock_adjustment', 'Ajuste de estoque'], ['sell_return', 'Devolução de venda'], ['expense', 'Despesa'], ['contacts', 'Contatos'],
   ['purchase_payment', 'Pagamento de compra'], ['sell_payment', 'Pagamento de venda'], ['expense_payment', 'Pagamento de despesa'],
-  ['business_location', 'Local'], ['username', 'Usuário'], ['subscription', 'Assinatura'], ['draft', 'Rascunho'], ['sales_order', 'Pedido de venda']];
+  ['business_location', 'Local comercial'], ['username', 'Usuário'], ['subscription', 'Assinatura'], ['draft', 'Rascunho'], ['sales_order', 'Pedido de venda']];
 // Rótulos (`custom_labels`): [grupo, título, quantos, prefixo da chave, chaves de flag por campo].
 const ROTULOS: [string, string, number, string, [string, string][]][] = [
   ['payments', 'Formas de pagamento personalizadas', 7, 'custom_pay_', []],
@@ -111,6 +112,16 @@ const ROTULOS: [string, string, number, string, [string, string][]][] = [
   ['types_of_service', 'Campos do tipo de serviço', 6, 'custom_field_', []],
 ];
 const TIPO_CAMPO: Lista = { text: 'Texto', date: 'Data', dropdown: 'Lista' };
+// Rótulos: nome de cada campo e nota do grupo, com o texto do protótipo.
+const ROTULO_CAMPO: Record<string, string> = {
+  payments: 'Personalizada', contact: 'Contato · campo', product: 'Produto · campo', location: 'Local · campo',
+  user: 'Usuário · campo', purchase: 'Compra · campo', purchase_shipping: 'Frete da compra · campo', sell: 'Venda · campo',
+  shipping: 'Frete da venda · campo', types_of_service: 'Serviço · campo',
+};
+const ROTULO_NOTA: Record<string, string> = {
+  payments: 'Aparecem no caixa junto de dinheiro, cartão e Pix.',
+  product: 'O legado abre 20; nomeie só os que a casa usa — campo sem nome não aparece na tela.',
+};
 const VALIDADE_PONTOS: Lista = { month: 'Meses', year: 'Anos' };
 const SMS_SERVICO: Lista = { nexmo: 'Nexmo', twilio: 'Twilio', other: 'Outro (requisição própria)' };
 const SMS_METODO: Lista = { get: 'GET', post: 'POST' };
@@ -119,14 +130,20 @@ const ATALHOS: [string, string][] = [['express_checkout', 'Finalizar rápido'], 
   ['cancel', 'Cancelar'], ['recent_product_quantity', 'Quantidade do último produto'], ['weighing_scale', 'Balança'],
   ['edit_discount', 'Editar desconto'], ['edit_order_tax', 'Editar imposto do pedido'], ['add_payment_row', 'Nova linha de pagamento'],
   ['finalize_payment', 'Concluir pagamento'], ['add_new_product', 'Novo produto']];
-const PDV_LIGA: [string, string][] = [['disable_pay_checkout', 'Esconder "Pagar e finalizar"'], ['disable_draft', 'Esconder rascunho'],
-  ['disable_express_checkout', 'Esconder finalizar rápido'], ['hide_product_suggestion', 'Esconder sugestão de produtos'],
-  ['hide_recent_trans', 'Esconder vendas recentes'], ['disable_discount', 'Esconder desconto'], ['disable_order_tax', 'Esconder imposto do pedido'],
-  ['is_pos_subtotal_editable', 'Subtotal editável'], ['disable_suspend', 'Esconder suspender venda'], ['enable_transaction_date', 'Data da venda editável'],
-  ['inline_service_staff', 'Atendente por item'], ['is_service_staff_required', 'Atendente obrigatório'],
-  ['disable_credit_sale_button', 'Esconder venda a prazo'], ['enable_weighing_scale', 'Balança de código de barras'],
-  ['show_invoice_scheme', 'Mostrar esquema de fatura'], ['show_invoice_layout', 'Mostrar layout de fatura'],
-  ['print_on_suspend', 'Imprimir ao suspender'], ['show_pricing_on_product_sugesstion', 'Preço na sugestão de produtos']];
+// PDV: os 18 liga/desliga nos 4 blocos do protótipo, com o texto dele. [chave, rótulo, ajuda?]
+const PDV_BLOCOS: [string, [string, string, string?][]][] = [
+  ['Botões do caixa', [['disable_pay_checkout', 'Esconder “Pagar e finalizar”'], ['disable_draft', 'Esconder rascunho'],
+    ['disable_express_checkout', 'Esconder venda expressa'], ['disable_suspend', 'Esconder suspender venda'],
+    ['disable_credit_sale_button', 'Esconder venda a prazo']]],
+  ['Campos e cálculo', [['disable_discount', 'Esconder desconto'], ['disable_order_tax', 'Esconder imposto do pedido'],
+    ['is_pos_subtotal_editable', 'Subtotal editável', 'Deixa digitar o total e recalcular o item.'],
+    ['enable_transaction_date', 'Permitir mudar a data da venda']]],
+  ['Sugestões e atendimento', [['hide_product_suggestion', 'Esconder sugestão de produto'], ['show_pricing_on_product_sugesstion', 'Mostrar preço na sugestão'],
+    ['hide_recent_trans', 'Esconder vendas recentes'], ['inline_service_staff', 'Atendente na linha do item'],
+    ['is_service_staff_required', 'Exigir atendente']]],
+  ['Impressão e periféricos', [['show_invoice_scheme', 'Mostrar esquema de numeração no caixa'], ['show_invoice_layout', 'Mostrar layout da fatura no caixa'],
+    ['print_on_suspend', 'Imprimir ao suspender'], ['enable_weighing_scale', 'Usar balança', 'Lê o código da etiqueta de peso.']]],
+];
 // Balança: a Blade usa a LISTA [1..n] no Form::select, então o valor gravado é o ÍNDICE (0-based) e o rótulo é índice+1.
 // O SellPosController lê `product_sku_length + 1`. Os seletores daqui gravam o índice, igual.
 const indices = (n: number): Lista => Object.fromEntries(Array.from({ length: n }, (_, i) => [String(i), String(i + 1)]));
@@ -178,7 +195,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
   );
   const campo = (k: string, rotulo: string, extra?: { ajuda?: string; tipo?: string }) =>
     rotulado(`emp-${k}`, rotulo, <Input id={`emp-${k}`} type={extra?.tipo ?? 'text'} value={texto(k)} onChange={(e) => muda(k, e.target.value)} />, extra?.ajuda);
-  const escolha = (k: string, rotulo: string, lista: Lista | undefined, vazio?: string) =>
+  const escolha = (k: string, rotulo: string, lista: Lista | undefined, vazio?: string, ajuda?: string) =>
     rotulado(`emp-${k}`, rotulo, (
       <Select value={texto(k) || (vazio ? NENHUM : '')} onValueChange={(v) => muda(k, v === NENHUM ? '' : v)} disabled={!lista}>
         <SelectTrigger id={`emp-${k}`}><SelectValue placeholder={lista ? 'Escolha…' : 'Carregando…'} /></SelectTrigger>
@@ -187,7 +204,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
           {Object.entries(lista ?? {}).filter(([v]) => v !== '').map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
         </SelectContent>
       </Select>
-    ));
+    ), ajuda);
   // Liga/desliga do protótipo (Liga → .pf-liga com o Switch do DS): interruptor à esquerda, título e ajuda à direita.
   const liga = (id: string, rotulo: string, marcado: boolean, onMuda: (v: boolean) => void, ajuda?: string) => (
     <div key={id} className="pf-liga pf-liga-ds">
@@ -330,7 +347,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                   <Grid cols={2} gap={3}>
                     {campo('name', 'Nome do negócio *')}
                     {campo('start_date', 'Data de início', { ajuda: `No formato ${texto('date_format') || 'do negócio'}.` })}
-                    {campo('default_profit_percent', 'Margem de lucro padrão (%)', { ajuda: 'Usada para sugerir o preço de venda a partir do custo.' })}
+                    {campo('default_profit_percent', 'Margem de lucro padrão (%)', { ajuda: 'Usada pra sugerir o preço de venda a partir do custo.' })}
                     {escolha('currency_id', 'Moeda', opcoes?.moedas)}
                     {escolha('currency_symbol_placement', 'Posição do símbolo', SIMBOLO)}
                     {escolha('time_zone', 'Fuso horário', opcoes?.fusos)}
@@ -340,15 +357,30 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     {escolha('date_format', 'Formato de data', opcoes?.formatos_data)}
                     {escolha('time_format', 'Formato de hora', HORA)}
                     {escolha('currency_precision', 'Casas decimais do valor', PRECISOES)}
-                    {escolha('quantity_precision', 'Casas decimais da quantidade', PRECISOES)}
+                    {escolha('quantity_precision', 'Casas decimais da quantidade', PRECISOES, undefined, 'Cálculo por m² costuma pedir 3.')}
                   </Grid>
                   <Stack gap={2} className="cfg-bloco">
                     {titulo('Logo do negócio')}
-                    <Inline gap={3}>
-                      {logo && <img src={logo} alt="Logo atual" className="h-12 w-auto rounded-md border" />}
-                      <Input type="file" accept="image/*" aria-label="Enviar logo" className="max-w-xs"
-                        onChange={(e) => { setArquivo(e.target.files?.[0] ?? null); setSujo(true); }} />
-                    </Inline>
+                    {/* Bloco do logo do protótipo (.cfg-logo). Texto do limite: o do servidor (document_size_limit = 5 MB, qualquer imagem);
+                        o protótipo dizia "PNG ou JPG até 1 MB". Sem "Remover": o salvar não apaga logo. */}
+                    <div className="cfg-logo">
+                      <span className="cfg-logo-box" aria-hidden="true">
+                        {logo ? <img src={logo} alt="" className="max-h-full max-w-full" /> : texto('name').slice(0, 2).toUpperCase()}
+                      </span>
+                      <div className="cfg-logo-t">
+                        <b>{arquivo ? arquivo.name : logo ? 'Logo enviado' : 'Nenhum arquivo enviado'}</b>
+                        <small>Imagem até 5 MB. Sai no cabeçalho da fatura quando o layout pede logo.</small>
+                        <span>
+                          <Button asChild size="sm" variant="outline">
+                            <label>
+                              Enviar arquivo
+                              <input type="file" accept="image/*" className="sr-only"
+                                onChange={(e) => { setArquivo(e.target.files?.[0] ?? null); setSujo(true); }} />
+                            </label>
+                          </Button>
+                        </span>
+                      </div>
+                    </div>
                   </Stack>
                   <Stack gap={2} className="cfg-bloco">
                     {titulo('Códigos da empresa na nota')}
@@ -359,7 +391,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                       {campo('code_2', 'Código 2')}
                     </Grid>
                   </Stack>
-                  {ligaComum('is_enabled_export', 'Permitir exportar listas', 'botões de Excel, CSV e PDF nas tabelas.')}
+                  {ligaComum('is_enabled_export', 'Permitir exportar listas', 'Botões de Excel, CSV e PDF nas tabelas.')}
                 </>
               )}
 
@@ -372,7 +404,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     {campo('tax_number_2', 'Número do imposto 2')}
                   </Grid>
                   {ligaCampo('enable_inline_tax', 'Imposto por item', 'escolher o imposto em cada linha da compra e da venda.')}
-                  <p className="m-0 text-xs text-muted-foreground">Alíquota, CFOP, NCM e CST ficam em NF-e Brasil — aqui só os números que aparecem impressos.</p>
+                  <p className="pf-nota">Alíquota, CFOP, NCM e CST ficam em NF-e Brasil — aqui só os números que aparecem impressos.</p>
                 </>
               )}
 
@@ -382,11 +414,11 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     {campo('sku_prefix', 'Prefixo do SKU', { ajuda: 'Entra antes do número quando o SKU é automático.' })}
                     {escolha('default_unit', 'Unidade padrão', opcoes?.unidades, 'Nenhuma')}
                   </Grid>
-                  {ligaCampo('enable_product_expiry', 'Controlar validade do produto', 'data de validade na compra e no estoque.')}
+                  {ligaCampo('enable_product_expiry', 'Controlar validade do produto', 'Liga data de validade na compra e no estoque.')}
                   {!!corpo.enable_product_expiry && (
                     <Grid cols={2} gap={3}>
                       {escolha('expiry_type', 'Como informar', VALIDADE)}
-                      {escolha('on_product_expiry', 'Ao vencer', AO_VENCER)}
+                      {escolha('on_product_expiry', 'Ao vencer', AO_VENCER, undefined, '“Parar de vender” bloqueia o item no caixa a partir da data.')}
                       {texto('on_product_expiry') === 'stop_selling' && campo('stop_selling_before', 'Parar quantos dias antes', { tipo: 'number' })}
                     </Grid>
                   )}
@@ -415,26 +447,31 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     {escolha('sell_price_tax', 'Preço de venda', PRECO_IMPOSTO)}
                     {escolha('item_addition_method', 'Ao repetir um item', ADICAO)}
                     {escolhaPos('amount_rounding_method', 'Arredondamento do total', ARREDONDA, 'Não arredondar')}
+                    {escolha('sales_cmsn_agnt', 'Comissão', opcoes?.comissao, 'Desativado')}
+                    {/* Como no protótipo, o cálculo só aparece com comissão ligada. As opções são as do campo (fatura × recebido). */}
+                    {texto('sales_cmsn_agnt') !== '' && escolhaPos('cmmsn_calculation_type', 'Cálculo da comissão', CALC_COMISSAO)}
                   </Grid>
-                  <Stack gap={2}>
-                    {ligaPos('enable_msp', 'Preço de venda é o mínimo', 'não deixa vender abaixo dele.')}
-                    {ligaPos('allow_overselling', 'Permitir vender sem estoque')}
-                    {ligaPos('bloquear_venda_preco_zero_app', 'Bloquear venda com preço zero no app')}
-                    {ligaPos('enable_sales_order', 'Pedido de venda')}
-                    {ligaPos('is_pay_term_required', 'Prazo de pagamento obrigatório')}
-                  </Stack>
                   <Stack gap={2} className="cfg-bloco">
-                    {titulo('Comissão')}
+                    {titulo('Regras da venda')}
+                    {ligaPos('enable_msp', 'Respeitar preço mínimo de venda', 'Bloqueia desconto abaixo do MSP do produto.')}
+                    {ligaPos('allow_overselling', 'Vender sem estoque', 'Deixa faturar item com saldo negativo — comum em serviço.')}
+                    {ligaPos('bloquear_venda_preco_zero_app', 'Bloquear venda com preço zero no app', 'O app das lojas não fecha venda com item a R$ 0,00.')}
+                    {ligaPos('enable_sales_order', 'Usar pedido de venda', 'Pedido antes da venda, com faturamento parcial.')}
+                    {ligaPos('is_pay_term_required', 'Exigir prazo de pagamento', 'Não fecha venda a prazo sem prazo informado.')}
+                    {ligaPos('is_commission_agent_required', 'Exigir comissionado', 'Toda venda tem que ter um responsável pela comissão.')}
+                    {/* A ajuda do protótipo ("aqui é Pix e boleto") não vale: o link usa as chaves Razorpay/Stripe abaixo. */}
+                    {ligaPos('enable_payment_link', 'Link de pagamento no documento', 'Usa as chaves do Razorpay ou do Stripe deste bloco.')}
                     <Grid cols={2} gap={3}>
-                      {escolha('sales_cmsn_agnt', 'Quem recebe comissão', opcoes?.comissao, 'Desativado')}
-                      {escolhaPos('cmmsn_calculation_type', 'Calcular sobre', CALC_COMISSAO)}
+                      {campoPos('razor_pay_key_id', 'Razorpay · Key ID')}
+                      {segredo('razor_pay_key_secret', 'Razorpay · Key Secret')}
+                      {campoPos('stripe_public_key', 'Stripe · chave pública')}
+                      {segredo('stripe_secret_key', 'Stripe · chave secreta')}
                     </Grid>
-                    {ligaPos('is_commission_agent_required', 'Comissionado obrigatório na venda')}
                   </Stack>
                   <Stack gap={2} className="cfg-bloco">
                     {titulo('Pesquisa de satisfação')}
                     {liga('emp-cs-pesquisa-ativo', 'Enviar pesquisa 2 dias depois da entrega', !!pesquisa.ativo, (v) => mudaPesquisa('ativo', v ? '1' : null),
-                      'nota baixa abre um atendimento no CRM para o vendedor.')}
+                      'Nota baixa abre um atendimento no CRM para o vendedor.')}
                     <Grid cols={2} gap={3}>
                       {rotulado('emp-cs-pesquisa-nota', 'Nota baixa abre atendimento quando for até', (
                         <Select value={String(pesquisa.nota_baixa ?? '2')} onValueChange={(v) => mudaPesquisa('nota_baixa', v)}>
@@ -446,33 +483,19 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                       ), 'Escala de 1 a 5.')}
                     </Grid>
                   </Stack>
-                  <Stack gap={2} className="cfg-bloco">
-                    {titulo('Link de pagamento')}
-                    {ligaPos('enable_payment_link', 'Enviar link de pagamento')}
-                    <Grid cols={2} gap={3}>
-                      {campoPos('razor_pay_key_id', 'Razorpay · Key ID')}
-                      {segredo('razor_pay_key_secret', 'Razorpay · Key Secret')}
-                      {campoPos('stripe_public_key', 'Stripe · chave pública')}
-                      {segredo('stripe_secret_key', 'Stripe · chave secreta')}
-                    </Grid>
-                  </Stack>
                 </>
               )}
 
               {aba === 'pdv' && (
                 <>
-                  <Stack gap={2} className="cfg-bloco">
-                    {titulo('O que o caixa mostra')}
-                    {PDV_LIGA.map(([k, l]) => ligaPos(k, l))}
-                  </Stack>
-                  <Stack gap={2} className="cfg-bloco">
-                    {titulo('Atalhos de teclado')}
-                    <span className="text-xs text-muted-foreground">Ex.: ctrl+shift+b, ctrl+h. Em branco = sem atalho.</span>
-                    <Grid cols={2} gap={3}>
-                      {ATALHOS.map(([k, l]) => rotulado(`emp-atalho-${k}`, l,
-                        <Input id={`emp-atalho-${k}`} value={atalhos[k] == null ? '' : String(atalhos[k])} onChange={(e) => mudaAtalho(k, e.target.value)} />))}
-                    </Grid>
-                  </Stack>
+                  {PDV_BLOCOS.map(([t, itens]) => (
+                    <Stack key={t} gap={2} className="cfg-bloco">
+                      {titulo(t)}
+                      {itens.map(([k, l, a]) => ligaPos(k, l, a))}
+                    </Stack>
+                  ))}
+                  {/* Protótipo: a balança só aparece com "Usar balança" ligado; o que está gravado não muda. */}
+                  {!!pos.enable_weighing_scale && (
                   <Stack gap={2} className="cfg-bloco">
                     {titulo('Balança de código de barras')}
                     <Grid cols={2} gap={3}>
@@ -487,31 +510,35 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                       )))}
                     </Grid>
                   </Stack>
+                  )}
+                  <Stack gap={2} className="cfg-bloco">
+                    {titulo('Atalhos de teclado')}
+                    <p className="cfg-p">Ex.: ctrl+shift+b, ctrl+h. Em branco = sem atalho.</p>
+                    <div className="cfg-prefixos">
+                      {ATALHOS.map(([k, l]) => rotulado(`emp-atalho-${k}`, l,
+                        <Input id={`emp-atalho-${k}`} className="mono" value={atalhos[k] == null ? '' : String(atalhos[k])} onChange={(e) => mudaAtalho(k, e.target.value)} />))}
+                    </div>
+                  </Stack>
                 </>
               )}
 
               {aba === 'compra' && (
                 <>
-                  <Stack gap={2}>
-                    {ligaCampo('enable_purchase_status', 'Status da compra', 'recebida, pendente ou pedida.')}
-                    {ligaCampo('enable_lot_number', 'Número de lote')}
-                    {ligaCampo('enable_editing_product_from_purchase', 'Atualizar preço do produto pela compra')}
-                    {ligaComum('enable_purchase_order', 'Pedido de compra')}
-                    {ligaComum('enable_purchase_requisition', 'Requisição de compra')}
-                  </Stack>
-                  <Stack gap={2} className="cfg-bloco">
-                    {titulo('Moeda do fornecedor')}
-                    {ligaCampo('purchase_in_diff_currency', 'Comprar em outra moeda')}
+                  {ligaCampo('purchase_in_diff_currency', 'Comprar em outra moeda')}
                     {!!corpo.purchase_in_diff_currency && (
                       <Grid cols={2} gap={3}>
                         {escolha('purchase_currency_id', 'Moeda da compra', opcoes?.moedas)}
                         {/* type=number como na Blade: o salvar grava a taxa crua (sem num_uf), então ela tem de chegar com ponto decimal. */}
-                        {campo('p_exchange_rate', 'Taxa de câmbio', { tipo: 'number', ajuda: 'Quantas unidades da sua moeda vale 1 da moeda da compra.' })}
+                        {campo('p_exchange_rate', 'Taxa de câmbio', { tipo: 'number', ajuda: '1 unidade da moeda da compra em reais.' })}
                       </Grid>
                     )}
-                    {!corpo.purchase_in_diff_currency && (
-                      <span className="text-xs text-muted-foreground">Desligado, o salvar grava moeda vazia e taxa 1.</span>
-                    )}
+                  <Stack gap={2} className="cfg-bloco">
+                    {titulo('Regras da compra')}
+                    {ligaCampo('enable_editing_product_from_purchase', 'Editar produto direto na compra')}
+                    {ligaCampo('enable_purchase_status', 'Usar situação da compra', 'Pedida · recebida · parcial.')}
+                    {ligaCampo('enable_lot_number', 'Controlar número de lote')}
+                    {ligaComum('enable_purchase_order', 'Usar ordem de compra')}
+                    {ligaComum('enable_purchase_requisition', 'Usar requisição de compra', 'Pedido interno antes da ordem.')}
                   </Stack>
                 </>
               )}
@@ -526,7 +553,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                 <>
                   <Grid cols={2} gap={3}>
                     {escolha('theme_color', 'Cor do tema', opcoes?.temas, 'Padrão')}
-                    {rotulado('emp-cs-default_datatable_page_entries', 'Linhas por tabela', (
+                    {rotulado('emp-cs-default_datatable_page_entries', 'Linhas por página nas tabelas', (
                       <Select value={comum.default_datatable_page_entries == null ? '25' : String(comum.default_datatable_page_entries)}
                         onValueChange={(v) => mudaComum('default_datatable_page_entries', v)}>
                         <SelectTrigger id="emp-cs-default_datatable_page_entries"><SelectValue /></SelectTrigger>
@@ -534,34 +561,38 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                       </Select>
                     ))}
                   </Grid>
-                  {ligaCampo('enable_tooltip', 'Mostrar textos de ajuda')}
+                  {ligaCampo('enable_tooltip', 'Mostrar textos de ajuda', 'As dicas de interrogação ao lado dos campos.')}
                 </>
               )}
 
               {aba === 'prefixos' && (
-                <Grid cols={2} gap={3}>
-                  {PREFIXOS.map(([k, l]) => rotulado(`emp-prefixo-${k}`, l,
-                    <Input id={`emp-prefixo-${k}`} value={prefixos[k] == null ? '' : String(prefixos[k])} onChange={(e) => mudaPrefixo(k, e.target.value)} />))}
-                </Grid>
+                <>
+                  <div className="cfg-prefixos">
+                    {PREFIXOS.map(([k, l]) => rotulado(`emp-prefixo-${k}`, l,
+                      <Input id={`emp-prefixo-${k}`} className="mono" value={prefixos[k] == null ? '' : String(prefixos[k])} onChange={(e) => mudaPrefixo(k, e.target.value)} />))}
+                  </div>
+                  <p className="pf-nota">Mudar prefixo não renumera o que já existe — a compra CP0148 continua CP0148.</p>
+                </>
               )}
 
               {aba === 'email' && (
                 <>
-                  {email_superadmin && liga('emp-email-superadmin', 'Usar o servidor de e-mail do sistema', usaSuperadmin,
-                    (v) => mudaObj('email_settings', 'use_superadmin_settings', v ? '1' : '', true))}
+                  {email_superadmin && liga('emp-email-superadmin', 'Usar o servidor do sistema', usaSuperadmin,
+                    (v) => mudaObj('email_settings', 'use_superadmin_settings', v ? '1' : '', true), 'Sem configurar nada: o envio sai pela infra do oimpresso.')}
                   {!usaSuperadmin && (
                     <Grid cols={2} gap={3}>
                       {escolhaObj('email_settings', 'mail_driver', 'Driver', opcoes?.drivers_email, 'smtp')}
                       {campoObj('email_settings', 'mail_host', 'Servidor')}
                       {campoObj('email_settings', 'mail_port', 'Porta')}
-                      {campoObj('email_settings', 'mail_encryption', 'Criptografia (tls/ssl)')}
+                      {campoObj('email_settings', 'mail_encryption', 'Criptografia')}
                       {campoObj('email_settings', 'mail_username', 'Usuário')}
                       {segredoObj('email_settings', 'email', 'mail_password', 'Senha')}
-                      {campoObj('email_settings', 'mail_from_address', 'E-mail do remetente', 'email')}
+                      {campoObj('email_settings', 'mail_from_address', 'Enviar de', 'email')}
                       {campoObj('email_settings', 'mail_from_name', 'Nome do remetente')}
                     </Grid>
                   )}
-                  <p className="m-0 text-xs text-muted-foreground">Senha em branco mantém a gravada. Para apagá-la ou enviar um e-mail de teste, use a tela antiga.</p>
+                  <p className="pf-nota">O corpo de cada mensagem fica em <a className="cfg-link" href="/notification-templates">Modelos de notificação</a>.</p>
+                  <p className="pf-nota">Senha em branco mantém a gravada. Para apagá-la ou enviar um e-mail de teste, use a tela antiga.</p>
                 </>
               )}
 
@@ -585,28 +616,30 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                   {servicoSms === 'other' && (
                     <>
                       <Grid cols={2} gap={3}>
-                        {campoObj('sms_settings', 'url', 'URL')}
+                        {campoObj('sms_settings', 'url', 'URL do gateway')}
                         {escolhaObj('sms_settings', 'request_method', 'Método', SMS_METODO, 'post')}
                         {campoObj('sms_settings', 'send_to_param_name', 'Parâmetro do destinatário')}
                         {campoObj('sms_settings', 'msg_param_name', 'Parâmetro da mensagem')}
                       </Grid>
                       <Stack gap={2} className="cfg-bloco">
-                        {titulo('Cabeçalhos')}
+                        {titulo('Cabeçalhos da requisição')}
                         <Grid cols={2} gap={3}>
-                          {[1, 2, 3].flatMap((i) => [campoObj('sms_settings', `header_${i}`, `Cabeçalho ${i}`),
-                            segredoObj('sms_settings', 'sms', `header_val_${i}`, `Valor do cabeçalho ${i}`)])}
+                          {[1, 2, 3].flatMap((i) => [campoObj('sms_settings', `header_${i}`, `Cabeçalho ${i} · chave`),
+                            segredoObj('sms_settings', 'sms', `header_val_${i}`, `Cabeçalho ${i} · valor`)])}
                         </Grid>
                       </Stack>
                       <Stack gap={2} className="cfg-bloco">
-                        {titulo('Parâmetros')}
+                        {titulo('Parâmetros extras')}
+                        <p className="cfg-p">O legado abre dez pares — a maioria dos gateways brasileiros usa dois ou três.</p>
                         <Grid cols={2} gap={3}>
-                          {Array.from({ length: 10 }, (_, j) => j + 1).flatMap((i) => [campoObj('sms_settings', `param_${i}`, `Parâmetro ${i}`),
-                            segredoObj('sms_settings', 'sms', `param_val_${i}`, `Valor do parâmetro ${i}`)])}
+                          {Array.from({ length: 10 }, (_, j) => j + 1).flatMap((i) => [campoObj('sms_settings', `param_${i}`, `Parâmetro ${i} · chave`),
+                            segredoObj('sms_settings', 'sms', `param_val_${i}`, `Parâmetro ${i} · valor`)])}
                         </Grid>
                       </Stack>
                     </>
                   )}
-                  <p className="m-0 text-xs text-muted-foreground">Valores de cabeçalho e parâmetro podem carregar o token da API e não vêm para esta tela: em branco mantém o gravado. Para apagar ou testar o envio, use a tela antiga.</p>
+                  <p className="pf-nota">O WhatsApp resolve a maior parte dos avisos — o SMS fica pra quem não tem app.</p>
+                  <p className="pf-nota">Valores de cabeçalho e parâmetro podem carregar o token da API e não vêm para esta tela: em branco mantém o gravado. Para apagar ou testar o envio, use a tela antiga.</p>
                 </>
               )}
 
@@ -620,99 +653,106 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                           <button type="button" className="cfg-mini-link" onClick={() => setTodosProduto((v) => !v)}>{todosProduto ? 'mostrar 4' : `mostrar todos os ${n}`}</button>
                         )}
                       </h3>
-                      <Grid cols={2} gap={3}>
+                      {ROTULO_NOTA[g] && <p className="cfg-p">{ROTULO_NOTA[g]}</p>}
+                      <div className="cfg-prefixos">
                         {Array.from({ length: g === 'product' && !todosProduto ? 4 : n }, (_, j) => j + 1).map((i) => {
                           const k = `${prefixo}${i}`;
                           const valor = grupoRotulo(g)[k];
                           return (
-                            <Stack key={k} gap={1}>
-                              {rotulado(`emp-rot-${g}-${i}`, `${g === 'payments' ? 'Forma' : 'Campo'} ${i}`,
+                            <div key={k} className="cfg-rot">
+                              {rotulado(`emp-rot-${g}-${i}`, `${ROTULO_CAMPO[g]} ${i}`,
                                 <Input id={`emp-rot-${g}-${i}`} value={valor == null ? '' : String(valor)} onChange={(e) => mudaRotulo(g, k, e.target.value)} />)}
-                              {flags.map(([f, l]) => liga(`emp-rot-${g}-${f}-${i}`, l, !!grupoRotulo(g)[`is_custom_field_${i}_${f}`],
-                                (v) => mudaRotulo(g, `is_custom_field_${i}_${f}`, v ? '1' : null)))}
-                              {g === 'product' && (
-                                <Inline gap={2}>
-                                  <Select value={detalhe(i).type ? String(detalhe(i).type) : NENHUM} onValueChange={(v) => mudaDetalhe(i, 'type', v === NENHUM ? '' : v)}>
-                                    <SelectTrigger aria-label={`Tipo do campo ${i}`} className="w-32"><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value={NENHUM}>Tipo</SelectItem>
-                                      {Object.entries(TIPO_CAMPO).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-                                    </SelectContent>
-                                  </Select>
-                                  {detalhe(i).type === 'dropdown' && (
-                                    <Textarea aria-label={`Opções do campo ${i}`} rows={2} placeholder="Uma opção por linha"
-                                      value={detalhe(i).dropdown_options == null ? '' : String(detalhe(i).dropdown_options)}
-                                      onChange={(e) => mudaDetalhe(i, 'dropdown_options', e.target.value)} />
-                                  )}
-                                </Inline>
+                              {/* Obrigatório / puxar do contato: caixas .cfg-ck do protótipo. */}
+                              {flags.map(([f, l]) => {
+                                const marcado = !!grupoRotulo(g)[`is_custom_field_${i}_${f}`];
+                                return (
+                                  <label key={f} htmlFor={`emp-rot-${g}-${f}-${i}`} className={`cfg-ck ${marcado ? 'on' : ''}`}>
+                                    <Checkbox id={`emp-rot-${g}-${f}-${i}`} checked={marcado}
+                                      onCheckedChange={(v) => mudaRotulo(g, `is_custom_field_${i}_${f}`, v === true ? '1' : null)} />
+                                    {l}
+                                  </label>
+                                );
+                              })}
+                              {g === 'product' && rotulado(`emp-rot-tipo-${i}`, 'Tipo', (
+                                <Select value={detalhe(i).type ? String(detalhe(i).type) : NENHUM} onValueChange={(v) => mudaDetalhe(i, 'type', v === NENHUM ? '' : v)}>
+                                  <SelectTrigger id={`emp-rot-tipo-${i}`}><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={NENHUM}>Texto (padrão)</SelectItem>
+                                    {Object.entries(TIPO_CAMPO).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              ), detalhe(i).type === 'dropdown' ? 'As opções vão uma por linha.' : undefined)}
+                              {g === 'product' && detalhe(i).type === 'dropdown' && (
+                                <Textarea aria-label={`Opções do campo ${i}`} rows={2} placeholder="Uma opção por linha"
+                                  value={detalhe(i).dropdown_options == null ? '' : String(detalhe(i).dropdown_options)}
+                                  onChange={(e) => mudaDetalhe(i, 'dropdown_options', e.target.value)} />
                               )}
-                            </Stack>
+                            </div>
                           );
                         })}
-                      </Grid>
+                      </div>
                     </Stack>
                   ))}
+                  <p className="pf-nota">Campo sem nome não aparece em tela nenhuma — é assim que o legado esconde os 20 do produto.</p>
                 </>
               )}
 
               {aba === 'fidelidade' && (
                 <>
-                  {ligaCampo('enable_rp', 'Ligar pontos de fidelidade')}
+                  {ligaCampo('enable_rp', 'Usar pontos de fidelidade')}
                   {!!corpo.enable_rp && (
-                    <>
-                      <Grid cols={2} gap={3}>{campo('rp_name', 'Nome dos pontos', { ajuda: 'Como o cliente vê, ex.: Pontos.' })}</Grid>
-                      <Stack gap={2} className="cfg-bloco">
-                        {titulo('Ganhar pontos')}
-                        <Grid cols={2} gap={3}>
-                          {campo('amount_for_unit_rp', 'Valor da venda para 1 ponto', { ajuda: 'Ex.: 1,00 = cada 1,00 vendido rende 1 ponto.' })}
-                          {campo('min_order_total_for_rp', 'Venda mínima para ganhar pontos')}
-                          {campo('max_rp_per_order', 'Máximo de pontos por venda', { tipo: 'number' })}
-                        </Grid>
-                      </Stack>
-                      <Stack gap={2} className="cfg-bloco">
-                        {titulo('Resgatar pontos')}
-                        <Grid cols={2} gap={3}>
-                          {campo('redeem_amount_per_unit_rp', 'Valor de 1 ponto no resgate')}
-                          {campo('min_order_total_for_redeem', 'Venda mínima para resgatar')}
-                          {campo('min_redeem_point', 'Mínimo de pontos por resgate', { tipo: 'number' })}
-                          {campo('max_redeem_point', 'Máximo de pontos por resgate', { tipo: 'number' })}
-                        </Grid>
-                      </Stack>
-                      <Grid cols={2} gap={3}>
-                        {campo('rp_expiry_period', 'Validade dos pontos', { tipo: 'number', ajuda: 'Em branco = não vencem.' })}
-                        {escolha('rp_expiry_type', 'Contada em', VALIDADE_PONTOS)}
-                      </Grid>
-                    </>
+                    <Grid cols={2} gap={3}>
+                      {campo('rp_name', 'Nome do programa')}
+                      {campo('amount_for_unit_rp', 'Valor que vale 1 ponto (R$)', { ajuda: 'Ex.: 1,00 = cada 1,00 vendido rende 1 ponto.' })}
+                      {campo('min_order_total_for_rp', 'Mínimo do pedido pra pontuar (R$)')}
+                      {campo('max_rp_per_order', 'Máximo de pontos por pedido', { tipo: 'number', ajuda: 'Em branco = sem teto.' })}
+                      {campo('redeem_amount_per_unit_rp', 'Quanto vale 1 ponto no resgate (R$)')}
+                      {campo('min_redeem_point', 'Mínimo de pontos pra resgatar', { tipo: 'number' })}
+                      {campo('min_order_total_for_redeem', 'Mínimo do pedido pra resgatar (R$)')}
+                      {campo('max_redeem_point', 'Máximo de pontos por resgate', { tipo: 'number', ajuda: 'Em branco = sem teto.' })}
+                      {/* O protótipo usa uma lista fixa (6/12/24 meses); o campo grava número + unidade, então ficam os dois. */}
+                      {campo('rp_expiry_period', 'Validade dos pontos', { tipo: 'number', ajuda: 'Em branco = não vencem.' })}
+                      {escolha('rp_expiry_type', 'Contada em', VALIDADE_PONTOS)}
+                    </Grid>
                   )}
                 </>
               )}
 
               {aba === 'modulos' && (
-                <Stack gap={2}>
-                  {Object.entries(opcoes?.modulos ?? {}).map(([k, l]) => liga(`emp-modulo-${k}`, l, modulos.includes(k),
-                    (v) => muda('enabled_modules', v ? [...modulos, k] : modulos.filter((x) => x !== k))))}
-                </Stack>
+                <>
+                  <div className="cfg-mods">
+                    {Object.entries(opcoes?.modulos ?? {}).map(([k, l]) => (
+                      <label key={k} htmlFor={`emp-modulo-${k}`} className={`cfg-mod ${modulos.includes(k) ? 'on' : ''}`}>
+                        <Checkbox id={`emp-modulo-${k}`} checked={modulos.includes(k)}
+                          onCheckedChange={(v) => muda('enabled_modules', v === true ? [...modulos, k] : modulos.filter((x) => x !== k))} />
+                        <span>{l}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="pf-nota">Quem contrata módulo por plano é a <a className="cfg-link" href="/subscription">assinatura de pacote</a> — aqui só liga o que o plano já permite.</p>
+                </>
               )}
 
               {aba === 'pagto' && (
                 <>
                   <Grid cols={2} gap={3}>
-                    {campoPos('cash_denominations', 'Cédulas e moedas', 'Separadas por vírgula, ex.: 200,100,50,20,10,5,2.')}
-                    {escolhaPos('enable_cash_denomination_on', 'Contar cédulas', CEDULAS_EM)}
+                    {campoPos('cash_denominations', 'Cédulas e moedas', 'Separe por vírgula, na ordem que aparece na contagem.')}
+                    {escolhaPos('enable_cash_denomination_on', 'Contar dinheiro em', CEDULAS_EM)}
                   </Grid>
                   <Stack gap={2} className="cfg-bloco">
-                    {titulo('Formas de pagamento com contagem')}
+                    {titulo('Para quais formas')}
                     {Object.entries(opcoes?.pagamentos ?? {}).map(([k, l]) => liga(`emp-cedula-${k}`, l, metodosCedula.includes(k),
                       (v) => mudaPos('enable_cash_denomination_for_payment_methods', v ? [...metodosCedula, k] : metodosCedula.filter((x) => x !== k))))}
                   </Stack>
-                  {ligaPos('cash_denomination_strict_check', 'Conferência estrita', 'o total contado tem de bater com o recebido.')}
+                  {/* Ajuda do protótipo ("não fecha o caixa…") descreve outra regra: o campo confere a contagem no recebimento. */}
+                  {ligaPos('cash_denomination_strict_check', 'Conferência estrita', 'O total contado tem de bater com o recebido.')}
                 </>
               )}
 
               {aba === 'financeiro' && (
                 <Stack gap={3} data-contract="regua-cobranca">
                   {liga('emp-regua-ativo', 'Enviar lembrete de cobrança', reguaAtiva, (v) => mudaRegua('ativo', v ? '1' : '0'),
-                    'e-mail ao cliente antes de o título a receber vencer e depois, se não for pago.')}
+                    'E-mail ao cliente antes de o título vencer e depois, se não for pago.')}
                   <Grid cols={2} gap={3}>
                     {rotulado('emp-regua-dias', 'Dias após o vencimento', (
                       <Input id="emp-regua-dias" inputMode="numeric" value={reguaDias} disabled={!reguaAtiva}
@@ -723,9 +763,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                         placeholder="ex.: 3" onChange={(e) => mudaRegua('dias_antes', e.target.value)} />
                     ), 'Vazio = não avisa antes. Ex.: 3 avisa três dias antes de vencer.')}
                   </Grid>
-                  <span className="text-xs text-muted-foreground">
-                    Cliente que recusou e-mail não recebe; o lembrete fica registrado com o motivo em Contas a Receber.
-                  </span>
+                  <p className="pf-nota">Cliente que recusou e-mail não recebe; o lembrete fica registrado com o motivo em Contas a Receber.</p>
                 </Stack>
               )}
 
@@ -739,8 +777,9 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
 
               {aba === 'contato' && (
                 <Grid cols={2} gap={3}>
-                  {rotulado('emp-cs-default_credit_limit', 'Limite de crédito padrão', (
-                    <Input id="emp-cs-default_credit_limit" value={comum.default_credit_limit == null ? '' : String(comum.default_credit_limit)}
+                  {/* Ajuda de produção mantida: o protótipo diz "sem limite", mas o valor é só sugestão no cadastro (charter, Non-Goals). */}
+                  {rotulado('emp-cs-default_credit_limit', 'Limite de crédito padrão (R$)', (
+                    <Input id="emp-cs-default_credit_limit" className="mono" value={comum.default_credit_limit == null ? '' : String(comum.default_credit_limit)}
                       onChange={(e) => mudaComum('default_credit_limit', e.target.value)} />
                   ), 'Sugerido no cadastro de cliente novo. Em branco = sem sugestão.')}
                 </Grid>
