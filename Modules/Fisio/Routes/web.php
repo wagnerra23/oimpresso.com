@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Fisio\Http\Controllers\AgendaController;
 use Modules\Fisio\Http\Controllers\BibliotecaController;
 use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
@@ -50,6 +51,17 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->group(function () {
         // Painel do profissional (US-FISIO-010): KPIs, fila de atenção e tabela. Só leitura.
         Route::get('/', [PainelController::class, 'index'])->name('painel');
+
+        // Agenda da clínica (US-FISIO-014/015). Leitura com fisio.access; escrita exige `fisio.editar` (no controller).
+        Route::get('agenda', [AgendaController::class, 'index'])->name('agenda.index');
+        Route::post('agenda/atendimentos', [AgendaController::class, 'store'])->name('agenda.atendimentos.store');
+        Route::post('agenda/atendimentos/{id}/status', [AgendaController::class, 'status'])->whereNumber('id')->name('agenda.atendimentos.status');
+        Route::post('agenda/atendimentos/{id}/cancelar', [AgendaController::class, 'cancelar'])->whereNumber('id')->name('agenda.atendimentos.cancelar');
+        Route::post('agenda/bloqueios', [AgendaController::class, 'bloquear'])->name('agenda.bloqueios.store');
+        Route::delete('agenda/bloqueios/{id}', [AgendaController::class, 'desbloquearHorario'])->whereNumber('id')->name('agenda.bloqueios.destroy');
+        Route::post('agenda/espera', [AgendaController::class, 'entrarNaEspera'])->name('agenda.espera.store');
+        Route::delete('agenda/espera/{id}', [AgendaController::class, 'sairDaEspera'])->whereNumber('id')->name('agenda.espera.destroy');
+        Route::post('pacientes/{id}/liberar-agendamento', [AgendaController::class, 'liberarApp'])->whereNumber('id')->name('pacientes.liberar-agendamento');
 
         // Biblioteca de exercícios (US-FISIO-004). Escrita exige `fisio.editar` (checada no controller).
         Route::get('biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca.index');
