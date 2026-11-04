@@ -69,6 +69,25 @@ describe('Sidebar · grupo PLATAFORMA (design: data.jsx + sidebar.jsx)', () => {
     expect(grupo?.querySelector('.sb-group-l')?.textContent?.trim()).toBe('PLATAFORMA');
   });
 
+  it('Suporte e Super Admin entram na PLATAFORMA, depois da Forja ([W] 2026-11-04)', () => {
+    // O que o core (AdminSidebarMenu) e o DataController do Superadmin declaram.
+    const menu: ShellMenuItem[] = [
+      ...MENU,
+      { label: 'Super Admin', href: '/superadmin', group: 'plataforma' },
+      { label: 'Suporte', href: '/suporte/empresas', group: 'plataforma' },
+    ];
+    render(<SidebarMenu items={menu} />);
+    fireEvent.click(cabecalho('PLATAFORMA')!);
+
+    const grupo = cabecalho('PLATAFORMA')!.closest('.sb-group') as HTMLElement;
+    const rotulos = Array.from(grupo.querySelectorAll('a')).map((a) => a.textContent?.trim());
+    expect(rotulos).toEqual(['Forja', 'Suporte', 'Super Admin']);
+
+    // Suporte saiu de SISTEMA: não pode aparecer duas vezes no menu.
+    const sistema = cabecalho('SISTEMA')!.closest('.sb-group') as HTMLElement;
+    expect(sistema.textContent).not.toContain('Suporte');
+  });
+
   it('é NEUTRO — sem hue, como o `hue: null` do GROUP_META do design', () => {
     render(<SidebarMenu items={MENU} />);
 

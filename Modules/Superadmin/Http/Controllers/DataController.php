@@ -121,6 +121,22 @@ class DataController extends Controller
         // Módulos/Backup/CMS/Conector/Office Impresso/Personalizar. Manter
         // 1 entry top-level era duplicação. Tela /superadmin acessível via
         // URL direta.
+        //
+        // [W] 2026-11-04: "pode colocar o super admin na Plataforma, sidebar". A entry
+        // volta, mas no grupo PLATAFORMA (não mais solta no topo). Mesmo gate da rota:
+        // `can('superadmin')` = username em `administrator_usernames` (middleware
+        // `superadmin`), que o bypass do Admin#{biz} no Gate::before não cobre.
+        if (auth()->user()->can('superadmin')) {
+            Menu::instance('admin-sidebar-menu')->url(
+                url('/superadmin'),
+                'Super Admin',
+                [
+                    'icon'   => 'fa fas fa-user-shield',
+                    'active' => request()->segment(1) == 'superadmin',
+                    'group'  => 'plataforma',
+                ]
+            )->order(95);
+        }
 
         if (auth()->user()->can('superadmin.access_package_subscriptions') && auth()->user()->can('business_settings.access')) {
             $menu = Menu::instance('admin-sidebar-menu');

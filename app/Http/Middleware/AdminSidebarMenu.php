@@ -987,8 +987,9 @@ class AdminSidebarMenu
             // Modo Suporte (ADR 0305/0309) — single-link pra empresas-cliente.
             // Só agentes de suporte veem: operadora (biz=1, todo user) OU concessão
             // ativa em support_agents (RF4). Gate service-direct, NÃO Gate::before
-            // (que daria true a qualquer Admin#<biz> — ADR 0309). Grupo SISTEMA via
+            // (que daria true a qualquer Admin#<biz> — ADR 0309). Grupo PLATAFORMA via
             // attribute 'group' (Sidebar.tsx findGroupKey dá precedência ao declarado).
+            // [W] 2026-11-04: "o item suporte tbm na Plataforma" (era SISTEMA).
             // Suporte não é módulo nWidart → não tem DataController → nasce aqui no core.
             if (app(\App\Services\Support\SupportAccessService::class)->isSupportAgent(auth()->user())) {
                 $menu->url(
@@ -1005,7 +1006,7 @@ class AdminSidebarMenu
                     <path d="M8.8 15.2l-3.1 3.1"></path>
                   </svg>',
                         'active' => request()->segment(1) == 'suporte',
-                        'group'  => 'sistema',
+                        'group'  => 'plataforma',
                     ]
                 )->order(90);
             }

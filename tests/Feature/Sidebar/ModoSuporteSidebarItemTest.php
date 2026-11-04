@@ -5,7 +5,7 @@ declare(strict_types=1);
 // Tests\TestCase já é aplicado globalmente em tests/Pest.php. NÃO redeclarar (Pest 4 lança TestCaseAlreadyInUse).
 
 /**
- * Modo Suporte (ADR 0305/0309) — item de sidebar no grupo SISTEMA.
+ * Modo Suporte (ADR 0305/0309) — item de sidebar no grupo PLATAFORMA ([W] 2026-11-04; era SISTEMA).
  *
  * A tela React `/suporte/empresas` era acessível só por URL (sem nav). Este
  * item single-link no core AdminSidebarMenu publica o destino no sidebar,
@@ -23,16 +23,16 @@ declare(strict_types=1);
 
 const ROOT_MS = __DIR__ . '/../../..';
 
-describe('Modo Suporte — item de sidebar gated (grupo SISTEMA)', function () {
-    it('AdminSidebarMenu publica item Suporte gated por isSupportAgent no grupo sistema', function () {
+describe('Modo Suporte — item de sidebar gated (grupo PLATAFORMA)', function () {
+    it('AdminSidebarMenu publica item Suporte gated por isSupportAgent no grupo plataforma', function () {
         $src = file_get_contents(ROOT_MS . '/app/Http/Middleware/AdminSidebarMenu.php');
 
         // Gate service-direct (NÃO Gate::before, que daria true a qualquer Admin#<biz> — ADR 0309)
         expect($src)->toContain('SupportAccessService::class)->isSupportAgent(auth()->user())');
         // Destino canônico via rota nomeada (não path chumbado)
         expect($src)->toContain("route('suporte.empresas')");
-        // Grupo SISTEMA declarado via attribute (findGroupKey dá precedência)
-        expect($src)->toContain("'group'  => 'sistema'");
+        // Grupo PLATAFORMA declarado via attribute (findGroupKey dá precedência)
+        expect($src)->toContain("'group'  => 'plataforma'");
     });
 
     it('item Suporte NÃO usa hardcode de business_id (isolamento via service — Tier 0)', function () {
