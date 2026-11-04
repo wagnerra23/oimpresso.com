@@ -35,8 +35,9 @@ contains:
   - "PacotesController — aba Pacote e cobrança: abre pacote e registra sessão; títulos e NFS-e só lidos do Financeiro e do NFSe (US-FISIO-021)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
-  - "Preço do pacote, cobrança e títulos → venda do núcleo + Financeiro; mensalidade → RecurringBilling (F3, US-FISIO-022)"
-  - "Emissão de nota → NFSe (F3)"
+  - "Preço do pacote, cobrança e títulos → Modules/Financeiro (via venda do núcleo); o Fisio só lê fin_titulos pelo model Titulo (F3, US-FISIO-021/022)"
+  - "Mensalidade de paciente → Modules/RecurringBilling (F3)"
+  - "Emissão de nota → Modules/NFSe (F3); o Fisio só lê nfse_emissoes pelo model NfseEmissao"
   - "Armazenamento de arquivo (foto/vídeo do exercício próprio) → Modules/Arquivos (backbone HasArquivos, ADR 0123/0214)"
 excludes:
   - "Prescrição sugerida por IA e câmera com ângulo/correção de forma (SaMD classe II, ADR 0437 §5) até decisão de notificação"
