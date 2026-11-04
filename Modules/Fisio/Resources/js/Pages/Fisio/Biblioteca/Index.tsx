@@ -84,7 +84,7 @@ function Grade({ exercicios, filtros, facetas, podeEditar, onEditar }: {
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-contract="fisio-biblioteca-grade">
       {exercicios.map((e) => (
         <li key={e.id}>
-          <Card className="h-full overflow-hidden rounded-xl">
+          <Card className="h-full overflow-hidden rounded-lg">
             {e.midia && <MidiaPreview midia={e.midia} nome={e.name} className="aspect-video" />}
             <CardHeader className="flex flex-row items-start justify-between gap-2 p-4 pb-2">
               <div className="min-w-0">
