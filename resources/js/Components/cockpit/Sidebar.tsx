@@ -316,7 +316,7 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
             // pra futuros DataControllers que ainda declarem com esse label.
             'Superadmin'],
     // Protótipo `data.jsx`, grupo SISTEMA ([W] 2026-11-04 "alinha o app").
-    ordem: ['Auditoria', 'Fluxos e regras', 'Voz do Cliente', 'Suporte', 'Usuários', 'Preferências',
+    ordem: ['Auditoria', 'Fluxos e regras', 'Voz do Cliente', 'Usuários', 'Preferências',
             'Configurações', 'Relatórios', 'Arquivos', 'Base de Conhecimento', 'Planilhas', 'Governança'],
   },
   {
@@ -340,7 +340,11 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
     // header só ganha cor quando `SIDEBAR_GROUP_HUE[key]` existe. Havia lá um
     // `plataforma: 200` legado (alias v2 → sistema) que, com a key virando canon,
     // passaria a pintar o grupo de ciano — removido no mesmo PR (shared.ts).
-    items: ['Forja'],
+    // [W] 2026-11-04: Suporte (vinha de SISTEMA) e Super Admin (/superadmin, antes
+    // só por URL) entram aqui. Os dois declaram `group => 'plataforma'` no backend;
+    // os labels abaixo são o fallback se algum dia vierem sem `group`.
+    items: ['Forja', 'Suporte', 'Super Admin'],
+    ordem: ['Forja', 'Suporte', 'Super Admin'],
   },
 ];
 
