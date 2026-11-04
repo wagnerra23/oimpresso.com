@@ -16,26 +16,37 @@ const CONTAS = ["Caixa da loja", "Banco do Brasil 1234-5", "Sicredi 4821-0", "Me
 
 const L0 = [
   { id:1, nome:"Matriz — Av. Brasil", ref:"BL0001", marco:"Em frente ao Detran", cidade:"Cuiabá", cep:"78065-000", uf:"MT",
-    pais:"Brasil", tabela:"Varejo", esquema:"Padrão", layoutPdv:"Cupom 80mm", layoutVenda:"Nota A4",
+    pais:"Brasil", tabela:"Varejo", esquemaPdv:"Padrão", esquema:"Padrão", layoutPdv:"Cupom 80mm", layoutVenda:"Nota A4",
     cnpj:"41.882.334/0001-07", ie:"0018773340092", im:"1187733", razao:"ROTA LIVRE Comunicação Visual Ltda",
     fantasia:"ROTA LIVRE", cel:"(65) 3025-4180", email:"contato@rotalivre.com.br", ativo:true,
+    cf1:"Comercial", cf2:"Ana Paula", destaques:["Lona 440g", "Adesivo vinil"],
     pagamentos:{ Dinheiro:"Caixa da loja", Pix:"Sicredi 4821-0", "Cartão de crédito":"Sicredi 4821-0", Boleto:"Banco do Brasil 1234-5" } },
   { id:2, nome:"Oficina — Distrito Industrial", ref:"BL0002", marco:"Galpão 4", cidade:"Várzea Grande", cep:"78110-400", uf:"MT",
-    pais:"Brasil", tabela:"Atacado", esquema:"Oficina", layoutPdv:"Cupom 80mm", layoutVenda:"OS A4",
+    pais:"Brasil", tabela:"Atacado", esquemaPdv:"Padrão", esquema:"Oficina", layoutPdv:"Cupom 80mm", layoutVenda:"OS A4",
     cnpj:"41.882.334/0002-88", ie:"0018773340173", im:"1187744", razao:"ROTA LIVRE Comunicação Visual Ltda",
     fantasia:"ROTA LIVRE Oficina", cel:"(65) 3025-4188", email:"oficina@rotalivre.com.br", ativo:true,
     pagamentos:{ Dinheiro:"Caixa da loja", Pix:"Sicredi 4821-0" } },
   { id:3, nome:"Loja Centro (desativada)", ref:"BL0003", marco:"Galeria Central, sala 12", cidade:"Cuiabá", cep:"78005-100", uf:"MT",
-    pais:"Brasil", tabela:"Varejo", esquema:"Padrão", layoutPdv:"Cupom 80mm", layoutVenda:"Nota A4",
+    pais:"Brasil", tabela:"Varejo", esquemaPdv:"Padrão", esquema:"Padrão", layoutPdv:"Cupom 80mm", layoutVenda:"Nota A4",
     cnpj:"41.882.334/0003-69", ie:"0018773340254", im:"1187755", razao:"ROTA LIVRE Comunicação Visual Ltda",
     fantasia:"ROTA LIVRE Centro", cel:"", email:"", ativo:false, pagamentos:{ Dinheiro:"Caixa da loja" } },
 ];
 const E0 = [
-  { id:1, nome:"Padrão", prefixo:"", tipo:"Sequencial", inicio:"1", emitidas:"2.318", digitos:"4", padrao:true },
-  { id:2, nome:"Oficina", prefixo:"OS", tipo:"Sequencial", inicio:"1", emitidas:"612", digitos:"5", padrao:false },
-  { id:3, nome:"Orçamento", prefixo:"ORC", tipo:"Ano + sequencial", inicio:"1", emitidas:"1.940", digitos:"4", padrao:false },
-  { id:4, nome:"Devolução", prefixo:"DEV", tipo:"Sequencial", inicio:"1", emitidas:"38", digitos:"4", padrao:false },
+  // Formato (scheme_type: blank | year) e Numeração (number_type: sequential | random) são campos separados na produção.
+  { id:1, nome:"Padrão", prefixo:"", formato:"Prefixo + número", tipo:"Sequencial", inicio:"1", emitidas:"2.318", digitos:"4", padrao:true },
+  { id:2, nome:"Oficina", prefixo:"OS", formato:"Prefixo + número", tipo:"Sequencial", inicio:"1", emitidas:"612", digitos:"5", padrao:false },
+  { id:3, nome:"Orçamento", prefixo:"ORC", formato:"Prefixo + ano + número", tipo:"Sequencial", inicio:"1", emitidas:"1.940", digitos:"4", padrao:false },
+  { id:4, nome:"Devolução", prefixo:"DEV", formato:"Prefixo + número", tipo:"Aleatória", inicio:"", emitidas:"38", digitos:"4", padrao:false },
 ];
+const DIGITOS = ["4", "5", "6", "7", "8", "9", "10"]; // invoice_scheme/create.blade.php (4 a 10, padrão 4)
+// Próximo número sequencial: a conta do TransactionUtil — prefixo (+ ano e "-" no formato com ano)
+// + str_pad(start_number + invoice_count, total_digits, "0"). Numeração aleatória não tem próximo.
+const proximoNumero = (e) => {
+  if (e.tipo !== "Sequencial") return "—";
+  const pref = e.formato === "Prefixo + ano + número" ? `${e.prefixo}${new Date().getFullYear()}-` : e.prefixo;
+  const n = String((parseInt(e.inicio, 10) || 0) + (parseInt(String(e.emitidas).replace(/\./g, ""), 10) || 0));
+  return pref + (e.digitos ? n.padStart(parseInt(e.digitos, 10), "0") : n);
+};
 const LAY0 = [
   { id:1, nome:"Nota A4", design:"Clássico", locais:"Matriz · Oficina", padrao:true },
   { id:2, nome:"Cupom 80mm", design:"Enxuto (impressora térmica)", locais:"Matriz · Oficina", padrao:false },
@@ -143,7 +154,8 @@ function Campos({ campos, valores, onChange, travado }) {
         const v = valores[c.k] ?? "";
         if (c.t === "sel") return <Escolha key={c.k} label={c.l} help={c.h} valor={v} opcoes={c.o.map((x) => ({ v:x, l:x }))} onChange={(x) => onChange(c.k, x)} wide={c.w} />;
         if (c.t === "texto") return <Texto key={c.k} label={c.l} help={c.h} valor={v} onChange={(x) => onChange(c.k, x)} />;
-        return <Campo key={c.k} label={c.l} help={travado ? "Somente leitura pro seu papel." : c.h} valor={v} onChange={(x) => onChange(c.k, x)} wide={c.w} />;
+        // c.max espelha o maxLength da produção (ex.: CEP char(7) no banco)
+        return <Campo key={c.k} label={c.l} help={travado ? "Somente leitura pro seu papel." : c.h} valor={v} onChange={(x) => onChange(c.k, c.max ? x.slice(0, c.max) : x)} wide={c.w} />;
       })}
     </div>
   );
@@ -197,6 +209,9 @@ const acaoBtn = (l, on, tone) => <button key={l} className={`os-btn xs ${tone ||
 const Pad = () => <span className="cfg-pad">padrão</span>;
 
 // ═══════════ Locais comerciais ═══════════
+// Campos obrigatórios da produção (Locais/Index.tsx, SECOES com obrigatorio: true)
+const OBRIG_LOCAL = [["nome", "Nome"], ["cidade", "Cidade"], ["cep", "CEP"], ["uf", "Estado"], ["pais", "País"],
+  ["esquemaPdv", "numeração no PDV"], ["esquema", "numeração na venda"], ["layoutPdv", "layout no PDV"], ["layoutVenda", "layout na venda"]];
 function Locais({ A, aviso, carregando }) {
   const { Nota, Tabela } = U();
   const ordens = [
@@ -204,10 +219,16 @@ function Locais({ A, aviso, carregando }) {
     { v:"cidade", l:"cidade", cmp:(a, b) => a.cidade.localeCompare(b.cidade) },
     { v:"ref", l:"ID do local", cmp:(a, b) => a.ref.localeCompare(b.ref) },
   ];
-  const g = useGrade(L0, { campos:["nome", "cidade", "ref", "razao", "cnpj"], ordens });
+  // Produção (locaisDoNegocio): a lista só traz os locais de permitted_locations(); sem access_all_locations,
+  // só os liberados por permissão direta (location.<id>). Aqui ninguém tem permissão direta simulada.
+  const todos = A.pode("access_all_locations");
+  const g = useGrade(todos ? L0 : L0.filter((l) => (A.locaisPermitidos || []).includes(l.id)), { campos:["nome", "cidade", "ref", "razao", "cnpj"], ordens });
   const [form, setForm] = useState(null);
   const [recibo, setRecibo] = useState(null);
   const [detalhe, setDetalhe] = useState(null);
+  // Cadastro novo como o create.blade.php: País = Brasil e todas as formas de pagamento ligadas, sem conta.
+  const novoLocal = () => setForm({ pais:"Brasil", pagamentos:Object.fromEntries(FORMAS.map((f) => [f, ""])) });
+  U().useAtalhos?.({ busca:g.busca, onNovo:A.pode("business_settings.access") ? novoLocal : null });
   if (!A.pode("business_settings.access")) return <SemPerm frase="Locais comerciais pede `business_settings.access` — a mesma permissão da Configuração da empresa. O legado não separa as duas." />;
   const podeEditar = true; // no legado, quem vê a lista tem a mesma permissão de criar e editar
   const limite = A.plano.locais;
@@ -217,11 +238,12 @@ function Locais({ A, aviso, carregando }) {
     { key:"marco", label:"Ponto de referência", width:180 }, { key:"cidade", label:"Cidade", width:130 },
     { key:"cep", label:"CEP", width:100 }, { key:"uf", label:"UF", width:60 },
     { key:"tabela", label:"Tabela de preço", width:130 }, { key:"esquema", label:"Numeração", width:120 },
-    { key:"layoutVenda", label:"Layout na venda", width:130 }, { key:"acao", label:"Ações", width:190 },
+    { key:"layouts", label:"Layouts (PDV · venda)", width:190 }, { key:"acao", label:"Ações", width:190 },
   ];
   const linhas = (fatia) => fatia.map((l) => ({
     id:l.id, state:l.ativo ? undefined : "archived",
     cells:{ ...l, nome:{ primary:l.nome, sub:l.ativo ? l.cnpj : "desativado · " + l.cnpj },
+      layouts:`${l.layoutPdv || "—"} · ${l.layoutVenda || l.layoutPdv || "—"}`,
       acao:<span className="cfg-acoes">
         {acaoBtn("Editar", () => setForm(l))}
         {acaoBtn("Recibo", () => setRecibo(l))}
@@ -232,14 +254,16 @@ function Locais({ A, aviso, carregando }) {
       </span> } }));
 
   const salvar = (f) => {
-    // Espelha validateInvoiceRefs() do BusinessLocationController: esquema e layout são NOT NULL + FK
-    if (!f.esquema || !f.layoutVenda) { aviso("Selecione o esquema de numeração e o layout da fatura."); return; }
+    // Obrigatórios como na produção (Locais/Index.tsx desabilita Salvar sem eles). O servidor
+    // (validateInvoiceRefs) só exige os do PDV, que são NOT NULL + FK; os de venda a tela exige por conta própria.
+    const faltam = OBRIG_LOCAL.filter(([k]) => !String(f[k] || "").trim()).map(([, l]) => l);
+    if (faltam.length) { aviso(`Preencha: ${faltam.join(", ")}.`); return; }
     const dupe = g.itens.some((i) => i.ref && f.ref && i.ref === f.ref && i.id !== f.id);
     if (dupe) { aviso(`O ID ${f.ref} já está em outro local.`); return; }
     if (f.id) { g.setItens(g.itens.map((i) => i.id === f.id ? { ...i, ...f } : i)); aviso(`Local ${f.nome} atualizado.`); }
     else {
       const ref = f.ref || "BL" + String(g.itens.length + 1).padStart(4, "0");
-      g.setItens([...g.itens, { ...f, id:Date.now(), ativo:true, ref, pagamentos:f.pagamentos || { Dinheiro:"Caixa da loja" } }]);
+      g.setItens([...g.itens, { ...f, id:Date.now(), ativo:true, ref, pagamentos:f.pagamentos || {} }]);
       aviso(`Local cadastrado — a permissão location.${g.itens.length + 1} passou a existir nas Funções.`);
     }
     setForm(null);
@@ -251,25 +275,34 @@ function Locais({ A, aviso, carregando }) {
       { k:"razao", l:"Razão social", w:true }, { k:"fantasia", l:"Nome fantasia", w:true },
       { k:"cnpj", l:"CNPJ" }, { k:"ie", l:"Inscrição estadual" }, { k:"im", l:"Inscrição municipal" }] },
     { t:"Endereço", campos:[
-      { k:"marco", l:"Ponto de referência", w:true }, { k:"cidade", l:"Cidade" }, { k:"cep", l:"CEP" },
-      { k:"uf", l:"Estado" }, { k:"pais", l:"País" }] },
+      { k:"marco", l:"Ponto de referência", w:true }, { k:"cidade", l:"Cidade (obrigatório)" },
+      { k:"cep", l:"CEP (obrigatório)", max:7, h:"Até 7 caracteres (o campo do banco é char(7))." },
+      { k:"uf", l:"Estado (obrigatório)" }, { k:"pais", l:"País (obrigatório)" }] },
     { t:"Contato", campos:[{ k:"cel", l:"Celular" }, { k:"tel2", l:"Telefone alternativo" }, { k:"email", l:"E-mail" }, { k:"site", l:"Site" }] },
     { t:"Documento e preço", campos:[
+      { k:"esquemaPdv", l:"Numeração no PDV (obrigatório)", t:"sel", o:["", ...E0.map((e) => e.nome)] },
       { k:"esquema", l:"Numeração na venda (obrigatório)", t:"sel", o:["", ...E0.map((e) => e.nome)] },
-      { k:"esquemaPdv", l:"Numeração no PDV", t:"sel", o:["", ...E0.map((e) => e.nome)] },
+      { k:"layoutPdv", l:"Layout no PDV (obrigatório)", t:"sel", o:["", ...LAY0.map((l) => l.nome)] },
       { k:"layoutVenda", l:"Layout na venda (obrigatório)", t:"sel", o:["", ...LAY0.map((l) => l.nome)] },
-      { k:"layoutPdv", l:"Layout no PDV", t:"sel", o:["", ...LAY0.map((l) => l.nome)] },
-      { k:"tabela", l:"Tabela de preço padrão", t:"sel", o:["Varejo", "Atacado", "Corporativo"] },
-      { k:"destaques", l:"Produtos em destaque no PDV", t:"texto" }] },
-    { t:"Formas de pagamento", render:(f, set) => <FormasPagto valores={f.pagamentos || {}} onChange={(v) => set("pagamentos", v)} travado={!podeEditar} /> },
+      { k:"tabela", l:"Tabela de preço padrão", t:"sel", o:["Varejo", "Atacado", "Corporativo"] }] },
+    // Os 4 campos personalizados do local, com o rótulo que o negócio deu em Rótulos personalizados
+    // (produção: custom_labels.location, e "Campo personalizado N" quando não tem rótulo).
+    { t:"Campos personalizados", campos:[0, 1, 2, 3].map((i) => ({ k:`cf${i + 1}`,
+      l:(A.rotulosSalvos?.local || [A.rotulos?.local1])[i] || `Campo personalizado ${i + 1}` })) },
+    { t:"Formas de pagamento no PDV", render:(f, set) => <FormasPagto valores={f.pagamentos || {}} onChange={(v) => set("pagamentos", v)} travado={!podeEditar} /> },
   ];
+  // Produtos em destaque: a produção só preserva a lista no update(); a escolha ainda é feita na tela antiga.
+  const destaques = (f) => (f.destaques || []).length > 0
+    ? <p className="cfg-hint">{f.destaques.length} produto(s) em destaque no PDV continuam como estão. A escolha deles ainda é feita na tela antiga.</p>
+    : null;
 
   return (
     <>
       <Grade g={g} cols={cols} linhas={linhas} carregando={carregando} altura={300}
         placeholder="Buscar local, cidade, CNPJ ou ID  ·  /" ordens={ordens}
-        novo={podeEditar ? () => setForm({}) : null} novoLabel="Adicionar"
-        vazioTitulo="Nenhum local cadastrado" vazioDesc="Todo documento sai por um local — cadastre a matriz primeiro."
+        novo={podeEditar ? novoLocal : null} novoLabel="Adicionar"
+        vazioTitulo={todos ? "Nenhum local cadastrado" : "Nenhum local que você possa ver"}
+        vazioDesc={todos ? "Todo documento sai por um local — cadastre a matriz primeiro." : "Sem acesso a todos os locais, a lista mostra só os liberados para você."}
         loteAcoes={podeEditar ? (sel) => [{ label:"Exportar seleção", onSelect:() => aviso(`${sel.length} locais exportados.`) }] : null} />
 
       <div className="hrm-note-ds">
@@ -281,7 +314,7 @@ function Locais({ A, aviso, carregando }) {
       </div>
 
       {form && <Painel titulo={form.id ? `Editar ${form.nome}` : "Adicionar local comercial"}
-        sub="business_location/create.blade.php" inicial={form} secoes={secoes} somenteLeitura={!podeEditar}
+        sub="business_location/create.blade.php" inicial={form} secoes={secoes} extra={destaques} somenteLeitura={!podeEditar}
         onFechar={() => setForm(null)} onSalvar={salvar} />}
 
       {recibo && <ReciboDoLocal local={recibo} onFechar={() => setRecibo(null)}
@@ -341,31 +374,34 @@ function ReciboDoLocal({ local, onFechar, onSalvar }) {
   );
 }
 
-function FormasPagto({ valores, onChange, travado }) {
+// Forma presente no objeto = ligada; o valor é a conta padrão ("" = sem conta), como default_payment_accounts.
+// Na produção a lista de contas vem vazia sem o módulo de contas, e aí a coluna de conta some.
+function FormasPagto({ valores, onChange, travado, contas = CONTAS }) {
   const marcadas = valores || {};
+  const ligada = (forma) => Object.prototype.hasOwnProperty.call(marcadas, forma);
   const alterna = (forma) => {
     const n = { ...marcadas };
-    if (n[forma]) delete n[forma]; else n[forma] = CONTAS[0];
+    if (ligada(forma)) delete n[forma]; else n[forma] = "";
     onChange(n);
   };
   return (
     <div className="os-table-wrap cfg-pagtos">
       <table className="os-table">
-        <thead><tr><th scope="col">Forma de pagamento</th><th scope="col">Aceita</th><th scope="col">Conta padrão</th></tr></thead>
+        <thead><tr><th scope="col">Forma de pagamento</th><th scope="col">Aceita</th>{contas.length > 0 && <th scope="col">Conta padrão</th>}</tr></thead>
         <tbody>
           {FORMAS.map((forma) => (
             <tr key={forma}>
               <td>{forma}</td>
               <td>
-                <input type="checkbox" checked={!!marcadas[forma]} disabled={travado} onChange={() => alterna(forma)} aria-label={`Aceitar ${forma}`} />
+                <input type="checkbox" checked={ligada(forma)} disabled={travado} onChange={() => alterna(forma)} aria-label={`Aceitar ${forma}`} />
               </td>
-              <td>
-                <select className="hrm-sel" value={marcadas[forma] || ""} disabled={travado || !marcadas[forma]}
+              {contas.length > 0 && <td>
+                <select className="hrm-sel" value={marcadas[forma] || ""} disabled={travado || !ligada(forma)}
                   onChange={(e) => onChange({ ...marcadas, [forma]:e.target.value })} aria-label={`Conta padrão de ${forma}`}>
-                  <option value="">—</option>
-                  {CONTAS.map((c) => <option key={c} value={c}>{c}</option>)}
+                  <option value="">Sem conta</option>
+                  {contas.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
-              </td>
+              </td>}
             </tr>))}
         </tbody>
       </table>
@@ -386,6 +422,11 @@ function Fatura({ A, aviso, carregando }) {
     { v:"emitidas", l:"mais usadas", cmp:(a, b) => parseFloat(b.emitidas.replace(".", "")) - parseFloat(a.emitidas.replace(".", "")) },
   ];
   const g = useGrade(E0, { campos:["nome", "prefixo", "tipo"], ordens });
+  // Defaults do create.blade.php: sem ano, sequencial, início 0, 4 dígitos.
+  const novoEsquema = () => setFormEsq({ formato:"Prefixo + número", tipo:"Sequencial", inicio:"0", digitos:"4", padrao:false });
+  U().useAtalhos?.({ busca:aba === "esquemas" ? g.busca : null, onNovo:A.pode("invoice_settings.access") && !editor ? novoEsquema : null });
+  // setDefault(): só um padrão por negócio — o anterior deixa de ser.
+  const tornarPadrao = (e) => { g.setItens(g.itens.map((i) => ({ ...i, padrao:i.id === e.id }))); aviso(`${e.nome} agora é o esquema padrão.`); };
   if (!A.pode("invoice_settings.access")) return <SemPerm frase="Numeração e layout pedem `invoice_settings.access` — e o legado não separa ver de editar: quem entra, altera." />;
   const podeEditar = true;
   const F = window.ConfigFatura;
@@ -403,15 +444,20 @@ function Fatura({ A, aviso, carregando }) {
 
   const cols = [
     { key:"nome", label:"Nome", width:150 }, { key:"prefixo", label:"Prefixo", width:100 },
-    { key:"tipo", label:"Tipo de número", width:150 }, { key:"inicio", label:"Número inicial", width:120, align:"right" },
+    { key:"formato", label:"Formato", width:170 }, { key:"tipo", label:"Numeração", width:120 },
+    { key:"inicio", label:"Número inicial", width:120, align:"right" },
     { key:"emitidas", label:"Emitidas", width:110, align:"right" }, { key:"digitos", label:"Dígitos", width:90, align:"right" },
-    { key:"acao", label:"Ações", width:170 },
+    { key:"proximo", label:"Próximo número", width:140 }, { key:"acao", label:"Ações", width:230 },
   ];
   const linhas = (fatia) => fatia.map((e) => ({ id:e.id, cells:{ ...e,
-    nome:{ primary:e.nome, sub:e.padrao ? "padrão do negócio" : "" },
+    nome:{ primary:e.nome, sub:e.padrao ? "padrão do negócio" : "" }, proximo:proximoNumero(e),
     acao:<span className="cfg-acoes">
       {podeEditar && acaoBtn("Editar", () => setFormEsq(e))}
-      {podeEditar && acaoBtn("Excluir", () => setExcluir({ tipo:"esquema", item:e }), "ghost")}
+      {podeEditar && !e.padrao && acaoBtn("Tornar padrão", () => tornarPadrao(e))}
+      {/* O padrão não se exclui: o destroy() recusa e a produção troca a ação por um aviso. */}
+      {podeEditar && (e.padrao
+        ? <button key="x" className="os-btn xs ghost" disabled title="É o padrão — escolha outro antes de excluir">Excluir</button>
+        : acaoBtn("Excluir", () => setExcluir({ tipo:"esquema", item:e }), "ghost"))}
     </span> } }));
 
   return (
@@ -421,7 +467,7 @@ function Fatura({ A, aviso, carregando }) {
       {aba === "esquemas" ? (
         <Grade g={g} cols={cols} linhas={linhas} carregando={carregando} altura={280} porPagina={6}
           placeholder="Buscar esquema ou prefixo" ordens={ordens}
-          novo={podeEditar ? () => setFormEsq({}) : null} novoLabel="Adicionar"
+          novo={podeEditar ? novoEsquema : null} novoLabel="Adicionar"
           vazioTitulo="Nenhum esquema de numeração" vazioDesc="Sem esquema o documento sai sem número — crie ao menos o padrão." />
       ) : (
         <>
@@ -434,7 +480,7 @@ function Fatura({ A, aviso, carregando }) {
               <section key={l.id} className="hrm-card">
                 <h3>{l.nome} {l.padrao ? <Pad /> : null}</h3>
                 <p className="cfg-p">{l.design}</p>
-                <dl className="hrm-kv"><dt>Usado em</dt><dd>{l.locais}</dd></dl>
+                <dl className="hrm-kv"><dt>Usado em</dt><dd>{l.locais && l.locais !== "—" ? l.locais : "Nenhum local usa este layout"}</dd></dl>
                 <div className="cfg-acoes">
                   {acaoBtn(podeEditar ? "Abrir editor" : "Ver layout", () => setEditor(l))}
                   {podeEditar && !l.padrao && acaoBtn("Excluir", () => setExcluir({ tipo:"layout", item:l }), "ghost")}
@@ -452,14 +498,23 @@ function Fatura({ A, aviso, carregando }) {
 
       {formEsq && <Painel titulo={formEsq.id ? `Editar ${formEsq.nome}` : "Adicionar esquema de numeração"}
         sub="invoice_scheme/create.blade.php" inicial={formEsq} somenteLeitura={!podeEditar}
-        campos={[{ k:"nome", l:"Nome" }, { k:"tipo", l:"Tipo de número", t:"sel", o:["Sequencial", "Ano + sequencial"] },
-          { k:"prefixo", l:"Prefixo" }, { k:"inicio", l:"Número inicial" },
-          { k:"digitos", l:"Total de dígitos", h:"Completa com zero à esquerda: 4 dígitos = OS0001." }]}
+        campos={[{ k:"nome", l:"Nome" }, { k:"formato", l:"Formato", t:"sel", o:["Prefixo + número", "Prefixo + ano + número"] },
+          { k:"prefixo", l:"Prefixo" }, { k:"tipo", l:"Numeração", t:"sel", o:["Sequencial", "Aleatória"] },
+          { k:"inicio", l:"Começar do número" },
+          { k:"digitos", l:"Total de dígitos", t:"sel", o:DIGITOS, h:"Completa com zero à esquerda: 4 dígitos = OS0001." }]}
+        // "Usar como padrão" só no cadastro novo, como na produção (o update() não mexe no padrão)
+        extra={(f, set) => f.id ? null : (
+          <label className="cfg-ck"><input type="checkbox" checked={!!f.padrao} onChange={(e) => set("padrao", e.target.checked)} /> Usar como padrão (o padrão atual deixa de ser)</label>)}
         onFechar={() => setFormEsq(null)}
         onSalvar={(f) => {
-          if (f.id) g.setItens(g.itens.map((i) => i.id === f.id ? { ...i, ...f } : i));
-          else g.setItens([...g.itens, { ...f, id:Date.now(), emitidas:"0", padrao:false }]);
-          aviso(`Esquema ${f.nome} salvo.`); setFormEsq(null);
+          // Só dígitos no número inicial, como o inputMode numeric da produção
+          const v = { ...f, inicio:String(f.inicio || "").replace(/[^0-9]/g, "") };
+          if (v.id) g.setItens(g.itens.map((i) => i.id === v.id ? { ...i, ...v } : i));
+          else {
+            const base = v.padrao ? g.itens.map((i) => ({ ...i, padrao:false })) : g.itens;
+            g.setItens([...base, { ...v, id:Date.now(), emitidas:"0", padrao:!!v.padrao }]);
+          }
+          aviso(`Esquema ${v.nome} salvo.`); setFormEsq(null);
         }} />}
 
       {excluir && <Confirma titulo={`Excluir ${excluir.item.nome}?`}
