@@ -12,7 +12,8 @@ parent_module: Sells
 related_adrs: [93, 94, 104, 107, 114, 143, 178, 192]
 tier: B
 charter_version: 1
-related_prototype: prototipo-ui/cowork/Wagner/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
+related_prototype: prototipo-ui/cowork/Wagner/vendas-extras.jsx · função VendasCaixaPage (linhas 172-413)
+related_runbook: memory/requisitos/Sells/RUNBOOK-caixa.md
 canon_method: Cowork KB-9.75 + Integração Vendas × Oficina A1 (ADR 0192) — Onda 6 wave separada
 ---
 
@@ -22,7 +23,7 @@ canon_method: Cowork KB-9.75 + Integração Vendas × Oficina A1 (ADR 0192) — 
 >
 > **Histórico:** v1 (este — Onda 6 Cowork canon · 2026-05-25).
 >
-> **Visual source:** Cowork `prototipo-ui/cowork/Wagner/vendas-extras.jsx` `VendasCaixaPage` (linhas 123-354). Visual comparison: [`Caixa-r1-visual-comparison.md`](../../../../../memory/requisitos/Sells/Caixa-r1-visual-comparison.md).
+> **Visual source:** Cowork `prototipo-ui/cowork/Wagner/vendas-extras.jsx` `VendasCaixaPage` (linhas 172-413; até 2026-11-04 este ponteiro dizia 123-354, faixa de uma versão anterior do arquivo). Visual comparison: [`Caixa-r1-visual-comparison.md`](../../../../../memory/requisitos/Sells/Caixa-r1-visual-comparison.md).
 
 ---
 
