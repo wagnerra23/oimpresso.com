@@ -1378,6 +1378,24 @@ class SellController extends Controller
             $q->where('transactions.payment_status', $payment_status);
         }
 
+        // UC-SIDX-07 — pílulas Faturada e Cancelada filtram no servidor (antes filtravam só a
+        // página carregada no navegador, e total, paginação e rodapé contavam as outras).
+        // Mesmo critério do `fiscal_status` da linha (lookup abaixo): a emissão da venda, que
+        // é única por (business_id, transaction_id) e exclui a apagada (SoftDeletes do
+        // NfeEmissao). Business no subselect: a nota de outra empresa não marca esta venda
+        // (Tier 0, ADR 0093). Fica antes do clone dos totais, então o rodapé vale para o filtro.
+        $fiscalStatus = (string) $request->input('fiscal_status', '');
+        if (in_array($fiscalStatus, ['autorizada', 'cancelada'], true) && \Illuminate\Support\Facades\Schema::hasTable('nfe_emissoes')) {
+            $q->whereExists(function ($sub) use ($business_id, $fiscalStatus) {
+                $sub->selectRaw('1')
+                    ->from('nfe_emissoes as ne_f')
+                    ->whereColumn('ne_f.transaction_id', 'transactions.id')
+                    ->where('ne_f.business_id', $business_id)
+                    ->whereNull('ne_f.deleted_at')
+                    ->where('ne_f.status', $fiscalStatus);
+            });
+        }
+
         // US-SELL-017 — Totalizador rodapé. Calcula totais SOBRE O FILTRO INTEIRO
         // (não só página corrente). Clone do builder antes do paginate pra preservar
         // joins/wheres mas remover orderBy/limit. Subquery separada pra somar
