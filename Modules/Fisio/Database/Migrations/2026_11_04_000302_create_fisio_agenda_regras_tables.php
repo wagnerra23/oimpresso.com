@@ -57,6 +57,8 @@ return new class extends Migration
             Schema::table('fisio_patients', function (Blueprint $t) {
                 $t->dateTime('booking_blocked_at')->nullable()->after('blocked_at')
                     ->comment('app sem autoagendamento depois de N faltas sem aviso (A21)');
+                $t->dateTime('booking_unblocked_at')->nullable()->after('booking_blocked_at')
+                    ->comment('último desbloqueio pelo profissional: faltas anteriores não contam mais');
             });
         }
     }
@@ -64,7 +66,7 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::hasColumn('fisio_patients', 'booking_blocked_at')) {
-            Schema::table('fisio_patients', fn (Blueprint $t) => $t->dropColumn('booking_blocked_at'));
+            Schema::table('fisio_patients', fn (Blueprint $t) => $t->dropColumn(['booking_blocked_at', 'booking_unblocked_at']));
         }
         Schema::dropIfExists('fisio_booking_settings');
         Schema::dropIfExists('fisio_waitlist');

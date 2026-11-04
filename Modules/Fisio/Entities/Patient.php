@@ -62,6 +62,8 @@ class Patient extends Model
         'sessions_per_week' => 'integer',
         'responsible_user_id' => 'integer',
         'blocked_at' => 'datetime',
+        'booking_blocked_at' => 'datetime',
+        'booking_unblocked_at' => 'datetime',
     ];
 
     protected static function newFactory(): PatientFactory
