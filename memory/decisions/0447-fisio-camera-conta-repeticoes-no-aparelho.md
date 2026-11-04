@@ -1,6 +1,6 @@
 ---
-slug: 0446-fisio-camera-conta-repeticoes-no-aparelho
-number: 446
+slug: 0447-fisio-camera-conta-repeticoes-no-aparelho
+number: 447
 title: "Fisio: a câmera conta repetições, ritmo e tempo parado no celular do paciente, sem medir ângulo e sem enviar imagem; lançamento depende da consulta de enquadramento à Anvisa"
 type: adr
 status: proposto
@@ -24,9 +24,9 @@ review_triggers:
   - "mais de 25% dos aparelhos dos pacientes abaixo do piso de 6 Hz na telemetria"
 ---
 
-# ADR 0446 · Fisio: câmera que conta repetições no aparelho
+# ADR 0447 · Fisio: câmera que conta repetições no aparelho
 
-> **Status `proposto`.** Nada aqui vale até [W] aceitar. Número 0446 alocado por `next-id.mjs adr` em 2026-11-04; a sessão do Lote 6 da Fisio também está escrevendo uma ADR, e quem mergear depois renumera.
+> **Status `proposto`.** Nada aqui vale até [W] aceitar. Número 0447: o `next-id.mjs adr` deu 0446 em 2026-11-04, mas a ADR do Lote 6 da Fisio (teleconsulta e ditado, #10326) ficou com 0446, combinado entre as sessões.
 > **Esta ADR não repete a especificação.** O dono técnico do tema é [`memory/requisitos/Fisio/etapas/03-f2-camera.md`](../requisitos/Fisio/etapas/03-f2-camera.md) (pesquisa de 2026-10-17: pilha, algoritmo, enquadramento, nota da série, privacidade, dados, tarefas C-00 a C-16). Esta ADR decide o que lá ficou para decisão: se a F2 entra, com qual dependência, sob que linha regulatória e em que ordem.
 
 ## Contexto

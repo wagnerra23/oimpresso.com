@@ -5,7 +5,7 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **451** arquivos · **436** números únicos · máx **0446**
+- **451** arquivos · **436** números únicos · máx **0447**
 - **ADRs ATIVOS (lifecycle ativo): 403** ← resposta única a "quantos ADRs ativos"
 - Por status: aceito 387 · superseded 28 · proposto 22 · deprecated 11 · recusado 2 · rascunho 1
 - Por lifecycle: ativo 403 · substituido 28 · arquivado 20
@@ -489,4 +489,4 @@ _(nenhuma)_
 | 0443 | aceito | ativo | decision | Nuvemshop entra no Modules/Marketplaces como segundo canal, não no Woocommerce |
 | 0444 | proposto | ativo | decision | MDF-e e CT-e entram pelas bibliotecas sped-mdfe e sped-cte, dentro do Modules/Nf |
 | 0445 | aceito | ativo | decision | A comparação de pixel (snapshots do VRT) sai do projeto; os testes de comportame |
-| 0446 | proposto | ativo | decision | Fisio: a câmera conta repetições, ritmo e tempo parado no celular do paciente, s |
+| 0447 | proposto | ativo | decision | Fisio: a câmera conta repetições, ritmo e tempo parado no celular do paciente, s |
