@@ -4580,113 +4580,113 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
 
 /* ──── PDV BALCÃO (overlay) ──── */
 .pdv-overlay{
-  position:fixed; inset:0; background:oklch(0.18 0.02 250); z-index:1000;
-  display:flex; flex-direction:column; color:oklch(0.95 0.01 250);
+  position:fixed; inset:0; background:var(--bg); z-index:1000;
+  display:flex; flex-direction:column; color:var(--text);
 }
 .pdv-head{
   display:flex; align-items:center; justify-content:space-between;
-  padding:10px 18px; background:oklch(0.14 0.02 250);
-  border-bottom:1px solid oklch(0.25 0.02 250); flex-shrink:0;
+  padding:10px 18px; background:var(--surface);
+  border-bottom:1px solid var(--border); flex-shrink:0;
 }
 .pdv-head-l{ display:flex; align-items:center; gap:10px; font-size:13px; }
 .pdv-brand{ font-weight:700; letter-spacing:0.06em; color:var(--accent-2); }
-.pdv-sep{ color:oklch(0.50 0.02 250); }
+.pdv-sep{ color:var(--text-mute); }
 .pdv-head-r{ display:flex; align-items:center; gap:14px; }
-.pdv-shortcut{ font-size:11px; color:oklch(0.65 0.02 250); }
+.pdv-shortcut{ font-size:11px; color:var(--text-dim); }
 .pdv-shortcut kbd{
   display:inline-block; padding:2px 6px; margin-right:4px;
-  border:1px solid oklch(0.45 0.02 250); border-radius:3px;
+  border:1px solid var(--border); border-radius:3px;
   font-family:var(--font-mono); font-size:10px;
-  background:oklch(0.22 0.02 250); color:oklch(0.95 0.01 250);
+  background:var(--bg-2); color:var(--text);
 }
 .pdv-close{
   width:28px; height:28px; border-radius:50%;
-  background:oklch(0.25 0.02 250); border:none; color:#fff;
+  background:var(--bg-2); border:none; color:var(--text);
   cursor:pointer; font-size:18px; line-height:1;
 }
 .pdv-grid{ display:grid; grid-template-columns:1fr 380px; flex:1; overflow:hidden; }
 .pdv-left{ display:flex; flex-direction:column; padding:20px; overflow:hidden; }
 .pdv-scan{ position:relative; flex-shrink:0; margin-bottom:16px; }
-.pdv-scan-label{ display:block; font-size:11px; color:oklch(0.65 0.02 250); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
+.pdv-scan-label{ display:block; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
 .pdv-scan-input{
   width:100%; padding:18px 20px; font-size:24px;
-  background:oklch(0.95 0.01 250); border:3px solid var(--accent);
-  border-radius:10px; color:oklch(0.18 0.02 250); font-weight:500;
+  background:var(--surface); border:3px solid var(--accent);
+  border-radius:10px; color:var(--text); font-weight:500;
   outline:none;
 }
 .pdv-suggest{
   position:absolute; top:100%; left:0; right:0; z-index:10;
   margin:4px 0 0; padding:0; list-style:none;
-  background:#fff; border-radius:8px; overflow:hidden;
-  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden;
+  box-shadow:var(--shadow-pop);
 }
 .pdv-suggest li{
   display:flex; justify-content:space-between; align-items:center;
-  padding:12px 16px; cursor:pointer; color:oklch(0.18 0.02 250);
-  border-bottom:1px solid oklch(0.95 0.01 250); font-size:14px;
+  padding:12px 16px; cursor:pointer; color:var(--text);
+  border-bottom:1px solid var(--border-2); font-size:14px;
 }
-.pdv-suggest li:hover{ background:oklch(0.94 0.02 var(--accent-h, 220)); }
-.pdv-items-wrap{ flex:1; overflow:auto; background:oklch(0.95 0.01 250); border-radius:8px; color:oklch(0.18 0.02 250); }
-.pdv-empty{ padding:80px 20px; text-align:center; color:oklch(0.50 0.02 250); }
-.pdv-empty-big{ font-size:18px; margin-bottom:6px; color:oklch(0.30 0.02 250); }
+.pdv-suggest li:hover{ background:var(--accent-soft); }
+.pdv-items-wrap{ flex:1; overflow:auto; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); }
+.pdv-empty{ padding:80px 20px; text-align:center; color:var(--text-mute); }
+.pdv-empty-big{ font-size:18px; margin-bottom:6px; color:var(--text-dim); }
 .pdv-items{ width:100%; border-collapse:collapse; font-size:14px; }
-.pdv-items th{ padding:12px 14px; background:oklch(0.92 0.01 250); text-align:left; font-size:11px; color:oklch(0.40 0.02 250); text-transform:uppercase; letter-spacing:0.04em; }
-.pdv-items td{ padding:12px 14px; border-bottom:1px solid oklch(0.92 0.01 250); }
+.pdv-items th{ padding:12px 14px; background:var(--bg-2); text-align:left; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; }
+.pdv-items td{ padding:12px 14px; border-bottom:1px solid var(--border-2); }
 .pdv-qty{ display:inline-flex; align-items:center; gap:6px; }
-.pdv-qty button{ width:24px; height:24px; border-radius:4px; border:1px solid oklch(0.85 0.02 250); background:#fff; cursor:pointer; font-weight:600; }
+.pdv-qty button{ width:24px; height:24px; border-radius:4px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; font-weight:600; }
 .pdv-qty span{ min-width:24px; text-align:center; font-weight:600; }
 .pdv-prod{ font-weight:500; }
 .pdv-num{ text-align:right; font-variant-numeric:tabular-nums; }
 .pdv-num.strong{ font-weight:600; }
-.pdv-rm{ width:24px; height:24px; border-radius:4px; background:oklch(0.94 0.04 25); border:none; color:var(--neg); cursor:pointer; }
+.pdv-rm{ width:24px; height:24px; border-radius:4px; background:var(--neg-soft); border:none; color:var(--neg); cursor:pointer; }
 
 .pdv-right{
-  background:oklch(0.20 0.02 250); padding:24px 20px;
+  background:var(--surface); padding:24px 20px;
   display:flex; flex-direction:column; gap:16px;
-  border-left:1px solid oklch(0.25 0.02 250);
+  border-left:1px solid var(--border);
 }
-.pdv-r-label{ display:block; font-size:11px; color:oklch(0.65 0.02 250); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
+.pdv-r-label{ display:block; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
 .pdv-client input{
   width:100%; padding:10px 12px; border-radius:6px;
-  background:oklch(0.25 0.02 250); border:1px solid oklch(0.30 0.02 250);
-  color:#fff; font-size:14px;
+  background:var(--bg-2); border:1px solid var(--border);
+  color:var(--text); font-size:14px;
 }
 .pdv-pay-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
 .pdv-pay-btn{
   padding:14px 8px; border-radius:8px;
-  background:oklch(0.25 0.02 250); border:2px solid oklch(0.30 0.02 250);
-  color:#fff; cursor:pointer; display:flex; flex-direction:column;
+  background:var(--bg-2); border:2px solid var(--border);
+  color:var(--text); cursor:pointer; display:flex; flex-direction:column;
   align-items:center; gap:4px; font-size:12px;
 }
-.pdv-pay-btn.active{ border-color:var(--accent); background:oklch(0.30 0.06 var(--accent-h, 220)); }
+.pdv-pay-btn.active{ border-color:var(--accent); background:var(--accent-soft); }
 .pdv-pay-icon{ font-size:20px; }
 .pdv-total-block{
   margin-top:auto; padding:18px; border-radius:10px;
-  background:oklch(0.14 0.02 250); border:2px solid var(--accent);
+  background:var(--bg-2); border:2px solid var(--accent);
   text-align:right;
 }
-.pdv-total-label{ font-size:11px; color:oklch(0.65 0.02 250); letter-spacing:0.08em; }
+.pdv-total-label{ font-size:11px; color:var(--text-dim); letter-spacing:0.08em; }
 .pdv-total-value{ display:block; font-size:42px; font-weight:700; color:var(--accent-2); font-variant-numeric:tabular-nums; line-height:1.1; }
-.pdv-total-meta{ font-size:11px; color:oklch(0.65 0.02 250); }
+.pdv-total-meta{ font-size:11px; color:var(--text-dim); }
 .pdv-finalize{
   padding:18px; border-radius:8px; background:var(--pos);
-  color:#fff; border:none; cursor:pointer; font-size:16px; font-weight:600;
+  color:var(--surface); border:none; cursor:pointer; font-size:16px; font-weight:600;
   display:flex; align-items:center; justify-content:center; gap:10px;
 }
 .pdv-finalize:disabled{ opacity:0.4; cursor:not-allowed; }
 .pdv-finalize kbd{
-  padding:2px 6px; border:1px solid oklch(0.95 0.01 145 / 0.5);
+  padding:2px 6px; border:1px solid currentColor;
   border-radius:3px; font-family:var(--font-mono); font-size:11px;
-  background:rgba(0,0,0,0.2);
+  background:transparent;
 }
-.pdv-cancel{ padding:10px; border-radius:6px; background:transparent; color:oklch(0.75 0.02 250); border:1px solid oklch(0.30 0.02 250); cursor:pointer; font-size:12px; }
+.pdv-cancel{ padding:10px; border-radius:6px; background:transparent; color:var(--text-dim); border:1px solid var(--border); cursor:pointer; font-size:12px; }
 
 /* ──── RECIBO (térmica + A4) ──── */
 .pdv-recibo-overlay{ background:oklch(0.30 0.02 250); }
 .rec-stage{ flex:1; overflow:auto; display:flex; justify-content:center; padding:30px; }
-.rec-layout{ display:inline-flex; border:1px solid oklch(0.40 0.02 250); border-radius:6px; overflow:hidden; }
-.rec-layout button{ padding:6px 12px; border:none; background:transparent; color:oklch(0.85 0.02 250); cursor:pointer; font-size:12px; }
-.rec-layout button.active{ background:var(--accent); color:#fff; }
+.rec-layout{ display:inline-flex; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.rec-layout button{ padding:6px 12px; border:none; background:transparent; color:var(--text-dim); cursor:pointer; font-size:12px; }
+.rec-layout button.active{ background:var(--accent); color:var(--accent-fg); }
 .rec-paper{ background:#fff; color:#222; padding:20px; }
 .rec-termica{
   width:300px; font-family:var(--font-mono);
