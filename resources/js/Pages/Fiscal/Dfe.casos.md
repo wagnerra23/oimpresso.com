@@ -282,6 +282,7 @@ corresponde — buscar pelo nome de um emitente não traz a nota do outro.
 
 - **Âncora:** charter §Goals 3 (*"Busca por chave 44d + CNPJ + nome emitente"*) · CU-FISC-07.
 - **Teste:** `DfeControllerTest` — `UC-FDFE-16 · a busca acha pela chave, pelo CNPJ…`.
+- **Achado (2026-11-04):** o teste nasceu vermelho na lane NfeBrasil (job 126830102081): buscar `LONAFICT` devolveu as duas notas. O Controller tirava os não-dígitos da busca, sobrava `''`, e `chave_44 like '%%'` casava tudo. Corrigido no mesmo PR: as condições de chave e CNPJ só entram quando a busca tem dígito.
 - **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ---

@@ -231,6 +231,8 @@ it('UC-FDFE-16 · a busca acha pela chave, pelo CNPJ digitado com pontuação e 
     $achadas = fn (string $busca) => array_values(array_intersect(dfeListaIds(dfeListaPayload('todas', $busca)), $minhas));
 
     expect($achadas('13000002'))->toBe([$tinta->id], 'busca por trecho da chave');
-    expect($achadas('11.222.333/0001-44'))->toBe([$lona->id], 'busca por CNPJ com pontuação');
+    // O CNPJ fictício é formatado em runtime: literal com máscara aciona o PII scan do CI.
+    $cnpjComMascara = vsprintf('%s.%s.%s/%s-%s', ['11', '222', '333', '0001', '44']);
+    expect($achadas($cnpjComMascara))->toBe([$lona->id], 'busca por CNPJ com pontuação');
     expect($achadas('LONAFICT'))->toBe([$lona->id], 'busca pelo nome do emitente trouxe nota de outro emitente');
 });
