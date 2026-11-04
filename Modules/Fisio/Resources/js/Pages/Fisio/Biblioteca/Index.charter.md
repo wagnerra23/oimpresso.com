@@ -2,7 +2,8 @@
 id: modules-fisio-pages-fisio-biblioteca-index-charter
 page: /fisio/biblioteca
 component: Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx
-related_prototype: "n/a (o canvas Prescreve Pro desenha a Biblioteca, mas não está no espelho do repo; a tela segue o DS e o padrão de grade do HANDOFF-F1)"
+related_prototype: prototipo-ui/cowork/Wagner/prototipos/fisio/Biblioteca.dc.html
+related_us: [US-FISIO-004]
 owner: wagner
 status: draft
 last_validated: "2026-10-18"
