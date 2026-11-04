@@ -129,7 +129,7 @@ export default function SellsCaixaIndex() {
     permissions,
     turno,
   } = props;
-  const porFormaPagamento = props.porFormaPagamento ?? [];
+  const porFormaPagamento = useMemo(() => props.porFormaPagamento ?? [], [props.porFormaPagamento]);
   const porOrigem = props.porOrigem ?? [];
   const totalDia = props.totalDia ?? 0;
   const countDia = props.countDia ?? 0;
