@@ -67,6 +67,7 @@ const TELAS = [
   { id:"notificacoes",      label:"Modelos de notificação",   rota:"/notification-templates",   perm:"business_settings.access" },
   { id:"cfg-impressoras",   label:"Impressoras de recibos",   rota:"/printers",                 perm:"access_printers" },
   { id:"cfg-impostos",      label:"Taxas de imposto",         rota:"/tax-rates",                perm:"tax_rate.view" },
+  { id:"cfg-mesas",         label:"Mesas",                    rota:"/modules/tables",           perm:"access_tables" },
   { id:"cfg-modificadores", label:"Modificadores",            rota:"/modules/modifiers",        perm:"product.create" },
   { id:"cfg-servicos",      label:"Tipos de serviço",         rota:"/types-of-service",         perm:"access_types_of_service" },
   { id:"cfg-pacote",        label:"Assinatura de pacote",     rota:"/subscription",             perm:"business_settings.access" },
@@ -212,11 +213,19 @@ const APP_LOJAS = [
   ["biometria", "Entrar no app com biometria", "Desligado, a opção some em Conta. O ponto nunca usa biometria."],
 ];
 
+// ModuleUtil::availableModules() oferece 14 chaves: purchases · add_sale · pos_sale (PDV) ·
+// stock_transfers · stock_adjustment · expenses · account (Conta bancária) · tables (Mesas) ·
+// modifiers · service_staff (Atendentes) · booking (Agenda / reservas) · kitchen (Cozinha) ·
+// subscription (Cobrança recorrente — liga a fatura recorrente) · types_of_service.
+// Estoque, Tabela de preços, Kit de produtos, Fabricação, Pontos de fidelidade e Balança não
+// são chave de módulo no servidor — decisão [W] pendente (tirar daqui ou virar módulo).
 const MODULOS = [
   ["Compras", true, false], ["Adicionar venda", true, false], ["PDV", true, false], ["Estoque", true, false],
   ["Ajuste de estoque", true, false], ["Transferência de estoque", true, false], ["Despesas", true, false],
   ["Conta bancária", true, false], ["Tabela de preços", true, false], ["Kit de produtos", true, false],
-  ["Fabricação", true, true], ["Tipos de serviço", true, false], ["Cobrança recorrente", true, true],
+  ["Fabricação", true, true], ["Tipos de serviço", true, false],
+  ["Mesas", false, false], ["Modificadores", false, true], ["Atendentes", false, false], ["Cozinha", false, false],
+  ["Cobrança recorrente", true, true],
   ["Agenda / reservas", false, true], ["Pontos de fidelidade", false, false], ["Balança", false, false],
 ];
 
