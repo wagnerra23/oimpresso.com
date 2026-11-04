@@ -485,7 +485,7 @@ class NfeService
             $codigo = $det['icms']['cst_csosn'] ?? null;
             $codigo = $codigo === null ? null : (string) $codigo;
             $ehCsosn = $codigo !== null && strlen(preg_replace('/\D/', '', $codigo)) === 3 && ! str_starts_with($codigo, '0');
-            $pid = $linhas[$i]['product_id'] ?? null;
+            $pid = $det['product_id'] ?? null;
             $avisos = Tributacao\CoerenciaFiscalDoItem::avisos(
                 $crt,
                 isset($det['cfop']) ? (string) $det['cfop'] : null,
@@ -496,7 +496,7 @@ class NfeService
             );
             if ($avisos !== []) {
                 $saida[] = [
-                    'sell_line_id' => isset($linhas[$i]['sell_line_id']) ? (int) $linhas[$i]['sell_line_id'] : null,
+                    'sell_line_id' => isset($det['sell_line_id']) ? (int) $det['sell_line_id'] : null,
                     'product_id'   => $pid === null ? null : (int) $pid,
                     'cfop'         => isset($det['cfop']) ? (string) $det['cfop'] : null,
                     'cst_csosn'    => $codigo,
@@ -783,7 +783,7 @@ class NfeService
             ->orderBy('tsl.id')
             ->get([
                 'tsl.id as sell_line_id', 'tsl.product_id', 'tsl.quantity', 'tsl.unit_price_inc_tax',
-                'p.name', 'p.sku', 'p.ncm', 'p.origem_mercadoria', 'v.sub_sku', 'u.short_name',
+                'p.name', 'p.sku', 'p.ncm', 'p.cest', 'p.origem_mercadoria', 'v.sub_sku', 'u.short_name',
             ]);
 
         $linhas = [];
@@ -798,6 +798,10 @@ class NfeService
                 'unidade'        => (string) ($r->short_name ?: 'UN'),
                 'quantidade'     => (float) $r->quantity,
                 'valor_unitario' => (float) $r->unit_price_inc_tax,
+                // CEST do produto (7 dígitos) e GTIN: o código de barras do UltimatePOS é o SKU da
+                // variação; só vai para a nota se for GTIN válido (dígito e prefixo GS1).
+                'cest'           => Tributacao\GtinCest::cest($r->cest ?? null),
+                'gtin'           => Tributacao\GtinCest::gtin($r->sub_sku ?? null) ?? Tributacao\GtinCest::gtin($r->sku ?? null),
             ];
         }
 
@@ -948,6 +952,12 @@ class NfeService
                 'cprod'   => substr((string) $it['cprod'], 0, 60),
                 'xprod'   => substr((string) $it['xprod'], 0, 120),
                 'ncm'     => $ncm,
+                // Sabor Brasil 2026-11-04: CEST e GTIN do cadastro (nulos = como antes: sem CEST,
+                // "SEM GTIN"). product_id/sell_line_id só identificam o item para os avisos fiscais.
+                'cest'    => isset($it['cest']) && $it['cest'] !== '' ? (string) $it['cest'] : null,
+                'gtin'    => isset($it['gtin']) && $it['gtin'] !== '' ? (string) $it['gtin'] : null,
+                'product_id'   => $it['product_id'] ?? null,
+                'sell_line_id' => $it['sell_line_id'] ?? null,
                 'cfop'    => $tributo->cfop,
                 'ucm'     => substr((string) $it['unidade'], 0, 6),
                 'qcom'    => (float) $it['quantidade'],
@@ -2687,7 +2697,7 @@ class NfeService
         $stdProd         = new \stdClass();
         $stdProd->item   = $item;
         $stdProd->cProd  = (string) ($det['cprod'] ?? $item);
-        $stdProd->cEAN   = 'SEM GTIN';
+        $stdProd->cEAN   = (string) ($det['gtin'] ?? '') !== '' ? (string) $det['gtin'] : 'SEM GTIN';
         $stdProd->xProd  = (string) ($det['xprod'] ?? '');
         $stdProd->NCM    = preg_replace('/\D/', '', (string) ($det['ncm'] ?? '00000000'));
         // Thread 25 · R-NFE-030: código do benefício fiscal da UF. Sem a chave = sem a tag.
@@ -2702,7 +2712,7 @@ class NfeService
         $decVun          = (int) ($det['dec_vun'] ?? 2);
         $stdProd->vUnCom = $this->fmt((float) ($det['vuncom'] ?? 0), $decVun);
         $stdProd->vProd  = $this->fmt((float) ($det['vprod'] ?? 0));
-        $stdProd->cEANTrib = 'SEM GTIN';
+        $stdProd->cEANTrib = $stdProd->cEAN;
         $stdProd->uTrib  = (string) ($det['utrib'] ?? 'UN');
         $stdProd->qTrib  = $this->fmt((float) ($det['qtrib'] ?? 1), 4);
         $stdProd->vUnTrib = $this->fmt((float) ($det['vuntrib'] ?? 0), $decVun);
@@ -2717,6 +2727,14 @@ class NfeService
             $stdProd->vOutro = $this->fmt((float) $det['voutro']);
         }
         $nfe->tagprod($stdProd);
+        // Convênio ICMS 142/2018: CEST no item com ST. Sem CEST no cadastro, a tag não vai (como antes)
+        // e o aviso fiscal da nota aponta a falta (CoerenciaFiscalDoItem).
+        if (! empty($det['cest'])) {
+            $stdCest       = new \stdClass();
+            $stdCest->item = $item;
+            $stdCest->CEST = (string) $det['cest'];
+            $nfe->tagCEST($stdCest);
+        }
 
         // imposto container
         $stdImp        = new \stdClass();

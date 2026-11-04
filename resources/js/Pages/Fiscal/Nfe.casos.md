@@ -5,7 +5,7 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-04"
+last_run: "2026-11-04"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
@@ -691,6 +691,25 @@ Status: 🧪
 bonificação no Delphi) **Quando** sai a nota **Então** o item tributa pela regra da venda (CSOSN 400), nunca
 pelo default genérico da empresa. CSV que cita uma operação que a empresa não cadastrou falha a linha e
 não grava regra solta. Teste: `NfeBonificacaoSemStTest`. Âncora: R-NFE-020d (operação do próprio business).
+
+Status: 🧪
+
+## UC-FNFE-61 · O código de barras do produto vai para o cEAN, quando é GTIN válido · `must` `[V0]`
+
+**Dado** um produto com código de barras cadastrado (o SKU da variação, onde o UltimatePOS guarda o
+EAN) **Quando** sai a nota **Então** `cEAN` e `cEANTrib` levam esse código, se o dígito verificador e o
+prefixo GS1 conferem; código inválido ou ausente segue como `SEM GTIN`, como antes — GTIN errado
+rejeita a nota na SEFAZ. Teste: `NfeCestGtinNoXmlTest`. Âncora: leiaute NF-e campos I03/I12
+(NT 2017.001) · pedido [F] 2026-11-04 (Sabor Brasil).
+
+Status: 🧪
+
+## UC-FNFE-62 · O CEST do produto vai para o item da nota · `must` `[V0]`
+
+**Dado** um produto com CEST de 7 dígitos no cadastro **Quando** sai a nota **Então** o item leva a tag
+`CEST` logo depois do NCM; sem CEST (ou com CEST fora do formato), a tag não vai e o aviso fiscal de
+"ST sem CEST" segue apontando a falta. Teste: `NfeCestGtinNoXmlTest`. Âncora: Convênio ICMS 142/2018
+cláusula 3ª · pedido [F] 2026-11-04 (Sabor Brasil).
 
 Status: 🧪
 
