@@ -106,7 +106,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Destrava: P-021, P-014
   - Ligação: o documento não cita caso para esta decisão; a ligação com P-021 e P-014 (escolher o comissionado na venda, que inclui a agência) é inferida pelo assunto.
 - **[DECISÃO] D-11 · Comissão: sobre qual valor e em que momento?**
-  - Estado: Em aberto
+  - Estado: Decidida em 2026-11-04 · [W] por [F] — Apura no faturamento, libera no recebimento. A regra de liberação é configurável por empresa (padrão: proporcional às parcelas recebidas), com ajuste por vendedor.
   - Texto: Três textos discordam: o UC-FLX-05 lança no faturamento sobre o valor faturado, a US-COMM-015 calcula sobre o preço sem imposto, e o caso 109 calcula na leitura. A pesquisa de mercado de 28/10/2026 está no PR #10102.
   - Opção: Apura no faturamento, libera no recebimento — A comissão é gravada no faturamento, como no UC-FLX-05, e liberada por regra do vendedor (padrão: proporcional às parcelas recebidas). A base também é por vendedor. O caso 109 passa a ler o registro gravado. É a proposta.
   - Opção: Tudo no faturamento — Mais simples e igual ao fluxo atual do Wagner, mas pode contrariar a lei para representante e para vendedor que vende a prazo.
@@ -114,6 +114,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Ligação: P-156 (comissão do representante liberada por parcela, como no Sabor Brasil) e P-020 (vendas sem comissionado no relatório, que depende da D-COM-2, comissão sobre venda paga ou faturada) são inferidas pelo assunto.
 
 ## Trilha do tempo
+- 2026-11-04 · [F+C] D-11 decidida: apura no faturamento, libera no recebimento, regra configurável por empresa. Destrava P-109, P-156 e P-020.
 - 2026-10-30 · [W+C] O caso 14 passa a destravar com a D-04, e os casos 156 e 20 com a D-11; nenhum deles tinha pergunta.
 - 2026-10-28 · [W+C] Decisões pendentes D-04, D-11 do documento "Casos de uso por tela", sem id de caso.
 - 2026-10-27 · [F+C] Backlog do percentual de comissão no produto: a ordem vem da US-COMM-015 e entra o pedido da CyberStudio.

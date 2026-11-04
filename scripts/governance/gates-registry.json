@@ -609,7 +609,7 @@
       "classe": "gate"
     },
     "visual-regression.yml": {
-      "nome": "Visual Regression (Pest 4 Browser)",
+      "nome": "Browser E2E (Pest 4 Browser)",
       "classe": "gate"
     },
     "design-smoke-ci.yml": {

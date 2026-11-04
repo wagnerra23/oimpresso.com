@@ -65,7 +65,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-19 | O operador vê só as etapas dele hoje, na ordem | Operador | Apontamento | must | ✅ |
 | UC-PCV-20 | QR abre a etapa certa e o cronômetro aponta início, pausa e fim | Operador | Apontamento | must | ✅ |
 | UC-PCV-21 | Fechar a etapa passa a OS adiante e avisa o próximo | Operador | Apontamento | must | ✅ |
-| UC-PCV-22 | Cronômetro esquecido fecha sozinho no fim do turno | Operador · Gestor | Apontamento | must | 🟡 |
+| UC-PCV-22 | Cronômetro esquecido fecha sozinho no fim do turno | Operador · Gestor | Apontamento · Painel | must | ✅ |
 | UC-PCV-23 | Apontamento sem internet guarda e envia depois | Operador | Apontamento | should | ⬜ |
 | UC-PCV-24 | Agenda de instalação da equipe de campo | Gestor · Instalador | Instalação | must | ✅ |
 | UC-PCV-25 | Checklist de campo com foto antes/depois e assinatura gera protocolo | Instalador | Instalação | must | 🟡 |
@@ -190,10 +190,9 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-21 · Fechar a etapa passa adiante · `must` · ✅
 - **Aceite:** Quando o operador conclui a etapa · Então a OS vai para a próxima etapa do roteiro (ou para a junção, se a outra trilha já terminou) · E o responsável seguinte é avisado.
 
-### UC-PCV-22 · Cronômetro esquecido · `must` · 🟡
+### UC-PCV-22 · Cronômetro esquecido · `must` · ✅
 - **Aceite:** Dado um apontamento aberto às 18h · Então o sistema fecha às 18h com marca "fechado automaticamente" e avisa o PCP · E o operador pode corrigir no dia seguinte com justificativa (o original fica).
-- **Onde:** ficha da OS › Histórico mostra o apontamento "fechado automaticamente às 18:00" e o botão Corrigir, com justificativa obrigatória; a correção entra no histórico e o registro original fica.
-- **Falta:** o aviso ao PCP quando o fechamento acontece.
+- **Onde:** o Painel da Produção mostra o aviso "Cronômetro fechado sozinho no fim do turno" com quem, a etapa e o dia, e o botão para abrir a OS. Na ficha da OS › Histórico fica o apontamento "fechado automaticamente" na hora do fim do turno (vem do turno configurado, não de um 18h fixo) e o botão Corrigir, com justificativa obrigatória. A correção entra no histórico, o registro original fica, e o aviso some do Painel.
 
 ### UC-PCV-23 · Sem internet · `should` · ⬜
 - **Aceite:** Dado o celular offline · Quando o operador aponta · Então o evento fica guardado com a hora real · E ao voltar a rede é enviado uma vez só (sem duplicar).
@@ -249,7 +248,7 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 
 **Forma (dá para fazer aqui, no protótipo)**
 4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
-5. Aviso ao PCP quando o cronômetro esquecido fecha sozinho (UC-PCV-22). O fechamento e a correção já existem.
+5. Fechamento do apontamento aberto quando o PCP move a etapa à mão (UC-PCV-07).
 6. Estados carregando / vazio / erro em todas as vistas.
 7. Link público de prova de arte (UC-PCV-04, 11) no padrão do link com código do Repair.
 8. Correção de apontamento com justificativa (UC-PCV-22).

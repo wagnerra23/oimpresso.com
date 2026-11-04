@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PageHeader } from '@/Components/PageHeader';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
+import '../../../../css/cowork-configuracoes-bundle.css';
 
 type Valor = string | number | boolean | null | Valor[] | { [k: string]: Valor };
 type Corpo = Record<string, Valor>;

@@ -200,7 +200,8 @@ jobs:
     name: Smoke visual real (Playwright + OpenAI)
     needs: detect
     if: needs.detect.outputs.should_smoke == 'true' && needs.detect.outputs.infra_ready == 'true'
-    runs-on: ubuntu-latest
+    # ubuntu-24.04 fixo: em 2026-11-04 o ubuntu-latest passou a cair no 26.04, que o Playwright do lock (1.60) não suporta (só 1.64+). Subir o Playwright troca o Chromium e mexe na rasterização do visual-regression.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     # actions: read → baixar o artefato vite-build do run de deploy (residual #7).
     permissions:

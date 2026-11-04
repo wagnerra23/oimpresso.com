@@ -341,6 +341,51 @@ Status: 🧪
 
 ---
 
+## Boleto pago no banco baixa o título migrado (Sabor Brasil, 2026-11-04)
+
+> **Âncora:** pedido [F] 2026-11-04 — *"o Ricardo esquece de baixar alguns boletos; o financeiro não pode
+> ficar desorganizado"*. O título veio do Delphi com o nosso número (`metadata.boleto_nosso_numero` e
+> `boleto_banco`, `import-financeiro.py`); o recebimento vem do Inter
+> (`paymentgateway:inter-importar-recebimentos`). Casar = mesmo nosso número (ou código Delphi), mesmo banco
+> e mesmo valor nominal; sem isso, mesmo pagador + vencimento + valor. VALOR: regra mestre — recebido =
+> valor_baixa + juros − desconto, conferido à mão e pela soma gravada.
+> Prova: `Modules/PaymentGateway/Tests/Feature/BaixaBoletoMigradoContratoTest.php` (lane PaymentGateway · MySQL).
+
+## UC-FBOL-01 · Boleto pago no valor certo quita o título migrado, sem criar outro `[V0]` `[must]`
+**Dado** um título migrado de 100,00 com nosso número 0052 do Inter **Quando** o Inter informa o boleto 52 pago
+com 100,00 **Então** o mesmo título fica quitado com uma baixa de 100,00 na conta do Inter e nenhum título novo nasce.
+
+Status: 🧪
+
+## UC-FBOL-02 · Pago com juros `[V0]` `[must]`
+**Dado** o título de 100,00 **Quando** o cliente pagou 103,50 **Então** a baixa é 100,00 de principal + 3,50 de juros.
+
+Status: 🧪
+
+## UC-FBOL-03 · Desconto até 10% baixa; acima disso vai para conferência `[V0]` `[must]`
+**Dado** dois títulos de 100,00 **Quando** um foi pago com 95,00 e o outro com 85,00 **Então** o primeiro baixa com
+desconto de 5,00 e o segundo fica aberto, sem baixa, na lista para conferir.
+
+Status: 🧪
+
+## UC-FBOL-04 · Nosso número de outro banco ou com outro valor não casa `[must]`
+**Dado** o nosso número 56 do BB e o 57 do Inter de 250,00 **Quando** o Inter informa o 56 e o 57 pagos com 100,00
+**Então** nenhum dos dois é baixado.
+
+Status: 🧪
+
+## UC-FBOL-05 · Dois títulos possíveis: ambíguo, não baixa nenhum `[must]`
+**Dado** dois títulos abertos com o mesmo nosso número e valor **Quando** o recebimento chega **Então** nenhum é baixado.
+
+Status: 🧪
+
+## UC-FBOL-06 · Título de outra empresa não é baixado `[T0]` `[must]`
+**Dado** o mesmo nosso número em outra empresa **Quando** o recebimento desta empresa chega **Então** só o título desta é baixado.
+
+Status: 🧪
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.

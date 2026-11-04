@@ -594,7 +594,8 @@ function run(argv) {
 
   const manifest = JSON.parse(readFileSync(join(ROOT, SCREEN_MANIFEST), 'utf8'));
   const manifestErrors = validateScreenManifest(manifest, {
-    baselineExists: (baseline) => existsSync(join(ROOT, 'tests/.pest/snapshots/Browser/CoreScreens/PixelBaselineTest', baseline)),
+    // Sem `baselineExists`: a comparação de pixel saiu em 2026-11-04 (decisão [W]) e as fotos
+    // `.snap` foram apagadas, então o campo `baseline` do manifesto não aponta mais pra nada.
     // O manifesto declara a tela pelo NAMESPACE; o arquivo pode estar em qualquer uma das raízes.
     sourceExists: (source) => ['.tsx', '/Index.tsx', '.jsx', '/Index.jsx', '.ts', '/Index.ts', '.js', '/Index.js', '.vue', '/Index.vue']
       .some((suffix) => raizesDePages(ROOT).some((raiz) => existsSync(join(raiz, `${source}${suffix}`)))),
@@ -623,18 +624,9 @@ function run(argv) {
     appendFileSync(githubOutput, `uncovered_screens=${JSON.stringify(result.uncovered_screens)}\n`);
     appendFileSync(githubOutput, `impacted_count=${result.impacted.length}\n`);
   }
-  // Cobrança de contrato só faz sentido em `targeted` — é lá que `screens` VIRA a lista
-  // de comparação (PixelBaselineTest.php:97 filtra por VISREG_SCREENS e ele mesmo lança
-  // "Telas sem contrato visreg" pra tela pedida sem contrato: a mordida vive lá, não aqui).
-  // Em `global` o teste IGNORA VISREG_SCREENS e roda o manifesto inteiro (núcleo-6) — a
-  // doutrina no topo deste arquivo: "mudanças compartilhadas/fundacionais exigem o núcleo
-  // global". Exigir contrato do raio informativo travava o shell: `AppShellV2.tsx` resolve
-  // ~190 consumidores × 6 com contrato → fail-closed inalcançável, com o pixel nunca
-  // rodando (PIXEL_OUTCOME=skipped). Nenhuma mudança de shell atravessou o canário desde
-  // que ele endureceu (2026-07-16, #4342/#4349); o último toque no AppShellV2 é de 06-17.
-  if (result.scope === 'targeted' && result.uncovered_screens.length) {
-    throw new Error(`telas afetadas sem contrato em ${SCREEN_MANIFEST}: ${result.uncovered_screens.join(', ')}`);
-  }
+  // Até 2026-11-04 havia aqui um `throw` cobrando entrada no manifesto para toda tela do raio
+  // em escopo `targeted`. Era contrato da comparação de pixel, que saiu por decisão [W]; sem
+  // ela, tela fora do manifesto não tem o que reprovar.
   return result;
 }
 
