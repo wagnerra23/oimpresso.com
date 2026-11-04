@@ -283,10 +283,17 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
 
   return (
-    <div className="pb-8">
+    // Raiz com as classes do protótipo: o bundle cowork-configuracoes só vale dentro de .cfg-page.
+    <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Configuração da empresa">
       <div data-contract="page-header">
-        <PageHeader title="Configuração da empresa" subtitle={texto('name')} subnav={<ConfiguracoesSubNav />}
-          actions={<Button data-contract="salvar" disabled={!sujo || salvando} onClick={salvar}>{salvando ? 'Salvando…' : 'Salvar'}</Button>} />
+        <PageHeader title="Configurações" subtitle="Configuração da empresa — o grupo “Configurações” do menu antigo, tela por tela"
+          below={<ConfiguracoesSubNav emLinha />}
+          actions={(
+            <Inline gap={2}>
+              <span className="hrm-scope" data-contract="escopo">/business/settings</span>
+              <Button data-contract="salvar" disabled={!sujo || salvando} onClick={salvar}>{salvando ? 'Salvando…' : 'Salvar'}</Button>
+            </Inline>
+          )} />
       </div>
 
       <Grid gap={6} className="px-6 pt-4 md:grid-cols-[13rem_1fr]">
