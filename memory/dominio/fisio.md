@@ -40,7 +40,8 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
   haver licença comercial.
 - **Lançamento do pacote** (`fisio_package_ledger.kind`, append-only, US-FISIO-020): `credito`
   (sessões na abertura), `debito` (uma sessão usada; `ref` diz o atendimento), `estorno`
-  (devolve um débito, `ref = estorno:<id>`) e `extensao` (nova validade, 0 sessão). O saldo é a
+  (devolve um débito, `ref = estorno:<id>`, +1; ou tira a sobra do saldo quando a venda do pacote é
+  cancelada, `ref = venda_cancelada:<id>`, −sobra) e `extensao` (nova validade, 0 sessão). O saldo é a
   soma. O pacote não guarda dinheiro: preço é da venda do núcleo, título do Financeiro.
 - **Status do programa** (`fisio_programs.status`, texto, fora do bloco `json`): `ativo` ou
   `encerrado` — um ativo por paciente.

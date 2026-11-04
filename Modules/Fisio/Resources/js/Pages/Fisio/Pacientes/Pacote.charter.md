@@ -34,10 +34,13 @@ Mostrar quantas sessões do pacote o paciente já usou, registrar e devolver ses
 - Devolver uma sessão por lançamento inverso, com motivo — UC-FPK-02 (via `SaldoDoPacote::estornar`).
 - Mostrar os títulos a receber da venda ligada ao pacote, lidos do Financeiro — UC-FPK-05.
 - Mostrar o status da NFS-e da venda, lido do NFSe — UC-FPK-06.
+- Ligar ao pacote a venda já feita na tela de venda do núcleo, e levar à venda nova — UC-FPK-07, UC-FPK-08 (US-FISIO-022).
+- Venda cancelada no núcleo tira do saldo as sessões que sobraram e encerra o pacote — UC-FPK-09.
 
 ## Non-Goals (não faz)
 
-- Gravar título, baixa ou valor em dinheiro. Vender e renovar o pacote é a US-FISIO-022, pela venda do núcleo, e depende de aprovação de [W] (regra mestre de valor).
+- Gravar título, baixa ou valor em dinheiro. O preço é digitado na tela de venda do núcleo; o Fisio só guarda o id da venda (US-FISIO-022).
+- Devolver dinheiro de venda cancelada. É do Financeiro.
 - Emitir NFS-e. Quem emite é o módulo NFSe.
 
 ## Automation Anti-hooks

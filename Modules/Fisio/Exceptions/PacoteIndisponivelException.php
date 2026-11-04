@@ -27,6 +27,11 @@ final class PacoteIndisponivelException extends DomainException
         return new self('O pacote está encerrado.');
     }
 
+    public static function vendaJaLigada(): self
+    {
+        return new self('Este pacote já tem venda, ou a venda já paga outro pacote.');
+    }
+
     public static function estornoInvalido(): self
     {
         return new self('Só um débito pode ser estornado, e uma vez.');

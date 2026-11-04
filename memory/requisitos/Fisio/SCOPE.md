@@ -33,6 +33,7 @@ contains:
   - "EnvioWhatsappController — envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
   - "Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro (SaldoDoPacote, US-FISIO-020)"
   - "PacotesController — aba Pacote e cobrança: abre pacote e registra sessão; títulos e NFS-e só lidos do Financeiro e do NFSe (US-FISIO-021)"
+  - "VendaDoPacoteObserver — liga a venda do núcleo ao pacote pelo id; venda cancelada tira a sobra do saldo, sem tocar no Financeiro (US-FISIO-022)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Preço do pacote, cobrança e títulos → venda do núcleo + Financeiro; mensalidade → RecurringBilling (F3, US-FISIO-022)"

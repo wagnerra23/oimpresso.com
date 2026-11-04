@@ -7,6 +7,7 @@ namespace Modules\Fisio\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -41,6 +42,7 @@ class PacotesController extends Controller
             'pacote' => Inertia::defer(fn () => $atual ? $this->resumo($atual) : null),
             'cobranca' => Inertia::defer(fn () => $this->titulos($atual)),
             'nota' => Inertia::defer(fn () => $this->nota($atual)),
+            'vendas' => Inertia::defer(fn () => $this->vendasDoPaciente($paciente)),
         ]);
     }
 
@@ -86,6 +88,43 @@ class PacotesController extends Controller
         }
 
         return back()->with('success', 'Sessão devolvida ao pacote.');
+    }
+
+    /** Liga uma venda já feita na tela de venda do núcleo ao pacote (US-FISIO-022). */
+    public function ligarVenda(Request $request, int $pacote): RedirectResponse
+    {
+        abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
+        $p = Pacote::query()->with('patient')->findOrFail($pacote);
+        $txId = (int) $request->validate(['transaction_id' => ['required', 'integer']])['transaction_id'];
+        $venda = DB::table('transactions')->where('id', $txId)->where('business_id', $p->business_id)
+            ->where('type', 'sell')->where('status', 'final')->where('contact_id', $p->patient->contact_id)->exists();
+        if (! $venda) {
+            throw ValidationException::withMessages(['transaction_id' => 'Venda não encontrada para este paciente.']);
+        }
+        try {
+            $this->saldo->ligarVenda($p, $txId);
+        } catch (PacoteIndisponivelException $e) {
+            throw ValidationException::withMessages(['transaction_id' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Venda ligada ao pacote.');
+    }
+
+    /**
+     * Vendas finalizadas do paciente que ainda não pagam nenhum pacote (leitura do núcleo).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function vendasDoPaciente(Patient $paciente): array
+    {
+        $ligadas = Pacote::query()->whereNotNull('transaction_id')->pluck('transaction_id');
+
+        return DB::table('transactions')->where('business_id', $paciente->business_id)
+            ->where('contact_id', $paciente->contact_id)->where('type', 'sell')->where('status', 'final')
+            ->whereNotIn('id', $ligadas)->orderByDesc('transaction_date')->limit(20)
+            ->get(['id', 'invoice_no', 'transaction_date', 'final_total'])
+            ->map(fn ($v) => ['id' => (int) $v->id, 'numero' => $v->invoice_no, 'data' => substr((string) $v->transaction_date, 0, 10), 'valor' => (string) $v->final_total])
+            ->values()->all();
     }
 
     /** @return array<string, mixed> */
