@@ -114,6 +114,7 @@ function FichaOs({ id, onClose }) {
   const [refugo, setRefugo] = useState(os ? os.refugo || [] : []);
   const [novo, setNovo] = useState(null);
   const [corr, setCorr] = useState(null);
+  const [verProva, setVerProva] = useState(false); // página do link da prova (UC-PCV-04)
   // Terceiros da OS (US-COMVIS-005): serviço comprado fora que entra no custo real. Não mexe em preço.
   const [terc, setTerc] = useState(os ? os.terceiros || [] : []);
   const [novoTerc, setNovoTerc] = useState(null);
@@ -152,6 +153,9 @@ function FichaOs({ id, onClose }) {
           {os.arte === "aprovada"
             ? Alert && <Alert tone="success" title={"Aprovada pelo cliente em " + os.aprovadaEm.split(" ")[0].split("-").reverse().join("/") + " às " + os.aprovadaEm.split(" ")[1]}>Aprovação pelo link de prova (sem login). A versão aprovada fica travada: qualquer troca de arquivo pede nova aprovação.</Alert>
             : Alert && <Alert tone={os.arte === "ajuste" ? "danger" : "warn"} title={os.arte === "ajuste" ? "O cliente pediu ajuste" : "Aguardando aprovação do cliente"}>{os.arte === "ajuste" ? "\"Aumentar o logo e trocar o telefone.\" — enviado pelo link de prova às 08:47." : "Link de prova enviado ontem às 17:30 e reenviado hoje às 09:12. Visualizado 2 vezes."}<div className="pcv-al-a"><Button size="sm" onClick={() => {}}>Reenviar link de prova</Button></div></Alert>}
+          {window.PcvProva && os.arte !== "aprovada" && (verProva
+            ? <window.PcvProva.PaginaProva os={os} onFechar={() => setVerProva(false)} />
+            : Button && <Button size="sm" onClick={() => setVerProva(true)}>Ver o que o cliente vê no link</Button>)}
           <ul className="pcv-arq">
             {[["arte-final-v3.pdf", "12,4 MB", "versão aprovada"], ["prova-cliente-v3.jpg", "1,1 MB", "prova enviada"], ["arquivo-corte.ai", "640 KB", "corte CNC / recorte"], ["fotos-medicao.zip", "8,2 MB", "medição em campo"]].slice(0, os.produto === "lona" ? 2 : 4).map(([n, t, d]) => (
               <li key={n}><Ic name="doc" size={16} /><div><b>{n}</b><small>{t} · {d}</small></div><Button size="sm" variant="ghost">Baixar</Button></li>))}

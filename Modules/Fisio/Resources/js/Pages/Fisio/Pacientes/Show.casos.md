@@ -46,6 +46,9 @@ related_us: [US-FISIO-009]
 | UC-FPS-20 | exportar exige `fisio.access` da mesma clínica; outra clínica 404; cada exportação fica no log de auditoria | must | `FisioProntuarioPdfTest` |
 | UC-FAV-01 | avaliação em seções compõe os 6 campos da Res. 414; principal vazio é recusado | must | `tests/js/fisio-avaliacao-corpo.test.ts` |
 | UC-FAV-02 | sinal de alerta marcado avisa e fica no exame, sem bloquear | should | `tests/js/fisio-avaliacao-corpo.test.ts` |
+| UC-FLD-01 | laudo de evolução: síntese do que está assinado (diagnóstico, conduta, medidas, plano) | should | `FisioLaudoEvolucaoTest` |
+| UC-FLD-02 | o laudo baixa em PDF e cada emissão fica no log de auditoria sem PII | must | `FisioLaudoEvolucaoTest` |
+| UC-FLD-03 | laudo de outra clínica 404; sem `fisio.access` 403 | must | `FisioLaudoEvolucaoTest` |
 | UC-FPS-21 | aba Evolução: dor e dias com exercício em 30 dias, só na visão do profissional | should | `FisioEvolucaoTest` |
 | UC-FPS-33 | gerar link do portal: link e PIN uma vez, só hash no banco, link anterior morre | must | `FisioPortalLinkTest` |
 | UC-FPS-34 | revogar o link do portal derruba o acesso e fica registrado | must | `FisioPortalLinkTest` |
@@ -206,6 +209,24 @@ related_us: [US-FISIO-009]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
 - **Status: 🧪**
 
+## UC-FLD-01 · Laudo de evolução para quem encaminhou · `should`
+- **Persona:** fisioterapeuta que precisa mandar ao médico ou ao convênio como o paciente evoluiu.
+- **Âncora:** protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/Laudo.dc.html` (ADR 0438) e Res. COFFITO 414/2012 (o laudo sai do prontuário).
+- **Aceite:** Quando clica "Laudo de evolução (PDF)" na ficha · Então recebe uma página com empresa, data de emissão, paciente, período (do primeiro registro assinado até hoje), contagem de avaliações, evoluções e telemonitoramentos, o diagnóstico e o plano da última avaliação assinada, a conduta da última evolução assinada, a primeira e a mais recente pontuação de cada questionário, os exercícios do programa ativo e uma linha de assinatura com o nome de quem emitiu e o CREFITO que ele usou nos registros. Registro sem assinatura não entra. O sistema não interpreta medida nem escreve prognóstico.
+- **Regressão que defende:** laudo com texto que ninguém assinou; o software escrevendo leitura clínica.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoEvolucaoTest.php`
+- **Status: 🧪**
+
+## UC-FLD-02 · O rastro do laudo `[T0]` · `must`
+- **Aceite:** A rota devolve `application/pdf` para download e cada emissão grava uma linha `laudo_exportado` no `activity_log`, com o autor e a clínica, sem nome do paciente nem conteúdo clínico nas propriedades.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoEvolucaoTest.php`
+- **Status: 🧪**
+
+## UC-FLD-03 · Quem emite o laudo `[T0]` · `must`
+- **Aceite:** A 99 pedindo o laudo de paciente da 98 → 404; usuário sem `fisio.access` → 403; nos dois casos nada é registrado. A 99 tira o laudo do próprio paciente.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoEvolucaoTest.php`
+- **Status: 🧪**
+
 ## UC-FPS-37 · Folha para imprimir do programa · `should`
 - **Persona:** fisioterapeuta atendendo paciente que prefere papel na geladeira (muitos idosos).
 - **Aceite:** Dado um programa com exercícios · Quando clica "Imprimir folha" no editor de programa · Então recebe um PDF A4 em letra grande com o nome do paciente, a instrução de parada, a versão de crise e cada exercício na ordem do programa: nome, dose por extenso (séries, repetições, tempo segurando, vezes ao dia), passos, observação e cuidados; a foto própria do exercício vai embutida, e exercício com vídeo aponta o portal. Cada folha grava uma linha no `activity_log` (`programa_impresso`) só com ids e a quantidade de itens.
@@ -255,6 +276,7 @@ related_us: [US-FISIO-009]
 
 ## Trilha do tempo
 - 2026-11-04 · Lote 2 — avaliação em seções do protótipo (`_components/AvaliacaoEstruturada.tsx`) vira UC-FAV-01..02; mesmo POST e mesmos 6 campos da Res. 414, sem migration.
+- 2026-11-04 · Lote 2 — laudo de evolução em PDF (2º documento, ao lado do prontuário) vira UC-FLD-01..03; botão no mesmo componente da exportação.
 - 2026-10-19 · B-12 (etapa 01-biblioteca) — folha A4 do programa para imprimir vira UC-FPS-37..38 (`FolhaProgramaController` + `Services/FolhaPrograma.php`, botão no `EditorPrograma.tsx`), com teste escrito junto. Sem QR, para não revogar o link vivo do paciente.
 - 2026-10-18 · US-FISIO-007a — link do portal gerado na ficha (`_components/LinkPortal.tsx`, `PortalLinkController`) vira UC-FPS-33..35, com teste escrito junto.
 - 2026-10-19 · US-FISIO-009 — envio do link e lembrete pelo módulo `Whatsapp` existente (sem canal próprio do Fisio, decisão [W]); UC-FPS-11/12 detalhados e UC-FPS-36 (envio manual `wa.me` sem canal ativo) nasce com o teste.
