@@ -637,3 +637,8 @@
 .cfg-page .cfg-folha-barras{width:64px;height:26px;background:repeating-linear-gradient(90deg,#1a1a1a 0 1.5px,#fff 1.5px 3.5px)}
 @media (max-width:1280px){.cfg-page .cfg-lay-body{grid-template-columns:190px minmax(0,1fr);}.cfg-page .cfg-prova{grid-column:1/-1;padding:0 24px;position:static;max-width:520px}}
 
+
+/* ===== Ajustes de produção (não vêm do protótipo) =====
+   O protótipo herda line-height 1.2 dos títulos do styles.css dele; aqui o reset do Tailwind dá 1.5
+   e o título de cada aba ficava 24px de altura contra 19,2px (medido com design-diff, papel paneTitulo). */
+.cfg-page .pf-pane .pf-h h2{line-height:1.2}
