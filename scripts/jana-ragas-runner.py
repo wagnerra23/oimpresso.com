@@ -167,6 +167,14 @@ def update_baseline_file(path: Path, eval_report: dict) -> None:
             },
         },
     }
+    # `_frescor` declara ao cron-watchdog que a data deste baseline não mede frescor
+    # (ele só muda na recalibração). Recalibrar não pode apagar a declaração.
+    try:
+        anterior = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        anterior = {}
+    if isinstance(anterior, dict) and isinstance(anterior.get("_frescor"), dict):
+        new_baseline = {"_frescor": anterior["_frescor"], **new_baseline}
     path.write_text(json.dumps(new_baseline, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"[runner] Baseline atualizada em {path}", file=sys.stderr)
 
