@@ -46,6 +46,7 @@ class PortalAgendaController extends Controller
             $nomes = $profissionais->profissionais($biz)->pluck('nome', 'id');
             $linha = fn (Appointment $a) => [
                 'id' => (int) $a->id, 'inicio' => $a->starts_at->toIso8601String(), 'tipo' => $a->type?->name,
+                'type_id' => (int) $a->type_id, 'professional_id' => (int) $a->professional_id,
                 'teleconsulta' => $a->type?->modality === 'teleconsulta', 'profissional' => $nomes[$a->professional_id] ?? null,
                 'status' => $a->status, 'pode_mexer' => $this->agenda->dentroDoPrazo($a), 'nota' => $a->patient_rating,
             ];

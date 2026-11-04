@@ -22,6 +22,9 @@ import { EtapaConsentimento, EtapaPin } from './_components/Entrada';
 import { CartaoConstancia } from './_components/Constancia';
 import { TelaCrise, TelaHoje } from './_components/Hoje';
 import { ConviteInstalar } from './_components/Instalar';
+import { TelaAgendar } from './_components/Agendar';
+import { TelaConsultas } from './_components/Consultas';
+import type { ConsultaPortal } from './_components/agendaPortal';
 import { enviarFila, limparFila, registrarAppDoPortal, type Constancia, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
 
 interface Props {
@@ -65,7 +68,7 @@ function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica
   );
 }
 
-type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise';
+type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise' | 'consultas' | 'agendar';
 
 function vezesIniciais(itens: ItemHoje[], relato: Relato | null | undefined): Record<number, number> {
   const out: Record<number, number> = {};
@@ -80,7 +83,15 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
   const [vezes, setVezes] = useState<Record<number, number>>(() => vezesIniciais(itens, props.relato));
   const mudarVezes = (id: number, n: number) => setVezes((v) => ({ ...v, [id]: Math.max(0, n) }));
   const jogo = props.jogo as Jogo;
+  const [remarcar, setRemarcar] = useState<ConsultaPortal | undefined>(undefined);
 
+  // Agenda do paciente (US-FISIO-016): telas internas, como Hoje e Check-in.
+  if (tela === 'consultas') {
+    return <TelaConsultas token={token} onVoltar={() => setTela('hoje')} onAgendar={(c) => { setRemarcar(c); setTela('agendar'); }} />;
+  }
+  if (tela === 'agendar') {
+    return <TelaAgendar token={token} remarcar={remarcar} onVoltar={() => setTela('consultas')} onPronto={() => setTela('consultas')} />;
+  }
   if (tela === 'crise') {
     return <TelaCrise itens={crise} sequencia={jogo.sequencia} onVoltar={() => setTela('hoje')} onComecar={() => setTela('checkin-crise')} />;
   }
@@ -113,6 +124,7 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
       constancia={props.constancia && <CartaoConstancia token={token} inicial={props.constancia} />}
     />
     <ConviteInstalar diasCumpridos={jogo.dias_cumpridos} />
+    <button type="button" className="self-center text-sm text-primary underline-offset-4 hover:underline" onClick={() => setTela('consultas')}>Minhas consultas</button>
     </>
   );
 }
