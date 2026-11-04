@@ -905,6 +905,51 @@ class ProductController extends Controller
         return $out;
     }
 
+    /**
+     * UC-PIDX-39 (CV2): para cada produto da página, a maior unidade cadastrada como múltiplo da
+     * unidade dele (Configurações › Unidades, "múltiplo de outra unidade"), ex.: Rolo = 80 m². É o
+     * mesmo mecanismo das subunidades da venda e da compra (`Util::getSubUnits`): unidade com
+     * `base_unit_id` = unidade do produto; se o produto restringe as subunidades (`sub_unit_ids`), só
+     * as escolhidas valem. Só para empresa com subunidades ligadas (`business.enable_sub_units`), a
+     * mesma chave que mostra o campo no cadastro. A tela faz a conta (rolos inteiros + resto) sobre
+     * o saldo da linha; aqui só vai o nome e o fator.
+     *
+     * @param  \Illuminate\Support\Collection  $linhas  linhas da página (com unit_id e sub_unit_ids)
+     * @return array<int, array{nome:string, fator:float}>
+     */
+    protected function embalagensDosProdutos(int $business_id, $linhas): array
+    {
+        if (! (bool) DB::table('business')->where('id', $business_id)->value('enable_sub_units')) {
+            return [];
+        }
+        $unidades = $linhas->pluck('unit_id')->filter()->map(fn ($u) => (int) $u)->unique()->values()->all();
+        if ($unidades === []) {
+            return [];
+        }
+        $multiplos = DB::table('units')
+            ->where('business_id', $business_id)
+            ->whereIn('base_unit_id', $unidades)
+            ->whereNull('deleted_at')
+            ->where('base_unit_multiplier', '>', 1)
+            ->get(['id', 'actual_name', 'base_unit_id', 'base_unit_multiplier'])
+            ->groupBy('base_unit_id');
+
+        $out = [];
+        foreach ($linhas as $row) {
+            $candidatas = $multiplos[(int) $row->unit_id] ?? collect();
+            $restritas = is_array($row->sub_unit_ids) ? array_map('intval', $row->sub_unit_ids) : [];
+            if ($restritas !== []) {
+                $candidatas = $candidatas->filter(fn ($u) => in_array((int) $u->id, $restritas, true));
+            }
+            $maior = $candidatas->sortByDesc(fn ($u) => (float) $u->base_unit_multiplier)->first();
+            if ($maior !== null) {
+                $out[(int) $row->id] = ['nome' => (string) $maior->actual_name, 'fator' => (float) $maior->base_unit_multiplier];
+            }
+        }
+
+        return $out;
+    }
+
     protected function requisicoesAbertasDosProdutos(int $business_id, array $ids): ?array
     {
         $u = auth()->user();
@@ -1315,7 +1360,7 @@ class ProductController extends Controller
         $query = $this->consultaListaProdutos($business_id, $f, $is_woocommerce)
             ->with('product_locations')
             ->withCount('variations')
-            ->addSelect('units.short_name as unidade_curta', 'products.enable_sr_no');
+            ->addSelect('units.short_name as unidade_curta', 'products.enable_sr_no', 'products.unit_id', 'products.sub_unit_ids');
         $this->aplicarBuscaListaProdutos($query, $f['q']);
 
         $ordenaveis = [
@@ -1378,7 +1423,10 @@ class ProductController extends Controller
                 ->pluck('id')->all()))
         );
 
-        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes, $naturezas, $saldosDasVariacoes, $separados) {
+        // UC-PIDX-39 (CV2): a unidade maior em que o material também é contado (ex.: Rolo = 80 m²).
+        $embalagens = $this->embalagensDosProdutos($business_id, $pagina->getCollection());
+
+        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes, $naturezas, $saldosDasVariacoes, $separados, $embalagens) {
             $controla = (bool) $row->enable_stock;
             $estoque = $controla ? (float) ($row->current_stock ?? 0) : null;
             $alerta = $row->alert_quantity === null ? null : (float) $row->alert_quantity;
@@ -1420,6 +1468,9 @@ class ProductController extends Controller
             }
             if (isset($saldosDasVariacoes[(int) $row->id])) {
                 $linha['saldo_variacoes'] = $saldosDasVariacoes[(int) $row->id];
+            }
+            if ($estoque !== null && isset($embalagens[(int) $row->id])) {
+                $linha['embalagem'] = $embalagens[(int) $row->id];
             }
             if ($estoque !== null && ($separados[(int) $row->id] ?? 0.0) > 0) {
                 $linha['separado'] = $separados[(int) $row->id];

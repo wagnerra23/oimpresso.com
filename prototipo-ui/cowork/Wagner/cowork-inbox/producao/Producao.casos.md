@@ -93,7 +93,8 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 
 ### UC-PCV-04 · Fila de aprovação de arte · `must` · 🟡
 - **Aceite:** Dado OS com arte "aguardando" e "ajuste pedido" · Então a fila mostra o que o cliente disse e quando · E "Reenviar link" reenvia o **mesmo** link de prova (não gera arte nova) · E "Enviar nova prova" só aparece em "ajuste pedido".
-- **Falta:** o link de prova em si (tela pública de aprovação) não existe no protótipo da Produção. Reaproveitar o padrão do link com código do Repair (UC-COS-12..16) é decisão do Code com [W].
+- **No sistema:** a página pública `/arte/{token}` existe desde o #9645 e fica (D-ARTE-PAGINA, [W] 2026-10-21: não se reaproveita o link com código do Repair). O cliente aprova ou pede alteração sem login, o link vale uma resposta só e vence em 7 dias (UC-PCART-01..05). A fila com "Reenviar link" e "Enviar nova prova" está no Painel (UC-PCART-07).
+- **Falta no protótipo:** a página do cliente; o protótipo só desenha a fila.
 
 ### UC-PCV-54 · Manutenção preventiva · `could` · ✅
 - **Origem:** backlog P3 do `ROADMAP.md` da Produção ("Manutenção preventiva máquinas", referência SAP PM e Odoo Maintenance). Ainda sem US no SPEC: o id US-PCP-023 que o ROADMAP usa é hoje o Romaneio de impressão.
@@ -133,7 +134,8 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 
 ### UC-PCV-11 · Arte aprovada travada · `must` · 🟡
 - **Aceite:** Dado a arte aprovada às 16:40 · Quando alguém troca o arquivo da arte · Então a OS volta para "aguardando aprovação" e um novo link é enviado · E o operador, no celular, abre sempre a versão aprovada.
-- **Falta:** a troca de arquivo e o versionamento não estão no protótipo (só a lista).
+- **No sistema:** trocar o arquivo depois de aprovada (`POST /producao/ordens/{id}/arte/trocar`) reabre a aprovação com link novo, e a arte que vale (`GET /producao/ordens/{id}/arte`) segue sendo a última aprovada (UC-PCV-11 em `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md`).
+- **Falta no protótipo:** a troca de arquivo e as versões; o protótipo só lista os arquivos.
 
 ### UC-PCV-12 · Roteiro vira etapas · `must` · ✅
 - **Aceite:** Dado o orçamento aprovado de um produto da família "Projeto com instalação" · Então a OS nasce com as etapas do roteiro, máquinas e tempos calculados (quantidade ÷ capacidade do posto) · E ninguém redigita etapa.
@@ -244,16 +246,15 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 
 ## O que ainda falta (fora dos UC acima)
 
-**Decisão [W]** — D-PCP, D1–D5 e permissões aprovados em 2026-10-15 (`_DECISOES-W-2026-10-15.md`). Restam as perguntas do formulário de 15/10 (relação com CV/Repair/Fabricação, piloto, turno, canal de aviso, empenho de estoque, link de prova, encaixe, ordem das fases).
+**Decisão [W]** — D-PCP, D1–D5 e permissões aprovados em 2026-10-15 (`_DECISOES-W-2026-10-15.md`). Restam as perguntas do formulário de 15/10 (relação com CV/Repair/Fabricação, piloto, turno, canal de aviso, empenho de estoque, encaixe, ordem das fases). O link de prova já foi decidido em 2026-10-21 (D-ARTE-PAGINA: fica a `/arte/{token}`).
 
 **Forma (dá para fazer aqui, no protótipo)**
 4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
-5. Link público de prova de arte (UC-PCV-04, 11), esperando a decisão de reaproveitar o link do Repair.
+5. Página de aprovação da arte, espelhando a `/arte/{token}` do sistema (UC-PCV-04).
 6. Estados carregando / vazio / erro em todas as vistas.
-7. Link público de prova de arte (UC-PCV-04, 11) no padrão do link com código do Repair.
-8. Correção de apontamento com justificativa (UC-PCV-22).
+7. Troca do arquivo da arte com versões (UC-PCV-11).
 
 **Só no Code**
-9. Tabelas `pcp_workstations`, `pcp_operations`, `pcp_appointments` (append-only), `pcp_schedules` (SPEC do Pcp).
-10. Fechamento automático às 18h, fila offline, envio de aviso ao próximo responsável.
-11. Encaixe de mídia (algoritmo), PDF do protocolo de instalação, captura de câmera e assinatura.
+8. Tabelas `pcp_workstations`, `pcp_operations`, `pcp_appointments` (append-only), `pcp_schedules` (SPEC do Pcp).
+9. Fechamento automático às 18h, fila offline, envio de aviso ao próximo responsável.
+10. Encaixe de mídia (algoritmo), PDF do protocolo de instalação, captura de câmera e assinatura.
