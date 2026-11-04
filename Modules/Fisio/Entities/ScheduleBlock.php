@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * `fisio_schedule_blocks` — horário bloqueado do profissional (almoço, curso, férias; A5). Não é
  * atendimento; no app aparece como indisponível. Escopo por empresa (ADR 0093). US-FISIO-013.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property int $professional_id
+ * @property \Illuminate\Support\Carbon $starts_at
+ * @property \Illuminate\Support\Carbon $ends_at
+ * @property ?string $reason
  */
 class ScheduleBlock extends Model
 {
