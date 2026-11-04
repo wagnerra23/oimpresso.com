@@ -69,6 +69,9 @@ class ConfigDefaultController extends Controller
         if (isset($data['aliquota_ipi'])) {
             $tributacao['aliquota_ipi'] = (float) $data['aliquota_ipi'];
         }
+        // Sabor Brasil 2026-11-04: marca de substituto — só alimenta os avisos de CST/CFOP
+        // (CoerenciaFiscalDoItem); o cálculo da nota não lê esta chave.
+        $tributacao['substituto_tributario'] = (bool) ($data['substituto_tributario'] ?? false);
 
         NfeBusinessConfig::updateOrCreate(
             ['business_id' => $businessId],
@@ -87,8 +90,16 @@ class ConfigDefaultController extends Controller
             ])
             ->log('config_default.upserted');
 
-        return redirect()
+        $crt = in_array($data['regime'], ['lucro_presumido', 'lucro_real'], true) ? 3 : 1;
+        $avisos = \Modules\NfeBrasil\Services\Tributacao\CoerenciaFiscalDoItem::avisos(
+            $crt, $data['cfop_default'], $data['cst'] ?? null, $data['csosn'] ?? null, null,
+            $tributacao['substituto_tributario'],
+        );
+
+        $resp = redirect()
             ->route('nfe-brasil.tributacao.index')
             ->with('success', 'Configuração default salva.');
+
+        return $avisos === [] ? $resp : $resp->with('info', 'Salva, mas confira: '.implode(' ', $avisos));
     }
 }

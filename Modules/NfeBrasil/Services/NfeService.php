@@ -448,7 +448,64 @@ class NfeService
             $dadosNfe['location_id'] = $emitente['location_id'];
         }
 
+        // Sabor Brasil 2026-11-04: CST/CFOP incoerente não impede a nota — fica registrado nela
+        // (metadata.avisos_fiscais) e aparece na Saúde fiscal. Ver CoerenciaFiscalDoItem.
+        $avisos = $this->avisosFiscaisDosItens($businessId, $dadosNfe['dets'], $linhas, $emitente['crt'] ?? null);
+        if ($avisos !== []) {
+            $dadosNfe['metadata'] = array_merge((array) $dadosNfe['metadata'], ['avisos_fiscais' => $avisos]);
+        }
+
         return $this->emitir($businessId, $dadosNfe);
+    }
+
+    /**
+     * Avisos de CST/CFOP incoerente por item (não bloqueiam). CRT: o do local emissor; sem ele, o
+     * do regime da configuração padrão. CEST: o do cadastro do produto (escopo da empresa).
+     *
+     * @param  list<array<string,mixed>> $dets
+     * @param  list<array<string,mixed>> $linhas
+     * @return list<array{sell_line_id:int|null, product_id:int|null, cfop:string|null, cst_csosn:string|null, avisos:list<string>}>
+     */
+    public function avisosFiscaisDosItens(int $businessId, array $dets, array $linhas, ?int $crt): array
+    {
+        $config = DB::table('nfe_business_configs')->where('business_id', $businessId)
+            ->first(['regime', 'tributacao_default']);
+        if ($crt === null && $config !== null) {
+            $crt = in_array($config->regime, ['lucro_presumido', 'lucro_real'], true) ? 3
+                : (in_array($config->regime, ['simples', 'mei'], true) ? 1 : null);
+        }
+        $substituto = (bool) (json_decode((string) ($config->tributacao_default ?? ''), true)['substituto_tributario'] ?? false);
+
+        $ids = array_values(array_filter(array_map(fn ($l) => $l['product_id'] ?? null, $linhas)));
+        $cests = $ids === [] ? collect() : DB::table('products')->where('business_id', $businessId)
+            ->whereIn('id', $ids)->pluck('cest', 'id');
+
+        $saida = [];
+        foreach ($dets as $i => $det) {
+            $codigo = $det['icms']['cst_csosn'] ?? null;
+            $codigo = $codigo === null ? null : (string) $codigo;
+            $ehCsosn = $codigo !== null && strlen(preg_replace('/\D/', '', $codigo)) === 3 && ! str_starts_with($codigo, '0');
+            $pid = $linhas[$i]['product_id'] ?? null;
+            $avisos = Tributacao\CoerenciaFiscalDoItem::avisos(
+                $crt,
+                isset($det['cfop']) ? (string) $det['cfop'] : null,
+                $ehCsosn ? null : $codigo,
+                $ehCsosn ? $codigo : null,
+                $pid === null ? null : (string) ($cests[$pid] ?? ''),
+                $substituto,
+            );
+            if ($avisos !== []) {
+                $saida[] = [
+                    'sell_line_id' => isset($linhas[$i]['sell_line_id']) ? (int) $linhas[$i]['sell_line_id'] : null,
+                    'product_id'   => $pid === null ? null : (int) $pid,
+                    'cfop'         => isset($det['cfop']) ? (string) $det['cfop'] : null,
+                    'cst_csosn'    => $codigo,
+                    'avisos'       => $avisos,
+                ];
+            }
+        }
+
+        return $saida;
     }
 
     /** P-154 · valor de `transactions.sub_type` que marca a venda como bonificação. */

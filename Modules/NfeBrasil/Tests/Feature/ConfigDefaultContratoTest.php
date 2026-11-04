@@ -258,3 +258,20 @@ it('UC-NFCD-06 · CSOSN e CST juntos são rejeitados e a ausência dos dois tamb
     );
     expect($td)->toHaveKey('csosn')->and($td)->not->toHaveKey('cst');
 });
+
+// ---------------------------------------------------------------------------------------
+// UC-NFCD-07 · CST/CFOP incoerente salva e avisa (Sabor Brasil, [F] 2026-11-04)  [fiscal]
+// ---------------------------------------------------------------------------------------
+it('UC-NFCD-07 · empresa substituta com CFOP 5405 e CSOSN 500 salva e recebe aviso', function () {
+    $this->post(NFCD_URL, nfcdPayloadValido([
+        'cfop_default' => '5405', 'csosn' => '500', 'substituto_tributario' => true,
+    ]))->assertRedirect()->assertSessionHas('info');
+
+    // Salvou mesmo assim — o aviso não impede.
+    $td = json_decode((string) DB::table('nfe_business_configs')->where('business_id', NFCD_BIZ)->value('tributacao_default'), true);
+    expect($td['cfop'])->toBe('5405');
+    expect($td['substituto_tributario'])->toBeTrue();
+
+    // Controle: combinação coerente não avisa.
+    $this->post(NFCD_URL, nfcdPayloadValido())->assertRedirect()->assertSessionMissing('info');
+});

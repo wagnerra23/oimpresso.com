@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\DB;
  * As fontes são as mesmas que a emissão usa, para a lista não divergir do que a nota faz:
  *   - NCM padrão: `tributacao_default.ncm_default` → `business.ncm_padrao` (NfeService:125);
  *   - NCM válido: 8 dígitos e ≠ 00000000 (NfeService:465 cai no padrão fora disso);
- *   - itens que saíram com o NCM padrão: `nfe_emissoes.metadata.itens_ncm_padrao` (thread 17).
+ *   - itens que saíram com o NCM padrão: `nfe_emissoes.metadata.itens_ncm_padrao` (thread 17);
+ *   - itens que saíram com CST/CFOP incoerente: `nfe_emissoes.metadata.avisos_fiscais`
+ *     (`CoerenciaFiscalDoItem`, Sabor Brasil 2026-11-04 — avisa, não bloqueia).
  *
  * Bloqueante = a emissão falha ou a SEFAZ rejeita (NCM padrão inválido, certificado ausente ou
  * vencido). O resto é aviso e não muda o "pronto pra emitir".
@@ -39,6 +41,7 @@ class SaudeFiscalService
             $this->emitidosComNcmPadrao($businessId),
             $this->produtosSemNcm($businessId),
             $this->naturezaPendente($businessId),
+            $this->emitidosComCstCfopIncoerente($businessId),
         ]));
         $bloqueantes = count(array_filter($itens, fn (array $i) => $i['bloqueante']));
 
@@ -99,6 +102,28 @@ class SaudeFiscalService
         return $ids === [] ? null : $this->item('emitido_com_ncm_padrao', false,
             'Produtos que saíram em nota com o NCM padrão', count($ids), array_slice($ids, 0, self::AMOSTRA),
             'products.unificado.index');
+    }
+
+    /** Produtos que saíram em nota com CST/CFOP incoerente nos últimos dias. Aviso, nunca bloqueia. */
+    private function emitidosComCstCfopIncoerente(int $biz): ?array
+    {
+        $ids = [];
+        DB::table('nfe_emissoes')->where('business_id', $biz)->whereNull('deleted_at')
+            ->where('created_at', '>=', now()->subDays(self::DIAS_EMISSOES))
+            ->whereNotNull('metadata')->orderBy('id')->pluck('metadata')
+            ->each(function ($m) use (&$ids) {
+                foreach ((json_decode((string) $m, true)['avisos_fiscais'] ?? []) as $it) {
+                    if (! empty($it['product_id'])) {
+                        $ids[(int) $it['product_id']] = true;
+                    }
+                }
+            });
+        $ids = array_keys($ids);
+        sort($ids);
+
+        return $ids === [] ? null : $this->item('emitido_com_cst_cfop_incoerente', false,
+            'Produtos que saíram em nota com CST/CFOP incoerente (a nota saiu; confira com o contador)',
+            count($ids), array_slice($ids, 0, self::AMOSTRA), 'nfe-brasil.tributacao.index');
     }
 
     private function produtosSemNcm(int $biz): ?array
