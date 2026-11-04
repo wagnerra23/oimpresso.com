@@ -188,7 +188,7 @@ class DataController extends Controller
                 // hrefs absolutos (LegacyMenuAdapter::toRelative espera path string).
                 $menu->url(
                     action([\Modules\Repair\Http\Controllers\DashboardController::class, 'index']),
-                    __('repair::lang.repair'),
+                    'Assistência técnica', // rótulo do protótipo (data.jsx, PRODUÇÃO)
                     [
                         'icon'     => 'fa fas fa-wrench',
                         'active'   => request()->segment(1) == 'repair',

@@ -166,7 +166,7 @@ class DataController extends Controller
                     // já cobre módulo on/off na entry principal.
                     $menu->url(
                         action([\Modules\Crm\Http\Controllers\CrmDashboardController::class, 'index']),
-                        __('crm::lang.crm'),
+                        'CRM', // rótulo do protótipo (data.jsx, COMERCIAL)
                         [
                             'icon'     => 'fas fa fa-broadcast-tower',
                             'style'    => config('app.env') == 'demo' ? 'background-color: #8CAFD4;' : '',

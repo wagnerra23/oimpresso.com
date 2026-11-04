@@ -83,7 +83,7 @@ class DataController extends Controller
         $segmento_ativo = request()->segment(1) === 'producao';
 
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
-            $menu->url(url('/producao/painel'), 'Produção', [
+            $menu->url(url('/producao/painel'), 'Painel de produção', [
                 'icon' => 'fa fa-industry',
                 'active' => $segmento_ativo,
                 // [W] 2026-10-19: Produção fica no grupo PRODUÇÃO do sidebar. Sem `group`

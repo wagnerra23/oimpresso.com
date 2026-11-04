@@ -98,7 +98,8 @@ class AdminSidebarMenu
             if (auth()->user()->can('user.view') || auth()->user()->can('user.create') || auth()->user()->can('roles.view')
                 || auth()->user()->can('commission_agent.view') || auth()->user()->can('commission_agent.manage')) {
                 $menu->dropdown(
-                    __('user.user_management'),
+                    // Rótulo do protótipo (data.jsx, SISTEMA). A chave de tradução segue nos títulos de tela.
+                    'Usuários',
                     function ($sub) {
                         if (auth()->user()->can('user.view')) {
                             $sub->url(
@@ -142,7 +143,8 @@ class AdminSidebarMenu
             if (auth()->user()->can('supplier.view') || auth()->user()->can('customer.view') || auth()->user()->can('supplier.view_own') || auth()->user()->can('customer.view_own')) {
                 $menu->url(
                     action([\App\Http\Controllers\ContactController::class, 'index'], ['type' => 'all']),
-                    __('contact.contacts'),
+                    // Rótulo do protótipo (data.jsx, CADASTRO); a rota já abre /cliente.
+                    'Clientes',
                     [
                         'icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>

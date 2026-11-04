@@ -87,8 +87,8 @@ export interface PatrimonioSubNavProps {
   hidePrimary?: boolean;
 }
 
-/** Label literal da entry — `Resources/lang/pt/lang.php`: `asset_management => 'Gestão de ativos'`. */
-const LABEL_MODULO = 'gestão de ativos';
+/** Label literal da entry — `Modules/AssetManagement/Http/Controllers/DataController.php` ('Patrimônio' desde 2026-11-04). */
+const LABEL_MODULO = 'patrimônio';
 
 export default function PatrimonioSubNav({
   active,

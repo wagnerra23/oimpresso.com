@@ -114,7 +114,9 @@ class DataController extends Controller
                         'icon'   => 'fa fas fa-book-open',
                         'style'  => 'background-color:' . $background_color,
                         'active' => $segmento_ativo,
-                        'group'  => 'ia',
+                        // [W] 2026-11-04: SISTEMA, como no protótipo (data.jsx). Com 'ia' o
+                        // sidebar escondia a entrada (o atalho IA do topo é a Jana).
+                        'group'  => 'sistema',
                     ]
                 )->order(91); // Logo após Copiloto (90)
             }
