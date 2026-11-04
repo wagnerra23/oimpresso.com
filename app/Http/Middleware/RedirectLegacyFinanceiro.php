@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\FeatureFlagService;
 use App\Utils\ModuleUtil;
 use Closure;
 use Illuminate\Http\Request;
@@ -49,6 +50,19 @@ class RedirectLegacyFinanceiro
         'account/payment-account-report' => '/financeiro/contas-bancarias',
     ];
 
+    /**
+     * Paths que ganharam tela React própria atrás de flag por empresa (US-MWART-015/016/018).
+     * Com a flag ligada, ou com `?classico=1`, o redirect sai do caminho e o controller decide
+     * (React ou Blade) — é o que UC-DESPES-04/UC-CATD-05 prometem. Antes, com o Financeiro
+     * habilitado, o 301 chegava primeiro e as duas telas ficavam inalcançáveis (smoke prod
+     * biz=1 2026-11-03). O redirect que sobra é 302: ele passa a depender da flag, e um 301
+     * guardado pelo navegador não deixaria a flag ligada ter efeito.
+     */
+    private const TELA_PROPRIA_FLAG = [
+        'expenses'           => 'useV2FinanceiroDespesas',
+        'expense-categories' => 'useV2FinanceiroDespesas',
+    ];
+
     public function handle(Request $request, Closure $next): Response
     {
         // (1) Early return: só GET. POST/PUT/DELETE seguem pro core legacy.
@@ -67,6 +81,17 @@ class RedirectLegacyFinanceiro
             return $next($request);
         }
 
+        // (4) Tela própria atrás de flag: flag ligada ou `?classico=1` → o controller decide.
+        $flag = self::TELA_PROPRIA_FLAG[$path] ?? null;
+        if ($flag !== null) {
+            if ($request->boolean('classico')
+                || app(FeatureFlagService::class)->isOn($flag, ['business_id' => (int) auth()->user()->business_id])) {
+                return $next($request);
+            }
+
+            return redirect(self::REDIRECTS[$path], 302);
+        }
+
         return redirect(self::REDIRECTS[$path], 301);
     }
 
@@ -75,7 +100,7 @@ class RedirectLegacyFinanceiro
      * pra coerência total: se o user vê o menu Financeiro, recebe o redirect;
      * caso contrário continua no legacy.
      */
-    private function isFinanceiroEnabled(): bool
+    protected function isFinanceiroEnabled(): bool
     {
         if (! auth()->check()) {
             return false;
