@@ -224,9 +224,19 @@ last_run: "2026-10-29"
 ## UC-SDUP-07 · O topo do rascunho duplicado mostra de qual venda veio
 - **Persona:** vendedor que duplicou um pedido e abre o rascunho para conferir.
 - **Aceite:** Dado a V-150 duplicada · Quando o rascunho abre na edição · Então o topo mostra "Duplicada de #V-150" com link para a origem; uma venda que não nasceu de duplicação não mostra nada. A origem vem da mesma empresa (o mesmo `origensDaDuplicacao` da lista e do drawer, UC-SDUP-04..06).
-- **Âncora de contrato:** pedido P-035 (`Create.casos.md`). Os preços da cópia seguem os da origem; se devem vir da tabela de hoje é a **D-05**, em aberto para o [W] (não decidida aqui).
+- **Âncora de contrato:** pedido P-035 (`Create.casos.md`). Preços da cópia: D-05, decidida em 2026-11-04 (tabela de hoje do cliente; ver UC-SDUP-12).
 - **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-07 …`.
 - **Status: ⬜** — contrato nasce neste PR (2026-10-29); veredito pendente da lane. É a primeira mudança de comportamento do `.tsx` desde 2026-10-03: o `last_run` sobe por ela.
+
+---
+
+## UC-SDUP-12 · O rascunho duplicado lista os itens que mudaram de preço
+- **Persona:** vendedor que confere a cópia antes de finalizar.
+- **Como usa:** abre o rascunho; um aviso no topo diz quais itens vieram com o preço da tabela de hoje, com o preço antigo e o novo.
+- **Aceite:** Dado a cópia de uma venda cujo item foi de 20,00 para 25,00 pela tabela do cliente · Quando abro o rascunho · Então o topo lista esse item com 20,00 → 25,00; a venda de origem não mostra lista.
+- **Âncora de contrato:** decisão D-05 (`Create.casos.md`) · `SellController::precosQueMudaramNaCopia`.
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-12 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
 ---
 

@@ -423,8 +423,8 @@ last_run: "2026-10-29"
 ## UC-SDUP-02 · A cópia leva os mesmos itens e preços e não mexe no estoque `[V0]` `[must]`
 - **Persona:** vendedor — o pedido repetido sai como estava.
 - **Como usa:** abre o rascunho duplicado e confere os itens antes de finalizar.
-- **Aceite:** Dado a origem com 3 un a 20,00 (60,00) e 10 un em estoque · Quando duplico · Então a cópia tem 3 un a 20,00 e total 60,00, linha igual à da origem, e o estoque continua 10.
-- **Âncora de contrato:** **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — dupla prova no teste (conta à mão + linhas da cópia contra as da origem). O preço vir da origem é o comportamento de hoje; a D-05 (origem ou tabela de hoje) segue em aberto para o [W].
+- **Aceite:** Dado a origem com 3 un a 20,00 (60,00), cliente sem tabela de preço, e 10 un em estoque · Quando duplico · Então a cópia tem 3 un a 20,00 e total 60,00, linha igual à da origem, e o estoque continua 10.
+- **Âncora de contrato:** **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — dupla prova no teste (conta à mão + linhas da cópia contra as da origem). Vale para cliente sem tabela de preço; com tabela, a D-05 manda usar a tabela de hoje (UC-SDUP-08).
 - **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-02 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
@@ -459,6 +459,41 @@ last_run: "2026-10-29"
 - **Aceite:** Dado uma venda com sinal de 101% · Quando é enviada · Então volta com erro no campo do sinal e nenhuma venda é gravada.
 - **Âncora de contrato:** pedido P-026 · `SellPosController@store`.
 - **Teste:** `tests/Feature/Sells/SellsCondicaoClienteContratoTest.php` — `UC-SCOND-03 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+
+---
+
+## UC-SDUP-08 · Cliente com tabela: a cópia sai com o preço da tabela de hoje `[V0]` `[must]`
+- **Persona:** vendedor que repete o pedido de um cliente que compra pela tabela.
+- **Como usa:** duplica; o rascunho já vem com o preço de hoje da tabela do cliente.
+- **Aceite:** Dado a origem com 3 un a 20,00 (60,00) e o cliente com tabela própria que hoje cobra 25,00 · Quando duplico · Então a cópia tem 3 un a 25,00 e total 75,00, guarda a tabela, e a origem segue 60,00; o estoque não mexe.
+- **Âncora de contrato:** decisão D-05 (2026-11-04) · tabela do cliente como na busca da venda (P-087) · **REGRA MESTRE valor** — dupla prova no teste (75,00 à mão e soma das linhas = total gravado).
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`) — `UC-SDUP-08 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SDUP-09 · Item sem preço na tabela fica com o preço da origem `[V0]`
+- **Aceite:** Dado a origem com 3 un a 20,00 (na tabela a 25,00) e 2 un a 10,00 (fora da tabela), total 80,00 · Quando duplico · Então a cópia tem 3 × 25,00 + 2 × 10,00 = 95,00.
+- **Âncora de contrato:** decisão D-05 · **REGRA MESTRE valor**.
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` — `UC-SDUP-09 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SDUP-10 · O desconto da linha e o frete do pedido ficam como estavam `[V0]`
+- **Aceite:** Dado a origem com 3 un a 20,00 com 10% de desconto (54,00) e frete 5,00 (59,00), e a tabela a 30,00 · Quando duplico · Então a linha vai a 30,00 com os mesmos 10% (27,00), base 81,00 e total 86,00.
+- **Âncora de contrato:** decisão D-05 · conta da linha igual à da venda (`TransactionUtil`, desconto fixo ou %) · **REGRA MESTRE valor**.
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` — `UC-SDUP-10 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+---
+
+## UC-SDUP-11 · Tabela de outra empresa gravada no cliente não reprecifica `[T0]`
+- **Aceite:** Dado o cliente apontando para uma tabela de outra empresa · Quando duplico · Então a cópia fica com o preço da origem (60,00).
+- **Âncora de contrato:** [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · decisão D-05.
+- **Teste:** `tests/Feature/Sells/SellsDuplicarContratoTest.php` — `UC-SDUP-11 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
 ---
@@ -582,7 +617,7 @@ last_run: "2026-10-29"
   - Pedido: P-035
   - Âncora: `SellController::duplicateSell`
   - Fazer: Guardar a origem ao duplicar; decidir se os preços vêm da origem ou da tabela de hoje.
-  - Hoje: part | Em parte | A cópia guarda a origem (UC-SDUP-01..03) e o topo do rascunho mostra "Duplicada de" (UC-SDUP-07, `Edit.casos.md`, 2026-10-29); falta só a D-05 do [W] (preço da origem ou tabela de hoje)
+  - Hoje: ok | Sim | A cópia guarda a origem (UC-SDUP-01..03) e o topo do rascunho mostra "Duplicada de" (UC-SDUP-07, `Edit.casos.md`, 2026-10-29); e, pela D-05 (2026-11-04), sai com o preço da tabela de hoje do cliente (UC-SDUP-08..11) e lista os itens que mudaram (UC-SDUP-12)
   - Comunicação visual: ok | Sim | recompra do mesmo serviço
   - Clientes: Zoom, Techpress, Sabor Brasil, Display Paraná, Estilo
   - Etiquetas: part, cv, decisao
@@ -748,7 +783,7 @@ last_run: "2026-10-29"
 Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
 
 - **[DECISÃO] D-05 · Ao duplicar, os preços vêm da venda de origem ou da tabela de hoje?**
-  - Estado: Em aberto
+  - Estado: Decidida em 2026-11-04 · [W] por [F] — Tabela de hoje. Item sem preço na tabela, ou cliente sem tabela, fica com o preço da origem; o rascunho mostra quais itens mudaram de preço. Vale também para copiar orçamento (P-037).
   - Opção: Preço da origem — É o que a cópia faz hoje: copia os itens como estavam. Bom para repetir um pedido negociado.
   - Opção: Tabela de hoje — Recalcula pelo preço atual. Evita vender abaixo do custo quando o material subiu.
   - Destrava: P-035, P-037, P-079
@@ -800,6 +835,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Etiquetas: valor, miss
 
 ## Trilha do tempo
+- 2026-11-04 · [F+C] D-05 decidida: a cópia sai com o preço da tabela de hoje do cliente (UC-SDUP-08..11); vale também para copiar orçamento.
 - 2026-10-30 · [W+C] Decisão pendente D-26 do documento "Casos de uso por tela" (casos 60 e 61, que não tinham pergunta); o caso 79 passa a destravar com a D-05 e o caso 92 com a D-06.
 - 2026-10-29 · [W+C] **UC-SCOND-01..03** (P-026): o sinal do cliente vem na busca, preenche a venda ("Sinal para liberar a produção", em Mais opções) e o vendedor pode trocar; `transactions.sinal_minimo_pct` guarda a troca. O `Create.tsx` muda por isso.
 - 2026-10-29 · [W+C] **UC-SDUP-01..03** (P-035): a cópia guarda a origem, leva itens e preços da origem sem mexer no estoque e nasce fora do pipeline FSM. Falta o topo do rascunho e a D-05. Teste `SellsDuplicarContratoTest.php`.

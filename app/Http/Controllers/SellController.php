@@ -3271,6 +3271,8 @@ class SellController extends Controller
                 'current_stage_key' => null,  // FSM ADR 0143 (lazy)
                 // P-035 — o rascunho duplicado mostra no topo de qual venda veio (mesma empresa).
                 'duplicated_from' => $this->origensDaDuplicacao((int) $business_id, [(int) $transaction->id])->get((int) $transaction->id),
+                // D-05 — itens que saíram com o preço da tabela de hoje, diferente do da origem.
+                'precos_da_tabela' => $this->precosQueMudaramNaCopia((int) $business_id, (int) $transaction->id),
             ];
 
             $formPayload = function () use ($transaction, $business_details, $taxes, $sell_details, $commission_agent, $types, $customer_groups, $pos_settings, $waiters, $invoice_schemes, $default_invoice_schemes, $redeem_details, $edit_discount, $edit_price, $shipping_statuses, $warranties, $statuses, $sales_orders, $payment_types, $accounts, $payment_lines, $change_return, $is_order_request_enabled, $customer_due, $customer_due_raw, $users) {
@@ -3798,6 +3800,53 @@ class SellController extends Controller
             ->mapWithKeys(fn ($r) => [(int) $r->copia_id => ['id' => (int) $r->id, 'invoice_no' => (string) $r->invoice_no]]);
     }
 
+    /**
+     * D-05 — itens da cópia cujo preço difere do da venda de origem (a cópia sai com o preço da
+     * tabela de hoje do cliente). Pareia por variação, na ordem das linhas. Mesma empresa nos
+     * dois lados (Tier 0). Lista vazia quando não é cópia ou nada mudou.
+     *
+     * @return list<array{produto:string, de:float, para:float}>
+     */
+    private function precosQueMudaramNaCopia(int $business_id, int $id): array
+    {
+        $origem = $this->origensDaDuplicacao($business_id, [$id])->get($id);
+        if (! $origem) {
+            return [];
+        }
+        $linhas = fn (int $tx) => \DB::table('transaction_sell_lines as l')
+            ->join('transactions as t', 't.id', '=', 'l.transaction_id')
+            ->leftJoin('products as p', 'p.id', '=', 'l.product_id')
+            ->leftJoin('variations as v', 'v.id', '=', 'l.variation_id')
+            ->where('t.business_id', $business_id)->where('l.transaction_id', $tx)
+            ->whereNull('l.parent_sell_line_id')
+            ->orderBy('l.id')
+            ->get(['l.variation_id', 'l.unit_price_inc_tax', 'p.name as produto', 'v.name as variacao']);
+
+        $daOrigem = $linhas((int) $origem['id'])->groupBy('variation_id')->map->values();
+        $usadas = [];
+        $mudou = [];
+        foreach ($linhas($id) as $l) {
+            $k = (int) $l->variation_id;
+            $i = $usadas[$k] ?? 0;
+            $o = $daOrigem->get($k)?->get($i);
+            $usadas[$k] = $i + 1;
+            if (! $o) {
+                continue;
+            }
+            $de = round((float) $o->unit_price_inc_tax, 2);
+            $para = round((float) $l->unit_price_inc_tax, 2);
+            if ($de !== $para) {
+                $nome = (string) $l->produto;
+                if (! empty($l->variacao) && $l->variacao !== 'DUMMY') {
+                    $nome .= ' - '.$l->variacao;
+                }
+                $mudou[] = ['produto' => $nome, 'de' => $de, 'para' => $para];
+            }
+        }
+
+        return $mudou;
+    }
+
     /** P-031 — vendas duplicadas a partir desta, da mesma empresa: [['id', 'invoice_no'], ...]. */
     private function copiasDaDuplicacao(int $business_id, int $id): array
     {
@@ -3873,6 +3922,10 @@ class SellController extends Controller
             }
 
             $duplicate_transaction->sell_lines()->createMany($duplicate_sell_lines_data);
+
+            // D-05 — a cópia sai com o preço da tabela de hoje do cliente (item sem preço na
+            // tabela, ou cliente sem tabela, fica com o preço da origem).
+            app(\App\Services\Sells\PrecoDaTabelaNaCopia::class)->aplicar($duplicate_transaction);
 
             DB::commit();
 

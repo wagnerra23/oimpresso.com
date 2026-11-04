@@ -3470,6 +3470,9 @@ class SellPosController extends Controller
 
             $quotation->sell_lines()->saveMany($new_sell_lines);
 
+            // D-05 — mesma regra da venda duplicada: preço da tabela de hoje do cliente.
+            app(\App\Services\Sells\PrecoDaTabelaNaCopia::class)->aplicar($quotation);
+
             DB::commit();
 
             $output = ['success' => 1, 'msg' => __('lang_v1.converted_to_proforma_successfully')];
