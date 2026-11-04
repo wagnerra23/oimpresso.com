@@ -6,6 +6,7 @@ use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\PacientesController;
+use Modules\Fisio\Http\Controllers\FiscalController;
 use Modules\Fisio\Http\Controllers\PainelController;
 use Modules\Fisio\Http\Controllers\PortalController;
 use Modules\Fisio\Http\Controllers\PortalLinkController;
@@ -83,6 +84,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Link do portal do paciente (US-FISIO-007a): gerar devolve link + PIN UMA vez; revogar derruba.
         Route::post('pacientes/{id}/portal', [PortalLinkController::class, 'store'])->whereNumber('id')->name('pacientes.portal.store');
         Route::delete('pacientes/{id}/portal', [PortalLinkController::class, 'destroy'])->whereNumber('id')->name('pacientes.portal.destroy');
+
+        // Documentos fiscais do dia (US-FISIO-023): NFS-e lida do NFSe; Receita Saúde só marca o envio.
+        Route::get('fiscal', [FiscalController::class, 'index'])->name('fiscal.index');
+        Route::post('fiscal/recibos/{payment}/enviado', [FiscalController::class, 'marcarEnviado'])->whereNumber('payment')->name('fiscal.recibos.enviado');
 
         // Exportação do prontuário em PDF (UC-FPS-19..20). Leitura: basta `fisio.access`; a exportação fica no activity_log.
         Route::get('pacientes/{id}/prontuario.pdf', [ProntuarioPdfController::class, 'show'])->whereNumber('id')->name('pacientes.prontuario.pdf');

@@ -38,6 +38,9 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
 - **Questionário** (`fisio_questionnaires.instrument`): só os de uso livre (ADR 0437 §8) — `eva`,
   `rmdq` (Roland-Morris), `psfs`, `lefs`, `spadi`. ODI, NDI, KOOS, QuickDASH e WOMAC ficam fora até
   haver licença comercial.
+- **Marca do Receita Saúde** (`fisio_health_receipts.marca`, US-FISIO-023): `enviado` (o
+  profissional emitiu o recibo do pagamento) ou `retificar`. Sem linha = pendente. Não guarda
+  valor nem data: esses são do `transaction_payments`.
 - **Status do programa** (`fisio_programs.status`, texto, fora do bloco `json`): `ativo` ou
   `encerrado` — um ativo por paciente.
 
@@ -51,7 +54,8 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
     "fisio_programs.origin": ["manual", "protocolo"],
     "fisio_programs.pain_alert_mode": ["absoluto", "sobre_basal"],
     "fisio_game_ledger.reason": ["exercicio_concluido", "checkin", "missao", "desafio_semanal"],
-    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"]
+    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"],
+    "fisio_health_receipts.marca": ["enviado", "retificar"]
   }
 }
 ```
