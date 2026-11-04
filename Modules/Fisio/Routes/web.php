@@ -9,6 +9,7 @@ use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\PainelController;
+use Modules\Fisio\Http\Controllers\PortalAgendaController;
 use Modules\Fisio\Http\Controllers\PortalController;
 use Modules\Fisio\Http\Controllers\PortalLinkController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
@@ -144,6 +145,13 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::delete('consentimentos/{purpose}', [PortalController::class, 'revogar'])->name('consentimentos.destroy');
         Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
         Route::post('desafio', [PortalController::class, 'desafio'])->name('desafio');
+        // Agenda do paciente (US-FISIO-016): mesmo portão do portal (PIN + teleatendimento), business do token.
+        Route::get('agenda', [PortalAgendaController::class, 'index'])->name('agenda.index');
+        Route::get('agenda/horarios', [PortalAgendaController::class, 'horarios'])->name('agenda.horarios');
+        Route::post('agenda', [PortalAgendaController::class, 'store'])->name('agenda.store');
+        Route::delete('agenda/espera', [PortalAgendaController::class, 'sairDaEspera'])->name('agenda.espera.destroy');
+        Route::post('agenda/{id}/{acao}', [PortalAgendaController::class, 'acao'])
+            ->whereNumber('id')->whereIn('acao', ['cancelar', 'remarcar', 'confirmar', 'cheguei', 'nota'])->name('agenda.acao');
     });
 
 /*

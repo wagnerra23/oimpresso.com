@@ -22,6 +22,7 @@ use Modules\Fisio\Services\Consentimentos;
 use Modules\Fisio\Services\DiaLocal;
 use Modules\Fisio\Services\JogoService;
 use Modules\Fisio\Services\PortalTokenService;
+use Modules\Fisio\Services\SessaoDoPortal;
 
 /**
  * Portal público do paciente — `/fisio/p/{token}` (US-FISIO-007a/007b; ADR 0437 §4 a §7).
@@ -373,27 +374,15 @@ class PortalController extends Controller
         return $p;
     }
 
-    /**
-     * PIN aceito nesta sessão, OU aparelho lembrado deste mesmo token (cookie), que então
-     * passa a valer para a sessão também.
-     */
+    /** PIN aceito nesta sessão, ou aparelho lembrado deste mesmo token (SessaoDoPortal). */
     private function pinAceito(Request $request, PortalToken $linha): bool
     {
-        if ($request->session()->get($this->chaveSessao($linha)) === true) {
-            return true;
-        }
-        if ($this->aparelhos->reconhece($linha, $request->cookie($this->aparelhos->nomeCookie($linha)))) {
-            $request->session()->put($this->chaveSessao($linha), true);
-
-            return true;
-        }
-
-        return false;
+        return app(SessaoDoPortal::class)->pinAceito($request, $linha);
     }
 
     private function chaveSessao(PortalToken $linha): string
     {
-        return 'fisio_portal.'.$linha->id;
+        return app(SessaoDoPortal::class)->chave($linha);
     }
 
     private function linkInvalido(): JsonResponse
