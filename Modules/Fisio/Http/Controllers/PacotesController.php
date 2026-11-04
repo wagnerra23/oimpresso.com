@@ -32,8 +32,9 @@ class PacotesController extends Controller
 
     public function show(Request $request, int $id): Response
     {
-        $paciente = Patient::query()->with('contact:id,name')->findOrFail($id);
-        $atual = Pacote::query()->where('patient_id', $paciente->id)
+        $biz = $this->businessId($request);
+        $paciente = Patient::query()->where('business_id', $biz)->with('contact:id,name')->findOrFail($id);
+        $atual = Pacote::query()->where('business_id', $biz)->where('patient_id', $paciente->id)
             ->where('status', Pacote::STATUS_ATIVO)->latest('id')->first();
 
         return Inertia::render('Fisio/Pacientes/Pacote', [
@@ -49,7 +50,7 @@ class PacotesController extends Controller
     public function store(Request $request, int $id): RedirectResponse
     {
         abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
-        $paciente = Patient::query()->findOrFail($id);
+        $paciente = Patient::query()->where('business_id', $this->businessId($request))->findOrFail($id);
         $dados = $request->validate([
             'title' => ['required', 'string', 'max:120'],
             'sessions_total' => ['required', 'integer', 'min:1', 'max:200'],
@@ -66,7 +67,7 @@ class PacotesController extends Controller
     public function consumir(Request $request, int $pacote): RedirectResponse
     {
         abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
-        $p = Pacote::query()->findOrFail($pacote);
+        $p = Pacote::query()->where('business_id', $this->businessId($request))->findOrFail($pacote);
         try {
             $this->saldo->consumir($p, (int) $request->user()->id, null, $request->string('note')->limit(200)->toString() ?: null);
         } catch (PacoteIndisponivelException $e) {
@@ -80,7 +81,7 @@ class PacotesController extends Controller
     {
         abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
         $motivo = $request->validate(['motivo' => ['required', 'string', 'max:200']])['motivo'];
-        $l = PacoteLancamento::query()->findOrFail($lancamento);
+        $l = PacoteLancamento::query()->where('business_id', $this->businessId($request))->findOrFail($lancamento);
         try {
             $this->saldo->estornar($l, (int) $request->user()->id, $motivo);
         } catch (PacoteIndisponivelException $e) {
@@ -94,7 +95,7 @@ class PacotesController extends Controller
     public function ligarVenda(Request $request, int $pacote): RedirectResponse
     {
         abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
-        $p = Pacote::query()->with('patient')->findOrFail($pacote);
+        $p = Pacote::query()->where('business_id', $this->businessId($request))->with('patient')->findOrFail($pacote);
         $txId = (int) $request->validate(['transaction_id' => ['required', 'integer']])['transaction_id'];
         $venda = DB::table('transactions')->where('id', $txId)->where('business_id', $p->business_id)
             ->where('type', 'sell')->where('status', 'final')->where('contact_id', $p->patient->contact_id)->exists();
@@ -117,7 +118,7 @@ class PacotesController extends Controller
      */
     private function vendasDoPaciente(Patient $paciente): array
     {
-        $ligadas = Pacote::query()->whereNotNull('transaction_id')->pluck('transaction_id');
+        $ligadas = Pacote::query()->where('business_id', $paciente->business_id)->whereNotNull('transaction_id')->pluck('transaction_id');
 
         return DB::table('transactions')->where('business_id', $paciente->business_id)
             ->where('contact_id', $paciente->contact_id)->where('type', 'sell')->where('status', 'final')
@@ -127,10 +128,16 @@ class PacotesController extends Controller
             ->values()->all();
     }
 
+    /** Empresa da sessão, aplicada em toda consulta além do escopo global (ADR 0093). */
+    private function businessId(Request $request): int
+    {
+        return (int) $request->session()->get('user.business_id');
+    }
+
     /** @return array<string, mixed> */
     private function resumo(Pacote $p): array
     {
-        $estornados = PacoteLancamento::query()->where('package_id', $p->id)->where('kind', PacoteLancamento::ESTORNO)
+        $estornados = PacoteLancamento::query()->where('business_id', $p->business_id)->where('package_id', $p->id)->where('kind', PacoteLancamento::ESTORNO)
             ->pluck('ref')->map(fn ($r) => (int) str_replace('estorno:', '', (string) $r))->all();
 
         return [
@@ -140,7 +147,7 @@ class PacotesController extends Controller
             'saldo' => $this->saldo->saldo($p),
             'validade' => $this->saldo->validade($p)?->toDateString(),
             'tem_venda' => $p->transaction_id !== null,
-            'sessoes' => PacoteLancamento::query()->where('package_id', $p->id)->where('kind', PacoteLancamento::DEBITO)
+            'sessoes' => PacoteLancamento::query()->where('business_id', $p->business_id)->where('package_id', $p->id)->where('kind', PacoteLancamento::DEBITO)
                 ->orderBy('id')->get(['id', 'created_at', 'note', 'ref'])
                 ->map(fn (PacoteLancamento $l, int $i) => [
                     'id' => $l->id, 'n' => $i + 1, 'data' => $l->created_at?->toDateString(),

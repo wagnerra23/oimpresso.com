@@ -19,7 +19,9 @@ final class VendaDoPacoteObserver
 {
     public function updated(Transaction $tx): void
     {
-        if ($tx->type === 'sell' && $tx->wasChanged('status') && $tx->status === 'cancelled') {
+        // `getAttribute`: o Larastan tipa `status` pelo enum da migration original, sem 'cancelled'
+        // (mesmo aviso da CancelamentoDaVenda), e acusaria a comparação como sempre falsa.
+        if ($tx->type === 'sell' && $tx->wasChanged('status') && (string) $tx->getAttribute('status') === 'cancelled') {
             $this->encerrar($tx);
         }
     }
