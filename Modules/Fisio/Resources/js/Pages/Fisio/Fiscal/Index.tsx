@@ -11,6 +11,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import SubNav from '@/Components/shared/SubNav';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -50,12 +51,8 @@ export default function FiscalDoDia({ dia, pode_editar, notas, recibos }: Props)
     <>
       <PageHeader title="Documentos fiscais do dia" subtitle="Cada pagamento recebido no Fisio gera o documento certo para quem atende." />
       <div className="mx-auto grid w-full max-w-4xl gap-4 p-4">
-        <div role="tablist" aria-label="Tipo de atendimento" className="flex gap-1 rounded-md bg-muted p-1">
-          {([['pj', 'Clínica (CNPJ)'], ['pf', 'Autônomo (CPF)']] as const).map(([k, t]) => (
-            <button key={k} type="button" role="tab" aria-selected={aba === k} onClick={() => setAba(k)}
-              className={`h-8 flex-1 rounded px-3 text-sm ${aba === k ? 'bg-background font-semibold shadow-sm' : ''}`}>{t}</button>
-          ))}
-        </div>
+        <SubNav variant="segmented" ariaLabel="Tipo de atendimento" value={aba} onChange={(v) => setAba(v === 'pf' ? 'pf' : 'pj')}
+          items={[{ value: 'pj', label: 'Clínica (CNPJ)' }, { value: 'pf', label: 'Autônomo (CPF)' }]} />
         <p className="text-xs text-muted-foreground">Dia {new Date(`${dia}T12:00:00`).toLocaleDateString('pt-BR')}</p>
 
         {aba === 'pj' ? (

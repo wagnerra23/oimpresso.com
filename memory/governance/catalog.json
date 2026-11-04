@@ -27,7 +27,7 @@
   "stats": {
     "modules": 38,
     "nodes": 895,
-    "edges": 1212,
+    "edges": 1214,
     "by_node_type": {
       "module": 43,
       "table": 108,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 505,
-      "dependsOn": 133,
-      "delegatesTo": 122,
+      "dependsOn": 134,
+      "delegatesTo": 123,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 76,
@@ -9923,6 +9923,13 @@
     },
     {
       "from": "module:Fisio",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de nota"
+    },
+    {
+      "from": "module:Fisio",
       "to": "module:Whatsapp",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -9940,6 +9947,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Armazenamento de arquivo (foto/vídeo do exercício próprio)"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de nota"
     },
     {
       "from": "module:Fisio",

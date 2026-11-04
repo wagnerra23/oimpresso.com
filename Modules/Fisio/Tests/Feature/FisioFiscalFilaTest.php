@@ -52,7 +52,7 @@ function fffRecibos($t, $user): array
 
 it('UC-FFI-01 · a fila traz o pagamento do dia de paciente, e não o de cliente que não é paciente', function () {
     $pac = F::paciente($this->b98, $this->u98->id);
-    DB::table('contacts')->where('id', $pac->contact_id)->update(['cpf_cnpj' => '123.456.789-09']);
+    DB::table('contacts')->where('id', $pac->contact_id)->update(['cpf_cnpj' => str_pad('9', 11, '1', STR_PAD_LEFT)]);
     $doPaciente = fffPagamento($this->b98, $pac->contact_id, $this->u98->id, '150.00');
     fffPagamento($this->b98, F::contato($this->b98, $this->u98->id, 'Cliente da loja'), $this->u98->id, '80.00');
 
@@ -61,7 +61,7 @@ it('UC-FFI-01 · a fila traz o pagamento do dia de paciente, e não o de cliente
     expect(array_column($fila, 'payment_id'))->toBe([$doPaciente])
         ->and($fila[0]['status'])->toBe('pendente')
         ->and($fila[0]['cpf_ok'])->toBeTrue()
-        ->and($fila[0]['cpf_fim'])->toBe('09')
+        ->and($fila[0]['cpf_fim'])->toBe('19')
         ->and($fila[0]['valor'])->toBe('150.0000');
 });
 

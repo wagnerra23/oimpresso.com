@@ -35,7 +35,7 @@ contains:
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
-  - "Emissão de nota → NFSe (F3); o Fisio só lê nfse_emissoes"
+  - "Emissão de nota → Modules/NFSe (F3); o Fisio só lê nfse_emissoes pelo model NfseEmissao"
   - "Armazenamento de arquivo (foto/vídeo do exercício próprio) → Modules/Arquivos (backbone HasArquivos, ADR 0123/0214)"
 excludes:
   - "Prescrição sugerida por IA e câmera com ângulo/correção de forma (SaMD classe II, ADR 0437 §5) até decisão de notificação"
