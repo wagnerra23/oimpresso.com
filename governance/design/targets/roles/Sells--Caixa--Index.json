@@ -1,0 +1,5 @@
+{
+  "_medido_em": "2026-11-04",
+  "_por_que": "A Caixa e SUB-VISAO do modulo de vendas do prototipo: route=vendas abre o VendasModule (vendas-extras.jsx), que escolhe a visao por localStorage oimpresso.vendas.sub (lista|caixa|devolucoes|comissoes|relatorios). Sem a chave o shell abre a lista, igual a Sells/Index.",
+  "storage": { "oimpresso.vendas.sub": "caixa" }
+}

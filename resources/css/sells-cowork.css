@@ -1809,7 +1809,7 @@
 .sells-cowork .vm-subtab.active { color:var(--accent); border-bottom-color:var(--accent); }
 /* ──── CAIXA DO DIA ──── */
 .sells-cowork .vc-page .vc-date {
-  padding:5px 8px; border:1px solid oklch(0.85 0.02 250); border-radius:6px;
+  padding:5px 8px; border:1px solid var(--border); border-radius:6px;
   font-size:var(--fs-3); font-family:var(--font-mono);
 }
 .sells-cowork .vc-grid {
@@ -1818,47 +1818,47 @@
 }
 .sells-cowork .vc-grid > .vc-card:nth-child(3) { grid-column: 1 / -1; }
 .sells-cowork .vc-card {
-  background:#fff; border:1px solid oklch(0.93 0.01 250); border-radius:8px;
+  background:var(--surface); border:1px solid var(--border-2); border-radius:8px;
   overflow:hidden;
 }
 .sells-cowork .vc-card-h {
   display:flex; align-items:baseline; justify-content:space-between;
-  padding:12px 16px; border-bottom:1px solid oklch(0.95 0.01 250);
+  padding:12px 16px; border-bottom:1px solid var(--border-2);
 }
 .sells-cowork .vc-card-h h3 {
   margin:0; font-size:var(--fs-3); text-transform:uppercase; letter-spacing:0.04em;
-  color:oklch(0.30 0.02 250); font-weight:600;
+  color:var(--text); font-weight:600;
 }
-.sells-cowork .vc-muted { font-size:var(--fs-2); color:oklch(0.55 0.02 250); }
+.sells-cowork .vc-muted { font-size:var(--fs-2); color:var(--text-mute); }
 .sells-cowork .vc-pay-table { width:100%; border-collapse:collapse; font-size:var(--fs-4); }
 .sells-cowork .vc-pay-table th, .sells-cowork .vc-pay-table td {
-  padding:9px 16px; text-align:left; border-bottom:1px solid oklch(0.96 0.01 250);
+  padding:9px 16px; text-align:left; border-bottom:1px solid var(--border-2);
 }
 .sells-cowork .vc-pay-table th {
-  font-weight:500; font-size:var(--fs-2); color:oklch(0.50 0.02 250);
-  background:oklch(0.98 0.005 250);
+  font-weight:500; font-size:var(--fs-2); color:var(--text-dim);
+  background:var(--bg-2);
 }
 .sells-cowork .vc-pay-icon { display:inline-block; margin-right:6px; }
 .sells-cowork .vc-num { font-variant-numeric:tabular-nums; text-align:right; }
 .sells-cowork .vc-num.strong { font-weight:600; }
 .sells-cowork .vc-pay-table tfoot td {
-  font-weight:600; background:oklch(0.98 0.005 250);
-  border-top:2px solid oklch(0.90 0.01 250); border-bottom:none;
+  font-weight:600; background:var(--bg-2);
+  border-top:2px solid var(--border); border-bottom:none;
 }
 .sells-cowork .vc-move-amount.pos { color:oklch(0.45 0.14 145); }
 .sells-cowork .vc-move-amount.neg { color:oklch(0.50 0.16 25); }
-.sells-cowork .vc-counter-summary .strong { font-weight:600; font-size:var(--fs-4); padding-top:6px; border-top:1px solid oklch(0.90 0.01 250); }
+.sells-cowork .vc-counter-summary .strong { font-weight:600; font-size:var(--fs-4); padding-top:6px; border-top:1px solid var(--border); }
 /* ──── CAIXA · POR ORIGEM (Onda 6 · ADR 0192 A1 KB-9.75) ──── */
 .sells-cowork .vc-card-source { padding:6px 0 12px; }
 .sells-cowork .vc-empty {
-  margin:0; padding:18px 16px; font-size:var(--fs-3); color:oklch(0.55 0.02 250);
+  margin:0; padding:18px 16px; font-size:var(--fs-3); color:var(--text-mute);
   text-align:center; line-height:1.5;
 }
-.sells-cowork .vc-empty a { color:oklch(0.45 0.13 230); text-decoration:underline; }
-.sells-cowork .vc-empty small { color:oklch(0.60 0.02 250); }
+.sells-cowork .vc-empty a { color:var(--accent); text-decoration:underline; }
+.sells-cowork .vc-empty small { color:var(--text-mute); }
 .sells-cowork .vc-src-row {
   padding:10px 16px;
-  border-bottom:1px solid oklch(0.96 0.01 250);
+  border-bottom:1px solid var(--border-2);
   font-size:var(--fs-3);
 }
 .sells-cowork .vc-src-row:last-child { border-bottom:none; }
@@ -1872,15 +1872,15 @@
 .sells-cowork .vc-src-balcao  .vc-src-dot { background: var(--vd-src-balcao); }
 .sells-cowork .vc-src-oficina .vc-src-dot { background: var(--vd-src-oficina); }
 .sells-cowork .vc-src-online  .vc-src-dot { background: var(--vd-src-online); }
-.sells-cowork .vc-src-h b { font-weight:600; color:oklch(0.25 0.02 250); }
+.sells-cowork .vc-src-h b { font-weight:600; color:var(--text); }
 .sells-cowork .vc-src-ct {
-  color:oklch(0.50 0.02 250); font-size:var(--fs-2); margin-left:4px;
+  color:var(--text-dim); font-size:var(--fs-2); margin-left:4px;
 }
 .sells-cowork .vc-src-tot {
   margin-left:auto; font-weight:600; font-variant-numeric:tabular-nums;
 }
 .sells-cowork .vc-src-bar {
-  height:6px; background:oklch(0.95 0.01 250); border-radius:3px;
+  height:6px; background:var(--bg-2); border-radius:3px;
   overflow:hidden; margin-bottom:5px;
 }
 .sells-cowork .vc-src-balcao  .vc-src-bar > div { background: var(--vd-src-balcao); }
@@ -1889,7 +1889,7 @@
 .sells-cowork .vc-src-bar > div { height:100%; border-radius:3px; transition:width 200ms ease; }
 .sells-cowork .vc-src-meta {
   display:flex; align-items:center; justify-content:space-between;
-  font-size:var(--fs-2); color:oklch(0.55 0.02 250);
+  font-size:var(--fs-2); color:var(--text-mute);
 }
 .sells-cowork .vc-src-refs a {
   color: var(--vd-src-oficina); text-decoration:none;
@@ -3668,9 +3668,19 @@
 .sells-cowork .vendas-aplus .vd-head-clean .os-head-l h1 {
   margin: 0; font-size: 22px; font-weight: 700;
   letter-spacing: -0.018em;
+  /* Protótipo (styles.css `.os-head-l h1`): 1.375. Sem isto herdava 1.5 do body (33px × 30.25px). */
+  line-height: 1.375;
 }
 .sells-cowork .vendas-aplus .vd-head-clean .os-head-l p {
   margin: 2px 0 0; font-size: var(--fs-3); color: var(--text-mute);
+  /* Protótipo: line-height 1.45 herdado do shell e tabular-nums (styles.css `.os-head-l p`). */
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+/* Números da linha de métrica: protótipo (vendas.css `.vd-head-stat b`) usa 600 em --text.
+   O `.vd-delta-dn` (estouradas) segue com a regra própria. */
+.sells-cowork .vendas-aplus .vd-head-clean .os-head-l p strong:not(.vd-delta-dn) {
+  font-weight: 600; color: var(--text);
 }
 .sells-cowork .vendas-aplus .vd-head-clean .os-head-r {
   display: inline-flex; gap: 8px; align-items: center;
