@@ -8,6 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Fisio\Entities\Patient;
+use Modules\Fisio\Services\LaudoEvolucao;
 use Modules\Fisio\Services\ProntuarioExportacao;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -55,6 +56,33 @@ class ProntuarioPdfController extends Controller
         return response($pdf->output(), 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="prontuario-paciente-'.$paciente->id.'-'.now()->format('Ymd-His').'.pdf"',
+            'Cache-Control' => 'no-store, private',
+        ]);
+    }
+
+    /**
+     * Laudo de evolução: síntese de uma página para médico ou convênio (2º documento, não um modo
+     * do prontuário — destinatário e conteúdo são outros). Mesmo acesso e mesmo rastro da
+     * exportação do prontuário: 404 entre empresas antes de montar, uma linha no activity_log só
+     * com ids. Leitura; nada é gravado no prontuário.
+     */
+    public function laudo(Request $request, int $id, LaudoEvolucao $laudo): Response
+    {
+        $paciente = Patient::query()->findOrFail($id);
+        $biz = (int) $request->session()->get('user.business_id');
+
+        $dados = $laudo->montar($paciente, $biz, $request->user()?->id);
+        $pdf = Pdf::loadView('fisio::pdf.laudo-evolucao', $dados)->setPaper('a4', 'portrait');
+
+        activity('fisio')
+            ->performedOn($paciente)
+            ->causedBy($request->user())
+            ->withProperties(['business_id' => $biz, 'patient_id' => (int) $paciente->id])
+            ->log('laudo_exportado');
+
+        return response($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="laudo-paciente-'.$paciente->id.'-'.now()->format('Ymd-His').'.pdf"',
             'Cache-Control' => 'no-store, private',
         ]);
     }

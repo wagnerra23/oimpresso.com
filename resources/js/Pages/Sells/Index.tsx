@@ -723,7 +723,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     if (modoRascunho) params.set('status', 'draft');
     else if (pillFilter === 'paga') params.set('payment_status', 'paid');
     else if (pillFilter === 'pendente') params.set('payment_status', 'due');
-    // Faturada/Cancelada filtra client-side (backend não tem invoice_status pill ainda).
+    // UC-SIDX-07 — Faturada/Cancelada filtram no servidor pela situação da nota da venda.
+    else if (pillFilter === 'faturada') params.set('fiscal_status', 'autorizada');
+    else if (pillFilter === 'cancelada') params.set('fiscal_status', 'cancelada');
     if (searchDebounced) params.set('q', searchDebounced);
     params.set('per_page', String(perPage));
     params.set('page', String(page));
@@ -795,9 +797,8 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     if (pillFilter === 'rascunho') {
       return visaoOrigem ? draftRows.filter((r) => (r.source ?? 'balcao') === visaoOrigem) : draftRows;
     }
+    // Faturada/Cancelada já chegam filtradas do servidor (UC-SIDX-07).
     let out = rows.filter(currentSavedView.filter);
-    if (pillFilter === 'faturada') out = out.filter((r) => r.fiscal_status === 'autorizada');
-    else if (pillFilter === 'cancelada') out = out.filter((r) => r.fiscal_status === 'cancelada');
     // Onda 4 (ADR 0192) — saved tree "Por origem" filtra cliente-side por source.
     if (visaoOrigem) out = out.filter((r) => (r.source ?? 'balcao') === visaoOrigem);
     return out;
