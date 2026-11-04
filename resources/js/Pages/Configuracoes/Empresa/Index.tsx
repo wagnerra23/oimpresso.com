@@ -20,6 +20,8 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
+import { Info } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -59,21 +61,23 @@ function abaDoHash(): string {
 const PRONTAS: Record<string, string> = {
   negocio: 'O que identifica a empresa e como o sistema conta dinheiro, data e quantidade.',
   imposto: 'Dois números fiscais aparecem no cabeçalho de todo documento.',
-  produto: 'Como o sistema gera código, trata validade e o que o cadastro de produto mostra.',
-  contato: 'Vale para cliente novo que não tem limite próprio.',
+  produto: 'Como o sistema gera código e trata validade.',
+  contato: 'Vale pra cliente novo que não tem limite próprio.',
   venda: 'Padrões de desconto, imposto e comissão de toda venda.',
+  // Protótipo: "…na abertura e no fechamento do caixa" — o campo escolhe PDV × todas as telas; o texto mentiria.
   pagto: 'Contagem de cédulas no recebimento em dinheiro.',
   financeiro: 'Lembrete por e-mail ao cliente com título a receber vencido.',
-  pdv: 'O que o caixa mostra, atalhos de teclado e a balança de código de barras.',
-  compra: 'Como a compra entra: status, lote, pedido e moeda do fornecedor.',
-  painel: 'O que o painel inicial avisa.',
-  sistema: 'Aparência e comportamento das tabelas.',
-  prefixos: 'Letras que vêm antes do número de cada documento.',
-  email: 'Servidor que envia os e-mails do negócio.',
-  sms: 'Serviço que envia os SMS do negócio.',
-  fidelidade: 'Quanto a venda rende em pontos e quanto o ponto vale no resgate.',
-  modulos: 'O que aparece no menu e nas telas para este negócio.',
-  rotulos: 'Nomes dos campos extras de cada cadastro. Campo sem nome não aparece na tela.',
+  // Protótipo: + "Larissa trabalha com tudo ligado." — nome de cliente, não vai para a tela de todas as empresas.
+  pdv: 'O que o balcão vê na tela de caixa.',
+  compra: 'Como a nota do fornecedor entra no estoque.',
+  painel: 'O que a tela inicial avisa.',
+  sistema: 'Aparência e densidade das listas.',
+  prefixos: 'O que vem antes do número de referência de cada documento.',
+  email: 'Por onde saem os documentos e as notificações.',
+  sms: 'O legado traz Nexmo e Twilio; no Brasil o caminho é gateway próprio por URL.',
+  fidelidade: 'Desligado por padrão. Faz sentido em varejo de balcão, não em obra.',
+  modulos: 'Desligar um módulo esconde o menu e as telas dele — nada é apagado.',
+  rotulos: 'Renomeia campo extra e forma de pagamento pro vocabulário da casa. O que você nomear aqui aparece na fatura e nos formulários.',
   app_lojas: 'O app das lojas lê estes ajustes ao abrir. Cada um passa a valer quando a função chega ao app.',
 };
 
@@ -288,39 +292,34 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
       <div data-contract="page-header">
         <PageHeader title="Configurações" subtitle="Configuração da empresa — o grupo “Configurações” do menu antigo, tela por tela"
           below={<ConfiguracoesSubNav emLinha />}
-          actions={(
-            <Inline gap={2}>
-              <span className="hrm-scope" data-contract="escopo">/business/settings</span>
-              <Button data-contract="salvar" disabled={!sujo || salvando} onClick={salvar}>{salvando ? 'Salvando…' : 'Salvar'}</Button>
-            </Inline>
-          )} />
+          actions={<span className="hrm-scope" data-contract="escopo">/business/settings</span>} />
       </div>
 
-      <Grid gap={6} className="px-6 pt-4 md:grid-cols-[13rem_1fr]">
-        <nav data-contract="abas" aria-label="Abas da configuração">
-          <Stack gap={3}>
-            {ABAS.map((g) => (
-              <Stack key={g.g} gap={1}>
-                <span className="text-xs font-semibold uppercase text-muted-foreground">{g.g}</span>
-                {g.itens.map((i) => i.id in PRONTAS ? (
-                  <button key={i.id} type="button" data-contract={`aba-${i.id}`} aria-current={aba === i.id ? 'page' : undefined} onClick={() => setAba(i.id)}
-                    className={`rounded-md px-2 py-1 text-left text-sm ${aba === i.id ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted'}`}>{i.label}</button>
-                ) : (
-                  <a key={i.id} data-contract={`aba-${i.id}`} href="/business/settings?classico=1" title="Esta aba ainda abre na tela antiga"
-                    className="rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted">{i.label}</a>
-                ))}
-              </Stack>
-            ))}
-          </Stack>
+      {/* Corpo do protótipo: rail .fnc-rail + painel .pf-pane (cowork-configuracoes-bundle.css). */}
+      <div className="hrm-body">
+      <div className="pf-body cfg-body">
+        <nav className="fnc-rail pf-rail" data-contract="abas" aria-label="Abas da configuração">
+          {ABAS.map((g) => (
+            <div key={g.g} className="fnc-rail-dom">
+              <span className="fnc-rail-dom-l">{g.g}</span>
+              {g.itens.map((i) => i.id in PRONTAS ? (
+                <button key={i.id} type="button" data-contract={`aba-${i.id}`} aria-current={aba === i.id ? 'page' : undefined} onClick={() => setAba(i.id)}
+                  className={`fnc-rail-g ${aba === i.id ? 'on' : ''}`}><span className="fnc-rail-g-l">{i.label}</span></button>
+              ) : (
+                <a key={i.id} data-contract={`aba-${i.id}`} href="/business/settings?classico=1" title="Esta aba ainda abre na tela antiga"
+                  className="fnc-rail-g"><span className="fnc-rail-g-l">{i.label}</span></a>
+              ))}
+            </div>
+          ))}
         </nav>
 
-        <section aria-labelledby="emp-titulo">
-          <Stack gap={1} className="mb-4">
-            <h2 id="emp-titulo" className="m-0 text-lg font-semibold">{rotuloAba}</h2>
-            <p className="m-0 text-sm text-muted-foreground">{PRONTAS[aba]}</p>
-          </Stack>
-          <Deferred data="opcoes" fallback={<p className="text-sm text-muted-foreground">Carregando opções…</p>}>
-            <Stack gap={5} className="max-w-3xl text-sm">
+        <section className="fnc-pane pf-pane" aria-labelledby="emp-titulo">
+          <div className="pf-h">
+            <h2 id="emp-titulo">{rotuloAba}</h2>
+            <p>{PRONTAS[aba]}</p>
+          </div>
+          <Deferred data="opcoes" fallback={<p className="pf-form text-sm text-muted-foreground">Carregando opções…</p>}>
+            <Stack gap={5} className="pf-form text-sm">
               {aba === 'negocio' && (
                 <>
                   <Grid cols={2} gap={3}>
@@ -744,7 +743,22 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
             </Stack>
           </Deferred>
         </section>
-      </Grid>
+      </div>
+      </div>
+
+      {/* Protótipo: um botão no fim da página para o formulário inteiro (era o "Salvar" do cabeçalho). */}
+      <div className="cfg-salvar">
+        <div className="hrm-note-ds">
+          <Alert>
+            <Info />
+            <AlertTitle>Uma tela, um botão</AlertTitle>
+            <AlertDescription>
+              <span>O formulário inteiro (todas as abas) salva de uma vez em <code>POST /business/update</code> — trocar de aba não perde o que você digitou.</span>
+            </AlertDescription>
+          </Alert>
+        </div>
+        <Button data-contract="salvar" disabled={!sujo || salvando} onClick={salvar}>{salvando ? 'Salvando…' : 'Atualizar configurações'}</Button>
+      </div>
     </div>
   );
 }
