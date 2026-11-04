@@ -45,7 +45,22 @@ export interface LinhaProduto {
   requisicao?: RequisicaoAberta | null;
   /** Natureza fiscal decidida pelo contador (UC-PIDX-31). Ausente = sem o módulo Fiscal. */
   natureza_fiscal?: NaturezaFiscal;
+  /**
+   * Saldo de cada variação (UC-PIDX-37 · D7). Só vem em produto variável que controla estoque;
+   * a soma é o `estoque` da linha (mesma conta no servidor).
+   */
+  saldo_variacoes?: SaldoDaVariacao[];
 }
+
+export interface SaldoDaVariacao {
+  /** "Cor - Azul", como a aba Variações do painel. */
+  nome: string;
+  sku: string;
+  saldo: number;
+}
+
+/** Soma dos saldos das variações — deve bater com o `estoque` da linha. */
+export const somaDasVariacoes = (vs: SaldoDaVariacao[]) => vs.reduce((t, v) => t + v.saldo, 0);
 
 export type NaturezaFiscal = 'mercadoria' | 'servico' | 'pendente';
 

@@ -824,6 +824,50 @@ class ProductController extends Controller
      * @param  list<int>  $ids
      * @return array<int, array{id: int, numero: string, data: string, fornecedor: ?string, url: string}>|null
      */
+    /**
+     * UC-PIDX-37 (D7): saldo de cada variação, por produto, numa consulta só para a página.
+     * É a MESMA soma da coluna Estoque (`consultaListaProdutos`): `variation_location_details`
+     * nos locais que o usuário pode ver, variações não excluídas. Por isso a soma das variações
+     * de um produto é o saldo da linha. Os ids vêm da página, já restrita à empresa.
+     *
+     * @param  int[]  $ids
+     * @return array<int, list<array{nome:string, sku:string, saldo:float}>>
+     */
+    protected function saldosDasVariacoes(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $permitidos = auth()->user()->permitted_locations();
+
+        $linhas = DB::table('variations as v')
+            ->leftJoin('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+            ->leftJoin('variation_location_details as vld', function ($join) use ($permitidos) {
+                $join->on('vld.variation_id', '=', 'v.id');
+                if ($permitidos != 'all') {
+                    $join->whereIn('vld.location_id', $permitidos);
+                }
+            })
+            ->whereIn('v.product_id', $ids)
+            ->whereNull('v.deleted_at')
+            ->groupBy('v.id', 'v.product_id', 'pv.name', 'v.name', 'v.sub_sku')
+            ->orderBy('v.product_id')
+            ->orderBy('v.id')
+            ->get(['v.product_id', 'pv.name as grupo', 'v.name', 'v.sub_sku', DB::raw('COALESCE(SUM(vld.qty_available), 0) as saldo')]);
+
+        $out = [];
+        foreach ($linhas as $l) {
+            $out[(int) $l->product_id][] = [
+                // Mesmo nome do painel (aba Variações): "Cor - Azul".
+                'nome' => trim(($l->grupo ?? '') . ' - ' . $l->name, ' -'),
+                'sku' => (string) $l->sub_sku,
+                'saldo' => (float) $l->saldo,
+            ];
+        }
+
+        return $out;
+    }
+
     protected function requisicoesAbertasDosProdutos(int $business_id, array $ids): ?array
     {
         $u = auth()->user();
@@ -1282,7 +1326,14 @@ class ProductController extends Controller
             ? app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, $idsDaPagina)
             : null;
 
-        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes, $naturezas) {
+        // UC-PIDX-37 (D7): saldo de cada variação dos produtos variáveis que controlam estoque.
+        $saldosDasVariacoes = $this->saldosDasVariacoes(
+            array_values(array_map('intval', $pagina->getCollection()
+                ->filter(fn ($r) => $r->type === 'variable' && (bool) $r->enable_stock)
+                ->pluck('id')->all()))
+        );
+
+        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes, $naturezas, $saldosDasVariacoes) {
             $controla = (bool) $row->enable_stock;
             $estoque = $controla ? (float) ($row->current_stock ?? 0) : null;
             $alerta = $row->alert_quantity === null ? null : (float) $row->alert_quantity;
@@ -1321,6 +1372,9 @@ class ProductController extends Controller
             ];
             if ($is_woocommerce) {
                 $linha['woocommerce_sync'] = ! $row->woocommerce_disable_sync;
+            }
+            if (isset($saldosDasVariacoes[(int) $row->id])) {
+                $linha['saldo_variacoes'] = $saldosDasVariacoes[(int) $row->id];
             }
             if ($requisicoes !== null) {
                 $linha['requisicao'] = $requisicoes[(int) $row->id] ?? null;

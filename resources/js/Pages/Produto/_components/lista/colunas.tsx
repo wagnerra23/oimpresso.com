@@ -22,6 +22,8 @@ import type { ReactNode } from 'react';
 import { Globe } from 'lucide-react';
 import { Inline } from '@/Components/layout';
 import { brl } from '../../Unificado/_components/catalogo';
+import PopoverAncorado from '../../Unificado/_components/PopoverAncorado';
+import SaldoPorVariacao from './SaldoPorVariacao';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
 import {
   TIPO_ROTULO,
@@ -173,11 +175,36 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       accessorFn: (l) => l.estoque,
       meta: { width: 130, align: 'right' },
       cell: ({ row }) => {
-        const saldo = (
+        const numero = (
           <span className={'pb-stock' + (!row.original.controla_estoque ? ' na' : row.original.abaixo_do_alerta ? ' low' : '')}>
             {estoqueTexto(row.original)}
           </span>
         );
+        const variacoes = row.original.saldo_variacoes ?? [];
+        // UC-PIDX-37 (D7): produto com mais de uma variação mostra o saldo de cada uma sem abrir o
+        // painel. Mesmo gesto do saldo por local do catálogo (PopoverAncorado): hover consulta,
+        // clique fixa, e o clique não abre o painel da linha.
+        const saldo =
+          variacoes.length < 2 ? (
+            numero
+          ) : (
+            <PopoverAncorado
+              rotulo={`Saldo por variação de ${row.original.nome}`}
+              largura={280}
+              className="block w-full text-right"
+              conteudo={<SaldoPorVariacao linha={row.original} variacoes={variacoes} />}
+            >
+              {numero}
+              {!densa && (
+                <span
+                  className="block text-[11px] text-[var(--text-mute)] underline decoration-dotted underline-offset-2"
+                  data-contract="produto-lista-saldo-variacoes"
+                >
+                  {variacoes.length} variações
+                </span>
+              )}
+            </PopoverAncorado>
+          );
         const req = row.original.requisicao;
         if (!req) return saldo;
         // UC-PIDX-30 (UC-FLX-19): requisição de compra aberta, do estoque mínimo ou feita à mão.
