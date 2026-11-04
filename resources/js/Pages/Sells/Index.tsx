@@ -1134,6 +1134,60 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
           </div>
 
           <div className="os-head-r">
+            <button
+              className="vd-toolbar-act"
+              type="button"
+              title="Imprimir resumo do caixa de hoje (vendas, formas de pagamento, total)"
+              onClick={() => {
+                // US-SELL-COWORK-R5-POLISH — abre relatório de caixa de hoje em nova aba.
+                // Endpoint existente UltimatePOS: /home (cash register summary) ou /sells?print=today.
+                // Estratégia: filtra rows do dia + dispara window.print() do próprio Index
+                // pra capturar o que está visível agora. Stack canônica imprime sells/{id}/print
+                // mas pra "caixa do dia" inteiro o usuário faz print da listagem filtrada.
+                window.print();
+              }}
+            >
+              <Printer size={11} />
+              <span>Imprimir caixa</span>
+            </button>
+            <div className="vd-visoes" ref={visoesRef} data-contract="menu-visoes">
+              <button
+                className="vd-toolbar-act vd-visoes-btn"
+                onClick={() => setVisoesOpen((v) => !v)}
+                type="button"
+                title="Outras visões deste módulo"
+              >
+                <Folder size={11} />
+                <span>Visões</span>
+                <ChevronDown size={11} style={{ marginLeft: 2 }} />
+              </button>
+              {visoesOpen && (
+                <div className="vd-visoes-menu">
+                  <div className="vd-visoes-grp">Visões deste módulo</div>
+                  <div className="vd-visoes-item active">
+                    <span className="vd-visoes-dot" />Lista de vendas
+                    <span className="vd-visoes-here">aqui</span>
+                  </div>
+                  {[
+                    { id: 'caixa',      label: 'Caixa do dia', href: '/vendas/caixa' },
+                    { id: 'quotations', label: 'Orçamentos', href: '/sells/quotations' },
+                    { id: 'drafts',     label: 'Rascunhos',  href: '/sells?pill=rascunho' },
+                    { id: 'subs',       label: 'Assinaturas',href: '/sells/subscriptions' },
+                  ].map((s) => (
+                    <a key={s.id} className="vd-visoes-item" href={s.href}>
+                      <span className="vd-visoes-dot" />
+                      {s.label}
+                    </a>
+                  ))}
+                  <div className="vd-visoes-sep" />
+                  <a className="vd-visoes-item primary" href="/sells/create?pos=1">
+                    <span className="vd-visoes-dot pdv" />
+                    Abrir PDV balcão
+                    <kbd>F2</kbd>
+                  </a>
+                </div>
+              )}
+            </div>
             {props.permissions.create && (
               <a className="os-btn primary" href="/sells/create">
                 <Plus size={11} />
@@ -1144,8 +1198,232 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         </header>
 
         {/* Render do Dashboard (Insights Jana migrado pra /ia/dashboard). */}
-        {/* TOOLBAR linha 2: Foco group + Visões btn / Imprimir + Visões ▾ */}
-        <div className="vd-toolbar">
+        {/* KPIs row — 4 cards (Faturado hero · Ticket médio · A receber · 4º vista-dependente) */}
+        <div className="os-kpis vd-kpis">
+          {/* Hero: Faturado hoje + sparkline (delta real US-SELL-COWORK-R5) */}
+          <div className="os-kpi vd-kpi-hero">
+            <span className="os-kpi-label">
+              Faturado hoje
+              {/* Onda 4 (ADR 0192) — tag "· todas origens" só aparece quando
+                  Foco=Faturamento (paridade Cowork). Sinaliza que o breakdown
+                  abaixo distribui o total por source (Balcão/Oficina/Online). */}
+              {foco === 'faturamento' && (kpiTodayBySource.oficina > 0 || kpiTodayBySource.online > 0) && (
+                <small className="vd-kpi-tag"> · todas origens</small>
+              )}
+            </span>
+            <span className="os-kpi-value">{fmtShort(kpiToday.total)}</span>
+            <span
+              className={
+                'os-kpi-sub ' +
+                (deltaRevenue == null ? '' : deltaRevenue >= 0 ? 'vd-delta-up' : 'vd-delta-dn')
+              }
+              title={
+                deltaRevenue == null
+                  ? 'Sem dado de ontem pra comparar'
+                  : `Variação vs ontem (${deltaRevenue >= 0 ? '+' : ''}${deltaRevenue}%)`
+              }
+            >
+              {deltaRevenue == null
+                ? `— · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`
+                : `${deltaRevenue >= 0 ? '↑ +' : '↓ '}${deltaRevenue}% vs ontem · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`}
+            </span>
+            {/* Onda 4 (ADR 0192) — breakdown por source quando Foco=Faturamento
+                E há pelo menos 1 venda oficina OU online hoje (evita poluir
+                tela em biz só-balcão · paridade Cowork vendas-page.jsx L817-838). */}
+            {foco === 'faturamento' && (kpiTodayBySource.oficina > 0 || kpiTodayBySource.online > 0) && (
+              <div className="vd-kpi-breakdown">
+                {kpiTodayBySource.balcao > 0 && (
+                  <div className="vd-kpi-b balcao">
+                    <small>● Balcão</small>
+                    <b>{fmtShort(kpiTodayBySource.balcao)}</b>
+                  </div>
+                )}
+                {kpiTodayBySource.oficina > 0 && (
+                  <div className="vd-kpi-b oficina">
+                    <small>● Oficina</small>
+                    <b>{fmtShort(kpiTodayBySource.oficina)}</b>
+                  </div>
+                )}
+                {kpiTodayBySource.online > 0 && (
+                  <div className="vd-kpi-b online">
+                    <small>● Online</small>
+                    <b>{fmtShort(kpiTodayBySource.online)}</b>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="vd-spark">
+              <Sparkline data={sparkData} color="oklch(0.72 0.10 155)" />
+            </div>
+          </div>
+
+          {/* Ticket médio (delta WoW real US-SELL-COWORK-R5) */}
+          <div className="os-kpi">
+            <span className="os-kpi-label">Ticket médio</span>
+            <span className="os-kpi-value">{fmtShort(kpiToday.ticket)}</span>
+            <span
+              className={
+                'os-kpi-sub ' +
+                (deltaTicket == null ? '' : deltaTicket >= 0 ? 'vd-delta-up' : 'vd-delta-dn')
+              }
+              title={
+                deltaTicket == null
+                  ? 'Sem ticket médio da semana passada pra comparar'
+                  : `Ticket médio: variação semana atual vs semana passada (${deltaTicket >= 0 ? '+' : ''}${deltaTicket}%)`
+              }
+            >
+              {deltaTicket == null
+                ? '— vs semana passada'
+                : `${deltaTicket >= 0 ? '↑ +' : '↓ '}${deltaTicket}% vs semana passada`}
+            </span>
+          </div>
+
+          {/* A receber */}
+          <div className="os-kpi">
+            <span className="os-kpi-label">A receber</span>
+            <span className="os-kpi-value">{fmtShort(kpiAReceber)}</span>
+            <span className="os-kpi-sub vd-sla-counts">
+              {slaCounts.overdue > 0 && (
+                <span className="vd-sla-mini overdue">
+                  <span className="ic">✕</span>
+                  {`${slaCounts.overdue} estourado${slaCounts.overdue > 1 ? 's' : ''}`}
+                </span>
+              )}
+              {slaCounts.warning > 0 && (
+                <span className="vd-sla-mini warning">
+                  <span className="ic">▲</span>
+                  {`${slaCounts.warning} atrasando`}
+                </span>
+              )}
+              {slaCounts.fresh > 0 && (
+                <span className="vd-sla-mini fresh">
+                  <span className="ic">●</span>
+                  {`${slaCounts.fresh} fresco${slaCounts.fresh > 1 ? 's' : ''}`}
+                </span>
+              )}
+            </span>
+            <div className="vd-ageing">
+              <div className="vd-ag-bar ok">
+                <div style={{ width: (ageingBreakdown.ok / ageingBreakdown.total) * 100 + '%' }} />
+              </div>
+              <div className="vd-ag-bar warn">
+                <div style={{ width: (ageingBreakdown.w / ageingBreakdown.total) * 100 + '%' }} />
+              </div>
+              <div className="vd-ag-bar bad">
+                <div style={{ width: (ageingBreakdown.b / ageingBreakdown.total) * 100 + '%' }} />
+              </div>
+              <div className="vd-ag-lbls">
+                <span>0–30d</span>
+                <span>31–60d</span>
+                <span>+60d</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4º card — varia por foco. Na vista Caixa é o PIX hoje, como no protótipo
+              (vendas-page.jsx); antes era "Pagos hoje" e o PIX ficava como 5º card fixo,
+              que a 1280 caía sozinho numa 2ª linha (#1666 · medição 2026-11-04, PR-1b). */}
+          {foco === 'caixa' && (
+            <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
+              <span className="os-kpi-label">PIX hoje</span>
+              <span className="os-kpi-value">
+                {fmtShort(props.coworkAggregates?.pixHojeTotal ?? 0)}
+              </span>
+              <span className="os-kpi-sub">
+                {(() => {
+                  const pix = props.coworkAggregates?.pixHojeTotal ?? 0;
+                  const fat = props.coworkAggregates?.faturadoHojeTotal ?? 0;
+                  if (!props.coworkAggregates) return 'carregando…';
+                  if (fat <= 0) return 'sem faturamento hoje';
+                  const pct = Math.round((pix / fat) * 100);
+                  return `${pct}% do faturamento — imediato`;
+                })()}
+              </span>
+            </div>
+          )}
+          {foco === 'faturamento' && (
+            <div className="os-kpi">
+              <span className="os-kpi-label">Notas fiscais</span>
+              <span className="os-kpi-value">
+                {fiscalCount.ok}
+                <small>/{fiscalCount.total || rows.length}</small>
+              </span>
+              <span className="os-kpi-sub">
+                autorizadas · {fiscalCount.wait} processando · {fiscalCount.bad} rejeitadas
+              </span>
+              <div className="vd-fiscal-bar">
+                <div style={{ flex: Math.max(1, fiscalCount.ok), background: 'var(--vd-ok)' } as CSSProperties} />
+                <div
+                  style={{ flex: Math.max(0, fiscalCount.wait), background: 'var(--vd-warn)' } as CSSProperties}
+                />
+                <div
+                  style={{ flex: Math.max(0, fiscalCount.bad), background: 'var(--vd-bad)' } as CSSProperties}
+                />
+              </div>
+            </div>
+          )}
+          {foco === 'comissao' && (
+            <div className="os-kpi" title={topSeller ? `Soma de vendas final_total do mês corrente` : ''} data-contract="foco-comissao">
+              <span className="os-kpi-label">Top vendedor (mês)</span>
+              <span className="os-kpi-value">{topSeller ? topSeller.name : '—'}</span>
+              <span className="os-kpi-sub">
+                {topSeller
+                  ? `${fmtShort(topSeller.total)} no mês`
+                  : props.coworkAggregates
+                    ? 'sem commission_agent atribuído este mês'
+                    : 'carregando…'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Fix bug 2026-05-18: hint visível pra filter de data ativo (proteção
+            contra localStorage stale que escondia vendas dos últimos dias). */}
+        {dateFilterActive && (
+          <div className={'vd-date-filter-hint' + (dateFilterStale ? ' stale' : '')} role="status">
+            <span className="vd-date-filter-hint-ic">{dateFilterStale ? '⚠' : <Calendar size={12} />}</span>
+            <span className="vd-date-filter-hint-tx">
+              {dateFilterStale ? <b>Filtro antigo escondendo vendas novas:</b> : <b>Filtro de data ativo:</b>}
+              {' '}
+              <span className="vd-date-filter-hint-range">{dateFilterLabel}</span>
+              {dateFilterStale && <small> · vendas após {dateTo} ficam ocultas</small>}
+            </span>
+            <button
+              type="button"
+              className="vd-date-filter-hint-clear"
+              onClick={clearDateFilter}
+              title="Limpar filtro de data (mostra todas as vendas)"
+            >
+              Limpar filtro
+            </button>
+          </div>
+        )}
+
+        {/* 5 status pills + toggle "Filtros avançados ▾" (PR follow-up) */}
+        <div className="vd-tabs-row">
+          <div className="os-tabs vd-tabs-grow">
+            {(['todas', 'paga', 'pendente', 'faturada', 'cancelada', 'rascunho'] as const)
+              // Sem permissão de rascunho o servidor manda drafts_count null e a pílula some.
+              .filter((s) => s !== 'rascunho' || draftsCount !== null || pillFilter === 'rascunho')
+              .map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={'os-tab' + (pillFilter === s ? ' active' : '')}
+                onClick={() => setPillFilter(s)}
+              >
+                {STATUS_LABEL[s] ?? s}
+                <span className="os-tab-n">{countByPill(s)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Linha de controles abaixo das pílulas, como no protótipo (vendas-page.jsx `vd-filterbar`):
+            Foco · visão salva · Visão · Filtros avançados à esquerda, busca à direita. Quebra em
+            duas linhas quando não cabe (o protótipo faz o mesmo a 1280). Antes, os controles dividiam
+            a linha com as pílulas e as empurravam para 6 linhas a 1280 (medição 2026-11-04, PR-1b). */}
+        <div className="vd-toolbar vd-toolbar-filtros">
           <div className="vd-toolbar-l">
             <div className="vd-vista" role="group" aria-label="Foco">
               <span className="vd-vista-lbl">Foco</span>
@@ -1271,311 +1549,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="vd-toolbar-r">
-            <button
-              className="vd-toolbar-act"
-              type="button"
-              title="Imprimir resumo do caixa de hoje (vendas, formas de pagamento, total)"
-              onClick={() => {
-                // US-SELL-COWORK-R5-POLISH — abre relatório de caixa de hoje em nova aba.
-                // Endpoint existente UltimatePOS: /home (cash register summary) ou /sells?print=today.
-                // Estratégia: filtra rows do dia + dispara window.print() do próprio Index
-                // pra capturar o que está visível agora. Stack canônica imprime sells/{id}/print
-                // mas pra "caixa do dia" inteiro o usuário faz print da listagem filtrada.
-                window.print();
-              }}
-            >
-              <Printer size={11} />
-              <span>Imprimir caixa</span>
-            </button>
-            <div className="vd-visoes" ref={visoesRef} data-contract="menu-visoes">
-              <button
-                className="vd-toolbar-act vd-visoes-btn"
-                onClick={() => setVisoesOpen((v) => !v)}
-                type="button"
-                title="Outras visões deste módulo"
-              >
-                <Folder size={11} />
-                <span>Visões</span>
-                <ChevronDown size={11} style={{ marginLeft: 2 }} />
-              </button>
-              {visoesOpen && (
-                <div className="vd-visoes-menu">
-                  <div className="vd-visoes-grp">Visões deste módulo</div>
-                  <div className="vd-visoes-item active">
-                    <span className="vd-visoes-dot" />Lista de vendas
-                    <span className="vd-visoes-here">aqui</span>
-                  </div>
-                  {[
-                    { id: 'caixa',      label: 'Caixa do dia', href: '/vendas/caixa' },
-                    { id: 'quotations', label: 'Orçamentos', href: '/sells/quotations' },
-                    { id: 'drafts',     label: 'Rascunhos',  href: '/sells?pill=rascunho' },
-                    { id: 'subs',       label: 'Assinaturas',href: '/sells/subscriptions' },
-                  ].map((s) => (
-                    <a key={s.id} className="vd-visoes-item" href={s.href}>
-                      <span className="vd-visoes-dot" />
-                      {s.label}
-                    </a>
-                  ))}
-                  <div className="vd-visoes-sep" />
-                  <a className="vd-visoes-item primary" href="/sells/create?pos=1">
-                    <span className="vd-visoes-dot pdv" />
-                    Abrir PDV balcão
-                    <kbd>F2</kbd>
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* KPIs row — 4 cards (Faturado hero · Ticket médio · A receber · 4º vista-dependente) */}
-        <div className="os-kpis vd-kpis">
-          {/* Hero: Faturado hoje + sparkline (delta real US-SELL-COWORK-R5) */}
-          <div className="os-kpi vd-kpi-hero">
-            <span className="os-kpi-label">
-              Faturado hoje
-              {/* Onda 4 (ADR 0192) — tag "· todas origens" só aparece quando
-                  Foco=Faturamento (paridade Cowork). Sinaliza que o breakdown
-                  abaixo distribui o total por source (Balcão/Oficina/Online). */}
-              {foco === 'faturamento' && (kpiTodayBySource.oficina > 0 || kpiTodayBySource.online > 0) && (
-                <small className="vd-kpi-tag"> · todas origens</small>
-              )}
-            </span>
-            <span className="os-kpi-value">{fmtShort(kpiToday.total)}</span>
-            <span
-              className={
-                'os-kpi-sub ' +
-                (deltaRevenue == null ? '' : deltaRevenue >= 0 ? 'vd-delta-up' : 'vd-delta-dn')
-              }
-              title={
-                deltaRevenue == null
-                  ? 'Sem dado de ontem pra comparar'
-                  : `Variação vs ontem (${deltaRevenue >= 0 ? '+' : ''}${deltaRevenue}%)`
-              }
-            >
-              {deltaRevenue == null
-                ? `— · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`
-                : `${deltaRevenue >= 0 ? '↑ +' : '↓ '}${deltaRevenue}% vs ontem · ${kpiToday.count} venda${kpiToday.count === 1 ? '' : 's'}`}
-            </span>
-            {/* Onda 4 (ADR 0192) — breakdown por source quando Foco=Faturamento
-                E há pelo menos 1 venda oficina OU online hoje (evita poluir
-                tela em biz só-balcão · paridade Cowork vendas-page.jsx L817-838). */}
-            {foco === 'faturamento' && (kpiTodayBySource.oficina > 0 || kpiTodayBySource.online > 0) && (
-              <div className="vd-kpi-breakdown">
-                {kpiTodayBySource.balcao > 0 && (
-                  <div className="vd-kpi-b balcao">
-                    <small>● Balcão</small>
-                    <b>{fmtShort(kpiTodayBySource.balcao)}</b>
-                  </div>
-                )}
-                {kpiTodayBySource.oficina > 0 && (
-                  <div className="vd-kpi-b oficina">
-                    <small>● Oficina</small>
-                    <b>{fmtShort(kpiTodayBySource.oficina)}</b>
-                  </div>
-                )}
-                {kpiTodayBySource.online > 0 && (
-                  <div className="vd-kpi-b online">
-                    <small>● Online</small>
-                    <b>{fmtShort(kpiTodayBySource.online)}</b>
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="vd-spark">
-              <Sparkline data={sparkData} color="oklch(0.72 0.10 155)" />
-            </div>
-          </div>
-
-          {/* Ticket médio (delta WoW real US-SELL-COWORK-R5) */}
-          <div className="os-kpi">
-            <span className="os-kpi-label">Ticket médio</span>
-            <span className="os-kpi-value">{fmtShort(kpiToday.ticket)}</span>
-            <span
-              className={
-                'os-kpi-sub ' +
-                (deltaTicket == null ? '' : deltaTicket >= 0 ? 'vd-delta-up' : 'vd-delta-dn')
-              }
-              title={
-                deltaTicket == null
-                  ? 'Sem ticket médio da semana passada pra comparar'
-                  : `Ticket médio: variação semana atual vs semana passada (${deltaTicket >= 0 ? '+' : ''}${deltaTicket}%)`
-              }
-            >
-              {deltaTicket == null
-                ? '— vs semana passada'
-                : `${deltaTicket >= 0 ? '↑ +' : '↓ '}${deltaTicket}% vs semana passada`}
-            </span>
-          </div>
-
-          {/* A receber */}
-          <div className="os-kpi">
-            <span className="os-kpi-label">A receber</span>
-            <span className="os-kpi-value">{fmtShort(kpiAReceber)}</span>
-            <span className="os-kpi-sub vd-sla-counts">
-              {slaCounts.overdue > 0 && (
-                <span className="vd-sla-mini overdue">
-                  <span className="ic">✕</span>
-                  {`${slaCounts.overdue} estourado${slaCounts.overdue > 1 ? 's' : ''}`}
-                </span>
-              )}
-              {slaCounts.warning > 0 && (
-                <span className="vd-sla-mini warning">
-                  <span className="ic">▲</span>
-                  {`${slaCounts.warning} atrasando`}
-                </span>
-              )}
-              {slaCounts.fresh > 0 && (
-                <span className="vd-sla-mini fresh">
-                  <span className="ic">●</span>
-                  {`${slaCounts.fresh} fresco${slaCounts.fresh > 1 ? 's' : ''}`}
-                </span>
-              )}
-            </span>
-            <div className="vd-ageing">
-              <div className="vd-ag-bar ok">
-                <div style={{ width: (ageingBreakdown.ok / ageingBreakdown.total) * 100 + '%' }} />
-              </div>
-              <div className="vd-ag-bar warn">
-                <div style={{ width: (ageingBreakdown.w / ageingBreakdown.total) * 100 + '%' }} />
-              </div>
-              <div className="vd-ag-bar bad">
-                <div style={{ width: (ageingBreakdown.b / ageingBreakdown.total) * 100 + '%' }} />
-              </div>
-              <div className="vd-ag-lbls">
-                <span>0–30d</span>
-                <span>31–60d</span>
-                <span>+60d</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 4º card — varia por foco */}
-          {foco === 'caixa' && (
-            <div className="os-kpi">
-              <span className="os-kpi-label">Pagos hoje</span>
-              <span className="os-kpi-value">
-                {fmtShort(
-                  rows
-                    .filter((r) => r.payment_status === 'paid' && r.transaction_date?.slice(0, 10) === todayIso)
-                    .reduce((s, r) => s + r.total_paid, 0)
-                )}
-              </span>
-              <span className="os-kpi-sub">
-                {rows.filter((r) => r.payment_status === 'paid' && r.transaction_date?.slice(0, 10) === todayIso).length}{' '}
-                pago{rows.filter((r) => r.payment_status === 'paid' && r.transaction_date?.slice(0, 10) === todayIso).length === 1 ? '' : 's'} hoje
-              </span>
-            </div>
-          )}
-          {foco === 'faturamento' && (
-            <div className="os-kpi">
-              <span className="os-kpi-label">Notas fiscais</span>
-              <span className="os-kpi-value">
-                {fiscalCount.ok}
-                <small>/{fiscalCount.total || rows.length}</small>
-              </span>
-              <span className="os-kpi-sub">
-                autorizadas · {fiscalCount.wait} processando · {fiscalCount.bad} rejeitadas
-              </span>
-              <div className="vd-fiscal-bar">
-                <div style={{ flex: Math.max(1, fiscalCount.ok), background: 'var(--vd-ok)' } as CSSProperties} />
-                <div
-                  style={{ flex: Math.max(0, fiscalCount.wait), background: 'var(--vd-warn)' } as CSSProperties}
-                />
-                <div
-                  style={{ flex: Math.max(0, fiscalCount.bad), background: 'var(--vd-bad)' } as CSSProperties}
-                />
-              </div>
-            </div>
-          )}
-          {foco === 'comissao' && (
-            <div className="os-kpi" title={topSeller ? `Soma de vendas final_total do mês corrente` : ''} data-contract="foco-comissao">
-              <span className="os-kpi-label">Top vendedor (mês)</span>
-              <span className="os-kpi-value">{topSeller ? topSeller.name : '—'}</span>
-              <span className="os-kpi-sub">
-                {topSeller
-                  ? `${fmtShort(topSeller.total)} no mês`
-                  : props.coworkAggregates
-                    ? 'sem commission_agent atribuído este mês'
-                    : 'carregando…'}
-              </span>
-            </div>
-          )}
-
-          {/* PR 1666 — 5º KPI PIX hoje (paridade prototipo Cowork).
-              Sempre visível independente do foco — mostra share de PIX
-              no faturamento do dia. Critical pra Larissa biz=4 (vestuário PIX-first). */}
-          <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
-            <span className="os-kpi-label">PIX hoje</span>
-            <span className="os-kpi-value">
-              {fmtShort(props.coworkAggregates?.pixHojeTotal ?? 0)}
-            </span>
-            <span className="os-kpi-sub">
-              {(() => {
-                const pix = props.coworkAggregates?.pixHojeTotal ?? 0;
-                const fat = props.coworkAggregates?.faturadoHojeTotal ?? 0;
-                if (!props.coworkAggregates) return 'carregando…';
-                if (fat <= 0) return 'sem faturamento hoje';
-                const pct = Math.round((pix / fat) * 100);
-                return `${pct}% do faturamento — imediato`;
-              })()}
-            </span>
-          </div>
-        </div>
-
-        {/* Fix bug 2026-05-18: hint visível pra filter de data ativo (proteção
-            contra localStorage stale que escondia vendas dos últimos dias). */}
-        {dateFilterActive && (
-          <div className={'vd-date-filter-hint' + (dateFilterStale ? ' stale' : '')} role="status">
-            <span className="vd-date-filter-hint-ic">{dateFilterStale ? '⚠' : <Calendar size={12} />}</span>
-            <span className="vd-date-filter-hint-tx">
-              {dateFilterStale ? <b>Filtro antigo escondendo vendas novas:</b> : <b>Filtro de data ativo:</b>}
-              {' '}
-              <span className="vd-date-filter-hint-range">{dateFilterLabel}</span>
-              {dateFilterStale && <small> · vendas após {dateTo} ficam ocultas</small>}
-            </span>
-            <button
-              type="button"
-              className="vd-date-filter-hint-clear"
-              onClick={clearDateFilter}
-              title="Limpar filtro de data (mostra todas as vendas)"
-            >
-              Limpar filtro
-            </button>
-          </div>
-        )}
-
-        {/* 5 status pills + toggle "Filtros avançados ▾" (PR follow-up) */}
-        <div className="vd-tabs-row">
-          <div className="os-tabs vd-tabs-grow">
-            {(['todas', 'paga', 'pendente', 'faturada', 'cancelada', 'rascunho'] as const)
-              // Sem permissão de rascunho o servidor manda drafts_count null e a pílula some.
-              .filter((s) => s !== 'rascunho' || draftsCount !== null || pillFilter === 'rascunho')
-              .map((s) => (
-              <button
-                key={s}
-                type="button"
-                className={'os-tab' + (pillFilter === s ? ' active' : '')}
-                onClick={() => setPillFilter(s)}
-              >
-                {STATUS_LABEL[s] ?? s}
-                <span className="os-tab-n">{countByPill(s)}</span>
-              </button>
-            ))}
-          </div>
-          <div className="vd-tabs-actions">
+            <span className="vd-toolbar-sep" />
             {/* ADR 0178 — tabs Visão sempre visíveis (Operacional/Financeira/Produção). */}
             <SellsTabsVisao visao={visao} onChange={setVisao} />
-            {/* Busca ⌘K movida do header pra cá 2026-05-21 (Wagner) —
-                fica próxima dos filtros, contextualmente coerente. */}
-            <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
-              <Search size={12} />
-              <span>Buscar venda, cliente, chave SEFAZ…</span>
-              <kbd>⌘K</kbd>
-            </button>
             <button
               type="button"
               className={'vd-filters-toggle' + (advancedOpen ? ' on' : '')}
@@ -1592,6 +1568,15 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                   transform: advancedOpen ? 'rotate(180deg)' : 'none',
                 }}
               />
+            </button>
+          </div>
+          <div className="vd-toolbar-r">
+            {/* Busca ⌘K movida do header pra cá 2026-05-21 (Wagner) —
+                fica próxima dos filtros, contextualmente coerente. */}
+            <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
+              <Search size={12} />
+              <span>Buscar venda, cliente, chave SEFAZ…</span>
+              <kbd>⌘K</kbd>
             </button>
           </div>
         </div>

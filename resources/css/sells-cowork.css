@@ -3698,6 +3698,7 @@
 .sells-cowork .vendas-aplus .vd-toolbar-r {
   display: inline-flex; align-items: center; gap: 4px;
 }
+.sells-cowork .vendas-aplus .vd-toolbar-filtros, .sells-cowork .vendas-aplus .vd-toolbar-filtros .vd-toolbar-l { flex-wrap: wrap; row-gap: 8px; } /* linha abaixo das pílulas quebra em vez de espremer (PR-1d) */
 .sells-cowork .vendas-aplus .vd-toolbar-sep {
   width: 1px; height: 18px; background: var(--border);
   margin: 0 4px;
