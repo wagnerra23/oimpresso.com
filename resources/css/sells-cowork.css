@@ -1808,13 +1808,6 @@
 /* ════════════ VENDAS MODULE — sub-nav + extras ════════════ */
 .sells-cowork .vm-subtab.active { color:var(--accent); border-bottom-color:var(--accent); }
 /* ──── CAIXA DO DIA ──── */
-/* Cabeçalho medido contra VendasCaixaPage (vendas-extras.jsx; styles.css .os-head-l h1/p) em
-   2026-11-04, mesmo tema e 1280px. Escopo .vc-page: só a Caixa — Sells/Index divide a regra
-   .os-head-l h1 e tem dono próprio. */
-.sells-cowork .vc-page .os-head-l h1 {
-  margin:0; font-weight:700; letter-spacing:-0.025em; line-height:1.375;
-}
-.sells-cowork .vc-page .os-head-l p { margin:2px 0 0; font-size:var(--fs-3); color:var(--text-mute); }
 .sells-cowork .vc-page .vc-date {
   padding:5px 8px; border:1px solid oklch(0.85 0.02 250); border-radius:6px;
   font-size:var(--fs-3); font-family:var(--font-mono); background:var(--surface);
