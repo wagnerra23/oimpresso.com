@@ -103,16 +103,23 @@ function PainelKpis({ kpis }: { kpis: Kpis }) {
   );
 }
 
-function FilaItem({ item, regras, motivos }: { item: ItemAtencao; regras: Regras; motivos: Motivo[] }) {
+// Iniciais do avatar da fila (canvas Prescreve Pro · Main): "Rafael C." → "RC".
+const iniciais = (nome: string | null) =>
+  (nome ?? '?').split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join('');
+
+function FilaItem({ item, regras, motivos, tom }: { item: ItemAtencao; regras: Regras; motivos: Motivo[]; tom: 'danger' | 'warning' }) {
   return (
     <li className="flex flex-wrap items-center gap-2 py-3">
+      <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted font-mono text-[10px] font-medium text-muted-foreground">
+        {iniciais(item.nome)}
+      </span>
       <Link href={`/fisio/pacientes/${item.patient_id}`} className="min-w-0 flex-1 text-sm font-medium hover:underline">
         {item.nome ?? 'Contato sem nome'}
       </Link>
       {motivos.map((m) => (
-        <Badge key={m} variant="outline">{rotuloMotivo(m, regras)}</Badge>
+        <Badge key={m} variant={tom}>{rotuloMotivo(m, regras)}</Badge>
       ))}
-      <span className="text-xs text-muted-foreground tabular-nums">
+      <span className="font-mono text-xs text-muted-foreground tabular-nums">
         último registro {dataCurta(item.ultimo_registro)}{item.ultima_dor !== null ? ` · dor ${item.ultima_dor}` : ''}
       </span>
     </li>
@@ -134,7 +141,9 @@ function Fila({ titulo, descricao, itens, regras, eixo, vazio }: {
           <EmptyState icon="check-circle" title={vazio} className="py-6" />
         ) : (
           <ul className="divide-y divide-border" data-contract={`fisio-painel-fila-${eixo}`}>
-            {daFila.map((i) => <FilaItem key={i.patient_id} item={i} regras={regras} motivos={i[eixo]} />)}
+            {daFila.map((i) => (
+              <FilaItem key={i.patient_id} item={i} regras={regras} motivos={i[eixo]} tom={eixo === 'clinico' ? 'danger' : 'warning'} />
+            ))}
           </ul>
         )}
       </CardContent>
@@ -205,7 +214,7 @@ function Tabela({ pacientes }: { pacientes: LinhaPaciente[] }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm" data-contract="fisio-painel-tabela">
         <thead>
-          <tr className="border-b border-border text-left text-xs text-muted-foreground">
+          <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
             <th scope="col" className="py-2 pr-3 font-medium">Paciente</th>
             <th scope="col" className="py-2 pr-3 font-medium">Adesão 7d</th>
             <th scope="col" className="py-2 pr-3 font-medium">Última dor</th>
@@ -223,11 +232,22 @@ function Tabela({ pacientes }: { pacientes: LinhaPaciente[] }) {
                   {p.programa_ativo ? `meta ${p.sessions_per_week}× por semana` : 'sem programa ativo'}
                 </span>
               </td>
-              <td className="py-2 pr-3 tabular-nums">{p.adesao_7d === null ? '—' : `${p.adesao_7d}%`}</td>
-              <td className="py-2 pr-3 tabular-nums">{p.ultima_dor ?? '—'}</td>
-              <td className="py-2 pr-3 tabular-nums">{dataCurta(p.ultimo_registro)}</td>
-              <td className="py-2 pr-3 tabular-nums">{p.nivel}</td>
-              <td className="py-2 tabular-nums">
+              <td className="py-2 pr-3">
+                {p.adesao_7d === null ? (
+                  <span className="font-mono text-muted-foreground">—</span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <span aria-hidden="true" className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+                      <span className="block h-full rounded-full bg-success" style={{ width: `${Math.min(100, Math.max(0, p.adesao_7d))}%` }} />
+                    </span>
+                    <span className="font-mono tabular-nums">{p.adesao_7d}%</span>
+                  </span>
+                )}
+              </td>
+              <td className="py-2 pr-3 font-mono tabular-nums">{p.ultima_dor ?? '—'}</td>
+              <td className="py-2 pr-3 font-mono tabular-nums">{dataCurta(p.ultimo_registro)}</td>
+              <td className="py-2 pr-3 font-mono tabular-nums">{p.nivel}</td>
+              <td className="py-2 font-mono tabular-nums">
                 {p.sequencia} {p.sequencia === 1 ? 'dia' : 'dias'}
                 {p.em_pausa && <Badge variant="outline" className="ml-2">em pausa</Badge>}
               </td>
@@ -244,7 +264,7 @@ export default function FisioPainel({ regras, kpis, atencao, pacientes, envios_f
   return (
     <div data-screen-label="Fisio · Painel" className="mx-auto flex max-w-7xl flex-col gap-4 p-4">
       <PageHeader
-        title="Painel"
+        title="Painel da fisioterapia"
         subtitle="Adesão, dor e quem precisa de atenção, a partir do que os pacientes registraram no portal."
       />
 

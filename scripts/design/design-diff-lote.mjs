@@ -71,6 +71,9 @@
  *   Overrides por tela (opcional, JSON — configuração, não prosa):
  *     governance/design/targets/roles/<Mod--Tela>.json
  *       { "token": "cmp-pedidos",                       // rota do shell, quando a derivação falha
+ *         "storage": { "oimpresso.vendas.sub": "caixa" }, // SUB-VISÃO: chaves extras de localStorage
+ *                                                         // gravadas junto da rota (ex.: Sells/Caixa/Index
+ *                                                         // = route=vendas + sub "caixa" do VendasModule)
  *         "roles": { "prod": {...}, "design": {...} },  // __DD_ROLES por lado (papel → seletor)
  *         "shell": { "prod": {...}, "design": {...} },  // __SB_ROLES por lado
  *         "contrato": "governance/design/contracts/x.contract.json" }
@@ -316,15 +319,40 @@ export function tokenDaTela(tela, { rotas, mockupSrc, override = {} }) {
 }
 
 /**
- * Sanidade ESTÁTICA: telas distintas que abrem o MESMO token do shell vão medir a mesma vista.
- * `itens = [{ id, token }]` → `Map id → { token, com: [ids] }`. Token nulo não colide.
+ * `storage` do override (2026-11-04): chaves EXTRAS de `localStorage` gravadas junto da rota, para a
+ * tela que vive como SUB-VISÃO de um módulo do protótipo (`Sells/Caixa/Index` = `route=vendas` +
+ * `oimpresso.vendas.sub=caixa`, lido pelo `VendasModule` de `vendas-extras.jsx`). Devolve os pares
+ * ordenados por chave (a ordem não muda a vista). `oimpresso.route` é recusada: a rota é o `token`.
+ */
+export function storageDoOverride(override) {
+  const st = override && override.storage;
+  if (st == null) return [];
+  if (typeof st !== 'object' || Array.isArray(st)) throw new Error('`storage` do override tem de ser objeto chave → valor');
+  const pares = Object.entries(st);
+  for (const [k, v] of pares) {
+    if (k === 'oimpresso.route') throw new Error('`storage` não declara `oimpresso.route` — a rota é o `token` do override');
+    if (typeof v !== 'string') throw new Error(`\`storage.${k}\` tem de ser string (localStorage só guarda texto)`);
+  }
+  return pares.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
+/** Chave da VISTA que o shell abre: o token mais as chaves extras de `localStorage`. */
+export function chaveDaVista(token, storage = []) {
+  return token ? token + (storage.length ? ' + ' + storage.map(([k, v]) => `${k}=${v}`).join(' + ') : '') : null;
+}
+
+/**
+ * Sanidade ESTÁTICA: telas distintas que abrem a MESMA vista do shell (token + `storage`) vão medir
+ * a mesma coisa. `itens = [{ id, token, storage? }]` → `Map id → { token, com: [ids] }`, com `token`
+ * = a chave da vista. Token nulo não colide.
  */
 export function colisoesDeRota(itens) {
   const por = new Map();
   for (const i of itens || []) {
-    if (!i || !i.token) continue;
-    if (!por.has(i.token)) por.set(i.token, new Set());
-    por.get(i.token).add(i.id);
+    const k = i && chaveDaVista(i.token, i.storage || []);
+    if (!k) continue;
+    if (!por.has(k)) por.set(k, new Set());
+    por.get(k).add(i.id);
   }
   const out = new Map();
   for (const [token, ids] of por) {
@@ -598,6 +626,7 @@ export async function montarPlano({ filtro = null, urlForcada = null, baseUrl, l
     const tk = tokenDe(t, ancora, override);
     item.token = tk.token; item.tokenVia = tk.via;
     if (!tk.token) prob('design', `rota do shell: ${tk.via}`);
+    try { item.storage = storageDoOverride(override); } catch (e) { item.storage = []; prob('design', e.message); }
     // identidade (D0)
     item.contrato = override.contrato || contratoDe(t.id, contratos);
     if (!item.contrato) item.avisoD0 = 'sem contrato — identidade da view NÃO provada (âncora pode servir outra tela)';
@@ -621,13 +650,16 @@ export async function montarPlano({ filtro = null, urlForcada = null, baseUrl, l
     if (!modulos.has(s.module) || plano.some((p) => p.id === s.id)) continue;
     const { ancora } = await ancoraDe(s.target);
     if (!ancora) continue; // sem âncora a irmã nunca renderiza — não é parceira de colisão
-    irmas.push({ id: s.id, token: tokenDe(s, ancora, lerOverride(slugDaTela(s.id))).token });
+    const ov = lerOverride(slugDaTela(s.id));
+    let storage = [];
+    try { storage = storageDoOverride(ov); } catch { /* a irmã sai NÃO MEDI pela própria linha do plano */ }
+    irmas.push({ id: s.id, token: tokenDe(s, ancora, ov).token, storage });
   }
-  const colisoes = colisoesDeRota([...plano.map((p) => ({ id: p.id, token: p.ancora ? p.token : null })), ...irmas]);
+  const colisoes = colisoesDeRota([...plano.map((p) => ({ id: p.id, token: p.ancora ? p.token : null, storage: p.storage })), ...irmas]);
   for (const p of plano) {
     const c = colisoes.get(p.id);
     if (!c) continue;
-    const msg = `rota do GRUPO: route=${c.token} também abre ${c.com.join(', ')} — o design.json sairia igual (declare \`ROTAS\` na âncora ou o token no override)`;
+    const msg = `rota do GRUPO: route=${c.token} também abre ${c.com.join(', ')} — o design.json sairia igual (declare \`ROTAS\` na âncora, o token ou o \`storage\` da sub-visão no override)`;
     p.problemas.push(msg); p.problemasDesign.push(msg);
   }
   for (const p of plano) {
@@ -642,7 +674,7 @@ function imprimirPlano({ plano, bundle, totalAnchored }, { baseUrl }) {
   for (const p of plano) {
     console.log(`${p.executavel ? '●' : '○'} ${p.id}`);
     console.log(`    fonte    ${p.source}${p.ancora && p.ancora !== 'prototipo-ui/cowork/Wagner/' + basename(p.source) ? `  (âncora: ${p.ancora})` : ''}`);
-    console.log(`    shell    ${p.token ? `route=${p.token} (${p.tokenVia})` : `— ${p.tokenVia || ''}`}`);
+    console.log(`    shell    ${p.token ? `route=${chaveDaVista(p.token, p.storage || [])} (${p.tokenVia}${p.storage?.length ? ' + storage do override' : ''})` : `— ${p.tokenVia || ''}`}`);
     console.log(`    vivo     ${p.urlViva || '—'}`);
     console.log(`    D0       ${p.contrato || p.avisoD0}`);
     console.log(`    grava    ${p.dir}/{design,prod,resultado}.json`);
@@ -733,15 +765,19 @@ async function medirLado(page, { probe, roles, shell, tema }) {
   return page.evaluate(probe);
 }
 
-async function renderDesign(browser, { porta, token, idEsperado, probe, roles, shell, tema, abrir = null }) {
+async function renderDesign(browser, { porta, token, storage = [], idEsperado, probe, roles, shell, tema, abrir = null }) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   try {
-    await ctx.addInitScript((t) => { try { localStorage.setItem('oimpresso.route', t); } catch { /* sem storage */ } }, token);
+    await ctx.addInitScript(({ t, st }) => { try { localStorage.setItem('oimpresso.route', t); for (const [k, v] of st) localStorage.setItem(k, v); } catch { /* sem storage */ } }, { t: token, st: storage });
     const page = await ctx.newPage();
     await page.goto(`http://127.0.0.1:${porta}/${SHELL_HTML}`, { waitUntil: 'domcontentloaded' });
     await esperarEstavel(page, { sinal: () => window.__oiLazyDone === true });
     const rotaAtiva = await page.evaluate(() => { try { return localStorage.getItem('oimpresso.route'); } catch { return null; } });
     if (rotaAtiva !== token) throw Object.assign(new Error(`o shell não ficou em route=${token} (ficou em ${rotaAtiva})`), { naoMedi: true });
+    // Sub-visão: o módulo regrava a própria chave ao montar — se não ficou no valor pedido, abriu outra.
+    const lidas = await page.evaluate((ks) => ks.map((k) => { try { return localStorage.getItem(k); } catch { return null; } }), storage.map(([k]) => k));
+    const fora = storage.map(([k, v], i) => (lidas[i] === v ? null : `${k}=${v} (ficou ${lidas[i]})`)).filter(Boolean);
+    if (fora.length) throw Object.assign(new Error(`o shell não ficou na sub-visão: ${fora.join(', ')}`), { naoMedi: true });
     // Vista que se declara (`data-page`) tem de ser ESTA tela — senão a rota abriu outra.
     const dp = await page.evaluate(() => document.querySelector('[data-page]')?.getAttribute('data-page') || null);
     if (dp && idEsperado && dp !== idEsperado) throw Object.assign(new Error(`a vista declara data-page="${dp}", não ${idEsperado}`), { naoMedi: true });
@@ -800,7 +836,7 @@ async function medirGaveta(p, { lado, fazDesign, fazProd, browser, espelho, prob
   const soGaveta = (r) => ({ title: r.title, drawer: r.drawer });
   try {
     if (fazDesign) {
-      const d = await renderDesign(browser, { porta: espelho.porta, token: p.token, idEsperado: p.id, probe, roles: soGaveta(p.roles.design), shell: null, tema, abrir: p.abrir.design });
+      const d = await renderDesign(browser, { porta: espelho.porta, token: p.token, storage: p.storage || [], idEsperado: p.id, probe, roles: soGaveta(p.roles.design), shell: null, tema, abrir: p.abrir.design });
       const txt = JSON.stringify(d, null, 2) + '\n';
       writeFileSync(join(dirG, 'design.json'), txt);
       g.designSha = sha(txt);
@@ -848,7 +884,7 @@ async function rodarLote(planoObj, { baseUrl, userId, cookie, tema, lado = 'ambo
       const shell = { prod: p.shellOverride?.prod || shellPadrao.prod || null, design: p.shellOverride?.design || shellPadrao.design || null };
       try {
         if (fazDesign) {
-          const design = await renderDesign(browser, { porta: espelho.porta, token: p.token, idEsperado: p.id, probe, roles: semGaveta(p.roles.design), shell: shell.design, tema });
+          const design = await renderDesign(browser, { porta: espelho.porta, token: p.token, storage: p.storage || [], idEsperado: p.id, probe, roles: semGaveta(p.roles.design), shell: shell.design, tema });
           const txt = JSON.stringify(design, null, 2) + '\n';
           writeFileSync(join(dir, 'design.json'), txt);
           item.designSha = sha(txt);
@@ -999,6 +1035,20 @@ async function selftest() {
   ok('colisoesDeRota MORDE: duas telas no mesmo token', colR.get('S/A')?.com.join() === 'S/B' && colR.get('S/B')?.token === 'superadmin');
   ok('colisoesDeRota CONTROLE: token próprio e token nulo não colidem', !colR.has('S/C') && !colR.has('S/D'));
   ok('colisoesDeRota: mesma tela repetida não colide consigo', colisoesDeRota([{ id: 'S/A', token: 't' }, { id: 'S/A', token: 't' }]).size === 0);
+  // SUB-VISÃO (2026-11-04): Sells/Caixa/Index = route=vendas + oimpresso.vendas.sub=caixa.
+  const stCaixa = storageDoOverride({ storage: { 'oimpresso.vendas.sub': 'caixa' } });
+  const colSub = colisoesDeRota([{ id: 'Sells/Index', token: 'vendas' }, { id: 'Sells/Caixa/Index', token: 'vendas', storage: stCaixa }]);
+  ok('colisoesDeRota: sub-visão (token + storage) não colide com a lista do mesmo token', colSub.size === 0);
+  const colSub2 = colisoesDeRota([{ id: 'V/A', token: 'vendas', storage: stCaixa }, { id: 'V/B', token: 'vendas', storage: storageDoOverride({ storage: { 'oimpresso.vendas.sub': 'caixa' } }) }]);
+  ok('colisoesDeRota MORDE: duas telas na MESMA sub-visão colidem', colSub2.get('V/A')?.token === 'vendas + oimpresso.vendas.sub=caixa');
+  ok('storageDoOverride: sem storage → [] · pares ordenados por chave', storageDoOverride({}).length === 0 && storageDoOverride({ storage: { b: '1', a: '2' } }).map(([k]) => k).join() === 'a,b');
+  const recusa = (o) => { try { storageDoOverride(o); return false; } catch { return true; } };
+  ok('storageDoOverride MORDE: oimpresso.route, valor não-string e array são recusados',
+    recusa({ storage: { 'oimpresso.route': 'x' } }) && recusa({ storage: { k: 1 } }) && recusa({ storage: ['k'] }));
+  const ovCaixa = lerOverride('Sells--Caixa--Index');
+  ok('override real: Sells/Caixa/Index abre a sub "caixa" do VendasModule', chaveDaVista('vendas', storageDoOverride(ovCaixa)) === 'vendas + oimpresso.vendas.sub=caixa');
+  ok('espelho real: VendasModule aceita "caixa" como sub persistida',
+    /ALLOWED = \[[^\]]*"caixa"/.test(readFileSync(join(COWORK_DIR, 'vendas-extras.jsx'), 'utf8')));
   const colH = colisoesDeHash([{ id: 'M/A', module: 'M', sha: 'h1' }, { id: 'M/B', module: 'M', sha: 'h1' }, { id: 'M/C', module: 'M', sha: 'h2' }, { id: 'N/A', module: 'N', sha: 'h2' }]);
   ok('colisoesDeHash MORDE: mesmo módulo, mesmo sha', colH.get('M/A')?.join() === 'M/B' && colH.has('M/B'));
   ok('colisoesDeHash CONTROLE: sha diferente, ou outro módulo, não colide', !colH.has('M/C') && !colH.has('N/A'));

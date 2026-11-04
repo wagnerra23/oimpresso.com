@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-03**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-04**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -149,9 +149,9 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **449** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 387 · superseded: 27 · proposto: 21 · deprecated: 11 · recusado: 2 · rascunho: 1.
-- **5** reversões de rota (ADR com `supersedes:`).
+- **450** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 387 · superseded: 28 · proposto: 21 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- **6** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
@@ -431,14 +431,14 @@ lente: [construir]
 
 ## Rastro
 
-- **625** handoffs · **802** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **626** handoffs · **803** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-10-30-session-04`
   - `2026-10-30-session-02-venda-v3-edicao`
   - `2026-10-26-fase0-nsu-dfe-seco-medicao`
   - `2026-10-20-pesquisa-consulta-venda-concorrentes-cv`
   - `2026-10-20-arte-casos-de-uso-fabricacao`
   - `2026-10-18-refutacao-gt-g5-lote-9536-r3`
-  - `2026-10-18-refutacao-gt-g5-lote-9536-r2`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-11-03 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-11-04 · deriva das fontes canônicas, não as substitui._
