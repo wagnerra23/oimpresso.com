@@ -23,8 +23,8 @@ const dia = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('pt-BR',
 export interface PontoDor { date: string; pain: number }
 
 // Caixa de número do canvas Prescreve Pro (Evolucao.dc.html): rótulo 12px/600 caixa-alta,
-// valor 24px/400 mono, borda r12 e padding 14.
-const CAIXA = 'rounded-xl border border-border p-3.5';
+// valor 24px/400 mono, borda r12 (rounded-lg = 12px no DS) e padding 14.
+const CAIXA = 'rounded-lg border border-border p-3.5';
 const ROTULO = 'text-xs font-semibold uppercase tracking-[0.04em] text-muted-foreground';
 const VALOR = 'mt-1 font-mono text-2xl font-normal tabular-nums';
 
