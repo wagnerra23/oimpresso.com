@@ -642,3 +642,10 @@
    O protótipo herda line-height 1.2 dos títulos do styles.css dele; aqui o reset do Tailwind dá 1.5
    e o título de cada aba ficava 24px de altura contra 19,2px (medido com design-diff, papel paneTitulo). */
 .cfg-page .pf-pane .pf-h h2{line-height:1.2}
+/* Liga/desliga: no protótipo o Switch do DS desenha interruptor + título + ajuda dentro do .pf-liga-ds. Aqui o
+   Switch é o da produção (variant="cowork", UI-0015) e o texto vem destas regras, com as medidas do protótipo:
+   linha 34px, 10px entre interruptor e texto, título 12,5px/500, ajuda 11px. */
+.cfg-page .cfg-liga{display:flex;align-items:center;gap:10px;min-height:34px;cursor:pointer}
+.cfg-page .cfg-liga-t{display:flex;flex-direction:column;min-width:0}
+.cfg-page .cfg-liga-t b{font-size:12.5px;font-weight:500;color:var(--text)}
+.cfg-page .cfg-liga-t small{font-size:11px;color:var(--text-mute)}
