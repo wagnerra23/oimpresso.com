@@ -350,9 +350,8 @@ publicado junto diz de qual commit ela saiu.
 **Recorte do cadastro de produto** (tema `prototipo-produto`). O mesmo protótipo inteiro, aberto na
 rota `prod-novo`, gerado do branch do PR #10362 (união do protótipo com os campos do artefato
 "Cadastro de produto com campos fiscais"). Republicar com:
-`node scripts/design/build-artefato-prototipo.mjs --out <pasta> --rota-inicial prod-novo --titulo "Cadastro de produto — união (PR #10362)"`.
-A cópia publicada ganha um `<style>` que esconde `.pb-novo` (os selos de revisão do PR); o
-repositório mantém os selos. É a forma de revisão que [PROTOCOL.md](prototipo-ui/PROTOCOL.md) manda
+`node scripts/design/build-artefato-prototipo.mjs --out <pasta> --rota-inicial prod-novo --titulo "Cadastro de produto — união (PR #10362)" --ocultar .pb-novo`.
+O `--ocultar` esconde os selos de revisão do PR só na página publicada; o repositório mantém os selos. É a forma de revisão que [PROTOCOL.md](prototipo-ui/PROTOCOL.md) manda
 usar sempre.
 
 | Data | Vista | Estado |

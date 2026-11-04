@@ -27,7 +27,7 @@
 > num canvas de Design, ou montagem à mão da tela fora do shell — foram tentadas nesta ordem no mesmo
 > dia e recusadas por [F] ("Assim fica muito ruim", "Você não colocou o menu", "Quero que fique no
 > tamanho da tela"). Selos de revisão que existam só para o [W] (ex.: `.pb-novo`) ficam no repositório
-> e saem apenas da cópia publicada. Antes de publicar, medir em 3 larguras (incluindo 1280, onde o
+> e saem apenas da cópia publicada, com `--ocultar <seletor>` no build (repetível; fica no `fonte.json`). Antes de publicar, medir em 3 larguras (incluindo 1280, onde o
 > menu recolhe para ícones, como no vivo) que nada vaza da tela e nenhum rótulo corta. Registrar a
 > página em `VISTAS-PUBLICADAS.md` §protótipo.
 
