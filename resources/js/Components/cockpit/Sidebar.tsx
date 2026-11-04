@@ -1553,8 +1553,11 @@ function SidebarUserMenu({
           <BookOpen size={14} className="ic" />
           <span className="label">Documentação</span>
         </a>
-        <a href="/business/settings" className="um-item">
-          <Search size={14} className="ic" />
+        {/* Até 2026-11-04 apontava pra /business/settings: quem pedia ajuda caía nas
+            configurações da empresa. Não há central de ajuda própria (/ajuda/ dá 404 em
+            produção), então leva pra /documentacao, a ajuda que existe hoje. */}
+        <a href="/documentacao" className="um-item">
+          <LifeBuoy size={14} className="ic" />
           <span className="label">Central de ajuda</span>
         </a>
         <div className="um-sep" />
