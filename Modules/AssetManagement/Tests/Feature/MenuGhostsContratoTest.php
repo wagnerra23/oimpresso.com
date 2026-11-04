@@ -96,7 +96,9 @@ function menuEntryDoModulo(User $user, int $businessId): array
 
     (new DataController())->modifyAdminMenu();
 
-    $rotuloModulo = mb_strtolower(__('assetmanagement::lang.asset_management'));
+    // Rótulo literal do DataController ('Patrimônio' desde 2026-11-04, como no protótipo) — o
+    // mesmo valor de `PatrimonioSubNav.tsx::LABEL_MODULO`. Não vem mais da chave de tradução.
+    $rotuloModulo = 'patrimônio';
 
     $entry = collect((new LegacyMenuAdapter())->build())
         ->first(fn ($item) => mb_strtolower((string) ($item['label'] ?? '')) === $rotuloModulo);
