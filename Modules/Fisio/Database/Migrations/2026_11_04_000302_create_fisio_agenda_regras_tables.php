@@ -22,7 +22,7 @@ return new class extends Migration
                 $t->unsignedInteger('professional_id')->nullable();
                 $t->foreignId('type_id')->nullable()->constrained('fisio_appointment_types');
                 $t->json('preferences')->nullable()->comment('{dias:[1..6], turnos:[manha,tarde,noite], ate:Y-m-d}');
-                $t->enum('status', ['ativo', 'oferecido', 'atendido', 'saiu', 'expirado'])->default('ativo');
+                $t->string('status', 20)->default('ativo')->comment('ativo | oferecido | atendido | saiu | expirado (dicionário memory/dominio/fisio.md)');
                 $t->dateTime('offered_starts_at')->nullable();
                 $t->dateTime('offer_expires_at')->nullable();
                 $t->timestamps();
