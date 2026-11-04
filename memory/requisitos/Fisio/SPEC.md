@@ -167,3 +167,18 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 > owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story
 > blocked_by: US-FISIO-001..011. Âncoras `Implementado em:` com `verificado@sha7` (ADR 0273).
+
+## User Stories — Lote 5 · entrada (canvas Prescreve Pro, 2026-11-04)
+
+> Dezena 050 reservada ao Lote 5 (combinado entre as sessões dos lotes; Lote 4 usa 020..029).
+
+### US-FISIO-050 · Primeira configuração da clínica (Onboarding, 5 passos) — **P1**
+
+**Implementado em:** `Modules/Fisio/Http/Controllers/OnboardingController.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Onboarding.tsx` · `Modules/Fisio/Services/ConfiguracaoClinica.php` (tabela `fisio_settings`) · `Modules/Fisio/Services/Whatsapp/CanalDaClinica.php`
+
+> owner: wagner · priority: p1 · estimate: 4h · status: review · type: story
+> Protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/Onboarding.dc.html`. Perfil (nome que o paciente vê e CREFITO, por profissional), forma de atendimento PF/PJ (só guardada — o uso fiscal é do Lote 4), canal do WhatsApp com a mesma regra de Configurações › WhatsApp (QR exige aceite de risco), protocolos marcados e conclusão. Foto do perfil fica de fora.
+
+**DoD:** cada passo grava só o dele; perfil por usuário; QR sem aceite não grava; protocolo de outra empresa descartado; sem `fisio.editar` 403; 98×99 — `FisioOnboardingTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioOnboardingTest.php`
