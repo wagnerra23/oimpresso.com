@@ -611,6 +611,9 @@ jobs:
         # ENTRA 2026-11-04 — Fisio/FisioPortalConfiguracoesTest (Lote 5, UC-FPP-50..51): Configurações do paciente
         # mostram cada autorização; desligar WhatsApp corta o envio; 98×99.
         #
+        # ENTRA 2026-11-04 — Fisio/FisioPreAnamneseTest (Lote 5, US-FISIO-051, UC-FPP-52..55): uma resposta por
+        # paciente, só valores das listas, sinal avisa o profissional, portões do portal; 98×99.
+        #
         # ENTRA 2026-10-19 — Fisio/FisioPainelEnviosFalhosTest (etapa 02 T-09e, UC-FPN-09): o painel
         # lista o WhatsApp de hoje que não chegou, com wa.me; sucesso some, 99 não vaza, sem
         # consentimento não ganha link.
@@ -805,6 +808,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalConfiguracoesTest.php \
+            Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php \
             Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php \

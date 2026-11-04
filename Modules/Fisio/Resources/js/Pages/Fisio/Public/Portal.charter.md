@@ -42,6 +42,7 @@ Deixar o paciente abrir, pelo link que a clínica gerou e com o PIN que a fisiot
 - Missões de hoje, desafio da semana opcional e medalhas (T-08c), só fora da pausa — UC-FPP-33, UC-FPP-34.
 - Fila offline do check-in: sem rede, o check-in fica no aparelho lembrado e vai quando a internet volta, uma vez só (chave por envio); de outro dia é recusado — UC-FPP-30 a UC-FPP-32.
 - Configurações do paciente: as autorizações por finalidade, cada uma ligada e desligada sozinha (protótipo `PacienteConfig.dc.html`) — UC-FPP-50, UC-FPP-51.
+- Pré-anamnese antes da primeira consulta: onde dói, há quanto tempo, dor, o que piora/melhora e sinais de alerta da lista do check-in; sinal avisa o profissional (protótipo `PacientePreAnamnese.dc.html`) — UC-FPP-52 a UC-FPP-55.
 
 ## Non-Goals — Features (NÃO faz)
 
