@@ -28,6 +28,9 @@ aba a aba atrás da mesma flag, sem perder nada do que o salvar da Blade grava.
 
 ## Goals
 
+- Cabeçalho do protótipo (`configuracoes-page.jsx`, desde 2026-11-04): título do grupo, **"Configurações"**; o nome da
+  tela, "Configuração da empresa", vai no subtítulo e na aba ativa da faixa das telas do grupo, logo abaixo do título.
+  A rota (`/business/settings`) aparece à direita do título.
 - Trilho de abas do protótipo (Empresa · Operação · Sistema · Integrações). O grupo **Empresa** (Negócio, Impostos,
   Produtos, Contatos) é da tela nova; as outras abrem a Blade por `?classico=1`.
 - Aba Negócio com os campos da `settings_business` da Blade, incluindo o logo (multipart) e "permitir exportar listas".
