@@ -225,6 +225,9 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
     // ProductCatalogue + Woocommerce viraram NO-OP no modifyAdminMenu —
     // canais de venda subordinados ao hub Vendas (overflow [...] PageHeader).
     items: ['Crm', 'CRM', 'Vendas', 'Oficina Auto'],
+    // Protótipo `data.jsx`, grupo COMERCIAL ([W] 2026-11-04 "alinha o app"). Fisio e itens de
+    // pacote que o protótipo não desenha vão depois, na ordem em que chegam.
+    ordem: ['CRM', 'Vendas', 'Oficina Auto', 'Vestuário'],
   },
   {
     key: 'financas',
@@ -238,6 +241,8 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
     // mais "Cobrança Recorrente" que vem do RecurringBilling DataController.
     // Alias 'Financeiro' mantido pra label resolvido do __('financeiro::module_label').
     items: ['Caixa', 'Cobrança', 'Financeiro', 'Cobrança Recorrente'],
+    // Protótipo `data.jsx` (ago/2026, mais novo que a ordem de 2026-05-26 acima).
+    ordem: ['Caixa', 'Financeiro', 'Cobrança', 'Cobrança Recorrente'],
   },
   {
     key: 'fiscal',
@@ -262,8 +267,10 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
     // (entry duplicada aqui era dead code; findGroupKey já resolvia p/ COMERCIAL
     // por vir antes na ordem canon). Removida da whitelist PRODUÇÃO.
     items: ['Reservas', 'Cocina', 'Cozinha', 'Pedidos',
-            'Comunicação Visual', 'Reparar',
+            'Comunicação Visual', 'Reparar', 'Assistência técnica',
             'Ordens de Serviço'],
+    // Protótipo `data.jsx`. Reservas/Cozinha/Pedidos (pacote restaurante) vão depois.
+    ordem: ['Painel de produção', 'Ordens de Serviço', 'Comunicação Visual', 'Assistência técnica'],
   },
   {
     key: 'estoque',
@@ -271,7 +278,8 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
     // Wagner 2026-05-22: Reservas/Cocina/Pedidos/ComVisual/OficinaAuto/Reparar
     // SAEM do ESTOQUE → vão pro grupo PRODUÇÃO novo.
     items: ['Compras', 'Compra', 'Transferências de ações', 'Transferência',
-            'Ajuste de estoque', 'Gestão de ativos', 'Estoque', 'Inventário'],
+            'Ajuste de estoque', 'Gestão de ativos', 'Patrimônio', 'Estoque', 'Inventário'],
+    ordem: ['Compras', 'Transferências de ações', 'Ajuste de estoque', 'Patrimônio'],
   },
   {
     key: 'pessoas',
@@ -298,15 +306,18 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
     // AdminSidebarMenu (`business.settings`, `user.user_management`), que não
     // declaram `group`; caem aqui pelo label.
     items: ['Configurações', 'Settings',
-            'Gerenciamento de usuários', 'Gerenciamento de usuario', 'User Management',
+            'Usuários', 'Gerenciamento de usuários', 'Gerenciamento de usuario', 'User Management',
             'Plataforma', 'Auditoria',
             'Modelos de notificação', 'Modelo de notificação',
             'Relatórios', 'Dashboard',
             // Wagner 2026-05-22: Planilha vai pra SISTEMA.
-            'Planilha', 'Spreadsheet',
+            'Planilhas', 'Planilha', 'Spreadsheet',
             // Superadmin top-level entry removida (PR #1407) — mantém alias
             // pra futuros DataControllers que ainda declarem com esse label.
             'Superadmin'],
+    // Protótipo `data.jsx`, grupo SISTEMA ([W] 2026-11-04 "alinha o app").
+    ordem: ['Auditoria', 'Fluxos e regras', 'Voz do Cliente', 'Suporte', 'Usuários', 'Preferências',
+            'Configurações', 'Relatórios', 'Arquivos', 'Base de Conhecimento', 'Planilhas', 'Governança'],
   },
   {
     key: 'plataforma',

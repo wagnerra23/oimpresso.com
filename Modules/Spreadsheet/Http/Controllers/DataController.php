@@ -64,7 +64,7 @@ class DataController extends Controller
             Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color) {
                 $menu->url(
                     action([\Modules\Spreadsheet\Http\Controllers\SpreadsheetController::class, 'index']),
-                    __('spreadsheet::lang.spreadsheet'),
+                    'Planilhas', // rótulo do protótipo (data.jsx, SISTEMA)
                     ['icon' => 'fas fa fa-file-excel', 'active' => request()->segment(1) == 'spreadsheet', 'style' => 'background-color:'.$background_color]
                         )
                 ->order(90);

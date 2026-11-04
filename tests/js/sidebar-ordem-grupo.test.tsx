@@ -27,8 +27,16 @@ import type { ShellMenuItem } from '@/Components/cockpit/shared';
 /** Na ORDEM DE REGISTRO medida em produção: HRM e Essenciais antes do Ponto. */
 const MENU: ShellMenuItem[] = [
   { label: 'Visão geral', href: '/home', group: 'landing' },
+  { label: 'Fabricação', href: '/manufacturing' },
+  { label: 'Produtos', href: '/products' },
   { label: 'Vendas', href: '/sells' },
   { label: 'Crm', href: '/crm' },
+  { label: 'Cobrança', href: '/financeiro/cobranca' },
+  { label: 'Financeiro', href: '/financeiro' },
+  { label: 'Caixa', href: '/cash-register' },
+  { label: 'Planilhas', href: '/spreadsheet/sheets' },
+  { label: 'Configurações', href: '/business/settings' },
+  { label: 'Auditoria', href: '/auditoria' },
   { label: 'HRM', href: '/hrm/dashboard' },
   { label: 'Essenciais', href: '/essentials' },
   { label: 'Ponto', href: '/ponto' },
@@ -55,9 +63,18 @@ describe('Sidebar · ordem dentro do grupo (design: data.jsx)', () => {
   });
 
   it('UC-SB-14 · grupo sem ordem declarada mantém a ordem em que os itens chegaram', () => {
-    // Controle: a ordem explícita é opt-in por grupo. COMERCIAL não declara `ordem`,
-    // então Vendas continua antes do Crm, como no menu entregue.
+    // Controle: a ordem explícita é opt-in por grupo. CADASTRO não declara `ordem`,
+    // então Fabricação continua antes de Produtos, como no menu entregue.
     render(<SidebarMenu items={MENU} />);
-    expect(itensDoGrupo('COMERCIAL')).toEqual(['Vendas', 'Crm']);
+    expect(itensDoGrupo('CADASTRO')).toEqual(['Fabricação', 'Produtos']);
+  });
+
+  it('UC-SB-14 · COMERCIAL, FINANÇAS e SISTEMA seguem a ordem do protótipo', () => {
+    // data.jsx: CRM → Vendas · Caixa → Financeiro → Cobrança · Auditoria … Configurações … Planilhas.
+    // O casamento ignora caixa: o 'Crm' que chega casa o 'CRM' da lista.
+    render(<SidebarMenu items={MENU} />);
+    expect(itensDoGrupo('COMERCIAL')).toEqual(['Crm', 'Vendas']);
+    expect(itensDoGrupo('FINANÇAS')).toEqual(['Caixa', 'Financeiro', 'Cobrança']);
+    expect(itensDoGrupo('SISTEMA')).toEqual(['Auditoria', 'Configurações', 'Planilhas']);
   });
 });

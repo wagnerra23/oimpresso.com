@@ -131,11 +131,11 @@ class DataController extends Controller
                 // `Manutencoes.tsx:438`) — três vocabulários visíveis em dez linhas.
                 // Aqui é o dono ÚNICO do rótulo: o `PatrimonioSubNav` DERIVA daí.
                 // ⚠️ O `pt/lang.php` segue interno-inconsistente ("ativo/ativos" em 20
-                // valores, "recurso" em 9, "Bens" em 1) e o módulo ainda se chama
-                // "Gestão de ativos" na sidebar — unificar isso é escopo próprio, não feito.
+                // valores, "recurso" em 9, "Bens" em 1). Na sidebar o módulo se chamava
+                // "Gestão de ativos" até 2026-11-04; virou "Patrimônio", como no protótipo.
                 $menu->url(
                             action([\Modules\AssetManagement\Http\Controllers\AssetController::class, 'dashboard']),
-                            __('assetmanagement::lang.asset_management'),
+                            'Patrimônio', // rótulo do protótipo (data.jsx, ESTOQUE)
                             [
                                 'icon'    => 'fas fa fa-boxes',
                                 'active'  => request()->segment(1) == 'asset',
