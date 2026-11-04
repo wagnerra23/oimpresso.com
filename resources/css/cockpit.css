@@ -572,8 +572,8 @@
 
 /* Rodapé usuário — slim 1-linha estilo Claude Desktop (UI-0011 refinement 2026-05-05).
    Avatar 18px ultra-slim. Nome + cargo inline com "·". Tipografia IBM Plex Sans canon. */
+/* Sem border-top: a do rodapé é a do .sb-user-wrap (2 traços em prod, 2026-11-04). */
 .cockpit .sb-user {
-  border-top: 1px solid var(--sb-border);
   padding: 4px 6px;
   position: relative;
 }
