@@ -43,7 +43,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-01 | Vejo o que trava a produção hoje e ajo dali | Gestor | Painel | must | ✅ |
 | UC-PCV-02 | Os indicadores levam ao quadro já filtrado | Gestor | Painel | should | ✅ |
 | UC-PCV-03 | "Atrasadas ou vencendo" é o mesmo número em toda a tela | Gestor | Painel · Quadro · Linha | must | ✅ |
-| UC-PCV-04 | Fila de aprovação de arte com reenvio do link | Balcão | Painel | must | 🟡 |
+| UC-PCV-04 | Fila de aprovação de arte com reenvio do link | Balcão | Painel · Ficha · Arte | must | ✅ |
 | UC-PCV-54 | Manutenção preventiva por máquina, com aviso no Painel | Gestor | Postos · Painel | could | ✅ |
 | UC-PCV-05 | Quadro por setor ou por máquina, com a etapa atual | Gestor · Balcão | Quadro | must | ✅ |
 | UC-PCV-06 | Filtro por texto, situação e responsável, igual no quadro e na linha | Gestor · Balcão | Quadro · Linha | must | ✅ |
@@ -91,10 +91,10 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Aceite:** Dado uma OS pronta com prazo vencido, uma em andamento vencida e uma vencendo hoje · Então o cabeçalho, o indicador e o filtro mostram **2** · E a OS pronta não conta.
 - **Regra:** atrasada ou vencendo = prazo ≤ hoje **e** etapa atual ≠ pronto. Uma função só no servidor; as três telas leem dela.
 
-### UC-PCV-04 · Fila de aprovação de arte · `must` · 🟡
+### UC-PCV-04 · Fila de aprovação de arte · `must` · ✅
 - **Aceite:** Dado OS com arte "aguardando" e "ajuste pedido" · Então a fila mostra o que o cliente disse e quando · E "Reenviar link" reenvia o **mesmo** link de prova (não gera arte nova) · E "Enviar nova prova" só aparece em "ajuste pedido".
 - **No sistema:** a página pública `/arte/{token}` existe desde o #9645 e fica (D-ARTE-PAGINA, [W] 2026-10-21: não se reaproveita o link com código do Repair). O cliente aprova ou pede alteração sem login, o link vale uma resposta só e vence em 7 dias (UC-PCART-01..05). A fila com "Reenviar link" e "Enviar nova prova" está no Painel (UC-PCART-07).
-- **Falta no protótipo:** a página do cliente; o protótipo só desenha a fila.
+- **No protótipo:** a fila fica no Painel; a página do cliente abre na ficha da OS › Arte › "Ver o que o cliente vê no link" (`producao-cv-prova.jsx`), com o mesmo conteúdo e as mesmas frases da `/arte/{token}`. Aprovar leva a OS para "Arte aprovada"; pedir alteração sem comentário é recusado e, com comentário, leva a OS para "Ajuste pedido". Depois de responder, o link mostra só a mensagem final.
 
 ### UC-PCV-54 · Manutenção preventiva · `could` · ✅
 - **Origem:** backlog P3 do `ROADMAP.md` da Produção ("Manutenção preventiva máquinas", referência SAP PM e Odoo Maintenance). Ainda sem US no SPEC: o id US-PCP-023 que o ROADMAP usa é hoje o Romaneio de impressão.
@@ -250,11 +250,10 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 
 **Forma (dá para fazer aqui, no protótipo)**
 4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
-5. Página de aprovação da arte, espelhando a `/arte/{token}` do sistema (UC-PCV-04).
-6. Estados carregando / vazio / erro em todas as vistas.
-7. Troca do arquivo da arte com versões (UC-PCV-11).
+5. Estados carregando / vazio / erro em todas as vistas.
+6. Troca do arquivo da arte com versões (UC-PCV-11).
 
 **Só no Code**
-8. Tabelas `pcp_workstations`, `pcp_operations`, `pcp_appointments` (append-only), `pcp_schedules` (SPEC do Pcp).
-9. Fechamento automático às 18h, fila offline, envio de aviso ao próximo responsável.
-10. Encaixe de mídia (algoritmo), PDF do protocolo de instalação, captura de câmera e assinatura.
+7. Tabelas `pcp_workstations`, `pcp_operations`, `pcp_appointments` (append-only), `pcp_schedules` (SPEC do Pcp).
+8. Fechamento automático às 18h, fila offline, envio de aviso ao próximo responsável.
+9. Encaixe de mídia (algoritmo), PDF do protocolo de instalação, captura de câmera e assinatura.
