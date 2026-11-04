@@ -3668,9 +3668,19 @@
 .sells-cowork .vendas-aplus .vd-head-clean .os-head-l h1 {
   margin: 0; font-size: 22px; font-weight: 700;
   letter-spacing: -0.018em;
+  /* Protótipo (styles.css `.os-head-l h1`): 1.375. Sem isto herdava 1.5 do body (33px × 30.25px). */
+  line-height: 1.375;
 }
 .sells-cowork .vendas-aplus .vd-head-clean .os-head-l p {
   margin: 2px 0 0; font-size: var(--fs-3); color: var(--text-mute);
+  /* Protótipo: line-height 1.45 herdado do shell e tabular-nums (styles.css `.os-head-l p`). */
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+/* Números da linha de métrica: protótipo (vendas.css `.vd-head-stat b`) usa 600 em --text.
+   O `.vd-delta-dn` (estouradas) segue com a regra própria. */
+.sells-cowork .vendas-aplus .vd-head-clean .os-head-l p strong:not(.vd-delta-dn) {
+  font-weight: 600; color: var(--text);
 }
 .sells-cowork .vendas-aplus .vd-head-clean .os-head-r {
   display: inline-flex; gap: 8px; align-items: center;
