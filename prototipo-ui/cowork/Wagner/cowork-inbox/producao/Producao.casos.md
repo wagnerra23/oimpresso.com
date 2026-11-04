@@ -47,7 +47,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-54 | Manutenção preventiva por máquina, com aviso no Painel | Gestor | Postos · Painel | could | ✅ |
 | UC-PCV-05 | Quadro por setor ou por máquina, com a etapa atual | Gestor · Balcão | Quadro | must | ✅ |
 | UC-PCV-06 | Filtro por texto, situação e responsável, igual no quadro e na linha | Gestor · Balcão | Quadro · Linha | must | ✅ |
-| UC-PCV-07 | O PCP move uma etapa à mão, e isso fica registrado | Gestor | Quadro | should | 🟡 |
+| UC-PCV-07 | O PCP move uma etapa à mão, e isso fica registrado | Gestor | Quadro | should | ✅ |
 | UC-PCV-08 | Linha do tempo por máquina com fim de turno, bloqueio por arte e estouro | Gestor | Linha | must | ✅ |
 | UC-PCV-09 | Gargalo previsto com sugestão de reprogramação aplicável e reversível | Gestor | Painel · Linha | should | ✅ |
 | UC-PCV-10 | A OS é um projeto: etapas, responsável, máquina, previsto × apontado | Gestor · Balcão | Ficha | must | ✅ |
@@ -108,9 +108,9 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-06 · Filtro igual no quadro e na linha · `must` · ✅
 - **Aceite:** Dado o filtro "Travadas por arte" + responsável "Marcos" · Quando troco do Quadro para a Linha · Então o filtro continua e os blocos visíveis são os das mesmas OS · E "Limpar" volta tudo.
 
-### UC-PCV-07 · O PCP move uma etapa à mão · `should` · 🟡
+### UC-PCV-07 · O PCP move uma etapa à mão · `should` · ✅
 - **Aceite:** Dado a OS no setor Impressão · Quando o PCP **arrasta o cartão** para a coluna Acabamento, ou usa ⋮ › "Mover para Acabamento" (teclado) · Então a OS muda de coluna · E o histórico da OS ganha "movida por <nome> de Impressão para Acabamento" · E o apontamento aberto na etapa anterior é fechado com motivo "movida pelo PCP".
-- **Falta:** o fechamento do apontamento aberto. Permissão: `producao.etapa.mover` (aprovada).
+- **Onde:** Quadro por setor, arrastando o cartão ou pelo menu ⋮ › "Mover para…". O histórico registra "Movida de <origem> para <destino> (à mão)" com quem moveu. Se a etapa de origem tinha apontamento rodando, ele é fechado e o histórico ganha "Fechou o apontamento aberto de <etapa> (<operador>) — motivo: movida pelo PCP". O aviso no quadro diz as duas coisas. Permissão: `producao.etapa.mover` (aprovada).
 
 ### UC-PCV-08 · Linha do tempo por máquina · `must` · ✅
 - **Aceite:** Dado blocos programados hoje · Então cada máquina mostra a carga em horas · E o bloco travado por arte aparece tracejado · E o bloco que termina depois das 18h tem borda de estouro · E Hoje/Amanhã troca o dia.
@@ -248,7 +248,7 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 
 **Forma (dá para fazer aqui, no protótipo)**
 4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
-5. Fechamento do apontamento aberto quando o PCP move a etapa à mão (UC-PCV-07).
+5. Produtividade por pessoa, só com a permissão `producao.desempenho.ver` (UC-PCV-27).
 6. Estados carregando / vazio / erro em todas as vistas.
 7. Link público de prova de arte (UC-PCV-04, 11) no padrão do link com código do Repair.
 8. Correção de apontamento com justificativa (UC-PCV-22).
