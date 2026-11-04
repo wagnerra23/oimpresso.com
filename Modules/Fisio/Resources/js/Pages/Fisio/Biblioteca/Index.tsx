@@ -18,8 +18,6 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
@@ -27,7 +25,7 @@ import { MidiaCampo, MidiaPreview, type MidiaResumo } from '../_components/Midia
 import CamposFacetas from './_components/CamposFacetas';
 import FavoritoBotao from './_components/FavoritoBotao';
 import FiltrosFacetas from './_components/FiltrosFacetas';
-import { rotulo, type Facetas, type FiltrosFacetasValor } from './_components/facetas';
+import { rotulo, type Facetas, type FiltrosFacetasValor, legivel } from './_components/facetas';
 
 interface Exercicio {
   id: number;
@@ -83,16 +81,17 @@ function Grade({ exercicios, filtros, facetas, podeEditar, onEditar }: {
     );
   }
   return (
-    <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" data-contract="fisio-biblioteca-grade">
+    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" data-contract="fisio-biblioteca-grade">
       {exercicios.map((e) => (
         <li key={e.id}>
-          <Card className="h-full">
+          <Card className="h-full overflow-hidden rounded-xl">
+            {e.midia && <MidiaPreview midia={e.midia} nome={e.name} className="aspect-video" />}
             <CardHeader className="flex flex-row items-start justify-between gap-2 p-4 pb-2">
               <div className="min-w-0">
-                <CardTitle className="text-sm">{e.name}</CardTitle>
+                <CardTitle className="text-sm font-medium">{e.name}</CardTitle>
                 <div className="mt-1 flex flex-wrap gap-1">
-                  <Badge variant="outline">{e.region}</Badge>
-                  <Badge variant="outline">{e.type}</Badge>
+                  <Badge variant="info">{legivel(e.region)}</Badge>
+                  <Badge variant="neutral">{legivel(e.type)}</Badge>
                   {e.global ? <Badge variant="secondary">Biblioteca oimpresso</Badge> : <Badge>Da clínica</Badge>}
                   {e.pose && <Badge variant="outline">{rotulo(facetas.posicoes, e.pose)}</Badge>}
                   {e.equipment.map((q) => <Badge key={q} variant="outline">{rotulo(facetas.equipamentos, q)}</Badge>)}
@@ -108,7 +107,6 @@ function Grade({ exercicios, filtros, facetas, podeEditar, onEditar }: {
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-2 p-4 pt-0 text-sm">
-              {e.midia && <MidiaPreview midia={e.midia} nome={e.name} className="aspect-video" />}
               <ol className="list-decimal pl-5 text-muted-foreground">
                 {e.steps.map((passo, i) => <li key={i}>{passo}</li>)}
               </ol>
@@ -272,13 +270,22 @@ export default function BibliotecaIndex({ filtros, pode_editar, exercicios, regi
             <Button type="submit" variant="outline"><Search className="size-4" aria-hidden="true" /> Buscar</Button>
           </form>
           <Deferred data="regioes" fallback={<Skeleton className="h-9 w-48" />}>
-            <Select value={filtros.region || TODAS} onValueChange={(v) => visitar({ region: v === TODAS ? '' : v })}>
-              <SelectTrigger className="w-48" aria-label="Filtrar por região"><SelectValue placeholder="Região" /></SelectTrigger>
-              <SelectContent>
-                <SafeSelectItem value={TODAS}>Todas as regiões</SafeSelectItem>
-                {(regioes ?? []).map((r) => <SafeSelectItem key={r} value={r}>{r}</SafeSelectItem>)}
-              </SelectContent>
-            </Select>
+            {/* Região em chips (canvas Prescreve Pro · Biblioteca); mesmo filtro `region` de antes. */}
+            <div role="group" aria-label="Filtrar por região" className="flex flex-wrap gap-1.5">
+              {['', ...(regioes ?? [])].map((r) => (
+                <Button
+                  key={r || TODAS}
+                  type="button"
+                  size="sm"
+                  variant={(filtros.region || '') === r ? 'default' : 'outline'}
+                  aria-pressed={(filtros.region || '') === r}
+                  className="h-7 rounded-full px-3"
+                  onClick={() => visitar({ region: r })}
+                >
+                  {r ? legivel(r) : 'Todas'}
+                </Button>
+              ))}
+            </div>
           </Deferred>
           <FiltrosFacetas
             facetas={facetas}
