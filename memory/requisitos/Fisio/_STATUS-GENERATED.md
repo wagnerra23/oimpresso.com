@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 12 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 5 |
-| Telas com `casos.md` | 6 |
-| UC declarados | 103 |
-| UC com teste que os cita | 103 |
+| Telas (.tsx) | 6 |
+| Telas com `casos.md` | 7 |
+| UC declarados | 108 |
+| UC com teste que os cita | 108 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -63,6 +63,11 @@ authority: generated
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-11 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-12 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-01 | Fiscal/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-02 | Fiscal/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-03 | Fiscal/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-04 | Fiscal/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-05 | Fiscal/Index | 🧪 aguarda veredito da lane |
 | UC-FJG-01 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-02 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-03 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
