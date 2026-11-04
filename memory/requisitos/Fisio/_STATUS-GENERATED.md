@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 12 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 5 |
-| Telas com `casos.md` | 6 |
-| UC declarados | 103 |
-| UC com teste que os cita | 103 |
+| Telas (.tsx) | 6 |
+| Telas com `casos.md` | 7 |
+| UC declarados | 112 |
+| UC com teste que os cita | 112 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -80,6 +80,15 @@ authority: generated
 | UC-FPI-06 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-07 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-20 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPK-01 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-02 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-03 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-04 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-05 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-06 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-07 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-08 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-09 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPN-01 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-02 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-03 | Painel | 🧪 aguarda veredito da lane |
