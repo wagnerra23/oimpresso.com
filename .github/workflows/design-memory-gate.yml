@@ -652,7 +652,8 @@ jobs:
   # scripts/qa/secao-check.mjs — dono do numero. Aqui nao se restateia (§5 2026-07-17).
   secao-check:
     name: secao-check — alvo x render do espelho (advisory)
-    runs-on: ubuntu-latest
+    # ubuntu-24.04 fixo: em 2026-11-04 o ubuntu-latest passou a cair no 26.04, que o Playwright do lock (1.60) não suporta (só 1.64+). Subir o Playwright troca o Chromium e mexe na rasterização do visual-regression.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -717,7 +718,8 @@ jobs:
   # governance/required-checks-baseline.json.
   tema-escuro:
     name: tema-escuro — superfície clara no escuro, todas as rotas do espelho (advisory)
-    runs-on: ubuntu-latest
+    # ubuntu-24.04 fixo: em 2026-11-04 o ubuntu-latest passou a cair no 26.04, que o Playwright do lock (1.60) não suporta (só 1.64+). Subir o Playwright troca o Chromium e mexe na rasterização do visual-regression.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
