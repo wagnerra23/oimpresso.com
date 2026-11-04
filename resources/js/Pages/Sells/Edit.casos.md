@@ -5,7 +5,7 @@ irmaos: Edit.charter.md (lei) · tests/Feature/Sells/SellsEditContratoTest.php (
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-29"
+last_run: "2026-11-04"
 ---
 
 <!-- REVALIDAÇÃO 2026-10-20 (US-SELL-072, trava após nota). Este PR não muda o .tsx; a última
