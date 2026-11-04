@@ -3,9 +3,10 @@ slug: 0411-snapshot-de-pixel-fora-do-passo-3-da-0409
 number: 411
 title: "Snapshot de pixel do VRT fica fora do passo 3 da ADR 0409 — referência de regressão, regenerada só com decisão [W]"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
+superseded_by: ['0445-comparacao-de-pixel-sai-do-projeto']
 kind: decision
 decided_by: [W]
 decided_at: "2026-09-23"
