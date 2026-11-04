@@ -64,6 +64,8 @@ interface Headline {
   current_stage_key: string | null;
   /** P-035 — venda de origem quando este rascunho nasceu de "Duplicar" (mesma empresa). */
   duplicated_from?: { id: number; invoice_no: string } | null;
+  /** D-05 — itens que a cópia trouxe com o preço da tabela de hoje do cliente (≠ origem). */
+  precos_da_tabela?: { produto: string; de: number; para: number }[];
 }
 
 interface EditFormPayload {
@@ -482,6 +484,26 @@ export default function SellsEdit(props: SellsEditPageProps) {
                     </span>
                   )}
                 </p>
+                {headline.precos_da_tabela && headline.precos_da_tabela.length > 0 && (
+                  <div
+                    className="mt-2 rounded-md border border-warning/40 bg-warning-soft px-3 py-2 text-sm text-warning-fg"
+                    data-testid="sells-edit-precos-da-tabela"
+                    role="status"
+                  >
+                    <p className="font-medium">
+                      {headline.precos_da_tabela.length === 1
+                        ? '1 item veio com o preço da tabela de hoje do cliente:'
+                        : `${headline.precos_da_tabela.length} itens vieram com o preço da tabela de hoje do cliente:`}
+                    </p>
+                    <ul className="mt-1 list-disc pl-5">
+                      {headline.precos_da_tabela.map((p, i) => (
+                        <li key={i}>
+                          {p.produto}: {formatBRL(p.de)} → {formatBRL(p.para)}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
               {/* PR parking-lot P2 — Descartar rascunho (visível só quando draft restaurado). */}
               {draftRestored && (
