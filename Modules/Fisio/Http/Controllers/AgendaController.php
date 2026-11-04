@@ -24,7 +24,7 @@ use Modules\Fisio\Services\ResponsavelPaciente;
  *
  * Ler exige `fisio.access` (FisioLiberado); escrever exige `fisio.editar`. `business_id` vem
  * sempre da sessão; atendimento, bloqueio, espera ou paciente de outra empresa respondem 404
- * pelo escopo do model. Toda leitura cara vai por `Inertia::defer`.
+ * pelo escopo do model e pelo `where('business_id', …)` explícito em cada busca (defesa dupla). Toda leitura cara vai por `Inertia::defer`.
  */
 class AgendaController extends Controller
 {
@@ -60,7 +60,7 @@ class AgendaController extends Controller
             'patient_id' => ['required', 'integer'], 'type_id' => ['required', 'integer'], 'professional_id' => ['required', 'integer'],
             'starts_at' => ['required', 'date'], 'encaixe' => ['boolean'],
         ], ['starts_at.required' => 'Escolha o dia e a hora.']);
-        Patient::query()->findOrFail((int) $d['patient_id']);
+        Patient::query()->where('business_id', $this->biz($request))->findOrFail((int) $d['patient_id']);
         $this->agenda->marcar($this->biz($request), [
             'patient_id' => (int) $d['patient_id'], 'type_id' => (int) $d['type_id'], 'professional_id' => (int) $d['professional_id'],
             'starts_at' => Carbon::parse($d['starts_at']), 'created_by' => (int) $request->user()->id,
@@ -76,7 +76,7 @@ class AgendaController extends Controller
             'status' => ['required', Rule::in(['confirmado', 'chegou', 'em_atendimento', 'realizado', 'faltou'])],
             'record_id' => ['nullable', 'integer'],
         ]);
-        $this->agenda->mudarStatus(Appointment::query()->findOrFail($id), $d['status'], isset($d['record_id']) ? (int) $d['record_id'] : null);
+        $this->agenda->mudarStatus(Appointment::query()->where('business_id', $this->biz($request))->findOrFail($id), $d['status'], isset($d['record_id']) ? (int) $d['record_id'] : null);
 
         return back()->with('status', 'Atendimento atualizado.');
     }
@@ -85,7 +85,7 @@ class AgendaController extends Controller
     {
         $this->editar($request);
         $d = $request->validate(['motivo' => ['nullable', 'string', 'max:280'], 'por' => ['required', Rule::in(['clinica', 'paciente'])]]);
-        $candidatos = $this->agenda->cancelar(Appointment::query()->findOrFail($id), $d['por'], $d['motivo'] ?? null);
+        $candidatos = $this->agenda->cancelar(Appointment::query()->where('business_id', $this->biz($request))->findOrFail($id), $d['por'], $d['motivo'] ?? null);
 
         $n = $candidatos->count();
 
@@ -116,7 +116,7 @@ class AgendaController extends Controller
     public function desbloquearHorario(Request $request, int $id): RedirectResponse
     {
         $this->editar($request);
-        ScheduleBlock::query()->findOrFail($id)->delete();
+        ScheduleBlock::query()->where('business_id', $this->biz($request))->findOrFail($id)->delete();
 
         return back()->with('status', 'Bloqueio removido.');
     }
@@ -128,7 +128,7 @@ class AgendaController extends Controller
             'patient_id' => ['required', 'integer'], 'dias' => ['array'], 'dias.*' => ['integer', 'between:1,7'],
             'turnos' => ['array'], 'turnos.*' => [Rule::in(['manha', 'tarde', 'noite'])], 'ate' => ['nullable', 'date'],
         ]);
-        $pac = Patient::query()->findOrFail((int) $d['patient_id']);
+        $pac = Patient::query()->where('business_id', $this->biz($request))->findOrFail((int) $d['patient_id']);
         WaitlistEntry::query()->create(['business_id' => $this->biz($request), 'patient_id' => $pac->id,
             'preferences' => array_filter(['dias' => $d['dias'] ?? [], 'turnos' => $d['turnos'] ?? [], 'ate' => $d['ate'] ?? null])]);
 
@@ -138,7 +138,7 @@ class AgendaController extends Controller
     public function sairDaEspera(Request $request, int $id): RedirectResponse
     {
         $this->editar($request);
-        WaitlistEntry::query()->findOrFail($id)->forceFill(['status' => 'saiu'])->save();
+        WaitlistEntry::query()->where('business_id', $this->biz($request))->findOrFail($id)->forceFill(['status' => 'saiu'])->save();
 
         return back()->with('status', 'Paciente saiu da lista de espera.');
     }
@@ -146,7 +146,7 @@ class AgendaController extends Controller
     public function liberarApp(Request $request, int $id): RedirectResponse
     {
         $this->editar($request);
-        $this->agenda->desbloquear(Patient::query()->findOrFail($id));
+        $this->agenda->desbloquear(Patient::query()->where('business_id', $this->biz($request))->findOrFail($id));
 
         return back()->with('status', 'Agendamento pelo app liberado para o paciente.');
     }
