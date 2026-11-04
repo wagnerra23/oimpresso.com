@@ -27,7 +27,7 @@
   "stats": {
     "modules": 38,
     "nodes": 897,
-    "edges": 1214,
+    "edges": 1220,
     "by_node_type": {
       "module": 43,
       "table": 108,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 507,
-      "dependsOn": 133,
-      "delegatesTo": 122,
+      "dependsOn": 136,
+      "delegatesTo": 125,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 76,
@@ -9937,6 +9937,27 @@
     },
     {
       "from": "module:Fisio",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Preço do pacote, cobrança e títulos"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de nota"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:RecurringBilling",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Mensalidade de paciente"
+    },
+    {
+      "from": "module:Fisio",
       "to": "module:Whatsapp",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -9954,6 +9975,27 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Armazenamento de arquivo (foto/vídeo do exercício próprio)"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Preço do pacote, cobrança e títulos"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de nota"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:RecurringBilling",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mensalidade de paciente"
     },
     {
       "from": "module:Fisio",
