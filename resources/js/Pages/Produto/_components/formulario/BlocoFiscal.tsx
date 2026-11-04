@@ -4,6 +4,7 @@
 // protótipo ainda não tem coluna no produto e fica fora desta tela.
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Grid } from '@/Components/layout';
 import { OrigemMercadoriaField } from '../OrigemMercadoriaField';
 import { CampoNcm } from './CampoNcm';
 import { CampoCest } from './CampoCest';
@@ -25,7 +26,8 @@ export function BlocoFiscal({ data, definir, errors, naturezaFiscal }: Props) {
         <CardTitle>Fiscal</CardTitle>
       </CardHeader>
       {/* Quatro colunas: NCM, CEST e a origem, que ocupa duas (OrigemMercadoriaField é col-span-2). */}
-      <CardContent className="grid grid-cols-4 gap-4">
+      <CardContent>
+        <Grid cols={4} gap={4}>
         {naturezaFiscal && (
           <div className="col-span-4">
             <NaturezaFiscal natureza={naturezaFiscal} />
@@ -43,6 +45,7 @@ export function BlocoFiscal({ data, definir, errors, naturezaFiscal }: Props) {
           onChange={(v) => definir('origem_mercadoria', v)}
           error={errors.origem_mercadoria}
         />
+        </Grid>
       </CardContent>
     </Card>
   );

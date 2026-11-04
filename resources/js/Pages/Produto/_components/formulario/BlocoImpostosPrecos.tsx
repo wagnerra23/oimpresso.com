@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import { Grid } from '@/Components/layout';
 import { CamposPreco } from './CamposPreco';
 import type { PrecoSimples } from './precos';
 import type { CamposProduto, DefinirCampo, ModoFormulario, OpcoesProduto, TipoProduto } from './tipos';
@@ -42,7 +43,8 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
       <CardHeader>
         <CardTitle>Impostos e preços</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-3 gap-4">
+      <CardContent>
+        <Grid cols={3} gap={4}>
         <div>
           <Label htmlFor="tax">Taxa de imposto</Label>
           <Select
@@ -113,6 +115,7 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
           )}
         </div>
         {preco && <CamposPreco valor={preco.valor} mudar={preco.mudar} aliquota={preco.aliquota} />}
+        </Grid>
       </CardContent>
     </Card>
   );

@@ -4,6 +4,7 @@
 
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import {
   Select,
@@ -12,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
-import { Inline } from '@/Components/layout';
+import { Grid, Inline } from '@/Components/layout';
 import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario } from './tipos';
 
 /** O Select do Radix não aceita item com valor vazio: "não aplicável" é `''` no envio. */
@@ -37,7 +38,8 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
       <CardHeader>
         <CardTitle>Configurações</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-4 gap-4">
+      <CardContent>
+        <Grid cols={4} gap={4}>
         {mostrarValidade && (
           <div>
             <Label htmlFor="expiry_period">Expira em</Label>
@@ -69,15 +71,14 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
         )}
         {/* O formulário do Editar não envia "não está à venda": a caixa só existe no Novo. */}
         {modo === 'novo' && (
-          <label className="flex items-center gap-2 self-end pb-2">
-            <input
-              type="checkbox"
-              checked={data.not_for_selling === 1}
-              onChange={(e) => definir('not_for_selling', e.target.checked ? 1 : 0)}
-              className="rounded border-input"
-            />
-            <span className="text-[13px]">Não está à venda (apenas insumo)</span>
-          </label>
+          <Inline gap={2} className="self-end pb-2">
+          <Checkbox
+            id="not_for_selling"
+            checked={data.not_for_selling === 1}
+            onCheckedChange={(v) => definir('not_for_selling', v === true ? 1 : 0)}
+          />
+          <Label htmlFor="not_for_selling" className="text-[13px] font-normal">Não está à venda (apenas insumo)</Label>
+        </Inline>
         )}
         {/* UC-PCAD-16 e UC-PEDIT-13: o "Peso" de sempre é o peso bruto, que o WooCommerce usa no frete. */}
         <div>
@@ -141,6 +142,7 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
             onChange={(e) => definir('product_custom_field2', e.target.value)}
           />
         </div>
+        </Grid>
       </CardContent>
     </Card>
   );

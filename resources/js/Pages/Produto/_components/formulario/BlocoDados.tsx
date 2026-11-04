@@ -4,6 +4,7 @@
 
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Textarea } from '@/Components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import {
@@ -13,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import { Grid, Inline } from '@/Components/layout';
 import { CampoLocais } from './BlocoLocais';
 import { avisoCodigoBarras } from './ean';
 import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario, OpcoesProduto } from './tipos';
@@ -35,7 +37,8 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
       <CardHeader>
         <CardTitle>Dados do produto</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-3 gap-4">
+      <CardContent>
+        <Grid cols={3} gap={4}>
         <div>
           <Label htmlFor="name">{novo ? 'Nome do produto *' : 'Nome *'}</Label>
           <Input
@@ -134,15 +137,14 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
         )}
         {/* O formulário do Editar não envia o controle de estoque: a caixa só existe no Novo. */}
         {novo && (
-          <label className="flex items-center gap-2 self-end pb-2">
-            <input
-              type="checkbox"
-              checked={data.enable_stock === 1}
-              onChange={(e) => definir('enable_stock', e.target.checked ? 1 : 0)}
-              className="rounded border-input"
-            />
-            <span className="text-[13px]">Controlar estoque</span>
-          </label>
+          <Inline gap={2} className="self-end pb-2">
+          <Checkbox
+            id="enable_stock"
+            checked={data.enable_stock === 1}
+            onCheckedChange={(v) => definir('enable_stock', v === true ? 1 : 0)}
+          />
+          <Label htmlFor="enable_stock" className="text-[13px] font-normal">Controlar estoque</Label>
+        </Inline>
         )}
         <div>
           <Label htmlFor="alert_quantity">Quantidade de alerta</Label>
@@ -184,6 +186,7 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
             onChange={(e) => definir('product_description', e.target.value)}
           />
         </div>
+        </Grid>
       </CardContent>
     </Card>
   );

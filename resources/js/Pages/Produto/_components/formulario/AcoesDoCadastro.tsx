@@ -9,16 +9,7 @@
 
 import { Link } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
-
-/** Os valores de `submit_type` que o ProductController@store e @update reconhecem. */
-export type TipoDeEnvio = 'submit_n_add_selling_prices' | 'save_n_add_another';
-
-/** O `submit_type` do botão que enviou o formulário (vazio = só salvar e voltar para a lista). */
-export function tipoDeEnvio(evento: { nativeEvent: Event }): TipoDeEnvio | undefined {
-  const botao = (evento.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null | undefined;
-  const valor = botao?.value;
-  return valor === 'submit_n_add_selling_prices' || valor === 'save_n_add_another' ? valor : undefined;
-}
+import { Inline } from '@/Components/layout';
 
 interface Props {
   /** O id do <form> que os botões enviam. */
@@ -35,7 +26,7 @@ export function AcoesDoCadastro({ form, modo, cancelarHref, desabilitado, comGru
   const novo = modo === 'novo';
 
   return (
-    <div className="mt-6 flex flex-wrap items-center justify-end gap-2" data-testid="acoes-cadastro">
+    <Inline wrap justify="end" gap={2} className="mt-6" data-testid="acoes-cadastro">
       <Button variant="ghost" asChild>
         <Link href={cancelarHref}>Cancelar</Link>
       </Button>
@@ -50,6 +41,6 @@ export function AcoesDoCadastro({ form, modo, cancelarHref, desabilitado, comGru
       <Button type="submit" form={form} disabled={desabilitado}>
         {novo ? 'Salvar' : 'Salvar alterações'}
       </Button>
-    </div>
+    </Inline>
   );
 }
