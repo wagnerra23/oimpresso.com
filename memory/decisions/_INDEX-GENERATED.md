@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **450** arquivos · **435** números únicos · máx **0445**
-- **ADRs ATIVOS (lifecycle ativo): 402** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 387 · superseded 28 · proposto 21 · deprecated 11 · recusado 2 · rascunho 1
-- Por lifecycle: ativo 402 · substituido 28 · arquivado 20
+- **451** arquivos · **436** números únicos · máx **0446**
+- **ADRs ATIVOS (lifecycle ativo): 403** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 387 · superseded 28 · proposto 22 · deprecated 11 · recusado 2 · rascunho 1
+- Por lifecycle: ativo 403 · substituido 28 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 - **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
-## Todas as ADRs (450)
+## Todas as ADRs (451)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -489,3 +489,4 @@ _(nenhuma)_
 | 0443 | aceito | ativo | decision | Nuvemshop entra no Modules/Marketplaces como segundo canal, não no Woocommerce |
 | 0444 | proposto | ativo | decision | MDF-e e CT-e entram pelas bibliotecas sped-mdfe e sped-cte, dentro do Modules/Nf |
 | 0445 | aceito | ativo | decision | A comparação de pixel (snapshots do VRT) sai do projeto; os testes de comportame |
+| 0446 | proposto | ativo | decision | Fisio: teleconsulta por vídeo no navegador (LiveKit, sem gravação) e evolução di |
