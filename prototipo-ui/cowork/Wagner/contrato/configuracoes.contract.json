@@ -64,18 +64,15 @@
       "obrigatoria": true,
       "rail": [
         "Negócio", "Impostos", "Produtos", "Contatos",
-        "Vendas", "Venda no PDV", "Compras", "Pagamento", "Financeiro",
+        "Vendas", "Venda no PDV", "Compras", "Pagamento",
         "Painel", "Sistema", "Prefixos",
-        "E-mail", "SMS", "Pontos de fidelidade", "Módulos", "Rótulos personalizados", "App das lojas"
+        "E-mail", "SMS", "Pontos de fidelidade", "Módulos", "Rótulos personalizados"
       ],
       "salvar": { "copy": "Atualizar configurações", "regra": "um botão pro formulário inteiro (POST /business/update); trocar de aba não perde digitação" },
       "campos": {
         "negocio": ["Nome do negócio", "Data de início", "Margem de lucro padrão (%)", "Moeda", "Posição do símbolo", "Fuso horário", "Mês que abre o exercício", "Método de custo", "Dias para editar uma transação", "Formato de data", "Formato de hora", "Casas decimais do valor", "Casas decimais da quantidade", "Logo do negócio", "Nome do código 1", "Código 1", "Nome do código 2", "Código 2", "Permitir exportar listas"],
         "prefixos": 17,
         "pdvSwitches": 18,
-        "pdvAtalhos": 11,
-        "produtoCadastro": 11,
-        "appLojas": 8,
         "rotulos": { "pagamento": 7, "contato": 10, "produto": 20, "local": 4, "usuario": 4, "compra": 4, "freteCompra": 5, "venda": 4, "freteVenda": 5, "servico": 6 },
         "sms": { "cabecalhos": 3, "parametros": 10 }
       }
