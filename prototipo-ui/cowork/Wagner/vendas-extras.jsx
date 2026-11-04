@@ -274,7 +274,7 @@ function VendasCaixaPage() {
         <div className={"os-kpi" + (Math.abs(diff) > 0.01 ? " os-kpi-alert" : "")}>
           <span className="os-kpi-label">Diferença</span>
           <span className="os-kpi-value" style={{
-            color: Math.abs(diff) < 0.01 ? "oklch(0.50 0.14 145)" : diff < 0 ? "oklch(0.55 0.18 25)" : "oklch(0.55 0.14 70)"
+            color: Math.abs(diff) < 0.01 ? "var(--pos)" : diff < 0 ? "var(--neg)" : "var(--warn)"
           }}>{diff >= 0 ? "+" : ""}{_fmtBRL(diff)}</span>
           <span className="os-kpi-sub">{Math.abs(diff) < 0.01 ? "ok" : diff < 0 ? "falta" : "sobra"}</span>
         </div>

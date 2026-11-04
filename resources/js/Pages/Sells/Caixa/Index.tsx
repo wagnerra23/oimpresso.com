@@ -232,7 +232,7 @@ export default function SellsCaixaIndex() {
             <span
               className="os-kpi-value"
               style={{
-                color: caixaAberto ? 'oklch(0.50 0.14 145)' : 'oklch(0.55 0.02 250)',
+                color: caixaAberto ? 'var(--pos)' : 'var(--text-mute)',
               }}
             >
               {caixaAberto ? 'aberto' : 'fechado'}
