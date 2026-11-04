@@ -1423,7 +1423,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             Foco · visão salva · Visão · Filtros avançados à esquerda, busca à direita. Quebra em
             duas linhas quando não cabe (o protótipo faz o mesmo a 1280). Antes, os controles dividiam
             a linha com as pílulas e as empurravam para 6 linhas a 1280 (medição 2026-11-04, PR-1b). */}
-        <div className="vd-toolbar vd-toolbar-filtros">
+        <div className="vd-toolbar">
           <div className="vd-toolbar-l">
             <div className="vd-vista" role="group" aria-label="Foco">
               <span className="vd-vista-lbl">Foco</span>

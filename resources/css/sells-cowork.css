@@ -3687,18 +3687,17 @@
 }
 /* Toolbar limpa abaixo do header */
 .sells-cowork .vendas-aplus .vd-toolbar {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px;
   padding: 8px 0 14px;
   border-bottom: 1px solid var(--border-2);
   margin-bottom: 14px;
 }
 .sells-cowork .vendas-aplus .vd-toolbar-l {
-  display: inline-flex; align-items: center; gap: 8px; flex: 1;
+  display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; flex: 1;
 }
 .sells-cowork .vendas-aplus .vd-toolbar-r {
   display: inline-flex; align-items: center; gap: 4px;
 }
-.sells-cowork .vendas-aplus .vd-toolbar-filtros, .sells-cowork .vendas-aplus .vd-toolbar-filtros .vd-toolbar-l { flex-wrap: wrap; row-gap: 8px; } /* linha abaixo das pílulas quebra em vez de espremer (PR-1d) */
 .sells-cowork .vendas-aplus .vd-toolbar-sep {
   width: 1px; height: 18px; background: var(--border);
   margin: 0 4px;
