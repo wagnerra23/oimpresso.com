@@ -100,7 +100,11 @@ final class SaldoDoPacote
         return $this->lancar($pacote, PacoteLancamento::EXTENSAO, 0, $userId, 'manual', $motivo, $novaValidade);
     }
 
-    /** Lançamentos do pacote, com a empresa explícita além do escopo global (ADR 0093). */
+    /**
+     * Lançamentos do pacote, com a empresa explícita além do escopo global (ADR 0093).
+     *
+     * @return \Illuminate\Database\Eloquent\Builder<PacoteLancamento>
+     */
     private function doPacote(Pacote $pacote): \Illuminate\Database\Eloquent\Builder
     {
         return PacoteLancamento::where('business_id', $pacote->business_id)->where('package_id', $pacote->id);
