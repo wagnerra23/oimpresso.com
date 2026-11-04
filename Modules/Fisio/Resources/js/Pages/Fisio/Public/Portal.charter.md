@@ -2,7 +2,8 @@
 id: modules-fisio-pages-fisio-public-portal-charter
 page: /fisio/p/{token}
 component: Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx
-related_prototype: "n/a (sem fonte em prototipo-ui/) — referência visual: canvas de design Prescreve Pro (claude.ai), telas PacienteAcesso, PacienteHoje, PacienteCheckin, PacienteCrise e PacienteNota ; a implementação usa os tokens e componentes do repo"
+related_prototype: "prototipo-ui/cowork/Wagner/prototipos/fisio/PacienteHoje.dc.html (e PacienteAcesso, PacienteCheckin, PacienteCrise, PacienteNota na mesma pasta)"
+related_us: [US-FISIO-007a, US-FISIO-007b]
 owner: wagner
 status: draft
 last_validated: "2026-10-19"

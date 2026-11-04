@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o que a tela garante é o agregado do dia (valor, forma de pagamento, origem, caixa aberto) — isso não muda num refactor visual.
 owner: wagner
-last_run: "2026-10-05"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
+last_run: "2026-11-04"
+last_run_ci: "revalidado no PR #10366 (props do dia deferidas, UC-SCAIXA-15); veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
 # Casos de Uso & Aceite — Caixa do dia
@@ -127,6 +127,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Aceite:** Dado contado 170,00 contra esperado 175,00 · Então a tela diz que falta 5,00 (diferença negativa) e exige a observação (front) · Quando fecho · Então o `POST /cash-register/close-register` existente grava `closing_amount` 170.00, a observação e os comprovantes no turno do 98, o turno do mesmo usuário no 99 continua aberto e intocado, e a tela fica sem turno.
 - **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-14 [V0] [T0] fechar com a contagem grava pelo caminho legado e só o turno do próprio business`. O texto da diferença e a nota obrigatória são do front, sem teste de render.
 - **Regressão que defende:** valor contado gravado com separador errado (`num_uf`); fechamento atingindo o caixa de outro business.
+- **Status: 🧪**
+
+## UC-SCAIXA-15 · Agregações do dia chegam deferidas `[should]`
+- **Persona:** operador que abre a Caixa — o shell e os botões aparecem antes das contas do dia.
+- **Aceite:** Dado o 1º load de `/vendas/caixa` · Então `porFormaPagamento`, `porOrigem`, `totalDia` e `countDia` não vêm nas props e estão no grupo deferido `dia` · Quando o `<Deferred>` pede o grupo · Então chegam com os mesmos números de UC-SCAIXA-01 (150,00 · 2). O fallback mostra "…" e "Carregando…", nunca um R$ 0,00 provisório.
+- **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-15 as agregações do dia não vêm no 1º load: chegam deferidas no grupo dia`. Os UC-SCAIXA-01/02/04/05/06 passam a ler as 4 props pelo pedido deferido, com os valores esperados inalterados. O fallback é do front, sem teste de render.
+- **Regressão que defende:** voltar a calcular as 4 agregações no 1º load (RUNBOOK-caixa §3, regra `Inertia::defer`).
 - **Status: 🧪**
 
 - `[BACKLOG]` Contagem por cédula (denominações) na tela — segue no modal legado `/cash-register/close-register/{id}`.
