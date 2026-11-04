@@ -269,3 +269,15 @@
 /* ── Contagem clicável (Cadastros de apoio → índice filtrado) ── */
 .pb-uso{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; background:none; border:0; padding:0; color:var(--accent); cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
 .pb-uso[disabled]{ color:var(--text-mute); text-decoration:none; }
+
+/* D7 · UC-PIDX-37: saldo por variação na coluna Estoque. */
+.pb-saldo-var{ display:block; width:100%; text-align:right; background:none; border:0; padding:0; cursor:pointer; font:inherit; color:inherit; }
+.pb-saldo-var-n{ display:block; font-size:11px; color:var(--text-mute); text-decoration:underline dotted; text-underline-offset:2px; }
+.pb-saldo-var-painel{ padding:8px 12px; }
+.pb-saldo-var-t{ margin:0 0 6px; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-mute); }
+.pb-saldo-var-painel table{ width:100%; border-collapse:collapse; font-size:12px; }
+.pb-saldo-var-painel td{ padding:2px 6px 2px 0; }
+.pb-saldo-var-painel td.m{ font-family:var(--font-mono); font-size:11px; color:var(--text-mute); }
+.pb-saldo-var-painel td.r{ text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums; padding-right:0; }
+.pb-saldo-var-painel td.zero{ color:var(--neg); font-weight:600; }
+.pb-saldo-var-painel tfoot td{ border-top:1px solid var(--border); padding-top:6px; font-weight:600; }

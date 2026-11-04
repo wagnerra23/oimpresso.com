@@ -215,6 +215,59 @@ function Kebab({ acoes }) {
     </div>
   );
 }
+// D7 · UC-PIDX-37: saldo de cada variação na própria lista. O dado de mentira não tem saldo por
+// variação; reparte o saldo do produto e põe o resto na última, para o total bater com a coluna.
+function saldosDasVariacoes(p) {
+  const n = p.variations.length;
+  const base = Math.floor((p.stock || 0) / n);
+  return p.variations.map((va, i) => ({ nome: va.name, sku: va.sku, saldo: i === n - 1 ? (p.stock || 0) - base * (n - 1) : base }));
+}
+// Hover consulta, clique fixa (como o saldo por local do catálogo); o clique não abre o painel da linha.
+function SaldoVariacoes({ p, children }) {
+  const [pos, setPos] = useState(null);
+  const [fixo, setFixo] = useState(false);
+  const botao = useRef(null);
+  const painel = useRef(null);
+  const posicao = () => {
+    const r = botao.current.getBoundingClientRect();
+    return { left: Math.max(8, r.right - 280), top: r.bottom + 4 };
+  };
+  useEffect(() => {
+    if (!pos) return;
+    const fora = (e) => { if (!painel.current?.contains(e.target) && !botao.current?.contains(e.target)) { setPos(null); setFixo(false); } };
+    const tecla = (e) => { if (e.key === "Escape") { setPos(null); setFixo(false); } };
+    document.addEventListener("mousedown", fora);
+    document.addEventListener("keydown", tecla, true);
+    return () => { document.removeEventListener("mousedown", fora); document.removeEventListener("keydown", tecla, true); };
+  }, [pos]);
+  const linhas = saldosDasVariacoes(p);
+  return (
+    <>
+      <button ref={botao} type="button" className="pb-saldo-var" aria-haspopup="dialog" aria-expanded={!!pos}
+        aria-label={"Saldo por variação de " + p.name}
+        onMouseEnter={() => { if (!fixo) setPos(posicao()); }}
+        onMouseLeave={() => { if (!fixo) setPos(null); }}
+        onClick={(e) => { e.stopPropagation(); if (fixo) { setPos(null); setFixo(false); } else { setPos(posicao()); setFixo(true); } }}>
+        {children}
+        <span className="pb-saldo-var-n">{p.variations.length} variações</span>
+      </button>
+      {pos && ReactDOM.createPortal(
+        <div ref={painel} className="pb-menu pb-menu-fixo pb-saldo-var-painel" role="dialog" aria-label={"Saldo por variação de " + p.name}
+          style={{ left: pos.left, top: pos.top, width: 280 }}>
+          <p className="pb-saldo-var-t">Saldo por variação</p>
+          <table>
+            <tbody>
+              {linhas.map((l) => (
+                <tr key={l.sku}><td>{l.nome}</td><td className="m">{l.sku}</td>
+                  <td className={"r" + (l.saldo <= 0 ? " zero" : "")}>{fmtQty(l.saldo)} {p.unit}</td></tr>
+              ))}
+            </tbody>
+            <tfoot><tr><td colSpan={2}>Total</td><td className="r">{fmtQty(linhas.reduce((t, l) => t + l.saldo, 0))} {p.unit}</td></tr></tfoot>
+          </table>
+        </div>, document.body)}
+    </>
+  );
+}
 // Modal = primitivo do DS (PT-04: foco preso, esc, scrim), com a assinatura local por cima.
 function Modal({ titulo, onClose, children, acoes, largura = 720 }) {
   const { Modal: DsModal } = DS();
@@ -360,7 +413,9 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, empresa
       compra: faixaComImposto(p, "dpp", empresa),
       venda: faixaComImposto(p, "dsp", empresa),
       estoque: p.stockOn
-        ? <span className={"pb-stock" + (p.alert != null && p.stock <= p.alert ? " low" : "")}>{fmtQty(p.stock)} {p.unit}</span>
+        ? (p.type === "variable" && p.variations.length > 1
+          ? <SaldoVariacoes p={p}><span className={"pb-stock" + (p.alert != null && p.stock <= p.alert ? " low" : "")}>{fmtQty(p.stock)} {p.unit}</span></SaldoVariacoes>
+          : <span className={"pb-stock" + (p.alert != null && p.stock <= p.alert ? " low" : "")}>{fmtQty(p.stock)} {p.unit}</span>)
         : <span className="pb-stock na">—</span>,
       tipo: <span className={"pb-pill " + p.type}>{TYPE_LABEL[p.type]}</span>,
       categoria: { primary: p.cat, sub: p.sub },

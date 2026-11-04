@@ -59,6 +59,8 @@ função da lista Blade que roda hoje em produção.
   **valor em estoque pelo custo** (o MESMO total do Relatório de estoque — regra mestre de valor:
   prova dupla antes de subir) e inativos. "Abaixo do alerta" e "Inativos" filtram a lista ao
   clicar, e o 2º clique desliga (UC-PIDX-35, 2026-11-03); as outras duas são só leitura.
+- Coluna Estoque de produto variável que controla estoque: abaixo do saldo, "N variações" abre o
+  saldo de cada variação, com SKU e o total igual ao saldo da linha (UC-PIDX-37 · D7, 2026-11-04).
 - Filtros (recolhíveis): tipo, categoria, unidade, imposto, marca, local do negócio, situação,
   "Não para venda"; e os de módulo, só para quem tem o módulo: "Modelo do dispositivo"
   (assistência técnica) e "WooCommerce habilitado". Chips "Filtrando por" + "Limpar tudo".

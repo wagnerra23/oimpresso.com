@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-11-03"
+last_run: "2026-11-04"
 last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com a requisição aberta e o método de custo do #9896 e do #9898 já no main), head 2c43ba7: lane PHP / Pest (Estoque · MySQL), job 121847889045: 550 passed, 0 pulados (2701 assertions), com ProdutoRequisicaoAbertaContratoTest 4, ProdutoNaturezaFiscalConsultaContratoTest 3 e ProdutoMetodoDeCustoContratoTest 2 verdes; job Frontend / Vite build 121847886774: 114 testes passaram em 14 arquivos. Antes: 2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, disparada à mão): 497 testes, 0 falhas, 0 pulados, com todos os arquivos Pest da lista; job 120384523098 (Frontend / Vite build, mesmo commit): os 2 arquivos Vitest da lista que rodam em lane passaram; os outros 8 arquivos Vitest da lista não rodam em lane e passaram local (133 de 133). Antes: 2026-10-19, job 118208572139."
 ---
 
@@ -91,6 +91,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-33 | Aba Estoque do painel: a tabela de locais mostra quanto foi vendido em cada local | should | protótipo (artefato "Consulta de Produto", 22/10: coluna "Vendido" por local) + pedido da ROTA LIVRE (2026-10-23) | `ProdutoDetalheTest` (lane Estoque · MySQL) + `produto-painel-detalhe.test.tsx` (Vitest, não roda em lane) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-35 | Os indicadores "Abaixo do alerta" e "Inativos" filtram a lista ao clicar | should | pesquisa de concorrentes D6 (2026-10-20) + item 2.1 de `absorcao-v2-em-todos-os-produtos.md` + protótipo `produto-blade.jsx` (2026-11-03) | `ProdutoListaAbaixoDoAlertaTest` (lane Estoque · MySQL) + `produto-lista-indicadores-filtro.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-36 | Com a chave do cadastro React, Novo, Preços e Histórico abrem na tela React | should | `ProductController` (render Inertia de create/addSellingPrices/productStockHistory) + chave `useV2ProdutoCadastro` | `produto-navegacao.test.ts` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-37 | Cada cor e tamanho, com saldo, na própria lista | should | `ProductController::saldosDasVariacoes` + coluna Estoque (`colunas.tsx`, `PopoverAncorado`) | `ProdutoListaSaldoVariacoesTest` (lane Estoque · MySQL) + `produto-lista-saldo-variacoes.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -521,6 +522,14 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Não coberto por teste:** a ligação dentro de `Produto/Index.tsx` (o `contexto.telas_react` vindo do servidor e chegando ao `irPara`) — nenhum teste renderiza a página inteira. Conferir em produção com a chave ligada.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-37 · Cada cor e tamanho, com saldo, na própria lista · `should` `[V0]`
+- **Persona:** quem atende no balcão e precisa saber se tem a camiseta azul no M, sem abrir o painel de cada produto.
+- **Aceite:** Dado um produto variável que controla estoque, com 3 variações · Quando passo o mouse ou clico no saldo dele na coluna Estoque (abaixo do número aparece "3 variações") · Então abre um painel com cada variação, o SKU e o saldo, e o total, que é o mesmo número da coluna · O clique não abre o painel do produto · Variação com saldo zero ou negativo aparece em destaque · Produto simples, ou variável que não controla estoque, não tem o painel · Na densidade compacta o painel continua, sem a 2ª linha "N variações".
+- **Teste:** [`ProdutoListaSaldoVariacoesTest`](../../../../tests/Feature/Produto/ProdutoListaSaldoVariacoesTest.php) — `UC-PIDX-37` (cada variação traz a soma dos seus locais e a soma das variações é o saldo da linha, por dois caminhos; só variável que controla estoque; variação excluída fica fora; quem vê um local só recebe o saldo daquele local — lane Estoque · MySQL) e [`produto-lista-saldo-variacoes.test.tsx`](../../../../tests/js/produto-lista-saldo-variacoes.test.tsx) — `UC-PIDX-37` (o painel com cada variação e o total, o clique não abre o painel do produto, sem gatilho em produto simples ou sem controle, densidade compacta — Vitest do `Frontend / Vite build`).
+- **Contrato:** pesquisa de concorrentes D7 (2026-10-20: Bling, Alterdata, Senior — estoque por grade). A conta é a da coluna Estoque (`consultaListaProdutos`): `variation_location_details` nos locais que o usuário pode ver, variações não excluídas. O gesto é o do saldo por local do catálogo (`PopoverAncorado`, Produto/Unificado): hover consulta, clique fixa, Esc e clique-fora fecham. Mexe em estoque só para mostrar, sem gravar nada (Regra Mestre: prova dupla no teste do servidor).
+- **Fora daqui:** o saldo por local de cada variação continua no painel do produto (aba Estoque); o separado para vendas e o livre é o D5.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -683,10 +692,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 **Vestuário (ROTA LIVRE)**
 
 - Clicar em "Abaixo do alerta" filtra a lista (D6) saiu deste backlog em 2026-11-03: virou UC-PIDX-35, com teste, junto do "Inativos" (item 2.1 do protótipo).
-- **[BACKLOG] Ver cada cor e tamanho, com saldo, na própria lista (D7)** `[V0]` — hoje a lista diz
-  só "N variações"; cada uma aparece no painel. Aceite: Dado um produto variável com 8 variações,
-  Quando abro a linha, Então vejo cada variação com SKU e saldo, e a soma das variações é o saldo
-  do produto. Fonte: Bling (variações marcadas na lista), Alterdata e Senior (estoque por grade).
+- Ver cada cor e tamanho, com saldo, na própria lista (D7) saiu deste backlog em 2026-11-04: virou UC-PIDX-37, com teste. "Abrir a linha" ficou como um painel no saldo da coluna Estoque, porque a tabela compartilhada não abre linha e a linha já abre o painel do produto.
 - **[BACKLOG] Mostrar o estoque separado para vendas e o livre (D5)** `[V0]` — hoje o saldo não
   desconta o que já foi vendido e ainda não saiu. Aceite: Dado 10 un em estoque e uma venda não
   entregue que separou 3, Então a lista mostra "3 un separadas para vendas · 7 un livres". Só com
@@ -846,6 +852,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 
 ## Trilha do tempo
+- 2026-11-04 · [F+C] **UC-PIDX-37**: o saldo de cada cor e tamanho aparece na coluna Estoque (D7), num painel com o total igual ao saldo da linha. `last_run` 2026-11-03 → 2026-11-04.
 - 2026-11-03 · [F+C] **UC-PIDX-35**: "Abaixo do alerta" e "Inativos" filtram a lista ao clicar (D6 e item 2.1 do protótipo), com o filtro `abaixo_do_alerta` no servidor e o protótipo atualizado. O D1 (recortes salvos) não foi feito e virou a decisão D-28. `last_run` 2026-10-28 → 2026-11-03.
 - 2026-10-30 · [W+C] Decisão pendente D-19 do documento "Casos de uso por tela", para casos marcados como decisão do [W] que não tinham pergunta.
 - 2026-10-28 · [F+C] Backlog: juntar produtos duplicados pela nota de compra (pedido de PraMoto e Techpress). Sem id.
