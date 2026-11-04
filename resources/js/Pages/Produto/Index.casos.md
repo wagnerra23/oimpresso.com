@@ -93,6 +93,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-36 | Com a chave do cadastro React, Novo, Preços e Histórico abrem na tela React | should | `ProductController` (render Inertia de create/addSellingPrices/productStockHistory) + chave `useV2ProdutoCadastro` | `produto-navegacao.test.ts` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-37 | Cada cor e tamanho, com saldo, na própria lista | should | `ProductController::saldosDasVariacoes` + coluna Estoque (`colunas.tsx`, `PopoverAncorado`) | `ProdutoListaSaldoVariacoesTest` (lane Estoque · MySQL) + `produto-lista-saldo-variacoes.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-38 | Separado para vendas e livre na coluna Estoque | should | `ProductController::separadosDosProdutos` + coluna Estoque (`colunas.tsx`, `separadoTexto`) | `ProdutoListaSeparadoLivreTest` (lane Estoque · MySQL) + `produto-lista-separado-livre.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-39 | Saldo também em embalagens inteiras (rolos) | should | `ProductController::embalagensDosProdutos` + coluna Estoque (`saldoEmEmbalagens`, `embalagemTexto`) | `ProdutoListaEmbalagemTest` (lane Estoque · MySQL) + `produto-lista-embalagem.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -540,6 +541,15 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** a tabela "De onde vem o separado" no painel (segue no backlog, item CV4); o aviso "Abaixo do alerta" continua olhando o saldo, não o livre.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-39 · Saldo também em embalagens inteiras (rolos) · `should` `[V0]`
+- **Persona:** quem cuida do material de comunicação visual compra e conta lona em rolo, mas vende e usa em m²; precisa ver os dois sem fazer a conta de cabeça.
+- **Aceite:** Dada a empresa com subunidades ligadas e a unidade "Rolo" cadastrada como múltiplo de 80 da unidade m² · E a lona com 170 m² · Quando abro a consulta · Então abaixo do saldo aparece "2 × Rolo + 10 m²", e ao passar o mouse "1 Rolo = 80 m²" · 2 × 80 + 10 = 170, as duas contas fecham · Com mais de um múltiplo cadastrado vale o maior; se o produto escolheu as subunidades dele, só as escolhidas · Saldo abaixo de uma embalagem, negativo, produto sem controle de estoque, empresa sem subunidades ou unidade excluída: nada aparece.
+- **Teste:** [`ProdutoListaEmbalagemTest`](../../../../tests/Feature/Produto/ProdutoListaEmbalagemTest.php) — `UC-PIDX-39` (o maior múltiplo; só as subunidades escolhidas pelo produto; sem subunidades na empresa, sem múltiplo, excluída ou sem controle de estoque não vem; unidade de outra empresa não vale — lane Estoque · MySQL) e [`produto-lista-embalagem.test.tsx`](../../../../tests/js/produto-lista-embalagem.test.tsx) — `UC-PIDX-39` (prova dupla da conta: rolos e resto contra a conta à mão, e rolos × fator + resto de volta ao saldo, inclusive no caso de ponto flutuante 4,2 ÷ 1,4; a célula e o `title`; quando não aparece — Vitest do `Frontend / Vite build`). Mutação em 2026-11-04: fazer a conta direto em ponto flutuante, sem as 4 casas, derruba a prova.
+- **Contrato:** pesquisa de concorrentes CV2 (2026-10-20: shopVOX, unidade de compra × unidade de venda). A embalagem é a subunidade do UltimatePOS (Configurações › Unidades, "múltiplo de outra unidade"; `units.base_unit_id` e `base_unit_multiplier`), a mesma que a venda e a compra já usam (`Util::getSubUnits`), com a restrição `products.sub_unit_ids` e a chave `business.enable_sub_units`. Nada novo para cadastrar. Mexe em estoque só para mostrar (Regra Mestre: prova dupla no teste da tela, que é onde a conta acontece).
+- **Diferença deliberada do backlog:** o aceite dizia "2 rolos · 160 m²". A tela escreve "2 × Rolo" com o nome da unidade como foi cadastrado, porque o plural de um nome digitado pelo cliente sai errado (a mesma razão do "Cor (4)" do catálogo); e mostra o resto ("+ 10 m²") quando o saldo não fecha em rolos inteiros.
+- **Fora daqui:** o saldo por rolo (lote) continua no Rastreio do rolo (Produção, US-COM-025); aqui é só a conversão do saldo total.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -739,9 +749,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   OS e outra de 14 m², Então a tabela mostra 6 m² e 14 m² separados e o total de 20 m². Produto de
   revenda (D5) mostra a mesma tabela sem OS e sem "já usado". Depende da reserva por m² existir na
   venda da CV, que o UC-FLX-14 ainda lista como falta.
-- **[BACKLOG] Saldo do material em rolos e em m² (CV2)** `[V0]` — hoje o saldo aparece numa unidade
-  só. Aceite: Dado 2 rolos de 1,60 m × 50 m, Então a lista mostra "2 rolos · 160 m²", e as duas
-  contas fecham. Fonte: shopVOX (unidade de compra × unidade de venda).
+- Saldo do material em rolos e em m² (CV2) saiu deste backlog em 2026-11-04: virou UC-PIDX-39, com teste, usando as subunidades que a empresa já cadastra.
 - **[BACKLOG] Composição com a receita da Fabricação no painel (CV6)** — hoje o painel mostra só
   os itens de um produto do tipo Composição. Aceite: Dado um produto com receita na Fabricação,
   Quando abro o painel, Então vejo materiais e quantidades da receita. ⚠️ Conferir com o charter: o
@@ -854,6 +862,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 
 ## Trilha do tempo
+- 2026-11-04 · [F+C] **UC-PIDX-39**: o saldo também em embalagens inteiras (CV2), "2 × Rolo + 10 m²", pela subunidade cadastrada da unidade do produto.
 - 2026-11-04 · [F+C] **UC-PIDX-38**: separado para vendas e livre na coluna Estoque (D5 e a parte da lista do CV4), pelas reservas ativas de `stock_reservations`. O que fica do CV4 é a tabela "De onde vem o separado" no painel.
 - 2026-11-04 · [F+C] **UC-PIDX-37**: o saldo de cada cor e tamanho aparece na coluna Estoque (D7), num painel com o total igual ao saldo da linha. `last_run` 2026-11-03 → 2026-11-04.
 - 2026-11-03 · [F+C] **UC-PIDX-35**: "Abaixo do alerta" e "Inativos" filtram a lista ao clicar (D6 e item 2.1 do protótipo), com o filtro `abaixo_do_alerta` no servidor e o protótipo atualizado. O D1 (recortes salvos) não foi feito e virou a decisão D-28. `last_run` 2026-10-28 → 2026-11-03.
