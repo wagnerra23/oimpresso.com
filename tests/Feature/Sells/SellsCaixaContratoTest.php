@@ -57,6 +57,10 @@ function scaixaGet(object $test, array $query = [])
 {
     $url = '/vendas/caixa' . ($query === [] ? '' : '?' . http_build_query($query));
 
+    // withHeaders() acumula dentro do teste: sem limpar, o header de partial reload de um
+    // pedido anterior transforma este 1º load num pedido parcial (sem caixaAberto etc.).
+    $test->flushHeaders();
+
     return $test->withHeaders([
         'X-Inertia' => 'true',
         'X-Inertia-Version' => scaixaInertiaVersion(),
@@ -88,6 +92,7 @@ function scaixaProps(object $test, array $query = []): array
     $props = scaixaPagina($test, $query)['props'];
 
     $url = '/vendas/caixa' . ($query === [] ? '' : '?' . http_build_query($query));
+    $test->flushHeaders();
     $r = $test->withHeaders([
         'X-Inertia' => 'true',
         'X-Inertia-Version' => scaixaInertiaVersion(),
@@ -413,6 +418,7 @@ function scaixaTurnoFixture(object $t): int
 /** A prop `turno` é deferida: só vem num partial reload por header. */
 function scaixaTurnoProp(object $test): ?array
 {
+    $test->flushHeaders();
     $r = $test->withHeaders([
         'X-Inertia' => 'true',
         'X-Inertia-Version' => scaixaInertiaVersion(),
