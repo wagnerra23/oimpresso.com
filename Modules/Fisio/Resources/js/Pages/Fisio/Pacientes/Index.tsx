@@ -127,7 +127,7 @@ function NovoPaciente({ condicoes, onClose }: { condicoes: string[]; onClose: ()
             <SheetTitle>Novo paciente</SheetTitle>
             <SheetDescription>Escolha o contato ou cadastre um novo. Nome e telefone ficam no cadastro do contato.</SheetDescription>
           </SheetHeader>
-          <div className="px-4">
+          <Secao titulo="1 · Contato">
             <OrigemContato
               origem={origem}
               onOrigem={setOrigem}
@@ -137,21 +137,31 @@ function NovoPaciente({ condicoes, onClose }: { condicoes: string[]; onClose: ()
               onNovo={(n) => form.setData('novo_contato', n)}
               erros={form.errors as Record<string, string>}
             />
-          </div>
-          <div className="px-4">
+          </Secao>
+          <Secao titulo="2 · Primeiro atendimento">
             <PerfilClinicoCampos
               dados={form.data}
               condicoes={condicoes}
               erros={form.errors as Record<string, string>}
               onChange={(campo, valor) => form.setData(campo, valor as never)}
             />
-          </div>
+          </Secao>
           <SheetFooter>
             <Button type="submit" disabled={form.processing || !pronto}>Cadastrar paciente</Button>
           </SheetFooter>
         </form>
       </SheetContent>
     </Sheet>
+  );
+}
+
+// Bloco numerado do cadastro (canvas Prescreve Pro · PacienteNovo): 12px/600 caixa-alta, borda r12, 16px.
+function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
+  return (
+    <section className="mx-4 flex flex-col gap-3 rounded-xl border border-border p-4">
+      <h3 className="text-xs font-semibold uppercase tracking-[0.04em] text-muted-foreground">{titulo}</h3>
+      {children}
+    </section>
   );
 }
 
