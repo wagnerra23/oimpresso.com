@@ -6,6 +6,8 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { type FormEvent, useState } from 'react';
 import { ArrowLeft, Save, Settings, Wand2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Inline } from '@/Components/layout/inline';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -264,21 +266,20 @@ function ConfigDefault({ config }: Props) {
               <CardTitle className="text-base">Substituição tributária</CardTitle>
             </CardHeader>
             <CardContent>
-              <label className="flex items-start gap-2 text-sm" htmlFor="substituto_tributario">
-                <input
+              <Inline gap={2} align="start">
+                <Checkbox
                   id="substituto_tributario"
-                  type="checkbox"
                   className="mt-0.5"
                   checked={form.data.substituto_tributario}
-                  onChange={(e) => form.setData('substituto_tributario', e.target.checked)}
+                  onCheckedChange={(v) => form.setData('substituto_tributario', v === true)}
                 />
-                <span>
+                <Label htmlFor="substituto_tributario" className="font-normal leading-snug">
                   Esta empresa industrializa ou envasa produto da lista do ICMS-ST (é substituta).
                   <span className="block text-xs text-muted-foreground">
                     Só gera avisos: a nota que sair como se o ST já tivesse sido retido (CFOP 5405, CST 60 ou CSOSN 500) é sinalizada, mas não é impedida.
                   </span>
-                </span>
-              </label>
+                </Label>
+              </Inline>
             </CardContent>
           </Card>
 
