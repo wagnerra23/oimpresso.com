@@ -63,7 +63,7 @@ last_run: "2026-11-03"
 - **Aceite:** Dado uma empresa com o Financeiro habilitado e a flag ligada · Quando abro `/expenses` · Então recebo a tela React; com `?classico=1`, a Blade. Com a flag desligada · Então vou ao Financeiro unificado por redirect temporário (302), e as outras telas antigas do Financeiro seguem no 301.
 - **Teste:** `tests/Feature/Expense/DespesasIndexContratoTest.php` — `UC-DESPES-09` (o `RedirectLegacyFinanceiro` com o Financeiro habilitado).
 - **Regressão que defende:** o redirect da Fase 2 (decisão [W] 2026-05-20) chegava antes do controller e deixava a UC-DESPES-04 verdadeira só no teste: em produção, empresa 1, `/expenses` e `/expenses?classico=1` caíam no unificado (smoke 2026-11-03). O teste antigo não via porque o tenant de teste não tem o pacote Financeiro.
-- **Status: ⬜** — até o CI do PR rodar.
+- **Status: 🧪** — run 41719505273 (lane financeiro-pest).
 
 ---
 
