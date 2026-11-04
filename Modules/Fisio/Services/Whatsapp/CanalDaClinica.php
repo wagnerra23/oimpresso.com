@@ -59,10 +59,11 @@ class CanalDaClinica
     public function permiteNumero(int $businessId, WhatsappBusinessPhone $telefone): bool
     {
         return match ($this->escolha($businessId)) {
-            null => true,
             self::PROPRIO => false,
             self::OFICIAL => (string) $telefone->driver === 'meta_cloud',
             self::QR => (string) $telefone->driver !== 'meta_cloud' && $this->aceiteQr($businessId) !== null,
+            // Sem escolha gravada (null): comportamento de antes desta tela.
+            default => true,
         };
     }
 
