@@ -23,6 +23,7 @@ use Modules\Fisio\Exceptions\DadoClinicoImutavelException;
  * @property string|null $ref
  * @property string|null $note
  * @property int $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
  */
 class PacoteLancamento extends Model
 {
