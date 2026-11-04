@@ -1566,13 +1566,9 @@ function SidebarUserMenu({
           <BookOpen size={14} className="ic" />
           <span className="label">› Casos de uso por tela</span>
         </a>
-        {/* Até 2026-11-04 apontava pra /business/settings: quem pedia ajuda caía nas
-            configurações da empresa. Não há central de ajuda própria (/ajuda/ dá 404 em
-            produção), então leva pra /documentacao, a ajuda que existe hoje. */}
-        <a href="/documentacao" className="um-item">
-          <LifeBuoy size={14} className="ic" />
-          <span className="label">Central de ajuda</span>
-        </a>
+        {/* "Central de ajuda" saiu em 2026-11-04 ([W]): levava pra mesma /documentacao do
+            item acima (não há central de ajuda própria — /ajuda/ dá 404), e o protótipo
+            (data.jsx FOOTER_LINKS) não tem esse item. */}
         <div className="um-sep" />
         {confirmaSair ? (
           // Confirmação INLINE no próprio menu — sem modal (canon do Cockpit).

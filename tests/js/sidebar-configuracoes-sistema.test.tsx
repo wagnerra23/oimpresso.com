@@ -83,3 +83,26 @@ describe('Rodapé · Casos de uso por tela sob Documentação', () => {
     expect(hrefs[doc + 1]).toBe('/documentacao/casos-por-tela');
   });
 });
+
+describe('Rodapé · sem link duplicado pra /documentacao', () => {
+  it('só UM item do menu do avatar leva a /documentacao', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    const { SidebarFooter } = await import('@/Components/cockpit/Sidebar');
+    render(
+      <SidebarFooter
+        nome="Wagner Rocha"
+        email="wagner@oimpresso.com.br"
+        cargo="Administrador"
+        iniciais="WR"
+        superadminItems={[]}
+        userMenuItems={[]}
+      />
+    );
+    fireEvent.click(document.querySelector('.sb-user-btn') as HTMLElement);
+
+    const paraDoc = Array.from(document.querySelectorAll('.user-menu a')).filter(
+      (a) => a.getAttribute('href') === '/documentacao'
+    );
+    expect(paraDoc).toHaveLength(1);
+  });
+});
