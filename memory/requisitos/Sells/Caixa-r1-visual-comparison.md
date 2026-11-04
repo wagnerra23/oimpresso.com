@@ -3,7 +3,7 @@ id: requisitos-sells-caixa-r1-visual-comparison
 session: 2026-05-25 Onda 6 — /vendas/caixa coexiste (seção "Por origem")
 page: /vendas/caixa
 component: resources/js/Pages/Sells/Caixa/Index.tsx
-visual_source: prototipo-ui/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
+visual_source: prototipo-ui/cowork/Wagner/vendas-extras.jsx · função VendasCaixaPage (linhas 172-413; medido 2026-11-04 — antes dizia prototipo-ui/vendas-extras.jsx 123-354)
 canon_method: Cowork KB-9.75 + Integração Vendas × Oficina A1 (ADR 0192) — Onda 6 wave separada
 related_adrs: [0093, 0094, 0104, 0107, 0114, 0143, 0178, 0192]
 charter_impact: cria Sells/Caixa/Index.charter.md (status rascunho · Wagner aprova)
