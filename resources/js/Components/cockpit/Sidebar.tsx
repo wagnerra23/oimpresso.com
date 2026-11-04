@@ -293,7 +293,13 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
     // NÃO precisa voltar pra cá: o DataController declara `group => 'sistema'`,
     // que `findGroupKey` resolve no passo 1. Esta lista é só o fallback por label
     // pra módulo que não declara `group`.
-    items: ['Plataforma', 'Auditoria',
+    // [W] 2026-11-04: Configurações e Gerenciamento de usuários vieram do menu do
+    // avatar (rodapé) pra cá — "ficou muito escondido". São dropdowns core do
+    // AdminSidebarMenu (`business.settings`, `user.user_management`), que não
+    // declaram `group`; caem aqui pelo label.
+    items: ['Configurações', 'Settings',
+            'Gerenciamento de usuários', 'Gerenciamento de usuario', 'User Management',
+            'Plataforma', 'Auditoria',
             'Modelos de notificação', 'Modelo de notificação',
             'Relatórios', 'Dashboard',
             // Wagner 2026-05-22: Planilha vai pra SISTEMA.
@@ -1553,13 +1559,16 @@ function SidebarUserMenu({
           <BookOpen size={14} className="ic" />
           <span className="label">Documentação</span>
         </a>
-        {/* Até 2026-11-04 apontava pra /business/settings: quem pedia ajuda caía nas
-            configurações da empresa. Não há central de ajuda própria (/ajuda/ dá 404 em
-            produção), então leva pra /documentacao, a ajuda que existe hoje. */}
-        <a href="/documentacao" className="um-item">
-          <LifeBuoy size={14} className="ic" />
-          <span className="label">Central de ajuda</span>
+        {/* Filho da Documentação, como no protótipo (data.jsx FOOTER_LINKS, `sub: true`):
+            recuo de 28px e prefixo "› ". [W] 2026-11-04 viu a tela e liberou o link —
+            até aqui /documentacao/casos-por-tela só abria digitando o endereço. */}
+        <a href="/documentacao/casos-por-tela" className="um-item" style={{ paddingLeft: 28 }}>
+          <BookOpen size={14} className="ic" />
+          <span className="label">› Casos de uso por tela</span>
         </a>
+        {/* "Central de ajuda" saiu em 2026-11-04 ([W]): levava pra mesma /documentacao do
+            item acima (não há central de ajuda própria — /ajuda/ dá 404), e o protótipo
+            (data.jsx FOOTER_LINKS) não tem esse item. */}
         <div className="um-sep" />
         {confirmaSair ? (
           // Confirmação INLINE no próprio menu — sem modal (canon do Cockpit).
