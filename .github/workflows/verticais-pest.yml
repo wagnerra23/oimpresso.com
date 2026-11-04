@@ -626,6 +626,10 @@ jobs:
         # business_id, escopo dos models entre 98 e 99, atendimento sem DELETE, regras uma por empresa.
         # Primeira execução real é esta lane (Pest não roda local).
         #
+        # ENTRAM 2026-11-04 — Fisio/FisioAgendaRegrasTest + Unit CompatibilidadeEsperaTest (US-FISIO-014):
+        # conflito e encaixe, bloqueio de horário, 98×99, realizado só com evolução assinada, cancelamento
+        # tardio pelo prazo da política, lista de espera compatível e bloqueio do app por 2 faltas.
+        #
         # ENTRA 2026-10-21 — ComunicacaoVisual/AgendaTelaContratoTest (tela /comunicacao-visual/agenda,
         # UC-CVAG-01..03): mesmo arranjo do irmão abaixo (tenant 98×99, pula em sqlite). A primeira execução
         # real é esta lane (Pest não roda local — proibicoes.md); se avermelhar, sai e vira dívida declarada.
@@ -820,7 +824,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioLinguagemAnvisaTest.php \
             Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php \
             Modules/Fisio/Tests/Unit/MissoesCalculatorTest.php \
-            Modules/Fisio/Tests/Unit/MedalhasCalculatorTest.php \n            Modules/Fisio/Tests/Feature/FisioAgendaEsquemaTest.php
+            Modules/Fisio/Tests/Unit/MedalhasCalculatorTest.php \n            Modules/Fisio/Tests/Feature/FisioAgendaEsquemaTest.php \n            Modules/Fisio/Tests/Feature/FisioAgendaRegrasTest.php \n            Modules/Fisio/Tests/Unit/CompatibilidadeEsperaTest.php
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php
