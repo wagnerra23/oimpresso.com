@@ -801,7 +801,7 @@ function SummaryFooter({
           style={{
             padding: '3px 10px',
             background: 'var(--cmp-accent-soft)',
-            border: '1px solid #c9d6e8',
+            border: '1px solid var(--cmp-accent-soft)',
             borderRadius: 4,
             fontSize: 11.5,
             color: 'var(--cmp-accent)',
