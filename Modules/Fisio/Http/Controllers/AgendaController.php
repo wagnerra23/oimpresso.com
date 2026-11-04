@@ -45,6 +45,7 @@ class AgendaController extends Controller
             'profissionais' => $lista->all(),
             'pode_editar' => (bool) $request->user()?->can('fisio.editar'),
             'tipos' => Inertia::defer(fn () => $this->leitura->tipos($biz)),
+            'pacientes' => Inertia::defer(fn () => $this->leitura->pacientes($biz)),
             'atendimentos' => Inertia::defer(fn () => $this->leitura->atendimentos($biz, $prof, $ini, $fim)),
             'bloqueios' => Inertia::defer(fn () => $this->leitura->bloqueios($biz, $prof, $ini, $fim)),
             'resumo' => Inertia::defer(fn () => $this->leitura->resumoDoDia($biz, $prof, now())),

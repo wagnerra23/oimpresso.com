@@ -8,6 +8,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Modules\Fisio\Entities\Appointment;
 use Modules\Fisio\Entities\AppointmentType;
+use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\ScheduleBlock;
 use Modules\Fisio\Entities\WaitlistEntry;
 
@@ -42,6 +43,16 @@ class AgendaDaSemana
         }
 
         return $tipos->map(fn ($t) => ['id' => (int) $t->id, 'nome' => $t->name, 'duracao' => (int) $t->duration_min, 'modalidade' => $t->modality])->all();
+    }
+
+    /** Pacientes ativos da empresa para a "Nova sessão" (nome completo, em ordem). @return list<array{id:int, nome:string}> */
+    public function pacientes(int $biz): array
+    {
+        // SUPERADMIN: escopo explícito por $biz.
+        return Patient::withoutGlobalScopes()->where('fisio_patients.business_id', $biz)->whereNull('fisio_patients.blocked_at')
+            ->join('contacts', 'contacts.id', '=', 'fisio_patients.contact_id')->orderBy('contacts.name')->limit(500)
+            ->get(['fisio_patients.id', 'contacts.name'])
+            ->map(fn ($p) => ['id' => (int) $p->id, 'nome' => (string) $p->name])->all();
     }
 
     /** @return list<array<string, mixed>> */

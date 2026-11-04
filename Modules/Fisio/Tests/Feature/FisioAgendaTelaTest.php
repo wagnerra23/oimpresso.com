@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre US-FISIO-015 (rotas da agenda da clínica) e UC-FAG-01..04 (Fisio/Agenda/Index.casos.md).
+// Cobre US-FISIO-015 (rotas da agenda da clínica) e UC-FAG-01..05 (Fisio/Agenda/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Fisio\Entities\Appointment;
@@ -90,7 +90,7 @@ it('UC-FAG-04 · sem fisio.editar a agenda abre, mas não marca nem desmarca (40
         ->and($a->fresh()->status)->toBe('agendado');
 });
 
-it('UC-FAG-02 · desmarcar com a lista de espera devolve quantos servem na vaga', function () {
+it('UC-FAG-05 · desmarcar com a lista de espera devolve quantos servem na vaga', function () {
     $a = marcarPelaRota($this);
     F::como($this, $this->u98);
     $outro = F::paciente($this->b98, $this->u98->id);
