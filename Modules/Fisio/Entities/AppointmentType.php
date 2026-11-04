@@ -10,6 +10,14 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * `fisio_appointment_types` — tipo de atendimento da agenda (A2): duração, modalidade e se o
  * paciente pode marcar pelo app. Escopo por empresa (ADR 0093). US-FISIO-013.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string $name
+ * @property int $duration_min
+ * @property string $modality presencial | teleconsulta
+ * @property bool $online_bookable
+ * @property bool $active
  */
 class AppointmentType extends Model
 {
