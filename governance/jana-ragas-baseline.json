@@ -1,4 +1,9 @@
 {
+  "_frescor": {
+    "modelo": "por-evento",
+    "oraculo": ".github/workflows/jana-ragas-canary.yml (cron diário 06:00 UTC) — compara o run do dia com este baseline e reprova se cair mais que 5%",
+    "razao": "Baseline de calibração: só é regravado por workflow_dispatch com update_baseline=true (decisão [W]), via auto-PR. O canary diário só LÊ. A data interna é a da última calibração (2026-09-03), não a da última conferência; frescor aqui = o canary diário verde."
+  },
   "_meta": {
     "schema_version": "1.0",
     "description": "Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispatch.",

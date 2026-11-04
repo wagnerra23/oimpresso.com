@@ -6,7 +6,7 @@
 > **Gerado por máquina** — não edite contagem; mude só `status`/`nota` no JSON em
 > `governance/replica-inconsistencias/forja.json` e regenere.
 >
-> Gerado em 2026-09-03 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **87 aberta(s)** de 87.
+> Gerado em 2026-11-04 · comando: `node scripts/governance/replica-inconsistencias.mjs --modulo Forja --prototipo …` · **105 aberta(s)** de 105.
 > `origem = aplicado` mede o que está no repo; `origem = prototipo` mede o que VAI entrar quando a onda copiar o JSX.
 
 | status | regra | arquivo | contagem | exemplo | dono da regra | origem |
@@ -28,10 +28,11 @@
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx` | 6 |  | layout-primitives-guard.mjs | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx` | 15 | → ✦ ↵ ↗ ✕ ★ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx` | 1 | PageHeader=não · DataTable=não | UiLintCommand.php R4 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/ForjaRunbook.tsx` | 13 | 🪦 → 🟡 ⇒ 🔴 | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R1` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/trabalhoAtomos.tsx` | 5 | oklch() · oklch(0.6 0.18 <hue>) | UiLintCommand.php R1 · conformance-gate | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/trabalhoAtomos.tsx` | 1 | ⚠ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoLista.tsx` | 4 | → ★ | UiLintCommand.php R3 | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx` | 17 | → ← ⚠ ✓ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/TrabalhoQuadro.tsx` | 20 | → ← ⚠ ↔ ✓ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx` | 3 | → ↵ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R4` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx` | 1 | PageHeader=sim · DataTable=não | UiLintCommand.php R4 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx` | 9 |  | layout-primitives-guard.mjs | aplicado |
@@ -43,8 +44,8 @@
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaChangelog.tsx` | 1 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaDossier.tsx` | 7 | → | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `FLEX-CRU` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaDossier.tsx` | 12 |  | layout-primitives-guard.mjs | aplicado |
-| 🔴 aberta | `R1` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 1 | #2924 | UiLintCommand.php R1 · conformance-gate | aplicado |
-| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 17 | → ⚠ ⚿ ↗ | UiLintCommand.php R3 | aplicado |
+| 🔴 aberta | `R1` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 2 | #2461 · #2924 | UiLintCommand.php R1 · conformance-gate | aplicado |
+| 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHandoffs.tsx` | 18 | → ↗ ⚠ ⚿ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaHub.tsx` | 5 | ✦ ⚠ → ↔ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R3` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaIntegrador.tsx` | 4 | ✓ → ↔ | UiLintCommand.php R3 | aplicado |
 | 🔴 aberta | `R1` | `Modules/Forja/Resources/js/Pages/team-mcp/Forja/_components/ForjaMcp.tsx` | 1 | #2417 | UiLintCommand.php R1 · conformance-gate | aplicado |
@@ -75,17 +76,34 @@
 | 🔴 aberta | `PALETA` | `resources/css/cowork-forja-bundle.css` | 1 | --dev-*(4) | scripts/design/ds-guard.mjs | aplicado |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-aprova.jsx` | 3 | oklch(0.55 0.13 ${hue}) · oklch(0.58 0.18 25) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-aprova.jsx` | 4 | → ✓ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-atomos.jsx` | 4 | #fff · #fff | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-atomos.jsx` | 5 | ↓ → ✓ ⚠ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-changelog.jsx` | 4 | oklch(0.52 0.10 195) · oklch(0.55 0.16 270) | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-cmdk.jsx` | 3 | ↵ → ← | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-data.jsx` | 19 | oklch(0.57 0.16 25) · oklch(0.55 0.15 295) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-data.jsx` | 26 | → ✓ 🔴 ↔ ⇧ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-dossie.jsx` | 4 | ✦ → ⚠ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-gantt.jsx` | 1 | oklch(0.6 0.18 " + FJ_PRIO[i.prio].hue + ") | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-gantt.jsx` | 2 | → | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-handoff.jsx` | 3 | ✦ ⚠ ✓ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-ia.jsx` | 1 | oklch(0.58 0.21 25) | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-ia.jsx` | 3 | ✦ → | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-integra.jsx` | 5 | ↔ ✓ → | UiLintCommand.php R3 | prototipo |
-| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-mcp.jsx` | 1 | oklch(0.58 0.21 25) | UiLintCommand.php R1 · conformance-gate | prototipo |
-| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-mcp.jsx` | 24 | ✦ → ⚿ ⚠ ↗ ✓ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-issue-drawer.jsx` | 10 | → ✓ ⚠ ▲ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-lista.jsx` | 4 | ✦ ★ ↵ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-mcp.jsx` | 12 | → ⚿ ⚠ ↗ | UiLintCommand.php R3 | prototipo |
 | 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/Wagner/forja-mcp.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
-| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-page.jsx` | 12 | #fff · #fff | UiLintCommand.php R1 · conformance-gate | prototipo |
-| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-page.jsx` | 46 | → ↓ ✓ ⚠ ▲ ↵ | UiLintCommand.php R3 | prototipo |
-| 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/Wagner/forja-page.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-novo-issue.jsx` | 1 | ✦ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-page.jsx` | 18 | → ★ ✓ ↔ ✕ ✦ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-quadro.jsx` | 1 | oklch(0.6 0.18 ${prio.hue}) | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-quadro.jsx` | 4 | → | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-runbook.jsx` | 3 | → | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-saude.jsx` | 1 | oklch(0.58 0.13 ${w.p.hue}) | UiLintCommand.php R1 · conformance-gate | prototipo |
+| 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-saude.jsx` | 2 | ✓ → | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `FLEX-CRU` | `prototipo-ui/cowork/Wagner/forja-saude.jsx` | 1 |  | layout-primitives-guard.mjs | prototipo |
 | 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-tarefas.jsx` | 3 | oklch(0.6 0.14 " + st.hue + ") · oklch(0.6 0.18 " + ({ P0: 25, P1: 60, P2: 295, P3: 250 }[t.priority]) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `R3` | `prototipo-ui/cowork/Wagner/forja-tarefas.jsx` | 9 | → ↵ ⇧ | UiLintCommand.php R3 | prototipo |
+| 🔴 aberta | `R1` | `prototipo-ui/cowork/Wagner/forja-triagem.jsx` | 1 | oklch(0.6 0.18 ${FJ_PRIO[i.prio].hue}) | UiLintCommand.php R1 · conformance-gate | prototipo |
 | 🔴 aberta | `ds/no-os-btn` | `Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx` | 5 | use <Button> (@/Components/ui/button) com variant/size, não a classe de shell os-btn. | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 | 🔴 aberta | `ds/no-inline-raw-color` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx` | 1 | sem cor/borda/sombra crua em style inline. Use token dark-aware: var(--accent)/var(--border)/var(--text)/var(- | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
 | 🔴 aberta | `ds/no-raw-palette-color` | `Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx` | 1 | sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/te | eslint.config.js no-restricted-syntax (ds/*) · ratchet config/eslint-baseline.json · placar scripts/ds-report.mjs | aplicado |
