@@ -188,8 +188,14 @@ export default function SellsCaixaIndex() {
         {/* HEADER */}
         <header className="os-head">
           <div className="os-head-l">
-            <h1>Caixa do dia</h1>
-            <p>Conferência por forma de pagamento, sangrias e fechamento</p>
+            {/* Medido contra VendasCaixaPage em 2026-11-04 (styles.css .os-head-l h1/p). Inline
+                porque a regra do bundle (.sells-cowork .os-head-l h1) venceria utilitário. */}
+            <h1 style={{ margin: 0, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.375 }}>
+              Caixa do dia
+            </h1>
+            <p style={{ margin: '2px 0 0', fontSize: 'var(--fs-3)', color: 'var(--text-mute)' }}>
+              Conferência por forma de pagamento, sangrias e fechamento
+            </p>
           </div>
           <div className="os-head-r">
             <input
