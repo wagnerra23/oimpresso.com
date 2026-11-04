@@ -466,6 +466,8 @@ function UserMenu({ onClose }) {
       }
       <div className="um-sep" />
       <button type="button" className="um-item" onClick={() => {onClose?.();window.__openCmdK?.();}}><I.keyboard className="ic" /> <span className="label">Buscar tela</span> <span className="kbd" aria-hidden="true">⌘K</span></button>
+      {/* Atalhos — como no vivo ([W] 2026-11-04): leva à configuração da empresa (vivo: /business/settings#pos). */}
+      <button type="button" className="um-item" onClick={() => go("cfg-empresa")}><I.keyboard className="ic" /> <span className="label">Atalhos</span></button>
       {(MOCK.FOOTER_LINKS || []).map((it) => {
         const Icon = I[it.icon] || I.book;
         return (
