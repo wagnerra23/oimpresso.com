@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Jornada</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.985 0.003 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
+  <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden">
+
+    <section aria-label="Seu nível" style="background: oklch(0.17 0.03 280); color: #FFFFFF; padding: 24px 20px 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; gap: 14px; align-items: center">
+        <div style="position: relative; width: 64px; height: 70px; flex: none">
+          <svg width="64" height="70" viewBox="0 0 168 184" aria-hidden="true" style="position: absolute; inset: 0"><path d="M84 6l70 38v86l-70 46-70-46V44z" fill="oklch(0.33 0.09 295)" stroke="oklch(0.70 0.15 295)" stroke-width="8"/><path d="M84 28l52 29v64l-52 34-52-34V57z" fill="oklch(0.45 0.15 295)"/></svg>
+          <span style="position: absolute; inset: 0; display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600">8</span>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+          <span style="font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: oklch(0.78 0.03 280); font-weight: 600">Nível 8</span>
+          <span style="font-size: 22px; font-weight: 600; line-height: 1.2">Corpo Forte</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: oklch(0.78 0.03 280)">120 / 1.800 XP para o nível 9</span>
+        </div>
+      </div>
+      <div style="height: 8px; border-radius: 4px; background: oklch(0.30 0.04 280); overflow: hidden"><div style="width: 7%; height: 8px; background: oklch(0.70 0.15 295)"></div></div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 12px; background: oklch(0.22 0.04 280)">
+          <span style="display: inline-flex; align-items: center; gap: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c2 4.5 6.5 6 6.5 11.5A6.5 6.5 0 015.5 13.5c0-3 2-4.5 2-6.5 1.2 1 2.4 2 4 2.5C12 7 11 4.5 12 2z" fill="oklch(0.75 0.17 50)"/></svg>13</span>
+          <span style="font-size: 11px; color: oklch(0.78 0.03 280)">dias de constância</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 12px; background: oklch(0.22 0.04 280)">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600">91</span>
+          <span style="font-size: 11px; color: oklch(0.78 0.03 280)">nota média 7 dias</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 12px; background: oklch(0.22 0.04 280)">
+          <span style="display: inline-flex; align-items: center; gap: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2 5h5l-4 3.5 1.5 5.5-4.5-3-4.5 3L9 11.5 5 8h5z" fill="oklch(0.80 0.14 85)"/></svg>9</span>
+          <span style="font-size: 11px; color: oklch(0.78 0.03 280)">medalhas</span>
+        </div>
+      </div>
+    </section>
+
+    <div style="flex: 1; padding: 16px 20px 12px; display: flex; flex-direction: column; gap: 16px; overflow: hidden">
+      <section aria-labelledby="miss" style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline">
+          <span id="miss" style="font-weight: 600">Missões de hoje</span>
+          <span style="font-size: 12px; color: oklch(0.50 0.01 80)">renovam à meia-noite</span>
+        </div>
+        <sc-for list="{{missions}}" as="m" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90)">
+            <span style="width: 36px; height: 36px; border-radius: 10px; background: {{m.iconBg}}; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{m.iconFg}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.icon}}"/></svg></span>
+            <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+              <span style="font-size: 14px; font-weight: 500">{{m.t}}</span>
+              <div style="height: 6px; border-radius: 3px; background: oklch(0.93 0.004 90); overflow: hidden"><div style="height: 6px; width: {{m.w}}; background: {{m.bar}}"></div></div>
+            </div>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; color: {{m.rewardFg}}">{{m.reward}}</span>
+          </div>
+        </sc-for>
+      </section>
+
+      <section aria-labelledby="trilha" style="display: flex; flex-direction: column; gap: 8px">
+        <span id="trilha" style="font-weight: 600">Sua trilha</span>
+        <div style="position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; padding: 4px 0">
+          <div style="position: absolute; left: 10%; right: 10%; top: 25px; height: 4px; border-radius: 2px; background: oklch(0.90 0.004 90)"></div>
+          <div style="position: absolute; left: 10%; width: 55%; top: 25px; height: 4px; border-radius: 2px; background: oklch(0.55 0.15 295)"></div>
+          <sc-for list="{{trail}}" as="t" hint-placeholder-count="5">
+            <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center">
+              <span style="width: {{t.size}}; height: {{t.size}}; margin-top: {{t.mt}}; border-radius: 50%; display: grid; place-items: center; background: {{t.bg}}; color: {{t.fg}}; border: {{t.border}}; box-sizing: border-box; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600">{{t.n}}</span>
+              <span style="font-size: 11px; line-height: 1.2; color: {{t.label}}">{{t.name}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section aria-labelledby="med" style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><span id="med" style="font-weight: 600">Medalhas</span><a href="#" style="font-size: 13px; text-decoration: none">Ver todas</a></div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{medals}}" as="m" hint-placeholder-count="4">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center">
+              <span style="width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: {{m.bg}}; border: {{m.border}}; box-sizing: border-box"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{m.fg}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.icon}}"/></svg></span>
+              <span style="font-size: 11px; line-height: 1.2; color: {{m.label}}">{{m.t}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <nav aria-label="Navegação" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid oklch(0.90 0.004 90); padding: 8px 8px 22px">
+    <a href="PacienteHoje.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.50 0.01 80); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Hoje</a>
+    <a href="PacienteProgresso.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.50 0.01 80); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Progresso</a>
+    <a href="PacienteJornada.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.55 0.15 295); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15a6 6 0 100-12 6 6 0 000 12zM8.5 13.5L7 22l5-3 5 3-1.5-8.5"/></svg>Jornada</a>
+    <a href="PacienteConsultas.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.50 0.01 80); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Consultas</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const P = 'oklch(0.55 0.15 295)', G = 'oklch(0.80 0.14 85)', GD = 'oklch(0.36 0.10 80)', OK = 'oklch(0.50 0.12 150)';
+    const miss = (t, pct, reward, icon, done) => ({ t, w: pct + '%', bar: done ? OK : P, reward: done ? 'feito' : reward, rewardFg: done ? OK : 'oklch(0.50 0.01 80)', icon, iconBg: done ? 'oklch(0.95 0.075 150)' : 'oklch(0.95 0.04 295)', iconFg: done ? OK : 'oklch(0.45 0.15 295)' });
+    const node = (n, name, s) => ({ n, name,
+      size: s === 'now' ? '50px' : '40px', mt: s === 'now' ? '0' : '5px',
+      bg: s === 'done' ? P : s === 'now' ? '#FFFFFF' : 'oklch(0.965 0.004 90)',
+      fg: s === 'done' ? '#FFFFFF' : s === 'now' ? 'oklch(0.45 0.15 295)' : 'oklch(0.60 0.01 80)',
+      border: s === 'now' ? '3px solid ' + P : s === 'done' ? '0' : '2px dashed oklch(0.85 0.004 90)',
+      label: s === 'next' ? 'oklch(0.60 0.01 80)' : 'oklch(0.22 0.01 80)' });
+    const medal = (t, icon, got) => ({ t, icon, bg: got ? G : 'oklch(0.965 0.004 90)', fg: got ? GD : 'oklch(0.70 0.01 80)', border: got ? '0' : '2px dashed oklch(0.85 0.004 90)', label: got ? 'oklch(0.22 0.01 80)' : 'oklch(0.60 0.01 80)' });
+    return {
+      missions: [
+        miss('Fazer os 5 exercícios', 40, '+100 XP', 'M5 12l5 5 9-10', false),
+        miss('Registrar como foi hoje', 0, '+20 XP', 'M4 5h16v11H9l-5 4z', false),
+        miss('Nota acima de 85 no perdigueiro', 100, '+40 XP', 'M12 3l2.6 5.4 5.9.9-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.9z', true)
+      ],
+      trail: [node('6', 'Força Leve', 'done'), node('7', 'Movimento Livre', 'done'), node('8', 'Corpo Forte', 'now'), node('9', 'Mestre do Movimento', 'next'), node('10', 'Inabalável', 'next')],
+      medals: [
+        medal('Primeira semana', 'M3 5h18v16H3zM3 10h18M8 3v4M16 3v4', true),
+        medal('Coluna Firme', 'M12 15a6 6 0 100-12 6 6 0 000 12zM8.5 13.5L7 22l5-3 5 3-1.5-8.5', true),
+        medal('Semana completa', 'M5 12l5 5 9-10', true),
+        medal('30 dias', 'M12 2c2 4.5 6.5 6 6.5 11.5A6.5 6.5 0 015.5 13.5c0-3 2-4.5 2-6.5 1.2 1 2.4 2 4 2.5C12 7 11 4.5 12 2z', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

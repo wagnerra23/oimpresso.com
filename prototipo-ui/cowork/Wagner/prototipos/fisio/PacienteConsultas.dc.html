@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Minhas consultas</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.985 0.003 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
+  <header style="padding: 22px 20px 8px; display: flex; flex-direction: column; gap: 12px">
+    <h1 style="margin: 0; font-size: 26px; font-weight: 600">Minhas consultas</h1>
+    <div role="tablist" style="display: flex; gap: 6px; padding: 4px; border-radius: 12px; background: oklch(0.95 0.004 90)">
+      <sc-for list="{{abas}}" as="t" hint-placeholder-count="3">
+        <button type="button" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="flex: 1; height: 38px; border-radius: 9px; border: 0; background: {{t.bg}}; font: inherit; font-weight: 500; font-size: 14px; color: oklch(0.22 0.01 80); cursor: pointer">{{t.n}}</button>
+      </sc-for>
+    </div>
+  </header>
+
+  <sc-if value="{{aProx}}" hint-placeholder-val="{{ true }}">
+    <div style="flex: 1; padding: 6px 20px 20px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
+      <div style="padding: 14px; border-radius: 16px; background: oklch(0.22 0.01 80); color: #FFFFFF; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 13px; opacity: 0.75">Hoje · 08:30 · Dra. Dejeane</span>
+        <b style="font-weight: 600; font-size: 17px">Sessão do pacote</b>
+        <button type="button" onClick="{{checkin}}" aria-pressed="{{chegouAttr}}" style="height: 46px; border-radius: 12px; border: 0; background: {{chegouBg}}; color: {{chegouFg}}; font: inherit; font-weight: 600; cursor: pointer">{{chegouT}}</button>
+      </div>
+      <sc-for list="{{prox}}" as="c" hint-placeholder-count="2">
+        <div style="padding: 12px 14px; border-radius: 16px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; gap: 12px; align-items: center">
+            <span style="width: 50px; flex: none; text-align: center; border-radius: 12px; background: oklch(0.95 0.04 295); color: oklch(0.45 0.15 295); padding: 5px 0; display: flex; flex-direction: column"><span style="font-size: 12px">{{c.dow}}</span><b style="font-family: 'IBM Plex Mono', monospace; font-size: 18px">{{c.dia}}</b></span>
+            <span style="display: flex; flex-direction: column; flex: 1; min-width: 0"><b style="font-weight: 600">{{c.t}}</b><span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{c.d}}</span></span>
+            <span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: {{c.sbg}}; color: {{c.sfg}}">{{c.st}}</span>
+          </div>
+          <sc-if value="{{c.acoes}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; gap: 8px">
+              <a href="PacienteAgendar.dc.html" style="flex: 1; height: 40px; border-radius: 10px; border: 1px solid oklch(0.90 0.004 90); display: grid; place-items: center; color: oklch(0.22 0.01 80); text-decoration: none; font-weight: 500; font-size: 14px">Remarcar</a>
+              <button type="button" onClick="{{c.cancel}}" style="flex: 1; height: 40px; border-radius: 10px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF; font: inherit; font-weight: 500; font-size: 14px; color: oklch(0.45 0.16 25); cursor: pointer">Cancelar</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+      <div style="padding: 12px 14px; border-radius: 14px; border: 1px dashed oklch(0.80 0.06 295); display: flex; gap: 10px; align-items: center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="oklch(0.45 0.15 295)" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg>
+        <span style="font-size: 13px; flex: 1">Na espera: qualquer horário antes de <b>qua 22</b> de manhã</span>
+        <button type="button" onClick="{{sairEspera}}" style="border: 0; background: none; font: inherit; font-size: 13px; color: oklch(0.50 0.01 80); text-decoration: underline; cursor: pointer">{{esperaAcao}}</button>
+      </div>
+      <a href="PacienteAgendar.dc.html" style="margin-top: auto; height: 52px; border-radius: 14px; background: oklch(0.55 0.15 295); color: #FFFFFF; display: grid; place-items: center; text-decoration: none; font-weight: 600; font-size: 17px">Agendar nova</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{aPac}}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; padding: 6px 20px 20px; display: flex; flex-direction: column; gap: 12px">
+      <div style="padding: 16px; border-radius: 16px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); display: flex; flex-direction: column; gap: 10px">
+        <span style="display: flex; justify-content: space-between"><b style="font-weight: 600">Pacote 10 sessões · joelho</b><span style="font-family: 'IBM Plex Mono', monospace; color: oklch(0.42 0.09 70)">8/10</span></span>
+        <span style="height: 10px; border-radius: 5px; background: oklch(0.94 0.004 90); overflow: hidden"><span style="display: block; width: 80%; height: 100%; background: oklch(0.55 0.15 295)"></span></span>
+        <span style="font-size: 14px; color: oklch(0.38 0.01 80)">Faltam 2 sessões. A Dra. Dejeane indica mais 10 para fechar o tratamento.</span>
+      </div>
+      <button type="button" onClick="{{renovar}}" style="height: 52px; border-radius: 14px; border: 0; background: {{renBg}}; color: #FFFFFF; font: inherit; font-weight: 600; font-size: 16px; cursor: pointer">{{renT}}</button>
+      <span style="font-size: 13px; color: oklch(0.50 0.01 80)">A renovação só aparece quando a fisio indica continuar. Sem desconto relâmpago nem oferta: a decisão é clínica.</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{aHist}}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; padding: 6px 20px 20px; display: flex; flex-direction: column; gap: 10px">
+      <sc-if value="{{pedeNota}}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 14px; border-radius: 16px; background: oklch(0.95 0.04 295); display: flex; flex-direction: column; gap: 10px">
+          <b style="font-weight: 600; font-size: 15px">Como foi a sessão de quinta?</b>
+          <div style="display: flex; gap: 6px">
+            <sc-for list="{{notas}}" as="n" hint-placeholder-count="5"><button type="button" onClick="{{n.pick}}" style="flex: 1; height: 42px; border-radius: 10px; border: 0; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">{{n.v}}</button></sc-for>
+          </div>
+          <span style="font-size: 12px; color: oklch(0.45 0.15 295)">Só a clínica vê. Não vira avaliação pública.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{agradece}}" hint-placeholder-val="{{ false }}"><span style="padding: 12px; border-radius: 12px; background: oklch(0.95 0.05 150); color: oklch(0.35 0.10 150); font-size: 14px">Obrigado! A clínica recebeu sua nota.</span></sc-if>
+      <sc-for list="{{hist}}" as="c" hint-placeholder-count="3">
+        <div style="padding: 12px 14px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); display: flex; gap: 12px; align-items: center">
+          <span style="display: flex; flex-direction: column; flex: 1"><b style="font-weight: 600; font-size: 15px">{{c.dow}} {{c.dia}} · {{c.t}}</b><span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{c.d}}</span></span>
+          <sc-if value="{{c.recibo}}" hint-placeholder-val="{{ true }}"><span style="font-size: 13px; font-weight: 600; color: oklch(0.45 0.15 295)">Recibo</span></sc-if>
+          <sc-if value="{{c.falta}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: oklch(0.95 0.04 25); color: oklch(0.45 0.16 25)">Falta</span></sc-if>
+        </div>
+      </sc-for>
+      <span style="font-size: 13px; color: oklch(0.50 0.01 80)">Recibo com dados para o Receita Saúde (IRPF).</span>
+    </div>
+  </sc-if>
+  <nav aria-label="Navegação" style="margin-top: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid oklch(0.90 0.004 90); padding: 8px 8px 22px">
+    <a href="PacienteHoje.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.50 0.01 80); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Hoje</a>
+    <a href="PacienteProgresso.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.50 0.01 80); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Progresso</a>
+    <a href="PacienteJornada.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.50 0.01 80); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15a6 6 0 100-12 6 6 0 000 12zM8.5 13.5L7 22l5-3 5 3-1.5-8.5"/></svg>Jornada</a>
+    <a href="PacienteConsultas.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.55 0.15 295); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Consultas</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { aba: 'prox', cancelados: {}, chegou: false, espera: true, renovado: false, nota: 0 }; }
+  renderVals() {
+    const s = this.state;
+    const PROX = [
+      { id: 2, dow: 'qui', dia: '23', t: 'Sessão do pacote · 08:30', d: 'Dra. Dejeane · 9 de 10' },
+      { id: 3, dow: 'ter', dia: '28', t: 'Reavaliação · 10:00', d: 'Dra. Dejeane · sinal pago' }
+    ];
+    const HIST = [
+      { dow: 'qui', dia: '16', t: 'Sessão do pacote', d: 'Compareceu · 7 de 10', recibo: true, falta: false },
+      { dow: 'ter', dia: '14', t: 'Sessão do pacote', d: 'Faltou sem avisar · 1 de 2 permitidas', recibo: false, falta: true },
+      { dow: 'qui', dia: '09', t: 'Sessão do pacote', d: 'Compareceu · 6 de 10', recibo: true, falta: false }
+    ];
+    return {
+      abas: [['prox', 'Próximas'], ['pac', 'Pacote'], ['hist', 'Histórico']].map(a => ({ n: a[1], on: s.aba === a[0] ? 'true' : 'false', bg: s.aba === a[0] ? '#FFFFFF' : 'transparent', pick: () => this.setState({ aba: a[0] }) })),
+      aProx: s.aba === 'prox', aPac: s.aba === 'pac', aHist: s.aba === 'hist',
+      chegouAttr: s.chegou ? 'true' : 'false', chegouT: s.chegou ? 'A recepção já sabe que você chegou' : 'Cheguei', chegouBg: s.chegou ? 'oklch(0.55 0.12 150)' : '#FFFFFF', chegouFg: s.chegou ? '#FFFFFF' : 'oklch(0.22 0.01 80)',
+      checkin: () => this.setState({ chegou: true }),
+      prox: PROX.map(c => { const cx = s.cancelados[c.id]; return Object.assign({}, c, { st: cx ? 'Cancelada' : 'Confirmada', sbg: cx ? 'oklch(0.95 0.004 90)' : 'oklch(0.94 0.05 150)', sfg: cx ? 'oklch(0.50 0.01 80)' : 'oklch(0.40 0.10 150)', acoes: !cx, cancel: () => this.setState({ cancelados: Object.assign({}, s.cancelados, { [c.id]: true }) }) }); }),
+      esperaAcao: s.espera ? 'Sair' : 'Saiu da espera', sairEspera: () => this.setState({ espera: false }),
+      renT: s.renovado ? 'Pix gerado · aguardando pagamento' : 'Renovar 10 sessões por Pix', renBg: s.renovado ? 'oklch(0.55 0.12 150)' : 'oklch(0.55 0.15 295)',
+      renovar: () => this.setState({ renovado: true }),
+      pedeNota: s.nota === 0, agradece: s.nota > 0,
+      notas: [1, 2, 3, 4, 5].map(v => ({ v, pick: () => this.setState({ nota: v }) })),
+      hist: HIST
+    };
+  }
+}
+</script>
+</body>
+</html>

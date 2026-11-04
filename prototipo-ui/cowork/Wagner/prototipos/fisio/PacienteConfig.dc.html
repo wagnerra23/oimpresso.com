@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Configurações</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.985 0.003 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
+  <header style="padding: 22px 20px 8px; display: flex; align-items: center; gap: 12px">
+    <a href="PacienteHoje.dc.html" aria-label="Voltar" style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); display: grid; place-items: center; color: oklch(0.22 0.01 80)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <h1 style="margin: 0; font-size: 22px; font-weight: 600">Configurações</h1>
+  </header>
+
+  <div style="flex: 1; overflow: hidden; padding: 8px 20px 16px; display: flex; flex-direction: column; gap: 14px">
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: oklch(0.50 0.01 80)">Lembrete</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90)">
+        <span style="display: flex; flex-direction: column"><span style="font-weight: 500">Horário no WhatsApp</span><span style="font-size: 13px; color: oklch(0.50 0.01 80)">um por dia, nos dias prescritos</span></span>
+        <div style="display: flex; gap: 6px">
+          <sc-for list="{{hours}}" as="h" hint-placeholder-count="3">
+            <button type="button" onClick="{{h.pick}}" aria-pressed="{{h.on}}" style="height: 36px; padding: 0 10px; border-radius: 999px; border: {{h.bd}}; background: {{h.bg}}; color: {{h.fg}}; font-family: 'IBM Plex Mono', monospace; font-size: 14px">{{h.t}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: oklch(0.50 0.01 80)">Para ficar mais fácil</h2>
+      <sc-for list="{{ease}}" as="c" hint-placeholder-count="3">
+        <div style="display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90)">
+          <span style="flex: 1; display: flex; flex-direction: column"><span style="font-weight: 500">{{c.t}}</span><span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{c.d}}</span></span>
+          <button type="button" role="switch" aria-checked="{{c.on}}" aria-label="{{c.t}}" onClick="{{c.pick}}" style="flex: none; width: 52px; height: 32px; border-radius: 999px; border: 0; background: {{c.track}}; position: relative; cursor: pointer"><span style="position: absolute; top: 4px; left: {{c.knob}}; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span></button>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: oklch(0.50 0.01 80)">Suas autorizações</h2>
+      <sc-for list="{{consents}}" as="c" hint-placeholder-count="3">
+        <div style="display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90)">
+          <span style="flex: 1; display: flex; flex-direction: column"><span style="font-weight: 500">{{c.t}}</span><span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{c.d}}</span></span>
+          <button type="button" role="switch" aria-checked="{{c.on}}" aria-label="{{c.t}}" onClick="{{c.pick}}" style="flex: none; width: 52px; height: 32px; border-radius: 999px; border: 0; background: {{c.track}}; position: relative; cursor: pointer"><span style="position: absolute; top: 4px; left: {{c.knob}}; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span></button>
+        </div>
+      </sc-for>
+      <sc-if value="{{careOff}}" hint-placeholder-val="{{ false }}">
+        <span role="alert" style="font-size: 13px; padding: 10px 12px; border-radius: 12px; background: oklch(0.955 0.072 75); color: oklch(0.40 0.10 70)">Sem esta autorização o portal para de mostrar seu programa, e a Dra. Dejeane é avisada para combinar outro jeito de acompanhar você.</span>
+      </sc-if>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 4px">
+      <h2 style="margin: 0 0 4px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: oklch(0.50 0.01 80)">Seus dados</h2>
+      <a href="#" style="min-height: 40px; display: flex; align-items: center; font-weight: 500">Baixar uma cópia dos meus dados</a>
+      <a href="#" style="min-height: 40px; display: flex; align-items: center; font-weight: 500">Ver o termo e o histórico das autorizações</a>
+      <a href="#" style="min-height: 40px; display: flex; align-items: center; font-weight: 500">Sair deste celular</a>
+    </section>
+    <span style="margin-top: auto; font-size: 12px; color: oklch(0.50 0.01 80)">O prontuário é guardado por 20 anos, como manda a lei; o resto pode ser apagado a seu pedido. Responsável: Clínica [NOME].</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { hour: '07:30', slow: true, eco: false, big: false, care: true, remind: true, cam: true }; }
+  renderVals() {
+    const s = this.state, P = 'oklch(0.55 0.15 295)', INK = 'oklch(0.22 0.01 80)';
+    const sw = (key, t, d) => { const on = !!s[key]; return { t, d, on: on ? 'true' : 'false', track: on ? P : 'oklch(0.80 0.005 90)', knob: on ? '24px' : '4px', pick: () => this.setState({ [key]: !on }) }; };
+    const hours = ['07:30', '12:00', '19:00'].map(t => { const on = s.hour === t; return { t, on: on ? 'true' : 'false', pick: () => this.setState({ hour: t }), bd: on ? '2px solid ' + P : '1px solid oklch(0.90 0.004 90)', bg: on ? 'oklch(0.95 0.04 295)' : '#FFFFFF', fg: on ? 'oklch(0.45 0.15 295)' : INK }; });
+    return {
+      hours,
+      ease: [
+        sw('slow', 'Narração mais lenta', 'o áudio do exercício fala devagar'),
+        sw('eco', 'Economizar internet', 'vídeo mais leve no 4G'),
+        sw('big', 'Letra maior', 'aumenta todos os textos')
+      ],
+      consents: [
+        sw('care', 'Meu tratamento', 'dados de saúde para a Dra. Dejeane'),
+        sw('remind', 'Lembretes no WhatsApp', 'um por dia'),
+        sw('cam', 'Câmera', 'o vídeo não sai do celular')
+      ],
+      careOff: !s.care
+    };
+  }
+}
+</script>
+</body>
+</html>

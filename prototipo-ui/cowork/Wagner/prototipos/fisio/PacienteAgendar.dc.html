@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Agendar</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.985 0.003 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
+  <header style="padding: 22px 20px 10px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <button type="button" onClick="{{back}}" aria-label="Voltar" style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); display: grid; place-items: center; color: oklch(0.22 0.01 80); cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: oklch(0.50 0.01 80)">{{stepLabel}}</span>
+    </div>
+    <div style="display: flex; gap: 6px" aria-hidden="true">
+      <sc-for list="{{dots}}" as="d" hint-placeholder-count="4"><span style="flex: 1; height: 5px; border-radius: 3px; background: {{d.bg}}"></span></sc-for>
+    </div>
+  </header>
+
+  <sc-if value="{{s1}}" hint-placeholder-val="{{ true }}">
+    <div style="flex: 1; padding: 4px 20px 20px; display: flex; flex-direction: column; gap: 10px">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.15">O que você quer marcar?</h1>
+      <span style="font-size: 14px; font-weight: 500">Para quem</span>
+      <div style="display: flex; gap: 8px">
+        <sc-for list="{{pessoas}}" as="p" hint-placeholder-count="2">
+          <button type="button" onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="flex: 1; height: 42px; border-radius: 999px; border: {{p.bd}}; background: {{p.bg}}; font: inherit; font-size: 14px; color: oklch(0.22 0.01 80); cursor: pointer">{{p.n}}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: {{pacBg}}; color: {{pacFg}}">
+        <span style="font-size: 14px"><b style="font-weight: 600">{{pacT}}</b> {{pacD}}</span>
+        <sc-if value="{{pacAcabando}}" hint-placeholder-val="{{ true }}"><a href="PacienteConsultas.dc.html" style="font-size: 13px; font-weight: 600; white-space: nowrap">Renovar</a></sc-if>
+      </div>
+      <sc-for list="{{tipos}}" as="t" hint-placeholder-count="3">
+        <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.on}}" style="text-align: left; padding: 12px 14px; border-radius: 14px; border: {{t.bd}}; background: {{t.bg}}; font: inherit; color: oklch(0.22 0.01 80); display: flex; flex-direction: column; gap: 2px; cursor: pointer">
+          <span style="display: flex; justify-content: space-between; gap: 8px"><b style="font-weight: 600">{{t.n}}</b><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: oklch(0.50 0.01 80)">{{t.dur}}</span></span>
+          <span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{t.d}}</span>
+        </button>
+      </sc-for>
+      <button type="button" onClick="{{next}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">Continuar</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{s2}}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; padding: 4px 20px 20px; display: flex; flex-direction: column; gap: 14px">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.15">Com quem?</h1>
+      <sc-for list="{{profs}}" as="p" hint-placeholder-count="2">
+        <button type="button" onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="text-align: left; padding: 12px; border-radius: 16px; border: {{p.bd}}; background: {{p.bg}}; font: inherit; color: oklch(0.22 0.01 80); display: flex; gap: 12px; align-items: center; cursor: pointer">
+          <span style="width: 48px; height: 48px; border-radius: 50%; background: {{p.av}}; color: #FFFFFF; display: grid; place-items: center; font-weight: 600">{{p.ini}}</span>
+          <span style="display: flex; flex-direction: column; flex: 1"><b style="font-weight: 600">{{p.n}}</b><span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{p.d}}</span></span>
+          <span style="font-size: 13px; color: oklch(0.45 0.15 295); font-weight: 500">{{p.livre}}</span>
+        </button>
+      </sc-for>
+      <span style="font-size: 13px; color: oklch(0.50 0.01 80)">Quem já acompanha o tratamento aparece primeiro. Trocar de fisio não muda o programa de exercícios.</span>
+      <button type="button" onClick="{{next}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">Continuar</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{s3}}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; padding: 4px 20px 20px; display: flex; flex-direction: column; gap: 12px">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.15">Quando?</h1>
+      <div role="listbox" aria-label="Dia" style="display: flex; gap: 8px">
+        <sc-for list="{{dias}}" as="d" hint-placeholder-count="6">
+          <button type="button" role="option" aria-selected="{{d.on}}" onClick="{{d.pick}}" style="flex: 1; min-width: 0; padding: 8px 0; border-radius: 14px; border: {{d.bd}}; background: {{d.bg}}; color: {{d.fg}}; font: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; opacity: {{d.op}}">
+            <span style="font-size: 12px">{{d.s}}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600">{{d.n}}</span>
+          </button>
+        </sc-for>
+      </div>
+      <span style="font-weight: 600">Horários livres</span>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{horas}}" as="h" hint-placeholder-count="6">
+          <button type="button" onClick="{{h.pick}}" aria-pressed="{{h.on}}" style="height: 46px; border-radius: 12px; border: {{h.bd}}; background: {{h.bg}}; color: {{h.fg}}; font-family: 'IBM Plex Mono', monospace; font-size: 15px; cursor: pointer">{{h.t}}</button>
+        </sc-for>
+      </div>
+      <button type="button" onClick="{{toggleEspera}}" aria-pressed="{{esperaOn}}" style="text-align: left; padding: 12px 14px; border-radius: 14px; border: {{esperaBd}}; background: {{esperaBg}}; font: inherit; color: oklch(0.22 0.01 80); display: flex; gap: 12px; align-items: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="oklch(0.45 0.15 295)" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+        <span style="display: flex; flex-direction: column"><b style="font-weight: 600; font-size: 14px">{{esperaT}}</b><span style="font-size: 13px; color: oklch(0.50 0.01 80)">Se alguém desmarcar antes, te aviso no WhatsApp. Quem confirmar primeiro fica com a vaga.</span></span>
+      </button>
+      <button type="button" onClick="{{next}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">Continuar</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{s4}}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; padding: 4px 20px 20px; display: flex; flex-direction: column; gap: 12px">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 600; line-height: 1.15">Confere?</h1>
+      <div style="padding: 14px 16px; border-radius: 16px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); display: flex; flex-direction: column; gap: 8px">
+        <sc-for list="{{resumo}}" as="r" hint-placeholder-count="5">
+          <span style="display: flex; justify-content: space-between; gap: 10px"><span style="color: oklch(0.50 0.01 80)">{{r.k}}</span><b style="font-weight: 600; text-align: right">{{r.v}}</b></span>
+        </sc-for>
+      </div>
+      <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 500">Recado para a fisio (opcional)</span>
+        <span style="min-height: 44px; border-radius: 12px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF; padding: 10px 12px; font-size: 14px; color: oklch(0.50 0.01 80)">Ex.: o joelho piorou depois da corrida</span>
+      </label>
+      <sc-if value="{{temSinal}}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 12px 14px; border-radius: 14px; background: oklch(0.96 0.05 85); display: flex; flex-direction: column; gap: 4px">
+          <b style="font-weight: 600; font-size: 14px">Sinal por Pix: R$ [VALOR]</b>
+          <span style="font-size: 13px">Desconta no valor da consulta. Devolvido se você desmarcar até 24 h antes.</span>
+        </div>
+      </sc-if>
+      <span style="font-size: 13px; color: oklch(0.50 0.01 80)">Lembrete no WhatsApp na véspera. Remarcar ou cancelar pelo app até 24 h antes.</span>
+      <button type="button" onClick="{{next}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">{{cta}}</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{s5}}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; justify-content: center; align-items: center; text-align: center">
+      <span style="width: 88px; height: 88px; border-radius: 50%; background: oklch(0.55 0.15 295); display: grid; place-items: center"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
+      <h1 style="margin: 0; font-size: 26px; font-weight: 600">Agendado!</h1>
+      <span style="color: oklch(0.38 0.01 80); max-width: 300px">{{confirmText}}</span>
+      <sc-if value="{{pedeFicha}}" hint-placeholder-val="{{ false }}">
+        <a href="PacientePreAnamnese.dc.html" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 50px; border-radius: 14px; border: 1px solid oklch(0.55 0.15 295); text-decoration: none; font-weight: 600">Responder 5 perguntas antes (2 min)</a>
+      </sc-if>
+      <a href="PacienteConsultas.dc.html" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; border-radius: 14px; background: oklch(0.22 0.01 80); color: #FFFFFF; text-decoration: none; font-weight: 600">Ver minhas consultas</a>
+      <button type="button" onClick="{{restart}}" style="height: 40px; border: 0; background: none; color: oklch(0.50 0.01 80); font: inherit; text-decoration: underline">Ver do início</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { step: 1, pessoa: 'eu', tipo: 'retorno', prof: 'dj', dia: 2, hora: '08:30', espera: false }; }
+  renderVals() {
+    const s = this.state, P = 'oklch(0.55 0.15 295)', INK = 'oklch(0.22 0.01 80)', LINE = 'oklch(0.90 0.004 90)';
+    const sel = (on) => ({ on: on ? 'true' : 'false', bd: on ? '2px solid ' + P : '1px solid ' + LINE, bg: on ? 'oklch(0.95 0.04 295)' : '#FFFFFF' });
+    const PESSOAS = { eu: ['Eu', 8, 10], mae: ['[NOME] (mãe)', 0, 0] };
+    const TIPOS = { retorno: ['Sessão do pacote', '50 min', 'Consome 1 sessão do pacote. Sem sinal.'], tele: ['Teleconsulta', '30 min', 'Por vídeo, aqui no app.'], aval: ['Reavaliação', '60 min', 'Revisa o programa e as metas.'] };
+    const PROFS = { dj: ['Dra. Dejeane', 'Fisioterapeuta · acompanha você', 'DR', P, 'amanhã'], rf: ['Dr. [NOME]', 'Fisioterapeuta', 'DN', 'oklch(0.45 0.08 220)', 'qua'] };
+    const DIAS = [['seg', '20', false], ['ter', '21', true], ['qua', '22', true], ['qui', '23', true], ['sex', '24', true], ['sáb', '25', false]];
+    const HORAS = ['08:30', '10:00', '14:00', '15:30', '17:30', '18:00'];
+    const pes = PESSOAS[s.pessoa];
+    const temPacote = pes[2] > 0, restam = pes[2] - pes[1];
+    const temSinal = !(s.tipo === 'retorno' && temPacote);
+    const dia = DIAS[s.dia];
+    const quando = dia[0] + ', ' + dia[1] + '/10 · ' + s.hora;
+    return {
+      s1: s.step === 1, s2: s.step === 2, s3: s.step === 3, s4: s.step === 4, s5: s.step === 5,
+      stepLabel: s.step === 5 ? 'pronto' : 'passo ' + s.step + ' de 4',
+      dots: [1, 2, 3, 4].map(i => ({ bg: i <= Math.min(s.step, 4) ? P : LINE })),
+      pessoas: Object.keys(PESSOAS).map(k => Object.assign({ n: PESSOAS[k][0], pick: () => this.setState({ pessoa: k, tipo: PESSOAS[k][2] ? s.tipo : 'aval' }) }, sel(s.pessoa === k))),
+      pacT: temPacote ? 'Pacote:' : 'Sem pacote ativo.', pacD: temPacote ? pes[1] + ' de ' + pes[2] + ' sessões usadas' + (restam <= 2 ? ' · faltam ' + restam : '') : 'A primeira vez passa por avaliação.',
+      pacAcabando: temPacote && restam <= 2,
+      pacBg: temPacote && restam <= 2 ? 'oklch(0.96 0.05 85)' : 'oklch(0.95 0.04 295)', pacFg: temPacote && restam <= 2 ? 'oklch(0.38 0.09 70)' : 'oklch(0.40 0.15 295)',
+      tipos: Object.keys(TIPOS).filter(k => temPacote || k !== 'retorno').map(k => Object.assign({ n: TIPOS[k][0], dur: TIPOS[k][1], d: k === 'retorno' ? TIPOS[k][2] : TIPOS[k][2] + ' Pede sinal.', pick: () => this.setState({ tipo: k }) }, sel(s.tipo === k))),
+      profs: Object.keys(PROFS).map(k => Object.assign({ n: PROFS[k][0], d: PROFS[k][1], ini: PROFS[k][2], av: PROFS[k][3], livre: 'livre ' + PROFS[k][4], pick: () => this.setState({ prof: k }) }, sel(s.prof === k))),
+      dias: DIAS.map((d, i) => { const on = s.dia === i, ok = d[2]; return { s: d[0], n: d[1], on: on ? 'true' : 'false', op: ok ? '1' : '0.4', pick: ok ? () => this.setState({ dia: i }) : () => {}, bd: on ? '0' : '1px solid ' + LINE, bg: on ? P : '#FFFFFF', fg: on ? '#FFFFFF' : INK }; }),
+      horas: HORAS.map(t => { const on = s.hora === t; return { t, on: on ? 'true' : 'false', pick: () => this.setState({ hora: t }), bd: on ? '0' : '1px solid ' + LINE, bg: on ? INK : '#FFFFFF', fg: on ? '#FFFFFF' : INK }; }),
+      esperaOn: s.espera ? 'true' : 'false', esperaT: s.espera ? 'Vou te avisar se abrir antes' : 'Queria mais cedo? Me avise se abrir vaga',
+      esperaBd: s.espera ? '2px solid ' + P : '1px dashed ' + LINE, esperaBg: s.espera ? 'oklch(0.95 0.04 295)' : '#FFFFFF',
+      toggleEspera: () => this.setState({ espera: !s.espera }),
+      resumo: [{ k: 'Para', v: pes[0] }, { k: 'O quê', v: TIPOS[s.tipo][0] }, { k: 'Com', v: PROFS[s.prof][0] }, { k: 'Quando', v: quando }, { k: 'Onde', v: s.tipo === 'tele' ? 'Vídeo pelo app' : 'Clínica [NOME]' }],
+      temSinal, cta: temSinal ? 'Pagar sinal e confirmar' : 'Confirmar agendamento',
+      pedeFicha: s.tipo === 'aval',
+      confirmText: TIPOS[s.tipo][0] + ' com ' + PROFS[s.prof][0] + ', ' + quando + '.' + (s.espera ? ' Se abrir vaga antes, aviso no WhatsApp.' : ''),
+      next: () => this.setState({ step: Math.min(5, s.step + 1) }),
+      back: () => this.setState({ step: Math.max(1, s.step - 1) }),
+      restart: () => this.setState({ step: 1, espera: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Dia de crise</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.97 0.012 295); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
+  <div style="flex: 1; padding: 26px 20px 20px; display: flex; flex-direction: column; gap: 16px">
+    <a href="PacienteHoje.dc.html" style="align-self: flex-start; font-size: 14px; text-decoration: none">← Voltar para hoje</a>
+    <h1 style="margin: 0; font-size: 28px; font-weight: 600; line-height: 1.15">Dia de crise, tudo bem.</h1>
+    <span style="color: oklch(0.38 0.01 80)">Hoje vale fazer a versão curta que a Dra. Dejeane deixou para você. Leva uns 8 minutos.</span>
+    <div style="padding: 12px 14px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); font-size: 15px"><b style="font-weight: 600">Da Dra. Dejeane:</b> “Em dia de crise, faça devagar e pare se a dor ficar diferente da habitual. Se tiver febre ou um sintoma novo, me avise por aqui.”</div>
+    <section aria-label="Versão curta" style="display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{items}}" as="e" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90)">
+          <span style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: oklch(0.95 0.04 295); color: oklch(0.45 0.15 295); font-family: 'IBM Plex Mono', monospace; font-size: 13px; flex: none">{{e.n}}</span>
+          <span style="flex: 1; font-weight: 500">{{e.t}}</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: oklch(0.50 0.01 80)">{{e.d}}</span>
+        </div>
+      </sc-for>
+    </section>
+    <div style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px; background: oklch(0.95 0.075 150); color: oklch(0.40 0.12 150)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex: none"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+      <span style="font-size: 15px">Conta como dia cumprido. Sua sequência de <b>13 dias</b> fica protegida.</span>
+    </div>
+    <a href="PacienteCheckin.dc.html" style="margin-top: auto; display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 14px; background: oklch(0.55 0.15 295); color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 17px">Começar a versão curta</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { items: [{ n: '1', t: 'Respiração diafragmática', d: '5 min' }, { n: '2', t: 'Gato-camelo, bem devagar', d: '1×8' }, { n: '3', t: 'Rotação de tronco deitada', d: '1×8' }] };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Hoje</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.985 0.003 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
+  <div style="flex: 1; padding: 24px 20px 12px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+    <header style="display: flex; justify-content: space-between; align-items: flex-start">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: oklch(0.50 0.01 80); font-weight: 600">Sábado, 17 de outubro</span>
+        <h1 style="margin: 0; font-family: 'IBM Plex Sans', sans-serif; font-size: 34px; line-height: 1.1">Olá, Marta</h1>
+      </div>
+      <a href="PacienteJornada.dc.html" aria-label="Nível 8, 13 dias de constância" style="display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; border-radius: 999px; background: oklch(0.17 0.03 280); color: #FFFFFF; text-decoration: none">
+        <span style="position: relative; width: 30px; height: 33px"><svg width="30" height="33" viewBox="0 0 168 184" aria-hidden="true" style="position: absolute; inset: 0"><path d="M84 6l70 38v86l-70 46-70-46V44z" fill="oklch(0.45 0.15 295)" stroke="oklch(0.70 0.15 295)" stroke-width="10"/></svg><span style="position: absolute; inset: 0; display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600">8</span></span>
+        <span style="display: inline-flex; align-items: center; gap: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c2 4.5 6.5 6 6.5 11.5A6.5 6.5 0 015.5 13.5c0-3 2-4.5 2-6.5 1.2 1 2.4 2 4 2.5C12 7 11 4.5 12 2z" fill="oklch(0.75 0.17 50)"/></svg>13</span>
+      </a>
+    </header>
+    <div style="display: flex; align-items: center; gap: 10px">
+      <div style="flex: 1; height: 8px; border-radius: 4px; background: oklch(0.93 0.004 90); overflow: hidden"><div style="width: 62%; height: 8px; background: oklch(0.55 0.15 295)"></div></div>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: oklch(0.50 0.01 80)">hoje +240 XP possíveis</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
+      <sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: oklch(0.50 0.01 80)">
+          <span style="width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px; background: {{d.bg}}; color: {{d.fg}}; border: {{d.border}}; box-sizing: border-box">{{d.n}}</span>{{d.l}}
+        </div>
+      </sc-for>
+    </div>
+
+    <section aria-labelledby="prox" style="background: oklch(0.22 0.01 80); color: #FFFFFF; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span id="prox" style="font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: oklch(0.78 0.005 90); font-weight: 600">Próximo · 3 de 5</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: oklch(0.78 0.005 90)">~3 min</span>
+      </div>
+      <div style="display: flex; gap: 14px; align-items: center">
+        <svg width="104" height="62" viewBox="0 0 80 48" aria-hidden="true" style="background: oklch(0.27 0.008 240); border-radius: 10px; flex: none">
+          <line x1="4" y1="45" x2="76" y2="45" stroke="oklch(0.40 0.008 240)" stroke-width="1.5"/>
+          <circle cx="14" cy="18" r="4.2" fill="#FFFFFF"/>
+          <polyline points="19,21 46,21" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+          <polyline points="21,22 21,43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+          <polyline points="22,21 8,12" fill="none" stroke="{{accent}}" stroke-width="3" stroke-linecap="round"/>
+          <polyline points="46,21 70,18" fill="none" stroke="{{accent}}" stroke-width="3" stroke-linecap="round"/>
+          <polyline points="46,21 46,43 60,43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: 22px; line-height: 1.15">Perdigueiro</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; color: oklch(0.82 0.08 295)">3×8 · segurar 5s</span>
+        </div>
+      </div>
+      <div style="font-size: 14px; color: oklch(0.85 0.005 90); padding: 10px 12px; border-radius: 10px; background: oklch(0.27 0.008 240)">Da Dra. Dejeane: “Quadril parado, como se tivesse um copo d’água nas costas.”</div>
+      <a href="PacienteCameraPreparo.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 52px; border-radius: 14px; background: {{accent}}; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 17px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8a2 2 0 012-2h2l2-2h6l2 2h2a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg>Fazer com a câmera</a>
+      <button type="button" style="height: 44px; border-radius: 14px; border: 1px solid oklch(0.40 0.008 240); background: transparent; color: #FFFFFF; font: inherit; font-weight: 600">Ver vídeo e fazer sem câmera</button>
+    </section>
+
+    <section aria-label="Programa de hoje" style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px">
+        <span style="font-weight: 600">Hoje · 2 de 5 feitos</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; color: oklch(0.50 0.01 80)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg>Consulta seg, 08:30</span>
+      </div>
+      <div style="height: 6px; border-radius: 3px; background: oklch(0.90 0.004 90); overflow: hidden"><div style="width: 40%; height: 6px; background: oklch(0.50 0.12 150)"></div></div>
+      <sc-for list="{{list}}" as="e" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90)">
+          <span style="width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: {{e.bg}}; color: #FFFFFF; border: {{e.border}}; box-sizing: border-box; flex: none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{e.check}}" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
+          <span style="flex: 1; font-weight: 600; color: {{e.fg}}">{{e.name}}</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: oklch(0.50 0.01 80)">{{e.dose}}</span>
+        </div>
+      </sc-for>
+    </section>
+  </div>
+
+  <a href="PacienteCrise.dc.html" style="display:block;text-align:center;padding:8px 0 10px;font-size:14px">Hoje estou em crise</a>
+  <nav aria-label="Navegação" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid oklch(0.90 0.004 90); padding: 8px 8px 22px">
+    <a href="PacienteHoje.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: {{accent}}; font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Hoje</a>
+    <a href="PacienteProgresso.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.50 0.01 80); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Progresso</a>
+    <a href="PacienteJornada.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.50 0.01 80); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15a6 6 0 100-12 6 6 0 000 12zM8.5 13.5L7 22l5-3 5 3-1.5-8.5"/></svg>Jornada</a>
+    <a href="PacienteConsultas.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; justify-content: center; text-decoration: none; color: oklch(0.50 0.01 80); font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Consultas</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? 'oklch(0.55 0.15 295)';
+    const day = (l, n, s) => ({ l, n, bg: s === 'done' ? accent : '#FFFFFF', fg: s === 'done' ? '#FFFFFF' : 'oklch(0.22 0.01 80)', border: s === 'today' ? '2px solid oklch(0.22 0.01 80)' : s === 'done' ? '0' : '1px solid oklch(0.90 0.004 90)' });
+    const item = (name, dose, done, now) => ({ name, dose, bg: done ? 'oklch(0.50 0.12 150)' : '#FFFFFF', border: done ? '0' : now ? '2px solid ' + accent : '2px solid oklch(0.85 0.004 90)', check: done ? '#FFFFFF' : 'transparent', fg: done ? 'oklch(0.50 0.01 80)' : 'oklch(0.22 0.01 80)' });
+    return {
+      accent,
+      week: [day('S', '12', 'done'), day('T', '13', 'done'), day('Q', '14', 'done'), day('Q', '15', 'done'), day('S', '16', 'done'), day('S', '17', 'today'), day('D', '18', '')],
+      list: [
+        item('Extensão em prono', '2×10', true, false),
+        item('Gato-camelo', '2×10', true, false),
+        item('Perdigueiro', '3×8 · 5s', false, true),
+        item('Ponte de glúteo', '3×12 · 3s', false, false),
+        item('Prancha frontal', '3× 30s', false, false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-18T01:05:00Z"
+  },
+  "title": "Prescreve Pro",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1180,
+      "title": "Fisio · Painel",
+      "expand": "fill"
+    },
+    "Prescricao.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1080,
+      "title": "Fisio · Prescrição por protocolo",
+      "expand": "fill"
+    },
+    "Evolucao.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 1080,
+      "title": "Fisio · Evolução do paciente",
+      "expand": "fill"
+    },
+    "Biblioteca.dc.html": {
+      "x": 4560,
+      "y": 0,
+      "w": 1440,
+      "h": 1080,
+      "title": "Fisio · Biblioteca",
+      "expand": "fill"
+    },
+    "PacienteAcesso.dc.html": {
+      "x": 0,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Entrada pelo WhatsApp",
+      "is_interactive": true
+    },
+    "PacienteHoje.dc.html": {
+      "x": 470,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Hoje"
+    },
+    "PacienteCamera.dc.html": {
+      "x": 940,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Câmera (conta repetições)"
+    },
+    "PacienteCheckin.dc.html": {
+      "x": 1410,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Como foi hoje",
+      "is_interactive": true
+    },
+    "PacienteProgresso.dc.html": {
+      "x": 1880,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Progresso"
+    },
+    "PacienteNota.dc.html": {
+      "x": 2350,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Nota e nível",
+      "is_interactive": true
+    },
+    "PacienteJornada.dc.html": {
+      "x": 2820,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Jornada"
+    },
+    "Avaliacao.dc.html": {
+      "x": 6080,
+      "y": 0,
+      "w": 1440,
+      "h": 1500,
+      "title": "Fisio · Avaliação / anamnese",
+      "expand": "fill"
+    },
+    "Protocolos.dc.html": {
+      "x": 7600,
+      "y": 0,
+      "w": 1440,
+      "h": 1180,
+      "title": "Fisio · Protocolos",
+      "expand": "fill"
+    },
+    "Agenda.dc.html": {
+      "x": 9120,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Fisio · Agenda e lista de espera",
+      "expand": "fill"
+    },
+    "Teleconsulta.dc.html": {
+      "x": 10640,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Fisio · Teleconsulta",
+      "expand": "fill"
+    },
+    "Financeiro.dc.html": {
+      "x": 12160,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "title": "Fisio · Financeiro",
+      "expand": "fill"
+    },
+    "PacientePreAnamnese.dc.html": {
+      "x": 3290,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Pré-anamnese",
+      "is_interactive": true
+    },
+    "PacienteCrise.dc.html": {
+      "x": 3760,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Dia de crise"
+    },
+    "EvolucaoDitada.dc.html": {
+      "x": 13680,
+      "y": 0,
+      "w": 1440,
+      "h": 1100,
+      "title": "Fisio · Evolução ditada (F4)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Laudo.dc.html": {
+      "x": 15200,
+      "y": 0,
+      "w": 794,
+      "h": 1123,
+      "title": "Fisio · Laudo de evolução (PDF)"
+    },
+    "PacienteQuestionario.dc.html": {
+      "x": 4230,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Questionário da semana",
+      "is_interactive": true
+    },
+    "PacienteConfig.dc.html": {
+      "x": 4700,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Configurações e privacidade",
+      "is_interactive": true
+    },
+    "PacienteCameraPreparo.dc.html": {
+      "x": 5420,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "F2 · Paciente · Preparar a câmera",
+      "is_interactive": true
+    },
+    "PacienteSerieConfirmar.dc.html": {
+      "x": 5890,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "F2 · Paciente · Confirmar a série",
+      "is_interactive": true
+    },
+    "PacienteCameraClasse2.dc.html": {
+      "x": 6360,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "F2 + classe II · Câmera com ângulo e correção"
+    },
+    "CameraLiberacao.dc.html": {
+      "x": 6830,
+      "y": 1600,
+      "w": 1440,
+      "h": 1100,
+      "title": "F2 · Fisio · Câmera e plano classe II",
+      "expand": "fill"
+    },
+    "PacienteNovo.dc.html": {
+      "x": 0,
+      "y": 3100,
+      "w": 1440,
+      "h": 1000,
+      "title": "Etapa 1 · F1 · Novo paciente e envio do link",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Contraindicacao.dc.html": {
+      "x": 1520,
+      "y": 3100,
+      "w": 1440,
+      "h": 1000,
+      "title": "Etapa 1 · F1 · Aviso de contraindicação",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "FiscalFila.dc.html": {
+      "x": 3040,
+      "y": 3100,
+      "w": 1440,
+      "h": 1000,
+      "title": "Etapa 3 · F3 · NFS-e e Receita Saúde",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "PacienteAgendaConfirmar.dc.html": {
+      "x": 4560,
+      "y": 3100,
+      "w": 390,
+      "h": 844,
+      "title": "Etapa 3 · F3 · Paciente confirma a consulta",
+      "is_interactive": true
+    },
+    "BuscaBiblioteca.dc.html": {
+      "x": 5030,
+      "y": 3100,
+      "w": 1440,
+      "h": 1000,
+      "title": "Etapa 4 · F4 · Busca por descrição",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Questionarios.dc.html": {
+      "x": 6550,
+      "y": 3100,
+      "w": 1440,
+      "h": 1000,
+      "title": "Etapa 4 · F4 · Questionários e envio automático",
+      "expand": "fill"
+    },
+    "Planos.dc.html": {
+      "x": 8070,
+      "y": 3100,
+      "w": 1440,
+      "h": 1000,
+      "title": "Etapa 5 · Lançamento · Planos e preço",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Onboarding.dc.html": {
+      "x": 9590,
+      "y": 3100,
+      "w": 1440,
+      "h": 1000,
+      "title": "Etapa 5 · Lançamento · Primeira configuração",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ConfigWhatsApp.dc.html": {
+      "x": 11110,
+      "y": 3100,
+      "w": 1440,
+      "h": 1100,
+      "title": "Configurações · WhatsApp (escolha do canal)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "PacienteAgendar.dc.html": {
+      "x": 470,
+      "y": 4700,
+      "w": 390,
+      "h": 844,
+      "title": "App do paciente · Agendar sozinho",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "PacienteInstalar.dc.html": {
+      "x": 0,
+      "y": 4700,
+      "w": 390,
+      "h": 844,
+      "title": "App do paciente · Baixar e entrar uma vez",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "PacienteConsultas.dc.html": {
+      "x": 940,
+      "y": 4700,
+      "w": 390,
+      "h": 844,
+      "title": "App do paciente · Minhas consultas (remarcar/cancelar)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ConfigAgendamentoOnline.dc.html": {
+      "x": 1410,
+      "y": 4700,
+      "w": 1440,
+      "h": 1100,
+      "title": "Configurações · Agendamento pelo app",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "ComparativoAgendamento.dc.html": {
+      "x": 2930,
+      "y": 4700,
+      "w": 1440,
+      "h": 1240,
+      "title": "Pesquisa · Comparativo de funções (AppBarber, Jane, Cliniko, Booksy, Physitrack, Doctoralia)",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Prescricao.dc.html",
+    "Evolucao.dc.html",
+    "Biblioteca.dc.html",
+    "Avaliacao.dc.html",
+    "Protocolos.dc.html",
+    "Agenda.dc.html",
+    "Teleconsulta.dc.html",
+    "Financeiro.dc.html",
+    "EvolucaoDitada.dc.html",
+    "Laudo.dc.html",
+    "PacienteAcesso.dc.html",
+    "PacienteHoje.dc.html",
+    "PacienteCamera.dc.html",
+    "PacienteCheckin.dc.html",
+    "PacienteProgresso.dc.html",
+    "PacienteNota.dc.html",
+    "PacienteJornada.dc.html",
+    "PacientePreAnamnese.dc.html",
+    "PacienteCrise.dc.html",
+    "PacienteQuestionario.dc.html",
+    "PacienteConfig.dc.html",
+    "PacienteCameraPreparo.dc.html",
+    "PacienteSerieConfirmar.dc.html",
+    "PacienteCameraClasse2.dc.html",
+    "CameraLiberacao.dc.html",
+    "PacienteNovo.dc.html",
+    "Contraindicacao.dc.html",
+    "FiscalFila.dc.html",
+    "PacienteAgendaConfirmar.dc.html",
+    "BuscaBiblioteca.dc.html",
+    "Questionarios.dc.html",
+    "Planos.dc.html",
+    "Onboarding.dc.html",
+    "ConfigWhatsApp.dc.html",
+    "PacienteAgendar.dc.html",
+    "PacienteInstalar.dc.html",
+    "PacienteConsultas.dc.html",
+    "ConfigAgendamentoOnline.dc.html",
+    "ComparativoAgendamento.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": -300,
+      "text": "Módulo Fisio · dentro do oimpresso (DS v6)",
+      "kind": "title1",
+      "maxW": 15994
+    },
+    "t2": {
+      "x": 0,
+      "y": 1300,
+      "text": "App do paciente · jogo de constância",
+      "kind": "title1",
+      "maxW": 5090
+    },
+    "t3": {
+      "x": 5420,
+      "y": 1300,
+      "text": "Fase 2 · câmera · e o que a classe II libera",
+      "kind": "title1",
+      "maxW": 2850
+    },
+    "t4": {
+      "x": 0,
+      "y": 2840,
+      "text": "Etapas 1 a 5 · F1, F3, F4 e lançamento",
+      "kind": "title1",
+      "maxW": 12550
+    },
+    "t5": {
+      "x": 0,
+      "y": 4440,
+      "text": "Etapa 6 · App do paciente com agendamento (estilo AppBarber Cliente)",
+      "kind": "title1",
+      "maxW": 4400
+    }
+  },
+  "designSystems": []
+}

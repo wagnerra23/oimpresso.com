@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Comparativo · App do paciente</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1440px; height: 1240px; box-sizing: border-box; padding: 32px 40px; background: oklch(0.985 0.003 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 13px; line-height: 1.4; display: flex; flex-direction: column; gap: 16px; overflow: hidden">
+  <header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px">
+    <div>
+      <span style="color: oklch(0.50 0.01 80)">Pesquisa · out/2026</span>
+      <h1 style="margin: 2px 0 0; font-size: 24px; font-weight: 600">App do paciente: o que os melhores fazem e o que o Prescreve faz</h1>
+    </div>
+    <div style="display: flex; gap: 6px" role="tablist" aria-label="Filtro">
+      <sc-for list="{{filtros}}" as="f" hint-placeholder-count="3">
+        <button type="button" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}" style="height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid oklch(0.90 0.004 90); background: {{f.bg}}; color: {{f.fg}}; font: inherit; font-weight: 500; cursor: pointer">{{f.n}}</button>
+      </sc-for>
+    </div>
+  </header>
+  <div style="display: flex; gap: 16px; font-size: 12px; color: oklch(0.38 0.01 80)">
+    <sc-for list="{{legenda}}" as="l" hint-placeholder-count="4"><span style="display: flex; gap: 6px; align-items: center"><span style="width: 12px; height: 12px; border-radius: 3px; background: {{l.bg}}; border: 1px solid {{l.bd}}"></span>{{l.n}}</span></sc-for>
+  </div>
+  <div style="flex: 1; overflow: hidden; border: 1px solid oklch(0.90 0.004 90); border-radius: 14px; background: #FFFFFF">
+    <div style="display: grid; grid-template-columns: 210px repeat(6, minmax(0, 1fr)) 230px; font-weight: 600; background: oklch(0.96 0.004 90); border-bottom: 1px solid oklch(0.90 0.004 90)">
+      <sc-for list="{{cab}}" as="c" hint-placeholder-count="8"><span style="padding: 10px; background: {{c.bg}}; color: {{c.fg}}">{{c.n}}</span></sc-for>
+    </div>
+    <sc-for list="{{linhas}}" as="r" hint-placeholder-count="19">
+      <div style="display: grid; grid-template-columns: 210px repeat(6, minmax(0, 1fr)) 230px; border-bottom: 1px solid oklch(0.94 0.004 90)">
+        <span style="padding: 8px 10px; font-weight: 500">{{r.f}}</span>
+        <sc-for list="{{r.cs}}" as="c" hint-placeholder-count="6"><span style="padding: 8px 10px; background: {{c.bg}}; color: {{c.fg}}">{{c.t}}</span></sc-for>
+        <span style="padding: 8px 10px; background: {{r.nbg}}; color: {{r.nfg}}; font-weight: 500">{{r.n}}</span>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px">
+    <sc-for list="{{conclusoes}}" as="k" hint-placeholder-count="3">
+      <div style="padding: 14px; border-radius: 12px; background: {{k.bg}}; display: flex; flex-direction: column; gap: 4px"><b style="font-weight: 600">{{k.t}}</b><span>{{k.d}}</span></div>
+    </sc-for>
+  </div>
+  <span style="font-size: 11px; color: oklch(0.50 0.01 80)">Fontes: App Store (AppBarber: Cliente, notas de versão e avaliações) · jane.app (online booking, wait list, guia) · cliniko.com (online bookings, ajuda) · biz.booksy.com (no-show protection) · physitrack.com (branded app) · medicinasa.com.br (Doctoralia). "não citado" = a fonte lida não fala do recurso; não quer dizer que não existe.</span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { filtro: 'todos' }; }
+  renderVals() {
+    const s = this.state;
+    const ST = {
+      s: ['oklch(0.95 0.05 150)', 'oklch(0.35 0.10 150)'],
+      p: ['oklch(0.96 0.05 85)', 'oklch(0.42 0.09 70)'],
+      n: ['#FFFFFF', 'oklch(0.60 0.01 80)'],
+      x: ['oklch(0.96 0.03 25)', 'oklch(0.45 0.14 25)']
+    };
+    const NOSSO = { ja: ['oklch(0.95 0.04 295)', 'oklch(0.40 0.15 295)'], novo: ['oklch(0.55 0.15 295)', '#FFFFFF'], fora: ['oklch(0.22 0.01 80)', '#FFFFFF'] };
+    // [recurso, [AppBarber, Jane, Cliniko, Booksy, Physitrack, Doctoralia], nosso, tipoNosso]
+    const L = [
+      ['Agendar sozinho 24 h', [['s','sim'],['s','sim'],['s','sim'],['s','sim'],['p','abre a agenda de outro sistema'],['s','sim']], 'sim · só horários abertos pela clínica', 'ja'],
+      ['Entrar sem senha', [['x','login a cada acesso (reclamação)'],['p','conta no portal'],['s','sem usuário nem senha'],['n','não citado'],['s','app'],['n','não citado']], 'código no WhatsApp 1x + digital/rosto', 'ja'],
+      ['Remarcar e cancelar com prazo', [['s','botão reagendar'],['s','janela e taxa configuráveis'],['s','aviso mínimo'],['s','dentro da política'],['n','não citado'],['n','não citado']], 'até 24 h antes (configurável)', 'ja'],
+      ['Lista de espera com aviso de vaga', [['n','não citado'],['s','e-mail/SMS, quem clica primeiro leva'],['n','não citado'],['n','não citado'],['n','não citado'],['s','avisa no cancelamento']], 'aviso no WhatsApp, quem confirma primeiro leva', 'novo'],
+      ['Sinal ou pagamento ao marcar', [['s','sinal por Pix'],['s','sinal, total ou cartão'],['n','não citado'],['s','sinal em % + taxa de falta'],['n','não citado'],['n','não citado']], 'sinal Pix opcional, abatido na sessão', 'novo'],
+      ['Isentar quem é de confiança', [['n','não citado'],['p','cobra só 1ª consulta'],['n','não citado'],['s','clientes de confiança'],['n','não citado'],['n','não citado']], 'quem tem pacote ativo não paga sinal', 'novo'],
+      ['Bloquear quem falta', [['n','não citado'],['p','só pré-aprovados'],['s','bloqueio por paciente'],['s','bloqueio'],['n','não citado'],['n','não citado']], '2 faltas sem aviso bloqueiam o app', 'ja'],
+      ['Pacote e renovação no app', [['s','renova assinatura + aviso de fim'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado']], 'saldo de sessões + renovar por Pix', 'novo'],
+      ['Lembrete', [['s','sim'],['s','e-mail/SMS'],['n','não citado'],['s','SMS'],['s','push'],['s','WhatsApp/SMS/e-mail']], 'WhatsApp (canal da clínica) + push', 'ja'],
+      ['Marcar para filho ou pai', [['n','não citado'],['s','família na mesma conta'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado']], 'dependentes, com responsável legal', 'novo'],
+      ['Check-in na chegada', [['n','não citado'],['s','até 1 h antes'],['n','não citado'],['n','não citado'],['n','não citado'],['s','check-in online']], 'botão "Cheguei" no dia', 'novo'],
+      ['Formulário depois de marcar', [['n','não citado'],['s','ficha e consentimento automáticos'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado']], 'pré-anamnese na reavaliação', 'ja'],
+      ['Pesquisa depois do atendimento', [['s','pesquisa + nota pública'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado'],['p','avaliação pública no marketplace']], 'nota privada, só a clínica vê', 'novo'],
+      ['Histórico e recibo', [['s','histórico + comprovante'],['s','recibos'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado']], 'histórico + recibo / Receita Saúde', 'novo'],
+      ['Exercícios em casa', [['x','não é o foco'],['n','não citado'],['n','não citado'],['x','não é o foco'],['s','18 mil+ exercícios, adesão'],['x','não é o foco']], 'núcleo do produto (F1)', 'ja'],
+      ['Teleconsulta dentro do app', [['x','não'],['p','recurso separado'],['n','não citado'],['x','não'],['s','vídeo no app'],['n','não citado']], 'sim (Res. COFFITO 619)', 'ja'],
+      ['Marca só da clínica', [['x','mostra concorrentes (reclamação)'],['n','não citado'],['n','não citado'],['p','marketplace Booksy'],['s','logo e cores'],['p','marketplace']], 'só a clínica, nunca outras', 'ja'],
+      ['Preferência para o atendimento', [['s','"prefiro não conversar"'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado']], 'recado curto pra fisio ao marcar', 'novo'],
+      ['Promoção e venda extra no checkout', [['s','promoções + extras no checkout'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado'],['n','não citado']], 'não fazemos: saúde não é vitrine', 'fora']
+    ];
+    const visiveis = L.filter(r => s.filtro === 'todos' || (s.filtro === 'novo' && r[3] === 'novo') || (s.filtro === 'fora' && r[3] === 'fora'));
+    const linhas = visiveis.map(r => ({ f: r[0], cs: r[1].map(c => ({ t: c[1], bg: ST[c[0]][0], fg: ST[c[0]][1] })), n: (r[3] === 'novo' ? 'NOVO · ' : '') + r[2], nbg: NOSSO[r[3]][0], nfg: NOSSO[r[3]][1] }));
+    const cnt = k => L.filter(r => r[3] === k).length;
+    const FIL = [['todos', 'Todos (' + L.length + ')'], ['novo', 'O que entra agora (' + cnt('novo') + ')'], ['fora', 'Fora de propósito (' + cnt('fora') + ')']];
+    return {
+      filtros: FIL.map(f => { const on = s.filtro === f[0]; return { n: f[1], on: on ? 'true' : 'false', bg: on ? 'oklch(0.22 0.01 80)' : '#FFFFFF', fg: on ? '#FFFFFF' : 'oklch(0.22 0.01 80)', pick: () => this.setState({ filtro: f[0] }) }; }),
+      legenda: [{ n: 'faz', bg: ST.s[0], bd: ST.s[0] }, { n: 'faz em parte', bg: ST.p[0], bd: ST.p[0] }, { n: 'não citado na fonte', bg: '#FFFFFF', bd: 'oklch(0.85 0.004 90)' }, { n: 'não faz / problema', bg: ST.x[0], bd: ST.x[0] }],
+      cab: ['Recurso', 'AppBarber Cliente', 'Jane', 'Cliniko', 'Booksy', 'Physitrack', 'Doctoralia', 'Prescreve (nós)'].map((n, i) => ({ n, bg: i === 7 ? 'oklch(0.55 0.15 295)' : 'transparent', fg: i === 7 ? '#FFFFFF' : 'oklch(0.22 0.01 80)' })),
+      linhas,
+      conclusoes: [
+        { t: 'O que copiamos do AppBarber', d: 'Remarcar em 1 toque, sinal por Pix, saldo e renovação do pacote, pesquisa depois do atendimento, recado de preferência.', bg: 'oklch(0.95 0.04 295)' },
+        { t: 'O que vem das clínicas (Jane, Doctoralia)', d: 'Lista de espera que avisa a vaga, marcar para dependente, check-in na chegada e formulário depois de marcar. Barbearia não precisa; clínica precisa.', bg: 'oklch(0.95 0.05 150)' },
+        { t: 'O que evitamos de propósito', d: 'Login a cada acesso, vitrine com concorrentes, promoção e venda extra. Em saúde isso cansa o paciente e esbarra na ética profissional.', bg: 'oklch(0.96 0.03 25)' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
