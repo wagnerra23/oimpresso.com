@@ -71,7 +71,10 @@ FINANCEIRO_COLS = [
     "PESSOA_RESPONSAVEL_CODIGO",
 ]
 
-PII_FIELDS = {"RAZAOSOCIAL", "DOCUMENTO", "NOTAFISCAL", "BOLETO_NOSSO_NR"}
+# BOLETO_NOSSO_NR saiu da lista (2026-11-04): é a referência do banco para baixar o boleto
+# pago (sem ela o título migrado nunca casa com o recebimento no Inter/BB). Não identifica
+# pessoa — é um número sequencial da carteira. Fica em metadata.boleto_nosso_numero.
+PII_FIELDS = {"RAZAOSOCIAL", "DOCUMENTO", "NOTAFISCAL"}
 
 WRITE_OFF_AGE_DAYS = 365
 
@@ -109,6 +112,12 @@ def get_existing_cols(con, table: str) -> set[str]:
         return {d[0] for d in cur.description or []}
     finally:
         cur.close()
+
+
+def _tem_tabela(con, table: str) -> bool:
+    cur = con.cursor()
+    cur.execute("SELECT COUNT(*) FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ?", (table,))
+    return cur.fetchone()[0] > 0
 
 
 def normalize_str(raw, max_len=None) -> str | None:
@@ -200,6 +209,7 @@ def map_financeiro_to_titulo(
     transaction_lookup: dict[str, int],
     contact_lookup: dict[str, int],
     created_by: int,
+    boleto_banco: dict[str, str] | None = None,
 ) -> tuple[dict, dict]:
     """FINANCEIRO Delphi → fin_titulos row."""
     legacy_id = str(fin["CODIGO"]).strip()
@@ -293,6 +303,7 @@ def map_financeiro_to_titulo(
         "plano_conta_id": None,
         "categoria_id": None,
         "observacoes": normalize_str(fin.get("HISTORICO"), 500),
+        "forma_pagamento": "boleto" if fin.get("BOLETO_NOSSO_NR") else None,
         "metadata": json.dumps({
             "legacy_source": LEGACY_SOURCE,
             "legacy_id": legacy_id,
@@ -307,7 +318,10 @@ def map_financeiro_to_titulo(
             "is_previsao_cheque": kind == "real_previsao",
             "transaction_id_resolved": transaction_id_resolved,
             "delphi_notafiscal_redacted": redact_pii(fin.get("NOTAFISCAL")),
-            "delphi_boleto_nosso_nr_redacted": redact_pii(fin.get("BOLETO_NOSSO_NR")),
+            # Referência do boleto para a baixa automática (paymentgateway:inter-importar-recebimentos
+            # casa o recebimento do banco com o título migrado). Banco = BOLETOS.CODBANCO (077 Inter, 001 BB).
+            "boleto_nosso_numero": normalize_str(fin.get("BOLETO_NOSSO_NR"), 30),
+            "boleto_banco": (boleto_banco or {}).get(legacy_id),
             "delphi_documento_redacted": redact_pii(fin.get("DOCUMENTO")),
             "delphi_juros": normalize_decimal(fin.get("JUROS")),
             "delphi_desconto": normalize_decimal(fin.get("DESCONTO")),
@@ -521,6 +535,17 @@ def main() -> int:
         sql = f"SELECT {first_clause} {select_clause} FROM FINANCEIRO {where_clause} ORDER BY CODIGO"
         print(f"\n[Query FINANCEIRO] {sql[:200]}...")
 
+        # Banco de cada boleto (BOLETOS.CODBANCO por CODFINANCEIRO): 077 Inter, 001 BB, 033 Santander.
+        # Versão sem a tabela segue sem banco (a baixa casa pelo nosso número/valor do mesmo jeito).
+        boleto_banco: dict[str, str] = {}
+        if _tem_tabela(fb_con, "BOLETOS") and "CODBANCO" in get_existing_cols(fb_con, "BOLETOS"):
+            bcur = fb_con.cursor()
+            bcur.execute("SELECT CODFINANCEIRO, CODBANCO FROM BOLETOS WHERE CODFINANCEIRO IS NOT NULL")
+            for cod_fin, cod_banco in bcur.fetchall():
+                if cod_banco is not None:
+                    boleto_banco[str(cod_fin).strip()] = str(cod_banco).strip().zfill(3)
+            print(f"[BOLETOS] {len(boleto_banco)} boletos com banco")
+
         cur = fb_con.cursor()
         cur.execute(sql, tuple(params))
         col_names = [d[0] for d in cur.description]
@@ -563,7 +588,8 @@ def main() -> int:
                     continue
 
                 data, audit = map_financeiro_to_titulo(
-                    fin, args.target_business, transaction_lookup, contact_lookup, args.created_by
+                    fin, args.target_business, transaction_lookup, contact_lookup, args.created_by,
+                    boleto_banco,
                 )
 
                 # Update stats
