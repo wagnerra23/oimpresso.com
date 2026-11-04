@@ -52,7 +52,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-09 | Gargalo previsto com sugestão de reprogramação aplicável e reversível | Gestor | Painel · Linha | should | ✅ |
 | UC-PCV-10 | A OS é um projeto: etapas, responsável, máquina, previsto × apontado | Gestor · Balcão | Ficha | must | ✅ |
 | UC-PCV-51 | Tarefas da OS com responsável e prazo, e as duas datas da OS | Gestor · Balcão | Ficha · Painel · Quadro | should | ✅ |
-| UC-PCV-11 | A arte aprovada fica travada e anda com a OS | Balcão · Operador | Ficha · Apontamento | must | 🟡 |
+| UC-PCV-11 | A arte aprovada fica travada e anda com a OS | Balcão · Operador | Ficha · Apontamento | must | ✅ |
 | UC-PCV-12 | Roteiro por família vira as etapas da OS sem redigitar | Balcão | Roteiros → Ficha | must | ✅ |
 | UC-PCV-13 | Roteiro tem no máximo 2 trilhas em paralelo que se juntam | Gestor | Roteiros | must | ✅ |
 | UC-PCV-14 | Etapa opcional entra pela opção marcada no orçamento | Balcão | Roteiros → Ficha | must | ✅ |
@@ -132,10 +132,11 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Regra:** falta de material não vira tarefa; segue o fluxo de Aguardando material (UC-PCMAT-02), que abre a compra.
 - **Teste:** duas tarefas na mesma OS, uma com prazo vencido e uma no prazo; o Painel lista só a vencida. Sem tarefa vencida, o widget não aparece.
 
-### UC-PCV-11 · Arte aprovada travada · `must` · 🟡
+### UC-PCV-11 · Arte aprovada travada · `must` · ✅
 - **Aceite:** Dado a arte aprovada às 16:40 · Quando alguém troca o arquivo da arte · Então a OS volta para "aguardando aprovação" e um novo link é enviado · E o operador, no celular, abre sempre a versão aprovada.
 - **No sistema:** trocar o arquivo depois de aprovada (`POST /producao/ordens/{id}/arte/trocar`) reabre a aprovação com link novo, e a arte que vale (`GET /producao/ordens/{id}/arte`) segue sendo a última aprovada (UC-PCV-11 em `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md`).
-- **Falta no protótipo:** a troca de arquivo e as versões; o protótipo só lista os arquivos.
+- **Onde:** aba "Arte e arquivos" da OS. Com a arte aprovada aparece "Trocar o arquivo da arte": informar o link do arquivo novo cria a versão seguinte, a OS volta para "aguardando aprovação" e sai link novo. A lista "Versões da arte" mostra cada versão com a situação, e marca a que vale para a produção. O celular do operador mostra sempre a última aprovada, mesmo com uma troca esperando o cliente.
+- **Recusas (as frases do sistema):** sem arte aprovada, "Ainda não há arte aprovada: peça a aprovação do cliente."; com ajuste pedido, "O cliente pediu ajuste: mande a nova prova pela aprovação pendente."; com o mesmo arquivo, "Este é o arquivo já aprovado."; OS encerrada, "Esta OS já foi encerrada." Na tela só pode aparecer a do mesmo arquivo, porque o botão existe apenas com a arte aprovada.
 
 ### UC-PCV-12 · Roteiro vira etapas · `must` · ✅
 - **Aceite:** Dado o orçamento aprovado de um produto da família "Projeto com instalação" · Então a OS nasce com as etapas do roteiro, máquinas e tempos calculados (quantidade ÷ capacidade do posto) · E ninguém redigita etapa.
@@ -251,7 +252,6 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 **Forma (dá para fazer aqui, no protótipo)**
 4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
 5. Estados carregando / vazio / erro em todas as vistas.
-6. Troca do arquivo da arte com versões (UC-PCV-11).
 
 **Só no Code**
 7. Tabelas `pcp_workstations`, `pcp_operations`, `pcp_appointments` (append-only), `pcp_schedules` (SPEC do Pcp).
