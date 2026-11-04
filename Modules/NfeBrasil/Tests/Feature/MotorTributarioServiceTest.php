@@ -555,6 +555,36 @@ it('R-NFE-015b · FCP pela regra (controle: fcp nulo = 0)', function () {
         ->and($semFcp->valor_fcp)->toBe(0.0);
 });
 
+// Sonda 2026-11-04 (estudo de prioridade tributária): o DIFAL só é calculado em aplicarRegra
+// (níveis 1-3). Sem regra de NCM a venda cai no nível 4 (aplicarDefaults), que não chama
+// calcularStFcpDifal. Os dois casos abaixo são a MESMA venda; só muda existir a regra de NCM.
+// Empresa fora do Simples, para o corte da ADI 5.464 (R-NFE-035) não entrar na conta.
+it('SONDA · DIFAL no nível 4: consumidor de outra UF, NCM sem regra', function () {
+    configBusiness(98, ['cfop' => '6108', 'csosn' => null, 'cst' => '00', 'aliquota_icms' => 0.12]);
+    NfeBusinessConfig::where('business_id', 98)->update(['regime' => 'lucro_presumido']);
+
+    $t = (new MotorTributarioService)->calcularComDestino(ctx('22021000', 1000.0), businessId: 98,
+        ufOrigem: 'SP', ufDestino: 'RJ', aliquotaInternaDestino: 0.20, destinatarioContribuinte: false);
+
+    // 1000 × (0,20 − 0,12) = 80,00 — o mesmo valor do controle de nível 3 abaixo.
+    expect($t->nivel_usado)->toBe(4)
+        ->and($t->valor_icms)->toBe(120.0)
+        ->and($t->valor_difal)->toBe(80.0);
+});
+
+it('SONDA · controle: a mesma venda com regra de NCM igual ao default calcula DIFAL', function () {
+    configBusiness(98, ['cfop' => '6108', 'csosn' => null, 'cst' => '00', 'aliquota_icms' => 0.12]);
+    NfeBusinessConfig::where('business_id', 98)->update(['regime' => 'lucro_presumido']);
+    regra(['business_id' => 98, 'cfop' => '6108', 'csosn' => null, 'cst' => '00', 'aliquota_icms' => 0.12]);
+
+    $t = (new MotorTributarioService)->calcularComDestino(ctx('22021000', 1000.0), businessId: 98,
+        ufOrigem: 'SP', ufDestino: 'RJ', aliquotaInternaDestino: 0.20, destinatarioContribuinte: false);
+
+    expect($t->nivel_usado)->toBe(3)
+        ->and($t->valor_icms)->toBe(120.0)
+        ->and($t->valor_difal)->toBe(80.0);
+});
+
 
 // ── thread 07 do playbook Fiscal: operação + vigência (R-NFE-018 · 019 · 020b · 020c) ──────────
 // MySQL-only (as colunas novas vêm da migração 2026_10_07_000001; o schema SQLite deste arquivo é
