@@ -4,7 +4,7 @@ id: requisitos-nfe-brasil-adr-arq-0007-emissor-por-location-certificado-regime
 
 # ADR ARQ-0007 (NfeBrasil) · Local emissor com certificado e regime próprios (multi-CNPJ no mesmo business)
 
-- **Status**: proposed
+- **Status**: accepted
 - **Data**: 2026-10-30
 - **Decisores**: Felipe (proposta) · Wagner (aprovação)
 - **Categoria**: arq
@@ -63,3 +63,13 @@ Princípios:
 1. Unicidade da numeração com CNPJ emitente (princípio 5) — de acordo, ou prefere manter série única no business e mapear séries no cutover?
 2. `nfe_business_configs` (regime, tributação default, reforma tributária, contingência): só o regime vai para o local, ou outros campos também?
 3. Cobrança recorrente (`emitirParaInvoice`) entra nesta mudança ou segue emitindo pelo business?
+
+## Ratificação [W]
+
+Critério do [W]: **igual ao Delphi** — o Sabor Brasil já opera assim, e a migração não pode mudar o modo de trabalho do cliente. O merge do PR que acrescenta esta seção é a ratificação.
+
+1. **Numeração por CNPJ emitente: de acordo** (princípio 5). No Delphi cada CNPJ usa a própria sequência na série 1 — no banco do Sabor Brasil, medido em 2026-10-29: um CNPJ com as notas 1–375 e outro com 1–261, os dois na série 1. No cutover, cada CNPJ continua do número em que o Delphi parar.
+2. **Configuração no local: vai para o local tudo o que no Delphi é por empresa**, não só o regime — no Delphi a tabela `EMPRESA` guarda por CNPJ o CRT, o certificado, a série e a configuração de NF-e/NFS-e (DANFE, e-mail da nota). Campo que não estiver configurado no local herda do business, como já diz o princípio 1.
+3. **Cobrança recorrente (`emitirParaInvoice`): fica fora desta mudança** e segue emitindo pelo business. O Sabor Brasil não usa contratos nem mensalidades (tabelas vazias no Delphi).
+
+Nota de execução: o regime por local já entrou no P-155 ([#10161](https://github.com/wagnerra23/oimpresso.com/pull/10161)), que adianta parte da fase 4. A fase 5 (DF-e/manifestação por CNPJ) é necessária para o manifesto dos dois CNPJs do Sabor Brasil.
