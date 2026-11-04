@@ -323,9 +323,11 @@ export function isSuperadminMenu(label: string): boolean {
 // em vez de aparecerem no menu principal — Wagner 2026-05-05.
 // Mantém shell.menu canônico (LegacyMenuAdapter); o SidebarMenu filtra
 // e o SidebarUserMenu renderiza dentro do dropdown.
+// [W] 2026-11-04: Configurações saiu daqui e foi pro grupo SISTEMA da sidebar
+// ("ficou muito escondido" no menu do avatar). Ver SIDEBAR_GROUPS.sistema.
 export const USER_MENU_LABELS = new Set<string>([
   'Gerenciamento de usuários', 'Gerenciamento de usuario',
-  'User Management', 'Configurações', 'Settings',
+  'User Management',
 ]);
 
 export function isUserMenuItem(label: string): boolean {
