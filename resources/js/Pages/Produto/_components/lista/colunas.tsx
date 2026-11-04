@@ -21,7 +21,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
 import { Globe } from 'lucide-react';
 import { Inline } from '@/Components/layout';
-import { brl } from '../../Unificado/_components/catalogo';
+import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
 import PopoverAncorado from '../../Unificado/_components/PopoverAncorado';
 import SaldoPorVariacao from './SaldoPorVariacao';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
@@ -29,6 +29,7 @@ import {
   TIPO_ROTULO,
   dataBr,
   estoqueTexto,
+  separadoTexto,
   faixaDePreco,
   subLinhaProduto,
   type ContextoLista,
@@ -206,15 +207,30 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
             </PopoverAncorado>
           );
         const req = row.original.requisicao;
-        if (!req) return saldo;
+        // UC-PIDX-38 (D5 · CV4): o que reserva ativa já separou do saldo, e o que sobra livre.
+        const separado = separadoTexto(row.original);
+        if (!req && !separado) return saldo;
         // UC-PIDX-30 (UC-FLX-19): requisição de compra aberta, do estoque mínimo ou feita à mão.
-        const texto = `Requisição ${req.numero} aberta em ${dataBr(req.data).slice(0, 5)}${req.fornecedor ? ` · ${req.fornecedor}` : ''}`;
+        const texto = req ? `Requisição ${req.numero} aberta em ${dataBr(req.data).slice(0, 5)}${req.fornecedor ? ` · ${req.fornecedor}` : ''}` : '';
         return (
           <div className="min-w-0">
             {saldo}
-            <div className="truncate text-[11px] text-[var(--accent)]" title={texto} data-contract="produto-lista-requisicao">
-              {texto}
-            </div>
+            {separado && (
+              <div
+                className={'text-[11px] ' + ((row.original.livre ?? 0) <= 0 ? 'font-semibold text-[var(--neg)]' : 'text-[var(--text-mute)]')}
+                title={separado}
+                data-contract="produto-lista-separado"
+              >
+                {/* Duas linhas curtas: a frase inteira não cabe na coluna (130 px) e o texto completo vai no title. */}
+                <span className="block truncate">{qtdComUnidade(row.original.separado ?? 0, row.original.unidade_curta ?? row.original.unidade ?? '')} separados</span>
+                <span className="block truncate">{qtdComUnidade(row.original.livre ?? 0, row.original.unidade_curta ?? row.original.unidade ?? '')} livres</span>
+              </div>
+            )}
+            {req && (
+              <div className="truncate text-[11px] text-[var(--accent)]" title={texto} data-contract="produto-lista-requisicao">
+                {texto}
+              </div>
+            )}
           </div>
         );
       },

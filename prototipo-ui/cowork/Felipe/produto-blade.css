@@ -281,3 +281,8 @@
 .pb-saldo-var-painel td.r{ text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums; padding-right:0; }
 .pb-saldo-var-painel td.zero{ color:var(--neg); font-weight:600; }
 .pb-saldo-var-painel tfoot td{ border-top:1px solid var(--border); padding-top:6px; font-weight:600; }
+
+/* D5 · CV4 · UC-PIDX-38: separado para vendas e livre, abaixo do saldo. */
+.pb-sep{ display:block; font-size:11px; color:var(--text-mute); }
+.pb-sep > span{ display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pb-sep.neg{ color:var(--neg); font-weight:600; }
