@@ -1810,7 +1810,7 @@
 /* ──── CAIXA DO DIA ──── */
 .sells-cowork .vc-page .vc-date {
   padding:5px 8px; border:1px solid var(--border); border-radius:6px;
-  font-size:var(--fs-3); font-family:var(--font-mono);
+  font-size:var(--fs-3); font-family:var(--font-mono); background:var(--surface);
 }
 .sells-cowork .vc-grid {
   display:grid; grid-template-columns:1.3fr 1fr; gap:14px;

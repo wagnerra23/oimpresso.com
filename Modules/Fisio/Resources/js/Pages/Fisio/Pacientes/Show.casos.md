@@ -44,6 +44,8 @@ related_us: [US-FISIO-009]
 | UC-FPS-32 | transferir exige `fisio.editar`; destino só da mesma empresa com acesso ao Fisio | must | `FisioPacienteResponsavelTest` |
 | UC-FPS-19 | exportar o prontuário em PDF: todos os registros assinados, carimbados, em ordem cronológica | should | `FisioProntuarioPdfTest` |
 | UC-FPS-20 | exportar exige `fisio.access` da mesma clínica; outra clínica 404; cada exportação fica no log de auditoria | must | `FisioProntuarioPdfTest` |
+| UC-FAV-01 | avaliação em seções compõe os 6 campos da Res. 414; principal vazio é recusado | must | `tests/js/fisio-avaliacao-corpo.test.ts` |
+| UC-FAV-02 | sinal de alerta marcado avisa e fica no exame, sem bloquear | should | `tests/js/fisio-avaliacao-corpo.test.ts` |
 | UC-FLD-01 | laudo de evolução: síntese do que está assinado (diagnóstico, conduta, medidas, plano) | should | `FisioLaudoEvolucaoTest` |
 | UC-FLD-02 | o laudo baixa em PDF e cada emissão fica no log de auditoria sem PII | must | `FisioLaudoEvolucaoTest` |
 | UC-FLD-03 | laudo de outra clínica 404; sem `fisio.access` 403 | must | `FisioLaudoEvolucaoTest` |
@@ -70,6 +72,19 @@ related_us: [US-FISIO-009]
 - **Aceite:** Quando assina um registro · Então ele grava `signed_by` (usuário logado), `signed_crefito` e `signed_at` (relógio do servidor) — nada disso vem do corpo. Sem CREFITO não assina. Avaliação sem queixa principal, história, exame físico, diagnóstico cinesiológico, objetivos ou plano de tratamento é recusada. `telemonitoramento` não é criável pela tela (só o portal gera).
 - **Regressão que defende:** prontuário sem identificação do profissional; data retroativa forjada.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php`
+- **Status: 🧪**
+
+## UC-FAV-01 · Avaliação em seções `[must]`
+- **Persona:** fisioterapeuta na primeira consulta.
+- **Âncora:** protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/Avaliacao.dc.html` (ADR 0438) e UC-FPS-03 (campos mínimos da Res. COFFITO 414/2012).
+- **Aceite:** Quando escolhe "Avaliação" na ficha · Então preenche em 4 seções (queixa e história; hábitos e antecedentes; exame físico-funcional com uma linha por teste; diagnóstico, prognóstico e plano) e a avaliação é gravada nos mesmos 6 campos de UC-FPS-03 — os complementos viram linhas dentro do campo, sem chave nova. Se o texto principal de um campo (história, plano, ao menos um teste no exame) estiver vazio, o campo vai vazio e o servidor recusa, mesmo com complementos. Assinada, não muda (UC-FPS-04).
+- **Regressão que defende:** avaliação assinada sem o mínimo legal porque um complemento "encheu" o campo; chave nova no `body` que o PDF e o laudo não leem.
+- **Teste:** `tests/js/fisio-avaliacao-corpo.test.ts` (composição) · gravação e 422 pelo `FisioProntuarioTest` (UC-FPS-03)
+- **Status: 🧪**
+
+## UC-FAV-02 · Triagem de sinais de alerta · `should`
+- **Aceite:** Os 7 sinais da lista do protótipo aparecem como caixas de marcar. Marcado, a tela avisa e o exame registra "SIM para …"; nada é bloqueado e o software não sugere conduta (ADR 0437 §5). Sem marca, o exame registra "nenhum sinal marcado".
+- **Teste:** `tests/js/fisio-avaliacao-corpo.test.ts`
 - **Status: 🧪**
 
 ## UC-FPS-04 · Assinado não se edita `[must]`
@@ -260,6 +275,7 @@ related_us: [US-FISIO-009]
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-11-04 · Lote 2 — avaliação em seções do protótipo (`_components/AvaliacaoEstruturada.tsx`) vira UC-FAV-01..02; mesmo POST e mesmos 6 campos da Res. 414, sem migration.
 - 2026-11-04 · Lote 2 — laudo de evolução em PDF (2º documento, ao lado do prontuário) vira UC-FLD-01..03; botão no mesmo componente da exportação.
 - 2026-10-19 · B-12 (etapa 01-biblioteca) — folha A4 do programa para imprimir vira UC-FPS-37..38 (`FolhaProgramaController` + `Services/FolhaPrograma.php`, botão no `EditorPrograma.tsx`), com teste escrito junto. Sem QR, para não revogar o link vivo do paciente.
 - 2026-10-18 · US-FISIO-007a — link do portal gerado na ficha (`_components/LinkPortal.tsx`, `PortalLinkController`) vira UC-FPS-33..35, com teste escrito junto.
