@@ -63,6 +63,7 @@ function ConfigDefault({ config }: Props) {
     aliquota_pis:     Number(td.aliquota_pis ?? 0),
     aliquota_cofins:  Number(td.aliquota_cofins ?? 0),
     aliquota_ipi:     Number(td.aliquota_ipi ?? 0),
+    substituto_tributario: Boolean(td.substituto_tributario ?? false),
   });
 
   const submit = (e: FormEvent) => {
@@ -255,6 +256,29 @@ function ConfigDefault({ config }: Props) {
                   );
                 })}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="text-base">Substituição tributária</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <label className="flex items-start gap-2 text-sm" htmlFor="substituto_tributario">
+                <input
+                  id="substituto_tributario"
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={form.data.substituto_tributario}
+                  onChange={(e) => form.setData('substituto_tributario', e.target.checked)}
+                />
+                <span>
+                  Esta empresa industrializa ou envasa produto da lista do ICMS-ST (é substituta).
+                  <span className="block text-xs text-muted-foreground">
+                    Só gera avisos: a nota que sair como se o ST já tivesse sido retido (CFOP 5405, CST 60 ou CSOSN 500) é sinalizada, mas não é impedida.
+                  </span>
+                </span>
+              </label>
             </CardContent>
           </Card>
 
