@@ -92,6 +92,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-35 | Os indicadores "Abaixo do alerta" e "Inativos" filtram a lista ao clicar | should | pesquisa de concorrentes D6 (2026-10-20) + item 2.1 de `absorcao-v2-em-todos-os-produtos.md` + protótipo `produto-blade.jsx` (2026-11-03) | `ProdutoListaAbaixoDoAlertaTest` (lane Estoque · MySQL) + `produto-lista-indicadores-filtro.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-36 | Com a chave do cadastro React, Novo, Preços e Histórico abrem na tela React | should | `ProductController` (render Inertia de create/addSellingPrices/productStockHistory) + chave `useV2ProdutoCadastro` | `produto-navegacao.test.ts` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-37 | Cada cor e tamanho, com saldo, na própria lista | should | `ProductController::saldosDasVariacoes` + coluna Estoque (`colunas.tsx`, `PopoverAncorado`) | `ProdutoListaSaldoVariacoesTest` (lane Estoque · MySQL) + `produto-lista-saldo-variacoes.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-38 | Separado para vendas e livre na coluna Estoque | should | `ProductController::separadosDosProdutos` + coluna Estoque (`colunas.tsx`, `separadoTexto`) | `ProdutoListaSeparadoLivreTest` (lane Estoque · MySQL) + `produto-lista-separado-livre.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -530,6 +531,15 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** o saldo por local de cada variação continua no painel do produto (aba Estoque); o separado para vendas e o livre é o D5.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-38 · Separado para vendas e livre na coluna Estoque · `should` `[V0]`
+- **Persona:** quem vende ou compra precisa saber quanto do saldo já está prometido a uma venda e quanto ainda pode vender ou usar, sem abrir a venda.
+- **Aceite:** Dado 50 m² de lona e reservas ativas de 20 m² · Quando abro a consulta · Então abaixo do saldo da coluna Estoque aparecem "20 m² separados" e "30 m² livres", e o texto inteiro ("20 m² separados para vendas · 30 m² livres") ao passar o mouse · Reserva consumida, liberada ou de outra empresa não entra · Sem reserva ativa as duas linhas não aparecem · Livre zero ou negativo (mais separado que saldo) aparece em destaque · Produto que não controla estoque não mostra nada.
+- **Teste:** [`ProdutoListaSeparadoLivreTest`](../../../../tests/Feature/Produto/ProdutoListaSeparadoLivreTest.php) — `UC-PIDX-38` (prova dupla: o separado contra a soma à mão e contra a soma tirada de `stock_reservations` pelo teste; livre + separado = saldo da linha; sem reserva ativa não vem; outra empresa fora; livre negativo; sem controle de estoque — lane Estoque · MySQL) e [`produto-lista-separado-livre.test.tsx`](../../../../tests/js/produto-lista-separado-livre.test.tsx) — `UC-PIDX-38` (as duas linhas, o texto inteiro no `title`, o destaque do livre negativo, nada sem reserva — Vitest do `Frontend / Vite build`).
+- **Contrato:** pesquisa de concorrentes D5 e CV4 (2026-10-20: Conta Azul, Senior, Calcgraf, shopVOX) e os termos do protótipo ("separado" e "livre", 2026-10-20). A conta é o "comprometido" da necessidade de compra (`NecessidadeDeCompra`): `stock_reservations` da empresa com `status = active`, somando `qty_reserved`, nos locais que o usuário pode ver e só de variação não excluída, para o livre bater com o saldo da linha. Mexe em estoque só para mostrar, sem gravar nada (Regra Mestre: prova dupla no teste do servidor).
+- **Diferença deliberada do backlog:** o D5 dizia "só com o interruptor 'Reservar material na venda' ligado". A tela mostra o que estiver reservado, ligado ou não, porque duas coisas gravam reserva: a reserva do material da OS (o interruptor, UC-FLX-14) e a ação de reserva da venda no fluxo de vendas (FSM `ReservarEstoque`), que não depende dele. E desligar o interruptor não libera as reservas que já existem. Esconder reserva viva faria o livre mentir; sem reserva nenhuma, nada aparece.
+- **Fora daqui:** a tabela "De onde vem o separado" no painel (segue no backlog, item CV4); o aviso "Abaixo do alerta" continua olhando o saldo, não o livre.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -693,12 +703,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 
 - Clicar em "Abaixo do alerta" filtra a lista (D6) saiu deste backlog em 2026-11-03: virou UC-PIDX-35, com teste, junto do "Inativos" (item 2.1 do protótipo).
 - Ver cada cor e tamanho, com saldo, na própria lista (D7) saiu deste backlog em 2026-11-04: virou UC-PIDX-37, com teste. "Abrir a linha" ficou como um painel no saldo da coluna Estoque, porque a tabela compartilhada não abre linha e a linha já abre o painel do produto.
-- **[BACKLOG] Mostrar o estoque separado para vendas e o livre (D5)** `[V0]` — hoje o saldo não
-  desconta o que já foi vendido e ainda não saiu. Aceite: Dado 10 un em estoque e uma venda não
-  entregue que separou 3, Então a lista mostra "3 un separadas para vendas · 7 un livres". Só com
-  o interruptor "Reservar material na venda" ligado em Sistema › Fluxos e regras (desligado por
-  padrão, UC-FLX-14); desligado, a linha não aparece. Fonte: Conta Azul (aba Reservados), Senior
-  (quantidade em reserva).
+- Mostrar o estoque separado para vendas e o livre (D5) saiu deste backlog em 2026-11-04: virou UC-PIDX-38, com teste. A linha aparece sempre que houver reserva ativa, não só com o interruptor ligado (ver o UC).
 - **[BACKLOG] Excluir sem perder: o excluído pode ser restaurado (D13)** — hoje "Excluir" apaga o
   cadastro, as variações e os preços por grupo, e a confirmação diz que não tem volta. Aceite: Dado
   um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
@@ -723,12 +728,9 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   quando muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai
   do padrão da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf
   (insumos e acabados).
-- **[BACKLOG] Material separado para vendas × livre (CV4)** `[V0]` — mesmo pedido do D5, aplicado
-  ao material. A reserva nasce na venda e a produção abate ao usar o material (UC-FLX-14), por isso
-  o texto é "para vendas", não "para OS". Aceite: Dado 50 m² de lona e vendas que reservaram 20 m²,
-  Então a lista mostra "20 m² separados para vendas · 30 m² livres". Só com o interruptor ligado; o
-  próprio UC-FLX-14 lista como falta "a reserva por m² na CV e mostrar o reservado no saldo". Fonte:
-  Calcgraf (material empenhado), shopVOX (quantidade reservada).
+- **[BACKLOG] De onde vem o separado, no painel (CV4)** `[V0]` — a parte da lista ("20 m² separados para vendas ·
+  30 m² livres") saiu deste backlog em 2026-11-04 e virou UC-PIDX-38. Fica o painel. Fonte: Calcgraf (material
+  empenhado), shopVOX (quantidade reservada).
   **De onde vem o separado (UC-FLX-14, protótipo de 2026-10-22):** com o interruptor ligado, a aba
   Estoque do painel mostra Separado e Livre por local (o aviso "Repor" olha o livre) e a tabela "De
   onde vem o separado", uma linha por venda: cliente, OS, item com a medida (ex.: "Banner 2,00 x
@@ -852,6 +854,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 
 ## Trilha do tempo
+- 2026-11-04 · [F+C] **UC-PIDX-38**: separado para vendas e livre na coluna Estoque (D5 e a parte da lista do CV4), pelas reservas ativas de `stock_reservations`. O que fica do CV4 é a tabela "De onde vem o separado" no painel.
 - 2026-11-04 · [F+C] **UC-PIDX-37**: o saldo de cada cor e tamanho aparece na coluna Estoque (D7), num painel com o total igual ao saldo da linha. `last_run` 2026-11-03 → 2026-11-04.
 - 2026-11-03 · [F+C] **UC-PIDX-35**: "Abaixo do alerta" e "Inativos" filtram a lista ao clicar (D6 e item 2.1 do protótipo), com o filtro `abaixo_do_alerta` no servidor e o protótipo atualizado. O D1 (recortes salvos) não foi feito e virou a decisão D-28. `last_run` 2026-10-28 → 2026-11-03.
 - 2026-10-30 · [W+C] Decisão pendente D-19 do documento "Casos de uso por tela", para casos marcados como decisão do [W] que não tinham pergunta.

@@ -50,6 +50,12 @@ export interface LinhaProduto {
    * a soma é o `estoque` da linha (mesma conta no servidor).
    */
   saldo_variacoes?: SaldoDaVariacao[];
+  /**
+   * Quanto do saldo está separado por reserva ativa, e o que sobra livre (UC-PIDX-38 · D5 · CV4).
+   * Só vem quando há reserva; `livre` = `estoque` − `separado`, pode ser negativo.
+   */
+  separado?: number;
+  livre?: number;
 }
 
 export interface SaldoDaVariacao {
@@ -345,6 +351,13 @@ export function faixaDePreco(tipo: TipoProduto, min: number | undefined, max: nu
 export function estoqueTexto(l: LinhaProduto): string {
   if (!l.controla_estoque || l.estoque === null) return '—';
   return qtdComUnidade(l.estoque, l.unidade_curta ?? l.unidade ?? '');
+}
+
+/** "3 Un separados para vendas · 7 Un livres" — null sem reserva (UC-PIDX-38). */
+export function separadoTexto(l: LinhaProduto): string | null {
+  if (!l.controla_estoque || l.separado === undefined || l.livre === undefined) return null;
+  const un = l.unidade_curta ?? l.unidade ?? '';
+  return `${qtdComUnidade(l.separado, un)} separados para vendas · ${qtdComUnidade(l.livre, un)} livres`;
 }
 
 /** 2ª linha da célula Produto, como o protótipo monta (`sub` do `prod`). */

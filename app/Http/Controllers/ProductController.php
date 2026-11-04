@@ -868,6 +868,43 @@ class ProductController extends Controller
         return $out;
     }
 
+    /**
+     * UC-PIDX-38 (D5 · CV4): o que está separado por reserva ativa, por produto, numa consulta só para
+     * a página. É o "comprometido" da necessidade de compra (`NecessidadeDeCompra`): `stock_reservations`
+     * da empresa com `status = active`, somando `qty_reserved`. Para o livre bater com a coluna Estoque,
+     * conta só os locais que o usuário pode ver e só variação não excluída, como o saldo da linha.
+     * Quem grava a reserva: a reserva do material da OS (chave "Reservar material na venda", UC-FLX-14)
+     * e a ação de reserva da venda no fluxo (FSM `ReservarEstoque`). As duas nascem na venda.
+     *
+     * @param  int[]  $ids
+     * @return array<int, float>
+     */
+    protected function separadosDosProdutos(int $business_id, array $ids): array
+    {
+        if ($ids === [] || ! \Illuminate\Support\Facades\Schema::hasTable('stock_reservations')) {
+            return [];
+        }
+        $permitidos = auth()->user()->permitted_locations();
+
+        $q = DB::table('stock_reservations as r')
+            ->join('variations as v', 'v.id', '=', 'r.variation_id')
+            ->where('r.business_id', $business_id)
+            ->where('r.status', 'active')
+            ->whereIn('r.product_id', $ids)
+            ->whereNull('v.deleted_at')
+            ->groupBy('r.product_id');
+        if ($permitidos != 'all') {
+            $q->whereIn('r.location_id', $permitidos);
+        }
+
+        $out = [];
+        foreach ($q->get(['r.product_id', DB::raw('SUM(r.qty_reserved) as q')]) as $l) {
+            $out[(int) $l->product_id] = (float) $l->q;
+        }
+
+        return $out;
+    }
+
     protected function requisicoesAbertasDosProdutos(int $business_id, array $ids): ?array
     {
         $u = auth()->user();
@@ -1333,7 +1370,15 @@ class ProductController extends Controller
                 ->pluck('id')->all()))
         );
 
-        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes, $naturezas, $saldosDasVariacoes) {
+        // UC-PIDX-38 (D5 · CV4): quanto do saldo está separado por reserva ativa.
+        $separados = $this->separadosDosProdutos(
+            $business_id,
+            array_values(array_map('intval', $pagina->getCollection()
+                ->filter(fn ($r) => (bool) $r->enable_stock)
+                ->pluck('id')->all()))
+        );
+
+        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes, $naturezas, $saldosDasVariacoes, $separados) {
             $controla = (bool) $row->enable_stock;
             $estoque = $controla ? (float) ($row->current_stock ?? 0) : null;
             $alerta = $row->alert_quantity === null ? null : (float) $row->alert_quantity;
@@ -1375,6 +1420,10 @@ class ProductController extends Controller
             }
             if (isset($saldosDasVariacoes[(int) $row->id])) {
                 $linha['saldo_variacoes'] = $saldosDasVariacoes[(int) $row->id];
+            }
+            if ($estoque !== null && ($separados[(int) $row->id] ?? 0.0) > 0) {
+                $linha['separado'] = $separados[(int) $row->id];
+                $linha['livre'] = $estoque - $separados[(int) $row->id];
             }
             if ($requisicoes !== null) {
                 $linha['requisicao'] = $requisicoes[(int) $row->id] ?? null;
