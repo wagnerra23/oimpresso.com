@@ -3,7 +3,7 @@
 .cfg-page{padding-bottom:40px}
 /* A tela reusa o grid do rail das Preferências, mas rola com a página (não em duas caixas internas) */
 .cfg-page .hrm-body{flex:1 1 auto}
-.cfg-page .cfg-body{flex:1 1 auto;min-height:520px;align-items:start}
+.cfg-page .cfg-body{flex:1 0 auto;min-height:520px;align-items:start}
 .cfg-page .cfg-body>.pf-rail{overflow:visible;position:sticky;top:0;align-self:start}
 .cfg-page .cfg-body>.pf-pane{overflow:visible;min-width:0}
 .cfg-bloco{border-top:1px solid var(--border);margin-top:18px;padding-top:14px;display:flex;flex-direction:column;gap:10px}
