@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 12 |
+| US no SPEC | 18 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 5 |
 | Telas com `casos.md` | 6 |
@@ -46,6 +46,12 @@ authority: generated
 | US | status | Título |
 |---|---|---|
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
+| US-FISIO-020 | `todo` | Pacote de sessões com saldo derivado de ledger append-only — **P0** |
+| US-FISIO-021 | `todo` | Tela "Pacote e cobrança" da ficha do paciente — **P0** |
+| US-FISIO-022 | `todo` | Vender e renovar pacote pela venda do núcleo — **P0** |
+| US-FISIO-023 | `todo` | Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0** |
+| US-FISIO-024 | `todo` | Lote do Receita Saúde no layout oficial — **P1** |
+| US-FISIO-025 | `todo` | Planos do produto Fisio no Superadmin — **P1** |
 
 ## UC por status
 
