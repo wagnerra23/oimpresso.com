@@ -107,6 +107,7 @@ function Painel({ onAbrir, ir, filtrar }) {
   const eventos = useEventos();
   const [reenviado, setReenviado] = useState({});
   const [novaProva, setNovaProva] = useState({});
+  const [veDesempenho, setVeDesempenho] = useState(false); // simula a permissão producao.desempenho.ver (UC-PCV-27)
   const D = P(); const { KpiCard, Widget, Alert, Progress, Button, Input } = DS();
   const abertas = D.emProducao();
   const atrasadas = D.OS.filter((o) => D.atraso(o) === "atrasada" && D.atual(o).estado !== "pronto");
@@ -188,13 +189,30 @@ function Painel({ onAbrir, ir, filtrar }) {
 
       {window.PcvQualidade && <window.PcvQualidade.NcsPainel onAbrir={onAbrir} />}
 
-      {Widget && <Widget title="Produtividade por setor (semana)" note="horas apontadas ÷ previstas" flush>
-        <table className="pcv-tbl">
-          <thead><tr><th scope="col">Setor</th><th scope="col" className="ta-r">Previsto</th><th scope="col" className="ta-r">Apontado</th><th scope="col" className="ta-r">Eficiência</th><th scope="col">Quem</th></tr></thead>
-          <tbody>{D.SETORES.slice(0, 5).map((s) => { const es = D.OS.flatMap(D.etapas).filter((e) => e.setor === s.id && (e.estado === "feito" || e.estado === "pronto")); const p = es.reduce((a, e) => a + e.prev, 0), r = es.reduce((a, e) => a + e.real, 0); const ef = r ? Math.round((p / r) * 100) : null; return (
-            <tr key={s.id}><td><span className="pcv-dot" style={{ "--c": s.cor }} />{s.nome}</td><td className="ta-r mono">{D.h1(p)} h</td><td className="ta-r mono">{D.h1(r)} h</td><td className={"ta-r mono" + (ef !== null && ef < 90 ? " pcv-late" : "")}>{ef === null ? "—" : ef + "%"}</td><td>{[...new Set(es.map((e) => e.resp))].join(", ") || "—"}</td></tr>); })}</tbody>
-        </table>
-      </Widget>}
+      {/* UC-PCV-27 [LGPD]: sem producao.desempenho.ver a produtividade é só por setor, sem nome de ninguém. Com a
+          permissão aparece a tabela por pessoa, e cada vez que ela é aberta o acesso vai para o log. O checkbox
+          simula o papel, como o "Ver como" das outras telas do protótipo. */}
+      {Widget && (() => {
+        const feitas = D.OS.flatMap(D.etapas).filter((e) => e.estado === "feito" || e.estado === "pronto");
+        const linha = (lst) => { const p = lst.reduce((a, e) => a + e.prev, 0), r = lst.reduce((a, e) => a + e.real, 0); return { p, r, ef: r ? Math.round((p / r) * 100) : null }; };
+        const cel = (x) => <><td className="ta-r mono">{D.h1(x.p)} h</td><td className="ta-r mono">{D.h1(x.r)} h</td><td className={"ta-r mono" + (x.ef !== null && x.ef < 90 ? " pcv-late" : "")}>{x.ef === null ? "—" : x.ef + "%"}</td></>;
+        const pessoas = [...new Set(feitas.map((e) => e.resp))];
+        const alternar = (v) => { setVeDesempenho(v); if (v) D.registrar({ tipo: "acesso", texto: "Abriu a produtividade por pessoa (producao.desempenho.ver)" }); };
+        return <Widget title={veDesempenho ? "Produtividade por setor e por pessoa (semana)" : "Produtividade por setor (semana)"} note="horas apontadas ÷ previstas" flush
+          actions={<label className="pcv-papel"><input type="checkbox" checked={veDesempenho} onChange={(e) => alternar(e.target.checked)} /> Ver como quem tem producao.desempenho.ver</label>}>
+          <table className="pcv-tbl">
+            <thead><tr><th scope="col">Setor</th><th scope="col" className="ta-r">Previsto</th><th scope="col" className="ta-r">Apontado</th><th scope="col" className="ta-r">Eficiência</th></tr></thead>
+            <tbody>{D.SETORES.slice(0, 5).map((s) => <tr key={s.id}><td><span className="pcv-dot" style={{ "--c": s.cor }} />{s.nome}</td>{cel(linha(feitas.filter((e) => e.setor === s.id)))}</tr>)}</tbody>
+          </table>
+          {veDesempenho ? <>
+            <table className="pcv-tbl" aria-label="Produtividade por pessoa">
+              <thead><tr><th scope="col">Pessoa</th><th scope="col" className="ta-r">Previsto</th><th scope="col" className="ta-r">Apontado</th><th scope="col" className="ta-r">Eficiência</th></tr></thead>
+              <tbody>{pessoas.map((n) => <tr key={n}><td>{n}<small className="pcv-help"> · {D.PESSOAS[n] || ""}</small></td>{cel(linha(feitas.filter((e) => e.resp === n)))}</tr>)}</tbody>
+            </table>
+            <p className="pcv-help" style={{ padding: "8px 14px" }}>Acesso registrado no log em nome de quem abriu. Sem a permissão, esta tabela e os nomes não aparecem.</p></>
+            : <p className="pcv-help" style={{ padding: "8px 14px" }}>Por pessoa só para quem tem a permissão producao.desempenho.ver. Cada acesso fica no log.</p>}
+        </Widget>;
+      })()}
     </div>
   );
 }
