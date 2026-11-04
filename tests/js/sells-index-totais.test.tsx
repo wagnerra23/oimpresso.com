@@ -58,8 +58,8 @@ describe('UC-SIDX-06 · totais do filtro na consulta de vendas', () => {
     expect(brl(18432.57)).toMatch(/18\.432,57/);
   });
 
-  it('UC-SIDX-06 vale também com as pílulas Paga e Pendente, que o servidor filtra', () => {
-    for (const pill of ['paga', 'pendente']) {
+  it('UC-SIDX-06 vale também com as pílulas Paga, Pendente, Faturada e Cancelada, que o servidor filtra (UC-SIDX-07)', () => {
+    for (const pill of ['paga', 'pendente', 'faturada', 'cancelada']) {
       cleanup();
       const { container } = render(
         <SellsTotalBar totais={DO_SERVIDOR} filtros={{ ...SEM_FILTRO_LOCAL, pill }} carregando={false} />,
@@ -68,11 +68,9 @@ describe('UC-SIDX-06 · totais do filtro na consulta de vendas', () => {
     }
   });
 
-  it('UC-SIDX-06 com visão salva, pílula Faturada/Cancelada ou origem, não mostra número e diz por quê', () => {
+  it('UC-SIDX-06 com visão salva ou origem, não mostra número e diz por quê', () => {
     const casos: FiltrosDaTela[] = [
       { ...SEM_FILTRO_LOCAL, savedViewId: 'atrasadas', savedViewLabel: 'Atrasadas' },
-      { ...SEM_FILTRO_LOCAL, pill: 'faturada' },
-      { ...SEM_FILTRO_LOCAL, pill: 'cancelada' },
       { ...SEM_FILTRO_LOCAL, visaoOrigem: 'oficina' },
     ];
     for (const filtros of casos) {
@@ -103,5 +101,7 @@ describe('UC-SIDX-06 · totais do filtro na consulta de vendas', () => {
   it('UC-SIDX-06 sem filtro local não há motivo para esconder os totais', () => {
     expect(motivoSemTotais(SEM_FILTRO_LOCAL)).toBeNull();
     expect(motivoSemTotais({ ...SEM_FILTRO_LOCAL, pill: 'pendente' })).toBeNull();
+    expect(motivoSemTotais({ ...SEM_FILTRO_LOCAL, pill: 'faturada' })).toBeNull();
+    expect(motivoSemTotais({ ...SEM_FILTRO_LOCAL, pill: 'cancelada' })).toBeNull();
   });
 });

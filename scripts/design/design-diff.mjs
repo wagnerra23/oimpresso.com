@@ -23,7 +23,7 @@
  *
  * ── DIMENSÕES (do PROTOCOLO-COMPARACAO-RUNTIME; D8 é a que faltava, o buraco de 07/07) ──
  *   D2 layout      — nº de linhas visuais da barra de filtro · contagem de KPI · overflow-x
- *   D4 tipografia  — font-size/weight do título e do valor do KPI
+ *   D4 tipografia  — font-size e font-weight do título · font-size do valor do KPI
  *   D6 cor         — bg do primary (accent) · cor do texto do KPI (contraste no tema)
  *   D8 ALINHAMENTO — text-align de label/valor do KPI + a TAG (button↔center-default × div↔left)
  *   D9 TEXTO       — CLASSE DE FORMATO por região [data-contract]: data ISO × dd/mm/aaaa,
@@ -597,6 +597,15 @@ function dimLayout(prod, design) { // D2
   return rows;
 }
 
+/** computed fontWeight → número; 'bold'/'normal' viram 700/400; o resto que não for número é não-medido. */
+function pesoNum(w) {
+  if (w == null || w === '') return null;
+  if (w === 'bold') return 700;
+  if (w === 'normal') return 400;
+  const n = Number(w);
+  return Number.isFinite(n) ? n : null;
+}
+
 /** @param {any} prod @param {any} design */
 function dimTipografia(prod, design) { // D4
   const rows = [];
@@ -605,6 +614,16 @@ function dimTipografia(prod, design) { // D4
   // banda declarada (TOLERANCIAS.tituloPx): 1px = o artefato máximo do Math.round da própria sonda.
   const dT = Math.abs(a.fontPx - b.fontPx);
   if (dT > TOLERANCIAS.tituloPx.valor) rows.push({ dim: 'D4', campo: 'título font-size', prod: a.fontPx + 'px', design: b.fontPx + 'px', veredito: 'DIVERGE (bug)', detalhe: `Δ ${dT}px · banda tituloPx ±${TOLERANCIAS.tituloPx.valor}px` });
+  // PESO do título — a sonda coleta `title.weight` e, até 2026-11-04, nenhum consumidor lia.
+  // Medido nesse dia na Sells/Caixa: prod 400 × protótipo 700 saía D4 IGUAL. Sem banda: o
+  // computed fontWeight é o valor DECLARADO (passos de 100, sem arredondamento da sonda), logo
+  // qualquer diferença é decisão divergente, não ruído. Medido nos 79 pares de
+  // governance/design/targets/medidas (2026-11-04): 47 de 67 comparáveis divergem; 7 viraram
+  // vermelho só por isto, todos prod 700 × design 600 — e 600 é o h1 do DS canon
+  // (colors_and_type.css), então são divergências reais, não falso-positivo.
+  const pa = pesoNum(a.weight), pb = pesoNum(b.weight);
+  if (pa == null || pb == null) rows.push({ dim: 'D4', campo: 'título font-weight', prod: pa == null ? 'não medido' : pa, design: pb == null ? 'não medido' : pb, veredito: 'SEM-DADO' });
+  else if (pa !== pb) rows.push({ dim: 'D4', campo: 'título font-weight', prod: pa, design: pb, veredito: 'DIVERGE (bug)', detalhe: `Δ ${Math.abs(pa - pb)} · sem banda (peso declarado)` });
   // O VALOR do KPI — o texto que o usuário de fato lê no card.
   //
   // Este bloco faltava, e a ausência era SILENCIOSA: a sonda MEDIA valueFontPx
@@ -2045,6 +2064,33 @@ function selftest() {
     ['BITE CLI: a listagem mostra o que foi declarado e por quê', /silenciou/.test(String(rDeclarada.stdout))],
   );
   for (const p of [fBoa, fRuim, fDecl, fSemMotivo]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
+
+  // -- D4 PESO DO TÍTULO — bite-test pelo CLI, com mutante ----------------------------------
+  // Fixture mínimo (base) só com o peso variando. O mutante é uma cópia do script com a
+  // comparação de peso trocada por `false`: se o assert do 400×700 não cair nela, ele não
+  // estava medindo a comparação.
+  const comPeso = (w) => comUrl(base({ title: { fontPx: 22, weight: w, color: 'oklch(0.965 0 0)' } }));
+  const fP400 = tmpJson(comPeso('400')), fP700 = tmpJson(comPeso('700')), fPBold = tmpJson(comPeso('bold'));
+  const fPSem = tmpJson(comUrl(base({ title: { fontPx: 22, color: 'oklch(0.965 0 0)' } })));
+  const sbPeso = mkdtempSync(join(tmpdir(), 'dd-peso-'));
+  const fonte = readFileSync(EU, 'utf8');
+  const ALVO = 'else if (pa !== pb) ' + 'rows.push'; // concatenado: o literal inteiro só pode existir no comparador
+  const mutavel = fonte.split(ALVO).length === 2;
+  writeFileSync(join(sbPeso, 'design-diff.mjs'), fonte.replace(ALVO, 'else if (false) rows.push'));
+  copyFileSync(join(dirname(EU), 'style-fingerprint.mjs'), join(sbPeso, 'style-fingerprint.mjs'));
+  const pesoAcusa = (r) => r.status === 1 && /título font-weight/.test(String(r.stdout));
+  const r400x700 = cli(['--compare', fP400, fP700, '--check']);
+  const rMutante = spawnSync(process.execPath, [join(sbPeso, 'design-diff.mjs'), '--compare', fP400, fP700, '--check'], { encoding: 'utf8' });
+  checks.push(
+    ['BITE CLI D4 peso: título 400 × 700 → acusa (exit 1, campo nomeado)', pesoAcusa(r400x700)],
+    ['CONTROLE CLI D4 peso: 700 × 700 → exit 0', cli(['--compare', fP700, fP700, '--check']).status === 0],
+    ['CONTROLE CLI D4 peso: "bold" × 700 → exit 0 (normaliza antes de comparar)', cli(['--compare', fPBold, fP700, '--check']).status === 0],
+    ['CLI D4 peso: ausente num lado → SEM-DADO, nunca IGUAL', (() => { const o = String(cli(['--compare', fPSem, fP700]).stdout); return /título font-weight.*SEM-DADO/.test(o) && !/\[D4\] tipografia: .*IGUAL/.test(o); })()],
+    ['MUTANTE D4 peso: o alvo da mutação existe UMA vez no fonte', mutavel],
+    ['MUTANTE D4 peso: sem a comparação, o 400 × 700 deixa de acusar (o assert cai)', mutavel && !pesoAcusa(rMutante) && rMutante.status === 0],
+  );
+  for (const p of [fP400, fP700, fPBold, fPSem]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
+  try { rmSync(sbPeso, { recursive: true, force: true }); } catch { /* best-effort */ }
 
   // -- O GUARDA DE FRESCOR SAIU (ADR 0438, 2026-10-23) -- prova invertida pelo CLI --------
   // Até 2026-10-23, design vindo do espelho local + rodada de frescor contra o Cowork

@@ -96,6 +96,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 
         // Exportação do prontuário em PDF (UC-FPS-19..20). Leitura: basta `fisio.access`; a exportação fica no activity_log.
         Route::get('pacientes/{id}/prontuario.pdf', [ProntuarioPdfController::class, 'show'])->whereNumber('id')->name('pacientes.prontuario.pdf');
+        // Laudo de evolução (Lote 2): síntese para médico ou convênio, mesmo acesso e mesmo rastro do prontuário.
+        Route::get('pacientes/{id}/laudo.pdf', [ProntuarioPdfController::class, 'laudo'])->whereNumber('id')->name('pacientes.laudo.pdf');
 
         // Questionários de uso livre (US-FISIO-011). Pontuação calculada no servidor; só criação.
         Route::post('pacientes/{id}/questionarios', [QuestionariosController::class, 'store'])->whereNumber('id')->name('pacientes.questionarios.store');
