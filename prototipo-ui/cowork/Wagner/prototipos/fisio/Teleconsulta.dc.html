@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fisio · Teleconsulta</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.oi{--font-sans:"IBM Plex Sans",ui-sans-serif,system-ui,"Segoe UI",sans-serif;--font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+--sb-bg:oklch(0.18 0.006 240);--sb-border:oklch(0.28 0.008 240);--sb-text:oklch(0.78 0.005 90);--sb-text-dim:oklch(0.58 0.005 90);--sb-text-hi:oklch(0.96 0.005 90);--sb-active:oklch(0.32 0.008 240);--sb-accent:oklch(0.55 0.15 295);
+--bg:oklch(0.985 0.003 90);--bg-2:oklch(0.965 0.004 90);--surface:#ffffff;--border:oklch(0.90 0.004 90);--border-2:oklch(0.93 0.004 90);--text:oklch(0.22 0.01 80);--text-dim:oklch(0.50 0.01 80);
+--accent:oklch(0.55 0.15 295);--accent-b:oklch(0.45 0.15 295);--accent-soft:oklch(0.95 0.04 295);--accent-fg:#ffffff;
+--pos:oklch(0.50 0.12 150);--pos-soft:oklch(0.95 0.075 150);--neg:oklch(0.55 0.18 25);--neg-soft:oklch(0.955 0.055 25);--warn:oklch(0.56 0.12 70);--warn-soft:oklch(0.955 0.072 75);--info:oklch(0.40 0.10 220);--info-soft:oklch(0.92 0.06 220);
+--kpi-feature-bg:oklch(0.21 0.03 264);--kpi-feature-line:oklch(0.31 0.04 264);--kpi-feature-fg:oklch(0.98 0 0);--kpi-feature-fg-2:oklch(0.72 0.02 250)}
+.oi[data-theme="escuro"]{--bg:oklch(0.26 0.006 240);--bg-2:oklch(0.23 0.006 240);--surface:oklch(0.30 0.008 240);--border:oklch(0.34 0.008 240);--border-2:oklch(0.31 0.008 240);--text:oklch(0.94 0.005 90);--text-dim:oklch(0.72 0.005 90);
+--accent:oklch(0.70 0.15 295);--accent-b:oklch(0.76 0.15 295);--accent-soft:oklch(0.33 0.09 295);--accent-fg:oklch(0.14 0.02 295);
+--pos:oklch(0.76 0.18 150);--pos-soft:oklch(0.34 0.11 150);--neg:oklch(0.74 0.19 25);--neg-soft:oklch(0.36 0.12 25);--warn:oklch(0.82 0.16 75);--warn-soft:oklch(0.37 0.11 70);--info:oklch(0.85 0.07 220);--info-soft:oklch(0.30 0.07 220)}
+.oi a{color:var(--accent)}.oi a:hover{color:var(--accent-b)}
+.oi .card{background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.oi .sec{margin:0;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim)}
+.oi .btn{height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-weight:500;display:inline-flex;align-items:center;gap:6px;text-decoration:none;cursor:pointer}
+.oi .btn-p{border-color:var(--accent-b);background:var(--accent);color:var(--accent-fg)}
+.oi .pill{display:inline-flex;align-items:center;font-size:12px;font-weight:500;padding:0 8px;border-radius:999px;white-space:nowrap}
+.oi .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.oi .dim{color:var(--text-dim)}
+.oi .fld{display:flex;flex-direction:column;gap:4px;font-weight:500;min-width:0}
+.oi .inp{min-height:32px;border:1px solid var(--border);border-radius:8px;padding:6px 10px;font:inherit;font-weight:400;color:var(--text);background:var(--bg);box-sizing:border-box;width:100%}
+.oi textarea.inp{resize:vertical}
+.oi .tab{height:36px;padding:0 10px;display:inline-flex;align-items:center;border-bottom:2px solid transparent;color:var(--text-dim);text-decoration:none;margin-bottom:-1px}
+.oi .tab.on{border-bottom-color:var(--accent);color:var(--text);font-weight:500}
+.oi .sb{--sb-bg:oklch(0.21 0.025 295);--sb-bg-2:oklch(0.18 0.025 295);--sb-border:oklch(0.30 0.03 295);--sb-text:oklch(0.80 0.008 295);--sb-text-dim:oklch(0.55 0 0);--sb-text-hi:oklch(0.97 0.004 295);--sb-hover:oklch(0.28 0.035 295);--sb-active:oklch(0.34 0.05 295);--sb-mute:oklch(0.60 0.01 280);flex:1 1 260px;max-width:260px;background:var(--sb-bg);color:var(--sb-text);border-right:1px solid var(--sb-border);display:flex;flex-direction:column;box-sizing:border-box;font-size:13px}
+.oi .sb .chev{width:12px;height:12px;opacity:.55;flex:0 0 auto}
+.oi .sb-top{padding:10px 10px 8px;border-bottom:1px solid var(--sb-border)}
+.oi .sb-cp-btn{appearance:none;width:100%;height:32px;padding:0 8px;display:flex;align-items:center;gap:8px;border:1px solid var(--sb-border);border-radius:6px;background:var(--sb-bg-2);color:var(--sb-text-hi);font:inherit;font-size:12.5px;font-weight:500;cursor:pointer}
+.oi .sb-cp-btn:hover{background:var(--sb-hover)}
+.oi .sb-cp-btn .av{width:20px;height:20px;border-radius:4px;background:oklch(0.55 0.15 295);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;flex:0 0 auto}
+.oi .sb-cp-btn .nm{flex:1 1 auto;min-width:0;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oi .sb-menu{padding:8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+.oi .sb-item{display:flex;align-items:center;gap:10px;padding:0 10px;height:30px;border-radius:6px;color:var(--sb-text);font-size:13.5px;text-decoration:none;position:relative;box-sizing:border-box}
+.oi .sb-item:hover{background:var(--sb-hover);color:var(--sb-text-hi)}
+.oi .sb-item.active{background:var(--sb-active);color:var(--sb-text-hi);font-weight:500}
+.oi .sb-item.active::before{content:"";position:absolute;left:-8px;top:6px;bottom:6px;width:2px;background:oklch(0.62 0.15 295);border-radius:2px}
+.oi .sb-item .ic{width:16px;height:16px;flex:0 0 auto;opacity:.85}
+.oi .sb-item .label{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oi .sb-item.sb-sub{border-left:2px solid transparent;padding-left:18px;height:28px;font-size:13px}
+.oi .sb-item.sb-sub.active{border-left-color:var(--accent);background:transparent;color:var(--sb-text-hi)}
+.oi .sb-item.sb-sub.active::before{display:none}
+.oi .sb .badge{font-size:10.5px;font-weight:600;background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px;min-width:18px;text-align:center;font-variant-numeric:tabular-nums}
+.oi .sb .gc{font-size:10px;font-family:var(--font-mono);color:var(--sb-mute);opacity:.7}
+.oi .sb .none{display:none}
+.oi .sb-ghost-more{display:flex;align-items:center;gap:7px;margin-left:8px;padding:4px 8px;font-size:11px;color:var(--sb-mute);border-radius:4px;text-decoration:none}
+.oi .sb-ghost-more:hover{background:var(--sb-hover);color:var(--sb-text-hi)}
+.oi .sb-ghost-more .ic{display:none}
+.oi .sb-group{margin:6px 0 2px;display:flex;flex-direction:column;gap:1px}
+.oi .sb-group-h{appearance:none;background:transparent;border:0;width:100%;text-align:left;font-family:inherit;display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--sb-text);cursor:pointer}
+.oi .sb-group-h:hover{background:var(--sb-hover)}
+.oi .sb-group-dot{width:6px;height:6px;border-radius:50%;flex:0 0 auto;opacity:.85}
+.oi .sb-group-l{flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oi .sb-group-n{font-size:9.5px;font-family:var(--font-mono);color:var(--sb-mute);font-weight:500;letter-spacing:0}
+.oi .sb-group-h .chev{width:10px;height:10px;opacity:.5}
+.oi .sb-user{margin-top:auto;border-top:1px solid var(--sb-border);padding:10px}
+.oi .sb-user-btn{appearance:none;border:0;background:transparent;width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:inherit;font:inherit;cursor:pointer}
+.oi .sb-user-btn:hover{background:var(--sb-hover)}
+.oi .sb-user-btn .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,oklch(0.65 0.12 30),oklch(0.55 0.15 10));color:#fff;font-size:11.5px;font-weight:700;display:grid;place-items:center;flex:0 0 auto;position:relative}
+.oi .sb-user-btn .avatar::after{content:"";position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;background:oklch(0.72 0.18 145);border:2px solid var(--sb-bg);border-radius:50%}
+.oi .sb-user-btn .who{flex:1 1 auto;min-width:0;text-align:left}
+.oi .sb-user-btn .who b{display:block;color:var(--sb-text-hi);font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oi .sb-user-btn .who small{display:block;color:var(--sb-text-dim);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oi .btn,.oi .ph-r > button,.oi .ph-r > a{height:32px;padding:0 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:12.5px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.oi .btn:hover,.oi .ph-r > button:hover,.oi .ph-r > a:hover{background:var(--bg-2);color:var(--text)}
+.oi .btn.btn-p,.oi .ph-r > .btn-p{border-color:var(--accent);background:var(--accent);color:var(--accent-fg)}
+.oi .btn.btn-p:hover,.oi .ph-r > .btn-p:hover{border-color:oklch(0.62 0.15 295);background:oklch(0.62 0.15 295);color:var(--accent-fg)}
+.oi .ph{border-bottom:1px solid var(--border);background:var(--bg)}
+.oi .ph-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:24px 24px 14px;min-height:60px;box-sizing:border-box}
+.oi .ph-l{flex:1 1 320px;min-width:0}
+.oi .ph-ctx{margin:0 0 3px;font:500 11px/1.2 var(--font-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim);display:flex;gap:6px;flex-wrap:wrap}
+.oi .ph-ctx a{color:inherit;text-decoration:none}.oi .ph-ctx a:hover{color:var(--text)}
+.oi .ph-h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.015em;line-height:1.3;color:var(--text)}
+.oi .ph-sub{margin:2px 0 0;font-size:12px;line-height:1.4;color:var(--text-dim);font-variant-numeric:tabular-nums;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.oi .ph-r{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.oi .ph-tabs{display:flex;padding:0 24px;overflow-x:auto;scrollbar-width:none}
+.oi .ph-tabs a{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--text-dim);font:500 13px/1 var(--font-sans);text-decoration:none;white-space:nowrap}
+.oi .ph-tabs a:hover{color:var(--text);background:color-mix(in oklch,var(--border-2) 60%,transparent)}
+.oi .ph-tabs a.on{border-bottom-color:var(--accent);background:color-mix(in oklch,var(--accent-soft) 50%,transparent);color:var(--text);font-weight:600}
+.oi .ph-tabs .ct{font:600 10.5px/1.4 var(--font-mono);padding:0 6px;min-width:18px;text-align:center;border-radius:99px;background:var(--bg-2);color:var(--text-dim)}
+.oi .ph-tabs a.on .ct{background:var(--accent);color:var(--accent-fg)}
+.oi :focus-visible{outline:2px solid color-mix(in oklch,var(--accent) 40%,transparent);outline-offset:2px}
+</style>
+</helmet>
+<div class="oi" data-theme="{{theme}}" style="width: 100%; min-height: 900px; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 13.5px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside class="sb" aria-label="Menu">
+    <div class="sb-top"><button type="button" class="sb-cp-btn"><span class="av">CN</span><span class="nm">Clínica [NOME]</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+    <nav class="sb-menu" aria-label="Navegação principal">
+      <sc-for list="{{sbTop}}" as="t" hint-placeholder-count="3">
+        <a href="{{t.href}}" class="sb-item"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.icon}}"/></svg><span class="label">{{t.label}}</span><span class="{{t.endCls}}">{{t.end}}</span></a>
+      </sc-for>
+      <sc-for list="{{sbGroups}}" as="g" hint-placeholder-count="4">
+        <div class="sb-group">
+          <button type="button" class="sb-group-h" aria-expanded="true"><span class="sb-group-dot" style="background: {{g.dot}}"></span><span class="sb-group-l" style="color: {{g.color}}">{{g.label}}</span><span class="sb-group-n">{{g.n}}</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3">
+            <a href="{{r.href}}" class="{{r.cls}}" aria-current="{{r.cur}}"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.icon}}"/></svg><span class="label">{{r.label}}</span><span class="{{r.endCls}}">{{r.end}}</span></a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div class="sb-user"><button type="button" class="sb-user-btn"><span class="avatar">DR</span><span class="who"><b>Dra. Dejeane</b><small>Fisioterapeuta · CREFITO [Nº]</small></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+  </aside>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header class="ph" role="banner">
+    <div class="ph-row">
+      <div class="ph-l"><p class="ph-ctx"><a href="Main.dc.html">Fisio</a> · <a href="Agenda.dc.html">Agenda</a></p><h1 class="ph-h1">Teleconsulta · Lúcia M.</h1><p class="ph-sub">Teleconsulta síncrona (Res. COFFITO 619/2025) · consentimento de teleatendimento v1 aceito em 03/10</p></div>
+      <div class="ph-r"><button type="button" class="btn">Enviar programa atualizado</button></div>
+    </div>
+  </header>
+    <div style="display: flex; flex-wrap: wrap; align-items: stretch; flex: 1">
+      <main style="flex: 999 1 520px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-sizing: border-box">
+<div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-end">
+  <span class="pill" style="background: var(--pos-soft); color: var(--pos); height: 28px">● ao vivo · 12:41</span>
+</div>
+<section aria-label="Vídeo" style="position: relative; border-radius: 14px; overflow: hidden; background: var(--kpi-feature-bg); min-height: 520px; display: flex; align-items: center; justify-content: center">
+  <svg width="260" height="260" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="44" r="20" fill="var(--kpi-feature-line)"/><path d="M20 112c4-26 20-38 40-38s36 12 40 38z" fill="var(--kpi-feature-line)"/></svg>
+  <span style="position: absolute; left: 16px; top: 14px; color: var(--kpi-feature-fg); font-weight: 500">Lúcia M.</span>
+  <span class="pill" style="position: absolute; right: 16px; top: 14px; background: oklch(0.14 0.02 264); color: var(--kpi-feature-fg-2)">4G · 360p · áudio estável</span>
+  <div style="position: absolute; right: 16px; bottom: 84px; width: 180px; height: 120px; border-radius: 10px; background: oklch(0.30 0.03 264); display: grid; place-items: center; color: var(--kpi-feature-fg-2); font-size: 12px">Você</div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 16px; display: flex; justify-content: center; gap: 10px">
+    <button type="button" aria-label="Microfone" style="width: 48px; height: 48px; border-radius: 50%; border: 0; background: oklch(0.30 0.03 264); color: var(--kpi-feature-fg); display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+    <button type="button" aria-label="Câmera" style="width: 48px; height: 48px; border-radius: 50%; border: 0; background: oklch(0.30 0.03 264); color: var(--kpi-feature-fg); display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3"/></svg></button>
+    <button type="button" aria-label="Mostrar exercício" style="width: 48px; height: 48px; border-radius: 50%; border: 0; background: oklch(0.30 0.03 264); color: var(--kpi-feature-fg); display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4h12a4 4 0 014 4v12H8a4 4 0 01-4-4zM8 9h8M8 13h6"/></svg></button>
+    <button type="button" style="height: 48px; padding: 0 18px; border-radius: 999px; border: 0; background: var(--neg); color: #ffffff; font: inherit; font-weight: 600">Encerrar</button>
+  </div>
+</section>
+<span class="dim" style="font-size: 12px">Sem gravação: a consulta não é gravada. Se a conexão cair para áudio, a chamada continua só com voz.</span>
+      </main>
+      <aside aria-label="Evolução" style="flex: 1 1 320px; max-width: 380px; border-left: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column">
+        <div style="padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px">
+          <span class="sec">Evolução em andamento</span>
+          <label class="fld" for="t1">Relato da paciente<textarea id="t1" class="inp" rows="3">Ombro melhor nos últimos 4 dias; dor 4/10 ao levantar o braço acima da cabeça.</textarea></label>
+          <label class="fld" for="t2">O que foi observado<textarea id="t2" class="inp" rows="3">Executou rotação externa com elástico 3×12 sem compensar com o tronco. Elevação ativa até ~150° (estimativa visual).</textarea></label>
+          <label class="fld" for="t3">Conduta<textarea id="t3" class="inp" rows="2">Mantém fase 1; acrescenta deslizamento na parede 2×10.</textarea></label>
+          <label class="fld" for="t4">Resposta da paciente<input id="t4" class="inp" value="Entendeu e repetiu os dois exercícios"></label>
+        </div>
+        <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+          <span class="dim" style="font-size: 12px">Ao encerrar, a evolução é carimbada com Dra. Dejeane · CREFITO [Nº], modalidade "teleconsulta síncrona" e canal "vídeo". A sessão só conta como realizada depois de assinada.</span>
+          <a class="btn btn-p" href="Evolucao.dc.html" style="justify-content: center">Encerrar e assinar evolução</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tema":{"editor":"enum","options":["claro","escuro"],"default":"claro"},"$preview":{"width":1440,"height":900}}'>
+function SB(active) {
+  const P = { chat: 'M21 12a8 8 0 01-11.6 7.1L4 21l1.9-5.4A8 8 0 1121 12z', chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2', inbox: 'M3 13h5l2 3h4l2-3h5M5 5h14l2 8v6H3v-6z',
+    users: 'M9 8a4 4 0 100-.1M2 21c0-4 3-6 7-6s7 2 7 6M17 11l2 2 4-4', box: 'M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8', cart: 'M3 4h2l2.4 11h11.2L21 8H6.2M9 20h.01M18 20h.01',
+    pulse: 'M3 12h4l3-8 4 16 3-8h4', coin: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v10M9 9.5h4.5a1.5 1.5 0 010 3h-3a1.5 1.5 0 000 3H15', wallet: 'M3 7h18v12H3zM3 7l3-3h12l3 3M16 13h2',
+    doc: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6', cal: 'M3 5h18v16H3zM3 10h18M8 3v4M16 3v4', book: 'M4 4h12a4 4 0 014 4v12H8a4 4 0 01-4-4zM8 9h8M8 13h6',
+    prot: 'M9 3h6v4H9zM5 6h14v15H5zM9 12h6M9 16h4', list: 'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01', cam: 'M3 8a2 2 0 012-2h2l2-2h6l2 2h2a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2zM12 17a4 4 0 100-8 4 4 0 000 8z',
+    gear: 'M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L14 3h-4l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 000 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2L10 21h4l.5-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z' };
+  const end = (n, cls) => ({ end: n == null ? '' : String(n), endCls: n == null ? 'none' : cls });
+  const row = (label, icon, href, on, extra) => Object.assign({ label, icon, href, cls: 'sb-item' + (on ? ' active' : ''), cur: on ? 'page' : 'false' }, end(null), extra || {});
+  const G = [['agenda', 'Agenda', P.cal, 'Agenda.dc.html'], ['pacientes', 'Pacientes', P.users, 'Evolucao.dc.html'], ['prescrever', 'Prescrever', P.doc, 'Prescricao.dc.html'], ['biblioteca', 'Biblioteca', P.book, 'Biblioteca.dc.html'], ['protocolos', 'Protocolos', P.prot, 'Protocolos.dc.html'], ['questionarios', 'Questionários', P.list, 'Questionarios.dc.html'], ['camera', 'Câmera', P.cam, 'CameraLiberacao.dc.html'], ['config', 'Configurações', P.gear, 'ConfigWhatsApp.dc.html']];
+  let vis = G.slice(0, 5), extra = G.slice(5);
+  const ai = extra.findIndex(g => g[0] === active);
+  if (ai >= 0) { vis = G.slice(0, 4).concat([extra[ai]]); extra = G.slice(4).filter(g => g[0] !== active); }
+  const fisioOn = active !== 'fiscal';
+  const fisioRows = [row('Fisio', P.pulse, 'Main.dc.html', fisioOn && active === 'painel', end(G.length, 'gc'))];
+  if (fisioOn) {
+    if (active !== 'painel') fisioRows[0].cls = 'sb-item active';
+    vis.forEach(g => fisioRows.push(Object.assign(row(g[1], g[2], g[3], g[0] === active), { cls: 'sb-item sb-sub' + (g[0] === active ? ' active' : '') })));
+    fisioRows.push(Object.assign(row('⋯ mais ' + extra.length, '', extra[0][3], false), { cls: 'sb-ghost-more' }));
+  }
+  const grp = (label, hue, rows) => ({ label, dot: 'oklch(0.65 0.14 ' + hue + ')', color: 'oklch(0.72 0.09 ' + hue + ')', n: String(rows.filter(r => r.cls.indexOf('sb-sub') < 0 && r.cls !== 'sb-ghost-more').length), rows });
+  return {
+    sbTop: [row('IA', P.chat, '#'), row('Visão geral', P.chart, '#'), row('Atendimento', P.inbox, '#', false, end(3, 'badge'))],
+    sbGroups: [
+      grp('Cadastro', 202, [row('Clientes', P.users, '#'), row('Produtos', P.box, '#')]),
+      grp('Comercial', 55, [row('Vendas', P.cart, '#')].concat(fisioRows)),
+      grp('Finanças', 145, [row('Caixa', P.coin, '#'), row('Financeiro', P.wallet, '#')]),
+      grp('Fiscal', 175, [row('Notas Fiscais', P.doc, 'FiscalFila.dc.html', active === 'fiscal')])
+    ]
+  };
+}
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = this.initState ? this.initState() : {}; }
+  renderVals() {
+    const I = {
+      home: 'M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z', cart: 'M3 4h2l2.4 11h11.2L21 8H6.2M9 20h.01M18 20h.01',
+      layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', coin: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v10M9 9.5h4.5a1.5 1.5 0 010 3h-3a1.5 1.5 0 000 3H15',
+      doc: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6', grid: 'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',
+      users: 'M9 8a4 4 0 100-.1M2 21c0-4 3-6 7-6s7 2 7 6M17 11l2 2 4-4', spark: 'M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z',
+      book: 'M4 4h12a4 4 0 014 4v12H8a4 4 0 01-4-4zM8 9h8M8 13h6', cal: 'M3 5h18v16H3zM3 10h18M8 3v4M16 3v4'
+    };
+    const side = (label, icon, href, active) => ({ label, icon, href, bg: active ? 'var(--sb-active)' : 'transparent', fg: active ? 'var(--sb-text-hi)' : 'var(--sb-text)', weight: active ? '500' : '400', bar: active ? 'var(--sb-accent)' : 'transparent' });
+    
+    const A = 'agenda';
+    const V = {};
+    return Object.assign({
+      theme: this.props.tema ?? 'claro',
+      erp: [{ label: 'Início', icon: I.home }, { label: 'Vendas', icon: I.cart }, { label: 'Produção', icon: I.layers }, { label: 'Financeiro', icon: I.coin }, { label: 'Fiscal', icon: I.doc }],
+      fisio: [], ...SB('agenda'),
+    }, typeof V === 'object' ? V : {});
+  }
+}
+</script>
+</body>
+</html>

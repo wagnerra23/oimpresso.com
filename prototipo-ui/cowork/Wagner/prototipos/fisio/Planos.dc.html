@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fisio · Planos</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+.oi{--font-sans:"IBM Plex Sans",ui-sans-serif,system-ui,"Segoe UI",sans-serif;--font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+--bg:oklch(0.985 0.003 90);--bg-2:oklch(0.965 0.004 90);--surface:#ffffff;--border:oklch(0.90 0.004 90);--border-2:oklch(0.93 0.004 90);--text:oklch(0.22 0.01 80);--text-dim:oklch(0.50 0.01 80);
+--accent:oklch(0.55 0.15 295);--accent-b:oklch(0.45 0.15 295);--accent-soft:oklch(0.95 0.04 295);--accent-fg:#ffffff;
+--pos:oklch(0.50 0.12 150);--pos-soft:oklch(0.95 0.075 150);--warn:oklch(0.50 0.12 70);--warn-soft:oklch(0.955 0.072 75)}
+.oi[data-theme="escuro"]{--bg:oklch(0.26 0.006 240);--bg-2:oklch(0.23 0.006 240);--surface:oklch(0.30 0.008 240);--border:oklch(0.34 0.008 240);--border-2:oklch(0.31 0.008 240);--text:oklch(0.94 0.005 90);--text-dim:oklch(0.72 0.005 90);
+--accent:oklch(0.70 0.15 295);--accent-b:oklch(0.76 0.15 295);--accent-soft:oklch(0.33 0.09 295);--accent-fg:oklch(0.14 0.02 295);--pos:oklch(0.76 0.18 150);--pos-soft:oklch(0.34 0.11 150);--warn:oklch(0.82 0.16 75);--warn-soft:oklch(0.37 0.11 70)}
+.oi a{color:var(--accent)}.oi a:hover{color:var(--accent-b)}
+.oi .card{background:var(--surface);border:1px solid var(--border);border-radius:14px}
+.oi .sec{margin:0;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim)}
+.oi .btn{height:40px;padding:0 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;cursor:pointer}
+.oi .btn-p{border-color:var(--accent-b);background:var(--accent);color:var(--accent-fg)}
+.oi .pill{display:inline-flex;align-items:center;font-size:12px;font-weight:500;padding:0 8px;border-radius:999px;white-space:nowrap}
+.oi .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.oi .dim{color:var(--text-dim)}
+.oi :focus-visible{outline:2px solid color-mix(in oklch,var(--accent) 40%,transparent);outline-offset:2px}
+</style>
+</helmet>
+<div class="oi" data-theme="{{theme}}" style="width: 100%; min-height: 1000px; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; box-sizing: border-box; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 24px">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; max-width: 640px">
+    <span class="pill" style="height: 24px; background: var(--accent-soft); color: var(--accent-b)">Fisio no oimpresso</span>
+    <h1 style="margin: 0; font-size: 32px; font-weight: 600; letter-spacing: -.01em; line-height: 1.2">Seu paciente fazendo os exercícios em casa</h1>
+    <span class="dim">Comece grátis. Pague quando quiser o lembrete automático para todos os pacientes.</span>
+  </div>
+
+  <div role="radiogroup" aria-label="Período" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--bg-2)">
+    <sc-for list="{{periods}}" as="p" hint-placeholder-count="2">
+      <button type="button" role="radio" aria-checked="{{p.on}}" onClick="{{p.pick}}" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 0; background: {{p.bg}}; color: var(--text); font: inherit; font-weight: {{p.w}}; cursor: pointer">{{p.t}}</button>
+    </sc-for>
+  </div>
+
+  <div style="width: 100%; max-width: 1100px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px">
+    <sc-for list="{{plans}}" as="c" hint-placeholder-count="3">
+      <section class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 14px; border: {{c.bd}}">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 18px; font-weight: 600">{{c.t}}</h2><span class="pill" style="background: {{c.tagBg}}; color: {{c.tagFg}}">{{c.tag}}</span></div>
+        <div style="display: flex; align-items: baseline; gap: 6px"><span class="mono" style="font-size: 34px; font-weight: 600">{{c.price}}</span><span class="dim">{{c.unit}}</span></div>
+        <span class="dim" style="min-height: 42px">{{c.d}}</span>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <sc-for list="{{c.feats}}" as="f" hint-placeholder-count="4">
+            <span style="display: flex; gap: 8px; align-items: flex-start"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pos)" stroke-width="2.5" aria-hidden="true" style="flex: none; margin-top: 3px"><path d="M5 12l5 5 9-10"/></svg><span>{{f}}</span></span>
+          </sc-for>
+        </div>
+        <a class="{{c.btnCls}}" href="Onboarding.dc.html" style="margin-top: auto">{{c.cta}}</a>
+      </section>
+    </sc-for>
+  </div>
+
+  <div style="width: 100%; max-width: 1100px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px">
+    <section class="card" style="padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+      <span style="display: flex; flex-direction: column"><b style="font-weight: 600">Adicional NFS-e</b><span class="dim">nota de serviço com fisioterapia já configurada</span></span>
+      <span class="mono" style="font-size: 20px; font-weight: 600">+ R$ 29<span class="dim" style="font-size: 13px; font-weight: 400">/mês</span></span>
+    </section>
+    <section class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 4px">
+      <b style="font-weight: 600">Indique um colega</b>
+      <span class="dim">Você e o colega ganham [RECOMPENSA]. A indicação é só entre profissionais; paciente não ganha recompensa (Código de Ética, art. 30).</span>
+    </section>
+  </div>
+  <span class="dim" style="font-size: 12px; max-width: 720px; text-align: center">Preços de lançamento, a validar no piloto. O lembrete automático sai pelo canal que você escolher: WhatsApp oficial da Meta ou o número da clínica conectado por QR, que pode ser bloqueado pela Meta. No plano grátis, a mensagem sai pelo seu próprio WhatsApp.</span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tema":{"editor":"enum","options":["claro","escuro"],"default":"claro"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { annual: false }; }
+  renderVals() {
+    const a = this.state.annual;
+    const per = (on, t, k) => ({ t, on: on ? 'true' : 'false', pick: () => this.setState({ annual: k }), bg: on ? 'var(--surface)' : 'transparent', w: on ? '600' : '400' });
+    return {
+      theme: this.props.tema ?? 'claro',
+      periods: [per(!a, 'Mensal', false), per(a, 'Anual · economize 17%', true)],
+      plans: [
+        { t: 'Grátis', tag: 'para começar', tagBg: 'var(--bg-2)', tagFg: 'var(--text-dim)', price: 'R$ 0', unit: '', d: 'Até 5 pacientes, com o link enviado pelo seu WhatsApp.', bd: '1px solid var(--border)', btnCls: 'btn', cta: 'Começar grátis',
+          feats: ['Biblioteca e protocolos-modelo', 'Portal do paciente com link e PIN', 'Check-in de dor e jogo de constância', 'Painel com a fila de atenção'] },
+        { t: 'Profissional', tag: 'mais escolhido', tagBg: 'var(--accent-soft)', tagFg: 'var(--accent-b)', price: a ? 'R$ 49' : 'R$ 59', unit: a ? '/mês, cobrado por ano' : '/mês', d: 'Para quem quer o lembrete automático e mais de 5 pacientes.', bd: '2px solid var(--accent)', btnCls: 'btn btn-p', cta: 'Assinar o Profissional',
+          feats: ['Tudo do Grátis', 'Mais de 5 pacientes', 'Lembrete diário automático no WhatsApp', 'Agenda com confirmação e lista de espera', 'Laudo de evolução em PDF'] },
+        { t: 'Estudante e recém-formado', tag: '50% de desconto', tagBg: 'var(--pos-soft)', tagFg: 'var(--pos)', price: a ? 'R$ 24,50' : 'R$ 29,50', unit: a ? '/mês, cobrado por ano' : '/mês', d: 'O plano Profissional pela metade, com comprovante de matrícula ou registro recente.', bd: '1px solid var(--border)', btnCls: 'btn', cta: 'Enviar comprovante',
+          feats: ['Tudo do Profissional', 'Vale para estudante e para quem se formou há pouco'] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

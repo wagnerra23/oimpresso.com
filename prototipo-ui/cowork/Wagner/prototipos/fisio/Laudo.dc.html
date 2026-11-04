@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fisio · Laudo de evolução</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
+</style>
+</helmet>
+<div style="width: 794px; height: 1123px; box-sizing: border-box; padding: 56px 64px; background: #FFFFFF; color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 12pt; line-height: 1.45; display: flex; flex-direction: column; gap: 20px">
+
+  <header style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 16px; border-bottom: 2px solid oklch(0.55 0.15 295)">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 18pt; font-weight: 600">Clínica [NOME]</span>
+      <span style="font-size: 10pt; color: oklch(0.45 0.01 80)">CNPJ [Nº] · [ENDEREÇO] · [TELEFONE]</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 10pt; color: oklch(0.45 0.01 80)">
+      <span style="font-weight: 600; color: oklch(0.22 0.01 80)">Laudo de evolução fisioterapêutica</span>
+      <span>Emitido em 21/10/2026</span>
+      <span style="font-family: 'IBM Plex Mono', monospace">Doc. [Nº]</span>
+    </div>
+  </header>
+
+  <section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 24px; font-size: 11pt">
+    <span><b style="font-weight: 600">Paciente:</b> Marta L.</span>
+    <span><b style="font-weight: 600">Idade:</b> 42 anos</span>
+    <span><b style="font-weight: 600">Período:</b> 03/10 a 21/10/2026 (6 semanas)</span>
+    <span><b style="font-weight: 600">Sessões:</b> 7 presenciais · 1 teleconsulta</span>
+    <span style="grid-column: 1 / -1"><b style="font-weight: 600">Destinatário:</b> [MÉDICO OU CONVÊNIO]</span>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 6px">
+    <h2 style="margin: 0; font-size: 12pt; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: oklch(0.45 0.15 295)">Diagnóstico fisioterapêutico</h2>
+    <p style="margin: 0">Dor lombar inespecífica crônica com preferência direcional em extensão; déficit de resistência de extensores e de glúteo médio; baixa tolerância à postura sentada.</p>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0; font-size: 12pt; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: oklch(0.45 0.15 295)">Medidas</h2>
+    <table style="border-collapse: collapse; width: 100%; font-size: 11pt">
+      <thead>
+        <tr style="background: oklch(0.965 0.004 90)">
+          <th scope="col" style="text-align: left; padding: 6px 8px; font-weight: 600">Medida</th>
+          <th scope="col" style="text-align: right; padding: 6px 8px; font-weight: 600">Avaliação</th>
+          <th scope="col" style="text-align: right; padding: 6px 8px; font-weight: 600">Atual</th>
+          <th scope="col" style="text-align: left; padding: 6px 8px; font-weight: 600">Leitura</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+          <tr style="border-bottom: 1px solid oklch(0.90 0.004 90)">
+            <td style="padding: 6px 8px">{{r.m}}</td>
+            <td style="padding: 6px 8px; text-align: right; font-family: 'IBM Plex Mono', monospace">{{r.a}}</td>
+            <td style="padding: 6px 8px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-weight: 600">{{r.b}}</td>
+            <td style="padding: 6px 8px; font-size: 10pt; color: oklch(0.38 0.01 80)">{{r.l}}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    <span style="font-size: 9pt; color: oklch(0.45 0.01 80)">Roland-Morris: versão brasileira validada, 0 a 24, menor é melhor. Adesão e contagem de repetições registradas pela paciente no portal, com confirmação ao fim de cada série.</span>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 6px">
+    <h2 style="margin: 0; font-size: 12pt; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: oklch(0.45 0.15 295)">Conduta realizada</h2>
+    <p style="margin: 0">Programa domiciliar baseado no protocolo de dor lombar inespecífica (JOSPT/AOPT 2021): extensão em prono, gato-camelo, ativação do transverso, ponte de glúteo e pausa ativa a cada 40 min. Fase 1 de mobilidade e controle; fase 2 de força e controle desde 14/10.</p>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 6px">
+    <h2 style="margin: 0; font-size: 12pt; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: oklch(0.45 0.15 295)">Prognóstico e plano</h2>
+    <p style="margin: 0">Evolução favorável, com melhora acima da diferença clínica mínima na incapacidade. Previsão de mais 3 sessões e alta para programa de manutenção em casa, com reavaliação em 30 dias.</p>
+  </section>
+
+  <footer style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px">
+    <span style="font-size: 9pt; color: oklch(0.45 0.01 80); max-width: 360px">Documento gerado a partir do prontuário (Res. COFFITO 414/2012). Contém dados de saúde; compartilhar só com o destinatário indicado.</span>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 240px">
+      <span style="width: 100%; border-top: 1px solid oklch(0.22 0.01 80); height: 1px"></span>
+      <span style="font-weight: 600">Dra. Dejeane</span>
+      <span style="font-size: 10pt; color: oklch(0.45 0.01 80)">Fisioterapeuta · CREFITO [Nº]</span>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":794,"height":1123}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      rows: [
+        { m: 'Dor (EVA, 0–10)', a: '6', b: '3', l: 'redução de 3 pontos' },
+        { m: 'Roland-Morris (0–24)', a: '12', b: '6', l: 'melhora acima da diferença clínica mínima' },
+        { m: 'PSFS (3 atividades, 0–10)', a: '4,3', b: '7,0', l: 'ficar sentada 8 h: de 3 para 7' },
+        { m: 'Extensão lombar (goniômetro)', a: '18°', b: '26°', l: 'medida na clínica' },
+        { m: 'Adesão ao programa em casa', a: '—', b: '27 de 30', l: '90% dos dias prescritos' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

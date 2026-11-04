@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Confirmar consulta</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.95 0.006 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
+  <header style="display: flex; align-items: center; gap: 12px; padding: 22px 16px 12px; background: #FFFFFF; border-bottom: 1px solid oklch(0.90 0.004 90)">
+    <span style="width: 44px; height: 44px; border-radius: 50%; background: oklch(0.55 0.15 295); color: #FFFFFF; display: grid; place-items: center; font-weight: 600">DR</span>
+    <span style="display: flex; flex-direction: column; line-height: 1.25">
+      <span style="font-weight: 600">Dra. Dejeane · Fisioterapia</span>
+      <span style="font-size: 13px; color: oklch(0.50 0.01 80)">CREFITO [Nº] · Clínica [NOME]</span>
+    </span>
+  </header>
+
+  <div style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 10px; justify-content: flex-end">
+    <span style="align-self: center; font-size: 12px; color: oklch(0.50 0.01 80); background: #FFFFFF; padding: 2px 10px; border-radius: 999px">segunda</span>
+    <div style="align-self: flex-start; max-width: 300px; background: #FFFFFF; border-radius: 4px 16px 16px 16px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+      <span>Oi, Marta! Sua sessão é amanhã, <b style="font-weight: 600">terça, 21/10, às 08:30</b>, na Clínica [NOME].</span>
+      <span style="align-self: flex-end; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: oklch(0.50 0.01 80)">18:00</span>
+    </div>
+    <sc-if value="{{asking}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 6px; max-width: 300px">
+        <sc-for list="{{buttons}}" as="b" hint-placeholder-count="3">
+          <button type="button" onClick="{{b.pick}}" style="height: 44px; border-radius: 12px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF; color: oklch(0.45 0.15 295); font: inherit; font-weight: 600; cursor: pointer">{{b.t}}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{answered}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="align-self: flex-end; max-width: 260px; background: oklch(0.92 0.05 295); border-radius: 16px 4px 16px 16px; padding: 10px 12px">{{mine}}</div>
+        <div style="align-self: flex-start; max-width: 300px; background: #FFFFFF; border-radius: 4px 16px 16px 16px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px">
+          <span>{{reply}}</span>
+          <sc-if value="{{showSlots}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <sc-for list="{{slots}}" as="t" hint-placeholder-count="3">
+                <button type="button" onClick="{{t.pick}}" style="height: 40px; border-radius: 10px; border: 1px solid oklch(0.90 0.004 90); background: oklch(0.965 0.004 90); color: oklch(0.45 0.15 295); font: inherit; font-weight: 600; cursor: pointer">{{t.t}}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+    <button type="button" onClick="{{restart}}" style="align-self: center; height: 36px; border: 0; background: none; color: oklch(0.50 0.01 80); font: inherit; font-size: 13px; text-decoration: underline">Ver do início</button>
+    <span style="align-self: center; font-size: 12px; color: oklch(0.50 0.01 80); text-align: center; max-width: 300px">Cancelamento com menos de 24 h segue a política da clínica, sempre confirmada pela fisio.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { a: null, slot: null }; }
+  renderVals() {
+    const s = this.state;
+    const R = {
+      ok: ['Confirmo', 'Confirmado! Até amanhã às 08:30. Leve roupa confortável.'],
+      re: ['Preciso remarcar', 'Sem problema. Estes horários estão livres com a Dra. Dejeane:'],
+      no: ['Não vou poder ir', 'Tudo bem, avisei a Dra. Dejeane. Ela vai falar com você sobre o pacote.']
+    };
+    let reply = s.a ? R[s.a][1] : '';
+    if (s.a === 're' && s.slot) reply = 'Remarcado para ' + s.slot + '. A vaga de terça foi oferecida a quem está na lista de espera.';
+    return {
+      asking: !s.a, answered: !!s.a,
+      buttons: ['ok', 're', 'no'].map(k => ({ t: R[k][0], pick: () => this.setState({ a: k }) })),
+      mine: s.a ? R[s.a][0] : '',
+      reply,
+      showSlots: s.a === 're' && !s.slot,
+      slots: ['qua, 22/10 · 17:00', 'qui, 23/10 · 08:30', 'sex, 24/10 · 10:00'].map(t => ({ t, pick: () => this.setState({ slot: t }) })),
+      restart: () => this.setState({ a: null, slot: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

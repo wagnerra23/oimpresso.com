@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Instalar app</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.985 0.003 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
+  <div style="display: flex; gap: 6px; padding: 18px 20px 0" aria-hidden="true">
+    <sc-for list="{{dots}}" as="d" hint-placeholder-count="3"><span style="flex: 1; height: 5px; border-radius: 3px; background: {{d.bg}}"></span></sc-for>
+  </div>
+
+  <sc-if value="{{s1}}" hint-placeholder-val="{{ true }}">
+    <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+      <span style="width: 72px; height: 72px; border-radius: 20px; background: oklch(0.55 0.15 295); color: #FFFFFF; display: grid; place-items: center; font-weight: 600; font-size: 22px">CN</span>
+      <h1 style="margin: 0; font-size: 26px; font-weight: 600; line-height: 1.15">Leve a Clínica [NOME] no seu celular</h1>
+      <span style="color: oklch(0.38 0.01 80)">Seus exercícios, suas consultas e agendar sem precisar ligar.</span>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <sc-for list="{{lojas}}" as="l" hint-placeholder-count="3">
+          <button type="button" onClick="{{l.pick}}" style="display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; border: {{l.bd}}; background: {{l.bg}}; font: inherit; color: oklch(0.22 0.01 80); text-align: left; cursor: pointer">
+            <span style="width: 40px; height: 40px; border-radius: 10px; background: oklch(0.22 0.01 80); color: #FFFFFF; display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px">{{l.ic}}</span>
+            <span style="display: flex; flex-direction: column"><b style="font-weight: 600">{{l.n}}</b><span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{l.d}}</span></span>
+          </button>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; color: oklch(0.50 0.01 80)">Sem instalar? O link do WhatsApp continua funcionando igual.</span>
+      <button type="button" onClick="{{next}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">Instalar</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{s2}}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+      <h1 style="margin: 0; font-size: 26px; font-weight: 600; line-height: 1.15">Entrar</h1>
+      <span style="color: oklch(0.38 0.01 80)">Use o celular que a clínica tem cadastrado. Mandamos um código pelo WhatsApp.</span>
+      <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 500">Celular</span>
+        <span style="height: 52px; border-radius: 12px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF; display: flex; align-items: center; padding: 0 14px; font-family: 'IBM Plex Mono', monospace">(48) 9 ••••-••••</span>
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; font-weight: 500">Código de 6 dígitos</span>
+        <span style="display: flex; gap: 8px">
+          <sc-for list="{{codigo}}" as="c" hint-placeholder-count="6"><span style="flex: 1; height: 52px; border-radius: 12px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF; display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 20px">{{c.v}}</span></sc-for>
+        </span>
+      </label>
+      <div style="padding: 14px; border-radius: 14px; background: oklch(0.95 0.04 295); display: flex; gap: 12px; align-items: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="oklch(0.45 0.15 295)" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <span style="font-size: 14px">Neste celular você entra uma vez só. Depois abre com digital ou rosto.</span>
+      </div>
+      <button type="button" onClick="{{next}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">Entrar</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{s3}}" hint-placeholder-val="{{ false }}">
+    <div style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <span style="color: oklch(0.50 0.01 80); font-size: 14px">Olá, [NOME]</span>
+      <h1 style="margin: 0; font-size: 26px; font-weight: 600; line-height: 1.15">Tudo num lugar só</h1>
+      <sc-for list="{{atalhos}}" as="a" hint-placeholder-count="3">
+        <a href="{{a.href}}" style="display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 16px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); color: oklch(0.22 0.01 80); text-decoration: none">
+          <span style="width: 44px; height: 44px; border-radius: 12px; background: {{a.bg}}; color: #FFFFFF; display: grid; place-items: center; font-weight: 600">{{a.ic}}</span>
+          <span style="display: flex; flex-direction: column; flex: 1"><b style="font-weight: 600">{{a.n}}</b><span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{a.d}}</span></span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </sc-for>
+      <button type="button" onClick="{{restart}}" style="margin-top: auto; height: 40px; border: 0; background: none; color: oklch(0.50 0.01 80); font: inherit; text-decoration: underline">Ver do início</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { step: 1, loja: 'pwa' }; }
+  renderVals() {
+    const s = this.state, P = 'oklch(0.55 0.15 295)', LINE = 'oklch(0.90 0.004 90)';
+    const LOJAS = [['pwa', 'Tela inicial', 'Atalho direto pelo navegador. Leve, sem loja.', 'WEB'], ['ios', 'App Store', 'iPhone', 'iOS'], ['and', 'Google Play', 'Android', 'AND']];
+    return {
+      s1: s.step === 1, s2: s.step === 2, s3: s.step === 3,
+      dots: [1, 2, 3].map(i => ({ bg: i <= s.step ? P : LINE })),
+      lojas: LOJAS.map(l => { const on = s.loja === l[0]; return { n: l[1], d: l[2], ic: l[3], pick: () => this.setState({ loja: l[0] }), bd: on ? '2px solid ' + P : '1px solid ' + LINE, bg: on ? 'oklch(0.95 0.04 295)' : '#FFFFFF' }; }),
+      codigo: ['4', '8', '1', '', '', ''].map(v => ({ v })),
+      atalhos: [
+        { n: 'Exercícios de hoje', d: '3 exercícios · 12 min', ic: 'EX', bg: P, href: 'PacienteHoje.dc.html' },
+        { n: 'Agendar consulta', d: 'Escolha o dia e o horário', ic: 'AG', bg: 'oklch(0.45 0.08 220)', href: 'PacienteAgendar.dc.html' },
+        { n: 'Minhas consultas', d: 'Próxima: ter, 21/10 · 08:30', ic: 'MC', bg: 'oklch(0.22 0.01 80)', href: 'PacienteConsultas.dc.html' }
+      ],
+      next: () => this.setState({ step: Math.min(3, s.step + 1) }),
+      restart: () => this.setState({ step: 1 })
+    };
+  }
+}
+</script>
+</body>
+</html>
