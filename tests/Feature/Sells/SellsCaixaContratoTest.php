@@ -64,8 +64,11 @@ function scaixaGet(object $test, array $query = [])
     ])->get($url);
 }
 
-/** Props da página, com pré-condição anti-vácuo: a tela certa renderizou. */
-function scaixaProps(object $test, array $query = []): array
+/** As 4 agregações do dia são deferidas no grupo 'dia' (UC-SCAIXA-15). */
+const SCAIXA_PROPS_DIA = ['porFormaPagamento', 'porOrigem', 'totalDia', 'countDia'];
+
+/** Página do 1º load, com pré-condição anti-vácuo: a tela certa renderizou. */
+function scaixaPagina(object $test, array $query = []): array
 {
     $response = scaixaGet($test, $query);
     $response->assertStatus(200);
@@ -73,7 +76,32 @@ function scaixaProps(object $test, array $query = []): array
 
     expect($page['component'] ?? null)->toBe('Sells/Caixa/Index');
 
-    return $page['props'];
+    return $page;
+}
+
+/**
+ * Props como o browser termina com elas: 1º load + o pedido das deferidas do dia,
+ * que é o que o <Deferred> faz. Anti-vácuo: as 4 chaves vêm na 2ª resposta.
+ */
+function scaixaProps(object $test, array $query = []): array
+{
+    $props = scaixaPagina($test, $query)['props'];
+
+    $url = '/vendas/caixa' . ($query === [] ? '' : '?' . http_build_query($query));
+    $r = $test->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => scaixaInertiaVersion(),
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Partial-Component' => 'Sells/Caixa/Index',
+        'X-Inertia-Partial-Data' => implode(',', SCAIXA_PROPS_DIA),
+    ])->get($url);
+    $r->assertStatus(200);
+    $dia = json_decode($r->getContent(), true)['props'];
+    foreach (SCAIXA_PROPS_DIA as $k) {
+        expect(array_key_exists($k, $dia))->toBeTrue();
+    }
+
+    return array_merge($props, array_intersect_key($dia, array_flip(SCAIXA_PROPS_DIA)));
 }
 
 function scaixaVenda(int $bizId, int $userId, string $dia, float $total, string $status = 'final', string $source = 'balcao', ?string $osRef = null): int
@@ -218,6 +246,24 @@ it('UC-SCAIXA-02 [T0] venda de outro business não entra em nenhum agregado', fu
 
     $refIds = array_map(fn ($r) => (int) $r['id'], $oficina['refs']);
     expect(in_array($this->vx, $refIds, true))->toBeFalse();
+});
+
+it('UC-SCAIXA-15 as agregações do dia não vêm no 1º load: chegam deferidas no grupo dia', function () {
+    $page = scaixaPagina($this, ['date' => SCAIXA_DIA]);
+
+    foreach (SCAIXA_PROPS_DIA as $k) {
+        expect(array_key_exists($k, $page['props']))->toBeFalse();
+    }
+    $grupo = $page['deferredProps']['dia'] ?? [];
+    sort($grupo);
+    $esperado = SCAIXA_PROPS_DIA;
+    sort($esperado);
+    expect($grupo)->toBe($esperado);
+
+    // E chegam com o mesmo número de UC-SCAIXA-01 (anti-vácuo do pedido deferido).
+    $p = scaixaProps($this, ['date' => SCAIXA_DIA]);
+    expect(round((float) $p['totalDia'], 2))->toBe(150.0);
+    expect((int) $p['countDia'])->toBe(2);
 });
 
 it('UC-SCAIXA-03 sem permissão de venda a tela devolve 403', function () {

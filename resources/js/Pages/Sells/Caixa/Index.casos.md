@@ -129,5 +129,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** valor contado gravado com separador errado (`num_uf`); fechamento atingindo o caixa de outro business.
 - **Status: 🧪**
 
+## UC-SCAIXA-15 · Agregações do dia chegam deferidas `[should]`
+- **Persona:** operador que abre a Caixa — o shell e os botões aparecem antes das contas do dia.
+- **Aceite:** Dado o 1º load de `/vendas/caixa` · Então `porFormaPagamento`, `porOrigem`, `totalDia` e `countDia` não vêm nas props e estão no grupo deferido `dia` · Quando o `<Deferred>` pede o grupo · Então chegam com os mesmos números de UC-SCAIXA-01 (150,00 · 2). O fallback mostra "…" e "Carregando…", nunca um R$ 0,00 provisório.
+- **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-15 as agregações do dia não vêm no 1º load: chegam deferidas no grupo dia`. Os UC-SCAIXA-01/02/04/05/06 passam a ler as 4 props pelo pedido deferido, com os valores esperados inalterados. O fallback é do front, sem teste de render.
+- **Regressão que defende:** voltar a calcular as 4 agregações no 1º load (RUNBOOK-caixa §3, regra `Inertia::defer`).
+- **Status: 🧪**
+
 - `[BACKLOG]` Contagem por cédula (denominações) na tela — segue no modal legado `/cash-register/close-register/{id}`.
 - `[BACKLOG]` Sangria e suprimento: o caixa do UltimatePOS não grava esses tipos (`cash_register_transactions.transaction_type` só tem `initial`/`sell`/`expense`/`refund`); exigiria regra e endpoint novos — decisão [W].
