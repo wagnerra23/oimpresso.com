@@ -23,12 +23,11 @@ import { Checkbox } from '@/Components/ui/checkbox';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
-import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Grid, Inline, Stack } from '@/Components/layout';
-import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
+import ConfiguracoesCabecalho from '@/Pages/Configuracoes/_shared/ConfiguracoesCabecalho';
 
 export interface Local {
   id: number; nome: string; referencia: string; cidade: string; cnpj: string; ativo: boolean;
@@ -192,13 +191,10 @@ function LocaisIndex({ locais: locaisProp, opcoes }: Props) {
   ];
 
   return (
-    <div className="pb-8">
-      <div data-contract="page-header">
-        <PageHeader title="Locais comerciais"
-          subtitle={locaisProp ? <><strong>{ativos}</strong> {ativos === 1 ? 'local ativo' : 'locais ativos'} de {locais.length}</> : 'filiais do negócio'}
-          subnav={<ConfiguracoesSubNav />}
-          actions={<Button disabled={!opcoes} onClick={novo}><Plus className="size-4" /> Novo local</Button>} />
-      </div>
+    <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Locais comerciais">
+      <ConfiguracoesCabecalho tela="Locais comerciais" rota="/business-location"
+        resumo={locaisProp ? <><strong>{ativos}</strong> {ativos === 1 ? 'local ativo' : 'locais ativos'} de {locais.length}</> : null}
+        acoes={<Button disabled={!opcoes} onClick={novo}><Plus className="size-4" /> Novo local</Button>} />
 
       <Stack gap={4} className="px-6 pt-4">
         <Inline data-contract="toolbar" wrap gap={2}>

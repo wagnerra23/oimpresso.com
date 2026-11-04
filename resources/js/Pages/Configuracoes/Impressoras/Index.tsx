@@ -24,12 +24,11 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
-import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
-import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
+import ConfiguracoesCabecalho from '@/Pages/Configuracoes/_shared/ConfiguracoesCabecalho';
 
 export interface Impressora {
   id: number; nome: string; conexao: 'network' | 'windows' | 'linux'; perfil: string;
@@ -141,13 +140,10 @@ function ImpressorasIndex({ impressoras: impressorasProp, opcoes }: Props) {
   ];
 
   return (
-    <div className="pb-8">
-      <div data-contract="page-header">
-        <PageHeader title="Impressoras"
-          subtitle={impressorasProp ? <><strong>{impressoras.length}</strong> {impressoras.length === 1 ? 'impressora de cupom' : 'impressoras de cupom'}</> : 'impressoras de cupom'}
-          subnav={<ConfiguracoesSubNav />}
-          actions={<Button onClick={nova}><Plus className="size-4" /> Adicionar impressora</Button>} />
-      </div>
+    <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Impressoras de recibos">
+      <ConfiguracoesCabecalho tela="Impressoras de recibos" rota="/printers"
+        resumo={impressorasProp ? <><strong>{impressoras.length}</strong> {impressoras.length === 1 ? 'impressora de cupom' : 'impressoras de cupom'}</> : null}
+        acoes={<Button onClick={nova}><Plus className="size-4" /> Adicionar impressora</Button>} />
 
       <Stack gap={4} className="px-6 pt-4">
         <Inline data-contract="toolbar" wrap gap={2}>

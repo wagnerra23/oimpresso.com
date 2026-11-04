@@ -27,12 +27,11 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
-import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
-import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
+import ConfiguracoesCabecalho from '@/Pages/Configuracoes/_shared/ConfiguracoesCabecalho';
 
 export interface Aliquota { id: number; nome: string; aliquota: number; so_grupo: boolean; em_grupo: boolean }
 export interface Grupo { id: number; nome: string; aliquota: number; sub_impostos: string[]; sub_ids: number[] }
@@ -195,13 +194,10 @@ function ImpostosIndex({ impostos, pode, nfe_ativo }: Props) {
   ];
 
   return (
-    <div className="pb-8">
-      <div data-contract="page-header">
-        <PageHeader title="Impostos"
-          subtitle={impostos ? <><strong>{aliquotas.length}</strong> {aliquotas.length === 1 ? 'alíquota' : 'alíquotas'} · <strong>{grupos.length}</strong> {grupos.length === 1 ? 'grupo' : 'grupos'}</> : 'alíquotas e grupos de imposto'}
-          subnav={<ConfiguracoesSubNav />}
-          actions={pode.criar ? <Button onClick={nova}><Plus className="size-4" /> Nova alíquota</Button> : undefined} />
-      </div>
+    <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Taxas de imposto">
+      <ConfiguracoesCabecalho tela="Taxas de imposto" rota="/tax-rates"
+        resumo={impostos ? <><strong>{aliquotas.length}</strong> {aliquotas.length === 1 ? 'alíquota' : 'alíquotas'} · <strong>{grupos.length}</strong> {grupos.length === 1 ? 'grupo' : 'grupos'}</> : null}
+        acoes={pode.criar ? <Button onClick={nova}><Plus className="size-4" /> Nova alíquota</Button> : undefined} />
 
       <Stack gap={4} className="px-6 pt-4">
         {nfe_ativo && (

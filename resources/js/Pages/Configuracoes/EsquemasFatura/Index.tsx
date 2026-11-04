@@ -27,12 +27,11 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
-import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
-import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
+import ConfiguracoesCabecalho from '@/Pages/Configuracoes/_shared/ConfiguracoesCabecalho';
 
 export interface Esquema {
   id: number; nome: string; padrao: boolean; tipo: 'blank' | 'year'; prefixo: string; prefixo_exibido: string;
@@ -164,13 +163,10 @@ function EsquemasFaturaIndex({ fatura, tipos_numero }: Props) {
   ];
 
   return (
-    <div className="pb-8">
-      <div data-contract="page-header">
-        <PageHeader title="Esquemas de fatura"
-          subtitle={fatura ? <><strong>{esquemas.length}</strong> {esquemas.length === 1 ? 'esquema' : 'esquemas'} · <strong>{layouts.length}</strong> {layouts.length === 1 ? 'layout' : 'layouts'}</> : 'numeração e layout das notas'}
-          subnav={<ConfiguracoesSubNav />}
-          actions={<Button onClick={novo}><Plus className="size-4" /> Novo esquema</Button>} />
-      </div>
+    <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Configurações da fatura">
+      <ConfiguracoesCabecalho tela="Configurações da fatura" rota="/invoice-schemes"
+        resumo={fatura ? <><strong>{esquemas.length}</strong> {esquemas.length === 1 ? 'esquema' : 'esquemas'} · <strong>{layouts.length}</strong> {layouts.length === 1 ? 'layout' : 'layouts'}</> : null}
+        acoes={<Button onClick={novo}><Plus className="size-4" /> Novo esquema</Button>} />
 
       <Stack gap={4} className="px-6 pt-4">
         <Inline data-contract="toolbar" wrap gap={2}>
