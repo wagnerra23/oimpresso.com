@@ -1560,4 +1560,12 @@ return [
     'overall_summary' => 'Overall Summary',
     'bloquear_venda_preco_zero_app' => 'Block selling zero-price products in the app',
     'bloquear_venda_preco_zero_app_help' => 'Applies only to the store app quick sale. When off, the app sells products priced at 0.00 (e.g. gifts).',
+    // Module list labels (ModuleUtil::availableModules).
+    'modulo_pdv' => 'POS',
+    'modulo_transferencia_estoque' => 'Stock transfer',
+    'modulo_conta_bancaria' => 'Bank account',
+    'modulo_atendentes' => 'Service staff',
+    'modulo_reservas' => 'Bookings',
+    'modulo_cozinha' => 'Kitchen',
+    'modulo_cobranca_recorrente' => 'Recurring billing',
 ];
