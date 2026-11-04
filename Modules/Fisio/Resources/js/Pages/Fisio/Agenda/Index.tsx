@@ -8,7 +8,7 @@
 // (canvas Prescreve Pro, ADR 0438). Semana do profissional, legenda de status, resumo do dia, vaga
 // liberada e lista de espera. Conflito, encaixe, prazo e faltas são do servidor (AgendaService).
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, router, useForm } from '@inertiajs/react';
+import { Deferred, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
@@ -64,6 +64,7 @@ export default function FisioAgenda(p: Props) {
         subtitle={`Semana de ${ddmm(p.semana)} a ${ddmm(somaDias(p.semana, 5))}${nomeProf ? ` · ${nomeProf}` : ''}`}
         actions={p.pode_editar ? (
           <>
+            <Button variant="ghost" asChild><Link href="/fisio/configuracoes/agendamento">Agendamento pelo app</Link></Button>
             <Button variant="outline" onClick={() => setBloquear(true)}>Bloquear horário</Button>
             <Button onClick={() => setNova(true)}>Nova sessão</Button>
           </>

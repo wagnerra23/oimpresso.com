@@ -47,6 +47,7 @@ it('registra as rotas da F1 com os nomes que as telas consomem', function () {
         'POST fisio/programas/{id}/itens', 'PUT fisio/programas/{id}/itens/ordem', 'PUT fisio/programas/{id}/itens/{item}',
         'DELETE fisio/programas/{id}/itens/{item}', 'POST fisio/programas/{id}/enviar',
         'GET fisio/biblioteca', 'POST fisio/biblioteca/exercicios',
+        'GET fisio/agenda', 'POST fisio/agenda/atendimentos', 'GET fisio/configuracoes/agendamento', 'GET fisio/p/{token}/agenda',
         'GET fisio/p/{token}', 'POST fisio/p/{token}/pin', 'POST fisio/p/{token}/consentimentos',
         'DELETE fisio/p/{token}/consentimentos/{purpose}', 'POST fisio/p/{token}/checkin',
     ] as $esperada) {
