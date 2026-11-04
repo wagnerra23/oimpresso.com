@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 5 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 103 |
-| UC com teste que os cita | 103 |
+| UC declarados | 106 |
+| UC com teste que os cita | 106 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -78,6 +78,9 @@ authority: generated
 | UC-FJG-07 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-08 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-09 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FLD-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FLD-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FLD-03 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPI-01 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-02 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-03 | Pacientes/Index | 🧪 aguarda veredito da lane |
