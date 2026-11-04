@@ -31,6 +31,7 @@ contains:
   - "PortalController — portal público do paciente: PIN com trava, consentimentos separados, lista do dia (US-FISIO-007a)"
   - "PortalLinkController — link do portal gerado e revogado na ficha (US-FISIO-007a)"
   - "EnvioWhatsappController — envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
+  - "Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app (fisio_appointment_types, fisio_appointments, fisio_schedule_blocks, fisio_waitlist, fisio_booking_settings — US-FISIO-013)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
