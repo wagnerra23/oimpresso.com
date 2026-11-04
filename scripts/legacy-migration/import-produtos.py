@@ -57,7 +57,25 @@ PRODUTO_COLS = [
     "CODIGO", "DESCRICAO", "UNIDADE", "CODPRODUTO_GRUPO", "VALOR",
     "VALOR_PRAZO", "CUSTO_LOJA", "CUSTO_FABR", "ESTOQUE", "ATIVO",
     "CODNF_NCM", "CODFABRICA",
+    # Sabor Brasil 2026-11-04: código de barras e CEST vão para a NF-e (UC-FNFE-61/62).
+    "CODIGOEAN", "CODNF_CEST",
 ]
+
+
+def gtin_valido(raw) -> str | None:
+    """GTIN-8/12/13/14 com dígito verificador certo; o resto (códigos internos de 16 caracteres
+    do Delphi, medidos no Sabor Brasil) não é código de barras e não vai para a nota."""
+    g = str(raw or "").strip()
+    if not g.isdigit() or len(g) not in (8, 12, 13, 14):
+        return None
+    soma = sum(int(d) * (3 if i % 2 == 0 else 1) for i, d in enumerate(reversed(g[:-1])))
+    return g if (10 - soma % 10) % 10 == int(g[-1]) else None
+
+
+def cest_valido(raw) -> str | None:
+    """NF_CEST.CODIGO é o próprio CEST (7 dígitos, Convênio ICMS 142/2018)."""
+    c = "".join(ch for ch in str(raw or "") if ch.isdigit())
+    return c if len(c) == 7 else None
 
 
 def get_existing_cols(con, table: str) -> set[str]:
@@ -112,6 +130,7 @@ def map_produto(prod: dict, business_id: int, unit_lookup: dict[str, int], defau
         "enable_stock": 1 if normalize_decimal(prod.get("ESTOQUE")) > 0 else 0,
         "alert_quantity": 0,
         "tax_type": "exclusive",
+        "cest": cest_valido(prod.get("CODNF_CEST")),
     }, valor  # retorna (data, valor) — valor usado pro variation default sell_price
 
 
@@ -147,7 +166,7 @@ def main() -> int:
     print(f"  Target MySQL     : {args.target}")
 
     stats = {"lidos": 0, "inserts": 0, "updates": 0, "skipped": 0, "errors": 0,
-             "variations_inserts": 0, "variations_existing": 0}
+             "variations_inserts": 0, "variations_existing": 0, "ean_validos": 0, "ean_aplicados": 0, "cest": 0}
 
     with firebird_connect(args.alias, password_override=args.firebird_password) as fb_con:
         cols_existentes = get_existing_cols(fb_con, "PRODUTO")
@@ -218,6 +237,11 @@ def main() -> int:
                     continue
 
                 data, valor = map_produto(prod, args.target_business, unit_lookup, default_unit)
+                # O código de barras do UltimatePOS é o sub_sku da variação (é por ele que o PDV
+                # lê o leitor e que a NF-e preenche o cEAN). Sem EAN válido fica o código Delphi.
+                ean = gtin_valido(prod.get("CODIGOEAN"))
+                stats["ean_validos"] += 1 if ean else 0
+                stats["cest"] += 1 if data.get("cest") else 0
 
                 if args.target == "dry-run":
                     stats["inserts"] += 1
@@ -235,6 +259,9 @@ def main() -> int:
                         product_id = int(existing["id"])
                         update_fields = {k: v for k, v in data.items()
                                           if k not in ("business_id", "sku", "type")}
+                        # CEST vazio no Delphi não apaga o que alguém cadastrou no oimpresso.
+                        if update_fields.get("cest") is None:
+                            update_fields.pop("cest", None)
                         set_clause = ", ".join(f"{k}=%s" for k in update_fields)
                         wcur.execute(
                             f"UPDATE products SET {set_clause}, updated_at=NOW() WHERE id=%s",
@@ -284,11 +311,20 @@ def main() -> int:
                             "default_purchase_price, dpp_inc_tax, profit_percent, "
                             "default_sell_price, sell_price_inc_tax, created_at, updated_at) "
                             "VALUES (%s, %s, 'DUMMY', %s, %s, %s, 0, %s, %s, NOW(), NOW())",
-                            (product_id, pv_id, data["sku"], 0, 0, valor, valor),
+                            (product_id, pv_id, ean or data["sku"], 0, 0, valor, valor),
                         )
                         stats["variations_inserts"] += 1
                     else:
                         stats["variations_existing"] += 1
+                        # Re-rodada: o código de barras só entra onde o sub_sku ainda é o código
+                        # Delphi (o que o importer gravou) — o que alguém mudou à mão fica.
+                        if ean:
+                            wcur.execute(
+                                "UPDATE variations SET sub_sku=%s, updated_at=NOW() "
+                                "WHERE id=%s AND sub_sku=%s",
+                                (ean, int(var_existing["id"]), data["sku"]),
+                            )
+                            stats["ean_aplicados"] += wcur.rowcount
 
                 batch_count += 1
                 if batch_count >= args.batch_size:
