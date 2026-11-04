@@ -22,6 +22,21 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property \Illuminate\Support\Carbon $starts_at
  * @property \Illuminate\Support\Carbon $ends_at
  * @property string $status
+ * @property bool $is_overbook
+ * @property string $source clinica | online | lista_espera
+ * @property ?\Illuminate\Support\Carbon $confirmed_at
+ * @property ?string $confirmation_channel
+ * @property ?\Illuminate\Support\Carbon $arrived_at
+ * @property ?\Illuminate\Support\Carbon $cancelled_at
+ * @property ?string $cancelled_by clinica | paciente
+ * @property ?string $cancel_reason
+ * @property bool $late_cancel
+ * @property ?int $rescheduled_from_id
+ * @property ?string $patient_note
+ * @property ?int $patient_rating
+ * @property ?int $record_id
+ * @property ?int $policy_version
+ * @property ?int $created_by
  */
 class Appointment extends Model
 {
