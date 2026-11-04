@@ -47,6 +47,13 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 | `fiscal-debitos-conhecidos.test.tsx` (novo) | `Fiscal Débitos Gate` (vitest/jsdom) | ❌ **não** — advisory |
 
 > Nenhum teste desta tela está na lane **required** (`PHP / Pest (NfeBrasil · MySQL)`). O ratchet-up é proposta ao [W] (SDD §8.3).
+>
+> **Atualização 2026-11-04 — a frase acima e a 1ª linha da tabela envelheceram.** Desde 2026-09-06 a
+> lane `PHP / Pest (NfeBrasil · MySQL)` executa `DfeControllerTest`, `AcoesDfeLoteTest` e
+> `AcoesDfeManifestacaoTest` (lista em [`nfebrasil-pest.yml`](../../../../.github/workflows/nfebrasil-pest.yml)),
+> e o `fiscal-dfe-prazo.test.tsx` roda no passo de vitest do job `Frontend / Vite build`
+> ([`ci.yml`](../../../../.github/workflows/ci.yml)). Se cada um bloqueia o merge, quem diz é o
+> [baseline](../../../../governance/required-checks-baseline.json), não este arquivo.
 
 ## Rastreabilidade
 
@@ -67,6 +74,9 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 | UC-FDFE-08 | isolamento **da ação**, não só da lista | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeManifestacaoTest` | 🧪 |
 | UC-FDFE-09 | falha parcial do lote é **nomeada** | `[must]` | CU-FISC-07 | `AcoesDfeLoteTest` | 🧪 |
 | UC-FDFE-10 | isolamento dentro do lote | `[must]` `[T0]` | CU-FISC-12 | `AcoesDfeLoteTest` | 🧪 |
+| UC-FDFE-14 | o prazo vem da SEFAZ e tem três níveis | `[must]` | CU-FISC-07 | `DfeControllerTest` · `fiscal-dfe-prazo.test.tsx` | 🧪 |
+| UC-FDFE-15 | cada chip devolve só o seu estado | `[must]` | CU-FISC-07 | `DfeControllerTest` | 🧪 |
+| UC-FDFE-16 | a busca acha por chave, CNPJ e nome | `[must]` | CU-FISC-07 | `DfeControllerTest` | 🧪 |
 
 ---
 
@@ -238,15 +248,48 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 - **Âncora:** R-NFE-042. Origem: 69 falhas seguidas em `failed_jobs` desde 2026-07-03 sem ninguém ver.
 - **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-13 · …` · **Status:** 🧪 verde no CT 100 em 2026-10-26.
 
+## UC-FDFE-14 — O prazo vem do que a SEFAZ calculou, em três níveis de urgência `[must]`
+
+**Dado** uma nota recebida com `prazo_confirmacao_em` gravado **Quando** a contadora lê a linha
+**Então** vê quantos dias restam até essa data, pintados como crítico (menos de 7), atenção (menos
+de 30) ou tranquilo; prazo esgotado aparece como "vencido"; nota sem prazo gravado não ganha pílula.
+
+- **Âncora:** charter §Goals 4 e §Anti-hooks (*"Prazo 90d hard-coded — fonte de verdade é
+  `prazo_confirmacao_em`"*) · CU-FISC-07.
+- **Teste:** duas metades, porque a regra mora em dois lugares.
+  `DfeControllerTest` — `UC-FDFE-14 · prazoDias sai do prazo_confirmacao_em…`: duas notas com a
+  mesma emissão e prazos de 5 e 45 dias voltam com 5 e 45 (com 90 dias fixos voltariam iguais).
+  `fiscal-dfe-prazo.test.tsx` — monta a tela com uma linha em cada borda (6|7 e 29|30) e lê a
+  classe que o CSS consome. Mordida provada em 2026-11-04: trocar `< 7` por `<= 7` no `Dfe.tsx`
+  derruba 1 de 4 casos, exatamente o da borda de 7.
+- **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-FDFE-15 — Cada chip devolve só o seu estado `[must]`
+
+**Dado** uma nota em cada estado de manifestação **Quando** a contadora escolhe um chip **Então**
+"pendentes" traz a pendente e a que só teve ciência, "confirmadas", "desconhecidas" e "não
+realizadas" trazem só a sua, e "todas" traz as cinco.
+
+- **Âncora:** charter §Goals 2 · CU-FISC-07 (o que conta como pendente, mesmo critério do UC-FDFE-02).
+- **Teste:** `DfeControllerTest` — `UC-FDFE-15 · cada chip devolve só o seu estado…`.
+- **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-FDFE-16 — A busca acha por chave, por CNPJ com pontuação e pelo nome do emitente `[must]`
+
+**Dado** duas notas de emitentes diferentes **Quando** a contadora busca por um trecho da chave,
+pelo CNPJ digitado com pontos e barra, ou pelo nome do emitente **Então** volta só a nota que
+corresponde — buscar pelo nome de um emitente não traz a nota do outro.
+
+- **Âncora:** charter §Goals 3 (*"Busca por chave 44d + CNPJ + nome emitente"*) · CU-FISC-07.
+- **Teste:** `DfeControllerTest` — `UC-FDFE-16 · a busca acha pela chave, pelo CNPJ…`.
+- **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · 🧪 em revisão] Nenhuma manifestação chegava à SEFAZ, por nenhum caminho** — `ManifestacaoService::buildConfig()` e `DistribuicaoDfeService::buildConfig()` fazem `select(['name','tax_number_1','state'])` em `business`. A coluna `state` **não existe**: 133 colunas no schema canônico (`database/schema/mysql-schema.sql`), 133 no staging CT 100 e 133 em produção Hostinger, sem `state` nos três — e nenhuma das 43 migrations que tocam `business` a cria. Toda manifestação morre em `SQLSTATE[42S22] Unknown column 'state'`, incluindo o `ManifestacaoController::bulkConfirmar` do próprio NfeBrasil. Os dois sites já carregam `?? 'SP'`, e o docblock diz *"UF default 35 (SP) — manifestação é nacional, mas Tools exige cUF"* — o default parece ter sido sempre a intenção, e a coluna no `select` o acidente. **Era motor fiscal, e a decisão [W] veio em 2026-09-04:** consertar pelo `resolverUF` canônico. Feito no PR [#6748](https://github.com/wagnerra23/oimpresso.com/pull/6748), nos **dois** sites (a lápide §5 2026-08-02 é explícita sobre corrigir só um de N) — e ali apareceram mais **dois** defeitos empilhados atrás deste. O #6748 **mergeou em 2026-09-04 13:59** — o item fica aqui até esta tela ganhar um UC que prove a manifestação ponta-a-ponta, que é o que falta para ele sair de vez.
 
-- **[BACKLOG · ⬜ sem teste] O prazo aparece com três níveis de urgência, vindo do prazo que a SEFAZ calculou** — Dado uma nota recebida com prazo definido · Quando a contadora lê a linha · Então vê quantos dias restam, sinalizado como crítico, atenção ou tranquilo. _O charter é explícito: a fonte de verdade é o prazo gravado pela SEFAZ, **não** um "90 dias" fixo no código. O cálculo existe; nenhum teste valida os níveis._
-- **[BACKLOG · ⬜ sem teste] Os chips filtram por estado de manifestação** — pendentes (pendente + ciência), confirmadas, desconhecidas, não realizadas, todas. _Existe no Controller; sem teste do resultado._
-- **[BACKLOG · ⬜ sem teste] A busca aceita chave, CNPJ do emitente e nome do emitente** — inclusive digitando o CNPJ com pontuação. _Sem teste do resultado._
 - **[BACKLOG · ⬜ sem teste · decisão [W]] A aba Histórico mostra manifestações reais** — hoje ela é servida por **dado de demonstração** com ator e observação inventados (`CU-FISC-16` do SDD §6.5 · §5.4.1). A consulta real está declarada como pendência no próprio código. **Precisa de decisão [W]** sobre marcar procedência, esconder atrás de flag ou declarar Non-Goal.
 
 ## Como rodar a suíte
@@ -265,3 +308,4 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 - 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **5 UC** derivados do §6 do SDD; 4 herdam testes existentes, 1 nasce com teste novo. Nota de escopo mantida: os testes de ação provam **contrato de entrada** (whitelist, regra de justificativa), não a persistência ponta-a-ponta.
 - 2026-09-04 · [C] **+4 UC (07..10), os primeiros verdes desta tela** — os ids nasceram 06..09 e desceram na renumeração, quando o #6739 ocupou o 06 primeiro. O botão "Manifestar selecionadas" do header — `disabled`, com o title "Bulk manifestar (PR seguinte)" — saiu: o lote agora existe e mora onde a fonte o desenha (barra `fx-bulk` na seleção). A "nota de escopo" de 2026-07-27 delimitava exatamente o buraco por onde passou um defeito de produção: as 4 ações não manifestavam nada (`TypeError` engolido pelo `catch`). Fechado no adaptador, com bite-test. Descoberto no caminho, e **não** consertado por ser motor fiscal: `business.state` não existe em lugar nenhum — está no backlog acima como decisão [W].
+- 2026-11-04 · [C] **+3 UC (14..16)**, os três bullets `[BACKLOG · ⬜ sem teste]` de prazo, chips e busca. Os ids 11..13 já eram da busca de DF-e por CNPJ (`DfeCnpjEAlarmeTest`). O prazo tem teste nas duas metades: o servidor devolve os dias até `prazo_confirmacao_em`, e a tela pinta o nível (render com as bordas 6/7 e 29/30, mordida provada).
