@@ -18,6 +18,7 @@
     "Essentials/Todo/Index",
     "Financeiro/Cobranca/Index",
     "Financeiro/Conciliacao/Index",
+    "Financeiro/ContasBancarias/Index",
     "Financeiro/Dre/Index",
     "Financeiro/Fluxo/Index",
     "Financeiro/Impostos/Index",
@@ -266,11 +267,31 @@
       ]
     },
     {
+      "tela": "Financeiro/Contabilidade",
+      "arquivo": "resources/js/Pages/Financeiro/Contabilidade.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/financeiro-contabil-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Financeiro/Despesas/Index",
       "arquivo": "resources/js/Pages/Financeiro/Despesas/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/financeiro-legado.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fiscal/Das",
+      "arquivo": "resources/js/Pages/Fiscal/Das.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/fiscal-das-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -1076,6 +1097,16 @@
       ]
     },
     {
+      "tela": "superadmin/Pagar/Index",
+      "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Pagar/Index.tsx",
+      "modulo": "Superadmin",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/superadmin-pagar-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Woocommerce/Configuracao/Index",
       "arquivo": "Modules/Woocommerce/Resources/js/Pages/Woocommerce/Configuracao/Index.tsx",
       "modulo": "Woocommerce",
@@ -1106,5 +1137,5 @@
       ]
     }
   ],
-  "total": 194
+  "total": 198
 }
