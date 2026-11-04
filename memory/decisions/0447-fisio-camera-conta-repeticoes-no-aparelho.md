@@ -3,12 +3,13 @@ slug: 0447-fisio-camera-conta-repeticoes-no-aparelho
 number: 447
 title: "Fisio: a câmera conta repetições, ritmo e tempo parado no celular do paciente, sem medir ângulo e sem enviar imagem; lançamento depende da consulta de enquadramento à Anvisa"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
 decided_by: [W]
 decided_at: "2026-11-04"
+accepted_via: "Wagner 2026-11-04, textual: 'Aceito a B'. O aceite cobre a opção B e a decisão abaixo; ligar a flag para paciente segue dependendo da resposta da Anvisa e da validação por exercício."
 module: fisio
 quarter: 2026-Q4
 tags: [fisio, camera, anvisa, samd, lgpd, dado-sensivel, mediapipe, dependencia-nova, f2]
@@ -26,7 +27,7 @@ review_triggers:
 
 # ADR 0447 · Fisio: câmera que conta repetições no aparelho
 
-> **Status `proposto`.** Nada aqui vale até [W] aceitar. Número 0447: o `next-id.mjs adr` deu 0446 em 2026-11-04, mas a ADR do Lote 6 da Fisio (teleconsulta e ditado, #10326) ficou com 0446, combinado entre as sessões.
+> **Status `aceito`** por [W] em 2026-11-04 (ver `accepted_via`): opção B. Número 0447: o `next-id.mjs adr` deu 0446 em 2026-11-04, mas a ADR do Lote 6 da Fisio (teleconsulta e ditado, #10326) ficou com 0446, combinado entre as sessões.
 > **Esta ADR não repete a especificação.** O dono técnico do tema é [`memory/requisitos/Fisio/etapas/03-f2-camera.md`](../requisitos/Fisio/etapas/03-f2-camera.md) (pesquisa de 2026-10-17: pilha, algoritmo, enquadramento, nota da série, privacidade, dados, tarefas C-00 a C-16). Esta ADR decide o que lá ficou para decisão: se a F2 entra, com qual dependência, sob que linha regulatória e em que ordem.
 
 ## Contexto
@@ -111,7 +112,7 @@ A etapa (§3.1) já mediu e decidiu a pilha; esta ADR só formaliza a dependênc
 | **C · notificar classe II já** | dossiê, IEC 62304, ISO 14971, IEC 62366-1, análise clínica, AFE | libera ângulo, correção e a tela `PacienteCameraClasse2` | 9 a 15 meses e custo alto (estimativa na etapa §5.3, sem orçamento); trava o ritmo de entrega; a 0437 §14 nº 7 já recomendou decidir só depois do piloto |
 | **D · serviço de visão na nuvem ou SDK de terceiro** | mandar vídeo a um servidor que conta | celular fraco não importa | quebra a promessa "o vídeo não sai do celular", vira transferência de dado sensível, CSP impossível; recusada |
 
-## Decisão (proposta)
+## Decisão
 
 **Opção B.**
 
@@ -125,7 +126,7 @@ A etapa (§3.1) já mediu e decidiu a pilha; esta ADR só formaliza a dependênc
 
 ## PRs que sairiam desta ADR (estimativa: 4)
 
-Cada um depois do aceite; a C-00 (consulta) e a C-14 (voluntários) não são código e correm por fora.
+Cada um a partir deste aceite; a C-00 (consulta) e a C-14 (voluntários) não são código e correm por fora.
 
 | PR | conteúdo | tarefas da etapa | bloqueio |
 |---|---|---|---|
