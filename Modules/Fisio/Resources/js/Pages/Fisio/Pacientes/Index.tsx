@@ -155,10 +155,10 @@ function NovoPaciente({ condicoes, onClose }: { condicoes: string[]; onClose: ()
   );
 }
 
-// Bloco numerado do cadastro (canvas Prescreve Pro · PacienteNovo): 12px/600 caixa-alta, borda r12, 16px.
+// Bloco numerado do cadastro (canvas Prescreve Pro · PacienteNovo): 12px/600 caixa-alta, borda r12 (rounded-lg = 12px no DS), 16px.
 function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <section className="mx-4 flex flex-col gap-3 rounded-xl border border-border p-4">
+    <section className="mx-4 flex flex-col gap-3 rounded-lg border border-border p-4">
       <h3 className="text-xs font-semibold uppercase tracking-[0.04em] text-muted-foreground">{titulo}</h3>
       {children}
     </section>
