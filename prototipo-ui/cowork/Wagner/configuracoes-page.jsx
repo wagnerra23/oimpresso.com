@@ -213,20 +213,15 @@ const APP_LOJAS = [
   ["biometria", "Entrar no app com biometria", "Desligado, a opção some em Conta. O ponto nunca usa biometria."],
 ];
 
-// ModuleUtil::availableModules() oferece 14 chaves: purchases · add_sale · pos_sale (PDV) ·
-// stock_transfers · stock_adjustment · expenses · account (Conta bancária) · tables (Mesas) ·
-// modifiers · service_staff (Atendentes) · booking (Agenda / reservas) · kitchen (Cozinha) ·
-// subscription (Cobrança recorrente — liga a fatura recorrente) · types_of_service.
-// Estoque, Tabela de preços, Kit de produtos, Fabricação, Pontos de fidelidade e Balança não
-// são chave de módulo no servidor — decisão [W] pendente (tirar daqui ou virar módulo).
+// Os 14 módulos de ModuleUtil::availableModules(), na mesma ordem. Rótulo = lang_v1.modulo_* quando
+// a tradução geral tem outro uso (PDV, Transferência de estoque, Conta bancária, Atendentes,
+// Agenda / reservas, Cozinha, Cobrança recorrente). [rótulo, ligado, preso ao pacote Profissional]
 const MODULOS = [
-  ["Compras", true, false], ["Adicionar venda", true, false], ["PDV", true, false], ["Estoque", true, false],
-  ["Ajuste de estoque", true, false], ["Transferência de estoque", true, false], ["Despesas", true, false],
-  ["Conta bancária", true, false], ["Tabela de preços", true, false], ["Kit de produtos", true, false],
-  ["Fabricação", true, true], ["Tipos de serviço", true, false],
-  ["Mesas", false, false], ["Modificadores", false, true], ["Atendentes", false, false], ["Cozinha", false, false],
-  ["Cobrança recorrente", true, true],
-  ["Agenda / reservas", false, true], ["Pontos de fidelidade", false, false], ["Balança", false, false],
+  ["Compras", true, false], ["Adicionar venda", true, false], ["PDV", true, false],
+  ["Transferência de estoque", true, false], ["Ajuste de estoque", true, false], ["Despesas", true, false],
+  ["Conta bancária", true, false], ["Mesas", false, false], ["Modificadores", false, true],
+  ["Atendentes", false, false], ["Agenda / reservas", false, true], ["Cozinha", false, false],
+  ["Cobrança recorrente", true, true], ["Tipos de serviço", true, false],
 ];
 
 function Rotulos({ f, set, travado }) {
