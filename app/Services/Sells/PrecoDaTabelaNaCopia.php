@@ -56,7 +56,7 @@ final class PrecoDaTabelaNaCopia
             });
             $grupo = 'COALESCE(spg_cli.id, cg.selling_price_group_id)';
         }
-        $id = $q->value(DB::raw($grupo.' as tabela'));
+        $id = $q->selectRaw($grupo.' as tabela')->value('tabela');
         if (! $id) {
             return null;
         }
@@ -88,6 +88,7 @@ final class PrecoDaTabelaNaCopia
             if (! empty($linha->parent_sell_line_id) || ($linha->children_type ?? '') === 'combo') {
                 continue; // combo e modificador seguem a linha mãe como estavam
             }
+            /** @var array{price_inc_tax: mixed, price_exc_tax: mixed} $preco */
             $preco = $this->productUtil->getVariationGroupPrice((int) $linha->variation_id, $tabela, $linha->tax_id);
             if ($preco['price_inc_tax'] === '' || $preco['price_inc_tax'] === null) {
                 continue; // regra 3
