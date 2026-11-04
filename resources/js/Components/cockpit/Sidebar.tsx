@@ -293,10 +293,12 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[]; ordem
     // NÃO precisa voltar pra cá: o DataController declara `group => 'sistema'`,
     // que `findGroupKey` resolve no passo 1. Esta lista é só o fallback por label
     // pra módulo que não declara `group`.
-    // [W] 2026-11-04: Configurações veio do menu do avatar (rodapé) pra cá —
-    // "ficou muito escondido". O item é o dropdown core do AdminSidebarMenu
-    // (`__('business.settings')`), que não declara `group`; cai aqui pelo label.
+    // [W] 2026-11-04: Configurações e Gerenciamento de usuários vieram do menu do
+    // avatar (rodapé) pra cá — "ficou muito escondido". São dropdowns core do
+    // AdminSidebarMenu (`business.settings`, `user.user_management`), que não
+    // declaram `group`; caem aqui pelo label.
     items: ['Configurações', 'Settings',
+            'Gerenciamento de usuários', 'Gerenciamento de usuario', 'User Management',
             'Plataforma', 'Auditoria',
             'Modelos de notificação', 'Modelo de notificação',
             'Relatórios', 'Dashboard',

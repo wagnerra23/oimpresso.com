@@ -1,5 +1,5 @@
 /**
- * Sidebar — Configurações no grupo SISTEMA.
+ * Sidebar — Configurações e Gerenciamento de usuários no grupo SISTEMA.
  *
  * [W] 2026-11-04: "o configurações [...] ficou muito escondido" no menu do avatar
  * (rodapé) — "ir para coluna do Sistema". O item vem do dropdown core do
@@ -52,9 +52,9 @@ describe('Sidebar · Configurações em SISTEMA', () => {
     expect(isUserMenuItem('Settings')).toBe(false);
   });
 
-  it('Gerenciamento de usuários segue no rodapé, fora do corpo', () => {
-    expect(isUserMenuItem('Gerenciamento de usuários')).toBe(true);
+  it('Gerenciamento de usuários também fica em SISTEMA, fora do rodapé', () => {
+    expect(isUserMenuItem('Gerenciamento de usuários')).toBe(false);
     render(<SidebarMenu items={MENU} />);
-    expect(grupoDe('Gerenciamento de usuários')).toBeNull();
+    expect(grupoDe('Gerenciamento de usuários')).toBe('SISTEMA');
   });
 });
