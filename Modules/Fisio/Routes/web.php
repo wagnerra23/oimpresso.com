@@ -106,6 +106,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('programas/{id}/salvar-como-protocolo', [ProtocolosController::class, 'salvarDoPrograma'])->whereNumber('id')->name('programas.salvar-protocolo');
 
         // Protocolos-modelo: copiar um modelo (global ou da clínica) e editar a cópia da clínica.
+        // Tela dos protocolos (leitura: fisio.access). Lista os modelos do produto e os da clínica da sessão.
+        Route::get('protocolos', [ProtocolosController::class, 'index'])->name('protocolos.index');
         Route::post('protocolos/{id}/copiar', [ProtocolosController::class, 'copiar'])->whereNumber('id')->name('protocolos.copiar');
         Route::put('protocolos/{id}', [ProtocolosController::class, 'update'])->whereNumber('id')->name('protocolos.update');
     });
