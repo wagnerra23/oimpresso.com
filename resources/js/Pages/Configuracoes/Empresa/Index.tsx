@@ -24,7 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Info } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
-import { Checkbox } from '@/Components/ui/checkbox';
+import { Switch } from '@/Components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader } from '@/Components/PageHeader';
 import { Grid, Inline, Stack } from '@/Components/layout';
@@ -168,12 +168,13 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
     });
   };
 
+  // Campo do protótipo (Campo/Sel → .cms-field): rótulo pequeno em cima, controle, ajuda embaixo.
   const rotulado = (id: string, rotulo: string, controle: ReactNode, ajuda?: string) => (
-    <Stack key={id} gap={1}>
+    <div key={id} className="cms-field">
       <label htmlFor={id}>{rotulo}</label>
       {controle}
-      {ajuda && <span className="text-xs text-muted-foreground">{ajuda}</span>}
-    </Stack>
+      {ajuda && <small>{ajuda}</small>}
+    </div>
   );
   const campo = (k: string, rotulo: string, extra?: { ajuda?: string; tipo?: string }) =>
     rotulado(`emp-${k}`, rotulo, <Input id={`emp-${k}`} type={extra?.tipo ?? 'text'} value={texto(k)} onChange={(e) => muda(k, e.target.value)} />, extra?.ajuda);
@@ -187,11 +188,14 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
         </SelectContent>
       </Select>
     ));
+  // Liga/desliga do protótipo (Liga → .pf-liga com o Switch do DS): interruptor à esquerda, título e ajuda à direita.
   const liga = (id: string, rotulo: string, marcado: boolean, onMuda: (v: boolean) => void, ajuda?: string) => (
-    <Inline key={id} gap={2}>
-      <Checkbox id={id} checked={marcado} onCheckedChange={(v) => onMuda(v === true)} />
-      <label htmlFor={id}>{rotulo}{ajuda && <span className="text-muted-foreground"> — {ajuda}</span>}</label>
-    </Inline>
+    <div key={id} className="pf-liga pf-liga-ds">
+      <label htmlFor={id} className="cfg-liga">
+        <Switch id={id} variant="cowork" checked={marcado} onCheckedChange={onMuda} />
+        <span className="cfg-liga-t"><b>{rotulo}</b>{ajuda && <small>{ajuda.charAt(0).toUpperCase() + ajuda.slice(1)}</small>}</span>
+      </label>
+    </div>
   );
   const ligaCampo = (k: string, rotulo: string, ajuda?: string) => liga(`emp-${k}`, rotulo, !!corpo[k], (v) => muda(k, v), ajuda);
   // Pesquisa depois da entrega (US-SELL-071): objeto `common_settings.sells_pesquisa_entrega` {ativo, nota_baixa}, lido
@@ -283,7 +287,8 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
   // US-FIN-033: `dias_antes` (aviso antes do vencimento) nasce vazio — sem ele, nenhum aviso sai antes.
   const reguaDiasAntes = Array.isArray(regua.dias_antes) ? regua.dias_antes.join(', ') : regua.dias_antes == null ? '' : String(regua.dias_antes);
   const mudaRegua = (k: string, v: Valor) => mudaComum('financeiro_regua_cobranca', { ativo: reguaAtiva ? '1' : '0', dias: reguaDias, dias_antes: reguaDiasAntes, [k]: v });
-  const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
+  // Título de bloco do protótipo (Bloco → .cfg-bloco>h3): o estilo vem do bundle.
+  const titulo = (t: string) => <h3>{t}</h3>;
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
 
   return (
@@ -337,7 +342,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     {escolha('currency_precision', 'Casas decimais do valor', PRECISOES)}
                     {escolha('quantity_precision', 'Casas decimais da quantidade', PRECISOES)}
                   </Grid>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('Logo do negócio')}
                     <Inline gap={3}>
                       {logo && <img src={logo} alt="Logo atual" className="h-12 w-auto rounded-md border" />}
@@ -345,7 +350,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                         onChange={(e) => { setArquivo(e.target.files?.[0] ?? null); setSujo(true); }} />
                     </Inline>
                   </Stack>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('Códigos da empresa na nota')}
                     <Grid cols={2} gap={3}>
                       {campo('code_label_1', 'Nome do código 1')}
@@ -385,7 +390,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                       {texto('on_product_expiry') === 'stop_selling' && campo('stop_selling_before', 'Parar quantos dias antes', { tipo: 'number' })}
                     </Grid>
                   )}
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('O que o cadastro de produto mostra')}
                     {ligaCampo('enable_brand', 'Marca')}
                     {ligaCampo('enable_category', 'Categoria')}
@@ -418,7 +423,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     {ligaPos('enable_sales_order', 'Pedido de venda')}
                     {ligaPos('is_pay_term_required', 'Prazo de pagamento obrigatório')}
                   </Stack>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('Comissão')}
                     <Grid cols={2} gap={3}>
                       {escolha('sales_cmsn_agnt', 'Quem recebe comissão', opcoes?.comissao, 'Desativado')}
@@ -426,7 +431,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     </Grid>
                     {ligaPos('is_commission_agent_required', 'Comissionado obrigatório na venda')}
                   </Stack>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('Pesquisa de satisfação')}
                     {liga('emp-cs-pesquisa-ativo', 'Enviar pesquisa 2 dias depois da entrega', !!pesquisa.ativo, (v) => mudaPesquisa('ativo', v ? '1' : null),
                       'nota baixa abre um atendimento no CRM para o vendedor.')}
@@ -441,7 +446,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                       ), 'Escala de 1 a 5.')}
                     </Grid>
                   </Stack>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('Link de pagamento')}
                     {ligaPos('enable_payment_link', 'Enviar link de pagamento')}
                     <Grid cols={2} gap={3}>
@@ -456,11 +461,11 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
 
               {aba === 'pdv' && (
                 <>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('O que o caixa mostra')}
                     {PDV_LIGA.map(([k, l]) => ligaPos(k, l))}
                   </Stack>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('Atalhos de teclado')}
                     <span className="text-xs text-muted-foreground">Ex.: ctrl+shift+b, ctrl+h. Em branco = sem atalho.</span>
                     <Grid cols={2} gap={3}>
@@ -468,7 +473,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                         <Input id={`emp-atalho-${k}`} value={atalhos[k] == null ? '' : String(atalhos[k])} onChange={(e) => mudaAtalho(k, e.target.value)} />))}
                     </Grid>
                   </Stack>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('Balança de código de barras')}
                     <Grid cols={2} gap={3}>
                       {rotulado('emp-balanca-label_prefix', 'Prefixo da etiqueta',
@@ -494,7 +499,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     {ligaComum('enable_purchase_order', 'Pedido de compra')}
                     {ligaComum('enable_purchase_requisition', 'Requisição de compra')}
                   </Stack>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('Moeda do fornecedor')}
                     {ligaCampo('purchase_in_diff_currency', 'Comprar em outra moeda')}
                     {!!corpo.purchase_in_diff_currency && (
@@ -585,14 +590,14 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                         {campoObj('sms_settings', 'send_to_param_name', 'Parâmetro do destinatário')}
                         {campoObj('sms_settings', 'msg_param_name', 'Parâmetro da mensagem')}
                       </Grid>
-                      <Stack gap={2}>
+                      <Stack gap={2} className="cfg-bloco">
                         {titulo('Cabeçalhos')}
                         <Grid cols={2} gap={3}>
                           {[1, 2, 3].flatMap((i) => [campoObj('sms_settings', `header_${i}`, `Cabeçalho ${i}`),
                             segredoObj('sms_settings', 'sms', `header_val_${i}`, `Valor do cabeçalho ${i}`)])}
                         </Grid>
                       </Stack>
-                      <Stack gap={2}>
+                      <Stack gap={2} className="cfg-bloco">
                         {titulo('Parâmetros')}
                         <Grid cols={2} gap={3}>
                           {Array.from({ length: 10 }, (_, j) => j + 1).flatMap((i) => [campoObj('sms_settings', `param_${i}`, `Parâmetro ${i}`),
@@ -608,13 +613,13 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
               {aba === 'rotulos' && (
                 <>
                   {ROTULOS.map(([g, t, n, prefixo, flags]) => (
-                    <Stack key={g} gap={2}>
-                      <Inline gap={2}>
-                        {titulo(t)}
+                    <Stack key={g} gap={2} className="cfg-bloco">
+                      <h3>
+                        {t}
                         {g === 'product' && (
-                          <Button variant="ghost" size="sm" onClick={() => setTodosProduto((v) => !v)}>{todosProduto ? 'Mostrar 4' : `Mostrar os ${n}`}</Button>
+                          <button type="button" className="cfg-mini-link" onClick={() => setTodosProduto((v) => !v)}>{todosProduto ? 'mostrar 4' : `mostrar todos os ${n}`}</button>
                         )}
-                      </Inline>
+                      </h3>
                       <Grid cols={2} gap={3}>
                         {Array.from({ length: g === 'product' && !todosProduto ? 4 : n }, (_, j) => j + 1).map((i) => {
                           const k = `${prefixo}${i}`;
@@ -656,7 +661,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                   {!!corpo.enable_rp && (
                     <>
                       <Grid cols={2} gap={3}>{campo('rp_name', 'Nome dos pontos', { ajuda: 'Como o cliente vê, ex.: Pontos.' })}</Grid>
-                      <Stack gap={2}>
+                      <Stack gap={2} className="cfg-bloco">
                         {titulo('Ganhar pontos')}
                         <Grid cols={2} gap={3}>
                           {campo('amount_for_unit_rp', 'Valor da venda para 1 ponto', { ajuda: 'Ex.: 1,00 = cada 1,00 vendido rende 1 ponto.' })}
@@ -664,7 +669,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                           {campo('max_rp_per_order', 'Máximo de pontos por venda', { tipo: 'number' })}
                         </Grid>
                       </Stack>
-                      <Stack gap={2}>
+                      <Stack gap={2} className="cfg-bloco">
                         {titulo('Resgatar pontos')}
                         <Grid cols={2} gap={3}>
                           {campo('redeem_amount_per_unit_rp', 'Valor de 1 ponto no resgate')}
@@ -695,7 +700,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     {campoPos('cash_denominations', 'Cédulas e moedas', 'Separadas por vírgula, ex.: 200,100,50,20,10,5,2.')}
                     {escolhaPos('enable_cash_denomination_on', 'Contar cédulas', CEDULAS_EM)}
                   </Grid>
-                  <Stack gap={2}>
+                  <Stack gap={2} className="cfg-bloco">
                     {titulo('Formas de pagamento com contagem')}
                     {Object.entries(opcoes?.pagamentos ?? {}).map(([k, l]) => liga(`emp-cedula-${k}`, l, metodosCedula.includes(k),
                       (v) => mudaPos('enable_cash_denomination_for_payment_methods', v ? [...metodosCedula, k] : metodosCedula.filter((x) => x !== k))))}
