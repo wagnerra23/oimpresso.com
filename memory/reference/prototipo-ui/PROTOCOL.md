@@ -18,6 +18,18 @@
 > antigo do Cowork fazia) e grava `fonte.json` com o commit de origem. Rode com a árvore commitada (o
 > script sai 3 se houver alteração pendente em `prototipo-ui/`) e publique a pasta inteira na URL
 > registrada em [`VISTAS-PUBLICADAS.md`](../VISTAS-PUBLICADAS.md) §protótipo. Nunca edite a página publicada.
+>
+> **Como uma tela do protótipo SEMPRE abre para revisão** ([F] 2026-11-04, cadastro de produto, PR #10362):
+> como se já estivesse em produção. Ou seja, a página inteira gerada por este build, aberta na rota da
+> tela (`--rota-inicial <rota>`), ocupando a largura da janela de quem revisa, com o menu lateral, os
+> campos interativos e o tema trocável, para ver se algum campo ou elemento quebra ao
+> redimensionar. **Não** serve como vista de revisão: captura estática (PNG) de largura fixa, quadro
+> num canvas de Design, ou montagem à mão da tela fora do shell — foram tentadas nesta ordem no mesmo
+> dia e recusadas por [F] ("Assim fica muito ruim", "Você não colocou o menu", "Quero que fique no
+> tamanho da tela"). Selos de revisão que existam só para o [W] (ex.: `.pb-novo`) ficam no repositório
+> e saem apenas da cópia publicada. Antes de publicar, medir em 3 larguras (incluindo 1280, onde o
+> menu recolhe para ícones, como no vivo) que nada vaza da tela e nenhum rótulo corta. Registrar a
+> página em `VISTAS-PUBLICADAS.md` §protótipo.
 
 ## 0. Mapa de vigência (v2 — leia isto primeiro)
 
