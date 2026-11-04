@@ -22,6 +22,12 @@ const dia = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('pt-BR',
 
 export interface PontoDor { date: string; pain: number }
 
+// Caixa de número do canvas Prescreve Pro (Evolucao.dc.html): rótulo 12px/600 caixa-alta,
+// valor 24px/400 mono, borda r12 e padding 14.
+const CAIXA = 'rounded-xl border border-border p-3.5';
+const ROTULO = 'text-xs font-semibold uppercase tracking-[0.04em] text-muted-foreground';
+const VALOR = 'mt-1 font-mono text-2xl font-normal tabular-nums';
+
 export default function EvolucaoPaciente({ evolucao, serieDor }: { evolucao: Evolucao; serieDor: PontoDor[] }) {
   const comDor = serieDor;
   const diasFeitos = evolucao.pontos.filter((p) => p.feitos > 0).length;
@@ -40,17 +46,17 @@ export default function EvolucaoPaciente({ evolucao, serieDor }: { evolucao: Evo
   return (
     <div className="flex flex-col gap-4" data-contract="fisio-evolucao">
       <dl className="grid grid-cols-3 gap-3 text-sm">
-        <div>
-          <dt className="text-xs text-muted-foreground">Adesão 7 dias</dt>
-          <dd className="text-lg font-semibold tabular-nums">{evolucao.adesao_7d === null ? '—' : `${evolucao.adesao_7d}%`}</dd>
+        <div className={CAIXA}>
+          <dt className={ROTULO}>Adesão 7 dias</dt>
+          <dd className={VALOR}>{evolucao.adesao_7d === null ? '—' : `${evolucao.adesao_7d}%`}</dd>
         </div>
-        <div>
-          <dt className="text-xs text-muted-foreground">Dias com exercício ({evolucao.dias}d)</dt>
-          <dd className="text-lg font-semibold tabular-nums">{diasFeitos}</dd>
+        <div className={CAIXA}>
+          <dt className={ROTULO}>Dias com exercício ({evolucao.dias}d)</dt>
+          <dd className={VALOR}>{diasFeitos}</dd>
         </div>
-        <div>
-          <dt className="text-xs text-muted-foreground">Meta semanal</dt>
-          <dd className="text-lg font-semibold tabular-nums">{evolucao.sessions_per_week}×</dd>
+        <div className={CAIXA}>
+          <dt className={ROTULO}>Meta semanal</dt>
+          <dd className={VALOR}>{evolucao.sessions_per_week}×</dd>
         </div>
       </dl>
 
