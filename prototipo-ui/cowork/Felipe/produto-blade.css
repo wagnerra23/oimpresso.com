@@ -286,3 +286,6 @@
 .pb-sep{ display:block; font-size:11px; color:var(--text-mute); }
 .pb-sep > span{ display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .pb-sep.neg{ color:var(--neg); font-weight:600; }
+
+/* CV2 · UC-PIDX-39: saldo em embalagens inteiras (rolos), abaixo do saldo. */
+.pb-emb{ display:block; font-size:11px; color:var(--text-mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
