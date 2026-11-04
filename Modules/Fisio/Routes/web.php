@@ -2,6 +2,7 @@
 
 use Modules\Fisio\Http\Controllers\AgendaController;
 use Modules\Fisio\Http\Controllers\BibliotecaController;
+use Modules\Fisio\Http\Controllers\ConfigAgendamentoController;
 use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
@@ -61,6 +62,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::delete('agenda/bloqueios/{id}', [AgendaController::class, 'desbloquearHorario'])->whereNumber('id')->name('agenda.bloqueios.destroy');
         Route::post('agenda/espera', [AgendaController::class, 'entrarNaEspera'])->name('agenda.espera.store');
         Route::delete('agenda/espera/{id}', [AgendaController::class, 'sairDaEspera'])->whereNumber('id')->name('agenda.espera.destroy');
+        // Configurações › Agendamento pelo app (US-FISIO-015). Salvar exige `fisio.editar` (no controller).
+        Route::get('configuracoes/agendamento', [ConfigAgendamentoController::class, 'index'])->name('configuracoes.agendamento');
+        Route::put('configuracoes/agendamento', [ConfigAgendamentoController::class, 'update'])->name('configuracoes.agendamento.update');
         Route::post('pacientes/{id}/liberar-agendamento', [AgendaController::class, 'liberarApp'])->whereNumber('id')->name('pacientes.liberar-agendamento');
 
         // Biblioteca de exercícios (US-FISIO-004). Escrita exige `fisio.editar` (checada no controller).
