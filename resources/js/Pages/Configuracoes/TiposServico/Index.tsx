@@ -169,7 +169,7 @@ function TiposServicoIndex({ tipos: tiposProp, opcoes }: Props) {
   return (
     <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Tipos de serviço">
       <ConfiguracoesCabecalho tela="Tipos de serviço" rota="/types-of-service"
-        resumo={tiposProp ? <><strong>{tipos.length}</strong> {tipos.length === 1 ? 'tipo de serviço' : 'tipos de serviço'}</> : null}
+        resumo={tiposProp ? <><strong>{tipos.length}</strong> {tipos.length === 1 ? 'tipo de serviço' : 'tipos de serviço'}</> : 'balcão, entrega, montagem…'}
         acoes={<Button disabled={!opcoes} onClick={novo}><Plus className="size-4" /> Novo tipo de serviço</Button>} />
 
       <Stack gap={4} className="px-6 pt-4">

@@ -142,7 +142,7 @@ function ImpressorasIndex({ impressoras: impressorasProp, opcoes }: Props) {
   return (
     <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Impressoras de recibos">
       <ConfiguracoesCabecalho tela="Impressoras de recibos" rota="/printers"
-        resumo={impressorasProp ? <><strong>{impressoras.length}</strong> {impressoras.length === 1 ? 'impressora de cupom' : 'impressoras de cupom'}</> : null}
+        resumo={impressorasProp ? <><strong>{impressoras.length}</strong> {impressoras.length === 1 ? 'impressora de cupom' : 'impressoras de cupom'}</> : 'impressoras de cupom'}
         acoes={<Button onClick={nova}><Plus className="size-4" /> Adicionar impressora</Button>} />
 
       <Stack gap={4} className="px-6 pt-4">

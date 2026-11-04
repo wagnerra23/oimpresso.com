@@ -99,7 +99,7 @@ function ContasIndex({ contas, pagamentos_sem_conta }: Props) {
   return (
     <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Contas de pagamento">
       <ConfiguracoesCabecalho tela="Contas de pagamento" rota="/account/account"
-        resumo={contas ? <><strong>{ativas}</strong> {ativas === 1 ? 'conta ativa' : 'contas ativas'}</> : null}
+        resumo={contas ? <><strong>{ativas}</strong> {ativas === 1 ? 'conta ativa' : 'contas ativas'}</> : 'contas e saldos do negócio'}
         acoes={
           <Button asChild variant="outline">
             <a href="/account/account?legacy=1"><ExternalLink className="size-4" /> Cadastrar e movimentar na tela clássica</a>

@@ -193,7 +193,7 @@ function LocaisIndex({ locais: locaisProp, opcoes }: Props) {
   return (
     <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Locais comerciais">
       <ConfiguracoesCabecalho tela="Locais comerciais" rota="/business-location"
-        resumo={locaisProp ? <><strong>{ativos}</strong> {ativos === 1 ? 'local ativo' : 'locais ativos'} de {locais.length}</> : null}
+        resumo={locaisProp ? <><strong>{ativos}</strong> {ativos === 1 ? 'local ativo' : 'locais ativos'} de {locais.length}</> : 'filiais do negócio'}
         acoes={<Button disabled={!opcoes} onClick={novo}><Plus className="size-4" /> Novo local</Button>} />
 
       <Stack gap={4} className="px-6 pt-4">

@@ -196,7 +196,7 @@ function ImpostosIndex({ impostos, pode, nfe_ativo }: Props) {
   return (
     <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Taxas de imposto">
       <ConfiguracoesCabecalho tela="Taxas de imposto" rota="/tax-rates"
-        resumo={impostos ? <><strong>{aliquotas.length}</strong> {aliquotas.length === 1 ? 'alíquota' : 'alíquotas'} · <strong>{grupos.length}</strong> {grupos.length === 1 ? 'grupo' : 'grupos'}</> : null}
+        resumo={impostos ? <><strong>{aliquotas.length}</strong> {aliquotas.length === 1 ? 'alíquota' : 'alíquotas'} · <strong>{grupos.length}</strong> {grupos.length === 1 ? 'grupo' : 'grupos'}</> : 'alíquotas e grupos de imposto'}
         acoes={pode.criar ? <Button onClick={nova}><Plus className="size-4" /> Nova alíquota</Button> : undefined} />
 
       <Stack gap={4} className="px-6 pt-4">

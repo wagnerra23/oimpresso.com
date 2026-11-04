@@ -165,7 +165,7 @@ function EsquemasFaturaIndex({ fatura, tipos_numero }: Props) {
   return (
     <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Configurações da fatura">
       <ConfiguracoesCabecalho tela="Configurações da fatura" rota="/invoice-schemes"
-        resumo={fatura ? <><strong>{esquemas.length}</strong> {esquemas.length === 1 ? 'esquema' : 'esquemas'} · <strong>{layouts.length}</strong> {layouts.length === 1 ? 'layout' : 'layouts'}</> : null}
+        resumo={fatura ? <><strong>{esquemas.length}</strong> {esquemas.length === 1 ? 'esquema' : 'esquemas'} · <strong>{layouts.length}</strong> {layouts.length === 1 ? 'layout' : 'layouts'}</> : 'numeração e layout das notas'}
         acoes={<Button onClick={novo}><Plus className="size-4" /> Novo esquema</Button>} />
 
       <Stack gap={4} className="px-6 pt-4">

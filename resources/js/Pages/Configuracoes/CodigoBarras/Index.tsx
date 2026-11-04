@@ -170,7 +170,7 @@ function CodigoBarrasIndex({ etiquetas: etiquetasProp }: Props) {
   return (
     <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Código de barras">
       <ConfiguracoesCabecalho tela="Código de barras" rota="/barcodes"
-        resumo={etiquetasProp ? <><strong>{etiquetas.length}</strong> {etiquetas.length === 1 ? 'configuração de etiqueta' : 'configurações de etiqueta'}</> : null}
+        resumo={etiquetasProp ? <><strong>{etiquetas.length}</strong> {etiquetas.length === 1 ? 'configuração de etiqueta' : 'configurações de etiqueta'}</> : 'configurações de etiqueta'}
         acoes={<Button onClick={nova}><Plus className="size-4" /> Nova configuração</Button>} />
 
       <Stack gap={4} className="px-6 pt-4">
