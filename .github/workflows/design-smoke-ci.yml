@@ -352,6 +352,11 @@ jobs:
             echo "::error title=Lote de paridade::o processo do serve MORREU — nada foi medido"
             cat /tmp/lote-serve.log; exit 1
           }
+          # O admin do biz seedado nao e o id 1: o `db:seed` padrao roda antes do
+          # VisregTenantSeeder. Mesmo criterio dos testes de browser (primeiro user do primeiro
+          # business). Medido em 2026-11-05 (run 42078570982): com --user-id 1 toda tela caiu em /login.
+          VISREG_UID=$(php artisan tinker --execute="echo \App\User::where('business_id', \App\Business::orderBy('id')->value('id'))->orderBy('id')->value('id');" | tail -n1)
+          echo "admin do auth-bridge: user_id=$VISREG_UID"
           # CANARIO DE CONCORRENCIA — a medicao que faltou nas 3 primeiras rodadas.
           # 6 requests SIMULTANEOS: e o que cada tela de fato exige (documento + redirect do
           # auth-bridge + assets do bundle Inertia). Se o servidor nao aguentar, ABORTA aqui
@@ -377,7 +382,7 @@ jobs:
           RC=0; set +e
           for T in Fiscal/Cockpit Fiscal/Config Fiscal/Das Fiscal/Dfe Fiscal/Eventos Fiscal/Nfe Fiscal/Nfse Fiscal/Sped; do
             echo "=== $T" | tee -a /tmp/lote.log
-            node scripts/design/design-diff-lote.mjs --incluir-comparadas --tema light --tela "$T" --base-url http://127.0.0.1:8000 2>&1 | tee -a /tmp/lote.log
+            node scripts/design/design-diff-lote.mjs --incluir-comparadas --tema light --tela "$T" --base-url http://127.0.0.1:8000 --user-id "$VISREG_UID" 2>&1 | tee -a /tmp/lote.log
             r=${PIPESTATUS[0]}; echo "rc[$T]=$r" | tee -a /tmp/lote.log; [ "$r" -gt "$RC" ] && RC=$r
           done
           kill -0 "$SERVE_PID" 2>/dev/null || {
