@@ -76,6 +76,16 @@ related_cu: [CU-OFI-02]
 
 ---
 
+## UC-OVREV-03 · O lembrete agendado só sai para empresa com o pacote do Oficina Auto
+- **Persona:** dono da plataforma (superadmin) que vende o módulo por pacote.
+- **Aceite:** Dado duas empresas com veículo de revisão devida e cliente com opt-in, uma com o pacote
+  `oficina_auto_module` e outra sem · Quando o `oficinaauto:lembretes-revisao` roda (agendado, sem
+  `--business`) · Então só a empresa com o pacote avisa; a outra aparece como "pulada" e nada é enviado
+  nem registrado para ela. Com `--business` de empresa sem o pacote, o mesmo.
+- **Regressão que defende:** cliente de empresa que não contratou (ou cancelou) o módulo receber WhatsApp
+  em nome dela (auditoria 2026-11-05, eixo 5).
+- **Status: 🧪**
+
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
 - `[BACKLOG]` Editar um veículo de outro negócio não é alcançável (o isolamento está provado no
