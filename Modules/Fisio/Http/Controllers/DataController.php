@@ -33,7 +33,9 @@ class DataController extends Controller
         $pacienteId = (int) ($data['patient_id'] ?? 0);
 
         return [
-            'msg' => 'Fisio: paciente marcou sinal de alerta no registro do dia.',
+            'msg' => ($data['origem'] ?? null) === \Modules\Fisio\Notifications\SinalDeAlertaNotification::ORIGEM_PRE_ANAMNESE
+                ? 'Fisio: paciente marcou sinal de alerta na pré-anamnese.'
+                : 'Fisio: paciente marcou sinal de alerta no registro do dia.',
             'icon_class' => 'fas fa-exclamation-triangle bg-yellow',
             'link' => url('/fisio/pacientes/'.$pacienteId),
             'read_at' => $notification->read_at,
@@ -95,8 +97,8 @@ class DataController extends Controller
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
             $menu->dropdown('Fisio', function ($sub) {
                 // Ordem da ADR 0437 §3.3: Painel · Pacientes · Prescrever · Biblioteca · Agenda.
-                // Prescrever não tem tela própria (o editor fica na ficha do paciente) e a
-                // Agenda ainda não existe; entram aqui quando tiverem rota.
+                // Prescrever não tem tela própria (o editor fica na ficha do paciente); entra
+                // aqui quando tiver rota. Agenda desde a US-FISIO-015 (2026-11-04).
                 $sub->url(url('/fisio'), 'Painel', [
                     'icon' => 'fa fa-tachometer-alt',
                     'active' => request()->segment(1) === 'fisio' && request()->segment(2) === null,
@@ -108,6 +110,10 @@ class DataController extends Controller
                 $sub->url(url('/fisio/biblioteca'), 'Biblioteca', [
                     'icon' => 'fa fa-book',
                     'active' => request()->segment(2) === 'biblioteca',
+                ]);
+                $sub->url(url('/fisio/agenda'), 'Agenda', [
+                    'icon' => 'fa fa-calendar-alt',
+                    'active' => request()->segment(2) === 'agenda',
                 ]);
             }, [
                 'icon' => 'fa fa-heartbeat',

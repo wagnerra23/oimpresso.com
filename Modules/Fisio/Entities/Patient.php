@@ -28,6 +28,8 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property string $status
  * @property ?array $condition_flags
  * @property ?\Illuminate\Support\Carbon $blocked_at
+ * @property ?\Illuminate\Support\Carbon $booking_blocked_at autoagendamento pausado por faltas (A21)
+ * @property ?\Illuminate\Support\Carbon $booking_unblocked_at
  */
 class Patient extends Model
 {
@@ -62,6 +64,8 @@ class Patient extends Model
         'sessions_per_week' => 'integer',
         'responsible_user_id' => 'integer',
         'blocked_at' => 'datetime',
+        'booking_blocked_at' => 'datetime',
+        'booking_unblocked_at' => 'datetime',
     ];
 
     protected static function newFactory(): PatientFactory

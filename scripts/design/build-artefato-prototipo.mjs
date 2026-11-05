@@ -20,11 +20,15 @@
 // Uso:
 //   node scripts/design/build-artefato-prototipo.mjs --out <dir>
 //     [--html prototipo-ui/cowork/Wagner/oimpresso.com.html] [--ds prototipo-ui/design-system]
-//     [--rota-inicial pcv] [--titulo "Produção — protótipo Wagner"]
+//     [--rota-inicial pcv] [--titulo "Produção — protótipo Wagner"] [--ocultar ".pb-novo" ...]
 // --rota-inicial: a página abre nessa rota do shell, a menos que a rota guardada no navegador já
 //   comece por ela (quem navega dentro do módulo e recarrega continua onde estava). É o que faz um
 //   Artefato de um módulo só, como o da Produção, sem copiar nem cortar o protótipo.
 // --titulo: troca o <title> da página publicada.
+// --ocultar <seletor>: esconde esse seletor CSS só na página publicada (repetível). É para marcas de
+//   revisão que existem no repositório para o [W] (ex.: os selos `.pb-novo`) e não devem aparecer na
+//   vista "como em produção" (PROTOCOL.md, decisão [F] 2026-11-04). O protótipo no git não muda; o
+//   seletor fica registrado no fonte.json. Seletor com `<`, `{`, `}` ou `;` é recusado (sai 2).
 // Sai 1 se algum arquivo citado pelo HTML não existir no repo (não publica página quebrada).
 // Publicar: Artifact publish com url do Artefato, root=<dir>, file_path=<dir>/index.html e
 // files = todos os demais caminhos de <dir>.
@@ -64,6 +68,19 @@ const DS = arg("--ds", "prototipo-ui/design-system");
 const OUT = arg("--out", null);
 const ROTA = arg("--rota-inicial", null);
 const TITULO = arg("--titulo", null);
+const OCULTAR = process.argv.flatMap((a, i, l) => (a === "--ocultar" && l[i + 1] ? [l[i + 1]] : []));
+if (process.argv.some((a, i, l) => a === "--ocultar" && !l[i + 1])) {
+  console.error("--ocultar precisa de um seletor CSS (ex.: --ocultar .pb-novo).");
+  process.exit(2);
+}
+for (const sel of OCULTAR) {
+  // O seletor vai para dentro de um <style>: nada que feche a tag ou abra outra regra.
+  // `>` sozinho não fecha o <style> (fechar exige `</`), então o combinador de filho passa.
+  if (!sel.trim() || /[<{};\\]/.test(sel)) {
+    console.error(`--ocultar recusou o seletor ${JSON.stringify(sel)}: não pode ter < { } ; ou barra invertida.`);
+    process.exit(2);
+  }
+}
 if (ROTA && !/^[a-z0-9-]+$/.test(ROTA)) {
   console.error("--rota-inicial aceita só letras minúsculas, números e hífen (ex.: pcv).");
   process.exit(2);
@@ -218,11 +235,15 @@ const blocoVista = `<!-- vista:\ntema: prototipo${ROTA ? "-" + ROTA : ""}\nestad
 const rotaInicial = ROTA
   ? `\n<script>try{var _r=localStorage.getItem("oimpresso.route");if(!_r||_r.indexOf(${JSON.stringify(ROTA)})!==0)localStorage.setItem("oimpresso.route",${JSON.stringify(ROTA)})}catch(e){}</script>`
   : "";
+// Marcas de revisão escondidas só na página publicada (--ocultar).
+const ocultar = OCULTAR.length
+  ? `\n<style id="oi-ocultar">/* build-artefato-prototipo --ocultar: só na página publicada */ ${OCULTAR.join(", ")}{display:none!important}</style>`
+  : "";
 const escapa = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 let corpo = saida.join("\n");
 if (TITULO) corpo = corpo.replace(/<title>[^<]*<\/title>/, `<title>${escapa(TITULO)}</title>`);
 const indexHtml =
-  blocoVista + corpo.replace("<head>", `<head>\n<meta name="oi-fonte" content="${HTML}@${commit}"/>${rotaInicial}`);
+  blocoVista + corpo.replace("<head>", `<head>\n<meta name="oi-fonte" content="${HTML}@${commit}"/>${rotaInicial}${ocultar}`);
 gerados.set("index.html", Buffer.from(indexHtml));
 
 const sha = (b) => createHash("sha256").update(b).digest("hex");
@@ -234,6 +255,7 @@ const manifesto = {
   arvore_suja: sujo,
   rota_inicial: ROTA,
   titulo: TITULO,
+  ocultar: OCULTAR,
   gerado_em: new Date().toISOString(),
   arquivos: Object.fromEntries([...gerados].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, sha(v)])),
 };

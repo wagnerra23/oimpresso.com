@@ -55,6 +55,16 @@ class CanalDaClinica
         return is_array($aceite) && ($aceite['versao'] ?? null) === self::TERMO_QR_VERSAO ? $aceite : null;
     }
 
+    /** Registra o aceite do aviso de risco do QR: quem, quando e a versão do termo. */
+    public function aceitarRiscoQr(int $businessId, int $userId): void
+    {
+        $this->config->gravar($businessId, 'whatsapp.qr_risco_aceito', [
+            'user_id' => $userId,
+            'em' => now()->toIso8601String(),
+            'versao' => self::TERMO_QR_VERSAO,
+        ], $userId);
+    }
+
     /** O número de saída do módulo serve para envio automático do Fisio, pela escolha da clínica? */
     public function permiteNumero(int $businessId, WhatsappBusinessPhone $telefone): bool
     {

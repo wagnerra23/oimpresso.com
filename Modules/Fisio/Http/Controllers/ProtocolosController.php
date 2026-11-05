@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\Fisio\Entities\Exercise;
 use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Entities\ProgramItem;
 use Modules\Fisio\Entities\Protocol;
@@ -30,6 +33,44 @@ use Modules\Fisio\Services\LinguagemAnvisa;
  */
 class ProtocolosController extends Controller
 {
+    /**
+     * Tela dos protocolos-modelo: modelos do produto (leitura) e os da clínica da sessão.
+     * Itens saem com o nome do exercício; exercício que esta clínica não enxerga não aparece.
+     */
+    public function index(Request $request): Response
+    {
+        return Inertia::render('Fisio/Protocolos/Index', [
+            'pode_editar' => (bool) $request->user()?->can('fisio.editar'),
+            'protocolos' => Inertia::defer(fn () => $this->listar($this->businessId($request))),
+        ]);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function listar(int $biz): array
+    {
+        // O escopo do model já entrega "global OU da sessão"; o where explícito é a segunda camada (ADR 0093).
+        $protocolos = Protocol::query()
+            ->where(fn ($q) => $q->whereNull('business_id')->orWhere('business_id', $biz))
+            ->orderByRaw('business_id IS NULL')->orderBy('name')->limit(200)->get();
+        $ids = $protocolos->flatMap(fn (Protocol $p) => array_column((array) $p->items, 'exercise_id'))->map('intval')->unique()->all();
+        $nomes = Exercise::query()->where(fn ($q) => $q->whereNull('business_id')->orWhere('business_id', $biz))
+            ->whereIn('id', $ids)->pluck('name', 'id');
+
+        return $protocolos->map(fn (Protocol $p) => [
+            'id' => $p->id,
+            'nome' => $p->name,
+            'regiao' => $p->region,
+            'modelo_global' => $p->business_id === null,
+            'copia_de' => $p->origin_protocol_id,
+            'notes' => $p->notes,
+            'itens' => array_values(array_filter(array_map(fn ($i) => is_array($i) && isset($nomes[(int) ($i['exercise_id'] ?? 0)]) ? [
+                'exercicio' => $nomes[(int) $i['exercise_id']],
+                'sets' => $i['sets'] ?? null, 'reps' => $i['reps'] ?? null, 'hold_s' => $i['hold_s'] ?? null,
+                'times_per_day' => $i['times_per_day'] ?? null, 'notes' => $i['notes'] ?? null,
+            ] : null, (array) $p->items))),
+        ])->all();
+    }
+
     /** Copia um protocolo visível (modelo do produto ou da própria clínica) para a clínica. */
     public function copiar(Request $request, int $id): JsonResponse
     {

@@ -52,7 +52,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-09 | Gargalo previsto com sugestão de reprogramação aplicável e reversível | Gestor | Painel · Linha | should | ✅ |
 | UC-PCV-10 | A OS é um projeto: etapas, responsável, máquina, previsto × apontado | Gestor · Balcão | Ficha | must | ✅ |
 | UC-PCV-51 | Tarefas da OS com responsável e prazo, e as duas datas da OS | Gestor · Balcão | Ficha · Painel · Quadro | should | ✅ |
-| UC-PCV-11 | A arte aprovada fica travada e anda com a OS | Balcão · Operador | Ficha · Apontamento | must | 🟡 |
+| UC-PCV-11 | A arte aprovada fica travada e anda com a OS | Balcão · Operador | Ficha · Apontamento | must | ✅ |
 | UC-PCV-12 | Roteiro por família vira as etapas da OS sem redigitar | Balcão | Roteiros → Ficha | must | ✅ |
 | UC-PCV-13 | Roteiro tem no máximo 2 trilhas em paralelo que se juntam | Gestor | Roteiros | must | ✅ |
 | UC-PCV-14 | Etapa opcional entra pela opção marcada no orçamento | Balcão | Roteiros → Ficha | must | ✅ |
@@ -66,10 +66,10 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-20 | QR abre a etapa certa e o cronômetro aponta início, pausa e fim | Operador | Apontamento | must | ✅ |
 | UC-PCV-21 | Fechar a etapa passa a OS adiante e avisa o próximo | Operador | Apontamento | must | ✅ |
 | UC-PCV-22 | Cronômetro esquecido fecha sozinho no fim do turno | Operador · Gestor | Apontamento · Painel | must | ✅ |
-| UC-PCV-23 | Apontamento sem internet guarda e envia depois | Operador | Apontamento | should | ⬜ |
+| UC-PCV-23 | Apontamento sem internet guarda e envia depois | Operador | Apontamento | should | ✅ |
 | UC-PCV-24 | Agenda de instalação da equipe de campo | Gestor · Instalador | Instalação | must | ✅ |
 | UC-PCV-25 | Checklist de campo com foto antes/depois e assinatura gera protocolo | Instalador | Instalação | must | 🟡 |
-| UC-PCV-26 | Aproveitamento de mídia (sugestão de encaixe na versão 2) | Gestor | Painel | could | 🟡 |
+| UC-PCV-26 | Aproveitamento de mídia (sugestão de encaixe na versão 2) | Gestor | Painel | could | ✅ |
 | UC-PCV-27 | Produtividade por setor sem expor o indivíduo sem permissão | Gestor | Painel | should `[LGPD]` | ✅ |
 | UC-PCV-28 | Cada empresa vê só a sua produção | todos | todas | must `[T0]` | ⬜ |
 | UC-PCV-29 | Uma fonte de eventos alimenta quadro, painel, linha, ficha, celular e instalação | todos | todas | must | ✅ |
@@ -132,10 +132,11 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Regra:** falta de material não vira tarefa; segue o fluxo de Aguardando material (UC-PCMAT-02), que abre a compra.
 - **Teste:** duas tarefas na mesma OS, uma com prazo vencido e uma no prazo; o Painel lista só a vencida. Sem tarefa vencida, o widget não aparece.
 
-### UC-PCV-11 · Arte aprovada travada · `must` · 🟡
+### UC-PCV-11 · Arte aprovada travada · `must` · ✅
 - **Aceite:** Dado a arte aprovada às 16:40 · Quando alguém troca o arquivo da arte · Então a OS volta para "aguardando aprovação" e um novo link é enviado · E o operador, no celular, abre sempre a versão aprovada.
 - **No sistema:** trocar o arquivo depois de aprovada (`POST /producao/ordens/{id}/arte/trocar`) reabre a aprovação com link novo, e a arte que vale (`GET /producao/ordens/{id}/arte`) segue sendo a última aprovada (UC-PCV-11 em `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md`).
-- **Falta no protótipo:** a troca de arquivo e as versões; o protótipo só lista os arquivos.
+- **Onde:** aba "Arte e arquivos" da OS. Com a arte aprovada aparece "Trocar o arquivo da arte": informar o link do arquivo novo cria a versão seguinte, a OS volta para "aguardando aprovação" e sai link novo. A lista "Versões da arte" mostra cada versão com a situação, e marca a que vale para a produção. O celular do operador mostra sempre a última aprovada, mesmo com uma troca esperando o cliente.
+- **Recusas (as frases do sistema):** sem arte aprovada, "Ainda não há arte aprovada: peça a aprovação do cliente."; com ajuste pedido, "O cliente pediu ajuste: mande a nova prova pela aprovação pendente."; com o mesmo arquivo, "Este é o arquivo já aprovado."; OS encerrada, "Esta OS já foi encerrada." Na tela só pode aparecer a do mesmo arquivo, porque o botão existe apenas com a arte aprovada.
 
 ### UC-PCV-12 · Roteiro vira etapas · `must` · ✅
 - **Aceite:** Dado o orçamento aprovado de um produto da família "Projeto com instalação" · Então a OS nasce com as etapas do roteiro, máquinas e tempos calculados (quantidade ÷ capacidade do posto) · E ninguém redigita etapa.
@@ -145,6 +146,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-13 · No máximo 2 trilhas · `must` · ✅
 - **Aceite:** O roteiro aceita até 2 trilhas em paralelo, e elas sempre terminam numa etapa de junção nomeada · Uma 3ª trilha ou trilha sem junção é recusada ao salvar.
 - **Por quê:** linha reta faz a impressão esperar a serralheria sem motivo; fluxograma livre ninguém treina.
+- **Nas outras telas:** a Ficha da OS mostra as duas trilhas lado a lado com a junção. Na Linha do tempo, cada bloco de etapa em paralelo leva a marca "Trilha A" ou "Trilha B", e o bloco da junção leva "Junta A + B". Ao reprogramar, as duas trilhas podem se sobrepor no horário, mas dentro de cada trilha a ordem vale (a OS-2617 não deixa a Dobra e solda começar antes do fim do Corte CNC das faces) e a junção só começa quando as duas terminam. É a mesma regra do sistema (`ProgramacaoDoRoteiro` e `SituacaoDaOrdem`).
 
 ### UC-PCV-14 · Etapa opcional pelo orçamento · `must` · ✅
 - **Aceite:** Dado o roteiro de adesivo com "Laminação · só com laminação" · Quando o orçamento vem **sem** laminação · Então a OS nasce sem essa etapa · Com laminação · Então nasce com ela.
@@ -196,8 +198,10 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Aceite:** Dado um apontamento aberto às 18h · Então o sistema fecha às 18h com marca "fechado automaticamente" e avisa o PCP · E o operador pode corrigir no dia seguinte com justificativa (o original fica).
 - **Onde:** o Painel da Produção mostra o aviso "Cronômetro fechado sozinho no fim do turno" com quem, a etapa e o dia, e o botão para abrir a OS. Na ficha da OS › Histórico fica o apontamento "fechado automaticamente" na hora do fim do turno (vem do turno configurado, não de um 18h fixo) e o botão Corrigir, com justificativa obrigatória. A correção entra no histórico, o registro original fica, e o aviso some do Painel.
 
-### UC-PCV-23 · Sem internet · `should` · ⬜
+### UC-PCV-23 · Sem internet · `should` · ✅
 - **Aceite:** Dado o celular offline · Quando o operador aponta · Então o evento fica guardado com a hora real · E ao voltar a rede é enviado uma vez só (sem duplicar).
+- **Onde:** vista **Apontamento**, caixa "Simular celular sem internet". Sem rede, cada toque (iniciar, pausar, concluir, refugo) fica guardado no celular com a hora em que aconteceu, e o celular mostra "N apontamento(s) guardado(s) no celular · Envia sozinho quando a internet voltar" (as frases da tela real). Concluir a etapa sem rede avisa que a OS só passa adiante quando a internet voltar. Ao voltar, a fila sai na ordem dos toques, o histórico da OS recebe cada um com a hora do toque, e cada toque leva uma chave: reenviar a mesma chave não grava de novo.
+- **No sistema:** `Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/fila.ts` (fila por usuário no celular) e a idempotência pela chave no servidor (UC-PCV-23 e UC-PCIMP-03 em `Apontamento/Index.casos.md`).
 
 > **Modo terminal (tablet preso à máquina).** O caso é o UC-PCV-41, em `Producao-celular.casos.md` (forma T1 do `Mobile Producao.dc.html`, thread 12). Desde 2026-10-29 ele também está neste protótipo, na vista **Terminal**: romaneio do posto, entrada por crachá ou PIN, recusa de quem não opera o posto (US-PCP-030), botões de 88px e volta ao crachá depois de 2 minutos sem toque.
 
@@ -212,10 +216,12 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 
 ## Transversais
 
-### UC-PCV-26 · Encaixe de mídia · `could` · 🟡
+### UC-PCV-26 · Encaixe de mídia · `could` · ✅
 - **Aceite (versão 1, D-ENCAIXE de 15/10):** Dado a mídia que o operador informou no apontamento das OS de uma bobina · Então mostra o % aproveitado e a sobra · E não mostra sugestão de agrupamento.
 - **Versão 2:** a sugestão de agrupamento com a economia em m² e R$ (encaixe na bobina).
-- **Falta:** o % ainda vem fixo no protótipo; deve sair da mídia informada no apontamento.
+- **Onde:** widget "Aproveitamento de mídia" do Painel, com a escolha da bobina. O % é a área das peças das OS dividida pela mídia que o operador informou no apontamento, e a sobra é o resto. Só entram as OS com a impressão concluída, porque a impressão em andamento ainda vai gastar mídia. Exemplo: Lona 440 g 1,60 m, OS-2603 (120 m² em 133,4 m²) e OS-2598 (88 m² em 90,8 m²), 92,8% aproveitado.
+- **Do apontamento ao Painel:** ao concluir a impressão no celular com "Mídia usada até agora" preenchida, a OS entra na conta da bobina dela. Sem internet, a mídia segue a fila do UC-PCV-23 e só entra quando o toque chega. Mídia informada menor que a área das peças deixa a OS fora da conta, com o aviso "Confira o apontamento".
+- **Versão 2 (fora deste caso):** a sugestão de encaixe na bobina. No sistema, o simulador já existe (`AproveitamentoDeMidia`, US-PCP-024); o agregado do Painel ainda não (`PainelDaProducao` o lista como fora do corte).
 
 ### UC-PCV-27 · Produtividade sem expor o indivíduo · `should` `[LGPD]` · ✅
 - **Aceite:** Sem `producao.desempenho.ver` · Então a produtividade aparece só por setor · Com a permissão · Então aparece por pessoa · E o acesso fica no log.
@@ -249,9 +255,7 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 **Decisão [W]** — D-PCP, D1–D5 e permissões aprovados em 2026-10-15 (`_DECISOES-W-2026-10-15.md`). Restam as perguntas do formulário de 15/10 (relação com CV/Repair/Fabricação, piloto, turno, canal de aviso, empenho de estoque, encaixe, ordem das fases). O link de prova já foi decidido em 2026-10-21 (D-ARTE-PAGINA: fica a `/arte/{token}`).
 
 **Forma (dá para fazer aqui, no protótipo)**
-4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
 5. Estados carregando / vazio / erro em todas as vistas.
-6. Troca do arquivo da arte com versões (UC-PCV-11).
 
 **Só no Code**
 7. Tabelas `pcp_workstations`, `pcp_operations`, `pcp_appointments` (append-only), `pcp_schedules` (SPEC do Pcp).

@@ -22,6 +22,8 @@ use Modules\Fisio\Services\Consentimentos;
 use Modules\Fisio\Services\DiaLocal;
 use Modules\Fisio\Services\JogoService;
 use Modules\Fisio\Services\PortalTokenService;
+use Modules\Fisio\Services\PreAnamneseDoPortal;
+use Modules\Fisio\Services\SessaoDoPortal;
 
 /**
  * Portal público do paciente — `/fisio/p/{token}` (US-FISIO-007a/007b; ADR 0437 §4 a §7).
@@ -57,6 +59,7 @@ class PortalController extends Controller
         private readonly AparelhosDoPortal $aparelhos,
         private readonly CheckinDoPortal $checkins,
         private readonly JogoService $jogo,
+        private readonly PreAnamneseDoPortal $preAnamnese,
     ) {
     }
 
@@ -98,6 +101,12 @@ class PortalController extends Controller
             'modo' => $modo,
             'jogo' => $this->jogo->estado($paciente),
             'consentimentos' => $this->consentimentos->situacao($paciente),
+            // Pré-anamnese (Lote 5): as opções só enquanto o paciente não respondeu.
+            'pre_anamnese' => $this->preAnamnese->respondida($paciente) ? null : [
+                'regioes' => PreAnamneseDoPortal::REGIOES,
+                'desde' => PreAnamneseDoPortal::DESDE,
+                'sinais' => $this->preAnamnese->sinais(),
+            ],
             'registrado_hoje' => $deHoje !== null,
             // O portal só guarda check-in na fila offline quando o aparelho é lembrado (UC-FPP-31).
             'guardar_offline' => $this->lembrado($request, $linha),
@@ -300,6 +309,38 @@ class PortalController extends Controller
     }
 
     /**
+     * Pré-anamnese (Lote 5). Mesmos portões do check-in. 201 gravou · 409 já respondida · 422 inválida.
+     */
+    public function preAnamnese(Request $request, string $token): JsonResponse
+    {
+        $linha = $this->tokens->resolver($token);
+        if ($linha === null) {
+            return $this->linkInvalido();
+        }
+        if (! $this->pinAceito($request, $linha)) {
+            return response()->json(['erro' => 'pin_pendente'], 403);
+        }
+        $paciente = $this->pacienteDe($linha);
+        if (! $this->consentimentos->vigente($paciente, Consentimentos::TELEATENDIMENTO)) {
+            return response()->json(['erro' => 'consentimento_pendente'], 403);
+        }
+
+        $dados = $request->validate([
+            'regioes' => ['required', 'array', 'min:1', 'max:10'],
+            'regioes.*' => ['string', Rule::in(PreAnamneseDoPortal::REGIOES)],
+            'desde' => ['required', 'string', Rule::in(PreAnamneseDoPortal::DESDE)],
+            'dor' => ['required', 'integer', 'between:0,10'],
+            'piora_melhora' => ['nullable', 'string', 'max:280'],
+            'sinais' => ['present', 'array', 'max:10'],
+            'sinais.*' => ['string', Rule::in($this->preAnamnese->sinais())],
+        ]);
+
+        return $this->preAnamnese->registrar($paciente, $dados)
+            ? response()->json(['ok' => true], 201)
+            : response()->json(['erro' => 'ja_respondida'], 409);
+    }
+
+    /**
      * "Como foi hoje" (US-FISIO-007b). Portões: link, PIN (ou aparelho lembrado) e
      * consentimento de teleatendimento. 201 criou o dia · 200 atualizou (reenvio) · 422 inválido.
      * Em dia de pausa a resposta é SÓ {modo, instrucao, checkin_id} (UC-FPP-19).
@@ -373,27 +414,15 @@ class PortalController extends Controller
         return $p;
     }
 
-    /**
-     * PIN aceito nesta sessão, OU aparelho lembrado deste mesmo token (cookie), que então
-     * passa a valer para a sessão também.
-     */
+    /** PIN aceito nesta sessão, ou aparelho lembrado deste mesmo token (SessaoDoPortal). */
     private function pinAceito(Request $request, PortalToken $linha): bool
     {
-        if ($request->session()->get($this->chaveSessao($linha)) === true) {
-            return true;
-        }
-        if ($this->aparelhos->reconhece($linha, $request->cookie($this->aparelhos->nomeCookie($linha)))) {
-            $request->session()->put($this->chaveSessao($linha), true);
-
-            return true;
-        }
-
-        return false;
+        return app(SessaoDoPortal::class)->pinAceito($request, $linha);
     }
 
     private function chaveSessao(PortalToken $linha): string
     {
-        return 'fisio_portal.'.$linha->id;
+        return app(SessaoDoPortal::class)->chave($linha);
     }
 
     private function linkInvalido(): JsonResponse

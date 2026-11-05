@@ -5,7 +5,7 @@ irmaos: Portal.charter.md (lei) · Portal.tsx (tela) + _components/Entrada.tsx, 
 tecnica: Caso de uso = narrativa do paciente + critério de aceite verificável (Dado/Quando/Então)
 por_que: o portal é público na internet e mostra dado de saúde. Sem PIN/lockout é força bruta; sem consentimento é LGPD; sem telemonitoramento o check-in não vale como prontuário (Res. COFFITO 619/2025); conduta calculada pelo software vira dispositivo médico (Anvisa/SaMD); XP que premia exceder o prescrito incentiva lesão.
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-11-05"
 last_run_ci: "_pendente_ — a US-FISIO-007b põe FisioCheckinTest, FisioJogoTest, FisioPortalSegurancaClinicaTest e FisioPortalAparelhoTest na lane Verticais (MySQL); o veredito por UC entra quando o manifesto da lane for regenerado."
 related_us: [US-FISIO-007, US-FISIO-008]
 ---
@@ -54,6 +54,12 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-29 | app da Google Play abre em `/fisio/app`, que só pede o link da clínica | must | `FisioPortalAppTest` |
 | UC-FPP-33 | Hoje mostra missões e medalhas; no dia de pausa, nada disso | must | `FisioJogoConstanciaTest` |
 | UC-FPP-34 | desafio da semana: aceitar ou "Agora não", sem perder nada | must | `FisioJogoConstanciaTest` |
+| UC-FPP-50 | Configurações mostra o estado real de cada autorização | should | `FisioPortalConfiguracoesTest` |
+| UC-FPP-51 | cada chave muda só a sua finalidade, e o envio de WhatsApp obedece | must | `FisioPortalConfiguracoesTest` |
+| UC-FPP-52 | o Hoje oferece a pré-anamnese até o paciente responder | should | `FisioPreAnamneseTest` |
+| UC-FPP-53 | pré-anamnese só com valores das listas, uma por paciente | must | `FisioPreAnamneseTest` |
+| UC-FPP-54 | sinal de alerta na pré-anamnese avisa o profissional | must | `FisioPreAnamneseTest` |
+| UC-FPP-55 | pré-anamnese só depois do PIN e da autorização, na clínica do link | must | `FisioPreAnamneseTest` |
 
 ---
 
@@ -257,7 +263,42 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - `[BACKLOG]` Aviso fixo "Se for uma emergência, ligue 192" no dia de pausa — segurado pela ADR 0437 §14 nº 9 até parecer regulatório.
 - `[BACKLOG]` Crise por mais de 3 dias seguidos avisar o profissional (protocolo 11) — sem regra testável no AtencaoDetector ainda.
 
+## UC-FPP-50 · Configurações mostra as autorizações de verdade · `should`
+- **Persona:** paciente que quer conferir o que autorizou.
+- **Aceite:** Dado o portal aberto na etapa Hoje · Quando toca em "Configurações e autorizações" · Então vê Meu tratamento, Lembretes no WhatsApp e Câmera com o estado que o servidor tem (protótipo `PacienteConfig.dc.html`). Ligar uma chave grava o aceite na versão vigente.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalConfiguracoesTest.php`
+- **Status: 🧪**
+
+## UC-FPP-51 · Cada autorização é separada `[T0]` · `must`
+- **Aceite:** Quando o paciente desliga "Lembretes no WhatsApp" · Então o Fisio para de mandar WhatsApp para ele e o tratamento continua; religar volta. Desligar "Meu tratamento" pede confirmação e o portal volta a pedir a autorização (UC-FPP-06). O link de um paciente nunca muda a autorização de paciente de outra clínica.
+- **Regressão que defende:** paciente que tirou a autorização de WhatsApp continuar recebendo mensagem (LGPD).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalConfiguracoesTest.php`
+- **Status: 🧪**
+
+## UC-FPP-52 · Convite da pré-anamnese · `should`
+- **Aceite:** Dado um paciente que ainda não respondeu · Quando abre o Hoje · Então vê "Antes da sua primeira consulta" com as regiões, as faixas de tempo e os 5 sinais (protótipo `PacientePreAnamnese.dc.html`). Depois de responder, o convite some.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php`
+- **Status: 🧪**
+
+## UC-FPP-53 · Uma resposta, só da lista · `must`
+- **Aceite:** Região, faixa de tempo ou sinal fora da lista fechada, ou dor fora de 0–10, é recusado sem gravar. A segunda resposta responde 409 e a primeira fica como estava.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php`
+- **Status: 🧪**
+
+## UC-FPP-54 · Sinal de alerta chega ao profissional `[T0]` · `must`
+- **Aceite:** Quando o paciente marca um sinal · Então o profissional do programa e o responsável recebem o aviso no sino ("sinal de alerta na pré-anamnese"); sem nenhum dos dois, quem cadastrou o contato. Sem sinal, ninguém é avisado. O aviso não sugere conduta (ADR 0437 §5).
+- **Regressão que defende:** sinal de alerta antes da 1ª consulta que ninguém lê.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php`
+- **Status: 🧪**
+
+## UC-FPP-55 · Mesmos portões do portal `[T0]` · `must`
+- **Aceite:** Sem PIN aceito ou sem a autorização "Meu tratamento", 403 e nada gravado. A resposta grava na clínica do link, nunca em outra.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-04 · Lote 5 — pré-anamnese no portal (`_components/PreAnamnese.tsx`, tabela `fisio_pre_anamneses`, US-FISIO-051). Regiões e faixas de tempo são rascunho do protótipo, pendentes da responsável técnica. UC-FPP-52..55 entram com `FisioPreAnamneseTest`.
+- 2026-11-04 · Lote 5 — tela de Configurações do paciente (`_components/Configuracoes.tsx`), só as autorizações por finalidade; horário do lembrete, acessibilidade e "meus dados" do protótipo ficam fora até o servidor sustentar. UC-FPP-50..51 entram com `FisioPortalConfiguracoesTest`.
 - 2026-10-19 · T-08c (parte com fonte) — missões de hoje, desafio da semana e medalhas na tela Hoje (`_components/Constancia.tsx`, rota `fisio.portal.desafio`). UC-FPP-33..34 entram com `FisioJogoConstanciaTest`.
 - 2026-10-19 · T-13 (parte 2) — fila offline do check-in no aparelho lembrado (`portal.ts`), reenvio ao abrir a tela e quando a internet volta, chave por envio (`fisio_checkins.client_key`). UC-FPP-30..32 entram com `FisioPortalFilaOfflineTest`.
 - 2026-10-19 · T-13 (parte 1) — app instalável: manifesto por link, ícones, service worker que guarda a tela do dia só em aparelho lembrado, convite de instalação. UC-FPP-26..28 entram com `FisioPortalAppTest`.

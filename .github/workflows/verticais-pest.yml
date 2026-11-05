@@ -546,6 +546,9 @@ jobs:
         # instrução de parada, um ativo por paciente, dose padrão, reordenar/remover, exercício de
         # outra clínica recusado e aviso de contraindicação (409 → confirmação gravada).
         #
+        # ENTRA 2026-11-04 — Fisio/FisioProtocolosTelaTest (US-FISIO-006, Lote 2): tela dos protocolos —
+        # modelo do produto para 98 e 99, protocolo da clínica só da dona, copiar/editar 403/404 (UC-FPR-01..05).
+        #
         # ENTRA 2026-10-18 — Fisio/FisioBibliotecaFavoritosTest (US-FISIO-004, comparativo
         # Physitrack): favorito por profissional e empresa (98×99 e dois usuários da 98), global
         # inalterado ao favoritar, filtros de posição e equipamento da lista fechada (UC-FBI-08..10).
@@ -557,6 +560,18 @@ jobs:
         # ENTRA 2026-11-04 — Fisio/FisioFiscalFilaTest (US-FISIO-023, UC-FFI-01..05): documentos fiscais
         # do dia — fila do Receita Saúde sobre pagamentos do núcleo, só a marca de envio gravada,
         # CPF nunca inteiro na tela, 403 sem editar, 98×99.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioPacoteSessoesTest (US-FISIO-020, lote 4): pacote de sessões com
+        # saldo derivado do ledger append-only (trigger), sem coluna de dinheiro, débito idempotente
+        # por atendimento, estorno uma vez, vencido/encerrado recusados, isolamento 98×99.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioPacoteTelaTest (US-FISIO-021, UC-FPK-01..06): aba Pacote e
+        # cobrança — saldo do ledger, abrir/registrar sessão, 403 sem editar, 404 entre 98 e 99, e a
+        # cobrança LIDA do Financeiro sem gravar título.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioPacoteVendaTest (US-FISIO-022, UC-FPK-07..09): a venda do núcleo
+        # é ligada ao pacote pelo id, sem gravar título; venda cancelada tira a sobra do saldo.
+        #
         #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
@@ -615,8 +630,15 @@ jobs:
         # consentimento, isolamento 98×99, idempotência persistida, silêncio, teto por hora e wa.me
         # manual sem canal. O caso de integração com o portal real PULA até o US-FISIO-007a entrar.
         #
+        # ENTRA 2026-11-04 — Fisio/FisioPortalConfiguracoesTest (Lote 5, UC-FPP-50..51): Configurações do paciente
+        # mostram cada autorização; desligar WhatsApp corta o envio; 98×99.
         # ENTRA 2026-11-04 — Fisio/FisioConfigWhatsappTest (Lote 5, UC-FCW-01..06): a clínica escolhe o
         # canal (manual, oficial, QR com aceite de risco) e a escolha muda o canalAtivo real; 98×99.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioPreAnamneseTest (Lote 5, US-FISIO-051, UC-FPP-52..55): uma resposta por
+        # paciente, só valores das listas, sinal avisa o profissional, portões do portal; 98×99.
+        # ENTRA 2026-11-04 — Fisio/FisioOnboardingTest (Lote 5, US-FISIO-050, UC-FOB-01..06): cada passo grava o
+        # dele; perfil por profissional; QR só com aceite; protocolo de outra empresa descartado; 98×99.
         #
         # ENTRA 2026-10-19 — Fisio/FisioPainelEnviosFalhosTest (etapa 02 T-09e, UC-FPN-09): o painel
         # lista o WhatsApp de hoje que não chegou, com wa.me; sucesso some, 99 não vaza, sem
@@ -631,6 +653,24 @@ jobs:
         # prescrito (o Unit percorre o pool inteiro), +10 uma vez por missão e teto de bônus da
         # semana, desafio semanal recusado sem tirar XP e aceito pagando +40 uma vez, 10 medalhas
         # derivadas do histórico, decisão do desafio append-only.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioAgendaEsquemaTest (US-FISIO-013): as 5 tabelas da agenda com
+        # business_id, escopo dos models entre 98 e 99, atendimento sem DELETE, regras uma por empresa.
+        # Primeira execução real é esta lane (Pest não roda local).
+        #
+        # ENTRAM 2026-11-04 — Fisio/FisioAgendaRegrasTest + Unit CompatibilidadeEsperaTest (US-FISIO-014):
+        # conflito e encaixe, bloqueio de horário, 98×99, realizado só com evolução assinada, cancelamento
+        # tardio pelo prazo da política, lista de espera compatível e bloqueio do app por 2 faltas.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioAgendaTelaTest (US-FISIO-015 · UC-FAG-01..04): rotas da agenda —
+        # tipos padrão por empresa, semana sem a 99, 404 entre 98 e 99, 403 sem fisio.editar.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioConfigAgendamentoTest (US-FISIO-015 · UC-FCA-01..04): agendamento
+        # pelo app nasce desligado, salva horários e tipos liberados, versão da política, 403 e 98×99.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioPortalAgendaTest (US-FISIO-016 · UC-FPA-01..07): agenda no portal pelas
+        # rotas públicas — horários livres, marcar, regras do app, prazo de 24 h, confirmar, Cheguei, lista de
+        # espera, 404 para atendimento alheio e 403 sem PIN.
         #
         # ENTRA 2026-10-21 — ComunicacaoVisual/AgendaTelaContratoTest (tela /comunicacao-visual/agenda,
         # UC-CVAG-01..03): mesmo arranjo do irmão abaixo (tenant 98×99, pula em sqlite). A primeira execução
@@ -792,6 +832,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php \
             Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php \
+            Modules/Fisio/Tests/Feature/FisioProtocolosTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
@@ -812,10 +853,13 @@ jobs:
             Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoNuvemshopContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalConfiguracoesTest.php \
+            Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php \
             Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php \
             Modules/Fisio/Tests/Feature/FisioConfigWhatsappTest.php \
+            Modules/Fisio/Tests/Feature/FisioOnboardingTest.php \
             Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php \
             Modules/Fisio/Tests/Unit/BibliotecaL0Test.php \
             Modules/Fisio/Tests/Feature/FisioCheckinTest.php \
@@ -829,7 +873,16 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php \
             Modules/Fisio/Tests/Unit/MissoesCalculatorTest.php \
             Modules/Fisio/Tests/Unit/MedalhasCalculatorTest.php \
-            Modules/Fisio/Tests/Feature/FisioFiscalFilaTest.php
+            Modules/Fisio/Tests/Feature/FisioFiscalFilaTest.php \
+            Modules/Fisio/Tests/Feature/FisioAgendaEsquemaTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacoteSessoesTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacoteTelaTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacoteVendaTest.php \
+            Modules/Fisio/Tests/Feature/FisioAgendaRegrasTest.php \
+            Modules/Fisio/Tests/Unit/CompatibilidadeEsperaTest.php \
+            Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php \
+            Modules/Fisio/Tests/Feature/FisioConfigAgendamentoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php

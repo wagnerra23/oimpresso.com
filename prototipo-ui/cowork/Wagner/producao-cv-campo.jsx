@@ -29,9 +29,14 @@ function Apontamento() {
   const [m2, setM2] = useState("");
   const [log, setLog] = useState([]);
   const [pausa, setPausa] = useState(false); // Pausar pede o motivo antes de parar o relógio
+  const [offline, setOffline] = useState(D.CEL.offline); // UC-PCV-23: simula o celular sem internet
+  const [enviados, setEnviados] = useState(0);
+  const naFila = D.CEL.fila.length;
+  const rede = (sem) => { if (sem) { D.CEL.offline = true; setEnviados(0); } else { setEnviados(D.redeVoltou()); setLog((l) => l.map((x) => x.guardado ? { ...x, guardado: false, enviado: true } : x)); } setOffline(sem); };
   const os = D.osDe("OS-2611"); const et = D.atual(os); const maq = D.maqDe(et.maq);
   useEffect(() => { if (!rodando) return; const t = setInterval(() => setSeg((s) => s + 1), 1000); return () => clearInterval(t); }, [rodando]);
-  const marca = (ev) => { setLog((l) => [{ ev, quando: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }, ...l]); D.registrar({ os: os.id, quem: "Diego", tipo: /Refugo/.test(ev) ? "refugo" : "etapa", maq: et.maq, texto: ev + (/Refugo/.test(ev) ? "" : " " + et.nome) }); };
+  const marca = (ev) => { const guardado = D.apontar({ os: os.id, quem: "Diego", tipo: /Refugo/.test(ev) ? "refugo" : "etapa", maq: et.maq, texto: ev + (/Refugo/.test(ev) ? "" : " " + et.nome) }); setEnviados(0);
+    setLog((l) => [{ ev, guardado, quando: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }, ...l]); };
   return (
     <div className="pcv-body pcv-campo">
       <div className="pcv-campo-txt">
@@ -41,8 +46,9 @@ function Apontamento() {
           <li><b>Sem digitar OS</b> — o QR já diz qual OS e qual etapa.</li>
           <li><b>Arquivo certo</b> — abre a versão aprovada da arte, não uma prova antiga.</li>
           <li><b>Esqueceu de parar?</b> — no fim do turno da empresa ({D.TURNO.rotulo}) o sistema fecha o cronômetro e avisa o PCP.</li>
-          <li><b>Sem internet</b> — guarda no celular e envia quando voltar.</li>
+          <li><b>Sem internet</b> — guarda no celular com a hora do toque e envia quando voltar, uma vez só.</li>
         </ul>
+        <label className="pcv-papel"><input type="checkbox" checked={offline} onChange={(e) => rede(e.target.checked)} /> Simular celular sem internet</label>
       </div>
       <Celular titulo={passo === "scan" ? "Ler QR" : passo === "lista" ? "Produção" : os.id}
         rodape={passo === "etapa" && pausa ? <div className="pcv-pausa" role="group" aria-label="Motivo da pausa">
@@ -51,8 +57,10 @@ function Apontamento() {
           <Button variant="ghost" onClick={() => setPausa(false)}>Voltar</Button>
         </div> : passo === "etapa" && <div className="pcv-bar" style={{ width: "100%" }}>
           {!rodando ? <Button variant="primary" onClick={() => { setRodando(true); marca("Iniciou"); }}>{seg > 0 ? "Retomar" : "Iniciar"}</Button> : <Button onClick={() => setPausa(true)}>Pausar</Button>}
-          <Button onClick={() => { setRodando(false); marca("Concluiu a etapa"); setPasso("fim"); }}>Concluir etapa</Button>
+          <Button onClick={() => { setRodando(false); const v = parseFloat(String(m2).replace(",", ".")); const midia = D.MIDIAS.find((x) => (D.MATERIAIS[os.id] || []).some((r) => r[0] === x)); if (v > 0 && midia) D.informarMidia(os.id, midia, v); marca("Concluiu a etapa"); setPasso("fim"); }}>Concluir etapa</Button>
         </div>}>
+        {offline && Alert && <Alert tone="warn" title={naFila > 0 ? naFila + " apontamento(s) guardado(s) no celular" : "Sem internet"}>{naFila > 0 ? "Envia sozinho quando a internet voltar." : "Os toques ficam guardados no celular com a hora certa."}</Alert>}
+        {!offline && enviados > 0 && Alert && <Alert tone="success" title={enviados + " apontamento(s) enviado(s)"}>A internet voltou e a fila foi enviada, na ordem dos toques e com a hora de cada um.</Alert>}
         {passo === "lista" && <div className="pcv-ap">
           <div><span className="pcv-eyebrow">Diego · impressão</span><b className="pcv-ap-t">Minhas etapas de hoje</b><small>na ordem da programação</small></div>
           <ul className="pcv-minhas">
@@ -69,13 +77,15 @@ function Apontamento() {
         {passo === "etapa" && <div className="pcv-ap">
           <div><span className="pcv-eyebrow">{os.cliente}</span><b className="pcv-ap-t">{et.nome}</b><small>{maq ? maq.nome : ""} · previsto {D.h1(et.prev)} h</small></div>
           <div className={"pcv-crono" + (rodando ? " is-on" : "")} role="timer" aria-live="off" aria-label={"Tempo apontado " + hms(seg)}>{hms(seg)}</div>
-          <div className="pcv-ap-arq"><Ic name="doc" size={16} /><div><b>arte-final-v3.pdf</b><small>versão aprovada pelo cliente</small></div></div>
+          {(() => { const vig = D.arteVigente(os); /* UC-PCV-11: sempre a última aprovada, mesmo com troca esperando o cliente */ return <div className="pcv-ap-arq"><Ic name="doc" size={16} /><div><b>{vig ? "v" + vig.v + " · " + D.nomeArq(vig.arquivo) : "Sem arte aprovada"}</b><small>{vig ? "versão aprovada pelo cliente" : "a etapa espera a aprovação do cliente"}</small></div></div>; })()}
           {Input && <Input label="Mídia usada até agora (m²)" value={m2} placeholder="ex.: 58" onChange={(e) => setM2(e.target.value)} help="Baixa no estoque: Vinil branco brilho 1,37 m" />}
           <button className="pcv-ap-ref" onClick={() => marca("Refugo: 1,2 m² — mídia com defeito")}>Registrar refugo</button>
-          {log.length > 0 && <ol className="pcv-hist">{log.map((l, i) => <li key={i}><b>{l.ev}</b><small>{l.quando}</small></li>)}</ol>}
+          {log.length > 0 && <ol className="pcv-hist">{log.map((l, i) => <li key={i}><b>{l.ev}</b><small>{l.quando}{l.guardado ? " · guardado no celular" : l.enviado ? " · enviado quando a rede voltou" : ""}</small></li>)}</ol>}
         </div>}
         {passo === "fim" && <div className="pcv-ap">
-          {Alert && <Alert tone="success" title="Etapa concluída">{hms(seg)} apontados em {et.nome}. A OS foi para <b>Laminação</b> (Felipe) e ele foi avisado.</Alert>}
+          {Alert && (naFila > 0
+            ? <Alert tone="warn" title="Etapa concluída no celular">{hms(seg)} apontados em {et.nome}. Quando a internet voltar, a OS vai para <b>Laminação</b> e o Felipe é avisado.</Alert>
+            : <Alert tone="success" title="Etapa concluída">{hms(seg)} apontados em {et.nome}. A OS foi para <b>Laminação</b> (Felipe) e ele foi avisado.</Alert>)}
           {Button && <Button onClick={() => { setPasso("lista"); setSeg(0); setLog([]); }}>Voltar às minhas etapas</Button>}
         </div>}
       </Celular>

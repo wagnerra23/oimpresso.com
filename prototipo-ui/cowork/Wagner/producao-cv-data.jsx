@@ -113,7 +113,8 @@ const AGENDA = [
   { maq: "cnc",     os: "OS-2608", ini: 8,  fim: 11.2, estado: "andamento" },
   { maq: "cnc",     os: "OS-2614", ini: 11.5, fim: 14.2, estado: "fila", bloqueio: "arte aguardando aprovação" },
   { maq: "cnc",     os: "OS-2617", ini: 14.5, fim: 16.2, estado: "fila" },
-  { maq: "solda",   os: "OS-2617", ini: 9,  fim: 17,   estado: "fila" },
+  // OS-2617, trilha A: o Corte CNC das faces vem antes da Dobra e solda (a solda começa quando o corte termina).
+  { maq: "solda",   os: "OS-2617", ini: 16.25, fim: 18, estado: "fila" },
 ];
 
 // Orçamentos aprovados que ainda não viraram OS (passo orçamento → OS)
@@ -135,9 +136,9 @@ const AGENDA_AMANHA = [
   { maq: "uv", os: "OS-2614", ini: 8, fim: 11.6, estado: "fila", bloqueio: "arte aguardando aprovação" },
   { maq: "lamin", os: "OS-2611", ini: 9.8, fim: 10.5, estado: "fila" },
   { maq: "recorte", os: "OS-2611", ini: 10.5, fim: 12.8, estado: "fila" },
-  { maq: "cnc", os: "OS-2617", ini: 8, fim: 9.7, estado: "fila" },
-  { maq: "solda", os: "OS-2608", ini: 8, fim: 10, estado: "fila" },
-  { maq: "solda", os: "OS-2617", ini: 10, fim: 18, estado: "fila" },
+  // Junção da OS-2608: a Montagem na fábrica só começa depois das duas trilhas (CNC e adesivo terminam hoje).
+  { maq: "solda", os: "OS-2608", ini: 8, fim: 10, estado: "fila", etapa: "Montagem na fábrica" },
+  { maq: "solda", os: "OS-2617", ini: 10, fim: 12.25, estado: "fila" },
 ];
 
 // Material por OS: empenhado no orçamento × consumido (baixa feita no apontamento)
@@ -211,7 +212,6 @@ const INSTALACOES = [
 ];
 
 // Aproveitamento de mídia (encaixe na bobina 1,60 m) — por máquina, hoje
-const ENCAIXE = { bobina: "Lona 440 g · 1,60 m", usado: 92.4, desperdicio: 7.6 };
 
 // Falta de material da OS em Aguardando material (US-PCP-032 · UC-PCMAT-02/03). Por insumo da receita:
 // necessário = receita × quantidade da OS · disponível = saldo no local da venda menos reservas ativas de outras OS e
@@ -291,6 +291,56 @@ const lancarDespesa = (os, d) => { DESPESAS[os] = [...despesasDe(os), d]; regist
 const conferirDespesa = (os, i, reembolsavel) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).map((x, k) => k === i ? { ...x, estado: "conferida", reembolsavel, conferiu: "Você" } : x); registrar({ os, tipo: "pcp", texto: "Conferiu despesa: " + d.descricao + " (" + fmt(d.valor) + (reembolsavel ? ", cobrar do cliente" : ", só no custo") + ")" }); };
 const removerDespesa = (os, i) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).filter((_, k) => k !== i); registrar({ os, tipo: "pcp", texto: "Removeu despesa: " + d.descricao + " (" + fmt(d.valor) + ")" }); };
 
-window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, noPosto, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE, AUTOFECHA, horaFimTurno, autofechaDe, corrigirAutofecha, TIPOS_DESP, despesasDe, lancarDespesa, conferirDespesa, removerDespesa,
+// UC-PCV-11 · versões da arte. Vale para a produção a última versão APROVADA, mesmo com uma troca esperando o
+// cliente (AprovacaoArteService::arteVigente). Trocar o arquivo só depois de aprovada: a troca reabre a aprovação com
+// link novo e as etapas seguintes voltam a esperar. As frases de recusa são as de AprovacaoArteService::trocarArquivo.
+const ARTES = {};
+const nomeArq = (url) => url.split("/").pop();
+const versoesArte = (os) => ARTES[os.id] || (ARTES[os.id] = [{ v: 3, arquivo: "https://drive.exemplo.com/" + os.id.toLowerCase() + "/arte-final-v3.pdf",
+  decisao: os.arte === "aprovada" ? "aprovada" : os.arte === "ajuste" ? "ajuste" : "pendente", em: os.arte === "aprovada" ? os.aprovadaEm : null }]);
+const arteVigente = (os) => [...versoesArte(os)].reverse().find((x) => x.decisao === "aprovada") || null;
+const arteEmProva = (os) => { const l = versoesArte(os); const u = l[l.length - 1]; return u.decisao === "pendente" ? u : null; };
+const trocarArte = (os, arquivo) => {
+  if (etapas(os).every((e) => e.estado === "feito" || e.estado === "pronto")) return "Esta OS já foi encerrada.";
+  const l = versoesArte(os); const u = l[l.length - 1];
+  if (u.decisao !== "aprovada") return u.decisao === "ajuste" ? "O cliente pediu ajuste: mande a nova prova pela aprovação pendente." : "Ainda não há arte aprovada: peça a aprovação do cliente.";
+  if (u.arquivo === arquivo) return "Este é o arquivo já aprovado.";
+  l.push({ v: u.v + 1, arquivo, decisao: "pendente", em: null }); os.arte = "aguardando";
+  registrar({ os: os.id, tipo: "arte", texto: "Trocou o arquivo da arte para " + nomeArq(arquivo) + " (v" + (u.v + 1) + "): link novo enviado ao cliente, a v" + u.v + " segue valendo até ele aprovar" });
+  return null;
+};
+
+// UC-PCV-23 · celular sem internet. Cada toque guarda a hora em que aconteceu e uma chave; quando a rede volta, a
+// fila sai na ordem dos toques e a mesma chave não grava duas vezes (Apontamento/_lib/fila.ts + idempotência do servidor).
+const CEL = { offline: false, fila: [] };
+const RECEBIDAS = new Set();
+let chaveSeq = 0;
+const semAplicar = ({ aplicar, ...ev }) => ev; // `aplicar` = efeito do toque no estado (ex.: mídia informada), roda quando ele chega
+const apontar = (ev) => { if (!CEL.offline) { if (ev.aplicar) ev.aplicar(); registrar(semAplicar(ev)); return false; } CEL.fila.push({ chave: "k" + (++chaveSeq), quando: agora(), ev }); return true; };
+const receberApontamento = (item) => { if (RECEBIDAS.has(item.chave)) return false; RECEBIDAS.add(item.chave); if (item.ev.aplicar) item.ev.aplicar();
+  registrar({ ...semAplicar(item.ev), quando: item.quando, texto: item.ev.texto + " (guardado sem internet, enviado quando a rede voltou)" }); return true; };
+const redeVoltou = () => { CEL.offline = false; let n = 0; while (CEL.fila.length) { if (receberApontamento(CEL.fila[0])) n++; CEL.fila.shift(); } return n; };
+
+// UC-PCV-26 · aproveitamento de mídia, versão 1 (D-ENCAIXE de 15/10). Por bobina: área das peças das OS ÷ mídia que o
+// operador informou no apontamento (o consumido de MATERIAIS). Só entram as OS com a impressão concluída: impressão em
+// andamento ainda vai gastar mídia. É a conta de AproveitamentoDeMidia (área útil ÷ área consumida); a sugestão de
+// encaixe na bobina fica para a versão 2. OS com mídia informada menor que a área das peças fica fora e é apontada.
+const MIDIAS = ["Lona 440 g 1,60 m", "Vinil branco brilho 1,37 m"];
+const IMPRESSAO_CONCLUIDA = {}; // os.id → true quando o operador conclui a impressão no celular
+const areaOs = (o) => { const m = /^([\d,]+)\s*m²$/.exec(o.qtd || ""); return m ? parseFloat(m[1].replace(",", ".")) : null; };
+const aproveitamento = (midia) => {
+  const linhas = OS.map((o) => { const mat = (MATERIAIS[o.id] || []).find((x) => x[0] === midia); const imp = etapas(o).find((e) => e.setor === "impressao");
+    return mat && mat[3] > 0 && areaOs(o) && (IMPRESSAO_CONCLUIDA[o.id] || (imp && imp.estado === "feito")) ? { os: o.id, util: areaOs(o), consumida: mat[3] } : null; }).filter(Boolean);
+  const ok = linhas.filter((l) => l.consumida >= l.util); const util = ok.reduce((t, l) => t + l.util, 0); const consumida = ok.reduce((t, l) => t + l.consumida, 0);
+  return { midia, os: ok.map((l) => l.os), fora: linhas.filter((l) => l.consumida < l.util), util, consumida, pct: consumida ? (util / consumida) * 100 : null };
+};
+// Sem internet, a mídia informada segue a fila do UC-PCV-23: só entra na conta quando o toque chega.
+const informarMidia = (osId, midia, m2) => { const mat = (MATERIAIS[osId] || []).find((x) => x[0] === midia); if (!mat) return;
+  apontar({ os: osId, quem: "Diego", tipo: "material", texto: "Informou " + h1(m2) + " m² de " + midia + " ao concluir a impressão", aplicar: () => { mat[3] = m2; IMPRESSAO_CONCLUIDA[osId] = true; } }); };
+
+window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, noPosto, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, AUTOFECHA, horaFimTurno, autofechaDe, corrigirAutofecha, TIPOS_DESP, despesasDe, lancarDespesa, conferirDespesa, removerDespesa,
+  MIDIAS, areaOs, aproveitamento, informarMidia,
+  nomeArq, versoesArte, arteVigente, arteEmProva, trocarArte,
+  CEL, apontar, receberApontamento, redeVoltou,
   etapas, atual, progresso, emProducao, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();

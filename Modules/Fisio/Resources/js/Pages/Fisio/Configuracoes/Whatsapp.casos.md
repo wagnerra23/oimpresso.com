@@ -5,7 +5,7 @@ irmaos: Whatsapp.charter.md (lei) · Whatsapp.tsx (tela)
 tecnica: Caso de uso = narrativa da clínica + critério de aceite verificável (Dado/Quando/Então)
 por_que: a escolha do canal decide se o paciente recebe lembrete e por qual número. Escolher o QR sem saber do risco de bloqueio para os lembretes de todos os pacientes; a escolha de uma clínica mudando o envio de outra é vazamento Tier 0.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-05"
 last_run_ci: "_pendente_ — FisioConfigWhatsappTest entra na lane Verticais · MySQL neste PR; o veredito é da lane."
 related_us: [US-FISIO-009]
 ---
