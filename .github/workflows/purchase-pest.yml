@@ -55,6 +55,8 @@ on:
       - 'Modules/Compras/Services/NecessidadeDeCompra.php'
       # Devoluções de compra (thread compras/playbook/08): DevolucoesCompraBaselineTest trava o index().
       - 'app/Http/Controllers/PurchaseReturnController.php'
+      - 'app/Http/Controllers/CombinedPurchaseReturnController.php'
+      - 'app/Utils/ProductUtil.php'
       # Sob teste em PurchaseIndexTenantContratoTest (UC-PURIDX-02): é `getListPurchases`
       # que carrega os DOIS escopos de business da lista. Sem este gatilho, mexer nele não
       # dispararia o teste dele — gate mudo com cara de cobertura.
@@ -109,6 +111,8 @@ jobs:
               - 'app/Http/Controllers/PurchaseRequisitionController.php'
               - 'Modules/Compras/Services/NecessidadeDeCompra.php'
               - 'app/Http/Controllers/PurchaseReturnController.php'
+              - 'app/Http/Controllers/CombinedPurchaseReturnController.php'
+              - 'app/Utils/ProductUtil.php'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/Util.php'
               - 'app/User.php'
@@ -232,6 +236,7 @@ jobs:
             tests/Feature/Purchase/DevolucoesCompraBaselineTest.php \
             tests/Feature/Purchase/DevolucoesCompraContratoTest.php \
             tests/Feature/Purchase/DevolucaoCompraStoreBaselineTest.php \
+            tests/Feature/Purchase/LinhaDeCompraPorTransacaoTenantTest.php \
             tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
