@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 50 |
+| US no SPEC | 52 |
 | CU no SDD | 19 |
 | Telas (.tsx) | 9 |
 | Telas com `casos.md` | 10 |
@@ -30,8 +30,12 @@ authority: generated
 | `CU-OFI-03` sem UC | caso de uso que o exercite — Consulta de placa auto-preenche dados técnicos |
 | `CU-OFI-14` sem UC | caso de uso que o exercite — Ver o pátio num relance |
 | `CU-OFI-17` sem UC | caso de uso que o exercite — Painel fiscal da OS |
+| `US-OFICINA-005` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Cleanup tools pra cliente legacy migrado — **P0 (emergente P |
+| `US-OFICINA-006` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — FSM wire-up canônico `ServiceOrder` (espelha Sells/Repair AD |
 | `US-OFICINA-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Consulta CRLV/placa (cache 30d + adapter pluggable) — **P1** |
 | `US-OFICINA-042` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel fiscal NF-e/NFS-e na OS |
+| `US-OFICINA-027` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Itens da OS (peça, mão de obra, serviço) + box e responsável |
+| `US-OFICINA-037` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Imprimir OS em A4 (laudo/nota de balcão) |
 
 ### Backlog — NÃO é lacuna
 
@@ -42,8 +46,6 @@ authority: generated
 
 | US | status | Título |
 |---|---|---|
-| US-OFICINA-005 | `desconhecido` | Cleanup tools pra cliente legacy migrado — **P0 (emergente PR #555)** |
-| US-OFICINA-006 | `desconhecido` | FSM wire-up canônico `ServiceOrder` (espelha Sells/Repair ADR 0143) — **P0** |
 | US-OFICINA-007 | `todo` | Importer Vargas (1.064 veículos multi-placa) — **P0** |
 | US-OFICINA-008 | `todo` | Schema garantia granular per-item (`oa_pecas_utilizadas`+`oa_servicos_executados |
 | US-OFICINA-009 | `todo` | Defeitos múltiplos por OS (JSON array) — **P1** |
