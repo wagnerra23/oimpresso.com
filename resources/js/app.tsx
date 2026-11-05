@@ -21,7 +21,14 @@ import '@fontsource/ibm-plex-sans/700.css';
 import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
 
-import '../css/inertia.css';
+// inertia.css NÃO é importado aqui: ele já é entrada própria do Vite
+// (vite.inertia.config.mjs `input`) e sai no <head> pelo @vite de
+// layouts/inertia.blade.php. Importar também por aqui fazia o CSS entrar duas
+// vezes: o build de 2026-11 o listava como dependência de 721 Pages, e o preload
+// do Vite injetava um 2º <link> com href relativo (/build-inertia/…), que não casa
+// com o href absoluto do Blade. Medido em produção (2026-11-04, /vendas/caixa e
+// /sells, tema escuro): desligar a 2ª cópia muda 0 estilos computados; a cascata
+// é decidida pela 1ª, que fica.
 
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';

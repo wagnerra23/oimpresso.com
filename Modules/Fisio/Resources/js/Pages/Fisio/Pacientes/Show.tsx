@@ -21,12 +21,14 @@ import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
 import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilClinicoCampos';
+import { SINAIS } from '../Public/_components/portal';
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
 import Questionarios, { HistoricoQuestionarios, type Instrumento, type RespostaQuestionario } from '../_components/Questionarios';
 import ResponsavelPaciente, { type Profissional, type Transferencia } from '../_components/ResponsavelPaciente';
 import EvolucaoPaciente, { type Evolucao, type PontoDor } from '../_components/EvolucaoPaciente';
 import EditorPrograma, { type ExercicioBiblioteca, type Programa, type ProtocoloModelo } from '../_components/EditorPrograma';
 import ExportarProntuarioPdf from '../_components/ExportarProntuarioPdf';
+import AvaliacaoEstruturada from '../_components/AvaliacaoEstruturada';
 import LinkPortal from '../_components/LinkPortal';
 
 interface Paciente {
@@ -73,11 +75,27 @@ const CAMPOS_AVALIACAO: [string, string][] = [
   ['diagnostico_cinesiologico', 'Diagnóstico cinesiológico-funcional'], ['objetivos', 'Objetivos'], ['plano_tratamento', 'Plano de tratamento'],
 ];
 const CAMPOS_EVOLUCAO: [string, string][] = [['conduta', 'Conduta'], ['resposta_paciente', 'Resposta do paciente']];
-const ROTULO_CAMPO: Record<string, string> = Object.fromEntries([...CAMPOS_AVALIACAO, ...CAMPOS_EVOLUCAO, ['texto', 'Correção']]);
+// Relato do portal (CheckinDoPortal::corpoDoRelato) chega com chave técnica; a ficha mostra o nome.
+const CAMPOS_RELATO: [string, string][] = [
+  ['autor', 'Autor'], ['itens_feitos', 'Exercícios feitos'], ['vezes', 'Vezes'], ['pain', 'Dor (0 a 10)'],
+  ['effort', 'Esforço'], ['note', 'Nota do paciente'], ['red_flags', 'Sinais de alerta'], ['crisis', 'Crise'],
+];
+const ROTULO_CAMPO: Record<string, string> = Object.fromEntries([...CAMPOS_AVALIACAO, ...CAMPOS_EVOLUCAO, ...CAMPOS_RELATO, ['texto', 'Correção']]);
+const VALOR_LEGIVEL: Record<string, string> = {
+  ...SINAIS,
+  paciente_portal: 'Paciente, pelo portal', facil: 'Fácil', adequado: 'Adequado', dificil: 'Difícil',
+};
 
 const dataHora = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
-const texto = (v: unknown) => (Array.isArray(v) ? v.join('; ') : String(v ?? ''));
+// Só os campos do relato traduzem valor (autor, esforço, sinais); texto clínico sai como foi assinado.
+const TRADUZ = new Set(['autor', 'effort', 'red_flags']);
+const texto = (v: unknown, campo = ''): string => {
+  if (Array.isArray(v)) return v.length ? v.map((x) => texto(x, campo)).join('; ') : '—';
+  if (typeof v === 'boolean') return v ? 'Sim' : 'Não';
+  if (v === null || v === undefined || v === '') return '—';
+  return (TRADUZ.has(campo) && VALOR_LEGIVEL[String(v)]) || String(v);
+};
 
 function Perfil({ paciente, condicoes, podeEditar }: { paciente: Paciente; condicoes: string[]; podeEditar: boolean }) {
   const form = useForm<PerfilClinico>({
@@ -145,6 +163,8 @@ function NovoRegistro({ pacienteId, corrigindo, onPronto }: { pacienteId: number
     });
   };
   const erros = form.errors as Record<string, string>;
+  // Avaliação usa o formulário em seções do protótipo (Lote 2); evolução e adendo seguem aqui.
+  if (!corrigindo && tipo === 'avaliacao') return <AvaliacaoEstruturada pacienteId={pacienteId} onPronto={onPronto} onEvolucao={() => setTipo('evolucao')} />;
 
   return (
     <form onSubmit={assinar} className="flex flex-col gap-3 rounded-lg border border-border p-4">
@@ -195,7 +215,7 @@ function LinhaDoTempo({ registros, podeEditar, onCorrigir }: { registros: Regist
           </div>
           <dl className="mt-2 flex flex-col gap-1 text-sm">
             {Object.entries(r.body).map(([k, v]) => (
-              <div key={k}><dt className="inline text-muted-foreground">{ROTULO_CAMPO[k] ?? k}: </dt><dd className="inline">{texto(v)}</dd></div>
+              <div key={k}><dt className="inline text-muted-foreground">{ROTULO_CAMPO[k] ?? k}: </dt><dd className="inline">{texto(v, k)}</dd></div>
             ))}
           </dl>
         </li>

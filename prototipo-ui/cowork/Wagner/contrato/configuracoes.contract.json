@@ -82,7 +82,7 @@
     },
     { "id": "locais", "seletor": ".cfg-page .hrm-tabela, .cfg-page .os-table",
       "componente": "DataTablePro",
-      "colunas": ["Nome", "ID do local", "Ponto de referência", "Cidade", "CEP", "UF", "Tabela de preço", "Numeração", "Layout na venda", "Ações"],
+      "colunas": ["Nome", "ID do local", "Ponto de referência", "Cidade", "CEP", "UF", "Tabela de preço", "Numeração", "Layouts (PDV · venda)", "Ações"],
       "acoesLinha": [
         { "id": "editar", "copy": "Editar", "perm": "business_settings.access" },
         { "id": "recibo", "copy": "Recibo", "perm": "business_settings.access + can_access_this_location" },
@@ -90,9 +90,10 @@
       ],
       "drawer": {
         "componente": "Drawer",
-        "secoes": ["Identificação", "Endereço", "Contato", "Documento e preço", "Formas de pagamento"],
+        "secoes": ["Identificação", "Endereço", "Contato", "Documento e preço", "Campos personalizados", "Formas de pagamento no PDV"],
         "identificacao": ["Nome", "ID do local", "Razão social", "Nome fantasia", "CNPJ", "Inscrição estadual", "Inscrição municipal"],
-        "formasPagamento": { "seletor": ".cfg-pagtos", "colunas": ["Forma de pagamento", "Aceita", "Conta padrão"], "campo": "default_payment_accounts" }
+        "formasPagamento": { "seletor": ".cfg-pagtos", "colunas": ["Forma de pagamento", "Aceita", "Conta padrão"], "campo": "default_payment_accounts", "regra": "coluna Conta padrão só com contas (módulo account); cadastro novo liga todas as formas, sem conta" },
+        "obrigatorios": ["Nome", "Cidade", "CEP", "Estado", "País", "Numeração no PDV", "Numeração na venda", "Layout no PDV", "Layout na venda"]
       },
       "lote": { "componente": "BulkBar", "acoes": ["Exportar seleção"], "regra": "excluir NÃO entra em lote" },
       "recibo": { "blade": "location_settings/index.blade.php", "campos": ["Imprimir recibo ao faturar", "Tipo de impressão", "Impressora de recibo", "Layout da fatura", "Esquema de numeração"], "regra": "APP_ENV=demo força receipt_printer_type=browser" }
@@ -101,7 +102,7 @@
       "id": "fatura",
       "seletor": ".cfg-page .hrm-seg",
       "copy": ["Esquemas de numeração", "Layouts da fatura"],
-      "esquemas": { "colunas": ["Nome", "Prefixo", "Tipo de número", "Número inicial", "Emitidas", "Dígitos", "Ações"] },
+      "esquemas": { "colunas": ["Nome", "Prefixo", "Formato", "Numeração", "Número inicial", "Emitidas", "Dígitos", "Próximo número", "Ações"], "acoesLinha": ["Editar", "Tornar padrão", "Excluir"], "regra": "esquema padrão não se exclui; Tornar padrão some no padrão" },
       "layouts": { "componente": "Card", "acoes": ["Abrir editor", "Excluir"], "regra": "layout padrão não pode ser excluído" },
       "editor": {
         "seletor": ".cfg-lay",

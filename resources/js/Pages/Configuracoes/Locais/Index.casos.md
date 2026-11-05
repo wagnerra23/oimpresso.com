@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: cada local carrega CNPJ e fatura próprios; local de outro negócio, ou que o usuário não pode acessar, não pode aparecer.
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-11-04"
 ---
 
 # Casos de Uso & Aceite — Locais comerciais
