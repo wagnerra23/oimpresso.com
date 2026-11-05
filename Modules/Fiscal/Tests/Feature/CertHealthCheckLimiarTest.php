@@ -48,6 +48,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    // No MySQL a tabela é a real: nunca derrubar. O auditor sqlite-test-corruptors lê esta guarda.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        return;
+    }
     if ($this->criouTabelaCert ?? false) {
         Schema::dropIfExists('nfe_certificados');
     }
