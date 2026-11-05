@@ -374,7 +374,10 @@ function AbaBens({ db, papel, dense, filtro, setFiltro, busca, setBusca, sel, on
         {DropdownMenu &&
           <DropdownMenu align="end" width={200}
             trigger={({ onClick }) => <Button size="sm" variant="ghost" onClick={onClick}><PtrIc name="columns" /><span>Colunas</span></Button>}
-            items={COLUNAS.map((c) => ({ id: c.id, label: (cols[c.id] ? "✓ " : "  ") + c.l, disabled: c.req,
+            // O menu do DS só emite role="menuitem" (sem aria-checked): o estado vai no nome
+            // acessível, e o ✓ fica só visual.
+            items={COLUNAS.map((c) => ({ id: c.id, disabled: c.req,
+              label: <><span aria-hidden="true" style={{ display: "inline-block", width: "1.2em" }}>{cols[c.id] ? "✓" : ""}</span>{c.l}<span className="ptr-sr">{c.req ? " — sempre visível" : cols[c.id] ? " — visível" : " — oculta"}</span></>,
               onSelect: () => !c.req && setCols((o) => ({ ...o, [c.id]: !o[c.id] })) }))} />}
       </div>
       {chips.length > 0 && FilterChip &&
@@ -758,6 +761,20 @@ function PatrimonioPage({ view, dense, estado = "dados", toque, papel: papelProp
   const [sel, setSel] = useState(null);
   const [modal, setModal] = useState(null);
   const [hora, setHora] = useState("09:42");
+  // O <kbd>/</kbd> da busca prometia um atalho sem handler: "/" fora de campo de texto foca a busca.
+  const buscaRef = useRef(null);
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (!buscaRef.current) return;
+      e.preventDefault();
+      buscaRef.current.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
   useEffect(() => { if (inicial) setAba(inicial); }, [view]);
 
   // Abas com conteúdo neste módulo. "auditoria" é deep-link (ADR 0414) e Garantias é o
@@ -802,8 +819,8 @@ function PatrimonioPage({ view, dense, estado = "dados", toque, papel: papelProp
           acoes={<>
             <div className="mp-busca">
               <span aria-hidden="true">⌕</span>
-              <input aria-label="Buscar bem, código ou número de série" placeholder="Buscar bem, código, série..." value={busca} onChange={(e) => { setBusca(e.target.value); setAba("bens"); }} />
-              <kbd>/</kbd>
+              <input ref={buscaRef} aria-keyshortcuts="/" aria-label="Buscar bem, código ou número de série" placeholder="Buscar bem, código, série..." value={busca} onChange={(e) => { setBusca(e.target.value); setAba("bens"); }} />
+              <kbd aria-hidden="true">/</kbd>
             </div>
             {Button && P.can(papel, "allocate") && <Button variant="ghost" onClick={() => acoes.alocar(null)}>Alocar recurso</Button>}
             {Button && P.can(papel, "create") && <Button variant="primary" onClick={acoes.novo}>Adicionar recurso</Button>}
