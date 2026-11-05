@@ -14,7 +14,7 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 207 arquivos em 19 papéis.
+**Total mapeado:** 202 arquivos em 19 papéis.
 
 ## Controllers — 19
 
@@ -42,7 +42,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 35
+## Services — 36
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AparelhosDoPortal.php](../../../Modules/Fisio/Services/AparelhosDoPortal.php)
@@ -64,6 +64,7 @@ module: Fisio
 - [MidiaExercicio.php](../../../Modules/Fisio/Services/MidiaExercicio.php)
 - [MissoesCalculator.php](../../../Modules/Fisio/Services/MissoesCalculator.php)
 - [NivelCalculator.php](../../../Modules/Fisio/Services/NivelCalculator.php)
+- [SaldoDoPacote.php](../../../Modules/Fisio/Services/Pacotes/SaldoDoPacote.php)
 - [PainelFisio.php](../../../Modules/Fisio/Services/PainelFisio.php)
 - [PortalTokenService.php](../../../Modules/Fisio/Services/PortalTokenService.php)
 - [ProntuarioExportacao.php](../../../Modules/Fisio/Services/ProntuarioExportacao.php)
@@ -80,10 +81,8 @@ module: Fisio
 - [MensagensFisio.php](../../../Modules/Fisio/Services/Whatsapp/MensagensFisio.php)
 - [XpDoDiaCalculator.php](../../../Modules/Fisio/Services/XpDoDiaCalculator.php)
 
-## Models / Entities — 19
+## Models / Entities — 18
 
-- [Appointment.php](../../../Modules/Fisio/Entities/Appointment.php)
-- [AppointmentType.php](../../../Modules/Fisio/Entities/AppointmentType.php)
 - [Checkin.php](../../../Modules/Fisio/Entities/Checkin.php)
 - [EscopoBibliotecaFisio.php](../../../Modules/Fisio/Entities/Concerns/EscopoBibliotecaFisio.php)
 - [SemExclusaoDeDadoClinico.php](../../../Modules/Fisio/Entities/Concerns/SemExclusaoDeDadoClinico.php)
@@ -92,6 +91,8 @@ module: Fisio
 - [Exercise.php](../../../Modules/Fisio/Entities/Exercise.php)
 - [ExerciseFavorite.php](../../../Modules/Fisio/Entities/ExerciseFavorite.php)
 - [GameLedger.php](../../../Modules/Fisio/Entities/GameLedger.php)
+- [Pacote.php](../../../Modules/Fisio/Entities/Pacote.php)
+- [PacoteLancamento.php](../../../Modules/Fisio/Entities/PacoteLancamento.php)
 - [Patient.php](../../../Modules/Fisio/Entities/Patient.php)
 - [PortalDevice.php](../../../Modules/Fisio/Entities/PortalDevice.php)
 - [PortalToken.php](../../../Modules/Fisio/Entities/PortalToken.php)
@@ -100,7 +101,6 @@ module: Fisio
 - [Protocol.php](../../../Modules/Fisio/Entities/Protocol.php)
 - [Questionnaire.php](../../../Modules/Fisio/Entities/Questionnaire.php)
 - [Record.php](../../../Modules/Fisio/Entities/Record.php)
-- [ScheduleBlock.php](../../../Modules/Fisio/Entities/ScheduleBlock.php)
 
 ## Jobs — 2
 
@@ -136,7 +136,7 @@ module: Fisio
 - [2026_10_19_000090_seed_biblioteca_global_fisio.php](../../../Modules/Fisio/Database/Migrations/2026_10_19_000090_seed_biblioteca_global_fisio.php)
 - [2026_10_19_000095_add_client_key_to_fisio_checkins.php](../../../Modules/Fisio/Database/Migrations/2026_10_19_000095_add_client_key_to_fisio_checkins.php)
 - [2026_10_19_000120_add_missoes_desafio_jogo_fisio.php](../../../Modules/Fisio/Database/Migrations/2026_10_19_000120_add_missoes_desafio_jogo_fisio.php)
-- [2026_11_04_000301_create_fisio_agenda_tables.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000301_create_fisio_agenda_tables.php)
+- [2026_11_04_000400_create_fisio_packages.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000400_create_fisio_packages.php)
 - [2026_11_04_000500_create_fisio_settings.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000500_create_fisio_settings.php)
 
 ## Seeders — 2
@@ -207,9 +207,9 @@ module: Fisio
 - [Painel.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
 
-## Testes (Pest) — 50
+## Testes (Pest) — 49
 
-- 36 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 35 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 2 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
 - 12 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
@@ -222,6 +222,7 @@ module: Fisio
 - [PatientFactory.php](../../../Modules/Fisio/Database/Factories/PatientFactory.php)
 - [ProgramFactory.php](../../../Modules/Fisio/Database/Factories/ProgramFactory.php)
 - [DadoClinicoImutavelException.php](../../../Modules/Fisio/Exceptions/DadoClinicoImutavelException.php)
+- [PacoteIndisponivelException.php](../../../Modules/Fisio/Exceptions/PacoteIndisponivelException.php)
 - [SinalDeAlertaNotification.php](../../../Modules/Fisio/Notifications/SinalDeAlertaNotification.php)
 - [facetas.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/facetas.ts)
 - [portal.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/portal.ts)
