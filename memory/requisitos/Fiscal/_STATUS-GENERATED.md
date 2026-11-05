@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 30 |
 | CU no SDD | 16 |
-| Telas (.tsx) | 7 |
-| Telas com `casos.md` | 9 |
-| UC declarados | 148 |
-| UC com teste que os cita | 142 |
+| Telas (.tsx) | 8 |
+| Telas com `casos.md` | 10 |
+| UC declarados | 161 |
+| UC com teste que os cita | 155 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -98,6 +98,10 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCKP-12 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-13 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-14 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FDAS-01 | Das | 🧪 aguarda veredito da lane |
+| UC-FDAS-02 | Das | 🧪 aguarda veredito da lane |
+| UC-FDAS-03 | Das | 🧪 aguarda veredito da lane |
+| UC-FDAS-04 | Das | 🧪 aguarda veredito da lane |
 | UC-FDFE-01 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-02 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-03 | Dfe | 🧪 aguarda veredito da lane |
@@ -111,6 +115,9 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FDFE-11 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-12 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FDFE-13 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FDFE-14 | Dfe | 🧪 aguarda veredito da lane |
+| UC-FDFE-15 | Dfe | 🧪 aguarda veredito da lane |
+| UC-FDFE-16 | Dfe | 🧪 aguarda veredito da lane |
 | UC-FEVT-01 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-02 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-03 | Eventos | 🧪 aguarda veredito da lane |
@@ -169,6 +176,12 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FNFE-54 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-55 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-56 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-57 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-58 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-59 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-60 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-61 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-62 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFSE-01 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-02 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-03 | Nfse | 🧪 aguarda veredito da lane |

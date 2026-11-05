@@ -58,6 +58,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 | UC-FCKP-10 | cert A1 VENCIDO entra na fila de alertas | `[must]` | CU-FISC-01 | `CockpitControllerTest` | 🧪 |
 | UC-FCKP-11 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota no UC) | `fiscal-cockpit-teclado.test.tsx` | 🧪 |
 | UC-FCKP-12 | as séries de 14 dias do ribbon são desenhadas | `[must]` | CU-FISC-01 | `fiscal-cockpit-sparklines.test.tsx` | 🧪 |
+| UC-FCKP-15 | cancelar ou inutilizar uma nota derruba o cache da empresa, e só dela | `[must]` `[T0]` | CU-FISC-12 | `CockpitCacheTest` | 🧪 |
 
 ---
 
@@ -262,6 +263,18 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 
 ---
 
+## UC-FCKP-15 — Cancelar ou inutilizar uma nota derruba o cache da empresa, e só dela `[must]` `[T0]`
+
+**Dado** os indicadores do cockpit em cache para duas empresas
+**Quando** uma nota da primeira é cancelada, inutilizada sozinha, ou entra numa faixa inutilizada
+**Então** o cache da primeira empresa cai na hora; o da outra continua.
+
+- **Regressão que defende:** até 2026-11-05 só a autorização de NF-e/NFC-e invalidava o cache; cancelamento e inutilização deixavam o número velho na tela por até 60 s (D14 da auditoria do Fiscal). Esses fluxos não disparam evento de domínio — o listener escuta o `eloquent.saved`/`eloquent.deleted` de `NfeEmissao`, `NfeInutilizacao`, `NfeDfeRecebido` e `NfeCertificado`, os quatro dados que o cache conta. NFS-e não entra: os indicadores cacheados não contam `nfse_emissoes`.
+- **Teste:** `Modules/Fiscal/Tests/Feature/CockpitCacheTest.php` — `it('UC-FCKP-15 · o provider registra o listener nos eventos de autorização e de gravação')` e `it('UC-FCKP-15 · cancelar e inutilizar uma nota derrubam o cache da empresa, e só dela')` (tenant 98 × 99, MySQL).
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[ATENDIDO em 2026-09-04 → `UC-FCKP-13`] As 4 superfícies de demonstração que SOBRARAM** — o item nasceu sem id porque faltava contrato dizendo qual das três saídas era a certa (fonte real × esconder atrás de flag × declarar Non-Goal). [W] decidiu pela primeira — marcar a procedência na tela — e o caso virou `UC-FCKP-13` acima, com teste que o cita. _As quatro seguem servindo dado inventado: o que mudou é que a tela passou a dizer isso._
@@ -278,6 +291,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 
 ## Trilha do tempo
 
+- 2026-11-05 · [C] `UC-FCKP-15` — o cache dos indicadores passa a cair em cancelamento, inutilização, DF-e e certificado (D14 da auditoria do Fiscal). O teste do listener do `UC-FCKP-06` deixou de fazer o próprio `Cache::forget`: agora chama o listener.
 - 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **6 UC** derivados do §6 do SDD; todos herdam testes existentes. O achado do dado de demonstração ficou como `[BACKLOG]` + `CU-FISC-16` ⬜, por ser decisão de produto.
 - 2026-09-03 · [CC] Onda 1 Fiscal (Cowork): **UC-FCKP-08** — a fila de alertas passa a ser renderizada (`_components/AlertasFiscais.tsx`). O caso nasce com teste próprio e bite-test; cobre os dois contratos cross-language silenciosos (`goto`→rota, `icon`→glifo).
