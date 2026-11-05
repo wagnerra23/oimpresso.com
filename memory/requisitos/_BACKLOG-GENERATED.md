@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1086 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1087 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -30,11 +30,11 @@
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
+| [`Fisio`](#fisio) | 17 | 0 | 0 | 0 | 17 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 16 | 1 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
-| [`Fisio`](#fisio) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
@@ -1051,6 +1051,29 @@
 - **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
 - **US-PONTO-013** — Consertar as duas telas que nao persistem
 
+## Fisio
+
+
+### todo
+
+- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
+- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
+- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
+- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
+- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
+- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
+- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
+- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
+- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
+- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
+- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
+- **US-FISIO-012** — Fecha o loop da F1 — **P1**
+- **US-FISIO-013** — Schema da agenda: tipos, atendimentos, bloqueios, lista de espera e regras da clínica — **P0**
+- **US-FISIO-014** — Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
+- **US-FISIO-015** — Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
+- **US-FISIO-016** — Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
+- **US-FISIO-051** — Pré-anamnese no portal antes da primeira consulta — **P1**
+
 ## Officeimpresso
 
 
@@ -1145,28 +1168,6 @@
 - **US-ESS-014** — Configurações do módulo por business (admin)
 - **US-ESS-015** — Folha CLT: modelo de verba (rubrica, vigência, competência, item)
 - **US-ESSE-001** — [TODO — título]
-
-## Fisio
-
-
-### todo
-
-- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
-- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
-- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
-- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
-- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
-- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
-- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
-- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
-- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
-- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
-- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
-- **US-FISIO-012** — Fecha o loop da F1 — **P1**
-- **US-FISIO-013** — Schema da agenda: tipos, atendimentos, bloqueios, lista de espera e regras da clínica — **P0**
-- **US-FISIO-014** — Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
-- **US-FISIO-015** — Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
-- **US-FISIO-016** — Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
 
 ## Autopecas
 
