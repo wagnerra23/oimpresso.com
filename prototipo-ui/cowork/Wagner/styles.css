@@ -5579,7 +5579,7 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
 .vendas-aplus .vd-views-sep{ height: 1px; background: var(--border-2); margin: 4px -4px; }
 
 /* ── KPIs ── */
-.vendas-aplus .vd-kpis{ grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.vendas-aplus .vd-kpis{ grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .vendas-aplus .vd-kpi-hero{
   background: var(--vd-green-hero); color: var(--surface);
   border-color: var(--vd-green-hero);

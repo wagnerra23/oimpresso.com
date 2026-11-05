@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1088 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1092 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -25,12 +25,12 @@
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
+| [`Fisio`](#fisio) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
-| [`Fisio`](#fisio) | 18 | 0 | 0 | 0 | 18 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 16 | 1 | 0 | 0 | 15 |
@@ -910,6 +910,34 @@
 - **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
 - **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
 
+## Fisio
+
+
+### todo
+
+- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
+- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
+- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
+- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
+- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
+- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
+- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
+- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
+- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
+- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
+- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
+- **US-FISIO-012** — Fecha o loop da F1 — **P1**
+- **US-FISIO-013** — Schema da agenda: tipos, atendimentos, bloqueios, lista de espera e regras da clínica — **P0**
+- **US-FISIO-014** — Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
+- **US-FISIO-015** — Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
+- **US-FISIO-016** — Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
+- **US-FISIO-020** — Pacote de sessões com saldo derivado de ledger append-only — **P0**
+- **US-FISIO-021** — Tela "Pacote e cobrança" da ficha do paciente — **P0**
+- **US-FISIO-022** — Vender e renovar pacote pela venda do núcleo — **P0**
+- **US-FISIO-023** — Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0**
+- **US-FISIO-024** — Lote do Receita Saúde no layout oficial — **P1**
+- **US-FISIO-025** — Planos do produto Fisio no Superadmin — **P1**
+
 ## Connector
 
 
@@ -1050,30 +1078,6 @@
 - **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
 - **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
 - **US-PONTO-013** — Consertar as duas telas que nao persistem
-
-## Fisio
-
-
-### todo
-
-- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
-- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
-- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
-- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
-- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
-- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
-- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
-- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
-- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
-- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
-- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
-- **US-FISIO-012** — Fecha o loop da F1 — **P1**
-- **US-FISIO-020** — Pacote de sessões com saldo derivado de ledger append-only — **P0**
-- **US-FISIO-021** — Tela "Pacote e cobrança" da ficha do paciente — **P0**
-- **US-FISIO-022** — Vender e renovar pacote pela venda do núcleo — **P0**
-- **US-FISIO-023** — Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0**
-- **US-FISIO-024** — Lote do Receita Saúde no layout oficial — **P1**
-- **US-FISIO-025** — Planos do produto Fisio no Superadmin — **P1**
 
 ## Officeimpresso
 

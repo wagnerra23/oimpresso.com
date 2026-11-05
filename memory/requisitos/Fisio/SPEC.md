@@ -168,6 +168,42 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 > owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story
 > blocked_by: US-FISIO-001..011. Âncoras `Implementado em:` com `verificado@sha7` (ADR 0273).
 
+## User Stories — F3 Operação: agenda
+
+> Admitida por pedido direto de [W] em 2026-11-04 (levar sidebar e telas do canvas Prescreve Pro para produção, lote 3), que vale como decisão ([ADR 0382](../../decisions/0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w.md)). Regras e dados: [`etapas/04-f3-operacao.md`](etapas/04-f3-operacao.md) §3.2 (A1–A21). Fonte visual: `prototipo-ui/cowork/Wagner/prototipos/fisio/` (`Agenda`, `ConfigAgendamentoOnline`, `PacienteAgendar`, `PacienteAgendaConfirmar`, `PacienteConsultas`) e a pesquisa `ComparativoAgendamento`. `PacienteSerieConfirmar` não é agenda (é a confirmação de repetições da câmera, F2).
+>
+> **Reusar × criar (F3-T01, só a parte da agenda), avaliado em 2026-11-04:** o `bookings` do núcleo (`database/migrations/2018_06_13_133705_create_bookings_table.php`, `app/Restaurant/Booking.php`) é reserva de mesa (mesa, garçom, local, três status) e depende do módulo `booking` do restaurante; não tem profissional, tipo de atendimento, duração, confirmação, lista de espera nem faltas. A agenda da Oficina (`oficina_agendamentos`) é por veículo e já registrou a mesma decisão. A agenda de instalação da Comunicação Visual é por equipe e veículo. Decisão: tabelas próprias `fisio_*`, como a etapa F3 previa. Cobrança (sinal por Pix, pacote, recibo) fica para o lote do Financeiro: aqui só o gancho (`deposit_percent` desligado). Lembrete e confirmação saem pelo módulo `Whatsapp`, como na US-FISIO-009.
+
+### US-FISIO-013 · Schema da agenda: tipos, atendimentos, bloqueios, lista de espera e regras da clínica — **P0**
+
+**Implementado em:** _pendente_ — schema e models no PR do lote 3; a âncora fecha com as regras da US-FISIO-014.
+
+> owner: — · priority: p0 · estimate: 4h · status: doing · type: story
+> Tabelas `fisio_appointment_types`, `fisio_appointments`, `fisio_schedule_blocks`, `fisio_waitlist`, `fisio_booking_settings`, todas com `business_id` indexado + FK. Atendimento não é apagado (sai por status); o recado e a nota do paciente ficam só na clínica.
+
+**DoD:** as 5 tabelas com `business_id`; sob a sessão da 98 cada model enxerga só a 98 e a 99 só a 99; atendimento não é apagado pelo Eloquent; uma linha de regras por empresa — `FisioAgendaEsquemaTest`.
+
+### US-FISIO-014 · Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
+
+**Implementado em:** _pendente_
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> blocked_by: US-FISIO-013. A1 (conflito de profissional), A4 (encaixe com confirmação), A5 (bloqueio), A7 (vaga liberada aponta os compatíveis da lista de espera), A8 (prazo de cancelamento; falta e cancelamento tardio só **sugeridos**, o profissional confirma), A10 (status; "realizado" exige evolução assinada), A21 (bloqueio do app depois de N faltas sem aviso, reversível pelo profissional).
+
+### US-FISIO-015 · Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
+
+**Implementado em:** _pendente_
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: US-FISIO-014. `/fisio/agenda` (semana por profissional, legenda de status, resumo do dia, vaga liberada e lista de espera, nova sessão em 3 campos, bloquear horário) e `/fisio/agenda/configuracoes` (ligar o app, quem pode marcar, tipos liberados, horários abertos, regras). Item "Agenda" no menu do Fisio.
+
+### US-FISIO-016 · Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
+
+**Implementado em:** _pendente_
+
+> owner: — · priority: p0 · estimate: 10h · status: todo · type: story
+> blocked_by: US-FISIO-015. A9 (horários livres dentro das regras), A7 ("me avise se abrir vaga"), A6 (confirmar / remarcar / não vou poder ir pelo link da mensagem), A19 ("Cheguei" a partir de 1 h antes), A20 (recado ao marcar; nota 1–5 privada), remarcar e cancelar até o prazo da política, bloqueio por faltas. Dependentes (A16) e sinal por Pix (A17) entram depois, com o consentimento do responsável legal e com o Financeiro.
+
 ## F3 · Dinheiro — mapa de donos (F3-T01, lote 4 do protótipo Prescreve Pro)
 
 > Origem: [W] 2026-11-04 pediu levar o protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/` para produção em lotes. Este é o lote 4: `Financeiro.dc.html` (aba "Pacote e cobrança" da ficha), `FiscalFila.dc.html` (documentos fiscais do dia) e `Planos.dc.html`. Regra de [W] para o lote: **nenhum financeiro paralelo**. O Fisio mostra e dispara; título, nota e assinatura ficam nos módulos donos. A F3 ainda não passou pelo funil da ADR 0368 (F3-T00); estas US registram o levantamento F3-T01 e o que o lote 4 constrói sem escrever valor.
