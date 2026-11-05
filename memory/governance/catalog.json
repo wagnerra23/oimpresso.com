@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 896,
-    "edges": 1213,
+    "nodes": 897,
+    "edges": 1214,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 150,
-      "component": 506,
+      "component": 507,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 506,
+      "hasComponent": 507,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
