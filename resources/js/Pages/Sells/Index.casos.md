@@ -5,8 +5,19 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-29"
+last_run: "2026-11-05"
 ---
+
+> ℹ️ **`last_run` 2026-11-04 → 2026-11-05 (G-6): só a fileira de KPIs mudou de largura.** Os 5 KPIs ficam numa linha
+> a 1280px (decisão [W] 2026-11-05), e o detalhamento por origem do Faturado hoje passa a 1 item por linha. Nenhum UC desta
+> tela trata dos KPIs, então nenhum foi reexecutado; o bump registra a reconciliação do trio nesta data.
+
+> ℹ️ **`last_run` 2026-10-29 → 2026-11-04 (G-6): a tela mudou de LAYOUT, não de comportamento dos UCs.**
+> O PR-1d da Onda 1 de Sells moveu blocos do `Index.tsx`: as pílulas ficaram sozinhas na linha; Foco, visão salva, Visão,
+> Filtros e busca desceram para a linha de baixo; Imprimir caixa e o menu Visões subiram para o cabeçalho (o link
+> "Rascunhos" do UC-SIDX-04 continua no menu Visões). Nenhum UC desta tela trata dos KPIs, e nenhum foi reexecutado por
+> causa disso; o UC-SIDX-07 (mesmo dia, PR-1c) tem prova própria na lane do Sells. O bump registra que o trio foi
+> reconciliado com a tela nesta data, não um re-run.
 
 > ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
