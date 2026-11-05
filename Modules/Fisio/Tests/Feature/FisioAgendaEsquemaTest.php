@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Fisio\Entities\Appointment;
 use Modules\Fisio\Entities\AppointmentType;
+use Modules\Fisio\Entities\BookingSettings;
 use Modules\Fisio\Entities\ScheduleBlock;
+use Modules\Fisio\Entities\WaitlistEntry;
 use Modules\Fisio\Exceptions\DadoClinicoImutavelException;
 use Modules\Fisio\Tests\Support\FisioFixtures as F;
 
@@ -19,7 +21,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * nunca biz=4. A fixture grava só o estado inicial; o escopo é medido pelos models.
  * ⚠️ SKIP em SQLite (LC-13): leia assertions.
  */
-const AGENDA_TABELAS = ['fisio_appointment_types', 'fisio_appointments', 'fisio_schedule_blocks'];
+const AGENDA_TABELAS = ['fisio_appointment_types', 'fisio_appointments', 'fisio_schedule_blocks', 'fisio_waitlist', 'fisio_booking_settings'];
 
 beforeEach(function () {
     if ($motivo = F::motivoDeSkip(AGENDA_TABELAS)) {
@@ -39,10 +41,12 @@ beforeEach(function () {
             'type_id' => $tipo->id, 'starts_at' => $ini, 'ends_at' => $ini->copy()->addMinutes(50)]);
         ScheduleBlock::withoutGlobalScopes()->create(['business_id' => $biz, 'professional_id' => $u->id,
             'starts_at' => $ini->copy()->setTime(12, 0), 'ends_at' => $ini->copy()->setTime(13, 0), 'reason' => 'almoço']);
+        WaitlistEntry::withoutGlobalScopes()->create(['business_id' => $biz, 'patient_id' => $p->id, 'preferences' => ['turnos' => ['manha']]]);
+        BookingSettings::daEmpresa($biz);
     }
 });
 
-it('as tabelas da agenda têm business_id NOT NULL e indexado', function () {
+it('as 5 tabelas da agenda têm business_id NOT NULL e indexado', function () {
     foreach (AGENDA_TABELAS as $t) {
         $col = collect(Schema::getColumns($t))->firstWhere('name', 'business_id');
         $idx = collect(Schema::getIndexes($t))->filter(fn ($i) => ($i['columns'][0] ?? null) === 'business_id');
@@ -54,7 +58,7 @@ it('as tabelas da agenda têm business_id NOT NULL e indexado', function () {
 });
 
 it('sob a sessão da 98 cada model da agenda enxerga só a 98; a 99 só a 99', function () {
-    $models = [AppointmentType::class, Appointment::class, ScheduleBlock::class];
+    $models = [AppointmentType::class, Appointment::class, ScheduleBlock::class, WaitlistEntry::class, BookingSettings::class];
 
     foreach ([[$this->u98, $this->b98], [$this->u99, $this->b99]] as [$u, $biz]) {
         F::como($this, $u);
@@ -75,4 +79,16 @@ it('atendimento não é apagado pelo Eloquent: desmarcar é status', function ()
 
     expect(fn () => $a->delete())->toThrow(DadoClinicoImutavelException::class)
         ->and(DB::table('fisio_appointments')->where('id', $a->id)->exists())->toBeTrue();
+});
+
+it('regras da agenda: uma linha por empresa, nasce com o app desligado e sem sinal', function () {
+    $r = BookingSettings::daEmpresa($this->b98);
+
+    expect(BookingSettings::daEmpresa($this->b98)->id)->toBe($r->id)
+        // SUPERADMIN: contagem direta da linha da empresa.
+        ->and(BookingSettings::withoutGlobalScopes()->where('business_id', $this->b98)->count())->toBe(1)
+        ->and($r->online_enabled)->toBeFalse()
+        ->and((int) $r->deposit_percent)->toBe(0)
+        ->and((int) $r->cancel_min_hours)->toBe(24)
+        ->and((int) $r->no_show_block_after)->toBe(2);
 });

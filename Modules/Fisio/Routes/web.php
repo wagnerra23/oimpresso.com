@@ -1,6 +1,8 @@
 <?php
 
+use Modules\Fisio\Http\Controllers\AgendaController;
 use Modules\Fisio\Http\Controllers\BibliotecaController;
+use Modules\Fisio\Http\Controllers\ConfigAgendamentoController;
 use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\ConfiguracoesController;
@@ -10,6 +12,7 @@ use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\PainelController;
 use Modules\Fisio\Http\Controllers\PacotesController;
+use Modules\Fisio\Http\Controllers\PortalAgendaController;
 use Modules\Fisio\Http\Controllers\PortalController;
 use Modules\Fisio\Http\Controllers\PortalLinkController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
@@ -57,6 +60,19 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Configurações › WhatsApp: a clínica escolhe o canal; número e driver são do módulo Whatsapp.
         Route::get('configuracoes/whatsapp', [ConfiguracoesController::class, 'whatsapp'])->name('configuracoes.whatsapp');
         Route::put('configuracoes/whatsapp', [ConfiguracoesController::class, 'salvarWhatsapp'])->name('configuracoes.whatsapp.update');
+        // Agenda da clínica (US-FISIO-014/015). Leitura com fisio.access; escrita exige `fisio.editar` (no controller).
+        Route::get('agenda', [AgendaController::class, 'index'])->name('agenda.index');
+        Route::post('agenda/atendimentos', [AgendaController::class, 'store'])->name('agenda.atendimentos.store');
+        Route::post('agenda/atendimentos/{id}/status', [AgendaController::class, 'status'])->whereNumber('id')->name('agenda.atendimentos.status');
+        Route::post('agenda/atendimentos/{id}/cancelar', [AgendaController::class, 'cancelar'])->whereNumber('id')->name('agenda.atendimentos.cancelar');
+        Route::post('agenda/bloqueios', [AgendaController::class, 'bloquear'])->name('agenda.bloqueios.store');
+        Route::delete('agenda/bloqueios/{id}', [AgendaController::class, 'desbloquearHorario'])->whereNumber('id')->name('agenda.bloqueios.destroy');
+        Route::post('agenda/espera', [AgendaController::class, 'entrarNaEspera'])->name('agenda.espera.store');
+        Route::delete('agenda/espera/{id}', [AgendaController::class, 'sairDaEspera'])->whereNumber('id')->name('agenda.espera.destroy');
+        // Configurações › Agendamento pelo app (US-FISIO-015). Salvar exige `fisio.editar` (no controller).
+        Route::get('configuracoes/agendamento', [ConfigAgendamentoController::class, 'index'])->name('configuracoes.agendamento');
+        Route::put('configuracoes/agendamento', [ConfigAgendamentoController::class, 'update'])->name('configuracoes.agendamento.update');
+        Route::post('pacientes/{id}/liberar-agendamento', [AgendaController::class, 'liberarApp'])->whereNumber('id')->name('pacientes.liberar-agendamento');
 
         // Primeira configuração da clínica (Onboarding, 5 passos). Cada passo grava o dele; nada obrigatório.
         Route::get('onboarding', [OnboardingController::class, 'show'])->name('onboarding');
@@ -151,6 +167,13 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
         Route::post('pre-anamnese', [PortalController::class, 'preAnamnese'])->name('pre-anamnese');
         Route::post('desafio', [PortalController::class, 'desafio'])->name('desafio');
+        // Agenda do paciente (US-FISIO-016): mesmo portão do portal (PIN + teleatendimento), business do token.
+        Route::get('agenda', [PortalAgendaController::class, 'index'])->name('agenda.index');
+        Route::get('agenda/horarios', [PortalAgendaController::class, 'horarios'])->name('agenda.horarios');
+        Route::post('agenda', [PortalAgendaController::class, 'store'])->name('agenda.store');
+        Route::delete('agenda/espera', [PortalAgendaController::class, 'sairDaEspera'])->name('agenda.espera.destroy');
+        Route::post('agenda/{id}/{acao}', [PortalAgendaController::class, 'acao'])
+            ->whereNumber('id')->whereIn('acao', ['cancelar', 'remarcar', 'confirmar', 'cheguei', 'nota'])->name('agenda.acao');
     });
 
 /*

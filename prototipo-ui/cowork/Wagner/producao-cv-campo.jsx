@@ -57,7 +57,7 @@ function Apontamento() {
           <Button variant="ghost" onClick={() => setPausa(false)}>Voltar</Button>
         </div> : passo === "etapa" && <div className="pcv-bar" style={{ width: "100%" }}>
           {!rodando ? <Button variant="primary" onClick={() => { setRodando(true); marca("Iniciou"); }}>{seg > 0 ? "Retomar" : "Iniciar"}</Button> : <Button onClick={() => setPausa(true)}>Pausar</Button>}
-          <Button onClick={() => { setRodando(false); marca("Concluiu a etapa"); setPasso("fim"); }}>Concluir etapa</Button>
+          <Button onClick={() => { setRodando(false); const v = parseFloat(String(m2).replace(",", ".")); const midia = D.MIDIAS.find((x) => (D.MATERIAIS[os.id] || []).some((r) => r[0] === x)); if (v > 0 && midia) D.informarMidia(os.id, midia, v); marca("Concluiu a etapa"); setPasso("fim"); }}>Concluir etapa</Button>
         </div>}>
         {offline && Alert && <Alert tone="warn" title={naFila > 0 ? naFila + " apontamento(s) guardado(s) no celular" : "Sem internet"}>{naFila > 0 ? "Envia sozinho quando a internet voltar." : "Os toques ficam guardados no celular com a hora certa."}</Alert>}
         {!offline && enviados > 0 && Alert && <Alert tone="success" title={enviados + " apontamento(s) enviado(s)"}>A internet voltou e a fila foi enviada, na ordem dos toques e com a hora de cada um.</Alert>}
