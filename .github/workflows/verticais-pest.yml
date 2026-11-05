@@ -647,6 +647,10 @@ jobs:
         # semana, desafio semanal recusado sem tirar XP e aceito pagando +40 uma vez, 10 medalhas
         # derivadas do histórico, decisão do desafio append-only.
         #
+        # ENTRA 2026-11-04 — Fisio/FisioAgendaEsquemaTest (US-FISIO-013): as 5 tabelas da agenda com
+        # business_id, escopo dos models entre 98 e 99, atendimento sem DELETE, regras uma por empresa.
+        # Primeira execução real é esta lane (Pest não roda local).
+        #
         # ENTRA 2026-10-21 — ComunicacaoVisual/AgendaTelaContratoTest (tela /comunicacao-visual/agenda,
         # UC-CVAG-01..03): mesmo arranjo do irmão abaixo (tenant 98×99, pula em sqlite). A primeira execução
         # real é esta lane (Pest não roda local — proibicoes.md); se avermelhar, sai e vira dívida declarada.
@@ -847,6 +851,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php \
             Modules/Fisio/Tests/Unit/MissoesCalculatorTest.php \
             Modules/Fisio/Tests/Unit/MedalhasCalculatorTest.php \
+            Modules/Fisio/Tests/Feature/FisioAgendaEsquemaTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacoteSessoesTest.php \
             Modules/Fisio/Tests/Feature/FisioPacoteSessoesTest.php \
             Modules/Fisio/Tests/Feature/FisioPacoteTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioPacoteVendaTest.php
