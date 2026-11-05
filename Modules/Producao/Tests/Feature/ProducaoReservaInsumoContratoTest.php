@@ -288,9 +288,9 @@ it('UC-PCCAN-01 · a venda cancelada cancela a OS em execução; o material já 
     // Reserva: 5 − 2 = 3 sobrando, liberados.
     expect(($this->reservado)())->toBe('0.0000')->and((string) ($this->reserva)()[0]->qty_reserved)->toBe('3.0000');
 
-    // Nova baixa recusada; o saldo segue 8 (antes desta mudança iria a 7).
+    // Nova baixa recusada pela etapa cancelada; o saldo segue 8 (antes desta mudança iria a 7).
     expect(fn () => ($this->baixar)($etapa, '1'))
-        ->toThrow(fn (\Modules\Producao\Exceptions\ApontamentoRecusado $e) => expect($e->codigo)->toBe(\Modules\Producao\Exceptions\ApontamentoRecusado::OS_NAO_LIBERADA));
+        ->toThrow(fn (\Modules\Producao\Exceptions\ApontamentoRecusado $e) => expect($e->codigo)->toBe(\Modules\Producao\Exceptions\ApontamentoRecusado::ETAPA_ENCERRADA));
     expect(($this->saldo)())->toBe('8.0000');
 
     // Parar o relógio grava o tempo e não ressuscita a etapa; cancelar de novo não faz nada.

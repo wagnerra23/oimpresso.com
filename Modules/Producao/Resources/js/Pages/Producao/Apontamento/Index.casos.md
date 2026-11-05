@@ -798,7 +798,7 @@ Status: 🧪
 **Dado** a OS do banner em execução, com 2 de lona baixados (saldo 10 → 8; reserva 5 → 3) **Quando** a
 venda é cancelada **Então** a OS fica Cancelada, a etapa fica cancelada, o histórico guarda a situação
 anterior e o material baixado (lona 2,0000), o saldo segue 8 e os 3 reservados são liberados; uma nova
-baixa é recusada (`os_nao_liberada`) e o saldo segue 8; parar o relógio grava o tempo e a etapa segue
+baixa é recusada pela etapa cancelada (`etapa_encerrada`) e o saldo segue 8; parar o relógio grava o tempo e a etapa segue
 cancelada; cancelar de novo não faz nada.
 
 Status: 🧪
