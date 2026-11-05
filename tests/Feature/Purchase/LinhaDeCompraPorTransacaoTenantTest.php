@@ -177,9 +177,24 @@ function lintxDadosLinha(int $lineId, int $prod, int $var, string $qtd): array
     ];
 }
 
+/**
+ * Chamado fora de um request, o ProductUtil lê `session('currency')` em `num_f` e estoura com
+ * "array offset on null" antes de chegar à linha (medido no job 127403975499). No request real o
+ * middleware SetSessionData põe isso na sessão; aqui o teste põe o mesmo formato.
+ */
+function lintxSessaoDeMoeda(): void
+{
+    session([
+        'currency' => ['thousand_separator' => '.', 'decimal_separator' => ',', 'symbol' => 'R$'],
+        'business.currency_precision' => 2,
+        'business.quantity_precision' => 2,
+    ]);
+}
+
 it('UC-DEVC-06 (controle positivo) createOrUpdatePurchaseLines atualiza a linha da PROPRIA transacao', function () {
     $tx = lintxTransacao(LINTX_TENANT, $this->loc, (int) $this->user->id, 'purchase_order', 'ordered');
     $linha = lintxLinha($tx, $this->prod, $this->var);
+    lintxSessaoDeMoeda();
     $util = app(ProductUtil::class);
 
     $util->createOrUpdatePurchaseLines(Transaction::find($tx), [lintxDadosLinha($linha, $this->prod, $this->var, '5')],
@@ -192,6 +207,7 @@ it('UC-DEVC-06 (contrato T0) createOrUpdatePurchaseLines nao alcanca linha de OU
     $tx = lintxTransacao(LINTX_TENANT, $this->loc, (int) $this->user->id, 'purchase_order', 'ordered');
     $compraVitima = lintxTransacao((int) $this->vitima->id, $this->locVitima, (int) $this->donoVitima->id, 'purchase_order', 'ordered');
     $linhaVitima = lintxLinha($compraVitima, $this->prodVitima, $this->varVitima);
+    lintxSessaoDeMoeda();
     $util = app(ProductUtil::class);
 
     $erro = null;
