@@ -1,4 +1,4 @@
-// Preço do produto simples, dentro do card "Preço & Imposto" da tela Novo produto.
+// Preço do produto simples, dentro do card "Impostos e preços" das telas Novo e Editar.
 // Os campos do protótipo (FormProduto, produto-blade-forms.jsx): compra sem e com imposto, % de
 // lucro, venda sem e com imposto. Os dois "com imposto" são só leitura, derivados da alíquota.
 // A conta mora em precos.ts.
@@ -22,7 +22,7 @@ export function CamposPreco({ valor, mudar, aliquota }: Props) {
   const exibir = (n: number) => formatDecimalPtBR(arredondar(n), CASAS_PRECO);
 
   return (
-    <Grid cols={5} gap={4} className="col-span-2" role="group" aria-label="Preço do produto">
+    <Grid cols={5} gap={4} className="col-span-full" role="group" aria-label="Preço do produto">
       <div>
         <Label htmlFor="single_dpp">Compra sem imposto</Label>
         <NumericInputPtBR
