@@ -414,7 +414,7 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
   const areaRef = useRef(null);
   const altura = useAltura(areaRef);
   const todas = db.alocacoes.filter((a) => { const b = db.bens.find((x) => x.id === a.bem); return b && P.podeVerLocal(papel, b.loc); });
-  const rows = todas.filter((a) => (modo === "ativas" ? !P.encerrada(a) : modo === "revogadas" ? P.encerrada(a) : true));
+  const rows = todas.filter((a) => (modo === "ativas" ? !P.encerrada(a) : true));
   const podeRevogar = P.can(papel, "revoke");
   if (!DataTablePro) return null;
 
@@ -454,7 +454,6 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
       <div className="ptr-subtabs">
         <window.CliTabs ariaLabel="Situação das alocações" pad={0} active={modo} onChange={setModo}
           tabs={[{ key: "ativas", label: "Ativas", n: todas.filter((a) => !P.encerrada(a)).length },
-            { key: "revogadas", label: "Revogadas", n: todas.filter((a) => P.encerrada(a)).length },
             { key: "todas", label: "Todas", n: todas.length }]} />
         <div className="sp" />
         {P.can(papel, "allocate") && <Button size="sm" variant="ghost" onClick={() => onAlocar(null)}>+ Alocar recurso</Button>}
@@ -466,7 +465,7 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
       <div className="ptr-foot">
         <b>{todas.reduce((s, a) => s + Math.max(0, P.restante(a)), 0)}</b> unidades alocadas · {todas.filter((a) => !P.encerrada(a)).length} alocações ativas
         <div className="sp" />
-        <span>Revogar devolve ao saldo só a quantidade revogada e registra o código REV- na auditoria.</span>
+        <span>Revogar devolve ao saldo só a quantidade revogada. O histórico de devoluções fica no bem (aba Alocações do drawer).</span>
       </div>
     </div>
   );
@@ -538,53 +537,10 @@ function AbaManutencoes({ db, papel, dense, onAbrirBem, onNova, onConcluir }) {
   );
 }
 
-// ═══════════════════ ABA AUDITORIA (LogsActivity) ═══════════════════
-function AbaAuditoria({ db }) {
-  const P = D();
-  const { Alert, PeriodBar, EmptyState } = DS();
-  const [per, setPer] = useState({ from: null, to: null, preset: null });
-  // Presets ancorados no HOJE do módulo (21/08/2026), não no hoje do navegador —
-  // senão "Dia" filtra um dia em que o protótipo não tem dado.
-  const janela = (dias) => () => { const fim = P.dataLocal(P.iso(P.HOJE)); const ini = P.dataLocal(P.iso(P.HOJE)); ini.setDate(ini.getDate() - dias); return { from: ini, to: fim }; };
-  const presets = [
-    { id: "dia", label: "Dia", range: janela(0) },
-    { id: "semana", label: "Semana", range: janela(7) },
-    { id: "mes", label: "Mês", range: janela(30) },
-  ];
-  const de = per.from ? P.iso(per.from) : null;
-  const ate = per.to ? P.iso(per.to) : null;
-  const eventos = db.log.filter((l) => (!de || l.dia >= de) && (!ate || l.dia <= ate));
-  return (
-    <div className="ptr-cfg">
-      <section>
-        <h3>Trilha de auditoria</h3>
-        {Alert &&
-          <Alert tone="info" title="Append-only · log assetmanagement.asset">
-            Só campos da whitelist do módulo entram. <b>Descrição não é auditada</b> — pode carregar dado pessoal (LGPD).
-          </Alert>}
-        {PeriodBar &&
-          <div className="ptr-periodo">
-            <PeriodBar value={per} onChange={setPer} presets={presets} label="Período do evento" />
-          </div>}
-        {eventos.length === 0 && EmptyState &&
-          <EmptyState variant="no-results" title="Nenhum evento no período"
-            description="A trilha é append-only: nada foi apagado — só não houve alteração auditada nessas datas." />}
-        <div className="ptr-log" style={{ marginTop: 12 }}>
-          {eventos.map((l) => (
-            <div key={l.id} className="ptr-log-item">
-              <div className="h"><b>{l.evento}</b><span className="mono">{l.alvo}</span></div>
-              <small className="mono">{P.logQuando(l)} · {l.quem} · {l.id}</small>
-              {l.campos && l.campos.length > 0 &&
-                <ul className="ptr-log-campos">
-                  {l.campos.map((c, i) => <li key={i}><b>{P.CAMPO_LABEL[c.campo] || c.campo}</b> <span className="mono">({P.CAMPOS_AUDITADOS[c.campo]})</span>: {c.de} → <b>{c.para}</b></li>)}
-                </ul>}
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
-}
+// ═══════════════════ AUDITORIA — deep-link, sem aba própria ═══════════════════
+// D-AUDITORIA ([W] 2026-09-24, ADR 0414): a trilha do Patrimônio mora no Modules/Auditoria,
+// filtrada pelo bem. "Auditoria" na barra de abas navega para lá; o módulo não tem um segundo
+// dono do mesmo tema.
 
 // ═══════════════════ ABA CONFIGURAÇÕES ═══════════════════
 function AbaConfig({ papel, avisar }) {
@@ -623,7 +579,6 @@ function AbaConfig({ papel, avisar }) {
       </section>
       <div className="ptr-cfg-acoes">
         <Button variant="primary" onClick={() => avisar("Configuração de patrimônio salva neste protótipo — sem gravar no banco.", "ok")}>Salvar configurações</Button>
-        <span>Retenção do histórico de alocação: 5 anos (Config/retention.php).</span>
       </div>
     </div>
   );
@@ -796,12 +751,15 @@ function PatrimonioPage({ view, dense, estado = "dados", toque, papel: papelProp
   const [hora, setHora] = useState("09:42");
   useEffect(() => { if (inicial) setAba(inicial); }, [view]);
 
-  const irAba = (a, f) => { if (f) setFiltro(f); if (a) setAba(a); };
+  // Abas com conteúdo neste módulo. "auditoria" é deep-link (ADR 0414) e Garantias é o
+  // recorte "Garantia crítica" de Bens (D-GARANTIAS, [W] 2026-09-29) — nenhuma das duas é aba.
+  const ABAS = ["painel", "bens", "alocacoes", "manutencoes", "config"];
+  const irAba = (a, f) => { if (a === "auditoria") { irPara("auditoria"); return; } if (f) setFiltro(f); if (a) setAba(a); };
+  useEffect(() => { if (!ABAS.includes(aba)) setAba("painel"); }, [aba]);
   const abrirBem = (id) => { setAba("bens"); setSel(id); };
   const vazio = estado === "vazio";
   const dbv = vazio ? { ...db, bens: [], alocacoes: [], manutencoes: [], log: [] } : db;
   const selecionado = dbv.bens.find((b) => b.id === sel);
-  const vencendo = dbv.bens.filter((b) => P.podeVerLocal(papel, b.loc) && ["out", "soon"].includes(P.garantia(b).st)).length;
 
   const acoes = {
     novo: () => setModal({ t: "bem", modo: "novo" }),
@@ -832,14 +790,13 @@ function PatrimonioPage({ view, dense, estado = "dados", toque, papel: papelProp
             {Button && P.can(papel, "create") && <Button variant="primary" onClick={acoes.novo}>Adicionar recurso</Button>}
           </>} />}
       {MP.Tabs &&
-        <MP.Tabs tab={aba} onTab={setAba} aria="Áreas de Patrimônio"
+        <MP.Tabs tab={aba} onTab={(k) => irAba(k)} aria="Áreas de Patrimônio"
           tabs={[
             { key: "painel", label: "Painel", icon: "chart" },
             { key: "bens", label: "Bens", icon: "list", n: dbv.bens.filter((b) => P.podeVerLocal(papel, b.loc)).length },
             { key: "alocacoes", label: "Alocações", icon: "target", n: dbv.alocacoes.filter((a) => !P.encerrada(a)).length },
             { key: "manutencoes", label: "Manutenções", icon: "settings", n: dbv.manutencoes.filter((m) => m.status !== "concluida").length },
-            { key: "garantias", label: "Garantias", icon: "shield", n: vencendo },
-            { key: "auditoria", label: "Auditoria", icon: "lock", n: dbv.log.length },
+            { key: "auditoria", label: "Auditoria", icon: "lock" },
             { key: "config", label: "Configurações", icon: "settings" },
           ]} />}
 
@@ -863,12 +820,6 @@ function PatrimonioPage({ view, dense, estado = "dados", toque, papel: papelProp
         {aba === "alocacoes" && <AbaAlocacoes db={dbv} papel={papel} dense={dense} onAbrirBem={abrirBem} onRevogar={acoes.revogar} onAlocar={acoes.alocar} />}
         {aba === "manutencoes" && <AbaManutencoes db={dbv} papel={papel} dense={dense} onAbrirBem={abrirBem} onNova={acoes.manutencao}
           onConcluir={(m) => { db.concluirManutencao(m); avisar("Manutenção " + m.id + " concluída — título criado no Financeiro.", "ok"); }} />}
-        {aba === "garantias" && <div className="mp-body">
-          {MP.Estado && <MP.Estado titulo="A garantia mora dentro do bem"
-            descricao="O módulo real não tem tela própria de garantia: a janela início/fim vive em asset_warranties, dentro da ficha do bem. Aqui o atalho é a lista já filtrada pela garantia crítica."
-            acao={Button ? <Button variant="ghost" onClick={() => irAba("bens", "garantia")}>Ver os {vencendo} bens com garantia crítica</Button> : null} />}
-        </div>}
-        {aba === "auditoria" && <div className="mp-body"><AbaAuditoria db={dbv} /></div>}
         {aba === "config" && <div className="mp-body"><AbaConfig papel={papel} avisar={avisar} /></div>}
       </>}
 

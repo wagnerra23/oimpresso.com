@@ -57,7 +57,6 @@
         "Bens",
         "Alocações",
         "Manutenções",
-        "Garantias",
         "Auditoria",
         "Configurações"
       ]
@@ -206,14 +205,9 @@
     },
     {
       "id": "auditoria",
-      "seletor": ".ptr-log",
+      "seletor": ".ptr-root .cli-moduletopnav",
       "obrigatoria": true,
-      "periodo": {
-        "componente": "PeriodBar",
-        "label": "Período do evento",
-        "campo": "log.dia (ISO) — filtro nunca por regex em string de exibição",
-        "presets": "ancorados no HOJE do módulo, não no hoje do navegador"
-      }
+      "deeplink": "a aba Auditoria navega para o Modules/Auditoria filtrado pelo bem (D-AUDITORIA, [W] 2026-09-24, ADR 0414); o módulo não tem trilha própria. Garantias não é aba: é o recorte Garantia crítica de Bens (D-GARANTIAS, [W] 2026-09-29)."
     },
     {
       "id": "config",
