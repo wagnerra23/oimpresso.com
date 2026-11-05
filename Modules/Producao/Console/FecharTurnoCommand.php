@@ -45,7 +45,7 @@ class FecharTurnoCommand extends Command
                 $falhas[] = (int) $biz;
                 report($e);
                 Log::error('producao.fechar-turno: falha na empresa', ['business_id' => (int) $biz, 'erro' => $e::class]);
-                $this->error("business {$biz}: falhou ({$e::class})");
+                $this->error("business {$biz}: falhou (".$e::class.')');
 
                 continue;
             }
