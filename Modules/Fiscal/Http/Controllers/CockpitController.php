@@ -287,6 +287,11 @@ class CockpitController extends Controller
      * aqui esse OR deixa de valer. Medido em produção em 2026-11-05: `nfe_emissoes`,
      * `nfe_certificados` e `nfe_dfe_recebidos` têm `business_id NOT NULL` e 0 linhas nulas,
      * então nenhum total muda — o filtro é defesa, não correção de número.
+     *
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
      */
     protected function daEmpresa(Builder $query): Builder
     {
