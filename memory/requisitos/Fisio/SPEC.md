@@ -176,7 +176,7 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 **Implementado em:** `Modules/Fisio/Http/Controllers/OnboardingController.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Onboarding.tsx` · `Modules/Fisio/Services/ConfiguracaoClinica.php` (tabela `fisio_settings`) · `Modules/Fisio/Services/Whatsapp/CanalDaClinica.php`
 
-> owner: wagner · priority: p1 · estimate: 4h · status: review · type: story
+> owner: wagner · priority: p1 · estimate: 4h · status: done · type: story
 > Protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/Onboarding.dc.html`. Perfil (nome que o paciente vê e CREFITO, por profissional), forma de atendimento PF/PJ (só guardada — o uso fiscal é do Lote 4), canal do WhatsApp com a mesma regra de Configurações › WhatsApp (QR exige aceite de risco), protocolos marcados e conclusão. Foto do perfil fica de fora.
 
 **DoD:** cada passo grava só o dele; perfil por usuário; QR sem aceite não grava; protocolo de outra empresa descartado; sem `fisio.editar` 403; 98×99 — `FisioOnboardingTest`.
