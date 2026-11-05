@@ -40,3 +40,5 @@ class InvalidaCockpitCacheListener
         Cache::forget(self::KEY_PREFIX . $businessId);
     }
 }
+
+// prova do lote 0.1 (auditoria Fiscal 2026-11-05) - PR de teste, fechado sem merge
