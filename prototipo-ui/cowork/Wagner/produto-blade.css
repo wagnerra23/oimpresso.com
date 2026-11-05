@@ -270,3 +270,15 @@
 /* ── Contagem clicável (Cadastros de apoio → índice filtrado) ── */
 .pb-uso{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; background:none; border:0; padding:0; color:var(--accent); cursor:default; text-decoration:underline; text-underline-offset:2px; }
 .pb-uso[disabled]{ color:var(--text-mute); text-decoration:none; }
+
+/* União com o artefato do cadastro (2026-11-04): aviso de campo, natureza fiscal, selo de novidade. */
+/* --warn puro dá 3,6:1 sobre o branco; misturado ao --text passa de 4,5:1 nos dois temas (medido 2026-11-04). */
+.pb-aviso{ font-style:normal; font-size:11px; font-weight:500; line-height:1.4; color:color-mix(in oklch, var(--warn) 70%, var(--text)); }
+.pb-pill.pb-novo{ margin-left:6px; text-transform:none; letter-spacing:0; font-size:10px; padding:1px 6px; color:color-mix(in oklch, var(--accent) 75%, var(--text)); }
+.pb-natureza{ display:flex; flex-direction:column; gap:3px; padding:10px 12px; margin-bottom:12px; border:1px solid var(--border-2); border-radius:8px; background:var(--bg-2); }
+.pb-natureza-l{ display:flex; align-items:center; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
+.pb-natureza .pb-help{ color:var(--text-dim); }
+.pb-natureza b{ font-size:13px; font-weight:600; color:var(--text); }
+.pb-link{ color:var(--accent); text-decoration:none; font-weight:500; }
+.pb-link:hover{ text-decoration:underline; }
+.pb-tbl .icon-btn:disabled{ opacity:.35; cursor:not-allowed; }
