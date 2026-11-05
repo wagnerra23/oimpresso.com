@@ -53,7 +53,7 @@ last_run: "2026-08-08"
 - **Aceite:** Dado um título `pagar` aberto da 98 · Quando o POST `/financeiro/contas-pagar/{id}/pagar` manda o `conta_bancaria_id` da 99 · Então a validação recusa no campo `conta_bancaria_id`, nenhuma `TituloBaixa` nasce e o título fica com o mesmo aberto e o mesmo status. Com uma conta da própria 98 a baixa parcial grava e o aberto cai pelo valor baixado (controle, conferido à mão e pela soma das baixas gravadas).
 - **Teste:** `Modules/Financeiro/Tests/Feature/ContaPagarContaBancariaTenantTest.php` — `UC-CP-01 · ...`.
 - **Regressão que defende:** ADR 0093. Era o bullet de backlog "Conta bancária de outro business é rejeitada"; achado da auditoria Financeiro 2026-11-05 (lote 0): `exists:fin_contas_bancarias,id` sem filtro de empresa, e o id ia gravado na baixa.
-- **Status: ⬜** — vermelho antes do conserto no run [42071991904](https://github.com/wagnerra23/oimpresso.com/actions/runs/42071991904) (`Session is missing expected key [errors]`); o verde entra com o run do conserto.
+- **Status: 🧪** — verde no run [42108635730](https://github.com/wagnerra23/oimpresso.com/actions/runs/42108635730) (lane `PHP / Pest (Financeiro · MySQL)`, os casos passaram, nenhum pulado); vermelho antes do conserto no run [42071991904](https://github.com/wagnerra23/oimpresso.com/actions/runs/42071991904). Vira ✅ quando o manifesto registrar o pass depois do merge.
 
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane do Financeiro no CT100 — quando os UCs acima ganharem teste. O UC de
