@@ -381,6 +381,22 @@ resposta diz `{enviado: false, motivo: sem_cliente}` para a tela pedir contato m
 
 Status: 🧪
 
+## UC-PCART-08 · Só a prova mais recente vale, e o link não depende de quem está logado · `must`
+
+> Âncora: US-COMVIS-NEW-004 (link de curta validade, uso único, página pública sem login) e UC-FLX-02
+> (*"aprovado avança para Impressão"* — a prova aprovada é a que foi enviada por último). Achado P-01/P-04
+> da auditoria da Produção (2026-11-05): o link da prova anterior seguia aprovável por 7 dias, e recusar
+> com o ERP logado noutra empresa dava 404.
+
+**Dado** a OS com um link de prova aberto **Quando** o designer gera outra prova **Então** o link anterior vence
+na hora (a linha fica, só a validade muda): aprovar por ele é recusado (410), a etapa de aprovação continua
+pendente e a arte vigente não vira a prova antiga, nem depois de o cliente recusar a nova · **Quando** o cliente
+recusa pelo link com o navegador logado noutra empresa **Então** a "Arte (alteração)" e o evento ficam na empresa
+da prova · **Quando** um usuário da empresa 99 pede prova para a OS da 98 **Então** recebe 404 e o link da 98 segue
+valendo.
+
+Status: 🧪
+
 ## UC-PCV-11 · Arte aprovada travada · `must`
 
 > Âncora: `prototipo-ui/cowork/Wagner/cowork-inbox/producao/Producao.casos.md` UC-PCV-11 · thread 10 do playbook
