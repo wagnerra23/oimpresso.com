@@ -268,6 +268,24 @@ function SaldoVariacoes({ p, children }) {
     </>
   );
 }
+// UC-PIDX-40: quantos kits dá para vender em cada local. O dado de mentira não tem saldo por local;
+// reparte o saldo de cada componente entre os locais dele (o resto no primeiro). Componente sem
+// controle de estoque não limita; o kit sai do componente mais escasso.
+function kitsPorLocal(p) {
+  const itens = (p.combo || []).map((c) => ({ c, prod: PRODUCTS.find((x) => x.name === c.name) }))
+    .filter((i) => i.prod && i.prod.stockOn && i.c.qty > 0);
+  if (!itens.length) return null;
+  const saldoNoLocal = (prod, loc) => {
+    if (!prod.locs.includes(loc)) return 0;
+    const base = Math.floor((prod.stock || 0) / prod.locs.length);
+    return prod.locs[0] === loc ? (prod.stock || 0) - base * (prod.locs.length - 1) : base;
+  };
+  return LOCATIONS.map((l) => {
+    let kits = null, limita = "";
+    itens.forEach((i) => { const k = Math.floor(saldoNoLocal(i.prod, l.id) / i.c.qty); if (kits === null || k < kits) { kits = k; limita = i.c.name; } });
+    return { local: l.name, kits, limita };
+  });
+}
 // Modal = primitivo do DS (PT-04: foco preso, esc, scrim), com a assinatura local por cima.
 function Modal({ titulo, onClose, children, acoes, largura = 720 }) {
   const { Modal: DsModal } = DS();
@@ -615,6 +633,15 @@ function DetalheDrawer({ p, onClose, onIr, empresa }) {
                 </tbody>
                 <tfoot><tr><td colSpan={4}><b>Total líquido</b></td><td className="r"><b>{fmtBRL(p.combo.reduce((s, c) => s + c.qty * c.dpp, 0))}</b></td></tr></tfoot>
               </table>
+              {kitsPorLocal(p) && <>
+                <h3 style={{ marginTop: 14 }}>Quantos kits dá para vender</h3>
+                <table className="pb-tbl">
+                  <thead><tr><th>Local</th><th className="r">Kits</th><th>Limita</th></tr></thead>
+                  <tbody>{kitsPorLocal(p).map((k) => (
+                    <tr key={k.local}><td>{k.local}</td><td className={"r" + (k.kits === 0 ? " pb-kits-zero" : "")}>{k.kits} {k.kits === 1 ? "kit" : "kits"}</td><td>{k.limita}</td></tr>))}
+                  </tbody>
+                </table>
+              </>}
               <p className="pb-help" style={{ marginTop: 8 }}>Preço de venda padrão da composição: <b>{fmtBRL(incTax(p.variations[0].dsp, imposto))}</b>{comImposto && <> (sem imposto {fmtBRL(p.variations[0].dsp)})</>} · % de lucro {fmtQty(p.variations[0].profit)} %.</p>
             </div>}
 

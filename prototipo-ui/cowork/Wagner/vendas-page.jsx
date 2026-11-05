@@ -749,6 +749,9 @@ function VendasListPage() {
   const kpi_avg = kpi_count ? kpi_total / kpi_count : 0;
   const kpi_pix = today.filter((v) => v.payment === "PIX").reduce((s, v) => s + v.totalNum, 0);
   const kpi_pixPct = kpi_total ? Math.round(kpi_pix / kpi_total * 100) : 0;
+  const kpi_paidList = today.filter((v) => v.fsm >= 4);
+  const kpi_paid = kpi_paidList.reduce((s, v) => s + v.totalNum, 0);
+  const kpi_paidCount = kpi_paidList.length;
   // Integração Vendas × Oficina (2026-05-25) — breakdown por source
   const kpi_bySource = today.reduce((acc, v) => {
     acc[v.source] = (acc[v.source] || 0) + v.totalNum;
@@ -1203,13 +1206,14 @@ function VendasListPage() {
           }
         </div>
 
-        {/* 4º card — varia por Vista */}
+        {/* 4º card — varia por Vista.
+            [W] 2026-11-05: são 5 KPIs numa linha a 1280 (monitor da cliente piloto).
+            Na Caixa o 4º é "Pagos hoje"; o PIX hoje é o 5º card fixo, em todas as vistas. */}
         {vista === "caixa" &&
         <div className="os-kpi">
-            <span className="os-kpi-label">PIX hoje</span>
-            <span className="os-kpi-value">{vdFmtShort(kpi_pix)}<small> / {vdFmtShort(kpi_total)}</small></span>
-            <span className="os-kpi-sub">{kpi_pixPct}% do faturamento — imediato</span>
-            <div className="vd-pix-prog"><div style={{ width: kpi_pixPct + "%" }} /></div>
+            <span className="os-kpi-label">Pagos hoje</span>
+            <span className="os-kpi-value">{vdFmtShort(kpi_paid)}</span>
+            <span className="os-kpi-sub">{kpi_paidCount} pago{kpi_paidCount === 1 ? "" : "s"} hoje</span>
           </div>
         }
         {vista === "faturamento" &&
@@ -1243,6 +1247,14 @@ function VendasListPage() {
             </div>);
 
         })()}
+
+        {/* 5º card fixo — PIX hoje, em todas as vistas */}
+        <div className="os-kpi">
+          <span className="os-kpi-label">PIX hoje</span>
+          <span className="os-kpi-value">{vdFmtShort(kpi_pix)}<small> / {vdFmtShort(kpi_total)}</small></span>
+          <span className="os-kpi-sub">{kpi_pixPct}% do faturamento — imediato</span>
+          <div className="vd-pix-prog"><div style={{ width: kpi_pixPct + "%" }} /></div>
+        </div>
       </div>
 
       {/* RANKING VENDEDORES — seção própria só quando vista=comissao */}

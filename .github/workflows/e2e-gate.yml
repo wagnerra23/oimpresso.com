@@ -20,17 +20,13 @@ name: E2E Playwright (UCs críticos) — G-3
 
 on:
   pull_request:
-    types: [opened, reopened, ready_for_review]
+    # FORJA-139 (2026-11-04): `synchronize` de volta e `paths-ignore` removido — é a edição
+    # que o required-always-run exige pra esta lane poder virar required (sem isso o context
+    # some no 2º push e a proteção fica esperando check que não nasce). Ser required continua
+    # sendo flip [W] na branch protection; este arquivo não decide isso.
+    # O custo do push sem app é o skip-as-pass interno (dorny/paths-filter abaixo).
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main]
-    # paths-ignore FAIL-CLOSED: PR que toca SÓ memory/, prototipo-ui/ ou o estado do
-    # design-sync não sobe esta lane. O paths-filter interno já pularia tudo (veredito
-    # igual), só que ocupando runner. Qualquer outro arquivo no diff → roda como antes.
-    # Promover a required = APAGAR este bloco (o required-always-run reprova se ficar).
-    # Prova: scripts/governance/advisory-paths-ignore.test.mjs
-    paths-ignore:
-      - 'memory/**'
-      - 'prototipo-ui/**'
-      - 'scripts/design-sync/state/**'
   workflow_dispatch:
 
 concurrency:
