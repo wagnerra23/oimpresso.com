@@ -129,6 +129,7 @@ it('UC-FPS-11 · falha ao enfileirar não deixa o paciente sem link: o link ante
     $anterior = F::emitirPortal($this->p); // link que o paciente já tem
 
     // A fila cai entre emitir o link novo (que revoga o anterior) e enfileirar as mensagens.
+    $real = app(\Illuminate\Contracts\Bus\Dispatcher::class);
     $quebrado = Mockery::mock(\Illuminate\Contracts\Bus\Dispatcher::class);
     $quebrado->shouldReceive('dispatch')->andThrow(new RuntimeException('fila fora do ar'));
     app()->instance(\Illuminate\Contracts\Bus\Dispatcher::class, $quebrado);
@@ -137,7 +138,10 @@ it('UC-FPS-11 · falha ao enfileirar não deixa o paciente sem link: o link ante
         ->toThrow(RuntimeException::class, 'fila fora do ar');
     expect(app(\Modules\Fisio\Services\PortalTokenService::class)->validar($anterior['token']))->not->toBeNull();
 
-    // Retry do job (tries=3): a reserva não ficou gravada, então o envio sai.
+    // Retry do job (tries=3): a fila voltou e a reserva não ficou gravada, então o envio sai.
+    // O BusFake embrulha o dispatcher real (exige QueueingDispatcher), não o mock quebrado.
+    app()->instance(\Illuminate\Contracts\Bus\Dispatcher::class, $real);
+    Bus::clearResolvedInstance(\Illuminate\Contracts\Bus\Dispatcher::class);
     Bus::fake([SendWhatsappMessageJob::class]);
     (new EnviarProgramaWhatsappJob($this->b98, $this->prog->id))->handle();
     Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 2);
