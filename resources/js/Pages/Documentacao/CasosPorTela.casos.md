@@ -4,7 +4,7 @@ irmaos: CasosPorTela.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: a página substitui um artefato publicado à mão; o contrato prova que ela não envelhece e que não vaza pro dono de empresa.
 owner: wagner
-last_run: "2026-10-29"
+last_run: "2026-11-05"
 ---
 
 > ℹ️ **`last_run` 2026-10-28 → 2026-10-29 (G-6): troca de componentes, não de comportamento.**
@@ -12,6 +12,11 @@ last_run: "2026-10-29"
 > viraram `<SubNav>`, os filtros `<Select>` (sentinela no "Todos") e as opções da decisão `<RadioGroup>`.
 > Mesmos dados, mesmas permissões, mesmas ações. **Nenhum UC foi reexecutado** — os vereditos seguem os
 > do `CasosPorTelaContratoTest` e da paridade; o bump é o trio reconciliado com a tela nesta data.
+
+> ℹ️ **`last_run` 2026-10-29 → 2026-11-05 (G-6): só folga, não comportamento.** O corpo ganhou
+> `px-6 pt-6 pb-16` (24px de lado, alinhado ao título; 24/64 no vertical, como o template aprovado).
+> Mesmos dados, permissões e ações. **Nenhum UC foi reexecutado** — os vereditos seguem os do
+> `CasosPorTelaContratoTest`.
 
 # Casos de Uso & Aceite — Documentacao/CasosPorTela
 
