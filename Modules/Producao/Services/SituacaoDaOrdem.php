@@ -183,11 +183,12 @@ final class SituacaoDaOrdem
      */
     public function liberarPeloSinalDaVenda(int $businessId, int $transactionId): int
     {
-        if ($this->sinal->minimo($businessId, $transactionId) === null) {
-            return 0;
-        }
+        // Todo pagamento de qualquer empresa passa aqui: venda sem OS sai na 1ª consulta (índice da venda).
         $ids = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
             ->where('transaction_id', $transactionId)->pluck('id');
+        if ($ids->isEmpty() || $this->sinal->minimo($businessId, $transactionId) === null) {
+            return 0;
+        }
         $liberadas = 0;
         foreach ($ids as $id) {
             try {

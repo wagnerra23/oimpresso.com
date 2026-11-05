@@ -26,10 +26,11 @@ class ProducaoServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
 
         // Thread 04 (UC-PCV-22/36): fecha o cronômetro esquecido. A cada 15 min, sem sobreposição;
-        // o comando só age depois do fim do turno de cada empresa e é idempotente.
+        // o comando só age depois do fim do turno de cada empresa e é idempotente. A trava da sobreposição
+        // vence em 30 min (o padrão é 24 h: um processo morto segurava o fechamento o dia inteiro).
         $this->commands([FecharTurnoCommand::class]);
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
-            $schedule->command('producao:fechar-turno')->everyFifteenMinutes()->withoutOverlapping();
+            $schedule->command('producao:fechar-turno')->everyFifteenMinutes()->withoutOverlapping(30);
         });
 
         // ADR 0436 (UC-FLX-01): a venda de um modelo entrou em "Aprovado" → uma OS por item, depois
@@ -66,7 +67,8 @@ class ProducaoServiceProvider extends ServiceProvider
 
         // US-PCP-025 (UC-FLX-28): pagamento gravado na venda — baixa manual, PDV ou retorno do banco que
         // cria o pagamento — tenta liberar as OS dessa venda pelo sinal. Usa a empresa do PRÓPRIO
-        // pagamento (Tier 0). Falha aqui nunca derruba o pagamento: só fica no log.
+        // pagamento (Tier 0). Falha aqui nunca derruba o pagamento, mas aparece: vai para o report()
+        // e o log de erro (antes era warning, e a OS ficava aguardando sem ninguém saber por quê).
         TransactionPayment::saved(function (TransactionPayment $tp) {
             if ($tp->transaction_id === null || $tp->business_id === null || (int) $tp->is_return === 1) {
                 return;
@@ -74,7 +76,8 @@ class ProducaoServiceProvider extends ServiceProvider
             try {
                 app(SituacaoDaOrdem::class)->liberarPeloSinalDaVenda((int) $tp->business_id, (int) $tp->transaction_id);
             } catch (\Throwable $e) {
-                Log::warning('producao.sinal: falha ao liberar OS pelo pagamento', ['business_id' => $tp->business_id, 'transaction_id' => $tp->transaction_id, 'erro' => $e->getMessage()]);
+                report($e);
+                Log::error('producao.sinal: falha ao liberar OS pelo pagamento', ['business_id' => $tp->business_id, 'transaction_id' => $tp->transaction_id, 'erro' => $e::class]);
             }
         });
     }
