@@ -98,7 +98,8 @@ class DataController extends Controller
             $menu->dropdown('Fisio', function ($sub) {
                 // Ordem da ADR 0437 §3.3: Painel · Pacientes · Prescrever · Biblioteca · Agenda.
                 // Prescrever não tem tela própria (o editor fica na ficha do paciente); entra
-                // aqui quando tiver rota. Agenda desde a US-FISIO-015 (2026-11-04).
+                // aqui quando tiver rota. Agenda desde a US-FISIO-015 (2026-11-04). Protocolos
+                // (US-FISIO-006, tela no #10333) vem depois da Agenda, como no protótipo.
                 $sub->url(url('/fisio'), 'Painel', [
                     'icon' => 'fa fa-tachometer-alt',
                     'active' => request()->segment(1) === 'fisio' && request()->segment(2) === null,
@@ -114,6 +115,10 @@ class DataController extends Controller
                 $sub->url(url('/fisio/agenda'), 'Agenda', [
                     'icon' => 'fa fa-calendar-alt',
                     'active' => request()->segment(2) === 'agenda',
+                ]);
+                $sub->url(url('/fisio/protocolos'), 'Protocolos', [
+                    'icon' => 'fa fa-list-ol',
+                    'active' => request()->segment(2) === 'protocolos',
                 ]);
             }, [
                 'icon' => 'fa fa-heartbeat',
