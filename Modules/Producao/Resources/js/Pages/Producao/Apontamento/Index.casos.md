@@ -634,14 +634,14 @@ Status: 🧪
 > `producao_aguarda_material`, desligada por padrão. JSON (`GET /producao/ordens/{id}/material`,
 > `POST /producao/ordens/{id}/material/conferir`); a tela ainda não mostra. Prova: `ProducaoAguardandoMaterialContratoTest`.
 
-## UC-PCMAT-01 · Chave desligada: nada muda · `must`
+## UC-PCAGM-01 · Chave desligada: nada muda · `must`
 
 **Dado** a lona com 3 de saldo e a OS do banner que precisa de 5 **Quando** o PCP libera com a chave da empresa
 desligada **Então** a OS vai para Na fila, como antes, e o saldo segue 3.
 
 Status: 🧪
 
-## UC-PCMAT-02 · Liberada sem material fica Aguardando material e não começa · `must`
+## UC-PCAGM-02 · Liberada sem material fica Aguardando material e não começa · `must`
 
 **Dado** a chave ligada, saldo 3 e compras da lona pedida (4) e pendente (1), e uma já recebida (9) **Quando** o
 PCP libera **Então** a OS vai para Aguardando material; a lista mostra necessário 5,0000, disponível 3,0000, falta
@@ -650,14 +650,14 @@ nada muda no saldo.
 
 Status: 🧪
 
-## UC-PCMAT-03 · Reserva de outra venda tira do disponível; a da própria OS não · `must`
+## UC-PCAGM-03 · Reserva de outra venda tira do disponível; a da própria OS não · `must`
 
 **Dado** saldo 10, reserva ativa de 5 desta OS, reserva ativa de 6 de outra venda e uma liberada de 50 **Então** o
 disponível é 4,0000 e a falta 1,0000.
 
 Status: 🧪
 
-## UC-PCMAT-04 · Conferir devolve para Na fila quando o material chega · `must`
+## UC-PCAGM-04 · Conferir devolve para Na fila quando o material chega · `must`
 
 **Dado** a OS em Aguardando material **Quando** o operador sem o papel `producao.liberar` confere **Então** 403 ·
 **Quando** o PCP confere ainda faltando **Então** fica onde está e a resposta traz a falta · com o saldo em 5
@@ -665,7 +665,7 @@ Status: 🧪
 
 Status: 🧪
 
-## UC-PCMAT-05 · Outra empresa, 404 · `must`
+## UC-PCAGM-05 · Outra empresa, 404 · `must`
 
 **Quando** o PCP da 98 lê ou confere o material de uma OS da 99 **Então** 404 e a OS da 99 não muda.
 
