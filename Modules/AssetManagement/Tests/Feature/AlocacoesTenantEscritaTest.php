@@ -86,7 +86,12 @@ function alocTenComo(User $user, int $businessId)
         'user' => ['business_id' => $businessId, 'id' => $user->id],
         'business.date_format' => 'd/m/Y',
         'business.time_format' => 24,
-    ])->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true']);
+    ])->withHeaders([
+        // O browser manda os tres juntos; sem a versao o Inertia responde 409.
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) app(App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
+    ]);
 }
 
 function alocTenLimpar(): void
@@ -227,14 +232,7 @@ it('lista: linha com bem e pessoa de outra empresa nao mostra o nome deles', fun
         // Linha corrompida gravada direto (o estado que o `update` antigo deixava nascer).
         $corrompida = alocTenTransacao($dono, $bemAlheio->id, $uAdv->id, 1);
 
-        $inicial = alocTenComo($u, $dono)->get('/asset/allocation?situacao=todas');
-        // A visita ja vai com `X-Inertia` (como o browser manda): a resposta e o JSON da
-        // pagina, nao a root view — a versao sai do corpo.
-        $inicial->assertStatus(200);
-        $versao = (string) data_get($inicial->json(), 'version');
-
         $parcial = alocTenComo($u, $dono)->withHeaders([
-            'X-Inertia-Version' => $versao,
             'X-Inertia-Partial-Component' => 'Patrimonio/Alocacoes',
             'X-Inertia-Partial-Data' => 'alocacoes',
         ])->get('/asset/allocation?situacao=todas');
