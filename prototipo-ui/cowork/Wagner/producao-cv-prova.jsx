@@ -10,7 +10,7 @@ const { useState } = React;
 const DS = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 const P = () => window.PCVD;
 
-const RESPONDIDA = {}; // os.id → mensagem final; o link é de uso único
+const RESPONDIDA = {}; // "os.id:versão" → mensagem final; cada link é de uso único e cada troca de arquivo gera outro
 const VALIDADE = "22/10/2026 17:30"; // 7 dias depois do envio da prova (14/10 17:30)
 
 function PaginaProva({ os, onFechar }) {
@@ -19,16 +19,17 @@ function PaginaProva({ os, onFechar }) {
   const [erro, setErro] = useState(null);
   const [, setVer] = useState(0);
   const etapa = (D.etapas(os).find((e) => e.setor === "arte") || {}).nome;
-  const fim = RESPONDIDA[os.id];
-  const responder = (msg) => { RESPONDIDA[os.id] = msg; setVer((v) => v + 1); };
+  const u = D.arteEmProva(os) || D.versoesArte(os).slice(-1)[0]; // a versão que este link mostra
+  const fim = RESPONDIDA[os.id + ":" + u.v];
+  const responder = (msg) => { RESPONDIDA[os.id + ":" + u.v] = msg; setVer((v) => v + 1); };
   const aprovar = () => {
-    os.arte = "aprovada"; os.aprovadaEm = D.HOJE + " 10:05";
+    os.arte = "aprovada"; os.aprovadaEm = D.HOJE + " 10:05"; u.decisao = "aprovada"; u.em = os.aprovadaEm;
     D.registrar({ os: os.id, quem: "Cliente", tipo: "arte", texto: "Aprovou a arte pelo link da prova" });
     responder("Arte aprovada. Obrigado! A produção segue para a impressão.");
   };
   const pedir = () => {
     if (!coment.trim()) { setErro("Diga o que precisa mudar na arte."); return; }
-    os.arte = "ajuste";
+    os.arte = "ajuste"; u.decisao = "ajuste";
     D.registrar({ os: os.id, quem: "Cliente", tipo: "arte", texto: "Pediu alteração pelo link da prova: “" + coment.trim() + "”" });
     responder("Pedido de alteração enviado. A gráfica vai ajustar a arte e mandar uma nova prova.");
   };
@@ -38,7 +39,7 @@ function PaginaProva({ os, onFechar }) {
       <div className="pcv-prova-card">
         <h3>{fim ? "Aprovação da arte" : "Aprovação da arte" + (etapa ? " — " + etapa : "")}</h3>
         {fim ? <p>{fim}</p> : <>
-          <div className="pcv-prova-img" aria-label="Prova da arte">prova-cliente-v3.jpg</div>
+          <div className="pcv-prova-img" aria-label="Prova da arte">{D.nomeArq(u.arquivo)}</div>
           <p><a className="pcv-link" href="#prova" onClick={(e) => e.preventDefault()}>Abrir a prova</a></p>
           <p>Válido até {VALIDADE}.</p>
           {Button && <Button variant="primary" onClick={aprovar}>Aprovar a arte</Button>}
