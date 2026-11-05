@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Whatsapp\Http\Controllers\Api\BaileysWebhookController;
-use Modules\Whatsapp\Http\Controllers\Api\ChannelBaileysWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\MetaWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\WhatsmeowWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\ZapiWebhookController;
@@ -42,10 +40,9 @@ Route::group(['prefix' => 'whatsapp/webhook'], function () {
         ->middleware(['throttle:60,1', 'whatsapp.zapi.signature'])
         ->name('whatsapp.webhook.zapi.handle');
 
-    // Baileys daemon Node próprio (Sprint 3 — ADR 0096 emenda 4)
-    Route::post('/baileys/{business_uuid}', [BaileysWebhookController::class, 'handle'])
-        ->middleware(['throttle:60,1', 'whatsapp.baileys.signature'])
-        ->name('whatsapp.webhook.baileys.handle');
+    // Rota Baileys `/baileys/{business_uuid}` REMOVIDA 2026-11-05 (auditoria
+    // Whatsapp, lote 0; ADR 0202 confirmada por [W]): o middleware dela
+    // (`whatsapp.baileys.signature`) já não existia — a rota respondia 500.
 
     // ADR 0204 (2026-05-27) — Whatsmeow Go daemon WuzAPI CT 100.
     // Substituto não-oficial Baileys. Mesma assinatura business_uuid no path
@@ -56,27 +53,9 @@ Route::group(['prefix' => 'whatsapp/webhook'], function () {
         ->name('whatsapp.webhook.whatsmeow.handle');
 });
 
-// Omnichannel webhook receiver (ADR 0135) — endereçado por channel_uuid
-// (em vez de business_uuid legacy). Daemon CT 100 deve apontar
-// WEBHOOK_BASE_URL pra: https://oimpresso.com/api/atendimento/channels/baileys
-//
-// US-WA-082: middleware `whatsapp.baileys.hmac` valida HMAC + replay
-// window 5min + nonce não-repetido. Fail-closed desde 2026-11-05 (auditoria
-// Whatsapp, lote 0): sem chave configurada ou sem os headers → 401.
-Route::group(['prefix' => 'atendimento/channels'], function () {
-    // Ordem dos middlewares:
-    //   1. otel.propagate (US-WA-083) — extrai traceparent ANTES de tudo
-    //      pra logs de hmac/backpressure já carregarem trace_id
-    //   2. hmac (US-WA-082) — rejeita 401 cedo se assinatura inválida (cheap)
-    //   3. backpressure (US-WA-084) — só conta queue depth se hmac passou
-    //                                  (evita SELECT pra atacante)
-    Route::post('/baileys/{channel_uuid}', [ChannelBaileysWebhookController::class, 'handle'])
-        ->where('channel_uuid', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
-        ->middleware([
-            'throttle:60,1', // D8.a Security — defesa flood antes mesmo de hmac/backpressure
-            'whatsapp.otel.propagate',
-            'whatsapp.baileys.hmac',
-            'whatsapp.baileys.backpressure',
-        ])
-        ->name('atendimento.channels.baileys.webhook');
-});
+// Omnichannel webhook Baileys `/atendimento/channels/baileys/{channel_uuid}`
+// REMOVIDO 2026-11-05 (auditoria Whatsapp, lote 0; ADR 0202 confirmada por [W]):
+// o daemon Baileys foi descomissionado e a rota aceitava requisição sem
+// autenticação. O ChannelBaileysWebhookController continua no código porque o
+// PersistHistorySyncBatchJob o usa como serviço; o middleware
+// `whatsapp.baileys.hmac` segue registrado e fail-closed.

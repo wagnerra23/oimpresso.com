@@ -182,3 +182,20 @@ it('R-WA-HMAC-006 — sem chave configurada → 401 hmac_not_configured (fail-cl
     expect(json_decode($response->getContent(), true)['error'])->toBe('hmac_not_configured');
     expect($chegou)->toBeFalse();
 });
+
+it('R-WA-HMAC-007 — rotas webhook Baileys removidas do Routes/api.php (ADR 0202, auditoria 2026-11-05)', function () {
+    $fonte = file_get_contents(base_path('Modules/Whatsapp/Routes/api.php'));
+    $codigo = '';
+    foreach (token_get_all($fonte) as $t) {
+        if (is_array($t) && in_array($t[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+            continue;
+        }
+        $codigo .= is_array($t) ? $t[1] : $t;
+    }
+
+    // controle positivo: o leitor enxerga as rotas que ficam
+    expect($codigo)->toContain("'/whatsmeow/{business_uuid}'");
+
+    expect(str_contains($codigo, "'/baileys/{"))->toBeFalse();
+    expect(str_contains($codigo, 'BaileysWebhookController'))->toBeFalse();
+});
