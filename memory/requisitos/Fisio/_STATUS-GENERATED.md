@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 24 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 8 |
-| Telas com `casos.md` | 9 |
-| UC declarados | 135 |
-| UC com teste que os cita | 135 |
+| Telas (.tsx) | 9 |
+| Telas com `casos.md` | 10 |
+| UC declarados | 140 |
+| UC com teste que os cita | 140 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -32,7 +32,6 @@ authority: generated
 | `US-FISIO-003` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema, models e append-only de prontuário e ledger do jogo  |
 | `US-FISIO-004` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
 | `US-FISIO-005` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0 |
-| `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
 | `US-FISIO-010` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
 | `US-FISIO-051` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pré-anamnese no portal antes da primeira consulta — **P1** |
@@ -163,6 +162,11 @@ authority: generated
 | UC-FPP-53 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-54 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-55 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPR-01 | Protocolos/Index | 🧪 aguarda veredito da lane |
+| UC-FPR-02 | Protocolos/Index | 🧪 aguarda veredito da lane |
+| UC-FPR-03 | Protocolos/Index | 🧪 aguarda veredito da lane |
+| UC-FPR-04 | Protocolos/Index | 🧪 aguarda veredito da lane |
+| UC-FPR-05 | Protocolos/Index | 🧪 aguarda veredito da lane |
 | UC-FPS-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-03 | Pacientes/Show | 🧪 aguarda veredito da lane |
