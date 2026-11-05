@@ -41,6 +41,11 @@ on:
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/oficinaauto-pest.yml'
       - '.github/oficinaauto-pest-quarantine.list'
+      - '.github/oficinaauto-pest-raiz.list'
+      - 'tests/Feature/Modules/OficinaAuto/**'
+      - 'tests/Feature/Contract/ServiceOrder*'
+      - 'tests/Feature/Contract/VehiclesEdit*'
+      - 'tests/Feature/Calculo/CalculoValorOficinaAutoTest.php'
       - '.github/actions/pest-mysql-setup/**'
 
 concurrency:
@@ -80,6 +85,11 @@ jobs:
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/oficinaauto-pest.yml'
               - '.github/oficinaauto-pest-quarantine.list'
+              - '.github/oficinaauto-pest-raiz.list'
+              - 'tests/Feature/Modules/OficinaAuto/**'
+              - 'tests/Feature/Contract/ServiceOrder*'
+              - 'tests/Feature/Contract/VehiclesEdit*'
+              - 'tests/Feature/Calculo/CalculoValorOficinaAutoTest.php'
               - '.github/actions/pest-mysql-setup/**'
 
       - name: Skip-as-pass (nada do domínio mudou)
@@ -147,10 +157,21 @@ jobs:
           # (3) quarentena declarada
           comm -23 /tmp/semdestr.txt /tmp/quar.txt > /tmp/run.txt
 
-          echo "Árvore: $(wc -l < /tmp/all.txt) · outra lane: $(wc -l < /tmp/outralane.txt) · destrutivos: $(wc -l < /tmp/destrutivos.txt) · quarentena: $(wc -l < /tmp/quar.txt) · RODANDO: $(wc -l < /tmp/run.txt)"
+          # (4) testes do domínio que moram em tests/ na raiz (lista explícita: o find
+          # acima só enxerga Modules/OficinaAuto/Tests). Arquivo listado e inexistente falha.
+          RAIZ_FILE=.github/oficinaauto-pest-raiz.list
+          sed 's/#.*//; s/[[:space:]]*$//' "$RAIZ_FILE" | { grep -vE '^$' || true; } | sort -u > /tmp/raiz.txt
+          while read -r r; do
+            [ -f "$r" ] || { echo "::error::$RAIZ_FILE aponta arquivo inexistente: $r"; exit 1; }
+          done < /tmp/raiz.txt
+          comm -23 /tmp/raiz.txt /tmp/quar.txt >> /tmp/run.txt
+          sort -u /tmp/run.txt -o /tmp/run.txt
+
+          echo "Árvore: $(wc -l < /tmp/all.txt) · outra lane: $(wc -l < /tmp/outralane.txt) · destrutivos: $(wc -l < /tmp/destrutivos.txt) · quarentena: $(wc -l < /tmp/quar.txt) · raiz: $(wc -l < /tmp/raiz.txt) · RODANDO: $(wc -l < /tmp/run.txt)"
           echo "--- dono em outra lane ---"; cat /tmp/outralane.txt
           echo "--- construto destrutivo ---"; cat /tmp/destrutivos.txt
           echo "--- quarentena (motivo no .list) ---"; cat /tmp/quar.txt
+          echo "--- tests/ da raiz (oficinaauto-pest-raiz.list) ---"; cat /tmp/raiz.txt
 
           mapfile -t TARGETS < /tmp/run.txt
           [ "${#TARGETS[@]}" -gt 0 ] || { echo "::error::run-set vazio"; exit 1; }

@@ -1,0 +1,21 @@
+# Testes do domínio OficinaAuto que moram em tests/ na raiz e por isso não entram no
+# `find Modules/OficinaAuto/Tests` da oficinaauto-pest.yml. Lista explícita: arquivo
+# aqui roda na lane; arquivo listado e apagado faz a lane falhar.
+#
+# Origem (2026-11-05, auditoria OficinaAuto eixo 1): estes 14 não estavam em lane de PR
+# nenhuma (`git grep <Nome> -- .github` = 0). `test-lane-coverage --modulo OficinaAuto`
+# respondia "nenhum órfão" porque só conta Modules/OficinaAuto/**.
+tests/Feature/Calculo/CalculoValorOficinaAutoTest.php
+tests/Feature/Contract/ServiceOrderEditAutosaveContractTest.php
+tests/Feature/Contract/ServiceOrderItemsAutosaveContractTest.php
+tests/Feature/Contract/VehiclesEditAutosaveContractTest.php
+tests/Feature/Modules/OficinaAuto/CacambaFsmSeederTest.php
+tests/Feature/Modules/OficinaAuto/CacambaSchemaTest.php
+tests/Feature/Modules/OficinaAuto/ConsultaPlacaEndpointTest.php
+tests/Feature/Modules/OficinaAuto/KanbanDragDropTest.php
+tests/Feature/Modules/OficinaAuto/PlacaLookupServiceTest.php
+tests/Feature/Modules/OficinaAuto/ProducaoOficinaRedirectTest.php
+tests/Feature/Modules/OficinaAuto/ServiceOrderFsmActionControllerTest.php
+tests/Feature/Modules/OficinaAuto/ServiceOrderSheetSmokeTest.php
+tests/Feature/Modules/OficinaAuto/ServiceOrdersIndexTest.php
+tests/Feature/Modules/OficinaAuto/VehiclesIndexKpisTest.php
