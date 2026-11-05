@@ -11,6 +11,10 @@ outcomes:
 
 # Refutação GT-G5 — PR #10376 (commit 45a4bea1ec, 23 `*.map.json`, mais `Sells/vendas.map.json` no working tree: 24 itens)
 
+## TL;DR
+
+Os 24 `*.map.json` regenerados no PR #10376 conferem. Em cada um, o `prototipo_sha` novo é o hash do conteúdo atual do protótipo, e o diff muda só `prototipo_sha` e `gerado_em`. A causa do envelhecimento, confirmada pelo conteúdo dos arquivos, é o #10055 para 23 mapas e o #10384 para o de Vendas. Resultado: 0 erros, 0 dados pessoais, aprovado.
+
 - **Data:** 2026-11-05
 - **Refutador:** Claude Opus 5.5 (`claude-opus-5-5`), sessão nova sem contexto do gerador (subagente com prompt próprio).
 - **Gerador declarado:** commit `[CC]`, Claude Opus 5.5. Mesmo tier: aceito pela §4.2 (teto de política = opus), com sessão fresca.
