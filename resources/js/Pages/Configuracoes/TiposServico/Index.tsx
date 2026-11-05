@@ -28,12 +28,11 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
-import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
-import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
+import ConfiguracoesCabecalho from '@/Pages/Configuracoes/_shared/ConfiguracoesCabecalho';
 
 export interface TipoServico {
   id: number; nome: string; descricao: string; taxa: number; tipo_taxa: 'fixed' | 'percent';
@@ -168,13 +167,10 @@ function TiposServicoIndex({ tipos: tiposProp, opcoes }: Props) {
   ];
 
   return (
-    <div className="pb-8">
-      <div data-contract="page-header">
-        <PageHeader title="Tipos de serviço"
-          subtitle={tiposProp ? <><strong>{tipos.length}</strong> {tipos.length === 1 ? 'tipo de serviço' : 'tipos de serviço'}</> : 'balcão, entrega, montagem…'}
-          subnav={<ConfiguracoesSubNav />}
-          actions={<Button disabled={!opcoes} onClick={novo}><Plus className="size-4" /> Novo tipo de serviço</Button>} />
-      </div>
+    <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Tipos de serviço">
+      <ConfiguracoesCabecalho tela="Tipos de serviço" rota="/types-of-service"
+        resumo={tiposProp ? <><strong>{tipos.length}</strong> {tipos.length === 1 ? 'tipo de serviço' : 'tipos de serviço'}</> : 'balcão, entrega, montagem…'}
+        acoes={<Button disabled={!opcoes} onClick={novo}><Plus className="size-4" /> Novo tipo de serviço</Button>} />
 
       <Stack gap={4} className="px-6 pt-4">
         <Inline data-contract="toolbar" wrap gap={2}>

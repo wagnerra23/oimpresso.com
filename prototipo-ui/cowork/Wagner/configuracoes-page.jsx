@@ -67,6 +67,7 @@ const TELAS = [
   { id:"notificacoes",      label:"Modelos de notificação",   rota:"/notification-templates",   perm:"business_settings.access" },
   { id:"cfg-impressoras",   label:"Impressoras de recibos",   rota:"/printers",                 perm:"access_printers" },
   { id:"cfg-impostos",      label:"Taxas de imposto",         rota:"/tax-rates",                perm:"tax_rate.view" },
+  { id:"cfg-mesas",         label:"Mesas",                    rota:"/modules/tables",           perm:"access_tables" },
   { id:"cfg-modificadores", label:"Modificadores",            rota:"/modules/modifiers",        perm:"product.create" },
   { id:"cfg-servicos",      label:"Tipos de serviço",         rota:"/types-of-service",         perm:"access_types_of_service" },
   { id:"cfg-pacote",        label:"Assinatura de pacote",     rota:"/subscription",             perm:"business_settings.access" },
@@ -212,12 +213,15 @@ const APP_LOJAS = [
   ["biometria", "Entrar no app com biometria", "Desligado, a opção some em Conta. O ponto nunca usa biometria."],
 ];
 
+// Os 14 módulos de ModuleUtil::availableModules(), na mesma ordem. Rótulo = lang_v1.modulo_* quando
+// a tradução geral tem outro uso (PDV, Transferência de estoque, Conta bancária, Atendentes,
+// Agenda / reservas, Cozinha, Cobrança recorrente). [rótulo, ligado, preso ao pacote Profissional]
 const MODULOS = [
-  ["Compras", true, false], ["Adicionar venda", true, false], ["PDV", true, false], ["Estoque", true, false],
-  ["Ajuste de estoque", true, false], ["Transferência de estoque", true, false], ["Despesas", true, false],
-  ["Conta bancária", true, false], ["Tabela de preços", true, false], ["Kit de produtos", true, false],
-  ["Fabricação", true, true], ["Tipos de serviço", true, false], ["Cobrança recorrente", true, true],
-  ["Agenda / reservas", false, true], ["Pontos de fidelidade", false, false], ["Balança", false, false],
+  ["Compras", true, false], ["Adicionar venda", true, false], ["PDV", true, false],
+  ["Transferência de estoque", true, false], ["Ajuste de estoque", true, false], ["Despesas", true, false],
+  ["Conta bancária", true, false], ["Mesas", false, false], ["Modificadores", false, true],
+  ["Atendentes", false, false], ["Agenda / reservas", false, true], ["Cozinha", false, false],
+  ["Cobrança recorrente", true, true], ["Tipos de serviço", true, false],
 ];
 
 function Rotulos({ f, set, travado }) {

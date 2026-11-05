@@ -3,7 +3,7 @@ id: requisitos-sells-caixa-r1-visual-comparison
 session: 2026-05-25 Onda 6 — /vendas/caixa coexiste (seção "Por origem")
 page: /vendas/caixa
 component: resources/js/Pages/Sells/Caixa/Index.tsx
-visual_source: prototipo-ui/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
+visual_source: prototipo-ui/cowork/Wagner/vendas-extras.jsx · função VendasCaixaPage (linhas 172-413; medido 2026-11-04 — antes dizia prototipo-ui/vendas-extras.jsx 123-354)
 canon_method: Cowork KB-9.75 + Integração Vendas × Oficina A1 (ADR 0192) — Onda 6 wave separada
 related_adrs: [0093, 0094, 0104, 0107, 0114, 0143, 0178, 0192]
 charter_impact: cria Sells/Caixa/Index.charter.md (status rascunho · Wagner aprova)
@@ -79,3 +79,20 @@ charter_impact: cria Sells/Caixa/Index.charter.md (status rascunho · Wagner apr
 ## Gate F2 (Wagner aprova)
 
 Wagner aprovou via decisão 2026-05-25 ~15h "Sells/Caixa.tsx coexiste em rota nova /vendas/caixa". Sem screenshot live nesta worktree (sem servidor rodando) — gate visual depende de smoke pós-merge em prod biz=1 (canary Wagner WR2). Skill `mwart-comparative V4` cumprida via 15 dimensões acima + tokens reaproveitados já validados em Sells/Index (Ondas 3+4).
+
+## Medição 2026-11-04 (Onda 1 Sells, PR-1g)
+
+Mesma sonda nos dois lados (`design-diff.mjs --probe`, sha `358fd0f0d994a012`), tema escuro, 1280px. Protótipo servido da raiz do repo em `/prototipo-ui/cowork/Wagner/oimpresso.com.html` (rota `vendas`, sub `caixa`), para o shell resolver o DS em `prototipo-ui/design-system/`. Servido a partir de `prototipo-ui/cowork`, o shell cai no cache `_ds/` e as duas folhas do DS voltam 404 — a 1ª medição desta data foi descartada por isso. Produção: `/vendas/caixa?date=2026-05-27`, biz=1.
+
+`design-diff --compare --check`: D2, D4, D6 e D8 iguais, 0 bug. O comparador não lê o peso do título (`dimTipografia` só compara font-size) e tolera ±1px nas células, então a sonda complementar mediu as propriedades computadas de título, subtítulo, data, tabela e KPI nos dois lados:
+
+| Elemento | Propriedade | Produção | Protótipo | PR-1g |
+|---|---|---|---|---|
+| título | peso · letter-spacing · line-height · margem inferior | 400 · −0,22px · 33px · 4px | 700 · −0,55px · 30,25px · 0 | fechado |
+| subtítulo | tamanho · margem-topo · cor | 13,5px · 0 · `--text-dim` | 12,5px · 2px · `--text-mute` | fechado |
+| campo de data | fundo | transparente | `--surface` | fechado |
+| td · th · rótulo/sub do KPI · h3 dos cards | tamanho | 13,5 · 11,5 · 10,5/11,5 · 12,5 | 13 · 11 · 10/11 · 12 | aberto: escala `--fs-*` do domínio, não da tela |
+| KPIs 2-4 | conteúdo | Vendas em dinheiro · Caixa · Origens | Esperado · Conferido · Diferença | decidido: [W] 2026-09-23, "o caixa segue o código atual" |
+| cards | fundo no tema escuro | `#fff` com texto `.94` | `#fff` com texto `.94` | aberto: defeito nos dois lados; conserto nasce no Cowork |
+
+Os valores "fechado" foram conferidos aplicando a regra na página de produção e remedindo: batem com o protótipo, exceto o line-height do subtítulo (18,75 × 18,125px, herdado).

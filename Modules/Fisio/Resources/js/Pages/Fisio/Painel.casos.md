@@ -5,7 +5,7 @@ irmaos: Painel.charter.md (lei) · Painel.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: o painel decide quem o fisioterapeuta chama hoje. Número errado de adesão esconde quem vai abandonar; fila de atenção que perde dor alta ou sinal de alerta é risco clínico; paciente de outra clínica no painel é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-11-04"
 last_run_ci: "_pendente_ — US-FISIO-010 (2026-10-18) liga FisioPainelTest, FisioMultiTenantTest e FisioModuloVisibilidadeTest na lane Verticais · MySQL; o veredito é da lane. UC-FPN-05 depende do portal (F::portalPronto → PortalTokenService, US-FISIO-007) e UC-FPN-07 do job de WhatsApp (US-FISIO-009)."
 related_us: [US-FISIO-009]
 ---
@@ -107,3 +107,4 @@ related_us: [US-FISIO-009]
 - 2026-10-19 · US-FISIO-009 — lembrete diário pelo módulo `Whatsapp` existente; UC-FPN-08 (silêncio, teto por hora, intervalo aleatório, canal caído) nasce com o teste.
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código, junto com os testes que os citam.
 - 2026-10-18 · US-FISIO-010 — tela `Painel.tsx`, rota `GET /fisio` (`fisio.painel`) e charter. Fila separada em Alerta (`dor_subiu`, `dor_alta`, `sinal_de_alerta`) e Risco de abandono (`sem_registro`), via `AtencaoDetector::separar`. Status dos UCs segue 🧪 até o veredito da lane.
+- 2026-11-04 · Lote 1 (canvas Prescreve Pro, ADR 0438) — ajuste só de forma na tela: números em mono, barra de adesão, pílula colorida e avatar nas filas, título. UCs inalterados; comportamento e dados iguais.

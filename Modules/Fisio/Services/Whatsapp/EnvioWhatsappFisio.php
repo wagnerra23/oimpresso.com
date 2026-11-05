@@ -52,6 +52,10 @@ class EnvioWhatsappFisio
         if ($telefone === null || in_array((string) $telefone->driver_health, self::CAIDO, true)) {
             return null;
         }
+        // Escolha da clínica em Configurações › WhatsApp: manual, só oficial, ou QR com aceite de risco.
+        if (! app(CanalDaClinica::class)->permiteNumero($businessId, $telefone)) {
+            return null;
+        }
 
         return $telefone;
     }
@@ -200,15 +204,16 @@ class EnvioWhatsappFisio
             ->all();
 
         $cfg = (array) config('fisio.whatsapp', []);
+        $ritmo = app(CanalDaClinica::class)->ritmo($businessId);
         $slot = AgendaDeEnvio::proximo(
             $agora->toDateTimeImmutable(),
             $agendados,
             [
-                'teto' => (int) ($cfg['teto_por_hora'] ?? 30),
+                'teto' => $ritmo['teto'],
                 'intervalo_min' => (int) ($cfg['intervalo_min_segundos'] ?? 20),
                 'intervalo_max' => (int) ($cfg['intervalo_max_segundos'] ?? 90),
-                'silencio_inicio' => (string) ($cfg['silencio']['inicio'] ?? '21:00'),
-                'silencio_fim' => (string) ($cfg['silencio']['fim'] ?? '07:00'),
+                'silencio_inicio' => $ritmo['silencio_inicio'],
+                'silencio_fim' => $ritmo['silencio_fim'],
                 'com_teto' => true,
             ],
             $this->fuso($businessId),

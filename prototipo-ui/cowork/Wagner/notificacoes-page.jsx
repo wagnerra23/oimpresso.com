@@ -11,6 +11,17 @@
 // trocar só nesta tela criaria dois padrões. Os campos que recebem inserção de tag (assunto, SMS,
 // WhatsApp) ficam nativos porque o Input/Textarea do DS não expõe ref/seleção (registrado como
 // pedido de DS no handoff). Âncoras data-contract declaradas pro Contrato de Tela (ADR 0286).
+// v4 (2026-11-04) — o protótipo ganha o que a produção já faz (NotificationTemplate/Index.tsx +
+// _components/Previa.tsx + NotificationTemplateController): link "Editor clássico" (?legacy=1);
+// estados carregando, busca sem resultado e empresa sem modelos; "Restaurar padrão desta"
+// desligado em modelo sem texto de fábrica (send_ledger e modelos trazidos por módulo — o
+// controller só manda `padroes` de defaultNotificationTemplates); CC/BCC conferidos como e-mail
+// no salvar, com o erro embaixo do campo; rótulo "(HTML)" no modo HTML; teste só no e-mail,
+// desligado com alteração não salva, com "[teste] " no assunto; prévia gerada pelo servidor
+// (estados "Atualizando prévia…" e erro); "Nova reserva" só com a agenda ligada. A lista e as
+// tags vêm do servidor (extra_tags de cada modelo, inclusive os de módulo) — aqui são dado de
+// exemplo. A tela exige a permissão `send_notification` (sem ela: 403, nada desta tela abre).
+// O seletor "Cenário" no cabeçalho só existe no protótipo, para ver esses estados.
 // Expõe window.NotificacoesPage.
 (() => {
 const { useState, useRef, useMemo, useEffect } = React;
@@ -23,7 +34,8 @@ const G_LOCAL = { g: "Local", tags: ["{location_name}", "{location_address}", "{
 const G_CONTATO = { g: "Contato", tags: ["{contact_name}", "{contact_business_name}"], fams: [["contact_custom_field", 10]] };
 
 const TEMPLATES = [
-  { key: "send_ledger", grupo: "Notificações", name: "Extrato do cliente", canais: ["email"],
+  // semPadrao: o controller não tem texto de fábrica para este modelo (fora de defaultNotificationTemplates).
+  { key: "send_ledger", grupo: "Notificações", name: "Extrato do cliente", canais: ["email"], semPadrao: true,
     quando: "Enviado da ficha do cliente, quando você aciona “Enviar extrato”.",
     tags: [G_EMPRESA, { g: "Saldo", tags: ["{balance_due}"] }, G_CONTATO],
     d: { assunto: "Seu extrato — {business_name}", cc: "", bcc: "",
@@ -65,7 +77,8 @@ const TEMPLATES = [
       sms: "{contact_name}, seu orçamento {invoice_number} está pronto. Total {total_amount}. {business_name}",
       wa: "Olá {contact_name}! Orçamento {invoice_number} pronto — total {total_amount}. Ver: {quote_url}" } },
 
-  { key: "new_booking", grupo: "Cliente", name: "Nova reserva", canais: ["email", "sms", "wa"],
+  // agenda: só aparece com a agenda ligada na empresa (enabled_modules contém "booking").
+  { key: "new_booking", grupo: "Cliente", name: "Nova reserva", canais: ["email", "sms", "wa"], agenda: true,
     quando: "Enviado quando uma reserva é confirmada (módulo de agenda).",
     tags: [G_EMPRESA, { g: "Reserva", tags: ["{table}", "{start_time}", "{end_time}", "{service_staff}", "{correspondent}"] }, G_LOCAL, G_CONTATO],
     d: { assunto: "Reserva confirmada — {business_name}", cc: "", bcc: "",
@@ -113,6 +126,25 @@ const TEMPLATES = [
       sms: "Nova ordem de compra {order_ref_number}. {business_name}",
       wa: "Olá {contact_name}! Segue a ordem de compra {order_ref_number}." } },
 ];
+
+// Exemplo de modelo trazido por um módulo (notification_list do ModuleUtil). Só no cenário
+// "com modelo de módulo": sem texto de fábrica, e as tags são as que o módulo declara.
+const T_MODULO = { key: "modulo_exemplo", grupo: "Cliente", name: "Modelo de um módulo (exemplo)", canais: ["email", "sms", "wa"],
+  semPadrao: true, quando: "Modelo que um módulo instalado acrescenta à lista. O texto e as tags vêm do módulo.",
+  tags: [G_EMPRESA, G_CONTATO],
+  d: { assunto: "", cc: "", bcc: "", corpo: "", sms: "", wa: "" } };
+
+const CENARIOS = [
+  ["normal", "Cenário: normal (agenda ligada)"], ["sem-agenda", "Cenário: agenda desligada"],
+  ["modulo", "Cenário: com modelo de módulo"], ["previa-erro", "Cenário: prévia com erro"],
+  ["carregando", "Cenário: carregando"], ["sem-modelos", "Cenário: empresa sem modelos"],
+];
+// Igual ao `nullable|email` do store(): vazio passa; um endereço só por campo (R8 do charter).
+const EMAIL_OK = (s) => !s || /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(s.trim());
+// Texto que o servidor devolve hoje (lang/pt/validation.php 'email', sem nome amigável para o
+// atributo): o Laravel troca "_" por espaço no caminho do campo.
+const erroEmail = (key, campo) => `template data.${key.replace(/_/g, " ")}.${campo} não é um email válido`;
+const ESPERA_PREVIA_MS = 300;
 
 const GRUPOS = ["Notificações", "Cliente", "Fornecedor"];
 const CANAL_LABEL = { email: "E-mail", sms: "SMS", wa: "WhatsApp" };
@@ -174,14 +206,41 @@ function Dica({ content, children }) {
   return <Tooltip content={content}>{children}</Tooltip>;
 }
 // Campo de e-mail simples: Input do DS (não recebe inserção de tag)
-function CampoDS({ label, value, placeholder, onChange, help }) {
+function CampoDS({ label, value, placeholder, onChange, help, error, type }) {
   const { Input } = ds();
   if (!Input) return (
     <div className="cms-field"><label>{label}</label>
-      <input value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
-      {help && <small>{help}</small>}</div>
+      <input type={type} value={value} placeholder={placeholder} aria-invalid={!!error} onChange={(e) => onChange(e.target.value)} />
+      {error ? <small className="nt-err" role="alert">{error}</small> : help && <small>{help}</small>}</div>
   );
-  return <Input label={label} value={value} placeholder={placeholder} help={help} onChange={(e) => onChange(e.target.value)} />;
+  return <Input type={type} label={label} value={value} placeholder={placeholder} help={help} error={error} onChange={(e) => onChange(e.target.value)} />;
+}
+
+// Estado vazio do DS (EmptyState); sem o bundle, texto simples.
+function Vazio({ variant, title, description }) {
+  const { EmptyState } = ds();
+  if (!EmptyState) return <div className="nt-vazio" role="status"><b>{title}</b><span>{description}</span></div>;
+  return <EmptyState variant={variant} title={title} description={description} />;
+}
+
+// Prévia do e-mail: em produção o corpo vai ao POST /notification-templates/previa, que limpa o
+// HTML com o mesmo HtmlSanitizer do envio, e volta depois de ESPERA_PREVIA_MS sem digitação.
+// Aqui a espera é simulada e a limpeza tira só <script> e on*; `falha` mostra o estado de erro.
+function PreviaEmail({ html, falha }) {
+  const [estado, setEstado] = useState({ carregando: true });
+  useEffect(() => {
+    let vivo = true;
+    setEstado({ carregando: true });
+    const t = setTimeout(() => {
+      if (!vivo) return;
+      if (falha) { setEstado({ erro: true }); return; }
+      const limpo = (html || "").replace(/<script[\s\S]*?<\/script>/gi, "").replace(/\son[a-z]+="[^"]*"/gi, "");
+      setEstado({ html: limpo });
+    }, ESPERA_PREVIA_MS);
+    return () => { vivo = false; clearTimeout(t); };
+  }, [html, falha]);
+  if ("html" in estado) return <div className="nt-prev-mail-b" dangerouslySetInnerHTML={{ __html: estado.html || "<p>(vazio)</p>" }} />;
+  return <p role="status" className="nt-prev-estado">{estado.erro ? "Não foi possível gerar a prévia. Tente de novo." : "Atualizando prévia…"}</p>;
 }
 
 // ── Editor do corpo do e-mail: visual (contentEditable) ou código (HTML cru) ──
@@ -234,7 +293,7 @@ function CorpoEmail({ html, onHtml, modo, api, onFoco }) {
 function NotificacoesPage() {
   const inicial = useMemo(() => {
     const o = {};
-    TEMPLATES.forEach((t) => { o[t.key] = { ...t.d, autoEmail: false, autoSms: false, autoWa: false }; });
+    [...TEMPLATES, T_MODULO].forEach((t) => { o[t.key] = { ...t.d, autoEmail: false, autoSms: false, autoWa: false }; });
     o.new_sale.autoEmail = true;
     o.payment_reminder.autoEmail = true;
     o.payment_reminder.autoWa = true;
@@ -249,21 +308,35 @@ function NotificacoesPage() {
   const [abertos, setAbertos] = useState({});
   const [listaAlt, setListaAlt] = useState(false);
   const [toast, setToast] = useState(null);
+  const [cenario, setCenario] = useState("normal");
+  const [erros, setErros] = useState({});
   const refs = useRef({});
   const rte = useRef({});
   const buscaRef = useRef(null);
   const foco = useRef({ email: "corpo", sms: "sms", wa: "wa" });
 
-  const t = useMemo(() => TEMPLATES.find((x) => x.key === sel), [sel]);
-  const v = estado[sel];
-  const canalAtivo = t.canais.includes(canal) ? canal : "email";
+  // A lista é a que o servidor manda: sem a agenda, "Nova reserva" não vem; módulos acrescentam modelos.
+  const lista = useMemo(() => {
+    if (cenario === "sem-modelos") return [];
+    const base = TEMPLATES.filter((x) => !(x.agenda && cenario === "sem-agenda"));
+    if (cenario === "modulo") base.splice(base.findIndex((x) => x.grupo === "Fornecedor"), 0, T_MODULO);
+    return base;
+  }, [cenario]);
+  useEffect(() => {
+    if (lista.length && !lista.some((x) => x.key === sel)) { setSel(lista[0].key); setCanal("email"); setModo("visual"); }
+  }, [lista, sel]);
+
+  const t = lista.find((x) => x.key === sel);
+  const v = t ? estado[sel] : null;
+  const canalAtivo = t && t.canais.includes(canal) ? canal : "email";
   const campoCorpo = CAMPO_CANAL[canalAtivo];
-  const texto = v[campoCorpo] || "";
+  const texto = (v && v[campoCorpo]) || "";
 
   const set = (campo) => (val) => setEstado((s) => ({ ...s, [sel]: { ...s[sel], [campo]: val } }));
   const liga = (campo) => () => setEstado((s) => ({ ...s, [sel]: { ...s[sel], [campo]: !s[sel][campo] } }));
 
-  const alterados = useMemo(() => TEMPLATES.filter((x) => JSON.stringify(estado[x.key]) !== JSON.stringify(salvo[x.key])), [estado, salvo]);
+  const alterados = useMemo(() => lista.filter((x) => JSON.stringify(estado[x.key]) !== JSON.stringify(salvo[x.key])), [lista, estado, salvo]);
+  const selAlterado = alterados.some((x) => x.key === sel);
   const mostrar = (msg) => { setToast(msg); window.clearTimeout(mostrar._id); mostrar._id = window.setTimeout(() => setToast(null), 2600); };
 
   useEffect(() => {
@@ -291,16 +364,26 @@ function NotificacoesPage() {
   const resolvido = resolve(puro);
   const limite = GSM7.test(resolvido) ? 160 : 70;
   const segs = Math.max(1, Math.ceil(resolvido.length / limite));
-  const desconhecidas = tagsDesconhecidas(texto + " " + (canalAtivo === "email" ? v.assunto : ""), t);
-  const autos = t.auto ? [v.autoEmail, v.autoSms, v.autoWa].filter(Boolean).length : 0;
-  const fornecedorAviso = t.grupo === "Fornecedor" && t.canais.length > 1;
+  const desconhecidas = t ? tagsDesconhecidas(texto + " " + (canalAtivo === "email" ? v.assunto : ""), t) : [];
+  const autos = t && t.auto ? [v.autoEmail, v.autoSms, v.autoWa].filter(Boolean).length : 0;
+  const fornecedorAviso = !!t && t.grupo === "Fornecedor" && t.canais.length > 1;
 
-  const filtrados = (g) => TEMPLATES.filter((x) => x.grupo === g &&
+  const filtrados = (g) => lista.filter((x) => x.grupo === g &&
     (busca.trim() === "" || (x.name + " " + x.key).toLowerCase().includes(busca.trim().toLowerCase())));
+  const algumVisivel = GRUPOS.some((g) => filtrados(g).length > 0);
 
-  const restaurarPadrao = () => { setEstado((s) => ({ ...s, [sel]: { ...t.d, autoEmail: false, autoSms: false, autoWa: false } })); mostrar("Modelo voltou ao padrão de fábrica — falta salvar"); };
-  const salvar = () => { setSalvo(estado); setListaAlt(false); mostrar(`${alterados.length} ${alterados.length === 1 ? "modelo salvo" : "modelos salvos"}`); };
-  const descartar = () => { setEstado(salvo); setListaAlt(false); };
+  const restaurarPadrao = () => { setEstado((s) => ({ ...s, [sel]: { ...t.d, cc: "", bcc: "", autoEmail: false, autoSms: false, autoWa: false } })); mostrar("Modelo voltou ao padrão de fábrica — falta salvar"); };
+  // O store() valida cc/bcc de todos os modelos enviados; se um falhar, nada é gravado.
+  const salvar = () => {
+    const e = {};
+    alterados.forEach((x) => ["cc", "bcc"].forEach((c) => { if (!EMAIL_OK(estado[x.key][c])) e[`${x.key}.${c}`] = erroEmail(x.key, c); }));
+    setErros(e);
+    if (Object.keys(e).length) { mostrar("Nada foi salvo: confira os e-mails de cópia"); return; }
+    setSalvo(estado); setListaAlt(false); mostrar(`${alterados.length} ${alterados.length === 1 ? "modelo salvo" : "modelos salvos"}`);
+  };
+  const descartar = () => { setEstado(salvo); setErros({}); setListaAlt(false); };
+  const erro = (c) => erros[`${sel}.${c}`];
+  const carregando = cenario === "carregando";
 
   return (
     <div className="os-page nt-page" data-screen-label="Sistema · Modelos de notificação">
@@ -325,11 +408,17 @@ function NotificacoesPage() {
               )}
             </div>
           )}
-          <button className="os-btn ghost" onClick={restaurarPadrao}>Restaurar padrão desta</button>
+          <select className="nt-cenario" value={cenario} onChange={(e) => setCenario(e.target.value)} aria-label="Cenário do protótipo">
+            {CENARIOS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select>
+          <a className="os-btn" href="/notification-templates?legacy=1">Editor clássico</a>
+          <button className="os-btn ghost" disabled={!t || t.semPadrao} title={t && t.semPadrao ? "Este modelo não tem texto de fábrica." : undefined}
+            onClick={restaurarPadrao}>Restaurar padrão desta</button>
           <button className="os-btn primary" disabled={alterados.length === 0} onClick={salvar}>Salvar</button>
         </div>
       </header>
 
+      {carregando ? <div className="nt-carregando" role="status" aria-busy="true">Carregando modelos de notificação…</div> :
       <div className="nt-body">
         <nav className="fnc-rail nt-rail" data-contract="lista-modelos">
           <div className="fnc-rail-search">
@@ -360,9 +449,11 @@ function NotificacoesPage() {
               </div>
             );
           })}
-          <p className="nt-rail-nota">{TEMPLATES.length} modelos nesta empresa. Modelo vazio não é enviado.</p>
+          {!algumVisivel && <Vazio variant="no-results" title="Nenhum modelo encontrado" description="Tente outro termo na busca." />}
+          {lista.length > 0 && <p className="nt-rail-nota">{lista.length} modelos nesta empresa. Modelo vazio não é enviado.</p>}
         </nav>
 
+        {!t ? <div className="nt-pane"><Vazio variant="default" title="Nenhum modelo disponível" description="Os modelos disponíveis para sua empresa aparecerão aqui." /></div> :
         <div className="nt-pane">
           <div className="nt-pane-h" data-contract="cabecalho-modelo">
             <div className="nt-pane-h-l">
@@ -397,15 +488,15 @@ function NotificacoesPage() {
                     </div>
                   </div>
                   <div className="cms-f-row two">
-                    <CampoDS label="Cópia (CC)" value={v.cc} placeholder="financeiro@suaempresa.com.br" onChange={set("cc")} />
-                    <CampoDS label="Cópia oculta (BCC)" value={v.bcc} placeholder="arquivo@suaempresa.com.br" onChange={set("bcc")} />
+                    <CampoDS type="email" label="Cópia (CC)" value={v.cc} placeholder="financeiro@suaempresa.com.br" onChange={set("cc")} error={erro("cc")} />
+                    <CampoDS type="email" label="Cópia oculta (BCC)" value={v.bcc} placeholder="arquivo@suaempresa.com.br" onChange={set("bcc")} error={erro("bcc")} />
                   </div>
                 </>
               )}
 
               <div className="cms-field nt-corpo" data-contract="editor-canal">
                 <div className="nt-corpo-h">
-                  <label>{canalAtivo === "email" ? "Corpo do e-mail" : canalAtivo === "sms" ? "Texto do SMS" : "Texto do WhatsApp"}</label>
+                  <label>{canalAtivo === "email" ? (modo === "codigo" ? "Corpo do e-mail (HTML)" : "Corpo do e-mail") : canalAtivo === "sms" ? "Texto do SMS" : "Texto do WhatsApp"}</label>
                   {canalAtivo === "email" && (
                     <div className="nt-corpo-tools">
                       <div className="nt-rte-bar">
@@ -475,7 +566,7 @@ function NotificacoesPage() {
                     <span>ROTA LIVRE &lt;contato@rotalivre.com.br&gt; → martinho@oficina.com.br</span>
                     {(v.cc || v.bcc) && <span className="nt-mono">{v.cc ? `cc ${v.cc}` : ""}{v.cc && v.bcc ? " · " : ""}{v.bcc ? `bcc ${v.bcc}` : ""}</span>}
                   </div>
-                  <div className="nt-prev-mail-b" dangerouslySetInnerHTML={{ __html: resolve(v.corpo) || "<p>(vazio)</p>" }} />
+                  <PreviaEmail html={resolve(v.corpo)} falha={cenario === "previa-erro"} />
                 </div>
               )}
               {canalAtivo === "sms" && (
@@ -494,14 +585,18 @@ function NotificacoesPage() {
                   </div>
                 </div>
               )}
-              <button className="os-btn sm nt-teste" onClick={() => mostrar(canalAtivo === "email" ? "Teste enviado para wagner@wr2.com.br" : canalAtivo === "sms" ? "SMS de teste enviado para (31) 99871-2204" : "WhatsApp de teste enviado para (31) 99871-2204")}>
-                Enviar teste pra mim
-              </button>
-              <p className="nt-nota">O teste usa os mesmos dados de exemplo da prévia.</p>
+              {/* Só no e-mail: o POST /notification-templates/test manda a versão GRAVADA para o
+                  e-mail do usuário logado, com "[teste] " no começo do assunto e as tags cruas. */}
+              {canalAtivo === "email" && <>
+                <button className="os-btn sm nt-teste" disabled={selAlterado}
+                  onClick={() => mostrar("Teste enviado para wagner@wr2.com.br")}>Enviar teste pra mim</button>
+                <p className="nt-nota">{selAlterado ? "Salve antes de testar: o teste usa a versão gravada." : "Envia a versão gravada para o seu e-mail."}
+                  {" "}Chega com o assunto “[teste] {salvo[sel].assunto}”.</p>
+              </>}
             </aside>
           </div>
-        </div>
-      </div>
+        </div>}
+      </div>}
 
       {toast && (ds().Toast
         ? <div className="nt-toast-ds">{React.createElement(ds().Toast, { tone: "ok" }, toast)}</div>
