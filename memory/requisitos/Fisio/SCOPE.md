@@ -34,6 +34,7 @@ contains:
   - "ConfiguracoesController — Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
   - "Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app (fisio_appointment_types, fisio_appointments, fisio_schedule_blocks, fisio_waitlist, fisio_booking_settings — US-FISIO-013)"
   - "AgendaController — agenda da clínica: semana, marcar, status, desmarcar, bloqueio de horário, lista de espera e liberar o app (US-FISIO-014/015)"
+  - "ConfigAgendamentoController — Configurações › Agendamento pelo app: ligar, quem marca, tipos liberados, horários e regras (US-FISIO-015)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
