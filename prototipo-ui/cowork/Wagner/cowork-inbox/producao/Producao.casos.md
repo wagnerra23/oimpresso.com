@@ -146,6 +146,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-13 · No máximo 2 trilhas · `must` · ✅
 - **Aceite:** O roteiro aceita até 2 trilhas em paralelo, e elas sempre terminam numa etapa de junção nomeada · Uma 3ª trilha ou trilha sem junção é recusada ao salvar.
 - **Por quê:** linha reta faz a impressão esperar a serralheria sem motivo; fluxograma livre ninguém treina.
+- **Nas outras telas:** a Ficha da OS mostra as duas trilhas lado a lado com a junção. Na Linha do tempo, cada bloco de etapa em paralelo leva a marca "Trilha A" ou "Trilha B", e o bloco da junção leva "Junta A + B". Ao reprogramar, as duas trilhas podem se sobrepor no horário, mas dentro de cada trilha a ordem vale (a OS-2617 não deixa a Dobra e solda começar antes do fim do Corte CNC das faces) e a junção só começa quando as duas terminam. É a mesma regra do sistema (`ProgramacaoDoRoteiro` e `SituacaoDaOrdem`).
 
 ### UC-PCV-14 · Etapa opcional pelo orçamento · `must` · ✅
 - **Aceite:** Dado o roteiro de adesivo com "Laminação · só com laminação" · Quando o orçamento vem **sem** laminação · Então a OS nasce sem essa etapa · Com laminação · Então nasce com ela.
@@ -254,7 +255,6 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 **Decisão [W]** — D-PCP, D1–D5 e permissões aprovados em 2026-10-15 (`_DECISOES-W-2026-10-15.md`). Restam as perguntas do formulário de 15/10 (relação com CV/Repair/Fabricação, piloto, turno, canal de aviso, empenho de estoque, encaixe, ordem das fases). O link de prova já foi decidido em 2026-10-21 (D-ARTE-PAGINA: fica a `/arte/{token}`).
 
 **Forma (dá para fazer aqui, no protótipo)**
-4. Ficha e linha do tempo respeitarem as trilhas em paralelo (hoje só o Roteiro mostra).
 5. Estados carregando / vazio / erro em todas as vistas.
 
 **Só no Code**

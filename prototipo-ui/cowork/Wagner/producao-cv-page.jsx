@@ -320,6 +320,25 @@ function Linha({ onAbrir, f, setF }) {
   // Responsável da etapa do bloco: o que o bloco já carrega (depois de uma troca) ou o da etapa da OS naquela máquina.
   const respDe = (b) => { if (b.resp) return b.resp; const o = D.osDe(b.os); const e = o && D.etapas(o).find((x) => x.maq === b.maq && x.estado !== "feito"); return e ? e.resp : D.maqDe(b.maq).operador; };
   const travaDe = (b) => [b.bloqueio, b.material].filter(Boolean).join(" · ");
+  // Trilhas em paralelo (UC-PCV-13; regra do sistema em ProgramacaoDoRoteiro e SituacaoDaOrdem): dentro de uma trilha as
+  // etapas seguem em ordem; as duas trilhas correm ao mesmo tempo; a etapa de junção só começa quando as duas terminam.
+  const etapaDoBloco = (b) => { const o = D.osDe(b.os); if (!o) return null; const es = D.etapas(o);
+    let i = b.etapa ? es.findIndex((e) => e.nome === b.etapa) : es.findIndex((e) => e.maq === b.maq && e.estado !== "feito"); if (i < 0) i = es.findIndex((e) => e.maq === b.maq);
+    return i < 0 ? null : { ...es[i], i, junta: o.junta || null, ehJuncao: !!o.junta && es[i].nome === o.junta }; };
+  const tagTrilha = (e) => e && (e.trilha ? "Trilha " + e.trilha : e.ehJuncao ? "Junta A + B" : null);
+  const foraDaOrdem = (b, ni, nf) => {
+    const e = etapaDoBloco(b); if (!e || (!e.trilha && !e.ehJuncao)) return null;
+    const outros = blocos.filter((x) => x.os === b.os && x.k !== b.k).map((x) => ({ x, ex: etapaDoBloco(x) })).filter((y) => y.ex);
+    const antes = e.trilha && outros.find(({ x, ex }) => ex.trilha === e.trilha && ex.i < e.i && x.fim > ni);
+    if (antes) return e.nome + " vem depois de " + antes.ex.nome + " na trilha " + e.trilha + ", que termina " + hhmm(antes.x.fim) + ".";
+    const depois = e.trilha && outros.find(({ x, ex }) => ex.trilha === e.trilha && ex.i > e.i && x.ini < nf);
+    if (depois) return e.nome + " vem antes de " + depois.ex.nome + " na trilha " + e.trilha + ", que começa " + hhmm(depois.x.ini) + ".";
+    const trilhas = e.ehJuncao && outros.filter(({ x, ex }) => ex.trilha && x.fim > ni);
+    if (trilhas && trilhas.length) return e.nome + " junta as duas trilhas e só começa quando elas terminam (" + trilhas.map(({ x, ex }) => ex.nome + " até " + hhmm(x.fim)).join(", ") + ").";
+    const juncao = e.trilha && outros.find(({ x, ex }) => ex.ehJuncao && x.ini < nf);
+    if (juncao) return "A trilha " + e.trilha + " precisa terminar antes de " + juncao.ex.nome + ", que começa " + hhmm(juncao.x.ini) + ".";
+    return null;
+  };
   // Entrega prometida: terminar depois do fim do turno no dia prometido (ou em dia posterior) atrasa a entrega.
   const passaDaPromessa = (b, nf) => { const o = D.osDe(b.os); return o && (diaIso > o.prazo || (diaIso === o.prazo && nf > T.fim)) ? o.prazo : null; };
   const mover = (k, maqId, ini, origem, respEscolhido) => {
@@ -330,12 +349,15 @@ function Linha({ onAbrir, f, setF }) {
     const dur = b.fim - b.ini; let ni = Math.max(H0, Math.min(H1 - dur, Math.round(ini / SNAP) * SNAP)); const nf = ni + dur;
     const choca = blocos.find((x) => x.k !== k && x.maq === maqId && ni < x.fim && nf > x.ini);
     if (choca) { setMsg({ tone: "warn", t: "Choca com " + choca.os + " (" + hhmm(choca.ini) + "–" + hhmm(choca.fim) + ") em " + mDest.nome + ". Escolha outro horário." }); return false; }
+    const ordem = foraDaOrdem(b, ni, nf);
+    if (ordem) { setMsg({ tone: "warn", t: b.os + ": " + ordem + " Escolha outro horário." }); return false; }
     const resp = respEscolhido || respDe(b);
     if (maqId !== b.maq && mDest.operadores.length && !mDest.operadores.includes(resp)) { setEscolha({ k, maqId, ini: ni, origem, resp, opcoes: mDest.operadores }); setMsg(null); return false; }
     const turno = nf > T.fim ? "termina " + hhmm(nf) + " — passa do fim do turno (" + hhmm(T.fim) + ")" : null;
     const promessa = passaDaPromessa(b, nf);
     const conf = [turno, promessa ? "passa da entrega prometida (" + D.d2(promessa) + ")" : null].filter(Boolean).join(" · ") || null;
-    setAg({ ...ag, [dia]: blocos.map((x) => x.k === k ? { ...x, maq: maqId, ini: ni, fim: nf, conflito: conf, movido: true, resp } : x) });
+    const etapa = b.etapa || (etapaDoBloco(b) || {}).nome; // guarda a etapa: em outra máquina ela não se acha mais pelo posto
+    setAg({ ...ag, [dia]: blocos.map((x) => x.k === k ? { ...x, maq: maqId, ini: ni, fim: nf, conflito: conf, movido: true, resp, etapa } : x) });
     setEscolha(null);
     D.registrar({ os: b.os, tipo: "pcp", maq: maqId, texto: "Reprogramou " + (maqId !== b.maq ? "de " + mOrig.nome + " para " + mDest.nome + ", " : "") + hhmm(ni) + "–" + hhmm(nf) + (resp !== respDe(b) ? " · responsável " + resp : "") + (origem === "teclado" ? " (teclado)" : "") + (conf ? " — " + conf : "") });
     const aviso = resp + (resp !== respDe(b) ? " passa a responder pela etapa e recebeu o aviso no app." : " recebeu o aviso no app.");
@@ -344,7 +366,7 @@ function Linha({ onAbrir, f, setF }) {
   };
   const aplicar = (sim) => {
     const b = blocos.find((x) => x.maq === "eco" && x.os === "OS-2608");
-    if (sim && b) { const c = blocos.find((x) => x.conflito && x.maq === "eco"); setAg({ ...ag, hoje: blocos.map((x) => x === b ? { ...x, maq: "latex", ini: 10.75, fim: 11.85, movido: true } : x === c ? { ...x, ini: 14.5, fim: 17.6, conflito: null } : x) }); }
+    if (sim && b) { const c = blocos.find((x) => x.conflito && x.maq === "eco"); setAg({ ...ag, hoje: blocos.map((x) => x === b ? { ...x, maq: "latex", ini: 10.75, fim: 11.85, movido: true, etapa: (etapaDoBloco(b) || {}).nome } : x === c ? { ...x, ini: 14.5, fim: 17.6, conflito: null } : x) }); }
     else setAg({ ...ag, hoje: D.AGENDA.map((x, k) => ({ ...x, k })) });
     setAplicado(sim);
     D.registrar({ os: "OS-2608", tipo: "pcp", maq: sim ? "latex" : "eco", texto: sim ? "Reprogramou Adesivo de aplicação da Roland VG3-640 para a HP Latex 365 (10:45)" : "Desfez a reprogramação — volta para a Roland VG3-640" });
@@ -374,7 +396,7 @@ function Linha({ onAbrir, f, setF }) {
       <BarraFiltro f={f} setF={setF} />
       <div className="pcv-bar">
         {Segmented && <Segmented size="sm" value={dia} onChange={(v) => { setDia(v); setMsg(null); setEscolha(null); }} options={[{ value: "hoje", label: D.DIAS.hoje.rotulo }, { value: "proximo", label: D.DIAS.proximo.rotulo }]} />}
-        <span className="pcv-help">Arraste um bloco que ainda não começou para mudar o horário ou levar para outra máquina do mesmo setor. No teclado: Alt + setas. Tracejado = travado por arte ou falta de material · borda vermelha = passa do fim do turno ({T.rotulo}) ou da entrega prometida. O dia seguinte pula sábado, domingo e feriados.</span>
+        <span className="pcv-help">Arraste um bloco que ainda não começou para mudar o horário ou levar para outra máquina do mesmo setor. No teclado: Alt + setas. Tracejado = travado por arte ou falta de material · "Trilha A/B" = etapas em paralelo da mesma OS: as duas trilhas correm ao mesmo tempo, cada uma em ordem, e a junção só começa quando as duas terminam · borda vermelha = passa do fim do turno ({T.rotulo}) ou da entrega prometida. O dia seguinte pula sábado, domingo e feriados.</span>
       </div>
       {msg && Alert && <Alert tone={msg.tone} title={msg.tone === "warn" ? "Não movido" : msg.tone === "danger" ? "Movido, com aviso" : "Movido"} onClose={() => setMsg(null)}>{msg.t}</Alert>}
       {escolha && bEsc && Alert && <Alert tone="info" title={"Quem faz na " + D.maqDe(escolha.maqId).nome + "?"} onClose={() => setEscolha(null)}>
@@ -390,13 +412,13 @@ function Linha({ onAbrir, f, setF }) {
               {dia === "hoje" && <i className="pcv-g-now" style={{ left: pos(agoraH) + "%" }} aria-hidden="true" />}
               <i className="pcv-g-fim" style={{ left: pos(T.fim) + "%" }} aria-hidden="true" />
               {arr && arr.over === m.id && (() => { const b = blocos.find((x) => x.k === arr.k); const dur = b.fim - b.ini; return <i className="pcv-g-prev" style={{ left: pos(Math.max(H0, arr.ini)) + "%", width: (pos(Math.max(H0, arr.ini) + dur) - pos(Math.max(H0, arr.ini))) + "%" }} aria-hidden="true"><span>{hhmm(Math.max(H0, arr.ini))}</span></i>; })()}
-              {visiveis.filter((b) => b.maq === m.id).map((b) => { const o = D.osDe(b.os); const trava = travaDe(b); const fixo = b.estado !== "fila"; return (
+              {visiveis.filter((b) => b.maq === m.id).map((b) => { const o = D.osDe(b.os); const trava = travaDe(b); const fixo = b.estado !== "fila"; const tri = tagTrilha(etapaDoBloco(b)); const triTxt = tri ? (tri.startsWith("Trilha") ? tri + " em paralelo, junta em " + o.junta : "junta as trilhas A e B") : ""; return (
                 <button key={b.k} className={"pcv-g-blk is-" + b.estado + (trava ? " is-bloq" : "") + (b.conflito ? " is-conf" : "") + (b.movido ? " is-mov" : "") + (arr && arr.k === b.k ? " is-arr" : "") + (fixo ? "" : " is-movel")}
                   style={{ left: pos(b.ini) + "%", width: (pos(b.fim) - pos(b.ini)) + "%", "--c": D.setorDe(m.setor).cor }}
-                  aria-label={`${b.os}, ${o ? o.cliente : ""}, ${hhmm(b.ini)} a ${hhmm(b.fim)} em ${m.nome}, responsável ${respDe(b)}${trava ? ", " + trava : ""}${b.conflito ? ", " + b.conflito : ""}${fixo ? (b.estado === "feito" ? ", concluída" : ", em andamento, não se reprograma") : ""}. Enter abre${fixo ? "" : "; Alt+setas move"}.`}
-                  title={`${b.os} · ${hhmm(b.ini)}–${hhmm(b.fim)} · ${respDe(b)}${trava ? " — " + trava : ""}${b.conflito ? " — " + b.conflito : ""}`}
+                  aria-label={`${b.os}, ${o ? o.cliente : ""}, ${hhmm(b.ini)} a ${hhmm(b.fim)} em ${m.nome}${triTxt ? ", " + triTxt : ""}, responsável ${respDe(b)}${trava ? ", " + trava : ""}${b.conflito ? ", " + b.conflito : ""}${fixo ? (b.estado === "feito" ? ", concluída" : ", em andamento, não se reprograma") : ""}. Enter abre${fixo ? "" : "; Alt+setas move"}.`}
+                  title={`${b.os} · ${hhmm(b.ini)}–${hhmm(b.fim)}${triTxt ? " · " + triTxt : ""} · ${respDe(b)}${trava ? " — " + trava : ""}${b.conflito ? " — " + b.conflito : ""}`}
                   onPointerDown={(e) => pegarBloco(e, b)} onKeyDown={(e) => tecla(e, b)}
-                  onClick={() => { if (window.__pcvArrastou) return; onAbrir(b.os); }}><b className="mono">{b.os}</b><span>{o ? o.cliente : ""}</span></button>); })}
+                  onClick={() => { if (window.__pcvArrastou) return; onAbrir(b.os); }}><b className="mono">{b.os}{tri && <em className="pcv-g-tri">{tri}</em>}</b><span>{o ? o.cliente : ""}</span></button>); })}
             </div>
           </div>); })}
       </div>
