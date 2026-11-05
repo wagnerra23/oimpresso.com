@@ -5,8 +5,19 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-29"
+last_run: "2026-11-05"
 ---
+
+> ℹ️ **`last_run` 2026-11-04 → 2026-11-05 (G-6): só a fileira de KPIs mudou de largura.** Os 5 KPIs ficam numa linha
+> a 1280px (decisão [W] 2026-11-05), e o detalhamento por origem do Faturado hoje passa a 1 item por linha. Nenhum UC desta
+> tela trata dos KPIs, então nenhum foi reexecutado; o bump registra a reconciliação do trio nesta data.
+
+> ℹ️ **`last_run` 2026-10-29 → 2026-11-04 (G-6): a tela mudou de LAYOUT, não de comportamento dos UCs.**
+> O PR-1d da Onda 1 de Sells moveu blocos do `Index.tsx`: as pílulas ficaram sozinhas na linha; Foco, visão salva, Visão,
+> Filtros e busca desceram para a linha de baixo; Imprimir caixa e o menu Visões subiram para o cabeçalho (o link
+> "Rascunhos" do UC-SIDX-04 continua no menu Visões). Nenhum UC desta tela trata dos KPIs, e nenhum foi reexecutado por
+> causa disso; o UC-SIDX-07 (mesmo dia, PR-1c) tem prova própria na lane do Sells. O bump registra que o trio foi
+> reconciliado com a tela nesta data, não um re-run.
 
 > ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
@@ -148,10 +159,21 @@ last_run: "2026-10-29"
 ## UC-SIDX-06 · Totais do filtro abaixo da lista, com os números do servidor `[V0]` `[must]`
 - **Persona:** Larissa / Wagner — "quanto vendi neste período e quanto falta receber?" sem somar linha por linha nem montar relatório; no Delphi o total ficava ao pé do grid.
 - **Como usa:** filtra por período, busca ou pílula Paga/Pendente e lê, abaixo da lista, a quantidade de vendas, o **Pago**, o **A receber** e o **Total do filtro** — de todas as páginas, não só da que está aberta.
-- **Aceite:** Dado `/sells-list-json` devolvendo `totals` para o filtro · Quando a tela termina de carregar sem filtro que rode só no navegador · Então a barra mostra a quantidade e os três valores exatamente como o servidor mandou, em reais com centavos · E com visão salva diferente de "Todas", pílula Faturada/Cancelada ou filtro de origem (que filtram só a página carregada) a barra não mostra número e diz por quê · E em Rascunhos, durante a busca ou sem vendas, a barra não aparece.
+- **Aceite:** Dado `/sells-list-json` devolvendo `totals` para o filtro · Quando a tela termina de carregar sem filtro que rode só no navegador · Então a barra mostra a quantidade e os três valores exatamente como o servidor mandou, em reais com centavos · E com visão salva diferente de "Todas" ou filtro de origem (que filtram só a página carregada) a barra não mostra número e diz por quê · E nas pílulas Faturada e Cancelada a barra mostra os números, porque desde 2026-11-04 o servidor as filtra (UC-SIDX-07; até então elas também escondiam a barra) · E em Rascunhos, durante a busca ou sem vendas, a barra não aparece.
 - **Âncora de contrato:** US-SELL-017 (totalizador do filtro inteiro, não da página) · **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — a tela só exibe o número calculado no servidor, não soma nada · UC-SIDX-02 (o total do servidor não soma outra empresa) e UC-SIDX-05 (rascunho fora dos totais de faturado) · forma do protótipo `prototipo-ui/cowork/Wagner/vendas-page.jsx` (`vd-totalbar`).
 - **Teste:** `tests/js/sells-index-totais.test.tsx` — `UC-SIDX-06 …` (lane Vitest do `Frontend / Vite build`).
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane Vitest.
+
+---
+
+## UC-SIDX-07 · As pílulas Faturada e Cancelada filtram todas as páginas, no servidor `[T0]` `[must]`
+- **Persona:** Larissa / Wagner — "quais vendas já têm nota?" e "quais notas foram canceladas?", com o número certo de vendas e o total delas.
+- **Como usa:** clica na pílula **Faturada** (ou **Cancelada**); a lista traz só essas vendas, de todas as páginas, e o rodapé soma só elas.
+- **Aceite:** Dado vendas da empresa com nota autorizada, cancelada, pendente, sem nota, com nota apagada e com nota de outra empresa apontando para ela · Quando peço `/sells-list-json?fiscal_status=autorizada` · Então vem só a venda de nota autorizada, e `meta.total` e `totals.count` são 1 · E com `fiscal_status=cancelada` vem só a de nota cancelada · E outro valor qualquer não filtra · E a nota de outra empresa não marca a venda, e a outra empresa vê só as faturadas dela. Controle no mesmo teste: sem a pílula vêm as 6 vendas da empresa.
+- **Âncora de contrato:** US-SELL-017 (total do filtro inteiro, não da página) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · mesmo critério do `fiscal_status` da linha em `SellController::inertiaList` (emissão única por venda, sem a apagada). Antes de 2026-11-04 as duas pílulas filtravam só a página carregada (`Index.tsx`, "filtra client-side").
+- **Mudança de contagem esperada:** com a pílula ativa, total e paginação passam a contar só as vendas da pílula em todas as páginas (antes contavam todas as vendas do período).
+- **Teste:** `tests/Feature/Sells/SellsIndexPilulaNotaContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`) — `UC-SIDX-07 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
 ---
 

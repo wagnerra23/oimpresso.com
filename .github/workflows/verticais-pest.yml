@@ -554,6 +554,9 @@ jobs:
         # em PDF — registros assinados em ordem cronológica e carimbados, 403 sem fisio.access, 404
         # entre 98 e 99, e cada exportação no activity_log sem PII.
         #
+        # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
+        # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
+        #
         # ENTRA 2026-10-19 — Fisio/FisioFolhaProgramaTest (UC-FPS-37..38, B-12): folha A4 do programa
         # — só o programa no papel (sem queixa nem prontuário), foto embutida, 403/404, rastro sem PII,
         # e imprimir não revoga nem emite link do portal.
@@ -607,6 +610,9 @@ jobs:
         # do link do portal e lembrete diário pelo módulo Whatsapp existente (número de saída padrão),
         # consentimento, isolamento 98×99, idempotência persistida, silêncio, teto por hora e wa.me
         # manual sem canal. O caso de integração com o portal real PULA até o US-FISIO-007a entrar.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioConfigWhatsappTest (Lote 5, UC-FCW-01..06): a clínica escolhe o
+        # canal (manual, oficial, QR com aceite de risco) e a escolha muda o canalAtivo real; 98×99.
         #
         # ENTRA 2026-10-19 — Fisio/FisioPainelEnviosFalhosTest (etapa 02 T-09e, UC-FPN-09): o painel
         # lista o WhatsApp de hoje que não chegou, com wa.me; sucesso some, 99 não vaza, sem
@@ -794,6 +800,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php \
             Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php \
             Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
@@ -815,6 +822,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php \
             Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php \
+            Modules/Fisio/Tests/Feature/FisioConfigWhatsappTest.php \
             Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php \
             Modules/Fisio/Tests/Unit/BibliotecaL0Test.php \
             Modules/Fisio/Tests/Feature/FisioCheckinTest.php \

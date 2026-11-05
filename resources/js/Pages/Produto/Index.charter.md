@@ -65,6 +65,8 @@ função da lista Blade que roda hoje em produção.
   reservas ativas; texto inteiro no title; livre zero ou negativo em destaque) — UC-PIDX-38 · D5, 2026-11-04.
 - Coluna Estoque com subunidade cadastrada (ex.: Rolo = 80 m²): abaixo do saldo, "2 × Rolo + 10 m²", com o
   fator no title — UC-PIDX-39 · CV2, 2026-11-04.
+- Painel, aba Composição de kit: "Quantos kits dá para vender", por local, com o componente que limita
+  (zero em destaque) — UC-PIDX-40, 2026-11-04.
 - Filtros (recolhíveis): tipo, categoria, unidade, imposto, marca, local do negócio, situação,
   "Não para venda"; e os de módulo, só para quem tem o módulo: "Modelo do dispositivo"
   (assistência técnica) e "WooCommerce habilitado". Chips "Filtrando por" + "Limpar tudo".

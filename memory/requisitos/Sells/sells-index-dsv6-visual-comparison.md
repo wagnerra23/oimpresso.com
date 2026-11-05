@@ -8,7 +8,8 @@ status: approved
 approved_by: wagner
 approved_at: "2026-06-03"
 date: 2026-06-03
-canon_reference: prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html _(removido em 2026-09-11, d86c977a8dd)_
+canon_reference: prototipo-ui/cowork/Wagner/vendas-page.jsx
+canon_reference_historico: "prototipo-ui/cowork/Wagner/legado/ds-v6/gabarito-vendas.html (removido em 2026-09-11, d86c977a8dd; re-ancorado em 2026-11-04)"
 blade_source: resources/views/sell/index.blade.php (legacy fallback)
 inertia_target: resources/js/Pages/Sells/Index.tsx
 related_adrs:
@@ -26,6 +27,17 @@ refs_prs:
 ---
 
 # Sells /sells — Comparativo visual DS v6 (PR3 · re-skin por token)
+
+> ⚠️ **ERRATA 2026-11-04 — referência re-ancorada (registro de 2026-06-03 preservado).**
+> A referência deste round, `legado/ds-v6/gabarito-vendas.html`, foi **removida em 2026-09-11**
+> (`d86c977a8dd`). Desde então este inventário apontava para um arquivo inexistente, e a dimensão 13
+> abaixo ainda afirma *"referência existe e está aprovada"* — verdade em 2026-06-03, falsa hoje.
+> **A partir de 2026-11-04 a referência de paridade é `prototipo-ui/cowork/Wagner/vendas-page.jsx`**,
+> o mesmo arquivo que o charter declara como `related_prototype` (âncora resolvida por
+> `node scripts/design/ancora.mjs Sells/Index`). O path antigo fica em `canon_reference_historico`.
+> O corpo aprovado por [W] em 2026-06-03 fica como está (trilha do tempo). A medição contra a
+> referência nova é a Onda 1 / PR-1b do plano mestre de Sells — até lá, **nenhum veredito de
+> paridade deste arquivo vale contra `vendas-page.jsx`**: foi medido contra o gabarito apagado.
 
 > ⚠️ **ERRATA 2026-07-16 — descritor de shell errado (registro preservado, não reescrito).**
 > A Região 1 (Layout) abaixo descreve o shell como *"AppShellV2 (sidebar light + topnav)"*. **A sidebar
@@ -76,7 +88,7 @@ refs_prs:
 | 10 | **Espaçamento numérico** | gap/pad via `.vd-`/`.os-` | kpis gap 12 · c-kpi pad 14/16 · panel r-4 · td 11/12 | **Alinhar** aos números do gabarito (acima). |
 | 11 | **Cores semânticas** | `.vd-*`/`.os-*` rose/emerald/amber/blue **escopados** em `.sells-cowork` (paleta própria) + `oklch` cru no Sparkline | **só token:** `--pos/neg/warn(+soft)` · `--origin-OS/CRM/FIN` · `--stage-*` (FSM) · `--accent(+soft)` | **🎯 NÚCLEO DO PR3.** Migrar `.vd-*`/`.os-*` → tokens canônicos. Status pills (paga=`--pos-soft` · pendente=`--warn-soft` · faturada=`--accent-soft` · cancelada=`--neg-soft`). FSM dots `--stage-emerald/green`. Origem `--origin-*`. Ageing `--pos/warn/neg`. **Zero `oklch` cru** (Sparkline → token). |
 | 12 | **Microinterações** | hover transition · drawer slide · bulk slide | `tr transition .12s` · bulkbar cubic-bezier slide · sheet `.26s` · backdrop fade | **Paridade.** Casar timings (já próximos). |
-| 13 | **Referência aprovada** | — | `gabarito-vendas.html` (✅ [W] aprovou DS v6) | **OK** — referência existe e está aprovada. |
+| 13 | **Referência aprovada** | — | `gabarito-vendas.html` (✅ [W] aprovou DS v6) | **OK** — referência existe e está aprovada. _(caducou: arquivo removido em 2026-09-11; ver errata 2026-11-04)_ |
 | 14 | **Benchmarks externos** | (tela list+detail) | Linear (list density) · Stripe Dashboard (status pills) · Shopify Admin (bulk bar) | Manter benchmark list+detail. Tela já está no nível; DS v6 só harmoniza cor. |
 | 15 | **Persona priorização** | Larissa 1280 ROTA LIVRE · Wagner WR2 · balconista | densa 1280, KPIs grandes, status legível | **Top 3:** (1) flip claro/escuro de fábrica (hoje a tela não flipa bem por usar paleta própria); (2) status pills legíveis em 1280; (3) FSM dots com `--stage-*` (esteira clara). |
 
@@ -106,3 +118,58 @@ refs_prs:
 3. Algum ajuste nas decisões acima (ex: manter alguma cor específica, ou incluir os `-soft` chroma)?
 
 Após teu OK eu: atualizo `status: approved` + assino, abro PR3 (worktree off main, single-intent CSS-token), rodo CI + screenshot real, e só mergeio com teu de-novo-OK no screenshot pós-impl (F3 design-critique ≥80).
+
+## Medição 2026-11-04 — cabeçalho (título e subtítulo) contra `vendas-page.jsx`
+
+Âncora: `prototipo-ui/cowork/Wagner/vendas-page.jsx` (`ancora.mjs Sells/Index`), sub `lista` do `VendasModule`, servida da raiz do repo. Produção: `https://oimpresso.com/sells`. Os dois lados em tema escuro, 1280px, com a mesma sonda de `getComputedStyle` em `.vd-head-clean .os-head-l h1`, `.os-head-l p` e nos números do subtítulo. O `design-diff --probe` sem mapa de papéis devolve `title: null` nesta tela, por isso a sonda complementar.
+
+A premissa vinda da Caixa (#10367, título com peso 400) não vale aqui: o Sells/Index já tem a regra `.vendas-aplus .vd-head-clean .os-head-l h1` com peso 700.
+
+| Propriedade | Protótipo | Produção antes | Depois (regra aplicada na página real) |
+|---|---|---|---|
+| h1 font-size / peso / letter-spacing | 22px / 700 / -0.396px | igual | igual |
+| h1 line-height | 30.25px (1.375) | 33px (1.5, herdado) | 30.25px |
+| p line-height | 18.125px (1.45) | 18.75px (1.5) | 18.125px |
+| p font-variant-numeric | tabular-nums | normal | tabular-nums |
+| números do subtítulo | 600, `--text` | 700, `--text-mute` | 600, `--text` |
+| altura do header | 89.375px | 91.75px | 88.375px |
+
+Resíduo, que depende de markup no `.tsx` e não de CSS: no protótipo o separador `·` é um span com opacidade 0.4 dentro de uma linha flex, e a palavra "estouradas" inteira sai em `--neg`. Em produção o separador é texto e só o número sai vermelho, com a cor crua `!important` de `.sells-cowork .vd-delta-dn` em `resources/css/inertia.css`.
+
+---
+
+## Medição 2026-11-04 — produção × `vendas-page.jsx` (Onda 1 / PR-1b)
+
+**Como foi medido.** Sonda canônica `design-diff.mjs --probe` nos dois lados, tema **dark** nos dois
+(o do [W]), viewport **1280×900**, papéis em
+[`governance/design/targets/roles/Sells--Index.json`](../../../governance/design/targets/roles/Sells--Index.json).
+
+- **Produção:** `https://oimpresso.com/sells`, biz=1, sonda injetada na sessão do [W]. A `assinatura`
+  (texto visível) foi omitida do JSON por conter dado real de cliente; os rótulos de KPI foram
+  cortados antes do valor. O staging não serviu de alvo: estava em `8723405fb` (2026-10-14), e o
+  `Index.tsx` mudou depois disso.
+- **Protótipo:** espelho servido pelo `servirEspelho()` do `design-diff-lote` (resolve `_ds/`),
+  `route=vendas` + `oimpresso.vendas.sub=lista`. Sem o `_ds/` o protótipo renderiza sem abas nem
+  segmentos (404 do bundle do DS) — a 1ª tentativa desta medição caiu nisso e foi descartada.
+- **Comparação:** `design-diff.mjs --compare prod.json design.json --check` → **rc=1**, 9 bugs,
+  14 de shell, `sameTheme: true`. Dados em
+  [`governance/design/targets/medidas/Sells--Index/`](../../../governance/design/targets/medidas/Sells--Index/).
+- **Mapa:** `gerar-map.mjs vendas-gap.md --atualizar` devolveu o mesmo `prototipo_sha`
+  (`sha256:84411b9b7e7b`): o `vendas.map.json` está em dia e não foi regravado.
+
+### Delta, classificado
+
+| # | O que difere | Produção | Protótipo | Classe | Destino |
+|---|---|---|---|---|---|
+| M1 | Pílulas de status (Todas · Paga · Pendente · Faturada · Cancelada · Rascunhos) | **6 linhas** a 1280 com a sidebar expandida: `.os-tabs` fica com 203px ao lado de `.vd-tabs-actions` (756px) e quebra. Com conteúdo de 1225px (igual ao protótipo), ainda 2 linhas | 1 linha (tablist de 664px), sozinha | bug de layout | PR-1d |
+| M2 | Linha de controles | Visão + busca + Filtros dividem a linha com as pílulas; o seletor **Foco** fica no cabeçalho | Foco · Visão · período · Filtros avançados · Colunas · busca numa linha própria, abaixo das pílulas | design andou | PR-1d |
+| M3 | KPIs | 5 cards em grade de 4 colunas: o 5º (PIX hoje) cai para uma 2ª linha. Na vista Caixa o 4º slot é "Pagos hoje" e o "PIX hoje" é fixo (#1666) | 4 cards em 1 linha. Na vista Caixa o 4º slot é "PIX hoje"; não há "Pagos hoje" | design andou | PR-1d |
+| M4 | Colunas da lista | Venda · Data · Cliente · Atendido por · Origem · Pipeline · Fiscal · Pagamento · Total · Status | Venda · Cliente · Atendido por · Pipeline · Produção (OS) · Entrega · Arte · Fiscal · Total · Status · Ações | modelo de colunas | **fora da Onda 1**: Produção/Entrega/Arte pedem dado novo do servidor, e o próprio protótipo marca o seletor de colunas como PROPOSTA (#9771) |
+| M5 | Comparação por célula | — | — | inválida a partir da coluna 2 | a sonda compara por índice e as colunas estão em ordem diferente (M4); os vereditos `col2..col10` do JSON comparam colunas diferentes e não são achado |
+| M6 | Shell (14 linhas `SHELL`) | sidebar expandida (249px) | trilho (55px) | modo de sidebar diferente | fora (o shell é do AppShellV2, não desta tela) |
+| M7 | Saúde | tokens vazios na raiz (`--accent`, `--pos`…) | — | limite da sonda | na produção os tokens vivem no `.cockpit`, não no `:root`; a cor do primary foi lida e bate |
+
+**Igual nos dois:** título (22px/700), cor do primary (`oklch(0.7 0.15 295)`), alinhamento dos KPIs,
+tipografia do valor do KPI (22px).
+
+**Para o PR-1d:** M1, M2 e M3. M4 fica registrado como dívida de produto (decisão [W]), não de layout.

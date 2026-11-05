@@ -1795,8 +1795,9 @@ body:has(.vendas-aplus[data-vd-drawer="largo"]) .os-drawer.wide{ width: 560px; m
      vira section própria com mais respiro
    ──────────────────────────────────────────────────────────── */
 
+/* [W] 2026-11-05: 5 KPIs numa linha a 1280 (~182px por card). */
 .vendas-aplus .os-kpis{
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .vendas-aplus .os-kpi{
@@ -1828,7 +1829,7 @@ body:has(.vendas-aplus[data-vd-drawer="largo"]) .os-drawer.wide{ width: 560px; m
 }
 .vendas-aplus .vd-kpi-hero .vd-spark svg{ height: 40px !important; }
 
-/* Hero deixa de monopolizar fila em 2-col fallback (≤1180 = tablet; Larissa 1280 fica em 1 linha de 4) */
+/* Hero deixa de monopolizar fila em 2-col fallback (≤1180 = tablet; Larissa 1280 fica em 1 linha de 5) */
 @media (max-width: 1180px){
   .vendas-aplus .os-kpis{
     grid-template-columns: repeat(2, minmax(0, 1fr));
