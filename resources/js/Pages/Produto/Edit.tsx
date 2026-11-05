@@ -17,6 +17,8 @@ import { tipoDeEnvio } from './_components/formulario/envio';
 import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
+import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formulario/metodoCusto';
+import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
 import type {
@@ -84,6 +86,8 @@ export interface ProdutoEditPageProps {
     opening_stock: boolean;
     delete: boolean;
   };
+  /** Método de custo (US-COM-024): null quando o módulo Compras não está no pacote. */
+  metodoCusto?: MetodoCustoDoFormulario | null;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
@@ -100,6 +104,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
   const [preco, setPreco] = useState<PrecoSimples | null>(() =>
     precoGravado ? { compra: precoGravado.compra, margem: precoGravado.margem, venda: precoGravado.venda } : null,
   );
+  const [metodoCusto, setMetodoCusto] = useState(() => valorInicialDoMetodo(props.metodoCusto));
   const { data, setData, put, transform, processing, errors } = useForm({
     name: p.name,
     sku: p.sku,
@@ -142,6 +147,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
         ...(ncm !== ncmGravado ? { ncm } : {}),
         ...(cest !== cestGravado ? { cest } : {}),
         ...camposDoPrecoEditado(precoGravado, preco, aliquotaDoImposto(d.tax, props.taxAttributes), String(d.tax) !== String(impostoGravado)),
+        ...camposDoMetodoCusto(props.metodoCusto, metodoCusto),
       };
     });
     put(`/products/${p.id}`);
@@ -188,6 +194,9 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
             tipoAtual={props.productTypes[p.type] ?? p.type}
             naturezaFiscal={p.naturezaFiscal ?? null}
             preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) } : undefined}
+            metodoCusto={
+              props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
+            }
           />
           {/* "Salvar e adicionar preços por grupo" fica fora: o Editar não recebe a contagem de grupos. */}
           <AcoesDoCadastro

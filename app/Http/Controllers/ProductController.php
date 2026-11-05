@@ -1152,6 +1152,29 @@ class ProductController extends Controller
      * "Abrir no módulo Fiscal"; o superadmin vale pelo módulo instalado. Decide a aba Fiscal do painel e o "Dados fiscais" do menu
      * da linha (decisão [F] 2026-10-26: muitas empresas vendem sem nota, e aí a aba só atrapalha).
      */
+    /**
+     * "Método de custo" do formulário React (US-COM-024 · UC-FLX-38): os mesmos dados que o módulo
+     * Compras entrega ao formulário Blade pelo gancho `product_form_part`. `null` quando o gancho não
+     * devolveu o campo (Compras fora do pacote ou não instalado): a tela não mostra o campo e não o envia.
+     * Quem grava é o `after_product_saved` do Compras, igual ao Blade.
+     *
+     * @param  array<string, mixed>  $module_form_parts
+     * @return array{atual: string, empresa: string, editavel: bool}|null
+     */
+    private function metodoCustoDoFormulario(array $module_form_parts): ?array
+    {
+        $dados = $module_form_parts['Compras']['template_data'] ?? null;
+        if (! is_array($dados) || ! array_key_exists('compras_metodo_custo_atual', $dados)) {
+            return null;
+        }
+
+        return [
+            'atual' => (string) $dados['compras_metodo_custo_atual'],
+            'empresa' => (string) ($dados['compras_metodo_custo_empresa'] ?? ''),
+            'editavel' => (bool) ($dados['compras_metodo_custo_editavel'] ?? false),
+        ];
+    }
+
     private function moduloFiscalNoPacote(int $business_id): bool
     {
         return auth()->user()?->can('superadmin')
@@ -1773,6 +1796,7 @@ class ProductController extends Controller
                 'expiryType' => (string) session('business.expiry_type'),
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
+                'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
             ]);
         }
 
@@ -2276,6 +2300,7 @@ class ProductController extends Controller
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
                     'delete' => auth()->user()->can('product.delete'),
                 ],
+                'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
             ]);
         }
 
