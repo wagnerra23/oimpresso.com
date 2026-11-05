@@ -52,6 +52,13 @@ related_cu: [CU-OFI-05, CU-OFI-06, CU-OFI-15]
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderVehicleTenantContratoTest.php`
 - **Status: 🧪**
 
+## UC-OED-10 · O vínculo com a venda não muda pela edição `[T0]`
+- **Persona:** invariante de integridade da venda derivada ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)).
+- **Aceite:** Dado uma OS sem venda vinculada · Quando a edição envia `transaction_id` · Então o resto do formulário é gravado e o vínculo continua vazio.
+- **Regressão que defende:** a OS apontar pra venda de outra empresa (a coluna não tem FK) e o faturamento automático da conclusão ser pulado.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderTransactionIdFormContratoTest.php`
+- **Status: 🧪**
+
 ## UC-OED-06 · Concluir a mesma OS duas vezes não baixa estoque em dobro `[V0]`
 - **Persona:** invariante de estoque (REGRA MESTRE valor/estoque).
 - **Aceite:** Dado uma OS já concluída cujas peças já baixaram · Quando a conclusão é reprocessada · Então o saldo **não** é decrementado de novo (idempotência).
@@ -83,6 +90,7 @@ related_cu: [CU-OFI-05, CU-OFI-06, CU-OFI-15]
 | UC-OED-02 | must `[V0]` | CU-OFI-05 · US-OFICINA-001 |
 | UC-OED-03 | must `[V0]` | CU-OFI-06 · US-OFICINA-001 |
 | UC-OED-05 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
+| UC-OED-10 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
 | UC-OED-06 | must `[V0]` | CU-OFI-06 · US-OFICINA-001 |
 | UC-OED-07 | must `[V0]` | CU-OFI-06 · US-OFICINA-001 |
 | UC-OED-08 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
