@@ -94,6 +94,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-37 | Cada cor e tamanho, com saldo, na própria lista | should | `ProductController::saldosDasVariacoes` + coluna Estoque (`colunas.tsx`, `PopoverAncorado`) | `ProdutoListaSaldoVariacoesTest` (lane Estoque · MySQL) + `produto-lista-saldo-variacoes.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-38 | Separado para vendas e livre na coluna Estoque | should | `ProductController::separadosDosProdutos` + coluna Estoque (`colunas.tsx`, `separadoTexto`) | `ProdutoListaSeparadoLivreTest` (lane Estoque · MySQL) + `produto-lista-separado-livre.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-39 | Saldo também em embalagens inteiras (rolos) | should | `ProductController::embalagensDosProdutos` + coluna Estoque (`saldoEmEmbalagens`, `embalagemTexto`) | `ProdutoListaEmbalagemTest` (lane Estoque · MySQL) + `produto-lista-embalagem.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-40 | Quantos kits dá para vender, por local, e quem limita | should | `ProductController::kitsPorLocal` + aba Composição do painel (`PainelDetalhe.tsx`) | `ProdutoKitsDisponiveisTest` (lane Estoque · MySQL) + `produto-painel-kits.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -550,6 +551,15 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** o saldo por rolo (lote) continua no Rastreio do rolo (Produção, US-COM-025); aqui é só a conversão do saldo total.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-40 · Quantos kits dá para vender, por local, e quem limita · `should` `[V0]`
+- **Persona:** quem vende kit (combo) quer saber, antes de prometer, quantos dá para montar com o que tem em cada loja, e o que comprar para montar mais.
+- **Aceite:** Dado o kit que leva 2 canetas e 1 caderno, com 10 canetas e 3 cadernos na Matriz · Quando abro o painel do kit na aba Composição · Então a tabela "Quantos kits dá para vender" mostra "Matriz · 3 kits · limita: caderno" · Um local por linha, só os locais do kit que o usuário pode ver (kit sem local: todos que ele vê) · Componente sem saldo dá 0 kits, em destaque, e é ele quem limita · A quantidade em subunidade conta pelo multiplicador (kit de 1 caixa de 12, com 30 no estoque, dá 2) · Componente que não controla estoque (serviço) não limita; se nenhum controla, a tabela não aparece.
+- **Teste:** [`ProdutoKitsDisponiveisTest`](../../../../tests/Feature/Produto/ProdutoKitsDisponiveisTest.php) — `UC-PIDX-40` (prova dupla: à mão e pela conta do núcleo `ProductUtil::calculateComboQuantity`, nos dois locais e com subunidade; componente sem saldo; componente sem controle de estoque; usuário de um local só — lane Estoque · MySQL) e [`produto-painel-kits.test.tsx`](../../../../tests/js/produto-painel-kits.test.tsx) — `UC-PIDX-40` (a tabela por local, o destaque do zero, o singular, nada sem `kits_por_local` — Vitest do `Frontend / Vite build`).
+- **Contrato:** pedido de 2026-10-23 (comparação com concorrentes: Base e Mercado Livre — o estoque do kit sai do componente mais escasso; Omie — o kit só agrupa). A conta é a que o núcleo usa para o combo na venda (`calculateComboQuantity`: saldo no local ÷ (quantidade × multiplicador da unidade), o menor, para baixo), sobre os mesmos itens da tabela Composição (`combo_variations`, `__getComboProductDetails`). Mexe em estoque só para mostrar (Regra Mestre: prova dupla no teste do servidor).
+- **Diferença deliberada do núcleo:** no `calculateComboQuantity`, um componente com saldo zero não zera o resultado: o `0` serve de "ainda não calculado", e o componente seguinte toma o lugar. Depende da ordem: kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits se A vem primeiro na lista e 0 se vem depois (reproduzido com o mesmo laço em 2026-11-04, sem banco). Aqui zero é zero em qualquer ordem. A venda usa a conta do núcleo, então o defeito vale lá (ver o backlog abaixo).
+- **Fora daqui:** impedir a venda de mais kits do que o estoque permite (segue no backlog); kit pelo `product_bom` (BOM V2), que a tabela Composição também não lê.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -773,12 +783,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   abrir esse produto; e no painel da pilha CR2032 vejo os produtos e aparelhos que a usam. Produto sem
   pilha não mostra nada. A venda pede o modelo e a série do aparelho (Sells/Create.casos.md, mesmo
   pedido).
-- **[BACKLOG] Quantos kits dá para vender** (comparação com concorrentes, 2026-10-23) — Aceite: Dado o
-  kit que leva 2 unidades de A e 1 de B, com 10 de A e 3 de B no local, Quando abro o painel do kit,
-  Então ele mostra "3 kits disponíveis" e qual componente limita (B); a venda não deixa vender mais
-  kits do que isso quando o estoque é controlado. Fonte: Base e Mercado Livre (o estoque do kit sai do
-  componente mais escasso) e Omie (o kit só agrupa; o saldo vem dos componentes). Hoje o painel mostra
-  a composição do kit, mas não calcula quantos kits os componentes permitem.
+- **[BACKLOG] A venda não deixa vender mais kits do que os componentes permitem** `[V0]` — a parte do painel ("3 kits disponíveis" e quem limita) saiu deste backlog em 2026-11-04 e virou UC-PIDX-40. Fica a venda. O PDV Blade já usa `ProductUtil::calculateComboQuantity` para o saldo do combo (`SellPosController`, `getDetailsFromVariation`), mas essa conta tem um defeito, descrito no UC-PIDX-40: componente com saldo zero que vem primeiro na lista não zera o resultado (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Consertar mexe no que a venda deixa vender: Regra Mestre (dupla prova e antes e depois), decisão [W]. A venda React (Sells/CreateV3) não foi conferida.
 - **[BACKLOG] Saldo fiscal no painel do produto** `[E0]` (pedido de 2026-10-27) — Aceite: Dado um
   produto com 5 un. no estoque, das quais 3 entraram com nota, Quando abro a aba Fiscal do painel,
   Então ela mostra "Saldo fiscal 3 un. · Estoque real 5 un." e de onde vem a diferença (compras sem
@@ -862,6 +867,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 
 ## Trilha do tempo
+- 2026-11-04 · [F+C] **UC-PIDX-40**: quantos kits dá para vender, por local, e quem limita, na aba Composição do painel. Achado: a conta do núcleo para o combo na venda não zera com componente sem saldo; fica no backlog da venda.
 - 2026-11-04 · [F+C] **UC-PIDX-39**: o saldo também em embalagens inteiras (CV2), "2 × Rolo + 10 m²", pela subunidade cadastrada da unidade do produto.
 - 2026-11-04 · [F+C] **UC-PIDX-38**: separado para vendas e livre na coluna Estoque (D5 e a parte da lista do CV4), pelas reservas ativas de `stock_reservations`. O que fica do CV4 é a tabela "De onde vem o separado" no painel.
 - 2026-11-04 · [F+C] **UC-PIDX-37**: o saldo de cada cor e tamanho aparece na coluna Estoque (D7), num painel com o total igual ao saldo da linha. `last_run` 2026-11-03 → 2026-11-04.

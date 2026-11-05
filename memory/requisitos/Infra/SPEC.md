@@ -776,9 +776,9 @@ Refs: ADR 0213 Mecanismo 5
 
 ### US-INFRA-035 · Item 7 ADR 0271 — fusão 4 gates de cor → 1 (executar ≥2026-06-18)
 
-**Implementado em:** _pendente_ — fusão não executada: sem `.github/workflows/color-canon-gate.yml`; dos 4 gates a consolidar só resta `.github/workflows/stylelint-gate.yml` (conformance-gate/ui-lint já não existem, mas o gate unificado planejado nunca foi criado)
+**Implementado em:** _pendente_ — superseded, nada desta US foi construído e não vai ser: a fusão saiu pelo #3456 (2026-06-30, ADR 0314 F1), que pôs conformance cor-crua + ui-lint em `.github/workflows/ds-gate.yml`, com o agregador `DS gate` required. Por decisão [W] de 2026-11-04 ficam de fora `stylelint-gate.yml` (required à parte; as regras dele não são só de cor) e `CockpitAccentCanonTest` (segue no `ui-architecture-gate.yml`). O `color-canon-gate.yml` do plano de junho seria um 3º gate do mesmo tema ao lado do `ds-gate.yml` (medido em 2026-11-04, origin/main 87f9e70fb4).
 
-> owner: claude · priority: p2 · estimate: 4h · status: todo · type: story
+> owner: claude · priority: p2 · estimate: 4h · status: superseded · type: story
 > blocked_by: —
 
 Último item da revisão de gates (ADR 0271). NÃO executar antes de 2026-06-18 — deixar os 14 required + enforce_admins=true (flip 2026-06-11) assentarem 1 semana.

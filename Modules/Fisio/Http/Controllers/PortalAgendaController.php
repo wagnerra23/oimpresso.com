@@ -97,6 +97,7 @@ class PortalAgendaController extends Controller
                 'cheguei' => $this->agenda->cheguei($a),
                 'nota' => $this->agenda->avaliar($a, (int) $request->validate(['nota' => ['required', 'integer', 'between:1,5']])['nota']),
                 'remarcar' => $a = $this->agenda->remarcar($p, $a, Carbon::parse($request->validate(['inicio' => ['required', 'date_format:Y-m-d H:i']])['inicio'])),
+                default => abort(404), // a rota já restringe; aqui só para o match ser total
             };
 
             return response()->json(['id' => (int) $a->id, 'status' => $a->fresh()->status]);
