@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o saldo é dinheiro; a conta de outro negócio na tela, ou um saldo diferente do da Blade, é incidente.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-11-04"
 ---
 
 # Casos de Uso & Aceite — Contas de pagamento

@@ -1567,4 +1567,13 @@ return [
     'overall_summary' => 'Resumo geral',
     'bloquear_venda_preco_zero_app' => 'Bloquear venda de produto com preço zero no app',
     'bloquear_venda_preco_zero_app_help' => 'Vale só para a Venda rápida do app das lojas. Desligado, o app vende produto com preço R$ 0,00 (ex.: brinde).',
+    // Rótulos da lista de Módulos (ModuleUtil::availableModules). Chaves próprias: as
+    // traduções gerais (sale.pos_sale, restaurant.service_staff, lang_v1.stock_transfers…) têm outros usos.
+    'modulo_pdv' => 'PDV',
+    'modulo_transferencia_estoque' => 'Transferência de estoque',
+    'modulo_conta_bancaria' => 'Conta bancária',
+    'modulo_atendentes' => 'Atendentes',
+    'modulo_reservas' => 'Agenda / reservas',
+    'modulo_cozinha' => 'Cozinha',
+    'modulo_cobranca_recorrente' => 'Cobrança recorrente',
 ];
