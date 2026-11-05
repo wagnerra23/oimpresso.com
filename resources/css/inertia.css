@@ -198,12 +198,6 @@
   border-bottom: 1px solid var(--border);
 }
 .sells-cowork .vd-tabs-grow { flex: 1 1 auto; border-bottom: 0; }
-.sells-cowork .vd-tabs-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
 .sells-cowork .vd-filters-toggle {
   appearance: none;
   background: var(--surface);

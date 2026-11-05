@@ -1134,146 +1134,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
           </div>
 
           <div className="os-head-r">
-            {props.permissions.create && (
-              <a className="os-btn primary" href="/sells/create">
-                <Plus size={11} />
-                Nova venda <kbd className="kbd-hint">N</kbd>
-              </a>
-            )}
-          </div>
-        </header>
-
-        {/* Render do Dashboard (Insights Jana migrado pra /ia/dashboard). */}
-        {/* TOOLBAR linha 2: Foco group + Visões btn / Imprimir + Visões ▾ */}
-        <div className="vd-toolbar">
-          <div className="vd-toolbar-l">
-            <div className="vd-vista" role="group" aria-label="Foco">
-              <span className="vd-vista-lbl">Foco</span>
-              <button className={foco === 'caixa' ? 'on' : ''} onClick={() => setFoco('caixa')} type="button">
-                Caixa
-              </button>
-              <button
-                className={foco === 'faturamento' ? 'on' : ''}
-                onClick={() => setFoco('faturamento')}
-                type="button"
-              >
-                Faturamento
-              </button>
-              <button
-                className={foco === 'comissao' ? 'on' : ''}
-                onClick={() => setFoco('comissao')}
-                type="button"
-              >
-                Comissão
-              </button>
-            </div>
-
-            <span className="vd-toolbar-sep" />
-
-            <div className="vd-views" ref={viewsRef} data-contract="saved-tree">
-              <button className="vd-views-btn" onClick={() => setViewsOpen((v) => !v)} type="button">
-                {currentSavedView.label}
-                <ChevronDown size={11} style={{ marginLeft: 4 }} />
-              </button>
-              {viewsOpen && (
-                <div className="vd-views-menu vd-tree">
-                  {favSet.size > 0 && (
-                    <>
-                      <div
-                        className={`vd-tree-row l0 vd-tree-fav ${savedViewId === ('favoritas' as SavedViewId) ? 'active' : ''}`}
-                        onClick={() => {
-                          // tratamos "favoritas" via override de filtro inline mais abaixo.
-                          setSavedViewId('todas');
-                          setViewsOpen(false);
-                        }}
-                      >
-                        <span className="vd-tree-arr empty" />
-                        <span className="vd-tree-lbl">
-                          ★ Favoritas <small>(pessoais · atalho B)</small>
-                        </span>
-                        <span className="ct">{favSet.size}</span>
-                      </div>
-                      <div className="vd-views-sep" />
-                    </>
-                  )}
-                  {SAVED_VIEWS.map((sv) => {
-                    const ct = rows.filter(sv.filter).length;
-                    const isActive = savedViewId === sv.id;
-                    return (
-                      <div
-                        key={sv.id}
-                        className={`vd-tree-row l0 ${isActive ? 'active' : ''}`}
-                        onClick={() => {
-                          setSavedViewId(sv.id);
-                          setViewsOpen(false);
-                        }}
-                      >
-                        <span className="vd-tree-arr empty" />
-                        <span className="vd-tree-lbl">{sv.label}</span>
-                        <span className="ct">{ct}</span>
-                      </div>
-                    );
-                  })}
-                  {/* Onda 4 (ADR 0192) — branch expansível "Por origem ▾" com
-                      filhos Balcão/Oficina/Online + contadores derivados de
-                      sourceCounts. Filtro client-side via visaoOrigem state +
-                      localStorage Tier 0 per-business `oimpresso.sells.b*.visao_origem`.
-                      Só renderiza filhos se há pelo menos 1 row da origem. */}
-                  <div className="vd-views-sep" />
-                  <div
-                    className={`vd-tree-row l0 ${visaoOrigem ? 'active' : ''}`}
-                    onClick={(e) => {
-                      // Click no label: limpa filtro (toggle off) ou expande pra ver filhos.
-                      if (visaoOrigem) {
-                        setVisaoOrigem('');
-                      } else {
-                        setOrigemExpanded((v) => !v);
-                      }
-                      e.stopPropagation();
-                    }}
-                  >
-                    <span
-                      className={`vd-tree-arr ${origemExpanded ? 'open' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOrigemExpanded((v) => !v);
-                      }}
-                    >
-                      ›
-                    </span>
-                    <span className="vd-tree-lbl">Por origem</span>
-                    <span className="ct">{rows.length}</span>
-                  </div>
-                  {origemExpanded &&
-                    (['balcao', 'oficina', 'online'] as const)
-                      .filter((k) => sourceCounts[k] > 0)
-                      .map((k) => {
-                        const label = k === 'balcao' ? 'Balcão' : k === 'oficina' ? 'Oficina' : 'Online';
-                        const isActiveChild = visaoOrigem === k;
-                        return (
-                          <div
-                            key={k}
-                            className={`vd-tree-row l1 ${isActiveChild ? 'active' : ''}`}
-                            onClick={() => {
-                              setVisaoOrigem(k);
-                              setViewsOpen(false);
-                            }}
-                          >
-                            <span className="vd-tree-arr empty" />
-                            <span className="vd-tree-lbl">
-                              <span className={`vd-src-dot vd-src-${k}`} style={{ display: 'inline-block', marginRight: 6 }} />
-                              {label}
-                            </span>
-                            <span className="ct">{sourceCounts[k]}</span>
-                          </div>
-                        );
-                      })}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="vd-toolbar-r">
             <button
               className="vd-toolbar-act"
               type="button"
@@ -1328,10 +1188,17 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 </div>
               )}
             </div>
+            {props.permissions.create && (
+              <a className="os-btn primary" href="/sells/create">
+                <Plus size={11} />
+                Nova venda <kbd className="kbd-hint">N</kbd>
+              </a>
+            )}
           </div>
-        </div>
+        </header>
 
-        {/* KPIs row — 4 cards (Faturado hero · Ticket médio · A receber · 4º vista-dependente) */}
+        {/* Render do Dashboard (Insights Jana migrado pra /ia/dashboard). */}
+        {/* KPIs row — 5 cards numa linha a 1280 (Faturado hero · Ticket médio · A receber · 4º vista-dependente · PIX hoje) */}
         <div className="os-kpis vd-kpis">
           {/* Hero: Faturado hoje + sparkline (delta real US-SELL-COWORK-R5) */}
           <div className="os-kpi vd-kpi-hero">
@@ -1566,16 +1433,141 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               </button>
             ))}
           </div>
-          <div className="vd-tabs-actions">
+        </div>
+
+        {/* Linha de controles abaixo das pílulas, como no protótipo (vendas-page.jsx `vd-filterbar`):
+            Foco · visão salva · Visão · Filtros avançados à esquerda, busca à direita. Quebra em
+            duas linhas quando não cabe (o protótipo faz o mesmo a 1280). Antes, os controles dividiam
+            a linha com as pílulas e as empurravam para 6 linhas a 1280 (medição 2026-11-04, PR-1b). */}
+        <div className="vd-toolbar">
+          <div className="vd-toolbar-l">
+            <div className="vd-vista" role="group" aria-label="Foco">
+              <span className="vd-vista-lbl">Foco</span>
+              <button className={foco === 'caixa' ? 'on' : ''} onClick={() => setFoco('caixa')} type="button">
+                Caixa
+              </button>
+              <button
+                className={foco === 'faturamento' ? 'on' : ''}
+                onClick={() => setFoco('faturamento')}
+                type="button"
+              >
+                Faturamento
+              </button>
+              <button
+                className={foco === 'comissao' ? 'on' : ''}
+                onClick={() => setFoco('comissao')}
+                type="button"
+              >
+                Comissão
+              </button>
+            </div>
+
+            <span className="vd-toolbar-sep" />
+
+            <div className="vd-views" ref={viewsRef} data-contract="saved-tree">
+              <button className="vd-views-btn" onClick={() => setViewsOpen((v) => !v)} type="button">
+                {currentSavedView.label}
+                <ChevronDown size={11} style={{ marginLeft: 4 }} />
+              </button>
+              {viewsOpen && (
+                <div className="vd-views-menu vd-tree">
+                  {favSet.size > 0 && (
+                    <>
+                      <div
+                        className={`vd-tree-row l0 vd-tree-fav ${savedViewId === ('favoritas' as SavedViewId) ? 'active' : ''}`}
+                        onClick={() => {
+                          // tratamos "favoritas" via override de filtro inline mais abaixo.
+                          setSavedViewId('todas');
+                          setViewsOpen(false);
+                        }}
+                      >
+                        <span className="vd-tree-arr empty" />
+                        <span className="vd-tree-lbl">
+                          ★ Favoritas <small>(pessoais · atalho B)</small>
+                        </span>
+                        <span className="ct">{favSet.size}</span>
+                      </div>
+                      <div className="vd-views-sep" />
+                    </>
+                  )}
+                  {SAVED_VIEWS.map((sv) => {
+                    const ct = rows.filter(sv.filter).length;
+                    const isActive = savedViewId === sv.id;
+                    return (
+                      <div
+                        key={sv.id}
+                        className={`vd-tree-row l0 ${isActive ? 'active' : ''}`}
+                        onClick={() => {
+                          setSavedViewId(sv.id);
+                          setViewsOpen(false);
+                        }}
+                      >
+                        <span className="vd-tree-arr empty" />
+                        <span className="vd-tree-lbl">{sv.label}</span>
+                        <span className="ct">{ct}</span>
+                      </div>
+                    );
+                  })}
+                  {/* Onda 4 (ADR 0192) — branch expansível "Por origem ▾" com
+                      filhos Balcão/Oficina/Online + contadores derivados de
+                      sourceCounts. Filtro client-side via visaoOrigem state +
+                      localStorage Tier 0 per-business `oimpresso.sells.b*.visao_origem`.
+                      Só renderiza filhos se há pelo menos 1 row da origem. */}
+                  <div className="vd-views-sep" />
+                  <div
+                    className={`vd-tree-row l0 ${visaoOrigem ? 'active' : ''}`}
+                    onClick={(e) => {
+                      // Click no label: limpa filtro (toggle off) ou expande pra ver filhos.
+                      if (visaoOrigem) {
+                        setVisaoOrigem('');
+                      } else {
+                        setOrigemExpanded((v) => !v);
+                      }
+                      e.stopPropagation();
+                    }}
+                  >
+                    <span
+                      className={`vd-tree-arr ${origemExpanded ? 'open' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOrigemExpanded((v) => !v);
+                      }}
+                    >
+                      ›
+                    </span>
+                    <span className="vd-tree-lbl">Por origem</span>
+                    <span className="ct">{rows.length}</span>
+                  </div>
+                  {origemExpanded &&
+                    (['balcao', 'oficina', 'online'] as const)
+                      .filter((k) => sourceCounts[k] > 0)
+                      .map((k) => {
+                        const label = k === 'balcao' ? 'Balcão' : k === 'oficina' ? 'Oficina' : 'Online';
+                        const isActiveChild = visaoOrigem === k;
+                        return (
+                          <div
+                            key={k}
+                            className={`vd-tree-row l1 ${isActiveChild ? 'active' : ''}`}
+                            onClick={() => {
+                              setVisaoOrigem(k);
+                              setViewsOpen(false);
+                            }}
+                          >
+                            <span className="vd-tree-arr empty" />
+                            <span className="vd-tree-lbl">
+                              <span className={`vd-src-dot vd-src-${k}`} style={{ display: 'inline-block', marginRight: 6 }} />
+                              {label}
+                            </span>
+                            <span className="ct">{sourceCounts[k]}</span>
+                          </div>
+                        );
+                      })}
+                </div>
+              )}
+            </div>
+            <span className="vd-toolbar-sep" />
             {/* ADR 0178 — tabs Visão sempre visíveis (Operacional/Financeira/Produção). */}
             <SellsTabsVisao visao={visao} onChange={setVisao} />
-            {/* Busca ⌘K movida do header pra cá 2026-05-21 (Wagner) —
-                fica próxima dos filtros, contextualmente coerente. */}
-            <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
-              <Search size={12} />
-              <span>Buscar venda, cliente, chave SEFAZ…</span>
-              <kbd>⌘K</kbd>
-            </button>
             <button
               type="button"
               className={'vd-filters-toggle' + (advancedOpen ? ' on' : '')}
@@ -1592,6 +1584,15 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                   transform: advancedOpen ? 'rotate(180deg)' : 'none',
                 }}
               />
+            </button>
+          </div>
+          <div className="vd-toolbar-r">
+            {/* Busca ⌘K movida do header pra cá 2026-05-21 (Wagner) —
+                fica próxima dos filtros, contextualmente coerente. */}
+            <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
+              <Search size={12} />
+              <span>Buscar venda, cliente, chave SEFAZ…</span>
+              <kbd>⌘K</kbd>
             </button>
           </div>
         </div>

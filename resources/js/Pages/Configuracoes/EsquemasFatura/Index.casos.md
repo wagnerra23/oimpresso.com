@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o esquema numera as notas; o de outro negócio na tela, ou um contador diferente do gravado, confunde a numeração fiscal.
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-11-04"
 ---
 
 # Casos de Uso & Aceite — Esquemas de fatura
