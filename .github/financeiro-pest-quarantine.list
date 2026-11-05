@@ -925,3 +925,16 @@ Modules/Financeiro/Tests/Feature/BoletoMockEmissaoTest.php  # 3 skipped (0 asser
 #
 # Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa
 # provisionada pela receita do CI .github/actions/pest-mysql-setup).
+
+# ── SAÍRAM em 2026-11-05 (lote 2.5 da auditoria do Financeiro) ─────────
+#   CashRegisterBridgeFinanceiroTest   6 failed (0 assertions) → roda em transação no tenant 98
+#                                      (largou RefreshDatabase + business 1 inserido à mão)
+#   BackfillExtratoOfxTest             flake por ordem → causa no PRODUTO: o comando reaproveitava
+#                                      a 1ª account do business mesmo já vinculada, e
+#                                      fin_contas_bancarias.account_id é UNIQUE. Run 42075164121: 8 passed.
+#   Onda22AnexosPillPermissionTest     3 failed → causa no PRODUTO: aprovacao_status/aprovado_* fora do
+#                                      $fillable do Titulo; solicitar/aprovar/rejeitar faziam update()
+#                                      e a gravação era descartada em silêncio. Controller usa forceFill.
+#   Onda23OcrBoletoTest                flake por ordem (403) → run 42075164121: 12 passed com a lista
+#                                      reduzida. Hipótese do vazador de permissão segue NÃO confirmada;
+#                                      se o 403 voltar, volta pra cá com o run id.

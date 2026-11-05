@@ -29,7 +29,7 @@ use Modules\Financeiro\Services\TituloAutoService;
  * (DatabaseTransactions) no tenant fictício 98 (ADR 0358), com a própria conta-mãe
  * Caixa, e cada consulta fica presa aos caixas que o caso criou.
  */
-uses(DatabaseTransactions::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 beforeEach(function () {
     $this->biz = 98;
