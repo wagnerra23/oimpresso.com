@@ -58,6 +58,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 | UC-FCKP-10 | cert A1 VENCIDO entra na fila de alertas | `[must]` | CU-FISC-01 | `CockpitControllerTest` | 🧪 |
 | UC-FCKP-11 | a lista é operável só pelo teclado (linha focável, não botão) | `[must]` | **—** (ver nota no UC) | `fiscal-cockpit-teclado.test.tsx` | 🧪 |
 | UC-FCKP-12 | as séries de 14 dias do ribbon são desenhadas | `[must]` | CU-FISC-01 | `fiscal-cockpit-sparklines.test.tsx` | 🧪 |
+| UC-FCKP-16 | sem empresa na sessão o cockpit recusa; os totais da empresa batem com o SQL cru | `[must]` `[T0]` | CU-FISC-12 | `CockpitMultiTenantTest` | 🧪 |
 
 ---
 
@@ -262,6 +263,22 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 
 ---
 
+## UC-FCKP-16 — Sem empresa na sessão o cockpit recusa, e os totais da empresa batem com o SQL cru `[must]` `[T0]`
+
+**Dado** um usuário com `fiscal.access` sem empresa na sessão
+**Quando** abre o cockpit
+**Então** recebe 403 e nada é gravado na chave de cache `biz:0`.
+
+**Dado** notas do mês de duas empresas
+**Quando** um usuário comum e um com `jana.superadmin` abrem o cockpit da primeira
+**Então** emitidas, autorizadas, rejeitadas e faturamento são os mesmos que o SQL cru da tabela dá para essa empresa — e a nota da vizinha não entra.
+
+- **Regressão que defende:** sem `user.business_id` o `ScopeByBusiness` não filtra, e o painel guardaria o total de todas as empresas na chave `biz:0`; e, para `jana.superadmin`, o scope acrescenta `OR business_id IS NULL` (D15 da auditoria do Fiscal, 2026-11-05). As consultas do cockpit passam a filtrar a empresa explicitamente. Medido em produção no mesmo dia: `nfe_emissoes`, `nfe_certificados` e `nfe_dfe_recebidos` têm `business_id NOT NULL` e 0 linhas nulas — nenhum total muda.
+- **Teste:** `Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php` — os dois casos `UC-FCKP-16 · …` (tenant 98 × 99).
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[ATENDIDO em 2026-09-04 → `UC-FCKP-13`] As 4 superfícies de demonstração que SOBRARAM** — o item nasceu sem id porque faltava contrato dizendo qual das três saídas era a certa (fonte real × esconder atrás de flag × declarar Non-Goal). [W] decidiu pela primeira — marcar a procedência na tela — e o caso virou `UC-FCKP-13` acima, com teste que o cita. _As quatro seguem servindo dado inventado: o que mudou é que a tela passou a dizer isso._
@@ -278,6 +295,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 
 ## Trilha do tempo
 
+- 2026-11-05 · [C] `UC-FCKP-16` — o cockpit recusa sem empresa na sessão e filtra a empresa explicitamente nas consultas (D15 da auditoria do Fiscal). Totais conferidos por dois caminhos (controller × SQL cru) e em produção (contagem antes × depois por empresa, igual).
 - 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **6 UC** derivados do §6 do SDD; todos herdam testes existentes. O achado do dado de demonstração ficou como `[BACKLOG]` + `CU-FISC-16` ⬜, por ser decisão de produto.
 - 2026-09-03 · [CC] Onda 1 Fiscal (Cowork): **UC-FCKP-08** — a fila de alertas passa a ser renderizada (`_components/AlertasFiscais.tsx`). O caso nasce com teste próprio e bite-test; cobre os dois contratos cross-language silenciosos (`goto`→rota, `icon`→glifo).
