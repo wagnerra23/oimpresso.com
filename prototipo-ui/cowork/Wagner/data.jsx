@@ -224,25 +224,20 @@ const MENU = [
       { id: "comissoes",     icon: "chart",  label: "Apuração de comissão" },
     ]},
     { id: "prefs",       icon: "cog",   label: "Preferências" },
-    // Grupo "Configurações" do menu legado (AdminLTE) — importado do blade business/settings + cadastros
+    // Grupo "Configurações" — os 11 itens do AdminSidebarMenu.php, na mesma ordem (a própria
+    // Configuração da empresa é o item pai). Reservas, Cozinha e Pedidos ficam nas abas de Mesas.
+    // Canais de atendimento fica aqui até o protótipo ter o grupo Atendimento, onde o vivo o põe.
     { id: "cfg-empresa", icon: "cog", label: "Configurações", ghosts: [
-      { id: "cfg-primeiros-passos", icon: "check", label: "Primeiros passos" },
       { id: "cfg-locais",        icon: "globe",  label: "Locais comerciais" },
       { id: "cfg-fatura",        icon: "receipt", label: "Configurações da fatura" },
       { id: "cfg-barras",        icon: "grid",   label: "Código de barras" },
       { id: "notificacoes",      icon: "bell",   label: "Modelos de notificação" },
       { id: "cfg-impressoras",   icon: "print",  label: "Impressoras de recibos" },
       { id: "cfg-impostos",      icon: "cash",   label: "Taxas de imposto" },
+      { id: "cfg-mesas",         icon: "grid",   label: "Mesas" },
       { id: "cfg-modificadores", icon: "wrench", label: "Modificadores" },
       { id: "cfg-servicos",      icon: "check",  label: "Tipos de serviço" },
-      { id: "cfg-mesas",         icon: "grid",   label: "Mesas" },
-      { id: "cfg-atendentes",    icon: "users",  label: "Atendentes" },
-      { id: "cfg-reservas",      icon: "calendar", label: "Reservas" },
-      { id: "cfg-cozinha",       icon: "list",   label: "Cozinha" },
-      { id: "cfg-pedidos-rest",  icon: "orders", label: "Pedidos do restaurante" },
       { id: "cfg-pacote",        icon: "refresh", label: "Assinatura de pacote" },
-      { id: "superadmin-pagar",  icon: "cash",    label: "Pagar assinatura" },
-      { id: "exportar-dados",    icon: "archive", label: "Exportar dados da empresa" },
       { id: "atendimento-canais", icon: "inbox",  label: "Canais de atendimento" },
     ]},
     { id: "relatorios",  icon: "chart", label: "Relatórios", ghosts: [
