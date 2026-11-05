@@ -18,6 +18,7 @@ import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { cn } from '@/Lib/utils';
+import { AVISO_QR } from '../_components/avisoQr';
 
 type Canal = 'proprio' | 'oficial' | 'qr';
 
@@ -41,9 +42,6 @@ const OPCOES: { k: Canal; t: string; d: string; tag: string; tom: 'pos' | 'warn'
 ];
 
 const TOM = { pos: 'success', warn: 'warning', neutro: 'neutral' } as const;
-
-export const AVISO_QR =
-  'Entendo que a conexão por QR não é oficial: a Meta pode bloquear o número, e aí os lembretes param até eu reconectar ou trocar de canal. O Fisio avisa se o canal cair e manda o link pelo meu WhatsApp enquanto isso.';
 
 function EstadoNumero({ numero, canal, url }: { numero: Props['numero']; canal: Canal; url: string | null }) {
   if (canal === 'proprio') {
