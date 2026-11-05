@@ -1,5 +1,7 @@
 # Cowork (design) — nova estrutura, como buscar info, e telas a desenvolver
 
+> 🗄️ **HISTÓRICO — anterior à [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** Descreve como o Cowork operava; a rotina de baixar zip e rodar `receber-handoff` não existe mais (o script saiu na onda 2a da 0438). Desde a 0438 a fonte do protótipo é o **arquivo em `prototipo-ui/`, editado por PR**; o Artefato serve só para ver e comentar; o Cowork não é fonte nem rota de entrada ou saída. Não siga as instruções de zip, bundle, export, handoff, `DesignSync` ou `COWORK_NOTES` abaixo. Processo vigente: `memory/reference/prototipo-ui/PROTOCOL.md`.
+
 > **LER NO INÍCIO DE CADA SESSÃO DE DESIGN.** Contrato de adaptação à estrutura SSOT (Wagner 2026-06-23, pós-adversário). Substitui o hábito de "exportar tudo + manter memória própria". Detalhe do método na [ADR-proposta SSOT](../../../memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md) (§Método operacional endurecido) + livro-razão [`RECONCILIACAO-COWORK-MEMORIA.md`](RECONCILIACAO-COWORK-MEMORIA.md).
 
 ## 🚀 O QUE FAZER AGORA (migração — uma vez)

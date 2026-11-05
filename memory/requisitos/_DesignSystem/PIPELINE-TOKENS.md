@@ -4,6 +4,8 @@ id: requisitos-design-system-pipeline-tokens
 
 # PIPELINE de tokens do Design System — de onde vêm, como são aplicados, como usar nas telas
 
+> ⚠️ **Em parte superado pela [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** A leitura de tokens por `DesignSync get_file` e o arquivo "espelho dos tokens" são do tempo do Cowork; os tokens vivem no git (0438 D6). Desde a 0438 a fonte do protótipo é o **arquivo em `prototipo-ui/`, editado por PR**; o Artefato serve só para ver e comentar; o Cowork não é fonte nem rota de entrada ou saída. Não siga as instruções de zip, bundle, export, handoff, `DesignSync` ou `COWORK_NOTES` abaixo. Processo vigente: `memory/reference/prototipo-ui/PROTOCOL.md`.
+
 > **Pergunta que este doc responde (Wagner 2026-07-08):** *"descreva todo processo e arquivos, de onde vem e como é aplicado, e como deve ser aplicado nas telas."*
 > **Regra-mãe:** git = SSOT ([ADR 0239](../../decisions/0239-governanca-design-system-git-ssot-regressao-ia.md)). Tokens são DTCG JSON compilados por Style Dictionary. **Nunca** cor crua (hex/oklch) na tela — só token.
 
