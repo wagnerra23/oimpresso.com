@@ -24,7 +24,8 @@ on:
     paths:
       - 'Modules/NfeBrasil/**'
       - 'resources/js/Pages/NfeBrasil/**'
-      - 'Modules/Fiscal/Tests/**'
+      - 'Modules/Fiscal/**'
+      - 'resources/js/Pages/Fiscal/**'
       - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
       - 'Modules/NFSe/Services/NfseEmissaoService.php'
       - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
@@ -74,7 +75,8 @@ jobs:
             nfe:
               - 'Modules/NfeBrasil/**'
               - 'resources/js/Pages/NfeBrasil/**'
-              - 'Modules/Fiscal/Tests/**'
+              - 'Modules/Fiscal/**'
+              - 'resources/js/Pages/Fiscal/**'
               - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
               - 'Modules/NFSe/Services/NfseEmissaoService.php'
               - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
