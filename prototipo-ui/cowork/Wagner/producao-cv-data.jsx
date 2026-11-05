@@ -310,7 +310,18 @@ const trocarArte = (os, arquivo) => {
   return null;
 };
 
+// UC-PCV-23 · celular sem internet. Cada toque guarda a hora em que aconteceu e uma chave; quando a rede volta, a
+// fila sai na ordem dos toques e a mesma chave não grava duas vezes (Apontamento/_lib/fila.ts + idempotência do servidor).
+const CEL = { offline: false, fila: [] };
+const RECEBIDAS = new Set();
+let chaveSeq = 0;
+const apontar = (ev) => { if (!CEL.offline) { registrar(ev); return false; } CEL.fila.push({ chave: "k" + (++chaveSeq), quando: agora(), ev }); return true; };
+const receberApontamento = (item) => { if (RECEBIDAS.has(item.chave)) return false; RECEBIDAS.add(item.chave);
+  registrar({ ...item.ev, quando: item.quando, texto: item.ev.texto + " (guardado sem internet, enviado quando a rede voltou)" }); return true; };
+const redeVoltou = () => { CEL.offline = false; let n = 0; while (CEL.fila.length) { if (receberApontamento(CEL.fila[0])) n++; CEL.fila.shift(); } return n; };
+
 window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, noPosto, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE, AUTOFECHA, horaFimTurno, autofechaDe, corrigirAutofecha, TIPOS_DESP, despesasDe, lancarDespesa, conferirDespesa, removerDespesa,
   nomeArq, versoesArte, arteVigente, arteEmProva, trocarArte,
+  CEL, apontar, receberApontamento, redeVoltou,
   etapas, atual, progresso, emProducao, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();
