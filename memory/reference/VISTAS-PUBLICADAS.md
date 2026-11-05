@@ -347,6 +347,17 @@ publicado junto diz de qual commit ela saiu.
 |---|---|---|
 | 2026-10-28 | 👁 [Produção — protótipo Wagner](https://claude.ai/artifact/4KoQ2nYs5XcRKp6hkAeZAc) | **viva** |
 
+**Recorte do cadastro de produto** (tema `prototipo-produto`). O mesmo protótipo inteiro, aberto na
+rota `prod-novo`, gerado do branch do PR #10362 (união do protótipo com os campos do artefato
+"Cadastro de produto com campos fiscais"). Republicar com:
+`node scripts/design/build-artefato-prototipo.mjs --out <pasta> --rota-inicial prod-novo --titulo "Cadastro de produto — união (PR #10362)" --ocultar .pb-novo`.
+O `--ocultar` esconde os selos de revisão do PR só na página publicada; o repositório mantém os selos. É a forma de revisão que [PROTOCOL.md](prototipo-ui/PROTOCOL.md) manda
+usar sempre.
+
+| Data | Vista | Estado |
+|---|---|---|
+| 2026-11-04 | 👁 [Cadastro de produto — união (PR #10362)](https://claude.ai/artifact/DxxfR7MPFdrcWXRP8gHYA3) | **viva** (retrato do commit `9dff59b881`) |
+
 > Até 2026-10-22 esta página era um recorte montado à mão, com os `.jsx` crus e só os módulos da
 > Produção. Em 2026-10-28 ela estava atrás do git: faltavam a aba Postos e cadastros e as decisões de
 > 20 a 27/10, e foi refeita pelo build.

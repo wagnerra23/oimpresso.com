@@ -87,7 +87,6 @@ on:
       - 'scripts/lib/markdown-tabela.mjs'
       - 'scripts/design/consumir-map.mjs'
       - 'memory/requisitos/**/*.map.json'
-      - 'memory/requisitos/**/*.proto-baseline.json'
       - 'memory/requisitos/**/*-gap.md'
       - 'scripts/design/render-proto-baseline.mjs'
       - '.github/workflows/design-memory-gate.yml'
@@ -537,24 +536,10 @@ jobs:
       - name: render-proto-baseline selftest (morde stale/âncora/vazio · libera íntegro · fronteira 0290)
         if: always()
         run: node scripts/design/render-proto-baseline.mjs --selftest
-      - name: proto-baseline check (advisory · hermético — âncora + freshness dos baselines commitados)
-        if: always()
-        continue-on-error: true
-        run: node scripts/design/render-proto-baseline.mjs --check
-      # O COMPARE possível em CI (fronteira ADR 0290 — o compare REAL proto×prod exige render
-      # dos DOIS lados = LOCAL por lei): mapear os arquivos da PR pros baselines commitados do
-      # mesmo módulo e apontar o comando local exato (--nudge, exit 0 sempre). Zero render,
-      # zero rede — git diff × JSONs commitados. Lado-proto coberto pelo --check acima (sha
-      # STALE quando o protótipo re-exporta); lado-Page coberto por este nudge + passo local
-      # do RUNBOOK-fidelidade-fingerprint §Baseline.
-      - name: proto-compare nudge (advisory · aponta o compare LOCAL pro módulo afetado)
-        if: always()
-        continue-on-error: true
-        run: |
-          BASE="origin/${{ github.base_ref }}"
-          if [ -z "${{ github.base_ref }}" ]; then BASE="origin/main"; fi
-          git diff --name-only "$BASE"...HEAD -- 'resources/js/Pages/**' \
-            | node scripts/design/render-proto-baseline.mjs --nudge | tee -a "$GITHUB_STEP_SUMMARY"
+      # O `--check` dos *.proto-baseline.json e o `--nudge` sairam daqui em 2026-11-05 por
+      # decisao [W]: os 9 baselines ficaram STALE (o protótipo re-exportou e ninguem os
+      # regera, porque o render so roda local) e o step vivia vermelho sem bloquear nada.
+      # O selftest acima fica: o script segue usado por alvo.mjs, secao-check e o harness.
 
   # ── ex-dtcg-equivalence.yml (Onda DTCG ATIVADA) ──────────────────────────────
   prove:

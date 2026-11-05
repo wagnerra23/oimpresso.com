@@ -32,7 +32,7 @@ Editar produto existente reusando estrutura Create.tsx 100% — diferença é `u
 - Header "Editar produto · {nome} · SKU mono small"
 - Type select disabled
 - Defaults preenchidos com produto atual
-- "Salvar alterações" + "Cancelar"
+- Rodapé de ações: Cancelar · "Salvar e adicionar outro" · "Salvar alterações"; "Voltar à lista" no cabeçalho (desde 2026-11-04, forma do protótipo)
 - Multi-tenant: produto cross-tenant retorna 404
 
 ## Non-Goals
