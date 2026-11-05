@@ -442,13 +442,19 @@ Status: 🧪
   pela subunidade do cadastro ou, no rolo, por largura × comprimento; e a linha avisa quando o custo
   convertido sai muito diferente do último custo do produto. O vínculo produto × fornecedor
   (`compras_produto_fornecedor`, de 2026-10-27) ainda não guarda unidade nem fator.
+  Aceite adicional ([F], 2026-11-05): quem lança a compra e não sabe o fator, ou não tem permissão
+  para confirmar a conversão, não trava a nota: o item fica pendente na mesma tela de conferência do
+  item sem vínculo (D-20), o estoque dele espera, e o responsável informa o fator vendo a conta antes
+  de aplicar. Fator errado multiplica o erro no estoque e no custo (1 em vez de 12 deixa o estoque
+  12 vezes menor e o custo 12 vezes maior). Fonte: Alterdata (confirma o fator na importação),
+  Linx (guarda a quantidade da nota e a convertida lado a lado).
   - Pedido: P-069
   - Âncora: Subunidade do produto (`sub_unit`) · vínculo produto × fornecedor (`compras_produto_fornecedor`, ADR de entrada por XML) · `Purchase/Create.casos.md`
-  - Fazer: A tela faz a conta. Na primeira nota pergunta "1 CX deste fornecedor tem quantos UN?" e mostra "2 CX × 12 = 24 UN · custo 60,00 ÷ 12 = 5,00 por UN"; nas próximas, a conversão já vem e a pessoa confirma. Sugere o fator pela unidade tributável da nota (`qTrib` ÷ `qCom`), pela subunidade do cadastro ou por largura × comprimento no rolo, e avisa quando o custo convertido sai muito diferente do último custo. Aceita mais de uma conversão por fornecedor (Omie aceita até 3).
+  - Fazer: A tela faz a conta. Na primeira nota pergunta "1 CX deste fornecedor tem quantos UN?" e mostra "2 CX × 12 = 24 UN · custo 60,00 ÷ 12 = 5,00 por UN"; nas próximas, a conversão já vem e a pessoa confirma. Sugere o fator pela unidade tributável da nota (`qTrib` ÷ `qCom`), pela subunidade do cadastro ou por largura × comprimento no rolo, e avisa quando o custo convertido sai muito diferente do último custo. Aceita mais de uma conversão por fornecedor (Omie aceita até 3). Sem fator conhecido e sem quem possa confirmar, o item fica pendente na conferência da D-20.
   - Hoje: part | Em parte | A tela antiga aceita as subunidades do cadastro; a compra nova não. O vínculo produto × fornecedor (27/10) ainda não guarda unidade nem fator, e o leitor do XML (PR #10024) lê só a unidade comercial
   - Comunicação visual: ok | Sim | chapa, rolo e bobina
   - Clientes: Extreme, Techpress, Martinho, Copylan, Mecânica Casa Grande, Max Comunicação, ArtLaser, Zoom
-  - Etiquetas: valor, part, cv
+  - Etiquetas: valor, part, cv, decisao
 - `[BACKLOG]` **Notas de compra entram no SPED** `[V0]` — Dado uma compra lançada com a nota do
   fornecedor (modelo 55), Quando gero o SPED da competência, Então a nota sai como entrada (C100 com
   indicador de entrada, C170 e C190), com o crédito de ICMS que o regime da empresa permitir. Hoje o
@@ -628,16 +634,17 @@ O saldo fiscal do produto e o aviso na emissão estão em `Produto/Index.casos.m
   lembrado desse fornecedor (`compras_produto_fornecedor`), depois pelo código de barras, se só um produto
   o tiver. Sem nenhum dos dois, a compra mostra os produtos parecidos (descrição, NCM, unidade) para
   escolher, sem ligar sozinha pela descrição. Criar produto novo pela nota pede a confirmação "não é
-  nenhum destes" e permissão própria. A escolha fica lembrada para o fornecedor B. O estoque só entra
-  quando todos os itens da nota estão resolvidos, e uma tela mostra e desfaz vínculos errados. Hoje a
+  nenhum destes" e permissão própria. A escolha fica lembrada para o fornecedor B. O que acontece com o
+  item que ninguém ligou é a D-20 (proposta: a nota entra, o item fica pendente numa tela de conferência
+  e só o estoque dele espera), e uma tela mostra e desfaz vínculos errados. Hoje a
   tabela de vínculo existe (2026-10-27), mas a compra a partir da nota ainda não (bullet "Compra nasce
   da nota do fornecedor" acima). O código antigo de importação (`PurchaseXmlController`) não tem rota e
   não serve de base: ele procurava só o código de barras ou o nome exato, sem filtrar por empresa. Falta
-  decisão [W]: quem pode criar produto pela nota, e se a importação para com item sem vínculo ou deixa
-  entrar marcado como pendente. Mexe em estoque: Regra Mestre.
+  decisão [W] (D-20): quem pode ligar e criar produto pela nota, e se a importação para com item sem
+  vínculo ou deixa entrar marcado como pendente. Mexe em estoque: Regra Mestre.
   - Pedido: P-151
   - Âncora: Vínculo produto × fornecedor (`compras_produto_fornecedor`, 2026-10-27) · leitor do XML da compra (PR #10024) · compra a partir da nota (P-100) · `Purchase/Create.casos.md`
-  - Fazer: Na compra a partir da nota, ligar o item pelo vínculo do fornecedor, depois pelo código de barras, se só um produto o tiver; sem nenhum dos dois, sugerir os parecidos (nunca ligar sozinho pela descrição) e só criar produto novo com confirmação e permissão; lembrar a escolha por fornecedor. O estoque só entra quando todos os itens da nota estão resolvidos, e uma tela mostra e desfaz vínculos errados.
+  - Fazer: Na compra a partir da nota, ligar o item pelo vínculo do fornecedor, depois pelo código de barras, se só um produto o tiver; sem nenhum dos dois, sugerir os parecidos (nunca ligar sozinho pela descrição) e só criar produto novo com confirmação e permissão; lembrar a escolha por fornecedor. Item que ninguém ligou segue a D-20 (proposta: fica pendente na conferência e só o estoque dele espera), e uma tela mostra e desfaz vínculos errados.
   - Hoje: part | Em parte | O vínculo produto × fornecedor tem tabela desde 27/10, mas a compra a partir da nota ainda não existe. O código antigo de importação (`PurchaseXmlController`) não tem rota e não serve de base
   - Comunicação visual: ok | Sim | lona, chapa e tinta de vários fornecedores
   - Clientes: PraMoto, Techpress
@@ -668,10 +675,10 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Destrava: P-101
 - **[DECISÃO] D-20 · Nota com item sem vínculo: a compra para ou entra com o item pendente?**
   - Estado: Em aberto
-  - Texto: No caso 151, o item da nota acha o produto pelo vínculo do fornecedor ou pelo código de barras. Sem nenhum dos dois, alguém escolhe entre os parecidos ou cria produto novo. Falta dizer também quem pode criar produto pela nota.
-  - Opção: Para até resolver — O estoque só entra com todos os itens ligados, e criar produto pela nota pede permissão própria. É a proposta.
-  - Opção: Entra pendente — A compra entra, o item sem vínculo fica marcado e só o estoque dele espera.
-  - Destrava: P-151
+  - Texto: No caso 151, o item da nota acha o produto pelo vínculo do fornecedor ou pelo código de barras; no caso 69, a unidade da nota acha a conversão lembrada para o fornecedor. Sem isso, alguém precisa ligar o item ou dizer o fator. Quem lança a compra na maioria das vezes não sabe fazer isso, e não pode ficar sem dar entrada na nota por causa disso ([F], 2026-11-05). Falta decidir o que acontece com o item até ser ligado, e quem pode ligar, converter e criar produto pela nota.
+  - Opção: Entra e o item vai para a conferência — A nota sempre entra: a compra, a conta a pagar e a parte fiscal seguem, e os itens já ligados entram no estoque na hora. Quem tem a permissão de vincular na compra liga o item ali mesmo; sem a permissão, ou sem saber, o item fica pendente numa tela de conferência e o responsável liga depois. O estoque do item pendente só entra quando ele é ligado, com a data e o custo da nota (nada de produto provisório, que seria o duplicado de novo). Vale igual para a unidade sem conversão conhecida (caso 69): a conferência pede o fator e mostra a conta antes de aplicar ("2 CX × 12 = 24 UN · custo por UN"). A compra mostra quantos itens estão pendentes e o responsável é avisado. Criar produto novo pela nota pede outra permissão. É a proposta ([F], 2026-11-05).
+  - Opção: Para até resolver — A compra só entra com todos os itens ligados e convertidos. Mais simples, mas trava a entrada quando quem lança não sabe ligar.
+  - Destrava: P-151, P-069
 - **[DECISÃO] D-22 · As notas de entrada saem no SPED do oimpresso ou no sistema do contador?**
   - Estado: Em aberto
   - Texto: Os casos 70 a 74 e 96 levam ao SPED as notas de compra, de energia, de comunicação, o CT-e do frete e as notas de serviço tomadas. Hoje o SPED do oimpresso traz só as notas emitidas. Se o contador escritura as entradas no sistema dele, esses casos viram exportação, não SPED.
