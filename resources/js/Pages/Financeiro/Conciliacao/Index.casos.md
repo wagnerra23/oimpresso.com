@@ -279,7 +279,7 @@ Com `PLUGGY_ENABLED=false` o comando não chama a API. Ligado, sincroniza só as
 - **Aceite:** Dado uma linha pendente do extrato da 98 (OFX ou API) · Quando o POST `/financeiro/conciliacao/{linha}/match` manda o `titulo_id` da 99 · Então a resposta é 404 e a linha segue sem status novo, sem `titulo_id` e sem `conciliado_at`; com um título da própria 98 o mesmo usuário concilia (controle).
 - **Teste:** `Modules/Financeiro/Tests/Feature/ConciliacaoMatchTituloTenantTest.php` — os dois `UC-FCC-23 · ...` (OFX e API).
 - **Regressão que defende:** ADR 0093. Complementa o UC-FCC-13, que cobre a linha de outra empresa; este cobre o título. Achado da auditoria Financeiro 2026-11-05 (lote 0): `match()` validava só `required|integer` e gravava o id.
-- **Status: ⬜** — vermelho antes do conserto no run [42068872058](https://github.com/wagnerra23/oimpresso.com/actions/runs/42068872058) (2 failed, `302 is identical to 404`); o verde entra com o run do conserto.
+- **Status: 🧪** — verde no run [42108549702](https://github.com/wagnerra23/oimpresso.com/actions/runs/42108549702) (lane `PHP / Pest (Financeiro · MySQL)`, os casos passaram, nenhum pulado); vermelho antes do conserto no run [42068872058](https://github.com/wagnerra23/oimpresso.com/actions/runs/42068872058). Vira ✅ quando o manifesto registrar o pass depois do merge.
 
 ---
 
