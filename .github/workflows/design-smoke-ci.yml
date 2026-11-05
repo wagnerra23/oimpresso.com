@@ -338,7 +338,10 @@ jobs:
           PHP_CLI_SERVER_WORKERS: "8"
         run: |
           set -o pipefail
-          php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
+          # APP_URL só para este serve: o AppServiceProvider faz forceRootUrl(config('app.url')),
+          # e com o APP_URL=http://localhost do .env o /_visreg-login redirecionava para a porta 80.
+          # Medido em 2026-11-05 (run 42077429563): ERR_CONNECTION_REFUSED na 1a tela, serve vivo.
+          APP_URL=http://127.0.0.1:8000 php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
           SERVE_PID=$!
           for i in $(seq 1 30); do
             curl -sf -o /dev/null http://127.0.0.1:8000/login && break
