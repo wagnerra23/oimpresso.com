@@ -43,6 +43,9 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
   (devolve um débito, `ref = estorno:<id>`, +1; ou tira a sobra do saldo quando a venda do pacote é
   cancelada, `ref = venda_cancelada:<id>`, −sobra) e `extensao` (nova validade, 0 sessão). O saldo é a
   soma. O pacote não guarda dinheiro: preço é da venda do núcleo, título do Financeiro.
+- **Marca do Receita Saúde** (`fisio_health_receipts.marca`, US-FISIO-023): `enviado` (o
+  profissional emitiu o recibo do pagamento) ou `retificar`. Sem linha = pendente. Não guarda
+  valor nem data: esses são do `transaction_payments`.
 - **Status do programa** (`fisio_programs.status`, texto, fora do bloco `json`): `ativo` ou
   `encerrado` — um ativo por paciente.
 - **Agenda** (US-FISIO-013, etapa 04 §3.2): tipo de atendimento em `presencial` ou `teleconsulta`
@@ -72,7 +75,8 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
     "fisio_appointments.source": ["clinica", "online", "lista_espera"],
     "fisio_appointments.cancelled_by": ["clinica", "paciente"],
     "fisio_booking_settings.who_can_book": ["pacote", "todos", "ninguem"],
-    "fisio_package_ledger.kind": ["credito", "debito", "estorno", "extensao"]
+    "fisio_package_ledger.kind": ["credito", "debito", "estorno", "extensao"],
+    "fisio_health_receipts.marca": ["enviado", "retificar"]
   }
 }
 ```

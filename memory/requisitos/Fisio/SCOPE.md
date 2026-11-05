@@ -34,6 +34,7 @@ contains:
   - "Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro (SaldoDoPacote, US-FISIO-020)"
   - "PacotesController — aba Pacote e cobrança: abre pacote e registra sessão; títulos e NFS-e só lidos do Financeiro e do NFSe (US-FISIO-021)"
   - "VendaDoPacoteObserver — liga a venda do núcleo ao pacote pelo id; venda cancelada tira a sobra do saldo, sem tocar no Financeiro (US-FISIO-022)"
+  - "FiscalController — documentos fiscais do dia: NFS-e lida do NFSe e fila do Receita Saúde sobre transaction_payments; grava só a marca de envio em fisio_health_receipts (US-FISIO-023)"
   - "ConfiguracoesController — Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
   - "OnboardingController — primeira configuração da clínica em 5 passos (perfil, PF/PJ, canal, protocolos, conclusão) em fisio_settings (US-FISIO-050)"
   - "Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app (fisio_appointment_types, fisio_appointments, fisio_schedule_blocks, fisio_waitlist, fisio_booking_settings — US-FISIO-013)"

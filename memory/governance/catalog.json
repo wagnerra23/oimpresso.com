@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 903,
-    "edges": 1226,
+    "nodes": 904,
+    "edges": 1227,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 150,
-      "component": 513,
+      "component": 514,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 513,
+      "hasComponent": 514,
       "dependsOn": 136,
       "delegatesTo": 125,
       "migratesTo": 1,
@@ -3212,6 +3212,13 @@
       "module": "Fisio",
       "name": "Exportação do prontuário em PDF",
       "desc": "UC-FPS-19..20"
+    },
+    {
+      "id": "component:Fisio/FiscalController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "FiscalController",
+      "desc": "documentos fiscais do dia: NFS-e lida do NFSe e fila do Receita Saúde sobre transaction_payments; grava só a marca de envio em fisio_health_receipts (US-FISIO-023)"
     },
     {
       "id": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
@@ -10127,6 +10134,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Exportação do prontuário em PDF",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/FiscalController",
       "type": "hasComponent",
       "source": "contains"
     },

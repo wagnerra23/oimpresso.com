@@ -14,9 +14,9 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 255 arquivos em 20 papéis.
+**Total mapeado:** 263 arquivos em 20 papéis.
 
-## Controllers — 23
+## Controllers — 24
 
 - [AgendaController.php](../../../Modules/Fisio/Http/Controllers/AgendaController.php)
 - [BibliotecaController.php](../../../Modules/Fisio/Http/Controllers/BibliotecaController.php)
@@ -26,6 +26,7 @@ module: Fisio
 - [ConfiguracoesController.php](../../../Modules/Fisio/Http/Controllers/ConfiguracoesController.php)
 - [DataController.php](../../../Modules/Fisio/Http/Controllers/DataController.php)
 - [EnvioWhatsappController.php](../../../Modules/Fisio/Http/Controllers/EnvioWhatsappController.php)
+- [FiscalController.php](../../../Modules/Fisio/Http/Controllers/FiscalController.php)
 - [FolhaProgramaController.php](../../../Modules/Fisio/Http/Controllers/FolhaProgramaController.php)
 - [InstallController.php](../../../Modules/Fisio/Http/Controllers/InstallController.php)
 - [OnboardingController.php](../../../Modules/Fisio/Http/Controllers/OnboardingController.php)
@@ -46,7 +47,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 42
+## Services — 43
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AgendaDaSemana.php](../../../Modules/Fisio/Services/Agenda/AgendaDaSemana.php)
@@ -61,6 +62,7 @@ module: Fisio
 - [Consentimentos.php](../../../Modules/Fisio/Services/Consentimentos.php)
 - [DiaLocal.php](../../../Modules/Fisio/Services/DiaLocal.php)
 - [EditorProgramaPayload.php](../../../Modules/Fisio/Services/EditorProgramaPayload.php)
+- [FilaFiscalDoDia.php](../../../Modules/Fisio/Services/Fiscal/FilaFiscalDoDia.php)
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
 - [FolhaPrograma.php](../../../Modules/Fisio/Services/FolhaPrograma.php)
 - [JogoService.php](../../../Modules/Fisio/Services/JogoService.php)
@@ -91,7 +93,7 @@ module: Fisio
 - [MensagensFisio.php](../../../Modules/Fisio/Services/Whatsapp/MensagensFisio.php)
 - [XpDoDiaCalculator.php](../../../Modules/Fisio/Services/XpDoDiaCalculator.php)
 
-## Models / Entities — 23
+## Models / Entities — 24
 
 - [Appointment.php](../../../Modules/Fisio/Entities/Appointment.php)
 - [AppointmentType.php](../../../Modules/Fisio/Entities/AppointmentType.php)
@@ -113,6 +115,7 @@ module: Fisio
 - [ProgramItem.php](../../../Modules/Fisio/Entities/ProgramItem.php)
 - [Protocol.php](../../../Modules/Fisio/Entities/Protocol.php)
 - [Questionnaire.php](../../../Modules/Fisio/Entities/Questionnaire.php)
+- [ReciboSaude.php](../../../Modules/Fisio/Entities/ReciboSaude.php)
 - [Record.php](../../../Modules/Fisio/Entities/Record.php)
 - [ScheduleBlock.php](../../../Modules/Fisio/Entities/ScheduleBlock.php)
 - [WaitlistEntry.php](../../../Modules/Fisio/Entities/WaitlistEntry.php)
@@ -144,7 +147,7 @@ module: Fisio
 
 - [web.php](../../../Modules/Fisio/Routes/web.php)
 
-## Migrations (schema) — 14
+## Migrations (schema) — 15
 
 - [2026_10_18_000001_create_fisio_tables.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000001_create_fisio_tables.php)
 - [2026_10_18_000002_add_synonyms_to_fisio_exercises.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000002_add_synonyms_to_fisio_exercises.php)
@@ -158,6 +161,7 @@ module: Fisio
 - [2026_11_04_000301_create_fisio_agenda_tables.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000301_create_fisio_agenda_tables.php)
 - [2026_11_04_000302_create_fisio_agenda_regras_tables.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000302_create_fisio_agenda_regras_tables.php)
 - [2026_11_04_000400_create_fisio_packages.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000400_create_fisio_packages.php)
+- [2026_11_04_000410_create_fisio_health_receipts.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000410_create_fisio_health_receipts.php)
 - [2026_11_04_000500_create_fisio_settings.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000500_create_fisio_settings.php)
 - [2026_11_04_000510_create_fisio_pre_anamneses.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000510_create_fisio_pre_anamneses.php)
 
@@ -176,12 +180,13 @@ module: Fisio
 - [laudo-evolucao.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-evolucao.blade.php)
 - [prontuario.blade.php](../../../Modules/Fisio/Resources/views/pdf/prontuario.blade.php)
 
-## Telas (Inertia/React) — 11
+## Telas (Inertia/React) — 12
 
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.tsx)
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx)
 - [Agendamento.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Agendamento.tsx)
 - [Whatsapp.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Whatsapp.tsx)
+- [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Fiscal/Index.tsx)
 - [Onboarding.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Onboarding.tsx)
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.tsx)
 - [Pacote.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Pacote.tsx)
@@ -217,12 +222,13 @@ module: Fisio
 - [Questionarios.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/Questionarios.tsx)
 - [ResponsavelPaciente.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/ResponsavelPaciente.tsx)
 
-## Charters (lei da tela) — 11
+## Charters (lei da tela) — 12
 
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.charter.md)
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.charter.md)
 - [Agendamento.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Agendamento.charter.md)
 - [Whatsapp.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Whatsapp.charter.md)
+- [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Fiscal/Index.charter.md)
 - [Onboarding.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Onboarding.charter.md)
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.charter.md)
 - [Pacote.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Pacote.charter.md)
@@ -231,12 +237,13 @@ module: Fisio
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Protocolos/Index.charter.md)
 - [Portal.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.charter.md)
 
-## Casos (contrato UC) — 11
+## Casos (contrato UC) — 12
 
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.casos.md)
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.casos.md)
 - [Agendamento.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Agendamento.casos.md)
 - [Whatsapp.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Whatsapp.casos.md)
+- [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Fiscal/Index.casos.md)
 - [Onboarding.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Onboarding.casos.md)
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.casos.md)
 - [Pacote.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Pacote.casos.md)
@@ -245,9 +252,9 @@ module: Fisio
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Protocolos/Index.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
 
-## Testes (Pest) — 60
+## Testes (Pest) — 61
 
-- 45 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 46 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 2 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
 - 13 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

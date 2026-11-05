@@ -10,6 +10,7 @@ use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
+use Modules\Fisio\Http\Controllers\FiscalController;
 use Modules\Fisio\Http\Controllers\PainelController;
 use Modules\Fisio\Http\Controllers\PacotesController;
 use Modules\Fisio\Http\Controllers\PortalAgendaController;
@@ -117,6 +118,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('pacotes/{pacote}/consumir', [PacotesController::class, 'consumir'])->whereNumber('pacote')->name('pacotes.consumir');
         Route::post('pacotes/{pacote}/venda', [PacotesController::class, 'ligarVenda'])->whereNumber('pacote')->name('pacotes.venda');
         Route::post('pacotes/lancamentos/{lancamento}/estornar', [PacotesController::class, 'estornar'])->whereNumber('lancamento')->name('pacotes.estornar');
+        // Documentos fiscais do dia (US-FISIO-023): NFS-e lida do NFSe; Receita Saúde só marca o envio.
+        Route::get('fiscal', [FiscalController::class, 'index'])->name('fiscal.index');
+        Route::post('fiscal/recibos/{payment}/enviado', [FiscalController::class, 'marcarEnviado'])->whereNumber('payment')->name('fiscal.recibos.enviado');
 
         // Exportação do prontuário em PDF (UC-FPS-19..20). Leitura: basta `fisio.access`; a exportação fica no activity_log.
         Route::get('pacientes/{id}/prontuario.pdf', [ProntuarioPdfController::class, 'show'])->whereNumber('id')->name('pacientes.prontuario.pdf');

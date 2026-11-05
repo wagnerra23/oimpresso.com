@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 24 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 11 |
-| Telas com `casos.md` | 13 |
-| UC declarados | 156 |
-| UC com teste que os cita | 156 |
+| Telas (.tsx) | 12 |
+| Telas com `casos.md` | 14 |
+| UC declarados | 161 |
+| UC com teste que os cita | 161 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -47,7 +47,6 @@ authority: generated
 | US | status | Título |
 |---|---|---|
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
-| US-FISIO-023 | `todo` | Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0** |
 | US-FISIO-024 | `todo` | Lote do Receita Saúde no layout oficial — **P1** |
 | US-FISIO-025 | `todo` | Planos do produto Fisio no Superadmin — **P1** |
 
@@ -84,6 +83,11 @@ authority: generated
 | UC-FCW-04 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-05 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-06 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FFI-01 | Fiscal/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-02 | Fiscal/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-03 | Fiscal/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-04 | Fiscal/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-05 | Fiscal/Index | 🧪 aguarda veredito da lane |
 | UC-FJG-01 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-02 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-03 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
