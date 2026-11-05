@@ -10,6 +10,9 @@ name: Patrimônio Painel Gate — header e números sem fonte (vitest · JUnit)
 #   · UC-PAT-13 · UC-BENS-15 · UC-ALOC-09 · UC-MANU-07 · UC-CFG-06 (2026-11-05) — a carga deferida
 #     que falha vira o estado de erro do protótipo nas cinco telas, com "Tentar de novo". Entrou
 #     nesta lane porque é a única lane vitest do Patrimônio.
+#   · UC-BENS-13 / UC-BENS-14 (`Bens.casos.md`, 2026-11-05) — excluir o bem pelo AlertDialog
+#     do DS, e a exclusão que falha avisa e deixa tentar de novo. Entrou nesta lane porque é a
+#     única lane vitest do Patrimônio; nenhuma outra executa `tests/js/patrimonio-*`.
 #
 # POR QUE A LANE EXISTE: nenhuma lane roda `vitest run` sem argumento — cada spec aponta pro
 # próprio arquivo, e por isso o projeto tem uma lane por contrato de tela (fiscal-teclado-gate,
@@ -57,6 +60,9 @@ on:
       - 'resources/js/Pages/Patrimonio/_shared/falhaDeferida.ts'
       - 'resources/js/Pages/Patrimonio/_shared/FalhaDeCarga.tsx'
       - 'tests/js/patrimonio-estado-erro.test.tsx'
+      - 'resources/js/Pages/Patrimonio/_shared/ConfirmarExclusao.tsx'
+      - 'resources/js/Pages/Patrimonio/_shared/excluir.ts'
+      - 'tests/js/patrimonio-bens-excluir.test.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/patrimonio-painel-gate.yml'
   push:
@@ -75,6 +81,9 @@ on:
       - 'resources/js/Pages/Patrimonio/_shared/falhaDeferida.ts'
       - 'resources/js/Pages/Patrimonio/_shared/FalhaDeCarga.tsx'
       - 'tests/js/patrimonio-estado-erro.test.tsx'
+      - 'resources/js/Pages/Patrimonio/_shared/ConfirmarExclusao.tsx'
+      - 'resources/js/Pages/Patrimonio/_shared/excluir.ts'
+      - 'tests/js/patrimonio-bens-excluir.test.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push porque é o run de `main` que o publisher
       # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
@@ -112,6 +121,7 @@ jobs:
             tests/js/patrimonio-painel-sem-fonte.test.tsx \
             tests/js/patrimonio-painel-forma.test.tsx \
             tests/js/patrimonio-estado-erro.test.tsx \
+            tests/js/patrimonio-bens-excluir.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-patrimonio-painel-junit.xml
