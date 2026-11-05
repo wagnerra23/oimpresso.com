@@ -406,7 +406,33 @@ Status: 🧪
 a Aprovação do cliente volta como etapa nova "(nova versão)" no mesmo bloco, as etapas seguintes voltam a esperar e
 sai um link novo · Enquanto o cliente não aprova, a arte que vale (`GET /producao/ordens/{id}/arte`) segue sendo a
 última aprovada · Sem arte aprovada, ou com o mesmo arquivo, a troca é recusada e nada muda · OS de outra empresa: 404.
-A arte vigente ainda não aparece na tela do operador (fica para quando os PRs abertos do apontamento entrarem).
+A tela do operador mostra essa arte vigente desde 2026-11-05 (UC-PCAPA-01, logo abaixo).
+
+Status: 🧪
+
+## UC-PCAPA-01 · O operador vê a arte que vale da OS · `must`
+
+> Âncora: `prototipo-ui/cowork/Wagner/producao-cv-campo.jsx` (Apontamento, bloco `pcv-ap-arq`: *"Arquivo certo —
+> abre a versão aprovada da arte, não uma prova antiga"*) · UC-PCV-11 acima.
+
+**Dado** o operador com uma etapa rodando numa OS por item **Então** a linha mostra o arquivo da última arte aprovada
+pelo cliente, que abre o arquivo, com "versão aprovada pelo cliente" · Uma troca esperando o cliente não muda o arquivo
+mostrado · OS que pediu aprovação e não teve nenhuma aprovada mostra "Sem arte aprovada · a etapa espera a aprovação do
+cliente" · OS sem pedido de arte não mostra o bloco · Aprovação gravada em outra empresa não conta.
+O protótipo mostra também o número da versão ("v3"); `pcp_aprovacoes_arte` não guarda versão, então a tela mostra o
+nome do arquivo.
+
+Status: 🧪
+
+## UC-PCAPA-02 · O operador vê o material já baixado na OS · `must`
+
+> Âncora: `prototipo-ui/cowork/Wagner/producao-cv-campo.jsx` (campo *"Mídia usada até agora (m²)"* com a ajuda
+> *"Baixa no estoque: Vinil branco brilho 1,37 m"*).
+
+**Dado** uma etapa rodando cuja OS já teve material apontado **Então** a linha mostra "Material usado:" com cada material
+e a quantidade já baixada na unidade dele · Material da receita ainda sem baixa não aparece na linha · Sem custo.
+A quantidade é o `apontado` que a tela já recebe por etapa, provado em `ProducaoMaterialContratoTest` (UC-PCMAT-09,
+que passa de 0 a 3 depois de uma baixa).
 
 Status: 🧪
 
@@ -853,12 +879,12 @@ Status: 🧪
 - **[BACKLOG]** Anexar imagens e a arte à OS — Dado uma OS de fachada, Quando anexo a arte final e duas
   fotos do local, Então os arquivos ficam na OS, aparecem no apontamento de cada etapa e na ficha
   impressa (a arte em miniatura), e quem executa abre cada um. Hoje a OS guarda o arquivo da arte que
-  passa pela aprovação do cliente (UC-PCART e UC-PCV-11), mas a tela do operador ainda não mostra essa
-  arte e não há outros anexos.
+  passa pela aprovação do cliente (UC-PCART e UC-PCV-11), e desde 2026-11-05 a tela do operador mostra a
+  arte vigente (UC-PCAPA-01); não há outros anexos.
   - Pedido: P-089
   - Âncora: Arte da aprovação (`UC-PCART`, `UC-PCV-11`) · `Producao/Apontamento/Index.casos.md`
   - Fazer: Anexos na OS e a arte vigente na tela do operador e na ficha.
-  - Hoje: part | Em parte | A OS guarda a arte da aprovação, mas o operador não a vê e não há outros anexos
+  - Hoje: part | Em parte | O operador vê a arte aprovada (UC-PCAPA-01), mas não há outros anexos nem a arte na ficha
   - Comunicação visual: ok | Sim | arte e fotos do local
   - Clientes: Chico e Lu, Display Paraná, Plakart, Fixar
   - Etiquetas: part, cv
