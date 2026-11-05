@@ -1,0 +1,5 @@
+{
+  "_medido_em": "2026-11-05",
+  "_por_que": "O application-report liga o Cockpit a duas fontes (fiscal-actions.jsx e fiscal-page.jsx), e a derivação do token do shell saiu 'sem rota derivável' (run 42078570982). O app.jsx roteia o cockpit por `route === \"fiscal\"` (view=\"notas\").",
+  "token": "fiscal"
+}
