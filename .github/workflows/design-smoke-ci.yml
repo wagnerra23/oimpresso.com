@@ -206,6 +206,7 @@ jobs:
           VIEW_COMPILED_PATH=storage/framework/views
           MWART_CLIENTE_INDEX=true
           MWART_BACKUP_INDEX=true
+          FEATURE_FLAGS_FORCED_ON=useV2FiscalDas
           VISREG_FREEZE_CLOCK="2026-06-11 12:00:00"
           EOF
           php artisan key:generate --force
@@ -365,8 +366,12 @@ jobs:
             cat /tmp/lote-serve.log
             exit 1
           fi
-          node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 2>&1 | tee /tmp/lote.log
-          RC=${PIPESTATUS[0]}
+          RC=0
+          for T in Fiscal/Cockpit Fiscal/Config Fiscal/Das Fiscal/Dfe Fiscal/Eventos Fiscal/Nfe Fiscal/Nfse Fiscal/Sped; do
+            echo "=== $T" | tee -a /tmp/lote.log
+            node scripts/design/design-diff-lote.mjs --incluir-comparadas --tela "$T" --base-url http://127.0.0.1:8000 2>&1 | tee -a /tmp/lote.log
+            r=${PIPESTATUS[0]}; echo "rc[$T]=$r" | tee -a /tmp/lote.log; [ "$r" -gt "$RC" ] && RC=$r
+          done
           kill -0 "$SERVE_PID" 2>/dev/null || {
             echo "::error title=Lote de paridade::o serve caiu DURANTE a medicao — os ERRO sao de conexao, nao de fidelidade"
             cat /tmp/lote-serve.log; exit 1

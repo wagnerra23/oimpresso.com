@@ -1,6 +1,6 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-10-15T14:32:53.892Z",
+  "generatedAt": "2026-11-05T16:44:04.639Z",
   "bundle": {
     "id": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38",
     "baseId": "0ee2464e450d6b8b8c82a0fb3840ac5760c339ed7dac978249089dab43f8fc2f",
@@ -10,21 +10,21 @@
   },
   "summary": {
     "transportChanges": 204,
-    "screens": 239,
+    "screens": 270,
     "tested": 0,
     "smoked": 0,
     "smokedCi": 0,
     "smokedStaging": 0,
     "validated": 0,
     "lifecycle": {
-      "anchored": 223,
-      "compared": 5,
-      "to-create": 8,
-      "blocked": 3
+      "anchored": 243,
+      "compared": 2,
+      "blocked": 18,
+      "to-create": 7
     },
-    "pending": 228,
-    "to-create": 8,
-    "blocked": 3
+    "pending": 245,
+    "blocked": 18,
+    "to-create": 7
   },
   "transportChanges": [
     {
@@ -1510,6 +1510,38 @@
       "nextAction": "aplicar no alvo e registrar evidência durável"
     },
     {
+      "source": "canais-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "casos-por-tela-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
       "source": "catalogo-qr-page.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx",
@@ -1766,6 +1798,22 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
+      "source": "compras-entrada-xml-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
       "source": "compras-extras.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/PurchaseOrder/Index.tsx",
@@ -1876,6 +1924,22 @@
       "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "compras-reposicao-abc-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
     {
       "source": "comunicacao-visual-page.jsx",
@@ -2246,20 +2310,68 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
-      "source": "crm-portal.jsx",
-      "bundleChange": "modified",
-      "target": "resources/js/Pages/Crm/Portal.tsx",
-      "module": "Crm",
-      "mapping": "charter.component",
-      "comparison": "ALVO-PENDENTE",
-      "lifecycleState": "to-create",
-      "applicationState": "to-create",
+      "source": "crm-nps-captura-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
       "compared": false,
       "tested": false,
       "smoked": false,
       "validated": false,
       "applicationEvidence": null,
-      "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "crm-portal.jsx",
+      "bundleChange": "modified",
+      "target": "Modules/Crm/Resources/js/Pages/Crm/Portal/Painel/Index.tsx",
+      "module": "Crm",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "crm-portal.jsx",
+      "bundleChange": "modified",
+      "target": "Modules/Crm/Resources/js/Pages/Crm/Portal/Perfil/Index.tsx",
+      "module": "Crm",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "crm-segmentos-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
     {
       "source": "dash-legacy-page.jsx",
@@ -2472,6 +2584,22 @@
     {
       "source": "estoque-page.jsx",
       "bundleChange": "unchanged",
+      "target": "resources/js/Pages/StockTransfer/Edit.tsx",
+      "module": "StockTransfer",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "estoque-page.jsx",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/StockTransfer/Index.tsx",
       "module": "StockTransfer",
       "mapping": "charter.component",
@@ -2484,6 +2612,86 @@
       "validated": false,
       "applicationEvidence": null,
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "exportar-dados-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "financeiro-centro-custo-orcado-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "financeiro-contabil-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Financeiro/Contabilidade.tsx",
+      "module": "Financeiro",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "financeiro-contas-bancarias-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Financeiro/ContasBancarias/Index.tsx",
+      "module": "Financeiro",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "financeiro-extrato-ofx-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
     {
       "source": "financeiro-legado.jsx",
@@ -2521,6 +2729,22 @@
       "source": "financeiro-legado.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Financeiro/Despesas/Index.tsx",
+      "module": "Financeiro",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "financeiro-pagamento-publico.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Financeiro/PagamentoPublico.tsx",
       "module": "Financeiro",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
@@ -2633,6 +2857,22 @@
       "source": "fiscal-actions.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
+      "module": "Fiscal",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "fiscal-das-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Fiscal/Das.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
@@ -2780,18 +3020,14 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
       "validated": false,
       "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/Fiscal/fiscal-dfe.map.json",
-          "mapSha256": "e9176c1db97fa573a724406120a2ab44c8c082bd16a73413f697b4f686395f68",
-          "recordedAt": "2026-09-18T14:41:57.174Z"
-        },
+        "comparison": null,
         "application": null,
         "tests": [],
         "smokes": [],
@@ -2799,7 +3035,7 @@
         "proofChain": {
           "bundleId": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
-          "mapSha256": "e9176c1db97fa573a724406120a2ab44c8c082bd16a73413f697b4f686395f68",
+          "mapSha256": null,
           "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
           "testOutputSha256": [],
           "deploySha": [],
@@ -2807,7 +3043,7 @@
           "productionValidated": false
         }
       },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "fiscal-subpages.jsx",
@@ -2816,18 +3052,14 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
       "validated": false,
       "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/Fiscal/fiscal-eventos.map.json",
-          "mapSha256": "2b863547b3c0dff421576b795c3ba26b4746565394b4eab8d2971480d20cf2ab",
-          "recordedAt": "2026-09-18T14:42:01.391Z"
-        },
+        "comparison": null,
         "application": null,
         "tests": [],
         "smokes": [],
@@ -2835,7 +3067,7 @@
         "proofChain": {
           "bundleId": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
-          "mapSha256": "2b863547b3c0dff421576b795c3ba26b4746565394b4eab8d2971480d20cf2ab",
+          "mapSha256": null,
           "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
           "testOutputSha256": [],
           "deploySha": [],
@@ -2843,7 +3075,7 @@
           "productionValidated": false
         }
       },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "fiscal-subpages.jsx",
@@ -2852,18 +3084,14 @@
       "module": "Fiscal",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
-      "lifecycleState": "compared",
+      "lifecycleState": "anchored",
       "applicationState": "pending",
-      "compared": true,
+      "compared": false,
       "tested": false,
       "smoked": false,
       "validated": false,
       "applicationEvidence": {
-        "comparison": {
-          "map": "memory/requisitos/Fiscal/fiscal-sped.map.json",
-          "mapSha256": "4d070af807668a6dcfac0159cc26045ea311dffbc3840f009c9f6a92992ad203",
-          "recordedAt": "2026-09-18T14:42:05.781Z"
-        },
+        "comparison": null,
         "application": null,
         "tests": [],
         "smokes": [],
@@ -2871,7 +3099,7 @@
         "proofChain": {
           "bundleId": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
-          "mapSha256": "4d070af807668a6dcfac0159cc26045ea311dffbc3840f009c9f6a92992ad203",
+          "mapSha256": null,
           "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
           "testOutputSha256": [],
           "deploySha": [],
@@ -2879,7 +3107,7 @@
           "productionValidated": false
         }
       },
-      "nextAction": "aplicar no alvo e registrar evidência durável"
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "fiscal-tributacao.jsx",
@@ -2914,7 +3142,7 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
-      "source": "fluxos-page.jsx",
+      "source": "fisio-page.jsx",
       "bundleChange": "unchanged",
       "target": "—",
       "module": null,
@@ -2928,6 +3156,22 @@
       "validated": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "fluxos-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Fluxos/Index.tsx",
+      "module": "Fluxos",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "forja-aprova.jsx",
@@ -3522,6 +3766,22 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
+      "source": "marketplaces-pedidos-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
       "source": "modulos-page.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Modules/Index.tsx",
@@ -3944,6 +4204,22 @@
     {
       "source": "planilhas-page.jsx",
       "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Spreadsheet/Editor.tsx",
+      "module": "Spreadsheet",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "planilhas-page.jsx",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Spreadsheet/Index.tsx",
       "module": "Spreadsheet",
       "mapping": "charter.component",
@@ -4342,8 +4618,8 @@
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
     },
     {
-      "source": "producao-cv-page.jsx",
-      "bundleChange": "added",
+      "source": "primeiros-passos-page.jsx",
+      "bundleChange": "unchanged",
       "target": "—",
       "module": null,
       "mapping": "nenhum",
@@ -4356,6 +4632,102 @@
       "validated": false,
       "applicationEvidence": null,
       "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "producao-cv-campo.jsx",
+      "bundleChange": "added",
+      "target": "Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx",
+      "module": "Producao",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "producao-cv-campo.jsx",
+      "bundleChange": "added",
+      "target": "resources/js/Pages/ComunicacaoVisual/Agenda.tsx",
+      "module": "ComunicacaoVisual",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "producao-cv-os.jsx",
+      "bundleChange": "added",
+      "target": "Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.tsx",
+      "module": "Producao",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "producao-cv-page.jsx",
+      "bundleChange": "added",
+      "target": "Modules/Producao/Resources/js/Pages/Producao/Linha/Index.tsx",
+      "module": "Producao",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "producao-cv-page.jsx",
+      "bundleChange": "added",
+      "target": "Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx",
+      "module": "Producao",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "producao-cv-page.jsx",
+      "bundleChange": "added",
+      "target": "Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx",
+      "module": "Producao",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
       "source": "producao-page.jsx",
@@ -4518,6 +4890,22 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
+      "source": "prototipo-html-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
       "source": "prototipos/payment-gateway-ui/cobranca-page.jsx",
       "bundleChange": "unchanged",
       "target": "—",
@@ -4532,6 +4920,22 @@
       "validated": false,
       "applicationEvidence": null,
       "nextAction": "criar a Page pelo fluxo MWART antes de aplicar"
+    },
+    {
+      "source": "relatorio-montavel-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
     },
     {
       "source": "relatorios-page.jsx",
@@ -5014,6 +5418,22 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
+      "source": "superadmin-pagar-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "Modules/Superadmin/Resources/js/Pages/superadmin/Pagar/Index.tsx",
+      "module": "Superadmin",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
       "source": "superadmin-page.jsx",
       "bundleChange": "unchanged",
       "target": "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
@@ -5286,6 +5706,22 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
+      "source": "vendas-caixa-pagamento-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
       "source": "vendas-create-page.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Sells/Create.tsx",
@@ -5334,6 +5770,38 @@
       "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
     },
     {
+      "source": "vendas-margem-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
+      "source": "vendas-orcamento-aprovacao-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "—",
+      "module": null,
+      "mapping": "nenhum",
+      "comparison": "ORFAO",
+      "lifecycleState": "blocked",
+      "applicationState": "blocked",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "declarar destino no charter/alias; aplicação fail-closed"
+    },
+    {
       "source": "vendas-page.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Sells/Index.tsx",
@@ -5353,6 +5821,22 @@
       "source": "vestuario-page.jsx",
       "bundleChange": "unchanged",
       "target": "resources/js/Pages/Vestuario/Etiquetas/Index.tsx",
+      "module": "Vestuario",
+      "mapping": "charter.component",
+      "comparison": "SEMANTICO",
+      "lifecycleState": "anchored",
+      "applicationState": "pending",
+      "compared": false,
+      "tested": false,
+      "smoked": false,
+      "validated": false,
+      "applicationEvidence": null,
+      "nextAction": "gerar/registrar map.json antes de aplicar semanticamente"
+    },
+    {
+      "source": "vestuario-remarcacao-page.jsx",
+      "bundleChange": "unchanged",
+      "target": "resources/js/Pages/Vestuario/Remarcacao/Index.tsx",
       "module": "Vestuario",
       "mapping": "charter.component",
       "comparison": "SEMANTICO",
