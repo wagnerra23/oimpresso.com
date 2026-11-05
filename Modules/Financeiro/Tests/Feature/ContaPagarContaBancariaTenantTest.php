@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-CP-12 (resources/js/Pages/Financeiro/ContasPagar/Index.casos.md).
+// Cobre UC-CP-01 (resources/js/Pages/Financeiro/ContasPagar/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * UC-CP-12 — a conta bancária da baixa tem de ser da empresa da sessão; idem o cliente da cobrança.
+ * UC-CP-01 — a conta bancária da baixa tem de ser da empresa da sessão; idem o cliente da cobrança.
  *
  * Antes do conserto, `ContaPagarController::pagar()` validava `exists:fin_contas_bancarias,id`
  * sem filtro de empresa e gravava o id em `fin_titulo_baixas`: a empresa 98 dava baixa num
@@ -91,7 +91,7 @@ function cp12Pagar($test, int $tituloId, int $contaId)
         ]);
 }
 
-it('UC-CP-12 · baixa com conta bancária de outra empresa é recusada e não grava baixa nem mexe no título [T0]', function () {
+it('UC-CP-01 · baixa com conta bancária de outra empresa é recusada e não grava baixa nem mexe no título [T0]', function () {
     $titulo = cp12Titulo($this->b98, $this->user->id);
     $contaAlheia = cp12Conta($this->b99);
 
@@ -118,7 +118,7 @@ it('UC-CP-12 · baixa com conta bancária de outra empresa é recusada e não gr
     expect($t2->status)->toBe('parcial');
 });
 
-it('UC-CP-12 · cobrança com cliente de outra empresa é recusada na validação [T0]', function () {
+it('Tier 0 · cobrança com cliente de outra empresa é recusada na validação (CobrancaController)', function () {
     $conta = cp12Conta($this->b98);
     $payload = fn (int $contactId) => [
         // tipo=card devolve erro antes de chamar o gateway — o teste não sai para a rede.
