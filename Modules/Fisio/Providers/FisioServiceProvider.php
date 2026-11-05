@@ -23,6 +23,8 @@ class FisioServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         // US-FISIO-008: ponto de entrada único do jogo — check-in gravado lança o XP no ledger.
         Event::listen(CheckinRegistrado::class, [LancarXpDoCheckin::class, 'handle']);
+        // US-FISIO-022: venda do pacote cancelada ou excluída tira do saldo as sessões que sobraram.
+        \App\Transaction::observe(\Modules\Fisio\Observers\VendaDoPacoteObserver::class);
 
         // US-FISIO-009: lembrete diário por WhatsApp (pelo módulo Whatsapp). Um job por empresa com o pacote;
         // o job é idempotente (1 lembrete por paciente por dia) e respeita o horário de silêncio.

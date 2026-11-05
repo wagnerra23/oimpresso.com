@@ -17,18 +17,21 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
 
 interface Sessao { id: number; n: number; data: string | null; nota: string | null; estornada: boolean }
 interface PacoteAtual { id: number; title: string; sessions_total: number; saldo: number; validade: string | null; tem_venda: boolean; sessoes: Sessao[] }
 interface Titulo { id: number; numero: string; status: string; valor: string; vencimento: string | null; forma: string | null }
 interface Nota { numero: string | null; status: string; erro: string | null }
+interface Venda { id: number; numero: string | null; data: string; valor: string }
 interface Props {
   paciente: { id: number; nome: string | null };
   pode_editar: boolean;
   pacote?: PacoteAtual | null;
   cobranca?: Titulo[];
   nota?: Nota | null;
+  vendas?: Venda[];
 }
 
 const data = (d: string | null) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString('pt-BR') : '—');
@@ -91,7 +94,33 @@ function Sessoes({ pacote, podeEditar }: { pacote: PacoteAtual; podeEditar: bool
   );
 }
 
-export default function PacotePaciente({ paciente, pode_editar, pacote, cobranca, nota }: Props) {
+function LigarVenda({ pacoteId, vendas }: { pacoteId: number; vendas: Venda[] }) {
+  const form = useForm({ transaction_id: vendas[0]?.id ?? 0 });
+  const enviar = (e: FormEvent) => {
+    e.preventDefault();
+    form.post(`/fisio/pacotes/${pacoteId}/venda`, { preserveScroll: true });
+  };
+  return (
+    <form onSubmit={enviar} className="flex flex-wrap items-end gap-2">
+      {vendas.length > 0 && (
+        <div className="grid gap-1">
+          <Label htmlFor="pac-venda">Venda deste pacote</Label>
+          <Select value={String(form.data.transaction_id)} onValueChange={(v) => form.setData('transaction_id', Number(v))}>
+            <SelectTrigger id="pac-venda" className="w-72"><SelectValue placeholder="Escolha a venda" /></SelectTrigger>
+            <SelectContent>
+              {vendas.map((v) => <SelectItem key={v.id} value={String(v.id)}>{v.numero ?? `#${v.id}`} · {data(v.data)} · {moeda(v.valor)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      {vendas.length > 0 && <Button type="submit" size="sm" disabled={form.processing}>Ligar venda</Button>}
+      <Button size="sm" variant="outline" asChild><a href="/sells/create">Nova venda</a></Button>
+      {form.errors.transaction_id && <p className="w-full text-sm text-destructive">{form.errors.transaction_id}</p>}
+    </form>
+  );
+}
+
+export default function PacotePaciente({ paciente, pode_editar, pacote, cobranca, nota, vendas }: Props) {
   return (
     <>
       <PageHeader title="Pacote e cobrança" subtitle={paciente.nome ?? undefined}
@@ -116,6 +145,11 @@ export default function PacotePaciente({ paciente, pode_editar, pacote, cobranca
                     <span className="flex-1 font-mono tabular-nums">{moeda(t.valor)}</span><Badge variant="secondary">{t.status}</Badge>
                   </li>))}</ul>}
           </Deferred>
+          {pacote && !pacote.tem_venda && pode_editar && (
+            <Deferred data="vendas" fallback={<Skeleton className="h-8 w-full" />}>
+              <LigarVenda pacoteId={pacote.id} vendas={vendas ?? []} />
+            </Deferred>
+          )}
           <p className="text-xs text-muted-foreground">Pix Automático só para clínica com CNPJ (regra do Banco Central). Para atendimento como pessoa física: cartão recorrente ou Pix cobrança.</p>
         </CardContent></Card>
 

@@ -565,6 +565,9 @@ jobs:
         # cobrança — saldo do ledger, abrir/registrar sessão, 403 sem editar, 404 entre 98 e 99, e a
         # cobrança LIDA do Financeiro sem gravar título.
         #
+        # ENTRA 2026-11-04 — Fisio/FisioPacoteVendaTest (US-FISIO-022, UC-FPK-07..09): a venda do núcleo
+        # é ligada ao pacote pelo id, sem gravar título; venda cancelada tira a sobra do saldo.
+        #
         #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
@@ -869,6 +872,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioAgendaEsquemaTest.php \
             Modules/Fisio/Tests/Feature/FisioPacoteSessoesTest.php \
             Modules/Fisio/Tests/Feature/FisioPacoteTelaTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacoteVendaTest.php \
             Modules/Fisio/Tests/Feature/FisioAgendaRegrasTest.php \
             Modules/Fisio/Tests/Unit/CompatibilidadeEsperaTest.php \
             Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php \

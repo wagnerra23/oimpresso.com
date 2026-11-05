@@ -115,6 +115,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('pacientes/{id}/pacote', [PacotesController::class, 'show'])->whereNumber('id')->name('pacientes.pacote');
         Route::post('pacientes/{id}/pacotes', [PacotesController::class, 'store'])->whereNumber('id')->name('pacientes.pacotes.store');
         Route::post('pacotes/{pacote}/consumir', [PacotesController::class, 'consumir'])->whereNumber('pacote')->name('pacotes.consumir');
+        Route::post('pacotes/{pacote}/venda', [PacotesController::class, 'ligarVenda'])->whereNumber('pacote')->name('pacotes.venda');
         Route::post('pacotes/lancamentos/{lancamento}/estornar', [PacotesController::class, 'estornar'])->whereNumber('lancamento')->name('pacotes.estornar');
 
         // Exportação do prontuário em PDF (UC-FPS-19..20). Leitura: basta `fisio.access`; a exportação fica no activity_log.

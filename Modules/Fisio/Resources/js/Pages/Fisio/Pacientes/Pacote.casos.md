@@ -7,7 +7,7 @@ por_que: o pacote vendido é dinheiro já recebido pela clínica; sessão debita
 owner: wagner
 last_run: "2026-11-04"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL do Fisio rodar FisioPacoteTelaTest."
-related_us: [US-FISIO-021, US-FISIO-020]
+related_us: [US-FISIO-021, US-FISIO-020, US-FISIO-022]
 ---
 
 # Casos de Uso & Aceite — Fisio · Pacote e cobrança (`/fisio/pacientes/{id}/pacote`)
@@ -26,6 +26,9 @@ related_us: [US-FISIO-021, US-FISIO-020]
 | UC-FPK-04 | paciente e pacote de outra empresa: 404 | must | `FisioPacoteTelaTest` |
 | UC-FPK-05 | cobrança lê os títulos da venda, só da empresa, sem gravar título | must | `FisioPacoteTelaTest` |
 | UC-FPK-06 | pacote sem venda: cobrança vazia, sem erro | should | `FisioPacoteTelaTest` |
+| UC-FPK-07 | ligar a venda do paciente ao pacote, sem gravar título | must | `FisioPacoteVendaTest` |
+| UC-FPK-08 | recusa venda de outro paciente, outra empresa, não finalizada ou já ligada | must | `FisioPacoteVendaTest` |
+| UC-FPK-09 | venda cancelada tira a sobra do saldo e encerra o pacote | must | `FisioPacoteVendaTest` |
 
 ---
 
@@ -58,4 +61,20 @@ related_us: [US-FISIO-021, US-FISIO-020]
 ## UC-FPK-06 · Sem venda, sem erro · `should`
 - **Aceite:** Dado pacote sem venda ligada · Quando abre a aba · Então a cobrança vem vazia e a nota, ausente.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPacoteTelaTest.php`
+- **Status: 🧪**
+
+## UC-FPK-07 · Ligar a venda ao pacote · `must`
+- **Persona:** recepção que acabou de vender o pacote na tela de venda.
+- **Aceite:** Dado um pacote sem venda e uma venda finalizada do paciente · Quando liga a venda na aba · Então o pacote guarda o id da venda, a venda some da lista de opções e a contagem de `fin_titulos` não muda (o título é do Financeiro, pela venda).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacoteVendaTest.php`
+- **Status: 🧪**
+
+## UC-FPK-08 · Só a venda certa `[T0]` · `must`
+- **Aceite:** Quando tenta ligar venda de outro paciente, de outra empresa, não finalizada, ou uma venda que já paga outro pacote · Então erro no campo `transaction_id` e nenhum pacote muda.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacoteVendaTest.php`
+- **Status: 🧪**
+
+## UC-FPK-09 · Venda cancelada · `must`
+- **Aceite:** Dado pacote de 10 com 3 sessões usadas e venda ligada · Quando a venda é cancelada no núcleo · Então um estorno de −7 zera o saldo, o pacote fica encerrado e os 3 débitos continuam; o mesmo aviso de novo não lança outro estorno. Devolver dinheiro é do Financeiro.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacoteVendaTest.php`
 - **Status: 🧪**

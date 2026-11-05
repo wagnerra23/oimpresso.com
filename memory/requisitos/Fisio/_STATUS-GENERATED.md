@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 24 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 8 |
-| Telas com `casos.md` | 9 |
-| UC declarados | 132 |
-| UC com teste que os cita | 132 |
+| Telas (.tsx) | 11 |
+| Telas com `casos.md` | 13 |
+| UC declarados | 156 |
+| UC com teste que os cita | 156 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -32,7 +32,6 @@ authority: generated
 | `US-FISIO-003` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema, models e append-only de prontuário e ledger do jogo  |
 | `US-FISIO-004` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
 | `US-FISIO-005` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0 |
-| `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
 | `US-FISIO-010` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
 | `US-FISIO-051` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pré-anamnese no portal antes da primeira consulta — **P1** |
@@ -48,10 +47,6 @@ authority: generated
 | US | status | Título |
 |---|---|---|
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
-| US-FISIO-014 | `todo` | Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0 |
-| US-FISIO-015 | `todo` | Tela Agenda da clínica e configuração do agendamento pelo app — **P0** |
-| US-FISIO-016 | `todo` | Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P |
-| US-FISIO-022 | `todo` | Vender e renovar pacote pela venda do núcleo — **P0** |
 | US-FISIO-023 | `todo` | Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0** |
 | US-FISIO-024 | `todo` | Lote do Receita Saúde no layout oficial — **P1** |
 | US-FISIO-025 | `todo` | Planos do produto Fisio no Superadmin — **P1** |
@@ -60,6 +55,11 @@ authority: generated
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-FAG-01 | Agenda/Index | 🧪 aguarda veredito da lane |
+| UC-FAG-02 | Agenda/Index | 🧪 aguarda veredito da lane |
+| UC-FAG-03 | Agenda/Index | 🧪 aguarda veredito da lane |
+| UC-FAG-04 | Agenda/Index | 🧪 aguarda veredito da lane |
+| UC-FAG-05 | Agenda/Index | 🧪 aguarda veredito da lane |
 | UC-FAV-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FAV-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FBI-01 | Biblioteca/Index | 🧪 aguarda veredito da lane |
@@ -74,6 +74,10 @@ authority: generated
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-11 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-12 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FCA-01 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
+| UC-FCA-02 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
+| UC-FCA-03 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
+| UC-FCA-04 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
 | UC-FCW-01 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-02 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-03 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
@@ -98,6 +102,13 @@ authority: generated
 | UC-FOB-04 | Onboarding | 🧪 aguarda veredito da lane |
 | UC-FOB-05 | Onboarding | 🧪 aguarda veredito da lane |
 | UC-FOB-06 | Onboarding | 🧪 aguarda veredito da lane |
+| UC-FPA-01 | agenda-paciente (blade) | 🧪 aguarda veredito da lane |
+| UC-FPA-02 | agenda-paciente (blade) | 🧪 aguarda veredito da lane |
+| UC-FPA-03 | agenda-paciente (blade) | 🧪 aguarda veredito da lane |
+| UC-FPA-04 | agenda-paciente (blade) | 🧪 aguarda veredito da lane |
+| UC-FPA-05 | agenda-paciente (blade) | 🧪 aguarda veredito da lane |
+| UC-FPA-06 | agenda-paciente (blade) | 🧪 aguarda veredito da lane |
+| UC-FPA-07 | agenda-paciente (blade) | 🧪 aguarda veredito da lane |
 | UC-FPI-01 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-02 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-03 | Pacientes/Index | 🧪 aguarda veredito da lane |
@@ -112,6 +123,9 @@ authority: generated
 | UC-FPK-04 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPK-05 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPK-06 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-07 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-08 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-09 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPN-01 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-02 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-03 | Painel | 🧪 aguarda veredito da lane |
@@ -161,6 +175,11 @@ authority: generated
 | UC-FPP-53 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-54 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-55 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPR-01 | Protocolos/Index | 🧪 aguarda veredito da lane |
+| UC-FPR-02 | Protocolos/Index | 🧪 aguarda veredito da lane |
+| UC-FPR-03 | Protocolos/Index | 🧪 aguarda veredito da lane |
+| UC-FPR-04 | Protocolos/Index | 🧪 aguarda veredito da lane |
+| UC-FPR-05 | Protocolos/Index | 🧪 aguarda veredito da lane |
 | UC-FPS-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-03 | Pacientes/Show | 🧪 aguarda veredito da lane |

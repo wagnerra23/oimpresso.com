@@ -101,6 +101,45 @@ final class SaldoDoPacote
     }
 
     /**
+     * Liga a venda do núcleo ao pacote (US-FISIO-022). Grava só o id: o valor, o título e a
+     * nota continuam na venda, no Financeiro e no NFSe. Uma venda paga um pacote só, e um
+     * pacote já ligado não troca de venda.
+     */
+    public function ligarVenda(Pacote $pacote, int $transactionId): void
+    {
+        DB::transaction(function () use ($pacote, $transactionId): void {
+            $p = Pacote::whereKey($pacote->id)->where('business_id', $pacote->business_id)->lockForUpdate()->firstOrFail();
+            $outro = Pacote::query()->where('business_id', $p->business_id)
+                ->where('transaction_id', $transactionId)->whereKeyNot($p->id)->exists();
+            if ($p->transaction_id !== null || $outro) {
+                throw PacoteIndisponivelException::vendaJaLigada();
+            }
+            $p->update(['transaction_id' => $transactionId]);
+        });
+    }
+
+    /**
+     * Venda cancelada ou excluída: as sessões que sobraram saem do saldo por lançamento inverso
+     * e o pacote é encerrado. As já usadas ficam, porque aconteceram. Devolver dinheiro é do
+     * Financeiro, nunca daqui. Idempotente pela `ref`.
+     */
+    public function encerrarPorVendaCancelada(Pacote $pacote, int $transactionId, int $userId): void
+    {
+        DB::transaction(function () use ($pacote, $transactionId, $userId): void {
+            $p = Pacote::whereKey($pacote->id)->where('business_id', $pacote->business_id)->lockForUpdate()->firstOrFail();
+            $ref = 'venda_cancelada:'.$transactionId;
+            if ($this->doPacote($p)->where('ref', $ref)->exists()) {
+                return;
+            }
+            $sobra = $this->saldo($p);
+            if ($sobra > 0) {
+                $this->lancar($p, PacoteLancamento::ESTORNO, -$sobra, $userId, $ref, 'venda do pacote cancelada');
+            }
+            $p->update(['status' => Pacote::STATUS_ENCERRADO]);
+        });
+    }
+
+    /**
      * Lançamentos do pacote, com a empresa explícita além do escopo global (ADR 0093).
      *
      * @return \Illuminate\Database\Eloquent\Builder<PacoteLancamento>
