@@ -291,6 +291,37 @@ const lancarDespesa = (os, d) => { DESPESAS[os] = [...despesasDe(os), d]; regist
 const conferirDespesa = (os, i, reembolsavel) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).map((x, k) => k === i ? { ...x, estado: "conferida", reembolsavel, conferiu: "Você" } : x); registrar({ os, tipo: "pcp", texto: "Conferiu despesa: " + d.descricao + " (" + fmt(d.valor) + (reembolsavel ? ", cobrar do cliente" : ", só no custo") + ")" }); };
 const removerDespesa = (os, i) => { const d = despesasDe(os)[i]; DESPESAS[os] = despesasDe(os).filter((_, k) => k !== i); registrar({ os, tipo: "pcp", texto: "Removeu despesa: " + d.descricao + " (" + fmt(d.valor) + ")" }); };
 
+// UC-PCV-11 · versões da arte. Vale para a produção a última versão APROVADA, mesmo com uma troca esperando o
+// cliente (AprovacaoArteService::arteVigente). Trocar o arquivo só depois de aprovada: a troca reabre a aprovação com
+// link novo e as etapas seguintes voltam a esperar. As frases de recusa são as de AprovacaoArteService::trocarArquivo.
+const ARTES = {};
+const nomeArq = (url) => url.split("/").pop();
+const versoesArte = (os) => ARTES[os.id] || (ARTES[os.id] = [{ v: 3, arquivo: "https://drive.exemplo.com/" + os.id.toLowerCase() + "/arte-final-v3.pdf",
+  decisao: os.arte === "aprovada" ? "aprovada" : os.arte === "ajuste" ? "ajuste" : "pendente", em: os.arte === "aprovada" ? os.aprovadaEm : null }]);
+const arteVigente = (os) => [...versoesArte(os)].reverse().find((x) => x.decisao === "aprovada") || null;
+const arteEmProva = (os) => { const l = versoesArte(os); const u = l[l.length - 1]; return u.decisao === "pendente" ? u : null; };
+const trocarArte = (os, arquivo) => {
+  if (etapas(os).every((e) => e.estado === "feito" || e.estado === "pronto")) return "Esta OS já foi encerrada.";
+  const l = versoesArte(os); const u = l[l.length - 1];
+  if (u.decisao !== "aprovada") return u.decisao === "ajuste" ? "O cliente pediu ajuste: mande a nova prova pela aprovação pendente." : "Ainda não há arte aprovada: peça a aprovação do cliente.";
+  if (u.arquivo === arquivo) return "Este é o arquivo já aprovado.";
+  l.push({ v: u.v + 1, arquivo, decisao: "pendente", em: null }); os.arte = "aguardando";
+  registrar({ os: os.id, tipo: "arte", texto: "Trocou o arquivo da arte para " + nomeArq(arquivo) + " (v" + (u.v + 1) + "): link novo enviado ao cliente, a v" + u.v + " segue valendo até ele aprovar" });
+  return null;
+};
+
+// UC-PCV-23 · celular sem internet. Cada toque guarda a hora em que aconteceu e uma chave; quando a rede volta, a
+// fila sai na ordem dos toques e a mesma chave não grava duas vezes (Apontamento/_lib/fila.ts + idempotência do servidor).
+const CEL = { offline: false, fila: [] };
+const RECEBIDAS = new Set();
+let chaveSeq = 0;
+const apontar = (ev) => { if (!CEL.offline) { registrar(ev); return false; } CEL.fila.push({ chave: "k" + (++chaveSeq), quando: agora(), ev }); return true; };
+const receberApontamento = (item) => { if (RECEBIDAS.has(item.chave)) return false; RECEBIDAS.add(item.chave);
+  registrar({ ...item.ev, quando: item.quando, texto: item.ev.texto + " (guardado sem internet, enviado quando a rede voltou)" }); return true; };
+const redeVoltou = () => { CEL.offline = false; let n = 0; while (CEL.fila.length) { if (receberApontamento(CEL.fila[0])) n++; CEL.fila.shift(); } return n; };
+
 window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, sinalDe, pagarSinal, HOJE, fmt, d2, h1, dias, noPosto, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE, AUTOFECHA, horaFimTurno, autofechaDe, corrigirAutofecha, TIPOS_DESP, despesasDe, lancarDespesa, conferirDespesa, removerDespesa,
+  nomeArq, versoesArte, arteVigente, arteEmProva, trocarArte,
+  CEL, apontar, receberApontamento, redeVoltou,
   etapas, atual, progresso, emProducao, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();

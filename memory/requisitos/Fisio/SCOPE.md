@@ -31,12 +31,16 @@ contains:
   - "PortalController — portal público do paciente: PIN com trava, consentimentos separados, lista do dia (US-FISIO-007a)"
   - "PortalLinkController — link do portal gerado e revogado na ficha (US-FISIO-007a)"
   - "EnvioWhatsappController — envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
+  - "Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro (SaldoDoPacote, US-FISIO-020)"
+  - "PacotesController — aba Pacote e cobrança: abre pacote e registra sessão; títulos e NFS-e só lidos do Financeiro e do NFSe (US-FISIO-021)"
   - "ConfiguracoesController — Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
+  - "OnboardingController — primeira configuração da clínica em 5 passos (perfil, PF/PJ, canal, protocolos, conclusão) em fisio_settings (US-FISIO-050)"
   - "Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app (fisio_appointment_types, fisio_appointments, fisio_schedule_blocks, fisio_waitlist, fisio_booking_settings — US-FISIO-013)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
-  - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
-  - "Emissão de nota → NFSe (F3)"
+  - "Preço do pacote, cobrança e títulos → Modules/Financeiro (via venda do núcleo); o Fisio só lê fin_titulos pelo model Titulo (F3, US-FISIO-021/022)"
+  - "Mensalidade de paciente → Modules/RecurringBilling (F3)"
+  - "Emissão de nota → Modules/NFSe (F3); o Fisio só lê nfse_emissoes pelo model NfseEmissao"
   - "Armazenamento de arquivo (foto/vídeo do exercício próprio) → Modules/Arquivos (backbone HasArquivos, ADR 0123/0214)"
 excludes:
   - "Prescrição sugerida por IA e câmera com ângulo/correção de forma (SaMD classe II, ADR 0437 §5) até decisão de notificação"

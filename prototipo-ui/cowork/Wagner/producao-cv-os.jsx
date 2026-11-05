@@ -115,6 +115,8 @@ function FichaOs({ id, onClose }) {
   const [novo, setNovo] = useState(null);
   const [corr, setCorr] = useState(null);
   const [verProva, setVerProva] = useState(false); // página do link da prova (UC-PCV-04)
+  const [troca, setTroca] = useState(null); // UC-PCV-11: link do arquivo novo; null = formulário fechado
+  const [erroTroca, setErroTroca] = useState(null);
   // Terceiros da OS (US-COMVIS-005): serviço comprado fora que entra no custo real. Não mexe em preço.
   const [terc, setTerc] = useState(os ? os.terceiros || [] : []);
   const [novoTerc, setNovoTerc] = useState(null);
@@ -149,19 +151,38 @@ function FichaOs({ id, onClose }) {
 
         {aba === "tarefas" && window.PcvTarefas && <window.PcvTarefas.AbaTarefas os={os} />}
 
-        {aba === "arte" && <div className="pcv-sec">
+        {aba === "arte" && (() => {
+          const quando = (em) => em.split(" ")[0].split("-").reverse().join("/") + " às " + em.split(" ")[1];
+          const vig = D.arteVigente(os); const trocada = os.arte === "aguardando" && vig && D.arteEmProva(os);
+          const trocar = (e) => { e.preventDefault(); const err = D.trocarArte(os, troca.trim()); setErroTroca(err); if (!err) { setTroca(null); setVerProva(false); } };
+          return <div className="pcv-sec">
           {os.arte === "aprovada"
-            ? Alert && <Alert tone="success" title={"Aprovada pelo cliente em " + os.aprovadaEm.split(" ")[0].split("-").reverse().join("/") + " às " + os.aprovadaEm.split(" ")[1]}>Aprovação pelo link de prova (sem login). A versão aprovada fica travada: qualquer troca de arquivo pede nova aprovação.</Alert>
+            ? Alert && <Alert tone="success" title={"Aprovada pelo cliente em " + quando(os.aprovadaEm)}>Aprovação pelo link de prova (sem login). A versão aprovada fica travada: qualquer troca de arquivo pede nova aprovação.</Alert>
+            : trocada ? Alert && <Alert tone="warn" title={"Arquivo trocado: aguardando nova aprovação (v" + trocada.v + ")"}>Link novo enviado ao cliente; o anterior deixou de valer. Até ele aprovar, o operador continua abrindo a v{vig.v}, aprovada em {quando(vig.em)}, e as etapas seguintes esperam.</Alert>
             : Alert && <Alert tone={os.arte === "ajuste" ? "danger" : "warn"} title={os.arte === "ajuste" ? "O cliente pediu ajuste" : "Aguardando aprovação do cliente"}>{os.arte === "ajuste" ? "\"Aumentar o logo e trocar o telefone.\" — enviado pelo link de prova às 08:47." : "Link de prova enviado ontem às 17:30 e reenviado hoje às 09:12. Visualizado 2 vezes."}<div className="pcv-al-a"><Button size="sm" onClick={() => {}}>Reenviar link de prova</Button></div></Alert>}
           {window.PcvProva && os.arte !== "aprovada" && (verProva
             ? <window.PcvProva.PaginaProva os={os} onFechar={() => setVerProva(false)} />
             : Button && <Button size="sm" onClick={() => setVerProva(true)}>Ver o que o cliente vê no link</Button>)}
-          <ul className="pcv-arq">
-            {[["arte-final-v3.pdf", "12,4 MB", "versão aprovada"], ["prova-cliente-v3.jpg", "1,1 MB", "prova enviada"], ["arquivo-corte.ai", "640 KB", "corte CNC / recorte"], ["fotos-medicao.zip", "8,2 MB", "medição em campo"]].slice(0, os.produto === "lona" ? 2 : 4).map(([n, t, d]) => (
-              <li key={n}><Ic name="doc" size={16} /><div><b>{n}</b><small>{t} · {d}</small></div><Button size="sm" variant="ghost">Baixar</Button></li>))}
+          <h4 className="pcv-eyebrow">Versões da arte</h4>
+          <ul className="pcv-arq" aria-label="Versões da arte">
+            {[...D.versoesArte(os)].reverse().map((x) => (
+              <li key={x.v}><Ic name="doc" size={16} /><div><b>v{x.v} · {D.nomeArq(x.arquivo)}</b><small>{x.decisao === "aprovada" ? "aprovada em " + quando(x.em) + (x === vig ? " · é a que vale para a produção" : " · substituída") : x.decisao === "ajuste" ? "o cliente pediu ajuste" : "aguardando o cliente"}</small></div><Button size="sm" variant="ghost">Baixar</Button></li>))}
           </ul>
-          <p className="pcv-help">Os arquivos andam com a OS: o operador abre do celular, na etapa dele, a versão aprovada — nunca uma prova antiga.</p>
-        </div>}
+          {os.arte === "aprovada" && (troca === null
+            ? Button && <Button size="sm" onClick={() => { setTroca(""); setErroTroca(null); }}>Trocar o arquivo da arte</Button>
+            : <form className="pcv-prova-form" onSubmit={trocar} style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "end" }}>
+                <label style={{ flex: "1 1 320px", display: "flex", flexDirection: "column", gap: 4, fontSize: 12 }}>Arquivo novo (link)
+                  {Input && <Input type="url" required value={troca} placeholder="https://drive.exemplo.com/arte-final-v4.pdf" onChange={(e) => { setTroca(e.target.value); setErroTroca(null); }} />}</label>
+                {Button && <Button size="sm" type="submit">Trocar e pedir nova aprovação</Button>}
+                <button type="button" className="pcv-link" onClick={() => { setTroca(null); setErroTroca(null); }}>Cancelar</button>
+                {erroTroca && <p className="pcv-prova-erro" role="alert" style={{ flexBasis: "100%" }}>{erroTroca}</p>}
+              </form>)}
+          {os.produto !== "lona" && <ul className="pcv-arq" aria-label="Outros arquivos da OS">
+            {[["arquivo-corte.ai", "640 KB", "corte CNC / recorte"], ["fotos-medicao.zip", "8,2 MB", "medição em campo"]].map(([n, t, d]) => (
+              <li key={n}><Ic name="doc" size={16} /><div><b>{n}</b><small>{t} · {d}</small></div><Button size="sm" variant="ghost">Baixar</Button></li>))}
+          </ul>}
+          <p className="pcv-help">Os arquivos andam com a OS: o operador abre do celular, na etapa dele, a versão aprovada — nunca uma prova antiga. Trocar o arquivo depois de aprovada reabre a aprovação com link novo.</p>
+        </div>; })()}
 
         {aba === "materiais" && <div className="pcv-sec">
           {os.material === "aguardando" && (() => { const falta = D.faltaDe(os.id); return <div className="pcv-falta" role="region" aria-label="Aguardando material">
