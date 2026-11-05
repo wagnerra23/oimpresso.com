@@ -506,16 +506,20 @@ class ModuleUtil extends Util
         return $output;
     }
 
+    /**
+     * Lista da aba Módulos (Configuração da empresa). Os rótulos usam chaves lang_v1.modulo_*
+     * próprias: as traduções gerais que existiam aqui têm outros consumidores.
+     */
     public function availableModules()
     {
         return [
             'purchases' => ['name' => __('purchase.purchases')],
             'add_sale' => ['name' => __('sale.add_sale')],
-            'pos_sale' => ['name' => __('sale.pos_sale')],
-            'stock_transfers' => ['name' => __('lang_v1.stock_transfers')],
+            'pos_sale' => ['name' => __('lang_v1.modulo_pdv')],
+            'stock_transfers' => ['name' => __('lang_v1.modulo_transferencia_estoque')],
             'stock_adjustment' => ['name' => __('stock_adjustment.stock_adjustment')],
             'expenses' => ['name' => __('expense.expenses')],
-            'account' => ['name' => __('lang_v1.account')],
+            'account' => ['name' => __('lang_v1.modulo_conta_bancaria')],
             'tables' => ['name' => __('restaurant.tables'),
                 'tooltip' => __('restaurant.tooltip_tables'),
             ],
@@ -523,14 +527,14 @@ class ModuleUtil extends Util
                 'tooltip' => __('restaurant.tooltip_modifiers'),
             ],
             'service_staff' => [
-                'name' => __('restaurant.service_staff'),
+                'name' => __('lang_v1.modulo_atendentes'),
                 'tooltip' => __('restaurant.tooltip_service_staff'),
             ],
-            'booking' => ['name' => __('lang_v1.enable_booking')],
+            'booking' => ['name' => __('lang_v1.modulo_reservas')],
             'kitchen' => [
-                'name' => __('restaurant.kitchen_for_restaurant'),
+                'name' => __('lang_v1.modulo_cozinha'),
             ],
-            'subscription' => ['name' => __('lang_v1.enable_subscription')],
+            'subscription' => ['name' => __('lang_v1.modulo_cobranca_recorrente')],
             'types_of_service' => ['name' => __('lang_v1.types_of_service'),
                 'tooltip' => __('lang_v1.types_of_service_help_long'),
             ],

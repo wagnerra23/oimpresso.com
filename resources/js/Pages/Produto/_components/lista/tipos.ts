@@ -258,6 +258,11 @@ export interface DetalheProdutoDados {
   }>;
   /** "Total líquido": soma dos `total_exc` dos itens, feita no servidor. null = sem `view_purchase_price` ou não é composição. */
   composicao_total_exc: number | null;
+  /**
+   * Quantos kits completos dá para vender em cada local, pelo saldo dos componentes, e qual limita
+   * (UC-PIDX-40). null = não é kit, ou nenhum componente controla estoque.
+   */
+  kits_por_local?: Array<{ local: string; kits: number; limita: string }> | null;
   /** null = sem `stock_report.view` ou produto sem controle de estoque. */
   estoque: LinhaRelatorioEstoque[] | null;
   /**
