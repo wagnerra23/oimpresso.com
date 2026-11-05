@@ -19,7 +19,8 @@ class VerifyCsrfToken extends BaseVerifier
         '/api/ecom/orders',
         '/webhook/*',
         // Webhooks de banco (plural — o '/webhook/*' acima não os cobre). O banco não manda
-        // token CSRF; a autenticação é a assinatura HMAC conferida em cada controller.
+        // token CSRF; quem autentica é o controller: assinatura HMAC (PaymentGateway) ou segredo
+        // compartilhado no header `X-Inter-Webhook-Secret` (RecurringBilling), ambos antes de gravar.
         // Em produção (2026-11-05) as duas famílias abaixo devolviam 419.
         'paymentgateway/webhooks/*', // Modules/PaymentGateway/Routes/web.php — Asaas, Inter, C6, BCB Pix, Pagar.me, Sicoob
         'webhooks/inter/*',          // PaymentGateway InterPixWebhookController + RecurringBilling /webhooks/inter/pix/*

@@ -15,7 +15,7 @@ uses(Tests\TestCase::class);
  * Medido em produção em 2026-11-05 (`curl -sv -X POST`, sem token): `paymentgateway/webhooks/*`,
  * `webhooks/inter/{credentialId}` e `webhooks/inter/pix/{businessId}` devolviam 419. O `$except`
  * tinha só `/webhook/*` (singular), e as rotas de banco usam o plural. O banco não manda token
- * CSRF; a autenticação desses endpoints é a assinatura HMAC conferida no controller.
+ * CSRF; quem autentica é o controller (HMAC no PaymentGateway, segredo no header no RecurringBilling).
  * Auditoria Financeiro 2026-11-05, lote 0, PR 0.3.
  *
  * O Laravel pula o CSRF quando roda teste (`runningUnitTests()`), então o teste usa uma
