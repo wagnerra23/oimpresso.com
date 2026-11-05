@@ -5,7 +5,7 @@ description: Cancelar uma venda é desfazer em quatro domínios, e nem tudo é r
 type: reference
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-09-22"
+updated_at: "2026-11-05"
 nav_group: fluxo
 nav_order: 20
 lente: [operar, construir]
@@ -89,6 +89,13 @@ cadastrado — é justamente o caso em que o mecanismo de falha-fechada não pre
 Dono: [`FsmProcessoVendaComProducaoSeeder`](../../database/seeders/FsmProcessoVendaComProducaoSeeder.php)
 (a linha da ação carrega papel + criticidade + efeito) · recusa em
 [`ExecuteStageActionService`](../../app/Domain/Fsm/Services/ExecuteStageActionService.php).
+
+> **Vale para o processo `venda_com_producao`** (o modelo legado, onde estão as empresas que ainda
+> não escolheram um modelo de fluxo). Os processos que um modelo monta
+> ([ADR 0435](../decisions/0435-fluxos-por-modelo-porte-atividade.md), proposta) têm uma ação
+> `cancelar` própria, ainda **sem a cascata** desta página: o
+> [`AplicarModelo`](../../app/Domain/Fsm/Modelos/AplicarModelo.php) registra que "o cancelar fica
+> sem efeito até um documento usar o processo".
 
 ### De quem é o cancelamento
 
