@@ -30,7 +30,8 @@ class CockpitController extends Controller
 {
     /**
      * Cache key pra KPIs do cockpit por business — 60s TTL (GAP-FISCAL-002).
-     * Invalidado via InvalidaCockpitCacheListener em NFeAutorizada/NFCeAutorizada.
+     * Invalidado via InvalidaCockpitCacheListener (autorização, cancelamento, inutilização,
+     * DF-e e certificado — ver o docblock dele).
      */
     public const KPIS_CACHE_TTL_SECONDS = 60;
 
