@@ -14,6 +14,8 @@ function faEnsure() {
   FxStore.hist = faD().DFE_HISTORICO.slice();
   FxStore.config = JSON.parse(JSON.stringify(faD().CONFIG));
   FxStore.gate = false;
+  // 6.1 · cenário de demonstração dos estados de emissão (auditoria 2026-11-05)
+  FxStore.cenario = { sefaz: "operacional", cert: "vigente" };
   try { FxStore.proc = localStorage.getItem("oimpresso.fiscal.procedencia") === "1"; } catch (e) {}
 }
 function faNotify() { FxStore.subs.forEach(f => f(++FxStore.seq)); }
@@ -135,6 +137,20 @@ window.FxActions.enviarCertificado = function (arquivo) {
   faEvento({ id: "evt-cert" + Date.now(), tipo: "Certificado A1 substituído", kind: "config", nota: "Configuração fiscal", descricao: "Arquivo " + c.cert.pendente + " · senha não registrada em log", emit: faAgora(), autor: "Wagner (superadmin)", sefaz: "—" });
   faNotify();
   window.fxToast("Certificado recebido · validação de titular e CNPJ acontece no emissor");
+};
+
+// ─── 6.1 · Estados de emissão (auditoria Fiscal 2026-11-05) ───
+// Três estados que o protótipo não mostrava: ambiente de homologação, certificado vencido ou
+// ausente, e SEFAZ fora do ar (contingência). Cenário é demonstração; no vivo viriam de
+// NfeBrasil (ambiente da empresa, validade do A1) e do webservice de status por UF.
+window.FxActions.setCenario = function (chave, valor) { FxStore.cenario = Object.assign({}, FxStore.cenario, { [chave]: valor }); faNotify(); };
+window.fxEstadoEmissao = function (st) {
+  const c = st.config.cert, cen = st.cenario || {}, uf = faD().SEFAZ.uf, out = [];
+  if (cen.cert === "ausente") out.push({ nivel: "crit", bloqueia: true, titulo: "Nenhum certificado A1 cadastrado — emissão bloqueada", sub: "Sem certificado não há assinatura do XML. Nenhuma NF-e, NFC-e ou evento sai até o envio.", acao: "Enviar certificado", goto: "fiscal-config" });
+  else if (cen.cert === "vencido") out.push({ nivel: "crit", bloqueia: true, titulo: "Certificado A1 vencido em " + c.validoAte + " — emissão bloqueada", sub: "A SEFAZ recusa XML assinado com certificado vencido. Notas e eventos ficam parados até a troca.", acao: "Enviar novo certificado", goto: "fiscal-config" });
+  if (cen.sefaz === "contingencia") out.push({ nivel: "warn", bloqueia: false, titulo: "SEFAZ-" + uf + " indisponível — emissão em contingência", sub: "As notas emitidas agora ficam em “Aguardando SEFAZ” e são transmitidas quando o serviço voltar. Cancelamento e CC-e esperam a volta.", acao: "Ver aguardando", goto: "fiscal-nfe" });
+  if (c.ambiente !== "Produção") out.push({ nivel: "warn", bloqueia: false, titulo: "Ambiente de homologação — nenhuma nota tem valor fiscal", sub: "Bom para testar. Para faturar de verdade, troque o ambiente em Certificado.", acao: "Ver ambiente", goto: "fiscal-config" });
+  return out;
 };
 
 // ─── Toasts ───
