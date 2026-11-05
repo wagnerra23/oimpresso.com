@@ -84,15 +84,21 @@ export default function CasosPorTela({ dados, marcas, podeConferir, podeDecidir 
           }
         />
       </div>
-      <Deferred data={['dados', 'marcas']} fallback={<Carregando />}>
-        {dados && 'erro' in dados ? (
-          <p className="rounded-md border border-destructive p-4 text-sm" role="alert" data-contract="lista">
-            Um casos.md tem um dado inválido e a página não pôde ser montada: {dados.erro}
-          </p>
-        ) : dados ? (
-          <Pagina dados={dados} marcas={marcas ?? null} podeConferir={podeConferir} podeDecidir={podeDecidir} />
-        ) : <Carregando />}
-      </Deferred>
+      {/* Folga do corpo: o .main-body do shell não tem padding, e sem isto o conteúdo
+          encostava na sidebar e no cabeçalho. 24px de lado alinham com o título do
+          PageHeader; 24px/64px no eixo vertical seguem o .wrap do template aprovado
+          (scripts/casos-backlog/template.html). */}
+      <div className="px-6 pt-6 pb-16">
+        <Deferred data={['dados', 'marcas']} fallback={<Carregando />}>
+          {dados && 'erro' in dados ? (
+            <p className="rounded-md border border-destructive p-4 text-sm" role="alert" data-contract="lista">
+              Um casos.md tem um dado inválido e a página não pôde ser montada: {dados.erro}
+            </p>
+          ) : dados ? (
+            <Pagina dados={dados} marcas={marcas ?? null} podeConferir={podeConferir} podeDecidir={podeDecidir} />
+          ) : <Carregando />}
+        </Deferred>
+      </div>
     </AppShellV2>
   );
 }
