@@ -31,11 +31,8 @@ contains:
   - "PortalController — portal público do paciente: PIN com trava, consentimentos separados, lista do dia (US-FISIO-007a)"
   - "PortalLinkController — link do portal gerado e revogado na ficha (US-FISIO-007a)"
   - "EnvioWhatsappController — envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
-<<<<<<< HEAD
   - "FiscalController — documentos fiscais do dia: NFS-e lida do NFSe e fila do Receita Saúde sobre transaction_payments; grava só a marca de envio em fisio_health_receipts (US-FISIO-023)"
-=======
   - "ConfiguracoesController — Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
->>>>>>> FETCH_MAIN
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
