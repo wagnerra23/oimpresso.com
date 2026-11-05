@@ -135,6 +135,25 @@ last_run: "2026-09-11"
 
 ---
 
+## UC-CFG-06 · Quando a carga dos destinatários falha, a tela diz isso e deixa tentar de novo
+
+- **Persona:** o administrador que escolhe quem recebe o e-mail de manutenção.
+- **Aceite:** Dado a tela aberta · Quando a carga deferida de `usuarios` termina sem a prop (500, 503
+  do deploy ou rede caída) · Então a lista de destinatários vira o estado de erro do protótipo
+  (`patrimonio-page.jsx:846-850`): `role="alert"`, título "Não consegui carregar os destinatários", a frase de que nada foi
+  perdido e o botão "Tentar de novo". O botão pede **só** `usuarios` de novo, sem o diálogo de erro
+  do Inertia por cima; quando a prop chega, a tela volta ao normal.
+  O resto do formulário (prefixos, modelos) continua editável: só a lista é deferida.
+  **Salvar** já avisava a falha antes desta onda — o `store()` devolve `redirect()->back()` com
+  `status`, que o `app.tsx` mostra como toast de erro; não mudou aqui.
+- **Por quê:** o `<Deferred>` mostra o esqueleto enquanto a prop não chegou, e numa falha ela
+  nunca chega — a tela parecia carregando para sempre. O critério (`_shared/falhaDeferida.ts`) é
+  a visita que pediu a prop ter terminado sem ela; não depende de horário nem de código de erro.
+- **Teste:** `tests/js/patrimonio-estado-erro.test.tsx` — seis `it()` citando `UC-CFG-06`: o alerta aparece quando a visita que pediu `usuarios` termina sem ela; "Tentar de novo" pede só `usuarios` com `onHttpException`/`onNetworkError` devolvendo `false`; o erro some quando a prop chega; e três controles (antes da carga terminar, visita que trouxe a prop, visita que pediu outra prop). **Bite-test (2026-11-05):** com as cinco telas de `main`, os 3 casos não-controle de cada tela caem (15 de 30); os controles ficam verdes nos dois lados.
+- **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
+
+---
+
 ## Divergências protótipo × backend — declaradas, não escondidas
 
 Não são UC porque **não são comportamento que esta onda defende**; são o registro de que a

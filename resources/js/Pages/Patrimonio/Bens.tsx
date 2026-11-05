@@ -62,6 +62,8 @@ import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 import CadastroBemDrawer from './_shared/CadastroBemDrawer';
 import DetalheBemDrawer, { type BemDetalhe } from './_shared/DetalheBemDrawer';
+import FalhaDeCarga from './_shared/FalhaDeCarga';
+import { useFalhaDeferida } from './_shared/falhaDeferida';
 import type { BemEdicao } from './_shared/cadastroBem';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -603,6 +605,9 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, bem_sel
     }
   };
 
+  // A lista é deferida: se a carga falha, o esqueleto viraria espera eterna. Ver `_shared/falhaDeferida.ts`.
+  const falhaBens = useFalhaDeferida(['bens']);
+
   // Distingue "não há bem nenhum" de "não há bem PARA ESTE RECORTE" — são dois vazios
   // diferentes, e oferecer "cadastre o primeiro bem" a quem só filtrou demais é ruído.
   const temFiltroAtivo = Boolean(
@@ -649,6 +654,9 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, bem_sel
         </div>
 
         <div data-contract="tabela">
+          {falhaBens.falhou ? (
+            <FalhaDeCarga titulo="Não consegui carregar os bens" falha={falhaBens} />
+          ) : (
           <Deferred data="bens" fallback={<EsqueletoTabela />}>
             {bens && bens.data.length === 0 && !temFiltroAtivo ? (
               <EmptyState
@@ -678,6 +686,7 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, bem_sel
               />
             ) : null}
           </Deferred>
+          )}
         </div>
       </Stack>
       <DetalheBemDrawer

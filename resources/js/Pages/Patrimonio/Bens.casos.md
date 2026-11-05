@@ -256,6 +256,22 @@ last_run: "2026-09-30"
 - **Fora:** o envio em lote (`:395`). Não escreve valor nem quantidade.
 - **Status: ⬜** — a lane de CI do PR é o primeiro run.
 
+## UC-BENS-15 · Quando a carga dos bens falha, a tela diz isso e deixa tentar de novo
+
+- **Persona:** quem abre a lista de bens e precisa saber se ela não veio.
+- **Aceite:** Dado a tela aberta · Quando a carga deferida de `bens` termina sem a prop (500, 503
+  do deploy ou rede caída) · Então a área da tabela vira o estado de erro do protótipo
+  (`patrimonio-page.jsx:846-850`): `role="alert"`, título "Não consegui carregar os bens", a frase de que nada foi
+  perdido e o botão "Tentar de novo". O botão pede **só** `bens` de novo, sem o diálogo de erro
+  do Inertia por cima; quando a prop chega, a tela volta ao normal.
+  As pílulas dos recortes e o contador da aba ficam sem número (é o `fallback` deles), não
+  em erro: o que não veio é a lista.
+- **Por quê:** o `<Deferred>` mostra o esqueleto enquanto a prop não chegou, e numa falha ela
+  nunca chega — a tela parecia carregando para sempre. O critério (`_shared/falhaDeferida.ts`) é
+  a visita que pediu a prop ter terminado sem ela; não depende de horário nem de código de erro.
+- **Teste:** `tests/js/patrimonio-estado-erro.test.tsx` — seis `it()` citando `UC-BENS-15`: o alerta aparece quando a visita que pediu `bens` termina sem ela; "Tentar de novo" pede só `bens` com `onHttpException`/`onNetworkError` devolvendo `false`; o erro some quando a prop chega; e três controles (antes da carga terminar, visita que trouxe a prop, visita que pediu outra prop). **Bite-test (2026-11-05):** com as cinco telas de `main`, os 3 casos não-controle de cada tela caem (15 de 30); os controles ficam verdes nos dois lados.
+- **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
+
 ## UC-BENS-11 · Excluir o bem leva as garantias dele junto
 
 - **Persona:** quem exclui um bem cadastrado por engano e não espera deixar resto no banco.
