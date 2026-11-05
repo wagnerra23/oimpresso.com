@@ -17,7 +17,9 @@ declare(strict_types=1);
 use App\CashRegister;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Modules\Financeiro\Events\CashRegisterClosed;
+use Modules\Financeiro\Listeners\OnCashRegisterClosedCreateFinanceiroTitulo;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Services\TituloAutoService;
 
@@ -32,6 +34,15 @@ use Modules\Financeiro\Services\TituloAutoService;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 beforeEach(function () {
+    // FinanceiroServiceProvider registra os listeners atrás de uma flag ESTÁTICA: num
+    // processo com vários apps (a suíte) só o 1º recebe o listener do caixa, e do 2º teste
+    // em diante o evento dispara sem ninguém escutar (4 falhas no run 42113800989). Mesmo
+    // padrão do Onda26InterWebhookIntegrationTest. Isto prova o trecho evento → listener →
+    // serviço → título, não o registro no provider; a flag é decisão [W] (cria título).
+    if (! Event::hasListeners(CashRegisterClosed::class)) {
+        Event::listen(CashRegisterClosed::class, [OnCashRegisterClosedCreateFinanceiroTitulo::class, 'handle']);
+    }
+
     $this->biz = 98;
     if (! DB::table('business')->where('id', $this->biz)->exists()) {
         $this->markTestSkipped('Tenant fictício 98 ausente — seed .github/actions/pest-mysql-setup.');
