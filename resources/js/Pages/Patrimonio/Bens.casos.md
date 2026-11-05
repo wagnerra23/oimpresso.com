@@ -103,8 +103,8 @@ last_run: "2026-09-30"
 - **Persona:** quem opera o patrimônio — clica num ícone esperando um formulário.
 - **Aceite:** Dado a lista com um bem e **todas** as permissões ligadas (criar, editar, excluir,
   manutenção) · Quando a tela renderiza — cheia ou vazia · Então **nenhum** `href` aponta pra
-  `create`/`edit` de bem, alocação ou manutenção; e o **excluir** (que funciona, via
-  `router.delete`) continua na linha.
+  `create`/`edit` de bem, alocação ou manutenção; e o **excluir** continua na linha (desde
+  2026-11-05 ele abre o `AlertDialog` — UC-BENS-13).
 - **Teste:** `tests/js/patrimonio-sem-link-para-modal.test.tsx` — 2 `it()` citando `UC-BENS-04`.
 - **Regressão que defende:** afordância falsa. MEDIDO em prod (biz=1, 2026-09-23): os endpoints `create`/`edit` do módulo só respondem sob `request()->ajax()` — numa navegação direta devolveram **200 com 0 bytes** (fragmento de modal jQuery, sem `@extends`). Até esta data a tela tinha 5 links
   pra lá: "Novo ativo", o CTA do vazio, alocar, manutenção e editar. O controle positivo (a linha
@@ -270,6 +270,38 @@ last_run: "2026-09-30"
 - **Teste:** `Modules/AssetManagement/Tests/Feature/GarantiasOrfasContratoTest.php` — dois `it()`
   citando `UC-BENS-11` (a exclusão pela rota, e o comando em dry-run e com `--apply`).
 - **Status: 🧪** — ver o recibo do PR.
+
+## UC-BENS-13 · Excluir pede confirmação no diálogo do Design System, não no do navegador
+
+- **Persona:** quem clica no ícone de lixeira da linha e precisa ver **qual** bem vai sair antes
+  de confirmar.
+- **Aceite:** Dado um bem na lista e a permissão de excluir · Quando o usuário clica em "Excluir"
+  na linha · Então abre o `AlertDialog` do DS (`role="alertdialog"`, nunca `window.confirm`) com
+  o código no título ("Excluir AST-0007?") e o nome do bem na descrição; "Cancelar" fecha sem
+  falar com o servidor; "Excluir" manda o DELETE no contrato ajax `{success, msg}` do `destroy`,
+  fecha o diálogo e recarrega só `bens`, `recortes_contagem` e `abas_contadores`.
+- **Por quê:** desenho do `ExcluirModal` do protótipo (`patrimonio-forms.jsx:275`). E o
+  `router.delete` anterior não servia: o `destroy` só responde sob `request()->ajax()` com JSON,
+  o Inertia manda `X-Requested-With` em toda visita, e resposta não-Inertia vira o diálogo de
+  resposta crua do Inertia, sem atualizar a lista. As telas irmãs já falam com esse contrato
+  por `fetch` (`Pages/Configuracoes/Impostos/Index.tsx`).
+- **Teste:** `tests/js/patrimonio-bens-excluir.test.tsx` — três `it()` citando `UC-BENS-13`, com o
+  "Editar" da linha como controle de que a tabela renderizou. **Bite-test (2026-11-05):** com o
+  `Bens.tsx` anterior (`window.confirm` + `router.delete`), os 6 casos do arquivo caem.
+- **Fora:** o aviso de alocação ativa do `ExcluirModal` (`:289`, que desabilita o botão) — o
+  servidor hoje não recusa excluir bem alocado, e travar só na tela é decisão de produto.
+- **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
+
+## UC-BENS-14 · A exclusão que falha avisa na hora e deixa tentar de novo
+
+- **Persona:** quem confirmou a exclusão e precisa saber se ela aconteceu.
+- **Aceite:** Dado o diálogo de exclusão aberto · Quando o servidor responde `success: false`,
+  responde fora de 2xx ou a rede cai · Então o diálogo **fica aberto** com a mensagem em
+  `role="alert"` ("Não consegui excluir." + o motivo), o botão vira "Tentar de novo", e a lista
+  **não** é recarregada nem o aviso de sucesso aparece. "Tentar de novo" refaz o pedido.
+- **Teste:** `tests/js/patrimonio-bens-excluir.test.tsx` — três `it()` citando `UC-BENS-14`
+  (`success: false`, HTTP 500 sem JSON, rede caída seguida de nova tentativa que dá certo).
+- **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
 
 ---
 
