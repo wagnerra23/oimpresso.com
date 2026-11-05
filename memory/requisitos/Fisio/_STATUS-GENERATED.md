@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 22 |
+| US no SPEC | 24 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 6 |
-| Telas com `casos.md` | 7 |
-| UC declarados | 116 |
-| UC com teste que os cita | 116 |
+| Telas (.tsx) | 8 |
+| Telas com `casos.md` | 9 |
+| UC declarados | 132 |
+| UC com teste que os cita | 132 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -35,6 +35,7 @@ authority: generated
 | `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
 | `US-FISIO-010` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
+| `US-FISIO-051` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pré-anamnese no portal antes da primeira consulta — **P1** |
 | `US-FISIO-013` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Schema da agenda: tipos, atendimentos, bloqueios, lista de e |
 
 ### Backlog — NÃO é lacuna
@@ -50,8 +51,6 @@ authority: generated
 | US-FISIO-014 | `todo` | Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0 |
 | US-FISIO-015 | `todo` | Tela Agenda da clínica e configuração do agendamento pelo app — **P0** |
 | US-FISIO-016 | `todo` | Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P |
-| US-FISIO-020 | `todo` | Pacote de sessões com saldo derivado de ledger append-only — **P0** |
-| US-FISIO-021 | `todo` | Tela "Pacote e cobrança" da ficha do paciente — **P0** |
 | US-FISIO-022 | `todo` | Vender e renovar pacote pela venda do núcleo — **P0** |
 | US-FISIO-023 | `todo` | Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0** |
 | US-FISIO-024 | `todo` | Lote do Receita Saúde no layout oficial — **P1** |
@@ -93,6 +92,12 @@ authority: generated
 | UC-FLD-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FLD-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FLD-03 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FOB-01 | Onboarding | 🧪 aguarda veredito da lane |
+| UC-FOB-02 | Onboarding | 🧪 aguarda veredito da lane |
+| UC-FOB-03 | Onboarding | 🧪 aguarda veredito da lane |
+| UC-FOB-04 | Onboarding | 🧪 aguarda veredito da lane |
+| UC-FOB-05 | Onboarding | 🧪 aguarda veredito da lane |
+| UC-FOB-06 | Onboarding | 🧪 aguarda veredito da lane |
 | UC-FPI-01 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-02 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-03 | Pacientes/Index | 🧪 aguarda veredito da lane |
@@ -101,6 +106,12 @@ authority: generated
 | UC-FPI-06 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-07 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-20 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPK-01 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-02 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-03 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-04 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-05 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-06 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPN-01 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-02 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-03 | Painel | 🧪 aguarda veredito da lane |
@@ -146,6 +157,10 @@ authority: generated
 | UC-FPP-34 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-50 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-51 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-52 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-53 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-54 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-55 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPS-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-03 | Pacientes/Show | 🧪 aguarda veredito da lane |

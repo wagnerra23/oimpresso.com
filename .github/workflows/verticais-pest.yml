@@ -558,6 +558,11 @@ jobs:
         # saldo derivado do ledger append-only (trigger), sem coluna de dinheiro, débito idempotente
         # por atendimento, estorno uma vez, vencido/encerrado recusados, isolamento 98×99.
         #
+        # ENTRA 2026-11-04 — Fisio/FisioPacoteTelaTest (US-FISIO-021, UC-FPK-01..06): aba Pacote e
+        # cobrança — saldo do ledger, abrir/registrar sessão, 403 sem editar, 404 entre 98 e 99, e a
+        # cobrança LIDA do Financeiro sem gravar título.
+        #
+        #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
         #
@@ -844,7 +849,9 @@ jobs:
             Modules/Fisio/Tests/Unit/MissoesCalculatorTest.php \
             Modules/Fisio/Tests/Unit/MedalhasCalculatorTest.php \
             Modules/Fisio/Tests/Feature/FisioAgendaEsquemaTest.php \
-            Modules/Fisio/Tests/Feature/FisioPacoteSessoesTest.php
+            Modules/Fisio/Tests/Feature/FisioPacoteSessoesTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacoteSessoesTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacoteTelaTest.php
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php

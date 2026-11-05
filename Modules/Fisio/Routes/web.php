@@ -9,6 +9,7 @@ use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\PainelController;
+use Modules\Fisio\Http\Controllers\PacotesController;
 use Modules\Fisio\Http\Controllers\PortalController;
 use Modules\Fisio\Http\Controllers\PortalLinkController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
@@ -93,6 +94,12 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Link do portal do paciente (US-FISIO-007a): gerar devolve link + PIN UMA vez; revogar derruba.
         Route::post('pacientes/{id}/portal', [PortalLinkController::class, 'store'])->whereNumber('id')->name('pacientes.portal.store');
         Route::delete('pacientes/{id}/portal', [PortalLinkController::class, 'destroy'])->whereNumber('id')->name('pacientes.portal.destroy');
+
+        // Aba "Pacote e cobrança" (US-FISIO-021): escreve só sessões; dinheiro é leitura do núcleo.
+        Route::get('pacientes/{id}/pacote', [PacotesController::class, 'show'])->whereNumber('id')->name('pacientes.pacote');
+        Route::post('pacientes/{id}/pacotes', [PacotesController::class, 'store'])->whereNumber('id')->name('pacientes.pacotes.store');
+        Route::post('pacotes/{pacote}/consumir', [PacotesController::class, 'consumir'])->whereNumber('pacote')->name('pacotes.consumir');
+        Route::post('pacotes/lancamentos/{lancamento}/estornar', [PacotesController::class, 'estornar'])->whereNumber('lancamento')->name('pacotes.estornar');
 
         // Exportação do prontuário em PDF (UC-FPS-19..20). Leitura: basta `fisio.access`; a exportação fica no activity_log.
         Route::get('pacientes/{id}/prontuario.pdf', [ProntuarioPdfController::class, 'show'])->whereNumber('id')->name('pacientes.prontuario.pdf');
