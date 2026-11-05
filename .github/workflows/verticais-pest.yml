@@ -620,6 +620,8 @@ jobs:
         # ENTRA 2026-11-04 — Fisio/FisioConfigWhatsappTest (Lote 5, UC-FCW-01..06): a clínica escolhe o
         # canal (manual, oficial, QR com aceite de risco) e a escolha muda o canalAtivo real; 98×99.
         #
+        # ENTRA 2026-11-04 — Fisio/FisioPreAnamneseTest (Lote 5, US-FISIO-051, UC-FPP-52..55): uma resposta por
+        # paciente, só valores das listas, sinal avisa o profissional, portões do portal; 98×99.
         # ENTRA 2026-11-04 — Fisio/FisioOnboardingTest (Lote 5, US-FISIO-050, UC-FOB-01..06): cada passo grava o
         # dele; perfil por profissional; QR só com aceite; protocolo de outra empresa descartado; 98×99.
         #
@@ -822,6 +824,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalConfiguracoesTest.php \
+            Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php \
             Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php \
