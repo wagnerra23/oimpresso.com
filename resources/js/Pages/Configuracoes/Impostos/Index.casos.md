@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a alíquota entra no imposto da venda; a de outro negócio na tela, ou um número diferente do gravado, é incidente.
 owner: wagner
-last_run: "2026-11-03"
+last_run: "2026-11-04"
 ---
 
 # Casos de Uso & Aceite — Impostos

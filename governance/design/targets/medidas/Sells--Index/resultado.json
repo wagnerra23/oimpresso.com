@@ -3,31 +3,32 @@
   "source": "vendas-page.jsx",
   "target": "resources/js/Pages/Sells/Index.tsx",
   "token": "vendas",
-  "frescor": "verificado 2026-09-17",
+  "frescor": "fonte = git (ADR 0438)",
   "contrato": null,
   "compare": {
     "rc": 1,
     "veredito": "DIVERGE (bug)",
     "motivo": "",
-    "bugs": 1,
-    "shell": 0,
-    "sameTheme": false,
+    "bugs": 9,
+    "shell": 14,
+    "drawer": 0,
+    "sameTheme": true,
     "porDim": {
       "D2": {
-        "diverge": 1,
+        "diverge": 8,
+        "bug": 3,
+        "semDado": 0,
+        "igual": 0
+      },
+      "D4": {
+        "diverge": 4,
         "bug": 1,
         "semDado": 0,
         "igual": 1
       },
-      "D4": {
-        "diverge": 0,
-        "bug": 0,
-        "semDado": 0,
-        "igual": 1
-      },
       "D6": {
-        "diverge": 1,
-        "bug": 0,
+        "diverge": 7,
+        "bug": 5,
         "semDado": 0,
         "igual": 1
       },
@@ -40,23 +41,36 @@
       "D9": {
         "diverge": 0,
         "bug": 0,
-        "semDado": 2,
+        "semDado": 7,
         "igual": 0
       },
       "SHELL": {
+        "diverge": 14,
+        "bug": 0,
+        "semDado": 3,
+        "igual": 0
+      },
+      "SAÚDE": {
         "diverge": 0,
         "bug": 0,
-        "semDado": 4,
+        "semDado": 0,
         "igual": 0
       }
     },
     "rows": [
       {
         "dim": "D2",
-        "campo": "layout",
-        "prod": "ok",
-        "design": "ok",
-        "veredito": "IGUAL"
+        "campo": "kpi.count",
+        "prod": 5,
+        "design": 4,
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D2",
+        "campo": "filtro linhas",
+        "prod": 6,
+        "design": 1,
+        "veredito": "DIVERGE (bug)"
       },
       {
         "dim": "D4",
@@ -96,20 +110,52 @@
         "detalhe": "região só existe de um lado"
       },
       {
+        "dim": "D9",
+        "campo": "sb-alcas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-corpo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-modos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-rodape",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-topo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
         "dim": "D2",
         "campo": "nº de colunas",
         "prod": 11,
-        "design": 1,
+        "design": 12,
         "veredito": "DIVERGE (bug)",
-        "detalhe": "comparando as 1 primeiras"
-      },
-      {
-        "dim": "D6",
-        "campo": "estado de linha",
-        "prod": "6/6",
-        "design": "0/6",
-        "veredito": "DIVERGE (dado?)",
-        "detalhe": "um lado distingue linha por estado (trilha/apagado) e o outro não — pode ser capacidade ausente OU nenhuma linha nesse estado hoje; confira antes de tratar como defeito"
+        "detalhe": "comparando as 11 primeiras"
       },
       {
         "dim": "D8",
@@ -119,25 +165,230 @@
         "veredito": "DIVERGE (fonte)"
       },
       {
+        "dim": "D6",
+        "campo": "col1.cor",
+        "prod": "cor própria",
+        "design": "herda a da linha",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D4",
+        "campo": "col3.mono",
+        "prod": "sem mono",
+        "design": "mono",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col3.blocos de texto",
+        "prod": 2,
+        "design": 3,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D6",
+        "campo": "col3.pílula",
+        "prod": "ausente",
+        "design": "presente",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D4",
+        "campo": "col4.mono",
+        "prod": "mono",
+        "design": "sem mono",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col4.blocos de texto",
+        "prod": 3,
+        "design": 0,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D6",
+        "campo": "col4.pílula",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D6",
+        "campo": "col5.cor",
+        "prod": "herda a da linha",
+        "design": "cor própria",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D6",
+        "campo": "col5.pílula",
+        "prod": "ausente",
+        "design": "presente",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D4",
+        "campo": "col6.mono",
+        "prod": "mono",
+        "design": "sem mono",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col6.blocos de texto",
+        "prod": 1,
+        "design": 2,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D6",
+        "campo": "col6.pílula.borda",
+        "prod": "sem borda",
+        "design": "com borda",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D4",
+        "campo": "col7.mono",
+        "prod": "mono",
+        "design": "sem mono",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D6",
+        "campo": "col7.pílula",
+        "prod": "ausente",
+        "design": "presente",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D2",
+        "campo": "col8.blocos de texto",
+        "prod": 3,
+        "design": 6,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "D2",
+        "campo": "col10.blocos de texto",
+        "prod": 2,
+        "design": 1,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
         "dim": "SHELL",
         "campo": "shell.atalhoTopo.presenca",
-        "prod": "0 el (.sb-shortcuts .sb-shortcut)",
+        "prod": "3 el (.sb-shortcuts .sb-shortcut)",
         "design": "0 el (.sb-menu > .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
       },
       {
         "dim": "SHELL",
-        "campo": "shell.containerMenu.presenca",
-        "prod": "0 el (.sb-menu-grouped)",
-        "design": "1 el (.sb-menu)",
-        "veredito": "SEM-DADO",
-        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+        "campo": "shell.containerMenu.height",
+        "prod": "1736.75px",
+        "design": "525px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "height: 1736.75px → 525px   [Δ 1211.75 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.padding",
+        "prod": "8px",
+        "design": "4px 0px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "padding: 8px → 4px 0px   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.gap",
+        "prod": "0px",
+        "design": "2px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "gap: 0px → 2px   [Δ 2 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.alignItems",
+        "prod": "normal",
+        "design": "center",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "alignItems: normal → center"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.fontFamily",
+        "prod": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+        "design": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "fontFamily: IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif → IBM Plex Sans,ui-sans-serif,system-ui,sans-serif"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.lineHeight",
+        "prod": "20.25px",
+        "design": "19.575px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "lineHeight: 20.25px → 19.575px   [Δ 0.675 px · banda tipografia ±0]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.borderColor",
+        "prod": "oklch(0.34 0.008 240)",
+        "design": "oklch(0.8 0.008 295)",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderColor: oklch(0.34 0.008 240) → oklch(0.8 0.008 295)   [ΔEOK 0.46006 · banda cor ±0.0005]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.width",
+        "prod": "249px",
+        "design": "55px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "width: 249px → 55px   [Δ 194 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.caixa.w",
+        "prod": 249,
+        "design": 55,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.w: 249 → 55   [Δ 194 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.caixa.h",
+        "prod": 1736.8,
+        "design": 525,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.h: 1736.8 → 525   [Δ 1211.8 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.icone.w",
+        "prod": 16,
+        "design": 18,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "icone.w: 16 → 18   [Δ 2 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.icone.h",
+        "prod": 16,
+        "design": 18,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "icone.h: 16 → 18   [Δ 2 px · banda caixa ±1.5]"
       },
       {
         "dim": "SHELL",
         "campo": "shell.grupoHeader.presenca",
-        "prod": "0 el (.sb-group-h)",
+        "prod": "9 el (.sb-group-h)",
         "design": "0 el (.sb-group-h)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
@@ -145,20 +396,49 @@
       {
         "dim": "SHELL",
         "campo": "shell.itemGrupo.presenca",
-        "prod": "0 el (.sb-item)",
+        "prod": "37 el (.sb-item)",
         "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.sequencia",
+        "prod": "[IA, Visão geral, Atendimento15406]",
+        "design": "[]",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "ordem de navegação é contrato — classifique (DECIDIDA/DERIVA/DESIGN-ANDOU) antes de mexer"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.so-na-prod",
+        "prod": "IA, Visão geral, Atendimento15406",
+        "design": "—",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "candidato típico a DECIDIDA — se for, declare em --declarado"
+      },
+      {
+        "dim": "SAÚDE",
+        "campo": "tokens.prod",
+        "prod": "--accent --pos --neg --warn --text-dim --sunken --border",
+        "design": "—",
+        "veredito": "NÃO MEDI",
+        "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
       }
     ]
   },
   "veredito": null,
   "motivo": "",
   "meta": {
-    "urlFinal": "https://staging.oimpresso.com/sells",
-    "componenteInertia": null
+    "urlFinal": "https://oimpresso.com/sells",
+    "componenteInertia": "Sells/Index",
+    "tenant": 1,
+    "tema": "dark",
+    "viewport": "1280x900",
+    "ladoProd": "produção biz=1, sonda injetada no navegador do app (sessão do [W]); assinatura (texto visível) omitida por conter dado real de cliente",
+    "ladoDesign": "espelho servido por servirEspelho() do lote; route=vendas + oimpresso.vendas.sub=lista; roles do override Sells--Index.json"
   },
-  "medidoEm": "2026-09-18T12:44:15.219Z",
-  "baseUrl": "https://staging.oimpresso.com",
-  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
+  "medidoEm": "2026-11-04T18:27:52.842Z",
+  "baseUrl": "https://oimpresso.com",
+  "bundle": null
 }

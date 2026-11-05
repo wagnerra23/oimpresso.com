@@ -83,10 +83,11 @@ interface Turno {
 }
 
 interface CaixaPageProps {
-  porFormaPagamento: PorFormaPagamento[];
-  porOrigem: PorOrigem[];
-  totalDia: number;
-  countDia: number;
+  // Agregações do dia: deferidas no controller (grupo 'dia'). undefined até chegarem.
+  porFormaPagamento?: PorFormaPagamento[];
+  porOrigem?: PorOrigem[];
+  totalDia?: number;
+  countDia?: number;
   caixaAberto: boolean;
   cashRegisterId: number | null;
   dateSelected: string; // 'Y-m-d'
@@ -103,6 +104,14 @@ interface CaixaPageProps {
 const fmtBRL = (n: number): string =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n || 0);
 
+// Props deferidas do dia (SellController@inertiaCaixa). O <Deferred> mostra o fallback
+// até as 4 chegarem; nenhum número é exibido antes disso.
+const DIA_PROPS = ['porFormaPagamento', 'porOrigem', 'totalDia', 'countDia'];
+
+const KpiCarregando = () => (
+  <span className="os-kpi-value vc-muted" aria-busy="true">…</span>
+);
+
 const fmtDateBr = (ymd: string): string => {
   const parts = ymd.split('-');
   return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : ymd;
@@ -114,16 +123,16 @@ const fmtDateBr = (ymd: string): string => {
 export default function SellsCaixaIndex() {
   const { props } = usePage<{ props: CaixaPageProps }>() as unknown as { props: CaixaPageProps };
   const {
-    porFormaPagamento,
-    porOrigem,
-    totalDia,
-    countDia,
     caixaAberto,
     cashRegisterId,
     dateSelected,
     permissions,
     turno,
   } = props;
+  const porFormaPagamento = useMemo(() => props.porFormaPagamento ?? [], [props.porFormaPagamento]);
+  const porOrigem = props.porOrigem ?? [];
+  const totalDia = props.totalDia ?? 0;
+  const countDia = props.countDia ?? 0;
 
   const [date, setDate] = useState<string>(dateSelected);
 
@@ -179,8 +188,14 @@ export default function SellsCaixaIndex() {
         {/* HEADER */}
         <header className="os-head">
           <div className="os-head-l">
-            <h1>Caixa do dia</h1>
-            <p>Conferência por forma de pagamento, sangrias e fechamento</p>
+            {/* Medido contra VendasCaixaPage em 2026-11-04 (styles.css .os-head-l h1/p). Inline
+                porque a regra do bundle (.sells-cowork .os-head-l h1) venceria utilitário. */}
+            <h1 style={{ margin: 0, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.375 }}>
+              Caixa do dia
+            </h1>
+            <p style={{ margin: '2px 0 0', fontSize: 'var(--fs-3)', color: 'var(--text-mute)' }}>
+              Conferência por forma de pagamento, sangrias e fechamento
+            </p>
           </div>
           <div className="os-head-r">
             <input
@@ -217,14 +232,20 @@ export default function SellsCaixaIndex() {
         <div className="os-kpis">
           <div className="os-kpi">
             <span className="os-kpi-label">Faturado no dia</span>
-            <span className="os-kpi-value">{fmtBRL(totalDia)}</span>
-            <span className="os-kpi-sub">
-              {countDia} venda{countDia !== 1 ? 's' : ''}
-            </span>
+            <Deferred data={DIA_PROPS} fallback={<KpiCarregando />}>
+              <>
+                <span className="os-kpi-value">{fmtBRL(totalDia)}</span>
+                <span className="os-kpi-sub">
+                  {countDia} venda{countDia !== 1 ? 's' : ''}
+                </span>
+              </>
+            </Deferred>
           </div>
           <div className="os-kpi">
             <span className="os-kpi-label">Vendas em dinheiro</span>
-            <span className="os-kpi-value">{fmtBRL(cashSales)}</span>
+            <Deferred data={DIA_PROPS} fallback={<KpiCarregando />}>
+              <span className="os-kpi-value">{fmtBRL(cashSales)}</span>
+            </Deferred>
             <span className="os-kpi-sub">cash · imediato</span>
           </div>
           <div className="os-kpi">
@@ -232,7 +253,7 @@ export default function SellsCaixaIndex() {
             <span
               className="os-kpi-value"
               style={{
-                color: caixaAberto ? 'oklch(0.50 0.14 145)' : 'oklch(0.55 0.02 250)',
+                color: caixaAberto ? 'var(--pos)' : 'var(--text-mute)',
               }}
             >
               {caixaAberto ? 'aberto' : 'fechado'}
@@ -241,7 +262,9 @@ export default function SellsCaixaIndex() {
           </div>
           <div className="os-kpi">
             <span className="os-kpi-label">Origens hoje</span>
-            <span className="os-kpi-value">{porOrigem.length}</span>
+            <Deferred data={DIA_PROPS} fallback={<KpiCarregando />}>
+              <span className="os-kpi-value">{porOrigem.length}</span>
+            </Deferred>
             <span className="os-kpi-sub">balcão · oficina · online</span>
           </div>
         </div>
@@ -254,6 +277,7 @@ export default function SellsCaixaIndex() {
               <h3>Por forma de pagamento</h3>
               <span className="vc-muted">{fmtDateBr(date)}</span>
             </header>
+            <Deferred data={DIA_PROPS} fallback={<p className="vc-empty">Carregando…</p>}>
             {porFormaPagamento.length === 0 ? (
               <p className="vc-empty">Sem movimentação no dia.</p>
             ) : (
@@ -286,6 +310,7 @@ export default function SellsCaixaIndex() {
                 </tfoot>
               </table>
             )}
+            </Deferred>
           </section>
 
           {/* Section 2 — Por origem (A1 KB-9.75 · ADR 0192) */}
@@ -294,6 +319,8 @@ export default function SellsCaixaIndex() {
               <h3>Por origem</h3>
               <span className="vc-muted">balcão · oficina · online</span>
             </header>
+            <Deferred data={DIA_PROPS} fallback={<p className="vc-empty">Carregando…</p>}>
+            <>
             {porOrigem.length === 0 && (
               <p className="vc-empty">Sem movimentação no dia.</p>
             )}
@@ -337,6 +364,8 @@ export default function SellsCaixaIndex() {
                 </div>
               );
             })}
+            </>
+            </Deferred>
           </section>
 
           {/* Section 3 — Movimentos do turno (thread 07 · leitura) */}

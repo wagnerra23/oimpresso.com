@@ -1,0 +1,21 @@
+{
+  "_medido_em": "2026-11-04",
+  "_por_que": "Os defaults heuristicos do design-diff-lote nao casam esta tela: na rodada de 2026-09-17 o lado design saiu com kpi count=0 e 1 celula, porque a tela usa .os-kpi/.os-tab/.vendas-table e nao .kpi/.filterbar. Os seletores abaixo foram lidos no DOM dos DOIS lados (prod biz=1 em /sells e espelho route=vendas sub=lista) e sao os mesmos nos dois, menos as pilulas: na prod sao .os-tab dentro de .os-tabs.vd-tabs-grow; no prototipo o CliTabs escreve role=tab sob o tablist 'Situacao da venda', dentro da .vd-filterbar. O token 'vendas' abre o VendasModule; a lista e a sub-vista padrao quando oimpresso.vendas.sub esta vazio (vendas-extras.jsx), que e o caso num contexto novo.",
+  "token": "vendas",
+  "roles": {
+    "prod": {
+      "kpi": ".vd-kpis > .os-kpi",
+      "title": "h1",
+      "primary": ".os-page.vendas-page .os-btn.primary",
+      "filterControls": ".os-tabs.vd-tabs-grow > .os-tab",
+      "tableRow": "table.vendas-table tbody tr"
+    },
+    "design": {
+      "kpi": ".vd-kpis > .os-kpi",
+      "title": "h1",
+      "primary": ".os-page.vendas-page .os-btn.primary",
+      "filterControls": "[aria-label=\"Situação da venda\"] [role=tab]",
+      "tableRow": "table.vendas-table tbody tr"
+    }
+  }
+}

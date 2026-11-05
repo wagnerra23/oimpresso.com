@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: a biblioteca global é a mesma para todos e não pode ser alterada por um cliente; o exercício próprio de uma clínica é dado dela. Escopo errado ou esconde os globais de todo mundo ou vaza o próprio.
 owner: wagner
-last_run: "2026-10-18"
+last_run: "2026-11-04"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioBibliotecaTest."
 related_us: []
 ---
@@ -116,3 +116,4 @@ related_us: []
 - 2026-10-18 · foto e vídeo no exercício próprio (comparativo Physitrack) — UC-FBI-05..07, `FisioBibliotecaMidiaTest`. Usa o backbone `Modules/Arquivos` (ADR 0123/0214).
 - 2026-10-18 · favoritos e filtros de posição e equipamento (comparativo Physitrack) — UC-FBI-08..10, `FisioBibliotecaFavoritosTest`. Posição passa a ser lista fechada no cadastro.
 - 2026-10-19 · etapa 01 B-06 — lint de linguagem Anvisa ao salvar exercício próprio, protocolo e instruções do programa (UC-FBI-12, `FisioLinguagemAnvisaTest`).
+- 2026-11-04 · Lote 1 (canvas Prescreve Pro, ADR 0438) — ajuste só de forma: região em chips (mesmo parâmetro `region`), grade de 4 colunas, mídia no topo do card, tipo e região pelo nome. UCs inalterados.

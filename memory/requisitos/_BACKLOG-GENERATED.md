@@ -31,7 +31,7 @@
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
-| [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
+| [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 16 | 1 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
 | [`Fisio`](#fisio) | 16 | 0 | 0 | 0 | 16 |
@@ -1082,7 +1082,6 @@
 - **US-ACCO-012** — DEPRECATION Onda 2: UI freeze (sidebar hide + routes 410 Gone) _(`p0` · @claude)_
 - **US-ACCO-015** — DEPRECATION Onda 5: Drop Modules/Accounting/ + modules_statuses=false _(`p0` · @claude)_
 - **US-ACCO-011** — DEPRECATION Onda 1.3: Errata BRIEFING Accounting (claims falsos linhas 21+25) _(`p1` · @claude)_
-- **US-ACCO-013** — DEPRECATION Onda 3: Migration accounts_legacy_map → fin_planos_conta (idempotente) _(`p1` · @claude)_
 - **US-ACCO-014** — DEPRECATION Onda 4: View bridge tabelas (60d rollback window) _(`p1` · @claude)_
 - **US-ACCO-016** — DEPRECATION Onda 6: Drop tabelas (90d após Onda 5) — IRREVERSÍVEL _(`p2` · @wagner)_
 - **US-ACCO-001** — Listar Budget
@@ -1095,6 +1094,10 @@
 - **US-ACCO-008** — Ver detalhe de Journal Entry
 - **US-ACCO-009** — Listar Reconcile
 - **US-ACCO-010** — Listar Report
+
+### superseded
+
+- **US-ACCO-013** — DEPRECATION Onda 3: Migration accounts_legacy_map → fin_planos_conta (idempotente) _(`p1` · @claude)_
 
 ## Comissao
 
