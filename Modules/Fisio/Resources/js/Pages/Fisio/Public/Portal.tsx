@@ -23,6 +23,7 @@ import { CartaoConstancia } from './_components/Constancia';
 import { TelaCrise, TelaHoje } from './_components/Hoje';
 import { ConviteInstalar } from './_components/Instalar';
 import { TelaConfiguracoes } from './_components/Configuracoes';
+import { TelaPreAnamnese, type OpcoesPreAnamnese } from './_components/PreAnamnese';
 import { enviarFila, limparFila, registrarAppDoPortal, type Constancia, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
 
 interface Props {
@@ -45,6 +46,7 @@ interface Props {
   relato?: Relato | null;
   red_flags?: string[];
   consentimentos?: Record<string, boolean>;
+  pre_anamnese?: OpcoesPreAnamnese | null;
 }
 
 function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica?: string | null; token?: string; children: ReactNode }) {
@@ -67,7 +69,7 @@ function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica
   );
 }
 
-type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise' | 'config';
+type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise' | 'config' | 'pre-anamnese';
 
 function vezesIniciais(itens: ItemHoje[], relato: Relato | null | undefined): Record<number, number> {
   const out: Record<number, number> = {};
@@ -83,6 +85,9 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
   const mudarVezes = (id: number, n: number) => setVezes((v) => ({ ...v, [id]: Math.max(0, n) }));
   const jogo = props.jogo as Jogo;
 
+  if (tela === 'pre-anamnese' && props.pre_anamnese) {
+    return <TelaPreAnamnese token={token} clinica={props.clinica ?? null} opcoes={props.pre_anamnese} onVoltar={() => setTela('hoje')} />;
+  }
   if (tela === 'config') {
     return <TelaConfiguracoes token={token} clinica={props.clinica ?? null} consentimentos={props.consentimentos ?? {}} onVoltar={() => setTela('hoje')} />;
   }
@@ -106,6 +111,13 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
   }
   return (
     <>
+    {props.pre_anamnese && (
+      <button type="button" data-contract="fisio-portal-pre-anamnese-convite" onClick={() => setTela('pre-anamnese')}
+        className="flex flex-col gap-1 rounded-lg border-2 border-primary bg-primary/5 p-4 text-left">
+        <span className="font-semibold">Antes da sua primeira consulta</span>
+        <span className="text-sm text-muted-foreground">Três perguntas rápidas sobre a sua dor. Leva uns 2 minutos.</span>
+      </button>
+    )}
     <TelaHoje
       itens={itens}
       jogo={jogo}
