@@ -369,7 +369,7 @@ jobs:
           RC=0
           for T in Fiscal/Cockpit Fiscal/Config Fiscal/Das Fiscal/Dfe Fiscal/Eventos Fiscal/Nfe Fiscal/Nfse Fiscal/Sped; do
             echo "=== $T" | tee -a /tmp/lote.log
-            node scripts/design/design-diff-lote.mjs --incluir-comparadas --tela "$T" --base-url http://127.0.0.1:8000 2>&1 | tee -a /tmp/lote.log
+            node scripts/design/design-diff-lote.mjs --incluir-comparadas --tema light --tela "$T" --base-url http://127.0.0.1:8000 2>&1 | tee -a /tmp/lote.log
             r=${PIPESTATUS[0]}; echo "rc[$T]=$r" | tee -a /tmp/lote.log; [ "$r" -gt "$RC" ] && RC=$r
           done
           kill -0 "$SERVE_PID" 2>/dev/null || {
