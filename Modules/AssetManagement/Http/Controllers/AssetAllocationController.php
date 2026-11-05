@@ -503,8 +503,9 @@ class AssetAllocationController extends Controller
             // drawer; alocacao de outra empresa ou devolucao no lugar de alocacao vira 404.
             throw $e;
         } catch (SaldoInsuficienteException $e) {
-            // Mesma traducao do `store()`: o Service ja fez o rollback, nada e gravado.
-            return redirect()->back()->withErrors(['quantity' => $e->getMessage()]);
+            // Mesma traducao do `store()` (erro no campo quantidade); o Service ja fez o rollback,
+            // nada e gravado. Por excecao, nao por `return`: o metodo declara `Response`.
+            throw \Illuminate\Validation\ValidationException::withMessages(['quantity' => $e->getMessage()]);
         } catch (\Exception $e) {
             DB::rollBack();
 
