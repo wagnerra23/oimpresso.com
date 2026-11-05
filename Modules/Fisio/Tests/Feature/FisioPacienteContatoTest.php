@@ -145,10 +145,18 @@ it('UC-FPI-06 · a tela não carrega mais a lista de contatos (a busca é no ser
 });
 
 it('UC-FPI-06 · busca de contato exige fisio.editar', function () {
+    $marca = 'Busca Gate '.uniqid();
+    $alvo = F::contato($this->b98, $this->u98->id, $marca);
+
+    // Âncora: com fisio.editar a mesma busca acha o contato — o 403 abaixo vem da permissão,
+    // não de rota, pacote ou dado ausente.
+    expect(collect(fctBusca($this, $marca))->pluck('id')->all())->toBe([$alvo]);
+
     $leitor = $this->usuarioComPermissoes([F::PERM_ACESSO], $this->seededTenant());
     F::como($this, $leitor);
-
-    $this->getJson('/fisio/pacientes/contatos?q=a')->assertForbidden();
+    $negado = $this->getJson('/fisio/pacientes/contatos?q='.urlencode($marca))->assertForbidden();
+    expect($negado->json('contatos'))->toBeNull()
+        ->and((string) $negado->getContent())->not->toContain($marca);
 });
 
 // ── UC-FPI-07 · contato criado na hora ────────────────────────────────────────
