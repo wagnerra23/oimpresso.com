@@ -117,13 +117,15 @@ it('UC-PEDC-06 (contrato T0) editar pedido de OUTRA empresa nao grava nada', fun
     $ref = 'PEDUPD-VIT-' . uniqid();
     $id = pedupdPedido((int) $this->vitima->id, $this->locVitima, (int) $this->donoVitima->id, '5000', $ref);
 
-    $this->actingAs($this->user)->put('/purchase-order/' . $id, pedupdPayload('HACKED', '1'));
+    $r = $this->actingAs($this->user)->put('/purchase-order/' . $id, pedupdPayload('HACKED', '1'));
 
-    $status = session('status') ?? [];
-    $this->assertSame(0, $status['success'] ?? null, 'A edicao cross-tenant nao pode reportar sucesso.');
-    $this->assertStringContainsString('No query results', (string) ($status['msg'] ?? ''), 'A recusa tem de vir da busca escopada. msg=' . json_encode($status['msg'] ?? null));
+    // 404 (não 403): não revela que o pedido existe em outra empresa. A busca escopada fica
+    // fora do try do controller; antes ela ficava dentro e o catch genérico chamava
+    // DB::rollBack() sem transação própria, desfazendo a transação do teste junto (job 127488764426).
+    $this->assertSame(404, $r->status(), 'A edicao cross-tenant tem de responder 404. status=' . $r->status() . ' sessao=' . json_encode(session('status')));
 
     $depois = DB::table('transactions')->where('id', $id)->first();
+    $this->assertNotNull($depois, 'O pedido da vitima sumiu: a fixture nao sobreviveu ao request.');
     $this->assertSame($ref, $depois->ref_no, 'VAZAMENTO TIER 0: a referencia do pedido do business ' . $this->vitima->id . ' mudou.');
     $this->assertSame(5000.0, (float) $depois->final_total, 'VAZAMENTO TIER 0: o total do pedido da vitima mudou.');
 });

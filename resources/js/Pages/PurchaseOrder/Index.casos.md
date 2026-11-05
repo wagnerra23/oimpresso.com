@@ -49,8 +49,8 @@ last_run: "2026-10-13"
 
 ## UC-PEDC-06 · Editar pedido só alcança pedido da própria empresa · `[T0]`
 - **Aceite:** Dado um pedido de compra de outra empresa · Quando o formulário de edição é enviado com o id dele
-  (`PUT /purchase-order/{id}`) · Então nada é gravado (referência e total ficam como estavam) e a edição volta com
-  erro. O pedido da própria empresa é editado normalmente.
+  (`PUT /purchase-order/{id}`) · Então responde 404 e nada é gravado (referência e total ficam como estavam). O
+  pedido da própria empresa é editado normalmente.
 - **Teste:** `tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php`
 - **Contrato:** ADR 0093. Auditoria Compras 2026-11-05, achado A1.
 - **Status: 🧪**

@@ -755,16 +755,18 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $business_id = request()->session()->get('user.business_id');
+
+        // Tier 0 (ADR 0093): App\Transaction não tem global scope. O findOrFail($id) cru
+        // deixava editar o pedido de OUTRA empresa pelo id da URL (auditoria Compras
+        // 2026-11-05, A1). Pedido de outra empresa, ou id que não é pedido, responde 404.
+        // Fora do try de propósito: dentro dele o catch genérico chamava DB::rollBack() sem
+        // transação aberta e devolvia a mensagem da exceção como se fosse erro de validação.
+        $transaction = Transaction::where('business_id', $business_id)
+            ->where('type', 'purchase_order')
+            ->findOrFail($id);
+
         try {
-            $business_id = request()->session()->get('user.business_id');
-
-            // Tier 0 (ADR 0093): App\Transaction não tem global scope. O findOrFail($id) cru
-            // deixava editar o pedido de OUTRA empresa pelo id da URL (auditoria Compras
-            // 2026-11-05, A1). Pedido de outra empresa, ou id que não é pedido, não resolve.
-            $transaction = Transaction::where('business_id', $business_id)
-                ->where('type', 'purchase_order')
-                ->findOrFail($id);
-
             //Validate document size
             $request->validate([
                 'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
