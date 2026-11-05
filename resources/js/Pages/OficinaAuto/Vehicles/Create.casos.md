@@ -31,6 +31,7 @@ related_cu: [CU-OFI-01, CU-OFI-15]
 | UC-OVC-01 | cadastrar pela placa funciona | must | CU-OFI-01 · US-OFICINA-001 | `VehicleCrudTest` |
 | UC-OVC-02 | conjunto de duas placas (cavalo + reboque) | must | CU-OFI-01 · US-AUTO-001 | `VehicleCrudTest` |
 | UC-OVC-03 | o dono do dado vem da sessão, não do formulário | must | CU-OFI-15 · US-OFICINA-001 | `VehicleMultiTenantTest` |
+| UC-OVC-04 | o cliente do veículo é da própria empresa | must | CU-OFI-15 · US-OFICINA-001 | `VehicleContactTenantContratoTest` |
 
 ---
 
@@ -60,6 +61,14 @@ related_cu: [CU-OFI-01, CU-OFI-15]
   autenticada**, nunca de um campo enviado pelo cliente.
 - **Regressão que defende:** um payload forjado plantar um veículo na base de outra oficina.
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php`
+- **Status: 🧪**
+
+## UC-OVC-04 · O cliente do veículo é da própria empresa `[T0]`
+- **Persona:** invariante multi-tenant ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+- **Aceite:** Dado um cliente do business B · Quando um usuário do business A cadastra um veículo
+  com esse cliente · Então o cadastro é recusado no campo do cliente e nenhum veículo é gravado.
+- **Regressão que defende:** a venda derivada da OS sair em nome de um cliente de outra empresa.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/VehicleContactTenantContratoTest.php`
 - **Status: 🧪**
 
 ---
