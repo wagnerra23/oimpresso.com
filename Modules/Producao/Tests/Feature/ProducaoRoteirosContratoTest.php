@@ -19,6 +19,11 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * ⚠️ SKIP em SQLite (schema MySQL do UltimatePOS): leia assertions, não "0 failed" (LC-13).
  */
 beforeEach(function () {
+    // Auditoria lote 2.4: os cadastros e a etiqueta exigem o Producao no pacote; o resto segue o real.
+    $this->partialMock(\App\Utils\ModuleUtil::class, function ($m) {
+        $m->shouldReceive('hasThePermissionInSubscription')->byDefault()->passthru();
+        $m->shouldReceive('hasThePermissionInSubscription')->withSomeOfArgs('producao_module')->andReturnUsing(fn () => $this->pacoteProducao ?? true);
+    });
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL do UltimatePOS.');
     }
@@ -176,4 +181,56 @@ it('E03 · veículo é posto de máquina com placa e custo por km; ferramenta te
     rotComo($this, $this->g99)->post('/producao/ferramentas', ['codigo_qr' => $qr, 'nome' => 'Furadeira da 99'])->assertSessionHasNoErrors();
     expect(DB::table('pcp_ferramentas')->where('codigo_qr', $qr)->pluck('business_id')->sort()->values()->all())
         ->toBe([(int) $this->b98->id, (int) $this->b99->id]);
+});
+
+it('UC-PCPAC-01 · sem o Producao no pacote, cadastros, custo-hora e etiqueta dão 403 e nada grava', function () {
+    $this->pacoteProducao = false;
+    $gestor = $this->usuarioComPermissoes(['producao.access', 'producao.desempenho.ver', 'producao.etapa.mover'], $this->b98);
+    $posto = rotPosto($this->b98->id, 'PAC');
+    $codigo = 'PAC-'.uniqid();
+
+    rotComo($this, $gestor)->get('/producao/roteiros')->assertForbidden();
+    $this->get('/producao/postos')->assertForbidden();
+    $this->post('/producao/postos', ['codigo' => $codigo, 'nome' => 'Roland', 'tipo_custo' => 'maquina', 'custo_hora' => 80])->assertForbidden();
+    $this->put("/producao/postos/{$posto->id}/motivos", ['tipo' => 'pausa', 'nomes' => ['Setup']])->assertForbidden();
+    $this->getJson("/producao/postos/{$posto->id}/operadores")->assertForbidden();
+    $this->post('/producao/ferramentas', ['codigo_qr' => 'FER-'.uniqid(), 'nome' => 'Furadeira'])->assertForbidden();
+    $this->put("/producao/colaboradores/{$gestor->id}/custo-hora", ['custo_hora' => 42])->assertForbidden();
+    $this->get("/producao/os/{$posto->id}/etiqueta")->assertForbidden();
+    expect(DB::table('pcp_postos')->where('codigo', $codigo)->exists())->toBeFalse()
+        ->and(DB::table('pcp_colaborador_custos')->where('user_id', $gestor->id)->exists())->toBeFalse();
+
+    // Controle positivo: com o pacote, o mesmo gestor grava.
+    $this->pacoteProducao = true;
+    $this->post('/producao/postos', ['codigo' => $codigo, 'nome' => 'Roland', 'tipo_custo' => 'maquina', 'custo_hora' => 80])->assertSessionHasNoErrors();
+    expect(DB::table('pcp_postos')->where('business_id', $this->b98->id)->where('codigo', $codigo)->exists())->toBeTrue();
+});
+
+it('UC-PCMOU-01 · motivo já usado sai da lista sem ser apagado e volta se o nome voltar', function () {
+    $posto = rotPosto($this->b98->id, 'MOU');
+    $mot = fn (string $nome, int $ordem) => (int) DB::table('pcp_motivos')->insertGetId(['business_id' => $this->b98->id, 'posto_id' => $posto->id,
+        'tipo' => 'pausa', 'nome' => $nome, 'ordem' => $ordem, 'ativo' => 1, 'created_at' => now(), 'updated_at' => now()]);
+    $usado = $mot('Setup', 0);
+    $livre = $mot('Limpeza', 1);
+    $user = (int) $this->g98->id;
+    $inicio = (int) DB::table('pcp_apontamentos')->insertGetId(['business_id' => $this->b98->id, 'chave_idempotencia' => 'mou-'.uniqid(), 'tipo' => 'inicio',
+        'posto_id' => $posto->id, 'tipo_custo' => 'maquina', 'custo_hora' => '50.00', 'user_id' => $user, 'iniciado_por' => $user, 'momento' => now()->subHour()]);
+    DB::table('pcp_apontamentos')->insert(['business_id' => $this->b98->id, 'chave_idempotencia' => 'mou-'.uniqid(), 'tipo' => 'pausa',
+        'inicio_id' => $inicio, 'motivo_id' => $usado, 'posto_id' => $posto->id, 'tipo_custo' => 'maquina', 'custo_hora' => '50.00',
+        'user_id' => $user, 'iniciado_por' => $user, 'momento' => now()]);
+
+    // Antes: apagar a lista inteira dava erro de chave estrangeira no "Setup" já apontado.
+    rotComo($this, $this->g98)->put("/producao/postos/{$posto->id}/motivos", ['tipo' => 'pausa', 'nomes' => ['Bolha']])->assertSessionHasNoErrors();
+    $linhas = DB::table('pcp_motivos')->where('posto_id', $posto->id)->where('tipo', 'pausa')->get()->keyBy('nome');
+    expect((int) $linhas['Setup']->id)->toBe($usado)->and((int) $linhas['Setup']->ativo)->toBe(0)
+        ->and($linhas->has('Limpeza'))->toBeFalse()->and((int) $linhas['Bolha']->ativo)->toBe(1);
+    expect(DB::table('pcp_apontamentos')->where('id', '>', $inicio)->where('motivo_id', $usado)->exists())->toBeTrue();
+    $tela = collect(rotProps($this, $this->g98, '/producao/postos', 'Producao/Postos/Index', 'postos'))->keyBy('id');
+    expect($tela[$posto->id]['motivos']['pausa'])->toBe(['Bolha']);
+
+    // O nome volta: o mesmo motivo reativa, sem duplicar.
+    rotComo($this, $this->g98)->put("/producao/postos/{$posto->id}/motivos", ['tipo' => 'pausa', 'nomes' => ['Setup', 'Bolha']])->assertSessionHasNoErrors();
+    expect(DB::table('pcp_motivos')->where('posto_id', $posto->id)->where('nome', 'Setup')->pluck('id')->all())->toBe([$usado])
+        ->and((int) DB::table('pcp_motivos')->where('id', $usado)->value('ativo'))->toBe(1)
+        ->and(DB::table('pcp_motivos')->where('id', $livre)->exists())->toBeFalse();
 });
