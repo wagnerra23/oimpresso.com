@@ -9,6 +9,7 @@ import { Wrench, ShieldCheck, AlertTriangle, Check, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Inline } from '@/Components/layout';
 
 interface OsVehicle {
   plate: string;
@@ -165,7 +166,8 @@ export default function AprovacaoPublica({ erro, mensagem, token, os, orcamento,
             ) : (
               <ul className="divide-y text-sm">
                 {orcamento.itens.map((item, i) => (
-                  <li key={i} className="py-2 flex justify-between gap-4">
+                  <Inline asChild key={i} gap={4} align="stretch" justify="between" className="py-2">
+                  <li>
                     <div className="min-w-0">
                       <p className="font-medium break-words">{item.descricao}</p>
                       <p className="text-xs text-muted-foreground">
@@ -175,13 +177,14 @@ export default function AprovacaoPublica({ erro, mensagem, token, os, orcamento,
                     </div>
                     <span className="font-medium tabular-nums shrink-0">{brl(item.valor_total)}</span>
                   </li>
+                  </Inline>
                 ))}
               </ul>
             )}
-            <div className="flex justify-between gap-4 pt-2 border-t text-sm">
+            <Inline gap={4} align="stretch" justify="between" className="pt-2 border-t text-sm">
               <span className="font-medium">Total</span>
               <span className="font-bold tabular-nums">{brl(orcamento.total)}</span>
-            </div>
+            </Inline>
           </div>
         )}
 
