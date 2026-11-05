@@ -69,7 +69,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-23 | Apontamento sem internet guarda e envia depois | Operador | Apontamento | should | ✅ |
 | UC-PCV-24 | Agenda de instalação da equipe de campo | Gestor · Instalador | Instalação | must | ✅ |
 | UC-PCV-25 | Checklist de campo com foto antes/depois e assinatura gera protocolo | Instalador | Instalação | must | 🟡 |
-| UC-PCV-26 | Aproveitamento de mídia (sugestão de encaixe na versão 2) | Gestor | Painel | could | 🟡 |
+| UC-PCV-26 | Aproveitamento de mídia (sugestão de encaixe na versão 2) | Gestor | Painel | could | ✅ |
 | UC-PCV-27 | Produtividade por setor sem expor o indivíduo sem permissão | Gestor | Painel | should `[LGPD]` | ✅ |
 | UC-PCV-28 | Cada empresa vê só a sua produção | todos | todas | must `[T0]` | ⬜ |
 | UC-PCV-29 | Uma fonte de eventos alimenta quadro, painel, linha, ficha, celular e instalação | todos | todas | must | ✅ |
@@ -215,10 +215,12 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 
 ## Transversais
 
-### UC-PCV-26 · Encaixe de mídia · `could` · 🟡
+### UC-PCV-26 · Encaixe de mídia · `could` · ✅
 - **Aceite (versão 1, D-ENCAIXE de 15/10):** Dado a mídia que o operador informou no apontamento das OS de uma bobina · Então mostra o % aproveitado e a sobra · E não mostra sugestão de agrupamento.
 - **Versão 2:** a sugestão de agrupamento com a economia em m² e R$ (encaixe na bobina).
-- **Falta:** o % ainda vem fixo no protótipo; deve sair da mídia informada no apontamento.
+- **Onde:** widget "Aproveitamento de mídia" do Painel, com a escolha da bobina. O % é a área das peças das OS dividida pela mídia que o operador informou no apontamento, e a sobra é o resto. Só entram as OS com a impressão concluída, porque a impressão em andamento ainda vai gastar mídia. Exemplo: Lona 440 g 1,60 m, OS-2603 (120 m² em 133,4 m²) e OS-2598 (88 m² em 90,8 m²), 92,8% aproveitado.
+- **Do apontamento ao Painel:** ao concluir a impressão no celular com "Mídia usada até agora" preenchida, a OS entra na conta da bobina dela. Sem internet, a mídia segue a fila do UC-PCV-23 e só entra quando o toque chega. Mídia informada menor que a área das peças deixa a OS fora da conta, com o aviso "Confira o apontamento".
+- **Versão 2 (fora deste caso):** a sugestão de encaixe na bobina. No sistema, o simulador já existe (`AproveitamentoDeMidia`, US-PCP-024); o agregado do Painel ainda não (`PainelDaProducao` o lista como fora do corte).
 
 ### UC-PCV-27 · Produtividade sem expor o indivíduo · `should` `[LGPD]` · ✅
 - **Aceite:** Sem `producao.desempenho.ver` · Então a produtividade aparece só por setor · Com a permissão · Então aparece por pessoa · E o acesso fica no log.

@@ -108,7 +108,8 @@ function Painel({ onAbrir, ir, filtrar }) {
   const [reenviado, setReenviado] = useState({});
   const [novaProva, setNovaProva] = useState({});
   const [veDesempenho, setVeDesempenho] = useState(false); // simula a permissão producao.desempenho.ver (UC-PCV-27)
-  const D = P(); const { KpiCard, Widget, Alert, Progress, Button, Input } = DS();
+  const [bobina, setBobina] = useState(null); // UC-PCV-26: mídia escolhida no widget de aproveitamento
+  const D = P(); const { KpiCard, Widget, Alert, Progress, Button, Input, Select } = DS();
   const abertas = D.emProducao();
   const atrasadas = D.OS.filter((o) => D.atraso(o) === "atrasada" && D.atual(o).estado !== "pronto");
   const hoje = D.OS.filter((o) => D.atraso(o) === "vence hoje");
@@ -176,15 +177,24 @@ function Painel({ onAbrir, ir, filtrar }) {
               <li key={m.id}><span>{m.nome}</span>{Progress && <Progress value={Math.min(pct, 100)} size={6} tone={pct > 100 ? "danger" : pct > 85 ? "warning" : "default"} label={m.nome + " " + pct + "%"} />}<b className={pct > 100 ? "pcv-late" : ""}>{D.h1(c)} de {m.horasDia} h</b></li>); })}
           </ul>
         </Widget>}
-        {Widget && <Widget title="Aproveitamento de mídia" note={D.ENCAIXE.bobina}>
+        {Widget && (() => {
+          const ap = D.aproveitamento(bobina || D.MIDIAS[0]); const sobra = ap.pct === null ? null : 100 - ap.pct;
+          return <Widget title="Aproveitamento de mídia"
+            actions={Select && <Select label="Bobina" value={ap.midia} onChange={(e) => setBobina(e.target.value)} options={D.MIDIAS.map((m) => ({ value: m, label: m }))} />}>
           <div className="pcv-encaixe">
-            <div className="pcv-enc-bar" role="img" aria-label={`Usado ${D.h1(D.ENCAIXE.usado)}%, desperdício ${D.h1(D.ENCAIXE.desperdicio)}%`}><i style={{ width: D.ENCAIXE.usado + "%" }} /><span style={{ width: D.ENCAIXE.desperdicio + "%" }} /></div>
-            <div className="pcv-enc-l"><span><b>{D.h1(D.ENCAIXE.usado)}%</b> aproveitado</span><span><b>{D.h1(D.ENCAIXE.desperdicio)}%</b> sobra</span></div>
+            {ap.pct === null
+              ? <p className="pcv-help">Nenhuma impressão concluída com a mídia informada nesta bobina ainda. Ela entra na conta quando o operador conclui a impressão informando a mídia usada.</p>
+              : <>
+                <div className="pcv-enc-bar" role="img" aria-label={`Usado ${D.h1(ap.pct)}%, sobra ${D.h1(sobra)}%`}><i style={{ width: ap.pct + "%" }} /><span style={{ width: sobra + "%" }} /></div>
+                <div className="pcv-enc-l"><span><b>{D.h1(ap.pct)}%</b> aproveitado</span><span><b>{D.h1(sobra)}%</b> sobra</span></div>
+                <small className="pcv-help">{D.h1(ap.util)} m² de peças em {D.h1(ap.consumida)} m² de mídia informada · {ap.os.join(", ")}</small>
+              </>}
+            {ap.fora.map((f) => <p key={f.os} className="pcv-help pcv-late">{f.os} fora da conta: a mídia informada ({D.h1(f.consumida)} m²) é menor que a área das peças ({D.h1(f.util)} m²). Confira o apontamento.</p>)}
             {/* D-ENCAIXE (15/10): na 1ª versão só o % aproveitado, com a mídia que o operador informa. A sugestão de
                 encaixe na bobina, com economia em m² e R$, é da versão 2. */}
-            <p className="pcv-help">Calculado com a mídia que o operador informa no apontamento. A sugestão de encaixe na bobina fica para a versão 2.</p>
+            <p className="pcv-help">Calculado com a mídia que o operador informa no apontamento, só das OS com a impressão concluída. A sugestão de encaixe na bobina fica para a versão 2.</p>
           </div>
-        </Widget>}
+        </Widget>; })()}
       </div>
 
       {window.PcvQualidade && <window.PcvQualidade.NcsPainel onAbrir={onAbrir} />}
