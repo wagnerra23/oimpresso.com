@@ -66,7 +66,7 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 | UC-PCV-20 | QR abre a etapa certa e o cronômetro aponta início, pausa e fim | Operador | Apontamento | must | ✅ |
 | UC-PCV-21 | Fechar a etapa passa a OS adiante e avisa o próximo | Operador | Apontamento | must | ✅ |
 | UC-PCV-22 | Cronômetro esquecido fecha sozinho no fim do turno | Operador · Gestor | Apontamento · Painel | must | ✅ |
-| UC-PCV-23 | Apontamento sem internet guarda e envia depois | Operador | Apontamento | should | ⬜ |
+| UC-PCV-23 | Apontamento sem internet guarda e envia depois | Operador | Apontamento | should | ✅ |
 | UC-PCV-24 | Agenda de instalação da equipe de campo | Gestor · Instalador | Instalação | must | ✅ |
 | UC-PCV-25 | Checklist de campo com foto antes/depois e assinatura gera protocolo | Instalador | Instalação | must | 🟡 |
 | UC-PCV-26 | Aproveitamento de mídia (sugestão de encaixe na versão 2) | Gestor | Painel | could | 🟡 |
@@ -197,8 +197,10 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Aceite:** Dado um apontamento aberto às 18h · Então o sistema fecha às 18h com marca "fechado automaticamente" e avisa o PCP · E o operador pode corrigir no dia seguinte com justificativa (o original fica).
 - **Onde:** o Painel da Produção mostra o aviso "Cronômetro fechado sozinho no fim do turno" com quem, a etapa e o dia, e o botão para abrir a OS. Na ficha da OS › Histórico fica o apontamento "fechado automaticamente" na hora do fim do turno (vem do turno configurado, não de um 18h fixo) e o botão Corrigir, com justificativa obrigatória. A correção entra no histórico, o registro original fica, e o aviso some do Painel.
 
-### UC-PCV-23 · Sem internet · `should` · ⬜
+### UC-PCV-23 · Sem internet · `should` · ✅
 - **Aceite:** Dado o celular offline · Quando o operador aponta · Então o evento fica guardado com a hora real · E ao voltar a rede é enviado uma vez só (sem duplicar).
+- **Onde:** vista **Apontamento**, caixa "Simular celular sem internet". Sem rede, cada toque (iniciar, pausar, concluir, refugo) fica guardado no celular com a hora em que aconteceu, e o celular mostra "N apontamento(s) guardado(s) no celular · Envia sozinho quando a internet voltar" (as frases da tela real). Concluir a etapa sem rede avisa que a OS só passa adiante quando a internet voltar. Ao voltar, a fila sai na ordem dos toques, o histórico da OS recebe cada um com a hora do toque, e cada toque leva uma chave: reenviar a mesma chave não grava de novo.
+- **No sistema:** `Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/fila.ts` (fila por usuário no celular) e a idempotência pela chave no servidor (UC-PCV-23 e UC-PCIMP-03 em `Apontamento/Index.casos.md`).
 
 > **Modo terminal (tablet preso à máquina).** O caso é o UC-PCV-41, em `Producao-celular.casos.md` (forma T1 do `Mobile Producao.dc.html`, thread 12). Desde 2026-10-29 ele também está neste protótipo, na vista **Terminal**: romaneio do posto, entrada por crachá ou PIN, recusa de quem não opera o posto (US-PCP-030), botões de 88px e volta ao crachá depois de 2 minutos sem toque.
 

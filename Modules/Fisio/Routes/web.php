@@ -6,6 +6,7 @@ use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\ConfiguracoesController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
+use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\PainelController;
 use Modules\Fisio\Http\Controllers\PortalController;
@@ -55,6 +56,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Configurações › WhatsApp: a clínica escolhe o canal; número e driver são do módulo Whatsapp.
         Route::get('configuracoes/whatsapp', [ConfiguracoesController::class, 'whatsapp'])->name('configuracoes.whatsapp');
         Route::put('configuracoes/whatsapp', [ConfiguracoesController::class, 'salvarWhatsapp'])->name('configuracoes.whatsapp.update');
+
+        // Primeira configuração da clínica (Onboarding, 5 passos). Cada passo grava o dele; nada obrigatório.
+        Route::get('onboarding', [OnboardingController::class, 'show'])->name('onboarding');
+        Route::put('onboarding/{passo}', [OnboardingController::class, 'salvar'])->where('passo', 'perfil|atendimento|canal|protocolos|concluir')->name('onboarding.salvar');
 
         // Biblioteca de exercícios (US-FISIO-004). Escrita exige `fisio.editar` (checada no controller).
         Route::get('biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca.index');

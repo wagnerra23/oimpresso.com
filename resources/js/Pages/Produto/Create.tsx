@@ -4,21 +4,22 @@
 // Agent W2-C paralelo · 2026-05-15
 // 2026-10-16: as seções do formulário mudaram para _components/formulario/, compartilhadas com
 // Edit.tsx. Esta tela segue dona do cabeçalho, do useForm e do envio.
+// 2026-11-04: as seções e o rodapé de ações seguem a forma do protótipo (produto-blade-forms.jsx).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
-import { Save, X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
+import { AcoesDoCadastro } from './_components/formulario/AcoesDoCadastro';
+import { tipoDeEnvio } from './_components/formulario/envio';
 import { definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/tipos';
 import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
 import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
-
-const ADVANCED_OPEN_KEY = 'oimpresso.produto.create.advanced.open';
 
 function localUnico(locais: OptionMap): number[] {
   const ids = opcoesDe(locais).map(([id]) => Number(id));
@@ -126,10 +127,13 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     e.preventDefault();
     // Variável e composto sairiam sem variação/itens (tipos.ts tipoSemEditor): não salva.
     if (tipoSemEditor(data.type)) return;
+    // O botão do rodapé diz a tela seguinte (submit_type, o mesmo do Blade); sem ele, volta à lista.
+    const envio = tipoDeEnvio(e);
     // Variável e composto têm o próprio editor de preço; só o simples manda os cinco campos.
-    transform((d) =>
-      d.type === 'single' ? { ...d, ...camposDePreco(preco, aliquotaDoImposto(d.tax, props.taxAttributes)) } : d,
-    );
+    transform((d) => {
+      const comPreco = d.type === 'single' ? { ...d, ...camposDePreco(preco, aliquotaDoImposto(d.tax, props.taxAttributes)) } : d;
+      return envio ? { ...comPreco, submit_type: envio } : comPreco;
+    });
     post('/products');
   };
 
@@ -152,22 +156,16 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
               </div>
               <h1 className="mt-1 text-[24px] font-semibold tracking-tight">Novo produto</h1>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" asChild>
-                <Link href="/products">
-                  <X className="w-4 h-4 mr-1.5" />
-                  Cancelar
-                </Link>
-              </Button>
-              <Button form="produto-create-form" type="submit" disabled={processing || tipoSemEditor(data.type)}>
-                <Save className="w-4 h-4 mr-1.5" />
-                Salvar produto
-              </Button>
-            </div>
+            <Button variant="outline" asChild>
+              <Link href="/products">
+                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                Voltar à lista
+              </Link>
+            </Button>
           </div>
         </header>
 
-        <div className="pb-16 px-6 mt-4 max-w-5xl">
+        <div className="pb-16 px-6 mt-4">
           <ProdutoFormulario
             id="produto-create-form"
             onSubmit={handleSubmit}
@@ -177,12 +175,18 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
             errors={errors}
             opcoes={props}
             mostrarValidade={props.enableExpiry && !validadeNaCompra}
-            chaveMaisOpcoes={ADVANCED_OPEN_KEY}
             preco={
               data.type === 'single'
                 ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) }
                 : undefined
             }
+          />
+          <AcoesDoCadastro
+            form="produto-create-form"
+            modo="novo"
+            cancelarHref="/products"
+            desabilitado={processing || tipoSemEditor(data.type)}
+            comGruposDePreco={props.sellingPriceGroupCount > 0}
           />
         </div>
       </div>
