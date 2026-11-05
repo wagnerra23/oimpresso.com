@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a configuração de etiqueta decide o que sai na impressora; a de outro negócio, ou a global, não pode aparecer nem mudar daqui.
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-11-04"
 ---
 
 # Casos de Uso & Aceite — Código de barras

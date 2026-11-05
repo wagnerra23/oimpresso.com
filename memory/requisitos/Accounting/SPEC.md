@@ -375,8 +375,14 @@ Esconder Accounting do user-facing UI antes do drop de código.
 
 ### US-ACCO-013 · DEPRECATION Onda 3: Migration accounts_legacy_map → fin_planos_conta (idempotente)
 
-> owner: claude · priority: p1 · estimate: 4h · status: todo · type: story
+> owner: claude · priority: p1 · estimate: 4h · status: superseded · type: story
 > blocked_by: US-ACCO-012
+
+> **Encerrada sem migration em 2026-11-04 — não há dado a migrar.** A [ADR 0174](../../decisions/0174-errata-deprecation-plan-accounting-ondas-3-4-skip.md) ([W], 2026-05-20) já tinha pulado esta onda por origem vazia; o único critério de reabertura dela é aparecer dado real em `chart_of_accounts` ou `journal_entries`. Re-medido em produção nesta data, só leitura, por dois caminhos:
+> - `count(*)`: `chart_of_accounts` 0 · `journal_entries` 0 · `budgets` 0 · `transfers` 0 · `payment_details` 0 · `branch_capital` 0 · `transactions.journal_entry_id` preenchido 0. Controle positivo na mesma sonda: `fin_planos_conta` 449 linhas, `accounts_legacy_map` 35.
+> - `exists(select 1 …)` + `AUTO_INCREMENT` do `information_schema`: `chart_of_accounts`, `journal_entries` e `budgets` com `AUTO_INCREMENT=1` — nunca receberam linha nenhuma.
+>
+> Dois critérios abaixo também não se sustentam no esquema: `journal_entries` não tem `business_id` (o vínculo de empresa seria via `chart_of_account_id`), e `accounts_legacy_map` mapeia `accounts` (contas bancárias do core, FK `account_id`) para origem externa — não tem coluna para `fin_planos_conta`. O `Modules/Accounting` já saiu do repo no [#1258](https://github.com/wagnerra23/oimpresso.com/pull/1258).
 
 Migrar dados úteis das tabelas Accounting pras correspondentes Financeiro, business_id por business_id.
 
