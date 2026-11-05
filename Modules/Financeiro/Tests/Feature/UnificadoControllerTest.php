@@ -26,7 +26,7 @@ function unificadoBootstrap(): User
     try {
         // Tenant fictício 98 (ADR 0358): é onde o seed da lane põe conta bancária,
         // location e contact. Business::first() caía na empresa 1, sem conta, e pulava.
-        $business = \Tests\Support\WithSeededTenant::resolveSeededTenant();
+        $business = test()->seededTenant();
     } catch (\Throwable $e) {
         test()->markTestSkipped('Tabela business indisponível: '.$e->getMessage());
     }

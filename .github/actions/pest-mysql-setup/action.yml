@@ -191,7 +191,7 @@ runs:
           // Por que no seed (2026-11-05, lote 2.2 da auditoria do Financeiro): um teste da lane
           // (Adr0175ObserverContaOpcionalTest) insere o business 99 SEM usuário; quando ele roda
           // antes, seededSupportClientTenant() encontra o 99 já existente e não cria o dono, e os
-          // 4 UC-FCC-19..22 pulavam com "Sem usuário nos tenants 98/99" (run 41917610494).
+          // 4 UC-FCC-19..22 pulavam por falta de usuário no 99 (run 41917610494).
           if (! DB::table('business')->where('id', 99)->exists()) {
             \$uid99 = optional(DB::table('users')->where('username', 'sup_owner_99')->first())->id
               ?? DB::table('users')->insertGetId(['first_name'=>'Sup Cliente 99','username'=>'sup_owner_99','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
@@ -302,7 +302,7 @@ runs:
             echo 'conta criada biz='.\$bizId.PHP_EOL;
           }
           // Conta bancária também no biz=2 (fictício, adversário cross-tenant). Sem ela o
-          // UC-FUNI-04 ("conta de outro business é recusada sem gravar baixa") não tinha conta
+          // UC-FUNI-04 (conta de outro business recusada sem gravar baixa) não tinha conta
           // alheia para tentar usar e pulava (2026-11-05, lote 2.2).
           if (DB::table('business')->where('id', 2)->exists()
               && ! \Modules\Financeiro\Models\ContaBancaria::query()->withoutGlobalScopes()->where('business_id', 2)->exists()) {
