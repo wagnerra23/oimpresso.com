@@ -61,8 +61,8 @@ Route::group(['prefix' => 'whatsapp/webhook'], function () {
 // WEBHOOK_BASE_URL pra: https://oimpresso.com/api/atendimento/channels/baileys
 //
 // US-WA-082: middleware `whatsapp.baileys.hmac` valida HMAC + replay
-// window 5min + nonce não-repetido. Backward compat: daemon antigo sem
-// headers passa direto (rollout gradual). API_KEY config no .env.
+// window 5min + nonce não-repetido. Fail-closed desde 2026-11-05 (auditoria
+// Whatsapp, lote 0): sem chave configurada ou sem os headers → 401.
 Route::group(['prefix' => 'atendimento/channels'], function () {
     // Ordem dos middlewares:
     //   1. otel.propagate (US-WA-083) — extrai traceparent ANTES de tudo

@@ -13,12 +13,12 @@ uses(Tests\TestCase::class);
  * (US-WA-082 — Dogfood `whatsapp-arch-arte` 2026-05-14).
  *
  * Garante:
- *   1. Sem headers → backward compat passa direto (daemon antigo)
+ *   1. Sem headers (ou headers parciais) → 401 (fail-closed desde 2026-11-05)
  *   2. HMAC válida + nonce novo + ts dentro window → 200
  *   3. HMAC inválida → 401
  *   4. ts fora replay window (>5min) → 401
  *   5. Nonce repetido → 401 (replay detectado)
- *   6. Constant-time compare via hash_equals (manual test)
+ *   6. Sem chave configurada → 401 (fail-closed desde 2026-11-05)
  *
  * @see Modules/Whatsapp/Http/Middleware/VerifyBaileysWebhookHmac.php
  */
@@ -55,13 +55,31 @@ function buildHmacRequest(string $apiKey, string $body, ?string $nonceOverride =
     ];
 }
 
-it('R-WA-HMAC-001 — sem headers HMAC passa direto (backward compat daemon antigo)', function () {
+it('R-WA-HMAC-001 — sem headers HMAC → 401 missing_hmac_headers (fail-closed, auditoria 2026-11-05)', function () {
     $request = \Illuminate\Http\Request::create('/api/atendimento/channels/baileys/aaa-bbb-ccc', 'POST');
+    $middleware = new VerifyBaileysWebhookHmac();
+    $chegou = false;
+
+    $response = $middleware->handle($request, function ($r) use (&$chegou) {
+        $chegou = true;
+
+        return response()->json(['next' => true], 200);
+    });
+
+    expect($response->getStatusCode())->toBe(401);
+    expect(json_decode($response->getContent(), true)['error'])->toBe('missing_hmac_headers');
+    expect($chegou)->toBeFalse();
+});
+
+it('R-WA-HMAC-001b — só parte dos headers → 401 missing_hmac_headers', function () {
+    $request = \Illuminate\Http\Request::create('/test', 'POST', [], [], [], [], '{}');
+    $request->headers->set('x-baileys-signature', 'qualquer');
     $middleware = new VerifyBaileysWebhookHmac();
 
     $response = $middleware->handle($request, fn ($r) => response()->json(['next' => true], 200));
 
-    expect($response->getStatusCode())->toBe(200);
+    expect($response->getStatusCode())->toBe(401);
+    expect(json_decode($response->getContent(), true)['error'])->toBe('missing_hmac_headers');
 });
 
 it('R-WA-HMAC-002 — HMAC válida + nonce novo + ts dentro window → next', function () {
@@ -142,12 +160,25 @@ it('R-WA-HMAC-005 — nonce repetido → 401 nonce_replayed', function () {
     expect(json_decode($r2->getContent(), true)['error'])->toBe('nonce_replayed');
 });
 
-it('R-WA-HMAC-006 — API_KEY vazio no .env → middleware é no-op (defensive)', function () {
+it('R-WA-HMAC-006 — sem chave configurada → 401 hmac_not_configured (fail-closed, auditoria 2026-11-05)', function () {
     config(['whatsapp.baileys.api_key' => '']);
 
-    $request = \Illuminate\Http\Request::create('/test', 'POST', [], [], [], [], 'qualquer body');
+    // Mesmo com headers bem formados (assinados com chave vazia), sem chave não passa.
+    $body = 'qualquer body';
+    $headers = buildHmacRequest('', $body);
+    $request = \Illuminate\Http\Request::create('/test', 'POST', [], [], [], [], $body);
+    foreach ($headers as $k => $v) {
+        $request->headers->set($k, $v);
+    }
     $middleware = new VerifyBaileysWebhookHmac();
-    $response = $middleware->handle($request, fn ($r) => response()->json(['next' => true], 200));
+    $chegou = false;
+    $response = $middleware->handle($request, function ($r) use (&$chegou) {
+        $chegou = true;
 
-    expect($response->getStatusCode())->toBe(200);
+        return response()->json(['next' => true], 200);
+    });
+
+    expect($response->getStatusCode())->toBe(401);
+    expect(json_decode($response->getContent(), true)['error'])->toBe('hmac_not_configured');
+    expect($chegou)->toBeFalse();
 });
