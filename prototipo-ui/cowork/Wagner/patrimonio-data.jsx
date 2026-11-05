@@ -47,6 +47,8 @@ const PAPEIS = {
     perms: ["view", "allocate", "maintenance.create", "view_own_maintenance", "export"] },
   financeiro: { label: "Financeiro", quem: "Eliana", locais: "all",
     perms: ["view", "view_all_maintenance", "export"] },
+  // Usuário da empresa sem asset.view: o módulo inteiro é negado (estado "sem acesso").
+  sem_acesso: { label: "Sem acesso ao módulo", quem: "—", locais: [], perms: [] },
 };
 const can = (papel, p) => (PAPEIS[papel] || PAPEIS.gestor).perms.includes(p);
 const locaisPermitidos = (papel) => (PAPEIS[papel] || PAPEIS.gestor).locais;
