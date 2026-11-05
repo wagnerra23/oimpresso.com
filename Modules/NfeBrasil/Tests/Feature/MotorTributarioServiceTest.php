@@ -555,26 +555,31 @@ it('R-NFE-015b · FCP pela regra (controle: fcp nulo = 0)', function () {
         ->and($semFcp->valor_fcp)->toBe(0.0);
 });
 
-// Sonda 2026-11-04 (estudo de prioridade tributária): o DIFAL só é calculado em aplicarRegra
-// (níveis 1-3). Sem regra de NCM a venda cai no nível 4 (aplicarDefaults), que não chama
-// calcularStFcpDifal. Os dois casos abaixo são a MESMA venda; só muda existir a regra de NCM.
-// Empresa fora do Simples, para o corte da ADI 5.464 (R-NFE-035) não entrar na conta.
-it('SONDA · DIFAL no nível 4: consumidor de outra UF, NCM sem regra', function () {
+// R-NFE-017 no nível 4 (2026-11-05): sem regra de NCM a venda cai na regra geral da operação ou
+// no tributacao_default da empresa. Até esta data o nível 4 não calculava ST, FCP nem DIFAL, e a
+// NF-e interestadual a consumidor saía com o grupo de DIFAL zerado. Os dois primeiros casos são a
+// MESMA venda; só muda existir a regra de NCM — os dois têm de dar o mesmo DIFAL.
+// Conta à mão: 1.000,00 × (0,20 − 0,12) = 80,00. Empresa fora do Simples (o corte da ADI 5.464,
+// R-NFE-035, é o terceiro caso).
+function n4Default(string $regime = 'lucro_presumido'): void
+{
     configBusiness(98, ['cfop' => '6108', 'csosn' => null, 'cst' => '00', 'aliquota_icms' => 0.12]);
-    NfeBusinessConfig::where('business_id', 98)->update(['regime' => 'lucro_presumido']);
+    NfeBusinessConfig::where('business_id', 98)->update(['regime' => $regime]);
+}
+
+it('R-NFE-017 · nível 4: consumidor de outra UF, NCM sem regra, calcula o DIFAL', function () {
+    n4Default();
 
     $t = (new MotorTributarioService)->calcularComDestino(ctx('22021000', 1000.0), businessId: 98,
         ufOrigem: 'SP', ufDestino: 'RJ', aliquotaInternaDestino: 0.20, destinatarioContribuinte: false);
 
-    // 1000 × (0,20 − 0,12) = 80,00 — o mesmo valor do controle de nível 3 abaixo.
     expect($t->nivel_usado)->toBe(4)
         ->and($t->valor_icms)->toBe(120.0)
         ->and($t->valor_difal)->toBe(80.0);
 });
 
-it('SONDA · controle: a mesma venda com regra de NCM igual ao default calcula DIFAL', function () {
-    configBusiness(98, ['cfop' => '6108', 'csosn' => null, 'cst' => '00', 'aliquota_icms' => 0.12]);
-    NfeBusinessConfig::where('business_id', 98)->update(['regime' => 'lucro_presumido']);
+it('R-NFE-017 · nível 4 dá o mesmo DIFAL que o nível 3 com a mesma alíquota', function () {
+    n4Default();
     regra(['business_id' => 98, 'cfop' => '6108', 'csosn' => null, 'cst' => '00', 'aliquota_icms' => 0.12]);
 
     $t = (new MotorTributarioService)->calcularComDestino(ctx('22021000', 1000.0), businessId: 98,
@@ -583,6 +588,26 @@ it('SONDA · controle: a mesma venda com regra de NCM igual ao default calcula D
     expect($t->nivel_usado)->toBe(3)
         ->and($t->valor_icms)->toBe(120.0)
         ->and($t->valor_difal)->toBe(80.0);
+});
+
+it('R-NFE-017 · nível 4 sem DIFAL: destinatário com IE, mesma UF, e empresa do Simples', function () {
+    n4Default();
+    $motor = new MotorTributarioService;
+
+    $comIe = $motor->calcularComDestino(ctx('22021000', 1000.0), businessId: 98,
+        ufOrigem: 'SP', ufDestino: 'RJ', aliquotaInternaDestino: 0.20, destinatarioContribuinte: true);
+    $mesmaUf = $motor->calcularComDestino(ctx('22021000', 1000.0), businessId: 98,
+        ufOrigem: 'SP', ufDestino: 'SP', aliquotaInternaDestino: 0.18, destinatarioContribuinte: false);
+
+    NfeBusinessConfig::where('business_id', 98)->update(['regime' => 'simples']);
+    $simples = (new MotorTributarioService)->calcularComDestino(ctx('22021000', 1000.0), businessId: 98,
+        ufOrigem: 'SP', ufDestino: 'RJ', aliquotaInternaDestino: 0.20, destinatarioContribuinte: false);
+
+    expect($comIe->nivel_usado)->toBe(4)->and($comIe->valor_difal)->toBe(0.0)
+        ->and($mesmaUf->valor_difal)->toBe(0.0)
+        ->and($simples->nivel_usado)->toBe(4)
+        ->and($simples->valor_difal)->toBe(0.0)
+        ->and((string) $simples->aviso)->toContain('ADI 5.464');
 });
 
 
