@@ -49,8 +49,8 @@ it('marca com o fim pela duração do tipo; mesmo horário só como encaixe conf
     $enc = ($this->marcar)(['starts_at' => $this->ini->copy()->addMinutes(30)], true);
     expect($enc->is_overbook)->toBeTrue();
 
-    // Controle: logo depois do fim não é conflito.
-    expect(($this->marcar)(['starts_at' => $this->ini->copy()->addMinutes(50)])->is_overbook)->toBeFalse();
+    // Controle: logo depois do fim do encaixe (9h30 + 50 min) não é conflito — o encaixe também ocupa o horário.
+    expect(($this->marcar)(['starts_at' => $this->ini->copy()->addMinutes(80)])->is_overbook)->toBeFalse();
 });
 
 it('horário bloqueado recusa até o encaixe; atendimento cancelado libera o horário (A5)', function () {
