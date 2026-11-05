@@ -321,6 +321,23 @@ runs:
             DB::table('contacts')->insert(['business_id'=>\$bizId,'type'=>'customer','name'=>'Cliente CI','contact_id'=>'CO0001','created_by'=>1,'is_default'=>1,'created_at'=>now(),'updated_at'=>now()]);
             echo 'contact criado'.PHP_EOL;
           }
+          // Location + contact também no biz=2 (adversário cross-tenant), 2026-11-05 lote 2.2.
+          // Os cenários multi-tenant da ponte venda→título (TransactionObserverIntegrationTest
+          // cenário 8, TransactionPaymentObserverTest) precisam de uma SEGUNDA empresa com
+          // location, contact e usuário; sem isso pulavam (run 42071381255).
+          if (DB::table('business')->where('id', 2)->exists()) {
+            if (! DB::table('business_locations')->where('business_id', 2)->exists()) {
+              DB::table('business_locations')->insert(['business_id'=>2,'name'=>'Matriz CI 2','country'=>'BR','state'=>'SP','city'=>'SP','zip_code'=>'0',
+                'invoice_scheme_id'=>(int) DB::table('invoice_schemes')->where('business_id', 2)->value('id'),
+                'invoice_layout_id'=>(int) DB::table('invoice_layouts')->where('business_id', 2)->value('id'),
+                'created_at'=>now(),'updated_at'=>now()]);
+              echo 'location criada biz=2'.PHP_EOL;
+            }
+            if (! DB::table('contacts')->where('business_id', 2)->where('type','!=','lead')->exists()) {
+              DB::table('contacts')->insert(['business_id'=>2,'type'=>'customer','name'=>'Cliente CI 2','contact_id'=>'CO0002','created_by'=>1,'is_default'=>1,'created_at'=>now(),'updated_at'=>now()]);
+              echo 'contact criado biz=2'.PHP_EOL;
+            }
+          }
           // system.repair_version (2026-09-05) — destrava UC-RSET-07/08, pendencia 4 do
           // charter de Pages/Repair/Settings. Sem a linha, ModuleUtil::isModuleInstalled
           // devolve false, o tipo device fica fora dos category_types e
