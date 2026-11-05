@@ -52,6 +52,12 @@ class Appointment extends Model
 
     protected $guarded = ['id'];
 
+    /**
+     * Espelha o default da coluna (`agendado`). Sem isto o model recém-criado volta com `status`
+     * nulo em memória, e cancelar/mudar status na mesma instância recusa a transição.
+     */
+    protected $attributes = ['status' => 'agendado'];
+
     protected $casts = [
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',

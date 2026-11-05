@@ -49,7 +49,7 @@ it('UC-FPR-02 · item sai com o nome do exercício; exercício próprio de outra
     $modelo = collect(fprProtocolos($this, $this->u98))->firstWhere('id', $this->modelo->id);
 
     expect($modelo['modelo_global'])->toBeTrue()
-        ->and(array_column($modelo['itens'], 'exercicio'))->toBe(['Ponte global'])
+        ->and(array_column($modelo['itens'], 'exercicio'))->toBe([$this->exGlobal->name]) // a fixture acrescenta uniqid() ao nome
         ->and($modelo['itens'][0]['sets'])->toBe(2);
 });
 
