@@ -228,7 +228,10 @@ it('lista: linha com bem e pessoa de outra empresa nao mostra o nome deles', fun
         $corrompida = alocTenTransacao($dono, $bemAlheio->id, $uAdv->id, 1);
 
         $inicial = alocTenComo($u, $dono)->get('/asset/allocation?situacao=todas');
-        $versao = (string) data_get($inicial->viewData('page'), 'version');
+        // A visita ja vai com `X-Inertia` (como o browser manda): a resposta e o JSON da
+        // pagina, nao a root view — a versao sai do corpo.
+        $inicial->assertStatus(200);
+        $versao = (string) data_get($inicial->json(), 'version');
 
         $parcial = alocTenComo($u, $dono)->withHeaders([
             'X-Inertia-Version' => $versao,
