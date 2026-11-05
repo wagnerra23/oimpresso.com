@@ -14,6 +14,11 @@ use Illuminate\Notifications\Notification;
  */
 final class SinalDeAlertaNotification extends Notification
 {
+    public const ORIGEM_CHECKIN = 'checkin';
+
+    /** Pré-anamnese do portal (Lote 5): ainda não há check-in, o `checkinId` vem 0. */
+    public const ORIGEM_PRE_ANAMNESE = 'pre_anamnese';
+
     /**
      * @param  list<string>  $redFlags  sinais da lista fechada `config('fisio.red_flags')`
      */
@@ -22,6 +27,7 @@ final class SinalDeAlertaNotification extends Notification
         public readonly int $patientId,
         public readonly int $checkinId,
         public readonly array $redFlags,
+        public readonly string $origem = self::ORIGEM_CHECKIN,
     ) {}
 
     /** @return list<string> */
@@ -38,6 +44,7 @@ final class SinalDeAlertaNotification extends Notification
             'patient_id' => $this->patientId,
             'checkin_id' => $this->checkinId,
             'red_flags' => $this->redFlags,
+            'origem' => $this->origem,
         ];
     }
 }

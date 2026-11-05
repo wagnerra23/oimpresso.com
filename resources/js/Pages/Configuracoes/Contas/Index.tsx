@@ -21,12 +21,11 @@ import { BookOpen, ExternalLink, Search } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
-import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
-import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
+import ConfiguracoesCabecalho from '@/Pages/Configuracoes/_shared/ConfiguracoesCabecalho';
 
 export interface Conta {
   id: number;
@@ -98,17 +97,14 @@ function ContasIndex({ contas, pagamentos_sem_conta }: Props) {
   ];
 
   return (
-    <div className="pb-8">
-      <div data-contract="page-header">
-        <PageHeader title="Contas de pagamento"
-          subtitle={contas ? <><strong>{ativas}</strong> {ativas === 1 ? 'conta ativa' : 'contas ativas'}</> : 'contas e saldos do negócio'}
-          subnav={<ConfiguracoesSubNav />}
-          actions={
-            <Button asChild variant="outline">
-              <a href="/account/account?legacy=1"><ExternalLink className="size-4" /> Cadastrar e movimentar na tela clássica</a>
-            </Button>
-          } />
-      </div>
+    <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Contas de pagamento">
+      <ConfiguracoesCabecalho tela="Contas de pagamento" rota="/account/account"
+        resumo={contas ? <><strong>{ativas}</strong> {ativas === 1 ? 'conta ativa' : 'contas ativas'}</> : 'contas e saldos do negócio'}
+        acoes={
+          <Button asChild variant="outline">
+            <a href="/account/account?legacy=1"><ExternalLink className="size-4" /> Cadastrar e movimentar na tela clássica</a>
+          </Button>
+        } />
 
       <Stack gap={4} className="px-6 pt-4">
         <Deferred data="pagamentos_sem_conta" fallback={null}>

@@ -565,6 +565,7 @@ jobs:
         # ENTRA 2026-11-04 — Fisio/FisioPacoteVendaTest (US-FISIO-022, UC-FPK-07..09): a venda do núcleo
         # é ligada ao pacote pelo id, sem gravar título; venda cancelada tira a sobra do saldo.
         #
+        #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
         #
@@ -621,6 +622,16 @@ jobs:
         # do link do portal e lembrete diário pelo módulo Whatsapp existente (número de saída padrão),
         # consentimento, isolamento 98×99, idempotência persistida, silêncio, teto por hora e wa.me
         # manual sem canal. O caso de integração com o portal real PULA até o US-FISIO-007a entrar.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioPortalConfiguracoesTest (Lote 5, UC-FPP-50..51): Configurações do paciente
+        # mostram cada autorização; desligar WhatsApp corta o envio; 98×99.
+        # ENTRA 2026-11-04 — Fisio/FisioConfigWhatsappTest (Lote 5, UC-FCW-01..06): a clínica escolhe o
+        # canal (manual, oficial, QR com aceite de risco) e a escolha muda o canalAtivo real; 98×99.
+        #
+        # ENTRA 2026-11-04 — Fisio/FisioPreAnamneseTest (Lote 5, US-FISIO-051, UC-FPP-52..55): uma resposta por
+        # paciente, só valores das listas, sinal avisa o profissional, portões do portal; 98×99.
+        # ENTRA 2026-11-04 — Fisio/FisioOnboardingTest (Lote 5, US-FISIO-050, UC-FOB-01..06): cada passo grava o
+        # dele; perfil por profissional; QR só com aceite; protocolo de outra empresa descartado; 98×99.
         #
         # ENTRA 2026-10-19 — Fisio/FisioPainelEnviosFalhosTest (etapa 02 T-09e, UC-FPN-09): o painel
         # lista o WhatsApp de hoje que não chegou, com wa.me; sucesso some, 99 não vaza, sem
@@ -816,9 +827,13 @@ jobs:
             Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoNuvemshopContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalConfiguracoesTest.php \
+            Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php \
             Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php \
+            Modules/Fisio/Tests/Feature/FisioConfigWhatsappTest.php \
+            Modules/Fisio/Tests/Feature/FisioOnboardingTest.php \
             Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php \
             Modules/Fisio/Tests/Unit/BibliotecaL0Test.php \
             Modules/Fisio/Tests/Feature/FisioCheckinTest.php \

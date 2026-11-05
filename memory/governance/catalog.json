@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 897,
-    "edges": 1220,
+    "nodes": 898,
+    "edges": 1221,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 150,
-      "component": 507,
+      "component": 508,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 507,
+      "hasComponent": 508,
       "dependsOn": 136,
       "delegatesTo": 125,
       "migratesTo": 1,
@@ -3158,6 +3158,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/ConfiguracoesController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ConfiguracoesController",
+      "desc": "Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
+    },
+    {
       "id": "component:Fisio/DataController",
       "type": "component",
       "module": "Fisio",
@@ -3219,6 +3226,13 @@
       "module": "Fisio",
       "name": "Jogo de constância",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/OnboardingController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "OnboardingController",
+      "desc": "primeira configuração da clínica em 5 passos (perfil, PF/PJ, canal, protocolos, conclusão) em fisio_settings (US-FISIO-050)"
     },
     {
       "id": "component:Fisio/PacientesController",
@@ -3324,13 +3338,6 @@
       "module": "Fisio",
       "name": "ResponsavelController",
       "desc": ""
-    },
-    {
-      "id": "component:Fisio/VendaDoPacoteObserver",
-      "type": "component",
-      "module": "Fisio",
-      "name": "VendaDoPacoteObserver",
-      "desc": "liga a venda do núcleo ao pacote pelo id; venda cancelada tira a sobra do saldo, sem tocar no Financeiro (US-FISIO-022)"
     },
     {
       "id": "component:Forja/⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W], separada desta deprecação",
@@ -10042,6 +10049,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/ConfiguracoesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -10091,6 +10104,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Jogo de constância",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/OnboardingController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10181,12 +10200,6 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/ResponsavelController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Fisio",
-      "to": "component:Fisio/VendaDoPacoteObserver",
       "type": "hasComponent",
       "source": "contains"
     },

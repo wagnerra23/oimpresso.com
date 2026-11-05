@@ -3,8 +3,10 @@
 use Modules\Fisio\Http\Controllers\BibliotecaController;
 use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
+use Modules\Fisio\Http\Controllers\ConfiguracoesController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
+use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\PainelController;
 use Modules\Fisio\Http\Controllers\PacotesController;
@@ -51,6 +53,14 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->group(function () {
         // Painel do profissional (US-FISIO-010): KPIs, fila de atenção e tabela. Só leitura.
         Route::get('/', [PainelController::class, 'index'])->name('painel');
+
+        // Configurações › WhatsApp: a clínica escolhe o canal; número e driver são do módulo Whatsapp.
+        Route::get('configuracoes/whatsapp', [ConfiguracoesController::class, 'whatsapp'])->name('configuracoes.whatsapp');
+        Route::put('configuracoes/whatsapp', [ConfiguracoesController::class, 'salvarWhatsapp'])->name('configuracoes.whatsapp.update');
+
+        // Primeira configuração da clínica (Onboarding, 5 passos). Cada passo grava o dele; nada obrigatório.
+        Route::get('onboarding', [OnboardingController::class, 'show'])->name('onboarding');
+        Route::put('onboarding/{passo}', [OnboardingController::class, 'salvar'])->where('passo', 'perfil|atendimento|canal|protocolos|concluir')->name('onboarding.salvar');
 
         // Biblioteca de exercícios (US-FISIO-004). Escrita exige `fisio.editar` (checada no controller).
         Route::get('biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca.index');
@@ -137,6 +147,7 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::post('consentimentos', [PortalController::class, 'consentir'])->name('consentimentos.store');
         Route::delete('consentimentos/{purpose}', [PortalController::class, 'revogar'])->name('consentimentos.destroy');
         Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
+        Route::post('pre-anamnese', [PortalController::class, 'preAnamnese'])->name('pre-anamnese');
         Route::post('desafio', [PortalController::class, 'desafio'])->name('desafio');
     });
 
