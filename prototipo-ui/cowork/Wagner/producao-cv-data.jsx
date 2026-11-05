@@ -113,7 +113,8 @@ const AGENDA = [
   { maq: "cnc",     os: "OS-2608", ini: 8,  fim: 11.2, estado: "andamento" },
   { maq: "cnc",     os: "OS-2614", ini: 11.5, fim: 14.2, estado: "fila", bloqueio: "arte aguardando aprovação" },
   { maq: "cnc",     os: "OS-2617", ini: 14.5, fim: 16.2, estado: "fila" },
-  { maq: "solda",   os: "OS-2617", ini: 9,  fim: 17,   estado: "fila" },
+  // OS-2617, trilha A: o Corte CNC das faces vem antes da Dobra e solda (a solda começa quando o corte termina).
+  { maq: "solda",   os: "OS-2617", ini: 16.25, fim: 18, estado: "fila" },
 ];
 
 // Orçamentos aprovados que ainda não viraram OS (passo orçamento → OS)
@@ -135,9 +136,9 @@ const AGENDA_AMANHA = [
   { maq: "uv", os: "OS-2614", ini: 8, fim: 11.6, estado: "fila", bloqueio: "arte aguardando aprovação" },
   { maq: "lamin", os: "OS-2611", ini: 9.8, fim: 10.5, estado: "fila" },
   { maq: "recorte", os: "OS-2611", ini: 10.5, fim: 12.8, estado: "fila" },
-  { maq: "cnc", os: "OS-2617", ini: 8, fim: 9.7, estado: "fila" },
-  { maq: "solda", os: "OS-2608", ini: 8, fim: 10, estado: "fila" },
-  { maq: "solda", os: "OS-2617", ini: 10, fim: 18, estado: "fila" },
+  // Junção da OS-2608: a Montagem na fábrica só começa depois das duas trilhas (CNC e adesivo terminam hoje).
+  { maq: "solda", os: "OS-2608", ini: 8, fim: 10, estado: "fila", etapa: "Montagem na fábrica" },
+  { maq: "solda", os: "OS-2617", ini: 10, fim: 12.25, estado: "fila" },
 ];
 
 // Material por OS: empenhado no orçamento × consumido (baixa feita no apontamento)
