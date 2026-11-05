@@ -39,8 +39,9 @@ Cadastrar produto novo (single/variable/combo) com validação cliente-side Type
 
 ## Goals — Features (faz)
 
-- AppShellV2 + PageHeader "Novo produto" + ações "Cancelar"+"Salvar"
-- 5 seções Card: Identificação · Preço & Imposto · Estoque · Localizações · Avançado
+- AppShellV2 + PageHeader "Novo produto" + "Voltar à lista"
+- 4 seções Card na forma do protótipo (`produto-blade-forms.jsx`, desde 2026-11-04): Dados do produto · Configurações · Fiscal · Impostos e preços
+- Rodapé de ações: Cancelar · "Salvar e adicionar preços por grupo" (só com grupo de preço) · "Salvar e adicionar outro" · Salvar (`UC-PCAD-18`)
 - Campos sempre visíveis (8): name · sku · type · unit · category · brand · tax · alert_quantity
 - Campos avançados colapsáveis: barcode_type · sub_category · sub_units · weight · product_description · enable_sr_no · expiry (se enabled) · racks (se enabled) · custom_fields 1-20
 - Defaults: type='single' · enable_stock=true · tax_type='exclusive'
