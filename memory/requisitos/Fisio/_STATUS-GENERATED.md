@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 23 |
+| US no SPEC | 24 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 8 |
 | Telas com `casos.md` | 9 |
-| UC declarados | 128 |
-| UC com teste que os cita | 128 |
+| UC declarados | 132 |
+| UC com teste que os cita | 132 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -35,6 +35,7 @@ authority: generated
 | `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
 | `US-FISIO-010` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
+| `US-FISIO-051` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pré-anamnese no portal antes da primeira consulta — **P1** |
 | `US-FISIO-013` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Schema da agenda: tipos, atendimentos, bloqueios, lista de e |
 
 ### Backlog — NÃO é lacuna
@@ -156,6 +157,10 @@ authority: generated
 | UC-FPP-34 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-50 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-51 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-52 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-53 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-54 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-55 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPS-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-03 | Pacientes/Show | 🧪 aguarda veredito da lane |

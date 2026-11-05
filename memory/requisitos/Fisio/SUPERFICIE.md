@@ -14,7 +14,7 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 213 arquivos em 19 papéis.
+**Total mapeado:** 217 arquivos em 19 papéis.
 
 ## Controllers — 20
 
@@ -43,7 +43,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 36
+## Services — 37
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AparelhosDoPortal.php](../../../Modules/Fisio/Services/AparelhosDoPortal.php)
@@ -68,6 +68,7 @@ module: Fisio
 - [SaldoDoPacote.php](../../../Modules/Fisio/Services/Pacotes/SaldoDoPacote.php)
 - [PainelFisio.php](../../../Modules/Fisio/Services/PainelFisio.php)
 - [PortalTokenService.php](../../../Modules/Fisio/Services/PortalTokenService.php)
+- [PreAnamneseDoPortal.php](../../../Modules/Fisio/Services/PreAnamneseDoPortal.php)
 - [ProntuarioExportacao.php](../../../Modules/Fisio/Services/ProntuarioExportacao.php)
 - [CatalogoQuestionarios.php](../../../Modules/Fisio/Services/Questionarios/CatalogoQuestionarios.php)
 - [PontuacaoQuestionario.php](../../../Modules/Fisio/Services/Questionarios/PontuacaoQuestionario.php)
@@ -126,7 +127,7 @@ module: Fisio
 
 - [web.php](../../../Modules/Fisio/Routes/web.php)
 
-## Migrations (schema) — 11
+## Migrations (schema) — 12
 
 - [2026_10_18_000001_create_fisio_tables.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000001_create_fisio_tables.php)
 - [2026_10_18_000002_add_synonyms_to_fisio_exercises.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000002_add_synonyms_to_fisio_exercises.php)
@@ -139,6 +140,7 @@ module: Fisio
 - [2026_10_19_000120_add_missoes_desafio_jogo_fisio.php](../../../Modules/Fisio/Database/Migrations/2026_10_19_000120_add_missoes_desafio_jogo_fisio.php)
 - [2026_11_04_000400_create_fisio_packages.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000400_create_fisio_packages.php)
 - [2026_11_04_000500_create_fisio_settings.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000500_create_fisio_settings.php)
+- [2026_11_04_000510_create_fisio_pre_anamneses.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000510_create_fisio_pre_anamneses.php)
 
 ## Seeders — 2
 
@@ -166,7 +168,7 @@ module: Fisio
 - [Painel.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx)
 - [Portal.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx)
 
-## Componentes / apoio de tela — 20
+## Componentes / apoio de tela — 21
 
 - [CamposFacetas.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/CamposFacetas.tsx)
 - [FavoritoBotao.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/FavoritoBotao.tsx)
@@ -178,6 +180,7 @@ module: Fisio
 - [Entrada.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Entrada.tsx)
 - [Hoje.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Hoje.tsx)
 - [Instalar.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Instalar.tsx)
+- [PreAnamnese.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/PreAnamnese.tsx)
 - [AvaliacaoEstruturada.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/AvaliacaoEstruturada.tsx)
 - [EditorPrograma.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/EditorPrograma.tsx)
 - [EvolucaoPaciente.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/EvolucaoPaciente.tsx)
@@ -211,9 +214,9 @@ module: Fisio
 - [Painel.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
 
-## Testes (Pest) — 51
+## Testes (Pest) — 52
 
-- 37 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 38 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 2 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
 - 12 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

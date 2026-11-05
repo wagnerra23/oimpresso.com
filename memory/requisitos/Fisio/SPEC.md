@@ -183,6 +183,17 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 **Testado em:** `Modules/Fisio/Tests/Feature/FisioOnboardingTest.php`
 
+### US-FISIO-051 · Pré-anamnese no portal antes da primeira consulta — **P1**
+
+**Implementado em:** `Modules/Fisio/Services/PreAnamneseDoPortal.php` · `Modules/Fisio/Http/Controllers/PortalController.php` (rota `fisio.portal.pre-anamnese`) · `Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/PreAnamnese.tsx` · tabela `fisio_pre_anamneses`
+
+> owner: wagner · priority: p1 · estimate: 4h · status: done · type: story
+> Lote 5 (dezena 050). Protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/PacientePreAnamnese.dc.html`. Onde dói, há quanto tempo, dor agora, o que piora/melhora e 5 sinais de alerta da lista fechada do check-in, com o mesmo texto. Sinal marcado avisa pelo sino o profissional do programa e o responsável (sem nenhum dos dois, quem cadastrou o contato) — decisão [W] 2026-11-04 "Sim, faça assim". Regiões e faixas de tempo são rascunho do protótipo, pendentes da revisão da responsável técnica.
+
+**DoD:** uma resposta por paciente; fora das listas 422; mesmos portões do portal; sinal avisa, sem sinal não — `FisioPreAnamneseTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php`
+
 ## User Stories — F3 Operação: agenda
 
 > Admitida por pedido direto de [W] em 2026-11-04 (levar sidebar e telas do canvas Prescreve Pro para produção, lote 3), que vale como decisão ([ADR 0382](../../decisions/0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w.md)). Regras e dados: [`etapas/04-f3-operacao.md`](etapas/04-f3-operacao.md) §3.2 (A1–A21). Fonte visual: `prototipo-ui/cowork/Wagner/prototipos/fisio/` (`Agenda`, `ConfigAgendamentoOnline`, `PacienteAgendar`, `PacienteAgendaConfirmar`, `PacienteConsultas`) e a pesquisa `ComparativoAgendamento`. `PacienteSerieConfirmar` não é agenda (é a confirmação de repetições da câmera, F2).
