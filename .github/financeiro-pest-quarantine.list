@@ -119,7 +119,6 @@ Modules/Financeiro/Tests/Feature/Onda8bChipsDirectionTest.php  # 4 failed, 5 pas
 #    eles não dropam nada. Os que FALHAM foram pro bucket C (defeito real, onde
 #    sempre pertenceram); os que PASSAM saíram da quarentena (ver rodapé).
 #    Mesma classe do §5 2026-07-28: "hit que volta como comentário não é evidência".
-Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 failed (0 assertions)
 
 # ─────────────────────────────────────────────────────────────────────────
 # C) DB-dependente FALHANDO — defeito real a investigar
@@ -137,7 +136,6 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 #    de verdade contra MySQL semeado e NÃO usam RefreshDatabase, logo o motivo
 #    "envenena o processo compartilhado" nunca se aplicou a eles. Ficam
 #    quarentenados exatamente como estavam — só o MOTIVO mudou, não o estado.
-Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 4 failed, 4 passed (8 assertions) — FICA: 1 causa consertada neste PR, 3 medidas no rodape (decisao [W])
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 
@@ -169,8 +167,6 @@ Modules/Financeiro/Tests/Feature/BoletoMockEmissaoTest.php  # 3 skipped (0 asser
 #    a ordem que reproduz a falha é sorteada, então eu não conseguiria PROVAR o
 #    fix neste PR — e um fix não provado deixaria o main vermelho se errasse.
 #    Quarentena restaura o verde de forma determinística; o fix é decisão [W].
-Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado · 1 failed em main (run 30378571902)
-Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 — flake por ORDEM (403 no processo compartilhado). Ver rodape.
 
 # ═════════════════════════════════════════════════════════════════════════
 # SAÍRAM DA QUARENTENA em 2026-08-02 (a lista deve encolher — cabeçalho)
