@@ -91,10 +91,21 @@ it('biz sem fin_contas_bancarias permite TransactionPayment::create sem lançar 
         'created_at' => now(),
         'updated_at' => now(),
     ]);
+    // business_locations exige invoice_scheme_id e invoice_layout_id com FK: sem os dois
+    // o insert estourava 1452 e o caso morria antes de exercer o Observer (2026-11-05).
+    $schemeId = (int) DB::table('invoice_schemes')->insertGetId([
+        'business_id' => $bizId, 'name' => 'T', 'scheme_type' => 'blank', 'number_type' => 'sequential',
+        'is_default' => 1, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $layoutId = (int) DB::table('invoice_layouts')->insertGetId([
+        'business_id' => $bizId, 'name' => 'T', 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $locId = (int) DB::table('business_locations')->insertGetId([
         'business_id' => $bizId,
         'name' => 'L1',
         'location_id' => 'L0001',
+        'invoice_scheme_id' => $schemeId,
+        'invoice_layout_id' => $layoutId,
         'created_at' => now(),
         'updated_at' => now(),
     ]);

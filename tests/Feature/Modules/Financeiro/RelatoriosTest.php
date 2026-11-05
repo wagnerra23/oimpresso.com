@@ -157,7 +157,8 @@ class RelatoriosTest extends FinanceiroTestCase
 
         $response = $this->get('/financeiro/relatorios/export-csv?tipo=fluxo&data_de=2026-01-01&data_ate=2026-01-31');
 
-        $this->assertEquals(200, $response->status());
+        // Resposta é StreamedResponse: o TestResponse não repassa status() a ela.
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertStringContainsString(
             'text/csv',
             (string) $response->headers->get('Content-Type', '')
