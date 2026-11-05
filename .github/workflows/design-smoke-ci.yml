@@ -342,7 +342,11 @@ jobs:
           # APP_URL só para este serve: o AppServiceProvider faz forceRootUrl(config('app.url')),
           # e com o APP_URL=http://localhost do .env o /_visreg-login redirecionava para a porta 80.
           # Medido em 2026-11-05 (run 42077429563): ERR_CONNECTION_REFUSED na 1a tela, serve vivo.
-          APP_URL=http://127.0.0.1:8000 php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
+          # VISREG_FREEZE_CLOCK vazio só para este serve: com o relógio do app congelado em
+          # 2026-06-11, a sessão sai com expires em junho e Max-Age=0 contra o relógio real, e o
+          # browser apaga o cookie na hora. Medido em 2026-11-05 (run 42084635185): todo login
+          # caía em /login. O congelamento servia ao pixel, que saiu na ADR 0445.
+          APP_URL=http://127.0.0.1:8000 VISREG_FREEZE_CLOCK= php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
           SERVE_PID=$!
           for i in $(seq 1 30); do
             curl -sf -o /dev/null http://127.0.0.1:8000/login && break
