@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 8 |
 | Telas com `casos.md` | 9 |
-| UC declarados | 132 |
-| UC com teste que os cita | 132 |
+| UC declarados | 135 |
+| UC com teste que os cita | 135 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -51,7 +51,6 @@ authority: generated
 | US-FISIO-014 | `todo` | Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0 |
 | US-FISIO-015 | `todo` | Tela Agenda da clínica e configuração do agendamento pelo app — **P0** |
 | US-FISIO-016 | `todo` | Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P |
-| US-FISIO-022 | `todo` | Vender e renovar pacote pela venda do núcleo — **P0** |
 | US-FISIO-023 | `todo` | Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0** |
 | US-FISIO-024 | `todo` | Lote do Receita Saúde no layout oficial — **P1** |
 | US-FISIO-025 | `todo` | Planos do produto Fisio no Superadmin — **P1** |
@@ -112,6 +111,9 @@ authority: generated
 | UC-FPK-04 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPK-05 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPK-06 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-07 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-08 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-09 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPN-01 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-02 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-03 | Painel | 🧪 aguarda veredito da lane |
