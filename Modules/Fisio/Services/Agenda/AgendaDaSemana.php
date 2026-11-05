@@ -52,7 +52,7 @@ class AgendaDaSemana
         return Patient::withoutGlobalScopes()->where('fisio_patients.business_id', $biz)->whereNull('fisio_patients.blocked_at')
             ->join('contacts', 'contacts.id', '=', 'fisio_patients.contact_id')->orderBy('contacts.name')->limit(500)
             ->get(['fisio_patients.id', 'contacts.name'])
-            ->map(fn ($p) => ['id' => (int) $p->id, 'nome' => (string) $p->name])->all();
+            ->map(fn ($p) => ['id' => (int) $p->id, 'nome' => (string) $p->getAttribute('name')])->all();
     }
 
     /** @return list<array<string, mixed>> */

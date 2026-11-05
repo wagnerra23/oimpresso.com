@@ -14,7 +14,7 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 209 arquivos em 19 papéis.
+**Total mapeado:** 214 arquivos em 19 papéis.
 
 ## Controllers — 19
 
@@ -160,8 +160,9 @@ module: Fisio
 - [laudo-evolucao.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-evolucao.blade.php)
 - [prontuario.blade.php](../../../Modules/Fisio/Resources/views/pdf/prontuario.blade.php)
 
-## Telas (Inertia/React) — 6
+## Telas (Inertia/React) — 7
 
+- [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.tsx)
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx)
 - [Whatsapp.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Whatsapp.tsx)
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.tsx)
@@ -169,8 +170,9 @@ module: Fisio
 - [Painel.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx)
 - [Portal.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx)
 
-## Componentes / apoio de tela — 19
+## Componentes / apoio de tela — 20
 
+- [SemanaHoras.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/_components/SemanaHoras.tsx)
 - [CamposFacetas.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/CamposFacetas.tsx)
 - [FavoritoBotao.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/FavoritoBotao.tsx)
 - [FiltrosFacetas.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/FiltrosFacetas.tsx)
@@ -191,8 +193,9 @@ module: Fisio
 - [Questionarios.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/Questionarios.tsx)
 - [ResponsavelPaciente.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/ResponsavelPaciente.tsx)
 
-## Charters (lei da tela) — 6
+## Charters (lei da tela) — 7
 
+- [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.charter.md)
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.charter.md)
 - [Whatsapp.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Whatsapp.charter.md)
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.charter.md)
@@ -200,8 +203,9 @@ module: Fisio
 - [Painel.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.charter.md)
 - [Portal.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.charter.md)
 
-## Casos (contrato UC) — 6
+## Casos (contrato UC) — 7
 
+- [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.casos.md)
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.casos.md)
 - [Whatsapp.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Whatsapp.casos.md)
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.casos.md)
@@ -216,7 +220,7 @@ module: Fisio
 - 13 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 16
+## Demais arquivos (manifestos, docs, assets e misc) — 17
 
 - [LinkDoPortal.php](../../../Modules/Fisio/Contracts/LinkDoPortal.php)
 - [CheckinFactory.php](../../../Modules/Fisio/Database/Factories/CheckinFactory.php)
@@ -225,6 +229,7 @@ module: Fisio
 - [ProgramFactory.php](../../../Modules/Fisio/Database/Factories/ProgramFactory.php)
 - [DadoClinicoImutavelException.php](../../../Modules/Fisio/Exceptions/DadoClinicoImutavelException.php)
 - [SinalDeAlertaNotification.php](../../../Modules/Fisio/Notifications/SinalDeAlertaNotification.php)
+- [semana.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/_components/semana.ts)
 - [facetas.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/facetas.ts)
 - [portal.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/portal.ts)
 - [avaliacao.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/avaliacao.ts)
