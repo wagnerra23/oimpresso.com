@@ -783,6 +783,48 @@ Status: 🧪
   hoje o retorno do banco lança o pagamento na venda inteira (UC-PCLIB-08), sem parcela de sinal separada. O
   campo do sinal mínimo na aba Fluxos da empresa vem no #9701.
 
+## Rotas das ações de tela da OS (auditoria lote 2.2)
+
+> Antes, `SituacaoDaOrdem::liberar`, `refazer` e `cancelarItem` só eram chamados em teste: sem sinal
+> mínimo configurado, a OS ficava parada em Aguardando liberação. Agora há rota JSON para as três
+> (`POST /producao/ordens/{id}/liberar|refazer|cancelar`). Portões: módulo no pacote + `producao.access`
+> na rota; o papel da ação no motor (`producao.liberar` para Liberar e Refazer, `vendas.gerente` para
+> Cancelar item). A tela que chama é a Ficha da OS (lote 3). Prova: `ProducaoOrdemSituacaoRotasContratoTest`.
+
+## UC-PCOSR-01 · Liberar pela rota · `must`
+
+**Quando** quem não tem o papel do PCP libera **Então** 403 e nada muda. **Quando** o PCP libera sem o
+responsável de todas as etapas abertas **Então** 422 `responsavel_invalido` e nada muda. Com os
+responsáveis, a OS vai para Na fila; liberar de novo dá 409 `acao_invalida`.
+
+Status: 🧪
+
+## UC-PCOSR-02 · Refazer pela rota · `must`
+
+**Quando** a OS não está em Retrabalho **Então** 409. **Dado** a OS reprovada no controle **Quando** quem
+não tem o papel do PCP manda refazer **Então** 403; o PCP manda refazer e a OS volta a Em execução.
+
+Status: 🧪
+
+## UC-PCOSR-03 · Cancelar item pela rota · `must`
+
+**Quando** o PCP sem o papel de gerente cancela **Então** 403. O gerente cancela a OS em Aguardando
+liberação: ela e as etapas ficam canceladas; cancelar de novo dá 409.
+
+Status: 🧪
+
+## UC-PCOSR-04 · Só dentro da empresa · `must`
+
+**Quando** a empresa 98 chama qualquer das três rotas com a OS da 99 **Então** 404 e a OS da 99 não muda.
+
+Status: 🧪
+
+## UC-PCOSR-05 · Módulo fora do pacote · `must`
+
+**Quando** a empresa não tem o Producao no pacote **Então** as três rotas dão 403 e nada muda.
+
+Status: 🧪
+
 ## Pedido de compra do cliente na OS (pedido de 2026-10-23)
 
 - **[BACKLOG]** A OS mostra o número do pedido de compra do cliente — Dado uma venda com o pedido do
