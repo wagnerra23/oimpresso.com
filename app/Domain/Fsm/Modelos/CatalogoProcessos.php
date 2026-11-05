@@ -146,7 +146,7 @@ final class CatalogoProcessos
             'Reprovar no controle' => ['parcial', 'SituacaoDaOrdem::reprovar (motivo de refugo do posto + etapa de origem já feita) leva a OS a Retrabalho e reabre a etapa de origem como etapa nova; o custo entra pelas horas dela. Sem tela ainda.'],
             'Refazer' => ['parcial', 'SituacaoDaOrdem::refazer volta a OS por item a Em execução. Sem tela ainda.'],
             'Concluir item' => ['parcial', 'A última etapa concluída executa Concluir item (SituacaoDaOrdem::concluirItemSeTerminou): OS pronta e custo real congelado (CustoRealService::daOs). Não baixa o material real (decisão pendente).'],
-            'Cancelar item' => ['parcial', 'SituacaoDaOrdem::cancelarItem, antes de liberar, cancela as etapas programadas. Não lança consumo como perda nem libera reserva. Sem tela ainda.'],
+            'Cancelar item' => ['parcial', 'SituacaoDaOrdem::cancelarItem, antes de liberar, cancela as etapas programadas e o fim da OS libera a reserva. A venda cancelada cancela as OS dela em qualquer etapa aberta (cancelar_pela_venda, P-113), sem lançar o material baixado como perda nem devolvê-lo (decisão B3 em aberto). Sem tela ainda.'],
             'Aguardando material → Cancelada · Cancelar item' => ['parcial', 'SituacaoDaOrdem::cancelarItem também cancela a OS em Aguardando material e as etapas programadas. Não lança consumo como perda nem libera reserva. Sem tela ainda.'],
         ],
         // Entrega: as ações vivem no processo os_comunicacao_visual (instalação), que nenhuma tela inicia.

@@ -257,3 +257,88 @@ it('UC-PCRES-08 · "Concluir produção" e "reabrir" da venda não baixam nem so
     (new \App\Domain\Fsm\SideEffects\LiberarReserva)->execute($tx);
     expect(DB::table('stock_reservations')->where('id', $daOs->id)->value('status'))->toBe('active');
 });
+
+/** Cancela a venda pelo caminho do motor (troca de etapa autorizada), como o UC-PCRES-06. */
+function cancelarVendaRes($t): void
+{
+    $ids = app(AplicarModelo::class)->aplicar($t->b98, 'cv-pequena');
+    $cancelado = SaleProcessStage::where('process_id', $ids['venda'])->where('is_cancelled', true)->firstOrFail();
+    $tx = Transaction::withoutGlobalScopes()->findOrFail($t->venda); // SUPERADMIN: fixture da empresa 98.
+    FsmAuthorizationFlag::mark(Transaction::class, $tx->id);
+    $tx->current_stage_id = $cancelado->id;
+    $tx->save();
+}
+
+it('UC-PCCAN-01 · a venda cancelada cancela a OS em execução; o material já baixado fica como está (B3)', function () {
+    [$ordem, $etapa, $inicio] = ($this->novaOs)();
+    ($this->baixar)($etapa, '2');
+    expect(($this->saldo)())->toBe('8.0000')->and(($this->reservado)())->toBe('3.0000');
+
+    cancelarVendaRes($this);
+
+    expect($ordem->fresh()->currentStage->key)->toBe('cancelada')->and($etapa->fresh()->status)->toBe('cancelada');
+    $hist = DB::table('sale_stage_history as h')->join('sale_stage_actions as a', 'a.id', '=', 'h.action_id')
+        ->where('h.business_id', $this->b98)->where('h.transaction_id', $ordem->id)->where('a.key', 'cancelar_pela_venda')->value('h.payload_snapshot');
+    $p = json_decode((string) $hist, true);
+    expect($p['situacao_anterior'])->toBe('em_execucao')->and($p['transaction_id'])->toBe($this->venda)
+        ->and($p['material_baixado'])->toBe([['variation_id' => $this->vLona, 'quantidade' => '2.0000']]);
+    // À mão: saldo 10 − 2 = 8, nada volta nem sai a mais. 2º caminho: 10 − soma de pcp_consumos.
+    $consumido = (string) DB::table('pcp_consumos')->where('business_id', $this->b98)->where('ordem_id', $ordem->id)->sum('quantidade');
+    expect(($this->saldo)())->toBe('8.0000')->and($consumido)->toBe('2.0000');
+    // Reserva: 5 − 2 = 3 sobrando, liberados.
+    expect(($this->reservado)())->toBe('0.0000')->and((string) ($this->reserva)()[0]->qty_reserved)->toBe('3.0000');
+
+    // Nova baixa recusada; o saldo segue 8 (antes desta mudança iria a 7).
+    expect(fn () => ($this->baixar)($etapa, '1'))
+        ->toThrow(fn (\Modules\Producao\Exceptions\ApontamentoRecusado $e) => expect($e->codigo)->toBe(\Modules\Producao\Exceptions\ApontamentoRecusado::OS_NAO_LIBERADA));
+    expect(($this->saldo)())->toBe('8.0000');
+
+    // Parar o relógio grava o tempo e não ressuscita a etapa; cancelar de novo não faz nada.
+    app(ApontamentoOperadorService::class)->concluir($this->b98, $this->op1->id, $inicio->id, 'c-'.uniqid(), now());
+    expect($etapa->fresh()->status)->toBe('cancelada')->and($ordem->fresh()->currentStage->key)->toBe('cancelada');
+    expect(app(SituacaoDaOrdem::class)->cancelarPelaVenda($this->b98, $this->venda))->toBe(0);
+});
+
+it('UC-PCCAN-02 · a OS ainda não liberada também é cancelada e não aponta', function () {
+    // SUPERADMIN: fixture da empresa 98.
+    $ordem = Ordem::withoutGlobalScopes()->create(['business_id' => $this->b98, 'transaction_id' => $this->venda,
+        'transaction_sell_line_id' => random_int(1000000, 9999999), 'product_id' => $this->banner, 'variation_id' => $this->vBanner,
+        'quantidade' => '1.0000', 'current_stage_id' => app(ProcessoDaOrdem::class)->etapaInicial($this->b98)->id]);
+    $posto = Posto::withoutGlobalScopes()->create(['business_id' => $this->b98, 'codigo' => 'IMP-'.uniqid(), 'nome' => 'Impressão',
+        'tipo_custo' => 'pessoa', 'custo_hora' => '30.00']);
+    $etapa = Programacao::withoutGlobalScopes()->create(['business_id' => $this->b98, 'os_tipo' => Ordem::OS_TIPO, 'os_id' => $ordem->id,
+        'posto_id' => $posto->id, 'bloco' => 1, 'trilha' => 0, 'nome' => 'Impressão', 'user_id' => $this->op1->id,
+        'inicio_previsto' => now(), 'fim_previsto' => now()->addHour(), 'status' => 'pendente', 'created_by' => $this->pcp->id]);
+
+    cancelarVendaRes($this);
+
+    expect($ordem->fresh()->currentStage->key)->toBe('cancelada')->and($etapa->fresh()->status)->toBe('cancelada');
+    expect(fn () => app(ApontamentoOperadorService::class)->iniciar($this->b98, $this->op1->id, $etapa->id, 'i-'.uniqid(), now()))
+        ->toThrow(fn (\Modules\Producao\Exceptions\ApontamentoRecusado $e) => expect($e->codigo)->toBe(\Modules\Producao\Exceptions\ApontamentoRecusado::ETAPA_ENCERRADA));
+});
+
+it('UC-PCCAN-03 · OS de venda cancelada por fora do motor (dado antigo) segue viva, mas não baixa material', function () {
+    [$ordem, $etapa] = ($this->novaOs)();
+    $ids = app(AplicarModelo::class)->aplicar($this->b98, 'cv-pequena');
+    $cancelado = SaleProcessStage::where('process_id', $ids['venda'])->where('is_cancelled', true)->firstOrFail();
+    // Sem evento de Model: simula a venda cancelada antes desta mudança.
+    DB::table('transactions')->where('business_id', $this->b98)->where('id', $this->venda)->update(['current_stage_id' => $cancelado->id]);
+
+    expect($ordem->fresh()->currentStage->key)->toBe('em_execucao');
+    expect(fn () => ($this->baixar)($etapa, '1'))
+        ->toThrow(fn (\Modules\Producao\Exceptions\ApontamentoRecusado $e) => expect($e->getMessage())->toContain('venda desta OS foi cancelada'));
+    expect(($this->saldo)())->toBe('10.0000');
+});
+
+it('UC-PCCAN-04 · Tier 0: a 99 não cancela nem enxerga como cancelada a venda da 98', function () {
+    [$ordem] = ($this->novaOs)();
+    expect(app(SituacaoDaOrdem::class)->cancelarPelaVenda($this->b99, $this->venda))->toBe(0);
+    expect($ordem->fresh()->currentStage->key)->toBe('em_execucao');
+
+    cancelarVendaRes($this);
+    $osDaVenda = app(\Modules\Producao\Services\OsDaVenda::class);
+    expect($osDaVenda->vendaCancelada($this->b99, $this->venda))->toBeFalse()
+        ->and($osDaVenda->vendaCancelada($this->b98, $this->venda))->toBeTrue();
+    // Controle positivo: na 98 a OS foi cancelada.
+    expect($ordem->fresh()->currentStage->key)->toBe('cancelada');
+});

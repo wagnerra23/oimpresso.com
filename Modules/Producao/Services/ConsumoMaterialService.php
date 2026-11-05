@@ -112,6 +112,10 @@ final class ConsumoMaterialService
                 default => 'Esta OS não está em produção.',
             }, ['programacao_id' => $etapa->id, 'situacao' => $situacao]);
         }
+        // P-113: OS de venda cancelada antes de a venda passar a cancelar as OS segue viva; não baixa.
+        if (app(OsDaVenda::class)->vendaCancelada($businessId, $ordem->transaction_id !== null ? (int) $ordem->transaction_id : null)) {
+            throw new ApontamentoRecusado(ApontamentoRecusado::OS_NAO_LIBERADA, 'A venda desta OS foi cancelada.', ['programacao_id' => $etapa->id]);
+        }
 
         $localId = DB::table('transactions')->where('business_id', $businessId)->where('id', $ordem->transaction_id)->value('location_id')
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'A venda desta OS não tem local de estoque.');
