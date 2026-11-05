@@ -113,7 +113,7 @@ final class ConsumoMaterialService
             }, ['programacao_id' => $etapa->id, 'situacao' => $situacao]);
         }
         // P-113: OS de venda cancelada antes de a venda passar a cancelar as OS segue viva; não baixa.
-        if (app(OsDaVenda::class)->vendaCancelada($businessId, $ordem->transaction_id !== null ? (int) $ordem->transaction_id : null)) {
+        if (app(OsDaVenda::class)->vendaCancelada($businessId, (int) $ordem->transaction_id)) {
             throw new ApontamentoRecusado(ApontamentoRecusado::OS_NAO_LIBERADA, 'A venda desta OS foi cancelada.', ['programacao_id' => $etapa->id]);
         }
 

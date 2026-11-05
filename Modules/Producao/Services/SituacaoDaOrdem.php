@@ -55,7 +55,7 @@ final class SituacaoDaOrdem
             'retrabalho' => 'Esta OS está em retrabalho: o PCP precisa mandar refazer.',
             'concluida', 'cancelada' => 'Esta OS já foi encerrada.',
             // P-113: OS de venda cancelada antes de a venda passar a cancelar as OS segue viva; recusa.
-            default => app(OsDaVenda::class)->vendaCancelada($businessId, $ordem->transaction_id !== null ? (int) $ordem->transaction_id : null)
+            default => app(OsDaVenda::class)->vendaCancelada($businessId, (int) $ordem->transaction_id)
                 ? 'A venda desta OS foi cancelada.' : null,
         };
         if ($recusa !== null) {
