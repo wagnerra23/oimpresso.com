@@ -54,6 +54,8 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-29 | app da Google Play abre em `/fisio/app`, que só pede o link da clínica | must | `FisioPortalAppTest` |
 | UC-FPP-33 | Hoje mostra missões e medalhas; no dia de pausa, nada disso | must | `FisioJogoConstanciaTest` |
 | UC-FPP-34 | desafio da semana: aceitar ou "Agora não", sem perder nada | must | `FisioJogoConstanciaTest` |
+| UC-FPP-50 | Configurações mostra o estado real de cada autorização | should | `FisioPortalConfiguracoesTest` |
+| UC-FPP-51 | cada chave muda só a sua finalidade, e o envio de WhatsApp obedece | must | `FisioPortalConfiguracoesTest` |
 
 ---
 
@@ -257,7 +259,20 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - `[BACKLOG]` Aviso fixo "Se for uma emergência, ligue 192" no dia de pausa — segurado pela ADR 0437 §14 nº 9 até parecer regulatório.
 - `[BACKLOG]` Crise por mais de 3 dias seguidos avisar o profissional (protocolo 11) — sem regra testável no AtencaoDetector ainda.
 
+## UC-FPP-50 · Configurações mostra as autorizações de verdade · `should`
+- **Persona:** paciente que quer conferir o que autorizou.
+- **Aceite:** Dado o portal aberto na etapa Hoje · Quando toca em "Configurações e autorizações" · Então vê Meu tratamento, Lembretes no WhatsApp e Câmera com o estado que o servidor tem (protótipo `PacienteConfig.dc.html`). Ligar uma chave grava o aceite na versão vigente.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalConfiguracoesTest.php`
+- **Status: 🧪**
+
+## UC-FPP-51 · Cada autorização é separada `[T0]` · `must`
+- **Aceite:** Quando o paciente desliga "Lembretes no WhatsApp" · Então o Fisio para de mandar WhatsApp para ele e o tratamento continua; religar volta. Desligar "Meu tratamento" pede confirmação e o portal volta a pedir a autorização (UC-FPP-06). O link de um paciente nunca muda a autorização de paciente de outra clínica.
+- **Regressão que defende:** paciente que tirou a autorização de WhatsApp continuar recebendo mensagem (LGPD).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalConfiguracoesTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-04 · Lote 5 — tela de Configurações do paciente (`_components/Configuracoes.tsx`), só as autorizações por finalidade; horário do lembrete, acessibilidade e "meus dados" do protótipo ficam fora até o servidor sustentar. UC-FPP-50..51 entram com `FisioPortalConfiguracoesTest`.
 - 2026-10-19 · T-08c (parte com fonte) — missões de hoje, desafio da semana e medalhas na tela Hoje (`_components/Constancia.tsx`, rota `fisio.portal.desafio`). UC-FPP-33..34 entram com `FisioJogoConstanciaTest`.
 - 2026-10-19 · T-13 (parte 2) — fila offline do check-in no aparelho lembrado (`portal.ts`), reenvio ao abrir a tela e quando a internet volta, chave por envio (`fisio_checkins.client_key`). UC-FPP-30..32 entram com `FisioPortalFilaOfflineTest`.
 - 2026-10-19 · T-13 (parte 1) — app instalável: manifesto por link, ícones, service worker que guarda a tela do dia só em aparelho lembrado, convite de instalação. UC-FPP-26..28 entram com `FisioPortalAppTest`.
