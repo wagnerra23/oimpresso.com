@@ -710,6 +710,11 @@ class ProductController extends Controller
                 $composicao[] = $item;
             }
         }
+        // UC-PIDX-40: quantos kits completos os componentes permitem em cada local, e quem limita.
+        $kits = $tipo === 'combo' && $modelosVariacao->first() !== null
+            ? $this->kitsPorLocal($business_id, $produto, $modelosVariacao->first()->combo_variations ?? [])
+            : null;
+
         // "Total líquido" do protótipo: a soma dos totais dos itens, a mesma conta de cada linha.
         $composicaoTotalExc = $verCusto && $tipo === 'combo'
             ? (float) array_sum(array_column($composicao, 'total_exc'))
@@ -773,6 +778,7 @@ class ProductController extends Controller
             ],
             'variacoes' => $variacoes,
             'composicao' => $composicao,
+            'kits_por_local' => $kits,
             'composicao_total_exc' => $composicaoTotalExc,
             'estoque' => $estoque,
             'estoque_totais' => $estoqueTotais,
@@ -945,6 +951,74 @@ class ProductController extends Controller
             if ($maior !== null) {
                 $out[(int) $row->id] = ['nome' => (string) $maior->actual_name, 'fator' => (float) $maior->base_unit_multiplier];
             }
+        }
+
+        return $out;
+    }
+
+    /**
+     * UC-PIDX-40: quantos kits completos dá para vender em cada local, pelo saldo dos componentes, e qual
+     * componente limita. É a conta do núcleo para o combo na venda (`ProductUtil::calculateComboQuantity`):
+     * por componente que controla estoque, saldo no local ÷ (quantidade no kit × multiplicador da unidade
+     * do item); vale o menor, arredondado para baixo. Componente que não controla estoque não limita.
+     * Diferença de propósito: lá um componente com saldo zero que vem primeiro na lista não zera o resultado
+     * (o `0` faz as vezes de "ainda não calculado"); aqui zero é zero, em qualquer ordem. Contas em 4 casas,
+     * como a quantidade do estoque.
+     *
+     * Locais: os do kit (`product_locations`) que o usuário pode ver; kit sem local, todos os que ele vê.
+     * null quando nenhum componente controla estoque (não há o que limitar).
+     *
+     * @param  array<int, array{variation_id:int|string, quantity:int|float|string, unit_id:int|string|null}>  $combo
+     * @return list<array{local:string, kits:int, limita:string}>|null
+     */
+    protected function kitsPorLocal(int $business_id, Product $kit, array $combo): ?array
+    {
+        $itens = [];
+        foreach ($this->productUtil->__getComboProductDetails($combo, $business_id) as $c) {
+            $var = $c['variation'];
+            if ($var === null || (int) $var->product->enable_stock !== 1) {
+                continue;
+            }
+            $porKit = (int) round((float) $c['quantity'] * (float) $c['multiplier'] * 10000);
+            if ($porKit <= 0) {
+                continue;
+            }
+            $itens[] = [
+                'variation_id' => (int) $var->id,
+                'nome' => $var->product->name . ($var->product->type === 'variable' ? ' - ' . $var->name : ''),
+                'por_kit' => $porKit,
+            ];
+        }
+        if ($itens === []) {
+            return null;
+        }
+
+        $permitidos = auth()->user()->permitted_locations($business_id);
+        $doKit = DB::table('product_locations')->where('product_id', $kit->id)->pluck('location_id')->map(fn ($l) => (int) $l)->all();
+        $locais = DB::table('business_locations')->where('business_id', $business_id)
+            ->when($doKit !== [], fn ($q) => $q->whereIn('id', $doKit))
+            ->when($permitidos != 'all', fn ($q) => $q->whereIn('id', $permitidos))
+            ->orderBy('name')->get(['id', 'name']);
+
+        $saldos = DB::table('variation_location_details')
+            ->whereIn('variation_id', array_column($itens, 'variation_id'))
+            ->whereIn('location_id', $locais->pluck('id')->all())
+            ->get(['variation_id', 'location_id', 'qty_available'])
+            ->mapWithKeys(fn ($r) => [$r->variation_id . ':' . $r->location_id => (int) round((float) $r->qty_available * 10000)]);
+
+        $out = [];
+        foreach ($locais as $local) {
+            $menor = null;
+            $limita = '';
+            foreach ($itens as $i) {
+                $saldo = max(0, $saldos[$i['variation_id'] . ':' . $local->id] ?? 0);
+                $kits = intdiv($saldo, $i['por_kit']);
+                if ($menor === null || $kits < $menor) {
+                    $menor = $kits;
+                    $limita = $i['nome'];
+                }
+            }
+            $out[] = ['local' => (string) $local->name, 'kits' => (int) $menor, 'limita' => $limita];
         }
 
         return $out;

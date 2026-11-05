@@ -93,6 +93,18 @@ const MENU = [
       { id: "vest-etiquetas", icon: "print", label: "Etiquetas" },
       { id: "vest-remarcacao", icon: "percent", label: "Remarcação por coleção" },
     ]},
+    // Fisio (Modules/Fisio · COMERCIAL no vivo, só para a empresa com o módulo no pacote). As telas são
+    // as do canvas Prescreve Pro (prototipos/fisio/); a ordem segue a ADR 0437 §3.3. O canvas não desenha
+    // a lista de pacientes, por isso ela não entra aqui. As outras telas ficam no seletor da página.
+    { id: "fisio",       icon: "users",   label: "Fisio", ghosts: [
+      { id: "fisio-prescrever",  icon: "doc",   label: "Prescrever" },
+      { id: "fisio-biblioteca",  icon: "book",  label: "Biblioteca" },
+      { id: "fisio-agenda",      icon: "clock", label: "Agenda" },
+      { id: "fisio-protocolos",  icon: "list",  label: "Protocolos" },
+      { id: "fisio-tele",        icon: "phone", label: "Teleconsulta" },
+      { id: "fisio-financeiro",  icon: "cash",  label: "Financeiro" },
+      { id: "fisio-p-hoje",      icon: "globe", label: "Portal do paciente" },
+    ]},
   ]},
   { group: "FINANÇAS", items: [
     { id: "venda-caixa", icon: "cash", label: "Caixa" },
@@ -137,8 +149,8 @@ const MENU = [
       { id: "fiscal-das",     icon: "calc",    label: "Apuração do DAS" },
     ]},
   ]},
-  // No vivo também aparecem Reservas, Cozinha e Pedidos (restaurante) aqui e Fisio em COMERCIAL,
-  // só para a empresa que tem o módulo no pacote. O protótipo desenha uma empresa sem eles.
+  // No vivo também aparecem Reservas, Cozinha e Pedidos (restaurante) aqui, só para a empresa que
+  // tem o módulo no pacote. O protótipo desenha uma empresa sem eles. (A Fisio entrou em COMERCIAL.)
   { group: "PRODUÇÃO", items: [
     // Produção (comunicação visual) — OS como projeto. Entra 1º: é a visão do PCP sobre as OS abaixo.
     { id: "pcv", icon: "layers", label: "Painel de produção", ghosts: [
@@ -224,25 +236,20 @@ const MENU = [
       { id: "comissoes",     icon: "chart",  label: "Apuração de comissão" },
     ]},
     { id: "prefs",       icon: "cog",   label: "Preferências" },
-    // Grupo "Configurações" do menu legado (AdminLTE) — importado do blade business/settings + cadastros
+    // Grupo "Configurações" — os 11 itens do AdminSidebarMenu.php, na mesma ordem (a própria
+    // Configuração da empresa é o item pai). Reservas, Cozinha e Pedidos ficam nas abas de Mesas.
+    // Canais de atendimento fica aqui até o protótipo ter o grupo Atendimento, onde o vivo o põe.
     { id: "cfg-empresa", icon: "cog", label: "Configurações", ghosts: [
-      { id: "cfg-primeiros-passos", icon: "check", label: "Primeiros passos" },
       { id: "cfg-locais",        icon: "globe",  label: "Locais comerciais" },
       { id: "cfg-fatura",        icon: "receipt", label: "Configurações da fatura" },
       { id: "cfg-barras",        icon: "grid",   label: "Código de barras" },
       { id: "notificacoes",      icon: "bell",   label: "Modelos de notificação" },
       { id: "cfg-impressoras",   icon: "print",  label: "Impressoras de recibos" },
       { id: "cfg-impostos",      icon: "cash",   label: "Taxas de imposto" },
+      { id: "cfg-mesas",         icon: "grid",   label: "Mesas" },
       { id: "cfg-modificadores", icon: "wrench", label: "Modificadores" },
       { id: "cfg-servicos",      icon: "check",  label: "Tipos de serviço" },
-      { id: "cfg-mesas",         icon: "grid",   label: "Mesas" },
-      { id: "cfg-atendentes",    icon: "users",  label: "Atendentes" },
-      { id: "cfg-reservas",      icon: "calendar", label: "Reservas" },
-      { id: "cfg-cozinha",       icon: "list",   label: "Cozinha" },
-      { id: "cfg-pedidos-rest",  icon: "orders", label: "Pedidos do restaurante" },
       { id: "cfg-pacote",        icon: "refresh", label: "Assinatura de pacote" },
-      { id: "superadmin-pagar",  icon: "cash",    label: "Pagar assinatura" },
-      { id: "exportar-dados",    icon: "archive", label: "Exportar dados da empresa" },
       { id: "atendimento-canais", icon: "inbox",  label: "Canais de atendimento" },
     ]},
     { id: "relatorios",  icon: "chart", label: "Relatórios", ghosts: [
