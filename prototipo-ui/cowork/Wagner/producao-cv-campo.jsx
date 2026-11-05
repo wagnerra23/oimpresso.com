@@ -69,7 +69,7 @@ function Apontamento() {
         {passo === "etapa" && <div className="pcv-ap">
           <div><span className="pcv-eyebrow">{os.cliente}</span><b className="pcv-ap-t">{et.nome}</b><small>{maq ? maq.nome : ""} · previsto {D.h1(et.prev)} h</small></div>
           <div className={"pcv-crono" + (rodando ? " is-on" : "")} role="timer" aria-live="off" aria-label={"Tempo apontado " + hms(seg)}>{hms(seg)}</div>
-          <div className="pcv-ap-arq"><Ic name="doc" size={16} /><div><b>arte-final-v3.pdf</b><small>versão aprovada pelo cliente</small></div></div>
+          {(() => { const vig = D.arteVigente(os); /* UC-PCV-11: sempre a última aprovada, mesmo com troca esperando o cliente */ return <div className="pcv-ap-arq"><Ic name="doc" size={16} /><div><b>{vig ? "v" + vig.v + " · " + D.nomeArq(vig.arquivo) : "Sem arte aprovada"}</b><small>{vig ? "versão aprovada pelo cliente" : "a etapa espera a aprovação do cliente"}</small></div></div>; })()}
           {Input && <Input label="Mídia usada até agora (m²)" value={m2} placeholder="ex.: 58" onChange={(e) => setM2(e.target.value)} help="Baixa no estoque: Vinil branco brilho 1,37 m" />}
           <button className="pcv-ap-ref" onClick={() => marca("Refugo: 1,2 m² — mídia com defeito")}>Registrar refugo</button>
           {log.length > 0 && <ol className="pcv-hist">{log.map((l, i) => <li key={i}><b>{l.ev}</b><small>{l.quando}</small></li>)}</ol>}

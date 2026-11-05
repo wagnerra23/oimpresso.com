@@ -2,7 +2,7 @@
 id: requisitos-fisio-spec
 module: Fisio
 version: "1.0"
-last_updated: "2026-10-19"
+last_updated: "2026-11-04"
 owner: wagner
 status: rascunho
 status_nota: "ativo desde 2026-10-18 (ADR 0437 aceita); F1 no main, atrás do pacote fisio_module; em 2026-10-19 só US-FISIO-011 (texto dos questionários) e US-FISIO-012 seguem abertas"
@@ -214,3 +214,95 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 > owner: — · priority: p0 · estimate: 10h · status: todo · type: story
 > blocked_by: US-FISIO-015. A9 (horários livres dentro das regras), A7 ("me avise se abrir vaga"), A6 (confirmar / remarcar / não vou poder ir pelo link da mensagem), A19 ("Cheguei" a partir de 1 h antes), A20 (recado ao marcar; nota 1–5 privada), remarcar e cancelar até o prazo da política, bloqueio por faltas. Dependentes (A16) e sinal por Pix (A17) entram depois, com o consentimento do responsável legal e com o Financeiro.
+
+## F3 · Dinheiro — mapa de donos (F3-T01, lote 4 do protótipo Prescreve Pro)
+
+> Origem: [W] 2026-11-04 pediu levar o protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/` para produção em lotes. Este é o lote 4: `Financeiro.dc.html` (aba "Pacote e cobrança" da ficha), `FiscalFila.dc.html` (documentos fiscais do dia) e `Planos.dc.html`. Regra de [W] para o lote: **nenhum financeiro paralelo**. O Fisio mostra e dispara; título, nota e assinatura ficam nos módulos donos. A F3 ainda não passou pelo funil da ADR 0368 (F3-T00); estas US registram o levantamento F3-T01 e o que o lote 4 constrói sem escrever valor.
+
+### Varredura do núcleo (medida em 2026-11-04 sobre `origin/main` 3583e435c2, repo inteiro com `git grep`)
+
+| pergunta | resposta medida | consequência para o Fisio |
+|---|---|---|
+| Quem cria `fin_titulos` fora do próprio Financeiro? | 7 chamadas `Titulo::create(` fora de teste e seeder: 5 dentro de `Modules/Financeiro` (Unificado, Impostos, Dda, TituloAuto, listener de cobrança paga), 1 em `Modules/PaymentGateway` (importação Inter), 1 em `app/Http/Controllers/Api/App`. Não há serviço público para outro módulo criar título; cada um repete numeração e campos. | O Fisio **não** chama `Titulo::create`. O único caminho já ligado de ponta a ponta para empresa cliente é a **venda do núcleo**: `transactions` → `TituloAutoService::sincronizarDeVenda` cria o título; `transaction_payments` → `registrarPagamento` dá a baixa. |
+| O RecurringBilling grava título no Financeiro? | 0 ocorrências de `fin_titulos` ou `Titulo` em `Modules/RecurringBilling`. A fatura recorrente vive em `rb_invoices`; o valor `recurring` do enum `fin_titulos.origem` só é lido. | Mensalidade de paciente pelo RecurringBilling não aparece no Financeiro hoje. Lacuna do núcleo, não do Fisio. |
+| A NFS-e emite o grupo IBS/CBS? | 0 arquivos de `Modules/NFSe` (fora teste) citam IBS ou CBS. Controle: a mesma busca acha 10 em `Modules/NfeBrasil`. A emissão se liga à venda por `nfse_emissoes.transaction_id`. | Destaque de IBS/CBS na NFS-e é obrigatório desde 01/10/2026 (etapa F3 §3.5). Dívida do núcleo NFSe, que bloqueia a emissão real para clínica CNPJ. |
+| Existe Receita Saúde no código? | 0 arquivos `.php`, `.ts` ou `.tsx`. | É o único pedaço fiscal que o Fisio guarda (etapa F3 §3.7), e só a marca de emissão. O valor fica no `transaction_payments`. |
+| A empresa diz se atende como pessoa física ou jurídica? | Não há campo no núcleo (`nfe_business_configs.regime` não tem PF). O lote 5 cria `fisio_settings` com a chave `atendimento.tipo` (`pf` ou `pj`). | O lote 4 lê essa chave; sem ela, a tela mostra as duas abas e não esconde Pix Automático. |
+| CPF de quem paga | `contacts.cpf_cnpj` existe (migração `2026_05_21_140000`). | A fila do Receita Saúde lê o CPF do contato pagador; sem CPF, o recibo fica "falta CPF do pagador". |
+| De onde vêm os planos do `Planos.dc.html`? | É o preço do **produto Fisio para o profissional**, não do paciente. A venda de plano do oimpresso é o Superadmin (`packages` com `fisio_module` em `package_details`), cobrada pelo PaymentGateway com `origem_type='subscription_license'`. | Dono é o **Superadmin**, não o RecurringBilling. O Fisio não tem tela de planos. |
+
+### Mapa tela → módulo dono
+
+| tela do protótipo | bloco | dono | o Fisio guarda | o Fisio faz |
+|---|---|---|---|---|
+| `Financeiro.dc.html` | "Pacote atual · 6 / 10" e "Sessões do pacote" | **Fisio** | `fisio_packages` (sessões, validade, `transaction_id`) e `fisio_package_ledger` append-only, sem valor em dinheiro | mostra o saldo derivado e consome ou estorna sessão |
+| `Financeiro.dc.html` | "Cobrança" (títulos pago e a gerar) | **Financeiro** (`fin_titulos` da venda) | `transaction_id` no pacote | lê os títulos pelo model do Financeiro, filtrados por empresa e pela venda do pacote |
+| `Financeiro.dc.html` | "Renovar pacote" e meios (Pix Automático só CNPJ) | **Sells** (venda) + **Financeiro** (`LinkDePagamentoDoTitulo`) + **RecurringBilling** (mensalidade e Pix Automático) | nada | abre a venda e o link de pagamento do núcleo |
+| `Financeiro.dc.html` | "Fiscal · NFS-e autorizada" | **NFSe** (`nfse_emissoes` por `transaction_id`) | nada | mostra o status |
+| `FiscalFila.dc.html` | aba "Clínica (CNPJ)": NFS-e do dia | **NFSe** | nada | lista as emissões do dia das vendas a pacientes, com "Corrigir" levando ao contato |
+| `FiscalFila.dc.html` | aba "Autônomo (CPF)": fila do Receita Saúde | **Fisio** (`fisio_health_receipts`, só marca) sobre `transaction_payments` | id do pagamento, número do recibo, quem marcou e quando | monta a fila do dia e marca "enviado" |
+| `FiscalFila.dc.html` | "Baixar o lote do dia" | **Fisio** | nada | só depois do layout oficial (US-FISIO-024) |
+| `Planos.dc.html` | planos e adicional NFS-e | **Superadmin** (`packages`) + **PaymentGateway** (`subscription_license`) | nada | nada; preço é decisão de [W] |
+
+**Menu (sem tocar em `DataController.php`).** Proposta: não criar item "Financeiro" dentro do Fisio. O pacote é uma aba da ficha do paciente e o dinheiro já tem o item Financeiro do ERP. A fila fiscal, no protótipo, aparece com o item **Fiscal** do ERP ativo. Ela entra como sub-item do Fisio ("Fiscal do dia") só se [W] preferir; menu é decisão dele.
+
+### US-FISIO-020 · Pacote de sessões com saldo derivado de ledger append-only — **P0**
+
+**Implementado em:** _pendente_ — lote 4, PR de schema.
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: nenhum. Etapa F3 §3.4.2 e F3-T08 (parte sem dinheiro). `fisio_packages` (business_id, patient_id, sessões contratadas, validade, `transaction_id` nulo até a venda existir) e `fisio_package_ledger` (crédito na abertura, débito por sessão, estorno por lançamento inverso). Nenhuma coluna de valor em dinheiro.
+
+**DoD:** saldo = soma do ledger, nunca coluna editável; ledger sem UPDATE nem DELETE (trigger, como `fisio_game_ledger`); débito além do saldo recusado; validade vencida bloqueia débito e a extensão fica registrada; pacote de outra empresa não aparece nem aceita débito (98×99).
+
+### US-FISIO-021 · Tela "Pacote e cobrança" da ficha do paciente — **P0**
+
+**Implementado em:** _pendente_ — lote 4, PR de tela.
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: US-FISIO-020. Fonte de design `prototipo-ui/cowork/Wagner/prototipos/fisio/Financeiro.dc.html`. Página própria em `/fisio/pacientes/{id}/pacote` (a barra de abas da ficha é do lote 1). Só leitura de dinheiro: títulos e nota vêm do Financeiro e do NFSe pela venda do pacote.
+
+**DoD:** mostra saldo, sessões do ledger, títulos da venda do pacote e status da NFS-e; empresa sem venda ligada mostra estado vazio sem erro; Pix Automático só aparece para `atendimento.tipo = pj`; paciente de outra empresa 404; nenhum valor gravado pela tela.
+
+### US-FISIO-022 · Vender e renovar pacote pela venda do núcleo — **P0**
+
+**Implementado em:** _pendente_ — depende de aprovação de [W] (regra mestre de valor).
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> blocked_by: US-FISIO-020, contato e produto pré-preenchidos na tela de venda (núcleo Sells), aprovação de [W] com dupla confirmação do cálculo e tabela antes→depois (`memory/proibicoes.md`, regra mestre). "Renovar pacote" abre a venda do núcleo com o paciente e o serviço do pacote; ao finalizar, a venda é ligada ao pacote (`transaction_id`) e o crédito de sessões entra no ledger. Parcelado = parcelas da venda; mensalidade = RecurringBilling; Pix e cartão = `LinkDePagamentoDoTitulo` do Financeiro.
+
+**DoD:** nenhum `Titulo::create` no Fisio; o título nasce do `TituloAutoService`; o valor do pacote só existe na venda; venda cancelada estorna o crédito de sessões por lançamento inverso.
+
+### US-FISIO-023 · Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0**
+
+**Implementado em:** _pendente_ — lote 4, PR da fila fiscal.
+
+> owner: — · priority: p0 · estimate: 5h · status: todo · type: story
+> blocked_by: nenhum. Fonte de design `FiscalFila.dc.html`. Vale para qualquer venda do núcleo cujo cliente é paciente do Fisio (pacote ou sessão avulsa), então funciona antes da US-FISIO-022. NFS-e: leitura de `nfse_emissoes` do dia. Receita Saúde: um item por `transaction_payments` do dia de venda a paciente; `fisio_health_receipts` guarda só `payment_id`, status (`pendente`, `enviado`, `retificar`), número do recibo, quem marcou e quando. Valor e data vêm do pagamento.
+
+**DoD:** pagamento sem CPF do pagador aparece "falta CPF do pagador"; marcar enviado é idempotente; pagamento de outra empresa não aparece nem aceita marca (98×99); nenhuma cópia de valor em tabela do Fisio.
+
+### US-FISIO-024 · Lote do Receita Saúde no layout oficial — **P1**
+
+**Implementado em:** _pendente_ — bloqueado por fonte externa.
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: layout do Manual do Receita Saúde v2.1 (perguntas 24 e 25), ainda não obtido (etapa F3 §3.6, F3-T12). O botão "Baixar o lote do dia" do protótipo fica desligado, com o aviso do próprio protótipo, até lá.
+
+**DoD:** arquivo aceito na importação oficial com 3 recibos de teste.
+
+### US-FISIO-025 · Planos do produto Fisio no Superadmin — **P1**
+
+**Implementado em:** _pendente_ — preço e nomes são decisão de [W].
+
+> owner: wagner · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: decisão de [W] sobre preço, limite de 5 pacientes no plano grátis e desconto de estudante (o protótipo marca "preços de lançamento, a validar no piloto"). Fonte de design `Planos.dc.html`. Os planos são `packages` do Superadmin com `fisio_module`; a cobrança é `subscription_license` do PaymentGateway. O limite de pacientes do plano grátis é regra do Fisio lida do pacote, nunca hardcode por empresa.
+
+**DoD:** empresa no plano grátis não cadastra o 6º paciente; trocar de plano não depende de deploy; o adicional NFS-e liga o módulo NFSe pelo pacote.
+
+### Lacunas do núcleo (viram tarefa do módulo dono, não do Fisio)
+
+1. **NFSe**: grupo IBS/CBS ausente (obrigatório desde 01/10/2026) e preset de fisioterapia (item 4.08, cTribNac 04.08.02, NBS 1.2301.92.00, redução de 60%).
+2. **Financeiro**: falta serviço público para outro módulo criar título a receber; hoje há 7 criadores com a mesma lógica repetida.
+3. **RecurringBilling**: fatura recorrente de empresa cliente não vira título no Financeiro.
+4. **Sells**: a tela de venda não aceita contato e produto pré-preenchidos, que é o que "Renovar pacote" precisa.
