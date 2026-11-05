@@ -3242,6 +3242,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/Painel e fila de atenção do profissional",
       "type": "component",
       "module": "Fisio",
@@ -10060,6 +10067,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/PacientesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro",
       "type": "hasComponent",
       "source": "contains"
     },
