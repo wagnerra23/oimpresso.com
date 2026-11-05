@@ -355,11 +355,16 @@ jobs:
           # com diagnostico, em vez de produzir 23 ERRO de conexao que se leem como veredito
           # de fidelidade. Gate mudo e pior que gate ausente porque parece cobertura.
           echo "PHP_CLI_SERVER_WORKERS=${PHP_CLI_SERVER_WORKERS:-<vazio>} · processos servindo: $(pgrep -fc 'artisan serve' || echo 0)"
-          FALHAS=0
+          # Dois defeitos medidos em 2026-11-05 (run 42068113540): (1) `wait` sem argumento
+          # espera TODOS os filhos, inclusive o `artisan serve` acima, e o passo ficou 45 min
+          # parado depois desta linha até o timeout; (2) `FALHAS=$((FALHAS+1)) &` incrementa
+          # numa subshell e nunca chega ao pai, então o canário não acusava nada. Agora espera
+          # só os PIDs dos curl e conta pelo exit code de cada um.
+          FALHAS=0; PIDS=""
           for i in $(seq 1 6); do
-            curl -sf -o /dev/null --max-time 25 http://127.0.0.1:8000/login || FALHAS=$((FALHAS+1)) &
+            curl -sf -o /dev/null --max-time 25 http://127.0.0.1:8000/login & PIDS="$PIDS $!"
           done
-          wait
+          for p in $PIDS; do wait "$p" || FALHAS=$((FALHAS+1)); done
           echo "canario: $FALHAS falha(s) em 6 requests simultaneos"
           if [ "$FALHAS" -gt 0 ]; then
             echo "::error title=Lote de paridade::servidor NAO aguenta paralelismo ($FALHAS/6 recusados) — abortando em vez de medir o nada. Proximo caminho: servidor fora do processo (FrankenPHP / php -S dedicado), NAO mais workers."
