@@ -55,5 +55,7 @@ export default function ConfiguracoesSubNav({ emLinha = false }: { emLinha?: boo
   );
   // Em linha, a faixa rola por dentro (como .hrm-tabs do protótipo); sem isto o PageHeaderTabs, que é
   // overflow-visible a partir de md, empurra o <main> inteiro para rolar na horizontal.
-  return emLinha ? <div className="min-w-0 overflow-x-auto [scrollbar-width:thin]" data-contract="abas-telas">{abas}</div> : abas;
+  // `hrm-tabs cfg-abas-telas`: a faixa ganha borda, recuo de 24px e as medidas de aba do protótipo
+  // (cowork-configuracoes-bundle.css). Fora de `.cfg-page` essas classes não têm efeito.
+  return emLinha ? <div className="hrm-tabs cfg-abas-telas min-w-0 overflow-x-auto [scrollbar-width:thin]" data-contract="abas-telas">{abas}</div> : abas;
 }

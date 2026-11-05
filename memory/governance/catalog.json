@@ -3165,6 +3165,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/ConfiguracoesController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ConfiguracoesController",
+      "desc": "Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
+    },
+    {
       "id": "component:Fisio/DataController",
       "type": "component",
       "module": "Fisio",
@@ -9987,6 +9994,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Cadastro de pacientes",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/ConfiguracoesController",
       "type": "hasComponent",
       "source": "contains"
     },

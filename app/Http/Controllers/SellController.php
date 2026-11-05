@@ -718,6 +718,66 @@ class SellController extends Controller
         $dayStart = (clone $date)->startOfDay();
         $dayEnd = (clone $date)->endOfDay();
 
+        // Forma de pagamento → rótulo (também usado pelo payload do turno).
+        $payMethodLabels = [
+            'cash' => ['label' => 'Dinheiro', 'icon' => 'cash', 'clearing' => 'imediato'],
+            'card' => ['label' => 'Cartão', 'icon' => 'card', 'clearing' => 'D+1'],
+            'cheque' => ['label' => 'Cheque', 'icon' => 'cheque', 'clearing' => 'compensação'],
+            'bank_transfer' => ['label' => 'Transferência', 'icon' => 'transfer', 'clearing' => 'D+0'],
+            'other' => ['label' => 'Outro', 'icon' => 'other', 'clearing' => '—'],
+            'advance' => ['label' => 'Adiantamento', 'icon' => 'advance', 'clearing' => '—'],
+        ];
+
+        // Agregações do dia: deferidas (RUNBOOK-caixa §3). As 4 props saem do MESMO
+        // cálculo, feito uma vez só por request (memo). A troca de data pede as 4 no
+        // `only:` e elas são calculadas na hora. REGRA MESTRE valor: nenhuma conta mudou.
+        $memoDia = null;
+        $dia = function () use (&$memoDia, $business_id, $dayStart, $dayEnd, $payMethodLabels) {
+            return $memoDia ??= $this->buildCaixaDiaPayload($business_id, $dayStart, $dayEnd, $payMethodLabels);
+        };
+
+        // ── Caixa aberto (UPOS canonical) ──────────────────────────────────────
+        // closure D-14: por user/business, não muda com o filtro de data — pula no
+        // partial reload do onChangeDate (only: porFormaPagamento/...). Memo `static`
+        // garante 1 query só quando caixaAberto + cashRegisterId resolvem no load cheio.
+        $openCashRegister = function () use ($business_id) {
+            static $reg = false;
+            if ($reg === false) {
+                $reg = \App\CashRegister::where('business_id', $business_id)
+                    ->where('user_id', auth()->user()->id)
+                    ->where('status', 'open')
+                    ->orderBy('id', 'desc')
+                    ->first();
+            }
+
+            return $reg;
+        };
+
+        return \Inertia\Inertia::render('Sells/Caixa/Index', [
+            'porFormaPagamento' => \Inertia\Inertia::defer(fn () => $dia()['porFormaPagamento'], 'dia'),
+            'porOrigem' => \Inertia\Inertia::defer(fn () => $dia()['porOrigem'], 'dia'),
+            'totalDia' => \Inertia\Inertia::defer(fn () => $dia()['totalDia'], 'dia'),
+            'countDia' => \Inertia\Inertia::defer(fn () => $dia()['countDia'], 'dia'),
+            'caixaAberto' => fn () => $openCashRegister() !== null,
+            'cashRegisterId' => fn () => $openCashRegister()?->id,
+            'dateSelected' => $date->format('Y-m-d'),
+            'permissions' => [
+                'view' => true, // Já passou o gate acima
+                'close' => auth()->user()->can('close_cash_register'),
+            ],
+            // Thread 07 venda-menu: movimentos do turno aberto. É por turno, não por data
+            // (fica fora do `only:` do onChangeDate). Defer: agrega cash_register_transactions.
+            'turno' => \Inertia\Inertia::defer(fn () => $this->buildCaixaTurnoPayload($business_id, $openCashRegister(), $payMethodLabels)),
+        ]);
+    }
+
+    /**
+     * Agregações do dia da Caixa (UC-SCAIXA-01, 05, 06): total, contagem, por forma de
+     * pagamento e por origem. Código movido de inertiaCaixa sem mudar nenhuma query.
+     * Multi-tenant Tier 0: business_id explícito em toda query.
+     */
+    private function buildCaixaDiaPayload(int $business_id, \Carbon\Carbon $dayStart, \Carbon\Carbon $dayEnd, array $payMethodLabels): array
+    {
         // Base query Transactions vendas final do dia (Tier 0 multi-tenant).
         $base = \App\Transaction::where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
@@ -731,14 +791,6 @@ class SellController extends Controller
 
         // ── Por forma de pagamento ─────────────────────────────────────────────
         // Agrega via transaction_payments (canonical UPOS — pay_method por linha).
-        $payMethodLabels = [
-            'cash' => ['label' => 'Dinheiro', 'icon' => 'cash', 'clearing' => 'imediato'],
-            'card' => ['label' => 'Cartão', 'icon' => 'card', 'clearing' => 'D+1'],
-            'cheque' => ['label' => 'Cheque', 'icon' => 'cheque', 'clearing' => 'compensação'],
-            'bank_transfer' => ['label' => 'Transferência', 'icon' => 'transfer', 'clearing' => 'D+0'],
-            'other' => ['label' => 'Outro', 'icon' => 'other', 'clearing' => '—'],
-            'advance' => ['label' => 'Adiantamento', 'icon' => 'advance', 'clearing' => '—'],
-        ];
 
         $payRows = \DB::table('transaction_payments as tp')
             ->join('transactions as t', 't.id', '=', 'tp.transaction_id')
@@ -814,39 +866,12 @@ class SellController extends Controller
             ];
         })->values()->all();
 
-        // ── Caixa aberto (UPOS canonical) ──────────────────────────────────────
-        // closure D-14: por user/business, não muda com o filtro de data — pula no
-        // partial reload do onChangeDate (only: porFormaPagamento/...). Memo `static`
-        // garante 1 query só quando caixaAberto + cashRegisterId resolvem no load cheio.
-        $openCashRegister = function () use ($business_id) {
-            static $reg = false;
-            if ($reg === false) {
-                $reg = \App\CashRegister::where('business_id', $business_id)
-                    ->where('user_id', auth()->user()->id)
-                    ->where('status', 'open')
-                    ->orderBy('id', 'desc')
-                    ->first();
-            }
-
-            return $reg;
-        };
-
-        return \Inertia\Inertia::render('Sells/Caixa/Index', [
+        return [
             'porFormaPagamento' => $porFormaPagamento,
             'porOrigem' => $porOrigem,
             'totalDia' => $totalDia,
             'countDia' => $countDia,
-            'caixaAberto' => fn () => $openCashRegister() !== null,
-            'cashRegisterId' => fn () => $openCashRegister()?->id,
-            'dateSelected' => $date->format('Y-m-d'),
-            'permissions' => [
-                'view' => true, // Já passou o gate acima
-                'close' => auth()->user()->can('close_cash_register'),
-            ],
-            // Thread 07 venda-menu: movimentos do turno aberto. É por turno, não por data
-            // (fica fora do `only:` do onChangeDate). Defer: agrega cash_register_transactions.
-            'turno' => \Inertia\Inertia::defer(fn () => $this->buildCaixaTurnoPayload($business_id, $openCashRegister(), $payMethodLabels)),
-        ]);
+        ];
     }
 
     /**
@@ -1376,6 +1401,24 @@ class SellController extends Controller
                 ->whereRaw("IF(transactions.pay_term_type='days', DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number DAY) < CURDATE(), DATE_ADD(transactions.transaction_date, INTERVAL transactions.pay_term_number MONTH) < CURDATE())");
         } elseif (in_array($payment_status, ['paid', 'due', 'partial'], true)) {
             $q->where('transactions.payment_status', $payment_status);
+        }
+
+        // UC-SIDX-07 — pílulas Faturada e Cancelada filtram no servidor (antes filtravam só a
+        // página carregada no navegador, e total, paginação e rodapé contavam as outras).
+        // Mesmo critério do `fiscal_status` da linha (lookup abaixo): a emissão da venda, que
+        // é única por (business_id, transaction_id) e exclui a apagada (SoftDeletes do
+        // NfeEmissao). Business no subselect: a nota de outra empresa não marca esta venda
+        // (Tier 0, ADR 0093). Fica antes do clone dos totais, então o rodapé vale para o filtro.
+        $fiscalStatus = (string) $request->input('fiscal_status', '');
+        if (in_array($fiscalStatus, ['autorizada', 'cancelada'], true) && \Illuminate\Support\Facades\Schema::hasTable('nfe_emissoes')) {
+            $q->whereExists(function ($sub) use ($business_id, $fiscalStatus) {
+                $sub->selectRaw('1')
+                    ->from('nfe_emissoes as ne_f')
+                    ->whereColumn('ne_f.transaction_id', 'transactions.id')
+                    ->where('ne_f.business_id', $business_id)
+                    ->whereNull('ne_f.deleted_at')
+                    ->where('ne_f.status', $fiscalStatus);
+            });
         }
 
         // US-SELL-017 — Totalizador rodapé. Calcula totais SOBRE O FILTRO INTEIRO
