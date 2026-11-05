@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 12 |
+| US no SPEC | 16 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 6 |
-| Telas com `casos.md` | 7 |
-| UC declarados | 113 |
-| UC com teste que os cita | 113 |
+| Telas (.tsx) | 7 |
+| Telas com `casos.md` | 8 |
+| UC declarados | 119 |
+| UC com teste que os cita | 119 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -35,6 +35,7 @@ authority: generated
 | `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
 | `US-FISIO-010` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
+| `US-FISIO-013` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Schema da agenda: tipos, atendimentos, bloqueios, lista de e |
 
 ### Backlog — NÃO é lacuna
 
@@ -46,6 +47,9 @@ authority: generated
 | US | status | Título |
 |---|---|---|
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
+| US-FISIO-014 | `todo` | Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0 |
+| US-FISIO-015 | `todo` | Tela Agenda da clínica e configuração do agendamento pelo app — **P0** |
+| US-FISIO-016 | `todo` | Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P |
 
 ## UC por status
 
@@ -65,6 +69,12 @@ authority: generated
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-11 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-12 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FCW-01 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-02 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-03 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-04 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-05 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-06 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FFI-01 | Fiscal/Index | 🧪 aguarda veredito da lane |
 | UC-FFI-02 | Fiscal/Index | 🧪 aguarda veredito da lane |
 | UC-FFI-03 | Fiscal/Index | 🧪 aguarda veredito da lane |

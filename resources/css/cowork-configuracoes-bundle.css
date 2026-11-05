@@ -649,3 +649,17 @@
 .cfg-page .cfg-liga-t{display:flex;flex-direction:column;min-width:0}
 .cfg-page .cfg-liga-t b{font-size:12.5px;font-weight:500;color:var(--text)}
 .cfg-page .cfg-liga-t small{font-size:11px;color:var(--text-mute)}
+/* Cabeçalho comum (ConfiguracoesCabecalho.tsx). Regras do .os-page-h copiadas do styles.css do protótipo
+   (o bundle trouxe só o .os-page-h-r do hrm-page.css), com o mesmo prefixo .cfg-page. */
+.cfg-page .os-page-h{padding:12px 24px;min-height:44px;flex-shrink:0;display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.cfg-page .os-page-h-l{flex:1 1 auto;min-width:0}
+.cfg-page .os-page-h-l h1{margin:0;font-size:var(--fs-7);font-weight:600;letter-spacing:-0.015em;line-height:1.2;text-wrap:balance;color:var(--text)}
+.cfg-page .os-page-h-l p{margin:2px 0 0;font-size:12px;max-width:60ch;text-wrap:pretty;color:var(--text-mute);font-variant-numeric:tabular-nums;line-height:1.4}
+.cfg-page .cfg-resumo{font-size:12px;color:var(--text-mute);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* Abas: no protótipo quem desenha é o TabBar do DS (36px, 0 14px, 13px, peso 500, ativa 600 com só o
+   sublinhado). O PageHeaderTabs da produção pinta a ativa com fundo roxo e a inativa com peso 400. */
+.cfg-page .cfg-abas-telas [role=tab]{height:36px;padding:0 14px;font-size:13px;font-weight:500;line-height:13px;color:var(--text-dim);background:transparent}
+.cfg-page .cfg-abas-telas [role=tab]:hover{background:transparent;color:var(--text)}
+/* O fundo da ativa vem de style inline no PageHeaderTabs; o protótipo zera o do TabBar do mesmo jeito
+   (modulo-padrao.css: .ds-tabbar > button[aria-current=page]{background:transparent !important}). */
+.cfg-page .cfg-abas-telas [role=tab][aria-selected=true]{font-weight:600;color:var(--text);border-bottom-color:var(--accent);background:transparent !important}

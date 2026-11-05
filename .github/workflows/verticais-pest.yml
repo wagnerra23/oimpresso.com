@@ -615,6 +615,9 @@ jobs:
         # consentimento, isolamento 98×99, idempotência persistida, silêncio, teto por hora e wa.me
         # manual sem canal. O caso de integração com o portal real PULA até o US-FISIO-007a entrar.
         #
+        # ENTRA 2026-11-04 — Fisio/FisioConfigWhatsappTest (Lote 5, UC-FCW-01..06): a clínica escolhe o
+        # canal (manual, oficial, QR com aceite de risco) e a escolha muda o canalAtivo real; 98×99.
+        #
         # ENTRA 2026-10-19 — Fisio/FisioPainelEnviosFalhosTest (etapa 02 T-09e, UC-FPN-09): o painel
         # lista o WhatsApp de hoje que não chegou, com wa.me; sucesso some, 99 não vaza, sem
         # consentimento não ganha link.
@@ -812,6 +815,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php \
             Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php \
+            Modules/Fisio/Tests/Feature/FisioConfigWhatsappTest.php \
             Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php \
             Modules/Fisio/Tests/Unit/BibliotecaL0Test.php \
             Modules/Fisio/Tests/Feature/FisioCheckinTest.php \
