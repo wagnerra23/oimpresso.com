@@ -34,7 +34,7 @@ class ProntuarioPdfController extends Controller
 
     public function show(Request $request, int $id): Response
     {
-        $paciente = Patient::query()->findOrFail($id);
+        $paciente = Patient::daSessaoOuFalha($id);
         $biz = (int) $request->session()->get('user.business_id');
 
         $dados = $this->exportacao->montar($paciente, $biz);
@@ -68,7 +68,7 @@ class ProntuarioPdfController extends Controller
      */
     public function laudo(Request $request, int $id, LaudoEvolucao $laudo): Response
     {
-        $paciente = Patient::query()->findOrFail($id);
+        $paciente = Patient::daSessaoOuFalha($id);
         $biz = (int) $request->session()->get('user.business_id');
 
         $dados = $laudo->montar($paciente, $biz, $request->user()?->id);

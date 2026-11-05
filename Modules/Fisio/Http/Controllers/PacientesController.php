@@ -399,7 +399,7 @@ class PacientesController extends Controller
     /** Paciente de outra empresa não existe para esta: 404 pelo escopo (UC-FPS-01). */
     private function paciente(int $id): Patient
     {
-        return Patient::query()->findOrFail($id);
+        return Patient::daSessaoOuFalha($id);
     }
 
     private function businessId(Request $request): int

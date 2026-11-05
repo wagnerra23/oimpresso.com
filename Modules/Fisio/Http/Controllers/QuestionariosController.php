@@ -31,7 +31,7 @@ class QuestionariosController extends Controller
     public function store(Request $request, int $id, PontuacaoQuestionario $pontuacao): JsonResponse|RedirectResponse
     {
         // Paciente de outra empresa: 404 pelo escopo, antes de validar (UC-FPS-15).
-        $paciente = Patient::query()->findOrFail($id);
+        $paciente = Patient::daSessaoOuFalha($id);
         abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
         $biz = (int) $request->session()->get('user.business_id');
 
