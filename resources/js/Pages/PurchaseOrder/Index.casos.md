@@ -47,6 +47,22 @@ last_run: "2026-10-13"
   parcial · E o KPI `em_aberto` conta só os pedidos não concluídos da lista.
 - **Status: 🧪**
 
+## UC-PEDC-06 · Editar pedido só alcança pedido da própria empresa · `[T0]`
+- **Aceite:** Dado um pedido de compra de outra empresa · Quando o formulário de edição é enviado com o id dele
+  (`PUT /purchase-order/{id}`) · Então nada é gravado (referência e total ficam como estavam) e a edição volta com
+  erro. O pedido da própria empresa é editado normalmente.
+- **Teste:** `tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php`
+- **Contrato:** ADR 0093. Auditoria Compras 2026-11-05, achado A1.
+- **Status: 🧪**
+
+## UC-PEDC-07 · Subir o valor na edição passa pela alçada de novo · `[T0]`
+- **Aceite:** Dado a alçada ligada (comprador até 1.000,00) e um pedido de 500,00 · Quando quem não tem alçada de
+  gerente edita o pedido para 5.000,00 · Então o pedido fica aguardando aprovação de gerente e não pode virar compra
+  recebida. Editar sem mudar o valor não mexe na aprovação.
+- **Teste:** `tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php`
+- **Contrato:** SPEC US-COM-032. Auditoria Compras 2026-11-05, achado A7.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Alterar status e editar envio pela tela nova (PR próprio).
 - [BACKLOG] Excluir pedido e enviar notificação pela tela nova.
@@ -54,3 +70,4 @@ last_run: "2026-10-13"
 
 ## Trilha do tempo
 - 2026-10-13 · [CL] criado com a F3 da thread `compras/playbook/06`.
+- 2026-11-05 · [CL] UC-PEDC-06 e UC-PEDC-07 (lote 0 da auditoria de Compras, PR 0.3).
