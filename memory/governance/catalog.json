@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 896,
-    "edges": 1213,
+    "nodes": 897,
+    "edges": 1214,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 150,
-      "component": 506,
+      "component": 507,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 506,
+      "hasComponent": 507,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -3121,6 +3121,13 @@
       "module": "Fisio",
       "name": "Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app",
       "desc": "US-FISIO-013)"
+    },
+    {
+      "id": "component:Fisio/AgendaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "AgendaController",
+      "desc": "agenda da clínica: semana, marcar, status, desmarcar, bloqueio de horário, lista de espera e liberar o app (US-FISIO-014/015)"
     },
     {
       "id": "component:Fisio/Biblioteca de exercícios, protocolos-modelo e programa por paciente",
@@ -9958,6 +9965,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/AgendaController",
       "type": "hasComponent",
       "source": "contains"
     },
