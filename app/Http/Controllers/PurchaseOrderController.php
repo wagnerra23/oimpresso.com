@@ -756,15 +756,19 @@ class PurchaseOrderController extends Controller
         }
 
         try {
-            $transaction = Transaction::findOrFail($id);
+            $business_id = request()->session()->get('user.business_id');
+
+            // Tier 0 (ADR 0093): App\Transaction não tem global scope. O findOrFail($id) cru
+            // deixava editar o pedido de OUTRA empresa pelo id da URL (auditoria Compras
+            // 2026-11-05, A1). Pedido de outra empresa, ou id que não é pedido, não resolve.
+            $transaction = Transaction::where('business_id', $business_id)
+                ->where('type', 'purchase_order')
+                ->findOrFail($id);
 
             //Validate document size
             $request->validate([
                 'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
             ]);
-
-            $transaction = Transaction::findOrFail($id);
-            $business_id = request()->session()->get('user.business_id');
 
             $currency_details = $this->transactionUtil->purchaseCurrencyDetails($business_id);
 
@@ -847,10 +851,23 @@ class PurchaseOrderController extends Controller
 
             $this->transactionUtil->activityLog($transaction, 'edited', $transaction_before);
 
+            // US-COM-032 (auditoria 2026-11-05, A7): a alçada era decidida só quando o pedido
+            // nascia. Subir o valor na edição mantinha a aprovação dada ao valor antigo e o
+            // pedido podia virar compra recebida sem quem tem alçada ver o valor novo. Valor
+            // mudou: a regra roda de novo para o valor gravado, com quem editou como autor.
+            $aprovacao = null;
+            if ((string) $transaction_before->final_total !== (string) $transaction->fresh()->final_total
+                && class_exists(\Modules\Compras\Services\AlcadaDoPedido::class)) {
+                $aprovacao = app(\Modules\Compras\Services\AlcadaDoPedido::class)
+                    ->registrar((int) $business_id, (int) $transaction->id, (int) auth()->id());
+            }
+
             DB::commit();
 
             $output = ['success' => 1,
-                'msg' => __('purchase.purchase_update_success'),
+                'msg' => $aprovacao === 'pendente'
+                    ? 'Pedido salvo. O valor novo passou do seu limite e aguarda aprovação.'
+                    : __('purchase.purchase_update_success'),
             ];
         } catch (\Exception $e) {
             DB::rollBack();
