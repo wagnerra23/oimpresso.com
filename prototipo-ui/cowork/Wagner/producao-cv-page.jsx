@@ -11,6 +11,20 @@ const DS = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 const P = () => window.PCVD;
 const Ic = ({ name, size = 14 }) => { const F = (window.I || {})[name]; return F ? <span aria-hidden="true" style={{ display: "inline-flex" }}><F size={size} /></span> : null; };
 
+// Estado vazio por vista: cada uma fala com quem usa aquela tela. O botão "Nova OS do orçamento" só aparece para quem
+// cria OS (Painel e Quadro); no Apontamento e no Terminal quem vê é o operador. Onde a tela real já existe, a frase é a
+// dela (Quadro, Apontamento, Roteiros e Postos em Modules/Producao/Resources/js/Pages/Producao).
+const VAZIOS = {
+  painel: { titulo: "Nenhuma OS em produção", texto: "Quando um orçamento é aprovado, ele vira OS com as etapas do roteiro da família. Comece por um orçamento aprovado.", novaOs: true },
+  quadro: { titulo: "Nenhuma OS com etapa aberta", texto: "As OS entram aqui quando o roteiro gera as etapas.", novaOs: true },
+  linha: { titulo: "Nenhuma etapa programada", texto: "Quando uma OS entra na produção, as etapas dela aparecem aqui, em cada máquina." },
+  custo: { titulo: "Nenhuma OS para comparar", texto: "O custo real aparece quando a OS tem tempo apontado, material baixado ou refugo." },
+  instalacao: { titulo: "Nenhuma instalação agendada", texto: "As OS com etapa de instalação entram na agenda quando o PCP marca o dia e a equipe." },
+  apontamento: { titulo: "Nenhuma etapa sua hoje", texto: "Quando o PCP programar, ela aparece aqui." },
+  terminal: { titulo: "Nada programado para este posto hoje", texto: "O romaneio aparece quando o PCP programa etapas nesta máquina." },
+  roteiros: { titulo: "Nenhum roteiro ainda", texto: "Comece pela família que você mais produz." },
+  postos: { titulo: "Nenhum posto cadastrado ainda", texto: "Os postos são as máquinas e bancadas que recebem as etapas das OS." },
+};
 const VISTAS = [
   { key: "painel", label: "Painel" }, { key: "quadro", label: "Quadro" }, { key: "linha", label: "Linha do tempo" },
   { key: "custo", label: "Custo real × orçado" }, { key: "instalacao", label: "Instalação" },
@@ -469,7 +483,8 @@ function ProducaoCvPage({ view = "painel", estado = "dados" }) {
     : <p className="pcv-help" style={{ padding: 24 }}>Carregando…</p>;
   const corpo = estado === "carregando" ? <div className="pcv-body" aria-busy="true">{Skeleton ? <Skeleton variant="card" count={3} /> : <p className="pcv-help">Carregando…</p>}</div>
     : estado === "erro" ? <div className="pcv-body">{EmptyState && <EmptyState variant="error" title="Não foi possível carregar a produção" description="Nada foi alterado. Tente de novo; se continuar, os apontamentos do celular ficam guardados e entram quando voltar." action={Button && <Button onClick={() => location.reload()}>Tentar de novo</Button>} />}</div>
-    : estado === "vazio" ? <div className="pcv-body">{EmptyState && <EmptyState variant="first" title="Nenhuma OS em produção" description="Quando um orçamento é aprovado, ele vira OS com as etapas do roteiro da família. Comece por um orçamento aprovado." action={Button && <Button variant="primary" onClick={() => setNova(true)}>Nova OS do orçamento</Button>} />}</div>
+    : estado === "vazio" ? <div className="pcv-body">{EmptyState && (() => { const v = VAZIOS[vista] || VAZIOS.painel;
+      return <EmptyState variant="first" title={v.titulo} description={v.texto} action={v.novaOs && Button ? <Button variant="primary" onClick={() => setNova(true)}>Nova OS do orçamento</Button> : undefined} />; })()}</div>
     : corpoDados;
   return (
     <div className="pcv-root" data-screen-label={"Produção · " + (VISTAS.find((v) => v.key === vista) || {}).label}>

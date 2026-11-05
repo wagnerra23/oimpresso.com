@@ -24,7 +24,8 @@ on:
     paths:
       - 'Modules/NfeBrasil/**'
       - 'resources/js/Pages/NfeBrasil/**'
-      - 'Modules/Fiscal/Tests/**'
+      - 'Modules/Fiscal/**'
+      - 'resources/js/Pages/Fiscal/**'
       - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
       - 'Modules/NFSe/Services/NfseEmissaoService.php'
       - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
@@ -74,7 +75,8 @@ jobs:
             nfe:
               - 'Modules/NfeBrasil/**'
               - 'resources/js/Pages/NfeBrasil/**'
-              - 'Modules/Fiscal/Tests/**'
+              - 'Modules/Fiscal/**'
+              - 'resources/js/Pages/Fiscal/**'
               - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
               - 'Modules/NFSe/Services/NfseEmissaoService.php'
               - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
@@ -339,6 +341,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
             Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php \
             Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
+            Modules/Fiscal/Tests/Feature/MenuPermissaoTest.php \
             Modules/Fiscal/Tests/Feature/SimplesOnlyGateConfigTest.php \
             Modules/Fiscal/Tests/Feature/SimplesOnlyGateTest.php \
             Modules/Fiscal/Tests/Feature/SpedControllerTest.php \

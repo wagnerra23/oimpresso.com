@@ -381,6 +381,22 @@ resposta diz `{enviado: false, motivo: sem_cliente}` para a tela pedir contato m
 
 Status: 🧪
 
+## UC-PCART-08 · Só a prova mais recente vale, e o link não depende de quem está logado · `must`
+
+> Âncora: US-COMVIS-NEW-004 (link de curta validade, uso único, página pública sem login) e UC-FLX-02
+> (*"aprovado avança para Impressão"* — a prova aprovada é a que foi enviada por último). Achado P-01/P-04
+> da auditoria da Produção (2026-11-05): o link da prova anterior seguia aprovável por 7 dias, e recusar
+> com o ERP logado noutra empresa dava 404.
+
+**Dado** a OS com um link de prova aberto **Quando** o designer gera outra prova **Então** o link anterior vence
+na hora (a linha fica, só a validade muda): aprovar por ele é recusado (410), a etapa de aprovação continua
+pendente e a arte vigente não vira a prova antiga, nem depois de o cliente recusar a nova · **Quando** o cliente
+recusa pelo link com o navegador logado noutra empresa **Então** a "Arte (alteração)" e o evento ficam na empresa
+da prova · **Quando** um usuário da empresa 99 pede prova para a OS da 98 **Então** recebe 404 e o link da 98 segue
+valendo.
+
+Status: 🧪
+
 ## UC-PCV-11 · Arte aprovada travada · `must`
 
 > Âncora: `prototipo-ui/cowork/Wagner/cowork-inbox/producao/Producao.casos.md` UC-PCV-11 · thread 10 do playbook
@@ -634,14 +650,14 @@ Status: 🧪
 > `producao_aguarda_material`, desligada por padrão. JSON (`GET /producao/ordens/{id}/material`,
 > `POST /producao/ordens/{id}/material/conferir`); a tela ainda não mostra. Prova: `ProducaoAguardandoMaterialContratoTest`.
 
-## UC-PCMAT-01 · Chave desligada: nada muda · `must`
+## UC-PCAGM-01 · Chave desligada: nada muda · `must`
 
 **Dado** a lona com 3 de saldo e a OS do banner que precisa de 5 **Quando** o PCP libera com a chave da empresa
 desligada **Então** a OS vai para Na fila, como antes, e o saldo segue 3.
 
 Status: 🧪
 
-## UC-PCMAT-02 · Liberada sem material fica Aguardando material e não começa · `must`
+## UC-PCAGM-02 · Liberada sem material fica Aguardando material e não começa · `must`
 
 **Dado** a chave ligada, saldo 3 e compras da lona pedida (4) e pendente (1), e uma já recebida (9) **Quando** o
 PCP libera **Então** a OS vai para Aguardando material; a lista mostra necessário 5,0000, disponível 3,0000, falta
@@ -650,14 +666,14 @@ nada muda no saldo.
 
 Status: 🧪
 
-## UC-PCMAT-03 · Reserva de outra venda tira do disponível; a da própria OS não · `must`
+## UC-PCAGM-03 · Reserva de outra venda tira do disponível; a da própria OS não · `must`
 
 **Dado** saldo 10, reserva ativa de 5 desta OS, reserva ativa de 6 de outra venda e uma liberada de 50 **Então** o
 disponível é 4,0000 e a falta 1,0000.
 
 Status: 🧪
 
-## UC-PCMAT-04 · Conferir devolve para Na fila quando o material chega · `must`
+## UC-PCAGM-04 · Conferir devolve para Na fila quando o material chega · `must`
 
 **Dado** a OS em Aguardando material **Quando** o operador sem o papel `producao.liberar` confere **Então** 403 ·
 **Quando** o PCP confere ainda faltando **Então** fica onde está e a resposta traz a falta · com o saldo em 5
@@ -665,7 +681,7 @@ Status: 🧪
 
 Status: 🧪
 
-## UC-PCMAT-05 · Outra empresa, 404 · `must`
+## UC-PCAGM-05 · Outra empresa, 404 · `must`
 
 **Quando** o PCP da 98 lê ou confere o material de uma OS da 99 **Então** 404 e a OS da 99 não muda.
 
