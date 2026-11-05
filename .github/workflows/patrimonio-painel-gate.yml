@@ -104,7 +104,8 @@ jobs:
           npx vitest run \
             tests/js/patrimonio-header-contexto.test.tsx \
             tests/js/patrimonio-painel-sem-fonte.test.tsx \
-            tests/js/patrimonio-painel-forma.test.tsx             tests/js/patrimonio-bens-excluir.test.tsx \
+            tests/js/patrimonio-painel-forma.test.tsx \
+            tests/js/patrimonio-bens-excluir.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-patrimonio-painel-junit.xml
