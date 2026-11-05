@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 12 |
+| US no SPEC | 22 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 5 |
-| Telas com `casos.md` | 6 |
-| UC declarados | 108 |
-| UC com teste que os cita | 108 |
+| Telas (.tsx) | 6 |
+| Telas com `casos.md` | 7 |
+| UC declarados | 116 |
+| UC com teste que os cita | 116 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -35,6 +35,7 @@ authority: generated
 | `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
 | `US-FISIO-010` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
+| `US-FISIO-013` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Schema da agenda: tipos, atendimentos, bloqueios, lista de e |
 
 ### Backlog — NÃO é lacuna
 
@@ -46,6 +47,15 @@ authority: generated
 | US | status | Título |
 |---|---|---|
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
+| US-FISIO-014 | `todo` | Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0 |
+| US-FISIO-015 | `todo` | Tela Agenda da clínica e configuração do agendamento pelo app — **P0** |
+| US-FISIO-016 | `todo` | Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P |
+| US-FISIO-020 | `todo` | Pacote de sessões com saldo derivado de ledger append-only — **P0** |
+| US-FISIO-021 | `todo` | Tela "Pacote e cobrança" da ficha do paciente — **P0** |
+| US-FISIO-022 | `todo` | Vender e renovar pacote pela venda do núcleo — **P0** |
+| US-FISIO-023 | `todo` | Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0** |
+| US-FISIO-024 | `todo` | Lote do Receita Saúde no layout oficial — **P1** |
+| US-FISIO-025 | `todo` | Planos do produto Fisio no Superadmin — **P1** |
 
 ## UC por status
 
@@ -65,6 +75,12 @@ authority: generated
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-11 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-12 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FCW-01 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-02 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-03 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-04 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-05 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FCW-06 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FJG-01 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-02 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-03 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
@@ -128,6 +144,8 @@ authority: generated
 | UC-FPP-32 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-33 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-34 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-50 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-51 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPS-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-03 | Pacientes/Show | 🧪 aguarda veredito da lane |

@@ -21,10 +21,7 @@ export function motivoSemTotais(f: FiltrosDaTela): string | null {
   if (f.savedViewId !== 'todas') {
     return `A visão “${f.savedViewLabel}” filtra só esta página — os totais aparecem na visão Todas.`;
   }
-  if (f.pill === 'faturada' || f.pill === 'cancelada') {
-    const nome = f.pill === 'faturada' ? 'Faturada' : 'Cancelada';
-    return `A pílula “${nome}” filtra só esta página — os totais aparecem em Todas, Paga e Pendente.`;
-  }
+  // Faturada e Cancelada filtram no servidor desde UC-SIDX-07: os totais valem para elas.
   if (f.visaoOrigem) {
     return 'O filtro de origem vale só para esta página — os totais aparecem sem ele.';
   }

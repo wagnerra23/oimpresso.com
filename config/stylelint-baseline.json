@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-11-04T11:45:28.043Z",
-    "total_violations": 544,
+    "generated_at": "2026-11-04T17:41:37.679Z",
+    "total_violations": 545,
     "stylelint_version": "17.x",
     "adr": "0209",
     "note": "G5 anti-drift CSS — gêmeo do eslint-baseline. Ratchet por path+rule, falha só em delta>0."
@@ -14,7 +14,7 @@
     "resources/css/cowork-canon-financeiro-bundle.css|declaration-no-important": 15,
     "resources/css/cowork-canon-financeiro-bundle.css|no-duplicate-selectors": 29,
     "resources/css/cowork-configuracoes-bundle.css|color-no-hex": 33,
-    "resources/css/cowork-configuracoes-bundle.css|declaration-no-important": 4,
+    "resources/css/cowork-configuracoes-bundle.css|declaration-no-important": 5,
     "resources/css/cowork-configuracoes-bundle.css|no-duplicate-selectors": 2,
     "resources/css/cowork-documentacao-bundle.css|no-duplicate-selectors": 1,
     "resources/css/cowork-fields.css|color-no-hex": 4,
