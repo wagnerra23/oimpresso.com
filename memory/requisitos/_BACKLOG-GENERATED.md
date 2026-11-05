@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1092 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1093 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -25,7 +25,7 @@
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
-| [`Fisio`](#fisio) | 22 | 0 | 0 | 0 | 22 |
+| [`Fisio`](#fisio) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
@@ -937,6 +937,7 @@
 - **US-FISIO-023** — Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0**
 - **US-FISIO-024** — Lote do Receita Saúde no layout oficial — **P1**
 - **US-FISIO-025** — Planos do produto Fisio no Superadmin — **P1**
+- **US-FISIO-050** — Primeira configuração da clínica (Onboarding, 5 passos) — **P1**
 
 ## Connector
 

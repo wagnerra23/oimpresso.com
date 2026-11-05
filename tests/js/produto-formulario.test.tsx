@@ -59,7 +59,8 @@ const listasDoServidor = {
   warranties: { 7: '90 dias' },
 }
 
-const secoes = ['Identificação', 'Preço & Imposto', 'Estoque', 'Mais opções']
+// As seções na forma do protótipo (produto-blade-forms.jsx, FormProduto), desde 2026-11-04.
+const secoes = ['Dados do produto', 'Configurações', 'Fiscal', 'Impostos e preços']
 
 describe('opcoesDe', () => {
   it('tira a chave vazia e mantém as outras na ordem', () => {

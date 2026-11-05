@@ -9,9 +9,11 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
-import { Save, X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
+import { AcoesDoCadastro } from './_components/formulario/AcoesDoCadastro';
+import { tipoDeEnvio } from './_components/formulario/envio';
 import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
@@ -24,7 +26,6 @@ import type {
   OptionStringMap,
 } from './_components/formulario/tipos';
 
-const ADVANCED_OPEN_KEY = 'oimpresso.produto.edit.advanced.open';
 
 interface ProdutoEditModel {
   id: number;
@@ -131,10 +132,13 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // O botão do rodapé diz a tela seguinte (submit_type, o mesmo do Blade); sem ele, volta à lista.
+    const envio = tipoDeEnvio(e);
     transform((d) => {
       const { ncm, cest, ...resto } = d;
       return {
         ...resto,
+        ...(envio ? { submit_type: envio } : {}),
         ...(ncm !== ncmGravado ? { ncm } : {}),
         ...(cest !== cestGravado ? { cest } : {}),
         ...camposDoPrecoEditado(precoGravado, preco, aliquotaDoImposto(d.tax, props.taxAttributes), String(d.tax) !== String(impostoGravado)),
@@ -163,22 +167,16 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
               </h1>
               <div className="mt-1 font-mono text-[12px] text-stone-500">{p.sku}</div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button variant="outline" asChild>
-                <Link href={`/products/${p.id}`}>
-                  <X className="w-4 h-4 mr-1.5" />
-                  Cancelar
-                </Link>
-              </Button>
-              <Button form="produto-edit-form" type="submit" disabled={processing}>
-                <Save className="w-4 h-4 mr-1.5" />
-                Salvar alterações
-              </Button>
-            </div>
+            <Button variant="outline" asChild className="shrink-0">
+              <Link href="/products">
+                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                Voltar à lista
+              </Link>
+            </Button>
           </div>
         </header>
 
-        <div className="pb-16 px-6 mt-4 max-w-5xl">
+        <div className="pb-16 px-6 mt-4">
           <ProdutoFormulario
             id="produto-edit-form"
             onSubmit={handleSubmit}
@@ -188,9 +186,15 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
             errors={errors}
             opcoes={props}
             tipoAtual={props.productTypes[p.type] ?? p.type}
-            chaveMaisOpcoes={ADVANCED_OPEN_KEY}
             naturezaFiscal={p.naturezaFiscal ?? null}
             preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) } : undefined}
+          />
+          {/* "Salvar e adicionar preços por grupo" fica fora: o Editar não recebe a contagem de grupos. */}
+          <AcoesDoCadastro
+            form="produto-edit-form"
+            modo="editar"
+            cancelarHref={`/products/${p.id}`}
+            desabilitado={processing}
           />
         </div>
       </div>
