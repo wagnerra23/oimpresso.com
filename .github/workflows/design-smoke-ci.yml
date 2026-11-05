@@ -379,8 +379,8 @@ jobs:
             cat /tmp/lote-serve.log
             exit 1
           fi
-          echo "--- DIAG login"; curl -s -i -c /tmp/cj.txt "http://127.0.0.1:8000/_visreg-login/$VISREG_UID?to=%2Ffiscal" | grep -iE "^(HTTP|location|set-cookie)" | cut -c1-160
-          cat /tmp/cj.txt | grep -v "^#" | cut -c1-120
+          echo "--- DIAG login"; curl -s -i -c /tmp/cj.txt "http://127.0.0.1:8000/_visreg-login/$VISREG_UID?to=%2Ffiscal" | grep -iE "^(HTTP|location|set-cookie)" | sed -E "s/=[A-Za-z0-9%_-]{20,}/=<v>/"
+          sed -E "s/	[A-Za-z0-9%_-]{20,}$/	<v>/" /tmp/cj.txt
           curl -s -i -b /tmp/cj.txt "http://127.0.0.1:8000/fiscal" | grep -iE "^(HTTP|location)" | cut -c1-160
           php artisan tinker --execute="\$u=\App\User::find($VISREG_UID); echo json_encode(['u'=>\$u?->username,'biz'=>\$u?->business_id,'allow'=>\$u?->allow_login,'status'=>\$u?->status,'type'=>\$u?->user_type]);" | tail -n1
           ls storage/framework/sessions | head -3; echo "--- FIM DIAG"
