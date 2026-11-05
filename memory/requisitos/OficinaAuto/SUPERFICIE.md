@@ -14,7 +14,7 @@ module: OficinaAuto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 196 arquivos em 18 papéis.
+**Total mapeado:** 197 arquivos em 18 papéis.
 
 ## Controllers — 11
 
@@ -44,7 +44,7 @@ module: OficinaAuto
 - [UpdateVehicleRequest.php](../../../Modules/OficinaAuto/Http/Requests/UpdateVehicleRequest.php)
 - [UploadDviPhotoRequest.php](../../../Modules/OficinaAuto/Http/Requests/UploadDviPhotoRequest.php)
 
-## Services — 18
+## Services — 19
 
 - [AcoesOsDoApp.php](../../../Modules/OficinaAuto/Services/AcoesOsDoApp.php)
 - [AprovacaoOsService.php](../../../Modules/OficinaAuto/Services/AprovacaoOsService.php)
@@ -52,6 +52,7 @@ module: OficinaAuto
 - [CatalogoDePecas.php](../../../Modules/OficinaAuto/Services/CatalogoDePecas.php)
 - [DviInspectionService.php](../../../Modules/OficinaAuto/Services/DviInspectionService.php)
 - [LembreteDeRevisao.php](../../../Modules/OficinaAuto/Services/LembreteDeRevisao.php)
+- [OficinaAutoAcesso.php](../../../Modules/OficinaAuto/Services/OficinaAutoAcesso.php)
 - [HttpPlacaProvider.php](../../../Modules/OficinaAuto/Services/PlacaLookup/HttpPlacaProvider.php)
 - [PlacaLookupException.php](../../../Modules/OficinaAuto/Services/PlacaLookup/PlacaLookupException.php)
 - [PlacaLookupResult.php](../../../Modules/OficinaAuto/Services/PlacaLookup/PlacaLookupResult.php)
