@@ -2410,7 +2410,7 @@
 .sells-cowork .vendas-aplus .vd-views-item.active .ct { background: var(--vd-green-soft); color: var(--vd-green); }
 .sells-cowork .vendas-aplus .vd-views-sep { height: 1px; background: var(--border-2); margin: 4px -4px; }
 /* ── KPIs ── */
-.sells-cowork .vendas-aplus .vd-kpis { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.sells-cowork .vendas-aplus .vd-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .sells-cowork .vendas-aplus .vd-kpi-hero {
   background: var(--vd-green-hero); color: oklch(0.92 0.01 155);
   border-color: var(--vd-green-hero);
@@ -3918,7 +3918,7 @@
 }
 .sells-cowork .vd-kpi-breakdown {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 5px;
   margin-top: 8px;
   margin-bottom: 4px;

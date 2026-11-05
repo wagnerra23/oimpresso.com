@@ -1198,7 +1198,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         </header>
 
         {/* Render do Dashboard (Insights Jana migrado pra /ia/dashboard). */}
-        {/* KPIs row — 4 cards (Faturado hero · Ticket médio · A receber · 4º vista-dependente) */}
+        {/* KPIs row — 5 cards numa linha a 1280 (Faturado hero · Ticket médio · A receber · 4º vista-dependente · PIX hoje) */}
         <div className="os-kpis vd-kpis">
           {/* Hero: Faturado hoje + sparkline (delta real US-SELL-COWORK-R5) */}
           <div className="os-kpi vd-kpi-hero">
@@ -1320,24 +1320,20 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             </div>
           </div>
 
-          {/* 4º card — varia por foco. Na vista Caixa é o PIX hoje, como no protótipo
-              (vendas-page.jsx); antes era "Pagos hoje" e o PIX ficava como 5º card fixo,
-              que a 1280 caía sozinho numa 2ª linha (PR 1666 · medição 2026-11-04, PR-1b). */}
+          {/* 4º card — varia por foco */}
           {foco === 'caixa' && (
-            <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
-              <span className="os-kpi-label">PIX hoje</span>
+            <div className="os-kpi">
+              <span className="os-kpi-label">Pagos hoje</span>
               <span className="os-kpi-value">
-                {fmtShort(props.coworkAggregates?.pixHojeTotal ?? 0)}
+                {fmtShort(
+                  rows
+                    .filter((r) => r.payment_status === 'paid' && r.transaction_date?.slice(0, 10) === todayIso)
+                    .reduce((s, r) => s + r.total_paid, 0)
+                )}
               </span>
               <span className="os-kpi-sub">
-                {(() => {
-                  const pix = props.coworkAggregates?.pixHojeTotal ?? 0;
-                  const fat = props.coworkAggregates?.faturadoHojeTotal ?? 0;
-                  if (!props.coworkAggregates) return 'carregando…';
-                  if (fat <= 0) return 'sem faturamento hoje';
-                  const pct = Math.round((pix / fat) * 100);
-                  return `${pct}% do faturamento — imediato`;
-                })()}
+                {rows.filter((r) => r.payment_status === 'paid' && r.transaction_date?.slice(0, 10) === todayIso).length}{' '}
+                pago{rows.filter((r) => r.payment_status === 'paid' && r.transaction_date?.slice(0, 10) === todayIso).length === 1 ? '' : 's'} hoje
               </span>
             </div>
           )}
@@ -1375,6 +1371,26 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               </span>
             </div>
           )}
+
+          {/* PR 1666 — 5º KPI PIX hoje (paridade prototipo Cowork).
+              Sempre visível independente do foco — mostra share de PIX
+              no faturamento do dia. Critical pra Larissa biz=4 (vestuário PIX-first). */}
+          <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
+            <span className="os-kpi-label">PIX hoje</span>
+            <span className="os-kpi-value">
+              {fmtShort(props.coworkAggregates?.pixHojeTotal ?? 0)}
+            </span>
+            <span className="os-kpi-sub">
+              {(() => {
+                const pix = props.coworkAggregates?.pixHojeTotal ?? 0;
+                const fat = props.coworkAggregates?.faturadoHojeTotal ?? 0;
+                if (!props.coworkAggregates) return 'carregando…';
+                if (fat <= 0) return 'sem faturamento hoje';
+                const pct = Math.round((pix / fat) * 100);
+                return `${pct}% do faturamento — imediato`;
+              })()}
+            </span>
+          </div>
         </div>
 
         {/* Fix bug 2026-05-18: hint visível pra filter de data ativo (proteção

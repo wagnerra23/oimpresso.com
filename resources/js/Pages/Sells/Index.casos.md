@@ -5,8 +5,12 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-05"
 ---
+
+> ℹ️ **`last_run` 2026-11-04 → 2026-11-05 (G-6): só a fileira de KPIs mudou de largura.** Os 5 KPIs ficam numa linha
+> a 1280px (decisão [W] 2026-11-05), e o detalhamento por origem do Faturado hoje passa a 1 item por linha. Nenhum UC desta
+> tela trata dos KPIs, então nenhum foi reexecutado; o bump registra a reconciliação do trio nesta data.
 
 > ℹ️ **`last_run` 2026-10-29 → 2026-11-04 (G-6): a tela mudou de LAYOUT, não de comportamento dos UCs.**
 > O PR-1d da Onda 1 de Sells moveu blocos do `Index.tsx`: as pílulas ficaram sozinhas na linha; Foco, visão salva, Visão,
