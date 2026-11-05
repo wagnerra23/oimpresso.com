@@ -31,11 +31,12 @@ contains:
   - "PortalController — portal público do paciente: PIN com trava, consentimentos separados, lista do dia (US-FISIO-007a)"
   - "PortalLinkController — link do portal gerado e revogado na ficha (US-FISIO-007a)"
   - "EnvioWhatsappController — envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
+  - "Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro (SaldoDoPacote, US-FISIO-020)"
   - "ConfiguracoesController — Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
   - "OnboardingController — primeira configuração da clínica em 5 passos (perfil, PF/PJ, canal, protocolos, conclusão) em fisio_settings (US-FISIO-050)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
-  - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
+  - "Preço do pacote, cobrança e títulos → venda do núcleo + Financeiro; mensalidade → RecurringBilling (F3, US-FISIO-022)"
   - "Emissão de nota → NFSe (F3)"
   - "Armazenamento de arquivo (foto/vídeo do exercício próprio) → Modules/Arquivos (backbone HasArquivos, ADR 0123/0214)"
 excludes:

@@ -38,6 +38,10 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
 - **Questionário** (`fisio_questionnaires.instrument`): só os de uso livre (ADR 0437 §8) — `eva`,
   `rmdq` (Roland-Morris), `psfs`, `lefs`, `spadi`. ODI, NDI, KOOS, QuickDASH e WOMAC ficam fora até
   haver licença comercial.
+- **Lançamento do pacote** (`fisio_package_ledger.kind`, append-only, US-FISIO-020): `credito`
+  (sessões na abertura), `debito` (uma sessão usada; `ref` diz o atendimento), `estorno`
+  (devolve um débito, `ref = estorno:<id>`) e `extensao` (nova validade, 0 sessão). O saldo é a
+  soma. O pacote não guarda dinheiro: preço é da venda do núcleo, título do Financeiro.
 - **Status do programa** (`fisio_programs.status`, texto, fora do bloco `json`): `ativo` ou
   `encerrado` — um ativo por paciente.
 
@@ -51,7 +55,8 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
     "fisio_programs.origin": ["manual", "protocolo"],
     "fisio_programs.pain_alert_mode": ["absoluto", "sobre_basal"],
     "fisio_game_ledger.reason": ["exercicio_concluido", "checkin", "missao", "desafio_semanal"],
-    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"]
+    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"],
+    "fisio_package_ledger.kind": ["credito", "debito", "estorno", "extensao"]
   }
 }
 ```
