@@ -5,6 +5,7 @@ use Modules\Fisio\Http\Controllers\BibliotecaController;
 use Modules\Fisio\Http\Controllers\ConfigAgendamentoController;
 use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
+use Modules\Fisio\Http\Controllers\ConfiguracoesController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\PacientesController;
@@ -54,6 +55,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Painel do profissional (US-FISIO-010): KPIs, fila de atenção e tabela. Só leitura.
         Route::get('/', [PainelController::class, 'index'])->name('painel');
 
+        // Configurações › WhatsApp: a clínica escolhe o canal; número e driver são do módulo Whatsapp.
+        Route::get('configuracoes/whatsapp', [ConfiguracoesController::class, 'whatsapp'])->name('configuracoes.whatsapp');
+        Route::put('configuracoes/whatsapp', [ConfiguracoesController::class, 'salvarWhatsapp'])->name('configuracoes.whatsapp.update');
         // Agenda da clínica (US-FISIO-014/015). Leitura com fisio.access; escrita exige `fisio.editar` (no controller).
         Route::get('agenda', [AgendaController::class, 'index'])->name('agenda.index');
         Route::post('agenda/atendimentos', [AgendaController::class, 'store'])->name('agenda.atendimentos.store');
@@ -103,6 +107,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 
         // Exportação do prontuário em PDF (UC-FPS-19..20). Leitura: basta `fisio.access`; a exportação fica no activity_log.
         Route::get('pacientes/{id}/prontuario.pdf', [ProntuarioPdfController::class, 'show'])->whereNumber('id')->name('pacientes.prontuario.pdf');
+        // Laudo de evolução (Lote 2): síntese para médico ou convênio, mesmo acesso e mesmo rastro do prontuário.
+        Route::get('pacientes/{id}/laudo.pdf', [ProntuarioPdfController::class, 'laudo'])->whereNumber('id')->name('pacientes.laudo.pdf');
 
         // Questionários de uso livre (US-FISIO-011). Pontuação calculada no servidor; só criação.
         Route::post('pacientes/{id}/questionarios', [QuestionariosController::class, 'store'])->whereNumber('id')->name('pacientes.questionarios.store');

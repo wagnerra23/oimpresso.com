@@ -27,9 +27,8 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Switch } from '@/Components/ui/switch';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { PageHeader } from '@/Components/PageHeader';
 import { Grid, Stack } from '@/Components/layout';
-import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
+import ConfiguracoesCabecalho from '@/Pages/Configuracoes/_shared/ConfiguracoesCabecalho';
 import '../../../../css/cowork-configuracoes-bundle.css';
 
 type Valor = string | number | boolean | null | Valor[] | { [k: string]: Valor };
@@ -311,11 +310,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
   return (
     // Raiz com as classes do protótipo: o bundle cowork-configuracoes só vale dentro de .cfg-page.
     <div className="os-page hrm-page cfg-page" data-screen-label="Configurações · Configuração da empresa">
-      <div data-contract="page-header">
-        <PageHeader title="Configurações" subtitle="Configuração da empresa — o grupo “Configurações” do menu antigo, tela por tela"
-          below={<ConfiguracoesSubNav emLinha />}
-          actions={<span className="hrm-scope" data-contract="escopo">/business/settings</span>} />
-      </div>
+      <ConfiguracoesCabecalho tela="Configuração da empresa" rota="/business/settings" />
 
       {/* Corpo do protótipo: rail .fnc-rail + painel .pf-pane (cowork-configuracoes-bundle.css). */}
       <div className="hrm-body">
