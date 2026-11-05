@@ -1,5 +1,6 @@
 <?php
 // @covers-us US-PCP-021
+// @covers-us US-PCP-008
 
 declare(strict_types=1);
 // Cobre UC-PCMAT-01..07 (Producao/Apontamento/Index.casos.md) — UC-FLX-37 do catálogo de fluxos.
