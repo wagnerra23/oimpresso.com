@@ -22,6 +22,7 @@ import { EtapaConsentimento, EtapaPin } from './_components/Entrada';
 import { CartaoConstancia } from './_components/Constancia';
 import { TelaCrise, TelaHoje } from './_components/Hoje';
 import { ConviteInstalar } from './_components/Instalar';
+import { TelaConfiguracoes } from './_components/Configuracoes';
 import { enviarFila, limparFila, registrarAppDoPortal, type Constancia, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
 
 interface Props {
@@ -43,6 +44,7 @@ interface Props {
   crise?: { itens: string[] };
   relato?: Relato | null;
   red_flags?: string[];
+  consentimentos?: Record<string, boolean>;
 }
 
 function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica?: string | null; token?: string; children: ReactNode }) {
@@ -65,7 +67,7 @@ function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica
   );
 }
 
-type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise';
+type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise' | 'config';
 
 function vezesIniciais(itens: ItemHoje[], relato: Relato | null | undefined): Record<number, number> {
   const out: Record<number, number> = {};
@@ -81,6 +83,9 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
   const mudarVezes = (id: number, n: number) => setVezes((v) => ({ ...v, [id]: Math.max(0, n) }));
   const jogo = props.jogo as Jogo;
 
+  if (tela === 'config') {
+    return <TelaConfiguracoes token={token} clinica={props.clinica ?? null} consentimentos={props.consentimentos ?? {}} onVoltar={() => setTela('hoje')} />;
+  }
   if (tela === 'crise') {
     return <TelaCrise itens={crise} sequencia={jogo.sequencia} onVoltar={() => setTela('hoje')} onComecar={() => setTela('checkin-crise')} />;
   }
@@ -113,6 +118,7 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
       constancia={props.constancia && <CartaoConstancia token={token} inicial={props.constancia} />}
     />
     <ConviteInstalar diasCumpridos={jogo.dias_cumpridos} />
+    <button type="button" className="self-center text-sm text-muted-foreground underline-offset-4 hover:underline" onClick={() => setTela('config')}>Configurações e autorizações</button>
     </>
   );
 }
