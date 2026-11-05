@@ -245,6 +245,17 @@ it('UC-FPN-07 · o agendador enfileira um lembrete por business com o módulo, e
     Bus::assertNotDispatched(EnviarLembreteDiarioJob::class, fn ($j) => $j->businessId === $this->b99);
 });
 
+it('UC-FPN-07 · o lembrete diário só é agendado em produção (live), nunca em staging ou teste', function () {
+    $evento = collect(app(\Illuminate\Console\Scheduling\Schedule::class)->events())
+        ->first(fn ($e) => str_contains((string) $e->command, 'fisio:lembretes'));
+
+    expect($evento)->not->toBeNull();
+    // Oráculo do executor (schedule:run chama runsInEnvironment), não o schedule:list.
+    expect($evento->runsInEnvironment('live'))->toBeTrue();
+    expect($evento->runsInEnvironment('staging'))->toBeFalse();
+    expect($evento->runsInEnvironment('testing'))->toBeFalse();
+});
+
 it('UC-FPN-08 · lembrete no horário de silêncio é agendado para o fim do silêncio, não enviado na hora', function () {
     Bus::fake([SendWhatsappMessageJob::class]);
     Carbon::setTestNow(Carbon::parse('2026-10-14 22:30:00', 'America/Sao_Paulo'));
