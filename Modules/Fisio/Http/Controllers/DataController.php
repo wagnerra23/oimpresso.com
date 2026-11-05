@@ -33,7 +33,9 @@ class DataController extends Controller
         $pacienteId = (int) ($data['patient_id'] ?? 0);
 
         return [
-            'msg' => 'Fisio: paciente marcou sinal de alerta no registro do dia.',
+            'msg' => ($data['origem'] ?? null) === \Modules\Fisio\Notifications\SinalDeAlertaNotification::ORIGEM_PRE_ANAMNESE
+                ? 'Fisio: paciente marcou sinal de alerta na pré-anamnese.'
+                : 'Fisio: paciente marcou sinal de alerta no registro do dia.',
             'icon_class' => 'fas fa-exclamation-triangle bg-yellow',
             'link' => url('/fisio/pacientes/'.$pacienteId),
             'read_at' => $notification->read_at,

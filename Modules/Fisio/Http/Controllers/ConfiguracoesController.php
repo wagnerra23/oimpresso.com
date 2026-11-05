@@ -68,11 +68,7 @@ class ConfiguracoesController extends Controller
             if (! ($dados['aceite_qr'] ?? false)) {
                 return back()->withErrors(['aceite_qr' => 'Para usar o número conectado por QR, marque que entende o risco de bloqueio.']);
             }
-            $config->gravar($biz, 'whatsapp.qr_risco_aceito', [
-                'user_id' => (int) $request->user()->id,
-                'em' => now()->toIso8601String(),
-                'versao' => CanalDaClinica::TERMO_QR_VERSAO,
-            ], (int) $request->user()->id);
+            $canal->aceitarRiscoQr($biz, (int) $request->user()->id);
         }
 
         $autor = (int) $request->user()->id;

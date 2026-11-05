@@ -134,9 +134,13 @@ class DfeController extends Controller
             $s = preg_replace('/\D/', '', $filters['search']);
             $raw = $filters['search'];
             $query->where(function ($q) use ($s, $raw) {
-                $q->where('chave_44', 'like', "%{$s}%")
-                  ->orWhere('cnpj_emitente', 'like', "%{$s}%")
-                  ->orWhere('nome_emitente', 'like', "%{$raw}%");
+                // Busca por nome não tem dígito: sem este `if`, `$s` vira '' e
+                // `chave_44 like '%%'` casa todas as notas (UC-FDFE-16).
+                if ($s !== '') {
+                    $q->where('chave_44', 'like', "%{$s}%")
+                      ->orWhere('cnpj_emitente', 'like', "%{$s}%");
+                }
+                $q->orWhere('nome_emitente', 'like', "%{$raw}%");
             });
         }
 

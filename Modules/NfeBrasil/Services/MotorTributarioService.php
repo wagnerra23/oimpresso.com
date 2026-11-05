@@ -260,17 +260,17 @@ class MotorTributarioService
                 );
             }
 
-            return $this->aplicarDefaults($operacao->regra_geral, $produto, $operacao->cfop);
+            return $this->aplicarDefaults($operacao->regra_geral, $produto, $operacao->cfop, $businessId, $destino);
         }
 
         if ($operacao && ! empty($operacao->regra_geral)) {
-            return $this->aplicarDefaults($operacao->regra_geral, $produto, $operacao->cfop);
+            return $this->aplicarDefaults($operacao->regra_geral, $produto, $operacao->cfop, $businessId, $destino);
         }
 
         // Padrão sem regra geral própria = o tributacao_default da empresa (R-NFE-020).
         $config = $this->buscarConfig($businessId);
         if ($config && ! empty($config->tributacao_default)) {
-            return $this->aplicarDefaults($config->tributacao_default, $produto, $operacao?->cfop);
+            return $this->aplicarDefaults($config->tributacao_default, $produto, $operacao?->cfop, $businessId, $destino);
         }
 
         throw new TributacaoNaoConfiguradaException(
@@ -376,7 +376,15 @@ class MotorTributarioService
         int $nivel,
         array $destino = [],
     ): TributoCalculado {
-        $extra = $this->calcularStFcpDifal($regra, $produto, $destino);
+        $extra = $this->calcularStFcpDifal([
+            'business_id'   => (int) $regra->business_id,
+            'aliquota_icms' => (float) $regra->aliquota_icms,
+            'aliquota_ipi'  => (float) $regra->aliquota_ipi,
+            'mva'           => $regra->mva,
+            'fcp'           => $regra->fcp,
+            'csosn'         => $regra->csosn,
+            'cst'           => $regra->cst,
+        ], $produto, $destino);
 
         // Benefício fiscal — redução da base do ICMS (thread 25 · R-NFE-030).
         //   base_icms  = valor × (1 − reducao_base)
@@ -464,11 +472,18 @@ class MotorTributarioService
      * Sem alíquota interna do destino o motor devolve ST e DIFAL = 0 (comportamento de antes):
      * nunca inventa a interna. O erro explicável "interna não cadastrada" é R-NFE-021 (thread 09).
      *
+     * Recebe os números da tributação, não a regra: o nível 4 (regra geral da operação ou
+     * tributacao_default da empresa) não tem linha em nfe_fiscal_rules e passa pelo mesmo cálculo.
+     * Antes disso o nível 4 pulava este método e a nota interestadual a consumidor saía com o
+     * grupo de DIFAL zerado (sonda do PR #10377).
+     *
+     * @param array{business_id:int,aliquota_icms:float,aliquota_ipi:float,mva:mixed,fcp:mixed,csosn:?string,cst:?string} $t
      * @param array{uf_origem?:string,uf_destino?:string,interna?:float|null,contribuinte?:bool|null,crt?:int|null} $destino
      * @return array{base_st:float,valor_st:float,valor_fcp:float,valor_difal:float,aviso:string|null}
      */
-    private function calcularStFcpDifal(NfeFiscalRule $regra, ProdutoFiscalContext $produto, array $destino): array
+    private function calcularStFcpDifal(array $t, ProdutoFiscalContext $produto, array $destino): array
     {
+        $regra = (object) $t;
         $valor        = $produto->valor;
         $interna      = isset($destino['interna']) ? (float) $destino['interna'] : null;
         $icmsProprio  = $this->fmt($valor * (float) $regra->aliquota_icms);
@@ -544,9 +559,15 @@ class MotorTributarioService
 
     /**
      * @param array<string,mixed> $defaults
+     * @param array{uf_origem?:string,uf_destino?:string,interna?:float|null,contribuinte?:bool|null,crt?:int|null} $destino
      */
-    private function aplicarDefaults(array $defaults, ProdutoFiscalContext $produto, ?string $cfopOperacao = null): TributoCalculado
-    {
+    private function aplicarDefaults(
+        array $defaults,
+        ProdutoFiscalContext $produto,
+        ?string $cfopOperacao,
+        int $businessId,
+        array $destino = [],
+    ): TributoCalculado {
         // A operação com CFOP próprio decide o CFOP da regra geral (o "?" é resolvido no fim).
         $cfop          = $cfopOperacao !== null && $cfopOperacao !== ''
             ? $cfopOperacao
@@ -563,6 +584,19 @@ class MotorTributarioService
         $cstCbs        = isset($defaults['cst_cbs']) ? (string) $defaults['cst_cbs'] : null;
         $aliqIbs       = (float) ($defaults['aliquota_ibs'] ?? 0);
         $aliqCbs       = (float) ($defaults['aliquota_cbs'] ?? 0);
+        $mva           = isset($defaults['mva']) ? (float) $defaults['mva'] : null;
+        $fcp           = isset($defaults['fcp']) ? (float) $defaults['fcp'] : null;
+
+        // ST, FCP e DIFAL pelo mesmo cálculo dos níveis 1 a 3, com as alíquotas do default.
+        $extra = $this->calcularStFcpDifal([
+            'business_id'   => $businessId,
+            'aliquota_icms' => $aliqIcms,
+            'aliquota_ipi'  => $aliqIpi,
+            'mva'           => $mva,
+            'fcp'           => $fcp,
+            'csosn'         => $csosn,
+            'cst'           => $cst,
+        ], $produto, $destino);
 
         return new TributoCalculado(
             cfop:            $cfop,
@@ -578,6 +612,8 @@ class MotorTributarioService
             valor_ipi:       $this->fmt($produto->valor * $aliqIpi),
             nivel_usado:     4,
             regra_id:        null,
+            mva:             $mva,
+            fcp:             $fcp,
             c_class_trib:    $cClassTrib,
             cst_ibs:         $cstIbs,
             cst_cbs:         $cstCbs,
@@ -585,6 +621,11 @@ class MotorTributarioService
             aliquota_cbs:    $aliqCbs,
             valor_ibs:       $this->fmt($produto->valor * $aliqIbs),
             valor_cbs:       $this->fmt($produto->valor * $aliqCbs),
+            base_st:         $extra['base_st'],
+            valor_st:        $extra['valor_st'],
+            valor_fcp:       $extra['valor_fcp'],
+            valor_difal:     $extra['valor_difal'],
+            aviso:           $extra['aviso'],
         );
     }
 

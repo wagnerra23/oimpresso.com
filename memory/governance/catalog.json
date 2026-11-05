@@ -27,7 +27,7 @@
   "stats": {
     "modules": 38,
     "nodes": 899,
-    "edges": 1216,
+    "edges": 1222,
     "by_node_type": {
       "module": 43,
       "table": 108,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 509,
-      "dependsOn": 133,
-      "delegatesTo": 122,
+      "dependsOn": 136,
+      "delegatesTo": 125,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 76,
@@ -3123,13 +3123,6 @@
       "desc": "US-FISIO-013)"
     },
     {
-      "id": "component:Fisio/AgendaController",
-      "type": "component",
-      "module": "Fisio",
-      "name": "AgendaController",
-      "desc": "agenda da clínica: semana, marcar, status, desmarcar, bloqueio de horário, lista de espera e liberar o app (US-FISIO-014/015)"
-    },
-    {
       "id": "component:Fisio/Biblioteca de exercícios, protocolos-modelo e programa por paciente",
       "type": "component",
       "module": "Fisio",
@@ -3170,13 +3163,6 @@
       "module": "Fisio",
       "name": "Cadastro de pacientes",
       "desc": ""
-    },
-    {
-      "id": "component:Fisio/ConfigAgendamentoController",
-      "type": "component",
-      "module": "Fisio",
-      "name": "ConfigAgendamentoController",
-      "desc": "Configurações › Agendamento pelo app: ligar, quem marca, tipos liberados, horários e regras (US-FISIO-015)"
     },
     {
       "id": "component:Fisio/ConfiguracoesController",
@@ -3249,11 +3235,32 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/OnboardingController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "OnboardingController",
+      "desc": "primeira configuração da clínica em 5 passos (perfil, PF/PJ, canal, protocolos, conclusão) em fisio_settings (US-FISIO-050)"
+    },
+    {
       "id": "component:Fisio/PacientesController",
       "type": "component",
       "module": "Fisio",
       "name": "PacientesController",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/PacotesController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PacotesController",
+      "desc": "aba Pacote e cobrança: abre pacote e registra sessão; títulos e NFS-e só lidos do Financeiro e do NFSe (US-FISIO-021)"
     },
     {
       "id": "component:Fisio/Painel e fila de atenção do profissional",
@@ -3275,13 +3282,6 @@
       "module": "Fisio",
       "name": "Portal público do paciente",
       "desc": ""
-    },
-    {
-      "id": "component:Fisio/PortalAgendaController",
-      "type": "component",
-      "module": "Fisio",
-      "name": "PortalAgendaController",
-      "desc": "agenda do paciente no portal: horários livres, marcar, remarcar, cancelar, confirmar, Cheguei, nota e lista de espera (US-FISIO-016)"
     },
     {
       "id": "component:Fisio/PortalController",
@@ -9951,6 +9951,27 @@
     },
     {
       "from": "module:Fisio",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Preço do pacote, cobrança e títulos"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de nota"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:RecurringBilling",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Mensalidade de paciente"
+    },
+    {
+      "from": "module:Fisio",
       "to": "module:Whatsapp",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -9971,6 +9992,27 @@
     },
     {
       "from": "module:Fisio",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Preço do pacote, cobrança e títulos"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de nota"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:RecurringBilling",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mensalidade de paciente"
+    },
+    {
+      "from": "module:Fisio",
       "to": "module:Whatsapp",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -9979,12 +10021,6 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Fisio",
-      "to": "component:Fisio/AgendaController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10021,12 +10057,6 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Cadastro de pacientes",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Fisio",
-      "to": "component:Fisio/ConfigAgendamentoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10092,7 +10122,25 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/OnboardingController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/PacientesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PacotesController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10111,12 +10159,6 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Portal público do paciente",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Fisio",
-      "to": "component:Fisio/PortalAgendaController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -1,4 +1,4 @@
-// Tipo do produto na tela Novo produto (BlocoIdentificacao.tsx + Create.tsx + tipos.ts).
+// Tipo do produto na tela Novo produto (BlocoImpostosPrecos.tsx + Create.tsx + tipos.ts).
 //
 // A tela React oferece "Variável" e "Composto", mas não tem o editor da grade nem da composição.
 // Sem `product_variation`, o ProductController@store cria o variável SEM variação nenhuma; sem
@@ -91,7 +91,10 @@ describe('UC-PCAD-11 · Novo produto — variável e composto vão para o cadast
     const aviso = screen.getByRole('alert')
     expect(aviso.textContent).toContain(tipo === 'variable' ? 'variável' : 'composto')
     expect(screen.getByText('Cadastrar no formulário clássico').getAttribute('href')).toBe('/products/create?classico=1')
-    expect((screen.getByText('Salvar produto').closest('button') as HTMLButtonElement).disabled).toBe(true)
+    // Todos os botões que salvam (o Salvar e os "Salvar e …" do rodapé) ficam desligados.
+    const salvar = Array.from(screen.getByTestId('acoes-cadastro').querySelectorAll('button[type="submit"]'))
+    expect(salvar.length).toBeGreaterThan(0)
+    for (const b of salvar) expect((b as HTMLButtonElement).disabled).toBe(true)
     expect(enviar(container)).toBeNull()
   })
 

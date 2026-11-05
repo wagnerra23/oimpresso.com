@@ -38,6 +38,10 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
 - **Questionário** (`fisio_questionnaires.instrument`): só os de uso livre (ADR 0437 §8) — `eva`,
   `rmdq` (Roland-Morris), `psfs`, `lefs`, `spadi`. ODI, NDI, KOOS, QuickDASH e WOMAC ficam fora até
   haver licença comercial.
+- **Lançamento do pacote** (`fisio_package_ledger.kind`, append-only, US-FISIO-020): `credito`
+  (sessões na abertura), `debito` (uma sessão usada; `ref` diz o atendimento), `estorno`
+  (devolve um débito, `ref = estorno:<id>`) e `extensao` (nova validade, 0 sessão). O saldo é a
+  soma. O pacote não guarda dinheiro: preço é da venda do núcleo, título do Financeiro.
 - **Status do programa** (`fisio_programs.status`, texto, fora do bloco `json`): `ativo` ou
   `encerrado` — um ativo por paciente.
 - **Agenda** (US-FISIO-013, etapa 04 §3.2): tipo de atendimento em `presencial` ou `teleconsulta`
@@ -66,7 +70,8 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
     "fisio_appointment_types.modality": ["presencial", "teleconsulta"],
     "fisio_appointments.source": ["clinica", "online", "lista_espera"],
     "fisio_appointments.cancelled_by": ["clinica", "paciente"],
-    "fisio_booking_settings.who_can_book": ["pacote", "todos", "ninguem"]
+    "fisio_booking_settings.who_can_book": ["pacote", "todos", "ninguem"],
+    "fisio_package_ledger.kind": ["credito", "debito", "estorno", "extensao"]
   }
 }
 ```

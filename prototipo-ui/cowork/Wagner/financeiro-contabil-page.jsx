@@ -87,15 +87,9 @@ function FcExportar() {
         </label>
         <fieldset className="fc-campo">
           <legend>Sistema do contador</legend>
-          <div className="fc-seg">
-            {FC_SISTEMAS.map((s) => (
-              <button key={s.id} type="button" aria-pressed={sistema === s.id} disabled={s.indisponivel}
-                title={s.indisponivel ? "Em definição: o Questor importa pelo leiaute que o contador configura" : s.nota}
-                className={"fc-seg-b" + (sistema === s.id ? " is-on" : "")} onClick={() => { setSistema(s.id); setGerado(false); }}>
-                {s.label}{s.indisponivel && <small> em breve</small>}
-              </button>
-            ))}
-          </div>
+          {window.CliSeg && <window.CliSeg ariaLabel="Sistema do contador" value={sistema}
+            onChange={(k) => { setSistema(k); setGerado(false); }}
+            options={FC_SISTEMAS.map((s) => ({ key: s.id, label: s.indisponivel ? s.label + " (em breve)" : s.label, disabled: s.indisponivel }))} />}
           <span className="fc-hint">{sis.nota}</span>
         </fieldset>
         <dl className="fc-resumo">
