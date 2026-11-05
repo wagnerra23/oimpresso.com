@@ -49,7 +49,7 @@ related_cu: [CU-OFI-05, CU-OFI-06, CU-OFI-15]
 ## UC-OED-05 · vehicle_id de outro business rejeitado (Tier 0)
 - **Persona:** invariante de segurança.
 - **Aceite:** Dado um vehicle do business B · Quando um usuário do business A tenta vincular na edição · Então rejeitado server-side (ADR 0093).
-- **Teste:** `Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php`
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderVehicleTenantContratoTest.php`
 - **Status: 🧪**
 
 ## UC-OED-06 · Concluir a mesma OS duas vezes não baixa estoque em dobro `[V0]`
