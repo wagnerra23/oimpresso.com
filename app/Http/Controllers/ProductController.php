@@ -475,6 +475,13 @@ class ProductController extends Controller
             $products->havingRaw('products.enable_stock = 1 AND products.alert_quantity IS NOT NULL AND COALESCE(SUM(vld.qty_available), 0) <= products.alert_quantity');
         }
 
+        // UC-PIDX-42: "Falta NCM" — a MESMA regra do card de Saúde fiscal (`SaudeFiscalService::semNcm`) e da
+        // emissão: NCM válido tem 8 dígitos e não é 00000000; fora disso a nota sai com o NCM padrão da empresa.
+        // A coluna é NOT NULL DEFAULT '0', então produto que nunca recebeu NCM cai aqui. Só a lista React manda.
+        if (! empty($f['falta_ncm'])) {
+            $products->where(fn ($w) => $w->whereRaw("products.ncm NOT REGEXP '^[0-9]{8}$'")->orWhere('products.ncm', '00000000'));
+        }
+
         // UC-PIDX-31: natureza fiscal decidida pelo contador. Produto sem decisão é mercadoria (é o que a
         // emissão faz). Sem o módulo Fiscal o filtro não aparece na tela e aqui não filtra.
         if (! empty($f['natureza_fiscal']) && app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)) {
@@ -544,6 +551,8 @@ class ProductController extends Controller
             'natureza_fiscal' => in_array(request()->input('natureza_fiscal'), ['mercadoria', 'servico', 'pendente'], true) ? (string) request()->input('natureza_fiscal') : null,
             // UC-PIDX-35: o clique no indicador "Abaixo do alerta". Só a lista React manda.
             'abaixo_do_alerta' => request()->boolean('abaixo_do_alerta'),
+            // UC-PIDX-42: "Falta NCM", e o link do card de Saúde fiscal (produto_sem_ncm). Só a lista React manda.
+            'falta_ncm' => request()->boolean('falta_ncm'),
             // Aba ativa (protótipo: "Todos os produtos" | "Relatório de estoque") e a página da aba de estoque.
             'aba' => request()->input('aba') === 'estoque' ? 'estoque' : 'lista',
             'estoque_pagina' => max(1, (int) request()->input('estoque_pagina', 1)),
@@ -4304,6 +4313,34 @@ class ProductController extends Controller
 
             return $html;
         }
+    }
+
+    /**
+     * UC-PIDX-43: o mesmo NCM em vários produtos de uma vez, a partir da seleção na consulta de produto
+     * (pedido da PraMoto, 2026-10-27). Mesmo gate da edição do produto (`product.update`). O NCM vale
+     * com 8 dígitos e diferente de 00000000 (a regra da emissão e do card de Saúde fiscal); pontos são
+     * ignorados. Só os produtos da empresa do usuário (ADR 0093): id de outra empresa não é alterado.
+     * Não recalcula nada: a próxima nota usa o NCM novo, como se fosse editado produto a produto.
+     */
+    public function bulkUpdateNcm(Request $request)
+    {
+        if (! auth()->user()->can('product.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = (int) $request->session()->get('user.business_id');
+        $ncm = preg_replace('/[^0-9]/', '', (string) $request->input('ncm'));
+        if (strlen($ncm) !== 8 || $ncm === '00000000') {
+            return response()->json(['success' => 0, 'msg' => 'Informe um NCM com 8 dígitos.'], 422);
+        }
+        $ids = array_values(array_filter(array_map('intval', explode(',', (string) $request->input('products')))));
+        if ($ids === []) {
+            return response()->json(['success' => 0, 'msg' => 'Nenhum produto selecionado.'], 422);
+        }
+
+        $alterados = Product::where('business_id', $business_id)->whereIn('id', $ids)->update(['ncm' => $ncm]);
+
+        return response()->json(['success' => 1, 'msg' => $alterados . ' produto(s) com o NCM ' . $ncm . '.']);
     }
 
     public function updateProductLocation(Request $request)

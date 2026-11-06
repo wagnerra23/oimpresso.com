@@ -368,6 +368,10 @@ class DataController extends Controller
                                 ['key' => 'leave',        'label' => 'Solicitações',   'href' => '/hrm/leave'],
                                 ['key' => 'leave-type',   'label' => 'Tipos de Folga', 'href' => '/hrm/leave-type'],
                                 ['key' => 'holiday',      'label' => 'Feriados',       'href' => '/hrm/holiday'],
+                                // [W] 2026-11-06: tela existia (SalesTargetController, Page Essentials/Metas) sem
+                                // porta no menu. Rótulo e posição do protótipo (`data.jsx`, ghosts do HRM: hrm-metas).
+                                // Mesma audiência da tela: o controller libera quem tem `essentials_module`.
+                                ['key' => 'sales-target', 'label' => 'Metas de venda', 'href' => '/hrm/sales-target'],
                                 ['key' => 'payroll',      'label' => 'Folha',          'href' => '/hrm/payroll'],
                                 ['key' => 'settings',     'label' => 'Configurações',  'href' => '/hrm/settings'],
                             ],

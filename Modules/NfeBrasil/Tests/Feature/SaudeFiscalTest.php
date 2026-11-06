@@ -182,6 +182,7 @@ it('UC-NFTR-24 · a tela recebe cada pendência com o link que resolve', functio
 
     expect($saude['pronto'])->toBeFalse();
     expect($t['ncm_padrao_invalido']['url'])->toBe(route('nfe-brasil.tributacao.config.show'));
-    expect($t['produto_sem_ncm']['url'])->toBe(route('products.unificado.index'));
+    // UC-PIDX-42: abre a consulta de produto já com o filtro "Falta NCM" e só os ativos.
+    expect($t['produto_sem_ncm']['url'])->toBe(route('products.index', ['falta_ncm' => 1, 'active_state' => 'active']));
     expect($t['produto_sem_ncm']['ids'])->toContain($p);
 });
