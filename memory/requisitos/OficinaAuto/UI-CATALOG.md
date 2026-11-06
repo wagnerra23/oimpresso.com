@@ -1,61 +1,40 @@
-# OficinaAuto — UI Catalog (auto-gerado bulk W31-10)
+# OficinaAuto — UI Catalog
 
-> **Ultima atualizacao:** 2026-05-17 (W31-10)
-> **Auto-regeneravel.** Manter versao; reescrever via gerador (nao editar manual em campos de auto-status).
-> Pages dir: `resources/js/Pages/OficinaAuto/`
+> **Atualizado em 2026-11-05** (auditoria do módulo, lote 5.6), conferido em `origin/main` `7d997591d7`.
+> A versão anterior (2026-05-17, W31-10) era "auto-gerada" por `/tmp/generate_catalogs.sh`, que
+> não existe no repo, e listava telas que não existem mais (`ServiceOrders/Index`,
+> `ProducaoOficina/Index`). Não há gerador: esta é uma lista conferida à mão.
+>
+> **Cobertura (charter, casos, e2e, scorecard, a11y) não se restateia aqui** — é derivada:
+> `npm run screen-coverage:report` e `npm run casos:report`.
 
-## Resumo
+Pages dir: `resources/js/Pages/OficinaAuto/`. Zero Blade servido pelo módulo (`SCOPE.md`, `migracao_ui`).
 
-- Telas Inertia tsx: **10**
-- Charters `.charter.md`: **6** (cobertura: 60%)
-- Blade legacy do modulo (Modules/<X>/Resources/views): **0**
+## Telas Inertia
 
-## Telas Inertia tsx
+| Tela | Rota | RUNBOOK |
+|---|---|---|
+| `ServiceOrders/Board.tsx` | `/oficina-auto/ordens-servico` (e `/board`) — Quadro · Lista · Grade · Fila | `RUNBOOK-board.md` |
+| `ServiceOrders/Create.tsx` | `/oficina-auto/ordens-servico/create` | `RUNBOOK-create.md` |
+| `ServiceOrders/Edit.tsx` | `/oficina-auto/ordens-servico/{order}/edit` | `RUNBOOK-edit.md` |
+| `ServiceOrders/Show.tsx` | `/oficina-auto/ordens-servico/{order}` | `RUNBOOK-show.md` (V0); `RUNBOOK-service-orders-show.md` no PR #10465 |
+| `Vehicles/Index.tsx` | `/oficina-auto/veiculos` | `RUNBOOK-index.md` |
+| `Vehicles/Create.tsx` | `/oficina-auto/veiculos/create` | `RUNBOOK-create.md` |
+| `Vehicles/Edit.tsx` | `/oficina-auto/veiculos/{vehicle}/edit` | `RUNBOOK-edit.md` |
+| `Vehicles/Show.tsx` | `/oficina-auto/veiculos/{vehicle}` | `RUNBOOK-show.md` |
+| `AprovacaoPublica.tsx` | `/aprovar-os/{token}` (pública, sem login) | `RUNBOOK-aprovacao-publica.md` (criado no PR #10465) |
 
-| Tela | Charter | review.md | Status | Round | Smoke pendente |
-|---|:---:|:---:|---|---:|:---:|
-| `AprovacaoPublica.tsx` | OK | - | awaiting-smoke-browser | 1 | sim |
-| `ProducaoOficina/Index.tsx` | OK | - | live | 2 | opcional |
-| `ServiceOrders/Create.tsx` | OK | - | live | 2 | opcional |
-| `ServiceOrders/Edit.tsx` | - | - | legacy | 0 | sim |
-| `ServiceOrders/Index.tsx` | OK | - | live | 2 | opcional |
-| `ServiceOrders/Show.tsx` | OK | - | live | 2 | opcional |
-| `Vehicles/Create.tsx` | - | - | legacy | 0 | sim |
-| `Vehicles/Edit.tsx` | - | - | legacy | 0 | sim |
-| `Vehicles/Index.tsx` | OK | - | live | 2 | opcional |
-| `Vehicles/Show.tsx` | - | - | legacy | 0 | sim |
+Todas têm `.charter.md` e `.casos.md` ao lado do `.tsx`.
 
+## Notas
 
-## Blade legacy restantes
+- O drawer rico da OS (`ProducaoOficina/_components/ServiceOrderRichSheet.tsx`) vive em
+  `Pages/OficinaAuto/ProducaoOficina/_components/` e é consumido pelo Board; a página
+  `ProducaoOficina/Index` (kanban genérico) é do módulo Repair (`Pages/Repair/ProducaoOficina/`).
+- A lista separada de OS (`ServiceOrders/Index.tsx`) foi aposentada em 2026-06-11: a rota
+  `/ordens-servico` renderiza o Board.
 
-sem Blade legacy direto neste modulo
+## Convenções
 
-## Migracao planejada (MWART — [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md))
-
-- Estimativa de telas Blade alvo MWART: **0**
-- Prioridade: **N/A — Inertia/React majoritario**
-- Skill canon: `migracao-blade-react` (Tier B auto-trigger)
-- Cross-ref: `memory/sessions/2026-05-17-blade-migration-plan.md` (plano executivo cross-projeto)
-
-## Convencoes
-
-- **Charter obrigatorio** antes de `Write` em `.tsx` ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md))
-- **review.md** = avaliacao Wagner pos-smoke browser (criar quando aprovar visualmente em prod)
-- **Status pipeline:**
-  - `legacy` — sem charter, sem review (precisa charter + MWART F1 design)
-  - `charter-WIP` — charter aberto sem status valido
-  - `awaiting-smoke-browser` — charter `draft` aceito, falta smoke biz=1 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md))
-  - `review-pending` — tela em revisao por Wagner
-  - `reviewed-no-charter` — review.md existe mas charter ausente (regularizar)
-  - `live` — charter status `live` + smoke validado biz=1
-
-## Como regenerar
-
-```bash
-bash /tmp/generate_catalogs.sh
-```
-
-(Em S4+ vira `php artisan ui:catalog-generate` — issue futura)
-
----
-Gerado por W31-10 (bulk-screen-review-r1, areas isoladas, sem git ops).
+- Charter obrigatório antes de `Write` em `.tsx` ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md));
+  o hook `block-mwart-violation` exige o RUNBOOK da tela.

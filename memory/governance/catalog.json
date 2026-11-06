@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 904,
-    "edges": 1227,
+    "nodes": 924,
+    "edges": 1252,
     "by_node_type": {
       "module": 43,
       "table": 108,
-      "adr": 150,
-      "component": 514,
+      "adr": 152,
+      "component": 532,
       "api": 89
     },
     "by_edge_type": {
@@ -41,10 +41,10 @@
       "consumesTable": 6,
       "providesApi": 93,
       "charteredByAdr": 30,
-      "governedByAdr": 78,
-      "hasComponent": 514,
-      "dependsOn": 136,
-      "delegatesTo": 125,
+      "governedByAdr": 81,
+      "hasComponent": 532,
+      "dependsOn": 138,
+      "delegatesTo": 127,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 76,
@@ -916,6 +916,13 @@
       "exists": true
     },
     {
+      "id": "adr:0394",
+      "type": "adr",
+      "num": "0394",
+      "slug": "0394-endereco-de-ui-do-patrimonio-pages-patrimonio",
+      "exists": true
+    },
+    {
       "id": "adr:0396",
       "type": "adr",
       "num": "0396",
@@ -1011,6 +1018,13 @@
       "type": "adr",
       "num": "0412",
       "slug": "0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315",
+      "exists": true
+    },
+    {
+      "id": "adr:0414",
+      "type": "adr",
+      "num": "0414",
+      "slug": "0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react",
       "exists": true
     },
     {
@@ -1863,10 +1877,24 @@
       "desc": ""
     },
     {
+      "id": "component:AssetManagement/AssetAllocationService",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetAllocationService",
+      "desc": ""
+    },
+    {
       "id": "component:AssetManagement/AssetController",
       "type": "component",
       "module": "AssetManagement",
       "name": "AssetController",
+      "desc": ""
+    },
+    {
+      "id": "component:AssetManagement/AssetMaintenanceService",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetMaintenanceService",
       "desc": ""
     },
     {
@@ -1877,6 +1905,20 @@
       "desc": ""
     },
     {
+      "id": "component:AssetManagement/AssetManagementHealthCommand",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetManagementHealthCommand",
+      "desc": ""
+    },
+    {
+      "id": "component:AssetManagement/AssetService",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetService",
+      "desc": ""
+    },
+    {
       "id": "component:AssetManagement/AssetSettingsController",
       "type": "component",
       "module": "AssetManagement",
@@ -1884,10 +1926,31 @@
       "desc": ""
     },
     {
+      "id": "component:AssetManagement/AssetWarrantyService",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetWarrantyService",
+      "desc": ""
+    },
+    {
       "id": "component:AssetManagement/DataController",
       "type": "component",
       "module": "AssetManagement",
       "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:AssetManagement/DepreciacaoGerencial",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "DepreciacaoGerencial",
+      "desc": ""
+    },
+    {
+      "id": "component:AssetManagement/GarantiasOrfasCommand",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "GarantiasOrfasCommand",
       "desc": ""
     },
     {
@@ -3029,7 +3092,7 @@
       "type": "component",
       "module": "Fiscal",
       "name": "AcoesController",
-      "desc": "PR #4 thin delegate NfeService::cancelar + ManifestacaoService (4 ações DF-e)"
+      "desc": "thin delegate: cancelar (só a nota, ou a venda junto via FSM — R-NFE-044) · CC-e · inutilizar · retransmitir · devolução (DevolucaoService, R-NFE-039) · manifestar DF-e (4 ações, por linha e em lote)"
     },
     {
       "id": "component:Fiscal/CockpitController",
@@ -3043,7 +3106,21 @@
       "type": "component",
       "module": "Fiscal",
       "name": "ConfigController",
-      "desc": "sub-página 6 (Cert A1 + regime + tributação default read-only)"
+      "desc": "sub-página 6 (cert A1, ambiente SEFAZ, contingência, séries, SPED) + POST /config/contador; cert/ambiente/contingência postam para rotas do NfeBrasil"
+    },
+    {
+      "id": "component:Fiscal/Console/Commands/CertHealthCheckCommand",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Console/Commands/CertHealthCheckCommand",
+      "desc": "fiscal:cert-health-check (alerta de vencimento do A1 em mcp_alertas_eventos)"
+    },
+    {
+      "id": "component:Fiscal/Console/Commands/HabilitarBusinessCommand",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Console/Commands/HabilitarBusinessCommand",
+      "desc": "fiscal:habilitar-business {biz}"
     },
     {
       "id": "component:Fiscal/DasController",
@@ -3074,11 +3151,25 @@
       "desc": "sub-página 5 (timeline append-only CC-e/Cancel/EPEC/Manifesto)"
     },
     {
+      "id": "component:Fiscal/Http/Middleware/FiscalLiberado",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Http/Middleware/FiscalLiberado",
+      "desc": "exige o pacote fiscal_module da empresa em toda rota operacional (#10404)"
+    },
+    {
       "id": "component:Fiscal/InstallController",
       "type": "component",
       "module": "Fiscal",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Fiscal/Listeners/InvalidaCockpitCacheListener",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Listeners/InvalidaCockpitCacheListener",
+      "desc": "invalida o cache de KPIs em NFeAutorizada/NFCeAutorizada"
     },
     {
       "id": "component:Fiscal/NfeCockpitController",
@@ -3102,18 +3193,53 @@
       "desc": "PR #7 ⌘K palette cross-fiscal (US-FISCAL-015 — busca global notas + DF-e)"
     },
     {
+      "id": "component:Fiscal/Services/FiscalPacote",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/FiscalPacote",
+      "desc": "leitura do pacote fiscal_module usada pelo FiscalLiberado"
+    },
+    {
+      "id": "component:Fiscal/Services/NotasUnifiedService",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/NotasUnifiedService",
+      "desc": "lista unificada de notas do Cockpit (substituiu o mock)"
+    },
+    {
+      "id": "component:Fiscal/Services/SefazCstatService",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/SefazCstatService",
+      "desc": "mapa cstat → tom/rótulo"
+    },
+    {
+      "id": "component:Fiscal/Services/Sped/EfdIcmsIpiLeiaute",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/Sped/EfdIcmsIpiLeiaute",
+      "desc": "ordem dos blocos (Guia Prático v3.2.3) e COD_VER por ano (NT 2025.001)"
+    },
+    {
       "id": "component:Fiscal/Services/SpedIcmsIpiGeneratorService",
       "type": "component",
       "module": "Fiscal",
       "name": "Services/SpedIcmsIpiGeneratorService",
-      "desc": "gerador TXT EFD-ICMS/IPI v3.1.1 perfil A (PR #8 saídas MVP — sem PIS/COFINS, sem Bloco E apuração, sem Bloco H inventário)"
+      "desc": "gerador TXT EFD-ICMS/IPI perfil A: os 10 blocos obrigatórios (B, D, G, K e 1 sem dados), Bloco E apuração, Bloco H esqueleto; sem PIS/COFINS"
+    },
+    {
+      "id": "component:Fiscal/Services/SpedReferenciaArquivoService",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/SpedReferenciaArquivoService",
+      "desc": ""
     },
     {
       "id": "component:Fiscal/SpedController",
       "type": "component",
       "module": "Fiscal",
       "name": "SpedController",
-      "desc": "sub-página 7 + endpoint gerar() download EFD-ICMS/IPI MVP (PR #8)"
+      "desc": "sub-página 7 + gerar() download EFD-ICMS/IPI (atrás de fiscal.sped_simples_only_lock) + POST /sped/trava (bypass só na sessão do superadmin)"
     },
     {
       "id": "component:Fisio/Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app",
@@ -4191,7 +4317,7 @@
       "type": "component",
       "module": "OficinaAuto",
       "name": "Public/AprovacaoOsController",
-      "desc": "endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
+      "desc": "endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-014). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
     },
     {
       "id": "component:OficinaAuto/ServiceOrderAssinaturaController",
@@ -4677,11 +4803,25 @@
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
     },
     {
+      "id": "component:Producao/OrdemFichaController + FichaDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "OrdemFichaController + FichaDaOrdem",
+      "desc": "Ficha da OS por item, /producao/ordens/{id} (Inertia Producao/Os/Show, lote 3): situação, etapas com previsto × apontado e as ações do OrdemSituacaoController; só leitura, pacote + producao.access, OS de outra empresa = 404"
+    },
+    {
       "id": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
       "type": "component",
       "module": "Producao",
       "name": "OrdemMaterialController + FaltaDeMaterialDaOs",
       "desc": "OS liberada sem material fica em Aguardando material (US-PCP-032 · D3): falta por insumo da receita (necessário × disponível no local menos reservas de outras OS) e compras a caminho, conferir volta para Na fila; chave producao_aguarda_material da empresa, desligada por padrão; ler com producao.access, conferir com o papel producao.liberar, JSON"
+    },
+    {
+      "id": "component:Producao/OrdemSituacaoController",
+      "type": "component",
+      "module": "Producao",
+      "name": "OrdemSituacaoController",
+      "desc": "ações de tela da OS por item em JSON: Liberar, Refazer e Cancelar item (POST ordens/{id}/liberar|refazer|cancelar); pacote + producao.access na rota, papel do motor FSM (producao.liberar · vendas.gerente) na ação; a Ficha da OS chama"
     },
     {
       "id": "component:Producao/PainelController + PainelDaProducao + ArteDasOrdens",
@@ -8129,7 +8269,31 @@
     },
     {
       "from": "module:AssetManagement",
+      "to": "adr:0093",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "adr:0394",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "adr:0414",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:AssetManagement",
       "to": "component:AssetManagement/AssetAllocationController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetAllocationService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8141,7 +8305,25 @@
     },
     {
       "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetMaintenanceService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
       "to": "component:AssetManagement/AssetMaitenanceController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetManagementHealthCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8153,7 +8335,25 @@
     },
     {
       "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetWarrantyService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
       "to": "component:AssetManagement/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/DepreciacaoGerencial",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/GarantiasOrfasCommand",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9820,6 +10020,20 @@
       "to": "module:NfeBrasil",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Cálculo do DAS"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão fiscal (XML + SEFAZ)"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Emissão fiscal (XML + SEFAZ)"
     },
     {
@@ -9842,6 +10056,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cálculo do DAS"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão fiscal (XML + SEFAZ)"
     },
     {
       "from": "module:Fiscal",
@@ -9913,6 +10141,18 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "component:Fiscal/Console/Commands/CertHealthCheckCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Console/Commands/HabilitarBusinessCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "component:Fiscal/DasController",
       "type": "hasComponent",
       "source": "contains"
@@ -9937,7 +10177,19 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "component:Fiscal/Http/Middleware/FiscalLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "component:Fiscal/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Listeners/InvalidaCockpitCacheListener",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9961,7 +10213,37 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/FiscalPacote",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/NotasUnifiedService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/SefazCstatService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/Sped/EfdIcmsIpiLeiaute",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "component:Fiscal/Services/SpedIcmsIpiGeneratorService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/SpedReferenciaArquivoService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13412,7 +13694,19 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/OrdemFichaController + FichaDaOrdem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/OrdemSituacaoController",
       "type": "hasComponent",
       "source": "contains"
     },

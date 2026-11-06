@@ -20,7 +20,8 @@ use Tests\Support\EstoqueFixture;
  *  (2) soma das linhas das compras RECEBIDAS daquela variação no local.
  * Os dois têm de bater com o esperado escrito à mão (0 → 4 → 10).
  *
- * Tenant 98 (ADR 0358); adversário 99 ou o biz=2 do seed, nunca 1 nem 4.
+ * Tenant 98 (ADR 0358); adversário o cliente fictício 99, criado pelo próprio teste quando falta
+ * (seededSupportClientTenant); nunca 1 nem 4.
  *
  * @covers-uc UC-PURCRE-12 — resources/js/Pages/Purchase/Create.casos.md
  * @covers-us US-COM-013
@@ -190,11 +191,8 @@ it('recebe 4 e depois 6: estoque 0 → 4 → 10 pelos dois caminhos, pedido parc
 });
 
 it('não mostra pedido de fornecedor de outra empresa', function () {
-    $outra = (int) DB::table('business')->whereIn('id', [99, 2])->where('id', '!=', $this->biz)
-        ->orderByDesc('id')->value('id');
-    if ($outra <= 0) {
-        $this->markTestSkipped('Sem empresa adversária fictícia (99 ou 2) neste ambiente.');
-    }
+    $outra = (int) $this->seededSupportClientTenant()->id;
+    expect($outra)->toBe(99, 'adversário fictício 99 não foi criado');
     $fornecedorAlheio = DB::table('contacts')->insertGetId([
         'business_id' => $outra,
         'type' => 'supplier',

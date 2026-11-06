@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 
 const ROTA = '/crm/reports';
 const TODOS = '__todos';
@@ -58,7 +59,7 @@ export default function RelatoriosIndex({ filtros, status, categorias, por_usuar
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Relatórios" subtitle="Acompanhamentos por usuário e por contato, e leads convertidos em cliente." />
+      <PageHeader below={<ModuleTabs modulo="CRM" />} title="Relatórios" subtitle="Acompanhamentos por usuário e por contato, e leads convertidos em cliente." />
 
       <Card data-contract="crm-filtros">
         <CardContent className="flex flex-col gap-3 p-4">

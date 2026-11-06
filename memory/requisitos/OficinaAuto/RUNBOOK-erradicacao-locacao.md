@@ -2,7 +2,7 @@
 id: requisitos-oficina-auto-runbook-erradicacao-locacao
 title: "RUNBOOK — Erradicação de order_type=locacao (ADR 0265, parte backend coupled)"
 owner: W
-last_validated: "2026-06-09"
+last_validated: "2026-11-05"
 ---
 
 # RUNBOOK — Erradicação de `order_type=locacao` (parte backend acoplada)
@@ -59,5 +59,41 @@ Nova migration `Modules/OficinaAuto/Database/Migrations/2026_06_09_000001_erradi
 ## Controle-negativo de aceite (ADR 0265)
 Pós-merge, `grep -rn "order_type.*locacao\|locacao_ativa" Modules/OficinaAuto/` em **código de produção** = **zero** (fixtures de teste tratadas no P4). `dominio:check` baseline OficinaAuto = 0. **Preservado:** FSM keys `disponivel/locada`, journey E2E Martinho biz=1, idempotência `FB_LEGACY_ID`.
 
+## Estado medido em 2026-11-05 (auditoria do módulo, `origin/main` `7d997591d7`)
+
+Os 5 passos estão feitos. Nada abaixo apaga schema: o resíduo é dívida F3 e espera ADR própria do [W].
+
+| Passo | Situação | Evidência |
+|---|---|---|
+| P1 importer | feito | `ImportFirebirdMartinhoCommand.php` (`normalizeOrderType` sem ramo `locacao`); `ImportFirebirdMartinhoW28Test.php:62` espera `manutencao` |
+| P2 migration | feita | `2026_06_09_000001_erradica_locacao_from_order_type.php` e seguintes |
+| P3 KPI `locacao_ativa` | feito | só sobra em comentário de teste |
+| P4 fixtures | feito | sobra 1 `'order_type' => 'locacao'` em `ImportFirebirdMartinhoCommandTest.php:109`, declarado como dado de ORIGEM do Firebird que o importer converte (legítimo) |
+| P5 menu | feito | `Resources/menus/topnav.php:23` = `Veículos` (PR #2468) |
+
+Controle-negativo: `order_type.*locacao` em código de produção só aparece em migrations (histórico).
+
+### Resíduo fora do escopo deste RUNBOOK (dívida F3, sem ADR própria)
+
+- `vehicles.current_status` enum `disponivel|locada|manutencao|indisponivel` e `vehicles.vehicle_type`
+  com `cacamba_estacionaria|cacamba_avulsa|cacamba_caminhao|recapagem` — declarados em
+  `memory/dominio/oficina-auto.md`.
+- Processo FSM `cacamba_locacao` ainda seedado (`OficinaAutoFsmSeeder.php`) com side-effects
+  `IniciarLocacaoCacamba`, `RecolherCacamba`, `EnviarCacambaManutencao`, `VoltarCacambaDisponivel`
+  em `app/Domain/Fsm/SideEffects/`. Também é citado em `ServiceOrderFsmActionController.php`,
+  `ProducaoOficinaController.php`, `OficinaAutoDatabaseSeeder.php` e `ServiceOrderStagePipeline.tsx`.
+- Valores `'locada'`/`'disponivel'` em código de produção do módulo: `OficinaAutoFsmSeeder`,
+  `VehicleController`, `VehicleQueryService`, `Vehicle.php`, `Producao/CapacidadeService.php`,
+  `Vehicles/Index.tsx`, `Vehicles/_components/VehicleStatusBadge.tsx`. Contagem viva:
+  `git grep -c -E "'locada'|'disponivel'" -- Modules/OficinaAuto resources/js/Pages/OficinaAuto ':!*Test.php' ':!*/Migrations/*'`.
+- `CacambaCard.tsx` e `CacambaKanbanColumn.tsx`, citados acima no Limite Tier 0, **não existem mais**
+  (`git ls-files resources/js | grep -i cacamba` = 0).
+- Termos proibidos em migrations e seeders aparecem no `npm run dominio:report` como débito
+  absorvido no baseline; divergências enum × dicionário = 0.
+
+O processo `cacamba_manutencao` segue vivo para `order_type=manutencao` — ver
+[`RUNBOOK-fsm-pipeline.md`](RUNBOOK-fsm-pipeline.md).
+
 ## Trilha
 - 2026-06-09 · [CL] catalogou o RUNBOOK (parte backend acoplada da ADR 0265 não executável blind sem Pest). Parte anti-retorno (proibições + gate) landou no mesmo PR.
+- 2026-11-05 · [C] auditoria do módulo: os 5 passos estavam feitos; resíduo F3 medido acima (lote 5.2).

@@ -9,6 +9,11 @@ fator_estimate: 10x IA-pair (ADR 0106) + margem 2x; tarefas humano-limitadas (ca
 
 # ROADMAP — Modules/Producao (5 fases sequenciais)
 
+> **Leia antes (2026-11-05):** este roteiro é a proposta de 2026-05-12, anterior à [ADR 0431](../../decisions/0431-pcp-sai-do-desejo-modules-producao.md). Ele não descreve o módulo de hoje: a construção seguiu o playbook de Produção, o que foi entregue está nas âncoras do [SPEC](SPEC.md), e o piloto decidido é biz=1 e depois um cliente de Comunicação Visual, não a ROTA LIVRE da Fase 5. Duas armadilhas medidas:
+>
+> - O "Backlog P2-P3" no fim deste arquivo usa **US-PCP-021..026 com outros significados** (gargalo pela Jana, MRP, manutenção, qualidade, Gantt, Vestuário). No SPEC esses números são outras US, entregues ou em andamento. Vale o SPEC.
+> - A fronteira com o Manufacturing (ordem, composição, desperdício e custo calculados em dois lugares) está medida no [SCOPE](SCOPE.md#fronteira-com-o-manufacturing-medida-em-2026-11-05). Juntar os dois é decisão [W] em aberto; nada aqui a antecipa.
+
 ## Pré-requisitos (bloqueadores)
 
 - ✅ ADR 0143 FSM canon LIVE prod biz=1 (done 2026-05-12)

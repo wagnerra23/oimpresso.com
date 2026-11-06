@@ -72,3 +72,17 @@ Status: 🧪
 
 - **[BACKLOG]** Chego no Painel pelo item Produção do menu, sem digitar URL (`DataController::modifyAdminMenu` aponta para `/producao/painel`).
 - **[BACKLOG]** O Painel cabe em 1280px sem scroll horizontal.
+
+## UC-PCPNL-01 · Se o Painel não carrega, a tela diz e deixa tentar de novo · `must`
+
+> Âncora: estado "erro" de `prototipo-ui/cowork/Wagner/producao-cv-page.jsx` (`EmptyState variant="error"`,
+> "Não foi possível carregar a produção" + "Tentar de novo"). Auditoria da Produção 2026-11-05, eixo 2 item 17.
+
+**Dado** o gestor abrindo o Painel **Quando** a carga dos dados do Painel volta com erro do servidor ou cai a
+rede **Então** no lugar do esqueleto aparece "Não foi possível carregar a produção", com "Nada foi alterado. Tente
+de novo…" e o botão "Tentar de novo", que pede de novo só os dados do Painel · O modal com a página de erro do
+Inertia não abre por cima · **Controle:** com o Painel já carregado, um erro de outra requisição não troca a tela
+pelo erro. Prova: `tests/js/producao-painel-erro.test.tsx` (vitest, job "Frontend / Vite build" do CI).
+
+Status: 🧪
+

@@ -131,19 +131,25 @@ class EnvioWhatsappFisio
      * roda dentro da reserva (ex.: emitir o link do portal) e pode desistir devolvendo null — aí
      * nada é gravado e a próxima tentativa envia. Devolve null se já houve envio hoje.
      *
+     * `$despachar` enfileira as mensagens. Preparar, registrar a reserva e enfileirar vão numa
+     * transação só: se o enfileiramento falhar, o link emitido e a reserva voltam atrás — o paciente
+     * fica com o link anterior válido e o retry do job envia (antes, a reserva ficava gravada, o
+     * link antigo revogado e o retry pulava o envio).
+     *
      * @template T
      *
      * @param  callable(): (T|null)  $preparar
      * @param  array<string, mixed>  $extra
+     * @param  (callable(Carbon, T): void)|null  $despachar
      * @return array{saida: Carbon, dados: T}|null
      */
-    public function reservar(Patient $paciente, string $tipo, callable $preparar, array $extra = []): ?array
+    public function reservar(Patient $paciente, string $tipo, callable $preparar, array $extra = [], ?callable $despachar = null): ?array
     {
         $biz = (int) $paciente->business_id;
         $dia = $this->hoje($biz);
         $descricao = self::descricao($tipo, $dia);
 
-        return Cache::lock("fisio:wa:{$biz}:{$paciente->id}:{$tipo}:{$dia}", 30)->block(10, function () use ($paciente, $biz, $tipo, $dia, $descricao, $preparar, $extra) {
+        return Cache::lock("fisio:wa:{$biz}:{$paciente->id}:{$tipo}:{$dia}", 30)->block(10, fn () => DB::transaction(function () use ($paciente, $biz, $tipo, $dia, $descricao, $preparar, $extra, $despachar) {
             if ($this->jaEnviado($paciente, $descricao)) {
                 return null;
             }
@@ -165,8 +171,18 @@ class EnvioWhatsappFisio
                 ]))
                 ->log($descricao);
 
+            if ($despachar !== null) {
+                $despachar($saida, $dados);
+            }
+
             return ['saida' => $saida, 'dados' => $dados];
-        });
+        }));
+    }
+
+    /** O envio de `$tipo` já saiu hoje para este paciente? (mesma chave da reserva) */
+    public function jaEnviadoHoje(Patient $paciente, string $tipo): bool
+    {
+        return $this->jaEnviado($paciente, self::descricao($tipo, $this->hoje((int) $paciente->business_id)));
     }
 
     public static function descricao(string $tipo, string $dia): string

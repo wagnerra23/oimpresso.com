@@ -5,7 +5,9 @@ namespace Modules\AssetManagement\Services;
 use App\Util\OtelHelper;
 use App\Utils\Util;
 use DB;
+use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Exceptions\SaldoInsuficienteException;
@@ -40,14 +42,19 @@ class AssetAllocationService
             $input['business_id'] = $businessId;
             $input['created_by'] = $userId;
 
-            DB::beginTransaction();
-
             // A normalizacao subiu para ANTES da trava (thread 02): a quantidade so pode ser
             // comparada com o saldo depois de passar por `num_uf`, senao a comparacao seria
             // com a string crua. Nada aqui depende do `ref_no`, entao a ordem e segura — e o
             // `ref_no` passou a ser gerado DEPOIS da trava, para que uma alocacao recusada
             // nao queime um numero de referencia.
             $input = $this->normalizarCampos($input);
+
+            // Lote 0.1 (auditoria 2026-11-05, a-2): a trava de saldo sozinha deixava nascer
+            // linha com quantidade vazia/0 (`0 > 0` e falso) para bem de OUTRA empresa, e o
+            // receptor nunca era conferido. Recusa ANTES de abrir a transacao.
+            $this->validarBemReceptorQuantidade($input, $businessId);
+
+            DB::beginTransaction();
 
             $this->garantirSaldo(
                 (int) ($input['asset_id'] ?? 0),
@@ -82,11 +89,37 @@ class AssetAllocationService
                 'transaction_datetime', 'reason', 'allocated_upto'
             );
 
-            DB::beginTransaction();
-
             $input = $this->normalizarCampos($input);
 
-            $trans = AssetTransaction::where('business_id', $businessId)->findOrFail($id);
+            // So ALOCACAO: o `edit()` ja recusava devolucao com 404; o `update()` aceitava
+            // qualquer linha do business, inclusive uma devolucao.
+            $trans = AssetTransaction::where('business_id', $businessId)
+                ->where('transaction_type', 'allocate')
+                ->findOrFail($id);
+
+            // Lote 0.1 (auditoria 2026-11-05, A1): o `update($input)` gravava `asset_id` e
+            // `receiver` de outra empresa e qualquer quantidade, sem a trava de saldo do
+            // `criar()`. Campo ausente no request mantem o valor da linha.
+            $input['asset_id'] = $input['asset_id'] ?? $trans->asset_id;
+            $input['receiver'] = $input['receiver'] ?? $trans->receiver;
+            $input['quantity'] = $input['quantity'] ?? $trans->quantity;
+
+            $this->validarBemReceptorQuantidade($input, $businessId);
+
+            DB::beginTransaction();
+
+            // Saldo DESCONTANDO a propria alocacao: o que ela ja ocupa volta a ficar livre
+            // para ela mesma. As devolucoes dela se cancelam na conta (saem do alocado e do
+            // pedido), entao o credito e so a quantidade atual — e so quando o bem nao muda.
+            $credito = (int) $input['asset_id'] === (int) $trans->asset_id ? (float) $trans->quantity : 0.0;
+
+            $this->garantirSaldo(
+                (int) $input['asset_id'],
+                $businessId,
+                (float) $input['quantity'],
+                $credito
+            );
+
             $trans->update($input);
 
             DB::commit();
@@ -200,9 +233,9 @@ class AssetAllocationService
      * controller recebe `Illuminate\Http\Request` cru e tem 0 chamadas de validacao, entao
      * regra escrita la passa no CI e e inerte em producao (`_saida-04.md §5`).
      */
-    private function garantirSaldo(int $assetId, int $businessId, float $pedido): void
+    private function garantirSaldo(int $assetId, int $businessId, float $pedido, float $credito = 0.0): void
     {
-        $disponivel = $this->saldoLivre($assetId, $businessId);
+        $disponivel = $this->saldoLivre($assetId, $businessId) + $credito;
 
         if ($pedido > $disponivel) {
             // Rollback explicito: nao delegar ao `catch` do controller. A transacao foi
@@ -211,6 +244,36 @@ class AssetAllocationService
             DB::rollBack();
 
             throw new SaldoInsuficienteException($assetId, $pedido, $disponivel);
+        }
+    }
+
+    /**
+     * Bem e receptor da empresa da sessao, quantidade > 0 (lote 0.1).
+     *
+     * Erro de VALIDACAO, por campo — o controller deixa o `ValidationException` subir e o
+     * drawer mostra a mensagem no campo. Bem de outra empresa e tratado como inexistente:
+     * a mensagem nao confirma que o id existe em outro lugar.
+     */
+    private function validarBemReceptorQuantidade(array $input, int $businessId): void
+    {
+        $erros = [];
+
+        $assetId = (int) ($input['asset_id'] ?? 0);
+        if ($assetId <= 0 || ! Asset::where('business_id', $businessId)->whereKey($assetId)->exists()) {
+            $erros['asset_id'] = 'Bem não encontrado nesta empresa.';
+        }
+
+        $receiverId = (int) ($input['receiver'] ?? 0);
+        if ($receiverId <= 0 || ! User::where('business_id', $businessId)->whereKey($receiverId)->exists()) {
+            $erros['receiver'] = 'Pessoa não encontrada nesta empresa.';
+        }
+
+        if ((float) ($input['quantity'] ?? 0) <= 0) {
+            $erros['quantity'] = 'Informe uma quantidade maior que zero.';
+        }
+
+        if ($erros !== []) {
+            throw ValidationException::withMessages($erros);
         }
     }
 

@@ -31,7 +31,7 @@ class SaudeFiscalService
 
     /**
      * @return array{pronto: bool, bloqueantes: int,
-     *   itens: list<array{tipo: string, bloqueante: bool, titulo: string, contagem: int, ids: list<int>, rota: string}>}
+     *   itens: list<array{tipo: string, bloqueante: bool, titulo: string, contagem: int, ids: list<int>, rota: string, parametros: array<string, scalar>}>}
      */
     public function avaliar(int $businessId): array
     {
@@ -130,8 +130,10 @@ class SaudeFiscalService
     {
         $ids = $this->semNcm($biz, null);
 
+        // UC-PIDX-42: "Revisar produtos" abre a consulta de produto já com o filtro "Falta NCM" e só os ativos,
+        // o mesmo conjunto que este item conta.
         return $ids === [] ? null : $this->item('produto_sem_ncm', false, 'Produtos ativos sem NCM válido',
-            count($ids), array_slice($ids, 0, self::AMOSTRA), 'products.unificado.index');
+            count($ids), array_slice($ids, 0, self::AMOSTRA), 'products.index', ['falta_ncm' => 1, 'active_state' => 'active']);
     }
 
     /** Thread 29 · R-NFE-034: produtos marcados como "natureza a decidir" (ICMS × ISS). Aviso. */
@@ -164,8 +166,9 @@ class SaudeFiscalService
         return $q->orderBy('id')->pluck('id')->map(fn ($id) => (int) $id)->all();
     }
 
-    private function item(string $tipo, bool $bloqueante, string $titulo, int $contagem, array $ids, string $rota): array
+    /** @param array<string, scalar> $parametros parâmetros da rota (filtros da tela de destino) */
+    private function item(string $tipo, bool $bloqueante, string $titulo, int $contagem, array $ids, string $rota, array $parametros = []): array
     {
-        return compact('tipo', 'bloqueante', 'titulo', 'contagem', 'ids', 'rota');
+        return compact('tipo', 'bloqueante', 'titulo', 'contagem', 'ids', 'rota', 'parametros');
     }
 }

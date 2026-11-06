@@ -76,6 +76,8 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-08 | o contador é cadastrado por empresa, com o gate da tela | `[must]` `[T0]` | D-CONTADOR · US-NFE-009 | `ContadorCadastroTest` | 🧪 |
 | UC-FCFG-09 | o papel "Contador" tem só tributação, aceite, cockpit fiscal e SPED | `[must]` `[T0]` | D-CONTADOR (caminho 2) | `ContadorCadastroTest` | 🧪 |
 | UC-FCFG-10 | a contingência é ativada com o modo escolhido (SVC-AN · SVC-RS · EPEC), e a SVC errada para a UF é recusada | `[must]` `[fiscal]` | US-NFE-071 | `ContingenciaModoTest` (3) | 🧪 |
+| UC-FCFG-11 | certificado sem CNPJ titular mostra o CNPJ da empresa | `[should]` | CU-FISC-14 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-12 | a configuração fiscal mostrada é a da própria empresa | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 
 ---
 
@@ -97,7 +99,7 @@ related_us: [US-FISCAL-009]
 **Então** só o do business ativo é encontrado.
 
 - **Regressão que defende:** vazamento cross-tenant Tier 0 ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) — aqui expondo o CNPJ titular e a validade do certificado de outro cliente.
-- **Teste:** `ConfigControllerTest` — `it('UC-FCFG-02 · NfeCertificado HasBusinessScope esconde certs de outros tenants')`
+- **Teste:** `ConfigControllerTest` — `it('UC-FCFG-02 · NfeCertificado HasBusinessScope esconde certs de outros tenants')` — um certificado em cada empresa (98 e 99), usuário da 98: o da 99 some e o da 98 aparece. Até 2026-11-06 o teste contava sem usuário autenticado e sem dado, e passava com a tabela vazia.
 - **Status:** 🧪 advisory + noturna.
 
 ## UC-FCFG-03 — A tela exige `fiscal.config.edit` `[must]` `[T0]`
@@ -266,6 +268,29 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - **Teste:** `Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php` — os três casos `UC-FCFG-10 · …`.
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-FCFG-11 — Certificado sem CNPJ titular mostra o CNPJ da empresa `[should]`
+
+**Dado** um certificado A1 ativo cujo CNPJ titular ficou vazio (cadastro antigo)
+**Quando** a tela de configuração monta o card do certificado
+**Então** o card mostra o CNPJ da empresa, marcado como "(business)";
+**E** um certificado com CNPJ titular não ganha fallback.
+
+- **Regressão que defende:** o fallback lia uma chave do painel que não existe (`cnpj_business` em vez de `cnpjBusiness`) — o CNPJ nunca aparecia e o acesso à chave inexistente lançava erro. Achado D12 da auditoria do Fiscal de 2026-11-05.
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-11 · cert sem CNPJ titular mostra o CNPJ da empresa como fallback')`
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+---
+
+## UC-FCFG-12 — A configuração fiscal mostrada é a da própria empresa `[must]` `[T0]`
+
+**Dado** duas empresas, cada uma com o seu regime e CFOP padrão em `nfe_business_configs`
+**Quando** cada uma abre a tela de configuração
+**Então** cada uma vê o seu regime e o seu CFOP; nenhuma vê a da outra.
+
+- **Regressão que defende:** a tela lê a configuração com `NfeBusinessConfig::query()->first()`, filtrado só pelo escopo global; sem ele as duas empresas receberiam a mesma linha. Achado da auditoria do Fiscal de 2026-11-05 (lote 2.1).
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-12 · a tela mostra a configuração fiscal da própria empresa, nunca a da vizinha')`
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
@@ -321,6 +346,7 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 
 ## Trilha do tempo
 
+- 2026-11-05 · [C] `UC-FCFG-11` — fallback do CNPJ titular lia a chave errada do painel (D12 da auditoria). Corrigido no `ConfigController`; teste novo no `ConfigControllerTest`.
 - 2026-10-27 · [F+C] Backlog: alíquota do Simples do mês, para produto e para serviço, pedido da Art Laser (US-PROD-032). Sem id.
 - 2026-10-21 · [C] `UC-FCFG-10` — a seção Contingência SEFAZ ganha a escolha de modo (SVC-AN · SVC-RS ·
   EPEC, US-NFE-071). Revalidei os UC-FCFG-01..09: a mudança na tela fica só dentro da seção de

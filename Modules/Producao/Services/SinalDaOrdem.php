@@ -28,6 +28,9 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  */
 final class SinalDaOrdem
 {
+    /** @var array{0: bool, 1: bool}|null [transactions tem a coluna, contacts tem a coluna] */
+    private static ?array $colunas = null;
+
     public function __construct(private readonly RegrasDaEmpresa $regras) {}
 
     /**
@@ -48,8 +51,9 @@ final class SinalDaOrdem
     /** Sinal gravado na venda (P-026) ou, sem ele, a condição do cliente dela (P-025); texto decimal ou nulo. */
     private function doCliente(int $businessId, int $transactionId): ?string
     {
-        $daVenda = Schema::hasColumn('transactions', 'sinal_minimo_pct');
-        $doCliente = Schema::hasColumn('contacts', 'sinal_minimo_pct');
+        // Lido em todo pagamento gravado (listener do provider): o schema é lido uma vez por processo.
+        self::$colunas ??= [Schema::hasColumn('transactions', 'sinal_minimo_pct'), Schema::hasColumn('contacts', 'sinal_minimo_pct')];
+        [$daVenda, $doCliente] = self::$colunas;
         if (! $daVenda && ! $doCliente) {
             return null;
         }

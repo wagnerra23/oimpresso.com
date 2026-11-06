@@ -75,7 +75,7 @@ uma das duas notificações), com a lista de tags disponíveis de cada bloco.
 |---|---|
 | **Editor WYSIWYG** no corpo do e-mail | o Blade usa TinyMCE (`index.blade.php:44-50`). Trazer editor rich-text para o React é **dependência nova** — exige ADR ([proibicoes](../../proibicoes.md) §Código). Nesta onda o corpo é textarea monoespaçada, com o rótulo dizendo que o conteúdo é HTML |
 | os **3 interruptores do protótipo** (`patrimonio-page.jsx:589`) | "Garantia expirando em 30 dias" e "Alocação registrada pro colaborador" **não têm backend** — nenhuma coluna, nenhum job, nenhuma `Notification`. Interruptor que não liga nada é afordância falsa |
-| a linha **"Retenção: 5 anos"** do rodapé do protótipo | aponta `Config/retention.php`, que é da **thread 05, BARRADA** pela lápide §5 de 2026-07-27 (num ERP não se apaga PII) — e as tabelas que ele declara (`am_assets`, `am_maintenance_logs`) **não existem**. A própria ficha da thread 11 manda parar e declarar, nunca criar a tabela |
+| a linha **"Retenção: 5 anos"** do rodapé do protótipo | aponta `Config/retention.php`, que é da **thread 05, BARRADA** pela lápide §5 de 2026-07-27 (num ERP não se apaga PII) — e, quando esta linha foi escrita, as chaves que ele declarava (`am_assets`, `am_maintenance_logs`) eram tabelas que não existem. Desde 2026-10-13 as chaves usam os nomes reais (`assets`, `asset_transactions`, `asset_maintenances` — `Config/retention.php`), mas o motivo do adiamento continua: a retenção no Patrimônio foi revogada por [W] (lápide §5 2026-10-13) e o arquivo não tem executor. A própria ficha da thread 11 manda parar e declarar, nunca criar a tabela |
 
 ## 6. Estados (loading / empty / error / success)
 
