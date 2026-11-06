@@ -145,3 +145,73 @@ it('UC-FCFG-05 · o card de envio de documentos espelha as flags REAIS do deploy
                 ->where('envioDocumentos.nfceAtivo', true),
         );
 });
+
+/**
+ * Cert A1 de teste no tenant fictício, com o CNPJ titular dado (vazio = cert antigo sem CNPJ).
+ * Só preenche as colunas que o schema tem — duas migrations disputam `nfe_certificados`.
+ * Validade em 2099 para ele ser o "vigente" da tela, que ordena por `valido_ate` desc.
+ */
+function configCertTeste(int $bizId, string $cnpjTitular): int
+{
+    $row = [
+        'business_id' => $bizId,
+        'valido_ate'  => '2099-12-31',
+        'ativo'       => true,
+        'created_at'  => now(),
+        'updated_at'  => now(),
+    ];
+    $opcionais = [
+        'uuid'               => (string) \Illuminate\Support\Str::uuid(),
+        'cnpj_titular'       => $cnpjTitular,
+        'encrypted_password' => 'CONFIG_TEST_PLACEHOLDER',
+        'cert_pfx_encrypted' => 'CONFIG_TEST_PLACEHOLDER',
+        'senha_encrypted'    => 'CONFIG_TEST_PLACEHOLDER',
+        'titular_cnpj'       => $cnpjTitular,
+    ];
+    foreach ($opcionais as $col => $valor) {
+        if (Schema::hasColumn('nfe_certificados', $col)) {
+            $row[$col] = $valor;
+        }
+    }
+
+    return (int) DB::table('nfe_certificados')->insertGetId($row);
+}
+
+it('UC-FCFG-11 · cert sem CNPJ titular mostra o CNPJ da empresa como fallback', function () {
+    $tenant = test()->seededTenant();
+    $bizId = (int) $tenant->id;
+    $cnpjEmpresa = '11222333000181'; // fictício, dígitos válidos
+
+    $user = test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant);
+    $this->actingAs($user)->withSession([
+        'business.id' => $bizId,
+        'user.business_id' => $bizId,
+        'business.tax_number_1' => $cnpjEmpresa,
+    ]);
+
+    $semCnpj = configCertTeste($bizId, '');
+    try {
+        $this->get('/fiscal/config')
+            ->assertStatus(200)
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('Fiscal/Config')
+                    ->where('certificado.cnpjTitularFallback', $cnpjEmpresa),
+            );
+    } finally {
+        DB::table('nfe_certificados')->where('id', $semCnpj)->delete();
+    }
+
+    // CONTROLE NEGATIVO — cert COM CNPJ titular não ganha fallback: a tela mostra o do cert.
+    $comCnpj = configCertTeste($bizId, '99888777000166');
+    try {
+        $this->get('/fiscal/config')
+            ->assertStatus(200)
+            ->assertInertia(
+                fn ($page) => $page
+                    ->where('certificado.cnpjTitularFallback', null),
+            );
+    } finally {
+        DB::table('nfe_certificados')->where('id', $comCnpj)->delete();
+    }
+});

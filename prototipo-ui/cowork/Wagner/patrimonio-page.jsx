@@ -92,12 +92,12 @@ function useDb(papel) {
     excluirBem: (b) => { setBens((l) => l.filter((x) => x.id !== b.id)); registrar(b.id, "Bem excluído"); },
     alocar: (a) => {
       const id = P.proximoCodigo("ALO-", alocacoes);
-      setAlocacoes((l) => [{ id, por: quem, revoke: null, ...a }, ...l]);
+      setAlocacoes((l) => [{ id, por: quem, revs: [], ...a }, ...l]);
       registrar(id, "Alocado a " + a.para + " · " + a.qtd + " un. de " + a.bem);
     },
     revogar: (aloc, r) => {
-      const id = P.proximoCodigo("REV-", alocacoes.filter((x) => x.revoke).map((x) => x.revoke));
-      setAlocacoes((l) => l.map((x) => (x.id === aloc.id ? { ...x, revoke: { id, por: quem, ...r } } : x)));
+      const id = P.proximoCodigo("REV-", alocacoes.flatMap((x) => x.revs || []));
+      setAlocacoes((l) => l.map((x) => (x.id === aloc.id ? { ...x, revs: [...(x.revs || []), { id, por: quem, ...r }] } : x)));
       registrar(aloc.id, "Alocação revogada (" + id + ") · " + r.qtd + " un. devolvida(s)");
     },
     criarManutencao: (m) => {
@@ -140,9 +140,10 @@ function SeloAlocacao({ a }) {
   const { StatusBadge } = DS();
   const P = D();
   if (!StatusBadge) return null;
-  if (a.revoke) return <StatusBadge kind="sla" value="—" tone="neutral" label={"revogada " + P.d2(a.revoke.em)} />;
+  if (P.encerrada(a)) return <StatusBadge kind="sla" value="—" tone="neutral" label={"revogada " + P.d2(P.ultimaRev(a).em)} />;
   if (a.ate && P.dias(P.HOJE, a.ate) < 0) return <StatusBadge kind="sla" value="expired" label="prazo vencido" />;
-  return <StatusBadge kind="sla" value="fresh" label="em uso" />;
+  const dev = P.revogadoQtd(a);
+  return <StatusBadge kind="sla" value="fresh" label={dev ? "em uso · " + dev + " devolvida(s)" : "em uso"} />;
 }
 
 // ═══════════════════ PAINEL (asset/dashboard) ═══════════════════
@@ -152,7 +153,7 @@ function painelData(db, papel) {
   const bruto = bens.reduce((s, b) => s + b.valor * b.qtd, 0);
   const residual = bens.reduce((s, b) => s + P.depreciacao(b).residual, 0);
   const unidades = bens.reduce((s, b) => s + b.qtd, 0);
-  const alocadas = db.alocacoes.filter((a) => !a.revoke).reduce((s, a) => s + a.qtd, 0);
+  const alocadas = db.alocacoes.reduce((s, a) => s + Math.max(0, P.restante(a)), 0);
   const alocaveis = bens.filter((b) => b.alocavel).reduce((s, b) => s + b.qtd, 0);
   const vencendo = bens.map((b) => ({ b, g: P.garantia(b) })).filter((x) => ["out", "soon"].includes(x.g.st)).sort((a, b) => a.g.dias - b.g.dias);
   const manut = db.manutencoes.filter((m) => m.status !== "concluida").sort((a, b) => a.ini.localeCompare(b.ini));
@@ -413,7 +414,7 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
   const areaRef = useRef(null);
   const altura = useAltura(areaRef);
   const todas = db.alocacoes.filter((a) => { const b = db.bens.find((x) => x.id === a.bem); return b && P.podeVerLocal(papel, b.loc); });
-  const rows = todas.filter((a) => (modo === "ativas" ? !a.revoke : modo === "revogadas" ? a.revoke : true));
+  const rows = todas.filter((a) => (modo === "ativas" ? !P.encerrada(a) : modo === "revogadas" ? P.encerrada(a) : true));
   const podeRevogar = P.can(papel, "revoke");
   if (!DataTablePro) return null;
 
@@ -431,8 +432,8 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
   ];
   const linhas = rows.map((a) => {
     const b = db.bens.find((x) => x.id === a.bem) || {};
-    return { id: a.id, nome: a.para.toLowerCase(), state: a.revoke ? "archived" : undefined, cells: {
-      codigo: a.revoke ? { primary: a.id, sub: a.revoke.id } : a.id,
+    return { id: a.id, nome: a.para.toLowerCase(), state: P.encerrada(a) ? "archived" : undefined, cells: {
+      codigo: P.ultimaRev(a) ? { primary: a.id, sub: P.ultimaRev(a).id } : a.id,
       bem: { primary: b.nome, sub: a.bem + " · " + a.motivo },
       para: <span className="ptr-pessoa">
         {Avatar && <Avatar name={a.para} size="sm" />}
@@ -440,9 +441,9 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
       </span>,
       em: P.d2(a.em),
       ate: a.ate ? P.d2(a.ate) : <span style={{ color: "var(--text-mute)" }}>indeterminado</span>,
-      qtd: a.qtd,
+      qtd: P.revogadoQtd(a) && !P.encerrada(a) ? P.restante(a) + " de " + a.qtd : a.qtd,
       situacao: <SeloAlocacao a={a} />,
-      acao: !a.revoke && podeRevogar
+      acao: !P.encerrada(a) && podeRevogar
         ? <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); onRevogar(a); }}>Revogar</Button>
         : <span style={{ color: "var(--text-mute)" }}>—</span>,
     } };
@@ -452,8 +453,8 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
     <div className="ptr-list">
       <div className="ptr-subtabs">
         <window.CliTabs ariaLabel="Situação das alocações" pad={0} active={modo} onChange={setModo}
-          tabs={[{ key: "ativas", label: "Ativas", n: todas.filter((a) => !a.revoke).length },
-            { key: "revogadas", label: "Revogadas", n: todas.filter((a) => a.revoke).length },
+          tabs={[{ key: "ativas", label: "Ativas", n: todas.filter((a) => !P.encerrada(a)).length },
+            { key: "revogadas", label: "Revogadas", n: todas.filter((a) => P.encerrada(a)).length },
             { key: "todas", label: "Todas", n: todas.length }]} />
         <div className="sp" />
         {P.can(papel, "allocate") && <Button size="sm" variant="ghost" onClick={() => onAlocar(null)}>+ Alocar recurso</Button>}
@@ -463,9 +464,9 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
           onRowClick={(r) => { const a = rows.find((x) => x.id === r.id); if (a) onAbrirBem(a.bem); }} />
       </div>
       <div className="ptr-foot">
-        <b>{todas.filter((a) => !a.revoke).reduce((s, a) => s + a.qtd, 0)}</b> unidades alocadas · {todas.filter((a) => !a.revoke).length} alocações ativas
+        <b>{todas.reduce((s, a) => s + Math.max(0, P.restante(a)), 0)}</b> unidades alocadas · {todas.filter((a) => !P.encerrada(a)).length} alocações ativas
         <div className="sp" />
-        <span>Revogar devolve a unidade ao saldo e registra o código REV- na auditoria.</span>
+        <span>Revogar devolve ao saldo só a quantidade revogada e registra o código REV- na auditoria.</span>
       </div>
     </div>
   );
@@ -643,7 +644,7 @@ function BemDrawer({ b, db, papel, close, acoes }) {
   const F = ({ l, v, mono }) => <div className="f"><label>{l}</label><span className={mono ? "mono" : ""}>{v}</span></div>;
   const LINKS = [
     { l: "Financeiro", s: mans.filter((m) => m.titulo).length + " títulos de manutenção", r: "financeiro" },
-    { l: "HRM", s: alocs.filter((a) => !a.revoke).length + " ficha(s) de colaborador com este bem", r: "hrm" },
+    { l: "HRM", s: alocs.filter((a) => !P.encerrada(a)).length + " ficha(s) de colaborador com este bem", r: "hrm" },
     ...(b.placa ? [{ l: "Oficina Auto", s: "OS pela placa " + b.placa, r: "oficina-os" }] : []),
     { l: "BI · Relatórios", s: "patrimônio e depreciação por categoria", r: "relatorios" },
   ];
@@ -720,13 +721,13 @@ function BemDrawer({ b, db, papel, close, acoes }) {
               <span className="ok"><small>livre</small><b>{livre}</b></span>
             </div>
             {alocs.map((a) =>
-              <div key={a.id} className={"ptr-aloc" + (a.revoke ? " off" : "")}>
+              <div key={a.id} className={"ptr-aloc" + (P.encerrada(a) ? " off" : "")}>
                 <div>
                   <b>{a.para}</b>
-                  <small>{a.papel} · {a.qtd} un. · {P.d2(a.em)}{a.ate ? " → " + P.d2(a.ate) : " · indeterminado"}</small>
-                  <small className="mono">{a.id}{a.revoke ? " · revogada " + P.d2(a.revoke.em) + " (" + a.revoke.id + ")" : ""}</small>
+                  <small>{a.papel} · {P.revogadoQtd(a) && !P.encerrada(a) ? P.restante(a) + " de " + a.qtd : a.qtd} un. · {P.d2(a.em)}{a.ate ? " → " + P.d2(a.ate) : " · indeterminado"}</small>
+                  <small className="mono">{a.id}{(a.revs || []).map((r) => " · " + r.qtd + " revogada(s) " + P.d2(r.em) + " (" + r.id + ")").join("")}</small>
                 </div>
-                {!a.revoke && P.can(papel, "revoke") && <Button size="sm" variant="ghost" onClick={() => acoes.revogar(a)}>Revogar</Button>}
+                {!P.encerrada(a) && P.can(papel, "revoke") && <Button size="sm" variant="ghost" onClick={() => acoes.revogar(a)}>Revogar</Button>}
               </div>)}
             {alocs.length === 0 && Alert && <Alert tone="info" title="Nenhuma alocação registrada">Alocar é o que liga a unidade a um responsável.</Alert>}
           </> : Alert && <Alert tone="info" title="Bem não atribuível">Fica no local, não vai pra mão de colaborador.</Alert>}
@@ -835,7 +836,7 @@ function PatrimonioPage({ view, dense, estado = "dados", toque, papel: papelProp
           tabs={[
             { key: "painel", label: "Painel", icon: "chart" },
             { key: "bens", label: "Bens", icon: "list", n: dbv.bens.filter((b) => P.podeVerLocal(papel, b.loc)).length },
-            { key: "alocacoes", label: "Alocações", icon: "target", n: dbv.alocacoes.filter((a) => !a.revoke).length },
+            { key: "alocacoes", label: "Alocações", icon: "target", n: dbv.alocacoes.filter((a) => !P.encerrada(a)).length },
             { key: "manutencoes", label: "Manutenções", icon: "settings", n: dbv.manutencoes.filter((m) => m.status !== "concluida").length },
             { key: "garantias", label: "Garantias", icon: "shield", n: vencendo },
             { key: "auditoria", label: "Auditoria", icon: "lock", n: dbv.log.length },

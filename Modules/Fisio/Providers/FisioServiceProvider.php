@@ -30,7 +30,7 @@ class FisioServiceProvider extends ServiceProvider
         // o job é idempotente (1 lembrete por paciente por dia) e respeita o horário de silêncio.
         $this->commands([LembretesCommand::class]);
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
-            $schedule->command('fisio:lembretes')->dailyAt((string) config('fisio.whatsapp.lembrete_horario', '08:30'))->withoutOverlapping();
+            $schedule->command('fisio:lembretes')->dailyAt((string) config('fisio.whatsapp.lembrete_horario', '08:30'))->environments(['live'])->withoutOverlapping();
         });
     }
 
