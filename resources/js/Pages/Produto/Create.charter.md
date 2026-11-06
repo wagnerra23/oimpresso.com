@@ -63,6 +63,7 @@ Cadastrar produto novo (single/variable/combo) com validação cliente-side Type
   - _Exceção datada (2026-10-20, UC-PCAD-13): o `store()` passou a aceitar `ncm` (8 dígitos, só números), gravado só quando o campo vem cheio. Sem NCM o produto nasce com o `'0'` da coluna. Nada mais do método mudou._
   - _Exceção datada (2026-10-21, UC-PCAD-15): o `store()` passou a aceitar `cest` (7 dígitos, só números), gravado só quando o campo vem cheio. Sem CEST a coluna fica nula. Nada mais do método mudou._
   - _Exceção datada (2026-10-21, UC-PCAD-16): o `store()` passou a aceitar `peso_liquido`, `largura_cm`, `altura_cm` e `comprimento_cm` (números de 0 a 99999, colunas novas em `products`), gravados só quando vêm cheios. Nada mais do método mudou._
+  - _Exceção datada (2026-11-06, UC-PCAD-21 · **pede a aprovação do [W]: o merge do PR é a aprovação**): no `submit_type=submit_n_add_opening_stock`, quando o envio vem da tela React (cabeçalho `X-Inertia`), o `store()` devolve `Inertia::location` para a tela de estoque inicial (Blade), em vez do redirect 302 que traria o HTML dela para dentro da página. O envio pelo Blade segue com o mesmo redirect. Nada mais do método mudou._
 - ❌ NÃO valida SKU duplicate cliente-side (server confirma)
 
 ## UX Targets

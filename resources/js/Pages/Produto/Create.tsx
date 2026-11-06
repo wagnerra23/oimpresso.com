@@ -78,6 +78,8 @@ export interface ProdutoCreatePageProps {
   metodoCusto?: MetodoCustoDoFormulario | null;
   /** Margem mínima da empresa em % (UC-FLX-35): null quando a regra está desligada. */
   margemMinima?: number | null;
+  /** `product.opening_stock`: mostra "Salvar e adicionar estoque inicial", como o Blade. */
+  podeEstoqueInicial?: boolean;
 }
 
 function ProdutoCreate(props: ProdutoCreatePageProps) {
@@ -201,6 +203,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
             cancelarHref="/products"
             desabilitado={processing || tipoSemEditor(data.type)}
             comGruposDePreco={props.sellingPriceGroupCount > 0}
+            podeEstoqueInicial={props.podeEstoqueInicial}
+            controlaEstoque={data.enable_stock === 1}
           />
         </div>
       </div>
