@@ -864,6 +864,9 @@ Status: 🧪
 
 **Quando** a empresa 99 manda cancelar as OS da venda da 98 **Então** nada muda (0 canceladas) e, para a
 99, a venda da 98 não aparece como cancelada.
+
+Status: 🧪
+
 ## Robustez do fechamento do turno e da criação da OS (auditoria lote 2.3)
 
 > `producao:fechar-turno` roda a cada 15 min para todas as empresas. Antes, uma exceção numa empresa
