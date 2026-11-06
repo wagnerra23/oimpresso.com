@@ -47,6 +47,8 @@ last_run_ci: "Revalidado em 2026-11-04 sem reexecucao: o #10355 (FORJA-138) troc
 | UC-CMP-09 | Entrada da compra grava valor e move estoque | must `[V0]` | `CU-COM-08` itens 1-3 | `PurchaseCalculoValorEstoqueE2ETest` | 🧪 (roda só no **nightly**, não no PR) |
 | UC-CMP-10 | Itens conta as linhas e NF-e lê a **chave fiscal de entrada** | must | protótipo `compras-page.jsx:501,508` + charter §Goals | `ComprasContratoFiltrosTest` | 🧪 veredito na lane |
 | UC-CMP-11 | O botão Exportar abre a tela que exporta | must `[reg]` | SDD §0.2 + F6 · `CU-COM-07` item 4 | `ComprasExportarContratoTest` | 🧪 veredito na lane |
+| UC-CMP-12 | Detalhe de compra de loja não permitida responde 404 | must `[reg]` | `CU-COM-05` item 1 | `ComprasEscopoLocalDetalheKpisTest` | 🧪 veredito na lane |
+| UC-CMP-13 | KPIs contam só as lojas permitidas | should `[reg]` | `CU-COM-05` item 2 | `ComprasEscopoLocalDetalheKpisTest` | 🧪 veredito na lane |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -285,6 +287,31 @@ last_run_ci: "Revalidado em 2026-11-04 sem reexecucao: o #10355 (FORJA-138) troc
   `/purchases` abrir a Page React. O botão abria `/purchases` sem `?classico=1` e passou a cair numa
   tela sem exportação. O conserto (2026-10-13) foi o endereço `/purchases?classico=1`.
 - **Status: 🧪** — verde na lane `PHP / Pest (Compras · MySQL)` em 2026-10-13 (run 38328490401: 1 passed, 5 assertions, 0 skipped). Fica 🧪 até o manifesto de resultados do G-7 trazer o veredito.
+
+---
+
+## UC-CMP-12 · Detalhe de compra de loja não permitida responde 404 · `must` `[reg]`
+
+- **Persona:** operador restrito a uma loja (P3 do SDD §2) — mesma ressalva de persona do UC-CMP-08.
+- **Aceite:** Dado um usuário **sem** `access_all_locations`, com `location.{A}` e sem `location.{B}`,
+  no mesmo business · Quando pede `GET /compras/{id}/detalhe` de uma compra da loja B · Então recebe
+  **404**, como compra inexistente. A compra da loja A abre (200), e quem tem todas as lojas abre a da B.
+- **Teste:** [`ComprasEscopoLocalDetalheKpisTest`](../../../../Modules/Compras/Tests/Feature/ComprasEscopoLocalDetalheKpisTest.php) —
+  *"UC-CMP-12 · usuário restrito à Loja A não abre o detalhe da compra da Loja B"*.
+- **Contrato:** `CU-COM-05` item 1 do SDD, estendido ao detalhe: a listagem já escondia a compra, e o
+  detalhe por id abria. 404 e não 403, pelo mesmo motivo do UC-CMP-02 (não revelar que existe).
+- **Status: 🧪** — veredito vem da lane `PHP / Pest (Compras · MySQL)`.
+
+## UC-CMP-13 · KPIs contam só as lojas permitidas · `should` `[reg]`
+
+- **Aceite:** Dado o mesmo usuário restrito à loja A · Quando o cockpit calcula os KPIs (aberto,
+  em trânsito, total do mês) · Então os números são os da loja A, conferidos por consulta direta ao
+  banco; para quem tem todas as lojas, são os do business inteiro.
+- **Teste:** [`ComprasEscopoLocalDetalheKpisTest`](../../../../Modules/Compras/Tests/Feature/ComprasEscopoLocalDetalheKpisTest.php) —
+  *"UC-CMP-13 · os KPIs do cockpit contam só as lojas que o usuário pode ver"*.
+- **Contrato:** `CU-COM-05` item 2 do SDD. Até 2026-11-06 `calcularKpis` agregava o business inteiro.
+  O cálculo de cada KPI não mudou; mudou o conjunto de compras que entra nele.
+- **Status: 🧪** — veredito vem da lane.
 
 ---
 
