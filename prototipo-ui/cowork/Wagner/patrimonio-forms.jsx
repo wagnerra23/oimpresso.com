@@ -185,13 +185,14 @@ function RevogarForm({ alocacao, bens, alocacoes, onClose, onSalvar }) {
   const D = P();
   const { Drawer, DrawerSection, Input, DatePicker, Alert } = DS();
   const b = bens.find((x) => x.id === alocacao.bem) || {};
-  const [f, setF] = useState({ qtd: String(alocacao.qtd), em: D.iso(D.HOJE), motivo: "" });
+  const resta = D.restante(alocacao);
+  const [f, setF] = useState({ qtd: String(resta), em: D.iso(D.HOJE), motivo: "" });
   const [erros, setErros] = useState({});
   const set = (k, v) => setF((o) => ({ ...o, [k]: v }));
   if (!Drawer) return null;
   const salvar = () => {
     const e = {};
-    if (!(Number(f.qtd) >= 1) || Number(f.qtd) > alocacao.qtd) e.qtd = "Entre 1 e " + alocacao.qtd + " unidade(s).";
+    if (!(Number(f.qtd) >= 1) || Number(f.qtd) > resta) e.qtd = "Entre 1 e " + resta + " unidade(s).";
     if (!f.em) e.em = "Informe a data da revogação.";
     if (!String(f.motivo).trim()) e.motivo = "Diga por que está revogando.";
     setErros(e);
@@ -203,8 +204,8 @@ function RevogarForm({ alocacao, bens, alocacoes, onClose, onSalvar }) {
       title={"Revogar " + alocacao.id} subtitle={b.nome + " · alocado a " + alocacao.para}
       footer={<Rodape onClose={onClose} onSalvar={salvar} salvarLabel="Revogar alocação" perigo />}>
       <DrawerSection>
-        <Alert tone="warn" title="A unidade volta pro saldo livre">
-          {alocacao.qtd} un. com {alocacao.para} desde {D.d2(alocacao.em)} — revogar encerra a responsabilidade dela sobre o bem.
+        <Alert tone="warn" title="Só a quantidade revogada volta pro saldo livre">
+          {resta} un. com {alocacao.para} desde {D.d2(alocacao.em)} — revogar tudo encerra a alocação; revogar parte deixa o resto com a mesma pessoa.
         </Alert>
         <div style={{ marginTop: 12 }}>
           <Grade>
@@ -275,7 +276,7 @@ function ManutencaoForm({ bemId, bemIds, bens, manutencoes, papel, onClose, onSa
 function ExcluirModal({ bem, alocacoes, onClose, onConfirmar }) {
   const D = P();
   const { Modal, Alert, Button } = DS();
-  const ativas = alocacoes.filter((a) => a.bem === bem.id && !a.revoke);
+  const ativas = alocacoes.filter((a) => a.bem === bem.id && !D.encerrada(a));
   if (!Modal) return null;
   return (
     <Modal open onClose={onClose} width={460} title={"Excluir " + bem.id + "?"}

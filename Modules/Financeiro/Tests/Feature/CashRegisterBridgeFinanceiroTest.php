@@ -15,49 +15,60 @@ declare(strict_types=1);
  */
 
 use App\CashRegister;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Modules\Financeiro\Events\CashRegisterClosed;
+use Modules\Financeiro\Listeners\OnCashRegisterClosedCreateFinanceiroTitulo;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Services\TituloAutoService;
 
-uses(RefreshDatabase::class);
+/*
+ * 2026-11-05 (lote 2.5 da auditoria): saiu da quarentena. Antes usava RefreshDatabase
+ * e inseria o business id=1 à mão — no processo compartilhado da lane MySQL isso
+ * dropava o schema e colidia com o business 1 do seed: 6 failed, 0 assertions,
+ * nenhum cenário da ponte caixa→título era exercido. Agora roda em transação
+ * (DatabaseTransactions) no tenant fictício 98 (ADR 0358), com a própria conta-mãe
+ * Caixa, e cada consulta fica presa aos caixas que o caso criou.
+ */
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 beforeEach(function () {
-    // Cria business com conta-mãe Caixa (seed normalmente via PR A migration)
-    DB::table('business')->insert([
-        'id' => 1,
-        'name' => 'Test Business',
-        'currency_id' => 1,
-        'start_date' => now()->toDateString(),
-        'created_by' => 1,
-        'created_at' => now(),
-        'updated_at' => now(),
+    // FinanceiroServiceProvider registra os listeners atrás de uma flag ESTÁTICA: num
+    // processo com vários apps (a suíte) só o 1º recebe o listener do caixa, e do 2º teste
+    // em diante o evento dispara sem ninguém escutar (4 falhas no run 42113800989). Mesmo
+    // padrão do Onda26InterWebhookIntegrationTest. Isto prova o trecho evento → listener →
+    // serviço → título, não o registro no provider; a flag é decisão [W] (cria título).
+    if (! Event::hasListeners(CashRegisterClosed::class)) {
+        Event::listen(CashRegisterClosed::class, [OnCashRegisterClosedCreateFinanceiroTitulo::class, 'handle']);
+    }
+
+    $this->biz = 98;
+    if (! DB::table('business')->where('id', $this->biz)->exists()) {
+        $this->markTestSkipped('Tenant fictício 98 ausente — seed .github/actions/pest-mysql-setup.');
+    }
+    $this->uid = (int) (DB::table('users')->where('business_id', $this->biz)->value('id') ?? 0);
+    if ($this->uid === 0) {
+        $this->markTestSkipped('Sem usuário no tenant 98.');
+    }
+    $this->uid2 = (int) DB::table('users')->insertGetId([
+        'first_name' => 'Caixa', 'last_name' => 'Dois', 'username' => 'cx2_'.bin2hex(random_bytes(3)),
+        'business_id' => $this->biz, 'password' => bcrypt('x'), 'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    $accountId = DB::table('accounts')->insertGetId([
-        'business_id' => 1,
-        'name' => 'Caixa Loja Test',
-        'account_number' => 'CAIXA-1',
-        'created_by' => 1,
-        'is_closed' => 0,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-
-    DB::table('fin_contas_bancarias')->insert([
-        'business_id' => 1,
-        'account_id' => $accountId,
-        'tipo_conta' => 'caixa',
-        'banco_codigo' => '000',
-        'agencia' => '0',
-        'carteira' => '-',
-        'beneficiario_documento' => '00.000.000/0000-00',
-        'beneficiario_razao_social' => 'Test',
-        'ativo_para_boleto' => false,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    // Conta-mãe Caixa do tenant (o serviço procura tipo_conta='caixa' no business do caixa).
+    if (! DB::table('fin_contas_bancarias')->where('business_id', $this->biz)->where('tipo_conta', 'caixa')->exists()) {
+        $accountId = DB::table('accounts')->insertGetId([
+            'business_id' => $this->biz, 'name' => 'Caixa Loja Test', 'account_number' => 'CAIXA-T98-'.bin2hex(random_bytes(3)),
+            'created_by' => $this->uid, 'is_closed' => 0, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('fin_contas_bancarias')->insert([
+            'business_id' => $this->biz, 'account_id' => $accountId, 'tipo_conta' => 'caixa',
+            'banco_codigo' => '000', 'agencia' => '0', 'carteira' => '-',
+            'beneficiario_documento' => '00.000.000/0000-00', 'beneficiario_razao_social' => 'Test', // pii-allowlist — placeholder de teste
+            'ativo_para_boleto' => false, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
 });
 
 // ──────────────────────────────────────────────────────────────────
@@ -66,8 +77,8 @@ beforeEach(function () {
 
 it('cria fin_titulo quando caixa fecha com vendas', function () {
     $cr = CashRegister::create([
-        'business_id' => 1,
-        'user_id' => 1,
+        'business_id' => $this->biz,
+        'user_id' => $this->uid,
         'status' => 'open',
     ]);
 
@@ -103,7 +114,7 @@ it('cria fin_titulo quando caixa fecha com vendas', function () {
 
 it('é idempotente — re-disparar event 2x não duplica fin_titulo', function () {
     $cr = CashRegister::create([
-        'business_id' => 1, 'user_id' => 1, 'status' => 'open',
+        'business_id' => $this->biz, 'user_id' => $this->uid, 'status' => 'open',
     ]);
     DB::table('cash_register_transactions')->insert([
         'cash_register_id' => $cr->id, 'amount' => 100, 'pay_method' => 'cash',
@@ -130,7 +141,7 @@ it('é idempotente — re-disparar event 2x não duplica fin_titulo', function (
 
 it('cria 2 fin_titulos separados quando 2 caixas fecham no mesmo business', function () {
     // Caixa Larissa
-    $cr1 = CashRegister::create(['business_id' => 1, 'user_id' => 1, 'status' => 'open']);
+    $cr1 = CashRegister::create(['business_id' => $this->biz, 'user_id' => $this->uid, 'status' => 'open']);
     DB::table('cash_register_transactions')->insert([
         'cash_register_id' => $cr1->id, 'amount' => 1000, 'pay_method' => 'cash',
         'type' => 'credit', 'transaction_type' => 'sell',
@@ -138,7 +149,7 @@ it('cria 2 fin_titulos separados quando 2 caixas fecham no mesmo business', func
     ]);
 
     // Caixa João (mesmo business)
-    $cr2 = CashRegister::create(['business_id' => 1, 'user_id' => 2, 'status' => 'open']);
+    $cr2 = CashRegister::create(['business_id' => $this->biz, 'user_id' => $this->uid2, 'status' => 'open']);
     DB::table('cash_register_transactions')->insert([
         'cash_register_id' => $cr2->id, 'amount' => 500, 'pay_method' => 'card',
         'type' => 'credit', 'transaction_type' => 'sell',
@@ -150,6 +161,7 @@ it('cria 2 fin_titulos separados quando 2 caixas fecham no mesmo business', func
 
     $titulos = Titulo::withoutGlobalScopes()
         ->where('origem', 'caixa')
+        ->whereIn('origem_id', [$cr1->id, $cr2->id])
         ->orderBy('origem_id')
         ->get();
 
@@ -163,7 +175,7 @@ it('cria 2 fin_titulos separados quando 2 caixas fecham no mesmo business', func
 // ──────────────────────────────────────────────────────────────────
 
 it('skip silencioso quando caixa fecha com total=0', function () {
-    $cr = CashRegister::create(['business_id' => 1, 'user_id' => 1, 'status' => 'open']);
+    $cr = CashRegister::create(['business_id' => $this->biz, 'user_id' => $this->uid, 'status' => 'open']);
     // Nenhuma transaction → total=0
     $cr->update(['status' => 'close', 'closed_at' => now(), 'closing_amount' => 0]);
 
@@ -186,7 +198,7 @@ it('skip caixa com business_id=0 (legacy data)', function () {
     $cr = new CashRegister([
         'id' => 999,
         'business_id' => 0,
-        'user_id' => 1,
+        'user_id' => $this->uid,
         'status' => 'close',
         'closed_at' => now(),
         'closing_amount' => 100,
@@ -203,7 +215,7 @@ it('skip caixa com business_id=0 (legacy data)', function () {
 // ──────────────────────────────────────────────────────────────────
 
 it('user_id NULL fica como Sistema no metadata', function () {
-    $cr = CashRegister::create(['business_id' => 1, 'user_id' => null, 'status' => 'open']);
+    $cr = CashRegister::create(['business_id' => $this->biz, 'user_id' => null, 'status' => 'open']);
     DB::table('cash_register_transactions')->insert([
         'cash_register_id' => $cr->id, 'amount' => 100, 'pay_method' => 'cash',
         'type' => 'credit', 'transaction_type' => 'sell',

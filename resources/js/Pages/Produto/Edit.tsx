@@ -157,21 +157,24 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     <>
       <Head title={`Editar · ${p.name}`} />
 
-      <div className="min-h-screen bg-stone-50 text-stone-900">
-        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-stone-200">
+      {/* Sem fundo próprio: a tela fica por cima do fundo do shell (.cockpit, var(--bg)), que já segue
+          o tema. Até 2026-11-05 ela fixava bg-stone-50 e, no tema escuro, a página ficava clara com os
+          cartões escuros. */}
+      <div className="min-h-screen text-foreground">
+        <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
           <div className="px-6 pt-4 pb-3 flex items-center justify-between">
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-[12px] text-stone-500">
+              <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
                 <Link href="/products" className="hover:underline">
                   Produtos
                 </Link>
-                <span className="text-stone-400">›</span>
-                <span className="text-stone-900 font-medium">Editar</span>
+                <span className="text-muted-foreground">›</span>
+                <span className="text-foreground font-medium">Editar</span>
               </div>
               <h1 className="mt-1 text-[24px] font-semibold tracking-tight truncate">
                 Editar · {p.name}
               </h1>
-              <div className="mt-1 font-mono text-[12px] text-stone-500">{p.sku}</div>
+              <div className="mt-1 font-mono text-[12px] text-muted-foreground">{p.sku}</div>
             </div>
             <Button variant="outline" asChild className="shrink-0">
               <Link href="/products">

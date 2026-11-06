@@ -1,5 +1,6 @@
 <?php
 // @covers-us US-PCP-021
+// @covers-us US-PCP-008
 
 declare(strict_types=1);
 // Cobre UC-PCMAT-01..07 (Producao/Apontamento/Index.casos.md) — UC-FLX-37 do catálogo de fluxos.
@@ -242,7 +243,8 @@ it('UC-PCMAT-07 · PWA e app apontam o material sem mostrar o custo ao operador'
 });
 
 /**
- * UC-PCMAT-09/10 — a tela do operador (UC-FLX-18: "o campo do rolo na tela do operador"). ESTOQUE, regra
+ * UC-PCMAT-09/10 — a tela do operador (UC-FLX-18: "o campo do rolo na tela do operador"). O `apontado` daqui
+ * é o que a linha rodando mostra como "Material usado" (UC-PCAPA-02). ESTOQUE, regra
  * mestre: o saldo de cada rolo é feito à mão sobre o arranjo e conferido por SQL direto em purchase_lines.
  *
  * Receita fingida (o contrato é a interface InsumosDaReceita): 0,5 de lona por unidade; OS de 4 un → 2,0000.

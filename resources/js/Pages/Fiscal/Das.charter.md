@@ -5,6 +5,7 @@ owner: wagner
 status: draft
 parent_module: Fiscal
 related_prototype: prototipo-ui/cowork/Wagner/fiscal-das-page.jsx
+related_visual_comparison: memory/requisitos/Fiscal/fiscal-das-visual-comparison.md
 related_us: [US-FISCAL-030]
 alcance:
   rota: /fiscal/das

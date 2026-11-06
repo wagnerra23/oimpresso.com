@@ -11,6 +11,7 @@ use DateTimeImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -176,7 +177,8 @@ class CobrancaController extends Controller
             'valor_centavos' => 'required|integer|min:100',
             'vencimento' => 'required|date|after_or_equal:today',
             'account_id' => 'required|integer|exists:fin_contas_bancarias,id',
-            'contact_id' => 'nullable|integer|exists:contacts,id',
+            // Tier 0 (ADR 0093): o cliente tem de ser da empresa da sessão — o id vai gravado na cobrança.
+            'contact_id' => ['nullable', 'integer', Rule::exists('contacts', 'id')->where('business_id', $businessId)],
             'payer_name' => 'nullable|string|max:255',
             'payer_cpf_cnpj' => 'nullable|string|max:20',
             'payer_email' => 'nullable|email|max:255',
@@ -254,7 +256,8 @@ class CobrancaController extends Controller
             'valor_centavos' => 'required|integer|min:100',
             'vencimento' => 'required|date|after_or_equal:today',
             'account_id' => 'required|integer|exists:fin_contas_bancarias,id',
-            'contact_id' => 'nullable|integer|exists:contacts,id',
+            // Tier 0 (ADR 0093): o cliente tem de ser da empresa da sessão — o id vai gravado na cobrança.
+            'contact_id' => ['nullable', 'integer', Rule::exists('contacts', 'id')->where('business_id', $businessId)],
             'payer_name' => 'nullable|string|max:255',
             'payer_cpf_cnpj' => 'nullable|string|max:20',
             'payer_email' => 'nullable|email|max:255',
