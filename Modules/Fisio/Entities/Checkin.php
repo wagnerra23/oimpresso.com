@@ -26,6 +26,7 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property ?string $effort
  * @property ?string $note
  * @property ?array $red_flags
+ * @property ?array $red_flags_avisados sinais já avisados ao profissional (pendente = red_flags − este)
  * @property bool $crisis paciente escolheu a versão de crise do programa (protocolo 11): conta para a sequência
  * @property ?string $client_key chave do último envio aplicado (fila offline do portal, idempotência)
  */
@@ -44,6 +45,7 @@ class Checkin extends Model
         'date' => 'date:Y-m-d',
         'done_item_ids' => 'array',
         'red_flags' => 'array',
+        'red_flags_avisados' => 'array',
         'pain' => 'integer',
         'crisis' => 'boolean',
     ];

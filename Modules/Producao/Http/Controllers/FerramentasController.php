@@ -5,6 +5,7 @@ namespace Modules\Producao\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Producao\Http\Controllers\Concerns\ExigePacoteProducao;
 use Illuminate\Validation\Rule;
 use Modules\Producao\Entities\Ferramenta;
 
@@ -14,6 +15,8 @@ use Modules\Producao\Entities\Ferramenta;
  */
 class FerramentasController extends Controller
 {
+    use ExigePacoteProducao;
+
     public function store(Request $request): RedirectResponse
     {
         $biz = $this->autorizar($request);
@@ -35,7 +38,7 @@ class FerramentasController extends Controller
     {
         abort_unless($request->user()->can('producao.access'), 403);
 
-        return (int) $request->session()->get('user.business_id');
+        return $this->empresaComPacote($request);
     }
 
     private function validar(Request $request, int $biz, ?int $ignorar = null): array

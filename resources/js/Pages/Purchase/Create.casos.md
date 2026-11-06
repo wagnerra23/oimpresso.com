@@ -393,6 +393,26 @@ desta não muda e nenhuma proposta nasce.
 
 Status: 🧪
 
+## UC-PURCRE-14 · Compra nova não aceita linha de compra de outra empresa · `must` `[T0]`
+
+- **Aceite:** Dado uma linha de compra de outra empresa · Quando o formulário da compra nova chega com
+  o `purchase_line_id` dela · Então a compra é recusada com 422 ("Linha de compra inválida"), a linha
+  continua na compra e com a quantidade de antes, e nenhuma compra nasce. Sem `purchase_line_id`, essa
+  trava não dispara.
+- **Teste:** [`tests/Feature/Purchase/StoreLinhaEEntryRowTenantTest.php`](../../../../tests/Feature/Purchase/StoreLinhaEEntryRowTenantTest.php)
+- **Contrato:** SPEC US-COM-029 · ADR 0093. Auditoria Compras 2026-11-05, achado A3.
+- **Status: 🧪**
+
+## UC-PURCRE-15 · A linha de entrada só lê produto e local da própria empresa · `must` `[T0]`
+
+- **Aceite:** Dado um produto ou local de outra empresa · Quando a tela pede a linha de entrada
+  (`/purchases/get_purchase_entry_row`) com o id dele · Então responde 404 sem o nome do produto. Quem
+  não tem permissão de compra nem de pedido de compra recebe 403. O produto da própria empresa
+  responde 200 com o nome.
+- **Teste:** [`tests/Feature/Purchase/StoreLinhaEEntryRowTenantTest.php`](../../../../tests/Feature/Purchase/StoreLinhaEEntryRowTenantTest.php)
+- **Contrato:** ADR 0093. Auditoria Compras 2026-11-05, achado A5.
+- **Status: 🧪**
+
 ## `[BACKLOG]` — achados sem contrato em 2 fontes, ou sem teste que os defenda
 
 - `[BACKLOG]` 🔴 **Tirar o `describe('Tier 0 cross-tenant (synthetic sqlite)')` da quarentena.** São

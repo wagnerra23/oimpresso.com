@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 tier: B
-charter_version: 8
-last_validated: "2026-09-30"
+charter_version: 9
+last_validated: "2026-11-05"
 ---
 
 # Page Charter — Patrimonio/Bens (DRAFT)
@@ -77,8 +77,11 @@ e se **exclui** bem. Alocar ainda não — ver os Non-Goals.
   quantidade, data, autor e motivo), porque devolução parcial grava vários `revoke` por
   alocação. A devolução é escopada por `business_id` **nela mesma**. Bem de outra empresa ou
   fora dos locais permitidos = "não encontrado". Contrato: UC-BENS-10.
-- Ação por linha: **editar**, **enviar pra manutenção** e **excluir** (`router.delete` no
-  `destroy`, com confirmação nomeando o bem), conforme a permissão do usuário. Enviar pra
+- Ação por linha: **editar**, **enviar pra manutenção** e **excluir**, conforme a permissão
+  do usuário. Excluir abre o `AlertDialog` do DS (2026-11-05, desenho do `ExcluirModal` do
+  protótipo, `patrimonio-forms.jsx:275`) com o código e o nome do bem, e fala com o `destroy` no
+  contrato ajax `{success, msg}`; falha deixa o diálogo aberto com o motivo e "Tentar de novo".
+  Contrato: UC-BENS-13, UC-BENS-14. Até 2026-11-05 era `window.confirm` + `router.delete`. Enviar pra
   manutenção voltou em 2026-09-30: navega para `/asset/asset-maintenance/create?asset_id={id}`,
   o drawer da thread 19, com a mesma permissão que aquele `create()` exige. Contrato:
   UC-BENS-12. (Alocar segue fora — ver o Non-Goal abaixo.)
@@ -161,6 +164,10 @@ cópia por ramo, e a próxima correção pousaria em só uma delas.
   a janela e o botão primário não pode nascer fora do viewport.
 - Nenhum atalho de teclado é anunciado nesta onda — declarar atalho que a tela não implementa
   é afordância falsa.
+- Carga que falha não vira espera eterna (2026-11-05): se a carga deferida de a lista (`bens`) termina
+  sem a prop, a área da tabela mostra o estado de erro do protótipo (`patrimonio-page.jsx:846`) —
+  `role="alert"`, "Não consegui carregar …" e "Tentar de novo", que pede só aquela prop.
+  Detecção em `_shared/falhaDeferida.ts`. Contrato: UC-BENS-15.
 
 ## Pendências antes de `status: live`
 
