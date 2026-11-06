@@ -19,6 +19,9 @@ on:
     types: [opened, reopened, ready_for_review]
     paths:
       - 'resources/js/Components/shared/PageHeaderTabs.tsx'
+      - 'tests/js/crm-abas-prototipo.test.tsx'
+      - 'Modules/Crm/Http/Controllers/DataController.php'
+      - 'prototipo-ui/cowork/Wagner/crm-blade.jsx'
       - 'tests/pageHeaderTabsFidelity.spec.tsx'
       - 'tests/pageHeaderTabsKeyboard.spec.tsx'
       - 'tests/pageHeaderTabsDensity.spec.tsx'
@@ -33,6 +36,9 @@ on:
     branches: [main]
     paths:
       - 'resources/js/Components/shared/PageHeaderTabs.tsx'
+      - 'tests/js/crm-abas-prototipo.test.tsx'
+      - 'Modules/Crm/Http/Controllers/DataController.php'
+      - 'prototipo-ui/cowork/Wagner/crm-blade.jsx'
       - 'tests/pageHeaderTabsFidelity.spec.tsx'
       - 'tests/pageHeaderTabsKeyboard.spec.tsx'
       - 'tests/pageHeaderTabsDensity.spec.tsx'
@@ -64,4 +70,4 @@ jobs:
       - name: fidelidade PageHeaderTabs (vitest)
         # + teclado (←/→/Home/End) e axe do tablist — thread 03 do playbook PageHeader.
         # + densidade (default × compact, UC-JPAIN-26): o spec existia e nenhuma lane o rodava.
-        run: npx vitest run tests/pageHeaderTabsFidelity.spec.tsx tests/pageHeaderTabsKeyboard.spec.tsx tests/pageHeaderTabsDensity.spec.tsx tests/js/module-tabs.test.tsx tests/js/repair-abas-prototipo.test.tsx
+        run: npx vitest run tests/js/crm-abas-prototipo.test.tsx tests/pageHeaderTabsFidelity.spec.tsx tests/pageHeaderTabsKeyboard.spec.tsx tests/pageHeaderTabsDensity.spec.tsx tests/js/module-tabs.test.tsx tests/js/repair-abas-prototipo.test.tsx

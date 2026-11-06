@@ -27,6 +27,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import SubNav from '@/Components/shared/SubNav';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
@@ -109,7 +110,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Acompanhamentos" subtitle="Ligações, encontros, SMS e e-mails agendados com clientes e leads." />
+      <PageHeader below={<ModuleTabs modulo="CRM" />} title="Acompanhamentos" subtitle="Ligações, encontros, SMS e e-mails agendados com clientes e leads." />
 
       <Card data-contract="crm-filtros">
         <CardContent className="flex flex-col gap-3 p-4">

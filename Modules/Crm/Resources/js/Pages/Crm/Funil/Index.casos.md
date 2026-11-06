@@ -5,10 +5,15 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do vendedor + critério de aceite verificável (Dado/Quando/Então)
 por_que: o funil mostra valores de negócio e clientes. Errar o escopo vaza negócio de outra empresa; errar a etapa final deixa um ganho voltar a aberto e distorce a previsão.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-11-06"
 ---
 
 # Casos de Uso & Aceite — Crm · Funil de vendas (`/crm/funil`)
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10558). Nada do
+> comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch, run
+> [42224015385](https://github.com/wagnerra23/oimpresso.com/actions/runs/42224015385): `CrmFunilContratoTest` 5 testes, 53 asserções, 0 skipped (verde).
 
 > **Âncora:** SPEC Crm US-CRM-092 (critérios 1-6), [ADR 0441](../../../../../../../memory/decisions/0441-funil-de-vendas-sai-da-depreciacao-emenda-0301.md)
 > e o [charter](Index.charter.md). Os UCs não derivam do `.tsx`.
