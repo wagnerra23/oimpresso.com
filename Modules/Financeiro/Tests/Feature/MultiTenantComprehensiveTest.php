@@ -2,23 +2,32 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Modules\Financeiro\Repositories\BaixaRepository;
 use Modules\Financeiro\Repositories\TituloRepository;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Wave 18 RETRY — saturação D1 multi-tenant cross-tenant (Tier 0 ADR 0093).
  *
- * Estende `MultiTenantIsolationTest` + `TituloRepositoryWave18Test` com 10+
- * datasets cobrindo TODOS os Repositories + helpers com biz=99 (hipotético)
- * garantindo zero vazamento.
+ * Cada método dos Repositories chamado com a empresa 99 devolve vazio, e com a
+ * empresa 98 devolve o dado — os dois lados no MESMO banco.
  *
- * In-memory SQLite (tables criadas no beforeEach) — robusto pra CI e local.
- * NÃO depende de seed UltimatePOS.
+ * 2026-11-05 (lote 2.3 da auditoria): até aqui o arquivo só rodava em SQLite
+ * :memory: com tabelas recriadas e VAZIAS, e nenhuma lane SQLite o incluía —
+ * os 17 casos pulavam em toda lane. E mesmo rodando, "zero para a empresa 99"
+ * numa tabela vazia não prova nada. Agora roda no MySQL da lane do Financeiro:
+ *   - semeia títulos e uma baixa na empresa fictícia 98 (ADR 0358), dentro de
+ *     transação (DatabaseTransactions — some no fim);
+ *   - tira o business_id da sessão, para o escopo global NÃO filtrar: o único
+ *     filtro que sobra é o where(business_id) explícito do Repository, que é o
+ *     que este teste diz provar (defesa em profundidade);
+ *   - controle positivo: o mesmo método com 98 tem que achar o dado, senão o
+ *     "zero" da 99 não distingue isolamento de fixture que não casou.
  *
- * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093) + Tests biz=1 (ADR 0101).
+ * Os casos D4/D8/D9 não tocam banco e só pulavam pelo guard antigo.
  *
  * @see Modules\Financeiro\Repositories\TituloRepository
  * @see Modules\Financeiro\Repositories\BaixaRepository
@@ -28,98 +37,45 @@ uses(Tests\TestCase::class);
 beforeEach(function () {
     config()->set('otel.enabled', false);
     config()->set('activitylog.enabled', false);
-
-    // US-FIN-053 Batch 2: guard anterior tinha lógica AND invertida — como
-    // sqlite.database é ':memory:' por default, NUNCA skipava, e rodava
-    // Schema::dropIfExists no MySQL → SQLSTATE 3730 (drop fin_titulos com FK) +
-    // limpava o schema baseline (veneno). Este teste é SQLite-in-memory only
-    // (cria as próprias tabelas) — skipa em qualquer outra conexão.
-    $isSqliteMemory = config('database.default') === 'sqlite'
-        && str_contains((string) config('database.connections.sqlite.database'), ':memory:');
-    if (! $isSqliteMemory) {
-        $this->markTestSkipped('MultiTenantComprehensive roda apenas em SQLite in-memory.');
-    }
-
-    Schema::dropIfExists('fin_titulo_baixas');
-    Schema::dropIfExists('fin_titulos');
-
-    Schema::create('fin_titulos', function ($t) {
-        $t->id();
-        $t->unsignedInteger('business_id')->index();
-        $t->string('numero', 50)->nullable();
-        $t->string('tipo', 20);
-        $t->string('status', 20)->default('aberto');
-        $t->unsignedBigInteger('cliente_id')->nullable();
-        $t->string('cliente_descricao', 150)->nullable();
-        $t->decimal('valor_total', 14, 4)->default(0);
-        $t->decimal('valor_aberto', 14, 4)->default(0);
-        $t->string('moeda', 3)->default('BRL');
-        $t->date('emissao')->nullable();
-        $t->date('vencimento')->nullable();
-        $t->string('competencia_mes', 7)->nullable();
-        $t->string('origem', 20)->default('manual');
-        $t->unsignedBigInteger('origem_id')->nullable();
-        $t->unsignedInteger('parcela_numero')->nullable();
-        $t->unsignedInteger('parcela_total')->nullable();
-        $t->unsignedBigInteger('titulo_pai_id')->nullable();
-        $t->unsignedBigInteger('plano_conta_id')->nullable();
-        $t->unsignedBigInteger('categoria_id')->nullable();
-        $t->text('observacoes')->nullable();
-        $t->json('metadata')->nullable();
-        $t->unsignedInteger('created_by')->nullable();
-        $t->unsignedInteger('updated_by')->nullable();
-        $t->timestamps();
-        $t->softDeletes();
-    });
-
-    Schema::create('fin_titulo_baixas', function ($t) {
-        $t->id();
-        $t->unsignedInteger('business_id')->index();
-        $t->unsignedBigInteger('titulo_id');
-        $t->unsignedBigInteger('conta_bancaria_id')->nullable();
-        $t->decimal('valor_baixa', 14, 4)->default(0);
-        $t->decimal('juros', 14, 4)->nullable();
-        $t->decimal('multa', 14, 4)->nullable();
-        $t->decimal('desconto', 14, 4)->nullable();
-        $t->date('data_baixa');
-        $t->string('meio_pagamento', 30);
-        $t->string('idempotency_key', 100)->nullable();
-        $t->unsignedBigInteger('transaction_payment_id')->nullable();
-        $t->unsignedBigInteger('estorno_de_id')->nullable();
-        $t->text('observacoes')->nullable();
-        $t->unsignedInteger('created_by')->nullable();
-        $t->timestamp('created_at')->nullable();
-    });
-
-    if (! Schema::hasTable('activity_log')) {
-        Schema::create('activity_log', function ($t) {
-            $t->id();
-            $t->string('log_name')->nullable();
-            $t->text('description')->nullable();
-            $t->unsignedBigInteger('subject_id')->nullable();
-            $t->string('subject_type')->nullable();
-            $t->unsignedBigInteger('causer_id')->nullable();
-            $t->string('causer_type')->nullable();
-            $t->json('properties')->nullable();
-            $t->string('event')->nullable();
-            $t->uuid('batch_uuid')->nullable();
-            $t->timestamps();
-        });
-    }
 });
 
-afterEach(function () {
-    // US-FIN-053 Batch 2: SÓ dropa no SQLite in-memory. No MySQL (lane baseline)
-    // dropar fin_titulo_baixas/fin_titulos mataria o schema pra TODOS os testes
-    // (DDL = auto-commit). Guard espelha o do beforeEach.
-    $isSqliteMemory = config('database.default') === 'sqlite'
-        && str_contains((string) config('database.connections.sqlite.database'), ':memory:');
-    if (! $isSqliteMemory) {
-        return;
+/** Semeia na empresa 98 um dado que casa com cada caso do dataset. */
+function mtcSemeia98(): void
+{
+    if (DB::connection()->getDriverName() !== 'mysql') {
+        test()->markTestSkipped('D1 precisa do schema MySQL da lane do Financeiro (fin_*).');
     }
-    Schema::dropIfExists('fin_titulo_baixas');
-    Schema::dropIfExists('fin_titulos');
-});
+    $biz = 98;
+    if (! DB::table('business')->where('id', $biz)->exists()) {
+        test()->markTestSkipped('Tenant fictício 98 ausente — seed .github/actions/pest-mysql-setup.');
+    }
+    $uid = (int) (DB::table('users')->where('business_id', $biz)->value('id') ?? 1);
+    $hoje = now();
+    $titulo = fn (array $over) => DB::table('fin_titulos')->insertGetId($over + [
+        'business_id' => $biz, 'numero' => 'MTC-'.bin2hex(random_bytes(4)), 'status' => 'aberto',
+        'cliente_descricao' => 'MTC teste', 'valor_total' => 100, 'valor_aberto' => 100, 'moeda' => 'BRL',
+        'emissao' => $hoje->toDateString(), 'competencia_mes' => $hoje->format('Y-m'), 'origem' => 'manual',
+        'created_by' => $uid, 'created_at' => $hoje, 'updated_at' => $hoje,
+    ]);
+
+    // receber em dia, de venda 9999 parcela 1 (acharPorOrigem, aging em_dia, totaisAbertos)
+    $t1 = $titulo(['tipo' => 'receber', 'vencimento' => $hoje->copy()->addDays(10)->toDateString(),
+        'origem' => 'venda', 'origem_id' => 9999, 'parcela_numero' => 1]);
+    // receber vencido há 45 dias (vencidosAntigos 30)
+    $titulo(['tipo' => 'receber', 'vencimento' => $hoje->copy()->subDays(45)->toDateString()]);
+    // pagar em dia (totaisAbertos pagar, aging pagar)
+    $titulo(['tipo' => 'pagar', 'vencimento' => $hoje->copy()->addDays(5)->toDateString()]);
+
+    // baixa de ontem no título a receber (listarPaginado, historicoRecente, totaisPorTipoPeriodo, idempotency)
+    DB::table('fin_titulo_baixas')->insert([
+        'business_id' => $biz, 'titulo_id' => $t1, 'valor_baixa' => 10,
+        'data_baixa' => $hoje->copy()->subDay()->toDateString(), 'meio_pagamento' => 'pix',
+        'idempotency_key' => 'tp_fake-99999', 'created_by' => $uid, 'created_at' => $hoje,
+    ]);
+
+    // Sem business_id na sessão o BusinessScopeImpl não filtra: sobra só o where explícito.
+    session()->forget(['user.business_id', 'business.id']);
+}
 
 /**
  * Dataset robusto — cada caso = 1 método de Repository com biz=99 → resultado vazio.
@@ -136,7 +92,7 @@ dataset('cross_tenant_zero_biz99', [
     'TituloRepository::acharPorOrigem'      => [TituloRepository::class, 'acharPorOrigem', ['venda', 9999, 1], 'null'],
     'BaixaRepository::listarPaginado'       => [BaixaRepository::class, 'listarPaginado', [[], 50], 'paginator'],
     'BaixaRepository::historicoRecente'     => [BaixaRepository::class, 'historicoRecente', [2], 'collection'],
-    'BaixaRepository::totaisPorTipoPeriodo' => [BaixaRepository::class, 'totaisPorTipoPeriodo', ['receber', '2026-01-01', '2026-12-31'], 'array-totals'],
+    'BaixaRepository::totaisPorTipoPeriodo' => [BaixaRepository::class, 'totaisPorTipoPeriodo', ['receber', date('Y-m-d', strtotime('-7 days')), date('Y-m-d')], 'array-totals'],
     'BaixaRepository::acharPorIdempotencyKey' => [BaixaRepository::class, 'acharPorIdempotencyKey', ['tp_fake-99999'], 'null'],
 ]);
 
@@ -146,16 +102,24 @@ it('D1 — cross-tenant biz=99 retorna zero em todos métodos Repository', funct
     array $args,
     string $tipoEsperado,
 ) {
+    mtcSemeia98();
     $repo = app($repoClass);
-    $resultado = $repo->{$metodo}(99, ...$args);
 
-    match ($tipoEsperado) {
-        'paginator'    => expect($resultado->total())->toBe(0, "Repository {$repoClass}::{$metodo}(99,...) paginator deve estar vazio."),
-        'collection'   => expect($resultado->count())->toBe(0, "Repository {$repoClass}::{$metodo}(99,...) collection deve estar vazia."),
-        'array-totals' => expect($resultado['count'])->toBe(0, "Repository {$repoClass}::{$metodo}(99,...) count deve ser 0."),
-        'null'         => expect($resultado)->toBeNull("Repository {$repoClass}::{$metodo}(99,...) deve retornar null."),
-        'array-aging'  => expect($resultado['em_dia']['count'])->toBe(0, "Repository {$repoClass}::{$metodo}(99,...) aging em_dia deve ser 0."),
+    $conta = fn ($r) => match ($tipoEsperado) {
+        'paginator'    => $r->total(),
+        'collection'   => $r->count(),
+        'array-totals' => $r['count'],
+        'null'         => $r === null ? 0 : 1,
+        'array-aging'  => $r['em_dia']['count'],
     };
+
+    // Controle positivo: com a dona do dado (98) o método acha.
+    expect($conta($repo->{$metodo}(98, ...$args)))
+        ->toBeGreaterThan(0, "{$repoClass}::{$metodo}(98,...) deveria achar o dado semeado — sem isso o zero da 99 não prova isolamento.");
+
+    // Isolamento: com a outra empresa (99), nada.
+    expect($conta($repo->{$metodo}(99, ...$args)))
+        ->toBe(0, "{$repoClass}::{$metodo}(99,...) vazou dado da empresa 98.");
 })->with('cross_tenant_zero_biz99');
 
 it('D1 — BaixaRepository força where(business_id) explícito (defesa em profundidade)', function () {

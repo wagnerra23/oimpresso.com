@@ -12,6 +12,7 @@ use Modules\Fiscal\Http\Controllers\NfeCockpitController;
 use Modules\Fiscal\Http\Controllers\NfseCockpitController;
 use Modules\Fiscal\Http\Controllers\PaletteSearchController;
 use Modules\Fiscal\Http\Controllers\SpedController;
+use Modules\Fiscal\Http\Middleware\FiscalLiberado;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,7 +34,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     });
 
 // Rotas operacionais do módulo Fiscal — cockpit + sub-páginas (PR #1: só NF-e).
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+// Stack canônico UltimatePOS + CheckUserLogin (usuário de login liberado) + FiscalLiberado
+// (pacote `fiscal_module` na assinatura da empresa — o menu e a API do app já exigiam;
+// a URL direta não). A permissão de cada tela segue no controller dela.
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', FiscalLiberado::class])
     ->prefix('fiscal')
     ->name('fiscal.')
     ->group(function () {

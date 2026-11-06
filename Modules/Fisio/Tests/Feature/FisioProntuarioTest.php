@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Fisio\Entities\Record;
 use Modules\Fisio\Exceptions\DadoClinicoImutavelException;
+use Modules\Fisio\Services\ConfiguracaoClinica;
 use Modules\Fisio\Tests\Support\FisioFixtures as F;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -82,12 +83,29 @@ it('UC-FPS-03 · avaliação sem campo mínimo da Res. 414 é recusada e nada é
     expect(Record::query()->where('patient_id', $this->p->id)->count())->toBe(0);
 })->with('campos minimos da avaliacao');
 
-it('UC-FPS-03 · sem CREFITO não assina — evolução e avaliação recusadas', function () {
-    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", fprAvaliacao(['crefito' => '']))->assertStatus(422)->assertJsonValidationErrors('crefito');
-    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", ['kind' => 'evolucao', 'body' => ['conduta' => 'x', 'resposta_paciente' => 'y']])
+it('UC-FPS-03 · sem CREFITO no perfil não assina, mesmo com CREFITO no request', function () {
+    app(ConfiguracaoClinica::class)->gravar($this->b98, 'perfil.crefito', '', $this->u98->id, $this->u98->id);
+
+    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", fprAvaliacao())->assertStatus(422)->assertJsonValidationErrors('crefito');
+    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", ['kind' => 'evolucao', 'crefito' => F::CREFITO, 'body' => ['conduta' => 'x', 'resposta_paciente' => 'y']])
         ->assertStatus(422)->assertJsonValidationErrors('crefito');
 
     expect(Record::query()->where('patient_id', $this->p->id)->count())->toBe(0);
+});
+
+it('UC-FPS-03 · o CREFITO da assinatura é o do perfil de quem assina; o do request é ignorado', function () {
+    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", fprAvaliacao(['crefito' => 'CREFITO-99/000000-FALSO']))->assertCreated();
+
+    $reg = Record::query()->where('patient_id', $this->p->id)->sole();
+    expect($reg->signed_crefito)->toBe(F::CREFITO)
+        ->and((int) $reg->signed_by)->toBe($this->u98->id);
+
+    // Controle: o perfil é por profissional — outro usuário da mesma clínica assina com o dele.
+    $outro = $this->usuarioComPermissoes([F::PERM_ACESSO, F::PERM_EDITAR], $this->seededTenant());
+    F::como($this, $outro);
+    app(ConfiguracaoClinica::class)->gravar($this->b98, 'perfil.crefito', 'CREFITO-10/777777-F', $outro->id, $outro->id);
+    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", fprAvaliacao(['crefito' => F::CREFITO]))->assertCreated();
+    expect(Record::query()->where('patient_id', $this->p->id)->where('signed_by', $outro->id)->sole()->signed_crefito)->toBe('CREFITO-10/777777-F');
 });
 
 it('UC-FPS-03 · kind telemonitoramento não é criável pela tela do profissional (só o portal gera)', function () {

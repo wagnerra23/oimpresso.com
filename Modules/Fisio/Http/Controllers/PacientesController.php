@@ -99,7 +99,7 @@ class PacientesController extends Controller
             ]);
         });
 
-        return redirect()->route('fisio.pacientes.show', $paciente->id)->with('status', 'Paciente cadastrado.');
+        return redirect()->route('fisio.pacientes.show', $paciente->id)->with('success', 'Paciente cadastrado.');
     }
 
     public function show(Request $request, int $id): Response
@@ -168,7 +168,7 @@ class PacientesController extends Controller
         }
         $paciente->fill($campos)->save();
 
-        return back()->with('status', 'Perfil clínico atualizado.');
+        return back()->with('success', 'Perfil clínico atualizado.');
     }
 
     /** Bloquear, nunca apagar. Repetir não muda a data do primeiro bloqueio (UC-FPS-07). */
@@ -182,7 +182,7 @@ class PacientesController extends Controller
             $paciente->save();
         }
 
-        return redirect()->route('fisio.pacientes.index')->with('status', 'Paciente bloqueado. O prontuário continua guardado.');
+        return redirect()->route('fisio.pacientes.index')->with('success', 'Paciente bloqueado. O prontuário continua guardado.');
     }
 
     /** @return array<string, mixed> */
