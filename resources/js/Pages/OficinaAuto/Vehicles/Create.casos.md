@@ -5,8 +5,8 @@ irmaos: Create.charter.md (lei) · ../../../../../memory/requisitos/OficinaAuto/
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-26"
-last_run_ci: "2026-10-26 revalidado: a tela ganhou o campo opcional Próxima revisão (data) — nenhum UC existente muda; o campo é provado por UC-OVREV-02 (Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php, 8 passed no CT 100, cópia isolada do branch). ---- 2026-10-06 revalidado: a tela ganhou o campo opcional Próxima revisão (km) — nenhum UC existente muda; o campo é provado por web cadastro e edição aceitam a próxima revisão (tests/Feature/Sells/AppOsApiContratoTest.php). Antes: 0 UC executado, trio nasceu em 2026-09-23"
+last_run: "2026-11-05"
+last_run_ci: "2026-11-05 revalidado: lane PHP / Pest (OficinaAuto · MySQL), run 42066537594 no commit do teste do contact_id — VehicleCrudTest e VehicleMultiTenantTest PASS; VehicleContactTenantContratoTest com os 2 casos de outra empresa vermelhos de propósito (código antigo) e os 2 controles verdes. A tela mudou em 2026-10-27 (#9888, lembrete por data), coberta pelo LembreteRevisaoContratoTest da lane sells-pest. ---- 2026-10-26 revalidado: a tela ganhou o campo opcional Próxima revisão (data) — nenhum UC existente muda; o campo é provado por UC-OVREV-02 (Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php, 8 passed no CT 100, cópia isolada do branch). ---- 2026-10-06 revalidado: a tela ganhou o campo opcional Próxima revisão (km) — nenhum UC existente muda; o campo é provado por web cadastro e edição aceitam a próxima revisão (tests/Feature/Sells/AppOsApiContratoTest.php). Antes: 0 UC executado, trio nasceu em 2026-09-23"
 related_us: [US-OFICINA-001, US-AUTO-001]
 related_cu: [CU-OFI-01, CU-OFI-15]
 ---
@@ -31,6 +31,7 @@ related_cu: [CU-OFI-01, CU-OFI-15]
 | UC-OVC-01 | cadastrar pela placa funciona | must | CU-OFI-01 · US-OFICINA-001 | `VehicleCrudTest` |
 | UC-OVC-02 | conjunto de duas placas (cavalo + reboque) | must | CU-OFI-01 · US-AUTO-001 | `VehicleCrudTest` |
 | UC-OVC-03 | o dono do dado vem da sessão, não do formulário | must | CU-OFI-15 · US-OFICINA-001 | `VehicleMultiTenantTest` |
+| UC-OVC-04 | o cliente do veículo é da própria empresa | must | CU-OFI-15 · US-OFICINA-001 | `VehicleContactTenantContratoTest` |
 
 ---
 
@@ -60,6 +61,14 @@ related_cu: [CU-OFI-01, CU-OFI-15]
   autenticada**, nunca de um campo enviado pelo cliente.
 - **Regressão que defende:** um payload forjado plantar um veículo na base de outra oficina.
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php`
+- **Status: 🧪**
+
+## UC-OVC-04 · O cliente do veículo é da própria empresa `[T0]`
+- **Persona:** invariante multi-tenant ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+- **Aceite:** Dado um cliente do business B · Quando um usuário do business A cadastra um veículo
+  com esse cliente · Então o cadastro é recusado no campo do cliente e nenhum veículo é gravado.
+- **Regressão que defende:** a venda derivada da OS sair em nome de um cliente de outra empresa.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/VehicleContactTenantContratoTest.php`
 - **Status: 🧪**
 
 ---
