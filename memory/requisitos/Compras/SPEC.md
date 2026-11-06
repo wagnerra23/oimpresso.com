@@ -23,9 +23,9 @@ related_proposals:
 na_justified_v3:
   D6.c: "O paginate() vive no ComprasController::buildRowsPayload mas opera o query builder montado pelo ComprasService::listarCompras, que usa leftJoin (transaction_payments/contacts) + ->with([...]) — sem relação Eloquent lazy no caminho da listagem. A heurística D6.c só inspeciona o arquivo do controller (paginate sem with no MESMO arquivo) e devolve falso-negativo. N+1 real está TRAVADO por teste físico: Modules/Compras/Tests/Feature/ComprasListagemNPlusUmTest.php (trava contagem de queries — PR #3715, C15 da CAPTERRA-FICHA verificado falso-positivo)."
 pii: false
-updated_at: "2026-07-05"
-last_updated: "2026-07-05"
-version: "0.4"
+updated_at: "2026-11-06"
+last_updated: "2026-11-06"
+version: "0.5"
 owner: wagner
 ---
 
@@ -340,6 +340,8 @@ Como time, quero um teste E2E que submete uma compra (com grade + frete + descon
 > owner: — · priority: p0 · estimate: M · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
 > blocked_by: US-COM-003
 
+**Implementado em:** _pendente_ — depende do import do XML (US-COM-003), que ainda não existe.
+
 Como user importando DF-e, quero que cada item do XML seja auto-matchado ao produto do catálogo por EAN (`cEAN`) e, no fallback, por similaridade de `xProd`, com resolução manual pro que não casar, pra não mapear item a item.
 
 **Acceptance:**
@@ -351,15 +353,21 @@ Como user importando DF-e, quero que cada item do XML seja auto-matchado ao prod
 
 ### US-COM-013 · Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in)
 
-> owner: — · priority: p0 · estimate: M · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> owner: — · priority: p0 · estimate: M · status: done · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
 > blocked_by: —
+
+**Implementado em:** `app/Services/Purchase/PedidosAbertosDoFornecedor.php` · `app/Http/Controllers/PurchaseController.php` · `resources/js/Pages/Purchase/_components/ReceberDoPedido.tsx` · `resources/js/Pages/Purchase/_components/pedidoAberto.ts` · verificado@6016b8b (2026-11-06) — PR #9872: cada entrega vira uma compra ligada ao pedido, e a tela mostra por linha Pedido / Já recebido / A receber.
+
+**Testado em:** `Modules/Compras/Tests/Feature/RecebimentoParcialPedidoTest.php` (lane `compras-pest`, verde no run 42244210025 do main)
+
+O componente da tela tem teste de unidade em `tests/purchase-receber-do-pedido.test.tsx`.
 
 Como user, quero registrar recebimento parcial (qty recebida por linha diferente da pedida), com o residual permanecendo em trânsito e autosave do check-in, porque vestuário recebe lote incompleto de verdade.
 
-**Acceptance:**
-- [ ] Modelo de recebimento parcial por linha (qty_recebida vs qty_pedida)
-- [ ] Residual permanece em trânsito (não fecha a compra)
-- [ ] Autosave do check-in em progresso
+**Aceite:** (reescrito pela decisão de 2026-10-26 abaixo; o aceite original pedia coluna nova na compra)
+- [x] Por linha do pedido: Pedido / Já recebido / A receber, só de pedidos da empresa
+- [x] O que falta fica no pedido: 4 de 10 deixa o pedido `partial`, mais 6 deixa `completed`, e o estoque vai 0 → 4 → 10 pelos dois caminhos
+- ~~Autosave do check-in em progresso~~ — fora do escopo (decisão abaixo)
 
 **Refs:** CAPTERRA C03 ❌. Líderes: Lightspeed/Shopify/Zoho.
 
@@ -369,6 +377,8 @@ Como user, quero registrar recebimento parcial (qty recebida por linha diferente
 
 > owner: — · priority: p1 · estimate: M · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
 > blocked_by: —
+
+**Implementado em:** _pendente_ — os estágios do cockpit seguem calculados na tela sobre `transactions.status`.
 
 Como time, quero que os estágios da compra parem de ser `const STAGES` só-UI (`Compras/components/Drawer.tsx`) mapeados sobre `transactions.status` legacy, e virem estado persistido + histórico + transição gateada, pra a tela não "mentir" Recebido enquanto o banco diz `pending`.
 
@@ -385,6 +395,8 @@ Como time, quero que os estágios da compra parem de ser `const STAGES` só-UI (
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
 > blocked_by: —
 
+**Implementado em:** _pendente_ — o E2E da US-COM-011 prova o delta de estoque da entrada; falta o teste próprio desta US com o guard `assertPurchaseVariationsOwnership`.
+
 Como time, quero teste cobrindo a movimentação de estoque na entrada de compra (`ProductUtil::createOrUpdatePurchaseLines`+`updateProductQuantity`), pareando com US-COM-011.
 
 **Acceptance:**
@@ -398,6 +410,8 @@ Como time, quero teste cobrindo a movimentação de estoque na entrada de compra
 > owner: — · priority: p1 · estimate: 2h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
 > blocked_by: —
 
+**Implementado em:** _pendente_ — nenhum teste de Compras afirma o `fin_titulos` type=pagar.
+
 Como time, quero teste do fluxo compra→`fin_titulos` type=pagar (via `TransactionObserver`), porque hoje é herdado de `/purchases/store` e não é capacidade própria testada.
 
 **Acceptance:**
@@ -408,8 +422,10 @@ Como time, quero teste do fluxo compra→`fin_titulos` type=pagar (via `Transact
 
 ### US-COM-017 · ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
-> status: retirada · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1]
+> status: cancelled · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1]
 > blocked_by: —
+
+**Implementado em:** _pendente_ — retirada por [W] em 2026-07-03; não será feita (motivo abaixo).
 
 **Retirada por Wagner (dono do negócio) 2026-07-03.** Redigir `tax_number` (CNPJ/CPF), `mobile` e `email` do **fornecedor** no Drawer **contradiz a função do ERP**: o operador de compras precisa ver esses dados pra trabalhar (Wagner textual: *"isso vai ser problema no erp, aqui eu preciso ter a informação"*). A CAPTERRA C17 importou indevidamente a regra de PII — que é de **git / commit / log / PR / resposta de IA** (`[REDACTED]`/`PiiRedactor`, [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) + regras-time.md) — pra **camada de UI**, onde não se aplica. Base legal do tratamento: execução de contrato/compra (LGPD Art. 7º).
 
@@ -424,6 +440,8 @@ O que **de fato** protege dados no ERP já existe e **não** é redação de tel
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
 > blocked_by: —
 
+**Implementado em:** _pendente_ — `Purchase/Create.tsx` não grava rascunho no navegador.
+
 Como Larissa (atende telefone no meio da compra), quero rascunho auto-salvo por `{biz}.{user}` pra não perder o que digitei.
 
 **Acceptance:**
@@ -432,16 +450,20 @@ Como Larissa (atende telefone no meio da compra), quero rascunho auto-salvo por 
 
 **Refs:** CAPTERRA C16 ❌ (sinal médio). Placement a decidir com US-COM-005/Purchase.
 
-### US-COM-019 · Eager-load `->with(['contact','location'])` em `listarCompras().paginate()`
+### US-COM-019 · ~~Eager-load `->with(['contact','location'])` em `listarCompras().paginate()`~~ → REFUTADA (2026-07-03)
 
-> owner: — · priority: p2 · estimate: XS · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> owner: — · priority: p2 · estimate: XS · status: wontfix · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
 > blocked_by: —
+
+**Implementado em:** `Modules/Compras/Services/ComprasService.php` · `Modules/Compras/Tests/Feature/ComprasListagemNPlusUmTest.php` · verificado@6016b8b (2026-11-06) — refutada: não há N+1. A listagem vem do JOIN de `getListPurchases` com colunas planas (`supplier_business_name`, `location_name`), que é o que a tela lê; `->with([...])` quebraria a hidratação, porque o SELECT não traz `contact_id`/`location_id`. O teste trava a contagem de queries.
+
+**Testado em:** `Modules/Compras/Tests/Feature/ComprasListagemNPlusUmTest.php` (lane `compras-pest`, verde no run 42244210025 do main)
 
 Como time, quero eliminar N+1 nas rows do cockpit garantindo eager-load das relações renderizadas (`ComprasService::listarComprasInterno` monta a query via `getListPurchases` sem `->with`).
 
-**Acceptance:**
-- [ ] Eager-load das relações usadas nas rows (validar se vêm do JOIN existente ou lazy)
-- [ ] Sem regressão no filtro `?q=` (que já usa `contacts.*`)
+**Aceite:**
+- [x] Validar se as relações das rows vêm do JOIN existente ou de lazy-load: vêm do JOIN, sem lazy-load por linha
+- [x] Sem regressão no filtro `?q=` (que já usa `contacts.*`)
 
 **Refs:** CAPTERRA C15 🟡. Esforço XS.
 
@@ -449,6 +471,8 @@ Como time, quero eliminar N+1 nas rows do cockpit garantindo eager-load das rela
 
 > owner: — · priority: p3 · estimate: 3h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
 > blocked_by: —
+
+**Implementado em:** _pendente_ — o drawer do cockpit não tem `role="dialog"` nem focus-trap (`[BACKLOG]` em `Compras/Index.casos.md`).
 
 Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA) — `role=dialog`, focus-trap, `aria-label` no botão fechar, handler `Esc`.
 
@@ -459,10 +483,12 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 **Refs:** CAPTERRA C18 🟡, WCAG 2.1 AA.
 
-### US-COM-021 · Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2
+### US-COM-021 · ~~Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2~~ → CANCELADA (ADR 0445)
 
-> owner: — · priority: p2 · status: todo · type: story
+> owner: — · priority: p2 · status: cancelled · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — não será feita: a ADR 0445 tirou a comparação de pixel do projeto, então não há baseline de VRT para reabilitar.
 
 - Contexto: charter `Compras/Index.charter.md` registra poda deliberada — `states: [default, loading]` com nota "dark/empty podados: baselines flaky (não-reproduzíveis run-a-run no CI)".
 - Motivação: medição 12/jun–10/jul mostrou dark = vetor nº 1 de re-trabalho visual do mês; Compras é a única tela do manifesto L2 sem dark.
@@ -618,12 +644,20 @@ Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça 
 
 ### US-COM-030 · MRP: necessidade de compra somando todas as OS, com prazo do fornecedor — **P1**
 
-> owner: — · priority: p1 · status: todo · type: story
+> owner: — · priority: p1 · status: done · type: story
 > blocked_by: —
 
 Como comprador, quero ver numa lista só quanto falta de cada insumo somando todas as OS abertas e o estoque mínimo, por local, e até quando preciso pedir pelo prazo de entrega do fornecedor, para não comprar OS por OS nem descobrir a falta quando a OS já está parada.
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Compras/Services/NecessidadeDeCompra.php` · `Modules/Compras/Database/Migrations/2026_10_27_100000_create_compras_prazo_fornecedor_table.php` · `resources/js/Pages/PurchaseRequisition/_components/NecessidadeDeCompra.tsx` · verificado@6016b8b (2026-11-06) — PR #9878; a necessidade aparece acima da lista de requisições.
+
+**Testado em:** `Modules/Compras/Tests/Feature/NecessidadeDeCompraTest.php` (lane `compras-pest`, verde no run 42244210025 do main)
+
+**Aceite:**
+- [x] Necessidade = comprometido pelas OS + mínimo − saldo − a caminho, nunca negativa, por insumo e local
+- [x] Pedir até = data em que a OS precisa − prazo do fornecedor
+- [x] O que não precisa de compra não aparece
+- [x] Tier 0: insumo e prazo de outra empresa não entram
 
 - Origem: lacunas de 2026-10-25 (P1 Compras). Ordem MRP → cotação → qualidade e desenho ancorado no DS e no padrão de tela: **decisão coordenação 2026-10-26**.
 - Reaproveita a falta de material por OS (`Modules/Producao/Services/FaltaDeMaterialDaOs.php`) e o estoque mínimo que já vira requisição (US-COM-027, `RequisicaoEstoqueMinimoService`). Não cria um segundo cálculo de falta.
@@ -633,12 +667,21 @@ Como comprador, quero ver numa lista só quanto falta de cada insumo somando tod
 
 ### US-COM-031 · Cotação de compra entre fornecedores — **P1**
 
-> owner: — · priority: p1 · status: todo · type: story
+> owner: — · priority: p1 · status: done · type: story
 > blocked_by: US-COM-030
 
 Como comprador, quero pedir preço e prazo a vários fornecedores para os itens de uma requisição, comparar as respostas lado a lado e transformar a melhor em pedido de compra, para não decidir pela memória nem por telefone.
 
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `Modules/Compras/Services/CotacaoDeCompra.php` · `Modules/Compras/Database/Migrations/2026_10_27_200000_create_compras_cotacoes_tables.php` · verificado@6016b8b (2026-11-06) — PR #9887: criar, responder, comparar e fechar em pedido, no serviço. Falta a tela.
+
+**Testado em:** `Modules/Compras/Tests/Feature/CotacaoDeCompraTest.php` · `Modules/Compras/Tests/Feature/IsolamentoPrazoECotacaoFornecedoresTest.php` (lane `compras-pest`, verdes no run 42244210025 do main)
+
+**Aceite:**
+- [x] Compara as respostas pelo menor preço e, no empate, pelo menor prazo; responder de novo substitui a resposta
+- [x] Fechar gera um pedido por fornecedor vencedor, com o total pelos dois caminhos
+- [x] Não fecha duas vezes nem com fornecedor que não respondeu
+- [x] Tier 0: fornecedor, requisição, convite e cotação de outra empresa são recusados
+- [ ] Tela para criar, responder e comparar a cotação
 
 - Origem: lacunas de 2026-10-25 (P1 Compras). Decisão coordenação 2026-10-26 (ordem e desenho).
 - Itens podem vir da requisição de compra ou de outro módulo: a frente Verticais (Oficina, "catálogo de peças por veículo com cotação") vai consumir esta mesma cotação, sem criar uma própria (combinado em 2026-10-26).
@@ -646,16 +689,24 @@ Como comprador, quero pedir preço e prazo a vários fornecedores para os itens 
 
 ### US-COM-032 · Aprovação do pedido de compra por alçada de valor — **P2**
 
-> owner: — · priority: p2 · status: todo · type: story
+> owner: — · priority: p2 · status: done · type: story
 > blocked_by: —
 
 Como dono, quero que o pedido de compra acima do limite de quem o fez espere a aprovação de gerente ou diretoria, com os limites de valor configurados pela minha empresa, para que compra grande não saia sem alguém ver.
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Compras/Services/AlcadaDoPedido.php` · `app/Http/Controllers/PurchaseOrderController.php` · `app/Http/Controllers/PurchaseController.php` · verificado@6016b8b (2026-11-06) — PR #9891; o update reaplica a alçada desde o PR #10451.
+
+**Testado em:** `Modules/Compras/Tests/Feature/AlcadaDoPedidoTest.php` (lane `compras-pest`, verde no run 42244210025 do main)
+
+**Aceite:**
+- [x] Desligada, nenhum pedido precisa de aprovação
+- [x] O nível sai do valor do pedido e dos limites da empresa (comprador, gerente, diretoria)
+- [x] Recusar exige motivo; pedido pendente ou recusado não vira compra (422)
+- [x] Tier 0: usuário de outra empresa não decide o pedido
 
 - **Decisão [W] 2026-10-26:** a alçada fica **no pedido de compra**, com limites de valor configuráveis por empresa (comprador, gerente, diretoria). Tira da seção 9.1 o item "Aprovação / workflow multi-nível (alçada)".
 - O protótipo de Fluxos já põe a alçada em Requisição → Pedido (`prototipo-ui/cowork/Wagner/fluxos-processos.jsx`).
-- Hoje o pedido nasce sem passo de aprovação (`PurchaseOrderController@store`).
+- Em 2026-10-26 o pedido nascia sem passo de aprovação (`PurchaseOrderController@store`).
 
 ### US-COM-033 · Avaliação automática do fornecedor por entrega — **P3**
 
@@ -671,12 +722,12 @@ Como comprador, quero ver por fornecedor quantas entregas chegaram no prazo e co
 
 ### US-COM-034 · Inspeção de qualidade no recebimento da compra — **P2**
 
-> owner: — · priority: p2 · estimate: 3h · status: doing · type: story
+> owner: — · priority: p2 · estimate: 3h · status: done · type: story
 > blocked_by: US-COM-013
 
 Como quem recebe mercadoria, quero inspecionar cada linha da compra recebida e marcar quanto foi aprovado e quanto foi reprovado, para que o reprovado não fique no estoque disponível e volte ao fornecedor como devolução.
 
-**Implementado em:** _pendente_ — serviço `Modules/Compras/Services/InspecaoDoRecebimento.php`, tabela `compras_inspecoes` e o `InspecaoDoRecebimentoTest`, ainda sem veredito da lane `compras-pest`; a tela vem depois do protótipo (ADR 0438).
+**Implementado em:** _parcial_ · `Modules/Compras/Services/InspecaoDoRecebimento.php` · `Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_inspecoes_table.php` · verificado@6016b8b (2026-11-06) — PR #9996; o `InspecaoDoRecebimentoTest` passa na lane `compras-pest` (run 42244210025 do main). Falta a tela, que vem depois do protótipo (ADR 0438).
 
 **Testado em:** `Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php`
 
@@ -687,19 +738,19 @@ Como quem recebe mercadoria, quero inspecionar cada linha da compra recebida e m
 - Tier 0: compra, linhas e devolução filtradas pela empresa.
 
 **Aceite:**
-- [ ] 10 recebidas, 7 aprovadas e 3 reprovadas: estoque 10 → 7 pelos dois caminhos e devolução de 3 × 12,50 = 37,50
-- [ ] Tudo aprovado não mexe no estoque nem cria devolução
-- [ ] Soma diferente do recebido, reprovado sem motivo e segunda inspeção da mesma linha são recusados
-- [ ] Desligada, a inspeção é recusada; compra de outra empresa é recusada e nada muda
+- [x] 10 recebidas, 7 aprovadas e 3 reprovadas: estoque 10 → 7 pelos dois caminhos e devolução de 3 × 12,50 = 37,50
+- [x] Tudo aprovado não mexe no estoque nem cria devolução
+- [x] Soma diferente do recebido, reprovado sem motivo e segunda inspeção da mesma linha são recusados
+- [x] Desligada, a inspeção é recusada; compra de outra empresa é recusada e nada muda
 - [ ] Tela: inspecionar no detalhe da compra recebida (depois do protótipo)
 
 ### US-COM-028 · Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1**
 
-> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+> owner: wagner · priority: p1 · estimate: 3h · status: done · type: story
 
 Como dono que deixou a regra de custo em "Propõe novo preço", quero ver no detalhe da compra recebida os preços propostos e aprovar ou recusar cada um, para que a proposta não fique esquecida numa tabela que ninguém lê.
 
-**Implementado em:** _pendente_ — código no PR #9714 (serviço `PropostasDePreco`, `PropostasPrecoController`, seção `PrecosPropostos` no detalhe da compra e o `PropostasDePrecoContratoTest`), ainda sem veredito da lane `compras-pest`. A âncora vira path quando o teste ficar verde e a US fechar (ADR 0273 + doneness-lint ADR 0302: `doing` com path conflita).
+**Implementado em:** _parcial_ · `Modules/Compras/Services/PropostasDePreco.php` · `Modules/Compras/Http/Controllers/PropostasPrecoController.php` · `resources/js/Pages/Purchase/_components/PrecosPropostos.tsx` · verificado@6016b8b (2026-11-06) — PR #9714; o `PropostasDePrecoContratoTest` passa na lane `compras-pest` (run 42244210025 do main). Falta a fila na Fabricação e nas Pendências, último item do aceite.
 
 **Testado em:** `Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php`
 
@@ -720,12 +771,12 @@ Como dono que deixou a regra de custo em "Propõe novo preço", quero ver no det
 
 ### US-COM-029 · Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0**
 
-> owner: — · priority: p0 · estimate: 2h · status: doing · type: story
+> owner: — · priority: p0 · estimate: 2h · status: done · type: story
 > blocked_by: —
 
 Como dono de uma empresa, quero que a compra feita a partir de um pedido de compra só aceite pedidos e linhas de pedido da minha empresa, para que ninguém consiga mexer na quantidade recebida ou no status do pedido de outra empresa.
 
-**Implementado em:** _pendente_ — trava `assertPurchaseOrderRefsBelongTo` no `PurchaseController` (store e update) e o `CompraDePedidoOutraEmpresaTest`, ainda sem veredito da lane `compras-pest`. A âncora vira path quando o teste ficar verde (ADR 0273 + doneness-lint ADR 0302).
+**Implementado em:** `app/Http/Controllers/PurchaseController.php` · verificado@6016b8b (2026-11-06) — trava `assertPurchaseOrderRefsBelongTo` no store e no update (PR #9820) e linha de compra de outra empresa recusada no store (PR #10425); o `CompraDePedidoOutraEmpresaTest` passa na lane `compras-pest` (run 42244210025 do main).
 
 **Testado em:** `Modules/Compras/Tests/Feature/CompraDePedidoOutraEmpresaTest.php`
 
@@ -734,9 +785,9 @@ Como dono de uma empresa, quero que a compra feita a partir de um pedido de comp
 - Pré-requisito do recebimento parcial (US-COM-013), que reaproveita este caminho (pedido → compra com `po_quantity_purchased`).
 
 **Aceite:**
-- [ ] Pedido de outra empresa em `purchase_order_ids` = 422, pedido alheio intacto
-- [ ] Linha de pedido de outra empresa = 422, `po_quantity_purchased` alheio intacto
-- [ ] Pedido da própria empresa segue recebendo: 4 de 10 deixa o pedido `partial` (controle positivo)
+- [x] Pedido de outra empresa em `purchase_order_ids` = 422, pedido alheio intacto
+- [x] Linha de pedido de outra empresa = 422, `po_quantity_purchased` alheio intacto
+- [x] Pedido da própria empresa segue recebendo: 4 de 10 deixa o pedido `partial` (controle positivo)
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
