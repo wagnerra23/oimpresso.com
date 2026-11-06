@@ -1220,9 +1220,10 @@ volta para uma margem alvo.
     as variações, como o método de custo (`UC-FLX-38`). O protótipo mostra o campo em dois lugares, no
     cadastro do produto e na receita da Fabricação (`manufacturing-recipe.jsx`). Como a receita fabrica
     um produto, os dois editam o mesmo valor, que fica no produto.
-  - **O que ainda falta — só a migração do legado.** O sistema antigo tinha a flag
-    `TEM_MARGEM_FIXA_CONTIBUICAO`. Proposta: `S` vira Acompanha o custo, e `N` ou vazio vira Preço fixo.
-    Antes de migrar, medir a flag numa base de cliente de comunicação visual (pergunta 1 da US-PROD-030).
+  - **Migração do legado — também já respondida pelo [W]** (US-PROD-030, pergunta 1, 2026-10-06): a flag
+    `TEM_MARGEM_FIXA_CONTIBUICAO = S` (mantém a margem e sobe o preço) migra como Acompanha o custo;
+    `N` e nulo migram como Preço fixo. Antes de ligar a migração, medir a flag numa base de cliente de
+    comunicação visual. Com isso não sobra pergunta para o [W]: os quatro pontos estão respondidos.
   - **Antes de ligar** (REGRA MESTRE de valor): a implementação mostra o antes e o depois do preço numa
     compra de exemplo, conferido por dois caminhos, e só liga com a aprovação do [W].
 - **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
