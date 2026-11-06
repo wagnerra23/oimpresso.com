@@ -51,6 +51,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Stack, Inline, Grid } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
+import FalhaDeCarga from './_shared/FalhaDeCarga';
+import { useFalhaDeferida } from './_shared/falhaDeferida';
 import type { ColumnDef } from '@tanstack/react-table';
 
 /* ─── Contrato com o backend ──────────────────────────────────────────────────── */
@@ -756,6 +758,8 @@ function EsqueletoTabela() {
 }
 
 export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, cadastro = null, edicao = null }: Props) {
+  // Lista deferida: carga que falha vira erro com "Tentar de novo", não esqueleto eterno.
+  const falhaManutencoes = useFalhaDeferida(['manutencoes']);
   // Distingue "não há manutenção nenhuma" de "não há manutenção PARA ESTE RECORTE" — dois
   // vazios diferentes, e oferecer a mensagem errada a quem só filtrou demais é ruído.
   const temFiltroAtivo = Boolean(filtros.q || filtros.status || filtros.priority || filtros.assigned_to);
@@ -801,6 +805,9 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, 
         <BarraDeFiltros filtros={filtros} opcoes={opcoes} />
 
         <div data-contract="tabela">
+{falhaManutencoes.falhou ? (
+            <FalhaDeCarga titulo="Não consegui carregar as manutenções" falha={falhaManutencoes} />
+          ) : (
           <Deferred data="manutencoes" fallback={<EsqueletoTabela />}>
             {manutencoes && manutencoes.data.length === 0 && !temFiltroAtivo ? (
               <EmptyState
@@ -834,6 +841,7 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, 
               />
             ) : null}
           </Deferred>
+          )}
         </div>
 
         {/* Rodapé da âncora (`patrimonio-page.jsx:534-537`): o CTA de envio, sem a frase do
