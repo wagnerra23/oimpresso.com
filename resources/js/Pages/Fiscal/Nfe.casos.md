@@ -713,6 +713,26 @@ cláusula 3ª · pedido [F] 2026-11-04 (Sabor Brasil).
 
 Status: 🧪
 
+
+## UC-FNFE-63 · Cancelar, CC-e e retransmitir só alcançam nota da própria empresa · `must` `[T0]`
+
+**Dado** uma nota da empresa da sessão e outra de outra empresa **Quando** o usuário pede cancelar,
+carta de correção ou retransmitir pela id da nota da outra empresa **Então** a nota não é achada
+(404) e nada chega ao serviço da SEFAZ; a mesma ação na nota da própria empresa chega ao serviço com
+a empresa da sessão. Âncora: CU-FISC-12 (isolamento) · ADR 0093. Teste:
+`AcoesEscritaEntreEmpresasTest` (3). Achado da auditoria do Fiscal de 2026-11-05 (lote 2.1): só havia
+teste de validação dessas rotas.
+
+Status: 🧪
+
+## UC-FNFE-64 · Inutilizar usa a empresa da sessão · `must` `[T0]`
+
+**Dado** um pedido de inutilização com `business_id` de outra empresa no corpo **Quando** o controller
+o envia ao serviço **Então** vai a empresa da sessão; o corpo não escolhe a empresa. Âncora: CU-FISC-10
+· CU-FISC-12. Teste: `AcoesEscritaEntreEmpresasTest`.
+
+Status: 🧪
+
 ---
 
 ## Boleto pago emite a NF-e (US-RB-044 · UC-FLX-26)
