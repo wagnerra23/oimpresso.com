@@ -392,6 +392,14 @@ class ConciliacaoController extends Controller
         $tituloId = $request->integer('titulo_id');
         $userId = $request->user()?->id;
 
+        // Tier 0 (ADR 0093): o título tem de ser da empresa da sessão. O `where` explícito
+        // não depende do BusinessScope global (que superadmin ignora). Título de outra
+        // empresa = 404, sem gravar nada na linha (UC-FCC-23).
+        abort_unless(
+            Titulo::query()->where('business_id', $businessId)->whereKey($tituloId)->exists(),
+            404
+        );
+
         // Fase 1 ADR 0236: conciliacaoTable() resolve a tabela certa pela origem
         // (OFX/API). $afetadas alimenta a auditoria (quantas linhas o UPDATE tocou).
         $afetadas = $this->conciliacaoTable($request->input('origem', 'ofx'))

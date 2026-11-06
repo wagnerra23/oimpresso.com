@@ -73,7 +73,32 @@ Wagner aprovou Wave 3 final 2026-05-20.
 
 - **2026-05-20** — Wave 3 final.
 
+## Medição de runtime — 2026-11-05 · veredito DIVERGE (bug) · 1
+
+> Substitui, como estado atual, a rodada de 2026-09-08 logo abaixo. Aquela não chegou a comparar
+> nada (staging com deploy defasado, temas diferentes) e caducou; fica como fato datado.
+
+| eixo | resultado |
+|---|---|
+| comando | `node scripts/design/design-diff-lote.mjs --incluir-comparadas --tema light --tela Fiscal/Config --base-url http://127.0.0.1:8000 --user-id <admin do biz seedado>` |
+| onde | `design-smoke-ci.yml` por `workflow_dispatch` no branch de medição `claude/fiscal-lote5-medir-nao-mergear` (run [42085947187](https://github.com/wagnerra23/oimpresso.com/actions/runs/42085947187)), app efêmero buildado de `main` @ `7d997591d7`, seeds Visreg, login pelo `/_visreg-login` |
+| tema | `light` forçado nos dois lados (`sameTheme: true`) |
+| âncora | `node scripts/design/ancora.mjs Fiscal/Config` → `prototipo-ui/cowork/Wagner/fiscal-subpages.jsx` |
+| veredito | **DIVERGE (bug) · 1** |
+
+| dim | campo | produção | protótipo | veredito |
+|---|---|---|---|---|
+| D4 | título `font-weight` | 700 | 600 | **DÍVIDA A FECHAR** — Δ 100 |
+| D9 | subnav (fora da sonda, lido da assinatura de texto) | 7 abas | 9 abas (+ "MDF-e · CT-e", + "Tributação") | **ACHADO, decisão [W]** — o `fiscal-subnav.contract.json` e o `paginas-fiscais.tsx` têm 7; o `FX_TABS` do protótipo tem 9 |
+
+- As regiões D9 (`data-contract`) quase não se casam por **nome**: a produção expõe `fiscal-subnav`, `debitos-conhecidos`, `sb-*` e as âncoras `fiscal-*`, o protótipo `procedencia`, `tabela-*`, `toolbar-*`. O comparador as registra como `SEM-DADO`, não como divergência.
+- A produção mostrou o banner de consentimento de cookies por cima da tela; ele entra no texto medido, não nos estilos medidos.
+
+
 ## Medição de runtime — 2026-09-08 · veredito NÃO MEDI (Onda 7)
+
+> ⚠️ **Caducou em 2026-11-05** — ver a medição acima. Preservado como fato datado.
+
 
 > Registro do passo 3 do método da Onda 7. O `status: approved` do frontmatter é de
 > **2026-05-20** e NÃO foi revisado aqui — auto-declarado não prova paridade de hoje, e

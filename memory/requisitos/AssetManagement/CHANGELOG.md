@@ -2,6 +2,13 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+## [Errata — escopo de empresa] — 2026-11-05
+
+### Corrigido
+- A entrada Wave 27 (2026-05-17, abaixo) lista entre as "Tier 0 IRREVOGÁVEIS preservadas" um "`business_id` global scope em Asset/Allocation/Maintenance". **Esse escopo nunca existiu.** Os 4 Models (`Asset`, `AssetTransaction`, `AssetMaintenance`, `AssetWarranty`) não têm `addGlobalScope` nem trait de escopo; o filtro por `business_id` é manual em cada consulta, e os 4 estão em `grandfathered` em `governance/multi-tenant-scope-baseline.json:8-11` (medido em `origin/main` 2026-11-05). A entrada antiga fica como estava (append-only); vale esta errata.
+- O README do módulo (`memory/requisitos/AssetManagement/README.md`, seção Multi-tenant) repetia a mesma frase e foi corrigido no mesmo PR.
+- Pendente, fora deste PR: o comentário de `Modules/AssetManagement/Config/retention.php` também fala em "global scope". Esse arquivo é resíduo da retenção revogada e aguarda decisão [W].
+
 ## [Wave 27 — Polish final ≥88] — 2026-05-17 (73-77 → 88, +11 a +15pp)
 
 ### Adicionado — D9.a OTel spans AssetWarrantyService (+2 spans)

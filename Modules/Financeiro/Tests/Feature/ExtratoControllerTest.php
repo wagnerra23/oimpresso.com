@@ -22,123 +22,10 @@ use Illuminate\Support\Facades\Schema;
  * Roda contra DB dev real, criando complemento `fin_contas_bancarias` +
  * `fin_extrato_lancamentos` em transação que faz rollback no tearDown.
  */
-class ExtratoControllerTest extends FinanceiroTestCase
+
+trait ExtratoControllerTestApoio
 {
     private int $contaBancariaId = 0;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->actAsAdmin();
-
-        // Cria fin_extrato_lancamentos se não existir (migração nova US-RB-046)
-        if (! Schema::hasTable('fin_extrato_lancamentos')) {
-            $this->markTestSkipped('Migração fin_extrato_lancamentos ainda não aplicada — rodar php artisan migrate.');
-        }
-
-        // Cria account + complemento ContaBancaria pro business atual
-        $accountId = DB::table('accounts')->insertGetId([
-            'business_id'    => $this->business->id,
-            'name'           => 'Inter Test ' . uniqid(),
-            'account_number' => '12345678',
-            'created_at'     => now(),
-            'updated_at'     => now(),
-        ]);
-
-        $this->contaBancariaId = DB::table('fin_contas_bancarias')->insertGetId([
-            'business_id'                => $this->business->id,
-            'account_id'                 => $accountId,
-            'banco_codigo'               => '077',
-            'agencia'                    => '0001',
-            'carteira'                   => '112',
-            'beneficiario_documento'     => '12.345.678/0001-99', // pii-allowlist (CNPJ sintético de fixture — sequência 1..8, não é empresa real)
-            'beneficiario_razao_social'  => 'Empresa Teste',
-            'ativo_para_boleto'          => true,
-            'saldo_cached'               => 5000.00,
-            'saldo_atualizado_em'        => now(),
-            'created_at'                 => now(),
-            'updated_at'                 => now(),
-        ]);
-    }
-
-    protected function tearDown(): void
-    {
-        if ($this->contaBancariaId > 0) {
-            DB::table('fin_extrato_lancamentos')->where('conta_bancaria_id', $this->contaBancariaId)->delete();
-            $accountId = DB::table('fin_contas_bancarias')->where('id', $this->contaBancariaId)->value('account_id');
-            DB::table('fin_contas_bancarias')->where('id', $this->contaBancariaId)->delete();
-            if ($accountId) {
-                DB::table('accounts')->where('id', $accountId)->delete();
-            }
-        }
-        parent::tearDown();
-    }
-
-    /** UC-EXT-01 — contrato em resources/js/Pages/Financeiro (casos.md). */
-    public function test_index_responde_200_com_filtro_padrao_ultimos_30d(): void
-    {
-        $this->seedLancamentos();
-
-        $response = $this->inertiaGet("/financeiro/extrato/{$this->contaBancariaId}");
-
-        $this->assertSame(200, $response->status());
-    }
-
-    /** UC-EXT-06 — contrato em resources/js/Pages/Financeiro (casos.md). */
-    public function test_index_404_quando_conta_eh_de_outro_business(): void
-    {
-        // O "outro business" precisa EXISTIR de verdade: fin_contas_bancarias.business_id
-        // tem FK pra business (ON DELETE CASCADE). O id sintético que estava aqui
-        // ($this->business->id + 9999) estourava SQLSTATE 23000/1452 no insert abaixo,
-        // e o caso morria ANTES de exercer o 404 — ou seja, o [T0] cross-tenant desta
-        // tela nunca foi provado. Padrão canônico do próprio módulo:
-        // BackfillExtratoOfxTest:256 e BridgeExpenseToTitulosCommandTest:281.
-        $otherBusiness = Business::where('id', '!=', $this->business->id)->first();
-
-        if (! $otherBusiness) {
-            $this->markTestSkipped('Sem segundo business no banco pra provar isolamento cross-tenant.');
-        }
-
-        $otherBusinessId = (int) $otherBusiness->id;
-
-        $otherAccountId = DB::table('accounts')->insertGetId([
-            'business_id' => $otherBusinessId,
-            'name'        => 'Outro biz',
-            'created_at'  => now(),
-            'updated_at'  => now(),
-        ]);
-        $otherContaId = DB::table('fin_contas_bancarias')->insertGetId([
-            'business_id'               => $otherBusinessId,
-            'account_id'                => $otherAccountId,
-            'banco_codigo'              => '077',
-            'agencia'                   => '0001',
-            'carteira'                  => '112',
-            'beneficiario_documento'    => '11.111.111/1111-11', // pii-allowlist (CNPJ sintético de fixture — dígito repetido, não é empresa real)
-            'beneficiario_razao_social' => 'X',
-            'created_at'                => now(),
-            'updated_at'                => now(),
-        ]);
-
-        try {
-            $response = $this->inertiaGet("/financeiro/extrato/{$otherContaId}");
-            $this->assertSame(404, $response->status(), 'Conta de outro business não pode retornar 200');
-        } finally {
-            DB::table('fin_contas_bancarias')->where('id', $otherContaId)->delete();
-            DB::table('accounts')->where('id', $otherAccountId)->delete();
-        }
-    }
-
-    public function test_index_aplica_filtro_from_to(): void
-    {
-        $this->seedLancamentos();
-
-        $response = $this->inertiaGet(
-            "/financeiro/extrato/{$this->contaBancariaId}",
-            ['from' => '2026-04-01', 'to' => '2026-04-30']
-        );
-
-        $this->assertSame(200, $response->status());
-    }
 
     private function seedLancamentos(): void
     {
@@ -170,3 +57,115 @@ class ExtratoControllerTest extends FinanceiroTestCase
         ]);
     }
 }
+
+uses(FinanceiroTestCase::class, ExtratoControllerTestApoio::class);
+
+beforeEach(function () {
+    $this->actAsAdmin();
+
+    // Cria fin_extrato_lancamentos se não existir (migração nova US-RB-046)
+    if (! Schema::hasTable('fin_extrato_lancamentos')) {
+        $this->markTestSkipped('Migração fin_extrato_lancamentos ainda não aplicada — rodar php artisan migrate.');
+    }
+
+    // Cria account + complemento ContaBancaria pro business atual
+    $accountId = DB::table('accounts')->insertGetId([
+        'business_id'    => $this->business->id,
+        'name'           => 'Inter Test ' . uniqid(),
+        'account_number' => '12345678',
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
+
+    $this->contaBancariaId = DB::table('fin_contas_bancarias')->insertGetId([
+        'business_id'                => $this->business->id,
+        'account_id'                 => $accountId,
+        'banco_codigo'               => '077',
+        'agencia'                    => '0001',
+        'carteira'                   => '112',
+        'beneficiario_documento'     => '12.345.678/0001-99', // pii-allowlist (CNPJ sintético de fixture — sequência 1..8, não é empresa real)
+        'beneficiario_razao_social'  => 'Empresa Teste',
+        'ativo_para_boleto'          => true,
+        'saldo_cached'               => 5000.00,
+        'saldo_atualizado_em'        => now(),
+        'created_at'                 => now(),
+        'updated_at'                 => now(),
+    ]);
+
+});
+
+afterEach(function () {
+    if ($this->contaBancariaId > 0) {
+        DB::table('fin_extrato_lancamentos')->where('conta_bancaria_id', $this->contaBancariaId)->delete();
+        $accountId = DB::table('fin_contas_bancarias')->where('id', $this->contaBancariaId)->value('account_id');
+        DB::table('fin_contas_bancarias')->where('id', $this->contaBancariaId)->delete();
+        if ($accountId) {
+            DB::table('accounts')->where('id', $accountId)->delete();
+        }
+    }
+
+});
+
+it('UC-EXT-01 · index responde 200 com filtro padrao ultimos 30d', function () {
+    $this->seedLancamentos();
+
+    $response = $this->inertiaGet("/financeiro/extrato/{$this->contaBancariaId}");
+
+    $this->assertSame(200, $response->status());
+
+});
+
+it('UC-EXT-06 · index 404 quando conta eh de outro business', function () {
+    // O "outro business" precisa EXISTIR de verdade: fin_contas_bancarias.business_id
+    // tem FK pra business (ON DELETE CASCADE). O id sintético que estava aqui
+    // ($this->business->id + 9999) estourava SQLSTATE 23000/1452 no insert abaixo,
+    // e o caso morria ANTES de exercer o 404 — ou seja, o [T0] cross-tenant desta
+    // tela nunca foi provado. Padrão canônico do próprio módulo:
+    // BackfillExtratoOfxTest:256 e BridgeExpenseToTitulosCommandTest:281.
+    $otherBusiness = Business::where('id', '!=', $this->business->id)->first();
+
+    if (! $otherBusiness) {
+        $this->markTestSkipped('Sem segundo business no banco pra provar isolamento cross-tenant.');
+    }
+
+    $otherBusinessId = (int) $otherBusiness->id;
+
+    $otherAccountId = DB::table('accounts')->insertGetId([
+        'business_id' => $otherBusinessId,
+        'name'        => 'Outro biz',
+        'created_at'  => now(),
+        'updated_at'  => now(),
+    ]);
+    $otherContaId = DB::table('fin_contas_bancarias')->insertGetId([
+        'business_id'               => $otherBusinessId,
+        'account_id'                => $otherAccountId,
+        'banco_codigo'              => '077',
+        'agencia'                   => '0001',
+        'carteira'                  => '112',
+        'beneficiario_documento'    => '11.111.111/1111-11', // pii-allowlist (CNPJ sintético de fixture — dígito repetido, não é empresa real)
+        'beneficiario_razao_social' => 'X',
+        'created_at'                => now(),
+        'updated_at'                => now(),
+    ]);
+
+    try {
+        $response = $this->inertiaGet("/financeiro/extrato/{$otherContaId}");
+        $this->assertSame(404, $response->status(), 'Conta de outro business não pode retornar 200');
+    } finally {
+        DB::table('fin_contas_bancarias')->where('id', $otherContaId)->delete();
+        DB::table('accounts')->where('id', $otherAccountId)->delete();
+    }
+
+});
+
+it('index aplica filtro from to', function () {
+    $this->seedLancamentos();
+
+    $response = $this->inertiaGet(
+        "/financeiro/extrato/{$this->contaBancariaId}",
+        ['from' => '2026-04-01', 'to' => '2026-04-30']
+    );
+
+    $this->assertSame(200, $response->status());
+
+});
