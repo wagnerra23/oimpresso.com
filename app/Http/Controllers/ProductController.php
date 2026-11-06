@@ -297,6 +297,13 @@ class ProductController extends Controller
                     'rotulos_campos' => $this->rotulosCamposProduto(),
                     // UC-PIDX-31: o filtro "Natureza fiscal" só existe com o módulo Fiscal.
                     'natureza_fiscal' => app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class),
+                    // UC-PIDX-44 (CV1): as opções do filtro "Uso". "Material" só com a Fabricação (receitas) e
+                    // "Serviço" só com o módulo Fiscal (natureza); com uma opção só, a tela não mostra o filtro.
+                    'usos' => array_values(array_filter([
+                        'vender',
+                        app()->bound(\App\Contracts\Fabricacao\ProdutosDeReceita::class) ? 'material' : null,
+                        app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class) ? 'servico' : null,
+                    ])),
                     // Papel do usuário, como a linha de contexto do protótipo ("papel: Administrador").
                     // O nome do role no UltimatePOS carrega o sufixo `#<business_id>` — sai da tela.
                     'papel' => ($papel = auth()->user()->roles->pluck('name')->first()) ? preg_replace('/#\d+$/', '', (string) $papel) : null,
@@ -482,6 +489,23 @@ class ProductController extends Controller
             $products->where(fn ($w) => $w->whereRaw("products.ncm NOT REGEXP '^[0-9]{8}$'")->orWhere('products.ncm', '00000000'));
         }
 
+        // UC-PIDX-44 (CV1): "Uso". Material = o produto que entra como insumo em alguma receita da Fabricação;
+        // Serviço = natureza fiscal "servico" decidida pelo contador (UC-PIDX-31); Para vender = nem um nem
+        // outro. Sem o módulo de onde vem a lista, aquela opção não filtra nada (a tela nem a oferece).
+        if (! empty($f['uso'])) {
+            $receitas = \App\Contracts\Fabricacao\ProdutosDeReceita::class;
+            $naturezas = \App\Contracts\Fiscal\NaturezaDoProduto::class;
+            $materiais = app()->bound($receitas) ? app($receitas)->materiais($business_id) : [];
+            $servicos = app()->bound($naturezas) ? app($naturezas)->produtosCom($business_id, 'servico') : [];
+            if ($f['uso'] === 'material') {
+                $products->whereIn('products.id', $materiais ?: [0]);
+            } elseif ($f['uso'] === 'servico') {
+                $products->whereIn('products.id', $servicos ?: [0]);
+            } elseif (($fora = array_values(array_unique(array_merge($materiais, $servicos)))) !== []) {
+                $products->whereNotIn('products.id', $fora);
+            }
+        }
+
         // UC-PIDX-31: natureza fiscal decidida pelo contador. Produto sem decisão é mercadoria (é o que a
         // emissão faz). Sem o módulo Fiscal o filtro não aparece na tela e aqui não filtra.
         if (! empty($f['natureza_fiscal']) && app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)) {
@@ -553,6 +577,8 @@ class ProductController extends Controller
             'abaixo_do_alerta' => request()->boolean('abaixo_do_alerta'),
             // UC-PIDX-42: "Falta NCM", e o link do card de Saúde fiscal (produto_sem_ncm). Só a lista React manda.
             'falta_ncm' => request()->boolean('falta_ncm'),
+            // UC-PIDX-44 (CV1): "Uso" — Para vender, Material ou Serviço. Só a lista React manda.
+            'uso' => in_array(request()->input('uso'), ['vender', 'material', 'servico'], true) ? (string) request()->input('uso') : null,
             // Aba ativa (protótipo: "Todos os produtos" | "Relatório de estoque") e a página da aba de estoque.
             'aba' => request()->input('aba') === 'estoque' ? 'estoque' : 'lista',
             'estoque_pagina' => max(1, (int) request()->input('estoque_pagina', 1)),

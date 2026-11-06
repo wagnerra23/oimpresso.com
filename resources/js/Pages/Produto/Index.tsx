@@ -157,7 +157,7 @@ function gravarLocal(chave: string, valor: unknown) {
 /** Parâmetros da URL: só o que difere do vazio. */
 function paraUrl(f: FiltrosLista): Record<string, string | number> {
   const out: Record<string, string | number> = {};
-  const texto: Array<keyof FiltrosLista> = ['type', 'category_id', 'brand_id', 'unit_id', 'tax_id', 'location_id', 'active_state', 'repair_model_id', 'natureza_fiscal'];
+  const texto: Array<keyof FiltrosLista> = ['type', 'category_id', 'brand_id', 'unit_id', 'tax_id', 'location_id', 'active_state', 'repair_model_id', 'natureza_fiscal', 'uso'];
   for (const k of texto) {
     const v = f[k];
     if (typeof v === 'string' && v !== '') out[k] = v;
@@ -432,6 +432,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       woocommerce_enabled: false,
       abaixo_do_alerta: false,
       falta_ncm: false,
+      uso: null,
       q: '',
     });
   };
@@ -480,7 +481,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
             </Deferred>
           </div>
 
-          <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} naturezaFiscal={contexto.natureza_fiscal === true} emiteNota={contexto.emite_nota === true} aplicar={ir} />
+          <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} naturezaFiscal={contexto.natureza_fiscal === true} emiteNota={contexto.emite_nota === true} usos={contexto.usos ?? []} aplicar={ir} />
 
           <section
             className="pb-widget"
