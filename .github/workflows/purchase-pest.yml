@@ -47,14 +47,21 @@ on:
     paths:
       - 'tests/Feature/Purchase/**'
       - 'tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php'
+      - 'tests/Feature/Calculo/CalculoValorComprasTest.php'
+      - 'tests/Feature/Contract/ComprasCreateAutosaveContractTest.php'
+      - 'tests/Contract/AutosaveContractRunner.php'
+      - 'tests/Contract/Fixtures/compras_create.php'
       - 'app/Http/Controllers/PurchaseController.php'
       # Pedidos de compra (thread compras/playbook/06): PedidosCompraBaselineTest trava o index().
       - 'app/Http/Controllers/PurchaseOrderController.php'
       # Requisições de compra (thread compras/playbook/07): RequisicoesCompraBaselineTest trava o index().
       - 'app/Http/Controllers/PurchaseRequisitionController.php'
       - 'Modules/Compras/Services/NecessidadeDeCompra.php'
+      - 'Modules/Compras/Services/AlcadaDoPedido.php'
       # Devoluções de compra (thread compras/playbook/08): DevolucoesCompraBaselineTest trava o index().
       - 'app/Http/Controllers/PurchaseReturnController.php'
+      - 'app/Http/Controllers/CombinedPurchaseReturnController.php'
+      - 'app/Utils/ProductUtil.php'
       # Sob teste em PurchaseIndexTenantContratoTest (UC-PURIDX-02): é `getListPurchases`
       # que carrega os DOIS escopos de business da lista. Sem este gatilho, mexer nele não
       # dispararia o teste dele — gate mudo com cara de cobertura.
@@ -104,11 +111,18 @@ jobs:
             purchase:
               - 'tests/Feature/Purchase/**'
               - 'tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php'
+              - 'tests/Feature/Calculo/CalculoValorComprasTest.php'
+              - 'tests/Feature/Contract/ComprasCreateAutosaveContractTest.php'
+              - 'tests/Contract/AutosaveContractRunner.php'
+              - 'tests/Contract/Fixtures/compras_create.php'
               - 'app/Http/Controllers/PurchaseController.php'
               - 'app/Http/Controllers/PurchaseOrderController.php'
               - 'app/Http/Controllers/PurchaseRequisitionController.php'
               - 'Modules/Compras/Services/NecessidadeDeCompra.php'
+              - 'Modules/Compras/Services/AlcadaDoPedido.php'
               - 'app/Http/Controllers/PurchaseReturnController.php'
+              - 'app/Http/Controllers/CombinedPurchaseReturnController.php'
+              - 'app/Utils/ProductUtil.php'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/Util.php'
               - 'app/User.php'
@@ -232,8 +246,14 @@ jobs:
             tests/Feature/Purchase/DevolucoesCompraBaselineTest.php \
             tests/Feature/Purchase/DevolucoesCompraContratoTest.php \
             tests/Feature/Purchase/DevolucaoCompraStoreBaselineTest.php \
+            tests/Feature/Purchase/PedidoCompraStoreTenantTest.php \
             tests/Feature/Purchase/RequisicaoStoreTenantTest.php \
-            tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php
+            tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php \
+            tests/Feature/Purchase/LinhaDeCompraPorTransacaoTenantTest.php \
+            tests/Feature/Purchase/StoreLinhaEEntryRowTenantTest.php \
+            tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php \
+            tests/Feature/Calculo/CalculoValorComprasTest.php \
+            tests/Feature/Contract/ComprasCreateAutosaveContractTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
       # Aqui só REPORTA (if: always()).

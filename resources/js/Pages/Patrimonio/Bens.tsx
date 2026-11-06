@@ -40,7 +40,8 @@
 // Trazer esses formulários pra cá é converter em drawer React, e isso é escrita de VALOR e
 // QUANTIDADE: REGRA MESTRE Tier 0, outra onda (`[BACKLOG]` do casos).
 //
-// Excluir FICA: `router.delete` no `destroy`, que funciona fora de modal.
+// Excluir FICA, em `AlertDialog` do DS (`_shared/ConfirmarExclusao.tsx`, desde 2026-11-05 —
+// antes era `window.confirm` + `router.delete`, que recebia o JSON do `destroy` ajax).
 //
 // Layout por PRIMITIVOS (ADR 0253) — `Stack`/`Inline`, nunca `<div className="flex gap-4">`
 // solto; o `layout-primitives-guard` é catraca e reprova adotante novo.
@@ -62,6 +63,10 @@ import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 import CadastroBemDrawer from './_shared/CadastroBemDrawer';
 import DetalheBemDrawer, { type BemDetalhe } from './_shared/DetalheBemDrawer';
+import FalhaDeCarga from './_shared/FalhaDeCarga';
+import { useFalhaDeferida } from './_shared/falhaDeferida';
+import ConfirmarExclusao from './_shared/ConfirmarExclusao';
+import { toast } from 'sonner';
 import type { BemEdicao } from './_shared/cadastroBem';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -227,20 +232,13 @@ function BotaoAcao({
  * exige (`permissoes.manutencao` = view_all || view_own), então o botão não promete o que o
  * servidor recusaria. Alocar segue fora (é quantidade — outra onda).
  *
- * Excluir usa `router.delete` com confirmação: o `destroy` é uma rota `resource` (verbo
- * DELETE), então link `<a>` não a alcançaria.
+ * Excluir só PEDE a confirmação: quem abre o `AlertDialog` e fala com o `destroy` é a Page
+ * (`ConfirmarExclusao`), porque o diálogo precisa sobreviver ao re-render da tabela.
  *
  * `stopPropagation` porque a linha inteira é clicável.
  */
-function AcoesDaLinha({ bem, permissoes }: { bem: Bem; permissoes: Props['permissoes'] }) {
-  const excluir = () => {
-    // Nome do bem no texto: confirmação genérica ("Tem certeza?") não deixa o usuário
-    // perceber que clicou na linha errada.
-    if (!window.confirm(`Excluir o bem "${bem.nome}" (${bem.asset_code})? Esta ação não pode ser desfeita.`)) {
-      return;
-    }
-    router.delete(`/asset/assets/${bem.id}`, { preserveScroll: true });
-  };
+function AcoesDaLinha({ bem, permissoes, onExcluir }: { bem: Bem; permissoes: Props['permissoes']; onExcluir: (bem: Bem) => void }) {
+  const excluir = () => onExcluir(bem);
 
   const editar = () => router.get(`/asset/assets/${bem.id}/edit`, {}, { preserveScroll: true });
 
@@ -279,14 +277,14 @@ function AcoesDaLinha({ bem, permissoes }: { bem: Bem; permissoes: Props['permis
 // só que as outras 11 já somavam 1376px, então sob layout fixo sobrava ZERO pra ela — medido em
 // produção: `th` de "Bem" com 0px e o texto transbordando sobre "Categoria" ("Bategoria").
 // Travado por `tests/js/patrimonio-bens-colunas.test.tsx`.
-function colunas(permissoes: Props['permissoes']): ColumnDef<Bem, unknown>[] {
+function colunas(permissoes: Props['permissoes'], onExcluir: (bem: Bem) => void): ColumnDef<Bem, unknown>[] {
   return [
     {
       id: 'acoes',
       header: 'Ações',
       // A ação vem primeiro, como no protótipo (`:284`): a tabela é mais larga que a janela
       // e o botão primário não pode nascer fora do viewport.
-      cell: ({ row }) => <AcoesDaLinha bem={row.original} permissoes={permissoes} />,
+      cell: ({ row }) => <AcoesDaLinha bem={row.original} permissoes={permissoes} onExcluir={onExcluir} />,
       meta: { width: 148 },
     },
     {
@@ -575,6 +573,17 @@ function pedidoDeCadastroNaUrl(): boolean {
 
 export default function Bens({ abas_contadores, bens, recortes_contagem, bem_selecionado, bem_detalhe, filtros, opcoes, formato_data, permissoes, edicao = null, abrir_cadastro = false }: Props) {
   const [cadastroAberto, setCadastroAberto] = useState(() => permissoes.criar && (abrir_cadastro || pedidoDeCadastroNaUrl()));
+  const [excluindo, setExcluindo] = useState<Bem | null>(null);
+
+  // Excluído: a linha sai por partial reload das três props que contam bem — a tabela, os
+  // recortes e o contador da aba. Nome do bem no texto: confirmação genérica ("Tem certeza?")
+  // não deixa o usuário perceber que clicou na linha errada.
+  const aoExcluir = () => {
+    const nome = excluindo?.nome;
+    setExcluindo(null);
+    toast.success(`Bem "${nome}" excluído.`);
+    router.reload({ only: ['bens', 'recortes_contagem', 'abas_contadores'] });
+  };
 
   // Drawer de DETALHE (leitura, `_saida-16b.md`): a linha abre `?bem=ID` por partial reload
   // — só `bem_detalhe` vem da rede, a tabela fica. Mesmo desenho de `Compras/Index`.
@@ -602,6 +611,9 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, bem_sel
       window.history.replaceState(window.history.state, '', url.toString());
     }
   };
+
+  // A lista é deferida: se a carga falha, o esqueleto viraria espera eterna. Ver `_shared/falhaDeferida.ts`.
+  const falhaBens = useFalhaDeferida(['bens']);
 
   // Distingue "não há bem nenhum" de "não há bem PARA ESTE RECORTE" — são dois vazios
   // diferentes, e oferecer "cadastre o primeiro bem" a quem só filtrou demais é ruído.
@@ -649,6 +661,9 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, bem_sel
         </div>
 
         <div data-contract="tabela">
+          {falhaBens.falhou ? (
+            <FalhaDeCarga titulo="Não consegui carregar os bens" falha={falhaBens} />
+          ) : (
           <Deferred data="bens" fallback={<EsqueletoTabela />}>
             {bens && bens.data.length === 0 && !temFiltroAtivo ? (
               <EmptyState
@@ -663,7 +678,7 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, bem_sel
               />
             ) : bens ? (
               <DataTable<Bem>
-                columns={colunas(permissoes)}
+                columns={colunas(permissoes, setExcluindo)}
                 data={bens.data}
                 pagination={bens}
                 endpoint="/asset/assets"
@@ -678,6 +693,7 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, bem_sel
               />
             ) : null}
           </Deferred>
+          )}
         </div>
       </Stack>
       <DetalheBemDrawer
@@ -714,6 +730,19 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, bem_sel
           formatoData={formato_data}
         />
       ) : null}
+      <ConfirmarExclusao
+        alvo={
+          excluindo
+            ? {
+                titulo: `Excluir ${excluindo.asset_code}?`,
+                descricao: `${excluindo.nome}. A exclusão tira o bem da lista e leva as garantias dele junto; a trilha de auditoria continua registrada. Não dá pra desfazer.`,
+                url: `/asset/assets/${excluindo.id}`,
+              }
+            : null
+        }
+        onFechar={() => setExcluindo(null)}
+        onExcluido={aoExcluir}
+      />
     </AppShellV2>
   );
 }

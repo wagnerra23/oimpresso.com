@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $arte_programacao_id
  * @property string $token_hash
  * @property string $arquivo
+ * @property int $versao versão da arte: sobe só quando o arquivo muda (UC-PCART-09)
  * @property \Illuminate\Support\Carbon $expira_em
  * @property ?string $decisao
  * @property ?string $comentario

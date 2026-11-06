@@ -1,19 +1,20 @@
 // fiscal-transporte.jsx — Fiscal · sub-página "MDF-e · CT-e" (ADR 0444).
-// Não há tela viva: este é o protótipo de entrada (ADR 0438). Dados fictícios, ambiente de homologação.
+// Não há tela viva: este é o protótipo de entrada (ADR 0438). Dados fictícios da MESMA empresa das outras
+// abas (Office Impresso, São Paulo/SP). Só transmite em homologação: MDF-e/CT-e ainda não existem no produto.
 // Recorte: MDF-e de carga própria montado a partir das NF-e da entrega (US-COMVIS-016) + CT-e emitido (modelo 57).
 // O CT-e tomado (frete que a empresa paga) NÃO entra aqui: chega por XML na aba Manifesto DF-e.
 const { useState: useStateTx } = React;
 const txU = () => window.FxUI;
 
 const TX_MDFE = [
-  { id: 231, num: "000231", serie: "1", emit: "22/10", ufIni: "SC", ufFim: "PR", rota: "Gravatal → Curitiba", placa: "ABC1D23", condutor: "Condutor 1", notas: 3, peso: "412 kg", st: "aberto", stLabel: "Autorizado", dias: 5 },
-  { id: 226, num: "000226", serie: "1", emit: "30/09", ufIni: "SC", ufFim: "RS", rota: "Gravatal → Porto Alegre", placa: "EFG4H56", condutor: "Condutor 2", notas: 1, peso: "96 kg", st: "atraso", stLabel: "Autorizado · 27 dias", dias: 27 },
-  { id: 225, num: "000225", serie: "1", emit: "28/09", ufIni: "SC", ufFim: "SP", rota: "Gravatal → Campinas", placa: "ABC1D23", condutor: "Condutor 1", notas: 5, peso: "1.020 kg", st: "ok", stLabel: "Encerrado 02/10" },
-  { id: 224, num: "000224", serie: "1", emit: "27/09", ufIni: "SC", ufFim: "PR", rota: "Gravatal → Curitiba", placa: "ABC1D23", condutor: "Condutor 1", notas: 2, peso: "180 kg", st: "off", stLabel: "Cancelado" },
+  { id: 231, num: "000231", serie: "1", emit: "22/10", ufIni: "SP", ufFim: "PR", rota: "São Paulo → Curitiba", placa: "ABC1D23", condutor: "Condutor 1", notas: 3, peso: "412 kg", st: "aberto", stLabel: "Autorizado", dias: 5 },
+  { id: 226, num: "000226", serie: "1", emit: "30/09", ufIni: "SP", ufFim: "RS", rota: "São Paulo → Porto Alegre", placa: "EFG4H56", condutor: "Condutor 2", notas: 1, peso: "96 kg", st: "atraso", stLabel: "Autorizado · 27 dias", dias: 27 },
+  { id: 225, num: "000225", serie: "1", emit: "28/09", ufIni: "SP", ufFim: "MG", rota: "São Paulo → Belo Horizonte", placa: "ABC1D23", condutor: "Condutor 1", notas: 5, peso: "1.020 kg", st: "ok", stLabel: "Encerrado 02/10" },
+  { id: 224, num: "000224", serie: "1", emit: "27/09", ufIni: "SP", ufFim: "PR", rota: "São Paulo → Curitiba", placa: "ABC1D23", condutor: "Condutor 1", notas: 2, peso: "180 kg", st: "off", stLabel: "Cancelado" },
 ];
 const TX_CTE = [
-  { id: 58, num: "000058", serie: "1", emit: "24/10", tomador: "Remetente", partes: "Cliente A → Cliente B", rota: "Tubarão → Joinville", st: "ok", stLabel: "Autorizado" },
-  { id: 57, num: "000057", serie: "1", emit: "23/10", tomador: "Destinatário", partes: "Cliente C → Cliente D", rota: "Tubarão → Lages", st: "bad", stLabel: "Rejeitado · 539" },
+  { id: 58, num: "000058", serie: "1", emit: "24/10", tomador: "Remetente", partes: "Cliente A → Cliente B", rota: "Guarulhos → Campinas", st: "ok", stLabel: "Autorizado" },
+  { id: 57, num: "000057", serie: "1", emit: "23/10", tomador: "Destinatário", partes: "Cliente C → Cliente D", rota: "Guarulhos → Sorocaba", st: "bad", stLabel: "Rejeitado · 539" },
 ];
 // NF-e autorizadas, com entrega fora do município do emitente e sem MDF-e aberto.
 const TX_SEM_MDFE = [
@@ -53,7 +54,7 @@ function TxDrawer({ tipo, onClose }) {
             </section>
             <section className="fx-sec"><h3>Percurso</h3>
               <div className="tx-grid">
-                <label className="fx-field"><span>UF de carregamento</span><input defaultValue="SC" /></label>
+                <label className="fx-field"><span>UF de carregamento</span><input defaultValue="SP" /></label>
                 <label className="fx-field"><span>Município de carregamento</span><input defaultValue="Gravatal" /></label>
                 <label className="fx-field"><span>UFs de passagem</span><input placeholder="nenhuma" /></label>
                 <label className="fx-field"><span>UF de descarregamento</span><input defaultValue="PR" /></label>
@@ -109,7 +110,7 @@ window.FxTransportePage = function FxTransportePage() {
       </U.Header>
       <U.Subnav current="fiscal-transporte" />
       <div className="fx-alert" data-level="warn" role="status">
-        <div className="fx-alert-t"><b>Ambiente de homologação</b><small>Os documentos não têm validade fiscal. A emissão em produção depende do certificado A1.</small></div>
+        <div className="fx-alert-t"><b>MDF-e e CT-e só em homologação</b><small>MDF-e e CT-e ainda não existem no produto: daqui nada sai com validade fiscal, mesmo com a empresa emitindo notas em produção.</small></div>
       </div>
       <section className="fx-ribbon" aria-label="Resumo do mês">
         <div className="fx-ri"><small>MDF-e abertos</small><b>{abertos.length}</b><em>em viagem, sem encerrar</em></div>

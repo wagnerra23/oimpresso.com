@@ -10,6 +10,12 @@
    --color-warning L=0.70 sobre branco fica abaixo de 4,5:1 (auditoria Fiscal 2026-11-05, lote 6.4) */
 .fx-page{--fx-ok:var(--pos);--fx-warn:var(--warn);--fx-bad:var(--neg)}
 
+/* A11y · foco visível em todo controle do módulo (WCAG 2.4.7) */
+.fx-page :is(button,a[href],select,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fx-table tbody tr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.fx-leva{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px;font-size:var(--fs-3);color:var(--text-dim)}
+.fx-simula{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-2);color:var(--text-mute);cursor:pointer}
+
 /* header */
 .fx-h{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-bottom:2px}
 .fx-h h1{font-size:var(--fs-7);font-weight:600;color:var(--text);margin:0;line-height:1.15}
@@ -20,6 +26,10 @@
 .fx-env{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-2);color:var(--text-dim);border:1px solid var(--border);border-radius:999px;padding:3px 9px;background:var(--surface)}
 .fx-env i{width:6px;height:6px;border-radius:50%;background:var(--fx-ok);display:block}
 .fx-env[data-ok="false"] i{background:var(--fx-bad)}
+.fx-env[data-amb="homologacao"]{color:var(--fx-warn);border-color:color-mix(in oklch,var(--fx-warn) 35%,var(--border))}
+.fx-env[data-amb="homologacao"] i{background:var(--fx-warn)}
+.fx-cenario{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-1);color:var(--text-mute)}
+.fx-bloqueio{display:block;margin-top:3px;font-size:var(--fs-1);color:var(--fx-bad);text-align:right}
 .fx-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:6px;padding:5px 10px;font:inherit;font-size:var(--fs-3);cursor:pointer}
 .fx-btn:hover{color:var(--text);border-color:color-mix(in oklch,var(--accent) 30%,var(--border))}
 .fx-btn:disabled{opacity:.45;cursor:not-allowed}
@@ -75,7 +85,7 @@
 .fx-chip[data-tone="warn"] b{color:var(--fx-warn)}
 .fx-active-filter{display:flex;align-items:center;gap:7px;font-size:var(--fs-3);color:var(--text-dim)}
 .fx-active-filter b{color:var(--text)}
-.fx-active-filter button{border:1px solid var(--border);background:var(--surface);color:var(--text-mute);border-radius:5px;width:20px;height:20px;cursor:pointer;line-height:1}
+.fx-active-filter button{border:1px solid var(--border);background:var(--surface);color:var(--text-mute);border-radius:5px;width:24px;height:24px;cursor:pointer;line-height:1}
 
 /* tabela */
 .fx-table{border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow-x:auto}
@@ -105,8 +115,10 @@
 .fx-timepill.u-warn{color:var(--fx-warn);border-color:color-mix(in oklch,var(--fx-warn) 30%,transparent)}
 .fx-timepill.u-crit{color:var(--fx-bad);border-color:color-mix(in oklch,var(--fx-bad) 32%,transparent)}
 .fx-row-acts{display:inline-flex;gap:4px;margin-right:8px;opacity:0;transition:opacity .12s}
-.fx-table tbody tr:hover .fx-row-acts{opacity:1}
-.fx-row-act{border:1px solid var(--border);background:var(--surface);color:var(--text-mute);border-radius:4px;font:inherit;font-family:var(--font-mono);font-size:var(--fs-1);padding:1px 5px;cursor:pointer}
+.fx-table tbody tr:hover .fx-row-acts,.fx-table tbody tr:focus-within .fx-row-acts{opacity:1}
+/* A11y · ações da linha aparecem também no foco do teclado e em tela de toque (sem hover) */
+@media (hover:none){.fx-row-acts{opacity:1}}
+.fx-row-act{min-width:24px;min-height:24px;border:1px solid var(--border);background:var(--surface);color:var(--text-mute);border-radius:4px;font:inherit;font-family:var(--font-mono);font-size:var(--fs-1);padding:1px 5px;cursor:pointer}
 .fx-row-act:hover{color:var(--text)}
 .fx-row-act.danger{color:var(--fx-bad)}
 .fx-bulk{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid color-mix(in oklch,var(--accent) 35%,var(--border));background:var(--accent-soft);border-radius:10px;padding:10px 14px;font-size:var(--fs-3);color:var(--text)}
@@ -137,7 +149,7 @@
 .fx-tl-b small{font-size:var(--fs-2);color:var(--text-dim)}
 .fx-tl-b code{font-family:var(--font-mono);font-size:var(--fs-1);color:var(--text-mute)}
 
-/* Onda 2/3 — densidade, cursor J/K, paginação, atalho, write-off, validação SPED */
+/* Onda 2/3 — densidade, cursor J/K, paginação, atalho, validação SPED */
 .fx-kbd{display:inline-flex;gap:3px;align-items:center}
 .fx-kbd b{font-family:var(--font-mono);font-size:var(--fs-1);font-weight:500;color:var(--text-mute);border:1px solid var(--border);border-radius:4px;padding:1px 5px;background:var(--bg-2)}
 .fx-density{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
@@ -147,17 +159,13 @@
 .fx-d-compact td{padding:6px 14px}
 .fx-d-relax td{padding:16px 14px}
 .fx-table tbody tr.cursor{outline:2px solid var(--accent);outline-offset:-2px}
-.fx-link{cursor:pointer;color:inherit;text-decoration:none}
+.fx-link{cursor:pointer;color:inherit;text-decoration:none;border:0;background:none;padding:0;font:inherit;text-align:left}
 .fx-link:hover b{color:var(--accent)}
 .fx-row-acts.always{opacity:1}
 .fx-pager{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:var(--fs-2);color:var(--text-mute)}
 .fx-pager-n{font-family:var(--font-mono);color:var(--text-dim)}
 .fx-pager-hint{margin-left:auto;font-family:var(--font-mono);font-size:var(--fs-1)}
 .fx-nota-rodape{font-size:var(--fs-2);color:var(--text-mute);margin:0;max-width:78ch;text-wrap:pretty}
-.fx-writeoff{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px dashed color-mix(in oklch,var(--fx-warn) 34%,var(--border));background:color-mix(in oklch,var(--fx-warn) 5%,var(--surface));border-radius:10px;padding:10px 14px}
-.fx-writeoff-t{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
-.fx-writeoff-t b{font-size:var(--fs-4);color:var(--text)}
-.fx-writeoff-t small{font-size:var(--fs-2);color:var(--text-dim)}
 .fx-validacao{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid var(--border);border-radius:10px;background:var(--bg-2);padding:10px 14px;font-size:var(--fs-2);color:var(--text-dim)}
 .fx-validacao b{font-size:var(--fs-3);color:var(--text)}
 .fx-validacao button{margin-left:auto}

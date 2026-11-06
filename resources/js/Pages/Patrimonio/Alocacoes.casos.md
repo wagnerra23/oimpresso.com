@@ -4,7 +4,7 @@ irmaos: Alocacoes.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-11-06"
 ---
 
 # Casos de Uso & Aceite — Patrimonio/Alocacoes
@@ -138,6 +138,22 @@ last_run: "2026-09-30"
   devolução da minha empresa — id de alocação ou de outra empresa dá 404 e a linha fica.
 - **Teste:** `AlocacoesFormContratoTest.php` (três `it()`) + vitest (confirmação antes do DELETE).
 - **Status:** 🧪 — idem.
+
+---
+
+## UC-ALOC-09 · Quando a carga das alocações falha, a tela diz isso e deixa tentar de novo
+
+- **Persona:** quem procura com quem está um bem e precisa saber se a lista não veio.
+- **Aceite:** Dado a tela aberta · Quando a carga deferida de `alocacoes` termina sem a prop (500, 503
+  do deploy ou rede caída) · Então a área da tabela vira o estado de erro do protótipo
+  (`patrimonio-page.jsx:846-850`): `role="alert"`, título "Não consegui carregar as alocações", a frase de que nada foi
+  perdido e o botão "Tentar de novo". O botão pede **só** `alocacoes` de novo, sem o diálogo de erro
+  do Inertia por cima; quando a prop chega, a tela volta ao normal.
+- **Por quê:** o `<Deferred>` mostra o esqueleto enquanto a prop não chegou, e numa falha ela
+  nunca chega — a tela parecia carregando para sempre. O critério (`_shared/falhaDeferida.ts`) é
+  a visita que pediu a prop ter terminado sem ela; não depende de horário nem de código de erro.
+- **Teste:** `tests/js/patrimonio-estado-erro.test.tsx` — oito `it()` citando `UC-ALOC-09`: o alerta aparece quando a visita que pediu `alocacoes` termina sem ela; "Tentar de novo" pede só `alocacoes` com `onHttpException`/`onNetworkError` devolvendo `false`; o erro some quando a prop chega; e três controles (antes da carga terminar, visita que trouxe a prop, visita que pediu outra prop). **Bite-test (2026-11-05):** com as cinco telas de `main`, os 3 casos não-controle de cada tela caem (15 de 30); os controles ficam verdes nos dois lados. **Emenda (2026-11-06):** o smoke em produção mostrou que a falha da carga ORIGINAL abria também o `dialog#inertia-error-dialog` do Inertia por cima do estado de erro (5 de 5 telas) — a carga deferida nasce no core sem `onHttpException`. Dois `it()` a mais: enquanto a carga desta tela está em voo, `httpException` e `networkError` são cancelados (sem modal); fora dela (antes, outra prop, depois do `finish`) o modal segue como era. Bite-test: com o hook anterior, os 5 casos do modal caem; os controles ficam verdes nos dois lados.
+- **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
 
 ---
 
