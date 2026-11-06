@@ -107,3 +107,29 @@ depende de escolher o seletor certo no protótipo — decisão de quem conhece o
 
 ⚠️ Pegadinha de execução registrada: `--url "/rota"` no Git Bash vira
 `C:/Program Files/Git/rota` (MSYS path conversion). Use `MSYS_NO_PATHCONV=1`.
+
+---
+
+## Medição de runtime — 2026-11-06 (`ServiceOrders/Show`): não medido (403)
+
+> Lote 6 da auditoria do módulo. Sonda somente leitura (Playwright), 2026-11-06T18:33Z, no
+> staging `8723405fbe` (2026-10-14, atrás do `main`).
+
+**O vivo não pôde ser medido no staging.** `GET /oficina-auto/service-orders/68` (OS da empresa 99)
+com o u24 (empresa 99) devolve **403** `This action is unauthorized.`: o `show()` chama
+`$this->authorize('view', $order)`, e a policy exige `oficinaauto.service_order.view` além do mesmo
+tenant (`ServiceOrderPolicy.php:39-41`). Nenhum usuário de tenant de teste com login visreg tem a
+permissão (u2 empresa 98, u3 empresa 2, u24 e u385 empresa 99). A empresa 98 não tem OS.
+
+Nada foi gravado no banco do staging para destravar (decisão da coordenação). O conserto que dura é o
+seed do tenant de teste ganhar `oficinaauto.service_order.{view,create,update}`, item separado.
+
+Rodar o `design-diff-lote` aqui gravaria a página 403 como `DIVERGE (bug)`: o driver não confere o
+status HTTP nem `componenteInertia`. Assinatura e detalhe em
+[`ordens-servico-board-visual-comparison.md`](ordens-servico-board-visual-comparison.md) §Achado de
+instrumento. Por isso esta rodada não gravou medidas.
+
+**A medição de 2026-09-08 continua sendo a única medição real desta tela**, e ela foi feita no app
+local (`127.0.0.1:8000`, `APP_ENV=testing`), não no staging. O que ela deixou em aberto segue igual:
+o papel `title` do lado design casou um elemento do shell, e falta o override
+`governance/design/targets/roles/OficinaAuto--ServiceOrders--Show.json` com `roles.design.title`.
