@@ -2,18 +2,19 @@
 id: requisitos-fiscal-spec
 module: Fiscal
 status: ativo
-version: "1.9.0"
-last_updated: "2026-05-25"
+version: "1.10.0"
+last_updated: "2026-11-06"
 piloto: oimpresso biz=1 (Wagner empresa) — depende de NfeBrasil já produção
 last_review: "2026-05-25"
 owners: [W]
 parent_adr: 0094-constituicao-v2-7-camadas-8-principios
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
-  - 0101-tests-business-id-1-nunca-cliente
+  - 0358-doutrina-de-teste-tenant-98-supersede-0101
   - 0104-processo-mwart-canonico-unico-caminho
   - 0114-prototipo-ui-cowork-loop-formalizado
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0442-ibscbs-automatico-regime-normal-emenda-0321
 implementacao_em_curso: PR Onda ESTABILIZAR — GAP-FISCAL-001 + GAP-FISCAL-002 (audit sênior 2026-05-25)
 na_justified:
   D7.a: "Fiscal cockpit é leitura agregada — não emite. PII (CPF/CNPJ destinatário) vem de NfeBrasil via getActivitylogOptions excluindo PII (PII-LGPD-FISCAL.md). Cockpit apenas exibe via Inertia props já redacted no Service NfeBrasil."
@@ -436,12 +437,14 @@ Then deve receber 403 Forbidden
 - **v1.7.0** (2026-05-20) — PR #8 Wave SPED MVP: `SpedIcmsIpiGeneratorService` novo + SpedController::gerar download TXT EFD-ICMS/IPI v3.1.1 perfil A + Sped.tsx botão habilitado. 16 registros canônicos (Blocos 0+C+9). US-FISCAL-016 adicionada. Meta Capterra **100/100**.
 - **v1.8.0** (2026-05-20) — PR #9 Wave Bloco E + H: expande SpedIcmsIpiGeneratorService com 7 registros (E001+E100+E110+E116+E990+H001+H990). Apuração ICMS consolidada via array_sum C190. E116 condicional. Bloco H esqueleto. US-FISCAL-017 adicionada. Cobertura SPED: 23 registros canon (estrutura completa pra validação PVA-EFD CONFAZ).
 - **v1.9.0** (2026-05-25) — **Onda ESTABILIZAR** (audit sênior GAP-FISCAL-001 + GAP-FISCAL-002): (a) Consolidação sidebar — `Modules/NfeBrasil/DataController.modifyAdminMenu` removeu 3 entries duplicadas (Notas/Manifestação/Certificado); `Modules/Fiscal/DataController.modifyAdminMenu` virou hub canon com 4 entries no grupo fiscal (Cockpit /fiscal · Notas /fiscal/nfe · Manifestação /fiscal/dfe · Certificado /fiscal/config). Wagner apontou 2026-05-25 "fiscal manifestação certificado tem telas competindo + cockpit não implementado". (b) Comando `fiscal:habilitar-business {biz}` idempotente provisiona 6 perms `fiscal.*` ao role Admin#{biz} (NÃO atribui fiscal.sped.export — GAP-FISCAL-003 hardcodes pendentes). (c) Cache Redis 60s KPIs Cockpit + listener invalidação em NFeAutorizada/NFCeAutorizada + reuse cert/dfeCount entre computeKpis/computeAlerts (2 queries redundantes eliminadas). (d) Palette anti-DOS min:3 chars (era min:2 — leading wildcard `LIKE %q%` pode full-scan tabelas com 50k+ NFe). (e) Feature flag `fiscal.sped_simples_only_lock=true` default produção bloqueia download SPED com 503 explicativo enquanto SpedIcmsIpiGeneratorService tem 6 hardcodes Tier-0 (audit sênior §"Surpresa estratégica" R1 multa fiscal interestadual). US-FISCAL-018 in_progress (provisionamento técnico ✅ · briefing Larissa pending), US-FISCAL-019 done. 19 Pest tests novos verdes (CockpitCacheTest 6 + SidebarConsolidacaoTest 10 + SimplesOnlyGateConfigTest 3 + HabilitarBusinessCommandTest 6 + SimplesOnlyGateTest 5 — alguns skipados em SQLite-only por exigirem MySQL ADR 0101).
+- **v1.10.0** (2026-11-06) — Reconciliação com o código (auditoria do Fiscal, lote 4): US-FISCAL-021 e US-FISCAL-025 ganham âncora `_parcial_` (cálculo, grupo UB e schema automático do CRT 3 entregues; faltam a validação das rejeições e a Saúde fiscal); US-FISCAL-024 ganha âncora `_pendente_`; US-FISCAL-020 recebe nota da UF de origem vinda de coluna inexistente (decisão [W] em aberto); `related_adrs` troca o slug inexistente da 0101 pela 0358 e acrescenta a 0442. As notas "Meta Capterra" das versões 1.4–1.7 eram metas do dia, não medição: a ficha mediu 75/100 em 2026-07-03 (`CAPTERRA-FICHA.md`).
 
 ## Referências
 
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
-- [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests biz=1
+- [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) — doutrina de teste, tenant 98 (supersede a 0101 de testes; o slug `0101-tests-business-id-1-nunca-cliente` citado até a v1.9.0 não existe no repo)
+- [ADR 0442](../../decisions/0442-ibscbs-automatico-regime-normal-emenda-0321.md) — IBS/CBS automático no regime normal
 - [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — MWART canônico
 - [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — Cowork loop
 - [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM cancel cascade
@@ -536,16 +539,41 @@ Then deve receber 403 Forbidden
 
 **Refs:** AUDIT-SENIOR-2026-05-25.md §GAP-FISCAL-003, ADR 0186
 
+> ⚠️ **Medido em 2026-11-06 (`origin/main` 0eb214f534):** o código entregue existe, mas a UF de origem
+> que decide CFOP 5102 × 6102 vem de `$business->state ?? 'SP'`
+> (`SpedIcmsIpiGeneratorService.php`, 3 sites: L122, L436, L440), e a tabela `business` não tinha coluna
+> `state` no CT 100 em 2026-09-04 (anexo da proposta abaixo; não re-medido aqui) — a comparação roda, com a origem sempre `SP`. A trava `fiscal.sped_simples_only_lock`
+> segue `true` por padrão (`config/fiscal.php:158`). Reabrir ou emendar esta US é decisão [W], em
+> aberto na [proposta 2026-09-04](../../decisions/proposals/2026-09-04-sped-identificacao-do-emitente-fonte-de-verdade.md)
+> §7 item 6. O status acima fica como estava até essa decisão.
+
 ## Onda 6 — Reforma + refinamento (CAPTERRA-INVENTARIO 2026-07-03 · Passo 2)
 
 ### US-FISCAL-021 · IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold)
 
-> owner: wagner · priority: p0 · estimate: 28h · status: todo · type: story
+**Implementado em:** _parcial_ · [`Modules/NfeBrasil/Services/MotorTributarioService.php`](../../../Modules/NfeBrasil/Services/MotorTributarioService.php) · [`Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php`](../../../Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php) · [`Modules/NfeBrasil/Services/NfeService.php`](../../../Modules/NfeBrasil/Services/NfeService.php) · verificado@0eb214f (2026-11-06) — cálculo, campos e grupo UB entregues; falta medir a validação das regras de rejeição da NT 2025.002 e os cenários monofásica, crédito presumido e imune
+
+> owner: wagner · priority: p0 · estimate: 28h · type: story
 > blocked_by: —
+
+> **Reconciliado em 2026-11-06** (regra de precedência: teste > casos > charter > SPEC). O campo de status
+> (estava "todo", de 2026-07-03) saiu do bloco: a fonte de done-ness é a âncora ([ADR 0302](../../decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md)). Os
+> checkboxes abaixo seguem os de 2026-07-03. Medido no `origin/main` 0eb214f534:
+> `MotorTributarioService::aplicarRegra`/`aplicarDefaults` devolvem `c_class_trib`, `cst_ibs`,
+> `cst_cbs`, alíquotas e valores IBS/CBS; `TributoCalculado` expõe os campos; `NfeService` monta o
+> grupo UB (PL_010_V1). Prova: `Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php`
+> (Simples × CRT 3, XSD, cross-check motor→XML, item sem CST) e
+> `RegraTributariaIbsCbsValidacaoTest.php` (a regra grava os 5 campos). Não medido: validação das
+> rejeições 1106/960 e os cenários monofásica, crédito presumido e imune. O teste usa o tenant 98
+> ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)), não biz=1.
 
 **Origem:** CAPTERRA-INVENTARIO Fiscal 2026-07-03 (cap #7, GAP-FISCAL-004) — único P0 zerado da ficha (nota 75/100). Programa de Ondas Passo 2.
 
 **Contexto:** schema já pronto (migration `2026_05_26_000001_add_ibs_cbs_to_nfe_fiscal_rules` tem colunas `c_class_trib`/`cst_ibs`/`cst_cbs`/`aliquota_ibs`/`aliquota_cbs`), mas `MotorTributarioService` tem **0 lógica de cálculo** IBS/CBS. Concorrentes ERP (Bling auto-fill, Tiny, Omie datado) e middleware (PlugNotas calculadora) já cobrem.
+
+**Testado em:** [`Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php`](../../../Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php) · [`Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php`](../../../Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php)
+
+**Aceite:** os checkboxes abaixo são de 2026-07-03; o estado medido está na nota acima.
 
 **Acceptance:**
 - [ ] `MotorTributarioService::calcular()` retorna `cClassTrib` + CST IBS/CBS + alíquotas IBS/CBS a partir das colunas de `nfe_fiscal_rules` (cascade existente)
@@ -594,6 +622,8 @@ Then deve receber 403 Forbidden
 
 ### US-FISCAL-024 · IBS/CBS — split UF/Município na régua fiscal (coluna de schema)
 
+**Implementado em:** _pendente_ — `nfe_fiscal_rules` só tem a alíquota IBS combinada e `NfeService` zera o `gIBSMun` (comentário "MODELAGEM v1"); nenhuma coluna de split no código (medido 2026-11-06).
+
 > owner: — · priority: p2 · estimate: 6h · status: todo · type: story
 > blocked_by: —
 
@@ -626,12 +656,17 @@ Then deve receber 403 Forbidden
 
 ### US-FISCAL-025 · IBS/CBS na NF-e de todo emissor do regime normal — **Legal**
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · type: story
 > blocked_by: — ([W] 2026-10-26: ligar automático para todo CRT 3, por ADR nova que emenda a 0321)
 
-**Implementado em:** _pendente_ — hoje o grupo UB só sai com `nfe_business_configs.reforma_tributaria_modo` em `full`/`hybrid_2026` (`NfeService::schemaReforma`).
+**Implementado em:** _parcial_ · [`Modules/NfeBrasil/Services/NfeService.php`](../../../Modules/NfeBrasil/Services/NfeService.php) · `NfeService::schemaReforma` · verificado@0eb214f (2026-11-06) — CRT 3 usa `PL_010_V1` sem opt-in ([ADR 0442](../../decisions/0442-ibscbs-automatico-regime-normal-emenda-0321.md), prova `SerializacaoIbsCbsTest` UC-FNFE-47/48); falta a Saúde fiscal apontar a regra do regime normal sem CST IBS/CBS (`SaudeFiscalService` não tem checagem de IBS/CBS)
+
+> Texto original desta linha (2026-10-26): *"hoje o grupo UB só sai com `reforma_tributaria_modo` em
+> `full`/`hybrid_2026`"*. Deixou de valer com a ADR 0442 no mesmo dia.
 
 Como empresa do regime normal, quero que a NF-e leve o grupo IBS/CBS sem eu ter de ligar nada, porque o preenchimento é obrigatório para fatos geradores desde 03/08/2026 (Ato Conjunto RFB/CGIBS nº 4/2026; a rejeição UB12-10 segue suspensa desde a NT 2025.002 v1.51, sem nova data).
+
+**Testado em:** [`Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php`](../../../Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php) — UC-FNFE-47/48
 
 **Aceite:** CRT 3 usa o schema PL_010 por padrão (o `legacy` deixa de valer para regime normal); o grupo sai quando a regra tem CST IBS/CBS e cClassTrib; a Saúde fiscal aponta a regra do regime normal sem CST IBS/CBS; Simples segue sem grupo até 2027. Em produção não há emissor CRT 3 hoje (medido 26/10).
 
