@@ -1149,6 +1149,25 @@ qual é o local padrão.
   3. ✅ **As duas seções ficam.** "Locais do negócio" diz onde o produto é vendido; "Locais de
      armazenagem" diz onde ele fica guardado. Podem ser diferentes (por exemplo, guardado no
      depósito e vendido na loja).
+- 🔶 **O que falta o [W] decidir para implementar — proposta de 2026-11-06.** Ficou fora da etapa 1 do
+  cadastro (#10380). As três decisões da [M] acima seguem. Medido em 2026-11-06: o cadastro React ainda
+  não mostra prateleira, fileira e posição (recebe `enableRacks`, mas nenhuma seção usa), e não existe
+  coluna de local padrão (`products` não tem, e `product_locations` não tem marca de padrão). Faltam
+  dois pontos, os dois de estoque:
+  1. **A Qtd. inicial por local fica dentro do cadastro?** Se ficar, o `store()` passa a gravar estoque
+     (exceção grande ao Non-Goal "NÃO modifica `store()`" do `Create.charter.md`, e REGRA MESTRE de
+     estoque). **Proposta:** não. O cadastro grava locais, padrão e endereço; a quantidade entra pela
+     tela de estoque inicial que já existe, aberta pelo botão "Salvar e adicionar estoque inicial"
+     (`UC-PCAD-21`, PR próprio). No Editar a coluna segue só leitura ("Em estoque"), como a [M] decidiu.
+  2. **Onde mora o local padrão.** **Proposta:** coluna nova `products.local_padrao_id` (nula, do mesmo
+     negócio, um dos locais de armazenagem do produto). Quem lê, em PRs seguintes: a compra, a
+     transferência e a separação, que já o sugerem preenchido. A venda não lê (baixa do local da venda),
+     como a decisão 1 da [M].
+  - **O que não precisa de decisão:** o endereço (prateleira, fileira e posição) usa o `product_racks`
+    que já existe e o mesmo campo `product_racks` do envio, e aparece só com `enable_racks`,
+    `enable_row` e `enable_position` ligados, como hoje.
+  - **Se o [W] mergear o PR desta proposta, valem as duas propostas acima.** A implementação começa
+    pelo endereço e pelo local padrão, sem tocar em saldo. Para mudar, basta comentar no PR.
 - **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
   ganham id quando houver teste que os defenda (G-2).
 
