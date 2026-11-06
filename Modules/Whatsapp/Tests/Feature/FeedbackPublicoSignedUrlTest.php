@@ -51,7 +51,7 @@ beforeEach(function () {
     $this->withoutMiddleware(ThrottleRequests::class);
 });
 
-it('001 · URL assinada válida é aceita pelo middleware signed', function () {
+it('001 · UC-FBP-05 · URL assinada válida é aceita pelo middleware signed', function () {
     $url = URL::temporarySignedRoute('feedback.form', now()->addDays(30), ['biz' => 1]);
 
     $response = $this->get($url);
@@ -61,11 +61,11 @@ it('001 · URL assinada válida é aceita pelo middleware signed', function () {
     expect($response->status())->not->toBe(403);
 });
 
-it('002 · sem assinatura → 403 (o link não é adivinhável)', function () {
+it('002 · UC-FBP-03 · sem assinatura → 403 (o link não é adivinhável)', function () {
     $this->get('/feedback?biz=1')->assertStatus(403);
 });
 
-it('003 · TIER 0 — adulterar ?biz=1 → 99 quebra a assinatura (403)', function () {
+it('003 · UC-FBP-01 · TIER 0 — adulterar ?biz=1 → 99 quebra a assinatura (403)', function () {
     $url = URL::temporarySignedRoute('feedback.form', now()->addDays(30), ['biz' => 1]);
 
     // O atacante tem um link legítimo do biz=1 e troca o tenant na query.
@@ -75,20 +75,20 @@ it('003 · TIER 0 — adulterar ?biz=1 → 99 quebra a assinatura (403)', functi
     $this->get($adulterada)->assertStatus(403); // …e o HMAC recusa.
 });
 
-it('004 · assinatura expirada → 403 (validade de 30d é real)', function () {
+it('004 · UC-FBP-04 · assinatura expirada → 403 (validade de 30d é real)', function () {
     $url = URL::temporarySignedRoute('feedback.form', now()->subMinute(), ['biz' => 1]);
 
     $this->get($url)->assertStatus(403);
 });
 
-it('005 · POST sem assinatura → 403 (escrita não entra por fora)', function () {
+it('005 · UC-FBP-03 · POST sem assinatura → 403 (escrita não entra por fora)', function () {
     $this->post('/feedback?biz=1', [
         'literal' => 'tentativa de gravar sem link assinado',
         'severity_self_reported' => 3,
     ])->assertStatus(403);
 });
 
-it('006 · TIER 0 — POST com ?biz adulterado → 403 (não grava no tenant do vizinho)', function () {
+it('006 · UC-FBP-02 · TIER 0 — POST com ?biz adulterado → 403 (não grava no tenant do vizinho)', function () {
     $url = URL::temporarySignedRoute('feedback.form', now()->addDays(30), ['biz' => 1]);
     $adulterada = str_replace('biz=1', 'biz=99', $url);
 
