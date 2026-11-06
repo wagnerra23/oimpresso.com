@@ -360,17 +360,17 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         });
         return;
       case 'excluir':
+        // UC-PIDX-45 (AR-PROD-022): excluir não apaga — o produto vai para "Situação: Excluídos".
         setConfirmar({
           titulo: 'Excluir produto',
-          corpo: `Excluir “${l.nome}” (${l.sku}) apaga o cadastro, as variações e os preços por grupo.`,
-          aviso:
-            l.controla_estoque && (l.estoque ?? 0) > 0
-              ? 'Este produto tem estoque — o servidor pode recusar a exclusão. Desative em vez de excluir.'
-              : 'Esta ação não tem volta.',
+          corpo: `“${l.nome}” (${l.sku}) sai da lista, da venda e da compra. O cadastro, o estoque e o histórico ficam guardados em “Situação: Excluídos”, e dá para restaurar.`,
           cta: 'Excluir',
           perigo: true,
           executar: () => executarJson(`/products/${l.id}`, 'DELETE'),
         });
+        return;
+      case 'restaurar':
+        void executarJson(`/products/restaurar/${l.id}`, 'POST');
         return;
     }
   };
@@ -755,8 +755,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   onClick={() =>
                     setConfirmar({
                       titulo: 'Excluir selecionados',
-                      corpo: `Vai apagar ${selecionados.length} cadastro(s), com variações e preços por grupo.`,
-                      aviso: 'Produtos com movimento de estoque são recusados pelo servidor.',
+                      corpo: `${selecionados.length} produto(s) saem da lista, da venda e da compra. O cadastro, o estoque e o histórico ficam guardados em “Situação: Excluídos”, e dá para restaurar.`,
                       cta: `Excluir ${selecionados.length}`,
                       perigo: true,
                       executar: () => enviarFormulario('/products/mass-delete', { selected_rows: ids }),

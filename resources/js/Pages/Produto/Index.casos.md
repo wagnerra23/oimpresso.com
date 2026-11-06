@@ -99,6 +99,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-42 | Filtro "Falta NCM" e o link do card de Saúde fiscal | should | `ProductController::consultaListaProdutos` (`falta_ncm`) + `FiltrosLista.tsx` + `SaudeFiscalService` (item `produto_sem_ncm`) | `ProdutoListaFaltaNcmTest` (lane Estoque · MySQL) + `SaudeFiscalTest` (UC-NFTR-24) + `produto-filtro-falta-ncm.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-43 | Informar NCM em vários produtos de uma vez | should | `ProductController::bulkUpdateNcm` (`POST /products/bulk-update-ncm`) + `NcmEmLote.tsx` na barra de selecionados | `ProdutoNcmEmLoteTest` (lane Estoque · MySQL) + `produto-ncm-em-lote.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-44 | Filtro "Uso": Para vender, Material e Serviço | should | `ProductController::consultaListaProdutos` (`uso`) + `App\Contracts\Fabricacao\ProdutosDeReceita` (Manufacturing) + `FiltrosLista.tsx` | `ProdutoListaUsoTest` (lane Estoque · MySQL) + `produto-filtro-uso.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-45 | Excluir sem perder e restaurar | must | `ProductController::destroy` / `massDestroy` / `restaurar` + `consultaListaProdutos` (`deleted_at`) + `AcoesProduto.tsx` | `ProdutoExcluirRestaurarTest` (lane Estoque · MySQL) + `produto-excluir-restaurar.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -600,6 +601,15 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** o rótulo "O que é" no painel e a coluna Tipo fora do padrão da lista (seguem no backlog, abaixo).
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-45 · Excluir sem perder e restaurar · `must`
+- **Persona:** quem cuida do cadastro e exclui um produto que não usa mais, ou exclui por engano e precisa trazê-lo de volta com tudo o que tinha.
+- **Aceite:** Dado um produto com 18 no estoque · Quando escolho "Excluir" · Então ele some da lista (e da venda e da compra, que só trazem produto ativo) · E aparece em "Situação: Excluídos", marcado "excluído" · E o cadastro, as variações, o estoque e as compras dele continuam guardados · Quando escolho "Restaurar" · Então ele volta a Ativo com os mesmos 18 · Produto com compra também pode ser excluído · "Ativar" não traz um excluído de volta (o caminho é Restaurar) · O indicador "Total" deixa de contar o excluído.
+- **Teste:** [`ProdutoExcluirRestaurarTest`](../../../../tests/Feature/Produto/ProdutoExcluirRestaurarTest.php) — `UC-PIDX-45` (o que fica guardado; produto com compra; restaurar e o Ativar que não restaura; Excluir selecionados com produto de outra empresa no meio; `product.delete` e produto de outra empresa; o indicador Total — lane Estoque · MySQL) e [`produto-excluir-restaurar.test.tsx`](../../../../tests/js/produto-excluir-restaurar.test.tsx) — `UC-PIDX-45` (o excluído oferece só Restaurar; sem permissão não há Restaurar; a situação e o chip "Excluídos"; a célula diz "excluído" — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-06: deixar "Ativar" no menu do excluído derruba o caso de tela.
+- **Contrato:** **`AR-PROD-022`** do contrato de paridade com o Office Comercial, esclarecido pelo [W] em 2026-07-13 ([`ANTI-REGRESSAO-cadastro-produto-legacy.md`](../../../../memory/requisitos/Produto/ANTI-REGRESSAO-cadastro-produto-legacy.md)): *"Excluir — soft-delete: com permissão, qualquer produto pode ser excluído; o cadastro vira inativo e some da lista, mas fica acessível por filtro de excluídos/inativos (NUNCA hard-delete — preserva consulta futura)"*; e **`AR-PROD-207`** (o manual: *"ao ser excluído do sistema, automaticamente o produto ganha o status de inativo"*). Excluído = `is_inactive = 1` + `products.deleted_at` preenchido. Antes desta mudança o "Excluir" apagava o produto, as variações e o estoque (`variation_location_details`), e recusava produto com compra ou ajuste.
+- **Gates:** `product.delete` para excluir e restaurar. Tier 0: só produtos da empresa do usuário; o id de outra empresa não muda.
+- **Fora daqui:** restaurar vários de uma vez; o valor do estoque do excluído continua no "Valor em estoque" e no Relatório de estoque, como o de qualquer produto inativo (o estoque físico é real).
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -764,10 +774,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - Clicar em "Abaixo do alerta" filtra a lista (D6) saiu deste backlog em 2026-11-03: virou UC-PIDX-35, com teste, junto do "Inativos" (item 2.1 do protótipo).
 - Ver cada cor e tamanho, com saldo, na própria lista (D7) saiu deste backlog em 2026-11-04: virou UC-PIDX-37, com teste. "Abrir a linha" ficou como um painel no saldo da coluna Estoque, porque a tabela compartilhada não abre linha e a linha já abre o painel do produto.
 - Mostrar o estoque separado para vendas e o livre (D5) saiu deste backlog em 2026-11-04: virou UC-PIDX-38, com teste. A linha aparece sempre que houver reserva ativa, não só com o interruptor ligado (ver o UC).
-- **[BACKLOG] Excluir sem perder: o excluído pode ser restaurado (D13)** — hoje "Excluir" apaga o
-  cadastro, as variações e os preços por grupo, e a confirmação diz que não tem volta. Aceite: Dado
-  um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
-  a Ativo com variações e preços. Fonte: Olist/Tiny (situação Excluídos + restaurar).
+- Excluir sem perder e restaurar (D13) saiu deste backlog em 2026-11-06: virou UC-PIDX-45, com teste, pela regra `AR-PROD-022` do [W].
 - Giro e últimas compras no painel (D8) saiu deste backlog em 2026-11-05: virou UC-PIDX-41, com teste.
 - Recortes salvos com nome (D1) saiu deste backlog em 2026-11-06 sem ser construído: a D-28 foi decidida "Não", pela reprovação do [W] de 2026-05-24.
 
@@ -913,6 +920,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 
 ## Trilha do tempo
 - 2026-11-06 · [F+C] **UC-PIDX-44**: filtro "Uso" (Para vender, Material, Serviço) na consulta de produto (CV1).
+- 2026-11-06 · [F+C] **UC-PIDX-45**: "Excluir" não apaga mais — o produto vai para "Situação: Excluídos" e "Restaurar" o devolve (D13 · `AR-PROD-022`).
 - 2026-11-06 · [F+C] **UC-PIDX-43**: "Informar NCM" na barra de selecionados grava o mesmo NCM em vários produtos.
 - 2026-11-06 · [F+C] **UC-PIDX-42**: filtro "Falta NCM" na consulta de produto e o card de Saúde fiscal abrindo a lista com ele.
 - 2026-11-05 · [F+C] **UC-PIDX-41**: giro de 90 dias e as 3 últimas compras recebidas na aba Estoque do painel (D8).

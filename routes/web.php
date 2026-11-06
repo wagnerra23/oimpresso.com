@@ -757,6 +757,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/products/add-selling-prices/{id}', [ProductController::class, 'addSellingPrices']);
     Route::post('/products/save-selling-prices', [ProductController::class, 'saveSellingPrices']);
     Route::post('/products/mass-delete', [ProductController::class, 'massDestroy']);
+    // UC-PIDX-45: devolve o produto excluído (AR-PROD-022).
+    Route::post('/products/restaurar/{id}', [ProductController::class, 'restaurar']);
     Route::get('/products/view/{id}', [ProductController::class, 'view']);
     Route::get('/products/list', [ProductController::class, 'getProducts']);
     Route::get('/products/list-no-variation', [ProductController::class, 'getProductsWithoutVariations']);
