@@ -192,6 +192,7 @@ jobs:
             Modules/Compras/Tests/Feature/ComprasIndexTest.php \
             Modules/Compras/Tests/Feature/MultiTenantTest.php \
             Modules/Compras/Tests/Feature/ComprasContratoFiltrosTest.php \
+            Modules/Compras/Tests/Feature/ComprasEscopoLocalDetalheKpisTest.php \
             Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php \
             Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php \
             Modules/Compras/Tests/Feature/MetodoCustoNoCadastroDoProdutoTest.php \
@@ -210,6 +211,7 @@ jobs:
             Modules/Compras/Tests/Feature/CurvaAbcReposicaoTest.php \
             Modules/Compras/Tests/Feature/CustoMedioMovelTest.php \
             Modules/Compras/Tests/Feature/ComprasSmokeRoutesTest.php \
+            Modules/Compras/Tests/Feature/ComprasPacoteGateTest.php \
             Modules/Compras/Tests/Feature/ComprasScaffoldTest.php \
             Modules/Compras/Tests/Feature/PurchaseCalculoValorEstoqueE2ETest.php \
             Modules/Compras/Tests/Feature/IsolamentoPrazoECotacaoFornecedoresTest.php

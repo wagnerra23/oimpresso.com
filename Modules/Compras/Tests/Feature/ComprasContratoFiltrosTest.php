@@ -23,10 +23,10 @@ use Spatie\Permission\Models\Role;
  * ⚠️ NOTA SOBRE A CATRACA DA LANE: o cabeçalho do compras-pest.yml declara
  * "ALLOWLIST VERDE — roda só os arquivos comprovadamente VERDES". Este arquivo
  * entra na allowlist SEM ser verde, de propósito: teste que não está listado
- * NÃO RODA (é o "verde impossível" que o anchor-lint denuncia). A lane é
- * ADVISORY (não está em governance/required-checks-baseline.json), então o
- * vermelho é VISÍVEL e NÃO bloqueia merge. Se [W] preferir manter a catraca
- * "só-verde", a decisão é dele — está reportada no session log do chip S1.
+ * NÃO RODA (é o "verde impossível" que o anchor-lint denuncia). Quando esta nota
+ * foi escrita a lane era advisory; em 2026-08-05 ela foi promovida a required
+ * (#5313 · ADR 0369). Se bloqueia merge hoje, quem diz é
+ * governance/required-checks-baseline.json, não este comentário (LC-10).
  *
  * ANTI-VÁCUO (lição proibicoes.md §5 2026-07-24): cada UC roda uma
  * pré-condição que prova que a requisição BASE funciona (200 sem filtro / a

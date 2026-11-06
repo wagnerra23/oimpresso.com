@@ -1,6 +1,8 @@
 // @memcofre tela=/compras module=Compras
 // Wagner 2026-05-21 — Wave 1+2+3+4 F1 pin literal do protótipo compras-page.jsx.
-// Cockpit Compras (US-COM-001). Drawer 5 tabs / Importar XML / Nova compra ficam pra Waves 6+.
+// Cockpit Compras (US-COM-001). Até 2026-11-06 esta linha dizia que o drawer, o "Importar XML" e a
+// "Nova compra" ficavam para as Waves 6+. Nessa data o drawer de detalhe e o "+ Nova compra" (que
+// abre /purchases/create, convergência C1) já estavam nesta tela; o "Importar XML" segue desabilitado.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';

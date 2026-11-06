@@ -112,6 +112,8 @@ export interface FiltrosLista {
   abaixo_do_alerta: boolean;
   /** UC-PIDX-42 — produtos sem NCM válido; só em empresa que emite nota. */
   falta_ncm?: boolean;
+  /** UC-PIDX-44 — "Uso" (CV1): para vender, material (entra em receita) ou serviço (natureza fiscal). */
+  uso?: Uso | null;
   q: string;
   sort: string;
   dir: 'asc' | 'desc';
@@ -349,6 +351,8 @@ export interface ContextoLista {
   rotulos_campos: Record<string, string | null>;
   /** O filtro "Natureza fiscal" existe (módulo Fiscal ligado). */
   natureza_fiscal?: boolean;
+  /** UC-PIDX-44 — opções do filtro "Uso" que a empresa tem; com uma só, o filtro não aparece. */
+  usos?: Uso[];
   /** Chave `useV2ProdutoCadastro` ligada para a empresa: as ações abrem as telas React prontas. */
   telas_react?: boolean;
 }
@@ -494,6 +498,13 @@ export const NATUREZAS_FISCAIS: Opcao[] = [
   { id: 'servico', nome: 'Serviço (NFS-e)' },
   { id: 'pendente', nome: 'A decidir pelo contador' },
 ];
+/** UC-PIDX-44 (CV1): o "Uso" do produto na consulta. */
+export type Uso = 'vender' | 'material' | 'servico';
+export const USOS: Array<Opcao & { id: Uso }> = [
+  { id: 'vender', nome: 'Para vender' },
+  { id: 'material', nome: 'Material' },
+  { id: 'servico', nome: 'Serviço' },
+];
 export const SITUACOES: Opcao[] = [
   { id: 'active', nome: 'Ativo' },
   { id: 'inactive', nome: 'Inativo' },
@@ -539,6 +550,7 @@ export function chipsDosFiltros(
   if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
   if (f.abaixo_do_alerta) out.push({ chave: 'abaixo_do_alerta', rotulo: 'Abaixo do alerta' });
   if (f.falta_ncm) out.push({ chave: 'falta_ncm', rotulo: 'Falta NCM' });
+  if (f.uso) out.push({ chave: 'uso', rotulo: `Uso: ${nome(USOS, f.uso)}` });
   if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
   if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
   if (f.q) out.push({ chave: 'q', rotulo: `Busca: ${f.q}` });

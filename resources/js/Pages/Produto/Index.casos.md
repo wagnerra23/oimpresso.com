@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-06"
 last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com a requisição aberta e o método de custo do #9896 e do #9898 já no main), head 2c43ba7: lane PHP / Pest (Estoque · MySQL), job 121847889045: 550 passed, 0 pulados (2701 assertions), com ProdutoRequisicaoAbertaContratoTest 4, ProdutoNaturezaFiscalConsultaContratoTest 3 e ProdutoMetodoDeCustoContratoTest 2 verdes; job Frontend / Vite build 121847886774: 114 testes passaram em 14 arquivos. Antes: 2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, disparada à mão): 497 testes, 0 falhas, 0 pulados, com todos os arquivos Pest da lista; job 120384523098 (Frontend / Vite build, mesmo commit): os 2 arquivos Vitest da lista que rodam em lane passaram; os outros 8 arquivos Vitest da lista não rodam em lane e passaram local (133 de 133). Antes: 2026-10-19, job 118208572139."
 ---
 
@@ -98,6 +98,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-41 | Giro de 90 dias e últimas compras no painel | should | `ProductController::vendidoNosUltimos90Dias` + `ultimasComprasDoProduto` + aba Estoque do painel (`PainelDetalhe.tsx`) | `ProdutoGiroComprasTest` (lane Estoque · MySQL) + `produto-painel-giro-compras.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-42 | Filtro "Falta NCM" e o link do card de Saúde fiscal | should | `ProductController::consultaListaProdutos` (`falta_ncm`) + `FiltrosLista.tsx` + `SaudeFiscalService` (item `produto_sem_ncm`) | `ProdutoListaFaltaNcmTest` (lane Estoque · MySQL) + `SaudeFiscalTest` (UC-NFTR-24) + `produto-filtro-falta-ncm.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-43 | Informar NCM em vários produtos de uma vez | should | `ProductController::bulkUpdateNcm` (`POST /products/bulk-update-ncm`) + `NcmEmLote.tsx` na barra de selecionados | `ProdutoNcmEmLoteTest` (lane Estoque · MySQL) + `produto-ncm-em-lote.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-44 | Filtro "Uso": Para vender, Material e Serviço | should | `ProductController::consultaListaProdutos` (`uso`) + `App\Contracts\Fabricacao\ProdutosDeReceita` (Manufacturing) + `FiltrosLista.tsx` | `ProdutoListaUsoTest` (lane Estoque · MySQL) + `produto-filtro-uso.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-45 | Excluir sem perder e restaurar | must | `ProductController::destroy` / `massDestroy` / `restaurar` + `consultaListaProdutos` (`deleted_at`) + `AcoesProduto.tsx` | `ProdutoExcluirRestaurarTest` (lane Estoque · MySQL) + `produto-excluir-restaurar.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
@@ -591,6 +592,15 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** CEST e origem em lote; sugerir o NCM pelo nome do produto.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-44 · Filtro "Uso": Para vender, Material e Serviço · `should`
+- **Persona:** quem cuida do estoque numa comunicação visual e quer ver só os materiais (lona, vinil, tinta), sem os produtos acabados e os serviços no meio.
+- **Aceite:** Dado lona (entra na receita do banner), banner e instalação (natureza fiscal serviço) · Quando escolho "Uso: Material" · Então só a lona aparece · Em "Serviço", só a instalação · Em "Para vender", o banner e os demais, sem a lona e sem a instalação · As três opções juntas dão a lista inteira · O filtro só aparece com pelo menos duas opções: "Material" exige a Fabricação (receitas) e "Serviço" exige o módulo Fiscal (natureza).
+- **Teste:** [`ProdutoListaUsoTest`](../../../../tests/Feature/Produto/ProdutoListaUsoTest.php) — `UC-PIDX-44` (o cenário do aceite com a SQL real da receita; as três opções somam a lista sem repetir; receita de outra empresa não faz material aqui; as opções do contexto — lane Estoque · MySQL) e [`produto-filtro-uso.test.tsx`](../../../../tests/js/produto-filtro-uso.test.tsx) — `UC-PIDX-44` (aparece com as opções da empresa, some com uma só, o valor no gatilho, o chip — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-06: mostrar o filtro com uma opção só derruba o caso de tela.
+- **Contrato:** backlog CV1 (pesquisa de 2026-10-20, shopVOX e Calcgraf) e os fluxos do [W] de 2026-10-22: o eixo se chama "Uso" e não ganha campo novo. Material = o produto cuja variação é insumo de alguma receita da Fabricação (`mfg_recipe_ingredients`), lido pelo contrato `App\Contracts\Fabricacao\ProdutosDeReceita` porque o núcleo não importa de módulo; Serviço = natureza fiscal `servico` (UC-PIDX-31); Para vender = nem um nem outro. Um produto que é material e serviço aparece nas duas. Só leitura.
+- **Gates:** o mesmo da lista (`product.view`). Tier 0: a receita e o insumo passam pelo `products.business_id`.
+- **Fora daqui:** o rótulo "O que é" no painel e a coluna Tipo fora do padrão da lista (seguem no backlog, abaixo).
+- **Status: ⬜** — nasce neste PR.
+
 ## UC-PIDX-45 · Excluir sem perder e restaurar · `must`
 - **Persona:** quem cuida do cadastro e exclui um produto que não usa mais, ou exclui por engano e precisa trazê-lo de volta com tudo o que tinha.
 - **Aceite:** Dado um produto com 18 no estoque · Quando escolho "Excluir" · Então ele some da lista (e da venda e da compra, que só trazem produto ativo) · E aparece em "Situação: Excluídos", marcado "excluído" · E o cadastro, as variações, o estoque e as compras dele continuam guardados · Quando escolho "Restaurar" · Então ele volta a Ativo com os mesmos 18 · Produto com compra também pode ser excluído · "Ativar" não traz um excluído de volta (o caminho é Restaurar) · O indicador "Total" deixa de contar o excluído.
@@ -774,15 +784,12 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 
 **Comunicação visual**
 
-- **[BACKLOG] Separar material, produto e serviço na consulta (CV1)** — hoje o filtro "Tipo de
-  produto" separa Único, Variável e Composição; material não tem marca própria. O eixo se chama
-  "Uso" (Para vender, Material, Serviço) e não ganha campo novo: serviço vem da natureza fiscal do
-  produto (UC-FLX-31) e material é o item que entra em alguma receita. Aceite: Dado lona (entra na
-  receita do banner), banner e instalação (natureza fiscal serviço), Quando filtro "Material", Então
-  só a lona aparece. No painel fica um rótulo só, "O que é", com o uso; a forma do cadastro aparece só
-  quando muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai
-  do padrão da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf
-  (insumos e acabados).
+- O filtro "Uso" (Para vender, Material, Serviço) da CV1 saiu deste backlog em 2026-11-06: virou UC-PIDX-44, com teste.
+- **[BACKLOG] "O que é" no painel e a coluna Tipo fora do padrão (resto da CV1)** — No painel fica um
+  rótulo só, "O que é", com o uso (a mesma regra do UC-PIDX-44); a forma do cadastro aparece só quando
+  muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai do padrão
+  da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf (insumos e
+  acabados).
 - **[BACKLOG] De onde vem o separado, no painel (CV4)** `[V0]` — a parte da lista ("20 m² separados para vendas ·
   30 m² livres") saiu deste backlog em 2026-11-04 e virou UC-PIDX-38. Fica o painel. Fonte: Calcgraf (material
   empenhado), shopVOX (quantidade reservada).
@@ -899,6 +906,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 
 ## Trilha do tempo
+- 2026-11-06 · [F+C] **UC-PIDX-44**: filtro "Uso" (Para vender, Material, Serviço) na consulta de produto (CV1).
 - 2026-11-06 · [F+C] **UC-PIDX-45**: "Excluir" não apaga mais — o produto vai para "Situação: Excluídos" e "Restaurar" o devolve (D13 · `AR-PROD-022`).
 - 2026-11-06 · [F+C] **UC-PIDX-43**: "Informar NCM" na barra de selecionados grava o mesmo NCM em vários produtos.
 - 2026-11-06 · [F+C] **UC-PIDX-42**: filtro "Falta NCM" na consulta de produto e o card de Saúde fiscal abrindo a lista com ele.
