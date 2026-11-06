@@ -4,7 +4,7 @@ irmaos: Tipos.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-11-03"
+last_run: "2026-11-06"
 ---
 
 > ℹ️ **`last_run` 2026-10-27 → 2026-11-03 (G-6): o toque em `Tipos.tsx` foi só de tipo.** No tratamento do 422 do salvar, `porCampo[campo] = msgs[0]` virou `if (msgs[0]) porCampo[campo] = msgs[0]`: o erro do campo só é guardado quando há mensagem, que é o que já acontecia (o Laravel sempre manda ao menos uma). Nenhum UC muda.
@@ -22,6 +22,11 @@ last_run: "2026-11-03"
 > significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de Uso & Aceite — Essentials/Tipos
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10561). Nada do
+> comportamento coberto pelos UCs mudou. Lane `essentials-pest` disparada no branch, run
+> [42256776945](https://github.com/wagnerra23/oimpresso.com/actions/runs/42256776945): `HrmTiposIndexTest` 10 testes, 48 asserções e `HrmExclusaoGuardaTest` 6 testes, 23 asserções, 0 pulados, 0 erros, no commit `7990c3a712`.
 
 > **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado · ❌ quebrou.
 > Regra G-2: UC declarado sem teste citando o id = órfão.

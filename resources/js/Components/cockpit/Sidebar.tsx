@@ -638,6 +638,23 @@ function rotaAtiva(href: string | undefined): boolean {
   }
 }
 
+/** Entre sub-telas que casam por prefixo (`/fisio` e `/fisio/agenda` em
+ *  `/fisio/agenda`), só a de caminho mais longo é a ativa — um único
+ *  `aria-current="page"` por lista. */
+function hrefMaisEspecifico(hrefs: (string | undefined)[]): string | undefined {
+  let melhor: string | undefined;
+  let tamanho = -1;
+  for (const h of hrefs) {
+    if (!h || !rotaAtiva(h)) continue;
+    const n = new URL(h, window.location.origin).pathname.replace(/\/+$/, '').length;
+    if (n > tamanho) {
+      melhor = h;
+      tamanho = n;
+    }
+  }
+  return melhor;
+}
+
 function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalhosUsaveis?: Set<string> }) {
   // Dica só aparece pra atalho que o listener REALMENTE liga. Sequência em
   // conflito (duplicada ou prefixo) é descartada em `construirIndiceAtalhos` e
@@ -650,6 +667,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
   // Um único `aria-current="page"` por página: se a tela aberta é uma sub-tela
   // (ghost), é ela que carrega a marca — não o item pai, que só casa por prefixo.
   const ghostAtivo = ativo && ghosts.some((g) => rotaAtiva(g.href));
+  const ghostMarcado = ativo ? hrefMaisEspecifico(ghosts.map((g) => g.href)) : undefined;
   const [ghostsAbertos, setGhostsAbertos] = useState(false);
   // Espelha `GhostList` do protótipo (playbook sidebar/10): fechado, mostra o
   // teto; se a sub-tela ATIVA ficou além dele, ela é promovida pra última vaga
@@ -670,6 +688,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
   // linhas `sb-ghost` dos ghosts — um caminho só pra sub-tela no sidebar.
   // Abre sozinho quando a rota atual é um dos filhos, sem gravar preferência.
   const filhoAtivo = hasChildren && item.children!.some((c) => rotaAtiva(c.href));
+  const filhoMarcado = hasChildren ? hrefMaisEspecifico(item.children!.map((c) => c.href)) : undefined;
   const [isOpen, setIsOpen] = useState(filhoAtivo);
   const href = item.href ?? '#';
   const Icon = findMenuIcon(item.label);
@@ -698,7 +717,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
             key={`${c.label}-${i}`}
             href={c.href ?? '#'}
             className="sb-item sb-sub sb-ghost"
-            aria-current={rotaAtiva(c.href) ? 'page' : undefined}
+            aria-current={c.href !== undefined && c.href === filhoMarcado ? 'page' : undefined}
           >
             <span className="label">{c.label}</span>
           </a>
@@ -726,7 +745,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
             key={g.key ?? g.href}
             href={g.href}
             className="sb-item sb-sub sb-ghost"
-            aria-current={rotaAtiva(g.href) ? 'page' : undefined}
+            aria-current={g.href === ghostMarcado ? 'page' : undefined}
           >
             {GhostIcon && <GhostIcon size={14} strokeWidth={1.6} className="ic" aria-hidden="true" />}
             <span className="label">{g.label}</span>

@@ -33,7 +33,7 @@ interface Props {
   /** Novo: mostra a validade quando a empresa a usa. */
   mostrarValidade?: boolean;
   /** Produto simples: o preço, mostrado no card "Impostos e preços". */
-  preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number };
+  preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number; margemMinima?: number | null };
   /** Editar: a natureza fiscal decidida pelo contador (UC-PEDIT-14). */
   naturezaFiscal?: NaturezaFiscalProduto | null;
   /** Método de custo (US-COM-024), mostrado no card "Impostos e preços". */

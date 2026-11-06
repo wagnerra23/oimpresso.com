@@ -178,7 +178,7 @@
     },
     {
       "screen": "Fisio",
-      "note": "43 arquivo(s)",
+      "note": "44 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -288,7 +288,7 @@
     },
     {
       "screen": "Patrimonio",
-      "note": "13 arquivo(s)",
+      "note": "17 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -299,7 +299,7 @@
     },
     {
       "screen": "Producao",
-      "note": "18 arquivo(s)",
+      "note": "21 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -618,7 +618,7 @@
     },
     {
       "screen": "Produto",
-      "note": "61 arquivo(s)",
+      "note": "63 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -719,8 +719,8 @@
   "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "0b1eed44b7",
-  "generatedAt": "2026-11-05T21:34:23.198Z",
+  "measuredAgainstSha": "bf8b044bc3",
+  "generatedAt": "2026-11-06T16:54:25.280Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

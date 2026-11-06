@@ -9,6 +9,7 @@ use App\Http\Middleware\SetSessionData;
 use App\Http\Middleware\Timezone;
 use App\Transaction;
 use App\User;
+use App\Variation;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -166,6 +167,25 @@ it('UC-PURSHW-09 · US-COM-028 · recusar mantém o preço; preço mudado depois
 
     expect(DB::table('compras_propostas_preco')->where('id', $this->propostaId)->value('status'))->toBe('recusada')
         ->and(($this->variacao)($this->variationId))->toMatchArray(['sell_price_inc_tax' => '17.6000', 'default_sell_price' => '16.0000']);
+});
+
+it('UC-PURSHW-12 · aprovar a proposta deixa registro no activity_log, com o preço de antes e o de depois', function () {
+    // Lote 2.4 da auditoria de Compras (D4): aprovar muda o preço de venda do produto e, até aqui,
+    // não deixava registro de quem mudou nem do preço anterior.
+    $log = fn (string $acao) => DB::table('activity_log')->where('subject_type', Variation::class)
+        ->where('subject_id', $this->variationId)->where('description', $acao)->orderByDesc('id')->first();
+
+    $this->actingAs($this->user);
+    $this->servico->aprovar($this->biz->id, $this->propostaId, $this->user->id);
+
+    $aprovado = $log('compras_preco_proposto_aprovado');
+    expect($aprovado)->not->toBeNull('a aprovação da proposta não gravou activity_log');
+    $prop = json_decode($aprovado->properties, true);
+    expect((int) $aprovado->business_id)->toBe($this->biz->id)
+        ->and((int) $aprovado->causer_id)->toBe($this->user->id)
+        ->and($prop['proposta_id'])->toBe($this->propostaId)
+        ->and($prop['antes']['sell_price_inc_tax'])->toBe('16.5000')
+        ->and($prop['depois']['sell_price_inc_tax'])->toBe('18.1500');
 });
 
 it('UC-PURSHW-09 · US-COM-028 · rota exige product.update e não alcança proposta de outra empresa', function () {

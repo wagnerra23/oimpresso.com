@@ -5,11 +5,16 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a opção "Ativar solicitação de pedido" liga o menu de pedido no portal do contato e o prefixo numera esses pedidos. Gravar no negócio errado, ou deixar quem não é dono mudar, altera o portal de outro cliente.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-11-06"
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/15 (F3). O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
 # Casos de Uso & Aceite — Crm · Configurações (`/crm/settings`)
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10558). Nada do
+> comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch, run
+> [42224015385](https://github.com/wagnerra23/oimpresso.com/actions/runs/42224015385): `CrmConfiguracoesContratoTest` 5 testes, 25 asserções, 0 skipped (verde).
 
 > **Âncora:** o [charter](Index.charter.md), o mapa de paridade
 > `memory/requisitos/Crm/configuracoes-parity.md` (linhas altas 1–3) e o baseline da Blade

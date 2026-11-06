@@ -11,6 +11,7 @@
 import { Deferred, router } from '@inertiajs/react';
 import { useCallback, useMemo, useState } from 'react';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import KpiCard from '@/Components/shared/KpiCard';
 import KanbanDndProvider from '@/Components/shared/KanbanDndProvider';
 import { Button } from '@/Components/ui/button';
@@ -79,7 +80,7 @@ export default function FunilIndex({ etapas, pode_editar, negocios, resumo }: Pr
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader
+      <PageHeader below={<ModuleTabs modulo="CRM" />}
         title="Funil de vendas"
         subtitle="Negócios por etapa, do primeiro contato ao fechamento."
         actions={pode_editar ? <PageHeaderPrimary label="Novo negócio" onClick={() => setNovoAberto(true)} /> : undefined}

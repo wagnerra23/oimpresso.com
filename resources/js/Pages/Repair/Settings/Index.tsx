@@ -14,6 +14,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link, useForm } from '@inertiajs/react';
 import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -185,6 +186,7 @@ export default function RepairSettingsIndex({
   return (
     <div className="container mx-auto space-y-6 p-4">
       <PageHeader
+        below={<ModuleTabs modulo="Assistência técnica" />}
         title="Configurações do Repair"
         subtitle="Padrões da folha de OS e o que sai impresso na etiqueta"
       />

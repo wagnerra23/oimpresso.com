@@ -46,6 +46,7 @@ import {
 import { Inline } from '@/Components/layout';
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
 import { Info, Plus, Target, Trash2 } from 'lucide-react';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 
 interface Faixa {
   /** id da linha em essentials_user_sales_targets; ausente = faixa nova (ainda não gravada). */
@@ -156,7 +157,7 @@ export default function Metas({ filtros, sem_imposto, paginator }: Props) {
   return (
     <AppShellV2>
       <div data-contract="cabecalho">
-        <PageHeader
+        <PageHeader below={<ModuleTabs modulo="HRM" />}
           title="Metas de venda"
           subtitle="Faixas de valor vendido e o percentual de comissão de cada colaborador."
         />
