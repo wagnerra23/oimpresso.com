@@ -4,6 +4,7 @@ namespace Modules\Compras\Http\Controllers;
 
 use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
+use Modules\Compras\Http\Middleware\ComprasLiberado;
 
 /**
  * DataController do módulo Compras.
