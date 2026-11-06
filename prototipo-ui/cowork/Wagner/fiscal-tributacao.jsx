@@ -107,7 +107,7 @@ const TR_SAUDE = [
   { id: "s3", sev: "bad", t: "NF-e 8425 rejeitada · cStat 110", d: "Causa cadastral: IE do destinatário inválida no cadastro SP. A IE nova já foi consultada no SINTEGRA.", acao: "Corrigir cadastro e reenviar", um: "IE atualizada e nota reenviada — aguardando retorno da SEFAZ" },
   { id: "s4", sev: "warn", t: "Regra NCM 4911.99.00 sem cClassTrib", d: "112 produtos. Não vai pro XML no Simples em 2026; necessário em 2027 ou se mudar de regime.", acao: "Preencher 000001 · CST 000", um: "Nova versão da regra criada — aguarda aceite do contador" },
   { id: "s5", sev: "warn", t: "2 operações sem aceite do contador", d: "Sem aceite registrado, ninguém responde pela regra se ela estiver errada.", acao: "Pedir aceite", um: "Pedido enviado ao contador — ele aceita sem sair do sistema" },
-  { id: "s6", sev: "warn", t: "Certificado A1 vence em 47 dias", d: "Sem certificado nenhuma nota sai. Lembrete automático em 30, 15 e 7 dias.", acao: "Enviar novo certificado", rota: "fiscal-config" },
+  { id: "s6", sev: "warn", t: "Certificado A1 vence em 47 dias", d: "Sem certificado nenhuma nota sai. Aviso a partir de 30 dias, crítico a partir de 7 (a régua da Configuração).", acao: "Enviar novo certificado", rota: "fiscal-config" },
 ];
 const TR_MOTIVOS = [["Rejeição por cadastro (IE, NCM, endereço)", 38], ["Por que saiu esse imposto?", 24], ["Configuração inicial", 18], ["Certificado", 11], ["Outros", 9]];
 

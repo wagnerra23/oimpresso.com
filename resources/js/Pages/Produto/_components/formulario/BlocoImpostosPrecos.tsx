@@ -30,7 +30,7 @@ interface Props {
   /** Editar: o rótulo do tipo, que não muda depois de criado. */
   tipoAtual?: string;
   /** Produto simples: o preço. Sem ele (variável, composto) o card não mostra preço. */
-  preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number };
+  preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number; margemMinima?: number | null };
   /** Método de custo (US-COM-024): só quando o módulo Compras está no pacote da empresa. */
   metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
 }
@@ -128,7 +128,9 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
             </p>
           </div>
         )}
-        {preco && <CamposPreco valor={preco.valor} mudar={preco.mudar} aliquota={preco.aliquota} />}
+        {preco && (
+          <CamposPreco valor={preco.valor} mudar={preco.mudar} aliquota={preco.aliquota} margemMinima={preco.margemMinima} />
+        )}
         </Grid>
       </CardContent>
     </Card>

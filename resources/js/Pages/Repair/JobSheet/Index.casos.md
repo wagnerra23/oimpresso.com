@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: comportamento é durável — "a lista vem do mesmo endpoint do Blade" e "OS de outro negócio não aparece" valem em qualquer troca do motor da tabela
 owner: wagner
 autor: "[CL] 2026-09-30"
-last_run: "2026-10-02"
+last_run: "2026-11-06"
 ---
 
 # Casos de Uso & Aceite — Lista de OS
@@ -41,6 +41,11 @@ last_run: "2026-10-02"
 > positiva. Prova no run
 > [36851236035](https://github.com/wagnerra23/oimpresso.com/actions/runs/36851236035): os 6 UCs
 > `passed`, nenhum `skipped` (asserções no JUnit: 03=9 · 04=3 · 06=5).
+>
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10550). Nada
+> do comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch,
+> run [42222751388](https://github.com/wagnerra23/oimpresso.com/actions/runs/42222751388) (verde): `RepairJobSheetIndexContratoTest` 7 testes, 43 asserções, 0 skipped.
 >
 > **Revalidação 2026-10-02 (thread 02 do playbook Repair, `last_run`).** A tela trocou o header shared
 > pelo canon (título 22px). Lane `PHP / Pest (Verticais · MySQL)` no branch, run

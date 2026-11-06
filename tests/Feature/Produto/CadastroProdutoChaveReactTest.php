@@ -112,3 +112,25 @@ it('UC-PCAD-08 · visita Inertia abre o React mesmo com a chave desligada (regra
     pcadrLogin($this, $user)->withHeaders(pcadrVisitaInertia())->get('/products/create')->assertOk()
         ->assertJsonPath('component', 'Produto/Create');
 });
+
+// UC-PCAD-20 (Create.casos.md): a tela React recebe a margem mínima da empresa (UC-FLX-35, Fluxos)
+// para avisar quando a % de lucro fica abaixo dela. Null quando a empresa não ligou a regra.
+it('UC-PCAD-20 · a tela React recebe a margem mínima da empresa; sem a regra, recebe null', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasColumn('fsm_modelos_empresa', 'margem_minima_pct')) {
+        $this->markTestSkipped('Coluna fsm_modelos_empresa.margem_minima_pct ausente.');
+    }
+    $bizId = (int) $this->biz->id;
+    $user = pcadrUsuario($bizId);
+
+    DB::table('fsm_modelos_empresa')->updateOrInsert(
+        ['business_id' => $bizId],
+        ['modelo' => 'cv-pequena', 'margem_minima_pct' => 30, 'updated_at' => now()],
+    );
+    pcadrLogin($this, $user)->get('/products/create', pcadrVisitaInertia())->assertOk()
+        ->assertJsonPath('component', 'Produto/Create')
+        ->assertJsonPath('props.margemMinima', 30);
+
+    DB::table('fsm_modelos_empresa')->where('business_id', $bizId)->update(['margem_minima_pct' => null]);
+    pcadrLogin($this, $user)->get('/products/create', pcadrVisitaInertia())->assertOk()
+        ->assertJsonPath('props.margemMinima', null);
+});
