@@ -50,6 +50,7 @@ import {
   SheetTitle,
 } from '@/Components/ui/sheet';
 import { Inline, Stack } from '@/Components/layout';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 
 interface LeaveType {
   id: number;
@@ -336,6 +337,9 @@ export default function TiposIndex({ tipos, can_manage }: Props) {
           </div>
         </header>
         </Inline>
+
+        {/* Abas do módulo: a mesma lista do sidebar ([W] 2026-11-06, ModuleTabs). */}
+        <ModuleTabs modulo="HRM" />
 
         <Inline align="center" gap={2} data-contract="toolbar">
           <Deferred
