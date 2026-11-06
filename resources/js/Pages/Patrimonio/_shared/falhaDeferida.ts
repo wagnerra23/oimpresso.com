@@ -14,6 +14,18 @@
 // Por que ler um ref no `finish`: o swap de página do Inertia (React) roda em `flushSync`, então
 // quando o evento `finish` dispara as props novas já estão commitadas e o ref já foi atualizado
 // pelo render. Ler `usePage()` dentro do listener veria o valor do render em que o efeito nasceu.
+//
+// O MODAL DO INERTIA. Quando a resposta da carga deferida não é Inertia (o HTML de um 500 ou de
+// um 503 do deploy), o core abre `dialog#inertia-error-dialog` com esse HTML por cima da tela —
+// a menos que alguém cancele o evento `httpException` (`@inertiajs/core` 3.6.1, `handleNonInertia
+// Response`: `if (fireHttpExceptionEvent(response)) dialog.show(...)`). A carga deferida nasce
+// dentro do core, sem `onHttpException` próprio, então ninguém cancelava: medido em produção em
+// 2026-11-06, o modal abria nas 5 telas e o estado de erro ficava ATRÁS dele. O evento não diz
+// qual visita falhou (o `detail` só traz `response`), então o hook cancela enquanto a carga DESTA
+// tela está em voo — entre o `start` e o `finish` dela —, e só então. Visita de outra tela que
+// falhe no mesmo instante continua com o modal: aí não há estado de erro nosso para mostrar.
+// `networkError` recebe o mesmo trato: o padrão do core é rejeitar a promessa, que vira
+// "Uncaught (in promise)" no console sem nada na tela.
 
 import { router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -44,24 +56,38 @@ export function useFalhaDeferida(chaves: string[]): FalhaDeferida {
 
   useEffect(() => {
     const pede = (visita: VisitaVista) => (visita.only ?? []).some((k) => chavesRef.current.includes(k));
-    const on = router.on as unknown as ((nome: string, cb: (e: EventoVisita) => void) => () => void) | undefined;
+    const on = router.on as unknown as
+      | ((nome: string, cb: (e: EventoVisita) => boolean | void) => () => void)
+      | undefined;
     // Router sem `on` só existe em teste que mocka o Inertia pela metade; em produção o método
     // sempre existe. Sem ouvir eventos o hook nunca acusa falha — a tela fica como era.
     if (typeof on !== 'function') return undefined;
 
+    // Cargas DESTA tela em voo. Contador, não booleano: o Inertia pode carregar grupos deferidos
+    // em paralelo, e o `finish` de um não pode liberar o modal enquanto o outro ainda corre.
+    let emVoo = 0;
+
     const tirarInicio = on('start', (e) => {
       const visita = e.detail.visit;
+      if (pede(visita)) emVoo += 1;
       // Visita cheia (sem `only`) recomeça a página: a próxima carga deferida decide de novo.
       if (pede(visita) || !(visita.only && visita.only.length)) setFalhou(false);
     });
     const tirarFim = on('finish', (e) => {
       if (!pede(e.detail.visit)) return;
+      emVoo = Math.max(0, emVoo - 1);
       setTentando(false);
       setFalhou(chavesRef.current.some((k) => propsRef.current[k] === undefined));
     });
+    // `false` cancela o evento (o core chama `preventDefault()`): sem modal, a tela mostra o dela.
+    const calarSeForNossa = () => (emVoo > 0 ? false : undefined);
+    const tirarHttp = on('httpException', calarSeForNossa);
+    const tirarRede = on('networkError', calarSeForNossa);
     return () => {
       tirarInicio();
       tirarFim();
+      tirarHttp();
+      tirarRede();
     };
   }, [chave]);
 
