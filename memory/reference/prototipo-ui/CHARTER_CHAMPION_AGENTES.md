@@ -58,11 +58,11 @@ charter_version: 1
 - ❌ Mergear **Tier 0** sem [W] (ADR/constituição/multi-tenant/segredo/tooling/produto).
 - ❌ **Reprocessar o já-feito** (G6) — lê o checklist `ds:report`, só roda o ☐.
 - ❌ Rodar gate sobre **base stale** (incidente −47 commits) · duplicar ADR/canon · cunhar número alucinado.
-- ❌ Editar `prototipos/<tela>/page.tsx` direto no repo (re-exporta do Cowork) · editar `SYNC_LOG` no meio (append-only).
+- ❌ Editar `SYNC_LOG` no meio (append-only). *(Até 2026-10-23 esta linha também proibia editar o protótipo no repo; desde a [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) o protótipo **se edita no repo, por PR**.)*
 
 **Champion Test:** PR não-Tier-0 **mergeia com CI verde sem [W] tocar** · §10.2 atualizado automaticamente a cada merge · zero reprocessamento · zero achado sobre base stale.
 
-**Anti-patterns:** base −47 commits, duplicar ADR aceito, HANDOFF 15d stale ([W] vira carteiro), editar protótipo no repo.
+**Anti-patterns:** base −47 commits, duplicar ADR aceito, HANDOFF 15d stale ([W] vira carteiro). *("Editar protótipo no repo" saiu desta lista com a ADR 0438.)*
 
 ---
 

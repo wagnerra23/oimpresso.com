@@ -1,5 +1,7 @@
 # Oimpresso ERP — Cowork (Claude Design / [CC])
 
+> 🗄️ **HISTÓRICO — anterior à [ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** Estas eram as instruções do projeto Cowork ([CC]). Se você é o Claude Code trabalhando nesta pasta: **os arquivos daqui são a fonte e se editam aqui, por PR.** Desde a 0438 a fonte do protótipo é o **arquivo em `prototipo-ui/`, editado por PR**; o Artefato serve só para ver e comentar; o Cowork não é fonte nem rota de entrada ou saída. Não siga as instruções de zip, bundle, export, handoff, `DesignSync` ou `COWORK_NOTES` abaixo. Processo vigente: `memory/reference/prototipo-ui/PROTOCOL.md`.
+
 > **git é a fonte única da verdade.** Repo `wagnerra23/oimpresso.com@main` (GitHub connector, já conectado como `wagnerra23`). Este projeto Cowork é **esteira, não armazém**: carrega só o **build** e lê todo o resto (memória, ADRs, charters, protocolo) do `main`/MCP no momento da decisão. Modelo ratificado por [W] 2026-06-23 — `memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md`.
 > **Não manter memória local.** Cópia local = cache que envelhece (causa-raiz do erro recorrente L-42). Não reintroduzir espinha (`STATUS`/`MEMORY_INDEX` são só ponteiros).
 
