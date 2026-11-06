@@ -769,11 +769,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
   a Ativo com variações e preços. Fonte: Olist/Tiny (situação Excluídos + restaurar).
 - Giro e últimas compras no painel (D8) saiu deste backlog em 2026-11-05: virou UC-PIDX-41, com teste.
-- **[BACKLOG] Recortes salvos com nome (D1)** — hoje os filtros vão para o endereço, mas não há
-  recorte com nome. Aceite: Dado um conjunto de filtros, Quando salvo como "Lonas abaixo do alerta",
-  Então ele aparece numa lista de recortes do usuário e abre com os mesmos filtros. Fonte: Shopify
-  (visões salvas), Odoo (favoritos).
-  Espera a decisão D-28 (abaixo): o [W] reprovou as visões salvas da lista de Clientes em 2026-05-24.
+- Recortes salvos com nome (D1) saiu deste backlog em 2026-11-06 sem ser construído: a D-28 foi decidida "Não", pela reprovação do [W] de 2026-05-24.
 
 **Comunicação visual**
 
@@ -800,6 +796,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   Quando abro o painel, Então vejo materiais e quantidades da receita. ⚠️ Conferir com o charter: o
   Non-Goal "Sub-views de BOM/Insumos ficam em `/products/unificado`" pode valer aqui — decisão [W].
   Fonte: shopVOX (lista de materiais, mão de obra e máquina do produto).
+  Espera a decisão D-29 (abaixo).
 - **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — cada rolo é um lote, e o
   relatório de Lotes já mostra em que OS cada rolo foi usado (US-COM-025 · UC-FLX-18, parcial). A
   consulta seria a porta de entrada: a aba Rolos do painel lista os rolos e leva ao relatório de
@@ -818,7 +815,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   abrir esse produto; e no painel da pilha CR2032 vejo os produtos e aparelhos que a usam. Produto sem
   pilha não mostra nada. A venda pede o modelo e a série do aparelho (Sells/Create.casos.md, mesmo
   pedido).
-- **[BACKLOG] A venda não deixa vender mais kits do que os componentes permitem** `[V0]` — a parte do painel ("3 kits disponíveis" e quem limita) saiu deste backlog em 2026-11-04 e virou UC-PIDX-40. Fica a venda. O PDV Blade já usa `ProductUtil::calculateComboQuantity` para o saldo do combo (`SellPosController`, `getDetailsFromVariation`), mas essa conta tem um defeito, descrito no UC-PIDX-40: componente com saldo zero que vem primeiro na lista não zera o resultado (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Consertar mexe no que a venda deixa vender: Regra Mestre (dupla prova e antes e depois), decisão [W]. A venda React (Sells/CreateV3) não foi conferida.
+- **[BACKLOG] A venda não deixa vender mais kits do que os componentes permitem** `[V0]` — a parte do painel ("3 kits disponíveis" e quem limita) saiu deste backlog em 2026-11-04 e virou UC-PIDX-40. Fica a venda. O PDV Blade já usa `ProductUtil::calculateComboQuantity` para o saldo do combo (`SellPosController`, `getDetailsFromVariation`), mas essa conta tem um defeito, descrito no UC-PIDX-40: componente com saldo zero que vem primeiro na lista não zera o resultado (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Consertar mexe no que a venda deixa vender: Regra Mestre (dupla prova e antes e depois), decisão [W]. A venda React (Sells/CreateV3) não foi conferida. Espera a decisão D-30 (abaixo).
 - **[BACKLOG] Saldo fiscal no painel do produto** `[E0]` (pedido de 2026-10-27) — Aceite: Dado um
   produto com 5 un. no estoque, das quais 3 entraram com nota, Quando abro a aba Fiscal do painel,
   Então ela mostra "Saldo fiscal 3 un. · Estoque real 5 un." e de onde vem a diferença (compras sem
@@ -827,6 +824,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   compra), lido das próprias notas; não mexe no estoque. É também o número que falta ao inventário do
   SPED (Bloco H). Pedido da PraMoto, que compra com e sem nota; a compra e o aviso na emissão estão em
   `Purchase/Create.casos.md` e `Fiscal/Nfe.casos.md`.
+  Espera a decisão D-31 (abaixo): hoje nenhuma compra registra se entrou com nota.
 - O filtro "Falta NCM" e o link do card de Saúde fiscal saíram deste backlog em 2026-11-06: viraram UC-PIDX-42, com teste.
 - O NCM em lote saiu deste backlog em 2026-11-06: virou UC-PIDX-43, com teste.
 
@@ -893,10 +891,25 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Pode desfazer — A junção guarda o que era de cada produto e pode ser desfeita enquanto não houver movimento novo no produto que ficou. Mais seguro, mas dá mais trabalho para construir.
   - Destrava: P-152
 - **[DECISÃO] D-28 · Recortes salvos com nome voltam, agora na consulta de produto?**
-  - Estado: Em aberto
+  - Estado: Decidida em 2026-11-06 · [F] — Não. Vale a reprovação do [W] de 2026-05-24 (as visões salvas da lista de Clientes): o filtro fica no endereço da página, e quem quer guardar um recorte salva o link. Nada a construir.
   - Texto: A pesquisa de concorrentes (D1, 2026-10-20) propôs salvar um conjunto de filtros com nome, como "Lonas abaixo do alerta", e reabrir com um clique (Shopify, Odoo). Em 2026-05-24 o [W] reprovou as visões salvas da lista de Clientes na validação em produção, e elas foram removidas (`Cliente/Index.charter.md`). Por isso o D1 não foi feito junto com o D6.
   - Opção: Não — Os filtros já ficam no endereço da página; quem quer guardar um recorte salva o link. Nada a construir.
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
+- **[DECISÃO] D-29 · A receita da Fabricação aparece no painel do produto (CV6)?**
+  - Estado: Em aberto
+  - Texto: O painel mostra os itens de um kit (aba Composição, UC-PIDX-40), mas não a receita da Fabricação de um produto feito sob encomenda. O que já está decidido: a receita é a fonte do material (`_DECISOES-W-2026-10-15.md`), o aviso de custo desatualizado fica na receita (SPEC do Produto) e o charter, autorizado em 2026-10-10, diz *"❌ Sub-views de BOM/Insumos/Tabelas (ficam em `/products/unificado`)"*. Concorrentes: no shopVOX o produto é montado por materiais, máquina e mão de obra no próprio cadastro; no Odoo o produto leva à lista de materiais; no Office Comercial o cadastro tem a aba Composição (`AR-PROD-150..167`).
+  - Opção: Resumo no painel (recomendação [F+C]) — Só leitura: insumos, quantidades, custo pela receita e margem, com "Abrir receita" que leva à Fabricação. A edição continua na Fabricação. O Non-Goal do charter passa a dizer que o que fica fora é editar a ficha técnica na consulta.
+  - Opção: Só o link — O painel leva à receita na Fabricação, sem mostrar os insumos. O charter fica como está.
+- **[DECISÃO] D-30 · A venda deixa vender mais kits do que os componentes permitem?**
+  - Estado: Em aberto
+  - Texto: Kits disponíveis deveriam ser o menor resultado, entre os componentes que controlam estoque, de saldo ÷ quantidade por kit, arredondado para baixo; um componente zerado dá 0 kits. A conta do núcleo (`ProductUtil::calculateComboQuantity`) trata o zero como "ainda não calculei": se o primeiro componente zera, o seguinte sobrescreve (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Corrigir muda o que a venda deixa vender, então pede a dupla prova e o antes e depois de cada kit afetado.
+  - Opção: Corrigir e seguir "Permitir vender sem estoque" (recomendação [F+C]) — Com a chave da empresa desligada, a venda não deixa passar de quantos kits dá; ligada, deixa e os componentes ficam negativos, como em qualquer produto.
+  - Opção: Corrigir só a conta e não barrar — A venda mostra o número certo, mas não barra.
+- **[DECISÃO] D-31 · De onde vem o "entrou com nota" do saldo fiscal?**
+  - Estado: Em aberto
+  - Texto: O saldo fiscal do painel conta o que entrou com nota menos o que saiu com nota. Hoje nenhuma compra registra se entrou com nota: a ligação da nota com a compra (`nfe_dfe_recebidos.transaction_id`) existe, mas nenhum fluxo a preenche, porque a compra a partir da nota ainda não existe (P-100). Sem isso, toda compra contaria como sem nota.
+  - Opção: Esperar a compra a partir da nota (recomendação [F+C]) — O saldo fiscal nasce certo, ligado à nota de verdade. Depende do P-100, em Compras.
+  - Opção: Campo "Compra com nota" no lançamento — Sai antes, mas é um campo novo na compra, e o saldo fica tão certo quanto quem marca o campo.
 
 ## Trilha do tempo
 - 2026-11-06 · [F+C] **UC-PIDX-44**: filtro "Uso" (Para vender, Material, Serviço) na consulta de produto (CV1).
