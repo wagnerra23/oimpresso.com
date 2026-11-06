@@ -100,13 +100,13 @@ const SEED_BENS = [
 
 // ─── asset_transactions: allocate / revoke ───
 const SEED_ALOCACOES = [
-  { id: "ALO-0031", bem: "PAT-0006", para: "Larissa Prado", papel: "Balcão · ROTA LIVRE", em: "2026-07-02", ate: "2026-12-31", qtd: 1, por: "Wagner", motivo: "Estação de orçamento do balcão", revoke: null },
-  { id: "ALO-0030", bem: "PAT-0006", para: "Eliana Costa", papel: "Financeiro", em: "2026-07-02", ate: null, qtd: 1, por: "Wagner", motivo: "Fechamento e conciliação", revoke: null },
-  { id: "ALO-0029", bem: "PAT-0007", para: "Wagner Ramos", papel: "Escritório", em: "2026-07-10", ate: null, qtd: 2, por: "Wagner", motivo: "Bancada de dashboards", revoke: null },
+  { id: "ALO-0031", bem: "PAT-0006", para: "Larissa Prado", papel: "Balcão · ROTA LIVRE", em: "2026-07-02", ate: "2026-12-31", qtd: 1, por: "Wagner", motivo: "Estação de orçamento do balcão", revs: [] },
+  { id: "ALO-0030", bem: "PAT-0006", para: "Eliana Costa", papel: "Financeiro", em: "2026-07-02", ate: null, qtd: 1, por: "Wagner", motivo: "Fechamento e conciliação", revs: [] },
+  { id: "ALO-0029", bem: "PAT-0007", para: "Wagner Ramos", papel: "Escritório", em: "2026-07-10", ate: null, qtd: 2, por: "Wagner", motivo: "Bancada de dashboards", revs: [] },
   { id: "ALO-0028", bem: "PAT-0009", para: "Marcos Aurélio", papel: "Técnico · instalação", em: "2026-06-18", ate: "2026-08-15", qtd: 1, por: "Wagner", motivo: "Kit de instalação de fachada",
-    revoke: { id: "REV-0012", em: "2026-08-14", qtd: 1, por: "Wagner", motivo: "Fim da obra do cliente Martinho" } },
+    revs: [{ id: "REV-0012", em: "2026-08-14", qtd: 1, por: "Wagner", motivo: "Fim da obra do cliente Martinho" }] },
   { id: "ALO-0027", bem: "PAT-0006", para: "Bruna Lima", papel: "Arte", em: "2026-05-04", ate: "2026-06-30", qtd: 1, por: "Wagner", motivo: "Projeto sazonal de vitrine",
-    revoke: { id: "REV-0011", em: "2026-06-30", qtd: 1, por: "Bruna", motivo: "Projeto concluído" } },
+    revs: [{ id: "REV-0011", em: "2026-06-30", qtd: 1, por: "Bruna", motivo: "Projeto concluído" }] },
 ];
 
 // ─── asset_maintenances ───
@@ -152,7 +152,14 @@ function depreciacao(b) {
   const bruto = b.valor * b.qtd;
   return { meses, total, pct: Math.round(acum * 100), residual: bruto * (1 - acum), bruto };
 }
-const alocadoQtd = (alocs, id) => alocs.filter((a) => a.bem === id && !a.revoke).reduce((s, a) => s + a.qtd, 0);
+// Revogação é por quantidade e pode haver mais de uma por alocação (AssetTransaction
+// revokeTransaction é hasMany; Asset::forDropdown faz quantity - allocated + revoked).
+// Só a quantidade revogada volta ao saldo; a alocação segue ativa com o que sobrou.
+const revogadoQtd = (a) => (a.revs || []).reduce((s, r) => s + r.qtd, 0);
+const restante = (a) => a.qtd - revogadoQtd(a);
+const encerrada = (a) => restante(a) <= 0;
+const ultimaRev = (a) => { const r = a.revs || []; return r.length ? r[r.length - 1] : null; };
+const alocadoQtd = (alocs, id) => alocs.filter((a) => a.bem === id).reduce((s, a) => s + Math.max(0, restante(a)), 0);
 const saldo = (alocs, b) => b.qtd - alocadoQtd(alocs, b.id);
 const emManutencao = (mans, id) => mans.some((m) => m.bem === id && m.status !== "concluida");
 // Asset::forDropdown — só bem atribuível com saldo > 0 entra na alocação.
@@ -181,6 +188,6 @@ window.PatData = {
   fmt, fmtK, d2, iso, dataLocal, dias, hhmm, HOJE,
   CATEGORIAS, LOCAIS, TIPOS, DEP_PADRAO, COLABORADORES, PAPEIS, can, locaisPermitidos, podeVerLocal,
   SEED_BENS, SEED_ALOCACOES, SEED_MANUTENCOES, SEED_LOG, CAMPOS_AUDITADOS, CAMPO_LABEL, logQuando,
-  garantia, depreciacao, alocadoQtd, saldo, emManutencao, paraAlocar, proximoCodigo, baixarCsv,
+  garantia, depreciacao, revogadoQtd, restante, encerrada, ultimaRev, alocadoQtd, saldo, emManutencao, paraAlocar, proximoCodigo, baixarCsv,
 };
 })();

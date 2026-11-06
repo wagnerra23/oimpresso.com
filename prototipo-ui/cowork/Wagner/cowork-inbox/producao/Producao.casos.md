@@ -255,7 +255,7 @@ Não medido aqui: contraste (exige a sonda do protocolo com caso de sanidade) �
 **Decisão [W]** — D-PCP, D1–D5 e permissões aprovados em 2026-10-15 (`_DECISOES-W-2026-10-15.md`). Restam as perguntas do formulário de 15/10 (relação com CV/Repair/Fabricação, piloto, turno, canal de aviso, empenho de estoque, encaixe, ordem das fases). O link de prova já foi decidido em 2026-10-21 (D-ARTE-PAGINA: fica a `/arte/{token}`).
 
 **Forma (dá para fazer aqui, no protótipo)**
-5. Estados carregando / vazio / erro em todas as vistas.
+Nada pendente. Os estados carregando, vazio e erro ficam no ajuste "Estado dos dados" do painel de ajustes do protótipo. O vazio é próprio de cada vista e fala com quem usa aquela tela; o botão "Nova OS do orçamento" só aparece no Painel e no Quadro.
 
 **Só no Code**
 7. Tabelas `pcp_workstations`, `pcp_operations`, `pcp_appointments` (append-only), `pcp_schedules` (SPEC do Pcp).

@@ -1,6 +1,7 @@
 # Quarentena da lane "PHP / Pest (Financeiro · MySQL)" — .github/workflows/financeiro-pest.yml
 #
 # COMO A LANE SELECIONA: run-set = TUDO em Modules/Financeiro/Tests/**/*Test.php
+# e em tests/Feature/Modules/Financeiro/**/*Test.php (desde 2026-11-05)
 # MENOS o que este arquivo lista. A partição é TOTAL: todo arquivo da árvore está
 # em exatamente um dos dois lados, e arquivo NOVO entra RODANDO. Não existe um
 # terceiro estado "escuro" — que é o bug que esta lista substitui (a allowlist

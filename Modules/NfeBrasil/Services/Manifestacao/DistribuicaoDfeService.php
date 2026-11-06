@@ -15,6 +15,7 @@ use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\Entrada\LeitorNfeEntrada;
 use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
+use Modules\NfeBrasil\Support\AmbienteDoEmitente;
 use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Tools;
@@ -337,7 +338,7 @@ class DistribuicaoDfeService
             Certificate::readPfx($certData['pfx_binary'], $certData['senha']),
         );
         $tools->model('55');
-        $tools->setEnvironment((int) config('nfebrasil.ambiente', 2));
+        $tools->setEnvironment(AmbienteDoEmitente::resolver($businessId));
         return $tools;
     }
 
@@ -350,7 +351,7 @@ class DistribuicaoDfeService
         $row = DB::table('business')->select(['name'])->where('id', $businessId)->first();
         return [
             'atualizacao' => date('Y-m-d H:i:s'),
-            'tpAmb'       => (int) config('nfebrasil.ambiente', 2),
+            'tpAmb'       => AmbienteDoEmitente::resolver($businessId),
             'razaosocial' => (string) ($row->name ?? ''),
             // R-NFE-041: titular do certificado → business.cnpj → tax_number_1; vazio recusa.
             'cnpj'        => CnpjDoEmitente::obrigatorio($businessId),
