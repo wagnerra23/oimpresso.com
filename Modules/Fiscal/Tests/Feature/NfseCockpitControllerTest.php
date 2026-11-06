@@ -42,7 +42,7 @@ beforeEach(function () {
 });
 
 it('UC-FNFSE-02 · GET /fiscal/nfse aborta 403 sem permission superadmin nem fiscal.nfse.view', function () {
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $this->actingAs($user);
 
     $response = $this->get('/fiscal/nfse');
@@ -50,10 +50,10 @@ it('UC-FNFSE-02 · GET /fiscal/nfse aborta 403 sem permission superadmin nem fis
 });
 
 it('UC-FNFSE-04 · GET /fiscal/nfse renderiza Inertia Fiscal/Nfse com filters/counts canon', function () {
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $response = $this->get('/fiscal/nfse');
     $response->assertStatus(200);
@@ -66,10 +66,10 @@ it('UC-FNFSE-04 · GET /fiscal/nfse renderiza Inertia Fiscal/Nfse com filters/co
 });
 
 it('UC-FNFSE-04 · counts shape canon — 6 chaves obrigatorias', function () {
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $response = $this->get('/fiscal/nfse');
     $response->assertInertia(
@@ -82,10 +82,10 @@ it('UC-FNFSE-04 · counts shape canon — 6 chaves obrigatorias', function () {
 });
 
 it('UC-FNFSE-03 · filtro mes invalido nao crasha (ignora silenciosamente)', function () {
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $response = $this->get('/fiscal/nfse?mes=INVALIDO');
     $response->assertStatus(200);

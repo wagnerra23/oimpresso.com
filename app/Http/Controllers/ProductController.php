@@ -475,6 +475,13 @@ class ProductController extends Controller
             $products->havingRaw('products.enable_stock = 1 AND products.alert_quantity IS NOT NULL AND COALESCE(SUM(vld.qty_available), 0) <= products.alert_quantity');
         }
 
+        // UC-PIDX-42: "Falta NCM" — a MESMA regra do card de Saúde fiscal (`SaudeFiscalService::semNcm`) e da
+        // emissão: NCM válido tem 8 dígitos e não é 00000000; fora disso a nota sai com o NCM padrão da empresa.
+        // A coluna é NOT NULL DEFAULT '0', então produto que nunca recebeu NCM cai aqui. Só a lista React manda.
+        if (! empty($f['falta_ncm'])) {
+            $products->where(fn ($w) => $w->whereRaw("products.ncm NOT REGEXP '^[0-9]{8}$'")->orWhere('products.ncm', '00000000'));
+        }
+
         // UC-PIDX-31: natureza fiscal decidida pelo contador. Produto sem decisão é mercadoria (é o que a
         // emissão faz). Sem o módulo Fiscal o filtro não aparece na tela e aqui não filtra.
         if (! empty($f['natureza_fiscal']) && app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)) {
@@ -544,6 +551,8 @@ class ProductController extends Controller
             'natureza_fiscal' => in_array(request()->input('natureza_fiscal'), ['mercadoria', 'servico', 'pendente'], true) ? (string) request()->input('natureza_fiscal') : null,
             // UC-PIDX-35: o clique no indicador "Abaixo do alerta". Só a lista React manda.
             'abaixo_do_alerta' => request()->boolean('abaixo_do_alerta'),
+            // UC-PIDX-42: "Falta NCM", e o link do card de Saúde fiscal (produto_sem_ncm). Só a lista React manda.
+            'falta_ncm' => request()->boolean('falta_ncm'),
             // Aba ativa (protótipo: "Todos os produtos" | "Relatório de estoque") e a página da aba de estoque.
             'aba' => request()->input('aba') === 'estoque' ? 'estoque' : 'lista',
             'estoque_pagina' => max(1, (int) request()->input('estoque_pagina', 1)),
