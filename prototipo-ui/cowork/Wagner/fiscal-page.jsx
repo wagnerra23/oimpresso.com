@@ -17,6 +17,9 @@ const fxAuthorized = (n) => !n.cancelada && (n.statusKind === "sefaz" ? n.status
 const fxTone = (n) => (n.cancelada ? "bad" : fxAuthorized(n) ? "ok" : fxRejected(n) ? "bad" : "warn");
 const fxStatusLabel = (n) => (n.cancelada ? "Cancelada" : n.statusKind === "sefaz" ? (fxD().STATUS_LABEL[n.status] || ("Status " + n.status)) : String(n.status).charAt(0).toUpperCase() + String(n.status).slice(1));
 
+// 6.2 · O prazo de manifestação de cada DF-e é o que a SEFAZ calculou (d.prazo); não há "90 dias" fixo.
+const fxDfeMenorPrazo = (pend) => { const ds = pend.filter(d => d.prazo).map(d => parseInt(d.prazo.label, 10)).filter(n => !isNaN(n)); return ds.length ? Math.min.apply(null, ds) + " dias" : null; };
+
 const FX_TABS = [
   { id: "fiscal", label: "Notas fiscais" },
   { id: "fiscal-nfe", label: "NF-e · NFC-e" },
@@ -45,6 +48,9 @@ function FxSubnav({ current }) {
 function FxHeader({ title, crumb, children }) {
   const s = fxD().SEFAZ;
   const st = window.useFiscalStore();
+  const cen = st.cenario || {};
+  const contingencia = cen.sefaz === "contingencia";
+  const homolog = st.config.cert.ambiente !== "Produção";
   return (
     <header className="fx-h">
       <div>
@@ -52,12 +58,41 @@ function FxHeader({ title, crumb, children }) {
         <p>{crumb}</p>
       </div>
       <div className="fx-h-r">
-        <span className="fx-env" data-ok={s.operacional ? "true" : "false"}><i></i>{s.label}<window.FxProc k="sefaz" /></span>
+        <span className="fx-env" data-contract="ambiente-emissao" data-amb={homolog ? "homologacao" : "producao"}><i></i>{homolog ? "Homologação · sem valor fiscal" : "Produção"}</span>
+        <span className="fx-env" data-ok={s.operacional && !contingencia ? "true" : "false"}><i></i>{contingencia ? "SEFAZ-" + s.uf + " indisponível · contingência" : s.label}<window.FxProc k="sefaz" /></span>
+        <label className="fx-cenario" data-contract="cenario-demo">
+          <span>Cenário (demo)</span>
+          <select className="fx-select" value={(cen.cert || "vigente") + "|" + (cen.sefaz || "operacional")} onChange={e => { const v = e.target.value.split("|"); window.FxActions.setCenario("cert", v[0]); window.FxActions.setCenario("sefaz", v[1]); }}>
+            <option value="vigente|operacional">Normal</option>
+            <option value="vencendo|operacional">Certificado vence em 24 dias</option>
+            <option value="vencido|operacional">Certificado vencido</option>
+            <option value="ausente|operacional">Sem certificado</option>
+            <option value="vigente|contingencia">SEFAZ em contingência</option>
+          </select>
+        </label>
         <button className="fx-btn" data-contract="procedencia" aria-pressed={st.proc} onClick={window.fxToggleProc} title="Mostra, por superfície, o que é leitura real e o que é demonstração"><FxI name="audit" /> Procedência</button>
         <span className="fx-kbd" title="Busca fiscal"><b>⌘</b><b>K</b></span>
         {children}
       </div>
     </header>
+  );
+}
+
+// 6.1 · estados de emissão — bloqueio (cert) e aviso (contingência, homologação), sempre com saída
+function FxEstadoEmissao() {
+  const st = window.useFiscalStore();
+  const itens = window.fxEstadoEmissao ? window.fxEstadoEmissao(st) : [];
+  if (!itens.length) return null;
+  return (
+    <div className="fx-alerts" data-contract="estado-emissao" role="status">
+      {itens.map((a, i) => (
+        <div className="fx-alert" data-level={a.nivel} key={i}>
+          <span className="fx-alert-ic"><FxI name={a.nivel === "crit" ? "lock" : "alert"} size={14} /></span>
+          <span className="fx-alert-t"><b>{a.titulo}</b><small>{a.sub}</small></span>
+          <button className="fx-btn" onClick={() => fxGo(a.goto)}>{a.acao}</button>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -79,7 +114,7 @@ function FxSpark({ data }) {
   return <svg width="56" height="15" viewBox="0 0 56 15" fill="none" aria-hidden="true"><polyline points={pts} stroke="currentColor" strokeWidth="1.2" /></svg>;
 }
 
-function FxEmitir({ onInutilizar }) {
+function FxEmitir({ onInutilizar, bloqueio }) {
   const [open, setOpen] = useStateFx(false);
   const ref = useRefFx(null);
   useEffectFx(() => {
@@ -90,12 +125,12 @@ function FxEmitir({ onInutilizar }) {
   }, [open]);
   return (
     <div className="fx-pop" ref={ref}>
-      <button className="fx-btn primary" onClick={() => setOpen(v => !v)} aria-haspopup="menu" aria-expanded={open}><FxI name="plus" /> Emitir</button>
+      <button className="fx-btn primary" disabled={!!bloqueio} aria-describedby={bloqueio ? "fx-emitir-bloqueio" : undefined} onClick={() => setOpen(v => !v)} aria-haspopup="menu" aria-expanded={open}><FxI name="plus" /> Emitir</button>
+      {bloqueio && <span id="fx-emitir-bloqueio" className="fx-bloqueio">{bloqueio}</span>}
       {open && (
         <div className="fx-pop-menu" role="menu">
-          <button role="menuitem" onClick={() => { setOpen(false); fxGo("fiscal-nfe"); }}><FxI name="receipt" /> NF-e</button>
-          <button role="menuitem" onClick={() => { setOpen(false); fxGo("fiscal-nfe"); }}><FxI name="receipt" /> NFC-e</button>
-          <button role="menuitem" onClick={() => { setOpen(false); fxGo("fiscal-nfse"); }}><FxI name="doc" /> NFS-e</button>
+          <button role="menuitem" onClick={() => { setOpen(false); fxGo("vendas"); }}><FxI name="receipt" /> NF-e ou NFC-e <small>a partir da venda</small></button>
+          <button role="menuitem" onClick={() => { setOpen(false); fxGo("os"); }}><FxI name="doc" /> NFS-e <small>a partir da OS</small></button>
           <button role="menuitem" onClick={() => { setOpen(false); onInutilizar(); }}><FxI name="audit" /> Inutilizar faixa</button>
         </div>
       )}
@@ -105,13 +140,15 @@ function FxEmitir({ onInutilizar }) {
 
 function FxRibbon() {
   const k = fxD().KPIS, sp = fxD().SPARK;
+  const stR = window.useFiscalStore(), cert = window.fxCert(stR);
+  const dfePend = stR.dfe.filter(d => d.status === "pendente"), dfeMenor = fxDfeMenorPrazo(dfePend);
   return (
     <div className="fx-ribbon" data-contract="kpi-ribbon" role="region" aria-label="KPIs fiscais">
-      <span className="fx-ri"><small>Emitidas <window.FxProc k="kpis" /></small><b>{k.emitidas}</b><em className="up">↑ 12 vs abr</em><FxSpark data={sp.emitidas} /></span>
+      <span className="fx-ri"><small>Emitidas <window.FxProc k="kpis" /></small><b>{k.emitidas}</b><em>maio/2026</em><FxSpark data={sp.emitidas} /></span>
       <span className="fx-ri"><small>Autorizadas</small><b className="ok">{k.autorizadas}</b><em>{k.autorizadasPct}%</em><FxSpark data={sp.autorizadas} /></span>
       <span className="fx-ri"><small>Rejeitadas</small><b className={k.rejeitadas > 0 ? "bad" : ""}>{k.rejeitadas}</b>{k.rejeitadas > 0 && <em className="down">requer ação</em>}<FxSpark data={sp.rejeitadas} /></span>
-      <span className="fx-ri"><small>DF-e p/ manifestar</small><b>{k.dfeAguardando}</b><em>prazo 90d</em></span>
-      <span className="fx-ri"><small>Certif. A1</small><b>{k.certificadoValidadeDias}d</b><em>{k.certificadoValidadeDias <= 30 ? "renovar" : "vigente"}</em></span>
+      <span className="fx-ri"><small>DF-e p/ manifestar</small><b>{dfePend.length}</b><em>{dfeMenor ? "menor prazo " + dfeMenor : "nenhum pendente"}</em></span>
+      <span className="fx-ri"><small>Certif. A1</small>{cert.valido ? <><b className={cert.nivel === "ok" ? "" : "bad"}>{cert.dias}d</b><em className={cert.nivel === "ok" ? "" : "down"}>{cert.nivel === "ok" ? "vigente" : "renovar"}</em></> : <><b className="bad">{cert.cen === "vencido" ? "vencido" : "—"}</b><em className="down">{cert.cen === "vencido" ? "emissão bloqueada" : "sem certificado"}</em></>}</span>
       <span className="fx-ri"><small>Faturado fiscal</small><b>{fxBrl(k.faturamentoFiscal)}</b><em>maio/2026</em></span>
       <button className="fx-ribbon-cta" onClick={() => fxGo("fiscal-sped")}>Fechar mês →</button>
     </div>
@@ -119,34 +156,24 @@ function FxRibbon() {
 }
 
 function FxAlerts() {
+  const st = window.useFiscalStore();
+  // 6.2 · certificado e DF-e saem do estado, não de texto fixo: o aviso do A1 segue a mesma régua
+  // do KPI e da Configuração (fxCert), e some quando o bloqueio de vencido/ausente já está na tela.
+  const cert = window.fxCert(st), pend = st.dfe.filter(d => d.status === "pendente");
+  const menor = fxDfeMenorPrazo(pend);
+  const alertas = fxD().ALERTS.slice();
+  if (cert.aviso) alertas.push({ level: cert.nivel === "crit" ? "crit" : "warn", icon: "shield", title: "Certificado A1 vence em " + cert.dias + " dias", sub: "Agendar renovação com o contador", action: "Abrir configuração", goto: "fiscal-config" });
+  if (pend.length) alertas.push({ level: "info", icon: "receipt", title: pend.length + " DF-e aguardando manifestação", sub: "Menor prazo: " + menor + " (valor calculado pela SEFAZ)", action: "Manifestar", goto: "fiscal-dfe" });
   return (
     <div className="fx-alerts" data-contract="alertas-fiscais">
       <window.FxProc k="alerts" />
-      {fxD().ALERTS.map((a, i) => (
+      {alertas.map((a, i) => (
         <div className="fx-alert" data-level={a.level} key={i}>
           <span className="fx-alert-ic"><FxI name={a.icon} size={14} /></span>
           <span className="fx-alert-t"><b>{a.title}</b><small>{a.sub}</small></span>
           <button className="fx-btn" onClick={() => fxGo(a.goto)}>{a.action}</button>
         </div>
       ))}
-    </div>
-  );
-}
-
-// Onda 3 · write-off de auditoria mensal (determinístico, sem IA)
-function FxWriteOff() {
-  const [aberto, setAberto] = useStateFx(true);
-  const w = fxD().WRITEOFF;
-  if (!w || !aberto) return null;
-  return (
-    <div className="fx-writeoff" data-contract="write-off">
-      <span className="fx-alert-ic"><FxI name="audit" size={14} /></span>
-      <div className="fx-writeoff-t">
-        <b>{w.totalCandidates.toLocaleString("pt-BR")} títulos candidatos a baixa por incobrabilidade <window.FxProc k="writeoff" /></b>
-        <small>{w.scopeLabel} · {fxBrl(w.totalValor)} · mais antigo há {w.oldestAge} dias · critério determinístico, revisão do contador</small>
-      </div>
-      <button className="fx-btn" onClick={() => fxGo("fin-receber")}>Revisar</button>
-      <button className="fx-btn" onClick={() => setAberto(false)}>Depois</button>
     </div>
   );
 }
@@ -195,7 +222,7 @@ function FxNotasTable({ rows, selected, onToggle, onToggleAll, onOpen, openedId,
                   <span className="fx-row-acts" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
                     <button className="fx-row-act" aria-label={"Baixar XML da " + n.tipo + " " + n.num}>XML</button>
                     <button className="fx-row-act" aria-label={(n.kind === "nfe" ? "Baixar DANFE da " : "Baixar PDF da ") + n.tipo + " " + n.num}>PDF</button>
-                    {rej && <button className="fx-row-act danger" aria-label={"Retransmitir " + n.tipo + " " + n.num} onClick={() => onAcao("retransmitir", n)}>↻</button>}
+                    {rej && window.fxPodeRetransmitir(n) && <button className="fx-row-act danger" aria-label={"Retransmitir " + n.tipo + " " + n.num} onClick={() => onAcao("retransmitir", n)}>↻</button>}
                   </span>
                   {fxBrl(n.value)}
                 </td>
@@ -294,7 +321,7 @@ function FxNotaDrawer({ nota, onClose, onAcao }) {
           <button className="fx-btn">{n.kind === "nfe" ? "Baixar DANFE" : "Baixar PDF"}</button>
           {n.kind === "nfe" && !rej && !n.cancelada && <button className="fx-btn" onClick={() => onAcao("cce", n)}>Carta de correção</button>}
           {n.kind === "nfe" && n.prazoCancel && !n.cancelada && <button className="fx-btn danger" onClick={() => onAcao("cancelar", n)}>Cancelar nota</button>}
-          {rej && <button className="fx-btn primary" onClick={() => onAcao("retransmitir", n)}>Retransmitir</button>}
+          {rej && window.fxPodeRetransmitir(n) && <button className="fx-btn primary" onClick={() => onAcao("retransmitir", n)}>Retransmitir</button>}
         </div>
       </aside>
     </>
@@ -304,9 +331,10 @@ function FxNotaDrawer({ nota, onClose, onAcao }) {
 function FxContabilDrawer({ open, onClose }) {
   const painel = useRefFx(null);
   const [confirma, setConfirma] = useStateFx(null);
+  const stC = window.useFiscalStore();
   fxUsaFocoPreso(painel, !!open && !confirma, onClose);
   if (!open) return null;
-  const c = fxD().CONTABIL;
+  const c = fxD().CONTABIL, cert = window.fxCert(stC);
   return (
     <>
       <div className="fx-scrim" onClick={onClose}></div>
@@ -317,7 +345,7 @@ function FxContabilDrawer({ open, onClose }) {
         </div>
         <div className="fx-dr-b">
           <div className="fx-sec"><h3>Pré-checagem do pacote</h3>
-            <div className="fx-list">{c.validacoes.map((v, i) => (
+            <div className="fx-list">{c.validacoes.map(v => !v.cert ? v : (cert.aviso || !cert.valido ? Object.assign({}, v, { ok: "warn", label: cert.valido ? "Certificado A1 vence em " + cert.dias + "d — renovar antes do próximo fechamento" : "Certificado A1 " + cert.rotulo + " — nada é emitido até a troca" }) : { ok: true, label: "Certificado A1 vigente (" + cert.dias + " dias)" })).map((v, i) => (
               <div className="fx-list-i" key={i}>
                 <span style={{ color: v.ok === "warn" ? "var(--fx-warn)" : "var(--text-dim)" }}>{v.ok === "warn" ? "⚠ " : "✓ "}{v.label}</span>
                 {v.action && <button className="fx-btn" onClick={() => fxGo(v.goto)}>{v.action}</button>}
@@ -475,12 +503,12 @@ function FxNotasPage({ preset, title, crumbExtra, route }) {
       <FxHeader title={title} crumb={`Maio 2026 · ${base.length} notas${crumbExtra ? " · " + crumbExtra : ""}${rejTotal ? " · " + rejTotal + " requerem ação" : ""}`}>
         <button className="fx-btn" onClick={() => fxGo("fiscal-eventos")}><FxI name="refresh" /> Eventos <b style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-1)" }}>{st.eventos.length}</b></button>
         <button className="fx-btn" onClick={() => setContabil(true)}><FxI name="archive" /> Enviar p/ contabilidade</button>
-        <FxEmitir onInutilizar={() => acao("inutilizar", {})} />
+        <FxEmitir onInutilizar={() => acao("inutilizar", {})} bloqueio={(window.fxEstadoEmissao ? window.fxEstadoEmissao(st) : []).some(e => e.bloqueia) ? "Bloqueado: certificado" : null} />
       </FxHeader>
       <FxSubnav current={route} />
+      <FxEstadoEmissao />
       {route === "fiscal" && <FxRibbon />}
       {route === "fiscal" && <FxAlerts />}
-      {route === "fiscal" && <FxWriteOff />}
       <div className="fx-toolbar" data-contract="toolbar-notas">
         <div className="fx-search">
           <FxI name="search" />

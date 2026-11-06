@@ -2,7 +2,7 @@
 title: "RUNBOOK — Fiscal/Sped (sub-página 7)"
 owner: W
 status: ativo
-last_validated: "2026-06-08"
+last_validated: "2026-11-06"
 ---
 
 # RUNBOOK — Fiscal/Sped (sub-página 7)
@@ -11,7 +11,19 @@ last_validated: "2026-06-08"
 
 ## 1. Objetivo
 
-Gera **arquivo TXT EFD-ICMS/IPI** (CONFAZ Guia Prático v3.1.1 perfil A) pronto pra importação no PVA-EFD. Cobre 23 registros canônicos (Blocos 0 + C + E + H + 9) — estrutura completa pra validação SPED Fiscal.
+Gera **arquivo TXT EFD-ICMS/IPI** (perfil A) para importação no PVA-EFD.
+
+> **Atualizado em 2026-11-06.** O texto original (v3.0) dizia *"23 registros canônicos, Blocos 0 + C + E + H + 9"*.
+> Desde a US-FISCAL-028 fatia 1 (2026-10-27) o arquivo tem **os 10 blocos obrigatórios** na ordem do Guia Prático
+> v3.2.3 (`0, B, C, D, E, G, H, K, 1, 9` — `EfdIcmsIpiLeiaute::ORDEM_DOS_BLOCOS`); B, D, G, K e 1 saem sem dados.
+> O `COD_VER` do registro 0000 vem do ano (`EfdIcmsIpiLeiaute::codVer`, NT 2025.001; 2027 recusa). Contrato:
+> `UC-FSPED-11..14` em [`Sped.casos.md`](../../../resources/js/Pages/Fiscal/Sped.casos.md). A §3.1 abaixo é o
+> retrato da v3.0.
+>
+> **Trava:** o download segue atrás de `fiscal.sped_simples_only_lock` (padrão `true`, `config/fiscal.php`) →
+> **503** explicativo para quem não é superadmin. O superadmin pode **reativar a trava só na sessão dele**
+> (`POST /fiscal/sped/trava`, Onda 10); a flag global é decisão [W] e nenhuma tela a troca. Erro na geração
+> devolve mensagem genérica e vai para `report($e)` (#10462, 2026-11-05).
 
 EFD-Contribuições (PIS/COFINS arquivo separado) fica em backlog PR #10.
 
@@ -25,7 +37,7 @@ FxShell route="sped"
     │   colunas: Competência · Status · Notas auth · Valor auth · Prazo · Export
     │   Botão Download habilitado quando notasAutorizadas > 0
     │   Link `<a download>` → /fiscal/sped/icms-ipi/{ano}/{mes}
-    └── Empty Livros (apuração ICMS/ISS — placeholder Bloco E real em PR #10)
+    └── Empty "Livros fiscais" (apuração ICMS/ISS, conciliação — "em desenvolvimento"; o Bloco E já sai no arquivo desde a US-FISCAL-017)
 ```
 
 ## 3. Gerador `SpedIcmsIpiGeneratorService`
