@@ -210,6 +210,7 @@ jobs:
             Modules/Compras/Tests/Feature/CurvaAbcReposicaoTest.php \
             Modules/Compras/Tests/Feature/CustoMedioMovelTest.php \
             Modules/Compras/Tests/Feature/ComprasSmokeRoutesTest.php \
+            Modules/Compras/Tests/Feature/ComprasPacoteGateTest.php \
             Modules/Compras/Tests/Feature/ComprasScaffoldTest.php \
             Modules/Compras/Tests/Feature/PurchaseCalculoValorEstoqueE2ETest.php \
             Modules/Compras/Tests/Feature/IsolamentoPrazoECotacaoFornecedoresTest.php

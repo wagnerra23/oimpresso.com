@@ -5,12 +5,17 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro de chamadas guarda número de celular e nome de contato de clientes. Errar o escopo mostra a ligação de outro negócio ou de colega; deixar a flag furar a config liga uma tela que o produto mantém desligada.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-11-06"
 last_run_nota: "2026-10-13 thread Crm/12 F3: trio nasce; os testes moram em Modules/Crm/Tests/Feature/CrmChamadasContratoTest.php (lane verticais-pest)."
 last_run_ci: "_pendente_ — o veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
 # Casos de Uso & Aceite — Crm · Registro de chamadas (`/crm/call-log`)
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10558). Nada do
+> comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch, run
+> [42224015385](https://github.com/wagnerra23/oimpresso.com/actions/runs/42224015385): `CrmChamadasContratoTest` 7 testes, 50 asserções, 0 skipped (verde).
 
 > **Âncora:** o [charter](Index.charter.md), o `memory/requisitos/Crm/RUNBOOK-chamadas.md` (§2-6) e a
 > paridade `chamadas-parity.md` (linhas 1-13). Os UCs não derivam do `.tsx`.

@@ -57,6 +57,7 @@ import {
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
 import { Grid, Inline } from '@/Components/layout';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 
 // ── formas vindas do EssentialsLeaveController ──────────────────────────────
 interface Licenca {
@@ -326,6 +327,9 @@ export default function LicencasIndex({
             </Button>
           }
           below={
+            <>
+            {/* Abas do módulo (a mesma lista do sidebar, [W] 2026-11-06) acima das seções da tela. */}
+            <ModuleTabs modulo="HRM" />
             <Inline asChild gap={1} align="center">
               <nav data-contract="abas" aria-label="Seções de licenças">
               <button
@@ -357,6 +361,7 @@ export default function LicencasIndex({
               </a>
             </nav>
             </Inline>
+            </>
           }
         />
       </div>

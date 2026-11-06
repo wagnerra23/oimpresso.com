@@ -5,15 +5,16 @@ use Modules\Compras\Http\Controllers\ComprasController;
 use Modules\Compras\Http\Controllers\InstallController;
 use Modules\Compras\Http\Controllers\PropostasPrecoController;
 use Modules\Compras\Http\Controllers\InsumoMetodoCustoController;
+use Modules\Compras\Http\Middleware\ComprasLiberado;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes — Compras
 |--------------------------------------------------------------------------
 |
-| Wave 1 scaffold US-COM-001 — apenas Index + Install endpoints.
-| Resource completo (create/store/show/edit/update/destroy) + importar-dfe
-| entram nas Waves 3 e 6.
+| Nasceu na Wave 1 (US-COM-001) só com Index + Install. Em 2026-11-06 o grupo
+| operacional tinha cockpit, detalhe, propostas de preço e método de custo; o
+| CRUD da compra mora em /purchases (convergência C1), e o importar DF-e não existe.
 |
 | Middleware canônico UltimatePOS: ['web','auth','SetSessionData','language',
 | 'timezone','AdminSidebarMenu','CheckUserLogin'] — NÃO usar 'tenant' fantasma
@@ -35,13 +36,19 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 // docs + Modules/Fiscal/Routes precedente. Cobre user spam F5 + filter rage
 // + screen-scraping. Threshold conservador (Larissa biz=4 raramente bate 60
 // requests/min num cockpit; bot spamming bate fácil).
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'throttle:60,1'])
+// ComprasLiberado: pacote `compras_module` da empresa em TODA rota do grupo (o menu já
+// conferia; a URL não). Index e detalhe pedem também `compras.view`; as ações de preço e de
+// método de custo seguem com as permissões próprias, conferidas no controller.
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'throttle:60,1', ComprasLiberado::class])
     ->prefix('compras')
     ->name('compras.')
     ->group(function () {
-        Route::get('/', [ComprasController::class, 'index'])->name('index');
+        Route::get('/', [ComprasController::class, 'index'])
+            ->middleware(ComprasLiberado::class.':compras.view')
+            ->name('index');
         Route::get('/{id}/detalhe', [ComprasController::class, 'show'])
             ->where('id', '[0-9]+')
+            ->middleware(ComprasLiberado::class.':compras.view')
             ->name('show');
         // US-COM-028 · UC-FLX-17: fila de preços propostos pelo recebimento (detalhe da compra).
         Route::post('/propostas-preco/{id}/aprovar', [PropostasPrecoController::class, 'aprovar'])

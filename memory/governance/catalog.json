@@ -4317,7 +4317,7 @@
       "type": "component",
       "module": "OficinaAuto",
       "name": "Public/AprovacaoOsController",
-      "desc": "endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
+      "desc": "endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-014). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
     },
     {
       "id": "component:OficinaAuto/ServiceOrderAssinaturaController",

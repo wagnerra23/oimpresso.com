@@ -12,12 +12,16 @@ use InvalidArgumentException;
  * Cotação de compra entre fornecedores — US-COM-031 (decisão coordenação 2026-10-26).
  *
  * O comprador abre a cotação com os itens (avulsos, de uma requisição de compra, ou de outro módulo
- * pelo `origem`/`origem_id` — a Oficina consome esta mesma cotação), convida fornecedores, digita o
+ * pelo `origem`/`origem_id`), convida fornecedores, digita o
  * preço e o prazo que cada um respondeu, compara e fecha: `fechar()` gera o pedido de compra de
  * cada fornecedor vencedor (mexe em valor, regra mestre — ver o docblock dele).
  *
  * Comparação por item: vence o menor preço unitário; empate, o menor prazo; ainda empatado, quem
  * respondeu primeiro. Item sem resposta fica sem vencedor.
+ *
+ * Até 2026-11-06 este docblock dizia que "a Oficina consome esta mesma cotação". Medido nessa data:
+ * nenhum código fora dos testes do Compras chama esta classe (`git grep CotacaoDeCompra -- app Modules`).
+ * O `origem`/`origem_id` existe para um módulo abrir a cotação; nenhum abre ainda.
  *
  * Tier 0 (ADR 0093): `$businessId` é argumento; local, variação, fornecedor e requisição são
  * conferidos contra a empresa antes de gravar. Preços e quantidades em string DECIMAL, sem float.

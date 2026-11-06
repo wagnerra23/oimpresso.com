@@ -88,6 +88,8 @@ export interface ProdutoEditPageProps {
   };
   /** Método de custo (US-COM-024): null quando o módulo Compras não está no pacote. */
   metodoCusto?: MetodoCustoDoFormulario | null;
+  /** Margem mínima da empresa em % (UC-FLX-35): null quando a regra está desligada. */
+  margemMinima?: number | null;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
@@ -196,7 +198,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
             opcoes={props}
             tipoAtual={props.productTypes[p.type] ?? p.type}
             naturezaFiscal={p.naturezaFiscal ?? null}
-            preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) } : undefined}
+            preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes), margemMinima: props.margemMinima ?? null } : undefined}
             metodoCusto={
               props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }

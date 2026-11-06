@@ -72,6 +72,23 @@ last_run: "2026-10-13"
 - **Contrato:** ADR 0093. Auditoria Compras 2026-11-05, achado A2.
 - **Status: 🧪**
 
+## UC-PEDC-09 · Trocar o status do pedido só aceita pedido de compra e status da lista
+- **Aceite:** Dado um administrador da empresa · Quando ele troca o status pela rota do pedido de compra · Então só
+  um pedido de compra (`type=purchase_order`) muda, e só para `ordered`, `partial` ou `completed`. Uma venda
+  ou outra transação da mesma empresa, ou um status fora da lista, voltam `success=0` e nada é gravado.
+- **Teste:** `tests/Feature/Purchase/ComprasStatusPermissaoUnidadeTest.php`
+- **Contrato:** auditoria Compras 2026-11-05, achado D3 (lote 2.3).
+- **Status: 🧪**
+
+## UC-PEDC-10 · Endpoints de apoio do pedido e da compra conferem permissão e unidade
+- **Aceite:** Dado um usuário sem a permissão da tela que chama o endpoint · Quando ele pede as linhas do pedido,
+  a impressão da compra, os produtos da requisição, as requisições do local ou as linhas da requisição · Então
+  recebe 403; com a permissão da tela, passa. E a sub-unidade de uma linha de compra só vale se for da empresa da
+  compra: a de outra empresa não grava linha; a própria aplica o multiplicador (2 caixas de 12 = 24 un).
+- **Teste:** `tests/Feature/Purchase/ComprasStatusPermissaoUnidadeTest.php`
+- **Contrato:** ADR 0093 (sub-unidade). Auditoria Compras 2026-11-05, achado D3 (lote 2.3).
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Alterar status e editar envio pela tela nova (PR próprio).
 - [BACKLOG] Excluir pedido e enviar notificação pela tela nova.
@@ -81,3 +98,4 @@ last_run: "2026-10-13"
 - 2026-10-13 · [CL] criado com a F3 da thread `compras/playbook/06`.
 - 2026-11-05 · [CL] UC-PEDC-06 e UC-PEDC-07 (lote 0 da auditoria de Compras, PR 0.3).
 - 2026-11-05 · [CL] UC-PEDC-08 (lote 0 da auditoria de Compras, PR 0.4).
+- 2026-11-06 · [CL] UC-PEDC-09 e UC-PEDC-10 (lote 2 da auditoria de Compras, PR 2.3).
