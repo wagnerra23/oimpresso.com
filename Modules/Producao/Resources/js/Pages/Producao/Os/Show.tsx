@@ -7,7 +7,8 @@
 // Ficha da OS por item. Âncora visual: `FichaOs` de prototipo-ui/cowork/Wagner/producao-cv-os.jsx (classes `pcv-*`
 // do bundle). As ações chamam POST /producao/ordens/{id}/{liberar|refazer|cancelar} (lote 2.2), que conferem o
 // papel de novo; aqui o botão só aparece na situação em que a ação vale (ProcessoDaOrdem::ACOES).
-// As abas Custo, Materiais e Arte entram nos lotes 3.3 e 3.4.
+// Aba Custo (lote 3.3): só leitura, os valores vêm prontos do backend (PrevistoRealizadoDaOrdem + CustoRealService);
+// a tela só formata. Materiais e Arte entram no lote 3.4.
 import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -15,6 +16,8 @@ import { useState, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
+import { Segmented } from '@/Components/ui/segmented';
+import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import ProducaoAbas from '../_components/ProducaoAbas';
 import { json, Recusa } from '../Quadro/_lib/json';
@@ -28,11 +31,17 @@ interface Os {
   id: number; numero: string; produto: string | null; cliente: string | null; venda: string | null; quantidade: string | null;
   prazo: string | null; situacao: string | null; situacao_nome: string | null;
 }
+interface PrevReal { status: 'em_andamento' | 'realizado' | 'cancelada'; receita: string; orcado: string | null; realizado: string | null;
+  diferenca: string | null; diferenca_pct: string | null; margem_orcada_pct: string | null; margem_real_pct: string | null }
+interface Custo { previsto_realizado: PrevReal; composicao: { maquina: string; pessoa: string; material: string; terceiros: string; total: string } | null }
 interface Pessoas { pessoas: { id: number; nome: string }[]; por_posto: Record<number, number[]> }
-interface Props { os: Os; etapas: Etapa[]; pode: { liberar: boolean; cancelar: boolean }; pessoas?: Pessoas }
+interface Props { os: Os; etapas: Etapa[]; pode: { liberar: boolean; cancelar: boolean; custo: boolean }; pessoas?: Pessoas; custo?: Custo | null }
 
 const EST: Record<Etapa['status'], string> = { pendente: 'Na fila', iniciada: 'Em andamento', concluida: 'Feito', cancelada: 'Cancelada' };
 const h1 = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const brl = (v: string | null) => (v === null ? '—' : BRL.format(Number(v)));
+const pct = (v: string | null) => (v === null ? '—' : v.replace('.', ',') + '%');
 const d2 = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
 
 function EtapaLi({ e, i }: { e: Etapa; i: number }) {
@@ -77,6 +86,31 @@ function Liberar({ os, etapas, pessoas, onFeito }: { os: Os; etapas: Etapa[]; pe
   );
 }
 
+function AbaCusto({ c }: { c: Custo | null }) {
+  if (!c) return <p className="pcv-help">Custo da OS pede a permissão de ver desempenho e custo.</p>;
+  const pr = c.previsto_realizado;
+  const acima = pr.diferenca !== null && !pr.diferenca.startsWith('-') && pr.diferenca !== '0.0000';
+  return (
+    <div className="pcv-sec" data-contract="custo">
+      <table className="pcv-tbl" aria-label="Custo orçado e realizado">
+        <thead><tr><th scope="col">Custo</th><th scope="col" className="ta-r">Orçado</th><th scope="col" className="ta-r">Realizado</th><th scope="col" className="ta-r">Diferença</th></tr></thead>
+        <tbody><tr><td>{pr.status === 'realizado' ? 'Total congelado na conclusão' : pr.status === 'cancelada' ? 'OS cancelada' : 'Até agora'}</td>
+          <td className="ta-r mono">{brl(pr.orcado)}</td><td className="ta-r mono">{brl(pr.realizado)}</td>
+          <td className={'ta-r mono' + (acima ? ' pcv-late' : '')}>{pr.diferenca === null ? '—' : brl(pr.diferenca) + ' (' + pct(pr.diferenca_pct) + ')'}</td></tr>
+        <tr className="pcv-tbl-sub"><td>Margem</td><td className="ta-r mono">{pct(pr.margem_orcada_pct)}</td><td className="ta-r mono">{pct(pr.margem_real_pct)}</td><td className="ta-r mono">receita {brl(pr.receita)}</td></tr></tbody>
+      </table>
+      {pr.orcado === null && <p className="pcv-help">O item da venda não guardou o custo previsto: sem orçado para comparar.</p>}
+      {c.composicao && <table className="pcv-tbl" aria-label="Composição do custo real">
+        <thead><tr><th scope="col">De onde vem o realizado</th><th scope="col" className="ta-r">Valor</th></tr></thead>
+        <tbody>{([['Hora de máquina', c.composicao.maquina], ['Hora de pessoa', c.composicao.pessoa], ['Material baixado', c.composicao.material], ['Terceiros', c.composicao.terceiros]] as const)
+          .map(([n, v]) => <tr key={n}><td>{n}</td><td className="ta-r mono">{brl(v)}</td></tr>)}
+          <tr className="pcv-tbl-sub"><td>Total</td><td className="ta-r mono">{brl(c.composicao.total)}</td></tr></tbody>
+      </table>}
+      <p className="pcv-help">Só leitura. Horas apontadas × custo-hora do posto no início do apontamento, mais o material baixado.</p>
+    </div>
+  );
+}
+
 function Acoes({ p }: { p: Props }) {
   const [msg, setMsg] = useState<{ tom: 'ok' | 'recusa'; texto: string } | null>(null);
   const s = p.os.situacao;
@@ -109,6 +143,7 @@ export default function OsShow(props: Props) {
   const prev = validas.reduce((s, e) => s + e.previsto_h, 0), real = validas.reduce((s, e) => s + e.apontado_h, 0);
   const sub = [os.cliente, os.venda ? 'venda ' + os.venda : null, os.prazo ? 'entrega ' + d2(os.prazo) : null].filter(Boolean).join(' · ');
   const paralelas = etapas.some((e) => e.trilha > 0);
+  const [aba, setAba] = useState('etapas');
   return (
     <div className="pcv-root" data-screen-label="Produção · Ficha da OS">
       <div className="pcv-ph"><PageHeader title={os.numero} suffix={os.produto ? ' · ' + os.produto : ''} below={<ProducaoAbas ativa="/producao/quadro" />} /></div>
@@ -119,10 +154,14 @@ export default function OsShow(props: Props) {
           <div><span className="pcv-eyebrow">Tempo</span><b className="mono">{h1(real)} h</b> <small>de {h1(prev)} h previstas</small></div>
         </div>
         <Acoes p={props} />
-        <h2 className="pcv-eyebrow">Etapas ({etapas.length})</h2>
-        {paralelas && <p className="pcv-help">Etapas em paralelo estão marcadas pela trilha.</p>}
-        <ol className="pcv-etapas" data-contract="etapas">{etapas.map((e, i) => <EtapaLi key={e.id} e={e} i={i} />)}</ol>
-        {etapas.length === 0 && <p className="pcv-help">Esta OS ainda não tem etapas programadas.</p>}
+        <Segmented value={aba} onValueChange={(v) => v && setAba(v)} aria-label="Seções da OS"
+          options={[{ value: 'etapas', label: `Etapas (${etapas.length})` }, ...(props.pode.custo ? [{ value: 'custo', label: 'Custo' }] : [])]} />
+        {aba === 'etapas' && <>
+          {paralelas && <p className="pcv-help">Etapas em paralelo estão marcadas pela trilha.</p>}
+          <ol className="pcv-etapas" data-contract="etapas">{etapas.map((e, i) => <EtapaLi key={e.id} e={e} i={i} />)}</ol>
+          {etapas.length === 0 && <p className="pcv-help">Esta OS ainda não tem etapas programadas.</p>}
+        </>}
+        {aba === 'custo' && <Deferred data="custo" fallback={<Skeleton className="h-32 w-full" />}><AbaCusto c={props.custo ?? null} /></Deferred>}
       </div></div>
     </div>
   );

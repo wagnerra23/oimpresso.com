@@ -40,11 +40,24 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-PCOSF-03 · Aba Custo, só leitura · `must` valor
+
+**Dado** a OS em andamento com 1,5 h apontadas num posto de máquina a 80,00 por hora e nada de material **Quando** quem
+tem `producao.desempenho.ver` abre a aba Custo **Então** o realizado é 120,00 (máquina 120,00 · pessoa 0,00 ·
+material 0,00 · terceiros 0,00) · o mesmo número sai do `GET /producao/ordens/{id}/previsto-realizado` (dupla prova:
+a Ficha e o endpoint, mais a conta à mão) · nada é gravado (`custo_real` e apontamentos iguais antes e depois) · sem a
+permissão a aba não aparece e o custo vem nulo. A Ficha não faz conta nova: formata o que o
+PrevistoRealizadoDaOrdem e o CustoRealService devolvem. Custo por etapa (os 85 por hora únicos do protótipo) fica fora:
+é a decisão B8, em aberto com [W].
+
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Abas Custo (só leitura), Materiais e Arte — lotes 3.3 e 3.4.
+- **[BACKLOG]** Abas Materiais e Arte — lote 3.4.
 - **[BACKLOG]** Cartão do Quadro e bloco da Linha abrem a Ficha — lote 3.5.
 - **[BACKLOG]** Refugo e Histórico da OS — fora do lote 3.
 
 ## Trilha do tempo
+- 2026-11-06 · [W+C] Aba Custo só leitura (lote 3.3).
 - 2026-11-06 · [W+C] Ficha nasce na auditoria lote 3.2. Trio carimbado com `criar-tela.mjs` (PT-03) e movido para o caminho do módulo, que o gerador não cobre.
