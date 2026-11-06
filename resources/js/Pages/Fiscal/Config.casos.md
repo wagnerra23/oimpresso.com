@@ -77,6 +77,7 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-09 | o papel "Contador" tem só tributação, aceite, cockpit fiscal e SPED | `[must]` `[T0]` | D-CONTADOR (caminho 2) | `ContadorCadastroTest` | 🧪 |
 | UC-FCFG-10 | a contingência é ativada com o modo escolhido (SVC-AN · SVC-RS · EPEC), e a SVC errada para a UF é recusada | `[must]` `[fiscal]` | US-NFE-071 | `ContingenciaModoTest` (3) | 🧪 |
 | UC-FCFG-11 | certificado sem CNPJ titular mostra o CNPJ da empresa | `[should]` | CU-FISC-14 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-12 | a configuração fiscal mostrada é a da própria empresa | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 
 ---
 
@@ -276,6 +277,18 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 
 - **Regressão que defende:** o fallback lia uma chave do painel que não existe (`cnpj_business` em vez de `cnpjBusiness`) — o CNPJ nunca aparecia e o acesso à chave inexistente lançava erro. Achado D12 da auditoria do Fiscal de 2026-11-05.
 - **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-11 · cert sem CNPJ titular mostra o CNPJ da empresa como fallback')`
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+---
+
+## UC-FCFG-12 — A configuração fiscal mostrada é a da própria empresa `[must]` `[T0]`
+
+**Dado** duas empresas, cada uma com o seu regime e CFOP padrão em `nfe_business_configs`
+**Quando** cada uma abre a tela de configuração
+**Então** cada uma vê o seu regime e o seu CFOP; nenhuma vê a da outra.
+
+- **Regressão que defende:** a tela lê a configuração com `NfeBusinessConfig::query()->first()`, filtrado só pelo escopo global; sem ele as duas empresas receberiam a mesma linha. Achado da auditoria do Fiscal de 2026-11-05 (lote 2.1).
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-12 · a tela mostra a configuração fiscal da própria empresa, nunca a da vizinha')`
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ---
