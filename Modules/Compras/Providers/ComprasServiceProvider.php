@@ -62,10 +62,21 @@ class ComprasServiceProvider extends ServiceProvider
     protected function registerCommandSchedules(): void
     {
         $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function ($schedule): void {
+            // D6 (auditoria de Compras, 2026-11-05): até aqui rodava em qualquer ambiente (o
+            // `schedule:run` do CT 100 também) e a falha não aparecia em lugar nenhum.
             $schedule->command('compras:requisicao-estoque-minimo')
                 ->dailyAt('06:30')
                 ->withoutOverlapping()
-                ->onOneServer();
+                ->onOneServer()
+                ->environments(['live'])
+                ->onFailure(fn () => app(\Modules\Compras\Services\AvisoDeFalhaDaAgenda::class)->avisar(
+                    'COMPRAS-REQ-ESTMIN',
+                    'Compras: a agenda da requisição pelo estoque mínimo falhou',
+                    "O `compras:requisicao-estoque-minimo` das 06:30 saiu com erro. Empresas com a regra ligada\n"
+                        ."podem ficar sem a requisição do dia. Rastro em storage/logs (canal single, `compras.agenda.falhou`).\n\n"
+                        .'Fechar esta task (done/cancelled) silencia o aviso.',
+                    'compras:requisicao-estoque-minimo',
+                ));
         });
     }
 
