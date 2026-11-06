@@ -53,6 +53,7 @@ on:
       # Requisições de compra (thread compras/playbook/07): RequisicoesCompraBaselineTest trava o index().
       - 'app/Http/Controllers/PurchaseRequisitionController.php'
       - 'Modules/Compras/Services/NecessidadeDeCompra.php'
+      - 'Modules/Compras/Services/AlcadaDoPedido.php'
       # Devoluções de compra (thread compras/playbook/08): DevolucoesCompraBaselineTest trava o index().
       - 'app/Http/Controllers/PurchaseReturnController.php'
       - 'app/Http/Controllers/CombinedPurchaseReturnController.php'
@@ -110,6 +111,7 @@ jobs:
               - 'app/Http/Controllers/PurchaseOrderController.php'
               - 'app/Http/Controllers/PurchaseRequisitionController.php'
               - 'Modules/Compras/Services/NecessidadeDeCompra.php'
+              - 'Modules/Compras/Services/AlcadaDoPedido.php'
               - 'app/Http/Controllers/PurchaseReturnController.php'
               - 'app/Http/Controllers/CombinedPurchaseReturnController.php'
               - 'app/Utils/ProductUtil.php'
@@ -237,6 +239,7 @@ jobs:
             tests/Feature/Purchase/DevolucoesCompraContratoTest.php \
             tests/Feature/Purchase/DevolucaoCompraStoreBaselineTest.php \
             tests/Feature/Purchase/RequisicaoStoreTenantTest.php \
+            tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php \
             tests/Feature/Purchase/LinhaDeCompraPorTransacaoTenantTest.php \
             tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php
 
