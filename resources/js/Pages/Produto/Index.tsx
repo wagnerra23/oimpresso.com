@@ -164,6 +164,7 @@ function paraUrl(f: FiltrosLista): Record<string, string | number> {
   if (f.not_for_selling) out.not_for_selling = 1;
   if (f.woocommerce_enabled) out.woocommerce_enabled = 1;
   if (f.abaixo_do_alerta) out.abaixo_do_alerta = 1;
+  if (f.falta_ncm) out.falta_ncm = 1;
   if (f.q) out.q = f.q;
   if (f.sort && f.sort !== 'produto') out.sort = f.sort;
   if (f.dir === 'desc') out.dir = 'desc';
@@ -427,6 +428,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       not_for_selling: false,
       woocommerce_enabled: false,
       abaixo_do_alerta: false,
+      falta_ncm: false,
       q: '',
     });
   };
@@ -475,7 +477,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
             </Deferred>
           </div>
 
-          <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} naturezaFiscal={contexto.natureza_fiscal === true} aplicar={ir} />
+          <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} naturezaFiscal={contexto.natureza_fiscal === true} emiteNota={contexto.emite_nota === true} aplicar={ir} />
 
           <section
             className="pb-widget"
@@ -557,7 +559,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                     onRemove={() => {
                       if (c.chave === 'q') setBusca('');
                       const vazio =
-                        c.chave === 'not_for_selling' || c.chave === 'woocommerce_enabled' || c.chave === 'abaixo_do_alerta'
+                        c.chave === 'not_for_selling' || c.chave === 'woocommerce_enabled' || c.chave === 'abaixo_do_alerta' || c.chave === 'falta_ncm'
                           ? false
                           : c.chave === 'q'
                             ? ''

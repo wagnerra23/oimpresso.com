@@ -16,7 +16,7 @@ uses(Tests\TestCase::class);
  *
  * US-FISCAL-022 — Comando `fiscal:cert-health-check` (cap #13 CAPTERRA Fiscal).
  *
- * Aceite (ADR 0101 — biz=1 dogfood, NUNCA biz=4 cliente):
+ * Aceite (ADR 0358 — tenant fictício 98, NUNCA biz=4 cliente):
  *  - cert A1 vencendo em 15d → cria alerta em mcp_alertas_eventos
  *  - cert A1 válido 200d → NÃO cria alerta
  *  - idempotência: rodar 2× não duplica (dedup por business+cert)
@@ -25,10 +25,10 @@ uses(Tests\TestCase::class);
  * SQLite skip: nfe_certificados + mcp_alertas_eventos têm schema MySQL canon.
  */
 
-const CERT_HC_BIZ = 1; // ADR 0101 — biz=1, jamais cliente
+const CERT_HC_BIZ = 98; // ADR 0358 — tenant fictício, jamais cliente
 
 /**
- * Insere um cert A1 de teste pra biz=1 com a validade dada, adaptando-se ao
+ * Insere um cert A1 de teste pro tenant 98 com a validade dada, adaptando-se ao
  * schema real (duas migrations concorrem por `nfe_certificados`: NfeBrasil
  * uuid/cnpj_titular/encrypted_password vs NFSe cert_pfx/senha/titular_*).
  * Só preenche colunas que existem. Retorna o uuid usado na chave de idempotência.

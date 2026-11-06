@@ -96,6 +96,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-39 | Saldo também em embalagens inteiras (rolos) | should | `ProductController::embalagensDosProdutos` + coluna Estoque (`saldoEmEmbalagens`, `embalagemTexto`) | `ProdutoListaEmbalagemTest` (lane Estoque · MySQL) + `produto-lista-embalagem.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-40 | Quantos kits dá para vender, por local, e quem limita | should | `ProductController::kitsPorLocal` + aba Composição do painel (`PainelDetalhe.tsx`) | `ProdutoKitsDisponiveisTest` (lane Estoque · MySQL) + `produto-painel-kits.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-41 | Giro de 90 dias e últimas compras no painel | should | `ProductController::vendidoNosUltimos90Dias` + `ultimasComprasDoProduto` + aba Estoque do painel (`PainelDetalhe.tsx`) | `ProdutoGiroComprasTest` (lane Estoque · MySQL) + `produto-painel-giro-compras.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-42 | Filtro "Falta NCM" e o link do card de Saúde fiscal | should | `ProductController::consultaListaProdutos` (`falta_ncm`) + `FiltrosLista.tsx` + `SaudeFiscalService` (item `produto_sem_ncm`) | `ProdutoListaFaltaNcmTest` (lane Estoque · MySQL) + `SaudeFiscalTest` (UC-NFTR-24) + `produto-filtro-falta-ncm.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -570,6 +571,15 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** custo de cada compra (o painel já mostra o preço de compra na aba Variações, com `view_purchase_price`); giro por local; dias de estoque.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-42 · Filtro "Falta NCM" e o link do card de Saúde fiscal · `should`
+- **Persona:** quem cuida do cadastro numa empresa que emite nota e precisa achar os produtos que entraram sem NCM, antes que a nota saia com o NCM padrão no lugar.
+- **Aceite:** Dado produtos com NCM "0", vazio, "491110", "00000000" e "49111090" · Quando marco "Falta NCM" nos filtros · Então a lista mostra os quatro primeiros e não o de 8 dígitos válidos · E aparece o chip "Falta NCM" · E, no card de Saúde fiscal (Fiscal › Tributação), "Revisar produtos" do item "Produtos ativos sem NCM válido" abre esta lista com "Falta NCM" e só os ativos, e ela mostra os mesmos produtos que o card conta · A caixa só aparece para a empresa que emite nota (a mesma condição da aba Fiscal do painel).
+- **Teste:** [`ProdutoListaFaltaNcmTest`](../../../../tests/Feature/Produto/ProdutoListaFaltaNcmTest.php) — `UC-PIDX-42` (os cinco casos dentro e fora; prova dupla do conjunto: o quanto o card conta a mais com o cenário é o mesmo tanto que a lista filtrada, só com os ativos, mostra a mais; sem o filtro volta o NCM válido; outra empresa fora — lane Estoque · MySQL), [`SaudeFiscalTest`](../../../../Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php) — `UC-NFTR-24` (o link do card com `falta_ncm=1` e `active_state=active`) e [`produto-filtro-falta-ncm.test.tsx`](../../../../tests/js/produto-filtro-falta-ncm.test.tsx) — `UC-PIDX-42` (a caixa liga e desliga o filtro, só aparece com nota, o chip — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-06: tirar a condição da nota derruba o caso de tela.
+- **Contrato:** pedido da PraMoto (2026-10-27). A regra é a do card de Saúde fiscal e da emissão (`SaudeFiscalService::ncmValido`, `NfeService`): NCM válido tem 8 dígitos e não é 00000000; fora disso a nota sai com o NCM padrão da empresa. A coluna `products.ncm` é `NOT NULL DEFAULT '0'`, então o produto que nunca recebeu NCM entra no filtro. Só leitura.
+- **Gates:** a caixa só aparece com `contexto.emite_nota` (módulo Fiscal no pacote da empresa). O filtro no servidor respeita os locais permitidos do usuário, como o resto da lista.
+- **Fora daqui:** informar o NCM de vários produtos de uma vez (segue no backlog, abaixo); o item "Produtos que saíram em nota com o NCM padrão", que continua abrindo o Cadastro Unificado.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -800,11 +810,10 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   compra), lido das próprias notas; não mexe no estoque. É também o número que falta ao inventário do
   SPED (Bloco H). Pedido da PraMoto, que compra com e sem nota; a compra e o aviso na emissão estão em
   `Purchase/Create.casos.md` e `Fiscal/Nfe.casos.md`.
-- **[BACKLOG] Produtos sem NCM: filtro e NCM em lote** (pedido de 2026-10-27) — Aceite: Dado produtos
-  que entraram sem NCM, Quando escolho o filtro "Falta NCM", Então a lista mostra só eles e eu informo
-  o NCM de vários de uma vez. O card de Saúde fiscal, que já conta "Produtos ativos sem NCM válido"
-  (`SaudeFiscalService`, `produto_sem_ncm`), abre a lista com esse filtro. Hoje a lista não tem o
-  filtro nem a edição de NCM em lote. Pedido da PraMoto.
+- O filtro "Falta NCM" e o link do card de Saúde fiscal saíram deste backlog em 2026-11-06: viraram UC-PIDX-42, com teste.
+- **[BACKLOG] NCM em lote** (pedido de 2026-10-27) — Aceite: Dado a lista filtrada por "Falta NCM", Quando
+  escolho vários produtos e informo um NCM, Então todos passam a ter esse NCM e saem do filtro. Hoje a
+  lista não tem edição de NCM em lote. Pedido da PraMoto.
 
 Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
 [Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·
@@ -875,6 +884,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 
 ## Trilha do tempo
+- 2026-11-06 · [F+C] **UC-PIDX-42**: filtro "Falta NCM" na consulta de produto e o card de Saúde fiscal abrindo a lista com ele.
 - 2026-11-05 · [F+C] **UC-PIDX-41**: giro de 90 dias e as 3 últimas compras recebidas na aba Estoque do painel (D8).
 - 2026-11-04 · [F+C] **UC-PIDX-40**: quantos kits dá para vender, por local, e quem limita, na aba Composição do painel. Achado: a conta do núcleo para o combo na venda não zera com componente sem saldo; fica no backlog da venda.
 - 2026-11-04 · [F+C] **UC-PIDX-39**: o saldo também em embalagens inteiras (CV2), "2 × Rolo + 10 m²", pela subunidade cadastrada da unidade do produto.
