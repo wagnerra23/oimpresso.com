@@ -1088,7 +1088,10 @@ class PurchaseOrderController extends Controller
 
         if ($request->ajax()) {
             $business_id = request()->session()->get('user.business_id');
+            // D3 (auditoria de Compras, 2026-11-05): só pedido de compra. Antes, qualquer
+            // transação da empresa (venda, compra, despesa) abria este modal.
             $transaction = Transaction::where('business_id', $business_id)
+                                ->where('type', 'purchase_order')
                                 ->findOrFail($id);
 
             $status = $transaction->status;
@@ -1114,8 +1117,16 @@ class PurchaseOrderController extends Controller
         if ($request->ajax()) {
             try {
                 $business_id = request()->session()->get('user.business_id');
+                // D3: só pedido de compra, e só um status da lista do pedido. Antes qualquer
+                // transação da empresa aceitava qualquer texto em `status` (ex.: uma venda
+                // final virava `ordered`).
                 $transaction = Transaction::where('business_id', $business_id)
+                                ->where('type', 'purchase_order')
                                 ->findOrFail($id);
+
+                if (! array_key_exists((string) $request->input('status'), $this->purchaseOrderStatuses)) {
+                    throw new \InvalidArgumentException('Status fora da lista do pedido de compra.');
+                }
 
                 $transaction_before = $transaction->replicate();
 

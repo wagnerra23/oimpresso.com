@@ -1910,6 +1910,11 @@ class PurchaseController extends Controller
 
     public function getPurchaseOrderLines($purchase_order_id)
     {
+        // D3: só quem lança ou edita compra puxa as linhas de um pedido para a compra.
+        if (! auth()->user()->can('purchase.create') && ! auth()->user()->can('purchase.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         $purchase_order = Transaction::where('business_id', $business_id)
@@ -1987,6 +1992,11 @@ class PurchaseController extends Controller
      */
     public function printInvoice($id)
     {
+        // D3: imprimir é ver a compra; mesma permissão do show().
+        if (! auth()->user()->can('purchase.view') && ! auth()->user()->can('view_own_purchase')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         try {
             $business_id = request()->session()->get('user.business_id');
             $taxes = TaxRate::where('business_id', $business_id)
