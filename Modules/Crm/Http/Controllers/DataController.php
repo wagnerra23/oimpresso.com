@@ -178,16 +178,21 @@ class DataController extends Controller
                                 'href'     => '/crm/leads/create',
                                 'shortcut' => 'N',
                             ],
+                            // [W] 2026-11-06: as abas do topo das telas do CRM leem ESTA lista (ModuleTabs).
+                            // Rótulos e ordem do protótipo (`crm-blade.jsx`, barra "Telas do módulo CRM").
+                            // O Funil existe só em produção (US-CRM-092) e fica depois do Painel. Comissões,
+                            // Modelo de proposta, Marketplace B2B, Pedido de ordem e Fontes e estágios estão
+                            // no protótipo e entram num PR seguinte, cada um com a permissão da rota.
                             'ghosts'   => array_values(array_filter([
-                                ['key' => 'dashboard',      'label' => 'Dashboard',      'href' => '/crm/dashboard'],
+                                ['key' => 'dashboard',      'label' => 'Painel',         'href' => '/crm/dashboard'],
                                 // US-CRM-092 · ADR 0441 — o funil só aparece para quem pode vê-lo.
                                 auth()->user()?->can('crm.funil.ver') ? ['key' => 'funil', 'label' => 'Funil', 'href' => '/crm/funil'] : null,
                                 ['key' => 'leads',          'label' => 'Leads',          'href' => '/crm/leads'],
-                                ['key' => 'follow-ups',     'label' => 'Follow-ups',     'href' => '/crm/follow-ups'],
+                                ['key' => 'follow-ups',     'label' => 'Acompanhamentos', 'href' => '/crm/follow-ups'],
                                 ['key' => 'campaigns',      'label' => 'Campanhas',      'href' => '/crm/campaigns'],
-                                ['key' => 'contacts-login', 'label' => 'Contatos Login', 'href' => '/crm/all-contacts-login'],
+                                ['key' => 'contacts-login', 'label' => 'Login de contatos', 'href' => '/crm/all-contacts-login'],
                                 // A tela dá 403 com o registro de ligações desligado (constants.enable_crm_call_log).
-                                config('constants.enable_crm_call_log') ? ['key' => 'call-log', 'label' => 'Call Log', 'href' => '/crm/call-log'] : null,
+                                config('constants.enable_crm_call_log') ? ['key' => 'call-log', 'label' => 'Registro de chamadas', 'href' => '/crm/call-log'] : null,
                                 ['key' => 'reports',        'label' => 'Relatórios',     'href' => '/crm/reports'],
                                 ['key' => 'proposals',      'label' => 'Propostas',      'href' => '/crm/proposals'],
                                 ['key' => 'settings',       'label' => 'Configurações',  'href' => '/crm/settings'],

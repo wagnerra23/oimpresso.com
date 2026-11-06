@@ -1211,7 +1211,9 @@ class ProductUtil extends Util
             }
 
             if (! empty($data['sub_unit_id'])) {
-                $unit = Unit::find($data['sub_unit_id']);
+                // D3: a sub-unidade é da empresa da compra. Antes `Unit::find` aceitava a de
+                // outra empresa e aplicava o multiplicador dela à quantidade em estoque.
+                $unit = Unit::where('business_id', $transaction->business_id)->findOrFail($data['sub_unit_id']);
                 $multiplier = ! empty($unit->base_unit_multiplier) ? $unit->base_unit_multiplier : 1;
             }
             $new_quantity = $this->num_uf($data['quantity']) * $multiplier;

@@ -80,6 +80,7 @@
   { id: "wa_bal_balcao", channel: "wa_baileys", label: "Balcão", handle: "+55 21 9 8001-0011", owner: "larissa", status: "ativo", health: "healthy" },
   { id: "wa_bal_vendas", channel: "wa_baileys", label: "Vendas", handle: "+55 21 9 8001-0022", owner: "wagner", status: "ativo", health: "degraded", sinceMin: 3 },
   { id: "wa_bal_fin", channel: "wa_baileys", label: "Financeiro", handle: "+55 21 9 8001-0033", owner: "eliana", status: "ativo", health: "healthy" },
+  { id: "wa_bal_pos", channel: "wa_baileys", label: "Pós-venda", handle: "+55 21 9 8001-0066", owner: "wagner", status: "ativo", health: "banned", sinceMin: 42 },
   { id: "wa_meta_pri", channel: "wa_meta", label: "Comercial", handle: "+55 21 9 8001-0044", owner: "wagner", status: "em breve" },
   { id: "wa_zapi_pri", channel: "wa_zapi", label: "Marketing", handle: "+55 21 9 8001-0055", owner: "wagner", status: "em breve" },
   { id: "ig_main", channel: "ig", label: "@oimpresso", handle: "@oimpresso", owner: "wagner", status: "em breve" },
@@ -91,10 +92,57 @@
   const ACC_BY_ID = Object.fromEntries(ACCOUNTS.map((a) => [a.id, a]));
 
   // ─── Saúde de canal (channel_health: healthy | degraded | down | never_checked) ──
+  // Lote 6 (6.2.b): + banned, como o ChannelHealthBanner da produção ("foi bloqueado pela Meta").
   const HEALTH_VERB = {
     degraded: { label: "degradado", verb: "está degradado" },
-    down: { label: "fora do ar", verb: "está fora do ar" }
+    down: { label: "fora do ar", verb: "está fora do ar" },
+    banned: { label: "bloqueado pela Meta", verb: "foi bloqueado pela Meta" }
   };
+  const HEALTH_BAD = (h) => h === "down" || h === "banned";
+
+  // ─── Estado de entrega da mensagem enviada (Lote 6 · 6.2.a) ───────────────
+  // A produção mostra enviada/entregue/lida e nada para o resto (falha some).
+  // Aqui: enviando · enviada · entregue · lida · não enviada (com motivo e Tentar de novo).
+  function MsgStatus({ status }) {
+    const S = {
+      sending: { ico: "◷", label: "Enviando…" },
+      sent: { ico: "✓", label: "Enviada" },
+      delivered: { ico: "✓✓", label: "Entregue" },
+      read: { ico: "✓✓", label: "Lida" },
+      failed: { ico: "!", label: "Não enviada" }
+    }[status || "sent"];
+    return <span className={"om-msg-st " + (status || "sent")} title={S.label} aria-label={S.label}> {S.ico}</span>;
+  }
+
+  // ─── Mídia (Lote 6 · 6.2.d/e): imagem, áudio com transcrição, mídia expirada ──
+  function MsgMedia({ media }) {
+    const [open, setOpen] = useState(true);
+    if (media.expired) return <div className="om-media-gone">Mídia expirou ou não está mais disponível</div>;
+    if (media.kind === "image") return <div className="om-media-img" role="img" aria-label="Imagem enviada pelo cliente" />;
+    if (media.kind !== "audio") return <div className="om-media-doc">Documento</div>;
+    const T = {
+      done: null,
+      pending: "Transcrevendo…",
+      failed: "Não foi possível transcrever este áudio.",
+      limit: "Limite diário de transcrição atingido — tente amanhã ou ouça o áudio."
+    };
+    return (
+      <div className="om-media-audio">
+        <div className="om-audio-player">
+          <button className="om-audio-play" aria-label="Ouvir áudio">▶</button>
+          <span className="om-audio-bar" aria-hidden="true" />
+          <small className="mono">{media.dur}</small>
+        </div>
+        {media.tstate === "done" ?
+        <div className="om-transcr">
+            <button className="om-transcr-h" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+              Transcrito automaticamente {open ? "▾" : "▸"}
+            </button>
+            {open && <p>{media.transcription}</p>}
+          </div> :
+        <small className={"om-transcr-st " + media.tstate}>{T[media.tstate]}</small>}
+      </div>);
+  }
   // ícones lucide (mesma linguagem das demais svgs da tela)
   function WifiOffIco() {
     return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 2l20 20" /><path d="M8.5 16.5a5 5 0 0 1 7 0" /><path d="M5 12.86A10 10 0 0 1 12 10" /><path d="M2 8.82a16 16 0 0 1 4.9-2.91" /><path d="M22 8.82a16 16 0 0 0-4.5-2.78" /><path d="M12 20h.01" /></svg>;
@@ -169,8 +217,9 @@
     ctx: { os: "#4819 · Cardápios A4", saldo: "R$ 380 a receber", history: "4 pedidos · R$ 1.420 LTV", lastTouch: "11:48 hoje" },
     msgs: [
     { d: "ontem", who: "them", t: "Boa tarde! Os cardápios ficaram prontos?", time: "16:20" },
-    { d: "ontem", who: "me", t: "Sim Renato! Estão prontos. Pode passar quando quiser.", time: "16:25" },
+    { d: "ontem", who: "me", t: "Sim Renato! Estão prontos. Pode passar quando quiser.", time: "16:25", status: "read" },
     { d: "hoje", who: "me", t: "Cliente atrasou 3x no último pedido. Exigir PIX antes de soltar peça.", time: "08:30", internal: true },
+    { d: "hoje", who: "them", media: { kind: "audio", dur: "0:14", tstate: "done", transcription: "Oi, aqui é o Renato. Amanhã cedo eu passo aí pra pegar os cardápios, tá?" }, time: "11:46" },
     { d: "hoje", who: "them", t: "Posso passar pra retirar amanhã 9h?", time: "11:48" }]
   },
   { id: "c2", account: "wa_bal_vendas", queue: "posvenda", av: "CD", avc: 30, photo: "inbox-photo-c2.png", name: "Camila Diniz", company: "Acme Comércio Ltda",
@@ -178,9 +227,10 @@
     lastFrom: "me", preview: "Você: arte aprovada ✓", unread: 0, status: "aguardando",
     ctx: { os: "#4821 · Banner 3×2m", saldo: "R$ 0 (faturado)", history: "12 pedidos · R$ 8.420 LTV", lastTouch: "10:32 hoje" },
     msgs: [
+    { d: "hoje", who: "them", media: { kind: "image", expired: true }, time: "09:13" },
     { d: "hoje", who: "them", t: "Recebi a prova, mas o azul tá meio escuro. Pode ajustar?", time: "09:14" },
-    { d: "hoje", who: "me", t: "Pode deixar Camila, já mando a v2.", time: "09:20" },
-    { d: "hoje", who: "me", t: "Arte aprovada ✓", time: "10:32" }]
+    { d: "hoje", who: "me", t: "Pode deixar Camila, já mando a v2.", time: "09:20", status: "read" },
+    { d: "hoje", who: "me", t: "Arte aprovada ✓", time: "10:32", status: "delivered" }]
   },
   { id: "c3", account: "wa_bal_balcao", queue: "vendas", av: "DV", avc: 220, photo: "inbox-photo-c3.png", name: "Diego Vasconcellos", company: "TechPro",
     handle: "+55 21 9 9301-7714", assignee: "larissa", tags: ["novo"],
@@ -188,14 +238,16 @@
     ctx: { os: null, saldo: "R$ 1.840 a receber", history: "3 pedidos · R$ 4.200 LTV", lastTouch: "13:05 hoje" },
     msgs: [
     { d: "hoje", who: "them", t: "Olá! Adesivos novos, 8×8cm recortado.", time: "12:50" },
-    { d: "hoje", who: "them", t: "Quanto fica em 200un?", time: "13:05" }]
+    { d: "hoje", who: "them", t: "Quanto fica em 200un?", time: "13:05" },
+    { d: "hoje", who: "them", media: { kind: "audio", dur: "1:02", tstate: "limit" }, time: "13:06" },
+    { d: "hoje", who: "me", t: "Diego, segue a tabela de 200un em PDF.", time: "13:10", status: "failed", reason: "Número sem WhatsApp ou inválido" }]
   },
   { id: "c4", account: "wa_bal_fin", queue: "fin", av: "MV", avc: 295, photo: "inbox-photo-c4.png", name: "Marcos Vital", company: "Posto BR Centro",
     handle: "+55 21 9 8800-1240", assignee: "eliana", tags: ["cobrança"],
     lastFrom: "them", preview: "Obrigado! Recebi.", unread: 0, status: "abertas",
     ctx: { os: "#4790 · Lona Front-Light", saldo: "R$ 5.620", history: "1 pedido · R$ 5.620 LTV", lastTouch: "ontem 17:48" },
     msgs: [
-    { d: "ontem", who: "me", t: "Marcos, peça pronta e nota emitida.", time: "17:42" },
+    { d: "ontem", who: "me", t: "Marcos, peça pronta e nota emitida.", time: "17:42", status: "read" },
     { d: "ontem", who: "them", t: "Obrigado! Recebi.", time: "17:48" }]
   },
 
@@ -277,6 +329,19 @@
 
   function InboxPage() {
     const [healthDismissed, setHealthDismissed] = useState(false);
+    // Lote 6 (6.2.c) — estados de carregamento. Para ver no protótipo: ?estado=carregando |
+    // erro | sem-permissao | sem-canal | offline (ou localStorage "oimpresso.inbox.estado").
+    const [estado, setEstado] = useState(() => {
+      try {return new URLSearchParams(location.search).get("estado") || localStorage.getItem("oimpresso.inbox.estado");} catch {return null;}
+    });
+    const [netOn, setNetOn] = useState(() => navigator.onLine !== false);
+    useEffect(() => {
+      const on = () => setNetOn(true), off = () => setNetOn(false);
+      window.addEventListener("online", on);window.addEventListener("offline", off);
+      return () => {window.removeEventListener("online", on);window.removeEventListener("offline", off);};
+    }, []);
+    const online = netOn && estado !== "offline";
+    const [rcCheck, setRcCheck] = useState(null); // Lote 6: "verificando" | "falhou" depois do "Já escaneei"
     const [healthFixed, setHealthFixed] = useState({}); // contas reconectadas nesta sessão (mock; backend faz de verdade)
     const [reconnectAcc, setReconnectAcc] = useState(null); // conta sendo re-pareada (abre modal QR)
     const [convs, setConvs] = useState(CONVS_INIT);
@@ -335,7 +400,8 @@
     const threadRef = useRef(null);
     const inputRef = useRef(null);
 
-    useEffect(() => {if (!toast) return;const t = setTimeout(() => setToast(null), 2400);return () => clearTimeout(t);}, [toast]);
+    // toast: string (sucesso) ou { kind: "ok"|"warn"|"err", text, undo? }. Com Desfazer fica 6s.
+    useEffect(() => {if (!toast) return;const t = setTimeout(() => setToast(null), toast.undo ? 6000 : 2400);return () => clearTimeout(t);}, [toast]);
 
     // ── Filtragem ─────────────────────────────────────────────────────
     const filteredConvs = useMemo(() => {
@@ -410,7 +476,7 @@
     // Saúde efetiva da conta (reconectar nesta sessão zera o alerta).
     const effHealth = (a) => !a ? "never_checked" : healthFixed[a.id] ? "healthy" : a.health || "never_checked";
     const reconnect = (accId, label) => {setHealthFixed((m) => ({ ...m, [accId]: true }));setToast(`Reconectado · WhatsApp · ${label}`);};
-    const openReconnect = (acc) => setReconnectAcc(acc); // mostra o QR de re-pareamento (resposta ao Wagner: sim, mostra o QR)
+    const openReconnect = (acc) => {setRcCheck(null);setReconnectAcc(acc);}; // mostra o QR de re-pareamento (resposta ao Wagner: sim, mostra o QR)
 
     // Contas ativas com problema de conexão + nº de conversas (abertas) afetadas.
     // No repo real isto vem de `availableAccounts[].channel_health` do CaixaUnificadaController.
@@ -475,12 +541,17 @@
     // ── Ações ─────────────────────────────────────────────────────────
     const sendMsg = (text, opts = {}) => {
       const asInternal = opts.internal ?? internalMode;
-      if (isPreview && !asInternal) {setToast(`Canal ${convChannel.label} em homologação — envio bloqueado`);return;}
+      if (isPreview && !asInternal) {setToast({ kind: "warn", text: `Canal ${convChannel.label} em homologação — envio bloqueado` });return;}
       const t = (text || draft).trim();
       if (!t) return;
+      const cid = selId, mid = Date.now();
+      // "Enviando…" até a confirmação do canal (simulada).
+      if (!asInternal) setTimeout(() => setConvs((cs) => cs.map((c) => c.id !== cid ? c : {
+        ...c, msgs: c.msgs.map((m) => m.mid === mid ? { ...m, status: "sent" } : m)
+      })), 1200);
       setConvs((cs) => cs.map((c) => c.id !== selId ? c : {
         ...c,
-        msgs: [...c.msgs, { d: "hoje", who: "me", t, time: "agora", internal: asInternal }],
+        msgs: [...c.msgs, { d: "hoje", who: "me", t, time: "agora", internal: asInternal, mid, status: asInternal ? undefined : "sending" }],
         lastFrom: asInternal ? c.lastFrom : "me",
         preview: asInternal ? c.preview : "Você: " + t
       }));
@@ -522,9 +593,21 @@
       window.addEventListener("keydown", h);
       return () => window.removeEventListener("keydown", h);
     }, [selId, conv]);
+    // Reenvio de mensagem que falhou: volta a "Enviando…" e confirma.
+    const retryMsg = (idx) => {
+      const cid = selId;
+      const set = (st) => setConvs((cs) => cs.map((c) => c.id !== cid ? c : {
+        ...c, msgs: c.msgs.map((m, j) => j === idx ? { ...m, status: st, reason: st === "failed" ? m.reason : undefined } : m)
+      }));
+      set("sending");
+      setTimeout(() => set("sent"), 1200);
+    };
     const resolve = () => {
-      setConvs((cs) => cs.map((c) => c.id === selId ? { ...c, status: "resolvidas" } : c));
-      setToast(`Conversa com ${conv.name} resolvida`);
+      // Resolver tem volta (WCAG 2.1.4 + atalho "e"): o toast oferece Desfazer.
+      const id = selId, prev = conv.status;
+      setConvs((cs) => cs.map((c) => c.id === id ? { ...c, status: "resolvidas" } : c));
+      setToast({ kind: "ok", text: `Conversa com ${conv.name} resolvida`,
+        undo: () => { setConvs((cs) => cs.map((c) => c.id === id ? { ...c, status: prev } : c)); setSelId(id); } });
       const next = filteredConvs.find((c) => c.id !== selId);
       if (next) setSelId(next.id);
     };
@@ -764,7 +847,7 @@
           {/* Banner de saúde de canal — contas ativas degradadas/fora do ar.
                     Reconectar abre o drawer "Canais e contas". Dispensável até a próxima verificação. */}
           {!healthDismissed && unhealthyAccounts.length > 0 && (() => {
-              const worst = unhealthyAccounts.some((a) => a.health === "down") ? "err" : "warn";
+              const worst = unhealthyAccounts.some((a) => HEALTH_BAD(a.health)) ? "err" : "warn";
               const multi = unhealthyAccounts.length > 1;
               const total = unhealthyAccounts.reduce((s, a) => s + a.affected, 0);
               const a0 = unhealthyAccounts[0];
@@ -782,7 +865,7 @@
                       <>
                         <b>{a0.ch.short} · {a0.label} {HEALTH_VERB[a0.health].verb}.</b>
                         <span>
-                          {a0.health === "down" ? "Mensagens novas não estão chegando." : "Sincronização lenta — pode haver atraso."}{" "}
+                          {a0.health === "banned" ? "Nada sai nem chega até a Meta liberar o número — use outro canal ou o Meta Cloud." : a0.health === "down" ? "Mensagens novas não estão chegando." : "Sincronização lenta — pode haver atraso."}{" "}
                           {a0.affected} {a0.affected === 1 ? "conversa afetada" : "conversas afetadas"}.
                           <span className="mono"> · há {a0.sinceMin} min</span>
                         </span>
@@ -802,7 +885,7 @@
                   <div className="om-hb-rows">
                     {unhealthyAccounts.map((a) =>
                     <div className="om-hb-row" key={a.id}>
-                        <span className="om-hb-dot pulse" style={{ background: a.health === "down" ? "oklch(0.63 0.21 27)" : "oklch(0.80 0.13 80)" }} />
+                        <span className="om-hb-dot pulse" style={{ background: HEALTH_BAD(a.health) ? "oklch(0.63 0.21 27)" : "oklch(0.80 0.13 80)" }} />
                         <span><b>{a.ch.short} · {a.label}</b><span style={{ opacity: .85 }}> — {HEALTH_VERB[a.health].label}, {a.affected} conversas · há {a.sinceMin} min</span></span>
                         <a href="#" onClick={(e) => {e.preventDefault();openReconnect(a);}}>Reconectar</a>
                       </div>
@@ -813,13 +896,40 @@
 
             })()}
 
-          {filteredConvs.length === 0 ?
+          {!online &&
+            <div className="om-offline" role="status" data-testid="caixa-unif-offline">
+              <b>Sem conexão.</b> Mensagens ficam na fila e saem quando a internet voltar.
+            </div>}
+
+          {estado === "carregando" ?
+            <ul className="om-list om-list-skel" aria-busy="true" aria-label="Carregando conversas">
+              {[0, 1, 2, 3, 4].map((k) =>
+              <li key={k} aria-hidden="true"><span className="om-skel av" /><span className="om-skel-lines"><span className="om-skel" /><span className="om-skel short" /></span></li>)}
+            </ul> :
+          estado === "erro" ?
+            <div className="om-empty-list" role="alert">
+              <b>Não foi possível carregar as conversas</b>
+              <small>Verifique a conexão e tente de novo.</small>
+              <button className="os-btn" onClick={() => setEstado(null)}>Tentar de novo</button>
+            </div> :
+          estado === "sem-permissao" ?
             <div className="om-empty-list">
-              <b>Nenhuma conversa</b>
+              <b>Você não tem acesso a este canal</b>
+              <small>Peça ao administrador para liberar o atendimento deste canal.</small>
+            </div> :
+          estado === "sem-canal" ?
+            <div className="om-empty-list">
+              <b>Nenhum canal conectado</b>
+              <small>Conecte um WhatsApp para começar a receber conversas aqui.</small>
+              <button className="os-btn primary" onClick={() => setChSwitcherOpen(true)}>Conectar canal</button>
+            </div> :
+          filteredConvs.length === 0 ?
+            <div className="om-empty-list">
+              <b>Nenhuma conversa neste filtro</b>
               <small>Tente outro filtro ou limpe a busca.</small>
             </div> :
 
-            <ul className="om-list">
+            <ul className="om-list" role="listbox" aria-label="Conversas">
               {filteredConvs.map((c) => {
                 const acc = ACC_BY_ID[c.account];
                 const ch = CHAN_BY_ID[acc?.channel];
@@ -828,8 +938,10 @@
                   <li key={c.id}
                   className={(selId === c.id ? "sel " : "") + (c.preview_only ? "ghost" : "")}
                   onClick={() => setSelId(c.id)}
+                  role="option" tabIndex={0}
+                  aria-selected={selId === c.id}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelId(c.id); } }}
                   data-testid={`caixa-unif-conv-${c.id}`}
-                  aria-current={selId === c.id ? "true" : undefined}
                   style={{ "--om-q-color": q ? `oklch(0.62 0.13 ${q.hue})` : "transparent" }}>
                     <span className="om-av-wrap">
                       <span className="om-av" style={c.photo ? null : { background: `oklch(0.60 0.12 ${c.avc})` }}>
@@ -884,9 +996,9 @@
                     {!isPreview && effHealth(convAcc) !== "healthy" &&
                     <>
                         <span className="om-sep">·</span>
-                        <span style={{ fontWeight: 600, color: effHealth(convAcc) === "down" ? "oklch(0.48 0.15 27)" : "oklch(0.45 0.10 70)" }}
-                      title={effHealth(convAcc) === "down" ? "Canal fora do ar — envio pausado" : "Canal degradado — sincronização lenta"}>
-                          ● {effHealth(convAcc) === "down" ? "fora do ar" : "degradado"}
+                        <span style={{ fontWeight: 600, color: HEALTH_BAD(effHealth(convAcc)) ? "oklch(0.48 0.15 27)" : "oklch(0.45 0.10 70)" }}
+                      title={HEALTH_BAD(effHealth(convAcc)) ? `Canal ${HEALTH_VERB[effHealth(convAcc)].label} — envio pausado` : "Canal degradado — sincronização lenta"}>
+                          ● {(HEALTH_VERB[effHealth(convAcc)] || HEALTH_VERB.degraded).label}
                         </span>
                       </>
                     }
@@ -940,9 +1052,15 @@
                       <div className="om-internal-t">{renderText(m.t)}</div>
                     </div> :
 
-                  <div className={"om-bub " + (m.who === "me" ? "me" : "them") + " ch-" + convChannel.id}>
-                      <span>{renderText(m.t)}</span>
-                      <small>{m.time}{m.who === "me" ? " ✓✓" : ""}</small>
+                  <div className={"om-bub " + (m.who === "me" ? "me" : "them") + " ch-" + convChannel.id + (m.status === "failed" ? " failed" : "")}>
+                      {m.media && <MsgMedia media={m.media} />}
+                      {m.t && <span>{renderText(m.t)}</span>}
+                      <small>{m.time}{m.who === "me" && <MsgStatus status={m.status} />}</small>
+                      {m.status === "failed" &&
+                      <div className="om-bub-fail" role="alert">
+                          <span>Não enviada{m.reason ? ` · ${m.reason}` : ""}</span>
+                          <button className="om-bub-retry" onClick={() => retryMsg(i)}>Tentar de novo</button>
+                        </div>}
                     </div>;
 
 
@@ -1005,9 +1123,9 @@
                 </div>
               }
 
-              {!isPreview && !internalMode && effHealth(convAcc) === "down" &&
+              {!isPreview && !internalMode && HEALTH_BAD(effHealth(convAcc)) &&
               <div className="om-preview-banner" style={{ background: "oklch(0.97 0.02 27)", borderColor: "oklch(0.84 0.09 27)", color: "oklch(0.45 0.13 27)" }}>
-                  <b style={{ color: "oklch(0.42 0.16 27)" }}>Envio pausado — canal fora do ar.</b>
+                  <b style={{ color: "oklch(0.42 0.16 27)" }}>Envio pausado — canal {HEALTH_VERB[effHealth(convAcc)].label}.</b>
                   <span>Reconecte o canal pra enviar; sua mensagem fica salva como rascunho. <a href="#" onClick={(e) => {e.preventDefault();openReconnect(convAcc);}}>Reconectar</a></span>
                 </div>
               }
@@ -1041,7 +1159,7 @@
                   <button
                     className={"os-btn " + (internalMode ? "" : "primary")}
                     onClick={() => sendMsg()}
-                    disabled={!draft.trim() || (isPreview || effHealth(convAcc) === "down") && !internalMode}
+                    disabled={!draft.trim() || (isPreview || HEALTH_BAD(effHealth(convAcc))) && !internalMode}
                     data-testid="caixa-unif-composer-send"
                     style={internalMode ? { background: "oklch(0.70 0.14 80)", color: "oklch(0.20 0.10 80)" } : null}>
                     {internalMode ? "Anotar" : "Enviar"}
@@ -1100,7 +1218,7 @@
         {conv && ctxDrawerOpen &&
           <>
           <div className="om-backdrop" onClick={() => setCtxDrawerOpen(false)} />
-          <aside className="om-drawer om-ctx-drawer">
+          <aside role="dialog" aria-modal="true" aria-label="Contexto do contato" ref={window.omDialogRef} className="om-drawer om-ctx-drawer">
             <header className="om-drawer-h">
               <div><h2>Contexto</h2><p>{conv.name}{conv.company ? " · " + conv.company : ""}</p></div>
               <button className="om-x" onClick={() => setCtxDrawerOpen(false)} aria-label="Fechar">✕</button>
@@ -1121,6 +1239,10 @@
                   }
                 </div>
                 }
+              {!isPreview && window.InboxTranscriptDialog &&
+              <button className="os-btn ghost om-ctx-export" onClick={() => setTranscriptOpen(true)} data-testid="caixa-unif-export">
+                  Exportar conversa
+                </button>}
               <div className="om-kv">
                 <small>Fila</small>
                 {isPreview ?
@@ -1193,7 +1315,15 @@
           }
       </div>
 
-      {toast && <div className="om-toast">✓ {toast}</div>}
+      {toast && (() => {
+        const t = typeof toast === "string" ? { kind: "ok", text: toast } : toast;
+        const ico = t.kind === "err" ? "!" : t.kind === "warn" ? "⚠" : "✓";
+        return (
+          <div className={"om-toast " + t.kind} role={t.kind === "err" ? "alert" : "status"}>
+            <span className="om-toast-ico" aria-hidden="true">{ico}</span> {t.text}
+            {t.undo && <button className="om-toast-undo" onClick={() => { t.undo(); setToast(null); }}>Desfazer</button>}
+          </div>);
+      })()}
 
       {transcriptOpen && conv && window.InboxTranscriptDialog &&
         <window.InboxTranscriptDialog conv={conv} queue={convQueue} channel={convChannel} account={convAcc} onClose={() => setTranscriptOpen(false)} />
@@ -1273,10 +1403,10 @@
       {tplDrawerOpen &&
         <>
           <div className="om-backdrop" onClick={() => setTplDrawerOpen(false)} />
-          <aside className="om-drawer wide">
+          <aside role="dialog" aria-modal="true" aria-label="Templates" ref={window.omDialogRef} className="om-drawer wide">
             <header className="om-drawer-h">
               <div><h2>Templates</h2><p>Biblioteca unificada · Jana (IA) + HSM (Meta-aprovados)</p></div>
-              <button className="om-x" onClick={() => setTplDrawerOpen(false)}>✕</button>
+              <button className="om-x" onClick={() => setTplDrawerOpen(false)} aria-label="Fechar templates">✕</button>
             </header>
             <div className="om-tpl-seg" role="tablist" aria-label="Filtrar biblioteca de templates">
               {[{ id: "all", label: "Todas" }, { id: "jana", label: "✨ Jana · IA" }, { id: "hsm", label: "▣ HSM · Meta" }].map((s) =>
@@ -1318,10 +1448,10 @@
       {chSwitcherOpen &&
         <>
           <div className="om-backdrop" onClick={() => setChSwitcherOpen(false)} />
-          <aside className="om-drawer">
+          <aside role="dialog" aria-modal="true" aria-label="Canais e contas" ref={window.omDialogRef} className="om-drawer">
             <header className="om-drawer-h">
               <div><h2>Canais e contas</h2><p>{activeAccCount} ativas · {ACCOUNTS.length - activeAccCount} em homologação</p></div>
-              <button className="om-x" onClick={() => setChSwitcherOpen(false)}>✕</button>
+              <button className="om-x" onClick={() => setChSwitcherOpen(false)} aria-label="Fechar canais e contas">✕</button>
             </header>
             <div className="om-drawer-body">
               {CHANNELS.map((ch) => {
@@ -1340,8 +1470,8 @@
                           <small className="mono">{acc.handle}</small>
                           {OPERATORS[acc.owner] && <small>Responsável: {OPERATORS[acc.owner].name}</small>}
                           {acc.status === "ativo" && effHealth(acc) !== "healthy" &&
-                        <small className={"om-chan-health " + (effHealth(acc) === "down" ? "err" : "warn")}>
-                              {effHealth(acc) === "down" ? "● Fora do ar" : "● Degradado — sincronização lenta"}
+                        <small className={"om-chan-health " + (HEALTH_BAD(effHealth(acc)) ? "err" : "warn")}>
+                              {effHealth(acc) === "banned" ? "● Bloqueado pela Meta" : effHealth(acc) === "down" ? "● Fora do ar" : "● Degradado — sincronização lenta"}
                             </small>
                         }
                         </div>
@@ -1402,12 +1532,26 @@
                   </div>
                   }
               </div>
+              {rcCheck === "falhou" &&
+              <div className="om-rc-fail" role="alert">
+                  <b>Ainda não conectou.</b> {reconnectAcc.health === "banned" ?
+                  "O número segue bloqueado pela Meta. Ler o QR de novo não resolve — conecte este atendimento pelo Meta Cloud." :
+                  "Confira se o QR foi lido no celular certo e tente de novo."}
+                </div>}
               <footer className="om-rc-foot">
                 <button className="os-btn ghost" onClick={() => {setReconnectAcc(null);setChSwitcherOpen(true);}}>Ver todos os canais</button>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button className="os-btn" onClick={() => setReconnectAcc(null)}>Cancelar</button>
-                  <button className="os-btn primary" onClick={() => {reconnect(reconnectAcc.id, reconnectAcc.label);setReconnectAcc(null);}} data-testid="caixa-unif-reconnect-confirm">
-                    {isQR ? "Já escaneei" : "Reautenticar"}
+                  {/* Lote 6 (6.2.b): "Já escaneei" verifica antes de marcar conectado. */}
+                  <button className="os-btn primary" disabled={rcCheck === "verificando"} data-testid="caixa-unif-reconnect-confirm"
+                    onClick={() => {
+                      const acc = reconnectAcc;setRcCheck("verificando");
+                      setTimeout(() => {
+                        if (acc.health === "banned") {setRcCheck("falhou");return;}
+                        setRcCheck(null);reconnect(acc.id, acc.label);setReconnectAcc(null);
+                      }, 1500);
+                    }}>
+                    {rcCheck === "verificando" ? "Verificando…" : rcCheck === "falhou" ? "Verificar de novo" : isQR ? "Já escaneei" : "Reautenticar"}
                   </button>
                 </div>
               </footer>
@@ -1420,10 +1564,10 @@
       {queuesOpen &&
         <>
           <div className="om-backdrop" onClick={() => setQueuesOpen(false)} />
-          <aside className="om-drawer wide">
+          <aside role="dialog" aria-modal="true" aria-label="Filas" ref={window.omDialogRef} className="om-drawer wide">
             <header className="om-drawer-h">
               <div><h2>Filas de atendimento</h2><p>{QUEUES.length} filas · distribuição automática</p></div>
-              <button className="om-x" onClick={() => setQueuesOpen(false)}>✕</button>
+              <button className="om-x" onClick={() => setQueuesOpen(false)} aria-label="Fechar filas">✕</button>
             </header>
             <div className="om-drawer-body">
               {QUEUES.map((q) => {
@@ -1470,13 +1614,13 @@
       {bcastOpen &&
         <>
           <div className="om-backdrop" onClick={() => setBcastOpen(false)} />
-          <aside className="om-drawer">
+          <aside role="dialog" aria-modal="true" aria-label="Broadcast" ref={window.omDialogRef} className="om-drawer">
             <header className="om-drawer-h">
               <div>
                 <h2>Broadcast cross-canal</h2>
                 <p>Envia para {convs.filter((c) => !c.preview_only).length} contatos abertos</p>
               </div>
-              <button className="om-x" onClick={() => setBcastOpen(false)}>✕</button>
+              <button className="om-x" onClick={() => setBcastOpen(false)} aria-label="Fechar broadcast">✕</button>
             </header>
             <div className="om-drawer-body">
               <label><small>Conta de envio</small></label>

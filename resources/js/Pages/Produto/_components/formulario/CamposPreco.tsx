@@ -8,7 +8,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
-import { CASAS_PRECO, arredondar, mudarCompra, mudarMargem, mudarVenda, somarPercentual } from './precos';
+import { CASAS_PRECO, abaixoDaMargemMinima, arredondar, mudarCompra, mudarMargem, mudarVenda, somarPercentual } from './precos';
 import type { PrecoSimples } from './precos';
 
 interface Props {
@@ -16,9 +16,11 @@ interface Props {
   mudar: (p: PrecoSimples) => void;
   /** Alíquota (%) do imposto escolhido no mesmo card. */
   aliquota: number;
+  /** Margem mínima da empresa em % (UC-FLX-35, Fluxos). Null = regra desligada, sem aviso. */
+  margemMinima?: number | null;
 }
 
-export function CamposPreco({ valor, mudar, aliquota }: Props) {
+export function CamposPreco({ valor, mudar, aliquota, margemMinima }: Props) {
   const exibir = (n: number) => formatDecimalPtBR(arredondar(n), CASAS_PRECO);
 
   return (
@@ -52,6 +54,12 @@ export function CamposPreco({ valor, mudar, aliquota }: Props) {
           precision={CASAS_PRECO}
           className="text-right"
         />
+        {abaixoDaMargemMinima(valor, margemMinima) && (
+          <p data-testid="aviso-margem-minima" className="text-[12px] text-warning-fg mt-1">
+            Abaixo da margem mínima da empresa ({formatDecimalPtBR(margemMinima as number, 2)}%, em Fluxos): orçamento com
+            este produto só vira venda com aprovação.
+          </p>
+        )}
       </div>
       <div>
         <Label htmlFor="single_dsp">Venda sem imposto</Label>
