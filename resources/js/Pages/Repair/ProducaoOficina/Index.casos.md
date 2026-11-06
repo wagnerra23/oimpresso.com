@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-11-06"
 last_run_ci: "0 UC executado — o trio nasce neste PR e o teste é Pest Browser (CI-only). Veredito pendente do step E2E de render · Repair/ProducaoOficina em visual-regression.yml."
 ---
 
@@ -17,6 +17,11 @@ last_run_ci: "0 UC executado — o trio nasce neste PR e o teste é Pest Browser
 > significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de Uso & Aceite — Produção · Oficina/OS (kanban)
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10556). Nada do
+> comportamento coberto pelos UCs mudou. Lane `visual-regression` disparada no branch, run
+> [42273214665](https://github.com/wagnerra23/oimpresso.com/actions/runs/42273214665): `ProducaoOficinaIndexTest` (Pest Browser) 7 testes passaram, 30 asserções, UC-RPOE-01 a 06, no commit `e52e971260`.
 
 > Kanban **read-mostly** de 5 colunas sobre `JobSheet`, com vocabulário **shared multi-vertical**
 > (`code/item/usage_meter/executor/slot/area` — [ADR 0121 §P8](../../../../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md)).

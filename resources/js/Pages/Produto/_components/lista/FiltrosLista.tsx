@@ -3,19 +3,20 @@
 // situação e "Não para venda"; e os dois filtros de módulo que só existem para a empresa que
 // tem o módulo — "Modelo do dispositivo" (assistência técnica), "WooCommerce habilitado" e
 // "Natureza fiscal" (módulo Fiscal, UC-PIDX-31). "Falta NCM" (UC-PIDX-42) só aparece para a
-// empresa que emite nota, a mesma condição da aba Fiscal do painel.
+// empresa que emite nota, a mesma condição da aba Fiscal do painel. "Uso" (UC-PIDX-44, CV1): Para vender,
+// Material (entra em receita da Fabricação) ou Serviço (natureza fiscal) — só as opções que a empresa tem.
 
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Button } from '@/Components/ui/button';
-import { NATUREZAS_FISCAIS, SITUACOES, TIPOS_PRODUTO, type FiltrosLista, type Opcao, type OpcoesLista } from './tipos';
+import { NATUREZAS_FISCAIS, SITUACOES, TIPOS_PRODUTO, USOS, type FiltrosLista, type Opcao, type OpcoesLista, type Uso } from './tipos';
 
 // O Radix Select não aceita `value=""` (lápide §5 2026-06-29): "Todos" usa uma sentinela.
 const TODOS = '__todos__';
 
-type ChaveSelect = 'type' | 'category_id' | 'unit_id' | 'tax_id' | 'brand_id' | 'location_id' | 'active_state' | 'repair_model_id' | 'natureza_fiscal';
+type ChaveSelect = 'type' | 'category_id' | 'unit_id' | 'tax_id' | 'brand_id' | 'location_id' | 'active_state' | 'repair_model_id' | 'natureza_fiscal' | 'uso';
 
 interface Props {
   filtros: FiltrosLista;
@@ -25,6 +26,8 @@ interface Props {
   naturezaFiscal?: boolean;
   /** Empresa que emite nota: mostra o filtro "Falta NCM" (UC-PIDX-42). */
   emiteNota?: boolean;
+  /** UC-PIDX-44: opções do filtro "Uso" que a empresa tem; com menos de duas, o filtro não aparece. */
+  usos?: Uso[];
   aplicar: (patch: Partial<FiltrosLista>) => void;
 }
 
@@ -65,7 +68,7 @@ function Campo({
   );
 }
 
-export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, naturezaFiscal = false, emiteNota = false, aplicar }: Props) {
+export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, naturezaFiscal = false, emiteNota = false, usos = [], aplicar }: Props) {
   const [aberto, setAberto] = useState(true);
   const campo = (k: ChaveSelect) => (v: string | null) => aplicar({ [k]: v } as Partial<FiltrosLista>);
 
@@ -95,6 +98,10 @@ export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, nat
             <Campo rotulo="Marca" valor={filtros.brand_id} opcoes={opcoes.marcas} vazio="Todas" aoMudar={campo('brand_id')} />
             <Campo rotulo="Local do negócio" valor={filtros.location_id} opcoes={opcoes.locais} vazio="Todos" aoMudar={campo('location_id')} />
             <Campo rotulo="Situação" valor={filtros.active_state} opcoes={SITUACOES} vazio="Todos" aoMudar={campo('active_state')} />
+            {/* UC-PIDX-44 (CV1): Material vem da Fabricação e Serviço da natureza fiscal; só com as duas pontas. */}
+            {usos.length > 1 && (
+              <Campo rotulo="Uso" valor={filtros.uso ?? null} opcoes={USOS.filter((u) => usos.includes(u.id))} vazio="Todos" aoMudar={campo('uso')} />
+            )}
             {/* UC-PIDX-31: só com o módulo Fiscal. */}
             {naturezaFiscal && (
               <Campo rotulo="Natureza fiscal" valor={filtros.natureza_fiscal} opcoes={NATUREZAS_FISCAIS} vazio="Todas" aoMudar={campo('natureza_fiscal')} />

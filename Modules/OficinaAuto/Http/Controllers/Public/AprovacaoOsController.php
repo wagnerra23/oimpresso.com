@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\OficinaAuto\Entities\ServiceOrder;
+use Modules\OficinaAuto\Entities\ServiceOrderItem;
+use Modules\OficinaAuto\Entities\Vehicle;
 use Modules\OficinaAuto\Services\AprovacaoOsService;
+use Modules\OficinaAuto\Services\ServiceOrderItemService;
 
 /**
  * AprovacaoOsController — Endpoint público SEM auth pra cliente aprovar/rejeitar OS
@@ -26,17 +29,25 @@ use Modules\OficinaAuto\Services\AprovacaoOsService;
  * Fluxo:
  *  1. Job WhatsApp gera token + PIN via AprovacaoOsService::gerarTokenAprovacao
  *  2. Cliente recebe link `oimpresso.com/aprovar-os/{token}` + PIN separado
- *  3. GET /aprovar-os/{token} → Page Inertia com info OS + form PIN
- *  4. POST /aprovar-os/{token} {pin, decisao=aprovar|rejeitar}
- *  5. PIN ok + decisao=aprovar → OS status orcamento → aprovada
+ *  3. GET /aprovar-os/{token} → Page Inertia com o MÍNIMO da OS (número, veículo, datas) + form PIN.
+ *     Sem notas internas, sem itens, sem valor: quem tem só o link (encaminhado, preview) não
+ *     lê o orçamento.
+ *  4. POST /aprovar-os/{token} {pin, decisao=conferir} → PIN certo abre o orçamento nesta sessão
+ *     do navegador por 30 min; o GET passa a trazer os itens e o total (CDC art. 40: o cliente
+ *     vê o orçamento discriminado ANTES de aprovar).
+ *  5. POST {decisao=aprovar|rejeitar} → aplica a decisão (orçamento já aberto, ou PIN no mesmo POST)
  *  6. PIN errado 5x → lockout 30min
  *
  * @see memory/requisitos/OficinaAuto/SPEC.md US-OFICINA-006
  */
 class AprovacaoOsController extends Controller
 {
+    /** Por quanto tempo o PIN conferido mantém o orçamento aberto nesta sessão. */
+    private const LIBERACAO_SEGUNDOS = 1800;
+
     public function __construct(
         private readonly AprovacaoOsService $service,
+        private readonly ServiceOrderItemService $itens,
     ) {
     }
 
@@ -55,6 +66,7 @@ class AprovacaoOsController extends Controller
                 'mensagem'         => 'Este link expirou ou é inválido. Entre em contato com a oficina pra solicitar um novo link.',
                 'token'            => $token,
                 'os'               => null,
+                'orcamento'        => null,
                 'tentativasRestantes' => 0,
             ]);
         }
@@ -64,6 +76,7 @@ class AprovacaoOsController extends Controller
             'mensagem'         => null,
             'token'            => $token,
             'os'               => $this->osPayload($os),
+            'orcamento'        => $this->liberada($os) ? $this->orcamentoPayload($os) : null,
             'tentativasRestantes' => $this->service->tentativasRestantes($os),
         ]);
     }
@@ -71,18 +84,20 @@ class AprovacaoOsController extends Controller
     /**
      * POST /aprovar-os/{token}
      *
-     * Body: {pin: "1234", decisao: "aprovar" | "rejeitar"}
+     * Body: {pin: "1234", decisao: "conferir" | "aprovar" | "rejeitar"}
      *
-     * - PIN ok + aprovar → status orcamento → aprovada (Inertia redirect com flash success)
-     * - PIN ok + rejeitar → status permanece (idempotente — cenário 5 do test); flash neutral
+     * - PIN ok + conferir → abre o orçamento (itens + total) nesta sessão; volta pra tela
+     * - aprovar → status orcamento → aprovada (Inertia redirect com flash success)
+     * - rejeitar → status permanece (idempotente — cenário 5 do test); flash neutral
+     * - aprovar/rejeitar aceitam o PIN no mesmo POST (caminho antigo) ou o orçamento já aberto
      * - PIN errado → flash error + decrementa tentativas
      * - Lockout → flash error "bloqueado por 30min"
      */
     public function submit(string $token, Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'pin'     => ['required', 'string', 'regex:/^\d{4}$/'],
-            'decisao' => ['required', 'string', 'in:aprovar,rejeitar'],
+            'pin'     => ['nullable', 'string', 'regex:/^\d{4}$/'],
+            'decisao' => ['required', 'string', 'in:conferir,aprovar,rejeitar'],
         ]);
 
         $os = $this->service->validarToken($token);
@@ -93,7 +108,14 @@ class AprovacaoOsController extends Controller
             ]);
         }
 
-        if (! $this->service->validarPin($os, $data['pin'])) {
+        // Decidir exige o orçamento já aberto por PIN nesta sessão, ou o PIN no próprio POST.
+        // Conferir sempre exige PIN.
+        $jaLiberada = $data['decisao'] !== 'conferir' && $this->liberada($os);
+        if (! $jaLiberada && empty($data['pin'])) {
+            return back()->withErrors(['pin' => 'Digite o PIN recebido.']);
+        }
+
+        if (! $jaLiberada && ! $this->service->validarPin($os, (string) $data['pin'])) {
             $restantes = $this->service->tentativasRestantes($os);
 
             return back()->with('flash', [
@@ -103,6 +125,17 @@ class AprovacaoOsController extends Controller
                     : "PIN inválido. Você tem {$restantes} tentativa(s) restante(s).",
             ]);
         }
+
+        if ($data['decisao'] === 'conferir') {
+            $request->session()->put(
+                $this->chaveLiberacao($os),
+                now()->addSeconds(self::LIBERACAO_SEGUNDOS)->timestamp
+            );
+
+            return back();
+        }
+
+        $request->session()->forget($this->chaveLiberacao($os));
 
         // PIN OK — aplica decisão
         if ($data['decisao'] === 'aprovar') {
@@ -194,11 +227,21 @@ class AprovacaoOsController extends Controller
     }
 
     /**
-     * Payload mínimo da OS pra exibir ao cliente (sem PII excedente).
+     * Payload ANTES do PIN: só o necessário pro cliente reconhecer a OS dele.
+     *
+     * Fora de propósito: `notes` (texto interno da oficina, nunca vai pro cliente), itens e
+     * valor (só depois do PIN, em `orcamentoPayload`). A placa fica: mascarar é a decisão D4
+     * do [W], ainda aberta (auditoria 2026-11-05).
      */
     private function osPayload(ServiceOrder $os): array
     {
-        $os->loadMissing(['vehicle']);
+        // SUPERADMIN: rota pública sem sessão — filtro explícito pela empresa assinada no token.
+        $vehicle = $os->vehicle_id
+            ? Vehicle::withoutGlobalScopes()
+                ->where('id', $os->vehicle_id)
+                ->where('business_id', $os->business_id)
+                ->first(['plate', 'vehicle_type'])
+            : null;
 
         return [
             'id'                  => $os->id,
@@ -207,14 +250,49 @@ class AprovacaoOsController extends Controller
             'status'              => $os->status,
             'entered_at'          => $os->entered_at?->toIso8601String(),
             'expected_completion' => $os->expected_completion?->toIso8601String(),
-            'notes'               => $os->notes,
-            // valor_total: locação erradicada (ADR 0265) — sem fluxo de diária, sem valor
-            // estimável aqui. Quando US-OFICINA-006 mapear transaction_id → final_total, usar.
-            'valor_total'         => null,
-            'vehicle'             => $os->vehicle ? [
-                'plate'        => $os->vehicle->plate,
-                'vehicle_type' => $os->vehicle->vehicle_type,
+            'vehicle'             => $vehicle ? [
+                'plate'        => $vehicle->plate,
+                'vehicle_type' => $vehicle->vehicle_type,
             ] : null,
         ];
+    }
+
+    /**
+     * Payload DEPOIS do PIN: itens e total do orçamento.
+     *
+     * O total vem do `ServiceOrderItemService::recalcularTotal` — a mesma soma de
+     * `valor_total` dos itens que o `ServiceOrder::total_items` da tela interna mostra e o
+     * `ServiceOrderObserver::computeFinalTotal` fatura. Nada é recalculado aqui. As notas
+     * dos itens são internas e não saem.
+     */
+    private function orcamentoPayload(ServiceOrder $os): array
+    {
+        // SUPERADMIN: rota pública sem sessão — filtro explícito pela empresa assinada no token.
+        $itens = ServiceOrderItem::withoutGlobalScopes()
+            ->where('service_order_id', $os->id)
+            ->where('business_id', $os->business_id)
+            ->orderBy('id')
+            ->get(['tipo', 'descricao', 'quantidade', 'valor_unitario', 'valor_total']);
+
+        return [
+            'itens' => $itens->map(fn (ServiceOrderItem $i) => [
+                'tipo'           => $i->tipo,
+                'descricao'      => $i->descricao,
+                'quantidade'     => (float) $i->quantidade,
+                'valor_unitario' => (float) $i->valor_unitario,
+                'valor_total'    => (float) $i->valor_total,
+            ])->values()->all(),
+            'total' => $this->itens->recalcularTotal((int) $os->id),
+        ];
+    }
+
+    private function chaveLiberacao(ServiceOrder $os): string
+    {
+        return "oficina_aprovacao_liberada.{$os->business_id}_{$os->id}";
+    }
+
+    private function liberada(ServiceOrder $os): bool
+    {
+        return (int) session($this->chaveLiberacao($os), 0) > now()->timestamp;
     }
 }
