@@ -35,7 +35,11 @@ use Modules\NfeBrasil\Models\NfeEmissao;
  *  - LIMIT 5 cada categoria (10 results max)
  *  - Sem paginação — palette é "ação rápida", não navegação
  *
- * Permission: `fiscal.access` (gate único — leitura agregada).
+ * Permissão: `fiscal.access` para buscar; cada categoria só volta para quem a tela
+ * dona dela aceita — notas com `fiscal.nfe.view` (/fiscal/nfe), DF-e com
+ * `fiscal.dfe.manage` (/fiscal/dfe). Sem a permissão a categoria volta vazia (o front
+ * já trata lista vazia) e a query nem roda. Até 2026-11-05 bastava `fiscal.access` e a
+ * busca entregava o que as duas telas recusavam (auditoria Fiscal, lote 1.3).
  */
 class PaletteSearchController extends Controller
 {
@@ -53,11 +57,13 @@ class PaletteSearchController extends Controller
         ]);
 
         $query = trim($data['q']);
+        $user = auth()->user();
+        $superadmin = $user->can('superadmin');
 
         return response()->json([
             'q'     => $query,
-            'notas' => $this->searchNotas($query),
-            'dfe'   => $this->searchDfe($query),
+            'notas' => ($superadmin || $user->can('fiscal.nfe.view')) ? $this->searchNotas($query) : [],
+            'dfe'   => ($superadmin || $user->can('fiscal.dfe.manage')) ? $this->searchDfe($query) : [],
         ]);
     }
 

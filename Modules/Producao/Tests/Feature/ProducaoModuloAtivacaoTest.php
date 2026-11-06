@@ -8,6 +8,7 @@ use Modules\Producao\Http\Controllers\InstallController;
 
 uses(Tests\TestCase::class);
 
+// @covers-us US-PCP-002
 /**
  * Esqueleto do Modules/Producao — contrato da ADR 0431 (2026-10-15), não do código:
  *

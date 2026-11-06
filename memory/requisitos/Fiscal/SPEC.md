@@ -131,7 +131,7 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 
 > **Rota:** `GET /fiscal/eventos`
 > **Controller:** `EventosController@index`
-> **Permissão:** `fiscal.access`
+> **Permissão:** `fiscal.nfe.view` (era `fiscal.access` até o lote 1.3 da auditoria Fiscal, 2026-11-05: os eventos são de `NfeEmissao`, a permissão é a da tela de notas)
 > **Page:** `resources/js/Pages/Fiscal/Eventos.tsx`
 
 **Implementado em:** [`resources/js/Pages/Fiscal/Eventos.tsx`](../../../resources/js/Pages/Fiscal/Eventos.tsx) · [`Modules/Fiscal/Http/Controllers/EventosController.php`](../../../Modules/Fiscal/Http/Controllers/EventosController.php) · verificado@176f9bc (2026-07-01)
@@ -145,7 +145,7 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 - [x] Filtros por tipo (todos/cce/cancel/epec/manifest) + período 7/30/90d
 - [x] Eager `with('emissao')` pra link cross-página
 - [x] Inertia::defer em rows
-- [x] Permissão `fiscal.access` (gate único — eventos são audit)
+- [x] Permissão `fiscal.nfe.view` na timeline e no CSV (até 2026-11-05 era `fiscal.access`, gate único)
 - [x] Pest biz=1 (`EventosCockpitMultiTenantTest`)
 - [x] Charter + RUNBOOK + visual-comparison
 
@@ -270,7 +270,7 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 
 ### US-FISCAL-015 · ⌘K palette cross-fiscal — ✅ PR #7 Wave
 
-> **Rota:** `GET /fiscal/palette/search?q={query}` (perm `fiscal.access`)
+> **Rota:** `GET /fiscal/palette/search?q={query}` (perm `fiscal.access`; notas só com `fiscal.nfe.view`, DF-e só com `fiscal.dfe.manage` — lote 1.3, 2026-11-05)
 > **Controller:** `PaletteSearchController@search` · **Component:** `CmdKPalette.tsx`
 
 **Implementado em:** [`Modules/Fiscal/Http/Controllers/PaletteSearchController.php`](../../../Modules/Fiscal/Http/Controllers/PaletteSearchController.php) · [`resources/js/Pages/Fiscal/_components/CmdKPalette.tsx`](../../../resources/js/Pages/Fiscal/_components/CmdKPalette.tsx) · verificado@176f9bc (2026-07-01)

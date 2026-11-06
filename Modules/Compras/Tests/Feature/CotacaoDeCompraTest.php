@@ -16,7 +16,8 @@ use Tests\Support\EstoqueFixture;
  *   item 2 (tinta, 2 un):   A = 20,00 em 7 dias · B = 20,00 em 3 dias  → vence B (empate, prazo)
  *   item 3 (ilhós, 100 un): ninguém respondeu → sem vencedor
  *
- * Tenant 98 (ADR 0358); adversário 99 ou o biz=2 do seed, nunca 1 nem 4.
+ * Tenant 98 (ADR 0358); adversário o cliente fictício 99, criado pelo próprio teste quando falta
+ * (seededSupportClientTenant); nunca 1 nem 4.
  *
  * @covers-us US-COM-031
  */
@@ -38,8 +39,9 @@ beforeEach(function () {
     ]);
     $this->a = $forn($this->biz, 'Fornecedor A');
     $this->b = $forn($this->biz, 'Fornecedor B');
-    $this->outra = (int) DB::table('business')->whereIn('id', [99, 2])->where('id', '!=', $this->biz)->orderByDesc('id')->value('id');
-    $this->alheio = $this->outra > 0 ? $forn($this->outra, 'Fornecedor alheio') : null;
+    $this->outra = (int) $this->seededSupportClientTenant()->id;
+    expect($this->outra)->toBe(99, 'adversário fictício 99 não foi criado');
+    $this->alheio = $forn($this->outra, 'Fornecedor alheio');
     $this->svc = app(CotacaoDeCompra::class);
 });
 
@@ -103,9 +105,6 @@ it('a cotação de uma requisição traz os itens dela', function () {
 });
 
 it('não aceita fornecedor, requisição nem cotação de outra empresa', function () {
-    if ($this->alheio === null) {
-        $this->markTestSkipped('Sem empresa adversária fictícia (99 ou 2) neste ambiente.');
-    }
     expect(fn () => $this->svc->criar($this->biz, $this->loc, [['variation_id' => $this->lona->variationId(), 'quantidade' => '1']], [$this->alheio], $this->uid))
         ->toThrow(InvalidArgumentException::class, 'Fornecedor inválido para este negócio.');
 
@@ -183,9 +182,7 @@ it('não fecha duas vezes, nem com fornecedor que não respondeu, nem a cotaçã
 
     expect(fn () => $this->svc->fechar($this->biz, $id, $this->uid, [$itens[2] => $this->a]))
         ->toThrow(InvalidArgumentException::class, 'O fornecedor escolhido não respondeu este item.');
-    if ($this->outra > 0) {
-        expect(fn () => $this->svc->fechar($this->outra, $id, $this->uid))->toThrow(InvalidArgumentException::class, 'Cotação inválida para este negócio.');
-    }
+    expect(fn () => $this->svc->fechar($this->outra, $id, $this->uid))->toThrow(InvalidArgumentException::class, 'Cotação inválida para este negócio.');
 
     $this->svc->fechar($this->biz, $id, $this->uid);
     expect(fn () => $this->svc->fechar($this->biz, $id, $this->uid))->toThrow(InvalidArgumentException::class, 'A cotação não está aberta.');
