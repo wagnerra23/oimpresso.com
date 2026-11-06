@@ -251,6 +251,24 @@ last_run: "2026-10-26"
 
 ---
 
+## UC-PAT-13 · Quando a carga do painel falha, a tela diz isso e deixa tentar de novo
+
+- **Persona:** quem abre o Painel para saber o estado do patrimônio e precisa distinguir "ainda carregando" de "não veio".
+- **Aceite:** Dado a tela aberta · Quando a carga deferida de `kpis`, `porCategoria`, `garantia`, `manutencoes` e `meusBens` termina sem a prop (500, 503
+  do deploy ou rede caída) · Então o corpo do painel (abaixo do header e das abas) vira o estado de erro do protótipo
+  (`patrimonio-page.jsx:846-850`): `role="alert"`, título "Não consegui carregar o patrimônio", a frase de que nada foi
+  perdido e o botão "Tentar de novo". O botão pede **só** `kpis`, `porCategoria`, `garantia`, `manutencoes` e `meusBens` de novo, sem o diálogo de erro
+  do Inertia por cima; quando a prop chega, a tela volta ao normal.
+  As cinco agregações vêm num pedido deferido só, então o painel mostra **um** estado de erro, não
+  oito esqueletos. O selo "Atualizado" do header continua reapurando a página inteira.
+- **Por quê:** o `<Deferred>` mostra o esqueleto enquanto a prop não chegou, e numa falha ela
+  nunca chega — a tela parecia carregando para sempre. O critério (`_shared/falhaDeferida.ts`) é
+  a visita que pediu a prop ter terminado sem ela; não depende de horário nem de código de erro.
+- **Teste:** `tests/js/patrimonio-estado-erro.test.tsx` — seis `it()` citando `UC-PAT-13`: o alerta aparece quando a visita que pediu `kpis`, `porCategoria`, `garantia`, `manutencoes` e `meusBens` termina sem ela; "Tentar de novo" pede só `kpis`, `porCategoria`, `garantia`, `manutencoes` e `meusBens` com `onHttpException`/`onNetworkError` devolvendo `false`; o erro some quando a prop chega; e três controles (antes da carga terminar, visita que trouxe a prop, visita que pediu outra prop). **Bite-test (2026-11-05):** com as cinco telas de `main`, os 3 casos não-controle de cada tela caem (15 de 30); os controles ficam verdes nos dois lados.
+- **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Chego na tela pelo menu, sem digitar URL: a camada de ALCANCE

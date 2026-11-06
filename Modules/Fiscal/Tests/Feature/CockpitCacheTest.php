@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  * entre CockpitController e InvalidaCockpitCacheListener, (3) listener invalida
  * a key correta quando NFeAutorizada/NFCeAutorizada dispara.
  *
- * Multi-tenant: cache key inclui businessId — biz=1 cache NÃO vê biz=4 cache.
+ * Multi-tenant: cache key inclui businessId — biz=98 cache NÃO vê biz=99 cache.
  */
 
 beforeEach(function () {
@@ -36,8 +36,8 @@ beforeEach(function () {
 
 it('cache key segue padrão fiscal:cockpit:kpis:biz:{id}', function () {
     $controller = new CockpitController;
-    expect($controller->kpisCacheKey(1))->toBe('fiscal:cockpit:kpis:biz:1')
-        ->and($controller->kpisCacheKey(4))->toBe('fiscal:cockpit:kpis:biz:4')
+    expect($controller->kpisCacheKey(98))->toBe('fiscal:cockpit:kpis:biz:98')
+        ->and($controller->kpisCacheKey(99))->toBe('fiscal:cockpit:kpis:biz:99')
         ->and($controller->kpisCacheKey(999))->toBe('fiscal:cockpit:kpis:biz:999');
 });
 
@@ -45,7 +45,7 @@ it('UC-FCKP-06 · cache key prefix bate com InvalidaCockpitCacheListener (consis
     $controller = new CockpitController;
     $listenerPrefix = InvalidaCockpitCacheListener::KEY_PREFIX;
 
-    expect($controller->kpisCacheKey(1))->toStartWith($listenerPrefix);
+    expect($controller->kpisCacheKey(98))->toStartWith($listenerPrefix);
 });
 
 it('TTL é 60s — alinha com janela 1min do audit sênior GAP-FISCAL-002', function () {
@@ -54,7 +54,7 @@ it('TTL é 60s — alinha com janela 1min do audit sênior GAP-FISCAL-002', func
 
 it('Cache::remember não re-executa callback quando key existe', function () {
     $callCount = 0;
-    $key = 'fiscal:cockpit:kpis:biz:1';
+    $key = 'fiscal:cockpit:kpis:biz:98';
 
     // Primeira chamada — executa callback
     $r1 = Cache::remember($key, 60, function () use (&$callCount) {
@@ -78,16 +78,16 @@ it('Cache::remember não re-executa callback quando key existe', function () {
 it('UC-FCKP-06 · cache keys de businesses diferentes são INDEPENDENTES (multi-tenant ADR 0093)', function () {
     $controller = new CockpitController;
 
-    Cache::put($controller->kpisCacheKey(1), ['emitidas' => 1], 60);
-    Cache::put($controller->kpisCacheKey(4), ['emitidas' => 4], 60);
+    Cache::put($controller->kpisCacheKey(98), ['emitidas' => 98], 60);
+    Cache::put($controller->kpisCacheKey(99), ['emitidas' => 99], 60);
 
-    expect(Cache::get($controller->kpisCacheKey(1))['emitidas'])->toBe(1)
-        ->and(Cache::get($controller->kpisCacheKey(4))['emitidas'])->toBe(4);
+    expect(Cache::get($controller->kpisCacheKey(98))['emitidas'])->toBe(98)
+        ->and(Cache::get($controller->kpisCacheKey(99))['emitidas'])->toBe(99);
 
-    // Invalida só biz=1 — biz=4 sobrevive
-    Cache::forget($controller->kpisCacheKey(1));
-    expect(Cache::get($controller->kpisCacheKey(1)))->toBeNull()
-        ->and(Cache::get($controller->kpisCacheKey(4)))->not->toBeNull();
+    // Invalida só biz=98 — biz=99 sobrevive
+    Cache::forget($controller->kpisCacheKey(98));
+    expect(Cache::get($controller->kpisCacheKey(98)))->toBeNull()
+        ->and(Cache::get($controller->kpisCacheKey(99)))->not->toBeNull();
 });
 
 it('UC-FCKP-06 · Listener invalida a key correta dado um event com business_id', function () {
