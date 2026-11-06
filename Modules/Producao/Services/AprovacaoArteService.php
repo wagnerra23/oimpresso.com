@@ -63,11 +63,16 @@ final class AprovacaoArteService
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::OS_NAO_LIBERADA, 'Conclua a etapa de arte antes de pedir a aprovação do cliente.');
 
         return DB::transaction(function () use ($businessId, $ordem, $aprovacao, $arte, $arquivo, $user) {
+            // SUPERADMIN: o envio anterior da OS para numerar a versão (UC-PCART-09); a empresa vai explícita no where,
+            // como nas outras leituras deste serviço, porque o `reenviar` também chega aqui.
+            $anterior = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+                ->where('ordem_id', $ordem->id)->orderByDesc('id')->lockForUpdate()->first();
             $this->expirarAbertos($businessId, (int) $ordem->id);
             $token = Str::random(48);
             $pedido = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->create([
                 'business_id' => $businessId, 'ordem_id' => $ordem->id, 'programacao_id' => $aprovacao->id,
                 'arte_programacao_id' => $arte->id, 'token_hash' => self::hash($token), 'arquivo' => $arquivo,
+                'versao' => VersaoDaArte::seguinte($anterior?->arquivo, $anterior !== null ? (int) $anterior->versao : null, $arquivo), // UC-PCART-09: sobe só se o arquivo mudou
                 'expira_em' => now()->addDays(self::DIAS_VALIDADE), 'created_by' => $user->id,
             ]);
             $this->evento($pedido, self::EV_SOLICITADA, $user->id, []);
@@ -109,6 +114,7 @@ final class AprovacaoArteService
             $pedido = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->create([
                 'business_id' => $businessId, 'ordem_id' => $ordem->id, 'programacao_id' => $nova->id,
                 'arte_programacao_id' => $ultimo->arte_programacao_id, 'token_hash' => self::hash($token), 'arquivo' => $arquivo,
+                'versao' => VersaoDaArte::seguinte((string) $ultimo->arquivo, (int) $ultimo->versao, $arquivo), // arquivo diferente (checado acima): versão seguinte
                 'expira_em' => now()->addDays(self::DIAS_VALIDADE), 'created_by' => $user->id,
             ]);
             $this->evento($pedido, self::EV_ARQUIVO_TROCADO, $user->id, ['aprovacao_anterior_id' => $ultimo->id]);
@@ -154,14 +160,14 @@ final class AprovacaoArteService
      * UC-PCV-11 · a arte que vale para produzir: o arquivo do último pedido APROVADO, mesmo que haja
      * uma versão nova esperando o cliente. Null = OS ainda sem arte aprovada.
      *
-     * @return array{arquivo: string, aprovada_em: string}|null
+     * @return array{arquivo: string, versao: int, aprovada_em: string}|null
      */
     public function arteVigente(int $businessId, int $ordemId): ?array
     {
         $p = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->where('ordem_id', $ordemId)
             ->where('decisao', AprovacaoArte::APROVADA)->orderByDesc('decidido_em')->orderByDesc('id')->first();
 
-        return $p === null ? null : ['arquivo' => (string) $p->arquivo, 'aprovada_em' => $p->decidido_em->toIso8601String()];
+        return $p === null ? null : ['arquivo' => (string) $p->arquivo, 'versao' => (int) $p->versao, 'aprovada_em' => $p->decidido_em->toIso8601String()];
     }
 
     /** Pedido ainda aberto para o token — vencido, decidido ou com a etapa fechada → recusa. */
