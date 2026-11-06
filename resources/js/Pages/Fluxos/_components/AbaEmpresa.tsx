@@ -7,7 +7,8 @@
 // pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo). O sinal
 // mínimo da produção (PATCH /fluxos/sinal, UC-FLXT-23 · US-PCP-025) segue o mesmo desenho.
 // "Reservar material na venda" (PATCH /fluxos/reserva, US-PCP-031 · UC-FLX-14) também não vem do
-// protótipo: usa o mesmo Interruptor e só aparece para empresa com o módulo Produção.
+// protótipo: usa o mesmo Interruptor e só aparece para empresa com o módulo Produção. "Aguardar o material"
+// (PATCH /fluxos/aguarda-material, US-PCP-032 · UC-FLXT-25) é a chave irmã, no mesmo card.
 // A requisição pelo estoque mínimo (PATCH /fluxos/requisicao-estoque-minimo, UC-FLXT-24 · UC-FLX-19)
 // também não vem do protótipo: é o interruptor do job diário do Compras, no card Compra.
 
@@ -37,6 +38,8 @@ interface Props {
   sinalMinimo: string | null;
   /** US-PCP-031: reserva do insumo na venda (null = empresa sem o módulo Produção, não mostra). */
   reservaInsumo: boolean | null;
+  /** US-PCP-032: OS sem o material vai para Aguardando material (null = sem o módulo Produção, não mostra). */
+  aguardaMaterial: boolean | null;
   /** UC-FLXT-24: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
   requisicaoEstoqueMinimo: boolean | null;
   podeConfigurar: boolean;
@@ -248,9 +251,9 @@ function SinalMinimo({ valor, pode }: { valor: string | null; pode: boolean }) {
  * US-PCP-031 · UC-FLX-14 · reserva do insumo na venda. Ligada, a OS criada pela venda aprovada reserva
  * o material da receita e a produção baixa o real (PATCH /fluxos/reserva). Só aparece com o módulo Produção.
  */
-function ReservaInsumo({ ligada, pode }: { ligada: boolean; pode: boolean }) {
+function ReservaInsumo({ ligada, aguarda, pode }: { ligada: boolean; aguarda: boolean | null; pode: boolean }) {
   return (
-    <section className="flx-card" aria-label="Reservar material na venda">
+    <section className="flx-card" aria-label="Material da produção">
       <div className="flx-cmp">
         <div className="flx-cmp-r">
           <Interruptor
@@ -262,12 +265,25 @@ function ReservaInsumo({ ligada, pode }: { ligada: boolean; pode: boolean }) {
             onChange={(v) => router.patch('/fluxos/reserva', { ligada: v }, salvar)}
           />
         </div>
+        {/* UC-FLXT-25 · US-PCP-032: a regra de liberar mora em SituacaoDaOrdem; aqui só liga e desliga. */}
+        {aguarda !== null && (
+          <div className="flx-cmp-r">
+            <Interruptor
+              id="flx-aguarda-material"
+              titulo="Aguardar o material para produzir"
+              sub="A OS liberada sem o material da receita no estoque fica em Aguardando material e não começa"
+              checked={aguarda}
+              disabled={!pode}
+              onChange={(v) => router.patch('/fluxos/aguarda-material', { ligada: v }, salvar)}
+            />
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, sinalMinimo, reservaInsumo, requisicaoEstoqueMinimo, podeConfigurar }: Props) {
+export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, sinalMinimo, reservaInsumo, aguardaMaterial, requisicaoEstoqueMinimo, podeConfigurar }: Props) {
   const erros = (usePage().props as { errors?: Record<string, string> }).errors;
   const erro = erros?.regra ?? erros?.margem_minima ?? erros?.sinal_minimo ?? erros?.ligada ?? null;
   const verModelos = (
@@ -312,7 +328,7 @@ export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas
       </div>
       <MargemMinima valor={margemMinima} pode={podeConfigurar} />
       <SinalMinimo valor={sinalMinimo} pode={podeConfigurar} />
-      {reservaInsumo !== null && <ReservaInsumo ligada={reservaInsumo} pode={podeConfigurar} />}
+      {reservaInsumo !== null && <ReservaInsumo ligada={reservaInsumo} aguarda={aguardaMaterial} pode={podeConfigurar} />}
       <div className="flx-procs">
         {emUso.processos.map((p) => {
           const daCompra = p.dominio === 'compra' && compra.length > 0;

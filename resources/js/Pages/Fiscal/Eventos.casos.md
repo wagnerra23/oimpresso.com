@@ -16,7 +16,7 @@ related_us: [US-FISCAL-007]
 > **apresentação apenas** — `fx-callout` → `<Alert>`, 5 `fx-chip` → `<Button>`, `fx-filters` →
 > `<Inline>`. Conferi os 4 UC um a um: **todos assertam backend** — timeline cross-tenant (T0),
 > evento registrado não se edita (append-only), os 7 rótulos SEFAZ em português, e o gate
-> `fiscal.access` (T0).
+> `fiscal.access` (T0) — em 2026-11-05 o gate passou a `fiscal.nfe.view` (ver UC-FEVT-04).
 > Um deles pedia conferência de perto: o **UC-FEVT-03 fala de RÓTULOS**, mas são os rótulos dos
 > **eventos** (`ev.label`, vindo do Controller e renderizado no `fx-tl-badge`) — não os dos
 > chips de filtro que este PR migrou. O `fx-tl-badge` **não foi tocado**.
@@ -100,14 +100,16 @@ related_us: [US-FISCAL-007]
 - **Status:** 🧪 lane **required**; veredito pendente.
 - **Fronteira declarada:** inutilização de faixa **não** é evento desta timeline — vive em registro próprio. O código documenta isso explicitamente; não é lacuna.
 
-## UC-FEVT-04 — A timeline exige `fiscal.access` `[must]` `[T0]`
+## UC-FEVT-04 — A timeline e o CSV exigem `fiscal.nfe.view` `[must]` `[T0]`
 
-**Dado** um usuário sem `fiscal.access` e sem `superadmin`
-**Quando** abre `/fiscal/eventos`
+**Dado** um usuário sem `fiscal.nfe.view` e sem `superadmin` (com ou sem `fiscal.access`)
+**Quando** abre `/fiscal/eventos` ou baixa `/fiscal/eventos/export`
 **Então** recebe 403.
 
+> **Mudou em 2026-11-05** (auditoria Fiscal, lote 1.3): até aqui o gate era `fiscal.access`. Todo evento desta timeline é de uma `NfeEmissao` e o CSV leva justificativa de cancelamento e texto de CC-e, então quem a tela de notas (`fiscal.nfe.view`) recusava lia as mesmas notas por aqui. A permissão passou a ser a da tela dona do dado.
+
 - **Âncora de contrato:** `R-FISCAL-003` do [SPEC.md](../../../../memory/requisitos/Fiscal/SPEC.md) §3 + guard em `EventosController@index`.
-- **Teste:** `Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php` — `it('UC-FEVT-04 · GET /fiscal/eventos aborta 403 sem fiscal.access nem superadmin')`
+- **Teste:** `Modules/Fiscal/Tests/Feature/BuscaEventosPermissaoTest.php` — UC-FEVT-04 · `it('timeline e CSV de eventos exigem fiscal.nfe.view: só fiscal.access recebe 403')` + o controle `it('controle: com fiscal.nfe.view a timeline e o CSV abrem')`. O caso sem permissão nenhuma segue em `GatesPermissaoFiscalTest.php` — `it('UC-FEVT-04 · GET /fiscal/eventos aborta 403 sem fiscal.access nem superadmin')`.
 - **Status:** 🧪 teste nasce nesta corrida; veredito pendente.
 
 ## UC-FEVT-05 — O CSV exportado nunca traz evento de outro business `[must]` `[T0]`

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\OficinaAuto\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * D8 Security Wave 15 — FormRequest extraído de ServiceOrderController::update.
@@ -30,7 +31,18 @@ class UpdateServiceOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'vehicle_id'          => ['required', 'integer', 'exists:vehicles,id'],
+            // exists ESCOPADO por business (Tier 0 ADR 0093): o `exists:vehicles,id` cru
+            // aceitava veículo de outra empresa, e a página pública de aprovação mostrava a placa.
+            'vehicle_id'          => [
+                'required',
+                'integer',
+                Rule::exists('vehicles', 'id')->where(
+                    fn ($query) => $query->where(
+                        'business_id',
+                        (int) (session('user.business_id') ?? session('business.id') ?? 0)
+                    )
+                ),
+            ],
             'transaction_id'      => ['nullable', 'integer'],
             'mileage_at_service'  => ['nullable', 'integer', 'min:0'],
             // Check-in de entrada (US-OFICINA-038/039) — delta protótipo Cowork Nova OS

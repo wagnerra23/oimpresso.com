@@ -2,7 +2,8 @@
 // opções da lista Blade (index.blade.php): tipo, categoria, unidade, imposto, marca, local,
 // situação e "Não para venda"; e os dois filtros de módulo que só existem para a empresa que
 // tem o módulo — "Modelo do dispositivo" (assistência técnica), "WooCommerce habilitado" e
-// "Natureza fiscal" (módulo Fiscal, UC-PIDX-31).
+// "Natureza fiscal" (módulo Fiscal, UC-PIDX-31). "Falta NCM" (UC-PIDX-42) só aparece para a
+// empresa que emite nota, a mesma condição da aba Fiscal do painel.
 
 import { useState } from 'react';
 import { Search } from 'lucide-react';
@@ -22,6 +23,8 @@ interface Props {
   woocommerce: boolean;
   /** Empresa com o módulo Fiscal: mostra o filtro "Natureza fiscal" (UC-PIDX-31). */
   naturezaFiscal?: boolean;
+  /** Empresa que emite nota: mostra o filtro "Falta NCM" (UC-PIDX-42). */
+  emiteNota?: boolean;
   aplicar: (patch: Partial<FiltrosLista>) => void;
 }
 
@@ -62,7 +65,7 @@ function Campo({
   );
 }
 
-export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, naturezaFiscal = false, aplicar }: Props) {
+export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, naturezaFiscal = false, emiteNota = false, aplicar }: Props) {
   const [aberto, setAberto] = useState(true);
   const campo = (k: ChaveSelect) => (v: string | null) => aplicar({ [k]: v } as Partial<FiltrosLista>);
 
@@ -117,6 +120,20 @@ export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, nat
                 </label>
               </div>
             </div>
+            {emiteNota && (
+              <div className="pb-fld" style={{ justifyContent: 'flex-end' }}>
+                <div className="pb-chk">
+                  <Checkbox
+                    id="filtro-falta-ncm"
+                    checked={filtros.falta_ncm === true}
+                    onCheckedChange={(v) => aplicar({ falta_ncm: v === true })}
+                  />
+                  <label htmlFor="filtro-falta-ncm">
+                    <b>Falta NCM</b>
+                  </label>
+                </div>
+              </div>
+            )}
             {woocommerce && (
               <div className="pb-fld" style={{ justifyContent: 'flex-end' }}>
                 <div className="pb-chk">

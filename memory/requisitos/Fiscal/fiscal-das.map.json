@@ -1,0 +1,119 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Fiscal/Das (/fiscal/das)",
+  "gap_fonte": "memory/requisitos/Fiscal/fiscal-das-gap.md",
+  "prototipo_sha": "sha256:7507b99a15bb",
+  "gerado_em": "2026-11-06",
+  "partes": [
+    {
+      "id": "cabecalho-e-filtros",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/fiscal-das-page.jsx",
+        "linhas": "91-117"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Fiscal/Das.tsx",
+        "linhas": "75-101",
+        "ancora": "cabecalho"
+      },
+      "status": "paridade",
+      "acao": "Nada. O seletor de cenário é instrumento do protótipo, não da tela.",
+      "_acionavel": false
+    },
+    {
+      "id": "estado-sem-anexo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/fiscal-das-page.jsx",
+        "linhas": "119-122"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Fiscal/Das.tsx",
+        "linhas": "104-111",
+        "ancora": "vazio"
+      },
+      "status": "decidir-w",
+      "acao": "Decisão [W]: a \"aba Serviços\" não existe no subnav do vivo.",
+      "_acionavel": true
+    },
+    {
+      "id": "kpis",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/fiscal-das-page.jsx",
+        "linhas": "128-133"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Fiscal/Das.tsx",
+        "linhas": "134-157",
+        "ancora": "kpis"
+      },
+      "status": "paridade",
+      "acao": "Nada. Mesmos quatro rótulos.",
+      "_acionavel": false
+    },
+    {
+      "id": "a-conta",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/fiscal-das-page.jsx",
+        "linhas": "137-143"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Fiscal/Das.tsx",
+        "linhas": "161-177",
+        "ancora": "conta"
+      },
+      "status": "paridade",
+      "acao": "Nada.",
+      "_acionavel": false
+    },
+    {
+      "id": "faixas-do-anexo",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/fiscal-das-page.jsx",
+        "linhas": "144-150"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Fiscal/Das.tsx",
+        "linhas": "178-201",
+        "ancora": "faixas"
+      },
+      "status": "paridade",
+      "acao": "Nada.",
+      "_acionavel": false
+    },
+    {
+      "id": "estimativa-apuracao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/fiscal-das-page.jsx",
+        "linhas": "152-160"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Fiscal/Das.tsx",
+        "linhas": "—",
+        "ancora": false
+      },
+      "status": "nao-adotar",
+      "acao": "Nada nesta fatia. Non-Goal do charter: a receita recebida tem dono no `ImpostosController`.",
+      "_acionavel": false
+    },
+    {
+      "id": "perguntas-ao-contador",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/fiscal-das-page.jsx",
+        "linhas": "161-171"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Fiscal/Das.tsx",
+        "linhas": "203-213",
+        "ancora": "contador"
+      },
+      "status": "paridade",
+      "acao": "Nada. Mesmo texto.",
+      "_acionavel": false
+    }
+  ],
+  "mapping": {
+    "source": "fiscal-das-page.jsx",
+    "target": "resources/js/Pages/Fiscal/Das.tsx"
+  }
+}

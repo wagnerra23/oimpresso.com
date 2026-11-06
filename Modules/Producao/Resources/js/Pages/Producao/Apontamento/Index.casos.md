@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o apontamento vira custo real e fecha etapa da OS. Errar a etapa aponta tempo no lugar errado; errar a empresa expõe produção alheia; duplicar o envio offline dobra o custo.
 owner: wagner
-last_run: "2026-10-22"
+last_run: "2026-11-05"
 last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -381,6 +381,22 @@ resposta diz `{enviado: false, motivo: sem_cliente}` para a tela pedir contato m
 
 Status: 🧪
 
+## UC-PCART-08 · Só a prova mais recente vale, e o link não depende de quem está logado · `must`
+
+> Âncora: US-COMVIS-NEW-004 (link de curta validade, uso único, página pública sem login) e UC-FLX-02
+> (*"aprovado avança para Impressão"* — a prova aprovada é a que foi enviada por último). Achado P-01/P-04
+> da auditoria da Produção (2026-11-05): o link da prova anterior seguia aprovável por 7 dias, e recusar
+> com o ERP logado noutra empresa dava 404.
+
+**Dado** a OS com um link de prova aberto **Quando** o designer gera outra prova **Então** o link anterior vence
+na hora (a linha fica, só a validade muda): aprovar por ele é recusado (410), a etapa de aprovação continua
+pendente e a arte vigente não vira a prova antiga, nem depois de o cliente recusar a nova · **Quando** o cliente
+recusa pelo link com o navegador logado noutra empresa **Então** a "Arte (alteração)" e o evento ficam na empresa
+da prova · **Quando** um usuário da empresa 99 pede prova para a OS da 98 **Então** recebe 404 e o link da 98 segue
+valendo.
+
+Status: 🧪
+
 ## UC-PCV-11 · Arte aprovada travada · `must`
 
 > Âncora: `prototipo-ui/cowork/Wagner/cowork-inbox/producao/Producao.casos.md` UC-PCV-11 · thread 10 do playbook
@@ -390,7 +406,33 @@ Status: 🧪
 a Aprovação do cliente volta como etapa nova "(nova versão)" no mesmo bloco, as etapas seguintes voltam a esperar e
 sai um link novo · Enquanto o cliente não aprova, a arte que vale (`GET /producao/ordens/{id}/arte`) segue sendo a
 última aprovada · Sem arte aprovada, ou com o mesmo arquivo, a troca é recusada e nada muda · OS de outra empresa: 404.
-A arte vigente ainda não aparece na tela do operador (fica para quando os PRs abertos do apontamento entrarem).
+A tela do operador mostra essa arte vigente desde 2026-11-05 (UC-PCAPA-01, logo abaixo).
+
+Status: 🧪
+
+## UC-PCAPA-01 · O operador vê a arte que vale da OS · `must`
+
+> Âncora: `prototipo-ui/cowork/Wagner/producao-cv-campo.jsx` (Apontamento, bloco `pcv-ap-arq`: *"Arquivo certo —
+> abre a versão aprovada da arte, não uma prova antiga"*) · UC-PCV-11 acima.
+
+**Dado** o operador com uma etapa rodando numa OS por item **Então** a linha mostra o arquivo da última arte aprovada
+pelo cliente, que abre o arquivo, com "versão aprovada pelo cliente" · Uma troca esperando o cliente não muda o arquivo
+mostrado · OS que pediu aprovação e não teve nenhuma aprovada mostra "Sem arte aprovada · a etapa espera a aprovação do
+cliente" · OS sem pedido de arte não mostra o bloco · Aprovação gravada em outra empresa não conta.
+O protótipo mostra também o número da versão ("v3"); `pcp_aprovacoes_arte` não guarda versão, então a tela mostra o
+nome do arquivo.
+
+Status: 🧪
+
+## UC-PCAPA-02 · O operador vê o material já baixado na OS · `must`
+
+> Âncora: `prototipo-ui/cowork/Wagner/producao-cv-campo.jsx` (campo *"Mídia usada até agora (m²)"* com a ajuda
+> *"Baixa no estoque: Vinil branco brilho 1,37 m"*).
+
+**Dado** uma etapa rodando cuja OS já teve material apontado **Então** a linha mostra "Material usado:" com cada material
+e a quantidade já baixada na unidade dele · Material da receita ainda sem baixa não aparece na linha · Sem custo.
+A quantidade é o `apontado` que a tela já recebe por etapa, provado em `ProducaoMaterialContratoTest` (UC-PCMAT-09,
+que passa de 0 a 3 depois de uma baixa).
 
 Status: 🧪
 
@@ -634,14 +676,14 @@ Status: 🧪
 > `producao_aguarda_material`, desligada por padrão. JSON (`GET /producao/ordens/{id}/material`,
 > `POST /producao/ordens/{id}/material/conferir`); a tela ainda não mostra. Prova: `ProducaoAguardandoMaterialContratoTest`.
 
-## UC-PCMAT-01 · Chave desligada: nada muda · `must`
+## UC-PCAGM-01 · Chave desligada: nada muda · `must`
 
 **Dado** a lona com 3 de saldo e a OS do banner que precisa de 5 **Quando** o PCP libera com a chave da empresa
 desligada **Então** a OS vai para Na fila, como antes, e o saldo segue 3.
 
 Status: 🧪
 
-## UC-PCMAT-02 · Liberada sem material fica Aguardando material e não começa · `must`
+## UC-PCAGM-02 · Liberada sem material fica Aguardando material e não começa · `must`
 
 **Dado** a chave ligada, saldo 3 e compras da lona pedida (4) e pendente (1), e uma já recebida (9) **Quando** o
 PCP libera **Então** a OS vai para Aguardando material; a lista mostra necessário 5,0000, disponível 3,0000, falta
@@ -650,14 +692,14 @@ nada muda no saldo.
 
 Status: 🧪
 
-## UC-PCMAT-03 · Reserva de outra venda tira do disponível; a da própria OS não · `must`
+## UC-PCAGM-03 · Reserva de outra venda tira do disponível; a da própria OS não · `must`
 
 **Dado** saldo 10, reserva ativa de 5 desta OS, reserva ativa de 6 de outra venda e uma liberada de 50 **Então** o
 disponível é 4,0000 e a falta 1,0000.
 
 Status: 🧪
 
-## UC-PCMAT-04 · Conferir devolve para Na fila quando o material chega · `must`
+## UC-PCAGM-04 · Conferir devolve para Na fila quando o material chega · `must`
 
 **Dado** a OS em Aguardando material **Quando** o operador sem o papel `producao.liberar` confere **Então** 403 ·
 **Quando** o PCP confere ainda faltando **Então** fica onde está e a resposta traz a falta · com o saldo em 5
@@ -665,7 +707,7 @@ Status: 🧪
 
 Status: 🧪
 
-## UC-PCMAT-05 · Outra empresa, 404 · `must`
+## UC-PCAGM-05 · Outra empresa, 404 · `must`
 
 **Quando** o PCP da 98 lê ou confere o material de uma OS da 99 **Então** 404 e a OS da 99 não muda.
 
@@ -783,6 +825,114 @@ Status: 🧪
   hoje o retorno do banco lança o pagamento na venda inteira (UC-PCLIB-08), sem parcela de sinal separada. O
   campo do sinal mínimo na aba Fluxos da empresa vem no #9701.
 
+## Venda cancelada cancela as OS dela (P-113 · parte)
+
+> Auditoria do Producao, lote 2.1 (aprovado pelo [W] em 2026-11-05). Antes, cancelar a venda só
+> liberava a reserva de insumo: a OS seguia na fila, apontável e baixando material. Agora a venda que vai
+> para uma etapa de cancelamento leva cada OS aberta dela para Cancelada pelo motor (ação do sistema
+> `cancelar_pela_venda`, de qualquer etapa aberta) e cancela as etapas abertas. **O material já baixado
+> não volta ao estoque nem vira perda**: é a decisão B3 do [W], em aberto; o histórico da OS guarda o que
+> foi baixado para a apuração. O resto do P-113 (cancelar com motivo, cobrança, D-12) segue em aberto.
+> Prova: `ProducaoReservaInsumoContratoTest`.
+
+## UC-PCCAN-01 · Venda cancelada cancela a OS em execução, sem mexer no material baixado · `must` estoque
+
+**Dado** a OS do banner em execução, com 2 de lona baixados (saldo 10 → 8; reserva 5 → 3) **Quando** a
+venda é cancelada **Então** a OS fica Cancelada, a etapa fica cancelada, o histórico guarda a situação
+anterior e o material baixado (lona 2,0000), o saldo segue 8 e os 3 reservados são liberados; uma nova
+baixa é recusada pela etapa cancelada (`etapa_encerrada`) e o saldo segue 8; parar o relógio grava o tempo e a etapa segue
+cancelada; cancelar de novo não faz nada.
+
+Status: 🧪
+
+## UC-PCCAN-02 · A OS ainda não liberada também é cancelada · `must`
+
+**Dado** uma OS da venda em Aguardando liberação **Quando** a venda é cancelada **Então** a OS e a etapa
+ficam canceladas e iniciar a etapa é recusado (`etapa_encerrada`).
+
+Status: 🧪
+
+## UC-PCCAN-03 · OS de venda cancelada antes desta mudança não baixa material · `must` estoque
+
+**Dado** a venda cancelada sem passar pelo evento (dado antigo) e a OS ainda em execução **Quando** o
+operador baixa material **Então** é recusado com *"A venda desta OS foi cancelada."* e o saldo não muda.
+Iniciar etapa dessa OS também é recusado.
+
+Status: 🧪
+
+## UC-PCCAN-04 · Só dentro da empresa · `must`
+
+**Quando** a empresa 99 manda cancelar as OS da venda da 98 **Então** nada muda (0 canceladas) e, para a
+99, a venda da 98 não aparece como cancelada.
+
+Status: 🧪
+
+## Rotas das ações de tela da OS (auditoria lote 2.2)
+
+> Antes, `SituacaoDaOrdem::liberar`, `refazer` e `cancelarItem` só eram chamados em teste: sem sinal
+> mínimo configurado, a OS ficava parada em Aguardando liberação. Agora há rota JSON para as três
+> (`POST /producao/ordens/{id}/liberar|refazer|cancelar`). Portões: módulo no pacote + `producao.access`
+> na rota; o papel da ação no motor (`producao.liberar` para Liberar e Refazer, `vendas.gerente` para
+> Cancelar item). A tela que chama é a Ficha da OS (lote 3). Prova: `ProducaoOrdemSituacaoRotasContratoTest`.
+
+## UC-PCOSR-01 · Liberar pela rota · `must`
+
+**Quando** quem não tem o papel do PCP libera **Então** 403 e nada muda. **Quando** o PCP libera sem o
+responsável de todas as etapas abertas **Então** 422 `responsavel_invalido` e nada muda. Com os
+responsáveis, a OS vai para Na fila; liberar de novo dá 409 `acao_invalida`.
+
+Status: 🧪
+
+## UC-PCOSR-02 · Refazer pela rota · `must`
+
+**Quando** a OS não está em Retrabalho **Então** 409. **Dado** a OS reprovada no controle **Quando** quem
+não tem o papel do PCP manda refazer **Então** 403; o PCP manda refazer e a OS volta a Em execução.
+
+Status: 🧪
+
+## UC-PCOSR-03 · Cancelar item pela rota · `must`
+
+**Quando** o PCP sem o papel de gerente cancela **Então** 403. O gerente cancela a OS em Aguardando
+liberação: ela e as etapas ficam canceladas; cancelar de novo dá 409.
+
+Status: 🧪
+
+## UC-PCOSR-04 · Só dentro da empresa · `must`
+
+**Quando** a empresa 98 chama qualquer das três rotas com a OS da 99 **Então** 404 e a OS da 99 não muda.
+
+Status: 🧪
+
+## UC-PCOSR-05 · Módulo fora do pacote · `must`
+
+**Quando** a empresa não tem o Producao no pacote **Então** as três rotas dão 403 e nada muda.
+
+Status: 🧪
+
+## Robustez do fechamento do turno e da criação da OS (auditoria lote 2.3)
+
+> `producao:fechar-turno` roda a cada 15 min para todas as empresas. Antes, uma exceção numa empresa
+> interrompia as seguintes, o comando terminava "com sucesso" e a trava da sobreposição durava 24 h se o
+> processo morresse. O job que cria a OS da venda aprovada tentava 3 vezes seguidas e a falha final não
+> deixava rastro. A liberação pelo sinal, que roda em todo pagamento, logava a falha só como aviso.
+> Idempotência já provada: UC-PCV-22 (2ª rodada não duplica), UC-PCLIB-07 (pagamento repetido libera uma
+> vez) e o `idempotente` do `ProducaoCriarOsDaVendaContratoTest`. Prova: `ProducaoFecharTurnoComandoTest`.
+
+## UC-PCROB-01 · Falha de uma empresa no fechamento do turno não para as outras · `must`
+
+**Dado** a empresa 98 e a 99 com apontamento aberto depois do fim do turno, e o fechamento da 98 falhando
+**Quando** o comando roda **Então** a 99 é fechada, a 98 fica como estava, o log de erro diz qual empresa
+falhou e o comando termina com falha. A trava da sobreposição vence em 30 min.
+
+Status: 🧪
+
+## UC-PCROB-02 · A criação da OS espera entre as tentativas e a falha final aparece · `must`
+
+**Dado** o job que cria a OS da venda aprovada **Então** são 3 tentativas com 30 s e 2 min de espera; na
+falha final, o log de erro guarda a empresa e a venda que ficou sem OS.
+
+Status: 🧪
+
 ## Pedido de compra do cliente na OS (pedido de 2026-10-23)
 
 - **[BACKLOG]** A OS mostra o número do pedido de compra do cliente — Dado uma venda com o pedido do
@@ -837,12 +987,12 @@ Status: 🧪
 - **[BACKLOG]** Anexar imagens e a arte à OS — Dado uma OS de fachada, Quando anexo a arte final e duas
   fotos do local, Então os arquivos ficam na OS, aparecem no apontamento de cada etapa e na ficha
   impressa (a arte em miniatura), e quem executa abre cada um. Hoje a OS guarda o arquivo da arte que
-  passa pela aprovação do cliente (UC-PCART e UC-PCV-11), mas a tela do operador ainda não mostra essa
-  arte e não há outros anexos.
+  passa pela aprovação do cliente (UC-PCART e UC-PCV-11), e desde 2026-11-05 a tela do operador mostra a
+  arte vigente (UC-PCAPA-01); não há outros anexos.
   - Pedido: P-089
   - Âncora: Arte da aprovação (`UC-PCART`, `UC-PCV-11`) · `Producao/Apontamento/Index.casos.md`
   - Fazer: Anexos na OS e a arte vigente na tela do operador e na ficha.
-  - Hoje: part | Em parte | A OS guarda a arte da aprovação, mas o operador não a vê e não há outros anexos
+  - Hoje: part | Em parte | O operador vê a arte aprovada (UC-PCAPA-01), mas não há outros anexos nem a arte na ficha
   - Comunicação visual: ok | Sim | arte e fotos do local
   - Clientes: Chico e Lu, Display Paraná, Plakart, Fixar
   - Etiquetas: part, cv

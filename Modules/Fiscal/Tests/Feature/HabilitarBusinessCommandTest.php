@@ -19,7 +19,7 @@ uses(Tests\TestCase::class);
  * correto, NUNCA cross-business).
  *
  * SQLite skip: tabela `business` + Spatie tables tem schema MySQL UltimatePOS
- * canon (ADR 0101 — tests biz=1, NUNCA biz=4 cliente).
+ * canon (ADR 0358 — tenant fictício 98, NUNCA biz=4 cliente).
  */
 
 beforeEach(function () {
@@ -55,24 +55,32 @@ it('cria as 7 permissions fiscal.* mesmo em dry-run (idempotente)', function () 
     Permission::where('name', 'LIKE', 'fiscal.%')->delete();
 
     // dry-run reporta o que faria mas NÃO persiste
-    Artisan::call('fiscal:habilitar-business', ['businessId' => 1, '--dry-run' => true]);
+    Artisan::call('fiscal:habilitar-business', ['businessId' => 98, '--dry-run' => true]);
 
     $apósDryRun = Permission::where('name', 'LIKE', 'fiscal.%')->count();
     expect($apósDryRun)->toBe(0, 'dry-run NÃO deve persistir permissions');
 
-    // run real cria as 7
-    Artisan::call('fiscal:habilitar-business', ['businessId' => 1]);
+    // run real cria todas. O total vem das três listas do comando (até 2026-11-06 o teste fixava 7;
+    // a `fiscal.config.ambiente` entrou depois e o número fixo ficou velho sem ninguém ver, porque o
+    // arquivo não rodava no CI).
+    $c = new ReflectionClass(\Modules\Fiscal\Console\Commands\HabilitarBusinessCommand::class);
+    $esperado = count(array_unique(array_merge(
+        $c->getConstant('PERMS_SEGURAS'),
+        $c->getConstant('PERMS_BLOQUEADAS_ATE_GAP_003'),
+        $c->getConstant('PERMS_SOBERANIA_W'),
+    )));
+    Artisan::call('fiscal:habilitar-business', ['businessId' => 98]);
     $apósReal = Permission::where('name', 'LIKE', 'fiscal.%')->where('guard_name', 'web')->count();
-    expect($apósReal)->toBe(7, 'devem existir 7 fiscal.* permissions após run real');
+    expect($apósReal)->toBe($esperado, "devem existir {$esperado} fiscal.* permissions após run real");
 
     // re-roda — idempotente (não duplica)
-    Artisan::call('fiscal:habilitar-business', ['businessId' => 1]);
+    Artisan::call('fiscal:habilitar-business', ['businessId' => 98]);
     $apósSegundaRun = Permission::where('name', 'LIKE', 'fiscal.%')->where('guard_name', 'web')->count();
-    expect($apósSegundaRun)->toBe(7, 're-run NÃO pode duplicar permissions (idempotência)');
+    expect($apósSegundaRun)->toBe($esperado, 're-run NÃO pode duplicar permissions (idempotência)');
 });
 
 it('NUNCA atribui fiscal.sped.export ao role piloto (GAP-FISCAL-003 ainda não fechado)', function () {
-    $bizId = 1;
+    $bizId = 98;
 
     // Cria role Admin#{biz} se não existir
     $role = Role::firstOrCreate(
@@ -111,21 +119,21 @@ it('NUNCA atribui fiscal.sped.export ao role piloto (GAP-FISCAL-003 ainda não f
 
 it('atribui perms ao role do business correto (cross-tenant scope ADR 0093)', function () {
     // Cria 2 roles em businesses diferentes
-    $roleBiz1 = Role::firstOrCreate(
-        ['name' => 'Admin#1', 'guard_name' => 'web'],
-        ['business_id' => 1],
+    $roleBiz98 = Role::firstOrCreate(
+        ['name' => 'Admin#98', 'guard_name' => 'web'],
+        ['business_id' => 98],
     );
-    $roleBiz1->revokePermissionTo(Permission::where('name', 'LIKE', 'fiscal.%')->pluck('name')->all());
+    $roleBiz98->revokePermissionTo(Permission::where('name', 'LIKE', 'fiscal.%')->pluck('name')->all());
 
-    // Roda comando pra biz=1
-    Artisan::call('fiscal:habilitar-business', ['businessId' => 1]);
+    // Roda comando pra biz=98
+    Artisan::call('fiscal:habilitar-business', ['businessId' => 98]);
 
-    // Role do biz=1 RECEBEU perms
-    expect($roleBiz1->fresh()->hasPermissionTo('fiscal.access'))->toBeTrue();
+    // Role do biz=98 RECEBEU perms
+    expect($roleBiz98->fresh()->hasPermissionTo('fiscal.access'))->toBeTrue();
 
     // Garantir que outras roles (de outros businesses) NÃO foram afetadas
     // (defesa cross-tenant — comando só toca role do biz alvo)
-    $outrosRoles = Role::where('business_id', '!=', 1)
+    $outrosRoles = Role::where('business_id', '!=', 98)
         ->where('name', 'LIKE', 'Admin#%')
         ->limit(3)
         ->get();
@@ -133,6 +141,6 @@ it('atribui perms ao role do business correto (cross-tenant scope ADR 0093)', fu
         // Esse outroRole pode ter sido habilitado em outro contexto — vamos só
         // garantir que o comando atual não foi aplicado A ELE neste teste.
         // (Asserção fraca mas declara intent: o comando aceita 1 biz por vez.)
-        expect($outroRole->business_id)->not->toBe(1, 'cross-tenant scope: comando só toca o biz argumento');
+        expect($outroRole->business_id)->not->toBe(98, 'cross-tenant scope: comando só toca o biz argumento');
     }
 });
