@@ -66,7 +66,7 @@
   // ─── Catálogo de canais ────────────────────────────────────────────────────
   const CHANNELS = [
   { id: "wa_baileys", label: "WhatsApp", short: "WhatsApp", glyph: "W", hue: 295, status: "ativo", group: "WhatsApp" },
-  { id: "wa_meta", label: "WhatsApp Meta Cloud", short: "WA · Meta Cloud", glyph: "W", hue: 295, status: "em breve", group: "WhatsApp" },
+  { id: "wa_meta", label: "WhatsApp Meta Cloud", short: "WA · Meta Cloud", glyph: "W", hue: 295, status: "ativo", group: "WhatsApp" },
   { id: "wa_zapi", label: "WhatsApp Z-API", short: "WA · Z-API", glyph: "W", hue: 295, status: "em breve", group: "WhatsApp" },
   { id: "ig", label: "Instagram DM", short: "Instagram", glyph: "◎", hue: 0, status: "em breve", group: "Social" },
   { id: "fb", label: "Facebook Messenger", short: "Messenger", glyph: "f", hue: 250, status: "em breve", group: "Social" },
@@ -81,7 +81,7 @@
   { id: "wa_bal_vendas", channel: "wa_baileys", label: "Vendas", handle: "+55 21 9 8001-0022", owner: "wagner", status: "ativo", health: "degraded", sinceMin: 3 },
   { id: "wa_bal_fin", channel: "wa_baileys", label: "Financeiro", handle: "+55 21 9 8001-0033", owner: "eliana", status: "ativo", health: "healthy" },
   { id: "wa_bal_pos", channel: "wa_baileys", label: "Pós-venda", handle: "+55 21 9 8001-0066", owner: "wagner", status: "ativo", health: "banned", sinceMin: 42 },
-  { id: "wa_meta_pri", channel: "wa_meta", label: "Comercial", handle: "+55 21 9 8001-0044", owner: "wagner", status: "em breve" },
+  { id: "wa_meta_pri", channel: "wa_meta", label: "Comercial", handle: "+55 21 9 8001-0044", owner: "wagner", status: "ativo", health: "healthy" },
   { id: "wa_zapi_pri", channel: "wa_zapi", label: "Marketing", handle: "+55 21 9 8001-0055", owner: "wagner", status: "em breve" },
   { id: "ig_main", channel: "ig", label: "@oimpresso", handle: "@oimpresso", owner: "wagner", status: "em breve" },
   { id: "fb_main", channel: "fb", label: "Oimpresso", handle: "fb.com/oimpresso", owner: "wagner", status: "em breve" },
@@ -195,11 +195,19 @@
 
 
   // ─── Templates (Cloud API) ─────────────────────────────────────────────────
+  // Lote 6 (6.1.b/d): o corpo do HSM é o aprovado pela Meta — não se edita; só as variáveis
+  // {{1}}, {{2}}… Status e categoria vêm da Meta; pendente/rejeitado não se envia.
   const TEMPLATES = [
-  { id: "ok", label: "✓ Pronto pra retirada", body: "Olá! Seu pedido está pronto. Funcionamos de 9h às 18h.", channels: ["wa_baileys", "wa_meta", "wa_zapi"] },
-  { id: "art", label: "Aprovação de arte", body: "Segue a arte para aprovação. Responda OK ou indique ajustes.", channels: ["wa_baileys", "wa_meta", "wa_zapi", "email"] },
-  { id: "pay", label: "Lembrete cobrança", body: "Olá! Lembramos que o boleto vence em breve. Pode pagar via PIX ou boleto.", channels: ["wa_baileys", "wa_meta", "wa_zapi", "email"] },
-  { id: "ride", label: "Saiu pra entrega", body: "Seu pedido saiu para entrega agora e chega ainda hoje.", channels: ["wa_baileys", "wa_meta", "wa_zapi"] }];
+  { id: "ok", label: "Pronto pra retirada", body: "Olá, {{1}}! Seu pedido {{2}} está pronto. Funcionamos de 9h às 18h.", vars: ["Nome do cliente", "Número do pedido"], status: "aprovado", category: "utilidade", channels: ["wa_baileys", "wa_meta", "wa_zapi"] },
+  { id: "art", label: "Aprovação de arte", body: "Olá, {{1}}! Segue a arte para aprovação. Responda OK ou indique ajustes.", vars: ["Nome do cliente"], status: "aprovado", category: "utilidade", channels: ["wa_baileys", "wa_meta", "wa_zapi", "email"] },
+  { id: "pay", label: "Lembrete cobrança", body: "Olá, {{1}}! O boleto de {{2}} vence em {{3}}. Pode pagar via PIX ou boleto.", vars: ["Nome do cliente", "Valor", "Vencimento"], status: "pendente", category: "utilidade", channels: ["wa_baileys", "wa_meta", "wa_zapi", "email"] },
+  { id: "promo", label: "Promoção do mês", body: "Olá, {{1}}! Neste mês, banners com 10% de desconto. Responda SAIR para não receber.", vars: ["Nome do cliente"], status: "rejeitado", category: "marketing", channels: ["wa_meta"] },
+  { id: "ride", label: "Saiu pra entrega", body: "Olá, {{1}}! Seu pedido saiu para entrega agora e chega ainda hoje.", vars: ["Nome do cliente"], status: "aprovado", category: "utilidade", channels: ["wa_baileys", "wa_meta", "wa_zapi"] }];
+  const TPL_STATUS = { aprovado: "Aprovado", pendente: "Em análise na Meta", rejeitado: "Rejeitado pela Meta" };
+  const tplFill = (t, vals) => t.body.replace(/\{\{(\d+)\}\}/g, (_, n) => (vals && vals[n - 1]) || `{{${n}}}`);
+  // Janela de 24h da Meta (só canal Meta Cloud): aberta até 24h depois da última mensagem do cliente.
+  const winOf = (conv, ch) => ch?.id !== "wa_meta" ? { applies: false } :
+  conv.lastInH == null ? { applies: true, open: false } : { applies: true, open: conv.lastInH < 24, closesIn: Math.max(0, 24 - conv.lastInH) };
 
   // ─── Templates Jana (prompts internos de IA — geram resposta a partir do contexto) ──────
   const JANA_TEMPLATES = [
@@ -213,6 +221,7 @@
   const CONVS_INIT = [
   { id: "c1", account: "wa_bal_vendas", queue: "vendas", av: "RL", avc: 145, photo: "inbox-photo-c1.png", name: "Renato Lopes", company: "Padaria Estrela",
     handle: "+55 21 9 8112-4400", assignee: "wagner", tags: ["cliente-fiel"],
+    consent: { state: "ok", since: "12/03/2026", origin: "cadastro no balcão" },
     lastFrom: "them", preview: "Posso retirar amanhã 9h?", unread: 2, online: true, status: "pendentes",
     ctx: { os: "#4819 · Cardápios A4", saldo: "R$ 380 a receber", history: "4 pedidos · R$ 1.420 LTV", lastTouch: "11:48 hoje" },
     msgs: [
@@ -224,6 +233,7 @@
   },
   { id: "c2", account: "wa_bal_vendas", queue: "posvenda", av: "CD", avc: 30, photo: "inbox-photo-c2.png", name: "Camila Diniz", company: "Acme Comércio Ltda",
     handle: "+55 21 9 9712-0090", assignee: "wagner", tags: ["arte-aprovada"],
+    consent: { state: "ok", since: "02/02/2026", origin: "formulário do site" },
     lastFrom: "me", preview: "Você: arte aprovada ✓", unread: 0, status: "aguardando",
     ctx: { os: "#4821 · Banner 3×2m", saldo: "R$ 0 (faturado)", history: "12 pedidos · R$ 8.420 LTV", lastTouch: "10:32 hoje" },
     msgs: [
@@ -234,6 +244,7 @@
   },
   { id: "c3", account: "wa_bal_balcao", queue: "vendas", av: "DV", avc: 220, photo: "inbox-photo-c3.png", name: "Diego Vasconcellos", company: "TechPro",
     handle: "+55 21 9 9301-7714", assignee: "larissa", tags: ["novo"],
+    consent: { state: "none" },
     lastFrom: "them", preview: "Quanto fica em 200un?", unread: 1, status: "pendentes",
     ctx: { os: null, saldo: "R$ 1.840 a receber", history: "3 pedidos · R$ 4.200 LTV", lastTouch: "13:05 hoje" },
     msgs: [
@@ -244,19 +255,22 @@
   },
   { id: "c4", account: "wa_bal_fin", queue: "fin", av: "MV", avc: 295, photo: "inbox-photo-c4.png", name: "Marcos Vital", company: "Posto BR Centro",
     handle: "+55 21 9 8800-1240", assignee: "eliana", tags: ["cobrança"],
-    lastFrom: "them", preview: "Obrigado! Recebi.", unread: 0, status: "abertas",
+    consent: { state: "out", since: "ontem 18:02" },
+    lastFrom: "them", preview: "SAIR", unread: 0, status: "abertas",
     ctx: { os: "#4790 · Lona Front-Light", saldo: "R$ 5.620", history: "1 pedido · R$ 5.620 LTV", lastTouch: "ontem 17:48" },
     msgs: [
     { d: "ontem", who: "me", t: "Marcos, peça pronta e nota emitida.", time: "17:42", status: "read" },
-    { d: "ontem", who: "them", t: "Obrigado! Recebi.", time: "17:48" }]
+    { d: "ontem", who: "them", t: "Obrigado! Recebi.", time: "17:48" },
+    { d: "ontem", who: "them", t: "SAIR", time: "18:02", optOut: true }]
   },
 
   // Previews dos canais em breve
   { id: "c5", account: "wa_meta_pri", queue: "vendas", av: "FE", avc: 60, name: "Fátima Estrela", company: "Padaria Estrela",
     handle: "+55 21 9 8112-4400 · Cloud API", assignee: null, tags: [],
-    lastFrom: "them", preview: "Templates aprovados pela Meta?", unread: 0, preview_only: true, status: "abertas",
-    ctx: { os: null, saldo: "—", history: "—", lastTouch: "preview" },
-    msgs: [{ d: "hoje", who: "them", t: "Quando rolar o Meta Cloud aqui? Quero usar templates oficiais.", time: "—" }] },
+    consent: { state: "ok", since: "20/05/2026", origin: "botão do site" }, lastInH: 31,
+    lastFrom: "them", preview: "Templates aprovados pela Meta?", unread: 0, status: "abertas",
+    ctx: { os: null, saldo: "—", history: "—", lastTouch: "anteontem 10:12" },
+    msgs: [{ d: "Anteontem", who: "them", t: "Quando chega o orçamento das sacolas? Pode mandar por aqui.", time: "10:12" }] },
   { id: "c6", account: "ig_main", queue: "vendas", av: "ST", avc: 12, name: "@studio.foco", company: "Studio Foco",
     handle: "@studio.foco · DM", assignee: null, tags: [],
     lastFrom: "them", preview: "Curti! Faz orçamento?", unread: 0, preview_only: true, status: "abertas",
@@ -354,6 +368,8 @@
     const [bcastOpen, setBcastOpen] = useState(false);
     const [chSwitcherOpen, setChSwitcherOpen] = useState(false);
     const [queuesOpen, setQueuesOpen] = useState(false);
+    const [bcastTpl, setBcastTpl] = useState("ok");
+    const [tplSend, setTplSend] = useState(null); // Lote 6 (6.1.d): { t, vals } — HSM sai como template
     const [tplDrawerOpen, setTplDrawerOpen] = useState(false); // drawer Templates unificado (Jana+HSM numa só tela)
     const [tplLib, setTplLib] = useState("all"); // filtro da biblioteca: all | jana | hsm
     const [ctxOpen, setCtxOpen] = useState(() => typeof window !== "undefined" ? window.innerWidth >= 1440 : true); // Contexto recolhível (auto-recolhe em tela pequena)
@@ -432,6 +448,10 @@
     const convChannel = convAcc ? CHAN_BY_ID[convAcc.channel] : null;
     const convQueue = conv ? Q_BY_ID[conv.queue] : null;
     const isPreview = conv?.preview_only;
+    // Lote 6 (6.1.c/e): janela de 24h da Meta e consentimento do contato.
+    const win = conv ? winOf(conv, CHAN_BY_ID[ACC_BY_ID[conv.account]?.channel]) : { applies: false };
+    const winClosed = win.applies && !win.open;
+    const optedOut = conv?.consent?.state === "out";
 
     // Atalhos de teclado (V2) — DEPOIS de filteredConvs/conv/isPreview.
     // BUG PRÉ-EXISTENTE (achado 2026-08-31): declarado ACIMA do useMemo, o array
@@ -442,7 +462,9 @@
       window.useInboxKeyboard({
         onPalette: () => setPaletteOpen(true),
         onCheat: () => setCheatOpen(true),
-        onEsc: () => {setPaletteOpen(false);setCheatOpen(false);setShowTpl(false);setShowMacros(false);setSlashOpen(false);},
+        onEsc: () => {setPaletteOpen(false);setCheatOpen(false);setShowTpl(false);setShowMacros(false);setSlashOpen(false);
+          // Esc fecha também drawers e modais (6.3.d)
+          setCtxDrawerOpen(false);setTplDrawerOpen(false);setChSwitcherOpen(false);setQueuesOpen(false);setBcastOpen(false);setTplSend(null);setReconnectAcc(null);},
         onNext: () => {
           if (!filteredConvs.length) return;
           const i = filteredConvs.findIndex((c) => c.id === selId);
@@ -542,6 +564,8 @@
     const sendMsg = (text, opts = {}) => {
       const asInternal = opts.internal ?? internalMode;
       if (isPreview && !asInternal) {setToast({ kind: "warn", text: `Canal ${convChannel.label} em homologação — envio bloqueado` });return;}
+      if (!asInternal && !opts.tpl && winClosed) {setToast({ kind: "warn", text: "Janela de 24h fechada — envie um template aprovado" });return;}
+      if (!asInternal && optedOut) {setToast({ kind: "warn", text: `${conv.name} pediu para não receber mensagens` });return;}
       const t = (text || draft).trim();
       if (!t) return;
       const cid = selId, mid = Date.now();
@@ -551,7 +575,7 @@
       })), 1200);
       setConvs((cs) => cs.map((c) => c.id !== selId ? c : {
         ...c,
-        msgs: [...c.msgs, { d: "hoje", who: "me", t, time: "agora", internal: asInternal, mid, status: asInternal ? undefined : "sending" }],
+        msgs: [...c.msgs, { d: "hoje", who: "me", t, time: "agora", internal: asInternal, mid, tpl: opts.tpl, status: asInternal ? undefined : "sending" }],
         lastFrom: asInternal ? c.lastFrom : "me",
         preview: asInternal ? c.preview : "Você: " + t
       }));
@@ -623,7 +647,14 @@
       setToast(`Movido pra fila ${Q_BY_ID[qId].label}`);
     };
 
+    const openHsm = (t) => {setTplDrawerOpen(false);setShowTpl(false);setTplSend({ t, vals: (t.vars || []).map(() => "") });};
+    const sendTemplate = () => {
+      const { t, vals } = tplSend;
+      setTplSend(null);
+      sendMsg(tplFill(t, vals), { tpl: t.label });
+    };
     const applyTemplate = (t) => {
+      if (t.lib === "hsm" || t.status) {openHsm(t);return;}
       setDraft(t.body);
       setTplDrawerOpen(false);
       setShowTpl(false);setShowMacros(false);setSlashOpen(false);
@@ -887,7 +918,9 @@
                     <div className="om-hb-row" key={a.id}>
                         <span className="om-hb-dot pulse" style={{ background: HEALTH_BAD(a.health) ? "oklch(0.63 0.21 27)" : "oklch(0.80 0.13 80)" }} />
                         <span><b>{a.ch.short} · {a.label}</b><span style={{ opacity: .85 }}> — {HEALTH_VERB[a.health].label}, {a.affected} conversas · há {a.sinceMin} min</span></span>
-                        <a href="#" onClick={(e) => {e.preventDefault();openReconnect(a);}}>Reconectar</a>
+                        {a.health === "banned" ?
+                      <a href="#" onClick={(e) => {e.preventDefault();setChSwitcherOpen(true);}}>Ir para Meta Cloud</a> :
+                      <a href="#" onClick={(e) => {e.preventDefault();openReconnect(a);}}>Reconectar</a>}
                       </div>
                     )}
                   </div>
@@ -993,6 +1026,16 @@
                     <span className="mono">{conv.handle}</span>
                     <span className="om-sep">·</span>
                     {conv.online ? "online" : conv.ctx.lastTouch}
+                    {convChannel.group === "WhatsApp" && !isPreview &&
+                    <>
+                        <span className="om-sep">·</span>
+                        {win.applies ?
+                      <span className={"om-win " + (win.open ? "open" : "closed")} data-testid="caixa-unif-janela">
+                            {win.open ? `Janela aberta · fecha em ${Math.ceil(win.closesIn)}h` : "Janela de 24h fechada"}
+                          </span> :
+                      <span className="om-win na" title="A janela de 24h é regra da Meta Cloud; no canal por QR ela não se aplica">sem janela 24h (canal por QR)</span>}
+                      </>
+                    }
                     {!isPreview && effHealth(convAcc) !== "healthy" &&
                     <>
                         <span className="om-sep">·</span>
@@ -1053,6 +1096,7 @@
                     </div> :
 
                   <div className={"om-bub " + (m.who === "me" ? "me" : "them") + " ch-" + convChannel.id + (m.status === "failed" ? " failed" : "")}>
+                      {m.tpl && <span className="om-bub-tpl">Template · {m.tpl}</span>}
                       {m.media && <MsgMedia media={m.media} />}
                       {m.t && <span>{renderText(m.t)}</span>}
                       <small>{m.time}{m.who === "me" && <MsgStatus status={m.status} />}</small>
@@ -1064,8 +1108,13 @@
                     </div>;
 
 
+                  const optOutNote = m.optOut &&
+                  <div className="om-optout-note" role="note">
+                      Este contato pediu para não receber mensagens. Só responda se ele escrever de novo.
+                    </div>;
                   return (
                     <React.Fragment key={i}>
+                      {optOutNote}
                       {showDay && <div className="om-day-sep"><span>{m.d === "hoje" ? "Hoje" : m.d === "ontem" ? "Ontem" : m.d}</span></div>}
                       {window.MsgCommentWrap ?
                       <window.MsgCommentWrap
@@ -1086,8 +1135,8 @@
                   {validTemplates.length === 0 ?
                 <em className="om-tpl-none">Nenhum template configurado para este canal.</em> :
                 validTemplates.map((t) =>
-                <button key={t.id} onClick={() => sendMsg(t.body)}>
-                          <b>{t.label}</b>
+                <button key={t.id} onClick={() => openHsm(t)} disabled={t.status !== "aprovado"}>
+                          <b>{t.label} <span className={"om-tpl-st " + t.status}>{TPL_STATUS[t.status]}</span></b>
                           <em>{t.body}</em>
                         </button>
                 )}
@@ -1123,6 +1172,17 @@
                 </div>
               }
 
+              {!isPreview && !internalMode && winClosed &&
+              <div className="om-win-closed" data-testid="caixa-unif-janela-fechada">
+                  <span><b>Só template aprovado.</b> O cliente não escreve há mais de 24h; a Meta só aceita template aprovado até ele responder.</span>
+                  <button className="os-btn primary sm" onClick={() => setTplDrawerOpen(true)}>Escolher template</button>
+                </div>
+              }
+              {!isPreview && !internalMode && optedOut &&
+              <div className="om-win-closed">
+                  <span><b>Contato fora das mensagens.</b> Pediu para sair em {conv.consent.since}. Notas internas continuam liberadas.</span>
+                </div>
+              }
               {!isPreview && !internalMode && HEALTH_BAD(effHealth(convAcc)) &&
               <div className="om-preview-banner" style={{ background: "oklch(0.97 0.02 27)", borderColor: "oklch(0.84 0.09 27)", color: "oklch(0.45 0.13 27)" }}>
                   <b style={{ color: "oklch(0.42 0.16 27)" }}>Envio pausado — canal {HEALTH_VERB[effHealth(convAcc)].label}.</b>
@@ -1155,11 +1215,11 @@
                     "Nota interna · só pra equipe" :
                     isPreview ? `${convChannel.short} em homologação — envio bloqueado` : `Responder via ${convChannel.short} · ${convAcc.label}`
                     }
-                    disabled={isPreview && !internalMode} />
+                    disabled={(isPreview || winClosed || optedOut) && !internalMode} />
                   <button
                     className={"os-btn " + (internalMode ? "" : "primary")}
                     onClick={() => sendMsg()}
-                    disabled={!draft.trim() || (isPreview || HEALTH_BAD(effHealth(convAcc))) && !internalMode}
+                    disabled={!draft.trim() || (isPreview || winClosed || optedOut || HEALTH_BAD(effHealth(convAcc))) && !internalMode}
                     data-testid="caixa-unif-composer-send"
                     style={internalMode ? { background: "oklch(0.70 0.14 80)", color: "oklch(0.20 0.10 80)" } : null}>
                     {internalMode ? "Anotar" : "Enviar"}
@@ -1243,6 +1303,14 @@
               <button className="os-btn ghost om-ctx-export" onClick={() => setTranscriptOpen(true)} data-testid="caixa-unif-export">
                   Exportar conversa
                 </button>}
+              {conv.consent &&
+              <div className="om-kv" data-testid="caixa-unif-consent">
+                  <small>Consentimento WhatsApp</small>
+                  <b className={"om-consent " + conv.consent.state}>
+                    {conv.consent.state === "ok" ? `Autorizado em ${conv.consent.since} · ${conv.consent.origin}` :
+                    conv.consent.state === "out" ? `Pediu para sair em ${conv.consent.since}` : "Não autorizado"}
+                  </b>
+                </div>}
               <div className="om-kv">
                 <small>Fila</small>
                 {isPreview ?
@@ -1425,11 +1493,14 @@
                 const okHere = t.lib === "jana" || !convChannel || t.channels && t.channels.includes(convChannel.id);
                 return (
                   <button key={t.lib + "_" + t.id} className="om-tpl-lib-item" onClick={() => applyTemplate(t)}
+                  disabled={t.lib === "hsm" && t.status !== "aprovado"}
                   data-testid={`caixa-unif-tpl-${t.lib}-${t.id}`}>
                     <span className={"om-tpl-lib-tag " + t.lib}>{t.lib === "jana" ? "IA" : "Meta"}</span>
                     <span className="om-tpl-lib-text">
                       <b>{t.label}</b>
                       <em>{t.body}</em>
+                      {t.lib === "hsm" &&
+                      <small className={"om-tpl-st " + t.status}>{TPL_STATUS[t.status]} · {t.category}</small>}
                       {t.lib === "hsm" && !okHere &&
                       <small className="om-tpl-lib-warn">fora do {convChannel ? convChannel.short : "canal atual"} · revisar antes de enviar</small>}
                     </span>
@@ -1437,7 +1508,7 @@
 
               })}
               <p className="om-chan-note">
-                <b>Jana</b> são prompts internos de IA que geram a resposta a partir do contexto da conversa. <b>HSM</b> são modelos aprovados pela Meta, usados fora da janela de 24h. Tocar num template joga o texto no campo de resposta pra você revisar antes de enviar.
+                <b>Jana</b> são prompts internos de IA que geram a resposta a partir do contexto da conversa. <b>HSM</b> são modelos aprovados pela Meta, usados fora da janela de 24h: o texto não se edita, só as variáveis, e ele sai como template. Os da Jana entram no campo de resposta pra você revisar antes de enviar.
               </p>
             </div>
           </aside>
@@ -1477,11 +1548,17 @@
                         </div>
                         {acc.status === "ativo" ?
                       effHealth(acc) !== "healthy" ?
+                      effHealth(acc) === "banned" ?
+                      <span className="om-pill off">bloqueado</span> :
                       <button className="os-btn sm" style={{ flexShrink: 0 }} onClick={() => openReconnect(acc)}>Reconectar</button> :
                       <span className="om-pill on">ativo</span> :
                       <span className="om-pill off">em breve</span>}
                       </div>
                     )}
+                    {ch.id === "wa_baileys" &&
+                    <p className="om-chan-note om-qr-warn" data-testid="caixa-unif-qr-warn">
+                        <b>Conexão não oficial.</b> O WhatsApp por QR usa o aplicativo do celular; a Meta pode bloquear o número a qualquer momento, e aí nada sai nem chega. Para atendimento que não pode parar, use o <b>Meta Cloud</b> (API oficial).
+                      </p>}
                   </section>);
 
               })}
@@ -1610,6 +1687,41 @@
         </>
         }
 
+      {/* ───── Modal: enviar template HSM (Lote 6 · 6.1.d) ───── */}
+      {tplSend &&
+        <>
+          <div className="om-rc-backdrop" onClick={() => setTplSend(null)} />
+          <div className="om-rc" role="dialog" aria-modal="true" aria-labelledby="om-hsm-title" ref={window.omDialogRef} data-testid="caixa-unif-hsm-modal">
+            <header className="om-rc-h">
+              <div>
+                <small>Template · {tplSend.t.category} · {TPL_STATUS[tplSend.t.status]}</small>
+                <h2 id="om-hsm-title">{tplSend.t.label}</h2>
+              </div>
+              <button className="om-x" onClick={() => setTplSend(null)} aria-label="Fechar template">✕</button>
+            </header>
+            <div className="om-hsm-body">
+              {(tplSend.t.vars || []).map((v, k) =>
+              <label key={k} className="om-hsm-var">
+                  <small>{`{{${k + 1}}}`} · {v}</small>
+                  <input className="om-select" value={tplSend.vals[k]}
+                onChange={(e) => {const vals = [...tplSend.vals];vals[k] = e.target.value;setTplSend({ ...tplSend, vals });}} />
+                </label>
+              )}
+              <small>Como o cliente vai ler</small>
+              <div className="om-tpl-ro">{tplFill(tplSend.t, tplSend.vals)}</div>
+            </div>
+            <footer className="om-rc-foot">
+              <span />
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="os-btn" onClick={() => setTplSend(null)}>Cancelar</button>
+                <button className="os-btn primary" onClick={sendTemplate}
+                disabled={tplSend.t.status !== "aprovado" || tplSend.vals.some((x) => !x.trim())}>Enviar template</button>
+              </div>
+            </footer>
+          </div>
+        </>
+        }
+
       {/* ───── Drawer: Broadcast ───── */}
       {bcastOpen &&
         <>
@@ -1618,7 +1730,7 @@
             <header className="om-drawer-h">
               <div>
                 <h2>Broadcast cross-canal</h2>
-                <p>Envia para {convs.filter((c) => !c.preview_only).length} contatos abertos</p>
+                <p>Só para quem autorizou receber mensagens</p>
               </div>
               <button className="om-x" onClick={() => setBcastOpen(false)} aria-label="Fechar broadcast">✕</button>
             </header>
@@ -1634,17 +1746,34 @@
 
                 })}
               </select>
-              <label style={{ marginTop: 14 }}><small>Template</small></label>
-              <select className="om-select">{TEMPLATES.map((t) => <option key={t.id}>{t.label}</option>)}</select>
-              <label style={{ marginTop: 14 }}><small>Mensagem</small></label>
-              <textarea rows={5} defaultValue={TEMPLATES[0].body} />
-              <p style={{ fontSize: 11, color: "var(--text-mute)", margin: "8px 0 14px" }}>
-                Respeita janela 24h WhatsApp e templates aprovados.
-              </p>
-              {/* Produção (BroadcastSheet, ADR 0268): fase 1 = pre-flight + rascunho; o disparo é fase 2. */}
-              <button className="os-btn primary" onClick={() => {setBcastOpen(false);setToast(`Rascunho salvo para ${convs.filter((c) => !c.preview_only).length} contatos — o disparo chega na fase 2`);}}>
-                Salvar rascunho
-              </button>
+              {/* Lote 6 (6.1.a/b) — igual ao BroadcastSheet da produção: pré-checagem de opt-in,
+                  bloqueio sem consentimento, corpo do template só leitura, disparo é fase 2. */}
+              {(() => {
+                const pub = convs.filter((c) => !c.preview_only);
+                const ok = pub.filter((c) => c.consent?.state === "ok").length;
+                const no = pub.length - ok;
+                const t = TEMPLATES.find((x) => x.id === bcastTpl) || TEMPLATES[0];
+                return (
+                  <>
+                    <div className={"om-bc-pre " + (ok === 0 ? "err" : "")} data-testid="caixa-unif-bc-preflight">
+                      <b>{ok} elegíveis</b> com consentimento · <span>{no} sem consentimento ficam de fora</span>
+                      {ok === 0 && <p>Nenhum contato com consentimento — broadcast sem consentimento é proibido.</p>}
+                    </div>
+                    <label style={{ marginTop: 14 }}><small>Template aprovado</small></label>
+                    <select className="om-select" value={t.id} onChange={(e) => setBcastTpl(e.target.value)}>
+                      {TEMPLATES.map((x) => <option key={x.id} value={x.id} disabled={x.status !== "aprovado"}>{x.label} · {TPL_STATUS[x.status]}</option>)}
+                    </select>
+                    <label style={{ marginTop: 14 }}><small>Texto do template (aprovado pela Meta — não se edita)</small></label>
+                    <div className="om-tpl-ro" aria-readonly="true">{t.body}</div>
+                    {(t.vars || []).length > 0 &&
+                    <small className="om-tpl-vars-note">As variáveis ({t.vars.join(", ")}) são preenchidas com os dados de cada contato.</small>}
+                    <button className="os-btn primary" style={{ marginTop: 14 }} disabled={ok === 0}
+                    onClick={() => {setBcastOpen(false);setToast(`Rascunho salvo para ${ok} contatos com consentimento — o disparo chega na fase 2`);}}>
+                      Salvar rascunho
+                    </button>
+                    <button className="os-btn" style={{ marginTop: 8 }} disabled title="Disparo em massa é a fase 2">Disparar (fase 2)</button>
+                  </>);
+              })()}
             </div>
           </aside>
         </>

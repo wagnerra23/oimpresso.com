@@ -2967,3 +2967,46 @@
 }
 .om-ctx-export { width: 100%; margin: 8px 0; }
 .om-print-notes { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+
+/* ═════════════════════════════════════════════════════════════════
+   Lote 6 (2026-11-06) · ética e regulatório (pedido 6.1)
+   janela de 24h · template HSM só leitura · consentimento/SAIR ·
+   broadcast com pré-checagem de opt-in · aviso de canal por QR.
+   ═════════════════════════════════════════════════════════════════ */
+.om-win { font-weight: 600; white-space: nowrap; }
+.om-win.open { color: var(--pos); }
+.om-win.closed { color: var(--warn); }
+.om-win.na { color: var(--text-mute); font-weight: 500; }
+.om-win-closed {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 12px; font-size: 12px; border-top: 1px solid var(--border-2);
+  background: color-mix(in oklch, var(--warn) 12%, var(--surface)); color: var(--text);
+}
+.om-optout-note {
+  align-self: center; max-width: 80%; text-align: center;
+  font-size: 11.5px; font-weight: 600; padding: 6px 12px; border-radius: 6px; margin: 6px 0;
+  background: color-mix(in oklch, var(--warn) 14%, var(--surface)); color: var(--text);
+}
+.om-bub-tpl { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; opacity: .75; margin-bottom: 3px; }
+.om-tpl-st { font-size: 10px; font-weight: 600; margin-left: 6px; }
+.om-tpl-st.aprovado { color: var(--pos); }
+.om-tpl-st.pendente { color: var(--warn); }
+.om-tpl-st.rejeitado { color: var(--neg); }
+.om-tpl-lib-item:disabled, .om-tpl button:disabled { opacity: .55; cursor: not-allowed; }
+.om-tpl-ro {
+  font-size: 12.5px; line-height: 1.45; padding: 10px 12px; border-radius: 6px;
+  background: var(--bg-2); border: 1px solid var(--border-2); color: var(--text); white-space: pre-wrap;
+}
+.om-tpl-vars-note { display: block; margin-top: 6px; font-size: 11px; color: var(--text-mute); }
+.om-bc-pre {
+  padding: 10px 12px; border-radius: 6px; font-size: 12.5px;
+  border: 1px solid var(--border-2); background: var(--bg-2);
+}
+.om-bc-pre.err { border-color: var(--neg); background: color-mix(in oklch, var(--neg) 10%, var(--surface)); }
+.om-bc-pre p { margin: 6px 0 0; font-weight: 600; color: var(--neg); }
+.om-consent.ok { color: var(--pos); }
+.om-consent.none { color: var(--text-mute); }
+.om-consent.out { color: var(--neg); }
+.om-qr-warn { margin-top: 8px; }
+.om-hsm-body { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; }
+.om-hsm-var { display: flex; flex-direction: column; gap: 4px; }
