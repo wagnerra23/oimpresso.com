@@ -5,7 +5,7 @@ component: Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.tsx
 related_prototype: "prototipo-ui/cowork/Wagner/prototipos/fisio/Agenda.dc.html"
 owner: wagner
 status: draft
-last_validated: "2026-11-04"
+last_validated: "2026-11-05"
 parent_module: Fisio
 related_adrs: [93, 358, 437, 438]
 alcance:
@@ -34,6 +34,8 @@ Mostrar ao fisioterapeuta a semana dele, quem confirmou, quem faltou e quem est�
 - Vaga liberada nas últimas 24 h com quantos da lista de espera servem nela; lista de espera com a preferência em texto — UC-FAG-05.
 - Nova sessão em 3 campos (paciente, tipo, dia e hora); conflito oferece encaixe — UC-FAG-02.
 - Bloquear horário (almoço, curso, férias).
+- Clicar na sessão (com `fisio.editar`) abre o status permitido, desmarcar com quem desmarcou e, se o paciente está travado por faltas, liberar o app — UC-FAG-05, UC-FAG-06, UC-FAG-08.
+- Pôr e tirar paciente da lista de espera — UC-FAG-07.
 - Só a empresa da sessão; escrita só com `fisio.editar` — UC-FAG-03, UC-FAG-04.
 
 ## Non-Goals — Features (NÃO faz)
@@ -42,6 +44,8 @@ Mostrar ao fisioterapeuta a semana dele, quem confirmou, quem faltou e quem est�
 - ❌ Mostrar o recado ou a nota do paciente na grade (A20: ficam na ficha do atendimento).
 
 ## Refs
+
+- Os diálogos de ações não estão desenhados no protótipo (ele só mostra a grade, a vaga e a lista); seguem os primitivos do DS (`Dialog`, `Button`, `Select`).
 
 - Protótipo: `prototipo-ui/cowork/Wagner/prototipos/fisio/Agenda.dc.html`
 - Backend: `Modules/Fisio/Http/Controllers/AgendaController.php` · `Modules/Fisio/Services/Agenda/AgendaDaSemana.php` · `Modules/Fisio/Services/Agenda/AgendaService.php`

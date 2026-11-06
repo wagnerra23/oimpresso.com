@@ -4,7 +4,7 @@ irmaos: Configuracoes.charter.md (lei) · memory/requisitos/AssetManagement/RUNB
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-11-06"
 ---
 
 # Casos de Uso & Aceite — Patrimonio/Configuracoes
@@ -149,7 +149,7 @@ last_run: "2026-09-11"
 - **Por quê:** o `<Deferred>` mostra o esqueleto enquanto a prop não chegou, e numa falha ela
   nunca chega — a tela parecia carregando para sempre. O critério (`_shared/falhaDeferida.ts`) é
   a visita que pediu a prop ter terminado sem ela; não depende de horário nem de código de erro.
-- **Teste:** `tests/js/patrimonio-estado-erro.test.tsx` — seis `it()` citando `UC-CFG-06`: o alerta aparece quando a visita que pediu `usuarios` termina sem ela; "Tentar de novo" pede só `usuarios` com `onHttpException`/`onNetworkError` devolvendo `false`; o erro some quando a prop chega; e três controles (antes da carga terminar, visita que trouxe a prop, visita que pediu outra prop). **Bite-test (2026-11-05):** com as cinco telas de `main`, os 3 casos não-controle de cada tela caem (15 de 30); os controles ficam verdes nos dois lados.
+- **Teste:** `tests/js/patrimonio-estado-erro.test.tsx` — oito `it()` citando `UC-CFG-06`: o alerta aparece quando a visita que pediu `usuarios` termina sem ela; "Tentar de novo" pede só `usuarios` com `onHttpException`/`onNetworkError` devolvendo `false`; o erro some quando a prop chega; e três controles (antes da carga terminar, visita que trouxe a prop, visita que pediu outra prop). **Bite-test (2026-11-05):** com as cinco telas de `main`, os 3 casos não-controle de cada tela caem (15 de 30); os controles ficam verdes nos dois lados. **Emenda (2026-11-06):** o smoke em produção mostrou que a falha da carga ORIGINAL abria também o `dialog#inertia-error-dialog` do Inertia por cima do estado de erro (5 de 5 telas) — a carga deferida nasce no core sem `onHttpException`. Dois `it()` a mais: enquanto a carga desta tela está em voo, `httpException` e `networkError` são cancelados (sem modal); fora dela (antes, outra prop, depois do `finish`) o modal segue como era. Bite-test: com o hook anterior, os 5 casos do modal caem; os controles ficam verdes nos dois lados.
 - **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
 
 ---
