@@ -227,7 +227,7 @@ function ManutencaoForm({ bemId, bemIds, bens, manutencoes, papel, onClose, onSa
   const { Drawer, DrawerSection, Input, Select, Textarea, DatePicker, Alert } = DS();
   const lista = bens.filter((b) => D.podeVerLocal(papel, b.loc));
   const lote = bemIds && bemIds.length > 1 ? bemIds : null;
-  const [f, setF] = useState({ bem: bemId || (lista[0] && lista[0].id) || "", prestador: "", resp: D.PAPEIS[papel] ? D.PAPEIS[papel].quem : "Wagner", ini: D.iso(D.HOJE), fim: "", custo: "", notas: "" });
+  const [f, setF] = useState({ bem: bemId || (lista[0] && lista[0].id) || "", prestador: "", resp: D.PAPEIS[papel] ? D.PAPEIS[papel].quem : "Paulo", ini: D.iso(D.HOJE), fim: "", custo: "", notas: "" });
   const [erros, setErros] = useState({});
   const set = (k, v) => setF((o) => ({ ...o, [k]: v }));
   if (!Drawer) return null;

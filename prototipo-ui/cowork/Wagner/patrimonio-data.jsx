@@ -32,20 +32,20 @@ const TIPOS = { owned: "Possuído", rented: "Alugado", leased: "Arrendado" };
 const DEP_PADRAO = { impressao: 10, acabamento: 10, informatica: 5, veiculos: 5, ferramentas: 5, mobiliario: 10 };
 
 const COLABORADORES = [
-  { id: "larissa", nome: "Larissa Prado", papel: "Balcão · ROTA LIVRE" },
-  { id: "wagner", nome: "Wagner Ramos", papel: "Escritório" },
-  { id: "eliana", nome: "Eliana Costa", papel: "Financeiro" },
+  { id: "camila", nome: "Camila Rocha", papel: "Balcão · Loja Centro" },
+  { id: "paulo", nome: "Paulo Mendes", papel: "Escritório" },
+  { id: "renata", nome: "Renata Alves", papel: "Financeiro" },
   { id: "marcos", nome: "Marcos Aurélio", papel: "Técnico · instalação" },
   { id: "bruna", nome: "Bruna Lima", papel: "Arte" },
 ];
 
 // ─── Papéis (permissões do módulo + permitted_locations) ───
 const PAPEIS = {
-  gestor: { label: "Gestor do patrimônio", quem: "Wagner", locais: "all",
+  gestor: { label: "Gestor do patrimônio", quem: "Paulo", locais: "all",
     perms: ["view", "create", "update", "delete", "allocate", "revoke", "maintenance.create", "view_all_maintenance", "settings", "export"] },
-  operador: { label: "Operador de balcão", quem: "Larissa", locais: ["matriz", "centro"],
+  operador: { label: "Operador de balcão", quem: "Camila", locais: ["matriz", "centro"],
     perms: ["view", "allocate", "maintenance.create", "view_own_maintenance", "export"] },
-  financeiro: { label: "Financeiro", quem: "Eliana", locais: "all",
+  financeiro: { label: "Financeiro", quem: "Renata", locais: "all",
     perms: ["view", "view_all_maintenance", "export"] },
 };
 const can = (papel, p) => (PAPEIS[papel] || PAPEIS.gestor).perms.includes(p);
@@ -95,25 +95,25 @@ const SEED_BENS = [
     desc: "Pintura e limpeza de peça na oficina." },
   { id: "PAT-0011", nome: "Balcão de atendimento MDF", cat: "mobiliario", loc: "centro", modelo: "sob medida", serie: "—",
     compra: "2023-08-21", tipo: "owned", valor: 4300, qtd: 1, alocavel: false, img: true, dep: 10, garantia: null,
-    desc: "Balcão da Loja Centro — ROTA LIVRE." },
+    desc: "Balcão de atendimento da Loja Centro." },
 ];
 
 // ─── asset_transactions: allocate / revoke ───
 const SEED_ALOCACOES = [
-  { id: "ALO-0031", bem: "PAT-0006", para: "Larissa Prado", papel: "Balcão · ROTA LIVRE", em: "2026-07-02", ate: "2026-12-31", qtd: 1, por: "Wagner", motivo: "Estação de orçamento do balcão", revs: [] },
-  { id: "ALO-0030", bem: "PAT-0006", para: "Eliana Costa", papel: "Financeiro", em: "2026-07-02", ate: null, qtd: 1, por: "Wagner", motivo: "Fechamento e conciliação", revs: [] },
-  { id: "ALO-0029", bem: "PAT-0007", para: "Wagner Ramos", papel: "Escritório", em: "2026-07-10", ate: null, qtd: 2, por: "Wagner", motivo: "Bancada de dashboards", revs: [] },
-  { id: "ALO-0028", bem: "PAT-0009", para: "Marcos Aurélio", papel: "Técnico · instalação", em: "2026-06-18", ate: "2026-08-15", qtd: 1, por: "Wagner", motivo: "Kit de instalação de fachada",
-    revs: [{ id: "REV-0012", em: "2026-08-14", qtd: 1, por: "Wagner", motivo: "Fim da obra do cliente Martinho" }] },
-  { id: "ALO-0027", bem: "PAT-0006", para: "Bruna Lima", papel: "Arte", em: "2026-05-04", ate: "2026-06-30", qtd: 1, por: "Wagner", motivo: "Projeto sazonal de vitrine",
+  { id: "ALO-0031", bem: "PAT-0006", para: "Camila Rocha", papel: "Balcão · Loja Centro", em: "2026-07-02", ate: "2026-12-31", qtd: 1, por: "Paulo", motivo: "Estação de orçamento do balcão", revs: [] },
+  { id: "ALO-0030", bem: "PAT-0006", para: "Renata Alves", papel: "Financeiro", em: "2026-07-02", ate: null, qtd: 1, por: "Paulo", motivo: "Fechamento e conciliação", revs: [] },
+  { id: "ALO-0029", bem: "PAT-0007", para: "Paulo Mendes", papel: "Escritório", em: "2026-07-10", ate: null, qtd: 2, por: "Paulo", motivo: "Bancada de dashboards", revs: [] },
+  { id: "ALO-0028", bem: "PAT-0009", para: "Marcos Aurélio", papel: "Técnico · instalação", em: "2026-06-18", ate: "2026-08-15", qtd: 1, por: "Paulo", motivo: "Kit de instalação de fachada",
+    revs: [{ id: "REV-0012", em: "2026-08-14", qtd: 1, por: "Paulo", motivo: "Fim da obra de fachada do cliente" }] },
+  { id: "ALO-0027", bem: "PAT-0006", para: "Bruna Lima", papel: "Arte", em: "2026-05-04", ate: "2026-06-30", qtd: 1, por: "Paulo", motivo: "Projeto sazonal de vitrine",
     revs: [{ id: "REV-0011", em: "2026-06-30", qtd: 1, por: "Bruna", motivo: "Projeto concluído" }] },
 ];
 
 // ─── asset_maintenances ───
 const SEED_MANUTENCOES = [
-  { id: "MAN-0009", bem: "PAT-0001", status: "andamento", ini: "2026-08-14", fim: null, prestador: "Roland Care", resp: "Wagner", custo: 1850, titulo: null,
+  { id: "MAN-0009", bem: "PAT-0001", status: "andamento", ini: "2026-08-14", fim: null, prestador: "Roland Care", resp: "Paulo", custo: 1850, titulo: null,
     notas: "Troca de dampers e limpeza da cabeça — preventiva de 20 mil m²." },
-  { id: "MAN-0008", bem: "PAT-0002", status: "concluida", ini: "2026-07-28", fim: "2026-08-02", prestador: "Tecnojet", resp: "Wagner", custo: 4200, titulo: "TIT-4402",
+  { id: "MAN-0008", bem: "PAT-0002", status: "concluida", ini: "2026-07-28", fim: "2026-08-02", prestador: "Tecnojet", resp: "Paulo", custo: 4200, titulo: "TIT-4402",
     notas: "Cabeça de impressão substituída — fora de garantia, custo integral." },
   { id: "MAN-0007", bem: "PAT-0008", status: "agendada", ini: "2026-08-28", fim: null, prestador: "Fiat Rodobens", resp: "Marcos", custo: 890, titulo: null,
     notas: "Revisão de 40 mil km — troca de óleo, filtros e correia." },
@@ -128,11 +128,11 @@ const CAMPO_LABEL = { nome: "Nome", id: "Código do ativo", cat: "Categoria", lo
 // dia = ISO (filtro e ordenação) · hora = hh:mm. A exibição formata com d2() —
 // nunca se extrai data de string de exibição.
 const SEED_LOG = [
-  { id: "LOG-0112", dia: "2026-08-14", hora: "08:31", quem: "Wagner", alvo: "PAT-0001", evento: "Enviado pra manutenção", campos: [] },
-  { id: "LOG-0111", dia: "2026-08-14", hora: "08:29", quem: "Wagner", alvo: "ALO-0028", evento: "Alocação revogada (REV-0012)", campos: [] },
-  { id: "LOG-0110", dia: "2026-08-02", hora: "17:04", quem: "Wagner", alvo: "PAT-0002", evento: "Manutenção concluída · custo adicional R$ 4.200,00", campos: [] },
-  { id: "LOG-0109", dia: "2026-07-10", hora: "10:12", quem: "Wagner", alvo: "PAT-0007", evento: "Bem atualizado", campos: [{ campo: "qtd", de: "4", para: "6" }] },
-  { id: "LOG-0108", dia: "2026-07-08", hora: "09:55", quem: "Wagner", alvo: "PAT-0007", evento: "Bem criado", campos: [] },
+  { id: "LOG-0112", dia: "2026-08-14", hora: "08:31", quem: "Paulo", alvo: "PAT-0001", evento: "Enviado pra manutenção", campos: [] },
+  { id: "LOG-0111", dia: "2026-08-14", hora: "08:29", quem: "Paulo", alvo: "ALO-0028", evento: "Alocação revogada (REV-0012)", campos: [] },
+  { id: "LOG-0110", dia: "2026-08-02", hora: "17:04", quem: "Paulo", alvo: "PAT-0002", evento: "Manutenção concluída · custo adicional R$ 4.200,00", campos: [] },
+  { id: "LOG-0109", dia: "2026-07-10", hora: "10:12", quem: "Paulo", alvo: "PAT-0007", evento: "Bem atualizado", campos: [{ campo: "qtd", de: "4", para: "6" }] },
+  { id: "LOG-0108", dia: "2026-07-08", hora: "09:55", quem: "Paulo", alvo: "PAT-0007", evento: "Bem criado", campos: [] },
 ];
 // Rótulo de um evento de log: dd/mm/aaaa hh:mm (canon do DS).
 const logQuando = (l) => d2(l.dia) + " " + l.hora;
