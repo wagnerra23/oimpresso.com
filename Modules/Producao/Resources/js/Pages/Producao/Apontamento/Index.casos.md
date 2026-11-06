@@ -825,6 +825,48 @@ Status: 🧪
   hoje o retorno do banco lança o pagamento na venda inteira (UC-PCLIB-08), sem parcela de sinal separada. O
   campo do sinal mínimo na aba Fluxos da empresa vem no #9701.
 
+## Venda cancelada cancela as OS dela (P-113 · parte)
+
+> Auditoria do Producao, lote 2.1 (aprovado pelo [W] em 2026-11-05). Antes, cancelar a venda só
+> liberava a reserva de insumo: a OS seguia na fila, apontável e baixando material. Agora a venda que vai
+> para uma etapa de cancelamento leva cada OS aberta dela para Cancelada pelo motor (ação do sistema
+> `cancelar_pela_venda`, de qualquer etapa aberta) e cancela as etapas abertas. **O material já baixado
+> não volta ao estoque nem vira perda**: é a decisão B3 do [W], em aberto; o histórico da OS guarda o que
+> foi baixado para a apuração. O resto do P-113 (cancelar com motivo, cobrança, D-12) segue em aberto.
+> Prova: `ProducaoReservaInsumoContratoTest`.
+
+## UC-PCCAN-01 · Venda cancelada cancela a OS em execução, sem mexer no material baixado · `must` estoque
+
+**Dado** a OS do banner em execução, com 2 de lona baixados (saldo 10 → 8; reserva 5 → 3) **Quando** a
+venda é cancelada **Então** a OS fica Cancelada, a etapa fica cancelada, o histórico guarda a situação
+anterior e o material baixado (lona 2,0000), o saldo segue 8 e os 3 reservados são liberados; uma nova
+baixa é recusada pela etapa cancelada (`etapa_encerrada`) e o saldo segue 8; parar o relógio grava o tempo e a etapa segue
+cancelada; cancelar de novo não faz nada.
+
+Status: 🧪
+
+## UC-PCCAN-02 · A OS ainda não liberada também é cancelada · `must`
+
+**Dado** uma OS da venda em Aguardando liberação **Quando** a venda é cancelada **Então** a OS e a etapa
+ficam canceladas e iniciar a etapa é recusado (`etapa_encerrada`).
+
+Status: 🧪
+
+## UC-PCCAN-03 · OS de venda cancelada antes desta mudança não baixa material · `must` estoque
+
+**Dado** a venda cancelada sem passar pelo evento (dado antigo) e a OS ainda em execução **Quando** o
+operador baixa material **Então** é recusado com *"A venda desta OS foi cancelada."* e o saldo não muda.
+Iniciar etapa dessa OS também é recusado.
+
+Status: 🧪
+
+## UC-PCCAN-04 · Só dentro da empresa · `must`
+
+**Quando** a empresa 99 manda cancelar as OS da venda da 98 **Então** nada muda (0 canceladas) e, para a
+99, a venda da 98 não aparece como cancelada.
+
+Status: 🧪
+
 ## Pedido de compra do cliente na OS (pedido de 2026-10-23)
 
 - **[BACKLOG]** A OS mostra o número do pedido de compra do cliente — Dado uma venda com o pedido do
