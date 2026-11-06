@@ -12,9 +12,9 @@ use Modules\Compras\Http\Middleware\ComprasLiberado;
 | Web Routes — Compras
 |--------------------------------------------------------------------------
 |
-| Wave 1 scaffold US-COM-001 — apenas Index + Install endpoints.
-| Resource completo (create/store/show/edit/update/destroy) + importar-dfe
-| entram nas Waves 3 e 6.
+| Nasceu na Wave 1 (US-COM-001) só com Index + Install. Em 2026-11-06 o grupo
+| operacional tinha cockpit, detalhe, propostas de preço e método de custo; o
+| CRUD da compra mora em /purchases (convergência C1), e o importar DF-e não existe.
 |
 | Middleware canônico UltimatePOS: ['web','auth','SetSessionData','language',
 | 'timezone','AdminSidebarMenu','CheckUserLogin'] — NÃO usar 'tenant' fantasma
