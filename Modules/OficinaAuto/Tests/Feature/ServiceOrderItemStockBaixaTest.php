@@ -13,16 +13,18 @@ declare(strict_types=1);
 //   UC-OED-08 — peça de catálogo de outro business é recusada (Tier 0)
 
 use App\Contact;
-use App\Product;
 use App\VariationLocationDetails;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\ServiceOrderItem;
 use Modules\OficinaAuto\Entities\Vehicle;
 use Modules\OficinaAuto\Services\ServiceOrderItemService;
+use Tests\Support\WithSeededTenant;
 
 uses(Tests\TestCase::class);
-uses(DatabaseTransactions::class);
+uses(DatabaseTransactions::class, WithSeededTenant::class);
 
 /**
  * P0-2 — Catálogo de peças + baixa de estoque no item da OS.
@@ -39,74 +41,98 @@ uses(DatabaseTransactions::class);
  *   4. Concluir a mesma OS 2× não baixa estoque em dobro (idempotência via
  *      guard transaction_id do ServiceOrderObserver + dirty-check do Eloquent).
  *
- * Ambiente: requer schema UltimatePOS real (MySQL). Em sqlite :memory: (CI default)
- * faz markTestSkipped gracioso — padrão do projeto (ADR 0101). Rodar no CT 100:
- *   php artisan test --filter=ServiceOrderItemStockBaixa
+ * Fixture própria (2026-11-05, lote 1.1 OficinaAuto). Antes o teste PROCURAVA um produto
+ * stock-managed em biz=1 e, sem achar, chamava markTestSkipped: no run 40862660055 da
+ * oficinaauto-pest os 4 casos saíram skip com 0 assertions, inclusive o UC-OED-08 (Tier 0).
+ * Agora cada caso cria no tenant fictício 98 (ADR 0358) um produto com saldo conhecido
+ * (10 un num local do 98) e, no UC-OED-08, um produto do 99. Tudo dentro da transação do
+ * teste (DatabaseTransactions): nada sobra no banco.
+ *
+ * Ambiente: schema UltimatePOS real (MySQL). Lane: .github/workflows/oficinaauto-pest.yml.
  *
  * @see Modules/OficinaAuto/Services/ServiceOrderItemService.php (addItem + baixarEstoqueConclusao)
  * @see Modules/OficinaAuto/Observers/ServiceOrderObserver.php (gancho 'concluida')
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  */
 
-const BIZ_STOCK_BAIXA = 1;
 const PLATE_STOCK_PREFIX = 'STKBX';
+const SALDO_INICIAL_STOCK_BAIXA = 10.0;
 
 /**
- * Resolve um produto stock-managed do biz piloto que tenha VLD com saldo >= $min.
- * Retorna [Product, variationId, locationId, totalQtyAntes] ou null se não houver
- * dado adequado (teste então faz skip gracioso — não inventa schema do zero).
- *
- * @return array{0:Product,1:int,2:int,3:float}|null
+ * Cria no business $biz um produto stock-managed com UM saldo ($qty) num local do próprio $biz.
+ * Mesmo molde da fixture de Modules/Compras/Tests/Feature/CustoMedioMovelTest.php.
  */
-function stockBaixa_resolveProdutoComEstoque(int $biz, float $min = 5.0): ?array
+function stockBaixa_criaProduto(int $biz, int $userId, float $qty): int
 {
-    $productIds = Product::withoutGlobalScopes()
-        ->where('business_id', $biz)
-        ->where('enable_stock', 1)
-        ->pluck('id');
+    $agora = now();
+    $sku = 'STKBX-' . uniqid();
 
-    if ($productIds->isEmpty()) {
-        return null;
-    }
+    $unitId = (int) (DB::table('units')->where('business_id', $biz)->value('id')
+        ?? DB::table('units')->insertGetId([
+            'business_id' => $biz, 'actual_name' => 'Unidade ' . $sku, 'short_name' => 'un',
+            'allow_decimal' => 0, 'created_by' => $userId, 'created_at' => $agora, 'updated_at' => $agora,
+        ]));
+    $productId = DB::table('products')->insertGetId([
+        'business_id' => $biz, 'name' => 'Peca ' . $sku, 'type' => 'single', 'unit_id' => $unitId,
+        'sku' => $sku, 'enable_stock' => 1, 'alert_quantity' => 0, 'tax_type' => 'exclusive',
+        'barcode_type' => 'C128', 'created_by' => $userId, 'created_at' => $agora, 'updated_at' => $agora,
+    ]);
+    $grupo = DB::table('product_variations')->insertGetId([
+        'product_id' => $productId, 'name' => 'DUMMY', 'is_dummy' => 1, 'created_at' => $agora, 'updated_at' => $agora,
+    ]);
+    $variationId = DB::table('variations')->insertGetId([
+        'product_id' => $productId, 'product_variation_id' => $grupo, 'name' => 'DUMMY', 'sub_sku' => $sku . '-1',
+        'default_purchase_price' => 20, 'dpp_inc_tax' => 20, 'profit_percent' => 0,
+        'default_sell_price' => 30, 'sell_price_inc_tax' => 30, 'created_at' => $agora, 'updated_at' => $agora,
+    ]);
 
-    $vld = VariationLocationDetails::query()
-        ->whereIn('product_id', $productIds)
-        ->where('qty_available', '>=', $min)
-        ->first();
+    $scheme = DB::table('invoice_schemes')->where('business_id', $biz)->value('id')
+        ?? DB::table('invoice_schemes')->insertGetId([
+            'business_id' => $biz, 'name' => 'CI ' . $sku, 'scheme_type' => 'blank', 'created_at' => $agora, 'updated_at' => $agora,
+        ]);
+    $layout = DB::table('invoice_layouts')->where('business_id', $biz)->value('id')
+        ?? DB::table('invoice_layouts')->insertGetId([
+            'business_id' => $biz, 'name' => 'CI ' . $sku, 'created_at' => $agora, 'updated_at' => $agora,
+        ]);
+    $localId = DB::table('business_locations')->insertGetId([
+        'business_id' => $biz, 'name' => 'Deposito ' . $sku, 'location_id' => 'SB' . substr(uniqid(), -6),
+        'country' => 'BR', 'state' => 'SC', 'city' => 'Teste', 'zip_code' => '0000000',
+        'invoice_scheme_id' => $scheme, 'invoice_layout_id' => $layout, 'is_active' => 1,
+        'created_at' => $agora, 'updated_at' => $agora,
+    ]);
+    DB::table('variation_location_details')->insert([
+        'product_id' => $productId, 'product_variation_id' => $grupo, 'variation_id' => $variationId,
+        'location_id' => $localId, 'qty_available' => $qty, 'created_at' => $agora, 'updated_at' => $agora,
+    ]);
 
-    if ($vld === null) {
-        return null;
-    }
-
-    $product = Product::withoutGlobalScopes()->find($vld->product_id);
-    if ($product === null) {
-        return null;
-    }
-
-    $total = (float) VariationLocationDetails::query()
-        ->where('product_id', $product->id)
-        ->sum('qty_available');
-
-    return [$product, (int) $vld->variation_id, (int) $vld->location_id, $total];
+    return (int) $productId;
 }
 
-function stockBaixa_criaOs(string $suffix, int $biz = BIZ_STOCK_BAIXA): ServiceOrder
+function stockBaixa_saldo(int $productId): float
+{
+    return (float) VariationLocationDetails::query()->where('product_id', $productId)->sum('qty_available');
+}
+
+function stockBaixa_criaOs(int $biz, string $suffix): ServiceOrder
 {
     // contact_id ancorado no VEÍCULO de propósito: este teste exercita o FALLBACK
     // do Observer `$so->vehicle?->contact_id` (OS sem contact_id próprio). Desde o
     // sweep ADR 0265 (2026-06-09) `ServiceOrder.$fillable` JÁ inclui contact_id —
     // mas aqui mantemos a âncora no veículo pra cobrir o caminho de resolução indireta.
-    $contactId = Contact::withoutGlobalScopes()
-        ->where('business_id', $biz)
-        ->value('id') ?? 1;
+    // SUPERADMIN: fixture de teste — lê/cria com business_id explícito do tenant 98.
+    $contactId = Contact::withoutGlobalScopes()->where('business_id', $biz)->value('id');
+    expect($contactId)->not->toBeNull('o seed da lane (pest-mysql-setup) cria 1 contato no tenant 98');
 
+    // SUPERADMIN: fixture de teste com business_id explícito.
     $vehicle = Vehicle::withoutGlobalScopes()->create([
         'business_id'  => $biz,
         'contact_id'   => $contactId,
-        'plate'        => PLATE_STOCK_PREFIX . $suffix,
+        'plate'        => PLATE_STOCK_PREFIX . $suffix . substr(uniqid(), -2),
         'vehicle_type' => 'caminhao',
     ]);
 
+    // SUPERADMIN: fixture de teste com business_id explícito.
     return ServiceOrder::withoutGlobalScopes()->create([
         'business_id' => $biz,
         'vehicle_id'  => $vehicle->id,
@@ -116,15 +142,16 @@ function stockBaixa_criaOs(string $suffix, int $biz = BIZ_STOCK_BAIXA): ServiceO
 }
 
 beforeEach(function () {
-    try {
-        if (\App\Business::query()->count() === 0) {
-            $this->markTestSkipped('Sem business em DB — rode com DB_CONNECTION=mysql (dev/CI integration).');
-        }
-    } catch (\Throwable $e) {
-        $this->markTestSkipped('Schema UltimatePOS ausente — sqlite :memory: não tem products/variation_location_details.');
+    if (! Schema::hasTable('variation_location_details') || ! Schema::hasTable('service_orders')) {
+        $this->markTestSkipped('Schema UltimatePOS/OficinaAuto ausente — rode no MySQL (lane oficinaauto-pest).');
     }
 
-    session(['user.business_id' => BIZ_STOCK_BAIXA]);
+    $this->biz = (int) $this->seededTenant()->id;
+    $this->outra = (int) $this->seededSupportClientTenant()->id;
+    expect($this->biz)->not->toBe($this->outra);
+
+    $this->user = \App\User::factory()->create(['business_id' => $this->biz]);
+    session(['user.business_id' => $this->biz]);
 });
 
 // ---------------------------------------------------------------------------
@@ -132,31 +159,25 @@ beforeEach(function () {
 // ---------------------------------------------------------------------------
 
 it('UC-OED-03 · peça da OS com product_id stock-managed → baixa estoque pela quantidade ao concluir OS', function () {
-    $resolved = stockBaixa_resolveProdutoComEstoque(BIZ_STOCK_BAIXA, 5.0);
-    if ($resolved === null) {
-        $this->markTestSkipped('Sem produto stock-managed com VLD >= 5 no biz piloto.');
-    }
-    [$product, , , $totalAntes] = $resolved;
+    $productId = stockBaixa_criaProduto($this->biz, $this->user->id, SALDO_INICIAL_STOCK_BAIXA);
+    expect(stockBaixa_saldo($productId))->toBe(SALDO_INICIAL_STOCK_BAIXA);
 
-    $os = stockBaixa_criaOs('A');
+    $os = stockBaixa_criaOs($this->biz, 'A');
 
-    app(ServiceOrderItemService::class)->addItem(BIZ_STOCK_BAIXA, (int) $os->id, [
+    app(ServiceOrderItemService::class)->addItem($this->biz, (int) $os->id, [
         'tipo'           => ServiceOrderItem::TIPO_PECA,
-        'descricao'      => $product->name ?? 'Peça catálogo',
+        'descricao'      => 'Peça catálogo',
         'quantidade'     => 2,
         'valor_unitario' => 100.00,
-        'product_id'     => (int) $product->id,
+        'product_id'     => $productId,
     ]);
 
     // Conclui a OS → dispara baixa de estoque.
     $os->status = 'concluida';
     $os->save();
 
-    $totalDepois = (float) VariationLocationDetails::query()
-        ->where('product_id', $product->id)
-        ->sum('qty_available');
-
-    expect(round($totalAntes - $totalDepois, 3))->toBe(2.0);
+    // 10 − 2 = 8
+    expect(stockBaixa_saldo($productId))->toBe(8.0);
 });
 
 // ---------------------------------------------------------------------------
@@ -164,15 +185,11 @@ it('UC-OED-03 · peça da OS com product_id stock-managed → baixa estoque pela
 // ---------------------------------------------------------------------------
 
 it('UC-OED-07 · item mão-de-obra (product_id null) NÃO altera estoque ao concluir OS', function () {
-    $resolved = stockBaixa_resolveProdutoComEstoque(BIZ_STOCK_BAIXA, 1.0);
-    if ($resolved === null) {
-        $this->markTestSkipped('Sem produto stock-managed pra medir baseline.');
-    }
-    [$product, , , $totalAntes] = $resolved;
+    $productId = stockBaixa_criaProduto($this->biz, $this->user->id, SALDO_INICIAL_STOCK_BAIXA);
 
-    $os = stockBaixa_criaOs('B');
+    $os = stockBaixa_criaOs($this->biz, 'B');
 
-    app(ServiceOrderItemService::class)->addItem(BIZ_STOCK_BAIXA, (int) $os->id, [
+    app(ServiceOrderItemService::class)->addItem($this->biz, (int) $os->id, [
         'tipo'           => ServiceOrderItem::TIPO_MAO_OBRA,
         'descricao'      => 'Troca cilindro + sangria',
         'quantidade'     => 3,
@@ -182,11 +199,9 @@ it('UC-OED-07 · item mão-de-obra (product_id null) NÃO altera estoque ao conc
     $os->status = 'concluida';
     $os->save();
 
-    $totalDepois = (float) VariationLocationDetails::query()
-        ->where('product_id', $product->id)
-        ->sum('qty_available');
-
-    expect(round($totalAntes - $totalDepois, 3))->toBe(0.0);
+    // A OS concluiu de fato (faturou): sem isso o "0 baixado" seria vácuo.
+    expect($os->fresh()->transaction_id)->not->toBeNull();
+    expect(stockBaixa_saldo($productId))->toBe(SALDO_INICIAL_STOCK_BAIXA);
 });
 
 // ---------------------------------------------------------------------------
@@ -194,36 +209,43 @@ it('UC-OED-07 · item mão-de-obra (product_id null) NÃO altera estoque ao conc
 // ---------------------------------------------------------------------------
 
 it('UC-OED-08 · addItem rejeita product_id de produto de outro business (Tier 0)', function () {
-    $foreign = Product::withoutGlobalScopes()
-        ->where('business_id', '!=', BIZ_STOCK_BAIXA)
-        ->first();
+    $alheio = stockBaixa_criaProduto($this->outra, $this->user->id, SALDO_INICIAL_STOCK_BAIXA);
+    $proprio = stockBaixa_criaProduto($this->biz, $this->user->id, SALDO_INICIAL_STOCK_BAIXA);
+    expect((int) DB::table('products')->where('id', $alheio)->value('business_id'))->toBe($this->outra);
 
-    if ($foreign === null) {
-        $this->markTestSkipped('Sem produto de outro business pra testar cross-tenant.');
-    }
+    $os = stockBaixa_criaOs($this->biz, 'C');
+    $service = app(ServiceOrderItemService::class);
 
-    $os = stockBaixa_criaOs('C');
+    expect(fn () => $service->addItem($this->biz, (int) $os->id, [
+        'tipo'           => ServiceOrderItem::TIPO_PECA,
+        'descricao'      => 'Tentativa cross-tenant',
+        'quantidade'     => 1,
+        'valor_unitario' => 10.00,
+        'product_id'     => $alheio,
+    ]))->toThrow(InvalidArgumentException::class);
 
-    try {
-        app(ServiceOrderItemService::class)->addItem(BIZ_STOCK_BAIXA, (int) $os->id, [
-            'tipo'           => ServiceOrderItem::TIPO_PECA,
-            'descricao'      => 'Tentativa cross-tenant',
-            'quantidade'     => 1,
-            'valor_unitario' => 10.00,
-            'product_id'     => (int) $foreign->id,
-        ]);
-    } catch (\InvalidArgumentException $e) {
-        // Aceitável: rejeição via exceção.
-    }
+    // Controle positivo: o MESMO caminho aceita o produto do próprio tenant — prova que a
+    // recusa acima é pelo business do produto, não por outra falha qualquer.
+    $service->addItem($this->biz, (int) $os->id, [
+        'tipo'           => ServiceOrderItem::TIPO_PECA,
+        'descricao'      => 'Peça do próprio tenant',
+        'quantidade'     => 1,
+        'valor_unitario' => 10.00,
+        'product_id'     => $proprio,
+    ]);
 
-    // Contrato: NENHUM item desta OS pode acabar referenciando o produto cross-tenant
-    // (seja por throw, seja por nullar o product_id).
-    $vazou = ServiceOrderItem::withoutGlobalScopes()
+    $itens = ServiceOrderItem::withoutGlobalScopes() // SUPERADMIN: leitura de verificação do teste
         ->where('service_order_id', $os->id)
-        ->where('product_id', $foreign->id)
-        ->exists();
+        ->pluck('product_id')
+        ->map(fn ($id) => (int) $id)
+        ->all();
 
-    expect($vazou)->toBeFalse();
+    expect($itens)->toBe([$proprio]);
+
+    // E concluir a OS não mexe no estoque do 99.
+    $os->status = 'concluida';
+    $os->save();
+    expect(stockBaixa_saldo($alheio))->toBe(SALDO_INICIAL_STOCK_BAIXA);
 });
 
 // ---------------------------------------------------------------------------
@@ -231,33 +253,27 @@ it('UC-OED-08 · addItem rejeita product_id de produto de outro business (Tier 0
 // ---------------------------------------------------------------------------
 
 it('UC-OED-06 · concluir a OS duas vezes não baixa estoque em dobro (idempotência)', function () {
-    $resolved = stockBaixa_resolveProdutoComEstoque(BIZ_STOCK_BAIXA, 5.0);
-    if ($resolved === null) {
-        $this->markTestSkipped('Sem produto stock-managed com VLD >= 5 no biz piloto.');
-    }
-    [$product, , , $totalAntes] = $resolved;
+    $productId = stockBaixa_criaProduto($this->biz, $this->user->id, SALDO_INICIAL_STOCK_BAIXA);
 
-    $os = stockBaixa_criaOs('D');
+    $os = stockBaixa_criaOs($this->biz, 'D');
 
-    app(ServiceOrderItemService::class)->addItem(BIZ_STOCK_BAIXA, (int) $os->id, [
+    app(ServiceOrderItemService::class)->addItem($this->biz, (int) $os->id, [
         'tipo'           => ServiceOrderItem::TIPO_PECA,
-        'descricao'      => $product->name ?? 'Peça catálogo',
+        'descricao'      => 'Peça catálogo',
         'quantidade'     => 1,
         'valor_unitario' => 100.00,
-        'product_id'     => (int) $product->id,
+        'product_id'     => $productId,
     ]);
 
     $os->status = 'concluida';
     $os->save();
+    expect(stockBaixa_saldo($productId))->toBe(9.0);
 
     // Segunda "conclusão" — re-save terminal não deve re-disparar baixa.
     $os->refresh();
     $os->status = 'concluida';
     $os->save();
 
-    $totalDepois = (float) VariationLocationDetails::query()
-        ->where('product_id', $product->id)
-        ->sum('qty_available');
-
-    expect(round($totalAntes - $totalDepois, 3))->toBe(1.0);
+    // 10 − 1 = 9, não 8
+    expect(stockBaixa_saldo($productId))->toBe(9.0);
 });

@@ -102,14 +102,31 @@ it('UC-FFI-04 · sem fisio.editar: vê a fila, não marca (403)', function () {
 it('UC-FFI-05 · 98 contra 99: pagamento da 99 não entra na fila da 98 nem aceita marca dela', function () {
     $pac99 = F::paciente($this->b99, $this->u99->id);
     $pg99 = fffPagamento($this->b99, $pac99->contact_id, $this->u99->id, '200.00');
+    $pac98 = F::paciente($this->b98, $this->u98->id);
+    $pg98 = fffPagamento($this->b98, $pac98->contact_id, $this->u98->id, '70.00');
 
-    expect(array_column(fffRecibos($this, $this->u98), 'payment_id'))->not->toContain($pg99);
+    // A 99 marca o próprio recibo (âncora: a marca da 99 existe quando a 98 lê e tenta marcar).
+    F::como($this, $this->u99);
+    $this->post("/fisio/fiscal/recibos/{$pg99}/enviado", ['receipt_number' => 'RS-99'])->assertRedirect();
+
+    // Marca com a empresa ERRADA (99) no pagamento da 98: o status da 98 não a enxerga.
+    DB::table('fisio_health_receipts')->insert([
+        'business_id' => $this->b99, 'payment_id' => $pg98, 'marca' => 'enviado', 'receipt_number' => 'RS-FORJADO',
+        'marked_by' => $this->u99->id, 'marked_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $fila98 = fffRecibos($this, $this->u98);
+    expect(array_column($fila98, 'payment_id'))->toBe([$pg98])
+        ->and($fila98[0]['status'])->toBe('pendente');
 
     F::como($this, $this->u98);
-    $this->post("/fisio/fiscal/recibos/{$pg99}/enviado")->assertNotFound();
+    $this->post("/fisio/fiscal/recibos/{$pg99}/enviado", ['receipt_number' => 'RS-98'])->assertNotFound();
 
-    // Controle negativo: para a 99 o mesmo pagamento está na fila.
-    expect(array_column(fffRecibos($this, $this->u99), 'payment_id'))->toContain($pg99);
-    // SUPERADMIN: controle negativo do teste de isolamento.
-    expect(ReciboSaude::withoutGlobalScopes()->where('payment_id', $pg99)->count())->toBe(0);
+    // Para a 99 o pagamento dela está na fila, marcado; a marca dela não mudou com a tentativa da 98.
+    $fila99 = collect(fffRecibos($this, $this->u99))->keyBy('payment_id');
+    expect($fila99->keys()->all())->toContain($pg99)->not->toContain($pg98)
+        ->and($fila99[$pg99]['status'])->toBe('enviado');
+    // SUPERADMIN: confere as duas empresas no banco, por fora do escopo.
+    expect(ReciboSaude::withoutGlobalScopes()->where('payment_id', $pg99)->get(['business_id', 'receipt_number'])->map(fn ($r) => [(int) $r->business_id, $r->receipt_number])->all())
+        ->toBe([[$this->b99, 'RS-99']]);
 });

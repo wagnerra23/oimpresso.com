@@ -139,7 +139,9 @@ class AcoesController extends Controller
                 'error'          => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Cancelamento falhou: ' . $e->getMessage());
+            report($e);
+
+            return back()->with('error', self::falhaGenerica('cancelar a NF-e'));
         }
     }
 
@@ -163,7 +165,9 @@ class AcoesController extends Controller
                 'business_id' => $businessId, 'transaction_id' => $venda->id, 'error' => $e->getMessage(),
             ]);
 
-            return [false, "A venda #{$venda->id} não foi cancelada: {$e->getMessage()}"];
+            report($e);
+
+            return [false, "A venda #{$venda->id} não foi cancelada. O erro foi registrado; tente de novo ou fale com o suporte."];
         }
 
         return [true, "Venda #{$venda->id} cancelada."];
@@ -285,7 +289,9 @@ class AcoesController extends Controller
                 'error'           => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Manifestação falhou: ' . $e->getMessage());
+            report($e);
+
+            return back()->with('error', self::falhaGenerica('registrar a manifestação'));
         }
     }
 
@@ -382,7 +388,8 @@ class AcoesController extends Controller
 
                 $aplicadas[] = $this->linhaLote($dfe, null);
             } catch (\Throwable $e) {
-                $falhas[] = $this->linhaLote($dfe, $e->getMessage());
+                report($e);
+                $falhas[] = $this->linhaLote($dfe, 'Não foi possível manifestar esta nota. O erro foi registrado.');
             }
         }
 
@@ -405,6 +412,19 @@ class AcoesController extends Controller
     }
 
     /** Linha do relatório do lote — identifica a nota pra contadora saber qual refazer. */
+    /**
+     * Mensagem que o usuário lê quando a ação estoura exceção.
+     *
+     * Nunca o `$e->getMessage()`: os serviços lançam `RuntimeException` tanto para regra de
+     * negócio quanto vinda de lib/banco (`QueryException` é `RuntimeException`), e o texto
+     * técnico — SQL, caminho de arquivo, resposta crua da SEFAZ — ia parar na tela. O detalhe
+     * fica no log (`Log::error` + `report($e)`). Auditoria Fiscal 2026-11-05, lote 1.4.
+     */
+    public static function falhaGenerica(string $acao): string
+    {
+        return "Não foi possível {$acao}. O erro foi registrado; tente de novo ou fale com o suporte.";
+    }
+
     private function linhaLote(NfeDfeRecebido $dfe, ?string $erro): array
     {
         return [
@@ -476,7 +496,9 @@ class AcoesController extends Controller
                 'error'          => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'CCe falhou: ' . $e->getMessage());
+            report($e);
+
+            return back()->with('error', self::falhaGenerica('aplicar a carta de correção'));
         }
     }
 
@@ -540,7 +562,9 @@ class AcoesController extends Controller
                 'error'       => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Inutilização falhou: ' . $e->getMessage());
+            report($e);
+
+            return back()->with('error', self::falhaGenerica('inutilizar a faixa'));
         }
     }
 
@@ -607,7 +631,9 @@ class AcoesController extends Controller
                 'error'          => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Retransmissão falhou: ' . $e->getMessage());
+            report($e);
+
+            return back()->with('error', self::falhaGenerica('retransmitir a NF-e'));
         }
     }
 
@@ -664,7 +690,9 @@ class AcoesController extends Controller
                 'error'         => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Devolução falhou: ' . $e->getMessage());
+            report($e);
+
+            return back()->with('error', self::falhaGenerica('emitir a NF-e de devolução'));
         }
     }
 }

@@ -734,6 +734,10 @@ class ProductController extends Controller
             )->map(fn (\stdClass $r): array => $this->productUtil->linhaDoRelatorioEstoque($r, $verPreco, $verValor))->values();
             $estoqueTotais = $this->productUtil->somaDasLinhasDoEstoque($estoque, $verValor);
         }
+        // UC-PIDX-41 (D8): giro e últimas compras, na mesma aba e com o mesmo gate da tabela de locais.
+        // As compras pedem também `purchase.view` (é a lista de compras que mostra fornecedor e data).
+        $giro = $estoque !== null ? $this->vendidoNosUltimos90Dias($business_id, $id) : null;
+        $ultimasCompras = $estoque !== null && $u->can('purchase.view') ? $this->ultimasComprasDoProduto($business_id, $id) : null;
 
         $rotulos = json_decode((string) request()->session()->get('business.custom_labels'), true);
         $rotulos = is_array($rotulos) && isset($rotulos['product']) && is_array($rotulos['product']) ? $rotulos['product'] : [];
@@ -782,6 +786,8 @@ class ProductController extends Controller
             'composicao_total_exc' => $composicaoTotalExc,
             'estoque' => $estoque,
             'estoque_totais' => $estoqueTotais,
+            'vendido_90_dias' => $giro,
+            'ultimas_compras' => $ultimasCompras,
             'fiscal' => [
                 'ncm' => (string) ($produto->ncm ?? ''),
                 'cest' => (string) ($produto->cest ?? ''),
@@ -819,6 +825,67 @@ class ProductController extends Controller
                 : null,
         ] + ($verPreco ? ['precos_propostos' => $this->precosPropostosDoProduto($business_id, $id)] : [])
           + (($requisicao = $this->requisicoesAbertasDosProdutos($business_id, [$id])) !== null ? ['requisicao' => $requisicao[$id] ?? null] : []);
+    }
+
+    /**
+     * UC-PIDX-41 (D8): quanto o produto vendeu nos últimos 90 dias, contando de hoje. É a conta do
+     * "Total vendido" do Relatório de estoque (`getProductStockDetails`: vendas finalizadas, menos o
+     * devolvido de cada linha), só limitada pela data da venda e somada nos locais que o usuário pode
+     * ver. Todas as variações do produto. Só leitura; Tier 0: só a empresa.
+     */
+    protected function vendidoNosUltimos90Dias(int $business_id, int $id): float
+    {
+        $permitidos = auth()->user()->permitted_locations($business_id);
+
+        return round((float) DB::table('transaction_sell_lines as tsl')
+            ->join('transactions as t', 't.id', '=', 'tsl.transaction_id')
+            ->where('t.business_id', $business_id)
+            ->where('t.type', 'sell')
+            ->where('t.status', 'final')
+            ->where('t.transaction_date', '>=', now()->subDays(90)->startOfDay())
+            ->where('tsl.product_id', $id)
+            ->when($permitidos != 'all', fn ($q) => $q->whereIn('t.location_id', $permitidos))
+            ->sum(DB::raw('tsl.quantity - tsl.quantity_returned')), 4);
+    }
+
+    /**
+     * UC-PIDX-41 (D8): as 3 últimas compras recebidas do produto (as que já entraram no estoque), da
+     * mais nova para a mais antiga: fornecedor, data, local e a quantidade do produto na compra (todas
+     * as variações, na unidade do cadastro). Pedido e compra pendente ficam fora. Só nos locais que o
+     * usuário pode ver. Só leitura; Tier 0: só a empresa (e o fornecedor também da empresa).
+     *
+     * @return list<array{id:int, numero:string, data:string, fornecedor:?string, local:string, quantidade:float, url:string}>
+     */
+    protected function ultimasComprasDoProduto(int $business_id, int $id): array
+    {
+        $permitidos = auth()->user()->permitted_locations($business_id);
+
+        return DB::table('purchase_lines as pl')
+            ->join('transactions as t', 't.id', '=', 'pl.transaction_id')
+            ->leftJoin('contacts as c', fn ($j) => $j->on('c.id', '=', 't.contact_id')->where('c.business_id', $business_id))
+            ->leftJoin('business_locations as bl', 'bl.id', '=', 't.location_id')
+            ->where('t.business_id', $business_id)
+            ->where('t.type', 'purchase')
+            ->where('t.status', 'received')
+            ->where('pl.product_id', $id)
+            ->when($permitidos != 'all', fn ($q) => $q->whereIn('t.location_id', $permitidos))
+            ->groupBy('t.id', 't.ref_no', 't.transaction_date', 'c.name', 'c.supplier_business_name', 'bl.name')
+            ->orderByDesc('t.transaction_date')->orderByDesc('t.id')
+            ->limit(3)
+            ->get(['t.id', 't.ref_no', 't.transaction_date', 'c.name', 'c.supplier_business_name', 'bl.name as local', DB::raw('SUM(pl.quantity) as quantidade')])
+            ->map(function ($r): array {
+                $fornecedor = trim((string) ($r->supplier_business_name ?: $r->name));
+
+                return [
+                    'id' => (int) $r->id,
+                    'numero' => (string) $r->ref_no,
+                    'data' => substr((string) $r->transaction_date, 0, 10),
+                    'fornecedor' => $fornecedor === '' ? null : $fornecedor,
+                    'local' => (string) $r->local,
+                    'quantidade' => round((float) $r->quantidade, 4),
+                    'url' => '/purchases/' . (int) $r->id,
+                ];
+            })->values()->all();
     }
 
     /**
@@ -1152,6 +1219,29 @@ class ProductController extends Controller
      * "Abrir no módulo Fiscal"; o superadmin vale pelo módulo instalado. Decide a aba Fiscal do painel e o "Dados fiscais" do menu
      * da linha (decisão [F] 2026-10-26: muitas empresas vendem sem nota, e aí a aba só atrapalha).
      */
+    /**
+     * "Método de custo" do formulário React (US-COM-024 · UC-FLX-38): os mesmos dados que o módulo
+     * Compras entrega ao formulário Blade pelo gancho `product_form_part`. `null` quando o gancho não
+     * devolveu o campo (Compras fora do pacote ou não instalado): a tela não mostra o campo e não o envia.
+     * Quem grava é o `after_product_saved` do Compras, igual ao Blade.
+     *
+     * @param  array<string, mixed>  $module_form_parts
+     * @return array{atual: string, empresa: string, editavel: bool}|null
+     */
+    private function metodoCustoDoFormulario(array $module_form_parts): ?array
+    {
+        $dados = $module_form_parts['Compras']['template_data'] ?? null;
+        if (! is_array($dados) || ! array_key_exists('compras_metodo_custo_atual', $dados)) {
+            return null;
+        }
+
+        return [
+            'atual' => (string) $dados['compras_metodo_custo_atual'],
+            'empresa' => (string) ($dados['compras_metodo_custo_empresa'] ?? ''),
+            'editavel' => (bool) ($dados['compras_metodo_custo_editavel'] ?? false),
+        ];
+    }
+
     private function moduloFiscalNoPacote(int $business_id): bool
     {
         return auth()->user()?->can('superadmin')
@@ -1773,6 +1863,7 @@ class ProductController extends Controller
                 'expiryType' => (string) session('business.expiry_type'),
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
+                'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
             ]);
         }
 
@@ -2276,6 +2367,7 @@ class ProductController extends Controller
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
                     'delete' => auth()->user()->can('product.delete'),
                 ],
+                'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
             ]);
         }
 

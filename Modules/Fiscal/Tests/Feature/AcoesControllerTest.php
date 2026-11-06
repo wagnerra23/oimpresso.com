@@ -2,73 +2,79 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
 uses(Tests\TestCase::class);
 
 /**
- * PR #4 Wave Ações Mutação Fiscal — guards Tier 0 + permissões + delegação.
+ * PR #4 Wave Ações Mutação Fiscal — a superfície das ações chega ao AcoesController (UC-FNFE-08 a).
  *
- * AcoesController é thin delegate pra NfeService::cancelar (FSM cascade ADR 0143)
- * e ManifestacaoService (4 ações DF-e).
+ * Histórico: em 2026-07-28 duas podas tiraram daqui 13 casos tautológicos (validator local, array
+ * literal). Os 5 que ficaram eram estruturais — `method_exists`, assinatura por reflexão,
+ * `Route::has`, `class_exists` — e continuavam verdes com a rota apontando para outro método.
+ * Em 2026-11-06 (auditoria Fiscal lote 2.3) viraram requisições de verdade: cada rota POST
+ * responde com a recusa que só o método certo do AcoesController produz.
  *
- * ⚠️ PODA 2026-07-28 (decisão [W]) — 11 casos foram REMOVIDOS por serem TAUTOLÓGICOS: montavam um
- * `validator([...], [...])` LOCAL com as regras reescritas à mão, ou assertavam um array literal
- * declarado uma linha acima. Testavam o Laravel (e o próprio teste), não o `AcoesController` —
- * trocar `min:15` por `min:5` no Controller NÃO os derrubava. Todos têm substituto com mordida
- * provada em `AcoesContratoTest` (UC-FNFE-04/05/06), que invoca os métodos do Controller.
- *
- * Exceção declarada: `retransmitir contrato: status válidos` também era tautológico e foi removido
- * SEM substituto — no Controller a whitelist de status é checada DEPOIS do `firstOrFail()`, então
- * exige `nfe_emissoes`, indisponível nas lanes de hoje. A lacuna está no backlog de `Nfe.casos.md`.
- *
- * ⚠️ SEGUNDA PODA 2026-07-28 — saíram também os 2 casos de manifestação DF-e, que eram
- * tautológicos pelo mesmo motivo (`expect(['cienciar','confirmar',...])->toHaveCount(4)` sobre um
- * array escrito na linha acima). Eles ancoravam `UC-FDFE-03`/`UC-FDFE-04` da tela `Fiscal/Dfe`, e
- * por isso a primeira poda os preservou. Agora os dois ids foram **movidos para os testes que
- * realmente provam o comportamento** — `AcoesContratoTest::UC-FNFE-07 · UC-FDFE-03 · …` e
- * `· UC-FDFE-04 · …`, que invocam `AcoesController::manifestarDfe` e verificam o 404 da whitelist e
- * a exigência condicional de justificativa. O DF-e trocou lastro de fachada por lastro real; o
- * `Dfe.casos.md` foi reapontado no mesmo PR.
- *
- * O que FICA aqui (5 casos): só os ESTRUTURAIS (métodos/rota/Services existem, via reflection),
- * que ancoram `UC-FNFE-08`.
- *
- * Guard de banco removido 2026-07-27: nenhum caso deste arquivo consulta tabela (`class_exists`,
- * `Route::has`, reflection), mas o `beforeEach` skipava todos quando `nfe_emissoes` faltava —
- * inclusive os estruturais, que passavam a não rodar em lane nenhuma.
+ * A validação de cada campo (limites de texto, faixa) tem prova própria em AcoesContratoTest;
+ * a escrita entre empresas em AcoesEscritaEntreEmpresasTest; o gate de permissão em
+ * GatesPermissaoFiscalTest. Aqui só a fiação rota → método.
  */
 
-it('UC-FNFE-08 · AcoesController classe existe e tem 5 métodos públicos esperados (Waves 4+5+6)', function () {
-    $controller = new \Modules\Fiscal\Http\Controllers\AcoesController();
-    // Wave 4 (PR #4)
-    expect(method_exists($controller, 'cancelarNfe'))->toBeTrue()
-        ->and(method_exists($controller, 'manifestarDfe'))->toBeTrue();
-    // Wave 5 (PR #5) — CCe + Inutilização
-    expect(method_exists($controller, 'cartaCorrecao'))->toBeTrue()
-        ->and(method_exists($controller, 'inutilizar'))->toBeTrue();
-    // Wave 6 (PR #6) — Retransmitir
-    expect(method_exists($controller, 'retransmitir'))->toBeTrue();
+const ACOES_ID_INEXISTENTE = 2_147_480_000;
+
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: as ações leem nfe_emissoes/nfe_dfe_recebidos (MySQL)');
+    }
+    if (! Schema::hasTable('nfe_emissoes') || ! Schema::hasTable('nfe_dfe_recebidos')) {
+        $this->markTestSkipped('Tabelas NfeBrasil ausentes — rodar migrate primeiro');
+    }
+
+    $tenant = $this->seededTenant();
+    $biz = (int) $tenant->id;
+    $user = $this->usuarioComPermissoes(['fiscal.access', 'fiscal.nfe.acoes', 'fiscal.dfe.manage'], $tenant);
+    $this->actingAs($user);
+    session(['business.id' => $biz, 'user.business_id' => $biz]);
 });
 
-it('UC-FNFE-08 · retransmitir contrato: NfeService::retransmitir signature int/int → NfeEmissao', function () {
-    $reflection = new ReflectionMethod(\Modules\NfeBrasil\Services\NfeService::class, 'retransmitir');
-    $params = $reflection->getParameters();
+it('UC-FNFE-08 · cancelar, CC-e e inutilizar chegam ao controller e validam o corpo (422)', function () {
+    $id = ACOES_ID_INEXISTENTE;
 
-    expect($params)->toHaveCount(2)
-        ->and((string) $params[0]->getType())->toBe('int')
-        ->and((string) $params[1]->getType())->toBe('int')
-        ->and((string) $reflection->getReturnType())->toBe('Modules\NfeBrasil\Models\NfeEmissao');
+    $this->postJson("/fiscal/acoes/nfe/{$id}/cancelar", [])
+        ->assertStatus(422)->assertJsonValidationErrors('motivo');
+    $this->postJson("/fiscal/acoes/nfe/{$id}/cce", [])
+        ->assertStatus(422)->assertJsonValidationErrors(['texto_correcao', 'n_seq_evento']);
+    $this->postJson('/fiscal/acoes/nfe/inutilizar', [])
+        ->assertStatus(422)->assertJsonValidationErrors(['modelo', 'serie', 'numero_de', 'numero_ate', 'justificativa']);
 });
 
-it('UC-FNFE-08 · retransmitir route POST registrada (acoes.nfe.retransmitir)', function () {
-    expect(\Illuminate\Support\Facades\Route::has('fiscal.acoes.nfe.retransmitir'))->toBeTrue();
+it('UC-FNFE-08 · com o corpo válido, cancelar e CC-e procuram a nota (404 para id inexistente)', function () {
+    $id = ACOES_ID_INEXISTENTE;
+
+    $this->postJson("/fiscal/acoes/nfe/{$id}/cancelar", ['motivo' => 'Erro de digitação no destinatário'])
+        ->assertStatus(404);
+    $this->postJson("/fiscal/acoes/nfe/{$id}/cce", ['texto_correcao' => 'Corrige o endereço do destinatário', 'n_seq_evento' => 1])
+        ->assertStatus(404);
 });
 
-it('UC-FNFE-08 · NfeCartaCorrecaoService classe existe e tem método aplicar público', function () {
-    expect(class_exists(\Modules\NfeBrasil\Services\NfeCartaCorrecaoService::class))->toBeTrue()
-        ->and(method_exists(\Modules\NfeBrasil\Services\NfeCartaCorrecaoService::class, 'aplicar'))->toBeTrue();
+it('UC-FNFE-08 · retransmitir procura a nota (404 para id inexistente)', function () {
+    $this->postJson('/fiscal/acoes/nfe/' . ACOES_ID_INEXISTENTE . '/retransmitir')
+        ->assertStatus(404);
 });
 
-it('UC-FNFE-08 · NfeInutilizacaoService já existia (delegação Wave 5 não duplica lógica)', function () {
-    expect(class_exists(\Modules\NfeBrasil\Services\NfeInutilizacaoService::class))->toBeTrue()
-        ->and(method_exists(\Modules\NfeBrasil\Services\NfeInutilizacaoService::class, 'inutilizar'))->toBeTrue();
+it('UC-FNFE-08 · manifestar DF-e procura o documento (404) e exige justificativa em desconhecer (422)', function () {
+    $id = ACOES_ID_INEXISTENTE;
+
+    $this->postJson("/fiscal/acoes/dfe/{$id}/cienciar")->assertStatus(404);
+    $this->postJson("/fiscal/acoes/dfe/{$id}/desconhecer", [])
+        ->assertStatus(422)->assertJsonValidationErrors('justificativa');
+});
+
+it('UC-FNFE-08 · controle: sem fiscal.nfe.acoes a mesma rota recusa antes da validação (403)', function () {
+    $tenant = $this->seededTenant();
+    $semAcoes = $this->usuarioComPermissoes(['fiscal.access'], $tenant);
+    $this->actingAs($semAcoes);
+
+    $this->postJson('/fiscal/acoes/nfe/' . ACOES_ID_INEXISTENTE . '/cancelar', [])->assertStatus(403);
 });

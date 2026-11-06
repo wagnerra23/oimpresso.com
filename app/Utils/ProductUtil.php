@@ -1220,7 +1220,11 @@ class ProductUtil extends Util
             $old_qty = 0;
             //update existing purchase line
             if (isset($data['purchase_line_id'])) {
-                $purchase_line = PurchaseLine::findOrFail($data['purchase_line_id']);
+                // Tier 0 (ADR 0093): só a linha DESTA transação. O findOrFail cru reaproveitava a
+                // linha de compra de qualquer empresa pelo id do formulário (auditoria Compras
+                // 2026-11-05, A4). Os controllers já recusam antes; esta é a defesa no ponto de uso.
+                $purchase_line = PurchaseLine::where('transaction_id', $transaction->id)
+                    ->findOrFail($data['purchase_line_id']);
                 $updated_purchase_line_ids[] = $purchase_line->id;
                 $old_qty = $purchase_line->quantity;
 

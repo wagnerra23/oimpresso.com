@@ -73,7 +73,31 @@ Wagner aprovou Wave 3 final 2026-05-20 — placeholder consciente, notice claro 
 
 - **2026-05-20** — Wave 3 final, **placeholder consciente**. Gerador SPED EFD ICMS/IPI + PIS/COFINS em PR dedicado pós-MVP fiscal.
 
+## Medição de runtime — 2026-11-05 · veredito NÃO MEDI (rc=2) — D0
+
+> Substitui, como estado atual, a rodada de 2026-09-08 logo abaixo. Aquela não chegou a comparar
+> nada (staging com deploy defasado, temas diferentes) e caducou; fica como fato datado.
+
+| eixo | resultado |
+|---|---|
+| comando | `node scripts/design/design-diff-lote.mjs --incluir-comparadas --tema light --tela Fiscal/Sped --base-url http://127.0.0.1:8000 --user-id <admin do biz seedado>` |
+| onde | `design-smoke-ci.yml` por `workflow_dispatch` no branch de medição `claude/fiscal-lote5-medir-nao-mergear` (run [42085947187](https://github.com/wagnerra23/oimpresso.com/actions/runs/42085947187)), app efêmero buildado de `main` @ `7d997591d7`, seeds Visreg, login pelo `/_visreg-login` |
+| tema | `light` forçado nos dois lados (`sameTheme: null`) |
+| âncora | `node scripts/design/ancora.mjs Fiscal/Sped` → `prototipo-ui/cowork/Wagner/fiscal-subpages.jsx` |
+| veredito | **NÃO MEDI (rc=2) — D0** |
+
+| dim | campo | produção | protótipo | veredito |
+|---|---|---|---|---|
+| D9 | subnav (fora da sonda, lido da assinatura de texto) | 7 abas | 9 abas (+ "MDF-e · CT-e", + "Tributação") | **ACHADO, decisão [W]** — o `fiscal-subnav.contract.json` e o `paginas-fiscais.tsx` têm 7; o `FX_TABS` do protótipo tem 9 |
+
+- As regiões D9 (`data-contract`) quase não se casam por **nome**: a produção expõe `fiscal-subnav`, `debitos-conhecidos`, `sb-*` e as âncoras `fiscal-*`, o protótipo `procedencia`, `tabela-*`, `toolbar-*`. O comparador as registra como `SEM-DADO`, não como divergência.
+- A produção mostrou o banner de consentimento de cookies por cima da tela; ele entra no texto medido, não nos estilos medidos.
+- As duas telas **renderizaram a view certa** (protótipo "SPED e livros fiscais · EFD-ICMS/IPI · layout CONFAZ…"; produção "SPED e livros · Apuração mensal · EFD ICMS-IPI…"). O D0 recusou por assimetria estrutural (7 × 1 copies do contrato `fiscal-sped.contract.json`, um lado só casou copy de shell). Mesma leitura do Eventos: divergência de copy, e o contrato precisa ser re-derivado do protótipo.
+
 ## Medição de runtime — 2026-09-08 · veredito NÃO MEDI (Onda 7)
+
+> ⚠️ **Caducou em 2026-11-05** — ver a medição acima. Preservado como fato datado.
+
 
 > Registro do passo 3 do método da Onda 7. O `status: approved` do frontmatter é de
 > **2026-05-20** e NÃO foi revisado aqui — auto-declarado não prova paridade de hoje, e

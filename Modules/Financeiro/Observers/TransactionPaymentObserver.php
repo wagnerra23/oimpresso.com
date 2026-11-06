@@ -3,6 +3,8 @@
 namespace Modules\Financeiro\Observers;
 
 use App\TransactionPayment;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Services\TituloAutoService;
 
 /**
@@ -18,6 +20,11 @@ use Modules\Financeiro\Services\TituloAutoService;
  *   created → registrarPagamento (cria baixa + movimento)
  *   updated → se mudou amount, estorna anterior e cria nova
  *   deleted → cancelarPagamento (estorno via row negativa, append-only)
+ *
+ * US-FIN-059 (2026-11-05): mesma proteção do TransactionObserver — a falha no Financeiro
+ * vai para `report()` e o pagamento é gravado. No `updated`, estorno e nova baixa rodam
+ * no MESMO `DB::transaction`: se a nova baixa falha, o estorno é desfeito junto, e o
+ * título não fica com a baixa antiga estornada e nenhuma nova no lugar.
  */
 class TransactionPaymentObserver
 {
@@ -27,7 +34,9 @@ class TransactionPaymentObserver
 
     public function created(TransactionPayment $tp): void
     {
-        $this->service->registrarPagamento($tp);
+        $this->semDerrubarOPagamento($tp, 'created', function () use ($tp): void {
+            $this->service->registrarPagamento($tp);
+        });
     }
 
     public function updated(TransactionPayment $tp): void
@@ -38,12 +47,34 @@ class TransactionPaymentObserver
         }
 
         // Estratégia: estorno da baixa antiga + cria nova com valores atuais.
-        $this->service->cancelarPagamento($tp);
-        $this->service->registrarPagamento($tp);
+        $this->semDerrubarOPagamento($tp, 'updated', function () use ($tp): void {
+            $this->service->cancelarPagamento($tp);
+            $this->service->registrarPagamento($tp);
+        });
     }
 
     public function deleted(TransactionPayment $tp): void
     {
-        $this->service->cancelarPagamento($tp);
+        $this->semDerrubarOPagamento($tp, 'deleted', function () use ($tp): void {
+            $this->service->cancelarPagamento($tp);
+        });
+    }
+
+    private function semDerrubarOPagamento(TransactionPayment $tp, string $evento, callable $trabalho): void
+    {
+        try {
+            DB::transaction(static function () use ($trabalho): void {
+                $trabalho();
+            });
+        } catch (\Throwable $e) {
+            Log::warning('financeiro.observer.payment.falhou', [
+                'business_id' => $tp->business_id,
+                'transaction_payment_id' => $tp->id,
+                'transaction_id' => $tp->transaction_id,
+                'evento' => $evento,
+                'erro' => $e->getMessage(),
+            ]);
+            report($e);
+        }
     }
 }

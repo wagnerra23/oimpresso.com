@@ -14,6 +14,8 @@ import {
 } from '@/Components/ui/select';
 import { Grid } from '@/Components/layout';
 import { CamposPreco } from './CamposPreco';
+import { metodoDaEmpresa, opcoesDoMetodo } from './metodoCusto';
+import type { MetodoCustoDoFormulario } from './metodoCusto';
 import type { PrecoSimples } from './precos';
 import type { CamposProduto, DefinirCampo, ModoFormulario, OpcoesProduto, TipoProduto } from './tipos';
 import { URL_CADASTRO_CLASSICO, opcoesDe, tipoSemEditor } from './tipos';
@@ -27,6 +29,8 @@ interface Props {
   tipoAtual?: string;
   /** Produto simples: o preço. Sem ele (variável, composto) o card não mostra preço. */
   preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number };
+  /** Método de custo (US-COM-024): só quando o módulo Compras está no pacote da empresa. */
+  metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
 }
 
 /**
@@ -35,7 +39,7 @@ interface Props {
  */
 const SEM_IMPOSTO = 'sem-imposto';
 
-export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco }: Props) {
+export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, metodoCusto }: Props) {
   const novo = modo === 'novo';
 
   return (
@@ -114,6 +118,28 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
             </p>
           )}
         </div>
+        {metodoCusto && (
+          <div>
+            <Label htmlFor="compras_metodo_custo">Método de custo</Label>
+            {/* Sem purchase.update o campo fica desabilitado e não vai no envio (metodoCusto.ts). */}
+            <Select value={metodoCusto.valor} onValueChange={metodoCusto.mudar} disabled={!metodoCusto.dados.editavel}>
+              <SelectTrigger id="compras_metodo_custo">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {opcoesDoMetodo(metodoCusto.dados.atual).map((o) => (
+                  <SelectItem key={o.valor} value={o.valor}>
+                    {o.rotulo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="mt-1 text-[12px] text-muted-foreground">
+              Vale quando a empresa escolheu “por insumo” em Fluxos → Compra. Vale para todas as variações do
+              produto. Hoje a empresa usa: {metodoDaEmpresa(metodoCusto.dados.empresa)}.
+            </p>
+          </div>
+        )}
         {preco && <CamposPreco valor={preco.valor} mudar={preco.mudar} aliquota={preco.aliquota} />}
         </Grid>
       </CardContent>

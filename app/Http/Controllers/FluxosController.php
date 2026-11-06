@@ -117,6 +117,9 @@ class FluxosController extends Controller
             // US-PCP-031 · UC-FLX-14: reserva do insumo na venda (null = empresa sem o módulo Produção).
             'reserva_insumo' => $comModelo && self::temProducao($businessId)
                 ? app(ReservaDeInsumo::class)->ligada($businessId) : null,
+            // US-PCP-032 · UC-FLXT-25: OS sem o material vai para Aguardando material (null = sem o módulo Produção).
+            'aguarda_material' => $comModelo && self::temProducao($businessId)
+                ? app(ReservaDeInsumo::class)->aguardaMaterial($businessId) : null,
             // UC-FLX-19 · UC-FLXT-24: requisição pelo estoque mínimo (nula = sem o módulo Compras).
             'requisicao_estoque_minimo' => $comModelo && app()->bound(RequisicaoEstoqueMinimo::class)
                 ? app(RequisicaoEstoqueMinimo::class)->ativo($businessId)
@@ -255,6 +258,24 @@ class FluxosController extends Controller
         abort_unless(self::temProducao($businessId), 404);
 
         app(ReservaDeInsumo::class)->mudar($businessId, (bool) $dados['ligada']);
+
+        return redirect('/fluxos?aba=empresa');
+    }
+
+    /**
+     * "Aguardando material" (US-PCP-032 · UC-FLXT-25). Ligada, a OS liberada sem o material da receita
+     * vai para Aguardando material em vez de Na fila; desligada, a liberação não confere material.
+     */
+    public function aguardaMaterial(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->can('fluxos.configurar'), 403);
+
+        $dados = $request->validate(['ligada' => ['required', 'boolean']]);
+        // Tier 0 (ADR 0093): a empresa é sempre a da sessão.
+        $businessId = (int) $request->session()->get('user.business_id');
+        abort_unless(self::temProducao($businessId), 404);
+
+        app(ReservaDeInsumo::class)->mudarAguardaMaterial($businessId, (bool) $dados['ligada']);
 
         return redirect('/fluxos?aba=empresa');
     }

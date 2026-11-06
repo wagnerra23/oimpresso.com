@@ -171,9 +171,9 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 
 ## UC-FNFE-01 — A contagem do cockpit nunca mostra nota de outro business (Tier 0)
 Status: 🧪 (`NfeCockpitMultiTenantTest::UC-FNFE-01 · global scope HasBusinessScope…` — **skipa** hoje, ver §recibo)
-Dado 1 emissão do biz=1 e 2 do biz=99 · Quando a lista conta na sessão do biz=1 · Então vê **1**,
+Dado 1 emissão do biz=98 e 2 do biz=99 · Quando a lista conta na sessão do biz=98 · Então vê **1**,
 enquanto `withoutGlobalScopes` vê 3. Âncora: ADR 0093 + charter anti-hook "não acessar NfeEmissao sem
-global scope". Teste com biz=1 e biz=99 fictício, nunca biz=4 (ADR 0101).
+global scope". Teste com os fictícios 98 e 99, nunca biz=4 (ADR 0358).
 **Pronto quando:** a contagem escopada e a não-escopada divergem exatamente nas notas do outro tenant.
 
 ## UC-FNFE-02 — A janela legal de cancelamento é 24h na NFC-e e 168h na NF-e
@@ -248,7 +248,7 @@ recebe a ação `cancelar_venda` com o mesmo motivo (o cascade estorna boleto pe
 o cliente); venda fora do fluxo não é cancelada e a mensagem manda cancelar em Vendas; venda de outra empresa não é
 achada. Com a US-SELL-077 (#9911) o cancelamento da venda devolve o estoque e cancela o título sem pagamento.
 
-Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 98 × 99)
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 98 × 99 · até 2026-11-06 pulava também na lane MySQL: pegava qualquer etapa do banco e o seed não cria fluxo de vendas; o teste passou a criar o próprio fluxo no tenant 98)
 
 ## UC-FNFE-54 — Venda com dinheiro recebido: nada é cancelado, nem a nota · `must` `[T0]`
 
@@ -256,7 +256,7 @@ Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 9
 "Nada foi cancelado." com a pendência do cancelamento da venda ("A venda tem … recebidos…"), a nota segue autorizada e
 a SEFAZ nem é chamada. Âncora: R-NFE-044 · US-SELL-077.
 
-Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-54 · …`; pula sem o `CancelamentoDaVenda` do #9911, verde com ele no CT 100)
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-54 · …`; pula sem o `CancelamentoDaVenda` do #9911, verde com ele no CT 100 · até 2026-11-06 pulava também na lane MySQL: pegava qualquer etapa do banco e o seed não cria fluxo de vendas; o teste passou a criar o próprio fluxo no tenant 98)
 
 ## UC-FNFE-05 — Carta de Correção respeita texto 15–1000 e sequência 1–20
 Status: 🧪 (`AcoesContratoTest::UC-FNFE-05 · texto fora de 15–1000` / `n_seq fora de 1–20` / `aceita válido` — **passam**)
