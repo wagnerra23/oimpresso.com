@@ -11,6 +11,8 @@ export interface Atendimento {
   fim: string;
   status: StatusAtendimento;
   encaixe: boolean;
+  /** Paciente com o agendamento pelo app travado por faltas (A21). */
+  app_bloqueado?: boolean;
 }
 export interface Bloqueio { id: number; inicio: string; fim: string; motivo: string | null }
 
@@ -33,6 +35,23 @@ export const TOM: Record<ReturnType<typeof tomDo>, string> = {
   falta: 'bg-destructive-soft text-destructive-fg border-l-destructive',
   feito: 'bg-muted text-muted-foreground border-l-border',
 };
+
+/**
+ * Status que a agenda oferece a partir do status atual. Espelha AgendaService::TRANSICOES; a regra
+ * vale no servidor. "Realizado" não entra: exige a evolução assinada, que se faz na ficha.
+ */
+const PROXIMOS: Partial<Record<StatusAtendimento, StatusAtendimento[]>> = {
+  agendado: ['confirmado', 'chegou', 'em_atendimento', 'faltou'],
+  confirmado: ['chegou', 'em_atendimento', 'faltou'],
+  chegou: ['em_atendimento', 'faltou'],
+};
+export const ROTULO_STATUS: Record<StatusAtendimento, string> = {
+  agendado: 'Aguardando', confirmado: 'Confirmado', chegou: 'Chegou', em_atendimento: 'Em atendimento',
+  realizado: 'Realizado', faltou: 'Faltou', cancelado: 'Desmarcado',
+};
+export const proximosStatus = (s: StatusAtendimento): StatusAtendimento[] => PROXIMOS[s] ?? [];
+/** Desmarcar vale enquanto o paciente não entrou em atendimento. */
+export const podeDesmarcar = (s: StatusAtendimento) => ['agendado', 'confirmado', 'chegou'].includes(s);
 
 const ROTULO_DIA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 

@@ -909,6 +909,30 @@ Status: 🧪
 
 Status: 🧪
 
+## Robustez do fechamento do turno e da criação da OS (auditoria lote 2.3)
+
+> `producao:fechar-turno` roda a cada 15 min para todas as empresas. Antes, uma exceção numa empresa
+> interrompia as seguintes, o comando terminava "com sucesso" e a trava da sobreposição durava 24 h se o
+> processo morresse. O job que cria a OS da venda aprovada tentava 3 vezes seguidas e a falha final não
+> deixava rastro. A liberação pelo sinal, que roda em todo pagamento, logava a falha só como aviso.
+> Idempotência já provada: UC-PCV-22 (2ª rodada não duplica), UC-PCLIB-07 (pagamento repetido libera uma
+> vez) e o `idempotente` do `ProducaoCriarOsDaVendaContratoTest`. Prova: `ProducaoFecharTurnoComandoTest`.
+
+## UC-PCROB-01 · Falha de uma empresa no fechamento do turno não para as outras · `must`
+
+**Dado** a empresa 98 e a 99 com apontamento aberto depois do fim do turno, e o fechamento da 98 falhando
+**Quando** o comando roda **Então** a 99 é fechada, a 98 fica como estava, o log de erro diz qual empresa
+falhou e o comando termina com falha. A trava da sobreposição vence em 30 min.
+
+Status: 🧪
+
+## UC-PCROB-02 · A criação da OS espera entre as tentativas e a falha final aparece · `must`
+
+**Dado** o job que cria a OS da venda aprovada **Então** são 3 tentativas com 30 s e 2 min de espera; na
+falha final, o log de erro guarda a empresa e a venda que ficou sem OS.
+
+Status: 🧪
+
 ## Pedido de compra do cliente na OS (pedido de 2026-10-23)
 
 - **[BACKLOG]** A OS mostra o número do pedido de compra do cliente — Dado uma venda com o pedido do

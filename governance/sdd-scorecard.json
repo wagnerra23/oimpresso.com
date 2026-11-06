@@ -15,26 +15,26 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 87.5,
+      "value": 87.7,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 87.5,
+        "coverage_pct": 87.7,
         "specs_total": 57,
         "us_total": 1218,
-        "anchor_coverage_pct": 87.5,
+        "anchor_coverage_pct": 87.7,
         "by_state": {
-          "sem_campo": 143,
+          "sem_campo": 141,
           "placeholder": 6,
           "pendente": 489,
-          "parcial": 146,
+          "parcial": 148,
           "anchored_ok": 431,
           "anchored_dead": 3,
           "anchored_zombie": 0
         },
-        "fields_total": 1082,
+        "fields_total": 1084,
         "fields_placeholder": 6,
         "fields_grammar_ok": 874,
         "orphan_fields": 7,
@@ -204,7 +204,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 10,
+      "value": 11,
       "unit": "portas atrás dos eventos (>7d vs doc OU código mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -213,7 +213,7 @@
         "portas": 87,
         "carimbadas": 15,
         "sem_carimbo": 72,
-        "stale": 10,
+        "stale": 11,
         "oldest_distilled_at": "2026-09-06",
         "datadas_por_codigo": 14
       },
