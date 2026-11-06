@@ -120,6 +120,27 @@ class DataController extends Controller
                     'icon' => 'fa fa-list-ol',
                     'active' => request()->segment(2) === 'protocolos',
                 ]);
+                // [W] 2026-11-06: as telas de configuração e a fila fiscal existiam com rota
+                // e permissão, mas sem item no menu (Onboarding e Fila fiscal não tinham porta
+                // nenhuma). Rótulos do protótipo (`fisio-page.jsx`, lista CLINICA). Mesma regra
+                // de acesso do grupo: as 4 rotas estão sob FisioLiberado (`fisio.access`);
+                // gravar exige `fisio.editar`, checado em cada controller.
+                $sub->url(url('/fisio/fiscal'), 'Fila fiscal', [
+                    'icon' => 'fa fa-file-invoice',
+                    'active' => request()->segment(2) === 'fiscal',
+                ]);
+                $sub->url(url('/fisio/configuracoes/agendamento'), 'Agendamento online', [
+                    'icon' => 'fa fa-calendar-check',
+                    'active' => request()->segment(2) === 'configuracoes' && request()->segment(3) === 'agendamento',
+                ]);
+                $sub->url(url('/fisio/configuracoes/whatsapp'), 'WhatsApp', [
+                    'icon' => 'fa fa-comment',
+                    'active' => request()->segment(2) === 'configuracoes' && request()->segment(3) === 'whatsapp',
+                ]);
+                $sub->url(url('/fisio/onboarding'), 'Primeira configuração', [
+                    'icon' => 'fa fa-flag-checkered',
+                    'active' => request()->segment(2) === 'onboarding',
+                ]);
             }, [
                 'icon' => 'fa fa-heartbeat',
                 'active' => $segmento_ativo,

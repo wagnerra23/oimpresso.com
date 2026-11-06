@@ -2,6 +2,66 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
+## [Set–nov/2026 — migração para Inertia, drawers e Tier 0] — 2026-11-06
+
+> Levantado de `git log --since=2026-05-18 origin/main -- Modules/AssetManagement resources/js/Pages/Patrimonio`
+> em 2026-11-06 (só `feat`/`fix`; `chore`/`docs`/`test`/`ci` e mudanças de outros módulos que
+> passaram pelo path ficaram de fora). O CHANGELOG estava parado na Wave 27; esta entrada cobre o
+> intervalo de uma vez, agrupada por tema. O número do PR é o recibo de cada linha.
+
+### Migrado para Inertia (2026-09-08)
+- As 5 telas saíram do Blade para `resources/js/Pages/Patrimonio/`: Bens (#7035), Painel com o
+  `_shared` que as outras herdam (#7040), Alocações (#7046), Manutenções (#7045), Configurações
+  (#7044, 3 blades viram 1 tela).
+- Bens, Alocações e Manutenções nunca chegavam ao browser por uma guarda `! inertia()` (#7047, #7053).
+
+### Adicionado
+- Trava de saldo na alocação — não se aloca mais do que o bem tem livre (#7062, thread 02).
+- Contrato de tela nas 4 listas (#7165, #7204, #7207, #7208); Painel na forma do protótipo
+  (#7133, #7157, #7161); contador de manutenções abertas deferido (#7162).
+- Cadastro de bem em drawer sem sair da lista (#7832); aviso quando a empresa não tem categoria (#7837).
+- Aba Auditoria vira link para o `Modules/Auditoria` (#7916, thread 13).
+- Recortes no servidor dentro de Bens: "Garantia crítica" (#8211) e "Em manutenção" (#8240).
+- Drawers: editar bem (#8258, thread 17), detalhe do bem com devoluções (#8261), alocar/editar/
+  devolver com excluir devolução (#8262, thread 18), manutenção (#8264, thread 19).
+- "Enviar pra manutenção" pela linha do bem (#8310) e no rodapé do drawer (#8316).
+- Valor residual por depreciação linear pela vida útil do bem (#9881, US-ASSET-009).
+- Estado de erro visível quando a carga deferida falha, nas 5 telas (#10486, lote 2.1) e excluir
+  bem pelo `AlertDialog` do DS, com falha visível (#10445, lote 2.2).
+
+### Corrigido — isolamento entre empresas (Tier 0)
+- Subconsulta de devolução sem filtro de empresa (#7011); `orWhereNull` do painel escapava do
+  filtro (#7018); edição de bem alcançava garantia de outra empresa (#8253); gravar manutenção
+  alcançava outra empresa (#8260).
+- Lote 0 da auditoria: alocação só com bem e pessoa da empresa, e saldo na edição (#10403);
+  responsável e destinatário de aviso da empresa (#10511); categoria e local da empresa (#10513);
+  devolvido da lista só da empresa (#10516); `view_own` só alcança a própria manutenção e o painel
+  confere permissão (#10517).
+
+### Corrigido — permissão e rotas
+- `index()` de Bens passa a exigir `asset.view` (#7008); gate de Manutenções era insatisfazível e
+  anulado (#7034).
+- Saíram links e rotas que abriam página em branco ou view inexistente (#7810, #7904);
+  `/asset/settings` fica só com index e store (#8272, thread 20); `/asset/revocation` redireciona
+  para Alocações (#8286, thread 16) e perdeu edit/update mortos (#8317); sub-menu sem o ghost
+  Devoluções (#8297).
+
+### Corrigido — dados e tela
+- Painel e "Garantia crítica" pela garantia mais recente de cada bem (#8231, #8237); Painel concorda
+  em número e nomeia "Sem categoria" (#8275).
+- Excluir o bem apaga as garantias dele; `assetmanagement:garantias-orfas` lista e apaga as órfãs (#8293).
+- 28 chaves de tradução que caíam no inglês (#7031); colunas "Bem" com 0px em Bens e Manutenções
+  (#8246, #8248); foco volta a quem abriu os drawers (#8292, #8333); medidas do drawer do bem e do
+  cartão de alocação pelo protótipo (#8269, #8281, #8308); o modal do Inertia não abre por cima do
+  estado de erro (#10557).
+- Testes Tier 0 destravados ou consertados (#7020, #7048, #8271).
+
+### Retenção
+- O #9211 (2026-10-13) reabriu a retenção como anonimização e corrigiu as chaves do
+  `Config/retention.php`. A reabertura foi revogada por [W] no mesmo dia (lápide em
+  `memory/licoes-rejeitadas.md`, §5 2026-10-13); a troca das chaves pelos nomes reais das tabelas
+  é fato de schema e não faz parte da revogação.
+
 ## [Errata — escopo de empresa] — 2026-11-05
 
 ### Corrigido
