@@ -27,8 +27,9 @@ uses(Tests\TestCase::class);
  *  - B) Criar migration RENAME 13 colunas + add emitted_at (schema migration)
  *  - C) Drop + recreate (perda de dados nfse_emissoes em prod — risco)
  *
- * Tests aqui assertem o comportamento ESPERADO. Vão ser SKIPPED até bug ser
- * resolvido (task #12 MCP). Quando schema for unificado, remover markTestSkipped.
+ * Tests aqui assertem o comportamento ESPERADO. Ficaram SKIPPED pelo guard de
+ * `emitted_at` (task #12) até 2026-11-06: o controller passou a ler `created_at`
+ * (schema velho, ver docblock de NfseCockpitController), então o guard saiu.
  */
 
 beforeEach(function () {
@@ -37,13 +38,6 @@ beforeEach(function () {
     }
     if (! Schema::hasTable('nfse_emissoes')) {
         $this->markTestSkipped('nfse_emissoes table missing — rode Modules/NfeBrasil migrate primeiro');
-    }
-    if (! Schema::hasColumn('nfse_emissoes', 'emitted_at')) {
-        $this->markTestSkipped(
-            'BUG ATIVO (task #12): nfse_emissoes.emitted_at não existe (schema race ' .
-            'entre migration batch 69 + batch 106). Controller/Model usam schema NOVO ' .
-            'mas tabela em prod tem schema VELHO. Resolver antes de habilitar este test.'
-        );
     }
 });
 
@@ -82,7 +76,7 @@ it('UC-FNFSE-04 · counts shape canon — 6 chaves obrigatorias', function () {
         fn ($page) => $page->where(
             'counts',
             fn ($c) => collect(['total', 'autorizadas', 'rejeitadas', 'processando', 'canceladas', 'faturamento'])
-                ->every(fn ($k) => array_key_exists($k, $c))
+                ->every(fn ($k) => collect($c)->has($k)) // o Inertia entrega a prop como Collection
         )
     );
 });
