@@ -238,6 +238,7 @@ jobs:
             tests/Feature/Purchase/DevolucoesCompraBaselineTest.php \
             tests/Feature/Purchase/DevolucoesCompraContratoTest.php \
             tests/Feature/Purchase/DevolucaoCompraStoreBaselineTest.php \
+            tests/Feature/Purchase/PedidoCompraStoreTenantTest.php \
             tests/Feature/Purchase/RequisicaoStoreTenantTest.php \
             tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php \
             tests/Feature/Purchase/LinhaDeCompraPorTransacaoTenantTest.php \

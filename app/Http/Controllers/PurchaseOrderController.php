@@ -223,6 +223,52 @@ class PurchaseOrderController extends Controller
      * React (thread compras/playbook/06). Movido do index() sem reescrever: escopo por negócio, tipo, locais
      * permitidos, "ver os próprios" e os filtros da Blade. Travado por PedidosCompraBaselineTest.
      */
+    /**
+     * Ids que o formulário do pedido novo manda crus (auditoria Compras 2026-11-05, A2).
+     *
+     * - `purchase_requisition_ids` desce para `TransactionUtil::updatePurchaseOrderStatus`, que
+     *   troca o status da requisição sem filtrar empresa;
+     * - `purchases.*.purchase_requisition_line_id` desce para `ProductUtil::updatePurchaseOrderLine`,
+     *   que soma a quantidade pedida na linha da requisição;
+     * - `purchases.*.purchase_line_id` faz `createOrUpdatePurchaseLines` reaproveitar a linha pelo id
+     *   (`PurchaseLine::findOrFail`). Pedido novo não tem linha própria: qualquer id é forjado.
+     *
+     * A requisição tem de ser `purchase_requisition` desta empresa; a linha, de uma requisição desta empresa.
+     */
+    private function assertRefsDoPedidoNovo(Request $request): void
+    {
+        $business_id = (int) $request->session()->get('user.business_id');
+        $toIds = fn ($ids) => collect($ids)->filter(fn ($id) => ! empty($id))
+            ->map(fn ($id) => (int) $id)->unique()->values();
+        $linhas = collect($request->input('purchases', []));
+
+        abort_if(
+            $toIds($linhas->pluck('purchase_line_id'))->isNotEmpty(),
+            422,
+            'Linha de compra inválida para um pedido novo.'
+        );
+
+        $requisicoes = $toIds($request->input('purchase_requisition_ids', []));
+        if ($requisicoes->isNotEmpty()) {
+            $validas = Transaction::where('business_id', $business_id)
+                ->where('type', 'purchase_requisition')
+                ->whereIn('id', $requisicoes->all())
+                ->count();
+            abort_if($validas !== $requisicoes->count(), 422, 'Requisição de compra inválida para este negócio.');
+        }
+
+        $linhasRequisicao = $toIds($linhas->pluck('purchase_requisition_line_id'));
+        if ($linhasRequisicao->isNotEmpty()) {
+            $validas = PurchaseLine::query()
+                ->join('transactions', 'transactions.id', '=', 'purchase_lines.transaction_id')
+                ->whereIn('purchase_lines.id', $linhasRequisicao->all())
+                ->where('transactions.business_id', $business_id)
+                ->where('transactions.type', 'purchase_requisition')
+                ->count();
+            abort_if($validas !== $linhasRequisicao->count(), 422, 'Linha de requisição inválida para este negócio.');
+        }
+    }
+
     private function consultaPedidos(int $business_id, Request $request)
     {
         $purchase_orders = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
@@ -431,6 +477,10 @@ class PurchaseOrderController extends Controller
         if (! auth()->user()->can('purchase_order.create')) {
             abort(403, 'Unauthorized action.');
         }
+
+        // Tier 0 (ADR 0093) — fora do try de propósito: dentro dele o 422 virava o
+        // "algo deu errado" do catch genérico e o pedido seguia sem dizer por quê.
+        $this->assertRefsDoPedidoNovo($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
