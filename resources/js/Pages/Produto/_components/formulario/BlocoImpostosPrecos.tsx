@@ -4,6 +4,7 @@
 
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import {
   Select,
@@ -12,10 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
-import { Grid } from '@/Components/layout';
+import { Grid, Inline } from '@/Components/layout';
 import { CamposPreco } from './CamposPreco';
 import { metodoDaEmpresa, opcoesDoMetodo } from './metodoCusto';
 import type { MetodoCustoDoFormulario } from './metodoCusto';
+import { aliquotaDoImposto } from './precos';
 import type { PrecoSimples } from './precos';
 import type { CamposProduto, DefinirCampo, ModoFormulario, OpcoesProduto, TipoProduto } from './tipos';
 import { URL_CADASTRO_CLASSICO, opcoesDe, tipoSemEditor } from './tipos';
@@ -68,21 +70,7 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label htmlFor="tax_type">Imposto inclui no preço?</Label>
-          <Select
-            value={data.tax_type}
-            onValueChange={(v) => definir('tax_type', v as 'inclusive' | 'exclusive')}
-          >
-            <SelectTrigger id="tax_type">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="exclusive">Exclusivo (somar imposto)</SelectItem>
-              <SelectItem value="inclusive">Inclusivo (já incluído)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <PerguntaDoImposto data={data} definir={definir} opcoes={opcoes} />
         <div>
           <Label htmlFor="type">{novo ? 'Tipo *' : 'Tipo'}</Label>
           {novo ? (
@@ -144,5 +132,55 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
         </Grid>
       </CardContent>
     </Card>
+  );
+}
+
+const reais = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+/**
+ * "O preço de venda já tem o imposto?", na forma do protótipo (produto-blade-forms.jsx): dois botões de
+ * opção com um exemplo de cem reais calculado pela alíquota do imposto escolhido. Grava o mesmo
+ * `tax_type` de antes (`exclusive` = somar ao preço · `inclusive` = já está no preço); a conta do preço
+ * não muda (precos.ts). Sem imposto escolhido não há o que perguntar.
+ */
+function PerguntaDoImposto({ data, definir, opcoes }: Pick<Props, 'data' | 'definir' | 'opcoes'>) {
+  const semImposto = data.tax === '' || data.tax == null;
+  if (semImposto) {
+    return (
+      <div>
+        <Label>O preço de venda já tem o imposto?</Label>
+        <p className="mt-1 text-[12px] text-muted-foreground">Sem imposto escolhido, não há o que perguntar aqui.</p>
+      </div>
+    );
+  }
+
+  const nome = String(opcoes.taxes[Number(data.tax)] ?? 'imposto');
+  const sigla = nome.split(' ')[0] || 'imposto';
+  const aliquota = aliquotaDoImposto(data.tax, opcoes.taxAttributes);
+  const exemplo =
+    data.tax_type === 'exclusive'
+      ? `Exemplo: venda de ${reais.format(100)} → o cliente paga ${reais.format(100 * (1 + aliquota / 100))}.`
+      : `Exemplo: venda de ${reais.format(100)} → o cliente paga ${reais.format(100)}, com ${reais.format(100 - 100 / (1 + aliquota / 100))} de ${sigla} dentro.`;
+
+  return (
+    <div>
+      <Label id="tax_type_rotulo">O preço de venda já tem o {sigla}?</Label>
+      <RadioGroup
+        aria-labelledby="tax_type_rotulo"
+        value={data.tax_type}
+        onValueChange={(v) => definir('tax_type', v as 'inclusive' | 'exclusive')}
+        className="mt-1"
+      >
+        <Inline gap={2}>
+          <RadioGroupItem id="tax_type_exclusive" value="exclusive" />
+          <Label htmlFor="tax_type_exclusive" className="text-[13px] font-normal">Não, somar ao preço</Label>
+        </Inline>
+        <Inline gap={2}>
+          <RadioGroupItem id="tax_type_inclusive" value="inclusive" />
+          <Label htmlFor="tax_type_inclusive" className="text-[13px] font-normal">Sim, já está no preço</Label>
+        </Inline>
+      </RadioGroup>
+      <p className="mt-1 text-[12px] text-muted-foreground">{exemplo}</p>
+    </div>
   );
 }

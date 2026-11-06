@@ -122,6 +122,8 @@ export interface OpcoesProduto {
   productTypes: OptionStringMap;
   /** Novo: os locais do negócio que quem cadastra pode acessar. */
   businessLocations?: OptionMap;
+  /** A alíquota de cada imposto (`data-rate`), para o exemplo da pergunta do imposto. */
+  taxAttributes?: Record<number | string, Record<string, unknown>>;
 }
 
 /**
