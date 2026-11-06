@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+// @covers-us US-FISCAL-021 — o valor do motor é o que sai no grupo UB (cross-check motor→XML).
+// @covers-us US-FISCAL-025 — CRT 3 emite o grupo UB sem opt-in; Simples segue byte-idêntico (UC-FNFE-47/48, ADR 0442).
+
 use Illuminate\Support\Facades\DB;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
