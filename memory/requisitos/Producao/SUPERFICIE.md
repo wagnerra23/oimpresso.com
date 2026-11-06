@@ -191,13 +191,14 @@ module: Producao
 - 32 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 10
+## Demais arquivos (manifestos, docs, assets e misc) — 11
 
 - [ApontamentoRecusado.php](../../../Modules/Producao/Exceptions/ApontamentoRecusado.php)
 - [fila.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/fila.ts)
 - [quantidade.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/quantidade.ts)
 - [json.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_lib/json.ts)
 - [tipos.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_lib/tipos.ts)
+- [falhaDoDeferido.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/falhaDoDeferido.ts)
 - [filtro.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/filtro.ts)
 - [producao.php](../../../Modules/Producao/Resources/lang/pt/producao.php)
 - [composer.json](../../../Modules/Producao/composer.json)

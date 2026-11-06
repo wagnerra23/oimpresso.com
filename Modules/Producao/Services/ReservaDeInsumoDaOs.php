@@ -58,14 +58,31 @@ final class ReservaDeInsumoDaOs implements ReservaDeInsumo
      */
     public function mudar(int $businessId, bool $ligada): void
     {
-        DB::transaction(function () use ($businessId, $ligada) {
+        $this->gravarChave($businessId, self::CHAVE, $ligada);
+    }
+
+    /** A chave irmã é lida por `FaltaDeMaterialDaOs::ligada` (US-PCP-032); a escrita usa a mesma trava. */
+    public function aguardaMaterial(int $businessId): bool
+    {
+        return app(FaltaDeMaterialDaOs::class)->ligada($businessId);
+    }
+
+    /** Interruptor "Aguardando material" da aba Fluxos (PATCH /fluxos/aguarda-material, UC-FLXT-25). */
+    public function mudarAguardaMaterial(int $businessId, bool $ligada): void
+    {
+        $this->gravarChave($businessId, FaltaDeMaterialDaOs::CHAVE, $ligada);
+    }
+
+    private function gravarChave(int $businessId, string $chave, bool $ligada): void
+    {
+        DB::transaction(function () use ($businessId, $chave, $ligada) {
             $bruto = DB::table('business')->where('id', $businessId)->lockForUpdate()->value('common_settings');
             $ajustes = json_decode((string) $bruto, true);
             $ajustes = is_array($ajustes) ? $ajustes : [];
             if ($ligada) {
-                $ajustes[self::CHAVE] = 1;
+                $ajustes[$chave] = 1;
             } else {
-                unset($ajustes[self::CHAVE]);
+                unset($ajustes[$chave]);
             }
             DB::table('business')->where('id', $businessId)->update(['common_settings' => json_encode($ajustes)]);
         });

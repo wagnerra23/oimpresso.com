@@ -13,6 +13,7 @@ use Modules\NfeBrasil\Models\NfeDfeEvento;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
+use Modules\NfeBrasil\Support\AmbienteDoEmitente;
 use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
@@ -284,7 +285,7 @@ class ManifestacaoService
 
     private function ambienteAtual(int $businessId): int
     {
-        return (int) (config('nfebrasil.ambiente', 2)); // 2=homologação default
+        return AmbienteDoEmitente::resolver($businessId); // business.ambiente, igual à emissão
     }
 
     /**

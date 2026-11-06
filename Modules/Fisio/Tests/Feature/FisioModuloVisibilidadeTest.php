@@ -107,6 +107,14 @@ it('UC-FPI-04 · desligar o pacote corta o acesso no request seguinte (não depe
 });
 
 it('UC-FPI-04 · sem fisio.access, 403 mesmo com o pacote ativo', function () {
-    F::como($this, $this->usuarioComPermissoes([], $this->b98));
+    // Âncora: na mesma empresa, com o pacote ligado, quem tem fisio.access entra — o 403 abaixo
+    // vem da permissão que falta, não do pacote nem da rota.
+    F::como($this, $this->usuarioComPermissoes([F::PERM_ACESSO], $this->b98));
+    $this->get('/fisio/pacientes')->assertOk();
+
+    $semAcesso = $this->usuarioComPermissoes([], $this->b98);
+    F::como($this, $semAcesso);
     $this->get('/fisio/pacientes')->assertForbidden();
+    expect($semAcesso->can(F::PERM_ACESSO))->toBeFalse()
+        ->and(fisioMenuLabels())->not->toContain('Fisio');
 });

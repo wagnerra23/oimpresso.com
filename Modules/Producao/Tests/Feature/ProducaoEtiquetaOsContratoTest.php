@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-PCP-010
 // Cobre UC-PCV-37 (Producao-celular.casos.md · E05, modelo a4_os) e UC-PCV-28 no QR (Producao.casos.md).
 
 use App\Services\AppLojas\EtiquetaProducao;

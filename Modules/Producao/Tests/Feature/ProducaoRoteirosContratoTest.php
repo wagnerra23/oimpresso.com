@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-PCP-004
 // Cobre UC-PCV-13 (Producao.casos.md) e UC-PCV-33 (Producao-celular.casos.md · emenda E03).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;

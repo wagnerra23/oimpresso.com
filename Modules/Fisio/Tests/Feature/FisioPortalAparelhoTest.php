@@ -178,3 +178,57 @@ it('UC-FPP-25 · Hoje traz dose e cuidados da biblioteca, o jogo e só o relato 
     expect(DB::table('fisio_checkins')->where('patient_id', $p99->id)->count())->toBe(0)
         ->and(json_encode(F::portalProps($this, $token)))->not->toContain('Ponte da 99');
 });
+
+it('UC-FPP-23 · 98×99: o aparelho grava na empresa do link, não abre nem é revogado pela outra', function () {
+    $linha98 = fpaLinhaViva($this);
+    $seg98 = (string) fpaEntrar($this, true);
+
+    $t99 = $this->seededSupportClientTenant();
+    $b99 = (int) $t99->id;
+    $u99 = $this->usuarioComPermissoes([F::PERM_ACESSO, F::PERM_EDITAR], $t99);
+    F::trocarPacote($b99, true);
+    $p99 = F::paciente($b99, $u99->id);
+    F::programa($p99, [F::exercicio(null, 'Ponte da 99')], $u99->id);
+    F::consentir($p99, 'teleatendimento');
+    $g99 = F::emitirPortal($p99);
+    $linha99 = (int) DB::table('fisio_portal_tokens')->where('patient_id', $p99->id)->whereNull('revoked_at')->value('id');
+    session()->flush();
+    $seg99 = (string) $this->postJson('/fisio/p/'.$g99['token'].'/pin', ['pin' => $g99['pin'], 'lembrar' => true])
+        ->assertOk()->getCookie('fisio_aparelho_'.$linha99)?->getValue();
+    expect($seg99)->toMatch('/^[a-f0-9]{64}$/');
+
+    // Gravação: cada aparelho na empresa do PRÓPRIO link.
+    expect(DB::table('fisio_portal_devices')->whereIn('token_id', [$linha98, $linha99])->orderBy('token_id')->pluck('business_id', 'token_id')->map('intval')->all())
+        ->toBe([$linha98 => $this->b98, $linha99 => $b99]);
+
+    // Leitura: cada aparelho abre o seu link (âncora) e o segredo da outra empresa não abre.
+    expect(fpaEtapa($this, $this->g['token'], ['fisio_aparelho_'.$linha98 => $seg98]))->toBe('hoje')
+        ->and(fpaEtapa($this, $g99['token'], ['fisio_aparelho_'.$linha99 => $seg99]))->toBe('hoje')
+        ->and(fpaEtapa($this, $g99['token'], ['fisio_aparelho_'.$linha99 => $seg98]))->toBe('pin')
+        ->and(fpaEtapa($this, $this->g['token'], ['fisio_aparelho_'.$linha98 => $seg99]))->toBe('pin');
+
+    // Uma linha de aparelho com a empresa ERRADA não abre o link — o filtro por empresa morde sozinho
+    // (mesmo segredo, mesmo token; só o business_id difere). Âncora: o mesmo segredo com a 99 abre.
+    $forjado = str_repeat('b', 64);
+    $idForjado = DB::table('fisio_portal_devices')->insertGetId([
+        'business_id' => $this->b98, 'token_id' => $linha99, 'device_hash' => hash('sha256', $forjado),
+        'remembered_until' => now()->addDays(5), 'revoked_at' => null, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    expect(fpaEtapa($this, $g99['token'], ['fisio_aparelho_'.$linha99 => $forjado]))->toBe('pin');
+    DB::table('fisio_portal_devices')->where('id', $idForjado)->update(['business_id' => $b99]);
+    expect(fpaEtapa($this, $g99['token'], ['fisio_aparelho_'.$linha99 => $forjado]))->toBe('hoje');
+    DB::table('fisio_portal_devices')->where('id', $idForjado)->delete();
+
+    // Revogação: link novo na 98 revoga só os aparelhos da 98; o da 99 continua abrindo.
+    F::emitirPortal($this->p);
+    expect(DB::table('fisio_portal_devices')->where('token_id', $linha98)->whereNull('revoked_at')->count())->toBe(0)
+        ->and(DB::table('fisio_portal_devices')->where('token_id', $linha99)->whereNull('revoked_at')->count())->toBe(1)
+        ->and(fpaEtapa($this, $g99['token'], ['fisio_aparelho_'.$linha99 => $seg99]))->toBe('hoje');
+
+    // Escopo do model: logado na 98 só vê a 98; logado na 99 só vê a 99.
+    $empresas = fn () => Modules\Fisio\Entities\PortalDevice::query()->whereIn('token_id', [$linha98, $linha99])->pluck('business_id')->map('intval')->unique()->values()->all();
+    F::como($this, $this->u98);
+    expect($empresas())->toBe([$this->b98]);
+    F::como($this, $u99);
+    expect($empresas())->toBe([$b99]);
+});

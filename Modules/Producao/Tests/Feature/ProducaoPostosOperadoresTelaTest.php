@@ -1,5 +1,6 @@
 <?php
 // @covers-us US-PCP-030
+// @covers-us US-PCP-004
 
 declare(strict_types=1);
 // Cobre UC-PCOPE-06 (Postos/Index.casos.md · US-PCP-030 · UC-FLX-08): a tela de Postos mostra e edita os operadores.
