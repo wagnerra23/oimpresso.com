@@ -128,6 +128,14 @@ last_run: "2026-10-27"
   do 98 · Então a requisição de A sai sem fornecedor e com preço 0 · E o 99 fica sem requisição.
 - **Status: 🧪**
 
+## UC-REQC-08 · Requisição nova só com local e produto da própria empresa · `[T0]`
+- **Aceite:** Dado um local ou um produto de outra empresa · Quando a requisição nova (`POST /purchase-requisition`)
+  chega com o `location_id` ou o `variation_id` dele, ou com um `product_id` que não é o da variação · Então é
+  recusada com 422 e nenhuma requisição nasce. Local e produto da própria empresa passam.
+- **Teste:** `tests/Feature/Purchase/RequisicaoStoreTenantTest.php`
+- **Contrato:** ADR 0093. Auditoria Compras 2026-11-05, achado A6.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Ver o detalhe e excluir pela tela nova (PR próprio).
 - [BACKLOG] KPI "Itens requisitados" e coluna "Pedido gerado" — decisão [W].

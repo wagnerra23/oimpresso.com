@@ -206,12 +206,25 @@ class AssetAllocationController extends Controller
      */
     private function baseAllocationsQuery($business_id)
     {
-        return AssetTransaction::join('assets',
-                            'asset_transactions.asset_id', '=', 'assets.id')
-                            ->join('users as receiver', 'asset_transactions.receiver', '=', 'receiver.id')
+        // Lote 0.1 (auditoria 2026-11-05, A1): os joins de bem, receptor e categoria passaram
+        // a exigir a MESMA empresa da alocacao. Antes, uma linha com `asset_id`/`receiver` de
+        // outra empresa mostrava nome do bem e da pessoa alheios. Continua `join` (nao
+        // `leftJoin`): para dado legitimo o conjunto de linhas nao muda; linha corrompida
+        // some da lista em vez de vazar. `provider` (quem criou) fica sem o predicado: e
+        // `created_by` gravado pela sessao, e o superadmin pode atuar em outra empresa.
+        return AssetTransaction::join('assets', function ($join) {
+                                $join->on('asset_transactions.asset_id', '=', 'assets.id')
+                                    ->on('assets.business_id', '=', 'asset_transactions.business_id');
+                            })
+                            ->join('users as receiver', function ($join) {
+                                $join->on('asset_transactions.receiver', '=', 'receiver.id')
+                                    ->on('receiver.business_id', '=', 'asset_transactions.business_id');
+                            })
                             ->join('users as provider', 'asset_transactions.created_by', '=', 'provider.id')
-                            ->leftJoin('categories as CAT', 'assets.category_id',
-                                '=', 'CAT.id')
+                            ->leftJoin('categories as CAT', function ($join) {
+                                $join->on('assets.category_id', '=', 'CAT.id')
+                                    ->on('CAT.business_id', '=', 'assets.business_id');
+                            })
                             ->leftJoin('asset_transactions as PT',
                             'asset_transactions.id', '=', 'PT.parent_id')
                             ->where('asset_transactions.business_id', $business_id)
@@ -402,6 +415,9 @@ class AssetAllocationController extends Controller
                 ->action([\Modules\AssetManagement\Http\Controllers\AssetAllocationController::class, 'index'])
                 ->with('status', ['success' => true,
                     'msg' => __('lang_v1.success'), ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Lote 0.1: bem/pessoa de outra empresa ou quantidade vazia/0 — erro por campo.
+            throw $e;
         } catch (SaldoInsuficienteException $e) {
             // A recusa da trava (thread 02) chega ao DRAWER como erro do campo quantidade — ate
             // 2026-09-30 caia no `catch` generico e virava "algo deu errado", com a mensagem
@@ -482,6 +498,14 @@ class AssetAllocationController extends Controller
                 ->action([\Modules\AssetManagement\Http\Controllers\AssetAllocationController::class, 'index'])
                 ->with('status', ['success' => true,
                     'msg' => __('lang_v1.success'), ]);
+        } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Lote 0.1: erro por campo (bem/pessoa de outra empresa, quantidade 0) chega ao
+            // drawer; alocacao de outra empresa ou devolucao no lugar de alocacao vira 404.
+            throw $e;
+        } catch (SaldoInsuficienteException $e) {
+            // Mesma traducao do `store()` (erro no campo quantidade); o Service ja fez o rollback,
+            // nada e gravado. Por excecao, nao por `return`: o metodo declara `Response`.
+            throw \Illuminate\Validation\ValidationException::withMessages(['quantity' => $e->getMessage()]);
         } catch (\Exception $e) {
             DB::rollBack();
 

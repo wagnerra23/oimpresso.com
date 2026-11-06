@@ -19,7 +19,8 @@ use Tests\Support\EstoqueFixture;
  * Pendente ou recusado não vira compra recebida (POST /purchases com o pedido = 422).
  * Desligada (padrão), nada muda.
  *
- * Tenant 98 (ADR 0358); adversário 99 ou o biz=2 do seed, nunca 1 nem 4.
+ * Tenant 98 (ADR 0358); adversário o cliente fictício 99, criado pelo próprio teste quando falta
+ * (seededSupportClientTenant); nunca 1 nem 4.
  *
  * @covers-us US-COM-032
  */
@@ -121,10 +122,8 @@ it('a compra a partir de pedido pendente é recusada com 422', function () {
 });
 
 it('usuário de outra empresa não decide o pedido', function () {
-    $outra = (int) DB::table('business')->whereIn('id', [99, 2])->where('id', '!=', $this->biz)->orderByDesc('id')->value('id');
-    if ($outra <= 0) {
-        $this->markTestSkipped('Sem empresa adversária fictícia (99 ou 2) neste ambiente.');
-    }
+    $outra = (int) $this->seededSupportClientTenant()->id;
+    expect($outra)->toBe(99, 'adversário fictício 99 não foi criado');
     $this->svc->definir($this->biz, true, '1000.00', '10000.00');
     $p = alcPedido($this, '5000.00');
     $this->svc->registrar($this->biz, $p, $this->comprador->id);

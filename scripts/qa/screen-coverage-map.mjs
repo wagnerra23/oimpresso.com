@@ -406,6 +406,44 @@ export function chavesDeNome(segs) {
 }
 
 /**
+ * pastasDeRequisitosDeclaradas — as pastas `memory/requisitos/<X>` que o charter cita no
+ * frontmatter (`related_runbook`, `runbook`, `parent_spec`…), na ordem de aparição. PURO.
+ *
+ * POR QUE: o namespace da tela NÃO é o nome da pasta de requisitos em todo módulo. As telas
+ * `Patrimonio/*` são do `Modules/AssetManagement`, e os docs delas vivem em
+ * `memory/requisitos/AssetManagement/` (ADR 0394). Procurar só em `requisitos/<Namespace>/`
+ * dava "visual-comparison ✗ ausente" com o arquivo existindo. A pasta certa sai do que o
+ * charter já declara — nunca de tabela de apelidos escrita à mão (§5 2026-06-30).
+ * Só linha escalar `chave: valor` conta; comentário e item de lista ficam de fora.
+ */
+export function pastasDeRequisitosDeclaradas(fm) {
+  const out = [];
+  for (const linha of fm.split(/\r?\n/)) {
+    if (!/^[A-Za-z_][\w-]*:\s/.test(linha)) continue;
+    for (const m of linha.matchAll(/memory\/requisitos\/([^/\s"'`)]+)\//g)) if (!out.includes(m[1])) out.push(m[1]);
+  }
+  return out;
+}
+
+/**
+ * pastasDeRequisitosDaTela — onde procurar RUNBOOK/visual-comparison/proto-baseline por nome.
+ * A pasta do namespace vem primeiro (comportamento anterior); as declaradas pelo charter só
+ * entram quando a do namespace NÃO existe — é o caso medido (namespace ≠ módulo dono). Somar
+ * as duas sempre traria docs de pasta compartilhada (ex. `_DesignSystem`) pro casamento por
+ * nome e fabricaria ambiguidade. `existe(dir)` é injetado pra o selftest não tocar disco. PURO.
+ *
+ * Pasta EMPRESTADA que também é namespace de telas (ex. `Sells/`, dono de `SellReturn/*` e de
+ * `Sells/*`) volta com `exigeNamespace: true`: lá a chave "index" casaria os docs de `Sells/Index`
+ * (medido 2026-11-05: 8 falso-positivos em Discount, ImportSales, SalesOrder, SellReturn e nos 3
+ * Purchase*). Pasta emprestada sem telas próprias (`AssetManagement/`, `TeamMcp/`) é só do
+ * namespace que a cita, e o nome curto basta.
+ */
+export function pastasDeRequisitosDaTela(mod, declaradas, existe, temTelasProprias = () => false) {
+  if (existe(mod)) return [{ dir: mod, exigeNamespace: false }];
+  return declaradas.filter((d) => d !== mod && existe(d)).map((d) => ({ dir: d, exigeNamespace: temTelasProprias(d) }));
+}
+
+/**
  * resolveScreenFiles — dado a tela, acha TODOS os arquivos + linkagem. Impuro (lê FS).
  * @param {string} relTsx caminho relativo a Pages/ com ou sem `.tsx` (ex: "Produto/Create")
  */
@@ -450,6 +488,7 @@ export function resolveScreenFiles(relTsx) {
 
   // O charter DECLARA seus artefatos? (proveniência explícita > adivinhação por nome).
   let relatedPrototype = null, declared = { runbook: null, visual_comparison: null, proto_baseline: null };
+  let reqDirsDeclarados = [];
   // Eixo "pode ligar?" — status do charter + sinal de prod (regra importada, ver import).
   let prontidao = prontidaoDeLigar({ temCharter: false });
   if (trio.charter) {
@@ -458,6 +497,7 @@ export function resolveScreenFiles(relTsx) {
     relatedPrototype = field('related_prototype') || '(ausente)';
     declared = { runbook: field('related_runbook'), visual_comparison: field('related_visual_comparison'), proto_baseline: field('related_proto_baseline') };
     const fm = frontmatterDe(ch);
+    reqDirsDeclarados = pastasDeRequisitosDeclaradas(fm);
     prontidao = prontidaoDeLigar({
       temCharter: true,
       status: campo(fm, 'status'),
@@ -467,8 +507,14 @@ export function resolveScreenFiles(relTsx) {
   }
 
   // Resolução: DECLARAÇÃO primeiro (autoritativa; pega declaração QUEBRADA); fallback name-match + FLAG.
-  const modFiles = existsSync(join(REQ_DIR, mod)) ? walk(join(REQ_DIR, mod), () => true).map(norm) : [];
-  const nameHas = (f) => nameKeys.some((k) => basename(f).toLowerCase().includes(k));
+  const namespaces = new Set(screens.map((f) => pageNamespacePath(relative(ROOT, f).split(sep).join('/')).split('/')[0]));
+  const reqDirs = pastasDeRequisitosDaTela(mod, reqDirsDeclarados, (d) => existsSync(join(REQ_DIR, d)), (d) => namespaces.has(d));
+  const nsKeys = [mod.toLowerCase(), kebabDoSegmento(mod)];
+  const temChave = (f, ks) => ks.some((k) => basename(f).toLowerCase().includes(k));
+  const arquivos = reqDirs.flatMap((r) => walk(join(REQ_DIR, r.dir), () => true).map((f) => ({ f: norm(f), exige: r.exigeNamespace })));
+  const modFiles = arquivos.map((a) => a.f);
+  const exigeNs = new Set(arquivos.filter((a) => a.exige).map((a) => a.f));
+  const nameHas = (f) => temChave(f, nameKeys) && (!exigeNs.has(f) || temChave(f, nsKeys));
   const declExists = (p) => !!p && existsSync(join(ROOT, p));
   const runbook = resolveArtifact(declared.runbook, declExists(declared.runbook), modFiles.filter((f) => /RUNBOOK/i.test(basename(f)) && nameHas(f)));
   const visualcomp = resolveArtifact(declared.visual_comparison, declExists(declared.visual_comparison), modFiles.filter((f) => /visual-comparison\.md$/.test(f) && nameHas(f)));
@@ -846,6 +892,55 @@ if (flags.has('--selftest')) {
       assert.equal(check(), 1, 'E2E BITE: branch atrasada COM dívida própria → exit 1 (merge-base não é escape)');
 
       console.log('  ✓ bite E2E: morde a fuga, cala a remoção legítima, separa dívida herdada da própria, e acusa cegueira');
+    } finally {
+      try { rm(fx, { recursive: true, force: true }); } catch { /* tmp órfão não falha o selftest */ }
+    }
+  }
+
+  // ── PASTA DE REQUISITOS ≠ NAMESPACE DA TELA (caso real Patrimonio/* → AssetManagement) ──
+  // Helpers puros primeiro; depois o `--screen` de fora, porque o defeito morava na LIGAÇÃO
+  // (resolveScreenFiles procurava em requisitos/<Namespace>/) e assert de helper não a prova.
+  assert.deepEqual(pastasDeRequisitosDeclaradas('status: live\nrelated_runbook: memory/requisitos/Dono/RUNBOOK-x.md\nparent_spec: memory/requisitos/Dono/SPEC.md'), ['Dono']);
+  // CN: item de lista e comentário não declaram pasta (só linha `chave: valor`).
+  assert.deepEqual(pastasDeRequisitosDeclaradas('related_adrs:\n  - memory/requisitos/Outro/X.md\n# memory/requisitos/Outro/Y.md'), []);
+  // A pasta do namespace, quando existe, segue sendo a única (comportamento anterior intacto).
+  assert.deepEqual(pastasDeRequisitosDaTela('Mod', ['_DesignSystem'], () => true), [{ dir: 'Mod', exigeNamespace: false }]);
+  assert.deepEqual(pastasDeRequisitosDaTela('Ns', ['Dono', 'Sumiu'], (d) => d === 'Dono'), [{ dir: 'Dono', exigeNamespace: false }]);
+  assert.deepEqual(pastasDeRequisitosDaTela('SellReturn', ['Sells'], (d) => d === 'Sells', (d) => d === 'Sells'), [{ dir: 'Sells', exigeNamespace: true }]);
+  {
+    const { mkdtempSync: mkdt, writeFileSync: wf, mkdirSync, rmSync: rm } = await import('node:fs');
+    const { tmpdir: td } = await import('node:os');
+    const { execFileSync: X } = await import('node:child_process');
+    const { copyFileSync } = await import('node:fs');
+    const fx = mkdt(join(td(), 'screen-coverage-reqdir-'));
+    try {
+      mkdirSync(join(fx, 'resources/js/Pages/Ns'), { recursive: true });
+      mkdirSync(join(fx, 'memory/requisitos/Dono'), { recursive: true });
+      mkdirSync(join(fx, 'tests/Browser'), { recursive: true });
+      for (const m of ['visreg-screens.json', 'visreg-states.json']) copyFileSync(join(BROWSER_DIR, m), join(fx, 'tests/Browser', m));
+      wf(join(fx, 'resources/js/Pages/Ns/Tela.tsx'), 'export default function X() { return null; }\n');
+      wf(join(fx, 'resources/js/Pages/Ns/Tela.charter.md'), '---\nstatus: draft\nrelated_runbook: memory/requisitos/Dono/RUNBOOK-tela.md\n---\n');
+      wf(join(fx, 'memory/requisitos/Dono/RUNBOOK-tela.md'), '# r\n');
+      wf(join(fx, 'memory/requisitos/Dono/Tela-visual-comparison.md'), '# vc\n');
+      // Pasta emprestada que TAMBÉM é namespace de telas (o caso Sells/ ↔ SellReturn/*).
+      mkdirSync(join(fx, 'resources/js/Pages/Comp'), { recursive: true });
+      mkdirSync(join(fx, 'resources/js/Pages/Ns2'), { recursive: true });
+      mkdirSync(join(fx, 'memory/requisitos/Comp'), { recursive: true });
+      wf(join(fx, 'resources/js/Pages/Comp/Index.tsx'), 'export default function X() { return null; }\n');
+      wf(join(fx, 'resources/js/Pages/Ns2/Index.tsx'), 'export default function X() { return null; }\n');
+      wf(join(fx, 'resources/js/Pages/Ns2/Index.charter.md'), '---\nstatus: draft\nrelated_runbook: memory/requisitos/Comp/RUNBOOK-ns2-index.md\n---\n');
+      wf(join(fx, 'memory/requisitos/Comp/RUNBOOK-ns2-index.md'), '# r\n');
+      wf(join(fx, 'memory/requisitos/Comp/Index-visual-comparison.md'), '# vc de Comp/Index\n');
+      const tela = (t) => X(process.execPath, [fileURLToPath(import.meta.url), '--screen', t],
+        { cwd: fx, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' });
+      const out = tela('Ns/Tela');
+      // MORDE: sem o conserto esta linha sai "✗ ausente" (o arquivo existe na pasta do dono).
+      assert.match(out, /visual-comparison\s+✓ memory\/requisitos\/Dono\/Tela-visual-comparison\.md/, 'E2E: visual-comparison achado na pasta que o charter declara');
+      // CN: o que não existe continua ausente — a pasta nova não inventa artefato.
+      assert.match(out, /proto-baseline\s+✗ ausente/, 'E2E CN: proto-baseline inexistente segue ausente');
+      // CN: em pasta de outro namespace, o "index" do dono NÃO é da tela emprestada.
+      assert.match(tela('Ns2/Index'), /visual-comparison\s+✗ ausente/, 'E2E CN: Index-visual-comparison de Comp/ não vira de Ns2/Index');
+      console.log('  ✓ bite E2E: pasta de requisitos sai do charter quando o namespace não tem pasta própria');
     } finally {
       try { rm(fx, { recursive: true, force: true }); } catch { /* tmp órfão não falha o selftest */ }
     }

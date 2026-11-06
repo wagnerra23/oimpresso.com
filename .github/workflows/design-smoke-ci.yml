@@ -121,10 +121,18 @@ jobs:
           node scripts/design-sync/smoke-consumir.mjs --select --json > design-smoke-selection.json
           COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('design-smoke-selection.json','utf8')).length)")
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          # `boot` sobe o app efêmero; `count` decide só o SMOKE. Até 2026-11-05 os dois eram o
+          # mesmo `count`, e o lote de paridade (que mede as `anchored`, não as `tested`) morria
+          # junto quando a seleção de smoke zerava: medido no run 41448025526 (schedule de
+          # 2026-11-02), seleção = 0 → setup, lote, resumo e upload todos `skipped`, run `success`.
+          # O lote existe em schedule/dispatch; nesses eventos o app sobe mesmo sem smoke.
+          BOOT=false
+          if [ "$COUNT" != "0" ] || [ "$GITHUB_EVENT_NAME" = "schedule" ] || [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then BOOT=true; fi
+          echo "boot=$BOOT" >> "$GITHUB_OUTPUT"
           { echo '## Design Smoke CI — seleção'; echo '```'; cat /tmp/design-smoke-select.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup PHP
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -134,7 +142,7 @@ jobs:
           coverage: none
 
       - name: Wait for MySQL ready
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         run: |
           for i in {1..30}; do
             if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then echo "MySQL ready"; break; fi
@@ -142,14 +150,14 @@ jobs:
           done
 
       - name: Cache Composer
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
 
       - name: Cache Playwright browsers
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         uses: actions/cache@v4
         id: playwright-cache
         with:
@@ -157,22 +165,22 @@ jobs:
           key: ubuntu-24.04-${{ runner.arch }}-playwright-chromium-design-smoke-v1-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         run: composer install --no-progress --no-interaction --prefer-dist --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Install NPM dependencies
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         run: npm ci
 
       - name: Install Playwright (chromium)
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         timeout-minutes: 6
         run: |
           npx playwright install-deps chromium
           if [ "${{ steps.playwright-cache.outputs.cache-hit }}" != "true" ]; then npx playwright install chromium; fi
 
       - name: Setup Laravel (.env do gate visual + migrate schema baseline)
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         run: |
           mkdir -p storage/framework/{cache,views,sessions,testing} bootstrap/cache storage/design-smokes
           cat > .env <<'EOF'
@@ -206,7 +214,7 @@ jobs:
           php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
 
       - name: Seed (mesmo conjunto do visual-regression — biz=1 fixture + 98 vazio + 99 sentinela + FSM/Jana/Ponto)
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         run: |
           php artisan db:seed --force
           php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
@@ -220,7 +228,7 @@ jobs:
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
 
       - name: Build Inertia bundles
-        if: steps.select.outputs.count != '0'
+        if: steps.select.outputs.boot == 'true'
         run: npm run build:inertia
 
       - name: Pest Browser — fotografa cada tela logado no biz=1 (ADVISORY)
@@ -321,7 +329,7 @@ jobs:
       # a 0408 libera MEDIR).
       - name: Lote de paridade — mede prototipo x vivo (ADVISORY)
         if: >-
-          steps.select.outputs.count != '0' &&
+          steps.select.outputs.boot == 'true' &&
           (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         id: lote
         continue-on-error: true
@@ -330,7 +338,14 @@ jobs:
           PHP_CLI_SERVER_WORKERS: "8"
         run: |
           set -o pipefail
-          php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
+          # APP_URL só para este serve: o AppServiceProvider faz forceRootUrl(config('app.url')),
+          # e com o APP_URL=http://localhost do .env o /_visreg-login redirecionava para a porta 80.
+          # Medido em 2026-11-05 (run 42077429563): ERR_CONNECTION_REFUSED na 1a tela, serve vivo.
+          # VISREG_FREEZE_CLOCK vazio só para este serve: com o relógio do app congelado em
+          # 2026-06-11, a sessão sai com expires em junho e Max-Age=0 contra o relógio real, e o
+          # browser apaga o cookie na hora. Medido em 2026-11-05 (run 42084635185): todo login
+          # caía em /login. O congelamento servia ao pixel, que saiu na ADR 0445.
+          APP_URL=http://127.0.0.1:8000 VISREG_FREEZE_CLOCK= php artisan serve --host=127.0.0.1 --port=8000 --no-reload > /tmp/lote-serve.log 2>&1 &
           SERVE_PID=$!
           for i in $(seq 1 30); do
             curl -sf -o /dev/null http://127.0.0.1:8000/login && break
@@ -340,24 +355,34 @@ jobs:
             echo "::error title=Lote de paridade::o processo do serve MORREU — nada foi medido"
             cat /tmp/lote-serve.log; exit 1
           }
+          # O admin do biz seedado nao e o id 1: o `db:seed` padrao roda antes do
+          # VisregTenantSeeder. Mesmo criterio dos testes de browser (primeiro user do primeiro
+          # business). Medido em 2026-11-05 (run 42078570982): com --user-id 1 toda tela caiu em /login.
+          VISREG_UID=$(php artisan tinker --execute="echo \App\User::where('business_id', \App\Business::orderBy('id')->value('id'))->orderBy('id')->value('id');" | tail -n1)
+          echo "admin do auth-bridge: user_id=$VISREG_UID"
           # CANARIO DE CONCORRENCIA — a medicao que faltou nas 3 primeiras rodadas.
           # 6 requests SIMULTANEOS: e o que cada tela de fato exige (documento + redirect do
           # auth-bridge + assets do bundle Inertia). Se o servidor nao aguentar, ABORTA aqui
           # com diagnostico, em vez de produzir 23 ERRO de conexao que se leem como veredito
           # de fidelidade. Gate mudo e pior que gate ausente porque parece cobertura.
           echo "PHP_CLI_SERVER_WORKERS=${PHP_CLI_SERVER_WORKERS:-<vazio>} · processos servindo: $(pgrep -fc 'artisan serve' || echo 0)"
-          FALHAS=0
+          # Dois defeitos medidos em 2026-11-05 (run 42068113540): (1) `wait` sem argumento
+          # espera TODOS os filhos, inclusive o `artisan serve` acima, e o passo ficou 45 min
+          # parado depois desta linha até o timeout; (2) `FALHAS=$((FALHAS+1)) &` incrementa
+          # numa subshell e nunca chega ao pai, então o canário não acusava nada. Agora espera
+          # só os PIDs dos curl e conta pelo exit code de cada um.
+          FALHAS=0; PIDS=""
           for i in $(seq 1 6); do
-            curl -sf -o /dev/null --max-time 25 http://127.0.0.1:8000/login || FALHAS=$((FALHAS+1)) &
+            curl -sf -o /dev/null --max-time 25 http://127.0.0.1:8000/login & PIDS="$PIDS $!"
           done
-          wait
+          for p in $PIDS; do wait "$p" || FALHAS=$((FALHAS+1)); done
           echo "canario: $FALHAS falha(s) em 6 requests simultaneos"
           if [ "$FALHAS" -gt 0 ]; then
             echo "::error title=Lote de paridade::servidor NAO aguenta paralelismo ($FALHAS/6 recusados) — abortando em vez de medir o nada. Proximo caminho: servidor fora do processo (FrankenPHP / php -S dedicado), NAO mais workers."
             cat /tmp/lote-serve.log
             exit 1
           fi
-          node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 2>&1 | tee /tmp/lote.log
+          node scripts/design/design-diff-lote.mjs --base-url http://127.0.0.1:8000 --user-id "$VISREG_UID" 2>&1 | tee /tmp/lote.log
           RC=${PIPESTATUS[0]}
           kill -0 "$SERVE_PID" 2>/dev/null || {
             echo "::error title=Lote de paridade::o serve caiu DURANTE a medicao — os ERRO sao de conexao, nao de fidelidade"
@@ -368,7 +393,7 @@ jobs:
       - name: Resumo do lote (denominador + causa) no step summary
         if: >-
           always() && steps.lote.conclusion != 'skipped' &&
-          steps.select.outputs.count != '0' &&
+          steps.select.outputs.boot == 'true' &&
           (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         env:
           # Sem isto o script leria o RESUMO.md VERSIONADO e publicaria a rodada anterior
@@ -379,7 +404,7 @@ jobs:
       - name: Upload das medidas do lote (dado bruto · NAO commitado)
         if: >-
           always() && steps.lote.conclusion != 'skipped' &&
-          steps.select.outputs.count != '0' &&
+          steps.select.outputs.boot == 'true' &&
           (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         # Artifact e NAO commit: baseline congelada esta vetada por [W] ("a baseline tem que
         # sumir, isso ja deu muito erro") e o §5 tem 3 lapides de rebake que nao fecha
@@ -403,5 +428,5 @@ jobs:
       # quando a gaveta não abre. Sem app e sem rede. `always()` pra não depender do smoke acima;
       # sem `continue-on-error`: se a régua quebrar, este passo fica vermelho.
       - name: design-diff-lote · sonda da gaveta morde (página-fixture, Chromium)
-        if: always() && steps.select.outputs.count != '0'
+        if: always() && steps.select.outputs.boot == 'true'
         run: node scripts/design/design-diff-lote.mjs --selftest-sonda

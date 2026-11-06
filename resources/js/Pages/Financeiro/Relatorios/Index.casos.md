@@ -22,7 +22,7 @@ last_run: "2026-10-14"
 Charter em **draft** (aguarda [W] aprovar Non-Goals/Anti-hooks). Tela 100% leitura.
 
 ## UC-REL-01 — Fluxo projetado × realizado por semana
-Status: 🧪 (`tests/Feature/Modules/Financeiro/RelatoriosTest.php`)
+Status: 🧪 (`Modules/Financeiro/Tests/Feature/RelatoriosTest.php`)
 Quando o usuário abre a aba Fluxo com um período · Então vê KPIs (projetado/realizado a receber e a pagar, saldos) e a tabela semanal com as barras proj/real.
 
 ## UC-REL-02 — Resumo do período com atenção a vencidos
