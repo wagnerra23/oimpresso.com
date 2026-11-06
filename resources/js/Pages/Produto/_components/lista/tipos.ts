@@ -24,6 +24,8 @@ export interface LinhaProduto {
   alerta: number | null;
   abaixo_do_alerta: boolean;
   inativo: boolean;
+  /** UC-PIDX-45 (AR-PROD-022): excluído — guardado, só aparece em "Situação: Excluídos" e pode ser restaurado. */
+  excluido?: boolean;
   nao_para_venda: boolean;
   serie: boolean;
   locais: string[];
@@ -100,7 +102,7 @@ export interface FiltrosLista {
   unit_id: string | null;
   tax_id: string | null;
   location_id: string | null;
-  active_state: 'active' | 'inactive' | null;
+  active_state: 'active' | 'inactive' | 'excluido' | null;
   not_for_selling: boolean;
   woocommerce_enabled: boolean;
   repair_model_id: string | null;
@@ -421,7 +423,7 @@ export function subLinhaProduto(l: LinhaProduto): string {
   return [
     l.controla_estoque ? 'Estoque gerenciado' : 'Sem controle de estoque',
     l.nao_para_venda ? 'não para venda' : null,
-    l.inativo ? 'inativo' : null,
+    l.excluido ? 'excluído' : l.inativo ? 'inativo' : null,
     l.tipo === 'variable' ? `${l.variacoes} ${l.variacoes === 1 ? 'variação' : 'variações'}` : null,
   ]
     .filter(Boolean)
@@ -495,6 +497,8 @@ export const NATUREZAS_FISCAIS: Opcao[] = [
 export const SITUACOES: Opcao[] = [
   { id: 'active', nome: 'Ativo' },
   { id: 'inactive', nome: 'Inativo' },
+  // UC-PIDX-45 (AR-PROD-022): o excluído some da lista e aparece só aqui.
+  { id: 'excluido', nome: 'Excluídos' },
 ];
 
 /** Colunas que nascem ligadas (PB_COLS_PADRAO do protótipo). */

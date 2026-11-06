@@ -75,6 +75,8 @@ função da lista Blade que roda hoje em produção.
   (UC-PIDX-42, 2026-11-06). Chips "Filtrando por" + "Limpar tudo".
 - Barra de selecionados: "Informar NCM", só para quem emite nota e pode editar produto, grava o mesmo
   NCM em todos os selecionados (UC-PIDX-43, 2026-11-06).
+- Excluir não apaga: o produto vai para "Situação: Excluídos" e "Restaurar" o devolve, com estoque e
+  histórico (UC-PIDX-45 · `AR-PROD-022`, 2026-11-06).
 - Abas: **Todos os produtos** (com contagem) e **Relatório de estoque** (as colunas da lista Blade,
   linhas por página à escolha, lucro potencial da linha verde/vermelho,
   com totais), esta só com `stock_report.view`.

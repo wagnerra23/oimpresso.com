@@ -10,7 +10,6 @@ use App\Exports\ProductsExport;
 use App\Media;
 use App\Product;
 use App\ProductVariation;
-use App\PurchaseLine;
 use App\SellingPriceGroup;
 use App\TaxRate;
 use App\Unit;
@@ -27,7 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ProductsCreatedOrModified;
-use App\TransactionSellLine;
 use App\Services\FeatureFlagService;
 use Inertia\Inertia;
 
@@ -402,6 +400,7 @@ class ProductController extends Controller
             'products.enable_stock',
             'products.is_inactive',
             'products.not_for_selling',
+            'products.deleted_at',
             'products.product_custom_field1', 'products.product_custom_field2', 'products.product_custom_field3', 'products.product_custom_field4', 'products.product_custom_field5', 'products.product_custom_field6',
             'products.product_custom_field7', 'products.product_custom_field8', 'products.product_custom_field9',
             'products.product_custom_field10', 'products.product_custom_field11', 'products.product_custom_field12',
@@ -449,6 +448,12 @@ class ProductController extends Controller
         }
 
         $active_state = $f['active_state'] ?? null;
+        // UC-PIDX-45 (D13 · AR-PROD-022): o excluído some da lista e só aparece em "Situação: Excluídos".
+        if ($active_state === 'excluido') {
+            $products->whereNotNull('products.deleted_at');
+        } else {
+            $products->whereNull('products.deleted_at');
+        }
         if ($active_state == 'active') {
             $products->Active();
         }
@@ -543,7 +548,8 @@ class ProductController extends Controller
             'unit_id' => $texto('unit_id'),
             'tax_id' => $texto('tax_id'),
             'location_id' => $texto('location_id'),
-            'active_state' => in_array($estado, ['active', 'inactive'], true) ? $estado : null,
+            // UC-PIDX-45: "excluido" mostra só os excluídos (AR-PROD-022). Só a lista React manda.
+            'active_state' => in_array($estado, ['active', 'inactive', 'excluido'], true) ? $estado : null,
             'not_for_selling' => request()->boolean('not_for_selling'),
             'woocommerce_enabled' => request()->boolean('woocommerce_enabled'),
             'repair_model_id' => $texto('repair_model_id'),
@@ -1634,6 +1640,8 @@ class ProductController extends Controller
                 'alerta' => $alerta,
                 'abaixo_do_alerta' => $estoque !== null && $alerta !== null && $estoque <= $alerta,
                 'inativo' => (bool) $row->is_inactive,
+                // UC-PIDX-45: excluído (AR-PROD-022) — a linha oferece "Restaurar".
+                'excluido' => $row->deleted_at !== null,
                 'nao_para_venda' => (bool) $row->not_for_selling,
                 'serie' => (bool) $row->enable_sr_no,
                 'locais' => $row->product_locations->pluck('name')->values()->all(),
@@ -2716,10 +2724,12 @@ class ProductController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
+     * UC-PIDX-45 (D13 · AR-PROD-022): "Excluir" não apaga. Com `product.delete`, qualquer produto pode ser
+     * excluído; o cadastro vira inativo e fica marcado em `deleted_at`, some da lista e da busca da venda e da
+     * compra (as duas só trazem produto ativo) e aparece em "Situação: Excluídos", de onde "Restaurar" o
+     * devolve (`restaurar`). Variações, preços, estoque e histórico ficam guardados — nunca hard-delete
+     * ("preserva consulta futura", [W] 2026-07-13). Antes desta mudança o produto e o estoque eram apagados,
+     * e o produto com compra ou ajuste não podia ser excluído.
      */
     public function destroy($id)
     {
@@ -2728,126 +2738,48 @@ class ProductController extends Controller
         }
 
         if (request()->ajax()) {
-            try {
-                $business_id = request()->session()->get('user.business_id');
+            $business_id = (int) request()->session()->get('user.business_id');
+            $excluidos = $this->excluirProdutos($business_id, [(int) $id]);
 
-                $can_be_deleted = true;
-                $error_msg = '';
-
-                //Check if any purchase or transfer exists
-                $count = PurchaseLine::join(
-                    'transactions as T',
-                    'purchase_lines.transaction_id',
-                    '=',
-                    'T.id'
-                )
-                                    ->whereIn('T.type', ['purchase'])
-                                    ->where('T.business_id', $business_id)
-                                    ->where('purchase_lines.product_id', $id)
-                                    ->count();
-                if ($count > 0) {
-                    $can_be_deleted = false;
-                    $error_msg = __('lang_v1.purchase_already_exist');
-                } else {
-                    //Check if any opening stock sold
-                    $count = PurchaseLine::join(
-                        'transactions as T',
-                        'purchase_lines.transaction_id',
-                        '=',
-                        'T.id'
-                     )
-                                    ->where('T.type', 'opening_stock')
-                                    ->where('T.business_id', $business_id)
-                                    ->where('purchase_lines.product_id', $id)
-                                    ->where('purchase_lines.quantity_sold', '>', 0)
-                                    ->count();
-                    if ($count > 0) {
-                        $can_be_deleted = false;
-                        $error_msg = __('lang_v1.opening_stock_sold');
-                    } else {
-                        //Check if any stock is adjusted
-                        $count = PurchaseLine::join(
-                            'transactions as T',
-                            'purchase_lines.transaction_id',
-                            '=',
-                            'T.id'
-                        )
-                                    ->where('T.business_id', $business_id)
-                                    ->where('purchase_lines.product_id', $id)
-                                    ->where('purchase_lines.quantity_adjusted', '>', 0)
-                                    ->count();
-                        if ($count > 0) {
-                            $can_be_deleted = false;
-                            $error_msg = __('lang_v1.stock_adjusted');
-                        }
-                    }
-                }
-
-                $product = Product::where('id', $id)
-                                ->where('business_id', $business_id)
-                                ->with('variations')
-                                ->first();
-
-                // check for enable stock = 0 product
-                if($product->enable_stock == 0){
-                    $t_count = TransactionSellLine::join(
-                        'transactions as T',
-                        'transaction_sell_lines.transaction_id',
-                        '=',
-                        'T.id'
-                    )
-                        ->where('T.business_id', $business_id)
-                        ->where('transaction_sell_lines.product_id', $id)
-                        ->count();
-
-                    if ($t_count > 0) {
-                        $can_be_deleted = false;
-                        $error_msg = "can't delete product exit in sell";
-                    }
-                }
-
-                //Check if product is added as an ingredient of any recipe
-                if ($this->moduleUtil->isModuleInstalled('Manufacturing')) {
-                    $variation_ids = $product->variations->pluck('id');
-
-                    $exists_as_ingredient = \Modules\Manufacturing\Entities\MfgRecipeIngredient::whereIn('variation_id', $variation_ids)
-                        ->exists();
-                    if ($exists_as_ingredient) {
-                        $can_be_deleted = false;
-                        $error_msg = __('manufacturing::lang.added_as_ingredient');
-                    }
-                }
-            
-                if ($can_be_deleted) {
-                    if (! empty($product)) {
-                        DB::beginTransaction();
-                        //Delete variation location details
-                        VariationLocationDetails::where('product_id', $id)
-                                                ->delete();
-                        $product->delete();
-                        event(new ProductsCreatedOrModified($product, 'deleted'));
-                        DB::commit();
-                    }
-
-                    $output = ['success' => true,
-                        'msg' => __('lang_v1.product_delete_success'),
-                    ];
-                } else {
-                    $output = ['success' => false,
-                        'msg' => $error_msg,
-                    ];
-                }
-            } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
+            return $excluidos > 0
+                ? ['success' => true, 'msg' => 'Produto excluído. Ele fica em "Situação: Excluídos" e pode ser restaurado.']
+                : ['success' => false, 'msg' => 'Produto não encontrado.'];
         }
+    }
+
+    /**
+     * UC-PIDX-45: marca os produtos da empresa como excluídos (inativos + `deleted_at`). Devolve quantos mudou.
+     * Tier 0 (ADR 0093): só os ids da empresa do usuário; o de outra empresa não muda.
+     */
+    protected function excluirProdutos(int $business_id, array $ids): int
+    {
+        $produtos = Product::where('business_id', $business_id)->whereIn('id', $ids)->whereNull('deleted_at')->get();
+        foreach ($produtos as $produto) {
+            $produto->forceFill(['is_inactive' => 1, 'deleted_at' => now()])->save();
+            event(new ProductsCreatedOrModified($produto, 'deleted'));
+        }
+
+        return $produtos->count();
+    }
+
+    /**
+     * UC-PIDX-45: "Restaurar" devolve o produto excluído a Ativo, com tudo o que ele tinha. Mesma permissão do
+     * Excluir. Tier 0: só produto da empresa do usuário.
+     */
+    public function restaurar($id)
+    {
+        if (! auth()->user()->can('product.delete')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = (int) request()->session()->get('user.business_id');
+        $produto = Product::where('business_id', $business_id)->where('id', (int) $id)->whereNotNull('deleted_at')->first();
+        if ($produto === null) {
+            return response()->json(['success' => false, 'msg' => 'Produto excluído não encontrado.'], 404);
+        }
+        $produto->forceFill(['is_inactive' => 0, 'deleted_at' => null])->save();
+
+        return response()->json(['success' => true, 'msg' => 'Produto restaurado e ativo de novo.']);
     }
 
     /**
@@ -3568,77 +3500,21 @@ class ProductController extends Controller
     }
 
     /**
-     * Mass deletes products.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Excluir selecionados (UC-PIDX-45 · AR-PROD-022): marca como excluídos, sem apagar nada — o mesmo do
+     * Excluir de um produto (`excluirProdutos`).
      */
     public function massDestroy(Request $request)
     {
         if (! auth()->user()->can('product.delete')) {
             abort(403, 'Unauthorized action.');
         }
-        try {
-            $purchase_exist = false;
 
-            if (! empty($request->input('selected_rows'))) {
-                $business_id = $request->session()->get('user.business_id');
-
-                $selected_rows = explode(',', $request->input('selected_rows'));
-
-                $products = Product::where('business_id', $business_id)
-                                    ->whereIn('id', $selected_rows)
-                                    ->with(['purchase_lines', 'variations'])
-                                    ->get();
-                $deletable_products = [];
-
-                $is_mfg_installed = $this->moduleUtil->isModuleInstalled('Manufacturing');
-
-                DB::beginTransaction();
-
-                foreach ($products as $product) {
-                    $can_be_deleted = true;
-                    //Check if product is added as an ingredient of any recipe
-                    if ($is_mfg_installed) {
-                        $variation_ids = $product->variations->pluck('id');
-
-                        $exists_as_ingredient = \Modules\Manufacturing\Entities\MfgRecipeIngredient::whereIn('variation_id', $variation_ids)
-                            ->exists();
-                        $can_be_deleted = ! $exists_as_ingredient;
-                    }
-
-                    //Delete if no purchase found
-                    if (empty($product->purchase_lines->toArray()) && $can_be_deleted) {
-                        //Delete variation location details
-                        VariationLocationDetails::where('product_id', $product->id)
-                                                    ->delete();
-                        $product->delete();
-                        event(new ProductsCreatedOrModified($product, 'Deleted'));
-                    } else {
-                        $purchase_exist = true;
-                    }
-                }
-
-                DB::commit();
-            }
-
-            if (! $purchase_exist) {
-                $output = ['success' => 1,
-                    'msg' => __('lang_v1.deleted_success'),
-                ];
-            } else {
-                $output = ['success' => 0,
-                    'msg' => __('lang_v1.products_could_not_be_deleted'),
-                ];
-            }
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = ['success' => 0,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
+        $business_id = (int) $request->session()->get('user.business_id');
+        $ids = array_values(array_filter(array_map('intval', explode(',', (string) $request->input('selected_rows')))));
+        $excluidos = $ids === [] ? 0 : $this->excluirProdutos($business_id, $ids);
+        $output = $excluidos > 0
+            ? ['success' => 1, 'msg' => $excluidos . ' produto(s) excluído(s). Eles ficam em "Situação: Excluídos" e podem ser restaurados.']
+            : ['success' => 0, 'msg' => 'Nenhum produto excluído.'];
 
         return redirect()->back()->with(['status' => $output]);
     }
@@ -3882,8 +3758,10 @@ class ProductController extends Controller
         if (request()->ajax()) {
             try {
                 $business_id = request()->session()->get('user.business_id');
+                // UC-PIDX-45: produto excluído volta por "Restaurar", não por "Ativar".
                 $product = Product::where('id', $id)
                                 ->where('business_id', $business_id)
+                                ->whereNull('deleted_at')
                                 ->update(['is_inactive' => 0]);
 
                 $output = ['success' => true,

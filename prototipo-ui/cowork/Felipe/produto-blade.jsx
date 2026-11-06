@@ -346,7 +346,7 @@ function Filtros({ f, setF, empresa }) {
           {empresa.temAliquota && <Fld label="Imposto"><Sel value={f.tax} onChange={set("tax")} options={TAXES.map((t) => t.name)} vazio="Todos" /></Fld>}
           <Fld label="Marca"><Sel value={f.brand} onChange={set("brand")} options={BRANDS} vazio="Todas" /></Fld>
           <Fld label="Local do negócio"><Sel value={f.loc} onChange={set("loc")} options={LOCATIONS} vazio="Todos" /></Fld>
-          <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }]} vazio="Todos" /></Fld>
+          <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }, { id: "excluido", name: "Excluídos" }]} vazio="Todos" /></Fld>
           <div className="pb-fld" style={{ justifyContent: "flex-end" }}>
             <label className="pb-chk"><input type="checkbox" checked={f.nfs} onChange={(e) => setF({ ...f, nfs: e.target.checked })} /><b>Não para venda</b></label>
           </div>
@@ -1030,9 +1030,9 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     });
     if (a === "excluir") return setConfirmar({
       titulo: "Excluir produto", perigo: true, cta: "Excluir",
-      corpo: `Excluir “${p.name}” (${p.sku}) apaga o cadastro, as variações e os preços por grupo.`,
-      aviso: p.stockOn && p.stock > 0 ? "Este produto tem estoque e movimento — o servidor vai recusar a exclusão. Desative em vez de excluir." : "Esta ação não tem volta.",
-      on: () => avisar(p.stockOn && p.stock > 0 ? "Exclusão recusada: produto com movimento de estoque." : "Produto excluído.", p.stockOn && p.stock > 0 ? "danger" : "warn"),
+      // UC-PIDX-45 (AR-PROD-022): excluir não apaga — vai para "Situação: Excluídos" e dá para restaurar.
+      corpo: `“${p.name}” (${p.sku}) sai da lista, da venda e da compra. O cadastro, o estoque e o histórico ficam guardados em “Situação: Excluídos”, e dá para restaurar.`,
+      on: () => avisar("Produto excluído. Ele fica em “Situação: Excluídos” e pode ser restaurado.", "warn"),
     });
   };
 
@@ -1132,7 +1132,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
           {empresa.emiteNota && <button className="os-btn sm" disabled={!sel.length} onClick={() => setNcmLote(true)}>Informar NCM</button>}
           <button className="os-btn sm" onClick={() => { window.__PBEtiquetas = PRODUCTS.filter((p) => sel.includes(p.id)); onIr("etiquetas"); }}><Ic name="print" size={12} /> Etiquetas</button>
           <button className="os-btn sm" onClick={() => setConfirmar({ titulo: "Desativar selecionados", perigo: true, cta: "Desativar " + sel.length, corpo: sel.length + " produto(s) saem da venda e do orçamento novo, mantendo histórico e estoque.", on: () => { avisar(sel.length + " produto(s) desativados.", "warn"); limparSel(); } })}>Desativar selecionados</button>
-          <button className="os-btn sm ghost danger" onClick={() => setConfirmar({ titulo: "Excluir selecionados", perigo: true, cta: "Excluir " + sel.length, corpo: "Vai apagar " + sel.length + " cadastro(s), com variações e preços por grupo.", aviso: "Produtos com movimento de estoque serão recusados pelo servidor.", on: () => { avisar("Exclusão enviada — itens com movimento foram recusados.", "danger"); limparSel(); } })}>Excluir selecionados</button>
+          <button className="os-btn sm ghost danger" onClick={() => setConfirmar({ titulo: "Excluir selecionados", perigo: true, cta: "Excluir " + sel.length, corpo: sel.length + " produto(s) saem da lista, da venda e da compra. O cadastro, o estoque e o histórico ficam guardados em “Situação: Excluídos”, e dá para restaurar.", on: () => { avisar(sel.length + " produto(s) excluído(s). Eles ficam em “Situação: Excluídos”.", "warn"); limparSel(); } })}>Excluir selecionados</button>
           <div className="sp" />
           <button className="icon-btn" title="Limpar seleção" onClick={limparSel}>✕</button>
         </div>}

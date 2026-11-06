@@ -32,7 +32,8 @@ export type AcaoProduto =
   | 'anexo'
   | 'ativar'
   | 'desativar'
-  | 'excluir';
+  | 'excluir'
+  | 'restaurar';
 
 interface Props {
   linha: LinhaProduto;
@@ -78,8 +79,9 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
   ].filter(Boolean);
   const grupo3 = [
     // Ativar e desativar exigem `product.update` no servidor (`activate`/`massDeactivate`).
-    pode('update') && (linha.inativo ? item('ativar', 'Ativar') : item('desativar', 'Desativar')),
-    pode('delete') && item('excluir', 'Excluir', true),
+    // UC-PIDX-45 (AR-PROD-022): o excluído só oferece "Restaurar", com a mesma permissão do Excluir.
+    !linha.excluido && pode('update') && (linha.inativo ? item('ativar', 'Ativar') : item('desativar', 'Desativar')),
+    linha.excluido ? pode('delete') && item('restaurar', 'Restaurar') : pode('delete') && item('excluir', 'Excluir', true),
   ].filter(Boolean);
   const grupos = [grupo1, grupo2, grupoFiscal, grupo3].filter((g) => g.length > 0);
 
