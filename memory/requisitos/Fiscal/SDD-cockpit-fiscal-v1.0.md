@@ -124,11 +124,11 @@ daqueles módulos. A única lógica de negócio própria que ele carrega é o
 | `Nfe` | `GET /fiscal/nfe` | `NfeCockpitController@index` | `fiscal.nfe.view` | lista NF-e(55)/NFC-e(65) + drawer + janela legal |
 | `Nfse` | `GET /fiscal/nfse` | `NfseCockpitController@index` | `fiscal.nfse.view` | lista NFS-e por competência |
 | `Dfe` | `GET /fiscal/dfe` | `DfeController@index` | `fiscal.dfe.manage` | NF-e emitidas **contra** o CNPJ + prazo de manifestação |
-| `Eventos` | `GET /fiscal/eventos` | `EventosController@index` | `fiscal.access` | timeline append-only de eventos SEFAZ |
+| `Eventos` | `GET /fiscal/eventos` | `EventosController@index` | `fiscal.nfe.view` | timeline append-only de eventos SEFAZ |
 | `Config` | `GET /fiscal/config` | `ConfigController@index` | `fiscal.config.edit` | cert A1 + regime + ambiente + séries |
 | `Sped` | `GET /fiscal/sped` | `SpedController@index` | `fiscal.sped.export` | panorama 5 meses + download EFD |
 | — (sem tela) | 6 × `POST /fiscal/acoes/*` | `AcoesController` | `fiscal.nfe.acoes` / `fiscal.dfe.manage` | cancelar · CC-e · inutilizar · retransmitir · manifestar |
-| — (sem tela) | `GET /fiscal/palette/search` | `PaletteSearchController@search` | `fiscal.access` | ⌘K cross-fiscal |
+| — (sem tela) | `GET /fiscal/palette/search` | `PaletteSearchController@search` | `fiscal.access` (notas: `fiscal.nfe.view` · DF-e: `fiscal.dfe.manage`) | ⌘K cross-fiscal |
 
 ### 1.2 Personas do domínio
 
@@ -288,7 +288,7 @@ Controller re-checa com `abort(404)`. `desconhecer`/`nao_realizada` **exigem** j
 `cienciar`/`confirmar` **não**.
 
 **F7 · Timeline de eventos (`GET /fiscal/eventos`)** — `EventosController@index` (gate
-`fiscal.access`) → `computeCounts()` + `rows` deferido, ambos filtrados por
+`fiscal.nfe.view`, era `fiscal.access` até 2026-11-05) → `computeCounts()` + `rows` deferido, ambos filtrados por
 `created_at >= now()->subDays(max(1,$dias))` (default 30d). `with('emissao:id,numero,modelo,chave_44')`
 — **1 join só**, limite do charter. `mapRow()` **trunca `justificativa` em 200 chars** (anti-PII do
 `xMotivo`) e resolve o `kind` pelo mapa `TIPOS` (7 códigos canônicos).
@@ -315,7 +315,7 @@ sem ela cai no **fallback Simples** (CSOSN 102, alíq 0) **diferenciando CFOP in
 interestadual 6102** — foi esse diferencial que eliminou o risco R1 do audit sênior.
 
 **F10 · ⌘K palette (`GET /fiscal/palette/search`)** — `PaletteSearchController@search`, gate
-`fiscal.access`, `q` **min 3 chars** (era 2; subiu por anti-DOS: `LIKE %q%` com wildcard à esquerda
+`fiscal.access` (cada categoria com a permissão da tela dona desde 2026-11-05), `q` **min 3 chars** (era 2; subiu por anti-DOS: `LIKE %q%` com wildcard à esquerda
 faz full-scan em tabela com 50k+ notas), throttle 60/min, 2 categorias (notas + DF-e) top 5.
 
 ### 5.4 Onde os dois mundos ainda não se conversam
@@ -481,7 +481,7 @@ acessa a rota; *então* recebe **403** — `superadmin` faz bypass. Âncora de c
 2. `[T0]` `/fiscal/nfe` exige `fiscal.nfe.view` — ⬜ **sem teste HTTP** (guard existe no Controller)
 3. `[T0]` `/fiscal/nfse` exige `fiscal.nfse.view` — 🧪 coberto
 4. `[T0]` `/fiscal/dfe` exige `fiscal.dfe.manage` — ⬜ **sem teste HTTP**
-5. `[T0]` `/fiscal/eventos` exige `fiscal.access` — ⬜ **sem teste HTTP**
+5. `[T0]` `/fiscal/eventos` exige `fiscal.nfe.view` (era `fiscal.access` até 2026-11-05) — ⬜ **sem teste HTTP**
 6. `[T0]` `/fiscal/config` exige `fiscal.config.edit` — ⬜ **sem teste HTTP**
 7. `[T0]` `/fiscal/sped` exige `fiscal.sped.export` — 🧪 coberto (via gate de flag)
 

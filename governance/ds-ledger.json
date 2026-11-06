@@ -101,7 +101,7 @@
     },
     {
       "screen": "Configuracoes",
-      "note": "9 arquivo(s)",
+      "note": "10 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -178,7 +178,7 @@
     },
     {
       "screen": "Fisio",
-      "note": "26 arquivo(s)",
+      "note": "43 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -618,7 +618,7 @@
     },
     {
       "screen": "Produto",
-      "note": "59 arquivo(s)",
+      "note": "61 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -719,8 +719,8 @@
   "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "3583e435c",
-  "generatedAt": "2026-11-04T17:30:28.827Z",
+  "measuredAgainstSha": "0b1eed44b7",
+  "generatedAt": "2026-11-05T21:34:23.198Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

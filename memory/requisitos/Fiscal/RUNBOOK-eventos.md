@@ -11,7 +11,7 @@ last_validated: "2026-06-08"
 > **Page:** [`resources/js/Pages/Fiscal/Eventos.tsx`](../../../resources/js/Pages/Fiscal/Eventos.tsx)
 > **Charter:** `Eventos.charter.md`
 > **Controller:** [`EventosController`](../../../Modules/Fiscal/Http/Controllers/EventosController.php)
-> **Permissão:** `fiscal.access`
+> **Permissão:** `fiscal.nfe.view`
 > **PR origem:** PR #2 Wave consolidada
 
 ## 1. Objetivo
@@ -51,7 +51,7 @@ FxShell
 
 ## 4. Permissão
 
-`fiscal.access` — gate único (eventos são audit, todos com acesso ao módulo veem).
+`fiscal.nfe.view` — a permissão da tela de notas, porque todo evento é de uma `NfeEmissao` e o CSV leva justificativa de cancelamento e texto de CC-e. Até 2026-11-05 era `fiscal.access` ("eventos são audit, todos com acesso ao módulo veem"); a auditoria Fiscal (lote 1.3) trocou, porque quem a tela de notas recusava lia as mesmas notas por aqui.
 
 ## 5. Multi-tenant + append-only
 
