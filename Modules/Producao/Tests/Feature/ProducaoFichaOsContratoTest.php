@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCV-10, UC-PCOSF-01, UC-PCOSF-02 (Producao/Os/Show.casos.md) — a Ficha da OS por item.
+// Cobre UC-PCV-10, UC-PCOSF-01..03 (Producao/Os/Show.casos.md) — a Ficha da OS por item.
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -81,9 +81,9 @@ it('UC-PCV-10 · a Ficha mostra a situação e as etapas com previsto × apontad
 
 it('UC-PCOSF-01 · os botões seguem o papel: Liberar para producao.liberar, Cancelar item para vendas.gerente', function () {
     $pode = fn ($u) => ($this->parcial)($u, 'pode')->assertOk()->json('props.pode');
-    expect($pode($this->pcp))->toBe(['liberar' => true, 'cancelar' => false])
-        ->and($pode($this->gerente))->toBe(['liberar' => false, 'cancelar' => true])
-        ->and($pode($this->op))->toBe(['liberar' => false, 'cancelar' => false]);
+    expect($pode($this->pcp))->toBe(['liberar' => true, 'cancelar' => false, 'custo' => false])
+        ->and($pode($this->gerente))->toBe(['liberar' => false, 'cancelar' => true, 'custo' => false])
+        ->and($pode($this->op))->toBe(['liberar' => false, 'cancelar' => false, 'custo' => false]);
 
     // Quem escolhe os responsáveis recebe a lista; quem não libera recebe vazia.
     $ids = array_column(($this->parcial)($this->pcp, 'pessoas')->assertOk()->json('props.pessoas.pessoas'), 'id');
@@ -101,4 +101,26 @@ it('UC-PCOSF-02 · Tier 0 e portões: OS de outra empresa 404; sem acesso ou sem
     $this->actingAs($this->usuarioComPermissoes([], $this->B98))->get($this->url)->assertForbidden();
     $this->pacote = false;
     $this->actingAs($this->pcp)->get($this->url)->assertForbidden();
+});
+
+it('UC-PCOSF-03 · aba Custo só leitura: o mesmo número da Ficha e do previsto × realizado, e nada é gravado', function () {
+    $gestor = $this->usuarioComPermissoes(['producao.access', 'producao.desempenho.ver'], $this->B98);
+    app(SituacaoDaOrdem::class)->liberar($this->b98, $this->ordem->id, $this->pcp, [$this->e1->id => $this->op->id, $this->e2->id => $this->op->id]);
+    $svc = app(ApontamentoOperadorService::class);
+    $ap = $svc->iniciar($this->b98, $this->op->id, $this->e1->id, 'i-'.uniqid(), now()->subMinutes(90));
+    $svc->concluir($this->b98, $this->op->id, $ap->id, 'c-'.uniqid(), now());
+    $antes = [DB::table('pcp_ordens')->where('id', $this->ordem->id)->value('custo_real'), DB::table('pcp_apontamentos')->where('os_id', $this->ordem->id)->count()];
+
+    // Caminho 1: a prop da Ficha. Conta à mão: 90 min × 80,00 por hora de máquina = 120,00; sem material.
+    $c = ($this->parcial)($gestor, 'custo')->assertOk()->json('props.custo');
+    expect($c['composicao'])->toBe(['maquina' => '120.00', 'pessoa' => '0.00', 'material' => '0.00', 'terceiros' => '0.00', 'total' => '120.00'])
+        ->and($c['previsto_realizado']['realizado'])->toBe('120.0000')->and($c['previsto_realizado']['status'])->toBe('em_andamento');
+    // Caminho 2: o endpoint JSON do previsto × realizado devolve o mesmo realizado.
+    $json = $this->actingAs($gestor)->getJson("/producao/ordens/{$this->ordem->id}/previsto-realizado")->assertOk()->json();
+    expect($json['realizado'])->toBe($c['previsto_realizado']['realizado']);
+    expect([DB::table('pcp_ordens')->where('id', $this->ordem->id)->value('custo_real'), DB::table('pcp_apontamentos')->where('os_id', $this->ordem->id)->count()])->toBe($antes);
+
+    // Controle: sem producao.desempenho.ver a prop vem nula e a aba não aparece.
+    expect(($this->parcial)($this->pcp, 'custo')->assertOk()->json('props.custo'))->toBeNull();
+    expect(($this->parcial)($gestor, 'pode')->json('props.pode.custo'))->toBeTrue();
 });
