@@ -2,10 +2,10 @@
 id: requisitos-pcp-spec
 module: Producao
 version: "1.0"
-last_updated: "2026-06-13"
+last_updated: "2026-11-05"
 owner: wagner
-status: rascunho
-status_nota: ativo desde 2026-10-15 (ADR 0431 tira o PCP do feature-wish da 0152); módulo Modules/Producao, só esqueleto
+status: ativo
+status_nota: ativo desde 2026-10-15 (ADR 0431 tira o PCP do feature-wish da 0152); âncoras reconciliadas com o código em 2026-11-05 (auditoria do módulo, lote 6)
 type: spec
 scope: cross-vertical (OficinaAuto + ComunicacaoVisual + Repair + Vestuario)
 piloto_previsto: Vargas (recapagem multi-mecânico) OU Extreme (ComVis multi-plotter) — sinal qualificado pendente
@@ -32,7 +32,7 @@ last_review: 2026-05-15
 >
 > O PCP saiu do feature-wish da [ADR 0152](../../decisions/0152-modules-pcp-feature-wish.md) por decisão de [W] em 2026-10-15. D1 = **`Modules/Producao`** (rota `/producao`, permissões `producao.*`); `IProduction` já tinha sido removido no PR #842. Esta pasta era `memory/requisitos/Pcp/` até 2026-10-15; os IDs `US-PCP-*` ficam.
 >
-> O texto abaixo dizia `Modules/Producao` até 2026-10-15; as citações foram trocadas para o nome decidido (rename curado no `ghost-rename-map`). O módulo existe só como esqueleto (sem tabela, sem tela); o fundo e as telas entram pelas threads do playbook de Produção, na ordem do [ROADMAP](ROADMAP.md).
+> O texto abaixo dizia `Modules/Producao` até 2026-10-15; as citações foram trocadas para o nome decidido (rename curado no `ghost-rename-map`). Em 2026-10-15 o módulo era só esqueleto (sem tabela, sem tela); o fundo e as telas entraram pelas threads do playbook de Produção. **Estado em 2026-11-05** (medido em `origin/main` `7d997591d7`): 6 telas Inertia em `Modules/Producao/Resources/js/Pages/Producao/` e 18 Entities em `Modules/Producao/Entities/`. As âncoras `**Implementado em:**` de cada US são a fonte de "o que foi feito" (ADR 0273/0302); várias US-PCP-001..020 foram entregues com outro nome ou outro desenho do que o blueprint de maio descreve, e a nota de cada uma diz qual.
 
 > Convenção do ID: `US-PCP-NNN`.
 > ⚠️ **NÃO É MÓDULO NOVO POR DEFAULT.** §0 abaixo prova que 60–70% do que PCP precisa já existe espalhado (`Modules/Repair` Kanban shared infra + FSM canon stages produção + IProduction placeholder + Modules/Manufacturing recipes/BoM). PCP é **camada fina de apontamento + capacidade + agenda** que **costura** o que já tem.
@@ -218,7 +218,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ## §7 — User Stories (US-PCP-001..020 — 20 propostas)
 
-**Implementado em:** _pendente_ — epic dormente (feature-wish ADR 0152); `Modules/Producao/` e `IProduction` não existem no disco; nenhuma das 20 US construída (estado agregado)
+**Implementado em:** _pendente_ — estado agregado do épico, não de uma entrega: cada US abaixo tem a sua âncora. Em 2026-11-05 o `anchor-lint` contava 12 US ancoradas de 35 antes da reconciliação deste PR; o blueprint de maio (US-PCP-001..020) foi em parte entregue com outro desenho, em parte substituído e em parte segue aberto
 
 > Formato headers (parser MCP — ADR 0134).
 > Status inicial **todo** até sinal qualificado (ADR 0105) — proposta = `proposed`.
@@ -226,93 +226,150 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-001 · Schema base + migrations (4 tabelas + triggers append-only) — **P0**
 
-**Implementado em:** _pendente_ — nenhuma migration `pcp_*` no disco; `Modules/Producao/` inexistente (SPEC dormente ADR 0152)
+**Implementado em:** `Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php`
 
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoFundoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p0 · estimate: 3h · status: done · type: story
+> Entregue com outro nome (medido em 2026-11-05, `origin/main` `7d997591d7`): as tabelas são `pcp_*` em português (`pcp_apontamentos`, `pcp_eventos`, `pcp_programacoes`…), não `pcp_appointments`; os triggers append-only são criados na mesma migration (L157-170).
+
+**Aceite:**
+- [x] Tabelas do fundo do PCP com `business_id`, criadas pela migration da thread 02.
+- [x] Apontamento e evento são append-only por trigger MySQL (caso `fundo · apontamento e evento são append-only`).
+- [x] Cada empresa vê só a sua produção; operador de uma empresa não aponta em posto de outra (UC-PCV-28).
 > Schema §3. Triggers MySQL append-only em `pcp_appointments`. `business_id` indexed + FK em tudo. Pest cross-tenant (biz=1 vs biz=99 — ADR 0101).
 
 ### US-PCP-002 · DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
 
-**Implementado em:** _pendente_ — decisão dormente por ADR 0152 (resolve no ADR de promoção quando trigger ativar); sem ADR/código
+**Implementado em:** `memory/decisions/0431-pcp-sai-do-desejo-modules-producao.md` · `Modules/Producao/module.json`
 
-> owner: [W] · priority: p0 · estimate: 1h · status: todo · type: decision
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoModuloAtivacaoTest.php` (lane `verticais-pest.yml`).
+
+> owner: [W] · priority: p0 · estimate: 1h · status: done · type: decision
+> Resolvida pela ADR 0431 (2026-10-15): módulo novo `Modules/Producao`, prefixo `/producao`, permissões `producao.*`; `Modules/IProduction` já tinha sido removido no PR #842.
+
+**Aceite:**
+- [x] D1 decidida por [W] e registrada na ADR 0431.
+- [x] O módulo expõe as permissões aprovadas em D-PERM e nasce fora do pacote padrão (`ProducaoModuloAtivacaoTest`).
 > Ver ADR proposal §D1. Wagner decide ANTES de US-PCP-001 ir mainline.
 
 ### US-PCP-003 · Models + global scopes `HasBusinessScope` — **P0**
 
-**Implementado em:** _pendente_ — sem models `Modules/Producao/Entities/*` (módulo não scaffoldado, ADR 0152)
+**Implementado em:** `Modules/Producao/Entities/Ordem.php` · `Modules/Producao/Entities/Programacao.php` · `Modules/Producao/Entities/Apontamento.php` · `Modules/Producao/Entities/Posto.php`
 
-> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoFundoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p0 · estimate: 2h · status: done · type: story
+> Medido em 2026-11-05 (`origin/main` `7d997591d7`): 18 arquivos em `Modules/Producao/Entities/`, e os 18 declaram escopo de empresa (`grep -l "addGlobalScope\|BusinessScope\|HasBusiness" Modules/Producao/Entities/*.php | wc -l` = 18). A âncora cita as quatro centrais.
+
+**Aceite:**
+- [x] Toda Entity do módulo filtra por `business_id` (ADR 0093).
+- [x] Dado de outra empresa não aparece (UC-PCV-28).
 
 ### US-PCP-004 · CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
 
-**Implementado em:** _pendente_ — sem Pages `Pages/Pcp/**` nem controller CRUD workstations (módulo não construído, ADR 0152)
+**Implementado em:** `Modules/Producao/Http/Controllers/PostosController.php` · `Modules/Producao/Resources/js/Pages/Producao/Postos/Index.tsx` · `Modules/Producao/Routes/web.php`
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php` · `Modules/Producao/Tests/Feature/ProducaoPostosOperadoresTelaTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p0 · estimate: 4h · status: done · type: story
+> Entregue como uma tela só (`/producao/postos`, lista e gaveta de edição), sem Create/Edit separados; a tabela é `pcp_postos`. `PUT /producao/postos/{id}` (editar o posto) existe na rota e nenhum teste o chama (medido em 2026-11-05, `origin/main` `7d997591d7`): são exercitados `POST`, `PUT …/motivos` e `PUT …/operadores`.
+
+**Aceite:**
+- [x] O gestor cadastra o posto (`POST /producao/postos`) e ele aparece na tela da empresa; outra empresa não vê nem altera (UC-PCV-33).
+- [x] A tela mostra e edita os operadores de cada posto (UC-PCOPE-06).
 > MWART process ADR 0104 (visual-comparison.md + Pest baseline + Charter).
 
 ### US-PCP-005 · CRUD `pcp_operations` Inertia — **P0**
 
-**Implementado em:** _pendente_ — catálogo `pcp_operations` + telas não construídos (módulo dormente, ADR 0152)
+**Implementado em:** _pendente_ — a tabela `pcp_operacoes` (migration do fundo) e `Modules/Producao/Entities/Operacao.php` existem, mas nenhum controller, rota ou tela lê a tabela (medido em 2026-11-05, `origin/main` `7d997591d7`): `git grep -l "pcp_operacoes\|Operacao::" -- Modules/Producao` devolve só a migration e a Entity
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 
 ### US-PCP-006 · FSM actions intermediárias (5 actions seed) — **P0**
 
-**Implementado em:** _pendente_ — os seeders FSM existem (`database/seeders/FsmProcessoVendaComProducaoSeeder.php`, `FsmProcessoOsReparoPadraoSeeder.php`) mas NÃO seedam nenhuma action `apontar_*` de produção; deliverable não construído (ADR 0152)
+**Implementado em:** _pendente_ — substituída pelo processo `producao` da OS por item (ADR 0436): as ações da etapa e do item moram em `Modules/Producao/Services/ProcessoDaOrdem.php` e no catálogo da aba Processos de `/fluxos` (`app/Domain/Fsm/Modelos/CatalogoProcessos.php`), não em actions `apontar_*` nos seeders de venda e OS
 
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 3h · status: superseded · type: story
 > Seed em `FsmProcessoVendaComProducaoSeeder` e `FsmProcessoOsReparoPadraoSeeder` (já existem ADR 0143). Pest transition + side-effect.
 
 ### US-PCP-007 · Service `RegisterAppointment` (idempotent) — **P0**
 
-**Implementado em:** _pendente_ — sem service de apontamento em `Modules/Producao/Services/*` (módulo não construído, ADR 0152)
+**Implementado em:** `Modules/Producao/Services/ApontamentoOperadorService.php` · `Modules/Producao/Services/ApontamentoService.php`
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoApontamentoContratoTest.php` · `Modules/Producao/Tests/Feature/ProducaoApontamentoTelaTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p0 · estimate: 4h · status: done · type: story
+> Entregue com outro nome: `ApontamentoOperadorService`; a chave de idempotência é a da fila offline do aparelho.
+
+**Aceite:**
+- [x] O reenvio da fila offline com a mesma chave não duplica: 201, depois 200, uma linha só; corpo diferente com a mesma chave é 422 (UC-PCV-23).
+- [x] Máquina e pessoa podem estar abertos ao mesmo tempo; nunca dois apontamentos de pessoa (UC-PCV-31).
 > Idempotency-Key + race condition guard (mesmo usuário 2 starts).
 
 ### US-PCP-008 · Endpoint API JWT `POST /api/pcp/scan` — **P0**
 
-**Implementado em:** _pendente_ — rota `/api/pcp/scan` inexistente (nenhum `Modules/Producao/Routes/api.php`; módulo dormente ADR 0152)
+**Implementado em:** `Modules/Producao/Http/Controllers/ApontamentoController.php` · `Modules/Producao/Routes/web.php` · `routes/api/app/producao.php`
 
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoApontamentoTelaTest.php` · `Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p0 · estimate: 3h · status: done · type: story
+> Entregue com outro desenho: sem `/api/pcp/scan` nem JWT. A tela do operador lê o QR por `POST /producao/apontamento/qr` (sessão web, `Routes/web.php:48`) e o app usa `/api/app/producao/*` com `Idempotency-Key` (`routes/api/app/producao.php`).
+
+**Aceite:**
+- [x] QR de etapa alheia responde onde está e com quem; tentar apontar dá 409 e nada é gravado (UC-PCV-34).
+- [x] O app aponta material por `/api/app/producao/apontamentos/material` com `Idempotency-Key` (`ProducaoMaterialContratoTest`).
 > Sanctum token user-level + rate limit + LGPD log audit.
 
 ### US-PCP-009 · PWA mobile shell + scanner QR (camera API) — **P0**
 
-**Implementado em:** _pendente_ — sem PWA shell/scanner QR de apontamento (módulo não construído, ADR 0152)
+**Implementado em:** `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx` · `Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/fila.ts`
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoApontamentoTelaTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p0 · estimate: 6h · status: done · type: story
+> Entregue sem biblioteca de QR: a câmera usa o `BarcodeDetector` do navegador e, sem ele, pede o código da etiqueta digitado (`Apontamento/Index.tsx:91-93`); a fila offline é `_lib/fila.ts`.
+
+**Aceite:**
+- [x] A tela abre só para quem tem `producao.access` e o pacote, e lista só as etapas do operador (UC-PCV-19).
+- [x] A fila offline reenvia com a mesma chave sem duplicar (UC-PCV-23).
 > @zxing-js/library ou jsqr. Offline-first com IndexedDB queue.
 
 ### US-PCP-010 · QR token na label OS + endpoint print extended — **P0**
 
-**Implementado em:** _pendente_ — a label OS base existe (`Modules/Repair/Resources/views/job_sheet/print_label.blade.php`) mas SEM QR token/HMAC; extensão não construída (ADR 0152)
+**Implementado em:** `Modules/Producao/Http/Controllers/EtiquetaOsController.php` · `Modules/Producao/Resources/views/etiqueta-os.blade.php`
 
-> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoEtiquetaOsContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p0 · estimate: 2h · status: done · type: story
+> Entregue no módulo, não na etiqueta do Repair: PDF A4 da OS (modelo `a4_os`); o QR leva `oimpresso:p:<business_hash>:<os_tipo>:<os_id>`, com o hash da empresa no lugar do id e sem token HMAC.
+
+**Aceite:**
+- [x] A OS sai em PDF A4 com o QR do formato único (UC-PCV-37).
+- [x] OS de outra empresa não gera etiqueta (404); sem `producao.access` é 403; o QR lido por outra empresa não é dela (UC-PCV-28).
 
 ### US-PCP-011 · Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
 
-**Implementado em:** _pendente_ — `ProducaoOficinaController` (Repair) existe como plug-point mas NÃO tem `?grouping`/8 agrupadores nem tabela `kanban_columns`; extensão não construída (ADR 0152; não ancorar em domínio Repair)
+**Implementado em:** _pendente_ — parcial por outro caminho: o Quadro da Produção (`Modules/Producao/Http/Controllers/QuadroController.php:46`) agrupa por setor ou por máquina (`?agrupar=maquina`), fora do Repair; os 8 agrupadores Delphi e a tabela `kanban_columns` não existem
 
 > owner: — · priority: p0 · estimate: 5h · status: todo · type: story
 > Extends `ProducaoOficinaController` — query param `?grouping`. Espelha `WR_KANBAN` table → `kanban_columns(business_id, agrupador, value, order, is_collapsed)`.
 
 ### US-PCP-012 · Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
 
-**Implementado em:** _pendente_ — sem comando cron de detecção de gargalo nem feed Jana PCP (módulo não construído, ADR 0152)
+**Implementado em:** _pendente_ — parcial: o gargalo por regra (uma sugestão aplicável por máquina acima da capacidade) está na Linha (`Modules/Producao/Services/LinhaDaProducao.php`, UC-PCV-09); não há comando agendado de 15 min nem contexto para a Jana
 
 > owner: — · priority: p1 · estimate: 5h · status: todo · type: story
 
 ### US-PCP-013 · Capacidade dia/semana view agregada + dashboard card — **P1**
 
-**Implementado em:** _pendente_ — sem view de capacidade nem card dashboard PCP (módulo não construído, ADR 0152)
+**Implementado em:** _pendente_ — parcial: carga do dia contra a capacidade do posto na Linha (`Modules/Producao/Services/LinhaDaProducao.php`) e no Painel; não há visão agregada por semana
 
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story
 
 ### US-PCP-014 · Performance operador (view + dashboard table com permission guard) — **P1**
 
-**Implementado em:** _pendente_ — sem view performance operador nem permission `pcp.performance.view` (módulo não construído, ADR 0152)
+**Implementado em:** _pendente_ — não entregue: não há tela de desempenho do operador; a permissão que existe é `producao.desempenho.ver` (D-PERM, ADR 0431), e ela protege o custo-hora da pessoa (`Modules/Producao/Http/Controllers/ColaboradorCustoController.php`)
 
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story
 > LGPD — `pcp.performance.view` permission. PII redactor logs.
@@ -333,7 +390,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-016 · Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
 
-**Implementado em:** _pendente_ — `MfgRecipe` (Manufacturing) existe pra reuso, mas o hook `apontar_fim_operacao → ConsumirEstoque` do PCP não existe (módulo não construído, ADR 0152)
+**Implementado em:** _pendente_ — o gancho "concluir operação → consumir pela receita" não existe; o consumo veio por dois outros caminhos: baixa do material apontado (US-PCP-021) e reserva pela receita via `app/Contracts/Fabricacao/InsumosDaReceita.php` (US-PCP-031). A fronteira com o Manufacturing está no SCOPE
 
 > owner: — · priority: p2 · estimate: 5h · status: todo · type: story
 > Hook em `apontar_fim_operacao` → `ConsumirEstoque` via Manufacturing.
@@ -356,21 +413,21 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-018 · Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
 
-**Implementado em:** _pendente_ — sem broadcast/canal `pcp.{biz}.workstation.{id}` (módulo não construído, ADR 0152)
+**Implementado em:** _pendente_ — não entregue (medido em 2026-11-05, `origin/main` `7d997591d7`): `git grep -il "centrifugo\|broadcast" -- Modules/Producao` devolve 0 arquivos
 
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story
 > CT 100 only (ADR 0058 + 0062). Channel `pcp.{biz}.workstation.{id}`.
 
 ### US-PCP-019 · Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
 
-**Implementado em:** _pendente_ — sem módulo PCP pra smoke/canary; cutover não iniciado (módulo não construído, ADR 0152)
+**Implementado em:** _pendente_ — texto de maio, anterior à ADR 0431: o piloto decidido é biz=1 e depois um cliente de Comunicação Visual (ADR 0431), não a ROTA LIVRE (biz=4). Nenhum smoke de piloto registrado
 
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > Processo MWART F4+F5 — aviso prévio Larissa + canary 7d (ADR 0104 §F5).
 
 ### US-PCP-020 · Documentação RUNBOOK + Charter páginas — **P0**
 
-**Implementado em:** _pendente_ — sem `RUNBOOK-*.md` em `memory/requisitos/Producao/` nem charters (nenhuma tela PCP construída ainda; módulo em esqueleto, ADR 0431)
+**Implementado em:** _pendente_ — parcial (medido em 2026-11-05, `origin/main` `7d997591d7`): as 6 telas em `Modules/Producao/Resources/js/Pages/Producao/` têm `.charter.md` (todos `status: draft`) e `.casos.md`; não há `RUNBOOK*.md` em `memory/requisitos/Producao/`
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > 1 RUNBOOK por tela MWART + `.charter.md` ao lado de cada `.tsx`.
@@ -508,9 +565,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
 
-**Implementado em:** _pendente_ — entrega 1 em `Modules/Producao/Services/CriarOsDaVenda.php` (OS por item copia as etapas do roteiro ligado ao produto) e `Modules/Producao/Http/Controllers/RoteirosController.php` (`PUT /producao/roteiros/{id}/produtos`); falta o seletor de produtos na tela de Roteiros.
+**Implementado em:** _pendente_ — entrega 1 em `Modules/Producao/Services/CriarOsDaVenda.php` (OS por item copia as etapas do roteiro ligado ao produto) e `Modules/Producao/Http/Controllers/RoteirosController.php` (`PUT /producao/roteiros/{id}/produtos`); o seletor de produtos da tela de Roteiros entrou em 2026-10-21 (#9706, `Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/ProdutosDoRoteiro.tsx`); falta o roteiro padrão da empresa, que é decisão [W].
 
-**Testado em:** `Modules/Producao/Tests/Feature/ProducaoCriarOsDaVendaContratoTest.php` (lane `verticais-pest.yml`) · casos `Roteiros/Index.casos.md` UC-PCROT-01..04.
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoCriarOsDaVendaContratoTest.php` · `Modules/Producao/Tests/Feature/ProducaoRoteiroProdutosTelaContratoTest.php` (lane `verticais-pest.yml`) · casos `Roteiros/Index.casos.md` UC-PCROT-01..04.
 
 > owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
 
@@ -522,7 +579,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] As programações são cópia do roteiro no dia da aprovação: editar o roteiro depois não muda a OS já criada (UC-PCROT-03).
 - [x] O gestor (`producao.access`) liga produtos ao roteiro por `PUT /producao/roteiros/{id}/produtos`; um produto fica em um roteiro só, e o vínculo vem no payload da tela (`produto_ids`).
 - [x] Multi-tenant: roteiro de outra empresa → 404; produto de outra empresa é recusado; vínculo apontando roteiro de outra empresa conta como produto sem roteiro (UC-PCROT-04).
-- [ ] Seletor de produtos na tela de Roteiros (`Roteiros/Index.tsx`, com charter e gate visual).
+- [x] Seletor de produtos na tela de Roteiros (`ProdutosDoRoteiro.tsx`, #9706 em 2026-10-21; prova `ProducaoRoteiroProdutosTelaContratoTest`).
 - [ ] Roteiro padrão da empresa para produto sem roteiro (decisão [W]: hoje produto sem roteiro não vira OS).
 
 ### US-PCP-029 · Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
@@ -550,9 +607,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 > owner: wagner · priority: p2 · estimate: 6h · status: doing · type: story
 
-**Implementado em:** _pendente_ — o cálculo em dias úteis e a data prometida na aprovação existem (`Modules/Producao/Services/PrazoPelaFila.php` · `Modules/Producao/Services/CalendarioDeProducao.php` · `app/Contracts/Rh/CalendarioDaEmpresa.php` · `Modules/Essentials/Services/CalendarioDaEmpresaService.php` · `Modules/Producao/Services/PrometerPrazoDaVenda.php` · `Modules/Producao/Jobs/CriarOsDaVendaJob.php` · `Modules/Producao/Http/Controllers/PrazoDaVendaController.php`); falta mostrar o prazo na aprovação do orçamento (tela de venda).
+**Implementado em:** _pendente_ — o cálculo em dias úteis e a data prometida na aprovação existem (`Modules/Producao/Services/PrazoPelaFila.php` · `Modules/Producao/Services/CalendarioDeProducao.php` · `app/Contracts/Rh/CalendarioDaEmpresa.php` · `Modules/Essentials/Services/CalendarioDaEmpresaService.php` · `Modules/Producao/Services/PrometerPrazoDaVenda.php` · `Modules/Producao/Jobs/CriarOsDaVendaJob.php` · `Modules/Producao/Http/Controllers/PrazoDaVendaController.php`); o prazo na aprovação do orçamento entrou em 2026-10-21 (#9702, `resources/js/Pages/Sells/Quotations.tsx`, com a URL vinda do `SellController`); falta descontar o já apontado da etapa iniciada.
 
-**Testado em:** `Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php` (lane `verticais-pest.yml`).
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php` (lane `verticais-pest.yml`) · `tests/Feature/Sells/SellsPrazoEntregaContratoTest.php` (lane `sells-pest.yml`).
 
 **Origem:** UC-FLX-06 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:59`, referências Holdprint e Calcgraf, situação `planejado`, "SPEC do PCP"). Medido em 2026-10-20: o posto já tinha `horas_por_dia` (padrão 10) e `capacidade_por_hora`, as etapas do roteiro têm `horas`, e o `CriarOsDaVenda` programava as etapas sem olhar a fila (`Modules/Producao/Services/CriarOsDaVenda.php:87`); nada calculava a data de entrega. A US-PCP-013 (capacidade dia/semana agregada) é outra pergunta.
 
@@ -565,7 +622,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Decisão [W] 2026-10-20 — *"Pula sábado, domingo e feriados"*, pelo período de funcionamento já cadastrado: cada dia de produção vale um dia útil; hora útil = turno da produção (`pcp_turnos`) → senão expediente do RH (turno fixo do Essentials; com vários, o de mais funcionários) → senão 08h–18h com aviso; folgas do expediente, sem ele sábado e domingo (UC-PCPRZ-05, UC-PCPRZ-07).
 - [x] Feriados = os do RH da empresa e da loja da venda (`essentials_holidays`, mesma regra do Ponto), lidos pelo contrato `App\Contracts\Rh\CalendarioDaEmpresa`; nenhum feriado fixo no código; sem o Essentials, nenhum feriado, com aviso (UC-PCPRZ-06).
 - [x] Decisão [W] 2026-10-20 — a data prometida fica na venda (`transactions.due_date`, PROJETO_DT_FIM): na aprovação, venda sem data recebe a estimativa; data digitada pelo vendedor não é sobrescrita; a data vai para a OS (`pcp_ordens.prazo_prometido`) (UC-PCPRZ-08).
-- [ ] Mostrar o prazo na aprovação do orçamento (tela de venda).
+- [x] Mostrar o prazo na aprovação do orçamento (`Sells/Quotations.tsx`, #9702; prova `SellsPrazoEntregaContratoTest`).
 - [ ] Descontar o já apontado da etapa iniciada.
 
 ### US-PCP-027 · Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
@@ -636,7 +693,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 Como responsável pela qualidade, quero registrar a inspeção de uma etapa (aprovada ou não conforme, com motivo e foto) e acompanhar a não conformidade até a ação que a resolve, para que o mesmo defeito não volte sem ninguém saber por quê.
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — não iniciada em código; só o protótipo `prototipo-ui/cowork/Wagner/producao-cv-qualidade.jsx` (2026-10-29)
 
 - Origem: lacunas de 2026-10-25 (P2 "controle de qualidade e não conformidade"). Ordem MRP → cotação → qualidade: **decisão coordenação 2026-10-26**.
 - Amplia o que existe: o refugo com motivo e o "Reprovar no controle" (papel `producao.qualidade`, US-PCP-027) já mandam a OS para retrabalho. Falta a inspeção que aprova, a não conformidade como registro próprio e a ação corretiva.

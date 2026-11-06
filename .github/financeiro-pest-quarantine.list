@@ -120,7 +120,7 @@ Modules/Financeiro/Tests/Feature/Onda8bChipsDirectionTest.php  # 4 failed, 5 pas
 #    eles não dropam nada. Os que FALHAM foram pro bucket C (defeito real, onde
 #    sempre pertenceram); os que PASSAM saíram da quarentena (ver rodapé).
 #    Mesma classe do §5 2026-07-28: "hit que volta como comentário não é evidência".
-Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 failed (0 assertions)
+Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # FICA — DEFEITO DE PRODUTO medido (run do #10487, 2026-11-05): TituloAutoService::detectLocationFromCashRegister filtra transactions.cash_register_id, coluna que não existe; a ponte caixa→título falha em todo fechamento (o listener engole e loga). Consertar passa a criar títulos em produção = regra de valor, decisão [W]. Ver rodapé.
 
 # ─────────────────────────────────────────────────────────────────────────
 # C) DB-dependente FALHANDO — defeito real a investigar
@@ -138,7 +138,6 @@ Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # 6 faile
 #    de verdade contra MySQL semeado e NÃO usam RefreshDatabase, logo o motivo
 #    "envenena o processo compartilhado" nunca se aplicou a eles. Ficam
 #    quarentenados exatamente como estavam — só o MOTIVO mudou, não o estado.
-Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php  # 3 failed, 1 skipped, 7 passed (26 assertions) — ex-B
 Modules/Financeiro/Tests/Feature/TransactionPaymentInertiaSmokeTest.php  # 4 failed, 4 passed (8 assertions) — FICA: 1 causa consertada neste PR, 3 medidas no rodape (decisao [W])
 Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php  # 2 failed, 5 passed (27 assertions) — motivo MEDIDO no rodape (decisao [W] pendente)
 
@@ -170,8 +169,6 @@ Modules/Financeiro/Tests/Feature/BoletoMockEmissaoTest.php  # 3 skipped (0 asser
 #    a ordem que reproduz a falha é sorteada, então eu não conseguiria PROVAR o
 #    fix neste PR — e um fix não provado deixaria o main vermelho se errasse.
 #    Quarentena restaura o verde de forma determinística; o fix é decisão [W].
-Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php  # 8 passed isolado · 1 failed em main (run 30378571902)
-Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 — flake por ORDEM (403 no processo compartilhado). Ver rodape.
 
 # ═════════════════════════════════════════════════════════════════════════
 # SAÍRAM DA QUARENTENA em 2026-08-02 (a lista deve encolher — cabeçalho)
@@ -930,3 +927,31 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 #
 # Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa
 # provisionada pela receita do CI .github/actions/pest-mysql-setup).
+
+# ── SAÍRAM em 2026-11-05 (lote 2.5 da auditoria do Financeiro) ─────────
+#   CashRegisterBridgeFinanceiroTest   NÃO saiu — ver a nota abaixo.
+#   BackfillExtratoOfxTest             flake por ordem → causa no PRODUTO: o comando reaproveitava
+#                                      a 1ª account do business mesmo já vinculada, e
+#                                      fin_contas_bancarias.account_id é UNIQUE. Run 42075164121: 8 passed.
+#   Onda22AnexosPillPermissionTest     3 failed → causa no PRODUTO: aprovacao_status/aprovado_* fora do
+#                                      $fillable do Titulo; solicitar/aprovar/rejeitar faziam update()
+#                                      e a gravação era descartada em silêncio. Controller usa forceFill.
+#   Onda23OcrBoletoTest                flake por ordem (403) → run 42075164121: 12 passed com a lista
+#                                      reduzida. Hipótese do vazador de permissão segue NÃO confirmada;
+#                                      se o 403 voltar, volta pra cá com o run id.
+
+# ── CashRegisterBridgeFinanceiroTest — FICA, com motivo medido (2026-11-05) ──
+#   O arquivo foi reescrito (transação no tenant 98, listener registrado no teste, sem
+#   RefreshDatabase) e passou a EXERCER a ponte. Resultado: 4 failed, 2 passed. O log do
+#   próprio run traz a causa, 7 vezes, uma por fechamento:
+#     [adr_0183][caixa_bridge] Falha ao criar fin_titulo de cash_register ...
+#     SQLSTATE[42S22] Unknown column 't.cash_register_id' in 'where clause'
+#   TituloAutoService::detectLocationFromCashRegister procura a location em
+#   transactions.cash_register_id, que NÃO existe (a ligação vive em
+#   cash_register_transactions.transaction_id, e cash_registers tem location_id). Como o
+#   listener engole a exceção, todo fechamento de caixa em produção loga erro e NÃO cria o
+#   título da ADR 0183 — a ponte nunca funcionou fora do teste, que antes nem rodava.
+#   O conserto é pequeno, mas ligar a ponte faz produção passar a gravar títulos de
+#   fechamento de caixa: REGRA MESTRE de valor (dupla prova + antes→depois + OK [W]).
+#   Fica aqui até [W] decidir; o lote 3.4 (caixa) da auditoria é o lugar natural.
+

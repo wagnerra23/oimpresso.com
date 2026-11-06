@@ -66,6 +66,29 @@ Produção registra **quem fez qual etapa, em que posto, quando e por quanto tem
 para programar e medir. Não é dona da OS: Comunicação Visual, Repair e OficinaAuto continuam
 criando e fechando a OS; a Produção lê as etapas delas e grava os apontamentos.
 
+## Fronteira com o Manufacturing (medida em 2026-11-05)
+
+Fato medido em `origin/main` `7d997591d7`, com o comando ao lado de cada linha. **Não decide a
+unificação**: ela é decisão [W] em aberto (B10 da auditoria de 2026-11-05). O que já foi decidido
+fica citado como decisão, e o que o código faz fica separado dela.
+
+| Conceito | Manufacturing | Producao | Como medir |
+|---|---|---|---|
+| Ordem | `transactions.type = production_purchase`: ordem **sem venda**, criada e editada em Blade (`production/create`, `edit`, `show`), lista em Inertia (`Manufacturing/Index`) | `pcp_ordens`: uma OS **por item da venda**, só a partir de venda de modelo de fluxo (`CriarOsDaVenda`, ADR 0436). Nenhuma ordem sem venda | `git grep -c production_purchase -- Modules/Manufacturing/Http/Controllers/ProductionController.php` → 29 · `git grep -n "view('manufacturing::production" -- Modules/Manufacturing/Http/Controllers/ProductionController.php` |
+| Composição | `mfg_recipes` + `mfg_recipe_ingredients` (editor da Fabricação) | lê a receita do Manufacturing pelo contrato do núcleo `app/Contracts/Fabricacao/InsumosDaReceita.php`, implementado em `Modules/Manufacturing/Services/InsumosDaReceitaService.php` (reserva da US-PCP-031 e falta da US-PCP-032) | `grep -n "mfg_recipes" Modules/Manufacturing/Services/InsumosDaReceitaService.php` |
+| Composição (núcleo) | — | — | `product_bom` (`app/Domain/Inventory/Models/ProductBom.php`) é lida pelo `BomResolver` no FSM da venda (`app/Domain/Fsm/SideEffects/ReservarEstoque.php`): `git grep -ln product_bom -- app/Domain` |
+| Consumo | a ordem `production_purchase` baixa os ingredientes da receita | cada apontamento de material é uma `production_sell` (ref `OS-<id>`), custo do lote que saiu (US-PCP-021) | `grep -n "production_sell" Modules/Producao/Services/ConsumoMaterialService.php` |
+| Desperdício | `waste_percent` da receita e `mfg_waste_percent` da linha, somados na ordem | `pcp_refugos` com motivo do posto (US-PCP-027) | `git grep -n waste_percent -- Modules/Manufacturing/Http/Controllers/ProductionController.php` |
+| Custo | `ManufacturingUtil::getRecipeTotal` (`Modules/Manufacturing/Utils/ManufacturingUtil.php:233`) | `CustoRealService` (horas apontadas + custo do lote) | — |
+| Custo único | — | — | `app/Domain/Producao/CustoDoFabricado.php` atrás de `custo_fabricado.unificado` (`config/custo_fabricado.php`, padrão `false`); nenhum código chama a classe: `git grep -ln CustoDoFabricado -- Modules app` devolve só o próprio arquivo (US-PCP-034) |
+
+**O que já foi decidido e ainda não está no código:**
+
+- **D2** da [proposta Fabricação × Produção](../../decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md) (aceita por [W] em 2026-10-13): a fonte única da composição é `product_bom`, e `mfg_recipes` passa a ler dela. Hoje há duas fontes consumindo estoque (`mfg_recipes` pelo `InsumosDaReceita` e `product_bom` pelo FSM da venda), e a ADR da Fabricação que a proposta autoriza (§4 e §6) não foi escrita. Por isso o `excludes` acima ("Manufacturing segue fonte de material") descreve o código de hoje, não a decisão.
+- **§7 da mesma proposta** (respostas de 2026-10-23): desperdício só na Produção, e a ordem para estoque, sem venda, é criada na Produção. Nenhum dos dois tem código: a ordem sem venda segue sendo a `production_purchase` da Fabricação, e o `waste_percent` segue gravado e somado por ela.
+
+O que a auditoria vê como sobreposição: duas ordens sem ligação entre si, duas fontes de composição, desperdício em dois lugares e dois cálculos de custo. Juntar ou não é a B10.
+
 ## Referências
 
 - [SPEC](SPEC.md) · [ROADMAP](ROADMAP.md) · [proposta aceita](ADR-PROPOSAL.md)

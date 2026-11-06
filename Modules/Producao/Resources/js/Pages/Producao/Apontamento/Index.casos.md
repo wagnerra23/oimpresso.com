@@ -406,7 +406,33 @@ Status: 🧪
 a Aprovação do cliente volta como etapa nova "(nova versão)" no mesmo bloco, as etapas seguintes voltam a esperar e
 sai um link novo · Enquanto o cliente não aprova, a arte que vale (`GET /producao/ordens/{id}/arte`) segue sendo a
 última aprovada · Sem arte aprovada, ou com o mesmo arquivo, a troca é recusada e nada muda · OS de outra empresa: 404.
-A arte vigente ainda não aparece na tela do operador (fica para quando os PRs abertos do apontamento entrarem).
+A tela do operador mostra essa arte vigente desde 2026-11-05 (UC-PCAPA-01, logo abaixo).
+
+Status: 🧪
+
+## UC-PCAPA-01 · O operador vê a arte que vale da OS · `must`
+
+> Âncora: `prototipo-ui/cowork/Wagner/producao-cv-campo.jsx` (Apontamento, bloco `pcv-ap-arq`: *"Arquivo certo —
+> abre a versão aprovada da arte, não uma prova antiga"*) · UC-PCV-11 acima.
+
+**Dado** o operador com uma etapa rodando numa OS por item **Então** a linha mostra o arquivo da última arte aprovada
+pelo cliente, que abre o arquivo, com "versão aprovada pelo cliente" · Uma troca esperando o cliente não muda o arquivo
+mostrado · OS que pediu aprovação e não teve nenhuma aprovada mostra "Sem arte aprovada · a etapa espera a aprovação do
+cliente" · OS sem pedido de arte não mostra o bloco · Aprovação gravada em outra empresa não conta.
+O protótipo mostra também o número da versão ("v3"); `pcp_aprovacoes_arte` não guarda versão, então a tela mostra o
+nome do arquivo.
+
+Status: 🧪
+
+## UC-PCAPA-02 · O operador vê o material já baixado na OS · `must`
+
+> Âncora: `prototipo-ui/cowork/Wagner/producao-cv-campo.jsx` (campo *"Mídia usada até agora (m²)"* com a ajuda
+> *"Baixa no estoque: Vinil branco brilho 1,37 m"*).
+
+**Dado** uma etapa rodando cuja OS já teve material apontado **Então** a linha mostra "Material usado:" com cada material
+e a quantidade já baixada na unidade dele · Material da receita ainda sem baixa não aparece na linha · Sem custo.
+A quantidade é o `apontado` que a tela já recebe por etapa, provado em `ProducaoMaterialContratoTest` (UC-PCMAT-09,
+que passa de 0 a 3 depois de uma baixa).
 
 Status: 🧪
 
@@ -799,6 +825,48 @@ Status: 🧪
   hoje o retorno do banco lança o pagamento na venda inteira (UC-PCLIB-08), sem parcela de sinal separada. O
   campo do sinal mínimo na aba Fluxos da empresa vem no #9701.
 
+## Venda cancelada cancela as OS dela (P-113 · parte)
+
+> Auditoria do Producao, lote 2.1 (aprovado pelo [W] em 2026-11-05). Antes, cancelar a venda só
+> liberava a reserva de insumo: a OS seguia na fila, apontável e baixando material. Agora a venda que vai
+> para uma etapa de cancelamento leva cada OS aberta dela para Cancelada pelo motor (ação do sistema
+> `cancelar_pela_venda`, de qualquer etapa aberta) e cancela as etapas abertas. **O material já baixado
+> não volta ao estoque nem vira perda**: é a decisão B3 do [W], em aberto; o histórico da OS guarda o que
+> foi baixado para a apuração. O resto do P-113 (cancelar com motivo, cobrança, D-12) segue em aberto.
+> Prova: `ProducaoReservaInsumoContratoTest`.
+
+## UC-PCCAN-01 · Venda cancelada cancela a OS em execução, sem mexer no material baixado · `must` estoque
+
+**Dado** a OS do banner em execução, com 2 de lona baixados (saldo 10 → 8; reserva 5 → 3) **Quando** a
+venda é cancelada **Então** a OS fica Cancelada, a etapa fica cancelada, o histórico guarda a situação
+anterior e o material baixado (lona 2,0000), o saldo segue 8 e os 3 reservados são liberados; uma nova
+baixa é recusada pela etapa cancelada (`etapa_encerrada`) e o saldo segue 8; parar o relógio grava o tempo e a etapa segue
+cancelada; cancelar de novo não faz nada.
+
+Status: 🧪
+
+## UC-PCCAN-02 · A OS ainda não liberada também é cancelada · `must`
+
+**Dado** uma OS da venda em Aguardando liberação **Quando** a venda é cancelada **Então** a OS e a etapa
+ficam canceladas e iniciar a etapa é recusado (`etapa_encerrada`).
+
+Status: 🧪
+
+## UC-PCCAN-03 · OS de venda cancelada antes desta mudança não baixa material · `must` estoque
+
+**Dado** a venda cancelada sem passar pelo evento (dado antigo) e a OS ainda em execução **Quando** o
+operador baixa material **Então** é recusado com *"A venda desta OS foi cancelada."* e o saldo não muda.
+Iniciar etapa dessa OS também é recusado.
+
+Status: 🧪
+
+## UC-PCCAN-04 · Só dentro da empresa · `must`
+
+**Quando** a empresa 99 manda cancelar as OS da venda da 98 **Então** nada muda (0 canceladas) e, para a
+99, a venda da 98 não aparece como cancelada.
+
+Status: 🧪
+
 ## Pedido de compra do cliente na OS (pedido de 2026-10-23)
 
 - **[BACKLOG]** A OS mostra o número do pedido de compra do cliente — Dado uma venda com o pedido do
@@ -853,12 +921,12 @@ Status: 🧪
 - **[BACKLOG]** Anexar imagens e a arte à OS — Dado uma OS de fachada, Quando anexo a arte final e duas
   fotos do local, Então os arquivos ficam na OS, aparecem no apontamento de cada etapa e na ficha
   impressa (a arte em miniatura), e quem executa abre cada um. Hoje a OS guarda o arquivo da arte que
-  passa pela aprovação do cliente (UC-PCART e UC-PCV-11), mas a tela do operador ainda não mostra essa
-  arte e não há outros anexos.
+  passa pela aprovação do cliente (UC-PCART e UC-PCV-11), e desde 2026-11-05 a tela do operador mostra a
+  arte vigente (UC-PCAPA-01); não há outros anexos.
   - Pedido: P-089
   - Âncora: Arte da aprovação (`UC-PCART`, `UC-PCV-11`) · `Producao/Apontamento/Index.casos.md`
   - Fazer: Anexos na OS e a arte vigente na tela do operador e na ficha.
-  - Hoje: part | Em parte | A OS guarda a arte da aprovação, mas o operador não a vê e não há outros anexos
+  - Hoje: part | Em parte | O operador vê a arte aprovada (UC-PCAPA-01), mas não há outros anexos nem a arte na ficha
   - Comunicação visual: ok | Sim | arte e fotos do local
   - Clientes: Chico e Lu, Display Paraná, Plakart, Fixar
   - Etiquetas: part, cv

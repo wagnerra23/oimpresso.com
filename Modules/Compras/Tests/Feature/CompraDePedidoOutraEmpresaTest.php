@@ -63,13 +63,10 @@ beforeEach(function () {
         $this->markTestSkipped('Schema UltimatePOS (MySQL) ausente — rode no CT 100 / lane compras-pest.');
     }
     $this->biz = EstoqueFixture::businessId();
-    // Adversário: o cliente fictício 99 (ADR 0358) ou o biz=2 do seed do CI — nunca 1 nem 4,
-    // que são empresas reais no clone de produção do CT 100.
-    $this->outra = (int) DB::table('business')->whereIn('id', [99, 2])->where('id', '!=', $this->biz)
-        ->orderByDesc('id')->value('id');
-    if ($this->outra <= 0) {
-        $this->markTestSkipped('Sem empresa adversária fictícia (99 ou 2) neste ambiente.');
-    }
+    // Adversário: o cliente fictício 99 (ADR 0358), criado aqui quando falta — nunca 1 nem 4,
+    // que são empresas reais no clone de produção do CT 100. Sem ele o teste falha; não pula.
+    $this->outra = (int) $this->seededSupportClientTenant()->id;
+    expect($this->outra)->toBe(99, 'adversário fictício 99 não foi criado');
 
     $role = Role::firstOrCreate(['name' => 'Admin#' . $this->biz, 'guard_name' => 'web'], ['business_id' => $this->biz]);
     $this->user = App\User::factory()->create([

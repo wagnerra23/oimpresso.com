@@ -194,14 +194,23 @@ it('UC-PURSHW-01 (C · cutover 2026-10-27) o AJAX sem X-Inertia, que antes receb
 });
 
 it('UC-PURSHW-01 (B · contrato T0) o detalhe de compra de OUTRO business responde 404', function () {
-    $alheia = DB::table('business_locations')
-        ->where('business_id', '!=', PURSHW_TENANT)
-        ->orderBy('id')
-        ->first();
-
-    if (! $alheia) {
-        $this->markTestSkipped('Lane sem 2o business COM location — cross-tenant nao exercitavel.');
-    }
+    // 2026-11-05: o adversário era DESCOBERTO e o teste pulava sem ele. O seed da lane só
+    // cria location para o 98, então ele dependia de outro arquivo ter deixado uma location
+    // fora de transação (o irmão PurchaseIndexTenantContratoTest pulou no run 41688229461).
+    // Agora a location alheia nasce aqui; sem empresa adversária o teste FALHA.
+    $adversario = \App\Business::query()->whereKey(2)->first() ?? $this->seededSupportClientTenant();
+    expect((int) $adversario->id)->not->toBe(PURSHW_TENANT)->not->toBe(4);
+    $alheia = (object) [
+        'business_id' => (int) $adversario->id,
+        'id' => DB::table('business_locations')->insertGetId([
+            'business_id' => (int) $adversario->id, 'name' => 'CT Filial Adversaria',
+            'location_id' => strtoupper(substr(md5('adv' . microtime()), 0, 8)),
+            'country' => 'BR', 'state' => 'SC', 'city' => 'CT City', 'zip_code' => '00000000',
+            'invoice_scheme_id' => DB::table('invoice_schemes')->value('id'),
+            'invoice_layout_id' => DB::table('invoice_layouts')->value('id'), 'is_active' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ]),
+    ];
 
     $idAlheio = purshwCriarCompra(
         (int) $alheia->business_id,
