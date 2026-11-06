@@ -215,3 +215,57 @@ it('UC-FCFG-11 · cert sem CNPJ titular mostra o CNPJ da empresa como fallback',
         DB::table('nfe_certificados')->where('id', $comCnpj)->delete();
     }
 });
+
+it('UC-FCFG-12 · a tela mostra a configuração fiscal da própria empresa, nunca a da vizinha', function () {
+    $tenant = test()->seededTenant();
+    $bizA = (int) $tenant->id;
+    $bizB = (int) test()->seededSupportClientTenant()->id;
+
+    // Guarda o que já existe para devolver no fim (a lane compartilha o banco entre arquivos).
+    $antes = DB::table('nfe_business_configs')->whereIn('business_id', [$bizA, $bizB])->get()->keyBy('business_id');
+    $gravar = function (int $biz, string $regime, string $cfop): void {
+        DB::table('nfe_business_configs')->updateOrInsert(
+            ['business_id' => $biz],
+            ['regime' => $regime, 'tributacao_default' => json_encode(['cfop' => $cfop]),
+                'created_at' => now(), 'updated_at' => now()],
+        );
+    };
+    $gravar($bizA, 'simples', '5102');
+    $gravar($bizB, 'lucro_real', '6108');
+
+    $user = test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant);
+
+    try {
+        $this->actingAs($user)
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->get('/fiscal/config')
+            ->assertStatus(200)
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('Fiscal/Config')
+                    ->where('config.regime', 'simples')
+                    ->where('painel.regime', 'simples')
+                    ->where('painel.cfopDefault', '5102'),
+            );
+
+        // Os dois lados: sem o filtro, `first()` devolveria a MESMA linha às duas empresas,
+        // e uma das duas asserções cai. Com o filtro, cada uma vê a sua.
+        $userB = test()->usuarioComPermissoes(['fiscal.config.edit'], \App\Business::findOrFail($bizB));
+        $this->actingAs($userB)
+            ->withSession(['business.id' => $bizB, 'user.business_id' => $bizB])
+            ->get('/fiscal/config')
+            ->assertStatus(200)
+            ->assertInertia(
+                fn ($page) => $page
+                    ->where('config.regime', 'lucro_real')
+                    ->where('painel.cfopDefault', '6108'),
+            );
+    } finally {
+        foreach ([$bizA, $bizB] as $biz) {
+            DB::table('nfe_business_configs')->where('business_id', $biz)->delete();
+            if ($antes->has($biz)) {
+                DB::table('nfe_business_configs')->insert((array) $antes->get($biz));
+            }
+        }
+    }
+});

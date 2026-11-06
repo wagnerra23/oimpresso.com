@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 913,
-    "edges": 1237,
+    "nodes": 914,
+    "edges": 1238,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 152,
-      "component": 521,
+      "component": 522,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 521,
+      "hasComponent": 522,
       "dependsOn": 136,
       "delegatesTo": 125,
       "migratesTo": 1,
@@ -4745,6 +4745,13 @@
       "module": "Producao",
       "name": "OrdemMaterialController + FaltaDeMaterialDaOs",
       "desc": "OS liberada sem material fica em Aguardando material (US-PCP-032 · D3): falta por insumo da receita (necessário × disponível no local menos reservas de outras OS) e compras a caminho, conferir volta para Na fila; chave producao_aguarda_material da empresa, desligada por padrão; ler com producao.access, conferir com o papel producao.liberar, JSON"
+    },
+    {
+      "id": "component:Producao/OrdemSituacaoController",
+      "type": "component",
+      "module": "Producao",
+      "name": "OrdemSituacaoController",
+      "desc": "ações de tela da OS por item em JSON: Liberar, Refazer e Cancelar item (POST ordens/{id}/liberar|refazer|cancelar); pacote + producao.access na rota, papel do motor FSM (producao.liberar · vendas.gerente) na ação; a Ficha da OS chama"
     },
     {
       "id": "component:Producao/PainelController + PainelDaProducao + ArteDasOrdens",
@@ -13536,6 +13543,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/OrdemSituacaoController",
       "type": "hasComponent",
       "source": "contains"
     },
