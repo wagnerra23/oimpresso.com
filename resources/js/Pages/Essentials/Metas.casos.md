@@ -105,12 +105,21 @@ last_run: "2026-09-05"
 
 ---
 
+## UC-METAS-08 · A tela tem porta no menu do shell
+- **Persona:** gestor de RH que procura as metas pelo sidebar.
+- **Aceite:** Dado a empresa com `essentials_module` no pacote · Quando o sidebar monta o item HRM ·
+  Então a sub-tela "Metas de venda" aparece logo depois de "Feriados" e aponta para
+  `/hrm/sales-target`, que responde 200.
+- **Origem:** pedido [W] 2026-11-06 ("telas com rota e permissão sem item no menu"). Até aqui o
+  único caminho era o topnav Blade `nav_hrm`, fora do AppShellV2. Ordem e rótulo do protótipo
+  (`prototipo-ui/cowork/Wagner/data.jsx`, ghosts do HRM: `hrm-metas`).
+- **Teste:** `HrmMetasTest` — *"o item HRM do menu tem a sub-tela Metas de venda"*.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Alcance pelo menu: hoje a tela é alcançada pelo topnav Blade
-  (`layouts/nav_hrm.blade.php`), que **sai no PR-10** do `PEDIDO-CL-hrm`. O UC de alcance nasce
-  junto com a navegação do shell — declarar agora seria fixar um caminho que já tem data para
-  morrer.
 - **[BACKLOG]** Apuração do realizado (`Mês anterior`, `Mês atual`, `Faixa atingida`,
   `Progresso na faixa`, `Comissão` em dinheiro): fora desta onda por decisão registrada no charter
   (Non-Goals) e no `RUNBOOK-metas.md` §5 — é caminho de valor e exige a dupla prova + o impacto

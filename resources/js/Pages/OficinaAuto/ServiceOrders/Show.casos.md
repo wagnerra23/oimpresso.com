@@ -192,6 +192,12 @@ related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, C
 - **Aceite:** Quando roda `oficina:entrega-assinatura <biz> --ligar` · Então a empresa passa a exigir e a outra não muda · Com `--desligar` volta a não exigir.
 - **Status: 🧪**
 
+## UC-OSH-23 · Assinatura colhida não se troca nem se apaga
+- **Aceite:** Dado a assinatura já salva para a OS · Quando envia outra assinatura · Então **409**, o PNG gravado continua ativo (não vai para a lixeira), não nasce segundo anexo e "recebido por" não muda · Quando tenta alterar ou apagar a linha da assinatura · Então é recusado e a linha segue intacta.
+- **Regressão que defende:** trocar a assinatura de uma OS já entregue — a assinatura é a prova de que o cliente recebeu o veículo (auditoria 2026-11-05, eixo 5 A9).
+- **Fora:** o `POST /arquivos/{id}/excluir` do módulo Arquivos ainda manda qualquer anexo da empresa para a lixeira, inclusive o PNG da assinatura — é do módulo Arquivos.
+- **Status: 🧪**
+
 
 ## Peças compatíveis com o veículo (US-AUTO-008) — backend, atrás de flag
 

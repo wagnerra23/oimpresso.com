@@ -46,6 +46,8 @@ import { Segmented } from '@/Components/ui/segmented';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Stack, Inline } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
+import FalhaDeCarga from './_shared/FalhaDeCarga';
+import { useFalhaDeferida } from './_shared/falhaDeferida';
 import { AlocarDrawer, DevolverDrawer, type Formulario } from './_alocacoes/Drawers';
 import { alvoDoFoco, devolverFoco } from './_alocacoes/foco';
 import { Pencil, Undo2 } from 'lucide-react';
@@ -349,6 +351,8 @@ function EsqueletoTabela() {
 }
 
 export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, formato_data, hora_12 }: Props) {
+  // Lista deferida: carga que falha vira erro com "Tentar de novo", não esqueleto eterno.
+  const falhaAlocacoes = useFalhaDeferida(['alocacoes']);
   // Fechar o drawer volta pra lista, com o recorte que estava na URL, e devolve o foco a quem
   // abriu o drawer (a11y: foco devolvido — item 5 do §D da thread 18).
   const fecharDrawer = () => {
@@ -400,6 +404,9 @@ export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, 
         </div>
 
         <div data-contract="tabela">
+{falhaAlocacoes.falhou ? (
+            <FalhaDeCarga titulo="Não consegui carregar as alocações" falha={falhaAlocacoes} />
+          ) : (
           <Deferred data="alocacoes" fallback={<EsqueletoTabela />}>
             {alocacoes && alocacoes.data.length === 0 && !temFiltroAtivo ? (
               <EmptyState
@@ -426,6 +433,7 @@ export default function Alocacoes({ alocacoes, filtros, permissoes, formulario, 
               />
             ) : null}
           </Deferred>
+          )}
         </div>
       </Stack>
 

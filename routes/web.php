@@ -763,6 +763,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/products/bulk-edit', [ProductController::class, 'bulkEdit']);
     Route::post('/products/bulk-update', [ProductController::class, 'bulkUpdate']);
     Route::post('/products/bulk-update-location', [ProductController::class, 'updateProductLocation']);
+    // UC-PIDX-43: o mesmo NCM em vários produtos selecionados na consulta de produto.
+    Route::post('/products/bulk-update-ncm', [ProductController::class, 'bulkUpdateNcm']);
     Route::get('/products/get-product-to-edit/{product_id}', [ProductController::class, 'getProductToEdit']);
 
     Route::post('/products/get_sub_categories', [ProductController::class, 'getSubCategories']);
@@ -1114,6 +1116,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::patch('/fluxos/margem', [\App\Http\Controllers\FluxosController::class, 'margem'])->name('fluxos.margem');
     Route::patch('/fluxos/sinal', [\App\Http\Controllers\FluxosController::class, 'sinal'])->name('fluxos.sinal');
     Route::patch('/fluxos/reserva', [\App\Http\Controllers\FluxosController::class, 'reserva'])->name('fluxos.reserva');
+    Route::patch('/fluxos/aguarda-material', [\App\Http\Controllers\FluxosController::class, 'aguardaMaterial'])->name('fluxos.aguarda_material');
     Route::patch('/fluxos/requisicao-estoque-minimo', [\App\Http\Controllers\FluxosController::class, 'requisicaoEstoqueMinimo'])->name('fluxos.requisicao_estoque_minimo');
     Route::post('/fluxos/assistente', [\App\Http\Controllers\FluxosController::class, 'assistente'])->middleware('throttle:20,1')->name('fluxos.assistente');
 

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeInutilizacao;
+use Modules\NfeBrasil\Support\AmbienteDoEmitente;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Tools;
 use RuntimeException;
@@ -243,7 +244,7 @@ class NfeInutilizacaoService
 
         return json_encode([
             'atualizacao' => date('Y-m-d H:i:s'),
-            'tpAmb' => (int) (env('NFE_AMBIENTE', 2)), // 2=homologação default seguro
+            'tpAmb' => AmbienteDoEmitente::resolver($businessId), // business.ambiente, igual à emissão
             'razaosocial' => $business->name ?? '',
             'siglaUF' => $uf,
             'cnpj' => $cnpj,

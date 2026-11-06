@@ -1953,7 +1953,8 @@ class UnificadoController extends Controller
             return back()->with('error', 'Aprovação só pra títulos a pagar abertos.');
         }
 
-        $titulo->update(['aprovacao_status' => 'pendente']);
+        // forceFill: aprovacao_status não está no $fillable do Titulo; update() a descartava.
+        $titulo->forceFill(['aprovacao_status' => 'pendente'])->save();
 
         return back()->with('success', 'Título marcado pra aprovação.');
     }
@@ -1980,12 +1981,15 @@ class UnificadoController extends Controller
             return back()->with('error', 'Só títulos pendentes podem ser aprovados.');
         }
 
-        $titulo->update([
+        // forceFill: as colunas de aprovação não estão no $fillable do Titulo (de propósito —
+        // nenhum form deve gravá-las), então update() as descartava EM SILÊNCIO e o fluxo de
+        // aprovação nunca persistia (medido 2026-11-05, Onda22AnexosPillPermissionTest).
+        $titulo->forceFill([
             'aprovacao_status' => 'aprovado',
             'aprovado_by' => $userId,
             'aprovado_at' => now(),
             'aprovacao_motivo' => null,
-        ]);
+        ])->save();
 
         return back()->with('success', 'Título aprovado.');
     }
@@ -2013,12 +2017,15 @@ class UnificadoController extends Controller
             return back()->with('error', 'Só títulos pendentes podem ser rejeitados.');
         }
 
-        $titulo->update([
+        // forceFill: as colunas de aprovação não estão no $fillable do Titulo (de propósito —
+        // nenhum form deve gravá-las), então update() as descartava EM SILÊNCIO e o fluxo de
+        // aprovação nunca persistia (medido 2026-11-05, Onda22AnexosPillPermissionTest).
+        $titulo->forceFill([
             'aprovacao_status' => 'rejeitado',
             'aprovado_by' => $userId,
             'aprovado_at' => now(),
-            'aprovacao_motivo' => $request->string('motivo'),
-        ]);
+            'aprovacao_motivo' => (string) $request->string('motivo'),
+        ])->save();
 
         return back()->with('success', 'Título rejeitado.');
     }

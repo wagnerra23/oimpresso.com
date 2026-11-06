@@ -48,8 +48,14 @@ declare(strict_types=1);
  * fica em backlog: nasce só com sinal qualificado (ADR 0105) — titular
  * pedindo exclusão LGPD OU compliance gate detectar drift.
  *
- * Override possível via .env quando job for implementado:
- * `FINANCEIRO_RETENTION_TITULOS_DAYS=1825`.
+ * **2026-11-05 (auditoria lote 1.3):** o job de purge NÃO vai ser construído.
+ * Decisão [W] de 2026-07-27 (memory/proibicoes.md §5, "Ligar o
+ * jana:retention-purge"): num ERP não se apaga PII; o controle é por permissão
+ * de acesso, não por varredura de prazo. Este arquivo fica como declaração dos
+ * prazos de guarda e da base legal de cada categoria. `enabled` segue false e
+ * nenhum comando lê `strategy` para apagar ou anonimizar. Até esta data o
+ * arquivo nem era carregado: o FinanceiroServiceProvider passou a fazer o
+ * merge em `financeiro.retention`.
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md
@@ -64,9 +70,8 @@ return [
     |--------------------------------------------------------------------------
     | Habilitar política de retenção
     |--------------------------------------------------------------------------
-    | Quando true, job `financeiro:purge-expired` (futuro) consulta estas
-    | configs antes de anonimizar/purgar. Default false até Wagner aprovar
-    | em canary (ADR 0105 — sinal qualificado).
+    | Fica false. O job `financeiro:purge-expired` que leria esta flag foi
+    | descartado por decisão [W] (2026-07-27); ligar aqui não apaga nada.
     */
     'enabled' => env('FINANCEIRO_RETENTION_ENABLED', false),
 

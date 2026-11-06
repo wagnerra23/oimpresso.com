@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCART-01..07 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
+// Cobre UC-PCART-01..09 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
 // e a trava da arte da thread 10 do playbook de Produção.
 
 use App\Utils\ModuleUtil;
@@ -353,4 +353,94 @@ it('UC-PCART-07 · OS de outra empresa não reenvia (404) e o link da 98 segue v
     $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte/reenviar", [])->assertNotFound();
     expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
     $this->get($this->url)->assertOk();
+});
+
+// ── UC-PCART-08 · só a prova mais recente da OS vale (auditoria Produção, eixo 5 P-01) ──
+
+it('UC-PCART-08 · nova prova vence o link anterior: aprovar o antigo é recusado (410) e a etapa fica pendente', function () {
+    $nova = app(AprovacaoArteService::class)->solicitar($this->b98, $this->ordem->id, $this->aprovacao->id,
+        'https://arquivos.exemplo.test/prova-banner-v2.png', $this->designer);
+
+    $this->post($this->url.'/aprovar')->assertStatus(410)->assertSee('venceu');
+    $antigo = AprovacaoArte::withoutGlobalScopes()->find($this->link['id']);
+    expect($antigo)->not->toBeNull()->and($antigo->decisao)->toBeNull()->and($antigo->expira_em->isPast())->toBeTrue()
+        ->and($this->aprovacao->fresh()->status)->toBe('pendente')
+        ->and(app(AprovacaoArteService::class)->arteVigente($this->b98, $this->ordem->id))->toBeNull();
+
+    // O cliente recusa a prova nova: o link antigo continua sem valer e a arte vigente não vira a prova antiga.
+    $this->post('/arte/'.$nova['token'].'/recusar', ['comentario' => 'Fonte maior'])->assertOk();
+    $this->post($this->url.'/aprovar')->assertStatus(410);
+    expect($this->aprovacao->fresh()->status)->toBe('pendente')
+        ->and(app(AprovacaoArteService::class)->arteVigente($this->b98, $this->ordem->id))->toBeNull();
+});
+
+it('UC-PCART-08 · recusar pelo link grava na empresa da prova, mesmo com o ERP logado noutra empresa', function () {
+    $alheio = $this->usuarioComPermissoes(['producao.access'], $this->B99);
+
+    $this->actingAs($alheio)->withSession(['user.business_id' => $this->b99])
+        ->post($this->url.'/recusar', ['comentario' => 'Trocar a cor do fundo'])->assertOk();
+
+    $nova = Programacao::withoutGlobalScopes()->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $this->ordem->id)
+        ->where('nome', 'Arte (alteração)')->first();
+    expect($nova)->not->toBeNull()->and((int) $nova->business_id)->toBe($this->b98)
+        ->and(AprovacaoArte::withoutGlobalScopes()->find($this->link['id'])->decisao)->toBe(AprovacaoArte::RECUSADA)
+        ->and(DB::table('pcp_eventos')->where('business_id', $this->b98)->where('tipo', AprovacaoArteService::EV_RECUSADA)
+            ->where('os_id', $this->ordem->id)->count())->toBe(1)
+        ->and(Programacao::withoutGlobalScopes()->where('business_id', $this->b99)->where('nome', 'Arte (alteração)')->exists())->toBeFalse();
+});
+
+it('UC-PCART-08 · outra empresa pedindo prova da OS da 98 recebe 404 e o link da 98 segue valendo', function () {
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+    $alheio = $this->usuarioComPermissoes(['producao.access'], $this->B99);
+
+    $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
+        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/z.png'])->assertNotFound();
+    expect(fn () => app(AprovacaoArteService::class)->solicitar($this->b99, $this->ordem->id, $this->aprovacao->id, 'https://x.test/z.png', $this->designer))
+        ->toThrow(fn (ApontamentoRecusado $e) => expect($e->codigo)->toBe(ApontamentoRecusado::NAO_ENCONTRADO));
+
+    expect(AprovacaoArte::withoutGlobalScopes()->find($this->link['id'])->expira_em->isFuture())->toBeTrue()
+        ->and(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+    auth()->logout();
+    $this->get($this->url)->assertOk();
+});
+
+it('UC-PCART-09 · a versão sobe só quando o arquivo muda: reenviar o mesmo arquivo mantém, arquivo novo sobe, trocar a aprovada sobe', function () {
+    $versoes = fn () => AprovacaoArte::withoutGlobalScopes()->where('business_id', $this->b98)->where('ordem_id', $this->ordem->id)
+        ->orderBy('id')->pluck('versao')->map(fn ($v) => (int) $v)->all();
+    expect($versoes())->toBe([1]);
+
+    // Reenviar o link da mesma prova: pedido novo (link novo), mesma arte, mesma versão.
+    $r = artReenvia($this)->assertCreated();
+    expect($versoes())->toBe([1, 1]);
+
+    // O cliente pede ajuste e vai um arquivo novo: v2.
+    $this->post(parse_url($r->json('link'), PHP_URL_PATH).'/recusar', ['comentario' => 'Aumentar o logo'])->assertOk();
+    $r = artReenvia($this, ['arquivo' => 'https://arquivos.exemplo.test/prova-banner-v2.png'])->assertCreated();
+    expect($versoes())->toBe([1, 1, 2]);
+
+    // Aprovada a v2, ela é a que vale; trocar o arquivo depois cria a v3, que espera o cliente e não vale ainda.
+    $this->post(parse_url($r->json('link'), PHP_URL_PATH).'/aprovar')->assertOk();
+    $base = "/producao/ordens/{$this->ordem->id}";
+    $this->actingAs($this->designer)->postJson($base.'/arte/trocar', ['arquivo' => 'https://arquivos.exemplo.test/prova-banner-v3.png'])->assertCreated();
+    expect($versoes())->toBe([1, 1, 2, 3])
+        ->and($this->getJson($base.'/arte')->assertOk()->json('arte'))
+        ->toMatchArray(['arquivo' => 'https://arquivos.exemplo.test/prova-banner-v2.png', 'versao' => 2]);
+});
+
+it('UC-PCART-09 · os envios antigos são numerados OS a OS na ordem: A, A, B, A = v1, v1, v2, v3; outra empresa conta à parte', function () {
+    $os = (int) DB::table('pcp_ordens')->insertGetId(['business_id' => $this->b98, 'transaction_id' => 990003,
+        'transaction_sell_line_id' => random_int(1000000, 9999999), 'product_id' => 1, 'quantidade' => '1.0000', 'created_at' => now(), 'updated_at' => now()]);
+    $envio = fn (int $biz, string $arquivo) => (int) DB::table('pcp_aprovacoes_arte')->insertGetId(['business_id' => $biz, 'ordem_id' => $os,
+        'programacao_id' => $this->aprovacao->id, 'arte_programacao_id' => $this->arte->id, 'token_hash' => hash('sha256', uniqid('', true)),
+        'arquivo' => 'https://arquivos.exemplo.test/'.$arquivo, 'versao' => 1, 'expira_em' => now()->addDay(), 'created_by' => $this->designer->id,
+        'created_at' => now(), 'updated_at' => now()]);
+    // Discrimina as três leituras possíveis: contar envios daria 1,2,_,3,4; contar arquivos distintos daria 1,1,_,2,2.
+    $ids = [$envio($this->b98, 'a.pdf'), $envio($this->b98, 'a.pdf'), $envio($this->b99, 'z.pdf'), $envio($this->b98, 'b.pdf'), $envio($this->b98, 'a.pdf')];
+
+    \Modules\Producao\Services\VersaoDaArte::preencher();
+
+    expect(DB::table('pcp_aprovacoes_arte')->whereIn('id', $ids)->orderBy('id')->pluck('versao')->map(fn ($v) => (int) $v)->all())
+        ->toBe([1, 1, 1, 2, 3])
+        ->and(\Modules\Producao\Services\VersaoDaArte::preencher())->toBe(0);
 });

@@ -7,7 +7,7 @@ module: Fiscal
 status: ativo
 owner: W
 version: 1.0.0
-last_updated: "2026-07-27"
+last_updated: "2026-11-06"
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -116,7 +116,12 @@ daqueles módulos. A única lógica de negócio própria que ele carrega é o
 `SpedIcmsIpiGeneratorService` (geração do TXT EFD-ICMS/IPI) — e é justamente ela que está
 **travada por feature flag** (§5.4).
 
-### 1.1 Família de telas (7 + 2 superfícies sem tela)
+### 1.1 Família de telas (8 + superfícies sem tela)
+
+> Todas as rotas operacionais passam pelo stack `web · auth · SetSessionData · language · timezone ·
+> AdminSidebarMenu · CheckUserLogin · FiscalLiberado` (`Modules/Fiscal/Routes/web.php`). Desde
+> 2026-11-05 (#10404) o `FiscalLiberado` exige o pacote `fiscal_module` na assinatura da empresa também
+> na URL direta — antes só o menu e a API do app exigiam. A permissão de cada tela segue no controller.
 
 | Tela | Rota | Controller | Permissão | Papel |
 |---|---|---|---|---|
@@ -124,11 +129,15 @@ daqueles módulos. A única lógica de negócio própria que ele carrega é o
 | `Nfe` | `GET /fiscal/nfe` | `NfeCockpitController@index` | `fiscal.nfe.view` | lista NF-e(55)/NFC-e(65) + drawer + janela legal |
 | `Nfse` | `GET /fiscal/nfse` | `NfseCockpitController@index` | `fiscal.nfse.view` | lista NFS-e por competência |
 | `Dfe` | `GET /fiscal/dfe` | `DfeController@index` | `fiscal.dfe.manage` | NF-e emitidas **contra** o CNPJ + prazo de manifestação |
-| `Eventos` | `GET /fiscal/eventos` | `EventosController@index` | `fiscal.access` | timeline append-only de eventos SEFAZ |
+| `Eventos` | `GET /fiscal/eventos` | `EventosController@index` | `fiscal.nfe.view` | timeline append-only de eventos SEFAZ |
 | `Config` | `GET /fiscal/config` | `ConfigController@index` | `fiscal.config.edit` | cert A1 + regime + ambiente + séries |
 | `Sped` | `GET /fiscal/sped` | `SpedController@index` | `fiscal.sped.export` | panorama 5 meses + download EFD |
-| — (sem tela) | 6 × `POST /fiscal/acoes/*` | `AcoesController` | `fiscal.nfe.acoes` / `fiscal.dfe.manage` | cancelar · CC-e · inutilizar · retransmitir · manifestar |
-| — (sem tela) | `GET /fiscal/palette/search` | `PaletteSearchController@search` | `fiscal.access` | ⌘K cross-fiscal |
+| `Das` | `GET /fiscal/das` | `DasController@index` | `fiscal.access` + flag por empresa `useV2FiscalDas` (desligada → 404) | prévia da apuração do DAS pelo Anexo — só leitura (US-FISCAL-030) |
+| — (sem tela) | 7 × `POST /fiscal/acoes/*` | `AcoesController` | `fiscal.nfe.acoes` / `fiscal.dfe.manage` | cancelar (só a nota ou a venda junto) · CC-e · inutilizar · retransmitir · devolução · manifestar · manifestar em lote |
+| — (sem tela) | `POST /fiscal/config/contador` | `ConfigController@salvarContador` | `fiscal.config.edit` | cadastro do contador (throttle 20/min) |
+| — (sem tela) | `POST /fiscal/sped/trava` | `SpedController@trava` | `superadmin` | alterna o bypass da trava do SPED **só na sessão do superadmin**; não toca `fiscal.sped_simples_only_lock` |
+| — (sem tela) | `GET /fiscal/eventos/export` | `EventosController@exportarCsv` | `fiscal.nfe.view` | CSV da timeline com os filtros ativos (throttle 6/min) |
+| — (sem tela) | `GET /fiscal/palette/search` | `PaletteSearchController@search` | `fiscal.access` (notas: `fiscal.nfe.view` · DF-e: `fiscal.dfe.manage`) | ⌘K cross-fiscal |
 
 ### 1.2 Personas do domínio
 
@@ -268,10 +277,26 @@ As regras validadas, uma a uma:
 
 | Ação | Regra dura | Origem |
 |---|---|---|
-| `cancelarNfe` | `motivo` 15–255 chars · só `status='autorizada'` | CONFAZ SINIEF 07/2005 Art. 14 |
+| `cancelarNfe` | `motivo` 15–255 chars · só `status='autorizada'` · `escopo ∈ {nota, venda}` (padrão `nota`) | CONFAZ SINIEF 07/2005 Art. 14 · R-NFE-044 |
+| `devolucao` | só nota autorizada; delega `DevolucaoService` | R-NFE-039 |
 | `cartaCorrecao` | `texto_correcao` 15–1000 · `n_seq_evento` 1–20 · só `autorizada` · janela 720h | CONFAZ Art. 14 + limite SEFAZ de 20 CC-e |
 | `inutilizar` | `modelo ∈ {55,65}` · `numero_ate >= numero_de` · `justificativa` 15–255 | regra SEFAZ (cstat 102) |
 | `retransmitir` | `status ∈ {rejeitada, denegada, erro_envio}` — **nunca** autorizada/cancelada | preservação CONFAZ Art. 14 |
+
+> **Cancelar: só a nota × a venda junto (R-NFE-044, depois de 2026-07-27).** O padrão é cancelar
+> **só a nota** via `NfeService::cancelar` — não passa pelo FSM. Com `escopo=venda`, o controller
+> confere **antes** se a venda pode ser cancelada (`recusaDaVenda`; recusou → nada é cancelado,
+> porque a nota cancelada na SEFAZ não volta) e, depois da nota, roda a ação FSM `cancelar_venda`
+> via `ExecuteStageActionService` (`cancelarVendaDaNota`, que dispara o `CancelarVendaCascade`).
+>
+> **Erro da SEFAZ ou do Service:** desde 2026-11-05 (#10462) o operador recebe mensagem genérica e a
+> exceção vai para `report($e)` (`AcoesController::falhaGenerica`, `SpedController::gerar`); a mensagem
+> técnica não volta mais à tela.
+>
+> **Ambiente da SEFAZ:** a manifestação, a distribuição DF-e e a inutilização passaram a ler o
+> ambiente da configuração da empresa (`business.ambiente`, helper
+> `Modules/NfeBrasil/Support/AmbienteDoEmitente.php`, #10405 em 2026-11-05) em vez de variável de
+> ambiente do servidor.
 
 **F5 · Retransmissão sem apagar `[reg]`** — a estratégia é **preservation contract**: o
 `NfeService::retransmitir` faz `UPDATE` na emissão antiga (`status='inutilizada'`,
@@ -286,9 +311,12 @@ A mutação é whitelist **fechada de 4 ações** (`cienciar` 210210 · `confirm
 `desconhecer` 210220 · `nao_realizada` 210240) — a rota já restringe por `->where('acao', …)` **e** o
 Controller re-checa com `abort(404)`. `desconhecer`/`nao_realizada` **exigem** justificativa ≥15;
 `cienciar`/`confirmar` **não**.
+Em lote (`POST /fiscal/acoes/dfe/lote`, US-FISCAL-008) a mesma ação vale para as N DF-e
+selecionadas, num único request com laço sequencial (uma ida à SEFAZ por nota) — **um** hit de
+throttle para o lote inteiro.
 
 **F7 · Timeline de eventos (`GET /fiscal/eventos`)** — `EventosController@index` (gate
-`fiscal.access`) → `computeCounts()` + `rows` deferido, ambos filtrados por
+`fiscal.nfe.view`, era `fiscal.access` até 2026-11-05) → `computeCounts()` + `rows` deferido, ambos filtrados por
 `created_at >= now()->subDays(max(1,$dias))` (default 30d). `with('emissao:id,numero,modelo,chave_44')`
 — **1 join só**, limite do charter. `mapRow()` **trunca `justificativa` em 200 chars** (anti-PII do
 `xMotivo`) e resolve o `kind` pelo mapa `TIPOS` (7 códigos canônicos).
@@ -315,8 +343,19 @@ sem ela cai no **fallback Simples** (CSOSN 102, alíq 0) **diferenciando CFOP in
 interestadual 6102** — foi esse diferencial que eliminou o risco R1 do audit sênior.
 
 **F10 · ⌘K palette (`GET /fiscal/palette/search`)** — `PaletteSearchController@search`, gate
-`fiscal.access`, `q` **min 3 chars** (era 2; subiu por anti-DOS: `LIKE %q%` com wildcard à esquerda
+`fiscal.access` (cada categoria com a permissão da tela dona desde 2026-11-05), `q` **min 3 chars** (era 2; subiu por anti-DOS: `LIKE %q%` com wildcard à esquerda
 faz full-scan em tabela com 50k+ notas), throttle 60/min, 2 categorias (notas + DF-e) top 5.
+
+**F11 · Apuração do DAS (`GET /fiscal/das`)** — `DasController@index` → gate `fiscal.access` (ou
+`superadmin`) → flag por empresa `useV2FiscalDas` no `FeatureFlagService` (desligada ou
+desconhecida → **404**) → competência da query `?competencia=YYYY-MM` (inválida → mês anterior) →
+anexo da query `?anexo=` validado contra `ApuracaoDasService::ANEXOS` (inválido → `null`: a tela
+pede o anexo e **não** calcula, nunca adivinha) → `faixas` eager → `apuracao` via
+**`Inertia::defer`** (`ApuracaoDasService::apurar`, duas somas em `transactions`). O `business_id`
+vem da sessão, nunca da query. Só prévia: não grava, não lança título, não transmite PGDAS-D. A
+conta é contrato de [`_telas/apuracao-das.casos.md`](_telas/apuracao-das.casos.md) (UC-DAS-*); a
+tela, de [`resources/js/Pages/Fiscal/Das.casos.md`](../../../resources/js/Pages/Fiscal/Das.casos.md)
+(UC-FDAS-*).
 
 ### 5.4 Onde os dois mundos ainda não se conversam
 
@@ -327,6 +366,12 @@ Este módulo não tem dívida Blade↔React (§0.1). Tem **quatro** dívidas pr�
 Varredura contada em `Modules/Fiscal/Http/Controllers/*.php` (2026-07-27):
 **4 props** de `Inertia::render` recebem mock, alimentadas por **8 métodos `mock*`**, com **9**
 marcadores `TODO[CL]`:
+
+> **Re-contado em 2026-11-06** (`grep -n 'function mock' Modules/Fiscal/Http/Controllers/*.php`):
+> **6 métodos** (`CockpitController` 4 · `ConfigController` 1 · `DfeController` 1) e **7** `TODO[CL]`.
+> `mockNotasUnificadas()` saiu: as notas do Cockpit vêm do `NotasUnifiedService` (lista vazia sem
+> emissão real), e a prop `notasMock` continua servida só como cópia de `notas`, por compatibilidade
+> de bundle (HOTFIX 2026-09-02, comentário no controller). A tabela abaixo é o retrato de 07-27.
 
 | Prop | Tela | Método | O que o operador vê |
 |---|---|---|---|
@@ -386,6 +431,7 @@ A **letra** do anti-hook está honrada (não há UPDATE Controller no Fiscal; os
 - **`NotaDrawer.tsx` × `NotaDrawerV2.tsx`** convivem em `_components/` — duas gerações do mesmo papel.
 - **`Nfse.charter.md`** cita a coluna `NfseEmissao->cpf_cnpj_tomador`, que **não existe**: varredura contada = **3** ocorrências do literal no repo, e **as outras 2 são comentários explicando que ela não existe**. As reais são `tomador_cnpj`/`tomador_cpf` (`Modules/NFSe/Models/NfseEmissao.php`, `$fillable`). Corrigido nesta corrida como **fato** (a intenção do anti-hook — *não fazer JOIN com `transactions`* — ficou intacta).
 - **`dest_name`/`dest_cnpj` vêm de `metadata` JSON**, não de JOIN com `contacts` — Non-Goal declarado do PR #1, com fallback `—`. Segue aberto.
+- **Non-Goals × código (2026-11-06):** §6.6 lista *"`Dfe`: sem manifestação em lote"* e *"`Eventos`: sem export CSV"*, e as duas coisas existem (`/acoes/dfe/lote`, `/eventos/export`). Non-Goal é só [W] — fica registrado aqui, não corrigido.
 - **`US-FISCAL-003/004/006/011`** são stubs de backlog já superados por US posteriores; o próprio SPEC pede *"consolidar/arquivar este stub"*. Não arquivados.
 
 ---
@@ -481,9 +527,11 @@ acessa a rota; *então* recebe **403** — `superadmin` faz bypass. Âncora de c
 2. `[T0]` `/fiscal/nfe` exige `fiscal.nfe.view` — ⬜ **sem teste HTTP** (guard existe no Controller)
 3. `[T0]` `/fiscal/nfse` exige `fiscal.nfse.view` — 🧪 coberto
 4. `[T0]` `/fiscal/dfe` exige `fiscal.dfe.manage` — ⬜ **sem teste HTTP**
-5. `[T0]` `/fiscal/eventos` exige `fiscal.access` — ⬜ **sem teste HTTP**
+5. `[T0]` `/fiscal/eventos` exige `fiscal.nfe.view` (era `fiscal.access` até 2026-11-05) — ⬜ **sem teste HTTP**
 6. `[T0]` `/fiscal/config` exige `fiscal.config.edit` — ⬜ **sem teste HTTP**
 7. `[T0]` `/fiscal/sped` exige `fiscal.sped.export` — 🧪 coberto (via gate de flag)
+8. `[T0]` `/fiscal/das` exige `fiscal.access` e a flag `useV2FiscalDas` — 🧪 coberto (`DasControllerTest`, UC-FDAS-01/02)
+9. `[T0]` toda rota operacional exige o pacote `fiscal_module` da empresa (`FiscalLiberado`, #10404, 2026-11-05) — 🧪 coberto (`Modules/Fiscal/Tests/Feature/FiscalPacoteGateTest.php`)
 
 #### CU-FISC-14 — Não vazar segredo nem PII no payload da tela `[must]` `[T0]` 🧪
 *Dado* certificado, evento e NFS-e com erro; *quando* a tela serializa; *então* a senha do
