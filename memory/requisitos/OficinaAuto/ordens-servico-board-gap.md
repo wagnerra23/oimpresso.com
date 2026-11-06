@@ -41,6 +41,29 @@ gerado_por: "[C] — Fase 1 read-only (aplicar-prototipo), por grep real nos doi
 | Drawer (detalhe da OS) | `:394-730` `Drawer` — venda vinculada, veículo, DVI editável com semáforo e valor, Fotos & Laudo, Peças & MO editável, StageGate, timeline, "Imprimir OS" (`:705`). | `:938` `<ServiceOrderRichSheet>` (drawer rico) · `:1239` `<ServiceOrderRichBody>` inline na Fila (mesmo corpo, 2 chromes — charter §Goals Onda 2 v5); corpo = DVI semáforo / Fotos & Laudo / Peças & MO / Checklist de etapa / Pipeline FSM / Timeline. | Nada — paridade (Onda 2). ⚠️ valor: edição de peças/MO/DVI toca valor e já vive atrás do FSM + Regra Mestre no vivo; nada a adotar do mock (que edita estado React local). |
 | Impressão | `:970` `window.OficinaPrint.printFila` · `:705` `printOS` — helper `oficina-print.js` referenciado; em 2026-06-30 estava **ausente** no bundle lido (o `_pendente_` do gap antigo, parte 8), hoje está no espelho (`prototipo-ui/cowork/Wagner/oficina-print.js`, versionado). | `:88` `import { printOficinaFila } from '@/Lib/printOficinaFila'` · `:638-665` folha A4 da fila com os filtros aplicados · OS individual: `resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx:589-592` "Imprimir OS · A4". | Nada — fechado no código: o vivo tem helper próprio (`printOficinaFila.ts`) e o `_pendente_` da fonte do `OficinaPrint` também caducou (o arquivo desceu pro espelho); fila e OS individual existem. |
 
+## Achados que só o gap paralelo trazia (unificado em 2026-11-05)
+
+Até 2026-11-05 existia um segundo gap da mesma tela e do mesmo protótipo, escrito no mesmo dia
+(`service-orders-board-gap.md` + `service-orders-board.map.json`, 16 partes, 28 âncoras `TODO`).
+A auditoria do módulo (lote 5.6) uniu os dois **neste arquivo**, que é o par que a máquina
+registrou (`scripts/design-sync/state/applications.json`, `comparison.map`). Os achados dele que
+não estavam aqui, com as linhas de 2026-09-06 (informativas — remeça antes de usar):
+
+- **StageGate no card — Decidir ([W]).** O protótipo põe o `StageGateMini` dentro do card
+  (`oficina-page.jsx:176`, no `CardExtra`; cabeçalho `:9` registra "cliente curtiu m0193"). No vivo
+  o `ServiceOrderStageGate` só é consumido pelo drawer (`ServiceOrderRichSheet`); `Board.tsx` tem 0
+  ocorrências de `StageGate`. Não é capacidade ausente, é **onde** aparece. Construir ou rejeitar
+  por escrito.
+- **Comentário stale no `Board.tsx`** (`:69-71` em 2026-09-06) descreve um estado anterior em que
+  Lista/Fila navegavam para a Index. O código faz o contrário desde a unificação de 2026-06-11; a
+  fonte é o charter §Goals.
+- **Linha "últ." do card:** no protótipo é mock (`LAST_ACTIVITY`, `oficina-page.jsx:140-152`); no
+  vivo é a última transição FSM auditada.
+- **Duas portas para a FSM:** no protótipo o avanço é estado React local (`onAdvance` →
+  `setOsList`, `:1227`); no vivo, drag e botão passam por confirmação + `ExecuteStageActionService`.
+- **Criar OS:** o `OsCreateDrawer` (`oficina-forms.jsx`) é âncora de `ServiceOrders/Create` e
+  `/Edit`, não desta tela.
+
 ## Veredito: **PARIDADE — vivo à frente em arquitetura**
 
 As 8 partes do mockup estão no vivo (Onda 1 · 1.5 · 2, 2026-06-10/11) com dado real e FSM real; onde o mockup inventava (ETA, "Pago", heurística da Grade, gate em localStorage) o charter fecha por Non-Goal. **Nada a adotar** desta rodada. O que este gap entrega é o **anchor-map** (`ordens-servico-board.map.json`, âncora dupla por parte, `prototipo_sha` por conteúdo) — a Fase 4 (`consumir-map.mjs`) aborta se o `oficina-page.jsx` re-exportar.

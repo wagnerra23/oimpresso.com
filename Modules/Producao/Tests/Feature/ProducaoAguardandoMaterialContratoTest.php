@@ -2,7 +2,7 @@
 // @covers-us US-PCP-032
 
 declare(strict_types=1);
-// Cobre UC-PCMAT-01..05 (Producao/Apontamento/Index.casos.md) — D3 da proposta 2026-10-09 (revisão de 2026-10-21).
+// Cobre UC-PCAGM-01..05 (Producao/Apontamento/Index.casos.md) — D3 da proposta 2026-10-09 (revisão de 2026-10-21).
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -108,7 +108,7 @@ beforeEach(function () {
     $this->iniciar = fn (Programacao $e) => app(ApontamentoOperadorService::class)->iniciar($this->b98, $this->op1->id, $e->id, 'i-'.uniqid(), now()->subHour());
 });
 
-it('UC-PCMAT-01 · chave da empresa desligada: liberar sem material segue para Na fila, como antes', function () {
+it('UC-PCAGM-01 · chave da empresa desligada: liberar sem material segue para Na fila, como antes', function () {
     ($this->ligar)(false);
     [$ordem] = ($this->novaOs)();
 
@@ -117,7 +117,7 @@ it('UC-PCMAT-01 · chave da empresa desligada: liberar sem material segue para N
     expect(($this->situacao)($ordem))->toBe('na_fila')->and(($this->saldoFisico)())->toBe('3.0000');
 });
 
-it('UC-PCMAT-02 · liberada sem material: fica Aguardando material, com o que falta e a compra a caminho; não começa', function () {
+it('UC-PCAGM-02 · liberada sem material: fica Aguardando material, com o que falta e a compra a caminho; não começa', function () {
     ($this->compra)('ordered', '4');   // a caminho
     ($this->compra)('pending', '1');   // a caminho
     ($this->compra)('received', '9');  // já entrou no saldo: não é "a caminho"
@@ -138,7 +138,7 @@ it('UC-PCMAT-02 · liberada sem material: fica Aguardando material, com o que fa
     expect(($this->situacao)($ordem))->toBe('aguardando_material')->and(($this->saldoFisico)())->toBe('3.0000');
 });
 
-it('UC-PCMAT-03 · a reserva de outra venda tira do disponível; a reserva da própria OS não', function () {
+it('UC-PCAGM-03 · a reserva de outra venda tira do disponível; a reserva da própria OS não', function () {
     ($this->saldo)('10');
     [$ordem] = ($this->novaOs)();
     $outra = ($this->venda)();
@@ -159,7 +159,7 @@ it('UC-PCMAT-03 · a reserva de outra venda tira do disponível; a reserva da pr
     expect((float) $outras)->toBe(6.0);
 });
 
-it('UC-PCMAT-04 · conferir: com falta fica onde está; com o material no saldo volta para Na fila e começa', function () {
+it('UC-PCAGM-04 · conferir: com falta fica onde está; com o material no saldo volta para Na fila e começa', function () {
     [$ordem, $etapa] = ($this->novaOs)();
     app(SituacaoDaOrdem::class)->liberar($this->b98, $ordem->id, $this->pcp);
     expect(($this->situacao)($ordem))->toBe('aguardando_material');
@@ -178,7 +178,7 @@ it('UC-PCMAT-04 · conferir: com falta fica onde está; com o material no saldo 
     expect(($this->situacao)($ordem))->toBe('em_execucao')->and(($this->saldoFisico)())->toBe('5.0000');
 });
 
-it('UC-PCMAT-05 · OS de outra empresa → 404; nada muda', function () {
+it('UC-PCAGM-05 · OS de outra empresa → 404; nada muda', function () {
     $os99 = Ordem::withoutGlobalScopes()->create(['business_id' => $this->b99, 'transaction_id' => ($this->venda)(),
         'transaction_sell_line_id' => random_int(1000000, 9999999), 'product_id' => $this->banner, 'variation_id' => $this->vBanner,
         'quantidade' => '1.0000', 'current_stage_id' => app(ProcessoDaOrdem::class)->etapaInicial($this->b99)->id]);

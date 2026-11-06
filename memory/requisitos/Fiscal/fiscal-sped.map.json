@@ -4,7 +4,7 @@
   "tela": "Fiscal/Sped (/fiscal/sped)",
   "gap_fonte": "memory/requisitos/Fiscal/fiscal-sped-gap.md",
   "prototipo_sha": "sha256:32a552b4bea4",
-  "gerado_em": "2026-11-04",
+  "gerado_em": "2026-11-05",
   "partes": [
     {
       "id": "estado-do-gerador",

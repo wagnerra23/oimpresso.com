@@ -44,8 +44,9 @@ Cadastro + alocação + manutenção de **bens / ativos físicos** (impressoras 
 
 ## Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093)
 
-- **`assets`**, **`asset_transactions`**, **`asset_maintenances`** têm `business_id` direto + HasBusinessScope global scope
-- **`asset_warranties`** scope via parent Asset (chain JOIN — não tem business_id próprio)
+- **`assets`**, **`asset_transactions`**, **`asset_maintenances`** têm `business_id` direto. **Nenhum dos 4 Models aplica escopo automático de empresa** (sem `addGlobalScope` nem trait de escopo em `Modules/AssetManagement/Entities/`, medido em `origin/main` 2026-11-05): o filtro é escrito à mão em cada consulta — ex. `Entities/Asset.php:77`, `Services/AssetAllocationService.php:89`, `Services/AssetWarrantyService.php:32`. Por isso os 4 estão em `grandfathered` em `governance/multi-tenant-scope-baseline.json:8-11`. ⛔ Não remova um `where('business_id', …)` achando que o Model filtra sozinho: ele não filtra.
+- Até 2026-11-05 este README dizia que as três tabelas tinham "HasBusinessScope global scope". Era falso desde a criação do texto (2026-05-17).
+- **`asset_warranties`** scope via parent Asset (`whereHas('asset', …)`, `Services/AssetWarrantyService.php:64` — não tem `business_id` próprio)
 - Os nomes acima são os do schema (`database/schema/mysql-schema.sql`). Até 2026-10-13 este README dizia `am_*`, prefixo que nenhuma migration cria.
 - Job assíncrono SEMPRE recebe `$businessId` no constructor — Service NUNCA chama `session()`
 

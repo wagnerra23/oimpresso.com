@@ -9,6 +9,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Modules\Fisio\Entities\Patient;
+use Modules\Fisio\Entities\PreAnamnese;
 use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Notifications\SinalDeAlertaNotification;
 
@@ -17,7 +18,8 @@ use Modules\Fisio\Notifications\SinalDeAlertaNotification;
  * tempo, dor agora, o que piora/melhora e sinais de alerta. Quem chama (PortalController) já
  * passou pelos portões do portal (link, PIN e consentimento de teleatendimento).
  *
- *  - Uma por paciente: a segunda resposta não grava nada (UNIQUE no banco).
+ *  - Uma por paciente: a segunda resposta não grava nada (UNIQUE no banco). Enviada, não muda
+ *    nem some: o model `PreAnamnese` recusa UPDATE e DELETE.
  *  - Sinais de alerta: só as chaves da lista fechada `config('fisio.red_flags')` que o protótipo
  *    pergunta, com o MESMO texto que o paciente já vê no check-in. Sinal marcado avisa o
  *    profissional do programa e o responsável pelo paciente, como no check-in; sem nenhum dos
@@ -41,7 +43,7 @@ class PreAnamneseDoPortal
 
     public function respondida(Patient $paciente): bool
     {
-        return DB::table('fisio_pre_anamneses')
+        return PreAnamnese::withoutGlobalScopes() // SUPERADMIN: portal público; filtra pelo business do paciente.
             ->where('business_id', (int) $paciente->business_id)
             ->where('patient_id', (int) $paciente->id)
             ->exists();
@@ -61,18 +63,17 @@ class PreAnamneseDoPortal
     {
         $sinais = array_values(array_unique($dados['sinais']));
         try {
-            DB::table('fisio_pre_anamneses')->insert([
+            PreAnamnese::query()->create([
                 'business_id' => (int) $paciente->business_id,
                 'patient_id' => (int) $paciente->id,
-                'body' => json_encode([
+                'body' => [
                     'regioes' => array_values(array_unique($dados['regioes'])),
                     'desde' => $dados['desde'],
                     'dor' => (int) $dados['dor'],
                     'piora_melhora' => $dados['piora_melhora'] ?? null,
-                ], JSON_UNESCAPED_UNICODE),
-                'red_flags' => json_encode($sinais),
+                ],
+                'red_flags' => $sinais,
                 'channel' => 'portal',
-                'created_at' => now(),
             ]);
         } catch (QueryException $e) {
             if ($this->respondida($paciente)) {
