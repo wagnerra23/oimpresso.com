@@ -236,6 +236,8 @@ Modules/Whatsapp/Tests/Feature/Wave28WhatsappPolishTest.php
 Modules/Whatsapp/Tests/Feature/WebhookBackpressureTest.php
 Modules/Whatsapp/Tests/Feature/WebhookReplayProtectionTest.php
 Modules/Whatsapp/Tests/Feature/WebhookSignatureCheckerTest.php
+# Webhook Meta com app_secret vazio → 401 (auditoria Whatsapp 2026-11-05, lote 0). Schema sintético + skip fora de sqlite.
+Modules/Whatsapp/Tests/Feature/MetaSignatureAppSecretVazioTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowAuthHeaderTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowChannelIsolationTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowHealthProbeDecisionTest.php
