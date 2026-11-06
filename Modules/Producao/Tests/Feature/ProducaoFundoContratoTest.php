@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-PCP-001
+// @covers-us US-PCP-003
 // Cobre UC-PCV-28 (Producao.casos.md) e UC-PCV-31, UC-PCV-32 (Producao-celular.casos.md · emenda E02).
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;

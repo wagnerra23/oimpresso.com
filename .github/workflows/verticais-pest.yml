@@ -697,6 +697,11 @@ jobs:
           DB_PASSWORD: root
         run: |
           mkdir -p test-results
+          # As duas chamadas rodam SEMPRE. O shell padrão é `bash -e`: sem isto, a 1ª
+          # vermelha matava o step antes da 2ª e o FisioPainelTest nunca era medido.
+          # O step falha se QUALQUER uma falhou.
+          rc_principal=0
+          rc_painel=0
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit.xml \
             Modules/ComunicacaoVisual/Tests/Feature/MigrationsTest.php \
@@ -882,16 +887,30 @@ jobs:
             Modules/Fisio/Tests/Unit/CompatibilidadeEsperaTest.php \
             Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioConfigAgendamentoTest.php \
-            Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php
+            Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php || rc_principal=$?
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
-            Modules/Fisio/Tests/Feature/FisioPainelTest.php
+            Modules/Fisio/Tests/Feature/FisioPainelTest.php || rc_painel=$?
+          echo "Pest principal: exit $rc_principal / Pest FisioPainel: exit $rc_painel"
+          [ "$rc_principal" -eq 0 ] && [ "$rc_painel" -eq 0 ]
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
-      # "passou" de "pulou" (LC-13). Aqui só REPORTA.
+      # "passou" de "pulou" (LC-13). Lê os DOIS JUnit. Sem `|| true`: XML ausente,
+      # vazio ou incoerente reprova (exit 1/2 do junit-summary). Guardado pela mesma
+      # condição do Pest — no skip-as-pass não há XML e o step não roda.
       - name: Sumario JUnit por arquivo (junit-summary.mjs)
-        if: always()
-        run: node scripts/tests/junit-summary.mjs test-results/pest-verticais-junit.xml --out test-results/pest-verticais-junit-summary.json || true
+        if: ${{ !cancelled() && steps.changes.outputs.vert == 'true' }}
+        run: |
+          node scripts/tests/junit-summary.mjs test-results/pest-verticais-junit.xml --out test-results/pest-verticais-junit-summary.json
+          node scripts/tests/junit-summary.mjs test-results/pest-verticais-junit-fisio-painel.xml --out test-results/pest-verticais-junit-fisio-painel-summary.json
+
+      # --check-assertions (LC-13), como nas outras lanes Pest: suíte com 0 assertions
+      # (tudo pulado) reprova. Sem always(): se o Pest já falhou, a lane já está vermelha.
+      - name: Suite provou algo? (--check-assertions · LC-13)
+        if: steps.changes.outputs.vert == 'true'
+        run: |
+          GITHUB_STEP_SUMMARY= node scripts/tests/junit-summary.mjs test-results/pest-verticais-junit.xml --check-assertions > /dev/null
+          GITHUB_STEP_SUMMARY= node scripts/tests/junit-summary.mjs test-results/pest-verticais-junit-fisio-painel.xml --check-assertions > /dev/null
 
       - name: Upload JUnit (Verticais · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.vert == 'true' }}

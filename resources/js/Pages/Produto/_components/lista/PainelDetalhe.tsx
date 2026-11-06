@@ -706,6 +706,48 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                     </tbody>
                   </table>
                   <p className="pb-help mb-4">Saldo e vendido por local, os mesmos de Relatórios → Estoque. O histórico completo fica em Histórico de estoque.</p>
+                  {/* UC-PIDX-41 (D8): giro e últimas compras. Os números vêm prontos do servidor. */}
+                  {d.vendido_90_dias != null && (
+                    <p className="pb-help mb-3" data-contract="produto-detalhe-giro">
+                      Vendido nos últimos 90 dias: <b>{qtdComUnidade(d.vendido_90_dias, d.dados.unidade_curta)}</b>
+                    </p>
+                  )}
+                  {d.ultimas_compras && (
+                    <div className="mb-4" data-contract="produto-detalhe-ultimas-compras">
+                      <TituloDaSecao>Últimas compras</TituloDaSecao>
+                      {d.ultimas_compras.length === 0 ? (
+                        <p className="pb-help">Nenhuma compra recebida deste produto.</p>
+                      ) : (
+                        <table className="pb-tbl">
+                          <caption className="sr-only">Últimas compras recebidas</caption>
+                          <thead>
+                            <tr>
+                              <th>Data</th>
+                              <th>Fornecedor</th>
+                              <th>Local</th>
+                              <th className="r">Quantidade</th>
+                              <th>Compra</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {d.ultimas_compras.map((c) => (
+                              <tr key={c.id}>
+                                <td>{dataBr(c.data)}</td>
+                                <td>{c.fornecedor ?? '—'}</td>
+                                <td>{c.local || '—'}</td>
+                                <td className="r">{qtdComUnidade(c.quantidade, d.dados.unidade_curta)}</td>
+                                <td>
+                                  <button type="button" className="text-[var(--accent)] hover:underline" onClick={() => irPara(c.url)}>
+                                    {c.numero || 'Abrir'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  )}
                   {/* UC-PIDX-30 (UC-FLX-19): requisição de compra aberta, do estoque mínimo ou feita à mão. */}
                   {d.requisicao && (
                     <div className="mb-4" data-contract="produto-detalhe-requisicao">

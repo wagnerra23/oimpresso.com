@@ -65,8 +65,9 @@ final class HttpPlacaProvider implements PlacaProvider
         try {
             $response = $request->get(rtrim($baseUrl, '/'), $query);
         } catch (ConnectionException $e) {
-            // NÃO inclui a placa na mensagem (PII).
-            throw PlacaLookupException::unreachable($e->getMessage());
+            // A mensagem do Guzzle termina em "for <URL>": no auth_mode=query a URL leva a
+            // placa (PII) e a chave do fornecedor (segredo), e quem captura loga a mensagem.
+            throw PlacaLookupException::unreachable(self::semUrl($e->getMessage(), $plate, (string) $apiKey));
         }
 
         // 404 do fornecedor = placa não encontrada (não é erro de sistema).
@@ -85,6 +86,24 @@ final class HttpPlacaProvider implements PlacaProvider
         }
 
         return $this->mapResponse($plate, $body);
+    }
+
+    /**
+     * Motivo da falha de conexão sem a URL da chamada (corta no " for http…" que o Guzzle
+     * anexa) e, por garantia, sem a placa e a chave do fornecedor onde quer que apareçam.
+     */
+    private static function semUrl(string $motivo, string $plate, string $apiKey): string
+    {
+        $motivo = (string) preg_replace('#\s+for\s+https?://\S*#i', '', $motivo);
+        $motivo = (string) preg_replace('#https?://[^\s)]+#i', '[url]', $motivo);
+        if ($apiKey !== '') {
+            $motivo = str_replace($apiKey, '[segredo]', $motivo);
+        }
+        if ($plate !== '') {
+            $motivo = str_ireplace($plate, '[placa]', $motivo);
+        }
+
+        return $motivo;
     }
 
     /**

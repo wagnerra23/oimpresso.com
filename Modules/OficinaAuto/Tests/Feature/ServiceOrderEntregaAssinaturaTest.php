@@ -225,3 +225,31 @@ it('UC-OSH-22 · o comando liga e desliga a exigência por empresa, sem tocar a 
     expect(app(AssinaturaEntrega::class)->exigida($this->biz))->toBeFalse();
     expect(DB::table('business')->where('id', $this->outra)->value('common_settings'))->toBe($outraAntes);
 });
+
+it('UC-OSH-23 · assinatura colhida não se troca (409) nem se altera ou apaga — o PNG gravado fica intacto', function () {
+    $s = assinSalvar($this, ['assinatura_png' => ASSIN_PNG_1X1, 'recebido_por' => 'Quem Recebeu']);
+    expect($s->getStatusCode())->toBe(201);
+
+    $linha = OsAssinatura::withoutGlobalScopes()->where('service_order_id', $this->os)->firstOrFail(); // teste
+    $anexos = fn () => DB::table('arquivos')->where('arquivable_type', OsAssinatura::class)->where('arquivable_id', $linha->id);
+    $original = $anexos()->whereNull('deleted_at')->value('id');
+    expect($original)->not->toBeNull();
+
+    // Outra assinatura (PNG válido, conteúdo diferente) para a mesma OS.
+    $outroPng = 'data:image/png;base64,' . base64_encode(base64_decode(substr(ASSIN_PNG_1X1, 22)) . 'x');
+    $r = assinSalvar($this, ['assinatura_png' => $outroPng, 'recebido_por' => 'Outra Pessoa']);
+    expect($r->getStatusCode())->toBe(409)
+        ->and($r->getData(true)['errors'])->toHaveKey('assinatura_png');
+
+    // O PNG original segue ativo, sem segundo anexo, e "recebido por" não mudou.
+    expect($anexos()->whereNull('deleted_at')->pluck('id')->all())->toBe([$original])
+        ->and($anexos()->count())->toBe(1)
+        ->and(DB::table('oficina_os_assinaturas')->where('id', $linha->id)->value('recebido_por'))->toBe('Quem Recebeu');
+
+    // Alterar ou apagar a linha pelo modelo também é recusado.
+    expect(fn () => $linha->update(['recebido_por' => 'Adulterado']))
+        ->toThrow(\Modules\OficinaAuto\Exceptions\AssinaturaImutavelException::class);
+    expect(fn () => $linha->delete())
+        ->toThrow(\Modules\OficinaAuto\Exceptions\AssinaturaImutavelException::class);
+    expect(DB::table('oficina_os_assinaturas')->where('id', $linha->id)->value('recebido_por'))->toBe('Quem Recebeu');
+});
