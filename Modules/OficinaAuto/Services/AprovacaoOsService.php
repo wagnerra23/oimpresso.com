@@ -6,6 +6,7 @@ namespace Modules\OficinaAuto\Services;
 
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 
@@ -26,7 +27,10 @@ use Modules\OficinaAuto\Entities\ServiceOrder;
  *    Key: "oficina:aprovacao_pin:{os_id}:{business_id}".
  *
  *  - Rate limit por OS pra evitar bruteforce PIN: 5 tentativas → bloqueia 30min.
- *    Key: "oficina:aprovacao_pin_attempts:{os_id}".
+ *    Contador no BANCO (`service_orders.approval_pin_attempts` + `approval_pin_window_start_at`),
+ *    reservado por UPDATE condicional antes de comparar o PIN — requisições paralelas não
+ *    passam do limite, e limpar o cache não zera o contador (lote 2.2, 2026-11-05).
+ *    Janela fixa: 30 min contados da 1ª tentativa errada.
  *
  * Multi-tenant Tier 0 (ADR 0093): token CARREGA business_id assinado +
  * `validarToken` re-checa OS pertence ao mesmo business_id que assinou.
@@ -87,7 +91,7 @@ class AprovacaoOsService
             );
 
             // Reset contador de tentativas em nova geração
-            Cache::forget($this->attemptsCacheKey((int) $so->id));
+            $this->zerarTentativas((int) $so->id, (int) $so->business_id);
 
             return [
                 'token'      => $token,
@@ -187,38 +191,30 @@ class AprovacaoOsService
         $osId       = (int) $so->id;
         $businessId = (int) $so->business_id;
 
-        // Check lockout
-        $attempts = (int) Cache::get($this->attemptsCacheKey($osId), 0);
-        if ($attempts >= self::MAX_PIN_ATTEMPTS) {
-            Log::warning('[AprovacaoOsService] PIN locked out', [
-                'os_id'       => $osId,
-                'business_id' => $businessId,
-                'attempts'    => $attempts,
-            ]);
-
-            return false;
-        }
-
         $stored = Cache::get($this->pinCacheKey($osId, $businessId));
         if ($stored === null) {
             return false; // expirou ou nunca gerado
         }
 
+        // Reserva a tentativa ANTES de comparar: o UPDATE condicional só passa se ainda há
+        // tentativa na janela. Comparar antes e contar depois deixaria N requisições
+        // paralelas testarem N PINs com o contador lido igual por todas.
+        if (! $this->reservarTentativa($osId, $businessId)) {
+            Log::warning('[AprovacaoOsService] PIN locked out', [
+                'os_id'       => $osId,
+                'business_id' => $businessId,
+            ]);
+
+            return false;
+        }
+
         $pin = trim($pin);
-        if (! preg_match('/^\d{4}$/', $pin)) {
-            $this->incrementAttempts($osId);
-
-            return false;
+        if (! preg_match('/^\d{4}$/', $pin) || ! hash_equals($stored, hash('sha256', $pin))) {
+            return false; // a tentativa já foi contada na reserva
         }
 
-        if (! hash_equals($stored, hash('sha256', $pin))) {
-            $this->incrementAttempts($osId);
-
-            return false;
-        }
-
-        // Sucesso — limpa contador + invalida PIN (one-shot)
-        Cache::forget($this->attemptsCacheKey($osId));
+        // Sucesso — zera contador + invalida PIN (one-shot)
+        $this->zerarTentativas($osId, $businessId);
         Cache::forget($this->pinCacheKey($osId, $businessId));
 
         return true;
@@ -229,9 +225,17 @@ class AprovacaoOsService
      */
     public function tentativasRestantes(ServiceOrder $so): int
     {
-        $attempts = (int) Cache::get($this->attemptsCacheKey((int) $so->id), 0);
+        $row = DB::table('service_orders')
+            ->where('id', (int) $so->id)
+            ->where('business_id', (int) $so->business_id)
+            ->first(['approval_pin_attempts', 'approval_pin_window_start_at']);
 
-        return max(0, self::MAX_PIN_ATTEMPTS - $attempts);
+        if ($row === null || $row->approval_pin_window_start_at === null
+            || $row->approval_pin_window_start_at <= $this->inicioDaJanelaVigente()) {
+            return self::MAX_PIN_ATTEMPTS;
+        }
+
+        return max(0, self::MAX_PIN_ATTEMPTS - (int) $row->approval_pin_attempts);
     }
 
     // ────────────────────────────────────────────────────────────────────
@@ -266,15 +270,48 @@ class AprovacaoOsService
         return "oficina:aprovacao_pin:{$osId}:{$businessId}";
     }
 
-    private function attemptsCacheKey(int $osId): string
+    /** Janela iniciada antes deste instante já venceu. */
+    private function inicioDaJanelaVigente(): string
     {
-        return "oficina:aprovacao_pin_attempts:{$osId}";
+        return now()->subSeconds(self::PIN_LOCKOUT_SECONDS)->toDateTimeString();
     }
 
-    private function incrementAttempts(int $osId): void
+    /**
+     * Reserva 1 tentativa num único UPDATE (atômico no banco). Janela vencida ou nunca
+     * aberta recomeça em 1; janela vigente só soma se ainda está abaixo do limite.
+     * Retorna false quando bloqueado (nenhuma linha afetada).
+     *
+     * As duas expressões só leem `approval_pin_window_start_at` e ela é a última atribuída,
+     * então o resultado é o mesmo no MySQL (que avalia o SET da esquerda pra direita) e no
+     * SQLite (que usa os valores antigos).
+     */
+    private function reservarTentativa(int $osId, int $businessId): bool
     {
-        $key = $this->attemptsCacheKey($osId);
-        $cur = (int) Cache::get($key, 0);
-        Cache::put($key, $cur + 1, now()->addSeconds(self::PIN_LOCKOUT_SECONDS));
+        $vencida = $this->inicioDaJanelaVigente();
+        $agora = now()->toDateTimeString();
+
+        $afetadas = DB::update(
+            'UPDATE service_orders SET
+                approval_pin_attempts = CASE
+                    WHEN approval_pin_window_start_at IS NULL OR approval_pin_window_start_at <= ? THEN 1
+                    ELSE approval_pin_attempts + 1 END,
+                approval_pin_window_start_at = CASE
+                    WHEN approval_pin_window_start_at IS NULL OR approval_pin_window_start_at <= ? THEN ?
+                    ELSE approval_pin_window_start_at END
+             WHERE id = ? AND business_id = ?
+               AND (approval_pin_window_start_at IS NULL OR approval_pin_window_start_at <= ?
+                    OR approval_pin_attempts < ?)',
+            [$vencida, $vencida, $agora, $osId, $businessId, $vencida, self::MAX_PIN_ATTEMPTS]
+        );
+
+        return $afetadas === 1;
+    }
+
+    private function zerarTentativas(int $osId, int $businessId): void
+    {
+        DB::table('service_orders')
+            ->where('id', $osId)
+            ->where('business_id', $businessId)
+            ->update(['approval_pin_attempts' => 0, 'approval_pin_window_start_at' => null]);
     }
 }

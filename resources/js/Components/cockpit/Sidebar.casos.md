@@ -121,9 +121,11 @@ last_run: "2026-09-29"
   Ponto, Fisio, Essenciais…) · Quando o usuário clica nele · Então os sub-itens aparecem logo abaixo,
   dentro do corpo do grupo, nas mesmas linhas `sb-ghost` das sub-telas do Financeiro, sem popover
   lateral. Clicar de novo fecha. Na rota de um sub-item, grupo e item já abrem e só o sub-item leva
-  `aria-current`.
+  `aria-current`. Quando dois sub-itens (ou duas sub-telas) casam por prefixo — `/fisio` e
+  `/fisio/agenda` em `/fisio/agenda` —, só o de caminho mais longo leva `aria-current` (medido em
+  produção em 2026-11-06: os dois saíam marcados).
 - **Origem:** pedido [W] 2026-11-06 ("todos como o Financeiro"). Até aqui abria o popover-2
   `.sb-item-popover` (UI-0011, 2026-05-05). ⚠️ O protótipo (`prototipo-ui/cowork/Wagner/sidebar.jsx`,
   `ItemCascade`) ainda desenha a cascata lateral: a mudança precisa nascer também no Cowork.
-- **Teste:** `tests/js/sidebar-filhos-inline.test.tsx` (render, 2 casos, lane
+- **Teste:** `tests/js/sidebar-filhos-inline.test.tsx` (render, 4 casos, lane
   `cockpit-sidebar-jsdom-gate`).

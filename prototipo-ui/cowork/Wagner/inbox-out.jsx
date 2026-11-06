@@ -104,6 +104,8 @@ window.VarMenu = VarMenu;
 // ─────────────────────────────────────────────────────────────────
 function InboxTranscriptDialog({ conv, queue, channel, account, onClose }) {
   const today = new Date().toLocaleDateString("pt-BR", { day:"2-digit", month:"2-digit", year:"numeric" });
+  // Lote 6 (6.2.h): notas internas ficam FORA por padrão — num pedido do titular, elas não vão.
+  const [withNotes, setWithNotes] = React.useState(false);
 
   useEffect(() => {
     document.body.classList.add("kb-printing");
@@ -115,13 +117,13 @@ function InboxTranscriptDialog({ conv, queue, channel, account, onClose }) {
   return (
     <React.Fragment>
       <div className="om-palette-back" onClick={onClose}/>
-      <div className="om-print-modal" role="dialog">
+      <div className="om-print-modal" role="dialog" aria-modal="true" aria-label="Pré-visualização da conversa" ref={window.omDialogRef}>
         <header className="om-print-modal-h kb-no-print">
           <div>
             <small>Transcript de conversa — modo jurídico/auditoria</small>
             <h3>Pré-visualização</h3>
           </div>
-          <button className="om-x" onClick={onClose}>✕</button>
+          <button className="om-x" onClick={onClose} aria-label="Fechar pré-visualização">✕</button>
         </header>
 
         <div className="om-print-body">
@@ -159,7 +161,7 @@ function InboxTranscriptDialog({ conv, queue, channel, account, onClose }) {
             </div>
 
             <div className="om-print-thread">
-              {conv.msgs.map((m, i) => {
+              {conv.msgs.filter(m => withNotes || !m.internal).map((m, i) => {
                 const who = m.internal ? "NOTA INTERNA" : m.who === "me" ? "Atendente" : conv.name;
                 return (
                   <div key={i} className={"om-print-msg " + (m.internal ? "internal" : m.who)}>
@@ -167,7 +169,7 @@ function InboxTranscriptDialog({ conv, queue, channel, account, onClose }) {
                       <b>{who}</b>
                       <span className="mono">{m.d === "hoje" ? "Hoje" : m.d === "ontem" ? "Ontem" : m.d} · {m.time}</span>
                     </div>
-                    <p>{m.t}</p>
+                    <p>{m.t || (m.media?.transcription ? `[áudio] ${m.media.transcription}` : "[mídia]")}</p>
                   </div>
                 );
               })}
@@ -182,7 +184,11 @@ function InboxTranscriptDialog({ conv, queue, channel, account, onClose }) {
         </div>
 
         <footer className="om-print-actions kb-no-print">
-          <small>Documento com header Oimpresso pra processo trabalhista, compliance LGPD ou auditoria fiscal.</small>
+          <label className="om-print-notes">
+            <input type="checkbox" checked={withNotes} onChange={(e) => setWithNotes(e.target.checked)} />
+            Incluir notas internas
+          </label>
+          <small>Documento com header Oimpresso pra processo trabalhista, compliance LGPD ou auditoria fiscal. Para pedido do titular, deixe as notas internas de fora.</small>
           <div style={{display:"flex", gap:8}}>
             <button className="os-btn ghost" onClick={onClose}>Cancelar</button>
             <button className="os-btn primary" onClick={() => window.print()}>Imprimir / Salvar PDF</button>
@@ -250,8 +256,8 @@ function InboxMediaLightbox({ media, onClose }) {
   if (!media) return null;
 
   return (
-    <div className="om-lightbox" onClick={onClose} role="dialog">
-      <button className="om-lightbox-close" onClick={onClose}>✕</button>
+    <div className="om-lightbox" onClick={onClose} role="dialog" aria-modal="true" aria-label="Mídia em tela cheia" ref={window.omDialogRef}>
+      <button className="om-lightbox-close" onClick={onClose} aria-label="Fechar mídia">✕</button>
       <figure className="om-lightbox-frame" onClick={(e) => e.stopPropagation()}>
         {media.kind === "image" ? (
           <img src={media.src} alt={media.caption || ""}/>

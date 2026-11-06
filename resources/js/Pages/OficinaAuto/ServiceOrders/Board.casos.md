@@ -5,12 +5,17 @@ irmaos: Board.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-16"
+last_run: "2026-11-06"
 related_us: [US-OFICINA-004, US-AUTO-005]
 related_cu: [CU-OFI-14, CU-OFI-07]
 ---
 
 # Casos de Uso & Aceite — Quadro de OS da Oficina
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10561). Nada do
+> comportamento coberto pelos UCs mudou. Lane `E2E Playwright · UCs críticos` disparada no branch, run
+> [42228134306](https://github.com/wagnerra23/oimpresso.com/actions/runs/42228134306): `e2e/oficina-uc06-gate-etapa.spec.ts` em chromium-1280: os 8 UCs da tela (UC-01 a 07 e UC-09) passaram (verde, 33 passed no total da lane).
 
 > **Re-ancorado no Board canônico (Onda Q2, 2026-06-11).** Nasceu como `ProducaoOficina/Index.casos.md`
 > (handoff Cowork 2026-06-04); o workspace unificado (#2551) substituiu aquela tela pelo

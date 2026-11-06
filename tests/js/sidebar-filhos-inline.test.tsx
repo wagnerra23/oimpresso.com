@@ -67,4 +67,50 @@ describe('Sidebar · item com filhos abre inline', () => {
     expect(cfg.getAttribute('aria-current')).toBe('page');
     expect(document.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
   });
+
+  // Medido em prod 2026-11-06: em /fisio/agenda, "Painel" (/fisio) e "Agenda"
+  // levavam aria-current juntos, porque /fisio casa por prefixo.
+  it('filho que é prefixo de outro não divide o aria-current com ele', () => {
+    irPara('/fisio/agenda');
+    render(
+      <SidebarMenu
+        items={[
+          {
+            label: 'Fisio',
+            href: '#',
+            children: [
+              { label: 'Painel', href: '/fisio' },
+              { label: 'Agenda', href: '/fisio/agenda' },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    const atuais = document.querySelectorAll('[aria-current="page"]');
+    expect(atuais).toHaveLength(1);
+    expect(atuais[0].textContent).toBe('Agenda');
+  });
+
+  it('ghost que é prefixo de outro não divide o aria-current com ele', () => {
+    irPara('/financeiro/contas-receber');
+    render(
+      <SidebarMenu
+        items={[
+          {
+            label: 'Financeiro',
+            href: '/financeiro',
+            ghosts: [
+              { key: 'painel', label: 'Painel', href: '/financeiro' },
+              { key: 'receber', label: 'A receber', href: '/financeiro/contas-receber' },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    const atuais = document.querySelectorAll('[aria-current="page"]');
+    expect(atuais).toHaveLength(1);
+    expect(atuais[0].textContent).toBe('A receber');
+  });
 });

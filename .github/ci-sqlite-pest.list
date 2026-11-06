@@ -226,6 +226,8 @@ Modules/Whatsapp/Tests/Feature/PropagateTraceparentTest.php
 # sqlite :memory: do ci.yml não tem migrations, e era só por montar o próprio schema
 # que ele rodava aqui.
 Modules/Whatsapp/Tests/Feature/SidebarCountsTest.php
+# Menu Atendimento não aponta pra rota que devolve JSON cru (auditoria Whatsapp 2026-11-05, lote 0). Reflection + leitura do fonte, DB-less.
+Modules/Whatsapp/Tests/Feature/MenuSemRotaJsonTest.php
 Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php
 Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php
 Modules/Whatsapp/Tests/Feature/Wave26WhatsappSaturationTest.php
@@ -234,6 +236,8 @@ Modules/Whatsapp/Tests/Feature/Wave28WhatsappPolishTest.php
 Modules/Whatsapp/Tests/Feature/WebhookBackpressureTest.php
 Modules/Whatsapp/Tests/Feature/WebhookReplayProtectionTest.php
 Modules/Whatsapp/Tests/Feature/WebhookSignatureCheckerTest.php
+# Webhook Meta com app_secret vazio → 401 (auditoria Whatsapp 2026-11-05, lote 0). Schema sintético + skip fora de sqlite.
+Modules/Whatsapp/Tests/Feature/MetaSignatureAppSecretVazioTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowAuthHeaderTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowChannelIsolationTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowHealthProbeDecisionTest.php

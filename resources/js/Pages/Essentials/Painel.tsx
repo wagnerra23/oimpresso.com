@@ -13,6 +13,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline, Stack } from '@/Components/layout';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 
 interface Periodo { id: number; inicio: string; fim: string }
 interface Licenca extends Periodo { tipo: string }
@@ -66,7 +67,7 @@ export default function Painel({ is_admin, painel }: Props) {
       {/* `data-contract` = âncora do contrato de tela (governance/design/contracts/). NÃO remova o
           atributo sem tirar a seção do .contract.json — o gate contrato-de-tela cobra os dois. */}
       <div data-contract="cabecalho">
-        <PageHeader title="Painel" subtitle="Pessoas: licenças, metas, feriados e setores" />
+        <PageHeader below={<ModuleTabs modulo="HRM" />} title="Painel" subtitle="Pessoas: licenças, metas, feriados e setores" />
       </div>
       <Deferred data="painel" fallback={<Skeleton className="h-64 w-full" />}>
         <Conteudo is_admin={is_admin} painel={painel} />

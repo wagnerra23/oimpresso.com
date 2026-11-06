@@ -46,7 +46,8 @@ class DataController extends Controller
     /**
      * Wagner 2026-05-22 P0: refaz contrato v2 que estava no PR #1392 fechado.
      * Hub Atendimento canon ADR 0180 — declara group:'atendimento' (HIDDEN_GROUP
-     * no sidebar — shortcut topo cobre) + 7 ghosts visíveis no header /atendimento.
+     * no sidebar — shortcut topo cobre) + ghosts visíveis no header /atendimento
+     * (eram 7; "Time" saiu em 2026-11-05 — ver comentário no submenu).
      *
      * Zera 6 órfãs: Channels/Csat/Macros/Metricas/JanaTemplates/Employee Scorecards
      * (todas acessíveis agora via ghost no header em vez de só URL direta).
@@ -111,10 +112,9 @@ class DataController extends Controller
                             'icon'   => 'fa fas fa-smile',
                             'active' => request()->segment(2) === 'csat',
                         ]);
-                        $sub->url(route('atendimento.employee.scorecards'), 'Time', [
-                            'icon'   => 'fa fas fa-trophy',
-                            'active' => request()->segment(2) === 'employee',
-                        ]);
+                        // "Time" (atendimento.employee.scorecards) saiu do menu em
+                        // 2026-11-05 (auditoria Whatsapp, lote 0): a rota devolve
+                        // JsonResponse cru, não tela. Volta quando houver Page.
                     },
                     [
                         'icon'     => 'fa fas fa-comments',
@@ -134,7 +134,6 @@ class DataController extends Controller
                             ['key' => 'macros',    'label' => 'Macros',    'href' => '/atendimento/macros'],
                             ['key' => 'metricas',  'label' => 'Métricas',  'href' => '/atendimento/metricas'],
                             ['key' => 'csat',      'label' => 'CSAT',      'href' => '/atendimento/csat'],
-                            ['key' => 'time',      'label' => 'Time',      'href' => '/atendimento/employee/scorecards'],
                         ],
                     ]
                 )->order(89);

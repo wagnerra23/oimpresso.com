@@ -50,7 +50,7 @@ Onda 1 entregou. Descreve o que a seção **é**; a regra de negócio segue send
 | Item | Contrato |
 |---|---|
 | Âncora | `data-contract="alertas-fiscais"` na raiz da lista |
-| Posição | entre o `.fx-ribbon` e o `WriteOffAuditoriaCard` |
+| Posição | entre o `.fx-ribbon` e a toolbar de notas (até 2026-11-06 vinha antes do `WriteOffAuditoriaCard`, removido pelo B10) |
 | Estado vazio | **nó ausente** — zero alertas não desenha contêiner nem mensagem |
 | Item | `.fx-alert` com `data-level` ∈ `crit` · `warn` · `info`; flex, `gap:10px`, `padding:10px 14px`, `radius:10px` |
 | Ordem dos filhos | ícone (`.fx-alert-ic`) → texto (`.fx-alert-t` com `<b>`+`<small>`) → botão |
@@ -194,8 +194,9 @@ charter não a bloqueia.
 
 **O selo ACOMPANHA o número — nunca o esconde nem o substitui.** Esta é a metade do contrato
 que decide se a saída (a) é honesta: um selo que ocultasse a superfície viraria a saída (b)
-disfarçada — e a (b) é justamente a saída que o agente recusou acima, pelo CU-FISC-16. O `writeOffSummary` continua exibindo 2.470 candidatos; o
-que muda é que agora a tela diz de onde eles vêm.
+disfarçada — e a (b) é justamente a saída que o agente recusou acima, pelo CU-FISC-16. O `contabilData` continua exibindo os números do pacote; o
+que muda é que agora a tela diz de onde eles vêm. (Até 2026-11-06 o exemplo era o `writeOffSummary`,
+retirado da tela pela decisão [W] B10 da auditoria Fiscal: a baixa por incobrabilidade é assunto do Financeiro.)
 
 **A procedência é DECLARADA PELO CONTROLLER, nunca inferida na tela.** O motivo é medido:
 quando o [#6541](https://github.com/wagnerra23/oimpresso.com/pull/6541) trocou a lista mockada

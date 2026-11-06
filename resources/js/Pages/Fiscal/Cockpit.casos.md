@@ -5,8 +5,8 @@ irmaos: Cockpit.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "revalidado em 2026-09-04 ao paginar a lista (Onda 3): UC-FCKP-01..06 relidos um a um — nenhum toca a fonte nem o recorte da lista (são gate, agregação, ribbon, alertas, escopo e cache), logo seguem válidos. UC-FCKP-07 (dado real) segue válido: a paginação recorta a MESMA lista, não muda a fonte. UC-FCKP-08 (fila de alertas) segue válido: o rodapé entra depois da tabela e não encosta na seção de alertas. UC-FCKP-09 nasce aqui, com lane e teste próprios, verde local 4/4 e mordida provada em 2 mutações. Veredito das lanes pendente do CI deste PR"
+last_run: "2026-11-06"
+last_run_ci: "revalidado em 2026-11-06 ao tirar o card de baixa por incobrabilidade (decisão [W] B10, PR #10571): nenhum UC cita o card. UC-FCKP-13 (procedência) segue válido com uma superfície de demonstração a menos — método mock, declaração e chave da tela saíram juntos, e o ProcedenciaCockpitTest seguiu verde. Lanes verdes neste PR: PHP / Pest (NfeBrasil · MySQL), PHP / Pest (Unit) e as 4 lanes vitest do Fiscal. Anterior: revalidado em 2026-09-04 ao paginar a lista (Onda 3): UC-FCKP-01..06 relidos um a um — nenhum toca a fonte nem o recorte da lista (são gate, agregação, ribbon, alertas, escopo e cache), logo seguem válidos. UC-FCKP-07 (dado real) segue válido: a paginação recorta a MESMA lista, não muda a fonte. UC-FCKP-08 (fila de alertas) segue válido: o rodapé entra depois da tabela e não encosta na seção de alertas. UC-FCKP-09 nasce aqui, com lane e teste próprios, verde local 4/4 e mordida provada em 2 mutações. Veredito das lanes pendente do CI deste PR"
 related_us: [US-FISCAL-002, US-FISCAL-019]
 ---
 
