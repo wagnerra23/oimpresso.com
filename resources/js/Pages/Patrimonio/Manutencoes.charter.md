@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-manutencoes.md
 tier: B
-charter_version: 3
-last_validated: "2026-09-30"
+charter_version: 4
+last_validated: "2026-11-05"
 ---
 
 # Page Charter — Patrimonio/Manutencoes (DRAFT)
@@ -115,6 +115,10 @@ manutenção"), não aqui.
 - Vazio de dado e vazio de filtro **distinguíveis** — e, no papel restrito, o aviso de escopo
   fica visível junto do vazio, porque "não há manutenção" e "não há manutenção **sua**" são
   respostas diferentes.
+- Carga que falha não vira espera eterna (2026-11-05): se a carga deferida de a lista (`manutencoes`) termina
+  sem a prop, a área da tabela mostra o estado de erro do protótipo (`patrimonio-page.jsx:846`) —
+  `role="alert"`, "Não consegui carregar …" e "Tentar de novo", que pede só aquela prop.
+  Detecção em `_shared/falhaDeferida.ts`. Contrato: UC-MANU-07.
 
 ## Pendências antes de `status: live`
 
