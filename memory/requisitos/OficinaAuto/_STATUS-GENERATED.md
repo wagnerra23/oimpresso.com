@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 19 |
 | Telas (.tsx) | 9 |
 | Telas com `casos.md` | 10 |
-| UC declarados | 69 |
-| UC com teste que os cita | 69 |
+| UC declarados | 74 |
+| UC com teste que os cita | 74 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -30,8 +30,6 @@ authority: generated
 | `CU-OFI-03` sem UC | caso de uso que o exercite — Consulta de placa auto-preenche dados técnicos |
 | `CU-OFI-14` sem UC | caso de uso que o exercite — Ver o pátio num relance |
 | `CU-OFI-17` sem UC | caso de uso que o exercite — Painel fiscal da OS |
-| `US-OFICINA-005` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Cleanup tools pra cliente legacy migrado — **P0 (emergente P |
-| `US-OFICINA-006` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — FSM wire-up canônico `ServiceOrder` (espelha Sells/Repair AD |
 | `US-OFICINA-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Consulta CRLV/placa (cache 30d + adapter pluggable) — **P1** |
 | `US-OFICINA-042` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel fiscal NF-e/NFS-e na OS |
 | `US-OFICINA-027` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Itens da OS (peça, mão de obra, serviço) + box e responsável |
@@ -46,6 +44,8 @@ authority: generated
 
 | US | status | Título |
 |---|---|---|
+| US-OFICINA-005 | `desconhecido` | Cleanup tools pra cliente legacy migrado — **P0 (emergente PR #555)** |
+| US-OFICINA-006 | `desconhecido` | FSM wire-up canônico `ServiceOrder` (espelha Sells/Repair ADR 0143) — **P0** |
 | US-OFICINA-007 | `todo` | Importer Vargas (1.064 veículos multi-placa) — **P0** |
 | US-OFICINA-008 | `todo` | Schema garantia granular per-item (`oa_pecas_utilizadas`+`oa_servicos_executados |
 | US-OFICINA-009 | `todo` | Defeitos múltiplos por OS (JSON array) — **P1** |
@@ -106,6 +106,7 @@ authority: generated
 | UC-OED-06 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OED-07 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OED-08 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
+| UC-OED-09 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OIM-01 | importer-frota-legada (blade) | 🧪 aguarda veredito da lane |
 | UC-OIM-02 | importer-frota-legada (blade) | 🧪 aguarda veredito da lane |
 | UC-OIM-03 | importer-frota-legada (blade) | 🧪 aguarda veredito da lane |
@@ -131,6 +132,7 @@ authority: generated
 | UC-OSH-20 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSH-21 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSH-22 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-23 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSPECA-01 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSPECA-02 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSPECA-03 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
@@ -138,13 +140,16 @@ authority: generated
 | UC-OVC-01 | Vehicles/Create | 🧪 aguarda veredito da lane |
 | UC-OVC-02 | Vehicles/Create | 🧪 aguarda veredito da lane |
 | UC-OVC-03 | Vehicles/Create | 🧪 aguarda veredito da lane |
+| UC-OVC-04 | Vehicles/Create | 🧪 aguarda veredito da lane |
 | UC-OVE-01 | Vehicles/Edit | 🧪 aguarda veredito da lane |
 | UC-OVE-02 | Vehicles/Edit | 🧪 aguarda veredito da lane |
+| UC-OVE-03 | Vehicles/Edit | 🧪 aguarda veredito da lane |
 | UC-OVI-01 | Vehicles/Index | 🧪 aguarda veredito da lane |
 | UC-OVI-02 | Vehicles/Index | 🧪 aguarda veredito da lane |
 | UC-OVI-03 | Vehicles/Index | 🧪 aguarda veredito da lane |
 | UC-OVREV-01 | Vehicles/Edit | 🧪 aguarda veredito da lane |
 | UC-OVREV-02 | Vehicles/Edit | 🧪 aguarda veredito da lane |
+| UC-OVREV-03 | Vehicles/Edit | 🧪 aguarda veredito da lane |
 | UC-OVS-01 | Vehicles/Show | 🧪 aguarda veredito da lane |
 | UC-OVS-02 | Vehicles/Show | 🧪 aguarda veredito da lane |
 

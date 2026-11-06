@@ -99,7 +99,7 @@ Aproveitar **pré-arte Delphi** ([Controller.Producao.Kanban.pas](../../research
 
 ### US-OFICINA-005 · Cleanup tools pra cliente legacy migrado — **P0 (emergente PR #555)**
 
-> owner: — · priority: p0 · estimate: 12h · status: doing · type: story · origin: Agent-F-investigacao-Martinho-2026-05-11
+> owner: — · priority: p0 · estimate: 12h · type: story · origin: Agent-F-investigacao-Martinho-2026-05-11
 > blocked_by: US-OFICINA-002 (importer)
 > evidence: Martinho 76,7% inadimplência = lixo histórico 2015-19 (não cliente que não paga). Veredito adversarial [04-inadimplencia-investigacao.md](../../research/clientes-legacy-officeimpresso/05-martinho-cacambas/04-inadimplencia-investigacao.md)
 
@@ -376,7 +376,7 @@ Estimate Fase 4: ~80h IA-pair fator 10x = ~2 semanas Felipe (PWA scaffold + 5 sc
 
 ### US-OFICINA-006 · FSM wire-up canônico `ServiceOrder` (espelha Sells/Repair ADR 0143) — **P0**
 
-> owner: — · priority: p0 · estimate: 6h · status: doing · type: story · origin: ADR-0143
+> owner: — · priority: p0 · estimate: 6h · type: story · origin: ADR-0143
 > blocked_by: US-OFICINA-001 (done)
 
 **Implementado em:** _parcial_ · `Modules/OficinaAuto/Database/Migrations/2026_05_13_010001_add_current_stage_id_to_service_orders.php` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php` · verificado@dd3ed7c (2026-07-01) — trava GuardsFsmTransitions no ServiceOrder entregue em 2026-10-26 (antes o UPDATE direto em current_stage_id passava sem erro); seguem abertos: seeder com 9 stages vs 15×19 do DoD; FsmTransitionTest 3 casos vs 15
@@ -486,7 +486,7 @@ Job daily compara `oa_garantias.expira_em - 7d` → dispara WhatsApp template "S
 
 ### US-OFICINA-017 · Histórico veículo (timeline OS + KPIs km/manutenção) — **P1**
 
-> owner: — · priority: p1 · estimate: 4h · status: doing · type: story · origin: SPEC antecipatório §US-AUTO-003
+> owner: — · priority: p1 · estimate: 4h · type: story · origin: SPEC antecipatório §US-AUTO-003
 > blocked_by: US-OFICINA-006
 
 **Implementado em:** _parcial_ · `Modules/OficinaAuto/Http/Controllers/VehicleController.php` · `resources/js/Pages/OficinaAuto/Vehicles/Show.tsx` · verificado@dd3ed7c (2026-07-01) — Show carrega `serviceOrders` e renderiza a seção "Histórico de OS" (status badge por linha); falta a soma de km entre revisões + foto antes/depois por OS + export PDF "passaporte" + integração Jana
@@ -1540,7 +1540,7 @@ O veículo só é entregue ao cliente com foto do serviço feito. Regra `servico
 
 **Parcial — assinatura fora:** o UC-FLX-22 pede também a assinatura do cliente. Ela não existe na Oficina; o padrão do repo é o da entrega do pedido no app (`app/Http/Controllers/Api/App/PedidoEntregaController.php`, ajuste `app_entrega_exige_assinatura`). Fica para outra US — entrou na US-OFICINA-048 (2026-10-21).
 
-**Implementado em:** `Modules/OficinaAuto/Services/StageGateEvaluator.php` (regra `servico_foto` em `entregar`) · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `Modules/OficinaAuto/Services/AcoesOsDoApp.php` — foto exigida; a assinatura foi entregue na US-OFICINA-048 (2026-11-05: deixa de ser `_parcial_`, os 5 itens do DoD estão `[x]`)
+**Implementado em:** `Modules/OficinaAuto/Services/StageGateEvaluator.php` (regra `servico_foto` em `entregar`) · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `Modules/OficinaAuto/Services/AcoesOsDoApp.php` — foto exigida; a assinatura foi entregue na US-OFICINA-048 (2026-11-05: deixa de ser `_parcial_`; 4 dos 5 itens do DoD da US-048 estão `[x]`, e o que falta é a tela de configuração do ajuste, fora do escopo dela)
 
 **Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php` — lane `PHP / Pest (Sells · MySQL)`
 
@@ -1609,4 +1609,4 @@ Entrada criada na auditoria de 2026-11-05 (ID citado no código sem entrada no S
 
 ---
 
-**Última atualização:** 2026-11-05 — auditoria do módulo (lote 5.3): US-047 sai de `_parcial_`, US-AUTO-008 entra em `_parcial_` e rota corrigida, US-AUTO-014 deixa de dizer que falta a ligação no Whatsapp, `status:` nas US 005/006/017/047/048, entradas US-OFICINA-027 e 037 (citadas no código sem SPEC), cabeçalho sem Vargas. 2026-06-09 — US-OFICINA-046 dívida F3 (repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas") — follow-up erradicação ADR 0265 (PR #2475). 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado` (superado: o gatilho veio com o Martinho, piloto LIVE desde 2026-05-13).
+**Última atualização:** 2026-11-05 — auditoria do módulo (lote 5.3): US-047 sai de `_parcial_`, US-AUTO-008 entra em `_parcial_` e rota corrigida, US-AUTO-014 deixa de dizer que falta a ligação no Whatsapp, `status:` nas US 047/048, entradas US-OFICINA-027 e 037 (citadas no código sem SPEC), cabeçalho sem Vargas. 2026-06-09 — US-OFICINA-046 dívida F3 (repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas") — follow-up erradicação ADR 0265 (PR #2475). 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado` (superado: o gatilho veio com o Martinho, piloto LIVE desde 2026-05-13).
