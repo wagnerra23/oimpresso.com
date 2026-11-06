@@ -397,6 +397,19 @@ valendo.
 
 Status: 🧪
 
+## UC-PCART-09 · Cada envio guarda a versão da arte, que só sobe quando o arquivo muda · `must`
+
+> Âncora: decisão [W] 2026-11-06 (pedido da Maiara: *"tem que versionar os arquivos e exibir versão"*), para o
+> operador pedir "imprime a v2" sem ambiguidade · `prototipo-ui/cowork/Wagner/producao-cv-os.jsx` ("Versões da arte").
+
+**Dado** a primeira prova enviada **Então** ela é a v1 · **Quando** alguém reenvia o link do mesmo arquivo **Então** sai
+link novo e a versão continua v1 · **Quando** o cliente pede ajuste e vai um arquivo novo **Então** é a v2 · **Quando** a
+v2 aprovada tem o arquivo trocado **Então** a troca é a v3, que espera o cliente, e a arte que vale continua a v2 ·
+Voltar a um arquivo antigo depois de outro conta como versão nova (A, B, A = v1, v2, v3) · Os envios gravados antes
+da coluna existir são numerados OS a OS, na ordem em que foram feitos, e cada empresa conta à parte.
+
+Status: 🧪
+
 ## UC-PCV-11 · Arte aprovada travada · `must`
 
 > Âncora: `prototipo-ui/cowork/Wagner/cowork-inbox/producao/Producao.casos.md` UC-PCV-11 · thread 10 do playbook
@@ -419,8 +432,7 @@ Status: 🧪
 pelo cliente, que abre o arquivo, com "versão aprovada pelo cliente" · Uma troca esperando o cliente não muda o arquivo
 mostrado · OS que pediu aprovação e não teve nenhuma aprovada mostra "Sem arte aprovada · a etapa espera a aprovação do
 cliente" · OS sem pedido de arte não mostra o bloco · Aprovação gravada em outra empresa não conta.
-O protótipo mostra também o número da versão ("v3"); `pcp_aprovacoes_arte` não guarda versão, então a tela mostra o
-nome do arquivo.
+O arquivo vem com o número da versão, como no protótipo: "v2 · arte-v2.pdf" (UC-PCART-09).
 
 Status: 🧪
 
