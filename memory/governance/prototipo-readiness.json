@@ -1147,6 +1147,16 @@
       ]
     },
     {
+      "tela": "Producao/Os/Show",
+      "arquivo": "Modules/Producao/Resources/js/Pages/Producao/Os/Show.tsx",
+      "modulo": "Producao",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/producao-cv-os.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Producao/Painel/Index",
       "arquivo": "Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx",
       "modulo": "Producao",
@@ -1237,5 +1247,5 @@
       ]
     }
   ],
-  "total": 208
+  "total": 209
 }

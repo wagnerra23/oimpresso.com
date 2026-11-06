@@ -27,11 +27,12 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import ProducaoAbas from '../_components/ProducaoAbas';
 import { LIMPO, filtrado as temFiltro, passa, paraUrl, setorDe, type Filtravel, type Filtro } from '../_lib/filtro';
 import { json, Recusa } from '../Quadro/_lib/json';
+import { urlDaFicha } from '../_lib/ficha';
 
 interface Pessoa { id: number; nome: string }
 interface Posto { id: number; nome: string; setor: string | null; horas: number; capacidade: number; operadores: Pessoa[] }
 interface Bloco {
-  id: number; numero: string; cliente: string | null; etapa: string | null; posto_id: number; status: 'pendente' | 'iniciada' | 'concluida';
+  id: number; os_tipo: string; os_id: number; numero: string; cliente: string | null; etapa: string | null; posto_id: number; status: 'pendente' | 'iniciada' | 'concluida';
   user_id: number | null; responsavel: string | null; inicio: string; fim: string; travas: string[]; estouro: boolean; prazo: string | null; passa_da_promessa: boolean;
 }
 interface Ponta { posto_id: number; nome: string; horas: number; depois: number; capacidade: number; inicio: string }
@@ -61,6 +62,7 @@ function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Even
   const [maqEv, setMaqEv] = useState<number | null>(null);
   const [arraste, setArraste] = useState<Arraste | null>(null);
   const arrasteRef = useRef<Arraste | null>(null);
+  const arrastouRef = useRef(false);
   const diaIso = p.dias[p.dia];
   const fimTurno = horaDe('0000-00-00T' + p.turno.fim);
   const H0 = Math.min(Math.floor(horaDe('0000-00-00T' + p.turno.inicio)), ...linha.blocos.map((b) => Math.floor(horaDe(b.inicio))));
@@ -128,10 +130,17 @@ function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Even
       const d = arrasteRef.current;
       window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up);
       arrasteRef.current = null; setArraste(null);
+      arrastouRef.current = !!d?.moveu;
       const destino = d && posto(d.posto);
       if (d?.moveu && destino) void reprogramar(b, destino, d.ini);
     };
     window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  };
+  // UC-PCOSF-06: clicar (sem arrastar) ou Enter no bloco abre a Ficha da OS por item.
+  const abrir = (b: Bloco) => () => {
+    if (arrastouRef.current) { arrastouRef.current = false; return; }
+    const url = urlDaFicha(b.os_tipo, b.os_id);
+    if (url) router.visit(url);
   };
   const tecla = (b: Bloco) => (e: ReactKeyboardEvent<HTMLButtonElement>) => {
     if (!e.altKey || !p.pode_mover) return;
@@ -227,9 +236,9 @@ function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Even
                     <button key={b.id} type="button" data-bloco={b.id}
                       className={`pcv-g-blk is-${b.status === 'pendente' ? 'fila' : b.status === 'iniciada' ? 'andamento' : 'feito'}` + (b.travas.length ? ' is-bloq' : '') + (aviso ? ' is-conf' : '') + (arrastado?.id === b.id ? ' is-arr' : '') + (movel ? ' is-movel' : '')}
                       style={{ left: pos(horaDe(b.inicio)) + '%', width: pos(horaDe(b.fim)) - pos(horaDe(b.inicio)) + '%' }}
-                      aria-label={`${b.numero}${b.cliente ? ', ' + b.cliente : ''}, ${hhmm(horaDe(b.inicio))} a ${hhmm(horaDe(b.fim))} em ${m.nome}, responsável ${b.responsavel ?? 'não definido'}${b.travas.length ? ', ' + b.travas.join(', ') : ''}${aviso ? ', ' + aviso : ''}${fixo ? (b.status === 'concluida' ? ', concluída' : ', em andamento, não se reprograma') : ''}.${movel ? ' Alt + setas move.' : ''}`}
+                      aria-label={`${b.numero}${b.cliente ? ', ' + b.cliente : ''}, ${hhmm(horaDe(b.inicio))} a ${hhmm(horaDe(b.fim))} em ${m.nome}, responsável ${b.responsavel ?? 'não definido'}${b.travas.length ? ', ' + b.travas.join(', ') : ''}${aviso ? ', ' + aviso : ''}${fixo ? (b.status === 'concluida' ? ', concluída' : ', em andamento, não se reprograma') : ''}.${movel ? ' Alt + setas move.' : ''}${urlDaFicha(b.os_tipo, b.os_id) ? ' Enter abre a ficha da OS.' : ''}`}
                       title={`${b.numero} · ${hhmm(horaDe(b.inicio))}–${hhmm(horaDe(b.fim))} · ${b.responsavel ?? 'sem responsável'}${b.travas.length ? ' — ' + b.travas.join(' · ') : ''}${aviso ? ' — ' + aviso : ''}`}
-                      onPointerDown={pegar(b)} onKeyDown={tecla(b)}>
+                      onPointerDown={pegar(b)} onKeyDown={tecla(b)} onClick={abrir(b)}>
                       <b className="mono">{b.numero}</b><span>{b.cliente ?? b.etapa ?? ''}</span>
                     </button>
                   );

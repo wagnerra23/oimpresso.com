@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: o que dura e o CONTRATO — "a fila e de venda-de-reparo, nao de JobSheet" e "quem so tem view_own nao ve a fila inteira" valem em qualquer refactor da tela
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-10-02"
+last_run: "2026-11-06"
 ---
 
 # Casos de Uso & Aceite — Ordens de Serviço (fila)
@@ -17,6 +17,11 @@ last_run: "2026-10-02"
 > derivar o caso (§5 2026-06-05 — teste tautológico).
 >
 > **Status:** ✅ passa (prova no manifesto) · 🧪 teste cita o UC e passa · ⬜ não verificado · ❌ quebrou.
+>
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10550). Nada
+> do comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch,
+> run [42222751388](https://github.com/wagnerra23/oimpresso.com/actions/runs/42222751388) (verde): `RepairIndexContratoTest` 6 testes, 33 asserções, 0 skipped · `RepairIndexMwartTest` 6 testes, 17 asserções, 0 skipped.
 >
 > **Revalidação 2026-10-02 (thread 02 do playbook Repair, `last_run`).** A tela trocou o header shared
 > pelo canon (título 22px). Lane `PHP / Pest (Verticais · MySQL)` no branch, run

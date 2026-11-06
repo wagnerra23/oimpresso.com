@@ -8,6 +8,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link } from '@inertiajs/react';
 import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
@@ -75,6 +76,7 @@ export default function StatusIndex({ statuses }: PageProps) {
   return (
     <div className="container mx-auto space-y-4 p-4">
       <PageHeader
+        below={<ModuleTabs modulo="Assistência técnica" />}
         title="Status do reparo"
         subtitle="Cada status carrega cor, ordem, marcação de conclusão e o modelo de SMS disparado ao cliente. A ordem alimenta o kanban da produção."
         actions={

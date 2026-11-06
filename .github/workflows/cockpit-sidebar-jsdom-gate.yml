@@ -108,6 +108,7 @@ jobs:
             tests/js/sidebar-plataforma-forja.test.tsx \
             tests/js/sidebar-rail.test.tsx \
             tests/js/sidebar-ordem-grupo.test.tsx \
+            tests/js/sidebar-filhos-inline.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-cockpit-sidebar-jsdom-junit.xml
