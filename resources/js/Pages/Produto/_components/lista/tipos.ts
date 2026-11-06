@@ -540,3 +540,9 @@ export function chipsDosFiltros(
   if (f.q) out.push({ chave: 'q', rotulo: `Busca: ${f.q}` });
   return out;
 }
+
+/** UC-PIDX-43: só os dígitos, se formarem um NCM válido (8 dígitos, não 00000000); senão null. */
+export function ncmDigitado(texto: string): string | null {
+  const d = texto.replace(/[^0-9]/g, '');
+  return d.length === 8 && d !== '00000000' ? d : null;
+}

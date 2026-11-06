@@ -797,6 +797,20 @@ function ModalLocalizacao({ modo, n, onClose, avisar }) {
     </Modal>
   );
 }
+// UC-PIDX-43: o mesmo NCM em todos os selecionados. Confirmar só com NCM válido (ncmValido).
+function ModalNcmEmLote({ n, onClose, avisar }) {
+  const [ncm, setNcm] = useState("");
+  const ok = ncmValido(ncm);
+  const erro = ncm.trim() !== "" && !ok;
+  return (
+    <Modal titulo="Informar NCM" onClose={onClose}
+      acoes={<><button className="os-btn ghost" onClick={onClose}>Cancelar</button>
+        <button className="os-btn primary" disabled={!ok} onClick={() => { onClose(); avisar(`${n} produto(s) com o NCM ${ncm.replace(/[^0-9]/g, "")}.`, "ok"); }}>Informar em {n}</button></>}>
+      <p className="pb-help">{n} produto(s) selecionado(s). Todos passam a ter este NCM; o que tinham antes é trocado.</p>
+      <Fld label="NCM" req dica="Os 8 dígitos do NCM, com ou sem pontos." erro={erro ? "O NCM tem 8 dígitos e não pode ser 0000.00.00." : null}><input placeholder="0000.00.00" value={ncm} onChange={(e) => setNcm(e.target.value)} /></Fld>
+    </Modal>
+  );
+}
 function ModalCadastroRapido({ onClose, avisar }) {
   return (
     <Modal titulo="Cadastro rápido de produto" onClose={onClose}
@@ -923,6 +937,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   const [ver, setVer] = useState(null);
   const [inicial, setInicial] = useState(null);
   const [locModal, setLocModal] = useState(null);
+  const [ncmLote, setNcmLote] = useState(false);
   const [rapido, setRapido] = useState(false);
   const [confirmar, setConfirmar] = useState(null);
   const [cols, setCols] = useState(() => {
@@ -1114,6 +1129,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
           <button className="os-btn sm" disabled={!sel.length} onClick={() => onIr("massa")}><Ic name="pencil" size={12} /> Edição em massa</button>
           <button className="os-btn sm" disabled={!sel.length} onClick={() => setLocModal("add")}>Adicionar ao local</button>
           <button className="os-btn sm" disabled={!sel.length} onClick={() => setLocModal("remove")}>Remover do local</button>
+          {empresa.emiteNota && <button className="os-btn sm" disabled={!sel.length} onClick={() => setNcmLote(true)}>Informar NCM</button>}
           <button className="os-btn sm" onClick={() => { window.__PBEtiquetas = PRODUCTS.filter((p) => sel.includes(p.id)); onIr("etiquetas"); }}><Ic name="print" size={12} /> Etiquetas</button>
           <button className="os-btn sm" onClick={() => setConfirmar({ titulo: "Desativar selecionados", perigo: true, cta: "Desativar " + sel.length, corpo: sel.length + " produto(s) saem da venda e do orçamento novo, mantendo histórico e estoque.", on: () => { avisar(sel.length + " produto(s) desativados.", "warn"); limparSel(); } })}>Desativar selecionados</button>
           <button className="os-btn sm ghost danger" onClick={() => setConfirmar({ titulo: "Excluir selecionados", perigo: true, cta: "Excluir " + sel.length, corpo: "Vai apagar " + sel.length + " cadastro(s), com variações e preços por grupo.", aviso: "Produtos com movimento de estoque serão recusados pelo servidor.", on: () => { avisar("Exclusão enviada — itens com movimento foram recusados.", "danger"); limparSel(); } })}>Excluir selecionados</button>
@@ -1124,6 +1140,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
       {ver && <DetalheDrawer p={ver} onClose={() => setVer(null)} onIr={(a, p) => { setVer(null); onIr(a, p); }} empresa={empresa} />}
       {inicial && <ModalEstoqueInicial p={inicial} onClose={() => setInicial(null)} avisar={avisar} />}
       {locModal && <ModalLocalizacao modo={locModal} n={sel.length} onClose={() => setLocModal(null)} avisar={avisar} />}
+      {ncmLote && <ModalNcmEmLote n={sel.length} onClose={() => setNcmLote(false)} avisar={avisar} />}
       {rapido && <ModalCadastroRapido onClose={() => setRapido(false)} avisar={avisar} />}
       {confirmar && <ModalConfirmar pedido={confirmar} onClose={() => setConfirmar(null)} />}
     </>

@@ -97,6 +97,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-40 | Quantos kits dá para vender, por local, e quem limita | should | `ProductController::kitsPorLocal` + aba Composição do painel (`PainelDetalhe.tsx`) | `ProdutoKitsDisponiveisTest` (lane Estoque · MySQL) + `produto-painel-kits.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-41 | Giro de 90 dias e últimas compras no painel | should | `ProductController::vendidoNosUltimos90Dias` + `ultimasComprasDoProduto` + aba Estoque do painel (`PainelDetalhe.tsx`) | `ProdutoGiroComprasTest` (lane Estoque · MySQL) + `produto-painel-giro-compras.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-42 | Filtro "Falta NCM" e o link do card de Saúde fiscal | should | `ProductController::consultaListaProdutos` (`falta_ncm`) + `FiltrosLista.tsx` + `SaudeFiscalService` (item `produto_sem_ncm`) | `ProdutoListaFaltaNcmTest` (lane Estoque · MySQL) + `SaudeFiscalTest` (UC-NFTR-24) + `produto-filtro-falta-ncm.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-43 | Informar NCM em vários produtos de uma vez | should | `ProductController::bulkUpdateNcm` (`POST /products/bulk-update-ncm`) + `NcmEmLote.tsx` na barra de selecionados | `ProdutoNcmEmLoteTest` (lane Estoque · MySQL) + `produto-ncm-em-lote.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -580,6 +581,15 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** informar o NCM de vários produtos de uma vez (segue no backlog, abaixo); o item "Produtos que saíram em nota com o NCM padrão", que continua abrindo o Cadastro Unificado.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-43 · Informar NCM em vários produtos de uma vez · `should`
+- **Persona:** quem cuida do cadastro numa empresa que emite nota e achou, com o filtro "Falta NCM" (UC-PIDX-42), vários produtos do mesmo tipo sem NCM.
+- **Aceite:** Dado três produtos selecionados na lista · Quando clico "Informar NCM" na barra de selecionados e digito "3921.90.90" · Então os três passam a ter o NCM 39219090 e saem do filtro "Falta NCM" · O botão de confirmar fica desligado e aparece "O NCM tem 8 dígitos e não pode ser 0000.00.00." enquanto o NCM não tiver 8 dígitos ou for 0000.00.00 · O botão "Informar NCM" só aparece para quem pode editar produto, numa empresa que emite nota.
+- **Teste:** [`ProdutoNcmEmLoteTest`](../../../../tests/Feature/Produto/ProdutoNcmEmLoteTest.php) — `UC-PIDX-43` (grava nos selecionados e só neles; aceita com pontos; recusa 7 dígitos, 00000000 e lista vazia sem gravar; produto de outra empresa no meio da lista não muda; sem `product.update` é 403; os alterados saem do filtro "Falta NCM" — lane Estoque · MySQL) e [`produto-ncm-em-lote.test.tsx`](../../../../tests/js/produto-ncm-em-lote.test.tsx) — `UC-PIDX-43` (o confirmar só liga com NCM válido, manda só os dígitos, o aviso de NCM inválido, a regra `ncmDigitado` — Vitest do `Frontend / Vite build`).
+- **Contrato:** pedido da PraMoto (2026-10-27). A regra do NCM é a de UC-PIDX-42. É a mesma gravação da edição do produto (UC-PCAD-13), feita em vários de uma vez: não recalcula nada, e a próxima nota usa o NCM novo.
+- **Gates:** `product.update` (o mesmo da edição); o botão só aparece com `contexto.emite_nota`. O servidor só altera produto da empresa do usuário (ADR 0093).
+- **Fora daqui:** CEST e origem em lote; sugerir o NCM pelo nome do produto.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -811,9 +821,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   SPED (Bloco H). Pedido da PraMoto, que compra com e sem nota; a compra e o aviso na emissão estão em
   `Purchase/Create.casos.md` e `Fiscal/Nfe.casos.md`.
 - O filtro "Falta NCM" e o link do card de Saúde fiscal saíram deste backlog em 2026-11-06: viraram UC-PIDX-42, com teste.
-- **[BACKLOG] NCM em lote** (pedido de 2026-10-27) — Aceite: Dado a lista filtrada por "Falta NCM", Quando
-  escolho vários produtos e informo um NCM, Então todos passam a ter esse NCM e saem do filtro. Hoje a
-  lista não tem edição de NCM em lote. Pedido da PraMoto.
+- O NCM em lote saiu deste backlog em 2026-11-06: virou UC-PIDX-43, com teste.
 
 Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
 [Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·
@@ -884,6 +892,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 
 ## Trilha do tempo
+- 2026-11-06 · [F+C] **UC-PIDX-43**: "Informar NCM" na barra de selecionados grava o mesmo NCM em vários produtos.
 - 2026-11-06 · [F+C] **UC-PIDX-42**: filtro "Falta NCM" na consulta de produto e o card de Saúde fiscal abrindo a lista com ele.
 - 2026-11-05 · [F+C] **UC-PIDX-41**: giro de 90 dias e as 3 últimas compras recebidas na aba Estoque do painel (D8).
 - 2026-11-04 · [F+C] **UC-PIDX-40**: quantos kits dá para vender, por local, e quem limita, na aba Composição do painel. Achado: a conta do núcleo para o combo na venda não zera com componente sem saldo; fica no backlog da venda.

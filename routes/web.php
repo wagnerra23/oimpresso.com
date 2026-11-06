@@ -763,6 +763,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/products/bulk-edit', [ProductController::class, 'bulkEdit']);
     Route::post('/products/bulk-update', [ProductController::class, 'bulkUpdate']);
     Route::post('/products/bulk-update-location', [ProductController::class, 'updateProductLocation']);
+    // UC-PIDX-43: o mesmo NCM em vários produtos selecionados na consulta de produto.
+    Route::post('/products/bulk-update-ncm', [ProductController::class, 'bulkUpdateNcm']);
     Route::get('/products/get-product-to-edit/{product_id}', [ProductController::class, 'getProductToEdit']);
 
     Route::post('/products/get_sub_categories', [ProductController::class, 'getSubCategories']);
