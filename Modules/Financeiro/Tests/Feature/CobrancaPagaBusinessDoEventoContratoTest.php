@@ -110,6 +110,10 @@ it('cobrança paga na empresa dona (98) gera título e baixa na 98, nunca na 1',
     $baixa = TituloBaixa::withoutGlobalScopes()->where('titulo_id', $titulo->id)->first();
     expect($baixa)->not->toBeNull();
     expect((int) $baixa->business_id)->toBe($this->bizId);
-    expect((int) $baixa->conta_bancaria_id)->toBe((int) $this->contaId);
+    // A conta da baixa tem de ser da própria empresa. Não comparo com $this->contaId:
+    // o fallback pega a primeira conta ativa da empresa, e outro teste da lane pode ter
+    // deixado uma conta mais antiga na 98 (medido no CI: a baixa veio com a conta 1, da 98).
+    expect((int) DB::table('fin_contas_bancarias')->where('id', $baixa->conta_bancaria_id)->value('business_id'))
+        ->toBe($this->bizId);
     expect((int) DB::table('users')->where('id', $baixa->created_by)->value('business_id'))->toBe($this->bizId);
 });
