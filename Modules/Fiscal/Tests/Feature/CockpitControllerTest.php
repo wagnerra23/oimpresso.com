@@ -66,7 +66,7 @@ it('UC-FCKP-03 · props.kpis tem shape canon (6 chaves obrigatorias)', function 
                 'kpis',
                 fn ($kpis) => collect(['emitidas', 'autorizadas', 'autorizadasPct', 'rejeitadas',
                     'faturamentoFiscal', 'dfeAguardando', 'certificadoValidadeDias'])
-                    ->every(fn ($k) => array_key_exists($k, $kpis))
+                    ->every(fn ($k) => collect($kpis)->has($k)) // o Inertia entrega a prop como Collection
             )
     );
 });
@@ -81,8 +81,11 @@ it('UC-FCKP-04 · props.alerts é array de items deterministicos (sem campos LLM
     $response = $this->get('/fiscal');
     $response->assertInertia(
         fn ($page) => $page->where('alerts', function ($alerts) {
-            expect($alerts)->toBeArray();
-            foreach ($alerts as $a) {
+            // O Inertia entrega a prop como Collection; o contrato é uma LISTA de itens.
+            $lista = collect($alerts)->all();
+            expect(array_is_list($lista))->toBeTrue();
+            foreach ($lista as $a) {
+                $a = collect($a)->all();
                 expect($a)
                     ->toHaveKeys(['level', 'icon', 'title', 'sub', 'action', 'goto'])
                     ->and($a)->not->toHaveKey('thought')

@@ -267,6 +267,12 @@ jobs:
         # + RegraTributariaIbsCbsValidacaoTest (2026-10-07, playbook Fiscal thread 04): a regra
         #   grava os 5 campos IBS/CBS (UC-NFRF-05/06/07). CT 100: 3 passed / 30 assertions; com o
         #   FormRequest do main, 3 failed. Tenant 98 + usuario novo so com nfe.tributacao.manage.
+        # + 5 do Fiscal que nunca rodavam em CI (2026-11-06, auditoria Fiscal lote 2.2):
+        #   TrocaAmbienteCerimonia · HabilitarBusinessCommand · CertHealthCheckCommand ·
+        #   CockpitController · NfseCockpitController. Ficam no FIM da lista: o Habilitar
+        #   apaga e recria as fiscal.* (o comando sob teste e quem as recria).
+        #   NfseCockpitController pulava por um guard de `emitted_at` (task #12) que ficou
+        #   velho: o controller passou a ler `created_at`; o guard saiu.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -377,7 +383,12 @@ jobs:
             Modules/Fiscal/Tests/Feature/FiscalPacoteGateTest.php \
             Modules/Fiscal/Tests/Feature/HabilitarBusinessDryRunTest.php \
             Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
-            Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php
+            Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php \
+            Modules/Fiscal/Tests/Feature/TrocaAmbienteCerimoniaTest.php \
+            Modules/Fiscal/Tests/Feature/HabilitarBusinessCommandTest.php \
+            Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitControllerTest.php \
+            Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
