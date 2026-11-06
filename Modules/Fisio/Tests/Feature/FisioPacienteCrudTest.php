@@ -44,7 +44,9 @@ function fpcPayload(int $contactId, array $mudar = []): array
 it('UC-FPI-01 · cria o perfil clínico a partir de um contact, sem duplicar nome nem telefone', function () {
     $contato = F::contato($this->b98, $this->u98->id, 'Marta Souza');
 
-    $this->post('/fisio/pacientes', fpcPayload($contato))->assertSessionHasNoErrors()->assertRedirect();
+    $this->post('/fisio/pacientes', fpcPayload($contato))->assertSessionHasNoErrors()->assertRedirect()
+        // A mensagem vai em `success`: o toast global (HandleInertiaRequests → flash.success) não lê string em `status`.
+        ->assertSessionHas('success', 'Paciente cadastrado.');
 
     $p = Patient::query()->where('contact_id', $contato)->firstOrFail();
     expect((int) $p->business_id)->toBe($this->b98)

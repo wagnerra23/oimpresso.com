@@ -40,6 +40,7 @@ e o que a produção fez por último.
 - "Acontecendo agora": os eventos da produção da empresa, sem os que falam de uma pessoa — UC-PCV-29.
 - Carga das máquinas hoje: horas das etapas previstas para hoje ÷ horas do dia do posto.
 - É a entrada do item Produção no menu (vista inicial do protótipo).
+- Se a carga dos dados falha, a tela mostra o erro com "Tentar de novo" no lugar do esqueleto — UC-PCPNL-01.
 - Na fila de arte, "Reenviar link" (aguardando) e "Enviar nova prova" (ajuste pedido, com o link do arquivo
   novo) geram link novo e o anterior deixa de valer; com WhatsApp ligado o cliente recebe, senão o link aparece
   para mandar à mão — UC-PCART-07. Liberado por [W] em 2026-10-27 (antes era Non-Goal: o banco só guarda o hash).

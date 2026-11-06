@@ -68,6 +68,8 @@ on:
       - 'Modules/Connector/Routes/api.php'
       - 'Modules/Connector/Config/config.php'
       - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+      - 'tests/Feature/LegacyMigration/**'
+      - 'database/migrations/2026_11_02_220000_create_legacy_archive_rows_table.php'
       - 'app/Providers/AuthServiceProvider.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/officeimpresso-pest.yml'
@@ -110,6 +112,8 @@ jobs:
               - 'Modules/Connector/Routes/api.php'
               - 'Modules/Connector/Config/config.php'
               - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+              - 'tests/Feature/LegacyMigration/**'
+              - 'database/migrations/2026_11_02_220000_create_legacy_archive_rows_table.php'
               - 'app/Providers/AuthServiceProvider.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/officeimpresso-pest.yml'
@@ -162,7 +166,8 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
-            tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php
+            tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php \
+            tests/Feature/LegacyMigration/LegacyArchiveRowsContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

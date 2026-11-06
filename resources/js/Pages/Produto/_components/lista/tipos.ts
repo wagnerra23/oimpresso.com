@@ -270,6 +270,16 @@ export interface DetalheProdutoDados {
    * null junto com `estoque`. Os três valores são null sem `view_product_stock_value` (não é zero).
    */
   estoque_totais: Omit<RelatorioEstoqueLista['totais'], 'em'> | null;
+  /**
+   * UC-PIDX-41 (D8): vendido nos últimos 90 dias (vendas finalizadas menos devoluções, a conta do
+   * "Total vendido" do relatório). null junto com `estoque`.
+   */
+  vendido_90_dias?: number | null;
+  /**
+   * UC-PIDX-41 (D8): as 3 últimas compras recebidas, da mais nova para a mais antiga. null junto com
+   * `estoque` ou sem `purchase.view`; [] = nenhuma compra recebida.
+   */
+  ultimas_compras?: UltimaCompraDoProduto[] | null;
   fiscal: {
     ncm: string;
     cest: string;
@@ -298,6 +308,17 @@ export interface DetalheProdutoDados {
   precos_propostos?: PrecoPropostoDoProduto[];
   /** UC-PIDX-30: ausente sem permissão de ver requisições; null = nenhuma aberta. */
   requisicao?: RequisicaoAberta | null;
+}
+
+/** UC-PIDX-41 (D8): uma compra recebida do produto. `quantidade` na unidade do cadastro. */
+export interface UltimaCompraDoProduto {
+  id: number;
+  numero: string;
+  data: string;
+  fornecedor: string | null;
+  local: string;
+  quantidade: number;
+  url: string;
 }
 
 export interface Opcao {

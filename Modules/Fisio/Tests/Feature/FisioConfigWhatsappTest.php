@@ -52,7 +52,12 @@ it('UC-FCW-01 · a tela abre com o estado do número do módulo e sem escolha gr
 it('UC-FCW-02 · "Pelo meu WhatsApp" desliga o envio automático mesmo com número conectado', function () {
     expect(fcwAtivo($this->b98))->toBeTrue();
     F::como($this, $this->u98);
-    $this->put('/fisio/configuracoes/whatsapp', $this->corpo)->assertSessionHasNoErrors();
+    $this->put('/fisio/configuracoes/whatsapp', $this->corpo)->assertSessionHasNoErrors()
+        ->assertSessionHas('success', 'Configuração do WhatsApp salva.');
+
+    // O toast global lê `flash.success` das props compartilhadas; com a mensagem em `status` (string) ele saía null.
+    $this->get('/fisio/configuracoes/whatsapp')->assertOk()
+        ->assertInertia(fn (AssertableInertia $p) => $p->where('flash.success', 'Configuração do WhatsApp salva.'));
 
     expect(fcwAtivo($this->b98))->toBeFalse();
     expect(app(CanalDaClinica::class)->ritmo($this->b98))
