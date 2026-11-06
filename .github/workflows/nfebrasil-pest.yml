@@ -359,6 +359,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesErroTecnicoTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesEscritaEntreEmpresasTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoGatesContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php \
             Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php \
@@ -380,6 +381,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ApuracaoDasTest.php \
             Modules/Fiscal/Tests/Feature/DasControllerTest.php \
             Modules/Fiscal/Tests/Feature/FiscalPacoteGateTest.php \
+            Modules/Fiscal/Tests/Feature/HabilitarBusinessDryRunTest.php \
             Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
             Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php \
             Modules/Fiscal/Tests/Feature/TrocaAmbienteCerimoniaTest.php \
