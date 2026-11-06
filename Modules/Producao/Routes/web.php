@@ -11,6 +11,7 @@ use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\LinhaController;
 use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
+use Modules\Producao\Http\Controllers\OrdemFichaController;
 use Modules\Producao\Http\Controllers\OrdemMaterialController;
 use Modules\Producao\Http\Controllers\OrdemSituacaoController;
 use Modules\Producao\Http\Controllers\PainelController;
