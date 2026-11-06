@@ -85,14 +85,20 @@ final class FichaDaOrdem
         return ['itens' => $itens, 'falta' => $ordem->currentStage?->key === 'aguardando_material' ? $this->falta->daOrdem($businessId, $ordem) : []];
     }
 
-    /** @return list<array<string, mixed>> */
+    /**
+     * Um item por envio, do mais novo ao mais antigo. A versão é a GRAVADA no envio (UC-PCART-09, VersaoDaArte): sobe
+     * só quando o arquivo muda, então o "Reenviar link" do mesmo arquivo aparece com o mesmo número, igual ao que o
+     * operador vê no celular. Contar os envios faria o reenvio virar versão nova.
+     *
+     * @return list<array<string, mixed>>
+     */
     public function artes(int $businessId, int $ordemId): array
     {
         $pedidos = DB::table('pcp_aprovacoes_arte')->where('business_id', $businessId)->where('ordem_id', $ordemId)
-            ->orderByDesc('id')->get(['id', 'arquivo', 'decisao', 'comentario', 'decidido_em', 'created_at']);
+            ->orderByDesc('id')->get(['id', 'arquivo', 'versao', 'decisao', 'comentario', 'decidido_em', 'created_at']);
         $vigente = $pedidos->where('decisao', 'aprovada')->sortByDesc('decidido_em')->first()?->id;
 
-        return $pedidos->values()->map(fn ($p, $i) => ['versao' => $pedidos->count() - $i, 'arquivo' => (string) $p->arquivo,
+        return $pedidos->values()->map(fn ($p) => ['id' => (int) $p->id, 'versao' => (int) $p->versao, 'arquivo' => (string) $p->arquivo,
             'decisao' => $p->decisao, 'comentario' => $p->comentario, 'enviada_em' => substr((string) $p->created_at, 0, 16),
             'decidida_em' => $p->decidido_em !== null ? substr((string) $p->decidido_em, 0, 16) : null, 'vigente' => $p->id === $vigente])->all();
     }
