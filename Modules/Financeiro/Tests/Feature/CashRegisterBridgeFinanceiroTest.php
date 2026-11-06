@@ -65,7 +65,7 @@ beforeEach(function () {
         DB::table('fin_contas_bancarias')->insert([
             'business_id' => $this->biz, 'account_id' => $accountId, 'tipo_conta' => 'caixa',
             'banco_codigo' => '000', 'agencia' => '0', 'carteira' => '-',
-            'beneficiario_documento' => '00.000.000/0000-00', 'beneficiario_razao_social' => 'Test',
+            'beneficiario_documento' => '00.000.000/0000-00', 'beneficiario_razao_social' => 'Test', // pii-allowlist — placeholder de teste
             'ativo_para_boleto' => false, 'created_at' => now(), 'updated_at' => now(),
         ]);
     }
