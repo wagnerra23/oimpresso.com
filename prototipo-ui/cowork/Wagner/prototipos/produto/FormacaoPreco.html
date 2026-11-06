@@ -136,7 +136,7 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
       <div class="ph-l">
         <p class="ph-ctx" id="ctx">Produtos › Lona 440g › Formação de preço</p>
         <h1 class="ph-h1" id="h1">Formação de preço</h1>
-        <p class="ph-sub" id="sub">O preço sai do custo, do imposto da DAS, da comissão, das despesas e do lucro que você quer.</p>
+        <p class="ph-sub" id="sub">O preço sai do custo com a perda, do imposto da DAS, das comissões, das despesas e do lucro que você quer.</p>
       </div>
     </div>
     <nav class="tabs" aria-label="Partes do protótipo">
@@ -158,6 +158,7 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
       <div class="seg" role="group" aria-label="Exemplo">
         <button type="button" data-ex="lona" aria-pressed="true">Lona 440g (mercadoria)</button>
         <button type="button" data-ex="banner">Banner por m² (sem custo)</button>
+        <button type="button" data-ex="placa">Placa ACM (perda e representante)</button>
         <button type="button" data-ex="pendente">Natureza a decidir</button>
       </div>
     </div>
@@ -169,6 +170,9 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
           <div class="fld"><label for="f-custo">Custo</label>
             <div class="inp-wrap"><span class="suf">R$</span><input class="inp num" id="f-custo" inputmode="decimal"></div>
             <small>O custo do cadastro.</small></div>
+          <div class="fld"><label for="f-perda">Perda na produção</label>
+            <div class="inp-wrap"><input class="inp num" id="f-perda" inputmode="decimal"><span class="suf">%</span></div>
+            <small>Sobre o custo. Com receita na Fabricação, já vem dela.</small></div>
           <div class="fld"><label for="f-fixo">Valores fixos por unidade</label>
             <div class="inp-wrap"><span class="suf">R$</span><input class="inp num" id="f-fixo" inputmode="decimal"></div>
             <small>Ex.: embalagem, frete por peça.</small></div>
@@ -181,6 +185,12 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
           <div class="fld"><label for="f-com">Comissão do vendedor</label>
             <div class="inp-wrap"><input class="inp num" id="f-com" inputmode="decimal"><span class="suf">%</span></div>
             <small>Da regra de comissão do produto.</small></div>
+          <div class="fld"><label for="f-rep">Comissão do representante</label>
+            <div class="inp-wrap"><input class="inp num" id="f-rep" inputmode="decimal"><span class="suf">%</span></div>
+            <small>Representante externo que vende o produto.</small></div>
+          <div class="fld"><label for="f-ag">Comissão da agência</label>
+            <div class="inp-wrap"><input class="inp num" id="f-ag" inputmode="decimal"><span class="suf">%</span></div>
+            <small>Agência que indica o cliente.</small></div>
           <div class="fld"><label for="f-desp">Despesas fixas</label>
             <div class="inp-wrap"><input class="inp num" id="f-desp" inputmode="decimal"><span class="suf">%</span></div>
             <small>Padrão da empresa, ajustável aqui.</small></div>
@@ -191,7 +201,7 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
             <div class="inp-wrap"><span class="suf">R$</span><input class="inp num" id="f-atual" inputmode="decimal"></div>
             <small>O que está no cadastro hoje.</small></div>
         </div>
-        <p class="help">Imposto, comissão, despesas e lucro são percentuais do <b>preço de venda</b>. Por isso a conta divide o custo por (1 − a soma dos %), em vez de somar os % em cima do custo.</p>
+        <p class="help">Imposto, comissões, despesas e lucro são percentuais do <b>preço de venda</b>. Por isso a conta divide o custo por (1 − a soma dos %), em vez de somar os % em cima do custo. A perda é diferente: é material que se perde na produção, então aumenta o <b>custo</b> (custo × (1 + perda)), como já faz a receita da Fabricação.</p>
       </div>
 
       <div class="card" id="resultado" aria-live="polite"></div>
@@ -261,31 +271,35 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
 
   // Markup divisor: preço = (custo + fixos) ÷ (1 − Σ%)
   function formar(d){
-    const soma=(d.imp+d.com+d.desp+d.lucro)/100;
+    const soma=(d.imp+d.com+d.rep+d.ag+d.desp+d.lucro)/100;
     if(soma>=1) return {erro:"soma"};
-    const base=d.custo+d.fixo;
+    const perdaV=r2(d.custo*d.perda/100);
+    const base=r2(d.custo+perdaV+d.fixo);
     const preco=r2(base/(1-soma));
-    return {preco,soma,
-      imp:r2(preco*d.imp/100),com:r2(preco*d.com/100),desp:r2(preco*d.desp/100),lucro:r2(preco*d.lucro/100),base};
+    return {preco,soma,perdaV,
+      imp:r2(preco*d.imp/100),com:r2(preco*d.com/100),rep:r2(preco*d.rep/100),ag:r2(preco*d.ag/100),
+      desp:r2(preco*d.desp/100),lucro:r2(preco*d.lucro/100),base};
   }
   // Sem custo: a conta ao contrário, a partir do preço atual.
   function decompor(d){
     const p=d.atual;
-    const imp=r2(p*d.imp/100),com=r2(p*d.com/100),desp=r2(p*d.desp/100);
+    const imp=r2(p*d.imp/100),com=r2(p*(d.com+d.rep+d.ag)/100),desp=r2(p*d.desp/100);
     const sobra=r2(p-imp-com-desp-d.fixo);
     return {p,imp,com,desp,fixo:d.fixo,sobra,sobraPct:p?sobra/p*100:0};
   }
 
   const exemplos={
-    lona:{custo:"100,00",fixo:"0,00",nat:"mercadoria",com:"2,00",desp:"0,00",lucro:"20,00",atual:"135,00",nome:"Lona 440g"},
-    banner:{custo:"0,00",fixo:"0,00",nat:"servico",com:"2,00",desp:"10,00",lucro:"20,00",atual:"89,90",nome:"Banner por m²"},
-    pendente:{custo:"48,00",fixo:"0,00",nat:"pendente",com:"0,00",desp:"0,00",lucro:"25,00",atual:"79,90",nome:"Placa ACM 3mm"},
+    lona:{custo:"100,00",perda:"0,00",fixo:"0,00",nat:"mercadoria",com:"2,00",rep:"0,00",ag:"0,00",desp:"0,00",lucro:"20,00",atual:"135,00",nome:"Lona 440g"},
+    banner:{custo:"0,00",perda:"0,00",fixo:"0,00",nat:"servico",com:"2,00",rep:"0,00",ag:"5,00",desp:"10,00",lucro:"20,00",atual:"89,90",nome:"Banner por m²"},
+    placa:{custo:"48,00",perda:"10,00",fixo:"0,00",nat:"mercadoria",com:"3,00",rep:"5,00",ag:"0,00",desp:"10,00",lucro:"20,00",atual:"95,00",nome:"Placa ACM 3mm"},
+    pendente:{custo:"48,00",perda:"0,00",fixo:"0,00",nat:"pendente",com:"0,00",rep:"0,00",ag:"0,00",desp:"0,00",lucro:"25,00",atual:"79,90",nome:"Totem MDF"},
   };
   let exAtual="lona", confirmando=false;
 
   function carregar(k){
     exAtual=k;confirmando=false;const e=exemplos[k];
-    $("f-custo").value=e.custo;$("f-fixo").value=e.fixo;$("f-nat").value=e.nat;$("f-com").value=e.com;
+    $("f-custo").value=e.custo;$("f-perda").value=e.perda;$("f-fixo").value=e.fixo;$("f-nat").value=e.nat;$("f-com").value=e.com;
+    $("f-rep").value=e.rep;$("f-ag").value=e.ag;
     $("f-desp").value=e.desp;$("f-lucro").value=e.lucro;$("f-atual").value=e.atual;
     $("ctx").textContent="Produtos › "+e.nome+" › Formação de preço";
     document.querySelectorAll("[data-ex]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.ex===k)));
@@ -297,7 +311,8 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
     const imp=nat==="mercadoria"?u.merc:nat==="servico"?u.serv:0;
     $("f-imp").value=nat==="pendente"?"—":num(imp);
     $("f-imp-help").textContent=nat==="pendente"?"Defina a natureza para saber o imposto.":"DAS de "+u.comp+", "+(nat==="mercadoria"?"mercadoria":"serviço")+".";
-    return {custo:ler($("f-custo").value),fixo:ler($("f-fixo").value),nat,imp,com:ler($("f-com").value),
+    return {custo:ler($("f-custo").value),perda:ler($("f-perda").value),fixo:ler($("f-fixo").value),nat,imp,com:ler($("f-com").value),
+      rep:ler($("f-rep").value),ag:ler($("f-ag").value),
       desp:ler($("f-desp").value),lucro:ler($("f-lucro").value),atual:ler($("f-atual").value)};
   }
 
@@ -320,24 +335,24 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
       out.innerHTML='<h2 class="sec">Para onde vai o preço atual</h2>'
         +'<div class="alert info"><div><b>Este produto não tem custo no cadastro</b> (preço por m², por exemplo). Em vez de sugerir um preço, a tela mostra quanto do preço atual vai para imposto, comissão e despesas, e quanto sobra.</div></div>'
         +'<div class="big"><span class="lbl">Sobra por unidade</span><span class="val" style="color:'+(ruim?"var(--neg)":"var(--pos)")+'">'+brl.format(x.sobra)+'</span><span class="dim" style="font-size:12.5px">'+pct(x.sobraPct)+' do preço de '+brl.format(x.p)+'</span></div>'
-        +barra([["imp",x.imp,"Imposto"],["com",x.com,"Comissão"],["desp",x.desp,"Despesas"],["lucro",Math.max(0,x.sobra),"Sobra"]],x.p)
-        +'<div class="tbl-wrap"><table><tbody>'+linha("Preço atual",x.p)+linha("Imposto ("+pct(d.imp)+")",-x.imp)+linha("Comissão ("+pct(d.com)+")",-x.com)+linha("Despesas fixas ("+pct(d.desp)+")",-x.desp)+(x.fixo?linha("Valores fixos",-x.fixo):"")+'</tbody><tfoot><tr><td>Sobra</td><td class="r num">'+brl.format(x.sobra)+'</td><td class="r num">'+pct(x.sobraPct)+'</td></tr></tfoot></table></div>'
+        +barra([["imp",x.imp,"Imposto"],["com",x.com,"Comissões"],["desp",x.desp,"Despesas"],["lucro",Math.max(0,x.sobra),"Sobra"]],x.p)
+        +'<div class="tbl-wrap"><table><tbody>'+linha("Preço atual",x.p)+linha("Imposto ("+pct(d.imp)+")",-x.imp)+linha("Comissões ("+pct(d.com+d.rep+d.ag)+")",-x.com)+linha("Despesas fixas ("+pct(d.desp)+")",-x.desp)+(x.fixo?linha("Valores fixos",-x.fixo):"")+'</tbody><tfoot><tr><td>Sobra</td><td class="r num">'+brl.format(x.sobra)+'</td><td class="r num">'+pct(x.sobraPct)+'</td></tr></tfoot></table></div>'
         +'<p class="help">O lucro desejado ('+pct(d.lucro)+') fica de comparação: '+(x.sobraPct>=d.lucro?"a sobra atinge o desejado.":"a sobra está abaixo do desejado.")+'</p>';
       return;
     }
     const f=formar(d);
     if(f.erro){
-      out.innerHTML='<h2 class="sec">Preço sugerido</h2><div class="alert neg"><div><b>Não existe preço possível.</b> Imposto, comissão, despesas e lucro somam '+pct(d.imp+d.com+d.desp+d.lucro)+' do preço. Com 100% ou mais, não sobra nada para cobrir o custo. Diminua algum dos percentuais.</div></div>';
+      out.innerHTML='<h2 class="sec">Preço sugerido</h2><div class="alert neg"><div><b>Não existe preço possível.</b> Imposto, comissões, despesas e lucro somam '+pct(d.imp+d.com+d.rep+d.ag+d.desp+d.lucro)+' do preço. Com 100% ou mais, não sobra nada para cobrir o custo. Diminua algum dos percentuais.</div></div>';
       return;
     }
-    const lucroAtual=d.atual?r2(d.atual-f.base-d.atual*(d.imp+d.com+d.desp)/100):0;
+    const lucroAtual=d.atual?r2(d.atual-f.base-d.atual*(d.imp+d.com+d.rep+d.ag+d.desp)/100):0;
     const lucroAtualPct=d.atual?lucroAtual/d.atual*100:0;
     const dif=r2(f.preco-d.atual);
-    const somaCusto=r2(f.base*(1+(d.imp+d.com+d.desp+d.lucro)/100));
+    const somaCusto=r2(f.base*(1+(d.imp+d.com+d.rep+d.ag+d.desp+d.lucro)/100));
     out.innerHTML='<h2 class="sec">Preço sugerido</h2>'
       +'<div class="big"><span class="lbl">Com '+pct(d.lucro)+' de lucro sobre o preço</span><span class="val">'+brl.format(f.preco)+'</span><span class="dim mono" style="font-size:12px">'+num(f.base)+' ÷ (1 − '+num(f.soma)+') = '+num(f.preco)+'</span></div>'
-      +barra([["custo",f.base,"Custo"],["imp",f.imp,"Imposto"],["com",f.com,"Comissão"],["desp",f.desp,"Despesas"],["lucro",f.lucro,"Lucro"]],f.preco)
-      +'<div class="tbl-wrap"><table><tbody>'+linha("Custo"+(d.fixo?" + valores fixos":""),f.base,f.base/f.preco*100)+linha("Imposto do Simples",f.imp,d.imp)+linha("Comissão",f.com,d.com)+(d.desp?linha("Despesas fixas",f.desp,d.desp):"")+linha("Lucro",f.lucro,d.lucro)+'</tbody><tfoot><tr><td>Preço sugerido</td><td class="r num">'+brl.format(f.preco)+'</td><td class="r num">100,00%</td></tr></tfoot></table></div>'
+      +barra([["custo",f.base,"Custo"],["imp",f.imp,"Imposto"],["com",r2(f.com+f.rep+f.ag),"Comissões"],["desp",f.desp,"Despesas"],["lucro",f.lucro,"Lucro"]],f.preco)
+      +'<div class="tbl-wrap"><table><tbody>'+linha("Custo",d.custo,d.custo/f.preco*100)+(f.perdaV?linha("Perda na produção ("+pct(d.perda)+" do custo)",f.perdaV,f.perdaV/f.preco*100):"")+(d.fixo?linha("Valores fixos",d.fixo,d.fixo/f.preco*100):"")+linha("Imposto do Simples",f.imp,d.imp)+linha("Comissão do vendedor",f.com,d.com)+(d.rep?linha("Comissão do representante",f.rep,d.rep):"")+(d.ag?linha("Comissão da agência",f.ag,d.ag):"")+(d.desp?linha("Despesas fixas",f.desp,d.desp):"")+linha("Lucro",f.lucro,d.lucro)+'</tbody><tfoot><tr><td>Preço sugerido</td><td class="r num">'+brl.format(f.preco)+'</td><td class="r num">100,00%</td></tr></tfoot></table></div>'
       +'<div class="cmp"><span class="k">Preço atual</span><span></span><span class="v">'+brl.format(d.atual)+'</span>'
       +'<span class="k">Lucro com o preço atual</span><span></span><span class="v" style="color:'+(lucroAtualPct<d.lucro?"var(--warn)":"var(--pos)")+'">'+brl.format(lucroAtual)+' · '+pct(lucroAtualPct)+'</span>'
       +'<span class="k">Se somasse os % sobre o custo</span><span></span><span class="v dim">'+brl.format(somaCusto)+'</span></div>'
@@ -402,7 +417,7 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
   $("l-todos").onchange=e=>{produtosLote.forEach((p,i)=>{if(p.pol!=="Preço fixo"){e.target.checked?selecionados.add(i):selecionados.delete(i)}});confirmandoLote=false;desenharLote()};
 
   // ---- Navegação
-  const TITULOS={produto:["Formação de preço","O preço sai do custo, do imposto da DAS, da comissão, das despesas e do lucro que você quer."],
+  const TITULOS={produto:["Formação de preço","O preço sai do custo com a perda, do imposto da DAS, das comissões, das despesas e do lucro que você quer."],
     empresa:["Alíquota do Simples","Configurações › Fiscal. A formação de preço usa a alíquota da última competência."],
     lote:["Reajuste em lote","Quando a alíquota muda, estes produtos ficam com outro preço sugerido."]};
   function mostrar(){
@@ -415,7 +430,7 @@ tfoot td{font-weight:600;border-top:1px solid var(--border)}
   }
   window.addEventListener("hashchange",mostrar);
   document.querySelectorAll("[data-ex]").forEach(b=>b.onclick=()=>carregar(b.dataset.ex));
-  ["f-custo","f-fixo","f-nat","f-com","f-desp","f-lucro","f-atual"].forEach(id=>$(id).addEventListener("input",()=>{confirmando=false;calcular()}));
+  ["f-custo","f-perda","f-fixo","f-nat","f-com","f-rep","f-ag","f-desp","f-lucro","f-atual"].forEach(id=>$(id).addEventListener("input",()=>{confirmando=false;calcular()}));
   $("f-nat").addEventListener("change",()=>{confirmando=false;calcular()});
 
   desenharEmpresa();desenharLote();carregar("lona");mostrar();
