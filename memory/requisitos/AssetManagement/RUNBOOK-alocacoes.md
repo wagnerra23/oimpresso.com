@@ -68,6 +68,14 @@ Ver `preconditions` no frontmatter. O que mais morde na prática:
 
 **Esta onda entrega a LISTAGEM migrada — leitura pura.** Nada aqui grava.
 
+> **Atualização 2026-11-05 (medido em `origin/main`).** A onda de escrita veio depois (thread
+> 18, 2026-09-30): alocar, editar e devolver são drawers da própria tela
+> (`_alocacoes/Drawers.tsx`), e o `create()`/`edit()` do controller devolvem a tela com o
+> drawer aberto (`AssetAllocationController.php:327-335`, `:432`). A quantidade é postada por
+> `paraNumUf` (`_alocacoes/envio.ts:77`, `:96`), que resolve o vetor do `num_uf` descrito na §11
+> (UC-ALOC-06). O texto abaixo, desta seção e da §11, descreve a onda de 2026-09-08 e fica como
+> registro.
+
 O que **fica pra depois**, com o motivo (não é preguiça, é lei do projeto):
 
 | Adiado | Motivo |
@@ -148,7 +156,10 @@ sub-navegação.
   pt-BR). É o vetor do incidente de 2026-06-05. Esta onda **não posta quantidade**; a regra
   fica aqui para a onda que postar.
 - ❌ **NÃO remover o ramo do DataTables** — os modais de `create`/`edit` Blade recarregam a
-  tabela por ele.
+  tabela por ele. _(2026-09-08.)_ **Atualização 2026-11-05:** os modais Blade não existem mais
+  (`AssetAllocationController.php:327-331`, docblock do `create()`). O ramo
+  `ajax() && ! inertia()` (`:80`) ficou sem consumidor conhecido no código; se ele tem tráfego em
+  produção não foi medido. Removê-lo é decisão do lote de código, não deste RUNBOOK.
 - ❌ **NÃO derivar "prazo vencido" no cliente** a partir de `allocated_upto`: a comparação é
   feita no servidor, com o relógio dele.
 

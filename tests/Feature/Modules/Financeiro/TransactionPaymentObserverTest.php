@@ -91,10 +91,21 @@ it('biz sem fin_contas_bancarias permite TransactionPayment::create sem lançar 
         'created_at' => now(),
         'updated_at' => now(),
     ]);
+    // business_locations exige invoice_scheme_id e invoice_layout_id com FK: sem os dois
+    // o insert estourava 1452 e o caso morria antes de exercer o Observer (2026-11-05).
+    $schemeId = (int) DB::table('invoice_schemes')->insertGetId([
+        'business_id' => $bizId, 'name' => 'T', 'scheme_type' => 'blank', 'number_type' => 'sequential',
+        'is_default' => 1, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $layoutId = (int) DB::table('invoice_layouts')->insertGetId([
+        'business_id' => $bizId, 'name' => 'T', 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $locId = (int) DB::table('business_locations')->insertGetId([
         'business_id' => $bizId,
         'name' => 'L1',
         'location_id' => 'L0001',
+        'invoice_scheme_id' => $schemeId,
+        'invoice_layout_id' => $layoutId,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
@@ -119,11 +130,16 @@ it('biz sem fin_contas_bancarias permite TransactionPayment::create sem lançar 
 
     expect($tp->id)->toBeGreaterThan(0);
     expect(TransactionPayment::find($tp->id))->not->toBeNull();
-    // Sem conta no Financeiro: nenhuma TituloBaixa criada (no-op).
-    expect(TituloBaixa::query()
+    // Sem conta no Financeiro: desde a ADR 0175 a baixa É criada, com conta_bancaria_id
+    // NULL, para reconciliar depois (Adr0175ObserverContaOpcionalTest, que roda na lane,
+    // é o contrato). A versão antiga deste assert esperava zero baixas — o comportamento
+    // de antes da ADR — e caiu ao entrar na lane (run 42105379622, 2026-11-05).
+    $baixas = TituloBaixa::query()
         ->withoutGlobalScope(BusinessScopeImpl::class)
         ->where('transaction_payment_id', $tp->id)
-        ->count())->toBe(0);
+        ->get();
+    expect($baixas)->toHaveCount(1);
+    expect($baixas->first()->conta_bancaria_id)->toBeNull();
 });
 
 it('created cria TituloBaixa + atualiza Titulo + cria CaixaMovimento', function () {

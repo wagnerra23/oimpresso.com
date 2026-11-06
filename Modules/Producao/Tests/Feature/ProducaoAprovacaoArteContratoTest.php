@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCART-01..07 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
+// Cobre UC-PCART-01..08 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
 // e a trava da arte da thread 10 do playbook de Produção.
 
 use App\Utils\ModuleUtil;
@@ -352,5 +352,55 @@ it('UC-PCART-07 · OS de outra empresa não reenvia (404) e o link da 98 segue v
 
     $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte/reenviar", [])->assertNotFound();
     expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+    $this->get($this->url)->assertOk();
+});
+
+// ── UC-PCART-08 · só a prova mais recente da OS vale (auditoria Produção, eixo 5 P-01) ──
+
+it('UC-PCART-08 · nova prova vence o link anterior: aprovar o antigo é recusado (410) e a etapa fica pendente', function () {
+    $nova = app(AprovacaoArteService::class)->solicitar($this->b98, $this->ordem->id, $this->aprovacao->id,
+        'https://arquivos.exemplo.test/prova-banner-v2.png', $this->designer);
+
+    $this->post($this->url.'/aprovar')->assertStatus(410)->assertSee('venceu');
+    $antigo = AprovacaoArte::withoutGlobalScopes()->find($this->link['id']);
+    expect($antigo)->not->toBeNull()->and($antigo->decisao)->toBeNull()->and($antigo->expira_em->isPast())->toBeTrue()
+        ->and($this->aprovacao->fresh()->status)->toBe('pendente')
+        ->and(app(AprovacaoArteService::class)->arteVigente($this->b98, $this->ordem->id))->toBeNull();
+
+    // O cliente recusa a prova nova: o link antigo continua sem valer e a arte vigente não vira a prova antiga.
+    $this->post('/arte/'.$nova['token'].'/recusar', ['comentario' => 'Fonte maior'])->assertOk();
+    $this->post($this->url.'/aprovar')->assertStatus(410);
+    expect($this->aprovacao->fresh()->status)->toBe('pendente')
+        ->and(app(AprovacaoArteService::class)->arteVigente($this->b98, $this->ordem->id))->toBeNull();
+});
+
+it('UC-PCART-08 · recusar pelo link grava na empresa da prova, mesmo com o ERP logado noutra empresa', function () {
+    $alheio = $this->usuarioComPermissoes(['producao.access'], $this->B99);
+
+    $this->actingAs($alheio)->withSession(['user.business_id' => $this->b99])
+        ->post($this->url.'/recusar', ['comentario' => 'Trocar a cor do fundo'])->assertOk();
+
+    $nova = Programacao::withoutGlobalScopes()->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $this->ordem->id)
+        ->where('nome', 'Arte (alteração)')->first();
+    expect($nova)->not->toBeNull()->and((int) $nova->business_id)->toBe($this->b98)
+        ->and(AprovacaoArte::withoutGlobalScopes()->find($this->link['id'])->decisao)->toBe(AprovacaoArte::RECUSADA)
+        ->and(DB::table('pcp_eventos')->where('business_id', $this->b98)->where('tipo', AprovacaoArteService::EV_RECUSADA)
+            ->where('os_id', $this->ordem->id)->count())->toBe(1)
+        ->and(Programacao::withoutGlobalScopes()->where('business_id', $this->b99)->where('nome', 'Arte (alteração)')->exists())->toBeFalse();
+});
+
+it('UC-PCART-08 · outra empresa pedindo prova da OS da 98 recebe 404 e o link da 98 segue valendo', function () {
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+    $alheio = $this->usuarioComPermissoes(['producao.access'], $this->B99);
+
+    $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
+        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/z.png'])->assertNotFound();
+    expect(fn () => app(AprovacaoArteService::class)->solicitar($this->b99, $this->ordem->id, $this->aprovacao->id, 'https://x.test/z.png', $this->designer))
+        ->toThrow(fn (ApontamentoRecusado $e) => expect($e->codigo)->toBe(ApontamentoRecusado::NAO_ENCONTRADO));
+
+    expect(AprovacaoArte::withoutGlobalScopes()->find($this->link['id'])->expira_em->isFuture())->toBeTrue()
+        ->and(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+    auth()->logout();
     $this->get($this->url)->assertOk();
 });

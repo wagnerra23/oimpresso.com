@@ -20,7 +20,8 @@ use Tests\Support\EstoqueFixture;
  * (2) Σ (quantity − quantity_returned) das linhas de compras recebidas da variação no local.
  * Devolução por dois caminhos: (1) `final_total` do purchase_return; (2) 3 × 12,50 à mão.
  *
- * Tenant 98 (ADR 0358); adversário 99 ou o biz=2 do seed, nunca 1 nem 4.
+ * Tenant 98 (ADR 0358); adversário o cliente fictício 99, criado pelo próprio teste quando falta
+ * (seededSupportClientTenant); nunca 1 nem 4.
  *
  * @covers-uc UC-PURSHW-10 — resources/js/Pages/Purchase/Show.casos.md
  * @covers-uc UC-PURSHW-11 — resources/js/Pages/Purchase/Show.casos.md
@@ -140,10 +141,8 @@ it('UC-PURSHW-11 desligada por padrão: sem a chave a inspeção é recusada e o
 });
 
 it('UC-PURSHW-11 Tier 0: compra de outra empresa é recusada e o estoque dela não muda', function () {
-    $outra = (int) DB::table('business')->whereIn('id', [99, 2])->where('id', '!=', $this->biz)->orderByDesc('id')->value('id');
-    if ($outra <= 0) {
-        $this->markTestSkipped('Sem empresa adversária fictícia (99 ou 2) neste ambiente.');
-    }
+    $outra = (int) $this->seededSupportClientTenant()->id;
+    expect($outra)->toBe(99, 'adversário fictício 99 não foi criado');
     $this->svc->definir($outra, true);
 
     // A empresa adversária tem a chave ligada: a recusa vem do filtro por empresa, não da chave.
