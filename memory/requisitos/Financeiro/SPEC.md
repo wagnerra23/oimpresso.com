@@ -1923,11 +1923,13 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Implementado em:** `Modules/Financeiro/Observers/TransactionObserver.php` · `Modules/Financeiro/Observers/TransactionPaymentObserver.php` · `Modules/Financeiro/Tests/Feature/ObserverNaoDerrubaVendaContratoTest.php` (2026-11-05) — os dois observers rodam o trabalho num `DB::transaction` próprio (savepoint dentro da transação do core) e num try/catch com `report()`; a venda e o pagamento são gravados e o que o espelho gravou pela metade é desfeito. Acceptance 2 (Job `afterCommit`) não feito: mudaria o momento em que o título aparece para os testes e as telas que o leem logo depois da venda; fica o resíduo do deadlock do MySQL, que desfaz a transação inteira e não só o savepoint.
 
+**Testado em:** `Modules/Financeiro/Tests/Feature/ObserverNaoDerrubaVendaContratoTest.php` (lane `PHP / Pest (Financeiro · MySQL)`).
+
 **Origem:** auditoria de saúde/integridade 2026-06-21 (risco #5). Complementa `US-FIN-040` (health-check detecta gaps da bridge).
 
 **Achado:** `TransactionObserver` e `TransactionPaymentObserver` chamam o `TituloAutoService` **síncrono, SEM try/catch** (grep confirmou zero). Uma exceção no espelho Financeiro (deadlock de numeração, constraint, contact malformado) propaga pro `App\Transaction::save()` e **estoura o commit do core UltimatePOS** — exatamente o BUG-2 que bloqueou pagamentos da Larissa. Só o caminho CashRegister tem o try/catch protetor. Financeiro é módulo OPCIONAL derrubando o fluxo de venda do core.
 
-**Acceptance:**
+**Aceite:**
 - Envolver as chamadas dos 2 Observers em try/catch que loga + `report()` e **nunca** propaga (espelhar o Listener do CashRegister).
 - Idealmente mover a sincronização para Job em fila `afterCommit`.
 - **Caveat antes de codar:** confirmar se o `save()` do core roda dentro de `DB::transaction` (se rodar, o rollback abrange o título e a severidade muda).

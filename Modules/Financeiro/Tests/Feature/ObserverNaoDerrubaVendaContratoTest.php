@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-FIN-059
+
 use App\Transaction;
 use App\TransactionPayment;
 use App\User;
