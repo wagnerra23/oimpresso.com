@@ -1864,6 +1864,8 @@ class ProductController extends Controller
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
                 'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
+                // O botão "Salvar e adicionar estoque inicial" do rodapé, como o @can do create.blade.php.
+                'podeEstoqueInicial' => (bool) auth()->user()?->can('product.opening_stock'),
             ]);
         }
 
@@ -2133,6 +2135,13 @@ class ProductController extends Controller
         }
 
         if ($request->input('submit_type') == 'submit_n_add_opening_stock') {
+            // A tela de estoque inicial é Blade. Num envio pela tela React (visita Inertia), o 302 traria
+            // o HTML dela para dentro da página; Inertia::location faz o navegador abrir a página inteira.
+            // O envio pelo Blade segue com o mesmo redirect de sempre (Create.charter.md, exceção 2026-11-06).
+            if ($request->header('X-Inertia')) {
+                return Inertia::location(action([\App\Http\Controllers\OpeningStockController::class, 'add'], ['product_id' => $product->id]));
+            }
+
             return redirect()->action([\App\Http\Controllers\OpeningStockController::class, 'add'],
                 ['product_id' => $product->id]
             );
