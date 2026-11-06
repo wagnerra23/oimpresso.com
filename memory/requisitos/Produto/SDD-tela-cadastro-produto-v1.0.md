@@ -1176,6 +1176,36 @@ volta para uma margem alvo.
   (`TEM_MARGEM_FIXA_CONTIBUICAO`) precisa ser refeita para eles.
 - **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
 
+#### CU-PROD-22 — Card Produção: o roteiro do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
+
+<!-- curado: ADR 0436 item 3 · Producao/Roteiros/Index.casos.md (UC-PCROT-02) · medição do código em 2026-11-06 -->
+
+*Dado* um produto que pode virar OS; *quando* abro o Editar; *então* vejo, só para ler, qual roteiro
+de produção ele segue, e um link para a tela de Roteiros.
+
+- **No protótipo** (`produto-blade-forms.jsx`, card "Produção", só no Editar): com roteiro, "Impressão
+  digital + acabamento · 4 etapas" e "Ver o roteiro"; sem roteiro, "Sem roteiro próprio · usa as etapas
+  de produção do modelo da empresa" e "Abrir Roteiros". Não aparece para composição nem para serviço.
+- **O que o sistema já tem (medido em 2026-11-06):**
+  1. ✅ A ligação produto → roteiro existe (`pcp_produto_roteiro`, por empresa) e é editada em Produção →
+     Roteiros (`RoteirosController`).
+  2. 🔴 **Sem roteiro, o produto não vira OS.** A ADR 0436 (item 3) diz que, sem roteiro, valem as
+     etapas do modelo da empresa, mas isso ainda não existe: o contrato de hoje é o `UC-PCROT-02`
+     ("produto sem roteiro não vira OS"). O texto do protótipo para o produto sem roteiro seria falso na
+     tela.
+- 🔶 **Decisão do [W] (proposta de 2026-11-06).** **Opções:** **(A)** o card entra já, só leitura, com o
+  texto de hoje para o produto sem roteiro: "Sem roteiro: este produto não vira OS. Para gerar OS, ligue
+  um roteiro em Produção → Roteiros"; quando a ADR 0436 item 3 entrar, o texto passa a ser o do
+  protótipo. **(B)** primeiro implementar a ADR 0436 item 3 (a OS usa as etapas do modelo da empresa) e
+  só depois pôr o card, com o texto do protótipo.
+  - **Recomendação: (A).** O card ajuda já, porque mostra a quem cadastra por que o produto não vira OS,
+    e não depende de mudar a criação da OS, que é do módulo Produção.
+  - O card aparece só no Editar, só para empresa com o módulo Produção no pacote, e não aparece para
+    composição nem para serviço, como no protótipo.
+  - **Se o [W] mergear o PR desta proposta, vale (A)** e o card entra num PR seguinte. Para (B), basta
+    comentar no PR.
+- **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+
 ### 6.2 Vertical comunicação visual (`CV`)
 
 #### CV-01 — Produto/material precificado por m² 🟡 *criar*
