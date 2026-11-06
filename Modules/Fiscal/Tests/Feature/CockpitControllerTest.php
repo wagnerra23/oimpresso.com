@@ -27,7 +27,7 @@ beforeEach(function () {
 });
 
 it('UC-FCKP-01 · GET /fiscal aborta 403 sem permission superadmin nem fiscal.access', function () {
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $this->actingAs($user);
 
     $response = $this->get('/fiscal');
@@ -35,11 +35,11 @@ it('UC-FCKP-01 · GET /fiscal aborta 403 sem permission superadmin nem fiscal.ac
 });
 
 it('UC-FCKP-02 · GET /fiscal renderiza Inertia component Fiscal/Cockpit com props canon', function () {
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
 
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $response = $this->get('/fiscal');
     $response->assertStatus(200);
@@ -53,11 +53,11 @@ it('UC-FCKP-02 · GET /fiscal renderiza Inertia component Fiscal/Cockpit com pro
 });
 
 it('UC-FCKP-03 · props.kpis tem shape canon (6 chaves obrigatorias)', function () {
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
 
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $response = $this->get('/fiscal');
     $response->assertInertia(
@@ -66,23 +66,26 @@ it('UC-FCKP-03 · props.kpis tem shape canon (6 chaves obrigatorias)', function 
                 'kpis',
                 fn ($kpis) => collect(['emitidas', 'autorizadas', 'autorizadasPct', 'rejeitadas',
                     'faturamentoFiscal', 'dfeAguardando', 'certificadoValidadeDias'])
-                    ->every(fn ($k) => array_key_exists($k, $kpis))
+                    ->every(fn ($k) => collect($kpis)->has($k)) // o Inertia entrega a prop como Collection
             )
     );
 });
 
 it('UC-FCKP-04 · props.alerts é array de items deterministicos (sem campos LLM tipo thought/reasoning)', function () {
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
 
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $response = $this->get('/fiscal');
     $response->assertInertia(
         fn ($page) => $page->where('alerts', function ($alerts) {
-            expect($alerts)->toBeArray();
-            foreach ($alerts as $a) {
+            // O Inertia entrega a prop como Collection; o contrato é uma LISTA de itens.
+            $lista = collect($alerts)->all();
+            expect(array_is_list($lista))->toBeTrue();
+            foreach ($lista as $a) {
+                $a = collect($a)->all();
                 expect($a)
                     ->toHaveKeys(['level', 'icon', 'title', 'sub', 'action', 'goto'])
                     ->and($a)->not->toHaveKey('thought')
@@ -213,7 +216,7 @@ function fckpAlertasComCert(?\Illuminate\Support\Carbon $validoAte): array
 }
 
 it('UC-FCKP-10 · cert vencido há 28 dias vira alerta crit (antes: fila muda)', function () {
-    $this->actingAs(\App\User::where('business_id', 1)->firstOrFail());
+    $this->actingAs(\App\User::where('business_id', 98)->firstOrFail());
 
     $shield = fckpAlertasComCert(now()->subDays(28));
 
@@ -224,7 +227,7 @@ it('UC-FCKP-10 · cert vencido há 28 dias vira alerta crit (antes: fila muda)',
 });
 
 it('UC-FCKP-10 · cert que vence HOJE não cai no vão entre vencido e vencendo', function () {
-    $this->actingAs(\App\User::where('business_id', 1)->firstOrFail());
+    $this->actingAs(\App\User::where('business_id', 98)->firstOrFail());
 
     $shield = fckpAlertasComCert(now());
 
@@ -234,7 +237,7 @@ it('UC-FCKP-10 · cert que vence HOJE não cai no vão entre vencido e vencendo'
 });
 
 it('UC-FCKP-10 · cert vencendo em 47d segue warn (guarda de regressão da banda antiga)', function () {
-    $this->actingAs(\App\User::where('business_id', 1)->firstOrFail());
+    $this->actingAs(\App\User::where('business_id', 98)->firstOrFail());
 
     $shield = fckpAlertasComCert(now()->addDays(47));
 
@@ -244,7 +247,7 @@ it('UC-FCKP-10 · cert vencendo em 47d segue warn (guarda de regressão da banda
 });
 
 it('UC-FCKP-10 · cert válido por 90d não polui a fila', function () {
-    $this->actingAs(\App\User::where('business_id', 1)->firstOrFail());
+    $this->actingAs(\App\User::where('business_id', 98)->firstOrFail());
 
     expect(fckpAlertasComCert(now()->addDays(90)))->toBeEmpty();
     expect(fckpAlertasComCert(null))->toBeEmpty();

@@ -146,11 +146,19 @@ class EventosController extends Controller
         ]);
     }
 
-    /** Gate de acesso — mesmo contrato de `index` e do export (R-FISCAL-003). */
+    /**
+     * Gate de acesso — mesmo contrato de `index` e do export (R-FISCAL-003).
+     *
+     * `fiscal.nfe.view`, a permissão da tela dona do dado: todo evento desta timeline é
+     * de uma `NfeEmissao` (FK `emissao_id` NOT NULL) e carrega justificativa de
+     * cancelamento e texto de CC-e. Até 2026-11-05 o gate era só `fiscal.access`, e quem
+     * a tela de notas recusava lia as mesmas notas por aqui e baixava em CSV
+     * (auditoria Fiscal 2026-11-05, lote 1.3).
+     */
     protected function autorizar(): void
     {
-        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.access')) {
-            abort(403, 'Sem permissão fiscal.access');
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.view')) {
+            abort(403, 'Sem permissão fiscal.nfe.view');
         }
     }
 

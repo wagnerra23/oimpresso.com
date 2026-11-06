@@ -17,7 +17,7 @@ last_run: "2026-08-17"
 Charter em **draft**. CRUD leve de tags que complementam o plano de contas.
 
 ## UC-CAT-01 — Criar categoria com cor e tipo
-Status: 🧪 (`tests/Feature/Modules/Financeiro/CategoriaCrudTest.php`)
+Status: 🧪 (`Modules/Financeiro/Tests/Feature/CategoriaCrudTest.php`)
 Quando o usuário salva o `CategoriaSheet` com nome, cor, tipo (receita/despesa/ambos) e plano opcional · Então a categoria nasce no business atual e aparece na lista.
 
 ## UC-CAT-02 — Editar categoria existente

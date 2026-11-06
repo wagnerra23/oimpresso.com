@@ -16,6 +16,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import EmptyState from '@/Components/shared/EmptyState';
 import KpiCard from '@/Components/shared/KpiCard';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
@@ -23,6 +24,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Skeleton } from '@/Components/ui/skeleton';
 import ProducaoAbas from '../_components/ProducaoAbas';
+import { useFalhaDoDeferido } from '../_lib/falhaDoDeferido';
 import AcaoDaProva from './_components/AcaoDaProva';
 
 interface Indicadores {
@@ -41,10 +43,20 @@ const h1 = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 }
 const quando = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7) + ' ' + iso.slice(11, 16);
 
 export default function PainelIndex(props: Props) {
+  const { falhou, tentarDeNovo } = useFalhaDoDeferido('painel', props.painel === undefined);
+  const carregando = <div className="pcv-body"><Skeleton className="h-24 w-full" /><Skeleton className="h-64 w-full" /></div>;
+  // UC-PCPNL-01: texto do estado "erro" do protótipo. Nada é gravado no Painel além da fila de arte, então "nada foi alterado" vale.
+  const erro = (
+    <div className="pcv-body">
+      <EmptyState variant="error" title="Não foi possível carregar a produção"
+        description="Nada foi alterado. Tente de novo; se continuar, os apontamentos do celular ficam guardados e entram quando voltar."
+        action={<Button className="min-h-11" onClick={tentarDeNovo}>Tentar de novo</Button>} />
+    </div>
+  );
   return (
     <div className="pcv-root" data-screen-label="Produção · Painel">
       <div className="pcv-ph" data-contract="cabecalho"><PageHeader title="Produção" suffix=" · Painel" below={<ProducaoAbas ativa="/producao/painel" />} /></div>
-      <Deferred data="painel" fallback={<div className="pcv-body"><Skeleton className="h-24 w-full" /><Skeleton className="h-64 w-full" /></div>}>
+      <Deferred data="painel" fallback={falhou ? erro : carregando}>
         {props.painel ? <Conteudo d={props.painel} /> : <div />}
       </Deferred>
     </div>

@@ -1,8 +1,11 @@
 <?php
 // @covers-us US-PCP-027
+// @covers-us US-PCP-007
+// @covers-us US-PCP-008
+// @covers-us US-PCP-009
 
 declare(strict_types=1);
-// Cobre, na camada HTTP da PWA, UC-PCV-19, UC-PCV-23, UC-PCV-34 e UC-PCREF-07 (UC-FLX-16) (Producao/Apontamento/Index.casos.md).
+// Cobre, na camada HTTP da PWA, UC-PCV-19, UC-PCV-23, UC-PCV-34, UC-PCREF-07 (UC-FLX-16) e UC-PCAPA-01 (Producao/Apontamento/Index.casos.md).
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -134,4 +137,46 @@ it('UC-PCREF-07 · UC-FLX-16 · a tela recebe os motivos de refugo da empresa 98
     expect($refugo)->not->toContain($pausa)->and($refugo)->not->toContain($inativo)->and($refugo)->not->toContain($alheio);
     // A pausa segue lendo só os seus: o motivo de refugo não aparece na lista de pausa.
     expect(array_column($doPosto($props['motivos']), 'id'))->toBe([$pausa]);
+});
+
+it('UC-PCAPA-01 · a linha rodando traz a última arte aprovada da OS; sem aprovada, aguardando; a de outra empresa não entra', function () {
+    $ordem = fn () => (int) DB::table('pcp_ordens')->insertGetId(['business_id' => $this->biz->id, 'transaction_id' => random_int(800000, 899999),
+        'transaction_sell_line_id' => random_int(1000000, 9999999), 'product_id' => 1, 'quantidade' => '1.0000', 'created_at' => now(), 'updated_at' => now()]);
+    [$aprovada, $esperando, $semArte] = [$ordem(), $ordem(), $ordem()];
+    $posto = fn (string $tipo) => (int) DB::table('pcp_postos')->insertGetId(['business_id' => $this->biz->id, 'codigo' => 'TELA-A-'.uniqid(), 'nome' => 'Plotter',
+        'tipo_custo' => $tipo, 'custo_hora' => '30.00', 'created_at' => now(), 'updated_at' => now()]);
+    $etapa = fn (int $os, int $postoId) => (int) DB::table('pcp_programacoes')->insertGetId(['business_id' => $this->biz->id, 'os_tipo' => 'pcp_ordem',
+        'os_id' => $os, 'posto_id' => $postoId, 'inicio_previsto' => '2026-10-15 08:00:00', 'fim_previsto' => '2026-10-15 09:00:00',
+        'user_id' => $this->diego->id, 'created_by' => $this->diego->id, 'created_at' => now(), 'updated_at' => now()]);
+    $abrir = fn (int $os, int $postoId, string $tipo, int $prog) => DB::table('pcp_apontamentos')->insert(['business_id' => $this->biz->id,
+        'chave_idempotencia' => 'tela-arte-'.uniqid(), 'tipo' => 'inicio', 'programacao_id' => $prog, 'os_tipo' => 'pcp_ordem', 'os_id' => $os,
+        'posto_id' => $postoId, 'tipo_custo' => $tipo, 'custo_hora' => '30.00', 'user_id' => $this->diego->id, 'iniciado_por' => $this->diego->id,
+        'momento' => '2026-10-15 09:30:00', 'origem' => 'manual', 'created_at' => now()]);
+    [$pessoa, $maquina] = [$posto('pessoa'), $posto('maquina')];
+    [$progA, $progB, $progC] = [$etapa($aprovada, $pessoa), $etapa($esperando, $maquina), $etapa($semArte, $maquina)];
+    $abrir($aprovada, $pessoa, 'pessoa', $progA);
+    $abrir($esperando, $maquina, 'maquina', $progB);
+    $abrir($semArte, $maquina, 'maquina', $progC);
+    $pedido = fn (int $biz, int $os, int $prog, string $arquivo, ?string $decisao, ?string $em, int $v = 1) => DB::table('pcp_aprovacoes_arte')->insert([
+        'business_id' => $biz, 'ordem_id' => $os, 'programacao_id' => $prog, 'arte_programacao_id' => $prog, 'token_hash' => hash('sha256', uniqid('', true)),
+        'arquivo' => $arquivo, 'versao' => $v, 'expira_em' => '2026-10-30 09:00:00', 'decisao' => $decisao, 'decidido_em' => $em, 'created_by' => $this->diego->id,
+        'created_at' => now(), 'updated_at' => now()]);
+    // v1 aprovada, v2 aprovada (vale), v3 em prova esperando o cliente: a troca não derruba a v2 (UC-PCV-11).
+    $pedido($this->biz->id, $aprovada, $progA, 'https://arquivos.exemplo.test/arte-v1.pdf', 'aprovada', '2026-10-14 10:00:00');
+    $pedido($this->biz->id, $aprovada, $progA, 'https://arquivos.exemplo.test/arte-v2.pdf', 'aprovada', '2026-10-14 15:00:00', 2);
+    $pedido($this->biz->id, $aprovada, $progA, 'https://arquivos.exemplo.test/arte-v3.pdf', null, null, 3);
+    $pedido($this->biz->id, $esperando, $progB, 'https://arquivos.exemplo.test/prova.pdf', null, null);
+    // Adversário: aprovação gravada na empresa 99 apontando para a OS da 98, mais nova que a v2. Não pode valer.
+    $pedido((int) $this->seededSupportClientTenant()->id, $aprovada, $progA, 'https://arquivos.exemplo.test/outra-empresa.pdf', 'aprovada', '2026-10-15 09:00:00');
+
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $artes = $this->actingAs($this->diego)->get('/producao/apontamento', ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Version' => (string) $versao, 'X-Inertia-Partial-Data' => 'artes', 'X-Inertia-Partial-Component' => 'Producao/Apontamento/Index'])
+        ->assertOk()->json('props.artes');
+
+    expect($artes[$aprovada]['estado'])->toBe('aprovada')
+        ->and($artes[$aprovada]['arquivo'])->toBe('https://arquivos.exemplo.test/arte-v2.pdf')
+        ->and($artes[$aprovada]['versao'])->toBe(2) // UC-PCART-09: a tela mostra "v2 · arte-v2.pdf"
+        ->and($artes[$esperando])->toBe(['estado' => 'aguardando', 'arquivo' => null, 'versao' => null, 'aprovada_em' => null])
+        ->and(array_key_exists($semArte, $artes))->toBeFalse();
 });

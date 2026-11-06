@@ -54,11 +54,46 @@ it('UC-FSPED-01 · agregação de períodos NfeEmissao respeita scope per busine
         $this->markTestSkipped('nfe_emissoes table missing');
     }
 
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    // Até 2026-11-06 este caso contava `NfeEmissao::where('business_id','!=',1)` sem usuário
+    // autenticado e sem semear nada: o escopo global no-opava e a contagem dava 0 por tabela
+    // vazia. Agora o painel de verdade (GET /fiscal/sped) é chamado com notas das duas empresas.
+    $tenant = $this->seededTenant();
+    $bizA = (int) $tenant->id;
+    $bizB = (int) $this->seededSupportClientTenant()->id;
+    $limpar = fn () => DB::table('nfe_emissoes')->where('serie', '937')
+        ->whereBetween('numero', [9_392_000, 9_392_999])->delete();
+    $nota = fn (int $biz, int $numero, float $valor) => DB::table('nfe_emissoes')->insert([
+        'business_id' => $biz, 'modelo' => '55', 'serie' => '937', 'numero' => $numero,
+        'status' => 'autorizada', 'valor_total' => $valor, 'emitido_em' => now(),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $doMes = fn (int $biz) => DB::table('nfe_emissoes')->where('business_id', $biz)
+        ->where('status', 'autorizada')
+        ->whereBetween('emitido_em', [now()->startOfMonth(), now()->endOfMonth()]);
 
-    $crossTenantCount = NfeEmissao::query()
-        ->where('business_id', '!=', 1)
-        ->count();
+    $limpar();
+    try {
+        $nota($bizA, 9_392_001, 10.00);
+        $nota($bizA, 9_392_002, 20.00);
+        $nota($bizB, 9_392_003, 500.00);
 
-    expect($crossTenantCount)->toBe(0, 'Agregação SPED scoped — nunca vaza outros businesses');
+        $esperadoA = $doMes($bizA)->count();
+        $valorA = (float) $doMes($bizA)->sum('valor_total');
+        // Pré-condição: a vizinha tem nota no mês, senão não há o que vazar.
+        expect($doMes($bizB)->count())->toBeGreaterThan(0);
+
+        $user = $this->usuarioComPermissoes(['fiscal.sped.export'], $tenant);
+        $this->actingAs($user)
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->get('/fiscal/sped')
+            ->assertStatus(200)
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('Fiscal/Sped')
+                    ->where('periodos.0.notasAutorizadas', $esperadoA)
+                    ->where('periodos.0.valorAutorizado', fn ($v) => abs((float) $v - $valorA) < 0.001),
+            );
+    } finally {
+        $limpar();
+    }
 });

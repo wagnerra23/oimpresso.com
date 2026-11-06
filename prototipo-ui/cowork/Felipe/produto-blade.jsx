@@ -67,7 +67,7 @@ const PRODUCTS = [
     variations: [v("Cor - Ciano", "PRD-0006-1", 540, 44, 777.6), v("Cor - Magenta", "PRD-0006-2", 540, 44, 777.6), v("Cor - Amarelo", "PRD-0006-3", 540, 44, 777.6), v("Cor - Preto", "PRD-0006-4", 496, 44, 714.2)], stock: 11 },
   { id: 7, name: "Ilhós metálico nº 12 (mil)", sku: "PRD-0007", type: "single", cat: "Acabamento", sub: "Ilhós", brand: "Sem marca", unit: "cx", tax: "Nenhum", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 5, notForSelling: true, active: true, weight: "2,40", locs: [1, 2], desc: "", fiscal: { ncm: "8308.10.00", cest: "", cfop: "5102", origem: "2" }, racks: { 1: { rack: "A1", row: "1", pos: "09" } },
     variations: [v("Padrão", "PRD-0007", 118, 90, 224.2)], stock: 3 },
-  { id: 8, name: "Perfil de alumínio 30x30", sku: "PRD-0008", type: "single", cat: "Insumos", sub: "Mídias", brand: "Sem marca", unit: "m", tax: "ICMS 18%", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 30, notForSelling: true, active: true, weight: "0,90", locs: [1], desc: "", fiscal: { ncm: "7604.21.00", cest: "", cfop: "5102", origem: "2" }, racks: {},
+  { id: 8, name: "Perfil de alumínio 30x30", sku: "PRD-0008", type: "single", cat: "Insumos", sub: "Mídias", brand: "Sem marca", unit: "m", tax: "ICMS 18%", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 30, notForSelling: true, active: true, weight: "0,90", locs: [1], desc: "", fiscal: { ncm: "", cest: "", cfop: "5102", origem: "2" }, racks: {},
     variations: [v("Padrão", "PRD-0008", 22, 70, 37.4)], stock: 186 },
   { id: 9, name: "Adesivo de recorte — vinil colorido", sku: "PRD-0009", type: "variable", cat: "Adesivos", sub: "Recorte", brand: "Avery", unit: "m²", tax: "ICMS 18%", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 20, notForSelling: false, active: true, weight: "0,16", locs: [1, 2], desc: "Vinil de recorte em 4 cores de estoque.", fiscal: { ncm: "3919.90.20", cest: "", cfop: "5102", origem: "2" }, racks: { 2: { rack: "C3", row: "2", pos: "05" } },
     variations: [v("Cor - Branco", "PRD-0009-1", 9.4, 320, 39.5), v("Cor - Preto", "PRD-0009-2", 9.4, 320, 39.5), v("Cor - Vermelho", "PRD-0009-3", 11.2, 300, 44.8), v("Cor - Azul", "PRD-0009-4", 11.2, 300, 44.8)], stock: 418 },
@@ -93,6 +93,12 @@ const priceSpan = (p, key) => {
 // (o mesmo teste do botão "Abrir no módulo Fiscal" na produção). `temAliquota` = a empresa cadastrou
 // alguma alíquota de imposto; sem nenhuma, todo produto fica em "Nenhum".
 const EMPRESA_PADRAO = { emiteNota: true, temAliquota: true };
+
+// UC-PIDX-42: NCM válido tem 8 dígitos e não é 00000000 (a regra da emissão e do card de Saúde fiscal).
+function ncmValido(ncm) {
+  const d = String(ncm || "").replace(/[^0-9]/g, "");
+  return d.length === 8 && d !== "00000000";
+}
 const impostoDe = (p, empresa) => (empresa.temAliquota ? p.tax : "Nenhum");
 const temImposto = (p, empresa) => taxRate(impostoDe(p, empresa)) > 0;
 // Preço com o imposto do produto: é o que a venda cobra, com nota ou sem (sell_price_inc_tax na
@@ -286,6 +292,18 @@ function kitsPorLocal(p) {
     return { local: l.name, kits, limita };
   });
 }
+// UC-PIDX-41 (D8): giro e últimas compras. O dado de mentira não tem vendas nem compras; números
+// determinísticos pelo id, só para a aba ter chão. O vivo lê das vendas finalizadas e das compras recebidas.
+const FORNECEDORES_PB = ["Oracal Brasil", "Avery Dennison", "Distribuidora Sul"];
+function giroDoProduto(p) { return (p.id * 13 + 7) % 60 + 3; }
+function ultimasComprasDoProduto(p) {
+  return [0, 1, 2].map((i) => {
+    const dia = 28 - i * 9 - (p.id % 5);
+    return { numero: "CP-" + (2400 - p.id * 3 - i), data: "2026-10-" + String(dia).padStart(2, "0"),
+      fornecedor: FORNECEDORES_PB[(p.id + i) % FORNECEDORES_PB.length], local: LOCATIONS[i % LOCATIONS.length].name,
+      quantidade: ((p.id + i) % 4 + 1) * 10 };
+  });
+}
 // Modal = primitivo do DS (PT-04: foco preso, esc, scrim), com a assinatura local por cima.
 function Modal({ titulo, onClose, children, acoes, largura = 720 }) {
   const { Modal: DsModal } = DS();
@@ -332,6 +350,11 @@ function Filtros({ f, setF, empresa }) {
           <div className="pb-fld" style={{ justifyContent: "flex-end" }}>
             <label className="pb-chk"><input type="checkbox" checked={f.nfs} onChange={(e) => setF({ ...f, nfs: e.target.checked })} /><b>Não para venda</b></label>
           </div>
+          {/* UC-PIDX-42: só para quem emite nota. Mesma regra do card de Saúde fiscal (8 dígitos, não 00000000). */}
+          {empresa.emiteNota &&
+            <div className="pb-fld" style={{ justifyContent: "flex-end" }}>
+              <label className="pb-chk"><input type="checkbox" checked={f.semNcm} onChange={(e) => setF({ ...f, semNcm: e.target.checked })} /><b>Falta NCM</b></label>
+            </div>}
         </div>}
     </Widget>
   );
@@ -673,6 +696,14 @@ function DetalheDrawer({ p, onClose, onIr, empresa }) {
                   </tbody>
                 </table>
                 <p className="pb-help" style={{ marginTop: 10 }}>Saldo por local; a transferência é lançada no módulo Estoque. O histórico completo fica na tela <b>Histórico de estoque</b>.</p>
+                <p className="pb-help" style={{ marginTop: 10 }}>Vendido nos últimos 90 dias: <b>{fmtQty(giroDoProduto(p))} {p.unit}</b></p>
+                <h3 style={{ marginTop: 14 }}>Últimas compras</h3>
+                <table className="pb-tbl">
+                  <thead><tr><th>Data</th><th>Fornecedor</th><th>Local</th><th className="r">Quantidade</th><th>Compra</th></tr></thead>
+                  <tbody>{ultimasComprasDoProduto(p).map((c) => (
+                    <tr key={c.numero}><td>{c.data.split("-").reverse().join("/")}</td><td>{c.fornecedor}</td><td>{c.local}</td><td className="r">{fmtQty(c.quantidade)} {p.unit}</td><td><a href="#" onClick={(e) => { e.preventDefault(); onIr("compra", p); }}>{c.numero}</a></td></tr>))}
+                  </tbody>
+                </table>
                 <button className="os-btn sm" style={{ marginTop: 8 }} onClick={() => onIr("historico", p)}>Abrir histórico de estoque</button>
               </> : <p className="pb-help">Este produto não gerencia estoque (<b>enable_stock = 0</b>) — serviços e composições entram assim.</p>}
             </div>}
@@ -763,6 +794,20 @@ function ModalLocalizacao({ modo, n, onClose, avisar }) {
         <button className="os-btn primary" disabled={!loc} onClick={() => { onClose(); avisar(`${n} produto(s) ${add ? "adicionados ao" : "removidos do"} local.`, "ok"); }}>Atualizar</button></>}>
       <p className="pb-help">{n} produto(s) selecionado(s). {add ? "O local passa a vender e estocar estes produtos." : "Os produtos deixam de aparecer no local — o estoque já lançado não é apagado."}</p>
       <Fld label="Local do negócio" req><Sel value={loc} onChange={setLoc} options={LOCATIONS} vazio="Selecione…" /></Fld>
+    </Modal>
+  );
+}
+// UC-PIDX-43: o mesmo NCM em todos os selecionados. Confirmar só com NCM válido (ncmValido).
+function ModalNcmEmLote({ n, onClose, avisar }) {
+  const [ncm, setNcm] = useState("");
+  const ok = ncmValido(ncm);
+  const erro = ncm.trim() !== "" && !ok;
+  return (
+    <Modal titulo="Informar NCM" onClose={onClose}
+      acoes={<><button className="os-btn ghost" onClick={onClose}>Cancelar</button>
+        <button className="os-btn primary" disabled={!ok} onClick={() => { onClose(); avisar(`${n} produto(s) com o NCM ${ncm.replace(/[^0-9]/g, "")}.`, "ok"); }}>Informar em {n}</button></>}>
+      <p className="pb-help">{n} produto(s) selecionado(s). Todos passam a ter este NCM; o que tinham antes é trocado.</p>
+      <Fld label="NCM" req dica="Os 8 dígitos do NCM, com ou sem pontos." erro={erro ? "O NCM tem 8 dígitos e não pode ser 0000.00.00." : null}><input placeholder="0000.00.00" value={ncm} onChange={(e) => setNcm(e.target.value)} /></Fld>
     </Modal>
   );
 }
@@ -884,7 +929,7 @@ function exportarCsv(lista, empresa) {
 
 // ─────────── Tela lista (index.blade.php) ───────────
 function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
-  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false };
+  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false };
   // Chegou filtrada de outro lugar? (contagem clicada em Cadastros de apoio → window.__PBFiltro)
   const [f, setF] = useState(() => { const x = window.__PBFiltro; window.__PBFiltro = null; return x ? { ...VAZIO_F, ...x } : VAZIO_F; });
   const [busca, setBusca] = useState("");
@@ -892,6 +937,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   const [ver, setVer] = useState(null);
   const [inicial, setInicial] = useState(null);
   const [locModal, setLocModal] = useState(null);
+  const [ncmLote, setNcmLote] = useState(false);
   const [rapido, setRapido] = useState(false);
   const [confirmar, setConfirmar] = useState(null);
   const [cols, setCols] = useState(() => {
@@ -934,6 +980,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     if (f.active === "inactive" && p.active) return false;
     if (f.nfs && !p.notForSelling) return false;
     if (f.alerta && !(p.stockOn && p.alert != null && p.stock <= p.alert)) return false;
+    if (empresa.emiteNota && f.semNcm && ncmValido(p.fiscal && p.fiscal.ncm)) return false;
     if (busca && !(p.name + p.sku).toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
   }), [f, busca, empresa]);
@@ -953,8 +1000,9 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   if (f.active) chips.push({ k: "active", l: "Situação", v: f.active === "active" ? "Ativo" : "Inativo" });
   if (f.nfs) chips.push({ k: "nfs", l: "", v: "Não para venda" });
   if (f.alerta) chips.push({ k: "alerta", l: "", v: "Abaixo do alerta" });
+  if (empresa.emiteNota && f.semNcm) chips.push({ k: "semNcm", l: "", v: "Falta NCM" });
   if (busca) chips.push({ k: "__busca", l: "Busca", v: busca });
-  const tirarChip = (k) => k === "__busca" ? setBusca("") : setF({ ...f, [k]: k === "nfs" || k === "alerta" ? false : "" });
+  const tirarChip = (k) => k === "__busca" ? setBusca("") : setF({ ...f, [k]: k === "nfs" || k === "alerta" || k === "semNcm" ? false : "" });
 
   const kpi = useMemo(() => ({
     total: PRODUCTS.length,
@@ -1056,7 +1104,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
             {chips.map((c) => (FilterChip
               ? <FilterChip key={c.k} label={c.l || c.v} value={c.l ? c.v : undefined} onRemove={() => tirarChip(c.k)} />
               : <button key={c.k} className="pb-chip" onClick={() => tirarChip(c.k)}>{c.v} ✕</button>))}
-            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false }); setBusca(""); }}>Limpar tudo</button>
+            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false }); setBusca(""); }}>Limpar tudo</button>
           </div>}
 
         {aba === "lista"
@@ -1081,6 +1129,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
           <button className="os-btn sm" disabled={!sel.length} onClick={() => onIr("massa")}><Ic name="pencil" size={12} /> Edição em massa</button>
           <button className="os-btn sm" disabled={!sel.length} onClick={() => setLocModal("add")}>Adicionar ao local</button>
           <button className="os-btn sm" disabled={!sel.length} onClick={() => setLocModal("remove")}>Remover do local</button>
+          {empresa.emiteNota && <button className="os-btn sm" disabled={!sel.length} onClick={() => setNcmLote(true)}>Informar NCM</button>}
           <button className="os-btn sm" onClick={() => { window.__PBEtiquetas = PRODUCTS.filter((p) => sel.includes(p.id)); onIr("etiquetas"); }}><Ic name="print" size={12} /> Etiquetas</button>
           <button className="os-btn sm" onClick={() => setConfirmar({ titulo: "Desativar selecionados", perigo: true, cta: "Desativar " + sel.length, corpo: sel.length + " produto(s) saem da venda e do orçamento novo, mantendo histórico e estoque.", on: () => { avisar(sel.length + " produto(s) desativados.", "warn"); limparSel(); } })}>Desativar selecionados</button>
           <button className="os-btn sm ghost danger" onClick={() => setConfirmar({ titulo: "Excluir selecionados", perigo: true, cta: "Excluir " + sel.length, corpo: "Vai apagar " + sel.length + " cadastro(s), com variações e preços por grupo.", aviso: "Produtos com movimento de estoque serão recusados pelo servidor.", on: () => { avisar("Exclusão enviada — itens com movimento foram recusados.", "danger"); limparSel(); } })}>Excluir selecionados</button>
@@ -1091,6 +1140,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
       {ver && <DetalheDrawer p={ver} onClose={() => setVer(null)} onIr={(a, p) => { setVer(null); onIr(a, p); }} empresa={empresa} />}
       {inicial && <ModalEstoqueInicial p={inicial} onClose={() => setInicial(null)} avisar={avisar} />}
       {locModal && <ModalLocalizacao modo={locModal} n={sel.length} onClose={() => setLocModal(null)} avisar={avisar} />}
+      {ncmLote && <ModalNcmEmLote n={sel.length} onClose={() => setNcmLote(false)} avisar={avisar} />}
       {rapido && <ModalCadastroRapido onClose={() => setRapido(false)} avisar={avisar} />}
       {confirmar && <ModalConfirmar pedido={confirmar} onClose={() => setConfirmar(null)} />}
     </>
@@ -1146,6 +1196,7 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
     transferir:     { rota: "compras", acao: "transferencia", msg: (p) => "Transferência de “" + p.name + "” entre locais." },
     os:             { rota: "os",      acao: "novo-item",     msg: (p) => "OS aberta com “" + p.name + "” no orçamento." },
     "fiscal-modulo":{ rota: "fiscal",  acao: "produto",       msg: (p) => "Dados fiscais de “" + p.name + "” no módulo Fiscal." },
+    compra:         { rota: "compras", acao: "ver",           msg: (p) => "Compra de “" + p.name + "” no módulo Compras." },
   };
   // Navegação interna reflete na rota do shell — senão a sidebar marca uma tela e o corpo mostra outra.
   const ROTA_DE = { lista: "prod-lista", form: "prod-novo", historico: "prod-historico", precos: "prod-precos", massa: "prod-massa", analises: "prod-analises", etiquetas: "prod-etiquetas", "atualizar-preco": "prod-atualizar-preco", "importar-produtos": "prod-importar", "importar-estoque": "prod-importar-estoque", cadastros: "prod-cadastros" };

@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Fisio\Entities\Exercise;
+use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Entities\ProgramItem;
 use Modules\Fisio\Entities\Protocol;
 use Modules\Fisio\Tests\Support\FisioFixtures as F;
@@ -61,6 +62,25 @@ function flaSalvar($t, string $alvo, string $texto): array
     };
 }
 
+/**
+ * O texto chegou ao registro do alvo? Lido no banco, por fora do escopo (a pergunta é se gravou,
+ * não quem enxerga). Sem isso o "texto limpo grava" seria só status 2xx.
+ */
+function flaGravado($t, string $alvo, string $texto): bool
+{
+    // SUPERADMIN: leitura direta dos registros da 98 para conferir a gravação.
+    return match ($alvo) {
+        'exercício próprio (criar)' => Exercise::withoutGlobalScopes()->where('business_id', $t->b98)->where('name', 'like', 'Ponte da clínica %')
+            ->get()->contains(fn ($e) => $e->steps === ['Deite de costas', $texto]),
+        'exercício próprio (editar)' => Exercise::withoutGlobalScopes()->findOrFail($t->ex98->id)->safety_notes === [$texto],
+        'protocolo (editar)' => Protocol::withoutGlobalScopes()->findOrFail($t->prot98->id)->notes === $texto,
+        'protocolo (salvar do programa)' => Protocol::withoutGlobalScopes()->where('business_id', $t->b98)->where('notes', $texto)->exists(),
+        'programa (criar)' => Program::withoutGlobalScopes()->where('business_id', $t->b98)->where('patient_id', $t->p98->id)->where('stop_instruction', $texto)->exists(),
+        'programa (editar)' => Program::withoutGlobalScopes()->findOrFail($t->prog98->id)->crisis_items === ['Respire fundo', $texto],
+        'programa (observação do exercício)' => ProgramItem::withoutGlobalScopes()->findOrFail($t->item98)->notes === $texto,
+    };
+}
+
 dataset('alvos', [
     'exercício próprio (criar)', 'exercício próprio (editar)', 'protocolo (editar)', 'protocolo (salvar do programa)',
     'programa (criar)', 'programa (editar)', 'programa (observação do exercício)',
@@ -90,9 +110,12 @@ it('UC-FBI-12 · termo proibido é recusado com 422 e a mensagem diz qual e por 
 })->with('termos')->with('alvos');
 
 it('UC-FBI-12 · controle negativo: texto limpo grava (e "tratamento" não é "trata")', function (string $alvo) {
-    [$resposta] = flaSalvar($this, $alvo, 'Siga o tratamento combinado e respire devagar.');
+    $texto = 'Siga o tratamento combinado e respire devagar.';
+    expect(flaGravado($this, $alvo, $texto))->toBeFalse(); // controle: ainda não estava lá
+    [$resposta] = flaSalvar($this, $alvo, $texto);
 
     $resposta->assertSuccessful();
+    expect(flaGravado($this, $alvo, $texto))->toBeTrue();
 })->with('alvos');
 
 it('UC-FBI-12 · sem maiúscula e sem acento o termo continua barrado', function () {

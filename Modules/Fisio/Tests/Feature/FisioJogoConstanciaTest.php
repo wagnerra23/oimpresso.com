@@ -144,3 +144,33 @@ it('UC-FPP-33 · no dia de pausa o portal não mostra missões, desafio nem meda
     expect($props['modo'])->toBe('pausa')
         ->and($props)->not->toHaveKey('constancia');
 });
+
+it('UC-FJG-09 · 98×99: a decisão do desafio de uma empresa não aparece nem grava na outra', function () {
+    $t99 = $this->seededSupportClientTenant();
+    $b99 = (int) $t99->id;
+    $u99 = $this->usuarioComPermissoes([F::PERM_ACESSO, F::PERM_EDITAR], $t99);
+    F::trocarPacote($b99, true);
+    $p99 = F::paciente($b99, $u99->id, ['sessions_per_week' => 3]);
+    F::programa($p99, [F::exercicio(null, 'Ponte da 99')], $u99->id);
+
+    // A 99 aceita o desafio da MESMA semana, pelo serviço real (âncora: a escrita da 99 aconteceu).
+    expect(app(Modules\Fisio\Services\JogoService::class)->decidirDesafio($p99, true, 3))->toBeTrue();
+
+    // Leitura: no portal da 98 a oferta segue aberta — a decisão da 99 não vaza.
+    expect(F::portalProps($this, $this->token)['constancia']['desafio'])->toMatchArray(['oferecido' => true, 'decidido' => false]);
+
+    // Escrita: a 98 decide pelo portal. Grava na 98, e a linha da 99 fica como estava.
+    $this->postJson("/fisio/p/{$this->token}/desafio", ['aceitar' => false])->assertOk()
+        ->assertJsonPath('constancia.desafio.decidido', true)->assertJsonPath('constancia.desafio.aceito', false);
+    $linhas = DB::table('fisio_game_desafios')->whereIn('patient_id', [$this->p->id, $p99->id])->orderBy('id')
+        ->get(['business_id', 'patient_id', 'accepted', 'target_days'])
+        ->map(fn ($l) => [(int) $l->business_id, (int) $l->patient_id, (bool) $l->accepted, $l->target_days === null ? null : (int) $l->target_days])->all();
+    expect($linhas)->toBe([[$b99, (int) $p99->id, true, 3], [$this->b98, (int) $this->p->id, false, null]]);
+
+    // Escopo do model: logado na 98 só vê a 98; logado na 99 só vê a 99 (as duas linhas existem).
+    $empresas = fn () => Modules\Fisio\Entities\Desafio::query()->whereIn('patient_id', [$this->p->id, $p99->id])->pluck('business_id')->map('intval')->all();
+    F::como($this, $this->u98);
+    expect($empresas())->toBe([$this->b98]);
+    F::como($this, $u99);
+    expect($empresas())->toBe([$b99]);
+});

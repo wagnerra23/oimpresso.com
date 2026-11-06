@@ -18,16 +18,16 @@ uses(Tests\TestCase::class);
  * `! auth()->check()`, ScopeByBusiness.php:26) e a contagem cross-tenant dava 0
  * por AUSÊNCIA de dado (nfe_eventos vazia), NÃO por filtro. Fix (espelha
  * Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest): actingAs(user
- * biz=1) + CRIA uma linha biz=99 real (bypass do scope) pra o scope ter o que
- * excluir, MAIS um controle positivo biz=1 (garante que o filtro é por-tenant, não
- * "esconde tudo"). ADR 0093 (multi-tenant Tier 0) + ADR 0101 (biz=1).
+ * biz=98) + CRIA uma linha biz=99 real (bypass do scope) pra o scope ter o que
+ * excluir, MAIS um controle positivo biz=98 (garante que o filtro é por-tenant, não
+ * "esconde tudo"). ADR 0093 (multi-tenant Tier 0) + ADR 0358 (tenant 98).
  *
  * @covers-us US-FISCAL-007
  * (ADR 0273/0303 — este arquivo esta na allowlist da lane que emite JUnit,
  *  entao o "verde" declarado aqui e alcancavel; ver SDD Fiscal §8.1.)
  */
 
-const EVENTOS_BIZ_WAGNER   = 1;
+const EVENTOS_BIZ_TENANT   = 98;
 const EVENTOS_BIZ_FICTICIO = 99; // nfe_eventos→nfe_emissoes (SEM FK a business) ⇒ biz fictício OK
 const EVENTOS_TAG_TEST     = 'FISCAL-EVENTOS-ISO-TEST';
 
@@ -42,14 +42,14 @@ beforeEach(function () {
     // O global scope ScopeByBusiness só filtra com usuário AUTENTICADO — faz early-return
     // em `! auth()->check()` (ScopeByBusiness.php:26) e lê a business ativa de
     // session('user.business_id') (NÃO 'business.id'). Sem actingAs o scope no-opa e o
-    // guard de isolamento passa vácuo. Autenticamos um usuário do biz=1 (semeado pelo
+    // guard de isolamento passa vácuo. Autenticamos um usuário do biz=98 (semeado pelo
     // pest-mysql-setup; sem role → não é superadmin). ADR 0093.
-    $this->actingAs(\App\User::where('business_id', EVENTOS_BIZ_WAGNER)->firstOrFail());
+    $this->actingAs(\App\User::where('business_id', EVENTOS_BIZ_TENANT)->firstOrFail());
 });
 
 afterEach(function () {
     // Cleanup defensivo — só os registros marcados pelo teste (tag específica),
-    // em qualquer business (biz=1 do controle positivo + biz=99 cross-tenant).
+    // em qualquer business (biz=98 do controle positivo + biz=99 cross-tenant).
     if (DB::connection()->getDriverName() === 'sqlite') {
         return;
     }
@@ -103,9 +103,9 @@ it('UC-FEVT-01 · NfeEvento HasBusinessScope esconde cross-tenant — listagem t
         'created_at'    => now(),
     ]);
 
-    // Emissão pai + evento do PRÓPRIO tenant (biz=1) — controle positivo.
+    // Emissão pai + evento do PRÓPRIO tenant (biz=98) — controle positivo.
     $emissaoOwn = DB::table('nfe_emissoes')->insertGetId([
-        'business_id' => EVENTOS_BIZ_WAGNER,
+        'business_id' => EVENTOS_BIZ_TENANT,
         'modelo'      => '55',
         'serie'       => '9',
         'numero'      => random_int(800000, 899999),
@@ -116,7 +116,7 @@ it('UC-FEVT-01 · NfeEvento HasBusinessScope esconde cross-tenant — listagem t
         'updated_at'  => now(),
     ]);
     $eventoOwn = DB::table('nfe_eventos')->insertGetId([
-        'business_id'   => EVENTOS_BIZ_WAGNER,
+        'business_id'   => EVENTOS_BIZ_TENANT,
         'emissao_id'    => $emissaoOwn,
         'tipo'          => '110111',
         'justificativa' => 'own-tenant ' . EVENTOS_TAG_TEST,
@@ -124,9 +124,9 @@ it('UC-FEVT-01 · NfeEvento HasBusinessScope esconde cross-tenant — listagem t
         'created_at'    => now(),
     ]);
 
-    session(['business.id' => EVENTOS_BIZ_WAGNER, 'user.business_id' => EVENTOS_BIZ_WAGNER]);
+    session(['business.id' => EVENTOS_BIZ_TENANT, 'user.business_id' => EVENTOS_BIZ_TENANT]);
 
-    // (1) A timeline scoped de biz=1 NÃO enxerga o evento biz=99.
+    // (1) A timeline scoped de biz=98 NÃO enxerga o evento biz=99.
     expect(NfeEvento::where('id', $eventoCross)->first())->toBeNull();
 
     // (2) Mas o registro EXISTE (bypass do scope) — sem isso o passo (1) seria vácuo
@@ -135,7 +135,7 @@ it('UC-FEVT-01 · NfeEvento HasBusinessScope esconde cross-tenant — listagem t
     expect($real)->not->toBeNull();
     expect((int) $real->business_id)->toBe(EVENTOS_BIZ_FICTICIO);
 
-    // (3) Controle positivo: o evento do PRÓPRIO tenant (biz=1) É visível sob o scope —
+    // (3) Controle positivo: o evento do PRÓPRIO tenant (biz=98) É visível sob o scope —
     //     prova que o filtro é por-tenant e não "esconde tudo" (over-scoping).
     expect(NfeEvento::where('id', $eventoOwn)->first())->not->toBeNull();
 });
@@ -156,7 +156,7 @@ it('UC-FEVT-02 · NfeEvento é append-only (UPDATED_AT = null) — eventos não 
  */
 
 /**
- * biz=1 com `fiscal.access` — o `beforeEach` autentica um user SEM permissão.
+ * biz=98 com `fiscal.access` — o `beforeEach` autentica um user SEM permissão.
  *
  * `findOrCreate` em vez de `givePermissionTo` direto: os testes fiscais vizinhos
  * assumem que a permission já foi semeada, e aqui isso seria uma dependência
@@ -166,9 +166,11 @@ it('UC-FEVT-02 · NfeEvento é append-only (UPDATED_AT = null) — eventos não 
  */
 function eventosUserComAcessoFiscal(): \App\User
 {
-    $u = \App\User::factory()->create(['business_id' => EVENTOS_BIZ_WAGNER]);
+    $u = \App\User::factory()->create(['business_id' => EVENTOS_BIZ_TENANT]);
+    // `fiscal.nfe.view` desde o lote 1.3 (2026-11-05): é o gate da timeline e do export.
     $u->givePermissionTo(
-        \Spatie\Permission\Models\Permission::findOrCreate('fiscal.access', 'web')
+        \Spatie\Permission\Models\Permission::findOrCreate('fiscal.access', 'web'),
+        \Spatie\Permission\Models\Permission::findOrCreate('fiscal.nfe.view', 'web')
     );
 
     return $u;
@@ -202,10 +204,10 @@ function eventosSemearEvento(int $businessId, string $tipo, string $marcador): i
 
 it('UC-FEVT-05 · o CSV exportado nunca traz evento de outro business', function () {
     eventosSemearEvento(EVENTOS_BIZ_FICTICIO, '110111', 'VAZAMENTO-CROSS-TENANT');
-    eventosSemearEvento(EVENTOS_BIZ_WAGNER, '110111', 'LINHA-DO-PROPRIO-TENANT');
+    eventosSemearEvento(EVENTOS_BIZ_TENANT, '110111', 'LINHA-DO-PROPRIO-TENANT');
 
     $this->actingAs(eventosUserComAcessoFiscal());
-    session(['business.id' => EVENTOS_BIZ_WAGNER, 'user.business_id' => EVENTOS_BIZ_WAGNER]);
+    session(['business.id' => EVENTOS_BIZ_TENANT, 'user.business_id' => EVENTOS_BIZ_TENANT]);
 
     $response = $this->get('/fiscal/eventos/export?kind=todos&dias=30');
     $response->assertOk();
@@ -226,11 +228,11 @@ it('UC-FEVT-05 · o CSV exportado nunca traz evento de outro business', function
 });
 
 it('UC-FEVT-06 · o CSV respeita o filtro de tipo ativo — exporta o recorte, não a timeline inteira', function () {
-    eventosSemearEvento(EVENTOS_BIZ_WAGNER, '110111', 'EVENTO-DE-CANCELAMENTO');
-    eventosSemearEvento(EVENTOS_BIZ_WAGNER, '110110', 'EVENTO-DE-CARTA-CORRECAO');
+    eventosSemearEvento(EVENTOS_BIZ_TENANT, '110111', 'EVENTO-DE-CANCELAMENTO');
+    eventosSemearEvento(EVENTOS_BIZ_TENANT, '110110', 'EVENTO-DE-CARTA-CORRECAO');
 
     $this->actingAs(eventosUserComAcessoFiscal());
-    session(['business.id' => EVENTOS_BIZ_WAGNER, 'user.business_id' => EVENTOS_BIZ_WAGNER]);
+    session(['business.id' => EVENTOS_BIZ_TENANT, 'user.business_id' => EVENTOS_BIZ_TENANT]);
 
     $csv = $this->get('/fiscal/eventos/export?kind=cancel&dias=30')->assertOk()->streamedContent();
 
