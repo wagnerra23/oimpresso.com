@@ -45,7 +45,9 @@ VIEW_COMPILED_PATH=storage/framework/views
 # (provado por screenshot do artifact #2320) → fica fora do gate. Com o flag,
 # renderiza a Page Inertia canônica de Clientes — que é o que o gate deve proteger.
 # Notificações: ativa somente na fixture sintética de CI, sem alterar produção.
-FEATURE_FLAGS_FORCED_ON=useV2NotificationTemplates
+# useV2FiscalDas: /fiscal/das responde 404 com a flag desligada; ligada so aqui para o
+# DasRenderTest (2026-11-05, auditoria Fiscal lote 5).
+FEATURE_FLAGS_FORCED_ON=useV2NotificationTemplates,useV2FiscalDas
 MWART_CLIENTE_INDEX=true
 # MWART_BACKUP_INDEX=true: mesmo motivo do de cima — sem o flag, /backup serve o
 # Blade legado e a baseline nasceria da tela VELHA, que e pior que nao ter baseline.
