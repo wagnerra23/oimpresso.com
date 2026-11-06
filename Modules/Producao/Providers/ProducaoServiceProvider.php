@@ -60,6 +60,8 @@ class ProducaoServiceProvider extends ServiceProvider
         Transaction::updated(function (Transaction $tx) {
             if ($tx->type === 'sell' && $tx->wasChanged('current_stage_id') && $tx->current_stage_id !== null
                 && (bool) DB::table('sale_process_stages')->where('id', $tx->current_stage_id)->value('is_cancelled')) {
+                // P-113: a venda cancelada cancela as OS dela. Falha aqui desfaz o cancelamento inteiro.
+                app(SituacaoDaOrdem::class)->cancelarPelaVenda((int) $tx->business_id, (int) $tx->id);
                 app(ReservaDeInsumoDaOs::class)->liberarDaVenda((int) $tx->business_id, (int) $tx->id);
             }
         });

@@ -47,6 +47,10 @@ final class ProcessoDaOrdem
      * pagamento da venda alcança o sinal mínimo da empresa (US-PCP-025). Não tem papel porque não
      * há usuário: só SituacaoDaOrdem::liberarPeloSinal a chama, e ela confere o sinal e os
      * responsáveis antes. Não é transição do protótipo, é o automático do Liberar.
+     *
+     * "Cancelada pela venda" (P-113, parte "a venda cancelada cancela as OS dela"): de toda etapa
+     * aberta para Cancelada, executada pelo sistema quando a venda vai para uma etapa de cancelamento.
+     * Sem papel pelo mesmo motivo do Liberar pelo sinal: só SituacaoDaOrdem::cancelarPelaVenda a chama.
      */
     public const ACOES = [
         ['aguardando_liberacao', 'liberar', 'Liberar', 'na_fila', false, 'producao.liberar'],
@@ -62,6 +66,12 @@ final class ProcessoDaOrdem
         ['retrabalho', 'refazer', 'Refazer', 'em_execucao', false, 'producao.liberar'],
         ['em_execucao', 'concluir_item', 'Concluir item', 'concluida', false, null],
         ['aguardando_liberacao', 'cancelar_item', 'Cancelar item', 'cancelada', true, 'vendas.gerente'],
+        ['aguardando_liberacao', 'cancelar_pela_venda', 'Cancelada pela venda', 'cancelada', false, null],
+        ['aguardando_material', 'cancelar_pela_venda', 'Cancelada pela venda', 'cancelada', false, null],
+        ['na_fila', 'cancelar_pela_venda', 'Cancelada pela venda', 'cancelada', false, null],
+        ['em_execucao', 'cancelar_pela_venda', 'Cancelada pela venda', 'cancelada', false, null],
+        ['pausada', 'cancelar_pela_venda', 'Cancelada pela venda', 'cancelada', false, null],
+        ['retrabalho', 'cancelar_pela_venda', 'Cancelada pela venda', 'cancelada', false, null],
     ];
 
     public function garantir(int $businessId): SaleProcess

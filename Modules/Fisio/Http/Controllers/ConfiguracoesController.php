@@ -76,6 +76,6 @@ class ConfiguracoesController extends Controller
         $config->gravar($biz, 'whatsapp.teto_por_hora', (int) $dados['teto_por_hora'], $autor);
         $config->gravar($biz, 'whatsapp.silencio', $dados['silencio'], $autor);
 
-        return back()->with('status', 'Configuração do WhatsApp salva.');
+        return back()->with('success', 'Configuração do WhatsApp salva.');
     }
 }

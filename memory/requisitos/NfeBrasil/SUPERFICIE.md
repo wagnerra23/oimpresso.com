@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 340 arquivos em 19 papéis.
+**Total mapeado:** 342 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -252,12 +252,12 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 106
+## Testes (Pest) — 107
 
-- 106 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 107 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 49
+## Demais arquivos (manifestos, docs, assets e misc) — 50
 
 - [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
@@ -302,6 +302,7 @@ module: NfeBrasil
 - [mei-varejo-sp.php](../../../Modules/NfeBrasil/Resources/templates/mei-varejo-sp.php)
 - [.gitkeep](../../../Modules/NfeBrasil/Resources/views/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Routes/.gitkeep)
+- [AmbienteDoEmitente.php](../../../Modules/NfeBrasil/Support/AmbienteDoEmitente.php)
 - [CnpjDoEmitente.php](../../../Modules/NfeBrasil/Support/CnpjDoEmitente.php)
 - [.gitkeep](../../../Modules/NfeBrasil/Tests/Feature/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Tests/Unit/.gitkeep)

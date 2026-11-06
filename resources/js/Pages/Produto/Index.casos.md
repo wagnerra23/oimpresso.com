@@ -95,6 +95,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-38 | Separado para vendas e livre na coluna Estoque | should | `ProductController::separadosDosProdutos` + coluna Estoque (`colunas.tsx`, `separadoTexto`) | `ProdutoListaSeparadoLivreTest` (lane Estoque · MySQL) + `produto-lista-separado-livre.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-39 | Saldo também em embalagens inteiras (rolos) | should | `ProductController::embalagensDosProdutos` + coluna Estoque (`saldoEmEmbalagens`, `embalagemTexto`) | `ProdutoListaEmbalagemTest` (lane Estoque · MySQL) + `produto-lista-embalagem.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-40 | Quantos kits dá para vender, por local, e quem limita | should | `ProductController::kitsPorLocal` + aba Composição do painel (`PainelDetalhe.tsx`) | `ProdutoKitsDisponiveisTest` (lane Estoque · MySQL) + `produto-painel-kits.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-41 | Giro de 90 dias e últimas compras no painel | should | `ProductController::vendidoNosUltimos90Dias` + `ultimasComprasDoProduto` + aba Estoque do painel (`PainelDetalhe.tsx`) | `ProdutoGiroComprasTest` (lane Estoque · MySQL) + `produto-painel-giro-compras.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -560,6 +561,15 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** impedir a venda de mais kits do que o estoque permite (segue no backlog); kit pelo `product_bom` (BOM V2), que a tabela Composição também não lê.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-41 · Giro de 90 dias e últimas compras no painel · `should`
+- **Persona:** quem compra abre o produto e quer saber, sem ir a dois relatórios, quanto ele vende e de quem foi comprado por último, para decidir se e de quem comprar de novo.
+- **Aceite:** Dado um produto com uma venda finalizada de 5 un há 30 dias (1 devolvida), outra de 3 un há 80 dias, uma de 7 un há 120 dias e um rascunho de 9 un · Quando abro a aba Estoque do painel · Então ela mostra "Vendido nos últimos 90 dias: 7 Un" · E a tabela "Últimas compras" mostra as 3 compras recebidas mais novas, da mais nova para a mais antiga, com data, fornecedor, local, quantidade do produto na compra (somando as linhas dele) e o número que abre a compra · Compra pendente fica fora · Sem nenhuma compra recebida, "Nenhuma compra recebida deste produto." · Quem vê só alguns locais só conta as vendas e vê as compras desses locais.
+- **Teste:** [`ProdutoGiroComprasTest`](../../../../tests/Feature/Produto/ProdutoGiroComprasTest.php) — `UC-PIDX-41` (prova dupla do vendido: à mão e pelo "Total vendido" do Relatório de estoque, que conta desde sempre, menos a venda antiga; as 3 últimas compras, a ordem, a soma das linhas, a pendente fora; os gates; usuário de um local só — lane Estoque · MySQL) e [`produto-painel-giro-compras.test.tsx`](../../../../tests/js/produto-painel-giro-compras.test.tsx) — `UC-PIDX-41` (o texto do giro, a tabela na ordem do servidor, o link da compra, o aviso sem compra, nada sem as chaves — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-05: mostrar o giro no lugar da quantidade da compra derruba o caso de tela.
+- **Contrato:** backlog D8 (Alterdata, consulta de estoque: giro e últimas compras na mesma tela). O vendido é a conta do "Total vendido" do Relatório de estoque (`getProductStockDetails`: vendas finalizadas menos o devolvido de cada linha), só limitada pela data da venda. Compra é `type = purchase` com `status = received` (a que já entrou no estoque). Só leitura.
+- **Gates:** os dois só aparecem junto com a tabela de locais (`stock_report.view`, produto que controla estoque); as compras pedem também `purchase.view`, a permissão da lista de compras. Sem permissão a chave vem null, e o bloco não aparece.
+- **Fora daqui:** custo de cada compra (o painel já mostra o preço de compra na aba Variações, com `view_purchase_price`); giro por local; dias de estoque.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -728,9 +738,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   cadastro, as variações e os preços por grupo, e a confirmação diz que não tem volta. Aceite: Dado
   um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
   a Ativo com variações e preços. Fonte: Olist/Tiny (situação Excluídos + restaurar).
-- **[BACKLOG] Giro e últimas compras no painel do produto (D8)** — hoje o painel mostra preços,
-  estoque por local e fiscal. Aceite: o painel mostra a quantidade vendida nos últimos 90 dias e as
-  3 últimas compras (fornecedor, data, quantidade). Fonte: Alterdata (consulta de estoque).
+- Giro e últimas compras no painel (D8) saiu deste backlog em 2026-11-05: virou UC-PIDX-41, com teste.
 - **[BACKLOG] Recortes salvos com nome (D1)** — hoje os filtros vão para o endereço, mas não há
   recorte com nome. Aceite: Dado um conjunto de filtros, Quando salvo como "Lonas abaixo do alerta",
   Então ele aparece numa lista de recortes do usuário e abre com os mesmos filtros. Fonte: Shopify
@@ -867,6 +875,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 
 ## Trilha do tempo
+- 2026-11-05 · [F+C] **UC-PIDX-41**: giro de 90 dias e as 3 últimas compras recebidas na aba Estoque do painel (D8).
 - 2026-11-04 · [F+C] **UC-PIDX-40**: quantos kits dá para vender, por local, e quem limita, na aba Composição do painel. Achado: a conta do núcleo para o combo na venda não zera com componente sem saldo; fica no backlog da venda.
 - 2026-11-04 · [F+C] **UC-PIDX-39**: o saldo também em embalagens inteiras (CV2), "2 × Rolo + 10 m²", pela subunidade cadastrada da unidade do produto.
 - 2026-11-04 · [F+C] **UC-PIDX-38**: separado para vendas e livre na coluna Estoque (D5 e a parte da lista do CV4), pelas reservas ativas de `stock_reservations`. O que fica do CV4 é a tabela "De onde vem o separado" no painel.
