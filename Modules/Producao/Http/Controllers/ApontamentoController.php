@@ -242,7 +242,7 @@ class ApontamentoController extends Controller
      * (`AprovacaoArteService::arteVigente`, UC-PCV-11), mesmo com uma troca esperando. OS que já pediu
      * aprovação e ainda não teve nenhuma aprovada sai como `aguardando`; OS sem pedido de arte não entra.
      *
-     * @return array<int, array{estado: string, arquivo: ?string, aprovada_em: ?string}>
+     * @return array<int, array{estado: string, arquivo: ?string, versao: ?int, aprovada_em: ?string}>
      */
     private function artes(int $biz, int $user): array
     {
@@ -255,8 +255,8 @@ class ApontamentoController extends Controller
         foreach ($comPedido as $ordemId) {
             $vigente = app(AprovacaoArteService::class)->arteVigente($biz, $ordemId);
             $saida[$ordemId] = $vigente === null
-                ? ['estado' => 'aguardando', 'arquivo' => null, 'aprovada_em' => null]
-                : ['estado' => 'aprovada', 'arquivo' => $vigente['arquivo'], 'aprovada_em' => $vigente['aprovada_em']];
+                ? ['estado' => 'aguardando', 'arquivo' => null, 'versao' => null, 'aprovada_em' => null]
+                : ['estado' => 'aprovada', 'arquivo' => $vigente['arquivo'], 'versao' => $vigente['versao'], 'aprovada_em' => $vigente['aprovada_em']];
         }
 
         return $saida;

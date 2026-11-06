@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCV-10, UC-PCOSF-01, UC-PCOSF-02 (Producao/Os/Show.casos.md) — a Ficha da OS por item.
+// Cobre UC-PCV-10, UC-PCOSF-01..05 (Producao/Os/Show.casos.md) — a Ficha da OS por item.
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -81,9 +81,9 @@ it('UC-PCV-10 · a Ficha mostra a situação e as etapas com previsto × apontad
 
 it('UC-PCOSF-01 · os botões seguem o papel: Liberar para producao.liberar, Cancelar item para vendas.gerente', function () {
     $pode = fn ($u) => ($this->parcial)($u, 'pode')->assertOk()->json('props.pode');
-    expect($pode($this->pcp))->toBe(['liberar' => true, 'cancelar' => false])
-        ->and($pode($this->gerente))->toBe(['liberar' => false, 'cancelar' => true])
-        ->and($pode($this->op))->toBe(['liberar' => false, 'cancelar' => false]);
+    expect($pode($this->pcp))->toBe(['liberar' => true, 'cancelar' => false, 'custo' => false])
+        ->and($pode($this->gerente))->toBe(['liberar' => false, 'cancelar' => true, 'custo' => false])
+        ->and($pode($this->op))->toBe(['liberar' => false, 'cancelar' => false, 'custo' => false]);
 
     // Quem escolhe os responsáveis recebe a lista; quem não libera recebe vazia.
     $ids = array_column(($this->parcial)($this->pcp, 'pessoas')->assertOk()->json('props.pessoas.pessoas'), 'id');
@@ -101,4 +101,78 @@ it('UC-PCOSF-02 · Tier 0 e portões: OS de outra empresa 404; sem acesso ou sem
     $this->actingAs($this->usuarioComPermissoes([], $this->B98))->get($this->url)->assertForbidden();
     $this->pacote = false;
     $this->actingAs($this->pcp)->get($this->url)->assertForbidden();
+});
+
+it('UC-PCOSF-03 · aba Custo só leitura: o mesmo número da Ficha e do previsto × realizado, e nada é gravado', function () {
+    $gestor = $this->usuarioComPermissoes(['producao.access', 'producao.desempenho.ver'], $this->B98);
+    app(SituacaoDaOrdem::class)->liberar($this->b98, $this->ordem->id, $this->pcp, [$this->e1->id => $this->op->id, $this->e2->id => $this->op->id]);
+    $svc = app(ApontamentoOperadorService::class);
+    $ap = $svc->iniciar($this->b98, $this->op->id, $this->e1->id, 'i-'.uniqid(), now()->subMinutes(90));
+    $svc->concluir($this->b98, $this->op->id, $ap->id, 'c-'.uniqid(), now());
+    $antes = [DB::table('pcp_ordens')->where('id', $this->ordem->id)->value('custo_real'), DB::table('pcp_apontamentos')->where('os_id', $this->ordem->id)->count()];
+
+    // Caminho 1: a prop da Ficha. Conta à mão: 90 min × 80,00 por hora de máquina = 120,00; sem material.
+    $c = ($this->parcial)($gestor, 'custo')->assertOk()->json('props.custo');
+    expect($c['composicao'])->toBe(['maquina' => '120.00', 'pessoa' => '0.00', 'material' => '0.00', 'terceiros' => '0.00', 'total' => '120.00'])
+        ->and($c['previsto_realizado']['realizado'])->toBe('120.0000')->and($c['previsto_realizado']['status'])->toBe('em_andamento');
+    // Caminho 2: o endpoint JSON do previsto × realizado devolve o mesmo realizado.
+    $json = $this->actingAs($gestor)->getJson("/producao/ordens/{$this->ordem->id}/previsto-realizado")->assertOk()->json();
+    expect($json['realizado'])->toBe($c['previsto_realizado']['realizado']);
+    expect([DB::table('pcp_ordens')->where('id', $this->ordem->id)->value('custo_real'), DB::table('pcp_apontamentos')->where('os_id', $this->ordem->id)->count()])->toBe($antes);
+
+    // Controle: sem producao.desempenho.ver a prop vem nula e a aba não aparece.
+    expect(($this->parcial)($this->pcp, 'custo')->assertOk()->json('props.custo'))->toBeNull();
+    expect(($this->parcial)($gestor, 'pode')->json('props.pode.custo'))->toBeTrue();
+});
+
+it('UC-PCOSF-04 · aba Materiais: previsto pela receita × apontado, e o saldo que estoura aparece', function () {
+    $unit = (int) (DB::table('units')->where('business_id', $this->b98)->value('id') ?? DB::table('units')->insertGetId(['business_id' => $this->b98,
+        'actual_name' => 'Metro quadrado', 'short_name' => 'm²', 'allow_decimal' => 1, 'created_by' => $this->pcp->id, 'created_at' => now(), 'updated_at' => now()]));
+    $sku = 'FOS-'.uniqid();
+    $pid = DB::table('products')->insertGetId(['business_id' => $this->b98, 'name' => 'Lona '.$sku, 'type' => 'single', 'unit_id' => $unit, 'sku' => $sku,
+        'enable_stock' => 1, 'alert_quantity' => 0, 'tax_type' => 'exclusive', 'barcode_type' => 'C128', 'created_by' => $this->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
+    $grupo = DB::table('product_variations')->insertGetId(['product_id' => $pid, 'name' => 'DUMMY', 'is_dummy' => 1, 'created_at' => now(), 'updated_at' => now()]);
+    $vid = DB::table('variations')->insertGetId(['product_id' => $pid, 'product_variation_id' => $grupo, 'name' => 'DUMMY', 'sub_sku' => $sku,
+        'default_purchase_price' => 0, 'dpp_inc_tax' => 0, 'profit_percent' => 0, 'default_sell_price' => 0, 'sell_price_inc_tax' => 0, 'created_at' => now(), 'updated_at' => now()]);
+    $local = (int) DB::table('business_locations')->where('business_id', $this->b98)->value('id');
+    $venda = DB::table('transactions')->insertGetId(['business_id' => $this->b98, 'location_id' => $local, 'type' => 'sell', 'status' => 'final',
+        'payment_status' => 'due', 'transaction_date' => now(), 'final_total' => 0, 'essentials_duration' => 0, 'created_by' => $this->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
+    // SUPERADMIN: fixture da empresa 98.
+    $ordem = Ordem::withoutGlobalScopes()->create(['business_id' => $this->b98, 'transaction_id' => $venda, 'transaction_sell_line_id' => random_int(1000000, 9999999),
+        'product_id' => $pid, 'variation_id' => $vid, 'quantidade' => '1.0000', 'current_stage_id' => app(ProcessoDaOrdem::class)->etapaInicial($this->b98)->id]);
+    $prog = Programacao::withoutGlobalScopes()->create(['business_id' => $this->b98, 'os_tipo' => Ordem::OS_TIPO, 'os_id' => $ordem->id, 'posto_id' => $this->posto->id,
+        'bloco' => 1, 'trilha' => 0, 'nome' => 'Impressão', 'user_id' => $this->op->id, 'inicio_previsto' => now(), 'fim_previsto' => now()->addHour(), 'status' => 'iniciada', 'created_by' => $this->pcp->id]);
+    // A receita (Manufacturing) é simulada pelo contrato do núcleo: 124 m² para a quantidade da OS.
+    app()->instance(\App\Contracts\Fabricacao\InsumosDaReceita::class, new class($pid, $vid) implements \App\Contracts\Fabricacao\InsumosDaReceita {
+        public function __construct(private int $pid, private int $vid) {}
+        public function paraQuantidade(int $businessId, int $variationId, string $quantidade): array { return [['product_id' => $this->pid, 'variation_id' => $this->vid, 'quantidade' => '124.0000']]; }
+    });
+    DB::table('pcp_consumos')->insert(['business_id' => $this->b98, 'chave' => 'fos-'.uniqid(), 'ordem_id' => $ordem->id, 'programacao_id' => $prog->id,
+        'product_id' => $pid, 'variation_id' => $vid, 'quantidade' => '133.4000', 'custo' => '0.0000', 'transaction_id' => $venda,
+        'transaction_sell_line_id' => $ordem->transaction_sell_line_id, 'user_id' => $this->op->id, 'momento' => now(), 'created_at' => now(), 'updated_at' => now()]);
+
+    $this->url = "/producao/ordens/{$ordem->id}";
+    $m = ($this->parcial)($this->pcp, 'materiais')->assertOk()->json('props.materiais');
+    // 124,0000 − 133,4000 = −9,4000 (conta à mão; o PHP faz em décimos de milésimo inteiros).
+    expect($m['itens'])->toHaveCount(1)
+        ->and($m['itens'][0]['previsto'])->toBe('124.0000')->and($m['itens'][0]['saldo'])->toBe('-9.4000')->and($m['itens'][0]['estourou'])->toBeTrue()
+        ->and($m['falta'])->toBe([]); // a OS não está em Aguardando material
+});
+
+it('UC-PCOSF-05 · aba Arte: versões da mais nova à mais antiga, e a que vale é a última aprovada', function () {
+    $arte = fn (string $arquivo, ?string $decisao, ?string $em) => DB::table('pcp_aprovacoes_arte')->insertGetId(['business_id' => $this->b98,
+        'ordem_id' => $this->ordem->id, 'programacao_id' => $this->e1->id, 'arte_programacao_id' => $this->e1->id, 'token_hash' => hash('sha256', uniqid()),
+        'arquivo' => $arquivo, 'expira_em' => now()->addDays(7), 'decisao' => $decisao, 'decidido_em' => $em, 'created_by' => $this->pcp->id,
+        'created_at' => now(), 'updated_at' => now()]);
+    $arte('https://ex.test/arte-v1.pdf', 'aprovada', '2026-11-05 16:40:00');
+    $arte('https://ex.test/arte-v2.pdf', null, null);
+    // SUPERADMIN: pedido de arte de outra empresa na mesma OS-id não pode aparecer (Tier 0).
+    DB::table('pcp_aprovacoes_arte')->insert(['business_id' => $this->b99, 'ordem_id' => $this->ordem->id, 'programacao_id' => $this->e1->id,
+        'arte_programacao_id' => $this->e1->id, 'token_hash' => hash('sha256', uniqid()), 'arquivo' => 'https://ex.test/de-outra.pdf',
+        'expira_em' => now()->addDays(7), 'created_by' => $this->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
+
+    $a = ($this->parcial)($this->op, 'artes')->assertOk()->json('props.artes');
+    expect(array_column($a, 'arquivo'))->toBe(['https://ex.test/arte-v2.pdf', 'https://ex.test/arte-v1.pdf'])
+        ->and(array_column($a, 'versao'))->toBe([2, 1])->and(array_column($a, 'vigente'))->toBe([false, true])
+        ->and($a[1]['decidida_em'])->toBe('2026-11-05 16:40');
 });

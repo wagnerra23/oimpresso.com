@@ -60,6 +60,7 @@ import { encaixarColunas } from './_components/lista/encaixe';
 import { useLargurasGuardadas } from './_components/lista/useLargurasGuardadas';
 import { useTamanho } from './_components/lista/useTamanho';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
+import NcmEmLote from './_components/lista/NcmEmLote';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
 import PainelDetalheProduto from './_components/lista/PainelDetalhe';
 import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
@@ -225,6 +226,8 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const [localModal, setLocalModal] = useState<'add' | 'remove' | null>(null);
   const [locaisEscolhidos, setLocaisEscolhidos] = useState<string[]>([]);
   const [wooModal, setWooModal] = useState(false);
+  // UC-PIDX-43: "Informar NCM" nos selecionados.
+  const [ncmModal, setNcmModal] = useState(false);
   const [rapido, setRapido] = useState(false);
   const [inicial, setInicial] = useState<{ id: number; nome: string } | null>(null);
   const [hora, setHora] = useState(hhmm);
@@ -710,6 +713,12 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   Remover do local
                 </Button>
               )}
+              {/* UC-PIDX-43: só para quem emite nota, como o filtro "Falta NCM". */}
+              {pode('update') && contexto.emite_nota && (
+                <Button variant="outline" size="sm" onClick={() => setNcmModal(true)}>
+                  Informar NCM
+                </Button>
+              )}
               {pode('etiquetas') && (
                 <Button variant="outline" size="sm" onClick={() => irPara(`/labels/show?product_ids=${selecionados.join(',')}`)}>
                   <Tag size={12} aria-hidden /> Etiquetas
@@ -832,6 +841,17 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NcmEmLote
+        aberto={ncmModal}
+        quantidade={selecionados.length}
+        container={cockpit}
+        aoFechar={() => setNcmModal(false)}
+        aoConfirmar={(ncm) => {
+          setNcmModal(false);
+          void executarJson('/products/bulk-update-ncm', 'POST', { products: ids, ncm });
+        }}
+      />
 
       <Dialog open={wooModal} onOpenChange={setWooModal}>
         <DialogContent>
