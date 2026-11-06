@@ -201,14 +201,18 @@ class DataController extends Controller
                             'href'     => '/pos/create?sub_type=repair',
                             'shortcut' => 'N',
                         ],
+                        // [W] 2026-11-06: as abas do topo das telas leem ESTA lista (ModuleTabs) — o
+                        // sidebar e as abas mostram o mesmo. Ordem e rótulos do protótipo
+                        // (`repair-page.jsx`, barra `MP.Tabs` "Áreas da assistência técnica").
+                        // "Portal do cliente" fica fora: ainda é Blade, sem Page (thread 04).
                         'ghosts'   => [
-                            ['key' => 'dashboard',        'label' => 'Dashboard',         'href' => '/repair/dashboard'],
-                            ['key' => 'os',               'label' => 'OS de Reparo',      'href' => '/repair/repair'],
-                            ['key' => 'job-sheets',       'label' => 'Job Sheets',        'href' => '/repair/job-sheet'],
-                            ['key' => 'producao',         'label' => 'Produção',          'href' => '/repair/producao-oficina'],
-                            ['key' => 'status',           'label' => 'Status',            'href' => '/repair/status'],
-                            ['key' => 'device-models',    'label' => 'Modelos',           'href' => '/repair/device-models'],
-                            ['key' => 'settings',         'label' => 'Configurações',     'href' => '/repair/repair-settings'],
+                            ['key' => 'painel',   'label' => 'Painel',        'href' => '/repair/dashboard'],
+                            ['key' => 'producao', 'label' => 'Produção',      'href' => '/repair/producao-oficina'],
+                            ['key' => 'folhas',   'label' => 'Folhas de OS',  'href' => '/repair/job-sheet'],
+                            ['key' => 'reparos',  'label' => 'Reparos',       'href' => '/repair/repair'],
+                            ['key' => 'status',   'label' => 'Status',        'href' => '/repair/status'],
+                            ['key' => 'modelos',  'label' => 'Modelos',       'href' => '/repair/device-models'],
+                            ['key' => 'config',   'label' => 'Configurações', 'href' => '/repair/repair-settings'],
                         ],
                     ]
                 )

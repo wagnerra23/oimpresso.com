@@ -93,13 +93,13 @@ FORMATO:
   return (
     <React.Fragment>
       <div className="om-palette-back" onClick={onClose}/>
-      <div className="om-ai-modal" role="dialog">
+      <div className="om-ai-modal" role="dialog" aria-modal="true" aria-label="Resumo da conversa pela IA" ref={window.omDialogRef}>
         <header className="om-ai-modal-h">
           <div>
             <small>IA · Resumir conversa</small>
             <h3>{conv.name} <span style={{color:"var(--text-mute)", fontWeight:500}}>· {conv.msgs.length} mensagens</span></h3>
           </div>
-          <button className="om-x" onClick={onClose}>✕</button>
+          <button className="om-x" onClick={onClose} aria-label="Fechar resumo da IA">✕</button>
         </header>
         <div className="om-ai-modal-body">
           {loading && (
@@ -197,14 +197,14 @@ RESPOSTA (3-6 frases + citações [a3] se usar KB):`;
   return (
     <React.Fragment>
       <div className="om-palette-back" onClick={onClose}/>
-      <div className="om-ai-modal lg" role="dialog">
+      <div className="om-ai-modal lg" role="dialog" aria-modal="true" aria-label="Perguntar à IA" ref={window.omDialogRef}>
         <header className="om-ai-modal-h">
           <div>
             <small>IA · Perguntar ao histórico</small>
             <h3>{conv?.name || "Cliente"}</h3>
             <p className="om-ai-sub">Acessa thread atual, outras conversas do cliente e artigos do KB.</p>
           </div>
-          <button className="om-x" onClick={onClose}>✕</button>
+          <button className="om-x" onClick={onClose} aria-label="Fechar pergunta à IA">✕</button>
         </header>
         <div className="om-ai-modal-body">
           {history.length === 0 && !loading && (
@@ -327,7 +327,7 @@ function SuggestReplyButton({ conv, onApply }) {
           <span className="om-suggest-tag">→ fila {out.queue_suggestion}</span>
           <span className="om-suggest-tag intent">{out.intent}</span>
         </span>
-        <button className="om-suggest-close" onClick={() => setExpanded(false)} title="Descartar">✕</button>
+        <button className="om-suggest-close" onClick={() => setExpanded(false)} title="Descartar" aria-label="Descartar sugestão">✕</button>
       </div>
       <p className="om-suggest-text">{out.reply}</p>
       <div className="om-suggest-actions">

@@ -243,13 +243,13 @@ function InboxTroubleDialog({ onPickArticle, onClose }) {
     return (
       <React.Fragment>
         <div className="om-palette-back" onClick={onClose}/>
-        <div className="om-ai-modal" role="dialog" style={{maxWidth:"640px", width:"min(640px, 94vw)"}}>
+        <div className="om-ai-modal" role="dialog" aria-modal="true" aria-label="Troubleshooters de atendimento" ref={window.omDialogRef} style={{maxWidth:"640px", width:"min(640px, 94vw)"}}>
           <header className="om-ai-modal-h">
             <div>
               <small>Diagnóstico guiado</small>
               <h3>Troubleshooters de atendimento</h3>
             </div>
-            <button className="om-x" onClick={onClose}>✕</button>
+            <button className="om-x" onClick={onClose} aria-label="Fechar troubleshooters">✕</button>
           </header>
           <div className="om-ai-modal-body" style={{gap:8}}>
             {INBOX_TROUBLES.map(t => (
@@ -271,7 +271,7 @@ function InboxTroubleDialog({ onPickArticle, onClose }) {
   return (
     <React.Fragment>
       <div className="om-palette-back" onClick={onClose}/>
-      <div className="om-ai-modal" role="dialog" style={{width:"min(540px, 94vw)"}}>
+      <div className="om-ai-modal" role="dialog" aria-modal="true" aria-label="Troubleshooter" ref={window.omDialogRef} style={{width:"min(540px, 94vw)"}}>
         <header className="om-ai-modal-h">
           <div>
             <small>
@@ -280,7 +280,7 @@ function InboxTroubleDialog({ onPickArticle, onClose }) {
             </small>
             <h3>{active.title}</h3>
           </div>
-          <button className="om-x" onClick={onClose}>✕</button>
+          <button className="om-x" onClick={onClose} aria-label="Fechar troubleshooter">✕</button>
         </header>
         <div className="om-ai-modal-body">
           {path.length > 0 && (
@@ -361,7 +361,7 @@ function InboxPathsDialog({ onPickKB, onPickTrouble, onClose }) {
         <aside className="om-paths-drawer">
           <header className="om-paths-h">
             <button className="om-link-btn" onClick={() => setActive(null)}>‹ Trilhas</button>
-            <button className="om-x" onClick={onClose}>✕</button>
+            <button className="om-x" onClick={onClose} aria-label="Fechar trilha">✕</button>
           </header>
           <div className="om-paths-hero" style={{background: `oklch(0.96 0.04 ${path.hue})`}}>
             <small style={{color: `oklch(0.36 0.13 ${path.hue})`}}>Trilha · {path.audience}</small>
@@ -408,7 +408,7 @@ function InboxPathsDialog({ onPickKB, onPickTrouble, onClose }) {
             <small>Aprendizado guiado</small>
             <h3>Trilhas — Caixa unificada</h3>
           </div>
-          <button className="om-x" onClick={onClose}>✕</button>
+          <button className="om-x" onClick={onClose} aria-label="Fechar trilhas">✕</button>
         </header>
         <div className="om-paths-list">
           {INBOX_PATHS.map(path => {

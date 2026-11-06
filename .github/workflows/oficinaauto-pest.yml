@@ -37,6 +37,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/OficinaAuto/**'
+      - 'resources/js/Pages/OficinaAuto/**'
       - 'tests/Support/WithSeededTenant.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/oficinaauto-pest.yml'
@@ -76,6 +77,9 @@ jobs:
           filters: |
             oficina:
               - 'Modules/OficinaAuto/**'
+              # Os casos das telas ancoram em resources/js/Pages/OficinaAuto: sem isto a tela muda,
+              # o G-6 cobra revalidação e a lane sai skip-as-pass sem rodar teste (2026-11-06).
+              - 'resources/js/Pages/OficinaAuto/**'
               - 'tests/Support/WithSeededTenant.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/oficinaauto-pest.yml'

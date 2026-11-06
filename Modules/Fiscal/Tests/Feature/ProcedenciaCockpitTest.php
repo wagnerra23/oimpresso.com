@@ -59,7 +59,6 @@ const SUPERFICIES_DE_DEMONSTRACAO = [
     'sefaz'    => 'mockSefazStatus',
     'eventos'  => 'mockEventos',
     'contabil' => 'mockContabilData',
-    'writeoff' => 'mockWriteOffSummary',
 ];
 
 const ORIGENS_VALIDAS = ['real', 'demonstracao'];
