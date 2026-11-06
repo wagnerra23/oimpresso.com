@@ -55,7 +55,8 @@ it('monta os 8 estados e as 12 transições do protótipo (+ o Liberar automáti
     // disponível") e cancelar item.
     expect($estados)->toBe(['Aguardando liberação', 'Aguardando material', 'Na fila', 'Em execução', 'Pausada', 'Retrabalho', 'Concluída', 'Cancelada']);
     $acoes = SaleStageAction::whereIn('stage_id', SaleProcessStage::where('process_id', $p1->id)->pluck('id'))->count();
-    expect($acoes)->toBe(13);
+    // + "Cancelada pela venda" (P-113) em cada uma das 6 etapas abertas: 13 + 6 = 19.
+    expect($acoes)->toBe(19);
     expect(SaleProcessStage::where('process_id', $p1->id)->where('key', 'cancelada')->value('is_cancelled'))->toBeTruthy();
 });
 
@@ -127,7 +128,7 @@ it('as ações do apontamento não pedem papel no motor; as de tela pedem', func
     $p = app(ProcessoDaOrdem::class)->garantir($this->b98);
     $acoes = SaleStageAction::with('roles')->whereIn('stage_id', SaleProcessStage::where('process_id', $p->id)->pluck('id'))->get()->keyBy('key');
 
-    foreach (['iniciar_etapa', 'pausar', 'retomar', 'concluir_etapa', 'concluir_item', 'liberar_pelo_sinal'] as $k) {
+    foreach (['iniciar_etapa', 'pausar', 'retomar', 'concluir_etapa', 'concluir_item', 'liberar_pelo_sinal', 'cancelar_pela_venda'] as $k) {
         expect($acoes[$k]->roles)->toHaveCount(0);
         expect((bool) $acoes[$k]->is_critical)->toBeFalse();
     }

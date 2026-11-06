@@ -313,7 +313,14 @@ class SpedController extends Controller
                 'error'       => $e->getMessage(),
             ]);
 
-            return response("Erro na geração SPED: {$e->getMessage()}", 500, ['Content-Type' => 'text/plain']);
+            // Sem o `getMessage()` na resposta: o detalhe técnico fica no log (lote 1.4).
+            report($e);
+
+            return response(
+                'Não foi possível gerar o arquivo SPED. O erro foi registrado; tente de novo ou fale com o suporte.',
+                500,
+                ['Content-Type' => 'text/plain; charset=UTF-8'],
+            );
         }
     }
 }

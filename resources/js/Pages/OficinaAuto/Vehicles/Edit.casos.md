@@ -5,10 +5,10 @@ irmaos: Edit.charter.md (lei) · ../../../../../memory/requisitos/OficinaAuto/SD
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-26"
-last_run_ci: "2026-10-26 revalidado: a tela ganhou o campo opcional Próxima revisão (data) — nenhum UC existente muda; o campo é provado por UC-OVREV-02 (Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php, 8 passed no CT 100, cópia isolada do branch). ---- 2026-10-06 revalidado: a tela ganhou o campo opcional Próxima revisão (km) — nenhum UC existente muda; o campo é provado por web cadastro e edição aceitam a próxima revisão (tests/Feature/Sells/AppOsApiContratoTest.php). Antes: 0 UC executado, trio nasceu em 2026-09-23"
+last_run: "2026-11-05"
+last_run_ci: "2026-11-05 revalidado: lane PHP / Pest (OficinaAuto · MySQL), run 42066537594 no commit do teste do contact_id — VehicleCrudTest e VehicleMultiTenantTest PASS; VehicleContactTenantContratoTest com os 2 casos de outra empresa vermelhos de propósito (código antigo) e os 2 controles verdes. A tela mudou em 2026-10-27 (#9888, lembrete por data), coberta pelo LembreteRevisaoContratoTest da lane sells-pest. ---- 2026-11-05 revalidado: o .tsx não mudou desde #9888 (commit 2026-10-27, o campo Próxima revisão (data) já descrito na revalidação de 2026-10-26); entra UC-OVREV-03 (o cron de lembrete pula empresa sem o pacote), provado em Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php. ---- 2026-10-26 revalidado: a tela ganhou o campo opcional Próxima revisão (data) — nenhum UC existente muda; o campo é provado por UC-OVREV-02 (Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php, 8 passed no CT 100, cópia isolada do branch). ---- 2026-10-06 revalidado: a tela ganhou o campo opcional Próxima revisão (km) — nenhum UC existente muda; o campo é provado por web cadastro e edição aceitam a próxima revisão (tests/Feature/Sells/AppOsApiContratoTest.php). Antes: 0 UC executado, trio nasceu em 2026-09-23"
 related_us: [US-OFICINA-001, US-OFICINA-002]
-related_cu: [CU-OFI-02]
+related_cu: [CU-OFI-02, CU-OFI-15]
 ---
 
 # Casos de Uso & Aceite — Editar veículo do cliente (Edit)
@@ -31,6 +31,7 @@ related_cu: [CU-OFI-02]
 |---|---|---|---|---|
 | UC-OVE-01 | corrigir o cadastro persiste | must | CU-OFI-02 · US-OFICINA-001 | `VehicleCrudTest` |
 | UC-OVE-02 | editar não apaga a ponte com o sistema antigo | should | CU-OFI-02 · US-OFICINA-002 | `VehicleCrudTest` |
+| UC-OVE-03 | trocar o cliente só aceita cliente da própria empresa | must | CU-OFI-15 · US-OFICINA-001 | `VehicleContactTenantContratoTest` |
 | UC-OVREV-01 | a meta de km avisa o cliente quando o km estimado chega perto | should | US-AUTO-014 · decisão [W] 2026-10-26 | `LembreteRevisaoContratoTest` |
 | UC-OVREV-02 | a data da próxima revisão avisa 7 dias antes, só com opt-in, uma vez por meta | should | US-AUTO-014 · decisão [W] 2026-10-26 | `LembreteRevisaoContratoTest` |
 
@@ -54,6 +55,14 @@ related_cu: [CU-OFI-02]
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/VehicleCrudTest.php`
 - **Status: 🧪**
 
+## UC-OVE-03 · Trocar o cliente só aceita cliente da própria empresa `[T0]`
+- **Persona:** invariante multi-tenant ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+- **Aceite:** Dado um veículo do business A e um cliente do business B · Quando a edição troca o
+  cliente para o do business B · Então a edição é recusada no campo do cliente e o dono não muda.
+- **Regressão que defende:** a venda derivada da OS sair em nome de um cliente de outra empresa.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/VehicleContactTenantContratoTest.php`
+- **Status: 🧪**
+
 ## UC-OVREV-01 · A meta de km avisa o cliente quando o km estimado chega perto
 - **Persona:** dono da oficina que quer o cliente de volta na revisão.
 - **Aceite:** Dado um veículo com "Próxima revisão (km)" e duas OS com km em dias diferentes · Quando
@@ -75,6 +84,16 @@ related_cu: [CU-OFI-02]
 - **Status: 🧪**
 
 ---
+
+## UC-OVREV-03 · O lembrete agendado só sai para empresa com o pacote do Oficina Auto
+- **Persona:** dono da plataforma (superadmin) que vende o módulo por pacote.
+- **Aceite:** Dado duas empresas com veículo de revisão devida e cliente com opt-in, uma com o pacote
+  `oficina_auto_module` e outra sem · Quando o `oficinaauto:lembretes-revisao` roda (agendado, sem
+  `--business`) · Então só a empresa com o pacote avisa; a outra aparece como "pulada" e nada é enviado
+  nem registrado para ela. Com `--business` de empresa sem o pacote, o mesmo.
+- **Regressão que defende:** cliente de empresa que não contratou (ou cancelou) o módulo receber WhatsApp
+  em nome dela (auditoria 2026-11-05, eixo 5).
+- **Status: 🧪**
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 

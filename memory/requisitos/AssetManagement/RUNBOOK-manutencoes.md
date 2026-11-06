@@ -94,7 +94,7 @@ Nada disso é regressão: **tudo que o Blade mostrava está na tela nova.**
 | estado | o que a tela faz |
 |---|---|
 | **loading** | esqueleto da tabela (`Deferred fallback`) — cabeçalho, sub-nav e filtros já pintados |
-| **empty (sem filtro)** | `EmptyState`: não há manutenção registrada. **Sem CTA de criar** — o fluxo nasce em Bens, e o Blade também não tinha botão aqui |
+| **empty (sem filtro)** | `EmptyState`: não há manutenção registrada. _(2026-09-16: "Sem CTA de criar".)_ **Desde a thread 19 (2026-09-30)** há o botão "+ Enviar bem pra manutenção" no rodapé da tela (`Manutencoes.tsx:841-849`), que abre o drawer de envio pela rota `create` (UC-MANU-06); o envio também nasce na linha do bem em Bens (UC-BENS-12) |
 | **empty (com filtro)** | mensagem do `DataTable` pedindo para limpar o recorte — vazio de filtro ≠ vazio de dado |
 | **empty (escopo restrito)** | o aviso de `view_own_maintenance` fica visível junto do vazio: "não há manutenção **sua**" é diferente de "não há manutenção" |
 | **error** | erro de rede cai no tratamento padrão do Inertia; a guarda de permissão responde 403 antes de renderizar |

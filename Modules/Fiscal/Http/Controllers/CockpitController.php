@@ -2,6 +2,7 @@
 
 namespace Modules\Fiscal\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -30,7 +31,8 @@ class CockpitController extends Controller
 {
     /**
      * Cache key pra KPIs do cockpit por business — 60s TTL (GAP-FISCAL-002).
-     * Invalidado via InvalidaCockpitCacheListener em NFeAutorizada/NFCeAutorizada.
+     * Invalidado via InvalidaCockpitCacheListener (autorização, cancelamento, inutilização,
+     * DF-e e certificado — ver o docblock dele).
      */
     public const KPIS_CACHE_TTL_SECONDS = 60;
 
@@ -47,13 +49,20 @@ class CockpitController extends Controller
             abort(403, 'Sem permissão fiscal.access');
         }
 
+        // D15 (2026-11-05) — sem empresa na sessão o painel não abre. Antes a chave de
+        // cache virava `biz:0` e o ScopeByBusiness, sem `user.business_id`, não filtra
+        // nada: o número de TODAS as empresas ficaria guardado nessa chave.
+        $businessId = $this->businessIdDaSessao();
+        if ($businessId <= 0) {
+            abort(403, 'Sem empresa na sessão — o cockpit fiscal é por empresa.');
+        }
+
         $contexto = $this->buildContexto();
 
         // CU-FISC-16 — uma consulta, duas superfícies: a lista e os contadores das
         // visões salvas saem da MESMA fonte, pra não voltarem a divergir.
         $notas = $notasService->listar();
 
-        $businessId = (int) (session('user.business_id') ?? 0);
         $kpis = Cache::remember(
             $this->kpisCacheKey($businessId),
             self::KPIS_CACHE_TTL_SECONDS,
@@ -90,8 +99,6 @@ class CockpitController extends Controller
             // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
             'eventosMock'    => $this->mockEventos(),
             'contabilData'   => $this->mockContabilData(),
-            // Onda 3 L — auditoria mensal (write-off candidatos determinístico, sem IA)
-            'writeOffSummary' => $this->mockWriteOffSummary(),
             'procedencia'     => $this->procedencia(),
         ]);
     }
@@ -160,28 +167,6 @@ class CockpitController extends Controller
                 'origem'  => 'demonstracao',
                 'explica' => 'Números do pacote e histórico de envios são fixos no código, e o envio por e-mail/SFTP ainda não existe.',
             ],
-            'writeoff' => [
-                'origem'  => 'demonstracao',
-                'explica' => 'Candidatos e valores são fixos no código. Ser real depende de consultar fin_titulos vencidos há mais de 365 dias sem pagamento.',
-            ],
-        ];
-    }
-
-    /**
-     * Mock summary write-off candidatos. Onda 3 L. Determinístico (sem IA).
-     * TODO[CL]: substituir por WriteOffAuditService::analyzeMonth() —
-     * query fin_titulos WHERE due_at < now()-365d AND payment_count=0.
-     *
-     * @return array<string, mixed>|null
-     */
-    protected function mockWriteOffSummary(): ?array
-    {
-        return [
-            'totalCandidates' => 2470,
-            'totalValor'      => 770_000.00,
-            'oldestAge'       => 1847, // ~5 anos
-            'category'        => 'incobravel',
-            'scopeLabel'      => 'Inadimplência >365d',
         ];
     }
 
@@ -265,6 +250,31 @@ class CockpitController extends Controller
         return ['uf' => 'SP', 'operacional' => true, 'label' => 'SEFAZ-SP operacional'];
     }
 
+    /** Empresa ativa — a mesma chave de sessão que o ScopeByBusiness lê. 0 = sem empresa. */
+    protected function businessIdDaSessao(): int
+    {
+        return (int) (session('user.business_id') ?? 0);
+    }
+
+    /**
+     * Prende a consulta (notas, certificado, DF-e) à empresa da sessão, explicitamente.
+     *
+     * Para usuário comum isto repete o predicado que o ScopeByBusiness já põe — o resultado é
+     * o mesmo. Para quem tem `jana.superadmin`, o scope acrescenta `OR business_id IS NULL`;
+     * aqui esse OR deixa de valer. Medido em produção em 2026-11-05: `nfe_emissoes`,
+     * `nfe_certificados` e `nfe_dfe_recebidos` têm `business_id NOT NULL` e 0 linhas nulas,
+     * então nenhum total muda — o filtro é defesa, não correção de número.
+     *
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
+     */
+    protected function daEmpresa(Builder $query): Builder
+    {
+        return $query->where($query->getModel()->getTable() . '.business_id', $this->businessIdDaSessao());
+    }
+
     /**
      * Cache key — DEVE bater com InvalidaCockpitCacheListener::KEY_PREFIX.
      */
@@ -279,8 +289,9 @@ class CockpitController extends Controller
      */
     protected function buildContexto(): array
     {
-        $cert = NfeCertificado::query()->where('ativo', true)->orderByDesc('valido_ate')->first();
-        $dfeCount = NfeDfeRecebido::query()
+        $cert = $this->daEmpresa(NfeCertificado::query())
+            ->where('ativo', true)->orderByDesc('valido_ate')->first();
+        $dfeCount = $this->daEmpresa(NfeDfeRecebido::query())
             ->whereIn('status_manifestacao', ['pendente', 'ciencia'])
             ->count();
 
@@ -298,11 +309,12 @@ class CockpitController extends Controller
     protected function computeKpis(array $contexto): array
     {
         $inicioMes = now()->startOfMonth();
+        $doMes = fn () => $this->daEmpresa(NfeEmissao::query())->where('emitido_em', '>=', $inicioMes);
 
-        $emitidas    = NfeEmissao::query()->where('emitido_em', '>=', $inicioMes)->count();
-        $autorizadas = NfeEmissao::query()->where('emitido_em', '>=', $inicioMes)->where('status', 'autorizada')->count();
-        $rejeitadas  = NfeEmissao::query()->where('emitido_em', '>=', $inicioMes)->whereIn('status', ['rejeitada', 'denegada'])->count();
-        $faturado    = (float) NfeEmissao::query()->where('emitido_em', '>=', $inicioMes)->where('status', 'autorizada')->sum('valor_total');
+        $emitidas    = $doMes()->count();
+        $autorizadas = $doMes()->where('status', 'autorizada')->count();
+        $rejeitadas  = $doMes()->whereIn('status', ['rejeitada', 'denegada'])->count();
+        $faturado    = (float) $doMes()->where('status', 'autorizada')->sum('valor_total');
 
         // Reuse contexto (vinha de 2 queries idênticas no computeAlerts)
         $dfeAguardando = $contexto['dfeCount'];
@@ -330,7 +342,7 @@ class CockpitController extends Controller
     {
         $inicio = now()->startOfDay()->subDays(13); // hoje + 13 dias atrás = 14 dias
 
-        $rows = NfeEmissao::query()
+        $rows = $this->daEmpresa(NfeEmissao::query())
             ->where('emitido_em', '>=', $inicio)
             ->selectRaw('DATE(emitido_em) as dia, status, COUNT(*) as n, SUM(valor_total) as v')
             ->groupBy('dia', 'status')
@@ -370,7 +382,7 @@ class CockpitController extends Controller
         $alerts = [];
 
         // Crit: rejeições recentes (últimos 7d)
-        $rejs = NfeEmissao::query()
+        $rejs = $this->daEmpresa(NfeEmissao::query())
             ->whereIn('status', ['rejeitada', 'denegada'])
             ->where('emitido_em', '>=', now()->subDays(7))
             ->orderByDesc('emitido_em')
@@ -438,7 +450,7 @@ class CockpitController extends Controller
 
         // R-NFE-042 · Crit: a busca das notas recebidas falhou (BuscarDfesRecebidosJob::failed) nos
         // últimos 3 dias e ninguém arquivou o alerta. Sem isso, a falha só existia no failed_jobs.
-        $falhaDfe = $this->ultimaFalhaBuscaDfe((int) (session('user.business_id') ?? 0));
+        $falhaDfe = $this->ultimaFalhaBuscaDfe($this->businessIdDaSessao());
         if ($falhaDfe !== null) {
             $alerts[] = [
                 'level'  => 'crit',

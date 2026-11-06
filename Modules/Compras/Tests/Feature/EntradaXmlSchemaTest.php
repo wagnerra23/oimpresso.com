@@ -16,7 +16,8 @@ use Tests\Support\EstoqueFixture;
  * - uma compra só se liga a uma nota da mesma empresa (reimportação idempotente);
  * - nota vinda de upload entra sem NSU.
  *
- * Tenant 98 (ADR 0358) e adversário 99 ou o biz=2 do seed, nunca 1 nem 4.
+ * Tenant 98 (ADR 0358) e adversário o cliente fictício 99, criado pelo próprio teste quando falta
+ * (seededSupportClientTenant); nunca 1 nem 4.
  *
  * @covers-us US-COM-003
  */
@@ -27,11 +28,8 @@ beforeEach(function () {
         $this->markTestSkipped('Schema MySQL com as migrations da fase 1 ausente — rode no CT 100 / lane compras-pest.');
     }
     $this->biz = EstoqueFixture::businessId();
-    $this->outra = (int) DB::table('business')->whereIn('id', [99, 2])->where('id', '!=', $this->biz)
-        ->orderByDesc('id')->value('id');
-    if ($this->outra <= 0) {
-        $this->markTestSkipped('Sem empresa adversária fictícia (99 ou 2) neste ambiente.');
-    }
+    $this->outra = (int) $this->seededSupportClientTenant()->id;
+    expect($this->outra)->toBe(99, 'adversário fictício 99 não foi criado');
     $this->varA = EstoqueFixture::singleProduct($this->biz)->variationId();
     $this->varB = EstoqueFixture::singleProduct($this->outra)->variationId();
 });

@@ -19,8 +19,8 @@ alcance:
   menu_hook: Modules/AssetManagement/Http/Controllers/DataController.php::modifyAdminMenu
   pacote: assetmanagement_module      # superadmin_package
 tier: B
-charter_version: 4
-last_validated: "2026-09-30"
+charter_version: 5
+last_validated: "2026-11-05"
 ---
 
 # Page Charter — Patrimonio/Index (Painel do Patrimônio)
@@ -82,6 +82,10 @@ o que está parado ou sem cobertura de garantia.**
 - Cabe em 1280px sem scroll horizontal (monitor da Larissa/ROTA LIVRE)
 - Primeiro paint sem esperar agregação: as 5 props caras são `Inertia::defer` com skeleton
 - Todo painel tem estado vazio explícito (`EmptyState`), nenhum some quando o dado é 0
+- Carga que falha não vira espera eterna (2026-11-05): se a carga deferida de as cinco agregações (um pedido só) termina
+  sem a prop, o corpo do painel mostra o estado de erro do protótipo (`patrimonio-page.jsx:846`) —
+  `role="alert"`, "Não consegui carregar …" e "Tentar de novo", que pede só aquela prop.
+  Detecção em `_shared/falhaDeferida.ts`. Contrato: UC-PAT-13.
 
 ## Regras que a tela respeita
 

@@ -9,6 +9,7 @@ import { BlocoConfiguracoes } from './BlocoConfiguracoes';
 import { BlocoFiscal } from './BlocoFiscal';
 import { BlocoImpostosPrecos } from './BlocoImpostosPrecos';
 import type { PrecoSimples } from './precos';
+import type { MetodoCustoDoFormulario } from './metodoCusto';
 import type {
   CamposProduto,
   DefinirCampo,
@@ -32,9 +33,11 @@ interface Props {
   /** Novo: mostra a validade quando a empresa a usa. */
   mostrarValidade?: boolean;
   /** Produto simples: o preço, mostrado no card "Impostos e preços". */
-  preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number };
+  preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number; margemMinima?: number | null };
   /** Editar: a natureza fiscal decidida pelo contador (UC-PEDIT-14). */
   naturezaFiscal?: NaturezaFiscalProduto | null;
+  /** Método de custo (US-COM-024), mostrado no card "Impostos e preços". */
+  metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
 }
 
 export function ProdutoFormulario({
@@ -49,6 +52,7 @@ export function ProdutoFormulario({
   mostrarValidade,
   preco,
   naturezaFiscal,
+  metodoCusto,
 }: Props) {
   return (
     <form id={id} onSubmit={onSubmit} className="space-y-6">
@@ -68,6 +72,7 @@ export function ProdutoFormulario({
         opcoes={opcoes}
         tipoAtual={tipoAtual}
         preco={preco}
+        metodoCusto={metodoCusto}
       />
     </form>
   );

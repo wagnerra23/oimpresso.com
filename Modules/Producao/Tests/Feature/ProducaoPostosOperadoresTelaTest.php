@@ -1,5 +1,6 @@
 <?php
 // @covers-us US-PCP-030
+// @covers-us US-PCP-004
 
 declare(strict_types=1);
 // Cobre UC-PCOPE-06 (Postos/Index.casos.md · US-PCP-030 · UC-FLX-08): a tela de Postos mostra e edita os operadores.
@@ -20,6 +21,11 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * Tenant 98 × 99 (ADR 0358), NUNCA biz=4. ⚠️ SKIP em SQLite: leia assertions, não "0 failed" (LC-13).
  */
 beforeEach(function () {
+    // Auditoria lote 2.4: os cadastros e a etiqueta exigem o Producao no pacote; o resto segue o real.
+    $this->partialMock(\App\Utils\ModuleUtil::class, function ($m) {
+        $m->shouldReceive('hasThePermissionInSubscription')->byDefault()->passthru();
+        $m->shouldReceive('hasThePermissionInSubscription')->withSomeOfArgs('producao_module')->andReturnUsing(fn () => $this->pacoteProducao ?? true);
+    });
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL do UltimatePOS.');
     }

@@ -1,6 +1,6 @@
 ---
 id: requisitos-fiscal-telas-apuracao-das-casos
-casos: Apurar o DAS do Simples pelo Anexo (fluxo SEM tela React nesta fatia) · ApuracaoDasService
+casos: Apurar o DAS do Simples pelo Anexo (a conta) · ApuracaoDasService · tela em resources/js/Pages/Fiscal/Das.tsx (contrato próprio em Das.casos.md)
 irmaos: ../SPEC.md (US-FISCAL-030) · ../../../../Modules/Financeiro/Http/Controllers/ImpostosController.php (a estimativa ≈6% que esta apuração vai substituir)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
@@ -12,6 +12,11 @@ related_us: [US-FISCAL-030]
 
 # Casos de Uso & Aceite — Apuração do DAS pelo Anexo
 
+> **Atualizado em 2026-11-06:** a tela chegou na fatia 2 (#10268) — `GET /fiscal/das`, `DasController`,
+> atrás da flag por empresa `useV2FiscalDas` — e o contrato da tela é o
+> [`Das.casos.md`](../../../../resources/js/Pages/Fiscal/Das.casos.md) (UC-FDAS-*). Este arquivo segue
+> dono da **conta**. O parágrafo abaixo é o texto da fatia 1 (2026-10-27).
+>
 > **Fatia 1, só o cálculo.** Não grava, não lança título, não transmite PGDAS-D e não escolhe o
 > anexo. Nenhum chamador ainda: a tela e o "lançar a pagar" chegam em fatia própria, atrás de flag,
 > com protótipo publicado antes. Até lá o Financeiro segue mostrando a estimativa ≈6%.

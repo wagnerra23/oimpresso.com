@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 50 |
+| US no SPEC | 52 |
 | CU no SDD | 19 |
 | Telas (.tsx) | 9 |
 | Telas com `casos.md` | 10 |
-| UC declarados | 69 |
-| UC com teste que os cita | 69 |
+| UC declarados | 74 |
+| UC com teste que os cita | 74 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -32,6 +32,8 @@ authority: generated
 | `CU-OFI-17` sem UC | caso de uso que o exercite — Painel fiscal da OS |
 | `US-OFICINA-012` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Consulta CRLV/placa (cache 30d + adapter pluggable) — **P1** |
 | `US-OFICINA-042` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel fiscal NF-e/NFS-e na OS |
+| `US-OFICINA-027` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Itens da OS (peça, mão de obra, serviço) + box e responsável |
+| `US-OFICINA-037` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Imprimir OS em A4 (laudo/nota de balcão) |
 
 ### Backlog — NÃO é lacuna
 
@@ -104,6 +106,7 @@ authority: generated
 | UC-OED-06 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OED-07 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OED-08 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
+| UC-OED-09 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OIM-01 | importer-frota-legada (blade) | 🧪 aguarda veredito da lane |
 | UC-OIM-02 | importer-frota-legada (blade) | 🧪 aguarda veredito da lane |
 | UC-OIM-03 | importer-frota-legada (blade) | 🧪 aguarda veredito da lane |
@@ -129,6 +132,7 @@ authority: generated
 | UC-OSH-20 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSH-21 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSH-22 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
+| UC-OSH-23 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSPECA-01 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSPECA-02 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
 | UC-OSPECA-03 | ServiceOrders/Show | 🧪 aguarda veredito da lane |
@@ -136,13 +140,16 @@ authority: generated
 | UC-OVC-01 | Vehicles/Create | 🧪 aguarda veredito da lane |
 | UC-OVC-02 | Vehicles/Create | 🧪 aguarda veredito da lane |
 | UC-OVC-03 | Vehicles/Create | 🧪 aguarda veredito da lane |
+| UC-OVC-04 | Vehicles/Create | 🧪 aguarda veredito da lane |
 | UC-OVE-01 | Vehicles/Edit | 🧪 aguarda veredito da lane |
 | UC-OVE-02 | Vehicles/Edit | 🧪 aguarda veredito da lane |
+| UC-OVE-03 | Vehicles/Edit | 🧪 aguarda veredito da lane |
 | UC-OVI-01 | Vehicles/Index | 🧪 aguarda veredito da lane |
 | UC-OVI-02 | Vehicles/Index | 🧪 aguarda veredito da lane |
 | UC-OVI-03 | Vehicles/Index | 🧪 aguarda veredito da lane |
 | UC-OVREV-01 | Vehicles/Edit | 🧪 aguarda veredito da lane |
 | UC-OVREV-02 | Vehicles/Edit | 🧪 aguarda veredito da lane |
+| UC-OVREV-03 | Vehicles/Edit | 🧪 aguarda veredito da lane |
 | UC-OVS-01 | Vehicles/Show | 🧪 aguarda veredito da lane |
 | UC-OVS-02 | Vehicles/Show | 🧪 aguarda veredito da lane |
 

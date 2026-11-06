@@ -24,6 +24,11 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * Tenant 98 × 99 (ADR 0358), NUNCA biz=4. ⚠️ SKIP em SQLite: leia assertions, não "0 failed" (LC-13).
  */
 beforeEach(function () {
+    // Auditoria lote 2.4: os cadastros e a etiqueta exigem o Producao no pacote; o resto segue o real.
+    $this->partialMock(\App\Utils\ModuleUtil::class, function ($m) {
+        $m->shouldReceive('hasThePermissionInSubscription')->byDefault()->passthru();
+        $m->shouldReceive('hasThePermissionInSubscription')->withSomeOfArgs('producao_module')->andReturnUsing(fn () => $this->pacoteProducao ?? true);
+    });
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL do UltimatePOS.');
     }

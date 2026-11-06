@@ -17,6 +17,8 @@ import { tipoDeEnvio } from './_components/formulario/envio';
 import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
+import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formulario/metodoCusto';
+import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
 import type {
@@ -84,6 +86,10 @@ export interface ProdutoEditPageProps {
     opening_stock: boolean;
     delete: boolean;
   };
+  /** Método de custo (US-COM-024): null quando o módulo Compras não está no pacote. */
+  metodoCusto?: MetodoCustoDoFormulario | null;
+  /** Margem mínima da empresa em % (UC-FLX-35): null quando a regra está desligada. */
+  margemMinima?: number | null;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
@@ -100,6 +106,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
   const [preco, setPreco] = useState<PrecoSimples | null>(() =>
     precoGravado ? { compra: precoGravado.compra, margem: precoGravado.margem, venda: precoGravado.venda } : null,
   );
+  const [metodoCusto, setMetodoCusto] = useState(() => valorInicialDoMetodo(props.metodoCusto));
   const { data, setData, put, transform, processing, errors } = useForm({
     name: p.name,
     sku: p.sku,
@@ -142,6 +149,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
         ...(ncm !== ncmGravado ? { ncm } : {}),
         ...(cest !== cestGravado ? { cest } : {}),
         ...camposDoPrecoEditado(precoGravado, preco, aliquotaDoImposto(d.tax, props.taxAttributes), String(d.tax) !== String(impostoGravado)),
+        ...camposDoMetodoCusto(props.metodoCusto, metodoCusto),
       };
     });
     put(`/products/${p.id}`);
@@ -151,21 +159,24 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     <>
       <Head title={`Editar · ${p.name}`} />
 
-      <div className="min-h-screen bg-stone-50 text-stone-900">
-        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-stone-200">
+      {/* Sem fundo próprio: a tela fica por cima do fundo do shell (.cockpit, var(--bg)), que já segue
+          o tema. Até 2026-11-05 ela fixava bg-stone-50 e, no tema escuro, a página ficava clara com os
+          cartões escuros. */}
+      <div className="min-h-screen text-foreground">
+        <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
           <div className="px-6 pt-4 pb-3 flex items-center justify-between">
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-[12px] text-stone-500">
+              <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
                 <Link href="/products" className="hover:underline">
                   Produtos
                 </Link>
-                <span className="text-stone-400">›</span>
-                <span className="text-stone-900 font-medium">Editar</span>
+                <span className="text-muted-foreground">›</span>
+                <span className="text-foreground font-medium">Editar</span>
               </div>
               <h1 className="mt-1 text-[24px] font-semibold tracking-tight truncate">
                 Editar · {p.name}
               </h1>
-              <div className="mt-1 font-mono text-[12px] text-stone-500">{p.sku}</div>
+              <div className="mt-1 font-mono text-[12px] text-muted-foreground">{p.sku}</div>
             </div>
             <Button variant="outline" asChild className="shrink-0">
               <Link href="/products">
@@ -187,7 +198,10 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
             opcoes={props}
             tipoAtual={props.productTypes[p.type] ?? p.type}
             naturezaFiscal={p.naturezaFiscal ?? null}
-            preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) } : undefined}
+            preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes), margemMinima: props.margemMinima ?? null } : undefined}
+            metodoCusto={
+              props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
+            }
           />
           {/* "Salvar e adicionar preços por grupo" fica fora: o Editar não recebe a contagem de grupos. */}
           <AcoesDoCadastro

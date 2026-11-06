@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-OFICINA-037
 
 declare(strict_types=1);
 

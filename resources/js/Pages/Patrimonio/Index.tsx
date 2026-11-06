@@ -23,6 +23,8 @@ import { Input } from '@/Components/ui/input';
 // ADR 0253 — layout é COMPOSIÇÃO destes primitivos, nunca `<div className="flex gap-2">` solto.
 import { Inline, Grid, Stack } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
+import FalhaDeCarga from './_shared/FalhaDeCarga';
+import { useFalhaDeferida } from './_shared/falhaDeferida';
 
 interface Kpis {
   bruto: number;
@@ -246,6 +248,9 @@ function PilulaFrescor({ hora }: { hora: string }) {
 
 export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpis, porCategoria, garantia, manutencoes, meusBens }: Props) {
   const apurado = new Date(apurado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  // As cinco agregações do painel vêm num pedido deferido só: se ele falha, o corpo inteiro vira
+  // o estado de erro do protótipo (`patrimonio-page.jsx:846`), não oito esqueletos eternos.
+  const falhaPainel = useFalhaDeferida(['kpis', 'porCategoria', 'garantia', 'manutencoes', 'meusBens']);
   // Só HH:MM no selo do header — é o formato do protótipo (`patrimonio-page.jsx:822`,
   // `toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})`). O carimbo COMPLETO
   // segue no "Resumo de hoje": o protótipo tem os dois (`MP.Resumo quando=` :215), e um
@@ -394,6 +399,10 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
           <PatrimonioSubNav active="dashboard" badges={abas_contadores ?? undefined} />
         </div>
 
+        {falhaPainel.falhou ? (
+          <FalhaDeCarga titulo="Não consegui carregar o patrimônio" falha={falhaPainel} />
+        ) : (
+        <>
         {/* Resumo de hoje. A 2ª frase do protótipo cita equipamentos e um custo por peça
             que não existem no banco (cenário do mock) — omitida, não imitada. RUNBOOK §4. */}
         <div data-contract="resumo">
@@ -727,6 +736,8 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
               </p>
             )}
           </div>
+        )}
+        </>
         )}
       </div>
     </AppShellV2>

@@ -197,23 +197,39 @@ class AssetAllocationController extends Controller
      * (DataTables legado e Inertia). Antes deste PR a expressao existia uma vez, inline no
      * ramo ajax; extrai-la evita que a proxima correcao pouse em so um dos caminhos.
      *
-     * ⚠️ RESIDUO Tier 0 PRESERVADO BYTE-A-BYTE: o leftJoin de `asset_transactions as PT`
-     * NAO filtra `PT.business_id`, entao `revoked_quantity` agrega devolucao de qualquer
-     * empresa quando a pre-condicao existe (linha filha com parent de outro tenant). E o
-     * gemeo catalogado em `_saida-01.md §9(a)`, com thread dona. Nao e corrigido aqui por
-     * duas leis que caem juntas: mexer em quantidade e REGRA MESTRE (prova por dois caminhos
-     * + antes→depois pro [W]) e 1 PR = 1 intent. Ver §9 do RUNBOOK-alocacoes.md.
+     * O leftJoin de `asset_transactions as PT` filtra `PT.business_id` desde o lote 0.4
+     * (2026-11-05) — era o residuo Tier 0 catalogado em `_saida-01.md §9(a)`. Prova por dois
+     * caminhos no PR: teste (4 alocado, 1 devolvido, 2 de outra empresa → 1) e dry-run em
+     * producao (0 linhas filhas de outra empresa, 0 alocacoes mudam).
      */
     private function baseAllocationsQuery($business_id)
     {
-        return AssetTransaction::join('assets',
-                            'asset_transactions.asset_id', '=', 'assets.id')
-                            ->join('users as receiver', 'asset_transactions.receiver', '=', 'receiver.id')
+        // Lote 0.1 (auditoria 2026-11-05, A1): os joins de bem, receptor e categoria passaram
+        // a exigir a MESMA empresa da alocacao. Antes, uma linha com `asset_id`/`receiver` de
+        // outra empresa mostrava nome do bem e da pessoa alheios. Continua `join` (nao
+        // `leftJoin`): para dado legitimo o conjunto de linhas nao muda; linha corrompida
+        // some da lista em vez de vazar. `provider` (quem criou) fica sem o predicado: e
+        // `created_by` gravado pela sessao, e o superadmin pode atuar em outra empresa.
+        return AssetTransaction::join('assets', function ($join) {
+                                $join->on('asset_transactions.asset_id', '=', 'assets.id')
+                                    ->on('assets.business_id', '=', 'asset_transactions.business_id');
+                            })
+                            ->join('users as receiver', function ($join) {
+                                $join->on('asset_transactions.receiver', '=', 'receiver.id')
+                                    ->on('receiver.business_id', '=', 'asset_transactions.business_id');
+                            })
                             ->join('users as provider', 'asset_transactions.created_by', '=', 'provider.id')
-                            ->leftJoin('categories as CAT', 'assets.category_id',
-                                '=', 'CAT.id')
-                            ->leftJoin('asset_transactions as PT',
-                            'asset_transactions.id', '=', 'PT.parent_id')
+                            ->leftJoin('categories as CAT', function ($join) {
+                                $join->on('assets.category_id', '=', 'CAT.id')
+                                    ->on('CAT.business_id', '=', 'assets.business_id');
+                            })
+                            // Lote 0.4 (auditoria 2026-11-05): a devolucao so conta se for da MESMA
+                            // empresa da alocacao. Sem o predicado, linha filha de outro tenant
+                            // inflava `revoked_quantity` e mudava a situacao da linha e os recortes.
+                            ->leftJoin('asset_transactions as PT', function ($join) {
+                                $join->on('asset_transactions.id', '=', 'PT.parent_id')
+                                    ->on('PT.business_id', '=', 'asset_transactions.business_id');
+                            })
                             ->where('asset_transactions.business_id', $business_id)
                             ->where('asset_transactions.transaction_type', 'allocate')
                             ->select('asset_transactions.ref_no as ref_no',
@@ -281,7 +297,7 @@ class AssetAllocationController extends Controller
 
         return $alocacoes->paginate(25)->withQueryString()->through(function ($row) use ($hoje) {
             $quantidade = (float) $row->quantity;
-            // Herda o residuo Tier 0 do §9 do RUNBOOK — NAO e numero auditado.
+            // So devolucao da propria empresa (lote 0.4) — o residuo do §9 do RUNBOOK fechou.
             $devolvido = (float) $row->revoked_quantity;
 
             $prazo = $row->allocated_upto ? \Carbon::parse($row->allocated_upto)->startOfDay() : null;
@@ -402,6 +418,9 @@ class AssetAllocationController extends Controller
                 ->action([\Modules\AssetManagement\Http\Controllers\AssetAllocationController::class, 'index'])
                 ->with('status', ['success' => true,
                     'msg' => __('lang_v1.success'), ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Lote 0.1: bem/pessoa de outra empresa ou quantidade vazia/0 — erro por campo.
+            throw $e;
         } catch (SaldoInsuficienteException $e) {
             // A recusa da trava (thread 02) chega ao DRAWER como erro do campo quantidade — ate
             // 2026-09-30 caia no `catch` generico e virava "algo deu errado", com a mensagem
@@ -482,6 +501,14 @@ class AssetAllocationController extends Controller
                 ->action([\Modules\AssetManagement\Http\Controllers\AssetAllocationController::class, 'index'])
                 ->with('status', ['success' => true,
                     'msg' => __('lang_v1.success'), ]);
+        } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Lote 0.1: erro por campo (bem/pessoa de outra empresa, quantidade 0) chega ao
+            // drawer; alocacao de outra empresa ou devolucao no lugar de alocacao vira 404.
+            throw $e;
+        } catch (SaldoInsuficienteException $e) {
+            // Mesma traducao do `store()` (erro no campo quantidade); o Service ja fez o rollback,
+            // nada e gravado. Por excecao, nao por `return`: o metodo declara `Response`.
+            throw \Illuminate\Validation\ValidationException::withMessages(['quantity' => $e->getMessage()]);
         } catch (\Exception $e) {
             DB::rollBack();
 
