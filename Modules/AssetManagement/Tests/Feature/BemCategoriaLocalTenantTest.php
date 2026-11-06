@@ -61,6 +61,18 @@ function reqTenCategoria(int $businessId, int $userId): int
     ]);
 }
 
+/** Local da empresa adversaria, criado aqui (o seed do CI nao tem local fora do 98). */
+function reqTenLocal(int $businessId): int
+{
+    $esq = DB::table('invoice_schemes')->insertGetId(['business_id' => $businessId, 'name' => 'REQ-TEN esq '.uniqid(), 'scheme_type' => 'blank']);
+    $lay = DB::table('invoice_layouts')->insertGetId(['business_id' => $businessId, 'name' => 'REQ-TEN lay '.uniqid()]);
+
+    return (int) DB::table('business_locations')->insertGetId([
+        'business_id' => $businessId, 'name' => 'REQ-TEN loc '.uniqid(), 'country' => 'Brasil', 'state' => 'MT',
+        'city' => 'Cuiaba', 'zip_code' => '7806500', 'invoice_scheme_id' => $esq, 'invoice_layout_id' => $lay, 'is_active' => 1,
+    ]);
+}
+
 function reqTenComo(User $user, int $businessId)
 {
     $moduleUtil = Mockery::mock(ModuleUtil::class)->makePartial();
@@ -90,6 +102,9 @@ function reqTenLimpar(): void
     app()->forgetInstance(ModuleUtil::class);
     Asset::where('name', 'like', 'REQ-TEN-%')->forceDelete();
     DB::table('categories')->where('name', 'like', 'REQ-TEN cat %')->delete();
+    DB::table('business_locations')->where('name', 'like', 'REQ-TEN loc %')->delete();
+    DB::table('invoice_layouts')->where('name', 'like', 'REQ-TEN lay %')->delete();
+    DB::table('invoice_schemes')->where('name', 'like', 'REQ-TEN esq %')->delete();
     foreach (User::withTrashed()->where('username', 'like', 'req_ten_%')->get() as $u) {
         DB::table('model_has_roles')->where('model_id', $u->id)->delete();
         $u->forceDelete();
@@ -107,7 +122,7 @@ it('cadastro de bem recusa categoria e local de outra empresa; com os da empresa
         $minhaCat = reqTenCategoria($dono, $u->id);
         $catAlheia = reqTenCategoria($adv, $uAdv->id);
         $meuLocal = DB::table('business_locations')->where('business_id', $dono)->value('id');
-        $localAlheio = DB::table('business_locations')->where('business_id', '!=', $dono)->value('id');
+        $localAlheio = reqTenLocal($adv);
         // Pre-condicao: sem os dois locais o teste nao prova nada.
         expect($meuLocal)->not->toBeNull();
         expect($localAlheio)->not->toBeNull();
@@ -148,7 +163,7 @@ it('edicao de bem recusa categoria e local de outra empresa e o bem fica como es
         $minhaCat = reqTenCategoria($dono, $u->id);
         $catAlheia = reqTenCategoria($adv, $uAdv->id);
         $meuLocal = (int) DB::table('business_locations')->where('business_id', $dono)->value('id');
-        $localAlheio = (int) DB::table('business_locations')->where('business_id', '!=', $dono)->value('id');
+        $localAlheio = reqTenLocal($adv);
         expect($meuLocal)->toBeGreaterThan(0);
         expect($localAlheio)->toBeGreaterThan(0);
 
