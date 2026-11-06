@@ -5,6 +5,7 @@ namespace Modules\Financeiro\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -85,7 +86,9 @@ class ContaPagarController extends Controller
         $businessId = $request->session()->get('business.id');
 
         $request->validate([
-            'conta_bancaria_id' => ['required', 'integer', 'exists:fin_contas_bancarias,id'],
+            // Tier 0 (ADR 0093): a conta tem de ser da empresa da sessão — o id vai gravado
+            // na baixa (UC-CP-01).
+            'conta_bancaria_id' => ['required', 'integer', Rule::exists('fin_contas_bancarias', 'id')->where('business_id', (int) $businessId)],
             'valor_baixa' => ['required', 'numeric', 'min:0.01'],
             'data_baixa' => ['required', 'date'],
             'meio_pagamento' => ['required', 'string', 'in:dinheiro,pix,boleto,cartao_credito,cartao_debito,transferencia,cheque,compensacao'],

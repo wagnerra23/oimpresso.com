@@ -47,13 +47,16 @@ final class SituacaoDaOrdem
         if ($etapa->os_tipo !== Ordem::OS_TIPO) {
             return;
         }
-        $situacao = $this->ordem($businessId, (int) $etapa->os_id)->currentStage?->key;
+        $ordem = $this->ordem($businessId, (int) $etapa->os_id);
+        $situacao = $ordem->currentStage?->key;
         $recusa = match ($situacao) {
             'aguardando_liberacao' => 'Esta OS ainda não foi liberada para a produção.',
             'aguardando_material' => 'Esta OS está aguardando material: o PCP confere quando o material chegar.',
             'retrabalho' => 'Esta OS está em retrabalho: o PCP precisa mandar refazer.',
             'concluida', 'cancelada' => 'Esta OS já foi encerrada.',
-            default => null,
+            // P-113: OS de venda cancelada antes de a venda passar a cancelar as OS segue viva; recusa.
+            default => app(OsDaVenda::class)->vendaCancelada($businessId, (int) $ordem->transaction_id)
+                ? 'A venda desta OS foi cancelada.' : null,
         };
         if ($recusa !== null) {
             throw new ApontamentoRecusado(ApontamentoRecusado::OS_NAO_LIBERADA, $recusa, ['programacao_id' => $etapa->id, 'situacao' => $situacao]);
@@ -317,6 +320,43 @@ final class SituacaoDaOrdem
 
             return $ordem->fresh();
         });
+    }
+
+    /**
+     * Venda cancelada (P-113, parte "a venda cancelada cancela as OS dela"): cada OS da venda que não
+     * terminou vai para Cancelada pelo motor (ação `cancelar_pela_venda`, do sistema) e as etapas
+     * abertas são canceladas. O material já baixado NÃO volta ao estoque nem vira perda aqui: é a
+     * decisão B3 do [W], em aberto. O histórico guarda o que foi baixado, para apurar depois.
+     * Trava e relê cada OS: cancelar duas vezes cancela uma vez só. Tier 0: só OS da `$businessId`.
+     */
+    public function cancelarPelaVenda(int $businessId, int $transactionId): int
+    {
+        $ids = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+            ->where('transaction_id', $transactionId)->pluck('id');
+        if ($ids->isEmpty()) {
+            return 0;
+        }
+        $this->processo->garantir($businessId);
+        $canceladas = 0;
+        foreach ($ids as $id) {
+            $canceladas += DB::transaction(function () use ($businessId, $transactionId, $id): int {
+                $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->lockForUpdate()->find($id);
+                if (! $ordem || $ordem->currentStage === null || $ordem->currentStage->is_terminal) {
+                    return 0;
+                }
+                $baixado = DB::table('pcp_consumos')->where('business_id', $businessId)->where('ordem_id', $ordem->id)
+                    ->groupBy('variation_id')->orderBy('variation_id')->selectRaw('variation_id, SUM(quantidade) as quantidade')->get()
+                    ->map(fn ($r) => ['variation_id' => (int) $r->variation_id, 'quantidade' => (string) $r->quantidade])->all();
+                $this->fsm->execute($ordem, 'cancelar_pela_venda', null, ['ator' => 'venda_cancelada', 'transaction_id' => $transactionId,
+                    'situacao_anterior' => $ordem->currentStage->key, 'material_baixado' => $baixado]);
+                Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordem->id)
+                    ->whereIn('status', ['pendente', 'iniciada'])->update(['status' => 'cancelada']);
+
+                return 1;
+            });
+        }
+
+        return $canceladas;
     }
 
     private function rodando(int $businessId, int $ordemId): bool

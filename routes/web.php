@@ -1114,6 +1114,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::patch('/fluxos/margem', [\App\Http\Controllers\FluxosController::class, 'margem'])->name('fluxos.margem');
     Route::patch('/fluxos/sinal', [\App\Http\Controllers\FluxosController::class, 'sinal'])->name('fluxos.sinal');
     Route::patch('/fluxos/reserva', [\App\Http\Controllers\FluxosController::class, 'reserva'])->name('fluxos.reserva');
+    Route::patch('/fluxos/aguarda-material', [\App\Http\Controllers\FluxosController::class, 'aguardaMaterial'])->name('fluxos.aguarda_material');
     Route::patch('/fluxos/requisicao-estoque-minimo', [\App\Http\Controllers\FluxosController::class, 'requisicaoEstoqueMinimo'])->name('fluxos.requisicao_estoque_minimo');
     Route::post('/fluxos/assistente', [\App\Http\Controllers\FluxosController::class, 'assistente'])->middleware('throttle:20,1')->name('fluxos.assistente');
 

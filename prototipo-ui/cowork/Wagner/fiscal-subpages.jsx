@@ -34,10 +34,18 @@ window.FxEventosPage = function FxEventosPage() {
   ];
   const conta = (id) => (id === "todos" ? st.eventos.length : st.eventos.filter(e => e.kind === id).length);
   const rows = st.eventos.filter(e => kind === "todos" || e.kind === kind);
-  const exportar = () => window.fxExportCsv("eventos-fiscais-" + periodo + "d.csv", [
+  const [modal, setModal] = useStateFs(null);
+  const exportarCsv = () => window.fxExportCsv("eventos-fiscais-" + periodo + "d.csv", [
     { label: "Quando", get: e => e.emit }, { label: "Tipo", get: e => e.tipo }, { label: "Sequência", get: e => e.sequencia || "" },
     { label: "Documento", get: e => e.nota }, { label: "Justificativa", get: e => e.descricao }, { label: "Autor", get: e => e.autor }, { label: "cstat", get: e => e.sefaz },
   ], rows);
+  // LGPD · o CSV leva autor e justificativa (texto livre, pode citar cliente) — confirma antes
+  const exportar = () => setModal({
+    title: "Exportar " + rows.length + " eventos em CSV", confirmLabel: "Exportar CSV", fields: [],
+    leva: ["Quem fez cada evento (nome do usuário)", "Justificativa digitada, que pode citar cliente", "Documento e código da SEFAZ"],
+    aviso: "O arquivo sai do sistema: guarde e compartilhe só com quem precisa.",
+    onConfirm: exportarCsv,
+  });
   return (
     <div className="fx-page">
       <U.Header title="Eventos fiscais" crumb={`Timeline append-only · ${rows.length} eventos nos últimos ${periodo} dias · auditoria LGPD Art. 37`}>
@@ -74,6 +82,7 @@ window.FxEventosPage = function FxEventosPage() {
       <p className="fx-nota-rodape">Eventos são append-only (NfeEvento sem updated_at) — a tela não permite edição. Emissão de CC-e, cancelamento e inutilização acontece nas telas de notas.</p>
       <FsDebitos tela="fiscal-eventos" />
       <window.FxPalette />
+      <window.FxActionModal spec={modal} onClose={() => setModal(null)} />
       <window.FxToasts />
     </div>
   );
@@ -321,7 +330,7 @@ window.FxConfigPage = function FxConfigPage() {
             <span>{gate ? "✓ concedida (superadmin)" : "✕ ausente — campos travados"}</span>
             <span>✓ senha do certificado em $hidden, nunca no payload</span>
             <span>✓ toda troca vira evento na auditoria</span>
-            <button className="fx-btn" onClick={window.FxActions.toggleGate}>{gate ? "Revogar permissão" : "Assumir como superadmin"}</button>
+            <label className="fx-simula" data-contract="simula-permissao"><input type="checkbox" checked={gate} onChange={window.FxActions.toggleGate} /> Simular usuário com a permissão (demonstração)</label>
           </div>
           <div className="fx-grid" data-contract="troca-ambiente">
             <div className="fx-card">
@@ -385,7 +394,7 @@ window.FxSpedPage = function FxSpedPage() {
         <span>✓ não-futura</span>
         <span>{aberto ? "✕ mês em aberto — fecha em " + sel.entrega : "✓ competência fechada"}</span>
         <span>{lock ? "✕ trava sped_simples_only_lock ativa" : "✓ trava liberada (superadmin)"}</span>
-        <button className="fx-btn" onClick={() => setLock(v => !v)}>{lock ? "Liberar como superadmin" : "Reativar trava"}</button>
+        <label className="fx-simula" data-contract="simula-trava"><input type="checkbox" checked={!lock} onChange={() => setLock(v => !v)} /> Simular trava liberada (demonstração)</label>
       </div>
       <div className="fx-table fx-d-comfort" data-contract="panorama-sped">
         <table>
