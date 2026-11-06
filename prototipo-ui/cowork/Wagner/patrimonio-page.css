@@ -2,7 +2,7 @@
    toolbar, rodapé, cartões de log/alocação e os modos densidade/toque.
    Grid, pills, botões, menus, paginação, formulários e drawer vêm do bundle. */
 .ptr-root{height:100%;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.ptr-root .mp-busca kbd{font-size:9px;font-family:var(--mono);color:var(--text-mute);background:var(--sunken);padding:1px 5px;border-radius:3px}
+.ptr-root .mp-busca kbd{font-size:11px;font-family:var(--mono);color:var(--text-mute);background:var(--sunken);padding:1px 5px;border-radius:3px}
 /* O grupo de ações do header encolhe e quebra em vez de sumir na borda cortada. */
 .ptr-root .jc-header-r{flex:1 1 auto;min-width:0;flex-wrap:wrap;justify-content:flex-end;column-gap:8px}
 .ptr-root .mp-busca{flex:1 1 200px;min-width:150px;max-width:320px}
@@ -39,24 +39,24 @@
 /* ── Conteúdo dentro do Drawer do DS ── */
 .ptr-drawer-nav{padding:0 18px}
 .ptr-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 16px}
-.ptr-fields .f label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);margin-bottom:2px}
+.ptr-fields .f label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);margin-bottom:2px}
 .ptr-fields .f span{font-size:12.5px;color:var(--text)}
 .ptr-fields .f .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 .ptr-placa{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .ptr-placa small{font-size:11px;color:var(--text-mute)}
 .ptr-saldo{display:flex;gap:10px;margin-bottom:10px}
 .ptr-saldo>span{flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-2,8px);padding:8px 11px}
-.ptr-saldo small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute)}
+.ptr-saldo small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute)}
 .ptr-saldo b{display:block;font-family:var(--font-mono);font-size:17px;font-variant-numeric:tabular-nums;margin-top:2px}
 .ptr-saldo .ok b{color:var(--pos)}
 .ptr-aloc{display:flex;align-items:center;gap:12px;justify-content:space-between;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-2,8px);padding:10px 13px;margin-bottom:7px}
 .ptr-aloc.off{opacity:.6}
 .ptr-aloc b{font-size:12.5px}
 .ptr-aloc small{display:block;font-size:11px;color:var(--text-mute);margin-top:2px}
-.ptr-aloc small.mono{font-family:var(--font-mono);font-size:10.5px}
+.ptr-aloc small.mono{font-family:var(--font-mono);font-size:11px}
 .ptr-man{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r-2,8px);padding:11px 13px;margin-bottom:7px}
 .ptr-man .h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:3px}
-.ptr-man small{display:block;font-size:10.5px;color:var(--text-mute);font-family:var(--font-mono)}
+.ptr-man small{display:block;font-size:11px;color:var(--text-mute);font-family:var(--font-mono)}
 .ptr-man p{margin:6px 0 0;font-size:12px;color:var(--text-2);line-height:1.5}
 .ptr-nota{display:block;margin-top:10px;font-size:11px;color:var(--text-mute);line-height:1.5}
 
@@ -90,7 +90,7 @@
 .ptr-dense .ptr-cfg{gap:16px}
 .ptr-dense .ptr-fields{gap:8px 12px}
 .ptr-toque .ptr-link-card{min-height:56px}
-.ptr-toque .ptr-list button{min-height:44px}
+.ptr-toque .ptr-list button{min-height:44px;min-width:44px}
 .ptr-toque .ptr-toolbar select{min-height:44px}
 @media (max-width:1100px){.ptr-list{padding:0 14px 12px}.ptr-filtro{min-width:130px}}
 
@@ -114,4 +114,4 @@
 .ptr-trilha{padding:0 18px 2px}
 .ptr-periodo{margin-bottom:12px}
 .ptr-curva{margin-top:14px}
-.ptr-curva-lb{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);margin-bottom:4px}
+.ptr-curva-lb{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);margin-bottom:4px}
