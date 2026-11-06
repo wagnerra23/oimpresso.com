@@ -73,6 +73,13 @@ related_cu: [CU-OFI-05, CU-OFI-06, CU-OFI-15]
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemStockBaixaTest.php`
 - **Status: 🧪**
 
+## UC-OED-09 · Editar o item não troca a peça por produto de outro negócio `[T0]`
+- **Persona:** invariante multi-tenant ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+- **Aceite:** Dado um item de peça numa OS do negócio A · Quando a edição troca o produto por um do negócio B · Então a edição é recusada no campo do produto e o item continua com o produto original.
+- **Regressão que defende:** o item da OS passar a apontar pro catálogo de outro cliente do ERP pela edição (o lançamento já era barrado no UC-OED-08).
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemProductTenantContratoTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Rastreabilidade (âncora no SDD §6 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md))
@@ -86,6 +93,7 @@ related_cu: [CU-OFI-05, CU-OFI-06, CU-OFI-15]
 | UC-OED-06 | must `[V0]` | CU-OFI-06 · US-OFICINA-001 |
 | UC-OED-07 | must `[V0]` | CU-OFI-06 · US-OFICINA-001 |
 | UC-OED-08 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
+| UC-OED-09 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
 
 > O **quarto id desta série** (entre `UC-OED-03` e `UC-OED-05`) está **reservado**: foi proposto
 > e nunca ratificado, e id proposto não se reusa. Ele **não é escrito por extenso aqui de
