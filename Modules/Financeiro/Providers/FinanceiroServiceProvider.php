@@ -40,7 +40,8 @@ class FinanceiroServiceProvider extends ServiceProvider
 
     /**
      * ADR 0170 Onda 5 SIMPLIFICADA — auto-baixa de Titulo a receber em
-     * fin_titulos quando cobrança SaaS é paga. Apenas business_id=1 (Wagner).
+     * fin_titulos quando cobrança SaaS é paga. Apenas a empresa dona do SaaS
+     * (`app.saas_owner_business_id`), gravando no business_id do evento.
      */
     protected function registerPaymentGatewayListeners(): void
     {
@@ -163,8 +164,13 @@ class FinanceiroServiceProvider extends ServiceProvider
         // business com a régua LIGADA em common_settings (default OFF), então agendar não envia
         // nada a ninguém até o negócio ligar.
         $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function ($schedule): void {
+            //
+            // 2026-11-05 (auditoria lote 1.3): os 3 só rodam em produção (`APP_ENV=live`, o
+            // padrão do app/Console/Kernel.php). Sem isso qualquer ambiente com cron (staging,
+            // local) rodaria a régua e as consultas ao banco e à Pluggy.
             $schedule->command('financeiro:regua-cobranca')
                 ->dailyAt('09:00')
+                ->environments(['live'])
                 ->withoutOverlapping()
                 ->onOneServer();
 
@@ -172,6 +178,7 @@ class FinanceiroServiceProvider extends ServiceProvider
             // do sync Inter das 07:00, para a conciliação abrir o dia com as duas fontes.
             $schedule->command('financeiro:pluggy-sync')
                 ->dailyAt('07:15')
+                ->environments(['live'])
                 ->when(fn () => (bool) config('financeiro.pluggy.enabled', false))
                 ->withoutOverlapping()
                 ->onOneServer();
@@ -180,6 +187,7 @@ class FinanceiroServiceProvider extends ServiceProvider
             // com FINANCEIRO_PAGAMENTO_BANCO_ENABLED=true (default false).
             $schedule->command('financeiro:pagamentos-banco-sync')
                 ->everyFifteenMinutes()
+                ->environments(['live'])
                 ->when(fn () => (bool) config('financeiro.pagamento_banco.enabled', false))
                 ->withoutOverlapping()
                 ->onOneServer();
@@ -207,8 +215,15 @@ class FinanceiroServiceProvider extends ServiceProvider
      */
     protected function registerConfig(): void
     {
-        $this->publishes([module_path($this->moduleName, 'Config/config.php') => config_path($this->moduleNameLower.'.php')], 'config');
+        // 2026-11-05 (auditoria lote 1.3): sem `publishes` de config. O destino seria
+        // config/financeiro.php, que já existe na raiz com outras chaves (pluggy, conciliacao,
+        // extrato_bancos); um `vendor:publish --tag=config --force` o trocaria pelo do módulo.
+        // As duas fontes convivem pelo merge: a raiz ganha nas chaves que ela define.
         $this->mergeConfigFrom(module_path($this->moduleName, 'Config/config.php'), $this->moduleNameLower);
+
+        // Config/retention.php nunca era carregado: `config('financeiro.retention.*')` voltava
+        // sempre o default, e o check 6 do FinanceiroHealthCommand lia uma chave inexistente.
+        $this->mergeConfigFrom(module_path($this->moduleName, 'Config/retention.php'), $this->moduleNameLower.'.retention');
     }
 
     /**

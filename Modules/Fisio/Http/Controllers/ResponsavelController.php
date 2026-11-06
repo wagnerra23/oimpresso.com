@@ -50,6 +50,6 @@ class ResponsavelController extends Controller
         $quem = $request->user();
         $this->responsavel->transferir($paciente, $para, $quem);
 
-        return back()->with('status', 'Paciente transferido.');
+        return back()->with('success', 'Paciente transferido.');
     }
 }

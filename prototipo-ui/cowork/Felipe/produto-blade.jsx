@@ -286,6 +286,18 @@ function kitsPorLocal(p) {
     return { local: l.name, kits, limita };
   });
 }
+// UC-PIDX-41 (D8): giro e últimas compras. O dado de mentira não tem vendas nem compras; números
+// determinísticos pelo id, só para a aba ter chão. O vivo lê das vendas finalizadas e das compras recebidas.
+const FORNECEDORES_PB = ["Oracal Brasil", "Avery Dennison", "Distribuidora Sul"];
+function giroDoProduto(p) { return (p.id * 13 + 7) % 60 + 3; }
+function ultimasComprasDoProduto(p) {
+  return [0, 1, 2].map((i) => {
+    const dia = 28 - i * 9 - (p.id % 5);
+    return { numero: "CP-" + (2400 - p.id * 3 - i), data: "2026-10-" + String(dia).padStart(2, "0"),
+      fornecedor: FORNECEDORES_PB[(p.id + i) % FORNECEDORES_PB.length], local: LOCATIONS[i % LOCATIONS.length].name,
+      quantidade: ((p.id + i) % 4 + 1) * 10 };
+  });
+}
 // Modal = primitivo do DS (PT-04: foco preso, esc, scrim), com a assinatura local por cima.
 function Modal({ titulo, onClose, children, acoes, largura = 720 }) {
   const { Modal: DsModal } = DS();
@@ -673,6 +685,14 @@ function DetalheDrawer({ p, onClose, onIr, empresa }) {
                   </tbody>
                 </table>
                 <p className="pb-help" style={{ marginTop: 10 }}>Saldo por local; a transferência é lançada no módulo Estoque. O histórico completo fica na tela <b>Histórico de estoque</b>.</p>
+                <p className="pb-help" style={{ marginTop: 10 }}>Vendido nos últimos 90 dias: <b>{fmtQty(giroDoProduto(p))} {p.unit}</b></p>
+                <h3 style={{ marginTop: 14 }}>Últimas compras</h3>
+                <table className="pb-tbl">
+                  <thead><tr><th>Data</th><th>Fornecedor</th><th>Local</th><th className="r">Quantidade</th><th>Compra</th></tr></thead>
+                  <tbody>{ultimasComprasDoProduto(p).map((c) => (
+                    <tr key={c.numero}><td>{c.data.split("-").reverse().join("/")}</td><td>{c.fornecedor}</td><td>{c.local}</td><td className="r">{fmtQty(c.quantidade)} {p.unit}</td><td><a href="#" onClick={(e) => { e.preventDefault(); onIr("compra", p); }}>{c.numero}</a></td></tr>))}
+                  </tbody>
+                </table>
                 <button className="os-btn sm" style={{ marginTop: 8 }} onClick={() => onIr("historico", p)}>Abrir histórico de estoque</button>
               </> : <p className="pb-help">Este produto não gerencia estoque (<b>enable_stock = 0</b>) — serviços e composições entram assim.</p>}
             </div>}
@@ -1146,6 +1166,7 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
     transferir:     { rota: "compras", acao: "transferencia", msg: (p) => "Transferência de “" + p.name + "” entre locais." },
     os:             { rota: "os",      acao: "novo-item",     msg: (p) => "OS aberta com “" + p.name + "” no orçamento." },
     "fiscal-modulo":{ rota: "fiscal",  acao: "produto",       msg: (p) => "Dados fiscais de “" + p.name + "” no módulo Fiscal." },
+    compra:         { rota: "compras", acao: "ver",           msg: (p) => "Compra de “" + p.name + "” no módulo Compras." },
   };
   // Navegação interna reflete na rota do shell — senão a sidebar marca uma tela e o corpo mostra outra.
   const ROTA_DE = { lista: "prod-lista", form: "prod-novo", historico: "prod-historico", precos: "prod-precos", massa: "prod-massa", analises: "prod-analises", etiquetas: "prod-etiquetas", "atualizar-preco": "prod-atualizar-preco", "importar-produtos": "prod-importar", "importar-estoque": "prod-importar-estoque", cadastros: "prod-cadastros" };

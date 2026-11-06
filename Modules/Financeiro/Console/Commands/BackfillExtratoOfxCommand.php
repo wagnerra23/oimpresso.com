@@ -208,7 +208,15 @@ class BackfillExtratoOfxCommand extends Command
             return 0;
         }
 
-        $accountId = DB::table('accounts')->where('business_id', $businessId)->value('id');
+        // fin_contas_bancarias.account_id é UNIQUE: reaproveitar uma account que já tem
+        // conta vinculada estourava UniqueConstraintViolation. Qual account vinha primeiro
+        // dependia do que já existia no business, e por isso o teste falhava conforme a
+        // ordem dos outros (2026-11-05, lote 2.5 da auditoria). Só reaproveita account livre.
+        $accountId = DB::table('accounts')->where('business_id', $businessId)
+            ->whereNotExists(fn ($q) => $q->select(DB::raw(1))->from('fin_contas_bancarias')
+                ->whereColumn('fin_contas_bancarias.account_id', 'accounts.id'))
+            ->orderBy('id')
+            ->value('id');
         if ($accountId === null) {
             $accountId = DB::table('accounts')->insertGetId([
                 'business_id' => $businessId,

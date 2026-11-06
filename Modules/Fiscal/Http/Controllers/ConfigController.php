@@ -63,9 +63,12 @@ class ConfigController extends Controller
                 ? null
                 : ($dias < 0 ? 'vencido' : ($dias <= 30 ? 'proximo_vencimento' : 'ok'));
 
-            // Fallback CNPJ titular (cert antigo pode ter vazio)
+            // Fallback CNPJ titular (cert antigo pode ter vazio). A chave do painel é
+            // `cnpjBusiness` — até 2026-11-05 isto lia `cnpj_business`, que não existe:
+            // o fallback nunca chegava à tela, e o acesso à chave inexistente vira
+            // ErrorException no Laravel quando o cert não tem CNPJ (UC-FCFG-11).
             $cnpjTitularRaw = $cert->cnpj_titular ?: '';
-            $cnpjTitularFallback = $cnpjTitularRaw === '' ? $painel['cnpj_business'] : null;
+            $cnpjTitularFallback = $cnpjTitularRaw === '' ? ($painel['cnpjBusiness'] ?? null) : null;
 
             $certPayload = [
                 'uuid'                  => $cert->uuid,

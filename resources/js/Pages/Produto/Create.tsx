@@ -20,6 +20,8 @@ import type { OptionMap, OptionStringMap } from './_components/formulario/tipos'
 import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
+import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formulario/metodoCusto';
+import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
 
 function localUnico(locais: OptionMap): number[] {
   const ids = opcoesDe(locais).map(([id]) => Number(id));
@@ -72,6 +74,8 @@ export interface ProdutoCreatePageProps {
   expiryType?: string;
   enableLot: boolean;
   enableRacks: boolean;
+  /** Método de custo (US-COM-024): null quando o módulo Compras não está no pacote. */
+  metodoCusto?: MetodoCustoDoFormulario | null;
 }
 
 function ProdutoCreate(props: ProdutoCreatePageProps) {
@@ -83,6 +87,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
   // Preço do produto simples (precos.ts). Só os valores sem imposto; os "com imposto" saem da
   // alíquota do imposto escolhido, no envio e na tela.
   const [preco, setPreco] = useState(() => precoInicial(Number(props.defaultProfitPercent)));
+  const [metodoCusto, setMetodoCusto] = useState(() => valorInicialDoMetodo(props.metodoCusto));
 
   const { data, setData, post, transform, processing, errors } = useForm({
     name: dup?.name ?? '',
@@ -132,7 +137,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     // Variável e composto têm o próprio editor de preço; só o simples manda os cinco campos.
     transform((d) => {
       const comPreco = d.type === 'single' ? { ...d, ...camposDePreco(preco, aliquotaDoImposto(d.tax, props.taxAttributes)) } : d;
-      return envio ? { ...comPreco, submit_type: envio } : comPreco;
+      const comMetodo = { ...comPreco, ...camposDoMetodoCusto(props.metodoCusto, metodoCusto) };
+      return envio ? { ...comMetodo, submit_type: envio } : comMetodo;
     });
     post('/products');
   };
@@ -141,18 +147,21 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     <>
       <Head title="Novo produto · Catálogo" />
 
-      <div className="min-h-screen bg-stone-50 text-stone-900">
-        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-stone-200">
+      {/* Sem fundo próprio: a tela fica por cima do fundo do shell (.cockpit, var(--bg)), que já segue
+          o tema. Até 2026-11-05 ela fixava bg-stone-50 e, no tema escuro, a página ficava clara com os
+          cartões escuros. */}
+      <div className="min-h-screen text-foreground">
+        <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
           <div className="px-6 pt-4 pb-3 flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-1.5 text-[12px] text-stone-500">
+              <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
                 <span>Inventário</span>
-                <span className="text-stone-400">›</span>
+                <span className="text-muted-foreground">›</span>
                 <Link href="/products" className="hover:underline">
                   Produtos
                 </Link>
-                <span className="text-stone-400">›</span>
-                <span className="text-stone-900 font-medium">Novo</span>
+                <span className="text-muted-foreground">›</span>
+                <span className="text-foreground font-medium">Novo</span>
               </div>
               <h1 className="mt-1 text-[24px] font-semibold tracking-tight">Novo produto</h1>
             </div>
@@ -179,6 +188,9 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
               data.type === 'single'
                 ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) }
                 : undefined
+            }
+            metodoCusto={
+              props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }
           />
           <AcoesDoCadastro
