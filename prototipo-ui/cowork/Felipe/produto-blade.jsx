@@ -95,6 +95,14 @@ const priceSpan = (p, key) => {
 const EMPRESA_PADRAO = { emiteNota: true, temAliquota: true };
 
 // UC-PIDX-42: NCM válido tem 8 dígitos e não é 00000000 (a regra da emissão e do card de Saúde fiscal).
+// UC-PIDX-44 (CV1): o "Uso" do produto. No exemplo, insumo e acabamento entram em receita (Material);
+// no sistema, Material vem da receita da Fabricação e Serviço da natureza fiscal.
+const USOS_PB = [{ id: "vender", name: "Para vender" }, { id: "material", name: "Material" }, { id: "servico", name: "Serviço" }];
+function usoDoProduto(p) {
+  if (p.servico) return "servico";
+  return p.cat === "Insumos" || p.cat === "Acabamento" ? "material" : "vender";
+}
+
 function ncmValido(ncm) {
   const d = String(ncm || "").replace(/[^0-9]/g, "");
   return d.length === 8 && d !== "00000000";
@@ -347,6 +355,8 @@ function Filtros({ f, setF, empresa }) {
           <Fld label="Marca"><Sel value={f.brand} onChange={set("brand")} options={BRANDS} vazio="Todas" /></Fld>
           <Fld label="Local do negócio"><Sel value={f.loc} onChange={set("loc")} options={LOCATIONS} vazio="Todos" /></Fld>
           <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }]} vazio="Todos" /></Fld>
+          {/* UC-PIDX-44 (CV1): Material = entra em receita da Fabricação; Serviço = natureza fiscal. */}
+          <Fld label="Uso"><Sel value={f.uso} onChange={set("uso")} options={USOS_PB} vazio="Todos" /></Fld>
           <div className="pb-fld" style={{ justifyContent: "flex-end" }}>
             <label className="pb-chk"><input type="checkbox" checked={f.nfs} onChange={(e) => setF({ ...f, nfs: e.target.checked })} /><b>Não para venda</b></label>
           </div>
@@ -929,7 +939,7 @@ function exportarCsv(lista, empresa) {
 
 // ─────────── Tela lista (index.blade.php) ───────────
 function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
-  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false };
+  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "" };
   // Chegou filtrada de outro lugar? (contagem clicada em Cadastros de apoio → window.__PBFiltro)
   const [f, setF] = useState(() => { const x = window.__PBFiltro; window.__PBFiltro = null; return x ? { ...VAZIO_F, ...x } : VAZIO_F; });
   const [busca, setBusca] = useState("");
@@ -980,6 +990,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     if (f.active === "inactive" && p.active) return false;
     if (f.nfs && !p.notForSelling) return false;
     if (f.alerta && !(p.stockOn && p.alert != null && p.stock <= p.alert)) return false;
+    if (f.uso && usoDoProduto(p) !== f.uso) return false;
     if (empresa.emiteNota && f.semNcm && ncmValido(p.fiscal && p.fiscal.ncm)) return false;
     if (busca && !(p.name + p.sku).toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
@@ -1000,6 +1011,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   if (f.active) chips.push({ k: "active", l: "Situação", v: f.active === "active" ? "Ativo" : "Inativo" });
   if (f.nfs) chips.push({ k: "nfs", l: "", v: "Não para venda" });
   if (f.alerta) chips.push({ k: "alerta", l: "", v: "Abaixo do alerta" });
+  if (f.uso) chips.push({ k: "uso", l: "Uso", v: (USOS_PB.find((u) => u.id === f.uso) || {}).name });
   if (empresa.emiteNota && f.semNcm) chips.push({ k: "semNcm", l: "", v: "Falta NCM" });
   if (busca) chips.push({ k: "__busca", l: "Busca", v: busca });
   const tirarChip = (k) => k === "__busca" ? setBusca("") : setF({ ...f, [k]: k === "nfs" || k === "alerta" || k === "semNcm" ? false : "" });
@@ -1104,7 +1116,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
             {chips.map((c) => (FilterChip
               ? <FilterChip key={c.k} label={c.l || c.v} value={c.l ? c.v : undefined} onRemove={() => tirarChip(c.k)} />
               : <button key={c.k} className="pb-chip" onClick={() => tirarChip(c.k)}>{c.v} ✕</button>))}
-            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false }); setBusca(""); }}>Limpar tudo</button>
+            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "" }); setBusca(""); }}>Limpar tudo</button>
           </div>}
 
         {aba === "lista"

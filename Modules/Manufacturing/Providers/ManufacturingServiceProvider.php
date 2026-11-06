@@ -50,6 +50,8 @@ class ManufacturingServiceProvider extends ServiceProvider
 
         // US-PCP-031 · UC-FLX-14: a receita é a fonte do material reservado na venda sob encomenda.
         $this->app->bind(\App\Contracts\Fabricacao\InsumosDaReceita::class, \Modules\Manufacturing\Services\InsumosDaReceitaService::class);
+        // UC-PIDX-44 · CV1: o item que entra em alguma receita é "Material" no filtro "Uso" da consulta de produto.
+        $this->app->bind(\App\Contracts\Fabricacao\ProdutosDeReceita::class, \Modules\Manufacturing\Services\ProdutosDeReceitaService::class);
     }
 
     /**
