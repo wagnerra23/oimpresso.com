@@ -247,7 +247,7 @@ const COLS_PADRAO = COLUNAS.reduce((o, c) => ((o[c.id] = true), o), {});
 
 function AbaBens({ db, papel, dense, filtro, setFiltro, busca, setBusca, sel, onSel, acoes }) {
   const P = D();
-  const { DataTablePro, TabBar, Select, Button, DropdownMenu, Pagination, FilterChip, BulkBar } = DS();
+  const { DataTablePro, TabBar, Select, Button, DropdownMenu, Pagination, FilterChip, BulkBar, EmptyState } = DS();
   const [selecao, setSelecao] = useState([]);
   const [gridKey, setGridKey] = useState(0);
   const limparSelecao = () => { setSelecao([]); setGridKey((n) => n + 1); };
@@ -374,7 +374,10 @@ function AbaBens({ db, papel, dense, filtro, setFiltro, busca, setBusca, sel, on
         {DropdownMenu &&
           <DropdownMenu align="end" width={200}
             trigger={({ onClick }) => <Button size="sm" variant="ghost" onClick={onClick}><PtrIc name="columns" /><span>Colunas</span></Button>}
-            items={COLUNAS.map((c) => ({ id: c.id, label: (cols[c.id] ? "✓ " : "  ") + c.l, disabled: c.req,
+            // O menu do DS só emite role="menuitem" (sem aria-checked): o estado vai no nome
+            // acessível, e o ✓ fica só visual.
+            items={COLUNAS.map((c) => ({ id: c.id, disabled: c.req,
+              label: <><span aria-hidden="true" style={{ display: "inline-block", width: "1.2em" }}>{cols[c.id] ? "✓" : ""}</span>{c.l}<span className="ptr-sr">{c.req ? " — sempre visível" : cols[c.id] ? " — visível" : " — oculta"}</span></>,
               onSelect: () => !c.req && setCols((o) => ({ ...o, [c.id]: !o[c.id] })) }))} />}
       </div>
       {chips.length > 0 && FilterChip &&
@@ -385,8 +388,11 @@ function AbaBens({ db, papel, dense, filtro, setFiltro, busca, setBusca, sel, on
       {P.locaisPermitidos(papel) !== "all" &&
         <div className="ptr-aviso-perm">Você vê só {P.locaisPermitidos(papel).map((k) => P.LOCAIS[k]).join(" e ")} — locais fora da sua permissão nem entram na contagem.</div>}
       <div className="ptr-grid" ref={areaRef}>
-        <DataTablePro key={gridKey} columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"}
-          selectable onSelectionChange={setSelecao} onRowClick={(r) => onSel(r.id)} />
+        {linhas.length === 0 && EmptyState
+          ? <EmptyState variant="no-results" title="Nenhum bem neste recorte"
+              description={visiveis.length ? "A busca ou o recorte escolhido não encontrou bem. Volte para Todos ou limpe a busca." : "Ainda não há bem cadastrado nos locais que o seu papel vê."} />
+          : <DataTablePro key={gridKey} columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"}
+              selectable onSelectionChange={setSelecao} onRowClick={(r) => onSel(r.id)} />}
       </div>
       {selecao.length > 0 && BulkBar &&
         <BulkBar count={selecao.length} label={selecao.length === 1 ? "bem selecionado" : "bens selecionados"}
@@ -409,7 +415,7 @@ function AbaBens({ db, papel, dense, filtro, setFiltro, busca, setBusca, sel, on
 // ═══════════════════ ABA ALOCAÇÕES ═══════════════════
 function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
   const P = D();
-  const { DataTablePro, TabBar, Button, Avatar, TagChip } = DS();
+  const { DataTablePro, TabBar, Button, Avatar, TagChip, EmptyState } = DS();
   const [modo, setModo] = useState("ativas");
   const areaRef = useRef(null);
   const altura = useAltura(areaRef);
@@ -459,8 +465,11 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
         {P.can(papel, "allocate") && <Button size="sm" variant="ghost" onClick={() => onAlocar(null)}>+ Alocar recurso</Button>}
       </div>
       <div className="ptr-grid" ref={areaRef}>
-        <DataTablePro columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"}
-          onRowClick={(r) => { const a = rows.find((x) => x.id === r.id); if (a) onAbrirBem(a.bem); }} />
+        {linhas.length === 0 && EmptyState
+          ? <EmptyState variant="no-results" title={modo === "ativas" ? "Nenhuma alocação ativa" : "Nenhuma alocação registrada"}
+              description="Alocar é o que liga a unidade a um responsável. Use “Alocar recurso” para registrar a primeira." />
+          : <DataTablePro columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"}
+              onRowClick={(r) => { const a = rows.find((x) => x.id === r.id); if (a) onAbrirBem(a.bem); }} />}
       </div>
       <div className="ptr-foot">
         <b>{todas.reduce((s, a) => s + Math.max(0, P.restante(a)), 0)}</b> unidades alocadas · {todas.filter((a) => !P.encerrada(a)).length} alocações ativas
@@ -474,7 +483,7 @@ function AbaAlocacoes({ db, papel, dense, onAbrirBem, onRevogar, onAlocar }) {
 // ═══════════════════ ABA MANUTENÇÕES ═══════════════════
 function AbaManutencoes({ db, papel, dense, onAbrirBem, onNova, onConcluir }) {
   const P = D();
-  const { DataTablePro, KpiCard, Button, Alert } = DS();
+  const { DataTablePro, KpiCard, Button, Alert, EmptyState } = DS();
   const areaRef = useRef(null);
   const altura = useAltura(areaRef);
   const quem = P.PAPEIS[papel].quem;
@@ -525,8 +534,11 @@ function AbaManutencoes({ db, papel, dense, onAbrirBem, onNova, onConcluir }) {
           <Alert tone="info" title="Você vê só as suas manutenções">Seu papel tem asset.view_own_maintenance — a lista mostra apenas onde você é o responsável.</Alert>
         </div>}
       <div className="ptr-grid" ref={areaRef}>
-        <DataTablePro columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"}
-          onRowClick={(r) => { const m = todas.find((x) => x.id === r.id); if (m) onAbrirBem(m.bem); }} />
+        {linhas.length === 0 && EmptyState
+          ? <EmptyState variant="no-results" title="Nenhuma manutenção registrada"
+              description={restrito ? "Nenhuma manutenção tem você como responsável." : "Quando um bem for enviado para conserto ou revisão, ele aparece aqui."} />
+          : <DataTablePro columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"}
+              onRowClick={(r) => { const m = todas.find((x) => x.id === r.id); if (m) onAbrirBem(m.bem); }} />}
       </div>
       <div className="ptr-foot">
         Concluir a manutenção fecha a OS e cria o título a pagar no Financeiro.
@@ -749,6 +761,20 @@ function PatrimonioPage({ view, dense, estado = "dados", toque, papel: papelProp
   const [sel, setSel] = useState(null);
   const [modal, setModal] = useState(null);
   const [hora, setHora] = useState("09:42");
+  // O <kbd>/</kbd> da busca prometia um atalho sem handler: "/" fora de campo de texto foca a busca.
+  const buscaRef = useRef(null);
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (!buscaRef.current) return;
+      e.preventDefault();
+      buscaRef.current.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
   useEffect(() => { if (inicial) setAba(inicial); }, [view]);
 
   // Abas com conteúdo neste módulo. "auditoria" é deep-link (ADR 0414) e Garantias é o
@@ -772,19 +798,29 @@ function PatrimonioPage({ view, dense, estado = "dados", toque, papel: papelProp
     imagem: (b) => avisar("A imagem de " + b.id + " abre em aba nova a partir do media do bem."),
   };
 
+  // Sem asset.view o módulo inteiro é negado (o índice de produção devolve 403 — thread 03).
+  if (!P.can(papel, "view")) return (
+    <div className="ptr-root mp-page" data-screen-label="01 Patrimônio">
+      <div className="mp-body">
+        {MP.Estado && <MP.Estado titulo="Você não tem acesso ao Patrimônio"
+          descricao="Seu papel não tem a permissão asset.view. Bens, alocações e manutenções não aparecem, nem em contagem. O acesso é dado pela função do usuário." />}
+      </div>
+    </div>
+  );
+
   return (
     <div className={"ptr-root mp-page" + (dense ? " ptr-dense" : "") + (toque === "tablet" ? " ptr-toque" : "")} data-screen-label="01 Patrimônio">
       {MP.Header &&
         <MP.Header modulo="Patrimônio" papel={P.PAPEIS[papel].label}
-          contexto={["OFFICEIMPRESSO", P.locaisPermitidos(papel) === "all" ? "todos os locais" : P.locaisPermitidos(papel).map((k) => P.LOCAIS[k]).join(" · "), db.bens.length + " bens"]}
+          contexto={["OFFICEIMPRESSO", P.locaisPermitidos(papel) === "all" ? "todos os locais" : P.locaisPermitidos(papel).map((k) => P.LOCAIS[k]).join(" · "), dbv.bens.length + " bens"]}
           atualizadoAs={hora}
           onRefresh={() => { setHora(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })); avisar("Reapurado agora — patrimônio, garantias e alocações.", "ok"); }}
           glyph={<Ic name="database" />}
           acoes={<>
             <div className="mp-busca">
               <span aria-hidden="true">⌕</span>
-              <input aria-label="Buscar bem, código ou número de série" placeholder="Buscar bem, código, série..." value={busca} onChange={(e) => { setBusca(e.target.value); setAba("bens"); }} />
-              <kbd>/</kbd>
+              <input ref={buscaRef} aria-keyshortcuts="/" aria-label="Buscar bem, código ou número de série" placeholder="Buscar bem, código, série..." value={busca} onChange={(e) => { setBusca(e.target.value); setAba("bens"); }} />
+              <kbd aria-hidden="true">/</kbd>
             </div>
             {Button && P.can(papel, "allocate") && <Button variant="ghost" onClick={() => acoes.alocar(null)}>Alocar recurso</Button>}
             {Button && P.can(papel, "create") && <Button variant="primary" onClick={acoes.novo}>Adicionar recurso</Button>}
