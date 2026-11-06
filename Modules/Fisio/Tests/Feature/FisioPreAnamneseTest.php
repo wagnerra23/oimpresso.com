@@ -88,9 +88,21 @@ it('UC-FPP-55 · sem PIN ou sem a autorização do tratamento não grava; o link
     expect(fpaLinhas($this->p->id))->toBe(0);
 
     $this->postJson('/fisio/p/'.$g['token'].'/consentimentos', ['purpose' => 'teleatendimento', 'aceito' => true])->assertCreated();
-    $this->postJson('/fisio/p/'.$g['token'].'/pre-anamnese', $this->resposta)->assertCreated();
 
+    // Resposta gravada com a empresa ERRADA (99) para este paciente: não conta como respondida — o Hoje
+    // segue oferecendo a pré-anamnese. Isola o filtro por empresa de respondida(), que o filtro por
+    // paciente sozinho esconderia (o unique é por empresa+paciente, então a linha existe).
     $b99 = (int) $this->seededSupportClientTenant()->id;
-    expect(DB::table('fisio_pre_anamneses')->where('patient_id', $this->p->id)->value('business_id'))->toEqual($this->b98)
-        ->and(DB::table('fisio_pre_anamneses')->where('business_id', $b99)->where('patient_id', $this->p->id)->exists())->toBeFalse();
+    DB::table('fisio_pre_anamneses')->insert([
+        'business_id' => $b99, 'patient_id' => $this->p->id, 'body' => json_encode(['dor' => 1]),
+        'red_flags' => '[]', 'channel' => 'portal', 'created_at' => now(),
+    ]);
+    expect(F::portalProps($this, $g['token'])['pre_anamnese'])->not->toBeNull();
+
+    // Escrita: o link grava na clínica DELE, com o corpo enviado; a linha da 99 fica como estava.
+    $this->postJson('/fisio/p/'.$g['token'].'/pre-anamnese', $this->resposta)->assertCreated();
+    $dorPorEmpresa = DB::table('fisio_pre_anamneses')->where('patient_id', $this->p->id)->orderBy('business_id')->get(['business_id', 'body'])
+        ->mapWithKeys(fn ($l) => [(int) $l->business_id => json_decode((string) $l->body, true)['dor']])->all();
+    expect($dorPorEmpresa)->toBe([$this->b98 => 6, $b99 => 1])
+        ->and(F::portalProps($this, $g['token'])['pre_anamnese'])->toBeNull();
 });

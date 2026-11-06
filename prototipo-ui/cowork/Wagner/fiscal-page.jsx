@@ -374,7 +374,7 @@ function FxContabilDrawer({ open, onClose }) {
           <div className="fx-sec"><h3>Pré-checagem do pacote</h3>
             <div className="fx-list">{c.validacoes.map((v, i) => (
               <div className="fx-list-i" key={i}>
-                <span style={{ color: v.ok === "warn" ? "var(--color-warning, var(--text))" : "var(--text-dim)" }}>{v.ok === "warn" ? "⚠ " : "✓ "}{v.label}</span>
+                <span style={{ color: v.ok === "warn" ? "var(--fx-warn)" : "var(--text-dim)" }}>{v.ok === "warn" ? "⚠ " : "✓ "}{v.label}</span>
                 {v.action && <button className="fx-btn" onClick={() => fxGo(v.goto)}>{v.action}</button>}
               </div>
             ))}</div>

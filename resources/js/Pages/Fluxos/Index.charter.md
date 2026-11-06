@@ -51,6 +51,9 @@ andamento.
   só para empresa com o módulo Produção, `PATCH /fluxos/reserva` com `fluxos.configurar`; grava
   `common_settings['producao_reserva_insumo']` sem tocar as outras chaves. Desligar não libera reserva
   que já existe.
+- Aguardar o material para produzir (mesmo card, US-PCP-032 · UC-FLXT-25): interruptor só para empresa
+  com o módulo Produção, `PATCH /fluxos/aguarda-material` com `fluxos.configurar`; grava
+  `common_settings['producao_aguarda_material']` sem tocar as outras chaves.
 - Requisição pelo estoque mínimo (card Compra da aba Fluxos da empresa, UC-FLXT-24 · UC-FLX-19):
   interruptor, `PATCH /fluxos/requisicao-estoque-minimo` com `fluxos.configurar`. Liga o job diário do
   Compras (US-COM-027) pela interface `App\Contracts\Compras\RequisicaoEstoqueMinimo`; sem o módulo,

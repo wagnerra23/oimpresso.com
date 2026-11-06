@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Compras\Tests\Feature;
 
 use App\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -22,10 +23,16 @@ use Tests\TestCase;
  *     §3.1.4 do audit sênior: não revelar existência cross-business).
  *  3. GET /compras/{id}/detalhe sem permission compras.view → 403.
  *
- * Tier 0 ADR 0093/0101 — fixtures SEMPRE biz=1 (NUNCA biz=4 cliente).
+ * Tier 0 ADR 0093/0358 — fixtures no tenant fictício 98 (nunca biz=1, empresa real; nunca biz=4, cliente).
  */
 class ComprasSmokeRoutesTest extends TestCase
 {
+    // Usuários e papéis criados aqui saem no fim de cada teste: no CT 100 a base persiste.
+    use DatabaseTransactions;
+
+    /** Tenant fictício canônico de teste (ADR 0358 — `WithSeededTenant::SEEDED_TENANT_ID`). */
+    private const BIZ = 98;
+
     private User $admin;
 
     protected function setUp(): void
@@ -43,13 +50,13 @@ class ComprasSmokeRoutesTest extends TestCase
 
         $permView = Permission::firstOrCreate(['name' => 'compras.view', 'guard_name' => 'web']);
         // Tier 0 UltimatePOS: roles.business_id NOT NULL com FK (proibicoes.md §FSM).
-        $role = Role::firstOrCreate(['name' => 'admin#1', 'guard_name' => 'web', 'business_id' => 1]);
+        $role = Role::firstOrCreate(['name' => 'admin#' . self::BIZ, 'guard_name' => 'web', 'business_id' => self::BIZ]);
         $role->givePermissionTo([$permView]);
 
         // user_type/allow_login obrigatórios pro middleware CheckUserLogin
         // (espelha ComprasIndexTest + PurchaseCalculoValorEstoqueE2ETest).
         $this->admin = User::factory()->create([
-            'business_id' => 1,
+            'business_id' => self::BIZ,
             'user_type' => 'user',
             'allow_login' => 1,
         ]);
@@ -90,7 +97,7 @@ class ComprasSmokeRoutesTest extends TestCase
     public function test_show_detalhe_id_inexistente_retorna_404(): void
     {
         $response = $this->actingAs($this->admin)
-            ->withSession(['user' => ['business_id' => 1, 'id' => $this->admin->id]])
+            ->withSession(['user' => ['business_id' => self::BIZ, 'id' => $this->admin->id]])
             ->getJson('/compras/999999999/detalhe');
 
         $response->assertStatus(404);
@@ -99,13 +106,13 @@ class ComprasSmokeRoutesTest extends TestCase
     public function test_show_detalhe_sem_permission_compras_view_retorna_403(): void
     {
         $userSemPerm = User::factory()->create([
-            'business_id' => 1,
+            'business_id' => self::BIZ,
             'user_type' => 'user',
             'allow_login' => 1,
         ]);
 
         $response = $this->actingAs($userSemPerm)
-            ->withSession(['user' => ['business_id' => 1, 'id' => $userSemPerm->id]])
+            ->withSession(['user' => ['business_id' => self::BIZ, 'id' => $userSemPerm->id]])
             ->getJson('/compras/1/detalhe');
 
         $response->assertStatus(403);

@@ -47,7 +47,9 @@ function bxCleanup(Titulo $t): void
 function bxBootstrap(): array
 {
     try {
-        $business = Business::first();
+        // Tenant fictício 98 (ADR 0358): é onde o seed da lane põe conta bancária,
+        // location e contact. Business::first() caía na empresa 1, sem conta, e pulava.
+        $business = test()->seededTenant();
     } catch (\Throwable $e) {
         test()->markTestSkipped('Tabela business indisponível: '.$e->getMessage());
     }

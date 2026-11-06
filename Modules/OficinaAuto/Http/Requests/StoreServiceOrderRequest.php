@@ -37,7 +37,18 @@ class StoreServiceOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'vehicle_id'          => ['required', 'integer', 'exists:vehicles,id'],
+            // exists ESCOPADO por business (Tier 0 ADR 0093): o `exists:vehicles,id` cru
+            // aceitava veículo de outra empresa, e a página pública de aprovação mostrava a placa.
+            'vehicle_id'          => [
+                'required',
+                'integer',
+                Rule::exists('vehicles', 'id')->where(
+                    fn ($query) => $query->where(
+                        'business_id',
+                        (int) (session('user.business_id') ?? session('business.id') ?? 0)
+                    )
+                ),
+            ],
             // Cliente (dono do caminhão 3º) — sweep ADR 0265, combobox no Create.
             // exists ESCOPADO por business (Tier 0 ADR 0093): impede vincular contact
             // de outro tenant. nullable preserva OS sem cliente (manutenção interna).

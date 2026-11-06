@@ -1,6 +1,10 @@
 // Seção "Configurações" do formulário de produto (Novo e Editar), na forma do protótipo
 // (produto-blade-forms.jsx): validade, "não está à venda", peso, medidas da embalagem e campos
 // personalizados. Até 2026-11-04 era a seção recolhível "Mais opções"; no protótipo ela fica aberta.
+//
+// As linhas seguem as do protótipo: a 1ª tem a validade, "não está à venda" e o peso bruto; a 2ª, o
+// peso líquido e as três medidas da embalagem. Numa grade só, sem a validade (empresa que não a usa),
+// tudo subia uma casa e a altura caía sozinha na linha de baixo.
 
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -13,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
-import { Grid, Inline } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario } from './tipos';
 
 /** O Select do Radix não aceita item com valor vazio: "não aplicável" é `''` no envio. */
@@ -39,6 +43,7 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
         <CardTitle>Configurações</CardTitle>
       </CardHeader>
       <CardContent>
+        <Stack gap={4}>
         <Grid cols={4} gap={4}>
         {mostrarValidade && (
           <div>
@@ -71,14 +76,21 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
         )}
         {/* O formulário do Editar não envia "não está à venda": a caixa só existe no Novo. */}
         {modo === 'novo' && (
-          <Inline gap={2} className="self-end pb-2">
-          <Checkbox
-            id="not_for_selling"
-            checked={data.not_for_selling === 1}
-            onCheckedChange={(v) => definir('not_for_selling', v === true ? 1 : 0)}
-          />
-          <Label htmlFor="not_for_selling" className="text-[13px] font-normal">Não está à venda (apenas insumo)</Label>
-        </Inline>
+          <div>
+            {/* Rótulo invisível da mesma altura do dos campos vizinhos: a caixa fica na linha do
+                campo (30px, a altura do .cw-input), e não embaixo, junto do texto de ajuda. */}
+            <Label aria-hidden className="invisible">
+              Venda
+            </Label>
+            <Inline gap={2} className="h-[30px]">
+              <Checkbox
+                id="not_for_selling"
+                checked={data.not_for_selling === 1}
+                onCheckedChange={(v) => definir('not_for_selling', v === true ? 1 : 0)}
+              />
+              <Label htmlFor="not_for_selling" className="text-[13px] font-normal">Não está à venda (apenas insumo)</Label>
+            </Inline>
+          </div>
         )}
         {/* UC-PCAD-16 e UC-PEDIT-13: o "Peso" de sempre é o peso bruto, que o WooCommerce usa no frete. */}
         <div>
@@ -94,6 +106,8 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
           />
           <p className="text-[12px] text-muted-foreground mt-1">Com embalagem. É o peso usado no frete.</p>
         </div>
+        </Grid>
+        <Grid cols={4} gap={4}>
         <CampoMedida
           id="peso_liquido"
           rotulo="Peso líquido (kg)"
@@ -126,6 +140,8 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
           mudar={(v) => definir('comprimento_cm', v)}
           erro={errors.comprimento_cm}
         />
+        </Grid>
+        <Grid cols={4} gap={4}>
         <div>
           <Label htmlFor="product_custom_field1">Campo personalizado 1</Label>
           <Input
@@ -143,6 +159,7 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
           />
         </div>
         </Grid>
+        </Stack>
       </CardContent>
     </Card>
   );
