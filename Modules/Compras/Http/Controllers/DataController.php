@@ -82,16 +82,16 @@ class DataController extends Controller
      */
     public function modifyAdminMenu()
     {
-        $moduleUtil = new ModuleUtil();
-        $business_id = session('user.business_id');
+        $business_id = (int) session('user.business_id');
 
         if (! $business_id) {
             return;
         }
 
-        $is_enabled = $moduleUtil->isModuleEnabled('compras_module', $business_id);
-
-        if (! $is_enabled) {
+        // Mesma regra das rotas (ComprasLiberado): pacote da empresa + compras.view. Até
+        // 2026-11-06 o menu lia business.enabled_modules (Camada 2, módulos do core), que não é
+        // onde o pacote de um módulo nWidart mora, e a URL não conferia nada.
+        if (! ComprasLiberado::pacoteAtivo($business_id) || ! auth()->user()?->can('compras.view')) {
             return;
         }
 
