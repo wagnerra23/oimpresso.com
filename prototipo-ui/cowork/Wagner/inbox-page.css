@@ -3010,3 +3010,18 @@
 .om-qr-warn { margin-top: 8px; }
 .om-hsm-body { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; }
 .om-hsm-var { display: flex; flex-direction: column; gap: 4px; }
+
+/* ═════════════════════════════════════════════════════════════════
+   Lote 6 (2026-11-06) · paridade com a produção medida (pedido 6.4)
+   design-diff 2026-11-05: avatar sem borda na pílula, favoritar na
+   linha e texto escuro no primário roxo do tema escuro.
+   ═════════════════════════════════════════════════════════════════ */
+.om-av-ch { border: none; box-shadow: 0 0 0 2px var(--surface); }
+.om-row-fav {
+  display: grid; place-items: center; min-width: 24px; min-height: 24px;
+  border: none; background: transparent; color: var(--text-mute); cursor: pointer; border-radius: 6px;
+}
+.om-row-fav:hover { color: var(--text); background: var(--border-2); }
+.om-row-fav.on { color: var(--accent); }
+.om-row-fav:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+[data-theme="dark"] .om-page .os-btn.primary { color: var(--bg); border-color: var(--border); }

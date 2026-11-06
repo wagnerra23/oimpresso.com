@@ -665,7 +665,7 @@
     // ── Render ────────────────────────────────────────────────────────
     return (
       <div className="os-page om-page" data-screen-label="01 Caixa unificada" data-testid="caixa-unif-page">
-      <div className="os-page-h">
+      <div className="os-page-h" data-contract="atend-header">
         <div className="os-page-h-l">
           <h1>Atendimento
 </h1>
@@ -715,7 +715,7 @@
       <div className="om-shell no-ctx" data-mobile-view={mobileView}>
         {/* ───── Coluna: Conversas (lista + busca + status) ───── */}
         <aside className="om-list-c">
-          <div className="om-list-h">
+          <div className="om-list-h" data-contract="atend-lista-cabecalho">
             <b>Conversas</b>
             <span className="mono">{filteredConvs.length}</span>
             <div className="om-list-h-tools">
@@ -863,7 +863,7 @@
             }
 
           {/* Busca inline */}
-          <div className="om-list-search">
+          <div className="om-list-search" data-contract="atend-busca">
             <input
                 type="text"
                 value={search}
@@ -883,7 +883,7 @@
               const total = unhealthyAccounts.reduce((s, a) => s + a.affected, 0);
               const a0 = unhealthyAccounts[0];
               return (
-                <div className={"om-health-banner compact " + worst} role="status" aria-live="polite" data-testid="caixa-unif-health-banner">
+                <div className={"om-health-banner compact " + worst} data-contract="atend-saude" role="status" aria-live="polite" data-testid="caixa-unif-health-banner">
                 <div className="om-hb-head">
                   <span className="om-hb-ico">{worst === "err" ? <PlugZapIco /> : <WifiOffIco />}</span>
                   <div className="om-hb-txt">
@@ -962,7 +962,7 @@
               <small>Tente outro filtro ou limpe a busca.</small>
             </div> :
 
-            <ul className="om-list" role="listbox" aria-label="Conversas">
+            <ul className="om-list" role="listbox" aria-label="Conversas" data-contract="atend-lista">
               {filteredConvs.map((c) => {
                 const acc = ACC_BY_ID[c.account];
                 const ch = CHAN_BY_ID[acc?.channel];
@@ -989,11 +989,16 @@
                       <b>
                         {c.name}
                         {c.preview_only && <span className="om-chip-soon">em breve</span>}
-                        {isFav(c.id) && <span className="om-fav-mark" title="Favorito">★</span>}
                       </b>
                       <small>{c.preview}</small>
                     </div>
                     <div className="om-list-r">
+                      {!c.preview_only &&
+                      <button className={"om-row-fav " + (isFav(c.id) ? "on" : "")} data-testid={`caixa-unif-fav-${c.id}`}
+                      aria-label={isFav(c.id) ? "Remover dos favoritos" : "Favoritar"} aria-pressed={isFav(c.id)}
+                      onClick={(e) => {e.stopPropagation();toggleFav(c.id);}} onKeyDown={(e) => e.stopPropagation()}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill={isFav(c.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                        </button>}
                       {!c.preview_only && q && window.SLAPill && <window.SLAPill conv={c} queue={q} size="sm" />}
                       {c.assignee && <OpAvatar id={c.assignee} size={16} />}
                       {c.unread > 0 && <span className="om-un">{c.unread}</span>}
@@ -1011,7 +1016,7 @@
             <div className="om-empty">Selecione uma conversa.</div> :
 
             <>
-              <header className="om-thread-h">
+              <header className="om-thread-h" data-contract="atend-thread-cabecalho">
                 <span className="om-av-wrap sm">
                   <span className="om-av sm" style={conv.photo ? null : { background: `oklch(0.60 0.12 ${conv.avc})` }}>{conv.photo ? <img className="om-av-img" src={conv.photo} alt="" /> : conv.av}</span>
                   <span className="om-av-ch sm" style={{ background: `oklch(0.62 0.14 ${convChannel.hue})` }}>{convChannel.glyph}</span>
@@ -1073,7 +1078,7 @@
                 </div>
               }
 
-              <div className="om-msgs" ref={threadRef}>
+              <div className="om-msgs" ref={threadRef} data-contract="atend-mensagens">
                 {conv.msgs.map((m, i) => {
                   const showDay = i === 0 || conv.msgs[i - 1].d !== m.d;
                   // Cross-link nas mensagens: #a3 (KB), #os4821 (OS), #c1 (conv), #q-vendas (fila)
@@ -1189,7 +1194,7 @@
                   <span>Reconecte o canal pra enviar; sua mensagem fica salva como rascunho. <a href="#" onClick={(e) => {e.preventDefault();openReconnect(convAcc);}}>Reconectar</a></span>
                 </div>
               }
-              <div className={"om-composer " + (internalMode ? "internal" : "")}>
+              <div className={"om-composer " + (internalMode ? "internal" : "")} data-contract="atend-composer">
                 <div className="om-input-main">
                   <input
                     ref={inputRef}
