@@ -32,10 +32,8 @@ use Tests\Contract\AutosaveContractRunner;
  * 422 visiveis, sem bug silencioso possivel. Mesma justificativa que
  * SellsCreateAutosaveContractTest pra POST /pos.
  *
- * Setup: usa `setupSellsContext` em vez de `setupContext` porque alguns endpoints
- * futuros do fluxo Compras (update-status quando coberto) precisam de transaction
- * stub no biz. Hoje so quick-add nao precisa, mas mantemos paridade pra extensao.
- * Custo: cria 1 sell stub extra que e´ rollback-ado — trivial.
+ * Setup: tenant 98 e usuario so com supplier.create, montados no beforeEach (nao pelo
+ * AutosaveContractRunner::setupSellsContext — ver o comentario la).
  *
  * @see tests/Contract/Fixtures/compras_create.php
  * @see app/Http/Controllers/PurchaseController.php (createInertia §425+, store §475+)
@@ -63,24 +61,24 @@ beforeEach(function () {
         $this->markTestSkipped('Coluna contacts.supplier_business_name ausente — schema UPOS upstream.');
     }
 
-    // Setup multi-tenant Tier 0 (ADR 0093): autentica user + session + cria contact
-    // base + sell stub (status=draft). Sell stub nao e´ usado por este fixture hoje,
-    // mas mantem paridade com Sells/Create pattern pra futura extensao
-    // (PATCH /purchases/{id}/something quando algum endpoint autosave for adicionado).
-    $ctx = AutosaveContractRunner::setupSellsContext($this);
-    $this->business = $ctx['business'];
-    $this->user = $ctx['user'];
-    $this->contactId = $ctx['contactId'];
-    $this->transactionId = $ctx['transactionId'];
+    // Setup multi-tenant Tier 0 (ADR 0093 · ADR 0358), montado AQUI e nao pelo
+    // AutosaveContractRunner::setupSellsContext: aquele usa Business::first() + o primeiro
+    // usuario dele — no CI o biz=1 (empresa real no clone do CT 100), cujo usuario do seed
+    // nao tem papel e recebia 403 em POST /contacts (medido na 1a vez que este arquivo
+    // entrou numa lane, purchase-pest run 42240309596: 0/5, status=403). Aqui: tenant 98 e
+    // um usuario NOVO so com a permissao que a rota checa (ContactController@store,
+    // supplier.create) — o gate segue exercitado, sem Admin# liberando tudo.
+    $this->business = $this->seededTenant();
+    $this->user = $this->usuarioComPermissoes(['supplier.create'], $this->business);
+    $this->actingAs($this->user);
+    session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id]);
 });
 
 it('Compras/Create — endpoint companheiro quick-add Fornecedor (POST /contacts type=supplier) persiste campos do fixture', function () {
     $fixture = require __DIR__ . '/../../Contract/Fixtures/compras_create.php';
 
-    // POST /contacts nao usa {id} placeholder — runner so substitui se presente,
-    // entao passar transactionId como resourceId nao quebra (e fica disponivel pra
-    // futuros endpoints que tenham {id}).
-    $result = AutosaveContractRunner::run($this, $fixture, $this->transactionId);
+    // A fixture nao tem placeholder {id}; o resourceId nao e usado.
+    $result = AutosaveContractRunner::run($this, $fixture, 0);
 
     if ($result['passed'] !== $result['total']) {
         $msg = "❌ Contract test FALHOU — {$result['passed']}/{$result['total']} OK.\n\n";
