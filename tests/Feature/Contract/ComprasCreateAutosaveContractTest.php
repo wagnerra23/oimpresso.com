@@ -101,5 +101,7 @@ it('Compras/Create — endpoint companheiro quick-add Fornecedor (POST /contacts
         expect($result['failures'])->toBeEmpty($msg);
     }
 
+    // Sem esta trava, 0 campos montados daria 0 === 0 e passaria sem provar nada (LC-13).
+    expect($result['total'])->toBe(5, 'a fixture compras_create declara 5 campos');
     expect($result['passed'])->toBe($result['total']);
 });
