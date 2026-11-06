@@ -61,12 +61,19 @@ it('Page NÃO usa sessionStorage', function () {
     expect(readProdutoCreate())->not->toContain('sessionStorage');
 });
 
-it('Page usa localStorage com prefixo oimpresso.produto.', function () {
-    expect(readProdutoCreate())->toContain("'oimpresso.produto.");
+// Até 2026-11-04 a seção "Mais opções" era recolhível e lembrava aberta/fechada no navegador
+// (chave `oimpresso.produto.advanced_open`). Na forma do protótipo (#10380, UI-0029) ela virou
+// "Configurações" e fica sempre aberta: a tela não guarda mais estado no navegador. O teste antigo
+// procurava o texto "Mais opções", que só sobrevivia num comentário.
+it('Page não guarda estado no navegador (sem localStorage)', function () {
+    expect(readProdutoCreate())->not->toContain('localStorage');
 });
 
-it('Page tem details "Mais opções" colapsável', function () {
-    expect(readProdutoCreate())->toContain('Mais opções');
+it('Page tem a seção "Configurações" aberta, sem bloco recolhível', function () {
+    $source = readProdutoCreate();
+    expect($source)->toContain('<CardTitle>Configurações</CardTitle>');
+    expect($source)->not->toContain('<details');
+    expect($source)->not->toContain('Collapsible');
 });
 
 it('Page NÃO usa cor crua', function () {

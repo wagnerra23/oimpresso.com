@@ -263,7 +263,11 @@ class Onda22AnexosPillPermissionTest extends FinanceiroTestCase
     private function makeTitulo(int $businessId, array $overrides = []): Titulo
     {
         $now = now();
-        return Titulo::create(array_merge([
+        // aprovacao_status não está no $fillable: create() a descartava e todo título de teste
+        // nascia sem estado de aprovação (3 falhas medidas em 2026-11-05). Vai por forceFill.
+        $aprovacao = array_key_exists('aprovacao_status', $overrides) ? $overrides['aprovacao_status'] : null;
+        unset($overrides['aprovacao_status']);
+        $t = Titulo::create(array_merge([
             'business_id' => $businessId,
             'numero' => 'TEST-' . uniqid(),
             'tipo' => 'pagar',
@@ -281,6 +285,11 @@ class Onda22AnexosPillPermissionTest extends FinanceiroTestCase
             'observacoes' => 'Onda 22 test fixture',
             'created_by' => $this->admin->id,
         ], $overrides));
+        if ($aprovacao !== null) {
+            $t->forceFill(['aprovacao_status' => $aprovacao])->save();
+        }
+
+        return $t;
     }
 
     private function grantAprovarPermission(User $user): void
