@@ -65,6 +65,8 @@ class OrdemFichaController extends Controller
             'etapas' => $dados['etapas'],
             'pode' => ['liberar' => $papel('producao.liberar'), 'cancelar' => $papel('vendas.gerente'), 'custo' => $verCusto],
             'custo' => Inertia::defer($custo),
+            'materiais' => Inertia::defer(fn () => $this->ficha->materiais($biz, $id, $dados['etapas'][0]['id'] ?? null)),
+            'artes' => Inertia::defer(fn () => $this->ficha->artes($biz, $id)),
             'pessoas' => Inertia::defer(fn () => $dados['os']['situacao'] === 'aguardando_liberacao' && $papel('producao.liberar')
                 ? $this->quadro->pessoas($biz, $postos) : ['pessoas' => [], 'por_posto' => []]),
         ]);

@@ -8,7 +8,8 @@
 // do bundle). As ações chamam POST /producao/ordens/{id}/{liberar|refazer|cancelar} (lote 2.2), que conferem o
 // papel de novo; aqui o botão só aparece na situação em que a ação vale (ProcessoDaOrdem::ACOES).
 // Aba Custo (lote 3.3): só leitura, os valores vêm prontos do backend (PrevistoRealizadoDaOrdem + CustoRealService);
-// a tela só formata. Materiais e Arte entram no lote 3.4.
+// a tela só formata. Abas Materiais e Arte (lote 3.4): saldo vem do backend; trocar a arte e reenviar o link usam
+// as rotas de aprovação de arte que já existem (UC-PCV-11, UC-PCART-07).
 import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -16,10 +17,12 @@ import { useState, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import { Segmented } from '@/Components/ui/segmented';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import ProducaoAbas from '../_components/ProducaoAbas';
+import AcaoDaProva from '../Painel/_components/AcaoDaProva';
 import { json, Recusa } from '../Quadro/_lib/json';
 
 interface Etapa {
@@ -34,14 +37,19 @@ interface Os {
 interface PrevReal { status: 'em_andamento' | 'realizado' | 'cancelada'; receita: string; orcado: string | null; realizado: string | null;
   diferenca: string | null; diferenca_pct: string | null; margem_orcada_pct: string | null; margem_real_pct: string | null }
 interface Custo { previsto_realizado: PrevReal; composicao: { maquina: string; pessoa: string; material: string; terceiros: string; total: string } | null }
+interface Material { variation_id: number; nome: string; unidade: string | null; previsto: string | null; apontado: string; saldo: string | null; estourou: boolean }
+interface Falta { nome: string; necessario: string; disponivel: string; falta: string; a_caminho: string }
+interface Arte { versao: number; arquivo: string; decisao: 'aprovada' | 'recusada' | null; comentario: string | null; enviada_em: string; decidida_em: string | null; vigente: boolean }
 interface Pessoas { pessoas: { id: number; nome: string }[]; por_posto: Record<number, number[]> }
-interface Props { os: Os; etapas: Etapa[]; pode: { liberar: boolean; cancelar: boolean; custo: boolean }; pessoas?: Pessoas; custo?: Custo | null }
+interface Props { os: Os; etapas: Etapa[]; pode: { liberar: boolean; cancelar: boolean; custo: boolean }; pessoas?: Pessoas; custo?: Custo | null; materiais?: { itens: Material[]; falta: Falta[] }; artes?: Arte[] }
 
 const EST: Record<Etapa['status'], string> = { pendente: 'Na fila', iniciada: 'Em andamento', concluida: 'Feito', cancelada: 'Cancelada' };
 const h1 = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const brl = (v: string | null) => (v === null ? '—' : BRL.format(Number(v)));
 const pct = (v: string | null) => (v === null ? '—' : v.replace('.', ',') + '%');
+const q = (v: string, un: string | null) => Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + (un ? ' ' + un : '');
+const quando = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7) + ' às ' + iso.slice(11, 16);
 const d2 = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
 
 function EtapaLi({ e, i }: { e: Etapa; i: number }) {
@@ -111,6 +119,55 @@ function AbaCusto({ c }: { c: Custo | null }) {
   );
 }
 
+function AbaMateriais({ m }: { m: { itens: Material[]; falta: Falta[] } }) {
+  return (
+    <div className="pcv-sec" data-contract="materiais">
+      {m.falta.length > 0 && <div className="pcv-falta" role="region" aria-label="Aguardando material">
+        <Alert variant="destructive"><AlertDescription>Aguardando material: nenhuma etapa começa até o PCP conferir.</AlertDescription></Alert>
+        <table className="pcv-baixa" aria-label="Material que falta"><thead><tr><th>Insumo</th><th>Precisa</th><th>Tem</th><th>Falta</th><th>A caminho</th></tr></thead>
+          <tbody>{m.falta.map((f) => <tr key={f.nome}><td>{f.nome}</td><td className="mono">{q(f.necessario, null)}</td><td className="mono">{q(f.disponivel, null)}</td>
+            <td className="mono pcv-late">{q(f.falta, null)}</td><td className="mono">{q(f.a_caminho, null)}</td></tr>)}</tbody></table>
+      </div>}
+      <table className="pcv-tbl" aria-label="Materiais da OS">
+        <thead><tr><th scope="col">Material</th><th scope="col" className="ta-r">Previsto</th><th scope="col" className="ta-r">Apontado</th><th scope="col" className="ta-r">Saldo</th></tr></thead>
+        <tbody>{m.itens.map((i) => (
+          <tr key={i.variation_id}><td>{i.nome}</td><td className="ta-r mono">{i.previsto === null ? '—' : q(i.previsto, i.unidade)}</td>
+            <td className="ta-r mono">{q(i.apontado, i.unidade)}</td>
+            <td className={'ta-r mono' + (i.estourou ? ' pcv-late' : '')}>{i.saldo === null ? '—' : i.estourou ? 'estourou ' + q(i.saldo.slice(1), i.unidade) : q(i.saldo, i.unidade)}</td></tr>))}</tbody>
+      </table>
+      {m.itens.length === 0 && <p className="pcv-help">O produto desta OS não tem receita de insumo, e nada foi apontado ainda.</p>}
+      <p className="pcv-help">O previsto vem da receita do produto para a quantidade da OS; o apontado é a baixa que o operador fez na etapa.</p>
+    </div>
+  );
+}
+
+function AbaArte({ os, artes }: { os: Os; artes: Arte[] }) {
+  const [novo, setNovo] = useState('');
+  const [msg, setMsg] = useState<string | null>(null);
+  const ultima = artes[0];
+  const trocar = async () => {
+    setMsg(null);
+    try { await json('POST', `/producao/ordens/${os.id}/arte/trocar`, { arquivo: novo }); setNovo(''); router.reload({ only: ['artes'] }); setMsg('Arquivo trocado: saiu link novo para o cliente aprovar.'); }
+    catch (e) { setMsg(e instanceof Recusa ? e.message : 'Não foi possível trocar.'); }
+  };
+  return (
+    <div className="pcv-sec" data-contract="arte">
+      {!ultima && <p className="pcv-help">Esta OS ainda não mandou prova de arte ao cliente.</p>}
+      {ultima && ultima.decisao !== 'aprovada' && <AcaoDaProva osId={os.id} ajuste={ultima.decisao === 'recusada'} />}
+      <ul className="pcv-arq" aria-label="Versões da arte">{artes.map((a) => (
+        <li key={a.versao}><div><b>v{a.versao} · {a.arquivo.split('/').pop()}</b>
+          <small>{a.decisao === 'aprovada' ? 'aprovada em ' + quando(a.decidida_em ?? a.enviada_em) + (a.vigente ? ' · é a que vale para a produção' : ' · substituída')
+            : a.decisao === 'recusada' ? 'o cliente pediu ajuste' + (a.comentario ? ': "' + a.comentario + '"' : '') : 'aguardando o cliente · enviada em ' + quando(a.enviada_em)}</small></div>
+          <a className="pcv-link" href={a.arquivo} target="_blank" rel="noreferrer">Abrir</a></li>))}</ul>
+      {ultima?.decisao === 'aprovada' && <div className="pcv-bar">
+        <Input type="url" aria-label="Link do arquivo novo" placeholder="https://..." value={novo} onChange={(e) => setNovo(e.target.value)} />
+        <Button size="sm" disabled={!novo} onClick={trocar}>Trocar e pedir nova aprovação</Button></div>}
+      {msg && <p className="pcv-help" role="status">{msg}</p>}
+      <p className="pcv-help">O operador abre no celular a versão aprovada. Trocar o arquivo depois de aprovada reabre a aprovação com link novo.</p>
+    </div>
+  );
+}
+
 function Acoes({ p }: { p: Props }) {
   const [msg, setMsg] = useState<{ tom: 'ok' | 'recusa'; texto: string } | null>(null);
   const s = p.os.situacao;
@@ -155,12 +212,14 @@ export default function OsShow(props: Props) {
         </div>
         <Acoes p={props} />
         <Segmented value={aba} onValueChange={(v) => v && setAba(v)} aria-label="Seções da OS"
-          options={[{ value: 'etapas', label: `Etapas (${etapas.length})` }, ...(props.pode.custo ? [{ value: 'custo', label: 'Custo' }] : [])]} />
+          options={[{ value: 'etapas', label: `Etapas (${etapas.length})` }, { value: 'arte', label: 'Arte e arquivos' }, { value: 'materiais', label: 'Materiais' }, ...(props.pode.custo ? [{ value: 'custo', label: 'Custo' }] : [])]} />
         {aba === 'etapas' && <>
           {paralelas && <p className="pcv-help">Etapas em paralelo estão marcadas pela trilha.</p>}
           <ol className="pcv-etapas" data-contract="etapas">{etapas.map((e, i) => <EtapaLi key={e.id} e={e} i={i} />)}</ol>
           {etapas.length === 0 && <p className="pcv-help">Esta OS ainda não tem etapas programadas.</p>}
         </>}
+        {aba === 'arte' && <Deferred data="artes" fallback={<Skeleton className="h-32 w-full" />}><AbaArte os={os} artes={props.artes ?? []} /></Deferred>}
+        {aba === 'materiais' && <Deferred data="materiais" fallback={<Skeleton className="h-32 w-full" />}><AbaMateriais m={props.materiais ?? { itens: [], falta: [] }} /></Deferred>}
         {aba === 'custo' && <Deferred data="custo" fallback={<Skeleton className="h-32 w-full" />}><AbaCusto c={props.custo ?? null} /></Deferred>}
       </div></div>
     </div>
