@@ -663,68 +663,46 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
     if (promovido) ghostsVisiveis = ghosts.slice(0, GHOST_TETO - 1).concat(promovido);
     ghostsOcultos = ghosts.length - ghostsVisiveis.length;
   }
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [popPos, setPopPos] = useState<{ top: number; left: number } | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
   const hasChildren = !!item.children?.length;
+  // Item com filhos abre DENTRO do sidebar, como as sub-telas do Financeiro
+  // ([W] 2026-11-06: "todos como o Financeiro"). Até aqui abria um popover
+  // lateral (`.sb-item-popover`, UI-0011 2026-05-05). Os filhos usam as mesmas
+  // linhas `sb-ghost` dos ghosts — um caminho só pra sub-tela no sidebar.
+  // Abre sozinho quando a rota atual é um dos filhos, sem gravar preferência.
+  const filhoAtivo = hasChildren && item.children!.some((c) => rotaAtiva(c.href));
+  const [isOpen, setIsOpen] = useState(filhoAtivo);
   const href = item.href ?? '#';
   const Icon = findMenuIcon(item.label);
-
-  // Calcula posição fixed do popover-2 quando abre. Cascata lateral à direita
-  // do popover-1 (UI-0011 segundo nível, Wagner 2026-05-05).
-  useEffect(() => {
-    if (!isOpen) { setPopPos(null); return; }
-    if (!buttonRef.current) return;
-    const r = buttonRef.current.getBoundingClientRect();
-    setPopPos({ top: r.top, left: r.right + 4 });
-  }, [isOpen]);
-
-  // Click fora fecha popover-2 (considera tanto o button quanto o popover via classe)
-  useEffect(() => {
-    if (!isOpen) return;
-    const handler = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (buttonRef.current?.contains(target)) return;
-      const popoverEl = document.querySelector('.sb-item-popover');
-      if (popoverEl?.contains(target)) return;
-      setIsOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [isOpen]);
 
   if (hasChildren) {
     return (
       <>
         <button
-          ref={buttonRef}
           type="button"
-          className={`sb-item ${isOpen ? 'is-open' : ''}`}
+          className={`sb-item sb-sub${isOpen ? ' is-open' : ''}`}
           onClick={() => setIsOpen((v) => !v)}
           aria-expanded={isOpen}
         >
           <Icon size={16} strokeWidth={1.6} className="ic" />
           <span className="label">{item.label}</span>
-          <ItemEnd atalho={atalho} />
-          <ChevronRight size={11} className="sb-item-chev" style={{ opacity: 0.5 }} />
+          <ItemEnd atalho={atalho} telas={item.children!.length} />
+          <ChevronDown
+            size={11}
+            className="sb-item-chev"
+            aria-hidden="true"
+            style={{ opacity: 0.5, transform: isOpen ? 'rotate(0)' : 'rotate(-90deg)', transition: 'transform 120ms' }}
+          />
         </button>
-        {isOpen && popPos && (
-          <div
-            className="sb-item-popover"
-            style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
+        {isOpen && item.children!.map((c, i) => (
+          <a
+            key={`${c.label}-${i}`}
+            href={c.href ?? '#'}
+            className="sb-item sb-sub sb-ghost"
+            aria-current={rotaAtiva(c.href) ? 'page' : undefined}
           >
-            {item.children!.map((c, i) => (
-              <a
-                key={`${c.label}-${i}`}
-                href={c.href ?? '#'}
-                className="sb-item"
-              >
-                <span className="ic dot" />
-                <span className="label">{c.label}</span>
-              </a>
-            ))}
-          </div>
-        )}
+            <span className="label">{c.label}</span>
+          </a>
+        ))}
       </>
     );
   }
@@ -1113,7 +1091,9 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           // usuário depois do 1º clique (o localStorage vence o default).
           defaultOpen={g.key !== 'plataforma'}
           temAtivo={(groupedItems[g.key] ?? []).some(
-            (it) => rotaAtiva(it.href) || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+            (it) => rotaAtiva(it.href)
+            || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+            || (it.children ?? []).some((c) => rotaAtiva(c.href))
           )}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
@@ -1272,7 +1252,9 @@ function SidebarMenuRail({
         // `.active` quando a tela atual está no grupo — mesmo detector
         // (`rotaAtiva`, item ou ghost) que abre o grupo no modo expandido.
         const temAtivo = (groupedItems[g.key] ?? []).some(
-          (it) => rotaAtiva(it.href) || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+          (it) => rotaAtiva(it.href)
+            || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+            || (it.children ?? []).some((c) => rotaAtiva(c.href))
         );
         return (
           <button

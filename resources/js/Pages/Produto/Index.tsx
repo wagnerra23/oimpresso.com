@@ -60,6 +60,7 @@ import { encaixarColunas } from './_components/lista/encaixe';
 import { useLargurasGuardadas } from './_components/lista/useLargurasGuardadas';
 import { useTamanho } from './_components/lista/useTamanho';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
+import NcmEmLote from './_components/lista/NcmEmLote';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
 import PainelDetalheProduto from './_components/lista/PainelDetalhe';
 import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
@@ -164,6 +165,7 @@ function paraUrl(f: FiltrosLista): Record<string, string | number> {
   if (f.not_for_selling) out.not_for_selling = 1;
   if (f.woocommerce_enabled) out.woocommerce_enabled = 1;
   if (f.abaixo_do_alerta) out.abaixo_do_alerta = 1;
+  if (f.falta_ncm) out.falta_ncm = 1;
   if (f.q) out.q = f.q;
   if (f.sort && f.sort !== 'produto') out.sort = f.sort;
   if (f.dir === 'desc') out.dir = 'desc';
@@ -224,6 +226,8 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const [localModal, setLocalModal] = useState<'add' | 'remove' | null>(null);
   const [locaisEscolhidos, setLocaisEscolhidos] = useState<string[]>([]);
   const [wooModal, setWooModal] = useState(false);
+  // UC-PIDX-43: "Informar NCM" nos selecionados.
+  const [ncmModal, setNcmModal] = useState(false);
   const [rapido, setRapido] = useState(false);
   const [inicial, setInicial] = useState<{ id: number; nome: string } | null>(null);
   const [hora, setHora] = useState(hhmm);
@@ -427,6 +431,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       not_for_selling: false,
       woocommerce_enabled: false,
       abaixo_do_alerta: false,
+      falta_ncm: false,
       q: '',
     });
   };
@@ -475,7 +480,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
             </Deferred>
           </div>
 
-          <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} naturezaFiscal={contexto.natureza_fiscal === true} aplicar={ir} />
+          <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} naturezaFiscal={contexto.natureza_fiscal === true} emiteNota={contexto.emite_nota === true} aplicar={ir} />
 
           <section
             className="pb-widget"
@@ -557,7 +562,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                     onRemove={() => {
                       if (c.chave === 'q') setBusca('');
                       const vazio =
-                        c.chave === 'not_for_selling' || c.chave === 'woocommerce_enabled' || c.chave === 'abaixo_do_alerta'
+                        c.chave === 'not_for_selling' || c.chave === 'woocommerce_enabled' || c.chave === 'abaixo_do_alerta' || c.chave === 'falta_ncm'
                           ? false
                           : c.chave === 'q'
                             ? ''
@@ -708,6 +713,12 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   Remover do local
                 </Button>
               )}
+              {/* UC-PIDX-43: só para quem emite nota, como o filtro "Falta NCM". */}
+              {pode('update') && contexto.emite_nota && (
+                <Button variant="outline" size="sm" onClick={() => setNcmModal(true)}>
+                  Informar NCM
+                </Button>
+              )}
               {pode('etiquetas') && (
                 <Button variant="outline" size="sm" onClick={() => irPara(`/labels/show?product_ids=${selecionados.join(',')}`)}>
                   <Tag size={12} aria-hidden /> Etiquetas
@@ -830,6 +841,17 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NcmEmLote
+        aberto={ncmModal}
+        quantidade={selecionados.length}
+        container={cockpit}
+        aoFechar={() => setNcmModal(false)}
+        aoConfirmar={(ncm) => {
+          setNcmModal(false);
+          void executarJson('/products/bulk-update-ncm', 'POST', { products: ids, ncm });
+        }}
+      />
 
       <Dialog open={wooModal} onOpenChange={setWooModal}>
         <DialogContent>

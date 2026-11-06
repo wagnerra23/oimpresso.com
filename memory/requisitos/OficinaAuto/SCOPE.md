@@ -6,7 +6,7 @@ contains:
   - "DataController"
   - "InstallController"
   - "ProducaoOficinaController"
-  - "Public/AprovacaoOsController — endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
+  - "Public/AprovacaoOsController — endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-014). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
   - "ServiceOrderController — CRUD + printInvoice (Gap 3 US-OFICINA-037 · GET /ordens-servico/{order}/print AJAX-only · A4 nota-fiscal-like papel-balcão Martinho sub-vertical 4 CNAE 4520 · ADR 0194)."
   - "ServiceOrderItemController — CRUD HTTP de items lançados na OS (peça/mão-obra/serviço terceiro). Wave 1.3 US-OFICINA-027 — alimenta drawer ServiceOrderRichSheet seção PEÇAS & MÃO DE OBRA + Observer ::computeFinalTotal."
   - "DviInspectionController — CRUD HTTP de items DVI (Vistoria Digital · semáforo ok/atenção/crítico). Wave 3 US-OFICINA-035 — wedge competitivo vs RepairShopr/mHelpDesk."
@@ -40,11 +40,20 @@ drift_alerts: []
 > ADR mãe: [0137](../../decisions/0137-modules-oficinaauto-qualificada.md) (amends [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7)
 > SPEC: [memory/requisitos/OficinaAuto/SPEC.md](../../requisitos/OficinaAuto/SPEC.md)
 > Charter: [memory/requisitos/OficinaAuto/OficinaAuto.charter.md](../../requisitos/OficinaAuto/OficinaAuto.charter.md)
-> **Status: 🟡 em construção (V0)** — sinal qualificado por Vargas + Martinho (ADR 0137)
-> CNAEs: 4520-0/01 (mecânica geral) · 2212-9/00 (recapagem) · 4581-4/00 (locação caçamba)
+> **Status: piloto LIVE** (Martinho desde 2026-05-13, ADR 0171) — estado atual no [BRIEFING](BRIEFING.md). _Até 2026-11-05 esta linha dizia "🟡 em construção (V0) — Vargas + Martinho"; Vargas não virou cliente (SPEC US-OFICINA-007)._
+> CNAEs: 4520-0/01 (mecânica geral) · 2212-9/00 (recapagem). _O 4581-4/00 (locação de caçamba) saiu: locação foi erradicada do domínio (ADR 0265)._
 > Concorrentes: Ultracar, Oficina Integrada, Onmotor, Manager Full
 
-## Estado V0 (Sprint 1 — US-OFICINA-001)
+## Superfície HTTP fora dos prefixos declarados (medido 2026-11-05)
+
+O `url_prefixes` cobre só as rotas do módulo. Há superfície do domínio da Oficina em outros donos:
+
+- API do app mobile: `routes/api/app/oficina.php` (OS, veículos, placa, agenda de revisão) e
+  `routes/api/app/os-arquivos.php`; contrato em `memory/requisitos/AppMobile/API-CONTRATO-v1.md`.
+- Abrir OS a partir da venda: `POST /sells/{id}/create-os` (`routes/web.php`, `SellController@createOs`).
+- Ações FSM da OS: `app/Http/Controllers/ServiceOrderFsmActionController.php` (rotas no módulo).
+
+## Estado V0 (Sprint 1 — US-OFICINA-001) — histórico, 2026-05
 
 Scaffold completo nWidart com:
 
@@ -57,7 +66,10 @@ Scaffold completo nWidart com:
 - **9 permissões Spatie** (access + 4 vehicle.* + 4 service_order.*)
 - **Sidebar entry** "Oficina Auto" dropdown (Veículos + Ordens de Serviço)
 
-## Sprint 2+ — backlog ativo (em SPEC.md)
+## Sprint 2+ — backlog de 2026-05 (histórico)
+
+> **2026-11-05:** as 4 US abaixo estão `done` no SPEC. O estado vivo das US é derivado:
+> `node scripts/governance/requisitos-status.mjs OficinaAuto` (`_STATUS-GENERATED.md`).
 
 | US | Descrição | Estado |
 |---|---|---|
@@ -66,7 +78,7 @@ Scaffold completo nWidart com:
 | **US-OFICINA-003** | FSM canônica OS (3 estados Simples + 5 estados Complexa) — ADR 0129 | backlog |
 | **US-OFICINA-004** | UI Kanban OS Vargas — multi-item + multi-mecânico | backlog V1 |
 
-## Não-goals (V0)
+## Não-goals (V0, 2026-05 — os três primeiros já foram entregues)
 
 - ❌ NÃO implementar FSM antes de US-OFICINA-003 (status string livre na V0)
 - ❌ NÃO implementar importer Firebird antes de US-OFICINA-002

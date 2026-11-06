@@ -330,6 +330,26 @@ Status: 🧪
 
 ---
 
+## UC-PCPAC-01 · Sem o Producao no pacote, os cadastros não abrem nem gravam · `must`
+
+**Dado** a empresa sem o `producao_module` no pacote e um gestor com `producao.access`,
+`producao.desempenho.ver` e `producao.etapa.mover` **Quando** ele abre Roteiros ou Postos, grava posto,
+motivos, ferramenta, operadores ou custo-hora, ou pede a etiqueta da OS **Então** tudo dá 403 e nada é
+gravado; com o pacote, o mesmo gestor grava. Antes, esses 6 controllers só checavam a permissão (auditoria
+lote 2.4, P-03 do eixo 5). Prova: `ProducaoRoteirosContratoTest`.
+
+Status: 🧪
+
+## UC-PCMOU-01 · Motivo já usado sai da lista sem ser apagado · `must`
+
+**Dado** o posto com os motivos de pausa Setup (já apontado numa pausa) e Limpeza (nunca usado) **Quando**
+o gestor troca a lista por "Bolha" **Então** Setup fica inativo e some da lista, Limpeza é apagado, Bolha
+nasce e a pausa antiga segue apontando para Setup; voltando "Setup" à lista, o mesmo motivo reativa, sem
+duplicar. Antes, apagar o motivo usado dava erro de chave estrangeira (auditoria lote 2.4, P-08 do eixo 5).
+Prova: `ProducaoRoteirosContratoTest`.
+
+Status: 🧪
+
 ## Backlog de casos (sem id — a E03 não traz UC próprio; o teste já os defende)
 
 - **[BACKLOG]** Veículo é posto de máquina com placa obrigatória e custo por km; ferramenta tem QR único por empresa.
@@ -348,3 +368,4 @@ Status: 🧪
 - 2026-10-21 · [CL] UC-PCCH-10 — centro de custo por setor (decisão [W]: setor = `pcp_postos.setor`).
 - 2026-10-21 · [CL] UC-PCCH-07..08 — telas do custeio: aba Custeio na DRE e classe fixa/variável no plano de contas. O botão de aplicar em Postos (era o UC-PCCH-09) saiu por decisão [W] e virou [BACKLOG].
 - 2026-10-21 · [CL] UC-PCCH-11 — decisão [W] (opção a): custo-hora direto guardado à parte em `pcp_postos.custo_hora_direto`; o sugerido é sempre direto + parcela do mês e aplicar de novo não soma outra parcela.
+- 2026-11-05 · [CL] UC-PCPAC-01 e UC-PCMOU-01 — auditoria Producao lote 2.4: pacote nos cadastros e na etiqueta; motivo usado fica inativo em vez de apagado.
