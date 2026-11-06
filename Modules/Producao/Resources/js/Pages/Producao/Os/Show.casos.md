@@ -52,12 +52,31 @@ PrevistoRealizadoDaOrdem e o CustoRealService devolvem. Custo por etapa (os 85 p
 
 Status: 🧪
 
+## UC-PCOSF-04 · Aba Materiais · `must`
+
+**Dado** a receita do produto pedindo 124 m² de lona para a quantidade da OS e 133,4 m² já apontados na etapa
+**Então** a aba Materiais mostra previsto 124, apontado 133,4 e o saldo "estourou 9,4" em vermelho (o mesmo exemplo do
+UC-PCV-16) · com a OS em Aguardando material aparece também o que falta, quanto tem e o que está a caminho ·
+produto sem receita e sem apontamento mostra a lista vazia com a explicação. Só leitura: quem baixa é o
+apontamento (US-PCP-021). O saldo sai do backend em décimos de milésimo inteiros, sem float.
+
+Status: 🧪
+
+## UC-PCOSF-05 · Aba Arte e arquivos · `must`
+
+**Dado** a OS com a v1 aprovada pelo cliente e uma v2 enviada e ainda sem resposta **Então** a aba lista v2 e v1, da
+mais nova à mais antiga, e marca a v1 como a que vale para a produção (UC-PCV-11) · com a última aguardando ou com
+ajuste pedido aparecem "Reenviar link" e "Enviar nova prova" (UC-PCART-07); com a última aprovada aparece "Trocar e
+pedir nova aprovação" · pedido de arte de outra empresa não aparece.
+
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Abas Materiais e Arte — lote 3.4.
 - **[BACKLOG]** Cartão do Quadro e bloco da Linha abrem a Ficha — lote 3.5.
 - **[BACKLOG]** Refugo e Histórico da OS — fora do lote 3.
 
 ## Trilha do tempo
+- 2026-11-06 · [W+C] Abas Materiais e Arte (lote 3.4).
 - 2026-11-06 · [W+C] Aba Custo só leitura (lote 3.3).
 - 2026-11-06 · [W+C] Ficha nasce na auditoria lote 3.2. Trio carimbado com `criar-tela.mjs` (PT-03) e movido para o caminho do módulo, que o gerador não cobre.

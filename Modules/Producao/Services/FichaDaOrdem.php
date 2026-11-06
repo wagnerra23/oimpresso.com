@@ -14,9 +14,15 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  * posto, responsável, previsto × apontado. Só leitura. Previsto = fim − início programados; apontado =
  * soma dos pares início→fim fechados do apontamento da etapa (o mesmo par que o CustoRealService usa).
  * Tier 0: tudo filtrado por `$businessId`; OS de outra empresa → NAO_ENCONTRADO (404 no controller).
+ *
+ * Abas Materiais e Arte (lote 3.4), também só leitura: materiais = MateriaisDaEtapa (previsto pela receita ×
+ * apontado na OS) com o saldo em décimos de milésimo inteiros, sem float; arte = os pedidos de aprovação
+ * da OS, do mais novo ao mais antigo, com a versão que vale para produzir (a última aprovada, UC-PCV-11).
  */
 final class FichaDaOrdem
 {
+    public function __construct(private readonly MateriaisDaEtapa $materiais, private readonly FaltaDeMaterialDaOs $falta) {}
+
     /** @return array{os: array<string, mixed>, etapas: list<array<string, mixed>>} */
     public function montar(int $businessId, int $ordemId): array
     {
@@ -62,5 +68,46 @@ final class FichaDaOrdem
             ],
             'etapas' => $etapas,
         ];
+    }
+
+    /** @return array{itens: list<array<string, mixed>>, falta: list<array<string, mixed>>} */
+    public function materiais(int $businessId, int $ordemId, ?int $programacaoId): array
+    {
+        $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->findOrFail($ordemId);
+        $lista = $programacaoId === null ? [] : ($this->materiais->paraEtapas($businessId, [$programacaoId])[$programacaoId] ?? []);
+        $itens = array_map(function (array $m) {
+            $saldo = $m['previsto'] === null ? null : $this->dm($m['previsto']) - $this->dm($m['apontado']);
+
+            return ['variation_id' => $m['variation_id'], 'nome' => $m['nome'], 'unidade' => $m['unidade'], 'previsto' => $m['previsto'],
+                'apontado' => $m['apontado'], 'saldo' => $saldo === null ? null : $this->texto($saldo), 'estourou' => $saldo !== null && $saldo < 0];
+        }, $lista);
+
+        return ['itens' => $itens, 'falta' => $ordem->currentStage?->key === 'aguardando_material' ? $this->falta->daOrdem($businessId, $ordem) : []];
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function artes(int $businessId, int $ordemId): array
+    {
+        $pedidos = DB::table('pcp_aprovacoes_arte')->where('business_id', $businessId)->where('ordem_id', $ordemId)
+            ->orderByDesc('id')->get(['id', 'arquivo', 'decisao', 'comentario', 'decidido_em', 'created_at']);
+        $vigente = $pedidos->where('decisao', 'aprovada')->sortByDesc('decidido_em')->first()?->id;
+
+        return $pedidos->values()->map(fn ($p, $i) => ['versao' => $pedidos->count() - $i, 'arquivo' => (string) $p->arquivo,
+            'decisao' => $p->decisao, 'comentario' => $p->comentario, 'enviada_em' => substr((string) $p->created_at, 0, 16),
+            'decidida_em' => $p->decidido_em !== null ? substr((string) $p->decidido_em, 0, 16) : null, 'vigente' => $p->id === $vigente])->all();
+    }
+
+    private function dm(string $v): int
+    {
+        $neg = str_starts_with(trim($v), '-');
+        [$i, $f] = array_pad(explode('.', ltrim(trim($v), '-'), 2), 2, '');
+        $n = (int) $i * 10000 + (int) substr(str_pad($f, 4, '0'), 0, 4);
+
+        return $neg ? -$n : $n;
+    }
+
+    private function texto(int $n): string
+    {
+        return ($n < 0 ? '-' : '').sprintf('%d.%04d', intdiv(abs($n), 10000), abs($n) % 10000);
     }
 }

@@ -38,6 +38,8 @@ posto, responsável e o tempo apontado contra o previsto. Daqui o PCP libera, re
   ou Aguardando material (UC-PCOSF-01). Os portões de papel são conferidos de novo nas rotas JSON do lote 2.2.
 - Aba Custo, só leitura e só para `producao.desempenho.ver`: orçado × realizado, margem e de onde vem o realizado
   (máquina, pessoa, material, terceiros). Os números vêm prontos do backend (UC-PCOSF-03).
+- Abas Materiais (previsto pela receita × apontado, com o que falta) e Arte e arquivos (versões, a que vale,
+  trocar e reenviar pelas rotas de aprovação que já existem) — UC-PCOSF-04 e 05.
 - PT-BR em todo label e mensagem.
 
 ## Non-Goals — Features (NÃO faz)

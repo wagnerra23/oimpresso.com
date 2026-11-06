@@ -142,7 +142,6 @@ function FxRibbon() {
   const k = fxD().KPIS, sp = fxD().SPARK;
   const stR = window.useFiscalStore(), cert = window.fxCert(stR);
   const dfePend = stR.dfe.filter(d => d.status === "pendente"), dfeMenor = fxDfeMenorPrazo(dfePend);
-  const certCen = (window.useFiscalStore().cenario || {}).cert || "vigente";
   return (
     <div className="fx-ribbon" data-contract="kpi-ribbon" role="region" aria-label="KPIs fiscais">
       <span className="fx-ri"><small>Emitidas <window.FxProc k="kpis" /></small><b>{k.emitidas}</b><em>maio/2026</em><FxSpark data={sp.emitidas} /></span>
