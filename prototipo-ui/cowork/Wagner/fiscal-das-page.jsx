@@ -19,29 +19,8 @@
   sem o contador, segregar receitas.
 -->
 <style>
-:root{
-  --font-sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-  --bg:oklch(0.985 0.003 90);--bg-2:oklch(0.965 0.004 90);--surface:#fff;
-  --border:oklch(0.90 0.004 90);--border-2:oklch(0.93 0.004 90);
-  --text:oklch(0.22 0.01 80);--text-dim:oklch(0.50 0.01 80);--text-mute:oklch(0.555 0.01 80);
-  --accent:oklch(0.55 0.15 295);--accent-soft:oklch(0.95 0.04 295);--accent-fg:#fff;
-  --warn:oklch(0.56 0.12 70);--warn-soft:oklch(0.955 0.072 75);
-  --radius:8px;--radius-sm:6px;
-  --fs-1:10.5px;--fs-2:11.5px;--fs-3:12.5px;--fs-4:13.5px;--fs-5:15px;--fs-7:22px;--fs-8:28px;
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:oklch(0.26 0.006 240);--bg-2:oklch(0.23 0.006 240);--surface:oklch(0.30 0.008 240);
-  --border:oklch(0.34 0.008 240);--border-2:oklch(0.31 0.008 240);
-  --text:oklch(0.94 0.005 90);--text-dim:oklch(0.72 0.005 90);--text-mute:oklch(0.68 0.005 90);
-  --accent-soft:oklch(0.34 0.06 295);--warn:oklch(0.82 0.16 75);--warn-soft:oklch(0.34 0.05 75);
-}}
-:root[data-theme="dark"]{
-  --bg:oklch(0.26 0.006 240);--bg-2:oklch(0.23 0.006 240);--surface:oklch(0.30 0.008 240);
-  --border:oklch(0.34 0.008 240);--border-2:oklch(0.31 0.008 240);
-  --text:oklch(0.94 0.005 90);--text-dim:oklch(0.72 0.005 90);--text-mute:oklch(0.68 0.005 90);
-  --accent-soft:oklch(0.34 0.06 295);--warn:oklch(0.82 0.16 75);--warn-soft:oklch(0.34 0.05 75);
-}
+/* Tokens (cor, fonte, tamanho, raio) vêm do DS do shell (colors_and_type.css), herdados pelo
+   :host do prototipo-html-page — sem paleta própria aqui (auditoria Fiscal 2026-11-05, lote 6.4). */
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:var(--fs-4)/1.45 var(--font-sans)}
 .fx-page{max-width:1180px;margin:0 auto;padding:20px 16px 48px}

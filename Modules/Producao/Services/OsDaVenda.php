@@ -34,6 +34,13 @@ final class OsDaVenda
         return ['total' => $vivas->count(), 'prontas' => $vivas->filter(fn (Ordem $o) => $o->currentStage?->key === 'concluida')->count()];
     }
 
+    /** A venda está numa etapa de cancelamento do motor (P-113). Tier 0: só a venda da `$businessId`. */
+    public function vendaCancelada(int $businessId, ?int $transactionId): bool
+    {
+        return $transactionId !== null && DB::table('transactions as t')->join('sale_process_stages as s', 's.id', '=', 't.current_stage_id')
+            ->where('t.business_id', $businessId)->where('t.id', $transactionId)->where('s.is_cancelled', true)->exists();
+    }
+
     /** Chamado antes de a venda mudar de etapa: barra Entregue com OS por terminar. */
     public function guardar(int $businessId, int $transactionId, ?int $novaEtapaId): void
     {

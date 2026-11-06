@@ -28,7 +28,8 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
  * programa ativo da MESMA empresa (cross-tenant só loga, sem throw, para não retentar) → paciente
  * não bloqueado → consentimento de WhatsApp vigente → telefone e opt-in do contato → número de
  * saída ativo no módulo Whatsapp (sem ele, o envio é manual pelo `wa.me` na ficha) → reserva
- * idempotente do dia. Só depois da reserva o link do portal é emitido (emitir revoga o anterior).
+ * idempotente do dia. Só depois da reserva o link do portal é emitido (emitir revoga o anterior), e
+ * emissão, reserva e enfileiramento vão numa transação só (`EnvioWhatsappFisio::reservar`).
  *
  * `businessId` no constructor: fila não tem sessão (ADR 0093).
  */
@@ -87,24 +88,29 @@ class EnviarProgramaWhatsappJob implements ShouldQueue
             return;
         }
 
-        $reserva = $envio->reservar($paciente, EnvioWhatsappFisio::PROGRAMA, fn () => app(LinkDoPortal::class)->emitir($paciente), ['program_id' => (int) $programa->id]);
+        $nome = $envio->primeiroNome($paciente);
+        $clinica = $envio->nomeDaClinica($this->businessId);
+        $foneId = (int) $telefone->id;
+
+        // Emitir o link (revoga o anterior), reservar e enfileirar numa transação só: falha no
+        // enfileiramento desfaz a emissão e a reserva, e o retry do job envia.
+        $reserva = $envio->reservar($paciente, EnvioWhatsappFisio::PROGRAMA,
+            fn () => app(LinkDoPortal::class)->emitir($paciente),
+            ['program_id' => (int) $programa->id],
+            function ($saida, array $dados) use ($foneId, $para, $nome, $clinica): void {
+                SendWhatsappMessageJob::dispatch($this->businessId, $foneId, $para, 'freeform',
+                    ['body' => MensagensFisio::link($nome, $clinica, $dados['url'])])
+                    ->delay($saida);
+
+                SendWhatsappMessageJob::dispatch($this->businessId, $foneId, $para, 'freeform',
+                    ['body' => MensagensFisio::pin($dados['pin'])])
+                    ->delay($saida->copy()->addSeconds((int) config('fisio.whatsapp.pin_delay_segundos', 60)));
+            });
         if ($reserva === null) {
             Log::info('[fisio.whatsapp.programa] já enviado hoje ou portal indisponível — skip', $ctx);
 
             return;
         }
-
-        $nome = $envio->primeiroNome($paciente);
-        $clinica = $envio->nomeDaClinica($this->businessId);
-        $saida = $reserva['saida'];
-
-        SendWhatsappMessageJob::dispatch($this->businessId, (int) $telefone->id, $para, 'freeform',
-            ['body' => MensagensFisio::link($nome, $clinica, $reserva['dados']['url'])])
-            ->delay($saida);
-
-        SendWhatsappMessageJob::dispatch($this->businessId, (int) $telefone->id, $para, 'freeform',
-            ['body' => MensagensFisio::pin($reserva['dados']['pin'])])
-            ->delay($saida->copy()->addSeconds((int) config('fisio.whatsapp.pin_delay_segundos', 60)));
 
         Log::info('[fisio.whatsapp.programa] link + PIN enfileirados', $ctx + ['patient_id' => (int) $paciente->id, 'phone_id' => (int) $telefone->id]);
     }

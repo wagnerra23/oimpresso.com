@@ -200,7 +200,7 @@ it('aba=balanco: aceita ?anchor_data=YYYY-MM-DD e reflete em data_referencia', f
     );
 });
 
-it('aba=balancete expõe payload no shape canon (periodo + linhas + totais)', function () {
+it('UC-DRE-06 · aba=balancete expõe payload no shape canon (periodo + linhas + totais débito/crédito)', function () {
     $user = dreBalancoBalanceteBootstrap();
 
     $response = $this->actingAs($user)->get('/financeiro/dre?aba=balancete');

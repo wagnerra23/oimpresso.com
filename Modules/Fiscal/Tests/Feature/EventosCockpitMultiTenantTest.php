@@ -167,8 +167,10 @@ it('UC-FEVT-02 · NfeEvento é append-only (UPDATED_AT = null) — eventos não 
 function eventosUserComAcessoFiscal(): \App\User
 {
     $u = \App\User::factory()->create(['business_id' => EVENTOS_BIZ_WAGNER]);
+    // `fiscal.nfe.view` desde o lote 1.3 (2026-11-05): é o gate da timeline e do export.
     $u->givePermissionTo(
-        \Spatie\Permission\Models\Permission::findOrCreate('fiscal.access', 'web')
+        \Spatie\Permission\Models\Permission::findOrCreate('fiscal.access', 'web'),
+        \Spatie\Permission\Models\Permission::findOrCreate('fiscal.nfe.view', 'web')
     );
 
     return $u;

@@ -143,6 +143,6 @@ return [
     | Listadas só pra documentação — middleware aplicado via Routes/api.php.
     */
     'instrumented_routes' => [
-        'atendimento.channels.baileys.webhook',
+        // 'atendimento.channels.baileys.webhook' saiu em 2026-11-05 (rota removida, ADR 0202).
     ],
 ];

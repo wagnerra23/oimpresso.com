@@ -274,6 +274,13 @@ Com `PLUGGY_ENABLED=false` o comando não chama a API. Ligado, sincroniza só as
 - **Regressão que defende:** ADR 0093 (business_id Tier 0) — o motor roda também sem sessão, com o business por parâmetro.
 - **Status: ⬜** — o teste cita o UC e ainda não rodou (CT 100 fora do ar; lane `PHP / Pest (Financeiro · MySQL)`, que roda `find Modules/Financeiro/Tests`). Vira 🧪 com o run do CI e as assertions.
 
+## UC-FCC-23 · Confirmar com título de outra empresa devolve 404 e não grava nada `[T0]`
+- **Persona:** usuário da empresa 98 com `financeiro.conciliacao.manage`; a empresa 99 tem um título aberto.
+- **Aceite:** Dado uma linha pendente do extrato da 98 (OFX ou API) · Quando o POST `/financeiro/conciliacao/{linha}/match` manda o `titulo_id` da 99 · Então a resposta é 404 e a linha segue sem status novo, sem `titulo_id` e sem `conciliado_at`; com um título da própria 98 o mesmo usuário concilia (controle).
+- **Teste:** `Modules/Financeiro/Tests/Feature/ConciliacaoMatchTituloTenantTest.php` — os dois `UC-FCC-23 · ...` (OFX e API).
+- **Regressão que defende:** ADR 0093. Complementa o UC-FCC-13, que cobre a linha de outra empresa; este cobre o título. Achado da auditoria Financeiro 2026-11-05 (lote 0): `match()` validava só `required|integer` e gravava o id.
+- **Status: 🧪** — verde no run [42108549702](https://github.com/wagnerra23/oimpresso.com/actions/runs/42108549702) (lane `PHP / Pest (Financeiro · MySQL)`, os casos passaram, nenhum pulado); vermelho antes do conserto no run [42068872058](https://github.com/wagnerra23/oimpresso.com/actions/runs/42068872058). Vira ✅ quando o manifesto registrar o pass depois do merge.
+
 ---
 
 ---
