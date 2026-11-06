@@ -29,7 +29,7 @@ prototypes: [prototipo-ui/cowork/Wagner/fiscal-subpages.jsx]
 3. **Seletor período**: 7d / 30d / 90d (default 30d)
 4. **Eager join** com NfeEmissao (numero, modelo, chave) — link clickável pra Fiscal/Nfe?focus=N
 5. **Inertia::defer** em rows
-6. **Permissão** `fiscal.access`
+6. **Permissão** `fiscal.nfe.view` (era `fiscal.access` até 2026-11-05 — auditoria Fiscal, lote 1.3; ver UC-FEVT-04)
 7. **Pest biz=1**: isolation + filtro por kind
 
 ## Non-Goals (PR #2)
@@ -41,7 +41,7 @@ prototypes: [prototipo-ui/cowork/Wagner/fiscal-subpages.jsx]
 
 ## Contrato do export CSV (Onda 7 · 2026-09-03)
 
-`GET /fiscal/eventos/export` — mesmo gate (`fiscal.access`), `throttle:6,1`.
+`GET /fiscal/eventos/export` — mesmo gate (`fiscal.nfe.view`), `throttle:6,1`.
 
 | Regra | Valor | Onde é defendida |
 |---|---|---|

@@ -70,7 +70,7 @@ class BibliotecaController extends Controller
             return response()->json(['id' => $exercicio->id], 201);
         }
 
-        return back()->with('status', 'Exercício da clínica cadastrado.');
+        return back()->with('success', 'Exercício da clínica cadastrado.');
     }
 
     public function update(Request $request, int $id): JsonResponse|RedirectResponse
@@ -92,7 +92,7 @@ class BibliotecaController extends Controller
             return response()->json(['id' => $exercicio->id]);
         }
 
-        return back()->with('status', 'Exercício atualizado.');
+        return back()->with('success', 'Exercício atualizado.');
     }
 
     /** @return array<string, mixed> */

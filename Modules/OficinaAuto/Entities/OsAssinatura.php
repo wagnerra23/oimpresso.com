@@ -8,6 +8,7 @@ use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Arquivos\Concerns\HasArquivos;
+use Modules\OficinaAuto\Exceptions\AssinaturaImutavelException;
 
 /**
  * Assinatura do cliente na entrega da OS (UC-FLX-22 · US-OFICINA-048). Uma por OS.
@@ -45,6 +46,21 @@ class OsAssinatura extends Model
         'service_order_id' => 'integer',
         'user_id' => 'integer',
     ];
+
+    /**
+     * Imutável depois de gravada (UC-OSH-23): é a prova de que o cliente recebeu o veículo.
+     * Update e delete por Eloquent são recusados; a linha some só junto com a OS ou a empresa
+     * (FK cascade no banco), nunca por ação de tela.
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (): void {
+            throw new AssinaturaImutavelException('A assinatura da entrega não pode ser alterada.');
+        });
+        static::deleting(function (): void {
+            throw new AssinaturaImutavelException('A assinatura da entrega não pode ser apagada.');
+        });
+    }
 
     public function serviceOrder(): BelongsTo
     {

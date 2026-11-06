@@ -10,7 +10,7 @@
     "patrimonio-data.jsx",
     "patrimonio-page.css"
   ],
-  "charter": "resources/js/Pages/AssetManagement/Patrimonio.charter.md",
+  "charter": "resources/js/Pages/Patrimonio/Index.charter.md",
   "adr": [
     "0286 Contrato de Tela",
     "0190 primary roxo",

@@ -70,7 +70,8 @@ class DataController extends Controller
      */
     public function modifyAdminMenu(): void
     {
-        $module_util = new ModuleUtil();
+        // Do container (não `new`): os testes trocam o pacote por empresa com partial mock.
+        $module_util = app(ModuleUtil::class);
 
         if (auth()->user()->can('superadmin')) {
             $is_enabled = $module_util->isModuleInstalled('Fiscal');
@@ -94,6 +95,23 @@ class DataController extends Controller
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
         $is_fiscal = request()->segment(1) == 'fiscal';
 
+        // Cada entry só aparece para quem passa no gate do controller da rota dela —
+        // menu que mostra item e rota que devolve 403 é a mesma regra escrita duas vezes
+        // e discordando (auditoria Fiscal 2026-11-05, lote 1.2). A permissão de cada
+        // item é a MESMA do `abort(403)` do controller:
+        //   /fiscal/nfe    → NfeCockpitController::index  → fiscal.nfe.view
+        //   /fiscal/dfe    → DfeController::index         → fiscal.dfe.manage
+        //   /fiscal/config → ConfigController::index      → fiscal.config.edit
+        $user = auth()->user();
+        $pode = fn (string $permissao): bool => $user->can('superadmin') || $user->can($permissao);
+        $ver_notas = $pode('fiscal.nfe.view');
+        $ver_dfe = $pode('fiscal.dfe.manage');
+        $ver_config = $pode('fiscal.config.edit');
+
+        if (! $ver_notas && ! $ver_dfe && ! $ver_config) {
+            return;
+        }
+
         // 2026-05-25 — Onda ESTABILIZAR (GAP-FISCAL-001): cockpit Fiscal volta a
         // ser hub canon do sidebar com 4 entries flat no grupo fiscal apontando
         // pra /fiscal/*. NfeBrasil/DataController removeu as 3 entries duplicadas
@@ -109,49 +127,55 @@ class DataController extends Controller
         //
         // Ordering: Notas 95 · Manifestação 96 · Certificado 97.
         // Mantém afinidade visual antes do Financeiro (order 85).
-        Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color, $is_fiscal) {
-            // Entry 1 — Notas Fiscais (cockpit NF-e/NFC-e — sub-página 2)
-            // Active também quando segment(2) é null pra cobrir /fiscal raiz
-            // (URL direta cai aqui visualmente até o user clicar).
-            $menu->url(
-                url('/fiscal/nfe'),
-                'Notas Fiscais',
-                [
-                    'icon'   => 'fa fas fa-receipt',
-                    'style'  => 'background-color:' . $background_color,
-                    'active' => $is_fiscal && in_array(request()->segment(2), [null, 'nfe'], true),
-                    'group'  => 'fiscal',
-                ]
-            )->order(95);
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color, $is_fiscal, $ver_notas, $ver_dfe, $ver_config) {
+            if ($ver_notas) {
+                // Entry 1 — Notas Fiscais (cockpit NF-e/NFC-e — sub-página 2)
+                // Active também quando segment(2) é null pra cobrir /fiscal raiz
+                // (URL direta cai aqui visualmente até o user clicar).
+                $menu->url(
+                    url('/fiscal/nfe'),
+                    'Notas Fiscais',
+                    [
+                        'icon'   => 'fa fas fa-receipt',
+                        'style'  => 'background-color:' . $background_color,
+                        'active' => $is_fiscal && in_array(request()->segment(2), [null, 'nfe'], true),
+                        'group'  => 'fiscal',
+                    ]
+                )->order(95);
+            }
 
-            // Entry 2 — Manifestação DF-e (Fiscal/Dfe.tsx — sub-página 4)
-            // Pré-2026-05-25 apontava pra /nfe-brasil/manifestacao (legacy NfeBrasil).
-            // Consolidado pra /fiscal/dfe canon (com 4 botões via ManifestacaoService).
-            $menu->url(
-                url('/fiscal/dfe'),
-                'Manifestação',
-                [
-                    'icon'   => 'fa fas fa-inbox',
-                    'style'  => 'background-color:' . $background_color,
-                    'active' => $is_fiscal && request()->segment(2) === 'dfe',
-                    'group'  => 'fiscal',
-                ]
-            )->order(96);
+            if ($ver_dfe) {
+                // Entry 2 — Manifestação DF-e (Fiscal/Dfe.tsx — sub-página 4)
+                // Pré-2026-05-25 apontava pra /nfe-brasil/manifestacao (legacy NfeBrasil).
+                // Consolidado pra /fiscal/dfe canon (com 4 botões via ManifestacaoService).
+                $menu->url(
+                    url('/fiscal/dfe'),
+                    'Manifestação',
+                    [
+                        'icon'   => 'fa fas fa-inbox',
+                        'style'  => 'background-color:' . $background_color,
+                        'active' => $is_fiscal && request()->segment(2) === 'dfe',
+                        'group'  => 'fiscal',
+                    ]
+                )->order(96);
+            }
 
-            // Entry 3 — Certificado A1 (Fiscal/Config.tsx — sub-página 6)
-            // Pré-2026-05-25 apontava pra /nfe-brasil/configuracao/certificado.
-            // Consolidado pra /fiscal/config canon (read-only + link Editar → NfeBrasil
-            // pra upload cert — fluxo permanece em NfeBrasil canon).
-            $menu->url(
-                url('/fiscal/config'),
-                'Certificado',
-                [
-                    'icon'   => 'fa fas fa-shield-alt',
-                    'style'  => 'background-color:' . $background_color,
-                    'active' => $is_fiscal && request()->segment(2) === 'config',
-                    'group'  => 'fiscal',
-                ]
-            )->order(97);
+            if ($ver_config) {
+                // Entry 3 — Certificado A1 (Fiscal/Config.tsx — sub-página 6)
+                // Pré-2026-05-25 apontava pra /nfe-brasil/configuracao/certificado.
+                // Consolidado pra /fiscal/config canon (read-only + link Editar → NfeBrasil
+                // pra upload cert — fluxo permanece em NfeBrasil canon).
+                $menu->url(
+                    url('/fiscal/config'),
+                    'Certificado',
+                    [
+                        'icon'   => 'fa fas fa-shield-alt',
+                        'style'  => 'background-color:' . $background_color,
+                        'active' => $is_fiscal && request()->segment(2) === 'config',
+                        'group'  => 'fiscal',
+                    ]
+                )->order(97);
+            }
         });
     }
 }

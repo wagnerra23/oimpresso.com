@@ -76,6 +76,6 @@ class QuestionariosController extends Controller
             return response()->json(['id' => $questionario->id, 'score' => $resultado['escore']], 201);
         }
 
-        return back()->with('status', 'Questionário registrado.');
+        return back()->with('success', 'Questionário registrado.');
     }
 }

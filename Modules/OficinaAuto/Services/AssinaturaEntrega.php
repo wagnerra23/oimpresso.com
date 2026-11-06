@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Arquivos\Services\ArquivosService;
 use Modules\OficinaAuto\Entities\OsAssinatura;
 use Modules\OficinaAuto\Entities\ServiceOrder;
+use Modules\OficinaAuto\Exceptions\AssinaturaImutavelException;
 
 /**
  * Assinatura do cliente na entrega da OS — UC-FLX-22 · US-OFICINA-048.
@@ -83,8 +84,10 @@ class AssinaturaEntrega
     }
 
     /**
-     * Grava (ou troca) a assinatura da OS. Assinar de novo substitui a anterior: o anexo antigo vai
-     * para a lixeira do Arquivos e o novo fica na mesma linha.
+     * Grava a assinatura da OS — uma vez. Colhida, ela é a prova da entrega e não se troca: um
+     * segundo envio é recusado com AssinaturaImutavelException e o PNG gravado fica intacto
+     * (UC-OSH-23). Linha sem anexo ativo (o PNG nunca chegou ao Arquivos) recebe o anexo, sem
+     * reescrever a linha.
      */
     public function registrar(ServiceOrder $order, string $png, ?string $recebidoPor, ?int $userId): OsAssinatura
     {
@@ -97,6 +100,10 @@ class AssinaturaEntrega
                 ->lockForUpdate()
                 ->first();
 
+            if ($assinatura !== null && $this->colhida($order)) {
+                throw new AssinaturaImutavelException('A assinatura desta OS já foi colhida e não pode ser trocada.');
+            }
+
             if ($assinatura === null) {
                 $assinatura = OsAssinatura::create([
                     'business_id' => $bizId,
@@ -104,13 +111,6 @@ class AssinaturaEntrega
                     'recebido_por' => $recebidoPor,
                     'user_id' => $userId,
                 ]);
-            } else {
-                foreach ($assinatura->arquivos()->get() as $antigo) {
-                    /** @var \Modules\Arquivos\Entities\Arquivo $antigo */
-                    $this->arquivos->softDelete($antigo);
-                }
-                $assinatura->update(['recebido_por' => $recebidoPor, 'user_id' => $userId]);
-                $assinatura->touch();
             }
 
             $caminho = tempnam(sys_get_temp_dir(), 'osa');

@@ -31,8 +31,8 @@ class FisioServiceProvider extends ServiceProvider
         // Auditoria d4: aviso de sinal de alerta que falhou no check-in é tentado de novo.
         $this->commands([LembretesCommand::class, \Modules\Fisio\Console\ReenviarAlertasCommand::class]);
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
-            $schedule->command('fisio:lembretes')->dailyAt((string) config('fisio.whatsapp.lembrete_horario', '08:30'))->withoutOverlapping();
-            $schedule->command('fisio:reenviar-alertas')->everyFifteenMinutes()->withoutOverlapping();
+            $schedule->command('fisio:lembretes')->dailyAt((string) config('fisio.whatsapp.lembrete_horario', '08:30'))->environments(['live'])->withoutOverlapping();
+            $schedule->command('fisio:reenviar-alertas')->everyFifteenMinutes()->environments(['live'])->withoutOverlapping();
         });
     }
 

@@ -200,6 +200,10 @@ class ApontamentoOperadorService
         }
 
         $etapa = Programacao::query()->where('business_id', $businessId)->find($fim->programacao_id);
+        // OS cancelada (P-113): parar o relógio grava o tempo, mas a etapa segue cancelada.
+        if ($etapa?->status === 'cancelada') {
+            return $fim;
+        }
         $etapa?->forceFill(['status' => 'concluida'])->save();
         $proxima = $etapa ? Programacao::query()->where('business_id', $businessId)
             ->where('os_tipo', $etapa->os_tipo)->where('os_id', $etapa->os_id)
