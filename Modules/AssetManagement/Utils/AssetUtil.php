@@ -51,7 +51,10 @@ class AssetUtil extends Util
             'via' => $via,
         ];
 
-        $recipients = User::whereIn('id', $settings['send_for_maintenence_recipients'])
+        // Lote 0.2 (auditoria 2026-11-05, A4): os destinatarios vem da configuracao e ate
+        // aqui eram lidos sem empresa — id de usuario de outra empresa recebia a notificacao.
+        $recipients = User::whereIn('id', (array) $settings['send_for_maintenence_recipients'])
+                        ->where('business_id', $maintenance->business_id)
                         ->get();
 
         Notification::send($recipients, new AssetSentForMaintenance($email_data));

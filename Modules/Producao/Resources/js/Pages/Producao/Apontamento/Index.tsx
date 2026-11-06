@@ -5,6 +5,7 @@
 // A regra mora no ApontamentoOperadorService; a tela só mostra, lê o QR e envia com chave.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router, usePage } from '@inertiajs/react';
+import { FileText } from 'lucide-react';
 import { useCallback, useEffect, useId, useState } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/Components/PageHeader';
@@ -24,7 +25,9 @@ interface Rodando { pessoa: Aberto | null; maquinas: Aberto[]; ponto: { entrada:
 interface Lote { id: number; lote: string | null; saldo: string; recebido_em: string }
 interface Material { variation_id: number; nome: string; unidade: string | null; previsto: string | null; apontado: string; lotes: Lote[] }
 interface Motivo { id: number; posto_id: number; nome: string }
-interface Props { operador: { id: number; nome: string }; etapas?: Etapa[]; rodando?: Rodando; motivos?: Motivo[]; motivos_refugo?: Motivo[]; materiais?: Record<number, Material[]> }
+// UC-PCAPA-01: a arte que vale da OS (a última aprovada pelo cliente); `aguardando` = pediu e nenhuma foi aprovada ainda.
+interface Arte { estado: 'aprovada' | 'aguardando'; arquivo: string | null; aprovada_em: string | null }
+interface Props { operador: { id: number; nome: string }; etapas?: Etapa[]; rodando?: Rodando; motivos?: Motivo[]; motivos_refugo?: Motivo[]; materiais?: Record<number, Material[]>; artes?: Record<number, Arte> }
 type Apontar = (url: string, corpo?: Record<string, unknown>) => Promise<boolean>;
 
 const hms = (s: number) => [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':');
@@ -40,12 +43,12 @@ function Cronometro({ desde }: { desde: string }) {
   return <div role="timer" aria-live="off" aria-label={`Tempo apontado ${hms(seg)}`} className="pcv-crono is-on">{hms(seg)}</div>;
 }
 
-export default function ApontamentoIndex({ operador, motivos = [], motivos_refugo: motivosRefugo = [], materiais = {} }: Props) {
+export default function ApontamentoIndex({ operador, motivos = [], motivos_refugo: motivosRefugo = [], materiais = {}, artes = {} }: Props) {
   // `motivos` e `motivos_refugo` são deferidos junto com `rodando`; antes de chegar, pausa e refugo ficam desabilitados.
   const [codigo, setCodigo] = useState('');
   const [aviso, setAviso] = useState<string | null>(null);
   const [naFila, setNaFila] = useState(() => pendentes(operador.id));
-  const recarregar = useCallback(() => router.reload({ only: ['etapas', 'rodando', 'materiais'] }), []);
+  const recarregar = useCallback(() => router.reload({ only: ['etapas', 'rodando', 'materiais', 'artes'] }), []);
 
   const sincronizar = useCallback(async () => {
     const n = await esvaziar(operador.id, (j) => toast.error(String(j.mensagem ?? 'Um apontamento guardado foi recusado.')));
@@ -113,7 +116,8 @@ export default function ApontamentoIndex({ operador, motivos = [], motivos_refug
           <section aria-label="Rodando agora" className="pcv-ap">
             <div><span className="pcv-eyebrow">{operador.nome}</span><b className="pcv-ap-t">Rodando agora</b></div>
             <Deferred data="rodando" fallback={<Skeleton className="h-24 w-full" />}>
-              <RodandoAgora renderLinha={(a) => <Linha key={a.id} a={a} motivos={motivos} motivosRefugo={motivosRefugo} materiais={a.programacao_id ? materiais[a.programacao_id] ?? [] : []} apontar={apontar} />} />
+              <RodandoAgora renderLinha={(a) => <Linha key={a.id} a={a} motivos={motivos} motivosRefugo={motivosRefugo} materiais={a.programacao_id ? materiais[a.programacao_id] ?? [] : []}
+                arte={a.os_tipo === 'pcp_ordem' && a.os_id ? artes[a.os_id] : undefined} apontar={apontar} />} />
             </Deferred>
           </section>
 
@@ -141,8 +145,12 @@ export default function ApontamentoIndex({ operador, motivos = [], motivos_refug
 // US-COMVIS-004: tinta gasta por canal, em ml. Rótulo curto no celular; o nome inteiro vai no aria-label.
 const CANAIS = [['c', 'C', 'ciano'], ['m', 'M', 'magenta'], ['y', 'Y', 'amarelo'], ['k', 'K', 'preto']] as const;
 const decimal = (v: string) => v.trim().replace(',', '.'); // o serviço só aceita ponto
+const nomeArquivo = (url: string) => {
+  const nome = (url.split('?')[0] ?? url).split('/').filter(Boolean).pop() ?? url;
+  try { return decodeURIComponent(nome); } catch { return nome; } // %-sequência inválida: mostra cru
+};
 
-function Linha({ a, motivos: todos, motivosRefugo, materiais, apontar }: { a: Aberto; motivos: Motivo[]; materiais: Material[]; motivosRefugo: Motivo[]; apontar: Apontar }) {
+function Linha({ a, motivos: todos, motivosRefugo, materiais, arte, apontar }: { a: Aberto; motivos: Motivo[]; materiais: Material[]; motivosRefugo: Motivo[]; arte?: Arte; apontar: Apontar }) {
   const [motivo, setMotivo] = useState('');
   const [refugando, setRefugando] = useState(false);
   const [abrirMaterial, setAbrirMaterial] = useState(false);
@@ -150,6 +158,7 @@ function Linha({ a, motivos: todos, motivosRefugo, materiais, apontar }: { a: Ab
   const [tinta, setTinta] = useState<Record<string, string>>({});
   const motivos = todos.filter((m) => m.posto_id === a.posto_id); // E04 A4: só os do posto
   const maquina = a.tipo_custo === 'maquina';
+  const usados = materiais.filter((m) => Number(m.apontado) > 0); // UC-PCAPA-02: o que já foi baixado nesta OS
 
   function concluir() {
     // Campos vazios não vão: no banco, NULL é "não informado", diferente de zero.
@@ -163,6 +172,21 @@ function Linha({ a, motivos: todos, motivosRefugo, materiais, apontar }: { a: Ab
     <div className="pcv-ap">
       <div><span className="pcv-eyebrow">{maquina ? 'Máquina' : 'Você'} · OS {a.os_id}</span><b className="pcv-ap-t">{a.posto ?? 'Etapa'}</b></div>
       <Cronometro desde={a.desde} />
+      {/* UC-PCAPA-01 · forma `.pcv-ap-arq` do protótipo (producao-cv-campo.jsx): abre a versão aprovada, não uma prova antiga. */}
+      {arte && (
+        <div className="pcv-ap-arq">
+          <FileText aria-hidden="true" size={16} />
+          <div>
+            {arte.estado === 'aprovada' && arte.arquivo
+              ? <a href={arte.arquivo} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-semibold underline">{nomeArquivo(arte.arquivo)}</a>
+              : <b>Sem arte aprovada</b>}
+            <small>{arte.estado === 'aprovada' ? 'versão aprovada pelo cliente' : 'a etapa espera a aprovação do cliente'}</small>
+          </div>
+        </div>
+      )}
+      {usados.length > 0 && (
+        <p className="pcv-help">Material usado: {usados.map((m) => `${m.nome} ${br(m.apontado)}${m.unidade ? ` ${m.unidade}` : ''}`).join(' · ')}</p>
+      )}
       {maquina && (
         <fieldset className="grid gap-2">
           <legend className="pcv-help">Produção da etapa (opcional, vai junto ao concluir)</legend>

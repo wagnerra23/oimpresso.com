@@ -40,6 +40,7 @@ related_us: [US-FISCAL-022]
 | UC-FCERT-04 | a severidade acompanha a urgência | should | US-FISCAL-022 | `CertHealthCheckCommandTest` |
 | UC-FCERT-05 | rodar todo dia não empilha alerta repetido | must | US-FISCAL-022 | `CertHealthCheckCommandTest` |
 | UC-FCERT-06 | o ensaio não escreve nada | must | US-FISCAL-022 | `CertHealthCheckCommandTest` |
+| UC-FCERT-07 | o limiar de dias vem da config, não de um número fixo | must | US-FISCAL-022 | `CertHealthCheckLimiarTest` |
 
 ---
 
@@ -85,6 +86,16 @@ related_us: [US-FISCAL-022]
   sai e **nada** é persistido.
 - **Status: 🧪**
 
+## UC-FCERT-07 · O limiar de dias vem da config, não de um número fixo
+- **Aceite:** Dado um certificado que vence em 20 dias · Quando o health-check roda com
+  `fiscal.cert_health_check_alert_days = 30` · Então ele é alertável · E com o limiar em `10`, o
+  mesmo certificado no mesmo dia **não** é. Config vazia ou não numérica cai no padrão de 30.
+- **Regressão que defende:** o comando usava 30 fixo e ignorava `FISCAL_CERT_HEALTH_ALERT_DAYS`
+  (D13 da auditoria do Fiscal, 2026-11-05) — quem mudava a config não mudava nada.
+- **Teste:** `Modules/Fiscal/Tests/Feature/CertHealthCheckLimiarTest.php` — roda na lane sqlite
+  (monta a tabela mínima em `:memory:`), sempre em `--dry-run`.
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
@@ -109,6 +120,8 @@ tailscale ssh root@ct100-mcp "docker exec oimpresso-staging \
 **pulam**, e skip sai com exit 0 ([proibicoes §5](../../../proibicoes.md) 2026-07-24 · LC-13).
 
 ## Trilha do tempo
+- 2026-11-05 · [C] `UC-FCERT-07` — o limiar passa a vir de `fiscal.cert_health_check_alert_days` (D13 da
+  auditoria do Fiscal). Teste novo na lane sqlite; os UC-FCERT-01..06 seguem no arquivo MySQL, fora de lane.
 - 2026-09-01 · [CC] criado ao corrigir o `status` da `US-FISCAL-022` (`todo` → `done`): o comando, o
   agendamento e os 6 testes já existiam desde a entrega; faltava o contrato. Os `it()` passaram a
   citar o UC que já defendiam — nenhuma asserção mudou.

@@ -21,7 +21,8 @@ use Tests\Support\EstoqueFixture;
  *   OS prometida para hoje+10 · prazo do fornecedor 4 dias → pedir até hoje+6 (não atrasado)
  * O tecido (saldo 10, mínimo 5, nada reservado) não precisa de compra e não aparece.
  *
- * Tenant 98 (ADR 0358); adversário 99 ou o biz=2 do seed, nunca 1 nem 4.
+ * Tenant 98 (ADR 0358); adversário o cliente fictício 99, criado pelo próprio teste quando falta
+ * (seededSupportClientTenant); nunca 1 nem 4.
  *
  * @covers-us US-COM-030
  */
@@ -128,10 +129,8 @@ it('o que não precisa de compra não aparece', function () {
 });
 
 it('não traz insumo de outra empresa', function () {
-    $outra = (int) DB::table('business')->whereIn('id', [99, 2])->where('id', '!=', $this->biz)->orderByDesc('id')->value('id');
-    if ($outra <= 0) {
-        $this->markTestSkipped('Sem empresa adversária fictícia (99 ou 2) neste ambiente.');
-    }
+    $outra = (int) $this->seededSupportClientTenant()->id;
+    expect($outra)->toBe(99, 'adversário fictício 99 não foi criado');
     $alheio = EstoqueFixture::singleProduct($outra);
     DB::table('products')->where('id', $alheio->productId)->update(['alert_quantity' => 50]);
     EstoqueFixture::setStock($alheio, 0, EstoqueFixture::locationId($outra, '-MRP'), 0);

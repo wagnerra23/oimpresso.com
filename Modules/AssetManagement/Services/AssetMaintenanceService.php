@@ -3,10 +3,12 @@
 namespace Modules\AssetManagement\Services;
 
 use App\Media;
+use App\User;
 use App\Util\OtelHelper;
 use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetMaintenance;
 use Modules\AssetManagement\Utils\AssetUtil;
@@ -76,6 +78,14 @@ class AssetMaintenanceService
             // escopava, mas o `update()` alcancava a manutencao de outra empresa pelo id.
             $maintenance = AssetMaintenance::where('business_id', $businessId)->findOrFail($id);
             $previousAssignedTo = $maintenance->assigned_to;
+
+            // Lote 0.2 (auditoria 2026-11-05, A3): `assigned_to` vinha do request sem conferir
+            // a empresa e disparava notificacao (banco e, se ligado, e-mail com codigo do bem
+            // e nota) para usuario de OUTRA empresa. So aceita usuario da empresa da sessao.
+            if (! empty($input['assigned_to'])
+                && ! User::where('business_id', $businessId)->whereKey((int) $input['assigned_to'])->exists()) {
+                throw ValidationException::withMessages(['assigned_to' => 'Pessoa não encontrada nesta empresa.']);
+            }
 
             DB::beginTransaction();
 
