@@ -95,8 +95,9 @@ class ConfigAgendamentoController extends Controller
             ])->save();
 
             $liberados = array_map('intval', $d['tipos_online'] ?? []);
-            AppointmentType::query()->update(['online_bookable' => false]);
-            AppointmentType::query()->whereIn('id', $liberados)->update(['online_bookable' => true]);
+            // Filtro explícito além do escopo global: update em massa não depende de uma camada só (auditoria d8).
+            AppointmentType::query()->where('business_id', $biz)->update(['online_bookable' => false]);
+            AppointmentType::query()->where('business_id', $biz)->whereIn('id', $liberados)->update(['online_bookable' => true]);
         });
 
         return back()->with('success', 'Agendamento pelo app salvo.');

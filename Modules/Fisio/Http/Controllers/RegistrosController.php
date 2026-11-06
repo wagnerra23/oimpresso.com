@@ -41,7 +41,7 @@ class RegistrosController extends Controller
     public function store(Request $request, int $id): JsonResponse|RedirectResponse
     {
         // Paciente de outra empresa: 404 pelo escopo, antes de validar (UC-FPS-01).
-        $paciente = Patient::query()->findOrFail($id);
+        $paciente = Patient::daSessaoOuFalha($id);
         abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
         $biz = (int) $request->session()->get('user.business_id');
 
