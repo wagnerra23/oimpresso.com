@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 177 arquivos em 17 papéis.
+**Total mapeado:** 179 arquivos em 17 papéis.
 
 ## Controllers — 25
 
@@ -48,7 +48,7 @@ module: Producao
 
 - [SalvarRoteiroRequest.php](../../../Modules/Producao/Http/Requests/SalvarRoteiroRequest.php)
 
-## Services — 37
+## Services — 38
 
 - [AlocacaoDaEtapa.php](../../../Modules/Producao/Services/AlocacaoDaEtapa.php)
 - [ApontamentoOperadorService.php](../../../Modules/Producao/Services/ApontamentoOperadorService.php)
@@ -87,6 +87,7 @@ module: Producao
 - [SinalDaOrdem.php](../../../Modules/Producao/Services/SinalDaOrdem.php)
 - [SituacaoDaOrdem.php](../../../Modules/Producao/Services/SituacaoDaOrdem.php)
 - [TurnoService.php](../../../Modules/Producao/Services/TurnoService.php)
+- [VersaoDaArte.php](../../../Modules/Producao/Services/VersaoDaArte.php)
 
 ## Models / Entities — 18
 
@@ -126,7 +127,7 @@ module: Producao
 
 - [web.php](../../../Modules/Producao/Routes/web.php)
 
-## Migrations (schema) — 14
+## Migrations (schema) — 15
 
 - [2026_10_15_000001_create_pcp_fundo_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php)
 - [2026_10_16_000001_create_pcp_cadastros_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_16_000001_create_pcp_cadastros_tables.php)
@@ -142,6 +143,7 @@ module: Producao
 - [2026_10_21_100000_add_impressao_to_pcp_apontamentos.php](../../../Modules/Producao/Database/Migrations/2026_10_21_100000_add_impressao_to_pcp_apontamentos.php)
 - [2026_10_21_200000_add_custo_hora_direto_to_pcp_postos.php](../../../Modules/Producao/Database/Migrations/2026_10_21_200000_add_custo_hora_direto_to_pcp_postos.php)
 - [2026_10_22_000001_create_pcp_quadro_colunas_table.php](../../../Modules/Producao/Database/Migrations/2026_10_22_000001_create_pcp_quadro_colunas_table.php)
+- [2026_11_06_000001_add_versao_to_pcp_aprovacoes_arte.php](../../../Modules/Producao/Database/Migrations/2026_11_06_000001_add_versao_to_pcp_aprovacoes_arte.php)
 
 ## Config — 1
 
