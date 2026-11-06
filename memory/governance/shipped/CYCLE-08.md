@@ -2,24 +2,24 @@
 ---
 status: parcial
 cycle: CYCLE-08
-window: "2026-05-31..2026-11-04"
-generated: "2026-11-04"
+window: "2026-05-31..2026-11-06"
+generated: "2026-11-06"
 ---
 
 # Shipped log (PARCIAL) · CYCLE-08
 
 > ⚠️ **PARCIAL** — janela ainda aberta. Regenerar ao fechar o cycle.
-> **Rótulo honesto:** lista o que foi **mergeado em `main`** em `2026-05-31..2026-11-04` (BRT). Merge ≠ deploy ≠ funciona em produção.
+> **Rótulo honesto:** lista o que foi **mergeado em `main`** em `2026-05-31..2026-11-06` (BRT). Merge ≠ deploy ≠ funciona em produção.
 > Fonte: REST por sub-janela de dia (sem teto da Search API) + API `/commits` pra push-direto + revert reconciliado. **Não** depende de `Refs: US-XXX`.
 > 🚀 = no ar (mergeado ≤ deploy de produção) · ⏳ = mergeado, aguardando deploy (G8, via /api/mcp/version, por data). Limite: área = scope do título (G5 paths-por-PR fora por custo).
 
 ## Contagem
 
-- **7666 PRs** mergeados em `main` · 3874 de produto · 3792 de manutenção (docs/chore/test/ci/build)
+- **7877 PRs** mergeados em `main` · 4000 de produto · 3877 de manutenção (docs/chore/test/ci/build)
 - **37 entregas push-direto** (commits sem objeto-PR — invisíveis a query de PR)
 - **5 revert reconciliado** (par riscado — entrega líquida zero)
-- **989 tocam Design System**
-- 🚀 **Deploy de produção:** `556e951a4` (2026-11-04T13:48:42-03:00) · **7666** no ar · **0** mergeados **aguardando deploy**
+- **994 tocam Design System**
+- 🚀 **Deploy de produção:** `6016b8b3c` (2026-11-06T13:03:47-03:00) · **7877** no ar · **0** mergeados **aguardando deploy**
 
 ## Reconciliação — merge ≠ entrega
 
@@ -73,7 +73,7 @@ generated: "2026-11-04"
 
 ## Por área (PRs mergeados)
 
-### governance — 594 (+960 manutenção)
+### governance — 594 (+972 manutenção)
 - fix: guard automático de base STALE vs origin/main + PROTOCOL §10.4 Passo 0 (#2033) 🚀
 - feat: G4 retorno automático §10.2 — design_return_skipped + workflow pós-merge (#2064) 🚀
 - feat: governanca:scorecard — placar [CC]×Jana mecanizado (graduação de lições) (#2151) 🚀
@@ -922,7 +922,7 @@ generated: "2026-11-04"
 - fix: jana.superadmin deixa de ser concedível no editor de papéis da empresa [CL] (#9401) 🚀
 - feat: cutover das Blades de criar, ver, editar e fonte da meta (RUNBOOK-metas §9.4 PR-4) (#10092) 🚀
 
-### financeiro — 173 (+69 manutenção)
+### financeiro — 179 (+76 manutenção)
 - fix: agingBucket usa diffInDays absoluto (Carbon 3 signed) (#2050) 🚀
 - feat: Fase 1 ADR 0236 — conciliação lê extrato API (+ dedupe OFX) (#2060) 🚀
 - feat: Fase 2 ADR 0236 — backfill OFX→extrato canônico (código, sem exec prod) (#2068) 🚀
@@ -1096,6 +1096,129 @@ generated: "2026-11-04"
 - feat: despesas — rótulos e recorrência iguais à Blade e ao protótipo [W+C] (#10274) 🚀
 - fix: despesas e categorias deixam de ser engolidas pelo redirect da Fase 2 (#10287) 🚀
 - feat: boleto pago no Inter baixa o título migrado do Delphi (Sabor Brasil) [F+C] (#10303) 🚀
+- fix: conciliação não aceita título de outra empresa (Tier 0) [W+C] (#10438) 🚀
+- fix: baixa e cobrança não aceitam conta ou cliente de outra empresa (Tier 0) [W+C] (#10468) 🚀
+- fix: quarentena — ponte do caixa, aprovação de título e flakes [W+C] (#10487) 🚀
+- fix: erro no Financeiro não derruba a venda (US-FIN-059) [W+C] (#10466) 🚀
+- fix: cobrança paga grava na empresa do evento, não na 1 [W+C] (#10471) 🚀
+- fix: retention carregado, publish sem colisão, agenda só em live [W+C] (#10477) 🚀
+
+### produto — 115 (+65 manutenção)
+- feat: aba Preço especial — F1 + charter v2→v3 (8 cortes de [F]) (#4403) 🚀
+- fix: UC-PCAD-05 — store() recusa FK de insumo cross-tenant (Tier 0) [DRAFT — CT 100 + review M/F] (#4554) 🚀
+- feat: Kardex real na StockHistory (CU-PROD-11) + trio casos.md/teste (#4658) · `DS` 🚀
+- fix: update() cross-tenant retorna 404, não 500 (Tier 0) [W] (#4769) 🚀
+- fix: 8 asserts apontavam pra RUNBOOK inexistente — vermelho real no nightly (#4807) 🚀
+- fix: fecha 2 dos 3 achados Tier 0 do #4823 (preço de venda + guard cross-tenant) [W+C] (#4832) 🚀
+- fix: editar produto para de zerar estoque/flags que a tela não envia [F+C] (#4943) 🚀
+- fix: destrava o 500 de /products/unificado (sub-tela Categorias) [F+C] (#5383) 🚀
+- fix: fecha 2 vazamentos cross-tenant Tier 0 (quick-add + BOM) [W+C] (#5631) 🚀
+- fix: fecha o gate de visibilidade do Catálogo Unificado — os 6 UCs saem do vermelho [C] (#5733) 🚀
+- feat: /products/unificado vira a Consulta de Produtos do handoff [M+C] (#5906) 🚀
+- feat: onda 1 — toolbar volta pra uma linha (pacote 17/08) [M+C] (#5920) 🚀
+- feat: pacote V2 · onda 1/2 — moldura, abas e recorte da Consulta de Produtos [C] (#5995) 🚀
+- feat: pacote V2 · onda 2/2 — paginação server-side na Consulta de Produtos [C] (#5996) 🚀
+- feat: pacote V2 · onda 3/3 — revelação progressiva na Consulta de Produtos [C] (#5997) 🚀
+- feat: consulta unificada — pacote V2 de 21/08 (vocabulário, painel, lote, teclado) [M+C] (#6171) 🚀
+- feat: consulta unificada — fecha as divergências §15 do pacote V3 (24/08) [M+C] (#6184) 🚀
+- feat: handoff V6 + patch de cor na Consulta de Produtos — DS vence onde o patch discorda [M+C] (#6204) 🚀
+- feat: consulta unificada — fecha 4 itens da rev.9 (moldura, densidade, tipografia do drawer) (#6265) · `DS` 🚀
+- fix: custo e preço param de vazar no payload Inertia da ficha e da lista [C] (#7516) 🚀
+- fix: bulk edit deixa de reverter o lote calado — writer deriva chave ausente [C] (#7523) 🚀
+- fix: editar produto para de zerar estoque e flags que a tela não envia [C] (#7522) 🚀
+- fix: o botão Salvar do BulkEdit posta no writer real — destravado pelo #7523 [C] (#7580) 🚀
+- feat: liga a Consulta de Produtos na navegação — decisão [W] 2026-09-21 [C] (#7590) 🚀
+- feat: permissões em Variações, Garantias e Etiquetas — thread 01 (A-P1) [CL] (#8349) 🚀
+- feat: Cadastros de apoio em Inertia — abas Unidades e Marcas (thread 02) [CL] (#8371) 🚀
+- feat: Cadastros — aba Categorias em Inertia (thread 02, parte 2) [CL] (#8375) 🚀
+- feat: Atualizar preço por planilha em Inertia com conferência (thread 06) [CL] (#8377) 🚀
+- feat: Importação de produtos em Inertia com conferência dry-run (thread 05) [CL] (#8376) 🚀
+- feat: Importação de estoque inicial em Inertia com conferência dry-run (thread 05, PR-b) [CL] (#8381) 🚀
+- fix: import de preço grava só no próprio negócio e exige product.update [CL] (#8380) 🚀
+- feat: units:auditar-multiplicador mede o dano do modal Editar unidade (#8404) 🚀
+- fix: modelo de variação só do próprio negócio — 404 pro vizinho [CL] (#8688) 🚀
+- fix: servidor recusa excluir modelo de variação em uso (thread 03, PR 1) [CL] (#8668) 🚀
+- feat: Unidades e Marcas em drawer — thread 10, PR-a [CL] (#8721) · `DS` 🚀
+- feat: linha de etiqueta em JSON com o preço que a impressão sairia [CL] (#8749) 🚀
+- feat: tela Imprimir etiquetas em Inertia (Produto/Etiquetas) [CL] (#8774) 🚀
+- feat: menu Produtos — telas novas pela permissão da tela, apoio vira deep-link de aba [CL] (#8812) 🚀
+- feat: Etiquetas em React para todas as empresas, sem flag [CL] (#8870) 🚀
+- feat: lista de produtos abre o React pelo menu — cutover thread 01 [CL] (#9094) 🚀
+- fix: menu de Produtos volta à lista Blade até a lista React seguir o protótipo [F+C] (#9117) 🚀
+- feat: dados da lista nova de /products — mesma consulta da lista Blade, paginada no servidor [F+C] (#9119) 🚀
+- feat: bundle CSS do protótipo de Produto, cópia na íntegra [F+C] (#9120) 🚀
+- feat: /products no desenho do protótipo — tela da lista (etapa 2) [F+C] (#9124) 🚀
+- feat: /products abre a lista nova no desenho do protótipo — ?classico=1 mantém o Blade [F+C] (#9125) 🚀
+- feat: os 4 indicadores do protótipo na lista de /products [F+C] (#9127) 🚀
+- feat: aba "Relatório de estoque" na lista de /products [F+C] (#9129) 🚀
+- fix: "Ver" da lista não abre mais página quebrada; entra "estoque inicial" no menu [F+C] (#9130) 🚀
+- feat: dados do painel de detalhe da lista de /products [F+C] (#9131) 🚀
+- feat: painel de detalhe do produto na lista de /products [F+C] (#9132) 🚀
+- feat: "Exportar filtrados" (CSV) e "Etiquetas" da seleção na lista de /products [F+C] (#9134) 🚀
+- fix: lista de /products — preços e botão de ações como no protótipo (medido com design-diff) [F+C] (#9135) 🚀
+- feat: "Comprar" na lista de /products abre a nova compra com o produto [F+C] (#9136) 🚀
+- fix: painel de detalhe recebe as cores e a fonte do design e a moldura do protótipo [F+C] (#9143) 🚀
+- feat: 3 indicadores na aba Estoque do painel de detalhe [F+C] (#9147) 🚀
+- fix: clicar no cabeçalho volta a ordenar a lista [F+C] (#9154) 🚀
+- feat: cadastro rápido na lista de produtos [F+C] (#9162) 🚀
+- feat: estoque inicial abre em janela na lista de produtos [F+C] (#9181) 🚀
+- feat: arrastar a borda do cabeçalho redimensiona a coluna da lista [F+C] (#9233) 🚀
+- fix: largura arrastada da coluna sobrevive a ordenar, paginar e filtrar [F+C] (#9244) 🚀
+- feat: "Dados fiscais (NCM/CFOP)" no menu da linha abre o painel na aba Fiscal [F+C] (#9311) 🚀
+- feat: aba Relatório de estoque — linhas por página e lucro potencial com cor [F+C] (#9324) 🚀
+- feat: aba Fiscal do painel mostra o tipo de imposto na venda [F+C] (#9331) 🚀
+- fix: cor do lucro e linha vermelha de alerta pintam de verdade na aba de relatório [F+C] (#9354) 🚀
+- feat: painel mostra total da composição, preços dos itens e imagens [F+C] (#9373) 🚀
+- feat: painel avisa quando o produto não controla estoque [F+C] (#9386) 🚀
+- style: painel com as medidas do protótipo (altura de linha, abas, botão) [F+C] (#9397) 🚀
+- fix: produto sem foto mostra "Sem imagem" no painel e "IMG" na lista [F+C] (#9422) 🚀
+- fix: botões do rodapé do painel com as cores do protótipo [F+C] (#9423) 🚀
+- fix: abas do painel com as cores do protótipo [F+C] (#9424) 🚀
+- fix: corpo do painel com o fundo mais escuro do protótipo [F+C] (#9425) 🚀
+- feat: marca do WooCommerce ao lado do nome na lista de produtos [F+C] (#9431) 🚀
+- fix: linha entre a faixa do código e o título no painel, como no protótipo [F+C] (#9468) 🚀
+- feat: aba Fiscal do painel com origem, ajuda e "Abrir no módulo Fiscal" [F+C] (#9450) 🚀
+- feat: origem da mercadoria por produto, no cadastro e nas duas emissões [CL] (#9465) 🚀
+- fix: "Abrir no módulo Fiscal" segue o pacote do módulo Fiscal [F+C] (#9470) 🚀
+- feat: aba Fiscal do painel lê a origem gravada no produto [CL] (#9469) 🚀
+- fix: "Abrir no módulo Fiscal" exige o módulo Fiscal no pacote e a permissão fiscal.access [F+C] (#9478) 🚀
+- refactor: Novo e Editar passam a usar um formulário só, um arquivo por seção [F+C] (#9482) 🚀
+- feat: Novo produto da /products abre o cadastro React com a chave da empresa ligada [F+C] (#9502) 🚀
+- fix: Novo e Editar não ficam em branco quando a lista do servidor traz opção vazia [F+C] (#9491) 🚀
+- feat: Novo produto grava o preço digitado, com a conta do cadastro Blade [W+C] (#9527) 🚀
+- feat: Novo produto nasce nos locais do negócio, como no cadastro Blade [W+C] (#9529) 🚀
+- fix: Novo produto React não salva variável nem composto sem o editor [W+C] (#9532) 🚀
+- fix: lista de produtos cabe em 1366px e lembra a largura das colunas [F+C] (#9535) 🚀
+- fix: cabeçalho "Categoria" não vaza sobre "Marca" em 1366px [F+C] (#9544) 🚀
+- fix: Novo produto grava a validade digitada, com o período como no Blade [F+C] (#9579) 🚀
+- fix: Editar não apaga campos personalizados nem validade ao salvar [F+C] (#9577) 🚀
+- feat: NCM no cadastro do produto, sem exigir NCM (UC-PCAD-13/14) [M+C] (#9670) 🚀
+- feat: quantidade vendida por local na aba Estoque do painel (UC-PIDX-33) [M+C] (#9799) 🚀
+- feat: preço proposto e roteiro com setor na consulta de produto, com testes [M+C] (#9778) 🚀
+- feat: NCM na tela Editar produto (UC-PEDIT-11) [M+C] (#9678) 🚀
+- feat: CEST no cadastro do produto, Novo e Editar (UC-PCAD-15 · UC-PEDIT-12) [M+C] (#9730) 🚀
+- feat: peso líquido e dimensões no cadastro (UC-PCAD-16 · UC-PEDIT-13) [M+C] (#9736) 🚀
+- feat: natureza fiscal no Editar do produto (UC-PEDIT-14) [M+C] (#9744) 🚀
+- feat: aviso de SKU que não vira código EAN válido (UC-PCAD-17 · UC-PEDIT-15) [M+C] (#9747) 🚀
+- feat: requisição de compra aberta na consulta de produto (UC-PIDX-30) [M+C] (#9896) 🚀
+- feat: método de custo do insumo na consulta de produto (UC-PIDX-32) [M+C] (#9898) 🚀
+- feat: /import-products só em React — Blade sai (MWART F5) (#10027) 🚀
+- feat: imposto junto do preço no painel e aba Fiscal só para quem emite nota (#9934) 🚀
+- feat: natureza fiscal na consulta de produto (UC-PIDX-31) [M+C] (#9897) 🚀
+- feat: clicar em "Abaixo do alerta" e "Inativos" filtra a lista (UC-PIDX-35) (#10253) 🚀
+- feat: grupo de preço cria e edita no drawer da tela Cadastros (UC-PCADAP-23) (#10270) · `DS` 🚀
+- feat: lista abre Novo, Preços e Histórico na tela React com a chave do cadastro (#10266) 🚀
+- feat: preço do produto simples na edição React + variação presa ao produto (UC-PEDIT-16) (#10272) 🚀
+- feat: saldo de cada cor e tamanho na lista (UC-PIDX-37) (#10307) 🚀
+- feat: separado para vendas e livre na coluna Estoque (UC-PIDX-38) (#10311) 🚀
+- feat: saldo também em rolos na coluna Estoque (UC-PIDX-39) (#10316) 🚀
+- feat: quantos kits dá para vender, por local, no painel (UC-PIDX-40) (#10325) 🚀
+- feat: Novo e Editar produto na forma do protótipo do Wagner, etapa 1 [F+C] (#10380) 🚀
+- fix: cadastro segue o tema escuro e Configurações nas linhas do protótipo [F+C] (#10488) 🚀
+- feat: giro de 90 dias e últimas compras no painel do produto (D8) (#10498) 🚀
+- feat: método de custo nas telas Novo e Editar React (US-COM-024) [F+C] (#10495) 🚀
+- feat: filtro "Falta NCM" e o card de Saúde fiscal abrindo a lista [F+C] (#10549) 🚀
+- feat: informar NCM em vários produtos de uma vez [F+C] (#10553) 🚀
 
 ### ponto — 114 (+49 manutenção)
 - refactor: cor/raio cru -> token DS nos cards do dashboard (ds/* 11 -> 6) [CC] (#3397) 🚀
@@ -1213,116 +1336,7 @@ generated: "2026-11-04"
 - feat: ciência do espelho mensal pelo colaborador — domínio e API (US-PONTO-020 PR 1/2) [C] (#9849) 🚀
 - feat: exportação para a folha — Horas Extras, Banco de Horas e Atrasos/Faltas (US-PONTO-019) [C] (#9845) 🚀
 
-### produto — 107 (+65 manutenção)
-- feat: aba Preço especial — F1 + charter v2→v3 (8 cortes de [F]) (#4403) 🚀
-- fix: UC-PCAD-05 — store() recusa FK de insumo cross-tenant (Tier 0) [DRAFT — CT 100 + review M/F] (#4554) 🚀
-- feat: Kardex real na StockHistory (CU-PROD-11) + trio casos.md/teste (#4658) · `DS` 🚀
-- fix: update() cross-tenant retorna 404, não 500 (Tier 0) [W] (#4769) 🚀
-- fix: 8 asserts apontavam pra RUNBOOK inexistente — vermelho real no nightly (#4807) 🚀
-- fix: fecha 2 dos 3 achados Tier 0 do #4823 (preço de venda + guard cross-tenant) [W+C] (#4832) 🚀
-- fix: editar produto para de zerar estoque/flags que a tela não envia [F+C] (#4943) 🚀
-- fix: destrava o 500 de /products/unificado (sub-tela Categorias) [F+C] (#5383) 🚀
-- fix: fecha 2 vazamentos cross-tenant Tier 0 (quick-add + BOM) [W+C] (#5631) 🚀
-- fix: fecha o gate de visibilidade do Catálogo Unificado — os 6 UCs saem do vermelho [C] (#5733) 🚀
-- feat: /products/unificado vira a Consulta de Produtos do handoff [M+C] (#5906) 🚀
-- feat: onda 1 — toolbar volta pra uma linha (pacote 17/08) [M+C] (#5920) 🚀
-- feat: pacote V2 · onda 1/2 — moldura, abas e recorte da Consulta de Produtos [C] (#5995) 🚀
-- feat: pacote V2 · onda 2/2 — paginação server-side na Consulta de Produtos [C] (#5996) 🚀
-- feat: pacote V2 · onda 3/3 — revelação progressiva na Consulta de Produtos [C] (#5997) 🚀
-- feat: consulta unificada — pacote V2 de 21/08 (vocabulário, painel, lote, teclado) [M+C] (#6171) 🚀
-- feat: consulta unificada — fecha as divergências §15 do pacote V3 (24/08) [M+C] (#6184) 🚀
-- feat: handoff V6 + patch de cor na Consulta de Produtos — DS vence onde o patch discorda [M+C] (#6204) 🚀
-- feat: consulta unificada — fecha 4 itens da rev.9 (moldura, densidade, tipografia do drawer) (#6265) · `DS` 🚀
-- fix: custo e preço param de vazar no payload Inertia da ficha e da lista [C] (#7516) 🚀
-- fix: bulk edit deixa de reverter o lote calado — writer deriva chave ausente [C] (#7523) 🚀
-- fix: editar produto para de zerar estoque e flags que a tela não envia [C] (#7522) 🚀
-- fix: o botão Salvar do BulkEdit posta no writer real — destravado pelo #7523 [C] (#7580) 🚀
-- feat: liga a Consulta de Produtos na navegação — decisão [W] 2026-09-21 [C] (#7590) 🚀
-- feat: permissões em Variações, Garantias e Etiquetas — thread 01 (A-P1) [CL] (#8349) 🚀
-- feat: Cadastros de apoio em Inertia — abas Unidades e Marcas (thread 02) [CL] (#8371) 🚀
-- feat: Cadastros — aba Categorias em Inertia (thread 02, parte 2) [CL] (#8375) 🚀
-- feat: Atualizar preço por planilha em Inertia com conferência (thread 06) [CL] (#8377) 🚀
-- feat: Importação de produtos em Inertia com conferência dry-run (thread 05) [CL] (#8376) 🚀
-- feat: Importação de estoque inicial em Inertia com conferência dry-run (thread 05, PR-b) [CL] (#8381) 🚀
-- fix: import de preço grava só no próprio negócio e exige product.update [CL] (#8380) 🚀
-- feat: units:auditar-multiplicador mede o dano do modal Editar unidade (#8404) 🚀
-- fix: modelo de variação só do próprio negócio — 404 pro vizinho [CL] (#8688) 🚀
-- fix: servidor recusa excluir modelo de variação em uso (thread 03, PR 1) [CL] (#8668) 🚀
-- feat: Unidades e Marcas em drawer — thread 10, PR-a [CL] (#8721) · `DS` 🚀
-- feat: linha de etiqueta em JSON com o preço que a impressão sairia [CL] (#8749) 🚀
-- feat: tela Imprimir etiquetas em Inertia (Produto/Etiquetas) [CL] (#8774) 🚀
-- feat: menu Produtos — telas novas pela permissão da tela, apoio vira deep-link de aba [CL] (#8812) 🚀
-- feat: Etiquetas em React para todas as empresas, sem flag [CL] (#8870) 🚀
-- feat: lista de produtos abre o React pelo menu — cutover thread 01 [CL] (#9094) 🚀
-- fix: menu de Produtos volta à lista Blade até a lista React seguir o protótipo [F+C] (#9117) 🚀
-- feat: dados da lista nova de /products — mesma consulta da lista Blade, paginada no servidor [F+C] (#9119) 🚀
-- feat: bundle CSS do protótipo de Produto, cópia na íntegra [F+C] (#9120) 🚀
-- feat: /products no desenho do protótipo — tela da lista (etapa 2) [F+C] (#9124) 🚀
-- feat: /products abre a lista nova no desenho do protótipo — ?classico=1 mantém o Blade [F+C] (#9125) 🚀
-- feat: os 4 indicadores do protótipo na lista de /products [F+C] (#9127) 🚀
-- feat: aba "Relatório de estoque" na lista de /products [F+C] (#9129) 🚀
-- fix: "Ver" da lista não abre mais página quebrada; entra "estoque inicial" no menu [F+C] (#9130) 🚀
-- feat: dados do painel de detalhe da lista de /products [F+C] (#9131) 🚀
-- feat: painel de detalhe do produto na lista de /products [F+C] (#9132) 🚀
-- feat: "Exportar filtrados" (CSV) e "Etiquetas" da seleção na lista de /products [F+C] (#9134) 🚀
-- fix: lista de /products — preços e botão de ações como no protótipo (medido com design-diff) [F+C] (#9135) 🚀
-- feat: "Comprar" na lista de /products abre a nova compra com o produto [F+C] (#9136) 🚀
-- fix: painel de detalhe recebe as cores e a fonte do design e a moldura do protótipo [F+C] (#9143) 🚀
-- feat: 3 indicadores na aba Estoque do painel de detalhe [F+C] (#9147) 🚀
-- fix: clicar no cabeçalho volta a ordenar a lista [F+C] (#9154) 🚀
-- feat: cadastro rápido na lista de produtos [F+C] (#9162) 🚀
-- feat: estoque inicial abre em janela na lista de produtos [F+C] (#9181) 🚀
-- feat: arrastar a borda do cabeçalho redimensiona a coluna da lista [F+C] (#9233) 🚀
-- fix: largura arrastada da coluna sobrevive a ordenar, paginar e filtrar [F+C] (#9244) 🚀
-- feat: "Dados fiscais (NCM/CFOP)" no menu da linha abre o painel na aba Fiscal [F+C] (#9311) 🚀
-- feat: aba Relatório de estoque — linhas por página e lucro potencial com cor [F+C] (#9324) 🚀
-- feat: aba Fiscal do painel mostra o tipo de imposto na venda [F+C] (#9331) 🚀
-- fix: cor do lucro e linha vermelha de alerta pintam de verdade na aba de relatório [F+C] (#9354) 🚀
-- feat: painel mostra total da composição, preços dos itens e imagens [F+C] (#9373) 🚀
-- feat: painel avisa quando o produto não controla estoque [F+C] (#9386) 🚀
-- style: painel com as medidas do protótipo (altura de linha, abas, botão) [F+C] (#9397) 🚀
-- fix: produto sem foto mostra "Sem imagem" no painel e "IMG" na lista [F+C] (#9422) 🚀
-- fix: botões do rodapé do painel com as cores do protótipo [F+C] (#9423) 🚀
-- fix: abas do painel com as cores do protótipo [F+C] (#9424) 🚀
-- fix: corpo do painel com o fundo mais escuro do protótipo [F+C] (#9425) 🚀
-- feat: marca do WooCommerce ao lado do nome na lista de produtos [F+C] (#9431) 🚀
-- fix: linha entre a faixa do código e o título no painel, como no protótipo [F+C] (#9468) 🚀
-- feat: aba Fiscal do painel com origem, ajuda e "Abrir no módulo Fiscal" [F+C] (#9450) 🚀
-- feat: origem da mercadoria por produto, no cadastro e nas duas emissões [CL] (#9465) 🚀
-- fix: "Abrir no módulo Fiscal" segue o pacote do módulo Fiscal [F+C] (#9470) 🚀
-- feat: aba Fiscal do painel lê a origem gravada no produto [CL] (#9469) 🚀
-- fix: "Abrir no módulo Fiscal" exige o módulo Fiscal no pacote e a permissão fiscal.access [F+C] (#9478) 🚀
-- refactor: Novo e Editar passam a usar um formulário só, um arquivo por seção [F+C] (#9482) 🚀
-- feat: Novo produto da /products abre o cadastro React com a chave da empresa ligada [F+C] (#9502) 🚀
-- fix: Novo e Editar não ficam em branco quando a lista do servidor traz opção vazia [F+C] (#9491) 🚀
-- feat: Novo produto grava o preço digitado, com a conta do cadastro Blade [W+C] (#9527) 🚀
-- feat: Novo produto nasce nos locais do negócio, como no cadastro Blade [W+C] (#9529) 🚀
-- fix: Novo produto React não salva variável nem composto sem o editor [W+C] (#9532) 🚀
-- fix: lista de produtos cabe em 1366px e lembra a largura das colunas [F+C] (#9535) 🚀
-- fix: cabeçalho "Categoria" não vaza sobre "Marca" em 1366px [F+C] (#9544) 🚀
-- fix: Novo produto grava a validade digitada, com o período como no Blade [F+C] (#9579) 🚀
-- fix: Editar não apaga campos personalizados nem validade ao salvar [F+C] (#9577) 🚀
-- feat: NCM no cadastro do produto, sem exigir NCM (UC-PCAD-13/14) [M+C] (#9670) 🚀
-- feat: quantidade vendida por local na aba Estoque do painel (UC-PIDX-33) [M+C] (#9799) 🚀
-- feat: preço proposto e roteiro com setor na consulta de produto, com testes [M+C] (#9778) 🚀
-- feat: NCM na tela Editar produto (UC-PEDIT-11) [M+C] (#9678) 🚀
-- feat: CEST no cadastro do produto, Novo e Editar (UC-PCAD-15 · UC-PEDIT-12) [M+C] (#9730) 🚀
-- feat: peso líquido e dimensões no cadastro (UC-PCAD-16 · UC-PEDIT-13) [M+C] (#9736) 🚀
-- feat: natureza fiscal no Editar do produto (UC-PEDIT-14) [M+C] (#9744) 🚀
-- feat: aviso de SKU que não vira código EAN válido (UC-PCAD-17 · UC-PEDIT-15) [M+C] (#9747) 🚀
-- feat: requisição de compra aberta na consulta de produto (UC-PIDX-30) [M+C] (#9896) 🚀
-- feat: método de custo do insumo na consulta de produto (UC-PIDX-32) [M+C] (#9898) 🚀
-- feat: /import-products só em React — Blade sai (MWART F5) (#10027) 🚀
-- feat: imposto junto do preço no painel e aba Fiscal só para quem emite nota (#9934) 🚀
-- feat: natureza fiscal na consulta de produto (UC-PIDX-31) [M+C] (#9897) 🚀
-- feat: clicar em "Abaixo do alerta" e "Inativos" filtra a lista (UC-PIDX-35) (#10253) 🚀
-- feat: grupo de preço cria e edita no drawer da tela Cadastros (UC-PCADAP-23) (#10270) · `DS` 🚀
-- feat: lista abre Novo, Preços e Histórico na tela React com a chave do cadastro (#10266) 🚀
-- feat: preço do produto simples na edição React + variação presa ao produto (UC-PEDIT-16) (#10272) 🚀
-- feat: saldo de cada cor e tamanho na lista (UC-PIDX-37) (#10307) 🚀
-- feat: separado para vendas e livre na coluna Estoque (UC-PIDX-38) (#10311) 🚀
-
-### sells — 107 (+27 manutenção)
+### sells — 114 (+30 manutenção)
 - feat: navegação por teclado no dropdown de produto + 1ª infra de teste de componente (#2029) 🚀
 - feat: endereço de entrega 1ª classe consome contact_addresses (US-CRM-078 PR2) (#2104) 🚀 — ⚠️ REVERTIDO por #2107 (líquido 0)
 - feat: CTA "Enviar pra faturamento" source-agnostic (gap balcão · Passo-0 Dani) (#2146) 🚀
@@ -1430,6 +1444,13 @@ generated: "2026-11-04"
 - fix: venda e orçamento da V3 nascem no pipeline FSM (#10255) 🚀
 - feat: flag por empresa para a virada da devolução para o React (F5) (#10256) 🚀
 - feat: venda e orçamento duplicados saem com o preço da tabela de hoje do cliente (D-05) [F+C] (#10297) 🚀
+- style: cabeçalho do /sells igual ao protótipo medido (#10373) 🚀
+- style: PDV balcão do protótipo segue o tema pelos tokens do DS (#10374) 🚀
+- style: tema escuro da Caixa, Comissões e Relatórios pelos tokens do DS (#10368) 🚀
+- perf: agregações do dia da Caixa deferidas (#10366) 🚀
+- style: cabeçalho da Caixa igual ao protótipo medido (#10367) 🚀
+- feat: pílulas Faturada e Cancelada filtram no servidor (UC-SIDX-07) [W+C] (#10382) 🚀
+- feat: lista de vendas segue o layout do protótipo nas pílulas, controles e KPIs [W+C] (#10383) 🚀
 
 ### design — 97 (+129 manutenção)
 - design: 37 telas <70 → ≥70 (US-TR-309..314) + XSS sanitize Cms (#2037) 🚀
@@ -1621,7 +1642,7 @@ generated: "2026-11-04"
 - fix: --warn claro com contraste AA (tokens v1.7.0) [CL] (#8545) · `DS` 🚀
 - feat: KpiCard ganha size="catchup" (19px) para as telas catch-up (#10277) · `DS` 🚀
 
-### ci — 72 (+25 manutenção)
+### ci — 73 (+25 manutenção)
 - feat: stylelint ratchet anti-drift CSS (fecha G5 · ADR 0209) (#2054) 🚀
 - fix: quick-sync robusto — composer dump-autoload + ssh-keyscan não-fatal [M] (#2162) 🚀
 - fix: quick-sync build single-thread (RAYON_NUM_THREADS=1) — evita 500 por estouro de threads [M] (#2183) 🚀
@@ -1694,6 +1715,7 @@ generated: "2026-11-04"
 - fix: runner ct100-leve esvazia o workspace antes de cada job (#10093) 🚀
 - feat: runner ct100-leve se atualiza sozinho quando docker/ci-runner-leve muda no main (#10097) 🚀
 - fix: fixa ubuntu-24.04 nos jobs que instalam o Chromium do Playwright (#10293) 🚀
+- fix: o lote de paridade sobe o app mesmo sem tela de smoke [C] (#10426) 🚀
 
 ### forja — 70 (+36 manutenção)
 - fix: fusão real — Jana não rouba /team-mcp/* (follow-up adversário) (#2855) · `DS` 🚀
@@ -1767,7 +1789,76 @@ generated: "2026-11-04"
 - fix: Roadmap em ordem cronológica e cancelado fora por contrato — thread 12 [CL] (#9087) · `DS` 🚀
 - fix: lista de devs do TeamScopes lê users.business_id — thread 10 [CL] (#9090) · `DS` 🚀
 
-### prototipo — 62 (+17 manutenção)
+### patrimonio — 67 (+41 manutenção)
+- fix: index() de Bens exige asset.view, como create() já exigia [CL] (#7008) 🚀
+- fix: subconsulta de revoke passa a filtrar business_id — vazamento Tier 0 [CL] (#7011) 🚀
+- fix: o orWhereNull do dashboard escapava do filtro de tenant [CL] (#7018) 🚀
+- fix: o playbook mandava escrever a trava num Request que nunca roda [C] (#7016) 🚀
+- fix: destrava os 2 testes Tier 0 do Patrimônio — 0 assertions → 26 [CL] (#7020) 🚀
+- feat: ADR 0394 — endereço de UI é Pages/Patrimonio/**; a frente de telas destrava [W] (#7029) 🚀
+- fix: as 28 chaves que faltavam no pt/lang.php e caíam no inglês [C] (#7031) 🚀
+- feat: a thread 06 vira FRENTE — 7 threads, uma por tela [C] (#7033) 🚀
+- fix: o gate de Manutencoes era insatisfazivel E anulado — os dois defeitos do mesmo if [C] (#7034) 🚀
+- feat: migra a listagem de Bens de Blade para Inertia/React [CC] (#7035) 🚀
+- feat: Painel em Inertia + o _shared que as telas 08-12 herdam [CL] (#7040) 🚀
+- fix: a tabela de Bens NUNCA chegava ao browser — guarda `! inertia()` [CC] (#7047) 🚀
+- fix: a catraca Tier 0 da garantia morreu no #7040 — volta a rodar, e a morder [CC] (#7048) 🚀
+- feat: Alocacoes migrada de Blade pra Inertia — 3a tela, reusa o `_shared` [C] (#7046) 🚀
+- feat: Configuracoes migra de 3 blades para 1 tela Inertia [C] (#7044) 🚀
+- feat: migra a listagem de Manutencoes de Blade para Inertia/React [C] (#7045) 🚀
+- fix: Alocações e Manutenções tinham o MESMO defeito de Bens — guarda `! inertia()` [CC] (#7053) 🚀
+- feat: trava de saldo na alocação — thread 02 (Tier 0) [C] (#7062) 🚀
+- fix: Painel migra pro PageHeader canon — destrava o ratchet vermelho no main [C] (#7109) · `DS` 🚀
+- fix: o header do Painel alinha com os cards — `px-6` do canon dobrava com o `p-6` [C] (#7115) 🚀
+- feat: o Painel ganha a forma do protótipo — header, chips, seções e ações [C] (#7133) 🚀
+- fix: a aba dizia "Ativos" e o h1 da mesma tela dizia "Bens" [C] (#7159) 🚀
+- feat: header ganha o selo de frescor e a linha de contexto do prototipo [C] (#7161) 🚀
+- feat: icone no resumo e selo da categoria dominante no painel [C] (#7157) 🚀
+- feat: contrato de tela da lista de Bens + as âncoras que ele lê [C] (#7165) 🚀
+- feat: contador de manutencoes abertas na aba, deferido [C] (#7162) 🚀
+- fix: tira 8 links que abriam página em branco (create/edit só-ajax) [C] (#7810) 🚀
+- feat: drawer "Adicionar recurso" — cadastro de bem sem sair da lista [C] (#7832) · `DS` 🚀
+- fix: drawer avisa quando a empresa não tem categoria de ativo [C] (#7837) · `DS` 🚀
+- fix: tira do ar as 4 rotas show que chamavam view inexistente [W+C] (#7904) 🚀
+- feat: thread 13 — aba Auditoria vira deep-link para o Modules/Auditoria [W+C] (#7916) 🚀
+- feat: recorte Garantia crítica dentro de Bens, no servidor [CL] (#8211) 🚀
+- fix: garantia crítica e baldes do Painel pela garantia mais recente [CL] (#8231) 🚀
+- fix: chip Garantia crítica do Painel abre Bens já no recorte [CL] (#8237) 🚀
+- feat: recorte Em manutenção dentro de Bens, no servidor [CL] (#8240) 🚀
+- fix: coluna Bem da tabela de Bens deixa de ter 0px [CL] (#8246) 🚀
+- fix: coluna Bem da tabela de Manutenções deixa de ter 0px [CL] (#8248) 🚀
+- fix: edição de bem não alcança garantia de outra empresa (Tier 0) [CL] (#8253) 🚀
+- feat: editar bem em drawer — thread 17 [CL] (#8258) · `DS` 🚀
+- fix: gravar manutenção não alcança outra empresa (Tier 0) [CL] (#8260) 🚀
+- feat: drawer de detalhe do bem com devoluções 1:N [CL] (#8261) · `DS` 🚀
+- feat: alocar, editar e devolver em drawer, com Excluir devolução — thread 18 [CL] (#8262) · `DS` 🚀
+- fix: espaçamentos do drawer de detalhe do bem pelo protótipo [CL] (#8269) · `DS` 🚀
+- feat: manutenção em drawer — thread 19 [CL] (#8264) · `DS` 🚀
+- fix: Painel concorda em número e nomeia o bem Sem categoria [CL] (#8275) 🚀
+- fix: assert do UC-BENS-10 que reprovava sempre [CL] (#8271) 🚀
+- fix: altura de linha do cabeçalho do drawer do bem [CL] (#8281) · `DS` 🚀
+- fix: /asset/settings só com index e store — thread 20 [CL] (#8272) 🚀
+- fix: /asset/revocation redireciona para Alocações — thread 16 [CL] (#8286) 🚀
+- fix: excluir o bem apaga as garantias dele; comando para as órfãs [CL] (#8293) 🚀
+- fix: fechar o drawer de Alocações devolve o foco a quem o abriu [CL] (#8292) · `DS` 🚀
+- fix: sub-menu sem o ghost Devoluções [CL] (#8297) 🚀
+- fix: linha do nome no cartão de alocação igual ao protótipo [CL] (#8308) 🚀
+- feat: "Enviar pra manutenção" pela linha do bem [CL] (#8310) 🚀
+- feat: "Enviar pra manutenção" no rodapé do drawer do bem [CL] (#8316) · `DS` 🚀
+- fix: /asset/revocation sem edit e update mortos [CL] (#8317) 🚀
+- fix: fechar o drawer de Manutenções devolve o foco a quem o abriu [CL] (#8333) · `DS` 🚀
+- feat: ADR 0430 reabre a retenção LGPD como anonimização e corrige as chaves do retention.php [CL] (#9211) 🚀
+- feat: depreciação gerencial linear no valor residual (US-ASSET-009) [C] (#9881) 🚀
+- fix: alocação só com bem e pessoa da empresa, e saldo na edição (lote 0.1) [W+C] (#10403) 🚀
+- fix: responsável e destinatário de aviso só da própria empresa (lote 0.2) [W+C] (#10511) 🚀
+- fix: bem só com categoria e local da própria empresa (lote 0.3) [W+C] (#10513) 🚀
+- fix: view_own só alcança a própria manutenção e o painel confere permissão (lote 0.5) [W+C] (#10517) 🚀
+- fix: devolvido da lista de alocações só da própria empresa (lote 0.4) [W+C] (#10516) 🚀
+- feat: excluir bem pelo AlertDialog do DS, com falha visível (lote 2.2) [C] (#10445) 🚀
+- feat: estado de erro quando a carga deferida falha, nas 5 telas (lote 2.1) [C] (#10486) 🚀
+- fix: a carga deferida que falha não abre o modal do Inertia por cima do estado de erro (#10557) 🚀
+
+### prototipo — 67 (+18 manutenção)
 - fix: completa o SSOT na main (squash da #3259 entrou prematuro) (#3262) 🚀
 - fix: Fase 0.0 de sanidade de checkout + baseline Perfil (#3332) 🚀
 - feat: detectar-telas.mjs — Fase 0/0.5 vira mecanismo (gate anti-órfão) (#3350) 🚀
@@ -1830,6 +1921,76 @@ generated: "2026-11-04"
 - feat: mover etapa à mão fecha o apontamento aberto (UC-PCV-07) (#10308) 🚀
 - feat: produtividade por pessoa só com a permissão, com log de acesso (UC-PCV-27) (#10312) 🚀
 - design: menu do avatar sem itens de módulo, como o vivo [W+C] (#10315) 🚀
+- feat: página que o cliente abre pelo link da prova de arte (UC-PCV-04) (#10319) 🚀
+- feat: Locais e Fatura ganham o que a tela em produção já tinha [W+C] (#10353) 🚀
+- feat: lista de vendas com 5 KPIs numa linha a 1280 [W+C] (#10384) 🚀
+- feat: Modelos de notificação ganha o que a tela em produção já tinha [W+C] (#10352) 🚀
+- feat: cadastro de produto do Wagner recebe os campos do artefato [F+C] (#10362) 🚀
+
+### producao — 63 (+10 manutenção)
+- feat: PCP sai do feature-wish — ADR 0431 e esqueleto do Modules/Producao [CL] (#9440) 🚀
+- feat: fundo do PCP 1/3 — 6 tabelas pcp_* e triggers append-only [CL] (#9451) 🚀
+- feat: fundo do PCP 2/3 — entities com escopo por empresa e turno [CL] (#9452) 🚀
+- feat: fundo do PCP 3/3 — apontamento máquina × pessoa e custo real da OS [CL] (#9453) 🚀
+- feat: bundle CSS da Produção — cópia inteira do producao-cv.css (pcv11) [CL] (#9463) 🚀
+- feat: cadastros do PCP — roteiros (2 trilhas), postos, motivos, veículo, ferramenta — thread 03 + E03 [CL] (#9459) 🚀
+- feat: regra do apontamento do operador — thread 04 + E04, 1/2 [CL] (#9458) 🚀
+- feat: tela do operador no celular — thread 04 + E04, 2/3 [CL] (#9461) 🚀
+- feat: comando agendado fecha o cronômetro esquecido + recibo — thread 04, 3/3 [CL] (#9462) 🚀
+- fix: API de apontamento do app vai para Modules/Producao (DependencyDirectionTest) [CL] (#9475) 🚀
+- feat: QR da OS no PDF A4 com o formato único do PCP (P8 · PR 07 propostas-app · E05 a4_os) [CL] (#9474) 🚀
+- feat: lista de motivos de pausa do apontamento para o app (P8 tela 02) [CL] (#9476) 🚀
+- feat: OS por item — pcp_ordens no motor FSM e roteiro no PCP [W+C] (#9518) 🚀
+- feat: cliente aprova cria a OS por item e as programações do PCP [W+C] (#9519) 🚀
+- feat: concluir item — OS pronta e custo real congelado [W+C] (#9522) 🚀
+- fix: nome some e campo estica no custo-hora e em ferramentas [CC] (#9574) 🚀
+- feat: a OS baixa o material de cada etapa pelo custo do lote (US-PCP-021) (#9616) 🚀
+- feat: a regra da compra (congela | vivo) vale para a OS aberta (US-PCP-022) (#9617) 🚀
+- feat: romaneio de impressão peça a peça (US-PCP-023 · UC-FLX-12) (#9633) 🚀
+- feat: etapas da OS vêm do roteiro do produto (US-PCP-026 · UC-FLX-07) (#9641) 🚀
+- feat: OS só libera com o sinal pago, e o pagamento libera sozinho (US-PCP-025) (#9639) 🚀
+- feat: simulador de aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13) (#9666) 🚀
+- feat: rastreio do rolo por OS e baixa do rolo escolhido (US-COM-025 · UC-FLX-18) (#9636) 🚀
+- feat: prazo em dias úteis pelo calendário do RH e data prometida na aprovação (US-PCP-028 · UC-FLX-06) (#9654) 🚀
+- feat: reserva o insumo na venda, baixa real na produção (US-PCP-031 · UC-FLX-14) (#9657) 🚀
+- feat: alocador decide quem e quando começa cada etapa (US-PCP-029 · UC-FLX-10) (#9647) 🚀
+- feat: cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02) (#9645) 🚀
+- fix: fixture da reserva de insumo sem a coluna ingredients (verticais-pest vermelha no main) (#9685) 🚀
+- feat: refugo com motivo, material reposto e retrabalho somam custo à OS (US-PCP-027 · UC-FLX-16) (#9644) 🚀
+- fix: rotas do prazo e do rastreio do rolo voltam ao grupo autenticado (verticais-pest vermelha no main) (#9688) 🚀
+- feat: previsto × realizado por OS e por venda (US-COMVIS-005 · UC-FLX-15) (#9642) 🚀
+- feat: operadores por posto limitam responsável e início da etapa (US-PCP-030 · UC-FLX-08) (#9653) 🚀
+- feat: alocador só troca o responsável para operador do posto (US-PCP-029 · US-PCP-030) (#9691) 🚀
+- feat: campo "Operadores do posto" na gaveta e lista na linha do posto [W+C] (#9699) 🚀
+- feat: botão "Registrar refugo" na etapa rodando do apontamento [W+C] (#9712) 🚀
+- feat: m² impresso e tinta CMYK no Concluir etapa do apontamento [W+C] (#9710) 🚀
+- feat: Painel + Quadro da produção, com alocador e simulador de bobina (thread 06) [W+C] (#9717) 🚀
+- feat: trava da arte aprovada — trocar o arquivo pede nova aprovação (UC-PCV-11) [W+C] (#9743) 🚀
+- feat: OS liberada sem material fica Aguardando material (US-PCP-032 · D3) (#9752) 🚀
+- feat: botão Material com rolo na tela do operador (US-PCP-021 · UC-FLX-18) [W+C] (#9719) 🚀
+- feat: seletor "Produtos que usam este roteiro" na tela de Roteiros [CL] (#9706) 🚀
+- feat: fecha a thread 06 — filtro na URL e mover a OS de coluna à mão [CL] (#9754) 🚀
+- feat: Linha do tempo por máquina — reprogramar e gargalo (thread 07, backend) [W+C] (#9766) 🚀
+- feat: tela da Linha do tempo por máquina (thread 07) [W+C] (#9769) 🚀
+- feat: QR da etapa abre aquela etapa (thread 05a · E05 E1) [M+C] (#9764) 🚀
+- fix: um calendário só para o turno, e folga sem cadastro no RH vale sábado e domingo [W+C] (#9781) 🚀
+- feat: link da prova da arte vai ao cliente por WhatsApp (UC-PCART-06) (#9980) 🚀
+- feat: Enviar nova prova e Reenviar link na fila de arte do Painel (UC-PCART-07) (#10048) 🚀
+- feat: custo do fabricado numa conta só, desligada (US-PCP-034 fatia 1) (#9964) 🚀
+- fix: renumera "Aguardando material" para UC-PCAGM-01..05 [W+C] (#10398) 🚀
+- fix: só a prova mais recente vale e a recusa pública não depende da sessão [W+C] (#10400) 🚀
+- fix: Painel mostra erro e "Tentar de novo" quando a carga falha [W+C] (#10504) 🚀
+- feat: apontamento mostra a arte aprovada e o material já baixado [W+C] (#10503) 🚀
+- feat: venda cancelada cancela as OS dela [W+C] (#10411) 🚀
+- feat: rotas Liberar, Refazer e Cancelar item da OS [W+C] (#10441) 🚀
+- fix: fechar-turno e job da OS com falha visível [W+C] (#10478) 🚀
+- feat: recopia inteira do producao-cv.css (pcv15) no bundle [W+C] (#10546) 🚀
+- fix: cadastros exigem o pacote; motivo usado fica inativo [W+C] (#10479) 🚀
+- feat: Ficha da OS com Liberar, Refazer e Cancelar item [W+C] (#10548) 🚀
+- feat: aba Custo da Ficha da OS, só leitura [W+C] (#10551) 🚀
+- feat: a arte ganha versão (v1, v2, v3) e o operador vê "v2 · arquivo" (UC-PCART-09) (#10559) 🚀
+- feat: abas Materiais e Arte na Ficha da OS [W+C] (#10552) 🚀
+- feat: cartão do Quadro e bloco da Linha abrem a Ficha da OS [W+C] (#10554) 🚀
 
 ### design-sync — 60 (+156 manutenção)
 - feat: conclui o loop — push git→espelho + sentinela vivo (drift 0) [CC] (#3997) 🚀
@@ -1893,66 +2054,124 @@ generated: "2026-11-04"
 - feat: alvo.mjs aceita --clicar em cadeia — thread 07 da Forja [CL] (#8948) 🚀
 - feat: --verificar-pacote confere sync/ x árvore e falha ao divergir [CL] (#9404) 🚀
 
-### patrimonio — 59 (+34 manutenção)
-- fix: index() de Bens exige asset.view, como create() já exigia [CL] (#7008) 🚀
-- fix: subconsulta de revoke passa a filtrar business_id — vazamento Tier 0 [CL] (#7011) 🚀
-- fix: o orWhereNull do dashboard escapava do filtro de tenant [CL] (#7018) 🚀
-- fix: o playbook mandava escrever a trava num Request que nunca roda [C] (#7016) 🚀
-- fix: destrava os 2 testes Tier 0 do Patrimônio — 0 assertions → 26 [CL] (#7020) 🚀
-- feat: ADR 0394 — endereço de UI é Pages/Patrimonio/**; a frente de telas destrava [W] (#7029) 🚀
-- fix: as 28 chaves que faltavam no pt/lang.php e caíam no inglês [C] (#7031) 🚀
-- feat: a thread 06 vira FRENTE — 7 threads, uma por tela [C] (#7033) 🚀
-- fix: o gate de Manutencoes era insatisfazivel E anulado — os dois defeitos do mesmo if [C] (#7034) 🚀
-- feat: migra a listagem de Bens de Blade para Inertia/React [CC] (#7035) 🚀
-- feat: Painel em Inertia + o _shared que as telas 08-12 herdam [CL] (#7040) 🚀
-- fix: a tabela de Bens NUNCA chegava ao browser — guarda `! inertia()` [CC] (#7047) 🚀
-- fix: a catraca Tier 0 da garantia morreu no #7040 — volta a rodar, e a morder [CC] (#7048) 🚀
-- feat: Alocacoes migrada de Blade pra Inertia — 3a tela, reusa o `_shared` [C] (#7046) 🚀
-- feat: Configuracoes migra de 3 blades para 1 tela Inertia [C] (#7044) 🚀
-- feat: migra a listagem de Manutencoes de Blade para Inertia/React [C] (#7045) 🚀
-- fix: Alocações e Manutenções tinham o MESMO defeito de Bens — guarda `! inertia()` [CC] (#7053) 🚀
-- feat: trava de saldo na alocação — thread 02 (Tier 0) [C] (#7062) 🚀
-- fix: Painel migra pro PageHeader canon — destrava o ratchet vermelho no main [C] (#7109) · `DS` 🚀
-- fix: o header do Painel alinha com os cards — `px-6` do canon dobrava com o `p-6` [C] (#7115) 🚀
-- feat: o Painel ganha a forma do protótipo — header, chips, seções e ações [C] (#7133) 🚀
-- fix: a aba dizia "Ativos" e o h1 da mesma tela dizia "Bens" [C] (#7159) 🚀
-- feat: header ganha o selo de frescor e a linha de contexto do prototipo [C] (#7161) 🚀
-- feat: icone no resumo e selo da categoria dominante no painel [C] (#7157) 🚀
-- feat: contrato de tela da lista de Bens + as âncoras que ele lê [C] (#7165) 🚀
-- feat: contador de manutencoes abertas na aba, deferido [C] (#7162) 🚀
-- fix: tira 8 links que abriam página em branco (create/edit só-ajax) [C] (#7810) 🚀
-- feat: drawer "Adicionar recurso" — cadastro de bem sem sair da lista [C] (#7832) · `DS` 🚀
-- fix: drawer avisa quando a empresa não tem categoria de ativo [C] (#7837) · `DS` 🚀
-- fix: tira do ar as 4 rotas show que chamavam view inexistente [W+C] (#7904) 🚀
-- feat: thread 13 — aba Auditoria vira deep-link para o Modules/Auditoria [W+C] (#7916) 🚀
-- feat: recorte Garantia crítica dentro de Bens, no servidor [CL] (#8211) 🚀
-- fix: garantia crítica e baldes do Painel pela garantia mais recente [CL] (#8231) 🚀
-- fix: chip Garantia crítica do Painel abre Bens já no recorte [CL] (#8237) 🚀
-- feat: recorte Em manutenção dentro de Bens, no servidor [CL] (#8240) 🚀
-- fix: coluna Bem da tabela de Bens deixa de ter 0px [CL] (#8246) 🚀
-- fix: coluna Bem da tabela de Manutenções deixa de ter 0px [CL] (#8248) 🚀
-- fix: edição de bem não alcança garantia de outra empresa (Tier 0) [CL] (#8253) 🚀
-- feat: editar bem em drawer — thread 17 [CL] (#8258) · `DS` 🚀
-- fix: gravar manutenção não alcança outra empresa (Tier 0) [CL] (#8260) 🚀
-- feat: drawer de detalhe do bem com devoluções 1:N [CL] (#8261) · `DS` 🚀
-- feat: alocar, editar e devolver em drawer, com Excluir devolução — thread 18 [CL] (#8262) · `DS` 🚀
-- fix: espaçamentos do drawer de detalhe do bem pelo protótipo [CL] (#8269) · `DS` 🚀
-- feat: manutenção em drawer — thread 19 [CL] (#8264) · `DS` 🚀
-- fix: Painel concorda em número e nomeia o bem Sem categoria [CL] (#8275) 🚀
-- fix: assert do UC-BENS-10 que reprovava sempre [CL] (#8271) 🚀
-- fix: altura de linha do cabeçalho do drawer do bem [CL] (#8281) · `DS` 🚀
-- fix: /asset/settings só com index e store — thread 20 [CL] (#8272) 🚀
-- fix: /asset/revocation redireciona para Alocações — thread 16 [CL] (#8286) 🚀
-- fix: excluir o bem apaga as garantias dele; comando para as órfãs [CL] (#8293) 🚀
-- fix: fechar o drawer de Alocações devolve o foco a quem o abriu [CL] (#8292) · `DS` 🚀
-- fix: sub-menu sem o ghost Devoluções [CL] (#8297) 🚀
-- fix: linha do nome no cartão de alocação igual ao protótipo [CL] (#8308) 🚀
-- feat: "Enviar pra manutenção" pela linha do bem [CL] (#8310) 🚀
-- feat: "Enviar pra manutenção" no rodapé do drawer do bem [CL] (#8316) · `DS` 🚀
-- fix: /asset/revocation sem edit e update mortos [CL] (#8317) 🚀
-- fix: fechar o drawer de Manutenções devolve o foco a quem o abriu [CL] (#8333) · `DS` 🚀
-- feat: ADR 0430 reabre a retenção LGPD como anonimização e corrige as chaves do retention.php [CL] (#9211) 🚀
-- feat: depreciação gerencial linear no valor residual (US-ASSET-009) [C] (#9881) 🚀
+### fiscal — 58 (+46 manutenção)
+- feat: FiscalStatusBadge unificado (NFC-e/NF-e/NFS-e) (#2130) 🚀
+- refactor: controles nativos -> DS (Select/Checkbox/RadioGroup) — 14 ds/* -> 0 [CC] (#3407) 🚀
+- feat: US-FISCAL-022 health-check proativo do certificado A1 [CC] (#3775) 🚀
+- refactor: abas Config/DF-e por rota na barra canônica PageHeaderTabs (Onda 3) [CC] (#4287) · `DS` 🚀
+- fix: Sped fecha a G-2 com 10 UC e revoga o guard que era verde por nome [CC] (#4878) 🚀
+- fix: Nfe ganha contrato REAL das regras e sai de 0 testes executando [CC] (#4883) 🚀
+- feat: contrato de tela das 7 telas — copy literal sob gate [C] (#6513) 🚀
+- feat: acento --fis sai de hue 30 para o roxo canonico do DS [C] (#6516) 🚀
+- feat: Nfe troca fx-btn/fx-chip/fx-search pelas primitivas do DS [C] (#6517) 🚀
+- feat: Nfse + Sped trocam fx-* pelas primitivas do DS (leva 2) [C] (#6530) 🚀
+- feat: CU-FISC-16 — a lista do cockpit passa a servir DADO REAL [C] (#6541) 🚀
+- feat: Dfe + Eventos trocam fx-* pelas primitivas do DS (leva 3) [C] (#6531) 🚀
+- feat: Cockpit + Config trocam fx-* pelas primitivas do DS (leva 4) [C] (#6532) 🚀
+- hotfix: cockpit serve `notas` E `notasMock` — prod com tela preta [C] (#6559) 🚀
+- feat: os 8 _components trocam os 32 fx-btn pelas primitivas do DS (leva 5) [C] (#6534) 🚀
+- feat: ligar/desligar contingência pela tela — US-NFE-006 fase 6 (UI) [C] (#6567) 🚀
+- feat: a lista de NF-e vira operável por teclado — linha focável, não botão [C] (#6707) 🚀
+- feat: regua de geracao do SPED com 4 checagens + golden file do EFD-ICMS/IPI [C] (#6708) 🚀
+- feat: export CSV da timeline de Eventos, escopado por business [C] (#6704) 🚀
+- feat: a fila de alertas do cockpit passa a ser desenhada [C] (#6705) 🚀
+- fix: 13 ícones decorativos saem da árvore de acessibilidade (UC-FNFE-11) [C] (#6713) 🚀
+- feat: destrava o tema escuro — 24 superfícies cruas viram token e nasce o bloco dark [C] (#6712) 🚀
+- feat: Onda 3 — o cockpit serve uma PÁGINA da lista, e filtrar volta à 1ª [C] (#6711) 🚀
+- fix: cockpit passa a alertar certificado A1 JÁ VENCIDO — o `> 0` calava o pior estado [C] (#6722) 🚀
+- feat: a lista do cockpit vira operável por teclado — linha focável, não botão [C] (#6719) 🚀
+- feat: o cockpit passa a dizer o que é leitura real e o que é demonstração [C] (#6733) 🚀
+- feat: as 4 abas do protótipo e o card "Envio de documentos" (A5, PR 1/3) (#6725) 🚀
+- feat: SPED mostra a régua na página e o que sabe do arquivo [C] (#6723) 🚀
+- fix: a lista de NF-e mostrava "— · —" e ensinava duas teclas mortas [C] (#6731) 🚀
+- feat: gate próprio `fiscal.config.ambiente`, recusado no servidor (A5, PR 2/3) (#6730) 🚀
+- feat: "Débitos conhecidos desta tela" nas 7 telas — a lista é DERIVADA dos casos.md [C] (#6729) · `DS` 🚀
+- feat: bloco "Decisão [W] pendente" — mesma fonte do A6, bloco próprio [C] (#6739) 🚀
+- feat: o bypass de superadmin no SPED deixa de ser silencioso [C] (#6728) 🚀
+- feat: troca de ambiente exige destino digitado, motivo e vira evento (A5, PR 3/3) (#6738) 🚀
+- feat: a densidade da tabela vira preferência do operador nas 3 telas de notas (UC-FNFE-14 · UC-FNFSE-05) [C] (#6736) 🚀
+- feat: prévia do SPED mostra o layout de um arquivo de referência [C] (#6741) 🚀
+- fix: a pílula SEFAZ dizia "Status" — e traduzia 5 códigos errado [C] (#6726) 🚀
+- fix: as 4 acoes de manifestar DF-e nao manifestavam nada — TypeError engolido pelo catch [C] (#6727) 🚀
+- feat: as sparklines do cockpit passam a ser DESENHADAS (3 KPIs · UC-FCKP-12) [C] (#6732) 🚀
+- feat: manifestacao DF-e em lote com falha parcial NOMEADA — e o botao inerte sai da tela [C] (#6740) 🚀
+- fix: o teste de procedência reprovava na FORMA — a mensagem virava needle do toContain [C] (#6816) 🚀
+- fix: as 7 abas voltam aos rótulos e à ordem do protótipo [C] (#7110) 🚀
+- feat: cadastro do contador e papel Contador em /fiscal/config — thread 15c [CL] (#9018) 🚀
+- feat: NF-e de devolução ganha rota, com permissão e na empresa da sessão (R-NFE-039) [W+C] (#9851) 🚀
+- feat: cancelar NF-e pergunta se cancela a venda junto — backend (R-NFE-044) [W+C] (#9909) 🚀
+- fix: SPED EFD-ICMS/IPI com os 10 blocos e COD_VER do leiaute (US-FISCAL-028 fatia 1) (#9985) 🚀
+- feat: apuração do DAS pelo Anexo, só cálculo (US-FISCAL-030 fatia 1) [W+C] (#10021) 🚀
+- feat: tela de apuração do DAS atrás da flag por empresa useV2FiscalDas (US-FISCAL-030 fatia 2) (#10268) 🚀
+- fix: Manifesto DF-e ganha teste de prazo, chips e busca — e a busca por nome para de trazer tudo [C] (#10378) 🚀
+- fix: fallback do CNPJ titular no Config lia a chave errada (D12) (#10407) 🚀
+- fix: cache do cockpit cai em cancelamento, inutilização, DF-e e certificado (D14) (#10450) 🚀
+- fix: item do menu só aparece para quem a rota aceita (lote 1.2) (#10416) 🚀
+- fix: erro técnico não aparece mais na mensagem ao usuário (lote 1.4) (#10462) 🚀
+- fix: cert-health-check respeita fiscal.cert_health_check_alert_days (D13) (#10421) 🚀
+- fix: cockpit recusa sem empresa na sessão e filtra a empresa nas consultas (D15) (#10480) 🚀
+- fix: busca e eventos pedem a permissão da tela dona do dado (lote 1.3) (#10439) 🚀
+- feat: rotas exigem o pacote fiscal_module e CheckUserLogin (lote 1.1) (#10404) 🚀
+- fix: habilitar-business --dry-run não quebra sem as fiscal.* (#10530) 🚀
+
+### fisio — 57 (+12 manutenção)
+- feat: migrations, models e append-only — US-FISIO-003 [CC] (#9537) 🚀
+- feat: pacientes e prontuário — US-FISIO-005 (#9546) 🚀
+- feat: questionários de uso livre na ficha — US-FISIO-011 (parcial) (#9550) 🚀
+- feat: núcleo de cálculo do jogo e do painel — US-FISIO-008/010 (#9547) 🚀
+- feat: biblioteca de exercícios com busca por texto — US-FISIO-004 (parcial) (#9549) 🚀
+- fix: paciente bloqueado só aceita adendo e não edita perfil — US-FISIO-005 [CC] (#9554) 🚀
+- feat: exportar prontuário do paciente em PDF [CC] (#9556) 🚀
+- feat: favoritos e filtros de equipamento e posição na biblioteca [CC] (#9558) 🚀
+- feat: criar contato na hora ao cadastrar paciente + recusa contato apagado [CC] (#9559) 🚀
+- feat: fisioterapeuta responsável e transferência de paciente [CC] (#9557) 🚀
+- feat: painel, evolução e fila de atenção — US-FISIO-010 [CC] (#9553) 🚀
+- feat: foto e vídeo no exercício próprio da clínica [CC] (#9555) 🚀
+- feat: editor de programa, protocolos-modelo e aviso de contraindicação — US-FISIO-006 [CC] (#9552) 🚀
+- feat: jogo de constância — XP, nível, sequência e pausa por dor — US-FISIO-008 [CC] (#9564) 🚀
+- feat: portal do paciente — link + PIN e consentimentos — US-FISIO-007a [CC] (#9565) 🚀
+- feat: envio do link e lembrete diário por WhatsApp pelo módulo Whatsapp — US-FISIO-009 [CC] (#9566) 🚀
+- feat: telas do paciente — entrada, hoje e check-in ligados ao jogo — US-FISIO-007b [CC] (#9567) 🚀
+- feat: portal do paciente instalável no celular — etapa 02 T-13 parte 1 [CC] (#9569) 🚀
+- fix: portal do paciente sem login dava 500 no link válido (#9570) 🚀
+- feat: biblioteca global com os 38 exercícios aprovados — US-FISIO-004 [CC] (#9571) 🚀
+- feat: entrada /fisio/app para o app do paciente na Google Play [CC] (#9578) 🚀
+- feat: Biblioteca no menu do Fisio, na ordem da ADR 0437 §3.3 [CC] (#9593) 🚀
+- feat: lint de linguagem Anvisa ao salvar texto da clínica (B-06) [CC] (#9594) 🚀
+- feat: fila offline do check-in no portal do paciente [CC] (#9595) 🚀
+- feat: painel lista WhatsApp que não chegou hoje, com wa.me (T-09e) [CC] (#9596) 🚀
+- feat: missões, desafio semanal e medalhas do jogo (T-08c) [CC] (#9600) 🚀
+- feat: folha A4 do programa para imprimir (B-12) [CC] (#9599) 🚀
+- fix: teste da fila offline manda o cookie do aparelho no postJson [CC] (#9603) 🚀
+- fix: lista de pacientes no DataTable do DS, como o PT-01 que o charter declara [F+C] (#9694) 🚀
+- design: canvas Prescreve Pro do Artefato para prototipo-ui [W+C] (#10321) 🚀
+- feat: Painel mais perto do canvas Prescreve Pro [W+C] (#10329) 🚀
+- feat: laudo de evolução em PDF ao lado do prontuário (Lote 2) (#10338) 🚀
+- feat: cadastro do paciente em blocos numerados do canvas [W+C] (#10335) 🚀
+- feat: Biblioteca mais perto do canvas Prescreve Pro [W+C] (#10334) 🚀
+- feat: evolução e relato do portal no formato do canvas [W+C] (#10339) 🚀
+- feat: avaliação em seções na ficha do paciente (Lote 2) (#10344) 🚀
+- feat: Configurações › WhatsApp — a clínica escolhe o canal (Lote 5) [W+C] (#10340) 🚀
+- design: módulo Fisio dentro do shell do oimpresso.com.html [W+C] (#10324) 🚀
+- feat: Configurações do paciente no portal — autorizações por finalidade (Lote 5) [W+C] (#10349) 🚀
+- feat: primeira configuração da clínica em 5 passos (Lote 5, US-FISIO-050) [W+C] (#10345) 🚀
+- feat: pacote de sessões com saldo derivado de ledger append-only (US-FISIO-020) [W+C] (#10337) 🚀
+- feat: pré-anamnese no portal antes da primeira consulta (Lote 5, US-FISIO-051) [W+C] (#10359) 🚀
+- feat: aba Pacote e cobrança da ficha do paciente (US-FISIO-021) [W+C] (#10343) 🚀
+- feat: schema da agenda — tipos, atendimentos e bloqueios (#10330) 🚀
+- feat: tela dos protocolos-modelo (Lote 2, US-FISIO-006) (#10333) 🚀
+- feat: Agenda da clínica e agendamento pelo portal (Lote 3) (#10361) 🚀
+- feat: liga a venda do núcleo ao pacote; venda cancelada tira a sobra do saldo (US-FISIO-022) [W+C] (#10354) 🚀
+- feat: Protocolos no menu do Fisio, depois da Agenda [W+C] (#10394) 🚀
+- feat: documentos fiscais do dia — NFS-e e fila do Receita Saúde (US-FISIO-023) [W+C] (#10348) 🚀
+- fix: lane verticais-pest verde — status padrão do atendimento + 2 testes errados (#10395) 🚀
+- fix: lembrete diário do WhatsApp só agendado em produção (live) (#10408) 🚀
+- fix: envio do programa por WhatsApp — falha na fila não revoga o link; 2º clique do dia responde 409 (#10424) 🚀
+- fix: mensagem de sucesso dos controllers aparece no toast [W+C] (#10505) 🚀
+- fix: pré-anamnese ganha model com escopo de empresa e não muda depois de enviada [W+C] (#10463) 🚀
+- fix: CREFITO da assinatura do prontuário vem do perfil de quem assina [W+C] (#10461) 🚀
+- fix: aviso de sinal de alerta do check-in não se perde quando falha [W+C] (#10458) 🚀
+- feat: ações da sessão e da lista de espera na Agenda (Lote 4, d5) [W+C] (#10454) 🚀
 
 ### app-mobile — 56 (+9 manutenção)
 - feat: client OAuth público do app das lojas + travas do login web no token [CL] (#8480) 🚀
@@ -2012,7 +2231,7 @@ generated: "2026-11-04"
 - feat: Recorrências do Financeiro na API (tela 06) [CL] (#9523) 🚀
 - feat: novo lançamento e ações do Financeiro na API (tela 06) [CL] (#9526) 🚀
 
-### whatsapp — 55 (+19 manutenção)
+### whatsapp — 56 (+19 manutenção)
 - fix: inbound usa hora real do evento, não now() (fuso London na fila) (#2057) 🚀
 - refactor: dedup formatBytes → re-export de @/Lib/utils (#2346) 🚀
 - feat: US-WA-302 assignee picker na Caixa Unificada V4 (PR-1/10) (#2503) 🚀
@@ -2068,6 +2287,7 @@ generated: "2026-11-04"
 - feat: notificador reutilizável de aviso automático ao cliente [C] (#9817) 🚀
 - feat: liga o contrato AvisaClienteWhatsapp ao notificador (US-WA-319) (#9992) 🚀
 - feat: Instagram, Messenger e e-mail na mesma Caixa Unificada — recebimento (US-WA-329 fatia 1) (#9969) 🚀
+- fix: fecha o webhook Baileys — fail-closed no HMAC e remove as 2 rotas mortas (ADR 0202) (#10427) 🚀
 
 ### hooks — 53 (+4 manutenção)
 - feat: gatilho block-test-fora-ct100 — testes/PHPStan só no CT 100 (#2081) 🚀
@@ -2124,108 +2344,54 @@ generated: "2026-11-04"
 - fix: block-mwart-violation acha o RUNBOOK do worktree (raiz do arquivo, não cwd) (#8438) 🚀
 - fix: P7 reconhece o estado pedido como chave abreviada do jq [CL] (#9168) 🚀
 
-### producao — 49 (+6 manutenção)
-- feat: PCP sai do feature-wish — ADR 0431 e esqueleto do Modules/Producao [CL] (#9440) 🚀
-- feat: fundo do PCP 1/3 — 6 tabelas pcp_* e triggers append-only [CL] (#9451) 🚀
-- feat: fundo do PCP 2/3 — entities com escopo por empresa e turno [CL] (#9452) 🚀
-- feat: fundo do PCP 3/3 — apontamento máquina × pessoa e custo real da OS [CL] (#9453) 🚀
-- feat: bundle CSS da Produção — cópia inteira do producao-cv.css (pcv11) [CL] (#9463) 🚀
-- feat: cadastros do PCP — roteiros (2 trilhas), postos, motivos, veículo, ferramenta — thread 03 + E03 [CL] (#9459) 🚀
-- feat: regra do apontamento do operador — thread 04 + E04, 1/2 [CL] (#9458) 🚀
-- feat: tela do operador no celular — thread 04 + E04, 2/3 [CL] (#9461) 🚀
-- feat: comando agendado fecha o cronômetro esquecido + recibo — thread 04, 3/3 [CL] (#9462) 🚀
-- fix: API de apontamento do app vai para Modules/Producao (DependencyDirectionTest) [CL] (#9475) 🚀
-- feat: QR da OS no PDF A4 com o formato único do PCP (P8 · PR 07 propostas-app · E05 a4_os) [CL] (#9474) 🚀
-- feat: lista de motivos de pausa do apontamento para o app (P8 tela 02) [CL] (#9476) 🚀
-- feat: OS por item — pcp_ordens no motor FSM e roteiro no PCP [W+C] (#9518) 🚀
-- feat: cliente aprova cria a OS por item e as programações do PCP [W+C] (#9519) 🚀
-- feat: concluir item — OS pronta e custo real congelado [W+C] (#9522) 🚀
-- fix: nome some e campo estica no custo-hora e em ferramentas [CC] (#9574) 🚀
-- feat: a OS baixa o material de cada etapa pelo custo do lote (US-PCP-021) (#9616) 🚀
-- feat: a regra da compra (congela | vivo) vale para a OS aberta (US-PCP-022) (#9617) 🚀
-- feat: romaneio de impressão peça a peça (US-PCP-023 · UC-FLX-12) (#9633) 🚀
-- feat: etapas da OS vêm do roteiro do produto (US-PCP-026 · UC-FLX-07) (#9641) 🚀
-- feat: OS só libera com o sinal pago, e o pagamento libera sozinho (US-PCP-025) (#9639) 🚀
-- feat: simulador de aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13) (#9666) 🚀
-- feat: rastreio do rolo por OS e baixa do rolo escolhido (US-COM-025 · UC-FLX-18) (#9636) 🚀
-- feat: prazo em dias úteis pelo calendário do RH e data prometida na aprovação (US-PCP-028 · UC-FLX-06) (#9654) 🚀
-- feat: reserva o insumo na venda, baixa real na produção (US-PCP-031 · UC-FLX-14) (#9657) 🚀
-- feat: alocador decide quem e quando começa cada etapa (US-PCP-029 · UC-FLX-10) (#9647) 🚀
-- feat: cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02) (#9645) 🚀
-- fix: fixture da reserva de insumo sem a coluna ingredients (verticais-pest vermelha no main) (#9685) 🚀
-- feat: refugo com motivo, material reposto e retrabalho somam custo à OS (US-PCP-027 · UC-FLX-16) (#9644) 🚀
-- fix: rotas do prazo e do rastreio do rolo voltam ao grupo autenticado (verticais-pest vermelha no main) (#9688) 🚀
-- feat: previsto × realizado por OS e por venda (US-COMVIS-005 · UC-FLX-15) (#9642) 🚀
-- feat: operadores por posto limitam responsável e início da etapa (US-PCP-030 · UC-FLX-08) (#9653) 🚀
-- feat: alocador só troca o responsável para operador do posto (US-PCP-029 · US-PCP-030) (#9691) 🚀
-- feat: campo "Operadores do posto" na gaveta e lista na linha do posto [W+C] (#9699) 🚀
-- feat: botão "Registrar refugo" na etapa rodando do apontamento [W+C] (#9712) 🚀
-- feat: m² impresso e tinta CMYK no Concluir etapa do apontamento [W+C] (#9710) 🚀
-- feat: Painel + Quadro da produção, com alocador e simulador de bobina (thread 06) [W+C] (#9717) 🚀
-- feat: trava da arte aprovada — trocar o arquivo pede nova aprovação (UC-PCV-11) [W+C] (#9743) 🚀
-- feat: OS liberada sem material fica Aguardando material (US-PCP-032 · D3) (#9752) 🚀
-- feat: botão Material com rolo na tela do operador (US-PCP-021 · UC-FLX-18) [W+C] (#9719) 🚀
-- feat: seletor "Produtos que usam este roteiro" na tela de Roteiros [CL] (#9706) 🚀
-- feat: fecha a thread 06 — filtro na URL e mover a OS de coluna à mão [CL] (#9754) 🚀
-- feat: Linha do tempo por máquina — reprogramar e gargalo (thread 07, backend) [W+C] (#9766) 🚀
-- feat: tela da Linha do tempo por máquina (thread 07) [W+C] (#9769) 🚀
-- feat: QR da etapa abre aquela etapa (thread 05a · E05 E1) [M+C] (#9764) 🚀
-- fix: um calendário só para o turno, e folga sem cadastro no RH vale sábado e domingo [W+C] (#9781) 🚀
-- feat: link da prova da arte vai ao cliente por WhatsApp (UC-PCART-06) (#9980) 🚀
-- feat: Enviar nova prova e Reenviar link na fila de arte do Painel (UC-PCART-07) (#10048) 🚀
-- feat: custo do fabricado numa conta só, desligada (US-PCP-034 fatia 1) (#9964) 🚀
+### compras — 45 (+38 manutenção)
+- design: chrome navy → roxo canon + paleta hex → tokens DS (modelo único de identidade) (#2427) 🚀
+- fix: restaura menu "Lista de compras" no sidebar (gated por compras_module) (#2903) · `DS` 🚀
+- fix: estágio em PT-BR + filtros de aba funcionando (PR-A/3 · qualidade /compras) (#4273) 🚀
+- fix: copy dos KPIs em linguagem de negócio (PR-B/3 · qualidade /compras) (#4275) 🚀
+- feat: instrumenta Compras/Index com âncoras data-contract [C] (#6806) 🚀
+- feat: mede o cockpit contra o protótipo no runtime — 1 divergência real de 4 acusadas [C] (#6951) 🚀
+- feat: as colunas Itens e NF-e do protótipo entram no cockpit [C] (#6955) 🚀
+- fix: a coluna NF-e lê a chave fiscal, não o anexo genérico [C] (#6961) 🚀
+- fix: assert morto ressuscitado + CU-COM-05 (escopo por loja no cockpit) [C] (#7715) 🚀
+- feat: atalho Fornecedores no menu aponta pra lista de contatos [W+C] (#7918) 🚀
+- fix: tira do catálogo 3 permissões que nenhum código checava [W+C] (#7915) 🚀
+- feat: lista e nova compra abrem o React pelo menu — cutover thread 03 [CL] (#9095) 🚀
+- fix: botão Exportar do cockpit volta a abrir a Blade que exporta (#9156) 🚀
+- fix: quadro da grade tamanho×cor segue o tema escuro [CL] (#9193) 🚀
+- fix: painel da grade e rótulos seguem o tema escuro [CL] (#9201) 🚀
+- feat: Pedidos de compra em React atrás da flag OFF — thread 06 (F3) [CL] (#9203) 🚀
+- feat: Requisições de compra em React atrás da flag OFF — thread 07 (F3) [CL] (#9222) 🚀
+- feat: Devoluções de compra em React atrás da flag OFF — thread 08 (F3) [CL] (#9229) 🚀
+- fix: revalida o casos.md de Compras depois do tema escuro (G-6) [CL] (#9339) · `DS` 🚀
+- fix: nova compra e edição pela tela React voltam a salvar [C] (#9528) 🚀
+- feat: custo do insumo numa data pelo método da empresa (US-COM-024) (#9608) 🚀
+- feat: custo do insumo pelo método próprio do insumo (US-COM-024 · UC-FLX-38) (#9624) 🚀
+- feat: compra recebida aplica a regra de custo e preço (US-COM-026 · UC-FLX-17) (#9640) 🚀
+- feat: estoque mínimo vira requisição de compra (US-COM-027 · UC-FLX-19) (#9651) 🚀
+- feat: requisição do estoque mínimo com fornecedor da última compra e interruptor em Fluxos (US-COM-027) (#9705) 🚀
+- feat: método de custo do insumo na gaveta de Insumos (US-COM-024 · UC-FLX-38) [W+C] (#9720) 🚀
+- feat: método de custo no cadastro do produto (US-COM-024 · UC-FLX-38) [W+C] (#9728) 🚀
+- fix: instalar grava system.compras_version [W+C] (#9732) 🚀
+- feat: fila de preços propostos no detalhe da compra (US-COM-028 · UC-FLX-17) (#9714) 🚀
+- feat: schema da entrada por XML de compra — fase 1 [C] (#9836) 🚀
+- feat: alçada de valor no pedido de compra (US-COM-032) [C] (#9891) 🚀
+- feat: cotação entre fornecedores — criar, responder e comparar (US-COM-031) [C] (#9887) 🚀
+- feat: MRP — necessidade de compra das OS e do estoque mínimo (US-COM-030) [C] (#9878) 🚀
+- feat: pedidos abertos do fornecedor para receber em partes (US-COM-013) [C] (#9872) 🚀
+- fix: compra a partir de pedido não aceita pedido de outra empresa [C] (#9820) 🚀
+- feat: inspeção de qualidade no recebimento, reprovado vira devolução, atrás de flag (US-COM-034) [C] (#9996) 🚀
+- feat: cutover do detalhe da compra — Blade purchase.show apagada [C] (#10037) 🚀
+- feat: custo médio móvel recalculado a cada compra recebida, atrás de flag (US-PROD-024) [C] (#9965) 🚀
+- feat: curva ABC e sugestão de reposição pelo giro, só leitura, atrás de flag (US-ESTOQUE-003) [C] (#9983) 🚀
+- fix: borda do chip de paginação sai do navy para o roxo canon (FORJA-138) (#10355) 🚀
+- fix: requisição nova só aceita local e produto da própria empresa (#10481) 🚀
+- fix: editar pedido de compra só alcança a própria empresa e reaplica a alçada (#10451) 🚀
+- fix: linha de compra só se resolve dentro da própria transação (devolução combinada e ProductUtil) (#10476) 🚀
+- fix: pedido de compra novo só aceita requisição e linha da própria empresa (#10464) 🚀
+- fix: store recusa linha de compra de outra empresa; linha de entrada escopada (#10425) 🚀
 
-### fiscal — 48 (+31 manutenção)
-- feat: FiscalStatusBadge unificado (NFC-e/NF-e/NFS-e) (#2130) 🚀
-- refactor: controles nativos -> DS (Select/Checkbox/RadioGroup) — 14 ds/* -> 0 [CC] (#3407) 🚀
-- feat: US-FISCAL-022 health-check proativo do certificado A1 [CC] (#3775) 🚀
-- refactor: abas Config/DF-e por rota na barra canônica PageHeaderTabs (Onda 3) [CC] (#4287) · `DS` 🚀
-- fix: Sped fecha a G-2 com 10 UC e revoga o guard que era verde por nome [CC] (#4878) 🚀
-- fix: Nfe ganha contrato REAL das regras e sai de 0 testes executando [CC] (#4883) 🚀
-- feat: contrato de tela das 7 telas — copy literal sob gate [C] (#6513) 🚀
-- feat: acento --fis sai de hue 30 para o roxo canonico do DS [C] (#6516) 🚀
-- feat: Nfe troca fx-btn/fx-chip/fx-search pelas primitivas do DS [C] (#6517) 🚀
-- feat: Nfse + Sped trocam fx-* pelas primitivas do DS (leva 2) [C] (#6530) 🚀
-- feat: CU-FISC-16 — a lista do cockpit passa a servir DADO REAL [C] (#6541) 🚀
-- feat: Dfe + Eventos trocam fx-* pelas primitivas do DS (leva 3) [C] (#6531) 🚀
-- feat: Cockpit + Config trocam fx-* pelas primitivas do DS (leva 4) [C] (#6532) 🚀
-- hotfix: cockpit serve `notas` E `notasMock` — prod com tela preta [C] (#6559) 🚀
-- feat: os 8 _components trocam os 32 fx-btn pelas primitivas do DS (leva 5) [C] (#6534) 🚀
-- feat: ligar/desligar contingência pela tela — US-NFE-006 fase 6 (UI) [C] (#6567) 🚀
-- feat: a lista de NF-e vira operável por teclado — linha focável, não botão [C] (#6707) 🚀
-- feat: regua de geracao do SPED com 4 checagens + golden file do EFD-ICMS/IPI [C] (#6708) 🚀
-- feat: export CSV da timeline de Eventos, escopado por business [C] (#6704) 🚀
-- feat: a fila de alertas do cockpit passa a ser desenhada [C] (#6705) 🚀
-- fix: 13 ícones decorativos saem da árvore de acessibilidade (UC-FNFE-11) [C] (#6713) 🚀
-- feat: destrava o tema escuro — 24 superfícies cruas viram token e nasce o bloco dark [C] (#6712) 🚀
-- feat: Onda 3 — o cockpit serve uma PÁGINA da lista, e filtrar volta à 1ª [C] (#6711) 🚀
-- fix: cockpit passa a alertar certificado A1 JÁ VENCIDO — o `> 0` calava o pior estado [C] (#6722) 🚀
-- feat: a lista do cockpit vira operável por teclado — linha focável, não botão [C] (#6719) 🚀
-- feat: o cockpit passa a dizer o que é leitura real e o que é demonstração [C] (#6733) 🚀
-- feat: as 4 abas do protótipo e o card "Envio de documentos" (A5, PR 1/3) (#6725) 🚀
-- feat: SPED mostra a régua na página e o que sabe do arquivo [C] (#6723) 🚀
-- fix: a lista de NF-e mostrava "— · —" e ensinava duas teclas mortas [C] (#6731) 🚀
-- feat: gate próprio `fiscal.config.ambiente`, recusado no servidor (A5, PR 2/3) (#6730) 🚀
-- feat: "Débitos conhecidos desta tela" nas 7 telas — a lista é DERIVADA dos casos.md [C] (#6729) · `DS` 🚀
-- feat: bloco "Decisão [W] pendente" — mesma fonte do A6, bloco próprio [C] (#6739) 🚀
-- feat: o bypass de superadmin no SPED deixa de ser silencioso [C] (#6728) 🚀
-- feat: troca de ambiente exige destino digitado, motivo e vira evento (A5, PR 3/3) (#6738) 🚀
-- feat: a densidade da tabela vira preferência do operador nas 3 telas de notas (UC-FNFE-14 · UC-FNFSE-05) [C] (#6736) 🚀
-- feat: prévia do SPED mostra o layout de um arquivo de referência [C] (#6741) 🚀
-- fix: a pílula SEFAZ dizia "Status" — e traduzia 5 códigos errado [C] (#6726) 🚀
-- fix: as 4 acoes de manifestar DF-e nao manifestavam nada — TypeError engolido pelo catch [C] (#6727) 🚀
-- feat: as sparklines do cockpit passam a ser DESENHADAS (3 KPIs · UC-FCKP-12) [C] (#6732) 🚀
-- feat: manifestacao DF-e em lote com falha parcial NOMEADA — e o botao inerte sai da tela [C] (#6740) 🚀
-- fix: o teste de procedência reprovava na FORMA — a mensagem virava needle do toContain [C] (#6816) 🚀
-- fix: as 7 abas voltam aos rótulos e à ordem do protótipo [C] (#7110) 🚀
-- feat: cadastro do contador e papel Contador em /fiscal/config — thread 15c [CL] (#9018) 🚀
-- feat: NF-e de devolução ganha rota, com permissão e na empresa da sessão (R-NFE-039) [W+C] (#9851) 🚀
-- feat: cancelar NF-e pergunta se cancela a venda junto — backend (R-NFE-044) [W+C] (#9909) 🚀
-- fix: SPED EFD-ICMS/IPI com os 10 blocos e COD_VER do leiaute (US-FISCAL-028 fatia 1) (#9985) 🚀
-- feat: apuração do DAS pelo Anexo, só cálculo (US-FISCAL-030 fatia 1) [W+C] (#10021) 🚀
-- feat: tela de apuração do DAS atrás da flag por empresa useV2FiscalDas (US-FISCAL-030 fatia 2) (#10268) 🚀
-
-### nfebrasil — 44 (+16 manutenção)
+### nfebrasil — 45 (+16 manutenção)
 - fix: reconcilia dead_tests do SPEC (refs de teste reais · ADR 0303) (#3312) 🚀
 - feat: IBS/CBS camada de cálculo no MotorTributarioService (US-FISCAL-021 PR-B) [CC] (#3771) 🚀
 - feat: feature flag reforma_tributaria_modo + seleção schema PL_010 (US-FISCAL-021 PR-C) [CC] (#3774) 🚀
@@ -2270,6 +2436,7 @@ generated: "2026-11-04"
 - feat: NF-e interestadual da venda — destinatário, DIFAL, ICMS-ST (na nota e na venda) e destinatário/CFOP de marketplace (US-NFE-072) [W+C] (#9828) 🚀
 - feat: XML do mês vai ao contador, uma vez por competência (R-NFE-038) [W+C] (#9847) 🚀
 - feat: um leitor só para o XML da NF-e de compra, por NSU ou upload (US-NFE-076) [C] (#10024) 🚀
+- fix: manifestação, DF-e e inutilização usam o ambiente da empresa (#10405) 🚀
 
 ### cliente — 41 (+22 manutenção)
 - feat: chip "anexos" no header do drawer ao lado de placas (#2082) · `DS` 🚀
@@ -2357,48 +2524,48 @@ generated: "2026-11-04"
 - feat: chamado de garantia com SLA — abertura com prazo por tipo, fila e responsável (US-CRM-094 fatia 1) (#9984) 🚀
 - feat: segmentação RFM por cliente, com contrato para campanha e régua [C] (#9970) 🚀
 
-### compras — 39 (+29 manutenção)
-- design: chrome navy → roxo canon + paleta hex → tokens DS (modelo único de identidade) (#2427) 🚀
-- fix: restaura menu "Lista de compras" no sidebar (gated por compras_module) (#2903) · `DS` 🚀
-- fix: estágio em PT-BR + filtros de aba funcionando (PR-A/3 · qualidade /compras) (#4273) 🚀
-- fix: copy dos KPIs em linguagem de negócio (PR-B/3 · qualidade /compras) (#4275) 🚀
-- feat: instrumenta Compras/Index com âncoras data-contract [C] (#6806) 🚀
-- feat: mede o cockpit contra o protótipo no runtime — 1 divergência real de 4 acusadas [C] (#6951) 🚀
-- feat: as colunas Itens e NF-e do protótipo entram no cockpit [C] (#6955) 🚀
-- fix: a coluna NF-e lê a chave fiscal, não o anexo genérico [C] (#6961) 🚀
-- fix: assert morto ressuscitado + CU-COM-05 (escopo por loja no cockpit) [C] (#7715) 🚀
-- feat: atalho Fornecedores no menu aponta pra lista de contatos [W+C] (#7918) 🚀
-- fix: tira do catálogo 3 permissões que nenhum código checava [W+C] (#7915) 🚀
-- feat: lista e nova compra abrem o React pelo menu — cutover thread 03 [CL] (#9095) 🚀
-- fix: botão Exportar do cockpit volta a abrir a Blade que exporta (#9156) 🚀
-- fix: quadro da grade tamanho×cor segue o tema escuro [CL] (#9193) 🚀
-- fix: painel da grade e rótulos seguem o tema escuro [CL] (#9201) 🚀
-- feat: Pedidos de compra em React atrás da flag OFF — thread 06 (F3) [CL] (#9203) 🚀
-- feat: Requisições de compra em React atrás da flag OFF — thread 07 (F3) [CL] (#9222) 🚀
-- feat: Devoluções de compra em React atrás da flag OFF — thread 08 (F3) [CL] (#9229) 🚀
-- fix: revalida o casos.md de Compras depois do tema escuro (G-6) [CL] (#9339) · `DS` 🚀
-- fix: nova compra e edição pela tela React voltam a salvar [C] (#9528) 🚀
-- feat: custo do insumo numa data pelo método da empresa (US-COM-024) (#9608) 🚀
-- feat: custo do insumo pelo método próprio do insumo (US-COM-024 · UC-FLX-38) (#9624) 🚀
-- feat: compra recebida aplica a regra de custo e preço (US-COM-026 · UC-FLX-17) (#9640) 🚀
-- feat: estoque mínimo vira requisição de compra (US-COM-027 · UC-FLX-19) (#9651) 🚀
-- feat: requisição do estoque mínimo com fornecedor da última compra e interruptor em Fluxos (US-COM-027) (#9705) 🚀
-- feat: método de custo do insumo na gaveta de Insumos (US-COM-024 · UC-FLX-38) [W+C] (#9720) 🚀
-- feat: método de custo no cadastro do produto (US-COM-024 · UC-FLX-38) [W+C] (#9728) 🚀
-- fix: instalar grava system.compras_version [W+C] (#9732) 🚀
-- feat: fila de preços propostos no detalhe da compra (US-COM-028 · UC-FLX-17) (#9714) 🚀
-- feat: schema da entrada por XML de compra — fase 1 [C] (#9836) 🚀
-- feat: alçada de valor no pedido de compra (US-COM-032) [C] (#9891) 🚀
-- feat: cotação entre fornecedores — criar, responder e comparar (US-COM-031) [C] (#9887) 🚀
-- feat: MRP — necessidade de compra das OS e do estoque mínimo (US-COM-030) [C] (#9878) 🚀
-- feat: pedidos abertos do fornecedor para receber em partes (US-COM-013) [C] (#9872) 🚀
-- fix: compra a partir de pedido não aceita pedido de outra empresa [C] (#9820) 🚀
-- feat: inspeção de qualidade no recebimento, reprovado vira devolução, atrás de flag (US-COM-034) [C] (#9996) 🚀
-- feat: cutover do detalhe da compra — Blade purchase.show apagada [C] (#10037) 🚀
-- feat: custo médio móvel recalculado a cada compra recebida, atrás de flag (US-PROD-024) [C] (#9965) 🚀
-- feat: curva ABC e sugestão de reposição pelo giro, só leitura, atrás de flag (US-ESTOQUE-003) [C] (#9983) 🚀
+### configuracoes — 39 (+9 manutenção)
+- feat: Impressoras em React atrás da flag — thread sistema 04 (F3-1) [CL] (#8947) 🚀
+- feat: Código de barras em React atrás da flag — thread sistema 04 (F3-1) [CL] (#8964) 🚀
+- feat: Locais comerciais em React atrás da flag — thread sistema 04 (F3-1) [CL] (#8965) 🚀
+- feat: Impressoras — drawer cadastrar/editar e abas de Configurações — thread sistema 04 (F3-2) [CL] (#8966) · `DS` 🚀
+- feat: Código de barras — drawer cadastrar/editar e abas — thread sistema 04 (F3-2) [CL] (#8975) · `DS` 🚀
+- feat: Locais — drawer cadastrar/editar e abas — thread sistema 04 (F3-2) [CL] (#8976) · `DS` 🚀
+- feat: Impostos em React atrás da flag — thread sistema 05 (F3-1) [CL] (#9006) 🚀
+- feat: Tipos de serviço em React atrás da flag — thread sistema 05 (F3-1) [CL] (#9007) 🚀
+- feat: Esquemas de fatura em React atrás da flag — thread sistema 05 (F3-1) [CL] (#9009) 🚀
+- feat: Impostos — drawer cadastrar/editar alíquota — thread sistema 05 (F3-2) [CL] (#9011) · `DS` 🚀
+- feat: Tipos de serviço — drawer cadastrar/editar — thread sistema 05 (F3-2) [CL] (#9012) · `DS` 🚀
+- feat: Esquemas de fatura — drawer cadastrar/editar — thread sistema 05 (F3-2) [CL] (#9013) · `DS` 🚀
+- fix: editar Impressora, Código de barras e Local com id de outro negócio dá 404 — thread sistema 12 [CL] (#9055) 🚀
+- feat: Contas de pagamento em React atrás da flag OFF — thread sistema 06 (F3) [CL] (#9171) 🚀
+- feat: Configuração da empresa em React — aba Negócio atrás da flag (F3-1) [CL] (#9172) 🚀
+- fix: chaves secretas de pagamento fora da tela React da empresa [CL] (#9198) 🚀
+- feat: abas Impostos, Produtos e Contatos da Configuração da empresa (F3-2) [CL] (#9194) 🚀
+- fix: fixture do UC-EMP-06 completo — lane Acessos volta a passar no main [CL] (#9232) 🚀
+- feat: abas Vendas e Pagamento da Configuração da empresa (F3-3a) [CL] (#9199) 🚀
+- feat: aba Venda no PDV com balança da Configuração da empresa (F3-3b) [CL] (#9204) 🚀
+- feat: aba Compras da Configuração da empresa (F3-3c) [CL] (#9207) 🚀
+- feat: grupo Sistema da Configuração da empresa — Painel, Sistema, Prefixos (F3-4) [CL] (#9210) 🚀
+- feat: abas E-mail e SMS da Configuração da empresa, segredos só de escrita (F3-5a) [CL] (#9217) 🚀
+- feat: abas Pontos de fidelidade e Módulos da Configuração da empresa (F3-5b) [CL] (#9219) 🚀
+- feat: aba Rótulos personalizados da Configuração da empresa — fecha as 16 abas (F3-5c) [CL] (#9223) 🚀
+- fix: salvar pela Blade não apaga chaves de common_settings de outras features (#9707) 🚀
+- feat: aba Financeiro liga a régua de cobrança (#9700) 🚀
+- feat: aba App das lojas na Configuração da empresa [C] (#9923) 🚀
+- feat: Configuração da empresa em React para todas as empresas [C] (#9938) 🚀
+- refactor: cutover de Locais, Impressoras e Código de barras (flag e Blade saem) (#9957) 🚀
+- feat: grupos de imposto editados na tela React de Impostos (UC-IMPOS-05) (#10264) 🚀
+- feat: CSS do protótipo de Configurações entra inteiro, com escopo [W+C] (#10294) 🚀
+- feat: cabeçalho e abas da Configuração da empresa como o protótipo [W+C] (#10298) 🚀
+- feat: painel lateral, cabeçalho da aba e barra de salvar como o protótipo [W+C] (#10299) 🚀
+- feat: campos, interruptores e blocos no formato do protótipo [W+C] (#10301) 🚀
+- feat: textos e ordem de cada aba como o protótipo [W+C] (#10302) 🚀
+- fix: rótulos da aba Módulos com os nomes do protótipo [W+C] (#10350) 🚀
+- design: módulos e menu do protótipo iguais aos da produção [W+C] (#10346) 🚀
+- feat: cabeçalho e faixa de abas das 8 telas como o protótipo [W+C] (#10342) 🚀
 
-### oficina — 39 (+10 manutenção)
+### oficina — 39 (+11 manutenção)
 - feat: handoff design Produção — charter v3 + drawer Vendas×Oficina + arrasto preditivo (#2228) · `DS` 🚀
 - feat: re-tokeniza Kanban Oficina → família stage DS (UI-Lint #2228) (#2234) · `DS` 🚀
 - feat: P0-2 — baixa de estoque ao concluir OS + Tier 0 no product_id (#2314) 🚀
@@ -2518,44 +2685,6 @@ generated: "2026-11-04"
 - fix: baseline ausente vira `skipped`, não `passed` — 2 estados da Jana eram verde estrutural [C] (#7668) 🚀
 - fix: falha do Lint L2 reprova o job no fim em vez de pular a cadeia (#8012) 🚀
 - fix: setup quebrado não vira "gate visual reprovou" + teto das deps 5→8 min [CL] (#8396) 🚀
-
-### configuracoes — 36 (+9 manutenção)
-- feat: Impressoras em React atrás da flag — thread sistema 04 (F3-1) [CL] (#8947) 🚀
-- feat: Código de barras em React atrás da flag — thread sistema 04 (F3-1) [CL] (#8964) 🚀
-- feat: Locais comerciais em React atrás da flag — thread sistema 04 (F3-1) [CL] (#8965) 🚀
-- feat: Impressoras — drawer cadastrar/editar e abas de Configurações — thread sistema 04 (F3-2) [CL] (#8966) · `DS` 🚀
-- feat: Código de barras — drawer cadastrar/editar e abas — thread sistema 04 (F3-2) [CL] (#8975) · `DS` 🚀
-- feat: Locais — drawer cadastrar/editar e abas — thread sistema 04 (F3-2) [CL] (#8976) · `DS` 🚀
-- feat: Impostos em React atrás da flag — thread sistema 05 (F3-1) [CL] (#9006) 🚀
-- feat: Tipos de serviço em React atrás da flag — thread sistema 05 (F3-1) [CL] (#9007) 🚀
-- feat: Esquemas de fatura em React atrás da flag — thread sistema 05 (F3-1) [CL] (#9009) 🚀
-- feat: Impostos — drawer cadastrar/editar alíquota — thread sistema 05 (F3-2) [CL] (#9011) · `DS` 🚀
-- feat: Tipos de serviço — drawer cadastrar/editar — thread sistema 05 (F3-2) [CL] (#9012) · `DS` 🚀
-- feat: Esquemas de fatura — drawer cadastrar/editar — thread sistema 05 (F3-2) [CL] (#9013) · `DS` 🚀
-- fix: editar Impressora, Código de barras e Local com id de outro negócio dá 404 — thread sistema 12 [CL] (#9055) 🚀
-- feat: Contas de pagamento em React atrás da flag OFF — thread sistema 06 (F3) [CL] (#9171) 🚀
-- feat: Configuração da empresa em React — aba Negócio atrás da flag (F3-1) [CL] (#9172) 🚀
-- fix: chaves secretas de pagamento fora da tela React da empresa [CL] (#9198) 🚀
-- feat: abas Impostos, Produtos e Contatos da Configuração da empresa (F3-2) [CL] (#9194) 🚀
-- fix: fixture do UC-EMP-06 completo — lane Acessos volta a passar no main [CL] (#9232) 🚀
-- feat: abas Vendas e Pagamento da Configuração da empresa (F3-3a) [CL] (#9199) 🚀
-- feat: aba Venda no PDV com balança da Configuração da empresa (F3-3b) [CL] (#9204) 🚀
-- feat: aba Compras da Configuração da empresa (F3-3c) [CL] (#9207) 🚀
-- feat: grupo Sistema da Configuração da empresa — Painel, Sistema, Prefixos (F3-4) [CL] (#9210) 🚀
-- feat: abas E-mail e SMS da Configuração da empresa, segredos só de escrita (F3-5a) [CL] (#9217) 🚀
-- feat: abas Pontos de fidelidade e Módulos da Configuração da empresa (F3-5b) [CL] (#9219) 🚀
-- feat: aba Rótulos personalizados da Configuração da empresa — fecha as 16 abas (F3-5c) [CL] (#9223) 🚀
-- fix: salvar pela Blade não apaga chaves de common_settings de outras features (#9707) 🚀
-- feat: aba Financeiro liga a régua de cobrança (#9700) 🚀
-- feat: aba App das lojas na Configuração da empresa [C] (#9923) 🚀
-- feat: Configuração da empresa em React para todas as empresas [C] (#9938) 🚀
-- refactor: cutover de Locais, Impressoras e Código de barras (flag e Blade saem) (#9957) 🚀
-- feat: grupos de imposto editados na tela React de Impostos (UC-IMPOS-05) (#10264) 🚀
-- feat: CSS do protótipo de Configurações entra inteiro, com escopo [W+C] (#10294) 🚀
-- feat: cabeçalho e abas da Configuração da empresa como o protótipo [W+C] (#10298) 🚀
-- feat: painel lateral, cabeçalho da aba e barra de salvar como o protótipo [W+C] (#10299) 🚀
-- feat: campos, interruptores e blocos no formato do protótipo [W+C] (#10301) 🚀
-- feat: textos e ordem de cada aba como o protótipo [W+C] (#10302) 🚀
 
 ### sdd — 36 (+24 manutenção)
 - fix: mata o comentário factualmente falso do full_suite no scorecard (#2957) 🚀
@@ -2835,37 +2964,6 @@ generated: "2026-11-04"
 - fix: sonda sem credencial das chaves do Passport [CL] (#8544) 🚀
 - revert: volta o composer install com require-dev em produção (desfaz #8857) [CL] (#8880) 🚀
 
-### fisio — 29 (+4 manutenção)
-- feat: migrations, models e append-only — US-FISIO-003 [CC] (#9537) 🚀
-- feat: pacientes e prontuário — US-FISIO-005 (#9546) 🚀
-- feat: questionários de uso livre na ficha — US-FISIO-011 (parcial) (#9550) 🚀
-- feat: núcleo de cálculo do jogo e do painel — US-FISIO-008/010 (#9547) 🚀
-- feat: biblioteca de exercícios com busca por texto — US-FISIO-004 (parcial) (#9549) 🚀
-- fix: paciente bloqueado só aceita adendo e não edita perfil — US-FISIO-005 [CC] (#9554) 🚀
-- feat: exportar prontuário do paciente em PDF [CC] (#9556) 🚀
-- feat: favoritos e filtros de equipamento e posição na biblioteca [CC] (#9558) 🚀
-- feat: criar contato na hora ao cadastrar paciente + recusa contato apagado [CC] (#9559) 🚀
-- feat: fisioterapeuta responsável e transferência de paciente [CC] (#9557) 🚀
-- feat: painel, evolução e fila de atenção — US-FISIO-010 [CC] (#9553) 🚀
-- feat: foto e vídeo no exercício próprio da clínica [CC] (#9555) 🚀
-- feat: editor de programa, protocolos-modelo e aviso de contraindicação — US-FISIO-006 [CC] (#9552) 🚀
-- feat: jogo de constância — XP, nível, sequência e pausa por dor — US-FISIO-008 [CC] (#9564) 🚀
-- feat: portal do paciente — link + PIN e consentimentos — US-FISIO-007a [CC] (#9565) 🚀
-- feat: envio do link e lembrete diário por WhatsApp pelo módulo Whatsapp — US-FISIO-009 [CC] (#9566) 🚀
-- feat: telas do paciente — entrada, hoje e check-in ligados ao jogo — US-FISIO-007b [CC] (#9567) 🚀
-- feat: portal do paciente instalável no celular — etapa 02 T-13 parte 1 [CC] (#9569) 🚀
-- fix: portal do paciente sem login dava 500 no link válido (#9570) 🚀
-- feat: biblioteca global com os 38 exercícios aprovados — US-FISIO-004 [CC] (#9571) 🚀
-- feat: entrada /fisio/app para o app do paciente na Google Play [CC] (#9578) 🚀
-- feat: Biblioteca no menu do Fisio, na ordem da ADR 0437 §3.3 [CC] (#9593) 🚀
-- feat: lint de linguagem Anvisa ao salvar texto da clínica (B-06) [CC] (#9594) 🚀
-- feat: fila offline do check-in no portal do paciente [CC] (#9595) 🚀
-- feat: painel lista WhatsApp que não chegou hoje, com wa.me (T-09e) [CC] (#9596) 🚀
-- feat: missões, desafio semanal e medalhas do jogo (T-08c) [CC] (#9600) 🚀
-- feat: folha A4 do programa para imprimir (B-12) [CC] (#9599) 🚀
-- fix: teste da fila offline manda o cookie do aparelho no postJson [CC] (#9603) 🚀
-- fix: lista de pacientes no DataTable do DS, como o PT-01 que o charter declara [F+C] (#9694) 🚀
-
 ### officeimpresso — 29 (+16 manutenção)
 - feat: permissão delegável `clientes.liberar` (separa "liberar clientes" do superadmin) (#3246) 🚀
 - fix: exige permissão nas telas de licença (rota pedia só auth) (#5044) 🚀
@@ -2981,6 +3079,32 @@ generated: "2026-11-04"
 - fix: escopo do acervo deriva de TIPOS_DOC, nunca digitado (#5297) 🚀
 - fix: reaponta 6 refs de código do stub Copiloto pra verdade viva em Jana [C] (#5596) 🚀
 
+### qa — 24 (+3 manutenção)
+- feat: especialista de tela + catraca de cobertura sustentável (proposta) (#2215) 🚀
+- feat: screen-grade enforcement — seed 222 scorecards + catraca anti-regressão (#2223) 🚀
+- fix: contar contratos visuais executáveis (#4343) 🚀
+- fix: publicar cobertura em todo PR (#4350) 🚀
+- fix: medir apenas telas Inertia reais (#4351) 🚀
+- fix: preservar cobertura por identidade de tela (#4352) 🚀
+- feat: resolver por-tela (--screen) — acha TODOS os arquivos da tela + flag de ambiguidade (#4549) 🚀
+- feat: charter DECLARA artefatos → resolver por-tela resolve por DECLARAÇÃO, não por nome (#4553) 🚀
+- fix: catraca de nota passa a ver DELEÇÃO de scorecard (vetor 2) [C] (#5552) 🚀
+- fix: porta viva ganha kebab nas chaves de nome — 8 artefatos existiam e ela dizia "ausente" [C] (#5628) 🚀
+- feat: publica cobertura de VRT como eixo próprio no screen-coverage-map [C] (#5785) 🚀
+- feat: uc-id-lint — id de UC fora do formato não falha, fica INVISÍVEL (#6157) 🚀
+- feat: uc-lane-coverage — o teste que o casos.md cita roda em alguma lane? (#6158) · `DS` 🚀
+- fix: uc-lane-coverage consome o DONO da derivação, e conserta um falso-negativo nele (#6161) 🚀
+- fix: o uc-lane-coverage lia SO a tabela — 57 casos.md com 386 UC eram invisiveis [C] (#6315) · `DS` 🚀
+- fix: o meta-teste do casos-gate não acordava — nem mordia — no drift das suas 2 deps [C] (#6331) · `DS` 🚀
+- feat: guard de pele paralela no espelho Cowork + limpeza da esteira [C] (#6489) 🚀
+- fix: eixo a11y credita auditoria DECLARADA no contrato visreg — Ponto sai de 0 [C] (#6852) 🚀
+- fix: eixo a11y mede a CHAMADA de axe, não a palavra — 2 falso-positivos saem [C] (#6872) 🚀
+- feat: PR-A4 — a11y medida nos dois lados, com ratchet que so desce [C] (#7489) 🚀
+- refactor: o cálculo de contraste passa a ter UM dono — a duplicata do A2 sai [C] (#7494) 🚀
+- fix: prototipo-readiness troca o ponto do slug por hífen (kb/Index.v2) [C] (#7751) 🚀
+- fix: screen-grades-ratchet mede o que o PR mudou vs merge-base, não a ponta (#7775) 🚀
+- fix: screen:files acha RUNBOOK/visual-comparison na pasta que o charter declara [C] (#10492) 🚀
+
 ### manufacturing — 23 (+10 manutenção)
 - feat: a tela de Fabricação em produção no endereço /manufacturing/recipe [C] (#6546) 🚀
 - feat: as 6 ondas restantes de Fabricação — escopo e ordem por custo [C] (#6573) 🚀
@@ -3005,31 +3129,6 @@ generated: "2026-11-04"
 - feat: registra as respostas do [W] e tira o desperdício da receita no protótipo (#9811) 🚀
 - feat: tira o desperdício da receita das telas da Fabricação (#9812) 🚀
 - feat: cutover de Receitas — apaga as 6 Blades e serve só a tela React (#10045) 🚀
-
-### qa — 23 (+3 manutenção)
-- feat: especialista de tela + catraca de cobertura sustentável (proposta) (#2215) 🚀
-- feat: screen-grade enforcement — seed 222 scorecards + catraca anti-regressão (#2223) 🚀
-- fix: contar contratos visuais executáveis (#4343) 🚀
-- fix: publicar cobertura em todo PR (#4350) 🚀
-- fix: medir apenas telas Inertia reais (#4351) 🚀
-- fix: preservar cobertura por identidade de tela (#4352) 🚀
-- feat: resolver por-tela (--screen) — acha TODOS os arquivos da tela + flag de ambiguidade (#4549) 🚀
-- feat: charter DECLARA artefatos → resolver por-tela resolve por DECLARAÇÃO, não por nome (#4553) 🚀
-- fix: catraca de nota passa a ver DELEÇÃO de scorecard (vetor 2) [C] (#5552) 🚀
-- fix: porta viva ganha kebab nas chaves de nome — 8 artefatos existiam e ela dizia "ausente" [C] (#5628) 🚀
-- feat: publica cobertura de VRT como eixo próprio no screen-coverage-map [C] (#5785) 🚀
-- feat: uc-id-lint — id de UC fora do formato não falha, fica INVISÍVEL (#6157) 🚀
-- feat: uc-lane-coverage — o teste que o casos.md cita roda em alguma lane? (#6158) · `DS` 🚀
-- fix: uc-lane-coverage consome o DONO da derivação, e conserta um falso-negativo nele (#6161) 🚀
-- fix: o uc-lane-coverage lia SO a tabela — 57 casos.md com 386 UC eram invisiveis [C] (#6315) · `DS` 🚀
-- fix: o meta-teste do casos-gate não acordava — nem mordia — no drift das suas 2 deps [C] (#6331) · `DS` 🚀
-- feat: guard de pele paralela no espelho Cowork + limpeza da esteira [C] (#6489) 🚀
-- fix: eixo a11y credita auditoria DECLARADA no contrato visreg — Ponto sai de 0 [C] (#6852) 🚀
-- fix: eixo a11y mede a CHAMADA de axe, não a palavra — 2 falso-positivos saem [C] (#6872) 🚀
-- feat: PR-A4 — a11y medida nos dois lados, com ratchet que so desce [C] (#7489) 🚀
-- refactor: o cálculo de contraste passa a ter UM dono — a duplicata do A2 sai [C] (#7494) 🚀
-- fix: prototipo-readiness troca o ponto do slug por hífen (kb/Index.v2) [C] (#7751) 🚀
-- fix: screen-grades-ratchet mede o que o PR mudou vs merge-base, não a ponta (#7775) 🚀
 
 ### repair — 23 (+21 manutenção)
 - fix: resolve conflito de merge commitado no CHANGELOG.md (#2807) 🚀
@@ -3079,6 +3178,29 @@ generated: "2026-11-04"
 - feat: editar transferência em React [C] (#10064) 🚀
 - refactor: apaga a lista e o formulário Blade dos ajustes — cutover [C] (#10029) 🚀
 
+### nfe — 21 (+3 manutenção)
+- fix: retry pós-falha não viola nfe_emissoes_biz_tx_unique (#2120) 🚀
+- fix: retry-with-backoff em erro de transporte SEFAZ (connection reset) (#2125) 🚀
+- fix: FS-DA é tpEmis=5 (NF-e mod 55), não 9/NFC-e — 6 sites do canon [C] (#6524) 🚀
+- feat: schema da contingência SEFAZ — US-NFE-006 fase 1 [C] (#6527) 🚀
+- feat: ativar/desativar contingência por tenant — US-NFE-006 fase 2 [C] (#6529) 🚀
+- feat: persistir saúde da SEFAZ por UF — US-NFE-006 fase 3 [C] (#6538) 🚀
+- feat: emitir E transmitir em contingência — US-NFE-006 fases 4+5 [C] (#6549) 🚀
+- fix: colisão de constante CONT_BIZ entre 2 testes da contingência [C] (#6562) 🚀
+- feat: nota com os itens reais — um det por linha da venda (thread 17) [CL] (#8836) 🚀
+- feat: contingência SVC-AN/SVC-RS e evento EPEC 110140, com escolha de modo [C] (#9718) 🚀
+- feat: regime próprio do local emissor e regra fiscal por regime (P-155) (#10161) 🚀
+- fix: ICMS-ST dentro do estado para contribuinte, na nota e na venda (P-153) (#10162) 🚀
+- feat: venda bonificada sai como NF-e de bonificação — CFOP 5910/6910, tPag 90 (P-154) (#10178) 🚀
+- feat: regras tributárias do Delphi do Sabor Brasil por CSV com dry-run (#10185) 🚀
+- fix: testes de bonificação sem banco na lane SQLite (UC-FNFE-58) (#10197) 🚀
+- feat: bonificação tributa pela regra da operação dela (Sabor Brasil item 2) (#10196) 🚀
+- feat: --criar-operacoes no nfe:importar-regras-csv (UC-NFIM-07) (#10198) 🚀
+- feat: histórico do manifesto do Delphi + CNPJ destinatário no DF-e (ADR ARQ-0007 p.6) [F+C] (#10305) 🚀
+- feat: CST/CFOP incoerente avisa e não bloqueia (Sabor Brasil) [F+C] (#10300) 🚀
+- feat: CEST e GTIN do cadastro no XML da NF-e [F+C] (#10314) 🚀
+- fix: DIFAL, ST e FCP também no nível 4 do motor tributário [W+C] (#10377) 🚀
+
 ### reguas — 21 (+4 manutenção)
 - fix: args.base tolera string OU objeto + corrige nota errada [CC] (#4080) 🚀
 - fix: grade lia 20% da evidência e saía com cara de completa (#4398) 🚀
@@ -3101,28 +3223,6 @@ generated: "2026-11-04"
 - fix: uniformiza agentType general-purpose nas 14 chamadas de agent() (#5839) 🚀
 - fix: a máquina de medir se declarava completa sem ter medido (#6151) 🚀
 - fix: preservar a última medição efetiva (#6152) 🚀
-
-### nfe — 20 (+3 manutenção)
-- fix: retry pós-falha não viola nfe_emissoes_biz_tx_unique (#2120) 🚀
-- fix: retry-with-backoff em erro de transporte SEFAZ (connection reset) (#2125) 🚀
-- fix: FS-DA é tpEmis=5 (NF-e mod 55), não 9/NFC-e — 6 sites do canon [C] (#6524) 🚀
-- feat: schema da contingência SEFAZ — US-NFE-006 fase 1 [C] (#6527) 🚀
-- feat: ativar/desativar contingência por tenant — US-NFE-006 fase 2 [C] (#6529) 🚀
-- feat: persistir saúde da SEFAZ por UF — US-NFE-006 fase 3 [C] (#6538) 🚀
-- feat: emitir E transmitir em contingência — US-NFE-006 fases 4+5 [C] (#6549) 🚀
-- fix: colisão de constante CONT_BIZ entre 2 testes da contingência [C] (#6562) 🚀
-- feat: nota com os itens reais — um det por linha da venda (thread 17) [CL] (#8836) 🚀
-- feat: contingência SVC-AN/SVC-RS e evento EPEC 110140, com escolha de modo [C] (#9718) 🚀
-- feat: regime próprio do local emissor e regra fiscal por regime (P-155) (#10161) 🚀
-- fix: ICMS-ST dentro do estado para contribuinte, na nota e na venda (P-153) (#10162) 🚀
-- feat: venda bonificada sai como NF-e de bonificação — CFOP 5910/6910, tPag 90 (P-154) (#10178) 🚀
-- feat: regras tributárias do Delphi do Sabor Brasil por CSV com dry-run (#10185) 🚀
-- fix: testes de bonificação sem banco na lane SQLite (UC-FNFE-58) (#10197) 🚀
-- feat: bonificação tributa pela regra da operação dela (Sabor Brasil item 2) (#10196) 🚀
-- feat: --criar-operacoes no nfe:importar-regras-csv (UC-NFIM-07) (#10198) 🚀
-- feat: histórico do manifesto do Delphi + CNPJ destinatário no DF-e (ADR ARQ-0007 p.6) [F+C] (#10305) 🚀
-- feat: CST/CFOP incoerente avisa e não bloqueia (Sabor Brasil) [F+C] (#10300) 🚀
-- feat: CEST e GTIN do cadastro no XML da NF-e [F+C] (#10314) 🚀
 
 ### outros — 19
 - outros: Reforço AppShell + testes + CSS (handoff Cowork 2026-06-02) (#2119) 🚀
@@ -3241,6 +3341,23 @@ generated: "2026-11-04"
 - feat: geração OpenAPI fail-closed, sem dado real (US-CONN-013 T-01/T-02) (#9837) 🚀
 - feat: webhooks de saída assinados por empresa — venda finalizada (US-CONN-021 parcial) (#9846) 🚀
 
+### documentacao — 15 (+7 manutenção)
+- feat: sumario navegavel derivado + link relativo resolve certo na rota (#5227) 🚀
+- fix: link de doc em subpasta resolvia contra memory/, não contra a pasta dele (#5237) 🚀
+- style: paleta e tipografia vêm dos tokens do DS, travadas por teste (#5238) 🚀
+- feat: rail derivado, lente Operar/Construir e anterior/próximo (#5244) 🚀
+- feat: tela do programa (Trilha D) — renderiza o plano, não é cópia [CC] (#5354) 🚀
+- feat: charter e casos entram no acervo — e o `:` do slug para de dar 404 [C] (#6233) · `DS` 🚀
+- feat: onda 1 — bundle CSS do protótipo inteiro no chão [C] (#7882) 🚀
+- feat: onda 2a — rail, lentes e sumário da superfície Inertia [C] (#7883) 🚀
+- feat: onda 2b — capa /documentacao em Inertia (Index) [C] (#7885) 🚀
+- feat: Non-Goals/Anti-hooks do Programa + convenção task→onda [C] (#8018) 🚀
+- feat: Programa (Trilha D) em React/Inertia — thread 02 programa-doc [C] (#8049) 🚀
+- feat: casos de uso do catálogo de fluxos na documentação (#9622) · `DS` 🚀
+- feat: casos de uso levam ao SPEC da US e aos .casos.md que os citam (#9635) · `DS` 🚀
+- feat: página Casos de uso por tela dentro do sistema (#10143) · `DS` 🚀
+- fix: folga no corpo de Casos de uso por tela [W+C] (#10391) · `DS` 🚀
+
 ### fsm — 15 (+2 manutenção)
 - fix: garante reset do FsmAuthorizationFlag no lifecycle (Octane + fila) [CC] (#4660) 🚀
 - feat: retomar_producao (Em espera → Em produção) + ADR 0434 [W+C] (#9484) 🚀
@@ -3273,22 +3390,6 @@ generated: "2026-11-04"
 - fix: match FRACO passa a se declarar fraco — fecha o resíduo da thread 02 [C] (#7154) 🚀
 - fix: caminho com espaço que não abre passa a dizer NÃO ABRE, não "nada a ler" [C] (#8025) 🚀
 - feat: resolve charter de SHELL (Components/cockpit, Layouts) pela query [CL] (#9409) 🚀
-
-### documentacao — 14 (+7 manutenção)
-- feat: sumario navegavel derivado + link relativo resolve certo na rota (#5227) 🚀
-- fix: link de doc em subpasta resolvia contra memory/, não contra a pasta dele (#5237) 🚀
-- style: paleta e tipografia vêm dos tokens do DS, travadas por teste (#5238) 🚀
-- feat: rail derivado, lente Operar/Construir e anterior/próximo (#5244) 🚀
-- feat: tela do programa (Trilha D) — renderiza o plano, não é cópia [CC] (#5354) 🚀
-- feat: charter e casos entram no acervo — e o `:` do slug para de dar 404 [C] (#6233) · `DS` 🚀
-- feat: onda 1 — bundle CSS do protótipo inteiro no chão [C] (#7882) 🚀
-- feat: onda 2a — rail, lentes e sumário da superfície Inertia [C] (#7883) 🚀
-- feat: onda 2b — capa /documentacao em Inertia (Index) [C] (#7885) 🚀
-- feat: Non-Goals/Anti-hooks do Programa + convenção task→onda [C] (#8018) 🚀
-- feat: Programa (Trilha D) em React/Inertia — thread 02 programa-doc [C] (#8049) 🚀
-- feat: casos de uso do catálogo de fluxos na documentação (#9622) · `DS` 🚀
-- feat: casos de uso levam ao SPEC da US e aos .casos.md que os citam (#9635) · `DS` 🚀
-- feat: página Casos de uso por tela dentro do sistema (#10143) · `DS` 🚀
 
 ### test — 14 (+5 manutenção)
 - fix: PagarmeDriverTest makeCred — Crypt::encryptString pra config_json (RC-9) (#2713) 🚀
@@ -3350,7 +3451,21 @@ generated: "2026-11-04"
 - feat: leitor PHP dos casos.md com teste de paridade contra o Node (#10142) · `DS` 🚀
 - feat: comando que registra pedido de cliente no casos.md, já na página (#10154) · `DS` 🚀
 
-### infra — 12 (+22 manutenção)
+### fluxos — 12 (+5 manutenção)
+- feat: tela Sistema › Fluxos e regras — acesso, menu e aba Modelos [W+C] (#9495) 🚀
+- feat: aba Fluxos da empresa e "Usar modelo" [W+C] (#9497) 🚀
+- feat: assistente de configuração com IA e queda para a regra de encaixe [W+C] (#9500) 🚀
+- feat: aba Processos — estados, transições e roteiro do catálogo [W+C] (#9503) 🚀
+- feat: aba Casos de uso — UC-FLX com fontes e estado no oimpresso [W+C] (#9509) · `DS` 🚀
+- feat: regras configuráveis por empresa — ligar/desligar e a Compra (backend) [W+C] (#9514) 🚀
+- feat: aba Fluxos da empresa liga/desliga regra e a Compra é configurável [W+C] (#9515) 🚀
+- feat: aba Processos mostra a cobertura do ERP por processo e por transição [W+C] (#9516) 🚀
+- feat: casos de uso do custo orçado × empregado (UC-FLX-33..38) (#9607) · `DS` 🚀
+- feat: interruptor "Reservar material na venda" na aba Fluxos da empresa (US-PCP-031 · UC-FLXT-22) (#9697) 🚀
+- feat: campo Sinal mínimo % na aba Fluxos da empresa (US-PCP-025) (#9701) 🚀
+- feat: interruptor "Aguardar o material para produzir" na aba da empresa [W+C] (#10506) 🚀
+
+### infra — 12 (+23 manutenção)
 - feat: cowork-inbox write-path de código com review-gate (Onda D-core) (#2876) 🚀
 - fix: self-update.sh sincroniza cópia do nightly fullsuite — mata drift de 13d que segurou o P07 coverage [CC] (#3587) 🚀
 - fix: backup auth-state WhatsApp consistente pós-migração Baileys→wuzapi/whatsmeow [CC] (#3849) 🚀
@@ -3377,19 +3492,6 @@ generated: "2026-11-04"
 - feat: emite a NF-e do pedido pela interface da frente Fiscal (US-MKT-009) (#9922) 🚀
 - feat: conectar a loja Nuvemshop, atrás de flag (US-MKT-026 parcial) (#9982) 🚀
 - feat: receptor assinado da Nuvemshop e webhooks LGPD (US-MKT-027 parcial) (#9998) 🚀
-
-### fluxos — 11 (+5 manutenção)
-- feat: tela Sistema › Fluxos e regras — acesso, menu e aba Modelos [W+C] (#9495) 🚀
-- feat: aba Fluxos da empresa e "Usar modelo" [W+C] (#9497) 🚀
-- feat: assistente de configuração com IA e queda para a regra de encaixe [W+C] (#9500) 🚀
-- feat: aba Processos — estados, transições e roteiro do catálogo [W+C] (#9503) 🚀
-- feat: aba Casos de uso — UC-FLX com fontes e estado no oimpresso [W+C] (#9509) · `DS` 🚀
-- feat: regras configuráveis por empresa — ligar/desligar e a Compra (backend) [W+C] (#9514) 🚀
-- feat: aba Fluxos da empresa liga/desliga regra e a Compra é configurável [W+C] (#9515) 🚀
-- feat: aba Processos mostra a cobertura do ERP por processo e por transição [W+C] (#9516) 🚀
-- feat: casos de uso do custo orçado × empregado (UC-FLX-33..38) (#9607) · `DS` 🚀
-- feat: interruptor "Reservar material na venda" na aba Fluxos da empresa (US-PCP-031 · UC-FLXT-22) (#9697) 🚀
-- feat: campo Sinal mínimo % na aba Fluxos da empresa (US-PCP-025) (#9701) 🚀
 
 ### notificacoes — 11 (+3 manutenção)
 - feat: P1 — seed dos modelos em PT-BR + migration da base migrada [C] (#5984) 🚀
@@ -3428,6 +3530,18 @@ generated: "2026-11-04"
 - fix: detect cobre telas de módulo e alvos dos contratos [CL] (#8385) · `DS` 🚀
 - fix: copy só conta se estiver no código, não em comentário [CL] (#8539) · `DS` 🚀
 - fix: --omission só promete as saídas que lê [CL] (#8788) · `DS` 🚀
+
+### design-diff — 10
+- fix: o comparador passa a LER o valor do KPI — a sonda media, ninguem consumia [C] (#6098) 🚀
+- feat: D9 — o comparador passa a medir TEXTO, por classe de formato [C] (#6337) 🚀
+- fix: a célula de tabela — o que D2/D4/D6/D8 declaravam e a mecanização nunca mediu [C] (#6343) 🚀
+- fix: o `blocos` contava nós de texto e emitia veredito que não podia emitir [C] (#6348) 🚀
+- feat: D0 — prova que os dois lados são a MESMA tela antes de comparar [C] (#6480) 🚀
+- fix: o --check crashava no caminho VERDE — resolve nunca foi importado, + o bite-test que faltava [C] (#7484) 🚀
+- feat: --canario <snap.json> — separa "tudo verde" de "não estou medindo" [C] (#7490) 🚀
+- fix: célula só-ícone mede a cor do controle [CC] (#9421) 🚀
+- feat: a régua mede a gaveta — passo abrir, papel drawer e tokens no portal [F+C] (#9597) · `DS` 🚀
+- fix: D4 passa a comparar o peso do título [CC] (#10370) 🚀
 
 ### mcp — 10 (+2 manutenção)
 - feat: D1 — mcp_work_leases, lease de coordenação anti-vazamento (ADR 0278) (#2781) 🚀
@@ -3487,17 +3601,6 @@ generated: "2026-11-04"
 - fix: a coluna "Situação" para de mostrar "Ordered/Packed/Shipped" em inglês [C] (#6701) 🚀
 - feat: painel de Pendencias na Visao geral — o numero vem do mesmo linhas() da grade [C] (#6763) 🚀
 
-### design-diff — 9
-- fix: o comparador passa a LER o valor do KPI — a sonda media, ninguem consumia [C] (#6098) 🚀
-- feat: D9 — o comparador passa a medir TEXTO, por classe de formato [C] (#6337) 🚀
-- fix: a célula de tabela — o que D2/D4/D6/D8 declaravam e a mecanização nunca mediu [C] (#6343) 🚀
-- fix: o `blocos` contava nós de texto e emitia veredito que não podia emitir [C] (#6348) 🚀
-- feat: D0 — prova que os dois lados são a MESMA tela antes de comparar [C] (#6480) 🚀
-- fix: o --check crashava no caminho VERDE — resolve nunca foi importado, + o bite-test que faltava [C] (#7484) 🚀
-- feat: --canario <snap.json> — separa "tudo verde" de "não estou medindo" [C] (#7490) 🚀
-- fix: célula só-ícone mede a cor do controle [CC] (#9421) 🚀
-- feat: a régua mede a gaveta — passo abrir, papel drawer e tokens no portal [F+C] (#9597) · `DS` 🚀
-
 ### nfse — 9 (+7 manutenção)
 - fix: ambiente de emissão resolvido por-business (cutover fiscal biz=164) (#2147) 🚀
 - fix: FK nfse_emissao_id INT casa com nfse_emissoes (erro 3780, destrava suíte MySQL) (#2218) 🚀
@@ -3552,6 +3655,16 @@ generated: "2026-11-04"
 - fix: PageHeader quebra em telefone — cabeçalho do Ponto mobile a 375px [CC] (#8448) · `DS` 🚀
 - fix: campo numérico seleciona tudo ao entrar — digitar troca o valor em vez de somar [F+C] (#9216) · `DS` 🚀
 - fix: diálogos e drawer da lista de produtos e da Produção montam dentro do .cockpit [F+C] (#9590) · `DS` 🚀
+
+### oficinaauto — 8 (+15 manutenção)
+- feat: view Fila (master-detail) na Index de OS (#2160) 🚀
+- fix: a OS não devolve a venda de outra empresa (UC-OSH-11) (#10146) 🚀
+- fix: consulta de placa não loga placa nem chave do fornecedor (L3 · 3.3) (#10467) 🚀
+- fix: editar item da OS só aceita produto da própria empresa (Tier 0) (#10493) 🚀
+- fix: lembrete de revisão agendado só para empresa com o pacote (L3 · 3.4) (#10444) 🚀
+- fix: assinatura de entrega colhida não se troca nem se apaga (L3 · 3.2) (#10433) 🚀
+- fix: vehicle_id da OS só aceita veículo da própria empresa (Tier 0) (#10409) 🚀
+- fix: contact_id do veículo só aceita cliente da própria empresa (Tier 0) (#10431) 🚀
 
 ### recurringbilling — 8 (+5 manutenção)
 - feat: re-skin DS v6 — stone+roxo canon (charter Cobrança Recorrente) (#2212) · `DS` 🚀
@@ -3690,6 +3803,14 @@ generated: "2026-11-04"
 - fix: gate da Cozinha reativado nas duas pernas — endpoint + menu [C] (#5388) 🚀
 - fix: listagem de modificadores servia sem gate — e so `product.view` criaria a classe A [C] (#5432) 🚀
 
+### sidebar — 6 (+1 manutenção)
+- fix: Ponto em 1º no grupo RH — ordem explícita por grupo, como no protótipo [CL] (#8140) · `DS` 🚀
+- feat: Produção em PRODUÇÃO, Fisio em COMERCIAL, Arquivos em SISTEMA (#9598) · `DS` 🚀
+- feat: Configurações e usuários no SISTEMA; rodapé arrumado [W+C] (#10310) · `DS` 🚀
+- fix: rodapé com um traço só, como o protótipo [W+C] (#10313) · `DS` 🚀
+- feat: rótulos e ordem como o protótipo [W+C] (#10317) · `DS` 🚀
+- feat: Super Admin e Suporte no grupo Plataforma [W+C] (#10320) · `DS` 🚀
+
 ### acessos — 5
 - feat: cadastro de comissionado MARCA o usuário que já existe, em vez de abrir 2ª linha [C] (#6069) 🚀
 - feat: comissionado ganha permissao propria e larga o user.* [C] (#6072) 🚀
@@ -3732,6 +3853,13 @@ generated: "2026-11-04"
 - fix: shard que crasha não derruba o pai (2o bug da nightly real) (#4189) 🚀
 - fix: o timer passa a OnCalendar + Persistent, e a unit vira versionada [C] (#7627) 🚀
 
+### design-diff-lote — 5
+- fix: token de rota por tela nas 7 do Fiscal — 2 telas destravam e 2 vereditos falsos caem [C] (#7010) 🚀
+- fix: o D0 exige COPY no contrato, nao so o arquivo existir [C] (#7501) 🚀
+- feat: espelho por dono + a re-medição das 5 telas da Fabricação [W+C] (#7704) 🚀
+- feat: rota por tela + medir um lado só (--lado) [CL] (#8754) 🚀
+- feat: mede tela que é sub-visão de módulo do protótipo (#10371) 🚀
+
 ### install — 5
 - fix: install/uninstall/update fora de GET — trait + lote 1 (5 módulos) [CL] (#8387) 🚀
 - fix: install/uninstall/update fora de GET — lote 2 (Forja, Jana, KB, Ponto, Repair, Spreadsheet) [CL] (#8411) 🚀
@@ -3739,7 +3867,7 @@ generated: "2026-11-04"
 - fix: install/uninstall/update fora de GET — lote 4 (NFSe, NfeBrasil, OficinaAuto, PaymentGateway, RecurringBilling, Vestuario) [CL] (#8415) 🚀
 - fix: install/uninstall/update fora de GET — lote 5 (VozDoCliente, Whatsapp, Compras, Essentials, Superadmin, Woocommerce) [CL] (#8421) 🚀
 
-### licoes — 5 (+130 manutenção)
+### licoes — 5 (+131 manutenção)
 - fix: ledger duplicado e bloco partido — o hook lia 24 entradas de 17 [C] (#5183) 🚀
 - fix: a lápide de 2026-08-26 entra numa classe LC — o §5 derivado não carrega blockquote [C] (#6291) 🚀
 - feat: contador do ledger vira DERIVADO (base congelada + 1 por `- **rec**`) [C] (#7316) 🚀
@@ -3752,6 +3880,13 @@ generated: "2026-11-04"
 - fix: session log de 02/09 ganha o vocabulário canônico do schema (#7303) 🚀
 - fix: `## TL;DR` rotula o resumo que o session log de 02/09 já tinha (#7307) 🚀
 - fix: restaura os 3 marcadores de fronteira-de-palavra que colapsaram em byte 0x08 [C] (#7360) 🚀
+
+### producao-proto — 5
+- feat: trocar o arquivo da arte aprovada, com versões (UC-PCV-11) (#10379) 🚀
+- feat: apontamento sem internet guarda e envia depois (UC-PCV-23) (#10389) 🚀
+- feat: aproveitamento de mídia calculado da mídia informada no apontamento (UC-PCV-26) (#10390) 🚀
+- feat: trilhas em paralelo na linha do tempo (UC-PCV-13) (#10393) 🚀
+- feat: estado vazio próprio de cada vista da Produção (#10396) 🚀
 
 ### ragas — 5 (+3 manutenção)
 - fix: canary distingue 'não consegui medir' de 'regrediu' — e o diagnóstico para de ser engolido [C] (#6518) 🚀
@@ -3773,13 +3908,6 @@ generated: "2026-11-04"
 - fix: authors=['C'] — fecha o gate session-log (fim da cadeia #3009/#3010) (#3011) 🚀
 - fix: frontmatter do log de visreg usa date/topic — o gate acusou os 2 required [C] (#6648) 🚀
 - fix: acrescenta `## TL;DR` — o check required exige seção no CORPO (#7354) 🚀
-
-### sidebar — 5 (+1 manutenção)
-- fix: Ponto em 1º no grupo RH — ordem explícita por grupo, como no protótipo [CL] (#8140) · `DS` 🚀
-- feat: Produção em PRODUÇÃO, Fisio em COMERCIAL, Arquivos em SISTEMA (#9598) · `DS` 🚀
-- feat: Configurações e usuários no SISTEMA; rodapé arrumado [W+C] (#10310) · `DS` 🚀
-- fix: rodapé com um traço só, como o protótipo [W+C] (#10313) · `DS` 🚀
-- feat: rótulos e ordem como o protótipo [W+C] (#10317) · `DS` 🚀
 
 ### spreadsheet — 5
 - feat: lista de planilhas em React atrás de flag OFF [CL] (#9161) 🚀
@@ -3850,11 +3978,11 @@ generated: "2026-11-04"
 - fix: `--json` para de gravar o baseline — e o teste que faltava cobre os modos que ESCREVEM [C] (#6981) 🚀
 - fix: charter de COMPONENTE sai da conta de TELA [C] (#7144) 🚀
 
-### design-diff-lote — 4
-- fix: token de rota por tela nas 7 do Fiscal — 2 telas destravam e 2 vereditos falsos caem [C] (#7010) 🚀
-- fix: o D0 exige COPY no contrato, nao so o arquivo existir [C] (#7501) 🚀
-- feat: espelho por dono + a re-medição das 5 telas da Fabricação [W+C] (#7704) 🚀
-- feat: rota por tela + medir um lado só (--lado) [CL] (#8754) 🚀
+### design-memory — 4 (+4 manutenção)
+- fix: ponteiros de proveniência mortos — 24 reapontados, 22 declarados ausentes, 6 charters Fiscal [C] (#5776) 🚀
+- feat: ABSENT-LOCAL vira modo gateável — o espelho pegou TUDO? [C] (#5781) 🚀
+- fix: 11 ponteiros de protótipo que ainda apontam pra fonte morta [C] (#6270) 🚀
+- fix: check de design volta a verde no main [CC] (#10376) 🚀
 
 ### despesas — 4 (+1 manutenção)
 - feat: lista de /expenses em React atrás de flag (US-MWART-015/016) [CL] (#9275) 🚀
@@ -3880,7 +4008,7 @@ generated: "2026-11-04"
 - feat: drawer de cadastrar/editar função em React — thread sistema 02 (F3-2) [CL] (#9170) · `DS` 🚀
 - fix: índice do radio_option sem undefined (TS2538) — regressão do #9170 [CL] (#9191) 🚀
 
-### matriz — 4 (+102 manutenção)
+### matriz — 4 (+104 manutenção)
 - feat: painel do sistema gerado (system-map.mjs) — índice derivado anti-drift (#4150) 🚀
 - feat: system-map gera COMECE-AQUI.md — onboarding que não apodrece (#4169) 🚀
 - fix: system-map se mantém via auto-PR (commit-back direto era rejeitado por GH013) (#4177) 🚀
@@ -3953,11 +4081,6 @@ generated: "2026-11-04"
 - refactor: shared/ vira FLAT — CHECK 3 no guard + MOVE shared/ponto → Pages/Ponto/_components (#2547) · `DS` 🚀
 - refactor: renomeia colisoes de nome (FiscalModuleTopNav, KbCommandPalette) + aperta catraca reuse 25→21 (#2549) · `DS` 🚀
 
-### design-memory — 3 (+3 manutenção)
-- fix: ponteiros de proveniência mortos — 24 reapontados, 22 declarados ausentes, 6 charters Fiscal [C] (#5776) 🚀
-- feat: ABSENT-LOCAL vira modo gateável — o espelho pegou TUDO? [C] (#5781) 🚀
-- fix: 11 ponteiros de protótipo que ainda apontam pra fonte morta [C] (#6270) 🚀
-
 ### design-system — 3 (+11 manutenção)
 - feat: tokens semânticos de domínio DS v6 (frescor/kind/kpi-feature/vip/sla/canal) via DTCG — ADR 0310 (#3356) 🚀
 - refactor: consolida frescor em --sla-* (escala temporal única) — ADR 0311 (#3366) 🚀
@@ -3983,6 +4106,11 @@ generated: "2026-11-04"
 - design: importa o zip V5 do PRODUTO UNIFICADO V2 pela ferramenta — os 5 pontos do Design conferidos [F+C] (#7673) 🚀
 - design: última leitura do telasFelipe — Fabricação onda B, porteiro de 11 testes e Clientes com o DS [F+C] (#7944) 🚀
 
+### fiscal-proto — 3
+- refactor: cores soltas trocadas pelos tokens do DS (lote 6.4) (#10474) 🚀
+- feat: ações da linha no teclado/toque e confirmação LGPD (lote 6.3) (#10446) 🚀
+- feat: estados de homologação, certificado vencido e contingência (lote 6.1) (#10422) 🚀
+
 ### fix — 3
 - fix: ExportZip signature braces + OndaComments skip + DetectDrift register (RC-12+13+14) (#2715) 🚀
 - fix: placeholder aceito como token + link morto da ADR 0155 publicado em todo PR (#5850) 🚀
@@ -3993,6 +4121,11 @@ generated: "2026-11-04"
 - fix: flag:create e flag:set --criar criam feature desligada + --environment no lugar do --env (#10259) 🚀
 - fix: feature inexistente vem como HTTP 400 do GrowthBook, não 404 (#10286) 🚀
 
+### legacy-migration — 3
+- fix: leitor Firebird ganha has_column e schema 1514 do Sabor Brasil medido [W+C] (#10167) 🚀
+- fix: itens de venda, produtos inativos e venda sem documento (Sabor Brasil) (#10248) 🚀
+- feat: tabela legacy_archive_rows para arquivar log e histórico do Delphi [F+C] (#10245) 🚀
+
 ### menu — 3
 - fix: 4 botões principais que só navegam perdem o "+" de criação [CL] (#8148) 🚀
 - fix: grupo Configurações aparece para quem só tem access_printers — thread 11 [CL] (#9075) 🚀
@@ -4002,6 +4135,11 @@ generated: "2026-11-04"
 - fix: provider compatível com SDK atual + Pest provando o boot (T1.b) (#2074) 🚀
 - fix: session guard + uses(TestCase) nos Settings tests — RC-4+RC-5 SDD floor (#2711) 🚀
 - fix: o zero-cost path do OtelHelper deixa de derrubar a operacao que mede [C] (#7517) 🚀
+
+### patrimonio-proto — 3 (+1 manutenção)
+- fix: revogação parcial devolve só a quantidade revogada (#10452) 🚀
+- fix: dados do protótipo com pessoas fictícias (#10499) 🚀
+- fix: tira do protótipo o que contraria decisão do [W] (#10500) 🚀
 
 ### pr-critic — 3
 - feat: lentes-diversas + medidor de precisão (fecha loop grade v3) [CC] (#4058) 🚀
@@ -4120,9 +4258,9 @@ generated: "2026-11-04"
 - feat: presença web cede ao Ponto — thread 09 + aposenta 5 chaves de presença [C] (#7884) 🚀
 - feat: turnos cedem ao Ponto — thread 12, emenda 2026-09-29 da ADR 0014 [C] (#8202) 🚀
 
-### legacy-migration — 2
-- fix: leitor Firebird ganha has_column e schema 1514 do Sabor Brasil medido [W+C] (#10167) 🚀
-- fix: itens de venda, produtos inativos e venda sem documento (Sabor Brasil) (#10248) 🚀
+### inertia — 2
+- fix: casing de pages.paths (js/pages → js/Pages) [CC] (#3562) 🚀
+- fix: o inertia.css entra uma vez só nas telas Inertia [C] (#10375) 🚀
 
 ### lint — 2 (+2 manutenção)
 - fix: remove 28 unused eslint-disable directives + refresh baseline (F6) (#2326) 🚀
@@ -4135,10 +4273,6 @@ generated: "2026-11-04"
 ### nfe-brasil — 2 (+1 manutenção)
 - fix: Tributacao/Index guarda regras deferida — first render crashava [CC] (#3870) 🚀
 - fix: import CSV só aplica no business em que foi conferido (UC-NFIM-04) (#8827) 🚀
-
-### oficinaauto — 2 (+11 manutenção)
-- feat: view Fila (master-detail) na Index de OS (#2160) 🚀
-- fix: a OS não devolve a venda de outra empresa (UC-OSH-11) (#10146) 🚀
 
 ### onda-7 — 2 (+1 manutenção)
 - feat: 1ª medição de RUNTIME da paridade — 3 telas, e 2 divergências reais verificadas [C] (#7003) 🚀
@@ -4252,6 +4386,9 @@ generated: "2026-11-04"
 ### cowork-mirror — 1 (+1 manutenção)
 - fix: rodada PONTUAL não apaga a devolutiva de outra rodada [C] (#6992) 🚀
 
+### csrf — 1
+- fix: webhooks de banco recebiam 419 — exceção por prefixo exato [W+C] (#10475) 🚀
+
 ### custo — 1
 - fix: claude-opus-5 não tinha preço — toda medição de dinheiro era null [C] (#5485) 🚀
 
@@ -4333,9 +4470,6 @@ generated: "2026-11-04"
 ### impostos — 1
 - fix: grupo de impostos só aceita alíquota da própria empresa e confere permissão [CL] (#9070) 🚀
 
-### inertia — 1
-- fix: casing de pages.paths (js/pages → js/Pages) [CC] (#3562) 🚀
-
 ### inventario — 1
 - fix: o gerador varria o DISCO e indexava artefato que o git IGNORA [C] (#7542) 🚀
 
@@ -4357,7 +4491,7 @@ generated: "2026-11-04"
 ### layout — 1
 - fix: destrava o ratchet ADR 0253 no main (drawers de #2821/#2824) (#2834) 🚀
 
-### ledger — 1 (+20 manutenção)
+### ledger — 1 (+21 manutenção)
 - fix: o recibo do SHELL afirmava entrega que eu mesmo revertí [C] (#6130) 🚀
 
 ### main — 1
@@ -4579,9 +4713,9 @@ generated: "2026-11-04"
 ### ziggy — 1
 - perf: paginas publicas nao carregam o mapa do ERP — /login de 171KB para ~2KB [CC] (#4361) 🚀
 
-### accounting — 0 (+1 manutenção)
+### accounting — 0 (+2 manutenção)
 
-### adr — 0 (+118 manutenção)
+### adr — 0 (+120 manutenção)
 
 ### adr-0296 — 0 (+1 manutenção)
 
@@ -4663,7 +4797,7 @@ generated: "2026-11-04"
 
 ### ds-atomos — 0 (+2 manutenção)
 
-### e2e-gate — 0 (+1 manutenção)
+### e2e-gate — 0 (+2 manutenção)
 
 ### era-sqlite — 0 (+1 manutenção)
 
@@ -4739,6 +4873,8 @@ generated: "2026-11-04"
 
 ### passo-5 — 0 (+1 manutenção)
 
+### patrimonio-playbook — 0 (+1 manutenção)
+
 ### pesquisa-concorrentes — 0 (+1 manutenção)
 
 ### playbook — 0 (+19 manutenção)
@@ -4755,7 +4891,7 @@ generated: "2026-11-04"
 
 ### proibicoes+handoff — 0 (+1 manutenção)
 
-### proposal — 0 (+13 manutenção)
+### proposal — 0 (+14 manutenção)
 
 ### protocol — 0 (+3 manutenção)
 
@@ -4808,6 +4944,8 @@ generated: "2026-11-04"
 ### venda-menu — 0 (+2 manutenção)
 
 ### verticais — 0 (+2 manutenção)
+
+### verticais-pest — 0 (+1 manutenção)
 
 ### visreg+a11y — 0 (+1 manutenção)
 
