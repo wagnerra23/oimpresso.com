@@ -51,6 +51,33 @@ function escopoFsmFalsa(ArrayObject $log): void
     });
 }
 
+/**
+ * Um fluxo de vendas com uma etapa, só deste teste, no tenant fictício. Até 2026-11-06 o teste
+ * pegava "qualquer etapa do banco" e pulava quando não havia nenhuma — e o seed da lane MySQL não
+ * cria fluxo de vendas, então UC-FNFE-52/54 pulavam sempre (auditoria Fiscal lote 2.3).
+ *
+ * @return array{0:int,1:int} [id do fluxo, id da etapa]
+ */
+function escopoEtapa(int $businessId): array
+{
+    $proc = (int) DB::table('sale_processes')->insertGetId([
+        'business_id' => $businessId, 'key' => 'cancesc_' . uniqid(), 'name' => 'Cancelar escopo (teste)',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $stage = (int) DB::table('sale_process_stages')->insertGetId([
+        'process_id' => $proc, 'key' => 'em_andamento', 'name' => 'Em andamento', 'sort_order' => 0,
+        'is_terminal' => false, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    return [$proc, $stage];
+}
+
+function escopoLimparEtapa(int $proc): void
+{
+    DB::table('sale_process_stages')->where('process_id', $proc)->delete();
+    DB::table('sale_processes')->where('id', $proc)->delete();
+}
+
 it('UC-FNFE-51 · escolha diferente de nota/venda não passa da validação', function () {
     escopoUsuario();
 
@@ -70,15 +97,12 @@ it('UC-FNFE-51 · escolha diferente de nota/venda não passa da validação', fu
 });
 
 it('UC-FNFE-52 · "venda junto" chama cancelar_venda só para a venda da empresa e no fluxo', function () {
-    if (DB::getDriverName() !== 'mysql' || ! Schema::hasTable('nfe_emissoes') || ! Schema::hasTable('sale_process_stages')) {
+    if (DB::getDriverName() !== 'mysql' || ! Schema::hasTable('nfe_emissoes') || ! Schema::hasTable('sale_process_stages') || ! Schema::hasTable('sale_processes')) {
         $this->markTestSkipped('precisa do schema MySQL de transactions, nfe_emissoes e sale_process_stages');
     }
     $a = $this->seededTenant()->id;
     $b = $this->seededSupportClientTenant()->id;
-    $stage = DB::table('sale_process_stages')->value('id');
-    if ($stage === null) {
-        $this->markTestSkipped('sem estágio de fluxo de vendas neste banco');
-    }
+    [$proc, $stage] = escopoEtapa((int) $a);
     $user = DB::table('users')->where('business_id', $a)->value('id') ?? 1;
     $venda = fn (int $biz, ?int $etapa) => DB::table('transactions')->insertGetId([
         'business_id' => $biz, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'paid',
@@ -114,6 +138,7 @@ it('UC-FNFE-52 · "venda junto" chama cancelar_venda só para a venda da empresa
         expect(count($log))->toBe(1);
     } finally {
         DB::table('transactions')->whereIn('id', $ids)->delete();
+        escopoLimparEtapa($proc);
     }
 });
 
@@ -121,14 +146,11 @@ it('UC-FNFE-54 · venda com dinheiro recebido: nada é cancelado, nem a nota', f
     if (! class_exists('App\Services\Sells\CancelamentoDaVenda')) {
         $this->markTestSkipped('depende do CancelamentoDaVenda da US-SELL-077 (#9911)');
     }
-    if (DB::getDriverName() !== 'mysql' || ! Schema::hasTable('nfe_emissoes') || ! Schema::hasTable('sale_process_stages')) {
+    if (DB::getDriverName() !== 'mysql' || ! Schema::hasTable('nfe_emissoes') || ! Schema::hasTable('sale_process_stages') || ! Schema::hasTable('sale_processes')) {
         $this->markTestSkipped('precisa do schema MySQL de transactions, nfe_emissoes e sale_process_stages');
     }
     $a = $this->seededTenant()->id;
-    $stage = DB::table('sale_process_stages')->value('id');
-    if ($stage === null) {
-        $this->markTestSkipped('sem estágio de fluxo de vendas neste banco');
-    }
+    [$proc, $stage] = escopoEtapa((int) $a);
     $user = DB::table('users')->where('business_id', $a)->value('id') ?? 1;
     $tx = DB::table('transactions')->insertGetId([
         'business_id' => $a, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'paid',
@@ -164,5 +186,6 @@ it('UC-FNFE-54 · venda com dinheiro recebido: nada é cancelado, nem a nota', f
         DB::table('nfe_emissoes')->where('id', $nota)->delete();
         DB::table('transaction_payments')->where('transaction_id', $tx)->delete();
         DB::table('transactions')->where('id', $tx)->delete();
+        escopoLimparEtapa($proc);
     }
 });

@@ -97,7 +97,7 @@ nenhuma lane disponível hoje** — é lacuna de ambiente, não defeito de teste
 vez de editar estes números.
 
 ## UC-FSPED-01 — A geração nunca cruza business (Tier 0)
-Status: 🧪 (`SpedIcmsIpiGeneratorServiceTest::UC-FSPED-01 · gerar lança RuntimeException cross-tenant` — **passa**; `SpedControllerTest::UC-FSPED-01 · agregação de períodos` skipa sem `nfe_emissoes`)
+Status: 🧪 (`SpedIcmsIpiGeneratorServiceTest::UC-FSPED-01 · gerar lança RuntimeException cross-tenant` — **passa**; `SpedControllerTest::UC-FSPED-01 · agregação de períodos` chama GET /fiscal/sped com notas do mês nas empresas 98 e 99 e confere que o painel conta só as da sessão — até 2026-11-06 contava sem usuário autenticado e sem dado, e passava com a tabela vazia)
 Dado a sessão do business X · Quando alguém pede a geração do SPED do business Y (X≠Y) · Então
 `RuntimeException: Cross-tenant attempt` **antes de qualquer query**, e a agregação do painel só conta
 notas do business da sessão. Âncora: ADR 0093 (`business_id` global scope, Tier 0 IRREVOGÁVEL).

@@ -248,7 +248,7 @@ recebe a ação `cancelar_venda` com o mesmo motivo (o cascade estorna boleto pe
 o cliente); venda fora do fluxo não é cancelada e a mensagem manda cancelar em Vendas; venda de outra empresa não é
 achada. Com a US-SELL-077 (#9911) o cancelamento da venda devolve o estoque e cancela o título sem pagamento.
 
-Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 98 × 99)
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 98 × 99 · até 2026-11-06 pulava também na lane MySQL: pegava qualquer etapa do banco e o seed não cria fluxo de vendas; o teste passou a criar o próprio fluxo no tenant 98)
 
 ## UC-FNFE-54 — Venda com dinheiro recebido: nada é cancelado, nem a nota · `must` `[T0]`
 
@@ -256,7 +256,7 @@ Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 9
 "Nada foi cancelado." com a pendência do cancelamento da venda ("A venda tem … recebidos…"), a nota segue autorizada e
 a SEFAZ nem é chamada. Âncora: R-NFE-044 · US-SELL-077.
 
-Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-54 · …`; pula sem o `CancelamentoDaVenda` do #9911, verde com ele no CT 100)
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-54 · …`; pula sem o `CancelamentoDaVenda` do #9911, verde com ele no CT 100 · até 2026-11-06 pulava também na lane MySQL: pegava qualquer etapa do banco e o seed não cria fluxo de vendas; o teste passou a criar o próprio fluxo no tenant 98)
 
 ## UC-FNFE-05 — Carta de Correção respeita texto 15–1000 e sequência 1–20
 Status: 🧪 (`AcoesContratoTest::UC-FNFE-05 · texto fora de 15–1000` / `n_seq fora de 1–20` / `aceita válido` — **passam**)
