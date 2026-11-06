@@ -12,6 +12,7 @@ use Modules\Producao\Http\Controllers\LinhaController;
 use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\OrdemMaterialController;
+use Modules\Producao\Http\Controllers\OrdemSituacaoController;
 use Modules\Producao\Http\Controllers\PainelController;
 use Modules\Producao\Http\Controllers\PostoOperadoresController;
 use Modules\Producao\Http\Controllers\PostosController;
@@ -164,4 +165,14 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->name('producao.')
     ->group(function () {
         Route::get('linha', [LinhaController::class, 'index'])->name('linha.index');
+    });
+
+// ── Auditoria lote 2.2 · ações de tela da OS por item (JSON; a Ficha da OS é o lote 3) ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::post('ordens/{id}/liberar', [OrdemSituacaoController::class, 'liberar'])->whereNumber('id')->name('ordens.liberar');
+        Route::post('ordens/{id}/refazer', [OrdemSituacaoController::class, 'refazer'])->whereNumber('id')->name('ordens.refazer');
+        Route::post('ordens/{id}/cancelar', [OrdemSituacaoController::class, 'cancelar'])->whereNumber('id')->name('ordens.cancelar');
     });

@@ -6,11 +6,13 @@ import { HORAS, HORA_INICIAL, PX_HORA, TOM, dataLocal, diasDaSemana, isoDia, tom
 
 export type { Atendimento, Bloqueio } from './semana';
 
-export default function SemanaHoras({ segunda, hoje, atendimentos, bloqueios }: {
+export default function SemanaHoras({ segunda, hoje, atendimentos, bloqueios, abrir }: {
   segunda: string;
   hoje: string;
   atendimentos: Atendimento[];
   bloqueios: Bloqueio[];
+  /** Com permissão de editar, o bloco abre as ações do atendimento; sem ela, leva à ficha. */
+  abrir?: (a: Atendimento) => void;
 }) {
   const dias = diasDaSemana(segunda);
   const altura = HORAS * PX_HORA;
@@ -42,14 +44,22 @@ export default function SemanaHoras({ segunda, hoje, atendimentos, bloqueios }: 
                 {b.motivo ?? 'Bloqueado'}
               </div>
             ))}
-            {atendimentos.filter((a) => isoDia(dataLocal(a.inicio)) === d.iso).map((a) => (
-              <Link key={a.id} href={`/fisio/pacientes/${a.patient_id}`} data-atendimento={a.id} data-tom={tomDo(a)}
-                className={`absolute inset-x-1 flex flex-col overflow-hidden rounded-md border-l-[3px] px-1.5 py-1 text-xs leading-tight no-underline ${TOM[tomDo(a)]}`}
-                style={{ top: topo(a.inicio) + 2, height: Math.max(topo(a.fim) - topo(a.inicio) - 4, 18) }}>
-                <b className="font-semibold">{a.paciente}{a.encaixe ? ' · encaixe' : ''}</b>
-                <span>{a.teleconsulta ? 'teleconsulta' : (a.tipo ?? '')}</span>
-              </Link>
-            ))}
+            {atendimentos.filter((a) => isoDia(dataLocal(a.inicio)) === d.iso).map((a) => {
+              const comum = {
+                'data-atendimento': a.id, 'data-tom': tomDo(a),
+                className: `absolute inset-x-1 flex flex-col overflow-hidden rounded-md border-l-[3px] px-1.5 py-1 text-left text-xs leading-tight no-underline ${TOM[tomDo(a)]}`,
+                style: { top: topo(a.inicio) + 2, height: Math.max(topo(a.fim) - topo(a.inicio) - 4, 18) },
+              };
+              const conteudo = (
+                <>
+                  <b className="font-semibold">{a.paciente}{a.encaixe ? ' · encaixe' : ''}</b>
+                  <span>{a.teleconsulta ? 'teleconsulta' : (a.tipo ?? '')}</span>
+                </>
+              );
+              return abrir
+                ? <button key={a.id} type="button" {...comum} onClick={() => abrir(a)}>{conteudo}</button>
+                : <Link key={a.id} href={`/fisio/pacientes/${a.patient_id}`} {...comum}>{conteudo}</Link>;
+            })}
           </div>
         ))}
       </div>

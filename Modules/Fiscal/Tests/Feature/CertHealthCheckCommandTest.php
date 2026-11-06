@@ -78,7 +78,7 @@ function limparCertTeste(string $uuid): void
         ->delete();
 
     if (Schema::hasColumn('nfe_certificados', 'uuid')) {
-        DB::table('nfe_certificados')->where('uuid', $uuid)->forceDelete();
+        DB::table('nfe_certificados')->where('uuid', $uuid)->delete(); // query builder não tem forceDelete
     }
 }
 
