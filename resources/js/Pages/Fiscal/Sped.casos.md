@@ -101,7 +101,7 @@ Status: 🧪 (`SpedIcmsIpiGeneratorServiceTest::UC-FSPED-01 · gerar lança Runt
 Dado a sessão do business X · Quando alguém pede a geração do SPED do business Y (X≠Y) · Então
 `RuntimeException: Cross-tenant attempt` **antes de qualquer query**, e a agregação do painel só conta
 notas do business da sessão. Âncora: ADR 0093 (`business_id` global scope, Tier 0 IRREVOGÁVEL).
-**Pronto quando:** biz=1 pedindo biz=99 lança; biz=1 pedindo biz=1 segue o fluxo normal.
+**Pronto quando:** biz=98 pedindo biz=99 lança; biz=98 pedindo biz=98 segue o fluxo normal.
 
 ## UC-FSPED-02 — Competência inválida é rejeitada antes de gerar
 Status: 🧪 (`SpedIcmsIpiGeneratorServiceTest::UC-FSPED-02 · …ano < 2020` / `…ano > ano atual` / `…mes fora 1-12` — 3 casos, **passam**)

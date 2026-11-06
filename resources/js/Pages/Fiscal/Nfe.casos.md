@@ -171,9 +171,9 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 
 ## UC-FNFE-01 — A contagem do cockpit nunca mostra nota de outro business (Tier 0)
 Status: 🧪 (`NfeCockpitMultiTenantTest::UC-FNFE-01 · global scope HasBusinessScope…` — **skipa** hoje, ver §recibo)
-Dado 1 emissão do biz=1 e 2 do biz=99 · Quando a lista conta na sessão do biz=1 · Então vê **1**,
+Dado 1 emissão do biz=98 e 2 do biz=99 · Quando a lista conta na sessão do biz=98 · Então vê **1**,
 enquanto `withoutGlobalScopes` vê 3. Âncora: ADR 0093 + charter anti-hook "não acessar NfeEmissao sem
-global scope". Teste com biz=1 e biz=99 fictício, nunca biz=4 (ADR 0101).
+global scope". Teste com os fictícios 98 e 99, nunca biz=4 (ADR 0358).
 **Pronto quando:** a contagem escopada e a não-escopada divergem exatamente nas notas do outro tenant.
 
 ## UC-FNFE-02 — A janela legal de cancelamento é 24h na NFC-e e 168h na NF-e
