@@ -6,8 +6,8 @@ type: sdd
 module: Compras
 status: ativo
 owner: W
-version: 1.0.0
-last_updated: "2026-07-27"
+version: 1.1.0
+last_updated: "2026-11-05"
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -38,6 +38,15 @@ related_us:
   - US-COM-008
   - US-COM-009
   - US-COM-011
+  - US-COM-013
+  - US-COM-016
+  - US-COM-023
+  - US-COM-026
+  - US-COM-027
+  - US-COM-030
+  - US-COM-031
+  - US-COM-032
+  - US-COM-034
 ---
 
 # SDD — Software Design Document · Cockpit de Compras (domínio Compras)
@@ -52,6 +61,15 @@ related_us:
 > nunca da tela ([ADR 0351](../../decisions/0351-sdd-from-source.md) Fase 2.1).
 >
 > **Triangulação — 3 fontes de 4** (a 4ª declarada ausente, §0.1).
+>
+> **v1.1 (2026-11-05) — o fluxo de compra ponta a ponta entra aqui, não em arquivo novo.** O pedido
+> da auditoria de 2026-11-05 era um `SDD-fluxo-compras-v1.0.md` separado. Ele ficaria paralelo a
+> este: o [SDD-TEMPLATE](../_DesignSystem/SDD-TEMPLATE.md) manda **1 SDD por domínio** e proíbe
+> `FLUXO-*.md` ao lado dele (regra 3), e este documento já declara escopo de domínio. O fluxo
+> requisição → cotação → pedido (alçada) → recebimento → título a pagar → devolução está em
+> **§5.5** (arquitetura, com `arquivo:linha`), **§5.6** (o que é só serviço) e **§5.7** (decisões
+> em aberto); os casos de uso em **§6.2** (`CU-CFX`). O nome `SDD-tela-cockpit-*` é legado e não
+> muda (o template proíbe renomear sem plano de realocação).
 
 ---
 
@@ -204,6 +222,12 @@ GET /compras/{id}/detalhe
 | `fin_titulos` | contas a pagar geradas pelo `TransactionObserver` | do Financeiro |
 
 > **Nota de fronteira:** `Modules/Compras/Database/Migrations` **não existe** — o módulo não tem tabela própria ([`SUPERFICIE.md`](SUPERFICIE.md): 23 arquivos, 0 migrations). Tudo mora na espinha do núcleo. É o Caminho B por desenho, não descuido.
+>
+> **Atualização 2026-11-05:** a nota acima valia em 2026-07-27. Desde 2026-10-20 o módulo tem
+> migrations próprias, para as tabelas dos serviços do fluxo (§5.5): `compras_propostas_preco`,
+> `compras_prazo_fornecedor`, `compras_cotacoes`, `compras_aprovacoes_pedido`, `compras_custo_medio`,
+> `compras_inspecoes` e `compras_insumo_metodo_custo`, todas em
+> `Modules/Compras/Database/Migrations/`. A espinha da compra continua sendo `transactions` + `purchase_lines`.
 
 ### 5.3 Fluxos críticos
 
@@ -295,6 +319,120 @@ Efeito previsto: buscar com a aba *A pagar / Rascunhos / Em trânsito* ativa, ou
 #### 5.4.6 Os exports perdem o filtro ⚙️ derivado
 
 `openExportBlade` ignora o parâmetro `_format` e não propaga `q`/`stage`/`sort` — o operador filtra no cockpit e exporta **a lista inteira** da Blade. `[BACKLOG]`.
+
+### 5.5 Fluxo de compra ponta a ponta
+
+<!-- derivado: re-rodável do fonte · verificado@7d99759 (2026-11-05) -->
+
+> **Fontes, na ordem fixa:** (1) [`SPEC.md`](SPEC.md) US-COM-013/016/026..034 e as propostas
+> [`compras-purchase-convergencia-c1`](../../decisions/proposals/compras-purchase-convergencia-c1.md) e
+> [`2026-10-06-entrada-xml-compra`](../../decisions/proposals/2026-10-06-entrada-xml-compra.md);
+> (2) código, só para confirmar o comportamento; (3) Blade legada `resources/views/purchase_requisition/`,
+> `purchase_order/`, `purchase/`, `purchase_return/`. A fonte 4 (Delphi) segue ausente (§0.1).
+> Todas as linhas abaixo são do `main` em `7d99759`; quem for citar de novo, re-localize pelo símbolo.
+
+```
+estoque mínimo (job diário) ─┐
+MRP (necessidade de compra) ─┼─► REQUISIÇÃO  transactions.type=purchase_requisition
+digitada à mão ──────────────┘        │
+                                      ├─► COTAÇÃO  compras_cotacoes  (só serviço, §5.6)
+                                      │        │ fechar()
+                                      ▼        ▼
+                                   PEDIDO  transactions.type=purchase_order   ── alçada (compras_aprovacoes_pedido)
+                                      │
+                                      ▼  pedido pendente/recusado na alçada = 422
+                                   COMPRA  transactions.type=purchase
+                                      │ status=received
+                                      ├─► estoque  variation_location_details.qty_available
+                                      ├─► custo   (regra da empresa · custo médio móvel por flag)
+                                      ├─► inspeção (só serviço, §5.6)
+                                      └─► TÍTULO A PAGAR  fin_titulos (observer do Financeiro, pela compra)
+                                                 │
+                                   DEVOLUÇÃO  transactions.type=purchase_return  (estoque desce)
+```
+
+| # | Etapa | Onde nasce | Âncora no código | Tela |
+|---|---|---|---|---|
+| E1 | **Requisição** à mão | `PurchaseRequisitionController@store` grava `type=purchase_requisition` | `app/Http/Controllers/PurchaseRequisitionController.php:365` · `:377`; itens sugeridos pelo alerta em `getRequisitionProducts` `:532` | `PurchaseRequisition/Index.tsx` (lista) + Blade `purchase_requisition/` (criar) |
+| E1a | Requisição **automática** por estoque mínimo (US-COM-027) | job diário, desligado por padrão em `common_settings` | `Modules/Compras/Services/RequisicaoEstoqueMinimoService.php` (docblock :13-26) · agenda `Modules/Compras/Providers/ComprasServiceProvider.php:65` | interruptor na aba Fluxos |
+| E1b | **MRP** — necessidade somando OS e mínimo (US-COM-030) | só lê | `Modules/Compras/Services/NecessidadeDeCompra.php:38` · chamado em `PurchaseRequisitionController.php:277-281` | `PurchaseRequisition/_components/NecessidadeDeCompra.tsx` |
+| E2 | **Cotação** entre fornecedores (US-COM-031) | `criar` / `daRequisicao`, respostas, `comparar`, `fechar` gera o pedido | `Modules/Compras/Services/CotacaoDeCompra.php:33` · `:83` · `:127` · `:165`; o pedido nasce em `:209-212` (`type=purchase_order`, `status=ordered`) | **nenhuma** (§5.6) |
+| E3 | **Pedido** de compra | `PurchaseOrderController@store`; requisições de origem passam a `partial`/`completed` | `app/Http/Controllers/PurchaseOrderController.php:429` · linhas `:545` · status das requisições `:548` | `PurchaseOrder/Index.tsx` (lista) + Blade `purchase_order/` (criar/editar) |
+| E3a | **Alçada** de valor (US-COM-032) | registrada no `store` do pedido; desligada por padrão (`common_settings['compras_alcada']`) | `PurchaseOrderController.php:554-556` → `Modules/Compras/Services/AlcadaDoPedido.php:68`; decisão em `:92` | **nenhuma** para aprovar nem para configurar (§5.6) |
+| E4 | **Recebimento** = compra a partir do pedido (US-COM-013, decisão 2026-10-26: cada entrega é uma compra ligada ao pedido) | `PurchaseController@store`; travas antes de gravar | `app/Http/Controllers/PurchaseController.php:511`; posse das variações `:520`, pedido da própria empresa `:521` (US-COM-029), pedido aprovado na alçada `:522` → `:1558-1566`; transação `:628-665`; linhas `:642`; pedido vira `partial`/`completed` `:654-655` | `Purchase/Create.tsx` |
+| E4a | **Estoque** | sobe só se a compra está `received` | `app/Utils/ProductUtil.php:1234-1236` (`createOrUpdatePurchaseLines` `:1201`); mudança de status depois em `PurchaseController@updateStatus` `:2038` | — |
+| E4b | **Custo** pela regra da empresa (US-COM-026) | ao entrar em `received` | `PurchaseController.php:643` · `:1195` · `:2072` → `Modules/Compras/Services/AplicarCustoDoRecebimento.php:60` | proposta de preço no detalhe da compra (US-COM-028) |
+| E4c | **Custo médio móvel** | observer do `Transaction`, depois do commit; flag `COMPRAS_CUSTO_MEDIO_MOVEL` | `Modules/Compras/Providers/ComprasServiceProvider.php:39` → `Modules/Compras/Observers/CompraRecebidaCustoMedioObserver.php:37-55` → `CustoMedioMovel.php:40`; flag em `Modules/Compras/Config/config.php:11` | — |
+| E4d | **Inspeção** de qualidade (US-COM-034) | reprovado sai pela devolução do núcleo; desligada por padrão | `Modules/Compras/Services/InspecaoDoRecebimento.php:52` | **nenhuma** (§5.6) |
+| E5 | **Título a pagar** | observer do Financeiro no `created`/`updated` da compra | `Modules/Financeiro/Providers/FinanceiroServiceProvider.php:72` → `Modules/Financeiro/Observers/TransactionObserver.php:33-59` → `Modules/Financeiro/Services/TituloAutoService.php:74-79` (só `purchase` vira `pagar`) e `:107` (só `payment_status` `due`/`partial`) | Financeiro (contas a pagar) |
+| E5a | Compra **excluída** | título cancelado, não apagado | `TransactionObserver.php:61-76` | — |
+| E6 | **Devolução** de compra | por compra (`PurchaseReturnController@store`) ou combinada (`CombinedPurchaseReturnController@save`); estoque desce, devolução vira crédito por `updatePaymentStatus` | `app/Http/Controllers/PurchaseReturnController.php:325` · estoque `:361` · `type` `:399` · `:412`; `app/Http/Controllers/CombinedPurchaseReturnController.php:73` · `:93` · `:131` · `:143` | `PurchaseReturn/Index.tsx` (lista) + Blade `purchase_return/` |
+| E7 | **Entrada por XML** (fase 2 da proposta de 2026-10-06) | upload grava em `nfe_dfe_recebidos`; **não cria compra** | `Modules/NfeBrasil/Services/Entrada/ImportarXmlEntradaService.php:13-21`; flag `Modules/NfeBrasil/Config/config.php:36`; a ponte para compra é a US-COM-003, sem código | **nenhuma** (§5.6) |
+
+**O que o código mostra e não estava escrito em lugar nenhum** <!-- derivado · medido 2026-11-05 -->
+
+1. **O título a pagar nasce com a compra, qualquer que seja o `status`.** `TituloAutoService` olha o
+   `type` (`:74-79`) e o `payment_status` (`:107`), nunca `transactions.status`. Compra gravada
+   como `ordered` ou `pending` já gera o título. O **pedido** (`purchase_order`) não gera: cai no
+   `default => null` do `match`. É a pergunta P1 de §5.7. (A auditoria de 2026-11-05 escreveu
+   "nasce no pedido"; medido, o objeto é a compra ainda não recebida, não o pedido de compra.)
+2. **O observer do Financeiro roda dentro da transação da compra.** `TransactionObserver::created`
+   (`:33-42`) chama o serviço sem `try/catch`, e o `created` do `Transaction` dispara dentro do
+   `DB::beginTransaction()` de `PurchaseController.php:628` (a compra nasce em `:637`). Erro no Financeiro desfaz a compra.
+   Pergunta P2.
+3. **O pedido que a cotação gera não passa pela alçada.** `CotacaoDeCompra::fechar` insere o
+   pedido direto em `transactions` (`:209-212`) e não chama `AlcadaDoPedido::registrar`; sem linha
+   em `compras_aprovacoes_pedido`, `bloqueiaRecebimento` (`AlcadaDoPedido.php:111-121`) não o segura.
+4. **A alçada só é avaliada no `store` do pedido.** `PurchaseOrderController@update` (`:752`) não
+   chama `registrar`: um pedido criado abaixo do limite e editado para cima não espera aprovação
+   (achado A7 da auditoria de 2026-11-05).
+5. **Devolução de compra não mexe no título a pagar.** `TituloAutoService` não trata
+   `purchase_return` e o `DevolucaoVendaTituloService` só reconhece `sell_return`
+   (`Modules/Financeiro/Services/DevolucaoVendaTituloService.php:40-43`). A devolução vira crédito
+   no `payment_status` do núcleo; o título da compra original fica com o valor cheio. Não está entre
+   as decisões já abertas: é pergunta nova (P7).
+6. **O custo médio não volta atrás.** O observer só age na entrada em `received`
+   (`CompraRecebidaCustoMedioObserver.php:39`); excluir, cancelar ou devolver não refaz o médio, e
+   a falha vai só para o log (`:48-53`). O próprio docblock declara o limite da edição (`:21`).
+
+### 5.6 O que existe só como serviço, sem tela
+
+<!-- derivado: re-rodável do fonte · medido 2026-11-05 -->
+
+Busca pelo nome da classe em `*.php`/`*.ts`/`*.tsx` fora de teste e fora do próprio arquivo
+(`git grep -l -w <Classe>`), no `main` `7d99759`:
+
+| Serviço | US | Quem chama fora de teste | Rota | Tela |
+|---|---|---|---|---|
+| `CotacaoDeCompra` | US-COM-031 | ninguém | não | não |
+| `InspecaoDoRecebimento` | US-COM-034 | ninguém | não | não (o SPEC diz "depois do protótipo, ADR 0438") |
+| `CurvaAbcReposicao` | US-ESTOQUE-003 | ninguém | não | não |
+| `ImportarXmlEntradaService` (NfeBrasil) | fase 2 da entrada por XML | ninguém | não | não |
+| `AlcadaDoPedido` — `definir`/`decidir` | US-COM-032 | ninguém | não | não |
+| `AlcadaDoPedido` — `registrar`/`bloqueiaRecebimento` | US-COM-032 | `PurchaseOrderController.php:554-556` · `PurchaseController.php:1564-1565` | — | — |
+
+Consequência para a alçada: ligada, ela **trava** o recebimento de pedido pendente (E4, `:522`), mas
+ninguém consegue aprovar nem configurar pela aplicação. A permissão `compras.import_xml` é declarada
+em `Modules/Compras/Http/Controllers/DataController.php:59` e nenhuma rota a confere.
+
+O `NecessidadeDeCompra` (MRP) **não** está nesta lista: tem tela em `PurchaseRequisition/Index.tsx`.
+
+### 5.7 Decisões em aberto — **[W]**
+
+<!-- curado: [W] decide -->
+
+As seis primeiras já estavam abertas na auditoria de 2026-11-05; a sétima saiu da leitura deste
+fluxo. Nada aqui foi decidido pelo agente.
+
+| # | Pergunta | O que o código faz hoje (evidência) |
+|---|---|---|
+| P1 | O título a pagar nasce na compra lançada (como hoje) ou só no recebimento? | nasce pela compra com `payment_status` `due`/`partial`, sem olhar o `status` — `TituloAutoService.php:74-79`, `:107` (§5.5 item 1) |
+| P2 | Um erro no Financeiro deve cancelar a compra? | hoje cancela: observer síncrono, sem `try/catch`, dentro da transação — `TransactionObserver.php:33-42` + `PurchaseController.php:628` |
+| P3 | Cotação, inspeção e curva ABC ganham tela ou ficam declaradas "só serviço"? E a alçada ganha tela para aprovar e configurar? | §5.6 |
+| P4 | Custo médio móvel: uma chave para a instalação inteira (hoje) ou por empresa? | `config('compras.custo_medio_movel')` lido de `env` — `CustoMedioMovel.php:34-37`, `Config/config.php:11`; a tabela `compras_custo_medio` já é por `business_id` (migration `2026_10_27_400000`, `:26`, `:30`) |
+| P5 | Fase 2 da entrada por XML: a nota recebida vira compra? Quem confere `compras.import_xml`? | o upload grava a nota e para (`ImportarXmlEntradaService.php:13-21`); a ponte é US-COM-003, `_pendente_` no SPEC; a permissão não é conferida por rota nenhuma |
+| P6 | Este fluxo documentado vem antes dos 7 dias na ROTA LIVRE (US-COM-023), hoje planejados só para o cockpit? | US-COM-023 é `_pendente_` no SPEC e fala só de `/compras` |
+| P7 | Devolução de compra deve abater o título a pagar da compra, como a devolução de venda abate o título a receber? | não abate (§5.5 item 5) |
 
 ---
 
@@ -390,6 +528,81 @@ Efeito previsto: buscar com a aba *A pagar / Rascunhos / Em trânsito* ativa, ou
 2. `[must]` auto-match do fornecedor por CNPJ (`contacts.tax_number`).
 3. `[T0]` re-import é idempotente (UNIQUE `(business_id, transaction_id)`) + advisory lock anti-corrida.
 4. **Estado hoje:** o botão está `disabled` e o `ImportarDfeComoCompraService` **não existe**. É o maior gap do módulo ([`BRIEFING.md`](BRIEFING.md) G-01). **Nenhum UC nasce agora** — caso sem código vira UC órfão e o `casos-gate` G-2 pune ([proibicoes §5](../../proibicoes.md) 2026-07-16).
+
+### 6.2 Fluxo de compra ponta a ponta (`CU-CFX`)
+
+> Derivados de §5.5 (SPEC → código → Blade). O estado segue a regra 5 do template: vem do veredito
+> da lane, não da leitura. Este PR **não** conferiu vereditos de lane; por isso todo CU abaixo está
+> `⬜` e aponta o teste que existe hoje, para quem for promover. Nenhum UC nasce deste PR.
+
+#### CU-CFX-01 — Pedir material pela requisição `[must]` ⬜
+<!-- derivado: re-rodável do fonte (E1/E1a/E1b · PurchaseRequisitionController@store · RequisicaoEstoqueMinimoService · NecessidadeDeCompra) -->
+*Dado* um item abaixo do mínimo, ou faltando para OS abertas; *quando* alguém (ou o job diário) abre a requisição; *então* ela nasce como `purchase_requisition` da empresa, por local, sem mover estoque nem valor.
+
+1. `[must]` requisição à mão grava `type=purchase_requisition` (`PurchaseRequisitionController.php:377`).
+2. `[must]` a automática (desligada por padrão) não pede de novo item que já está numa requisição aberta do local — US-COM-027, `RequisicaoEstoqueMinimoContratoTest`.
+3. `[must]` o MRP só lê; a necessidade é comprometido + mínimo − saldo − a caminho — US-COM-030, `NecessidadeDeCompraTest`.
+4. `[T0]` local, produto e variação são da empresa. ⚠️ A auditoria de 2026-11-05 registra o contrário no `store` à mão (A6, `PurchaseRequisitionController.php:376,393-394`); quem fecha é o lote 0.
+
+#### CU-CFX-02 — Cotar entre fornecedores `[should]` ⬜ **sem tela**
+<!-- derivado: re-rodável do fonte (E2 · CotacaoDeCompra) -->
+*Dado* uma requisição; *quando* o comprador cota com vários fornecedores e fecha; *então* cada fornecedor vencedor recebe um pedido de compra.
+
+1. `[must]` vence o menor preço unitário; empate, o menor prazo; ainda empatado, quem respondeu primeiro (`CotacaoDeCompra.php` docblock :19-20).
+2. `[must]` o pedido gerado é `purchase_order` `ordered` (`:209-212`).
+3. `[should]` ⚠️ o pedido gerado **não** passa pela alçada (§5.5 item 3). Se deve passar é parte de P3.
+4. Teste hoje: `CotacaoDeCompraTest`. Tela: nenhuma (P3).
+
+#### CU-CFX-03 — Fazer o pedido, com alçada `[must]` ⬜
+<!-- derivado: re-rodável do fonte (E3/E3a · PurchaseOrderController@store · AlcadaDoPedido) -->
+*Dado* a alçada ligada na empresa; *quando* o pedido passa do limite de quem o fez; *então* ele fica `pendente` e não pode ser recebido até gerente ou diretoria aprovar.
+
+1. `[must]` sem alçada ligada, nada muda (desligada por padrão, `AlcadaDoPedido.php` docblock :15-16).
+2. `[must]` quem já tem a permissão do nível aprova na hora (`:20-21`, `:79-88`).
+3. `[must]` pedido pendente ou recusado bloqueia a compra que o recebe (`PurchaseController.php:522` → `:1558-1566`).
+4. `[should]` ⚠️ editar o pedido para cima não reavalia a alçada (§5.5 item 4).
+5. Teste hoje: `AlcadaDoPedidoTest`. Tela para aprovar e configurar: nenhuma (P3).
+
+#### CU-CFX-04 — Receber o pedido, em partes `[must]` `[V0]` `[T0]` ⬜
+<!-- derivado: re-rodável do fonte (E4/E4a · PurchaseController@store · ProductUtil::createOrUpdatePurchaseLines · TransactionUtil::updatePurchaseOrderStatus) -->
+*Dado* um pedido aprovado da empresa; *quando* chega parte da mercadoria e a compra é lançada como recebida a partir dele; *então* o estoque sobe só pelo recebido e o pedido fica `partial` até completar.
+
+1. `[V0]` estoque sobe só com `status=received` (`ProductUtil.php:1234-1236`).
+2. `[must]` cada entrega é uma compra ligada ao pedido; o que falta fica no pedido (decisão 2026-10-26 em US-COM-013) — `RecebimentoParcialPedidoTest`.
+3. `[T0]` pedido e linha de pedido de outra empresa = 422 (US-COM-029, `PurchaseController.php:521`) — `CompraDePedidoOutraEmpresaTest`.
+4. `[V0]` valor e estoque conferem por dois caminhos — US-COM-011, `PurchaseCalculoValorEstoqueE2ETest` (o mesmo contrato do CU-COM-08).
+
+#### CU-CFX-05 — Atualizar o custo no recebimento `[must]` `[V0]` ⬜
+<!-- derivado: re-rodável do fonte (E4b/E4c · AplicarCustoDoRecebimento · CustoMedioMovel) -->
+*Dado* a regra de custo da empresa gravada; *quando* a compra entra em `received`; *então* o custo do insumo segue o método da regra e o preço segue a opção escolhida (manter, aplicar ou propor).
+
+1. `[must]` empresa sem a regra: comportamento do núcleo, sem mudança — US-COM-026, `AplicarCustoDoRecebimentoTest`.
+2. `[must]` proposta de preço é aprovada ou recusada no detalhe da compra — US-COM-028, `PropostasDePrecoContratoTest`.
+3. `[V0]` custo médio móvel (flag da instalação, P4) recalcula depois do commit e nunca derruba a compra — `CustoMedioMovelTest`.
+4. `[V0]` ⚠️ excluir, cancelar ou devolver não refaz o médio (§5.5 item 6).
+
+#### CU-CFX-06 — Gerar o título a pagar `[must]` ⬜
+<!-- derivado: re-rodável do fonte (E5/E5a · TransactionObserver · TituloAutoService) -->
+*Dado* uma compra a prazo; *quando* é gravada; *então* o Financeiro tem um título a pagar com o valor da compra; *quando* é excluída, o título é cancelado, não apagado.
+
+1. `[must]` só `type=purchase` com `payment_status` `due`/`partial` gera título (`TituloAutoService.php:74-79`, `:107`).
+2. `[must]` compra paga no ato não gera título pendente (`:107`).
+3. `[must]` em qual momento nasce (lançamento ou recebimento) é P1; se erro no Financeiro desfaz a compra é P2.
+4. Teste hoje: nenhum no caminho da compra — é a US-COM-016 (`[BACKLOG]`).
+
+#### CU-CFX-07 — Devolver ao fornecedor `[must]` `[V0]` ⬜
+<!-- derivado: re-rodável do fonte (E6 · PurchaseReturnController@store · CombinedPurchaseReturnController@save) -->
+*Dado* uma compra recebida; *quando* parte volta ao fornecedor (por compra ou combinada, ou pelo reprovado da inspeção); *então* o estoque desce o devolvido e a devolução vira crédito com o fornecedor.
+
+1. `[V0]` estoque desce pelo `quantity_returned` (`PurchaseReturnController.php:361`; `CombinedPurchaseReturnController.php:131`).
+2. `[must]` crédito pelo `updatePaymentStatus` (`PurchaseReturnController.php:412`; `CombinedPurchaseReturnController.php:143`).
+3. `[must]` o reprovado da inspeção sai pela mesma conta (US-COM-034, `InspecaoDoRecebimentoTest`; sem tela, P3).
+4. `[should]` ⚠️ o título a pagar da compra não é abatido (§5.5 item 5, P7).
+5. Teste hoje: `tests/Feature/Purchase/DevolucaoCompraStoreBaselineTest.php`.
+
+#### CU-CFX-08 — Lançar a compra pela nota recebida `[should]` ⬜ **ausente**
+<!-- derivado: re-rodável do fonte (E7 · ImportarXmlEntradaService · US-COM-003) -->
+É o CU-COM-09 visto do fluxo: o upload do XML já grava a nota (`ImportarXmlEntradaService.php:13-21`, flag desligada), mas nada a transforma em compra. Depende de P5. Nenhum UC nasce enquanto não houver código (mesma razão do CU-COM-09).
 
 ### 6.4 Non-Goals — **só [W] preenche**
 
@@ -487,3 +700,4 @@ Fonte viva do backlog: [`SPEC.md`](SPEC.md) §9 + [`CAPTERRA-INVENTARIO.md`](CAP
 | Versão | Data | O que mudou |
 |---|---|---|
 | 1.0.0 | 2026-07-27 | Nascimento. §0–§11 derivados de **3 fontes** (fonte 4 Delphi declarada ausente). 9 CU (`CU-COM-01..09`). 6 divergências de contrato medidas (§5.4). Chip **S1** da Onda 1 do passo 5 — primeira corrida do ramo *"SDD não existe"*. |
+| 1.1.0 | 2026-11-05 | Fluxo de compra ponta a ponta entra no SDD do domínio, sem arquivo novo (SDD-TEMPLATE regra 3): §5.5 (etapas E1–E7 com `arquivo:linha` do `main` `7d99759`), §5.6 (serviços sem tela), §5.7 (7 decisões em aberto [W]: as 6 da auditoria de 2026-11-05 e a P7, devolução × título a pagar) e §6.2 (`CU-CFX-01..08`, todos `⬜`). Nota datada em §5.2: o módulo passou a ter migrations próprias. Nada do texto de 1.0.0 foi apagado. |

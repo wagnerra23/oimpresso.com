@@ -199,6 +199,19 @@ last_run: "2026-10-20"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-22").
 - **Status: 🧪**
 
+## UC-FLXT-25 · Quem configura liga "Aguardar o material para produzir"
+- **Persona:** dono de comunicação visual que não quer a OS começando sem o material no estoque
+  (US-PCP-032 · decisão D3 do [W]). A chave existia no motor (`FaltaDeMaterialDaOs`) e só ligava por SQL.
+- **Aceite:** Dado uma empresa com modelo em uso e o módulo Produção no pacote · Quando quem tem
+  `fluxos.configurar` liga "Aguardar o material para produzir" no card de material da aba Fluxos da empresa ·
+  Então `common_settings['producao_aguarda_material']` fica ligada só na empresa da sessão, as outras chaves
+  (inclusive a reserva na venda, UC-FLXT-22) ficam como estavam, o motor lê a chave ligada e a aba mostra
+  ligada · Quando desliga · Então a chave sai · E valor que não é sim/não é recusado · E sem
+  `fluxos.configurar` recebe 403 · E sem o módulo Produção o interruptor não aparece e o PATCH responde 404.
+  O que a chave faz na OS está em `Producao/Apontamento/Index.casos.md` (UC-PCAGM-01..05).
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-25").
+- **Status: 🧪**
+
 ## UC-FLXT-23 · Quem configura define o sinal mínimo para a produção liberar a OS
 - **Persona:** dono que só quer produzir depois que o cliente pagou o sinal (UC-FLX-28 · US-PCP-025).
 - **Aceite:** Dado uma empresa com modelo em uso · Quando quem tem `fluxos.configurar` grava um sinal

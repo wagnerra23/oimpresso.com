@@ -54,7 +54,11 @@ it('FormRequest StoreServiceOrderRequest existe e declara rules', function () {
 
     expect($request->rules())->toHaveKeys(['vehicle_id', 'status'])
         ->and($request->rules()['vehicle_id'])->toContain('required')
-        ->and($request->rules()['vehicle_id'])->toContain('exists:vehicles,id');
+        // exists ESCOPADO por empresa (Rule::exists com where business_id), não mais a string
+        // crua 'exists:vehicles,id' que aceitava veículo de outra empresa. O comportamento
+        // (recusa no campo + nada gravado) é provado em ServiceOrderVehicleTenantContratoTest.
+        ->and($request->rules()['vehicle_id'])->not->toContain('exists:vehicles,id')
+        ->and(collect($request->rules()['vehicle_id'])->contains(fn ($r) => $r instanceof \Illuminate\Validation\Rules\Exists))->toBeTrue();
 });
 
 it('FormRequest UpdateServiceOrderRequest tem completed_at/delivered_at (não estão no store)', function () {

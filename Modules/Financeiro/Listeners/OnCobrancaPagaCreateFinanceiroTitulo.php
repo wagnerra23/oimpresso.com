@@ -21,24 +21,27 @@ use Modules\PaymentGateway\Services\DescontoPontualidade;
  * 2026-05-19 ("fazer integrar com o financeiro").
  *
  * Escopo conservador (Onda 5 inicial):
- *   - Processa SOMENTE cobrancas.business_id=1 (Wagner — dogfooding SaaS).
+ *   - Processa SOMENTE a empresa dona do SaaS (`app.saas_owner_business_id`, hoje 1).
+ *     2026-11-05: o business_id gravado vem do EVENTO (que já foi conferido contra a
+ *     dona), não de um 1 fixo — com SAAS_OWNER_BUSINESS_ID diferente de 1 o título e a
+ *     baixa iam parar na empresa 1.
  *     Cobranças de tenants emitidas para clientes finais deles entram em
  *     ondas separadas (Sells/Invoice listener — fora de escopo aqui).
  *   - Origem 'manual' (enum fin_titulos não inclui 'paymentgateway' — não
  *     mexer no enum agora pra não migrar prod). metadata.source preserva trail.
  *
  * Idempotência:
- *   - Listener verifica se Titulo já existe pra (business_id=1, origem='manual',
+ *   - Listener verifica se Titulo já existe pra (business_id do evento, origem='manual',
  *     origem_id=cobrancaId) antes de inserir.
  *   - TituloBaixa usa idempotency_key UUID derivado de cobranca_id (determinístico).
  *
  * Conta bancária resolver:
  *   1. ContaBancaria.rb_gateway_credential_id == cobranca.payment_gateway_credential_id
  *      (assume FK foi reusada na migração credentials — Onda 2 do roadmap PaymentGateway)
- *   2. Fallback: ContaBancaria.business_id=1 + ativo_para_boleto=true (primeira)
+ *   2. Fallback: ContaBancaria do business do evento + ativo_para_boleto=true (primeira)
  *   3. Se nenhuma resolve: cria Titulo SEM Baixa + log warning (Wagner reconcilia)
  *
- * Multi-tenant Tier 0: somente biz=1 — sem cross-tenant write.
+ * Multi-tenant Tier 0: somente a empresa dona, e sempre no business_id do evento.
  */
 final class OnCobrancaPagaCreateFinanceiroTitulo
 {
@@ -52,12 +55,23 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
             return; // Onda 5 dogfooding processa só o business dono (SaaS)
         }
 
-        // SUPERADMIN: listener SaaS roda sem sessão; resolve a Cobranca pelo id do evento sem depender do scope de tenant
-        $cobranca = Cobranca::withoutGlobalScopes()->find($event->cobrancaId);
+        $biz = $event->businessId;
+
+        // SUPERADMIN: listener SaaS roda sem sessão; a cobrança é lida pelo id E pelo business_id do evento
+        $cobranca = Cobranca::withoutGlobalScopes()->where('business_id', $biz)->find($event->cobrancaId);
         if (!$cobranca) {
             Log::error('[onda5][financeiro] CobrancaPaga sem registro Cobranca correspondente', [
                 'cobranca_id' => $event->cobrancaId,
+                'business_id' => $biz,
             ]);
+
+            return;
+        }
+
+        // created_by é NOT NULL e o webhook não tem usuário: o 1º usuário da empresa dona.
+        $autor = (int) (DB::table('users')->where('business_id', $biz)->orderBy('id')->value('id') ?? 0);
+        if ($autor <= 0) {
+            Log::warning('[onda5][financeiro] título não criado: empresa dona sem usuário', ['cobranca_id' => $event->cobrancaId]);
 
             return;
         }
@@ -67,12 +81,13 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
         // Unificada) → dá BAIXA nesse título em vez de criar PG-xxx, senão o
         // recebível contaria em DOBRO (título original aberto + PG-xxx quitado).
         if ($cobranca->origem_type === 'fin_titulo' && $cobranca->origem_id) {
-            $this->baixarTituloExistente($event, $cobranca, 1, 1);
+            $this->baixarTituloExistente($event, $cobranca, $biz, $autor);
 
             return;
         }
 
-        $tituloExistente = Titulo::where('business_id', 1)
+        // SUPERADMIN: listener sem sessão; o business_id vem explícito do evento.
+        $tituloExistente = Titulo::withoutGlobalScopes()->where('business_id', $biz)
             ->where('origem', 'manual')
             ->where('origem_id', $event->cobrancaId)
             ->first();
@@ -81,9 +96,9 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
             return; // Idempotência — listener já processou
         }
 
-        $contaBancariaId = $this->resolveContaBancaria($cobranca, 1);
+        $contaBancariaId = $this->resolveContaBancaria($cobranca, $biz);
 
-        DB::transaction(function () use ($event, $cobranca, $contaBancariaId): void {
+        DB::transaction(function () use ($event, $cobranca, $contaBancariaId, $biz, $autor): void {
             $valor = $cobranca->valor_centavos / 100;
             $pagoCentavos = (int) ($cobranca->valor_pago_centavos ?? $cobranca->valor_centavos);
             $valorPago = $pagoCentavos / 100;
@@ -93,7 +108,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                 ?? ($cobranca->descricao !== '' ? $cobranca->descricao : null);
 
             $titulo = Titulo::create([
-                'business_id'        => 1,
+                'business_id'        => $biz,
                 'numero'             => 'PG-' . $event->cobrancaId,
                 'tipo'               => 'receber',
                 'status'             => $contaBancariaId ? 'quitado' : 'aberto',
@@ -120,7 +135,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                     'gateway_external_id'          => $cobranca->gateway_external_id,
                     'payment_gateway_credential_id' => $cobranca->payment_gateway_credential_id,
                 ],
-                'created_by'         => 1, // Wagner — listener roda em contexto webhook
+                'created_by'         => $autor, // listener roda em contexto webhook, sem usuário
             ]);
 
             if (!$contaBancariaId) {
@@ -134,7 +149,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
             }
 
             TituloBaixa::create([
-                'business_id'        => 1,
+                'business_id'        => $biz,
                 'titulo_id'          => $titulo->id,
                 'conta_bancaria_id'  => $contaBancariaId,
                 // valor_baixa é o principal abatido; o recebido é valor_baixa + juros + multa − desconto
@@ -148,7 +163,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                 'meio_pagamento'     => $this->mapMeioPagamento($cobranca->tipo, $cobranca->forma_pagamento),
                 'idempotency_key'    => $this->buildIdempotencyKey($event->cobrancaId),
                 'observacoes'        => 'Auto-baixa via PaymentGateway cobranca #' . $event->cobrancaId,
-                'created_by'         => 1,
+                'created_by'         => $autor,
             ]);
         });
     }
@@ -271,9 +286,9 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
      *   1. CANON: payment_gateway_credentials.conta_bancaria_id (wizard step 3)
      *      → fin_contas_bancarias.account_id matchando
      *   2. LEGACY: fin_contas_bancarias.payment_gateway_credential_id (FK reverso)
-     *   3. FALLBACK: primeira ContaBancaria ativa em biz=1
+     *   3. FALLBACK: primeira ContaBancaria ativa do business
      */
-    private function resolveContaBancaria(Cobranca $cobranca, int $biz = 1): ?int
+    private function resolveContaBancaria(Cobranca $cobranca, int $biz): ?int
     {
         if ($cobranca->payment_gateway_credential_id !== null) {
             // 1. Canon: credencial → conta_bancaria_id (Account UPOS) → fin_contas_bancarias
