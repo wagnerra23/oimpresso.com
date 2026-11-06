@@ -1174,6 +1174,28 @@ volta para uma margem alvo.
 - **Ainda em aberto, sem presumir:** as outras respostas do [W] na US-PROD-030 (tabelas de preço,
   aviso na receita, vários níveis da composição) não falam dos três nomes novos; a migração do legado
   (`TEM_MARGEM_FIXA_CONTIBUICAO`) precisa ser refeita para eles.
+- 🔶 **O que falta o [W] decidir para implementar — proposta de 2026-11-06.** Ficou fora da etapa 1 do
+  cadastro (#10380) porque precisa de coluna nova e mexe em valor (REGRA MESTRE de valor). As respostas
+  de 2026-10-06 na US-PROD-030 continuam valendo (padrão "mantém o preço", tabela de preço em % acompanha
+  e a de valor fixo não, aviso na receita, vários níveis, na hora ou com aprovação). Faltam quatro
+  pontos:
+  1. **Os três nomes.** A US-PROD-030 tem dois casos (CU-A "atualiza sempre" e CU-B "mantém o preço");
+     o protótipo e Fluxos têm três. **Proposta:** Preço fixo = CU-B; Acompanha o custo (mantém o
+     markup) = CU-A; **Margem alvo** é uma terceira opção nova, que recalcula o preço para a margem
+     escolhida, e a US-PROD-030 passa a ter as três.
+  2. **Onde mora a escolha.** **Proposta:** coluna `politica_preco` em `products` (`fixo` · `acompanha` ·
+     `margem`, padrão `fixo`) e `margem_alvo_pct` em `products`, nula fora da Margem alvo. Uma escolha por
+     produto vale para todas as variações, como o método de custo (`UC-FLX-38`).
+  3. **Quem lê.** **Proposta:** a regra da compra em Fluxos passa a ler o parâmetro `regraEm =
+     produto` (hoje ignorado, `RegrasCompra.php`): só os produtos com Acompanha o custo ou Margem alvo
+     entram no preço proposto ou aplicado no recebimento. Preço fixo nunca muda o preço; só a margem.
+  4. **Migração do legado.** **Proposta:** `TEM_MARGEM_FIXA_CONTIBUICAO = S` vira Acompanha o custo;
+     `N` e nulo viram Preço fixo, depois de medir a flag numa base de cliente CV (pergunta 1 da
+     US-PROD-030).
+  - **Antes de ligar** (REGRA MESTRE de valor): a implementação mostra o antes e o depois do preço numa
+    compra de exemplo, por dois caminhos, e só liga com a aprovação do [W].
+  - **Se o [W] mergear o PR desta proposta, valem as quatro propostas acima** e a implementação começa
+    por elas. Para mudar uma delas, basta comentar no PR.
 - **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
 
 ### 6.2 Vertical comunicação visual (`CV`)
