@@ -5,11 +5,16 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista de propostas mostra e-mails comerciais enviados a contatos (assunto, corpo, cc, bcc, anexos). Errar o escopo vaza proposta de outro negócio ou de colega; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-11-06"
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/14 (F3). O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
 # Casos de Uso & Aceite — Crm · Propostas (`/crm/proposals`)
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10558). Nada do
+> comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch, run
+> [42224015385](https://github.com/wagnerra23/oimpresso.com/actions/runs/42224015385): `CrmPropostasContratoTest` 7 testes, 45 asserções, 0 skipped (verde).
 
 > **Âncora:** o [charter](Index.charter.md), o mapa de paridade
 > `memory/requisitos/Crm/propostas-parity.md` (linhas altas 1–3) e o baseline da Blade

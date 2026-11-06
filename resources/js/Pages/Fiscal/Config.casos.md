@@ -99,7 +99,7 @@ related_us: [US-FISCAL-009]
 **Então** só o do business ativo é encontrado.
 
 - **Regressão que defende:** vazamento cross-tenant Tier 0 ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) — aqui expondo o CNPJ titular e a validade do certificado de outro cliente.
-- **Teste:** `ConfigControllerTest` — `it('UC-FCFG-02 · NfeCertificado HasBusinessScope esconde certs de outros tenants')`
+- **Teste:** `ConfigControllerTest` — `it('UC-FCFG-02 · NfeCertificado HasBusinessScope esconde certs de outros tenants')` — um certificado em cada empresa (98 e 99), usuário da 98: o da 99 some e o da 98 aparece. Até 2026-11-06 o teste contava sem usuário autenticado e sem dado, e passava com a tabela vazia.
 - **Status:** 🧪 advisory + noturna.
 
 ## UC-FCFG-03 — A tela exige `fiscal.config.edit` `[must]` `[T0]`

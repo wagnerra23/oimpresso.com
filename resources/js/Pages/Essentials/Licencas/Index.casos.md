@@ -4,7 +4,7 @@ casos: HRM · licenças · /hrm/leave
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-11-06"
 ---
 
 > ℹ️ **`last_run` 2026-09-05 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -15,6 +15,11 @@ last_run: "2026-09-11"
 > significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de uso — /hrm/leave · Licenças (HRM)
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10561). Nada do
+> comportamento coberto pelos UCs mudou. Lane `essentials-pest` disparada no branch, run
+> [42256776945](https://github.com/wagnerra23/oimpresso.com/actions/runs/42256776945): `HrmLicencaTest` 15 testes, 47 asserções, 0 pulados, 0 erros, no commit `7990c3a712`.
 
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) ·
 > ⬜ não verificado · ❌ quebrou.

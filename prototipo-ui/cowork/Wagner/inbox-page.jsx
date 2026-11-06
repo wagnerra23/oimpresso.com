@@ -335,7 +335,8 @@
     const threadRef = useRef(null);
     const inputRef = useRef(null);
 
-    useEffect(() => {if (!toast) return;const t = setTimeout(() => setToast(null), 2400);return () => clearTimeout(t);}, [toast]);
+    // toast: string (sucesso) ou { kind: "ok"|"warn"|"err", text, undo? }. Com Desfazer fica 6s.
+    useEffect(() => {if (!toast) return;const t = setTimeout(() => setToast(null), toast.undo ? 6000 : 2400);return () => clearTimeout(t);}, [toast]);
 
     // ── Filtragem ─────────────────────────────────────────────────────
     const filteredConvs = useMemo(() => {
@@ -523,8 +524,11 @@
       return () => window.removeEventListener("keydown", h);
     }, [selId, conv]);
     const resolve = () => {
-      setConvs((cs) => cs.map((c) => c.id === selId ? { ...c, status: "resolvidas" } : c));
-      setToast(`Conversa com ${conv.name} resolvida`);
+      // Resolver tem volta (WCAG 2.1.4 + atalho "e"): o toast oferece Desfazer.
+      const id = selId, prev = conv.status;
+      setConvs((cs) => cs.map((c) => c.id === id ? { ...c, status: "resolvidas" } : c));
+      setToast({ kind: "ok", text: `Conversa com ${conv.name} resolvida`,
+        undo: () => { setConvs((cs) => cs.map((c) => c.id === id ? { ...c, status: prev } : c)); setSelId(id); } });
       const next = filteredConvs.find((c) => c.id !== selId);
       if (next) setSelId(next.id);
     };
@@ -819,7 +823,7 @@
               <small>Tente outro filtro ou limpe a busca.</small>
             </div> :
 
-            <ul className="om-list">
+            <ul className="om-list" role="listbox" aria-label="Conversas">
               {filteredConvs.map((c) => {
                 const acc = ACC_BY_ID[c.account];
                 const ch = CHAN_BY_ID[acc?.channel];
@@ -828,8 +832,10 @@
                   <li key={c.id}
                   className={(selId === c.id ? "sel " : "") + (c.preview_only ? "ghost" : "")}
                   onClick={() => setSelId(c.id)}
+                  role="option" tabIndex={0}
+                  aria-selected={selId === c.id}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelId(c.id); } }}
                   data-testid={`caixa-unif-conv-${c.id}`}
-                  aria-current={selId === c.id ? "true" : undefined}
                   style={{ "--om-q-color": q ? `oklch(0.62 0.13 ${q.hue})` : "transparent" }}>
                     <span className="om-av-wrap">
                       <span className="om-av" style={c.photo ? null : { background: `oklch(0.60 0.12 ${c.avc})` }}>
@@ -1100,7 +1106,7 @@
         {conv && ctxDrawerOpen &&
           <>
           <div className="om-backdrop" onClick={() => setCtxDrawerOpen(false)} />
-          <aside className="om-drawer om-ctx-drawer">
+          <aside role="dialog" aria-modal="true" aria-label="Contexto do contato" ref={window.omDialogRef} className="om-drawer om-ctx-drawer">
             <header className="om-drawer-h">
               <div><h2>Contexto</h2><p>{conv.name}{conv.company ? " · " + conv.company : ""}</p></div>
               <button className="om-x" onClick={() => setCtxDrawerOpen(false)} aria-label="Fechar">✕</button>
@@ -1193,7 +1199,15 @@
           }
       </div>
 
-      {toast && <div className="om-toast">✓ {toast}</div>}
+      {toast && (() => {
+        const t = typeof toast === "string" ? { kind: "ok", text: toast } : toast;
+        const ico = t.kind === "err" ? "!" : t.kind === "warn" ? "⚠" : "✓";
+        return (
+          <div className={"om-toast " + t.kind} role={t.kind === "err" ? "alert" : "status"}>
+            <span className="om-toast-ico" aria-hidden="true">{ico}</span> {t.text}
+            {t.undo && <button className="om-toast-undo" onClick={() => { t.undo(); setToast(null); }}>Desfazer</button>}
+          </div>);
+      })()}
 
       {transcriptOpen && conv && window.InboxTranscriptDialog &&
         <window.InboxTranscriptDialog conv={conv} queue={convQueue} channel={convChannel} account={convAcc} onClose={() => setTranscriptOpen(false)} />
@@ -1273,10 +1287,10 @@
       {tplDrawerOpen &&
         <>
           <div className="om-backdrop" onClick={() => setTplDrawerOpen(false)} />
-          <aside className="om-drawer wide">
+          <aside role="dialog" aria-modal="true" aria-label="Templates" ref={window.omDialogRef} className="om-drawer wide">
             <header className="om-drawer-h">
               <div><h2>Templates</h2><p>Biblioteca unificada · Jana (IA) + HSM (Meta-aprovados)</p></div>
-              <button className="om-x" onClick={() => setTplDrawerOpen(false)}>✕</button>
+              <button className="om-x" onClick={() => setTplDrawerOpen(false)} aria-label="Fechar templates">✕</button>
             </header>
             <div className="om-tpl-seg" role="tablist" aria-label="Filtrar biblioteca de templates">
               {[{ id: "all", label: "Todas" }, { id: "jana", label: "✨ Jana · IA" }, { id: "hsm", label: "▣ HSM · Meta" }].map((s) =>
@@ -1318,10 +1332,10 @@
       {chSwitcherOpen &&
         <>
           <div className="om-backdrop" onClick={() => setChSwitcherOpen(false)} />
-          <aside className="om-drawer">
+          <aside role="dialog" aria-modal="true" aria-label="Canais e contas" ref={window.omDialogRef} className="om-drawer">
             <header className="om-drawer-h">
               <div><h2>Canais e contas</h2><p>{activeAccCount} ativas · {ACCOUNTS.length - activeAccCount} em homologação</p></div>
-              <button className="om-x" onClick={() => setChSwitcherOpen(false)}>✕</button>
+              <button className="om-x" onClick={() => setChSwitcherOpen(false)} aria-label="Fechar canais e contas">✕</button>
             </header>
             <div className="om-drawer-body">
               {CHANNELS.map((ch) => {
@@ -1420,10 +1434,10 @@
       {queuesOpen &&
         <>
           <div className="om-backdrop" onClick={() => setQueuesOpen(false)} />
-          <aside className="om-drawer wide">
+          <aside role="dialog" aria-modal="true" aria-label="Filas" ref={window.omDialogRef} className="om-drawer wide">
             <header className="om-drawer-h">
               <div><h2>Filas de atendimento</h2><p>{QUEUES.length} filas · distribuição automática</p></div>
-              <button className="om-x" onClick={() => setQueuesOpen(false)}>✕</button>
+              <button className="om-x" onClick={() => setQueuesOpen(false)} aria-label="Fechar filas">✕</button>
             </header>
             <div className="om-drawer-body">
               {QUEUES.map((q) => {
@@ -1470,13 +1484,13 @@
       {bcastOpen &&
         <>
           <div className="om-backdrop" onClick={() => setBcastOpen(false)} />
-          <aside className="om-drawer">
+          <aside role="dialog" aria-modal="true" aria-label="Broadcast" ref={window.omDialogRef} className="om-drawer">
             <header className="om-drawer-h">
               <div>
                 <h2>Broadcast cross-canal</h2>
                 <p>Envia para {convs.filter((c) => !c.preview_only).length} contatos abertos</p>
               </div>
-              <button className="om-x" onClick={() => setBcastOpen(false)}>✕</button>
+              <button className="om-x" onClick={() => setBcastOpen(false)} aria-label="Fechar broadcast">✕</button>
             </header>
             <div className="om-drawer-body">
               <label><small>Conta de envio</small></label>

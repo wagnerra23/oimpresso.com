@@ -20,6 +20,7 @@ import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Components/shared/DataTable';
 
 const ROTA = '/crm/proposals';
@@ -68,7 +69,7 @@ export default function PropostasIndex({ filtros, pode_enviar, propostas, propos
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Propostas" subtitle="Propostas enviadas a contatos: assunto, quem enviou e anexos." />
+      <PageHeader below={<ModuleTabs modulo="CRM" />} title="Propostas" subtitle="Propostas enviadas a contatos: assunto, quem enviou e anexos." />
 
       <Card data-contract="crm-propostas">
         <CardContent className="flex flex-col gap-3 p-4">

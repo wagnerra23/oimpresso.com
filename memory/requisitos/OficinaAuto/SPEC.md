@@ -2,10 +2,10 @@
 id: requisitos-oficina-auto-spec
 module: OficinaAuto
 version: "0.2.0"
-last_updated: "2026-06-09"
+last_updated: "2026-11-05"
 status: ativo
 lifecycle: ativo
-piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis são oficina/recapagem)
+piloto: Martinho (LIVE desde 2026-05-13, ADR 0171; Vargas citado na ADR 0137 não virou cliente — ver US-OFICINA-007)
 piloto_previsao: V0 scaffold 2026-05-11 (PR US-OFICINA-001); V1 importer Martinho Sprint 2+
 cnae_principal: '4520-0/01 (serviços de manutenção e reparação mecânica de veículos automotores)'
 cnaes_cobertos: ['4520-0/01', '2212-9/00', '4581-4/00']
@@ -553,7 +553,9 @@ ERP vertical brasileiro pra **oficina mecânica auto SMB** (1–20 mecânicos, 5
 
 **Tese de entrada:** quadrante "vertical auto + tech moderno + IA" está vazio (research 2026-05-09). Mubisys/Ultracar/Oficina Integrada têm PCP, mas zero IA conversacional, NFS-e travada (Reclame Aqui Ultracar), stack legacy, sem mobile real.
 
-**Status atual:** **NÃO em construção.** Sem cliente piloto pagante, **viola ADR 0105** ativar trabalho. Modules/Repair já cobre ~55-60% das capacidades (gap-repair-vs-oficina-auto.md) e Kanban Producao Oficina (PR #363) já está em produção com vocabulário automotivo — débito técnico controlado até gatilho.
+> **2026-11-05:** o parágrafo abaixo é o texto antecipatório de 2026-05-10 e não vale mais — o módulo é piloto LIVE do Martinho desde 2026-05-13 (ADR 0171). Estado real no [BRIEFING](BRIEFING.md).
+
+**Status atual (2026-05-10, superado):** **NÃO em construção.** Sem cliente piloto pagante, **viola ADR 0105** ativar trabalho. Modules/Repair já cobre ~55-60% das capacidades (gap-repair-vs-oficina-auto.md) e Kanban Producao Oficina (PR #363) já está em produção com vocabulário automotivo — débito técnico controlado até gatilho.
 
 ## 2. Audiência alvo
 
@@ -766,9 +768,9 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 ### US-AUTO-008 · Catálogo peças OEM + similares (cód fabricante + equivalentes) — **P1**
 
 > **Área:** Catalog
-> **Rota:** `GET/POST /oficina-auto/pecas`
+> **Rota:** `GET/POST /oficina-auto/ordens-servico/{order}/pecas-compativeis` (a rota `/oficina-auto/pecas` do rascunho não existe)
 
-**Implementado em:** `Modules/OficinaAuto/Services/CatalogoDePecas.php` · `Modules/OficinaAuto/Http/Controllers/PecaCompativelController.php` · `Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php` · `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` — parcial: backend atrás de `OFICINA_CATALOGO_PECAS_ENABLED=false`; a tela (sugestão no item da OS) vem depois do protótipo. Busca por código OEM e similares segue fora.
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Services/CatalogoDePecas.php` · `Modules/OficinaAuto/Http/Controllers/PecaCompativelController.php` · `Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php` · `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` — parcial: backend atrás de `OFICINA_CATALOGO_PECAS_ENABLED=false`; a tela (sugestão no item da OS) vem depois do protótipo. Busca por código OEM e similares segue fora.
 
 **Testado em:** `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` — lane `PHP / Pest (Sells · MySQL)`
 
@@ -910,7 +912,7 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Pos-venda
 > **blocked_by:** US-AUTO-001 (km_atual)
 
-**Implementado em:** _parcial_ · `Modules/OficinaAuto/Services/LembreteDeRevisao.php` · `Modules/OficinaAuto/Console/Commands/OficinaLembreteRevisaoCommand.php` · `Modules/OficinaAuto/Database/Migrations/2026_10_26_300000_create_oficina_lembretes_revisao.php` · `app/Contracts/Atendimento/AvisaClienteWhatsapp.php` · `Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php` — escolha de quem avisar (km estimado e data), registro do aviso e comando diário atrás de `OFICINA_LEMBRETE_REVISAO_ENABLED` (desligado); campo "Próxima revisão (data)" no cadastro do veículo (`resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx`, `Create.tsx`); falta a ligação do contrato no Modules/Whatsapp (frente CRM, sobre o `NotificadorClienteWhatsapp` do US-WA-319). Sem a tabela `oficina_auto_revisoes_planejadas` do DoD: as metas ficam no próprio veículo (`next_service_km`, `next_service_date`)
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Services/LembreteDeRevisao.php` · `Modules/OficinaAuto/Console/Commands/OficinaLembreteRevisaoCommand.php` · `Modules/OficinaAuto/Database/Migrations/2026_10_26_300000_create_oficina_lembretes_revisao.php` · `app/Contracts/Atendimento/AvisaClienteWhatsapp.php` · `Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php` — escolha de quem avisar (km estimado e data), registro do aviso e comando diário atrás de `OFICINA_LEMBRETE_REVISAO_ENABLED` (desligado); campo "Próxima revisão (data)" no cadastro do veículo (`resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx`, `Create.tsx`); o contrato está ligado no Modules/Whatsapp (`Modules/Whatsapp/Providers/WhatsappServiceProvider.php`, bind `AvisaClienteWhatsapp` → `AvisoAoClientePeloNotificador`, US-WA-319 — corrigido 2026-11-05; antes este texto dizia que a ligação faltava). Sem a tabela `oficina_auto_revisoes_planejadas` do DoD: as metas ficam no próprio veículo (`next_service_km`, `next_service_date`)
 
 **Testado em:** `Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php` (lane `sells-pest.yml`).
 
@@ -1531,14 +1533,14 @@ Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacio
 
 ### US-OFICINA-047 · Entrega da OS exige foto do serviço feito (UC-FLX-22)
 
-> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · type: story · origin: catálogo de fluxos UC-FLX-22 (modelo "Oficina mecânica", etapa "Entregue · Fotos do serviço") · 2026-10-20
+> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: done · type: story · origin: catálogo de fluxos UC-FLX-22 (modelo "Oficina mecânica", etapa "Entregue · Fotos do serviço") · 2026-10-20
 > blocked_by: —
 
 O veículo só é entregue ao cliente com foto do serviço feito. Regra `servico_foto` no `StageGateEvaluator`, na ação `entregar` (Pronto p/ retirar → Entregue) do processo `oficina_mecanica_os` — o mesmo gate da US-OFICINA-003 (422 na web com liberação de gerente registrada na trilha; no app, `bloqueado` sem liberação). "Foto do serviço" = imagem anexada à OS ou a item da vistoria enviada a partir da entrada da OS em `em_execucao` na trilha FSM; foto do diagnóstico (antes) e PDF não contam. OS sem essa entrada na trilha (importada/repontuada) aceita qualquer foto da OS. Fotos filtradas pelo `business_id` da OS (o app chama sem sessão).
 
 **Parcial — assinatura fora:** o UC-FLX-22 pede também a assinatura do cliente. Ela não existe na Oficina; o padrão do repo é o da entrega do pedido no app (`app/Http/Controllers/Api/App/PedidoEntregaController.php`, ajuste `app_entrega_exige_assinatura`). Fica para outra US — entrou na US-OFICINA-048 (2026-10-21).
 
-**Implementado em:** _parcial_ — `Modules/OficinaAuto/Services/StageGateEvaluator.php` (regra `servico_foto` em `entregar`) · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `Modules/OficinaAuto/Services/AcoesOsDoApp.php` — foto exigida; assinatura falta
+**Implementado em:** `Modules/OficinaAuto/Services/StageGateEvaluator.php` (regra `servico_foto` em `entregar`) · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `Modules/OficinaAuto/Services/AcoesOsDoApp.php` — foto exigida; a assinatura foi entregue na US-OFICINA-048 (2026-11-05: deixa de ser `_parcial_`; 4 dos 5 itens do DoD da US-048 estão `[x]`, e o que falta é a tela de configuração do ajuste, fora do escopo dela)
 
 **Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php` — lane `PHP / Pest (Sells · MySQL)`
 
@@ -1553,7 +1555,7 @@ O veículo só é entregue ao cliente com foto do serviço feito. Regra `servico
 
 ### US-OFICINA-048 · Entrega da OS exige assinatura do cliente, por empresa (UC-FLX-22)
 
-> owner: — · priority: p2 · estimate: 3h (IA-pair fator 10x ADR 0106) · type: story · origin: catálogo de fluxos UC-FLX-22 (complemento da US-OFICINA-047) · 2026-10-21
+> owner: — · priority: p2 · estimate: 3h (IA-pair fator 10x ADR 0106) · status: done · type: story · origin: catálogo de fluxos UC-FLX-22 (complemento da US-OFICINA-047) · 2026-10-21
 > blocked_by: —
 
 A entrega da OS (ação `entregar`, Pronto p/ retirar → Entregue) passa a exigir a assinatura do cliente quando a empresa liga `business.common_settings[oficina_entrega_exige_assinatura]` — **desligada por padrão** (formato do `compras_requisicao_estoque_minimo`; liga/desliga com `php artisan oficina:entrega-assinatura <biz> --ligar|--desligar`). Desligada, o checklist da entrega é o de antes. Regra `assinatura` no `StageGateEvaluator` (mesmo gate e mesma liberação de gerente da US-OFICINA-047).
@@ -1575,6 +1577,36 @@ O quadro de assinatura aparece no checklist da entrega enquanto o requisito est�
 - [x] Tier 0: assinatura de outra empresa apontando para a OS não conta
 - [ ] Tela de configuração para o ajuste (fora deste PR)
 
+### US-OFICINA-027 · Itens da OS (peça, mão de obra, serviço) + box e responsável
+
+> owner: — · priority: p1 · estimate: 4h · status: done · type: story · origin: Wave 2.1 (2026-05-26), registrada no SPEC em 2026-11-05
+> blocked_by: —
+
+Entrada criada na auditoria de 2026-11-05: o ID é citado em 25 arquivos de código e não tinha entrada aqui. O código usa o mesmo ID para três coisas: CRUD de itens da OS, os campos `box_label` + `assigned_user_id` da OS, e (em comentários do seeder) um futuro catálogo de peça hidráulica. Esta entrada cobre só as duas primeiras, que existem; a terceira não está construída.
+
+**Implementado em:** `Modules/OficinaAuto/Http/Controllers/ServiceOrderItemController.php` · `Modules/OficinaAuto/Http/Requests/StoreServiceOrderItemRequest.php` · `Modules/OficinaAuto/Http/Requests/UpdateServiceOrderItemRequest.php` · `Modules/OficinaAuto/Database/Migrations/2026_05_26_120001_add_box_and_assigned_user_to_service_orders.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderItemFormSheet.tsx`
+
+**DoD:**
+- [x] Criar, editar e remover item da OS (peça, mão de obra, serviço) por HTTP, no tenant da OS
+- [x] `box_label` e `assigned_user_id` gravados na OS e usados no filtro de box da Produção
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemHttpIntegrationTest.php` · `Modules/OficinaAuto/Tests/Feature/ProducaoBoxFilterTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)`
+
+### US-OFICINA-037 · Imprimir OS em A4 (laudo/nota de balcão)
+
+> owner: — · priority: p1 · estimate: 3h · status: done · type: story · origin: Gap 3 (2026-05-26), registrada no SPEC em 2026-11-05
+> blocked_by: —
+
+Entrada criada na auditoria de 2026-11-05 (ID citado no código sem entrada no SPEC). `GET /oficina-auto/ordens-servico/{order}/print` devolve o HTML A4 da OS; o frontend injeta num iframe oculto e chama `window.print()`.
+
+**Implementado em:** `Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php` (`printInvoice`) · `resources/views/oficina_auto/print/service_order.blade.php` · `resources/js/Lib/printServiceOrder.ts`
+
+**DoD:**
+- [x] Pedido AJAX devolve o HTML A4 da OS; pedido não-AJAX devolve 404
+- [x] OS de outra empresa não é impressa
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderPrintTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)`
+
 ---
 
-**Última atualização:** 2026-06-09 — US-OFICINA-046 dívida F3 (repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas") — follow-up erradicação ADR 0265 (PR #2475). 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
+**Última atualização:** 2026-11-05 — auditoria do módulo (lote 5.3): US-047 sai de `_parcial_`, US-AUTO-008 entra em `_parcial_` e rota corrigida, US-AUTO-014 deixa de dizer que falta a ligação no Whatsapp, `status:` nas US 047/048, entradas US-OFICINA-027 e 037 (citadas no código sem SPEC), cabeçalho sem Vargas. 2026-06-09 — US-OFICINA-046 dívida F3 (repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas") — follow-up erradicação ADR 0265 (PR #2475). 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado` (superado: o gatilho veio com o Martinho, piloto LIVE desde 2026-05-13).

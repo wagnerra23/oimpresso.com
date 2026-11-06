@@ -115,13 +115,13 @@ function InboxTranscriptDialog({ conv, queue, channel, account, onClose }) {
   return (
     <React.Fragment>
       <div className="om-palette-back" onClick={onClose}/>
-      <div className="om-print-modal" role="dialog">
+      <div className="om-print-modal" role="dialog" aria-modal="true" aria-label="Pré-visualização da conversa" ref={window.omDialogRef}>
         <header className="om-print-modal-h kb-no-print">
           <div>
             <small>Transcript de conversa — modo jurídico/auditoria</small>
             <h3>Pré-visualização</h3>
           </div>
-          <button className="om-x" onClick={onClose}>✕</button>
+          <button className="om-x" onClick={onClose} aria-label="Fechar pré-visualização">✕</button>
         </header>
 
         <div className="om-print-body">
@@ -250,8 +250,8 @@ function InboxMediaLightbox({ media, onClose }) {
   if (!media) return null;
 
   return (
-    <div className="om-lightbox" onClick={onClose} role="dialog">
-      <button className="om-lightbox-close" onClick={onClose}>✕</button>
+    <div className="om-lightbox" onClick={onClose} role="dialog" aria-modal="true" aria-label="Mídia em tela cheia" ref={window.omDialogRef}>
+      <button className="om-lightbox-close" onClick={onClose} aria-label="Fechar mídia">✕</button>
       <figure className="om-lightbox-frame" onClick={(e) => e.stopPropagation()}>
         {media.kind === "image" ? (
           <img src={media.src} alt={media.caption || ""}/>
