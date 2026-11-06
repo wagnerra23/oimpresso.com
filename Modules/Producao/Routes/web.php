@@ -175,4 +175,6 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('ordens/{id}/liberar', [OrdemSituacaoController::class, 'liberar'])->whereNumber('id')->name('ordens.liberar');
         Route::post('ordens/{id}/refazer', [OrdemSituacaoController::class, 'refazer'])->whereNumber('id')->name('ordens.refazer');
         Route::post('ordens/{id}/cancelar', [OrdemSituacaoController::class, 'cancelar'])->whereNumber('id')->name('ordens.cancelar');
+        // Auditoria lote 3.2 · UC-PCV-10 — a Ficha da OS (Inertia) que chama as três ações acima.
+        Route::get('ordens/{id}', [OrdemFichaController::class, 'show'])->whereNumber('id')->name('ordens.show');
     });

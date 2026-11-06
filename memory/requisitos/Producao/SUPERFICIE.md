@@ -14,9 +14,9 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 169 arquivos em 17 papéis.
+**Total mapeado:** 175 arquivos em 17 papéis.
 
-## Controllers — 23
+## Controllers — 24
 
 - [AlocacaoController.php](../../../Modules/Producao/Http/Controllers/AlocacaoController.php)
 - [AppApontamentoController.php](../../../Modules/Producao/Http/Controllers/Api/AppApontamentoController.php)
@@ -31,6 +31,7 @@ module: Producao
 - [LinhaController.php](../../../Modules/Producao/Http/Controllers/LinhaController.php)
 - [LoteRastreioController.php](../../../Modules/Producao/Http/Controllers/LoteRastreioController.php)
 - [OrdemCustoController.php](../../../Modules/Producao/Http/Controllers/OrdemCustoController.php)
+- [OrdemFichaController.php](../../../Modules/Producao/Http/Controllers/OrdemFichaController.php)
 - [OrdemMaterialController.php](../../../Modules/Producao/Http/Controllers/OrdemMaterialController.php)
 - [OrdemSituacaoController.php](../../../Modules/Producao/Http/Controllers/OrdemSituacaoController.php)
 - [PainelController.php](../../../Modules/Producao/Http/Controllers/PainelController.php)
@@ -46,7 +47,7 @@ module: Producao
 
 - [SalvarRoteiroRequest.php](../../../Modules/Producao/Http/Requests/SalvarRoteiroRequest.php)
 
-## Services — 36
+## Services — 37
 
 - [AlocacaoDaEtapa.php](../../../Modules/Producao/Services/AlocacaoDaEtapa.php)
 - [ApontamentoOperadorService.php](../../../Modules/Producao/Services/ApontamentoOperadorService.php)
@@ -63,6 +64,7 @@ module: Producao
 - [CustoRealService.php](../../../Modules/Producao/Services/CustoRealService.php)
 - [EnvioDaProva.php](../../../Modules/Producao/Services/EnvioDaProva.php)
 - [FaltaDeMaterialDaOs.php](../../../Modules/Producao/Services/FaltaDeMaterialDaOs.php)
+- [FichaDaOrdem.php](../../../Modules/Producao/Services/FichaDaOrdem.php)
 - [HorasDosPostosService.php](../../../Modules/Producao/Services/HorasDosPostosService.php)
 - [LinhaDaProducao.php](../../../Modules/Producao/Services/LinhaDaProducao.php)
 - [MateriaisDaEtapa.php](../../../Modules/Producao/Services/MateriaisDaEtapa.php)
@@ -149,10 +151,11 @@ module: Producao
 - [aprovacao-arte.blade.php](../../../Modules/Producao/Resources/views/aprovacao-arte.blade.php)
 - [etiqueta-os.blade.php](../../../Modules/Producao/Resources/views/etiqueta-os.blade.php)
 
-## Telas (Inertia/React) — 6
+## Telas (Inertia/React) — 7
 
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.tsx)
+- [Show.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx)
@@ -168,27 +171,29 @@ module: Producao
 - [ProdutosDoRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/ProdutosDoRoteiro.tsx)
 - [ProducaoAbas.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/ProducaoAbas.tsx)
 
-## Charters (lei da tela) — 6
+## Charters (lei da tela) — 7
 
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.charter.md)
+- [Show.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.charter.md)
 
-## Casos (contrato UC) — 6
+## Casos (contrato UC) — 7
 
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.casos.md)
+- [Show.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 
-## Testes (Pest) — 33
+## Testes (Pest) — 34
 
-- 33 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 34 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 11
