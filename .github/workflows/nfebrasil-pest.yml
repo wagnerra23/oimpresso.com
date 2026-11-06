@@ -374,6 +374,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ApuracaoDasTest.php \
             Modules/Fiscal/Tests/Feature/DasControllerTest.php \
             Modules/Fiscal/Tests/Feature/FiscalPacoteGateTest.php \
+            Modules/Fiscal/Tests/Feature/HabilitarBusinessDryRunTest.php \
             Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
             Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php
 
