@@ -4315,6 +4315,34 @@ class ProductController extends Controller
         }
     }
 
+    /**
+     * UC-PIDX-43: o mesmo NCM em vários produtos de uma vez, a partir da seleção na consulta de produto
+     * (pedido da PraMoto, 2026-10-27). Mesmo gate da edição do produto (`product.update`). O NCM vale
+     * com 8 dígitos e diferente de 00000000 (a regra da emissão e do card de Saúde fiscal); pontos são
+     * ignorados. Só os produtos da empresa do usuário (ADR 0093): id de outra empresa não é alterado.
+     * Não recalcula nada: a próxima nota usa o NCM novo, como se fosse editado produto a produto.
+     */
+    public function bulkUpdateNcm(Request $request)
+    {
+        if (! auth()->user()->can('product.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = (int) $request->session()->get('user.business_id');
+        $ncm = preg_replace('/[^0-9]/', '', (string) $request->input('ncm'));
+        if (strlen($ncm) !== 8 || $ncm === '00000000') {
+            return response()->json(['success' => 0, 'msg' => 'Informe um NCM com 8 dígitos.'], 422);
+        }
+        $ids = array_values(array_filter(array_map('intval', explode(',', (string) $request->input('products')))));
+        if ($ids === []) {
+            return response()->json(['success' => 0, 'msg' => 'Nenhum produto selecionado.'], 422);
+        }
+
+        $alterados = Product::where('business_id', $business_id)->whereIn('id', $ids)->update(['ncm' => $ncm]);
+
+        return response()->json(['success' => 1, 'msg' => $alterados . ' produto(s) com o NCM ' . $ncm . '.']);
+    }
+
     public function updateProductLocation(Request $request)
     {
         if (! auth()->user()->can('product.update')) {

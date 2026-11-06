@@ -73,6 +73,8 @@ função da lista Blade que roda hoje em produção.
   "Não para venda"; e os de módulo, só para quem tem o módulo: "Modelo do dispositivo"
   (assistência técnica) e "WooCommerce habilitado"; e "Falta NCM" só para quem emite nota
   (UC-PIDX-42, 2026-11-06). Chips "Filtrando por" + "Limpar tudo".
+- Barra de selecionados: "Informar NCM", só para quem emite nota e pode editar produto, grava o mesmo
+  NCM em todos os selecionados (UC-PIDX-43, 2026-11-06).
 - Abas: **Todos os produtos** (com contagem) e **Relatório de estoque** (as colunas da lista Blade,
   linhas por página à escolha, lucro potencial da linha verde/vermelho,
   com totais), esta só com `stock_report.view`.
