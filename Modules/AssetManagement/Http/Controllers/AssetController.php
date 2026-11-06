@@ -905,6 +905,17 @@ class AssetController extends Controller
     public function dashboard()
     {
         $business_id = request()->session()->get('user.business_id');
+
+        // Lote 0.5 (auditoria 2026-11-05, a-9): o painel nao conferia permissao nenhuma.
+        // Abre para quem ve o menu do modulo (`asset.view` ou uma das permissoes de
+        // manutencao — DataController) e exige a assinatura, como as outras telas.
+        $user = auth()->user();
+        if (! ($user->can('asset.view') || $user->can('asset.view_all_maintenance') || $user->can('asset.view_own_maintenance'))) {
+            abort(403, 'Unauthorized action.');
+        }
+        if (! ($user->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
         $user_id = auth()->user()->id;
         $is_admin = $this->commonUtil->is_admin(auth()->user());
 
