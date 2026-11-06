@@ -2526,6 +2526,40 @@
   outline: none;
 }
 
+/* ─── Lote 6 (2026-11-06) · acessibilidade ─────────────────────────
+   Anel de foco nos controles que faltavam, alvo mínimo de 24×24
+   (WCAG 2.5.8), movimento só com prefers-reduced-motion: no-preference,
+   e toast com variante (sucesso · aviso · erro) e Desfazer. */
+.om-flt-pill:focus-visible,
+.om-tool-btn:focus-visible,
+.om-hb-x:focus-visible,
+.om-hb-btn:focus-visible,
+.om-tpl-lib-item:focus-visible,
+.om-toast-undo:focus-visible,
+.om-list li:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.om-list li:focus-visible { outline-offset: -2px; }
+.om-list-search-x,
+.om-x.sm,
+.om-hb-x { min-width: 24px; min-height: 24px; }
+.om-flt-pill { min-height: 24px; }
+@media (prefers-reduced-motion: reduce) {
+  .om-sla-pill .om-sla-dot { animation: none !important; }
+  .om-toast { animation: none; }
+}
+.om-toast { display: inline-flex; align-items: center; gap: 8px; }
+.om-toast.warn { background: var(--warn); color: var(--text); }
+.om-toast.err  { background: var(--neg); color: var(--surface); }
+.om-toast-ico { font-weight: 700; }
+.om-toast-undo {
+  font: inherit; font-weight: 600; color: inherit;
+  background: transparent; border: 1px solid currentColor; border-radius: 99px;
+  padding: 2px 10px; min-height: 24px; cursor: pointer; margin-left: 4px;
+}
+.om-cheat-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 4px; }
+
 /* ═════════════════════════════════════════════════════════════════
    Contexto recolhível ([W]: "colapsar? em tela pequena fica feio")
    ═════════════════════════════════════════════════════════════════ */
@@ -2708,21 +2742,23 @@
    canônicos do ds-v6 (neutro hue 282 · == bg-card de produção · [W]
    2026-06-20 "cor de fundo no padrão do git"). Roxo 295 fica só no
    ACENTO (seleção, bolha enviada, badge), nunca tinge a superfície.
+   Lote 6 (2026-11-06): as 9 cores cruas do acento e do âmbar viraram
+   derivadas de --accent / --accent-soft / --warn (ds-guard §8 bloqueava).
    ═════════════════════════════════════════════════════════════════ */
 [data-theme="dark"] .om-page {
   --omd-canvas: var(--bg);       /* == surface-page do ds-v6 */
   --omd-panel:  var(--surface);  /* == bg-card de produção */
   --omd-raise:  var(--raised);
   --omd-line:   var(--hairline);
-  --omd-sel:    oklch(0.31 0.064 295);
-  --omd-sel-bd: oklch(0.46 0.10 295);
-  --omd-sel-tx: oklch(0.88 0.13 295);
-  --omd-me:     oklch(0.41 0.094 295);
-  --omd-me-tx:  oklch(0.97 0.035 295);
-  --omd-grn:    oklch(0.64 0.15 295);
-  --omd-amb:    oklch(0.27 0.05 80);
-  --omd-amb-bd: oklch(0.42 0.08 80);
-  --omd-amb-tx: oklch(0.87 0.10 80);
+  --omd-sel:    var(--accent-soft);
+  --omd-sel-bd: color-mix(in oklch, var(--accent) 55%, var(--surface));
+  --omd-sel-tx: color-mix(in oklch, var(--accent) 40%, var(--text));
+  --omd-me:     color-mix(in oklch, var(--accent) 60%, var(--bg));
+  --omd-me-tx:  var(--text);
+  --omd-grn:    var(--accent);
+  --omd-amb:    color-mix(in oklch, var(--warn) 18%, var(--bg));
+  --omd-amb-bd: color-mix(in oklch, var(--warn) 40%, var(--bg));
+  --omd-amb-tx: color-mix(in oklch, var(--warn) 70%, var(--text));
 }
 
 /* ── superfícies = tokens canônicos ds-v6 (neutro · == bg-card prod) ── */
