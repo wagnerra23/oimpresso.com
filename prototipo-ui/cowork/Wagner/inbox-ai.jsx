@@ -6,23 +6,31 @@ const { useState, useEffect, useMemo, useRef } = React;
 // ─────────────────────────────────────────────────────────────────
 // HELPERS — conversa → texto
 // ─────────────────────────────────────────────────────────────────
+// Lote 6 (6.2.g) — como a produção (InboxAiController + PiiRedactor): telefone, e-mail,
+// CPF/CNPJ, saldo, LTV e notas internas não vão para o provedor de IA.
+function redactPII(s) {
+  return String(s || "")
+    .replace(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g, "[CPF]")
+    .replace(/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/g, "[CNPJ]")
+    .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, "[e-mail]")
+    .replace(/\+?\d[\d\s().-]{8,}\d/g, "[telefone]");
+}
+window.redactPII = redactPII;
+
 function convToText(conv) {
   if (!conv || !conv.msgs) return "";
-  return conv.msgs.map(m => {
-    const who = m.internal ? `[nota equipe ${m.time}]` : m.who === "me" ? `[Atendente ${m.time}]` : `[Cliente ${m.time}]`;
-    return `${who} ${m.t}`;
+  return conv.msgs.filter(m => !m.internal).map(m => {
+    const who = m.who === "me" ? `[Atendente ${m.time}]` : `[Cliente ${m.time}]`;
+    return `${who} ${redactPII(m.t || (m.media && m.media.transcription) || "[mídia]")}`;
   }).join("\n");
 }
 
 function convCtxBlock(conv) {
   if (!conv) return "";
   return `Cliente: ${conv.name} (${conv.company || "—"})
-Canal: ${conv.handle}
 Status: ${conv.status}
 Tags: ${(conv.tags || []).join(", ") || "—"}
 OS vinculada: ${conv.ctx?.os || "—"}
-Saldo: ${conv.ctx?.saldo || "—"}
-Histórico: ${conv.ctx?.history || "—"}
 Último contato: ${conv.ctx?.lastTouch || "—"}`;
 }
 
@@ -114,7 +122,7 @@ FORMATO:
           {!loading && err && <div className="om-ai-err">{err}</div>}
         </div>
         <footer className="om-ai-modal-foot">
-          <small>Resumo gerado por IA. Confirme detalhes no thread original.</small>
+          <small>Resumo gerado por IA. Dados sensíveis são ocultados antes de ir para a IA. Confirme detalhes no thread original.</small>
           {!loading && (
             <button className="os-btn ghost" onClick={run}>Refazer</button>
           )}
@@ -202,7 +210,7 @@ RESPOSTA (3-6 frases + citações [a3] se usar KB):`;
           <div>
             <small>IA · Perguntar ao histórico</small>
             <h3>{conv?.name || "Cliente"}</h3>
-            <p className="om-ai-sub">Acessa thread atual, outras conversas do cliente e artigos do KB.</p>
+            <p className="om-ai-sub">Acessa thread atual, outras conversas do cliente e artigos do KB. Dados sensíveis são ocultados antes de ir para a IA.</p>
           </div>
           <button className="om-x" onClick={onClose} aria-label="Fechar pergunta à IA">✕</button>
         </header>
@@ -294,7 +302,7 @@ function SuggestReplyButton({ conv, onApply }) {
       setOut(result);
       setExpanded(true);
     } catch (e) {
-      setErr((e && e.message) || "Falha");
+      setErr((e && e.message) || "Não foi possível gerar a sugestão.");
     } finally {
       setLoading(false);
     }
@@ -306,6 +314,23 @@ function SuggestReplyButton({ conv, onApply }) {
         <span className="om-ai-dots-tiny"><span></span><span></span><span></span></span>
         Pensando...
       </button>
+    );
+  }
+
+  // Lote 6 (6.2.f): o erro aparece no próprio lugar, com Tentar de novo (antes era engolido).
+  if (err && !out) {
+    return (
+      <div className="om-suggest-result err" role="alert">
+        <div className="om-suggest-head">
+          <span className="om-suggest-spark" aria-hidden="true">!</span>
+          <b>Não foi possível sugerir resposta</b>
+          <button className="om-suggest-close" onClick={() => setErr(null)} aria-label="Fechar aviso">✕</button>
+        </div>
+        <p className="om-suggest-text">{err}</p>
+        <div className="om-suggest-actions">
+          <button className="os-btn primary" onClick={run}>Tentar de novo</button>
+        </div>
+      </div>
     );
   }
 

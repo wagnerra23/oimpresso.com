@@ -2904,3 +2904,66 @@
 [data-theme="dark"] .om-health-banner.err{ background: color-mix(in oklch, var(--neg) 10%, var(--surface)); border-color: color-mix(in oklch, var(--neg) 38%, var(--border)); color: var(--neg); }
 [data-theme="dark"] .om-health-banner.warn .om-hb-ico, [data-theme="dark"] .om-health-banner.warn .om-hb-btn{ background: color-mix(in oklch, var(--warn) 18%, var(--surface)); color: var(--warn); border-color: color-mix(in oklch, var(--warn) 38%, var(--border)); }
 [data-theme="dark"] .om-health-banner.err .om-hb-ico, [data-theme="dark"] .om-health-banner.err .om-hb-btn{ background: color-mix(in oklch, var(--neg) 18%, var(--surface)); color: var(--neg); border-color: color-mix(in oklch, var(--neg) 38%, var(--border)); }
+
+/* ═════════════════════════════════════════════════════════════════
+   Lote 6 (2026-11-06) · estados que faltavam (pedido 6.2)
+   entrega da mensagem · falha · mídia/transcrição · carregando ·
+   sem conexão · erro da sugestão · verificação do QR · exportar.
+   ═════════════════════════════════════════════════════════════════ */
+.om-msg-st { white-space: nowrap; }
+.om-msg-st.read { color: var(--accent); font-weight: 600; }
+.om-msg-st.sending { opacity: .7; }
+.om-msg-st.failed { color: var(--neg); font-weight: 700; }
+.om-bub.failed { box-shadow: inset 0 0 0 1px var(--neg); }
+.om-bub-fail {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 6px; padding-top: 6px; border-top: 1px solid color-mix(in oklch, var(--neg) 35%, transparent);
+  font-size: 11.5px; font-weight: 600; color: var(--neg);
+}
+.om-bub-retry {
+  font: inherit; font-size: 11.5px; font-weight: 600; color: inherit;
+  background: transparent; border: 1px solid currentColor; border-radius: 6px;
+  padding: 2px 8px; min-height: 24px; cursor: pointer;
+}
+.om-media-gone, .om-media-doc {
+  font-size: 12px; color: var(--text-mute); font-style: italic;
+  padding: 6px 8px; border: 1px dashed var(--border-2); border-radius: 6px; margin-bottom: 4px;
+}
+.om-media-img { width: 180px; height: 120px; border-radius: 6px; margin-bottom: 4px; background: var(--bg-2); }
+.om-media-audio { display: flex; flex-direction: column; gap: 4px; min-width: 220px; }
+.om-audio-player { display: flex; align-items: center; gap: 8px; }
+.om-audio-play {
+  width: 28px; height: 28px; border-radius: 99px; border: 1px solid var(--border-2);
+  background: var(--surface); color: var(--text); cursor: pointer; font-size: 10px;
+}
+.om-audio-bar { flex: 1; height: 4px; border-radius: 99px; background: var(--border-2); }
+.om-transcr { border-left: 2px solid var(--border-2); padding-left: 8px; }
+.om-transcr-h {
+  font: inherit; font-size: 10.5px; font-weight: 600; color: var(--text-mute);
+  background: transparent; border: none; padding: 0; cursor: pointer; min-height: 24px;
+}
+.om-transcr p { margin: 0; font-size: 12.5px; }
+.om-transcr-st { font-size: 11px; color: var(--text-mute); }
+.om-transcr-st.limit, .om-transcr-st.failed { color: var(--warn); }
+.om-offline {
+  padding: 8px 12px; font-size: 12px; border-bottom: 1px solid var(--border-2);
+  background: color-mix(in oklch, var(--warn) 14%, var(--surface)); color: var(--text);
+}
+.om-list-skel li { display: flex; gap: 10px; align-items: center; padding: 10px 12px; }
+.om-skel { display: block; height: 10px; border-radius: 4px; background: var(--border-2); width: 100%; }
+.om-skel.short { width: 60%; margin-top: 6px; }
+.om-skel.av { width: 36px; height: 36px; border-radius: 99px; flex-shrink: 0; }
+.om-skel-lines { flex: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .om-skel { animation: om-skel 1.2s ease-in-out infinite; }
+  @keyframes om-skel { 50% { opacity: .5; } }
+}
+.om-empty-list .os-btn { margin-top: 8px; align-self: center; }
+.om-suggest-result.err { border-color: var(--neg); }
+.om-rc-fail {
+  margin: 0 16px 8px; padding: 8px 10px; border-radius: 6px; font-size: 12px;
+  background: color-mix(in oklch, var(--neg) 10%, var(--surface)); color: var(--text);
+  border: 1px solid color-mix(in oklch, var(--neg) 35%, transparent);
+}
+.om-ctx-export { width: 100%; margin: 8px 0; }
+.om-print-notes { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
