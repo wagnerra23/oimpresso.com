@@ -98,11 +98,25 @@ it('UC-FOB-05 · concluir marca a data; sem fisio.editar nada grava; passo desco
 
 it('UC-FOB-06 · o que a 98 grava não aparece para a 99', function () {
     F::como($this, $this->u98);
-    $this->put('/fisio/onboarding/atendimento', ['atendimento' => 'pj']);
-    $this->put('/fisio/onboarding/concluir');
+    $this->put('/fisio/onboarding/atendimento', ['atendimento' => 'pj'])->assertSessionHasNoErrors();
+    $this->put('/fisio/onboarding/concluir')->assertSessionHasNoErrors();
 
+    // Âncora: a 98 gravou, e a mesma tela da 98 mostra o que gravou.
+    expect($this->cfg->ler($this->b98, 'atendimento.tipo'))->toBe('pj')
+        ->and($this->cfg->ler($this->b98, 'onboarding.concluido_em'))->toBeString();
+    $this->get('/fisio/onboarding')->assertOk()->assertInertia(fn (AssertableInertia $p) => $p
+        ->where('atendimento', 'pj')
+        ->where('concluido', true));
+
+    expect($this->cfg->ler($this->b99, 'atendimento.tipo'))->toBeNull()
+        ->and($this->cfg->ler($this->b99, 'onboarding.concluido_em'))->toBeNull();
     F::como($this, $this->u99);
     $this->get('/fisio/onboarding')->assertOk()->assertInertia(fn (AssertableInertia $p) => $p
         ->where('atendimento', null)
         ->where('concluido', false));
+
+    // E no sentido inverso: a 99 grava o dela, e a 98 continua com o que gravou.
+    $this->put('/fisio/onboarding/atendimento', ['atendimento' => 'pf'])->assertSessionHasNoErrors();
+    expect($this->cfg->ler($this->b99, 'atendimento.tipo'))->toBe('pf')
+        ->and($this->cfg->ler($this->b98, 'atendimento.tipo'))->toBe('pj');
 });
