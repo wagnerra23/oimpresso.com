@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 8 |
 | Telas com `casos.md` | 10 |
-| UC declarados | 161 |
-| UC com teste que os cita | 155 |
+| UC declarados | 165 |
+| UC com teste que os cita | 159 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -74,6 +74,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCERT-04 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
 | UC-FCERT-05 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
 | UC-FCERT-06 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
+| UC-FCERT-07 | cert-health-check (blade) | 🧪 aguarda veredito da lane |
 | UC-FCFG-01 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-02 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-03 | Config | 🧪 aguarda veredito da lane |
@@ -84,6 +85,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCFG-08 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-09 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-10 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-11 | Config | 🧪 aguarda veredito da lane |
 | UC-FCKP-01 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-02 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-03 | Cockpit | 🧪 aguarda veredito da lane |
@@ -98,6 +100,8 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCKP-12 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-13 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-14 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FCKP-15 | Cockpit | 🧪 aguarda veredito da lane |
+| UC-FCKP-16 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FDAS-01 | Das | 🧪 aguarda veredito da lane |
 | UC-FDAS-02 | Das | 🧪 aguarda veredito da lane |
 | UC-FDAS-03 | Das | 🧪 aguarda veredito da lane |
