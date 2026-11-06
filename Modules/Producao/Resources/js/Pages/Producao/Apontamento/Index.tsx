@@ -26,7 +26,7 @@ interface Lote { id: number; lote: string | null; saldo: string; recebido_em: st
 interface Material { variation_id: number; nome: string; unidade: string | null; previsto: string | null; apontado: string; lotes: Lote[] }
 interface Motivo { id: number; posto_id: number; nome: string }
 // UC-PCAPA-01: a arte que vale da OS (a última aprovada pelo cliente); `aguardando` = pediu e nenhuma foi aprovada ainda.
-interface Arte { estado: 'aprovada' | 'aguardando'; arquivo: string | null; aprovada_em: string | null }
+interface Arte { estado: 'aprovada' | 'aguardando'; arquivo: string | null; versao: number | null; aprovada_em: string | null }
 interface Props { operador: { id: number; nome: string }; etapas?: Etapa[]; rodando?: Rodando; motivos?: Motivo[]; motivos_refugo?: Motivo[]; materiais?: Record<number, Material[]>; artes?: Record<number, Arte> }
 type Apontar = (url: string, corpo?: Record<string, unknown>) => Promise<boolean>;
 
@@ -178,7 +178,7 @@ function Linha({ a, motivos: todos, motivosRefugo, materiais, arte, apontar }: {
           <FileText aria-hidden="true" size={16} />
           <div>
             {arte.estado === 'aprovada' && arte.arquivo
-              ? <a href={arte.arquivo} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-semibold underline">{nomeArquivo(arte.arquivo)}</a>
+              ? <a href={arte.arquivo} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-semibold underline">{arte.versao ? `v${arte.versao} · ` : ''}{nomeArquivo(arte.arquivo)}</a>
               : <b>Sem arte aprovada</b>}
             <small>{arte.estado === 'aprovada' ? 'versão aprovada pelo cliente' : 'a etapa espera a aprovação do cliente'}</small>
           </div>
