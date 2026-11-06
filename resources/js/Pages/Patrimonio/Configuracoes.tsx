@@ -49,6 +49,8 @@ import { Switch } from '@/Components/ui/switch';
 import { Textarea } from '@/Components/ui/textarea';
 import { Stack, Inline, Grid, Box } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
+import FalhaDeCarga from './_shared/FalhaDeCarga';
+import { useFalhaDeferida } from './_shared/falhaDeferida';
 
 /* ─── Contrato com o backend ──────────────────────────────────────────────────── */
 
@@ -228,6 +230,8 @@ function CamposDoModelo({
 /* ─── Tela ────────────────────────────────────────────────────────────────────── */
 
 export default function Configuracoes({ settings, templates, usuarios, tags }: Props) {
+  // Destinatários deferidos: carga que falha vira erro com "Tentar de novo", não esqueleto eterno.
+  const falhaUsuarios = useFalhaDeferida(['usuarios']);
   const form = useForm<Formulario>({
     ...settings,
     send_for_maintenance: { ...templates.send_for_maintenance },
@@ -357,13 +361,17 @@ export default function Configuracoes({ settings, templates, usuarios, tags }: P
                     <Stack gap={2}>
                       <Label>Destinatários</Label>
                       {/* `usuarios` é DEFERIDA — é a única prop que cresce com o tenant. */}
-                      <Deferred data="usuarios" fallback={<EsqueletoDestinatarios />}>
-                        <ListaDeDestinatarios
-                          usuarios={usuarios ?? []}
-                          selecionados={form.data.send_for_maintenence_recipients}
-                          onToggle={alternarDestinatario}
-                        />
-                      </Deferred>
+                      {falhaUsuarios.falhou ? (
+                        <FalhaDeCarga titulo="Não consegui carregar os destinatários" falha={falhaUsuarios} />
+                      ) : (
+                        <Deferred data="usuarios" fallback={<EsqueletoDestinatarios />}>
+                          <ListaDeDestinatarios
+                            usuarios={usuarios ?? []}
+                            selecionados={form.data.send_for_maintenence_recipients}
+                            onToggle={alternarDestinatario}
+                          />
+                        </Deferred>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Sem nenhum destinatário, esta notificação não é enviada.
                       </p>

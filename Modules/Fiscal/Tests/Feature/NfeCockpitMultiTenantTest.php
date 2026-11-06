@@ -31,7 +31,7 @@ uses(Tests\TestCase::class);
  * @see resources/js/Pages/Fiscal/Nfe.charter.md
  */
 
-const FISCAL_BIZ_WAGNER = 1;
+const FISCAL_BIZ_TENANT = 98;
 const FISCAL_BIZ_FICTICIO = 99;
 const FISCAL_TAG_TEST = 'PR1-FISCAL-NFE-ISO-TEST';
 
@@ -60,7 +60,7 @@ function fiscalNfeCockpitExigeBanco(\Tests\TestCase $t): void
     // produto: a rota /fiscal/nfe roda atrás do middleware `auth`, onde auth()->check() é
     // sempre true. Autenticamos um usuário biz=1 (semeado pelo pest-mysql-setup; sem role →
     // não é superadmin) espelhando NfeBrasilMultiTenantIsolationTest. ADR 0093 + ADR 0101.
-    $t->actingAs(\App\User::where('business_id', FISCAL_BIZ_WAGNER)->firstOrFail());
+    $t->actingAs(\App\User::where('business_id', FISCAL_BIZ_TENANT)->firstOrFail());
 }
 
 afterEach(function () {
@@ -92,7 +92,7 @@ it('UC-FNFE-01 · global scope HasBusinessScope esconde emissões cross-tenant n
     ];
 
     NfeEmissao::withoutGlobalScopes()->create($base + [
-        'business_id' => FISCAL_BIZ_WAGNER,
+        'business_id' => FISCAL_BIZ_TENANT,
         'numero'      => 9001,
         'chave_44'    => str_pad('9001' . FISCAL_TAG_TEST, 44, '0', STR_PAD_RIGHT),
     ]);
@@ -110,7 +110,7 @@ it('UC-FNFE-01 · global scope HasBusinessScope esconde emissões cross-tenant n
     ]);
 
     // Simula sessão biz=1 — HasBusinessScope deve filtrar transparente.
-    session(['business.id' => FISCAL_BIZ_WAGNER, 'user.business_id' => FISCAL_BIZ_WAGNER]);
+    session(['business.id' => FISCAL_BIZ_TENANT, 'user.business_id' => FISCAL_BIZ_TENANT]);
 
     $countBiz1 = NfeEmissao::query()
         ->where('chave_44', 'like', '%' . FISCAL_TAG_TEST . '%')
@@ -148,7 +148,7 @@ it('UC-FNFE-01 · os cStat que alimentam a tradução não vazam de outro busine
 
     // 781 só existe em biz=1; 110 só existe em biz=99.
     NfeEmissao::withoutGlobalScopes()->create($base + [
-        'business_id' => FISCAL_BIZ_WAGNER,
+        'business_id' => FISCAL_BIZ_TENANT,
         'numero'      => 9101,
         'cstat'       => 781,
         'chave_44'    => str_pad('9101' . FISCAL_TAG_TEST, 44, '0', STR_PAD_RIGHT),
@@ -161,7 +161,7 @@ it('UC-FNFE-01 · os cStat que alimentam a tradução não vazam de outro busine
         'chave_44'    => str_pad('9102' . FISCAL_TAG_TEST, 44, '0', STR_PAD_RIGHT),
     ]);
 
-    session(['business.id' => FISCAL_BIZ_WAGNER, 'user.business_id' => FISCAL_BIZ_WAGNER]);
+    session(['business.id' => FISCAL_BIZ_TENANT, 'user.business_id' => FISCAL_BIZ_TENANT]);
 
     $metodo = new ReflectionMethod(Modules\Fiscal\Http\Controllers\NfeCockpitController::class, 'cstatsDoBusiness');
     $metodo->setAccessible(true);

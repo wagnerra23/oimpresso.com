@@ -13,10 +13,13 @@ use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Producao\Entities\Apontamento;
+use Modules\Producao\Entities\AprovacaoArte;
+use Modules\Producao\Entities\Ordem;
 use Modules\Producao\Entities\Posto;
 use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 use Modules\Producao\Services\ApontamentoOperadorService;
+use Modules\Producao\Services\AprovacaoArteService;
 use Modules\Producao\Services\ConsumoMaterialService;
 use Modules\Producao\Services\MateriaisDaEtapa;
 use Modules\Producao\Services\RefugoService;
@@ -52,6 +55,8 @@ class ApontamentoController extends Controller
             'motivos_refugo' => Inertia::defer(fn () => $this->svc->motivosDeRefugo($biz)->all()),
             // US-PCP-021 · UC-FLX-18: material e rolo de cada etapa aberta (sem custo — é do gestor).
             'materiais' => Inertia::defer(fn () => $this->materiais($biz, $user)),
+            // UC-PCAPA-01: a arte que vale (a última aprovada) de cada OS rodando agora.
+            'artes' => Inertia::defer(fn () => $this->artes($biz, $user)),
         ]);
     }
 
@@ -230,6 +235,31 @@ class ApontamentoController extends Controller
         $ids = collect([$r['pessoa'], ...$r['maquinas']->all()])->filter()->pluck('programacao_id')->filter()->map(fn ($id) => (int) $id)->unique()->values()->all();
 
         return app(MateriaisDaEtapa::class)->paraEtapas($biz, $ids);
+    }
+
+    /**
+     * Arte de cada OS (por item) rodando agora, por `os_id`. Vale a última aprovada pelo cliente
+     * (`AprovacaoArteService::arteVigente`, UC-PCV-11), mesmo com uma troca esperando. OS que já pediu
+     * aprovação e ainda não teve nenhuma aprovada sai como `aguardando`; OS sem pedido de arte não entra.
+     *
+     * @return array<int, array{estado: string, arquivo: ?string, versao: ?int, aprovada_em: ?string}>
+     */
+    private function artes(int $biz, int $user): array
+    {
+        $r = $this->svc->rodandoAgora($biz, $user, Carbon::now());
+        $ids = collect([$r['pessoa'], ...$r['maquinas']->all()])->filter()->where('os_tipo', Ordem::OS_TIPO)
+            ->pluck('os_id')->map(fn ($id) => (int) $id)->unique()->values()->all();
+        $comPedido = AprovacaoArte::query()->where('business_id', $biz)->whereIn('ordem_id', $ids)->distinct()->pluck('ordem_id')->map(fn ($id) => (int) $id)->all();
+
+        $saida = [];
+        foreach ($comPedido as $ordemId) {
+            $vigente = app(AprovacaoArteService::class)->arteVigente($biz, $ordemId);
+            $saida[$ordemId] = $vigente === null
+                ? ['estado' => 'aguardando', 'arquivo' => null, 'versao' => null, 'aprovada_em' => null]
+                : ['estado' => 'aprovada', 'arquivo' => $vigente['arquivo'], 'versao' => $vigente['versao'], 'aprovada_em' => $vigente['aprovada_em']];
+        }
+
+        return $saida;
     }
 
     private function etapa(int $biz, Programacao $p): array

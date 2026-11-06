@@ -319,6 +319,7 @@
   {
     "screen": "Fiscal/Cockpit",
     "source": "Fiscal/Cockpit",
+    "a11y": true,
     "component": "Fiscal/Cockpit",
     "route": "/fiscal",
     "anchor": "Notas Fiscais",
@@ -327,6 +328,7 @@
   {
     "screen": "Fiscal/Nfe",
     "source": "Fiscal/Nfe",
+    "a11y": true,
     "component": "Fiscal/Nfe",
     "route": "/fiscal/nfe",
     "anchor": "NF-e",
@@ -335,6 +337,7 @@
   {
     "screen": "Fiscal/Nfse",
     "source": "Fiscal/Nfse",
+    "a11y": true,
     "component": "Fiscal/Nfse",
     "route": "/fiscal/nfse",
     "anchor": "NFS-e",
@@ -343,6 +346,7 @@
   {
     "screen": "Fiscal/Eventos",
     "source": "Fiscal/Eventos",
+    "a11y": true,
     "component": "Fiscal/Eventos",
     "route": "/fiscal/eventos",
     "anchor": "Eventos fiscais",
@@ -351,6 +355,7 @@
   {
     "screen": "Fiscal/Dfe",
     "source": "Fiscal/Dfe",
+    "a11y": true,
     "component": "Fiscal/Dfe",
     "route": "/fiscal/dfe",
     "anchor": "Manifestação do destinatário",
@@ -359,6 +364,7 @@
   {
     "screen": "Fiscal/Config",
     "source": "Fiscal/Config",
+    "a11y": true,
     "component": "Fiscal/Config",
     "route": "/fiscal/config",
     "anchor": "Certificado",
@@ -367,6 +373,7 @@
   {
     "screen": "Fiscal/Sped",
     "source": "Fiscal/Sped",
+    "a11y": true,
     "component": "Fiscal/Sped",
     "route": "/fiscal/sped",
     "anchor": "SPED",

@@ -108,6 +108,8 @@ export interface FiltrosLista {
   natureza_fiscal: NaturezaFiscal | null;
   /** UC-PIDX-35 — ligado pelo clique no indicador "Abaixo do alerta". */
   abaixo_do_alerta: boolean;
+  /** UC-PIDX-42 — produtos sem NCM válido; só em empresa que emite nota. */
+  falta_ncm?: boolean;
   q: string;
   sort: string;
   dir: 'asc' | 'desc';
@@ -270,6 +272,16 @@ export interface DetalheProdutoDados {
    * null junto com `estoque`. Os três valores são null sem `view_product_stock_value` (não é zero).
    */
   estoque_totais: Omit<RelatorioEstoqueLista['totais'], 'em'> | null;
+  /**
+   * UC-PIDX-41 (D8): vendido nos últimos 90 dias (vendas finalizadas menos devoluções, a conta do
+   * "Total vendido" do relatório). null junto com `estoque`.
+   */
+  vendido_90_dias?: number | null;
+  /**
+   * UC-PIDX-41 (D8): as 3 últimas compras recebidas, da mais nova para a mais antiga. null junto com
+   * `estoque` ou sem `purchase.view`; [] = nenhuma compra recebida.
+   */
+  ultimas_compras?: UltimaCompraDoProduto[] | null;
   fiscal: {
     ncm: string;
     cest: string;
@@ -298,6 +310,17 @@ export interface DetalheProdutoDados {
   precos_propostos?: PrecoPropostoDoProduto[];
   /** UC-PIDX-30: ausente sem permissão de ver requisições; null = nenhuma aberta. */
   requisicao?: RequisicaoAberta | null;
+}
+
+/** UC-PIDX-41 (D8): uma compra recebida do produto. `quantidade` na unidade do cadastro. */
+export interface UltimaCompraDoProduto {
+  id: number;
+  numero: string;
+  data: string;
+  fornecedor: string | null;
+  local: string;
+  quantidade: number;
+  url: string;
 }
 
 export interface Opcao {
@@ -511,8 +534,15 @@ export function chipsDosFiltros(
   if (f.natureza_fiscal) out.push({ chave: 'natureza_fiscal', rotulo: `Natureza fiscal: ${nome(NATUREZAS_FISCAIS, f.natureza_fiscal)}` });
   if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
   if (f.abaixo_do_alerta) out.push({ chave: 'abaixo_do_alerta', rotulo: 'Abaixo do alerta' });
+  if (f.falta_ncm) out.push({ chave: 'falta_ncm', rotulo: 'Falta NCM' });
   if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
   if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
   if (f.q) out.push({ chave: 'q', rotulo: `Busca: ${f.q}` });
   return out;
+}
+
+/** UC-PIDX-43: só os dígitos, se formarem um NCM válido (8 dígitos, não 00000000); senão null. */
+export function ncmDigitado(texto: string): string | null {
+  const d = texto.replace(/[^0-9]/g, '');
+  return d.length === 8 && d !== '00000000' ? d : null;
 }

@@ -19,6 +19,23 @@ $kbUnitDir    = realpath(__DIR__ . '/../Modules/KB/Tests/Unit');
 if ($kbFeatureDir !== false) { uses(TestCase::class)->in($kbFeatureDir); }
 if ($kbUnitDir    !== false) { uses(TestCase::class)->in($kbUnitDir); }
 
+// Fiscal — as rotas operacionais passaram a exigir o pacote `fiscal_module` (middleware
+// FiscalLiberado, lote 1.1 da auditoria 2026-11-05). Os testes do módulo foram escritos
+// antes disso e provam PERMISSÃO por tela: sem pacote ativo, o 403 deles passaria a vir do
+// pacote e não da permissão — verde pelo motivo errado. Por isso o pacote fica ATIVO por
+// padrão aqui. Quem testa o pacote (FiscalPacoteGateTest) religa o FiscalPacote real.
+$fiscalFeatureDir = realpath(__DIR__ . '/../Modules/Fiscal/Tests/Feature');
+if ($fiscalFeatureDir !== false) {
+    uses()->beforeEach(function () {
+        app()->instance(\Modules\Fiscal\Services\FiscalPacote::class, new class extends \Modules\Fiscal\Services\FiscalPacote {
+            public function ativo($businessId): bool
+            {
+                return true;
+            }
+        });
+    })->in($fiscalFeatureDir);
+}
+
 // RecurringBilling — Spatie LogsActivity está ATIVO em Plan/Subscription/Invoice, mas
 // vários testes do módulo montam schema sqlite manual sem `activity_log`, quebrando com
 // "no such table: activity_log" no 1º create de model logável. Garante a tabela

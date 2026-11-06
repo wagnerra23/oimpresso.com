@@ -18,7 +18,8 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  *
  * Solicitar: o designer escolhe a etapa "Aprovação do cliente" (pendente) e o arquivo da prova; a
  * etapa de arte é a última já feita num bloco anterior. Sai um token aleatório (só o sha256 fica no
- * banco), válido por DIAS_VALIDADE dias.
+ * banco), válido por DIAS_VALIDADE dias. Vale só o pedido mais recente da OS: ao gerar um link novo,
+ * os ainda abertos vencem na hora (UC-PCART-08).
  *
  * Decidir (cliente, sem login): uso único — decidido, vencido ou com a etapa já fechada → recusa.
  * Aprovar conclui a etapa de aprovação e passa a OS adiante pelo mesmo caminho do apontamento
@@ -61,15 +62,23 @@ final class AprovacaoArteService
             ->orderByDesc('bloco')->orderByDesc('id')->first()
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::OS_NAO_LIBERADA, 'Conclua a etapa de arte antes de pedir a aprovação do cliente.');
 
-        $token = Str::random(48);
-        $pedido = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->create([
-            'business_id' => $businessId, 'ordem_id' => $ordem->id, 'programacao_id' => $aprovacao->id,
-            'arte_programacao_id' => $arte->id, 'token_hash' => self::hash($token), 'arquivo' => $arquivo,
-            'expira_em' => now()->addDays(self::DIAS_VALIDADE), 'created_by' => $user->id,
-        ]);
-        $this->evento($pedido, self::EV_SOLICITADA, $user->id, []);
+        return DB::transaction(function () use ($businessId, $ordem, $aprovacao, $arte, $arquivo, $user) {
+            // SUPERADMIN: o envio anterior da OS para numerar a versão (UC-PCART-09); a empresa vai explícita no where,
+            // como nas outras leituras deste serviço, porque o `reenviar` também chega aqui.
+            $anterior = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+                ->where('ordem_id', $ordem->id)->orderByDesc('id')->lockForUpdate()->first();
+            $this->expirarAbertos($businessId, (int) $ordem->id);
+            $token = Str::random(48);
+            $pedido = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->create([
+                'business_id' => $businessId, 'ordem_id' => $ordem->id, 'programacao_id' => $aprovacao->id,
+                'arte_programacao_id' => $arte->id, 'token_hash' => self::hash($token), 'arquivo' => $arquivo,
+                'versao' => VersaoDaArte::seguinte($anterior?->arquivo, $anterior !== null ? (int) $anterior->versao : null, $arquivo), // UC-PCART-09: sobe só se o arquivo mudou
+                'expira_em' => now()->addDays(self::DIAS_VALIDADE), 'created_by' => $user->id,
+            ]);
+            $this->evento($pedido, self::EV_SOLICITADA, $user->id, []);
 
-        return ['id' => (int) $pedido->id, 'token' => $token, 'expira_em' => $pedido->expira_em];
+            return ['id' => (int) $pedido->id, 'token' => $token, 'expira_em' => $pedido->expira_em];
+        });
     }
 
     /**
@@ -100,10 +109,12 @@ final class AprovacaoArteService
             $nova->fill(['status' => 'pendente', 'nome' => $aprovacao->nome.' (nova versão)', 'inicio_previsto' => now(),
                 'fim_previsto' => now()->addSeconds($aprovacao->inicio_previsto->diffInSeconds($aprovacao->fim_previsto)), 'created_by' => $user->id])->save();
 
+            $this->expirarAbertos($businessId, (int) $ordem->id);
             $token = Str::random(48);
             $pedido = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->create([
                 'business_id' => $businessId, 'ordem_id' => $ordem->id, 'programacao_id' => $nova->id,
                 'arte_programacao_id' => $ultimo->arte_programacao_id, 'token_hash' => self::hash($token), 'arquivo' => $arquivo,
+                'versao' => VersaoDaArte::seguinte((string) $ultimo->arquivo, (int) $ultimo->versao, $arquivo), // arquivo diferente (checado acima): versão seguinte
                 'expira_em' => now()->addDays(self::DIAS_VALIDADE), 'created_by' => $user->id,
             ]);
             $this->evento($pedido, self::EV_ARQUIVO_TROCADO, $user->id, ['aprovacao_anterior_id' => $ultimo->id]);
@@ -134,9 +145,6 @@ final class AprovacaoArteService
             if ($ultimo->decisao === AprovacaoArte::RECUSADA && ($arquivo === null || $arquivo === $ultimo->arquivo)) {
                 throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'O cliente pediu ajuste: informe o arquivo da nova prova.');
             }
-            if ($ultimo->decisao === null) {
-                $ultimo->forceFill(['expira_em' => now()->subSecond()])->save();
-            }
 
             return $this->solicitar($businessId, $ordem->id, (int) $ultimo->programacao_id, $arquivo ?? (string) $ultimo->arquivo, $user);
         });
@@ -152,14 +160,14 @@ final class AprovacaoArteService
      * UC-PCV-11 · a arte que vale para produzir: o arquivo do último pedido APROVADO, mesmo que haja
      * uma versão nova esperando o cliente. Null = OS ainda sem arte aprovada.
      *
-     * @return array{arquivo: string, aprovada_em: string}|null
+     * @return array{arquivo: string, versao: int, aprovada_em: string}|null
      */
     public function arteVigente(int $businessId, int $ordemId): ?array
     {
         $p = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->where('ordem_id', $ordemId)
             ->where('decisao', AprovacaoArte::APROVADA)->orderByDesc('decidido_em')->orderByDesc('id')->first();
 
-        return $p === null ? null : ['arquivo' => (string) $p->arquivo, 'aprovada_em' => $p->decidido_em->toIso8601String()];
+        return $p === null ? null : ['arquivo' => (string) $p->arquivo, 'versao' => (int) $p->versao, 'aprovada_em' => $p->decidido_em->toIso8601String()];
     }
 
     /** Pedido ainda aberto para o token — vencido, decidido ou com a etapa fechada → recusa. */
@@ -195,7 +203,10 @@ final class AprovacaoArteService
         return DB::transaction(function () use ($token, $comentario) {
             $pedido = $this->porToken($token, true);
             $this->exigirAberto($pedido, true);
-            $arte = Programacao::query()->where('business_id', $pedido->business_id)->findOrFail($pedido->arte_programacao_id);
+            // SUPERADMIN: rota pública — a empresa vem do pedido achado pelo token, não da sessão de quem
+            // abre o link (logado noutra empresa, o escopo da sessão escondia a etapa e a recusa dava 404).
+            $arte = Programacao::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $pedido->business_id)
+                ->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $pedido->ordem_id)->findOrFail($pedido->arte_programacao_id);
             $nova = $arte->replicate(['status', 'created_at', 'updated_at']);
             $nova->fill(['status' => 'pendente', 'nome' => $arte->nome.' (alteração)', 'inicio_previsto' => now(),
                 'fim_previsto' => now()->addSeconds($arte->inicio_previsto->diffInSeconds($arte->fim_previsto))])->save();
@@ -204,6 +215,16 @@ final class AprovacaoArteService
 
             return $pedido;
         });
+    }
+
+    /**
+     * UC-PCART-08 · só o pedido mais recente da OS vale: os ainda abertos vencem agora (a linha fica, só
+     * `expira_em` muda). Sem isso, o link da prova anterior seguia aprovável por 7 dias.
+     */
+    private function expirarAbertos(int $businessId, int $ordemId): void
+    {
+        AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->where('ordem_id', $ordemId)
+            ->whereNull('decisao')->where('expira_em', '>', now())->lockForUpdate()->update(['expira_em' => now()->subSecond()]);
     }
 
     public static function hash(string $token): string

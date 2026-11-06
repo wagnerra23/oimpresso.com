@@ -155,6 +155,22 @@ class AssetSettingsController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Lote 0.2 (auditoria 2026-11-05, A4): destinatario de notificacao so da propria
+        // empresa. Antes, gravava qualquer id e cada manutencao aberta notificava usuario de
+        // outra empresa (com assunto e corpo escritos aqui).
+        $destinatarios = array_unique(array_map('intval', array_filter(
+            (array) $request->input('send_for_maintenence_recipients', []),
+            fn ($v) => $v !== null && $v !== ''
+        )));
+        if ($destinatarios !== []) {
+            $validos = User::where('business_id', $business_id)->whereIn('id', $destinatarios)->count();
+            if ($validos !== count($destinatarios)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'send_for_maintenence_recipients' => 'Há destinatários que não são desta empresa.',
+                ]);
+            }
+        }
+
         try {
             $input = $request->only('asset_code_prefix', 'allocation_code_prefix', 'revoke_code_prefix', 'asset_maintenance_prefix', 'send_for_maintenence_recipients');
 

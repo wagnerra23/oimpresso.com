@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: OS em duas colunas ou na coluna errada engana o PCP; OS de outra empresa no quadro é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-11-06"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o ProducaoQuadroContratoTest."
 ---
 
@@ -63,3 +63,6 @@ bobina" **Então** escolhe a mídia, cadastra a largura útil se faltar, e vê a
 perda do arranjo contra imprimir uma a uma · OS sem peça medida não pode ser marcada.
 
 Status: 🧪
+
+## Trilha do tempo
+- 2026-11-06 · [W+C] Auditoria lote 3.5: o número do cartão de uma OS por item é link para a Ficha. O caso é o UC-PCOSF-06, em `../Os/Show.casos.md`; os casos desta tela foram relidos e seguem valendo.
