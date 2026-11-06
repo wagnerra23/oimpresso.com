@@ -1,5 +1,8 @@
 <?php
 // @covers-us US-PCP-027
+// @covers-us US-PCP-007
+// @covers-us US-PCP-008
+// @covers-us US-PCP-009
 
 declare(strict_types=1);
 // Cobre, na camada HTTP da PWA, UC-PCV-19, UC-PCV-23, UC-PCV-34, UC-PCREF-07 (UC-FLX-16) e UC-PCAPA-01 (Producao/Apontamento/Index.casos.md).
