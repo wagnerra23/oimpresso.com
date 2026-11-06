@@ -67,6 +67,7 @@ class AgendaDaSemana
                 'tipo' => $a->type?->name, 'teleconsulta' => $a->type?->modality === 'teleconsulta',
                 'inicio' => $a->starts_at->toIso8601String(), 'fim' => $a->ends_at->toIso8601String(),
                 'status' => $a->status, 'encaixe' => (bool) $a->is_overbook,
+                'app_bloqueado' => $a->patient?->booking_blocked_at !== null,
             ])->all();
     }
 

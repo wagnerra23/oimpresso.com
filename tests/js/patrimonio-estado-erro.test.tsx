@@ -5,7 +5,8 @@
 // O QUE MEDE: quando a visita deferida que PEDIU a prop da tela termina e a prop não veio (500,
 // 503, rede), a tela troca o esqueleto pelo estado de erro do protótipo (`role="alert"`, título
 // "Não consegui carregar …", "Tentar de novo"); "Tentar de novo" pede SÓ aquela prop, sem o
-// diálogo de erro do Inertia; e quando a prop chega, o erro some.
+// diálogo de erro do Inertia; quando a prop chega, o erro some; e a falha da carga ORIGINAL não
+// abre o modal de erro do Inertia por cima (medido em produção 2026-11-06: abria nas 5 telas).
 //
 // CONTROLES, para o caso não passar por um harness que nunca renderiza o erro nem a tela:
 //   · a mesma visita terminando COM a prop não acende o erro;
@@ -19,7 +20,7 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, act } from '@testing-library/react';
 
-type Ouvinte = (e: { detail: { visit: { only?: string[] } } }) => void;
+type Ouvinte = (e: { detail: { visit: { only?: string[] } } }) => boolean | void;
 const ouvintes: Record<string, Set<Ouvinte>> = {};
 const reload = vi.fn();
 const pagina: { props: Record<string, unknown> } = { props: {} };
@@ -57,6 +58,12 @@ const emitir = (nome: 'start' | 'finish', only?: string[]) =>
   act(() => {
     ouvintes[nome]?.forEach((cb) => cb({ detail: { visit: { only } } }));
   });
+
+// O core do Inertia abre o modal de erro se NENHUM ouvinte devolver `false` (`onGlobalEvent`
+// chama `preventDefault()` nesse caso, e `handleNonInertiaResponse` só mostra o diálogo se o
+// evento não foi cancelado). Aqui: `true` = o modal abriria.
+const modalAbriria = (nome: 'httpException' | 'networkError') =>
+  ![...(ouvintes[nome] ?? [])].some((cb) => cb({ detail: { visit: {} } }) === false);
 
 const vazio = { data: [], total: 0, current_page: 1, last_page: 1, from: 0, to: 0, links: [] };
 
@@ -210,6 +217,30 @@ describe.each(TELAS)('$uc · $nome — a carga deferida que falha vira estado de
     render(tela.montar());
     emitir('finish', tela.chaves);
     expect(document.querySelector('[data-contract="estado-erro"]')).toBeNull();
+  });
+
+  it(`${tela.uc}: a carga desta tela que falha não abre o modal de erro do Inertia por cima`, () => {
+    render(tela.montar());
+    emitir('start', tela.chaves);
+
+    expect(modalAbriria('httpException')).toBe(false);
+    expect(modalAbriria('networkError')).toBe(false);
+
+    emitir('finish', tela.chaves);
+    expect(screen.getByRole('alert').textContent).toContain(tela.titulo);
+  });
+
+  it(`${tela.uc}: fora da carga desta tela o modal do Inertia segue como era (controle)`, () => {
+    render(tela.montar());
+    expect(modalAbriria('httpException')).toBe(true);
+
+    emitir('start', ['bem_detalhe']);
+    expect(modalAbriria('httpException')).toBe(true);
+
+    emitir('start', tela.chaves);
+    emitir('finish', tela.chaves);
+    expect(modalAbriria('httpException')).toBe(true);
+    expect(modalAbriria('networkError')).toBe(true);
   });
 
   it(`${tela.uc}: visita que pediu OUTRA prop não acende o erro desta tela (controle)`, () => {
