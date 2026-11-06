@@ -209,8 +209,9 @@ module: OficinaAuto
 - 50 em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 8
+## Demais arquivos (manifestos, docs, assets e misc) — 9
 
+- [AssinaturaImutavelException.php](../../../Modules/OficinaAuto/Exceptions/AssinaturaImutavelException.php)
 - [ServiceOrderPolicy.php](../../../Modules/OficinaAuto/Policies/ServiceOrderPolicy.php)
 - [VehiclePolicy.php](../../../Modules/OficinaAuto/Policies/VehiclePolicy.php)
 - [oficina-auto.php](../../../Modules/OficinaAuto/Resources/lang/pt-BR/oficina-auto.php)
