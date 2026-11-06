@@ -132,10 +132,10 @@ it('UC-ABC-03 · sugere comprar pelo giro, prazo do fornecedor e o que já está
 });
 
 it('UC-ABC-04 · Tier 0: venda e estoque de outra empresa não entram', function () {
-    $outra = EstoqueFixture::secondBusinessId();
-    if ($outra === null) {
-        $this->markTestSkipped('Seed sem segundo business.');
-    }
+    // Adversário fictício 99 (ADR 0358). Antes era secondBusinessId(), que no clone de produção
+    // do CT 100 devolve o biz=1 (empresa real) e, sem 2º business, pulava o teste.
+    $outra = (int) $this->seededSupportClientTenant()->id;
+    expect($outra)->toBe(99, 'adversário fictício 99 não foi criado');
     $id = DB::table('transactions')->insertGetId([
         'business_id' => $outra, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'due',
         'transaction_date' => '2026-10-25 10:00:00', 'final_total' => 0, 'total_before_tax' => 0,

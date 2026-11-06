@@ -196,3 +196,29 @@ it('UC-OVREV-02 · salvar a data no cadastro do veículo grava a meta; vazio tir
     $put(null)->assertSessionHasNoErrors();
     expect(DB::table('vehicles')->where('id', $v)->value('next_service_date'))->toBeNull();
 });
+
+it('UC-OVREV-03 · o comando agendado só avisa empresa com o pacote oficina_auto_module', function () {
+    Carbon::setTestNow($this->hoje);
+    ($this->veiculo)($this->biz, ($this->contato)($this->biz, true), null, '2026-10-24');
+    ($this->veiculo)($this->outra, ($this->contato)($this->outra, true), null, '2026-10-24');
+
+    // Pacote só para o 98 (OficinaAutoAcesso lê o ModuleUtil pelo container).
+    $comPacote = $this->biz;
+    $fake = \Mockery::mock(\App\Utils\ModuleUtil::class)->makePartial();
+    $fake->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($biz, $perm) => $perm === 'oficina_auto_module' && (int) $biz === $comPacote);
+    app()->instance(\App\Utils\ModuleUtil::class, $fake);
+
+    $this->artisan('oficinaauto:lembretes-revisao')
+        ->expectsOutputToContain("business {$this->outra}: sem o pacote oficina_auto_module, pulada")
+        ->assertSuccessful();
+    $this->artisan('oficinaauto:lembretes-revisao', ['--business' => $this->outra])
+        ->expectsOutputToContain("business {$this->outra}: sem o pacote oficina_auto_module, pulada")
+        ->assertSuccessful();
+
+    $empresas = array_values(array_unique(array_map(fn ($e) => $e[0], $this->enviados->getArrayCopy())));
+    expect($empresas)->toBe([$this->biz]) // controle positivo: o 98 avisou
+        ->and(DB::table('oficina_lembretes_revisao')->where('business_id', $this->outra)->exists())->toBeFalse();
+    Carbon::setTestNow();
+});
+

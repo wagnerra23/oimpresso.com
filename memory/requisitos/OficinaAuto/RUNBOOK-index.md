@@ -6,12 +6,14 @@
 
 ## Telas cobertas por este RUNBOOK
 
-Hook `block-mwart-violation.ps1` matcha pelo nome do arquivo. Dois Index.tsx no módulo:
+Hook `block-mwart-violation.mjs` matcha pelo nome do arquivo. Há **um** Index.tsx no módulo:
 
 1. `resources/js/Pages/OficinaAuto/Vehicles/Index.tsx` — lista de veículos
-2. `resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx` — lista de OS
 
-Ambos usam pattern AppShellV2 + tabela simples shadcn + filtros básicos.
+> **2026-11-05:** `ServiceOrders/Index.tsx` não existe mais. `/oficina-auto/ordens-servico` delega
+> para `board()` e renderiza `ServiceOrders/Board` (`ServiceOrderController@index`, pedido [W]
+> 2026-06-11: Kanban·Lista·Grade·Fila na mesma tela). O contrato da lista de OS está em
+> [`RUNBOOK-board.md`](RUNBOOK-board.md). A seção `ServiceOrders/Index.tsx` abaixo é histórica.
 
 ## Contrato (V0 scaffold)
 
@@ -22,7 +24,7 @@ Ambos usam pattern AppShellV2 + tabela simples shadcn + filtros básicos.
 - **Filtro:** input `q` → busca placa/secondary_plate/chassis (LIKE)
 - **Multi-tenant:** Global scope no Model filtra automaticamente (ADR 0093)
 
-### ServiceOrders/Index.tsx
+### ServiceOrders/Index.tsx (histórico — tela aposentada)
 - **Props:** `orders: ServiceOrder[]` com `vehicle` eager loaded, `filters: { status: string }`
 - **Componentes:** AppShellV2 + tabela placeholder
 - **Filtro:** dropdown status (8 opções V0; FSM canônica entra US-OFICINA-003 ADR 0129)

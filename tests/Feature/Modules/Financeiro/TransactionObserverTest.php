@@ -35,8 +35,10 @@ it('updated NAO sincroniza se campos financeiros nao mudaram', function () {
 
 it('updated sincroniza quando payment_status muda', function () {
     $tx = Mockery::mock(new Transaction(['business_id' => 1]))->makePartial();
+    // A lista de campos cresce com o produto (sub_type entrou com a bonificação, P-154);
+    // o contrato aqui é que payment_status está nela, não a lista inteira.
     $tx->shouldReceive('wasChanged')
-        ->with(['payment_status', 'final_total', 'pay_term_number', 'pay_term_type', 'due_date'])
+        ->withArgs(fn ($campos) => is_array($campos) && in_array('payment_status', $campos, true))
         ->andReturn(true);
 
     $service = Mockery::mock(TituloAutoService::class);

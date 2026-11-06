@@ -177,7 +177,7 @@ function FxNotasTable({ rows, selected, onToggle, onToggleAll, onOpen, openedId,
                 <td><span className={"fx-tipo " + (n.tipo === "NFC-e" ? "t-nfce" : n.tipo === "NFS-e" ? "t-nfse" : "t-nfe")}>{n.tipo}</span></td>
                 <td className="num"><b>{n.num}</b><small>{n.serie ? "série " + n.serie : n.when}</small></td>
                 <td className="cli">
-                  <a className="fx-link" onClick={e => { e.preventDefault(); e.stopPropagation(); onCliente(n.cliente); }} title="Filtrar por este cliente"><b>{n.cliente}</b></a>
+                  <button type="button" className="fx-link" onClick={e => { e.stopPropagation(); onCliente(n.cliente); }} onKeyDown={e => e.stopPropagation()} aria-label={"Filtrar por " + n.cliente}><b>{n.cliente}</b></button>
                   <div>{n.doc} · {n.uf}{n.venda ? " · " + n.venda : n.ref ? " · " + n.ref : ""}</div>
                   <code className="fx-key" title={n.keyOrCode}>{n.kind === "nfe" ? fxKey(n.keyOrCode) : "cód. " + n.keyOrCode + (n.iss ? " · " + n.iss + "% ISS" : "")}</code>
                 </td>
@@ -192,10 +192,10 @@ function FxNotasTable({ rows, selected, onToggle, onToggleAll, onOpen, openedId,
                     : <span style={{ color: "var(--text-mute)" }}>—</span>}
                 </td>
                 <td className="val">
-                  <span className="fx-row-acts" onClick={e => e.stopPropagation()}>
-                    <button className="fx-row-act" title="Baixar XML">XML</button>
-                    <button className="fx-row-act" title="Baixar DANFE">PDF</button>
-                    {rej && <button className="fx-row-act danger" title="Retransmitir" onClick={() => onAcao("retransmitir", n)}>↻</button>}
+                  <span className="fx-row-acts" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+                    <button className="fx-row-act" aria-label={"Baixar XML da " + n.tipo + " " + n.num}>XML</button>
+                    <button className="fx-row-act" aria-label={(n.kind === "nfe" ? "Baixar DANFE da " : "Baixar PDF da ") + n.tipo + " " + n.num}>PDF</button>
+                    {rej && <button className="fx-row-act danger" aria-label={"Retransmitir " + n.tipo + " " + n.num} onClick={() => onAcao("retransmitir", n)}>↻</button>}
                   </span>
                   {fxBrl(n.value)}
                 </td>
@@ -208,28 +208,8 @@ function FxNotasTable({ rows, selected, onToggle, onToggleAll, onOpen, openedId,
   );
 }
 
-// A4 · overlay com foco: aria-modal, foco inicial no fechar, Tab preso no painel, esc fecha um nível
-const FX_FOCAVEIS = 'button:not([disabled]),a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])';
-function fxUsaFocoPreso(ref, aberto, onClose) {
-  useEffectFx(() => {
-    if (!aberto) return;
-    const antes = document.activeElement;
-    const primeiro = ref.current && ref.current.querySelector(FX_FOCAVEIS);
-    if (primeiro) primeiro.focus();
-    const h = (e) => {
-      if (e.key === "Escape") { onClose(); return; }
-      if (e.key !== "Tab" || !ref.current) return;
-      const f = [...ref.current.querySelectorAll(FX_FOCAVEIS)].filter(el => el.offsetParent !== null);
-      if (!f.length) return;
-      const ini = f[0], fim = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === ini) { e.preventDefault(); fim.focus(); }
-      else if (!e.shiftKey && document.activeElement === fim) { e.preventDefault(); ini.focus(); }
-      else if (!ref.current.contains(document.activeElement)) { e.preventDefault(); ini.focus(); }
-    };
-    document.addEventListener("keydown", h);
-    return () => { document.removeEventListener("keydown", h); if (antes && antes.focus) antes.focus(); };
-  }, [aberto, onClose]);
-}
+// A4 · overlay com foco: o hook mora em fiscal-actions.jsx (window.fxUsaFocoPreso), compartilhado com o modal
+const fxUsaFocoPreso = (ref, aberto, onClose) => window.fxUsaFocoPreso(ref, aberto, onClose);
 
 function FxNotaDrawer({ nota, onClose, onAcao }) {
   const painel = useRefFx(null);
@@ -323,7 +303,8 @@ function FxNotaDrawer({ nota, onClose, onAcao }) {
 
 function FxContabilDrawer({ open, onClose }) {
   const painel = useRefFx(null);
-  fxUsaFocoPreso(painel, !!open, onClose);
+  const [confirma, setConfirma] = useStateFx(null);
+  fxUsaFocoPreso(painel, !!open && !confirma, onClose);
   if (!open) return null;
   const c = fxD().CONTABIL;
   return (
@@ -338,7 +319,7 @@ function FxContabilDrawer({ open, onClose }) {
           <div className="fx-sec"><h3>Pré-checagem do pacote</h3>
             <div className="fx-list">{c.validacoes.map((v, i) => (
               <div className="fx-list-i" key={i}>
-                <span style={{ color: v.ok === "warn" ? "var(--color-warning, var(--text))" : "var(--text-dim)" }}>{v.ok === "warn" ? "⚠ " : "✓ "}{v.label}</span>
+                <span style={{ color: v.ok === "warn" ? "var(--fx-warn)" : "var(--text-dim)" }}>{v.ok === "warn" ? "⚠ " : "✓ "}{v.label}</span>
                 {v.action && <button className="fx-btn" onClick={() => fxGo(v.goto)}>{v.action}</button>}
               </div>
             ))}</div>
@@ -355,10 +336,17 @@ function FxContabilDrawer({ open, onClose }) {
           </div>
         </div>
         <div className="fx-dr-f">
-          <button className="fx-btn primary" onClick={() => { onClose(); window.fxToast("Pacote de " + c.periodo + " enviado pra " + c.destinatario); }}>Enviar por e-mail</button>
-          <button className="fx-btn" onClick={() => window.fxToast("Pacote " + c.periodo + " gerado pra download")}>Baixar pacote (ZIP)</button>
+          <button className="fx-btn primary" onClick={() => setConfirma("email")}>Enviar por e-mail</button>
+          <button className="fx-btn" onClick={() => setConfirma("zip")}>Baixar pacote (ZIP)</button>
         </div>
       </aside>
+      <window.FxActionModal onClose={() => setConfirma(null)} spec={confirma && {
+        title: confirma === "email" ? "Enviar pacote de " + c.periodo + " para " + c.destinatario : "Baixar pacote de " + c.periodo,
+        confirmLabel: confirma === "email" ? "Enviar" : "Baixar ZIP", fields: [],
+        leva: ["XML de " + c.totais.autorizadas + " NF-e e " + c.totais.nfse + " NFS-e, com nome, CPF/CNPJ e endereço dos destinatários", c.totais.eventos + " eventos fiscais com autor e justificativa"],
+        aviso: confirma === "email" ? "Confira o destinatário: o pacote vai para fora da empresa." : "O arquivo sai do sistema: guarde e compartilhe só com quem precisa.",
+        onConfirm: () => { onClose(); window.fxToast(confirma === "email" ? "Pacote de " + c.periodo + " enviado pra " + c.destinatario : "Pacote " + c.periodo + " gerado pra download"); },
+      }} />
     </>
   );
 }
@@ -466,6 +454,22 @@ function FxNotasPage({ preset, title, crumbExtra, route }) {
     }
   };
 
+  // LGPD · toda saída em lote de documento fiscal leva dado pessoal do destinatário — confirma antes
+  const confirmaSaida = (tipoSaida) => {
+    const q = selected.size, txt = q + " nota" + (q > 1 ? "s" : "");
+    const spec = {
+      zip:   { title: "Baixar XMLs de " + txt, confirmLabel: "Baixar ZIP", toast: q + " XMLs empacotados em ZIP" },
+      pdf:   { title: "Baixar DANFEs de " + txt, confirmLabel: "Baixar PDF", toast: q + " DANFEs geradas em PDF" },
+      email: { title: "Reenviar " + txt + " por e-mail", confirmLabel: "Reenviar", toast: "Reenvio disparado pra " + q + " notas" },
+    }[tipoSaida];
+    setModal({
+      title: spec.title, confirmLabel: spec.confirmLabel, fields: [],
+      leva: ["Nome ou razão social, CPF/CNPJ e endereço do destinatário de cada nota", "Itens, valores e chave de acesso"],
+      aviso: tipoSaida === "email" ? "Cada nota vai só para o e-mail cadastrado do próprio destinatário." : "O arquivo sai do sistema: guarde e compartilhe só com quem precisa.",
+      onConfirm: () => window.fxToast(spec.toast),
+    });
+  };
+
   return (
     <div className="fx-page">
       <FxHeader title={title} crumb={`Maio 2026 · ${base.length} notas${crumbExtra ? " · " + crumbExtra : ""}${rejTotal ? " · " + rejTotal + " requerem ação" : ""}`}>
@@ -495,7 +499,7 @@ function FxNotasPage({ preset, title, crumbExtra, route }) {
         </select>
         <div className="fx-density" role="radiogroup" aria-label="Densidade da tabela">
           {[["compact", "Compacto"], ["comfort", "Confortável"], ["relax", "Relaxado"]].map(d => (
-            <button key={d[0]} className={density === d[0] ? "active" : ""} title={d[1]} aria-pressed={density === d[0]} onClick={() => setDensity(d[0])}>{d[1][0]}</button>
+            <button key={d[0]} className={density === d[0] ? "active" : ""} title={d[1]} aria-label={"Densidade " + d[1].toLowerCase()} aria-pressed={density === d[0]} onClick={() => setDensity(d[0])}><span aria-hidden="true">{d[1][0]}</span></button>
           ))}
         </div>
         <window.FxProc k="notas" />
@@ -511,9 +515,9 @@ function FxNotasPage({ preset, title, crumbExtra, route }) {
       {selected.size > 0 && (
         <div className="fx-bulk" role="region" aria-label="Ações em lote">
           <span><b>{selected.size}</b> nota{selected.size > 1 ? "s" : ""} selecionada{selected.size > 1 ? "s" : ""}</span>
-          <button className="fx-btn" onClick={() => window.fxToast(selected.size + " XMLs empacotados em ZIP")}>Baixar XMLs (ZIP)</button>
-          <button className="fx-btn" onClick={() => window.fxToast(selected.size + " DANFEs geradas em PDF")}>Baixar DANFEs (PDF)</button>
-          <button className="fx-btn" onClick={() => window.fxToast("Reenvio disparado pra " + selected.size + " notas")}>Reenviar por e-mail</button>
+          <button className="fx-btn" onClick={() => confirmaSaida("zip")}>Baixar XMLs (ZIP)</button>
+          <button className="fx-btn" onClick={() => confirmaSaida("pdf")}>Baixar DANFEs (PDF)</button>
+          <button className="fx-btn" onClick={() => confirmaSaida("email")}>Reenviar por e-mail</button>
           <button className="fx-btn" onClick={() => setSelected(new Set())}>Limpar seleção</button>
         </div>
       )}

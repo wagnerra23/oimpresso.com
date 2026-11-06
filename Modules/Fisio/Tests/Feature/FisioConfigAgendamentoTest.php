@@ -57,7 +57,8 @@ it('UC-FCA-03 · mudar prazo de cancelamento ou faltas sobe a versão da políti
     F::como($this, $this->u98);
     $v = (int) BookingSettings::daEmpresa($this->b98)->policy_version;
 
-    $this->put('/fisio/configuracoes/agendamento', ($this->corpo)())->assertSessionHasNoErrors();
+    $this->put('/fisio/configuracoes/agendamento', ($this->corpo)())->assertSessionHasNoErrors()
+        ->assertSessionHas('success', 'Agendamento pelo app salvo.');
     expect((int) BookingSettings::daEmpresa($this->b98)->policy_version)->toBe($v);
 
     $this->put('/fisio/configuracoes/agendamento', ($this->corpo)(['cancel_min_hours' => 12]))->assertSessionHasNoErrors();
