@@ -551,10 +551,10 @@ Then deve receber 403 Forbidden
 
 ### US-FISCAL-021 · IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold)
 
-**Implementado em:** _parcial_ · [`Modules/NfeBrasil/Services/MotorTributarioService.php`](../../../Modules/NfeBrasil/Services/MotorTributarioService.php) · [`Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php`](../../../Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php) · [`Modules/NfeBrasil/Services/NfeService.php`](../../../Modules/NfeBrasil/Services/NfeService.php) · verificado@0eb214f (2026-11-06) — cálculo, campos e grupo UB entregues; falta medir a validação das regras de rejeição da NT 2025.002 e os cenários monofásica, crédito presumido e imune
-
 > owner: wagner · priority: p0 · estimate: 28h · type: story
 > blocked_by: —
+
+**Implementado em:** _parcial_ · [`Modules/NfeBrasil/Services/MotorTributarioService.php`](../../../Modules/NfeBrasil/Services/MotorTributarioService.php) · [`Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php`](../../../Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php) · [`Modules/NfeBrasil/Services/NfeService.php`](../../../Modules/NfeBrasil/Services/NfeService.php) · verificado@0eb214f (2026-11-06) — cálculo, campos e grupo UB entregues; falta medir a validação das regras de rejeição da NT 2025.002 e os cenários monofásica, crédito presumido e imune
 
 > **Reconciliado em 2026-11-06** (regra de precedência: teste > casos > charter > SPEC). O campo de status
 > (estava "todo", de 2026-07-03) saiu do bloco: a fonte de done-ness é a âncora ([ADR 0302](../../decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md)). Os
@@ -622,10 +622,10 @@ Then deve receber 403 Forbidden
 
 ### US-FISCAL-024 · IBS/CBS — split UF/Município na régua fiscal (coluna de schema)
 
-**Implementado em:** _pendente_ — `nfe_fiscal_rules` só tem a alíquota IBS combinada e `NfeService` zera o `gIBSMun` (comentário "MODELAGEM v1"); nenhuma coluna de split no código (medido 2026-11-06).
-
 > owner: — · priority: p2 · estimate: 6h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — `nfe_fiscal_rules` só tem a alíquota IBS combinada e `NfeService` zera o `gIBSMun` (comentário "MODELAGEM v1"); nenhuma coluna de split no código (medido 2026-11-06).
 
 **Origem:** follow-up documentado da US-FISCAL-021 PR-D ([#3778](https://github.com/wagnerra23/oimpresso.com/pull/3778)). A serialização do grupo UB hoje lança o IBS combinado **100% em `gIBSUF`** e zera `gIBSMun`, porque `nfe_fiscal_rules` guarda **uma** alíquota IBS combinada (`aliquota_ibs`). O `vIBS` do item fica correto (=vIBSUF+vIBSMun), XSD-válido PL_010_V1, e é **inerte hoje** (pilotos Simples → 0). Mas um business em modo `full` com alíquotas **UF ≠ Município** legisladas precisa do split real.
 
