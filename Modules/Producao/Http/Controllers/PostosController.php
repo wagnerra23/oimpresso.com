@@ -41,7 +41,7 @@ class PostosController extends Controller
             // US-PCP-030 · UC-FLX-08: candidatos a operador = gente da empresa com acesso à Produção
             // (a mesma regra que o OperadoresDoPosto::definir confere ao gravar).
             'usuarios' => Inertia::defer(fn () => $defineOperadores ? $this->candidatosAOperador($biz) : []),
-            'ferramentas' => Inertia::defer(fn () => Ferramenta::query()->orderBy('nome')->get(['id', 'codigo_qr', 'nome', 'ativo'])),
+            'ferramentas' => Inertia::defer(fn () => Ferramenta::query()->where('business_id', $biz)->orderBy('nome')->get(['id', 'codigo_qr', 'nome', 'ativo'])),
             'colaboradores' => Inertia::defer(fn () => $veCusto ? $this->colaboradores($biz) : []),
         ]);
     }
