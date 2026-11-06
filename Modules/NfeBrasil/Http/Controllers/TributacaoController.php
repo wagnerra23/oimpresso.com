@@ -107,7 +107,7 @@ class TributacaoController extends Controller
     {
         $saude = app(SaudeFiscalService::class)->avaliar($businessId);
         $saude['itens'] = array_map(
-            fn (array $i) => [...$i, 'url' => Route::has($i['rota']) ? route($i['rota'], $i['parametros'] ?? []) : null],
+            fn (array $i) => [...$i, 'url' => Route::has($i['rota']) ? route($i['rota'], $i['parametros']) : null],
             $saude['itens'],
         );
 
