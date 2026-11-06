@@ -381,7 +381,12 @@ jobs:
             Modules/Fiscal/Tests/Feature/DasControllerTest.php \
             Modules/Fiscal/Tests/Feature/FiscalPacoteGateTest.php \
             Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
-            Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php \n            Modules/Fiscal/Tests/Feature/TrocaAmbienteCerimoniaTest.php \n            Modules/Fiscal/Tests/Feature/HabilitarBusinessCommandTest.php \n            Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php \n            Modules/Fiscal/Tests/Feature/CockpitControllerTest.php \n            Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php
+            Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php \
+            Modules/Fiscal/Tests/Feature/TrocaAmbienteCerimoniaTest.php \
+            Modules/Fiscal/Tests/Feature/HabilitarBusinessCommandTest.php \
+            Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitControllerTest.php \
+            Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
