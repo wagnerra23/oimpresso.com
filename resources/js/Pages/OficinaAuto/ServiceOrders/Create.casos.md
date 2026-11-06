@@ -42,7 +42,7 @@ related_cu: [CU-OFI-04, CU-OFI-07, CU-OFI-15, CU-OFI-19]
 ## UC-OCR-04 · vehicle_id/contact_id de outro business rejeitado (Tier 0)
 - **Persona:** invariante de segurança.
 - **Aceite:** Dado vehicle/contact do business B · Quando um usuário do business A tenta vincular na criação · Então rejeitado server-side (ADR 0093).
-- **Teste:** `Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php`
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderVehicleTenantContratoTest.php`
 - **Status: 🧪**
 
 ---

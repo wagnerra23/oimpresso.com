@@ -202,16 +202,21 @@ it('UC-PURIDX-02 (A · controle positivo) a compra do PROPRIO business aparece n
 });
 
 it('UC-PURIDX-02 (B · contrato T0) a compra de OUTRO business NAO aparece na lista', function () {
-    // O adversário é descoberto: precisa ter location própria, senão o INNER join de
-    // `getListPurchases` derrubaria a linha alheia mesmo havendo vazamento (verde por vácuo).
-    $locationAlheia = DB::table('business_locations')
-        ->where('business_id', '!=', PURIDX_TENANT)
-        ->orderBy('id')
-        ->first();
-
-    if (! $locationAlheia) {
-        $this->markTestSkipped('Lane sem 2o business COM location — cross-tenant nao exercitavel.');
-    }
+    // O adversário precisa ter location própria, senão o INNER join de `getListPurchases`
+    // derrubaria a linha alheia mesmo havendo vazamento (verde por vácuo).
+    //
+    // 2026-11-05: antes ele era DESCOBERTO (`business_locations where business_id != 98`)
+    // e pulava quando não achava. O seed da lane só cria location para o 98 (pest-mysql-setup,
+    // bloco "Onda Q2"), então o adversário só existia quando outro arquivo da lane, rodado
+    // antes, tinha deixado uma location fora de transação: o run 41074315654 (30/10) passou
+    // e o 41688229461 (03/11, main) pulou. Agora a location alheia nasce aqui, dentro da
+    // transação, e a ausência de empresa adversária é FALHA, não skip.
+    $adversario = \App\Business::query()->whereKey(2)->first() ?? $this->seededSupportClientTenant();
+    expect((int) $adversario->id)->not->toBe(PURIDX_TENANT)->not->toBe(4);
+    $locationAlheia = (object) [
+        'business_id' => (int) $adversario->id,
+        'id' => ($this->criarLocation)((int) $adversario->id, 'CT Filial Adversaria'),
+    ];
 
     $refAlheia = 'CT-PURIDX-LEAK-' . uniqid();
     puridxCriarCompra(

@@ -520,6 +520,20 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Patrimonio/ManutencoesRenderTest.php
 
+      # ── E2E DE RENDER POR TELA — Fiscal/Das (NASCE ADVISORY) ─────────────────────────
+      # Buraco medido em 2026-11-05: `git grep -l "Fiscal/Das" tests/Browser/` = 0. A tela
+      # (#10268) só tinha o Pest de controller. Este step prova os UC-FDAS-03/04 no DOM, a
+      # ausência de scroll a 1280 e axe CRITICAL nos dois estados. A flag `useV2FiscalDas`
+      # vem ligada pelo `FEATURE_FLAGS_FORCED_ON` do visreg-ci-setup.sh (inerte em produção).
+      # Não semeia nada e não captura imagem. ADVISORY no nascimento: Pest Browser é CI-only e
+      # não pôde rodar antes do PR. Promoção = remover o `continue-on-error` depois de 2 verdes
+      # que EXECUTARAM, lidos no log; é flip [W].
+      - name: E2E de render · Fiscal/Das (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-fiscal-das
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Fiscal/DasRenderTest.php
+
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
       # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
       # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive
@@ -792,6 +806,7 @@ jobs:
           A_PATR_ALOCACOES: ${{ steps.e2e-patrimonio-alocacoes.outcome }}
           A_PATR_CONFIGURACOES: ${{ steps.e2e-patrimonio-configuracoes.outcome }}
           A_PATR_MANUTENCOES: ${{ steps.e2e-patrimonio-manutencoes.outcome }}
+          A_FISCAL_DAS: ${{ steps.e2e-fiscal-das.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -831,6 +846,7 @@ jobs:
           registrar "E2E de render · Patrimonio/Alocacoes" "$A_PATR_ALOCACOES"
           registrar "E2E de render · Patrimonio/Configuracoes" "$A_PATR_CONFIGURACOES"
           registrar "E2E de render · Patrimonio/Manutencoes" "$A_PATR_MANUTENCOES"
+          registrar "E2E de render · Fiscal/Das" "$A_FISCAL_DAS"
 
           {
             echo ""

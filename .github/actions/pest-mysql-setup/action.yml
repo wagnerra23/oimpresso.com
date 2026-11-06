@@ -186,6 +186,19 @@ runs:
             DB::table('users')->where('id', \$uid2)->update(['business_id'=>2]);
             echo 'seed biz2=2 user='.\$uid2.PHP_EOL;
           }
+          // biz=99 — o CLIENTE fictício do Modo Suporte (WithSeededTenant::SUPPORT_CLIENT_TENANT_ID),
+          // com o MESMO formato que seededSupportClientTenant() cria (dono sup_owner_99).
+          // Por que no seed (2026-11-05, lote 2.2 da auditoria do Financeiro): um teste da lane
+          // (Adr0175ObserverContaOpcionalTest) insere o business 99 SEM usuário; quando ele roda
+          // antes, seededSupportClientTenant() encontra o 99 já existente e não cria o dono, e os
+          // 4 UC-FCC-19..22 pulavam por falta de usuário no 99 (run 41917610494).
+          if (! DB::table('business')->where('id', 99)->exists()) {
+            \$uid99 = optional(DB::table('users')->where('username', 'sup_owner_99')->first())->id
+              ?? DB::table('users')->insertGetId(['first_name'=>'Sup Cliente 99','username'=>'sup_owner_99','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('business')->insert(['id'=>99,'name'=>'Cliente Sup 99','currency_id'=>\$curId,'owner_id'=>\$uid99,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('users')->where('id', \$uid99)->update(['business_id'=>99]);
+            echo 'seed biz99=99 user='.\$uid99.PHP_EOL;
+          }
           // ponto_colaborador_config pro tenant 1 (2026-08-24). Sem esta linha, os testes
           // do Ponto que precisam de um colaborador chamam markTestSkipped — e skip sai
           // com exit 0. Medido no run 32675937702 da ponto-pest: 2 casos de imutabilidade
@@ -288,6 +301,17 @@ runs:
             ]);
             echo 'conta criada biz='.\$bizId.PHP_EOL;
           }
+          // Conta bancária também no biz=2 (fictício, adversário cross-tenant). Sem ela o
+          // UC-FUNI-04 (conta de outro business recusada sem gravar baixa) não tinha conta
+          // alheia para tentar usar e pulava (2026-11-05, lote 2.2).
+          if (DB::table('business')->where('id', 2)->exists()
+              && ! \Modules\Financeiro\Models\ContaBancaria::query()->withoutGlobalScopes()->where('business_id', 2)->exists()) {
+            \Modules\Financeiro\Models\ContaBancaria::query()->withoutGlobalScopes()->create([
+              'business_id'=>2,'account_id'=>999002,'agencia'=>'0002','carteira'=>'0',
+              'beneficiario_documento'=>'00000000000000','beneficiario_razao_social'=>'CI Test 2','saldo_cached'=>0,
+            ]);
+            echo 'conta criada biz=2'.PHP_EOL;
+          }
           // Onda Q2 — RetencaoLoopE2ETest (UC-F01..03) exige location + contact (type != lead).
           if (\$bizId && ! DB::table('business_locations')->where('business_id',\$bizId)->exists()) {
             DB::table('business_locations')->insert(['business_id'=>\$bizId,'name'=>'Matriz CI','country'=>'BR','state'=>'SP','city'=>'SP','zip_code'=>'0','created_at'=>now(),'updated_at'=>now()]);
@@ -296,6 +320,23 @@ runs:
           if (\$bizId && ! DB::table('contacts')->where('business_id',\$bizId)->where('type','!=','lead')->exists()) {
             DB::table('contacts')->insert(['business_id'=>\$bizId,'type'=>'customer','name'=>'Cliente CI','contact_id'=>'CO0001','created_by'=>1,'is_default'=>1,'created_at'=>now(),'updated_at'=>now()]);
             echo 'contact criado'.PHP_EOL;
+          }
+          // Location + contact também no biz=2 (adversário cross-tenant), 2026-11-05 lote 2.2.
+          // Os cenários multi-tenant da ponte venda→título (TransactionObserverIntegrationTest
+          // cenário 8, TransactionPaymentObserverTest) precisam de uma SEGUNDA empresa com
+          // location, contact e usuário; sem isso pulavam (run 42071381255).
+          if (DB::table('business')->where('id', 2)->exists()) {
+            if (! DB::table('business_locations')->where('business_id', 2)->exists()) {
+              DB::table('business_locations')->insert(['business_id'=>2,'name'=>'Matriz CI 2','country'=>'BR','state'=>'SP','city'=>'SP','zip_code'=>'0',
+                'invoice_scheme_id'=>(int) DB::table('invoice_schemes')->where('business_id', 2)->value('id'),
+                'invoice_layout_id'=>(int) DB::table('invoice_layouts')->where('business_id', 2)->value('id'),
+                'created_at'=>now(),'updated_at'=>now()]);
+              echo 'location criada biz=2'.PHP_EOL;
+            }
+            if (! DB::table('contacts')->where('business_id', 2)->where('type','!=','lead')->exists()) {
+              DB::table('contacts')->insert(['business_id'=>2,'type'=>'customer','name'=>'Cliente CI 2','contact_id'=>'CO0002','created_by'=>1,'is_default'=>1,'created_at'=>now(),'updated_at'=>now()]);
+              echo 'contact criado biz=2'.PHP_EOL;
+            }
           }
           // system.repair_version (2026-09-05) — destrava UC-RSET-07/08, pendencia 4 do
           // charter de Pages/Repair/Settings. Sem a linha, ModuleUtil::isModuleInstalled

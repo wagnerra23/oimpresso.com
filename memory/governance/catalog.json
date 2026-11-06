@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 904,
-    "edges": 1227,
+    "nodes": 913,
+    "edges": 1237,
     "by_node_type": {
       "module": 43,
       "table": 108,
-      "adr": 150,
-      "component": 514,
+      "adr": 152,
+      "component": 521,
       "api": 89
     },
     "by_edge_type": {
@@ -41,8 +41,8 @@
       "consumesTable": 6,
       "providesApi": 93,
       "charteredByAdr": 30,
-      "governedByAdr": 78,
-      "hasComponent": 514,
+      "governedByAdr": 81,
+      "hasComponent": 521,
       "dependsOn": 136,
       "delegatesTo": 125,
       "migratesTo": 1,
@@ -916,6 +916,13 @@
       "exists": true
     },
     {
+      "id": "adr:0394",
+      "type": "adr",
+      "num": "0394",
+      "slug": "0394-endereco-de-ui-do-patrimonio-pages-patrimonio",
+      "exists": true
+    },
+    {
       "id": "adr:0396",
       "type": "adr",
       "num": "0396",
@@ -1011,6 +1018,13 @@
       "type": "adr",
       "num": "0412",
       "slug": "0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315",
+      "exists": true
+    },
+    {
+      "id": "adr:0414",
+      "type": "adr",
+      "num": "0414",
+      "slug": "0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react",
       "exists": true
     },
     {
@@ -1863,10 +1877,24 @@
       "desc": ""
     },
     {
+      "id": "component:AssetManagement/AssetAllocationService",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetAllocationService",
+      "desc": ""
+    },
+    {
       "id": "component:AssetManagement/AssetController",
       "type": "component",
       "module": "AssetManagement",
       "name": "AssetController",
+      "desc": ""
+    },
+    {
+      "id": "component:AssetManagement/AssetMaintenanceService",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetMaintenanceService",
       "desc": ""
     },
     {
@@ -1877,6 +1905,20 @@
       "desc": ""
     },
     {
+      "id": "component:AssetManagement/AssetManagementHealthCommand",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetManagementHealthCommand",
+      "desc": ""
+    },
+    {
+      "id": "component:AssetManagement/AssetService",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetService",
+      "desc": ""
+    },
+    {
       "id": "component:AssetManagement/AssetSettingsController",
       "type": "component",
       "module": "AssetManagement",
@@ -1884,10 +1926,31 @@
       "desc": ""
     },
     {
+      "id": "component:AssetManagement/AssetWarrantyService",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "AssetWarrantyService",
+      "desc": ""
+    },
+    {
       "id": "component:AssetManagement/DataController",
       "type": "component",
       "module": "AssetManagement",
       "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:AssetManagement/DepreciacaoGerencial",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "DepreciacaoGerencial",
+      "desc": ""
+    },
+    {
+      "id": "component:AssetManagement/GarantiasOrfasCommand",
+      "type": "component",
+      "module": "AssetManagement",
+      "name": "GarantiasOrfasCommand",
       "desc": ""
     },
     {
@@ -8129,7 +8192,31 @@
     },
     {
       "from": "module:AssetManagement",
+      "to": "adr:0093",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "adr:0394",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "adr:0414",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:AssetManagement",
       "to": "component:AssetManagement/AssetAllocationController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetAllocationService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8141,7 +8228,25 @@
     },
     {
       "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetMaintenanceService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
       "to": "component:AssetManagement/AssetMaitenanceController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetManagementHealthCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8153,7 +8258,25 @@
     },
     {
       "from": "module:AssetManagement",
+      "to": "component:AssetManagement/AssetWarrantyService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
       "to": "component:AssetManagement/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/DepreciacaoGerencial",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "component:AssetManagement/GarantiasOrfasCommand",
       "type": "hasComponent",
       "source": "contains"
     },

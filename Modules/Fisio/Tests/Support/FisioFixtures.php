@@ -14,6 +14,7 @@ use Modules\Fisio\Entities\Exercise;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Entities\ProgramItem;
+use Modules\Fisio\Services\ConfiguracaoClinica;
 use Modules\Fisio\Services\PortalTokenService;
 use Tests\TestCase;
 
@@ -146,11 +147,18 @@ final class FisioFixtures
         $GLOBALS['fisio_pacote'] = $lista;
     }
 
-    /** Autentica e fixa a empresa da sessão (o global scope lê `user.business_id`). */
+    /**
+     * Autentica e fixa a empresa da sessão (o global scope lê `user.business_id`). O
+     * profissional tem o CREFITO `self::CREFITO` no perfil: é de lá que a assinatura do
+     * prontuário o lê (auditoria d9).
+     */
     public static function como(TestCase $t, User $user): void
     {
         $t->actingAs($user);
         session(['user.business_id' => (int) $user->business_id]);
+        if (Schema::hasTable('fisio_settings')) {
+            app(ConfiguracaoClinica::class)->gravar((int) $user->business_id, 'perfil.crefito', self::CREFITO, (int) $user->id, (int) $user->id);
+        }
     }
 
     public static function contato(int $biz, int $createdBy, string $nome = 'Paciente Fixture', ?string $mobile = '48999990000'): int

@@ -4,6 +4,7 @@
 // @covers-us US-PCP-021 (UC-FLXT-20/21: a regra de baixa de material sem OS não executa e não baixa duas vezes)
 // @covers-us US-PCP-031 (UC-FLXT-22: o interruptor da reserva de insumo na venda mora nesta tela)
 // @covers-us US-COM-027 (UC-FLXT-24: a requisição pelo estoque mínimo liga e desliga nesta tela)
+// @covers-us US-PCP-032 (UC-FLXT-25: o interruptor "Aguardar o material" mora nesta tela)
 
 declare(strict_types=1);
 
@@ -663,6 +664,49 @@ it('UC-FLXT-22 · quem configura liga e desliga a reserva de material na venda, 
     flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
     expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.reserva_insumo'))->toBeNull();
     expect(flxtPatch($this, '/fluxos/reserva', ['ligada' => true])->getStatusCode())->toBe(404);
+    expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica']);
+});
+
+it('UC-FLXT-25 · quem configura liga e desliga "Aguardar o material"; o motor lê a mesma chave, só na empresa da sessão', function () {
+    if (! class_exists(\Modules\Producao\Services\FaltaDeMaterialDaOs::class)) {
+        $this->markTestSkipped('Modules/Producao ausente.');
+    }
+    $pacote = (object) ['producao' => true];
+    $this->partialMock(\App\Utils\ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module' && $pacote->producao));
+    $chave = \Modules\Producao\Services\FaltaDeMaterialDaOs::CHAVE;
+    $ajustes = fn (int $biz) => json_decode((string) DB::table('business')->where('id', $biz)->value('common_settings'), true) ?? [];
+    $outra = (int) DB::table('business')->where('id', '!=', FLXT_BIZ)->value('id');
+    $antesOutra = DB::table('business')->where('id', $outra)->value('common_settings');
+    DB::table('business')->where('id', FLXT_BIZ)->update(['common_settings' => json_encode(['flxt_vizinha' => 'fica'])]);
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    flxtPostAplicar($this, ['modelo' => 'cv-pequena']);
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.aguarda_material'))->toBeFalse();
+
+    flxtPatch($this, '/fluxos/aguarda-material', ['ligada' => true, 'business_id' => $outra])->assertRedirect('/fluxos?aba=empresa');
+    // Só a chave dela: a reserva na venda (chave irmã) continua desligada.
+    expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica', $chave => 1]);
+    // O motor (SituacaoDaOrdem → FaltaDeMaterialDaOs) lê a mesma chave que a tela gravou.
+    expect(app(\Modules\Producao\Services\FaltaDeMaterialDaOs::class)->ligada(FLXT_BIZ))->toBeTrue()
+        ->and(app(\Modules\Producao\Services\ReservaDeInsumoDaOs::class)->ligada(FLXT_BIZ))->toBeFalse();
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.aguarda_material'))->toBeTrue();
+    expect(DB::table('business')->where('id', $outra)->value('common_settings'))->toBe($antesOutra);
+
+    flxtPatch($this, '/fluxos/aguarda-material', ['ligada' => 'talvez'])->assertSessionHasErrors('ligada');
+    expect($ajustes(FLXT_BIZ)[$chave] ?? null)->toBe(1);
+
+    flxtPatch($this, '/fluxos/aguarda-material', ['ligada' => false])->assertRedirect('/fluxos?aba=empresa');
+    expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica']);
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+    expect(flxtPatch($this, '/fluxos/aguarda-material', ['ligada' => true])->getStatusCode())->toBe(403);
+    expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica']);
+
+    $pacote->producao = false;
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.aguarda_material'))->toBeNull();
+    expect(flxtPatch($this, '/fluxos/aguarda-material', ['ligada' => true])->getStatusCode())->toBe(404);
     expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica']);
 });
 

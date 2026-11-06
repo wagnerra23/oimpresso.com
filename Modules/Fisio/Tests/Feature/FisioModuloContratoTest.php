@@ -68,8 +68,10 @@ it('UC-FPS-07 · nenhum código do módulo faz forceDelete, truncate ou hardcode
         }
         $src = (string) file_get_contents((string) $f);
         $lidos++;
-        expect($src)->not->toContain('forceDelete(', "forceDelete em {$rel} — guarda de 20 anos (Lei 13.787/2018)")
-            ->and($src)->not->toMatch('/->truncate\(\)/', "truncate em {$rel}")
+        // assertStringNotContainsString, não `->not->toContain($needle, $msg)`: o toContain do Pest é
+        // variádico, a mensagem vira um 2º needle e o `not->` passa sempre (§5 2026-09-22, LC-31).
+        $this->assertStringNotContainsString('forceDelete(', $src, "forceDelete em {$rel} — guarda de 20 anos (Lei 13.787/2018)");
+        expect($src)->not->toMatch('/->truncate\(\)/', "truncate em {$rel}")
             ->and($src)->not->toMatch('/business_id\s*[!=]==?\s*\d+/', "hardcode de business em {$rel}");
     }
 

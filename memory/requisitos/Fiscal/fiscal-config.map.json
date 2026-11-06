@@ -4,7 +4,7 @@
   "tela": "Fiscal/Config (/fiscal/config)",
   "gap_fonte": "memory/requisitos/Fiscal/fiscal-config-gap.md",
   "prototipo_sha": "sha256:6213c9f02804",
-  "gerado_em": "2026-11-05",
+  "gerado_em": "2026-11-06",
   "partes": [
     {
       "id": "certificado-e-regime",
