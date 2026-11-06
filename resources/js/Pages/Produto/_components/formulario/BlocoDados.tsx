@@ -147,7 +147,9 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
         </Inline>
         )}
         <div>
-          <Label htmlFor="alert_quantity">Quantidade de alerta</Label>
+          {/* O protótipo (produto-blade-forms.jsx) renomeia "Quantidade de alerta" para "Estoque mínimo":
+              é o mesmo campo, products.alert_quantity, que a Necessidade de compra (US-COM-030) lê. */}
+          <Label htmlFor="alert_quantity">Estoque mínimo</Label>
           <Input
             id="alert_quantity"
             type="number"
@@ -156,6 +158,9 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
             onChange={(e) => definir('alert_quantity', e.target.value)}
             className="tabular-nums"
           />
+          <p className="text-[12px] text-muted-foreground mt-1">
+            Era “Quantidade de alerta”. Abaixo dele, o produto entra na Necessidade de compra.
+          </p>
         </div>
         {opcoes.warranties && Object.keys(opcoes.warranties).length > 0 && (
           <div>

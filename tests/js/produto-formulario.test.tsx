@@ -90,6 +90,24 @@ describe('Novo produto com as listas do servidor', () => {
     for (const s of secoes) expect(screen.getByText(s)).toBeTruthy()
   })
 
+  it('o campo alert_quantity se chama "Estoque mínimo", como no protótipo', () => {
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="C128"
+        defaultProfitPercent={25}
+        duplicateProduct={null}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={false}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+    expect(screen.getByLabelText('Estoque mínimo').id).toBe('alert_quantity')
+    expect(screen.queryByText('Quantidade de alerta')).toBeNull()
+  })
+
   it('sem imposto escolhido, o campo mostra "Nenhuma"', () => {
     render(
       <ProdutoCreate
