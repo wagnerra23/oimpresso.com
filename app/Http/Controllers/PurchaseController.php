@@ -518,6 +518,11 @@ class PurchaseController extends Controller
         // store() é compartilhado Blade+Inertia; bloqueia payload forjado cross-tenant.
         // Fora do try de propósito pra o 422 não ser engolido pelo catch genérico.
         $this->assertPurchaseVariationsOwnership($request);
+        // US-COM-029 (Tier 0): compra NOVA não tem linha própria ainda, então qualquer
+        // `purchase_line_id` no payload é forjado. Sem esta trava, createOrUpdatePurchaseLines
+        // fazia PurchaseLine::findOrFail no id cru e reaproveitava a linha de OUTRA empresa
+        // (movia a linha e o estoque dela). Transação 0 não existe: qualquer id reprova com 422.
+        $this->assertPurchaseLinesBelongTo($request, 0);
         $this->assertPurchaseOrderRefsBelongTo($request); // US-COM-029
         $this->assertPurchaseOrdersAprovados($request); // US-COM-032
 
@@ -1681,6 +1686,15 @@ class PurchaseController extends Controller
      */
     public function getPurchaseEntryRow(Request $request)
     {
+        // Tier 0 (ADR 0093): a linha devolve produto, variações, estoque e o último custo de
+        // compra. Antes não conferia permissão nem empresa: qualquer usuário logado lia o
+        // produto/custo de outra empresa pelo id. Quem chama é a tela de compra e a de pedido.
+        $pode = collect(['purchase.create', 'purchase.update', 'purchase_order.create', 'purchase_order.update'])
+            ->contains(fn ($perm) => auth()->user()->can($perm));
+        if (! $pode) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (request()->ajax()) {
             $product_id = $request->input('product_id');
             $variation_id = $request->input('variation_id');
@@ -1699,8 +1713,18 @@ class PurchaseController extends Controller
             if (! empty($product_id)) {
                 $row_count = $request->input('row_count');
                 $product = Product::where('id', $product_id)
+                                    ->where('business_id', $business_id)
                                     ->with(['unit', 'second_unit'])
-                                    ->first();
+                                    ->firstOrFail();
+
+                // Local de outra empresa: o estoque (variation_location_details) e o último
+                // custo (getLastPurchaseLine) seriam lidos dele.
+                if (! empty($location_id)) {
+                    abort_unless(
+                        BusinessLocation::where('business_id', $business_id)->whereKey($location_id)->exists(),
+                        404
+                    );
+                }
 
                 $sub_units = $this->productUtil->getSubUnits($business_id, $product->unit->id, false, $product_id);
 
@@ -1720,7 +1744,7 @@ class PurchaseController extends Controller
                             ->ExcludeForTaxGroup()
                             ->get();
 
-                $last_purchase_line = $this->getLastPurchaseLine($variation_id, $location_id, $supplier_id);
+                $last_purchase_line = $this->getLastPurchaseLine($variation_id, $location_id, $supplier_id, (int) $business_id);
 
                 return view('purchase.partials.purchase_entry_row')
                     ->with(compact(
@@ -1742,10 +1766,11 @@ class PurchaseController extends Controller
     /**
      * Finds last purchase line of a variation for the supplier for a location
      */
-    private function getLastPurchaseLine($variation_id, $location_id, $supplier_id = null)
+    private function getLastPurchaseLine($variation_id, $location_id, $supplier_id = null, ?int $business_id = null)
     {
         $query = PurchaseLine::join('transactions as t', 'purchase_lines.transaction_id',
                         '=', 't.id')
+                        ->where('t.business_id', $business_id ?? request()->session()->get('user.business_id'))
                         ->where('t.location_id', $location_id)
                         ->where('t.type', 'purchase')
                         ->where('t.status', 'received')
