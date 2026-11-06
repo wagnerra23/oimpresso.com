@@ -33,17 +33,18 @@ use Tests\Support\EstoqueFixture;
  *   Âncora: memory/requisitos/Compras/SDD-tela-cockpit-compras-v1.0.md §6.1 CU-COM-08
  *           resources/js/Pages/Compras/Index.casos.md (UC-CMP-09)
  *
- * ONDE ESTE ARQUIVO RODA (medido 2026-07-27 — 3 portas distintas, classe LC-08):
- *   · roda em algum lugar?  SIM  — phpunit.xml:57 registra ./Modules/Compras/Tests/Feature
- *                                  (diretório inteiro) e shards-plan.mjs shardeia `Modules`
- *                                  => full-suite nightly CT 100.
- *   · roda no PR?           NAO  — o step "Run Pest" do .github/workflows/compras-pest.yml é
- *                                  allowlist arquivo-a-arquivo e este arquivo NAO está lá
- *                                  (`git grep PurchaseCalculoValorEstoqueE2E -- .github/` = 0).
- *   · bloqueia merge?       NAO  — a lane Compras não está no required-checks-baseline.json.
- *   -> O entregável de uma US [V0] Tier 0 (US-COM-011) não é exercitado por PR nenhum.
- *      Adicioná-lo à allowlist é decisão do [W]; reportado no session log do chip S1.
- *
+ * ONDE ESTE ARQUIVO RODA — não se afirma aqui, se mede (LC-10):
+ *   · lane de PR:  node scripts/governance/test-lane-coverage.mjs --modulo Compras
+ *                  (a allowlist do step "Run Pest" de .github/workflows/compras-pest.yml)
+ *   · bloqueia merge: governance/required-checks-baseline.json
+ *   Fatos datados, em passado: em 2026-07-27 o arquivo não estava em lane de PR nenhuma
+ *   (só no full-suite nightly do CT 100) e a redação dizia "a lane Compras não bloqueia
+ *   merge" — falsa desde 2026-08-05, quando a lane virou required (#5313, ADR 0369).
+ *   Em 2026-11-05 a auditoria de Compras (pergunta 9) levou ao [W] a decisão de pôr este
+ *   teste na lane de PR; ele é a única prova da US-COM-011 [V0]. Entrou na allowlist do
+ *   compras-pest no #10419 (2 passed, 48 assertions no tenant 98) e em 2026-11-06 o [W]
+ *   decidiu: fica na lane de PR.
+
  * O QUE ESTE TESTE ASSERTA (com NÚMEROS CONCRETOS, ancorado em CONTRATO)
  * =====================================================================
  * Submete UMA compra real de produto `variable` com grade tam×cor (2×2) + frete +
@@ -65,9 +66,9 @@ use Tests\Support\EstoqueFixture;
  *     código faz. Se o `store()` corromper qualquer campo, a asserção quebra.
  *   - SPEC US-COM-005 (grade tam×cor: "cada célula = 1 SKU filho = variation_id").
  *   - Regra-mestre valor/estoque (dupla confirmação por 2 caminhos).
- *   - ADR 0093 (multi-tenant Tier 0) · ADR 0101 (tests biz=1, NUNCA biz=4 Larissa).
+ *   - ADR 0093 (multi-tenant Tier 0) · ADR 0358 (tenant fictício 98; nunca biz=1, empresa real; nunca biz=4, cliente).
  *
- * EXECUÇÃO (proibicoes.md — testes só no CT 100, MySQL real biz=1 dogfood)
+ * EXECUÇÃO (proibicoes.md — testes só no CI ou no CT 100, MySQL real, tenant 98)
  * =======================================================================
  *   tailscale ssh root@ct100-mcp \
  *     "docker exec -e DB_CONNECTION=mysql oimpresso-staging \
@@ -89,10 +90,11 @@ use Tests\Support\EstoqueFixture;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * biz=1 dogfood (ADR 0101 — NUNCA biz=4 Larissa). Grade tam×cor 2×2 canônica.
+ * Tenant fictício 98 (ADR 0358). Até 2026-11-05 era biz=1 (ADR 0101, superada): no CT 100
+ * a base é clone de produção e o biz=1 é a WR2 Sistemas, empresa real. Grade tam×cor 2×2 canônica.
  * Config das células por LABEL (o mapa célula→variation_id vem do endpoint real).
  */
-const G03_BIZ = 1;
+const G03_BIZ = 98;
 
 /**
  * Config de cada célula da grade: label 2D → (qty inteira, custo unitário string
@@ -128,15 +130,15 @@ beforeEach(function () {
         );
     }
 
-    // biz=1 precisa existir (dogfood). Não inventamos business aqui — usamos o
-    // semeado, com currency/date_format reais (SetSessionData popula a sessão).
+    // O tenant 98 vem do seed canônico (pest-mysql-setup / ct100-fullsuite). Não inventamos
+    // business aqui — usamos o semeado, com currency/date_format dele (SetSessionData popula a sessão).
     $biz = DB::table('business')->where('id', G03_BIZ)->first();
     if (! $biz) {
-        $this->markTestSkipped('business_id=1 não semeado neste ambiente (ADR 0101).');
+        $this->fail('Tenant 98 não semeado: o schema existe, então o seed canônico não rodou (ADR 0358).');
     }
     $this->biz = $biz;
 
-    // Usuário biz=1 com acesso total via role Admin#{biz} — que é o mecanismo
+    // Usuário do tenant 98 com acesso total via role Admin#{biz} — que é o mecanismo
     // canônico do UPos: `AuthServiceProvider::boot` tem `Gate::before` que retorna
     // true pra quem tem `Admin#{business_id}` (concede purchase.create + tudo). É o
     // ator realista de uma compra (admin de compras); este teste mede CÁLCULO, não o
@@ -348,7 +350,7 @@ it('POST /purchases (grade+frete+desconto%+imposto) persiste VALOR, LINHAS e EST
         'Compra não foi criada. HTTP=' . $resp->status()
         . ' redirect=' . ($resp->headers->get('Location') ?? '—')
         . ' status_flash=' . json_encode(session('status'))
-        . ' — se for expiredResponse/subscription, rode em ambiente subscrito (biz=1 dogfood).'
+        . ' — se for expiredResponse/subscription, rode em ambiente com o Superadmin desligado ou o tenant 98 assinado.'
     );
 
     // ── (a) VALOR — CAMINHO B (header persistido) vs CAMINHO A (contrato) ─────

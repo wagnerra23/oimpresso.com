@@ -47,8 +47,10 @@ it('Page NÃO usa sessionStorage', function () {
     expect(readProdutoEdit())->not->toContain('sessionStorage');
 });
 
-it('Page usa localStorage com prefixo oimpresso.produto.', function () {
-    expect(readProdutoEdit())->toContain("'oimpresso.produto.");
+// Até 2026-11-04 a seção "Mais opções" lembrava aberta/fechada no navegador. Na forma do protótipo
+// (#10380, UI-0029) ela virou "Configurações", sempre aberta: a tela não guarda estado no navegador.
+it('Page não guarda estado no navegador (sem localStorage)', function () {
+    expect(readProdutoEdit())->not->toContain('localStorage');
 });
 
 it('Page NÃO usa cor crua', function () {

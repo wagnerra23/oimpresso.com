@@ -71,7 +71,7 @@ $screens = [
     // MENCAO ao path, entao a citacao viraria credito sem teste (crédito por comentario).
     // Ancoras vem do <Head title> de cada Page, evitando '&' e '·' (escapam no HTML).
     'Fiscal/Dfe'           => ['/fiscal/dfe',                  'fiscal.dfe.manage',           'DF-e'],
-    'Fiscal/Eventos'       => ['/fiscal/eventos',              'fiscal.access',               'Eventos'],
+    'Fiscal/Eventos'       => ['/fiscal/eventos',              'fiscal.nfe.view',             'Eventos'],
     'Fiscal/Sped'          => ['/fiscal/sped',                 'fiscal.access',               'SPED'],
     'Fiscal/Config'        => ['/fiscal/config',               'fiscal.config.edit',          'Certificado'],
     // Workspace unificado (#2544): âncora = H1 "Oficina Auto", que renderiza mesmo sem o

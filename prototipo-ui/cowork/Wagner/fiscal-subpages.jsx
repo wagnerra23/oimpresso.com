@@ -34,10 +34,18 @@ window.FxEventosPage = function FxEventosPage() {
   ];
   const conta = (id) => (id === "todos" ? st.eventos.length : st.eventos.filter(e => e.kind === id).length);
   const rows = st.eventos.filter(e => kind === "todos" || e.kind === kind);
-  const exportar = () => window.fxExportCsv("eventos-fiscais-" + periodo + "d.csv", [
+  const [modal, setModal] = useStateFs(null);
+  const exportarCsv = () => window.fxExportCsv("eventos-fiscais-" + periodo + "d.csv", [
     { label: "Quando", get: e => e.emit }, { label: "Tipo", get: e => e.tipo }, { label: "Sequência", get: e => e.sequencia || "" },
     { label: "Documento", get: e => e.nota }, { label: "Justificativa", get: e => e.descricao }, { label: "Autor", get: e => e.autor }, { label: "cstat", get: e => e.sefaz },
   ], rows);
+  // LGPD · o CSV leva autor e justificativa (texto livre, pode citar cliente) — confirma antes
+  const exportar = () => setModal({
+    title: "Exportar " + rows.length + " eventos em CSV", confirmLabel: "Exportar CSV", fields: [],
+    leva: ["Quem fez cada evento (nome do usuário)", "Justificativa digitada, que pode citar cliente", "Documento e código da SEFAZ"],
+    aviso: "O arquivo sai do sistema: guarde e compartilhe só com quem precisa.",
+    onConfirm: exportarCsv,
+  });
   return (
     <div className="fx-page">
       <U.Header title="Eventos fiscais" crumb={`Timeline append-only · ${rows.length} eventos nos últimos ${periodo} dias · auditoria LGPD Art. 37`}>
@@ -74,6 +82,7 @@ window.FxEventosPage = function FxEventosPage() {
       <p className="fx-nota-rodape">Eventos são append-only (NfeEvento sem updated_at) — a tela não permite edição. Emissão de CC-e, cancelamento e inutilização acontece nas telas de notas.</p>
       <FsDebitos tela="fiscal-eventos" />
       <window.FxPalette />
+      <window.FxActionModal spec={modal} onClose={() => setModal(null)} />
       <window.FxToasts />
     </div>
   );
@@ -116,7 +125,7 @@ window.FxDfePage = function FxDfePage() {
 
   return (
     <div className="fx-page">
-      <U.Header title="Manifesto DF-e" crumb={`NF-e emitidas contra o CNPJ · ${conta("pendente")} aguardando manifestação · prazo legal 90 dias`} />
+      <U.Header title="Manifesto DF-e" crumb={`NF-e emitidas contra o CNPJ · ${conta("pendente")} aguardando manifestação · prazo de cada uma calculado pela SEFAZ`} />
       <U.Subnav current="fiscal-dfe" />
       <window.CliTabs dataContract="abas-dfe" ariaLabel="Abas do manifesto" pad={0} active={aba} onChange={setAba}
         tabs={[{ key: "pendencias", label: "Pendências", n: conta("pendente") },
@@ -211,7 +220,7 @@ window.FxConfigPage = function FxConfigPage() {
   const c = st.config || U.D().CONFIG;
   const [aba, setAba] = useStateFs("certificado");
   const [modal, setModal] = useStateFs(null);
-  const urg = c.cert.dias <= 7 ? "crit" : c.cert.dias <= 60 ? "warn" : "ok";
+  const ce = window.fxCert(st), urg = ce.nivel; // 6.2 · mesma régua do KPI e do alerta (30 / 7 dias)
   const gate = st.gate;
   const destino = c.cert.ambiente === "Produção" ? "Homologação" : "Produção";
   const abas = [
@@ -247,15 +256,14 @@ window.FxConfigPage = function FxConfigPage() {
     <div className="fx-page">
       <U.Header title="Certificado e configuração fiscal" crumb="Séries e envio de documentos editáveis · ambiente e certificado atrás de gate próprio" />
       <U.Subnav current="fiscal-config" />
-      <div className="fx-chips" data-contract="abas-config" role="tablist" aria-label="Abas de configuração">
-        {abas.map(a => <button key={a.id} className="fx-chip" aria-pressed={aba === a.id} onClick={() => setAba(a.id)}>{a.label}{a.n != null && <b>{a.n}</b>}</button>)}
-      </div>
+      <window.CliTabs dataContract="abas-config" ariaLabel="Abas de configuração" pad={0} active={aba} onChange={setAba}
+        tabs={abas.map(a => ({ key: a.id, label: a.label, n: a.n }))} />
 
       {aba === "certificado" && (
         <>
           <div className="fx-grid" data-contract="cert-regime">
             <div className="fx-card">
-              <div className="fx-card-h"><span>Certificado digital <FsProc k="config" /></span><span className={"fx-timepill u-" + urg}>vence em {c.cert.dias}d</span></div>
+              <div className="fx-card-h"><span>Certificado digital <FsProc k="config" /></span><span className={"fx-timepill u-" + urg}>{ce.rotulo}</span></div>
               <div className="fx-row"><span className="fx-row-l">Tipo</span><span className="fx-row-v">{c.cert.tipo}</span></div>
               <div className="fx-row"><span className="fx-row-l">Titular</span><span className="fx-row-v txt">{c.cert.titular}</span></div>
               <div className="fx-row"><span className="fx-row-l">CNPJ</span><span className="fx-row-v">{c.cert.cnpj}</span></div>
@@ -321,7 +329,7 @@ window.FxConfigPage = function FxConfigPage() {
             <span>{gate ? "✓ concedida (superadmin)" : "✕ ausente — campos travados"}</span>
             <span>✓ senha do certificado em $hidden, nunca no payload</span>
             <span>✓ toda troca vira evento na auditoria</span>
-            <button className="fx-btn" onClick={window.FxActions.toggleGate}>{gate ? "Revogar permissão" : "Assumir como superadmin"}</button>
+            <label className="fx-simula" data-contract="simula-permissao"><input type="checkbox" checked={gate} onChange={window.FxActions.toggleGate} /> Simular usuário com a permissão (demonstração)</label>
           </div>
           <div className="fx-grid" data-contract="troca-ambiente">
             <div className="fx-card">
@@ -332,7 +340,7 @@ window.FxConfigPage = function FxConfigPage() {
               </div>
             </div>
             <div className="fx-card">
-              <div className="fx-card-h"><span>Certificado A1</span><span className={"fx-timepill u-" + urg}>vence em {c.cert.dias}d</span></div>
+              <div className="fx-card-h"><span>Certificado A1</span><span className={"fx-timepill u-" + urg}>{ce.rotulo}</span></div>
               <div className="fx-form">
                 <label className="fx-field"><span>Certificado vigente</span><input value={c.cert.titular} readOnly /></label>
                 <button className="fx-btn" disabled={!gate} title={gate ? "" : "Exige fiscal.config.ambiente"} onClick={enviarCert}>Enviar novo certificado</button>
@@ -385,7 +393,7 @@ window.FxSpedPage = function FxSpedPage() {
         <span>✓ não-futura</span>
         <span>{aberto ? "✕ mês em aberto — fecha em " + sel.entrega : "✓ competência fechada"}</span>
         <span>{lock ? "✕ trava sped_simples_only_lock ativa" : "✓ trava liberada (superadmin)"}</span>
-        <button className="fx-btn" onClick={() => setLock(v => !v)}>{lock ? "Liberar como superadmin" : "Reativar trava"}</button>
+        <label className="fx-simula" data-contract="simula-trava"><input type="checkbox" checked={!lock} onChange={() => setLock(v => !v)} /> Simular trava liberada (demonstração)</label>
       </div>
       <div className="fx-table fx-d-comfort" data-contract="panorama-sped">
         <table>

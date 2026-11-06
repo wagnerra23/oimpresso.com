@@ -4,6 +4,7 @@ return [
     'module_label'       => 'Fiscal',
     'nfe_label'          => 'NF-e · NFC-e',
     'cockpit_label'      => 'Cockpit fiscal',
+    'sem_pacote'         => 'O pacote Fiscal não está ativo na assinatura desta empresa.',
 
     // Permissões (DataController::user_permissions)
     'permissao_acesso'       => 'Fiscal · acesso ao módulo',

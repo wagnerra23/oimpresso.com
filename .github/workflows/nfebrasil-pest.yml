@@ -24,7 +24,8 @@ on:
     paths:
       - 'Modules/NfeBrasil/**'
       - 'resources/js/Pages/NfeBrasil/**'
-      - 'Modules/Fiscal/Tests/**'
+      - 'Modules/Fiscal/**'
+      - 'resources/js/Pages/Fiscal/**'
       - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
       - 'Modules/NFSe/Services/NfseEmissaoService.php'
       - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
@@ -74,7 +75,8 @@ jobs:
             nfe:
               - 'Modules/NfeBrasil/**'
               - 'resources/js/Pages/NfeBrasil/**'
-              - 'Modules/Fiscal/Tests/**'
+              - 'Modules/Fiscal/**'
+              - 'resources/js/Pages/Fiscal/**'
               - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
               - 'Modules/NFSe/Services/NfseEmissaoService.php'
               - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
@@ -265,6 +267,12 @@ jobs:
         # + RegraTributariaIbsCbsValidacaoTest (2026-10-07, playbook Fiscal thread 04): a regra
         #   grava os 5 campos IBS/CBS (UC-NFRF-05/06/07). CT 100: 3 passed / 30 assertions; com o
         #   FormRequest do main, 3 failed. Tenant 98 + usuario novo so com nfe.tributacao.manage.
+        # + 5 do Fiscal que nunca rodavam em CI (2026-11-06, auditoria Fiscal lote 2.2):
+        #   TrocaAmbienteCerimonia · HabilitarBusinessCommand · CertHealthCheckCommand ·
+        #   CockpitController · NfseCockpitController. Ficam no FIM da lista: o Habilitar
+        #   apaga e recria as fiscal.* (o comando sob teste e quem as recria).
+        #   NfseCockpitController pulava por um guard de `emitted_at` (task #12) que ficou
+        #   velho: o controller passou a ler `created_at`; o guard saiu.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -327,11 +335,13 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
             Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php \
             Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php \
+            Modules/NfeBrasil/Tests/Feature/AmbienteDoEmitenteTest.php \
             Modules/NfeBrasil/Tests/Feature/EntradaXmlUploadContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoTemplateAplicarTest.php \
             Modules/Fiscal/Tests/Feature/ConfigControllerTest.php \
             Modules/Fiscal/Tests/Feature/PaletteSearchControllerTest.php \
+            Modules/Fiscal/Tests/Feature/BuscaEventosPermissaoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesContratoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesControllerTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php \
@@ -339,6 +349,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
             Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php \
             Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
+            Modules/Fiscal/Tests/Feature/MenuPermissaoTest.php \
             Modules/Fiscal/Tests/Feature/SimplesOnlyGateConfigTest.php \
             Modules/Fiscal/Tests/Feature/SimplesOnlyGateTest.php \
             Modules/Fiscal/Tests/Feature/SpedControllerTest.php \
@@ -347,6 +358,8 @@ jobs:
             Modules/Fiscal/Tests/Feature/DfeControllerTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesErroTecnicoTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesEscritaEntreEmpresasTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoGatesContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php \
             Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php \
@@ -367,8 +380,15 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php \
             Modules/NfeBrasil/Tests/Feature/ApuracaoDasTest.php \
             Modules/Fiscal/Tests/Feature/DasControllerTest.php \
+            Modules/Fiscal/Tests/Feature/FiscalPacoteGateTest.php \
+            Modules/Fiscal/Tests/Feature/HabilitarBusinessDryRunTest.php \
             Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
-            Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php
+            Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php \
+            Modules/Fiscal/Tests/Feature/TrocaAmbienteCerimoniaTest.php \
+            Modules/Fiscal/Tests/Feature/HabilitarBusinessCommandTest.php \
+            Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitControllerTest.php \
+            Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

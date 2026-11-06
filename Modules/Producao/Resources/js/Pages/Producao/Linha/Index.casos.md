@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: reprogramar para máquina que o operador não opera, ou por cima de outra OS, para a fábrica; ver a máquina de outra empresa é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-22"
+last_run: "2026-11-06"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o ProducaoLinhaContratoTest."
 ---
 
@@ -45,3 +45,6 @@ incluem o responsável, a tela pergunta quem faz e só grava com um operador del
 reprogramação vira evento e avisa o responsável no app. Pede `producao.etapa.mover`; etapa de outra empresa → 404.
 
 Status: 🧪
+
+## Trilha do tempo
+- 2026-11-06 · [W+C] Auditoria lote 3.5: clicar no bloco sem arrastar (ou Enter) abre a Ficha da OS por item; o arrastar para reprogramar segue igual. O caso é o UC-PCOSF-06, em `../Os/Show.casos.md`; os casos desta tela foram relidos e seguem valendo.

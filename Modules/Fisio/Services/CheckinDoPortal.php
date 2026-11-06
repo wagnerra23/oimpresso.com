@@ -7,6 +7,7 @@ namespace Modules\Fisio\Services;
 use App\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Modules\Fisio\Entities\Checkin;
@@ -31,7 +32,9 @@ use Modules\Fisio\Notifications\SinalDeAlertaNotification;
  *    reenvio idêntico não grava nada no prontuário (UC-FPP-10).
  *  - O jogo recebe o check-in SÓ pelo evento `CheckinRegistrado` (JogoService lança a
  *    diferença positiva no ledger); aqui nada toca o ledger.
- *  - Sinal de alerta novo notifica o profissional na hora (UC-FPP-13).
+ *  - Sinal de alerta novo notifica o profissional na hora (UC-FPP-13). Se o aviso falhar, o
+ *    check-in fica gravado, a falha vai para o log e o sinal segue pendente
+ *    (`red_flags` − `red_flags_avisados`) até o reenvio ou o `fisio:reenviar-alertas`.
  *  - Dor ≥ limiar do programa ou sinal de alerta → modo `pausa`: o paciente vê SÓ a
  *    `stop_instruction` escrita pelo profissional, nada calculado (UC-FPP-19, Anvisa).
  *  - Escopo: tudo filtra pelo business do paciente (que veio assinado no token).
@@ -95,19 +98,17 @@ final class CheckinDoPortal
         $xpAntes = $this->jogo->xpTotal($paciente);
 
         try {
-            [$checkin, $criado, $flagsAntes] = $this->gravar($paciente, $dia, $campos, $vezes);
+            [$checkin, $criado] = $this->gravar($paciente, $dia, $campos, $vezes);
         } catch (UniqueConstraintViolationException) {
             // Dois envios simultâneos do mesmo dia: o segundo vira atualização do primeiro.
-            [$checkin, $criado, $flagsAntes] = $this->gravar($paciente, $dia, $campos, $vezes);
+            [$checkin, $criado] = $this->gravar($paciente, $dia, $campos, $vezes);
         }
+
+        // O aviso vem antes do jogo: um erro no XP não pode impedir o alerta (auditoria d4).
+        $this->avisarAlertasPendentes($checkin, $paciente, $programa);
 
         // Ponto de entrada ÚNICO do jogo (US-FISIO-008): depois de gravar, criar OU reenviar.
         event(new CheckinRegistrado((int) $checkin->business_id, (int) $checkin->id, $vezes));
-
-        $novos = array_values(array_diff($flags, $flagsAntes));
-        if ($novos !== []) {
-            $this->avisarProfissional($paciente, $programa, $checkin, $flags);
-        }
 
         return ['checkin' => $checkin, 'criado' => $criado, 'xp_ganho' => max(0, $this->jogo->xpTotal($paciente) - $xpAntes)];
     }
@@ -174,7 +175,7 @@ final class CheckinDoPortal
     /**
      * @param  array<string, mixed>  $campos
      * @param  array<int,int>  $vezes
-     * @return array{0: Checkin, 1: bool, 2: list<string>}
+     * @return array{0: Checkin, 1: bool}
      */
     private function gravar(Patient $paciente, string $dia, array $campos, array $vezes): array
     {
@@ -189,7 +190,6 @@ final class CheckinDoPortal
                 ->first();
 
             $criado = $checkin === null;
-            $flagsAntes = $criado ? [] : array_values(array_map('strval', (array) ($checkin->red_flags ?? [])));
             if ($criado) {
                 $checkin = Checkin::query()->create(['business_id' => $biz, 'patient_id' => (int) $paciente->id, 'date' => $dia] + $campos);
             } else {
@@ -198,7 +198,7 @@ final class CheckinDoPortal
 
             $this->registrarNoProntuario($checkin, $this->corpoDoRelato($checkin, $vezes));
 
-            return [$checkin, $criado, $flagsAntes];
+            return [$checkin, $criado];
         });
     }
 
@@ -322,6 +322,69 @@ final class CheckinDoPortal
         }
 
         return $out;
+    }
+
+    /**
+     * Sinais do check-in que ainda não chegaram ao profissional.
+     *
+     * @return list<string>
+     */
+    public static function alertasPendentes(Checkin $checkin): array
+    {
+        $flags = array_values(array_map('strval', (array) ($checkin->red_flags ?? [])));
+        $avisados = array_values(array_map('strval', (array) ($checkin->red_flags_avisados ?? [])));
+
+        return array_values(array_diff($flags, $avisados));
+    }
+
+    /**
+     * Avisa o profissional dos sinais pendentes e marca como avisados. Falha no aviso não
+     * desfaz o check-in: vai para o log e o sinal fica pendente para o reenvio.
+     *
+     * @return bool false quando o aviso falhou
+     */
+    public function avisarAlertasPendentes(Checkin $checkin, ?Patient $paciente = null, ?Program $programa = null): bool
+    {
+        $biz = (int) $checkin->business_id;
+        $flags = array_values(array_map('strval', (array) ($checkin->red_flags ?? [])));
+
+        if (self::alertasPendentes($checkin) !== []) {
+            $paciente ??= Patient::withoutGlobalScopes() // SUPERADMIN: reenvio sem sessão; filtra pelo business do check-in.
+                ->where('business_id', $biz)
+                ->find($checkin->patient_id);
+            if ($programa === null && $checkin->program_id !== null) {
+                $programa = Program::withoutGlobalScopes() // SUPERADMIN: reenvio sem sessão; filtra pelo business do check-in.
+                    ->where('business_id', $biz)
+                    ->find($checkin->program_id);
+            }
+            try {
+                if ($paciente !== null) {
+                    $this->avisarProfissional($paciente, $programa, $checkin, $flags);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+                Log::error('fisio.alerta_nao_enviado', [
+                    'business_id' => $biz,
+                    'checkin_id' => (int) $checkin->id,
+                    'erro' => $e::class,
+                ]);
+
+                return false;
+            }
+        }
+
+        // Guarda o que foi avisado (inclusive sinal removido no reenvio, para avisar de novo
+        // se ele voltar, como antes).
+        $avisados = array_values(array_map('strval', (array) ($checkin->red_flags_avisados ?? [])));
+        if ($avisados !== $flags) {
+            Checkin::withoutGlobalScopes() // SUPERADMIN: sem sessão no portal; filtra pelo business do check-in.
+                ->where('business_id', $biz)
+                ->whereKey($checkin->id)
+                ->update(['red_flags_avisados' => json_encode($flags)]);
+            $checkin->red_flags_avisados = $flags;
+        }
+
+        return true;
     }
 
     /**

@@ -10,6 +10,13 @@ contains:
   - "DataController"
   - "InstallController"
   - "RevokeAllocatedAssetController"
+  - "AssetService"
+  - "AssetAllocationService"
+  - "AssetMaintenanceService"
+  - "AssetWarrantyService"
+  - "DepreciacaoGerencial"
+  - "AssetManagementHealthCommand"
+  - "GarantiasOrfasCommand"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
@@ -21,6 +28,9 @@ charter_adr: 0080
 related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
+  - 0093-multi-tenant-isolation-tier-0
+  - 0394-endereco-de-ui-do-patrimonio-pages-patrimonio
+  - 0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react
 url_prefixes:
   - /asset/* (dashboard · assets · allocation · revocation · asset-maintenance · settings · install)
 drift_alerts: []
@@ -48,7 +58,17 @@ drift_alerts: []
 
 ## Missão
 
-UltimatePOS herdado.
+Registrar o patrimônio de uso interno da empresa — os bens que ela possui e usa, não vende —
+e acompanhar o ciclo de cada bem: cadastro (com garantia), alocação a um colaborador,
+devolução, envio para manutenção e o valor residual gerencial no painel. Núcleo herdado do
+UltimatePOS (schema `assets`, `asset_transactions`, `asset_maintenances`, `asset_warranties`),
+com as cinco telas em `resources/js/Pages/Patrimonio/` (ADR 0394) e os formulários em drawer
+React (ADR 0414).
+
+_(Até 2026-11-05 esta seção dizia só "UltimatePOS herdado.")_
+
+**Isolamento por empresa:** nenhum dos 4 Models tem escopo automático; o filtro por
+`business_id` é manual em cada consulta (ADR 0093 — ver README do módulo, seção Multi-tenant).
 
 ## Trust level
 
@@ -61,4 +81,5 @@ Ver `not_contains[]` no frontmatter. Em dúvida, consulte
 
 ---
 
+- **v1.1.0** (2026-11-05) — Missão preenchida; `contains` ganha Services e Commands; `related_adrs` ganha 0093, 0394 e 0414 (o corpo já citava as duas últimas).
 - **v1.0.0** (2026-05-05) — SCOPE.md inicial. Gerado em batch via Fase 3.4 do ADR 0079.

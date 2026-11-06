@@ -355,9 +355,14 @@ it('cenario 7: deleted da Transaction marca titulo como cancelado', function () 
 });
 
 it('cenario 8: multi-tenant — sells em 2 businesses geram titulos isolados', function () {
-    $other = \App\Business::where('id', '!=', $this->business->id)->first();
+    // Escolhe a 1a OUTRA empresa que tenha location, contact e usuário: "a primeira
+    // empresa que não é esta" caía numa sem location e pulava sempre (2026-11-05).
+    $other = \App\Business::where('id', '!=', $this->business->id)->orderBy('id')->get()
+        ->first(fn ($b) => DB::table('business_locations')->where('business_id', $b->id)->exists()
+            && DB::table('contacts')->where('business_id', $b->id)->exists()
+            && \App\User::where('business_id', $b->id)->exists());
     if (! $other) {
-        $this->markTestSkipped('Sem segundo business — pula isolamento real.');
+        $this->markTestSkipped('Sem segundo business com location/contact/user — pula isolamento real.');
     }
 
     $otherLoc = DB::table('business_locations')->where('business_id', $other->id)->first();
