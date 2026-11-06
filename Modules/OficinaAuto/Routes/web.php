@@ -12,6 +12,7 @@ use Modules\OficinaAuto\Http\Controllers\ServiceOrderItemController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderPhotoController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderAssinaturaController;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
+use Modules\OficinaAuto\Http\Middleware\OficinaAutoLiberado;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rotas Install 1-click (ADR 0024 / BaseModuleInstallController).
@@ -32,8 +33,11 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 // ─────────────────────────────────────────────────────────────────────────────
 // V0 — CRUD Vehicle + ServiceOrder (US-OFICINA-001).
 // Stack canônica UltimatePOS admin (skill criar-modulo §Críticas).
+// OficinaAutoLiberado: 403 se a empresa não tem o pacote `oficina_auto_module` (mesma
+// regra do menu — Services/OficinaAutoAcesso). As rotas de Install acima e as públicas
+// de aprovação abaixo ficam fora: install é do superadmin, aprovação não tem sessão.
 // ─────────────────────────────────────────────────────────────────────────────
-Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', OficinaAutoLiberado::class])
     ->prefix('oficina-auto')
     ->group(function () {
         // ─────────────────────────────────────────────────────────────────────

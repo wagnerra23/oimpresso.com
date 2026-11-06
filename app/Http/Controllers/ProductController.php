@@ -1138,6 +1138,16 @@ class ProductController extends Controller
     }
 
     /**
+     * Margem mínima do orçamento da empresa, em % (UC-FLX-35, Fluxos → regras da venda). O cadastro do
+     * produto só avisa quando a % de lucro fica abaixo dela; quem barra é a venda (MargemAbaixoDoMinimo).
+     * Null = a empresa não ligou a regra, e o cadastro não avisa nada.
+     */
+    protected function margemMinimaDaEmpresa(int $business_id): ?float
+    {
+        return app(\App\Domain\Fsm\Modelos\RegrasDaEmpresa::class)->margemMinima($business_id);
+    }
+
+    /**
      * Método da regra de custo da empresa (`medio`, `ultimo` ou `por_insumo`), só quando a regra está
      * gravada, ligada e dispara no Recebido — as mesmas condições em que o recebimento a aplica
      * (AplicarCustoDoRecebimento). Sem o módulo Compras, null.
@@ -1873,6 +1883,7 @@ class ProductController extends Controller
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
                 'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
+                'margemMinima' => $this->margemMinimaDaEmpresa((int) $business_id),
             ]);
         }
 
@@ -2377,6 +2388,7 @@ class ProductController extends Controller
                     'delete' => auth()->user()->can('product.delete'),
                 ],
                 'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
+                'margemMinima' => $this->margemMinimaDaEmpresa((int) $business_id),
             ]);
         }
 
