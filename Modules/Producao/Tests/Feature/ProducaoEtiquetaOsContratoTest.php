@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-PCP-010
 // Cobre UC-PCV-37 (Producao-celular.casos.md · E05, modelo a4_os) e UC-PCV-28 no QR (Producao.casos.md).
 
 use App\Services\AppLojas\EtiquetaProducao;
@@ -19,6 +20,11 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * Tenant 98 contra o 99. NUNCA biz=4. ⚠️ SKIP em SQLite: leia assertions, não "0 failed" (LC-13).
  */
 beforeEach(function () {
+    // Auditoria lote 2.4: os cadastros e a etiqueta exigem o Producao no pacote; o resto segue o real.
+    $this->partialMock(\App\Utils\ModuleUtil::class, function ($m) {
+        $m->shouldReceive('hasThePermissionInSubscription')->byDefault()->passthru();
+        $m->shouldReceive('hasThePermissionInSubscription')->withSomeOfArgs('producao_module')->andReturnUsing(fn () => $this->pacoteProducao ?? true);
+    });
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL do UltimatePOS.');
     }

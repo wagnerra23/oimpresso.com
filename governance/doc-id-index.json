@@ -452,6 +452,8 @@
     "0443-nuvemshop-entra-no-marketplaces-como-driver": "memory/decisions/0443-nuvemshop-entra-no-marketplaces-como-driver.md",
     "0444-mdfe-cte-entram-por-sped-mdfe-e-sped-cte-no-nfebrasil": "memory/decisions/0444-mdfe-cte-entram-por-sped-mdfe-e-sped-cte-no-nfebrasil.md",
     "0445-comparacao-de-pixel-sai-do-projeto": "memory/decisions/0445-comparacao-de-pixel-sai-do-projeto.md",
+    "0446-fisio-teleconsulta-livekit-e-evolucao-ditada": "memory/decisions/0446-fisio-teleconsulta-livekit-e-evolucao-ditada.md",
+    "0447-fisio-camera-conta-repeticoes-no-aparelho": "memory/decisions/0447-fisio-camera-conta-repeticoes-no-aparelho.md",
     "2026-04-18-session-01": "memory/sessions/2026-04-18-session-01.md",
     "2026-04-18-session-02": "memory/sessions/2026-04-18-session-02.md",
     "2026-04-19-session-03": "memory/sessions/2026-04-19-session-03.md",
@@ -1848,6 +1850,7 @@
     "2026-10-30-1700-venda-v3-edicao-onda1": "memory/handoffs/2026-10-30-1700-venda-v3-edicao-onda1.md",
     "2026-10-30-session-02-venda-v3-edicao": "memory/sessions/2026-10-30-session-02-venda-v3-edicao.md",
     "2026-10-30-session-04": "memory/sessions/2026-10-30-session-04.md",
+    "2026-11-05-refutacao-gt-g5-lote-10376-r1": "memory/sessions/2026-11-05-refutacao-gt-g5-lote-10376-r1.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -2397,6 +2400,7 @@
     "requisitos-fisio-features-f1-constancia-requirements": "memory/requisitos/Fisio/features/f1-constancia/requirements.md",
     "requisitos-fisio-features-f1-constancia-tasks": "memory/requisitos/Fisio/features/f1-constancia/tasks.md",
     "requisitos-fisio-spec": "memory/requisitos/Fisio/SPEC.md",
+    "requisitos-fisio-telas-agenda-paciente-casos": "memory/requisitos/Fisio/_telas/agenda-paciente.casos.md",
     "requisitos-fisio-telas-jogo-constancia-casos": "memory/requisitos/Fisio/_telas/jogo-constancia.casos.md",
     "requisitos-fluxos-runbook-fluxos-index": "memory/requisitos/Fluxos/RUNBOOK-fluxos-index.md",
     "requisitos-forja-briefing": "memory/requisitos/Forja/BRIEFING.md",
@@ -3161,6 +3165,7 @@
     "memory/decisions/proposals/drafts/modules-comunicacao-visual-scaffold/README.md",
     "memory/decisions/proposals/drafts/oficina-auto-modulo-canonico-fsm-wireup.md",
     "memory/decisions/proposals/drafts/repair-shared-refactor/MIGRATION_NOTES.md",
+    "memory/decisions/proposals/escala-tipografica-producao-x-prototipo.md",
     "memory/decisions/proposals/estrutura-canon-memoria.md",
     "memory/decisions/proposals/feature-financial-snapshot-multi-cliente.md",
     "memory/decisions/proposals/feature-trio-requirements-plan-tasks.md",
@@ -4220,6 +4225,7 @@
     "memory/requisitos/Restaurante/RUNBOOK-pedidos.md",
     "memory/requisitos/Restaurante/RUNBOOK-reservas.md",
     "memory/requisitos/Sells/DEAD-CSS-sells-cowork.md",
+    "memory/requisitos/Sells/RUNBOOK-caixa.md",
     "memory/requisitos/Sells/RUNBOOK-create-v3.md",
     "memory/requisitos/Sells/RUNBOOK-create.md",
     "memory/requisitos/Sells/RUNBOOK-discount.md",
@@ -4520,16 +4526,16 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4514,
-    "resolved": 3021,
-    "unstamped": 1493,
+    "total": 4520,
+    "resolved": 3025,
+    "unstamped": 1495,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1493,
-      "derived-adr": 450,
-      "stamped": 1174,
+      "unstamped": 1495,
+      "derived-adr": 452,
+      "stamped": 1175,
       "derived-handoffs": 621,
-      "derived-sessions": 776
+      "derived-sessions": 777
     }
   }
 }

@@ -11,6 +11,7 @@ use App\Transaction;
 use App\Services\FeatureFlagService;
 use App\Utils\TransactionUtil;
 use App\Utils\Util;
+use App\Variation;
 use App\VariationLocationDetails;
 use DB;
 use Illuminate\Http\Request;
@@ -368,6 +369,10 @@ class PurchaseRequisitionController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tier 0 (ADR 0093) — fora do try de propósito: dentro dele o 422 virava o
+        // "algo deu errado" do catch genérico.
+        $this->assertLocalEVariacoesDoNegocio($request);
+
         try {
             $business_id = request()->session()->get('user.business_id');
 
@@ -606,6 +611,45 @@ class PurchaseRequisitionController extends Controller
             ->get();
 
             return view('purchase_requisition.product_list')->with(compact('products'));
+        }
+    }
+
+    /**
+     * O formulário da requisição manda `location_id` e `purchases.*.variation_id`/`product_id` crus,
+     * e o store gravava as linhas sem conferir de quem eram (auditoria Compras 2026-11-05, A6): a
+     * requisição nascia num local de outra empresa ou com produto de outra empresa. O local tem de
+     * ser desta empresa e permitido ao usuário; cada variação, de um produto desta empresa, e o
+     * `product_id` da linha, o da variação.
+     */
+    private function assertLocalEVariacoesDoNegocio(Request $request): void
+    {
+        $business_id = (int) $request->session()->get('user.business_id');
+
+        $location_id = (int) $request->input('location_id');
+        $permitidos = auth()->user()->permitted_locations($business_id);
+        $localValido = BusinessLocation::where('business_id', $business_id)->whereKey($location_id)->exists()
+            && ($permitidos === 'all' || in_array($location_id, (array) $permitidos));
+        abort_unless($localValido, 422, 'Local inválido para este negócio.');
+
+        $linhas = collect($request->input('purchases', []))
+            ->filter(fn ($l) => ! empty($l['variation_id']) || ! empty($l['product_id']));
+        if ($linhas->isEmpty()) {
+            return;
+        }
+
+        $variacoes = Variation::query()
+            ->join('products', 'products.id', '=', 'variations.product_id')
+            ->whereIn('variations.id', $linhas->pluck('variation_id')->map(fn ($id) => (int) $id)->unique()->all())
+            ->where('products.business_id', $business_id)
+            ->pluck('variations.product_id', 'variations.id');
+
+        foreach ($linhas as $l) {
+            $produtoDaVariacao = $variacoes[(int) ($l['variation_id'] ?? 0)] ?? null;
+            abort_if(
+                $produtoDaVariacao === null || (int) $produtoDaVariacao !== (int) ($l['product_id'] ?? 0),
+                422,
+                'Variação de produto inválida para este negócio.'
+            );
         }
     }
 

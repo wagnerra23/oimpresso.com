@@ -26,6 +26,13 @@ class FiscalServiceProvider extends ServiceProvider
         // GAP-FISCAL-002 — invalida cache KPIs Cockpit quando NFe/NFCe autorizada
         Event::listen(NFeAutorizada::class, InvalidaCockpitCacheListener::class);
         Event::listen(NFCeAutorizada::class, InvalidaCockpitCacheListener::class);
+        // D14 (2026-11-05) — cancelamento, inutilização, DF-e e certificado não têm evento
+        // de domínio; o que eles disparam é o evento do Eloquent. Ver o docblock do listener.
+        foreach (InvalidaCockpitCacheListener::MODELS as $model) {
+            foreach (['saved', 'deleted'] as $evento) {
+                Event::listen("eloquent.{$evento}: {$model}", [InvalidaCockpitCacheListener::class, 'aoGravarModelo']);
+            }
+        }
 
         if ($this->app->runningInConsole()) {
             $this->commands([

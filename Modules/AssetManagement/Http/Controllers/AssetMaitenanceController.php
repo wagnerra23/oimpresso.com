@@ -125,7 +125,11 @@ class AssetMaitenanceController extends Controller
         if (request()->ajax() && ! request()->inertia()) {
             $query = AssetMaintenance::with(['asset', 'asset.warranties'])
                         ->where('asset_maintenances.business_id', $business_id)
-                        ->leftJoin('users as u', 'u.id', '=', 'asset_maintenances.assigned_to')
+                        ->leftJoin('users as u', function ($join) {
+                            // Lote 0.2: nome do responsavel so se for da mesma empresa.
+                            $join->on('u.id', '=', 'asset_maintenances.assigned_to')
+                                ->on('u.business_id', '=', 'asset_maintenances.business_id');
+                        })
                         ->leftJoin('users as u1', 'u1.id', '=', 'asset_maintenances.created_by');
 
             if (! auth()->user()->can('asset.view_all_maintenance') && auth()->user()->can('asset.view_own_maintenance')) {
@@ -425,6 +429,7 @@ class AssetMaitenanceController extends Controller
         }
 
         $maintenance = AssetMaintenance::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirManutencaoAoAlcance($maintenance);
 
         return $this->renderManutencoes($request, $business_id, [
             'edicao' => $this->buildEdicaoPayload($maintenance),
@@ -436,6 +441,24 @@ class AssetMaitenanceController extends Controller
      * edicao: situacao, prioridade, responsavel e detalhes editaveis; a nota de envio vai
      * so-leitura (o `atualizar` do servico nao a grava). Sem custo: a tabela nao tem a coluna.
      */
+    /**
+     * Lote 0.5 (auditoria 2026-11-05, a-8). Quem tem so `asset.view_own_maintenance` alcanca
+     * a manutencao que CRIOU ou que foi ATRIBUIDA a ele — o mesmo recorte da listagem
+     * (`index()` ramo ajax e `buildManutencoesPayload`). Ate aqui o recorte valia so na lista:
+     * pelo id, abria, editava e apagava a manutencao de colega da mesma empresa.
+     */
+    private function exigirManutencaoAoAlcance(AssetMaintenance $m): void
+    {
+        $user = auth()->user();
+        if ($user->can('asset.view_all_maintenance')) {
+            return;
+        }
+
+        if ((int) $m->created_by !== (int) $user->id && (int) $m->assigned_to !== (int) $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
     private function buildEdicaoPayload(AssetMaintenance $m): array
     {
         // Pelo METODO da relacao, nem `with('asset')` nem atributo magico: os metodos do Model
@@ -481,12 +504,15 @@ class AssetMaitenanceController extends Controller
 
         // Tier 0 (ADR 0093): manutencao de outra empresa da 404 — ate 2026-09-30 o servico
         // fazia `find($id)` sem `business_id` e gravava nela.
-        AssetMaintenance::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirManutencaoAoAlcance(AssetMaintenance::where('business_id', $business_id)->findOrFail($id));
 
         try {
             // Wave 16 D4 — atualizacao + notificacao delegada a AssetMaintenanceService.
             $this->maintenanceService->atualizar($request, (int) $id, (int) $business_id);
             $output = ['success' => true, 'msg' => __('lang_v1.success')];
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Lote 0.2: responsavel de outra empresa volta como erro do campo `assigned_to`.
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\App\Support\Privacy\PiiRedactor::class)->redact($e->getMessage()));
@@ -521,6 +547,10 @@ class AssetMaitenanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Lote 0.5: antes do `try`, para o 403 nao virar o "algo deu errado" do `catch`.
+        // O `findOrFail` ja escopado por empresa e o mesmo que o servico faz por dentro.
+        $this->exigirManutencaoAoAlcance(AssetMaintenance::where('business_id', $business_id)->findOrFail($id));
+
         if (request()->ajax()) {
             try {
                 // Wave 16 D4 — remocao delegada a AssetMaintenanceService.
@@ -554,7 +584,11 @@ class AssetMaitenanceController extends Controller
         /** @phpstan-ignore-next-line larastan.relationExistence */
         $query = AssetMaintenance::with(['asset', 'asset.warranties'])
             ->where('asset_maintenances.business_id', $business_id)
-            ->leftJoin('users as u', 'u.id', '=', 'asset_maintenances.assigned_to')
+            // Lote 0.2: nome do responsavel so se for da mesma empresa (o mesmo do ramo ajax).
+            ->leftJoin('users as u', function ($join) {
+                $join->on('u.id', '=', 'asset_maintenances.assigned_to')
+                    ->on('u.business_id', '=', 'asset_maintenances.business_id');
+            })
             ->leftJoin('users as u1', 'u1.id', '=', 'asset_maintenances.created_by');
 
         // Recorte por dono - a precedencia do `!` em PHP torna isto `(!view_all) && view_own`,

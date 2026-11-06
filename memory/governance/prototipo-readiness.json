@@ -987,6 +987,106 @@
       ]
     },
     {
+      "tela": "Fisio/Agenda/Index",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/Agenda.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fisio/Biblioteca/Index",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/Biblioteca.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fisio/Configuracoes/Agendamento",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Agendamento.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/ConfigAgendamentoOnline.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fisio/Configuracoes/Whatsapp",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Whatsapp.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/ConfigWhatsApp.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fisio/Fiscal/Index",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Fiscal/Index.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/FiscalFila.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fisio/Onboarding",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Onboarding.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/Onboarding.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fisio/Pacientes/Pacote",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Pacote.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/Financeiro.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fisio/Painel",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/Main.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fisio/Protocolos/Index",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Protocolos/Index.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/Protocolos.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Fisio/Public/Portal",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/PacienteHoje.dc.html (e PacienteAcesso, PacienteCheckin, PacienteCrise, PacienteNota na mesma pasta)",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Officeimpresso/Clientes/Index",
       "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Clientes/Index.tsx",
       "modulo": "Officeimpresso",
@@ -1137,5 +1237,5 @@
       ]
     }
   ],
-  "total": 198
+  "total": 208
 }

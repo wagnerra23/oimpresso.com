@@ -6,8 +6,12 @@ id: requisitos-fiscal-capterra-ficha
 
 > Ficha canônica de benchmark do módulo **Fiscal** (cockpit / **configuração / orquestração fiscal**).
 > Fonte da skill `comparativo-do-modulo`. Programa de Ondas (Onda `<N>`-fiscal) — [template-onda-modulo.md](../_Governanca/programa-ondas/template-onda-modulo.md) Passo 1.
-> ADR de governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md) (Capterra-driven) + [0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) (Capterra v2 eixos).
+> ADR de governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md) (Capterra-driven) + [0101](../../decisions/0101-sistema-charter-capterra-governanca-escopo.md) (Capterra v2 eixos).
 > **Gerada:** 2026-07-03 · via agente `capterra-senior` · Wagner OK [W] 2026-07-03 (camada fiscal).
+>
+> ⚠️ **2026-11-06:** a nota 75/100 é da base de 2026-07-03 e não foi recalculada. Desde então o IBS/CBS
+> (cap P0) e o health-check do A1 saíram; ver a reconciliação no topo do [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md).
+> As metas "100/100" do SPEC v1.7 e do SCOPE eram metas do dia, não medição.
 
 ---
 
@@ -460,3 +464,4 @@ automation_targets:
 ---
 
 > **Nota de honestidade (fontes):** vereditos de concorrente marcados ❓ = DESCONHECIDO por não-achado em fonte primária (não afirmação negativa). Preços de concorrente descritos qualitativamente (convenção NfeBrasil ficha — sem dígitos R$). Vereditos oimpresso = code-verified contra `origin/main` @ `7442c27c43` em 2026-07-03. Datas de obrigatoriedade IBS/CBS de homologação/produção são leitura vendor da NT 2025.002 — sujeitas a redefinição SEFIN/SEFAZ.
+- `2026-11-06` — Claude Code (auditoria Fiscal, lote 4) — aviso de staleness no topo; nota não recalculada.

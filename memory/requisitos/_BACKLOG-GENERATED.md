@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1094 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1093 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -11,7 +11,7 @@
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
 | [`Whatsapp`](#whatsapp) | 78 | 0 | 0 | 0 | 78 |
 | [`Sells`](#sells) | 73 | 6 | 0 | 0 | 67 |
-| [`Financeiro`](#financeiro) | 58 | 6 | 1 | 0 | 51 |
+| [`Financeiro`](#financeiro) | 57 | 6 | 1 | 0 | 50 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
@@ -356,7 +356,6 @@
 - **US-FIN-045** — Wizard bank-first 2-step (banco → modo conexão) _(`p1`)_
 - **US-FIN-055** — Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService) _(`p1`)_
 - **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
-- **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
 - **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
 - **US-FIN-079** — Pagar o título a pagar pelo banco (boleto e Pix), com aprovação e baixa automática — **P1** _(`p1`)_
 - **US-FIN-082** — Portal do cliente: títulos em aberto, segunda via, histórico e pagamento _(`p1`)_

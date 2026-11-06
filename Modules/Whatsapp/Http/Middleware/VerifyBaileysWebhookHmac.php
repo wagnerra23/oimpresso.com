@@ -41,23 +41,30 @@ class VerifyBaileysWebhookHmac
     {
         $apiKey = (string) config('whatsapp.baileys.api_key', '');
         if ($apiKey === '') {
-            // Sem API_KEY no .env, middleware é no-op (backward compat —
-            // daemon antigo sem HMAC ainda funciona durante rollout gradual).
-            return $next($request);
+            // Fail-closed (auditoria Whatsapp 2026-11-05, lote 0). Até aqui o
+            // middleware deixava passar quando não havia chave; como a seção
+            // `baileys` do config foi removida em 2026-05-27 (ADR 0202), a chave
+            // ficou sempre vazia e a rota aceitava qualquer requisição.
+            Log::warning('[whatsapp.webhook.hmac] sem chave configurada — requisição recusada', [
+                'path' => $request->path(),
+            ]);
+
+            return response()->json(['ok' => false, 'error' => 'hmac_not_configured'], 401);
         }
 
         $signature = (string) $request->header('x-baileys-signature', '');
         $nonce = (string) $request->header('x-baileys-nonce', '');
         $tsHeader = (string) $request->header('x-baileys-ts', '');
 
-        // Daemon antigo (pre-PR #834) não envia headers — passa direto até
-        // rollout completo. Log warn pra auditoria de migração.
-        if ($signature === '' && $nonce === '' && $tsHeader === '') {
-            Log::info('[whatsapp.webhook.hmac] daemon sem HMAC headers — backward compat', [
+        // Fail-closed: requisição sem algum dos três headers é recusada. O
+        // "backward compat" do daemon antigo (pre-PR #834) deixava passar quando
+        // os três vinham vazios — qualquer cliente HTTP caía nesse ramo.
+        if ($signature === '' || $nonce === '' || $tsHeader === '') {
+            Log::warning('[whatsapp.webhook.hmac] headers HMAC ausentes — requisição recusada', [
                 'path' => $request->path(),
-                'user_agent' => $request->userAgent(),
             ]);
-            return $next($request);
+
+            return response()->json(['ok' => false, 'error' => 'missing_hmac_headers'], 401);
         }
 
         // Validação 1: timestamp dentro de replay window

@@ -166,25 +166,45 @@ window.FxToasts = function FxToasts() {
 };
 
 // ─── Modal de ação (PT-04 · confirmação, nunca detalhe) ───
+// A4 · foco preso em overlay (drawer, modal): foco inicial no 1º controle, Tab circula dentro,
+// Esc fecha, foco volta pro gatilho. Era só do drawer; o modal de ação não prendia (auditoria 2026-11-05).
+const FX_FOCAVEIS = 'button:not([disabled]),a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])';
+window.fxUsaFocoPreso = function fxUsaFocoPreso(ref, aberto, onClose) {
+  useEffectFa(() => {
+    if (!aberto) return;
+    const antes = document.activeElement;
+    const primeiro = ref.current && ref.current.querySelector(FX_FOCAVEIS);
+    if (primeiro) primeiro.focus();
+    const h = (e) => {
+      if (e.key === "Escape") { onClose(); return; }
+      if (e.key !== "Tab" || !ref.current) return;
+      const f = [...ref.current.querySelectorAll(FX_FOCAVEIS)].filter(el => el.offsetParent !== null);
+      if (!f.length) return;
+      const ini = f[0], fim = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === ini) { e.preventDefault(); fim.focus(); }
+      else if (!e.shiftKey && document.activeElement === fim) { e.preventDefault(); ini.focus(); }
+      else if (!ref.current.contains(document.activeElement)) { e.preventDefault(); ini.focus(); }
+    };
+    document.addEventListener("keydown", h);
+    return () => { document.removeEventListener("keydown", h); if (antes && antes.focus) antes.focus(); };
+  }, [aberto, onClose]);
+};
+
 window.FxActionModal = function FxActionModal({ spec, onClose }) {
+  const painel = useRefFa(null);
   const [vals, setVals] = useStateFa(() => {
     const o = {}; (spec ? spec.fields : []).forEach(f => { o[f.id] = f.value || ""; }); return o;
   });
   useEffectFa(() => {
     const o = {}; (spec ? spec.fields : []).forEach(f => { o[f.id] = f.value || ""; }); setVals(o);
   }, [spec]);
-  useEffectFa(() => {
-    if (!spec) return;
-    const h = (e) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", h);
-    return () => document.removeEventListener("keydown", h);
-  }, [spec, onClose]);
+  window.fxUsaFocoPreso(painel, !!spec, onClose);
   if (!spec) return null;
   const invalido = spec.fields.filter(f => f.min && String(vals[f.id] || "").trim().length < f.min);
   return (
     <>
       <div className="fx-scrim" onClick={onClose}></div>
-      <div className="fx-modal" data-contract="acoes-mutacao" role="dialog" aria-modal="true" aria-label={spec.title}>
+      <div className="fx-modal" data-contract="acoes-mutacao" role="dialog" aria-modal="true" aria-label={spec.title} ref={painel}>
         <div className="fx-modal-h"><h2>{spec.title}</h2><button className="fx-dr-x" onClick={onClose} aria-label="Fechar">×</button></div>
         <div className="fx-modal-b">
           {spec.sub && <p className="fx-modal-sub">{spec.sub}</p>}
@@ -197,6 +217,7 @@ window.FxActionModal = function FxActionModal({ spec, onClose }) {
               {f.min && String(vals[f.id] || "").trim().length < f.min && <em>{String(vals[f.id] || "").trim().length}/{f.min}</em>}
             </label>
           ))}
+          {spec.leva && <div className="fx-sec" data-contract="dado-pessoal"><h3>O que sai do sistema</h3><ul className="fx-leva">{spec.leva.map((l, i) => <li key={i}>{l}</li>)}</ul></div>}
           {spec.aviso && <div className="fx-modal-aviso">{spec.aviso}</div>}
         </div>
         <div className="fx-modal-f">
