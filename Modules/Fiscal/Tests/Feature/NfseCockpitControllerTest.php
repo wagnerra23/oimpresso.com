@@ -76,7 +76,7 @@ it('UC-FNFSE-04 · counts shape canon — 6 chaves obrigatorias', function () {
         fn ($page) => $page->where(
             'counts',
             fn ($c) => collect(['total', 'autorizadas', 'rejeitadas', 'processando', 'canceladas', 'faturamento'])
-                ->every(fn ($k) => array_key_exists($k, $c))
+                ->every(fn ($k) => collect($c)->has($k)) // o Inertia entrega a prop como Collection
         )
     );
 });

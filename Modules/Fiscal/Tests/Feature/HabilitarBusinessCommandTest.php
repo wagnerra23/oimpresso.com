@@ -60,15 +60,23 @@ it('cria as 7 permissions fiscal.* mesmo em dry-run (idempotente)', function () 
     $apósDryRun = Permission::where('name', 'LIKE', 'fiscal.%')->count();
     expect($apósDryRun)->toBe(0, 'dry-run NÃO deve persistir permissions');
 
-    // run real cria as 7
+    // run real cria todas. O total vem das três listas do comando (até 2026-11-06 o teste fixava 7;
+    // a `fiscal.config.ambiente` entrou depois e o número fixo ficou velho sem ninguém ver, porque o
+    // arquivo não rodava no CI).
+    $c = new ReflectionClass(\Modules\Fiscal\Console\Commands\HabilitarBusinessCommand::class);
+    $esperado = count(array_unique(array_merge(
+        $c->getConstant('PERMS_SEGURAS'),
+        $c->getConstant('PERMS_BLOQUEADAS_ATE_GAP_003'),
+        $c->getConstant('PERMS_SOBERANIA_W'),
+    )));
     Artisan::call('fiscal:habilitar-business', ['businessId' => 1]);
     $apósReal = Permission::where('name', 'LIKE', 'fiscal.%')->where('guard_name', 'web')->count();
-    expect($apósReal)->toBe(7, 'devem existir 7 fiscal.* permissions após run real');
+    expect($apósReal)->toBe($esperado, "devem existir {$esperado} fiscal.* permissions após run real");
 
     // re-roda — idempotente (não duplica)
     Artisan::call('fiscal:habilitar-business', ['businessId' => 1]);
     $apósSegundaRun = Permission::where('name', 'LIKE', 'fiscal.%')->where('guard_name', 'web')->count();
-    expect($apósSegundaRun)->toBe(7, 're-run NÃO pode duplicar permissions (idempotência)');
+    expect($apósSegundaRun)->toBe($esperado, 're-run NÃO pode duplicar permissions (idempotência)');
 });
 
 it('NUNCA atribui fiscal.sped.export ao role piloto (GAP-FISCAL-003 ainda não fechado)', function () {
