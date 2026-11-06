@@ -385,6 +385,9 @@ Somam-se, **fora de prop nomeada `*Mock`**, mais quatro superfícies mockadas do
 `contabilData` (*"184 NF-e autorizadas no período"* — número fixo no código) e
 `writeOffSummary` (**2.470 candidatos inadimplentes >365d, com valor fixo no código**).
 
+> **2026-11-06:** `writeOffSummary` e o card de baixa por incobrabilidade saíram do Cockpit (decisão [W] B10 da
+> auditoria Fiscal 2026-11-05: o assunto é do Financeiro). O `writeOffSummary` deixa esta lista.
+
 **Por que isto é achado e não estilo:** o dado é **PII-safe** (já nasce `[REDACTED-CNPJ]`) e o código
 é honesto sobre si (`TODO[CL]` em todos), mas a **tela não é**. Um cockpit fiscal que exibe
 "184 NF-e autorizadas" e "SEFAZ-SP operacional" sem marcar procedência é, para a persona,
