@@ -6,6 +6,7 @@ namespace Modules\AssetManagement\Http\Requests;
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * D8.c Security Wave 10 — FormRequest novo pra Asset@store.
@@ -51,6 +52,8 @@ class StoreAssetRequest extends FormRequest
 
     public function rules(): array
     {
+        $businessId = (int) $this->session()->get('user.business_id');
+
         return [
             // asset_code pode vir vazio — Controller gera via setAndGetReferenceCount.
             'asset_code' => ['nullable', 'string', 'max:255'],
@@ -59,8 +62,11 @@ class StoreAssetRequest extends FormRequest
             'quantity' => ['nullable', 'string'],
             'model' => ['nullable', 'string', 'max:255'],
             'serial_no' => ['nullable', 'string', 'max:255'],
-            'category_id' => ['nullable', 'integer'],
-            'location_id' => ['nullable', 'integer', 'exists:business_locations,id'],
+            // Lote 0.3 (auditoria 2026-11-05): categoria e local so da empresa da sessao. Antes,
+            // `category_id` nao era conferido e `location_id` so precisava existir em QUALQUER
+            // empresa: o bem gravava com categoria ou local de outro tenant.
+            'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')->where('business_id', $businessId)],
+            'location_id' => ['nullable', 'integer', Rule::exists('business_locations', 'id')->where('business_id', $businessId)],
             // purchase_date vem string BR (dd/mm/yyyy) — uf_date converte.
             'purchase_date' => ['nullable', 'string'],
             'unit_price' => ['nullable', 'string'],
