@@ -63,6 +63,15 @@ last_run: "2026-10-13"
 - **Contrato:** SPEC US-COM-032. Auditoria Compras 2026-11-05, achado A7.
 - **Status: 🧪**
 
+## UC-PEDC-08 · Pedido novo só aceita requisição e linha da própria empresa · `[T0]`
+- **Aceite:** Dado uma requisição de compra de outra empresa (ou a linha dela, ou uma linha de compra qualquer) ·
+  Quando o pedido novo chega com `purchase_requisition_ids`, `purchase_requisition_line_id` ou `purchase_line_id`
+  apontando para ela · Então o pedido é recusado com 422, nenhum pedido nasce e a requisição fica com o status e a
+  quantidade pedida de antes. Requisição e linha da própria empresa passam.
+- **Teste:** `tests/Feature/Purchase/PedidoCompraStoreTenantTest.php`
+- **Contrato:** ADR 0093. Auditoria Compras 2026-11-05, achado A2.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Alterar status e editar envio pela tela nova (PR próprio).
 - [BACKLOG] Excluir pedido e enviar notificação pela tela nova.
@@ -71,3 +80,4 @@ last_run: "2026-10-13"
 ## Trilha do tempo
 - 2026-10-13 · [CL] criado com a F3 da thread `compras/playbook/06`.
 - 2026-11-05 · [CL] UC-PEDC-06 e UC-PEDC-07 (lote 0 da auditoria de Compras, PR 0.3).
+- 2026-11-05 · [CL] UC-PEDC-08 (lote 0 da auditoria de Compras, PR 0.4).
