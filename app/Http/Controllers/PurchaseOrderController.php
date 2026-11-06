@@ -1125,7 +1125,7 @@ class PurchaseOrderController extends Controller
                                 ->findOrFail($id);
 
                 if (! array_key_exists((string) $request->input('status'), $this->purchaseOrderStatuses)) {
-                    return ['success' => 0, 'msg' => trans('messages.something_went_wrong')];
+                    throw new \InvalidArgumentException('Status fora da lista do pedido de compra.');
                 }
 
                 $transaction_before = $transaction->replicate();
