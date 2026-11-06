@@ -429,6 +429,7 @@ class AssetMaitenanceController extends Controller
         }
 
         $maintenance = AssetMaintenance::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirManutencaoAoAlcance($maintenance);
 
         return $this->renderManutencoes($request, $business_id, [
             'edicao' => $this->buildEdicaoPayload($maintenance),
@@ -440,6 +441,24 @@ class AssetMaitenanceController extends Controller
      * edicao: situacao, prioridade, responsavel e detalhes editaveis; a nota de envio vai
      * so-leitura (o `atualizar` do servico nao a grava). Sem custo: a tabela nao tem a coluna.
      */
+    /**
+     * Lote 0.5 (auditoria 2026-11-05, a-8). Quem tem so `asset.view_own_maintenance` alcanca
+     * a manutencao que CRIOU ou que foi ATRIBUIDA a ele — o mesmo recorte da listagem
+     * (`index()` ramo ajax e `buildManutencoesPayload`). Ate aqui o recorte valia so na lista:
+     * pelo id, abria, editava e apagava a manutencao de colega da mesma empresa.
+     */
+    private function exigirManutencaoAoAlcance(AssetMaintenance $m): void
+    {
+        $user = auth()->user();
+        if ($user->can('asset.view_all_maintenance')) {
+            return;
+        }
+
+        if ((int) $m->created_by !== (int) $user->id && (int) $m->assigned_to !== (int) $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
     private function buildEdicaoPayload(AssetMaintenance $m): array
     {
         // Pelo METODO da relacao, nem `with('asset')` nem atributo magico: os metodos do Model
@@ -485,7 +504,7 @@ class AssetMaitenanceController extends Controller
 
         // Tier 0 (ADR 0093): manutencao de outra empresa da 404 — ate 2026-09-30 o servico
         // fazia `find($id)` sem `business_id` e gravava nela.
-        AssetMaintenance::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirManutencaoAoAlcance(AssetMaintenance::where('business_id', $business_id)->findOrFail($id));
 
         try {
             // Wave 16 D4 — atualizacao + notificacao delegada a AssetMaintenanceService.
@@ -527,6 +546,10 @@ class AssetMaitenanceController extends Controller
         if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
+
+        // Lote 0.5: antes do `try`, para o 403 nao virar o "algo deu errado" do `catch`.
+        // O `findOrFail` ja escopado por empresa e o mesmo que o servico faz por dentro.
+        $this->exigirManutencaoAoAlcance(AssetMaintenance::where('business_id', $business_id)->findOrFail($id));
 
         if (request()->ajax()) {
             try {
