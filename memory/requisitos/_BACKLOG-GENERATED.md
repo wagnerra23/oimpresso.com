@@ -1521,8 +1521,8 @@
 
 ### todo
 
-- **US-ASSET-009** — Depreciação gerencial linear por categoria — **P2** _(`p2`)_
 - **US-ASSET-010** — Manutenção preventiva com próxima data por bem — **P2** _(`p2`)_
+- **US-ASSET-011** — Prazo padrão de vida útil por categoria — **P2** _(`p2`)_
 
 ## Documentacao
 
