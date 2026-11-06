@@ -7,6 +7,8 @@ namespace Modules\Compras\Services;
 use App\Contracts\Compras\PropostasDePreco as Contrato;
 use App\Domain\Fsm\Modelos\RegrasCompra;
 use App\Domain\Fsm\Modelos\RegrasDaEmpresa;
+use App\Utils\Util;
+use App\Variation;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -153,19 +155,36 @@ final class PropostasDePreco implements Contrato
 
             $f = fn (float $n) => number_format($n, 4, '.', '');
 
-            return [
+            $resultado = [
                 'variation_id' => (int) $v->id,
                 'antes' => ['default_sell_price' => $f((float) $v->default_sell_price), 'sell_price_inc_tax' => $f((float) $v->sell_price_inc_tax), 'profit_percent' => $f((float) $v->profit_percent)],
                 'depois' => ['default_sell_price' => $f($vendaExc), 'sell_price_inc_tax' => $f($vendaInc), 'profit_percent' => $f($margem)],
             ];
+            // D4 (auditoria de Compras, 2026-11-05): aprovar muda o preço de venda do produto, e até
+            // aqui não ficava registro de quem mudou nem do preço anterior.
+            $this->registrar($businessId, (int) $v->id, 'compras_preco_proposto_aprovado', ['proposta_id' => (int) $p->id] + $resultado);
+
+            return $resultado;
         });
     }
 
     public function recusar(int $businessId, int $propostaId, int $userId): void
     {
         DB::transaction(function () use ($businessId, $propostaId, $userId) {
-            $this->decidir($this->pendente($businessId, $propostaId)->id, 'recusada', $userId);
+            $p = $this->pendente($businessId, $propostaId);
+            $this->decidir($p->id, 'recusada', $userId);
+            $this->registrar($businessId, (int) $p->variation_id, 'compras_preco_proposto_recusado', [
+                'proposta_id' => (int) $p->id, 'preco_antes' => (string) $p->preco_antes, 'preco_proposto' => (string) $p->preco_proposto,
+            ]);
         });
+    }
+
+    private function registrar(int $businessId, int $variationId, string $acao, array $propriedades): void
+    {
+        $variacao = Variation::whereHas('product', fn ($q) => $q->where('business_id', $businessId))->find($variationId);
+        if ($variacao !== null) {
+            app(Util::class)->activityLog($variacao, $acao, null, $propriedades, false, $businessId);
+        }
     }
 
     private function pendente(int $businessId, int $propostaId): object
