@@ -24,7 +24,8 @@ on:
     paths:
       - 'Modules/NfeBrasil/**'
       - 'resources/js/Pages/NfeBrasil/**'
-      - 'Modules/Fiscal/Tests/**'
+      - 'Modules/Fiscal/**'
+      - 'resources/js/Pages/Fiscal/**'
       - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
       - 'Modules/NFSe/Services/NfseEmissaoService.php'
       - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
@@ -74,7 +75,8 @@ jobs:
             nfe:
               - 'Modules/NfeBrasil/**'
               - 'resources/js/Pages/NfeBrasil/**'
-              - 'Modules/Fiscal/Tests/**'
+              - 'Modules/Fiscal/**'
+              - 'resources/js/Pages/Fiscal/**'
               - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
               - 'Modules/NFSe/Services/NfseEmissaoService.php'
               - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
@@ -327,11 +329,13 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
             Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php \
             Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php \
+            Modules/NfeBrasil/Tests/Feature/AmbienteDoEmitenteTest.php \
             Modules/NfeBrasil/Tests/Feature/EntradaXmlUploadContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoTemplateAplicarTest.php \
             Modules/Fiscal/Tests/Feature/ConfigControllerTest.php \
             Modules/Fiscal/Tests/Feature/PaletteSearchControllerTest.php \
+            Modules/Fiscal/Tests/Feature/BuscaEventosPermissaoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesContratoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesControllerTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php \
@@ -339,6 +343,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
             Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php \
             Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
+            Modules/Fiscal/Tests/Feature/MenuPermissaoTest.php \
             Modules/Fiscal/Tests/Feature/SimplesOnlyGateConfigTest.php \
             Modules/Fiscal/Tests/Feature/SimplesOnlyGateTest.php \
             Modules/Fiscal/Tests/Feature/SpedControllerTest.php \
@@ -347,6 +352,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/DfeControllerTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesErroTecnicoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoGatesContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php \
             Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php \
@@ -367,6 +373,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php \
             Modules/NfeBrasil/Tests/Feature/ApuracaoDasTest.php \
             Modules/Fiscal/Tests/Feature/DasControllerTest.php \
+            Modules/Fiscal/Tests/Feature/FiscalPacoteGateTest.php \
             Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
             Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php
 

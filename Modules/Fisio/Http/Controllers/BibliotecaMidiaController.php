@@ -49,7 +49,7 @@ class BibliotecaMidiaController extends Controller
             return response()->json(['id' => $arquivo->id, 'midia' => $resumo], 201);
         }
 
-        return back()->with('status', 'Mídia do exercício salva.');
+        return back()->with('success', 'Mídia do exercício salva.');
     }
 
     public function destroy(Request $request, int $id): JsonResponse|RedirectResponse
@@ -64,7 +64,7 @@ class BibliotecaMidiaController extends Controller
             return response()->json(['removidas' => $removidas]);
         }
 
-        return back()->with('status', $removidas > 0 ? 'Mídia removida.' : 'O exercício não tinha mídia.');
+        return back()->with('success', $removidas > 0 ? 'Mídia removida.' : 'O exercício não tinha mídia.');
     }
 
     public function show(Request $request, int $id, VaultEncryptionService $vault): Response

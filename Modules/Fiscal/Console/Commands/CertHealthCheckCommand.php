@@ -17,7 +17,7 @@ use Modules\NfeBrasil\Models\NfeCertificado;
  * O mercado (todos middlewares + Bling/Omie) alerta vencimento de cert; o oimpresso
  * só exibia validade estática no ConfigController. Este comando fecha o gap: roda
  * diariamente (cron 06:30 BRT em app/Console/Kernel.php), calcula dias-a-vencer por
- * business com cert A1 ativo, e — quando ≤ 30 dias — cria/atualiza um evento em
+ * business com cert A1 ativo, e — quando ≤ `fiscal.cert_health_check_alert_days` (padrão 30) dias — cria/atualiza um evento em
  * `mcp_alertas_eventos` (ADR 0055), escopado ao business (multi-tenant ADR 0093).
  *
  * Distinção de tabelas (ver migration create_mcp_alertas_eventos_table):
@@ -40,19 +40,25 @@ use Modules\NfeBrasil\Models\NfeCertificado;
  */
 class CertHealthCheckCommand extends Command
 {
-    /** Limiar de dias-a-vencer que dispara alerta. */
-    private const LIMIAR_DIAS = 30;
+    /**
+     * Limiar padrão de dias-a-vencer, usado quando `fiscal.cert_health_check_alert_days`
+     * não está definido. Até 2026-11-05 o comando usava só este número e ignorava a
+     * config (D13 da auditoria do Fiscal) — quem mudava FISCAL_CERT_HEALTH_ALERT_DAYS
+     * não mudava nada.
+     */
+    private const LIMIAR_DIAS_PADRAO = 30;
 
     protected $signature = 'fiscal:cert-health-check
                             {--dry-run : Apura mas NÃO persiste alertas}
                             {--json : Output JSON machine-readable em vez de tabela}
                             {--detail : Lista cert-a-cert (substitui --verbose por convenção Symfony)}';
 
-    protected $description = 'US-FISCAL-022 — Health-check do certificado A1: alerta vencimento ≤30d em mcp_alertas_eventos (dedup por business+cert)';
+    protected $description = 'US-FISCAL-022 — Health-check do certificado A1: alerta vencimento dentro de fiscal.cert_health_check_alert_days (padrão 30d) em mcp_alertas_eventos (dedup por business+cert)';
 
     public function handle(): int
     {
         $dryRun = (bool) $this->option('dry-run');
+        $limiar = $this->limiarDias();
 
         // SUPERADMIN: cron cross-business — itera certs A1 ativos de TODOS os tenants.
         // Dropa apenas o ScopeByBusiness (mantém SoftDeletes ativo). Cada alerta
@@ -65,7 +71,8 @@ class CertHealthCheckCommand extends Command
 
         $stats = [
             'certs_ativos'      => $certs->count(),
-            'vencendo'          => 0, // dias <= LIMIAR (inclui vencidos)
+            'limiar_dias'       => $limiar,
+            'vencendo'          => 0, // dias <= limiar (inclui vencidos)
             'alertas_criados'   => 0,
             'alertas_atualizados' => 0,
             'dry_run'           => $dryRun,
@@ -81,10 +88,10 @@ class CertHealthCheckCommand extends Command
                 'uuid'        => $cert->uuid,
                 'valido_ate'  => $cert->valido_ate?->format('Y-m-d'),
                 'dias'        => $dias,
-                'alertavel'   => $dias <= self::LIMIAR_DIAS,
+                'alertavel'   => $dias <= $limiar,
             ];
 
-            if ($dias > self::LIMIAR_DIAS) {
+            if ($dias > $limiar) {
                 continue;
             }
 
@@ -94,7 +101,7 @@ class CertHealthCheckCommand extends Command
                 continue;
             }
 
-            if ($this->persistirAlerta($cert, $dias) === 'inserido') {
+            if ($this->persistirAlerta($cert, $dias, $limiar) === 'inserido') {
                 $stats['alertas_criados']++;
             } else {
                 $stats['alertas_atualizados']++;
@@ -113,7 +120,7 @@ class CertHealthCheckCommand extends Command
      * Cria ou atualiza o evento de alerta em `mcp_alertas_eventos`, escopado ao
      * business do cert. Retorna 'inserido' ou 'atualizado'.
      */
-    private function persistirAlerta(NfeCertificado $cert, int $dias): string
+    private function persistirAlerta(NfeCertificado $cert, int $dias, int $limiar): string
     {
         $businessId = (int) $cert->business_id;
         // Ref estável do cert: uuid (sempre presente em cert criado via
@@ -138,7 +145,7 @@ class CertHealthCheckCommand extends Command
             'cnpj_titular' => $cnpjTitular,
             'valido_ate'   => $cert->valido_ate?->toIso8601String(),
             'dias'         => $dias,
-            'limiar_dias'  => self::LIMIAR_DIAS,
+            'limiar_dias'  => $limiar,
             'origem'       => 'fiscal:cert-health-check',
         ], JSON_UNESCAPED_UNICODE);
 
@@ -180,13 +187,25 @@ class CertHealthCheckCommand extends Command
         return 'inserido';
     }
 
+    /**
+     * Limiar de dias-a-vencer que dispara alerta: `fiscal.cert_health_check_alert_days`.
+     * Valor vazio ou não numérico (ex.: `FISCAL_CERT_HEALTH_ALERT_DAYS=` no .env) cai no
+     * padrão — virar 0 calaria todo alerta de "vence em breve" sem ninguém notar.
+     */
+    private function limiarDias(): int
+    {
+        $valor = config('fiscal.cert_health_check_alert_days');
+
+        return is_numeric($valor) ? max(0, (int) $valor) : self::LIMIAR_DIAS_PADRAO;
+    }
+
     /** Escala a severidade conforme a proximidade do vencimento. */
     private function severidade(int $dias): string
     {
         return match (true) {
             $dias < 0   => 'critical', // já vencido
             $dias <= 7  => 'high',
-            default     => 'medium',   // 8..30
+            default     => 'medium',   // 8..limiar
         };
     }
 
@@ -205,7 +224,7 @@ class CertHealthCheckCommand extends Command
 
         $this->info('═══ Health-check Certificado A1 ═══');
         $this->line("Certs ativos:        {$stats['certs_ativos']}");
-        $this->line("Vencendo (≤30d):     {$stats['vencendo']}");
+        $this->line("Vencendo (≤{$stats['limiar_dias']}d):     {$stats['vencendo']}");
 
         if ($stats['dry_run']) {
             $this->warn('DRY-RUN — nenhum alerta persistido.');

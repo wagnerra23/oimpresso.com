@@ -100,6 +100,6 @@ class ConfigAgendamentoController extends Controller
             AppointmentType::query()->where('business_id', $biz)->whereIn('id', $liberados)->update(['online_bookable' => true]);
         });
 
-        return back()->with('status', 'Agendamento pelo app salvo.');
+        return back()->with('success', 'Agendamento pelo app salvo.');
     }
 }
