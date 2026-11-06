@@ -66,7 +66,7 @@ class RegistrosController extends Controller
             return response()->json(['id' => $registro->id], 201);
         }
 
-        return back()->with('status', 'Registro assinado.');
+        return back()->with('success', 'Registro assinado.');
     }
 
     /** Não existe edição nem exclusão de registro: corrige-se por adendo (UC-FPS-04). */
