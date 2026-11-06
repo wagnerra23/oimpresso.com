@@ -22,10 +22,8 @@ uses(Tests\TestCase::class);
  * NUNCA troca passaria em todos os casos negativos. Por isso o caso positivo
  * prova a troca REAL, com antes→depois lido do banco.
  *
- * TENANT: biz=1, como os irmãos deste diretório (`GatesPermissaoFiscalTest`,
- * `ConfigControllerTest`). A ADR 0358 aponta o tenant fictício 98 como canônico,
- * mas o seed das lanes provisiona biz=1/biz=2 — migrar o tenant deste módulo é
- * intent próprio, não carona neste PR. biz=4 (cliente real) segue proibido.
+ * TENANT: o fictício 98 (ADR 0358). Até 2026-11-06 era biz=1 porque o seed das lanes
+ * só provisionava 1/2; hoje provisiona 98 e 99. biz=4 (cliente real) segue proibido.
  *
  * ONDE RODA: `Modules/Fiscal/Tests` na matrix do modules-pest.yml (SQLite — SKIPa
  * aqui) + suíte noturna CT 100 (MySQL real). Não bloqueia merge.
@@ -40,10 +38,10 @@ beforeEach(function () {
     }
 });
 
-/** Superadmin biz=1 — passa o gate `fiscal.config.ambiente` (PR 2/3). */
+/** Superadmin do 98 — passa o gate `fiscal.config.ambiente` (PR 2/3). */
 function usuarioQuePassaNoGateAmbiente(): \App\User
 {
-    $u = \App\User::factory()->create(['business_id' => 1]);
+    $u = \App\User::factory()->create(['business_id' => 98]);
     $u->givePermissionTo('superadmin');
 
     return $u;
@@ -51,12 +49,12 @@ function usuarioQuePassaNoGateAmbiente(): \App\User
 
 function ambienteGravado(): int
 {
-    return (int) (DB::table('business')->where('id', 1)->value('ambiente') ?? 2);
+    return (int) (DB::table('business')->where('id', 98)->value('ambiente') ?? 2);
 }
 
 it('UC-FCFG-07 · sem confirmação e sem motivo, o ambiente NÃO muda', function () {
     $this->actingAs(usuarioQuePassaNoGateAmbiente());
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $antes = ambienteGravado();
     $destino = $antes === 1 ? 2 : 1;
@@ -69,7 +67,7 @@ it('UC-FCFG-07 · sem confirmação e sem motivo, o ambiente NÃO muda', functio
 
 it('UC-FCFG-07 · confirmação que não bate deixa o ambiente inalterado', function () {
     $this->actingAs(usuarioQuePassaNoGateAmbiente());
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $antes = ambienteGravado();
     $destino = $antes === 1 ? 2 : 1;
@@ -86,7 +84,7 @@ it('UC-FCFG-07 · confirmação que não bate deixa o ambiente inalterado', func
 
 it('UC-FCFG-07 · motivo curto demais deixa o ambiente inalterado', function () {
     $this->actingAs(usuarioQuePassaNoGateAmbiente());
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $antes = ambienteGravado();
     $destino = $antes === 1 ? 2 : 1;
@@ -103,7 +101,7 @@ it('UC-FCFG-07 · motivo curto demais deixa o ambiente inalterado', function () 
 
 it('UC-FCFG-07 · com as duas provas a troca acontece E vira evento com o motivo', function () {
     $this->actingAs(usuarioQuePassaNoGateAmbiente());
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $antes = ambienteGravado();
     $destino = $antes === 1 ? 2 : 1;
@@ -141,9 +139,9 @@ it('UC-FCFG-07 · com as duas provas a troca acontece E vira evento com o motivo
             expect($evento->causer_id)->not->toBeNull('o evento tem de saber QUEM trocou');
         }
     } finally {
-        // O banco do CT 100 PERSISTE entre corridas — deixar biz=1 no ambiente
+        // O banco do CT 100 PERSISTE entre corridas — deixar o 98 no ambiente
         // trocado contaminaria a próxima suíte. Restaura mesmo se algo acima falhar.
-        DB::table('business')->where('id', 1)->update(['ambiente' => $antes]);
+        DB::table('business')->where('id', 98)->update(['ambiente' => $antes]);
     }
 
     expect(ambienteGravado())->toBe($antes, 'o teste não pode deixar resíduo');

@@ -99,8 +99,6 @@ class CockpitController extends Controller
             // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
             'eventosMock'    => $this->mockEventos(),
             'contabilData'   => $this->mockContabilData(),
-            // Onda 3 L — auditoria mensal (write-off candidatos determinístico, sem IA)
-            'writeOffSummary' => $this->mockWriteOffSummary(),
             'procedencia'     => $this->procedencia(),
         ]);
     }
@@ -169,28 +167,6 @@ class CockpitController extends Controller
                 'origem'  => 'demonstracao',
                 'explica' => 'Números do pacote e histórico de envios são fixos no código, e o envio por e-mail/SFTP ainda não existe.',
             ],
-            'writeoff' => [
-                'origem'  => 'demonstracao',
-                'explica' => 'Candidatos e valores são fixos no código. Ser real depende de consultar fin_titulos vencidos há mais de 365 dias sem pagamento.',
-            ],
-        ];
-    }
-
-    /**
-     * Mock summary write-off candidatos. Onda 3 L. Determinístico (sem IA).
-     * TODO[CL]: substituir por WriteOffAuditService::analyzeMonth() —
-     * query fin_titulos WHERE due_at < now()-365d AND payment_count=0.
-     *
-     * @return array<string, mixed>|null
-     */
-    protected function mockWriteOffSummary(): ?array
-    {
-        return [
-            'totalCandidates' => 2470,
-            'totalValor'      => 770_000.00,
-            'oldestAge'       => 1847, // ~5 anos
-            'category'        => 'incobravel',
-            'scopeLabel'      => 'Inadimplência >365d',
         ];
     }
 

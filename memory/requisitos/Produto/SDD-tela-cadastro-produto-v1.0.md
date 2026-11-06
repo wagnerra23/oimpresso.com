@@ -989,6 +989,30 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
      (`CU-PROD-18`). Quando é **serviço**, o aviso pede o item da LC 116 (`CU-PROD-19`), não o NCM.
   4. A NF-e já recusa produto marcado como serviço (`NfeService::recusarItensDeServico`); a regra
      acima só antecipa para o cadastro o que a emissão já cobra.
+- 🔶 **CFOP padrão de venda no cadastro — decisão do [W] (proposta de 2026-11-06).** O protótipo do
+  cadastro (`produto-blade-forms.jsx`, card Fiscal) mostra um campo **CFOP padrão de venda** (5102 no
+  exemplo). Ele ficou fora da etapa 1 (#10380) porque o sistema já decide o CFOP em outro lugar.
+  Medido em 2026-11-06:
+  1. **O emissor atual não lê CFOP do produto.** O motor tributário do NfeBrasil
+     (`MotorTributarioService`) escolhe a regra fiscal em quatro níveis: (1) a regra ligada ao próprio
+     produto (`fiscal_rule_override_id`, na tela de Tributação), (2) a regra do NCM para a UF de destino,
+     (3) a regra padrão do NCM e (4) a regra geral da operação. O CFOP sai dessa regra ou da operação.
+  2. **`products` já tem `cfop_interno` e `cfop_externo`** (padrão 5101 e 6101). Quem lê são só os
+     emissores antigos do núcleo (`app/Services/NFeService.php` e `NFCeService.php`). Quem grava é o
+     cadastro do aplicativo (`Api/App/NovoProdutoController`) e a importação de XML de compra
+     (`PurchaseXmlController`). A ficha do produto mostra os dois ("CFOP dentro do estado" e "fora do
+     estado"). O cadastro Blade não tem campo de CFOP.
+  3. **Já existe CFOP por produto**, pelo nível 1: quem precisa que um produto saia com outro CFOP liga
+     uma regra a ele na Tributação, com o contador.
+  - **Opções:** **(A)** não pôr CFOP no cadastro, porque a regra fiscal decide, e o protótipo perde o
+    campo; **(B)** mostrar `cfop_interno` e `cfop_externo` no cadastro, sabendo que só o emissor antigo
+    os lê e que a nota do NfeBrasil não muda; **(C)** criar um CFOP do produto que o motor leia, o que
+    muda a nota emitida e precisa do contador.
+  - **Recomendação: (A).** Um campo que a nota não usa engana quem preenche (B), e (C) duplica o
+    nível 1, que já faz isso com regra versionada.
+  - **Se o [W] mergear o PR desta proposta, vale (A):** o cadastro não ganha campo de CFOP, e o card
+    Fiscal do protótipo deve trocar o campo por uma linha que leve à Tributação. Para escolher (B) ou
+    (C), basta comentar no PR.
 
 #### CU-PROD-17 — Peso e dimensões do produto `[should]` ✅ **no cadastro** (2026-10-21)
 

@@ -74,7 +74,7 @@ module: Fiscal
 - [Nfse.tsx](../../../resources/js/Pages/Fiscal/Nfse.tsx)
 - [Sped.tsx](../../../resources/js/Pages/Fiscal/Sped.tsx)
 
-## Componentes / apoio de tela — 19
+## Componentes / apoio de tela — 18
 
 - [AlertasFiscais.tsx](../../../resources/js/Pages/Fiscal/_components/AlertasFiscais.tsx)
 - [CmdKPalette.tsx](../../../resources/js/Pages/Fiscal/_components/CmdKPalette.tsx)
@@ -91,7 +91,6 @@ module: Fiscal
 - [SavedViewsChips.tsx](../../../resources/js/Pages/Fiscal/_components/SavedViewsChips.tsx)
 - [SeloProcedencia.tsx](../../../resources/js/Pages/Fiscal/_components/SeloProcedencia.tsx)
 - [SendToContabilDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/SendToContabilDrawer.tsx)
-- [WriteOffAuditoriaCard.tsx](../../../resources/js/Pages/Fiscal/_components/WriteOffAuditoriaCard.tsx)
 - [DrawerBase.tsx](../../../resources/js/Pages/Fiscal/_components/_shared/DrawerBase.tsx)
 - [linkify.tsx](../../../resources/js/Pages/Fiscal/_lib/linkify.tsx)
 - [paginas-fiscais.tsx](../../../resources/js/Pages/Fiscal/_lib/paginas-fiscais.tsx)
@@ -118,9 +117,9 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 40
+## Testes (Pest) — 41
 
-- 40 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 41 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 16
