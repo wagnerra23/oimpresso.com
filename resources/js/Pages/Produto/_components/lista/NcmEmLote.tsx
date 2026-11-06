@@ -6,12 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
-
-/** Só os dígitos, se formarem um NCM válido; senão null. */
-export function ncmDigitado(texto: string): string | null {
-  const d = texto.replace(/[^0-9]/g, '');
-  return d.length === 8 && d !== '00000000' ? d : null;
-}
+import { ncmDigitado } from './tipos';
 
 interface Props {
   aberto: boolean;

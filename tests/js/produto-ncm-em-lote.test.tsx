@@ -7,7 +7,8 @@
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
-import NcmEmLote, { ncmDigitado } from '@/Pages/Produto/_components/lista/NcmEmLote';
+import NcmEmLote from '@/Pages/Produto/_components/lista/NcmEmLote';
+import { ncmDigitado } from '@/Pages/Produto/_components/lista/tipos';
 
 function montar() {
   const aoConfirmar = vi.fn();
