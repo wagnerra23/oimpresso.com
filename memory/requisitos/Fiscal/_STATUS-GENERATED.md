@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 8 |
 | Telas com `casos.md` | 10 |
-| UC declarados | 165 |
-| UC com teste que os cita | 159 |
+| UC declarados | 168 |
+| UC com teste que os cita | 162 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -86,6 +86,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCFG-09 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-10 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-11 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-12 | Config | 🧪 aguarda veredito da lane |
 | UC-FCKP-01 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-02 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-03 | Cockpit | 🧪 aguarda veredito da lane |
@@ -186,6 +187,8 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FNFE-60 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-61 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-62 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-63 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-64 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFSE-01 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-02 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-03 | Nfse | 🧪 aguarda veredito da lane |
