@@ -127,3 +127,21 @@ it('US-WA-326 · o comando não faz nada com a régua desligada', function () {
     $this->artisan('whatsapp:regua-relacionamento', ['--business' => $this->biz->id])->assertSuccessful();
     expect(($this->mensagens)($this->biz->id))->toHaveCount(1);
 });
+
+it('US-WA-326 · whatsapp_regua_envios: a ocasião registrada em outra empresa não conta nem é tocada', function () {
+    ($this->regua)($this->biz->id, 'aniversario', 'Parabéns, {nome}!');
+    $cliente = ($this->cliente)($this->biz->id, 'Maria Souza', ['aniversario_mmdd' => '10-26']);
+    // Linha da outra empresa com a mesma ocasião (tipo, contato, ano).
+    $alheia = (int) DB::table('whatsapp_regua_envios')->insertGetId([
+        'business_id' => $this->outra->id, 'tipo' => 'aniversario', 'contact_id' => $cliente,
+        'referencia' => '2026', 'resultado' => 'reservado', 'created_at' => now(),
+    ]);
+
+    expect(($this->rodar)($this->biz->id))->toBe(['aniversario' => 1, 'recompra' => 0]);
+    expect(($this->mensagens)($this->biz->id))->toHaveCount(1);
+
+    $minha = DB::table('whatsapp_regua_envios')->where('business_id', $this->biz->id)->where('contact_id', $cliente)->first();
+    expect($minha)->not->toBeNull()
+        ->and($minha->resultado)->not->toBe('reservado');
+    expect(DB::table('whatsapp_regua_envios')->where('id', $alheia)->value('resultado'))->toBe('reservado');
+});
