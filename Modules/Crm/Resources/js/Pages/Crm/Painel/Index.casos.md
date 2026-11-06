@@ -5,11 +5,16 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o painel agrega contatos, conversões e agenda do negócio inteiro. Errar o escopo mostra número de outro negócio; errar o gate entrega o quadro do negócio a quem não é Admin.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-11-06"
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/04. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
 # Casos de Uso & Aceite — Crm · Painel (`/crm/dashboard`)
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10558). Nada do
+> comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch, run
+> [42224015385](https://github.com/wagnerra23/oimpresso.com/actions/runs/42224015385): `CrmPainelContratoTest` 6 testes, 30 asserções, 0 skipped (verde).
 
 > **Âncora:** o [charter](Index.charter.md) (Goals e Anti-hooks), o SPEC do Crm §0 ("Dashboard
 > CRM — funcional Blade", US-CRM-062) e os gates que a tela Blade já aplicava por seção
