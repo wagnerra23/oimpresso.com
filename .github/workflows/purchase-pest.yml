@@ -233,6 +233,7 @@ jobs:
             tests/Feature/Purchase/DevolucoesCompraContratoTest.php \
             tests/Feature/Purchase/DevolucaoCompraStoreBaselineTest.php \
             tests/Feature/Purchase/PedidoCompraStoreTenantTest.php \
+            tests/Feature/Purchase/RequisicaoStoreTenantTest.php \
             tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.

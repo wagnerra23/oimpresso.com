@@ -125,7 +125,11 @@ class AssetMaitenanceController extends Controller
         if (request()->ajax() && ! request()->inertia()) {
             $query = AssetMaintenance::with(['asset', 'asset.warranties'])
                         ->where('asset_maintenances.business_id', $business_id)
-                        ->leftJoin('users as u', 'u.id', '=', 'asset_maintenances.assigned_to')
+                        ->leftJoin('users as u', function ($join) {
+                            // Lote 0.2: nome do responsavel so se for da mesma empresa.
+                            $join->on('u.id', '=', 'asset_maintenances.assigned_to')
+                                ->on('u.business_id', '=', 'asset_maintenances.business_id');
+                        })
                         ->leftJoin('users as u1', 'u1.id', '=', 'asset_maintenances.created_by');
 
             if (! auth()->user()->can('asset.view_all_maintenance') && auth()->user()->can('asset.view_own_maintenance')) {
@@ -487,6 +491,9 @@ class AssetMaitenanceController extends Controller
             // Wave 16 D4 — atualizacao + notificacao delegada a AssetMaintenanceService.
             $this->maintenanceService->atualizar($request, (int) $id, (int) $business_id);
             $output = ['success' => true, 'msg' => __('lang_v1.success')];
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Lote 0.2: responsavel de outra empresa volta como erro do campo `assigned_to`.
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(\App\Support\Privacy\PiiRedactor::class)->redact($e->getMessage()));
@@ -554,7 +561,11 @@ class AssetMaitenanceController extends Controller
         /** @phpstan-ignore-next-line larastan.relationExistence */
         $query = AssetMaintenance::with(['asset', 'asset.warranties'])
             ->where('asset_maintenances.business_id', $business_id)
-            ->leftJoin('users as u', 'u.id', '=', 'asset_maintenances.assigned_to')
+            // Lote 0.2: nome do responsavel so se for da mesma empresa (o mesmo do ramo ajax).
+            ->leftJoin('users as u', function ($join) {
+                $join->on('u.id', '=', 'asset_maintenances.assigned_to')
+                    ->on('u.business_id', '=', 'asset_maintenances.business_id');
+            })
             ->leftJoin('users as u1', 'u1.id', '=', 'asset_maintenances.created_by');
 
         // Recorte por dono - a precedencia do `!` em PHP torna isto `(!view_all) && view_own`,

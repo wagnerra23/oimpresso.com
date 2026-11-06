@@ -17,7 +17,8 @@ use Modules\Fisio\Services\Whatsapp\MensagensFisio;
  * "Enviar pelo WhatsApp" na aba Programa (US-FISIO-009, UC-FPS-11/12).
  *
  *  - Empresa com número de saída ativo no módulo `Whatsapp` → 202 e o envio vai para a fila
- *    (`EnviarProgramaWhatsappJob`). Nada é enviado dentro do request.
+ *    (`EnviarProgramaWhatsappJob`). Nada é enviado dentro do request. Se o programa já foi
+ *    enviado hoje para o paciente, 409 `ja_enviado_hoje` (antes era 202 e o job descartava sem aviso).
  *  - Sem canal ativo (a clínica escolheu o envio manual, ou o canal caiu) → 200 com dois links
  *    `wa.me` (link do portal; depois o código) para o profissional enviar do próprio aparelho,
  *    nessa ordem — ADR 0437 §13.1 (f). Mesmas guardas do job: consentimento de WhatsApp vigente,
@@ -47,6 +48,10 @@ class EnvioWhatsappController extends Controller
         }
 
         if ($envio->canalAtivo($biz) !== null) {
+            // Segundo clique no mesmo dia: o job descartaria em silêncio (1 envio por dia). Avisa quem clicou.
+            if ($envio->jaEnviadoHoje($paciente, EnvioWhatsappFisio::PROGRAMA)) {
+                return response()->json(['erro' => 'ja_enviado_hoje'], 409);
+            }
             EnviarProgramaWhatsappJob::dispatch($biz, (int) $programa->id);
 
             return response()->json(['modo' => 'fila'], 202);

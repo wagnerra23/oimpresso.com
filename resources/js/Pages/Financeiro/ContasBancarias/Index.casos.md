@@ -19,7 +19,7 @@ Tela `live` (CNAB + beneficiário). Credenciais de gateway **não** moram aqui (
 > ⚠️ **Âncora podre encontrada:** o charter cita `FinanceiroContasBancariasCharterTest` em "Métricas vivas", mas **não existe** arquivo com esse nome em `Modules/Financeiro/Tests/` (medido 2026-08-17). As provas reais são `ContaBancariaIndexTest` e `UpsertContaBancariaRequestTest`. Corrigir o charter no mesmo PR.
 
 ## UC-CTB-01 — Listar contas com status honesto
-Status: 🧪 (`tests/Feature/Modules/Financeiro/ContaBancariaIndexTest.php`)
+Status: 🧪 (`Modules/Financeiro/Tests/Feature/ContaBancariaIndexTest.php`)
 Quando abre a tela · Então cada conta mostra beneficiário, carteira e um StatusBadge que diz a verdade: "Faltam dados" · "Inativo" · "Ativo · Cart. X".
 
 ## UC-CTB-02 — Configurar boleto valida os dados do beneficiário

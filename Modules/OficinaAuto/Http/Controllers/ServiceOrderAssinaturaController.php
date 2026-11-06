@@ -8,12 +8,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\OficinaAuto\Entities\ServiceOrder;
+use Modules\OficinaAuto\Exceptions\AssinaturaImutavelException;
 use Modules\OficinaAuto\Services\AssinaturaEntrega;
 
 /**
  * Assinatura do cliente na entrega da OS — US-OFICINA-048 · UC-FLX-22.
  *
- *   POST /oficina-auto/ordens-servico/{order}/assinatura  → store (201)
+ *   POST /oficina-auto/ordens-servico/{order}/assinatura  → store (201; 409 se já colhida)
  *
  * O quadro de assinatura do checklist da entrega (`ServiceOrderStageGate.tsx`) envia o PNG como data
  * URL, no contrato da entrega do pedido no app. Gravar não avança a OS: a entrega continua sendo a
@@ -44,7 +45,15 @@ class ServiceOrderAssinaturaController extends Controller
         }
 
         $nome = trim((string) ($dados['recebido_por'] ?? ''));
-        $assinatura = $assinaturas->registrar($order, $png, $nome !== '' ? $nome : null, auth()->id());
+        try {
+            $assinatura = $assinaturas->registrar($order, $png, $nome !== '' ? $nome : null, auth()->id());
+        } catch (AssinaturaImutavelException $e) {
+            // Já colhida: a assinatura é a prova da entrega e não se troca (UC-OSH-23).
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => ['assinatura_png' => [$e->getMessage()]],
+            ], 409);
+        }
 
         return response()->json([
             'assinatura' => [
