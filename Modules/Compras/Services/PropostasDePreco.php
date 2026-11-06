@@ -181,7 +181,8 @@ final class PropostasDePreco implements Contrato
 
     private function registrar(int $businessId, int $variationId, string $acao, array $propriedades): void
     {
-        $variacao = Variation::whereHas('product', fn ($q) => $q->where('business_id', $businessId))->find($variationId);
+        $variacao = Variation::whereIn('product_id', fn ($q) => $q->select('id')->from('products')->where('business_id', $businessId))
+            ->find($variationId);
         if ($variacao !== null) {
             app(Util::class)->activityLog($variacao, $acao, null, $propriedades, false, $businessId);
         }
