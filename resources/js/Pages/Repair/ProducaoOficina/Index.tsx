@@ -200,7 +200,7 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source, slo
     <div className="flex flex-col h-full bg-slate-50 text-slate-900">
       {/* Barra de abas do módulo: a mesma lista do sidebar ([W] 2026-11-06, RUNBOOK-producao-oficina
           §F1). A tela não tem PageHeader; a barra ocupa uma faixa própria acima dos filtros. */}
-      <div className="bg-white border-b border-slate-200 px-6 pt-2 flex-shrink-0">
+      <div className="bg-card border-b border-border px-6 pt-2 flex-shrink-0">
         <ModuleTabs modulo="Assistência técnica" />
       </div>
       {/* Filter bar — dinâmica conforme slot_config */}
