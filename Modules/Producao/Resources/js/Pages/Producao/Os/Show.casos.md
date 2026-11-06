@@ -71,12 +71,21 @@ pedir nova aprovação" · pedido de arte de outra empresa não aparece.
 
 Status: 🧪
 
+## UC-PCOSF-06 · Quadro e Linha abrem a Ficha · `must`
+
+**Dado** uma OS por item no Quadro e na Linha do tempo **Quando** clico no número do cartão do Quadro, ou clico (sem
+arrastar) ou dou Enter no bloco da Linha **Então** abre `/producao/ordens/{id}` · arrastar o bloco para reprogramar não
+abre a Ficha · a OS da Comunicação Visual (`comvis_os`) não tem Ficha e não ganha link. Teste:
+`tests/js/producao-ficha-link.test.ts` (endereço e controle); o clique no navegador se confere no smoke.
+
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Cartão do Quadro e bloco da Linha abrem a Ficha — lote 3.5.
 - **[BACKLOG]** Refugo e Histórico da OS — fora do lote 3.
 
 ## Trilha do tempo
+- 2026-11-06 · [W+C] Quadro e Linha abrem a Ficha (lote 3.5).
 - 2026-11-06 · [W+C] Abas Materiais e Arte (lote 3.4).
 - 2026-11-06 · [W+C] Aba Custo só leitura (lote 3.3).
 - 2026-11-06 · [W+C] Ficha nasce na auditoria lote 3.2. Trio carimbado com `criar-tela.mjs` (PT-03) e movido para o caminho do módulo, que o gerador não cobre.
