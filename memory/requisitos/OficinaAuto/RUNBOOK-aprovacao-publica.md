@@ -51,7 +51,9 @@ aprova ou rejeita (CDC art. 40: orçamento discriminado antes da aprovação). C
   `total_items` e que o faturamento usa. Não é o total recomendado da DVI (decisão [W] 2026-11-05).
 - **Sessão do orçamento:** chave `oficina_aprovacao_liberada.{business_id}_{os_id}`; conferir a OS
   de uma empresa não abre a de outra. Decidir apaga a chave.
-
+- **Tentativas do PIN (PR 2.2, #10412):** contadas nas colunas `approval_pin_attempts` e
+  `approval_pin_window_start_at` da OS, reservadas por um `UPDATE` condicional antes de comparar o
+  PIN. A janela de 30 min conta da primeira tentativa errada e limpar o cache não destrava.
 - **Aprovar:** se a OS está em `status = orcamento`, grava `status = aprovada`,
   `approval_decision = approved` e `approval_decided_at`. Escreve a **coluna `status`**, não a etapa
   FSM — ver os dois donos do estado em [`RUNBOOK-fsm-pipeline.md`](RUNBOOK-fsm-pipeline.md).
@@ -66,8 +68,9 @@ aprova ou rejeita (CDC art. 40: orçamento discriminado antes da aprovação). C
 
 `Modules/OficinaAuto/Tests/Feature/`: `AprovacaoOsTokenTest`, `WhatsAppAprovacaoPinTest`,
 `ServiceOrderEnviarAprovacaoTest`, `EnviarLinkAprovacaoWhatsappJobTest`,
-`AprovacaoPublicaOrcamentoContratoTest` (UC-OAP-08..10: antes/depois do PIN e isolamento). Rodam no CT 100 ou na
-lane `oficinaauto-pest`, nunca local.
+`AprovacaoPublicaOrcamentoContratoTest` (UC-OAP-08..10: antes/depois do PIN e isolamento),
+`AprovacaoPublicaEnvioAtomicoTest` (contador no banco, contato da própria empresa, "enviado" só com
+o envio aceito). Rodam no CT 100 ou na lane `oficinaauto-pest`, nunca local.
 
 ## Pegadinhas
 
