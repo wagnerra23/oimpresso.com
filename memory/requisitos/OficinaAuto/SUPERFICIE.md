@@ -14,7 +14,7 @@ module: OficinaAuto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 202 arquivos em 18 papéis.
+**Total mapeado:** 207 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -43,6 +43,10 @@ module: OficinaAuto
 - [UpdateServiceOrderRequest.php](../../../Modules/OficinaAuto/Http/Requests/UpdateServiceOrderRequest.php)
 - [UpdateVehicleRequest.php](../../../Modules/OficinaAuto/Http/Requests/UpdateVehicleRequest.php)
 - [UploadDviPhotoRequest.php](../../../Modules/OficinaAuto/Http/Requests/UploadDviPhotoRequest.php)
+
+## Middleware — 1
+
+- [OficinaAutoLiberado.php](../../../Modules/OficinaAuto/Http/Middleware/OficinaAutoLiberado.php)
 
 ## Services — 19
 
@@ -103,7 +107,7 @@ module: OficinaAuto
 
 - [web.php](../../../Modules/OficinaAuto/Routes/web.php)
 
-## Migrations (schema) — 25
+## Migrations (schema) — 26
 
 - [2026_05_11_000010_create_vehicles_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_05_11_000010_create_vehicles_table.php)
 - [2026_05_11_000020_create_service_orders_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_05_11_000020_create_service_orders_table.php)
@@ -130,6 +134,7 @@ module: OficinaAuto
 - [2026_10_21_120000_create_oficina_os_assinaturas_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_21_120000_create_oficina_os_assinaturas_table.php)
 - [2026_10_26_300000_create_oficina_lembretes_revisao.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_26_300000_create_oficina_lembretes_revisao.php)
 - [2026_10_27_100000_create_oficina_pecas_compativeis.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php)
+- [2026_11_05_120000_add_approval_pin_attempts_to_service_orders.php](../../../Modules/OficinaAuto/Database/Migrations/2026_11_05_120000_add_approval_pin_attempts_to_service_orders.php)
 
 ## Seeders — 4
 
@@ -204,9 +209,9 @@ module: OficinaAuto
 - [Index.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Show.casos.md)
 
-## Testes (Pest) — 53
+## Testes (Pest) — 56
 
-- 53 em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature)
+- 56 em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 9

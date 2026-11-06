@@ -989,6 +989,30 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
      (`CU-PROD-18`). Quando é **serviço**, o aviso pede o item da LC 116 (`CU-PROD-19`), não o NCM.
   4. A NF-e já recusa produto marcado como serviço (`NfeService::recusarItensDeServico`); a regra
      acima só antecipa para o cadastro o que a emissão já cobra.
+- 🔶 **CFOP padrão de venda no cadastro — decisão do [W] (proposta de 2026-11-06).** O protótipo do
+  cadastro (`produto-blade-forms.jsx`, card Fiscal) mostra um campo **CFOP padrão de venda** (5102 no
+  exemplo). Ele ficou fora da etapa 1 (#10380) porque o sistema já decide o CFOP em outro lugar.
+  Medido em 2026-11-06:
+  1. **O emissor atual não lê CFOP do produto.** O motor tributário do NfeBrasil
+     (`MotorTributarioService`) escolhe a regra fiscal em quatro níveis: (1) a regra ligada ao próprio
+     produto (`fiscal_rule_override_id`, na tela de Tributação), (2) a regra do NCM para a UF de destino,
+     (3) a regra padrão do NCM e (4) a regra geral da operação. O CFOP sai dessa regra ou da operação.
+  2. **`products` já tem `cfop_interno` e `cfop_externo`** (padrão 5101 e 6101). Quem lê são só os
+     emissores antigos do núcleo (`app/Services/NFeService.php` e `NFCeService.php`). Quem grava é o
+     cadastro do aplicativo (`Api/App/NovoProdutoController`) e a importação de XML de compra
+     (`PurchaseXmlController`). A ficha do produto mostra os dois ("CFOP dentro do estado" e "fora do
+     estado"). O cadastro Blade não tem campo de CFOP.
+  3. **Já existe CFOP por produto**, pelo nível 1: quem precisa que um produto saia com outro CFOP liga
+     uma regra a ele na Tributação, com o contador.
+  - **Opções:** **(A)** não pôr CFOP no cadastro, porque a regra fiscal decide, e o protótipo perde o
+    campo; **(B)** mostrar `cfop_interno` e `cfop_externo` no cadastro, sabendo que só o emissor antigo
+    os lê e que a nota do NfeBrasil não muda; **(C)** criar um CFOP do produto que o motor leia, o que
+    muda a nota emitida e precisa do contador.
+  - **Recomendação: (A).** Um campo que a nota não usa engana quem preenche (B), e (C) duplica o
+    nível 1, que já faz isso com regra versionada.
+  - **Se o [W] mergear o PR desta proposta, vale (A):** o cadastro não ganha campo de CFOP, e o card
+    Fiscal do protótipo deve trocar o campo por uma linha que leve à Tributação. Para escolher (B) ou
+    (C), basta comentar no PR.
 
 #### CU-PROD-17 — Peso e dimensões do produto `[should]` ✅ **no cadastro** (2026-10-21)
 
@@ -1125,6 +1149,25 @@ qual é o local padrão.
   3. ✅ **As duas seções ficam.** "Locais do negócio" diz onde o produto é vendido; "Locais de
      armazenagem" diz onde ele fica guardado. Podem ser diferentes (por exemplo, guardado no
      depósito e vendido na loja).
+- 🔶 **O que falta o [W] decidir para implementar — proposta de 2026-11-06.** Ficou fora da etapa 1 do
+  cadastro (#10380). As três decisões da [M] acima seguem. Medido em 2026-11-06: o cadastro React ainda
+  não mostra prateleira, fileira e posição (recebe `enableRacks`, mas nenhuma seção usa), e não existe
+  coluna de local padrão (`products` não tem, e `product_locations` não tem marca de padrão). Faltam
+  dois pontos, os dois de estoque:
+  1. **A Qtd. inicial por local fica dentro do cadastro?** Se ficar, o `store()` passa a gravar estoque
+     (exceção grande ao Non-Goal "NÃO modifica `store()`" do `Create.charter.md`, e REGRA MESTRE de
+     estoque). **Proposta:** não. O cadastro grava locais, padrão e endereço; a quantidade entra pela
+     tela de estoque inicial que já existe, aberta pelo botão "Salvar e adicionar estoque inicial"
+     (`UC-PCAD-21`, PR próprio). No Editar a coluna segue só leitura ("Em estoque"), como a [M] decidiu.
+  2. **Onde mora o local padrão.** **Proposta:** coluna nova `products.local_padrao_id` (nula, do mesmo
+     negócio, um dos locais de armazenagem do produto). Quem lê, em PRs seguintes: a compra, a
+     transferência e a separação, que já o sugerem preenchido. A venda não lê (baixa do local da venda),
+     como a decisão 1 da [M].
+  - **O que não precisa de decisão:** o endereço (prateleira, fileira e posição) usa o `product_racks`
+    que já existe e o mesmo campo `product_racks` do envio, e aparece só com `enable_racks`,
+    `enable_row` e `enable_position` ligados, como hoje.
+  - **Se o [W] mergear o PR desta proposta, valem as duas propostas acima.** A implementação começa
+    pelo endereço e pelo local padrão, sem tocar em saldo. Para mudar, basta comentar no PR.
 - **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
   ganham id quando houver teste que os defenda (G-2).
 
@@ -1174,6 +1217,64 @@ volta para uma margem alvo.
 - **Ainda em aberto, sem presumir:** as outras respostas do [W] na US-PROD-030 (tabelas de preço,
   aviso na receita, vários níveis da composição) não falam dos três nomes novos; a migração do legado
   (`TEM_MARGEM_FIXA_CONTIBUICAO`) precisa ser refeita para eles.
+- 🔶 **Para implementar — o que o protótipo do [W] já decide e o que falta (2026-11-06).** Ficou fora
+  da etapa 1 do cadastro (#10380) porque precisa de coluna nova e mexe em valor (REGRA MESTRE de valor).
+  - **Já decidido no protótipo do [W] e em Fluxos, sem pergunta nova:**
+    1. **Os três nomes e o que cada um faz** (`produto-blade-forms.jsx`, `manufacturing-recipe.jsx`,
+       `fsm-regras.jsx`). A conta que o protótipo faz no recebimento (`calcular`, `fsm-regras.jsx`),
+       com custo anterior `cA`, custo novo `cN` e preço `P`:
+       - **Preço fixo:** o preço fica `P`, só a margem muda.
+       - **Acompanha o custo:** `P × cN ÷ cA`, que mantém o markup.
+       - **Margem alvo:** `cN ÷ (1 − alvo/100)`. A margem é sobre o **preço de venda**, não markup sobre o
+         custo.
+       - Nas duas que mudam o preço, o valor é arredondado para cima na casa de 0,10 (`up10`).
+    2. **Quem decide o quê.** A política do produto escolhe quais produtos seguem. A regra da compra em
+       Fluxos (`RegrasCompra.php`, parâmetro `preco`) decide o resto: só recalcula o custo, propõe o
+       preço novo para aprovação, ou aplica sozinho. Isso só vale quando "Quais produtos seguem" está em
+       "Política de preço do produto" (`regraEm = produto`), que hoje ninguém lê.
+    3. **Padrão Preço fixo** — resposta do [W] de 2026-10-06 na US-PROD-030 e o `{ tipo: "fixo" }` do
+       protótipo.
+  - **Escolha técnica (do Code, sem decisão do [W]):** coluna `politica_preco` em `products` (`fixo` ·
+    `acompanha` · `margem`, padrão `fixo`) e `margem_alvo_pct`. Uma escolha por produto vale para todas
+    as variações, como o método de custo (`UC-FLX-38`). O protótipo mostra o campo em dois lugares, no
+    cadastro do produto e na receita da Fabricação (`manufacturing-recipe.jsx`). Como a receita fabrica
+    um produto, os dois editam o mesmo valor, que fica no produto.
+  - **Migração do legado — também já respondida pelo [W]** (US-PROD-030, pergunta 1, 2026-10-06): a flag
+    `TEM_MARGEM_FIXA_CONTIBUICAO = S` (mantém a margem e sobe o preço) migra como Acompanha o custo;
+    `N` e nulo migram como Preço fixo. Antes de ligar a migração, medir a flag numa base de cliente de
+    comunicação visual. Com isso não sobra pergunta para o [W]: os quatro pontos estão respondidos.
+  - **Antes de ligar** (REGRA MESTRE de valor): a implementação mostra o antes e o depois do preço numa
+    compra de exemplo, conferido por dois caminhos, e só liga com a aprovação do [W].
+- **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+
+#### CU-PROD-22 — Card Produção: o roteiro do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
+
+<!-- curado: ADR 0436 item 3 · Producao/Roteiros/Index.casos.md (UC-PCROT-02) · medição do código em 2026-11-06 -->
+
+*Dado* um produto que pode virar OS; *quando* abro o Editar; *então* vejo, só para ler, qual roteiro
+de produção ele segue, e um link para a tela de Roteiros.
+
+- **No protótipo** (`produto-blade-forms.jsx`, card "Produção", só no Editar): com roteiro, "Impressão
+  digital + acabamento · 4 etapas" e "Ver o roteiro"; sem roteiro, "Sem roteiro próprio · usa as etapas
+  de produção do modelo da empresa" e "Abrir Roteiros". Não aparece para composição nem para serviço.
+- **O que o sistema já tem (medido em 2026-11-06):**
+  1. ✅ A ligação produto → roteiro existe (`pcp_produto_roteiro`, por empresa) e é editada em Produção →
+     Roteiros (`RoteirosController`).
+  2. 🔴 **Sem roteiro, o produto não vira OS.** A ADR 0436 (item 3) diz que, sem roteiro, valem as
+     etapas do modelo da empresa, mas isso ainda não existe: o contrato de hoje é o `UC-PCROT-02`
+     ("produto sem roteiro não vira OS"). O texto do protótipo para o produto sem roteiro seria falso na
+     tela.
+- 🔶 **Decisão do [W] (proposta de 2026-11-06).** **Opções:** **(A)** o card entra já, só leitura, com o
+  texto de hoje para o produto sem roteiro: "Sem roteiro: este produto não vira OS. Para gerar OS, ligue
+  um roteiro em Produção → Roteiros"; quando a ADR 0436 item 3 entrar, o texto passa a ser o do
+  protótipo. **(B)** primeiro implementar a ADR 0436 item 3 (a OS usa as etapas do modelo da empresa) e
+  só depois pôr o card, com o texto do protótipo.
+  - **Recomendação: (A).** O card ajuda já, porque mostra a quem cadastra por que o produto não vira OS,
+    e não depende de mudar a criação da OS, que é do módulo Produção.
+  - O card aparece só no Editar, só para empresa com o módulo Produção no pacote, e não aparece para
+    composição nem para serviço, como no protótipo.
+  - **Se o [W] mergear o PR desta proposta, vale (A)** e o card entra num PR seguinte. Para (B), basta
+    comentar no PR.
 - **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
 
 ### 6.2 Vertical comunicação visual (`CV`)

@@ -47,6 +47,10 @@ on:
     paths:
       - 'tests/Feature/Purchase/**'
       - 'tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php'
+      - 'tests/Feature/Calculo/CalculoValorComprasTest.php'
+      - 'tests/Feature/Contract/ComprasCreateAutosaveContractTest.php'
+      - 'tests/Contract/AutosaveContractRunner.php'
+      - 'tests/Contract/Fixtures/compras_create.php'
       - 'app/Http/Controllers/PurchaseController.php'
       # Pedidos de compra (thread compras/playbook/06): PedidosCompraBaselineTest trava o index().
       - 'app/Http/Controllers/PurchaseOrderController.php'
@@ -107,6 +111,10 @@ jobs:
             purchase:
               - 'tests/Feature/Purchase/**'
               - 'tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php'
+              - 'tests/Feature/Calculo/CalculoValorComprasTest.php'
+              - 'tests/Feature/Contract/ComprasCreateAutosaveContractTest.php'
+              - 'tests/Contract/AutosaveContractRunner.php'
+              - 'tests/Contract/Fixtures/compras_create.php'
               - 'app/Http/Controllers/PurchaseController.php'
               - 'app/Http/Controllers/PurchaseOrderController.php'
               - 'app/Http/Controllers/PurchaseRequisitionController.php'
@@ -243,7 +251,10 @@ jobs:
             tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php \
             tests/Feature/Purchase/LinhaDeCompraPorTransacaoTenantTest.php \
             tests/Feature/Purchase/StoreLinhaEEntryRowTenantTest.php \
-            tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php
+            tests/Feature/Purchase/ComprasStatusPermissaoUnidadeTest.php \
+            tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php \
+            tests/Feature/Calculo/CalculoValorComprasTest.php \
+            tests/Feature/Contract/ComprasCreateAutosaveContractTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
       # Aqui só REPORTA (if: always()).

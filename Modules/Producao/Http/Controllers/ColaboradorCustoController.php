@@ -5,6 +5,7 @@ namespace Modules\Producao\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Producao\Http\Controllers\Concerns\ExigePacoteProducao;
 use Illuminate\Validation\Rule;
 use Modules\Producao\Entities\ColaboradorCusto;
 
@@ -15,10 +16,12 @@ use Modules\Producao\Entities\ColaboradorCusto;
  */
 class ColaboradorCustoController extends Controller
 {
+    use ExigePacoteProducao;
+
     public function update(Request $request, int $userId): RedirectResponse
     {
         abort_unless($request->user()->can('producao.access') && $request->user()->can('producao.desempenho.ver'), 403);
-        $biz = (int) $request->session()->get('user.business_id');
+        $biz = $this->empresaComPacote($request);
         // O colaborador tem de ser da empresa: id de outra empresa é recusado na validação, nunca gravado.
         $request->merge(['user_id' => $userId]);
         $dados = $request->validate([

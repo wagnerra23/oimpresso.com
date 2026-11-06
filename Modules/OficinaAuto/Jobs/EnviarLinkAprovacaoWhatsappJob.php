@@ -111,47 +111,23 @@ class EnviarLinkAprovacaoWhatsappJob implements ShouldQueue
             return;
         }
 
-        if (empty($so->contact_id)) {
-            Log::info('[oficina.approval_whatsapp] OS sem contact_id (walk-in?) — skip', [
+        $diag = self::diagnosticar($this->businessId, $so);
+        if ($diag['motivo'] !== null) {
+            Log::info('[oficina.approval_whatsapp] skip · ' . $diag['motivo'], [
                 'business_id' => $this->businessId,
                 'service_order_id' => $this->serviceOrderId,
             ]);
             return;
         }
+        $contact = $diag['contato'];
+        $phoneNumber = $diag['telefone'];
+        $outboundPhone = $diag['saida'];
 
-        $contact = Contact::find($so->contact_id);
-        if ($contact === null) {
-            Log::info('[oficina.approval_whatsapp] contact não encontrado — skip', [
-                'business_id' => $this->businessId,
-                'service_order_id' => $this->serviceOrderId,
-                'contact_id' => (int) $so->contact_id,
-            ]);
-            return;
-        }
-
-        $phoneNumber = $this->resolveContactPhone($contact);
-        if ($phoneNumber === null) {
-            Log::warning('[oficina.approval_whatsapp] contact sem mobile/landline — operador contata manual', [
-                'business_id' => $this->businessId,
-                'service_order_id' => $this->serviceOrderId,
-                'contact_id' => (int) $contact->id,
-            ]);
-            return;
-        }
-
-        // LGPD: opt-out explícito bloqueia (charter Anti-hook + ADR 0093).
-        if (! $contact->canReceiveWhatsappNotification()) {
-            Log::info('[oficina.approval_whatsapp] WhatsApp consent=false — skip (LGPD)', [
-                'business_id' => $this->businessId,
-                'service_order_id' => $this->serviceOrderId,
-                'contact_id' => (int) $contact->id,
-            ]);
-            return;
-        }
-
-        $outboundPhone = $this->resolveOutboundDefaultPhone($this->businessId);
-        if ($outboundPhone === null) {
-            Log::info('[oficina.approval_whatsapp] business sem phone outbound_default configurado — skip', [
+        // Marca idempotência com `Cache::add` (atômico: só um processo grava a chave). O
+        // `Cache::has` lá em cima é atalho barato; quem decide é esta linha — dois jobs que
+        // passaram juntos pelo `has` não mandam dois links com PINs diferentes.
+        if (! Cache::add($idempotencyKey, true, now()->addDays(self::DISPATCH_CACHE_TTL_DAYS))) {
+            Log::info('[oficina.approval_whatsapp] skip · outro job já está enviando', [
                 'business_id' => $this->businessId,
                 'service_order_id' => $this->serviceOrderId,
             ]);
@@ -164,9 +140,6 @@ class EnviarLinkAprovacaoWhatsappJob implements ShouldQueue
         $pin = $approval['pin'];
 
         $link = URL::to('/aprovar-os/' . $token);
-
-        // Marca idempotência ANTES de dispatch — evita race condition se Observer trigger 2x.
-        Cache::put($idempotencyKey, true, now()->addDays(self::DISPATCH_CACHE_TTL_DAYS));
 
         // Msg 1: link (imediato)
         SendWhatsappMessageJob::dispatch(
@@ -204,7 +177,56 @@ class EnviarLinkAprovacaoWhatsappJob implements ShouldQueue
         ];
     }
 
-    private function resolveContactPhone(Contact $contact): ?string
+    /**
+     * Confere se o envio pode ser aceito AGORA, sem enviar nada. Fonte única das
+     * pré-condições: o `handle` usa este método, e o `ServiceOrderController::enviarAprovacao`
+     * também, para só dizer "enviado" ao operador quando o envio de fato entra na fila.
+     *
+     * Multi-tenant Tier 0: o contato é buscado COM `business_id` — `Contact` não tem
+     * global scope e o job roda sem sessão, então `Contact::find` aceitaria contato de outra
+     * empresa gravado na OS.
+     *
+     * @return array{motivo: ?string, contato: ?Contact, telefone: ?string, saida: ?WhatsappBusinessPhone}
+     */
+    public static function diagnosticar(int $businessId, ServiceOrder $so): array
+    {
+        $falha = fn (string $motivo): array => ['motivo' => $motivo, 'contato' => null, 'telefone' => null, 'saida' => null];
+
+        if ((int) $so->business_id !== $businessId) {
+            return $falha('OS de outra empresa');
+        }
+        if (empty($so->contact_id)) {
+            return $falha('a OS não tem cliente');
+        }
+
+        $contact = Contact::query()
+            ->where('id', (int) $so->contact_id)
+            ->where('business_id', $businessId)
+            ->first();
+        if ($contact === null) {
+            return $falha('cliente não encontrado nesta empresa');
+        }
+
+        $telefone = self::resolveContactPhone($contact);
+        if ($telefone === null) {
+            return $falha('o cliente não tem celular cadastrado');
+        }
+        if (! $contact->canReceiveWhatsappNotification()) {
+            return $falha('o cliente não aceita mensagens de WhatsApp');
+        }
+        if (! class_exists(WhatsappBusinessPhone::class)) {
+            return $falha('o módulo WhatsApp não está disponível');
+        }
+
+        $saida = self::resolveOutboundDefaultPhone($businessId);
+        if ($saida === null) {
+            return $falha('a empresa não tem número de WhatsApp de saída configurado');
+        }
+
+        return ['motivo' => null, 'contato' => $contact, 'telefone' => $telefone, 'saida' => $saida];
+    }
+
+    private static function resolveContactPhone(Contact $contact): ?string
     {
         $mobile = trim((string) ($contact->mobile ?? ''));
         if ($mobile !== '') {
@@ -218,7 +240,7 @@ class EnviarLinkAprovacaoWhatsappJob implements ShouldQueue
         return null;
     }
 
-    private function resolveOutboundDefaultPhone(int $businessId): ?WhatsappBusinessPhone
+    private static function resolveOutboundDefaultPhone(int $businessId): ?WhatsappBusinessPhone
     {
         // SUPERADMIN: job sem session — bypass global scope com filtro explícito (Tier 0).
         return WhatsappBusinessPhone::query()

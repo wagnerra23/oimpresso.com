@@ -24,6 +24,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Components/shared/DataTable';
 
 const ROTA = '/crm/call-log';
@@ -66,7 +67,7 @@ export default function ChamadasIndex({ filtros, pode_excluir, opcoes, chamadas 
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Registro de chamadas" subtitle="Ligações registradas pelo app, por contato e por usuário." />
+      <PageHeader below={<ModuleTabs modulo="CRM" />} title="Registro de chamadas" subtitle="Ligações registradas pelo app, por contato e por usuário." />
 
       <Card data-contract="crm-filtros">
         <CardContent className="flex flex-col gap-3 p-4">

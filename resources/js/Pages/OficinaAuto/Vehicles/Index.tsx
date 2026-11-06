@@ -30,6 +30,7 @@ import { Input } from '@/Components/ui/input';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
 import VehicleStatusBadge, { type VehicleStatus } from './_components/VehicleStatusBadge';
 import ServiceOrderRichSheet from '../ProducaoOficina/_components/ServiceOrderRichSheet';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -254,6 +255,10 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
               <KpiCard label="Em serviço" value={kpis.locada} tone="blue" icon={Truck} />
               <KpiCard label="Em manutenção" value={kpis.manutencao} tone="amber" icon={Wrench} />
               <KpiCard label="Atrasados" value={kpis.atrasada} tone="rose" icon={AlertTriangle} />
+            </div>
+            {/* Abas do módulo: a mesma lista do sidebar ([W] 2026-11-06, ModuleTabs). */}
+            <div className="mt-4">
+              <ModuleTabs modulo="Oficina Auto" />
             </div>
           </div>
         </div>

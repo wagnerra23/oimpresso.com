@@ -35,10 +35,10 @@ beforeEach(function () {
 it('UC-FSPED-09 · user comum com fiscal.sped.export é bloqueado por 503 quando flag true', function () {
     config(['fiscal.sped_simples_only_lock' => true]);
 
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('fiscal.sped.export');
     $this->actingAs($user);
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $r = $this->get('/fiscal/sped/icms-ipi/2026/5');
     $r->assertStatus(503);
@@ -49,10 +49,10 @@ it('UC-FSPED-09 · user comum com fiscal.sped.export é bloqueado por 503 quando
 it('UC-FSPED-09 · superadmin bypassa flag e consegue download mesmo com flag true', function () {
     config(['fiscal.sped_simples_only_lock' => true]);
 
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     // Superadmin não recebe 503. Pode receber 200 (download ok) OU 500 (gerador
     // sem dados — fixture vazia). O importante é: NÃO recebe 503 do gate.
@@ -63,10 +63,10 @@ it('UC-FSPED-09 · superadmin bypassa flag e consegue download mesmo com flag tr
 it('UC-FSPED-09 · flag false libera download pra user comum', function () {
     config(['fiscal.sped_simples_only_lock' => false]);
 
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('fiscal.sped.export');
     $this->actingAs($user);
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $r = $this->get('/fiscal/sped/icms-ipi/2026/5');
     // Não-503 confirma gate liberado. Pode ser 200 ok ou 500 erro gerador.
@@ -76,10 +76,10 @@ it('UC-FSPED-09 · flag false libera download pra user comum', function () {
 it('UC-FSPED-09 · user sem permissão fiscal.sped.export recebe 403 (gate de perm é anterior)', function () {
     config(['fiscal.sped_simples_only_lock' => true]);
 
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     // NÃO dá fiscal.sped.export
     $this->actingAs($user);
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     $r = $this->get('/fiscal/sped/icms-ipi/2026/5');
     $r->assertStatus(403);

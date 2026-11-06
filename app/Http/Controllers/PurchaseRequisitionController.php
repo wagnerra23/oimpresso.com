@@ -536,6 +536,11 @@ class PurchaseRequisitionController extends Controller
 
     public function getRequisitionProducts()
     {
+        // D3: lista de produtos para montar a requisição; mesma permissão do create().
+        if (! auth()->user()->can('purchase_requisition.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 
@@ -655,6 +660,11 @@ class PurchaseRequisitionController extends Controller
 
     public function getPurchaseRequisitions($location_id)
     {
+        // D3: só quem cria ou edita pedido de compra puxa requisições para ele.
+        if (! auth()->user()->can('purchase_order.create') && ! auth()->user()->can('purchase_order.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         $purchase_requisitions = Transaction::where('business_id', $business_id)
@@ -669,6 +679,11 @@ class PurchaseRequisitionController extends Controller
 
     public function getPurchaseRequisitionLines($purchase_requisition_id)
     {
+        // D3: só quem cria ou edita pedido de compra puxa requisições para ele.
+        if (! auth()->user()->can('purchase_order.create') && ! auth()->user()->can('purchase_order.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         $purchase_requisition = Transaction::where('business_id', $business_id)
