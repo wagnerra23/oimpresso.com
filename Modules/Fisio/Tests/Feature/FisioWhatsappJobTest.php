@@ -123,6 +123,40 @@ it('UC-FPS-11 · envio idempotente: rodar o job duas vezes não manda (nem emite
     Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 2); // 1 link + 1 PIN, não 4
     expect($this->portal->emissoes)->toBe([$this->p->id => 1]);    // não revogou o link já enviado
 });
+it('UC-FPS-11 · falha ao enfileirar não deixa o paciente sem link: o link anterior segue válido e o retry envia', function () {
+    app()->forgetInstance(LinkDoPortal::class);
+    app()->bind(LinkDoPortal::class, \Modules\Fisio\Services\Whatsapp\LinkDoPortalPorToken::class);
+    $anterior = F::emitirPortal($this->p); // link que o paciente já tem
+
+    // A fila cai entre emitir o link novo (que revoga o anterior) e enfileirar as mensagens.
+    $real = app(\Illuminate\Contracts\Bus\Dispatcher::class);
+    $quebrado = Mockery::mock(\Illuminate\Contracts\Bus\Dispatcher::class);
+    $quebrado->shouldReceive('dispatch')->andThrow(new RuntimeException('fila fora do ar'));
+    app()->instance(\Illuminate\Contracts\Bus\Dispatcher::class, $quebrado);
+
+    expect(fn () => (new EnviarProgramaWhatsappJob($this->b98, $this->prog->id))->handle())
+        ->toThrow(RuntimeException::class, 'fila fora do ar');
+    expect(app(\Modules\Fisio\Services\PortalTokenService::class)->validar($anterior['token']))->not->toBeNull();
+
+    // Retry do job (tries=3): a fila voltou e a reserva não ficou gravada, então o envio sai.
+    // O BusFake embrulha o dispatcher real (exige QueueingDispatcher), não o mock quebrado.
+    app()->instance(\Illuminate\Contracts\Bus\Dispatcher::class, $real);
+    Bus::clearResolvedInstance(\Illuminate\Contracts\Bus\Dispatcher::class);
+    Bus::fake([SendWhatsappMessageJob::class]);
+    (new EnviarProgramaWhatsappJob($this->b98, $this->prog->id))->handle();
+    Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 2);
+});
+
+it('UC-FPS-11 · segundo "Enviar pelo WhatsApp" no mesmo dia avisa quem clicou (409) em vez de sumir na fila', function () {
+    Bus::fake([SendWhatsappMessageJob::class]);
+    (new EnviarProgramaWhatsappJob($this->b98, $this->prog->id))->handle(); // 1º envio do dia saiu
+
+    Bus::fake([EnviarProgramaWhatsappJob::class]);
+    F::como($this, $this->u98);
+    $this->postJson("/fisio/programas/{$this->prog->id}/enviar")->assertStatus(409)->assertJson(['erro' => 'ja_enviado_hoje']);
+    Bus::assertNotDispatched(EnviarProgramaWhatsappJob::class);
+});
+
 it('UC-FPS-12 · sem disparo para business sem o módulo, nem para programa de outro business', function () {
     Bus::fake([SendWhatsappMessageJob::class]);
     $p99 = F::paciente($this->b99, $this->u99->id);
