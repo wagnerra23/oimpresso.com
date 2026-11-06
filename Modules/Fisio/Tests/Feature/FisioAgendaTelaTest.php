@@ -1,11 +1,12 @@
 <?php
 
 declare(strict_types=1);
-// Cobre US-FISIO-015 (rotas da agenda da clínica) e UC-FAG-01..05 (Fisio/Agenda/Index.casos.md).
+// Cobre US-FISIO-015 (rotas da agenda da clínica) e UC-FAG-01..08 (Fisio/Agenda/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Fisio\Entities\Appointment;
 use Modules\Fisio\Entities\AppointmentType;
+use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\WaitlistEntry;
 use Modules\Fisio\Tests\Support\FisioFixtures as F;
 
@@ -97,5 +98,72 @@ it('UC-FAG-05 · desmarcar com a lista de espera devolve quantos servem na vaga'
     $this->post('/fisio/agenda/espera', ['patient_id' => $outro->id, 'turnos' => ['manha']])->assertSessionHasNoErrors();
 
     $this->post("/fisio/agenda/atendimentos/{$a->id}/cancelar", ['por' => 'paciente'])
-        ->assertSessionHas('status', 'Sessão desmarcada. 1 paciente da lista de espera serve neste horário.');
+        // `success` é a chave que chega ao toast da tela; `status` como string solta não chegava.
+        ->assertSessionHas('success', 'Sessão desmarcada. 1 paciente da lista de espera serve neste horário.');
+
+    expect($a->fresh()->status)->toBe('cancelado')->and($a->fresh()->cancelled_by)->toBe('paciente');
+});
+
+it('UC-FAG-06 · confirmar e marcar falta pela agenda gravam o status; transição inválida volta com erro', function () {
+    $a = marcarPelaRota($this);
+    F::como($this, $this->u98);
+
+    $this->post("/fisio/agenda/atendimentos/{$a->id}/status", ['status' => 'confirmado'])
+        ->assertSessionHasNoErrors()->assertSessionHas('success', 'Atendimento atualizado.');
+    expect($a->fresh()->status)->toBe('confirmado')->and($a->fresh()->confirmed_at)->not->toBeNull();
+
+    $this->post("/fisio/agenda/atendimentos/{$a->id}/status", ['status' => 'faltou'])->assertSessionHasNoErrors();
+    expect($a->fresh()->status)->toBe('faltou');
+
+    // De falta não se volta para confirmado: a regra é do serviço e a resposta traz o motivo.
+    $this->post("/fisio/agenda/atendimentos/{$a->id}/status", ['status' => 'confirmado'])->assertSessionHasErrors('status');
+    expect($a->fresh()->status)->toBe('faltou');
+
+    $this->ini = $this->ini->copy()->addHours(2); // outro horário, sem conflito com a sessão acima
+    $b = marcarPelaRota($this);
+    F::como($this, $this->leitor98);
+    $this->post("/fisio/agenda/atendimentos/{$b->id}/status", ['status' => 'confirmado'])->assertForbidden();
+    expect($b->fresh()->status)->toBe('agendado');
+});
+
+it('UC-FAG-07 · pôr e tirar da lista de espera; a 99 não tira o da 98 e o leitor não mexe', function () {
+    F::como($this, $this->u98);
+    $this->post('/fisio/agenda/espera', ['patient_id' => $this->p98->id, 'dias' => [2], 'turnos' => ['tarde']])
+        ->assertSessionHasNoErrors()->assertSessionHas('success', 'Paciente na lista de espera.');
+    // SUPERADMIN: leitura do teste.
+    $w = WaitlistEntry::withoutGlobalScopes()->where('business_id', $this->b98)->where('patient_id', $this->p98->id)->latest('id')->firstOrFail();
+    expect(collect(F::props($this, $this->u98, '/fisio/agenda', 'Fisio/Agenda/Index', 'espera'))->pluck('id')->all())->toContain($w->id);
+
+    F::como($this, $this->u99);
+    $this->delete("/fisio/agenda/espera/{$w->id}")->assertNotFound();
+    F::como($this, $this->leitor98);
+    $this->delete("/fisio/agenda/espera/{$w->id}")->assertForbidden();
+    expect($w->fresh()->status)->toBe('ativo');
+
+    F::como($this, $this->u98);
+    $this->delete("/fisio/agenda/espera/{$w->id}")->assertSessionHas('success', 'Paciente saiu da lista de espera.');
+    expect($w->fresh()->status)->toBe('saiu')
+        ->and(collect(F::props($this, $this->u98, '/fisio/agenda', 'Fisio/Agenda/Index', 'espera'))->pluck('id')->all())->not->toContain($w->id);
+});
+
+it('UC-FAG-08 · paciente travado por faltas aparece na semana e a clínica libera o app; a 99 não libera', function () {
+    $a = marcarPelaRota($this);
+    $this->p98->forceFill(['booking_blocked_at' => now()])->save();
+    $semana = '/fisio/agenda?semana='.$this->ini->toDateString();
+    expect(collect(F::props($this, $this->u98, $semana, 'Fisio/Agenda/Index', 'atendimentos'))->firstWhere('id', $a->id)['app_bloqueado'])->toBeTrue();
+
+    F::como($this, $this->u99);
+    $this->post("/fisio/pacientes/{$this->p98->id}/liberar-agendamento")->assertNotFound();
+    F::como($this, $this->leitor98);
+    $this->post("/fisio/pacientes/{$this->p98->id}/liberar-agendamento")->assertForbidden();
+    // SUPERADMIN: leitura do teste.
+    expect(Patient::withoutGlobalScopes()->find($this->p98->id)->booking_blocked_at)->not->toBeNull();
+
+    F::como($this, $this->u98);
+    $this->post("/fisio/pacientes/{$this->p98->id}/liberar-agendamento")
+        ->assertSessionHas('success', 'Agendamento pelo app liberado para o paciente.');
+    // SUPERADMIN: leitura do teste.
+    $p = Patient::withoutGlobalScopes()->find($this->p98->id);
+    expect($p->booking_blocked_at)->toBeNull()->and($p->booking_unblocked_at)->not->toBeNull()
+        ->and(collect(F::props($this, $this->u98, $semana, 'Fisio/Agenda/Index', 'atendimentos'))->firstWhere('id', $a->id)['app_bloqueado'])->toBeFalse();
 });

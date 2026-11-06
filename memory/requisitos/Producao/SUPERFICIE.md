@@ -16,7 +16,7 @@ module: Producao
 
 **Total mapeado:** 176 arquivos em 17 papéis.
 
-## Controllers — 24
+## Controllers — 25
 
 - [AlocacaoController.php](../../../Modules/Producao/Http/Controllers/AlocacaoController.php)
 - [AppApontamentoController.php](../../../Modules/Producao/Http/Controllers/Api/AppApontamentoController.php)
@@ -24,6 +24,7 @@ module: Producao
 - [AprovacaoArteController.php](../../../Modules/Producao/Http/Controllers/AprovacaoArteController.php)
 - [AproveitamentoMidiaController.php](../../../Modules/Producao/Http/Controllers/AproveitamentoMidiaController.php)
 - [ColaboradorCustoController.php](../../../Modules/Producao/Http/Controllers/ColaboradorCustoController.php)
+- [ExigePacoteProducao.php](../../../Modules/Producao/Http/Controllers/Concerns/ExigePacoteProducao.php)
 - [DataController.php](../../../Modules/Producao/Http/Controllers/DataController.php)
 - [EtiquetaOsController.php](../../../Modules/Producao/Http/Controllers/EtiquetaOsController.php)
 - [FerramentasController.php](../../../Modules/Producao/Http/Controllers/FerramentasController.php)
