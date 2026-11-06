@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o apontamento vira custo real e fecha etapa da OS. Errar a etapa aponta tempo no lugar errado; errar a empresa expõe produção alheia; duplicar o envio offline dobra o custo.
 owner: wagner
-last_run: "2026-10-22"
+last_run: "2026-11-05"
 last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -864,6 +864,72 @@ Status: 🧪
 
 **Quando** a empresa 99 manda cancelar as OS da venda da 98 **Então** nada muda (0 canceladas) e, para a
 99, a venda da 98 não aparece como cancelada.
+
+Status: 🧪
+
+## Rotas das ações de tela da OS (auditoria lote 2.2)
+
+> Antes, `SituacaoDaOrdem::liberar`, `refazer` e `cancelarItem` só eram chamados em teste: sem sinal
+> mínimo configurado, a OS ficava parada em Aguardando liberação. Agora há rota JSON para as três
+> (`POST /producao/ordens/{id}/liberar|refazer|cancelar`). Portões: módulo no pacote + `producao.access`
+> na rota; o papel da ação no motor (`producao.liberar` para Liberar e Refazer, `vendas.gerente` para
+> Cancelar item). A tela que chama é a Ficha da OS (lote 3). Prova: `ProducaoOrdemSituacaoRotasContratoTest`.
+
+## UC-PCOSR-01 · Liberar pela rota · `must`
+
+**Quando** quem não tem o papel do PCP libera **Então** 403 e nada muda. **Quando** o PCP libera sem o
+responsável de todas as etapas abertas **Então** 422 `responsavel_invalido` e nada muda. Com os
+responsáveis, a OS vai para Na fila; liberar de novo dá 409 `acao_invalida`.
+
+Status: 🧪
+
+## UC-PCOSR-02 · Refazer pela rota · `must`
+
+**Quando** a OS não está em Retrabalho **Então** 409. **Dado** a OS reprovada no controle **Quando** quem
+não tem o papel do PCP manda refazer **Então** 403; o PCP manda refazer e a OS volta a Em execução.
+
+Status: 🧪
+
+## UC-PCOSR-03 · Cancelar item pela rota · `must`
+
+**Quando** o PCP sem o papel de gerente cancela **Então** 403. O gerente cancela a OS em Aguardando
+liberação: ela e as etapas ficam canceladas; cancelar de novo dá 409.
+
+Status: 🧪
+
+## UC-PCOSR-04 · Só dentro da empresa · `must`
+
+**Quando** a empresa 98 chama qualquer das três rotas com a OS da 99 **Então** 404 e a OS da 99 não muda.
+
+Status: 🧪
+
+## UC-PCOSR-05 · Módulo fora do pacote · `must`
+
+**Quando** a empresa não tem o Producao no pacote **Então** as três rotas dão 403 e nada muda.
+
+Status: 🧪
+
+## Robustez do fechamento do turno e da criação da OS (auditoria lote 2.3)
+
+> `producao:fechar-turno` roda a cada 15 min para todas as empresas. Antes, uma exceção numa empresa
+> interrompia as seguintes, o comando terminava "com sucesso" e a trava da sobreposição durava 24 h se o
+> processo morresse. O job que cria a OS da venda aprovada tentava 3 vezes seguidas e a falha final não
+> deixava rastro. A liberação pelo sinal, que roda em todo pagamento, logava a falha só como aviso.
+> Idempotência já provada: UC-PCV-22 (2ª rodada não duplica), UC-PCLIB-07 (pagamento repetido libera uma
+> vez) e o `idempotente` do `ProducaoCriarOsDaVendaContratoTest`. Prova: `ProducaoFecharTurnoComandoTest`.
+
+## UC-PCROB-01 · Falha de uma empresa no fechamento do turno não para as outras · `must`
+
+**Dado** a empresa 98 e a 99 com apontamento aberto depois do fim do turno, e o fechamento da 98 falhando
+**Quando** o comando roda **Então** a 99 é fechada, a 98 fica como estava, o log de erro diz qual empresa
+falhou e o comando termina com falha. A trava da sobreposição vence em 30 min.
+
+Status: 🧪
+
+## UC-PCROB-02 · A criação da OS espera entre as tentativas e a falha final aparece · `must`
+
+**Dado** o job que cria a OS da venda aprovada **Então** são 3 tentativas com 30 s e 2 min de espera; na
+falha final, o log de erro guarda a empresa e a venda que ficou sem OS.
 
 Status: 🧪
 

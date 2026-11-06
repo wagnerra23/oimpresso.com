@@ -14,9 +14,9 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 168 arquivos em 17 papéis.
+**Total mapeado:** 170 arquivos em 17 papéis.
 
-## Controllers — 23
+## Controllers — 24
 
 - [AlocacaoController.php](../../../Modules/Producao/Http/Controllers/AlocacaoController.php)
 - [AppApontamentoController.php](../../../Modules/Producao/Http/Controllers/Api/AppApontamentoController.php)
@@ -33,6 +33,7 @@ module: Producao
 - [LoteRastreioController.php](../../../Modules/Producao/Http/Controllers/LoteRastreioController.php)
 - [OrdemCustoController.php](../../../Modules/Producao/Http/Controllers/OrdemCustoController.php)
 - [OrdemMaterialController.php](../../../Modules/Producao/Http/Controllers/OrdemMaterialController.php)
+- [OrdemSituacaoController.php](../../../Modules/Producao/Http/Controllers/OrdemSituacaoController.php)
 - [PainelController.php](../../../Modules/Producao/Http/Controllers/PainelController.php)
 - [PostoOperadoresController.php](../../../Modules/Producao/Http/Controllers/PostoOperadoresController.php)
 - [PostosController.php](../../../Modules/Producao/Http/Controllers/PostosController.php)
@@ -186,9 +187,9 @@ module: Producao
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 
-## Testes (Pest) — 32
+## Testes (Pest) — 33
 
-- 32 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 33 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 11
