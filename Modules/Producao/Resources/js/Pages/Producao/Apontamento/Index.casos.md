@@ -864,6 +864,9 @@ Status: 🧪
 
 **Quando** a empresa 99 manda cancelar as OS da venda da 98 **Então** nada muda (0 canceladas) e, para a
 99, a venda da 98 não aparece como cancelada.
+
+Status: 🧪
+
 ## Rotas das ações de tela da OS (auditoria lote 2.2)
 
 > Antes, `SituacaoDaOrdem::liberar`, `refazer` e `cancelarItem` só eram chamados em teste: sem sinal
