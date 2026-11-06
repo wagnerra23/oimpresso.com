@@ -726,3 +726,26 @@ Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php
 # (D13 da auditoria do Fiscal, 2026-11-05). Monta a tabela mínima em :memory: e roda o
 # comando em --dry-run; o CertHealthCheckCommandTest (MySQL) ainda está fora de lane.
 Modules/Fiscal/Tests/Feature/CertHealthCheckLimiarTest.php
+# ── Whatsapp era-sqlite, leva 1/3 (auditoria 2026-11-05, lote 1) ──────────────
+# 57 testes com guarda era-sqlite (markTestSkipped fora de sqlite) não rodavam em
+# ambiente nenhum: fora desta lista e pulados na nightly MySQL do CT 100. Esta leva
+# traz os de isolamento entre empresas, webhooks e o regressivo do incidente LID.
+Modules/Whatsapp/Tests/Feature/MultiTenantIsolationTest.php
+Modules/Whatsapp/Tests/Feature/OmnichannelIsolationTest.php
+Modules/Whatsapp/Tests/Feature/CanalFilaIsolationTest.php
+Modules/Whatsapp/Tests/Feature/LidCrossContactIncidentP0Test.php
+Modules/Whatsapp/Tests/Feature/IncidentCrossContact20260514E2ERegressionTest.php
+Modules/Whatsapp/Tests/Feature/WebhookSignatureTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowWebhookAuthTest.php
+Modules/Whatsapp/Tests/Feature/ProcessIncomingWebhookJobTest.php
+Modules/Whatsapp/Tests/Feature/SendWhatsappMessageJobTest.php
+Modules/Whatsapp/Tests/Feature/InboxMultiPhoneFilterTest.php
+Modules/Whatsapp/Tests/Feature/InboxFiltersTest.php
+Modules/Whatsapp/Tests/Feature/LidPhoneResolverTest.php
+Modules/Whatsapp/Tests/Feature/LidBackfillObserverTest.php
+Modules/Whatsapp/Tests/Feature/LidBackfillCommandTest.php
+Modules/Whatsapp/Tests/Feature/PhoneResolutionWebhookTest.php
+Modules/Whatsapp/Tests/Feature/BackfillChannelAccessCommandTest.php
+Modules/Whatsapp/Tests/Feature/BlockContactTest.php
+Modules/Whatsapp/Tests/Feature/LinkContactTest.php
+Modules/Whatsapp/Tests/Feature/ConversationTagsTest.php
