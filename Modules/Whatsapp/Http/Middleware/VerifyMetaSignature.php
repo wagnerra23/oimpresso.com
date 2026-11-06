@@ -66,9 +66,21 @@ class VerifyMetaSignature
             return response()->json(['error' => 'missing_signature'], 401);
         }
 
+        // Fail-closed (auditoria Whatsapp 2026-11-05, lote 0): `meta_app_secret` é
+        // nullable e só o formulário o grava. Com segredo vazio, HMAC('', body) é
+        // calculável por qualquer um — a assinatura seria forjável. Sem segredo, recusa.
+        $appSecret = (string) $config->meta_app_secret;
+        if ($appSecret === '') {
+            \Log::warning('[whatsapp.webhook.meta] app_secret vazio — requisição recusada', [
+                'business_id' => $config->business_id,
+            ]);
+
+            return response()->json(['error' => 'app_secret_not_configured'], 401);
+        }
+
         $providedHmac = substr($signature, 7);
         $rawBody = $request->getContent();
-        $expectedHmac = hash_hmac('sha256', $rawBody, (string) $config->meta_app_secret);
+        $expectedHmac = hash_hmac('sha256', $rawBody, $appSecret);
 
         if (! hash_equals($expectedHmac, $providedHmac)) {
             \Log::warning('[whatsapp.webhook.meta] HMAC inválido', [
