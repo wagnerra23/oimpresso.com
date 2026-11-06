@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 913,
-    "edges": 1237,
+    "nodes": 922,
+    "edges": 1250,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 152,
-      "component": 521,
+      "component": 530,
       "api": 89
     },
     "by_edge_type": {
@@ -42,9 +42,9 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 521,
-      "dependsOn": 136,
-      "delegatesTo": 125,
+      "hasComponent": 530,
+      "dependsOn": 138,
+      "delegatesTo": 127,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 76,
@@ -3092,7 +3092,7 @@
       "type": "component",
       "module": "Fiscal",
       "name": "AcoesController",
-      "desc": "PR #4 thin delegate NfeService::cancelar + ManifestacaoService (4 ações DF-e)"
+      "desc": "thin delegate: cancelar (só a nota, ou a venda junto via FSM — R-NFE-044) · CC-e · inutilizar · retransmitir · devolução (DevolucaoService, R-NFE-039) · manifestar DF-e (4 ações, por linha e em lote)"
     },
     {
       "id": "component:Fiscal/CockpitController",
@@ -3106,7 +3106,21 @@
       "type": "component",
       "module": "Fiscal",
       "name": "ConfigController",
-      "desc": "sub-página 6 (Cert A1 + regime + tributação default read-only)"
+      "desc": "sub-página 6 (cert A1, ambiente SEFAZ, contingência, séries, SPED) + POST /config/contador; cert/ambiente/contingência postam para rotas do NfeBrasil"
+    },
+    {
+      "id": "component:Fiscal/Console/Commands/CertHealthCheckCommand",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Console/Commands/CertHealthCheckCommand",
+      "desc": "fiscal:cert-health-check (alerta de vencimento do A1 em mcp_alertas_eventos)"
+    },
+    {
+      "id": "component:Fiscal/Console/Commands/HabilitarBusinessCommand",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Console/Commands/HabilitarBusinessCommand",
+      "desc": "fiscal:habilitar-business {biz}"
     },
     {
       "id": "component:Fiscal/DasController",
@@ -3137,11 +3151,25 @@
       "desc": "sub-página 5 (timeline append-only CC-e/Cancel/EPEC/Manifesto)"
     },
     {
+      "id": "component:Fiscal/Http/Middleware/FiscalLiberado",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Http/Middleware/FiscalLiberado",
+      "desc": "exige o pacote fiscal_module da empresa em toda rota operacional (#10404)"
+    },
+    {
       "id": "component:Fiscal/InstallController",
       "type": "component",
       "module": "Fiscal",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Fiscal/Listeners/InvalidaCockpitCacheListener",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Listeners/InvalidaCockpitCacheListener",
+      "desc": "invalida o cache de KPIs em NFeAutorizada/NFCeAutorizada"
     },
     {
       "id": "component:Fiscal/NfeCockpitController",
@@ -3165,18 +3193,53 @@
       "desc": "PR #7 ⌘K palette cross-fiscal (US-FISCAL-015 — busca global notas + DF-e)"
     },
     {
+      "id": "component:Fiscal/Services/FiscalPacote",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/FiscalPacote",
+      "desc": "leitura do pacote fiscal_module usada pelo FiscalLiberado"
+    },
+    {
+      "id": "component:Fiscal/Services/NotasUnifiedService",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/NotasUnifiedService",
+      "desc": "lista unificada de notas do Cockpit (substituiu o mock)"
+    },
+    {
+      "id": "component:Fiscal/Services/SefazCstatService",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/SefazCstatService",
+      "desc": "mapa cstat → tom/rótulo"
+    },
+    {
+      "id": "component:Fiscal/Services/Sped/EfdIcmsIpiLeiaute",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/Sped/EfdIcmsIpiLeiaute",
+      "desc": "ordem dos blocos (Guia Prático v3.2.3) e COD_VER por ano (NT 2025.001)"
+    },
+    {
       "id": "component:Fiscal/Services/SpedIcmsIpiGeneratorService",
       "type": "component",
       "module": "Fiscal",
       "name": "Services/SpedIcmsIpiGeneratorService",
-      "desc": "gerador TXT EFD-ICMS/IPI v3.1.1 perfil A (PR #8 saídas MVP — sem PIS/COFINS, sem Bloco E apuração, sem Bloco H inventário)"
+      "desc": "gerador TXT EFD-ICMS/IPI perfil A: os 10 blocos obrigatórios (B, D, G, K e 1 sem dados), Bloco E apuração, Bloco H esqueleto; sem PIS/COFINS"
+    },
+    {
+      "id": "component:Fiscal/Services/SpedReferenciaArquivoService",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/SpedReferenciaArquivoService",
+      "desc": ""
     },
     {
       "id": "component:Fiscal/SpedController",
       "type": "component",
       "module": "Fiscal",
       "name": "SpedController",
-      "desc": "sub-página 7 + endpoint gerar() download EFD-ICMS/IPI MVP (PR #8)"
+      "desc": "sub-página 7 + gerar() download EFD-ICMS/IPI (atrás de fiscal.sped_simples_only_lock) + POST /sped/trava (bypass só na sessão do superadmin)"
     },
     {
       "id": "component:Fisio/Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app",
@@ -9943,6 +10006,20 @@
       "to": "module:NfeBrasil",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Cálculo do DAS"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão fiscal (XML + SEFAZ)"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Emissão fiscal (XML + SEFAZ)"
     },
     {
@@ -9965,6 +10042,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cálculo do DAS"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão fiscal (XML + SEFAZ)"
     },
     {
       "from": "module:Fiscal",
@@ -10036,6 +10127,18 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "component:Fiscal/Console/Commands/CertHealthCheckCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Console/Commands/HabilitarBusinessCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "component:Fiscal/DasController",
       "type": "hasComponent",
       "source": "contains"
@@ -10060,7 +10163,19 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "component:Fiscal/Http/Middleware/FiscalLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "component:Fiscal/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Listeners/InvalidaCockpitCacheListener",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10084,7 +10199,37 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/FiscalPacote",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/NotasUnifiedService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/SefazCstatService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/Sped/EfdIcmsIpiLeiaute",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "component:Fiscal/Services/SpedIcmsIpiGeneratorService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/SpedReferenciaArquivoService",
       "type": "hasComponent",
       "source": "contains"
     },
