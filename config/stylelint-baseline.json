@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-11-04T17:41:37.679Z",
+    "generated_at": "2026-11-06T12:45:21.393Z",
     "total_violations": 545,
     "stylelint_version": "17.x",
     "adr": "0209",
@@ -26,7 +26,7 @@
     "resources/css/cowork-manufacturing-bundle.css|no-duplicate-selectors": 1,
     "resources/css/cowork-payment-gateway-bundle.css|color-no-hex": 2,
     "resources/css/cowork-producao-bundle.css|declaration-no-important": 10,
-    "resources/css/cowork-producao-bundle.css|no-duplicate-selectors": 5,
+    "resources/css/cowork-producao-bundle.css|no-duplicate-selectors": 6,
     "resources/css/cowork-produto-bundle.css|declaration-no-important": 1,
     "resources/css/fin-cowork.css|color-no-hex": 2,
     "resources/css/fin-cowork.css|declaration-no-important": 4,
