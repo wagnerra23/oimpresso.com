@@ -67,7 +67,8 @@ Status: 🧪
 **Dado** a OS com a v1 aprovada pelo cliente e uma v2 enviada e ainda sem resposta **Então** a aba lista v2 e v1, da
 mais nova à mais antiga, e marca a v1 como a que vale para a produção (UC-PCV-11) · com a última aguardando ou com
 ajuste pedido aparecem "Reenviar link" e "Enviar nova prova" (UC-PCART-07); com a última aprovada aparece "Trocar e
-pedir nova aprovação" · pedido de arte de outra empresa não aparece.
+pedir nova aprovação" · pedido de arte de outra empresa não aparece · a versão é a gravada no envio (UC-PCART-09):
+"Reenviar link" com o mesmo arquivo aparece com o mesmo número, como no celular do operador.
 
 Status: 🧪
 
@@ -85,6 +86,7 @@ Status: 🧪
 - **[BACKLOG]** Refugo e Histórico da OS — fora do lote 3.
 
 ## Trilha do tempo
+- 2026-11-06 · [M+C] Aba Arte lê a versão gravada (UC-PCART-09) em vez de contar os envios.
 - 2026-11-06 · [W+C] Quadro e Linha abrem a Ficha (lote 3.5).
 - 2026-11-06 · [W+C] Abas Materiais e Arte (lote 3.4).
 - 2026-11-06 · [W+C] Aba Custo só leitura (lote 3.3).
