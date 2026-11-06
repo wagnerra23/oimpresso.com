@@ -1,0 +1,422 @@
+<title>Formação de preço do produto</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!--
+  Protótipo da US-PROD-032 (formação de preço) — fonte de design no git (ADR 0438).
+  Três vistas pelo hash: #empresa (Configurações › Fiscal: alíquota do Simples por competência),
+  #produto (formação de preço de um produto) e #lote (reajuste em lote quando a alíquota muda).
+  A conta é o markup divisor do SPEC: preço = (custo + valores fixos) ÷ (1 − soma dos % sobre o preço).
+  Os números do exemplo da Lona são os do caso P-107 (SellingPrices.casos.md): 142,86 · 11,43 · 2,86 · 28,57.
+  Tokens: os do DS do oimpresso (prototipo-ui/design-system), copiados aqui para a página abrir sozinha.
+-->
+<style>
+/* Layout: cabeçalho de página do ERP + abas; cada vista é uma coluna de cartões, com a conta ao lado em telas largas. */
+:root{
+  --font-sans:"IBM Plex Sans",ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --bg:oklch(0.985 0.003 90);--bg-2:oklch(0.965 0.004 90);--surface:#ffffff;
+  --border:oklch(0.90 0.004 90);--border-2:oklch(0.93 0.004 90);
+  --text:oklch(0.22 0.01 80);--text-dim:oklch(0.50 0.01 80);
+  --accent:oklch(0.55 0.15 295);--accent-b:oklch(0.45 0.15 295);--accent-soft:oklch(0.95 0.04 295);--accent-fg:#ffffff;
+  --pos:oklch(0.50 0.12 150);--pos-soft:oklch(0.95 0.075 150);
+  --warn:oklch(0.48 0.11 70);--warn-soft:oklch(0.955 0.072 75);
+  --neg:oklch(0.52 0.17 25);--neg-soft:oklch(0.95 0.05 25);
+  --info:oklch(0.40 0.10 220);--info-soft:oklch(0.92 0.06 220);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:oklch(0.26 0.006 240);--bg-2:oklch(0.23 0.006 240);--surface:oklch(0.30 0.008 240);
+  --border:oklch(0.34 0.008 240);--border-2:oklch(0.31 0.008 240);
+  --text:oklch(0.94 0.005 90);--text-dim:oklch(0.72 0.005 90);
+  --accent:oklch(0.70 0.15 295);--accent-b:oklch(0.76 0.15 295);--accent-soft:oklch(0.33 0.09 295);--accent-fg:oklch(0.14 0.02 295);
+  --pos:oklch(0.76 0.18 150);--pos-soft:oklch(0.34 0.11 150);
+  --warn:oklch(0.82 0.16 75);--warn-soft:oklch(0.37 0.11 70);
+  --neg:oklch(0.78 0.15 25);--neg-soft:oklch(0.36 0.10 25);
+  --info:oklch(0.85 0.07 220);--info-soft:oklch(0.30 0.07 220);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:oklch(0.26 0.006 240);--bg-2:oklch(0.23 0.006 240);--surface:oklch(0.30 0.008 240);
+  --border:oklch(0.34 0.008 240);--border-2:oklch(0.31 0.008 240);
+  --text:oklch(0.94 0.005 90);--text-dim:oklch(0.72 0.005 90);
+  --accent:oklch(0.70 0.15 295);--accent-b:oklch(0.76 0.15 295);--accent-soft:oklch(0.33 0.09 295);--accent-fg:oklch(0.14 0.02 295);
+  --pos:oklch(0.76 0.18 150);--pos-soft:oklch(0.34 0.11 150);
+  --warn:oklch(0.82 0.16 75);--warn-soft:oklch(0.37 0.11 70);
+  --neg:oklch(0.78 0.15 25);--neg-soft:oklch(0.36 0.10 25);
+  --info:oklch(0.85 0.07 220);--info-soft:oklch(0.30 0.07 220);color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--font-sans)}
+.mono,.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.dim{color:var(--text-dim)}
+h1,h2,h3{text-wrap:balance;margin:0}
+
+.gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ph{border-bottom:1px solid var(--border);background:var(--bg)}
+.ph-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 16px;padding-block:22px 12px}
+.ph-l{flex:1 1 320px;min-width:0}
+.ph-ctx{margin:0 0 3px;font:500 11px/1.2 var(--font-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim)}
+.ph-h1{font-size:22px;font-weight:600;letter-spacing:-.015em;line-height:1.3}
+.ph-sub{margin:2px 0 0;font-size:12px;color:var(--text-dim)}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs a{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--text-dim);font:500 13px/1 var(--font-sans);text-decoration:none;white-space:nowrap}
+.tabs a:hover{color:var(--text)}
+.tabs a.on{border-bottom-color:var(--accent);color:var(--text);font-weight:600;background:color-mix(in oklch,var(--accent-soft) 50%,transparent)}
+
+.proto{display:flex;gap:8px;align-items:center;padding:8px 12px;border-radius:8px;background:var(--info-soft);color:var(--info);font-size:12.5px}
+main{padding-block:20px 48px;display:flex;flex-direction:column;gap:16px;max-width:1180px}
+.view{display:flex;flex-direction:column;gap:16px}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,380px);gap:16px;align-items:start}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.sec{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim)}
+.help{font-size:12.5px;color:var(--text-dim);max-width:68ch}
+
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld label{font-size:12.5px;font-weight:500}
+.fld small{font-size:11.5px;color:var(--text-dim)}
+.inp,.sel{height:32px;border:1px solid var(--border);border-radius:8px;padding:0 10px;font:inherit;color:var(--text);background:var(--bg);width:100%}
+.inp.num{text-align:right}
+.inp:disabled{background:var(--bg-2);color:var(--text-dim)}
+.inp-wrap{display:flex;align-items:center;gap:6px}
+.inp-wrap .inp{flex:1 1 auto;min-width:0}
+.suf{font-size:12px;color:var(--text-dim);font-family:var(--font-mono)}
+
+.btn{height:32px;padding:0 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:12.5px;font-weight:500;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--bg-2)}
+.btn-p{border-color:var(--accent);background:var(--accent);color:var(--accent-fg)}
+.btn-p:hover{background:var(--accent-b);border-color:var(--accent-b)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);color:var(--text-dim);font:inherit;font-size:12.5px;padding:6px 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--text);font-weight:600}
+
+.pill{display:inline-flex;align-items:center;font-size:11.5px;font-weight:500;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.pos{background:var(--pos-soft);color:var(--pos)}
+.pill.neg{background:var(--neg-soft);color:var(--neg)}
+.pill.mute{background:var(--bg-2);color:var(--text-dim)}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;font-size:13px}
+.alert.warn{background:var(--warn-soft);color:var(--warn)}
+.alert.neg{background:var(--neg-soft);color:var(--neg)}
+.alert.info{background:var(--info-soft);color:var(--info)}
+.alert b{font-weight:600}
+
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:500;font-size:12px;color:var(--text-dim);padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--border-2);vertical-align:middle}
+th.r,td.r{text-align:right}
+tr:last-child td{border-bottom:0}
+tfoot td{font-weight:600;border-top:1px solid var(--border)}
+
+.big{display:flex;flex-direction:column;gap:2px}
+.big .lbl{font-size:12px;color:var(--text-dim)}
+.big .val{font:600 28px/1.15 var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.bar{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--bg-2)}
+.bar span{display:block;height:100%}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--text-dim)}
+.leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.cmp{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;font-size:13px;align-items:baseline}
+.cmp .k{color:var(--text-dim)}
+.cmp .v{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+.confirm{border:1px solid var(--accent);border-radius:10px;padding:12px;background:var(--accent-soft);display:flex;flex-direction:column;gap:10px}
+.toast{position:fixed;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(env(safe-area-inset-bottom,0px) + 16px);background:var(--text);color:var(--bg);padding:10px 14px;border-radius:8px;font-size:13px;max-width:min(380px,calc(100vw - 32px))}
+:focus-visible{outline:2px solid color-mix(in oklch,var(--accent) 50%,transparent);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){.bar span{transition:width .25s ease}}
+</style>
+
+<header class="ph">
+  <div class="gutter">
+    <div class="ph-row">
+      <div class="ph-l">
+        <p class="ph-ctx" id="ctx">Produtos › Lona 440g › Formação de preço</p>
+        <h1 class="ph-h1" id="h1">Formação de preço</h1>
+        <p class="ph-sub" id="sub">O preço sai do custo, do imposto da DAS, da comissão, das despesas e do lucro que você quer.</p>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Partes do protótipo">
+      <a href="#produto" data-v="produto">Formação de preço do produto</a>
+      <a href="#empresa" data-v="empresa">Alíquota do Simples (empresa)</a>
+      <a href="#lote" data-v="lote">Reajuste em lote</a>
+    </nav>
+  </div>
+</header>
+
+<main class="gutter">
+  <div class="proto">Protótipo com dados de exemplo. Nada aqui é gravado.</div>
+
+  <!-- ============ PRODUTO ============ -->
+  <section class="view" id="v-produto">
+    <div class="row">
+      <span class="dim" style="font-size:12.5px">Exemplo:</span>
+      <div class="seg" role="group" aria-label="Exemplo">
+        <button type="button" data-ex="lona" aria-pressed="true">Lona 440g (mercadoria)</button>
+        <button type="button" data-ex="banner">Banner por m² (sem custo)</button>
+        <button type="button" data-ex="pendente">Natureza a decidir</button>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-h"><h2 class="sec">Composição do preço</h2><a href="#empresa" style="font-size:12.5px;color:var(--accent)">Alíquotas da empresa</a></div>
+        <div class="fields">
+          <div class="fld"><label for="f-custo">Custo</label>
+            <div class="inp-wrap"><span class="suf">R$</span><input class="inp num" id="f-custo" inputmode="decimal"></div>
+            <small>O custo do cadastro.</small></div>
+          <div class="fld"><label for="f-fixo">Valores fixos por unidade</label>
+            <div class="inp-wrap"><span class="suf">R$</span><input class="inp num" id="f-fixo" inputmode="decimal"></div>
+            <small>Ex.: embalagem, frete por peça.</small></div>
+          <div class="fld"><label for="f-nat">Natureza</label>
+            <select class="sel" id="f-nat"><option value="mercadoria">Mercadoria (NF-e)</option><option value="servico">Serviço (NFS-e)</option><option value="pendente">A decidir</option></select>
+            <small>Decide qual alíquota vale.</small></div>
+          <div class="fld"><label for="f-imp">Imposto do Simples</label>
+            <div class="inp-wrap"><input class="inp num" id="f-imp" disabled><span class="suf">%</span></div>
+            <small id="f-imp-help">DAS de 10/2026, mercadoria.</small></div>
+          <div class="fld"><label for="f-com">Comissão do vendedor</label>
+            <div class="inp-wrap"><input class="inp num" id="f-com" inputmode="decimal"><span class="suf">%</span></div>
+            <small>Da regra de comissão do produto.</small></div>
+          <div class="fld"><label for="f-desp">Despesas fixas</label>
+            <div class="inp-wrap"><input class="inp num" id="f-desp" inputmode="decimal"><span class="suf">%</span></div>
+            <small>Padrão da empresa, ajustável aqui.</small></div>
+          <div class="fld"><label for="f-lucro">Lucro desejado</label>
+            <div class="inp-wrap"><input class="inp num" id="f-lucro" inputmode="decimal"><span class="suf">%</span></div>
+            <small>Sobre o preço de venda.</small></div>
+          <div class="fld"><label for="f-atual">Preço de venda atual</label>
+            <div class="inp-wrap"><span class="suf">R$</span><input class="inp num" id="f-atual" inputmode="decimal"></div>
+            <small>O que está no cadastro hoje.</small></div>
+        </div>
+        <p class="help">Imposto, comissão, despesas e lucro são percentuais do <b>preço de venda</b>. Por isso a conta divide o custo por (1 − a soma dos %), em vez de somar os % em cima do custo.</p>
+      </div>
+
+      <div class="card" id="resultado" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- ============ EMPRESA ============ -->
+  <section class="view" id="v-empresa" hidden>
+    <div class="card">
+      <div class="card-h"><h2 class="sec">Alíquota do Simples por competência</h2><span class="dim" style="font-size:12px">Configurações › Fiscal</span></div>
+      <div id="emp-aviso"></div>
+      <p class="help">Digite as alíquotas efetivas que saem na DAS do mês: uma para venda de produto (NF-e) e outra para serviço (NFS-e). Cada competência fica guardada, para o histórico. Quem diz o anexo é o contador: quando a apuração do DAS existir, ela só sugere o número, e o da DAS prevalece.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Competência</th><th class="r">Mercadoria (NF-e)</th><th class="r">Serviço (NFS-e)</th><th>Informado por</th></tr></thead>
+          <tbody id="emp-linhas"></tbody>
+        </table>
+      </div>
+      <form class="row" id="emp-form" style="align-items:flex-end">
+        <div class="fld"><label for="e-comp">Competência</label><input class="inp" id="e-comp" value="11/2026" style="width:110px"></div>
+        <div class="fld"><label for="e-merc">Mercadoria</label><div class="inp-wrap"><input class="inp num" id="e-merc" value="8,50" style="width:90px"><span class="suf">%</span></div></div>
+        <div class="fld"><label for="e-serv">Serviço</label><div class="inp-wrap"><input class="inp num" id="e-serv" value="12,00" style="width:90px"><span class="suf">%</span></div></div>
+        <button class="btn btn-p" type="submit">Adicionar competência</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2 class="sec">Padrão da formação de preço</h2>
+      <div class="fields">
+        <div class="fld"><label for="e-desp">Despesas fixas</label><div class="inp-wrap"><input class="inp num" id="e-desp" value="0,00"><span class="suf">%</span></div><small>Aluguel, salários, energia, sobre o faturamento.</small></div>
+        <div class="fld"><label for="e-lucro">Lucro desejado</label><div class="inp-wrap"><input class="inp num" id="e-lucro" value="20,00"><span class="suf">%</span></div><small>Cada produto pode ajustar.</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LOTE ============ -->
+  <section class="view" id="v-lote" hidden>
+    <div class="card">
+      <div class="card-h"><h2 class="sec">Produtos com preço sugerido diferente</h2><span class="pill warn">Mercadoria: 8,00% → 8,50% (11/2026)</span></div>
+      <p class="help">A alíquota de mercadoria mudou na competência nova. Estes produtos ficaram com o preço sugerido diferente do atual. Nenhum preço muda sem você confirmar. Os de <b>Preço fixo</b> ficam de fora; a política de cada produto vem da US-PROD-030.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th><input type="checkbox" id="l-todos" aria-label="Selecionar todos"></th><th>Produto</th><th>Política</th><th class="r">Preço atual</th><th class="r">Sugerido</th><th class="r">Diferença</th></tr></thead>
+          <tbody id="l-linhas"></tbody>
+        </table>
+      </div>
+      <div id="l-acao"></div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  const brl=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
+  const pct=v=>(v).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
+  const num=v=>v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const ler=s=>{const v=parseFloat(String(s).replace(/\./g,"").replace(",","."));return isFinite(v)?v:0};
+  const r2=v=>Math.round(v*100)/100;
+  const $=id=>document.getElementById(id);
+
+  // Alíquotas por competência (exemplo da DAS de outubro do caso P-107).
+  const competencias=[
+    {comp:"09/2026",merc:7.8,serv:11.5,por:"Felipe"},
+    {comp:"10/2026",merc:8.0,serv:12.0,por:"Felipe"},
+  ];
+  const ultima=()=>competencias[competencias.length-1];
+
+  // Markup divisor: preço = (custo + fixos) ÷ (1 − Σ%)
+  function formar(d){
+    const soma=(d.imp+d.com+d.desp+d.lucro)/100;
+    if(soma>=1) return {erro:"soma"};
+    const base=d.custo+d.fixo;
+    const preco=r2(base/(1-soma));
+    return {preco,soma,
+      imp:r2(preco*d.imp/100),com:r2(preco*d.com/100),desp:r2(preco*d.desp/100),lucro:r2(preco*d.lucro/100),base};
+  }
+  // Sem custo: a conta ao contrário, a partir do preço atual.
+  function decompor(d){
+    const p=d.atual;
+    const imp=r2(p*d.imp/100),com=r2(p*d.com/100),desp=r2(p*d.desp/100);
+    const sobra=r2(p-imp-com-desp-d.fixo);
+    return {p,imp,com,desp,fixo:d.fixo,sobra,sobraPct:p?sobra/p*100:0};
+  }
+
+  const exemplos={
+    lona:{custo:"100,00",fixo:"0,00",nat:"mercadoria",com:"2,00",desp:"0,00",lucro:"20,00",atual:"135,00",nome:"Lona 440g"},
+    banner:{custo:"0,00",fixo:"0,00",nat:"servico",com:"2,00",desp:"10,00",lucro:"20,00",atual:"89,90",nome:"Banner por m²"},
+    pendente:{custo:"48,00",fixo:"0,00",nat:"pendente",com:"0,00",desp:"0,00",lucro:"25,00",atual:"79,90",nome:"Placa ACM 3mm"},
+  };
+  let exAtual="lona", confirmando=false;
+
+  function carregar(k){
+    exAtual=k;confirmando=false;const e=exemplos[k];
+    $("f-custo").value=e.custo;$("f-fixo").value=e.fixo;$("f-nat").value=e.nat;$("f-com").value=e.com;
+    $("f-desp").value=e.desp;$("f-lucro").value=e.lucro;$("f-atual").value=e.atual;
+    $("ctx").textContent="Produtos › "+e.nome+" › Formação de preço";
+    document.querySelectorAll("[data-ex]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.ex===k)));
+    calcular();
+  }
+
+  function dados(){
+    const nat=$("f-nat").value,u=ultima();
+    const imp=nat==="mercadoria"?u.merc:nat==="servico"?u.serv:0;
+    $("f-imp").value=nat==="pendente"?"—":num(imp);
+    $("f-imp-help").textContent=nat==="pendente"?"Defina a natureza para saber o imposto.":"DAS de "+u.comp+", "+(nat==="mercadoria"?"mercadoria":"serviço")+".";
+    return {custo:ler($("f-custo").value),fixo:ler($("f-fixo").value),nat,imp,com:ler($("f-com").value),
+      desp:ler($("f-desp").value),lucro:ler($("f-lucro").value),atual:ler($("f-atual").value)};
+  }
+
+  const CORES={custo:"var(--text-dim)",imp:"var(--info)",com:"var(--warn)",desp:"var(--neg)",lucro:"var(--pos)"};
+  function barra(partes,total){
+    return '<div class="bar" role="img" aria-label="Divisão do preço">'+partes.map(([k,v])=>'<span style="width:'+(total?Math.max(0,v)/total*100:0)+'%;background:'+CORES[k]+'"></span>').join("")+'</div>'
+      +'<div class="leg">'+partes.map(([k,v,l])=>'<span><i style="background:'+CORES[k]+'"></i>'+l+'</span>').join("")+'</div>';
+  }
+  function linha(l,v,p,forte){return '<tr><td>'+l+'</td><td class="r num">'+brl.format(v)+'</td><td class="r num dim">'+(p==null?"":pct(p))+'</td></tr>'}
+
+  function calcular(){
+    const d=dados(),out=$("resultado");
+    if(d.nat==="pendente"){
+      out.innerHTML='<h2 class="sec">Preço sugerido</h2><div class="alert warn"><div><b>A natureza deste produto está a decidir.</b> Sem ela não dá para saber se vale a alíquota de mercadoria ou a de serviço, então o preço sugerido não aparece. Defina a natureza no cadastro fiscal do produto.</div></div>';
+      return;
+    }
+    if(d.custo<=0){
+      const x=decompor(d);
+      const ruim=x.sobra<0;
+      out.innerHTML='<h2 class="sec">Para onde vai o preço atual</h2>'
+        +'<div class="alert info"><div><b>Este produto não tem custo no cadastro</b> (preço por m², por exemplo). Em vez de sugerir um preço, a tela mostra quanto do preço atual vai para imposto, comissão e despesas, e quanto sobra.</div></div>'
+        +'<div class="big"><span class="lbl">Sobra por unidade</span><span class="val" style="color:'+(ruim?"var(--neg)":"var(--pos)")+'">'+brl.format(x.sobra)+'</span><span class="dim" style="font-size:12.5px">'+pct(x.sobraPct)+' do preço de '+brl.format(x.p)+'</span></div>'
+        +barra([["imp",x.imp,"Imposto"],["com",x.com,"Comissão"],["desp",x.desp,"Despesas"],["lucro",Math.max(0,x.sobra),"Sobra"]],x.p)
+        +'<div class="tbl-wrap"><table><tbody>'+linha("Preço atual",x.p)+linha("Imposto ("+pct(d.imp)+")",-x.imp)+linha("Comissão ("+pct(d.com)+")",-x.com)+linha("Despesas fixas ("+pct(d.desp)+")",-x.desp)+(x.fixo?linha("Valores fixos",-x.fixo):"")+'</tbody><tfoot><tr><td>Sobra</td><td class="r num">'+brl.format(x.sobra)+'</td><td class="r num">'+pct(x.sobraPct)+'</td></tr></tfoot></table></div>'
+        +'<p class="help">O lucro desejado ('+pct(d.lucro)+') fica de comparação: '+(x.sobraPct>=d.lucro?"a sobra atinge o desejado.":"a sobra está abaixo do desejado.")+'</p>';
+      return;
+    }
+    const f=formar(d);
+    if(f.erro){
+      out.innerHTML='<h2 class="sec">Preço sugerido</h2><div class="alert neg"><div><b>Não existe preço possível.</b> Imposto, comissão, despesas e lucro somam '+pct(d.imp+d.com+d.desp+d.lucro)+' do preço. Com 100% ou mais, não sobra nada para cobrir o custo. Diminua algum dos percentuais.</div></div>';
+      return;
+    }
+    const lucroAtual=d.atual?r2(d.atual-f.base-d.atual*(d.imp+d.com+d.desp)/100):0;
+    const lucroAtualPct=d.atual?lucroAtual/d.atual*100:0;
+    const dif=r2(f.preco-d.atual);
+    const somaCusto=r2(f.base*(1+(d.imp+d.com+d.desp+d.lucro)/100));
+    out.innerHTML='<h2 class="sec">Preço sugerido</h2>'
+      +'<div class="big"><span class="lbl">Com '+pct(d.lucro)+' de lucro sobre o preço</span><span class="val">'+brl.format(f.preco)+'</span><span class="dim mono" style="font-size:12px">'+num(f.base)+' ÷ (1 − '+num(f.soma)+') = '+num(f.preco)+'</span></div>'
+      +barra([["custo",f.base,"Custo"],["imp",f.imp,"Imposto"],["com",f.com,"Comissão"],["desp",f.desp,"Despesas"],["lucro",f.lucro,"Lucro"]],f.preco)
+      +'<div class="tbl-wrap"><table><tbody>'+linha("Custo"+(d.fixo?" + valores fixos":""),f.base,f.base/f.preco*100)+linha("Imposto do Simples",f.imp,d.imp)+linha("Comissão",f.com,d.com)+(d.desp?linha("Despesas fixas",f.desp,d.desp):"")+linha("Lucro",f.lucro,d.lucro)+'</tbody><tfoot><tr><td>Preço sugerido</td><td class="r num">'+brl.format(f.preco)+'</td><td class="r num">100,00%</td></tr></tfoot></table></div>'
+      +'<div class="cmp"><span class="k">Preço atual</span><span></span><span class="v">'+brl.format(d.atual)+'</span>'
+      +'<span class="k">Lucro com o preço atual</span><span></span><span class="v" style="color:'+(lucroAtualPct<d.lucro?"var(--warn)":"var(--pos)")+'">'+brl.format(lucroAtual)+' · '+pct(lucroAtualPct)+'</span>'
+      +'<span class="k">Se somasse os % sobre o custo</span><span></span><span class="v dim">'+brl.format(somaCusto)+'</span></div>'
+      +(Math.abs(dif)<0.005?'<span class="pill pos">O preço atual já é o sugerido</span>':
+        (confirmando?
+          '<div class="confirm"><b>Trocar o preço de venda deste produto?</b><div class="cmp"><span class="k">Antes</span><span></span><span class="v">'+brl.format(d.atual)+'</span><span class="k">Depois</span><span></span><span class="v">'+brl.format(f.preco)+'</span><span class="k">Diferença</span><span></span><span class="v">'+(dif>0?"+":"")+brl.format(dif)+'</span></div><p class="help" style="color:inherit">Só este produto muda. As tabelas de preço em % acompanham o preço base; as de valor fixo não mudam.</p><div class="row"><button class="btn btn-p" type="button" id="b-aplicar">Trocar o preço</button><button class="btn" type="button" id="b-cancelar">Cancelar</button></div></div>'
+          :'<div class="row"><button class="btn btn-p" type="button" id="b-usar">Usar o preço sugerido</button><span class="dim" style="font-size:12px">'+(dif>0?"Sobe ":"Desce ")+brl.format(Math.abs(dif))+'</span></div>'));
+    const u=$("b-usar");if(u)u.onclick=()=>{confirmando=true;calcular()};
+    const c=$("b-cancelar");if(c)c.onclick=()=>{confirmando=false;calcular()};
+    const a=$("b-aplicar");if(a)a.onclick=()=>{confirmando=false;$("f-atual").value=num(f.preco);avisar("Preço trocado para "+brl.format(f.preco)+". No protótipo nada é gravado.");calcular()};
+  }
+
+  function avisar(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(avisar.t);avisar.t=setTimeout(()=>{el.hidden=true},3500)}
+
+  // ---- Empresa
+  function desenharEmpresa(){
+    $("emp-linhas").innerHTML=competencias.slice().reverse().map((c,i)=>'<tr><td class="mono">'+c.comp+(i===0?' <span class="pill pos">em uso</span>':'')+'</td><td class="r num">'+pct(c.merc)+'</td><td class="r num">'+pct(c.serv)+'</td><td class="dim">'+c.por+'</td></tr>').join("");
+    const u=ultima();
+    $("emp-aviso").innerHTML=u.comp==="11/2026"?"":'<div class="alert warn"><div><b>A última alíquota é de '+u.comp+'.</b> Atualize com a DAS de 11/2026 para a formação de preço usar o imposto certo.</div></div>';
+  }
+  $("emp-form").addEventListener("submit",ev=>{
+    ev.preventDefault();
+    const comp=$("e-comp").value.trim();
+    if(!/^\d{2}\/\d{4}$/.test(comp)){avisar("Use a competência no formato mês/ano, por exemplo 11/2026.");return}
+    if(competencias.some(c=>c.comp===comp)){avisar("A competência "+comp+" já está na lista.");return}
+    competencias.push({comp,merc:ler($("e-merc").value),serv:ler($("e-serv").value),por:"Felipe"});
+    desenharEmpresa();calcular();avisar("Competência "+comp+" adicionada. A formação de preço passa a usá-la.");
+  });
+
+  // ---- Lote (8% → 8,5% em mercadoria)
+  const produtosLote=[
+    {nome:"Lona 440g",pol:"Acompanha o custo",custo:100,com:2,desp:0,lucro:20,atual:142.86},
+    {nome:"Adesivo vinil brilho",pol:"Margem alvo",custo:18.4,com:2,desp:0,lucro:30,atual:30.67},
+    {nome:"Placa PS 2mm",pol:"Sem política (confirma)",custo:22,com:0,desp:0,lucro:25,atual:32.84},
+    {nome:"Lona 380g",pol:"Preço fixo",custo:80,com:2,desp:0,lucro:20,atual:110},
+  ];
+  const selecionados=new Set();let confirmandoLote=false;
+  function sugerido(p,imp){return r2(p.custo/(1-(imp+p.com+p.desp+p.lucro)/100))}
+  function desenharLote(){
+    const lin=produtosLote.map((p,i)=>{
+      const fixo=p.pol==="Preço fixo";
+      const s=fixo?p.atual:sugerido(p,8.5),d=r2(s-p.atual);
+      return '<tr><td>'+(fixo?'':'<input type="checkbox" data-i="'+i+'" '+(selecionados.has(i)?"checked":"")+' aria-label="Selecionar '+p.nome+'">')+'</td><td>'+p.nome+'</td><td><span class="pill '+(fixo?"mute":"pos")+'">'+p.pol+'</span></td><td class="r num">'+brl.format(p.atual)+'</td><td class="r num">'+(fixo?'<span class="dim">não muda</span>':brl.format(s))+'</td><td class="r num">'+(fixo?"":(d>0?"+":"")+brl.format(d))+'</td></tr>';
+    }).join("");
+    $("l-linhas").innerHTML=lin;
+    document.querySelectorAll("#l-linhas input[data-i]").forEach(cb=>cb.onchange=()=>{const i=+cb.dataset.i;cb.checked?selecionados.add(i):selecionados.delete(i);confirmandoLote=false;desenharAcao()});
+    desenharAcao();
+  }
+  function desenharAcao(){
+    const sel=[...selecionados].map(i=>produtosLote[i]);
+    if(!sel.length){$("l-acao").innerHTML='<p class="help">Marque os produtos que quer reajustar.</p>';return}
+    if(!confirmandoLote){
+      $("l-acao").innerHTML='<div class="row"><button class="btn btn-p" type="button" id="l-rev">Revisar '+sel.length+' reajuste'+(sel.length>1?"s":"")+'</button></div>';
+      $("l-rev").onclick=()=>{confirmandoLote=true;desenharAcao()};return;
+    }
+    $("l-acao").innerHTML='<div class="confirm"><b>Trocar o preço destes '+sel.length+' produto'+(sel.length>1?"s":"")+'?</b><div class="tbl-wrap"><table><thead><tr><th>Produto</th><th class="r">Antes</th><th class="r">Depois</th></tr></thead><tbody>'
+      +sel.map(p=>'<tr><td>'+p.nome+'</td><td class="r num">'+brl.format(p.atual)+'</td><td class="r num">'+brl.format(sugerido(p,8.5))+'</td></tr>').join("")
+      +'</tbody></table></div><div class="row"><button class="btn btn-p" type="button" id="l-ok">Trocar os preços</button><button class="btn" type="button" id="l-no">Cancelar</button></div></div>';
+    $("l-ok").onclick=()=>{sel.forEach(p=>{p.atual=sugerido(p,8.5)});selecionados.clear();confirmandoLote=false;desenharLote();avisar("Preços trocados. No protótipo nada é gravado.")};
+    $("l-no").onclick=()=>{confirmandoLote=false;desenharAcao()};
+  }
+  $("l-todos").onchange=e=>{produtosLote.forEach((p,i)=>{if(p.pol!=="Preço fixo"){e.target.checked?selecionados.add(i):selecionados.delete(i)}});confirmandoLote=false;desenharLote()};
+
+  // ---- Navegação
+  const TITULOS={produto:["Formação de preço","O preço sai do custo, do imposto da DAS, da comissão, das despesas e do lucro que você quer."],
+    empresa:["Alíquota do Simples","Configurações › Fiscal. A formação de preço usa a alíquota da última competência."],
+    lote:["Reajuste em lote","Quando a alíquota muda, estes produtos ficam com outro preço sugerido."]};
+  function mostrar(){
+    const v=(location.hash||"#produto").slice(1),vv=TITULOS[v]?v:"produto";
+    ["produto","empresa","lote"].forEach(k=>{$("v-"+k).hidden=k!==vv});
+    document.querySelectorAll(".tabs a").forEach(a=>a.classList.toggle("on",a.dataset.v===vv));
+    $("h1").textContent=TITULOS[vv][0];$("sub").textContent=TITULOS[vv][1];
+    if(vv!=="produto")$("ctx").textContent=vv==="empresa"?"Configurações › Fiscal":"Produtos › Reajuste de preço";
+    else $("ctx").textContent="Produtos › "+exemplos[exAtual].nome+" › Formação de preço";
+  }
+  window.addEventListener("hashchange",mostrar);
+  document.querySelectorAll("[data-ex]").forEach(b=>b.onclick=()=>carregar(b.dataset.ex));
+  ["f-custo","f-fixo","f-nat","f-com","f-desp","f-lucro","f-atual"].forEach(id=>$(id).addEventListener("input",()=>{confirmando=false;calcular()}));
+  $("f-nat").addEventListener("change",()=>{confirmando=false;calcular()});
+
+  desenharEmpresa();desenharLote();carregar("lona");mostrar();
+})();
+</script>
