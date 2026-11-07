@@ -108,13 +108,13 @@
     },
     "n_quarantine": {
       "status": "measured",
-      "value": 250,
+      "value": 251,
       "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
       "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
       "detail": {
-        "quarantined_files": 250
+        "quarantined_files": 251
       },
       "stream": "FV"
     },
@@ -141,8 +141,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 280,
-        "effectively_guarded": 280
+        "with_manual_ddl": 281,
+        "effectively_guarded": 281
       },
       "stream": "FV"
     },
