@@ -5,7 +5,7 @@ irmaos: Detail.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: ver o diff de UMA alteração do próprio business — e nunca a de outro — é durável, não muda no refactor.
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-11-09"
 ---
 
 # Casos de Uso & Aceite — Auditoria / Detail
