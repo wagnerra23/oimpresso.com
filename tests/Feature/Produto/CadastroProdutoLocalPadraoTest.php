@@ -41,9 +41,14 @@ function clpCriar(object $test, array $campos): ?object
 
 function clpEditar(object $test, object $produto, array $campos)
 {
+    // As chaves que a tela React manda: o update() lê brand_id, category_id, tax, alert_quantity,
+    // weight e product_description direto do envio (mesmo payload do CadastroProdutoPesoDimensoesTest).
     return $test->put("/products/{$produto->id}", array_merge([
-        'name' => $produto->name, 'sku' => $produto->sku, 'unit_id' => $produto->unit_id,
+        'name' => $produto->name, 'sku' => $produto->sku, 'brand_id' => $produto->brand_id ?? '',
+        'unit_id' => $produto->unit_id, 'category_id' => $produto->category_id ?? '', 'tax' => $produto->tax ?? '',
         'tax_type' => $produto->tax_type, 'barcode_type' => $produto->barcode_type,
+        'alert_quantity' => $produto->alert_quantity ?? '', 'weight' => $produto->weight ?? '',
+        'product_description' => $produto->product_description ?? '',
         'product_locations' => [], 'preparation_time_in_minutes' => '',
     ], $campos));
 }
@@ -70,7 +75,11 @@ beforeEach(function () {
         $this->markTestSkipped('Sem user no business seeded.');
     }
     $this->actingAs($this->user);
-    session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id]);
+    session([
+        'user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id,
+        // O update() e o edit() formatam número com a moeda da sessão.
+        'currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
+    ]);
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     Permission::findOrCreate('product.create', 'web');
     Permission::findOrCreate('product.update', 'web');
