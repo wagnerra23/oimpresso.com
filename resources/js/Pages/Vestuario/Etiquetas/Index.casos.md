@@ -244,7 +244,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   Então recebe 429 com aviso para aguardar um minuto, e outro usuário segue gerando.
 - **Teste:** [`RemarcacaoTelaContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php)
 - **Contrato:** SDD §9 R-2 · decisão [W] 2026-11-09 (lote 3 da auditoria do Vestuario).
-- **Regressão que defende:** um usuário repetindo lotes de até 50.000 etiquetas no processo web.
+- **Regressão que defende:** um usuário repetindo lotes de etiquetas sem limite no processo web.
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane.
 
 ---
@@ -277,5 +277,4 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   (o clique baixa o arquivo). **Divergência aberta registrada nos dois lados** (SDD §9 D-2):
   podar a promessa ou construir o preview é decisão de produto ([W]), não conserto silencioso.
 - `[BACKLOG]` **Teto de 500 itens × 100 cópias = 50.000 etiquetas por POST**, com `Log::info` por
-  etiqueta (SDD §9 R-2). A repetição agora tem limite (UC-VET-10); o tamanho de cada POST segue sem teto.
-  Nenhum incidente registrado; sem contrato em 2 fontes.
+  etiqueta (SDD §9 R-2). Nenhum incidente registrado; sem contrato em 2 fontes.

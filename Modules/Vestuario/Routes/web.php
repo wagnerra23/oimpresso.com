@@ -31,7 +31,7 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
     ->name('vestuario.etiquetas.')
     ->group(function () {
         Route::get('/',         [EtiquetaTagController::class, 'index'])->name('index');
-        // Um POST pode gerar até 50.000 etiquetas no processo web: limite por usuário (VestuarioServiceProvider).
+        // Cada POST gera o lote inteiro no processo web: limite por usuário (VestuarioServiceProvider).
         Route::post('lote/zpl', [EtiquetaTagController::class, 'storeZpl'])->middleware('throttle:vestuario-etiquetas')->name('lote.zpl');
         Route::post('lote/pdf', [EtiquetaTagController::class, 'storePdf'])->middleware('throttle:vestuario-etiquetas')->name('lote.pdf');
     });
