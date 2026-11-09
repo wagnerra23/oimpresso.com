@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: a trilha de auditoria do business (listar, filtrar, não ver a de outro) é durável — não muda no refactor da tela.
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-11-09"
 ---
 
 # Casos de Uso & Aceite — Auditoria / Index
