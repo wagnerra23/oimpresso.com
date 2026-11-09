@@ -230,3 +230,140 @@ it('UC-CMED-08 · semente: sem --aplicar só mostra; com --aplicar grava o custo
     expect(($this->guardado)())->toBe('16.0000')
         ->and(DB::table('variations')->where('id', $this->variationId)->value('dpp_inc_tax'))->toBe('20.0000');
 });
+
+/*
+ * D5 da auditoria 2026-11-05 — compra recebida que sai de "recebida" (cancelada ou excluída)
+ * estorna o custo médio. Todos passam pelo observer do Transaction, o caminho real.
+ *
+ * Arranjo comum — semente 10,00 com 10 em estoque; C1 = compra de 10 a 20,00, estoque 20:
+ *   entrada C1 = (10,00 × 10 + 20,00 × 10) / 20 = 15,0000. Estorno volta a 10,0000.
+ */
+function custoMedioSaldo(int $variationId, float $qtd): void
+{
+    DB::table('variation_location_details')->where('variation_id', $variationId)->update(['qty_available' => $qtd]);
+}
+
+/** A compra sai de recebida por Eloquent, para o observer disparar depois do commit. */
+function custoMedioMudarCompra(int $id, callable $acao): void
+{
+    DB::transaction(fn () => $acao(Transaction::withoutGlobalScopes()->findOrFail($id))); // SUPERADMIN: fixture lida por id
+}
+
+function custoMedioComSementeEC1(object $t): int
+{
+    config(['compras.custo_medio_movel' => true]);
+    ($t->estoque)(10);
+    $t->servico->semear($t->biz->id, $t->variationId, 10.00);
+    $c1 = ($t->lote)($t->biz->id, 'purchase', 'received', 10, 20.00);
+    custoMedioSaldo($t->variationId, 20);
+    $t->servico->registrarEntrada($c1);
+
+    return $c1;
+}
+
+it('UC-CMED-09 · compra recebida que volta a pendente estorna: 15,0000 volta a 10,0000', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    expect(($this->guardado)())->toBe('15.0000');
+
+    custoMedioMudarCompra($c1, fn ($tx) => $tx->update(['status' => 'pending']));
+
+    expect(($this->guardado)())->toBe('10.0000')
+        ->and(DB::table('compras_custo_medio_movimentos')->where('transaction_id', $c1)->whereNotNull('estornado_em')->count())->toBe(1);
+});
+
+it('UC-CMED-10 · compra recebida excluída estorna: 15,0000 volta a 10,0000', function () {
+    $c1 = custoMedioComSementeEC1($this);
+
+    custoMedioMudarCompra($c1, fn ($tx) => $tx->delete());
+
+    expect(($this->guardado)())->toBe('10.0000');
+});
+
+it('UC-CMED-11 · sem custo guardado antes da compra, o estorno some com o custo e o histórico fica', function () {
+    config(['compras.custo_medio_movel' => true]);
+    $c1 = ($this->lote)($this->biz->id, 'purchase', 'received', 10, 20.00);
+    ($this->estoque)(10);
+    $this->servico->registrarEntrada($c1);
+    expect(($this->guardado)())->toBe('20.0000');
+
+    custoMedioMudarCompra($c1, fn ($tx) => $tx->update(['status' => 'ordered']));
+
+    expect(($this->guardado)())->toBeNull()
+        ->and($this->servico->noMomento($this->biz->id, $this->variationId, now()->addDay()->toDateTimeString()))->toBeNull()
+        ->and(DB::table('compras_custo_medio_movimentos')->where('transaction_id', $c1)->count())->toBe(1);
+});
+
+it('UC-CMED-12 · venda entre a compra e o cancelamento não muda o estorno: volta a 10,0000', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    custoMedioSaldo($this->variationId, 5); // vendeu 15; venda não muda o custo médio
+
+    custoMedioMudarCompra($c1, fn ($tx) => $tx->update(['status' => 'pending']));
+
+    expect(($this->guardado)())->toBe('10.0000');
+});
+
+it('UC-CMED-13 · outra entrada depois é recalculada como se a compra cancelada não existisse', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    $c2 = ($this->lote)($this->biz->id, 'purchase', 'received', 20, 30.00);
+    custoMedioSaldo($this->variationId, 40);
+    $this->servico->registrarEntrada($c2);
+    // Com C1: (15,00 × 20 + 30,00 × 20) / 40 = 900 / 40 = 22,5000
+    expect(($this->guardado)())->toBe('22.5000');
+
+    custoMedioMudarCompra($c1, fn ($tx) => $tx->update(['status' => 'pending']));
+
+    // Sem C1: (10,00 × 10 + 30,00 × 20) / 30 = 700 / 30 = 23,3333
+    expect(custoMedioMovelEsperado(10, 10.00, 20, 30.00))->toBe('23.3333')
+        ->and(($this->guardado)())->toBe('23.3333');
+    $c2Mov = DB::table('compras_custo_medio_movimentos')->where('transaction_id', $c2)->first();
+    expect($c2Mov->qtd_antes)->toBe('10.0000')
+        ->and($c2Mov->custo_antes)->toBe('10.0000')
+        ->and($c2Mov->custo_depois)->toBe('23.3333');
+});
+
+it('UC-CMED-14 · limite: as unidades canceladas já tinham saído antes da entrada seguinte, ela fica só com o próprio custo', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    custoMedioSaldo($this->variationId, 5); // vendeu 15 (mais do que as 10 de antes de C1)
+    $c2 = ($this->lote)($this->biz->id, 'purchase', 'received', 10, 30.00);
+    custoMedioSaldo($this->variationId, 15);
+    $this->servico->registrarEntrada($c2);
+    // Com C1: (15,00 × 5 + 30,00 × 10) / 15 = 375 / 15 = 25,0000
+    expect(($this->guardado)())->toBe('25.0000');
+
+    custoMedioMudarCompra($c1, fn ($tx) => $tx->update(['status' => 'pending']));
+
+    // Sem C1 o estoque antes de C2 seria 5 − 10 < 0: não há o que ponderar, vale o custo de C2.
+    expect(custoMedioMovelEsperado(0, 10.00, 10, 30.00))->toBe('30.0000')
+        ->and(($this->guardado)())->toBe('30.0000');
+});
+
+it('UC-CMED-15 · a mesma compra pode ser recebida de novo depois de cancelada', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    custoMedioMudarCompra($c1, fn ($tx) => $tx->update(['status' => 'pending']));
+    expect(($this->guardado)())->toBe('10.0000');
+
+    custoMedioMudarCompra($c1, fn ($tx) => $tx->update(['status' => 'received']));
+
+    expect(($this->guardado)())->toBe('15.0000')
+        ->and(DB::table('compras_custo_medio_movimentos')->where('transaction_id', $c1)->count())->toBe(2);
+});
+
+it('UC-CMED-16 · com a flag desligada o cancelamento não estorna (a reconciliação pega depois)', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    config(['compras.custo_medio_movel' => false]);
+
+    custoMedioMudarCompra($c1, fn ($tx) => $tx->update(['status' => 'pending']));
+
+    expect(($this->guardado)())->toBe('15.0000');
+});
+
+it('UC-CMED-17 · Tier 0: o estorno só alcança a empresa da compra e não repete', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    expect($this->servico->estornarEntrada($this->outra->id, $c1))->toBe([])
+        ->and(($this->guardado)())->toBe('15.0000');
+
+    expect($this->servico->estornarEntrada($this->biz->id, $c1))->toHaveCount(1)
+        ->and(($this->guardado)())->toBe('10.0000')
+        ->and($this->servico->estornarEntrada($this->biz->id, $c1))->toBe([])
+        ->and(($this->guardado)())->toBe('10.0000');
+});
