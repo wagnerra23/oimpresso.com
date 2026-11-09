@@ -6,7 +6,7 @@
 // Create.tsx. Esta tela segue dona do cabeçalho, do useForm e do envio.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Deferred, Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
@@ -207,10 +207,12 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
               props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }
           />
-          {/* CU-PROD-22: só leitura, fora do <form>. A prop é deferida: o roteiro aparece quando chega,
-              sem esqueleto (o card é o último antes do rodapé). Null sem o módulo Produção, em
-              composição e em serviço. */}
-          <ProducaoDoEditar producao={props.producao} />
+          {/* CU-PROD-22: só leitura, fora do <form>. A prop é deferida: o card aparece quando ela chega,
+              sem esqueleto (é o último antes do rodapé). Null sem o módulo Produção, em composição e
+              em serviço. */}
+          <Deferred data="producao" fallback={null}>
+            <ProducaoDoEditar producao={props.producao} />
+          </Deferred>
           {/* "Salvar e adicionar preços por grupo" fica fora: o Editar não recebe a contagem de grupos. */}
           <AcoesDoCadastro
             form="produto-edit-form"
