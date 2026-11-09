@@ -160,12 +160,12 @@ it('UC-PCOSF-04 · aba Materiais: previsto pela receita × apontado, e o saldo q
 });
 
 it('UC-PCOSF-05 · aba Arte: versões da mais nova à mais antiga, e a que vale é a última aprovada', function () {
-    $arte = fn (string $arquivo, ?string $decisao, ?string $em) => DB::table('pcp_aprovacoes_arte')->insertGetId(['business_id' => $this->b98,
+    $arte = fn (string $arquivo, int $versao, ?string $decisao, ?string $em) => DB::table('pcp_aprovacoes_arte')->insertGetId(['business_id' => $this->b98,
         'ordem_id' => $this->ordem->id, 'programacao_id' => $this->e1->id, 'arte_programacao_id' => $this->e1->id, 'token_hash' => hash('sha256', uniqid()),
-        'arquivo' => $arquivo, 'expira_em' => now()->addDays(7), 'decisao' => $decisao, 'decidido_em' => $em, 'created_by' => $this->pcp->id,
+        'arquivo' => $arquivo, 'versao' => $versao, 'expira_em' => now()->addDays(7), 'decisao' => $decisao, 'decidido_em' => $em, 'created_by' => $this->pcp->id,
         'created_at' => now(), 'updated_at' => now()]);
-    $arte('https://ex.test/arte-v1.pdf', 'aprovada', '2026-11-05 16:40:00');
-    $arte('https://ex.test/arte-v2.pdf', null, null);
+    $arte('https://ex.test/arte-v1.pdf', 1, 'aprovada', '2026-11-05 16:40:00');
+    $arte('https://ex.test/arte-v2.pdf', 2, null, null);
     // SUPERADMIN: pedido de arte de outra empresa na mesma OS-id não pode aparecer (Tier 0).
     DB::table('pcp_aprovacoes_arte')->insert(['business_id' => $this->b99, 'ordem_id' => $this->ordem->id, 'programacao_id' => $this->e1->id,
         'arte_programacao_id' => $this->e1->id, 'token_hash' => hash('sha256', uniqid()), 'arquivo' => 'https://ex.test/de-outra.pdf',
@@ -175,4 +175,19 @@ it('UC-PCOSF-05 · aba Arte: versões da mais nova à mais antiga, e a que vale 
     expect(array_column($a, 'arquivo'))->toBe(['https://ex.test/arte-v2.pdf', 'https://ex.test/arte-v1.pdf'])
         ->and(array_column($a, 'versao'))->toBe([2, 1])->and(array_column($a, 'vigente'))->toBe([false, true])
         ->and($a[1]['decidida_em'])->toBe('2026-11-05 16:40');
+});
+
+it('UC-PCOSF-05 · UC-PCART-09 · aba Arte mostra a versão gravada: o reenvio do mesmo arquivo não vira versão nova', function () {
+    // Envios gravados como o AprovacaoArteService grava (VersaoDaArte): A, A reenviado, B = v1, v1, v2.
+    // Contar os envios daria v3, v2, v1 e a Ficha discordaria do celular do operador.
+    $arte = fn (string $arquivo, int $versao) => DB::table('pcp_aprovacoes_arte')->insertGetId(['business_id' => $this->b98,
+        'ordem_id' => $this->ordem->id, 'programacao_id' => $this->e1->id, 'arte_programacao_id' => $this->e1->id, 'token_hash' => hash('sha256', uniqid()),
+        'arquivo' => $arquivo, 'versao' => $versao, 'expira_em' => now()->addDays(7), 'created_by' => $this->pcp->id,
+        'created_at' => now(), 'updated_at' => now()]);
+    $ids = [$arte('https://ex.test/arte-a.pdf', 1), $arte('https://ex.test/arte-a.pdf', 1), $arte('https://ex.test/arte-b.pdf', 2)];
+
+    $a = ($this->parcial)($this->op, 'artes')->assertOk()->json('props.artes');
+    expect(array_column($a, 'versao'))->toBe([2, 1, 1])
+        // A linha da tela é chaveada pelo envio: duas linhas da mesma versão não podem colidir.
+        ->and(array_column($a, 'id'))->toBe(array_reverse($ids));
 });
