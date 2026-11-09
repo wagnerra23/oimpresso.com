@@ -57,6 +57,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 | UC-VET-07 | QR Code liga por business e não vaza | should `[T0]` | `CU-VEST-05` itens 1-2 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
 | UC-VET-08 | PDF A4 traz as N etiquetas com os mesmos campos do ZPL | must | `CU-VEST-06` itens 1-4 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
 | UC-VET-09 | Endpoints de lote exigem sessão autenticada | must `[T0]` | `CU-VEST-08` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
+| UC-VET-10 | Gerar etiqueta tem limite por usuário (10 por minuto, ZPL e PDF juntos) | must | SDD §9 R-2 · decisão [W] 2026-11-09 | `RemarcacaoTelaContratoTest` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR **não executou teste algum** (CT 100/CI —
 > [ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). O veredito
@@ -236,6 +237,18 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 
 ---
 
+## UC-VET-10 · Gerar etiqueta tem limite por usuário · `must`
+
+- **Persona:** quem imprime etiquetas; a hospedagem é compartilhada com as outras telas da empresa.
+- **Aceite:** Dado um usuário que fez 10 pedidos de lote no minuto · Quando faz o 11º, em ZPL ou PDF ·
+  Então recebe 429 com aviso para aguardar um minuto, e outro usuário segue gerando.
+- **Teste:** [`RemarcacaoTelaContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php)
+- **Contrato:** SDD §9 R-2 · decisão [W] 2026-11-09 (lote 3 da auditoria do Vestuario).
+- **Regressão que defende:** um usuário repetindo lotes de até 50.000 etiquetas no processo web.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane.
+
+---
+
 ## Backlog — achados sem contrato em 2 fontes, ou sem chokepoint testável neste chip
 
 > Regra dura: vira **UC com id** só o que tem contrato em **≥2 fontes** *e* pode ganhar teste agora.
@@ -264,4 +277,5 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   (o clique baixa o arquivo). **Divergência aberta registrada nos dois lados** (SDD §9 D-2):
   podar a promessa ou construir o preview é decisão de produto ([W]), não conserto silencioso.
 - `[BACKLOG]` **Teto de 500 itens × 100 cópias = 50.000 etiquetas por POST**, com `Log::info` por
-  etiqueta (SDD §9 R-2). Nenhum incidente registrado; sem contrato em 2 fontes.
+  etiqueta (SDD §9 R-2). A repetição agora tem limite (UC-VET-10); o tamanho de cada POST segue sem teto.
+  Nenhum incidente registrado; sem contrato em 2 fontes.
