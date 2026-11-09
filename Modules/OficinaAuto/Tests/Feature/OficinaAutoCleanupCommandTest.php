@@ -148,9 +148,9 @@ it('cenário 4: migration-report gera arquivo', function () {
     // Pelo menos 1 arquivo novo
     expect($countAfter)->toBeGreaterThan($countBefore);
 
-    // Verifica nome do arquivo (oficina-migration-1-*.md)
+    // Verifica nome do arquivo (oficina-migration-<biz>-*.md)
     $matchingFiles = collect($reportsDirAfter)
-        ->filter(fn ($f) => str_starts_with($f->getFilename(), 'oficina-migration-1-')
+        ->filter(fn ($f) => str_starts_with($f->getFilename(), 'oficina-migration-'.BIZ_WAGNER_CLEANUP.'-')
             && str_ends_with($f->getFilename(), '.md'));
 
     expect($matchingFiles)->not->toBeEmpty();
