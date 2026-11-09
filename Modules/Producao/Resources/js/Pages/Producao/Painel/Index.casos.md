@@ -86,3 +86,11 @@ pelo erro. Prova: `tests/js/producao-painel-erro.test.tsx` (vitest, job "Fronten
 
 Status: 🧪
 
+## UC-PCISO-03 · Refugo de outra empresa não entra no indicador do Painel · `must`
+
+**Dado** um refugo lançado na empresa 99 nesta semana **Quando** o gestor da 98 abre o Painel **Então** o indicador de
+refugo da semana não muda · **Controle:** o da 99 sobe 1 ocorrência e 7 peças; refugo da 98 sobe só o da 98.
+Prova: `ProducaoIsolamentoEmpresasContratoTest`.
+
+Status: 🧪
+
