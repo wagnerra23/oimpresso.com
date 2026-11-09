@@ -131,11 +131,11 @@ it('Meta Cloud: extrai mensagem text de payload entry/changes/value/messages', f
         ]],
     ];
 
-    (new ProcessIncomingWebhookJob(4, 'meta_cloud', $payload))->handle();
+    (new ProcessIncomingWebhookJob(1, 'meta_cloud', $payload))->handle();
 
     $msg = WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->first();
     expect($msg)->not->toBeNull();
-    expect($msg->business_id)->toBe(4);
+    expect($msg->business_id)->toBe(1);
     expect($msg->direction)->toBe('inbound');
     expect($msg->provider)->toBe('meta_cloud');
     expect($msg->provider_message_id)->toBe('wamid.MtA');
@@ -156,7 +156,7 @@ it('Z-API: extrai mensagem on-message com text.message', function () {
         'text' => ['message' => 'Oi pelo Z-API'],
     ];
 
-    (new ProcessIncomingWebhookJob(4, 'zapi', $payload))->handle();
+    (new ProcessIncomingWebhookJob(1, 'zapi', $payload))->handle();
 
     $msg = WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->first();
     expect($msg->provider_message_id)->toBe('msg-zapi-123');
@@ -177,7 +177,7 @@ it('Z-API: ignora mensagens fromMe=true (echo do próprio business)', function (
         'text' => ['message' => 'echo do próprio'],
     ];
 
-    (new ProcessIncomingWebhookJob(4, 'zapi', $payload))->handle();
+    (new ProcessIncomingWebhookJob(1, 'zapi', $payload))->handle();
 
     $msgs = WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->get();
     expect($msgs)->toHaveCount(0);
@@ -195,9 +195,9 @@ it('idempotência: mesma provider_message_id 2 vezes = no-op', function () {
     ];
 
     // 1ª execução cria
-    (new ProcessIncomingWebhookJob(4, 'zapi', $payload))->handle();
+    (new ProcessIncomingWebhookJob(1, 'zapi', $payload))->handle();
     // 2ª execução não duplica
-    (new ProcessIncomingWebhookJob(4, 'zapi', $payload))->handle();
+    (new ProcessIncomingWebhookJob(1, 'zapi', $payload))->handle();
 
     $count = WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)
         ->where('provider_message_id', 'msg-DUPLICATE')
@@ -214,17 +214,17 @@ it('cria/atualiza WhatsappConversation com last_inbound_at e unread_count++', fu
         'text' => ['message' => 'msg 1'],
     ];
 
-    (new ProcessIncomingWebhookJob(4, 'zapi', $payload))->handle();
+    (new ProcessIncomingWebhookJob(1, 'zapi', $payload))->handle();
 
     $conv = WhatsappConversation::withoutGlobalScope(ScopeByBusiness::class)->first();
-    expect($conv->business_id)->toBe(4);
+    expect($conv->business_id)->toBe(1);
     expect($conv->customer_phone)->toBe('+5511987654321');
     expect($conv->last_inbound_at)->not->toBeNull();
     expect($conv->unread_count)->toBe(1);
 
     // Segunda mensagem mesma conversa → unread++
     $payload['messageId'] = 'msg-conv-2';
-    (new ProcessIncomingWebhookJob(4, 'zapi', $payload))->handle();
+    (new ProcessIncomingWebhookJob(1, 'zapi', $payload))->handle();
 
     $conv->refresh();
     expect($conv->unread_count)->toBe(2);

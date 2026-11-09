@@ -35,6 +35,18 @@ beforeEach(function () {
     if (config('database.default') !== 'sqlite') {
         $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
     }
+    // O VerifyZapiSignature procura primeiro um número (multi-números) pelo
+    // zapi_instance_token e só depois cai na config; sem a tabela o Z-API dá 500.
+    Schema::dropIfExists('whatsapp_business_phones');
+    Schema::create('whatsapp_business_phones', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->uuid('phone_uuid')->nullable();
+        $table->string('label', 80)->nullable();
+        $table->string('driver', 20)->default('zapi');
+        $table->text('zapi_instance_token')->nullable();
+        $table->timestamps();
+    });
     Schema::dropIfExists('whatsapp_business_configs');
     Schema::create('whatsapp_business_configs', function ($table) {
         $table->bigIncrements('id');
@@ -165,7 +177,7 @@ it('Meta POST com HMAC válido = 200 + Job dispatched', function () {
     );
 
     $response->assertStatus(200);
-    Bus::assertDispatched(ProcessIncomingWebhookJob::class, fn ($job) => $job->businessId === 4 && $job->provider === 'meta_cloud');
+    Bus::assertDispatched(ProcessIncomingWebhookJob::class, fn ($job) => $job->businessId === 1 && $job->provider === 'meta_cloud');
 });
 
 it('Z-API POST com z-api-token inválido retorna 401', function () {

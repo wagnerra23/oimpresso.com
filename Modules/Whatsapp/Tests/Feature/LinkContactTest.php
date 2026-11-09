@@ -36,6 +36,21 @@ beforeEach(function () {
         Schema::dropIfExists($t);
     }
 
+    // O InboxController confere a ACL canal = fila (US-WA-069) antes de mexer na
+    // conversa: sem esta tabela a ação cai em "no such table" em vez de exercitar a regra.
+    Schema::dropIfExists('channel_user_access');
+    Schema::create('channel_user_access', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('channel_id');
+        $table->unsignedInteger('user_id');
+        $table->unsignedInteger('granted_by_user_id');
+        $table->timestamp('granted_at');
+        $table->timestamp('revoked_at')->nullable();
+        $table->unsignedInteger('revoked_by_user_id')->nullable();
+        $table->timestamps();
+    });
+
     // Spatie LogsActivity trait do Contact escreve aqui em cada save —
     // sem esta tabela o test quebra com SQLSTATE 1 no such table.
     Schema::create('activity_log', function ($table) {
@@ -189,6 +204,11 @@ it('R-WA-064-004 — linkContact persiste contact_id valido do mesmo business', 
         'contact_id' => null,
     ]);
 
+    // Atendente 42 com acesso ativo ao canal da conversa (ACL canal = fila, US-WA-069).
+    DB::table('channel_user_access')->insert([
+        'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,
+        'granted_by_user_id' => 1, 'granted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $controller = app(InboxController::class);
     $req = Request::create('/test', 'PATCH', ['contact_id' => $contact->id]);
     $resp = $controller->linkContact($req, $conv->id);
@@ -217,6 +237,11 @@ it('R-WA-064-005 — Tier 0: linkContact com contact_id cross-tenant retorna nul
         'contact_id' => null,
     ]);
 
+    // Atendente 42 com acesso ativo ao canal da conversa (ACL canal = fila, US-WA-069).
+    DB::table('channel_user_access')->insert([
+        'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,
+        'granted_by_user_id' => 1, 'granted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $controller = app(InboxController::class);
     $req = Request::create('/test', 'PATCH', ['contact_id' => $alienContact->id]);
     $resp = $controller->linkContact($req, $conv->id);
@@ -244,6 +269,11 @@ it('R-WA-064-006 — linkContact null desvincula (contact_id reset)', function (
         'contact_id' => $contact->id, // ja vinculado
     ]);
 
+    // Atendente 42 com acesso ativo ao canal da conversa (ACL canal = fila, US-WA-069).
+    DB::table('channel_user_access')->insert([
+        'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,
+        'granted_by_user_id' => 1, 'granted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $controller = app(InboxController::class);
     $req = Request::create('/test', 'PATCH', ['contact_id' => null]);
     $resp = $controller->linkContact($req, $conv->id);
