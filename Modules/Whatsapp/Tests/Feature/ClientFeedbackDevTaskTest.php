@@ -254,7 +254,15 @@ it('R-WA-FB-DEV-006 — HasBusinessScope: feedback de biz=1 não visível em biz
     $req->setLaravelSession(app('session.store'));
     app(ClientFeedbackController::class)->capture($req);
 
-    // Troca pra biz=99 — não deve enxergar
+    // Troca pra biz=99 — não deve enxergar. O ScopeByBusiness só filtra com usuário autenticado.
+    $user = new class extends \Illuminate\Foundation\Auth\User {
+        protected $table = 'users';
+        protected $guarded = [];
+        public function can($abilities, $arguments = []): bool { return false; }
+    };
+    $user->id = 7;
+    $user->business_id = 99;
+    auth()->setUser($user);
     session()->put('user.business_id', 99);
     expect(ClientFeedback::count())->toBe(0);
 });

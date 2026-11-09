@@ -402,6 +402,7 @@ it('R-WA-085-003 — send queueia Message com status="sent" + provider_message_i
     Http::fake([
         '*/instances/*/text' => Http::response(['status' => 'sent', 'message_id' => 'DAEMON_MSG_XYZ'], 200),
     ]);
+    config(['whatsapp.baileys.daemon_url' => 'https://daemon.test', 'whatsapp.baileys.api_key' => 'k']);
 
     $channel = Channel::query()->create([
         'business_id' => 1,
@@ -449,6 +450,7 @@ it('R-WA-085-004 — send com daemon falha mantem Message em DB com status="fail
     Http::fake([
         '*/instances/*/text' => Http::response(['error' => 'instance_disconnected'], 503),
     ]);
+    config(['whatsapp.baileys.daemon_url' => 'https://daemon.test', 'whatsapp.baileys.api_key' => 'k']);
 
     $channel = Channel::query()->create([
         'business_id' => 1,

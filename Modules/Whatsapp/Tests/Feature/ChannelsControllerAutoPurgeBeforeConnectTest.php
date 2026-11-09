@@ -192,7 +192,7 @@ it('R-WA-QRPURGE-004 — channel já connected NÃO dispara DELETE (idempotente)
 
 it('R-WA-QRPURGE-005 — channel state error dispara DELETE (recuperação broad)', function () {
     $ch = makeBaileysChannelForConnect(105, 'erro1234-5678-9abc-def0-123456789012');
-    $instanceId = 'ch-erro1234567889abcdef0123456789012';
+    $instanceId = 'ch-erro123456789abcdef0123456789012';
 
     Http::fake([
         "https://daemon.test/instances/{$instanceId}/status" => Http::response([
