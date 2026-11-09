@@ -11,7 +11,6 @@ use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\LidPhoneMap;
 use Modules\Whatsapp\Jobs\BackfillLidConversationsJob;
-use Modules\Whatsapp\Observers\LidPhoneMapObserver;
 
 uses(Tests\TestCase::class);
 
@@ -123,9 +122,8 @@ beforeEach(function () {
         $table->timestamps();
     });
 
-    // Observer pode não estar registrado em test env (cada test boot reseta
-    // o model). Registra explicitamente — idempotente.
-    LidPhoneMap::observe(LidPhoneMapObserver::class);
+    // O WhatsappServiceProvider já registra o LidPhoneMapObserver. Registrar de novo
+    // aqui duplicava cada evento (o T2 contava 2 jobs em vez de 1).
 });
 
 /** Helper — cria Channel + Conversation órfã (contact_id=null) pra LID. */

@@ -204,6 +204,7 @@ it('R-WA-064-004 — linkContact persiste contact_id valido do mesmo business', 
         'contact_id' => null,
     ]);
 
+    session()->put('user.id', 42);
     // Atendente 42 com acesso ativo ao canal da conversa (ACL canal = fila, US-WA-069).
     DB::table('channel_user_access')->insert([
         'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,
@@ -237,6 +238,7 @@ it('R-WA-064-005 — Tier 0: linkContact com contact_id cross-tenant retorna nul
         'contact_id' => null,
     ]);
 
+    session()->put('user.id', 42);
     // Atendente 42 com acesso ativo ao canal da conversa (ACL canal = fila, US-WA-069).
     DB::table('channel_user_access')->insert([
         'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,
@@ -269,6 +271,7 @@ it('R-WA-064-006 — linkContact null desvincula (contact_id reset)', function (
         'contact_id' => $contact->id, // ja vinculado
     ]);
 
+    session()->put('user.id', 42);
     // Atendente 42 com acesso ativo ao canal da conversa (ACL canal = fila, US-WA-069).
     DB::table('channel_user_access')->insert([
         'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,

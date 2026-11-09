@@ -129,7 +129,10 @@ class LidBackfillCommand extends Command
                     ->where('phone_e164', '+' . preg_replace('/\D+/', '', preg_replace('/@.+$/', '', $phone)))
                     ->exists();
 
-                $resolver->record($biz, $lid, $phone, LidPhoneMap::SOURCE_MANUAL);
+                // O par vem do senderPn de um payload real de webhook gravado em messages,
+                // não de digitação: com SOURCE_MANUAL a trava anti-cross-contact (2026-05-14)
+                // recusava todo LID novo e o comando morria no primeiro par.
+                $resolver->record($biz, $lid, $phone, LidPhoneMap::SOURCE_WEBHOOK_SENDER_PN);
 
                 if ($existed) {
                     $bucketByBiz[$biz]['pairs_skipped']++;

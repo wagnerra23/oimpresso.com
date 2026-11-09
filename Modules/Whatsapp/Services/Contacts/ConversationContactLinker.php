@@ -227,7 +227,31 @@ class ConversationContactLinker
             return null;
         }
 
-        $matches = $this->findMatches($conversation);
+        return $this->linkFirstMatch($conversation, $this->findMatches($conversation));
+    }
+
+    /**
+     * Vincula a conversa pelo telefone já conhecido, para quando o
+     * customer_external_id não é telefone (conversa órfã identificada por LID).
+     * Filtra pelo business da própria conversa (Tier 0, ADR 0093).
+     */
+    public function tryLinkByPhone(Conversation $conversation, string $phone): ?Contact
+    {
+        if ($conversation->contact_id !== null) {
+            return null;
+        }
+
+        return $this->linkFirstMatch(
+            $conversation,
+            $this->findMatchesForPhone((int) $conversation->business_id, $this->normalizePhone($phone)),
+        );
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, Contact>  $matches
+     */
+    private function linkFirstMatch(Conversation $conversation, \Illuminate\Support\Collection $matches): ?Contact
+    {
         if ($matches->isEmpty()) {
             return null;
         }
