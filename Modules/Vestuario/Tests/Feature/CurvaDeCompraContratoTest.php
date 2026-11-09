@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Vestuario\Services\CurvaDeCompra;
+use Tests\Support\EstoqueFixture;
 use Tests\Support\WithSeededTenant;
 
 /**
@@ -55,10 +56,10 @@ beforeEach(function () {
         return [$prod, $ids];
     };
     // venda com uma linha
-    $this->venda = function (int $biz, int $prod, int $var, float $qtd, string $quando, string $status = 'final', float $devolvida = 0): void {
+    $this->venda = function (int $biz, int $prod, int $var, float $qtd, string $quando, string $status = 'final', float $devolvida = 0, ?int $local = null): void {
         $tx = DB::table('transactions')->insertGetId(['business_id' => $biz, 'type' => 'sell', 'status' => $status, 'payment_status' => 'paid',
             'invoice_no' => 'CUR-' . uniqid(), 'transaction_date' => $quando, 'total_before_tax' => 20 * $qtd, 'final_total' => 20 * $qtd,
-            'created_by' => ($this->dono)($biz), 'created_at' => now(), 'updated_at' => now()]);
+            'created_by' => ($this->dono)($biz), 'created_at' => now(), 'updated_at' => now()] + ($local === null ? [] : ['location_id' => $local]));
         DB::table('transaction_sell_lines')->insert(['transaction_id' => $tx, 'product_id' => $prod, 'variation_id' => $var,
             'quantity' => $qtd, 'quantity_returned' => $devolvida, 'unit_price' => 20, 'unit_price_inc_tax' => 20,
             'created_at' => now(), 'updated_at' => now()]);
@@ -148,4 +149,79 @@ it('UC-VCUR-03 · sugerir não grava nada (pedido e estoque ficam como estavam)'
     app(CurvaDeCompra::class)->sugerir($this->biz, $this->a, 20, $this->hoje);
 
     expect([DB::table('transactions')->count(), DB::table('purchase_lines')->count(), DB::table('variation_location_details')->count()])->toBe($antes);
+});
+
+/** Entra como usuário com `purchase.create`. `$acesso`: ids de loja, ou 'all' para access_all_locations. */
+function curvaEntrar($teste, array|string $acesso): void
+{
+    $business = \App\Business::findOrFail($teste->biz);
+    $user = $teste->usuarioComPermissoes(['purchase.create'], $business);
+    // `permitted_locations()` lê a permissão DIRETA do usuário, não a do papel.
+    foreach ($acesso === 'all' ? ['access_all_locations'] : array_map(fn ($id) => 'location.' . $id, $acesso) as $nome) {
+        \Spatie\Permission\Models\Permission::findOrCreate($nome, 'web');
+        $user->givePermissionTo($nome);
+    }
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    $teste->actingAs(\App\User::findOrFail($user->id));
+    session(['user.business_id' => $teste->biz, 'user.id' => $user->id, 'business.id' => $teste->biz]);
+    session(['currency' => ['symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','], 'business.date_format' => 'd/m/Y']);
+}
+
+function curvaGet($teste, int $produto, int $total): array
+{
+    $r = $teste->getJson('/vestuario/curva-compra?product_id=' . $produto . '&total=' . $total);
+    $r->assertOk();
+
+    return $r->json();
+}
+
+it('UC-VCUR-04 · quem vê uma loja só soma as vendas daquela loja [T0]', function () {
+    $matriz = EstoqueFixture::locationId($this->biz);
+    $filial = EstoqueFixture::locationId($this->biz, 'filial');
+    [$prod, $v] = ($this->produto)($this->biz, ($this->categoria)($this->biz), ['P', 'M']);
+    $quando = now()->subDays(10)->format('Y-m-d 10:00:00');
+    ($this->venda)($this->biz, $prod, $v['P'], 8, $quando, 'final', 0, $matriz);
+    ($this->venda)($this->biz, $prod, $v['M'], 2, $quando, 'final', 0, $matriz);
+    ($this->venda)($this->biz, $prod, $v['P'], 1, $quando, 'final', 0, $filial);
+    ($this->venda)($this->biz, $prod, $v['M'], 9, $quando, 'final', 0, $filial);
+
+    curvaEntrar($this, [$matriz]);
+    $r = curvaGet($this, $prod, 10);
+
+    // só a matriz: P 8 · M 2 (com a filial junto seria P 9 · M 11)
+    expect($r['base'])->toBe('produto')
+        ->and(array_column($r['linhas'], 'vendidas', 'nome'))->toBe(['P' => 8.0, 'M' => 2.0])
+        ->and(array_column($r['linhas'], 'sugerida', 'nome'))->toBe(['P' => 8, 'M' => 2]);
+});
+
+it('UC-VCUR-04 · a curva da categoria também só conta as lojas que o usuário vê [T0]', function () {
+    $matriz = EstoqueFixture::locationId($this->biz);
+    $filial = EstoqueFixture::locationId($this->biz, 'filial');
+    $cat = ($this->categoria)($this->biz);
+    [$irmao, $v] = ($this->produto)($this->biz, $cat, ['P', 'M']);
+    [$novo] = ($this->produto)($this->biz, $cat, ['P', 'M']);
+    ($this->venda)($this->biz, $irmao, $v['M'], 5, now()->subDays(10)->format('Y-m-d 10:00:00'), 'final', 0, $filial);
+
+    curvaEntrar($this, [$matriz]);
+    $r = curvaGet($this, $novo, 10);
+
+    expect($r['motivo'])->toBe('sem_venda_no_produto_nem_na_categoria')->and($r['linhas'])->toBe([]);
+});
+
+it('UC-VCUR-04 · quem vê todas as lojas soma todas (a conta não muda para ele)', function () {
+    $matriz = EstoqueFixture::locationId($this->biz);
+    $filial = EstoqueFixture::locationId($this->biz, 'filial');
+    [$prod, $v] = ($this->produto)($this->biz, ($this->categoria)($this->biz), ['P', 'M']);
+    $quando = now()->subDays(10)->format('Y-m-d 10:00:00');
+    ($this->venda)($this->biz, $prod, $v['P'], 8, $quando, 'final', 0, $matriz);
+    ($this->venda)($this->biz, $prod, $v['M'], 2, $quando, 'final', 0, $matriz);
+    ($this->venda)($this->biz, $prod, $v['P'], 1, $quando, 'final', 0, $filial);
+    ($this->venda)($this->biz, $prod, $v['M'], 9, $quando, 'final', 0, $filial);
+
+    curvaEntrar($this, 'all');
+    $r = curvaGet($this, $prod, 10);
+
+    // P 9 · M 11 de 20: 4,5 · 5,5 → 4 · 5; a peça que falta vai para M (empate no resto, M vendeu mais)
+    expect(array_column($r['linhas'], 'vendidas', 'nome'))->toBe(['P' => 9.0, 'M' => 11.0])
+        ->and(array_column($r['linhas'], 'sugerida', 'nome'))->toBe(['P' => 4, 'M' => 6]);
 });
