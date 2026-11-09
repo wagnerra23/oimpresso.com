@@ -133,6 +133,24 @@ related_cu: [CU-OFI-12, CU-OFI-15]
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php`
 - **Status: 🧪**
 
+## UC-OAP-11 · Sem aviso não há faixa, e PIN errado aparece na tela
+- **Persona:** cliente final no link público.
+- **Aceite:** Dado o link aberto sem nenhuma ação · Então a tela não mostra faixa de aviso. Dado
+  um PIN errado · Quando o cliente confere · Então a tela diz quantas tentativas restam.
+- **Regressão que defende:** faixa branca vazia em toda abertura e erro de PIN mudo: o controller
+  gravava `flash` com `type`/`message`, formato que o `HandleInertiaRequests` não entrega.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php` · `tests/js/oficina-aprovacao-publica-aviso.test.tsx`
+- **Status: 🧪**
+
+## UC-OAP-12 · Quem decide recebe a confirmação
+- **Persona:** cliente final que aprova ou recusa.
+- **Aceite:** Dado o orçamento aprovado · Quando a tela volta · Então mostra a confirmação, e não
+  "Link inválido", embora o link tenha deixado de valer. Dado o orçamento recusado · Então mostra o
+  aviso de rejeição e o link segue aberto.
+- **Regressão que defende:** o cliente aprovar e ler que o link expirou.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php` · `tests/js/oficina-aprovacao-publica-aviso.test.tsx`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)

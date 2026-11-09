@@ -50,9 +50,11 @@ const brl = (n: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', c
 
 type Decisao = 'conferir' | 'aprovar' | 'rejeitar';
 
+/** Formato do `flash` compartilhado em HandleInertiaRequests: as três chaves sempre vêm, nulas quando não há aviso. */
 interface Flash {
-  type: 'success' | 'error' | 'info';
-  message: string;
+  success?: string | null;
+  error?: string | null;
+  info?: string | null;
 }
 
 interface Props {
@@ -66,6 +68,13 @@ interface Props {
 
 export default function AprovacaoPublica({ erro, mensagem, token, os, orcamento, tentativasRestantes }: Props) {
   const { flash } = usePage<{ flash?: Flash }>().props;
+  const aviso = flash?.success
+    ? { tipo: 'success' as const, texto: flash.success }
+    : flash?.error
+      ? { tipo: 'error' as const, texto: flash.error }
+      : flash?.info
+        ? { tipo: 'info' as const, texto: flash.info }
+        : null;
   const [decisao, setDecisao] = useState<Decisao | null>(null);
 
   const { data, setData, transform, post, processing, errors, reset } = useForm({
@@ -89,6 +98,23 @@ export default function AprovacaoPublica({ erro, mensagem, token, os, orcamento,
   // Empty state: token inválido/expirado
   // ────────────────────────────────────────────────────────────
   if (erro === 'link_invalido' || os === null) {
+    // Depois de aprovar a OS sai de `orcamento` e o link deixa de valer: quem acabou de
+    // aprovar vê a confirmação, não "link inválido".
+    if (aviso?.tipo === 'success') {
+      return (
+        <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4 py-8">
+          <Head title="Aprovação OS" />
+          <div className="max-w-md w-full bg-card rounded-lg border shadow-sm p-6 text-center">
+            <div className="inline-flex items-center justify-center size-12 rounded-full bg-green-50 text-green-900 mb-4">
+              <Check className="size-6" />
+            </div>
+            <h1 className="text-lg font-semibold mb-2">Aprovação OS</h1>
+            <p className="text-sm text-muted-foreground">{aviso.texto}</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4 py-8">
         <Head title="Link inválido · Aprovação OS" />
@@ -189,17 +215,17 @@ export default function AprovacaoPublica({ erro, mensagem, token, os, orcamento,
         )}
 
         {/* Flash messages */}
-        {flash && (
+        {aviso && (
           <div
             className={`rounded-md border p-3 text-sm ${
-              flash.type === 'success'
+              aviso.tipo === 'success'
                 ? 'bg-green-50 border-green-200 text-green-900'
-                : flash.type === 'error'
+                : aviso.tipo === 'error'
                   ? 'bg-destructive/10 border-destructive/30 text-destructive'
                   : 'bg-blue-50 border-blue-200 text-blue-900'
             }`}
           >
-            {flash.message}
+            {aviso.texto}
           </div>
         )}
 
