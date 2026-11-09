@@ -764,6 +764,16 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Repair/ProducaoOficinaIndexTest.php
 
+      # ── E2E DE COMPORTAMENTO — OficinaAuto (NASCE ADVISORY) ─────────────────────────
+      # Aprovação pública, Quadro de OS e detalhe da OS em Chromium real, com axe (critical e
+      # serious). Auditoria OficinaAuto 2026-11-05, pendência 6: nenhuma tela do módulo tinha
+      # Pest Browser nem axe. Tenant 98 (ADR 0358); sem pixel (ADR 0445).
+      - name: E2E de comportamento · OficinaAuto (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-oficina-auto
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/OficinaAuto/OficinaAutoTelasBrowserTest.php
+
       # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
       # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
       # promovido a ENFORCING em 2026-09-05 (flip [W]), logo NÃO tem `continue-on-error`
@@ -803,6 +813,7 @@ jobs:
           A_RECIPES: ${{ steps.e2e-recipes.outcome }}
           A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
           A_REPAIR_PRODUCAO: ${{ steps.e2e-repair-producao.outcome }}
+          A_OFICINA_AUTO: ${{ steps.e2e-oficina-auto.outcome }}
           A_PATR_ALOCACOES: ${{ steps.e2e-patrimonio-alocacoes.outcome }}
           A_PATR_CONFIGURACOES: ${{ steps.e2e-patrimonio-configuracoes.outcome }}
           A_PATR_MANUTENCOES: ${{ steps.e2e-patrimonio-manutencoes.outcome }}
@@ -843,6 +854,7 @@ jobs:
           registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
           registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
           registrar "E2E de render · Repair/ProducaoOficina" "$A_REPAIR_PRODUCAO"
+          registrar "E2E de comportamento · OficinaAuto" "$A_OFICINA_AUTO"
           registrar "E2E de render · Patrimonio/Alocacoes" "$A_PATR_ALOCACOES"
           registrar "E2E de render · Patrimonio/Configuracoes" "$A_PATR_CONFIGURACOES"
           registrar "E2E de render · Patrimonio/Manutencoes" "$A_PATR_MANUTENCOES"
