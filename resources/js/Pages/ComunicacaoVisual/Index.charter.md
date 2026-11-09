@@ -38,6 +38,7 @@ Contrato comportamental: [`Index.casos.md`](Index.casos.md).
 
 Tela Inertia **no ar** (`Index.tsx`), servida pela rota `comunicacao-visual.index`. Não é stub.
 
+- Só abre para empresa com o pacote `comunicacao_visual_module` (UC-CVPAC-01); a API também. O link público do cliente fica fora.
 - A rota entrega `bizName`, `materiais`, `podeCriar`, `orcamento` (reaberto, eager) e `recentes` (deferido). Até 2026-09-23 entregava só `bizName`.
 - Salvar e reabrir existem desde 2026-10-21. O link de aceite pelo WhatsApp existe desde 2026-10-26; o PDF do orçamento ainda não.
 

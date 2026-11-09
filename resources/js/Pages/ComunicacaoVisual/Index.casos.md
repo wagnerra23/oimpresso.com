@@ -112,6 +112,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVSAL-04 | Orçamento que virou OS ou foi recusado não regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-05 | Outra empresa não reabre, não lista nem regrava | must `[T0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-06 | Sem permissão de criar não salva nem regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVPAC-01 | Empresa sem o pacote recebe 403 no hub, na agenda e na API, inclusive o admin | must | Camada 1 do pacote · auditoria 2026-11-05 I-04/S8 | `PacoteRotasContratoTest` | 🧪 |
+| UC-CVPAC-02 | Empresa com o pacote segue usando e a permissão continua valendo | must | Camada 1 do pacote · auditoria 2026-11-05 I-04/S8 | `PacoteRotasContratoTest` | 🧪 |
+| UC-CVPAC-03 | O link público do cliente não depende do pacote; toda rota operacional carrega o gate | must | Camada 1 do pacote · auditoria 2026-11-05 I-04/S8 | `PacoteRotasContratoTest` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** O PR que criou este arquivo não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -918,6 +921,29 @@ oferece "Copiar link" e "Abrir no WhatsApp" (`wa.me` com o número do orçamento
 Orçamento já aprovado não oferece o link (o serviço recusaria).
 
 Teste: `tests/js/cv-aceite-link.test.tsx`
+
+Status: 🧪
+
+## UC-CVPAC-01 · Empresa sem o pacote recebe 403 · `must`
+
+**Dado** uma empresa cujo pacote não inclui `comunicacao_visual_module` **Quando** um usuário dela, mesmo
+o admin (que passa em todo `can()`), abre o hub, a agenda ou qualquer rota de `/comunicacao-visual/api/*`
+**Então** a resposta é 403, a mesma regra do menu e do app das lojas.
+
+Status: 🧪
+
+## UC-CVPAC-02 · Empresa com o pacote segue usando · `must`
+
+**Dado** uma empresa com o pacote **Quando** um usuário com permissão abre o hub ou a API **Então** a
+tela abre e a API responde normalmente. Sem a permissão da ação, a resposta segue 403.
+
+Status: 🧪
+
+## UC-CVPAC-03 · O link público não depende do pacote · `must`
+
+**Dado** uma empresa sem o pacote **Quando** o cliente abre `/orcamento-cv/{token}` **Então** o gate não
+interfere (o cliente não tem login). Toda rota `comunicacao-visual.*` e `comvis.api.*` carrega o gate;
+as rotas `comvis.aceite.*` e as de instalação, não.
 
 Status: 🧪
 
