@@ -13,7 +13,7 @@ uses(Tests\TestCase::class);
  * cenários positivos (entries fora da whitelist). Unit-level (não toca DB
  * Eloquent — usa reflection/registry).
  *
- * Tier 0 (ADR 0093 + ADR 0127 §3 + ADR 0101):
+ * Tier 0 (ADR 0093 + ADR 0127 §3 + ADR 0358):
  *  - PROIBIDO modificar `RevertService::unrevertibleRegistry()` sem ADR
  *  - Cada classe bloqueada é compliance/legal real (Portaria 671/2021,
  *    CONFAZ SINIEF 07/2005, Asaas API contract, NFSe prefeitura, payment
