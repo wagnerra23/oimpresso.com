@@ -7,7 +7,7 @@
 ## Resumo
 - **453** arquivos · **438** números únicos · máx **0448**
 - **ADRs ATIVOS (lifecycle ativo): 405** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 388 · superseded 28 · proposto 23 · deprecated 11 · recusado 2 · rascunho 1
+- Por status: aceito 389 · superseded 28 · proposto 22 · deprecated 11 · recusado 2 · rascunho 1
 - Por lifecycle: ativo 405 · substituido 28 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -491,4 +491,4 @@ _(nenhuma)_
 | 0445 | aceito | ativo | decision | A comparação de pixel (snapshots do VRT) sai do projeto; os testes de comportame |
 | 0446 | proposto | ativo | decision | Fisio: teleconsulta por vídeo no navegador (LiveKit, sem gravação) e evolução di |
 | 0447 | aceito | ativo | decision | Fisio: a câmera conta repetições, ritmo e tempo parado no celular do paciente, s |
-| 0448 | proposto | ativo | decision | Fabricação é cadastro, Produção é execução e product_bom é a fonte única da comp |
+| 0448 | aceito | ativo | decision | Fabricação é cadastro, Produção é execução e product_bom é a fonte única da comp |
