@@ -5,8 +5,8 @@ irmaos: AprovacaoPublica.charter.md (lei) · ../../../../memory/requisitos/Ofici
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-11-06"
-last_run_ci: "UC-OAP-08..10 revalidados contra o .tsx de 2026-11-06 (orçamento só depois do PIN); veredito pela lane oficinaauto-pest"
+last_run: "2026-11-09"
+last_run_ci: "UC-OAP-11..12 revalidados contra o .tsx de 2026-11-09: Pest na run 42696198529 (lane oficinaauto-pest) e vitest no Frontend da run 42709584363; o último commit da tela só troca a cor do ícone"
 related_us: [US-OFICINA-014, US-AUTO-009]
 related_cu: [CU-OFI-12, CU-OFI-15]
 ---
