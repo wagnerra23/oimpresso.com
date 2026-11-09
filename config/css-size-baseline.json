@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-11-04T17:41:20.472Z",
-    "total_lines": 25347,
+    "generated_at": "2026-11-09T16:45:59.805Z",
+    "total_lines": 25418,
     "file_count": 45,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
@@ -10,7 +10,7 @@
     ]
   },
   "files": {
-    "resources/css/cockpit.css": 2644,
+    "resources/css/cockpit.css": 2629,
     "resources/css/cowork-arquivos-bundle.css": 139,
     "resources/css/cowork-canon-financeiro-bundle.css": 4915,
     "resources/css/cowork-compras-bundle.css": 182,
@@ -29,9 +29,9 @@
     "resources/css/fin-ia.css": 323,
     "resources/css/fin-mobile.css": 67,
     "resources/css/fin-output.css": 1012,
-    "resources/css/fiscal-cockpit.css": 1516,
+    "resources/css/fiscal-cockpit.css": 1472,
     "resources/css/foundations.css": 20,
-    "resources/css/inertia.css": 312,
+    "resources/css/inertia.css": 306,
     "resources/css/kb.css": 263,
     "resources/css/screen-grade.css": 16,
     "resources/css/sells-cowork-curadoria.css": 334,
@@ -43,7 +43,7 @@
     "resources/css/sells-cowork-quotations.css": 92,
     "resources/css/sells-cowork-show.css": 132,
     "resources/css/sells-cowork-subscriptions.css": 143,
-    "resources/css/sells-cowork.css": 4043,
+    "resources/css/sells-cowork.css": 4053,
     "resources/css/sells-kb975-cheatsheet.css": 242,
     "resources/css/sells-kb975-emit-modals.css": 505,
     "resources/css/sells-kb975-next-action.css": 280,
