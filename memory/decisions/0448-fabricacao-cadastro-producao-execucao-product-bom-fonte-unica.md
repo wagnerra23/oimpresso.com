@@ -3,7 +3,7 @@ slug: 0448-fabricacao-cadastro-producao-execucao-product-bom-fonte-unica
 number: 448
 title: "Fabricação é cadastro, Produção é execução e product_bom é a fonte única da composição: decisões D1 a D6 e a ordem de unificação"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
