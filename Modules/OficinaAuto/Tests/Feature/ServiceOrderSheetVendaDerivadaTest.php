@@ -27,7 +27,7 @@ uses(Tests\TestCase::class);
  * Cenários:
  *   (1) OS sem transaction_id → JSON venda_derivada=null (degrade gracioso)
  *   (2) OS com transaction_id → JSON venda_derivada populado com 4 campos core
- *   (3) Multi-tenant Tier 0: biz=1 não vê transaction biz=2 (ADR 0093)
+ *   (3) Multi-tenant Tier 0: biz=98 não vê transaction biz=99 (ADR 0093)
  *
  * Refs:
  *  - Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php::show (json branch)
@@ -38,12 +38,12 @@ uses(Tests\TestCase::class);
  *  - memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 
-const BIZ_WAGNER_VD = 1;
-const BIZ_FICTICIO_VD = 2; // tenant que o seed da lane tem (1, 2, 98)
+const BIZ_WAGNER_VD = 98;
+const BIZ_FICTICIO_VD = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasTable('vehicles') || ! Schema::hasTable('transactions')) {
         $this->markTestSkipped('Tables missing — rode migrate primeiro');
@@ -141,11 +141,11 @@ it('OS com transaction → JSON venda_derivada populado (4 campos core ADR 0192 
     }
 });
 
-it('UC-OSH-11 · Multi-tenant Tier 0: OS biz=1 com transaction biz=2 retorna venda_derivada null (ADR 0093)', function () {
+it('UC-OSH-11 · Multi-tenant Tier 0: OS biz=98 com transaction biz=99 retorna venda_derivada null (ADR 0093)', function () {
     // Cenário adversarial — alguém forçou FK cross-tenant em DB (race condition
     // ou bug histórico). O `load('transaction:...')` respeita global scope da
-    // Transaction model, então biz=1 vendo OS com transaction_id apontando pra
-    // biz=2 deve resolver Transaction como null (não vaza dado).
+    // Transaction model, então biz=98 vendo OS com transaction_id apontando pra
+    // biz=99 deve resolver Transaction como null (não vaza dado).
     session(['user.business_id' => BIZ_WAGNER_VD]);
 
     $vehicle = vendaDerivadaCreateVehicle(BIZ_WAGNER_VD, 'VDTEST03');
@@ -164,7 +164,7 @@ it('UC-OSH-11 · Multi-tenant Tier 0: OS biz=1 com transaction biz=2 retorna ven
 
     $response->assertOk();
     // GLOBAL SCOPE Transaction deve resolver Transaction belongsTo como null
-    // porque o tenant ativo (biz=1) não enxerga Transaction biz=2.
+    // porque o tenant ativo (biz=98) não enxerga Transaction biz=99.
     expect($response->json('venda_derivada'))->toBeNull();
 })->after(function () {
     $vs = Vehicle::withoutGlobalScopes()->where('plate', 'VDTEST03')->get();

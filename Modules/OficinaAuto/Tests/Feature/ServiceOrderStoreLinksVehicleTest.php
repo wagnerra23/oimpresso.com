@@ -19,15 +19,15 @@ uses(Tests\TestCase::class);
  * casos.md promete: "salvar adiciona o card em Recepção" (como OS, não como pátio).
  *
  * Regra: vincula SÓ se o veículo está livre (current_rental_id NULL) — não clobbera
- * OS ativa de outro fluxo. Tests biz=1 (ADR 0101). Espelha harness ServiceOrderLaudoPhotoTest.
+ * OS ativa de outro fluxo. Tests biz=98 (ADR 0358). Espelha harness ServiceOrderLaudoPhotoTest.
  */
 
-const BIZ_LINKOS = 1;
+const BIZ_LINKOS = 98;
 const PLATE_LINKOS_PREFIX = 'WLNK';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
 });
 

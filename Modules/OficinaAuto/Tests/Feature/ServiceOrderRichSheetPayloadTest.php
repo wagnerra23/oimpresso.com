@@ -25,18 +25,18 @@ uses(Tests\TestCase::class);
  * Smoke browser MCP biz=164 Martinho fica pra fase pós-merge (Wagner rolará manual
  * via Chrome MCP screenshot — gap conhecido catalogado RUNBOOK smoke-prod-evidence).
  *
- * Multi-tenant Tier 0 [ADR 0093]: global scope filtra; este test atua biz=1 explícito.
+ * Multi-tenant Tier 0 [ADR 0093]: global scope filtra; este test atua biz=98 explícito.
  *
  * @see resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx
  * @see Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php::show
  */
 
-const BIZ_RICH = 1;
+const BIZ_RICH = 98;
 const PLATE_RICH_PREFIX = 'RICH';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('oficina_service_order_items')) {
         $this->markTestSkipped('Rode migration 2026_05_17_000010 primeiro');
