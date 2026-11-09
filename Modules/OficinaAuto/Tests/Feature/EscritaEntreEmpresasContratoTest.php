@@ -113,13 +113,13 @@ it('editar a OS de outra empresa dá 404 e não altera a linha', function () {
 
     $this->put("/oficina-auto/ordens-servico/{$osAlheia->id}", [
         'vehicle_id' => $veiculoProprio->id,
-        'order_type' => 'manutencao',
         'status'     => 'alterada_por_outra_empresa',
+        'notes'      => 'alterada por outra empresa',
     ])->assertNotFound();
 
     $linha = ServiceOrder::withoutGlobalScopes()->find($osAlheia->id);
     expect($linha->status)->toBe('aberta');
-    expect($linha->order_type)->toBe('mecanica');
+    expect($linha->notes)->toBeNull();
     expect((int) $linha->vehicle_id)->toBe((int) $veiculoAlheio->id);
     expect((int) $linha->business_id)->toBe($this->outra);
 });
@@ -129,13 +129,13 @@ it('controle: editar a OS da própria empresa grava', function () {
 
     $this->put("/oficina-auto/ordens-servico/{$os->id}", [
         'vehicle_id' => $veiculo->id,
-        'order_type' => 'manutencao',
         'status'     => 'em_execucao',
+        'notes'      => 'nota da própria empresa',
     ])->assertSessionHasNoErrors();
 
     $linha = ServiceOrder::withoutGlobalScopes()->find($os->id);
     expect($linha->status)->toBe('em_execucao');
-    expect($linha->order_type)->toBe('manutencao');
+    expect($linha->notes)->toBe('nota da própria empresa');
 });
 
 it('apagar a OS de outra empresa dá 404 e a linha continua lá', function () {
