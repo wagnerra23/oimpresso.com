@@ -12,7 +12,8 @@ import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Skeleton } from '@/Components/ui/skeleton'
 import { Grid } from '@/Components/layout'
-import PageHeader from '@/Components/shared/PageHeader'
+import { PageHeader } from '@/Components/PageHeader'
+import { Icon } from '@/Components/Icon'
 import EmptyState from '@/Components/shared/EmptyState'
 import { ArrowLeft } from 'lucide-react'
 
@@ -87,6 +88,10 @@ function PropertiesDiff({ properties }: { properties: Record<string, unknown> })
   )
 }
 
+function IconeDaTela(): React.ReactElement {
+  return <Icon name="history" size={18} className="mr-2 inline-block align-[-2px] text-primary" />
+}
+
 function VoltarALista(): React.ReactElement {
   return (
     <Button asChild variant="outline">
@@ -100,7 +105,7 @@ function VoltarALista(): React.ReactElement {
 function DetailSkeleton(): React.ReactElement {
   return (
     <>
-      <PageHeader icon="history" title="Atividade" action={<VoltarALista />} />
+      <PageHeader leading={<IconeDaTela />} title="Atividade" actions={<VoltarALista />} />
       <Card>
         <CardContent className="py-6">
           <Grid cols={2} gap={3} aria-busy="true" aria-label="Carregando atividade">
@@ -124,7 +129,7 @@ function DetailConteudo({ activity }: Props): React.ReactElement {
   if (!activity) {
     return (
       <>
-        <PageHeader icon="history" title="Atividade não encontrada" />
+        <PageHeader leading={<IconeDaTela />} title="Atividade não encontrada" />
         <Card>
           <CardContent className="py-6">
             <EmptyState
@@ -146,10 +151,10 @@ function DetailConteudo({ activity }: Props): React.ReactElement {
   return (
     <>
       <PageHeader
-        icon="history"
+        leading={<IconeDaTela />}
         title={`Atividade #${activity.id}`}
-        description={activity.description}
-        action={<VoltarALista />}
+        subtitle={activity.description}
+        actions={<VoltarALista />}
       />
 
       <Card className="mb-4">

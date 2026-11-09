@@ -19,8 +19,8 @@ vi.mock('@inertiajs/react', () => ({
   Link: ({ href, children, ...rest }: any) => <a href={href} {...rest}>{children}</a>,
 }));
 vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: any) => <div>{children}</div> }));
-vi.mock('@/Components/shared/PageHeader', () => ({
-  default: ({ title, action }: any) => <header><h1>{title}</h1>{action}</header>,
+vi.mock('@/Components/PageHeader', () => ({
+  PageHeader: ({ title, actions }: any) => <header><h1>{title}</h1>{actions}</header>,
 }));
 vi.mock('@/Components/shared/EmptyState', () => ({
   default: ({ title, description }: any) => <div><p>{title}</p><p>{description}</p></div>,
