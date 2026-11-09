@@ -14,7 +14,7 @@ module: Compras
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Compras/**` + `resources/js/Pages/Compras/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 79 arquivos em 19 papéis.
+**Total mapeado:** 80 arquivos em 19 papéis.
 
 ## Controllers — 5
 
@@ -75,7 +75,7 @@ module: Compras
 
 - [web.php](../../../Modules/Compras/Routes/web.php)
 
-## Migrations (schema) — 8
+## Migrations (schema) — 9
 
 - [2026_10_20_000001_create_compras_insumo_metodo_custo_table.php](../../../Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php)
 - [2026_10_20_120000_create_compras_propostas_preco_table.php](../../../Modules/Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table.php)
@@ -85,6 +85,7 @@ module: Compras
 - [2026_10_27_300000_create_compras_aprovacoes_pedido_table.php](../../../Modules/Compras/Database/Migrations/2026_10_27_300000_create_compras_aprovacoes_pedido_table.php)
 - [2026_10_27_400000_create_compras_custo_medio_tables.php](../../../Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_custo_medio_tables.php)
 - [2026_10_27_400000_create_compras_inspecoes_table.php](../../../Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_inspecoes_table.php)
+- [2026_11_09_100000_add_estorno_to_compras_custo_medio_movimentos.php](../../../Modules/Compras/Database/Migrations/2026_11_09_100000_add_estorno_to_compras_custo_medio_movimentos.php)
 
 ## Config — 1
 
