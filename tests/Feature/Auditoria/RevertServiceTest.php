@@ -158,7 +158,7 @@ it('cenario 3b: OS com NFSe emitida e negada; a mesma OS com nota cancelada e li
 it('cenario 3c: venda com pagamento depois do log e negada; sem pagamento posterior e liberada', function () {
     $venda = revertLinha('transactions', ['business_id' => $this->business->id]);
     $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
-    $log = revertLog(\App\Transaction::class, $venda, $this->business->id, ['status' => 'draft']);
+    $log = revertLog(\App\Transaction::class, $venda, $this->business->id, ['additional_notes' => 'antes']);
 
     expect($this->service->canRevert($log, $user)->allowed)->toBeTrue();
 
