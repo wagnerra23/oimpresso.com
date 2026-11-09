@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
+use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
 use App\Scopes\ScopeByBusiness;
 
@@ -18,8 +19,8 @@ use App\Scopes\ScopeByBusiness;
  *
  * Action `enviar_manutencao` (qualquer stage → `manutencao`, marcada `is_critical=true`).
  *
- * Subject = Modules\OficinaAuto\Entities\Vehicle (mudança DIRETA de status — não passa
- * por uma rental ativa). Atualiza:
+ * Subject = Vehicle, ou a ServiceOrder dele (caso do kanban). Mudança DIRETA de status,
+ * sem passar por uma rental ativa. Atualiza o veículo:
  *   - current_status = 'manutencao'
  *   - current_rental_id = null (libera referência se houver rental)
  *
@@ -47,6 +48,11 @@ final class EnviarCacambaManutencao implements SideEffectInterface
 {
     public function execute(Model $subject, array $payload = []): void
     {
+        // O kanban executa a ação pela OS (ServiceOrderFsmActionController): o veículo é o dela.
+        if ($subject instanceof ServiceOrder) {
+            $subject = $this->veiculoDaOs($subject);
+        }
+
         if (! $subject instanceof Vehicle) {
             throw new InvalidArgumentException(
                 'EnviarCacambaManutencao: subject deve ser Modules\\OficinaAuto\\Entities\\Vehicle (recebido '
@@ -82,5 +88,21 @@ final class EnviarCacambaManutencao implements SideEffectInterface
             'plate' => $subject->plate,
             'motivo' => $motivo,
         ]);
+    }
+
+    private function veiculoDaOs(ServiceOrder $os): Vehicle
+    {
+        $vehicle = Vehicle::withoutGlobalScope(ScopeByBusiness::class)
+            ->where('id', (int) $os->vehicle_id)
+            ->where('business_id', (int) $os->business_id) // Tier 0: só o veículo da mesma empresa da OS
+            ->first();
+
+        if (! $vehicle) {
+            throw new InvalidArgumentException(
+                "EnviarCacambaManutencao: vehicle {$os->vehicle_id} não encontrado no business {$os->business_id}"
+            );
+        }
+
+        return $vehicle;
     }
 }
