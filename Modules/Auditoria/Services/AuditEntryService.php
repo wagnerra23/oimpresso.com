@@ -2,6 +2,7 @@
 
 namespace Modules\Auditoria\Services;
 
+use App\User;
 use App\Util\OtelHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -48,9 +49,13 @@ class AuditEntryService
                 }
             }
 
-            return $query
+            $pagina = $query
                 ->orderByDesc('id')
                 ->paginate($perPage ?? (int) config('auditoria.page_size', 50));
+
+            $this->anexarRotuloDoAutor($businessId, $pagina);
+
+            return $pagina;
         }, [
             'module'        => 'Auditoria',
             'filters_count' => count(array_intersect_key($filters, array_flip(self::ALLOWED_FILTERS))),
@@ -81,6 +86,51 @@ class AuditEntryService
     public function normalizeFilters(array $raw): array
     {
         return array_intersect_key($raw, array_flip(self::ALLOWED_FILTERS));
+    }
+
+    /**
+     * Preenche `causer_label` (coluna "Por" da lista) em cada linha da página.
+     *
+     * Uma única consulta de nomes por página, só de usuários da empresa da trilha: quem é de
+     * outra empresa aparece pelo id, sem o nome. Não usa o relacionamento `causer` porque ele
+     * entraria inteiro no payload da tela, com e-mail e demais campos do usuário.
+     */
+    private function anexarRotuloDoAutor(int $businessId, LengthAwarePaginator $pagina): void
+    {
+        $ids = collect($pagina->items())
+            ->filter(fn (Activity $a) => $a->causer_type === User::class && $a->causer_id)
+            ->pluck('causer_id')
+            ->unique()
+            ->values();
+
+        // withTrashed: quem saiu da empresa continua sendo o autor do que fez.
+        $nomes = $ids->isEmpty()
+            ? collect()
+            : User::withTrashed()
+                ->where('business_id', $businessId)
+                ->whereIn('id', $ids)
+                ->get(['id', 'first_name', 'last_name'])
+                ->mapWithKeys(fn (User $u) => [$u->id => $u->nome_exibicao]);
+
+        foreach ($pagina->items() as $activity) {
+            $nome = $activity->causer_type === User::class ? $nomes->get($activity->causer_id) : null;
+            $activity->setAttribute('causer_label', $this->rotuloDoAutor($activity, $nome));
+        }
+    }
+
+    private function rotuloDoAutor(Activity $activity, ?string $nome): string
+    {
+        if (! $activity->causer_id) {
+            return match ($activity->causer_kind) {
+                'agent' => 'IA',
+                'api'   => 'API',
+                default => 'Sistema',
+            };
+        }
+
+        $autor = $nome ?: (($activity->causer_type === User::class ? 'Usuário' : class_basename((string) $activity->causer_type)).' #'.$activity->causer_id);
+
+        return $activity->causer_kind === 'agent' ? 'IA · '.$autor : $autor;
     }
 
     /**

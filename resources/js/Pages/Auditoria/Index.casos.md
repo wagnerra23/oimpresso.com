@@ -39,6 +39,18 @@ last_run: "2026-09-30"
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDI-03 · redirect 301 legado").
 - **Status: 🧪**
 
+## UC-AUDI-10 · Vejo o nome de quem fez a alteração, sem expor os dados dessa pessoa
+- **Persona:** auditor — responde "quem mudou isto?" na própria lista (CU-AUD-01).
+- **Aceite:** Dado alterações feitas por usuários do business 98 · Quando a listagem é montada · Então cada linha traz `causer_label` com o nome do autor, inclusive de usuário desligado, os nomes vêm numa única consulta por página, e a linha não carrega o registro do usuário (sem relacionamento `causer`, sem e-mail).
+- **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDI-10 · nome do autor").
+- **Status: 🧪**
+
+## UC-AUDI-11 · Ação sem usuário tem rótulo próprio, e autor de outro business não revela o nome
+- **Persona:** auditor — distingue rotina, IA e integração de uma pessoa; o isolamento vale também para o nome (Tier 0, ADR 0093).
+- **Aceite:** Dado alterações sem autor com `causer_kind` `system`, `agent` e `api` · Então os rótulos são `Sistema`, `IA` e `API`. Dado uma alteração da IA em nome de um usuário · Então o rótulo começa com `IA ·`. Dado um autor cujo usuário é do business 99 · Então o rótulo mostra só `Usuário #id`, sem o nome.
+- **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDI-11 · sem usuário", "UC-AUDI-11 · autor de outro business").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)

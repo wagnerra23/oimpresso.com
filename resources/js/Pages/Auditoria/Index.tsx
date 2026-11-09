@@ -29,6 +29,7 @@ interface Activity {
   subject_id: number | null
   causer_type: string | null
   causer_id: number | null
+  causer_label: string
   properties: Record<string, unknown> | null
   business_id: number | null
   created_at: string
@@ -166,7 +167,7 @@ function ActivitiesTable({ activities }: { activities: Props['activities'] }): R
                   {a.subject_type ? `${a.subject_type.split('\\').pop() || a.subject_type} #${a.subject_id ?? '?'}` : '—'}
                 </td>
                 <td className="px-4 py-2 text-xs text-muted-foreground">
-                  {a.causer_id ? `User #${a.causer_id}` : 'sistema'}
+                  {a.causer_label}
                 </td>
                 <td className="px-4 py-2 text-right">
                   <Link
