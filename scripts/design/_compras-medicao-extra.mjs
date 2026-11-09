@@ -32,7 +32,7 @@ async function estavel() {
   return ant;
 }
 async function escuro() {
-  await page.evaluate(() => { document.documentElement.setAttribute('data-theme', 'dark'); document.documentElement.classList.add('dark'); });
+  await page.evaluate(() => { document.documentElement.setAttribute('data-theme', 'dark'); document.documentElement.classList.add('dark'); document.querySelectorAll('[data-theme]').forEach((e) => e.setAttribute('data-theme', 'dark')); });
   await page.waitForTimeout(300);
 }
 async function ir(rota) {
@@ -89,7 +89,7 @@ const inventario = () => page.evaluate(() => {
 
 const resultado = { d1: {}, inventario: {}, paginas: {} };
 
-resultado.d1.comprasAba = await d1('/compras', async () => { await page.locator('[data-contract="compras-abas"] > a').nth(1).click(); });
+resultado.d1.comprasAba = await d1('/compras', async () => { const i = page.locator('input[placeholder*="Buscar NF-e"]').first(); await i.fill('VISREG'); await i.press('Enter'); });
 resultado.d1.purchasesData = await d1('/purchases', async () => {
   await page.locator('main .sticky input[type="date"]').first().fill('2026-06-01');
 });

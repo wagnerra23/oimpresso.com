@@ -35,5 +35,9 @@
         "botaoSecundario": ".os-drawer-actions button"
       }
     }
-  }
+  },
+  "storage": {
+    "oimpresso.compras.aba": "pedidos"
+  },
+  "_storage_por_que": "O protótipo ganhou abas Painel/Pedidos/Fornecedores em 27/10 (#10055) e abre em Painel; a lista que a tela de produção desenha é a aba Pedidos."
 }

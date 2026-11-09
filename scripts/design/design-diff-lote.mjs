@@ -760,7 +760,7 @@ async function executarAbrir(page, passo) {
 }
 
 async function medirLado(page, { probe, roles, shell, tema }) {
-  if (tema) { await page.evaluate((t) => { document.documentElement.setAttribute('data-theme', t); document.documentElement.classList.toggle('dark', t === 'dark'); }, tema); await page.waitForTimeout(300); }
+  if (tema) { await page.evaluate((t) => { document.documentElement.setAttribute('data-theme', t); document.documentElement.classList.toggle('dark', t === 'dark'); document.querySelectorAll('[data-theme]').forEach((e) => e.setAttribute('data-theme', t)); }, tema); await page.waitForTimeout(300); }
   await page.evaluate(({ r, s }) => { window.__DD_ROLES = r; if (s) window.__SB_ROLES = s; }, { r: roles, s: shell || null });
   return page.evaluate(probe);
 }
