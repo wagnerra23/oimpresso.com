@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * Cobertura:
  *  - Cenário 1: Observer dispatcha Job quando ServiceOrder.status → orcamento
  *  - Cenário 2: Job idempotência (cache key bloqueia 2º dispatch)
- *  - Cenário 3: Job rejeita cross-tenant (OS biz=1 com job param business_id=2 → skip)
+ *  - Cenário 3: Job rejeita cross-tenant (OS biz=98 com job param business_id=2 → skip)
  *  - Cenário 4: Job skip quando contact ausente (walk-in)
  *  - Cenário 5: Job skip quando status mudou pós-dispatch (race condition)
  *  - Cenário 6: Job dispatch 2 SendWhatsappMessageJob (msg1 link, msg2 PIN delay 60s)
@@ -32,13 +32,13 @@ uses(Tests\TestCase::class);
  * @see resources/js/Pages/OficinaAuto/AprovacaoPublica.charter.md
  */
 
-const BIZ_JOB_A = 1;
-const BIZ_JOB_B = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
+const BIZ_JOB_A = 98;
+const BIZ_JOB_B = 99;
 const PLATE_JOB_PREFIX = 'WPPJ';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasTable('vehicles')) {
         $this->markTestSkipped('Schema OficinaAuto missing — rode migrate primeiro');
