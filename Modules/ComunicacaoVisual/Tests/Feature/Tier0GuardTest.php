@@ -7,6 +7,7 @@ use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
 use Database\Seeders\FsmProcessoComunicacaoVisualSeeder;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\ComunicacaoVisual\Entities\Acabamento;
@@ -14,8 +15,9 @@ use Modules\ComunicacaoVisual\Entities\Instalacao;
 use Modules\ComunicacaoVisual\Entities\InstalacaoCatalogo;
 use Modules\ComunicacaoVisual\Entities\OrdemProducao;
 use Modules\ComunicacaoVisual\Entities\Substrato;
+use Tests\Support\WithSeededTenant;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class, WithSeededTenant::class);
 
 /**
  * GUARD Tier 0 — Modules/ComunicacaoVisual (US-COMVIS-NEW-012).
@@ -26,8 +28,8 @@ uses(Tests\TestCase::class);
  *   3. NUNCA emitir fiscal auto (sem RBAC gerente/financeiro)
  *
  * + cross-tenant Tier 0 IRREVOGÁVEL (ADR 0093):
- *   - biz=1 (Wagner WR2) vs biz=99 (fictício isolamento)
- *   - NUNCA biz=4 (ROTA LIVRE — cliente Larissa) — ADR 0101
+ *   - tenant 98 contra 99, as duas fictícias (ADR 0358)
+ *   - nunca a 4 (cliente real) nem a 1 (empresa real, no CT 100 a base é clone de prod)
  *
  * + FSM Pipeline canon (ADR 0143):
  *   - UPDATE direto em current_stage_id BLOQUEADO via GuardsFsmTransitions
@@ -43,13 +45,9 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md §11 + §15 (US-COMVIS-NEW-012)
  * @see memory/requisitos/ComunicacaoVisual/ComunicacaoVisual.charter.md §7
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
  */
-
-// Convenção feedback_test_biz_99_cross_tenant_convention.md
-const COMVIS_BIZ_WAGNER = 1;
-const COMVIS_BIZ_FICTICIO = 99;
 
 beforeEach(function () {
     // FSM canon + cv_* schema requerem MySQL UltimatePOS (não SQLite in-memory)
@@ -62,17 +60,23 @@ beforeEach(function () {
     if (! Schema::hasTable('sale_processes')) {
         $this->markTestSkipped('sale_processes table missing — FSM canon não migrado (ADR 0143)');
     }
+    try {
+        $this->biz = $this->seededTenant();
+        $this->outra = $this->seededSupportClientTenant();
+    } catch (\Throwable $e) {
+        $this->markTestSkipped('Schema UltimatePOS ausente: '.$e->getMessage());
+    }
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Cross-tenant Tier 0 — substrato biz=1 NÃO aparece em biz=99
+// Cross-tenant Tier 0 — o que é da empresa do teste NÃO aparece na outra
 // ──────────────────────────────────────────────────────────────────────────────
 
-it('Substrato biz=1 NÃO aparece com session biz=99 (Tier 0 IRREVOGÁVEL)', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
+it('UC-CV-05 · Substrato da empresa do teste NÃO aparece na sessão da outra empresa (Tier 0 IRREVOGÁVEL)', function () {
+    session(['user.business_id' => $this->biz->id]);
 
     $sub = Substrato::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
-        'business_id'    => COMVIS_BIZ_WAGNER,
+        'business_id'    => $this->biz->id,
         'nome'           => 'Lona Frontlight 440g GUARD',
         'categoria'      => 'lona',
         'gramatura_g_m2' => 440,
@@ -80,36 +84,32 @@ it('Substrato biz=1 NÃO aparece com session biz=99 (Tier 0 IRREVOGÁVEL)', func
         'ativo'          => true,
     ]);
 
-    session(['user.business_id' => COMVIS_BIZ_FICTICIO]);
+    session(['user.business_id' => $this->outra->id]);
     $resultado = Substrato::where('id', $sub->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->after(function () {
-    Substrato::withoutGlobalScopes()->where('nome', 'Lona Frontlight 440g GUARD')->forceDelete();
 });
 
-it('Acabamento biz=1 NÃO aparece com session biz=99', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
+it('UC-CV-05 · Acabamento da empresa do teste NÃO aparece na sessão da outra empresa', function () {
+    session(['user.business_id' => $this->biz->id]);
 
     $acab = Acabamento::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
-        'business_id' => COMVIS_BIZ_WAGNER,
+        'business_id' => $this->biz->id,
         'nome'        => 'Ilhós metálico GUARD',
         'tipo'        => 'unitario',
         'preco'       => 1.50,
         'ativo'       => true,
     ]);
 
-    session(['user.business_id' => COMVIS_BIZ_FICTICIO]);
+    session(['user.business_id' => $this->outra->id]);
     expect(Acabamento::where('id', $acab->id)->get())->toHaveCount(0);
-})->after(function () {
-    Acabamento::withoutGlobalScopes()->where('nome', 'Ilhós metálico GUARD')->forceDelete();
 });
 
-it('InstalacaoCatalogo biz=1 NÃO aparece com session biz=99', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
+it('UC-CV-05 · InstalacaoCatalogo da empresa do teste NÃO aparece na sessão da outra empresa', function () {
+    session(['user.business_id' => $this->biz->id]);
 
     $cat = InstalacaoCatalogo::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
-        'business_id' => COMVIS_BIZ_WAGNER,
+        'business_id' => $this->biz->id,
         'nome'        => 'Fachada Andaime GUARD',
         'preco_base'  => 250.00,
         'preco_m2'    => 12.00,
@@ -117,17 +117,15 @@ it('InstalacaoCatalogo biz=1 NÃO aparece com session biz=99', function () {
         'ativo'       => true,
     ]);
 
-    session(['user.business_id' => COMVIS_BIZ_FICTICIO]);
+    session(['user.business_id' => $this->outra->id]);
     expect(InstalacaoCatalogo::where('id', $cat->id)->get())->toHaveCount(0);
-})->after(function () {
-    InstalacaoCatalogo::withoutGlobalScopes()->where('nome', 'Fachada Andaime GUARD')->forceDelete();
 });
 
-it('OrdemProducao biz=1 NÃO aparece com session biz=99', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
+it('UC-CV-05 · OrdemProducao da empresa do teste NÃO aparece na sessão da outra empresa', function () {
+    session(['user.business_id' => $this->biz->id]);
 
     $op = OrdemProducao::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
-        'business_id'     => COMVIS_BIZ_WAGNER,
+        'business_id'     => $this->biz->id,
         'codigo'          => 'OP-GUARD-99991',
         'qtd'             => 1,
         'instalacao_tipo' => 'cliente_busca',
@@ -135,18 +133,16 @@ it('OrdemProducao biz=1 NÃO aparece com session biz=99', function () {
         'total'           => 0,
     ]);
 
-    session(['user.business_id' => COMVIS_BIZ_FICTICIO]);
+    session(['user.business_id' => $this->outra->id]);
     expect(OrdemProducao::where('id', $op->id)->get())->toHaveCount(0);
-})->after(function () {
-    OrdemProducao::withoutGlobalScopes()->where('codigo', 'OP-GUARD-99991')->forceDelete();
 });
 
-it('Instalacao biz=1 NÃO aparece com session biz=99', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
+it('UC-CV-05 · Instalacao da empresa do teste NÃO aparece na sessão da outra empresa', function () {
+    session(['user.business_id' => $this->biz->id]);
 
     // Cria ordem pai pra satisfazer FK
     $op = OrdemProducao::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
-        'business_id'     => COMVIS_BIZ_WAGNER,
+        'business_id'     => $this->biz->id,
         'codigo'          => 'OP-GUARD-99992',
         'qtd'             => 1,
         'instalacao_tipo' => 'fachada_simples',
@@ -155,22 +151,17 @@ it('Instalacao biz=1 NÃO aparece com session biz=99', function () {
     ]);
 
     $inst = Instalacao::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
-        'business_id' => COMVIS_BIZ_WAGNER,
+        'business_id' => $this->biz->id,
         'ordem_id'    => $op->id,
         'status'      => 'agendada',
     ]);
 
-    session(['user.business_id' => COMVIS_BIZ_FICTICIO]);
+    session(['user.business_id' => $this->outra->id]);
     expect(Instalacao::where('id', $inst->id)->get())->toHaveCount(0);
-})->after(function () {
-    Instalacao::withoutGlobalScopes()->whereHas('ordem', function ($q) {
-        $q->withoutGlobalScopes()->where('codigo', 'OP-GUARD-99992');
-    })->forceDelete();
-    OrdemProducao::withoutGlobalScopes()->where('codigo', 'OP-GUARD-99992')->forceDelete();
 });
 
-it('creating event auto-popula business_id da sessão (Substrato)', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
+it('UC-CV-05 · creating event auto-popula business_id da sessão (Substrato)', function () {
+    session(['user.business_id' => $this->biz->id]);
 
     // Cria SEM business_id explícito — hook creating deve popular
     $sub = Substrato::create([
@@ -180,9 +171,7 @@ it('creating event auto-popula business_id da sessão (Substrato)', function () 
         'ativo'          => true,
     ]);
 
-    expect($sub->business_id)->toBe(COMVIS_BIZ_WAGNER);
-})->after(function () {
-    Substrato::withoutGlobalScopes()->where('nome', 'Vinil Adesivo GUARD')->forceDelete();
+    expect($sub->business_id)->toBe($this->biz->id);
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -191,12 +180,12 @@ it('creating event auto-popula business_id da sessão (Substrato)', function () 
 // ──────────────────────────────────────────────────────────────────────────────
 
 it('FSM Seeder: action iniciar_impressao está marcada is_critical + tem roles cadastradas', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
+    session(['user.business_id' => $this->biz->id]);
 
-    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness(COMVIS_BIZ_WAGNER);
+    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness($this->biz->id);
 
     $process = SaleProcess::withoutGlobalScopes()
-        ->where('business_id', COMVIS_BIZ_WAGNER)
+        ->where('business_id', $this->biz->id)
         ->where('key', 'os_comunicacao_visual')
         ->firstOrFail();
 
@@ -219,11 +208,11 @@ it('FSM Seeder: action iniciar_impressao está marcada is_critical + tem roles c
 });
 
 it('FSM Seeder: action concluir_impressao tem side-effect ConsumirEstoque (não dispara auto)', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
-    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness(COMVIS_BIZ_WAGNER);
+    session(['user.business_id' => $this->biz->id]);
+    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness($this->biz->id);
 
     $process = SaleProcess::withoutGlobalScopes()
-        ->where('business_id', COMVIS_BIZ_WAGNER)
+        ->where('business_id', $this->biz->id)
         ->where('key', 'os_comunicacao_visual')
         ->firstOrFail();
 
@@ -245,7 +234,7 @@ it('FSM Seeder: action concluir_impressao tem side-effect ConsumirEstoque (não 
 // ──────────────────────────────────────────────────────────────────────────────
 
 it('OrdemProducao.area_m2 é calculável server-side (largura × altura × qtd)', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
+    session(['user.business_id' => $this->biz->id]);
 
     $op = OrdemProducao::create([
         'codigo'          => 'OP-GUARD-AREA-001',
@@ -262,8 +251,6 @@ it('OrdemProducao.area_m2 é calculável server-side (largura × altura × qtd)'
     expect((float) $op->largura_m)->toBe(3.0);
     expect((float) $op->altura_m)->toBe(1.5);
     expect($op->qtd)->toBe(2);
-})->after(function () {
-    OrdemProducao::withoutGlobalScopes()->where('codigo', 'OP-GUARD-AREA-001')->forceDelete();
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -271,11 +258,11 @@ it('OrdemProducao.area_m2 é calculável server-side (largura × altura × qtd)'
 // ──────────────────────────────────────────────────────────────────────────────
 
 it('FSM Seeder: action emitir_nfe_e_nfse é critical + restrita a roles fiscais', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
-    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness(COMVIS_BIZ_WAGNER);
+    session(['user.business_id' => $this->biz->id]);
+    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness($this->biz->id);
 
     $process = SaleProcess::withoutGlobalScopes()
-        ->where('business_id', COMVIS_BIZ_WAGNER)
+        ->where('business_id', $this->biz->id)
         ->where('key', 'os_comunicacao_visual')
         ->firstOrFail();
 
@@ -302,11 +289,11 @@ it('FSM Seeder: action emitir_nfe_e_nfse é critical + restrita a roles fiscais'
 // ──────────────────────────────────────────────────────────────────────────────
 
 it('OrdemProducao bloqueia UPDATE direto em current_stage_id (GuardsFsmTransitions)', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
-    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness(COMVIS_BIZ_WAGNER);
+    session(['user.business_id' => $this->biz->id]);
+    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness($this->biz->id);
 
     $process = SaleProcess::withoutGlobalScopes()
-        ->where('business_id', COMVIS_BIZ_WAGNER)
+        ->where('business_id', $this->biz->id)
         ->where('key', 'os_comunicacao_visual')
         ->firstOrFail();
 
@@ -326,8 +313,6 @@ it('OrdemProducao bloqueia UPDATE direto em current_stage_id (GuardsFsmTransitio
     $op->current_stage_id = $next->id;
 
     expect(fn () => $op->save())->toThrow(UnauthorizedActionException::class);
-})->after(function () {
-    OrdemProducao::withoutGlobalScopes()->where('codigo', 'OP-GUARD-FSM-001')->forceDelete();
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -335,19 +320,19 @@ it('OrdemProducao bloqueia UPDATE direto em current_stage_id (GuardsFsmTransitio
 // ──────────────────────────────────────────────────────────────────────────────
 
 it('FsmProcessoComunicacaoVisualSeeder é idempotente (rodar 2x não duplica)', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
+    session(['user.business_id' => $this->biz->id]);
 
-    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness(COMVIS_BIZ_WAGNER);
+    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness($this->biz->id);
     $stagesCount1 = SaleProcessStage::whereHas('process', function ($q) {
         $q->withoutGlobalScopes()
-          ->where('business_id', COMVIS_BIZ_WAGNER)
+          ->where('business_id', $this->biz->id)
           ->where('key', 'os_comunicacao_visual');
     })->count();
 
-    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness(COMVIS_BIZ_WAGNER);
+    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness($this->biz->id);
     $stagesCount2 = SaleProcessStage::whereHas('process', function ($q) {
         $q->withoutGlobalScopes()
-          ->where('business_id', COMVIS_BIZ_WAGNER)
+          ->where('business_id', $this->biz->id)
           ->where('key', 'os_comunicacao_visual');
     })->count();
 
@@ -357,25 +342,17 @@ it('FsmProcessoComunicacaoVisualSeeder é idempotente (rodar 2x não duplica)', 
 });
 
 it('FSM Seeder cria 10 roles per-business (suffix #{biz} quando coluna existe)', function () {
-    session(['user.business_id' => COMVIS_BIZ_WAGNER]);
-    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness(COMVIS_BIZ_WAGNER);
+    session(['user.business_id' => $this->biz->id]);
+    (new FsmProcessoComunicacaoVisualSeeder())->runForBusiness($this->biz->id);
 
     $hasBusinessIdColumn = Schema::hasColumn('roles', 'business_id');
 
-    if ($hasBusinessIdColumn) {
-        // UltimatePOS schema: roles com suffix #{biz}
-        $rolesEsperadas = [
-            'comvis.designer#1', 'comvis.operador#1', 'comvis.instalador#1',
-            'comvis.atendimento#1', 'comvis.gerente#1', 'comvis.financeiro#1',
-            'comvis.fiscal#1', 'comvis.estoque#1', 'comvis.logistica#1', 'comvis.system#1',
-        ];
-    } else {
-        $rolesEsperadas = [
-            'comvis.designer', 'comvis.operador', 'comvis.instalador',
-            'comvis.atendimento', 'comvis.gerente', 'comvis.financeiro',
-            'comvis.fiscal', 'comvis.estoque', 'comvis.logistica', 'comvis.system',
-        ];
-    }
+    // UltimatePOS: roles.business_id NOT NULL exige o sufixo #{empresa} no nome.
+    $sufixo = $hasBusinessIdColumn ? '#'.$this->biz->id : '';
+    $rolesEsperadas = array_map(fn (string $papel) => "comvis.{$papel}{$sufixo}", [
+        'designer', 'operador', 'instalador', 'atendimento', 'gerente',
+        'financeiro', 'fiscal', 'estoque', 'logistica', 'system',
+    ]);
 
     foreach ($rolesEsperadas as $roleName) {
         $exists = \Spatie\Permission\Models\Role::where('name', $roleName)->exists();
