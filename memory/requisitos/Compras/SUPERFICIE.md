@@ -14,7 +14,7 @@ module: Compras
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Compras/**` + `resources/js/Pages/Compras/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 80 arquivos em 19 papéis.
+**Total mapeado:** 82 arquivos em 19 papéis.
 
 ## Controllers — 5
 
@@ -32,7 +32,7 @@ module: Compras
 
 - [ComprasLiberado.php](../../../Modules/Compras/Http/Middleware/ComprasLiberado.php)
 
-## Services — 13
+## Services — 14
 
 - [AlcadaDoPedido.php](../../../Modules/Compras/Services/AlcadaDoPedido.php)
 - [AplicarCustoDoRecebimento.php](../../../Modules/Compras/Services/AplicarCustoDoRecebimento.php)
@@ -46,6 +46,7 @@ module: Compras
 - [MetodoCustoDoProduto.php](../../../Modules/Compras/Services/MetodoCustoDoProduto.php)
 - [NecessidadeDeCompra.php](../../../Modules/Compras/Services/NecessidadeDeCompra.php)
 - [PropostasDePreco.php](../../../Modules/Compras/Services/PropostasDePreco.php)
+- [ReconciliacaoCustoMedio.php](../../../Modules/Compras/Services/ReconciliacaoCustoMedio.php)
 - [RequisicaoEstoqueMinimoService.php](../../../Modules/Compras/Services/RequisicaoEstoqueMinimoService.php)
 
 ## Models / Entities — 1
@@ -61,8 +62,9 @@ module: Compras
 
 - [RequisicaoEstoqueMinimoJob.php](../../../Modules/Compras/Jobs/RequisicaoEstoqueMinimoJob.php)
 
-## Console / Commands — 2
+## Console / Commands — 3
 
+- [CustoMedioReconciliarCommand.php](../../../Modules/Compras/Console/Commands/CustoMedioReconciliarCommand.php)
 - [CustoMedioSemearCommand.php](../../../Modules/Compras/Console/Commands/CustoMedioSemearCommand.php)
 - [RequisicaoEstoqueMinimoCommand.php](../../../Modules/Compras/Console/Commands/RequisicaoEstoqueMinimoCommand.php)
 

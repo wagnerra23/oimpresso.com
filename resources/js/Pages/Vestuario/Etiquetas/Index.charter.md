@@ -41,14 +41,14 @@ charter_version: 2
 
 ## Mission
 
-Tela de geração de etiquetas TAG térmicas do vertical Vestuário: o operador monta uma lista de itens (produto/variação + quantidade) e imprime etiquetas com EAN-13 + QR Code. É a ferramenta de etiquetagem em lote da loja de vestuário (ROTA LIVRE) — da grade de itens ao envio pra impressão térmica.
+Tela de geração de etiquetas TAG térmicas do vertical Vestuário: o operador monta uma lista de itens (produto/variação + quantidade) e imprime etiquetas com o código que o caixa bipa + QR Code. É a ferramenta de etiquetagem em lote da loja de vestuário (ROTA LIVRE) — da grade de itens ao envio pra impressão térmica.
 
 ---
 
 ## Goals — Features (faz)
 
 - Lista editável de itens de etiqueta (produto/variação, quantidade), com edição por linha
-- Geração de EAN-13 + QR Code por item
+- Código de barras do `sub_sku` (EAN-13 quando válido, senão Code128) + QR Code por item
 - Montagem do payload de impressão + envio (POST com CSRF) pra a impressora térmica
 - AppShellV2 + PageHeader shared, tokens DS
 
@@ -79,7 +79,7 @@ Tela de geração de etiquetas TAG térmicas do vertical Vestuário: o operador 
 
 ## Automation hooks (faz)
 
-- Gera EAN-13/QR por item automaticamente ao montar a lista
+- Gera o código de barras e o QR por item ao montar a lista, sem inventar número
 - Monta o payload de impressão a partir dos itens editados
 
 ---

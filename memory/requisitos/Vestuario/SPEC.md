@@ -1,7 +1,7 @@
 ---
 module: Vestuario
 version: "1.0"
-last_updated: "2026-06-13"
+last_updated: "2026-11-09"
 owner: wagner
 status: ativo
 status_detalhe: "live em produção via ROTA LIVRE biz=4 desde 2024-Q1"
@@ -44,8 +44,8 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 | Volume operacional | 17.251+ vendas (~99% do sistema novo Laravel) |
 | Primeira venda | 2021-05-13 |
 | Cadastro | 2021-02-01 |
-| Operadora principal | Larissa Fernandes (`larissa-04`, role `Admin#4`) |
-| Auxiliares | `rota.vendas-04` (Vendas#4), `caixa-04` (Caixa#4) |
+| Operadora principal | Dona da loja (role `Admin#4`) |
+| Auxiliares | Vendedor de balcão (Vendas#4), operador de caixa (Caixa#4) |
 
 **Sensibilidades operacionais documentadas** (auto-mem `cliente_rotalivre.md`):
 
@@ -53,7 +53,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 2. **`transaction_date` retroativo é fluxo normal** — Larissa registra balcão em lote no fim do dia. Não tentar "corrigir" por algoritmo.
 3. **Monitor 1280px** — telas com 21+ colunas inutilizam. DataTables sempre com `columnDefs` escondendo colunas opcionais.
 4. **Role custom precisa `location.4` explícita** — `default_location` é pré-requisito da busca de produto em `/sells/create`.
-5. **Operação de vestuário real**: ticket médio R$ [redacted Tier 0]-500, pico 14h-17h SP, "Cliente Balcão" + nomes PF (Jociane, Edna, Guilherme, etc.), 2 esquemas de invoice convivendo (`2026/NNNN` + `17NNN`).
+5. **Operação de vestuário real**: pico 14h-17h SP, "Cliente Balcão" + clientes pessoa física identificados pelo nome, 2 esquemas de invoice convivendo (`2026/NNNN` + `17NNN`).
 
 ## 3. Capacidades em produção (validadas em ROTA LIVRE 2 anos)
 
@@ -81,7 +81,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 > **Rota:** `GET /pos/create`
 > **Implementado em:** [`app/Http/Controllers/SellPosController.php`](../../../app/Http/Controllers/SellPosController.php) · UI legacy Blade `/pos/create`
 
-**Como** `rota.vendas-04` (operador balcão)
+**Como** vendedor de balcão
 **Quero** abrir POS, bipar código de barras da etiqueta, escolher tamanho+cor da peça, finalizar com cartão/dinheiro/pix
 **Para** atender cliente balcão em ≤30 segundos sem digitação
 
@@ -474,7 +474,7 @@ Todas com `business_id` indexed + FK + global scope (skill `multi-tenant-pattern
 - ⛔ **Criar tabela `vest_*` sem `business_id` indexed + FK** — Tier 0 IRREVOGÁVEL.
 - ⛔ **Subir feature de fidelidade sem opt-in LGPD** — Art. 7 LGPD (consentimento explícito).
 - ⛔ **Implementar US-VEST-030 (ecommerce) sem 3+ sinais qualificados** — ADR 0105.
-- ⛔ **Smoke test com `business_id=1`** (Wagner WR2, prod) — ADR 0101 manda biz=4 (cliente piloto).
+- ⛔ **Usar `business_id=4` em teste, fixture ou smoke** (cliente piloto, produção real) — teste automatizado roda no tenant fictício 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)); smoke manual em produção fica na biz=1 (regra R6 de [`proibicoes.md`](../../proibicoes.md)).
 - ⛔ **PII de Larissa ou clientes finais em PR/log/commit** — usar `[REDACTED]` ou `PiiRedactor` (ADR 0094 §6).
 
 ## 10. Métricas de sucesso

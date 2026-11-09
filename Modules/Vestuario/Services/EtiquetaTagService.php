@@ -15,12 +15,14 @@ use Modules\Vestuario\Services\VestuarioSettingsResolver;
  * Por que existe:
  * - Cliente piloto ROTA LIVRE (Larissa, biz=4) precisa imprimir TAGs em
  *   impressora térmica Zebra (modelo Argox/Elgin compatível ZPL) com:
- *   nome produto + tamanho + cor + coleção + preço + EAN-13 + SKU
+ *   nome produto + tamanho + cor + coleção + preço + código de barras + SKU
  * - CAPTERRA-FICHA W22 marcou como P0 gap vs Mubisys/Linx Microvix
  *   (concorrentes diretos vestuário BR).
  *
  * Stack:
  * - Saída ZPL pura (string) — compatível com Zebra GK420t, Argox OS-214, Elgin L42
+ * - Código de barras é o sub_sku da variação: o PDV procura por sub_sku/sku
+ *   (ProductUtil::filterProduct). EAN-13 quando o sub_sku é um EAN válido; Code128 nos demais
  * - EAN-13 check digit calculado in-house (algoritmo GS1, sem dependência externa)
  * - Tamanho etiqueta default: 50mm × 30mm (203dpi = 400 × 240 dots)
  *
@@ -43,6 +45,9 @@ class EtiquetaTagService
     private const DEFAULT_QR_ENABLED = false;
     private const DEFAULT_QR_DATA_TEMPLATE = 'https://oimpresso.com/p/{ean13}';
 
+    public const SIMBOLOGIA_EAN13 = 'EAN13';
+    public const SIMBOLOGIA_CODE128 = 'C128';
+
     public function __construct(
         private ?VestuarioSettingsResolver $settings = null,
     ) {
@@ -60,11 +65,11 @@ class EtiquetaTagService
      *     @var string  $cor          Ex: "Azul Marinho"
      *     @var string  $colecao      Ex: "Verão 2026"
      *     @var float   $preco        Preço em BRL (formato 99.90)
-     *     @var string  $sku          Código interno (vira base do EAN-13)
-     *     @var ?string $ean13        EAN-13 pré-existente (12 dígitos sem check)
+     *     @var string  $sku          sub_sku da variação: é o que sai no código de barras
+     *     @var ?string $ean13        EAN-13 informado (12 ou 13 dígitos); tem prioridade sobre o sku
      *     @var ?int    $businessId   Override business_id
      * }
-     * @return array{zpl: string, ean13: string, sku: string, meta: array}
+     * @return array{zpl: string, ean13: ?string, sku: string, meta: array}
      */
     public function gerarEtiqueta(int $productId, int $variationId, array $opts = []): array
     {
@@ -73,14 +78,11 @@ class EtiquetaTagService
         $cor     = (string) ($opts['cor'] ?? '-');
         $colecao = (string) ($opts['colecao'] ?? '');
         $preco   = (float) ($opts['preco'] ?? 0.0);
-        $sku     = (string) ($opts['sku'] ?? sprintf('%06d%05d', $productId, $variationId));
+        $sku     = trim((string) ($opts['sku'] ?? ''));
 
-        // EAN-13: se vem pré-existente, valida; senão deriva do SKU
-        if (! empty($opts['ean13'])) {
-            $ean13 = $this->normalizeEan13((string) $opts['ean13']);
-        } else {
-            $ean13 = $this->generateEan13FromSku($sku);
-        }
+        $codigo = $this->resolverCodigo($sku, $opts['ean13'] ?? null);
+        $ean13  = $codigo['simbologia'] === self::SIMBOLOGIA_EAN13 ? $codigo['valor'] : null;
+        $sku    = $sku !== '' ? $sku : $codigo['valor'];
 
         $businessId = $opts['businessId'] ?? $this->resolveBusinessId();
         $cfg = $this->resolveConfig($businessId);
@@ -92,7 +94,7 @@ class EtiquetaTagService
             colecao: $this->truncate($colecao, 25),
             preco:   $preco,
             sku:     $sku,
-            ean13:   $ean13,
+            codigo:  $codigo,
             cfg:     $cfg,
         );
 
@@ -109,6 +111,8 @@ class EtiquetaTagService
             'ean13' => $ean13,
             'sku'   => $sku,
             'meta'  => [
+                'codigo'       => $codigo['valor'],
+                'simbologia'   => $codigo['simbologia'],
                 'product_id'   => $productId,
                 'variation_id' => $variationId,
                 'business_id'  => $businessId,
@@ -208,35 +212,42 @@ class EtiquetaTagService
     }
 
     /**
-     * Deriva EAN-13 válido a partir de SKU arbitrário.
+     * EAN informado > sub_sku que já é EAN-13 válido > sub_sku em Code128. Nunca deriva número
+     * novo: ele não existiria no cadastro e o PDV não acharia a peça.
      *
-     * Estratégia: padding zeros à esquerda + prefixo BR (789) se SKU < 12 dígitos.
-     * NOTA: prefixo 789 é GS1 Brasil (uso oficial requer registro). Pra uso
-     * interno (etiqueta loja, não revenda), aceitável. Cliente que quer GTIN
-     * oficial cadastra próprio EAN-13 via $opts['ean13'].
+     * @return array{valor: string, simbologia: string}
      */
-    public function generateEan13FromSku(string $sku): string
+    private function resolverCodigo(string $sku, mixed $eanInformado): array
     {
-        $numeric = preg_replace('/\D+/', '', $sku) ?? '';
-        if ($numeric === '') {
-            // SKU 100% alfa: hash CRC32 → 10 dígitos
-            $numeric = (string) sprintf('%010d', crc32($sku) % 10000000000);
+        if (! empty($eanInformado)) {
+            return ['valor' => $this->normalizeEan13((string) $eanInformado), 'simbologia' => self::SIMBOLOGIA_EAN13];
         }
 
-        // Garante 12 dígitos: prefixo 789 (Brasil) + padding zeros
-        $padded = str_pad(substr($numeric, 0, 9), 9, '0', STR_PAD_LEFT);
-        $first12 = '789'.$padded;
+        if ($sku === '') {
+            throw new InvalidArgumentException('Há item sem SKU: sem ele a etiqueta sairia com um código que o caixa não encontra.');
+        }
 
-        $check = $this->generateEan13($first12);
-        return $first12.$check;
+        if (ctype_digit($sku) && strlen($sku) === 13 && $this->validateEan13($sku)) {
+            return ['valor' => $sku, 'simbologia' => self::SIMBOLOGIA_EAN13];
+        }
+
+        if (preg_match('/^[\x20-\x7E]+$/', $sku) !== 1) {
+            throw new InvalidArgumentException("O SKU {$sku} tem caractere que o código de barras não representa.");
+        }
+
+        return ['valor' => $sku, 'simbologia' => self::SIMBOLOGIA_CODE128];
     }
 
     /**
      * Normaliza EAN-13 vindo de input externo.
-     * Aceita 12 dígitos (calcula check) ou 13 dígitos (valida).
+     * Aceita 12 dígitos (calcula check) ou 13 dígitos (valida). Separador é tolerado; letra, não.
      */
     public function normalizeEan13(string $input): string
     {
+        if (preg_match('/[^\d\s.\-]/', $input) === 1) {
+            throw new InvalidArgumentException('EAN-13 só aceita dígitos.');
+        }
+
         $clean = preg_replace('/\D+/', '', $input) ?? '';
 
         if (strlen($clean) === 12) {
@@ -261,8 +272,8 @@ class EtiquetaTagService
      *   TAM: M    COR: Azul Marinho
      *   Coleção: Verão 2026
      *   R$ [redacted Tier 0]
-     *   [BARCODE EAN-13]
-     *   789000000001237
+     *   [BARCODE do sub_sku: EAN-13 ou Code128]
+     *   SKU: CAMI-042-M-AZU
      */
     private function buildZpl(
         string $nome,
@@ -271,7 +282,7 @@ class EtiquetaTagService
         string $colecao,
         float  $preco,
         string $sku,
-        string $ean13,
+        array  $codigo,
         ?array $cfg = null,
     ): string {
         $cfg = $cfg ?? $this->defaultConfig();
@@ -281,6 +292,13 @@ class EtiquetaTagService
 
         $precoFmt = 'R$ '.number_format($preco, 2, ',', '.');
 
+        // ^FH faz a impressora decodificar \5E e \7E: o texto do cadastro nunca vira comando.
+        $fd = '^FH\\^FD';
+        [$nome, $tamanho, $cor, $colecao, $skuTexto] = array_map(
+            fn (string $texto) => $this->escaparTextoZpl($texto),
+            [$nome, $tamanho, $cor, $colecao, $sku],
+        );
+
         $lines = [
             '^XA',                                          // start label
             "^PW{$w}",                                      // print width
@@ -288,31 +306,65 @@ class EtiquetaTagService
             '^CI28',                                        // UTF-8 encoding
             "^LH{$m},{$m}",                                 // label home com margin
             // Nome produto (top, fonte 0 height 28)
-            "^FO0,0^A0N,28,28^FD{$nome}^FS",
+            "^FO0,0^A0N,28,28{$fd}{$nome}^FS",
             // Tamanho + Cor (linha 2)
-            "^FO0,35^A0N,22,22^FDTAM: {$tamanho}^FS",
-            "^FO130,35^A0N,22,22^FDCOR: {$cor}^FS",
+            "^FO0,35^A0N,22,22{$fd}TAM: {$tamanho}^FS",
+            "^FO130,35^A0N,22,22{$fd}COR: {$cor}^FS",
             // Coleção (linha 3)
-            "^FO0,65^A0N,20,20^FD{$colecao}^FS",
+            "^FO0,65^A0N,20,20{$fd}{$colecao}^FS",
             // Preço destaque (right-aligned-ish)
             "^FO230,90^A0N,32,32^FD{$precoFmt}^FS",
-            // EAN-13 barcode (^BE = EAN-13)
-            "^FO30,120^BY2,2,60^BEN,60,Y,N^FD{$ean13}^FS",
+            // Código de barras do sub_sku
+            $this->linhaCodigoDeBarras($codigo, $cfg),
         ];
 
         // QR Code opcional (^BQ — Zebra ZPL II QR Code)
         if ($cfg['qr_enabled']) {
-            $qrData = str_replace('{ean13}', $ean13, $cfg['qr_data_template']);
+            $qrData = $this->escaparTextoZpl(str_replace('{ean13}', rawurlencode($codigo['valor']), $cfg['qr_data_template']));
             // Posição direita do EAN-13. Model 2, magnification 4 (compacto pra 50×30mm)
-            $lines[] = "^FO250,120^BQN,2,4^FDLA,{$qrData}^FS";
+            $lines[] = "^FO250,120^BQN,2,4{$fd}LA,{$qrData}^FS";
         }
 
         // SKU pequeno (rodapé)
-        $lines[] = "^FO0,205^A0N,16,16^FDSKU: {$sku}^FS";
+        $lines[] = "^FO0,205^A0N,16,16{$fd}SKU: {$skuTexto}^FS";
         $lines[] = '^XZ';                                   // end label
 
         // ZPL II — sintaxe Zebra. Validado em https://labelary.com/viewer.html
         return implode("\n", $lines);
+    }
+
+    /**
+     * ^BE (EAN-13) ou ^BC (Code128). No Code128, > ^ ~ vão como invocação do próprio ^BC (>0 >< >=).
+     */
+    private function linhaCodigoDeBarras(array $codigo, array $cfg): string
+    {
+        if ($codigo['simbologia'] === self::SIMBOLOGIA_EAN13) {
+            return "^FO30,120^BY2,2,60^BEN,60,Y,N^FD{$codigo['valor']}^FS";
+        }
+
+        $disponivel = $cfg['width_dots'] - (2 * $cfg['margin_dots']);
+        if ($cfg['qr_enabled']) {
+            $disponivel = min($disponivel, 250); // o QR fica em x=250
+        }
+
+        // Code128: início + dados + verificador (11 módulos cada) + fim (13).
+        $modulos = 11 * (strlen($codigo['valor']) + 2) + 13;
+        $largura = $modulos * 2 <= $disponivel ? 2 : 1;
+        if ($modulos * $largura > $disponivel) {
+            throw new InvalidArgumentException("O SKU {$codigo['valor']} é comprido demais para caber no código de barras desta etiqueta.");
+        }
+
+        $dados = strtr($codigo['valor'], ['>' => '>0', '^' => '><', '~' => '>=']);
+
+        return "^FO0,120^BY{$largura},2,60^BCN,60,Y,N,N^FD{$dados}^FS";
+    }
+
+    /** Campo de ^FH: \, ^ e ~ em hexadecimal; controle vira espaço. */
+    private function escaparTextoZpl(string $texto): string
+    {
+        $limpo = preg_replace('/[\x00-\x1F\x7F]+/', ' ', $texto) ?? '';
+
+        return strtr($limpo, ['\\' => '\\5C', '^' => '\\5E', '~' => '\\7E']);
     }
 
     /**
