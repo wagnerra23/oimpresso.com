@@ -660,8 +660,9 @@ function PurchaseCreate({
                 </Select>
               </div>
               <div>
-                <Label className="text-[12px] text-stone-600">Valor desconto</Label>
+                <Label htmlFor="discount_amount" className="text-[12px] text-stone-600">Valor desconto</Label>
                 <Input
+                  id="discount_amount"
                   type="number"
                   step="0.01"
                   className="mt-1 h-9 text-[13px] tabular-nums"
@@ -689,8 +690,9 @@ function PurchaseCreate({
                 </Select>
               </div>
               <div>
-                <Label className="text-[12px] text-stone-600">Frete ({currency.symbol})</Label>
+                <Label htmlFor="shipping_charges" className="text-[12px] text-stone-600">Frete ({currency.symbol})</Label>
                 <Input
+                  id="shipping_charges"
                   type="number"
                   step="0.01"
                   className="mt-1 h-9 text-[13px] tabular-nums"

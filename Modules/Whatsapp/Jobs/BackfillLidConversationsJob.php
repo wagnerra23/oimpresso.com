@@ -100,7 +100,9 @@ class BackfillLidConversationsJob implements ShouldQueue
                 continue;
             }
 
-            $linked = $linker->tryLink($conversation);
+            // O customer_external_id de uma conversa órfã é o próprio LID: tryLink() nunca
+            // casaria com o telefone de um contato. Quem sabe o telefone é este job.
+            $linked = $linker->tryLinkByPhone($conversation, $this->phoneE164);
             if ($linked !== null) {
                 $linkedCount++;
             }

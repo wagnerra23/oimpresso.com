@@ -6,10 +6,15 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: comportamento e duravel — "o filtro corta no servidor" e "o KPI conta so o meu tenant" valem em qualquer refactor
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-09-09"
+last_run: "2026-11-06"
 ---
 
 # Casos de Uso & Aceite — Catálogo de modelos de aparelho
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10555). Nada do
+> comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch, run
+> [42227783743](https://github.com/wagnerra23/oimpresso.com/actions/runs/42227783743): `DeviceModelsContratoTest` 16 testes, 61 asserções, 0 skipped (verde).
 
 > Derivados do [Index.charter.md](Index.charter.md) e do
 > [RUNBOOK-device-models.md](../../../../../memory/requisitos/Repair/RUNBOOK-device-models.md) (F4 QA)

@@ -13,6 +13,8 @@ vi.mock('@inertiajs/react', async () => {
   const React = await import('react')
   return {
     Head: () => null,
+    // O Editar embrulha o card Produção (prop deferida) em <Deferred>: aqui a prop já vem pronta.
+    Deferred: ({ children }: { children: React.ReactNode }) => children,
     Link: ({ href, children, ...resto }: { href: string; children: React.ReactNode }) =>
       React.createElement('a', { href, ...resto }, children),
     useForm: (inicial: Record<string, unknown>) => {

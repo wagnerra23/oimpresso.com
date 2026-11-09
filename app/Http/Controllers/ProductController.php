@@ -10,7 +10,6 @@ use App\Exports\ProductsExport;
 use App\Media;
 use App\Product;
 use App\ProductVariation;
-use App\PurchaseLine;
 use App\SellingPriceGroup;
 use App\TaxRate;
 use App\Unit;
@@ -27,7 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ProductsCreatedOrModified;
-use App\TransactionSellLine;
 use App\Services\FeatureFlagService;
 use Inertia\Inertia;
 
@@ -297,6 +295,13 @@ class ProductController extends Controller
                     'rotulos_campos' => $this->rotulosCamposProduto(),
                     // UC-PIDX-31: o filtro "Natureza fiscal" só existe com o módulo Fiscal.
                     'natureza_fiscal' => app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class),
+                    // UC-PIDX-44 (CV1): as opções do filtro "Uso". "Material" só com a Fabricação (receitas) e
+                    // "Serviço" só com o módulo Fiscal (natureza); com uma opção só, a tela não mostra o filtro.
+                    'usos' => array_values(array_filter([
+                        'vender',
+                        app()->bound(\App\Contracts\Fabricacao\ProdutosDeReceita::class) ? 'material' : null,
+                        app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class) ? 'servico' : null,
+                    ])),
                     // Papel do usuário, como a linha de contexto do protótipo ("papel: Administrador").
                     // O nome do role no UltimatePOS carrega o sufixo `#<business_id>` — sai da tela.
                     'papel' => ($papel = auth()->user()->roles->pluck('name')->first()) ? preg_replace('/#\d+$/', '', (string) $papel) : null,
@@ -402,6 +407,7 @@ class ProductController extends Controller
             'products.enable_stock',
             'products.is_inactive',
             'products.not_for_selling',
+            'products.deleted_at',
             'products.product_custom_field1', 'products.product_custom_field2', 'products.product_custom_field3', 'products.product_custom_field4', 'products.product_custom_field5', 'products.product_custom_field6',
             'products.product_custom_field7', 'products.product_custom_field8', 'products.product_custom_field9',
             'products.product_custom_field10', 'products.product_custom_field11', 'products.product_custom_field12',
@@ -449,6 +455,12 @@ class ProductController extends Controller
         }
 
         $active_state = $f['active_state'] ?? null;
+        // UC-PIDX-45 (D13 · AR-PROD-022): o excluído some da lista e só aparece em "Situação: Excluídos".
+        if ($active_state === 'excluido') {
+            $products->whereNotNull('products.deleted_at');
+        } else {
+            $products->whereNull('products.deleted_at');
+        }
         if ($active_state == 'active') {
             $products->Active();
         }
@@ -480,6 +492,23 @@ class ProductController extends Controller
         // A coluna é NOT NULL DEFAULT '0', então produto que nunca recebeu NCM cai aqui. Só a lista React manda.
         if (! empty($f['falta_ncm'])) {
             $products->where(fn ($w) => $w->whereRaw("products.ncm NOT REGEXP '^[0-9]{8}$'")->orWhere('products.ncm', '00000000'));
+        }
+
+        // UC-PIDX-44 (CV1): "Uso". Material = o produto que entra como insumo em alguma receita da Fabricação;
+        // Serviço = natureza fiscal "servico" decidida pelo contador (UC-PIDX-31); Para vender = nem um nem
+        // outro. Sem o módulo de onde vem a lista, aquela opção não filtra nada (a tela nem a oferece).
+        if (! empty($f['uso'])) {
+            $receitas = \App\Contracts\Fabricacao\ProdutosDeReceita::class;
+            $naturezas = \App\Contracts\Fiscal\NaturezaDoProduto::class;
+            $materiais = app()->bound($receitas) ? app($receitas)->materiais($business_id) : [];
+            $servicos = app()->bound($naturezas) ? app($naturezas)->produtosCom($business_id, 'servico') : [];
+            if ($f['uso'] === 'material') {
+                $products->whereIn('products.id', $materiais ?: [0]);
+            } elseif ($f['uso'] === 'servico') {
+                $products->whereIn('products.id', $servicos ?: [0]);
+            } elseif (($fora = array_values(array_unique(array_merge($materiais, $servicos)))) !== []) {
+                $products->whereNotIn('products.id', $fora);
+            }
         }
 
         // UC-PIDX-31: natureza fiscal decidida pelo contador. Produto sem decisão é mercadoria (é o que a
@@ -543,7 +572,8 @@ class ProductController extends Controller
             'unit_id' => $texto('unit_id'),
             'tax_id' => $texto('tax_id'),
             'location_id' => $texto('location_id'),
-            'active_state' => in_array($estado, ['active', 'inactive'], true) ? $estado : null,
+            // UC-PIDX-45: "excluido" mostra só os excluídos (AR-PROD-022). Só a lista React manda.
+            'active_state' => in_array($estado, ['active', 'inactive', 'excluido'], true) ? $estado : null,
             'not_for_selling' => request()->boolean('not_for_selling'),
             'woocommerce_enabled' => request()->boolean('woocommerce_enabled'),
             'repair_model_id' => $texto('repair_model_id'),
@@ -553,6 +583,8 @@ class ProductController extends Controller
             'abaixo_do_alerta' => request()->boolean('abaixo_do_alerta'),
             // UC-PIDX-42: "Falta NCM", e o link do card de Saúde fiscal (produto_sem_ncm). Só a lista React manda.
             'falta_ncm' => request()->boolean('falta_ncm'),
+            // UC-PIDX-44 (CV1): "Uso" — Para vender, Material ou Serviço. Só a lista React manda.
+            'uso' => in_array(request()->input('uso'), ['vender', 'material', 'servico'], true) ? (string) request()->input('uso') : null,
             // Aba ativa (protótipo: "Todos os produtos" | "Relatório de estoque") e a página da aba de estoque.
             'aba' => request()->input('aba') === 'estoque' ? 'estoque' : 'lista',
             'estoque_pagina' => max(1, (int) request()->input('estoque_pagina', 1)),
@@ -1218,6 +1250,50 @@ class ProductController extends Controller
      *
      * @return array{natureza: string, codigoServico: string|null, link: string|null}|null
      */
+    /** Partes do endereço no estoque que a empresa liga em Configurações (CU-PROD-20, CU-PROD-14). */
+    private function enderecoNoEstoque(): array
+    {
+        return [
+            'prateleira' => (bool) session('business.enable_racks'),
+            'fileira' => (bool) session('business.enable_row'),
+            'posicao' => (bool) session('business.enable_position'),
+        ];
+    }
+
+    /**
+     * Card "Produção" do Editar (CU-PROD-22, decisão [W] opção A): o roteiro que o produto segue, só
+     * para ler. `null` quando o card não aparece: empresa sem o módulo Produção no pacote, composição
+     * (a OS nasce dos itens) ou serviço decidido pelo contador, como no protótipo.
+     *
+     * Sem roteiro o produto não vira OS (UC-PCROT-02); a tela diz isso em vez do texto do protótipo,
+     * que vale só quando a ADR 0436 item 3 existir. Tier 0: o roteiro é lido só da `$business_id`.
+     *
+     * @param  array{natureza: string}|null  $naturezaFiscal
+     * @return array{roteiro: array{nome: string, etapas: int, ativo: bool}|null, linkRoteiros: ?string}|null
+     */
+    private function producaoDoProduto(int $business_id, Product $product, ?array $naturezaFiscal): ?array
+    {
+        if ($product->type === 'combo' || ($naturezaFiscal['natureza'] ?? null) === 'servico') {
+            return null;
+        }
+        if (! app()->bound(\App\Contracts\Producao\RoteiroDoProduto::class)
+            || ! $this->moduleUtil->hasThePermissionInSubscription($business_id, 'producao_module')) {
+            return null;
+        }
+
+        $roteiro = app(\App\Contracts\Producao\RoteiroDoProduto::class)->doProduto($business_id, (int) $product->id);
+        $podeAbrir = auth()->user()?->can('producao.access') && \Illuminate\Support\Facades\Route::has('producao.roteiros.index');
+
+        return [
+            'roteiro' => $roteiro === null ? null : [
+                'nome' => $roteiro['nome'],
+                'etapas' => count($roteiro['etapas']),
+                'ativo' => $roteiro['ativo'],
+            ],
+            'linkRoteiros' => $podeAbrir ? route('producao.roteiros.index', [], false) : null,
+        ];
+    }
+
     private function naturezaFiscalDoProduto(int $business_id, int $id): ?array
     {
         $respostas = $this->moduleUtil->getModuleData('produto_natureza_fiscal', ['business_id' => $business_id, 'product_id' => $id]);
@@ -1634,6 +1710,8 @@ class ProductController extends Controller
                 'alerta' => $alerta,
                 'abaixo_do_alerta' => $estoque !== null && $alerta !== null && $estoque <= $alerta,
                 'inativo' => (bool) $row->is_inactive,
+                // UC-PIDX-45: excluído (AR-PROD-022) — a linha oferece "Restaurar".
+                'excluido' => $row->deleted_at !== null,
                 'nao_para_venda' => (bool) $row->not_for_selling,
                 'serie' => (bool) $row->enable_sr_no,
                 'locais' => $row->product_locations->pluck('name')->values()->all(),
@@ -1882,6 +1960,8 @@ class ProductController extends Controller
                 'expiryType' => (string) session('business.expiry_type'),
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
+                // CU-PROD-20: quais partes do endereço no estoque a empresa usa.
+                'enderecoNoEstoque' => $this->enderecoNoEstoque(),
                 'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
                 'margemMinima' => $this->margemMinimaDaEmpresa((int) $business_id),
                 // O botão "Salvar e adicionar estoque inicial" do rodapé, como o @can do create.blade.php.
@@ -1956,6 +2036,54 @@ class ProductController extends Controller
     }
 
     /**
+     * Locais de armazenagem (CU-PROD-20): o endereço por local (`product_racks` e
+     * `product_racks_update`, as chaves são o id do local) e o local padrão (`local_padrao_id`).
+     *
+     * Tier 0 (ADR 0093): todo local citado tem de ser do negócio da sessão. O `addRackDetails`
+     * gravava o id que viesse; agora um local de outra empresa é recusado com 422, antes do `try`.
+     * O padrão, quando vem preenchido, tem de ser um dos locais de armazenagem do produto: os do
+     * envio e, no Editar, os que ele já tem. O Blade não manda `local_padrao_id` e não muda nada.
+     */
+    protected function validarLocaisDeArmazenagem(Request $request, int $business_id, ?int $product_id = null): void
+    {
+        $request->validate(
+            ['local_padrao_id' => ['sometimes', 'nullable', 'integer']],
+            ['local_padrao_id.integer' => 'O local padrão não é válido.'],
+        );
+
+        $doEnvio = collect(['product_racks', 'product_racks_update'])
+            ->flatMap(fn ($chave) => is_array($request->input($chave)) ? array_keys($request->input($chave)) : [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+        $padrao = $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null;
+        $citados = $padrao === null ? $doEnvio : $doEnvio->concat([$padrao])->unique();
+        if ($citados->isEmpty()) {
+            return;
+        }
+
+        $doNegocio = DB::table('business_locations')->where('business_id', $business_id)
+            ->whereIn('id', $citados->all())->pluck('id')->map(fn ($id) => (int) $id);
+        $erros = [];
+        if ($doEnvio->diff($doNegocio)->isNotEmpty()) {
+            $erros['product_racks'] = 'Um dos locais de armazenagem não pertence a este negócio.';
+        }
+        if ($padrao !== null) {
+            $doProduto = $product_id === null ? collect() : DB::table('product_racks')
+                ->where('business_id', $business_id)->where('product_id', $product_id)
+                ->pluck('location_id')->map(fn ($id) => (int) $id);
+            if (! $doNegocio->contains($padrao)) {
+                $erros['local_padrao_id'] = 'O local padrão não pertence a este negócio.';
+            } elseif (! $doEnvio->merge($doProduto)->contains($padrao)) {
+                $erros['local_padrao_id'] = 'O local padrão tem de ser um dos locais de armazenagem do produto.';
+            }
+        }
+        if ($erros !== []) {
+            throw \Illuminate\Validation\ValidationException::withMessages($erros);
+        }
+    }
+
+    /**
      * Peso líquido e dimensões: número de 0 a 99999, com ponto decimal (a tela manda assim).
      * Fora do `try`, como a origem. Ausente ou vazio não valida: os quatro são opcionais.
      */
@@ -2006,6 +2134,7 @@ class ProductController extends Controller
         $this->validarNcm($request);
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
+        $this->validarLocaisDeArmazenagem($request, (int) $uc_pcad_05_bid);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -2045,6 +2174,10 @@ class ProductController extends Controller
                 if ($request->filled($campo)) {
                     $product_details[$campo] = $request->input($campo);
                 }
+            }
+            // Local padrão de armazenagem (CU-PROD-20): já validado contra os locais do envio.
+            if ($request->filled('local_padrao_id')) {
+                $product_details['local_padrao_id'] = (int) $request->input('local_padrao_id');
             }
 
             if (! empty($request->input('sub_category_id'))) {
@@ -2340,6 +2473,8 @@ class ProductController extends Controller
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
         if (request()->header('X-Inertia')) {
+            $naturezaFiscal = $this->naturezaFiscalDoProduto((int) $business_id, (int) $id);
+
             return Inertia::render('Produto/Edit', [
                 'product' => [
                     'id' => (int) $product->id,
@@ -2357,11 +2492,13 @@ class ProductController extends Controller
                     'ncm' => (string) ($product->ncm ?? ''),
                     'cest' => (string) ($product->cest ?? ''),
                     'pesoLiquido' => $product->peso_liquido ?? null,
+                    // CU-PROD-20: o local padrão de armazenagem (null = sem padrão).
+                    'localPadraoId' => $product->local_padrao_id !== null ? (int) $product->local_padrao_id : null,
                     'larguraCm' => $product->largura_cm ?? null,
                     'alturaCm' => $product->altura_cm ?? null,
                     'comprimentoCm' => $product->comprimento_cm ?? null,
                     // UC-PEDIT-14: natureza fiscal decidida pelo contador (null = sem decisão registrada).
-                    'naturezaFiscal' => $this->naturezaFiscalDoProduto((int) $business_id, (int) $id),
+                    'naturezaFiscal' => $naturezaFiscal,
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
                     'alertQuantity' => $alert_quantity,
@@ -2390,6 +2527,7 @@ class ProductController extends Controller
                 'subCategories' => $sub_categories,
                 'businessLocations' => $business_locations,
                 'rackDetails' => $rack_details,
+                'enderecoNoEstoque' => $this->enderecoNoEstoque(),
                 'productTypes' => $product_types,
                 'warranties' => $warranties,
                 'permissions' => [
@@ -2398,6 +2536,8 @@ class ProductController extends Controller
                 ],
                 'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
                 'margemMinima' => $this->margemMinimaDaEmpresa((int) $business_id),
+                // CU-PROD-22 (opção A): card "Produção", só leitura. Lê o banco, então vem depois.
+                'producao' => Inertia::defer(fn () => $this->producaoDoProduto((int) $business_id, $product, $naturezaFiscal)),
             ]);
         }
 
@@ -2437,6 +2577,7 @@ class ProductController extends Controller
         $this->validarNcm($request);
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
+        $this->validarLocaisDeArmazenagem($request, (int) $business_id, (int) $id);
 
         try {
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
@@ -2487,6 +2628,10 @@ class ProductController extends Controller
                 if ($request->has($campo)) {
                     $product->setAttribute($campo, $request->filled($campo) ? $request->input($campo) : null);
                 }
+            }
+            // Local padrão (CU-PROD-20): só mexe quando a chave vem; vazio volta a nulo. O Blade não manda.
+            if ($request->has('local_padrao_id')) {
+                $product->setAttribute('local_padrao_id', $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null);
             }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
             $product->product_custom_field2 = $product_details['product_custom_field2'] ?? '';
@@ -2725,10 +2870,12 @@ class ProductController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
+     * UC-PIDX-45 (D13 · AR-PROD-022): "Excluir" não apaga. Com `product.delete`, qualquer produto pode ser
+     * excluído; o cadastro vira inativo e fica marcado em `deleted_at`, some da lista e da busca da venda e da
+     * compra (as duas só trazem produto ativo) e aparece em "Situação: Excluídos", de onde "Restaurar" o
+     * devolve (`restaurar`). Variações, preços, estoque e histórico ficam guardados — nunca hard-delete
+     * ("preserva consulta futura", [W] 2026-07-13). Antes desta mudança o produto e o estoque eram apagados,
+     * e o produto com compra ou ajuste não podia ser excluído.
      */
     public function destroy($id)
     {
@@ -2737,126 +2884,48 @@ class ProductController extends Controller
         }
 
         if (request()->ajax()) {
-            try {
-                $business_id = request()->session()->get('user.business_id');
+            $business_id = (int) request()->session()->get('user.business_id');
+            $excluidos = $this->excluirProdutos($business_id, [(int) $id]);
 
-                $can_be_deleted = true;
-                $error_msg = '';
-
-                //Check if any purchase or transfer exists
-                $count = PurchaseLine::join(
-                    'transactions as T',
-                    'purchase_lines.transaction_id',
-                    '=',
-                    'T.id'
-                )
-                                    ->whereIn('T.type', ['purchase'])
-                                    ->where('T.business_id', $business_id)
-                                    ->where('purchase_lines.product_id', $id)
-                                    ->count();
-                if ($count > 0) {
-                    $can_be_deleted = false;
-                    $error_msg = __('lang_v1.purchase_already_exist');
-                } else {
-                    //Check if any opening stock sold
-                    $count = PurchaseLine::join(
-                        'transactions as T',
-                        'purchase_lines.transaction_id',
-                        '=',
-                        'T.id'
-                     )
-                                    ->where('T.type', 'opening_stock')
-                                    ->where('T.business_id', $business_id)
-                                    ->where('purchase_lines.product_id', $id)
-                                    ->where('purchase_lines.quantity_sold', '>', 0)
-                                    ->count();
-                    if ($count > 0) {
-                        $can_be_deleted = false;
-                        $error_msg = __('lang_v1.opening_stock_sold');
-                    } else {
-                        //Check if any stock is adjusted
-                        $count = PurchaseLine::join(
-                            'transactions as T',
-                            'purchase_lines.transaction_id',
-                            '=',
-                            'T.id'
-                        )
-                                    ->where('T.business_id', $business_id)
-                                    ->where('purchase_lines.product_id', $id)
-                                    ->where('purchase_lines.quantity_adjusted', '>', 0)
-                                    ->count();
-                        if ($count > 0) {
-                            $can_be_deleted = false;
-                            $error_msg = __('lang_v1.stock_adjusted');
-                        }
-                    }
-                }
-
-                $product = Product::where('id', $id)
-                                ->where('business_id', $business_id)
-                                ->with('variations')
-                                ->first();
-
-                // check for enable stock = 0 product
-                if($product->enable_stock == 0){
-                    $t_count = TransactionSellLine::join(
-                        'transactions as T',
-                        'transaction_sell_lines.transaction_id',
-                        '=',
-                        'T.id'
-                    )
-                        ->where('T.business_id', $business_id)
-                        ->where('transaction_sell_lines.product_id', $id)
-                        ->count();
-
-                    if ($t_count > 0) {
-                        $can_be_deleted = false;
-                        $error_msg = "can't delete product exit in sell";
-                    }
-                }
-
-                //Check if product is added as an ingredient of any recipe
-                if ($this->moduleUtil->isModuleInstalled('Manufacturing')) {
-                    $variation_ids = $product->variations->pluck('id');
-
-                    $exists_as_ingredient = \Modules\Manufacturing\Entities\MfgRecipeIngredient::whereIn('variation_id', $variation_ids)
-                        ->exists();
-                    if ($exists_as_ingredient) {
-                        $can_be_deleted = false;
-                        $error_msg = __('manufacturing::lang.added_as_ingredient');
-                    }
-                }
-            
-                if ($can_be_deleted) {
-                    if (! empty($product)) {
-                        DB::beginTransaction();
-                        //Delete variation location details
-                        VariationLocationDetails::where('product_id', $id)
-                                                ->delete();
-                        $product->delete();
-                        event(new ProductsCreatedOrModified($product, 'deleted'));
-                        DB::commit();
-                    }
-
-                    $output = ['success' => true,
-                        'msg' => __('lang_v1.product_delete_success'),
-                    ];
-                } else {
-                    $output = ['success' => false,
-                        'msg' => $error_msg,
-                    ];
-                }
-            } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
+            return $excluidos > 0
+                ? ['success' => true, 'msg' => 'Produto excluído. Ele fica em "Situação: Excluídos" e pode ser restaurado.']
+                : ['success' => false, 'msg' => 'Produto não encontrado.'];
         }
+    }
+
+    /**
+     * UC-PIDX-45: marca os produtos da empresa como excluídos (inativos + `deleted_at`). Devolve quantos mudou.
+     * Tier 0 (ADR 0093): só os ids da empresa do usuário; o de outra empresa não muda.
+     */
+    protected function excluirProdutos(int $business_id, array $ids): int
+    {
+        $produtos = Product::where('business_id', $business_id)->whereIn('id', $ids)->whereNull('deleted_at')->get();
+        foreach ($produtos as $produto) {
+            $produto->forceFill(['is_inactive' => 1, 'deleted_at' => now()])->save();
+            event(new ProductsCreatedOrModified($produto, 'deleted'));
+        }
+
+        return $produtos->count();
+    }
+
+    /**
+     * UC-PIDX-45: "Restaurar" devolve o produto excluído a Ativo, com tudo o que ele tinha. Mesma permissão do
+     * Excluir. Tier 0: só produto da empresa do usuário.
+     */
+    public function restaurar($id)
+    {
+        if (! auth()->user()->can('product.delete')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = (int) request()->session()->get('user.business_id');
+        $produto = Product::where('business_id', $business_id)->where('id', (int) $id)->whereNotNull('deleted_at')->first();
+        if ($produto === null) {
+            return response()->json(['success' => false, 'msg' => 'Produto excluído não encontrado.'], 404);
+        }
+        $produto->forceFill(['is_inactive' => 0, 'deleted_at' => null])->save();
+
+        return response()->json(['success' => true, 'msg' => 'Produto restaurado e ativo de novo.']);
     }
 
     /**
@@ -3577,77 +3646,21 @@ class ProductController extends Controller
     }
 
     /**
-     * Mass deletes products.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Excluir selecionados (UC-PIDX-45 · AR-PROD-022): marca como excluídos, sem apagar nada — o mesmo do
+     * Excluir de um produto (`excluirProdutos`).
      */
     public function massDestroy(Request $request)
     {
         if (! auth()->user()->can('product.delete')) {
             abort(403, 'Unauthorized action.');
         }
-        try {
-            $purchase_exist = false;
 
-            if (! empty($request->input('selected_rows'))) {
-                $business_id = $request->session()->get('user.business_id');
-
-                $selected_rows = explode(',', $request->input('selected_rows'));
-
-                $products = Product::where('business_id', $business_id)
-                                    ->whereIn('id', $selected_rows)
-                                    ->with(['purchase_lines', 'variations'])
-                                    ->get();
-                $deletable_products = [];
-
-                $is_mfg_installed = $this->moduleUtil->isModuleInstalled('Manufacturing');
-
-                DB::beginTransaction();
-
-                foreach ($products as $product) {
-                    $can_be_deleted = true;
-                    //Check if product is added as an ingredient of any recipe
-                    if ($is_mfg_installed) {
-                        $variation_ids = $product->variations->pluck('id');
-
-                        $exists_as_ingredient = \Modules\Manufacturing\Entities\MfgRecipeIngredient::whereIn('variation_id', $variation_ids)
-                            ->exists();
-                        $can_be_deleted = ! $exists_as_ingredient;
-                    }
-
-                    //Delete if no purchase found
-                    if (empty($product->purchase_lines->toArray()) && $can_be_deleted) {
-                        //Delete variation location details
-                        VariationLocationDetails::where('product_id', $product->id)
-                                                    ->delete();
-                        $product->delete();
-                        event(new ProductsCreatedOrModified($product, 'Deleted'));
-                    } else {
-                        $purchase_exist = true;
-                    }
-                }
-
-                DB::commit();
-            }
-
-            if (! $purchase_exist) {
-                $output = ['success' => 1,
-                    'msg' => __('lang_v1.deleted_success'),
-                ];
-            } else {
-                $output = ['success' => 0,
-                    'msg' => __('lang_v1.products_could_not_be_deleted'),
-                ];
-            }
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = ['success' => 0,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
+        $business_id = (int) $request->session()->get('user.business_id');
+        $ids = array_values(array_filter(array_map('intval', explode(',', (string) $request->input('selected_rows')))));
+        $excluidos = $ids === [] ? 0 : $this->excluirProdutos($business_id, $ids);
+        $output = $excluidos > 0
+            ? ['success' => 1, 'msg' => $excluidos . ' produto(s) excluído(s). Eles ficam em "Situação: Excluídos" e podem ser restaurados.']
+            : ['success' => 0, 'msg' => 'Nenhum produto excluído.'];
 
         return redirect()->back()->with(['status' => $output]);
     }
@@ -3891,8 +3904,10 @@ class ProductController extends Controller
         if (request()->ajax()) {
             try {
                 $business_id = request()->session()->get('user.business_id');
+                // UC-PIDX-45: produto excluído volta por "Restaurar", não por "Ativar".
                 $product = Product::where('id', $id)
                                 ->where('business_id', $business_id)
+                                ->whereNull('deleted_at')
                                 ->update(['is_inactive' => 0]);
 
                 $output = ['success' => true,

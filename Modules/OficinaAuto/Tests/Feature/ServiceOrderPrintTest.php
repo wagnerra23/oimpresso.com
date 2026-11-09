@@ -30,13 +30,13 @@ uses(Tests\TestCase::class);
  * @see memory/sessions/2026-05-26-plano-gap-3-imprimir-os-pdf-profissional.md
  */
 
-const PRINT_BIZ_A = 1;
-const PRINT_BIZ_B = 2;
+const PRINT_BIZ_A = 98;
+const PRINT_BIZ_B = 99;
 const PRINT_PLATE_PREFIX = 'GAP3P';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders')) {
         $this->markTestSkipped('Migration service_orders ausente');

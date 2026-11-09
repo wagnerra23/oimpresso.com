@@ -1170,6 +1170,10 @@ qual é o local padrão.
     pelo endereço e pelo local padrão, sem tocar em saldo. Para mudar, basta comentar no PR.
 - **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
   ganham id quando houver teste que os defenda (G-2).
+- **No servidor (2026-11-09):** o [W] mergeou a proposta (#10544), então valem as duas propostas. Coluna
+  `products.local_padrao_id`; o `store()` e o `update()` gravam o padrão e o endereço (`product_racks`)
+  sem mexer em saldo e recusam local de outra empresa. Casos `UC-PCAD-22` e `UC-PEDIT-19`. O bloco
+  "Locais de armazenagem" da tela vem no PR seguinte.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
@@ -1217,6 +1221,34 @@ volta para uma margem alvo.
 - **Ainda em aberto, sem presumir:** as outras respostas do [W] na US-PROD-030 (tabelas de preço,
   aviso na receita, vários níveis da composição) não falam dos três nomes novos; a migração do legado
   (`TEM_MARGEM_FIXA_CONTIBUICAO`) precisa ser refeita para eles.
+- 🔶 **Para implementar — o que o protótipo do [W] já decide e o que falta (2026-11-06).** Ficou fora
+  da etapa 1 do cadastro (#10380) porque precisa de coluna nova e mexe em valor (REGRA MESTRE de valor).
+  - **Já decidido no protótipo do [W] e em Fluxos, sem pergunta nova:**
+    1. **Os três nomes e o que cada um faz** (`produto-blade-forms.jsx`, `manufacturing-recipe.jsx`,
+       `fsm-regras.jsx`). A conta que o protótipo faz no recebimento (`calcular`, `fsm-regras.jsx`),
+       com custo anterior `cA`, custo novo `cN` e preço `P`:
+       - **Preço fixo:** o preço fica `P`, só a margem muda.
+       - **Acompanha o custo:** `P × cN ÷ cA`, que mantém o markup.
+       - **Margem alvo:** `cN ÷ (1 − alvo/100)`. A margem é sobre o **preço de venda**, não markup sobre o
+         custo.
+       - Nas duas que mudam o preço, o valor é arredondado para cima na casa de 0,10 (`up10`).
+    2. **Quem decide o quê.** A política do produto escolhe quais produtos seguem. A regra da compra em
+       Fluxos (`RegrasCompra.php`, parâmetro `preco`) decide o resto: só recalcula o custo, propõe o
+       preço novo para aprovação, ou aplica sozinho. Isso só vale quando "Quais produtos seguem" está em
+       "Política de preço do produto" (`regraEm = produto`), que hoje ninguém lê.
+    3. **Padrão Preço fixo** — resposta do [W] de 2026-10-06 na US-PROD-030 e o `{ tipo: "fixo" }` do
+       protótipo.
+  - **Escolha técnica (do Code, sem decisão do [W]):** coluna `politica_preco` em `products` (`fixo` ·
+    `acompanha` · `margem`, padrão `fixo`) e `margem_alvo_pct`. Uma escolha por produto vale para todas
+    as variações, como o método de custo (`UC-FLX-38`). O protótipo mostra o campo em dois lugares, no
+    cadastro do produto e na receita da Fabricação (`manufacturing-recipe.jsx`). Como a receita fabrica
+    um produto, os dois editam o mesmo valor, que fica no produto.
+  - **Migração do legado — também já respondida pelo [W]** (US-PROD-030, pergunta 1, 2026-10-06): a flag
+    `TEM_MARGEM_FIXA_CONTIBUICAO = S` (mantém a margem e sobe o preço) migra como Acompanha o custo;
+    `N` e nulo migram como Preço fixo. Antes de ligar a migração, medir a flag numa base de cliente de
+    comunicação visual. Com isso não sobra pergunta para o [W]: os quatro pontos estão respondidos.
+  - **Antes de ligar** (REGRA MESTRE de valor): a implementação mostra o antes e o depois do preço numa
+    compra de exemplo, conferido por dois caminhos, e só liga com a aprovação do [W].
 - **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
 
 #### CU-PROD-22 — Card Produção: o roteiro do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
@@ -1248,6 +1280,9 @@ de produção ele segue, e um link para a tela de Roteiros.
   - **Se o [W] mergear o PR desta proposta, vale (A)** e o card entra num PR seguinte. Para (B), basta
     comentar no PR.
 - **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+- **Na tela (2026-11-09):** o [W] mergeou a proposta (#10545), então vale (A). O card entrou no Editar
+  como `UC-PEDIT-18` (`Edit.casos.md`): prop deferida `producao` do `ProductController@edit`, componente
+  `BlocoProducao.tsx`. O texto para o produto sem roteiro é o de (A), não o do protótipo.
 
 ### 6.2 Vertical comunicação visual (`CV`)
 

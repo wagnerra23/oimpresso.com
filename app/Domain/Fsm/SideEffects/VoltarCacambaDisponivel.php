@@ -10,14 +10,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
+use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
+use App\Scopes\ScopeByBusiness;
 
 /**
  * Wave 5-A — Side-effect "Voltar caçamba pra disponível" (process `cacamba_locacao`).
  *
  * Action `voltar_disponivel` (stages `manutencao`/`recolhida` → `disponivel`).
  *
- * Subject = Modules\OficinaAuto\Entities\Vehicle. Atualiza:
+ * Subject = Vehicle, ou a ServiceOrder dele (caso do kanban). Atualiza o veículo:
  *   - current_status = 'disponivel'
  *   - current_rental_id = null
  *
@@ -37,6 +39,11 @@ final class VoltarCacambaDisponivel implements SideEffectInterface
 {
     public function execute(Model $subject, array $payload = []): void
     {
+        // O kanban executa a ação pela OS (ServiceOrderFsmActionController): o veículo é o dela.
+        if ($subject instanceof ServiceOrder) {
+            $subject = $this->veiculoDaOs($subject);
+        }
+
         if (! $subject instanceof Vehicle) {
             throw new InvalidArgumentException(
                 'VoltarCacambaDisponivel: subject deve ser Modules\\OficinaAuto\\Entities\\Vehicle (recebido '
@@ -69,5 +76,21 @@ final class VoltarCacambaDisponivel implements SideEffectInterface
             'vehicle_id' => $vehicleId,
             'plate' => $subject->plate,
         ]);
+    }
+
+    private function veiculoDaOs(ServiceOrder $os): Vehicle
+    {
+        $vehicle = Vehicle::withoutGlobalScope(ScopeByBusiness::class)
+            ->where('id', (int) $os->vehicle_id)
+            ->where('business_id', (int) $os->business_id) // Tier 0: só o veículo da mesma empresa da OS
+            ->first();
+
+        if (! $vehicle) {
+            throw new InvalidArgumentException(
+                "VoltarCacambaDisponivel: vehicle {$os->vehicle_id} não encontrado no business {$os->business_id}"
+            );
+        }
+
+        return $vehicle;
     }
 }

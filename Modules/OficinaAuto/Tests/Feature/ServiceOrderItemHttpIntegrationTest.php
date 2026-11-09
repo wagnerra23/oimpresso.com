@@ -32,12 +32,12 @@ uses(Tests\TestCase::class);
  * @see resources/js/Pages/OficinaAuto/ServiceOrders/Edit.tsx (seção inline)
  */
 
-const BIZ_WAVE5 = 1;
+const BIZ_WAVE5 = 98;
 const PLATE_WAVE5_PREFIX = 'W5UI';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('oficina_service_order_items')) {
         $this->markTestSkipped('Rode migration 2026_05_17_000010 primeiro');

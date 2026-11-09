@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-06"
 last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com a requisição aberta e o método de custo do #9896 e do #9898 já no main), head 2c43ba7: lane PHP / Pest (Estoque · MySQL), job 121847889045: 550 passed, 0 pulados (2701 assertions), com ProdutoRequisicaoAbertaContratoTest 4, ProdutoNaturezaFiscalConsultaContratoTest 3 e ProdutoMetodoDeCustoContratoTest 2 verdes; job Frontend / Vite build 121847886774: 114 testes passaram em 14 arquivos. Antes: 2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, disparada à mão): 497 testes, 0 falhas, 0 pulados, com todos os arquivos Pest da lista; job 120384523098 (Frontend / Vite build, mesmo commit): os 2 arquivos Vitest da lista que rodam em lane passaram; os outros 8 arquivos Vitest da lista não rodam em lane e passaram local (133 de 133). Antes: 2026-10-19, job 118208572139."
 ---
 
@@ -98,6 +98,8 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-41 | Giro de 90 dias e últimas compras no painel | should | `ProductController::vendidoNosUltimos90Dias` + `ultimasComprasDoProduto` + aba Estoque do painel (`PainelDetalhe.tsx`) | `ProdutoGiroComprasTest` (lane Estoque · MySQL) + `produto-painel-giro-compras.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-42 | Filtro "Falta NCM" e o link do card de Saúde fiscal | should | `ProductController::consultaListaProdutos` (`falta_ncm`) + `FiltrosLista.tsx` + `SaudeFiscalService` (item `produto_sem_ncm`) | `ProdutoListaFaltaNcmTest` (lane Estoque · MySQL) + `SaudeFiscalTest` (UC-NFTR-24) + `produto-filtro-falta-ncm.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-43 | Informar NCM em vários produtos de uma vez | should | `ProductController::bulkUpdateNcm` (`POST /products/bulk-update-ncm`) + `NcmEmLote.tsx` na barra de selecionados | `ProdutoNcmEmLoteTest` (lane Estoque · MySQL) + `produto-ncm-em-lote.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-44 | Filtro "Uso": Para vender, Material e Serviço | should | `ProductController::consultaListaProdutos` (`uso`) + `App\Contracts\Fabricacao\ProdutosDeReceita` (Manufacturing) + `FiltrosLista.tsx` | `ProdutoListaUsoTest` (lane Estoque · MySQL) + `produto-filtro-uso.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-45 | Excluir sem perder e restaurar | must | `ProductController::destroy` / `massDestroy` / `restaurar` + `consultaListaProdutos` (`deleted_at`) + `AcoesProduto.tsx` | `ProdutoExcluirRestaurarTest` (lane Estoque · MySQL) + `produto-excluir-restaurar.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -590,6 +592,24 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** CEST e origem em lote; sugerir o NCM pelo nome do produto.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-44 · Filtro "Uso": Para vender, Material e Serviço · `should`
+- **Persona:** quem cuida do estoque numa comunicação visual e quer ver só os materiais (lona, vinil, tinta), sem os produtos acabados e os serviços no meio.
+- **Aceite:** Dado lona (entra na receita do banner), banner e instalação (natureza fiscal serviço) · Quando escolho "Uso: Material" · Então só a lona aparece · Em "Serviço", só a instalação · Em "Para vender", o banner e os demais, sem a lona e sem a instalação · As três opções juntas dão a lista inteira · O filtro só aparece com pelo menos duas opções: "Material" exige a Fabricação (receitas) e "Serviço" exige o módulo Fiscal (natureza).
+- **Teste:** [`ProdutoListaUsoTest`](../../../../tests/Feature/Produto/ProdutoListaUsoTest.php) — `UC-PIDX-44` (o cenário do aceite com a SQL real da receita; as três opções somam a lista sem repetir; receita de outra empresa não faz material aqui; as opções do contexto — lane Estoque · MySQL) e [`produto-filtro-uso.test.tsx`](../../../../tests/js/produto-filtro-uso.test.tsx) — `UC-PIDX-44` (aparece com as opções da empresa, some com uma só, o valor no gatilho, o chip — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-06: mostrar o filtro com uma opção só derruba o caso de tela.
+- **Contrato:** backlog CV1 (pesquisa de 2026-10-20, shopVOX e Calcgraf) e os fluxos do [W] de 2026-10-22: o eixo se chama "Uso" e não ganha campo novo. Material = o produto cuja variação é insumo de alguma receita da Fabricação (`mfg_recipe_ingredients`), lido pelo contrato `App\Contracts\Fabricacao\ProdutosDeReceita` porque o núcleo não importa de módulo; Serviço = natureza fiscal `servico` (UC-PIDX-31); Para vender = nem um nem outro. Um produto que é material e serviço aparece nas duas. Só leitura.
+- **Gates:** o mesmo da lista (`product.view`). Tier 0: a receita e o insumo passam pelo `products.business_id`.
+- **Fora daqui:** o rótulo "O que é" no painel e a coluna Tipo fora do padrão da lista (seguem no backlog, abaixo).
+- **Status: ⬜** — nasce neste PR.
+
+## UC-PIDX-45 · Excluir sem perder e restaurar · `must`
+- **Persona:** quem cuida do cadastro e exclui um produto que não usa mais, ou exclui por engano e precisa trazê-lo de volta com tudo o que tinha.
+- **Aceite:** Dado um produto com 18 no estoque · Quando escolho "Excluir" · Então ele some da lista (e da venda e da compra, que só trazem produto ativo) · E aparece em "Situação: Excluídos", marcado "excluído" · E o cadastro, as variações, o estoque e as compras dele continuam guardados · Quando escolho "Restaurar" · Então ele volta a Ativo com os mesmos 18 · Produto com compra também pode ser excluído · "Ativar" não traz um excluído de volta (o caminho é Restaurar) · O indicador "Total" deixa de contar o excluído.
+- **Teste:** [`ProdutoExcluirRestaurarTest`](../../../../tests/Feature/Produto/ProdutoExcluirRestaurarTest.php) — `UC-PIDX-45` (o que fica guardado; produto com compra; restaurar e o Ativar que não restaura; Excluir selecionados com produto de outra empresa no meio; `product.delete` e produto de outra empresa; o indicador Total — lane Estoque · MySQL) e [`produto-excluir-restaurar.test.tsx`](../../../../tests/js/produto-excluir-restaurar.test.tsx) — `UC-PIDX-45` (o excluído oferece só Restaurar; sem permissão não há Restaurar; a situação e o chip "Excluídos"; a célula diz "excluído" — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-06: deixar "Ativar" no menu do excluído derruba o caso de tela.
+- **Contrato:** **`AR-PROD-022`** do contrato de paridade com o Office Comercial, esclarecido pelo [W] em 2026-07-13 ([`ANTI-REGRESSAO-cadastro-produto-legacy.md`](../../../../memory/requisitos/Produto/ANTI-REGRESSAO-cadastro-produto-legacy.md)): *"Excluir — soft-delete: com permissão, qualquer produto pode ser excluído; o cadastro vira inativo e some da lista, mas fica acessível por filtro de excluídos/inativos (NUNCA hard-delete — preserva consulta futura)"*; e **`AR-PROD-207`** (o manual: *"ao ser excluído do sistema, automaticamente o produto ganha o status de inativo"*). Excluído = `is_inactive = 1` + `products.deleted_at` preenchido. Antes desta mudança o "Excluir" apagava o produto, as variações e o estoque (`variation_location_details`), e recusava produto com compra ou ajuste.
+- **Gates:** `product.delete` para excluir e restaurar. Tier 0: só produtos da empresa do usuário; o id de outra empresa não muda.
+- **Fora daqui:** restaurar vários de uma vez; o valor do estoque do excluído continua no "Valor em estoque" e no Relatório de estoque, como o de qualquer produto inativo (o estoque físico é real).
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -754,28 +774,18 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - Clicar em "Abaixo do alerta" filtra a lista (D6) saiu deste backlog em 2026-11-03: virou UC-PIDX-35, com teste, junto do "Inativos" (item 2.1 do protótipo).
 - Ver cada cor e tamanho, com saldo, na própria lista (D7) saiu deste backlog em 2026-11-04: virou UC-PIDX-37, com teste. "Abrir a linha" ficou como um painel no saldo da coluna Estoque, porque a tabela compartilhada não abre linha e a linha já abre o painel do produto.
 - Mostrar o estoque separado para vendas e o livre (D5) saiu deste backlog em 2026-11-04: virou UC-PIDX-38, com teste. A linha aparece sempre que houver reserva ativa, não só com o interruptor ligado (ver o UC).
-- **[BACKLOG] Excluir sem perder: o excluído pode ser restaurado (D13)** — hoje "Excluir" apaga o
-  cadastro, as variações e os preços por grupo, e a confirmação diz que não tem volta. Aceite: Dado
-  um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
-  a Ativo com variações e preços. Fonte: Olist/Tiny (situação Excluídos + restaurar).
+- Excluir sem perder e restaurar (D13) saiu deste backlog em 2026-11-06: virou UC-PIDX-45, com teste, pela regra `AR-PROD-022` do [W].
 - Giro e últimas compras no painel (D8) saiu deste backlog em 2026-11-05: virou UC-PIDX-41, com teste.
-- **[BACKLOG] Recortes salvos com nome (D1)** — hoje os filtros vão para o endereço, mas não há
-  recorte com nome. Aceite: Dado um conjunto de filtros, Quando salvo como "Lonas abaixo do alerta",
-  Então ele aparece numa lista de recortes do usuário e abre com os mesmos filtros. Fonte: Shopify
-  (visões salvas), Odoo (favoritos).
-  Espera a decisão D-28 (abaixo): o [W] reprovou as visões salvas da lista de Clientes em 2026-05-24.
+- Recortes salvos com nome (D1) saiu deste backlog em 2026-11-06 sem ser construído: a D-28 foi decidida "Não", pela reprovação do [W] de 2026-05-24.
 
 **Comunicação visual**
 
-- **[BACKLOG] Separar material, produto e serviço na consulta (CV1)** — hoje o filtro "Tipo de
-  produto" separa Único, Variável e Composição; material não tem marca própria. O eixo se chama
-  "Uso" (Para vender, Material, Serviço) e não ganha campo novo: serviço vem da natureza fiscal do
-  produto (UC-FLX-31) e material é o item que entra em alguma receita. Aceite: Dado lona (entra na
-  receita do banner), banner e instalação (natureza fiscal serviço), Quando filtro "Material", Então
-  só a lona aparece. No painel fica um rótulo só, "O que é", com o uso; a forma do cadastro aparece só
-  quando muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai
-  do padrão da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf
-  (insumos e acabados).
+- O filtro "Uso" (Para vender, Material, Serviço) da CV1 saiu deste backlog em 2026-11-06: virou UC-PIDX-44, com teste.
+- **[BACKLOG] "O que é" no painel e a coluna Tipo fora do padrão (resto da CV1)** — No painel fica um
+  rótulo só, "O que é", com o uso (a mesma regra do UC-PIDX-44); a forma do cadastro aparece só quando
+  muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai do padrão
+  da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf (insumos e
+  acabados).
 - **[BACKLOG] De onde vem o separado, no painel (CV4)** `[V0]` — a parte da lista ("20 m² separados para vendas ·
   30 m² livres") saiu deste backlog em 2026-11-04 e virou UC-PIDX-38. Fica o painel. Fonte: Calcgraf (material
   empenhado), shopVOX (quantidade reservada).
@@ -793,6 +803,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   Quando abro o painel, Então vejo materiais e quantidades da receita. ⚠️ Conferir com o charter: o
   Non-Goal "Sub-views de BOM/Insumos ficam em `/products/unificado`" pode valer aqui — decisão [W].
   Fonte: shopVOX (lista de materiais, mão de obra e máquina do produto).
+  Espera a decisão D-29 (abaixo).
 - **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — cada rolo é um lote, e o
   relatório de Lotes já mostra em que OS cada rolo foi usado (US-COM-025 · UC-FLX-18, parcial). A
   consulta seria a porta de entrada: a aba Rolos do painel lista os rolos e leva ao relatório de
@@ -811,7 +822,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   abrir esse produto; e no painel da pilha CR2032 vejo os produtos e aparelhos que a usam. Produto sem
   pilha não mostra nada. A venda pede o modelo e a série do aparelho (Sells/Create.casos.md, mesmo
   pedido).
-- **[BACKLOG] A venda não deixa vender mais kits do que os componentes permitem** `[V0]` — a parte do painel ("3 kits disponíveis" e quem limita) saiu deste backlog em 2026-11-04 e virou UC-PIDX-40. Fica a venda. O PDV Blade já usa `ProductUtil::calculateComboQuantity` para o saldo do combo (`SellPosController`, `getDetailsFromVariation`), mas essa conta tem um defeito, descrito no UC-PIDX-40: componente com saldo zero que vem primeiro na lista não zera o resultado (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Consertar mexe no que a venda deixa vender: Regra Mestre (dupla prova e antes e depois), decisão [W]. A venda React (Sells/CreateV3) não foi conferida.
+- **[BACKLOG] A venda não deixa vender mais kits do que os componentes permitem** `[V0]` — a parte do painel ("3 kits disponíveis" e quem limita) saiu deste backlog em 2026-11-04 e virou UC-PIDX-40. Fica a venda. O PDV Blade já usa `ProductUtil::calculateComboQuantity` para o saldo do combo (`SellPosController`, `getDetailsFromVariation`), mas essa conta tem um defeito, descrito no UC-PIDX-40: componente com saldo zero que vem primeiro na lista não zera o resultado (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Consertar mexe no que a venda deixa vender: Regra Mestre (dupla prova e antes e depois), decisão [W]. A venda React (Sells/CreateV3) não foi conferida. Espera a decisão D-30 (abaixo).
 - **[BACKLOG] Saldo fiscal no painel do produto** `[E0]` (pedido de 2026-10-27) — Aceite: Dado um
   produto com 5 un. no estoque, das quais 3 entraram com nota, Quando abro a aba Fiscal do painel,
   Então ela mostra "Saldo fiscal 3 un. · Estoque real 5 un." e de onde vem a diferença (compras sem
@@ -820,6 +831,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   compra), lido das próprias notas; não mexe no estoque. É também o número que falta ao inventário do
   SPED (Bloco H). Pedido da PraMoto, que compra com e sem nota; a compra e o aviso na emissão estão em
   `Purchase/Create.casos.md` e `Fiscal/Nfe.casos.md`.
+  Espera a decisão D-31 (abaixo): hoje nenhuma compra registra se entrou com nota.
 - O filtro "Falta NCM" e o link do card de Saúde fiscal saíram deste backlog em 2026-11-06: viraram UC-PIDX-42, com teste.
 - O NCM em lote saiu deste backlog em 2026-11-06: virou UC-PIDX-43, com teste.
 
@@ -886,12 +898,29 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Pode desfazer — A junção guarda o que era de cada produto e pode ser desfeita enquanto não houver movimento novo no produto que ficou. Mais seguro, mas dá mais trabalho para construir.
   - Destrava: P-152
 - **[DECISÃO] D-28 · Recortes salvos com nome voltam, agora na consulta de produto?**
-  - Estado: Em aberto
+  - Estado: Decidida em 2026-11-06 · [F] — Não. Vale a reprovação do [W] de 2026-05-24 (as visões salvas da lista de Clientes): o filtro fica no endereço da página, e quem quer guardar um recorte salva o link. Nada a construir.
   - Texto: A pesquisa de concorrentes (D1, 2026-10-20) propôs salvar um conjunto de filtros com nome, como "Lonas abaixo do alerta", e reabrir com um clique (Shopify, Odoo). Em 2026-05-24 o [W] reprovou as visões salvas da lista de Clientes na validação em produção, e elas foram removidas (`Cliente/Index.charter.md`). Por isso o D1 não foi feito junto com o D6.
   - Opção: Não — Os filtros já ficam no endereço da página; quem quer guardar um recorte salva o link. Nada a construir.
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
+- **[DECISÃO] D-29 · A receita da Fabricação aparece no painel do produto (CV6)?**
+  - Estado: Em aberto
+  - Texto: O painel mostra os itens de um kit (aba Composição, UC-PIDX-40), mas não a receita da Fabricação de um produto feito sob encomenda. O que já está decidido: a receita é a fonte do material (`_DECISOES-W-2026-10-15.md`), o aviso de custo desatualizado fica na receita (SPEC do Produto) e o charter, autorizado em 2026-10-10, diz *"❌ Sub-views de BOM/Insumos/Tabelas (ficam em `/products/unificado`)"*. Concorrentes: no shopVOX o produto é montado por materiais, máquina e mão de obra no próprio cadastro; no Odoo o produto leva à lista de materiais; no Office Comercial o cadastro tem a aba Composição (`AR-PROD-150..167`).
+  - Opção: Resumo no painel (recomendação [F+C]) — Só leitura: insumos, quantidades, custo pela receita e margem, com "Abrir receita" que leva à Fabricação. A edição continua na Fabricação. O Non-Goal do charter passa a dizer que o que fica fora é editar a ficha técnica na consulta.
+  - Opção: Só o link — O painel leva à receita na Fabricação, sem mostrar os insumos. O charter fica como está.
+- **[DECISÃO] D-30 · A venda deixa vender mais kits do que os componentes permitem?**
+  - Estado: Em aberto
+  - Texto: Kits disponíveis deveriam ser o menor resultado, entre os componentes que controlam estoque, de saldo ÷ quantidade por kit, arredondado para baixo; um componente zerado dá 0 kits. A conta do núcleo (`ProductUtil::calculateComboQuantity`) trata o zero como "ainda não calculei": se o primeiro componente zera, o seguinte sobrescreve (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Corrigir muda o que a venda deixa vender, então pede a dupla prova e o antes e depois de cada kit afetado.
+  - Opção: Corrigir e seguir "Permitir vender sem estoque" (recomendação [F+C]) — Com a chave da empresa desligada, a venda não deixa passar de quantos kits dá; ligada, deixa e os componentes ficam negativos, como em qualquer produto.
+  - Opção: Corrigir só a conta e não barrar — A venda mostra o número certo, mas não barra.
+- **[DECISÃO] D-31 · De onde vem o "entrou com nota" do saldo fiscal?**
+  - Estado: Em aberto
+  - Texto: O saldo fiscal do painel conta o que entrou com nota menos o que saiu com nota. Hoje nenhuma compra registra se entrou com nota: a ligação da nota com a compra (`nfe_dfe_recebidos.transaction_id`) existe, mas nenhum fluxo a preenche, porque a compra a partir da nota ainda não existe (P-100). Sem isso, toda compra contaria como sem nota.
+  - Opção: Esperar a compra a partir da nota (recomendação [F+C]) — O saldo fiscal nasce certo, ligado à nota de verdade. Depende do P-100, em Compras.
+  - Opção: Campo "Compra com nota" no lançamento — Sai antes, mas é um campo novo na compra, e o saldo fica tão certo quanto quem marca o campo.
 
 ## Trilha do tempo
+- 2026-11-06 · [F+C] **UC-PIDX-44**: filtro "Uso" (Para vender, Material, Serviço) na consulta de produto (CV1).
+- 2026-11-06 · [F+C] **UC-PIDX-45**: "Excluir" não apaga mais — o produto vai para "Situação: Excluídos" e "Restaurar" o devolve (D13 · `AR-PROD-022`).
 - 2026-11-06 · [F+C] **UC-PIDX-43**: "Informar NCM" na barra de selecionados grava o mesmo NCM em vários produtos.
 - 2026-11-06 · [F+C] **UC-PIDX-42**: filtro "Falta NCM" na consulta de produto e o card de Saúde fiscal abrindo a lista com ele.
 - 2026-11-05 · [F+C] **UC-PIDX-41**: giro de 90 dias e as 3 últimas compras recebidas na aba Estoque do painel (D8).

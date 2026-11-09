@@ -151,16 +151,22 @@ export default function SupplierCombobox({ value, onChange, disabled = false, in
             <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
           )}
         </div>
-        {open && podeBuscar && (
-          <CommandList className="absolute z-50 left-0 right-0 top-full mt-1 max-h-64 rounded-md border bg-popover shadow-md">
-            {!loading && <CommandEmpty>Nenhum fornecedor encontrado para "{query}".</CommandEmpty>}
-            {options.map((opt) => (
-              <CommandItem key={opt.id} value={String(opt.id)} onSelect={() => pick(opt)} className="text-[13px]">
-                <span className="truncate">{opt.label}</span>
-              </CommandItem>
-            ))}
-          </CommandList>
-        )}
+        {/* A lista fica sempre no DOM: o cmdk fixa aria-controls no input apontando para ela,
+            e com a lista desmontada o axe acusa aria-valid-attr-value (critical). */}
+        <CommandList
+          className={`absolute z-50 left-0 right-0 top-full mt-1 max-h-64 rounded-md border bg-popover shadow-md ${open && podeBuscar ? '' : 'hidden'}`}
+        >
+          {open && podeBuscar && (
+            <>
+              {!loading && <CommandEmpty>Nenhum fornecedor encontrado para "{query}".</CommandEmpty>}
+              {options.map((opt) => (
+                <CommandItem key={opt.id} value={String(opt.id)} onSelect={() => pick(opt)} className="text-[13px]">
+                  <span className="truncate">{opt.label}</span>
+                </CommandItem>
+              ))}
+            </>
+          )}
+        </CommandList>
       </Command>
     </div>
   );

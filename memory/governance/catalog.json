@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 924,
-    "edges": 1252,
+    "nodes": 935,
+    "edges": 1265,
     "by_node_type": {
       "module": 43,
       "table": 108,
-      "adr": 152,
-      "component": 532,
+      "adr": 153,
+      "component": 542,
       "api": 89
     },
     "by_edge_type": {
@@ -42,12 +42,12 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 532,
-      "dependsOn": 138,
+      "hasComponent": 542,
+      "dependsOn": 139,
       "delegatesTo": 127,
       "migratesTo": 1,
       "supersedes": 27,
-      "supersedesPartially": 76,
+      "supersedesPartially": 78,
       "supersededBy": 31
     },
     "dangling": 0
@@ -1119,6 +1119,13 @@
       "exists": true
     },
     {
+      "id": "adr:0448",
+      "type": "adr",
+      "num": "0448",
+      "slug": "0448-fabricacao-cadastro-producao-execucao-product-bom-fonte-unica",
+      "exists": true
+    },
+    {
       "id": "api:/.well-known/assetlinks.json",
       "type": "api",
       "prefix": "/.well-known/assetlinks.json",
@@ -2059,6 +2066,13 @@
       "desc": ""
     },
     {
+      "id": "component:Compras/AlcadaDoPedido",
+      "type": "component",
+      "module": "Compras",
+      "name": "AlcadaDoPedido",
+      "desc": "alçada de valor do pedido de compra por empresa (comprador, gerente, diretoria); desligada por padrão em business.common_settings (US-COM-032)"
+    },
+    {
       "id": "component:Compras/AplicarCustoDoRecebimento",
       "type": "component",
       "module": "Compras",
@@ -2066,11 +2080,39 @@
       "desc": "compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
     },
     {
-      "id": "component:Compras/ComprasController",
+      "id": "component:Compras/AvisoDeFalhaDaAgenda",
       "type": "component",
       "module": "Compras",
-      "name": "ComprasController",
-      "desc": ""
+      "name": "AvisoDeFalhaDaAgenda",
+      "desc": "falha da agenda ou do job de Compras vira task bloqueada no mcp_tasks, pelo HitlEscalationService do Jana"
+    },
+    {
+      "id": "component:Compras/ComprasController + ComprasService",
+      "type": "component",
+      "module": "Compras",
+      "name": "ComprasController + ComprasService",
+      "desc": "lista, KPIs e detalhe do cockpit /compras"
+    },
+    {
+      "id": "component:Compras/ComprasLiberado",
+      "type": "component",
+      "module": "Compras",
+      "name": "ComprasLiberado",
+      "desc": "middleware das rotas operacionais de /compras: pacote compras_module da empresa e, onde pedido, a permissão (compras.view)"
+    },
+    {
+      "id": "component:Compras/CotacaoDeCompra",
+      "type": "component",
+      "module": "Compras",
+      "name": "CotacaoDeCompra",
+      "desc": "cotação entre fornecedores: convida, registra respostas, compara e fecha em pedido de compra; sem tela ainda (US-COM-031)"
+    },
+    {
+      "id": "component:Compras/CurvaAbcReposicao",
+      "type": "component",
+      "module": "Compras",
+      "name": "CurvaAbcReposicao",
+      "desc": "curva ABC e sugestão de reposição pelo giro; só leitura (US-ESTOQUE-003)"
     },
     {
       "id": "component:Compras/CustoDoInsumoService",
@@ -2080,6 +2122,13 @@
       "desc": "custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
     },
     {
+      "id": "component:Compras/CustoMedioMovel + CompraRecebidaCustoMedioObserver + comando compras:custo-medio-semear",
+      "type": "component",
+      "module": "Compras",
+      "name": "CustoMedioMovel + CompraRecebidaCustoMedioObserver + comando compras:custo-medio-semear",
+      "desc": "custo médio ponderado móvel por variação, recalculado a cada compra recebida; desligado pela flag compras.custo_medio_movel (US-PROD-024)"
+    },
+    {
       "id": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
       "type": "component",
       "module": "Compras",
@@ -2087,11 +2136,25 @@
       "desc": "tabela compras_propostas_preco, proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
     },
     {
+      "id": "component:Compras/Database/Migrations/2026_10_27_*",
+      "type": "component",
+      "module": "Compras",
+      "name": "Database/Migrations/2026_10_27_*",
+      "desc": "tabelas compras_produto_fornecedor (de-para do item da nota com a variação), compras_prazo_fornecedor, compras_cotacoes + compras_cotacao_itens/fornecedores/respostas, compras_aprovacoes_pedido, compras_custo_medio + compras_custo_medio_movimentos e compras_inspecoes"
+    },
+    {
       "id": "component:Compras/DataController",
       "type": "component",
       "module": "Compras",
       "name": "DataController",
       "desc": ""
+    },
+    {
+      "id": "component:Compras/InspecaoDoRecebimento",
+      "type": "component",
+      "module": "Compras",
+      "name": "InspecaoDoRecebimento",
+      "desc": "inspeção por linha da compra recebida; o reprovado sai do estoque pela devolução de compra do núcleo; desligada por padrão em business.common_settings; sem tela ainda (US-COM-034)"
     },
     {
       "id": "component:Compras/InstallController",
@@ -2122,6 +2185,13 @@
       "desc": "campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
     },
     {
+      "id": "component:Compras/NecessidadeDeCompra",
+      "type": "component",
+      "module": "Compras",
+      "name": "NecessidadeDeCompra",
+      "desc": "MRP: necessidade por insumo e local somando as reservas das OS e das vendas e o estoque mínimo, com data para pedir pelo prazo do fornecedor; só lê estoque (US-COM-030)"
+    },
+    {
       "id": "component:Compras/PropostasPrecoController + PropostasDePreco",
       "type": "component",
       "module": "Compras",
@@ -2134,6 +2204,13 @@
       "module": "Compras",
       "name": "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "desc": "US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
+    },
+    {
+      "id": "component:Compras/TransactionSellLineCustoObserver",
+      "type": "component",
+      "module": "Compras",
+      "name": "TransactionSellLineCustoObserver",
+      "desc": "congela o custo previsto da linha de orçamento no dia (UC-FLX-33 · US-SELL-067)"
     },
     {
       "id": "component:ComunicacaoVisual/AgendaController",
@@ -5666,7 +5743,7 @@
       "id": "module:Compras",
       "type": "module",
       "module": "Compras",
-      "purpose": "Cockpit de leitura de compras (/compras): lista, KPIs e drawer de detalhe sobre transactions type=purchase. Complementa — não substitui — o CRUD /purchases do core, pra onde delega criar, editar e excluir.",
+      "purpose": "Cockpit de leitura de compras (/compras) e as regras de compra que o CRUD /purchases do core consome: custo no recebimento, recebimento parcial, MRP, cotação, alçada, inspeção. O cockpit complementa — não substitui — o CRUD, pra onde delega criar, editar e excluir.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "compras.*",
@@ -8126,6 +8203,18 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0448",
+      "to": "adr:0431",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0448",
+      "to": "adr:0436",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -8667,6 +8756,12 @@
     },
     {
       "from": "module:Compras",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Compras",
       "to": "module:NfeBrasil",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -8693,13 +8788,43 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/AlcadaDoPedido",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/AplicarCustoDoRecebimento",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Compras",
-      "to": "component:Compras/ComprasController",
+      "to": "component:Compras/AvisoDeFalhaDaAgenda",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/ComprasController + ComprasService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/ComprasLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/CotacaoDeCompra",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/CurvaAbcReposicao",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8711,13 +8836,31 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/CustoMedioMovel + CompraRecebidaCustoMedioObserver + comando compras:custo-medio-semear",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/Database/Migrations/2026_10_27_*",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/InspecaoDoRecebimento",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8747,6 +8890,12 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/NecessidadeDeCompra",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/PropostasPrecoController + PropostasDePreco",
       "type": "hasComponent",
       "source": "contains"
@@ -8754,6 +8903,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/TransactionSellLineCustoObserver",
       "type": "hasComponent",
       "source": "contains"
     },
