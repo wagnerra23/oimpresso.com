@@ -35,7 +35,7 @@ beforeEach(function () {
         test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
     }
 
-    foreach (['macros', 'whatsapp_conversation_tags', 'whatsapp_tags', 'messages', 'conversations', 'channels'] as $t) {
+    foreach (['macro_variants', 'macros', 'whatsapp_conversation_tags', 'whatsapp_tags', 'messages', 'conversations', 'channels'] as $t) {
         Schema::dropIfExists($t);
     }
 
@@ -103,6 +103,7 @@ beforeEach(function () {
         $table->unsignedInteger('sender_user_id')->nullable();
         $table->string('sender_kind', 20)->nullable();
         $table->unsignedInteger('cost_centavos')->nullable();
+        $table->unsignedBigInteger('macro_variant_id')->nullable();
         $table->boolean('is_internal_note')->default(false);
         $table->timestamps();
     });
@@ -129,6 +130,20 @@ beforeEach(function () {
     });
 
     // Espelha migration 2026_05_13_000001_create_macros_table.php
+    // MacrosController::apply sorteia a variante da macro antes de enviar.
+    Schema::create('macro_variants', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('macro_id');
+        $table->string('label', 80);
+        $table->text('body');
+        $table->unsignedSmallInteger('weight')->default(50);
+        $table->boolean('active')->default(true);
+        $table->unsignedInteger('sent_count')->default(0);
+        $table->unsignedInteger('response_count')->default(0);
+        $table->timestamps();
+    });
+
     Schema::create('macros', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');
@@ -260,6 +275,8 @@ it('R-WA-048-003 — apply incrementa used_count + cria msg outbound + aplica ac
         '*/instances/*/text' => Http::response(['status' => 'sent', 'message_id' => 'wamid.X1'], 200),
     ]);
 
+    config(['whatsapp.baileys.daemon_url' => 'https://daemon.test', 'whatsapp.baileys.api_key' => 'k']);
+
     $executor = app(MacroExecutor::class);
     $result = $executor->execute(1, $macro->id, $conv->id, 42);
 
@@ -297,6 +314,14 @@ it('R-WA-048-004 — Tier 0 (ADR 0093): biz=1 não enxerga macro de biz=99', fun
     $alien->save();
 
     // Autenticado em biz=1 — listar deve retornar VAZIO
+    $user = new class extends \Illuminate\Foundation\Auth\User {
+        protected $table = 'users';
+        protected $guarded = [];
+        public function can($abilities, $arguments = []): bool { return false; }
+    };
+    $user->id = 1;
+    $user->business_id = 1;
+    auth()->setUser($user); // o ScopeByBusiness não filtra sem usuário autenticado
     session()->put('user.business_id', 1);
     $count = Macro::query()->count();
     expect($count)->toBe(0);

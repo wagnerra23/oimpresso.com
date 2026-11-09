@@ -325,7 +325,14 @@ it('7. business sem phone outbound_default → no dispatch (silencioso)', functi
 
 it('8. fallback email: contact sem phone mas com email válido envia Mail::raw', function () {
     Bus::fake();
-    Mail::fake();
+    // MailFake::raw() não registra nada: confere a chamada e o destinatário direto.
+    $destino = null;
+    Mail::shouldReceive('raw')->once()->andReturnUsing(function ($body, $cb) use (&$destino) {
+        $msg = Mockery::mock();
+        $msg->shouldReceive('to')->andReturnUsing(function ($to) use (&$destino, $msg) { $destino = $to; return $msg; });
+        $msg->shouldReceive('subject')->andReturnSelf();
+        $cb($msg);
+    });
 
     makePhone(1, true);
 
@@ -350,7 +357,7 @@ it('8. fallback email: contact sem phone mas com email válido envia Mail::raw',
     // WhatsApp não disparou (sem phone)
     Bus::assertNothingDispatched();
     // Mail::raw enviado pro email do contact
-    Mail::assertSent(\Illuminate\Mail\SentMessage::class, fn ($m) => true);
+    expect($destino)->toBe('carlos@example.com');
 });
 
 it('9. sem phone E email inválido → Bus e Mail vazios (warning log)', function () {
@@ -412,7 +419,14 @@ it('10. contact com phone NÃO tenta email (WhatsApp tem prioridade)', function 
 
 it('11. whatsapp_consent=false bloqueia WhatsApp + tenta email fallback', function () {
     Bus::fake();
-    Mail::fake();
+    // MailFake::raw() não registra nada: confere a chamada e o destinatário direto.
+    $destino = null;
+    Mail::shouldReceive('raw')->once()->andReturnUsing(function ($body, $cb) use (&$destino) {
+        $msg = Mockery::mock();
+        $msg->shouldReceive('to')->andReturnUsing(function ($to) use (&$destino, $msg) { $destino = $to; return $msg; });
+        $msg->shouldReceive('subject')->andReturnSelf();
+        $cb($msg);
+    });
 
     makePhone(1, true);
 
@@ -439,7 +453,7 @@ it('11. whatsapp_consent=false bloqueia WhatsApp + tenta email fallback', functi
     // WhatsApp bloqueado pelo consent
     Bus::assertNothingDispatched();
     // Email fallback enviado (consent NULL = permite)
-    Mail::assertSent(\Illuminate\Mail\SentMessage::class, fn ($m) => true);
+    expect($destino)->toBe('fallback@example.com');
 });
 
 it('12. whatsapp_consent=false + email_consent=false não envia nada (Bus + Mail vazios)', function () {
