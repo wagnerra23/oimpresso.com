@@ -90,6 +90,9 @@ beforeEach(function () {
         $table->unsignedBigInteger('channel_id');
         $table->unsignedInteger('contact_id')->nullable();
         $table->string('customer_external_id', 150);
+        $table->string('lid', 100)->nullable();
+        $table->string('phone_e164', 30)->nullable();
+        $table->string('bsuid', 100)->nullable();
         $table->string('contact_name', 120)->nullable();
         $table->string('status', 20)->default('open');
         $table->unsignedInteger('assigned_user_id')->nullable();

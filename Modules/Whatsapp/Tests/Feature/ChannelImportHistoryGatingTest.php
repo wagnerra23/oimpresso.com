@@ -71,12 +71,12 @@ beforeEach(function () {
         protected $table = 'users';
         protected $guarded = [];
         public function can($abilities, $arguments = []): bool { return true; }
-        // O AdminSidebarMenu da rota pergunta papel ao usuário logado.
-        public function hasRole($roles, ?string $guard = null): bool { return false; }
     };
     $user->id = 1;
     $user->business_id = 1;
     auth()->setUser($user);
+    // O alvo é a regra do controller; o menu lateral da rota exige um usuário Spatie completo.
+    $this->withoutMiddleware();
     session()->put('user.business_id', 1);
     session()->put('user.id', 1);
 });

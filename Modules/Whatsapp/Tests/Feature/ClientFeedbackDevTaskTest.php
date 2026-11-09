@@ -62,6 +62,11 @@ beforeEach(function () {
 
     Schema::create('clients_feedbacks', function ($table) {
         $table->id();
+        // O observer de ClientFeedback grava assinatura e relevância ao criar.
+        $table->string('signature', 40)->nullable();
+        $table->decimal('relevance_score', 5, 2)->default(0);
+        $table->timestamp('relevance_score_at')->nullable();
+        $table->timestamp('last_seen_at')->nullable();
         $table->unsignedInteger('business_id')->index();
         $table->unsignedBigInteger('contact_id')->nullable()->index();
         $table->unsignedBigInteger('source_message_id')->nullable()->index();

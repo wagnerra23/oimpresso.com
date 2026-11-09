@@ -142,6 +142,13 @@ beforeEach(function () {
         $table->unsignedInteger('sender_user_id')->nullable();
         $table->string('sender_kind', 20)->nullable();
         $table->unsignedInteger('cost_centavos')->nullable();
+        $table->boolean('is_internal_note')->default(false);
+        $table->text('media_url')->nullable();
+        $table->string('media_mime', 120)->nullable();
+        $table->unsignedBigInteger('media_size_bytes')->nullable();
+        $table->unsignedInteger('media_duration_s')->nullable();
+        $table->string('media_filename', 255)->nullable();
+        $table->string('media_download_status', 20)->nullable();
         $table->timestamp('created_at')->useCurrent();
         $table->timestamp('updated_at')->nullable();
     });

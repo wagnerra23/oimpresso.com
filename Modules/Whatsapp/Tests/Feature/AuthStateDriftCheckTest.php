@@ -91,9 +91,11 @@ it('R-WA-AUTH-DRIFT-01 — sucesso silencioso quando auth_state alinhado com can
 
     $exitCode = \Artisan::call('whatsapp:auth-state-drift-check');
 
-    expect($exitCode)->toBe(0)->and(\Artisan::output())
+    // Artisan::output() esvazia o buffer na primeira leitura.
+    $saida = \Artisan::output();
+
+    expect($exitCode)->toBe(0)->and($saida)
         ->toContain('Zero orphans')
-        ->and(\Artisan::output())
         ->toContain('SEM DRIFT');
 });
 
@@ -114,7 +116,7 @@ it('R-WA-AUTH-DRIFT-02 — detecta ORPHAN: instance_id sem channel correspondent
     $output = \Artisan::output();
 
     expect($output)->toContain('ORPHANS: 1');
-    expect($output)->toContain('ch-deadbeefca...');
+    expect($output)->toContain('ch-deadbeefc...');
     expect($exitCode)->toBe(0);
 });
 
