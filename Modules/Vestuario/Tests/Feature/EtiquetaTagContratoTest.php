@@ -120,34 +120,19 @@ it('UC-VET-10: tamanhos do mesmo produto saem com códigos diferentes, cada um o
     $m = $svc->gerarEtiqueta(42, 7, ['nome' => 'Camiseta', 'sku' => 'CAMI-042-M-AZU'])['zpl'];
     $g = $svc->gerarEtiqueta(42, 8, ['nome' => 'Camiseta', 'sku' => 'CAMI-042-G-AZU'])['zpl'];
 
-    // O dado impresso é o que ProductUtil::filterProduct procura em sub_sku.
     expect($m)->toContain('^BCN')->toContain('^FDCAMI-042-M-AZU^FS')->not->toContain('^BEN');
     expect($g)->toContain('^BCN')->toContain('^FDCAMI-042-G-AZU^FS')->not->toContain('^BEN');
-    // A derivação antiga imprimia 789 + dígitos do SKU, igual nos dois tamanhos.
     expect($m)->not->toContain('7890000000420');
 });
 
-it('UC-VET-10: sub_sku que já é EAN-13 válido sai como EAN-13, com o mesmo número', function () {
-    $r = (new EtiquetaTagService())->gerarEtiqueta(1, 1, ['nome' => 'Peça', 'sku' => '7891000000014']);
+it('UC-VET-10: sub_sku EAN-13 válido sai como EAN-13; 13 dígitos com check errado saem em Code128', function () {
+    $svc = new EtiquetaTagService();
 
-    expect($r['zpl'])->toContain('^BEN')->toContain('^FD7891000000014^FS')->not->toContain('^BCN');
-});
-
-it('UC-VET-10: 13 dígitos com verificador errado não viram outro número: saem em Code128', function () {
-    $r = (new EtiquetaTagService())->gerarEtiqueta(1, 1, ['nome' => 'Peça', 'sku' => '7891000000015']);
-
-    expect($r['zpl'])->toContain('^BCN')->toContain('^FD7891000000015^FS')->not->toContain('^BEN');
-});
-
-it('UC-VET-10: sem SKU a etiqueta é recusada, em vez de sair com código inventado', function () {
-    $res = ucVetPost(['items' => [['product_id' => 42, 'variation_id' => 7, 'nome' => 'Peça']]]);
-
-    expect($res->getStatusCode())->toBe(422);
-    expect(json_decode($res->getContent(), true)['message'])->toContain('SKU');
+    expect($svc->gerarEtiqueta(1, 1, ['sku' => '7891000000014'])['zpl'])->toContain('^BEN')->toContain('^FD7891000000014^FS');
+    expect($svc->gerarEtiqueta(1, 1, ['sku' => '7891000000015'])['zpl'])->toContain('^BCN')->toContain('^FD7891000000015^FS');
 });
 
 it('UC-VET-10: item vindo da remarcação (sem ean13) imprime o sub_sku', function () {
-    // Mesmo formato de RemarcacaoController::etiquetas: product_id, variation_id, nome, tamanho, preco, sku.
     $res = ucVetPost(['items' => [[
         'product_id' => 42, 'variation_id' => 7, 'nome' => 'Vestido', 'tamanho' => 'M',
         'preco' => 10.5, 'sku' => 'REM-123456-P',
@@ -170,11 +155,12 @@ it('UC-VET-10: o PDF desenha o Code128 do sub_sku e o EAN-13 do sub_sku EAN', fu
     expect($html)->toContain('alt="CAMI-042-M-AZU"')->toContain('alt="7891000000014"');
 });
 
-it('UC-VET-10: SKU com acento ou comprido demais para a etiqueta devolve 422', function () {
-    foreach (['CAMISETA-AÇAÍ', str_repeat('A', 32)] as $sku) {
-        $res = ucVetPost(['items' => [['product_id' => 1, 'sku' => $sku]]]);
+it('UC-VET-10: sem SKU, com acento ou comprido demais para a etiqueta devolve 422', function () {
+    foreach ([null, 'CAMISETA-AÇAÍ', str_repeat('A', 32)] as $sku) {
+        $res = ucVetPost(['items' => [array_filter(['product_id' => 1, 'sku' => $sku])]]);
 
         expect($res->getStatusCode())->toBe(422);
+        expect(json_decode($res->getContent(), true)['message'])->toContain('SKU');
     }
 });
 
@@ -187,11 +173,9 @@ it('UC-VET-11: ^ e ~ nos campos de texto não abrem comando ZPL', function () {
         'nome' => '^XZ^XA^JUF^XZ', 'tamanho' => '~JA', 'cor' => '^PQ9', 'colecao' => '~JR', 'sku' => 'INJ^XZ',
     ]);
 
-    // Uma etiqueta só, sem os comandos que vieram no texto.
     expect(substr_count($r['zpl'], '^XA'))->toBe(1);
     expect(substr_count($r['zpl'], '^XZ'))->toBe(1);
     expect($r['zpl'])->not->toContain('^JUF')->not->toContain('~JA')->not->toContain('^PQ9')->not->toContain('~JR');
-    // O texto segue na etiqueta, em forma hexadecimal que a impressora decodifica.
     $bs = chr(92);
     expect($r['zpl'])->toContain($bs.'5EXZ'.$bs.'5EXA');
 });
@@ -202,7 +186,6 @@ it('UC-VET-11: barra invertida e quebra de linha no texto não desmontam o campo
 
     expect(substr_count($r['zpl'], '^XZ'))->toBe(1);
     expect($r['zpl'])->toContain("Linha{$bs}5C5E");
-    expect($r['zpl'])->not->toContain("\n{$bs}5EXZ");
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

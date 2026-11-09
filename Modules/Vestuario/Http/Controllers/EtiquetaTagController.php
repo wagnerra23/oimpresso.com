@@ -8,11 +8,12 @@ use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
+use InvalidArgumentException;
 use Modules\Vestuario\Services\EtiquetaTagService;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * EtiquetaTagController — geração lote de etiquetas TAG vestuário (US-VEST-020).
@@ -73,7 +74,12 @@ class EtiquetaTagController extends Controller
         ]);
 
         $items  = $this->expandItems($validated['items'], (int) ($validated['copies'] ?? 1));
-        $zpl    = $this->svc->gerarLote($items);
+
+        try {
+            $zpl = $this->svc->gerarLote($items);
+        } catch (InvalidArgumentException $e) {
+            return $this->itemInvalido($e);
+        }
 
         $businessId = $this->businessIdFromSession();
 
@@ -90,7 +96,7 @@ class EtiquetaTagController extends Controller
     }
 
     /**
-     * Gera PDF A4 com grid de etiquetas. Cada etiqueta vira <div> Blade com EAN-13 + QR PNG inline base64.
+     * Gera PDF A4 com grid de etiquetas. Cada etiqueta vira <div> Blade com código de barras + QR PNG inline base64.
      *
      * Mesmo body que storeZpl. Resposta: PDF binário download.
      */
@@ -116,16 +122,20 @@ class EtiquetaTagController extends Controller
 
         // Renderiza cada etiqueta pegando meta do service (preserva EAN-13 calc + truncate)
         $rendered = [];
-        foreach ($rawItems as $item) {
-            $r = $this->svc->gerarEtiqueta(
-                $item['product_id'],
-                $item['variation_id'] ?? 0,
-                $item['opts'] ?? [],
-            );
-            $rendered[] = $r['meta'] + [
-                'ean13' => $r['ean13'],
-                'sku'   => $r['sku'],
-            ];
+        try {
+            foreach ($rawItems as $item) {
+                $r = $this->svc->gerarEtiqueta(
+                    $item['product_id'],
+                    $item['variation_id'] ?? 0,
+                    $item['opts'] ?? [],
+                );
+                $rendered[] = $r['meta'] + [
+                    'ean13' => $r['ean13'],
+                    'sku'   => $r['sku'],
+                ];
+            }
+        } catch (InvalidArgumentException $e) {
+            return $this->itemInvalido($e);
         }
 
         $businessId = $this->businessIdFromSession();
@@ -141,6 +151,12 @@ class EtiquetaTagController extends Controller
         ]);
 
         return $pdf->download(sprintf('etiquetas-%s.pdf', date('Ymd-His')));
+    }
+
+    /** Item que não vira um código legível pelo caixa é erro de quem preencheu, não do servidor. */
+    private function itemInvalido(InvalidArgumentException $e): JsonResponse
+    {
+        return response()->json(['message' => $e->getMessage()], 422);
     }
 
     /**

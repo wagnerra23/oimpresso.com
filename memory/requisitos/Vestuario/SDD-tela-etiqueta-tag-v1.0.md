@@ -146,7 +146,7 @@ criar link morto."*
 | Persona | Quem é | O que precisa da etiqueta |
 |---|---|---|
 | **Larissa** (`larissa-04`, `Admin#4`) | dona/operadora da ROTA LIVRE, biz=4, monitor **1280px** | etiquetar a arara nova depois de receber a compra; ler TAM/COR sem bipar |
-| **`rota.vendas-04`** (`Vendas#4`) | auxiliar de balcão | bipar a peça no POS (US-VEST-002) — consome o EAN-13 que esta tela imprime |
+| **`rota.vendas-04`** (`Vendas#4`) | auxiliar de balcão | bipar a peça no POS (US-VEST-002) — consome o código de barras que esta tela imprime (o `sub_sku` da variação) |
 | **Wagner** (biz=1) | dono/superadmin | smoke, validação e configuração (`vestuario_settings`) |
 
 **Régua de UI:** 1280px. A tela usa `grid-cols-12` numa linha por item — o charter fixa
@@ -249,9 +249,8 @@ GET /labels/preview          → ProductUtil::getVariationGroupPrice → HTML + 
 | `barcodes` (núcleo) | folha de etiquetas do trilho **legado** (`stickers_in_one_sheet`, `paper_width/height`, `is_continuous`) | `business_id` ou `NULL` (templates globais) |
 | `selling_price_groups` (núcleo) | grupo de preço do trilho **legado** | `business_id` |
 
-**Onde o EAN-13 mora:** em lugar nenhum. Ele é **derivado em runtime** do SKU
-(`generateEan13FromSku`) ou informado pelo operador. Não há coluna de GTIN neste fluxo — ver
-§5.4 D-2.
+**O que sai no código de barras:** o `sub_sku` da variação, informado no item. É o campo que o PDV
+procura (`ProductUtil::filterProduct`). Não há coluna de GTIN neste fluxo — ver §5.4 D-2.
 
 ### 5.3 Fluxos críticos
 
@@ -272,10 +271,10 @@ GET /labels/preview          → ProductUtil::getVariationGroupPrice → HTML + 
    `preco` `numeric|min:0|max:99999`; strings com `max` por campo.
 3. `expandItems($items, $copies)` — **multiplica**: N itens × C cópias = N×C entradas planas.
 4. `EtiquetaTagService::gerarLote()` → para cada item `gerarEtiqueta()`:
-   - defaults por campo (`tamanho='U'`, `cor='-'`, `sku=sprintf('%06d%05d', productId, variationId)`);
-   - EAN-13: `normalizeEan13()` se veio, senão `generateEan13FromSku()`;
+   - defaults por campo (`tamanho='U'`, `cor='-'`); sem SKU nem EAN o item é recusado com 422;
+   - código: EAN informado (`normalizeEan13()`) > `sub_sku` que é EAN-13 válido > `sub_sku` em Code128;
    - `truncate()`: nome 30, cor 20, coleção 25 (mb-safe, sufixo `…`);
-   - `buildZpl()`: `^XA … ^XZ`, `^PW`/`^LL` da config, `^CI28` (UTF-8), `^BEN` (EAN-13),
+   - `buildZpl()`: `^XA … ^XZ`, `^PW`/`^LL` da config, `^CI28` (UTF-8), `^BEN` (EAN-13) ou `^BCN` (Code128), texto em `^FH`,
      `^BQN` só se `qr_enabled`, `^FD SKU` no rodapé;
    - `Log::info('vestuario.etiqueta.gerada', …)` **por etiqueta**.
 5. `Log::info('vestuario.etiqueta.lote.zpl', {business_id, items_count, bytes})`.
@@ -324,7 +323,7 @@ GET /labels/preview          → ProductUtil::getVariationGroupPrice → HTML + 
 | # | Capacidade | `/labels/show` (Blade) | `/vestuario/etiquetas` (React) | Leitura |
 |---|---|---|---|---|
 | **D-1** | **Achar a peça** | busca por **nome**, com autocomplete | operador **digita o `product_id` numérico** à mão | ⛔ o maior buraco de usabilidade da tela nova. A Larissa não sabe IDs |
-| **D-2** | **Ler os dados da peça** | resolve nome/variação/preço **do banco** | **nada é lido do banco** — nome, TAM, COR, coleção, preço e SKU são digitados | consequência de D-1; o EAN-13 sai de um SKU digitado, não do `sub_sku` real da variação |
+| **D-2** | **Ler os dados da peça** | resolve nome/variação/preço **do banco** | **nada é lido do banco** — nome, TAM, COR, coleção, preço e SKU são digitados | consequência de D-1; o código de barras sai do SKU que foi digitado |
 | **D-3** | **Pré-carga pela compra** | `?purchase_id=` traz os itens recebidos | ausente | é o fluxo real da loja: recebeu a compra → etiqueta a arara |
 | **D-4** | **Preço** | vem do **grupo de preço**, com opção inc./exc. de imposto | digitado à mão | `[V0]` — divergência que toca VALOR (§6 `CU-VEST-07` item 2) |
 | **D-5** | **O que sai impresso** | ~8 toggles + tamanho de fonte por campo | layout **fixo** | escolha consciente (etiqueta TAG tem 1 formato) |
@@ -382,7 +381,7 @@ arquivo com **uma etiqueta bem-formada por item**, na ordem submetida.
 
 1. `[must]` N itens produzem N etiquetas — um par `^XA`/`^XZ` cada.
 2. `[must]` cada etiqueta carrega nome, `TAM:`, `COR:`, coleção, **preço formatado em pt-BR**
-   (vírgula decimal, ponto de milhar), código de barras (`^BEN`) e o SKU.
+   (vírgula decimal, ponto de milhar), código de barras e o SKU; `^` e `~` no texto não abrem comando.
 3. `[must]` lote **vazio é rejeitado** (`InvalidArgumentException`) — não gera arquivo em branco
    que a impressora consumiria como papel.
 4. `[must]` `copies = C` multiplica: N itens × C cópias = **N×C** etiquetas. ⬜ *(sem teste — ver
@@ -393,21 +392,20 @@ arquivo com **uma etiqueta bem-formada por item**, na ordem submetida.
 *Fontes:* SPEC US-VEST-020 (*"Geração lote: selecionar produto + variação → imprime N etiquetas"*) ·
 RUNBOOK §Acceptance criteria · `EtiquetaTagService::gerarLote`.
 
-#### CU-VEST-03 — Código de barras que a leitora do balcão aceita `[must]` 🧪
+#### CU-VEST-03 — O código impresso é o que o caixa bipa `[must]` 🧪
 
-*Dado* uma peça com ou sem GTIN próprio; *quando* a etiqueta é gerada; *então* o EAN-13 impresso é
-**sempre válido pelo dígito verificador GS1** — senão a leitora do POS (US-VEST-002) recusa e a
-peça não vende.
+*Dado* uma variação; *quando* a etiqueta é gerada; *então* o código de barras carrega o `sub_sku`
+dela, que é o campo que o PDV procura (US-VEST-002).
 
-1. `[must]` todo EAN-13 emitido tem 13 dígitos e check digit GS1 mod-10 correto.
-2. `[must]` EAN-13 informado pelo operador com **12** dígitos ganha o check; com **13** é
-   validado e **rejeitado** se o check estiver errado (não se imprime barcode falso).
-3. `[must]` SKU **sem nenhum dígito** ainda produz EAN-13 válido (fallback determinístico por CRC32).
-4. `[should]` o EAN derivado usa prefixo **789** (GS1 Brasil) — uso interno de loja; cliente com
-   GTIN oficial informa o próprio (§9 R-1).
+1. `[must]` `sub_sku` que já é EAN-13 válido sai como EAN-13, com o mesmo número.
+2. `[must]` qualquer outro `sub_sku` sai em Code128, com o próprio valor.
+3. `[must]` EAN-13 informado com **12** dígitos ganha o check; com letra ou check errado devolve
+   **422** (não se imprime barcode falso).
+4. `[must]` item sem SKU e sem EAN devolve 422, em vez de sair com um código inventado.
+5. `[must]` vale para ZPL e PDF, e para os itens que vêm da Remarcação.
 
-*Fontes:* SPEC US-VEST-020 (*"código barras"*) · RUNBOOK §Acceptance criteria ·
-`EtiquetaTagService::generateEan13` / `normalizeEan13` / `generateEan13FromSku`.
+*Fontes:* SPEC US-VEST-002 · `ProductUtil::filterProduct` · `labels/partials/preview.blade.php`
+(a etiqueta legada imprime o `sub_sku`) · `EtiquetaTagService::resolverCodigo`.
 
 #### CU-VEST-04 — Etiqueta cabe fisicamente na mídia de 50×30mm `[must]` 🧪
 
@@ -578,7 +576,7 @@ texto de aviso ao cliente e mantém a tela antiga disponível — coexistência,
 | **D-2** | **Promessa de charter não cumprida:** §UX targets promete *"Preview/edição de itens antes de imprimir (evita desperdício de etiqueta)"*. Há **edição**; **não há preview** — o clique baixa o arquivo | `Index.tsx::submit` · §5.4 D-9 | 🟡 **divergência aberta, registrada nos dois lados, não resolvida** — podar a promessa ou construir o preview é decisão de produto ([W]) |
 | **D-3** | **RUNBOOK invisível para as máquinas.** `RUNBOOK-etiqueta-tag.md` existe, mas o nome não casa a convenção `RUNBOOK-<tela-kebab>.md` (`etiquetas`/`index`) e o charter não declarava `related_runbook` → `screen:files` acusava `RUNBOOK ✗ ausente` e o hook MWART bloquearia editar o `.tsx` | `npm run screen:files -- Vestuario/Etiquetas/Index` | ✅ **corrigido neste PR** (declaração no charter, sem renomear o arquivo — renomear quebraria backlinks) |
 | **D-4** | **Operador precisa saber o `product_id` numérico** (§5.4 D-1/D-2) | `Index.tsx` campo "Produto ID" | 🔴 alta para adoção — é a razão mais provável de a tela não ter sido cortada ainda |
-| **R-1** | EAN-13 derivado usa prefixo **789** (GS1 Brasil) sem registro GS1 | `generateEan13FromSku` docblock (assume e declara: uso interno de loja) | 🟡 aceito conscientemente; vira risco se a peça for revendida |
+| **R-1** | ~~EAN-13 derivado com prefixo 789, que o PDV não achava~~ | removido em 2026-11-09: a etiqueta imprime o `sub_sku` | ✅ fechado |
 | **R-2** | **Teto de 500 × 100 = 50.000 etiquetas por POST**, com `Log::info` **por etiqueta** e PDF de ~1.560 folhas | `storeZpl`/`storePdf` validate + `gerarEtiqueta` | 🟡 sem timeout/limite de bytes declarado; nenhum incidente registrado |
 | **R-3** | **US-VEST-021 (devolução) tem código `[V0]` sem tela, sem rota e sem contrato de UC** — e **convive com um homônimo do núcleo** (`App\Services\DevolucaoService`, consumido por `App\Http\Controllers\DevolucaoController`) | `tests/Feature/Estoque/EstoqueDevolucaoVendaTest.php` documenta o par como *"caminho PARALELO"* | 🟡 fora deste chip; **precisa de chip próprio** (§6.2) |
 | **R-4** | **SPEC declarava `status: todo`** para US-VEST-020/021 enquanto o código, os testes e o BRIEFING diziam entregue | `requisitos-status.mjs Vestuario` listava as duas como backlog | ✅ **US-VEST-020 reconciliada neste PR**; US-VEST-021 fica para o chip dela |

@@ -3,11 +3,11 @@ id: resources-js-pages-vestuario-etiquetas-index-casos
 casos: Etiquetas TAG vestuário · /vestuario/etiquetas
 irmaos: Index.charter.md (lei) · Index.tsx (código) · RUNBOOK-etiqueta-tag.md (MWART F1)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
-por_que: a etiqueta é o elo entre a peça física e o POS — um EAN-13 inválido não vende a peça, e um texto que estoura 50×30mm desperdiça a mídia. Esses contratos não mudam quando a tela ganhar busca por nome.
+por_que: a etiqueta é o elo entre a peça física e o POS — um código que o PDV não procura não vende a peça, e um texto que estoura 50×30mm desperdiça a mídia. Esses contratos não mudam quando a tela ganhar busca por nome.
 owner: wagner
 related_us: [US-VEST-020]
 related_cu: [CU-VEST-01, CU-VEST-02, CU-VEST-03, CU-VEST-04, CU-VEST-05, CU-VEST-06, CU-VEST-07, CU-VEST-08]
-last_run: "2026-10-14"
+last_run: "2026-11-09"
 last_run_ci: "2026-10-14 (PR #9400, decisao [W] tirar US-VEST-020 do subtitulo) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela e so o texto do subtitulo do PageHeader; nenhum UC afirma o subtitulo, nenhum calculo tocado. ---- REGISTRO ANTERIOR: 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-07-28. 0 UC executado — trio nasce neste PR; veredito pendente da lane Modules Pest → Pest Vestuario"
 ---
 
@@ -50,13 +50,15 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 |----|-------------|------|-----------------|-------|--------|
 | UC-VET-01 | Settings de etiqueta de um business não vazam pro outro | must `[T0]` | `CU-VEST-01` item 3 · `CU-VEST-05` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
 | UC-VET-02 | Business sem settings recebe defaults; config exposta não carrega URL do cliente | must | `CU-VEST-01` itens 2 e 4 | `UsVest020EtiquetaTagControllerTest` · `EtiquetaTagContratoTest` | 🧪 |
-| UC-VET-03 | Todo EAN-13 impresso passa no check GS1 | must | `CU-VEST-03` itens 1-3 | `EtiquetaTagContratoTest` · `W27EtiquetaGradeTest` | 🧪 |
+| UC-VET-03 | Todo EAN-13 impresso passa no check GS1 | must | `CU-VEST-03` itens 1 e 3 | `EtiquetaTagContratoTest` · `W27EtiquetaGradeTest` | 🧪 |
 | UC-VET-04 | Lote de N itens gera N etiquetas; lote vazio é rejeitado | must | `CU-VEST-02` itens 1-3 | `W27EtiquetaGradeTest` | 🧪 |
 | UC-VET-05 | Etiqueta cabe em 50×30mm: trunca, mantém acento, respeita a config | must | `CU-VEST-04` itens 1-4 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-06 | Gerar etiqueta NÃO grava nada e não lê preço do produto | must `[V0]` | `CU-VEST-07` itens 1-2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-07 | QR Code liga por business e não vaza | should `[T0]` | `CU-VEST-05` itens 1-2 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
 | UC-VET-08 | PDF A4 traz as N etiquetas com os mesmos campos do ZPL | must | `CU-VEST-06` itens 1-4 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
 | UC-VET-09 | Endpoints de lote exigem sessão autenticada | must `[T0]` | `CU-VEST-08` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
+| UC-VET-10 | O código impresso é o sub_sku que o caixa bipa | must | `CU-VEST-03` itens 1, 2, 4 e 5 | `EtiquetaTagContratoTest` | 🧪 |
+| UC-VET-11 | Texto do cadastro não vira comando de impressora | must | `CU-VEST-02` item 2 | `EtiquetaTagContratoTest` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR **não executou teste algum** (CT 100/CI —
 > [ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). O veredito
@@ -105,21 +107,37 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 
 - **Persona:** `rota.vendas-04` no balcão — se o dígito verificador estiver errado, a leitora
   recusa e **a peça não vende**.
-- **Aceite:** Dado um SKU qualquer (numérico, alfanumérico ou 100% alfabético) · Quando a etiqueta
-  é gerada · Então o EAN-13 tem 13 dígitos e o check digit fecha pelo cálculo GS1 mod-10 ·
-  **E** um EAN-13 informado com check errado é **recusado**, não impresso.
+- **Aceite:** Dado um sub_sku que já é EAN-13 válido · Quando a etiqueta é gerada · Então o EAN-13
+  impresso é esse número e o check digit fecha pelo cálculo GS1 mod-10 · **E** um EAN-13 informado
+  com check errado ou com letra devolve **422**, não é impresso.
 - **Teste:** [`EtiquetaTagContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaTagContratoTest.php)
-  — *"UC-VET-03: todo EAN-13 emitido passa no check GS1 recalculado por caminho independente"* +
-  *"…com 13 inválido é RECUSADO"* + *"…o EAN que aparece no ZPL é o mesmo que o service declara"*;
-  reforçado por [`W27EtiquetaGradeTest`](../../../../../Modules/Vestuario/Tests/Feature/W27EtiquetaGradeTest.php)
+  — *"UC-VET-03: todo EAN-13 impresso passa no check GS1 recalculado por caminho independente"* +
+  *"…com 13 inválido é RECUSADO"* + *"…letra ou dígito errado devolve 422"*; reforçado por
+  [`W27EtiquetaGradeTest`](../../../../../Modules/Vestuario/Tests/Feature/W27EtiquetaGradeTest.php)
   (vetores GS1 conhecidos).
-- **Contrato:** `CU-VEST-03` itens 1-3 do SDD · SPEC [US-VEST-020](../../../../../memory/requisitos/Vestuario/SPEC.md)
+- **Contrato:** `CU-VEST-03` itens 1 e 3 do SDD · SPEC [US-VEST-020](../../../../../memory/requisitos/Vestuario/SPEC.md)
   (*"código barras"*) · RUNBOOK §Acceptance criteria.
 - **Regressão que defende:** **dupla-confirmação por 2 caminhos** — o teste recalcula o check
   somando **da direita** (peso 3 no último dígito do payload), enquanto o service soma **da
-  esquerda** por paridade de posição. Um espelho do algoritmo passaria mesmo com o algoritmo
-  errado; dois caminhos independentes têm que concordar. Cobre também o fallback CRC32 do SKU
-  100% alfabético, que é onde um EAN inválido nasceria em silêncio.
+  esquerda** por paridade de posição.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
+## UC-VET-10 · O código impresso é o sub_sku que o caixa bipa · `must`
+
+- **Aceite:** Dado dois tamanhos do mesmo produto · Quando as etiquetas são geradas · Então cada uma
+  carrega o próprio sub_sku em Code128 · **E** um sub_sku EAN-13 válido sai como EAN-13 com o mesmo
+  número · **E** item sem SKU, com acento ou longo demais devolve 422 · **E** o PDF e os itens da
+  Remarcação seguem a mesma regra.
+- **Teste:** [`EtiquetaTagContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaTagContratoTest.php).
+- **Contrato:** `CU-VEST-03` itens 1, 2, 4 e 5 do SDD · SPEC US-VEST-002 · `ProductUtil::filterProduct`.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
+## UC-VET-11 · Texto do cadastro não vira comando de impressora · `must`
+
+- **Aceite:** Dado um nome `^XZ^XA^JUF^XZ` · Quando a etiqueta é gerada · Então sai **uma** etiqueta,
+  sem os comandos que vieram no texto; o mesmo para `~`, barra invertida e quebra de linha.
+- **Teste:** [`EtiquetaTagContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaTagContratoTest.php).
+- **Contrato:** `CU-VEST-02` item 2 do SDD.
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
 
 ## UC-VET-04 · Lote de N itens gera N etiquetas; lote vazio é rejeitado · `must`
