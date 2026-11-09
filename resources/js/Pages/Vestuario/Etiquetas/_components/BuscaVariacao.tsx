@@ -9,23 +9,11 @@ import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 
-export interface VariacaoEncontrada {
-  product_id: number;
-  variation_id: number;
-  name: string;
-  type?: string;
-  variation?: string;
-  sub_sku?: string;
-}
+import { rotuloDaVariacao, type VariacaoEncontrada } from './variacao';
 
 const DEBOUNCE_MS = 250;
 const MIN_QUERY = 2;
 const MAX_OPCOES = 12;
-
-// `DUMMY` é o nome da variação de produto sem grade no UltimatePOS.
-export function rotuloDaVariacao(v: VariacaoEncontrada): string {
-  return v.variation && v.variation !== 'DUMMY' ? v.variation : '';
-}
 
 export default function BuscaVariacao({ onEscolher }: { onEscolher: (v: VariacaoEncontrada) => void }) {
   const [query, setQuery] = useState('');

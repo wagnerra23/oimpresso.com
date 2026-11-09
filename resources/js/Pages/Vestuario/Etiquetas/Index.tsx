@@ -18,7 +18,8 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 
-import BuscaVariacao, { rotuloDaVariacao, type VariacaoEncontrada } from './_components/BuscaVariacao';
+import BuscaVariacao from './_components/BuscaVariacao';
+import { rotuloDaVariacao, type VariacaoEncontrada } from './_components/variacao';
 
 interface EtiquetaConfig {
   width_dots: number;
