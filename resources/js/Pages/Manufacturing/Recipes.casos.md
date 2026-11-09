@@ -322,6 +322,21 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-RECIPE-21 · Atualizar preço pela receita só alcança receita da minha empresa
+- **Persona:** Wagner — atualiza o custo do produto a partir da ficha.
+- **Aceite:** Dado uma receita da minha empresa · Quando mando o preço (POST
+  `/manufacturing/update-product-prices`) · Então a variação dela grava custo e margem, mantendo o preço
+  de venda · Dado o id de uma receita de outra empresa, sozinho ou junto de uma minha · Quando mando o
+  preço · Então a variação dela fica como estava e a minha muda normalmente.
+- **Fonte:** SPEC US-MANU-008 H3 · handoff §9 ("`business_id` pela cadeia
+  `mfg_recipes → variations → products` em toda query") · ADR 0093.
+- **Teste:** `AtualizarPrecoReceitaEmpresaTest.php`
+- **Regressão que defende:** o `updateRecipeProductPrices` buscar a receita só pelo id. Este endpoint não
+  tem botão na tela React (charter: a lista não escreve); o caso existe porque a rota está no ar.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - ~~**[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** e uma requisição **ajax real** recebe o
@@ -397,3 +412,5 @@ decisão de quem escreveu o §4.2, não minha. Fica registrado em vez de silenci
   cartão e o filtro "Desperdício ≥ 8%" e a linha "Desperdício" da gaveta; Quantidade, gaveta e ficha
   mostram a quantidade produzida. UC-RECIPE-10 reescrito, UC-RECIPE-20 novo. O `waste_percent` gravado
   não é apagado (a ordem Blade ainda o usa para sugerir as unidades perdidas).
+- 2026-11-09 · [C] Isolamento do `POST /manufacturing/update-product-prices` (US-MANU-008 H3): UC-RECIPE-21
+  + `AtualizarPrecoReceitaEmpresaTest.php`. A tela não mudou; a fórmula do preço também não.
