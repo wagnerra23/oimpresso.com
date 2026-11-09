@@ -94,7 +94,7 @@ resultado.d1.purchasesData = await d1('/purchases', async () => {
   await page.locator('main .sticky input[type="date"]').first().fill('2026-06-01');
 });
 
-for (const [nome, rota] of [['compras', '/compras'], ['purchases', '/purchases'], ['create', '/purchases/create'], ['show', `/purchases/${PID}`], ['edit', `/purchases/${PID}/edit`]]) {
+for (const [nome, rota] of [['compras', '/compras'], ['purchases', '/purchases'], ['create', '/purchases/create'], ['show', `/purchases/${PID}`], ['edit', `/purchases/${PID}/edit?v=2`]]) {
   resultado.paginas[nome] = await ir(rota);
   await escuro();
   resultado.inventario[nome] = await inventario();
@@ -102,7 +102,7 @@ for (const [nome, rota] of [['compras', '/compras'], ['purchases', '/purchases']
 }
 
 // Purchase/Edit nao tem ancora. Comparacao de irmas: o charter diz "identico ao Create".
-for (const [arq, rota] of [['edit-prod.json', `/purchases/${PID}/edit`], ['create-prod.json', '/purchases/create']]) {
+for (const [arq, rota] of [['edit-prod.json', `/purchases/${PID}/edit?v=2`], ['create-prod.json', '/purchases/create']]) {
   await ir(rota);
   await escuro();
   await page.evaluate(() => { window.__DD_ROLES = { title: 'h1', primary: 'main button[type=submit]', filterControls: 'main [data-contract] input, main [data-contract] button[role=combobox]', tableRow: 'main table tbody tr' }; });
