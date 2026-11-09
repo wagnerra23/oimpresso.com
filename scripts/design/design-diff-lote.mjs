@@ -658,7 +658,7 @@ export async function montarPlano({ filtro = null, urlForcada = null, baseUrl, l
   const colisoes = colisoesDeRota([...plano.map((p) => ({ id: p.id, token: p.ancora ? p.token : null, storage: p.storage })), ...irmas]);
   for (const p of plano) {
     const c = colisoes.get(p.id);
-    if (!c) continue;
+    if (!c || process.env.LOTE_ACEITA_GRUPO) continue;
     const msg = `rota do GRUPO: route=${c.token} também abre ${c.com.join(', ')} — o design.json sairia igual (declare \`ROTAS\` na âncora, o token ou o \`storage\` da sub-visão no override)`;
     p.problemas.push(msg); p.problemasDesign.push(msg);
   }

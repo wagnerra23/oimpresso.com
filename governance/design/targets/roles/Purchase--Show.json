@@ -1,0 +1,39 @@
+{
+  "_medido_em": "2026-11-09",
+  "_por_que": "A ancora do Purchase/Show e o DrawerView da ComprasPage (charter: related_prototype compras-page.jsx (DrawerView)). No prototipo o detalhe e uma gaveta aberta pelo clique na linha; na producao e uma pagina inteira. A medida que vale e a da GAVETA (medidas/Purchase--Show/gaveta/); a medida da pagina fechada compara a LISTA do prototipo com o DETALHE da producao e nao conta como veredito.",
+  "token": "compras",
+  "abrir": {
+    "design": {
+      "clicar": ".compras-root table.purchases tbody tr",
+      "espera": "aside.cmp-drawer"
+    }
+  },
+  "roles": {
+    "prod": {
+      "title": "h1",
+      "drawer": {
+        "raiz": "main",
+        "cabecalho": "main header, main > div:first-child",
+        "titulo": "h1",
+        "corpo": "main",
+        "secao": "main [data-slot=card], main .rounded-xl.border",
+        "tituloSecao": "main [data-slot=card-title], main .rounded-xl.border h3",
+        "rodape": "main footer",
+        "botaoSecundario": "main header button, main > div:first-child button"
+      }
+    },
+    "design": {
+      "title": "aside.cmp-drawer .os-drawer-id",
+      "drawer": {
+        "raiz": "aside.cmp-drawer",
+        "cabecalho": ".os-drawer-head",
+        "titulo": ".os-drawer-id",
+        "corpo": ".os-drawer-body",
+        "secao": ".os-drawer-body section, .os-drawer-body .drw-section",
+        "tituloSecao": ".os-drawer-body h4",
+        "rodape": ".os-drawer-actions",
+        "botaoSecundario": ".os-drawer-actions button"
+      }
+    }
+  }
+}

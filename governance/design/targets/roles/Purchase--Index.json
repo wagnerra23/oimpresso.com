@@ -1,0 +1,20 @@
+{
+  "_medido_em": "2026-11-09",
+  "_por_que": "Sem override o seletor de prod procura KPI e controles que esta tela nao tem no formato default. A tela tem h1 no PageHeader, filtros em Select (button[aria-label]) e uma table simples. A ancora e a mesma ComprasPage do cockpit (charter: related_prototype compras-page.jsx), entao o design.json deste lado e o mesmo do Compras/Index.",
+  "token": "compras",
+  "roles": {
+    "prod": {
+      "title": "h1",
+      "primary": "main button:has(> svg.lucide-plus)",
+      "filterControls": "main .sticky button[aria-label], main .sticky input",
+      "tableRow": "main table tbody tr"
+    },
+    "design": {
+      "kpi": ".compras-root .kpi",
+      "title": ".compras-root h1",
+      "primary": ".compras-root .btn.primary, .compras-root button.primary, .compras-root .cw-btn-primary",
+      "filterControls": ".compras-root .jm-tabs > *",
+      "tableRow": ".compras-root table.purchases tbody tr"
+    }
+  }
+}
