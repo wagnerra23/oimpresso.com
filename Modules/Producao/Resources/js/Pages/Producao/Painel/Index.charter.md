@@ -5,7 +5,7 @@ component: Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/producao-cv-page.jsx
 owner: wagner
 status: draft
-last_validated: "2026-10-21"
+last_validated: "2026-11-09"
 parent_module: Producao
 related_adrs: [93, 358, 431]
 alcance:
@@ -47,8 +47,8 @@ e o que a produção fez por último.
 
 ## Non-Goals — Features (NÃO faz, nesta entrega)
 
-- ❌ Refugo em R$ e o indicador levando ao Custo (a fórmula de custo e a tela de Custo são da thread 08).
-- ❌ Gargalo com sugestão de reprogramação e "Ver na linha do tempo" (UC-PCV-09 · thread 07).
+- ❌ Refugo em R$ e o indicador levando ao Custo: a tela de Custo (thread 08) não existe; o custo por OS está na aba Custo da Ficha (UC-PCOSF-03).
+- ❌ Gargalo com sugestão de reprogramação e "Ver na linha do tempo" aqui: a sugestão vive na Linha (UC-PCV-09); o alerta do Painel leva ao Quadro por máquina.
 - ❌ Produtividade por setor (UC-PCV-27, LGPD) e aproveitamento de mídia agregado (UC-PCV-26).
 
 ## UX Targets
