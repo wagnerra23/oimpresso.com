@@ -51,10 +51,31 @@ beforeEach(function () {
     }
 
     // Setup multi-tenant (autentica user + session business_id).
-    $ctx = AutosaveContractRunner::setupContext($this);
+    $ctx = AutosaveContractRunner::setupContext($this, $this->seededTenant());
     $this->business = $ctx['business'];
     $this->user = $ctx['user'];
+    $this->user->givePermissionTo('superadmin');
+    // O gate de pacote é outra regra (OficinaAutoPacoteGateTest): aqui a empresa tem o pacote.
+    $moduleUtil = \Mockery::mock(\App\Utils\ModuleUtil::class)->makePartial();
+    $moduleUtil->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($biz, $perm) => $perm === 'oficina_auto_module');
+    app()->instance(\App\Utils\ModuleUtil::class, $moduleUtil);
     $this->contactId = $ctx['contactId'];
+
+    // product_id só aceita produto da própria empresa (#10493): sem isto o fixture dá 422.
+    $this->productId = DB::table('products')->insertGetId([
+        'business_id'    => $this->business->id,
+        'name'           => 'Peça contrato autosave',
+        'type'           => 'single',
+        'tax_type'       => 'exclusive',
+        'sku'            => 'CTI-P' . random_int(100000, 999999),
+        'barcode_type'   => 'C128',
+        'enable_stock'   => 0,
+        'alert_quantity' => 0,
+        'created_by'     => $this->user->id,
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
 
     // Vehicle base — padrao validado em ServiceOrderEditAutosaveContractTest.
     $plate = 'CTI-' . substr((string) microtime(true), -4);
@@ -81,6 +102,13 @@ beforeEach(function () {
 
 it('ServiceOrder Items — POST /items persiste TODOS os campos do fixture (drawer PECAS & MAO DE OBRA)', function () {
     $fixture = require __DIR__ . '/../../Contract/Fixtures/service_order_items.php';
+    foreach ($fixture as $aba => $spec) {
+        foreach ($spec['fields'] as $i => $campo) {
+            if ($campo['send'] === 'product_id') {
+                $fixture[$aba]['fields'][$i]['value'] = $this->productId;
+            }
+        }
+    }
 
     // Runner aceita resourceId que substitui {id} no endpoint
     // (/oficina-auto/ordens-servico/{id}/items → .../ordens-servico/123/items).

@@ -141,7 +141,8 @@ it('Index.tsx delega onPickOs pro SellsTabelaUnificada navegando pra Repair', fu
     $src = ondaFourReadSellsIndex();
     expect($src)
         ->toContain('onPickOs={(osRef)')
-        ->toContain('/repair/producao-oficina?os=');
+        ->toContain("'/repair/producao-oficina'")
+        ->toContain('${targetPath}?os=');
 });
 
 it('SellsTabelaUnificada adiciona ColumnId source nos presets Operacional e Produção', function () {
