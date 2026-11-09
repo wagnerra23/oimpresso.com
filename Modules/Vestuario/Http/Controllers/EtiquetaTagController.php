@@ -24,13 +24,19 @@ use Symfony\Component\HttpFoundation\Response;
  * - POST /vestuario/etiquetas/lote/pdf     → PDF A4 com grid 4×8 etiquetas (download)
  *
  * Multi-tenant: business_id derivado da session web ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
- * Permissions: vestuario.etiqueta.view / vestuario.etiqueta.create.
+ * Permissions: vestuario.etiqueta.view / vestuario.etiqueta.create (ver authorizeAccess).
  *
  * @see Modules/Vestuario/Services/EtiquetaTagService.php
  * @see memory/requisitos/Vestuario/RUNBOOK-etiqueta-tag.md
  */
 class EtiquetaTagController extends Controller
 {
+    /**
+     * Etiquetas por pedido (itens × cópias), geradas de forma síncrona em hospedagem compartilhada.
+     * 500 é o maior lote que a remarcação manda e dá 16 folhas A4 no PDF.
+     */
+    public const MAX_ETIQUETAS_POR_PEDIDO = 500;
+
     public function __construct(
         private EtiquetaTagService $svc,
     ) {
@@ -44,7 +50,7 @@ class EtiquetaTagController extends Controller
         $this->authorizeAccess($request, 'view');
 
         return Inertia::render('Vestuario/Etiquetas/Index', [
-            'config' => $this->safePublicConfig(),
+            'config' => $this->safePublicConfig() + ['max_etiquetas' => self::MAX_ETIQUETAS_POR_PEDIDO],
         ]);
     }
 
@@ -59,19 +65,7 @@ class EtiquetaTagController extends Controller
     {
         $this->authorizeAccess($request, 'create');
 
-        $validated = $request->validate([
-            'items'                  => 'required|array|min:1|max:500',
-            'items.*.product_id'     => 'required|integer|min:1',
-            'items.*.variation_id'   => 'nullable|integer|min:1',
-            'items.*.nome'           => 'nullable|string|max:120',
-            'items.*.tamanho'        => 'nullable|string|max:10',
-            'items.*.cor'            => 'nullable|string|max:30',
-            'items.*.colecao'        => 'nullable|string|max:40',
-            'items.*.preco'          => 'nullable|numeric|min:0|max:99999',
-            'items.*.sku'            => 'nullable|string|max:40',
-            'items.*.ean13'          => 'nullable|string|size:13',
-            'copies'                 => 'nullable|integer|min:1|max:100',
-        ]);
+        $validated = $request->validate($this->regras($request));
 
         $items  = $this->expandItems($validated['items'], (int) ($validated['copies'] ?? 1));
 
@@ -104,19 +98,7 @@ class EtiquetaTagController extends Controller
     {
         $this->authorizeAccess($request, 'create');
 
-        $validated = $request->validate([
-            'items'                  => 'required|array|min:1|max:500',
-            'items.*.product_id'     => 'required|integer|min:1',
-            'items.*.variation_id'   => 'nullable|integer|min:1',
-            'items.*.nome'           => 'nullable|string|max:120',
-            'items.*.tamanho'        => 'nullable|string|max:10',
-            'items.*.cor'            => 'nullable|string|max:30',
-            'items.*.colecao'        => 'nullable|string|max:40',
-            'items.*.preco'          => 'nullable|numeric|min:0|max:99999',
-            'items.*.sku'            => 'nullable|string|max:40',
-            'items.*.ean13'          => 'nullable|string|size:13',
-            'copies'                 => 'nullable|integer|min:1|max:100',
-        ]);
+        $validated = $request->validate($this->regras($request));
 
         $rawItems = $this->expandItems($validated['items'], (int) ($validated['copies'] ?? 1));
 
@@ -188,6 +170,29 @@ class EtiquetaTagController extends Controller
         return $expanded;
     }
 
+    /** @return array<string, mixed> */
+    private function regras(Request $request): array
+    {
+        return [
+            'items'                  => ['required', 'array', 'min:1', 'max:500', function (string $campo, mixed $items, \Closure $falha) use ($request) {
+                $total = is_array($items) ? count($items) * max(1, (int) $request->input('copies', 1)) : 0;
+                if ($total > self::MAX_ETIQUETAS_POR_PEDIDO) {
+                    $falha("Este pedido soma {$total} etiquetas e o limite é ".self::MAX_ETIQUETAS_POR_PEDIDO.' por vez. Reduza as cópias ou divida em mais de um lote.');
+                }
+            }],
+            'items.*.product_id'     => 'required|integer|min:1',
+            'items.*.variation_id'   => 'nullable|integer|min:1',
+            'items.*.nome'           => 'nullable|string|max:120',
+            'items.*.tamanho'        => 'nullable|string|max:10',
+            'items.*.cor'            => 'nullable|string|max:30',
+            'items.*.colecao'        => 'nullable|string|max:40',
+            'items.*.preco'          => 'nullable|numeric|min:0|max:99999',
+            'items.*.sku'            => 'nullable|string|max:40',
+            'items.*.ean13'          => 'nullable|string|size:13',
+            'copies'                 => 'nullable|integer|min:1|max:100',
+        ];
+    }
+
     /**
      * Config etiqueta exposta pro frontend (sem expor SQL/internals).
      *
@@ -204,8 +209,8 @@ class EtiquetaTagController extends Controller
     }
 
     /**
-     * Authz: usa Spatie Permission se carregado, senão exige usuário autenticado.
-     * Wagner adiciona role/permission via UI /copiloto/admin/team quando ligar enforce.
+     * Sem a permissão: a chave `vestuario.etiqueta.exigir_permissao` decide se bloqueia (decisão [W]
+     * VEST-D1). Desligada só registra quem seria bloqueado; ligar é ato de [W], após a semana de log.
      */
     private function authorizeAccess(Request $request, string $action): void
     {
@@ -215,14 +220,20 @@ class EtiquetaTagController extends Controller
         }
 
         $perm = "vestuario.etiqueta.{$action}";
-        if (method_exists($user, 'can') && ! $user->can($perm)) {
-            // Permission pode não estar seedada ainda (Sprint 1) — log warning mas não bloqueia.
-            // Sprint 3 vira hard-block quando RepairSettingsSeeder/PermissionsSeeder rodar.
-            Log::warning('vestuario.etiqueta.permission_check_missing', [
-                'user_id'    => $user->getAuthIdentifier(),
-                'permission' => $perm,
-                'action'     => $action,
-            ]);
+        if ($user->can('superadmin') || $user->can($perm)) {
+            return;
         }
+
+        $bloquear = (bool) config('vestuario.etiqueta.exigir_permissao', false);
+
+        Log::warning('vestuario.etiqueta.seria_bloqueado', [
+            'business_id' => $this->businessIdFromSession(),
+            'user_id'     => $user->getAuthIdentifier(),
+            'permissao'   => $perm,
+            'acao'        => $action,
+            'bloqueou'    => $bloquear,
+        ]);
+
+        abort_if($bloquear, 403, 'Você não tem permissão para gerar etiquetas.');
     }
 }

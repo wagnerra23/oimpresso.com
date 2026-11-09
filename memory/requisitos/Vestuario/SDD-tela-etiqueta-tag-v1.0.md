@@ -267,7 +267,7 @@ procura (`ProductUtil::filterProduct`). Não há coluna de GTIN neste fluxo — 
 
 **F2 — Gerar lote ZPL** (`EtiquetaTagController@storeZpl`)
 1. `authorizeAccess(…,'create')`.
-2. `validate()`: `items` obrigatório, 1–**500**; `copies` 1–**100**; `ean13` `size:13`;
+2. `validate()`: `items` obrigatório, 1–**500**; `copies` 1–**100**; **itens × cópias ≤ 500**; `ean13` `size:13`;
    `preco` `numeric|min:0|max:99999`; strings com `max` por campo.
 3. `expandItems($items, $copies)` — **multiplica**: N itens × C cópias = N×C entradas planas.
 4. `EtiquetaTagService::gerarLote()` → para cada item `gerarEtiqueta()`:
@@ -276,7 +276,7 @@ procura (`ProductUtil::filterProduct`). Não há coluna de GTIN neste fluxo — 
    - `truncate()`: nome 30, cor 20, coleção 25 (mb-safe, sufixo `…`);
    - `buildZpl()`: `^XA … ^XZ`, `^PW`/`^LL` da config, `^CI28` (UTF-8), `^BEN` (EAN-13) ou `^BCN` (Code128), texto em `^FH`,
      `^BQN` só se `qr_enabled`, `^FD SKU` no rodapé;
-   - `Log::info('vestuario.etiqueta.gerada', …)` **por etiqueta**.
+   - sem log por etiqueta: o lote deixa uma linha (passo 5).
 5. `Log::info('vestuario.etiqueta.lote.zpl', {business_id, items_count, bytes})`.
 6. Resposta `text/plain; charset=utf-8` + `Content-Disposition: attachment` — o browser baixa
    `etiquetas-YmdHis.zpl`, que o operador envia por TCP/USB à impressora.
@@ -388,6 +388,7 @@ arquivo com **uma etiqueta bem-formada por item**, na ordem submetida.
    `[BACKLOG]` do `casos.md`: a expansão vive em método privado do Controller e exige request
    autenticada, que a lane sqlite não sobe)*
 5. `[must]` o arquivo desce como anexo `text/plain` — o navegador **não** tenta renderizar ZPL.
+6. `[must]` itens × cópias acima de **500** por pedido é recusado com 422 e a conta na mensagem.
 
 *Fontes:* SPEC US-VEST-020 (*"Geração lote: selecionar produto + variação → imprime N etiquetas"*) ·
 RUNBOOK §Acceptance criteria · `EtiquetaTagService::gerarLote`.
@@ -478,11 +479,9 @@ sidebar nem acesso.
    (`hasThePermissionInSubscription`) — **zero hardcode de `business_id`**.
 2. `[must]` e ainda exige `superadmin` **ou** `vestuario.access` **ou** `vestuario.etiqueta.view`.
 3. `[must]` as 3 rotas exigem sessão autenticada (`abort(401)` / redirect).
-4. 🔴 **os endpoints POST NÃO bloqueiam por permissão.** `authorizeAccess()` faz
-   `if (! $user->can($perm))` e apenas `Log::warning('vestuario.etiqueta.permission_check_missing')`
-   — segue o fluxo. O código declara a razão (*"Permission pode não estar seedada ainda (Sprint 1)
-   … Sprint 3 vira hard-block"*), mas **o charter e o RUNBOOK anunciam as perms sem essa ressalva**
-   (§9 D-1). *Reconciliado neste PR do lado do charter; ligar o hard-block é decisão de [W].*
+4. `[must]` sem `vestuario.etiqueta.*`: com a chave `vestuario.etiqueta.exigir_permissao` ligada
+   a rota dá 403; desligada (padrão) passa e registra `vestuario.etiqueta.seria_bloqueado`. Decisão
+   [W] VEST-D1: ligar em produção depois de 1 semana só registrando.
 
 *Fontes:* `DataController::superadmin_package` / `user_permissions` / `modifyAdminMenu` ·
 RUNBOOK §Rotas (coluna Permission) · charter §nota de backend ·
@@ -523,9 +522,9 @@ fechada. **Pendente de [W].**
 |---|---|---|---|
 | Latência da tela | **p95 < 1500ms** | charter §UX targets | 1 leitura cacheada (5min) + render Inertia; sem prop cara → **não precisa de `Inertia::defer`** |
 | Largura | **cabe em 1280px** | charter §UX targets · perfil da Larissa | `grid-cols-12` numa linha por item |
-| Teto de lote | 500 itens × 100 cópias | `EtiquetaTagController::storeZpl` validate | risco: **50.000** etiquetas num POST (§9 R-2) |
+| Teto de lote | **500 etiquetas** por pedido (itens × cópias) | `EtiquetaTagController::MAX_ETIQUETAS_POR_PEDIDO` | 16 folhas A4 no PDF |
 | Render offline | PDF sem chamada de rede | `pdf.blade.php` (PNG base64) | |
-| Observabilidade | `vestuario.etiqueta.gerada` (por etiqueta) · `.lote.zpl` · `.lote.pdf` · `.permission_check_missing` | `Log::info`/`Log::warning` · [`OBSERVABILITY.md`](OBSERVABILITY.md) | ⚠️ log **por etiqueta** num lote de 50k = 50k linhas (§9 R-2) |
+| Observabilidade | `.lote.zpl` · `.lote.pdf` · `.seria_bloqueado` | `Log::info`/`Log::warning` · [`OBSERVABILITY.md`](OBSERVABILITY.md) | uma linha por lote |
 | Tracing | `vestuario.settings.get` via `OtelHelper::spanBiz` | `VestuarioSettingsResolver` | |
 | PII | zero dado de pessoa na etiqueta/log | [`PII-LGPD.md`](PII-LGPD.md) | log carrega biz/contagem/bytes |
 | Cache | settings 5min por business | `VestuarioSettingsResolver::CACHE_TTL` | invalidado em `set()`/`refresh()` |
@@ -572,7 +571,7 @@ texto de aviso ao cliente e mantém a tela antiga disponível — coexistência,
 
 | # | Risco / dívida | Evidência | Gravidade |
 |---|---|---|---|
-| **D-1** | **Charter e RUNBOOK anunciam permissão que o código não aplica.** O RUNBOOK tabela `Permission: vestuario.etiqueta.view/create` e o charter repete; `authorizeAccess()` só loga | `EtiquetaTagController::authorizeAccess` | 🔴 alta — artefato afirmando enforcement que não existe ([proibicoes §5](../../proibicoes.md) 2026-07-16). Reconciliado no charter neste PR; **ligar o hard-block é decisão de [W]** |
+| **D-1** | **Permissão registrada sem bloqueio.** O bloqueio existe atrás de `vestuario.etiqueta.exigir_permissao`, desligada por padrão | `EtiquetaTagController::authorizeAccess` | 🟡 aguarda a semana de log e o ato de [W] (VEST-D1) |
 | **D-2** | **Promessa de charter não cumprida:** §UX targets promete *"Preview/edição de itens antes de imprimir (evita desperdício de etiqueta)"*. Há **edição**; **não há preview** — o clique baixa o arquivo | `Index.tsx::submit` · §5.4 D-9 | 🟡 **divergência aberta, registrada nos dois lados, não resolvida** — podar a promessa ou construir o preview é decisão de produto ([W]) |
 | **D-3** | **RUNBOOK invisível para as máquinas.** `RUNBOOK-etiqueta-tag.md` existe, mas o nome não casa a convenção `RUNBOOK-<tela-kebab>.md` (`etiquetas`/`index`) e o charter não declarava `related_runbook` → `screen:files` acusava `RUNBOOK ✗ ausente` e o hook MWART bloquearia editar o `.tsx` | `npm run screen:files -- Vestuario/Etiquetas/Index` | ✅ **corrigido neste PR** (declaração no charter, sem renomear o arquivo — renomear quebraria backlinks) |
 | **D-4** | **Operador precisa saber o `product_id` numérico** (§5.4 D-1/D-2) | `Index.tsx` campo "Produto ID" | 🔴 alta para adoção — é a razão mais provável de a tela não ter sido cortada ainda |
@@ -593,7 +592,7 @@ texto de aviso ao cliente e mantém a tela antiga disponível — coexistência,
 | **Adoção** | fechar **D-4** (buscar peça por nome/SKU em vez de `product_id`) | o cutover da ROTA LIVRE — sem isso a tela não é usável pela Larissa | §5.4 D-1/D-2 |
 | **Adoção** | pré-carga por `?purchase_id=` (paridade D-3) | etiquetar a arara logo após receber a compra | §5.4 D-3 |
 | **Governança** | [W] aprova Non-Goals/Anti-hooks → charter `draft → live` | Pest GUARD dos Non-Goals | charter §Pendências |
-| **Segurança** | ligar o hard-block de `vestuario.etiqueta.*` (D-1) | fecha a lacuna entre doc e código | §6 `CU-VEST-08` item 4 |
+| **Segurança** | ligar `VESTUARIO_ETIQUETA_EXIGIR_PERMISSAO` em produção após 1 semana de log (D-1) | fecha a lacuna entre doc e código | §6 `CU-VEST-08` item 4 |
 | **Produto** | decidir **D-2** (preview × podar a promessa) | — | §9 D-2 |
 | **Domínio** | chip próprio de **US-VEST-021** (tela + charter + casos + CU-VEST-09+) | §6.2 | §9 R-3 |
 | **Backlog** | US-VEST-029 (estação) → 023 (liquidação) → 022 (comissão) | roadmap do [`BRIEFING.md`](BRIEFING.md) | SPEC §8 |

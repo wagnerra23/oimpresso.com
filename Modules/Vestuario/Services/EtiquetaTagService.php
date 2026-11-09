@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Vestuario\Services;
 
-use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Modules\Vestuario\Services\VestuarioSettingsResolver;
 
@@ -97,14 +96,6 @@ class EtiquetaTagService
             codigo:  $codigo,
             cfg:     $cfg,
         );
-
-        Log::info('vestuario.etiqueta.gerada', [
-            'business_id'  => $businessId,
-            'product_id'   => $productId,
-            'variation_id' => $variationId,
-            'sku'          => $sku,
-            'ean13'        => $ean13,
-        ]);
 
         return [
             'zpl'   => $zpl,

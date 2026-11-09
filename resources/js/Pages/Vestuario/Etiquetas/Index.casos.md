@@ -58,6 +58,8 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 | UC-VET-06 | Gerar etiqueta NÃO grava nada e não lê preço do produto | must `[V0]` | `CU-VEST-07` itens 1-2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-07 | QR Code liga por business e não vaza | should `[T0]` | `CU-VEST-05` itens 1-2 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
 | UC-VET-08 | PDF A4 traz as N etiquetas com os mesmos campos do ZPL | must | `CU-VEST-06` itens 1-4 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
+| UC-VET-22 | Teto de etiquetas por pedido, com aviso e erro legíveis | must | `CU-VEST-02` item 6 | `EtiquetaLimitePermissaoContratoTest` | 🧪 |
+| UC-VET-23 | Sem a permissão: chave desligada registra, ligada bloqueia | must `[T0]` | `CU-VEST-08` item 4 | `EtiquetaLimitePermissaoContratoTest` | 🧪 |
 | UC-VET-09 | Endpoints de lote exigem sessão autenticada | must `[T0]` | `CU-VEST-08` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR **não executou teste algum** (CT 100/CI —
@@ -237,6 +239,24 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   qualquer EAN inválido estoura no render em vez de sair torto na folha.
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
 
+## UC-VET-22 · Teto de etiquetas por pedido, com aviso e erro legíveis · `must`
+
+- **Aceite:** Dado itens × cópias acima de 500 · Quando o pedido é enviado · Então volta 422 com a
+  conta na mensagem, no ZPL e no PDF, sem gerar nada · **E** exatamente 500 ainda gera · **E** a tela
+  mostra o total real e desabilita os botões · **E** o lote deixa uma linha de log, não uma por etiqueta.
+- **Teste:** [`EtiquetaLimitePermissaoContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaLimitePermissaoContratoTest.php).
+- **Contrato:** `CU-VEST-02` item 6 do SDD · SDD §7 Teto de lote.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
+## UC-VET-23 · Sem a permissão: chave desligada registra, ligada bloqueia · `must` `[T0]`
+
+- **Aceite:** Dado um usuário sem `vestuario.etiqueta.*` · Com a chave desligada (padrão) · Então a
+  rota responde e o log registra quem seria bloqueado · Com a chave ligada · Então as três rotas dão
+  403 · **E** quem tem a permissão nunca é barrado.
+- **Teste:** [`EtiquetaLimitePermissaoContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaLimitePermissaoContratoTest.php).
+- **Contrato:** `CU-VEST-08` item 4 do SDD · decisão [W] VEST-D1 de 2026-10-07.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
 ## UC-VET-09 · Endpoints de lote exigem sessão autenticada · `must` `[T0]`
 
 - **Persona:** um visitante anônimo tentando `POST /vestuario/etiquetas/lote/{zpl,pdf}`.
@@ -248,8 +268,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   UltimatePOS) · `Modules/Vestuario/Routes/web.php`.
 - **Regressão que defende:** sem `business_id` de sessão o service cai nos defaults e geraria
   etiqueta para "nenhum tenant" — é o degrau anterior a um vazamento. O middleware é a única
-  coisa entre o endpoint e a internet, porque a checagem de **permissão** ainda não bloqueia
-  (ver `[BACKLOG]` abaixo).
+  coisa entre o endpoint e a internet enquanto a chave de permissão está desligada (UC-VET-23).
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
 
 ---
@@ -265,11 +284,6 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   (`CU-VEST-02` item 4). A expansão vive em `EtiquetaTagController::expandItems`, que é **privado**,
   e exercitá-la exige request autenticada — que a lane sqlite não sobe. Virar UC exige lane MySQL
   ou tornar a expansão testável; **o chip está proibido de editar o Controller**.
-- `[BACKLOG]` **Permissão `vestuario.etiqueta.create` deveria BLOQUEAR, e hoje só loga.**
-  `EtiquetaTagController::authorizeAccess` emite `Log::warning('…permission_check_missing')` e
-  segue o fluxo (o código declara: *"Sprint 3 vira hard-block"*). O RUNBOOK e o charter anunciam a
-  permissão **sem essa ressalva** — divergência registrada no SDD §9 D-1. Ligar o hard-block é
-  decisão de [W]; escrever o UC antes disso criaria um caso vermelho por design.
 - `[BACKLOG]` **Achar a peça por nome/SKU em vez de digitar `product_id` numérico** — o maior gap
   de adoção (SDD §5.4 D-1/D-2). A tela legada `/labels/show` tem autocomplete; a nova não. Não é
   regressão (as duas coexistem por decisão do RUNBOOK), é o que falta para o cutover.
@@ -281,5 +295,3 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   itens antes de imprimir (evita desperdício de etiqueta)"* — há **edição**, não há **preview**
   (o clique baixa o arquivo). **Divergência aberta registrada nos dois lados** (SDD §9 D-2):
   podar a promessa ou construir o preview é decisão de produto ([W]), não conserto silencioso.
-- `[BACKLOG]` **Teto de 500 itens × 100 cópias = 50.000 etiquetas por POST**, com `Log::info` por
-  etiqueta (SDD §9 R-2). Nenhum incidente registrado; sem contrato em 2 fontes.
