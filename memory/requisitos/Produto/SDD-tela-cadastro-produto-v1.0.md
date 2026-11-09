@@ -1276,6 +1276,9 @@ de produção ele segue, e um link para a tela de Roteiros.
   - **Se o [W] mergear o PR desta proposta, vale (A)** e o card entra num PR seguinte. Para (B), basta
     comentar no PR.
 - **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+- **Na tela (2026-11-09):** o [W] mergeou a proposta (#10545), então vale (A). O card entrou no Editar
+  como `UC-PEDIT-18` (`Edit.casos.md`): prop deferida `producao` do `ProductController@edit`, componente
+  `BlocoProducao.tsx`. O texto para o produto sem roteiro é o de (A), não o do protótipo.
 
 ### 6.2 Vertical comunicação visual (`CV`)
 
