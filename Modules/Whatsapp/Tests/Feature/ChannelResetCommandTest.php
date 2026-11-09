@@ -59,7 +59,7 @@ beforeEach(function () {
 
 function makeResetChannel(int $id, string $uuid, string $status): Channel
 {
-    return Channel::withoutGlobalScope(ScopeByBusiness::class)->create([
+    return Channel::withoutGlobalScope(ScopeByBusiness::class)->forceCreate([
         'id' => $id,
         'business_id' => 1,
         'channel_uuid' => $uuid,
@@ -72,7 +72,7 @@ function makeResetChannel(int $id, string $uuid, string $status): Channel
 
 it('R-WA-RST-001 — reset purge daemon + reset DB status=setup', function () {
     $ch = makeResetChannel(50, 'aaaaaaaa-1111-2222-3333-555555555555', 'banned');
-    $iid = 'ch-aaaaaaaa11112222333355555555555';
+    $iid = 'ch-aaaaaaaa111122223333555555555555';
 
     Http::fake([
         "https://daemon.test/instances/{$iid}" => Http::response(['ok' => true], 200),
@@ -90,7 +90,7 @@ it('R-WA-RST-001 — reset purge daemon + reset DB status=setup', function () {
 
 it('R-WA-RST-002 — daemon 404 (instância não existia) ainda completa reset DB', function () {
     $ch = makeResetChannel(51, 'bbbbbbbb-1111-2222-3333-555555555555', 'disconnected');
-    $iid = 'ch-bbbbbbbb11112222333355555555555';
+    $iid = 'ch-bbbbbbbb111122223333555555555555';
 
     Http::fake([
         "https://daemon.test/instances/{$iid}" => Http::response(['error' => 'instance_not_found'], 404),
@@ -104,7 +104,7 @@ it('R-WA-RST-002 — daemon 404 (instância não existia) ainda completa reset D
 
 it('R-WA-RST-003 — --reconnect também dispara POST /connect', function () {
     $ch = makeResetChannel(52, 'cccccccc-1111-2222-3333-555555555555', 'banned');
-    $iid = 'ch-cccccccc11112222333355555555555';
+    $iid = 'ch-cccccccc111122223333555555555555';
 
     Http::fake([
         "https://daemon.test/instances/{$iid}" => Http::response(['ok' => true], 200),
@@ -135,7 +135,7 @@ it('R-WA-RST-005 — channel não-existente devolve FAILURE', function () {
 });
 
 it('R-WA-RST-006 — channel type != baileys devolve FAILURE (Z-API/Meta sem daemon)', function () {
-    Channel::withoutGlobalScope(ScopeByBusiness::class)->create([
+    Channel::withoutGlobalScope(ScopeByBusiness::class)->forceCreate([
         'id' => 60,
         'business_id' => 1,
         'channel_uuid' => 'zapi-1111-2222-3333-666666666666',

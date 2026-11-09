@@ -9,7 +9,7 @@ use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
-use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
+use Modules\Whatsapp\Http\Controllers\Admin\CaixaUnificadaController;
 
 uses(Tests\TestCase::class);
 
@@ -32,7 +32,7 @@ uses(Tests\TestCase::class);
  * Pattern reusa helpers cfi* do CanalFilaIsolationTest (PR #644) — User stub
  * + reflection de props pra evitar render Inertia em ambiente Pest.
  *
- * @see Modules/Whatsapp/Http/Controllers/Admin/InboxController.php
+ * @see Modules/Whatsapp/Http/Controllers/Admin/CaixaUnificadaController.php
  */
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'sqlite') {
@@ -208,7 +208,7 @@ function ifMakeConv(int $businessId, int $channelId, array $attrs = []): Convers
 /**
  * Invoca index() e devolve props da Inertia\Response via reflection.
  */
-function ifIndexProps(InboxController $controller, Request $request): array
+function ifIndexProps(CaixaUnificadaController $controller, Request $request): array
 {
     $token = Mockery::mock(\Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer::class);
     $token->shouldReceive('issue')->andReturn(null);
@@ -224,10 +224,22 @@ function ifIndexProps(InboxController $controller, Request $request): array
 
 function ifConvIds(array $props): array
 {
-    $data = $props['conversations']['data'] ?? [];
-    if (is_callable($data)) $data = $data();
-    if ($data instanceof \Illuminate\Support\Collection) $data = $data->all();
-    return collect($data)->pluck('id')->map(fn ($id) => (int) $id)->all();
+    return collect(ifResolveDefer($props['conversations'] ?? null)['data'] ?? [])
+        ->pluck('id')->map(fn ($id) => (int) $id)->all();
+}
+
+/**
+ * O index do InboxController virou 301 para a Caixa Unificada; este teste passou a
+ * exercitar o CaixaUnificadaController, que tem os mesmos filtros e a mesma ACL.
+ * Lá as props caras são deferidas: este helper as resolve.
+ */
+function ifResolveDefer($prop): array
+{
+    if ($prop instanceof \Inertia\DeferProp || $prop instanceof \Inertia\OptionalProp) {
+        $prop = $prop();
+    }
+
+    return is_array($prop) ? $prop : [];
 }
 
 function ifBuildRequest(array $query = []): Request
@@ -253,10 +265,10 @@ it('R-WA-FILTERS-001 — tab=awaiting_human filtra apenas status=awaiting_human'
 
     ifSetUserAndGrantAll(1, 10, [$ch->id]);
 
-    $props = ifIndexProps(new InboxController(), ifBuildRequest(['tab' => 'awaiting_human']));
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest(['tab' => 'awaiting_human']));
 
     expect(ifConvIds($props))->toBe([$convAwaiting->id])
-        ->and($props['stats']['awaiting_human'])->toBe(1);
+        ->and(ifResolveDefer($props['stats'])['awaiting_human'])->toBe(1);
 });
 
 it('R-WA-FILTERS-002 — tab=archived filtra apenas status=archived', function () {
@@ -267,11 +279,11 @@ it('R-WA-FILTERS-002 — tab=archived filtra apenas status=archived', function (
 
     ifSetUserAndGrantAll(1, 10, [$ch->id]);
 
-    $props = ifIndexProps(new InboxController(), ifBuildRequest(['tab' => 'archived']));
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest(['tab' => 'archived']));
 
     expect(ifConvIds($props))->toHaveCount(2)
         ->and(ifConvIds($props))->toContain($convArch1->id, $convArch2->id)
-        ->and($props['stats']['archived'])->toBe(2);
+        ->and(ifResolveDefer($props['stats'])['archived'])->toBe(2);
 });
 
 // ============================================================================
@@ -286,7 +298,7 @@ it('R-WA-FILTERS-003 — within_24h=true retorna apenas convs com last_inbound_a
 
     ifSetUserAndGrantAll(1, 10, [$ch->id]);
 
-    $props = ifIndexProps(new InboxController(), ifBuildRequest(['within_24h' => 'true']));
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest(['within24h' => 'true']));
 
     expect(ifConvIds($props))->toBe([$fresh->id])
         ->and($props['within24h'])->toBeTrue();
@@ -300,7 +312,7 @@ it('R-WA-FILTERS-004 — within_24h=false retorna convs com last_inbound_at >= 2
 
     ifSetUserAndGrantAll(1, 10, [$ch->id]);
 
-    $props = ifIndexProps(new InboxController(), ifBuildRequest(['within_24h' => 'false']));
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest(['within24h' => 'false']));
 
     $ids = ifConvIds($props);
     expect($ids)->toHaveCount(2)
@@ -321,7 +333,7 @@ it('R-WA-FILTERS-005 — unlinked=true retorna apenas convs com contact_id=null'
 
     ifSetUserAndGrantAll(1, 10, [$ch->id]);
 
-    $props = ifIndexProps(new InboxController(), ifBuildRequest(['unlinked' => 'true']));
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest(['unlinked' => 'true']));
 
     $ids = ifConvIds($props);
     expect($ids)->toHaveCount(2)
@@ -354,7 +366,7 @@ it('R-WA-FILTERS-006 — inbound_aging=24h lista convs com cliente esperando > 2
 
     ifSetUserAndGrantAll(1, 10, [$ch->id]);
 
-    $props = ifIndexProps(new InboxController(), ifBuildRequest(['inbound_aging' => '24h']));
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest(['inbound_aging' => '24h']));
 
     expect(ifConvIds($props))->toBe([$waiting->id])
         ->and($props['inboundAging'])->toBe('24h');
@@ -370,7 +382,7 @@ it('R-WA-FILTERS-007 — inbound_aging SKIP conversa onde atendente respondeu ap
 
     ifSetUserAndGrantAll(1, 10, [$ch->id]);
 
-    $props = ifIndexProps(new InboxController(), ifBuildRequest(['inbound_aging' => '6h']));
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest(['inbound_aging' => '6h']));
 
     expect(ifConvIds($props))->toBe([]); // nenhuma — atendente já respondeu
 });
@@ -383,7 +395,7 @@ it('R-WA-FILTERS-008 — inbound_aging valor inválido (ex: "1y") é ignorado (s
 
     // valor fora da whitelist (6h/12h/24h/48h/7d) — controller cai no `default => null`
     // e NÃO aplica filtro algum. Lista retorna tudo.
-    $props = ifIndexProps(new InboxController(), ifBuildRequest(['inbound_aging' => "1y' OR 1=1--"]));
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest(['inbound_aging' => "1y' OR 1=1--"]));
 
     expect(ifConvIds($props))->toBe([$c1->id]); // 1 conv visível, sem 500
 });
@@ -408,11 +420,11 @@ it('R-WA-FILTERS-009 — orderBy=inbound ordena por last_inbound_at DESC (não l
     ifSetUserAndGrantAll(1, 10, [$ch->id]);
 
     // Default (last_message_at desc): C1 primeiro (5min < 2h)
-    $defaultProps = ifIndexProps(new InboxController(), ifBuildRequest());
+    $defaultProps = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest());
     expect(ifConvIds($defaultProps))->toBe([$c1->id, $c2->id]);
 
     // orderBy=inbound: C2 primeiro (cliente mais recente)
-    $inboundProps = ifIndexProps(new InboxController(), ifBuildRequest(['orderBy' => 'inbound']));
+    $inboundProps = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest(['order_by' => 'inbound']));
     expect(ifConvIds($inboundProps))->toBe([$c2->id, $c1->id])
         ->and($inboundProps['orderBy'])->toBe('inbound');
 });
@@ -432,7 +444,7 @@ it('R-WA-FILTERS-010 — Tier 0: biz=99 invisível mesmo com filtros abertos (cr
     ifSetUserAndGrantAll(1, 10, [$ch1->id]);
 
     // Mesmo filtrando archived + unlinked, NÃO deve aparecer conv biz=99
-    $props = ifIndexProps(new InboxController(), ifBuildRequest([
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest([
         'tab' => 'archived',
         'unlinked' => 'true',
     ]));
@@ -475,9 +487,9 @@ it('R-WA-FILTERS-011 — combinação tab=awaiting_human + within_24h=true + unl
 
     ifSetUserAndGrantAll(1, 10, [$ch->id]);
 
-    $props = ifIndexProps(new InboxController(), ifBuildRequest([
+    $props = ifIndexProps(new CaixaUnificadaController(), ifBuildRequest([
         'tab' => 'awaiting_human',
-        'within_24h' => 'true',
+        'within24h' => 'true',
         'unlinked' => 'true',
     ]));
 

@@ -89,11 +89,13 @@ it('R-WA-AUTH-DRIFT-01 — sucesso silencioso quando auth_state alinhado com can
     $instanceId = 'ch-' . str_replace('-', '', $uuid);
     makeAuthStateRow($instanceId, 5);
 
-    $exitCode = artisan('whatsapp:auth-state-drift-check');
+    $exitCode = \Artisan::call('whatsapp:auth-state-drift-check');
 
-    expect($exitCode)->toBe(0)->and(\Artisan::output())
+    // Artisan::output() esvazia o buffer na primeira leitura.
+    $saida = \Artisan::output();
+
+    expect($exitCode)->toBe(0)->and($saida)
         ->toContain('Zero orphans')
-        ->and(\Artisan::output())
         ->toContain('SEM DRIFT');
 });
 
@@ -110,18 +112,18 @@ it('R-WA-AUTH-DRIFT-02 — detecta ORPHAN: instance_id sem channel correspondent
     // Orphan — instance_id sem channel
     makeAuthStateRow('ch-deadbeefcafebabe0000000000000000', 10);
 
-    $exitCode = artisan('whatsapp:auth-state-drift-check');
+    $exitCode = \Artisan::call('whatsapp:auth-state-drift-check');
     $output = \Artisan::output();
 
     expect($output)->toContain('ORPHANS: 1');
-    expect($output)->toContain('ch-deadbeefca...');
+    expect($output)->toContain('ch-deadbeefc...');
     expect($exitCode)->toBe(0);
 });
 
 it('R-WA-AUTH-DRIFT-02b — --fail-on-drift retorna exit 1 quando orphan presente', function () {
     makeAuthStateRow('ch-orphannnnn00000000000000000000', 5);
 
-    $exitCode = artisan('whatsapp:auth-state-drift-check', ['--fail-on-drift' => true]);
+    $exitCode = \Artisan::call('whatsapp:auth-state-drift-check', ['--fail-on-drift' => true]);
 
     expect($exitCode)->toBe(1);
 });
@@ -135,7 +137,7 @@ it('R-WA-AUTH-DRIFT-03 — detecta auth_state pra canal banned (residual inciden
     makeChannelDrift(1, $uuidBanned, 'banned');
     makeAuthStateRow('ch-' . str_replace('-', '', $uuidBanned), 48);
 
-    $exitCode = artisan('whatsapp:auth-state-drift-check');
+    $exitCode = \Artisan::call('whatsapp:auth-state-drift-check');
     $output = \Artisan::output();
 
     expect($output)->toContain('BANNED/INACTIVE: 1');
@@ -147,7 +149,7 @@ it('R-WA-AUTH-DRIFT-03b — detecta canal inactive (soft-deleted post-purge)', f
     makeChannelDrift(1, $uuid, 'inactive');
     makeAuthStateRow('ch-' . str_replace('-', '', $uuid), 10);
 
-    artisan('whatsapp:auth-state-drift-check');
+    \Artisan::call('whatsapp:auth-state-drift-check');
     $output = \Artisan::output();
 
     expect($output)->toContain('BANNED/INACTIVE: 1');
@@ -164,7 +166,7 @@ it('R-WA-AUTH-DRIFT-04 — detecta auth_state stale >90d (sinal Baileys major bu
     // updated_at 120 dias atrás
     makeAuthStateRow($instanceId, 5, now()->subDays(120));
 
-    artisan('whatsapp:auth-state-drift-check');
+    \Artisan::call('whatsapp:auth-state-drift-check');
     $output = \Artisan::output();
 
     expect($output)->toContain('STALE >90d');
@@ -188,7 +190,7 @@ it('R-WA-AUTH-DRIFT-05 — Tier 0 (ADR 0093): --biz=1 não vê drift em biz=99',
     // (Comando atual usa apenas canais ativos por biz como expected.
     // Orphan ainda aparece pq instance_id não tem channel correspondente
     // em NENHUM biz. Verifica que filtro de biz não esconde orphans cross-tenant.)
-    artisan('whatsapp:auth-state-drift-check', ['--biz' => 1]);
+    \Artisan::call('whatsapp:auth-state-drift-check', ['--biz' => 1]);
     $output = \Artisan::output();
 
     // Orphan aparece (correto — defesa cross-tenant: detecta auth state sem dono)
@@ -210,6 +212,9 @@ it('R-WA-AUTH-DRIFT-CONV-02 — comando NUNCA deleta rows (regra Wagner Tier 0 "
     $source = file_get_contents(
         base_path('Modules/Whatsapp/Console/Commands/WhatsappAuthStateDriftCheckCommand.php')
     );
+
+    // Só código conta: a sugestão manual impressa ao operador cita ->delete() numa string.
+    $source = (string) preg_replace("/'(?:[^'\\\\]|\\\\.)*'/s", "''", $source);
 
     expect($source)->not->toMatch('/->delete\(\)/',
         'REGRESSÃO: comando ganhou ->delete() — viola regra "operador decide manualmente, nunca delete automático".');

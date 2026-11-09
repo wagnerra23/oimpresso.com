@@ -261,11 +261,22 @@ last_run: "2026-10-07"
   incrementar o contador de referência da empresa. O conserto recusa antes de qualquer escrita. Verde na
   run 39446612104.
 - **Status: 🧪**
+
+## UC-OP-14 · Gravar e editar a ordem só aceita local e produto da minha empresa
+- **Persona:** Eliana (produção) — grava ou corrige o rascunho de uma ordem.
+- **Aceite:** Dado um local e um produto da minha empresa · Quando gravo ou edito a ordem (POST
+  `/manufacturing/production`, PUT `/manufacturing/production/{id}`) · Então os dados são gravados · Dado o
+  local ou o produto de outra empresa, mesmo finalizando · Quando gravo ou edito · Então a resposta é 404, a
+  ordem fica como estava e o estoque da outra empresa não muda.
+- **Fonte:** SPEC US-MANU-008 H1 · handoff §9 · ADR 0093.
+- **Teste:** `OrdemProdutoLocalEmpresaTest.php`
+- **Regressão que defende:** o `store` conferir só o produto e o `update` não conferir nada: `location_id`
+  era só `required`, e o `update` buscava a variação pelo id.
+- **Status: 🧪**
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** (H1 · Tier 0 · estoque) Ordem só aceita produto e local da **minha empresa**: `POST /manufacturing/production` com `variation_id` ou `location_id` de outra empresa recusa e não cria `production_purchase`/`production_sell` nem mexe em estoque. Hoje `StoreProductionRequest` valida `exists:variations,id` sem empresa — **hipótese sem teste** (ver PARIDADE). Vira UC quando o teste vermelho existir (tenant 98 × 99, CT 100).
 - **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.
 - **[BACKLOG]** O sufixo `fix` aparece só em ordem finalizada, com o `title` verbatim (R-21) —
   comportamento de navegador; lugar é spec Playwright.
@@ -293,3 +304,4 @@ last_run: "2026-10-07"
 - 2026-10-20 · [M+C] UC-OP-12 e UC-OP-13 (Tier 0, PR #9652): montar e gravar a ordem só com receita e
   produto da própria empresa. Vermelho só com o teste na run 39441296307 (500 na variação inexistente; ordem
   de outra empresa gravada antes do 404 acidental); verde com o conserto na run 39446612104.
+- 2026-11-09 · [C] UC-OP-14 (US-MANU-008 H1): o item H1 do backlog virou caso com teste. A tela não mudou.

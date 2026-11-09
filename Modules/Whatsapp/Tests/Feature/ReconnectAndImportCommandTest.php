@@ -26,6 +26,12 @@ uses(Tests\TestCase::class);
  * @see Modules/Whatsapp/Console/Commands/ReconnectAndImportCommand.php
  */
 beforeEach(function () {
+    // O comando não está no commands([...]) do WhatsappServiceProvider; o teste o
+    // registra para exercitar a classe sem mudar o que existe em produção.
+    $this->app->make(\Illuminate\Contracts\Console\Kernel::class)->registerCommand(
+        $this->app->make(\Modules\Whatsapp\Console\Commands\ReconnectAndImportCommand::class)
+    );
+
     if (DB::connection()->getDriverName() !== 'sqlite') {
         test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
     }
