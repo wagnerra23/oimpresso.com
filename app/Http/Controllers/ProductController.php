@@ -1250,6 +1250,16 @@ class ProductController extends Controller
      *
      * @return array{natureza: string, codigoServico: string|null, link: string|null}|null
      */
+    /** Partes do endereço no estoque que a empresa liga em Configurações (CU-PROD-20, CU-PROD-14). */
+    private function enderecoNoEstoque(): array
+    {
+        return [
+            'prateleira' => (bool) session('business.enable_racks'),
+            'fileira' => (bool) session('business.enable_row'),
+            'posicao' => (bool) session('business.enable_position'),
+        ];
+    }
+
     /**
      * Card "Produção" do Editar (CU-PROD-22, decisão [W] opção A): o roteiro que o produto segue, só
      * para ler. `null` quando o card não aparece: empresa sem o módulo Produção no pacote, composição
@@ -1950,6 +1960,8 @@ class ProductController extends Controller
                 'expiryType' => (string) session('business.expiry_type'),
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
+                // CU-PROD-20: quais partes do endereço no estoque a empresa usa.
+                'enderecoNoEstoque' => $this->enderecoNoEstoque(),
                 'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
                 'margemMinima' => $this->margemMinimaDaEmpresa((int) $business_id),
                 // O botão "Salvar e adicionar estoque inicial" do rodapé, como o @can do create.blade.php.
@@ -2024,6 +2036,54 @@ class ProductController extends Controller
     }
 
     /**
+     * Locais de armazenagem (CU-PROD-20): o endereço por local (`product_racks` e
+     * `product_racks_update`, as chaves são o id do local) e o local padrão (`local_padrao_id`).
+     *
+     * Tier 0 (ADR 0093): todo local citado tem de ser do negócio da sessão. O `addRackDetails`
+     * gravava o id que viesse; agora um local de outra empresa é recusado com 422, antes do `try`.
+     * O padrão, quando vem preenchido, tem de ser um dos locais de armazenagem do produto: os do
+     * envio e, no Editar, os que ele já tem. O Blade não manda `local_padrao_id` e não muda nada.
+     */
+    protected function validarLocaisDeArmazenagem(Request $request, int $business_id, ?int $product_id = null): void
+    {
+        $request->validate(
+            ['local_padrao_id' => ['sometimes', 'nullable', 'integer']],
+            ['local_padrao_id.integer' => 'O local padrão não é válido.'],
+        );
+
+        $doEnvio = collect(['product_racks', 'product_racks_update'])
+            ->flatMap(fn ($chave) => is_array($request->input($chave)) ? array_keys($request->input($chave)) : [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+        $padrao = $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null;
+        $citados = $padrao === null ? $doEnvio : $doEnvio->concat([$padrao])->unique();
+        if ($citados->isEmpty()) {
+            return;
+        }
+
+        $doNegocio = DB::table('business_locations')->where('business_id', $business_id)
+            ->whereIn('id', $citados->all())->pluck('id')->map(fn ($id) => (int) $id);
+        $erros = [];
+        if ($doEnvio->diff($doNegocio)->isNotEmpty()) {
+            $erros['product_racks'] = 'Um dos locais de armazenagem não pertence a este negócio.';
+        }
+        if ($padrao !== null) {
+            $doProduto = $product_id === null ? collect() : DB::table('product_racks')
+                ->where('business_id', $business_id)->where('product_id', $product_id)
+                ->pluck('location_id')->map(fn ($id) => (int) $id);
+            if (! $doNegocio->contains($padrao)) {
+                $erros['local_padrao_id'] = 'O local padrão não pertence a este negócio.';
+            } elseif (! $doEnvio->merge($doProduto)->contains($padrao)) {
+                $erros['local_padrao_id'] = 'O local padrão tem de ser um dos locais de armazenagem do produto.';
+            }
+        }
+        if ($erros !== []) {
+            throw \Illuminate\Validation\ValidationException::withMessages($erros);
+        }
+    }
+
+    /**
      * Peso líquido e dimensões: número de 0 a 99999, com ponto decimal (a tela manda assim).
      * Fora do `try`, como a origem. Ausente ou vazio não valida: os quatro são opcionais.
      */
@@ -2074,6 +2134,7 @@ class ProductController extends Controller
         $this->validarNcm($request);
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
+        $this->validarLocaisDeArmazenagem($request, (int) $uc_pcad_05_bid);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -2113,6 +2174,10 @@ class ProductController extends Controller
                 if ($request->filled($campo)) {
                     $product_details[$campo] = $request->input($campo);
                 }
+            }
+            // Local padrão de armazenagem (CU-PROD-20): já validado contra os locais do envio.
+            if ($request->filled('local_padrao_id')) {
+                $product_details['local_padrao_id'] = (int) $request->input('local_padrao_id');
             }
 
             if (! empty($request->input('sub_category_id'))) {
@@ -2427,6 +2492,8 @@ class ProductController extends Controller
                     'ncm' => (string) ($product->ncm ?? ''),
                     'cest' => (string) ($product->cest ?? ''),
                     'pesoLiquido' => $product->peso_liquido ?? null,
+                    // CU-PROD-20: o local padrão de armazenagem (null = sem padrão).
+                    'localPadraoId' => $product->local_padrao_id !== null ? (int) $product->local_padrao_id : null,
                     'larguraCm' => $product->largura_cm ?? null,
                     'alturaCm' => $product->altura_cm ?? null,
                     'comprimentoCm' => $product->comprimento_cm ?? null,
@@ -2460,6 +2527,7 @@ class ProductController extends Controller
                 'subCategories' => $sub_categories,
                 'businessLocations' => $business_locations,
                 'rackDetails' => $rack_details,
+                'enderecoNoEstoque' => $this->enderecoNoEstoque(),
                 'productTypes' => $product_types,
                 'warranties' => $warranties,
                 'permissions' => [
@@ -2509,6 +2577,7 @@ class ProductController extends Controller
         $this->validarNcm($request);
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
+        $this->validarLocaisDeArmazenagem($request, (int) $business_id, (int) $id);
 
         try {
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
@@ -2559,6 +2628,10 @@ class ProductController extends Controller
                 if ($request->has($campo)) {
                     $product->setAttribute($campo, $request->filled($campo) ? $request->input($campo) : null);
                 }
+            }
+            // Local padrão (CU-PROD-20): só mexe quando a chave vem; vazio volta a nulo. O Blade não manda.
+            if ($request->has('local_padrao_id')) {
+                $product->setAttribute('local_padrao_id', $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null);
             }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
             $product->product_custom_field2 = $product_details['product_custom_field2'] ?? '';
