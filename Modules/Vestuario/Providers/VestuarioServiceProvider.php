@@ -43,8 +43,6 @@ class VestuarioServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../Config/config.php', 'vestuario');
-
         // Resolver canônico pra settings vertical Vestuario.
         // Sprint 2 ADR 0121 §P7 — outros módulos consultam via DI ao invés de
         // importar VestuarioSetting Model direto.
