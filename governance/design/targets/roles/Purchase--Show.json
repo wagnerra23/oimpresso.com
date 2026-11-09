@@ -15,7 +15,7 @@
         "raiz": "main",
         "cabecalho": "main header, main > div:first-child",
         "titulo": "h1",
-        "corpo": "main",
+        "corpo": ".mt-4",
         "secao": "main [data-slot=card], main .rounded-xl.border",
         "tituloSecao": "main [data-slot=card-title], main .rounded-xl.border h3",
         "rodape": "main footer",
@@ -23,13 +23,13 @@
       }
     },
     "design": {
-      "title": "aside.cmp-drawer .os-drawer-id",
+      "title": "aside.cmp-drawer .os-drawer-head h2",
       "drawer": {
         "raiz": "aside.cmp-drawer",
         "cabecalho": ".os-drawer-head",
-        "titulo": ".os-drawer-id",
+        "titulo": ".os-drawer-head h2",
         "corpo": ".os-drawer-body",
-        "secao": ".os-drawer-body section, .os-drawer-body .drw-section",
+        "secao": ".os-drawer-body > *",
         "tituloSecao": ".os-drawer-body h4",
         "rodape": ".os-drawer-actions",
         "botaoSecundario": ".os-drawer-actions button"

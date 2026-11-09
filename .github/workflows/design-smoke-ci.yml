@@ -391,7 +391,7 @@ jobs:
             node scripts/design/design-diff-lote.mjs --tela "$T" --tema dark --base-url http://127.0.0.1:8000 --user-id "$VISREG_UID" 2>&1 | tee -a /tmp/lote.log || true
           done
           node scripts/design/design-diff-lote.mjs --tela Purchase/Show --url "/purchases/$PID" --tema dark --base-url http://127.0.0.1:8000 --user-id "$VISREG_UID" 2>&1 | tee -a /tmp/lote.log || true
-          php artisan tinker --execute="DB::table('transactions')->where('business_id',1)->where('ref_no','VISREG-COM-001')->update(['transaction_date'=>now()]);" | tail -n1
+          php artisan tinker --execute="DB::table('transactions')->where('business_id',1)->where('ref_no','VISREG-COM-001')->update(['transaction_date'=>date('Y-m-d H:i:s')]);" | tail -n1
           BASE=http://127.0.0.1:8000 VISREG_UID="$VISREG_UID" PURCHASE_ID="$PID" node scripts/design/_compras-medicao-extra.mjs 2>&1 | tee -a /tmp/lote.log || true
           node scripts/design/design-diff.mjs --compare governance/design/targets/medidas/_extra/edit-prod.json governance/design/targets/medidas/_extra/create-prod.json --json > governance/design/targets/medidas/_extra/edit-vs-create.json 2>&1 || true
           kill -0 "$SERVE_PID" 2>/dev/null || {
