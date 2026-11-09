@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Skeleton } from '@/Components/ui/skeleton'
+import { Grid } from '@/Components/layout'
 import PageHeader from '@/Components/shared/PageHeader'
 import EmptyState from '@/Components/shared/EmptyState'
 import { ArrowLeft } from 'lucide-react'
@@ -102,14 +103,14 @@ function DetailSkeleton(): React.ReactElement {
       <PageHeader icon="history" title="Atividade" action={<VoltarALista />} />
       <Card>
         <CardContent className="py-6">
-          <div className="grid grid-cols-2 gap-3" aria-busy="true" aria-label="Carregando atividade">
+          <Grid cols={2} gap={3} aria-busy="true" aria-label="Carregando atividade">
             {Array.from({ length: 4 }).map((_, i) => (
               <React.Fragment key={i}>
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-4 w-48" />
               </React.Fragment>
             ))}
-          </div>
+          </Grid>
         </CardContent>
       </Card>
     </>
