@@ -81,11 +81,41 @@ abre a Ficha · a OS da Comunicação Visual (`comvis_os`) não tem Ficha e não
 
 Status: 🧪
 
+## UC-PCESC-01 · A empresa que vem do registro não depende da sessão · `must`
+
+**Dado** uma OS da empresa A e a sessão logada na empresa B **Quando** a rota pública, o gancho do núcleo ou o job consulta a
+OS de A **Então** acha a OS de A. O escopo da sessão, sozinho, a esconderia: por isso a consulta dispensa o escopo e leva
+`business_id` explícito, com `// SUPERADMIN:` dizendo de onde vem a empresa.
+
+Status: 🧪
+
+## UC-PCESC-02 · A leitura da tela nunca vê outra empresa · `must`
+
+**Dado** a sessão logada na empresa A **Então** a leitura acha a OS de A · **Dado** a sessão em B **Quando** pede a OS de A,
+com a empresa A ou B **Então** a OS não é encontrada.
+
+Status: 🧪
+
+## UC-PCESC-03 · Gravar segue na empresa recebida · `must`
+
+**Dado** a sessão logada em B **Quando** o roteiro de A é programado **Então** a etapa nasce em A. O escopo global não atua
+em INSERT.
+
+Status: 🧪
+
+## UC-PCESC-04 · Toda dispensa de escopo diz o porquê · `must`
+
+**Dado** o código do Modules/Producao **Então** todo `withoutGlobalScope` ou `withoutGlobalScopes` traz `// SUPERADMIN:` na
+mesma linha ou nas 3 anteriores.
+
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Refugo e Histórico da OS — fora do lote 3.
 
 ## Trilha do tempo
+- 2026-11-09 · [W+C] Dispensas de escopo revistas (lote 8.1): 21 removidas, 12 comentadas (UC-PCESC-01..04).
 - 2026-11-06 · [M+C] Aba Arte lê a versão gravada (UC-PCART-09) em vez de contar os envios.
 - 2026-11-06 · [W+C] Quadro e Linha abrem a Ficha (lote 3.5).
 - 2026-11-06 · [W+C] Abas Materiais e Arte (lote 3.4).
