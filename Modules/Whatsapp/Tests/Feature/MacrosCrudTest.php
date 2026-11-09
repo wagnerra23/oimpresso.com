@@ -275,6 +275,8 @@ it('R-WA-048-003 — apply incrementa used_count + cria msg outbound + aplica ac
         '*/instances/*/text' => Http::response(['status' => 'sent', 'message_id' => 'wamid.X1'], 200),
     ]);
 
+    config(['whatsapp.baileys.daemon_url' => 'https://daemon.test', 'whatsapp.baileys.api_key' => 'k']);
+
     $executor = app(MacroExecutor::class);
     $result = $executor->execute(1, $macro->id, $conv->id, 42);
 
