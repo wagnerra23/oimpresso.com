@@ -105,7 +105,7 @@ export default function AprovacaoPublica({ erro, mensagem, token, os, orcamento,
         <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4 py-8">
           <Head title="Aprovação OS" />
           <div className="max-w-md w-full bg-card rounded-lg border shadow-sm p-6 text-center">
-            <div className="inline-flex items-center justify-center size-12 rounded-full bg-green-50 text-green-900 mb-4">
+            <div className="inline-flex items-center justify-center size-12 rounded-full bg-primary/10 text-primary mb-4">
               <Check className="size-6" />
             </div>
             <h1 className="text-lg font-semibold mb-2">Aprovação OS</h1>
