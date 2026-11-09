@@ -190,7 +190,7 @@ it('UC-VCUR-04 · quem vê uma loja só soma as vendas daquela loja [T0]', funct
 
     // só a matriz: P 8 · M 2 (com a filial junto seria P 9 · M 11)
     expect($r['base'])->toBe('produto')
-        ->and(array_column($r['linhas'], 'vendidas', 'nome'))->toBe(['P' => 8.0, 'M' => 2.0])
+        ->and(array_column($r['linhas'], 'vendidas', 'nome'))->toEqual(['P' => 8, 'M' => 2])
         ->and(array_column($r['linhas'], 'sugerida', 'nome'))->toBe(['P' => 8, 'M' => 2]);
 });
 
@@ -222,6 +222,6 @@ it('UC-VCUR-04 · quem vê todas as lojas soma todas (a conta não muda para ele
     $r = curvaGet($this, $prod, 10);
 
     // P 9 · M 11 de 20: 4,5 · 5,5 → 4 · 5; a peça que falta vai para M (empate no resto, M vendeu mais)
-    expect(array_column($r['linhas'], 'vendidas', 'nome'))->toBe(['P' => 9.0, 'M' => 11.0])
+    expect(array_column($r['linhas'], 'vendidas', 'nome'))->toEqual(['P' => 9, 'M' => 11])
         ->and(array_column($r['linhas'], 'sugerida', 'nome'))->toBe(['P' => 4, 'M' => 6]);
 });
