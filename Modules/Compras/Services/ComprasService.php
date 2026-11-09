@@ -231,6 +231,10 @@ class ComprasService
         $base = Transaction::where('business_id', $businessId)
             ->where('type', 'purchase');
 
+        // CU-COM-05 item 2: os KPIs contam só os locais que o usuário pode ver, como a
+        // listagem e o sumário. Até 2026-11-06 agregavam o business inteiro.
+        $this->aplicarEscopoLocalizacao($base);
+
         $aberto = (clone $base)
             ->whereIn('payment_status', ['due', 'partial'])
             ->count();
@@ -284,6 +288,8 @@ class ComprasService
         $compra = Transaction::where('business_id', $businessId)
             ->where('id', $id)
             ->whereIn('type', ['purchase', 'purchase_order', 'purchase_return'])
+            // CU-COM-05: compra de local que o usuário não pode ver responde como inexistente (404).
+            ->tap(fn ($q) => $this->aplicarEscopoLocalizacao($q))
             ->with([
                 'contact',
                 'location',

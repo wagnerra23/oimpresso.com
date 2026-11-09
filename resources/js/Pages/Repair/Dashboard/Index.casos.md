@@ -6,10 +6,15 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: um painel so vale pelo que ele NAO faz — read-only puro, sem escrita, sem job, sem cruzar tenant; e o KPI precisa continuar contando o que o rotulo promete
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-10-27"
+last_run: "2026-11-06"
 ---
 
 # Casos de Uso & Aceite — Painel do Repair
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10555). Nada do
+> comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch, run
+> [42227783743](https://github.com/wagnerra23/oimpresso.com/actions/runs/42227783743): `RepairDashboardContratoTest` 5 testes, 56 asserções, 1 skipped · `RepairDashboardIndicadoresContratoTest` 6 testes, 9 asserções, 5 skipped · `ClienteAcompanhaStatusContratoTest` 5 testes, 34 asserções. **Medidos neste run:** UC-RDSH-01, 02, 03, 05 e 11. **Não medidos (saíram skipped):** UC-RDSH-04 e 06 a 10; o status deles segue o do último run que os executou.
 
 > Derivados do [Index.charter.md](Index.charter.md) (lei) — o charter mais detalhado das três telas,
 > com Non-Goals e Anti-hooks já escritos. O `DashboardController` foi lido para **confirmar** o

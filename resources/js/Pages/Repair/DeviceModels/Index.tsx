@@ -6,7 +6,8 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link, router, Deferred } from '@inertiajs/react';
 import { useEffect, useState, type ReactNode } from 'react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
@@ -140,11 +141,14 @@ export default function DeviceModelsIndex({ filters, models, kpis, brands, devic
 
   return (
     <div className="container mx-auto p-4">
+      {/* Header canon (ADR 0189/0190); saiu do shared congelado (ADR 0409) para receber a barra
+          de abas do módulo, a mesma lista do sidebar ([W] 2026-11-06). */}
       <PageHeader
-        icon="smartphone"
+        leading={<Icon name="smartphone" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Modelos de Dispositivo (Repair)"
-        description="Catálogo compartilhado de modelos atendidos pela oficina — marca, categoria e checklist"
-        action={
+        subtitle="Catálogo compartilhado de modelos atendidos pela oficina — marca, categoria e checklist"
+        below={<ModuleTabs modulo="Assistência técnica" />}
+        actions={
           <Button asChild>
             <Link href="/repair/device-models/create">
               <Icon name="plus" className="mr-2 h-4 w-4" />

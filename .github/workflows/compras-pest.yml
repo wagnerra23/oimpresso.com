@@ -192,6 +192,7 @@ jobs:
             Modules/Compras/Tests/Feature/ComprasIndexTest.php \
             Modules/Compras/Tests/Feature/MultiTenantTest.php \
             Modules/Compras/Tests/Feature/ComprasContratoFiltrosTest.php \
+            Modules/Compras/Tests/Feature/ComprasEscopoLocalDetalheKpisTest.php \
             Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php \
             Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php \
             Modules/Compras/Tests/Feature/MetodoCustoNoCadastroDoProdutoTest.php \

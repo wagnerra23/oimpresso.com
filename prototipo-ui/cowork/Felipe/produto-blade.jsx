@@ -95,6 +95,14 @@ const priceSpan = (p, key) => {
 const EMPRESA_PADRAO = { emiteNota: true, temAliquota: true };
 
 // UC-PIDX-42: NCM válido tem 8 dígitos e não é 00000000 (a regra da emissão e do card de Saúde fiscal).
+// UC-PIDX-44 (CV1): o "Uso" do produto. No exemplo, insumo e acabamento entram em receita (Material);
+// no sistema, Material vem da receita da Fabricação e Serviço da natureza fiscal.
+const USOS_PB = [{ id: "vender", name: "Para vender" }, { id: "material", name: "Material" }, { id: "servico", name: "Serviço" }];
+function usoDoProduto(p) {
+  if (p.servico) return "servico";
+  return p.cat === "Insumos" || p.cat === "Acabamento" ? "material" : "vender";
+}
+
 function ncmValido(ncm) {
   const d = String(ncm || "").replace(/[^0-9]/g, "");
   return d.length === 8 && d !== "00000000";
@@ -346,7 +354,9 @@ function Filtros({ f, setF, empresa }) {
           {empresa.temAliquota && <Fld label="Imposto"><Sel value={f.tax} onChange={set("tax")} options={TAXES.map((t) => t.name)} vazio="Todos" /></Fld>}
           <Fld label="Marca"><Sel value={f.brand} onChange={set("brand")} options={BRANDS} vazio="Todas" /></Fld>
           <Fld label="Local do negócio"><Sel value={f.loc} onChange={set("loc")} options={LOCATIONS} vazio="Todos" /></Fld>
-          <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }]} vazio="Todos" /></Fld>
+          <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }, { id: "excluido", name: "Excluídos" }]} vazio="Todos" /></Fld>
+          {/* UC-PIDX-44 (CV1): Material = entra em receita da Fabricação; Serviço = natureza fiscal. */}
+          <Fld label="Uso"><Sel value={f.uso} onChange={set("uso")} options={USOS_PB} vazio="Todos" /></Fld>
           <div className="pb-fld" style={{ justifyContent: "flex-end" }}>
             <label className="pb-chk"><input type="checkbox" checked={f.nfs} onChange={(e) => setF({ ...f, nfs: e.target.checked })} /><b>Não para venda</b></label>
           </div>
@@ -929,7 +939,7 @@ function exportarCsv(lista, empresa) {
 
 // ─────────── Tela lista (index.blade.php) ───────────
 function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
-  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false };
+  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "" };
   // Chegou filtrada de outro lugar? (contagem clicada em Cadastros de apoio → window.__PBFiltro)
   const [f, setF] = useState(() => { const x = window.__PBFiltro; window.__PBFiltro = null; return x ? { ...VAZIO_F, ...x } : VAZIO_F; });
   const [busca, setBusca] = useState("");
@@ -980,6 +990,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     if (f.active === "inactive" && p.active) return false;
     if (f.nfs && !p.notForSelling) return false;
     if (f.alerta && !(p.stockOn && p.alert != null && p.stock <= p.alert)) return false;
+    if (f.uso && usoDoProduto(p) !== f.uso) return false;
     if (empresa.emiteNota && f.semNcm && ncmValido(p.fiscal && p.fiscal.ncm)) return false;
     if (busca && !(p.name + p.sku).toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
@@ -1000,6 +1011,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   if (f.active) chips.push({ k: "active", l: "Situação", v: f.active === "active" ? "Ativo" : "Inativo" });
   if (f.nfs) chips.push({ k: "nfs", l: "", v: "Não para venda" });
   if (f.alerta) chips.push({ k: "alerta", l: "", v: "Abaixo do alerta" });
+  if (f.uso) chips.push({ k: "uso", l: "Uso", v: (USOS_PB.find((u) => u.id === f.uso) || {}).name });
   if (empresa.emiteNota && f.semNcm) chips.push({ k: "semNcm", l: "", v: "Falta NCM" });
   if (busca) chips.push({ k: "__busca", l: "Busca", v: busca });
   const tirarChip = (k) => k === "__busca" ? setBusca("") : setF({ ...f, [k]: k === "nfs" || k === "alerta" || k === "semNcm" ? false : "" });
@@ -1030,9 +1042,9 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     });
     if (a === "excluir") return setConfirmar({
       titulo: "Excluir produto", perigo: true, cta: "Excluir",
-      corpo: `Excluir “${p.name}” (${p.sku}) apaga o cadastro, as variações e os preços por grupo.`,
-      aviso: p.stockOn && p.stock > 0 ? "Este produto tem estoque e movimento — o servidor vai recusar a exclusão. Desative em vez de excluir." : "Esta ação não tem volta.",
-      on: () => avisar(p.stockOn && p.stock > 0 ? "Exclusão recusada: produto com movimento de estoque." : "Produto excluído.", p.stockOn && p.stock > 0 ? "danger" : "warn"),
+      // UC-PIDX-45 (AR-PROD-022): excluir não apaga — vai para "Situação: Excluídos" e dá para restaurar.
+      corpo: `“${p.name}” (${p.sku}) sai da lista, da venda e da compra. O cadastro, o estoque e o histórico ficam guardados em “Situação: Excluídos”, e dá para restaurar.`,
+      on: () => avisar("Produto excluído. Ele fica em “Situação: Excluídos” e pode ser restaurado.", "warn"),
     });
   };
 
@@ -1104,7 +1116,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
             {chips.map((c) => (FilterChip
               ? <FilterChip key={c.k} label={c.l || c.v} value={c.l ? c.v : undefined} onRemove={() => tirarChip(c.k)} />
               : <button key={c.k} className="pb-chip" onClick={() => tirarChip(c.k)}>{c.v} ✕</button>))}
-            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false }); setBusca(""); }}>Limpar tudo</button>
+            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "" }); setBusca(""); }}>Limpar tudo</button>
           </div>}
 
         {aba === "lista"
@@ -1132,7 +1144,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
           {empresa.emiteNota && <button className="os-btn sm" disabled={!sel.length} onClick={() => setNcmLote(true)}>Informar NCM</button>}
           <button className="os-btn sm" onClick={() => { window.__PBEtiquetas = PRODUCTS.filter((p) => sel.includes(p.id)); onIr("etiquetas"); }}><Ic name="print" size={12} /> Etiquetas</button>
           <button className="os-btn sm" onClick={() => setConfirmar({ titulo: "Desativar selecionados", perigo: true, cta: "Desativar " + sel.length, corpo: sel.length + " produto(s) saem da venda e do orçamento novo, mantendo histórico e estoque.", on: () => { avisar(sel.length + " produto(s) desativados.", "warn"); limparSel(); } })}>Desativar selecionados</button>
-          <button className="os-btn sm ghost danger" onClick={() => setConfirmar({ titulo: "Excluir selecionados", perigo: true, cta: "Excluir " + sel.length, corpo: "Vai apagar " + sel.length + " cadastro(s), com variações e preços por grupo.", aviso: "Produtos com movimento de estoque serão recusados pelo servidor.", on: () => { avisar("Exclusão enviada — itens com movimento foram recusados.", "danger"); limparSel(); } })}>Excluir selecionados</button>
+          <button className="os-btn sm ghost danger" onClick={() => setConfirmar({ titulo: "Excluir selecionados", perigo: true, cta: "Excluir " + sel.length, corpo: sel.length + " produto(s) saem da lista, da venda e da compra. O cadastro, o estoque e o histórico ficam guardados em “Situação: Excluídos”, e dá para restaurar.", on: () => { avisar(sel.length + " produto(s) excluído(s). Eles ficam em “Situação: Excluídos”.", "warn"); limparSel(); } })}>Excluir selecionados</button>
           <div className="sp" />
           <button className="icon-btn" title="Limpar seleção" onClick={limparSel}>✕</button>
         </div>}

@@ -39,7 +39,7 @@ interface PrevReal { status: 'em_andamento' | 'realizado' | 'cancelada'; receita
 interface Custo { previsto_realizado: PrevReal; composicao: { maquina: string; pessoa: string; material: string; terceiros: string; total: string } | null }
 interface Material { variation_id: number; nome: string; unidade: string | null; previsto: string | null; apontado: string; saldo: string | null; estourou: boolean }
 interface Falta { nome: string; necessario: string; disponivel: string; falta: string; a_caminho: string }
-interface Arte { versao: number; arquivo: string; decisao: 'aprovada' | 'recusada' | null; comentario: string | null; enviada_em: string; decidida_em: string | null; vigente: boolean }
+interface Arte { id: number; versao: number; arquivo: string; decisao: 'aprovada' | 'recusada' | null; comentario: string | null; enviada_em: string; decidida_em: string | null; vigente: boolean }
 interface Pessoas { pessoas: { id: number; nome: string }[]; por_posto: Record<number, number[]> }
 interface Props { os: Os; etapas: Etapa[]; pode: { liberar: boolean; cancelar: boolean; custo: boolean }; pessoas?: Pessoas; custo?: Custo | null; materiais?: { itens: Material[]; falta: Falta[] }; artes?: Arte[] }
 
@@ -155,7 +155,7 @@ function AbaArte({ os, artes }: { os: Os; artes: Arte[] }) {
       {!ultima && <p className="pcv-help">Esta OS ainda não mandou prova de arte ao cliente.</p>}
       {ultima && ultima.decisao !== 'aprovada' && <AcaoDaProva osId={os.id} ajuste={ultima.decisao === 'recusada'} />}
       <ul className="pcv-arq" aria-label="Versões da arte">{artes.map((a) => (
-        <li key={a.versao}><div><b>v{a.versao} · {a.arquivo.split('/').pop()}</b>
+        <li key={a.id}><div><b>v{a.versao} · {a.arquivo.split('/').pop()}</b>
           <small>{a.decisao === 'aprovada' ? 'aprovada em ' + quando(a.decidida_em ?? a.enviada_em) + (a.vigente ? ' · é a que vale para a produção' : ' · substituída')
             : a.decisao === 'recusada' ? 'o cliente pediu ajuste' + (a.comentario ? ': "' + a.comentario + '"' : '') : 'aguardando o cliente · enviada em ' + quando(a.enviada_em)}</small></div>
           <a className="pcv-link" href={a.arquivo} target="_blank" rel="noreferrer">Abrir</a></li>))}</ul>
