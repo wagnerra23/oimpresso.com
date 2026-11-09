@@ -2,6 +2,7 @@
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Auditoria\Services\RevertCheck;
 use Modules\Auditoria\Services\RevertService;
@@ -118,4 +119,76 @@ it('cenario 6: revert() lanca InvalidArgumentException se reason < 10 chars', fu
 
     expect(fn () => $this->service->revert($log, $this->user->fresh(), 'curto'))
         ->toThrow(\InvalidArgumentException::class, 'no minimo 10 caracteres');
+});
+
+function valorLog(string $classe, mixed $id, int $businessId, array $old): Activity
+{
+    $log = new Activity();
+    $log->business_id = $businessId;
+    $log->subject_type = $classe;
+    $log->subject_id = $id;
+    $log->properties = ['old' => $old];
+    $log->created_at = now()->subMinute();
+
+    return $log;
+}
+
+it('cenario 7: canRevert nega snapshot com campo de valor ou estoque, citando o campo', function (string $classe, string $campo) {
+    $check = $this->service->canRevert(valorLog($classe, 1, $this->business->id, ['observacao' => 'x', $campo => 10]), $this->user);
+
+    expect($check->allowed)->toBeFalse();
+    expect($check->reason)->toContain("O campo {$campo} nao pode ser revertido");
+})->with([
+    'total da venda'  => [\App\Transaction::class, 'final_total'],
+    'base da venda'   => [\App\Transaction::class, 'total_before_tax'],
+    'status da venda' => [\App\Transaction::class, 'status'],
+    'comissao'        => [\App\Transaction::class, 'commission_agent'],
+    'pagamento'       => [\App\TransactionPayment::class, 'amount'],
+    'preco'           => [\App\Variation::class, 'default_sell_price'],
+    'estoque'         => [\App\VariationLocationDetails::class, 'qty_available'],
+    'quantidade'      => [\App\TransactionSellLine::class, 'quantity'],
+    'valor em aberto' => [\Modules\Financeiro\Models\Titulo::class, 'valor_aberto'],
+    'status do titulo' => [\Modules\Financeiro\Models\Titulo::class, 'status'],
+    'empresa'         => [\App\Contact::class, 'business_id'],
+]);
+
+it('cenario 7b: status em model sem efeito de valor nao e barrado pela lista', function () {
+    $check = $this->service->canRevert(valorLog(\App\Contact::class, 1, $this->business->id, ['status' => 'x']), $this->user);
+
+    expect($check->reason ?? '')->not->toContain('nao pode ser revertido via undo');
+});
+
+it('cenario 7c: revert de total da venda nao altera o valor gravado', function () {
+    Schema::disableForeignKeyConstraints();
+    try {
+        $venda = DB::table('transactions')->insertGetId([
+            'business_id' => $this->business->id, 'status' => 'final', 'transaction_date' => now(),
+            'created_by' => $this->user->id, 'essentials_duration' => 0, 'final_total' => 150,
+        ]);
+    } finally {
+        Schema::enableForeignKeyConstraints();
+    }
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    expect(fn () => $this->service->revert(valorLog(\App\Transaction::class, $venda, $this->business->id, ['final_total' => 100]), $user, 'motivo com tamanho valido'))
+        ->toThrow(\DomainException::class, 'O campo final_total nao pode ser revertido');
+
+    expect((float) DB::table('transactions')->where('id', $venda)->value('final_total'))->toBe(150.0);
+});
+
+it('cenario 7d: revert de estoque nao altera a quantidade gravada', function () {
+    Schema::disableForeignKeyConstraints();
+    try {
+        $saldo = DB::table('variation_location_details')->insertGetId([
+            'product_id' => 1, 'product_variation_id' => 1, 'variation_id' => 1, 'location_id' => 1, 'qty_available' => 7,
+        ]);
+    } finally {
+        Schema::enableForeignKeyConstraints();
+    }
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    expect(fn () => $this->service->revert(valorLog(\App\VariationLocationDetails::class, $saldo, $this->business->id, ['qty_available' => 2]), $user, 'motivo com tamanho valido'))
+        ->toThrow(\DomainException::class, 'O campo qty_available nao pode ser revertido');
+
+    expect((float) DB::table('variation_location_details')->where('id', $saldo)->value('qty_available'))->toBe(7.0);
 });
