@@ -50,6 +50,10 @@ it('UC-FSPED-03 · SpedController expõe gerar() e a rota de download está regi
 });
 
 it('UC-FSPED-11 · o cabeçalho do download declara o mesmo COD_VER do registro 0000 do arquivo', function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: a rota precisa do tenant semeado (business), que só a lane MySQL tem.');
+    }
+
     $tenant = $this->seededTenant();
     $bizId = (int) $tenant->id;
 
