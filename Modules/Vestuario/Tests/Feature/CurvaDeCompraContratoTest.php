@@ -93,7 +93,7 @@ function curvaEsperada(array $vendidas, int $total): array
 }
 
 it('UC-VCUR-01 · divide o total pela proporção vendida do produto nos últimos 90 dias', function () {
-    $r = app(CurvaDeCompra::class)->sugerir($this->biz, $this->a, 20, $this->hoje);
+    $r = app(CurvaDeCompra::class)->sugerir($this->biz, $this->a, 20, 'all', $this->hoje);
 
     // vendidas no período: P 2 · M 6 · G 2 (a devolvida, a de 112 dias e o rascunho não contam)
     expect($r['base'])->toBe('produto')
@@ -103,7 +103,7 @@ it('UC-VCUR-01 · divide o total pela proporção vendida do produto nos último
 });
 
 it('UC-VCUR-01 · a soma sempre bate com o total (maior resto)', function () {
-    $r = app(CurvaDeCompra::class)->sugerir($this->biz, $this->a, 7, $this->hoje);
+    $r = app(CurvaDeCompra::class)->sugerir($this->biz, $this->a, 7, 'all', $this->hoje);
 
     // conta à mão: 1,4 · 4,2 · 1,4 → 1 · 4 · 1 = 6; a peça que falta vai para P (empate com G, P vem antes)
     expect(curvaEsperada(['P' => 2, 'M' => 6, 'G' => 2], 7))->toBe(['P' => 2, 'M' => 4, 'G' => 1]);
@@ -113,7 +113,7 @@ it('UC-VCUR-01 · a soma sempre bate com o total (maior resto)', function () {
 
 it('UC-VCUR-02 · produto novo usa a curva da categoria, casando a variação pelo nome', function () {
     [$novo] = ($this->produto)($this->biz, $this->cat, ['P', 'M', 'G', 'GG']);
-    $r = app(CurvaDeCompra::class)->sugerir($this->biz, $novo, 10, $this->hoje);
+    $r = app(CurvaDeCompra::class)->sugerir($this->biz, $novo, 10, 'all', $this->hoje);
 
     expect($r['base'])->toBe('categoria')
         ->and(array_column($r['linhas'], 'vendidas', 'nome'))->toBe(['P' => 2.0, 'M' => 6.0, 'G' => 2.0, 'GG' => 0.0])
@@ -124,8 +124,8 @@ it('UC-VCUR-03 · sem venda no produto nem na categoria não sugere, e diz por q
     [$semCategoria] = ($this->produto)($this->biz, null, ['P', 'M']);
     [$categoriaVazia] = ($this->produto)($this->biz, ($this->categoria)($this->biz), ['P', 'M']);
 
-    $r1 = app(CurvaDeCompra::class)->sugerir($this->biz, $semCategoria, 10, $this->hoje);
-    $r2 = app(CurvaDeCompra::class)->sugerir($this->biz, $categoriaVazia, 10, $this->hoje);
+    $r1 = app(CurvaDeCompra::class)->sugerir($this->biz, $semCategoria, 10, 'all', $this->hoje);
+    $r2 = app(CurvaDeCompra::class)->sugerir($this->biz, $categoriaVazia, 10, 'all', $this->hoje);
     expect($r1['motivo'])->toBe('sem_venda_no_produto')->and($r1['linhas'])->toBe([])
         ->and($r2['motivo'])->toBe('sem_venda_no_produto_nem_na_categoria')->and($r2['linhas'])->toBe([]);
 });
@@ -139,14 +139,14 @@ it('UC-VCUR-03 · produto e vendas de outra empresa não entram [T0]', function 
         'quantity' => 50, 'quantity_returned' => 0, 'unit_price' => 20, 'unit_price_inc_tax' => 20, 'created_at' => now(), 'updated_at' => now()]);
     [$daOutra] = ($this->produto)($this->outra, null, ['P']);
 
-    expect(array_column(app(CurvaDeCompra::class)->sugerir($this->biz, $this->a, 20, $this->hoje)['linhas'], 'sugerida', 'nome'))
+    expect(array_column(app(CurvaDeCompra::class)->sugerir($this->biz, $this->a, 20, 'all', $this->hoje)['linhas'], 'sugerida', 'nome'))
         ->toBe(['P' => 4, 'M' => 12, 'G' => 4]);
-    expect(app(CurvaDeCompra::class)->sugerir($this->biz, $daOutra, 20, $this->hoje)['motivo'])->toBe('produto_nao_encontrado');
+    expect(app(CurvaDeCompra::class)->sugerir($this->biz, $daOutra, 20, 'all', $this->hoje)['motivo'])->toBe('produto_nao_encontrado');
 });
 
 it('UC-VCUR-03 · sugerir não grava nada (pedido e estoque ficam como estavam)', function () {
     $antes = [DB::table('transactions')->count(), DB::table('purchase_lines')->count(), DB::table('variation_location_details')->count()];
-    app(CurvaDeCompra::class)->sugerir($this->biz, $this->a, 20, $this->hoje);
+    app(CurvaDeCompra::class)->sugerir($this->biz, $this->a, 20, 'all', $this->hoje);
 
     expect([DB::table('transactions')->count(), DB::table('purchase_lines')->count(), DB::table('variation_location_details')->count()])->toBe($antes);
 });
