@@ -66,7 +66,8 @@ class StoreServiceOrderRequest extends FormRequest
             // 'mecanica' = fluxo real reparo caminhão (ADR 0194 · oficina_mecanica_os).
             // 'locacao' ERRADICADO (ADR 0265) — não aceito mais (bate com o enum estreitado).
             'order_type'          => ['nullable', 'string', 'in:manutencao,mecanica'],
-            'transaction_id'      => ['nullable', 'integer'],
+            // transaction_id fora de propósito: o vínculo com a venda é escrito pelo sistema
+            // (ServiceOrderObserver ao concluir, CriarOsPorVendaService ao abrir da venda).
             'mileage_at_service'  => ['nullable', 'integer', 'min:0'],
             // Check-in de entrada (US-OFICINA-038/039) — delta protótipo Cowork Nova OS
             'fuel_level_at_entry' => ['nullable', 'integer', 'min:0', 'max:100'],

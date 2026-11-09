@@ -45,6 +45,13 @@ related_cu: [CU-OFI-04, CU-OFI-07, CU-OFI-15, CU-OFI-19]
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderVehicleTenantContratoTest.php`
 - **Status: 🧪**
 
+## UC-OCR-05 · O vínculo com a venda não vem do formulário `[T0]`
+- **Persona:** invariante de integridade da venda derivada ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)).
+- **Aceite:** Dado um formulário de criação de OS com `transaction_id` de uma venda de outra empresa · Quando é salvo · Então a OS é criada sem esse vínculo.
+- **Regressão que defende:** a OS apontar pra venda de outra empresa (a coluna não tem FK) e o faturamento automático da conclusão ser pulado.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderTransactionIdFormContratoTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Rastreabilidade (âncora no SDD §6 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md))
@@ -55,6 +62,7 @@ related_cu: [CU-OFI-04, CU-OFI-07, CU-OFI-15, CU-OFI-19]
 | UC-OCR-02 | must `[T0]` | CU-OFI-19 · US-OFICINA-001 |
 | UC-OCR-03 | must | CU-OFI-07 · US-OFICINA-003 |
 | UC-OCR-04 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
+| UC-OCR-05 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
 
 > `UC-OCR-02` é o caso que **prova a erradicação de domínio** da
 > [ADR 0265](../../../../memory/decisions/0265-oficina-reparo-erradica-locacao.md): a oficina é
