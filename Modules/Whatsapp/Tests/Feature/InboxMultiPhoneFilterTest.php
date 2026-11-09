@@ -9,7 +9,7 @@ use App\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
-use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
+use Modules\Whatsapp\Http\Controllers\Admin\CaixaUnificadaController;
 
 uses(Tests\TestCase::class);
 
@@ -211,7 +211,7 @@ function mpfGrant(int $businessId, int $channelId, int $userId): void
  * Invoca index() e retorna props (conversations.data + availableChannels +
  * selectedChannelId) via reflection. Mesma técnica de CanalFilaIsolationTest.
  */
-function mpfIndexProps(InboxController $controller, Request $request): array
+function mpfIndexProps(CaixaUnificadaController $controller, Request $request): array
 {
     $token = Mockery::mock(\Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer::class);
     $token->shouldReceive('issue')->andReturn(null);
@@ -223,27 +223,28 @@ function mpfIndexProps(InboxController $controller, Request $request): array
     $propsProp->setAccessible(true);
     $renderedProps = $propsProp->getValue($response);
 
-    $convs = $renderedProps['conversations']['data'] ?? [];
-    if (is_callable($convs)) {
-        $convs = $convs();
-    }
-    if ($convs instanceof \Illuminate\Support\Collection) {
-        $convs = $convs->all();
-    }
-
-    $availableChannels = $renderedProps['availableChannels'] ?? [];
-    if (is_callable($availableChannels)) {
-        $availableChannels = $availableChannels();
-    }
-    if ($availableChannels instanceof \Illuminate\Support\Collection) {
-        $availableChannels = $availableChannels->all();
-    }
+    $convs = mpfResolveDefer($renderedProps['conversations'] ?? null)['data'] ?? [];
+    $availableChannels = mpfResolveDefer($renderedProps['availableAccounts'] ?? null);
 
     return [
         'conv_ids' => collect($convs)->pluck('id')->map(fn ($id) => (int) $id)->all(),
         'available_channels' => collect($availableChannels)->map(fn ($c) => is_array($c) ? $c : (array) $c)->all(),
-        'selected_channel_id' => $renderedProps['selectedChannelId'] ?? null,
+        'selected_channel_id' => $renderedProps['accountFilter'] ?? null,
     ];
+}
+
+/**
+ * O index do InboxController virou 301 para a Caixa Unificada; este teste passou a
+ * exercitar o CaixaUnificadaController, que tem os mesmos filtros e a mesma ACL.
+ * Lá as props caras são deferidas: este helper as resolve.
+ */
+function mpfResolveDefer($prop): array
+{
+    if ($prop instanceof \Inertia\DeferProp || $prop instanceof \Inertia\OptionalProp) {
+        $prop = $prop();
+    }
+
+    return is_array($prop) ? $prop : [];
 }
 
 function mpfBuildRequest(array $query = []): Request
@@ -263,7 +264,7 @@ it('R-WA-040-001 — User com acesso a 2 canais sem ?channel_id vê convs dos 2'
     mpfGrant(1, $chB->id, 10);
     mpfSetUser(1, 10);
 
-    $props = mpfIndexProps(new InboxController(), mpfBuildRequest());
+    $props = mpfIndexProps(new CaixaUnificadaController(), mpfBuildRequest());
     expect($props['conv_ids'])->toContain($c1->id);
     expect($props['conv_ids'])->toContain($c2->id);
     expect($props['selected_channel_id'])->toBeNull();
@@ -280,7 +281,7 @@ it('R-WA-040-002 — User com ?channel_id=A vê SÓ convs do canal A (filtro per
     mpfGrant(1, $chB->id, 11);
     mpfSetUser(1, 11);
 
-    $props = mpfIndexProps(new InboxController(), mpfBuildRequest(['channel_id' => $chA->id]));
+    $props = mpfIndexProps(new CaixaUnificadaController(), mpfBuildRequest(['account_id' => $chA->id]));
     expect($props['conv_ids'])->toEqual([$c1->id]);
     expect($props['conv_ids'])->not->toContain($c2->id);
     expect($props['selected_channel_id'])->toBe($chA->id);
@@ -295,7 +296,7 @@ it('R-WA-040-003 — User com ?channel_id=C (canal SEM acesso) → 403 fail-loud
     mpfGrant(1, $chA->id, 12);
     mpfSetUser(1, 12);
 
-    expect(fn () => mpfIndexProps(new InboxController(), mpfBuildRequest(['channel_id' => $chC->id])))
+    expect(fn () => mpfIndexProps(new CaixaUnificadaController(), mpfBuildRequest(['account_id' => $chC->id])))
         ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
 });
 
@@ -309,7 +310,7 @@ it('R-WA-040-004 — Cross-tenant: user biz=1 com ?channel_id=N (canal biz=99) �
 
     // Atacante passa channel_id de outro business — controller deve abortar
     // ANTES da query (no validate ensureChannelIdAccessOrAbort)
-    expect(fn () => mpfIndexProps(new InboxController(), mpfBuildRequest(['channel_id' => $chBiz99->id])))
+    expect(fn () => mpfIndexProps(new CaixaUnificadaController(), mpfBuildRequest(['account_id' => $chBiz99->id])))
         ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
 });
 
@@ -319,17 +320,17 @@ it('R-WA-040-005 — User com 0 canais → availableChannels=[] + lista vazia (e
 
     mpfSetUser(1, 14); // SEM nenhum grant
 
-    $props = mpfIndexProps(new InboxController(), mpfBuildRequest());
+    $props = mpfIndexProps(new CaixaUnificadaController(), mpfBuildRequest());
     expect($props['available_channels'])->toBe([]);
     expect($props['conv_ids'])->toBe([]);
     expect($props['selected_channel_id'])->toBeNull();
 });
 
-it('R-WA-040-006 — availableChannels inclui display_identifier, channel_health, unread_count', function () {
+it('R-WA-040-006 — availableAccounts inclui handle, channel_health e a contagem de conversas por canal', function () {
     $chA = mpfMakeChannel(1, 'Suporte', 'mpf-006-a', '+5511900000010', 'healthy');
     $chB = mpfMakeChannel(1, 'Financeiro', 'mpf-006-b', '+5511900000020', 'degraded');
 
-    // Cria conversas com unread_count pra validar agregação per-canal
+    // Conversas em cada canal, pra validar a contagem por canal da Caixa Unificada
     mpfMakeConv(1, $chA->id, '+5599600000001', 'Conv 1', unread: 3);
     mpfMakeConv(1, $chA->id, '+5599600000002', 'Conv 2', unread: 2);
     mpfMakeConv(1, $chB->id, '+5599600000003', 'Conv 3', unread: 7);
@@ -338,19 +339,19 @@ it('R-WA-040-006 — availableChannels inclui display_identifier, channel_health
     mpfGrant(1, $chB->id, 15);
     mpfSetUser(1, 15);
 
-    $props = mpfIndexProps(new InboxController(), mpfBuildRequest());
+    $props = mpfIndexProps(new CaixaUnificadaController(), mpfBuildRequest());
     $byId = collect($props['available_channels'])->keyBy('id');
 
     expect(count($props['available_channels']))->toBe(2);
 
     expect($byId[$chA->id]['label'])->toBe('Suporte');
-    expect($byId[$chA->id]['display_identifier'])->toBe('+5511900000010');
+    expect($byId[$chA->id]['handle'])->toBe('+5511900000010');
     expect($byId[$chA->id]['channel_health'])->toBe('healthy');
-    expect($byId[$chA->id]['unread_count'])->toBe(5); // 3 + 2
+    expect($byId[$chA->id]['count'])->toBe(2);
 
-    expect($byId[$chB->id]['display_identifier'])->toBe('+5511900000020');
+    expect($byId[$chB->id]['handle'])->toBe('+5511900000020');
     expect($byId[$chB->id]['channel_health'])->toBe('degraded');
-    expect($byId[$chB->id]['unread_count'])->toBe(7);
+    expect($byId[$chB->id]['count'])->toBe(1);
 });
 
 it('R-WA-040-007 — Superadmin (Gate whatsapp.view-all-phones) com ?channel_id válido vê convs do canal', function () {
@@ -361,7 +362,7 @@ it('R-WA-040-007 — Superadmin (Gate whatsapp.view-all-phones) com ?channel_id 
     // ensureChannelIdAccessOrAbort (Channel existe no biz, Gate true)
     mpfSetUser(1, 99, canSeeAll: true);
 
-    $props = mpfIndexProps(new InboxController(), mpfBuildRequest(['channel_id' => $ch->id]));
+    $props = mpfIndexProps(new CaixaUnificadaController(), mpfBuildRequest(['account_id' => $ch->id]));
     expect($props['conv_ids'])->toEqual([$c->id]);
     expect($props['selected_channel_id'])->toBe($ch->id);
 });
