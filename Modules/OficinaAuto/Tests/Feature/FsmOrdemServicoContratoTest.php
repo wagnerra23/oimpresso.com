@@ -114,6 +114,7 @@ it('sessão de outra empresa recebe recusa de tenant e a OS não muda de etapa',
     $os = ServiceOrder::withoutGlobalScopes()->find($os->id); // SUPERADMIN: leitura da fixture
 
     $intruso = $this->usuarioComPermissoes(['oficinaauto.service_order.update'], $this->seededSupportClientTenant());
+    $this->actingAs($intruso);
     session(['user.business_id' => $this->outra]);
 
     expect(fn () => app(ExecuteStageActionService::class)->execute($os, $acao->key, $intruso, []))
