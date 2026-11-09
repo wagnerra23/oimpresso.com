@@ -27,6 +27,7 @@ interface EtiquetaConfig {
   dpi: number;
   margin_dots: number;
   qr_enabled: boolean;
+  max_etiquetas: number;
 }
 
 interface EtiquetaItem {
@@ -91,6 +92,11 @@ export default function EtiquetasIndex({ config }: Props) {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, [field]: value } : i)));
   }
 
+  const maxEtiquetas = config.max_etiquetas;
+  const copiasValidas = Math.max(1, Math.min(100, copies));
+  const totalEtiquetas = items.length * copiasValidas;
+  const acimaDoTeto = totalEtiquetas > maxEtiquetas;
+
   function buildPayload() {
     return {
       items: items.map((i) => ({
@@ -104,7 +110,7 @@ export default function EtiquetasIndex({ config }: Props) {
         sku: i.sku || undefined,
         ean13: i.ean13 || undefined,
       })),
-      copies: Math.max(1, Math.min(100, copies)),
+      copies: copiasValidas,
     };
   }
 
@@ -126,14 +132,14 @@ export default function EtiquetasIndex({ config }: Props) {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken,
-          Accept: format === 'pdf' ? 'application/pdf' : 'text/plain',
+          // Com JSON a validação volta 422 com a mensagem; sem isso volta 302 e o HTML baixava como etiqueta.
+          Accept: 'application/json',
         },
         body: JSON.stringify(buildPayload()),
       });
 
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`HTTP ${res.status}: ${txt.slice(0, 200)}`);
+        throw new Error(await mensagemDeErro(res));
       }
 
       const blob = await res.blob();
@@ -249,33 +255,39 @@ export default function EtiquetasIndex({ config }: Props) {
               </div>
             )}
 
+            {acimaDoTeto && (
+              <div role="alert" className="rounded border border-warning/20 bg-warning-soft px-3 py-2 text-sm text-warning-fg">
+                Este pedido soma {totalEtiquetas} etiquetas e o limite é {maxEtiquetas} por vez. Reduza as cópias ou divida em mais de um lote.
+              </div>
+            )}
+
             <div className="flex justify-end gap-2 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={(e) => submit('zpl', e)}
-                disabled={submitting !== null}
+                disabled={submitting !== null || acimaDoTeto}
               >
                 {submitting === 'zpl' ? (
                   <>Gerando…</>
                 ) : (
                   <>
                     <Printer className="mr-2 h-4 w-4" />
-                    Baixar ZPL ({items.length * copies}×)
+                    Baixar ZPL ({totalEtiquetas}×)
                   </>
                 )}
               </Button>
               <Button
                 type="button"
                 onClick={(e) => submit('pdf', e)}
-                disabled={submitting !== null}
+                disabled={submitting !== null || acimaDoTeto}
               >
                 {submitting === 'pdf' ? (
                   <>Gerando PDF…</>
                 ) : (
                   <>
                     <FileText className="mr-2 h-4 w-4" />
-                    Gerar PDF ({items.length * copies}×)
+                    Gerar PDF ({totalEtiquetas}×)
                   </>
                 )}
               </Button>
@@ -289,6 +301,17 @@ export default function EtiquetasIndex({ config }: Props) {
         </p>
       </div>
     </>
+  );
+}
+
+async function mensagemDeErro(res: Response): Promise<string> {
+  const dados = (await res.json().catch(() => null)) as
+    | { message?: string; errors?: Record<string, string[]> }
+    | null;
+  return (
+    Object.values(dados?.errors ?? {})[0]?.[0] ??
+    dados?.message ??
+    `Não foi possível gerar as etiquetas (erro ${res.status}).`
   );
 }
 
