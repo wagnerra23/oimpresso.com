@@ -18,28 +18,28 @@ uses(Tests\TestCase::class);
 /**
  * Isolamento multi-tenant Tier 0 (ADR 0093) — Vehicle.
  *
- * Dados do biz=1 NÃO podem aparecer em queries com session biz=2 e vice-versa.
+ * Dados do biz=98 NÃO podem aparecer em queries com session biz=99 e vice-versa.
  *
- * NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa produção) — ADR 0101.
- * Tests usam biz=1 (Wagner WR2) e biz=2 (2º tenant mínimo do seed).
+ * NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa produção) — ADR 0358.
+ * Tests usam biz=98 (tenant canônico de teste) e biz=99 (adversário).
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
-const BIZ_WAGNER_VEH = 1;
-const BIZ_FICTICIO_VEH = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
+const BIZ_WAGNER_VEH = 98;
+const BIZ_FICTICIO_VEH = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('vehicles')) {
         $this->markTestSkipped('vehicles table missing — rode OficinaAuto migrate primeiro');
     }
 });
 
-it('UC-OVS-02 · Vehicle biz=1 NÃO aparece com session biz=2', function () {
+it('UC-OVS-02 · Vehicle biz=98 NÃO aparece com session biz=99', function () {
     session(['user.business_id' => BIZ_WAGNER_VEH]);
 
     $v = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
@@ -56,7 +56,7 @@ it('UC-OVS-02 · Vehicle biz=1 NÃO aparece com session biz=2', function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'MTT001')->forceDelete();
 });
 
-it('Vehicle biz=1 aparece com session biz=1', function () {
+it('Vehicle biz=98 aparece com session biz=98', function () {
     session(['user.business_id' => BIZ_WAGNER_VEH]);
 
     $v = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
@@ -89,7 +89,7 @@ it('UC-OVC-03 · creating event auto-popula business_id da sessão', function ()
 });
 
 it('UC-OVI-02 · Vehicle::all() respeita escopo (não vaza cross-business)', function () {
-    // Insere em biz=1
+    // Insere em biz=98
     session(['user.business_id' => BIZ_WAGNER_VEH]);
     Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
         'business_id'  => BIZ_WAGNER_VEH,
@@ -97,14 +97,14 @@ it('UC-OVI-02 · Vehicle::all() respeita escopo (não vaza cross-business)', fun
         'vehicle_type' => 'automovel',
     ]);
 
-    // Insere em biz=2
+    // Insere em biz=99
     Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: inserção direta de teste
         'business_id'  => BIZ_FICTICIO_VEH,
         'plate'        => 'MTT004B',
         'vehicle_type' => 'automovel',
     ]);
 
-    // Com session biz=1, Vehicle::where('plate', 'LIKE MTT004%') só vê o A
+    // Com session biz=98, Vehicle::where('plate', 'LIKE MTT004%') só vê o A
     session(['user.business_id' => BIZ_WAGNER_VEH]);
     $vistos = Vehicle::where('plate', 'like', 'MTT004%')->pluck('plate')->toArray();
 

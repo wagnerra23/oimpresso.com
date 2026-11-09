@@ -19,19 +19,19 @@ uses(Tests\TestCase::class);
 /**
  * W27 G1 — Smoke ServiceOrderItem entity + Service.
  *
- * Tests biz=1 conforme ADR 0101 (biz=2, 2º tenant do seed, só usado pra isolamento cross-tenant).
+ * Tests biz=98 conforme ADR 0358 (biz=99 só usado pra isolamento cross-tenant).
  *
  * @see Modules/OficinaAuto/Entities/ServiceOrderItem.php
  * @see Modules/OficinaAuto/Services/ServiceOrderItemService.php
  */
 
-const BIZ_W27 = 1;
-const BIZ_W27_OUTRO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
+const BIZ_W27 = 98;
+const BIZ_W27_OUTRO = 99;
 const PLATE_W27_PREFIX = 'W27ITM';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('oficina_service_order_items')) {
         $this->markTestSkipped('Rode migration 2026_05_17_000010_create_oficina_service_order_items_table primeiro');
@@ -115,7 +115,7 @@ it('recalcula valor_total no update quando quantidade muda', function () {
     expect((float) $item->fresh()->valor_total)->toBe(120.00);
 })->after(fn () => w27_cleanup('B'));
 
-it('escopa por business_id global scope (biz=2 não enxerga itens biz=1)', function () {
+it('escopa por business_id global scope (biz=99 não enxerga itens biz=98)', function () {
     session(['user.business_id' => BIZ_W27]);
     $os = w27_criaOsParaItens('C', BIZ_W27);
     ServiceOrderItem::withoutGlobalScopes()->create([
@@ -127,7 +127,7 @@ it('escopa por business_id global scope (biz=2 não enxerga itens biz=1)', funct
         'valor_unitario'   => 35.00,
     ]);
 
-    // Switch session pra biz=2 — global scope deve esconder o item
+    // Switch session pra biz=99 — global scope deve esconder o item
     session(['user.business_id' => BIZ_W27_OUTRO]);
     $visiveis = ServiceOrderItem::where('service_order_id', $os->id)->get();
     expect($visiveis)->toHaveCount(0);
@@ -187,7 +187,7 @@ it('Service::addItem rejeita OS de outro business (cross-tenant defense)', funct
     $osOutroBiz = w27_criaOsParaItens('F', BIZ_W27_OUTRO);
     $service = new ServiceOrderItemService();
 
-    // Tentando adicionar item biz=1 numa OS biz=2 → deve rejeitar
+    // Tentando adicionar item biz=98 numa OS biz=99 → deve rejeitar
     expect(fn () => $service->addItem(BIZ_W27, $osOutroBiz->id, [
         'tipo'           => ServiceOrderItem::TIPO_PECA,
         'descricao'      => 'X',
