@@ -343,8 +343,8 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 
 > owner: — · priority: p1 · estimate: 8h · type: story
 > blocked_by: —
-> **Implementado em:** _parcial_ · `Modules/Vestuario/Services/CurvaDeCompra.php` · `Modules/Vestuario/Http/Controllers/CurvaCompraController.php` — cálculo e endpoint GET /vestuario/curva-compra; falta o botão "Sugerir pela curva" na tela da compra
-> **Testado em:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php`
+> **Implementado em:** `Modules/Vestuario/Services/CurvaDeCompra.php` · `Modules/Vestuario/Http/Controllers/CurvaCompraController.php` · `resources/js/Pages/Purchase/_components/SugerirPelaCurva.tsx` — cálculo, endpoint GET /vestuario/curva-compra e botão "Sugerir pela curva" na tela da compra
+> **Testado em:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php` · `tests/Feature/Purchase/SugerirPelaCurvaContratoTest.php` · `tests/js/purchase-sugerir-curva.test.tsx`
 > Contrato: `UC-VCUR-01..03` em `memory/requisitos/Vestuario/_telas/curva-de-compra.casos.md`.
 
 > **Decisão [W] 2026-10-26:** aprovada como sugestão editável. Na compra, o sistema sugere a quantidade por tamanho pela proporção vendida nos últimos 90 dias do produto, ou da categoria quando o produto é novo. Quem compra pode mudar a sugestão, e nada entra no estoque nem no pedido sem confirmação. Afeta a ROTA LIVRE (biz=4): teste no tenant 98, nada na biz=4.

@@ -10,10 +10,10 @@ tela: purchase/create
 tipo: FORM (CREATE)
 modulo: Purchase
 status: draft
-related_us: [US-COM-002, US-COM-005]
+related_us: [US-COM-002, US-COM-005, US-VEST-031]
 status_note: "F3 implementado + modo grade tam×cor (US-COM-005, aguarda smoke/canary Wagner)"
 charter_version: 2
-last_validated: "2026-10-11"
+last_validated: "2026-11-09"
 adr_refs: [0104, 0093, 0114, 0149, 0105]
 mwart_pattern_reuse:
   blueprint_cowork: prototipo-ui/cowork/Wagner/compras-page.jsx
@@ -31,8 +31,10 @@ Maiara/Felipe escritório (compras pequenas/médias ~5-30 itens). **+ Larissa @ 
 ## Goals
 - Lançar compra manual rápida (filial, fornecedor, itens, totais).
 - **Modo grade (US-COM-005):** produto `variable` → matriz tam×cor → 1 POST único de N `purchase_lines` (1 célula = 1 `variation_id`).
+- **Sugerir pela curva (US-VEST-031):** com o Vestuário no pacote, o total digitado vira quantidades por variação na grade, editáveis (UC-PURCRE-16..19).
 
 ## Non-Goals / Anti-hooks
+- NÃO grava sugestão: a curva só preenche a grade; item e estoque só mudam com "Adicionar à compra" e "Salvar compra" (decisão [W] 2026-10-26).
 - NÃO nasce `Pages/Compras/Create.tsx` — a grade vive aqui (convergência C1 · `compras-purchase-convergencia-c1`).
 - NÃO força 2D: catálogo sem variação composta cai pra grade de 1 eixo (auto-detect backend) — nunca grade vazia silenciosa.
 - NÃO cria/edita produto pra montar 2 eixos nativos (precisaria ADR de schema — M-AP-4).
