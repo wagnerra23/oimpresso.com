@@ -20,18 +20,18 @@ uses(Tests\TestCase::class);
  *  3. sanity-check detecta FK orphan
  *  4. migration-report gera arquivo em storage/reports/
  *
- * Tests biz=1 (nunca biz=4 cliente real — ADR 0101).
+ * Tests biz=98 (nunca biz=4 cliente real — ADR 0358).
  *
  * @see Modules/OficinaAuto/Console/Commands/OficinaAutoCleanupMigratedClientCommand.php
  * @see Modules/OficinaAuto/Console/Commands/OficinaAutoSanityCheckCommand.php
  * @see Modules/OficinaAuto/Console/Commands/OficinaAutoMigrationReportCommand.php
  */
 
-const BIZ_WAGNER_CLEANUP = 1;
+const BIZ_WAGNER_CLEANUP = 98;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasTable('vehicles')) {
         $this->markTestSkipped('service_orders/vehicles tables missing — rode OficinaAuto migrate primeiro');

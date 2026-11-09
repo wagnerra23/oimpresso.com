@@ -16,15 +16,15 @@ uses(Tests\TestCase::class);
  *
  * Delta do protótipo Cowork "Nova OS" (card "Aprovação do cliente"). O endpoint
  * transiciona status → orcamento, o que faz o ServiceOrderObserver despachar o
- * EnviarLinkAprovacaoWhatsappJob (link público + PIN). Tests biz=1 (ADR 0101).
+ * EnviarLinkAprovacaoWhatsappJob (link público + PIN). Tests biz=98 (ADR 0358).
  */
 
-const BIZ_APR = 1;
+const BIZ_APR = 98;
 const PLATE_APR_PREFIX = 'WAPR';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
 });
 
@@ -59,7 +59,7 @@ it('envia aprovação: status vira orcamento e dispara job WhatsApp', function (
     session(['user.business_id' => BIZ_APR]);
     $user = tap(\App\User::factory()->create(['business_id' => BIZ_APR]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
     $os = apr_criaOs('A', 'aberta');
@@ -76,7 +76,7 @@ it('não reenvia aprovação em OS já aprovada (status preservado)', function (
     session(['user.business_id' => BIZ_APR]);
     $user = tap(\App\User::factory()->create(['business_id' => BIZ_APR]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
     $os = apr_criaOs('B', 'aprovada');

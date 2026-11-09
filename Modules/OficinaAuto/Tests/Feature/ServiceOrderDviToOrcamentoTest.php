@@ -16,17 +16,17 @@ uses(Tests\TestCase::class);
  * US-OFICINA-040 — Converter item DVI reprovado/atenção em linha de orçamento.
  *
  * Delta do protótipo Cowork "Nova OS" (botão "+ orçamento"). Backend:
- * DviInspectionController::toOrcamento. Tests biz=1 (ADR 0101). Espelha
+ * DviInspectionController::toOrcamento. Tests biz=98 (ADR 0358). Espelha
  * harness DviInspectionItemTest.
  */
 
-const BIZ_DTO = 1;
+const BIZ_DTO = 98;
 const BIZ_DTO_OUTRO = 99;
 const PLATE_DTO_PREFIX = 'WDTO';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('oa_inspection_items') || ! Schema::hasTable('oficina_service_order_items')) {
         $this->markTestSkipped('Rode migrations DVI + service_order_items primeiro');
@@ -83,7 +83,7 @@ it('UC-OSH-07 · converte item DVI em ServiceOrderItem (valor sugerido vira valo
     session(['user.business_id' => BIZ_DTO]);
     $user = tap(\App\User::factory()->create(['business_id' => BIZ_DTO]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1 pra testar HTTP');
+        $this->markTestSkipped('Sem user disponível em biz=98 pra testar HTTP');
     }
 
     $os = dto_criaOs('A');
@@ -112,7 +112,7 @@ it('é idempotente — reconverter o mesmo item DVI retorna 409', function () {
     session(['user.business_id' => BIZ_DTO]);
     $user = tap(\App\User::factory()->create(['business_id' => BIZ_DTO]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
     $os = dto_criaOs('B');
@@ -132,7 +132,7 @@ it('cross-OS guard — item DVI de outra OS retorna 404', function () {
     session(['user.business_id' => BIZ_DTO]);
     $user = tap(\App\User::factory()->create(['business_id' => BIZ_DTO]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
     $os1 = dto_criaOs('C1');

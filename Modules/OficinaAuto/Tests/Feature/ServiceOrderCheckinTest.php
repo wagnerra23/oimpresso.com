@@ -19,15 +19,15 @@ uses(Tests\TestCase::class);
  * Delta do protótipo Cowork "Nova OS" (oficina-os-page.jsx) — ver
  * memory/requisitos/OficinaAuto/oficina-os-nova-prototipo-visual-comparison.md.
  *
- * Tests biz=1 conforme ADR 0101. Espelha harness DviInspectionItemTest.
+ * Tests biz=98 conforme ADR 0358. Espelha harness DviInspectionItemTest.
  */
 
-const BIZ_CHECKIN = 1;
+const BIZ_CHECKIN = 98;
 const PLATE_CHECKIN_PREFIX = 'WCHK';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasColumn('service_orders', 'fuel_level_at_entry')) {
         $this->markTestSkipped('Rode migration 2026_06_02_000010_add_checkin_fields_to_service_orders primeiro');
