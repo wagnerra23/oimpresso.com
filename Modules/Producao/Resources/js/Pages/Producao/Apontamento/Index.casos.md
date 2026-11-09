@@ -584,6 +584,13 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-PCROM-05 · Nem o SQL direto muda o romaneio · `must`
+
+**Dado** um romaneio gravado **Quando** um `UPDATE` ou `DELETE` direto no banco atinge o romaneio ou as linhas dele,
+**Então** o banco recusa e nada muda. Corrigir é gerar a versão seguinte.
+
+Status: 🧪
+
 ## UC-PCISO-01 · Linhas de romaneio de outra empresa não são lidas nem marcam peça · `must`
 
 **Dado** um romaneio da empresa 99 com a mesma OS-id e uma linha que aponta a peça da empresa 98 **Quando** a 98
