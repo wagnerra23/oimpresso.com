@@ -24,6 +24,8 @@ export interface LinhaProduto {
   alerta: number | null;
   abaixo_do_alerta: boolean;
   inativo: boolean;
+  /** UC-PIDX-45 (AR-PROD-022): excluído — guardado, só aparece em "Situação: Excluídos" e pode ser restaurado. */
+  excluido?: boolean;
   nao_para_venda: boolean;
   serie: boolean;
   locais: string[];
@@ -100,7 +102,7 @@ export interface FiltrosLista {
   unit_id: string | null;
   tax_id: string | null;
   location_id: string | null;
-  active_state: 'active' | 'inactive' | null;
+  active_state: 'active' | 'inactive' | 'excluido' | null;
   not_for_selling: boolean;
   woocommerce_enabled: boolean;
   repair_model_id: string | null;
@@ -110,6 +112,8 @@ export interface FiltrosLista {
   abaixo_do_alerta: boolean;
   /** UC-PIDX-42 — produtos sem NCM válido; só em empresa que emite nota. */
   falta_ncm?: boolean;
+  /** UC-PIDX-44 — "Uso" (CV1): para vender, material (entra em receita) ou serviço (natureza fiscal). */
+  uso?: Uso | null;
   q: string;
   sort: string;
   dir: 'asc' | 'desc';
@@ -347,6 +351,8 @@ export interface ContextoLista {
   rotulos_campos: Record<string, string | null>;
   /** O filtro "Natureza fiscal" existe (módulo Fiscal ligado). */
   natureza_fiscal?: boolean;
+  /** UC-PIDX-44 — opções do filtro "Uso" que a empresa tem; com uma só, o filtro não aparece. */
+  usos?: Uso[];
   /** Chave `useV2ProdutoCadastro` ligada para a empresa: as ações abrem as telas React prontas. */
   telas_react?: boolean;
 }
@@ -421,7 +427,7 @@ export function subLinhaProduto(l: LinhaProduto): string {
   return [
     l.controla_estoque ? 'Estoque gerenciado' : 'Sem controle de estoque',
     l.nao_para_venda ? 'não para venda' : null,
-    l.inativo ? 'inativo' : null,
+    l.excluido ? 'excluído' : l.inativo ? 'inativo' : null,
     l.tipo === 'variable' ? `${l.variacoes} ${l.variacoes === 1 ? 'variação' : 'variações'}` : null,
   ]
     .filter(Boolean)
@@ -492,9 +498,18 @@ export const NATUREZAS_FISCAIS: Opcao[] = [
   { id: 'servico', nome: 'Serviço (NFS-e)' },
   { id: 'pendente', nome: 'A decidir pelo contador' },
 ];
+/** UC-PIDX-44 (CV1): o "Uso" do produto na consulta. */
+export type Uso = 'vender' | 'material' | 'servico';
+export const USOS: Array<Opcao & { id: Uso }> = [
+  { id: 'vender', nome: 'Para vender' },
+  { id: 'material', nome: 'Material' },
+  { id: 'servico', nome: 'Serviço' },
+];
 export const SITUACOES: Opcao[] = [
   { id: 'active', nome: 'Ativo' },
   { id: 'inactive', nome: 'Inativo' },
+  // UC-PIDX-45 (AR-PROD-022): o excluído some da lista e aparece só aqui.
+  { id: 'excluido', nome: 'Excluídos' },
 ];
 
 /** Colunas que nascem ligadas (PB_COLS_PADRAO do protótipo). */
@@ -535,6 +550,7 @@ export function chipsDosFiltros(
   if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
   if (f.abaixo_do_alerta) out.push({ chave: 'abaixo_do_alerta', rotulo: 'Abaixo do alerta' });
   if (f.falta_ncm) out.push({ chave: 'falta_ncm', rotulo: 'Falta NCM' });
+  if (f.uso) out.push({ chave: 'uso', rotulo: `Uso: ${nome(USOS, f.uso)}` });
   if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
   if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
   if (f.q) out.push({ chave: 'q', rotulo: `Busca: ${f.q}` });

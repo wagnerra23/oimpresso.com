@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-10-28T02:27:29.733Z",
-    "count": 42,
+    "generated_at": "2026-11-06T12:45:36.025Z",
+    "count": 40,
     "adr": "0409 — divida transitoria, nao tolerancia",
     "note": "DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado."
   },
@@ -37,10 +37,8 @@
     "resources/js/Pages/Ponto/Welcome.tsx",
     "resources/js/Pages/Produto/StockHistory.tsx",
     "resources/js/Pages/Purchase/Index.tsx",
-    "resources/js/Pages/Repair/Dashboard/Index.tsx",
     "resources/js/Pages/Repair/DeviceModels/Create.tsx",
     "resources/js/Pages/Repair/DeviceModels/Edit.tsx",
-    "resources/js/Pages/Repair/DeviceModels/Index.tsx",
     "resources/js/Pages/Repair/JobSheet/AddParts.tsx",
     "resources/js/Pages/Repair/JobSheet/Create.tsx",
     "resources/js/Pages/Repair/JobSheet/Edit.tsx",

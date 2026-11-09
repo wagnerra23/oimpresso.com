@@ -2690,6 +2690,7 @@
     "requisitos-oficina-auto-oficina-auto-charter": "memory/requisitos/OficinaAuto/OficinaAuto.charter.md",
     "requisitos-oficina-auto-oficina-os-nova-prototipo-visual-comparison": "memory/requisitos/OficinaAuto/oficina-os-nova-prototipo-visual-comparison.md",
     "requisitos-oficina-auto-ordens-servico-board-gap": "memory/requisitos/OficinaAuto/ordens-servico-board-gap.md",
+    "requisitos-oficina-auto-ordens-servico-board-visual-comparison": "memory/requisitos/OficinaAuto/ordens-servico-board-visual-comparison.md",
     "requisitos-oficina-auto-os-drawer-build-map": "memory/requisitos/OficinaAuto/os-drawer-build-map.md",
     "requisitos-oficina-auto-producao-oficina-cacamba-visual-comparison": "memory/requisitos/OficinaAuto/producao-oficina-cacamba-visual-comparison.md",
     "requisitos-oficina-auto-reconciliacao-os-inventario": "memory/requisitos/OficinaAuto/RECONCILIACAO-os-inventario.md",
@@ -2700,6 +2701,7 @@
     "requisitos-oficina-auto-runbook-fsm-pipeline": "memory/requisitos/OficinaAuto/RUNBOOK-fsm-pipeline.md",
     "requisitos-oficina-auto-runbook-service-orders-show": "memory/requisitos/OficinaAuto/RUNBOOK-service-orders-show.md",
     "requisitos-oficina-auto-sdd-tela-ordem-servico-v1-0": "memory/requisitos/OficinaAuto/SDD-tela-ordem-servico-v1.0.md",
+    "requisitos-oficina-auto-service-orders-create-edit-visual-comparison": "memory/requisitos/OficinaAuto/service-orders-create-edit-visual-comparison.md",
     "requisitos-oficina-auto-service-orders-show-gap": "memory/requisitos/OficinaAuto/service-orders-show-gap.md",
     "requisitos-oficina-auto-spec": "memory/requisitos/OficinaAuto/SPEC.md",
     "requisitos-oficina-auto-telas-importer-frota-legada-casos": "memory/requisitos/OficinaAuto/_telas/importer-frota-legada.casos.md",
@@ -4214,6 +4216,7 @@
     "memory/requisitos/Repair/RUNBOOK-jobsheet-edit.md",
     "memory/requisitos/Repair/RUNBOOK-jobsheet-index.md",
     "memory/requisitos/Repair/RUNBOOK-jobsheet-show.md",
+    "memory/requisitos/Repair/RUNBOOK-producao-oficina.md",
     "memory/requisitos/Repair/RUNBOOK-repair-dashboard.md",
     "memory/requisitos/Repair/RUNBOOK-repair-index.md",
     "memory/requisitos/Repair/RUNBOOK-repair-settings.md",
@@ -4530,14 +4533,14 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4524,
-    "resolved": 3029,
-    "unstamped": 1495,
+    "total": 4527,
+    "resolved": 3031,
+    "unstamped": 1496,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1495,
+      "unstamped": 1496,
       "derived-adr": 452,
-      "stamped": 1179,
+      "stamped": 1181,
       "derived-handoffs": 621,
       "derived-sessions": 777
     }

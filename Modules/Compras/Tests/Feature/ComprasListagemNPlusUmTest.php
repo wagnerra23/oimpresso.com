@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Modules\Compras\Services\ComprasService;
 
 /**
+ * @covers-us US-COM-019
+ *
  * C15 (CAPTERRA-FICHA) / Gap #6 (AUDIT-SENIOR-2026-05-25 D6.c) — anti-N+1 na
  * listagem de compras.
  *

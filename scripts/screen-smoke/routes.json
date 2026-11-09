@@ -22,6 +22,8 @@
     { "label": "manufacturing-receitas", "path": "/manufacturing/recipe", "auth": true, "source": "resources/js/Pages/Manufacturing/Recipes.tsx" },
     {"label":"configuracoes-locais","path":"/business-location","auth":true,"source":"resources/js/Pages/Configuracoes/Locais/Index.tsx"},
     {"label":"configuracoes-impressoras","path":"/printers","auth":true,"source":"resources/js/Pages/Configuracoes/Impressoras/Index.tsx"},
-    {"label":"configuracoes-codigo-barras","path":"/barcodes","auth":true,"source":"resources/js/Pages/Configuracoes/CodigoBarras/Index.tsx"}
+    {"label":"configuracoes-codigo-barras","path":"/barcodes","auth":true,"source":"resources/js/Pages/Configuracoes/CodigoBarras/Index.tsx"},
+    {"label":"produto-index","path":"/products","auth":true,"source":"resources/js/Pages/Produto/Index.tsx"},
+    {"label":"produto-index-filtros","path":"/products?active_state=excluido&uso=material&falta_ncm=1","auth":true,"source":"resources/js/Pages/Produto/Index.tsx"}
   ]
 }

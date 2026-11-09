@@ -185,21 +185,27 @@ export default function GradeProductCombobox({ locationId, onPick, disabled = fa
             </button>
           )}
         </div>
-        {open && podeBuscar && (
-          <CommandList className="absolute z-50 left-0 right-0 top-full mt-1 max-h-64 rounded-md border bg-popover shadow-md">
-            {!loading && <CommandEmpty>Nenhum produto encontrado para "{query}".</CommandEmpty>}
-            {options.map((opt) => (
-              <CommandItem
-                key={opt.product_id}
-                value={String(opt.product_id)}
-                onSelect={() => pick(opt)}
-                className="text-[13px]"
-              >
-                <span className="truncate">{opt.label}</span>
-              </CommandItem>
-            ))}
-          </CommandList>
-        )}
+        {/* A lista fica sempre no DOM: o cmdk fixa aria-controls no input apontando para ela,
+            e com a lista desmontada o axe acusa aria-valid-attr-value (critical). */}
+        <CommandList
+          className={`absolute z-50 left-0 right-0 top-full mt-1 max-h-64 rounded-md border bg-popover shadow-md ${open && podeBuscar ? '' : 'hidden'}`}
+        >
+          {open && podeBuscar && (
+            <>
+              {!loading && <CommandEmpty>Nenhum produto encontrado para "{query}".</CommandEmpty>}
+              {options.map((opt) => (
+                <CommandItem
+                  key={opt.product_id}
+                  value={String(opt.product_id)}
+                  onSelect={() => pick(opt)}
+                  className="text-[13px]"
+                >
+                  <span className="truncate">{opt.label}</span>
+                </CommandItem>
+              ))}
+            </>
+          )}
+        </CommandList>
       </Command>
     </div>
   );
