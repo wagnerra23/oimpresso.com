@@ -20,6 +20,7 @@ import { Segmented } from '@/Components/ui/segmented';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline } from '@/Components/layout';
+import { parseDecimalPtBR } from '@/Lib/numberPtBR';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -33,8 +34,6 @@ interface Props { categorias: Opcao[]; marcas: Opcao[]; lotes?: Lote[] }
 
 const TODAS = '__todas__';
 const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-// Valor digitado em pt-BR ("39,90"); vai ao servidor como número com 2 casas (regra mestre de valor).
-const num = (s: string) => Math.round((parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0) * 100) / 100;
 const csrf = () => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
 
 async function api(url: string, method: 'GET' | 'POST', body?: unknown) {
@@ -66,8 +65,15 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
   const pais = categorias.filter((c) => !c.parent_id);
   const filhas = categorias.filter((c) => c.parent_id && String(c.parent_id) === categoria);
   const id = (v: string) => (v === TODAS ? null : Number(v));
+  // Valor digitado vai ao servidor com 2 casas (regra mestre de valor). Texto que não é número
+  // para aqui, dentro do `rodar`: vira aviso na tela e nada é enviado.
+  const valorDigitado = () => {
+    const n = parseDecimalPtBR(valor);
+    if (!Number.isFinite(n)) throw new Error('Valor inválido. Digite um número, por exemplo 39,90.');
+    return Math.round(n * 100) / 100;
+  };
   const corpo = () => ({
-    modo, valor: num(valor), nome,
+    modo, valor: valorDigitado(), nome,
     filtro: { category_id: id(categoria), sub_category_id: id(subcategoria), brand_id: id(marca), nome: nomeFiltro.trim() || null },
   });
   const linhasLote = lista ?? lotes ?? [];
@@ -78,9 +84,10 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
   }
   const verPrevia = () => rodar(async () => { setFeito(null); setPrevia(await api('/vestuario/remarcacao/previa', 'POST', corpo())); });
   const gravar = () => rodar(async () => {
-    const r = await api('/vestuario/remarcacao', 'POST', { ...corpo(), assinatura: previa?.assinatura });
+    const dados = corpo();
+    const r = await api('/vestuario/remarcacao', 'POST', { ...dados, assinatura: previa?.assinatura });
     setFeito({ lote: r.lote, n: previa?.linhas.length ?? 0 });
-    setLista([{ id: r.lote, nome, modo, valor: String(num(valor)), qtd_itens: previa?.linhas.length ?? 0, status: 'aplicada', created_at: new Date().toISOString() }, ...linhasLote]);
+    setLista([{ id: r.lote, nome, modo, valor: String(dados.valor), qtd_itens: previa?.linhas.length ?? 0, status: 'aplicada', created_at: new Date().toISOString() }, ...linhasLote]);
     setPrevia(null); setConfirmar(false);
   });
   const reverter = (l: Lote) => rodar(async () => {
@@ -187,7 +194,7 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
               </table>
               <Inline justify="between" gap={3}>
                 <p className="text-xs text-muted-foreground">Se algum preço mudar antes de gravar, a gravação é recusada e a prévia precisa ser refeita.</p>
-                <Button disabled={ocupado || previa.linhas.length === 0} onClick={() => setConfirmar(true)}>Gravar remarcação</Button>
+                <Button disabled={ocupado || previa.linhas.length === 0} onClick={() => rodar(async () => { valorDigitado(); setConfirmar(true); })}>Gravar remarcação</Button>
               </Inline>
             </CardContent>
           </Card>
