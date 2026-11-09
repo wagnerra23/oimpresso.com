@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import { Grid, Inline, Stack } from '@/Components/layout';
+import type { ReactNode } from 'react';
 import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario } from './tipos';
 
 /** O Select do Radix não aceita item com valor vazio: "não aplicável" é `''` no envio. */
@@ -34,9 +35,11 @@ interface Props {
    * lançada na compra (`add_expiry`), o Blade esconde o campo e manda 12 meses.
    */
   mostrarValidade?: boolean;
+  /** "Locais de armazenagem" (CU-PROD-20), entre as medidas e os campos personalizados, como no protótipo. */
+  armazenagem?: ReactNode;
 }
 
-export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarValidade }: Props) {
+export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarValidade, armazenagem }: Props) {
   return (
     <Card>
       <CardHeader>
@@ -141,6 +144,7 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
           erro={errors.comprimento_cm}
         />
         </Grid>
+        {armazenagem}
         <Grid cols={4} gap={4}>
         <div>
           <Label htmlFor="product_custom_field1">Campo personalizado 1</Label>
