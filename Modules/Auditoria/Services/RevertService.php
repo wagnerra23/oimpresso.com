@@ -6,7 +6,6 @@ use App\User;
 use App\Util\OtelHelper;
 use App\Observers\ActivityCauserKindObserver;
 use App\Support\Privacy\PiiRedactor;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Facades\LogBatch;
 use Spatie\Activitylog\Models\Activity;
@@ -85,7 +84,7 @@ class RevertService
             return RevertCheck::deny('Activity de outro business — nao acessivel (Tier 0).');
         }
 
-        if ($log->reverted_at !== null) {
+        if ($log->getAttribute('reverted_at') !== null) {
             return RevertCheck::deny('Esta alteracao ja foi revertida.');
         }
 
@@ -249,7 +248,7 @@ class RevertService
      * Carrega o registro auditado sem o escopo de sessao: quem decide o tenant e a
      * comparacao explicita em canRevert. Registro na lixeira conta como inexistente.
      */
-    private function carregarSubject(string $modelClass, mixed $id, bool $travar = false): ?Model
+    private function carregarSubject(string $modelClass, mixed $id, bool $travar = false): mixed
     {
         $query = $modelClass::withoutGlobalScopes()->whereKey($id); // SUPERADMIN: tenant conferido em canRevert (ADR 0093)
         if ($travar) {
