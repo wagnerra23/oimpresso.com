@@ -80,6 +80,13 @@ related_cu: [CU-OFI-05, CU-OFI-06, CU-OFI-15]
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemProductTenantContratoTest.php`
 - **Status: 🧪**
 
+## UC-OED-10 · O vínculo com a venda não muda pela edição `[T0]`
+- **Persona:** invariante de integridade da venda derivada ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)).
+- **Aceite:** Dado uma OS com ou sem venda vinculada · Quando a edição envia `transaction_id` de outra empresa, ou vazio · Então o resto do formulário é gravado e o vínculo fica como estava.
+- **Regressão que defende:** a OS apontar pra venda de outra empresa (a coluna não tem FK), o faturamento automático da conclusão ser pulado, ou um formulário aberto antes da conclusão apagar o vínculo.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderTransactionIdFormContratoTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Rastreabilidade (âncora no SDD §6 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md))
@@ -94,6 +101,7 @@ related_cu: [CU-OFI-05, CU-OFI-06, CU-OFI-15]
 | UC-OED-07 | must `[V0]` | CU-OFI-06 · US-OFICINA-001 |
 | UC-OED-08 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
 | UC-OED-09 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
+| UC-OED-10 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
 
 > O **quarto id desta série** (entre `UC-OED-03` e `UC-OED-05`) está **reservado**: foi proposto
 > e nunca ratificado, e id proposto não se reusa. Ele **não é escrito por extenso aqui de
