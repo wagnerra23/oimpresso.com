@@ -103,6 +103,7 @@ beforeEach(function () {
         $table->unsignedInteger('sender_user_id')->nullable();
         $table->string('sender_kind', 20)->nullable();
         $table->unsignedInteger('cost_centavos')->nullable();
+        $table->unsignedBigInteger('macro_variant_id')->nullable();
         $table->boolean('is_internal_note')->default(false);
         $table->timestamps();
     });

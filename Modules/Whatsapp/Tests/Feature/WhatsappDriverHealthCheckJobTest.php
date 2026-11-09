@@ -31,6 +31,16 @@ beforeEach(function () {
     if (config('database.default') !== 'sqlite') {
         $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
     }
+    // O alarme cross-tenant de ban soma números (phones) e configs legacy.
+    Schema::dropIfExists('whatsapp_business_phones');
+    Schema::create('whatsapp_business_phones', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->string('driver_health', 20)->default('never_checked');
+        $table->timestamp('last_health_check_at')->nullable();
+        $table->timestamps();
+    });
+
     Schema::dropIfExists('whatsapp_business_configs');
     Schema::create('whatsapp_business_configs', function ($table) {
         $table->bigIncrements('id');
