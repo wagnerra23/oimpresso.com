@@ -12,6 +12,25 @@ use Modules\Whatsapp\Entities\WhatsappConversation;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Entities\WhatsappPhoneUserAccess;
 
+/**
+ * Entra como usuário da empresa. O ScopeByBusiness não filtra sem usuário autenticado
+ * (é o caminho de CLI/fila), então só a sessão não basta: sem isto o teste lê as duas
+ * empresas e acusa vazamento que não existe. Mesmo stub de ChannelUserAccessTest.
+ */
+function mtiSetBiz(int $businessId): void
+{
+    $user = new class extends \Illuminate\Foundation\Auth\User {
+        protected $table = 'users';
+        protected $guarded = [];
+        public function can($abilities, $arguments = []): bool { return false; }
+    };
+    $user->id = 1;
+    $user->business_id = $businessId;
+    auth()->setUser($user);
+    session()->put('user.business_id', $businessId);
+    app()->forgetInstance(ScopeByBusiness::class);
+}
+
 uses(Tests\TestCase::class);
 
 /**
@@ -179,8 +198,7 @@ it('isola WhatsappBusinessConfig cross-business via global scope', function () {
     ]);
 
     // User do business 1 (Wagner): só deve ver config A
-    auth()->logout();
-    session(['user.business_id' => 1]);
+    mtiSetBiz(1);
 
     $found = WhatsappBusinessConfig::all();
     expect($found)->toHaveCount(1)
@@ -188,7 +206,7 @@ it('isola WhatsappBusinessConfig cross-business via global scope', function () {
         ->and($found->first()->business_id)->toBe(1);
 
     // Switch pra business 99 (adversário cross-tenant): só deve ver config B
-    session(['user.business_id' => 99]);
+    mtiSetBiz(99);
     $foundOther = WhatsappBusinessConfig::all();
     expect($foundOther)->toHaveCount(1)
         ->and($foundOther->first()->id)->toBe($configB->id)
@@ -205,11 +223,10 @@ it('isola WhatsappConversation cross-business via global scope', function () {
         'customer_phone' => '+5511987654321',
     ]);
 
-    auth()->logout();
-    session(['user.business_id' => 1]);
+    mtiSetBiz(1);
     expect(WhatsappConversation::count())->toBe(1);
 
-    session(['user.business_id' => 99]);
+    mtiSetBiz(99);
     expect(WhatsappConversation::count())->toBe(1);
 
     // Sanity: as 2 conversations realmente existem em DB (escape do scope confirma)
@@ -247,8 +264,7 @@ it('isola WhatsappMessage cross-business via global scope', function () {
         'status' => 'sent',
     ]);
 
-    auth()->logout();
-    session(['user.business_id' => 1]);
+    mtiSetBiz(1);
     $msgs = WhatsappMessage::all();
     expect($msgs)->toHaveCount(1);
     expect($msgs->first()->body)->toContain('business 1');
@@ -357,14 +373,13 @@ it('isola WhatsappBusinessPhone cross-business via global scope', function () {
         'fallback_driver' => 'meta_cloud',
     ]);
 
-    auth()->logout();
-    session(['user.business_id' => 1]);
+    mtiSetBiz(1);
     $found = WhatsappBusinessPhone::all();
     expect($found)->toHaveCount(1)
         ->and($found->first()->id)->toBe($phoneA->id)
         ->and($found->first()->label)->toBe('Comercial');
 
-    session(['user.business_id' => 99]);
+    mtiSetBiz(99);
     $foundOther = WhatsappBusinessPhone::all();
     expect($foundOther)->toHaveCount(1)
         ->and($foundOther->first()->id)->toBe($phoneB->id)
@@ -493,13 +508,12 @@ it('isola WhatsappPhoneUserAccess cross-business via global scope', function () 
         'user_id' => 20,
     ]);
 
-    auth()->logout();
-    session(['user.business_id' => 1]);
+    mtiSetBiz(1);
     $found = WhatsappPhoneUserAccess::all();
     expect($found)->toHaveCount(1)
         ->and($found->first()->user_id)->toBe(10);
 
-    session(['user.business_id' => 99]);
+    mtiSetBiz(99);
     $foundOther = WhatsappPhoneUserAccess::all();
     expect($foundOther)->toHaveCount(1)
         ->and($foundOther->first()->user_id)->toBe(20);
@@ -528,7 +542,7 @@ it('scope accessibleBy filtra phones que user tem ACL', function () {
         'user_id' => 42,
     ]);
 
-    session(['user.business_id' => 1]);
+    mtiSetBiz(1);
     $accessible = WhatsappBusinessPhone::query()->accessibleBy(42)->get();
     expect($accessible)->toHaveCount(1)
         ->and($accessible->first()->label)->toBe('Visível');

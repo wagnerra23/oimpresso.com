@@ -281,30 +281,42 @@ class MessagePersister
             $conversation->forceFill($identityUpdates)->save();
         }
 
-        // SUPERADMIN: ADR 0093 — webhook/CLI sem session user
-        $message = Message::query()
-            ->withoutGlobalScope(ScopeByBusiness::class)
-            ->firstOrCreate(
-                [
-                    'business_id' => $this->channel->business_id,
-                    'provider_message_id' => $providerMessageId,
-                ],
-                [
-                    'conversation_id' => $conversation->id,
-                    'direction' => $fromMe ? 'outbound' : 'inbound',
-                    'provider' => $this->channel->type,
-                    'type' => $type,
-                    'body' => $body,
-                    'payload' => $data,
-                    'status' => $fromMe ? 'sent' : 'received',
-                    'sender_kind' => $fromMe ? 'human' : null,
-                    'media_url' => $mediaUrl,
-                    'media_mime' => $mediaMime,
-                    'media_size_bytes' => $mediaSize,
-                    'media_duration_s' => $mediaDuration,
-                    'media_filename' => $mediaFilename,
-                ]
-            );
+        // provider_message_id é UNIQUE global no banco, mas a busca é por empresa: o mesmo
+        // id em outra empresa chega aqui como colisão. A mensagem da primeira fica intacta
+        // e este webhook não pode cair nem entrar em retry.
+        try {
+            // SUPERADMIN: ADR 0093 — webhook/CLI sem session user
+            $message = Message::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->firstOrCreate(
+                    [
+                        'business_id' => $this->channel->business_id,
+                        'provider_message_id' => $providerMessageId,
+                    ],
+                    [
+                        'conversation_id' => $conversation->id,
+                        'direction' => $fromMe ? 'outbound' : 'inbound',
+                        'provider' => $this->channel->type,
+                        'type' => $type,
+                        'body' => $body,
+                        'payload' => $data,
+                        'status' => $fromMe ? 'sent' : 'received',
+                        'sender_kind' => $fromMe ? 'human' : null,
+                        'media_url' => $mediaUrl,
+                        'media_mime' => $mediaMime,
+                        'media_size_bytes' => $mediaSize,
+                        'media_duration_s' => $mediaDuration,
+                        'media_filename' => $mediaFilename,
+                    ]
+                );
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+            Log::warning('[whatsapp.persist.provider_message_id_colisao]', [
+                'business_id' => $this->channel->business_id,
+                'channel_id' => $this->channel->id,
+            ]);
+
+            return PersistResult::skipped('provider_message_id_colisao');
+        }
 
         // Para import histórico: tenta backdate `created_at` pro timestamp
         // real da mensagem. Eloquent ignora created_at no $fillable do

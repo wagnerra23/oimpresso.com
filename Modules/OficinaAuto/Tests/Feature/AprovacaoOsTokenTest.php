@@ -23,12 +23,12 @@ uses(Tests\TestCase::class);
  * @see Modules/OficinaAuto/Services/AprovacaoOsService.php
  */
 
-const BIZ_APROV = 1;
-const BIZ_APROV_OUTRO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
+const BIZ_APROV = 98;
+const BIZ_APROV_OUTRO = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasTable('vehicles')) {
         $this->markTestSkipped('service_orders/vehicles tables missing');
@@ -116,23 +116,23 @@ it('UC-OAP-06 · cenario 6: PIN correto invalida cache (one-shot, nao reutilizav
     expect($svc->validarPin($os, $g['pin']))->toBeFalse();
 });
 
-it('UC-OAP-05 · cenario 7: token gerado pra biz=1 NAO valida em OS de biz=2 (Tier 0)', function () {
+it('UC-OAP-05 · cenario 7: token gerado pra biz=98 NAO valida em OS de biz=99 (Tier 0)', function () {
     $svc = new AprovacaoOsService();
     $osBiz1 = criarOsAprovacao(BIZ_APROV);
     $g1 = $svc->gerarTokenAprovacao($osBiz1);
 
-    // token vai resolver a OS biz=1 corretamente (porque carrega business_id assinado)
+    // token vai resolver a OS biz=98 corretamente (porque carrega business_id assinado)
     $resolvedOs = $svc->validarToken($g1['token']);
     expect($resolvedOs)->not->toBeNull()
         ->and($resolvedOs->business_id)->toBe(BIZ_APROV);
 
-    // Cria outra OS em outro business com mesmo plate — token de biz=1 NAO deve resolver pra ela
+    // Cria outra OS em outro business com mesmo plate — token de biz=98 NAO deve resolver pra ela
     $this->osOutroBiz = criarOsAprovacao(BIZ_APROV_OUTRO);
     $resolved2 = $svc->validarToken($g1['token']);
     expect($resolved2->business_id)->toBe(BIZ_APROV);
 })->after(function () {
-    // A OS criada no biz=2 não fica no 2º tenant do seed (compartilhado com as outras lanes).
-    // Apaga por id, não por prefixo de placa: no CT 100 o biz=2 é clone de prod.
+    // A OS criada no biz=99 não fica no tenant adversário (compartilhado com as outras lanes).
+    // Apaga por id, não por prefixo de placa.
     if (isset($this->osOutroBiz)) {
         $vehicleId = $this->osOutroBiz->vehicle_id;
         ServiceOrder::withoutGlobalScopes()->whereKey($this->osOutroBiz->id)->forceDelete();

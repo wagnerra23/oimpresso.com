@@ -15,19 +15,19 @@ use Modules\OficinaAuto\Services\VehicleLookupService;
  * placa inválida (422), não-encontrada (found=false), e a invariante LGPD de que
  * a resposta NUNCA carrega proprietário.
  *
- * NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa) — ADR 0101.
+ * NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa) — ADR 0358.
  *
  * @see Modules\OficinaAuto\Http\Controllers\VehicleController::consultaPlaca
  */
 
-const BIZ_WAGNER_PLACA = 1;
+const BIZ_WAGNER_PLACA = 98;
 
 beforeEach(function () {
     config()->set('otel.enabled', false);
     config()->set('oficina-auto.placa_lookup.driver', 'stub');
 
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('Requer User biz=1 do schema UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('Requer User biz=98 do schema UltimatePOS (ADR 0358)');
     }
 });
 
@@ -36,8 +36,10 @@ function consultaPlacaUser(): \App\User
     $user = \App\User::query()->where('business_id', BIZ_WAGNER_PLACA)->first();
 
     if (! $user) {
-        test()->markTestSkipped('User biz=1 ausente — rode UltimatePOS seeders primeiro');
+        test()->markTestSkipped('User biz=98 ausente — rode UltimatePOS seeders primeiro');
     }
+
+    $user->givePermissionTo('superadmin');
 
     return $user;
 }

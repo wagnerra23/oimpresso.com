@@ -4,7 +4,7 @@ modulo: Purchase
 tipo: LIST
 generated_at: 2026-05-11
 generated_by: [CL] (skill migracao-blade-react v0.1.0 piloto)
-status: aguardando-screenshot-wagner (STEP 4 da skill)
+status: medido
 snapshot: memory/mwart-inventory/purchase/index.snapshot.md
 draft_tsx: resources/js/Pages/Purchase/Index.tsx
 controller_delta: app/Http/Controllers/PurchaseController.php@indexInertia
@@ -210,3 +210,31 @@ npm run build
 - [runbook-LIST.template.md](../../../.claude/skills/migracao-blade-react/runbook-LIST.template.md)
 - [Snapshot paridade](../../mwart-inventory/purchase/index.snapshot.md)
 - [Cowork visual source](../../../../prototipo-ui/cowork/Wagner/compras-page.jsx)
+
+---
+
+## Medição de 2026-11-09 (lote 6 da auditoria de Compras)
+
+> Substitui como estado atual o "aguardando screenshot" acima, que fica como registro de 2026-05-11. Nada foi corrigido neste lote.
+
+Run [42621542024](https://github.com/wagnerra23/oimpresso.com/actions/runs/42621542024), artifact `paridade-lote-42621542024`, branch descartável `claude/compras-lote6-medir-nao-mergear` (não mergeada). App efêmero do `design-smoke-ci` sobre o `main` em `d1826f8357`, biz=1 fictício, 1280×900, tema escuro real nos dois lados. Em produção não deu: o Chrome não tinha sessão e o staging está 26 dias atrás.
+
+Lado design: `compras-page.jsx`, aba Pedidos (override `Purchase--Index.json`). Sonda `design-diff --probe` nos dois lados, `--compare --check`.
+
+⚠️ **T00 sem prova por contrato:** esta tela não tem `*.contract.json`. A identidade vem do charter (`related_prototype: compras-page.jsx (ComprasPage)`). Os vereditos abaixo são indicativos até existir contrato.
+
+| # | Item | Dim. | Vivo | Protótipo | Veredito | Data |
+|---|---|---|---|---|---|---|
+| T00 | Identidade da view | D0 | sem contrato | sem contrato | NÃO MEDIDO | 2026-11-09 |
+| 1 | Cor do conteúdo | D6 | igual | igual | IGUAL | 2026-11-09 |
+| 2 | Cartões de KPI | D2/D8 | 0 | 4 | DÍVIDA A FECHAR | 2026-11-09 |
+| 3 | Barra de filtros | D2 | 4 linhas (selects, datas, busca) | 1 linha de abas | DÍVIDA A FECHAR | 2026-11-09 |
+| 4 | Título | D4 | 24px | 22px | DÍVIDA A FECHAR | 2026-11-09 |
+| 5 | Conjunto e ordem das colunas | D2 | Data, Ref., Filial, Fornecedor, Status, Pagamento, Total, A pagar, Ações | Ação, Compra, Fornecedor, Data, Estágio, Itens, Total, A pagar, NF-e | DÍVIDA A FECHAR | 2026-11-09 |
+| 6 | Filtro | D1 | parcial: 1 XHR com `only: rows,filters`, sem recarregar documento | — | IGUAL (comportamento) | 2026-11-09 |
+| 7 | Tipografia, cor e alinhamento por coluna | D4/D6/D8 | — | — | NÃO MEDIDO (ver abaixo) | 2026-11-09 |
+| 8 | Ícones e rodapé | D3/D5 | — | — | NÃO MEDIDO | 2026-11-09 |
+
+A máquina acusou 14 divergências, a maioria nas linhas `colN.*`. Ela alinha as colunas por posição, e as duas tabelas têm ordem diferente: `col3` é Fornecedor na produção e Data no protótipo. Essas linhas não dizem nada por coluna até a ordem bater, e por isso o item 7 fica sem medida.
+
+**Declaração:** PARCIALMENTE PUBLICADA. A tela é a lista portada do legado e o protótipo desenha o cockpit; o charter diz que `/purchases` e `/compras` coexistem. Aproximar as duas é pedido próprio.

@@ -48,6 +48,22 @@ beforeEach(function () {
         $table->timestamps();
     });
 
+    // Com instanceName no envelope o controller procura o canal em `channels`
+    // (caso "contrato REAL do daemon"). Vazia de propósito: sem canal ele responde 200.
+    Schema::dropIfExists('channels');
+    Schema::create('channels', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->uuid('channel_uuid')->nullable();
+        $table->string('label', 80)->nullable();
+        $table->string('type', 30);
+        $table->string('status', 20)->default('setup');
+        $table->string('display_identifier', 100)->nullable();
+        $table->text('config_json')->nullable();
+        $table->string('channel_health', 20)->default('never_checked');
+        $table->timestamps();
+    });
+
     config(['whatsapp.whatsmeow.hmac_secret' => 'super-secret-hmac-key-0123456789ab']);
 
     app('router')->aliasMiddleware('whatsapp.whatsmeow.signature', VerifyWhatsmeowSignature::class);

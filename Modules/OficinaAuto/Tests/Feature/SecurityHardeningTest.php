@@ -133,10 +133,10 @@ it('VehiclePolicy.sameTenant bloqueia cross-tenant', function () {
     $user->shouldReceive('can')->with('oficinaauto.vehicle.view')->andReturn(true);
     // session() é fonte de verdade do sameTenant — não precisa setar user->business_id.
 
-    $vehicleSameTenant = new Vehicle(['business_id' => 1]);
+    $vehicleSameTenant = new Vehicle(['business_id' => 98]);
     $vehicleOtherTenant = new Vehicle(['business_id' => 99]);
 
-    session(['user.business_id' => 1]);
+    session(['user.business_id' => 98]);
 
     expect($policy->view($user, $vehicleSameTenant))->toBeTrue()
         ->and($policy->view($user, $vehicleOtherTenant))->toBeFalse();

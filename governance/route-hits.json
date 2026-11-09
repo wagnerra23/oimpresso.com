@@ -14,8 +14,8 @@
     "sample_rate": 1,
     "rotas": {
         "/": {
-            "hits": 66,
-            "ultima_data": "2026-10-30"
+            "hits": 111,
+            "ultima_data": "2026-11-08"
         },
         "ads.admin.tools.index": {
             "hits": 1,
@@ -25,77 +25,89 @@
             "hits": 4045,
             "ultima_data": "2026-10-29"
         },
-        "business.getRegister": {
-            "hits": 1,
-            "ultima_data": "2026-10-28"
+        "backup.index": {
+            "hits": 2,
+            "ultima_data": "2026-11-08"
         },
-        "catalogue/{business_id}/{location_id}": {
-            "hits": 1,
-            "ultima_data": "2026-10-06"
+        "business.getRegister": {
+            "hits": 2,
+            "ultima_data": "2026-11-07"
         },
         "cms.contact.us": {
             "hits": 2,
             "ultima_data": "2026-10-11"
         },
         "compras.index": {
+            "hits": 3,
+            "ultima_data": "2026-11-06"
+        },
+        "compras.show": {
+            "hits": 1,
+            "ultima_data": "2026-11-06"
+        },
+        "consent.store": {
             "hits": 2,
-            "ultima_data": "2026-10-20"
+            "ultima_data": "2026-11-08"
         },
         "contact-dashboard.index": {
             "hits": 1,
             "ultima_data": "2026-10-28"
         },
+        "contacts.store": {
+            "hits": 3,
+            "ultima_data": "2026-11-07"
+        },
         "contacts/customers": {
-            "hits": 10,
-            "ultima_data": "2026-10-28"
-        },
-        "documentacao.buscar": {
-            "hits": 2,
-            "ultima_data": "2026-10-06"
-        },
-        "documentacao.documento": {
-            "hits": 4,
-            "ultima_data": "2026-10-06"
+            "hits": 73,
+            "ultima_data": "2026-11-07"
         },
         "fisio.biblioteca.index": {
             "hits": 2,
             "ultima_data": "2026-10-20"
+        },
+        "fisio.painel": {
+            "hits": 2,
+            "ultima_data": "2026-11-06"
         },
         "fluxos.index": {
             "hits": 1,
             "ultima_data": "2026-10-20"
         },
         "get-total-unread": {
-            "hits": 147,
-            "ultima_data": "2026-10-10"
+            "hits": 306,
+            "ultima_data": "2026-11-08"
         },
         "home": {
-            "hits": 1,
-            "ultima_data": "2026-10-05"
+            "hits": 15,
+            "ultima_data": "2026-11-08"
         },
-        "home.legacy": {
-            "hits": 2,
-            "ultima_data": "2026-10-05"
+        "jana.index": {
+            "hits": 1,
+            "ultima_data": "2026-11-08"
         },
         "labels/show": {
             "hits": 3,
             "ultima_data": "2026-10-11"
         },
         "login": {
-            "hits": 215,
-            "ultima_data": "2026-10-29"
+            "hits": 291,
+            "ultima_data": "2026-11-08"
         },
         "manufacturing.editor-receita.insumos": {
             "hits": 1,
             "ultima_data": "2026-10-11"
         },
-        "manufacturing.nova-receita.produtos": {
-            "hits": 1,
-            "ultima_data": "2026-10-08"
+        "modules/data/get-pos-details": {
+            "hits": 2,
+            "ultima_data": "2026-11-07"
         },
-        "manufacturing/add-ingredient": {
-            "hits": 1,
-            "ultima_data": "2026-10-08"
+        "nfe-brasil.api.transactions.emissoes": {
+            "hits": 2,
+            "ultima_data": "2026-11-07"
+        },
+        "nfe-brasil.api.transactions.separacao": {
+            "hits": 2,
+            "ultima_data": "2026-11-07"
         },
         "nfe-brasil.tributacao.config.show": {
             "hits": 3,
@@ -109,48 +121,88 @@
             "hits": 2,
             "ultima_data": "2026-10-11"
         },
+        "old": {
+            "hits": 2,
+            "ultima_data": "2026-11-08"
+        },
         "password.request": {
             "hits": 2,
             "ultima_data": "2026-10-11"
         },
-        "pos.store": {
+        "ponto.fechamento": {
             "hits": 1,
-            "ultima_data": "2026-10-28"
+            "ultima_data": "2026-11-07"
+        },
+        "ponto.importacoes.index": {
+            "hits": 1,
+            "ultima_data": "2026-11-07"
+        },
+        "pos.store": {
+            "hits": 19,
+            "ultima_data": "2026-11-08"
+        },
+        "pos.update": {
+            "hits": 3,
+            "ultima_data": "2026-11-07"
         },
         "pricing": {
             "hits": 1,
             "ultima_data": "2026-10-28"
         },
-        "production.index": {
-            "hits": 3,
-            "ultima_data": "2026-10-05"
+        "producao.linha.index": {
+            "hits": 1,
+            "ultima_data": "2026-11-06"
+        },
+        "producao.ordens.arte.vigente": {
+            "hits": 1,
+            "ultima_data": "2026-11-08"
+        },
+        "producao.ordens.show": {
+            "hits": 2,
+            "ultima_data": "2026-11-06"
+        },
+        "producao.quadro.index": {
+            "hits": 1,
+            "ultima_data": "2026-11-06"
+        },
+        "products.destroy": {
+            "hits": 1,
+            "ultima_data": "2026-11-06"
         },
         "products.index": {
-            "hits": 72,
-            "ultima_data": "2026-10-28"
+            "hits": 176,
+            "ultima_data": "2026-11-07"
         },
         "products.show": {
-            "hits": 20,
-            "ultima_data": "2026-10-12"
+            "hits": 38,
+            "ultima_data": "2026-11-07"
         },
         "products/list": {
-            "hits": 41,
-            "ultima_data": "2026-10-28"
+            "hits": 120,
+            "ultima_data": "2026-11-08"
+        },
+        "products/mass-delete": {
+            "hits": 1,
+            "ultima_data": "2026-11-06"
         },
         "products/quick_add": {
             "hits": 8,
             "ultima_data": "2026-10-12"
+        },
+        "products/restaurar/{id}": {
+            "hits": 1,
+            "ultima_data": "2026-11-06"
         },
         "products/save_quick_product": {
             "hits": 1,
             "ultima_data": "2026-10-12"
         },
         "publico.privacidade": {
-            "hits": 21,
-            "ultima_data": "2026-10-28"
+            "hits": 38,
+            "ultima_data": "2026-11-08"
         },
         "purchases.create": {
-            "hits": 8,
+            "hits": 4,
             "ultima_data": "2026-10-11"
         },
         "purchases.grade-matrix": {
@@ -158,64 +210,84 @@
             "ultima_data": "2026-10-11"
         },
         "purchases.index": {
-            "hits": 10,
-            "ultima_data": "2026-10-05"
+            "hits": 2,
+            "ultima_data": "2026-11-07"
         },
         "purchases.pedidos-abertos": {
             "hits": 1,
             "ultima_data": "2026-10-27"
         },
-        "purchases.store": {
-            "hits": 4,
-            "ultima_data": "2026-10-05"
-        },
-        "purchases/get_products": {
-            "hits": 76,
-            "ultima_data": "2026-10-05"
-        },
-        "purchases/get_purchase_entry_row": {
-            "hits": 42,
-            "ultima_data": "2026-10-05"
-        },
-        "purchases/get_suppliers": {
-            "hits": 8,
-            "ultima_data": "2026-10-05"
-        },
-        "purchases/{id}": {
+        "recipe.index": {
             "hits": 3,
-            "ultima_data": "2026-10-05"
+            "ultima_data": "2026-11-06"
         },
         "register": {
-            "hits": 3,
+            "hits": 2,
             "ultima_data": "2026-10-11"
         },
-        "reports/purchase-sell": {
-            "hits": 6,
-            "ultima_data": "2026-10-08"
+        "reports/product-sell-grouped-report": {
+            "hits": 3,
+            "ultima_data": "2026-11-08"
+        },
+        "reports/product-sell-report": {
+            "hits": 9,
+            "ultima_data": "2026-11-08"
+        },
+        "reports/product-sell-report-with-purchase": {
+            "hits": 3,
+            "ultima_data": "2026-11-08"
         },
         "sells-list-json": {
+            "hits": 45,
+            "ultima_data": "2026-11-08"
+        },
+        "sells.audit": {
             "hits": 2,
-            "ultima_data": "2026-10-29"
+            "ultima_data": "2026-11-07"
         },
         "sells.create": {
+            "hits": 21,
+            "ultima_data": "2026-11-08"
+        },
+        "sells.edit": {
+            "hits": 6,
+            "ultima_data": "2026-11-07"
+        },
+        "sells.fsm-actions": {
             "hits": 2,
-            "ultima_data": "2026-10-29"
+            "ultima_data": "2026-11-07"
         },
         "sells.index": {
-            "hits": 4,
-            "ultima_data": "2026-10-29"
+            "hits": 58,
+            "ultima_data": "2026-11-08"
+        },
+        "sells.timeline-unified": {
+            "hits": 2,
+            "ultima_data": "2026-11-07"
         },
         "sells/draft-dt": {
-            "hits": 1,
-            "ultima_data": "2026-10-29"
+            "hits": 5,
+            "ultima_data": "2026-11-07"
+        },
+        "sells/drafts": {
+            "hits": 8,
+            "ultima_data": "2026-11-07"
         },
         "sells/quotations": {
             "hits": 2,
             "ultima_data": "2026-10-29"
         },
+        "sells/{id}/quick-payment": {
+            "hits": 13,
+            "ultima_data": "2026-11-07"
+        },
+        "sells/{id}/sheet-data": {
+            "hits": 2,
+            "ultima_data": "2026-11-07"
+        },
         "show_invoice": {
-            "hits": 1,
-            "ultima_data": "2026-10-28"
+            "hits": 4,
+            "ultima_data": "2026-11-07"
         },
         "stock-adjustments.create": {
             "hits": 1,
@@ -232,6 +304,10 @@
         "stock-transfers.show": {
             "hits": 22,
             "ultima_data": "2026-10-11"
+        },
+        "vestuario.remarcacao.index": {
+            "hits": 1,
+            "ultima_data": "2026-11-07"
         }
     },
     "pages": {
@@ -240,8 +316,8 @@
             "ultima_data": "2026-10-29"
         },
         "Compras/Index": {
-            "hits": 2,
-            "ultima_data": "2026-10-20"
+            "hits": 3,
+            "ultima_data": "2026-11-06"
         },
         "Crm/Portal/Painel/Index": {
             "hits": 1,
@@ -251,13 +327,25 @@
             "hits": 2,
             "ultima_data": "2026-10-20"
         },
+        "Fisio/Painel": {
+            "hits": 2,
+            "ultima_data": "2026-11-06"
+        },
         "Fluxos/Index": {
             "hits": 1,
             "ultima_data": "2026-10-20"
         },
         "Home/Index": {
+            "hits": 15,
+            "ultima_data": "2026-11-08"
+        },
+        "Jana/Index": {
             "hits": 1,
-            "ultima_data": "2026-10-05"
+            "ultima_data": "2026-11-08"
+        },
+        "Manufacturing/Recipes": {
+            "hits": 3,
+            "ultima_data": "2026-11-06"
         },
         "NfeBrasil/Tributacao/ConfigDefault": {
             "hits": 3,
@@ -267,53 +355,81 @@
             "hits": 2,
             "ultima_data": "2026-10-11"
         },
+        "Ponto/Fechamento/Index": {
+            "hits": 1,
+            "ultima_data": "2026-11-07"
+        },
+        "Ponto/Importacoes/Index": {
+            "hits": 1,
+            "ultima_data": "2026-11-07"
+        },
+        "Producao/Linha/Index": {
+            "hits": 1,
+            "ultima_data": "2026-11-06"
+        },
+        "Producao/Os/Show": {
+            "hits": 2,
+            "ultima_data": "2026-11-06"
+        },
+        "Producao/Quadro/Index": {
+            "hits": 1,
+            "ultima_data": "2026-11-06"
+        },
         "Produto/Etiquetas/Index": {
             "hits": 3,
             "ultima_data": "2026-10-11"
         },
         "Produto/Index": {
-            "hits": 72,
-            "ultima_data": "2026-10-28"
+            "hits": 176,
+            "ultima_data": "2026-11-07"
         },
         "Produto/Show": {
-            "hits": 20,
-            "ultima_data": "2026-10-12"
-        },
-        "Relatorios/CompraVenda/Index": {
-            "hits": 6,
-            "ultima_data": "2026-10-08"
+            "hits": 38,
+            "ultima_data": "2026-11-07"
         },
         "Sells/Create": {
-            "hits": 2,
-            "ultima_data": "2026-10-29"
+            "hits": 21,
+            "ultima_data": "2026-11-08"
+        },
+        "Sells/Drafts": {
+            "hits": 8,
+            "ultima_data": "2026-11-07"
+        },
+        "Sells/Edit": {
+            "hits": 6,
+            "ultima_data": "2026-11-07"
         },
         "Sells/Index": {
-            "hits": 4,
-            "ultima_data": "2026-10-29"
+            "hits": 58,
+            "ultima_data": "2026-11-08"
         },
         "Sells/Quotations": {
             "hits": 2,
             "ultima_data": "2026-10-29"
         },
         "Site/Home": {
-            "hits": 66,
-            "ultima_data": "2026-10-30"
+            "hits": 111,
+            "ultima_data": "2026-11-08"
         },
         "Site/Login": {
-            "hits": 430,
-            "ultima_data": "2026-10-29"
+            "hits": 582,
+            "ultima_data": "2026-11-08"
         },
         "Site/Pricing": {
             "hits": 1,
             "ultima_data": "2026-10-28"
         },
         "Site/PrivacidadeApp": {
-            "hits": 21,
-            "ultima_data": "2026-10-28"
+            "hits": 38,
+            "ultima_data": "2026-11-08"
         },
         "Site/Register": {
-            "hits": 3,
+            "hits": 2,
             "ultima_data": "2026-10-11"
+        },
+        "Vestuario/Remarcacao/Index": {
+            "hits": 1,
+            "ultima_data": "2026-11-07"
         },
         "ads/Admin/Tools": {
             "hits": 1,

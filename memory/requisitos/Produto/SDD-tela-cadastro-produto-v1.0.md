@@ -1170,6 +1170,10 @@ qual é o local padrão.
     pelo endereço e pelo local padrão, sem tocar em saldo. Para mudar, basta comentar no PR.
 - **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
   ganham id quando houver teste que os defenda (G-2).
+- **No servidor (2026-11-09):** o [W] mergeou a proposta (#10544), então valem as duas propostas. Coluna
+  `products.local_padrao_id`; o `store()` e o `update()` gravam o padrão e o endereço (`product_racks`)
+  sem mexer em saldo e recusam local de outra empresa. Casos `UC-PCAD-22` e `UC-PEDIT-19`. O bloco
+  "Locais de armazenagem" da tela vem no PR seguinte.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
@@ -1276,6 +1280,9 @@ de produção ele segue, e um link para a tela de Roteiros.
   - **Se o [W] mergear o PR desta proposta, vale (A)** e o card entra num PR seguinte. Para (B), basta
     comentar no PR.
 - **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+- **Na tela (2026-11-09):** o [W] mergeou a proposta (#10545), então vale (A). O card entrou no Editar
+  como `UC-PEDIT-18` (`Edit.casos.md`): prop deferida `producao` do `ProductController@edit`, componente
+  `BlocoProducao.tsx`. O texto para o produto sem roteiro é o de (A), não o do protótipo.
 
 ### 6.2 Vertical comunicação visual (`CV`)
 
