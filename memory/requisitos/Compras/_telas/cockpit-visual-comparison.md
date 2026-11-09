@@ -150,3 +150,56 @@ produção — se linhas migradas do legado carregam a chave, é pergunta de pro
 **O placar acima NÃO foi recontado.** Recontar exige os dois renders com a mesma sonda
 (`design-diff --probe` → `--compare`), e o lado produção só muda depois do deploy. Enquanto a
 re-medição não roda, o número de divergências desta tela segue sendo o de 20:00.
+
+---
+
+## Medição de 2026-11-09 (lote 6 da auditoria de Compras)
+
+> Retrato medido em 2026-11-09 contra o `main` em `d1826f8357`. Substitui a de 2026-09-07 como
+> estado atual; o corpo acima fica como registro daquela data. Nada foi corrigido neste lote.
+
+| | |
+|---|---|
+| lado design | `prototipo-ui/cowork/Wagner/compras-page.jsx`, servido pelo `design-diff-lote`, `oimpresso.route=compras` e `oimpresso.compras.aba=pedidos` |
+| lado vivo | app efêmero do `design-smoke-ci` (`main` + seeds Visreg + `VisregComprasFlowSeeder`), biz=1 fictício, viewport 1280×900 |
+| sonda | `design-diff --probe` nos dois lados, `--compare --check` com o contrato `compras-cockpit` |
+| tema | escuro real nos dois lados: `data-theme="dark"` no `<html>` e no `.cockpit` |
+| recibo | run [42621542024](https://github.com/wagnerra23/oimpresso.com/actions/runs/42621542024), artifact `paridade-lote-42621542024`, branch descartável `claude/compras-lote6-medir-nao-mergear` (não mergeada) |
+
+**Por que não foi em produção:** o Chrome desta sessão não tinha sessão em `oimpresso.com` e o
+staging (`8723405fbe`, 2026-10-14) está 26 dias atrás do `main`. O app efêmero do CI roda o código
+atual, com dado fictício. Para repetir: `gh workflow run design-smoke-ci.yml --ref <branch>` com o
+lote apontado para esta tela.
+
+**Duas correções sobre a medição de setembro, que mudam a leitura:**
+- O protótipo ganhou as abas Painel, Pedidos e Fornecedores em 2026-10-27 ([#10055](https://github.com/wagnerra23/oimpresso.com/pull/10055)) e passou a abrir em Painel. Sem forçar a aba Pedidos, a sonda mede o Painel contra a lista. O override de papéis agora declara a aba.
+- `--tema dark` do `design-diff-lote` só troca o atributo do `<html>`, e `sameTheme` sai `true` com a tela clara. A primeira rodada acusou "KPI escuro no escuro" por isso, e o achado caiu ao aplicar o tema no `.cockpit`. Defeito do instrumento, a corrigir em pedido próprio.
+
+### Matriz por item
+
+| # | Item | Dim. | Vivo | Protótipo | Veredito | Data |
+|---|---|---|---|---|---|---|
+| T00 | Identidade da view | D0 | contrato casou | contrato casou | IGUAL (mesma tela) | 2026-11-09 |
+| 1 | Layout e quebra de linha | D2 | igual | igual | IGUAL | 2026-11-09 |
+| 2 | Cor e tokens do conteúdo | D6 | igual | igual | IGUAL | 2026-11-09 |
+| 3 | KPIs (4 cartões, alinhamento) | D2/D8 | 4 | 4 | IGUAL | 2026-11-09 |
+| 4 | Título da página | D4 | 16px, peso 600 | 22px, peso 600 | DÍVIDA A FECHAR | 2026-11-09 |
+| 5 | Abas Painel, Pedidos, Fornecedores | D2 | ausentes (só Todas/A pagar/Rascunhos/Em trânsito) | presentes | DÍVIDA A FECHAR | 2026-11-09 |
+| 6 | Ícones de Importar XML e Nova compra | D3 | caractere (`↓`, `+`) | SVG `JcIcon` | DÍVIDA A FECHAR | 2026-11-09 |
+| 7 | Filtro e busca | D1 | parcial: 1 XHR com `only: rows,summary,filters`, sem recarregar documento | — | IGUAL (comportamento) | 2026-11-09 |
+| 8 | Coluna Compra (cor e blocos) | D6/D2 | cor própria, 1 bloco | herda, 2 blocos | NÃO MEDIDO (a classificar: depende do dado) | 2026-11-09 |
+| 9 | Rodapé e somatórios | D5 | — | — | NÃO MEDIDO (a sonda deste lote não cobriu) | 2026-11-09 |
+| 10 | Gaveta da compra | D2/D4/D6 | — | — | NÃO MEDIDO (fora desta rodada) | 2026-11-09 |
+
+O título de 22px é o do cabeçalho do módulo padrão (`MP.Header`), que o protótipo adotou depois de
+setembro. A acusação de 16×22 que foi refutada em 2026-09-07 como acidente de markup agora é
+divergência real.
+
+As linhas `SAÚDE tokens.prod` ficam `NÃO MEDI` porque os tokens da produção resolvem no `.cockpit`,
+não na raiz; a medida de cor sai do valor computado de cada elemento, então os itens acima valem. As
+linhas `D9` (âncoras `data-contract`) e `SHELL` são instrumentação que só um lado tem.
+
+**Canário:** a sonda pegou de novo a diferença conhecida do título (16×22), logo discrimina.
+
+**Declaração:** PARCIALMENTE PUBLICADA. Pendências: itens 4 a 6 (dívida, ficam para pedido próprio) e
+8 a 10 (sem medida).
