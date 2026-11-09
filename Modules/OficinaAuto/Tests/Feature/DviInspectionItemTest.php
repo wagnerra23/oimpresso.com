@@ -15,7 +15,7 @@ uses(Tests\TestCase::class);
 /**
  * Wave 3 — Smoke DVI (Vistoria Digital) US-OFICINA-035.
  *
- * Tests biz=1 conforme ADR 0101 (biz=2 só usado pra isolamento cross-tenant).
+ * Tests biz=98 conforme ADR 0358 (biz=99 só usado pra isolamento cross-tenant).
  * Espelha padrão ServiceOrderItemTest (Wave 27 G1).
  *
  * @see Modules/OficinaAuto/Entities/OaInspectionItem.php
@@ -23,13 +23,13 @@ uses(Tests\TestCase::class);
  * @see Modules/OficinaAuto/Http/Controllers/DviInspectionController.php
  */
 
-const BIZ_DVI = 1;
-const BIZ_DVI_OUTRO = 2; // tenant que o seed da lane tem (1, 2, 98)
+const BIZ_DVI = 98;
+const BIZ_DVI_OUTRO = 99;
 const PLATE_DVI_PREFIX = 'WDVI';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('oa_inspection_items')) {
         $this->markTestSkipped('Rode migration 2026_05_26_120002_create_oa_inspection_items_table primeiro');
@@ -96,7 +96,7 @@ it('cria OaInspectionItem com auto-set business_id via creating hook', function 
     expect($item->metadata)->toBe(['km_restantes' => 4500]);
 })->after(fn () => dvi_cleanup('A'));
 
-it('escopa por business_id global scope (biz=2 não enxerga itens biz=1)', function () {
+it('escopa por business_id global scope (biz=99 não enxerga itens biz=98)', function () {
     session(['user.business_id' => BIZ_DVI]);
     $os = dvi_criaOs('B', BIZ_DVI);
     OaInspectionItem::withoutGlobalScopes()->create([
@@ -108,7 +108,7 @@ it('escopa por business_id global scope (biz=2 não enxerga itens biz=1)', funct
         'valor_recomendado' => 145.00,
     ]);
 
-    // Switch session pra biz=2 — global scope deve esconder
+    // Switch session pra biz=99 — global scope deve esconder
     session(['user.business_id' => BIZ_DVI_OUTRO]);
     $visiveis = OaInspectionItem::where('service_order_id', $os->id)->get();
     expect($visiveis)->toHaveCount(0);
@@ -231,7 +231,7 @@ it('HTTP POST cria item DVI 201 com payload correto (autenticado superadmin)', f
     session(['user.business_id' => BIZ_DVI]);
     $user = tap(\App\User::factory()->create(['business_id' => BIZ_DVI]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1 pra testar HTTP');
+        $this->markTestSkipped('Sem user disponível em biz=98 pra testar HTTP');
     }
 
     $os = dvi_criaOs('J');
@@ -257,10 +257,10 @@ it('HTTP PUT cross-OS guard: item de OS diferente retorna 404', function () {
     session(['user.business_id' => BIZ_DVI]);
     $user = tap(\App\User::factory()->create(['business_id' => BIZ_DVI]), fn (\App\User $u) => $u->givePermissionTo('superadmin'));
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
-    // Cria 2 OS biz=1, item pertence ao OS-K1, tenta atualizar via rota OS-K2
+    // Cria 2 OS biz=98, item pertence ao OS-K1, tenta atualizar via rota OS-K2
     $os1 = dvi_criaOs('K1');
     $os2 = dvi_criaOs('K2');
 

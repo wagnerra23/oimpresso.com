@@ -5,7 +5,7 @@ modulo: Purchase
 tipo: FORM CREATE
 generated_at: 2026-05-15
 generated_by: Agent W2-D (Wave2 B5 Stock/Purchase MWART)
-status: aguardando-screenshot-wagner
+status: medido
 runbook: memory/requisitos/Compras/_telas/RUNBOOK-purchase-create.md
 draft_tsx: resources/js/Pages/Purchase/Create.tsx
 controller_delta: app/Http/Controllers/PurchaseController.php@createInertia
@@ -93,3 +93,19 @@ Adiciona um bloco **"Adicionar por grade"** dentro do card "Itens da compra" da 
 **Aprovação grade:**
 - [ ] **F1.5/F2 screenshot 1280px** anexado + `[W2]: approved` (Wagner) — **PENDENTE**
 - [ ] **F5 canary biz=4** — Larissa faz 1 entrada por grade cronometrada (meta ≤2min/modelo)
+
+---
+
+## Medição de 2026-11-09 (lote 6 da auditoria de Compras)
+
+> Substitui como estado atual o "aguardando screenshot" acima, que fica como registro de 2026-05-15.
+
+Run [42621542024](https://github.com/wagnerra23/oimpresso.com/actions/runs/42621542024), artifact `paridade-lote-42621542024`, branch descartável `claude/compras-lote6-medir-nao-mergear` (não mergeada). App efêmero do `design-smoke-ci` sobre o `main` em `d1826f8357`, biz=1 fictício, 1280×900, tema escuro real nos dois lados. Em produção não deu: o Chrome não tinha sessão e o staging está 26 dias atrás.
+
+**Veredito: NÃO MEDIDO (2026-11-09).** A sonda rodou e o `design-diff` recusou a comparação em D0: das 24 copies do contrato `purchase-create`, a produção casou 22 e o protótipo 0.
+
+**Causa:** o charter declara `related_prototype: compras-grade-matrix.jsx`, que desenha só o modo grade (`route=cmp-grade`). A tela viva é o formulário inteiro (Dados gerais, Itens, Descontos, Totais, Notas). Comparar uma com a outra mede telas diferentes.
+
+Divergências de forma não foram registradas porque, sem D0, elas não dizem nada.
+
+**O que falta decidir:** se a âncora do formulário é mesmo o protótipo de grade, ou se a tela deve declarar `n/a (herda PT-02)` como o `_nota_fonte` do contrato ainda afirma. Enquanto charter e contrato discordarem, a tela não tem comparação válida contra protótipo. Decisão de âncora é de [W], par a par (§5 2026-08-28).

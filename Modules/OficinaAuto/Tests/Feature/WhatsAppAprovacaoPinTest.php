@@ -32,7 +32,7 @@ uses(Tests\TestCase::class);
  *  - `EnviarLinkAprovacaoWhatsappJobTest.php` — dispatch Job + multi-tenant guard + LGPD consent
  *  - `AprovacaoOsTokenTest.php` — Service token+PIN geração + validação isolada
  *
- * Multi-tenant Tier 0 ([ADR 0093]) — biz=1 sempre (ADR 0101 — biz=99 só pra cross-tenant guard).
+ * Multi-tenant Tier 0 ([ADR 0093]) — biz=98 sempre (ADR 0358 — biz=99 só pra cross-tenant guard).
  *
  * @see memory/requisitos/OficinaAuto/SPEC.md US-OFICINA-014
  * @see resources/js/Pages/OficinaAuto/AprovacaoPublica.charter.md (status: live)
@@ -40,12 +40,12 @@ uses(Tests\TestCase::class);
  * @see Modules/OficinaAuto/Services/AprovacaoOsService.php
  */
 
-const BIZ_WAGNER_WPP = 1;
+const BIZ_WAGNER_WPP = 98;
 const BIZ_FICTICIO_WPP = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasTable('vehicles')) {
         $this->markTestSkipped('service_orders/vehicles tables missing — rode OficinaAuto migrate primeiro');
@@ -144,7 +144,7 @@ it('Cenário 3 — aprovação cliente move OS orcamento → aprovada (transiç�
     Vehicle::withoutGlobalScopes()->where('plate', 'WPP003')->forceDelete();
 });
 
-it('Cenário 4 — link aprovação respeita isolamento multi-tenant (biz=1 ≠ biz=99)', function () {
+it('Cenário 4 — link aprovação respeita isolamento multi-tenant (biz=98 ≠ biz=99)', function () {
     session(['user.business_id' => BIZ_WAGNER_WPP]);
 
     $vehicle = createWppVehicle('WPP004');
@@ -156,12 +156,12 @@ it('Cenário 4 — link aprovação respeita isolamento multi-tenant (biz=1 ≠ 
         'entered_at'  => now(),
     ]);
 
-    // Trocar pra biz=99 — não deve enxergar OS de biz=1 nem conseguir aprovar
+    // Trocar pra biz=99 — não deve enxergar OS de biz=98 nem conseguir aprovar
     session(['user.business_id' => BIZ_FICTICIO_WPP]);
     $vazado = ServiceOrder::where('id', $os->id)->get();
     expect($vazado)->toHaveCount(0);
 
-    // Confirmar que registro original em biz=1 segue intacto (sem global scope)
+    // Confirmar que registro original em biz=98 segue intacto (sem global scope)
     $original = ServiceOrder::withoutGlobalScopes()->find($os->id);
     expect($original->business_id)->toBe(BIZ_WAGNER_WPP);
     expect($original->status)->toBe('orcamento');

@@ -1,9 +1,9 @@
 ---
 module: Compras
-purpose: "Cockpit de leitura de compras (/compras): lista, KPIs e drawer de detalhe sobre transactions type=purchase. Complementa — não substitui — o CRUD /purchases do core, pra onde delega criar, editar e excluir."
-migracao_ui: "concluido — 0 Blade servido"
+purpose: "Cockpit de leitura de compras (/compras) e as regras de compra que o CRUD /purchases do core consome: custo no recebimento, recebimento parcial, MRP, cotação, alçada, inspeção. O cockpit complementa — não substitui — o CRUD, pra onde delega criar, editar e excluir."
+migracao_ui: "concluido — 0 Blade servido por rota do módulo; resta 1 parcial (partials/metodo_custo_produto) que o módulo injeta no formulário Blade de produto do core"
 contains:
-  - "ComprasController"
+  - "ComprasController + ComprasService — lista, KPIs e detalhe do cockpit /compras"
   - "DataController"
   - "InstallController"
   - "CustoDoInsumoService — custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
@@ -14,12 +14,24 @@ contains:
   - "MetodoCustoDoProduto + DataController::product_form_part/after_product_saved — campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
   - "InsumoMetodoCusto — entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
   - "PropostasPrecoController + PropostasDePreco — fila de preços propostos no detalhe da compra: lista, aprova (troca o preço de venda da variação) e recusa (US-COM-028 · UC-FLX-17); núcleo lê pela interface PropostasDePreco (app/Contracts/Compras)"
+  - "ComprasLiberado — middleware das rotas operacionais de /compras: pacote compras_module da empresa e, onde pedido, a permissão (compras.view)"
+  - "NecessidadeDeCompra — MRP: necessidade por insumo e local somando as reservas das OS e das vendas e o estoque mínimo, com data para pedir pelo prazo do fornecedor; só lê estoque (US-COM-030)"
+  - "CotacaoDeCompra — cotação entre fornecedores: convida, registra respostas, compara e fecha em pedido de compra; sem tela ainda (US-COM-031)"
+  - "AlcadaDoPedido — alçada de valor do pedido de compra por empresa (comprador, gerente, diretoria); desligada por padrão em business.common_settings (US-COM-032)"
+  - "InspecaoDoRecebimento — inspeção por linha da compra recebida; o reprovado sai do estoque pela devolução de compra do núcleo; desligada por padrão em business.common_settings; sem tela ainda (US-COM-034)"
+  - "CustoMedioMovel + CompraRecebidaCustoMedioObserver + comando compras:custo-medio-semear — custo médio ponderado móvel por variação, recalculado a cada compra recebida; desligado pela flag compras.custo_medio_movel (US-PROD-024)"
+  - "TransactionSellLineCustoObserver — congela o custo previsto da linha de orçamento no dia (UC-FLX-33 · US-SELL-067)"
+  - "CurvaAbcReposicao — curva ABC e sugestão de reposição pelo giro; só leitura (US-ESTOQUE-003)"
+  - "AvisoDeFalhaDaAgenda — falha da agenda ou do job de Compras vira task bloqueada no mcp_tasks, pelo HitlEscalationService do Jana"
+  - "Database/Migrations/2026_10_27_* — tabelas compras_produto_fornecedor (de-para do item da nota com a variação), compras_prazo_fornecedor, compras_cotacoes + compras_cotacao_itens/fornecedores/respostas, compras_aprovacoes_pedido, compras_custo_medio + compras_custo_medio_movimentos e compras_inspecoes"
 not_contains:
   - "Estoque/inventário operacional → Modules/AssetManagement + core UltimatePOS stock"
   - "Vendas/saídas → core UltimatePOS Sells (NÃO é módulo: telas legacy em app/ + resources/views — ghost-rename-map excluded classe C)"
   - "Financeiro de Contas a Pagar → Modules/Financeiro"
   - "NF-e de entrada → Modules/NfeBrasil"
   - "Rastreio do rolo (em que OS cada fração do lote foi usada, US-COM-025) → Modules/Producao: as frações vêm de pcp_consumos, tabela de lá"
+depends_on:
+  - Jana
 trust_required: L3
 owner: wagner
 permission_prefix: compras.*
@@ -28,7 +40,7 @@ related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0180-sidebar-v3-5-grupos-ghosts-header
 url_prefixes:
-  - /compras/* (única superfície — cockpit `GET /` · `GET /{id}/detalhe` sob throttle:60,1, Routes/web.php:36; install 1-clique em :23; `PUT /insumos/{variation}/metodo-custo` no mesmo grupo. O CRUD vive em /purchases do núcleo, não aqui)
+  - /compras/* (única superfície — cockpit `GET /` e `GET /{id}/detalhe` · `POST /propostas-preco/{id}/aprovar` e `/recusar` · `PUT /insumos/{variation}/metodo-custo`, todos sob throttle:60,1 e ComprasLiberado; install 1-clique em `/compras/install`. O CRUD vive em /purchases do núcleo, não aqui)
 ---
 
 # Modules/Compras — SCOPE
@@ -58,11 +70,14 @@ UltimatePOS Purchase legacy.
 
 ## Permissões
 
-Prefix `compras.*` (futuro — hoje usa `purchase.*` legacy do core UPOS).
+O catálogo do módulo (`user_permissions()` em `DataController`) declara `compras.view`,
+`compras.import_xml`, `compras.alcada.gerente` e `compras.alcada.diretoria`. Criar, editar e
+excluir compra seguem no `purchase.*` do core, no CRUD `/purchases`.
 
 ## Multi-tenant Tier 0
 
 ADR 0093 — todas as queries filtram por `business_id` global scope via core
 UltimatePOS `Transaction::auth_scope()`. Compras reusa `transactions` + `purchase_lines`;
-desde 2026-10-20 tem tabelas próprias — `compras_insumo_metodo_custo` (US-COM-024) e
-`compras_propostas_preco` (US-COM-026) —, ambas com `business_id` indexado + FK.
+desde 2026-10-20 tem tabelas próprias, a começar por `compras_insumo_metodo_custo` (US-COM-024) e
+`compras_propostas_preco` (US-COM-026); a lista vive em `Database/Migrations/`, e cada tabela
+própria tem `business_id`.

@@ -21,15 +21,15 @@ uses(Tests\TestCase::class);
  *  - re-envio ("Cobrar") em OS já em orcamento re-dispara o WhatsApp (limpa idempotência)
  *  - accessor approval_state deriva approved/declined das colunas de decisão
  *
- * Multi-tenant biz=1 (ADR 0101). MySQL-only (schema UltimatePOS).
+ * Multi-tenant biz=98 (ADR 0358). MySQL-only (schema UltimatePOS).
  */
 
-const BIZ_GATE = 1;
+const BIZ_GATE = 98;
 const PLATE_GATE_PREFIX = 'WGATE';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
 });
 
@@ -70,7 +70,7 @@ it('enviarAprovacao carimba approval_requested_at e o estado vira pending', func
     session(['user.business_id' => BIZ_GATE]);
     $user = gate_user();
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
     $os = gate_criaOs('A', 'aberta');
@@ -91,7 +91,7 @@ it('UC-OSH-08 · show() JSON expõe o bloco approval com o estado derivado', fun
     session(['user.business_id' => BIZ_GATE]);
     $user = gate_user();
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
     $os = gate_criaOs('B', 'orcamento');
@@ -110,7 +110,7 @@ it('re-envio (Cobrar) em OS já em orcamento re-dispara o WhatsApp', function ()
     session(['user.business_id' => BIZ_GATE]);
     $user = gate_user();
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
     $os = gate_criaOs('C', 'orcamento');

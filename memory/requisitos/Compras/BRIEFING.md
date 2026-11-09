@@ -5,22 +5,23 @@ title: "BRIEFING — Modules/Compras"
 type: briefing
 module: Compras
 status: em-construcao
-updated_at: "2026-10-26"
-version: 0.3
+updated_at: "2026-11-09"
+version: 0.4
 owner: W
 ---
 
 # BRIEFING — Modules/Compras
 
-## TL;DR (5 linhas)
+## TL;DR (6 linhas)
 
-- **O que é:** cockpit de compras (`/compras`) — lista paginada + 4 KPIs + drawer denso 5 tabs. Complementa (não substitui) o CRUD `/purchases/*` Inertia (convergência C1). Domínio: nota de entrada / pedido de compra sobre `transactions` polimórfica.
+- **O que é:** cockpit de compras (`/compras`) — lista paginada + 4 KPIs + drawer denso 5 tabs — e as regras de compra que o CRUD `/purchases/*` Inertia consome (convergência C1). Domínio: nota de entrada / pedido de compra sobre `transactions` polimórfica.
 - **Estado (verificado 2026-08-16):** cockpit **live no código**. **NÃO está em produção nem canary pra nenhum business** (D5=0). Larissa @ ROTA LIVRE biz=4 sinalizou dor mas nunca usou. _(A nota do módulo não é restateada aqui — ver §Score.)_
 - **Caminho:** B híbrido — greenfield Controllers/Pages, REUSA `transactions` + `TransactionUtil` + Observer Financeiro.
-- **Maior gap:** a **ponte DF-e→compra** (`nfe_dfe_recebidos → Transaction type=purchase`, US-COM-003) — o import fiscal já existe no NfeBrasil, falta plugar. + **zero teste de cálculo custo/estoque** (Tier 0).
-- **Capacidade vs mercado:** **34/100** ([CAPTERRA-FICHA.md](CAPTERRA-FICHA.md)) — ganha em Tier 0 + UI, vazio no motor de compra (import/matching/recebimento/conciliação).
+- **Desde 26/10:** entraram recebimento parcial pelo pedido, MRP, cotação (só serviço), alçada de valor, inspeção no recebimento (só serviço), custo médio móvel e curva ABC. Alçada, inspeção, custo médio e curva ABC nascem **desligados** (§Flags).
+- **Maior gap:** a **ponte DF-e→compra** (`nfe_dfe_recebidos → Transaction type=purchase`, US-COM-003) — o import fiscal já existe no NfeBrasil, falta plugar.
+- **Capacidade vs mercado:** **34/100** _(medido 2026-07-03, antes das entregas de outubro; não remedido)_ ([CAPTERRA-FICHA.md](CAPTERRA-FICHA.md)).
 
-## Capacidades atuais (2026-07-03)
+## Capacidades atuais (2026-11-09)
 
 | Capacidade | Status | Onde |
 |---|---|---|
@@ -28,15 +29,38 @@ owner: W
 | Drawer detalhe 5 tabs (Resumo/Itens/Documentos/Pagamentos/Histórico) + timeline | ✅ | `Drawer.tsx` (608 LOC) |
 | Multi-tenant Tier 0 REAL (Pest cross-tenant biz=1/99 + guard SQL + auth-based `business_id`) | ✅ | `MultiTenantTest.php` + `MultiTenantSqlGuardTest.php` (hotfix R1 `contacts.business_id`) |
 | Throttle 60/1 + FormRequest `ListarComprasRequest` + OTel spans | ✅ (throttle sem Pest do 429) | `Routes/web.php` + `Http/Requests/` + `ComprasService` |
+| Rotas de `/compras` exigem o pacote `compras_module` e, no cockpit, `compras.view` | ✅ desde 2026-11-06 | `ComprasLiberado` (#10572) |
+| Telas React do núcleo: compras (lista, nova, editar, detalhe), pedidos, requisições, devoluções | ✅ Blade `purchase.show` apagada (#10037) | `resources/js/Pages/Purchase*/` |
 | Estoque na entrada (movimenta `variation_location_details` por variação/local) | ✅ **preservado do Blade** + guard `assertPurchaseVariationsOwnership` | `PurchaseController::store` → `ProductUtil` (fluxo `/purchases`) |
 | Grade tam×cor matricial (vestuário) | ✅ **construída ponta-a-ponta** (upgrade sobre Blade linha-a-linha) | `GET /purchases/grade-matrix` → `GradeMatrixInput`/`GradeProductCombobox` em `Purchase/Create.tsx` (US-COM-005) |
 | Contas a pagar automático ao comprar | ✅ herdado (Observer Financeiro cria `fin_titulos` type=pagar) | `TransactionObserver` via `/purchases/store` |
 | FSM 6 estágios PERSISTIDA | ❌ só `const STAGES` visual no `Drawer.tsx` (não é máquina de estado) | — |
 | Importar XML DF-e como compra | 🟡 **substrato pronto no NfeBrasil** (pull SEFAZ NSU + manifestação testados); falta só a **ponte→compra** | `Modules/NfeBrasil/Services/Manifestacao/*` ✅ · bridge `ImportarDfeComoCompraService` ❌ (US-COM-003) |
 | Matching automático XML→produto (EAN/xProd) | ❌ | depende da ponte |
-| Recebimento parcial (qty recebida ≠ pedida) | 🟡 **em PR (2026-10-26)** — pelo pedido de compra (decisão coordenação 2026-10-26): a tela de compra traz o pedido com o que falta, e o pedido fica parcial até completar | `GET /purchases/pedidos-abertos` + `ReceberDoPedido` em `Purchase/Create.tsx` (US-COM-013) |
-| Teste de cálculo custo/total/estoque (Tier 0) | ❌ (hardening tests são source-grep tautológicos) | gap G-03 |
-| PiiRedactor no Drawer (CNPJ/CPF/mobile/email) | ❌ raw (gap LGPD ativo) | `Drawer.tsx:266/275/281` |
+| Recebimento parcial pelo pedido de compra | ✅ a tela de compra traz o pedido com o que falta; o pedido fica parcial até completar | `PedidosAbertosDoFornecedor` + `ReceberDoPedido` (US-COM-013) |
+| MRP: necessidade por insumo e local, com data para pedir | ✅ acima da lista de requisições | `NecessidadeDeCompra` (US-COM-030) |
+| Cotação entre fornecedores, fechada em pedido | 🟡 serviço pronto e testado, **sem tela** | `CotacaoDeCompra` (US-COM-031) |
+| Alçada de valor no pedido (comprador, gerente, diretoria) | ✅ desligada por padrão | `AlcadaDoPedido` (US-COM-032) |
+| Inspeção no recebimento; reprovado vira devolução | 🟡 serviço pronto e testado, **sem tela**, desligada | `InspecaoDoRecebimento` (US-COM-034) |
+| Custo do recebimento e preço proposto no detalhe da compra | 🟡 aprovar/recusar pronto; falta a fila na Fabricação | `AplicarCustoDoRecebimento` + `PropostasDePreco` (US-COM-026/028) |
+| Custo médio móvel por variação | 🟡 atrás de flag, depende da semente aprovada pelo [W] | `CustoMedioMovel` + `compras:custo-medio-semear` (US-PROD-024) |
+| Curva ABC e sugestão de reposição pelo giro | 🟡 só leitura, atrás de flag | `CurvaAbcReposicao` (US-ESTOQUE-003) |
+| Estoque mínimo vira requisição | ✅ desligado por padrão | `RequisicaoEstoqueMinimoService` (US-COM-027) |
+| Teste de cálculo custo/total/estoque (Tier 0) | ✅ E2E na lane de PR, no tenant 98 | `PurchaseCalculoValorEstoqueE2ETest` (US-COM-011) |
+| Isolamento entre empresas no caminho de compra e pedido | ✅ auditoria 2026-11-05, lote 0 | #10425, #10451, #10464, #10476, #10481 |
+
+## Flags e chaves de ativação
+
+Valor em produção não é copiado aqui: confira no `.env` e em `business.common_settings`. Em código, todas nascem desligadas.
+
+| Chave | Onde | Liga o quê |
+|---|---|---|
+| `compras_module` | pacote da empresa (Superadmin) | menu e rotas operacionais de `/compras` |
+| `COMPRAS_CUSTO_MEDIO_MOVEL` | env · `config('compras.custo_medio_movel')` | custo médio móvel; só depois da semente aprovada pelo [W] |
+| `COMPRAS_CURVA_ABC_REPOSICAO` | env · `config('compras.curva_abc_reposicao')` | curva ABC e sugestão de reposição |
+| `compras_alcada` | `business.common_settings` | alçada de valor do pedido, com os limites |
+| `compras_inspecao_recebimento` | `business.common_settings` | inspeção no recebimento |
+| `compras_requisicao_estoque_minimo` | `business.common_settings` (aba Fluxos da empresa) | requisição automática por estoque mínimo |
 
 ## Capabilities mapeadas pra vertical
 
@@ -59,13 +83,13 @@ owner: W
 
 ## Próximos passos (backlog priorizado)
 
-Fonte viva: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (16 tasks P0-P3, aguarda aprovação Wagner) + Onda 2.1 do programa de ondas.
+Fonte viva: `tasks-list module:Compras` no MCP e o [SPEC.md](SPEC.md).
 
-1. **G-01 [P0]** Ponte DF-e recebida → Compra (US-COM-003) — reusa NfeBrasil, esforço M
-2. **G-03 [P0]** Teste E2E cálculo custo/total/estoque (Tier 0 valor/estoque)
-3. **G-02 [P0]** Matching automático XML→produto (EAN+xProd)
-4. **[P1]** FSM persistida · recebimento parcial · GradeMatrixInput smoke/canary Larissa
-5. **[P2]** PiiRedactor no Drawer (LGPD) · eager-load anti-N+1
+1. **[P0]** Ponte DF-e recebida → Compra (US-COM-003) e matching XML→produto (US-COM-012)
+2. **[P0]** Lane de Compras por árvore-menos-quarentena (US-COM-022)
+3. **[P1]** Testes de invariante de estoque (US-COM-015) e de contas a pagar pelo fluxo (US-COM-016) · FSM persistida (US-COM-014)
+4. **Telas pendentes:** cotação e inspeção · fila de preços na Fabricação
+5. **Canary** do cockpit (US-COM-023), ato do [W]
 
 ## Pegadinhas conhecidas (Tier 0)
 
@@ -84,8 +108,8 @@ Fonte viva: [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (16 tasks P0-P3, ag
 
 ## Refs
 
-- [SPEC.md](SPEC.md) (US-COM-001..011) · [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (capacidade 34) · [CAPTERRA-DESIGN-FICHA.md](CAPTERRA-DESIGN-FICHA.md) (design 67) · [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (backlog)
-- [AUDIT-SENIOR-2026-05-25.md](AUDIT-SENIOR-2026-05-25.md) · [DISCOVERY-LARISSA-COMPRAS.md](DISCOVERY-LARISSA-COMPRAS.md) · [RUNBOOK-compras-index.md](RUNBOOK-compras-index.md)
+- [SPEC.md](SPEC.md) (US-COM-001..034) · [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (capacidade 34) · [CAPTERRA-DESIGN-FICHA.md](CAPTERRA-DESIGN-FICHA.md) (design 67) · [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (backlog)
+- SDD do fluxo de ponta a ponta: seção do domínio em [SDD-tela-cockpit-compras-v1.0.md](SDD-tela-cockpit-compras-v1.0.md) · [AUDIT-SENIOR-2026-05-25.md](AUDIT-SENIOR-2026-05-25.md) · [DISCOVERY-LARISSA-COMPRAS.md](DISCOVERY-LARISSA-COMPRAS.md) · [RUNBOOK-compras-index.md](RUNBOOK-compras-index.md)
 - Session logs: [2026-05-21 como-integrar](../../sessions/2026-05-21-como-integrar-compras.md) · [2026-07-03 capterra](../../sessions/2026-07-03-capterra-compras.md)
 
 ## Contrato de tela (SDD)
