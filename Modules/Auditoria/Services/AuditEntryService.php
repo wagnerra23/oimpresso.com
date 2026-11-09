@@ -120,8 +120,11 @@ class AuditEntryService
 
     private function rotuloDoAutor(Activity $activity, ?string $nome): string
     {
+        // Coluna própria do activity_log, fora do docblock do model do Spatie.
+        $origem = $activity->getAttribute('causer_kind');
+
         if (! $activity->causer_id) {
-            return match ($activity->causer_kind) {
+            return match ($origem) {
                 'agent' => 'IA',
                 'api'   => 'API',
                 default => 'Sistema',
@@ -130,7 +133,7 @@ class AuditEntryService
 
         $autor = $nome ?: (($activity->causer_type === User::class ? 'Usuário' : class_basename((string) $activity->causer_type)).' #'.$activity->causer_id);
 
-        return $activity->causer_kind === 'agent' ? 'IA · '.$autor : $autor;
+        return $origem === 'agent' ? 'IA · '.$autor : $autor;
     }
 
     /**
