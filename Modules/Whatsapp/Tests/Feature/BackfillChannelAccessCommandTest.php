@@ -267,11 +267,11 @@ it('R-WA-BCAC-006 — permission via role (Admin#biz) também é detectada', fun
     expect(ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)->count())->toBe(1);
 });
 
-it('R-WA-BCAC-007 — channel com revoked_at != null permite re-grant', function () {
+it('R-WA-BCAC-007 — revogação do SISTEMA (revoked_by=0) permite re-grant', function () {
     $ch = bcacMakeChannel(1);
     $u = bcacMakeUser(1, 'whatsapp.send');
 
-    // Estado pré-existente: row revoked (history preservation)
+    // Row revogada por rotina do sistema (sentinel 0), não por uma pessoa.
     ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 1,
         'channel_id' => $ch->id,
@@ -279,7 +279,7 @@ it('R-WA-BCAC-007 — channel com revoked_at != null permite re-grant', function
         'granted_by_user_id' => 1,
         'granted_at' => now()->subDay(),
         'revoked_at' => now()->subHour(),
-        'revoked_by_user_id' => 1,
+        'revoked_by_user_id' => 0,
     ]);
 
     Artisan::call('whatsapp:backfill-channel-access', ['--business' => '1']);
@@ -289,6 +289,31 @@ it('R-WA-BCAC-007 — channel com revoked_at != null permite re-grant', function
 
     $active = $allRows->whereNull('revoked_at');
     expect($active)->toHaveCount(1);
+});
+
+it('R-WA-BCAC-007b — revogação feita por HUMANO é respeitada; --force re-concede', function () {
+    $ch = bcacMakeChannel(1);
+    $u = bcacMakeUser(1, 'whatsapp.send');
+
+    ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1,
+        'channel_id' => $ch->id,
+        'user_id' => $u->id,
+        'granted_by_user_id' => 1,
+        'granted_at' => now()->subDay(),
+        'revoked_at' => now()->subHour(),
+        'revoked_by_user_id' => 7,
+    ]);
+
+    Artisan::call('whatsapp:backfill-channel-access', ['--business' => '1']);
+
+    $linhas = fn () => ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)->get();
+    expect($linhas())->toHaveCount(1)
+        ->and($linhas()->whereNull('revoked_at'))->toHaveCount(0);
+
+    // Controle: o --force é o único caminho que passa por cima da revogação.
+    Artisan::call('whatsapp:backfill-channel-access', ['--business' => '1', '--force' => true]);
+    expect($linhas()->whereNull('revoked_at'))->toHaveCount(1);
 });
 
 it('R-WA-BCAC-008 — channel sem users elegíveis: skip canal + warning, exit 0', function () {

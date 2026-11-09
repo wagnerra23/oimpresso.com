@@ -11,7 +11,6 @@ use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\LidPhoneMap;
 use Modules\Whatsapp\Jobs\BackfillLidConversationsJob;
-use Modules\Whatsapp\Observers\LidPhoneMapObserver;
 
 uses(Tests\TestCase::class);
 
@@ -39,6 +38,21 @@ beforeEach(function () {
     ] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // Contact/Conversation usam Spatie LogsActivity: o 1º save grava em activity_log.
+    Schema::create('activity_log', function ($t) {
+        $t->id();
+        $t->string('log_name')->nullable();
+        $t->text('description')->nullable();
+        $t->unsignedBigInteger('subject_id')->nullable();
+        $t->string('subject_type')->nullable();
+        $t->unsignedBigInteger('causer_id')->nullable();
+        $t->string('causer_type')->nullable();
+        $t->json('properties')->nullable();
+        $t->string('event')->nullable();
+        $t->uuid('batch_uuid')->nullable();
+        $t->timestamps();
+    });
 
     Schema::create('whatsapp_lid_pn_map', function ($table) {
         $table->id();
@@ -108,9 +122,8 @@ beforeEach(function () {
         $table->timestamps();
     });
 
-    // Observer pode não estar registrado em test env (cada test boot reseta
-    // o model). Registra explicitamente — idempotente.
-    LidPhoneMap::observe(LidPhoneMapObserver::class);
+    // O WhatsappServiceProvider já registra o LidPhoneMapObserver. Registrar de novo
+    // aqui duplicava cada evento (o T2 contava 2 jobs em vez de 1).
 });
 
 /** Helper — cria Channel + Conversation órfã (contact_id=null) pra LID. */
