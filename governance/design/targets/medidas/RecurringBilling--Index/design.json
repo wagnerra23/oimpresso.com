@@ -1,0 +1,119 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Assinaturas · Cobrança Recorrente Junho 2026 · WR2 Sistemas · assinaturas & contratos Nova assinatura Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ MRR · receita recorrente R$ 3.810,00 8 assinaturas ativas · ticket médio R$ 476,25 Churn este mês 1 saída taxa 11 % Próximas cobranças 1 R$ 3.600,00 a vencer A recuperar R$ 1.810,00 3 cobranças falhas Filtrar por Próxima cobrança Início Todo o período 9 assinaturas Dia Semana Mês Ano Tudo Personalizado 9 de 9 PP Padaria Pão Quente Sinalização Mensal · mensal · desde há 2a em dia Pix · R$ 450,00 AP Auto Posto Trevo Adesivos Frota Mensal · mensal · desde há 2a retentando 1 /3 Boleto · R$ 680,00 RS Restaurante Sabor Caseiro Impressão Trimestral · trimestral · desde há 2a em dia Cartão · R$ 1.200,00 AC Academia CorpoForte Sinalização Mensal · mensal · desde há 2a falhou 3 × Boleto · R$ 450,00 CV Clínica Vida Manutenção Fachada Anual · anual · desde há 3a em dia Pix · R$ 3.600,00 MU Mercado União Adesivos Frota Mensal · mensal · desde há 2a retentando 2 /3 Boleto · R$ 680,00 ES Escola Saber Impressão Trimestral · trimestral · desde há 2a pausada FB Farmácia Bem-Estar Sinalização Mensal · mensal · desde há 2a em dia Pix · R$ 450,00 LB Loja Bella Moda Sinalização Mensal · mensal · desde há 3a cancelada",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "MRR · receita ",
+          "textAlign": "left",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "left",
+          "valueFontPx": 22
+        },
+        {
+          "label": "Churn este mês",
+          "textAlign": "left",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "left",
+          "valueFontPx": 22
+        },
+        {
+          "label": "Próximas cobra",
+          "textAlign": "left",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "left",
+          "valueFontPx": 22
+        },
+        {
+          "label": "A recuperarR$ ",
+          "textAlign": "left",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "left",
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

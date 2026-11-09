@@ -1,0 +1,240 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Backup 5 de 5 arquivos guardados · último há 6 h · 1,23 GB no disco Auditoria Gerar backup agora Último backup 03:00 19/08/2026 · há 6 h Backups guardados 5 de 5 · a retenção apaga o resto Espaço ocupado 1,23 GB 25% do limite de 5 GB Agendamento diário 03:00 rodou hoje · schedule:run Backup no mesmo servidor não é backup O disco de destino é o ( ) enquanto não apontar para S3 ou outro remoto. Se o servidor cair, cai com ele o backup — baixe o arquivo do dia ou configure o disco remoto. Arquivo Origem Tamanho Data Idade 2026-08-19-03-00-04.zip banco + storage/app mais recente Agendado 256 MB 19/08/2026 03:00 recente · há 6 h Baixar 2026-08-18-03-00-04.zip banco + storage/app Agendado 252 MB 18/08/2026 03:00 fresc · há 1 dia Baixar 2026-08-17-15-00-04.zip banco + storage/app Manual 251 MB 17/08/2026 15:00 fresc · há 2 dias Baixar 2026-08-17-03-00-04.zip banco + storage/app Agendado 249 MB 17/08/2026 03:00 frio · há 2 dias Baixar 2026-08-16-03-00-04.zip banco + storage/app Agendado 247 MB 16/08/2026 03:00 frio · há 3 dias Baixar Backup automático O agendado só roda se esta linha existir no crontab do servidor. Sem ela, backup é só o que você clicar. Copiar Pasta Retenção — guarda os 5 últimos, apaga o resto Permissão — sem ela a rota devolve 403",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 1,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataBr": [
+            "19/08/2026"
+          ]
+        }
+      },
+      {
+        "nome": "alerta-destino",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "lista",
+        "classes": {
+          "dataIso": 5,
+          "dataBr": 5,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataIso": [
+            "2026-08-19",
+            "2026-08-18",
+            "2026-08-17"
+          ],
+          "dataBr": [
+            "19/08/2026",
+            "18/08/2026",
+            "17/08/2026"
+          ]
+        }
+      },
+      {
+        "nome": "cron",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 31.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 3,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "rgba(0, 0, 0, 0)",
+          "dot": false
+        }
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.235 0.01 240)",
+          "dot": false
+        }
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 10.5,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.7,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 3,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.68 0.13 162 / 0.16)",
+          "dot": true
+        }
+      },
+      {
+        "col": 5,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 15.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 5,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

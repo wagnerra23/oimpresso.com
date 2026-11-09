@@ -1,0 +1,32 @@
+{
+  "id": "Fiscal/Config",
+  "module": "Fiscal",
+  "source": "fiscal-subpages.jsx",
+  "target": "resources/js/Pages/Fiscal/Config.tsx",
+  "token": "fiscal-config",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/fiscal-config.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "e7a582b7d6e748b7311a66e94cc3c6e6090b7441a62b2bc0ebde356de9ea1d09",
+  "prodSha": "a973e5b21fa15453de008fcc702214c788cb382a3dc87d57b052940ffd02a472",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/fiscal/config",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-11-09T07:57:34.558Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

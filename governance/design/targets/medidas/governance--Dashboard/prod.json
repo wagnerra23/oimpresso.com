@@ -1,0 +1,73 @@
+{
+  "url": "https://staging.oimpresso.com/governance/dashboard",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Governança Painel consolidado de governança do oimpresso. Constituição v1.1.0 — Art. 8 (Policy Gating) + Art. 9 (Auditoria) operacional. Wagner opera 5min/dia. Constituição ADRs pendentes 6 Status proposto aguardando você Policies ativas 0 mcp_governance_rules.enabled=1 Skill approvals 0 Pending de aprovação Actors registrados 1 Identity Mesh — humanos + IAs Audit highlights 24h 1 Erros + ações L0/L1 Compliance Constitution 80% v1.1.0 — próx revisão 2026-08-05 SDD — Reestruturação (ADR 0275) Sem snapshot SDD ainda — cron `governance:sdd-scorecard-snapshot` roda 07:10 BRT. Saúde do ecossistema Failed jobs 24h 0 queue Horizon Custo IA 24h R$ 0,00 tokens × pricing canônico Última narrativa — Brain A narrador inativo ADRs aguardando você ( 6 ) ver todos → 0379 Bundle Design vira transação com manifesto, delta, staging e inventário de aplicação 03/09/2026 0125 Modules/Autopecas como feature-wish — Vargas é sinal qualificado 03/09/2026 0126 Vault chunked encryption Sprint 2 (proposed) 03/09/2026 0128 Smoke testing E2E pós-cycle 03/09/2026 0151 Modules/Comissao como feature-wish — aguarda cliente que reporta dor real 03/09/2026 0152 Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto 03/09/2026 Audit Highlights 24h ( 1 ) drill-down → ErrorException 09:34 Narrativas Brain A 24h ( 0 ) histórico → Sem narrativas Brain A ainda não rodou nas últimas 24h. Governança MCP Consumo cross-team do MCP server — trilha append-only em (ADR 0053) Período Últimos 30 dias Chamadas no período 79 19 usuários ativos · 20/08 — 18/09/2026 Taxa de sucesso 0.0% 0 de 79 sem erro Latência p95 0 ms p50 0 · p99 0 · máx 0 Custo do MCP R$ 0,00 0 tokens consumidos Consumo Acesso / RBAC Usuários e tools Chamadas por dia 30 dias · linha cheia = total · linha tracejada = negadas Chamadas Custo 0 7 14 21 28 20/08 24/08 28/08 01/09 05/09 09/09 13/09 17/09 18/09 chamadas negadas Atalhos de governança ⚙️ Policies Audit log Drift alerts ADRs proposto Documentos canônicos Constituição v1.1.0 Trust Tiers Architecture Identity Mesh Enforcement (8 mecanismos) Drift Migration Plan Audit cascata v1.1 KB completo → Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 2,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Última narrati",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Latência p950 ",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

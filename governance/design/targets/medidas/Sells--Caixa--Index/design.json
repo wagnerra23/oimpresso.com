@@ -1,0 +1,158 @@
+{
+  "url": "http://127.0.0.1:42111/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 85
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Caixa do dia Conferência por forma de pagamento, sangrias e fechamento Imprimir caixa (Z) Fechar caixa CRM Oficina Vendas Caixa do dia Devoluções Comissões Relatórios PDV balcão Faturado no dia R$ 0,00 0 venda s Esperado em caixa -R$ 200,00 dinheiro + sangrias Conferido R$ 580,00 contagem física Diferença + R$ 780,00 sobra Por forma de pagamento 30/04/2026 Forma Compensação Vendas Total ⚡ PIX imediato 0 R$ 0,00 💵 Dinheiro imediato 0 R$ 0,00 💳 Cartão D+1 a D+30 0 R$ 0,00 Total bruto R$ 0,00 Por origem balcão · oficina · online Sem movimentação no dia. Movimentos do caixa 4 lançamentos 08:30 abertura Saldo inicial + R$ 200,00 10:15 suprimento Troco do cofre + R$ 300,00 13:40 sangria Depósito banco -R$ 500,00 16:50 sangria Pagamento fornecedor -R$ 200,00 Sangria Suprimento Lançar Conferência física conte e digite Saldo de abertura Total contado em espécie + Vendas em dinheiro R$ 0,00 + Suprimentos R$ 500,00 − Sangrias R$ 700,00 = Esperado -R$ 200,00",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 29.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 28.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.3,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 22.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 3,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}

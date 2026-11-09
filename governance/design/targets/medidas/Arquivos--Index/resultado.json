@@ -1,0 +1,32 @@
+{
+  "id": "Arquivos/Index",
+  "module": "Arquivos",
+  "source": "arquivos-page.jsx",
+  "target": "resources/js/Pages/Arquivos/Index.tsx",
+  "token": "arquivos",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/arquivos-index.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "ce8dab33eca85909c7f8ecbfec6f33ab5018904387a4df5afbc3abaaafe0c071",
+  "prodSha": "9cd382c3b6dc2693219c21161da2321bf03f997cb70d983bb1e27ee7103f3312",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/arquivos",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-11-09T07:57:34.556Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

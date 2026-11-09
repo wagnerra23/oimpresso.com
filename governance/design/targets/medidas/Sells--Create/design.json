@@ -1,0 +1,100 @@
+{
+  "url": "http://127.0.0.1:42111/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 85
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Vendas Adicionar venda Comunicação visual Oficina Itens 0 Total R$ 0,00 Dados Produtos Frete Pagamento Fiscal Dados da venda Cliente Vendedor Bruna Larissa Wagner Status Final Orçamento Rascunho Local Matriz (BL0001) Filial Centro (BL0002) Produtos Bipe o código ou busque · banner/placa calculam m² Nenhum item Banner, lona e fachada calculam m² automático. Frete / entrega Retirada na loja sem frete Entrega transportadora + frete Pagamento PIX imediato Dinheiro imediato Cartão D+1 a D+30 Boleto 30d 30 dias Boleto 60d 60 dias Transferência D+0 a D+1 Ao salvar, gera cobrança PIX no módulo Cobrança (Inter/BCB) — . Documentos fiscais inferido pela composição Cliente Consumidor Final Composição — CNPJ não → NFC-e NFC-e · 65 n/d Cupom consumidor Balcão · CPF opcional ⚠ exige produto/peça NF-e · 55 n/d NF eletrônica B2B · DANFE + XML ⚠ exige produto/peça NFS-e n/d NF de serviço ISS municipal ⚠ exige serviço/MO MDF-e · 58 n/d Manifesto transp. Carga interestadual ⚠ só p/ entrega fora do município Produtos R$ 0,00 Desconto Pontos Total R$ 0,00 adicione 1 item Cancelar Salvar e imprimir Salvar e emitir",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 18,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}

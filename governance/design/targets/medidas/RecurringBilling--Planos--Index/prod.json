@@ -1,0 +1,56 @@
+{
+  "url": "https://staging.oimpresso.com/recurring-billing/planos",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Planos · cobrança recorrente 0 PLANOS · 0 ATIVOS · MRR potencial R$ 0,00 Voltar Novo plano Ticket médio · MRR potencial R$ 0,00 MRR total R$ 0,00 Total planos 0 0 inativos Total ativos 0 disponíveis pra novas assinaturas Plano top vendido — sem assinaturas ativas Distribuição ciclos mensal 0 trimestral 0 semestral 0 anual 0 customizado 0 Buscar Nenhum plano cadastrado. Crie o primeiro plano pra começar a vincular assinaturas. Criar primeiro plano 1 / 4 Tour rápido 3 colunas canônicas Filtros · Lista · Drawer detalhe — tudo cabe na tela sem scroll horizontal. Não mostrar mais Anterior Próximo Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}
