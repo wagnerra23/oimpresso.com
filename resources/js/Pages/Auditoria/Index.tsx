@@ -18,7 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select'
-import PageHeader from '@/Components/shared/PageHeader'
+import { PageHeader } from '@/Components/PageHeader'
+import { Icon } from '@/Components/Icon'
 import EmptyState from '@/Components/shared/EmptyState'
 
 interface Activity {
@@ -264,8 +265,8 @@ function AuditoriaIndex({ activities, filters = {} }: Props): React.ReactElement
     <>
       <PageHeader
         title="Auditoria"
-        icon="ShieldCheck"
-        description="Log de atividades do sistema — Constituição Art. 9 (activity_log)"
+        leading={<Icon name="ShieldCheck" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
+        subtitle="Log de atividades do sistema — Constituição Art. 9 (activity_log)"
       />
 
       <Card>
