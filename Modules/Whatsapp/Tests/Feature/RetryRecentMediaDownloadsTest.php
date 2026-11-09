@@ -160,7 +160,9 @@ function makeOrphanMediaMessage(
     ?string $downloadStatus = null,
     ?string $mediaUrl = null,
 ): Message {
-    $msg = Message::withoutGlobalScope(ScopeByBusiness::class)->create([
+    // Sem eventos: o observer de Message já enfileira o download ao criar, e aqui só o
+    // comando pode enfileirar — senão o dry-run e a janela de 24h nunca ficam limpos.
+    $msg = Message::withoutEvents(fn () => Message::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => $businessId,
         'conversation_id' => $convId,
         'direction' => 'inbound',
@@ -172,7 +174,7 @@ function makeOrphanMediaMessage(
         'media_mime' => $mime,
         'media_url' => $mediaUrl,
         'media_download_status' => $downloadStatus,
-    ]);
+    ]));
 
     if ($createdAt) {
         DB::table('messages')

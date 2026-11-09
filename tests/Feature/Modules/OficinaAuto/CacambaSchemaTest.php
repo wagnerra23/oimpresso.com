@@ -27,9 +27,9 @@ use Modules\OficinaAuto\Entities\Vehicle;
  *  - ServiceOrder accessor `dias_locacao` calcula dias corretos
  *  - ServiceOrder accessor `is_overdue` detecta atraso
  *  - ServiceOrder accessor `valor_receber` = daily_rate × dias_locacao
- *  - Cross-tenant biz=99 NÃO vê vehicles biz=1 (Tier 0 — ADR 0093)
+ *  - Cross-tenant biz=99 NÃO vê vehicles biz=98 (Tier 0 — ADR 0093)
  *
- * Tests biz=1 (Wagner WR2) + biz=99 (fictício) conforme ADR 0101.
+ * Tests biz=98 (Wagner WR2) + biz=99 (fictício) conforme ADR 0358.
  *
  * @see memory/decisions/0137-modules-oficinaauto-qualificada.md
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
@@ -37,12 +37,12 @@ use Modules\OficinaAuto\Entities\Vehicle;
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
-const BIZ_WAGNER_CAC = 1;
+const BIZ_WAGNER_CAC = 98;
 const BIZ_FICTICIO_CAC = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: schema OficinaAuto requer MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: schema OficinaAuto requer MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('vehicles') || ! Schema::hasTable('service_orders')) {
         $this->markTestSkipped('vehicles/service_orders tables missing — rode módulo OficinaAuto migrate primeiro');
@@ -248,7 +248,7 @@ it('ServiceOrder valor_receber = 0.0 quando manutencao (não cobra diária)', fu
     Vehicle::withoutGlobalScopes()->where('plate', 'CAC011')->forceDelete();
 });
 
-it('Vehicle cross-tenant: biz=99 NÃO vê vehicles biz=1 (Tier 0 — ADR 0093)', function () {
+it('Vehicle cross-tenant: biz=99 NÃO vê vehicles biz=98 (Tier 0 — ADR 0093)', function () {
     session(['user.business_id' => BIZ_WAGNER_CAC]);
 
     $v = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste

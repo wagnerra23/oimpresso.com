@@ -48,9 +48,15 @@ beforeEach(function () {
 
     // Setup multi-tenant (autentica user + session business_id) — reusa runner helper.
     // Cria também contact base que usamos como contact_id válido (mesmo business).
-    $ctx = AutosaveContractRunner::setupContext($this);
+    $ctx = AutosaveContractRunner::setupContext($this, $this->seededTenant());
     $this->business = $ctx['business'];
     $this->user = $ctx['user'];
+    $this->user->givePermissionTo('superadmin');
+    // O gate de pacote é outra regra (OficinaAutoPacoteGateTest): aqui a empresa tem o pacote.
+    $moduleUtil = \Mockery::mock(\App\Utils\ModuleUtil::class)->makePartial();
+    $moduleUtil->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($biz, $perm) => $perm === 'oficina_auto_module');
+    app()->instance(\App\Utils\ModuleUtil::class, $moduleUtil);
     $this->contactId = $ctx['contactId'];
 
     // Cria Vehicle base com campos mínimos requeridos pelo validator (plate + vehicle_type).
@@ -109,11 +115,11 @@ it('Vehicles/Edit — PUT endpoint persiste TODOS os 14 campos do fixture (round
             $putStatus = $putResponse->status();
 
             // PUT retorna 302 (redirect pra show) em caso sucesso ou 422 em validation fail.
-            $putOk = in_array($putStatus, [200, 302], true);
+            $putOk = in_array($putStatus, [200, 302, 303], true);
 
             // 2) GET Inertia — lê page.props.vehicle.{recv} de volta via Edit route.
             // X-Inertia header faz o middleware retornar JSON envelope (não HTML wrapper).
-            $getResponse = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            $getResponse = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => (string) \Inertia\Inertia::getVersion()])
                 ->get('/oficina-auto/veiculos/' . $this->vehicleId . '/edit');
             $getStatus = $getResponse->status();
 

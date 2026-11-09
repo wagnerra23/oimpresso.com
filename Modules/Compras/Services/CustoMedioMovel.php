@@ -24,7 +24,14 @@ use Illuminate\Support\Facades\DB;
  * móvel 20,00; média das compras 15,00.
  *
  * Só escreve nas tabelas próprias (`compras_custo_medio*`). Não muda `variations`, preço nem estoque.
- * Idempotente: a mesma (compra, variação) não entra duas vezes.
+ * Idempotente: a mesma (compra, variação) não entra duas vezes enquanto o movimento estiver ativo.
+ *
+ * Compra recebida que é cancelada ou excluída sai da conta (estornarEntrada): o custo fica como se
+ * ela não tivesse existido, e a margem de venda lida depois (noMomento) também. Venda não muda o
+ * custo médio, então venda no meio do caminho não atrapalha. Quando as unidades canceladas já
+ * tinham saído antes da entrada seguinte, a conta exata pediria estoque negativo: a entrada seguinte
+ * passa a valer só pelo próprio custo. O custo recalculado usa `custo_entrada`, de 4 casas, e pode
+ * diferir do original na 4ª casa.
  *
  * Tier 0 (ADR 0093): variação só da empresa da compra (join em `products.business_id`); estoque
  * somado só nos locais da empresa.
@@ -71,6 +78,7 @@ final class CustoMedioMovel implements \App\Contracts\Compras\CustoMedio
     {
         $ja = DB::table('compras_custo_medio_movimentos')
             ->where('business_id', $biz)->where('transaction_id', $transactionId)->where('variation_id', $variationId)
+            ->where('ativo', 1)
             ->exists();
         if ($ja) {
             return null;
@@ -101,6 +109,71 @@ final class CustoMedioMovel implements \App\Contracts\Compras\CustoMedio
             'variation_id' => $variationId, 'qtd_antes' => $qtdAntes, 'custo_antes' => $custoAntes,
             'qtd_entrada' => $qtd, 'custo_entrada' => $custoEntrada, 'custo_depois' => $depois,
         ];
+    }
+
+    /**
+     * Tira a compra da conta do custo médio, em todas as variações dela. Sem movimento ativo da
+     * compra nesta empresa, não faz nada.
+     *
+     * @return list<array<string, mixed>> os estornos feitos
+     */
+    public function estornarEntrada(int $biz, int $transactionId): array
+    {
+        $variacoes = DB::table('compras_custo_medio_movimentos')
+            ->where('business_id', $biz)->where('transaction_id', $transactionId)->where('ativo', 1)
+            ->pluck('variation_id');
+
+        $feito = [];
+        foreach ($variacoes as $variationId) {
+            $feito[] = DB::transaction(fn () => $this->estornar($biz, (int) $variationId, $transactionId));
+        }
+
+        return array_values(array_filter($feito));
+    }
+
+    /** @return array<string, mixed>|null */
+    private function estornar(int $biz, int $variationId, int $transactionId): ?array
+    {
+        $atual = DB::table('compras_custo_medio')
+            ->where('business_id', $biz)->where('variation_id', $variationId)
+            ->lockForUpdate()->first(['id', 'custo_medio']);
+
+        $movimentos = DB::table('compras_custo_medio_movimentos')
+            ->where('business_id', $biz)->where('variation_id', $variationId)->where('ativo', 1)
+            ->orderBy('id')->get();
+        $alvo = $movimentos->firstWhere('transaction_id', $transactionId);
+        if ($alvo === null) {
+            return null;
+        }
+
+        DB::table('compras_custo_medio_movimentos')->where('id', $alvo->id)->update([
+            'ativo' => null, 'estornado_em' => now(), 'updated_at' => now(),
+        ]);
+
+        $custo = $alvo->custo_antes !== null ? (float) $alvo->custo_antes : null;
+        $seguintes = $movimentos->where('id', '>', $alvo->id)->where('origem', 'entrada');
+        foreach ($seguintes as $m) {
+            $qtdAntes = max(0.0, (float) $m->qtd_antes - (float) $alvo->qtd_entrada);
+            $qtdEntrada = (float) $m->qtd_entrada;
+            $custoEntrada = (float) $m->custo_entrada;
+            $depois = ($qtdAntes > 0 && $custo !== null)
+                ? round(($custo * $qtdAntes + $custoEntrada * $qtdEntrada) / ($qtdAntes + $qtdEntrada), 4)
+                : $custoEntrada;
+            DB::table('compras_custo_medio_movimentos')->where('id', $m->id)->update([
+                'qtd_antes' => $qtdAntes, 'custo_antes' => $custo, 'custo_depois' => $depois, 'updated_at' => now(),
+            ]);
+            $custo = $depois;
+        }
+
+        $eraOPrimeiro = (int) $movimentos->min('id') === (int) $alvo->id;
+        if ($eraOPrimeiro && $seguintes->isEmpty()) {
+            $custo = null;
+            DB::table('compras_custo_medio')->where('business_id', $biz)->where('variation_id', $variationId)->delete();
+        } elseif ($custo !== null) {
+            $this->gravar($biz, $variationId, $custo, $atual?->id);
+        }
+
+        return ['variation_id' => $variationId, 'custo_antes_do_estorno' => $atual?->custo_medio, 'custo_depois_do_estorno' => $custo];
     }
 
     /**
@@ -143,7 +216,7 @@ final class CustoMedioMovel implements \App\Contracts\Compras\CustoMedio
     public function noMomento(int $biz, int $variationId, string $momento): ?float
     {
         $c = DB::table('compras_custo_medio_movimentos')
-            ->where('business_id', $biz)->where('variation_id', $variationId)
+            ->where('business_id', $biz)->where('variation_id', $variationId)->where('ativo', 1)
             ->where('registrado_em', '<=', $momento)
             ->orderByDesc('registrado_em')->orderByDesc('id')
             ->value('custo_depois');

@@ -15,6 +15,7 @@ use App\Scopes\ScopeByBusiness;
 use Modules\OficinaAuto\Database\Seeders\OficinaAutoFsmSeeder;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
+use Modules\OficinaAuto\Services\StageGateEvaluator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -27,11 +28,11 @@ use Spatie\Permission\Models\Role;
  *  - locada → manutencao dispara `enviar_manutencao` (action FSM crítica)
  *  - aguardando → disponivel dispara `recolher` (action FSM normal)
  *  - manutencao → disponivel dispara `voltar_disponivel`
- *  - Cross-tenant biz=99 NÃO pode mover caçambas biz=1 (Tier 0 ADR 0093)
+ *  - Cross-tenant biz=99 NÃO pode mover caçambas biz=98 (Tier 0 ADR 0093)
  *  - Action key inválida pra stage retorna 422 (mapping bloqueado client-side
  *    é defense-in-depth; backend é última linha)
  *
- * Convenção: biz=1 default (Wagner WR2), biz=99 cross-tenant fictício (ADR 0101).
+ * Convenção: biz=98 default (Wagner WR2), biz=99 cross-tenant fictício (ADR 0358).
  *
  * Pré-reqs: tabelas FSM canônicas + service_orders.current_stage_id + Spatie roles
  * (todos checados em beforeEach com markTestSkipped defensivo).
@@ -42,13 +43,13 @@ use Spatie\Permission\Models\Role;
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
  */
 
-const BIZ_KANBAN_DND = 1;
+const BIZ_KANBAN_DND = 98;
 const BIZ_KANBAN_DND_CROSS = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped(
-            'SQLite-incompatível: schema FSM requer MySQL UltimatePOS (ADR 0101)',
+            'SQLite-incompatível: schema FSM requer MySQL UltimatePOS (ADR 0358)',
         );
     }
 
@@ -120,14 +121,18 @@ function makeVehicleKanbanDnd(string $plate, int $businessId): Vehicle
 
 function makeOrderKanbanDnd(int $businessId, int $vehicleId, string $orderType, ?int $stageId = null): ServiceOrder
 {
-    return ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
-        'business_id'      => $businessId,
-        'vehicle_id'       => $vehicleId,
-        'order_type'       => $orderType,
-        'status'           => 'aberta',
-        'entered_at'       => now(),
-        'current_stage_id' => $stageId,
+    $order = ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
+        'business_id' => $businessId,
+        'vehicle_id'  => $vehicleId,
+        'order_type'  => $orderType,
+        'status'      => 'aberta',
+        'entered_at'  => now(),
     ]);
+
+    // current_stage_id não passa pelo create (GuardsFsmTransitions): a fixture grava direto.
+    DB::table('service_orders')->where('id', $order->id)->update(['current_stage_id' => $stageId]);
+
+    return ServiceOrder::withoutGlobalScopes()->find($order->id); // SUPERADMIN: setup teste
 }
 
 function getStageKanbanDnd(int $businessId, string $processKey, string $stageKey): SaleProcessStage
@@ -197,7 +202,7 @@ it('mapping locada → manutencao dispara FSM action enviar_manutencao', functio
 
     $controller = app(ServiceOrderFsmActionController::class);
     $service = app(ExecuteStageActionService::class);
-    $response = $controller->execute($request, $order, $service);
+    $response = $controller->execute($request, $order, $service, app(StageGateEvaluator::class));
 
     // Pode dar 422 (action não disponível stage 'locada') OU 200 (se seeder evoluir).
     // V1 contrato: backend sempre fail-secure pra transitions não cadastradas.
@@ -235,7 +240,7 @@ it('mapping aguardando → disponivel dispara FSM action recolher', function () 
 
     $controller = app(ServiceOrderFsmActionController::class);
     $service = app(ExecuteStageActionService::class);
-    $response = $controller->execute($request, $order, $service);
+    $response = $controller->execute($request, $order, $service, app(StageGateEvaluator::class));
 
     expect($response->getStatusCode())->toBe(200);
     $data = $response->getData(true);
@@ -268,9 +273,9 @@ it('mapping manutencao → disponivel dispara FSM action voltar_disponivel', fun
 
     $controller = app(ServiceOrderFsmActionController::class);
     $service = app(ExecuteStageActionService::class);
-    $response = $controller->execute($request, $order, $service);
+    $response = $controller->execute($request, $order, $service, app(StageGateEvaluator::class));
 
-    expect($response->getStatusCode())->toBe(200);
+    expect($response->getStatusCode())->toBe(200, (string) $response->getContent());
     $data = $response->getData(true);
     expect($data['ok'])->toBeTrue();
     expect($data['to_stage']['key'])->toBe('disponivel');
@@ -300,7 +305,7 @@ it('action key inexistente retorna 422 — defense pro mapping bloqueado client-
 
     $controller = app(ServiceOrderFsmActionController::class);
     $service = app(ExecuteStageActionService::class);
-    $response = $controller->execute($request, $order, $service);
+    $response = $controller->execute($request, $order, $service, app(StageGateEvaluator::class));
 
     expect($response->getStatusCode())->toBe(422);
     expect($response->getData(true))->toHaveKey('error');
@@ -309,10 +314,10 @@ it('action key inexistente retorna 422 — defense pro mapping bloqueado client-
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Test 5: Cross-tenant biz=99 NÃO pode mover caçambas biz=1
+// Test 5: Cross-tenant biz=99 NÃO pode mover caçambas biz=98
 // ─────────────────────────────────────────────────────────────────────────────
-it('cross-tenant biz=99 NÃO pode disparar FSM action em OS biz=1', function () {
-    // Setup biz=1 com OS na coluna 'locada'
+it('cross-tenant biz=99 NÃO pode disparar FSM action em OS biz=98', function () {
+    // Setup biz=98 com OS na coluna 'locada'
     setupKanbanDndBusiness(BIZ_KANBAN_DND);
     $stage = getStageKanbanDnd(BIZ_KANBAN_DND, 'cacamba_locacao', 'locada');
     $vehicle = makeVehicleKanbanDnd('KDND-E1', BIZ_KANBAN_DND);
@@ -333,13 +338,13 @@ it('cross-tenant biz=99 NÃO pode disparar FSM action em OS biz=1', function () 
     expect($orderForcedLoad->business_id)->toBe(BIZ_KANBAN_DND);
 
     $service = app(ExecuteStageActionService::class);
-    try {
-        $service->execute($orderForcedLoad, 'recolher', $userBiz99, []);
-        $this->fail('Esperava bloqueio cross-tenant Tier 0, mas service executou');
-    } catch (\App\Domain\Fsm\Exceptions\UnauthorizedActionException
-        |\App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException $e) {
-        expect(true)->toBeTrue(); // OK — fail-secure
-    }
+    expect(fn () => $service->execute($orderForcedLoad, 'recolher', $userBiz99, []))
+        ->toThrow(\App\Domain\Fsm\Exceptions\UnauthorizedActionException::class);
+
+    // A etapa e o histórico da OS não mudam: a transição não foi aplicada.
+    $linha = ServiceOrder::withoutGlobalScopes()->find($orderBiz1->id);
+    expect((int) $linha->current_stage_id)->toBe((int) $stage->id);
+    expect(DB::table('sale_stage_history')->where('transaction_id', $orderBiz1->id)->count())->toBe(0);
 })->after(function () {
     cleanupKanbanDnd(BIZ_KANBAN_DND, 'KDND-E');
     cleanupKanbanDnd(BIZ_KANBAN_DND_CROSS, 'KDND-E');

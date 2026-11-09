@@ -707,6 +707,29 @@ Modules/PaymentGateway/Tests/Feature/InterReconcilePixCommandTest.php
 Modules/PaymentGateway/Tests/Feature/ReconciliarCobrancaServiceTest.php
 Modules/PaymentGateway/Tests/Feature/SantanderCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/SicrediCnabDriverTest.php
+# ── Whatsapp era-sqlite, leva 3/3 (auditoria 2026-11-05, lote 1) ──────────────
+# Testes com guarda era-sqlite que não rodavam em ambiente nenhum: fora desta
+# lista e pulados na nightly MySQL do CT 100.
+Modules/Whatsapp/Tests/Feature/InboxSendInteractiveTest.php
+Modules/Whatsapp/Tests/Feature/MacrosCrudTest.php
+Modules/Whatsapp/Tests/Feature/MediaInboundProcessedTest.php
+Modules/Whatsapp/Tests/Feature/NotificarClienteCancelamentoJobTest.php
+Modules/Whatsapp/Tests/Feature/PhonesMigrationDataTest.php
+Modules/Whatsapp/Tests/Feature/ReconnectAndImportCommandTest.php
+Modules/Whatsapp/Tests/Feature/RetryRecentMediaDownloadsTest.php
+Modules/Whatsapp/Tests/Feature/SendInteractiveJobTest.php
+Modules/Whatsapp/Tests/Feature/SendMessageRequestTest.php
+Modules/Whatsapp/Tests/Feature/SlashCorrigirTest.php
+Modules/Whatsapp/Tests/Feature/SlashLembrarTest.php
+Modules/Whatsapp/Tests/Feature/SlashLembreteTest.php
+Modules/Whatsapp/Tests/Feature/WebhookMediaExtractTest.php
+Modules/Whatsapp/Tests/Feature/WebhookOutboundFromMeRegressionTest.php
+Modules/Whatsapp/Tests/Feature/WhatsappDriverHealthCheckJobTest.php
+Modules/Whatsapp/Tests/Feature/WhatsappTemplateTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowBroadcastFilterTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowMediaInboundTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowOutboundFromMeRegressionTest.php
+
 # 2026-10-28 (lote 3): os 5 que estavam na paymentgateway-pest-quarantine.list, com a fixture corrigida.
 Modules/PaymentGateway/Tests/Feature/AilosCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/CaixaCnabDriverTest.php
@@ -722,7 +745,37 @@ Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php
 Modules/PaymentGateway/Tests/Feature/WebhookEndpointsTest.php
 Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php
 
+# ── Whatsapp era-sqlite, leva 1b (auditoria 2026-11-05, lote 1) ─────────────────
+# Filtros e ACL por canal da tela de conversas. Testavam o InboxController::index, que
+# virou 301 para a Caixa Unificada; agora exercitam o CaixaUnificadaController.
+Modules/Whatsapp/Tests/Feature/InboxFiltersTest.php
+Modules/Whatsapp/Tests/Feature/InboxMultiPhoneFilterTest.php
+Modules/Whatsapp/Tests/Feature/CanalFilaIsolationTest.php
+
 # Fiscal · fiscal:cert-health-check lê o limiar de fiscal.cert_health_check_alert_days
 # (D13 da auditoria do Fiscal, 2026-11-05). Monta a tabela mínima em :memory: e roda o
 # comando em --dry-run; o CertHealthCheckCommandTest (MySQL) ainda está fora de lane.
 Modules/Fiscal/Tests/Feature/CertHealthCheckLimiarTest.php
+# ── Whatsapp era-sqlite, leva 1/3 (auditoria 2026-11-05, lote 1) ──────────────
+# 57 testes com guarda era-sqlite (markTestSkipped fora de sqlite) não rodavam em
+# ambiente nenhum: fora desta lista e pulados na nightly MySQL do CT 100. Esta leva
+# traz os de isolamento entre empresas, webhooks e o regressivo do incidente LID.
+# InboxFilters, InboxMultiPhoneFilter e CanalFilaIsolation ficam para PR próprio:
+# testam o InboxController::index, que virou 301 para a Caixa Unificada, e precisam
+# ser reapontados para o CaixaUnificadaController antes de entrar aqui.
+Modules/Whatsapp/Tests/Feature/MultiTenantIsolationTest.php
+Modules/Whatsapp/Tests/Feature/OmnichannelIsolationTest.php
+Modules/Whatsapp/Tests/Feature/LidCrossContactIncidentP0Test.php
+Modules/Whatsapp/Tests/Feature/IncidentCrossContact20260514E2ERegressionTest.php
+Modules/Whatsapp/Tests/Feature/WebhookSignatureTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowWebhookAuthTest.php
+Modules/Whatsapp/Tests/Feature/ProcessIncomingWebhookJobTest.php
+Modules/Whatsapp/Tests/Feature/SendWhatsappMessageJobTest.php
+Modules/Whatsapp/Tests/Feature/LidPhoneResolverTest.php
+Modules/Whatsapp/Tests/Feature/LidBackfillObserverTest.php
+Modules/Whatsapp/Tests/Feature/LidBackfillCommandTest.php
+Modules/Whatsapp/Tests/Feature/PhoneResolutionWebhookTest.php
+Modules/Whatsapp/Tests/Feature/BackfillChannelAccessCommandTest.php
+Modules/Whatsapp/Tests/Feature/BlockContactTest.php
+Modules/Whatsapp/Tests/Feature/LinkContactTest.php
+Modules/Whatsapp/Tests/Feature/ConversationTagsTest.php
