@@ -2,6 +2,7 @@
 
 namespace Modules\Auditoria\Services;
 
+use App\Domain\Fsm\Concerns\GuardsFsmTransitions;
 use App\User;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
@@ -29,25 +30,53 @@ class RevertService
     /**
      * Whitelist de Models/condicoes UNREVERTIBLE.
      * Append-only: adicionar Model novo via PR + comentario; remover = ADR amendada.
+     *
+     * As chaves sao as classes REAIS que gravam em activity_log. Ate 2026-11 tres
+     * chaves apontavam para classes inexistentes (PontoWr2 Marcacao, NfeTransaction,
+     * Repair Models OS): `instanceof` de classe inexistente da false sem erro, e a
+     * trava ficava inerte. RevertServiceTest prova cada uma pelo canRevert.
+     *
+     * Documento fiscal bloqueia em TODOS os estados, nao so nos autorizados: os campos
+     * logados (status, cstat, numero, chave_44) pertencem ao fluxo da SEFAZ/prefeitura.
      */
     public function unrevertibleRegistry(): array
     {
+        $sefaz = 'Documento fiscal da SEFAZ nao pode ser revertido via undo. Use o fluxo fiscal apropriado (cancelamento/inutilizacao/CC-e).';
+        $nfse = 'NFSe segue o fluxo da prefeitura e nao pode ser revertida via undo — cancele a nota na prefeitura.';
+
         return [
-            \Modules\PontoWr2\Models\Marcacao::class => [
+            \Modules\Ponto\Entities\Marcacao::class => [
                 'reason'    => 'Portaria MTP 671/2021 — registro de ponto e append-only por forca de lei. Use Marcacao::anular() (cria marcacao de anulacao, nao deleta original).',
                 'condition' => null, // sempre bloqueado
             ],
-            \Modules\NfeBrasil\Models\NfeTransaction::class => [
-                'reason'    => 'NFe autorizada/cancelada/inutilizada na SEFAZ nao pode ser revertida via undo. Use fluxo SEFAZ apropriado (cancelamento/inutilizacao/CC-e).',
-                'condition' => fn ($model) => isset($model->cstat) && in_array($model->cstat, [100, 101, 135]),
+            \Modules\Ponto\Entities\BancoHorasMovimento::class => [
+                'reason'    => 'Portaria MTP 671/2021 — movimento de banco de horas e append-only (o model recusa UPDATE). Lance um movimento de ajuste.',
+                'condition' => null,
             ],
+            \Modules\NfeBrasil\Models\NfeEmissao::class      => ['reason' => $sefaz, 'condition' => null],
+            \Modules\NfeBrasil\Models\NfeEvento::class       => ['reason' => $sefaz, 'condition' => null],
+            \Modules\NfeBrasil\Models\NfeInutilizacao::class => ['reason' => $sefaz, 'condition' => null],
+            \Modules\NFSe\Models\NfseEmissao::class          => ['reason' => $nfse, 'condition' => null],
+            \Modules\NfeBrasil\Models\NfseEmissao::class     => ['reason' => $nfse, 'condition' => null],
+            // fin_titulo_baixas nao tem coluna que identifique o Asaas (a condicao antiga
+            // lia `origem`, que nunca existiu). A baixa e imutavel por contrato do model:
+            // estorno e nova linha com estorno_de_id. Por isso bloqueia sempre.
             \Modules\Financeiro\Models\TituloBaixa::class => [
-                'reason'    => 'Boleto pago externamente (Asaas) — estorno deve ser feito via fluxo Asaas, nao via undo de auditoria.',
-                'condition' => fn ($model) => isset($model->origem) && $model->origem === 'asaas-paid',
+                'reason'    => 'Baixa financeira e imutavel (inclui boleto pago via Asaas) — o estorno e uma nova linha, feito pela acao Estornar do Financeiro, nao via undo de auditoria.',
+                'condition' => null,
             ],
-            \Modules\Repair\Models\OS::class => [
+            \Modules\Repair\Entities\JobSheet::class => [
                 'reason'    => 'OS com NFSe emitida nao pode ser revertida — cancele NFSe na prefeitura primeiro.',
-                'condition' => fn ($model) => isset($model->nfse_emitida) && $model->nfse_emitida === true,
+                // A OS nao guarda a nota: o elo e transactions.repair_job_sheet_id ->
+                // nfse_emissoes.transaction_id. A tabela nasce de dois modulos, por isso
+                // os dois vocabularios de status. Em transmissao tambem bloqueia.
+                'condition' => fn ($model) => DB::table('nfse_emissoes as n')
+                    ->join('transactions as t', 't.id', '=', 'n.transaction_id')
+                    ->where('t.repair_job_sheet_id', $model->getKey())
+                    ->where('n.business_id', $model->business_id)
+                    ->whereNull('n.deleted_at')
+                    ->whereIn('n.status', ['emitida', 'processando', 'authorized', 'sent'])
+                    ->exists(),
             ],
             \App\Transaction::class => [
                 'reason'    => 'Esta transacao tem pagamento(s) registrado(s) posteriormente. Reverter quebraria consistencia. Estorne os pagamentos primeiro.',
@@ -107,14 +136,29 @@ class RevertService
         foreach ($this->unrevertibleRegistry() as $blockedClass => $rule) {
             if ($subject instanceof $blockedClass || $log->subject_type === $blockedClass) {
                 $cond = $rule['condition'];
-                $blocked = $cond === null
-                    ? true
-                    : (bool) $cond($subject, $log);
+                try {
+                    $blocked = $cond === null
+                        ? true
+                        : (bool) $cond($subject, $log);
+                } catch (\Throwable $e) {
+                    // Sem conseguir medir a trava, nao libera (fail-closed).
+                    return RevertCheck::deny('Nao foi possivel verificar a trava de irreversibilidade.', $blockedClass);
+                }
 
                 if ($blocked) {
                     return RevertCheck::deny($rule['reason'], $blockedClass);
                 }
             }
+        }
+
+        // Etapa do pipeline FSM so anda por ExecuteStageActionService: o trait recusa o
+        // UPDATE direto, entao liberar aqui viraria excecao no meio do revert.
+        if (array_key_exists('current_stage_id', (array) ($log->properties['old'] ?? []))
+            && in_array(GuardsFsmTransitions::class, class_uses_recursive($subject), true)) {
+            return RevertCheck::deny(
+                'Mudanca de etapa do pipeline nao pode ser revertida via undo — use as acoes do proprio pipeline.',
+                GuardsFsmTransitions::class,
+            );
         }
 
         // Janela temporal por permissao
