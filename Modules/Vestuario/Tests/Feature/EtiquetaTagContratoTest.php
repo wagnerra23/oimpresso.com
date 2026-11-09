@@ -23,8 +23,8 @@ uses(Tests\TestCase::class);
  *   UC-VET-03 ← CU-VEST-03  (EAN-13 que a leitora do balcão aceita)
  *   UC-VET-05 ← CU-VEST-04  (etiqueta cabe na mídia 50×30mm + acento legível)
  *   UC-VET-06 ← CU-VEST-07  [V0] gerar etiqueta NÃO grava nada
- *   UC-VET-10 ← CU-VEST-03  (o código impresso é o sub_sku que o caixa procura)
- *   UC-VET-11 ← CU-VEST-02  (texto do cadastro não vira comando ZPL)
+ *   UC-VET-20 ← CU-VEST-03  (o código impresso é o sub_sku que o caixa procura)
+ *   UC-VET-21 ← CU-VEST-02  (texto do cadastro não vira comando ZPL)
  *
  * DESENHO PARA A LANE (importa): o job `Pest Vestuario` (modules-pest.yml, matrix)
  * roda sqlite :memory: SEM migrar — teste que depende de tabela PULA, e teste que pula
@@ -111,10 +111,10 @@ it('UC-VET-03: EAN informado com letra ou dígito errado devolve 422, não 500',
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UC-VET-10 · O código impresso é o que o caixa bipa  (CU-VEST-03)
+// UC-VET-20 · O código impresso é o que o caixa bipa  (CU-VEST-03)
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-VET-10: tamanhos do mesmo produto saem com códigos diferentes, cada um o próprio sub_sku', function () {
+it('UC-VET-20: tamanhos do mesmo produto saem com códigos diferentes, cada um o próprio sub_sku', function () {
     $svc = new EtiquetaTagService();
 
     $m = $svc->gerarEtiqueta(42, 7, ['nome' => 'Camiseta', 'sku' => 'CAMI-042-M-AZU'])['zpl'];
@@ -125,14 +125,14 @@ it('UC-VET-10: tamanhos do mesmo produto saem com códigos diferentes, cada um o
     expect($m)->not->toContain('7890000000420');
 });
 
-it('UC-VET-10: sub_sku EAN-13 válido sai como EAN-13; 13 dígitos com check errado saem em Code128', function () {
+it('UC-VET-20: sub_sku EAN-13 válido sai como EAN-13; 13 dígitos com check errado saem em Code128', function () {
     $svc = new EtiquetaTagService();
 
     expect($svc->gerarEtiqueta(1, 1, ['sku' => '7891000000014'])['zpl'])->toContain('^BEN')->toContain('^FD7891000000014^FS');
     expect($svc->gerarEtiqueta(1, 1, ['sku' => '7891000000015'])['zpl'])->toContain('^BCN')->toContain('^FD7891000000015^FS');
 });
 
-it('UC-VET-10: item vindo da remarcação (sem ean13) imprime o sub_sku', function () {
+it('UC-VET-20: item vindo da remarcação (sem ean13) imprime o sub_sku', function () {
     $res = ucVetPost(['items' => [[
         'product_id' => 42, 'variation_id' => 7, 'nome' => 'Vestido', 'tamanho' => 'M',
         'preco' => 10.5, 'sku' => 'REM-123456-P',
@@ -142,7 +142,7 @@ it('UC-VET-10: item vindo da remarcação (sem ean13) imprime o sub_sku', functi
     expect($res->getContent())->toContain('^BCN')->toContain('^FDREM-123456-P^FS');
 });
 
-it('UC-VET-10: o PDF desenha o Code128 do sub_sku e o EAN-13 do sub_sku EAN', function () {
+it('UC-VET-20: o PDF desenha o Code128 do sub_sku e o EAN-13 do sub_sku EAN', function () {
     $svc = new EtiquetaTagService();
     $etiquetas = array_map(fn (array $r) => $r['meta'] + ['ean13' => $r['ean13'], 'sku' => $r['sku']], [
         $svc->gerarEtiqueta(1, 1, ['nome' => 'A', 'sku' => 'CAMI-042-M-AZU']),
@@ -155,7 +155,7 @@ it('UC-VET-10: o PDF desenha o Code128 do sub_sku e o EAN-13 do sub_sku EAN', fu
     expect($html)->toContain('alt="CAMI-042-M-AZU"')->toContain('alt="7891000000014"');
 });
 
-it('UC-VET-10: sem SKU, com acento ou comprido demais para a etiqueta devolve 422', function () {
+it('UC-VET-20: sem SKU, com acento ou comprido demais para a etiqueta devolve 422', function () {
     foreach ([null, 'CAMISETA-AÇAÍ', str_repeat('A', 32)] as $sku) {
         $res = ucVetPost(['items' => [array_filter(['product_id' => 1, 'sku' => $sku])]]);
 
@@ -165,10 +165,10 @@ it('UC-VET-10: sem SKU, com acento ou comprido demais para a etiqueta devolve 42
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UC-VET-11 · Texto do cadastro não vira comando de impressora  (CU-VEST-02)
+// UC-VET-21 · Texto do cadastro não vira comando de impressora  (CU-VEST-02)
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-VET-11: ^ e ~ nos campos de texto não abrem comando ZPL', function () {
+it('UC-VET-21: ^ e ~ nos campos de texto não abrem comando ZPL', function () {
     $r = (new EtiquetaTagService())->gerarEtiqueta(1, 1, [
         'nome' => '^XZ^XA^JUF^XZ', 'tamanho' => '~JA', 'cor' => '^PQ9', 'colecao' => '~JR', 'sku' => 'INJ^XZ',
     ]);
@@ -180,7 +180,7 @@ it('UC-VET-11: ^ e ~ nos campos de texto não abrem comando ZPL', function () {
     expect($r['zpl'])->toContain($bs.'5EXZ'.$bs.'5EXA');
 });
 
-it('UC-VET-11: barra invertida e quebra de linha no texto não desmontam o campo', function () {
+it('UC-VET-21: barra invertida e quebra de linha no texto não desmontam o campo', function () {
     $bs = chr(92);
     $r = (new EtiquetaTagService())->gerarEtiqueta(1, 1, ['nome' => "Linha{$bs}5E\n^XZ", 'sku' => 'BS-1']);
 

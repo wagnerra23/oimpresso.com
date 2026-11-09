@@ -53,12 +53,12 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 | UC-VET-03 | Todo EAN-13 impresso passa no check GS1 | must | `CU-VEST-03` itens 1 e 3 | `EtiquetaTagContratoTest` · `W27EtiquetaGradeTest` | 🧪 |
 | UC-VET-04 | Lote de N itens gera N etiquetas; lote vazio é rejeitado | must | `CU-VEST-02` itens 1-3 | `W27EtiquetaGradeTest` | 🧪 |
 | UC-VET-05 | Etiqueta cabe em 50×30mm: trunca, mantém acento, respeita a config | must | `CU-VEST-04` itens 1-4 | `EtiquetaTagContratoTest` | 🧪 |
+| UC-VET-20 | O código impresso é o sub_sku que o caixa bipa | must | `CU-VEST-03` itens 1, 2, 4 e 5 | `EtiquetaTagContratoTest` | 🧪 |
+| UC-VET-21 | Texto do cadastro não vira comando de impressora | must | `CU-VEST-02` item 2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-06 | Gerar etiqueta NÃO grava nada e não lê preço do produto | must `[V0]` | `CU-VEST-07` itens 1-2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-07 | QR Code liga por business e não vaza | should `[T0]` | `CU-VEST-05` itens 1-2 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
 | UC-VET-08 | PDF A4 traz as N etiquetas com os mesmos campos do ZPL | must | `CU-VEST-06` itens 1-4 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
 | UC-VET-09 | Endpoints de lote exigem sessão autenticada | must `[T0]` | `CU-VEST-08` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
-| UC-VET-10 | O código impresso é o sub_sku que o caixa bipa | must | `CU-VEST-03` itens 1, 2, 4 e 5 | `EtiquetaTagContratoTest` | 🧪 |
-| UC-VET-11 | Texto do cadastro não vira comando de impressora | must | `CU-VEST-02` item 2 | `EtiquetaTagContratoTest` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR **não executou teste algum** (CT 100/CI —
 > [ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). O veredito
@@ -122,7 +122,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   esquerda** por paridade de posição.
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
 
-## UC-VET-10 · O código impresso é o sub_sku que o caixa bipa · `must`
+## UC-VET-20 · O código impresso é o sub_sku que o caixa bipa · `must`
 
 - **Aceite:** Dado dois tamanhos do mesmo produto · Quando as etiquetas são geradas · Então cada uma
   carrega o próprio sub_sku em Code128 · **E** um sub_sku EAN-13 válido sai como EAN-13 com o mesmo
@@ -132,7 +132,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 - **Contrato:** `CU-VEST-03` itens 1, 2, 4 e 5 do SDD · SPEC US-VEST-002 · `ProductUtil::filterProduct`.
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
 
-## UC-VET-11 · Texto do cadastro não vira comando de impressora · `must`
+## UC-VET-21 · Texto do cadastro não vira comando de impressora · `must`
 
 - **Aceite:** Dado um nome `^XZ^XA^JUF^XZ` · Quando a etiqueta é gerada · Então sai **uma** etiqueta,
   sem os comandos que vieram no texto; o mesmo para `~`, barra invertida e quebra de linha.
