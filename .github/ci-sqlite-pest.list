@@ -722,13 +722,14 @@ Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php
 Modules/PaymentGateway/Tests/Feature/WebhookEndpointsTest.php
 Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php
 
-# Fiscal · fiscal:cert-health-check lê o limiar de fiscal.cert_health_check_alert_days
-# (D13 da auditoria do Fiscal, 2026-11-05). Monta a tabela mínima em :memory: e roda o
-# comando em --dry-run; o CertHealthCheckCommandTest (MySQL) ainda está fora de lane.
-Modules/Fiscal/Tests/Feature/CertHealthCheckLimiarTest.php
 # ── Whatsapp era-sqlite, leva 1b (auditoria 2026-11-05, lote 1) ─────────────────
 # Filtros e ACL por canal da tela de conversas. Testavam o InboxController::index, que
 # virou 301 para a Caixa Unificada; agora exercitam o CaixaUnificadaController.
 Modules/Whatsapp/Tests/Feature/InboxFiltersTest.php
 Modules/Whatsapp/Tests/Feature/InboxMultiPhoneFilterTest.php
 Modules/Whatsapp/Tests/Feature/CanalFilaIsolationTest.php
+
+# Fiscal · fiscal:cert-health-check lê o limiar de fiscal.cert_health_check_alert_days
+# (D13 da auditoria do Fiscal, 2026-11-05). Monta a tabela mínima em :memory: e roda o
+# comando em --dry-run; o CertHealthCheckCommandTest (MySQL) ainda está fora de lane.
+Modules/Fiscal/Tests/Feature/CertHealthCheckLimiarTest.php
