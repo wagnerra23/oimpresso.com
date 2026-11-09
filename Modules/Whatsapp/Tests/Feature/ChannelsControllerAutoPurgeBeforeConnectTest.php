@@ -69,6 +69,8 @@ beforeEach(function () {
         protected $table = 'users';
         protected $guarded = [];
         public function can($abilities, $arguments = []): bool { return true; } // stub
+        // O AdminSidebarMenu da rota pergunta papel ao usuário logado.
+        public function hasRole($roles, ?string $guard = null): bool { return false; }
     };
     $user->id = 1;
     $user->business_id = 1;

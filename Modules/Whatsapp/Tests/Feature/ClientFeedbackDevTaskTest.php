@@ -126,7 +126,7 @@ it('R-WA-FB-DEV-001 — pagante (customer) + sev=3 + create_dev_task → dev_tas
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -150,7 +150,7 @@ it('R-WA-FB-DEV-002 — pagante + sev=1 → bloqueado, reason=severity_below_thr
         'severity_nng' => 1,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -171,7 +171,7 @@ it('R-WA-FB-DEV-003 — não-pagante (type=lead) + sev=3 → bloqueado, reason=n
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -190,7 +190,7 @@ it('R-WA-FB-DEV-004 — sem contact_id + sev=3 → bloqueado, reason=no_contact_
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -217,7 +217,7 @@ it('R-WA-FB-DEV-005 — cross-tenant: contact biz=99 não qualifica em sessão b
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -246,7 +246,7 @@ it('R-WA-FB-DEV-006 — HasBusinessScope: feedback de biz=1 não visível em biz
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
     app(ClientFeedbackController::class)->capture($req);
 
     // Troca pra biz=99 — não deve enxergar

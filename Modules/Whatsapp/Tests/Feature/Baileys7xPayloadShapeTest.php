@@ -43,6 +43,20 @@ beforeEach(function () {
         Schema::dropIfExists($t);
     }
 
+    // O MessagePersister consulta o mapa LID → telefone a cada mensagem @lid.
+    Schema::dropIfExists('whatsapp_lid_pn_map');
+    Schema::create('whatsapp_lid_pn_map', function ($table) {
+        $table->id();
+        $table->unsignedInteger('business_id');
+        $table->string('lid', 100);
+        $table->string('phone_e164', 32)->nullable();
+        $table->string('source', 30)->default('webhook_senderPn');
+        $table->timestamp('first_seen_at')->useCurrent();
+        $table->timestamp('last_seen_at')->useCurrent();
+        $table->timestamps();
+        $table->unique(['business_id', 'lid'], 'wa_lid_pn_business_lid_uniq');
+    });
+
     Schema::create('channels', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');

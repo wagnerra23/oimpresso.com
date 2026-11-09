@@ -193,7 +193,7 @@ it('NullDriver aceita instâncias Phone via DriverInterface union', function () 
 
     $driver = new NullDriver();
     $sendResult = $driver->sendFreeform($phone, '+5511987654321', 'olá teste');
-    expect($sendResult->ok)->toBeTrue();
+    expect($sendResult->success)->toBeTrue();
     expect($sendResult->providerMessageId)->toStartWith('null-freeform-');
 
     $health = $driver->ping($phone);
@@ -210,7 +210,7 @@ it('NullDriver continua aceitando Config legacy (backward compat)', function () 
 
     $driver = new NullDriver();
     $sendResult = $driver->sendFreeform($config, '+5511987654321', 'olá legacy');
-    expect($sendResult->ok)->toBeTrue();
+    expect($sendResult->success)->toBeTrue();
 
     $health = $driver->ping($config);
     expect($health->healthy)->toBeTrue();

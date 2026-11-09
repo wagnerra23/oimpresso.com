@@ -38,9 +38,34 @@ beforeEach(function () {
         test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
     }
 
-    foreach (['messages', 'conversations', 'channels', 'users'] as $t) {
+    foreach (['messages', 'conversations', 'channels', 'users', 'channel_user_access', 'contacts'] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // O InboxController confere a ACL canal = fila antes de mexer na conversa.
+    Schema::create('channel_user_access', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('channel_id');
+        $table->unsignedInteger('user_id');
+        $table->unsignedInteger('granted_by_user_id');
+        $table->timestamp('granted_at');
+        $table->timestamp('revoked_at')->nullable();
+        $table->unsignedInteger('revoked_by_user_id')->nullable();
+        $table->timestamps();
+    });
+
+    // O webhook tenta vincular a conversa a um contato do CRM.
+    Schema::create('contacts', function ($table) {
+        $table->increments('id');
+        $table->unsignedInteger('business_id');
+        $table->string('name', 191)->nullable();
+        $table->string('mobile', 191)->nullable();
+        $table->string('landline', 191)->nullable();
+        $table->string('alternate_number', 191)->nullable();
+        $table->timestamp('deleted_at')->nullable();
+        $table->timestamps();
+    });
 
     Schema::create('users', function ($table) {
         $table->bigIncrements('id');
@@ -95,6 +120,8 @@ beforeEach(function () {
         $table->timestamp('last_outbound_at')->nullable();
         $table->timestamp('last_message_at')->nullable();
         $table->unsignedInteger('unread_count')->default(0);
+        $table->string('last_message_preview', 120)->nullable();
+        $table->string('last_message_direction', 10)->nullable();
         $table->timestamps();
     });
 
@@ -302,6 +329,11 @@ it('R-WA-085-001 — updateStatus assigned_to_me=true seta assigned_user_id ao c
         'assigned_user_id' => null,
     ]);
 
+    // Atendente 42 com acesso ativo ao canal (ACL canal = fila, US-WA-069).
+    DB::table('channel_user_access')->insert([
+        'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,
+        'granted_by_user_id' => 1, 'granted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $controller = app(InboxController::class);
     $req = Request::create('/test', 'PATCH', ['assigned_to_me' => true]);
     $resp = $controller->updateStatus($req, $conv->id);
@@ -340,6 +372,11 @@ it('R-WA-085-002 — updateStatus bot_handling=true atualiza coluna por conversa
         'bot_handling' => false,
     ]);
 
+    // Atendente 42 com acesso ativo ao canal (ACL canal = fila, US-WA-069).
+    DB::table('channel_user_access')->insert([
+        'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,
+        'granted_by_user_id' => 1, 'granted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $controller = app(InboxController::class);
     $req = Request::create('/test', 'PATCH', ['bot_handling' => true]);
     $resp = $controller->updateStatus($req, $convA->id);
@@ -371,6 +408,11 @@ it('R-WA-085-003 — send queueia Message com status="sent" + provider_message_i
         'customer_external_id' => '+554899872822', 'status' => 'open',
     ]);
 
+    // Atendente 42 com acesso ativo ao canal (ACL canal = fila, US-WA-069).
+    DB::table('channel_user_access')->insert([
+        'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,
+        'granted_by_user_id' => 1, 'granted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $controller = app(InboxController::class);
     $req = Request::create('/test', 'POST', [
         'kind' => 'freeform',
@@ -413,6 +455,11 @@ it('R-WA-085-004 — send com daemon falha mantem Message em DB com status="fail
         'customer_external_id' => '+554899872822', 'status' => 'open',
     ]);
 
+    // Atendente 42 com acesso ativo ao canal (ACL canal = fila, US-WA-069).
+    DB::table('channel_user_access')->insert([
+        'business_id' => 1, 'channel_id' => $channel->id, 'user_id' => 42,
+        'granted_by_user_id' => 1, 'granted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $controller = app(InboxController::class);
     $req = Request::create('/test', 'POST', [
         'kind' => 'freeform',

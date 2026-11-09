@@ -71,6 +71,8 @@ beforeEach(function () {
         protected $table = 'users';
         protected $guarded = [];
         public function can($abilities, $arguments = []): bool { return true; }
+        // O AdminSidebarMenu da rota pergunta papel ao usuário logado.
+        public function hasRole($roles, ?string $guard = null): bool { return false; }
     };
     $user->id = 1;
     $user->business_id = 1;
@@ -109,7 +111,7 @@ it('R-WA-IMPORT-001 — biz_id NÃO whitelist → 403 + gated=true', function ()
 it('R-WA-IMPORT-002 — biz_id NA whitelist → 202 + Artisan command enqueued', function () {
     config(['whatsapp.history_import.enabled_business_ids' => [1, 7]]);
     Queue::fake();
-    Artisan::fake();
+    Artisan::shouldReceive('queue')->once()->withArgs(fn ($cmd) => $cmd === 'whatsapp:import-history');
     $ch = makeImportTestChannel(bizId: 1);
 
     $r = $this->postJson("/atendimento/canais/{$ch->id}/import-history");
@@ -117,12 +119,6 @@ it('R-WA-IMPORT-002 — biz_id NA whitelist → 202 + Artisan command enqueued',
     $r->assertStatus(202)
         ->assertJsonPath('ok', true)
         ->assertJsonPath('estimated_minutes', 10);
-
-    // Verifica que artisan command foi enfileirado (mas não executado)
-    // Artisan::queue dispara CallQueuedClosure via Job — Queue::fake captura
-    Queue::assertPushed(\Illuminate\Foundation\Console\Kernel::class === \Illuminate\Foundation\Console\Kernel::class
-        ? \Illuminate\Foundation\Bus\PendingDispatch::class
-        : \Closure::class, function () { return true; });
 });
 
 it('R-WA-IMPORT-003 — type != baileys → 422 (só Baileys suporta fetchMessageHistory)', function () {
