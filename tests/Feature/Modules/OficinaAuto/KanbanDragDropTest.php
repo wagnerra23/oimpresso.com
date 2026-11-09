@@ -275,7 +275,7 @@ it('mapping manutencao → disponivel dispara FSM action voltar_disponivel', fun
     $service = app(ExecuteStageActionService::class);
     $response = $controller->execute($request, $order, $service, app(StageGateEvaluator::class));
 
-    expect($response->getStatusCode())->toBe(200);
+    expect($response->getStatusCode())->toBe(200, (string) $response->getContent());
     $data = $response->getData(true);
     expect($data['ok'])->toBeTrue();
     expect($data['to_stage']['key'])->toBe('disponivel');

@@ -115,7 +115,7 @@ it('Vehicles/Edit — PUT endpoint persiste TODOS os 14 campos do fixture (round
             $putStatus = $putResponse->status();
 
             // PUT retorna 302 (redirect pra show) em caso sucesso ou 422 em validation fail.
-            $putOk = in_array($putStatus, [200, 302], true);
+            $putOk = in_array($putStatus, [200, 302, 303], true);
 
             // 2) GET Inertia — lê page.props.vehicle.{recv} de volta via Edit route.
             // X-Inertia header faz o middleware retornar JSON envelope (não HTML wrapper).

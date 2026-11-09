@@ -28,6 +28,7 @@ const BIZ_WAGNER_KPIS = 98;
 const BIZ_FICTICIO_KPIS = 99;
 
 beforeEach(function () {
+    \Inertia\Inertia::setRootView('layouts.inertia');
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
