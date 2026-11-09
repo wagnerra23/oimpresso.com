@@ -206,21 +206,7 @@ class ProductionController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Tier 0 (ADR 0093): o FormRequest valida variation_id com `exists:variations,id`, sem
-        // empresa, e a receita é buscada só pelo variation_id — uma ordem com produto de outra
-        // empresa nascia aqui consumindo os ingredientes da receita dela (PARIDADE H1). O produto
-        // tem de ser da empresa da sessão; senão é 404. Fica ANTES do try: o catch(Exception)
-        // engoliria o abort e devolveria o redirect de erro. Para produto da própria empresa nada
-        // muda (a receita de uma variação é sempre da empresa do produto dela).
-        // OrdemReceitaEmpresaTest.
-        $produtoDaEmpresa = Variation::query()
-                                ->join('products', 'products.id', '=', 'variations.product_id')
-                                ->where('products.business_id', $business_id)
-                                ->where('variations.id', $request->input('variation_id'))
-                                ->exists();
-        if (! $produtoDaEmpresa) {
-            abort(404);
-        }
+        $this->garantirProdutoELocalDaEmpresa($request, $business_id);
 
         try {
             $nivelTransacao = DB::transactionLevel();
@@ -686,6 +672,8 @@ class ProductionController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $this->garantirProdutoELocalDaEmpresa($request, $business_id);
+
         try {
             $nivelTransacao = DB::transactionLevel();
 
@@ -1077,5 +1065,31 @@ class ProductionController extends Controller
             ],
             'recipes_count' => $bomService->countRecipes($business_id),
         ]);
+    }
+
+    /**
+     * Tier 0 (ADR 0093, US-MANU-008 H1): o produto e o local da ordem têm de ser da empresa da
+     * sessão; senão é 404, antes de qualquer escrita. O FormRequest só confere `exists:variations,id`
+     * e o `location_id` é só `required`. Com `finalize=1` a ordem movimenta estoque, então um id
+     * alheio mexeria no estoque de outra empresa. OrdemReceitaEmpresaTest + OrdemProdutoLocalEmpresaTest.
+     *
+     * Roda ANTES do `try`, para o `catch` não transformar o 404 em redirect de erro. Local ausente
+     * não é recusado aqui: quem responde por ele é a validação de `required`.
+     */
+    private function garantirProdutoELocalDaEmpresa(Request $request, $business_id): void
+    {
+        $produtoDaEmpresa = Variation::query()
+                                ->join('products', 'products.id', '=', 'variations.product_id')
+                                ->where('products.business_id', $business_id)
+                                ->where('variations.id', $request->input('variation_id'))
+                                ->exists();
+        if (! $produtoDaEmpresa) {
+            abort(404);
+        }
+
+        if ($request->filled('location_id')
+            && ! BusinessLocation::where('business_id', $business_id)->where('id', $request->input('location_id'))->exists()) {
+            abort(404);
+        }
     }
 }

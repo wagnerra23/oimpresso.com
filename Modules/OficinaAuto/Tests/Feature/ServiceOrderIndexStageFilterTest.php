@@ -16,12 +16,12 @@ uses(Tests\TestCase::class);
  * Wave 7-D — Gap #3 estado-da-arte FSM screen: filtros chips por stage no Index OS.
  *
  * Cobre:
- *   1. Filtro stage=disponivel mostra só OS biz=1 com current_stage_id matching
- *   2. Multi-tenant Tier 0 — OS biz=2 mesmo stage_id NÃO vaza pra biz=1
+ *   1. Filtro stage=disponivel mostra só OS biz=98 com current_stage_id matching
+ *   2. Multi-tenant Tier 0 — OS biz=99 mesmo stage_id NÃO vaza pra biz=98
  *   3. stages payload retorna counts corretos por stage cacamba_*
  *   4. stage=all retorna todas as OS (sem filtro)
  *
- * Pattern: skip SQLite (ADR 0101 — schema MySQL UltimatePOS obrigatório).
+ * Pattern: skip SQLite (ADR 0358 — schema MySQL UltimatePOS obrigatório).
  * Validação direta na query — não roda HTTP middleware UltimatePOS.
  *
  * @see Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php (método index + buildStagesPayload)
@@ -29,12 +29,12 @@ uses(Tests\TestCase::class);
  * @see memory/sessions/2026-05-20-arte-tela-fsm-workflow.md (Gap #3)
  */
 
-const BIZ_STAGE_TEST = 1;
-const BIZ_STAGE_FICTICIO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
+const BIZ_STAGE_TEST = 98;
+const BIZ_STAGE_FICTICIO = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasTable('sale_processes')) {
         $this->markTestSkipped('FSM/OficinaAuto tables missing — rode migrate primeiro');
@@ -152,18 +152,18 @@ it('1. filtro stage=disponivel filtra apenas OS com current_stage_id matching ke
     osfCleanupTest(BIZ_STAGE_TEST);
 });
 
-it('2. multi-tenant Tier 0 — OS biz=2 com mesmo stage_id NAO vaza pra biz=1', function () {
+it('2. multi-tenant Tier 0 — OS biz=99 com mesmo stage_id NAO vaza pra biz=98', function () {
     session(['user.business_id' => BIZ_STAGE_TEST]);
 
-    // biz=1 cria seu próprio process+stage
+    // biz=98 cria seu próprio process+stage
     ['disponivel' => $dispBiz1] = osfSetupCacambaProcess(BIZ_STAGE_TEST);
     osfCreateOs(BIZ_STAGE_TEST, $dispBiz1->id);
 
-    // biz=2 cria process+stage DIFERENTE (mesmo key 'disponivel' mas process_id diferente)
+    // biz=99 cria process+stage DIFERENTE (mesmo key 'disponivel' mas process_id diferente)
     ['disponivel' => $dispOutroBiz] = osfSetupCacambaProcess(BIZ_STAGE_FICTICIO);
     osfCreateOs(BIZ_STAGE_FICTICIO, $dispOutroBiz->id);
 
-    // Resolve stage_ids do BIZ_STAGE_TEST (deve achar APENAS o do biz=1)
+    // Resolve stage_ids do BIZ_STAGE_TEST (deve achar APENAS o do biz=98)
     $stageIdsBiz1 = SaleProcessStage::query()
         ->whereHas('process', function ($p) {
             $p->withoutGlobalScope(ScopeByBusiness::class)
@@ -176,7 +176,7 @@ it('2. multi-tenant Tier 0 — OS biz=2 com mesmo stage_id NAO vaza pra biz=1', 
     expect($stageIdsBiz1)->toHaveCount(1);
     expect($stageIdsBiz1[0])->toBe($dispBiz1->id);
 
-    // ServiceOrder global scope filtra automaticamente biz=1
+    // ServiceOrder global scope filtra automaticamente biz=98
     $filtered = ServiceOrder::query()
         ->whereIn('current_stage_id', $stageIdsBiz1)
         ->count();
@@ -230,11 +230,11 @@ it('4. sem filtro stage retorna todas as OS do business (multi-tenant preservado
         osfCreateOs(BIZ_STAGE_TEST, $disp->id)->id,
     ];
 
-    // Mesmo biz=2 com OS, não conta porque global scope
+    // Mesmo biz=99 com OS, não conta porque global scope
     ['disponivel' => $dispOutro] = osfSetupCacambaProcess(BIZ_STAGE_FICTICIO);
     $ids[] = osfCreateOs(BIZ_STAGE_FICTICIO, $dispOutro->id)->id;
 
-    // Universo = as 4 OS criadas aqui (3 do tenant + 1 do biz=2): o tenant da lane é
+    // Universo = as 4 OS criadas aqui (3 do tenant + 1 do biz=99): o tenant da lane é
     // compartilhado com outros arquivos, então contar o tenant inteiro media o vizinho.
     $total = ServiceOrder::query()->whereIn('id', $ids)->count();
     expect($total)->toBe(3);

@@ -25,19 +25,19 @@ uses(Tests\TestCase::class);
  *   - cross-owner guard: arquivo de outra OS na rota desta OS → 404
  *   - reject non-image (FormRequest mimes/mimetypes)
  *
- * MySQL-only (ADR 0101): schema UltimatePOS + tabelas arquivos*. Skip em sqlite —
+ * MySQL-only (ADR 0358): schema UltimatePOS + tabelas arquivos*. Skip em sqlite —
  * roda no CI (mesmo padrão de ServiceOrderRichSheetPayloadTest).
  *
  * @see Modules/OficinaAuto/Http/Controllers/ServiceOrderPhotoController.php
  */
 
-const BIZ_LAUDO = 1;
-const BIZ_LAUDO_OUTRO = 2;
+const BIZ_LAUDO = 98;
+const BIZ_LAUDO_OUTRO = 99;
 const PLATE_LAUDO_PREFIX = 'LAUDO';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('arquivos')) {
         $this->markTestSkipped('Rode as migrations do Modules/Arquivos primeiro (ADR 0123)');
