@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-VEST-031
 
 declare(strict_types=1);
 
@@ -22,7 +23,7 @@ beforeEach(function () {
     }
     $this->business = $this->seededTenant();
     $user = $this->usuarioComPermissoes(['purchase.create', 'access_all_locations'], $this->business);
-    session(['user.business_id' => $this->business->id, 'user.id' => $user->id, 'business.id' => $this->business->id,
+    session(['user.business_id' => $this->business->id, 'user.id' => $user->id,
         'currency' => ['code' => 'BRL', 'symbol' => 'R$', 'decimal_separator' => ',', 'thousand_separator' => '.']]);
     $this->actingAs($user);
 });

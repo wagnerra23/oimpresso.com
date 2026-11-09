@@ -1,6 +1,7 @@
 // "Sugerir pela curva" na tela real (US-VEST-031): a grade recebe o que o servidor mandou e o POST
 // leva o que a pessoa deixou. A divisão é provada em CurvaDeCompraContratoTest.
 // Cobre UC-PURCRE-16, UC-PURCRE-17 e UC-PURCRE-19 (Purchase/Create.casos.md).
+// @covers-us US-VEST-031
 
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
