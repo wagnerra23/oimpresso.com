@@ -24,13 +24,13 @@ last_run: "2026-09-30"
 - **Persona:** auditor — investiga uma mudança específica sem abrir o banco (CU-AUD-02).
 - **Aceite:** Dado uma alteração do business 98 com `properties.old` e `properties.attributes` · Quando o detalhe é carregado para o business 98 · Então vem essa entrada com os dois lados intactos (é deles que a tela monta Campo · Antes · Depois).
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-01 · detalhe traz old e attributes").
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-AUDD-02 · Alteração de outro business não abre
 - **Persona:** admin do business 99 — não pode ler a trilha do 98, nem chutando o id (Tier 0, ADR 0093).
 - **Aceite:** Dado uma alteração do business 98 · Quando o detalhe é pedido com o id dela para o business 99 · Então **não é encontrada** (`ModelNotFoundException` → 404), sem devolver dado nenhum.
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-02 · cross-tenant não abre").
-- **Status: 🧪**
+- **Status: ✅**
 
 ---
 
