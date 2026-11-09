@@ -726,3 +726,25 @@ Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php
 # (D13 da auditoria do Fiscal, 2026-11-05). Monta a tabela mínima em :memory: e roda o
 # comando em --dry-run; o CertHealthCheckCommandTest (MySQL) ainda está fora de lane.
 Modules/Fiscal/Tests/Feature/CertHealthCheckLimiarTest.php
+# ── Whatsapp era-sqlite, leva 3/3 (auditoria 2026-11-05, lote 1) ──────────────
+# Testes com guarda era-sqlite que não rodavam em ambiente nenhum: fora desta
+# lista e pulados na nightly MySQL do CT 100.
+Modules/Whatsapp/Tests/Feature/InboxSendInteractiveTest.php
+Modules/Whatsapp/Tests/Feature/MacrosCrudTest.php
+Modules/Whatsapp/Tests/Feature/MediaInboundProcessedTest.php
+Modules/Whatsapp/Tests/Feature/NotificarClienteCancelamentoJobTest.php
+Modules/Whatsapp/Tests/Feature/PhonesMigrationDataTest.php
+Modules/Whatsapp/Tests/Feature/ReconnectAndImportCommandTest.php
+Modules/Whatsapp/Tests/Feature/RetryRecentMediaDownloadsTest.php
+Modules/Whatsapp/Tests/Feature/SendInteractiveJobTest.php
+Modules/Whatsapp/Tests/Feature/SendMessageRequestTest.php
+Modules/Whatsapp/Tests/Feature/SlashCorrigirTest.php
+Modules/Whatsapp/Tests/Feature/SlashLembrarTest.php
+Modules/Whatsapp/Tests/Feature/SlashLembreteTest.php
+Modules/Whatsapp/Tests/Feature/WebhookMediaExtractTest.php
+Modules/Whatsapp/Tests/Feature/WebhookOutboundFromMeRegressionTest.php
+Modules/Whatsapp/Tests/Feature/WhatsappDriverHealthCheckJobTest.php
+Modules/Whatsapp/Tests/Feature/WhatsappTemplateTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowBroadcastFilterTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowMediaInboundTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowOutboundFromMeRegressionTest.php
