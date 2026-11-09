@@ -54,8 +54,9 @@ class DataController extends Controller
     /**
      * Permissões registradas no UI de Roles do UltimatePOS.
      *
-     * `vestuario.etiqueta.{view,create}` já são enforce pelo EtiquetaTagController
-     * (US-VEST-020). `vestuario.access` gateia a entry de sidebar.
+     * `vestuario.etiqueta.{view,create}`: o EtiquetaTagController só bloqueia com a chave
+     * `vestuario.etiqueta.exigir_permissao` ligada; desligada, registra em log quem seria
+     * bloqueado (US-VEST-020, VEST-D1). `vestuario.access` gateia a entry de sidebar.
      */
     public function user_permissions(): array
     {

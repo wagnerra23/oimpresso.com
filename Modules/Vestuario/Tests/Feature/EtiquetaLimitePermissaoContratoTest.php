@@ -17,8 +17,8 @@ uses(Tests\TestCase::class);
 /**
  * Teto do lote e permissão real de /vestuario/etiquetas (US-VEST-020).
  *
- *   UC-VET-12 ← CU-VEST-02 item 6  (teto total de etiquetas por pedido)
- *   UC-VET-13 ← CU-VEST-08 item 4  (permissão atrás de chave, decisão [W] VEST-D1)
+ *   UC-VET-22 ← CU-VEST-02 item 6  (teto total de etiquetas por pedido)
+ *   UC-VET-23 ← CU-VEST-08 item 4  (permissão atrás de chave, decisão [W] VEST-D1)
  *
  * Chama o controller com usuário fictício: a lane sqlite não sobe request autenticada e estes
  * casos não dependem de tabela. Nenhuma empresa real entra aqui.
@@ -77,10 +77,10 @@ function ucVetCapturarLog(): ArrayObject
 const UC_VET_CRIAR = ['vestuario.etiqueta.create'];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UC-VET-12 · Teto total de etiquetas por pedido
+// UC-VET-22 · Teto total de etiquetas por pedido
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-VET-12: pedido acima do teto é recusado com a conta na mensagem', function () {
+it('UC-VET-22: pedido acima do teto é recusado com a conta na mensagem', function () {
     $res = null;
     try {
         $res = ucVetController()->storeZpl(ucVetRequest(ucVetLote(2, 251), UC_VET_CRIAR));
@@ -93,18 +93,18 @@ it('UC-VET-12: pedido acima do teto é recusado com a conta na mensagem', functi
     $this->fail('Lote de 502 etiquetas passou: status '.$res->getStatusCode());
 });
 
-it('UC-VET-12: o teto vale no PDF antes de renderizar', function () {
+it('UC-VET-22: o teto vale no PDF antes de renderizar', function () {
     ucVetController()->storePdf(ucVetRequest(ucVetLote(500, 2), UC_VET_CRIAR));
 })->throws(ValidationException::class);
 
-it('UC-VET-12: exatamente no teto ainda gera, e 500 itens de uma remarcação cabem', function () {
+it('UC-VET-22: exatamente no teto ainda gera, e 500 itens de uma remarcação cabem', function () {
     $res = ucVetController()->storeZpl(ucVetRequest(ucVetLote(500, 1), UC_VET_CRIAR));
 
     expect($res->getStatusCode())->toBe(200);
     expect(substr_count($res->getContent(), '^XA'))->toBe(500);
 });
 
-it('UC-VET-12: o lote deixa uma linha de log, não uma por etiqueta', function () {
+it('UC-VET-22: o lote deixa uma linha de log, não uma por etiqueta', function () {
     $logs = ucVetCapturarLog();
 
     ucVetController()->storeZpl(ucVetRequest(ucVetLote(3, 2), UC_VET_CRIAR));
@@ -115,10 +115,10 @@ it('UC-VET-12: o lote deixa uma linha de log, não uma por etiqueta', function (
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UC-VET-13 · Permissão atrás de chave: desligada só registra, ligada bloqueia
+// UC-VET-23 · Permissão atrás de chave: desligada só registra, ligada bloqueia
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-VET-13: chave desligada deixa passar e registra quem seria bloqueado', function () {
+it('UC-VET-23: chave desligada deixa passar e registra quem seria bloqueado', function () {
     config(['vestuario.etiqueta.exigir_permissao' => false]);
     $logs = ucVetCapturarLog();
 
@@ -133,11 +133,11 @@ it('UC-VET-13: chave desligada deixa passar e registra quem seria bloqueado', fu
     expect($registro['ctx']['bloqueou'])->toBeFalse();
 });
 
-it('UC-VET-13: a chave vem desligada por padrão', function () {
+it('UC-VET-23: a chave vem desligada por padrão', function () {
     expect(config('vestuario.etiqueta.exigir_permissao'))->toBeFalse();
 });
 
-it('UC-VET-13: chave ligada dá 403 em quem não tem a permissão, nas três rotas', function () {
+it('UC-VET-23: chave ligada dá 403 em quem não tem a permissão, nas três rotas', function () {
     config(['vestuario.etiqueta.exigir_permissao' => true]);
     $controller = ucVetController();
     $sem = ucVetRequest(ucVetLote(1, 1), []);
@@ -156,7 +156,7 @@ it('UC-VET-13: chave ligada dá 403 em quem não tem a permissão, nas três rot
     }
 });
 
-it('UC-VET-13: chave ligada não atrapalha quem tem a permissão nem não registra bloqueio', function () {
+it('UC-VET-23: chave ligada não atrapalha quem tem a permissão nem não registra bloqueio', function () {
     config(['vestuario.etiqueta.exigir_permissao' => true]);
     $logs = ucVetCapturarLog();
 

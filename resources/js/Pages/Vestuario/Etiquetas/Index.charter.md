@@ -26,10 +26,9 @@ charter_version: 2
 > ⚠️ **Correção factual 2026-07-28 (chip SDD).** A v1 deste charter afirmava *"perms
 > `vestuario.etiqueta.view` / `vestuario.etiqueta.create`"* como se fossem **aplicadas**. Elas
 > existem e estão registradas em `DataController::user_permissions()`, e gateiam a **entry de
-> sidebar** — mas `EtiquetaTagController::authorizeAccess()` **não bloqueia** quem não as tem:
-> emite `Log::warning('vestuario.etiqueta.permission_check_missing')` e segue o fluxo (o código
-> declara *"Sprint 3 vira hard-block"*). O que hoje protege os endpoints é a **stack de middleware
-> autenticada**. Ligar o hard-block é decisão de [W] — registrado no
+> sidebar**; em `EtiquetaTagController::authorizeAccess()` o bloqueio fica atrás da chave
+> `vestuario.etiqueta.exigir_permissao`, desligada por padrão (registra quem seria bloqueado).
+> Ligar em produção é ato de [W], depois da semana de log (VEST-D1) — registrado no
 > [SDD §9 D-1](../../../../../memory/requisitos/Vestuario/SDD-tela-etiqueta-tag-v1.0.md).
 >
 > **Contrato desta tela:** design e casos de uso em
