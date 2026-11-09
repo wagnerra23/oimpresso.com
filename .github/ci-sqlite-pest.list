@@ -714,18 +714,6 @@ Modules/PaymentGateway/Tests/Feature/BBCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/ItauCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/InterImportarRecebimentosCommandTest.php
 
-# 2026-10-28: 3 era-sqlite do PaymentGateway que a paymentgateway-pest barrava como
-# "destrutivos" (dropIfExists só no ramo sqlite) e listava como RefreshDatabase — os três
-# já usam DatabaseTransactions. WebhookEndpoints/WebhookSignatureValidation pulam inteiros no
-# MySQL; RetryOrphanWebhookCommand tem o GUARD 4 só-sqlite. Aqui rodam inteiros.
-Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php
-Modules/PaymentGateway/Tests/Feature/WebhookEndpointsTest.php
-Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php
-
-# Fiscal · fiscal:cert-health-check lê o limiar de fiscal.cert_health_check_alert_days
-# (D13 da auditoria do Fiscal, 2026-11-05). Monta a tabela mínima em :memory: e roda o
-# comando em --dry-run; o CertHealthCheckCommandTest (MySQL) ainda está fora de lane.
-Modules/Fiscal/Tests/Feature/CertHealthCheckLimiarTest.php
 # ── Whatsapp era-sqlite, leva 2/3 (auditoria 2026-11-05, lote 1) ──────────────
 # Testes com guarda era-sqlite que não rodavam em ambiente nenhum: fora desta
 # lista e pulados na nightly MySQL do CT 100.
@@ -748,3 +736,16 @@ Modules/Whatsapp/Tests/Feature/HealthProbeChannelsCommandTest.php
 Modules/Whatsapp/Tests/Feature/HistorySyncMetricsTest.php
 Modules/Whatsapp/Tests/Feature/ImportHistoryCommandTest.php
 Modules/Whatsapp/Tests/Feature/InboxCleanupTest.php
+
+# 2026-10-28: 3 era-sqlite do PaymentGateway que a paymentgateway-pest barrava como
+# "destrutivos" (dropIfExists só no ramo sqlite) e listava como RefreshDatabase — os três
+# já usam DatabaseTransactions. WebhookEndpoints/WebhookSignatureValidation pulam inteiros no
+# MySQL; RetryOrphanWebhookCommand tem o GUARD 4 só-sqlite. Aqui rodam inteiros.
+Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php
+Modules/PaymentGateway/Tests/Feature/WebhookEndpointsTest.php
+Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php
+
+# Fiscal · fiscal:cert-health-check lê o limiar de fiscal.cert_health_check_alert_days
+# (D13 da auditoria do Fiscal, 2026-11-05). Monta a tabela mínima em :memory: e roda o
+# comando em --dry-run; o CertHealthCheckCommandTest (MySQL) ainda está fora de lane.
+Modules/Fiscal/Tests/Feature/CertHealthCheckLimiarTest.php
