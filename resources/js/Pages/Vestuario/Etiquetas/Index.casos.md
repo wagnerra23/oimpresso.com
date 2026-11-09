@@ -7,7 +7,7 @@ por_que: a etiqueta é o elo entre a peça física e o POS — um EAN-13 inváli
 owner: wagner
 related_us: [US-VEST-020]
 related_cu: [CU-VEST-01, CU-VEST-02, CU-VEST-03, CU-VEST-04, CU-VEST-05, CU-VEST-06, CU-VEST-07, CU-VEST-08]
-last_run: "2026-10-14"
+last_run: "2026-11-09"
 last_run_ci: "2026-10-14 (PR #9400, decisao [W] tirar US-VEST-020 do subtitulo) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela e so o texto do subtitulo do PageHeader; nenhum UC afirma o subtitulo, nenhum calculo tocado. ---- REGISTRO ANTERIOR: 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-07-28. 0 UC executado — trio nasce neste PR; veredito pendente da lane Modules Pest → Pest Vestuario"
 ---
 
@@ -55,6 +55,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 | UC-VET-05 | Etiqueta cabe em 50×30mm: trunca, mantém acento, respeita a config | must | `CU-VEST-04` itens 1-4 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-06 | Gerar etiqueta NÃO grava nada e não lê preço do produto | must `[V0]` | `CU-VEST-07` itens 1-2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-07 | QR Code liga por business e não vaza | should `[T0]` | `CU-VEST-05` itens 1-2 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
+| UC-VET-24 | Achar a peça por nome ou SKU, sem digitar id | must | `CU-VEST-01` item 6 | `tests/js/vestuario-etiquetas-busca.test.tsx` | 🧪 |
 | UC-VET-08 | PDF A4 traz as N etiquetas com os mesmos campos do ZPL | must | `CU-VEST-06` itens 1-4 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
 | UC-VET-09 | Endpoints de lote exigem sessão autenticada | must `[T0]` | `CU-VEST-08` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
 
@@ -202,6 +203,15 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 - **Status: 🧪** — o caso do `qr_enabled=true` **pula** na lane sqlite (precisa da tabela); o caso
   do default roda. Veredito real da lane MySQL / CT 100.
 
+## UC-VET-24 · Achar a peça por nome ou SKU, sem digitar id · `must`
+
+- **Aceite:** Dado a tela aberta · Quando o operador digita o nome ou o SKU e escolhe a variação ·
+  Então a linha nasce com nome, tamanho e sub_sku, e o preço fica para ele digitar · **E** o pedido
+  leva os ids e o sub_sku escolhidos · **E** a mesma variação não entra duas vezes.
+- **Teste:** `tests/js/vestuario-etiquetas-busca.test.tsx`.
+- **Contrato:** `CU-VEST-01` item 6 do SDD · SDD §5.4 D-1/D-2 · busca em `/products/list` por `business_id` da sessão.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane.
+
 ## UC-VET-08 · PDF A4 traz as N etiquetas com os mesmos campos do ZPL · `must`
 
 - **Persona:** loja sem impressora térmica (ou a térmica quebrada num sábado).
@@ -253,8 +263,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   permissão **sem essa ressalva** — divergência registrada no SDD §9 D-1. Ligar o hard-block é
   decisão de [W]; escrever o UC antes disso criaria um caso vermelho por design.
 - `[BACKLOG]` **Achar a peça por nome/SKU em vez de digitar `product_id` numérico** — o maior gap
-  de adoção (SDD §5.4 D-1/D-2). A tela legada `/labels/show` tem autocomplete; a nova não. Não é
-  regressão (as duas coexistem por decisão do RUNBOOK), é o que falta para o cutover.
+  de adoção. Fechado em 2026-11-09 pelo UC-VET-24 (SDD §5.4 D-1/D-2); segue o cutover.
 - `[BACKLOG]` **Pré-carga por `?purchase_id=`** — etiquetar a arara logo após receber a compra
   (SDD §5.4 D-3). Existe no legado; ausente na tela nova.
 - `[BACKLOG]` **Preço vindo do grupo de preço de venda** (`[V0]` — SDD §5.4 D-4). Hoje é digitado.
