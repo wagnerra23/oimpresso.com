@@ -14,22 +14,22 @@ use Modules\OficinaAuto\Entities\Vehicle;
  * Cobre payload Inertia da tela de Caçambas (demo Martinho 13/maio 2026):
  * - 4 KPIs (disponivel, locada, manutencao, atrasada)
  * - Filter ?status=locada
- * - Cross-tenant biz=99 vê 0 vehicles biz=1 (ADR 0093 + ADR 0101)
+ * - Cross-tenant biz=99 vê 0 vehicles biz=98 (ADR 0093 + ADR 0358)
  * - Empty state quando vehicles vazios
  *
- * NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa produção) — ADR 0101.
+ * NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa produção) — ADR 0358.
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  * @see memory/decisions/0137-modules-oficinaauto-qualificada.md
  */
 
-const BIZ_WAGNER_KPIS = 1;
+const BIZ_WAGNER_KPIS = 98;
 const BIZ_FICTICIO_KPIS = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('vehicles')) {
         $this->markTestSkipped('vehicles table missing — rode OficinaAuto migrate primeiro');
@@ -99,7 +99,7 @@ it('filter ?status=locada bate na query', function () {
     expect($plates)->not->toContain('KPI-DSP1');
 });
 
-it('cross-tenant biz=99 vê 0 vehicles biz=1 (Tier 0 ADR 0093)', function () {
+it('cross-tenant biz=99 vê 0 vehicles biz=98 (Tier 0 ADR 0093)', function () {
     Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'    => BIZ_WAGNER_KPIS,
         'plate'          => 'KPI-XT-1',
@@ -134,7 +134,7 @@ it('empty state quando filter não retorna vehicles', function () {
 
 /**
  * Cria um stub de User com permission superadmin pra bypass do abort_unless.
- * Usa o User real do biz=1 (Wagner) se existir; senão pula via skip.
+ * Usa o User real do biz=98 (Wagner) se existir; senão pula via skip.
  */
 function stubUserWithSuperadmin(): \App\User
 {
@@ -144,8 +144,10 @@ function stubUserWithSuperadmin(): \App\User
 
     if (! $user) {
         // CI sem seed UltimatePOS — pula teste
-        test()->markTestSkipped('User biz=1 ausente — rode UltimatePOS seeders primeiro');
+        test()->markTestSkipped('User biz=98 ausente — rode UltimatePOS seeders primeiro');
     }
+
+    $user->givePermissionTo('superadmin');
 
     return $user;
 }

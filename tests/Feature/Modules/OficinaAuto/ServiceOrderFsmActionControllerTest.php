@@ -18,6 +18,8 @@ use App\Scopes\ScopeByBusiness;
 use Modules\OficinaAuto\Database\Seeders\OficinaAutoFsmSeeder;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
+use Modules\OficinaAuto\Services\StageGateEvaluator;
+use Modules\OficinaAuto\Services\ServiceOrderPipelineStarter;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -35,9 +37,9 @@ use Spatie\Permission\Models\Role;
  *  - execute() action invalid retorna 422
  *  - startPipeline() cria entry sale_stage_history "Pipeline iniciado"
  *  - startPipeline() recusa OS já em pipeline
- *  - Cross-tenant biz=99 NÃO acessa OS biz=1 (Tier 0 ADR 0093)
+ *  - Cross-tenant biz=99 NÃO acessa OS biz=98 (Tier 0 ADR 0093)
  *
- * Convenção: biz=1 default (Wagner WR2), biz=99 cross-tenant fictício (ADR 0101).
+ * Convenção: biz=98 default (Wagner WR2), biz=99 cross-tenant fictício (ADR 0358).
  *
  * @see app/Http/Controllers/ServiceOrderFsmActionController.php
  * @see app/Http/Controllers/SaleFsmActionController.php (pattern canônico)
@@ -45,12 +47,12 @@ use Spatie\Permission\Models\Role;
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
  */
 
-const BIZ_WAGNER_SOFAC = 1;
+const BIZ_WAGNER_SOFAC = 98;
 const BIZ_FICTICIO_SOFAC = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: schema FSM requer MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: schema FSM requer MySQL UltimatePOS (ADR 0358)');
     }
 
     if (! Schema::hasTable('service_orders')
@@ -125,14 +127,18 @@ function makeVehicleSofac(string $plate, int $businessId): Vehicle
 
 function makeOrderSofac(int $businessId, int $vehicleId, string $orderType, ?int $stageId = null): ServiceOrder
 {
-    return ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
-        'business_id'      => $businessId,
-        'vehicle_id'       => $vehicleId,
-        'order_type'       => $orderType,
-        'status'           => 'aberta',
-        'entered_at'       => now(),
-        'current_stage_id' => $stageId,
+    $order = ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
+        'business_id' => $businessId,
+        'vehicle_id'  => $vehicleId,
+        'order_type'  => $orderType,
+        'status'      => 'aberta',
+        'entered_at'  => now(),
     ]);
+
+    // current_stage_id não passa pelo create (GuardsFsmTransitions): a fixture grava direto.
+    DB::table('service_orders')->where('id', $order->id)->update(['current_stage_id' => $stageId]);
+
+    return ServiceOrder::withoutGlobalScopes()->find($order->id); // SUPERADMIN: setup teste
 }
 
 function getStageSofac(int $businessId, string $processKey, string $stageKey): SaleProcessStage
@@ -263,7 +269,7 @@ it('execute() action recolher move stage + cria history entry', function () {
 
     $controller = app(ServiceOrderFsmActionController::class);
     $service = app(ExecuteStageActionService::class);
-    $response = $controller->execute($request, $order, $service);
+    $response = $controller->execute($request, $order, $service, app(StageGateEvaluator::class));
     $data = $response->getData(true);
 
     expect($response->getStatusCode())->toBe(200);
@@ -311,7 +317,7 @@ it('execute() permission denied retorna 403', function () {
     $service = app(ExecuteStageActionService::class);
 
     try {
-        $controller->execute($request, $order, $service);
+        $controller->execute($request, $order, $service, app(StageGateEvaluator::class));
         $this->fail('Esperava abort 403, mas request passou');
     } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
         expect($e->getStatusCode())->toBe(403);
@@ -338,7 +344,7 @@ it('execute() action invalida retorna 422', function () {
 
     $controller = app(ServiceOrderFsmActionController::class);
     $service = app(ExecuteStageActionService::class);
-    $response = $controller->execute($request, $order, $service);
+    $response = $controller->execute($request, $order, $service, app(StageGateEvaluator::class));
 
     expect($response->getStatusCode())->toBe(422);
     expect($response->getData(true))->toHaveKey('error');
@@ -357,7 +363,7 @@ it('startPipeline() cria entry sale_stage_history Pipeline iniciado', function (
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/start-pipeline', 'POST');
 
     $controller = app(ServiceOrderFsmActionController::class);
-    $response = $controller->startPipeline($request, $order);
+    $response = $controller->startPipeline($request, $order, app(ServiceOrderPipelineStarter::class));
     $data = $response->getData(true);
 
     expect($response->getStatusCode())->toBe(200);
@@ -395,7 +401,7 @@ it('startPipeline() recusa OS já em pipeline (422)', function () {
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/start-pipeline', 'POST');
 
     $controller = app(ServiceOrderFsmActionController::class);
-    $response = $controller->startPipeline($request, $order);
+    $response = $controller->startPipeline($request, $order, app(ServiceOrderPipelineStarter::class));
 
     expect($response->getStatusCode())->toBe(422);
     expect($response->getData(true)['error'])->toContain('já está em pipeline');
@@ -403,8 +409,8 @@ it('startPipeline() recusa OS já em pipeline (422)', function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-H');
 });
 
-it('cross-tenant biz=99 NÃO acessa OS biz=1 (Tier 0 ADR 0093)', function () {
-    // Setup biz=1 com OS
+it('cross-tenant biz=99 NÃO acessa OS biz=98 (Tier 0 ADR 0093)', function () {
+    // Setup biz=98 com OS
     setupSofacBusiness(BIZ_WAGNER_SOFAC);
     $stage = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleSofac('SOFAC-I1', BIZ_WAGNER_SOFAC);
@@ -415,7 +421,7 @@ it('cross-tenant biz=99 NÃO acessa OS biz=1 (Tier 0 ADR 0093)', function () {
     $this->actingAs($userBiz99);
     session(['user.business_id' => BIZ_FICTICIO_SOFAC]);
 
-    // Tenta carregar OS de biz=1 sob session biz=99 — global scope filtra
+    // Tenta carregar OS de biz=98 sob session biz=99 — global scope filtra
     $resultado = ServiceOrder::where('id', $orderBiz1->id)->get();
     expect($resultado)->toHaveCount(0);
 
@@ -424,16 +430,14 @@ it('cross-tenant biz=99 NÃO acessa OS biz=1 (Tier 0 ADR 0093)', function () {
     expect($orderForcedLoad)->not->toBeNull();
     expect($orderForcedLoad->business_id)->toBe(BIZ_WAGNER_SOFAC);
 
-    // Service::execute valida subject.business_id == process.business_id
-    // Como biz=99 não tem o mesmo process_id+stage_id, vai cair em InvalidActionForCurrentStageException
     $service = app(ExecuteStageActionService::class);
-    try {
-        $service->execute($orderForcedLoad, 'iniciar_locacao', $userBiz99, []);
-        $this->fail('Esperava bloqueio cross-tenant, mas service executou');
-    } catch (\App\Domain\Fsm\Exceptions\UnauthorizedActionException|\App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException $e) {
-        // OK — qualquer um dos dois é fail-secure aceitável
-        expect(true)->toBeTrue();
-    }
+    expect(fn () => $service->execute($orderForcedLoad, 'enviar_manutencao', $userBiz99, []))
+        ->toThrow(\App\Domain\Fsm\Exceptions\UnauthorizedActionException::class);
+
+    // A etapa e o histórico da OS não mudam: a transição não foi aplicada.
+    $linha = ServiceOrder::withoutGlobalScopes()->find($orderBiz1->id);
+    expect((int) $linha->current_stage_id)->toBe((int) $stage->id);
+    expect(DB::table('sale_stage_history')->where('transaction_id', $orderBiz1->id)->count())->toBe(0);
 })->after(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-I');
     cleanupSofac(BIZ_FICTICIO_SOFAC, 'SOFAC-I');

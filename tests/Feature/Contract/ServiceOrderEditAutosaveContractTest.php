@@ -48,9 +48,15 @@ beforeEach(function () {
     // Não usamos isModuleInstalled aqui pra evitar dep circular nos tests CI fresh.
 
     // Setup multi-tenant (autentica user + session business_id) — reusa runner helper.
-    $ctx = AutosaveContractRunner::setupContext($this);
+    $ctx = AutosaveContractRunner::setupContext($this, $this->seededTenant());
     $this->business = $ctx['business'];
     $this->user = $ctx['user'];
+    $this->user->givePermissionTo('superadmin');
+    // O gate de pacote é outra regra (OficinaAutoPacoteGateTest): aqui a empresa tem o pacote.
+    $moduleUtil = \Mockery::mock(\App\Utils\ModuleUtil::class)->makePartial();
+    $moduleUtil->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($biz, $perm) => $perm === 'oficina_auto_module');
+    app()->instance(\App\Utils\ModuleUtil::class, $moduleUtil);
     $this->contactId = $ctx['contactId'];
 
     // Cria Vehicle base usando padrão validado em ServiceOrderCrudTest (withoutGlobalScopes
