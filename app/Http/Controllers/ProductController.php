@@ -1250,6 +1250,40 @@ class ProductController extends Controller
      *
      * @return array{natureza: string, codigoServico: string|null, link: string|null}|null
      */
+    /**
+     * Card "Produção" do Editar (CU-PROD-22, decisão [W] opção A): o roteiro que o produto segue, só
+     * para ler. `null` quando o card não aparece: empresa sem o módulo Produção no pacote, composição
+     * (a OS nasce dos itens) ou serviço decidido pelo contador, como no protótipo.
+     *
+     * Sem roteiro o produto não vira OS (UC-PCROT-02); a tela diz isso em vez do texto do protótipo,
+     * que vale só quando a ADR 0436 item 3 existir. Tier 0: o roteiro é lido só da `$business_id`.
+     *
+     * @param  array{natureza: string}|null  $naturezaFiscal
+     * @return array{roteiro: array{nome: string, etapas: int, ativo: bool}|null, linkRoteiros: ?string}|null
+     */
+    private function producaoDoProduto(int $business_id, Product $product, ?array $naturezaFiscal): ?array
+    {
+        if ($product->type === 'combo' || ($naturezaFiscal['natureza'] ?? null) === 'servico') {
+            return null;
+        }
+        if (! app()->bound(\App\Contracts\Producao\RoteiroDoProduto::class)
+            || ! $this->moduleUtil->hasThePermissionInSubscription($business_id, 'producao_module')) {
+            return null;
+        }
+
+        $roteiro = app(\App\Contracts\Producao\RoteiroDoProduto::class)->doProduto($business_id, (int) $product->id);
+        $podeAbrir = auth()->user()?->can('producao.access') && \Illuminate\Support\Facades\Route::has('producao.roteiros.index');
+
+        return [
+            'roteiro' => $roteiro === null ? null : [
+                'nome' => $roteiro['nome'],
+                'etapas' => count($roteiro['etapas']),
+                'ativo' => $roteiro['ativo'],
+            ],
+            'linkRoteiros' => $podeAbrir ? route('producao.roteiros.index', [], false) : null,
+        ];
+    }
+
     private function naturezaFiscalDoProduto(int $business_id, int $id): ?array
     {
         $respostas = $this->moduleUtil->getModuleData('produto_natureza_fiscal', ['business_id' => $business_id, 'product_id' => $id]);
@@ -2374,6 +2408,8 @@ class ProductController extends Controller
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
         if (request()->header('X-Inertia')) {
+            $naturezaFiscal = $this->naturezaFiscalDoProduto((int) $business_id, (int) $id);
+
             return Inertia::render('Produto/Edit', [
                 'product' => [
                     'id' => (int) $product->id,
@@ -2395,7 +2431,7 @@ class ProductController extends Controller
                     'alturaCm' => $product->altura_cm ?? null,
                     'comprimentoCm' => $product->comprimento_cm ?? null,
                     // UC-PEDIT-14: natureza fiscal decidida pelo contador (null = sem decisão registrada).
-                    'naturezaFiscal' => $this->naturezaFiscalDoProduto((int) $business_id, (int) $id),
+                    'naturezaFiscal' => $naturezaFiscal,
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
                     'alertQuantity' => $alert_quantity,
@@ -2432,6 +2468,8 @@ class ProductController extends Controller
                 ],
                 'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
                 'margemMinima' => $this->margemMinimaDaEmpresa((int) $business_id),
+                // CU-PROD-22 (opção A): card "Produção", só leitura. Lê o banco, então vem depois.
+                'producao' => Inertia::defer(fn () => $this->producaoDoProduto((int) $business_id, $product, $naturezaFiscal)),
             ]);
         }
 

@@ -13,6 +13,8 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { AcoesDoCadastro } from './_components/formulario/AcoesDoCadastro';
+import { BlocoProducao } from './_components/formulario/BlocoProducao';
+import type { ProducaoDoProduto } from './_components/formulario/BlocoProducao';
 import { tipoDeEnvio } from './_components/formulario/envio';
 import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
@@ -90,6 +92,8 @@ export interface ProdutoEditPageProps {
   metodoCusto?: MetodoCustoDoFormulario | null;
   /** Margem mínima da empresa em % (UC-FLX-35): null quando a regra está desligada. */
   margemMinima?: number | null;
+  /** CU-PROD-22: card "Produção" (deferido). Null sem o módulo Produção, em composição e em serviço. */
+  producao?: ProducaoDoProduto | null;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
@@ -203,6 +207,10 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
               props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }
           />
+          {/* CU-PROD-22: só leitura, fora do <form>. A prop é deferida: o roteiro aparece quando chega,
+              sem esqueleto (o card é o último antes do rodapé). Null sem o módulo Produção, em
+              composição e em serviço. */}
+          <ProducaoDoEditar producao={props.producao} />
           {/* "Salvar e adicionar preços por grupo" fica fora: o Editar não recebe a contagem de grupos. */}
           <AcoesDoCadastro
             form="produto-edit-form"
@@ -214,6 +222,14 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
       </div>
     </>
   );
+}
+
+function ProducaoDoEditar({ producao }: { producao?: ProducaoDoProduto | null }) {
+  return producao ? (
+    <div className="mt-6">
+      <BlocoProducao producao={producao} />
+    </div>
+  ) : null;
 }
 
 ProdutoEdit.layout = (page: ReactNode) => (
