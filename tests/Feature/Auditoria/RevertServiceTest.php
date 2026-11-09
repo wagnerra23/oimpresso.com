@@ -121,7 +121,7 @@ it('cenario 6: revert() lanca InvalidArgumentException se reason < 10 chars', fu
         ->toThrow(\InvalidArgumentException::class, 'no minimo 10 caracteres');
 });
 
-function valorLog(string $classe, mixed $id, int $businessId, array $old): Activity
+function valorLog(string $classe, mixed $id, int $businessId, array $old, bool $salvar = false): Activity
 {
     $log = new Activity();
     $log->business_id = $businessId;
@@ -129,6 +129,10 @@ function valorLog(string $classe, mixed $id, int $businessId, array $old): Activ
     $log->subject_id = $id;
     $log->properties = ['old' => $old];
     $log->created_at = now()->subMinute();
+    $log->description = 'updated';
+    if ($salvar) {
+        $log->save();
+    }
 
     return $log;
 }
@@ -170,7 +174,7 @@ it('cenario 7c: revert de total da venda nao altera o valor gravado', function (
     }
     $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
 
-    expect(fn () => $this->service->revert(valorLog(\App\Transaction::class, $venda, $this->business->id, ['final_total' => 100]), $user, 'motivo com tamanho valido'))
+    expect(fn () => $this->service->revert(valorLog(\App\Transaction::class, $venda, $this->business->id, ['final_total' => 100], true), $user, 'motivo com tamanho valido'))
         ->toThrow(\DomainException::class, 'O campo final_total nao pode ser revertido');
 
     expect((float) DB::table('transactions')->where('id', $venda)->value('final_total'))->toBe(150.0);
@@ -187,7 +191,7 @@ it('cenario 7d: revert de estoque nao altera a quantidade gravada', function () 
     }
     $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
 
-    expect(fn () => $this->service->revert(valorLog(\App\VariationLocationDetails::class, $saldo, $this->business->id, ['qty_available' => 2]), $user, 'motivo com tamanho valido'))
+    expect(fn () => $this->service->revert(valorLog(\App\VariationLocationDetails::class, $saldo, $this->business->id, ['qty_available' => 2], true), $user, 'motivo com tamanho valido'))
         ->toThrow(\DomainException::class, 'O campo qty_available nao pode ser revertido');
 
     expect((float) DB::table('variation_location_details')->where('id', $saldo)->value('qty_available'))->toBe(7.0);
