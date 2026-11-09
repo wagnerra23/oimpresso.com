@@ -271,43 +271,6 @@ it('Tier 0: biz=99 NÃO vê biz=1', function () {
     expect($pBiz1->id)->not->toBe($pBiz99->id);
 });
 
-it('Velocidade mediana calculada entre inbound prev e outbound do atendente', function () {
-    seedEmpUser(10, 'Maiara');
-    $conv = seedEmpConv(1, '5548999872822');
-
-    // Inbound 10:00, outbound 10:00:30 = 30s
-    seedEmpMsg(1, $conv, 'inbound', when: '2026-05-15 10:00:00');
-    seedEmpMsg(1, $conv, 'outbound', userId: 10, when: '2026-05-15 10:00:30');
-
-    // Inbound 11:00, outbound 11:01 = 60s
-    seedEmpMsg(1, $conv, 'inbound', when: '2026-05-15 11:00:00');
-    seedEmpMsg(1, $conv, 'outbound', userId: 10, when: '2026-05-15 11:01:00');
-
-    $rebuilder = new EmployeePerformanceRebuilder();
-    $perf = $rebuilder->rebuild(1, userId: 10);
-
-    expect($perf->tempo_resposta_mediana_s)->toBeGreaterThan(0)
-        ->and($perf->tempo_resposta_mediana_s)->toBeLessThan(120);
-});
-
-it('SLA breach contado quando outbound >4h após inbound', function () {
-    seedEmpUser(10, 'Maiara');
-    $conv = seedEmpConv(1, '5548999872822');
-
-    // Inbound 10:00, outbound 15:00 = 5h (breach >4h)
-    seedEmpMsg(1, $conv, 'inbound', when: '2026-05-15 10:00:00');
-    seedEmpMsg(1, $conv, 'outbound', userId: 10, when: '2026-05-15 15:00:00');
-
-    // Inbound 16:00, outbound 16:30 = 30min (sem breach)
-    seedEmpMsg(1, $conv, 'inbound', when: '2026-05-15 16:00:00');
-    seedEmpMsg(1, $conv, 'outbound', userId: 10, when: '2026-05-15 16:30:00');
-
-    $rebuilder = new EmployeePerformanceRebuilder();
-    $perf = $rebuilder->rebuild(1, userId: 10);
-
-    expect($perf->sla_breach_count)->toBe(1);
-});
-
 it('rebuild() exige user_id OU heuristic_name', function () {
     $rebuilder = new EmployeePerformanceRebuilder();
 

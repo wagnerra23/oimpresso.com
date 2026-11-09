@@ -737,6 +737,29 @@ Modules/PaymentGateway/Tests/Feature/BBCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/ItauCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/InterImportarRecebimentosCommandTest.php
 
+# ── Whatsapp era-sqlite, leva 2/3 (auditoria 2026-11-05, lote 1) ──────────────
+# Testes com guarda era-sqlite que não rodavam em ambiente nenhum: fora desta
+# lista e pulados na nightly MySQL do CT 100.
+Modules/Whatsapp/Tests/Feature/AuthStateDriftCheckTest.php
+Modules/Whatsapp/Tests/Feature/AutoLinkContactTest.php
+Modules/Whatsapp/Tests/Feature/Baileys7xPayloadShapeTest.php
+Modules/Whatsapp/Tests/Feature/ChannelImportHistoryGatingTest.php
+Modules/Whatsapp/Tests/Feature/ChannelObserverSyncDaemonTest.php
+Modules/Whatsapp/Tests/Feature/ChannelResetCommandTest.php
+Modules/Whatsapp/Tests/Feature/ChannelsControllerAutoPurgeBeforeConnectTest.php
+Modules/Whatsapp/Tests/Feature/ChannelsReconcilerCommandTest.php
+Modules/Whatsapp/Tests/Feature/ClientFeedbackDevTaskTest.php
+Modules/Whatsapp/Tests/Feature/ContactObserverCacheInvalidationTest.php
+Modules/Whatsapp/Tests/Feature/ConversationSchemaIdentitiesTest.php
+Modules/Whatsapp/Tests/Feature/DispatchToJanaBotTest.php
+Modules/Whatsapp/Tests/Feature/DriverLayerUnionTypeTest.php
+Modules/Whatsapp/Tests/Feature/EmployeePerformanceRebuilderTest.php
+Modules/Whatsapp/Tests/Feature/FeedbackRelevanceTest.php
+Modules/Whatsapp/Tests/Feature/HealthProbeChannelsCommandTest.php
+Modules/Whatsapp/Tests/Feature/HistorySyncMetricsTest.php
+Modules/Whatsapp/Tests/Feature/ImportHistoryCommandTest.php
+Modules/Whatsapp/Tests/Feature/InboxCleanupTest.php
+
 # 2026-10-28: 3 era-sqlite do PaymentGateway que a paymentgateway-pest barrava como
 # "destrutivos" (dropIfExists só no ramo sqlite) e listava como RefreshDatabase — os três
 # já usam DatabaseTransactions. WebhookEndpoints/WebhookSignatureValidation pulam inteiros no

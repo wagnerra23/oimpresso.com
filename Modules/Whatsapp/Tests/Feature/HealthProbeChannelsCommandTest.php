@@ -32,6 +32,13 @@ uses(Tests\TestCase::class);
  * @see Modules/Whatsapp/Console/Commands/HealthProbeChannelsCommand.php
  */
 beforeEach(function () {
+    // O comando não está no commands([...]) do WhatsappServiceProvider (ver o bloco
+    // "REMOVIDOS 2026-09-08" no Console/Kernel). Registrar ou aposentar é decisão [W];
+    // aqui ele entra só para o teste exercitar a classe.
+    $this->app->make(\Illuminate\Contracts\Console\Kernel::class)->registerCommand(
+        $this->app->make(\Modules\Whatsapp\Console\Commands\HealthProbeChannelsCommand::class)
+    );
+
     if (DB::connection()->getDriverName() !== 'sqlite') {
         test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
     }
