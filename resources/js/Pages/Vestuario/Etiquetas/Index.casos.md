@@ -57,6 +57,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 | UC-VET-21 | Texto do cadastro não vira comando de impressora | must | `CU-VEST-02` item 2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-06 | Gerar etiqueta NÃO grava nada e não lê preço do produto | must `[V0]` | `CU-VEST-07` itens 1-2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-07 | QR Code liga por business e não vaza | should `[T0]` | `CU-VEST-05` itens 1-2 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
+| UC-VET-24 | Achar a peça por nome ou SKU, sem digitar id | must | `CU-VEST-01` item 6 | `tests/js/vestuario-etiquetas-busca.test.tsx` | 🧪 |
 | UC-VET-08 | PDF A4 traz as N etiquetas com os mesmos campos do ZPL | must | `CU-VEST-06` itens 1-4 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
 | UC-VET-22 | Teto de etiquetas por pedido, com aviso e erro legíveis | must | `CU-VEST-02` item 6 | `EtiquetaLimitePermissaoContratoTest` | 🧪 |
 | UC-VET-23 | Sem a permissão: chave desligada registra, ligada bloqueia | must `[T0]` | `CU-VEST-08` item 4 | `EtiquetaLimitePermissaoContratoTest` | 🧪 |
@@ -222,6 +223,15 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 - **Status: 🧪** — o caso do `qr_enabled=true` **pula** na lane sqlite (precisa da tabela); o caso
   do default roda. Veredito real da lane MySQL / CT 100.
 
+## UC-VET-24 · Achar a peça por nome ou SKU, sem digitar id · `must`
+
+- **Aceite:** Dado a tela aberta · Quando o operador digita o nome ou o SKU e escolhe a variação ·
+  Então a linha nasce com nome, tamanho e sub_sku, e o preço fica para ele digitar · **E** o pedido
+  leva os ids e o sub_sku escolhidos · **E** a mesma variação não entra duas vezes.
+- **Teste:** `tests/js/vestuario-etiquetas-busca.test.tsx`.
+- **Contrato:** `CU-VEST-01` item 6 do SDD · SDD §5.4 D-1/D-2 · busca em `/products/list` por `business_id` da sessão.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane.
+
 ## UC-VET-08 · PDF A4 traz as N etiquetas com os mesmos campos do ZPL · `must`
 
 - **Persona:** loja sem impressora térmica (ou a térmica quebrada num sábado).
@@ -285,8 +295,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   e exercitá-la exige request autenticada — que a lane sqlite não sobe. Virar UC exige lane MySQL
   ou tornar a expansão testável; **o chip está proibido de editar o Controller**.
 - `[BACKLOG]` **Achar a peça por nome/SKU em vez de digitar `product_id` numérico** — o maior gap
-  de adoção (SDD §5.4 D-1/D-2). A tela legada `/labels/show` tem autocomplete; a nova não. Não é
-  regressão (as duas coexistem por decisão do RUNBOOK), é o que falta para o cutover.
+  de adoção. Fechado em 2026-11-09 pelo UC-VET-24 (SDD §5.4 D-1/D-2); segue o cutover.
 - `[BACKLOG]` **Pré-carga por `?purchase_id=`** — etiquetar a arara logo após receber a compra
   (SDD §5.4 D-3). Existe no legado; ausente na tela nova.
 - `[BACKLOG]` **Preço vindo do grupo de preço de venda** (`[V0]` — SDD §5.4 D-4). Hoje é digitado.
