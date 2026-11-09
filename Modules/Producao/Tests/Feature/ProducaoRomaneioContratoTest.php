@@ -5,6 +5,7 @@ declare(strict_types=1);
 // Cobre UC-PCROM-01..04 (Producao/Apontamento/Index.casos.md) — UC-FLX-12 do catálogo de fluxos.
 
 use App\Utils\ModuleUtil;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -115,6 +116,21 @@ it('UC-PCROM-02 · romaneio gravado não muda: orçamento alterado não reescrev
         ->and($v2->json('linhas.0.ja_enviada_em'))->toBe($v1->json('numero'))
         ->and(Romaneio::withoutGlobalScopes()->where('business_id', $this->b98)->where('os_id', $this->os)->count())->toBe(2);
     $this->getJson('/producao/romaneios/'.$v1->json('id'))->assertJsonPath('linhas.0.quantidade', 2)->assertJsonPath('linhas.0.ja_enviada_em', null);
+});
+
+it('UC-PCROM-05 · nem o SQL direto altera ou apaga romaneio gravado: o banco recusa', function () {
+    $v1 = $this->actingAs($this->pcp)->postJson("/producao/os/{$this->os}/romaneio", ['programacao_id' => $this->etapa])->assertCreated();
+    $id = (int) $v1->json('id');
+    $linhas = DB::table('pcp_romaneio_linhas')->where('romaneio_id', $id);
+
+    expect(fn () => DB::table('pcp_romaneios')->where('id', $id)->update(['posto_nome' => 'Outro']))->toThrow(QueryException::class, 'append-only')
+        ->and(fn () => DB::table('pcp_romaneios')->where('id', $id)->delete())->toThrow(QueryException::class, 'append-only')
+        ->and(fn () => (clone $linhas)->update(['quantidade' => 9]))->toThrow(QueryException::class, 'append-only')
+        ->and(fn () => (clone $linhas)->delete())->toThrow(QueryException::class, 'append-only');
+
+    expect(DB::table('pcp_romaneios')->where('id', $id)->value('posto_nome'))->toBe('Plotter')
+        ->and((clone $linhas)->count())->toBe(2)
+        ->and((clone $linhas)->orderBy('ordem')->value('quantidade'))->toBe(2);
 });
 
 it('UC-PCROM-03 · gerar exige o papel producao.liberar e ler exige producao.access; OS sem peças é recusada', function () {

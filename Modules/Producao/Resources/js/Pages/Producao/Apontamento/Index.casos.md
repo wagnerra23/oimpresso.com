@@ -577,6 +577,13 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-PCROM-05 · Nem o SQL direto muda o romaneio · `must`
+
+**Dado** um romaneio gravado **Quando** um `UPDATE` ou `DELETE` direto no banco atinge o romaneio ou as linhas dele,
+**Então** o banco recusa e nada muda. Corrigir é gerar a versão seguinte.
+
+Status: 🧪
+
 ## UC-PCROM-04 · Outra empresa, 404 · `must`
 
 **Quando** o PCP do tenant 98 gera romaneio de OS do tenant 99, ou aponta como destino a etapa de outra OS,
