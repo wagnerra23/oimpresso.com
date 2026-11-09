@@ -151,6 +151,9 @@ beforeEach(function () {
         'whatsapp.baileys.daemon_url' => 'https://daemon.test',
         'whatsapp.baileys.api_key' => 'test-key',
         'whatsapp.baileys.request_timeout' => 5,
+        // Baileys está em forbidden_drivers desde a ADR 0202; estes casos exercitam o driver
+        // que ainda existe no código.
+        'whatsapp.forbidden_drivers' => [],
     ]);
 });
 

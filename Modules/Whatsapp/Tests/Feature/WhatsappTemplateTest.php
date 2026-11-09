@@ -62,7 +62,7 @@ function createTpl(array $attrs = []): WhatsappTemplate
 it('expandBody substitui {{1}}, {{2}} pela ordem dos params (Meta-style)', function () {
     $tpl = createTpl();
 
-    $expanded = $tpl->expandBody(['Maria', '#OS-42']);
+    $expanded = $tpl->expandBody(['Maria', '42']);
 
     expect($expanded)->toBe('Olá Maria, sua OS #42 está pronta para retirada!');
 });

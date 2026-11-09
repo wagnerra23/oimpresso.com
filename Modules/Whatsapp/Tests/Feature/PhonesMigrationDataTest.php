@@ -207,6 +207,7 @@ it('migra cada config legacy pra 1 phone com label Comercial', function () {
             'business_uuid' => (string) Str::uuid(),
             'driver' => 'zapi',
             'fallback_driver' => 'meta_cloud',
+            'baileys_phone_e164' => null, // insert em lote exige as mesmas colunas nas duas linhas
             'created_at' => now(),
             'updated_at' => now(),
         ],
