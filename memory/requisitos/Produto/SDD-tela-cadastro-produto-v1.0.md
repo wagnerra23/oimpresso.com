@@ -1170,6 +1170,10 @@ qual é o local padrão.
     pelo endereço e pelo local padrão, sem tocar em saldo. Para mudar, basta comentar no PR.
 - **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
   ganham id quando houver teste que os defenda (G-2).
+- **No servidor (2026-11-09):** o [W] mergeou a proposta (#10544), então valem as duas propostas. Coluna
+  `products.local_padrao_id`; o `store()` e o `update()` gravam o padrão e o endereço (`product_racks`)
+  sem mexer em saldo e recusam local de outra empresa. Casos `UC-PCAD-22` e `UC-PEDIT-19`. O bloco
+  "Locais de armazenagem" da tela vem no PR seguinte.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
