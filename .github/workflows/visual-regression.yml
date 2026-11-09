@@ -738,6 +738,15 @@ jobs:
         id: e2e-purchase-etiqueta
         run: ./vendor/bin/pest tests/Browser/Purchase/IndexEtiquetaTest.php
 
+      # ── A11Y · Purchase/Create e Purchase/Show (NASCE ADVISORY) ──────────────────────
+      # Auditoria de 2026-11-05: nenhuma tela de Compras rodava axe. Nível 0 (critical), mesmo
+      # ratchet do A11yAxeBrowserTest. Advisory até 2 verdes que executaram (ADR 0336).
+      - name: A11y (axe) · Purchase/Create e Purchase/Show (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: a11y-purchase
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Purchase/A11yCreateShowTest.php
+
       # ── E2E DE RENDER POR TELA — Repair/ProducaoOficina (NASCE ADVISORY) ────────────
       # O PRIMEIRO E2E do modulo Repair. Medido em origin/main e0f2b79c86 (2026-09-05) por
       # `node scripts/qa/screen-coverage-map.mjs`: Repair = 14 telas · 14 charter · 0 E2E ·
