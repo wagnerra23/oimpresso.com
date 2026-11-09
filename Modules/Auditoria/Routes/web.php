@@ -2,6 +2,7 @@
 
 use Modules\Auditoria\Http\Controllers\AuditoriaController;
 use Modules\Auditoria\Http\Controllers\InstallController;
+use Modules\Auditoria\Http\Middleware\AuditoriaLiberado;
 
 /**
  * Rotas /auditoria — UI Inertia rica de governanca + undo (per ADR 0127).
@@ -27,8 +28,12 @@ Route::middleware([
     'CheckUserLogin',
 ])->prefix('auditoria')->name('auditoria.')->group(function () {
 
-    Route::get('/', [AuditoriaController::class, 'index'])->name('index');
+    // Leitura: pacote `auditoria_module` + `auditoria.view` (superadmin passa). Mesma regra do menu.
+    Route::get('/', [AuditoriaController::class, 'index'])
+        ->middleware(AuditoriaLiberado::class)
+        ->name('index');
     Route::get('/{activityId}', [AuditoriaController::class, 'show'])
+        ->middleware(AuditoriaLiberado::class)
         ->where('activityId', '[0-9]+')
         ->name('show');
 

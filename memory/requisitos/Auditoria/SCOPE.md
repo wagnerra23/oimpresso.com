@@ -4,6 +4,7 @@ purpose: "Quem mudou este registro, o quê e quando? — lê e investiga a trilh
 migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "AuditoriaController (index · show · revert)"
+  - "AuditoriaLiberado — middleware das leituras: pacote auditoria_module + auditoria.view (superadmin passa)"
   - "AuditEntryService — leitura paginada e detalhe de activity_log"
   - "RevertService — undo restaurando properties.old + registro do próprio undo"
   - "RevertCheck — veredito allow/deny com OTel span"

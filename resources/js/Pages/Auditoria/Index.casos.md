@@ -39,6 +39,12 @@ last_run: "2026-09-30"
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDI-03 · redirect 301 legado").
 - **Status: 🧪**
 
+## UC-AUDI-04 · Só abre a trilha quem tem o pacote da empresa e a permissão
+- **Persona:** dono do negócio — a trilha traz e-mail, celular e valores, então não é de todo usuário logado (SPEC US-AUDIT-010; ADR 0127 §princípio 5).
+- **Aceite:** Dado usuário sem `auditoria.view` · Quando abre `/auditoria` pela URL · Então **403**. Dado empresa sem o pacote `auditoria_module` · Então **403**, mesmo com a permissão. Dado o pacote e a permissão · Então a tela abre. Superadmin abre sem pacote e sem permissão, como no menu.
+- **Teste:** `AuditoriaAcessoGateTest` ("UC-AUDI-04 · …").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)

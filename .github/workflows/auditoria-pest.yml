@@ -133,6 +133,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-auditoria-junit.xml \
             tests/Feature/Auditoria/ActivityLogBusinessIdTenantTest.php \
+            tests/Feature/Auditoria/AuditoriaAcessoGateTest.php \
             tests/Feature/Auditoria/AuditoriaTelasContratoTest.php \
             tests/Feature/Auditoria/BackfillActivityBusinessIdCommandTest.php \
             tests/Feature/Auditoria/CauserKindMigrationTest.php \

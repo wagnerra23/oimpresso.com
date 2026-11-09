@@ -49,6 +49,7 @@ Módulo de governança que materializa o **Art. 9 da Constituição v2** (audita
 | `AuditoriaController` | [`Modules/Auditoria/Http/Controllers/AuditoriaController.php`](../../../Modules/Auditoria/Http/Controllers/AuditoriaController.php) | `index` + `show` + `revert` (delega Service) |
 | Pages Inertia | `Modules/Auditoria/Pages/Index.tsx` + `Detail.tsx` (Sprint 3, F1.5+F3 gate) | UI rica filtros + diff |
 | Permissões Spatie | `auditoria.view`, `auditoria.revert.own` (≤24h), `auditoria.revert.any` (≤30d), `auditoria.revert.unlimited` | 3 níveis governados |
+| Gate das leituras | [`AuditoriaLiberado`](../../../Modules/Auditoria/Http/Middleware/AuditoriaLiberado.php) | `GET /auditoria` e `/auditoria/{id}`: pacote `auditoria_module` + `auditoria.view`, superadmin passa |
 
 ## Whitelist UNREVERTIBLE (compliance crítica — ZERO touch sem ADR)
 

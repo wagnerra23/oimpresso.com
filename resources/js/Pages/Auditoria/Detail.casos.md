@@ -29,7 +29,13 @@ last_run: "2026-09-30"
 ## UC-AUDD-02 · Alteração de outro business não abre
 - **Persona:** admin do business 99 — não pode ler a trilha do 98, nem chutando o id (Tier 0, ADR 0093).
 - **Aceite:** Dado uma alteração do business 98 · Quando o detalhe é pedido com o id dela para o business 99 · Então **não é encontrada** (`ModelNotFoundException` → 404), sem devolver dado nenhum.
-- **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-02 · cross-tenant não abre").
+- **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-02 · cross-tenant não abre") e `AuditoriaAcessoGateTest` ("UC-AUDD-02 · pela rota…", visita parcial com os headers do cliente Inertia).
+- **Status: 🧪**
+
+## UC-AUDD-03 · Sem a permissão, o detalhe não abre nem na própria empresa
+- **Persona:** dono do negócio — o detalhe mostra o antes e o depois de cada campo (SPEC US-AUDIT-010; ADR 0127 §princípio 5).
+- **Aceite:** Dado uma alteração da própria empresa e usuário sem `auditoria.view` · Quando pede `/auditoria/{id}` · Então **403**. Com a permissão, a mesma requisição traz a alteração.
+- **Teste:** `AuditoriaAcessoGateTest` ("UC-AUDD-03 · …").
 - **Status: 🧪**
 
 ---
