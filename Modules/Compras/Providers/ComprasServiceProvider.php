@@ -50,6 +50,7 @@ class ComprasServiceProvider extends ServiceProvider
                 \Modules\Compras\Console\Commands\RequisicaoEstoqueMinimoCommand::class,
                 // US-PROD-024 — semente do custo médio móvel (dry-run por padrão).
                 \Modules\Compras\Console\Commands\CustoMedioSemearCommand::class,
+                \Modules\Compras\Console\Commands\CustoMedioReconciliarCommand::class,
             ]);
         }
     }
