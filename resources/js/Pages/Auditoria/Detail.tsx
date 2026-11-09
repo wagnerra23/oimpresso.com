@@ -5,11 +5,12 @@
 //   inexistentes), tokens (zero sky/zinc cru), diff key/value formatado, links navegáveis.
 
 import React, { type ReactNode } from 'react'
-import { Link } from '@inertiajs/react'
+import { Deferred, Link } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
+import { Skeleton } from '@/Components/ui/skeleton'
 import PageHeader from '@/Components/shared/PageHeader'
 import EmptyState from '@/Components/shared/EmptyState'
 import { ArrowLeft } from 'lucide-react'
@@ -85,7 +86,40 @@ function PropertiesDiff({ properties }: { properties: Record<string, unknown> })
   )
 }
 
-function AuditoriaDetail({ activity }: Props): React.ReactElement {
+function VoltarALista(): React.ReactElement {
+  return (
+    <Button asChild variant="outline">
+      <Link href="/auditoria">
+        <ArrowLeft className="size-4" aria-hidden /> Voltar à lista
+      </Link>
+    </Button>
+  )
+}
+
+function DetailSkeleton(): React.ReactElement {
+  return (
+    <>
+      <PageHeader icon="history" title="Atividade" action={<VoltarALista />} />
+      <Card>
+        <CardContent className="py-6">
+          <div className="grid grid-cols-2 gap-3" aria-busy="true" aria-label="Carregando atividade">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <React.Fragment key={i}>
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-48" />
+              </React.Fragment>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  )
+}
+
+// `activity` chega por Inertia::defer: `undefined` é "ainda carregando" (fica no fallback do
+// <Deferred>) e `null` é o que o servidor responde quando o registro não existe ou é de outra
+// empresa. Só o `null` chega aqui.
+function DetailConteudo({ activity }: Props): React.ReactElement {
   if (!activity) {
     return (
       <>
@@ -96,13 +130,7 @@ function AuditoriaDetail({ activity }: Props): React.ReactElement {
               icon="AlertCircle"
               title="Atividade não encontrada"
               description="Esta atividade pode não existir ou pertencer a outro tenant."
-              action={
-                <Button asChild variant="outline">
-                  <Link href="/auditoria">
-                    <ArrowLeft className="size-4" aria-hidden /> Voltar à lista
-                  </Link>
-                </Button>
-              }
+              action={<VoltarALista />}
             />
           </CardContent>
         </Card>
@@ -120,13 +148,7 @@ function AuditoriaDetail({ activity }: Props): React.ReactElement {
         icon="history"
         title={`Atividade #${activity.id}`}
         description={activity.description}
-        action={
-          <Button asChild variant="outline">
-            <Link href="/auditoria">
-              <ArrowLeft className="size-4" aria-hidden /> Voltar à lista
-            </Link>
-          </Button>
-        }
+        action={<VoltarALista />}
       />
 
       <Card className="mb-4">
@@ -186,6 +208,14 @@ function AuditoriaDetail({ activity }: Props): React.ReactElement {
   )
 }
 
-AuditoriaDetail.layout = (page: ReactNode): React.ReactElement => <AppShellV2>{page}</AppShellV2>
+function AuditoriaDetail({ activity }: Props): React.ReactElement {
+  return (
+    <Deferred data="activity" fallback={<DetailSkeleton />}>
+      <DetailConteudo activity={activity} />
+    </Deferred>
+  )
+}
+
+AuditoriaDetail.layout =(page: ReactNode): React.ReactElement => <AppShellV2>{page}</AppShellV2>
 
 export default AuditoriaDetail

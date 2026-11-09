@@ -32,6 +32,18 @@ last_run: "2026-09-30"
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-02 · cross-tenant não abre").
 - **Status: 🧪**
 
+## UC-AUDD-10 · Enquanto a alteração carrega, vejo que está carregando, e nunca "não encontrada"
+- **Persona:** auditor — abre uma entrada que existe e não pode ler, nem por um instante, que ela não existe (CU-AUD-02).
+- **Aceite:** Dado uma alteração do business 98 · Quando a tela abre · Então o primeiro render não traz `activity` e a declara deferida, a tela mostra o esqueleto sem o texto "Atividade não encontrada", e o pedido parcial entrega o registro, que substitui o esqueleto.
+- **Teste:** `AuditoriaDetailDeferidoContratoTest` ("UC-AUDD-10 · a primeira visita não traz a prop") com os headers do cliente Inertia · `tests/js/auditoria-detail-deferido.test.tsx` ("UC-AUDD-10 ·", render).
+- **Status: 🧪**
+
+## UC-AUDD-11 · Registro inexistente ou de outro business termina em "não encontrada"
+- **Persona:** admin — abriu um id que não existe, ou que é de outra empresa; a tela responde e não fica carregando para sempre (Tier 0, ADR 0093).
+- **Aceite:** Dado um id inexistente, ou uma alteração do business vizinho · Quando o pedido parcial responde para o business 98 · Então `activity` vem presente e `null`, sem dado nenhum do registro, e a tela sai do esqueleto para "Atividade não encontrada".
+- **Teste:** `AuditoriaDetailDeferidoContratoTest` ("UC-AUDD-11 · registro inexistente", "UC-AUDD-11 · registro de outra empresa") · `tests/js/auditoria-detail-deferido.test.tsx` ("UC-AUDD-11 ·", render).
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
