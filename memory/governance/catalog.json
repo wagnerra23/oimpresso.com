@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 934,
-    "edges": 1263,
+    "nodes": 935,
+    "edges": 1265,
     "by_node_type": {
       "module": 43,
       "table": 108,
-      "adr": 152,
+      "adr": 153,
       "component": 542,
       "api": 89
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 127,
       "migratesTo": 1,
       "supersedes": 27,
-      "supersedesPartially": 76,
+      "supersedesPartially": 78,
       "supersededBy": 31
     },
     "dangling": 0
@@ -1116,6 +1116,13 @@
       "type": "adr",
       "num": "0445",
       "slug": "0445-comparacao-de-pixel-sai-do-projeto",
+      "exists": true
+    },
+    {
+      "id": "adr:0448",
+      "type": "adr",
+      "num": "0448",
+      "slug": "0448-fabricacao-cadastro-producao-execucao-product-bom-fonte-unica",
       "exists": true
     },
     {
@@ -8192,6 +8199,18 @@
     {
       "from": "adr:0445",
       "to": "adr:0108",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0448",
+      "to": "adr:0431",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0448",
+      "to": "adr:0436",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
