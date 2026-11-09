@@ -37,9 +37,14 @@ class AssinaturaController extends Controller
      * UI minimal pra Wagner/admin selecionar assinatura ativa e editar
      * valor / ciclo / forma_pagamento. Lista vem scoped por business_id
      * via HasBusinessScope (global scope ADR 0093).
+     *
+     * Exige a mesma permissão do PATCH: esta tela existe só para editar, e sem o gate
+     * qualquer usuário logado via ciclo e forma de pagamento das assinaturas (D8).
      */
     public function showAtualizar(): InertiaResponse
     {
+        abort_unless(auth()->user()?->can('recurringbilling.subscriptions.manage'), 403);
+
         $assinaturas = Subscription::query()
             ->ativas()
             ->with('plan')
