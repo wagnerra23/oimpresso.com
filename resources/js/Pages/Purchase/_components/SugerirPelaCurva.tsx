@@ -7,6 +7,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { FieldError } from '@/Components/ui/field-state';
+import { Inline } from '@/Components/layout';
 import type { GradeCol, GradeRow } from './GradeMatrixInput';
 import { sugestaoParaGrade, textoDoMotivo, type RespostaDaCurva, type SugestaoNaGrade } from './curvaDeCompra';
 
@@ -58,7 +59,7 @@ export default function SugerirPelaCurva({ productId, rows, cols, cellVariationM
   };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <Inline wrap>
       <Label htmlFor="curva-total" className="text-[11px] text-muted-foreground">Total de peças</Label>
       <Input
         id="curva-total"
@@ -75,6 +76,6 @@ export default function SugerirPelaCurva({ productId, rows, cols, cellVariationM
       </Button>
       {aviso && <p role="status" className="text-[12px] text-muted-foreground">{aviso}</p>}
       <FieldError>{erro}</FieldError>
-    </div>
+    </Inline>
   );
 }
