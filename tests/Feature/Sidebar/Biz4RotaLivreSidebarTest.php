@@ -76,9 +76,14 @@ describe('Sidebar FINANÇAS canon — 4 entries flat (Wagner 2026-05-26)', funct
     it('Financeiro DataController publica 3 entries top-level (Caixa · Cobrança · Financeiro)', function () {
         $src = file_get_contents(ROOT . '/Modules/Financeiro/Http/Controllers/DataController.php');
         // 3 URLs primary distintos (4ª entrada Cobrança Recorrente vem do RecurringBilling)
-        expect($src)->toContain("url('/financeiro/caixa')");
-        expect($src)->toContain("url('/financeiro/cobranca')");
-        expect($src)->toContain("url('/financeiro/unificado')");
+        // Desde a auditoria 2026-11-05 (D14) cada entrada aponta para o primeiro link que a pessoa
+        // pode abrir; com todas as permissões continua sendo caixa, cobranca e unificado.
+        expect($src)->toContain("url(\$caixa[0]['href'])");
+        expect($src)->toContain("url(\$cobranca[0]['href'])");
+        expect($src)->toContain("url(\$hub[0]['href'])");
+        expect($src)->toMatch("/\['key' => 'caixa',\s+'label' => 'Caixa',\s+'href' => '\/financeiro\/caixa'/");
+        expect($src)->toMatch("/\['key' => 'cobranca',\s+'label' => 'Cobrança',\s+'href' => '\/financeiro\/cobranca'/");
+        expect($src)->toMatch("/\['key' => 'unificado',\s+'label' => 'Lançamentos',\s+'href' => '\/financeiro\/unificado'/");
         // Orders fracionários 85.00 / 85.10 / 85.20 (3 entries Financeiro)
         expect($src)->toContain('->order(85.00)');
         expect($src)->toContain('->order(85.10)');
