@@ -54,7 +54,11 @@ class RemarcacaoController extends Controller
         $biz = $this->guard();
         $d = $this->dados($request);
 
-        return $this->tentar(fn () => $this->svc->previa($biz, $d['filtro'], $d['modo'], $d['valor']));
+        return $this->tentar(function () use ($biz, $d) {
+            $previa = $this->svc->previa($biz, $d['filtro'], $d['modo'], $d['valor']);
+
+            return $previa + ['grupos' => $this->svc->precosDeGrupo(array_column($previa['linhas'], 'variation_id'))];
+        });
     }
 
     public function store(Request $request): JsonResponse
