@@ -33,6 +33,7 @@ on:
       - 'Modules/NFSe/Config/config.php'
       - 'Modules/NFSe/Http/**'
       - 'tests/Feature/Calculo/CalculoTributarioTest.php'
+      - 'tests/Unit/NfeCertStatusSharedPropTest.php'
       - 'app/Support/BR/Cnpj.php'
       - 'app/Rules/BR/CpfCnpj.php'
       - 'database/schema/mysql-schema.sql'
@@ -84,6 +85,7 @@ jobs:
               - 'Modules/NFSe/Config/config.php'
               - 'Modules/NFSe/Http/**'
               - 'tests/Feature/Calculo/CalculoTributarioTest.php'
+              - 'tests/Unit/NfeCertStatusSharedPropTest.php'
               - 'app/Support/BR/Cnpj.php'
               - 'app/Rules/BR/CpfCnpj.php'
               - 'database/schema/mysql-schema.sql'
@@ -273,6 +275,25 @@ jobs:
         #   apaga e recria as fiscal.* (o comando sob teste e quem as recria).
         #   NfseCockpitController pulava por um guard de `emitted_at` (task #12) que ficou
         #   velho: o controller passou a ler `created_at`; o guard saiu.
+        # + 16 que nunca rodavam em MySQL (2026-11-10, auditoria NfeBrasil lote 4.1, N1-01):
+        #   medidos por andaime nao-bloqueante no run 42894471853 (os 40 candidatos de uma vez,
+        #   depois desta lista). Entram os que deram 0 failed e 0 errors. No fim da lista: no
+        #   andaime rodaram depois de toda ela, inclusive do HabilitarBusinessCommand.
+        #   NfeServiceDoubleWriteTest entra com o conserto do teste (`new NfeService()` sem
+        #   argumento -> `app(NfeService::class)`, mesma causa do NfeServiceIdempotenciaRetry).
+        #   FICAM DE FORA, com causa por arquivo no corpo do PR e na nota da auditoria:
+        #     so-sqlite por desenho (pulam 100% em MySQL; a lane sqlite os cobre):
+        #       SyncFiscalRuleToTaxRate (dropa tax_rates) - NfeInutilizacaoService - EmitirNFSeJob
+        #       - CertificadoFallbackLegado - NfeEmissaoControllerSerializeUrls
+        #     vermelhos (defeito de teste/harness a consertar por grupo): CNPJ da empresa nao
+        #       configurado no harness (ManifestacaoService, DistribuicaoDfeService,
+        #       ResolveUfEmitente); FK de business/contato inexistente (EmitirNfceJob,
+        #       EnviarDanfeNFCePorEmail, EnviarDanfePorEmail, EmitirNFeAoReceberPagamento,
+        #       NfeEventoMultiTenantIsolation); duplicidade por linha que outro teste deixou
+        #       (NfeStatusController, NfeStatusContrato, NfseCancelService); asserts sobre
+        #       texto-fonte envelhecido (tests/Feature/NfeBrasil/EmissaoManualTest,
+        #       NfeConfigAutosaveContract); DanfeServicePrefersArquivos, DataController,
+        #       Observability, TributacaoTemplateService, Wave26Saturation, NfeServiceTest.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -392,7 +413,23 @@ jobs:
             Modules/Fiscal/Tests/Feature/HabilitarBusinessCommandTest.php \
             Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php \
             Modules/Fiscal/Tests/Feature/CockpitControllerTest.php \
-            Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php
+            Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php \
+            Modules/NfeBrasil/Tests/Feature/AbrasfV204CancelDriverTest.php \
+            Modules/NfeBrasil/Tests/Feature/BuscarDfesRecebidosJobTest.php \
+            Modules/NfeBrasil/Tests/Feature/HasArquivosTraitTest.php \
+            Modules/NfeBrasil/Tests/Feature/ManifestacaoContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ManifestacaoControllerTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeCartaCorrecaoServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceCancelarTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceEmitirParaTransactionTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceRetransmitirTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceDoubleWriteTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirParaInvoiceFallbackTest.php \
+            Modules/NfeBrasil/Tests/Feature/FatorRTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave23SaturationTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave27NfeSaturationTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave28NfePolishTest.php \
+            tests/Unit/NfeCertStatusSharedPropTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
