@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Modules\Fiscal\Services\SpedIcmsIpiGeneratorService;
 use Modules\NfeBrasil\Models\NfeEmissao;
 
 uses(Tests\TestCase::class);
@@ -44,6 +47,49 @@ it('UC-FSPED-03 · SpedController expõe gerar() e a rota de download está regi
     expect(Route::has('fiscal.sped.icms-ipi'))->toBeTrue(
         'rota de download do TXT EFD registrada (GET /fiscal/sped/icms-ipi/{ano}/{mes})'
     );
+});
+
+it('UC-FSPED-11 · o cabeçalho do download declara o mesmo COD_VER do registro 0000 do arquivo', function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: a rota precisa do tenant semeado (business), que só a lane MySQL tem.');
+    }
+
+    $tenant = $this->seededTenant();
+    $bizId = (int) $tenant->id;
+
+    // Só a leitura (business + NF-e) é trocada: o TXT sai do gerador de produção.
+    app()->instance(SpedIcmsIpiGeneratorService::class, new class extends SpedIcmsIpiGeneratorService {
+        public function __construct()
+        {
+            parent::__construct(null);
+        }
+
+        protected function carregarBusiness(int $businessId): ?object
+        {
+            return (object) ['id' => $businessId, 'name' => 'CI TENANT 98 (FICTICIO)', 'state' => 'SC'];
+        }
+
+        protected function carregarEmissoes(int $businessId, CarbonImmutable $ini, CarbonImmutable $fim): Collection
+        {
+            return collect();
+        }
+    });
+    config(['fiscal.sped_simples_only_lock' => false]);
+
+    $user = $this->usuarioComPermissoes(['fiscal.sped.export'], $tenant);
+
+    // Dois anos com versões diferentes: um valor fixo no cabeçalho não passa nos dois.
+    foreach ([2025 => '019', 2026 => '020'] as $ano => $esperado) {
+        $resposta = $this->actingAs($user)
+            ->withSession(['business.id' => $bizId, 'user.business_id' => $bizId])
+            ->get("/fiscal/sped/icms-ipi/{$ano}/1");
+
+        $resposta->assertStatus(200)->assertHeader('X-Sped-Layout-Version', $esperado);
+
+        $abertura = explode('|', strtok($resposta->getContent(), "\r\n"));
+        expect($abertura[1])->toBe('0000')
+            ->and($abertura[2])->toBe($esperado);
+    }
 });
 
 it('UC-FSPED-01 · agregação de períodos NfeEmissao respeita scope per business', function () {

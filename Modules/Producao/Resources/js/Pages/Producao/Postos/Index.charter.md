@@ -5,7 +5,7 @@ component: Modules/Producao/Resources/js/Pages/Producao/Postos/Index.tsx
 related_prototype: "n/a (sem vista própria no protótipo; segue as classes pcv-* do bundle e o PT-02 drawer 760)"
 owner: wagner
 status: draft
-last_validated: "2026-10-16"
+last_validated: "2026-11-09"
 parent_module: Producao
 related_adrs: [93, 358, 431]
 alcance:
@@ -35,10 +35,13 @@ refugo de cada posto, os veículos, as ferramentas com QR e o custo-hora da pess
 - Veículo como posto de máquina, com placa, custo por hora e por km (E03).
 - Ferramentas com código QR único por empresa (E03).
 - Custo-hora da pessoa só para quem tem `producao.desempenho.ver` (E03, D-PERM).
+- Operadores do posto, na lista e na gaveta, definidos só com `producao.etapa.mover` — UC-PCOPE-06 (US-PCP-030 · UC-FLX-08).
+- Motivo já usado sai da lista sem ser apagado: fica inativo e volta se for recolocado — UC-PCMOU-01.
+- Sem o módulo no pacote da empresa, os cadastros não abrem nem gravam — UC-PCPAC-01.
 
 ## Non-Goals — Features (NÃO faz)
 
-- ❌ Calcular custo real da OS (é o CustoRealService da thread 02, tela da thread 08).
+- ❌ Calcular custo real da OS: é o `CustoRealService`, e o resultado aparece na aba Custo da Ficha (UC-PCOSF-03).
 - ❌ Saída e devolução de ferramenta por QR (thread 14).
 
 ## Refs
