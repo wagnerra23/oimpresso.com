@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Auditoria\Services\AuditEntryService;
 use Spatie\Activitylog\Models\Activity;
@@ -12,7 +14,7 @@ use Spatie\Activitylog\Models\Activity;
 /**
  * Contrato das telas Auditoria/Index + Auditoria/Detail (casos.md ao lado dos .tsx).
  *
- * UCs: UC-AUDI-01..03 (Index.casos.md) · UC-AUDD-01..02 (Detail.casos.md).
+ * UCs: UC-AUDI-01..03, UC-AUDI-10..11 (Index.casos.md) · UC-AUDD-01..02 (Detail.casos.md).
  * Âncora: SDD-auditoria-v1.0 §6 (CU-AUD-01/02) + charters + SPEC US-AUDIT-010.
  *
  * Exercita o MESMO serviço que o AuditoriaController chama (list/find/normalizeFilters)
@@ -119,4 +121,91 @@ it('UC-AUDD-02 · cross-tenant não abre', function () {
 
     expect(fn () => $this->svc->find(AUD_TELA_OUTRO, $act->id))
         ->toThrow(ModelNotFoundException::class);
+});
+
+function audTelaAutor(int $biz, string $primeiroNome): User
+{
+    return User::factory()->create([
+        'business_id' => $biz,
+        'first_name'  => $primeiroNome,
+        'last_name'   => 'Fixture',
+    ]);
+}
+
+function audTelaPor(int $biz, ?User $autor, string $kind = 'user'): Activity
+{
+    return Activity::create([
+        'log_name'    => AUD_TELA_LOG,
+        'description' => 'contrato coluna por',
+        'event'       => 'updated',
+        'business_id' => $biz,
+        'causer_type' => $autor ? User::class : null,
+        'causer_id'   => $autor?->id,
+        'causer_kind' => $kind,
+    ]);
+}
+
+function audTelaLinha(LengthAwarePaginator $pagina, Activity $activity): Activity
+{
+    return collect($pagina->items())->firstWhere('id', $activity->id);
+}
+
+it('UC-AUDI-10 · nome do autor na linha, numa só consulta e sem expor o usuário', function () {
+    $biz = (int) $this->seededTenant()->id;
+    $ana = audTelaAutor($biz, 'Ana');
+    $bia = audTelaAutor($biz, 'Bia');
+    $desligada = audTelaAutor($biz, 'Cleo');
+    $desligada->delete();
+
+    $daAna = audTelaPor($biz, $ana);
+    $daBia = audTelaPor($biz, $bia);
+    $daCleo = audTelaPor($biz, $desligada);
+
+    DB::enableQueryLog();
+    $pagina = $this->svc->list($biz);
+    $consultasDeUsuario = collect(DB::getQueryLog())
+        ->filter(fn (array $q) => str_contains($q['query'], 'from `users`'))
+        ->count();
+    DB::disableQueryLog();
+
+    expect(audTelaLinha($pagina, $daAna)->causer_label)->toBe('Ana Fixture');
+    expect(audTelaLinha($pagina, $daBia)->causer_label)->toBe('Bia Fixture');
+    expect(audTelaLinha($pagina, $daCleo)->causer_label)->toBe('Cleo Fixture');
+    expect($consultasDeUsuario)->toBe(1);
+
+    $payload = audTelaLinha($pagina, $daAna)->toArray();
+    expect(array_key_exists('causer', $payload))->toBeFalse();
+    expect(json_encode($payload))->not->toContain((string) $ana->email);
+});
+
+it('UC-AUDI-11 · sem usuário, o rótulo diz de onde veio a ação', function () {
+    $biz = (int) $this->seededTenant()->id;
+    $autor = audTelaAutor($biz, 'Dani');
+
+    $rotina = audTelaPor($biz, null, 'system');
+    $ia = audTelaPor($biz, null, 'agent');
+    $api = audTelaPor($biz, null, 'api');
+    $iaEmNomeDe = audTelaPor($biz, $autor, 'agent');
+
+    $pagina = $this->svc->list($biz);
+
+    expect(audTelaLinha($pagina, $rotina)->causer_label)->toBe('Sistema');
+    expect(audTelaLinha($pagina, $ia)->causer_label)->toBe('IA');
+    expect(audTelaLinha($pagina, $api)->causer_label)->toBe('API');
+    expect(audTelaLinha($pagina, $iaEmNomeDe)->causer_label)->toBe('IA · Dani Fixture');
+});
+
+it('UC-AUDI-11 · autor de outro business aparece só pelo id', function () {
+    $biz = (int) $this->seededTenant()->id;
+    $vizinho = audTelaAutor((int) $this->seededSupportClientTenant()->id, 'Eva');
+    $daCasa = audTelaAutor($biz, 'Fabi');
+
+    $alheio = audTelaPor($biz, $vizinho);
+    $proprio = audTelaPor($biz, $daCasa);
+
+    $pagina = $this->svc->list($biz);
+
+    // Controle: o mesmo caminho resolve o nome de quem é da casa.
+    expect(audTelaLinha($pagina, $proprio)->causer_label)->toBe('Fabi Fixture');
+    expect(audTelaLinha($pagina, $alheio)->causer_label)->toBe('Usuário #'.$vizinho->id);
 });
