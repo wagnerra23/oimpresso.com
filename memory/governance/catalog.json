@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 941,
-    "edges": 1271,
+    "nodes": 943,
+    "edges": 1272,
     "by_node_type": {
       "module": 43,
       "table": 108,
-      "adr": 153,
+      "adr": 155,
       "component": 548,
       "api": 89
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 127,
       "migratesTo": 1,
       "supersedes": 27,
-      "supersedesPartially": 78,
+      "supersedesPartially": 79,
       "supersededBy": 31
     },
     "dangling": 0
@@ -317,6 +317,13 @@
       "type": "adr",
       "num": "0088",
       "slug": "0088-module-rename-php-only",
+      "exists": true
+    },
+    {
+      "id": "adr:0090",
+      "type": "adr",
+      "num": "0090",
+      "slug": "0090-nfe-replace-gradual-app-services",
       "exists": true
     },
     {
@@ -1123,6 +1130,13 @@
       "type": "adr",
       "num": "0448",
       "slug": "0448-fabricacao-cadastro-producao-execucao-product-bom-fonte-unica",
+      "exists": true
+    },
+    {
+      "id": "adr:0449",
+      "type": "adr",
+      "num": "0449",
+      "slug": "0449-nfebrasil-certificado-sem-fallback-legado",
       "exists": true
     },
     {
@@ -8253,6 +8267,12 @@
     {
       "from": "adr:0448",
       "to": "adr:0436",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0449",
+      "to": "adr:0090",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
