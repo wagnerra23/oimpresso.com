@@ -29,6 +29,41 @@ use Spatie\Activitylog\Models\Activity;
 class RevertService
 {
     /**
+     * Campos que o undo nunca restaura, em qualquer model (motivo => campos).
+     * Regra mestre de valor e estoque (memory/proibicoes.md): cada um desses numeros tem
+     * dono e recalculo proprios; atribuir direto deixa total, titulo e estoque divergentes.
+     * Lista explicita dos campos que a trilha grava (logOnly): campo novo de valor entra aqui.
+     */
+    private const CAMPOS_PROTEGIDOS = [
+        'o total e calculado a partir dos itens, impostos e descontos' => [
+            'final_total', 'total_before_tax', 'subtotal', 'total', 'valor_total', 'valor',
+            'item_tax', 'line_discount_amount', 'valor_unitario', 'unit_price_inc_tax',
+            'preco_unitario_m2', 'valor_estimado', 'valor_recomendado', 'purchase_amount',
+        ],
+        'o preco ou custo alimenta vendas e margens ja calculadas' => [
+            'default_purchase_price', 'default_sell_price', 'sell_price_inc_tax', 'preco', 'preco_base',
+            'preco_km', 'preco_m2', 'preco_solda_m', 'preco_custo_m2', 'preco_venda_m2',
+            'extra_cost', 'final_price', 'ingredients_cost',
+        ],
+        'o pagamento so muda por baixa ou estorno no Financeiro' => [
+            'amount', 'payment_status', 'valor_aberto', 'valor_baixa', 'valor_centavos', 'valor_pago_centavos',
+        ],
+        'a comissao depende do total e do vendedor da venda' => [
+            'commission_agent', 'commission_split', 'comissao_calculada',
+        ],
+        'o estoque so muda por movimentacao registrada' => [
+            'qty_available', 'quantity', 'total_quantity', 'enable_stock', 'estoque_minimo_m2',
+        ],
+        'a empresa dona do registro nao muda' => ['business_id'],
+    ];
+
+    /** Campos cujo nome so e sensivel neste model (classe => campo => motivo). */
+    private const CAMPOS_PROTEGIDOS_POR_CLASSE = [
+        \App\Transaction::class => ['status' => 'o status da venda dispara reserva e baixa de estoque'],
+        \Modules\Financeiro\Models\Titulo::class => ['status' => 'o status do titulo acompanha o valor em aberto'],
+    ];
+
+    /**
      * Whitelist de Models/condicoes UNREVERTIBLE.
      * Append-only: adicionar Model novo via PR + comentario; remover = ADR amendada.
      *
@@ -95,6 +130,24 @@ class RevertService
         ];
     }
 
+    /** Motivo da negacao se o snapshot traz campo de valor ou estoque; null se nao traz. */
+    private function motivoCampoProtegido(Activity $log): ?string
+    {
+        $classe = (array) (self::CAMPOS_PROTEGIDOS_POR_CLASSE[ltrim((string) $log->subject_type, '\\')] ?? []);
+
+        foreach (array_keys((array) ($log->properties['old'] ?? [])) as $campo) {
+            $motivo = $classe[$campo] ?? null;
+            foreach (self::CAMPOS_PROTEGIDOS as $texto => $campos) {
+                $motivo ??= in_array($campo, $campos, true) ? $texto : null;
+            }
+            if ($motivo !== null) {
+                return "O campo {$campo} nao pode ser revertido via undo: {$motivo}.";
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Verifica se uma Activity pode ser revertida pelo usuario informado.
      *
@@ -120,6 +173,10 @@ class RevertService
         // Subject ainda existe?
         if (! $log->subject_type || ! $log->subject_id) {
             return RevertCheck::deny('Activity sem subject — nao ha o que reverter.');
+        }
+
+        if ($motivo = $this->motivoCampoProtegido($log)) {
+            return RevertCheck::deny($motivo);
         }
 
         $subject = null;
