@@ -24,6 +24,9 @@ final class CancelamentoFiscalNfeBrasil implements CancelamentoFiscalDaVenda
 {
     private const EM_PROCESSAMENTO = ['pendente', 'enviando', 'contingencia'];
 
+    /** Em string: `modelo` é enum, e o MySQL compara inteiro com enum pela posição, não pelo valor. */
+    private const MODELOS = ['55', '65'];
+
     private const TIPO_POR_MODELO = [
         '55' => TransactionDocument::DOC_NFE55,
         '65' => TransactionDocument::DOC_NFCE65,
@@ -81,7 +84,7 @@ final class CancelamentoFiscalNfeBrasil implements CancelamentoFiscalDaVenda
         return NfeEmissao::query()
             ->where('business_id', $businessId)
             ->where('transaction_id', $transactionId)
-            ->whereIn('modelo', array_keys(self::TIPO_POR_MODELO))
+            ->whereIn('modelo', self::MODELOS)
             ->whereIn('status', $status)
             ->get();
     }
