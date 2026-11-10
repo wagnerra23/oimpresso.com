@@ -214,5 +214,10 @@ it('Catálogo QR · cabe em 1280 px e passa no axe, antes e depois de gerar', fu
     cqrEscolherLocal($page);
     cqrGerar($page);
 
+    // O ponteiro ficou no "Gerar QR code". Sem tirar, o axe mede o `hover:bg-primary/90` do Button
+    // do DS (contraste 4,02, medido no CI em 2026-11-10), que é de todas as telas e não desta.
+    $page->hover('h1');
+    $page->wait(0.3);
+
     $page->assertNoAccessibilityIssues(level: 1);
 });
