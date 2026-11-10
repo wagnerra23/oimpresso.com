@@ -114,10 +114,14 @@ class ProductCatalogueRepository
 
     /**
      * Categorias 'product' do business no formato dropdown (id => name).
+     *
+     * `forDropdown()` devolve `Collection`, apesar do `@return array` dele. Sem a conversão o
+     * tipo de retorno estourava TypeError e a vitrine `/catalogue` dava 500 (medido em produção
+     * em 2026-11-10). Mesmo caso do `locationsDropdown()` abaixo.
      */
     public function categoriesDropdown(int $businessId): array
     {
-        return Category::forDropdown($businessId, 'product');
+        return collect(Category::forDropdown($businessId, 'product'))->all();
     }
 
     /**
