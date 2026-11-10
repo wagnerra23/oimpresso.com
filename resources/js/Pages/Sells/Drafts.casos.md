@@ -74,8 +74,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Status: 🧪**
 
 ## UC-DRAFT-07 · A permissão de excluir rascunho só alcança rascunho comum `[T0]` `[must]`
-- **Aceite:** Dado um usuário com `draft.delete` · Quando tenta excluir uma venda finalizada, uma cotação ou um rascunho de outra empresa · Então recebe 403 e nada é apagado. Com `draft.view_own` sem `draft.view_all`, o rascunho de outro vendedor também é recusado; o próprio rascunho comum sai. Sem `draft.delete`, nem o próprio.
-- **Fontes:** `SellPosController@destroy` aceitava só `sell.delete`/`direct_sell.delete`/`so.delete`, então o Excluir da lista Blade dava 403 para quem só tinha `draft.delete` — o recorte aqui segue o que a lista mostra (UC-DRAFT-01/02) · ADR 0093.
+- **Aceite:** Dado um usuário com `draft.delete` · Quando tenta excluir uma venda finalizada, uma cotação ou um rascunho de outra empresa · Então recebe 403 e nada é apagado. Com `draft.view_own` sem `draft.view_all`, o rascunho de outro vendedor também é recusado; o próprio rascunho comum sai. Sem `draft.delete`, nem o próprio. Vale igual por `DELETE /sells/{id}` e por `DELETE /pos/{id}`.
+- **Fontes:** os dois `destroy` de venda — `SellController` (`DELETE /sells/{id}`, usado por esta tela) e `SellPosController` (`DELETE /pos/{id}`, usado pela lista Blade) — aceitavam só `sell.delete`/`direct_sell.delete`/`so.delete`, então o Excluir de rascunho dava 403 para quem só tinha `draft.delete`. A regra mora em `TransactionUtil::podeExcluirComoRascunho` e vale nas duas rotas; o recorte segue o que a lista mostra (UC-DRAFT-01/02) · ADR 0093.
 - **Teste:** `SellsDraftsContratoTest` — `UC-DRAFT-07 [T0] draft.delete só apaga rascunho comum da própria empresa…`.
 - **Regressão que defende:** a permissão de rascunho apagando venda final ou cotação; vendedor apagando o rascunho do colega; rascunho de outra empresa.
 - **Status: 🧪**

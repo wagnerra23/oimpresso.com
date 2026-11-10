@@ -284,4 +284,15 @@ it('UC-DRAFT-07 [T0] draft.delete só apaga rascunho comum da própria empresa �
     $proprio = drfId($this, 'rV');
     drfExcluir($this, $proprio)->assertOk()->assertJsonPath('success', true);
     expect(DB::table('transactions')->where('id', $proprio)->exists())->toBeFalse();
+
+    // A lista Blade antiga exclui por DELETE /pos/{id} (SellPosController@destroy): a mesma regra
+    // vale lá. Recusa o rascunho do colega e aceita o próprio.
+    drfTx($this, $this->bizId, $this->loc, $vendedor->id, 'rW', 'draft', null);
+    $peloPos = fn (int $id) => $this->withHeaders(['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'])
+        ->delete("/pos/{$id}");
+    $peloPos(drfId($this, 'rB'))->assertStatus(403);
+    expect(DB::table('transactions')->where('id', drfId($this, 'rB'))->exists())->toBeTrue();
+    $outroProprio = drfId($this, 'rW');
+    $peloPos($outroProprio)->assertOk()->assertJsonPath('success', true);
+    expect(DB::table('transactions')->where('id', $outroProprio)->exists())->toBeFalse();
 });

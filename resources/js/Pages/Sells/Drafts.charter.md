@@ -83,7 +83,7 @@ Listar rascunhos de venda (status=draft, sub_status=NULL) — Larissa retoma pra
 | GET | `/sells/drafts` (X-Inertia) | Inertia render Sells/Drafts |
 | GET | `/sells/drafts` (sem X-Inertia) | Blade `sale_pos.draft` |
 | GET | `/sells/drafts` (Accept JSON / AJAX) | DataTables JSON `{data: [...]}` (alimenta tabela cliente) |
-| DELETE | `/sells/{id}` (AJAX) | `SellPosController@destroy` — `{success, msg}`; `draft.delete` vale só para rascunho comum (UC-DRAFT-07) |
+| DELETE | `/sells/{id}` (AJAX) | `SellController@destroy` — `{success, msg}`; `draft.delete` vale só para rascunho comum (`TransactionUtil::podeExcluirComoRascunho`, UC-DRAFT-07) |
 
 ---
 

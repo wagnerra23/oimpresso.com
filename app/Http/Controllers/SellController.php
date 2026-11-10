@@ -4208,7 +4208,9 @@ class SellController extends Controller
 
     public function destroy($id)
     {
-        if (! auth()->user()->can('sell.delete') && ! auth()->user()->can('direct_sell.delete') && ! auth()->user()->can('so.delete')) {
+        // P-076 — `draft.delete` também exclui rascunho comum (regra em TransactionUtil::podeExcluirComoRascunho).
+        if (! auth()->user()->can('sell.delete') && ! auth()->user()->can('direct_sell.delete') && ! auth()->user()->can('so.delete')
+            && ! $this->transactionUtil->podeExcluirComoRascunho(auth()->user(), request()->session()->get('user.business_id'), $id)) {
             abort(403, 'Unauthorized action.');
         }
 

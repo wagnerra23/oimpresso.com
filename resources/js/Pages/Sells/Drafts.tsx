@@ -189,8 +189,8 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
     }
   };
 
-  // Mesmo endpoint da lista Blade e da pílula Rascunhos de /sells: DELETE /sells/{id}
-  // (SellPosController@destroy). Responde 200 com {success:false} quando recusa.
+  // Mesmo endpoint da pílula Rascunhos de /sells: DELETE /sells/{id}
+  // (SellController@destroy). Responde 200 com {success:false} quando recusa.
   const confirmarExclusao = async () => {
     if (!aExcluir) return;
     const r = aExcluir;
