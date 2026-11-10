@@ -134,7 +134,7 @@ it('CU-NFE-04 · retentativa de erro_envio autorizado na SEFAZ não troca o núm
 
     expect($volta?->id)->toBe($emissao->id);
     expect($emissao->refresh()->status)->toBe('autorizada');
-    expect($emissao->transaction_id)->toBe(998877001);
+    expect((int) $emissao->transaction_id)->toBe(998877001);
     expect(NfeEmissao::where('business_id', $emissao->business_id)->where('numero', '!=', 7777)->where('valor_total', 10)->where('created_at', '>=', now()->subMinute())->count())->toBe(0);
 });
 
@@ -144,7 +144,7 @@ it('CU-NFE-04 · sem resposta da SEFAZ a retentativa para e não libera o númer
     dupReemitir(dupServico(null, new RuntimeException('timeout')), $emissao);
 
     expect($emissao->refresh()->status)->toBe('erro_envio');
-    expect($emissao->transaction_id)->toBe(998877001);
+    expect((int) $emissao->transaction_id)->toBe(998877001);
 });
 
 it('CU-NFE-04 · nota que a SEFAZ não conhece (217) segue o caminho antigo: inutilizada localmente', function () {
