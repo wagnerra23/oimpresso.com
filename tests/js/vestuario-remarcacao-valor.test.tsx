@@ -110,3 +110,65 @@ describe('UC-VREM-08 · o valor digitado chega ao servidor como foi digitado', (
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('UC-VREM-07 · etiquetas do lote na tela', () => {
+  const LOTE = { id: 7, nome: 'Verão', modo: 'percentual', valor: '-30', qtd_itens: 1, status: 'aplicada', created_at: '2026-11-10 10:00:00' }
+  const itens = (n: number) => Array.from({ length: n }, (_, i) => ({ product_id: 1, variation_id: i + 1, nome: 'Peça', tamanho: 'M', preco: 10, sku: `S${i + 1}` }))
+
+  function responder(qtd: number) {
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.endsWith('/etiquetas')) return { ok: true, status: 200, json: async () => ({ items: itens(qtd) }) }
+      if (url.endsWith('/lote/pdf')) return { ok: true, status: 200, blob: async () => new Blob(['pdf']) }
+      if (url.endsWith('/reverter')) return { ok: true, status: 200, json: async () => ({ revertidos: 1, conflitos: 0 }) }
+      return { ok: true, status: 200, json: async () => (url.endsWith('/previa') ? PREVIA : { lote: 7 }) }
+    })
+  }
+  const chamadasPdf = () => fetchMock.mock.calls.filter(([u]) => String(u).endsWith('/lote/pdf'))
+
+  beforeEach(() => {
+    URL.createObjectURL = vi.fn(() => 'blob:x')
+    URL.revokeObjectURL = vi.fn()
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+  })
+
+  it('UC-VREM-07 · até 500 etiquetas baixa direto, em um arquivo', async () => {
+    responder(500)
+    render(<RemarcacaoIndex categorias={[]} marcas={[]} lotes={[LOTE]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Etiquetas/ }))
+
+    await waitFor(() => expect(chamadasPdf()).toHaveLength(1))
+    expect(JSON.parse(chamadasPdf()[0][1].body as string).items).toHaveLength(500)
+  })
+
+  it('UC-VREM-07 · acima de 500 sai em partes e nenhuma etiqueta fica de fora', async () => {
+    responder(1200)
+    render(<RemarcacaoIndex categorias={[]} marcas={[]} lotes={[LOTE]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Etiquetas/ }))
+
+    await screen.findByRole('button', { name: /Parte 3/ })
+    expect(chamadasPdf()).toHaveLength(0)
+    for (const parte of [1, 2, 3]) {
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(`Parte ${parte}`) }))
+      await waitFor(() => expect(chamadasPdf()).toHaveLength(parte))
+    }
+
+    const lotes = chamadasPdf().map(([, init]) => JSON.parse(init.body as string).items as { variation_id: number }[])
+    expect(lotes.map((l) => l.length)).toEqual([500, 500, 200])
+    expect(new Set(lotes.flat().map((i) => i.variation_id)).size).toBe(1200)
+  })
+
+  it('UC-VREM-07 · depois de reverter, some o atalho de imprimir daquele lote', async () => {
+    responder(1)
+    abrirTela('valor')
+    digitar('39,90')
+    fireEvent.click(screen.getByRole('button', { name: 'Ver prévia' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Gravar remarcação' }))
+    fireEvent.change(await screen.findByLabelText('Nome da remarcação'), { target: { value: 'Teste' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Gravar' }))
+    await screen.findByRole('button', { name: 'Imprimir etiquetas' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reverter' }))
+
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Imprimir etiquetas' })).toBeNull())
+  })
+})

@@ -172,3 +172,33 @@ it('UC-VREM-07 — prévia, gravar e etiquetas do lote; lote alheio não sai [T0
     ($this->como)($intruso, $this->outra->id)->postJson("/vestuario/remarcacao/{$lote}/reverter")->assertStatus(422);
     expect((float) DB::table('variations')->where('id', $this->var)->value('sell_price_inc_tax'))->toBe(75.0);
 });
+
+describe('UC-VREM-07 — etiquetas de um lote gravado', function () {
+    beforeEach(function () {
+        ($this->ligar)($this->biz->id, true);
+        $corpo = ['modo' => 'percentual', 'valor' => -25, 'filtro' => ['nome' => $this->tag]];
+        $previa = ($this->como)($this->editor, $this->biz->id)->postJson('/vestuario/remarcacao/previa', $corpo)->assertOk()->json();
+        $this->lote = ($this->como)($this->editor, $this->biz->id)
+            ->postJson('/vestuario/remarcacao', $corpo + ['nome' => 'Etiquetas teste', 'assinatura' => $previa['assinatura']])
+            ->assertOk()->json('lote');
+    });
+
+    it('UC-VREM-07 — lote revertido não imprime etiqueta com o preço que saiu da loja', function () {
+        ($this->como)($this->editor, $this->biz->id)->postJson("/vestuario/remarcacao/{$this->lote}/reverter")->assertOk();
+
+        $r = ($this->como)($this->editor, $this->biz->id)->getJson("/vestuario/remarcacao/{$this->lote}/etiquetas")->assertStatus(422);
+        expect($r->json('message'))->toContain('revertida');
+    });
+
+    it('UC-VREM-07 — peça mexida depois sai com o preço de hoje, não o da remarcação', function () {
+        DB::table('variations')->where('id', $this->var)->update(['sell_price_inc_tax' => 80.00]);
+
+        $itens = ($this->como)($this->editor, $this->biz->id)->getJson("/vestuario/remarcacao/{$this->lote}/etiquetas")->assertOk()->json('items');
+        expect($itens[0]['preco'])->toEqual(80.0);
+    });
+
+    it('UC-VREM-07 — produto simples não leva a variação interna como tamanho', function () {
+        $itens = ($this->como)($this->editor, $this->biz->id)->getJson("/vestuario/remarcacao/{$this->lote}/etiquetas")->assertOk()->json('items');
+        expect($itens[0]['tamanho'])->toBeNull();
+    });
+});
