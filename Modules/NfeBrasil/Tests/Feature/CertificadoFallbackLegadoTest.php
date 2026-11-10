@@ -106,7 +106,9 @@ it('lerCertLegado tolera senha sem base64 (string direta)', function () {
         ->and($result['pfx_binary'])->toBe('BINARY');
 });
 
-it('carregarParaSefaz cai no fallback quando nfe_certificados vazia', function () {
+// ADR 0449 (Fase 4 da ADR 0090): o contrato mudou — com nfe_certificados vazia o
+// carregarParaSefaz NÃO cai mais no legado em claro; pede o A1 de novo.
+it('carregarParaSefaz não cai mais no legado quando nfe_certificados vazia (ADR 0449)', function () {
     DB::table('business')->insert([
         'id' => 1, 'name' => 'X',
         'certificado' => 'PFX-LEGADO',
@@ -115,11 +117,9 @@ it('carregarParaSefaz cai no fallback quando nfe_certificados vazia', function (
     ]);
 
     $svc = new CertificadoService();
-    $result = $svc->carregarParaSefaz(1);
 
-    expect($result['source'])->toBe('business_legado')
-        ->and($result['pfx_binary'])->toBe('PFX-LEGADO')
-        ->and($result['senha'])->toBe('senha-legado');
+    expect(fn () => $svc->carregarParaSefaz(1))
+        ->toThrow(\RuntimeException::class, 'não tem certificado A1 ativo');
 });
 
 it('carregarParaSefaz lança RuntimeException quando legado E novo ambos vazios', function () {
@@ -145,6 +145,7 @@ it('isolamento multi-tenant: fallback do biz A não vaza pra biz B', function ()
 
     $svc = new CertificadoService();
 
-    expect($svc->carregarParaSefaz(1)['pfx_binary'])->toBe('PFX-A')
-        ->and($svc->carregarParaSefaz(99)['pfx_binary'])->toBe('PFX-B');
+    // ADR 0449: o carregarParaSefaz não lê mais o legado; o isolamento vale para o leitor que ficou.
+    expect($svc->lerCertLegado(1)['pfx_binary'])->toBe('PFX-A')
+        ->and($svc->lerCertLegado(99)['pfx_binary'])->toBe('PFX-B');
 });
