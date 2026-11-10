@@ -642,6 +642,7 @@ jobs:
             tests/Feature/Sells/SellsIndexRascunhosContratoTest.php \
             tests/Feature/Sells/SellsIndexPilulaNotaContratoTest.php \
             tests/Feature/Sells/SellsDuplicarContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoSituacaoContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoVisivelContratoTest.php \
             tests/Feature/Sells/SellLinesOutraEmpresaContratoTest.php \

@@ -37,11 +37,9 @@ class ProductCatalogueRepository
      */
     public function listProductsByLocation(int $businessId, int $locationId): Collection
     {
-        return Product::where('business_id', $businessId)
-            ->whereHas('product_locations', function ($q) use ($locationId) {
+        return Product::whereHas('product_locations', function ($q) use ($locationId) {
                 $q->where('product_locations.location_id', $locationId);
             })
-            ->ProductForSales()
             ->with(['variations', 'variations.product_variation', 'category'])
             ->get()
             ->groupBy('category_id');
@@ -66,7 +64,6 @@ class ProductCatalogueRepository
             'product_locations',
             'warranty',
         ])
-            ->where('business_id', $businessId)
             ->findOrFail($productId);
     }
 
