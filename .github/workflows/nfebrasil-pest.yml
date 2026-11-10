@@ -304,6 +304,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ContingenciaRetransmissaoTest.php \
             Modules/NfeBrasil/Tests/Feature/ContingenciaAgendamentoTest.php \
             Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php \
+            Modules/NfeBrasil/Tests/Feature/InutilizacaoFaixaContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/ArquivoFiscalPrivadoContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/XmlAutorizadoComProtocoloContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/DuplicidadeSefazContratoTest.php \
