@@ -69,7 +69,7 @@
 								</tr>
 							@endif
 	      					<tr>
-	      						<td colspan="2"><br><br>{!! $product->product_description !!}</td>
+	      						<td colspan="2"><br><br>{!! preg_replace('#<script.*?</script>#s', '', (string) $product->product_description) !!}</td>
 	      					</tr>
 	      				</table>
       				</div>

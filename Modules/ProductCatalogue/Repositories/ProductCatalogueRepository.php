@@ -40,6 +40,7 @@ class ProductCatalogueRepository
         return Product::whereHas('product_locations', function ($q) use ($locationId) {
                 $q->where('product_locations.location_id', $locationId);
             })
+            ->active()
             ->with(['variations', 'variations.product_variation', 'category'])
             ->get()
             ->groupBy('category_id');
@@ -64,6 +65,7 @@ class ProductCatalogueRepository
             'product_locations',
             'warranty',
         ])
+            ->active()
             ->findOrFail($productId);
     }
 
