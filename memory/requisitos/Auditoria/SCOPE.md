@@ -60,7 +60,7 @@ Tudo nesta seção descreve `RevertService`, que em 2026-11-09 não era chamado 
 
 1. **Multi-tenant Tier 0** — `activity.business_id ≠ user.business_id` → nega ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)). Sem isso o undo vira vazamento cross-tenant com cara de feature.
 2. **Subject ausente** — sem `subject_type`/`subject_id`, classe inexistente ou registro apagado.
-3. **`unrevertibleRegistry()`** — a intenção é bloquear `Marcacao` (Portaria MTP 671/2021), nota autorizada na SEFAZ, baixa paga externamente, OS com NFSe e `Transaction` com pagamento posterior. Em 2026-11-09 só a última tinha efeito: 3 chaves apontavam para classes inexistentes e a condição de `TituloBaixa` lia coluna ausente ([SPEC §Estado real](SPEC.md#estado-real-medido-em-2026-11-09)).
+3. **`unrevertibleRegistry()`** — bloqueia `Marcacao` e `BancoHorasMovimento` (Portaria MTP 671/2021), documentos fiscais, baixa de título, OS com NFSe e `Transaction` com pagamento posterior. Em 2026-11-09 só a última tinha efeito, e as classes reais entraram em 2026-11-10 ([SPEC §Estado real](SPEC.md#estado-real-medido-em-2026-11-09)). No mesmo dia o serviço passou a negar registro de outra empresa, segunda reversão, campo de valor ou estoque e mudança de etapa FSM.
 4. **Janela e permissão** — `auditoria.revert.unlimited`, `.any` (30 dias) ou `.own` (própria ação, 24 horas).
 
 Depois de `canRevert`, `revert()` exige razão com 10 ou mais caracteres e `properties.old` preenchido. O undo **também é auditado**: cria uma nova `Activity` registrando quem reverteu e por quê.

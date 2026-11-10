@@ -36,7 +36,7 @@ Medido em 2026-11-09, no `main` em `844a13c`. É fato datado; a tabela completa,
 | `business_id` do log gravado pelo tenant do registro | Entregue, com backfill (ver abaixo) |
 | Separar usuário de IA | Parcial: `user`, `system` e `api` são resolvidos pelo observer. `agent` não tinha produtor, porque nenhum código de produção fazia o bind `jana.agent_run_id` |
 | Reverter | Desligado: `POST /auditoria/{id}/revert` respondia 501 e a tela não tinha botão. `RevertService` existe e não é chamado por HTTP |
-| Bloqueio de irreversíveis | Efetivo em 1 de 5 chaves do registry; as demais apontavam para classe inexistente ou coluna ausente |
+| Bloqueio de irreversíveis | No serviço, com as classes reais desde 2026-11-10 ([#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674)). Em 2026-11-09 só 1 de 5 chaves tinha efeito. Também nega registro de outra empresa, segunda reversão e campo de valor ou estoque (#10675, #10676). A rota respondia 501 nessa data, logo nada disso era alcançável por HTTP |
 | Permissão `auditoria.view` | Só escondia o item de menu |
 | Notas, export e ação em lote | Sem rota |
 | Expurgo por prazo | Nenhum: `activitylog:clean` não roda. Num ERP o dado tem dever de guarda (decisão [W] de 2026-07-27, `proibicoes.md` §5) |
