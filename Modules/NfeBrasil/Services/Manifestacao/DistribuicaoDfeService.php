@@ -16,6 +16,7 @@ use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\Entrada\LeitorNfeEntrada;
 use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
 use Modules\NfeBrasil\Support\AmbienteDoEmitente;
+use Modules\NfeBrasil\Support\ArquivoFiscal;
 use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Tools;
@@ -312,7 +313,7 @@ class DistribuicaoDfeService
 
     private function salvarXml(int $businessId, string $chave, string $xml): string
     {
-        $disk = Storage::disk(config('nfebrasil.dfes_recebidos_disk', 'local'));
+        $disk = Storage::disk(config('nfebrasil.dfes_recebidos_disk', ArquivoFiscal::DISCO));
         $path = sprintf('nfe-brasil/%d/dfes-recebidos/%s.xml', $businessId, $chave);
         $disk->put($path, $xml);
         return $path;

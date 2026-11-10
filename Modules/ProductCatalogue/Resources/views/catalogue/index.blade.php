@@ -6,7 +6,8 @@
 <section class="content-header text-center" id="top">
     <h2>{{$business->name}}</h2>
     <h4 class="mb-0">{{$business_location->name}}</h4>
-    <p>{!! $business_location->location_address !!}</p>
+    {{-- location_address junta texto digitado com um <br> fixo: escapa tudo e devolve só a quebra. --}}
+    <p>{!! str_replace(e('<br>'), '<br>', e($business_location->location_address)) !!}</p>
 </section>
 <section class="no-print">
     <div class="container">

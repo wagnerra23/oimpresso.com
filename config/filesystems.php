@@ -43,6 +43,14 @@ return [
             'throw' => true,
         ],
 
+        // XML, DANFE e DF-e fiscais — fora do webroot. O disco `local` tem raiz public/uploads,
+        // que o Apache serve direto: nota fiscal ali é baixável sem login (lote 0.1, NfeBrasil).
+        'nfe_fiscal' => [
+            'driver' => 'local',
+            'root' => storage_path('app/nfe-fiscal'),
+            'throw' => false,
+        ],
+
         /*
          * Modules/Arquivos backbone — ADR 0123.
          *
