@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa de quem remarca + critério de aceite verificá
 por_que: a tela muda preço em massa; ela só pode existir para quem ligou e tem permissão, e as etiquetas e a reversão não podem vazar entre empresas.
 owner: wagner
 related_us: [US-VEST-032]
-last_run: "2026-10-27"
+last_run: "2026-11-10"
 last_run_ci: "0 UC executado na lane — nasce neste PR"
 ---
 
