@@ -110,8 +110,9 @@ class MigrateCertFromBusiness extends Command
                 }
 
                 $uuid = (string) Str::uuid();
-                $diskPath = sprintf('nfe-brasil/%d/cert/%s.pfx.enc', $biz->id, $uuid);
-                Storage::put($diskPath, Crypt::encrypt((string) $biz->certificado));
+                // Mesmo disco e caminho que CertificadoService::carregarCertificado lê.
+                $diskPath = sprintf('%d/cert/%s.pfx.enc', $biz->id, $uuid);
+                Storage::disk('nfe_certs')->put($diskPath, Crypt::encrypt((string) $biz->certificado));
 
                 NfeCertificado::create([
                     'business_id'        => (int) $biz->id,
