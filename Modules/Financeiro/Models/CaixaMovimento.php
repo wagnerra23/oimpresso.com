@@ -56,7 +56,10 @@ class CaixaMovimento extends Model
      */
     public function newEloquentBuilder($query): AppendOnlyBuilder
     {
-        return new AppendOnlyBuilder($query);
+        /** @var AppendOnlyBuilder<static> $builder */
+        $builder = new AppendOnlyBuilder($query);
+
+        return $builder;
     }
 
     public function delete()
