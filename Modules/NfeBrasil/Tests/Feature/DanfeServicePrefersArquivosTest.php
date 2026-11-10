@@ -64,6 +64,7 @@ beforeEach(function () {
     }
 
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
 });
 
 afterEach(function () {
