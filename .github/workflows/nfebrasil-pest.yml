@@ -308,6 +308,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ArquivoFiscalPrivadoContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/XmlAutorizadoComProtocoloContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/DuplicidadeSefazContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoLegadoSemFallbackContratoTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php \
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \
