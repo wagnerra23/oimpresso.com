@@ -152,6 +152,13 @@ describe('UC-VREM-07 · etiquetas do lote na tela', () => {
     })
   }
   const chamadasPdf = () => fetchMock.mock.calls.filter(([u]) => String(u).endsWith('/lote/pdf'))
+  // Enquanto uma ação roda, todos os botões ficam desabilitados e um clique neles é ignorado:
+  // espera a tela liberar antes de clicar, como a pessoa faria.
+  async function clicarQuandoLivre(nome: string | RegExp) {
+    const botao = () => screen.getByRole('button', { name: nome }) as HTMLButtonElement
+    await waitFor(() => expect(botao().disabled).toBe(false))
+    fireEvent.click(botao())
+  }
 
   beforeEach(() => {
     URL.createObjectURL = vi.fn(() => 'blob:x')
@@ -176,7 +183,7 @@ describe('UC-VREM-07 · etiquetas do lote na tela', () => {
     await screen.findByRole('button', { name: /Parte 3/ })
     expect(chamadasPdf()).toHaveLength(0)
     for (const parte of [1, 2, 3]) {
-      fireEvent.click(screen.getByRole('button', { name: new RegExp(`Parte ${parte}`) }))
+      await clicarQuandoLivre(new RegExp(`Parte ${parte}`))
       await waitFor(() => expect(chamadasPdf()).toHaveLength(parte))
     }
 
@@ -195,7 +202,7 @@ describe('UC-VREM-07 · etiquetas do lote na tela', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Gravar' }))
     await screen.findByRole('button', { name: 'Imprimir etiquetas' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reverter' }))
+    await clicarQuandoLivre('Reverter')
 
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Imprimir etiquetas' })).toBeNull())
   })
