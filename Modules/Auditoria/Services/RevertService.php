@@ -5,9 +5,10 @@ namespace Modules\Auditoria\Services;
 use App\Domain\Fsm\Concerns\GuardsFsmTransitions;
 use App\User;
 use App\Util\OtelHelper;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use App\Observers\ActivityCauserKindObserver;
 use App\Support\Privacy\PiiRedactor;
+use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Facades\LogBatch;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -104,12 +105,16 @@ class RevertService
      *
      * Retorna RevertCheck com allowed bool + reason text.
      */
-    public function canRevert(Activity $log, User $by): RevertCheck
+    public function canRevert(Activity $log, User $by, bool $travarRegistro = false): RevertCheck
     {
         // Multi-tenant Tier 0 ([ADR 0093])
         $userBizId = (int) ($by->business_id ?? 0);
         if ((int) $log->business_id !== $userBizId) {
             return RevertCheck::deny('Activity de outro business — nao acessivel (Tier 0).');
+        }
+
+        if ($log->getAttribute('reverted_at') !== null) {
+            return RevertCheck::deny('Esta alteracao ja foi revertida.');
         }
 
         // Subject ainda existe?
@@ -123,13 +128,19 @@ class RevertService
             if (! class_exists($modelClass)) {
                 return RevertCheck::deny('Subject_type nao e classe valida ('.$modelClass.').');
             }
-            $subject = $modelClass::find($log->subject_id);
+            $subject = $this->carregarSubject($modelClass, $log->subject_id, $travarRegistro);
         } catch (\Throwable $e) {
             return RevertCheck::deny('Erro ao carregar subject: '.$e->getMessage());
         }
 
         if (! $subject) {
             return RevertCheck::deny('Registro original nao existe mais — possivel hard-delete posterior.');
+        }
+
+        // Tier 0: o tenant que vale e o do REGISTRO. Antes do PR #8384 o log era gravado
+        // com a empresa da sessao, entao a linha de log sozinha nao prova nada.
+        if (ActivityCauserKindObserver::businessIdDoSubject($subject) !== $userBizId) {
+            return RevertCheck::deny('Registro pertence a outro business — nao acessivel (Tier 0).');
         }
 
         // Whitelist UNREVERTIBLE
@@ -201,50 +212,44 @@ class RevertService
      */
     public function revert(Activity $log, User $by, string $reason): Activity
     {
-        $check = $this->canRevert($log, $by);
-        if (! $check->allowed) {
-            throw new \DomainException($check->reason ?? 'Revert bloqueado.');
-        }
-
-        if (strlen($reason) < 10) {
-            throw new \InvalidArgumentException('revert_reason precisa ter no minimo 10 caracteres.');
-        }
-
-        // D7.a LGPD: redacta PII (CPF/CNPJ/email/telefone) da justificativa do
-        // revert ANTES de persistir em activity_log. Service Jana é a fonte
-        // canônica de redaction BR — Auditoria NÃO duplica regex/lógica, apenas
-        // consome (ADR 0093 + ADR 0127). Modo placeholder mantém legibilidade.
-        $reason = app(PiiRedactor::class)->redact($reason, 'placeholder');
-
-        $modelClass = $log->subject_type;
-        $subject = $modelClass::find($log->subject_id);
-
-        $oldAttrs = $log->properties['old'] ?? [];
-        if (empty($oldAttrs)) {
-            throw new \DomainException('Activity nao tem properties.old — nao ha snapshot pra restaurar.');
-        }
-
-        $batchUuid = (string) Str::uuid();
-
         // D9.a OTel: span hot-path do revert (transaction + 3 writes).
         // Zero-cost quando OTel disabled (config('otel.enabled')=false default).
         // Attributes: NO PII — apenas IDs + classe (Tier 0 ADR 0093).
-        return OtelHelper::spanBiz('auditoria.revert.execute', function () use ($log, $by, $reason, $subject, $oldAttrs, $batchUuid): Activity {
-            return DB::transaction(function () use ($log, $by, $reason, $subject, $oldAttrs, $batchUuid) {
+        return OtelHelper::spanBiz('auditoria.revert.execute', function () use ($log, $by, $reason): Activity {
+            return DB::transaction(fn () => LogBatch::withinBatch(function (string $batchUuid) use ($log, $by, $reason) {
+            // Tudo que decide e relido aqui, sob lock: duas reversoes simultaneas da
+            // mesma Activity passam a ser uma de cada vez, e a segunda ve reverted_at.
+            $log = Activity::query()->whereKey($log->getKey())->lockForUpdate()->first()
+                ?? throw new \DomainException('Activity nao existe mais.');
+
+            $check = $this->canRevert($log, $by, travarRegistro: true);
+            if (! $check->allowed) {
+                throw new \DomainException($check->reason ?? 'Revert bloqueado.');
+            }
+
+            if (strlen($reason) < 10) {
+                throw new \InvalidArgumentException('revert_reason precisa ter no minimo 10 caracteres.');
+            }
+
+            // D7.a LGPD: redacta PII (CPF/CNPJ/email/telefone) da justificativa do
+            // revert ANTES de persistir em activity_log. Service Jana é a fonte
+            // canônica de redaction BR — Auditoria NÃO duplica regex/lógica, apenas
+            // consome (ADR 0093 + ADR 0127). Modo placeholder mantém legibilidade.
+            $reason = app(PiiRedactor::class)->redact($reason, 'placeholder');
+
+            $oldAttrs = $log->properties['old'] ?? [];
+            if (empty($oldAttrs)) {
+                throw new \DomainException('Activity nao tem properties.old — nao ha snapshot pra restaurar.');
+            }
+
+            $subject = $this->carregarSubject($log->subject_type, $log->subject_id);
+
             // Aplica old attrs no Model (campos logged anyway)
             foreach ($oldAttrs as $field => $value) {
                 $subject->{$field} = $value;
             }
 
-            // Mark Model save com batch_uuid pra a entry de reverted aproveitar
-            // (Spatie LogsActivity vai criar entry 'updated' automaticamente
-            // ao chamar save — vamos usar batch pra agrupar)
-            activity()->withProperties([
-                'reverted_from_activity_id' => $log->id,
-                'revert_reason'             => $reason,
-            ])->tap(function ($a) use ($batchUuid) {
-                $a->batch_uuid = $batchUuid;
-            });
+            // A entry 'updated' que o LogsActivity grava neste save herda o batch aberto.
             $subject->save();
 
             // Atualiza linha original com revert metadata
@@ -266,20 +271,35 @@ class RevertService
                 'properties'  => [
                     'reverted_from_activity_id' => $log->id,
                     'revert_reason'             => $reason,
-                    'restored_attributes'       => $oldAttrs,
+                    'restored_attributes'       => app(PiiRedactor::class)->redactArray($oldAttrs, 'placeholder'),
                 ],
                 'business_id' => $log->business_id,
             ]);
 
                 return $revertEntry;
-            });
+            }));
         }, [
             'module'              => 'Auditoria',
             'activity_id'         => $log->id,
             'subject_type'        => $log->subject_type,
             'subject_id'          => (int) $log->subject_id,
-            'restored_attrs_count' => count($oldAttrs),
+            'restored_attrs_count' => count($log->properties['old'] ?? []),
             'has_reason'          => $reason !== '',
         ]);
+    }
+
+    /**
+     * Carrega o registro auditado sem o escopo de sessao: quem decide o tenant e a
+     * comparacao explicita em canRevert. Registro na lixeira conta como inexistente.
+     */
+    private function carregarSubject(string $modelClass, mixed $id, bool $travar = false): mixed
+    {
+        $query = $modelClass::withoutGlobalScopes()->whereKey($id); // SUPERADMIN: tenant conferido em canRevert (ADR 0093)
+        if ($travar) {
+            $query->lockForUpdate();
+        }
+        $subject = $query->first();
+
+        return $subject && method_exists($subject, 'trashed') && $subject->trashed() ? null : $subject;
     }
 }

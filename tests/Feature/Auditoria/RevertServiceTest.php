@@ -205,6 +205,109 @@ it('cenario 5: canRevert deny quando subject_type sem subject_id', function () {
     expect($check->allowed)->toBeFalse();
 });
 
+/** Contato fictício do tenant, com o e-mail dado, editado para gerar um log 'updated' real. */
+function revertContatoEditado(int $businessId, int $criadoPor, string $emailAntes): array
+{
+    $id = DB::table('contacts')->insertGetId([
+        'business_id' => $businessId, 'type' => 'customer', 'name' => 'Contato Revert', 'mobile' => '',
+        'email' => $emailAntes, 'contact_id' => 'AUD-REV-'.uniqid(), 'created_by' => $criadoPor,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $contato = \App\Contact::query()->withoutGlobalScopes()->findOrFail($id); // SUPERADMIN: fixture do teste
+    $contato->email = 'depois@example.test';
+    $contato->save();
+
+    $log = Activity::query()->where('subject_type', \App\Contact::class)->where('subject_id', $id)
+        ->where('event', 'updated')->latest('id')->firstOrFail();
+
+    return [$contato, $log];
+}
+
+it('cenario 5b: log do tenant 98 apontando para registro do 99 e negado', function () {
+    $biz99 = $this->seededSupportClientTenant();
+    $id99 = DB::table('contacts')->insertGetId([
+        'business_id' => $biz99->id, 'type' => 'customer', 'name' => 'Contato 99', 'mobile' => '',
+        'contact_id' => 'AUD-REV-'.uniqid(), 'created_by' => $biz99->owner_id,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $user98 = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    // A linha de log diz 98 (o tenant da sessão, como antes do PR #8384); o registro é do 99.
+    $log = new Activity();
+    $log->business_id = $this->business->id;
+    $log->subject_type = \App\Contact::class;
+    $log->subject_id = $id99;
+    $log->properties = ['old' => ['name' => 'antes']];
+
+    $check = $this->service->canRevert($log, $user98);
+
+    expect($check->allowed)->toBeFalse();
+    expect($check->reason)->toContain('Registro pertence a outro business');
+});
+
+it('cenario 5c: revert restaura o valor, e a segunda reversao da mesma Activity e negada', function () {
+    [$contato, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, 'antes@example.test');
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    expect($contato->fresh()->email)->toBe('antes@example.test');
+    expect($log->fresh()->reverted_at)->not->toBeNull();
+    expect(fn () => $this->service->revert($log->fresh(), $user, 'motivo com tamanho valido'))
+        ->toThrow(\DomainException::class, 'ja foi revertida');
+});
+
+it('cenario 5d: instancia velha da Activity nao fura a trava, porque revert rele o banco', function () {
+    [$contato, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, 'antes@example.test');
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+    $velha = Activity::query()->findOrFail($log->id);
+
+    $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    expect($velha->reverted_at)->toBeNull();
+    expect(fn () => $this->service->revert($velha, $user, 'motivo com tamanho valido'))
+        ->toThrow(\DomainException::class, 'ja foi revertida');
+});
+
+it('cenario 5e: revert le a Activity e o registro com lock dentro da transacao', function () {
+    [, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, 'antes@example.test');
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+    $sqls = [];
+    DB::listen(function ($q) use (&$sqls) {
+        $sqls[] = strtolower($q->sql);
+    });
+
+    $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    $travadas = array_values(array_filter($sqls, fn ($s) => str_contains($s, 'for update')));
+    expect(implode(' | ', $travadas))->toContain('`activity_log`');
+    expect(implode(' | ', $travadas))->toContain('`contacts`');
+});
+
+it('cenario 5f: entry updated do save e entry reverted saem no mesmo batch_uuid', function () {
+    [$contato, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, 'antes@example.test');
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    $revertida = $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    $updated = Activity::query()->where('subject_type', \App\Contact::class)->where('subject_id', $contato->id)
+        ->where('event', 'updated')->where('id', '>', $log->id)->latest('id')->firstOrFail();
+    expect($revertida->batch_uuid)->not->toBeEmpty();
+    expect($updated->batch_uuid)->toBe($revertida->batch_uuid);
+});
+
+it('cenario 5g: restored_attributes nao copia dado pessoal, e o registro recebe o valor real', function () {
+    $email = 'titular.ficticio@example.test';
+    [$contato, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, $email);
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    $revertida = $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    expect(json_encode($revertida->properties['restored_attributes']))->not->toContain($email);
+    expect($revertida->properties['restored_attributes'])->toHaveKey('email');
+    expect($contato->fresh()->email)->toBe($email);
+});
+
 it('cenario 6: revert() lanca InvalidArgumentException se reason < 10 chars', function () {
     // Fixture PRÓPRIA (2026-10-01). Antes este caso pegava "qualquer activity do
     // business" e pulava porque NENHUMA tinha business_id (o trait LogsActivity não
