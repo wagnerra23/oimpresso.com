@@ -497,7 +497,7 @@
     },
     {
       "screen": "Vestuario",
-      "note": "2 arquivo(s)",
+      "note": "4 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -618,7 +618,7 @@
     },
     {
       "screen": "Produto",
-      "note": "64 arquivo(s)",
+      "note": "67 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -629,7 +629,7 @@
     },
     {
       "screen": "Purchase",
-      "note": "10 arquivo(s)",
+      "note": "12 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -719,8 +719,8 @@
   "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "844a13c45e",
-  "generatedAt": "2026-11-09T20:36:39.689Z",
+  "measuredAgainstSha": "c16d0db46d",
+  "generatedAt": "2026-11-10T17:14:02.946Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

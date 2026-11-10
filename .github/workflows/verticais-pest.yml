@@ -823,6 +823,8 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoTurnoCalendarioContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoOrdemSituacaoRotasContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoFichaOsContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoIsolamentoEmpresasContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoEscopoDaEmpresaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php \

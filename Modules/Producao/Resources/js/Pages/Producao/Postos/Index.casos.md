@@ -357,6 +357,14 @@ Prova: `ProducaoRoteirosContratoTest`.
 
 Status: 🧪
 
+## UC-PCISO-02 · A outra empresa não vê nem altera a ferramenta · `must`
+
+**Dado** uma ferramenta em cada empresa **Quando** a 99 abre a lista **Então** não vê a da 98 · Editar a ferramenta
+da 98 estando na 99 dá 404 e nada muda · **Controle:** a mesma rota altera a ferramenta da própria empresa.
+Prova: `ProducaoIsolamentoEmpresasContratoTest`.
+
+Status: 🧪
+
 ## Backlog de casos (sem id — a E03 não traz UC próprio; o teste já os defende)
 
 - **[BACKLOG]** Veículo é posto de máquina com placa obrigatória e custo por km; ferramenta tem QR único por empresa.

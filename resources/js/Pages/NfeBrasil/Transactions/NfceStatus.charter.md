@@ -42,7 +42,7 @@ Acompanhar o **status fiscal pós-venda de TODOS os documentos gerados** para um
 ## Goals — Features (faz)
 
 - AppShellV2 + Head `Status fiscal — Venda #{tx}` (PT-BR) — _era `Status NFC-e`; alargado pela emenda de Mission [W] 2026-07-28_
-- **Lista os documentos fiscais da venda** (NF-e 55 · NFC-e 65 · 67 · NFS-e), cada um com seu próprio status/badge — não um documento só. _Goal novo pela emenda [W] 2026-07-28; a implementação segue pendente (a tela hoje renderiza um card singular)._
+- **Lista os documentos fiscais da venda** (NF-e 55 · NFC-e 65 · 67 · NFS-e), cada um com seu próprio status/badge — não um documento só. _Goal novo pela emenda [W] 2026-07-28; implementado no lote 0.5 da auditoria (um card por emissão de `nfe_emissoes`; NFS-e continua pendente, vive em outra tabela)._
 - `NfceStatusBadge` por documento, recebendo a emissão — centraliza polling/transport (separação de UI vs transport — ADR 0058)
 - Polling default 2s via `useEmissoesPorTransaction` até cStat final de todos — _era `useNfceStatus` (estreito, só modelo 65); a troca é a implementação da emenda_
 - Transport-agnostic: hoje HTTP fetch; mañana Centrifugo broadcast (Page não muda, só hook)
