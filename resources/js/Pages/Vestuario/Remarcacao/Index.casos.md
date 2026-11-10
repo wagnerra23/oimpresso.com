@@ -47,10 +47,12 @@ last_run_ci: "0 UC executado na lane — nasce neste PR"
 ## UC-VREM-07 · Do filtro às etiquetas `[T0]`
 - **Persona:** quem remarca e precisa reimprimir as etiquetas das peças remarcadas.
 - **Aceite:** Dado o setting ligado · Quando pede a prévia, grava com a assinatura dela e pede as
-  etiquetas do lote · Então recebe os itens com o preço novo no formato de `lote/pdf`. Pedir as
-  etiquetas (ou reverter) um lote de outra empresa dá 404/422 e não muda preço.
-- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
-- **Regressão que defende:** etiqueta ou reversão de lote de outra empresa, ou etiqueta saindo com o preço antigo.
+  etiquetas do lote · Então recebe os itens com o preço de hoje no formato de `lote/pdf`, e produto
+  simples sai sem o tamanho interno. Lote revertido não imprime. Lote acima de 500 etiquetas sai em
+  partes de 500, sem nenhuma de fora. Depois de reverter, some o atalho de imprimir daquele lote. Pedir
+  as etiquetas (ou reverter) um lote de outra empresa dá 404/422 e não muda preço.
+- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php` · `tests/js/vestuario-remarcacao-valor.test.tsx`
+- **Regressão que defende:** etiqueta ou reversão de lote de outra empresa, etiqueta saindo com o preço antigo ou com "DUMMY", ou lote cortado em silêncio.
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-08 · O valor digitado é o valor enviado `[V0]`

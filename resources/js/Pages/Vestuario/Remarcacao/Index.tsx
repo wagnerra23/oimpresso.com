@@ -30,9 +30,11 @@ interface Opcao { id: number; name: string; parent_id?: number }
 interface Lote { id: number; nome: string; modo: string; valor: string; qtd_itens: number; status: string; created_at: string }
 interface Linha { variation_id: number; produto: string; variacao: string; sku: string; preco_antes: number; preco_depois: number }
 interface Previa { linhas: Linha[]; ignoradas: number; assinatura: string }
+interface ItemEtiqueta { product_id: number; variation_id: number; nome: string; tamanho: string | null; preco: number; sku: string }
 interface Props { categorias: Opcao[]; marcas: Opcao[]; lotes?: Lote[] }
 
 const TODAS = '__todas__';
+const ETIQUETAS_POR_ARQUIVO = 500; // teto de POST /vestuario/etiquetas/lote/pdf
 const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const csrf = () => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
 
@@ -60,6 +62,7 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
   const [feito, setFeito] = useState<{ lote: number; n: number } | null>(null);
+  const [partes, setPartes] = useState<{ lote: number; total: number; grupos: ItemEtiqueta[][] } | null>(null);
   const [lista, setLista] = useState<Lote[] | null>(null);
 
   const pais = categorias.filter((c) => !c.parent_id);
@@ -95,18 +98,27 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
     const r = await api(`/vestuario/remarcacao/${l.id}/reverter`, 'POST');
     setAviso(`${r.revertidos} revertidas${r.conflitos ? ` · ${r.conflitos} ficaram como estavam (preço mexido depois)` : ''}.`);
     setLista(linhasLote.map((x) => (x.id === l.id ? { ...x, status: 'revertida' } : x)));
+    setFeito((f) => (f?.lote === l.id ? null : f));
+    setPartes((p) => (p?.lote === l.id ? null : p));
   });
-  const etiquetas = (lote: number) => rodar(async () => {
-    const { items } = await api(`/vestuario/remarcacao/${lote}/etiquetas`, 'GET');
+  const baixarPdf = async (lote: number, items: ItemEtiqueta[], sufixo = '') => {
     const res = await fetch('/vestuario/etiquetas/lote/pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/pdf', 'X-CSRF-TOKEN': csrf() },
-      body: JSON.stringify({ items: items.slice(0, 500) }),
+      body: JSON.stringify({ items }),
     });
     if (!res.ok) throw new Error(`Etiquetas: erro ${res.status}`);
     const url = URL.createObjectURL(await res.blob());
-    const a = Object.assign(document.createElement('a'), { href: url, download: `etiquetas-remarcacao-${lote}.pdf` });
+    const a = Object.assign(document.createElement('a'), { href: url, download: `etiquetas-remarcacao-${lote}${sufixo}.pdf` });
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  };
+  const etiquetas = (lote: number) => rodar(async () => {
+    const items: ItemEtiqueta[] = (await api(`/vestuario/remarcacao/${lote}/etiquetas`, 'GET')).items;
+    if (items.length <= ETIQUETAS_POR_ARQUIVO) { setPartes(null); await baixarPdf(lote, items); return; }
+    // O arquivo aceita 500 etiquetas: acima disso a pessoa baixa parte a parte, sem nada cortado.
+    const grupos: ItemEtiqueta[][] = [];
+    for (let i = 0; i < items.length; i += ETIQUETAS_POR_ARQUIVO) grupos.push(items.slice(i, i + ETIQUETAS_POR_ARQUIVO));
+    setPartes({ lote, total: items.length, grupos });
   });
 
   const selectDe = (rotulo: string, v: string, set: (v: string) => void, ops: Opcao[]) => (
@@ -138,6 +150,16 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
           </Inline>
         )}
         {aviso && <div className="rounded-md border p-3 text-sm" role="alert">{aviso}</div>}
+        {partes && (
+          <Inline wrap gap={2} className="rounded-md border p-3 text-sm" role="status">
+            <span>{partes.total} etiquetas: cada arquivo aceita {ETIQUETAS_POR_ARQUIVO}. Baixe todas as partes.</span>
+            {partes.grupos.map((g, i) => (
+              <Button key={i} size="sm" variant="outline" disabled={ocupado} onClick={() => rodar(() => baixarPdf(partes.lote, g, `-parte-${i + 1}`))}>
+                <Printer className="mr-1 h-4 w-4" /> Parte {i + 1}
+              </Button>
+            ))}
+          </Inline>
+        )}
 
         <Card data-contract="filtro">
           <CardHeader><CardTitle className="text-sm">1 · Quais peças</CardTitle></CardHeader>
