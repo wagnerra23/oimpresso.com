@@ -34,6 +34,8 @@ Foto do `main` em `ec3b2fa`. É fato datado: para saber o estado de hoje, rode d
 | Notas, export e ação em lote | Sem rota. `AuditNote` e os Requests `BulkRevertActivity`, `ExportAuditEntries`, `StoreAuditNote` e `UpdateAuditNote` só eram usados em testes. `index()` recebia `Request` puro, sem `FilterAuditEntriesRequest` | `git grep -l <classe> -- '*.php'` |
 | Expurgo por prazo | Nenhum. `delete_records_older_than_days=365` era só valor de config, e `activitylog:clean` não rodava em lugar nenhum | `git grep -n "activitylog:clean"` (0 ocorrências) |
 
+**O que mudou depois da foto (2026-11-10, `main` em `810bd61`).** O `RevertService` passou a bloquear pelas classes reais: `Marcacao` e `BancoHorasMovimento` do Ponto, os documentos fiscais (`NfeEmissao`, `NfeEvento`, `NfeInutilizacao`, os dois `NfseEmissao`) e `TituloBaixa` sempre, `JobSheet` quando há NFSe ([#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674)). Passou também a conferir a empresa do registro e a negar a segunda reversão ([#10675](https://github.com/wagnerra23/oimpresso.com/pull/10675)), e a negar campo de valor ou estoque ([#10676](https://github.com/wagnerra23/oimpresso.com/pull/10676)). Nessa data a rota ainda respondia 501 e a tela não tinha botão, logo nada disso era alcançável por HTTP.
+
 **Decisão pendente de [W] (D1).** A ADR 0127 prevê reverter dentro de `/auditoria`. A decisão `E-AUDIT-REVERT` (índice do playbook `lote-trio-medida`, delegada em 2026-10-05) diz que a Auditoria é só leitura e que reverter acontece na tela de origem do registro. Esta SPEC registra o conflito e não escolhe.
 
 ## O que é
@@ -130,7 +132,7 @@ Scaffold `Modules/Auditoria/` via skill `criar-modulo` (8 peças obrigatórias +
 
 `Modules/Auditoria/Services/RevertService.php` com registry `UNREVERTIBLE` (5 categorias do ADR 0127 §princípio 4). Métodos `canRevert(Activity, User): RevertCheck` + `revert(Activity, User, string $reason): Activity`. Pest test cobrindo: (a) Marcacao bloqueada, (b) Transaction NFe autorizada bloqueada, (c) TituloBaixa Asaas-paid bloqueada, (d) OS com NFSe bloqueada, (e) Transaction com payment posterior bloqueada, (f) revert válido restaura state via `properties.old → fill() + save()` em DB::transaction. Prio p0 · ~4h IA-pair · Dep: US-AUDIT-005, US-AUDIT-006
 
-**Implementado em:** _parcial_ · `Modules/Auditoria/Services/RevertService.php` · `Modules/Auditoria/Tests/Feature/AuditEntryReversibilityTest.php` · verificado@ec3b2fa (2026-11-09) — o serviço existe, mas nenhuma rota o chama (HTTP responde 501; decisão D1 pendente). Os testes conferiam a forma do registry, sem exercitar os casos (a) a (f)
+**Implementado em:** _parcial_ · `Modules/Auditoria/Services/RevertService.php` · `Modules/Auditoria/Tests/Feature/AuditEntryReversibilityTest.php` · `tests/Feature/Auditoria/RevertServiceTest.php` · verificado@810bd61 (2026-11-10) — o serviço existe, mas nenhuma rota o chama (HTTP respondia 501 nessa data; decisão D1 pendente). Até 2026-11-09 os testes só conferiam a forma do registry. Desde [#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674) o `RevertServiceTest` chama `canRevert` e `revert` com linha real nos casos (a) a (f)
 
 ### US-AUDIT-009 · Pages Inertia Index + Detail `parcial`
 
@@ -150,7 +152,7 @@ Pages Inertia: `Auditoria/Index.tsx` (filtros: data range, causer_kind, subject_
 
 ## Whitelist UNREVERTIBLE (registry inicial)
 
-Bloco abaixo: desenho da ADR 0127, em 2026-05-10. A lista viva é `RevertService::unrevertibleRegistry()`, e o estado dela em 2026-11-09 está no [Estado real](#estado-real-medido-em-2026-11-09).
+Bloco abaixo: desenho da ADR 0127, em 2026-05-10. A lista viva é `RevertService::unrevertibleRegistry()`, e o estado dela está no [Estado real](#estado-real-medido-em-2026-11-09). Desde 2026-11-10 ela usa as classes reais, e os nomes abaixo ficam só como histórico do desenho.
 
 ```php
 const UNREVERTIBLE = [
@@ -222,8 +224,8 @@ Revisão de 2026-11-09 das três listas a seguir: ✅ tem teste que prova, 🟡 
 
 ## Validação Sprint 3
 
-- 🟡 `RevertService::canRevert()` nas 5 categorias: os testes conferem as chaves e as regras do registry, e nenhum chama `canRevert` com um registro de cada categoria
-- ❌ Revert válido restaura `properties.old` e cria entry `event=reverted`: `RevertServiceTest` chama `revert()` só com razão curta, que falha antes de restaurar
+- ✅ `RevertService::canRevert()` nas 5 categorias: `RevertServiceTest` chama com linha real de cada uma (cenários 3 a 3d, lane `auditoria-pest`, [#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674))
+- ✅ Revert válido restaura `properties.old` e cria entry `event=reverted`: `RevertServiceTest` cenários 5c e 5f, no serviço ([#10675](https://github.com/wagnerra23/oimpresso.com/pull/10675)). Pela rota não, que respondia 501 em 2026-11-10
 - ❌ 403 sem `auditoria.revert.any` e 403 com só `auditoria.revert.own` em ação > 24h: a rota responde 501 e não há teste dos níveis de permissão
 - ✅ Redirect 301 `/reports/activity-log?...` mantém a querystring (UC-AUDI-03). `start_date` e `end_date` ficam na URL, mas `normalizeFilters` os descarta
 - ⬜ Gate F1.5 + F3 ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)): sem recibo de aprovação de screenshot. Os dois charters seguem em `draft`

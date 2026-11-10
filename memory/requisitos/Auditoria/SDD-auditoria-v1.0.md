@@ -65,8 +65,8 @@ Módulo de **1 família de telas** (2 telas) que serve como interface humana da 
 | Tier 0 que morde aqui | Como |
 |---|---|
 | **Multi-tenant** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) | `canRevert()` compara `activity.business_id` × `user.business_id` e **nega** na divergência. Sem isso, o undo seria vazamento cross-tenant com cara de feature. Defendido por `MultiTenantIsolationTest`. |
-| **Append-only por lei** (Portaria MTP 671/2021) | O `unrevertibleRegistry()` pretende bloquear `Marcacao`. Em 2026-11-09 a chave apontava para `Modules\PontoWr2\Models\Marcacao`, classe inexistente (a real é `Modules/Ponto/Entities/Marcacao.php`), logo não casava com registro nenhum. Sem efeito hoje porque a rota responde 501. |
-| **Integridade fiscal** | Mesma situação em 2026-11-09: `NfeBrasil\Models\NfeTransaction` não existia, e `TituloBaixa` existia com condição sobre a coluna `origem`, ausente da tabela. |
+| **Append-only por lei** (Portaria MTP 671/2021) | O `unrevertibleRegistry()` pretende bloquear `Marcacao`. Em 2026-11-09 a chave apontava para `Modules\PontoWr2\Models\Marcacao`, classe inexistente (a real é `Modules/Ponto/Entities/Marcacao.php`), logo não casava com registro nenhum. Corrigido em 2026-11-10 ([#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674)): a chave é a classe real, e `BancoHorasMovimento` entrou junto. Nessa data só o serviço alcançava a trava, porque a rota respondia 501. |
+| **Integridade fiscal** | Mesma situação em 2026-11-09: `NfeBrasil\Models\NfeTransaction` não existia, e `TituloBaixa` existia com condição sobre a coluna `origem`, ausente da tabela. Corrigido em 2026-11-10 ([#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674)): `NfeEmissao`, `NfeEvento`, `NfeInutilizacao`, os dois `NfseEmissao` e `TituloBaixa` bloqueiam sempre. |
 | **PII / LGPD** | `PiiLeakActivityLogEnforceTest` + `RevertServicePiiRedactionTest` — o log não pode vazar PII, e o revert não pode reintroduzi-la. |
 | **Não apagar o módulo** | [lápide §5 `proibicoes.md`](../../proibicoes.md) 2026-07-30 — não re-propor deprecação. |
 
@@ -112,10 +112,15 @@ Colunas de identidade do causer vêm de `2026_05_10_160000_add_causer_kind_and_r
 
 **B. Reverter (codificado no serviço, desligado da rota).** Em 2026-11-09 `POST /auditoria/{id}/revert` responde 501 e a tela não tem botão, então nenhum passo abaixo roda por HTTP. Se a rota será ligada é a decisão D1 de [W]: a ADR 0127 prevê reverter aqui; `E-AUDIT-REVERT` (delegada em 2026-10-05) diz que a Auditoria é só leitura. O que `RevertService` faz quando chamado:
 1. `canRevert(Activity, User)` avalia, **nesta ordem**:
-   1. `business_id` bate? senão **deny** *"Activity de outro business — nao acessivel (Tier 0)"*
-   2. tem `subject_type` e `subject_id`, a classe existe e o registro ainda existe? senão **deny**
-   3. o subject casa com uma entrada do `unrevertibleRegistry()` e a condição dela é verdadeira? **deny** com a razão legal/fiscal
-   4. janela e permissão: `unlimited`, `any` (30 dias) ou `own` (própria ação, 24 horas). Sem nenhuma, **deny**
+   1. `business_id` do log bate? senão **deny** *"Activity de outro business — nao acessivel (Tier 0)"*
+   2. já foi revertida (`reverted_at`)? **deny**
+   3. tem `subject_type` e `subject_id`? senão **deny**
+   4. o snapshot traz campo de valor ou estoque? **deny** citando o campo
+   5. a classe existe e o registro ainda existe? senão **deny**
+   6. o registro é da empresa do usuário? senão **deny**
+   7. o subject casa com uma entrada do `unrevertibleRegistry()` e a condição dela é verdadeira? **deny** com a razão legal/fiscal. Se a condição falhar ao rodar, também **deny**
+   8. o snapshot muda etapa do pipeline FSM num model com a trava? **deny**
+   9. janela e permissão: `unlimited`, `any` (30 dias) ou `own` (própria ação, 24 horas). Sem nenhuma, **deny**
 2. `revert()` exige razão com 10 ou mais caracteres e `properties.old` preenchido (`DomainException` se vazio).
 3. Restaura `properties.old` no Model e **cria nova `Activity`** `event=reverted`, registrando quem reverteu e a razão.
 
@@ -140,10 +145,10 @@ Colunas de identidade do causer vêm de `2026_05_10_160000_add_causer_kind_and_r
 | **CU-AUD-02** | Ver o diff exato de uma alteração (`old` × `attributes`) | `@show` | Contrato: UC-AUDD-01, UC-AUDD-02 |
 | **CU-AUD-03** | Reverter uma alteração permitida, informando razão | `RevertService::revert()` | Só no serviço: rota responde 501 (D1) |
 | **CU-AUD-04** | Ser **impedido** de reverter Activity de outro business | `canRevert()` eixo 1 · `MultiTenantIsolationTest` | Só no serviço |
-| **CU-AUD-05** | Ser **impedido** de reverter marcação de ponto (Portaria 671/2021) | `unrevertibleRegistry()` | Intenção: a chave aponta para classe inexistente |
-| **CU-AUD-06** | Ser **impedido** de reverter NFe autorizada / baixa de título / OS | mesmo registry | Intenção: chaves ou condição sem efeito |
+| **CU-AUD-05** | Ser **impedido** de reverter marcação de ponto (Portaria 671/2021) | `unrevertibleRegistry()` | Só no serviço, com a classe real desde 2026-11-10. `RevertServiceTest` cenário 3 |
+| **CU-AUD-06** | Ser **impedido** de reverter NFe autorizada / baixa de título / OS | mesmo registry | Só no serviço, com as classes reais desde 2026-11-10. `RevertServiceTest` cenários 3 e 3b |
 | **CU-AUD-07** | Ser impedido quando não há `properties.old` | `DomainException` | Só no serviço |
-| **CU-AUD-08** | O undo **aparece** na trilha como nova Activity | `revert()` cria Activity | Só no serviço, sem teste do caminho de sucesso |
+| **CU-AUD-08** | O undo **aparece** na trilha como nova Activity | `revert()` cria Activity | Só no serviço. Caminho de sucesso: `RevertServiceTest` cenários 5c e 5f |
 | **CU-AUD-09** | A trilha não vaza PII | `PiiLeakActivityLogEnforceTest` · `RevertServicePiiRedactionTest` | Testes existem |
 | **CU-AUD-10** | Negação de revert é observável (span OTel) | `RevertServiceOtelSpanTest` | Teste existe |
 
@@ -180,7 +185,7 @@ Medido em 2026-11-09.
 | # | Dívida | Severidade |
 |---|---|---|
 | 1 | Reverter está codificado e desligado da rota. Decisão D1 pendente | alta |
-| 2 | 3 chaves do `unrevertibleRegistry()` apontam para classes inexistentes, e a condição de `TituloBaixa` lê coluna ausente. Sem efeito enquanto a rota responder 501 | alta se ligado |
+| 2 | ~~3 chaves do `unrevertibleRegistry()` apontavam para classes inexistentes, e a condição de `TituloBaixa` lia coluna ausente.~~ Resolvida em 2026-11-10 ([#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674)) | resolvida |
 | 3 | `auditoria.view` só filtrava o menu: `index` e `show` não checavam a permissão | alta |
 | 4 | `causer_kind=agent` sem produtor; depende do módulo Jana fazer o bind | média |
 | 5 | Charters em `draft` | média |
