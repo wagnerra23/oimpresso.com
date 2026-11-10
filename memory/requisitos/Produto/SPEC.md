@@ -115,7 +115,7 @@ last_updated: "2026-10-27"
 
 **Por quê (Wagner 2026-07-03: "estudar melhor o custo médio, muita coisa já tem pronta").** NÃO é greenfield — o UltimatePOS já calcula custo por compra. Antes de construir agregação, **mapear a máquina de custo que já roda**.
 
-**Testado em:** `Modules/Compras/Tests/Feature/CustoMedioMovelTest.php` (lane `compras-pest.yml`, UC-CMED-01..17) · `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php` (lane `sells-pest.yml`, UC-VSHOW-24..26).
+**Testado em:** `Modules/Compras/Tests/Feature/CustoMedioMovelTest.php` (lane `compras-pest.yml`, UC-CMED-01..23) · `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php` (lane `sells-pest.yml`, UC-VSHOW-24..26).
 
 **Aceite:** as caixas das Fases 1 e 2 abaixo.
 
@@ -126,6 +126,7 @@ last_updated: "2026-10-27"
 **Fase 2 — só depois do spike:**
 - [x] Custo médio móvel por variação, recalculado a cada compra recebida (qualquer caminho: observer do `Transaction`, depois do commit), guardado em `compras_custo_medio` com o histórico em `compras_custo_medio_movimentos`. Atrás de `COMPRAS_CUSTO_MEDIO_MOVEL` (desligada). Não escreve em `variations`, preço nem estoque. Semente: `php artisan compras:custo-medio-semear {business}` mostra a tabela antes→depois; só grava com `--aplicar`.
 - [x] Estorno (2026-11-09): compra recebida que é cancelada ou excluída sai da conta e as entradas seguintes são recalculadas como se ela não tivesse existido (`CustoMedioMovel::estornarEntrada`, UC-CMED-09..17). Com a flag desligada não estorna.
+- [x] Reconciliação (2026-11-09): `php artisan compras:custo-medio-reconciliar` mostra o delta por variação e por empresa; só grava com `--aplicar --business=N`. Compra recebida sem movimento (entrada perdida) só é apontada. Não é agendado.
 - [x] Margem da venda finalizada pelo custo médio do momento da venda — servidor (2026-10-27): `detail.margem` no `SellController::margemDaVenda`, pela interface `App\Contracts\Compras\CustoMedio`; só com `view_purchase_price` e a flag (UC-VSHOW-24..26, `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php`).
 - [ ] Faixa da margem no detalhe da venda (`Sells/Show.tsx`) — protótipo `prototipo-ui/cowork/Wagner/vendas-detalhe-margem.html`, espera o OK do [W].
 - [ ] Ligar a flag depois da semente aprovada pelo [W] (antes→depois por variação).

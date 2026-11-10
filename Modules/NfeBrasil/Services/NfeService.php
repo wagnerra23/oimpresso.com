@@ -11,7 +11,6 @@ use App\Util\OtelHelper;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 use Modules\NfeBrasil\Exceptions\AliquotaInternaNaoCadastradaException;
 use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
@@ -23,9 +22,11 @@ use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
+use Modules\NfeBrasil\Support\ArquivoFiscal;
 use Modules\RecurringBilling\Models\Invoice;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
+use NFePHP\NFe\Complements;
 use NFePHP\NFe\Factories\Contingency;
 use NFePHP\NFe\Make;
 use NFePHP\NFe\Tools;
@@ -1906,14 +1907,14 @@ class NfeService
         }
 
         // O XML assinado é a ÚNICA fonte: reconstruir mudaria a chave de acesso.
-        if (! $emissao->xml_path || ! Storage::exists($emissao->xml_path)) {
+        if (! ArquivoFiscal::existe($emissao->xml_path)) {
             throw new RuntimeException(
                 "NfeEmissao {$emissaoId} em contingência sem XML persistido ({$emissao->xml_path}). "
                 . 'Não é possível transmitir sem reconstruir o documento — o que geraria outra chave.'
             );
         }
 
-        $xmlSigned = (string) Storage::get($emissao->xml_path);
+        $xmlSigned = (string) ArquivoFiscal::ler($emissao->xml_path);
 
         $business = DB::table('business')->where('id', $businessId)->first();
         if (! $business) {
@@ -2263,7 +2264,7 @@ class NfeService
         int $numero,
     ): void {
         $xmlPath = sprintf('nfe-brasil/%d/notas/%s-%s.xml', $businessId, $serie, $numero);
-        Storage::put($xmlPath, $xmlSigned);
+        ArquivoFiscal::gravar($xmlPath, $xmlSigned);
 
         $emissao->update([
             'xml_path' => $xmlPath,
@@ -2894,7 +2895,8 @@ class NfeService
         // cStat 100 = Autorizado NF-e; 150 = Autorizado fora do prazo
         if (in_array($cstat, ['100', '150'], true)) {
             $xmlPath = sprintf('nfe-brasil/%d/notas/%s-%s.xml', $businessId, $serie, $numero);
-            Storage::put($xmlPath, $xmlSigned);
+            $xmlAutorizado = $this->comProtocolo($xmlSigned, $responseXml, (int) $emissao->id);
+            ArquivoFiscal::gravar($xmlPath, $xmlAutorizado ?? $xmlSigned);
 
             $emissao->update([
                 'status'     => 'autorizada',
@@ -2903,14 +2905,15 @@ class NfeService
                 'chave_44'   => $chNFe,
                 'xml_path'   => $xmlPath,
                 'emitido_em' => $dhRecbto ? \Carbon\Carbon::parse($dhRecbto) : now(),
-                'metadata'   => ['nProt' => $nProt, 'cstat_lote' => $loteStatus],
+                'metadata'   => ['nProt' => $nProt, 'cstat_lote' => $loteStatus]
+                    + ($xmlAutorizado === null ? ['xml_sem_protocolo' => true] : []),
             ]);
 
             // US-ARQ-021 (ADR 0123) — double-write XML pra Modules/Arquivos backbone.
-            // Mantém Storage::put + xml_path coluna legacy (fallback). Cria row em
+            // Mantém a gravação + xml_path coluna legacy (fallback). Cria row em
             // arquivos table polimórfica pra futuro NfeService::xmlArquivo() consumir.
             // Try/catch graceful — falha aqui NÃO bloqueia fluxo emit fiscal.
-            $this->writeArquivoXml($emissao, $xmlPath, $xmlSigned);
+            $this->writeArquivoXml($emissao, $xmlPath, $xmlAutorizado ?? $xmlSigned);
 
             // Atualiza contador fiscal no business — CRÍTICO pra evitar duplicidade.
             // BUG FIX P0 2026-05-10: catch silencioso (Log::warning) deixava contador
@@ -2992,6 +2995,23 @@ class NfeService
         ]);
     }
 
+    /**
+     * Junta a NF-e assinada e o protocolo no `nfeProc`, que é o documento fiscal válido para o
+     * destinatário e para a escrituração. Devolve null se a SEFAZ não trouxe protocolo que case
+     * com a assinatura: a nota segue autorizada e o XML assinado é guardado, com a falta marcada
+     * em `metadata.xml_sem_protocolo`.
+     */
+    private function comProtocolo(string $xmlAssinado, string $retornoSefaz, int $emissaoId): ?string
+    {
+        try {
+            return Complements::toAuthorize($xmlAssinado, $retornoSefaz);
+        } catch (\Throwable $e) {
+            Log::error('nfe.xml_sem_protocolo', ['emissao_id' => $emissaoId, 'erro' => $e::class]);
+
+            return null;
+        }
+    }
+
     private function resolverIdDest(array $emitOverride, array $dest, object $business): int
     {
         $ufEmit = $emitOverride['uf'] ?? $this->resolverUF($business);
@@ -3043,7 +3063,7 @@ class NfeService
                 'business_id'         => $emissao->business_id,
                 'arquivable_type'     => $arquivableType,
                 'arquivable_id'       => $emissao->id,
-                'disk'                => 'local',
+                'disk'                => ArquivoFiscal::DISCO,
                 'storage_path'        => $xmlPath,
                 'original_name'       => basename($xmlPath),
                 'mime_type'           => 'application/xml',

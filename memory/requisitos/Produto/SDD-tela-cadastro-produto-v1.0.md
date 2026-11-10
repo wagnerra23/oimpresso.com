@@ -1249,7 +1249,15 @@ volta para uma margem alvo.
     comunicação visual. Com isso não sobra pergunta para o [W]: os quatro pontos estão respondidos.
   - **Antes de ligar** (REGRA MESTRE de valor): a implementação mostra o antes e o depois do preço numa
     compra de exemplo, conferido por dois caminhos, e só liga com a aprovação do [W].
-- **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+- **Casos de uso:** `UC-PCAD-23` (`Create.casos.md`) e `UC-PEDIT-20` (`Edit.casos.md`).
+- **Na tela e no servidor (2026-11-10), só a escolha:** colunas `products.politica_preco` (padrão
+  `fixo`) e `margem_alvo_pct`; o `store()` e o `update()` gravam as duas, e o campo "Política de preço"
+  entrou no card "Impostos e preços" do Novo e do Editar, com "Margem alvo (%)" só na opção Margem
+  alvo. **Nenhum preço muda neste passo:** o recebimento da compra ainda não lê a política. Isso é o
+  passo seguinte, que mexe em valor e liga só depois do antes e depois aprovado pelo [W]. Atenção para
+  ele: o padrão da regra da compra em Fluxos já é `regraEm = produto`, então, quando o recebimento
+  passar a ler a política, as empresas no padrão deixam de receber proposta de preço para todo produto
+  que estiver em Preço fixo, que é o que todo produto existente tem hoje.
 
 #### CU-PROD-22 — Card Produção: o roteiro do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 

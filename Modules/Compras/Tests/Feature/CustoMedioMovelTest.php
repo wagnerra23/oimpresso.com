@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Transaction;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Modules\Compras\Services\CustoMedioMovel;
 use Tests\Support\WithSeededTenant;
@@ -366,4 +367,90 @@ it('UC-CMED-17 · Tier 0: o estorno só alcança a empresa da compra e não repe
         ->and(($this->guardado)())->toBe('10.0000')
         ->and($this->servico->estornarEntrada($this->biz->id, $c1))->toBe([])
         ->and(($this->guardado)())->toBe('10.0000');
+});
+
+/*
+ * compras:custo-medio-reconciliar. A compra órfã nasce por query direta, sem passar pelo observer:
+ * é o estado que sobra quando o estorno falhou ou a flag estava desligada.
+ */
+function custoMedioReconciliar(array $opcoes = []): array
+{
+    $rc = Artisan::call('compras:custo-medio-reconciliar', $opcoes);
+
+    return [$rc, Artisan::output()];
+}
+
+function custoMedioCompraOrfa(int $id): void
+{
+    DB::table('transactions')->where('id', $id)->update(['status' => 'pending']);
+}
+
+it('UC-CMED-18 · reconciliar sem --aplicar mostra o delta e não grava nada', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    custoMedioCompraOrfa($c1);
+
+    [$rc, $saida] = custoMedioReconciliar(['--business' => $this->biz->id]);
+
+    expect($rc)->toBe(0)
+        ->and($saida)->toContain('15,0000')
+        ->and($saida)->toContain('10,0000')
+        ->and($saida)->toContain('-5,0000')
+        ->and($saida)->toContain('Só leitura')
+        ->and(($this->guardado)())->toBe('15.0000')
+        ->and(DB::table('compras_custo_medio_movimentos')->where('transaction_id', $c1)->whereNull('ativo')->count())->toBe(0);
+});
+
+it('UC-CMED-19 · --aplicar sem --business é recusado e não grava', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    custoMedioCompraOrfa($c1);
+
+    [$rc] = custoMedioReconciliar(['--aplicar' => true]);
+
+    expect($rc)->toBe(1)
+        ->and(($this->guardado)())->toBe('15.0000');
+});
+
+it('UC-CMED-20 · --aplicar estorna a compra órfã, com o mesmo número do dry-run, e a segunda rodada não acha nada', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    custoMedioCompraOrfa($c1);
+    expect(custoMedioMovelEsperado(10, 10.00, 0, 0))->toBe('10.0000');
+
+    [$rc] = custoMedioReconciliar(['--business' => $this->biz->id, '--aplicar' => true]);
+    expect($rc)->toBe(0)
+        ->and(($this->guardado)())->toBe('10.0000');
+
+    [, $saida] = custoMedioReconciliar(['--business' => $this->biz->id]);
+    expect($saida)->not->toContain('compra órfã estornada');
+});
+
+it('UC-CMED-21 · custo guardado que difere do histórico volta ao último movimento', function () {
+    custoMedioComSementeEC1($this);
+    DB::table('compras_custo_medio')->where('variation_id', $this->variationId)->update(['custo_medio' => 99]);
+
+    custoMedioReconciliar(['--business' => $this->biz->id, '--aplicar' => true]);
+
+    expect(($this->guardado)())->toBe('15.0000');
+});
+
+it('UC-CMED-22 · Tier 0: reconciliar outra empresa não toca a desta', function () {
+    $c1 = custoMedioComSementeEC1($this);
+    custoMedioCompraOrfa($c1);
+
+    [$rc] = custoMedioReconciliar(['--business' => $this->outra->id, '--aplicar' => true]);
+
+    expect($rc)->toBe(0)
+        ->and(($this->guardado)())->toBe('15.0000')
+        ->and(DB::table('compras_custo_medio')->where('business_id', $this->outra->id)->count())->toBe(0);
+});
+
+it('UC-CMED-23 · entrada perdida é apontada e nunca gravada', function () {
+    custoMedioComSementeEC1($this);
+    $perdida = ($this->lote)($this->biz->id, 'purchase', 'received', 3, 40.00);
+
+    [, $saida] = custoMedioReconciliar(['--business' => $this->biz->id, '--aplicar' => true]);
+
+    expect($saida)->toContain('Entradas perdidas')
+        ->and($saida)->toContain((string) $perdida)
+        ->and(($this->guardado)())->toBe('15.0000')
+        ->and(DB::table('compras_custo_medio_movimentos')->where('transaction_id', $perdida)->count())->toBe(0);
 });
