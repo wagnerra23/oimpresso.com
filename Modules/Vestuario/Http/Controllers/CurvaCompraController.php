@@ -15,7 +15,8 @@ use Modules\Vestuario\Services\CurvaDeCompra;
  *   GET /vestuario/curva-compra?product_id=&total= → { base, motivo, dias, total, linhas[] }
  *
  * Só lê: a tela da compra mostra a sugestão e quem compra decide. Permissão de criar compra
- * (`purchase.create`) ou superadmin. Tier 0: `business_id` da sessão, explícito no serviço.
+ * (`purchase.create`) ou superadmin. Tier 0: `business_id` da sessão, explícito no serviço; só
+ * contam as vendas das lojas que o usuário pode ver (UC-VCUR-04).
  */
 class CurvaCompraController extends Controller
 {
@@ -35,6 +36,8 @@ class CurvaCompraController extends Controller
         ]);
         $businessId = (int) (session('user.business_id') ?? session('business.id'));
 
-        return response()->json($curva->sugerir($businessId, (int) $dados['product_id'], (int) $dados['total']));
+        $locais = $user->permitted_locations($businessId);
+
+        return response()->json($curva->sugerir($businessId, (int) $dados['product_id'], (int) $dados['total'], $locais));
     }
 }

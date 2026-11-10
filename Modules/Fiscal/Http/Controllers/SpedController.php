@@ -7,6 +7,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Fiscal\Services\Sped\EfdIcmsIpiLeiaute;
 use Modules\Fiscal\Services\SpedIcmsIpiGeneratorService;
 use Modules\Fiscal\Services\SpedReferenciaArquivoService;
 use Modules\NfeBrasil\Models\NfeEmissao;
@@ -302,7 +303,8 @@ class SpedController extends Controller
                 'Content-Type'              => 'text/plain; charset=UTF-8',
                 'Content-Disposition'       => 'attachment; filename="' . $nomeArquivo . '"',
                 'Content-Length'            => (string) strlen($conteudo),
-                'X-Sped-Layout-Version'     => '018', // v3.1.1
+                // Mesma fonte do COD_VER do registro 0000: o cabeçalho não pode dizer outra versão que o arquivo.
+                'X-Sped-Layout-Version'     => EfdIcmsIpiLeiaute::codVer($ano),
                 'X-Robots-Tag'              => 'noindex',
             ]);
         } catch (\Throwable $e) {
