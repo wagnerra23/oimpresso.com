@@ -249,6 +249,7 @@ jobs:
             tests/Feature/Purchase/PedidoCompraStoreTenantTest.php \
             tests/Feature/Purchase/RequisicaoStoreTenantTest.php \
             tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php \
+            tests/Feature/Purchase/PedidoCompraLinhaRefTenantTest.php \
             tests/Feature/Purchase/LinhaDeCompraPorTransacaoTenantTest.php \
             tests/Feature/Purchase/StoreLinhaEEntryRowTenantTest.php \
             tests/Feature/Purchase/ComprasStatusPermissaoUnidadeTest.php \
