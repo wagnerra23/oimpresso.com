@@ -3,7 +3,10 @@
 use App\TransactionPayment;
 use App\TransactionSellLine;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
+use Modules\Auditoria\Services\AuditEntryService;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Support\EstoqueFixture;
 
 /**
  * US-AUDIT-004 — trait LogsActivity em App\TransactionSellLine + App\TransactionPayment.
@@ -11,109 +14,105 @@ use Spatie\Activitylog\Models\Activity;
  * Valida (per SPEC + ADR 0127):
  *   - SellLine: alterar quantity / unit_price_inc_tax gera entry sales.sell_line
  *   - Payment: alterar amount / method gera entry sales.payment
- *   - Multi-tenant Tier 0 (ADR 0093)
+ *   - Multi-tenant Tier 0: o log fica no tenant da venda, nao no da sessao (ADR 0093)
  *
- * Skip-graceful em sqlite memory (CI). Validacao real com mysql dev pre-merge.
+ * A venda, o item e o pagamento nascem aqui (dentro da transacao): o seed do CI nao tem
+ * nenhum deles, e procurar "o primeiro do tenant" fazia estes testes pularem em todo run.
+ * Tenants ficticios 98 x 99 (ADR 0358), nunca biz=4.
  */
 
 uses(DatabaseTransactions::class);
 
+function auditVendaFixture(int $businessId): TransactionSellLine
+{
+    $produto = EstoqueFixture::singleProduct($businessId);
+    $venda = EstoqueFixture::saleWithLine($produto, 0, EstoqueFixture::locationId($businessId), 2.0);
+
+    return TransactionSellLine::findOrFail($venda['sell_line_id']);
+}
+
+function auditVendaUltimoLog(string $subjectType, int $subjectId, string $logName): ?Activity
+{
+    return Activity::query()
+        ->where('subject_type', $subjectType)
+        ->where('subject_id', $subjectId)
+        ->where('log_name', $logName)
+        ->where('event', 'updated')
+        ->latest('id')
+        ->first();
+}
+
 beforeEach(function () {
-    try {
-        $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    } catch (\Throwable $e) {
-        $this->markTestSkipped('Schema UltimatePOS ausente — rode local com DB_CONNECTION=mysql (dev) ou aguarde CI integration job.');
+    if (! EstoqueFixture::schemaReady()) {
+        $this->markTestSkipped('Schema UltimatePOS ausente — estes testes rodam na lane MySQL (auditoria-pest).');
     }
 
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant();
+    $this->user = \App\User::where('business_id', $this->business->id)->firstOrFail();
+    $this->sellLine = auditVendaFixture((int) $this->business->id);
 
-    $this->sellLine = TransactionSellLine::query()
-        ->whereHas('transaction', fn ($q) => $q->where('business_id', $this->business->id))
-        ->first();
-
-    $this->payment = TransactionPayment::query()
-        ->whereHas('transaction', fn ($q) => $q->where('business_id', $this->business->id))
-        ->first();
+    $this->payment = TransactionPayment::findOrFail(DB::table('transaction_payments')->insertGetId([
+        'transaction_id' => $this->sellLine->transaction_id,
+        'business_id'    => $this->business->id,
+        'amount'         => 40.00,
+        'method'         => 'cash',
+        'is_return'      => 0,
+        'paid_on'        => now(),
+        'created_by'     => $this->user->id,
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]));
 
     session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id]);
 });
 
 it('cenario 1: update TransactionSellLine.unit_price_inc_tax gera entry sales.sell_line', function () {
-    if (! $this->sellLine) {
-        $this->markTestSkipped('Sem TransactionSellLine no business — rode smoke /sells/create antes.');
-    }
-
     $oldPrice = (float) $this->sellLine->unit_price_inc_tax;
     $newPrice = $oldPrice + 1.50;
 
     $this->sellLine->unit_price_inc_tax = $newPrice;
     $this->sellLine->save();
 
-    $log = Activity::query()
-        ->where('subject_type', TransactionSellLine::class)
-        ->where('subject_id', $this->sellLine->id)
-        ->where('log_name', 'sales.sell_line')
-        ->where('event', 'updated')
-        ->latest('id')
-        ->first();
+    $log = auditVendaUltimoLog(TransactionSellLine::class, $this->sellLine->id, 'sales.sell_line');
 
     expect($log)->not->toBeNull('SellLine update deveria gerar entry');
-    $old = $log->properties['old'] ?? null;
-    $new = $log->properties['attributes'] ?? null;
-    expect((float) ($old['unit_price_inc_tax'] ?? 0))->toBe($oldPrice);
-    expect((float) ($new['unit_price_inc_tax'] ?? 0))->toBe($newPrice);
+    expect((float) ($log->properties['old']['unit_price_inc_tax'] ?? 0))->toBe($oldPrice);
+    expect((float) ($log->properties['attributes']['unit_price_inc_tax'] ?? 0))->toBe($newPrice);
 });
 
 it('cenario 2: update TransactionPayment.amount gera entry sales.payment', function () {
-    if (! $this->payment) {
-        $this->markTestSkipped('Sem TransactionPayment no business.');
-    }
-
     $oldAmount = (float) $this->payment->amount;
     $newAmount = $oldAmount + 0.01; // delta minimo
 
     $this->payment->amount = $newAmount;
     $this->payment->save();
 
-    $log = Activity::query()
-        ->where('subject_type', TransactionPayment::class)
-        ->where('subject_id', $this->payment->id)
-        ->where('log_name', 'sales.payment')
-        ->where('event', 'updated')
-        ->latest('id')
-        ->first();
+    $log = auditVendaUltimoLog(TransactionPayment::class, $this->payment->id, 'sales.payment');
 
     expect($log)->not->toBeNull('Payment update deveria gerar entry');
-    $old = $log->properties['old'] ?? null;
-    $new = $log->properties['attributes'] ?? null;
-    expect((float) ($old['amount'] ?? 0))->toBe($oldAmount);
-    expect((float) ($new['amount'] ?? 0))->toBe($newAmount);
+    expect((float) ($log->properties['old']['amount'] ?? 0))->toBe($oldAmount);
+    expect((float) ($log->properties['attributes']['amount'] ?? 0))->toBe($newAmount);
 });
 
-it('cenario 3: multi-tenant Tier 0 — SellLine activity nao vaza cross-tenant', function () {
-    if (! $this->sellLine) {
-        $this->markTestSkipped('Sem TransactionSellLine.');
-    }
+it('cenario 3: multi-tenant Tier 0 — log do item fica no tenant da venda e nao aparece no outro', function () {
+    $outro = $this->seededSupportClientTenant();
+    $linhaOutro = auditVendaFixture((int) $outro->id);
 
+    // A sessao continua no tenant principal: o tenant do log vem da venda do item.
     $this->sellLine->quantity = (float) $this->sellLine->quantity + 1;
     $this->sellLine->save();
+    $linhaOutro->quantity = (float) $linhaOutro->quantity + 1;
+    $linhaOutro->save();
 
-    $logsThisBiz = Activity::query()
-        ->where('business_id', $this->business->id)
-        ->where('subject_type', TransactionSellLine::class)
-        ->where('subject_id', $this->sellLine->id)
-        ->count();
+    $meu = auditVendaUltimoLog(TransactionSellLine::class, $this->sellLine->id, 'sales.sell_line');
+    $alheio = auditVendaUltimoLog(TransactionSellLine::class, $linhaOutro->id, 'sales.sell_line');
 
-    expect($logsThisBiz)->toBeGreaterThan(0);
+    expect((int) $meu->business_id)->toBe((int) $this->business->id);
+    expect((int) $alheio->business_id)->toBe((int) $outro->id);
 
-    $logsOtherBiz = Activity::query()
-        ->where('business_id', '!=', $this->business->id)
-        ->where('subject_type', TransactionSellLine::class)
-        ->where('subject_id', $this->sellLine->id)
-        ->count();
+    $ids = collect(app(AuditEntryService::class)->list((int) $this->business->id, ['event' => 'updated'], 200)->items())
+        ->pluck('id')->all();
 
-    expect($logsOtherBiz)->toBe(0, 'activity nao deve vazar pra outro business_id (Tier 0)');
+    expect(in_array($meu->id, $ids, true))->toBeTrue();
+    expect(in_array($alheio->id, $ids, true))->toBeFalse();
 });

@@ -49,8 +49,8 @@ final class HorasDosPostosService implements HorasDosPostos
             ->orderBy('nome')->get(['id', 'codigo', 'nome', 'setor', 'custo_hora', 'custo_hora_direto'])
             ->map(fn ($p) => ['posto_id' => (int) $p->id, 'codigo' => (string) $p->codigo, 'nome' => (string) $p->nome,
                 'setor' => ($s = trim((string) $p->setor)) === '' ? null : $s,
-                'custo_hora' => number_format((float) $p->custo_hora, 2, '.', ''),
-                'custo_hora_direto' => number_format((float) ($p->custo_hora_direto ?? $p->custo_hora), 2, '.', ''),
+                'custo_hora' => CustoHoraDecimal::comDuasCasas($p->custo_hora),
+                'custo_hora_direto' => CustoHoraDecimal::comDuasCasas($p->custo_hora_direto ?? $p->custo_hora),
                 'segundos' => $segundos[(int) $p->id]])
             ->values()->all();
     }
@@ -69,6 +69,6 @@ final class HorasDosPostosService implements HorasDosPostos
             'updated_at' => now(),
         ]);
 
-        return ['antes' => number_format((float) $posto->custo_hora, 2, '.', ''), 'depois' => $novo];
+        return ['antes' => CustoHoraDecimal::comDuasCasas($posto->custo_hora), 'depois' => $novo];
     }
 }
