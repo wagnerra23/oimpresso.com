@@ -148,9 +148,18 @@ it('nfe_dfe_nsu_state · o cursor e o intervalo de consulta são da empresa, nã
         'total_xmls_processados' => 40,
     ]);
 
-    // O vizinho consultou há 1 minuto (dentro do intervalo de 5): a empresa dona não herda a espera,
-    // e o cursor dela parte do zero dela, não do 500 do vizinho.
-    $r = isoCtdDistService(100)->puxarLote($this->a, loopLimit: 1);
+    // A consulta exige o CNPJ do emitente (CnpjDoEmitente::obrigatorio). O tenant 98 do harness não
+    // tem; grava um CNPJ fictício só durante o caso e devolve o valor original no fim.
+    $taxOriginal = DB::table('business')->where('id', $this->a)->value('tax_number_1');
+    DB::table('business')->where('id', $this->a)->update(['tax_number_1' => '11222333000181']);
+
+    try {
+        // O vizinho consultou há 1 minuto (dentro do intervalo de 5): a empresa dona não herda a
+        // espera, e o cursor dela parte do zero dela, não do 500 do vizinho.
+        $r = isoCtdDistService(100)->puxarLote($this->a, loopLimit: 1);
+    } finally {
+        DB::table('business')->where('id', $this->a)->update(['tax_number_1' => $taxOriginal]);
+    }
 
     expect($r['skipped_throttle'] ?? false)->toBeFalse();
     expect($r['last_nsu'])->toBe(100);
