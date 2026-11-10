@@ -21,9 +21,10 @@ declare(strict_types=1);
  *   - axe-core CRITICAL (level 0, o piso do A11yAxeBrowserTest).
  *
  * ── TENANT ────────────────────────────────────────────────────────────────────
- * O admin do business fictício que o VisregTenantSeeder cria no `oimpresso_test` do CI. A venda
- * 9090901 não existe: o endpoint de emissões responde lista vazia, que é o estado sob teste.
- * Nunca biz=4 (ADR 0358). Não semeia nada e não captura imagem (ADR 0445).
+ * O admin do business fictício que o VisregTenantSeeder cria no `oimpresso_test` do CI. Cada caso
+ * grava uma venda `final` desse business, sem nota, e apaga no fim: venda que NÃO existe responde
+ * 404 no endpoint de emissões e a tela mostra o estado de erro (medido no 1º run, 2026-11-10), que
+ * não é o UC-NFST-01. Nunca biz=4 (ADR 0358). Não captura imagem (ADR 0445).
  *
  * ── ONDE RODA ─────────────────────────────────────────────────────────────────
  * CI / CT 100 apenas (memory/proibicoes.md §Ambiente). Step "E2E de render · NfeBrasil
@@ -41,9 +42,14 @@ beforeEach(function () {
     \Illuminate\Support\Facades\DB::purge('mysql');
 });
 
-const NFCE_SMOKE_TX = 9090901;
+const NFCST_INVOICE = 'NFST-BROWSER-SMOKE';
 
-function abrirNfceStatus(): object
+afterEach(function () {
+    \Illuminate\Support\Facades\DB::table('transactions')->where('invoice_no', NFCST_INVOICE)->delete();
+});
+
+/** Abre a tela de uma venda sem nota recém-gravada. Devolve [página, id da venda]. */
+function abrirNfceStatus(): array
 {
     $business = Business::orderBy('id')->first();
     if (! $business) {
@@ -54,14 +60,34 @@ function abrirNfceStatus(): object
         test()->markTestSkipped('Sem user no business seedado.');
     }
 
-    return visit('/_visreg-login/' . $admin->id . '?to=' . urlencode('/nfe-brasil/transactions/' . NFCE_SMOKE_TX . '/status'));
+    $db = \Illuminate\Support\Facades\DB::table('transactions');
+    $db->where('invoice_no', NFCST_INVOICE)->delete();
+    $tx = (int) \Illuminate\Support\Facades\DB::table('transactions')->insertGetId([
+        'business_id' => $business->id,
+        'location_id' => \Illuminate\Support\Facades\DB::table('business_locations')->where('business_id', $business->id)->orderBy('id')->value('id'),
+        'type' => 'sell',
+        'status' => 'final',
+        'payment_status' => 'due',
+        'contact_id' => \Illuminate\Support\Facades\DB::table('contacts')->where('business_id', $business->id)->orderBy('id')->value('id'),
+        'invoice_no' => NFCST_INVOICE,
+        'transaction_date' => now()->toDateTimeString(),
+        'total_before_tax' => 10,
+        'final_total' => 10,
+        'created_by' => $admin->id,
+        'essentials_duration' => 0,
+    ]);
+
+    $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode('/nfe-brasil/transactions/' . $tx . '/status'));
+
+    return [$page, $tx];
 }
 
 it('UC-NFST-01 · venda sem nota mostra "ainda não emitida", não erro', function () {
-    $page = abrirNfceStatus()->resize(1280, 800);
+    [$page, $tx] = abrirNfceStatus();
+    $page = $page->resize(1280, 800);
 
-    $page->assertSee('Status fiscal — Venda #' . NFCE_SMOKE_TX)
-        ->assertSee('Nota fiscal da venda #' . NFCE_SMOKE_TX)
+    $page->assertSee('Status fiscal — Venda #' . $tx)
+        ->assertSee('Nota fiscal da venda #' . $tx)
         ->assertSee('A nota fiscal ainda não foi emitida para esta venda.')
         ->assertSee('Aguardando emissão')
         ->assertSee('Verificar agora')
@@ -72,19 +98,21 @@ it('UC-NFST-01 · venda sem nota mostra "ainda não emitida", não erro', functi
 });
 
 it('"Verificar agora" consulta de novo sem sair da tela', function () {
-    $page = abrirNfceStatus()->resize(1280, 800);
+    [$page, $tx] = abrirNfceStatus();
+    $page = $page->resize(1280, 800);
     $page->assertSee('Verificar agora');
 
     $page->click('Verificar agora');
 
-    $page->assertSee('Status fiscal — Venda #' . NFCE_SMOKE_TX)
+    $page->assertSee('Status fiscal — Venda #' . $tx)
         ->assertSee('A nota fiscal ainda não foi emitida para esta venda.');
     expect((string) $page->script('window.location.pathname'))
-        ->toBe('/nfe-brasil/transactions/' . NFCE_SMOKE_TX . '/status');
+        ->toBe('/nfe-brasil/transactions/' . $tx . '/status');
 });
 
 it('A11Y · NfceStatus sem nota com 0 violações axe CRITICAL', function () {
-    $page = abrirNfceStatus()->resize(1280, 800);
+    [$page, $tx] = abrirNfceStatus();
+    $page = $page->resize(1280, 800);
     $page->assertSee('Aguardando emissão');
 
     $page->assertNoAccessibilityIssues(level: 0);
