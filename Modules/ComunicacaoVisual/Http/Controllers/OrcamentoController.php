@@ -13,6 +13,7 @@ use Modules\ComunicacaoVisual\Entities\Orcamento;
 use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
 use Modules\ComunicacaoVisual\Entities\Os;
 use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
+use Modules\ComunicacaoVisual\Services\AceiteDoOrcamento;
 use Modules\ComunicacaoVisual\Services\MargemDoOrcamento;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
@@ -212,7 +213,11 @@ class OrcamentoController extends Controller
                 return response()->json(['message' => "O orçamento {$orcamento->numero} está {$orcamento->status} e não pode mais ser alterado."], 422);
             }
 
-            return response()->json($this->gravador->regravar($businessId, $orcamento, $calculado), 200);
+            $gravado = $this->gravador->regravar($businessId, $orcamento, $calculado);
+            // UC-CVACE-04: o link aberto mostra a versão antiga; o cliente não pode aceitá-la.
+            app(AceiteDoOrcamento::class)->fecharLinksAbertos($businessId, (int) $orcamento->id);
+
+            return response()->json($gravado, 200);
         });
     }
 

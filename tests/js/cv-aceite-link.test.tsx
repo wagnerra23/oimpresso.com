@@ -6,7 +6,7 @@
  * escrita à mão.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 vi.mock('@inertiajs/react', () => ({
   Head: () => null,
@@ -53,6 +53,27 @@ describe('Calculadora CV · link para o cliente', () => {
     expect(wa.href.startsWith('https://wa.me/?text=')).toBe(true);
     expect(decodeURIComponent(wa.href)).toContain(URL_LINK);
     expect(decodeURIComponent(wa.href)).toContain('ORC-2026-00005');
+  });
+
+  it('UC-CVACE-04 · salvar uma alteração tira o link antigo da tela', async () => {
+    const resposta = (status: number, corpo: unknown) => ({ ok: true, status, json: () => Promise.resolve(corpo) });
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce(resposta(201, { url: URL_LINK, expira_em: '2026-11-02T10:00:00-03:00' }))
+      .mockResolvedValueOnce(resposta(200, { subtotal: 360, desconto: 0, extras: 0, custo_instalacao: 0, custo_entrega: 0, total: 360, itens: [] }))
+      .mockResolvedValueOnce(resposta(200, { id: 5, numero: 'ORC-2026-00005', status: 'enviado' })) as unknown as typeof fetch;
+    render(<Index podeCriar bizName="Gráfica Teste" orcamento={orcamento('rascunho')} recentes={[]} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Enviar no WhatsApp/ }));
+    await screen.findByLabelText(/Link para o cliente aceitar o ORC-2026-00005/);
+
+    fireEvent.change(screen.getByLabelText('Largura em metros'), { target: { value: '4' } });
+    fireEvent.click(screen.getByRole('button', { name: /Conferir no servidor/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Salvar alterações/ }));
+
+    await waitFor(() => expect(screen.queryByLabelText(/Link para o cliente aceitar/)).toBeNull());
+    const [url, init] = (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[2];
+    expect(url).toBe('/comunicacao-visual/api/orcamentos/5');
+    expect(init.method).toBe('PUT');
   });
 
   it('UC-CVACE-03 · controle: orçamento já aprovado não oferece o link', () => {

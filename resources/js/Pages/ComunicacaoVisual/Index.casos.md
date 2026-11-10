@@ -112,6 +112,7 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVSAL-04 | Orçamento que virou OS ou foi recusado não regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-05 | Outra empresa não reabre, não lista nem regrava | must `[T0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-06 | Sem permissão de criar não salva nem regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVACE-04 | Editar fecha o link aberto; o cliente não aceita a versão antiga | must `[V0]` `[T0]` | US-COMVIS-023 · auditoria 2026-11-05 S7 | `OrcamentoAceiteRetratoContratoTest` · `tests/js/cv-aceite-link.test.tsx` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** O PR que criou este arquivo não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -918,6 +919,14 @@ oferece "Copiar link" e "Abrir no WhatsApp" (`wa.me` com o número do orçamento
 Orçamento já aprovado não oferece o link (o serviço recusaria).
 
 Teste: `tests/js/cv-aceite-link.test.tsx`
+
+Status: 🧪
+
+## UC-CVACE-04 · Editar fecha o link aberto · `must` `[V0]` `[T0]`
+
+**Dado** um orçamento com link aberto **Quando** o vendedor salva uma alteração **Então** o link fecha na
+mesma transação, a tela deixa de mostrá-lo e o cliente vê o link como vencido. Um link novo aceita o valor
+novo. Fechar os links de um orçamento nunca toca os de outra empresa.
 
 Status: 🧪
 
