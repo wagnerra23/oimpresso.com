@@ -5,7 +5,7 @@ component: Modules/Producao/Resources/js/Pages/Producao/Os/Show.tsx
 related_prototype: prototipo-ui/cowork/Wagner/producao-cv-os.jsx
 owner: wagner
 status: draft
-last_validated: "2026-11-06"
+last_validated: "2026-11-09"
 parent_module: Producao
 related_adrs: [93, 358, 431, 436]
 alcance:
@@ -50,7 +50,7 @@ posto, responsável e o tempo apontado contra o previsto. Daqui o PCP libera, re
 
 - Forma: página, não o drawer de 760px do protótipo — a Ficha é aberta por endereço a partir do Quadro e da Linha (lote 3.5).
 - Cabe em 1280px sem scroll horizontal.
-- O cabeçalho e as etapas vêm na primeira resposta; só a lista de responsáveis do Liberar é deferida.
+- O cabeçalho e as etapas vêm na primeira resposta; custo, materiais, artes e a lista de responsáveis do Liberar são deferidos.
 
 ## Refs
 

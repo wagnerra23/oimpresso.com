@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-11-10T13:40:02.177Z",
-    "count": 38,
+    "generated_at": "2026-11-10T13:42:18.647Z",
+    "count": 37,
     "adr": "0409 — divida transitoria, nao tolerancia",
     "note": "DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado."
   },
@@ -23,7 +23,6 @@
     "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Variants.tsx",
     "Modules/Whatsapp/Resources/js/Pages/Atendimento/Metricas/Index.tsx",
     "resources/js/Pages/_Showcase/Components.tsx",
-    "resources/js/Pages/Auditoria/Index.tsx",
     "resources/js/Pages/governance/Audit.tsx",
     "resources/js/Pages/governance/DriftAlerts.tsx",
     "resources/js/Pages/governance/Policies.tsx",
