@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Builder;
  *   explícito (ver OrcamentoGravador).
  * - O escopo continua com o nome `business_id`, então `withoutGlobalScope('business_id')` segue
  *   funcionando onde já era usado.
+ * - Ao criar, o hook `creating` de cada Model preenche o `business_id` da sessão; sem sessão e sem
+ *   `business_id` explícito ele FALHA (LogicException), em vez de gravar a empresa 0 (UC-CVHIG-01).
  */
 trait EscopoPorNegocioDaSessao
 {

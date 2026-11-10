@@ -105,7 +105,8 @@ class Apontamento extends Model
 
         static::creating(function (Apontamento $row) {
             if ($row->business_id === null) {
-                $row->business_id = session('user.business_id') ?? session('business.id') ?? 0;
+                $row->business_id = session('user.business_id') ?? session('business.id')
+                    ?? throw new \LogicException('Comunicação Visual: sem business_id para criar '.$row::class.' (sem sessão). Passe o business_id explícito.');
             }
         });
     }

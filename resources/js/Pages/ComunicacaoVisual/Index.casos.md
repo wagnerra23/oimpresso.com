@@ -64,6 +64,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-10 | O hub abre pra quem tem permissão e renderiza a calculadora | must | `CU-CV-01` itens 1-2 | `ContratoTelaOrcamentoTest` | 🧪 ⏭ PR-skip |
 | UC-CV-11 | Salvar o orçamento grava os valores do servidor, atomicamente | should | `CU-CV-05` itens 1-4 | `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-12 | O catálogo de partida nasce completo, idempotente e isolado | should | `CU-CV-07` itens 1-3 | `MaterialSeederTest` | 🧪 ⏭ PR-skip |
+| UC-CVHIG-01 | Sem sessão e sem business_id, criar falha em vez de gravar empresa 0 | must `[T0]` | ADR 0093 · auditoria 2026-11-05 I-14 | `ComvisHigieneContratoTest` | 🧪 |
+| UC-CVHIG-02 | A demo não roda em produção | must | ADR 0093 · auditoria 2026-11-05 I-12 | `ComvisHigieneContratoTest` | 🧪 |
+| UC-CVHIG-03 | O health-check diário está agendado só em produção | must | ADR 0093 · auditoria 2026-11-05 I-11 | `ComvisHigieneContratoTest` | 🧪 |
 | UC-CVPRC-01 | Peça menor que o mínimo do material é cobrada pelo mínimo | must `[V0]` | `CU-CV-02` · DoD US-COMVIS-001 (mínimo) | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
 | UC-CVPRC-02 | Acabamento do catálogo entra no total pela base do tipo dele | must `[V0]` `[T0]` | `CU-CV-02` · DoD US-COMVIS-001 (acabamentos) · SPEC §12.1 | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
 | UC-CVPRC-03 | Perda % do material soma na área cobrada | must `[V0]` | Decisão [W] 2026-10-26 · US-COMVIS-001 | `OrcamentoPerdaEmendaContratoTest` | 🧪 |
@@ -413,6 +416,28 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 - **Status: 🧪 ⏭ PR-skip** — arquivo pula em SQLite; veredito da full-suite noturna.
 
 ---
+
+## UC-CVHIG-01 · Criar sem empresa falha · `must` `[T0]`
+
+**Dado** um processo sem sessão (fila, comando, app por token) **Quando** cria orçamento, material ou outra
+entidade do módulo sem `business_id` **Então** a criação falha com erro, e nenhuma linha com empresa 0 é
+gravada. Com o `business_id` explícito, grava na empresa certa.
+
+Status: 🧪
+
+## UC-CVHIG-02 · A demo não roda em produção · `must`
+
+**Dado** o ambiente de produção **Quando** alguém roda `comvis:demo-seed` **Então** o comando para com
+erro e não grava nada: em produção toda empresa é real.
+
+Status: 🧪
+
+## UC-CVHIG-03 · O health-check diário está agendado · `should`
+
+**Dado** o agendador **Então** `comvis:health --notify` roda todo dia às 06:40, só em produção, sem sobrepor
+uma execução à outra.
+
+Status: 🧪
 
 ## UC-CVPRC-01 · Peça menor que o mínimo do material é cobrada pelo mínimo · `must` `[V0]`
 
