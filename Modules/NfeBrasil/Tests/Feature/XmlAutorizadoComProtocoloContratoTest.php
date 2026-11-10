@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Storage;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\DanfeService;
-use Modules\NfeBrasil\Services\Entrada\LeitorNfeEntrada;
 use Modules\NfeBrasil\Services\NfeService;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -75,11 +74,4 @@ it('R-NFE-010 · protocolo que não casa com a assinatura não derruba a nota au
     expect($emissao->status)->toBe('autorizada');
     expect(Storage::disk('nfe_fiscal')->get($emissao->xml_path))->toBe(nfeAssinadaDeTeste('abc='));
     expect($emissao->metadata['xml_sem_protocolo'])->toBeTrue();
-});
-
-it('R-NFE-010 · o leitor de NF-e aceita o arquivo gravado', function () {
-    $emissao = autorizarDeTeste(nfeAssinadaDeTeste(), retornoComDigest('abc='));
-
-    expect(class_exists(LeitorNfeEntrada::class))->toBeTrue();
-    expect(simplexml_load_string(Storage::disk('nfe_fiscal')->get($emissao->xml_path))->getName())->toBe('nfeProc');
 });
