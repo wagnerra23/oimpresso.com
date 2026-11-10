@@ -122,7 +122,7 @@ it('UC-FCX-06 · dois POSTs geram um título só, com o valor do caixa', functio
 
     expect((float) $titulo->valor_total)->toBe(350.0)
         ->and($somaOrigem)->toBe(350.0)
-        ->and($breakdown['cash'] + $breakdown['card'] + $breakdown['cheque'] + $breakdown['other'])->toBe(350.0)
+        ->and((float) ($breakdown['cash'] + $breakdown['card'] + $breakdown['cheque'] + $breakdown['other']))->toBe(350.0)
         ->and($titulo->status)->toBe('quitado')
         ->and((float) $titulo->valor_aberto)->toBe(0.0)
         ->and((int) $titulo->metadata['location_id'])->toBe((int) $local->id)
