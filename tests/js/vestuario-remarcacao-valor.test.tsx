@@ -24,6 +24,7 @@ const PREVIA = {
   linhas: [{ variation_id: 1, produto: 'Camisa', variacao: 'M', sku: 'CAM-M', preco_antes: 100, preco_depois: 97.5 }],
   ignoradas: 0,
   assinatura: 'a'.repeat(64),
+  grupos: { fixos: 0, percentuais: 0 },
 }
 
 const fetchMock = vi.fn()
@@ -52,6 +53,32 @@ beforeEach(() => {
 })
 
 afterEach(() => vi.unstubAllGlobals())
+
+describe('UC-VREM-01 · a prévia avisa o que acontece com o preço de grupo', () => {
+  function verPrevia(grupos: { fixos: number; percentuais: number }) {
+    fetchMock.mockImplementation(async () => ({ ok: true, status: 200, json: async () => ({ ...PREVIA, grupos }) }))
+    abrirTela('percentual')
+    fireEvent.click(screen.getByRole('button', { name: 'Ver prévia' }))
+    return screen.findByRole('button', { name: 'Gravar remarcação' })
+  }
+
+  it('UC-VREM-01 · preço fixo fica para trás e percentual acompanha, com a contagem', async () => {
+    await verPrevia({ fixos: 3, percentuais: 1 })
+
+    const nota = screen.getByRole('note').textContent
+    expect(nota).toContain('3 variações têm preço fixo')
+    expect(nota).toContain('não muda')
+    expect(nota).toContain('1 variação tem preço de grupo em percentual')
+    expect(nota).toContain('acompanha')
+  })
+
+  it('UC-VREM-01 · sem preço de grupo não há aviso, nem o selo que afirmava o contrário', async () => {
+    await verPrevia({ fixos: 0, percentuais: 0 })
+
+    expect(screen.queryByRole('note')).toBeNull()
+    expect(screen.queryByText('Tabelas de preço por grupo não mudam')).toBeNull()
+  })
+})
 
 describe('UC-VREM-08 · o valor digitado chega ao servidor como foi digitado', () => {
   it.each([

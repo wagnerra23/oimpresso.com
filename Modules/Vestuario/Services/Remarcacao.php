@@ -43,7 +43,7 @@ class Remarcacao
             }
             $linhas[] = [
                 'variation_id' => (int) $v->id, 'product_id' => (int) $v->product_id,
-                'produto' => $v->produto, 'variacao' => $v->variacao, 'sku' => $v->sub_sku,
+                'produto' => $v->produto, 'variacao' => $v->variacao === 'DUMMY' ? '' : $v->variacao, 'sku' => $v->sub_sku,
                 'preco_antes' => $antes, 'preco_depois' => $depois,
             ];
         }
@@ -189,6 +189,26 @@ class Remarcacao
         }
 
         return $todas;
+    }
+
+    /**
+     * Quantas peças da lista têm preço de grupo, por tipo. A remarcação não toca essas linhas, mas o
+     * efeito difere: preço fixo fica como está, e percentual é calculado sobre a etiqueta nova
+     * (`ProductUtil::getVariationGroupPrice`). Preço zero é tabela sem preço. Os ids já vêm da empresa.
+     *
+     * @param  int[]  $ids
+     * @return array{fixos: int, percentuais: int}
+     */
+    public function precosDeGrupo(array $ids): array
+    {
+        $tipos = DB::table('variation_group_prices')->whereIn('variation_id', $ids)->where('price_inc_tax', '>', 0)
+            ->distinct()->get(['variation_id', 'price_type']);
+        $percentuais = $tipos->where('price_type', 'percentage')->pluck('variation_id')->unique();
+
+        return [
+            'fixos' => $tipos->where('price_type', '!=', 'percentage')->pluck('variation_id')->unique()->count(),
+            'percentuais' => $percentuais->count(),
+        ];
     }
 
     private function assinar(array $linhas): string

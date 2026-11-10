@@ -29,12 +29,13 @@ import {
 interface Opcao { id: number; name: string; parent_id?: number }
 interface Lote { id: number; nome: string; modo: string; valor: string; qtd_itens: number; status: string; created_at: string }
 interface Linha { variation_id: number; produto: string; variacao: string; sku: string; preco_antes: number; preco_depois: number }
-interface Previa { linhas: Linha[]; ignoradas: number; assinatura: string }
+interface Previa { linhas: Linha[]; ignoradas: number; assinatura: string; grupos: { fixos: number; percentuais: number } }
 interface Props { categorias: Opcao[]; marcas: Opcao[]; lotes?: Lote[] }
 
 const TODAS = '__todas__';
 const ETIQUETAS_POR_ARQUIVO = 500; // teto de POST /vestuario/etiquetas/lote/pdf
 const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const variacoes = (n: number) => (n === 1 ? '1 variação tem' : `${n} variações têm`);
 const csrf = () => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
 
 async function api(url: string, method: 'GET' | 'POST', body?: unknown) {
@@ -199,8 +200,13 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
               <Inline wrap align="stretch" gap={2} className="text-xs">
                 <Badge variant="outline">{previa.linhas.length} variações mudam de preço</Badge>
                 {previa.ignoradas > 0 && <Badge variant="outline">{previa.ignoradas} sem mudança, fora da lista</Badge>}
-                <Badge variant="outline">Tabelas de preço por grupo não mudam</Badge>
               </Inline>
+              {(previa.grupos.fixos > 0 || previa.grupos.percentuais > 0) && (
+                <div role="note" className="space-y-1 rounded border border-warning/20 bg-warning-soft px-3 py-2 text-sm text-warning-fg">
+                  {previa.grupos.fixos > 0 && <p>{variacoes(previa.grupos.fixos)} preço fixo em tabela de grupo: esse preço não muda com a remarcação.</p>}
+                  {previa.grupos.percentuais > 0 && <p>{variacoes(previa.grupos.percentuais)} preço de grupo em percentual: esse preço acompanha o preço novo.</p>}
+                </div>
+              )}
               <table className="w-full text-sm tabular-nums">
                 <thead><tr className="border-b text-left text-xs text-muted-foreground">
                   <th className="p-2">Produto</th><th className="p-2">Variação</th><th className="p-2">SKU</th>
