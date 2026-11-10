@@ -11,6 +11,7 @@ use App\Discount;
 use App\Product;
 use App\SellingPriceGroup;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Wave 16 D4 Architecture — Repository pattern pra ProductCatalogue.
@@ -73,9 +74,9 @@ class ProductCatalogueRepository
             ->active()
             ->ProductForSales()
             ->when($locationId !== null, function ($query) use ($locationId) {
-                $query->whereHas('product_locations', function ($q) use ($locationId) {
-                    $q->where('product_locations.location_id', $locationId);
-                });
+                $query->whereIn('products.id', DB::table('product_locations')
+                    ->where('location_id', $locationId)
+                    ->select('product_id'));
             })
             ->findOrFail($productId);
     }
