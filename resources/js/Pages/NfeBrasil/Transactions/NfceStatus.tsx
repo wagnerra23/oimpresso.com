@@ -18,7 +18,7 @@ import {
   RefreshCw,
   XCircle,
 } from 'lucide-react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -198,8 +198,8 @@ function NfceStatus({ transaction_id }: PageProps) {
       <div className="mx-auto w-full max-w-3xl space-y-6 p-6">
         <PageHeader
           title={`Status fiscal — Venda #${transaction_id}`}
-          description="Acompanhe o resultado dos documentos fiscais desta venda na SEFAZ. Esta tela atualiza sozinha até receber a resposta final."
-          action={
+          subtitle="Acompanhe o resultado dos documentos fiscais desta venda na SEFAZ. Esta tela atualiza sozinha até receber a resposta final."
+          actions={
             <Button asChild variant="outline">
               <Link href="/sells">
                 <ArrowLeft className="size-4" aria-hidden />

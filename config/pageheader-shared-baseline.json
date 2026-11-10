@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-11-09T21:09:26.486Z",
-    "count": 39,
+    "generated_at": "2026-11-10T13:40:02.177Z",
+    "count": 38,
     "adr": "0409 — divida transitoria, nao tolerancia",
     "note": "DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado."
   },
@@ -29,7 +29,6 @@
     "resources/js/Pages/governance/Policies.tsx",
     "resources/js/Pages/kb/Graph.tsx",
     "resources/js/Pages/kb/Index.v2.tsx",
-    "resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx",
     "resources/js/Pages/Nfse/Index.tsx",
     "resources/js/Pages/Nfse/Show.tsx",
     "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
