@@ -2927,8 +2927,12 @@ class NfeService
         // cStat 100 = Autorizado NF-e; 150 = Autorizado fora do prazo
         if (in_array($cstat, ['100', '150'], true)) {
             $xmlPath = sprintf('nfe-brasil/%d/notas/%s-%s.xml', $businessId, $serie, $numero);
+<<<<<<< HEAD
             $xmlAutorizado = $this->comProtocolo($xmlSigned, $responseXml, (int) $emissao->id);
             ArquivoFiscal::gravar($xmlPath, $xmlAutorizado ?? $xmlSigned);
+=======
+            ArquivoFiscal::gravar($xmlPath, $xmlSigned);
+>>>>>>> 8ba530cc02686ce324d94aac6a27c4ff19b1a903
 
             $emissao->update([
                 'status'     => 'autorizada',
