@@ -224,7 +224,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
     ->name('nfe-brasil.inutilizacoes.')
     ->group(function () {
         Route::get('/', [NfeInutilizacaoController::class, 'index'])->name('index');
-        Route::post('/', [NfeInutilizacaoController::class, 'store'])->name('store');
+        Route::post('/', [NfeInutilizacaoController::class, 'store'])->middleware('can:mutante-inexistente')->name('store');
     });
 
 // US-NFE-052 (ADR 0116 caso Gold) — UI Manifestação do Destinatário.
