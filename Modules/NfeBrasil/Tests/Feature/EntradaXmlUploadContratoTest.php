@@ -78,7 +78,7 @@ describe('upload (MySQL)', function () {
         if (DB::getDriverName() !== 'mysql' || ! Schema::hasColumn('nfe_dfe_recebidos', 'origem')) {
             $this->markTestSkipped('precisa do schema MySQL com a fase 1 da entrada por XML');
         }
-        Storage::fake(config('nfebrasil.dfes_recebidos_disk', 'local'));
+        Storage::fake(config('nfebrasil.dfes_recebidos_disk', 'nfe_fiscal'));
         config(['nfebrasil.entrada_xml_enabled' => true]);
         $this->a = $this->seededTenant()->id;
         $this->b = $this->seededSupportClientTenant()->id;
@@ -113,7 +113,7 @@ describe('upload (MySQL)', function () {
         expect($itens->pluck('codigo_fornecedor')->all())->toBe(['TS-001', 'TS-777']);
         expect($itens->pluck('cst_csosn')->all())->toBe(['000', '060']);
         expect($itens->every(fn ($i) => (int) $i->business_id === $this->a))->toBeTrue();
-        Storage::disk(config('nfebrasil.dfes_recebidos_disk', 'local'))->assertExists($r->xml_path);
+        Storage::disk(config('nfebrasil.dfes_recebidos_disk', 'nfe_fiscal'))->assertExists($r->xml_path);
     });
 
     it('UC-NFENT-03 · nota emitida para outro CNPJ é recusada e nada é gravado (Tier 0)', function () {

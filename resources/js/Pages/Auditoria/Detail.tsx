@@ -5,12 +5,15 @@
 //   inexistentes), tokens (zero sky/zinc cru), diff key/value formatado, links navegáveis.
 
 import React, { type ReactNode } from 'react'
-import { Link } from '@inertiajs/react'
+import { Deferred, Link } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
-import PageHeader from '@/Components/shared/PageHeader'
+import { Skeleton } from '@/Components/ui/skeleton'
+import { Grid } from '@/Components/layout'
+import { PageHeader } from '@/Components/PageHeader'
+import { Icon } from '@/Components/Icon'
 import EmptyState from '@/Components/shared/EmptyState'
 import { ArrowLeft } from 'lucide-react'
 
@@ -85,24 +88,55 @@ function PropertiesDiff({ properties }: { properties: Record<string, unknown> })
   )
 }
 
-function AuditoriaDetail({ activity }: Props): React.ReactElement {
+function IconeDaTela(): React.ReactElement {
+  return <Icon name="history" size={18} className="mr-2 inline-block align-[-2px] text-primary" />
+}
+
+function VoltarALista(): React.ReactElement {
+  return (
+    <Button asChild variant="outline">
+      <Link href="/auditoria">
+        <ArrowLeft className="size-4" aria-hidden /> Voltar à lista
+      </Link>
+    </Button>
+  )
+}
+
+function DetailSkeleton(): React.ReactElement {
+  return (
+    <>
+      <PageHeader leading={<IconeDaTela />} title="Atividade" actions={<VoltarALista />} />
+      <Card>
+        <CardContent className="py-6">
+          <Grid cols={2} gap={3} aria-busy="true" aria-label="Carregando atividade">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <React.Fragment key={i}>
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-48" />
+              </React.Fragment>
+            ))}
+          </Grid>
+        </CardContent>
+      </Card>
+    </>
+  )
+}
+
+// `activity` chega por Inertia::defer: `undefined` é "ainda carregando" (fica no fallback do
+// <Deferred>) e `null` é o que o servidor responde quando o registro não existe ou é de outra
+// empresa. Só o `null` chega aqui.
+function DetailConteudo({ activity }: Props): React.ReactElement {
   if (!activity) {
     return (
       <>
-        <PageHeader icon="history" title="Atividade não encontrada" />
+        <PageHeader leading={<IconeDaTela />} title="Atividade não encontrada" />
         <Card>
           <CardContent className="py-6">
             <EmptyState
               icon="AlertCircle"
               title="Atividade não encontrada"
               description="Esta atividade pode não existir ou pertencer a outro tenant."
-              action={
-                <Button asChild variant="outline">
-                  <Link href="/auditoria">
-                    <ArrowLeft className="size-4" aria-hidden /> Voltar à lista
-                  </Link>
-                </Button>
-              }
+              action={<VoltarALista />}
             />
           </CardContent>
         </Card>
@@ -117,16 +151,10 @@ function AuditoriaDetail({ activity }: Props): React.ReactElement {
   return (
     <>
       <PageHeader
-        icon="history"
+        leading={<IconeDaTela />}
         title={`Atividade #${activity.id}`}
-        description={activity.description}
-        action={
-          <Button asChild variant="outline">
-            <Link href="/auditoria">
-              <ArrowLeft className="size-4" aria-hidden /> Voltar à lista
-            </Link>
-          </Button>
-        }
+        subtitle={activity.description}
+        actions={<VoltarALista />}
       />
 
       <Card className="mb-4">
@@ -186,6 +214,14 @@ function AuditoriaDetail({ activity }: Props): React.ReactElement {
   )
 }
 
-AuditoriaDetail.layout = (page: ReactNode): React.ReactElement => <AppShellV2>{page}</AppShellV2>
+function AuditoriaDetail({ activity }: Props): React.ReactElement {
+  return (
+    <Deferred data="activity" fallback={<DetailSkeleton />}>
+      <DetailConteudo activity={activity} />
+    </Deferred>
+  )
+}
+
+AuditoriaDetail.layout =(page: ReactNode): React.ReactElement => <AppShellV2>{page}</AppShellV2>
 
 export default AuditoriaDetail

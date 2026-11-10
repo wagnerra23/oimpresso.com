@@ -2,6 +2,9 @@
 
 namespace Modules\Vestuario\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Modules\Vestuario\Console\Commands\VestuarioHealthCommand;
 use Modules\Vestuario\Console\Commands\VestuarioSettingsCommand;
@@ -29,6 +32,16 @@ class VestuarioServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Limitador nomeado: chave só deste fluxo. O `throttle:N,1` sem prefixo usa a mesma chave
+        // por usuário em todas as rotas, e navegar em outro módulo consumiria este limite.
+        RateLimiter::for('vestuario-etiquetas', fn (Request $request) => Limit::perMinute(10)
+            ->by($request->user()?->id ?: $request->ip())
+            ->response(fn () => response(
+                'Muitas gerações de etiqueta em pouco tempo. Aguarde um minuto e tente de novo.',
+                429,
+                ['Content-Type' => 'text/plain; charset=UTF-8']
+            )));
+
         $this->loadRoutesFrom(__DIR__ . '/../Routes/web.php');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'vestuario');

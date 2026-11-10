@@ -3,7 +3,8 @@
   "tela": "Vestuario/Etiquetas/Index",
   "fonte": "prototipo-ui/cowork/Wagner/vestuario-page.jsx",
   "alvo": [
-    "resources/js/Pages/Vestuario/Etiquetas/Index.tsx"
+    "resources/js/Pages/Vestuario/Etiquetas/Index.tsx",
+    "resources/js/Pages/Vestuario/Etiquetas/_components/BuscaVariacao.tsx"
   ],
   "secoes": [
     {
@@ -28,8 +29,7 @@
       "copy": [
         "Lote",
         "item",
-        "Item",
-        "Produto ID",
+        "Buscar produto",
         "Nome",
         "Cor",
         "Coleção",

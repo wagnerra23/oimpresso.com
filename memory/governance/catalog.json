@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 935,
-    "edges": 1265,
+    "nodes": 940,
+    "edges": 1270,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 153,
-      "component": 542,
+      "component": 547,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 542,
+      "hasComponent": 547,
       "dependsOn": 139,
       "delegatesTo": 127,
       "migratesTo": 1,
@@ -1982,6 +1982,13 @@
       "desc": "leitura paginada e detalhe de activity_log"
     },
     {
+      "id": "component:Auditoria/AuditNote",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "AuditNote",
+      "desc": "entidade sem rota; tabela auditoria_audit_notes ausente de produção em 2026-07-30"
+    },
+    {
       "id": "component:Auditoria/AuditoriaController",
       "type": "component",
       "module": "Auditoria",
@@ -1989,10 +1996,31 @@
       "desc": ""
     },
     {
+      "id": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "Comandos artisan auditoria:health e auditoria:backfill-business-id",
+      "desc": ""
+    },
+    {
+      "id": "component:Auditoria/Config/config.php e Config/retention.php",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "Config/config.php e Config/retention.php",
+      "desc": ""
+    },
+    {
       "id": "component:Auditoria/DataController",
       "type": "component",
       "module": "Auditoria",
       "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Auditoria/FormRequests de revert, filtro, export, lote e notas",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "FormRequests de revert, filtro, export, lote e notas",
       "desc": ""
     },
     {
@@ -2126,7 +2154,7 @@
       "type": "component",
       "module": "Compras",
       "name": "CustoMedioMovel + CompraRecebidaCustoMedioObserver + comando compras:custo-medio-semear",
-      "desc": "custo médio ponderado móvel por variação, recalculado a cada compra recebida; desligado pela flag compras.custo_medio_movel (US-PROD-024)"
+      "desc": "custo médio ponderado móvel por variação, recalculado a cada compra recebida e estornado quando ela é cancelada ou excluída; desligado pela flag compras.custo_medio_movel (US-PROD-024)"
     },
     {
       "id": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
@@ -2197,6 +2225,13 @@
       "module": "Compras",
       "name": "PropostasPrecoController + PropostasDePreco",
       "desc": "fila de preços propostos no detalhe da compra: lista, aprova (troca o preço de venda da variação) e recusa (US-COM-028 · UC-FLX-17); núcleo lê pela interface PropostasDePreco (app/Contracts/Compras)"
+    },
+    {
+      "id": "component:Compras/ReconciliacaoCustoMedio + comando compras:custo-medio-reconciliar",
+      "type": "component",
+      "module": "Compras",
+      "name": "ReconciliacaoCustoMedio + comando compras:custo-medio-reconciliar",
+      "desc": "confere custo guardado, histórico e compras canceladas, por empresa e variação; só grava com --aplicar --business=N; não é agendado"
     },
     {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
@@ -8546,13 +8581,37 @@
     },
     {
       "from": "module:Auditoria",
+      "to": "component:Auditoria/AuditNote",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
       "to": "component:Auditoria/AuditoriaController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Auditoria",
+      "to": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "component:Auditoria/Config/config.php e Config/retention.php",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
       "to": "component:Auditoria/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "component:Auditoria/FormRequests de revert, filtro, export, lote e notas",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8897,6 +8956,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/PropostasPrecoController + PropostasDePreco",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/ReconciliacaoCustoMedio + comando compras:custo-medio-reconciliar",
       "type": "hasComponent",
       "source": "contains"
     },

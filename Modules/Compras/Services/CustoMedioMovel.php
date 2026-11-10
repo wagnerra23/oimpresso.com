@@ -125,14 +125,14 @@ final class CustoMedioMovel implements \App\Contracts\Compras\CustoMedio
 
         $feito = [];
         foreach ($variacoes as $variationId) {
-            $feito[] = DB::transaction(fn () => $this->estornar($biz, (int) $variationId, $transactionId));
+            $feito[] = DB::transaction(fn () => $this->estornarVariacao($biz, (int) $variationId, $transactionId));
         }
 
         return array_values(array_filter($feito));
     }
 
     /** @return array<string, mixed>|null */
-    private function estornar(int $biz, int $variationId, int $transactionId): ?array
+    public function estornarVariacao(int $biz, int $variationId, int $transactionId): ?array
     {
         $atual = DB::table('compras_custo_medio')
             ->where('business_id', $biz)->where('variation_id', $variationId)
