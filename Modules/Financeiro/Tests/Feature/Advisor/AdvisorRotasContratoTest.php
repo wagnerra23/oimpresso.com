@@ -76,6 +76,19 @@ function advLogin(string $email, string $senha, array $extra = [])
     return test()->from('/advisor/login')->post('/advisor/login', ['email' => $email, 'password' => $senha] + $extra);
 }
 
+/**
+ * Sessão do contador como em produção: o guard padrão continua `web` até o `auth:web-advisor`
+ * da rota rodar, e é com ele que o HandleInertiaRequests monta as props. Só `actingAs` já troca
+ * o guard padrão e faz esse middleware receber um Advisor, que não tem `can()`.
+ */
+function advLogado($teste, $advisor)
+{
+    $teste->actingAs($advisor, 'web-advisor');
+    auth()->shouldUse('web');
+
+    return $teste;
+}
+
 it('UC-ADVL-01 · POST válido autentica só no guard do contador e cai em /advisor', function () {
     $advisor = advCriar();
 
@@ -216,7 +229,7 @@ it('UC-CTD-04 · o contador logado não escreve no Financeiro, mesmo com grant e
     $advisor = advCriar();
     advGrant($advisor->id, $this->b98, $user->id);
 
-    $resposta = $this->actingAs($advisor, 'web-advisor')
+    $resposta = advLogado($this, $advisor)
         ->post("/financeiro/unificado/1/baixar?advisor_view=1&business_id={$this->b98}", []);
 
     expect($resposta->status())->toBe(302)
@@ -255,7 +268,7 @@ it('UC-ADVD-01 · o painel lista só as empresas com acesso ativo', function () 
     $advisor = advCriar();
     advGrant($advisor->id, $this->b98, $user->id);
 
-    $this->actingAs($advisor, 'web-advisor')->get('/advisor')
+    advLogado($this, $advisor)->get('/advisor')
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Financeiro/Advisor/Dashboard')
@@ -271,7 +284,7 @@ it('UC-ADVD-04 · acesso revogado sai do painel na hora', function () {
     $acesso->update(['revoked_at' => now(), 'revoked_by' => $user->id]);
     $acesso->delete();
 
-    $this->actingAs($advisor, 'web-advisor')->get('/advisor')
+    advLogado($this, $advisor)->get('/advisor')
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('total_clientes', 1)
@@ -283,7 +296,7 @@ it('UC-ADVD-03 · o link do cliente hoje manda o contador para o login, sem most
     $advisor = advCriar();
     advGrant($advisor->id, $this->b98, $user->id);
 
-    $resposta = $this->actingAs($advisor, 'web-advisor')
+    $resposta = advLogado($this, $advisor)
         ->get("/financeiro/unificado?advisor_view=1&business_id={$this->b98}");
 
     expect($resposta->status())->toBe(302)
