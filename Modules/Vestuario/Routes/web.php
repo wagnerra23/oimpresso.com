@@ -32,8 +32,9 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
     ->name('vestuario.etiquetas.')
     ->group(function () {
         Route::get('/',         [EtiquetaTagController::class, 'index'])->name('index');
-        Route::post('lote/zpl', [EtiquetaTagController::class, 'storeZpl'])->name('lote.zpl');
-        Route::post('lote/pdf', [EtiquetaTagController::class, 'storePdf'])->name('lote.pdf');
+        // Cada POST gera o lote inteiro no processo web: limite por usuário (VestuarioServiceProvider).
+        Route::post('lote/zpl', [EtiquetaTagController::class, 'storeZpl'])->middleware('throttle:vestuario-etiquetas')->name('lote.zpl');
+        Route::post('lote/pdf', [EtiquetaTagController::class, 'storePdf'])->middleware('throttle:vestuario-etiquetas')->name('lote.pdf');
     });
 
 // ── US-VEST-031 · sugestão de compra por tamanho pela curva de venda (decisão [W] 2026-10-26) ──

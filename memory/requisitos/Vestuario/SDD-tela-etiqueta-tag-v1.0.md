@@ -245,7 +245,7 @@ GET /labels/preview          → ProductUtil::getVariationGroupPrice → HTML + 
 | Tabela | Papel neste domínio | `business_id` |
 |---|---|---|
 | `vestuario_settings` | **única tabela que este domínio possui.** `settings` JSON, chaves `etiqueta.{width_dots,height_dots,dpi,margin_dots,qr_enabled,qr_data_template}` | `unsignedInteger` **UNIQUE** + índice `idx_vestuario_settings_business`; global scope no Model |
-| `products` / `variations` | **lidos por ninguém neste fluxo hoje** — o `product_id`/`variation_id` do payload é só carimbo no SKU derivado (§5.4 D-1) | — |
+| `products` / `variations` | só a busca da tela lê, via `/products/list`; a geração da etiqueta não consulta o banco | — |
 | `barcodes` (núcleo) | folha de etiquetas do trilho **legado** (`stickers_in_one_sheet`, `paper_width/height`, `is_continuous`) | `business_id` ou `NULL` (templates globais) |
 | `selling_price_groups` (núcleo) | grupo de preço do trilho **legado** | `business_id` |
 
@@ -322,8 +322,8 @@ procura (`ProductUtil::filterProduct`). Não há coluna de GTIN neste fluxo — 
 
 | # | Capacidade | `/labels/show` (Blade) | `/vestuario/etiquetas` (React) | Leitura |
 |---|---|---|---|---|
-| **D-1** | **Achar a peça** | busca por **nome**, com autocomplete | operador **digita o `product_id` numérico** à mão | ⛔ o maior buraco de usabilidade da tela nova. A Larissa não sabe IDs |
-| **D-2** | **Ler os dados da peça** | resolve nome/variação/preço **do banco** | **nada é lido do banco** — nome, TAM, COR, coleção, preço e SKU são digitados | consequência de D-1; o EAN-13 sai de um SKU digitado, não do `sub_sku` real da variação |
+| **D-1** | **Achar a peça** | busca por **nome**, com autocomplete | busca por **nome ou SKU**, com a mesma `/products/list` da venda | ✅ fechado em 2026-11-09 |
+| **D-2** | **Ler os dados da peça** | resolve nome/variação/preço **do banco** | nome, tamanho e `sub_sku` vêm da busca; cor, coleção e preço são digitados | o preço segue com o operador (§6 `CU-VEST-07`) |
 | **D-3** | **Pré-carga pela compra** | `?purchase_id=` traz os itens recebidos | ausente | é o fluxo real da loja: recebeu a compra → etiqueta a arara |
 | **D-4** | **Preço** | vem do **grupo de preço**, com opção inc./exc. de imposto | digitado à mão | `[V0]` — divergência que toca VALOR (§6 `CU-VEST-07` item 2) |
 | **D-5** | **O que sai impresso** | ~8 toggles + tamanho de fonte por campo | layout **fixo** | escolha consciente (etiqueta TAG tem 1 formato) |
@@ -370,6 +370,8 @@ Reportado no session log; **não corrigido aqui** — é arquivo do núcleo, for
 4. `[must]` valor fora da faixa (`width` > 2000, `dpi` < 100…) **cai no default** em vez de gerar
    ZPL inválido.
 5. `[must]` sem sessão autenticada a rota não renderiza (redireciona/401).
+6. `[must]` o operador acha a peça por nome ou SKU, escolhe a variação e a linha nasce com nome,
+   tamanho e `sub_sku`, sem digitar id; o preço continua sendo digitado.
 
 *Fontes:* SPEC US-VEST-020 (*"Configurável por business"*) · RUNBOOK §Settings configurable ·
 charter §Goals · `EtiquetaTagController@index`.
@@ -574,9 +576,9 @@ texto de aviso ao cliente e mantém a tela antiga disponível — coexistência,
 | **D-1** | **Permissão registrada sem bloqueio.** O bloqueio existe atrás de `vestuario.etiqueta.exigir_permissao`, desligada por padrão | `EtiquetaTagController::authorizeAccess` | 🟡 aguarda a semana de log e o ato de [W] (VEST-D1) |
 | **D-2** | **Promessa de charter não cumprida:** §UX targets promete *"Preview/edição de itens antes de imprimir (evita desperdício de etiqueta)"*. Há **edição**; **não há preview** — o clique baixa o arquivo | `Index.tsx::submit` · §5.4 D-9 | 🟡 **divergência aberta, registrada nos dois lados, não resolvida** — podar a promessa ou construir o preview é decisão de produto ([W]) |
 | **D-3** | **RUNBOOK invisível para as máquinas.** `RUNBOOK-etiqueta-tag.md` existe, mas o nome não casa a convenção `RUNBOOK-<tela-kebab>.md` (`etiquetas`/`index`) e o charter não declarava `related_runbook` → `screen:files` acusava `RUNBOOK ✗ ausente` e o hook MWART bloquearia editar o `.tsx` | `npm run screen:files -- Vestuario/Etiquetas/Index` | ✅ **corrigido neste PR** (declaração no charter, sem renomear o arquivo — renomear quebraria backlinks) |
-| **D-4** | **Operador precisa saber o `product_id` numérico** (§5.4 D-1/D-2) | `Index.tsx` campo "Produto ID" | 🔴 alta para adoção — é a razão mais provável de a tela não ter sido cortada ainda |
-| **R-1** | EAN-13 derivado usa prefixo **789** (GS1 Brasil) sem registro GS1 | `generateEan13FromSku` docblock (assume e declara: uso interno de loja) | 🟡 aceito conscientemente; vira risco se a peça for revendida |
-| **R-2** | **Teto de 500 × 100 = 50.000 etiquetas por POST**, com `Log::info` **por etiqueta** e PDF de ~1.560 folhas | `storeZpl`/`storePdf` validate + `gerarEtiqueta` | 🟡 sem timeout/limite de bytes declarado; nenhum incidente registrado |
+| **D-4** | ~~Operador precisa saber o `product_id` numérico~~ | busca por nome/SKU em 2026-11-09 (`BuscaVariacao`) | ✅ fechado |
+| **R-1** | ~~EAN-13 derivado com prefixo 789, que o PDV não achava~~ | removido em 2026-11-09: a etiqueta imprime o `sub_sku` | ✅ fechado |
+| **R-2** | ~~50.000 etiquetas por POST, com um log por etiqueta~~ | teto de 500 por pedido e log por lote em 2026-11-09 | ✅ fechado |
 | **R-3** | **US-VEST-021 (devolução) tem código `[V0]` sem tela, sem rota e sem contrato de UC** — e **convive com um homônimo do núcleo** (`App\Services\DevolucaoService`, consumido por `App\Http\Controllers\DevolucaoController`) | `tests/Feature/Estoque/EstoqueDevolucaoVendaTest.php` documenta o par como *"caminho PARALELO"* | 🟡 fora deste chip; **precisa de chip próprio** (§6.2) |
 | **R-4** | **SPEC declarava `status: todo`** para US-VEST-020/021 enquanto o código, os testes e o BRIEFING diziam entregue | `requisitos-status.mjs Vestuario` listava as duas como backlog | ✅ **US-VEST-020 reconciliada neste PR**; US-VEST-021 fica para o chip dela |
 | **R-5** | **Dois vocabulários de mídia de etiqueta** no mesmo produto: `barcodes` (núcleo) × `vestuario_settings.etiqueta.*` (vertical) | §5.4 D-6 | 🟡 dívida de domínio; unificar é decisão de [W] |
@@ -589,7 +591,7 @@ texto de aviso ao cliente e mantém a tela antiga disponível — coexistência,
 
 | Trilha | Próximo passo | Destrava | Fonte |
 |---|---|---|---|
-| **Adoção** | fechar **D-4** (buscar peça por nome/SKU em vez de `product_id`) | o cutover da ROTA LIVRE — sem isso a tela não é usável pela Larissa | §5.4 D-1/D-2 |
+| **Adoção** | ~~fechar **D-4**~~ busca por nome/SKU entregue; falta o cutover da ROTA LIVRE | o cutover | §5.4 D-1/D-2 |
 | **Adoção** | pré-carga por `?purchase_id=` (paridade D-3) | etiquetar a arara logo após receber a compra | §5.4 D-3 |
 | **Governança** | [W] aprova Non-Goals/Anti-hooks → charter `draft → live` | Pest GUARD dos Non-Goals | charter §Pendências |
 | **Segurança** | ligar `VESTUARIO_ETIQUETA_EXIGIR_PERMISSAO` em produção após 1 semana de log (D-1) | fecha a lacuna entre doc e código | §6 `CU-VEST-08` item 4 |

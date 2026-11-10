@@ -168,6 +168,9 @@ jobs:
       - name: Build production bundle (Inertia/React pipeline)
         run: npm run build:inertia
 
+      - name: Comportamento React — Nova compra, Sugerir pela curva
+        run: npx vitest run tests/js/purchase-sugerir-curva.test.tsx
+
       - name: Comportamento React — Vestuário, valor digitado na remarcação
         run: npx vitest run tests/js/vestuario-remarcacao-valor.test.tsx
 
