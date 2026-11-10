@@ -24,10 +24,13 @@ use RuntimeException;
  *   GET  /vestuario/remarcacao/{lote}/etiquetas    → itens no formato do lote de etiquetas
  *
  * Desligado por padrão: o setting `remarcacao.enabled` do Vestuário liga por empresa (sem ele, 404).
- * Permissão `product.update` ou superadmin. Tier 0: `business_id` da sessão em tudo.
+ * Permissão própria (`PERMISSAO`) ou superadmin: a operação altera até 2.000 preços de uma vez e não
+ * se confunde com editar um produto (decisão [W] 2026-11-09). Tier 0: `business_id` da sessão em tudo.
  */
 class RemarcacaoController extends Controller
 {
+    public const PERMISSAO = 'vestuario.remarcacao.aplicar';
+
     public function __construct(private Remarcacao $svc)
     {
     }
@@ -92,7 +95,7 @@ class RemarcacaoController extends Controller
         $biz = (int) (session('user.business_id') ?? session('business.id'));
         abort_unless(app(VestuarioSettingsResolver::class)->forBusiness($biz)->getBool('remarcacao.enabled', false), 404);
         $user = auth()->user();
-        abort_unless($user->can('superadmin') || $user->can('product.update'), 403, 'Sem permissão para editar produto (product.update).');
+        abort_unless($user->can('superadmin') || $user->can(self::PERMISSAO), 403, 'Sem permissão para remarcar preços.');
 
         return $biz;
     }

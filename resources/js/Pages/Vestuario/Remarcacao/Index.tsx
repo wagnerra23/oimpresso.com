@@ -3,7 +3,7 @@
 //   stories: US-VEST-032 (Remarcação por coleção, com prévia e reversão)
 //   protótipo: prototipo-ui/cowork/Wagner/vestuario-remarcacao-page.jsx (ADR 0438)
 //   runbook: memory/requisitos/Vestuario/RUNBOOK-remarcacao.md
-//   permissao: product.update · liga por empresa: setting remarcacao.enabled
+//   permissao: vestuario.remarcacao.aplicar · liga por empresa: setting remarcacao.enabled
 
 import { useState } from 'react';
 import { Deferred, Head } from '@inertiajs/react';
