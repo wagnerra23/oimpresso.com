@@ -138,7 +138,38 @@ class ConversationContactLinker
             return;
         }
 
-        Cache::forget(sprintf('whatsapp.auto_link:%d:%s', $businessId, $phoneDigits));
+        foreach ($this->variantesDeTelefoneBr($phoneDigits) as $variante) {
+            Cache::forget(sprintf('whatsapp.auto_link:%d:%s', $businessId, $variante));
+        }
+    }
+
+    /**
+     * O cache é chaveado pelo número como veio do WhatsApp (com DDI e às vezes sem o
+     * nono dígito), e o contato costuma guardar só DDD + número. Limpar apenas a forma
+     * do contato deixava o vínculo errado vivo por até 1h (cross-contact 2026-05-15).
+     *
+     * @return list<string>
+     */
+    private function variantesDeTelefoneBr(string $digitos): array
+    {
+        $nacional = str_starts_with($digitos, '55') && mb_strlen($digitos) >= 12
+            ? mb_substr($digitos, 2)
+            : $digitos;
+
+        $formas = [$nacional];
+        if (mb_strlen($nacional) === 11 && $nacional[2] === '9') {
+            $formas[] = mb_substr($nacional, 0, 2).mb_substr($nacional, 3);
+        } elseif (mb_strlen($nacional) === 10) {
+            $formas[] = mb_substr($nacional, 0, 2).'9'.mb_substr($nacional, 2);
+        }
+
+        $variantes = [$digitos];
+        foreach ($formas as $forma) {
+            $variantes[] = $forma;
+            $variantes[] = '55'.$forma;
+        }
+
+        return array_values(array_unique($variantes));
     }
 
     /**

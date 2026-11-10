@@ -3,11 +3,11 @@ id: resources-js-pages-vestuario-etiquetas-index-casos
 casos: Etiquetas TAG vestuário · /vestuario/etiquetas
 irmaos: Index.charter.md (lei) · Index.tsx (código) · RUNBOOK-etiqueta-tag.md (MWART F1)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
-por_que: a etiqueta é o elo entre a peça física e o POS — um EAN-13 inválido não vende a peça, e um texto que estoura 50×30mm desperdiça a mídia. Esses contratos não mudam quando a tela ganhar busca por nome.
+por_que: a etiqueta é o elo entre a peça física e o POS — um código que o PDV não procura não vende a peça, e um texto que estoura 50×30mm desperdiça a mídia. Esses contratos não mudam quando a tela ganhar busca por nome.
 owner: wagner
 related_us: [US-VEST-020]
 related_cu: [CU-VEST-01, CU-VEST-02, CU-VEST-03, CU-VEST-04, CU-VEST-05, CU-VEST-06, CU-VEST-07, CU-VEST-08]
-last_run: "2026-10-14"
+last_run: "2026-11-09"
 last_run_ci: "2026-10-14 (PR #9400, decisao [W] tirar US-VEST-020 do subtitulo) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela e so o texto do subtitulo do PageHeader; nenhum UC afirma o subtitulo, nenhum calculo tocado. ---- REGISTRO ANTERIOR: 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-07-28. 0 UC executado — trio nasce neste PR; veredito pendente da lane Modules Pest → Pest Vestuario"
 ---
 
@@ -50,13 +50,19 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 |----|-------------|------|-----------------|-------|--------|
 | UC-VET-01 | Settings de etiqueta de um business não vazam pro outro | must `[T0]` | `CU-VEST-01` item 3 · `CU-VEST-05` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
 | UC-VET-02 | Business sem settings recebe defaults; config exposta não carrega URL do cliente | must | `CU-VEST-01` itens 2 e 4 | `UsVest020EtiquetaTagControllerTest` · `EtiquetaTagContratoTest` | 🧪 |
-| UC-VET-03 | Todo EAN-13 impresso passa no check GS1 | must | `CU-VEST-03` itens 1-3 | `EtiquetaTagContratoTest` · `W27EtiquetaGradeTest` | 🧪 |
+| UC-VET-03 | Todo EAN-13 impresso passa no check GS1 | must | `CU-VEST-03` itens 1 e 3 | `EtiquetaTagContratoTest` · `W27EtiquetaGradeTest` | 🧪 |
 | UC-VET-04 | Lote de N itens gera N etiquetas; lote vazio é rejeitado | must | `CU-VEST-02` itens 1-3 | `W27EtiquetaGradeTest` | 🧪 |
 | UC-VET-05 | Etiqueta cabe em 50×30mm: trunca, mantém acento, respeita a config | must | `CU-VEST-04` itens 1-4 | `EtiquetaTagContratoTest` | 🧪 |
+| UC-VET-20 | O código impresso é o sub_sku que o caixa bipa | must | `CU-VEST-03` itens 1, 2, 4 e 5 | `EtiquetaTagContratoTest` | 🧪 |
+| UC-VET-21 | Texto do cadastro não vira comando de impressora | must | `CU-VEST-02` item 2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-06 | Gerar etiqueta NÃO grava nada e não lê preço do produto | must `[V0]` | `CU-VEST-07` itens 1-2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-07 | QR Code liga por business e não vaza | should `[T0]` | `CU-VEST-05` itens 1-2 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
+| UC-VET-24 | Achar a peça por nome ou SKU, sem digitar id | must | `CU-VEST-01` item 6 | `tests/js/vestuario-etiquetas-busca.test.tsx` | 🧪 |
 | UC-VET-08 | PDF A4 traz as N etiquetas com os mesmos campos do ZPL | must | `CU-VEST-06` itens 1-4 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
+| UC-VET-22 | Teto de etiquetas por pedido, com aviso e erro legíveis | must | `CU-VEST-02` item 6 | `EtiquetaLimitePermissaoContratoTest` | 🧪 |
+| UC-VET-23 | Sem a permissão: chave desligada registra, ligada bloqueia | must `[T0]` | `CU-VEST-08` item 4 | `EtiquetaLimitePermissaoContratoTest` | 🧪 |
 | UC-VET-09 | Endpoints de lote exigem sessão autenticada | must `[T0]` | `CU-VEST-08` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
+| UC-VET-10 | Gerar etiqueta tem limite por usuário (10 por minuto, ZPL e PDF juntos) | must | SDD §9 R-2 · decisão [W] 2026-11-09 | `RemarcacaoTelaContratoTest` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR **não executou teste algum** (CT 100/CI —
 > [ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). O veredito
@@ -105,21 +111,37 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 
 - **Persona:** `rota.vendas-04` no balcão — se o dígito verificador estiver errado, a leitora
   recusa e **a peça não vende**.
-- **Aceite:** Dado um SKU qualquer (numérico, alfanumérico ou 100% alfabético) · Quando a etiqueta
-  é gerada · Então o EAN-13 tem 13 dígitos e o check digit fecha pelo cálculo GS1 mod-10 ·
-  **E** um EAN-13 informado com check errado é **recusado**, não impresso.
+- **Aceite:** Dado um sub_sku que já é EAN-13 válido · Quando a etiqueta é gerada · Então o EAN-13
+  impresso é esse número e o check digit fecha pelo cálculo GS1 mod-10 · **E** um EAN-13 informado
+  com check errado ou com letra devolve **422**, não é impresso.
 - **Teste:** [`EtiquetaTagContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaTagContratoTest.php)
-  — *"UC-VET-03: todo EAN-13 emitido passa no check GS1 recalculado por caminho independente"* +
-  *"…com 13 inválido é RECUSADO"* + *"…o EAN que aparece no ZPL é o mesmo que o service declara"*;
-  reforçado por [`W27EtiquetaGradeTest`](../../../../../Modules/Vestuario/Tests/Feature/W27EtiquetaGradeTest.php)
+  — *"UC-VET-03: todo EAN-13 impresso passa no check GS1 recalculado por caminho independente"* +
+  *"…com 13 inválido é RECUSADO"* + *"…letra ou dígito errado devolve 422"*; reforçado por
+  [`W27EtiquetaGradeTest`](../../../../../Modules/Vestuario/Tests/Feature/W27EtiquetaGradeTest.php)
   (vetores GS1 conhecidos).
-- **Contrato:** `CU-VEST-03` itens 1-3 do SDD · SPEC [US-VEST-020](../../../../../memory/requisitos/Vestuario/SPEC.md)
+- **Contrato:** `CU-VEST-03` itens 1 e 3 do SDD · SPEC [US-VEST-020](../../../../../memory/requisitos/Vestuario/SPEC.md)
   (*"código barras"*) · RUNBOOK §Acceptance criteria.
 - **Regressão que defende:** **dupla-confirmação por 2 caminhos** — o teste recalcula o check
   somando **da direita** (peso 3 no último dígito do payload), enquanto o service soma **da
-  esquerda** por paridade de posição. Um espelho do algoritmo passaria mesmo com o algoritmo
-  errado; dois caminhos independentes têm que concordar. Cobre também o fallback CRC32 do SKU
-  100% alfabético, que é onde um EAN inválido nasceria em silêncio.
+  esquerda** por paridade de posição.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
+## UC-VET-20 · O código impresso é o sub_sku que o caixa bipa · `must`
+
+- **Aceite:** Dado dois tamanhos do mesmo produto · Quando as etiquetas são geradas · Então cada uma
+  carrega o próprio sub_sku em Code128 · **E** um sub_sku EAN-13 válido sai como EAN-13 com o mesmo
+  número · **E** item sem SKU, com acento ou longo demais devolve 422 · **E** o PDF e os itens da
+  Remarcação seguem a mesma regra.
+- **Teste:** [`EtiquetaTagContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaTagContratoTest.php).
+- **Contrato:** `CU-VEST-03` itens 1, 2, 4 e 5 do SDD · SPEC US-VEST-002 · `ProductUtil::filterProduct`.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
+## UC-VET-21 · Texto do cadastro não vira comando de impressora · `must`
+
+- **Aceite:** Dado um nome `^XZ^XA^JUF^XZ` · Quando a etiqueta é gerada · Então sai **uma** etiqueta,
+  sem os comandos que vieram no texto; o mesmo para `~`, barra invertida e quebra de linha.
+- **Teste:** [`EtiquetaTagContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaTagContratoTest.php).
+- **Contrato:** `CU-VEST-02` item 2 do SDD.
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
 
 ## UC-VET-04 · Lote de N itens gera N etiquetas; lote vazio é rejeitado · `must`
@@ -202,6 +224,15 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 - **Status: 🧪** — o caso do `qr_enabled=true` **pula** na lane sqlite (precisa da tabela); o caso
   do default roda. Veredito real da lane MySQL / CT 100.
 
+## UC-VET-24 · Achar a peça por nome ou SKU, sem digitar id · `must`
+
+- **Aceite:** Dado a tela aberta · Quando o operador digita o nome ou o SKU e escolhe a variação ·
+  Então a linha nasce com nome, tamanho e sub_sku, e o preço fica para ele digitar · **E** o pedido
+  leva os ids e o sub_sku escolhidos · **E** a mesma variação não entra duas vezes.
+- **Teste:** `tests/js/vestuario-etiquetas-busca.test.tsx`.
+- **Contrato:** `CU-VEST-01` item 6 do SDD · SDD §5.4 D-1/D-2 · busca em `/products/list` por `business_id` da sessão.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane.
+
 ## UC-VET-08 · PDF A4 traz as N etiquetas com os mesmos campos do ZPL · `must`
 
 - **Persona:** loja sem impressora térmica (ou a térmica quebrada num sábado).
@@ -219,6 +250,24 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   qualquer EAN inválido estoura no render em vez de sair torto na folha.
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
 
+## UC-VET-22 · Teto de etiquetas por pedido, com aviso e erro legíveis · `must`
+
+- **Aceite:** Dado itens × cópias acima de 500 · Quando o pedido é enviado · Então volta 422 com a
+  conta na mensagem, no ZPL e no PDF, sem gerar nada · **E** exatamente 500 ainda gera · **E** a tela
+  mostra o total real e desabilita os botões · **E** o lote deixa uma linha de log, não uma por etiqueta.
+- **Teste:** [`EtiquetaLimitePermissaoContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaLimitePermissaoContratoTest.php).
+- **Contrato:** `CU-VEST-02` item 6 do SDD · SDD §7 Teto de lote.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
+## UC-VET-23 · Sem a permissão: chave desligada registra, ligada bloqueia · `must` `[T0]`
+
+- **Aceite:** Dado um usuário sem `vestuario.etiqueta.*` · Com a chave desligada (padrão) · Então a
+  rota responde e o log registra quem seria bloqueado · Com a chave ligada · Então as três rotas dão
+  403 · **E** quem tem a permissão nunca é barrado.
+- **Teste:** [`EtiquetaLimitePermissaoContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/EtiquetaLimitePermissaoContratoTest.php).
+- **Contrato:** `CU-VEST-08` item 4 do SDD · decisão [W] VEST-D1 de 2026-10-07.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
 ## UC-VET-09 · Endpoints de lote exigem sessão autenticada · `must` `[T0]`
 
 - **Persona:** um visitante anônimo tentando `POST /vestuario/etiquetas/lote/{zpl,pdf}`.
@@ -230,9 +279,20 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   UltimatePOS) · `Modules/Vestuario/Routes/web.php`.
 - **Regressão que defende:** sem `business_id` de sessão o service cai nos defaults e geraria
   etiqueta para "nenhum tenant" — é o degrau anterior a um vazamento. O middleware é a única
-  coisa entre o endpoint e a internet, porque a checagem de **permissão** ainda não bloqueia
-  (ver `[BACKLOG]` abaixo).
+  coisa entre o endpoint e a internet enquanto a chave de permissão está desligada (UC-VET-23).
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
+---
+
+## UC-VET-10 · Gerar etiqueta tem limite por usuário · `must`
+
+- **Persona:** quem imprime etiquetas; a hospedagem é compartilhada com as outras telas da empresa.
+- **Aceite:** Dado um usuário que fez 10 pedidos de lote no minuto · Quando faz o 11º, em ZPL ou PDF ·
+  Então recebe 429 com aviso para aguardar um minuto, e outro usuário segue gerando.
+- **Teste:** [`RemarcacaoTelaContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php)
+- **Contrato:** SDD §9 R-2 · decisão [W] 2026-11-09 (lote 3 da auditoria do Vestuario).
+- **Regressão que defende:** um usuário repetindo lotes de etiquetas sem limite no processo web.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane.
 
 ---
 
@@ -247,14 +307,8 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   (`CU-VEST-02` item 4). A expansão vive em `EtiquetaTagController::expandItems`, que é **privado**,
   e exercitá-la exige request autenticada — que a lane sqlite não sobe. Virar UC exige lane MySQL
   ou tornar a expansão testável; **o chip está proibido de editar o Controller**.
-- `[BACKLOG]` **Permissão `vestuario.etiqueta.create` deveria BLOQUEAR, e hoje só loga.**
-  `EtiquetaTagController::authorizeAccess` emite `Log::warning('…permission_check_missing')` e
-  segue o fluxo (o código declara: *"Sprint 3 vira hard-block"*). O RUNBOOK e o charter anunciam a
-  permissão **sem essa ressalva** — divergência registrada no SDD §9 D-1. Ligar o hard-block é
-  decisão de [W]; escrever o UC antes disso criaria um caso vermelho por design.
 - `[BACKLOG]` **Achar a peça por nome/SKU em vez de digitar `product_id` numérico** — o maior gap
-  de adoção (SDD §5.4 D-1/D-2). A tela legada `/labels/show` tem autocomplete; a nova não. Não é
-  regressão (as duas coexistem por decisão do RUNBOOK), é o que falta para o cutover.
+  de adoção. Fechado em 2026-11-09 pelo UC-VET-24 (SDD §5.4 D-1/D-2); segue o cutover.
 - `[BACKLOG]` **Pré-carga por `?purchase_id=`** — etiquetar a arara logo após receber a compra
   (SDD §5.4 D-3). Existe no legado; ausente na tela nova.
 - `[BACKLOG]` **Preço vindo do grupo de preço de venda** (`[V0]` — SDD §5.4 D-4). Hoje é digitado.
@@ -263,5 +317,3 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   itens antes de imprimir (evita desperdício de etiqueta)"* — há **edição**, não há **preview**
   (o clique baixa o arquivo). **Divergência aberta registrada nos dois lados** (SDD §9 D-2):
   podar a promessa ou construir o preview é decisão de produto ([W]), não conserto silencioso.
-- `[BACKLOG]` **Teto de 500 itens × 100 cópias = 50.000 etiquetas por POST**, com `Log::info` por
-  etiqueta (SDD §9 R-2). Nenhum incidente registrado; sem contrato em 2 fontes.

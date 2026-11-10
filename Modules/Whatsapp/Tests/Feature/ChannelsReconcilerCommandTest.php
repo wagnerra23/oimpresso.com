@@ -73,7 +73,7 @@ beforeEach(function () {
 
 function makeReconcilerChannel(int $id, int $bizId, string $uuid, string $status, string $displayId = '+5511999998888'): Channel
 {
-    return Channel::withoutGlobalScope(ScopeByBusiness::class)->create([
+    return Channel::withoutGlobalScope(ScopeByBusiness::class)->forceCreate([
         'id' => $id,
         'business_id' => $bizId,
         'channel_uuid' => $uuid,
@@ -86,7 +86,7 @@ function makeReconcilerChannel(int $id, int $bizId, string $uuid, string $status
 
 it('R-WA-REC-001 — drift active→banned auto-corrigido (DB marca banned)', function () {
     $ch = makeReconcilerChannel(10, 1, 'aaaaaaaa-1111-2222-3333-444444444444', 'active');
-    $instanceId = 'ch-aaaaaaaa11112222333344444444444';
+    $instanceId = 'ch-aaaaaaaa111122223333444444444444';
 
     Http::fake([
         "https://daemon.test/instances/{$instanceId}/status" => Http::response([
@@ -106,7 +106,7 @@ it('R-WA-REC-001 — drift active→banned auto-corrigido (DB marca banned)', fu
 
 it('R-WA-REC-002 — drift active→disconnected auto-corrigido', function () {
     $ch = makeReconcilerChannel(11, 1, 'bbbbbbbb-1111-2222-3333-444444444444', 'active');
-    $instanceId = 'ch-bbbbbbbb11112222333344444444444';
+    $instanceId = 'ch-bbbbbbbb111122223333444444444444';
 
     Http::fake([
         "https://daemon.test/instances/{$instanceId}/status" => Http::response([
@@ -124,7 +124,7 @@ it('R-WA-REC-002 — drift active→disconnected auto-corrigido', function () {
 
 it('R-WA-REC-003 — daemon 404 marca channel.status=setup (re-parear)', function () {
     $ch = makeReconcilerChannel(12, 1, 'cccccccc-1111-2222-3333-444444444444', 'active');
-    $instanceId = 'ch-cccccccc11112222333344444444444';
+    $instanceId = 'ch-cccccccc111122223333444444444444';
 
     Http::fake([
         "https://daemon.test/instances/{$instanceId}/status" => Http::response([
@@ -141,7 +141,7 @@ it('R-WA-REC-003 — daemon 404 marca channel.status=setup (re-parear)', functio
 
 it('R-WA-REC-004 — drift reverso disconnected→connected (raro mas existe)', function () {
     $ch = makeReconcilerChannel(13, 1, 'dddddddd-1111-2222-3333-444444444444', 'disconnected');
-    $instanceId = 'ch-dddddddd11112222333344444444444';
+    $instanceId = 'ch-dddddddd111122223333444444444444';
 
     Http::fake([
         "https://daemon.test/instances/{$instanceId}/status" => Http::response([
@@ -160,7 +160,7 @@ it('R-WA-REC-004 — drift reverso disconnected→connected (raro mas existe)', 
 it('R-WA-REC-005 — connected+last_seen recente é in_sync (só timestamp atualizado)', function () {
     $ch = makeReconcilerChannel(14, 1, 'eeeeeeee-1111-2222-3333-444444444444', 'active');
     $ch->forceFill(['channel_health' => 'never_checked'])->save();
-    $instanceId = 'ch-eeeeeeee11112222333344444444444';
+    $instanceId = 'ch-eeeeeeee111122223333444444444444';
 
     Http::fake([
         "https://daemon.test/instances/{$instanceId}/status" => Http::response([
@@ -178,7 +178,7 @@ it('R-WA-REC-005 — connected+last_seen recente é in_sync (só timestamp atual
 
 it('R-WA-REC-006 — dry-run NÃO persiste mudanças', function () {
     $ch = makeReconcilerChannel(15, 1, 'ffffffff-1111-2222-3333-444444444444', 'active');
-    $instanceId = 'ch-ffffffff11112222333344444444444';
+    $instanceId = 'ch-ffffffff111122223333444444444444';
 
     Http::fake([
         "https://daemon.test/instances/{$instanceId}/status" => Http::response([
@@ -195,7 +195,7 @@ it('R-WA-REC-006 — dry-run NÃO persiste mudanças', function () {
 
 it('R-WA-REC-007 — daemon offline (timeout) conta daemon_errors mas não muda DB', function () {
     $ch = makeReconcilerChannel(16, 1, '99999999-1111-2222-3333-444444444444', 'active');
-    $instanceId = 'ch-9999999911112222333344444444444';
+    $instanceId = 'ch-99999999111122223333444444444444';
 
     Http::fake([
         "https://daemon.test/instances/{$instanceId}/status" => Http::response([], 500),
@@ -208,7 +208,7 @@ it('R-WA-REC-007 — daemon offline (timeout) conta daemon_errors mas não muda 
 });
 
 it('R-WA-REC-008 — channel type != baileys NÃO entra no loop (Z-API/Meta skip)', function () {
-    Channel::withoutGlobalScope(ScopeByBusiness::class)->create([
+    Channel::withoutGlobalScope(ScopeByBusiness::class)->forceCreate([
         'id' => 20,
         'business_id' => 1,
         'channel_uuid' => 'zapi-1111-2222-3333-444444444444',
