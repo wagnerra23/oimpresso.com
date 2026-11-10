@@ -174,8 +174,12 @@ describe('UC-VREM-07 · etiquetas do lote na tela', () => {
 
     await screen.findByRole('button', { name: /Parte 3/ })
     expect(chamadasPdf()).toHaveLength(0)
+    // A tela desabilita os botões enquanto um download roda (`ocupado`). Clique em botão
+    // desabilitado se perde, então cada parte só é clicada depois que o botão volta.
     for (const parte of [1, 2, 3]) {
-      fireEvent.click(screen.getByRole('button', { name: new RegExp(`Parte ${parte}`) }))
+      const botao = screen.getByRole('button', { name: new RegExp(`Parte ${parte}`) }) as HTMLButtonElement
+      await waitFor(() => expect(botao.disabled).toBe(false))
+      fireEvent.click(botao)
       await waitFor(() => expect(chamadasPdf()).toHaveLength(parte))
     }
 
