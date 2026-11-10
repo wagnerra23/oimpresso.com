@@ -53,6 +53,17 @@ last_run: "2026-11-10"
 - **Histórico:** até 2026-10-27 este caso dizia "a tela React só abre com a chave ligada" (Blade com ela desligada).
 - **Status: 🧪**
 
+## UC-CQR-12 · "Link copiado" só depois que o navegador copiou
+- **Persona:** quem cola o link no WhatsApp ou no site da loja.
+- **Origem:** auditoria do módulo, 2026-11-09. A tela dizia "Link copiado" sem esperar a resposta do navegador, então
+  dizia isso também quando nada tinha sido copiado.
+- **Aceite:** Dado um QR gerado · Quando clico em "Copiar link" e o navegador confirma · Então a área de transferência
+  recebe o mesmo link do QR e o botão mostra "Link copiado" por ~1,6 s, voltando a "Copiar link" · E enquanto o navegador
+  não responde o botão não diz que copiou · E quando o navegador recusa ou não oferece a área de transferência, o botão
+  continua "Copiar link" e aparece o aviso para copiar manualmente.
+- **Teste:** [`tests/js/catalogue-qr-copiar.test.tsx`](../../../../tests/js/catalogue-qr-copiar.test.tsx), lane `ci.yml`.
+- **Status: 🧪**
+
 ## UC-CQR-13 · Sem local, gerar fica bloqueado
 - **Aceite:** Dado que nenhum local foi escolhido · Quando olho o formulário · Então "Gerar QR code" está desabilitado e
   a tela diz "Escolha o local comercial primeiro." · E ao escolher o local o botão libera e a frase some.
