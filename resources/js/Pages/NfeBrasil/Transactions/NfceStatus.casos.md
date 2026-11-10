@@ -40,6 +40,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFST-03 | A consulta só se declara terminal nos 3 estados terminais | must | SDD `CU-NFE-02` · charter §UX Targets | `NfeStatusContratoTest` | 🧪 |
 | UC-NFST-04 | Depois de uma retentativa, vale a emissão mais recente | must | SDD `CU-NFE-02` · docblock CONFAZ | `NfeStatusContratoTest` | 🧪 |
 | UC-NFST-05 | O payload da consulta não carrega segredo nem XML | must `[T0]` | PII-LGPD-FISCAL · charter §Anti-hooks | `NfeStatusContratoTest` | 🧪 |
+| UC-NFST-06 | Venda com NF-e 55 mostra a NF-e, não "ainda não emitida" | must | SDD `CU-NFE-13` · charter §Mission (emenda [W]) | `nfe-status-tela.test.tsx` | 🧪 |
+| UC-NFST-07 | "Detalhes" da venda abre a tela daquela venda | must | SDD `CU-NFE-13` · §5.4.3 | `nfe-status-tela.test.tsx` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura
 > de código.
@@ -208,6 +210,25 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | `GET /nfe-brasil/transactions/{tx}/nfce/status` | a rota real é `GET /nfe-brasil/api/transactions/{tx}/nfe-status` |
 | `NfeService::consultarStatusEmissao(transaction_id)` | **não existe** — `grep` no repo inteiro devolve **1** ocorrência, a própria linha do charter |
 | §Métricas vivas: `Tests/Charters/NfceStatusCharterTest.php` (10 `it`) | o diretório `Tests/Charters/` **não existe**; o teste real é `Tests/Feature/NfeStatusControllerTest.php` |
+
+---
+
+## UC-NFST-06 · Venda com NF-e 55 mostra a NF-e, não "ainda não emitida" · `must`
+
+- **Aceite:** Dado uma venda com NF-e modelo 55 autorizada · Quando a operadora abre o status · Então
+  vê a nota com número, situação e "Baixar DANFE" pela rota real da emissão, e nunca o aviso de nota
+  não emitida.
+- **Teste:** `tests/js/nfe-status-tela.test.tsx`, `UC-NFST-06`.
+- **Contrato:** SDD `CU-NFE-13` + charter §Mission (emenda [W] 2026-07-28).
+- **Status: 🧪**
+
+## UC-NFST-07 · "Detalhes" da venda abre a tela daquela venda · `must`
+
+- **Aceite:** Dado uma emissão listada no drawer da venda · Quando a operadora clica "Detalhes" ·
+  Então o link usa o id da **venda**, que é o que a rota espera, e não o id da emissão.
+- **Teste:** `tests/js/nfe-status-tela.test.tsx`, `UC-NFST-07`.
+- **Contrato:** SDD `CU-NFE-13`, §5.4.3.
+- **Status: 🧪**
 
 ---
 
