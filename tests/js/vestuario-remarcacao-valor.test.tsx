@@ -145,7 +145,8 @@ describe('UC-VREM-07 · etiquetas do lote na tela', () => {
   function responder(qtd: number) {
     fetchMock.mockImplementation(async (url: string) => {
       if (url.endsWith('/etiquetas')) return { ok: true, status: 200, json: async () => ({ items: itens(qtd) }) }
-      if (url.endsWith('/lote/pdf')) return { ok: true, status: 200, blob: async () => new Blob(['pdf']) }
+      // O arquivo demora: a tela segue ocupada (botões desabilitados) depois que o pedido já saiu.
+      if (url.endsWith('/lote/pdf')) return { ok: true, status: 200, blob: () => new Promise<Blob>((ok) => setTimeout(() => ok(new Blob(['pdf'])), 20)) }
       if (url.endsWith('/reverter')) return { ok: true, status: 200, json: async () => ({ revertidos: 1, conflitos: 0 }) }
       return { ok: true, status: 200, json: async () => (url.endsWith('/previa') ? PREVIA : { lote: 7 }) }
     })
