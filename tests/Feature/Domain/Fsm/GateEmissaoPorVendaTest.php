@@ -226,7 +226,7 @@ it('1. SeedDefaultFsmProcesses --business=1 cria 3 processos com stages corretos
     expect($emitirManual)->not->toBeNull();
     expect($emitirManual->event_class)->toBeNull();
 
-    // venda_com_nota_auto: 5 stages, action emitir_nfe COM event_class
+    // venda_com_nota_auto: 5 stages, action emitir_nfe é o gate do listener, sem event_class
     $auto = $procs->firstWhere('key', 'venda_com_nota_auto');
     $stagesAuto = SaleProcessStage::where('process_id', $auto->id)->get();
     expect($stagesAuto)->toHaveCount(5);
@@ -235,8 +235,7 @@ it('1. SeedDefaultFsmProcesses --business=1 cria 3 processos com stages corretos
         ->where('key', 'emitir_nfe')
         ->first();
     expect($emitirAuto)->not->toBeNull();
-    expect($emitirAuto->event_class)->not->toBeNull();
-    expect($emitirAuto->event_class)->toContain('NFeEmissaoSolicitada');
+    expect($emitirAuto->event_class)->toBeNull();
 
     // Idempotência: 2ª chamada não duplica
     $cmd->seedForBusiness(1);
@@ -268,7 +267,7 @@ it('2. venda com process venda_sem_nota: stage paga NÃO tem action emitir_nfe (
     expect($action)->toBeNull();
 });
 
-it('3. venda com process venda_com_nota_auto: stage paga TEM action emitir_nfe com event_class', function () {
+it('3. venda com process venda_com_nota_auto: stage paga TEM action emitir_nfe, o gate do listener', function () {
     Event::fake();
     gateCriarBusiness(1);
     (new SeedDefaultFsmProcesses)->seedForBusiness(1);
@@ -285,7 +284,7 @@ it('3. venda com process venda_com_nota_auto: stage paga TEM action emitir_nfe c
 
     // Action existe → listener prossegue com emissão
     expect($action)->not->toBeNull();
-    expect($action->event_class)->not->toBeNull();
+    expect($action->event_class)->toBeNull();
     expect($action->target_stage_id)->not->toBeNull();
 });
 
