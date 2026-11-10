@@ -61,6 +61,7 @@ beforeEach(function () {
     }
 
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
 });
 
 afterEach(function () {
@@ -157,8 +158,9 @@ it('salvar() persiste DANFE em storage + atualiza danfe_path no model', function
     $path = $svc->salvar($emissao);
 
     expect($path)->toBe('nfe-brasil/1/danfe/35210112345678000199550010000000011000000019.pdf');
-    expect(Storage::disk('local')->exists($path))->toBeTrue();
-    expect(Storage::disk('local')->get($path))->toBe('PDF-PERSISTED');
+    expect(Storage::disk('nfe_fiscal')->exists($path))->toBeTrue();
+    expect(Storage::disk('local')->exists($path))->toBeFalse();
+    expect(Storage::disk('nfe_fiscal')->get($path))->toBe('PDF-PERSISTED');
     expect($emissao->fresh()->danfe_path)->toBe($path);
 });
 

@@ -24,6 +24,7 @@ import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formula
 import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
 import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
 import type { EnderecoNoEstoque } from './_components/formulario/armazenagem';
+import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
 
 function localUnico(locais: OptionMap): number[] {
   const ids = opcoesDe(locais).map(([id]) => Number(id));
@@ -144,6 +145,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
       localInicial: Number(opcoesDe(props.businessLocations)[0]?.[0] ?? 0) || null,
     }),
   );
+  // CU-PROD-21: produto novo começa com Preço fixo (US-PROD-030, padrão do protótipo).
+  const [politica, setPolitica] = useState(() => politicaInicial());
   const endereco: EnderecoNoEstoque = props.enderecoNoEstoque ?? { prateleira: props.enableRacks, fileira: false, posicao: false };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -159,6 +162,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
         ...comPreco,
         ...camposDoMetodoCusto(props.metodoCusto, metodoCusto),
         ...(d.enable_stock === 1 ? camposDaArmazenagem(armazenagem) : {}),
+        ...camposDaPolitica(politica),
       };
       return envio ? { ...comMetodo, submit_type: envio } : comMetodo;
     });
@@ -215,6 +219,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
               props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }
             armazenagem={data.enable_stock === 1 ? { valor: armazenagem, mudar: setArmazenagem, endereco } : undefined}
+            politica={{ valor: politica, mudar: setPolitica }}
           />
           <AcoesDoCadastro
             form="produto-create-form"

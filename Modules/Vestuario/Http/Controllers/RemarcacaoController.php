@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Vestuario\Http\Controllers;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Vestuario\Exceptions\RemarcacaoRecusada;
 use Modules\Vestuario\Services\Remarcacao;
 use Modules\Vestuario\Services\VestuarioSettingsResolver;
-use RuntimeException;
 
 /**
  * US-VEST-032 — remarcação por coleção (decisão [W] 2026-10-27).
@@ -77,15 +78,23 @@ class RemarcacaoController extends Controller
     public function etiquetas(int $lote): JsonResponse
     {
         $biz = $this->guard();
+        $status = DB::table('vestuario_remarcacoes')->where('business_id', $biz)->where('id', $lote)->value('status');
+        abort_if($status === null, 404, 'Remarcação não encontrada.');
+        if ($status !== 'aplicada') {
+            return response()->json(['message' => 'Esta remarcação foi revertida: as etiquetas dela não valem mais.'], 422);
+        }
+        // O preço é o de hoje: a peça pode ter sido mexida depois da remarcação.
         $itens = DB::table('vestuario_remarcacao_itens as i')
             ->join('variations as v', 'v.id', '=', 'i.variation_id')->join('products as p', 'p.id', '=', 'i.product_id')
             ->where('i.business_id', $biz)->where('p.business_id', $biz)->where('i.remarcacao_id', $lote)
-            ->get(['i.product_id', 'i.variation_id', 'p.name as nome', 'v.name as tamanho', 'i.preco_depois as preco', 'v.sub_sku as sku']);
+            ->get(['i.product_id', 'i.variation_id', 'p.name as nome', 'v.name as tamanho', 'v.sell_price_inc_tax as preco', 'v.sub_sku as sku']);
         abort_if($itens->isEmpty(), 404, 'Remarcação não encontrada.');
 
         return response()->json(['items' => $itens->map(fn ($i) => [
             'product_id' => (int) $i->product_id, 'variation_id' => (int) $i->variation_id,
-            'nome' => mb_substr((string) $i->nome, 0, 120), 'tamanho' => mb_substr((string) $i->tamanho, 0, 10),
+            'nome' => mb_substr((string) $i->nome, 0, 120),
+            // Produto simples tem a variação interna DUMMY: sem tamanho, a etiqueta usa o padrão dela.
+            'tamanho' => $i->tamanho === 'DUMMY' ? null : mb_substr((string) $i->tamanho, 0, 10),
             'preco' => round((float) $i->preco, 2), 'sku' => mb_substr((string) $i->sku, 0, 40),
         ])->values()]);
     }
@@ -123,8 +132,12 @@ class RemarcacaoController extends Controller
     {
         try {
             return response()->json($f());
-        } catch (RuntimeException $e) {
+        } catch (RemarcacaoRecusada $e) {
             return response()->json(['message' => $e->getMessage()], 422);
+        } catch (QueryException $e) { // deadlock ou espera longa nas travas: a mensagem traz host e SQL
+            report($e);
+
+            return response()->json(['message' => 'Não foi possível concluir agora. Tente de novo.'], 500);
         }
     }
 }

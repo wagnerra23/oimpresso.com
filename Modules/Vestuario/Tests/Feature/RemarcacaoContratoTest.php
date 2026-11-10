@@ -90,6 +90,71 @@ it('UC-VREM-02 — gravar exige a prévia em dia, guarda o antes e deriva preço
     expect(DB::table('vestuario_remarcacoes')->where('id', $lote)->value('qtd_itens'))->toEqual(3);
 });
 
+it('UC-VREM-02 — quem confere a prévia já trava as variações: duas gravações não passam juntas', function () {
+    $p = $this->svc->previa($this->biz, ['nome' => $this->tag], 'percentual', -30);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $this->svc->aplicar($this->biz, 1, 'Liquidação', ['nome' => $this->tag], 'percentual', -30, $p['assinatura']);
+    $consultas = collect(DB::getQueryLog())->pluck('query');
+    DB::disableQueryLog();
+
+    // A 1ª leitura de preço é a que decide a assinatura; sem trava, a 2ª gravação passa e sobrescreve a 1ª.
+    $primeira = $consultas->first(fn ($q) => str_contains($q, 'sell_price_inc_tax') && str_contains($q, '`variations`'));
+    expect($primeira)->not->toBeNull();
+    expect(strtolower($primeira))->toContain('for update');
+});
+
+it('UC-VREM-02 — a remarcação entra na trilha de auditoria, por empresa e com o lote [T0]', function () {
+    $p = $this->svc->previa($this->biz, ['nome' => $this->tag], 'percentual', -30);
+    $lote = $this->svc->aplicar($this->biz, 1, 'Liquidação', ['nome' => $this->tag], 'percentual', -30, $p['assinatura']);
+    $log = fn (string $acao) => DB::table('activity_log')->where('subject_type', App\Variation::class)
+        ->where('subject_id', $this->va['P'])->where('description', $acao)->first();
+
+    $aplicada = $log('remarcacao.aplicada');
+    expect($aplicada)->not->toBeNull();
+    expect((int) $aplicada->business_id)->toBe($this->biz);
+    $props = json_decode($aplicada->properties, true);
+    // à mão: 100,00 × 0,70 = 70,00
+    expect((float) $props['old']['sell_price_inc_tax'])->toBe(100.0);
+    expect((float) $props['attributes']['sell_price_inc_tax'])->toBe(70.0);
+    expect((int) $props['remarcacao_id'])->toBe($lote);
+
+    $this->svc->reverter($this->biz, 1, $lote);
+    $revertida = $log('remarcacao.revertida');
+    expect($revertida)->not->toBeNull();
+    expect((int) $revertida->business_id)->toBe($this->biz);
+    expect((float) json_decode($revertida->properties, true)['attributes']['sell_price_inc_tax'])->toBe(100.0);
+});
+
+it('UC-VREM-03 — preço com mais de 2 casas volta exato na reversão', function () {
+    $vx = ($this->produto)($this->biz, ['X' => 10.1250]);
+    $p = $this->svc->previa($this->biz, ['nome' => $this->tag], 'percentual', -30);
+    // à mão: 10,1250 mostra 10,13; 10,13 × 0,70 = 7,091 → 7,09
+    expect(collect($p['linhas'])->firstWhere('variation_id', $vx['X'])['preco_depois'])->toEqual(7.09);
+
+    $lote = $this->svc->aplicar($this->biz, 1, 'Liquidação', ['nome' => $this->tag], 'percentual', -30, $p['assinatura']);
+    expect((float) DB::table('vestuario_remarcacao_itens')->where('remarcacao_id', $lote)->where('variation_id', $vx['X'])->value('preco_antes'))->toBe(10.125);
+
+    $this->svc->reverter($this->biz, 1, $lote);
+    expect((float) ($this->preco)($vx['X'])->sell_price_inc_tax)->toBe(10.125);
+});
+
+it('UC-VREM-03 — compra posterior que muda o custo conta como mexido depois', function () {
+    $p = $this->svc->previa($this->biz, ['nome' => $this->tag], 'percentual', -30);
+    $lote = $this->svc->aplicar($this->biz, 1, 'Liquidação', ['nome' => $this->tag], 'percentual', -30, $p['assinatura']);
+
+    // Caminho real da compra: etiqueta fica em 70,00; custo vai de 40 para 50.
+    app(App\Utils\ProductUtil::class)->updateProductFromPurchase(['variation_id' => $this->va['P'], 'pp_without_discount' => 50]);
+
+    expect($this->svc->reverter($this->biz, 1, $lote))->toBe(['revertidos' => 1, 'conflitos' => 1]);
+    // à mão: margem sobre o custo novo = (70 − 50) / 50 = 40%
+    $p100 = ($this->preco)($this->va['P']);
+    expect([(float) $p100->sell_price_inc_tax, (float) $p100->profit_percent])->toEqual([70.0, 40.0]);
+    // a outra variação, sem compra, volta: 59,90
+    expect((float) ($this->preco)($this->va['M'])->sell_price_inc_tax)->toBe(59.9);
+});
+
 it('UC-VREM-03 — reverter devolve o preço de antes e não pisa em preço mexido depois', function () {
     $p = $this->svc->previa($this->biz, ['nome' => $this->tag], 'percentual', -30);
     $lote = $this->svc->aplicar($this->biz, 1, 'Liquidação', ['nome' => $this->tag], 'percentual', -30, $p['assinatura']);
