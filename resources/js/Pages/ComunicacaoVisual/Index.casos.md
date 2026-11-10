@@ -106,6 +106,7 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVARQ-04 | Outra empresa não anexa nem remove | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-05 | Sem permissão de criar não anexa nem remove | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-06 | Remover tira o arquivo e ele não vai para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-07 | SVG é recusado, porque executa script na origem do sistema | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 |
 | UC-CVSAL-01 | Salvar grava os valores do servidor, não os da tela | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-02 | Reabrir devolve as peças e os ajustes, e aparece na lista | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-03 | Regravar o reaberto mantém o número e troca as peças | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -797,7 +798,17 @@ Status: 🧪
 ## UC-CVARQ-02 · Formato que a gráfica não usa é recusado · `must`
 
 **Dado** um `.exe` **Quando** ele é anexado **Então** a validação recusa (formatos aceitos: pdf, jpg,
-jpeg, png, svg, ai, eps, cdr, tif, tiff, psd) e nada é gravado.
+jpeg, png, ai, eps, cdr, tif, tiff, psd) e nada é gravado.
+
+Status: 🧪
+
+## UC-CVARQ-07 · SVG é recusado, porque executa script na origem do sistema · `must`
+
+**Dado** um `.svg` com `<script>`, com a extensão em minúscula ou maiúscula **Quando** ele é anexado
+**Então** a validação recusa no campo do arquivo, nada é gravado em `media` e nada vai para o disco.
+O anexo fica em `public/uploads/media`, na mesma origem do sistema e sem login: aberto pela URL
+direta, o script rodaria com a sessão de quem abriu. Arte vetorial segue por pdf, ai, eps ou cdr.
+SVGs enviados antes de 2026-11-09 continuam em disco.
 
 Status: 🧪
 
