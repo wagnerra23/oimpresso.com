@@ -37,9 +37,12 @@ class ProductCatalogueRepository
      */
     public function listProductsByLocation(int $businessId, int $locationId): Collection
     {
-        return Product::whereHas('product_locations', function ($q) use ($locationId) {
+        return Product::where('business_id', $businessId)
+            ->whereHas('product_locations', function ($q) use ($locationId) {
                 $q->where('product_locations.location_id', $locationId);
             })
+            ->active()
+            ->ProductForSales()
             ->with(['variations', 'variations.product_variation', 'category'])
             ->get()
             ->groupBy('category_id');
@@ -47,9 +50,11 @@ class ProductCatalogueRepository
 
     /**
      * Busca produto com TODAS as relações usadas na tela de detalhe (catalogue.show).
-     * Throws ModelNotFoundException se product_id não pertence ao business_id (anti-enumeration).
+     * Throws ModelNotFoundException se product_id não pertence ao business_id (anti-enumeration),
+     * se o produto está desativado ou marcado como "não vender". Com $locationId (o modal da
+     * vitrine sempre manda), o produto também precisa ser vendido naquele local.
      */
-    public function findProductWithDetails(int $businessId, int $productId): Product
+    public function findProductWithDetails(int $businessId, int $productId, ?int $locationId = null): Product
     {
         return Product::with([
             'brand',
@@ -64,6 +69,14 @@ class ProductCatalogueRepository
             'product_locations',
             'warranty',
         ])
+            ->where('business_id', $businessId)
+            ->active()
+            ->ProductForSales()
+            ->when($locationId !== null, function ($query) use ($locationId) {
+                $query->whereHas('product_locations', function ($q) use ($locationId) {
+                    $q->where('product_locations.location_id', $locationId);
+                });
+            })
             ->findOrFail($productId);
     }
 
