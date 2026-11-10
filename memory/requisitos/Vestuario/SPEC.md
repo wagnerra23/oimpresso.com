@@ -378,7 +378,7 @@ Diferente da US-VEST-023 (liquidação aplicada em runtime no carrinho): aqui o 
 - Novo preço de etiqueta por percentual (ex.: −30%) ou valor fixo, arredondado a 2 casas; preço sem imposto e margem derivados pela taxa do produto.
 - Prévia antes → depois por variação; gravar só com a prévia em dia (se algum preço mudou, pede nova prévia).
 - Lote guarda o antes de cada variação; reverter devolve o antes e não pisa em preço mexido depois (conta como conflito).
-- Tabelas de preço (`variation_group_prices`) não são tocadas.
+- Tabelas de preço (`variation_group_prices`) não são tocadas. A prévia avisa quantas peças têm preço de grupo: o fixo não muda e o percentual acompanha o preço novo.
 - Liga por empresa: setting `remarcacao.enabled` do Vestuário, desligado por padrão.
 - Depois de gravar, as variações remarcadas vão para a tela de etiquetas.
 - Tier 0: produtos, lotes e reversão só da empresa.

@@ -61,16 +61,19 @@ export default function SugerirPelaCurva({ productId, rows, cols, cellVariationM
   return (
     <Inline wrap>
       <Label htmlFor="curva-total" className="text-[11px] text-muted-foreground">Total de peças</Label>
-      <Input
-        id="curva-total"
-        type="number"
-        min={1}
-        max={TOTAL_MAXIMO}
-        value={total}
-        onChange={(e) => setTotal(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void sugerir(); } }}
-        className="h-8 w-20 text-[12.5px] text-right tabular-nums"
-      />
+      {/* A largura fica no invólucro: .cw-input (width 100%, fora de @layer) vence w-20 no próprio input. */}
+      <div className="w-20">
+        <Input
+          id="curva-total"
+          type="number"
+          min={1}
+          max={TOTAL_MAXIMO}
+          value={total}
+          onChange={(e) => setTotal(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void sugerir(); } }}
+          className="h-8 text-[12.5px] text-right tabular-nums"
+        />
+      </div>
       <Button type="button" size="sm" variant="outline" onClick={() => void sugerir()} disabled={!valido || carregando}>
         <BarChart3 className="h-4 w-4 mr-1" /> {carregando ? 'Calculando…' : 'Sugerir pela curva'}
       </Button>

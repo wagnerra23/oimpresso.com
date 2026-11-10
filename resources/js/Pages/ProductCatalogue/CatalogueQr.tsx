@@ -74,7 +74,8 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
   const [logo, setLogo] = useState(temLogo);
   const [gerado, setGerado] = useState<Gerado | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [copiado, setCopiado] = useState(false);
+  const [copia, setCopia] = useState<'ocioso' | 'copiado' | 'falhou'>('ocioso');
+  const timerCopia = useRef<ReturnType<typeof setTimeout>>(undefined);
   const alvo = useRef<HTMLDivElement>(null);
 
   // Mudou a forma, o QR antigo deixa de valer: gera de novo só com o clique (anti-hook do charter).
@@ -113,6 +114,8 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
 
   useEffect(() => {
     if (!gerado && alvo.current) alvo.current.innerHTML = '';
+    clearTimeout(timerCopia.current);
+    setCopia('ocioso');
   }, [gerado]);
 
   const baixar = () => {
@@ -124,11 +127,19 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
     a.click();
   };
 
-  const copiar = () => {
+  // Só diz "copiado" depois que o navegador confirma. A escrita pode ser recusada (permissão,
+  // aba sem foco) e, fora de contexto seguro, navigator.clipboard nem existe: o erro cai no catch.
+  const copiar = async () => {
     if (!gerado) return;
-    navigator.clipboard?.writeText(gerado.link);
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 1600);
+    clearTimeout(timerCopia.current);
+    try {
+      await navigator.clipboard.writeText(gerado.link);
+    } catch {
+      setCopia('falhou');
+      return;
+    }
+    setCopia('copiado');
+    timerCopia.current = setTimeout(() => setCopia('ocioso'), 1600);
   };
 
   const cabecalho = (
@@ -239,8 +250,13 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
               </code></Inline>
               <Inline gap={2} wrap>
                 <Button onClick={baixar}><Download className="size-4" /> Baixar imagem</Button>
-                <Button variant="outline" onClick={copiar}>{copiado ? 'Link copiado' : 'Copiar link'}</Button>
+                <Button variant="outline" onClick={copiar}>{copia === 'copiado' ? 'Link copiado' : 'Copiar link'}</Button>
               </Inline>
+              {copia === 'falhou' && (
+                <Alert variant="destructive">
+                  <AlertDescription>Não foi possível copiar o link. Selecione o endereço acima e copie manualmente.</AlertDescription>
+                </Alert>
+              )}
               <Inline gap={2} wrap>
                 <Badge variant="secondary">{gerado.local}</Badge>
                 <Badge variant="outline">256 × 256 px · PNG</Badge>
