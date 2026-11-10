@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: a trilha de auditoria do business (listar, filtrar, não ver a de outro) é durável — não muda no refactor da tela.
 owner: wagner
-last_run: "2026-11-09"
+last_run: "2026-11-10"
 ---
 
 # Casos de Uso & Aceite — Auditoria / Index
@@ -38,6 +38,12 @@ last_run: "2026-11-09"
 - **Aceite:** Dado `GET /reports/activity-log?event=updated` · Então **301** para `/auditoria?event=updated`.
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDI-03 · redirect 301 legado").
 - **Status: ✅**
+
+## UC-AUDI-04 · Só abre a trilha quem tem o pacote da empresa e a permissão
+- **Persona:** dono do negócio — a trilha traz e-mail, celular e valores, então não é de todo usuário logado (SPEC US-AUDIT-010; ADR 0127 §princípio 5).
+- **Aceite:** Dado usuário sem `auditoria.view` · Quando abre `/auditoria` pela URL · Então **403**. Dado empresa sem o pacote `auditoria_module` · Então **403**, mesmo com a permissão. Dado o pacote e a permissão · Então a tela abre. Superadmin abre sem pacote e sem permissão, como no menu.
+- **Teste:** `AuditoriaAcessoGateTest` ("UC-AUDI-04 · …").
+- **Status: 🧪**
 
 ## UC-AUDI-10 · Vejo o nome de quem fez a alteração, sem expor os dados dessa pessoa
 - **Persona:** auditor — responde "quem mudou isto?" na própria lista (CU-AUD-01).

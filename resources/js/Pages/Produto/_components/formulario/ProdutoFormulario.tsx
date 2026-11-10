@@ -12,6 +12,7 @@ import { BlocoFiscal } from './BlocoFiscal';
 import { BlocoImpostosPrecos } from './BlocoImpostosPrecos';
 import type { PrecoSimples } from './precos';
 import type { MetodoCustoDoFormulario } from './metodoCusto';
+import type { EstadoPolitica } from './politicaPreco';
 import type {
   CamposProduto,
   DefinirCampo,
@@ -42,6 +43,8 @@ interface Props {
   metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
   /** Locais de armazenagem (CU-PROD-20): só com o estoque controlado; sem isto o bloco não aparece. */
   armazenagem?: { valor: EstadoArmazenagem; mudar: (e: EstadoArmazenagem) => void; endereco: EnderecoNoEstoque };
+  /** Política de preço (CU-PROD-21), no card "Impostos e preços". */
+  politica?: { valor: EstadoPolitica; mudar: (e: EstadoPolitica) => void };
 }
 
 export function ProdutoFormulario({
@@ -58,6 +61,7 @@ export function ProdutoFormulario({
   naturezaFiscal,
   metodoCusto,
   armazenagem,
+  politica,
 }: Props) {
   return (
     <form id={id} onSubmit={onSubmit} className="space-y-6">
@@ -88,6 +92,14 @@ export function ProdutoFormulario({
         tipoAtual={tipoAtual}
         preco={preco}
         metodoCusto={metodoCusto}
+        politica={
+          politica
+            ? {
+                ...politica,
+                erros: { politica: errors.politica_preco, margem: errors.margem_alvo_pct },
+              }
+            : undefined
+        }
       />
     </form>
   );
