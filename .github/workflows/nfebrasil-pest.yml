@@ -395,6 +395,70 @@ jobs:
             Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php
 
 
+      # ANDAIME TEMPORARIO (lote 4.1 auditoria NfeBrasil) — mede os candidatos sem bloquear.
+      - name: ANDAIME candidatos 4.1 (nao-bloqueante)
+        if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
+        continue-on-error: true
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          vendor/bin/pest --no-coverage --colors=never --log-junit test-results/andaime-junit.xml \
+            Modules/NfeBrasil/Tests/Feature/AbrasfV204CancelDriverTest.php \
+            Modules/NfeBrasil/Tests/Feature/BuscarDfesRecebidosJobTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoFallbackLegadoTest.php \
+            Modules/NfeBrasil/Tests/Feature/DanfeServicePrefersArquivosTest.php \
+            Modules/NfeBrasil/Tests/Feature/DataControllerTest.php \
+            Modules/NfeBrasil/Tests/Feature/DistribuicaoDfeServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirNFSeJobTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirNFeAoReceberPagamentoTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirNfceJobTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirParaInvoiceFallbackTest.php \
+            Modules/NfeBrasil/Tests/Feature/EnviarDanfeNFCePorEmailTest.php \
+            Modules/NfeBrasil/Tests/Feature/EnviarDanfePorEmailTest.php \
+            Modules/NfeBrasil/Tests/Feature/FatorRTest.php \
+            Modules/NfeBrasil/Tests/Feature/HasArquivosTraitTest.php \
+            Modules/NfeBrasil/Tests/Feature/ManifestacaoContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ManifestacaoControllerTest.php \
+            Modules/NfeBrasil/Tests/Feature/ManifestacaoServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeCartaCorrecaoServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeEmissaoControllerSerializeUrlsTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeEventoMultiTenantIsolationTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeInutilizacaoServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceCancelarTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceDoubleWriteTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceEmitirParaTransactionTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceRetransmitirTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeStatusContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeStatusControllerTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfseCancelServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/ObservabilityTest.php \
+            Modules/NfeBrasil/Tests/Feature/ResolveUfEmitenteTest.php \
+            Modules/NfeBrasil/Tests/Feature/SyncFiscalRuleToTaxRateTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoTemplateServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave23SaturationTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave26SaturationTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave27NfeSaturationTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave28NfePolishTest.php \
+            tests/Feature/NfeBrasil/EmissaoManualTest.php \
+            tests/Feature/Contract/NfeConfigAutosaveContractTest.php \
+            tests/Unit/NfeCertStatusSharedPropTest.php
+      - name: ANDAIME sumario
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/andaime-junit.xml --out test-results/andaime-summary.json || true
+      - name: ANDAIME upload
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: andaime-41
+          path: test-results/andaime-*
+          if-no-files-found: ignore
+
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
       # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir
       # o FP do --check-assertions ANTES de arma-lo. Aqui so REPORTA (if: always()).
