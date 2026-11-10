@@ -2,6 +2,7 @@
 
 namespace Modules\ComunicacaoVisual\Http\Controllers;
 
+use App\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -77,17 +78,19 @@ class ApontamentoController extends Controller
         }
 
         // Do operador só id e nome: `users` guarda e-mail, documento e dados bancários (UC-CVAPT-01).
-        $apontamentos = $query->paginate(25)->through(function (Apontamento $apontamento) {
+        $pagina = $query->paginate(25);
+        $resposta = $pagina->toArray();
+        $resposta['data'] = array_map(static function (Apontamento $apontamento): array {
             $linha = $apontamento->toArray();
-            $linha['operador'] = $apontamento->operador === null ? null : [
-                'id' => $apontamento->operador->id,
-                'nome' => $apontamento->operador->nome_exibicao,
-            ];
+            $operador = $apontamento->operador;
+            $linha['operador'] = $operador instanceof User
+                ? ['id' => $operador->id, 'nome' => $operador->nome_exibicao]
+                : null;
 
             return $linha;
-        });
+        }, $pagina->items());
 
-        return response()->json($apontamentos, 200);
+        return response()->json($resposta, 200);
     }
 
     // ------------------------------------------------------------------
