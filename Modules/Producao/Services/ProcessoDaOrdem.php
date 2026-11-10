@@ -77,6 +77,7 @@ final class ProcessoDaOrdem
     public function garantir(int $businessId): SaleProcess
     {
         return DB::transaction(function () use ($businessId) {
+            // SUPERADMIN: também roda no pagamento público (/confirm-payment) e no job; sem isso o firstOrCreate duplicaria o processo.
             $process = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)->firstOrCreate(
                 ['business_id' => $businessId, 'key' => self::CHAVE],
                 [

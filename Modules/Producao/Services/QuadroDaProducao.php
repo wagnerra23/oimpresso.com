@@ -93,10 +93,11 @@ final class QuadroDaProducao
     }
 
     /**
-     * Número, cliente e prazo de cada OS, pela chave `os_tipo:os_id` (feed de eventos do Painel e blocos da Linha).
+     * Número, cliente, prazo e mídias de cada OS, pela chave `os_tipo:os_id` (feed de eventos do Painel e blocos da Linha).
+     * `midias` são os ids das mídias das peças medidas; só a OS da CV tem (a OS por item sai vazia).
      *
      * @param  list<array{0: string, 1: int}>  $refs
-     * @return array<string, array{numero: string, cliente: ?string, prazo: ?string}>
+     * @return array<string, array{numero: string, cliente: ?string, prazo: ?string, midias: list<int>}>
      */
     public function rotulos(int $businessId, array $refs): array
     {
@@ -110,7 +111,7 @@ final class QuadroDaProducao
         $saida = [];
         foreach ([RomaneioDeImpressao::OS_TIPO => $cv, Ordem::OS_TIPO => $op] as $tipo => $dados) {
             foreach ($dados as $id => $d) {
-                $saida[$tipo.':'.$id] = ['numero' => (string) $d['numero'], 'cliente' => $d['cliente'] ?? null, 'prazo' => $d['prazo'] ?? null];
+                $saida[$tipo.':'.$id] = ['numero' => (string) $d['numero'], 'cliente' => $d['cliente'] ?? null, 'prazo' => $d['prazo'] ?? null, 'midias' => $d['midias'] ?? []];
             }
         }
 
