@@ -50,6 +50,10 @@ class CaixaMovimento extends Model
         return $this->belongsTo(ContaBancaria::class, 'conta_bancaria_id');
     }
 
+    /**
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return AppendOnlyBuilder<static>
+     */
     public function newEloquentBuilder($query): AppendOnlyBuilder
     {
         return new AppendOnlyBuilder($query);

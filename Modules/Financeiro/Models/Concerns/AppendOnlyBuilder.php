@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Builder;
  * `Model::save()` de um registro existente e `Model::increment()` passam por este builder,
  * então cobrem também a alteração pelo próprio model. `DB::table(...)` não passa por aqui:
  * segue como a saída explícita de comandos e limpeza de teste.
+ *
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ *
+ * @extends Builder<TModel>
  */
 class AppendOnlyBuilder extends Builder
 {

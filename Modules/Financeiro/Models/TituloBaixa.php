@@ -63,6 +63,10 @@ class TituloBaixa extends Model
         return $this->belongsTo(TituloBaixa::class, 'estorno_de_id');
     }
 
+    /**
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return AppendOnlyBuilder<static>
+     */
     public function newEloquentBuilder($query): AppendOnlyBuilder
     {
         return new AppendOnlyBuilder($query);
