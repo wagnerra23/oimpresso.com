@@ -5,8 +5,8 @@ irmaos: NfceStatus.charter.md (lei) · SDD-emissao-fiscal-v1.0.md (§5.3 F3/F4 �
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela do módulo que a operadora abre por causa de UMA nota — o que ela mostra decide se a venda sai do balcão ou não.
 owner: wagner
-last_run: "2026-07-28"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
+last_run: "2026-11-10"
+last_run_ci: "2026-11-10: UC-NFST-06/07 em vitest (tests/js/nfe-status-tela.test.tsx, 3 passam, render real). UC-NFST-01..05 são do endpoint de polling, que não mudou, e não foram re-rodados"
 ---
 
 # Casos de Uso & Aceite — Status fiscal pós-venda (NFC-e)
