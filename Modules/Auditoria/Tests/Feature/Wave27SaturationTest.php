@@ -186,16 +186,12 @@ it('W27 NfeEmissao e TituloBaixa bloqueiam em qualquer estado (sem condition)', 
 
 it('W27 PiiRedactor remove telefone formatado BR (xx) xxxxx-xxxx', function () {
     $redactor = app(PiiRedactor::class);
-    $input = 'Cliente ligou do telefone (47) 99876-5432 hoje.';
+    $input = 'Cliente ligou do telefone (47) 99876-5432 hoje.'; # pii-allowlist
 
     $output = $redactor->redact($input, 'placeholder');
 
-    // Telefone formatado deve ser redactado OU pelo menos não conter exatamente o número
-    // PiiRedactor pode ou não cobrir telefone — se não cobre, ainda é defesa parcial.
-    // Teste verifica: NÃO QUEBRA + texto preserva contexto (Cliente, hoje)
-    expect($output)->toContain('Cliente');
-    expect($output)->toContain('hoje');
-})->skip(! class_exists(\App\Support\Privacy\PiiRedactor::class), 'PiiRedactor Jana ausente');
+    expect($output)->toBe('Cliente ligou do telefone [REDACTED:PHONE] hoje.');
+});
 
 it('W27 PiiRedactor redact preserva texto curto sem PII (idempotente parcial)', function () {
     $redactor = app(PiiRedactor::class);
@@ -205,9 +201,8 @@ it('W27 PiiRedactor redact preserva texto curto sem PII (idempotente parcial)', 
     expect($output)->toBe($input, 'Texto sem PII deve passar inalterado');
 });
 
-it('W27 PiiRedactor lida com input vazio sem fatal', function () {
-    $redactor = app(PiiRedactor::class);
-    expect(fn () => $redactor->redact('', 'placeholder'))->not->toThrow(\Throwable::class);
+it('W27 PiiRedactor devolve string vazia para input vazio', function () {
+    expect(app(PiiRedactor::class)->redact('', 'placeholder'))->toBe('');
 });
 
 it('W27 PiiRedactor lida com input longo (1000 chars sem fatal)', function () {
@@ -220,101 +215,68 @@ it('W27 PiiRedactor lida com input longo (1000 chars sem fatal)', function () {
     expect($output)->not->toContain('111.222.333-44'); # pii-allowlist
 });
 
-it('W27 RevertService::revert reason flow NUNCA persiste antes de redact (source code proof)', function () {
-    $f = base_path('Modules/Auditoria/Services/RevertService.php');
-    $c = file_get_contents($f);
-
-    // Garantir ordem: redact ANTES de qualquer persistência ($log->save / Activity::create)
-    $redactPos = strpos($c, '->redact($reason');
-    expect($redactPos)->not->toBeFalse('redact($reason) deve existir em RevertService::revert');
-
-    $logSavePos = strpos($c, '$log->save();');
-    if ($logSavePos !== false) {
-        expect($redactPos)->toBeLessThan($logSavePos);
-    }
-
-    $activityCreatePos = strpos($c, 'Activity::create([');
-    if ($activityCreatePos !== false) {
-        expect($redactPos)->toBeLessThan($activityCreatePos);
-    }
-});
-
 // ============================================================
-// BLOCO D: D9 spans completos — 5 cenários
+// BLOCO D: D9 spans — exportador em memória
 // ============================================================
 
-it('W27 RevertService::revert tem span OTel canônico (auditoria.revert.execute)', function () {
-    $f = base_path('Modules/Auditoria/Services/RevertService.php');
-    $c = file_get_contents($f);
-    expect($c)->toContain('auditoria.revert.execute');
-    expect($c)->toContain('OtelHelper::spanBiz');
-});
-
-it('W27 RevertService span attributes NÃO incluem PII (Tier 0)', function () {
-    $f = base_path('Modules/Auditoria/Services/RevertService.php');
-    $c = file_get_contents($f);
-
-    // Attributes válidos: module / activity_id / subject_type / subject_id / restored_attrs_count / has_reason
-    // Attributes proibidos: email / cpf / cnpj / phone / reason (raw)
-    expect($c)->toContain("'module'              => 'Auditoria'");
-    expect($c)->toContain("'has_reason'");
-
-    // Nunca exportar reason raw — só has_reason boolean
-    expect(str_contains($c, "'reason' => \$reason"))->toBeFalse(
-        'RevertService span NÃO pode exportar reason raw (Tier 0 PII)'
+function auditEntrySpansW27(callable $acao): array
+{
+    config(['otel.enabled' => true, 'otel.sdk_disabled' => false, 'otel.sample_rate' => 1.0, 'otel.service_name' => 'oimpresso-test']);
+    \OpenTelemetry\API\Globals::reset();
+    $exporter = new \OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter();
+    $provider = (new \App\Providers\OtelServiceProvider(app()))->buildTracerProvider($exporter);
+    \OpenTelemetry\API\Globals::registerInitializer(
+        fn (\OpenTelemetry\API\Instrumentation\Configurator $c) => $c->withTracerProvider($provider)
     );
+
+    try {
+        $acao();
+        $provider->forceFlush();
+
+        return collect($exporter->getSpans())->keyBy(fn ($s) => $s->getName())->all();
+    } finally {
+        $provider->shutdown();
+        \OpenTelemetry\API\Globals::reset();
+        config(['otel.enabled' => false]);
+    }
+}
+
+it('W27 AuditEntryService::list emite span auditoria.entry.list', function () {
+    requiresActivityLogMySQL_W27();
+
+    $spans = auditEntrySpansW27(fn () => (new AuditEntryService())->list(0, ['event' => 'updated']));
+
+    expect($spans)->toHaveKey('auditoria.entry.list');
+    $attrs = $spans['auditoria.entry.list']->getAttributes()->toArray();
+    expect($attrs['module'])->toBe('Auditoria');
+    expect($attrs['filters_count'])->toBe(1);
 });
 
-it('W27 AuditEntryService::list tem span OTel canônico (auditoria.entry.list)', function () {
-    $f = base_path('Modules/Auditoria/Services/AuditEntryService.php');
-    $c = file_get_contents($f);
-    expect($c)->toContain('auditoria.entry.list');
-    expect($c)->toContain('OtelHelper::spanBiz');
+it('W27 AuditEntryService::find emite span auditoria.entry.find mesmo no 404', function () {
+    requiresActivityLogMySQL_W27();
+
+    $spans = auditEntrySpansW27(function () {
+        try {
+            (new AuditEntryService())->find(0, 2147483647);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            // o 404 é o caminho medido aqui
+        }
+    });
+
+    expect($spans)->toHaveKey('auditoria.entry.find');
+    expect($spans['auditoria.entry.find']->getAttributes()->toArray()['activity_id'])->toBe(2147483647);
 });
 
-it('W27 AuditEntryService::find tem span OTel canônico (auditoria.entry.find)', function () {
-    $f = base_path('Modules/Auditoria/Services/AuditEntryService.php');
-    $c = file_get_contents($f);
-    expect($c)->toContain('auditoria.entry.find');
-});
-
-it('W27 spans canônicos não quebram com otel.enabled=false (zero-cost path)', function () {
+it('W27 com otel desligado o serviço responde igual (zero-cost path)', function () {
     config(['otel.enabled' => false]);
 
-    $svc = new AuditEntryService();
-    $clean = $svc->normalizeFilters(['subject_type' => 'App\\Foo']);
-    expect($clean)->toBeArray();
+    expect((new AuditEntryService())->normalizeFilters(['subject_type' => 'App\\Foo']))
+        ->toBe(['subject_type' => 'App\\Foo']);
 });
 
 // ============================================================
-// BLOCO E: Meta-saturation + integração — 3 cenários
+// BLOCO E: guarda do registry
 // ============================================================
-
-it('W27 Auditoria suite completa — total tests ≥30 acumulado (W23 + W25 + W27)', function () {
-    $files = [
-        'AuditEntryReversibilityTest.php',
-        'PiiLeakActivityLogEnforceTest.php',
-        'Wave18SaturationTest.php',
-        'Wave27SaturationTest.php',
-        'MultiTenantIsolationTest.php',
-        'RevertServiceOtelSpanTest.php',
-        'RevertServicePiiRedactionTest.php',
-        'AuditNoteLogsActivityTest.php',
-    ];
-
-    $totalIts = 0;
-    foreach ($files as $f) {
-        $path = base_path("Modules/Auditoria/Tests/Feature/{$f}");
-        if (! file_exists($path)) {
-            continue;
-        }
-        $c = file_get_contents($path);
-        $totalIts += substr_count($c, "\nit('");
-    }
-
-    expect($totalIts)->toBeGreaterThanOrEqual(30,
-        "Auditoria suite deve ter ≥30 testes acumulados (atual: {$totalIts})");
-});
 
 it('W27 RevertService unrevertibleRegistry cobre as 5 categorias da ADR 0127 (regressão guard)', function () {
     $reg = (new RevertService())->unrevertibleRegistry();
@@ -327,17 +289,5 @@ it('W27 RevertService unrevertibleRegistry cobre as 5 categorias da ADR 0127 (re
         \App\Transaction::class,
     ] as $classe) {
         expect($reg)->toHaveKey($classe);
-    }
-});
-
-it('W27 Services Auditoria todos usam OtelHelper::spanBiz (D9 saturated)', function () {
-    $services = [
-        'Modules/Auditoria/Services/RevertService.php',
-        'Modules/Auditoria/Services/AuditEntryService.php',
-    ];
-
-    foreach ($services as $f) {
-        $c = file_get_contents(base_path($f));
-        expect(str_contains($c, 'OtelHelper::spanBiz'))->toBeTrue("{$f} sem span OTel — gap D9");
     }
 });
