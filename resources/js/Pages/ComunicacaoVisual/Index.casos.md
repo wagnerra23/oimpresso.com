@@ -94,6 +94,10 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVPOS-03 | Peça sem custo deixa o orçado vazio; nenhuma com custo deixa o real vazio | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
 | UC-CVPOS-04 | OS, hora e m² de outra empresa nunca entram | must `[T0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
 | UC-CVPOS-05 | Flag desligada é 404; sem quem vê custo é 403 | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
+| UC-CVEMP-01 | Cliente de outra empresa, ou que não é cliente, é recusado ao salvar e ao regravar | must `[T0]` | ADR 0093 · auditoria 2026-11-05 S6/I-08 | `OrcamentoEmpresaContratoTest` | 🧪 |
+| UC-CVEMP-02 | Vendedor de outra empresa é recusado | must `[T0]` | ADR 0093 · auditoria 2026-11-05 S6/I-08 | `OrcamentoEmpresaContratoTest` | 🧪 |
+| UC-CVEMP-03 | Calcular exige permissão do módulo | must | ADR 0093 · auditoria 2026-11-05 S9 | `OrcamentoEmpresaContratoTest` | 🧪 |
+| UC-CVEMP-04 | Aprovar não autoriza quem não está logado | must | ADR 0093 · auditoria 2026-11-05 S11 | `OrcamentoEmpresaContratoTest` | 🧪 |
 | UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -898,6 +902,36 @@ Status: 🧪
 48 caracteres, o banco guarda só o sha256 dele, o orçamento passa a `enviado` e a leitura pelo token
 mostra itens e total, sem custo. Gerar de novo fecha o link anterior. Orçamento de outra empresa não
 gera link (404), nem pelo serviço nem pelo controller.
+
+Status: 🧪
+
+## UC-CVEMP-01 · Cliente de outra empresa é recusado · `must` `[T0]`
+
+**Dado** um `contato_id` de outra empresa, ou um contato da empresa que não é cliente **Quando** o vendedor
+salva ou regrava o orçamento **Então** a resposta é 422 em `contato_id` e nada é gravado. Com um cliente da
+empresa, grava.
+
+Status: 🧪
+
+## UC-CVEMP-02 · Vendedor de outra empresa é recusado · `must` `[T0]`
+
+**Dado** um `vendedor_id` de usuário de outra empresa **Quando** o orçamento é salvo **Então** a resposta é
+422 em `vendedor_id`. Com um usuário da empresa, grava.
+
+Status: 🧪
+
+## UC-CVEMP-03 · Calcular exige permissão do módulo · `must`
+
+**Dado** um usuário logado sem nenhuma permissão do módulo **Quando** chama `POST .../api/calcular`
+**Então** a resposta é 403. Quem tem `orcamento.view`, `orcamento.create` ou `os.view` calcula: são os que
+abrem a calculadora.
+
+Status: 🧪
+
+## UC-CVEMP-04 · Aprovar não autoriza quem não está logado · `must`
+
+**Dado** uma requisição sem login, mesmo com `token` na rota **Quando** o `AprovarOrcamentoRequest` autoriza
+**Então** nega. O aceite do cliente é a rota pública própria.
 
 Status: 🧪
 

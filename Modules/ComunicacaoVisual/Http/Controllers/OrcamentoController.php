@@ -57,6 +57,7 @@ class OrcamentoController extends Controller
 
     public function calcular(Request $request): JsonResponse
     {
+        $this->exigirCalcular();
         $validated = $this->validarPayload($request);
 
         try {
@@ -290,6 +291,19 @@ class OrcamentoController extends Controller
     }
 
     /**
+     * Calcular é a calculadora do hub: vale quem abre o hub (`orcamento.view` ou `os.view`, o catálogo
+     * com o preço por m² já vem na tela dele) e quem cria orçamento.
+     */
+    private function exigirCalcular(): void
+    {
+        $user = auth()->user();
+        if (! $user->can('superadmin') && ! $user->can('comvis.orcamento.view')
+            && ! $user->can('comvis.orcamento.create') && ! $user->can('comvis.os.view')) {
+            abort(403, 'Sem permissão para calcular orçamento.');
+        }
+    }
+
+    /**
      * Validação centralizada usada por calcular() e store().
      * Retorna array validado pronto para o Service.
      *
@@ -305,8 +319,8 @@ class OrcamentoController extends Controller
             // Cabeçalho
             'data_emissao'   => ['required', 'date'],
             'data_validade'  => ['nullable', 'date', 'after_or_equal:data_emissao'],
-            'contato_id'     => ['nullable', 'integer', 'min:1'],
-            'vendedor_id'    => ['nullable', 'integer', 'min:1'],
+            'contato_id'     => $this->regraCliente(),
+            'vendedor_id'    => $this->regraVendedor(),
             'desconto'       => ['nullable', 'numeric', 'min:0'],
             'extras'         => ['nullable', 'numeric', 'min:0'],
             'custo_instalacao' => ['nullable', 'numeric', 'min:0'],
@@ -335,6 +349,8 @@ class OrcamentoController extends Controller
             'data_emissao.required'    => 'A data de emissão é obrigatória.',
             'data_emissao.date'        => 'A data de emissão deve ser uma data válida.',
             'data_validade.after_or_equal' => 'A data de validade deve ser igual ou posterior à data de emissão.',
+            'contato_id.exists'        => 'O cliente informado não existe nesta empresa.',
+            'vendedor_id.exists'       => 'O vendedor informado não existe nesta empresa.',
             'desconto.min'             => 'O desconto não pode ser negativo.',
             'extras.min'               => 'O valor de extras não pode ser negativo.',
             'custo_instalacao.min'     => 'O custo de instalação não pode ser negativo.',
@@ -352,6 +368,23 @@ class OrcamentoController extends Controller
             'itens.*.posto_id.exists'  => 'O posto informado não existe nesta empresa.',
             'itens.*.horas_maquina.min' => 'As horas de máquina não podem ser negativas.',
         ]);
+    }
+
+    /** Cliente do orçamento: contato ativo da empresa da sessão (Tier 0, ADR 0093), o mesmo critério do app. */
+    private function regraCliente(): array
+    {
+        return ['nullable', 'integer', 'min:1', Rule::exists('contacts', 'id')
+            ->where('business_id', $this->businessId())
+            ->whereIn('type', ['customer', 'both'])
+            ->whereNull('deleted_at')];
+    }
+
+    /** Vendedor do orçamento: usuário da empresa da sessão (Tier 0, ADR 0093). */
+    private function regraVendedor(): array
+    {
+        return ['nullable', 'integer', 'min:1', Rule::exists('users', 'id')
+            ->where('business_id', $this->businessId())
+            ->whereNull('deleted_at')];
     }
 
     /**
