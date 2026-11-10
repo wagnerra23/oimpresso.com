@@ -158,7 +158,8 @@ it('UC-CV-06 · finalizar calcula o drift no servidor', function () {
 });
 
 it('UC-CV-06 · em-andamento devolve o spool aberto do operador e nada quando não há', function () {
-    expect(aptCtrlChamar($this, $this->operador, 'emAndamento')->getData(true))->toBeNull();
+    // Sem spool aberto a resposta é o JSON vazio: `response()->json(null)` serializa como {}.
+    expect(aptCtrlChamar($this, $this->operador, 'emAndamento')->getData(true))->toBe([]);
 
     $aberto = aptCtrlAberto($this->biz->id, $this->os, $this->operador->id);
 
@@ -177,7 +178,7 @@ it('UC-CV-05 · em-andamento não enxerga o spool da empresa 98 numa sessão da 
     $resp = aptCtrlChamar($this, $this->operador, 'emAndamento', [], $this->outra->id);
 
     expect($resp->getStatusCode())->toBe(200)
-        ->and($resp->getData(true))->toBeNull();
+        ->and($resp->getData(true))->toBe([]);
 });
 
 it('UC-CVAPT-03 · iniciar em OS de outra empresa é recusado igual a OS que não existe', function () {
