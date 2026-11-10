@@ -6,12 +6,14 @@ declare(strict_types=1);
 use App\Facades\Menu;
 use App\Services\LegacyMenuAdapter;
 use App\Utils\ModuleUtil;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Vestuario\Http\Controllers\DataController;
 use Modules\Vestuario\Http\Controllers\RemarcacaoController;
+use Modules\Vestuario\Services\Remarcacao;
 use Modules\Vestuario\Services\VestuarioSettingsResolver;
 use Tests\Support\WithSeededTenant;
 
@@ -114,6 +116,21 @@ it('UC-VREM-06 — o menu mostra Remarcação só com a permissão e a remarcaç
 
     ($this->ligar)($this->biz->id, false);
     expect(($this->ghostsDoMenu)($comPermissao, $this->biz->id))->toBe(['etiquetas' => '/vestuario/etiquetas']);
+});
+
+it('UC-VREM-02 — erro de banco vira mensagem genérica, sem SQL na tela', function () {
+    ($this->ligar)($this->biz->id, true);
+    $svc = Mockery::mock(Remarcacao::class);
+    $svc->shouldReceive('previa')->andThrow(new QueryException('mysql', 'select segredo from tabela', [], new RuntimeException('SQLSTATE[40001] deadlock')));
+    app()->instance(Remarcacao::class, $svc);
+
+    $r = ($this->como)($this->editor, $this->biz->id)
+        ->postJson('/vestuario/remarcacao/previa', ['modo' => 'percentual', 'valor' => -30, 'filtro' => ['nome' => $this->tag]])
+        ->assertStatus(500);
+
+    expect($r->json('message'))->toBe('Não foi possível concluir agora. Tente de novo.');
+    expect($r->getContent())->not->toContain('SQLSTATE');
+    expect($r->getContent())->not->toContain('segredo');
 });
 
 it('UC-VET-10 — gerar etiqueta tem limite por usuário: a 11ª no minuto dá 429 e outro usuário segue', function () {

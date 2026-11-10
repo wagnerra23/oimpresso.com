@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Vestuario\Http\Controllers;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Vestuario\Exceptions\RemarcacaoRecusada;
 use Modules\Vestuario\Services\Remarcacao;
 use Modules\Vestuario\Services\VestuarioSettingsResolver;
-use RuntimeException;
 
 /**
  * US-VEST-032 — remarcação por coleção (decisão [W] 2026-10-27).
@@ -123,8 +124,12 @@ class RemarcacaoController extends Controller
     {
         try {
             return response()->json($f());
-        } catch (RuntimeException $e) {
+        } catch (RemarcacaoRecusada $e) {
             return response()->json(['message' => $e->getMessage()], 422);
+        } catch (QueryException $e) { // deadlock ou espera longa nas travas: a mensagem traz host e SQL
+            report($e);
+
+            return response()->json(['message' => 'Não foi possível concluir agora. Tente de novo.'], 500);
         }
     }
 }
