@@ -46,6 +46,7 @@ on:
     paths:
       - 'Modules/Auditoria/**'
       - 'app/Observers/ActivityCauserKindObserver.php'
+      - 'app/Utils/Util.php'
       - 'resources/js/Pages/Auditoria/**'
       - 'tests/Feature/Auditoria/**'
       - 'tests/js/auditoria-*.test.tsx'
@@ -87,6 +88,7 @@ jobs:
             auditoria:
               - 'Modules/Auditoria/**'
               - 'app/Observers/ActivityCauserKindObserver.php'
+              - 'app/Utils/Util.php'
               - 'resources/js/Pages/Auditoria/**'
               - 'tests/Feature/Auditoria/**'
               - 'tests/js/auditoria-*.test.tsx'
@@ -145,7 +147,18 @@ jobs:
             tests/Feature/Auditoria/ProductStockLogsActivityTest.php \
             tests/Feature/Auditoria/RevertServiceTest.php \
             tests/Feature/Auditoria/SellLinePaymentLogsActivityTest.php \
-            tests/Feature/Auditoria/TransactionLogsActivityTest.php
+            tests/Feature/Auditoria/TransactionLogsActivityTest.php \
+            Modules/Auditoria/Tests/Feature/AuditEntryReversibilityTest.php \
+            Modules/Auditoria/Tests/Feature/AuditNoteLogsActivityTest.php \
+            Modules/Auditoria/Tests/Feature/AuditoriaModuleTest.php \
+            Modules/Auditoria/Tests/Feature/MultiTenantIsolationTest.php \
+            Modules/Auditoria/Tests/Feature/PiiLeakActivityLogEnforceTest.php \
+            Modules/Auditoria/Tests/Feature/RevertRedacaoContratoTest.php \
+            Modules/Auditoria/Tests/Feature/RevertServiceOtelSpanTest.php \
+            Modules/Auditoria/Tests/Feature/RevertServicePiiRedactionTest.php \
+            Modules/Auditoria/Tests/Feature/SmokeRoutesTest.php \
+            Modules/Auditoria/Tests/Feature/Wave18SaturationTest.php \
+            Modules/Auditoria/Tests/Feature/Wave27SaturationTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0.
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
