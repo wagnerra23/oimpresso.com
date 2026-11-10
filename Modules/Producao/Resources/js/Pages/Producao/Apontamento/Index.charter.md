@@ -5,7 +5,7 @@ component: Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/producao-cv-campo.jsx
 owner: wagner
 status: draft
-last_validated: "2026-10-15"
+last_validated: "2026-11-09"
 parent_module: Producao
 related_adrs: [93, 358, 431]
 tier: B
@@ -42,5 +42,6 @@ inicia, pausa e conclui; o tempo vira custo real e a OS anda para o próximo res
 
 - ❌ Moldura de celular e o texto explicativo do protótipo: são andaime da demonstração.
 - ❌ Estornar material apontado errado: a regra do material numa venda sem OS é decisão de [W]. A baixa de material e o "Registrar refugo" da thread 08 entraram em 2026-10-21 (Goals).
-- ❌ Modo terminal fixo na máquina e sobra de material: forma nova do Cowork, ainda fora do espelho (threads 12 e 16).
+- ❌ Modo terminal fixo na máquina (thread 12): a forma já está no espelho (`Terminal` em `producao-cv-campo.jsx`), mas a rota e a tela não existem.
+- ❌ Sobra de material, o retalho (thread 16): sem rota e sem tela; no espelho só há os dados (`RETALHOS` em `producao-cv-data.jsx`).
 - ❌ Escrever no Ponto: ele só é lido (D-PONTO).

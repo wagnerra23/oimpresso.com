@@ -126,6 +126,7 @@ class NfeBrasilServiceProvider extends ServiceProvider
             \Modules\NfeBrasil\Console\Commands\RetentarContingenciaCommand::class,
             \Modules\NfeBrasil\Console\Commands\EnviarXmlContadorCommand::class,
             \Modules\NfeBrasil\Console\Commands\ImportarRegrasCsvCommand::class,
+            \Modules\NfeBrasil\Console\Commands\MoverArquivosFiscaisCommand::class,
         ]);
     }
 
