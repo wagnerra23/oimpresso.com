@@ -43,7 +43,8 @@ owner: W
 | Alçada de valor no pedido (comprador, gerente, diretoria) | ✅ desligada por padrão | `AlcadaDoPedido` (US-COM-032) |
 | Inspeção no recebimento; reprovado vira devolução | 🟡 serviço pronto e testado, **sem tela**, desligada | `InspecaoDoRecebimento` (US-COM-034) |
 | Custo do recebimento e preço proposto no detalhe da compra | 🟡 aprovar/recusar pronto; falta a fila na Fabricação | `AplicarCustoDoRecebimento` + `PropostasDePreco` (US-COM-026/028) |
-| Custo médio móvel por variação | 🟡 atrás de flag, depende da semente aprovada pelo [W] | `CustoMedioMovel` + `compras:custo-medio-semear` (US-PROD-024) |
+| Custo médio móvel por variação, com estorno ao cancelar ou excluir a compra | 🟡 atrás de flag, depende da semente aprovada pelo [W] | `CustoMedioMovel` + `CompraRecebidaCustoMedioObserver` + `compras:custo-medio-semear` (US-PROD-024) |
+| Reconciliação do custo médio por empresa e variação | 🟡 mostra o delta sem gravar; só grava com `--aplicar --business=N`; não é agendada | `ReconciliacaoCustoMedio` + `compras:custo-medio-reconciliar` (US-PROD-024) |
 | Curva ABC e sugestão de reposição pelo giro | 🟡 só leitura, atrás de flag | `CurvaAbcReposicao` (US-ESTOQUE-003) |
 | Estoque mínimo vira requisição | ✅ desligado por padrão | `RequisicaoEstoqueMinimoService` (US-COM-027) |
 | Teste de cálculo custo/total/estoque (Tier 0) | ✅ E2E na lane de PR, no tenant 98 | `PurchaseCalculoValorEstoqueE2ETest` (US-COM-011) |
