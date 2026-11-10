@@ -11,7 +11,6 @@ use App\Util\OtelHelper;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 use Modules\NfeBrasil\Exceptions\AliquotaInternaNaoCadastradaException;
 use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
@@ -23,6 +22,7 @@ use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
+use Modules\NfeBrasil\Support\ArquivoFiscal;
 use Modules\RecurringBilling\Models\Invoice;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
@@ -1906,14 +1906,14 @@ class NfeService
         }
 
         // O XML assinado é a ÚNICA fonte: reconstruir mudaria a chave de acesso.
-        if (! $emissao->xml_path || ! Storage::exists($emissao->xml_path)) {
+        if (! ArquivoFiscal::existe($emissao->xml_path)) {
             throw new RuntimeException(
                 "NfeEmissao {$emissaoId} em contingência sem XML persistido ({$emissao->xml_path}). "
                 . 'Não é possível transmitir sem reconstruir o documento — o que geraria outra chave.'
             );
         }
 
-        $xmlSigned = (string) Storage::get($emissao->xml_path);
+        $xmlSigned = (string) ArquivoFiscal::ler($emissao->xml_path);
 
         $business = DB::table('business')->where('id', $businessId)->first();
         if (! $business) {
@@ -2263,7 +2263,7 @@ class NfeService
         int $numero,
     ): void {
         $xmlPath = sprintf('nfe-brasil/%d/notas/%s-%s.xml', $businessId, $serie, $numero);
-        Storage::put($xmlPath, $xmlSigned);
+        ArquivoFiscal::gravar($xmlPath, $xmlSigned);
 
         $emissao->update([
             'xml_path' => $xmlPath,
@@ -2894,7 +2894,7 @@ class NfeService
         // cStat 100 = Autorizado NF-e; 150 = Autorizado fora do prazo
         if (in_array($cstat, ['100', '150'], true)) {
             $xmlPath = sprintf('nfe-brasil/%d/notas/%s-%s.xml', $businessId, $serie, $numero);
-            Storage::put($xmlPath, $xmlSigned);
+            ArquivoFiscal::gravar($xmlPath, $xmlSigned);
 
             $emissao->update([
                 'status'     => 'autorizada',
@@ -2907,7 +2907,7 @@ class NfeService
             ]);
 
             // US-ARQ-021 (ADR 0123) — double-write XML pra Modules/Arquivos backbone.
-            // Mantém Storage::put + xml_path coluna legacy (fallback). Cria row em
+            // Mantém a gravação + xml_path coluna legacy (fallback). Cria row em
             // arquivos table polimórfica pra futuro NfeService::xmlArquivo() consumir.
             // Try/catch graceful — falha aqui NÃO bloqueia fluxo emit fiscal.
             $this->writeArquivoXml($emissao, $xmlPath, $xmlSigned);
@@ -3043,7 +3043,7 @@ class NfeService
                 'business_id'         => $emissao->business_id,
                 'arquivable_type'     => $arquivableType,
                 'arquivable_id'       => $emissao->id,
-                'disk'                => 'local',
+                'disk'                => ArquivoFiscal::DISCO,
                 'storage_path'        => $xmlPath,
                 'original_name'       => basename($xmlPath),
                 'mime_type'           => 'application/xml',
