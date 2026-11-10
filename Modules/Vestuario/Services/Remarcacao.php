@@ -28,7 +28,7 @@ class Remarcacao
     {
     }
 
-    /** @return array{linhas: array<int, array>, ignoradas: int, assinatura: string, grupos: array{fixos: int, percentuais: int}} */
+    /** @return array{linhas: array<int, array>, ignoradas: int, assinatura: string} */
     public function previa(int $biz, array $filtro, string $modo, float $valor): array
     {
         $linhas = [];
@@ -47,10 +47,7 @@ class Remarcacao
             ];
         }
 
-        return [
-            'linhas' => $linhas, 'ignoradas' => $ignoradas, 'assinatura' => $this->assinar($linhas),
-            'grupos' => $this->precosDeGrupo(array_column($linhas, 'variation_id')),
-        ];
+        return ['linhas' => $linhas, 'ignoradas' => $ignoradas, 'assinatura' => $this->assinar($linhas)];
     }
 
     /** Grava o lote. Lança se a prévia envelheceu (algum preço mudou desde que foi mostrada). */
@@ -162,7 +159,7 @@ class Remarcacao
      * @param  int[]  $ids
      * @return array{fixos: int, percentuais: int}
      */
-    private function precosDeGrupo(array $ids): array
+    public function precosDeGrupo(array $ids): array
     {
         $tipos = DB::table('variation_group_prices')->whereIn('variation_id', $ids)->where('price_inc_tax', '>', 0)
             ->distinct()->get(['variation_id', 'price_type']);

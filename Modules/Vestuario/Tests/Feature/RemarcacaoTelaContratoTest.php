@@ -77,6 +77,19 @@ it('UC-VREM-05 — sem o setting a tela e a prévia dão 404', function () {
         ->assertNotFound();
 });
 
+it('UC-VREM-01 — a resposta da prévia traz a contagem de preço de grupo', function () {
+    ($this->ligar)($this->biz->id, true);
+    $grupo = DB::table('selling_price_groups')->insertGetId(['business_id' => $this->biz->id, 'name' => 'Atacado ' . $this->tag,
+        'created_at' => now(), 'updated_at' => now()]);
+    DB::table('variation_group_prices')->insert(['variation_id' => $this->var, 'price_group_id' => $grupo, 'price_inc_tax' => 50.00,
+        'price_type' => 'fixed', 'created_at' => now(), 'updated_at' => now()]);
+
+    $r = ($this->como)($this->editor, $this->biz->id)
+        ->postJson('/vestuario/remarcacao/previa', ['modo' => 'percentual', 'valor' => -30, 'filtro' => ['nome' => $this->tag]])->assertOk();
+
+    expect($r->json('grupos'))->toBe(['fixos' => 1, 'percentuais' => 0]);
+});
+
 it('UC-VREM-06 — ligada, abre só com a permissão própria e só com dados da empresa [T0]', function () {
     ($this->ligar)($this->biz->id, true);
     $alheia = DB::table('brands')->insertGetId(['business_id' => $this->outra->id, 'name' => 'Marca alheia ' . $this->tag,

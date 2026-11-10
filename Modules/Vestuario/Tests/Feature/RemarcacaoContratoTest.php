@@ -80,8 +80,7 @@ it('UC-VREM-01 — a prévia conta as peças com preço de grupo, por tipo', fun
         $linha($vz['Z'], 0.00, 'fixed'), // preço zero é tabela sem preço: não muda nada para ninguém
     ]);
 
-    expect($this->svc->previa($this->biz, ['nome' => $this->tag], 'percentual', -30)['grupos'])
-        ->toBe(['fixos' => 1, 'percentuais' => 1]);
+    expect($this->svc->precosDeGrupo([$this->va['P'], $this->va['M'], $vz['Z']]))->toBe(['fixos' => 1, 'percentuais' => 1]);
     // a tabela do grupo continua intocada na prévia
     expect((float) DB::table('variation_group_prices')->where('variation_id', $this->va['P'])->value('price_inc_tax'))->toBe(50.0);
 });
