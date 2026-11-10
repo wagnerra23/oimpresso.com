@@ -216,8 +216,11 @@ it('UC-CTD-04 · o contador logado não escreve no Financeiro, mesmo com grant e
     $advisor = advCriar();
     advGrant($advisor->id, $this->b98, $user->id);
 
-    $resposta = $this->actingAs($advisor, 'web-advisor')
-        ->post("/financeiro/unificado/1/baixar?advisor_view=1&business_id={$this->b98}", []);
+    // Login real: em produção o contador só tem a sessão do guard `web-advisor`, e o `auth`
+    // das rotas do Financeiro usa o guard padrão (`web`). `actingAs` trocaria o padrão.
+    advLogin($advisor->email, 'senha-correta-1')->assertRedirect('/advisor');
+
+    $resposta = $this->post("/financeiro/unificado/1/baixar?advisor_view=1&business_id={$this->b98}", []);
 
     expect($resposta->status())->toBe(302)
         ->and($resposta->headers->get('Location'))->toContain('login');
@@ -283,8 +286,9 @@ it('UC-ADVD-03 · o link do cliente hoje manda o contador para o login, sem most
     $advisor = advCriar();
     advGrant($advisor->id, $this->b98, $user->id);
 
-    $resposta = $this->actingAs($advisor, 'web-advisor')
-        ->get("/financeiro/unificado?advisor_view=1&business_id={$this->b98}");
+    advLogin($advisor->email, 'senha-correta-1')->assertRedirect('/advisor');
+
+    $resposta = $this->get("/financeiro/unificado?advisor_view=1&business_id={$this->b98}");
 
     expect($resposta->status())->toBe(302)
         ->and($resposta->headers->get('Location'))->toContain('login');
