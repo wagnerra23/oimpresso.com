@@ -30,6 +30,12 @@ beforeEach(function () {
         $this->markTestSkipped('Tabela advisors ausente.');
     }
     $this->biz = $this->seededTenant();
+
+    // O AdminSidebarMenu só chama o modifyAdminMenu de módulo instalado (`system.financeiro_version`).
+    // Sem a chave no banco do CI, o menu do Financeiro nem é montado e os asserts leem uma lista vazia.
+    if (empty(\App\System::getProperty('financeiro_version'))) {
+        DB::table('system')->insert(['key' => 'financeiro_version', 'value' => 'teste']);
+    }
 });
 
 function fmenuEntrar(object $test, array $permissoes): User
@@ -78,6 +84,9 @@ function fmenuHrefs(object $test): array
         }
     };
     $varrer((array) data_get($resposta->viewData('page'), 'props.shell.menu', []));
+
+    // A entrada do sidebar vem com url() (absoluta) e as abas com caminho; compara só o caminho.
+    $hrefs = array_map(fn ($h) => (string) (parse_url($h, PHP_URL_PATH) ?? $h), $hrefs);
 
     return array_values(array_filter($hrefs, fn ($h) => str_contains($h, '/financeiro/') || str_contains($h, '/settings/payment-gateways')));
 }
