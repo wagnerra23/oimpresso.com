@@ -1,253 +1,260 @@
 <?php
+// @covers-us US-COMVIS-004
 
 declare(strict_types=1);
 
-use App\Business;
-use App\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Modules\ComunicacaoVisual\Entities\Apontamento;
 use Modules\ComunicacaoVisual\Entities\Os;
-
-uses(Tests\TestCase::class);
+use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
+use Modules\ComunicacaoVisual\Services\ApontamentoTracker;
+use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
+use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Support\WithSeededTenant;
 
 /**
- * Testes de integração do ApontamentoController — endpoints API JSON.
+ * API JSON de apontamento de produção (spool plotter) — US-COMVIS-004.
  *
- * US-COMVIS-004: spool plotter / apontamento de produção.
- *
- * Endpoints cobertos:
- *   POST /comunicacao-visual/api/apontamentos/iniciar          → cria apontamento + 201
- *   POST /comunicacao-visual/api/apontamentos/{id}/finalizar   → finaliza + drift
- *   GET  /comunicacao-visual/api/apontamentos/em-andamento     → retorna ativo
- *   Multi-tenant: biz=1 não visível para session biz=99        → global scope
- *
- * Tests biz=1 (Wagner WR2) conforme ADR 0101 — nunca biz=4 (cliente ROTA LIVRE).
- * Multi-tenant Tier 0 (ADR 0093): apontamento biz=1 não aparece para session biz=99.
- *
- * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
- *   UC-CV-05 — `em-andamento` de outro business volta vazio           (CU-CV-04 item 4) [T0]
- *   UC-CV-06 — spool único por operador; drift/duração server-side    (CU-CV-06)
- *
- * @covers-us US-COMVIS-004
+ * Contrato: Index.casos.md UC-CV-05, UC-CV-06 e UC-CVAPT-01..05. Tenant 98 contra 99 (ADR 0358).
+ * Chama o controller direto, sem o stack de rotas: o que se prova aqui é a regra do controller,
+ * e o gate de pacote das rotas tem teste próprio.
+ * ⚠️ SKIP em SQLite (lane sem as tabelas comvis_*): leia assertions, não "0 failed" (LC-13).
  *
  * @see Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController
  * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-04/CU-CV-06
  * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
- * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
+uses(Tests\TestCase::class, DatabaseTransactions::class, WithSeededTenant::class);
 
-// ------------------------------------------------------------------
-// Helper: bootstrap user autenticado no biz=1 + OS de teste
-// ------------------------------------------------------------------
+const APT_CTRL_PERMISSAO = 'comvis.apontamento.create';
 
-function bootstrapControllerApt(): array
-{
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite' || ! Schema::hasTable('comvis_apontamentos')) {
+        $this->markTestSkipped('Requer MySQL com as tabelas comvis_* migradas.');
+    }
     try {
-        $business = Business::find(1) ?? Business::first();
+        $this->biz = $this->seededTenant();
+        $this->outra = $this->seededSupportClientTenant();
     } catch (\Throwable $e) {
-        test()->markTestSkipped('Tabela business indisponível: ' . $e->getMessage());
+        $this->markTestSkipped('Schema UltimatePOS ausente: '.$e->getMessage());
     }
+    $this->operador = $this->usuarioComPermissoes([APT_CTRL_PERMISSAO], $this->biz);
+    $this->os = aptCtrlOs($this->biz->id);
+});
 
-    if (! $business) {
-        test()->markTestSkipped('Sem business no banco — rode seeder UltimatePOS antes.');
-    }
-
-    $user = User::where('business_id', $business->id)->first();
-    if (! $user) {
-        test()->markTestSkipped('Sem user no business_id=1.');
-    }
-
-    session([
-        'user.business_id'         => $business->id,
-        'user.id'                  => $user->id,
-        'business.id'              => $business->id,
-        'business.name'            => $business->name,
-        'business.currency_symbol' => 'R$',
-        'is_admin'                 => true,
-    ]);
-
-    // OS de teste via withoutGlobalScopes (SUPERADMIN: setup de teste)
-    $os = Os::withoutGlobalScopes()->create([
-        'business_id'  => $business->id,
-        'numero'       => 'OS-CTRL-TEST-' . uniqid(),
-        'status_etapa' => 'producao',
-        'valor_total'  => 0,
-    ]);
-
-    return [$business, $user, $os];
-}
-
-function limparCtrlAptTest(Os $os): void
+function aptCtrlOs(int $businessId): Os
 {
-    Apontamento::withoutGlobalScopes()->where('os_id', $os->id)->delete();
-    Os::withoutGlobalScopes()->where('id', $os->id)->forceDelete();
+    // SUPERADMIN: fixture criada para uma empresa escolhida pelo teste, sem depender da sessão.
+    return Os::withoutGlobalScopes()->create([
+        'business_id' => $businessId,
+        'numero' => 'OS-APT-'.uniqid(),
+        'status_etapa' => 'producao',
+        'valor_total' => 0,
+    ]);
+}
+
+function aptCtrlAberto(int $businessId, Os $os, int $operadorId, array $extra = []): Apontamento
+{
+    // SUPERADMIN: fixture criada para uma empresa escolhida pelo teste, sem depender da sessão.
+    return Apontamento::withoutGlobalScopes()->create([
+        'business_id' => $businessId,
+        'os_id' => $os->id,
+        'operador_id' => $operadorId,
+        'iniciado_em' => now()->subMinutes(5),
+    ] + $extra);
+}
+
+function aptCtrlLogar($test, $user, int $businessId): void
+{
+    $test->actingAs($user);
+    session(['user.business_id' => $businessId, 'business.id' => $businessId, 'user.id' => $user->id]);
+}
+
+function aptCtrlChamar($test, $user, string $acao, array $parametros = [], ?int $businessId = null)
+{
+    aptCtrlLogar($test, $user, $businessId ?? $test->biz->id);
+
+    return app()->call([app(ApontamentoController::class), $acao], $parametros);
+}
+
+function aptCtrlRequest(array $dados = [], string $metodo = 'POST'): Request
+{
+    return Request::create('/comunicacao-visual/api/apontamentos', $metodo, $dados);
+}
+
+/** O id de uma peça de orçamento da empresa, com 4 m². */
+function aptCtrlItem(int $businessId): int
+{
+    $payload = ['data_emissao' => '2026-10-21',
+        'itens' => [['descricao' => 'Fachada ACM', 'largura_m' => 4, 'altura_m' => 1, 'quantidade' => 1, 'preco_unitario_m2' => 180]]];
+    $orcamento = app(OrcamentoGravador::class)->gravar($businessId, app(OrcamentoCalculator::class)->calcular($payload), 'enviado');
+
+    return (int) DB::table('comvis_orcamento_itens')->where('orcamento_id', $orcamento->id)->value('id');
+}
+
+/** Roda a chamada e devolve os erros de validação; falha se ela passar sem ser recusada. */
+function aptCtrlErrosDe($test, callable $chamada): array
+{
+    try {
+        $chamada();
+    } catch (ValidationException $e) {
+        return $e->errors();
+    }
+    $test->fail('A validação deveria ter recusado o id de outra empresa.');
 }
 
 // ------------------------------------------------------------------
-// Teste 1: POST /apontamentos/iniciar persiste + retorna 201
+// Fluxo do operador
 // ------------------------------------------------------------------
 
-it('POST /apontamentos/iniciar persiste apontamento no DB e retorna 201', function () {
-    [$business, $user, $os] = bootstrapControllerApt();
+it('UC-CV-06 · iniciar grava o apontamento do operador logado e devolve 201', function () {
+    $resp = aptCtrlChamar($this, $this->operador, 'iniciar', ['request' => aptCtrlRequest([
+        'os_id' => $this->os->id,
+        'maquina' => 'plotter-roland-1',
+    ])]);
 
-    $response = $this->actingAs($user)
-        ->postJson('/comunicacao-visual/api/apontamentos/iniciar', [
-            'os_id'   => $os->id,
-            'maquina' => 'plotter-roland-1',
-        ]);
+    $json = $resp->getData(true);
+    expect($resp->getStatusCode())->toBe(201)
+        ->and($json['os_id'])->toBe($this->os->id)
+        ->and($json['operador_id'])->toBe($this->operador->id)
+        ->and($json['maquina'])->toBe('plotter-roland-1')
+        ->and($json['finalizado_em'])->toBeNull();
 
-    if ($response->status() === 403) {
-        test()->markTestSkipped('Gate de módulo bloqueia neste env.');
-    }
+    $gravado = Apontamento::query()->findOrFail($json['id']);
+    expect($gravado->business_id)->toBe($this->biz->id)
+        ->and($gravado->finalizado_em)->toBeNull();
+});
 
-    $response->assertStatus(201);
-    $json = $response->json();
+it('UC-CV-06 · o operador não abre um segundo spool enquanto o primeiro está aberto', function () {
+    aptCtrlAberto($this->biz->id, $this->os, $this->operador->id);
 
-    expect($json)->toHaveKey('id');
-    expect($json['os_id'])->toBe($os->id);
-    expect($json['finalizado_em'])->toBeNull();
-    expect($json['maquina'])->toBe('plotter-roland-1');
+    $resp = aptCtrlChamar($this, $this->operador, 'iniciar', ['request' => aptCtrlRequest(['os_id' => $this->os->id])]);
 
-    // Persistiu no DB
-    $db = Apontamento::withoutGlobalScopes()->find($json['id']);
-    expect($db)->not->toBeNull();
-    expect($db->finalizado_em)->toBeNull();
+    expect($resp->getStatusCode())->toBe(422)
+        ->and(Apontamento::query()->where('operador_id', $this->operador->id)->count())->toBe(1);
+});
 
-    limparCtrlAptTest($os);
+it('UC-CV-06 · finalizar calcula o drift no servidor', function () {
+    $aberto = aptCtrlAberto($this->biz->id, $this->os, $this->operador->id, ['m2_orcado' => 10.000]);
+
+    $resp = aptCtrlChamar($this, $this->operador, 'finalizar', [
+        'request' => aptCtrlRequest(['m2_produzido' => 8.0, 'observacoes' => 'Produção ok com pequena sobra']),
+        'apontamento' => $aberto->id,
+    ]);
+
+    $json = $resp->getData(true);
+    expect($resp->getStatusCode())->toBe(200)
+        ->and($json['finalizado_em'])->not->toBeNull()
+        ->and((float) $json['m2_produzido'])->toBe(8.0)
+        ->and((float) $json['drift_percent'])->toBe(-20.0)
+        ->and((float) $aberto->fresh()->drift_percent)->toBe(-20.0);
+});
+
+it('UC-CV-06 · em-andamento devolve o spool aberto do operador e nada quando não há', function () {
+    expect(aptCtrlChamar($this, $this->operador, 'emAndamento')->getData(true))->toBeNull();
+
+    $aberto = aptCtrlAberto($this->biz->id, $this->os, $this->operador->id);
+
+    $json = aptCtrlChamar($this, $this->operador, 'emAndamento')->getData(true);
+    expect($json['id'])->toBe($aberto->id)
+        ->and($json['finalizado_em'])->toBeNull();
 });
 
 // ------------------------------------------------------------------
-// Teste 2: POST /apontamentos/{id}/finalizar atualiza row + calcula drift
+// Tier 0: isolamento entre empresas (ADR 0093)
 // ------------------------------------------------------------------
 
-it('POST /apontamentos/{id}/finalizar atualiza row e calcula drift corretamente', function () {
-    [$business, $user, $os] = bootstrapControllerApt();
+it('UC-CV-05 · em-andamento não enxerga o spool da empresa 98 numa sessão da 99', function () {
+    aptCtrlAberto($this->biz->id, $this->os, $this->operador->id);
 
-    // Criar apontamento inicial diretamente no banco
-    $apontamento = Apontamento::withoutGlobalScopes()->create([
-        'business_id'  => $business->id,
-        'os_id'        => $os->id,
-        'operador_id'  => $user->id,
-        'iniciado_em'  => now()->subMinutes(5),
-        'm2_orcado'    => 10.000, // orçado 10m²
-    ]);
+    $resp = aptCtrlChamar($this, $this->operador, 'emAndamento', [], $this->outra->id);
 
-    $response = $this->actingAs($user)
-        ->postJson("/comunicacao-visual/api/apontamentos/{$apontamento->id}/finalizar", [
-            'm2_produzido' => 8.0,  // produzido 8m² → drift = -20%
-            'observacoes'  => 'Produção ok com pequena sobra',
-        ]);
+    expect($resp->getStatusCode())->toBe(200)
+        ->and($resp->getData(true))->toBeNull();
+});
 
-    if ($response->status() === 403) {
-        test()->markTestSkipped('Gate de módulo bloqueia neste env.');
-    }
+it('UC-CVAPT-03 · iniciar em OS de outra empresa é recusado igual a OS que não existe', function () {
+    $alheia = aptCtrlOs($this->outra->id);
 
-    $response->assertStatus(200);
-    $json = $response->json();
+    $erroAlheia = aptCtrlErrosDe($this, fn () => aptCtrlChamar($this, $this->operador, 'iniciar', ['request' => aptCtrlRequest(['os_id' => $alheia->id])]));
+    $erroInexistente = aptCtrlErrosDe($this, fn () => aptCtrlChamar($this, $this->operador, 'iniciar', ['request' => aptCtrlRequest(['os_id' => 2147483000])]));
 
-    expect($json['finalizado_em'])->not->toBeNull();
-    expect((float) $json['m2_produzido'])->toBe(8.0);
-    expect((float) $json['drift_percent'])->toBe(-20.00); // ((8-10)/10)*100 = -20
+    expect(array_keys($erroAlheia))->toBe(['os_id'])
+        ->and($erroAlheia)->toBe($erroInexistente)
+        ->and(Apontamento::query()->where('operador_id', $this->operador->id)->count())->toBe(0);
+});
 
-    // Persistiu no DB
-    $db = Apontamento::withoutGlobalScopes()->find($apontamento->id);
-    expect($db->finalizado_em)->not->toBeNull();
-    expect((float) $db->drift_percent)->toBe(-20.00);
+it('UC-CVAPT-04 · peça de orçamento de outra empresa é recusada, e a da própria empresa passa', function () {
+    $alheio = aptCtrlItem($this->outra->id);
+    $proprio = aptCtrlItem($this->biz->id);
 
-    limparCtrlAptTest($os);
+    $erros = aptCtrlErrosDe($this, fn () => aptCtrlChamar($this, $this->operador, 'iniciar', ['request' => aptCtrlRequest([
+        'os_id' => $this->os->id,
+        'orcamento_item_id' => $alheio,
+    ])]));
+    expect(array_keys($erros))->toBe(['orcamento_item_id'])
+        ->and(Apontamento::query()->where('operador_id', $this->operador->id)->count())->toBe(0);
+
+    $resp = aptCtrlChamar($this, $this->operador, 'iniciar', ['request' => aptCtrlRequest([
+        'os_id' => $this->os->id,
+        'orcamento_item_id' => $proprio,
+    ])]);
+    expect($resp->getStatusCode())->toBe(201)
+        ->and((float) $resp->getData(true)['m2_orcado'])->toBe(4.0);
+});
+
+it('UC-CVAPT-05 · o Tracker também recusa OS de outra empresa, sem depender da validação', function () {
+    $alheia = aptCtrlOs($this->outra->id);
+    aptCtrlLogar($this, $this->operador, $this->biz->id);
+
+    expect(fn () => app(ApontamentoTracker::class)->iniciar(osId: $alheia->id, operadorId: $this->operador->id))
+        ->toThrow(RuntimeException::class);
 });
 
 // ------------------------------------------------------------------
-// Teste 3: GET /apontamentos/em-andamento retorna apontamento ativo
+// PII e permissão
 // ------------------------------------------------------------------
 
-it('GET /apontamentos/em-andamento retorna apontamento ativo do usuário autenticado', function () {
-    [$business, $user, $os] = bootstrapControllerApt();
+it('UC-CVAPT-01 · a lista devolve do operador só id e nome', function () {
+    $this->operador->forceFill(['email' => 'operador.apontamento@teste.invalid', 'username' => 'operador_apt_98'])->save();
+    aptCtrlAberto($this->biz->id, $this->os, $this->operador->id);
 
-    // Sem apontamento ativo → null
-    $response = $this->actingAs($user)
-        ->getJson('/comunicacao-visual/api/apontamentos/em-andamento');
+    $resp = aptCtrlChamar($this, $this->operador, 'index', ['request' => aptCtrlRequest([], 'GET')]);
 
-    if ($response->status() === 403) {
-        test()->markTestSkipped('Gate de módulo bloqueia neste env.');
-    }
-
-    $response->assertStatus(200);
-    expect($response->json())->toBeNull();
-
-    // Criar apontamento ativo
-    $ativo = Apontamento::withoutGlobalScopes()->create([
-        'business_id'   => $business->id,
-        'os_id'         => $os->id,
-        'operador_id'   => $user->id,
-        'iniciado_em'   => now()->subMinutes(3),
-        'finalizado_em' => null,
-    ]);
-
-    $response2 = $this->actingAs($user)
-        ->getJson('/comunicacao-visual/api/apontamentos/em-andamento');
-
-    $response2->assertStatus(200);
-    $json2 = $response2->json();
-    expect($json2['id'])->toBe($ativo->id);
-    expect($json2['finalizado_em'])->toBeNull();
-
-    limparCtrlAptTest($os);
+    $linha = collect($resp->getData(true)['data'])->firstWhere('operador_id', $this->operador->id);
+    expect($linha['operador'])->toBe(['id' => $this->operador->id, 'nome' => $this->operador->nome_exibicao])
+        ->and($resp->getContent())->not->toContain('operador.apontamento')
+        ->and($resp->getContent())->not->toContain('operador_apt_98');
 });
 
-// ------------------------------------------------------------------
-// Teste 4: Multi-tenant Tier 0 — apontamento biz=1 não aparece para session biz=99
-// ADR 0093 — IRREVOGÁVEL
-// ------------------------------------------------------------------
+it('UC-CVAPT-02 · sem comvis.apontamento.create não lista, não inicia, não finaliza nem cancela', function () {
+    $semPermissao = $this->usuarioComPermissoes(['comvis.orcamento.view'], $this->biz);
+    $aberto = aptCtrlAberto($this->biz->id, $this->os, $this->operador->id);
 
-it('Multi-tenant Tier 0: GET /apontamentos/em-andamento retorna null para session biz diferente', function () {
-    // Criar user e OS no biz=1 (SUPERADMIN: setup de teste)
-    try {
-        $user = User::where('business_id', 1)->first();
-    } catch (\Throwable) {
-        test()->markTestSkipped('User biz=1 indisponível.');
+    $chamadas = [
+        'index' => ['request' => aptCtrlRequest([], 'GET')],
+        'iniciar' => ['request' => aptCtrlRequest(['os_id' => $this->os->id])],
+        'finalizar' => ['request' => aptCtrlRequest(['m2_produzido' => 1]), 'apontamento' => $aberto->id],
+        'cancelar' => ['request' => aptCtrlRequest(['motivo' => 'motivo qualquer']), 'apontamento' => $aberto->id],
+    ];
+    foreach ($chamadas as $acao => $parametros) {
+        try {
+            aptCtrlChamar($this, $semPermissao, $acao, $parametros);
+            $this->fail("Sem a permissão, {$acao} deveria devolver 403.");
+        } catch (HttpException $e) {
+            expect($e->getStatusCode())->toBe(403);
+        }
     }
 
-    if (! $user) {
-        test()->markTestSkipped('User biz=1 indisponível.');
-    }
-
-    $os = Os::withoutGlobalScopes()->create([
-        'business_id'  => 1,
-        'numero'       => 'OS-MT-TEST-' . uniqid(),
-        'status_etapa' => 'producao',
-        'valor_total'  => 0,
-    ]);
-
-    // Apontamento ativo no biz=1
-    Apontamento::withoutGlobalScopes()->create([
-        'business_id'   => 1,
-        'os_id'         => $os->id,
-        'operador_id'   => $user->id,
-        'iniciado_em'   => now()->subMinutes(5),
-        'finalizado_em' => null,
-    ]);
-
-    // Autenticar com session biz=99 → global scope não deve ver o apontamento do biz=1
-    session([
-        'user.business_id' => 99,
-        'business.id'      => 99,
-        'user.id'          => $user->id,
-        'is_admin'         => true,
-    ]);
-
-    $response = $this->actingAs($user)
-        ->getJson('/comunicacao-visual/api/apontamentos/em-andamento');
-
-    if ($response->status() === 403) {
-        test()->markTestSkipped('Gate de módulo bloqueia neste env.');
-    }
-
-    // Global scope biz=99 não deve encontrar o apontamento do biz=1
-    $response->assertStatus(200);
-    expect($response->json())->toBeNull();
-
-    // Limpar
-    Apontamento::withoutGlobalScopes()->where('os_id', $os->id)->delete();
-    Os::withoutGlobalScopes()->where('id', $os->id)->forceDelete();
+    $depois = $aberto->fresh();
+    expect($depois->finalizado_em)->toBeNull()
+        ->and($depois->m2_produzido)->toBeNull()
+        ->and(Apontamento::query()->where('operador_id', $semPermissao->id)->count())->toBe(0);
 });
