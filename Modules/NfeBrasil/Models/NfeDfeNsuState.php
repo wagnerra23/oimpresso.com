@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
  *
  * 1 row por business. NSU é cursor irreversível (SEFAZ não retorna NSU já consultado).
  * Perda = perde XMLs históricos. Backup obrigatório.
+ *
+ * @property \Illuminate\Support\Carbon|null $proxima_consulta_em antes disto não consultar a SEFAZ (lote 1.3)
  */
 class NfeDfeNsuState extends Model
 {

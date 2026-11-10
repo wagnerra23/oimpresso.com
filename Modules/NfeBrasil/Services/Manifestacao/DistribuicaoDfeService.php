@@ -170,7 +170,7 @@ class DistribuicaoDfeService
     }
 
     /**
-     * @return array{ok: bool, ult_nsu: int, max_nsu: int, docs: array}
+     * @return array{ok: bool, cstat?: string, ult_nsu: int, max_nsu: int, docs: array}
      */
     private function parseLote(string $xml): array
     {
