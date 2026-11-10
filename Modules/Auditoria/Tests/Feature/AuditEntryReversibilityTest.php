@@ -28,75 +28,46 @@ beforeEach(function () {
     $this->service = new RevertService();
 });
 
-it('whitelist UNREVERTIBLE tem exatamente 5 categorias (ADR 0127 §3)', function () {
-    $registry = $this->service->unrevertibleRegistry();
-    expect($registry)->toHaveCount(5);
+it('toda chave da whitelist é classe que existe (instanceof de classe inexistente é trava inerte)', function () {
+    foreach (array_keys($this->service->unrevertibleRegistry()) as $classe) {
+        expect(class_exists($classe))->toBeTrue("Chave {$classe} não existe");
+    }
 });
 
 it('whitelist contém Marcacao (Portaria MTP 671/2021 append-only)', function () {
     $registry = $this->service->unrevertibleRegistry();
-    expect($registry)->toHaveKey(\Modules\PontoWr2\Models\Marcacao::class);
+    expect($registry)->toHaveKey(\Modules\Ponto\Entities\Marcacao::class);
 
-    $rule = $registry[\Modules\PontoWr2\Models\Marcacao::class];
+    $rule = $registry[\Modules\Ponto\Entities\Marcacao::class];
     expect($rule['condition'])->toBeNull(); // sempre bloqueado
     expect($rule['reason'])->toContain('Portaria MTP 671/2021');
     expect($rule['reason'])->toContain('append-only');
 });
 
-it('whitelist contém NfeTransaction com condition cstat ∈ {100,101,135}', function () {
+it('documentos fiscais e baixa financeira bloqueiam sempre, sem condição', function () {
     $registry = $this->service->unrevertibleRegistry();
-    expect($registry)->toHaveKey(\Modules\NfeBrasil\Models\NfeTransaction::class);
 
-    $rule = $registry[\Modules\NfeBrasil\Models\NfeTransaction::class];
-    expect($rule['condition'])->toBeCallable();
-
-    // cstat 100 (autorizada) — bloqueado
-    $fake = (object) ['cstat' => 100];
-    expect(($rule['condition'])($fake))->toBeTrue();
-
-    // cstat 101 (cancelada SEFAZ) — bloqueado
-    $fake = (object) ['cstat' => 101];
-    expect(($rule['condition'])($fake))->toBeTrue();
-
-    // cstat 135 (homologada) — bloqueado
-    $fake = (object) ['cstat' => 135];
-    expect(($rule['condition'])($fake))->toBeTrue();
-
-    // cstat 999 (rejeitada) — permitido reverter (não SEFAZ-firme)
-    $fake = (object) ['cstat' => 999];
-    expect(($rule['condition'])($fake))->toBeFalse();
-
-    // sem cstat — permitido (rascunho)
-    $fake = (object) [];
-    expect(($rule['condition'])($fake))->toBeFalse();
+    foreach ([
+        \Modules\NfeBrasil\Models\NfeEmissao::class,
+        \Modules\NfeBrasil\Models\NfeEvento::class,
+        \Modules\NfeBrasil\Models\NfeInutilizacao::class,
+        \Modules\NFSe\Models\NfseEmissao::class,
+        \Modules\NfeBrasil\Models\NfseEmissao::class,
+        \Modules\Financeiro\Models\TituloBaixa::class,
+    ] as $classe) {
+        expect($registry)->toHaveKey($classe);
+        expect($registry[$classe]['condition'])->toBeNull();
+    }
+    expect($registry[\Modules\Financeiro\Models\TituloBaixa::class]['reason'])->toContain('Asaas');
 });
 
-it('whitelist contém TituloBaixa com condition origem=asaas-paid', function () {
+it('whitelist contém JobSheet com condição de NFSe (efeito provado no RevertServiceTest)', function () {
     $registry = $this->service->unrevertibleRegistry();
-    expect($registry)->toHaveKey(\Modules\Financeiro\Models\TituloBaixa::class);
+    expect($registry)->toHaveKey(\Modules\Repair\Entities\JobSheet::class);
 
-    $rule = $registry[\Modules\Financeiro\Models\TituloBaixa::class];
-    expect($rule['reason'])->toContain('Asaas');
-
-    $fake = (object) ['origem' => 'asaas-paid'];
-    expect(($rule['condition'])($fake))->toBeTrue();
-
-    $fake = (object) ['origem' => 'manual'];
-    expect(($rule['condition'])($fake))->toBeFalse();
-});
-
-it('whitelist contém OS com condition nfse_emitida=true', function () {
-    $registry = $this->service->unrevertibleRegistry();
-    expect($registry)->toHaveKey(\Modules\Repair\Models\OS::class);
-
-    $rule = $registry[\Modules\Repair\Models\OS::class];
+    $rule = $registry[\Modules\Repair\Entities\JobSheet::class];
     expect($rule['reason'])->toContain('NFSe');
-
-    $fake = (object) ['nfse_emitida' => true];
-    expect(($rule['condition'])($fake))->toBeTrue();
-
-    $fake = (object) ['nfse_emitida' => false];
-    expect(($rule['condition'])($fake))->toBeFalse();
+    expect($rule['condition'])->toBeCallable();
 });
 
 it('whitelist contém Transaction com condition payment posterior (closure 2-arg)', function () {
