@@ -84,7 +84,8 @@ function avisoEmissao(string $status, int $modelo, ?int $tx = null): NfeEmissao
     Storage::disk('nfe_fiscal')->put("nfe-brasil/{$biz}/notas/1-8888.xml", avisoXml($chave));
 
     return NfeEmissao::create([
-        'business_id' => $biz, 'transaction_id' => $tx, 'modelo' => $modelo, 'serie' => '1', 'numero' => 8888,
+        // `modelo` é enum('55','65','67'): inteiro vira índice do enum no MySQL, por isso texto.
+        'business_id' => $biz, 'transaction_id' => $tx, 'modelo' => (string) $modelo, 'serie' => '1', 'numero' => 8888,
         'status' => $status, 'valor_total' => 10, 'tp_emis' => 1,
         'xml_path' => "nfe-brasil/{$biz}/notas/1-8888.xml",
     ]);
