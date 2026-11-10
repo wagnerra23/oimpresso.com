@@ -3,32 +3,24 @@
 declare(strict_types=1);
 
 /**
- * Politica de retencao — Modulo Auditoria (D7.c LGPD + audit fiscal).
+ * Declaracao de janelas de guarda — Modulo Auditoria (D7.c LGPD + audit fiscal).
  *
- * Auditoria registra DECISOES humanas sobre dados sensiveis (revert de
- * activity_log + notas internas). Janela conservadora 2555d (7 anos)
- * alinha:
+ * Estes valores nao tem efeito: nenhum codigo os aplica e nao existe comando de
+ * expurgo neste modulo. Registrado em 2026-11-09. Nao criar um a partir daqui:
+ * num ERP o dado tem dever de guarda e o controle e por permissao de acesso
+ * (decisao [W] de 2026-07-27, memory/proibicoes.md §5).
+ *
+ * Janela conservadora 2555d (7 anos), referencia da guarda:
  *   - CONFAZ SINIEF 07/2005 Art. 26 (guarda fiscal 5 anos + extensao
  *     pos-prescricao 2 anos = 7 anos defensivos)
- *   - LGPD Art. 16 (eliminacao apos termino do tratamento — audit fiscal
- *     conta como legitimo interesse continuado Art. 7 §IX)
  *   - Codigo Tributario Nacional Art. 174 (prescricao 5 anos)
  *
- * Multi-tenant Tier 0 IRREVOGAVEL (ADR 0093): jobs de purge SEMPRE
- * scoped por business_id. NUNCA cross-tenant cleanup.
- *
- * Auditoria-de-auditoria principio: NAO purga `activity_log` core
- * UltimatePOS (Spatie shared). Apenas tabelas proprias do modulo:
- *   - auditoria_audit_notes (D7.b)
- *
- * Status atual (2026-05-16): declaracao canonica. Jobs `auditoria:retention-purge`
- * que aplicam efetivamente ficam em backlog (ADR 0105 — so nasce com
- * sinal qualificado: titular pedir exclusao OU compliance gate detectar drift).
+ * Este modulo nao gerencia a retencao de `activity_log` core (Spatie shared).
+ * A unica tabela propria declarada e auditoria_audit_notes (D7.b).
  *
  * @see Modules\Auditoria\Entities\AuditNote
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see memory/decisions/0127-modules-auditoria-ui-undo.md
- * @see Modules\Jana\Config\retention.php (template pattern)
+ * @see memory/decisions/0127-modules-auditoria-undo-activity-log.md
  */
 
 return [
@@ -36,8 +28,7 @@ return [
     |--------------------------------------------------------------------------
     | Habilitar politica de retencao
     |--------------------------------------------------------------------------
-    | Default false ate job `auditoria:retention-purge` estar implementado
-    | + aprovado por Wagner em canary 7d (ADR 0105 sinal qualificado).
+    | Nenhum codigo le esta chave (2026-11-09). Fica false.
     */
     'enabled' => env('AUDITORIA_RETENTION_ENABLED', false),
 
@@ -51,8 +42,7 @@ return [
     |
     | - activity_log_shared (Spatie core) : null (NUNCA purga via Auditoria)
     |       Tabela compartilhada UltimatePOS. Auditoria nao gerencia retencao
-    |       desta tabela — fica a cargo do core (Modules/Essentials retention
-    |       ou job dedicado fora deste modulo).
+    |       desta tabela.
     */
     'entities' => [
         'audit_note'           => 2555, // 7 anos
@@ -61,15 +51,9 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Estrategia de purge
+    | Estrategia declarada
     |--------------------------------------------------------------------------
-    | 'hard_delete' = DELETE definitivo (LGPD Art. 18 §VI eliminacao)
-    | 'anonymize'   = mantem registro mas substitui texto livre por placeholder
-    |                 via PiiRedactor (preserva contagem agregada)
-    |
-    | Default 'anonymize' preserva metrica "quantos reverts foram anotados"
-    | sem reter conteudo da nota (que pode conter PII residual mesmo com
-    | redaction no momento da escrita — defense-in-depth).
+    | Valor sem consumidor em 2026-11-09 (ver cabecalho).
     */
     'strategy' => env('AUDITORIA_RETENTION_STRATEGY', 'anonymize'),
 
@@ -77,8 +61,7 @@ return [
     |--------------------------------------------------------------------------
     | Janela de aviso previo ao titular (em DIAS)
     |--------------------------------------------------------------------------
-    | LGPD Art. 18 §VI sugere aviso previo. Job de purge dispara notificacao
-    | ao owner do business N dias antes do delete real.
+    | Valor sem consumidor em 2026-11-09 (ver cabecalho).
     */
     'notice_period_days' => 30,
 
@@ -86,8 +69,7 @@ return [
     |--------------------------------------------------------------------------
     | Override per-business
     |--------------------------------------------------------------------------
-    | Mecanismo opt-in pra cliente B2B configurar retencao mais curta
-    | (Art. 18 §IV direito de informacao). TODO US-AUDIT-RET-001.
+    | Valor sem consumidor em 2026-11-09 (ver cabecalho).
     */
     'allow_per_business_override' => false,
 ];
