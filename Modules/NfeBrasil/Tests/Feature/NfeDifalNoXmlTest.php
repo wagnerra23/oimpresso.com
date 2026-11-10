@@ -127,9 +127,9 @@ it('UC-FNFE-36 · interestadual a não contribuinte sem interna cadastrada recus
         ->toThrow(AliquotaInternaNaoCadastradaException::class, 'Alíquota interna de RJ não cadastrada');
 
     // Controles: com a interna, contribuinte, mesma UF ou sem destinatário, não recusa.
-    $m->invoke($svc, true, 'SC', 'RJ', false, 0.20);
-    $m->invoke($svc, true, 'SC', 'RJ', true, null);
-    $m->invoke($svc, true, 'SC', 'SC', false, null);
-    $m->invoke($svc, false, 'SC', 'RJ', null, null);
-    expect(true)->toBeTrue();
+    // Cada um é um assert próprio (not->toThrow sem argumento só passa se nada for lançado).
+    expect(fn () => $m->invoke($svc, true, 'SC', 'RJ', false, 0.20))->not->toThrow();
+    expect(fn () => $m->invoke($svc, true, 'SC', 'RJ', true, null))->not->toThrow();
+    expect(fn () => $m->invoke($svc, true, 'SC', 'SC', false, null))->not->toThrow();
+    expect(fn () => $m->invoke($svc, false, 'SC', 'RJ', null, null))->not->toThrow();
 });
