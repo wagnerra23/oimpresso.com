@@ -51,11 +51,10 @@ Middlewares stack UltimatePOS canônico:
 ```
 
 > ⚠️ **Correção factual 2026-07-28 (chip SDD).** A coluna **Permission** acima descreve as
-> permissões **registradas** (`DataController::user_permissions()`), que hoje gateiam a **entry de
-> sidebar** — **não** os endpoints. `EtiquetaTagController::authorizeAccess()` verifica a permissão
-> e apenas emite `Log::warning('vestuario.etiqueta.permission_check_missing')`, seguindo o fluxo
-> (o código declara *"Sprint 3 vira hard-block"*). O que hoje protege as 3 rotas é a **stack de
-> middleware autenticada**. Ligar o hard-block é decisão de [W] —
+> permissões **registradas**. Elas gateiam a **entry de sidebar**; nas 3 rotas, o bloqueio fica atrás
+> de `VESTUARIO_ETIQUETA_EXIGIR_PERMISSAO` (`vestuario.etiqueta.exigir_permissao`), desligada por
+> padrão. Desligada, cada acesso sem permissão registra `vestuario.etiqueta.seria_bloqueado`. Ligar
+> em produção é ato de [W] depois de 1 semana lendo esse log (VEST-D1) —
 > [SDD §9 D-1](SDD-tela-etiqueta-tag-v1.0.md).
 
 ## Settings configurable (vestuario_settings JSON)

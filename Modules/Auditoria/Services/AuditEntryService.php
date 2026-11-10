@@ -6,6 +6,7 @@ use App\User;
 use App\Util\OtelHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -75,6 +76,22 @@ class AuditEntryService
             'module'      => 'Auditoria',
             'activity_id' => $activityId,
         ]);
+    }
+
+    /**
+     * Mesmo escopo de find(), para a carga deferida da tela de detalhe.
+     *
+     * Devolve null em vez de lançar: o 404 de um partial reload não é resposta Inertia, então a
+     * prop nunca chegaria, o <Deferred> ficaria no esqueleto e o core abriria o diálogo de erro.
+     * Com null a tela sai do esqueleto e mostra o estado de "não encontrada".
+     */
+    public function findOrNull(int $businessId, int $activityId): ?Activity
+    {
+        try {
+            return $this->find($businessId, $activityId);
+        } catch (ModelNotFoundException) {
+            return null;
+        }
     }
 
     /**
