@@ -5,7 +5,7 @@ irmaos: Detail.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: ver o diff de UMA alteração do próprio business — e nunca a de outro — é durável, não muda no refactor.
 owner: wagner
-last_run: "2026-11-09"
+last_run: "2026-11-10"
 ---
 
 # Casos de Uso & Aceite — Auditoria / Detail
@@ -24,13 +24,13 @@ last_run: "2026-11-09"
 - **Persona:** auditor — investiga uma mudança específica sem abrir o banco (CU-AUD-02).
 - **Aceite:** Dado uma alteração do business 98 com `properties.old` e `properties.attributes` · Quando o detalhe é carregado para o business 98 · Então vem essa entrada com os dois lados intactos (é deles que a tela monta Campo · Antes · Depois).
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-01 · detalhe traz old e attributes").
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-AUDD-02 · Alteração de outro business não abre
 - **Persona:** admin do business 99 — não pode ler a trilha do 98, nem chutando o id (Tier 0, ADR 0093).
 - **Aceite:** Dado uma alteração do business 98 · Quando o detalhe é pedido com o id dela para o business 99 · Então **não é encontrada** (`ModelNotFoundException` → 404), sem devolver dado nenhum.
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-02 · cross-tenant não abre"), no serviço. Pela rota, o caso vigente é o UC-AUDD-11.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-AUDD-03 · Sem a permissão, o detalhe não abre nem na própria empresa
 - **Persona:** dono do negócio — o detalhe mostra o antes e o depois de cada campo (SPEC US-AUDIT-010; ADR 0127 §princípio 5).

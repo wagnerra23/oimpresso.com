@@ -25,19 +25,19 @@ last_run: "2026-09-30"
 - **Persona:** admin do business / auditor — investiga o que mudou no próprio negócio (CU-AUD-01).
 - **Aceite:** Dado alterações em `activity_log` do business 98 e do business 99 · Quando a listagem é montada para o business 98 · Então vêm **só** as do 98, num paginador, ordenadas da mais nova para a mais antiga.
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDI-01 · lista só o próprio business").
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-AUDI-02 · Filtro por origem/evento/entidade restringe a lista; chave fora da whitelist é descartada
 - **Persona:** auditor — chega na entrada certa em ≤2 cliques (charter, Goal 1).
 - **Aceite:** Dado alterações `created` e `updated` do mesmo business · Quando filtro `event=updated` · Então só as `updated` aparecem. E dado um pedido com chave fora de `causer_kind|event|subject_type` (ex.: `business_id`) · Então ela é descartada antes da consulta — o filtro nunca troca o tenant.
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDI-02 · filtro restringe e whitelist descarta").
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-AUDI-03 · A URL antiga `/reports/activity-log` leva à tela nova, preservando os filtros
 - **Persona:** usuário com favorito/link legado (SPEC US-AUDIT-010).
 - **Aceite:** Dado `GET /reports/activity-log?event=updated` · Então **301** para `/auditoria?event=updated`.
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDI-03 · redirect 301 legado").
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-AUDI-04 · Só abre a trilha quem tem o pacote da empresa e a permissão
 - **Persona:** dono do negócio — a trilha traz e-mail, celular e valores, então não é de todo usuário logado (SPEC US-AUDIT-010; ADR 0127 §princípio 5).

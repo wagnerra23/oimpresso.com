@@ -1,5 +1,7 @@
 /* producao-cv.css — módulo Produção (comunicação visual). Tokens do DS; sem cor crua fora de oklch de domínio dos setores. */
-.pcv-root{display:flex;flex-direction:column;min-height:100%;background:var(--bg)}
+/* A tela rola por dentro: no protótipo o .main-body tem overflow:hidden e cada tela é o único filho que rola
+   (como .pd-page, .fx-page, .bkp-page). Sem isso, tudo abaixo da janela ficava inalcançável. */
+.pcv-root{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;background:var(--bg)}
 .pcv-root>*{flex:none}
 .pcv-ph{padding:0 24px}
 .pcv-body{padding:18px 24px 32px;display:flex;flex-direction:column;gap:16px}
