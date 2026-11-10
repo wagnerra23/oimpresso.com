@@ -27,6 +27,8 @@ import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 
 import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
 import GradeProductCombobox, { type PickedProduct } from '@/Pages/Purchase/_components/GradeProductCombobox';
 import SupplierCombobox from '@/Pages/Purchase/_components/SupplierCombobox';
+import SugerirPelaCurva from '@/Pages/Purchase/_components/SugerirPelaCurva';
+import type { SugestaoNaGrade } from '@/Pages/Purchase/_components/curvaDeCompra';
 import ReceberDoPedido from '@/Pages/Purchase/_components/ReceberDoPedido';
 import { linhasDoPedido, type PedidoAberto } from '@/Pages/Purchase/_components/pedidoAberto';
 
@@ -94,6 +96,8 @@ export interface PurchaseCreatePageProps {
   common_settings: Record<string, unknown>;
   /** "Comprar" da lista de produtos: o produto que já entra como primeira linha (`?produto={id}`). */
   produto_inicial?: PickedProduct | null;
+  /** US-VEST-031: a empresa tem o módulo Vestuário no pacote (mostra "Sugerir pela curva"). */
+  curva_compra_disponivel?: boolean;
 }
 
 // Layout da grade vindo de GET /purchases/grade-matrix (US-COM-005).
@@ -125,6 +129,7 @@ function PurchaseCreate({
   default_datetime,
   common_settings,
   produto_inicial = null,
+  curva_compra_disponivel = false,
 }: PurchaseCreatePageProps) {
   // US-COM-013: o pedido de compra só aparece quando a empresa o usa (mesmo interruptor do Blade).
   const usaPedidoDeCompra = !!common_settings?.enable_purchase_order;
@@ -134,6 +139,9 @@ function PurchaseCreate({
   // Modo grade tam×cor (US-COM-005) — alimenta o MESMO `linhas` que o POST já envia.
   const [grade, setGrade] = useState<GradeLayout | null>(null);
   const [gradeCells, setGradeCells] = useState<GradeCell[]>([]);
+  // US-VEST-031: a grade lê as quantidades iniciais só ao montar; a sugestão a remonta pela versão.
+  const [gradeInicial, setGradeInicial] = useState<Record<string, number>>({});
+  const [gradeVersao, setGradeVersao] = useState(0);
   const [gradeUnitCost, setGradeUnitCost] = useState(0);
   const [gradeLoading, setGradeLoading] = useState(false);
   const [gradeErro, setGradeErro] = useState<string | null>(null);
@@ -266,7 +274,15 @@ function PurchaseCreate({
   const fecharGrade = () => {
     setGrade(null);
     setGradeCells([]);
+    setGradeInicial({});
     setGradeErro(null);
+  };
+
+  // A remontagem não dispara o onChange da grade, então as células entram aqui também.
+  const aplicarSugestao = ({ initialQty, cells }: SugestaoNaGrade) => {
+    setGradeInicial(initialQty);
+    setGradeCells(cells);
+    setGradeVersao((v) => v + 1);
   };
 
   const escolherProduto = async (p: PickedProduct) => {
@@ -513,7 +529,19 @@ function PurchaseCreate({
                     {totalGrade > 0 && <span className="ml-1 tabular-nums">({totalGrade} un)</span>}
                   </Button>
                 </div>
+                {curva_compra_disponivel && (
+                  <SugerirPelaCurva
+                    key={grade.product_id}
+                    productId={grade.product_id}
+                    rows={grade.rows}
+                    cols={grade.cols}
+                    cellVariationMap={grade.cellVariationMap}
+                    onSugerir={aplicarSugestao}
+                  />
+                )}
                 <GradeMatrixInput
+                  key={gradeVersao}
+                  initialQty={gradeInicial}
                   rows={grade.rows}
                   cols={grade.cols}
                   cellVariationMap={grade.cellVariationMap}
