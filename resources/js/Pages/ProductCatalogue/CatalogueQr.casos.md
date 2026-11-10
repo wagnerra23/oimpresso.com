@@ -5,7 +5,7 @@ irmaos: CatalogueQr.charter.md (lei) · CatalogueQr.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o QR publica preço de um local sem login; QR apontando pro negócio errado ou aberto a quem não vê produto é vazamento.
 owner: wagner
-last_run: "2026-10-09"
+last_run: "2026-11-10"
 ---
 
 # Casos de Uso & Aceite — Catálogo QR
@@ -53,11 +53,21 @@ last_run: "2026-10-09"
 - **Histórico:** até 2026-10-27 este caso dizia "a tela React só abre com a chave ligada" (Blade com ela desligada).
 - **Status: 🧪**
 
+## UC-CQR-12 · "Link copiado" só depois que o navegador copiou
+- **Persona:** quem cola o link no WhatsApp ou no site da loja.
+- **Origem:** auditoria do módulo, 2026-11-09. A tela dizia "Link copiado" sem esperar a resposta do navegador, então
+  dizia isso também quando nada tinha sido copiado.
+- **Aceite:** Dado um QR gerado · Quando clico em "Copiar link" e o navegador confirma · Então a área de transferência
+  recebe o mesmo link do QR e o botão mostra "Link copiado" por ~1,6 s, voltando a "Copiar link" · E enquanto o navegador
+  não responde o botão não diz que copiou · E quando o navegador recusa ou não oferece a área de transferência, o botão
+  continua "Copiar link" e aparece o aviso para copiar manualmente.
+- **Teste:** [`tests/js/catalogue-qr-copiar.test.tsx`](../../../../tests/js/catalogue-qr-copiar.test.tsx), lane `ci.yml`.
+- **Status: 🧪**
+
 ## Sem teste ainda (comportamento só no navegador — entra com o E2E)
 
 - [BACKLOG] Gerar sem local fica bloqueado, com "Escolha o local comercial primeiro." (a Blade dava `alert()`).
 - [BACKLOG] Trocar título, subtítulo, cor ou logo limpa o QR gerado; nada é gerado até clicar de novo.
-- [BACKLOG] "Copiar link" vira "Link copiado" por ~1,6 s e copia o mesmo link do QR.
 - [BACKLOG] Sem local comercial cadastrado, o vazio leva a Configurações › Locais comerciais.
 
 ## Anti-regressão
