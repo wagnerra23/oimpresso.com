@@ -2,11 +2,13 @@
 
 namespace Modules\Auditoria\Services;
 
+use App\Domain\Fsm\Concerns\GuardsFsmTransitions;
 use App\User;
 use App\Util\OtelHelper;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use App\Observers\ActivityCauserKindObserver;
 use App\Support\Privacy\PiiRedactor;
+use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Facades\LogBatch;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -27,27 +29,90 @@ use Spatie\Activitylog\Models\Activity;
 class RevertService
 {
     /**
+     * Campos que o undo nunca restaura, em qualquer model (motivo => campos).
+     * Regra mestre de valor e estoque (memory/proibicoes.md): cada um desses numeros tem
+     * dono e recalculo proprios; atribuir direto deixa total, titulo e estoque divergentes.
+     * Lista explicita dos campos que a trilha grava (logOnly): campo novo de valor entra aqui.
+     */
+    private const CAMPOS_PROTEGIDOS = [
+        'o total e calculado a partir dos itens, impostos e descontos' => [
+            'final_total', 'total_before_tax', 'subtotal', 'total', 'valor_total', 'valor',
+            'item_tax', 'line_discount_amount', 'valor_unitario', 'unit_price_inc_tax',
+            'preco_unitario_m2', 'valor_estimado', 'valor_recomendado', 'purchase_amount',
+        ],
+        'o preco ou custo alimenta vendas e margens ja calculadas' => [
+            'default_purchase_price', 'default_sell_price', 'sell_price_inc_tax', 'preco', 'preco_base',
+            'preco_km', 'preco_m2', 'preco_solda_m', 'preco_custo_m2', 'preco_venda_m2',
+            'extra_cost', 'final_price', 'ingredients_cost',
+        ],
+        'o pagamento so muda por baixa ou estorno no Financeiro' => [
+            'amount', 'payment_status', 'valor_aberto', 'valor_baixa', 'valor_centavos', 'valor_pago_centavos',
+        ],
+        'a comissao depende do total e do vendedor da venda' => [
+            'commission_agent', 'commission_split', 'comissao_calculada',
+        ],
+        'o estoque so muda por movimentacao registrada' => [
+            'qty_available', 'quantity', 'total_quantity', 'enable_stock', 'estoque_minimo_m2',
+        ],
+        'a empresa dona do registro nao muda' => ['business_id'],
+    ];
+
+    /** Campos cujo nome so e sensivel neste model (classe => campo => motivo). */
+    private const CAMPOS_PROTEGIDOS_POR_CLASSE = [
+        \App\Transaction::class => ['status' => 'o status da venda dispara reserva e baixa de estoque'],
+        \Modules\Financeiro\Models\Titulo::class => ['status' => 'o status do titulo acompanha o valor em aberto'],
+    ];
+
+    /**
      * Whitelist de Models/condicoes UNREVERTIBLE.
      * Append-only: adicionar Model novo via PR + comentario; remover = ADR amendada.
+     *
+     * As chaves sao as classes REAIS que gravam em activity_log. Ate 2026-11 tres
+     * chaves apontavam para classes inexistentes (PontoWr2 Marcacao, NfeTransaction,
+     * Repair Models OS): `instanceof` de classe inexistente da false sem erro, e a
+     * trava ficava inerte. RevertServiceTest prova cada uma pelo canRevert.
+     *
+     * Documento fiscal bloqueia em TODOS os estados, nao so nos autorizados: os campos
+     * logados (status, cstat, numero, chave_44) pertencem ao fluxo da SEFAZ/prefeitura.
      */
     public function unrevertibleRegistry(): array
     {
+        $sefaz = 'Documento fiscal da SEFAZ nao pode ser revertido via undo. Use o fluxo fiscal apropriado (cancelamento/inutilizacao/CC-e).';
+        $nfse = 'NFSe segue o fluxo da prefeitura e nao pode ser revertida via undo — cancele a nota na prefeitura.';
+
         return [
-            \Modules\PontoWr2\Models\Marcacao::class => [
+            \Modules\Ponto\Entities\Marcacao::class => [
                 'reason'    => 'Portaria MTP 671/2021 — registro de ponto e append-only por forca de lei. Use Marcacao::anular() (cria marcacao de anulacao, nao deleta original).',
                 'condition' => null, // sempre bloqueado
             ],
-            \Modules\NfeBrasil\Models\NfeTransaction::class => [
-                'reason'    => 'NFe autorizada/cancelada/inutilizada na SEFAZ nao pode ser revertida via undo. Use fluxo SEFAZ apropriado (cancelamento/inutilizacao/CC-e).',
-                'condition' => fn ($model) => isset($model->cstat) && in_array($model->cstat, [100, 101, 135]),
+            \Modules\Ponto\Entities\BancoHorasMovimento::class => [
+                'reason'    => 'Portaria MTP 671/2021 — movimento de banco de horas e append-only (o model recusa UPDATE). Lance um movimento de ajuste.',
+                'condition' => null,
             ],
+            \Modules\NfeBrasil\Models\NfeEmissao::class      => ['reason' => $sefaz, 'condition' => null],
+            \Modules\NfeBrasil\Models\NfeEvento::class       => ['reason' => $sefaz, 'condition' => null],
+            \Modules\NfeBrasil\Models\NfeInutilizacao::class => ['reason' => $sefaz, 'condition' => null],
+            \Modules\NFSe\Models\NfseEmissao::class          => ['reason' => $nfse, 'condition' => null],
+            \Modules\NfeBrasil\Models\NfseEmissao::class     => ['reason' => $nfse, 'condition' => null],
+            // fin_titulo_baixas nao tem coluna que identifique o Asaas (a condicao antiga
+            // lia `origem`, que nunca existiu). A baixa e imutavel por contrato do model:
+            // estorno e nova linha com estorno_de_id. Por isso bloqueia sempre.
             \Modules\Financeiro\Models\TituloBaixa::class => [
-                'reason'    => 'Boleto pago externamente (Asaas) — estorno deve ser feito via fluxo Asaas, nao via undo de auditoria.',
-                'condition' => fn ($model) => isset($model->origem) && $model->origem === 'asaas-paid',
+                'reason'    => 'Baixa financeira e imutavel (inclui boleto pago via Asaas) — o estorno e uma nova linha, feito pela acao Estornar do Financeiro, nao via undo de auditoria.',
+                'condition' => null,
             ],
-            \Modules\Repair\Models\OS::class => [
+            \Modules\Repair\Entities\JobSheet::class => [
                 'reason'    => 'OS com NFSe emitida nao pode ser revertida — cancele NFSe na prefeitura primeiro.',
-                'condition' => fn ($model) => isset($model->nfse_emitida) && $model->nfse_emitida === true,
+                // A OS nao guarda a nota: o elo e transactions.repair_job_sheet_id ->
+                // nfse_emissoes.transaction_id. A tabela nasce de dois modulos, por isso
+                // os dois vocabularios de status. Em transmissao tambem bloqueia.
+                'condition' => fn ($model) => DB::table('nfse_emissoes as n')
+                    ->join('transactions as t', 't.id', '=', 'n.transaction_id')
+                    ->where('t.repair_job_sheet_id', $model->getKey())
+                    ->where('n.business_id', $model->business_id)
+                    ->whereNull('n.deleted_at')
+                    ->whereIn('n.status', ['emitida', 'processando', 'authorized', 'sent'])
+                    ->exists(),
             ],
             \App\Transaction::class => [
                 'reason'    => 'Esta transacao tem pagamento(s) registrado(s) posteriormente. Reverter quebraria consistencia. Estorne os pagamentos primeiro.',
@@ -65,6 +130,24 @@ class RevertService
         ];
     }
 
+    /** Motivo da negacao se o snapshot traz campo de valor ou estoque; null se nao traz. */
+    private function motivoCampoProtegido(Activity $log): ?string
+    {
+        $classe = (array) (self::CAMPOS_PROTEGIDOS_POR_CLASSE[ltrim((string) $log->subject_type, '\\')] ?? []);
+
+        foreach (array_keys((array) ($log->properties['old'] ?? [])) as $campo) {
+            $motivo = $classe[$campo] ?? null;
+            foreach (self::CAMPOS_PROTEGIDOS as $texto => $campos) {
+                $motivo ??= in_array($campo, $campos, true) ? $texto : null;
+            }
+            if ($motivo !== null) {
+                return "O campo {$campo} nao pode ser revertido via undo: {$motivo}.";
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Verifica se uma Activity pode ser revertida pelo usuario informado.
      *
@@ -75,7 +158,7 @@ class RevertService
      *
      * Retorna RevertCheck com allowed bool + reason text.
      */
-    public function canRevert(Activity $log, User $by): RevertCheck
+    public function canRevert(Activity $log, User $by, bool $travarRegistro = false): RevertCheck
     {
         // Multi-tenant Tier 0 ([ADR 0093])
         $userBizId = (int) ($by->business_id ?? 0);
@@ -83,9 +166,17 @@ class RevertService
             return RevertCheck::deny('Activity de outro business — nao acessivel (Tier 0).');
         }
 
+        if ($log->getAttribute('reverted_at') !== null) {
+            return RevertCheck::deny('Esta alteracao ja foi revertida.');
+        }
+
         // Subject ainda existe?
         if (! $log->subject_type || ! $log->subject_id) {
             return RevertCheck::deny('Activity sem subject — nao ha o que reverter.');
+        }
+
+        if ($motivo = $this->motivoCampoProtegido($log)) {
+            return RevertCheck::deny($motivo);
         }
 
         $subject = null;
@@ -94,7 +185,7 @@ class RevertService
             if (! class_exists($modelClass)) {
                 return RevertCheck::deny('Subject_type nao e classe valida ('.$modelClass.').');
             }
-            $subject = $modelClass::find($log->subject_id);
+            $subject = $this->carregarSubject($modelClass, $log->subject_id, $travarRegistro);
         } catch (\Throwable $e) {
             return RevertCheck::deny('Erro ao carregar subject: '.$e->getMessage());
         }
@@ -103,18 +194,39 @@ class RevertService
             return RevertCheck::deny('Registro original nao existe mais — possivel hard-delete posterior.');
         }
 
+        // Tier 0: o tenant que vale e o do REGISTRO. Antes do PR #8384 o log era gravado
+        // com a empresa da sessao, entao a linha de log sozinha nao prova nada.
+        if (ActivityCauserKindObserver::businessIdDoSubject($subject) !== $userBizId) {
+            return RevertCheck::deny('Registro pertence a outro business — nao acessivel (Tier 0).');
+        }
+
         // Whitelist UNREVERTIBLE
         foreach ($this->unrevertibleRegistry() as $blockedClass => $rule) {
             if ($subject instanceof $blockedClass || $log->subject_type === $blockedClass) {
                 $cond = $rule['condition'];
-                $blocked = $cond === null
-                    ? true
-                    : (bool) $cond($subject, $log);
+                try {
+                    $blocked = $cond === null
+                        ? true
+                        : (bool) $cond($subject, $log);
+                } catch (\Throwable $e) {
+                    // Sem conseguir medir a trava, nao libera (fail-closed).
+                    return RevertCheck::deny('Nao foi possivel verificar a trava de irreversibilidade.', $blockedClass);
+                }
 
                 if ($blocked) {
                     return RevertCheck::deny($rule['reason'], $blockedClass);
                 }
             }
+        }
+
+        // Etapa do pipeline FSM so anda por ExecuteStageActionService: o trait recusa o
+        // UPDATE direto, entao liberar aqui viraria excecao no meio do revert.
+        if (array_key_exists('current_stage_id', (array) ($log->properties['old'] ?? []))
+            && in_array(GuardsFsmTransitions::class, class_uses_recursive($subject), true)) {
+            return RevertCheck::deny(
+                'Mudanca de etapa do pipeline nao pode ser revertida via undo — use as acoes do proprio pipeline.',
+                GuardsFsmTransitions::class,
+            );
         }
 
         // Janela temporal por permissao
@@ -157,50 +269,44 @@ class RevertService
      */
     public function revert(Activity $log, User $by, string $reason): Activity
     {
-        $check = $this->canRevert($log, $by);
-        if (! $check->allowed) {
-            throw new \DomainException($check->reason ?? 'Revert bloqueado.');
-        }
-
-        if (strlen($reason) < 10) {
-            throw new \InvalidArgumentException('revert_reason precisa ter no minimo 10 caracteres.');
-        }
-
-        // D7.a LGPD: redacta PII (CPF/CNPJ/email/telefone) da justificativa do
-        // revert ANTES de persistir em activity_log. Service Jana é a fonte
-        // canônica de redaction BR — Auditoria NÃO duplica regex/lógica, apenas
-        // consome (ADR 0093 + ADR 0127). Modo placeholder mantém legibilidade.
-        $reason = app(PiiRedactor::class)->redact($reason, 'placeholder');
-
-        $modelClass = $log->subject_type;
-        $subject = $modelClass::find($log->subject_id);
-
-        $oldAttrs = $log->properties['old'] ?? [];
-        if (empty($oldAttrs)) {
-            throw new \DomainException('Activity nao tem properties.old — nao ha snapshot pra restaurar.');
-        }
-
-        $batchUuid = (string) Str::uuid();
-
         // D9.a OTel: span hot-path do revert (transaction + 3 writes).
         // Zero-cost quando OTel disabled (config('otel.enabled')=false default).
         // Attributes: NO PII — apenas IDs + classe (Tier 0 ADR 0093).
-        return OtelHelper::spanBiz('auditoria.revert.execute', function () use ($log, $by, $reason, $subject, $oldAttrs, $batchUuid): Activity {
-            return DB::transaction(function () use ($log, $by, $reason, $subject, $oldAttrs, $batchUuid) {
+        return OtelHelper::spanBiz('auditoria.revert.execute', function () use ($log, $by, $reason): Activity {
+            return DB::transaction(fn () => LogBatch::withinBatch(function (string $batchUuid) use ($log, $by, $reason) {
+            // Tudo que decide e relido aqui, sob lock: duas reversoes simultaneas da
+            // mesma Activity passam a ser uma de cada vez, e a segunda ve reverted_at.
+            $log = Activity::query()->whereKey($log->getKey())->lockForUpdate()->first()
+                ?? throw new \DomainException('Activity nao existe mais.');
+
+            $check = $this->canRevert($log, $by, travarRegistro: true);
+            if (! $check->allowed) {
+                throw new \DomainException($check->reason ?? 'Revert bloqueado.');
+            }
+
+            if (strlen($reason) < 10) {
+                throw new \InvalidArgumentException('revert_reason precisa ter no minimo 10 caracteres.');
+            }
+
+            // D7.a LGPD: redacta PII (CPF/CNPJ/email/telefone) da justificativa do
+            // revert ANTES de persistir em activity_log. Service Jana é a fonte
+            // canônica de redaction BR — Auditoria NÃO duplica regex/lógica, apenas
+            // consome (ADR 0093 + ADR 0127). Modo placeholder mantém legibilidade.
+            $reason = app(PiiRedactor::class)->redact($reason, 'placeholder');
+
+            $oldAttrs = $log->properties['old'] ?? [];
+            if (empty($oldAttrs)) {
+                throw new \DomainException('Activity nao tem properties.old — nao ha snapshot pra restaurar.');
+            }
+
+            $subject = $this->carregarSubject($log->subject_type, $log->subject_id);
+
             // Aplica old attrs no Model (campos logged anyway)
             foreach ($oldAttrs as $field => $value) {
                 $subject->{$field} = $value;
             }
 
-            // Mark Model save com batch_uuid pra a entry de reverted aproveitar
-            // (Spatie LogsActivity vai criar entry 'updated' automaticamente
-            // ao chamar save — vamos usar batch pra agrupar)
-            activity()->withProperties([
-                'reverted_from_activity_id' => $log->id,
-                'revert_reason'             => $reason,
-            ])->tap(function ($a) use ($batchUuid) {
-                $a->batch_uuid = $batchUuid;
-            });
+            // A entry 'updated' que o LogsActivity grava neste save herda o batch aberto.
             $subject->save();
 
             // Atualiza linha original com revert metadata
@@ -222,20 +328,35 @@ class RevertService
                 'properties'  => [
                     'reverted_from_activity_id' => $log->id,
                     'revert_reason'             => $reason,
-                    'restored_attributes'       => $oldAttrs,
+                    'restored_attributes'       => app(PiiRedactor::class)->redactArray($oldAttrs, 'placeholder'),
                 ],
                 'business_id' => $log->business_id,
             ]);
 
                 return $revertEntry;
-            });
+            }));
         }, [
             'module'              => 'Auditoria',
             'activity_id'         => $log->id,
             'subject_type'        => $log->subject_type,
             'subject_id'          => (int) $log->subject_id,
-            'restored_attrs_count' => count($oldAttrs),
+            'restored_attrs_count' => count($log->properties['old'] ?? []),
             'has_reason'          => $reason !== '',
         ]);
+    }
+
+    /**
+     * Carrega o registro auditado sem o escopo de sessao: quem decide o tenant e a
+     * comparacao explicita em canRevert. Registro na lixeira conta como inexistente.
+     */
+    private function carregarSubject(string $modelClass, mixed $id, bool $travar = false): mixed
+    {
+        $query = $modelClass::withoutGlobalScopes()->whereKey($id); // SUPERADMIN: tenant conferido em canRevert (ADR 0093)
+        if ($travar) {
+            $query->lockForUpdate();
+        }
+        $subject = $query->first();
+
+        return $subject && method_exists($subject, 'trashed') && $subject->trashed() ? null : $subject;
     }
 }

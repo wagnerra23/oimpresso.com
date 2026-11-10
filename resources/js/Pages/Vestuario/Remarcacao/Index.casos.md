@@ -22,8 +22,9 @@ last_run_ci: "0 UC executado na lane — nasce neste PR"
 | UC | O que defende | Peso | Âncora | Teste |
 |---|---|---|---|---|
 | UC-VREM-05 | desligada por padrão: sem o setting a tela e os endpoints dão 404 | must | US-VEST-032 | `RemarcacaoTelaContratoTest` |
-| UC-VREM-06 | ligada, a tela abre com categorias e marcas só da empresa; sem `product.update`, 403 | must `[T0]` | US-VEST-032 | `RemarcacaoTelaContratoTest` |
+| UC-VREM-06 | ligada, a tela abre com categorias e marcas só da empresa; sem `vestuario.remarcacao.aplicar`, 403; o menu só mostra a tela com a permissão e o setting ligado | must `[T0]` | US-VEST-032 | `RemarcacaoTelaContratoTest` |
 | UC-VREM-07 | prévia → gravar → etiquetas do lote; etiquetas de lote alheio dão 404 | must `[T0]` | US-VEST-032 | `RemarcacaoTelaContratoTest` |
+| UC-VREM-08 | o número digitado chega ao servidor como foi digitado, com ponto ou vírgula; texto inválido não é enviado | must `[V0]` | US-VEST-032 · regra mestre de valor | `vestuario-remarcacao-valor.test.tsx` |
 
 ## UC-VREM-05 · Desligada por padrão
 - **Persona:** empresa que ainda não ligou a remarcação.
@@ -34,11 +35,13 @@ last_run_ci: "0 UC executado na lane — nasce neste PR"
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-06 · Ligada, só com permissão, só dados da empresa `[T0]`
-- **Persona:** quem cuida dos preços da loja e tem permissão de editar produto.
-- **Aceite:** Dado o setting ligado · Quando quem tem `product.update` abre a tela · Então recebe a
-  página com categorias e marcas da própria empresa (nenhuma de outra). Sem a permissão, 403.
+- **Persona:** quem cuida dos preços da loja e recebeu a permissão de remarcar.
+- **Aceite:** Dado o setting ligado · Quando quem tem `vestuario.remarcacao.aplicar` abre a tela · Então recebe a
+  página com categorias e marcas da própria empresa (nenhuma de outra). Sem a permissão, 403, mesmo com
+  `product.update` (decisão [W] 2026-11-09: a operação altera até 2.000 preços de uma vez). No menu, "Remarcação"
+  só aparece para quem tem a permissão, na empresa com o setting ligado.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
-- **Regressão que defende:** tela aberta sem permissão de editar produto, ou listando categoria/marca de outra empresa.
+- **Regressão que defende:** remarcação aberta a quem só edita produto, ou listando categoria/marca de outra empresa.
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-07 · Do filtro às etiquetas `[T0]`
@@ -49,3 +52,13 @@ last_run_ci: "0 UC executado na lane — nasce neste PR"
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
 - **Regressão que defende:** etiqueta ou reversão de lote de outra empresa, ou etiqueta saindo com o preço antigo.
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
+
+## UC-VREM-08 · O valor digitado é o valor enviado `[V0]`
+- **Persona:** quem remarca e digita o percentual ou o preço novo do jeito que sai no teclado.
+- **Aceite:** Dado o campo de valor · Quando digita `-2.5`, `-2,5`, `39.90`, `39,90` ou `1.234,56` e
+  pede a prévia ou grava · Então o servidor recebe -2,5, -2,5, 39,90, 39,90 e 1.234,56. Quando digita
+  algo que não é número · Então a tela avisa e nada é enviado.
+- **Teste:** `tests/js/vestuario-remarcacao-valor.test.tsx`
+- **Regressão que defende:** ponto decimal lido como milhar, multiplicando o valor por 10 ou 100
+  (`-2.5` virava -25% e passava na validação do servidor).
+- **Status: ⬜** (não verificado — nasce neste PR; roda no job `Frontend / Vite build` do `ci.yml`)

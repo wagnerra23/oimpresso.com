@@ -275,6 +275,20 @@ last_run: "2026-10-07"
 - **Status: 🧪**
 ---
 
+## UC-OP-15 · Erro ao gravar a ordem volta com aviso e não deixa meia ordem
+- **Persona:** Eliana (produção) — finaliza uma ordem sem saldo de insumo.
+- **Aceite:** Dado um insumo sem saldo e a venda sem estoque negativo · Quando finalizo a ordem (POST ou PUT)
+  · Então volto para a lista com a mensagem de erro, a ordem e a baixa são desfeitas · Dado a ordem de outra
+  empresa · Quando edito · Então a resposta continua 404 · Dado um campo obrigatório faltando · Quando edito ·
+  Então o erro aparece no campo.
+- **Fonte:** ADR 0093 · regra mestre de estoque (`proibicoes.md`) · relatório de auditoria M2 (2026-11-09).
+- **Teste:** `OrdemErroTratadoTest.php`
+- **Regressão que defende:** o `catch (Exception $e)` sem import nunca casar (o rollback e o log redigido não
+  rodavam), e o conserto dele engolir o 404 e a validação.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.

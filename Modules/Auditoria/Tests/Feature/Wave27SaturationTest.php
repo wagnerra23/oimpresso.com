@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Auditoria\Services\AuditEntryService;
@@ -9,7 +10,7 @@ use Modules\Auditoria\Services\RevertService;
 use App\Support\Privacy\PiiRedactor;
 use Spatie\Activitylog\Models\Activity;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Wave 27 — Auditoria SATURATION FINAL (target 95).
@@ -23,24 +24,27 @@ uses(Tests\TestCase::class);
  *     Reversibility + PiiLeak + D9 spans completos
  *
  * Foco Wave 27 polish final ≥95:
- *   - D1: cross-tenant biz=1 vs biz=99 via AuditEntryService::list (saturado)
+ *   - D1: cross-tenant 98 × 99 via AuditEntryService::list (ADR 0358)
  *   - D2: expand AuditEntryReversibility (whitelist edge cases adicionais) +
  *     PiiLeak (telefone BR + token API + dados bancários)
  *   - D9: spans completos em RevertService + AuditEntryService (já feito W18 — verificar)
  *
- * Tier 0 (ADR 0093 + ADR 0127 + ADR 0101):
+ * Tier 0 (ADR 0093 + ADR 0127 + ADR 0358):
  *   - business_id obrigatório em todas queries AuditEntryService
  *   - whitelist UNREVERTIBLE 5 categorias intocável sem ADR
  *   - PiiRedactor sempre antes de log->save
- *   - biz=99 fictício (nunca biz=4 ROTA LIVRE)
+ *   - tenants fictícios 98/99 em transação revertida (nunca biz=1 nem biz=4)
  *
  * @see Modules/Auditoria/Services/RevertService.php
  * @see Modules/Auditoria/Services/AuditEntryService.php
  * @see memory/decisions/0127-modulo-auditoria-ui-undo.md
  */
 
-const AUDIT_BIZ_WAGNER_W27 = 1;
-const AUDIT_BIZ_FICTICIO_W27 = 99;
+/** @return array{0:int,1:int} tenants fictícios da ADR 0358: [tenant, adversário] */
+function auditTenantsW27(): array
+{
+    return [(int) test()->seededTenant()->id, (int) test()->seededSupportClientTenant()->id];
+}
 
 function requiresActivityLogMySQL_W27(): void
 {
@@ -63,72 +67,63 @@ beforeEach(function () {
 // BLOCO A: D1 cross-tenant via AuditEntryService — 5 cenários
 // ============================================================
 
-it('W27 AuditEntryService::list scope business_id sempre presente em query (Tier 0)', function () {
-    $f = base_path('Modules/Auditoria/Services/AuditEntryService.php');
-    $c = file_get_contents($f);
+it('W27 toda query de AuditEntryService::list filtra por business_id (Tier 0)', function () {
+    requiresActivityLogMySQL_W27();
+    [$biz] = auditTenantsW27();
 
-    // Query baseQuery DEVE ter where business_id (Tier 0 ADR 0093 IRREVOGÁVEL)
-    expect($c)->toContain("where('activity_log.business_id'");
+    Activity::create(['log_name' => 'w27-audit-sql', 'description' => 'entry', 'event' => 'updated', 'business_id' => $biz]);
+
+    DB::enableQueryLog();
+    (new AuditEntryService())->list($biz, ['event' => 'updated']);
+    $queries = collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'activity_log'));
+
+    // paginate() faz count + select: as duas precisam carregar o tenant.
+    expect($queries->count())->toBeGreaterThanOrEqual(2);
+    foreach ($queries as $q) {
+        expect($q['query'])->toContain('`activity_log`.`business_id` = ?');
+        expect(in_array($biz, $q['bindings'], true))->toBeTrue();
+    }
 });
 
-it('W27 AuditEntryService biz=99 NÃO retorna entries biz=1 (isolamento)', function () {
+it('W27 AuditEntryService de um tenant NÃO retorna entries do outro (isolamento)', function () {
     requiresActivityLogMySQL_W27();
+    [$biz, $outro] = auditTenantsW27();
 
     $marker = 'w27-audit-isolation-'.uniqid();
-
-    // Cria entry biz=1
-    Activity::create([
-        'log_name'    => $marker,
-        'description' => 'biz1 entry',
-        'business_id' => AUDIT_BIZ_WAGNER_W27,
-    ]);
+    Activity::create(['log_name' => $marker, 'description' => 'do tenant', 'business_id' => $biz]);
+    $doOutro = Activity::create(['log_name' => $marker, 'description' => 'do outro', 'business_id' => $outro]);
 
     $svc = new AuditEntryService();
-    $resBiz99 = $svc->list(AUDIT_BIZ_FICTICIO_W27, []);
+    $matching = collect($svc->list($outro, [], 200)->items())->filter(fn ($a) => $a->log_name === $marker);
 
-    // Não pode ter entry com log_name == marker (criada em biz=1)
-    $matching = collect($resBiz99->items())->filter(fn ($a) => $a->log_name === $marker);
-    expect($matching->count())->toBe(0, 'Cross-tenant leak: entry biz=1 apareceu em listagem biz=99');
-
-    // Cleanup
-    Activity::where('log_name', $marker)->delete();
+    // Âncora positiva: a entry do próprio tenant aparece, só a alheia some.
+    expect($matching->pluck('id')->all())->toBe([$doOutro->id]);
 });
 
-it('W27 AuditEntryService biz=1 retorna SUAS PRÓPRIAS entries', function () {
+it('W27 AuditEntryService retorna as entries do próprio tenant', function () {
     requiresActivityLogMySQL_W27();
+    [$biz] = auditTenantsW27();
 
     $marker = 'w27-audit-positive-'.uniqid();
-    Activity::create([
-        'log_name'    => $marker,
-        'description' => 'biz1 entry positive',
-        'business_id' => AUDIT_BIZ_WAGNER_W27,
-    ]);
+    $entry = Activity::create(['log_name' => $marker, 'description' => 'entry positive', 'business_id' => $biz]);
 
-    $svc = new AuditEntryService();
-    $res = $svc->list(AUDIT_BIZ_WAGNER_W27, []);
-    $matching = collect($res->items())->filter(fn ($a) => $a->log_name === $marker);
-    expect($matching->count())->toBeGreaterThanOrEqual(1);
+    $res = (new AuditEntryService())->list($biz, [], 200);
+    $ids = collect($res->items())->filter(fn ($a) => $a->log_name === $marker)->pluck('id')->all();
 
-    Activity::where('log_name', $marker)->delete();
+    expect($ids)->toBe([$entry->id]);
 });
 
-it('W27 AuditEntryService::find lança 404 em cross-tenant access', function () {
+it('W27 AuditEntryService::find lança 404 em cross-tenant e acha no tenant certo', function () {
     requiresActivityLogMySQL_W27();
+    [$biz, $outro] = auditTenantsW27();
 
-    $marker = 'w27-audit-find-cross-'.uniqid();
-    $entry = Activity::create([
-        'log_name'    => $marker,
-        'description' => 'biz1 entry for find',
-        'business_id' => AUDIT_BIZ_WAGNER_W27,
-    ]);
+    $entry = Activity::create(['log_name' => 'w27-audit-find-cross-'.uniqid(), 'description' => 'entry for find', 'business_id' => $biz]);
 
     $svc = new AuditEntryService();
 
-    // Tenta acessar entry biz=1 com businessId=biz=99 — deve 404
-    expect(fn () => $svc->find(AUDIT_BIZ_FICTICIO_W27, $entry->id))
+    expect($svc->find($biz, $entry->id)->id)->toBe($entry->id);
+    expect(fn () => $svc->find($outro, $entry->id))
         ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
-
-    Activity::where('log_name', $marker)->delete();
 });
 
 it('W27 AuditEntryService normalizeFilters whitelist hardcoded (subject_type/event/causer_kind)', function () {
@@ -164,10 +159,10 @@ it('W27 Whitelist reasons todas citam autoridade legal/compliance específica', 
 
     // Reasons devem citar fonte legal/compliance
     $expectedKeywords = [
-        \Modules\PontoWr2\Models\Marcacao::class => 'Portaria',
-        \Modules\NfeBrasil\Models\NfeTransaction::class => 'SEFAZ',
+        \Modules\Ponto\Entities\Marcacao::class => 'Portaria',
+        \Modules\NfeBrasil\Models\NfeEmissao::class => 'SEFAZ',
         \Modules\Financeiro\Models\TituloBaixa::class => 'Asaas',
-        \Modules\Repair\Models\OS::class => 'NFSe',
+        \Modules\Repair\Entities\JobSheet::class => 'NFSe',
         \App\Transaction::class => 'pagamento',
     ];
 
@@ -178,50 +173,11 @@ it('W27 Whitelist reasons todas citam autoridade legal/compliance específica', 
     }
 });
 
-it('W27 NfeTransaction condition aceita cstats homologadas 100/101/135', function () {
-    $svc = new RevertService();
-    $reg = $svc->unrevertibleRegistry();
-    $rule = $reg[\Modules\NfeBrasil\Models\NfeTransaction::class];
+it('W27 NfeEmissao e TituloBaixa bloqueiam em qualquer estado (sem condition)', function () {
+    $reg = (new RevertService())->unrevertibleRegistry();
 
-    // Casos POSITIVOS — bloqueia
-    foreach ([100, 101, 135] as $cstat) {
-        expect(($rule['condition'])((object) ['cstat' => $cstat]))->toBeTrue(
-            "cstat {$cstat} deve bloquear revert (SEFAZ-firme)"
-        );
-    }
-
-    // Casos NEGATIVOS — permite reverter (não-SEFAZ-firme)
-    foreach ([200, 300, 999, null] as $cstat) {
-        $obj = $cstat === null ? (object) [] : (object) ['cstat' => $cstat];
-        expect(($rule['condition'])($obj))->toBeFalse(
-            "cstat {$cstat} NÃO deve bloquear (não-SEFAZ-firme — pode reverter)"
-        );
-    }
-});
-
-it('W27 TituloBaixa condition discrimina origem asaas-paid vs manual', function () {
-    $svc = new RevertService();
-    $reg = $svc->unrevertibleRegistry();
-    $rule = $reg[\Modules\Financeiro\Models\TituloBaixa::class];
-
-    // POSITIVO — bloqueia
-    expect(($rule['condition'])((object) ['origem' => 'asaas-paid']))->toBeTrue();
-
-    // NEGATIVOS — permite reverter
-    foreach (['manual', 'inter-paid', 'outro', '', null] as $origem) {
-        $obj = $origem === null ? (object) [] : (object) ['origem' => $origem];
-        expect(($rule['condition'])($obj))->toBeFalse("origem={$origem} NÃO deve bloquear");
-    }
-});
-
-it('W27 OS condition discrimina nfse_emitida true vs false', function () {
-    $svc = new RevertService();
-    $reg = $svc->unrevertibleRegistry();
-    $rule = $reg[\Modules\Repair\Models\OS::class];
-
-    expect(($rule['condition'])((object) ['nfse_emitida' => true]))->toBeTrue();
-    expect(($rule['condition'])((object) ['nfse_emitida' => false]))->toBeFalse();
-    expect(($rule['condition'])((object) []))->toBeFalse();
+    expect($reg[\Modules\NfeBrasil\Models\NfeEmissao::class]['condition'])->toBeNull();
+    expect($reg[\Modules\Financeiro\Models\TituloBaixa::class]['condition'])->toBeNull();
 });
 
 // ============================================================
@@ -360,10 +316,18 @@ it('W27 Auditoria suite completa — total tests ≥30 acumulado (W23 + W25 + W2
         "Auditoria suite deve ter ≥30 testes acumulados (atual: {$totalIts})");
 });
 
-it('W27 RevertService unrevertibleRegistry mantém exatamente 5 categorias (regressão guard)', function () {
-    $svc = new RevertService();
-    expect($svc->unrevertibleRegistry())->toHaveCount(5,
-        'Whitelist UNREVERTIBLE não pode mudar sem ADR (ADR 0127 §3 IRREVOGÁVEL)');
+it('W27 RevertService unrevertibleRegistry cobre as 5 categorias da ADR 0127 (regressão guard)', function () {
+    $reg = (new RevertService())->unrevertibleRegistry();
+
+    foreach ([
+        \Modules\Ponto\Entities\Marcacao::class,
+        \Modules\NfeBrasil\Models\NfeEmissao::class,
+        \Modules\Financeiro\Models\TituloBaixa::class,
+        \Modules\Repair\Entities\JobSheet::class,
+        \App\Transaction::class,
+    ] as $classe) {
+        expect($reg)->toHaveKey($classe);
+    }
 });
 
 it('W27 Services Auditoria todos usam OtelHelper::spanBiz (D9 saturated)', function () {
