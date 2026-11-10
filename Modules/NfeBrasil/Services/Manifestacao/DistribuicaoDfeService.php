@@ -28,7 +28,8 @@ use RuntimeException;
  * Endpoint nacional SEFAZ: NFeDistribuicaoDFe (não UF-specific).
  * Cursor NSU é IRREVERSÍVEL — perda de last_nsu = perde XMLs históricos.
  *
- * Throttle: 5min entre consultas por business (recomendação SEFAZ NT 2014.002).
+ * Throttle: 5min entre consultas por business; 1 h depois de cStat 137/656 ou de alcançar o
+ * maxNSU (NT 2014.002 — lote 1.3, ver `proximaConsulta()`).
  * Loop: máximo 10 iterações por chamada pra evitar excesso de carga.
  */
 class DistribuicaoDfeService
@@ -82,6 +83,7 @@ class DistribuicaoDfeService
         $maxNSU = $ultNSU;
         $processados = 0;
         $iter = 0;
+        $ultimoCStat = null;
 
         do {
             $iter++;
@@ -105,6 +107,7 @@ class DistribuicaoDfeService
             }
 
             $parsed = $this->parseLote($responseXml);
+            $ultimoCStat = $parsed['cstat'] ?? null;
             if (! $parsed['ok']) {
                 break;
             }
@@ -130,6 +133,7 @@ class DistribuicaoDfeService
         $state->update([
             'last_nsu'                => $ultNSU,
             'ultimo_check_em'         => now(),
+            'proxima_consulta_em'     => $this->proximaConsulta($ultimoCStat, $ultNSU, $maxNSU),
             'ultimo_lote_count'       => $processados,
             'total_xmls_processados'  => $state->total_xmls_processados + $processados,
         ]);
@@ -142,6 +146,19 @@ class DistribuicaoDfeService
         ]);
 
         return ['processados' => $processados, 'last_nsu' => $ultNSU];
+    }
+
+    /**
+     * N4-05 (lote 1.3): a SEFAZ pede 1 h depois de "nenhum documento" (137) ou de alcançar o
+     * maxNSU, e devolve 656 (consumo indevido, CNPJ bloqueado por 1 h) a quem consultar antes.
+     * Nos outros casos (erro de rede, cStat inesperado, lote parcial) vale só o intervalo de 5 min.
+     */
+    private function proximaConsulta(?string $cStat, int $ultNSU, int $maxNSU): ?\Illuminate\Support\Carbon
+    {
+        $esperaUmaHora = in_array($cStat, ['137', '656'], true)
+            || ($cStat === '138' && $maxNSU > 0 && $ultNSU >= $maxNSU);
+
+        return $esperaUmaHora ? now()->addHour() : null;
     }
 
     private function getOrCreateState(int $businessId): NfeDfeNsuState
@@ -177,10 +194,14 @@ class DistribuicaoDfeService
         $ultNSU = (int) ($this->tagValue($node, 'ultNSU') ?: 0);
         $maxNSU = (int) ($this->tagValue($node, 'maxNSU') ?: 0);
 
-        // 137 = nada novo; 138 = lote retornado; outros = erro
+        // 137 = nada novo; 138 = lote retornado; 656 = consumo indevido (bloqueio de 1 h); outros = erro
+        if ($cStat === '656') {
+            Log::warning('DistribuicaoDfeService: SEFAZ recusou por consumo indevido (656) — próxima consulta em 1 h');
+            return ['ok' => false, 'cstat' => $cStat, 'ult_nsu' => $ultNSU, 'max_nsu' => $maxNSU, 'docs' => []];
+        }
         if (! in_array($cStat, ['137', '138'], true)) {
             Log::warning('DistribuicaoDfeService: cStat inesperado', ['cStat' => $cStat]);
-            return ['ok' => false, 'ult_nsu' => $ultNSU, 'max_nsu' => $maxNSU, 'docs' => []];
+            return ['ok' => false, 'cstat' => $cStat, 'ult_nsu' => $ultNSU, 'max_nsu' => $maxNSU, 'docs' => []];
         }
 
         $docs = [];
@@ -202,6 +223,7 @@ class DistribuicaoDfeService
 
         return [
             'ok'      => true,
+            'cstat'   => $cStat,
             'ult_nsu' => $ultNSU,
             'max_nsu' => $maxNSU,
             'docs'    => $docs,
