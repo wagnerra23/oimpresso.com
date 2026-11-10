@@ -1169,7 +1169,18 @@ class NfeService
                 ->first();
 
             if ($existente) {
-                if (in_array($existente->status, ['autorizada', 'pendente'], true)) {
+                // Envio que caiu no meio pode ter sido autorizado na SEFAZ: pergunta antes de
+                // liberar o número. Sem resposta, para aqui e a venda não ganha nota nova.
+                if (in_array($existente->status, ['erro_envio', 'enviando'], true) && ArquivoFiscal::existe($this->caminhoXmlEnviado($existente))) {
+                    if ($this->reconciliarComSefaz($existente, $dadosNfe['emit'] ?? []) === 'indefinida') {
+                        throw new RuntimeException(
+                            "Não foi possível confirmar na SEFAZ se a nota {$existente->numero} foi autorizada. Tente de novo em instantes."
+                        );
+                    }
+                    $existente->refresh();
+                }
+
+                if (in_array($existente->status, ['autorizada', 'pendente', 'contingencia'], true)) {
                     Log::info('NfeService: idempotência — emissão existente positiva', [
                         'business_id'    => $businessId,
                         'transaction_id' => $transactionId,
@@ -1192,9 +1203,9 @@ class NfeService
                     );
                 }
 
-                // rejeitada / denegada / erro_envio: número não foi declarado.
-                // Marca como `inutilizado` preservando registro pra rastreabilidade.
-                // Inutilização formal SEFAZ via NfeInutilizacaoService (US-SELL-030).
+                // rejeitada / erro_envio: número não foi declarado. Marca como `inutilizado`
+                // preservando registro pra rastreabilidade (formal via NfeInutilizacaoService).
+                // Denegada está registrada na SEFAZ: mantém o status e só solta a venda.
                 Log::info('NfeService: emissão rejeitada — marcando inutilizado pra preservar sequencial', [
                     'business_id'      => $businessId,
                     'transaction_id'   => $transactionId,
@@ -1210,7 +1221,7 @@ class NfeService
                 // canônica do retransmitirInterno() (CONFAZ Art. 14 — nunca hard-delete;
                 // metadata.original_transaction_id preserva o vínculo pra audit).
                 $existente->update([
-                    'status' => 'inutilizada',
+                    'status' => $existente->status === 'denegada' ? 'denegada' : 'inutilizada',
                     'transaction_id' => null,
                     'metadata' => array_merge((array) ($existente->metadata ?? []), [
                         'original_transaction_id'   => $transactionId,
@@ -1307,6 +1318,10 @@ class NfeService
                 return $emissao->refresh();
             }
 
+            // Guarda o XML ANTES de enviar: se o socket cair depois de a SEFAZ processar, é por
+            // este arquivo que a retentativa descobre a chave e recupera a nota autorizada.
+            ArquivoFiscal::gravar($this->caminhoXmlEnviado($emissao), $xmlSigned);
+
             $idLote  = str_pad((string) $emissao->id, 15, '0', STR_PAD_LEFT);
 
             // Retry-with-backoff em erro de TRANSPORTE transitório (connection reset,
@@ -1354,6 +1369,8 @@ class NfeService
         DB::transaction(function () use ($emissao, $response, $xmlSigned, $businessId, $serie, $numero) {
             $this->processarRetorno($emissao, $response, $xmlSigned, $businessId, $serie, $numero);
         });
+
+        $this->reconciliarSeDuplicidade($emissao, $tools);
 
         return $emissao->refresh();
     }
@@ -1797,6 +1814,18 @@ class NfeService
         $modelo = (string) $emissao->modelo;
         $numeroOriginal = $emissao->numero;
         $serieOriginal = $emissao->serie;
+        if ($emissao->status === 'erro_envio' && ArquivoFiscal::existe($this->caminhoXmlEnviado($emissao))) {
+            $desfecho = $this->reconciliarComSefaz($emissao, []);
+            if ($desfecho === 'indefinida') {
+                throw new RuntimeException(
+                    "Não foi possível confirmar na SEFAZ se a nota {$emissao->numero} foi autorizada. Tente de novo em instantes."
+                );
+            }
+            if ($desfecho === 'registrada') {
+                return $emissao->refresh();
+            }
+        }
+
         $statusOriginal = $emissao->status;
         $cstatOriginal = $emissao->cstat;
         // US-NFE-069: a NF-e da parte mercadoria re-emite também separada (senão a recusa de serviço barra).
@@ -1821,7 +1850,8 @@ class NfeService
         // automaticamente; metadata.original_transaction_id mantém referência
         // pra recuperação caso preciso futuramente.
         $emissao->update([
-            'status' => 'inutilizada',
+            // Denegada está registrada na SEFAZ: o número não volta a ser livre.
+            'status' => $statusOriginal === 'denegada' ? 'denegada' : 'inutilizada',
             'transaction_id' => null,
             'metadata' => array_merge((array) ($emissao->metadata ?? []), [
                 'original_transaction_id' => $tx->id,
@@ -1941,6 +1971,8 @@ class NfeService
                 (int) $emissao->numero,
             );
         });
+
+        $this->reconciliarSeDuplicidade($emissao, $tools);
 
         Log::info('NfeService: contingência transmitida', [
             'business_id' => $businessId,
@@ -2993,6 +3025,95 @@ class NfeService
             'status'     => 'rejeitada',
             'emissao_id' => $emissao->id,
         ]);
+    }
+
+    private function caminhoXmlEnviado(NfeEmissao $emissao): string
+    {
+        return sprintf('nfe-brasil/%d/notas/%s-%s.xml', $emissao->business_id, $emissao->serie, $emissao->numero);
+    }
+
+    /** SEFAZ respondeu duplicidade (204/539): a nota desta chave pode já estar autorizada. */
+    private function reconciliarSeDuplicidade(NfeEmissao $emissao, Tools $tools): void
+    {
+        $emissao->refresh();
+        if ($emissao->status !== 'rejeitada' || ! in_array((string) $emissao->cstat, ['204', '539'], true)) {
+            return;
+        }
+
+        if ($this->consultarNaSefaz($emissao, $tools) === 'indefinida') {
+            $emissao->update([
+                'status' => 'erro_envio',
+                'motivo' => 'Duplicidade na SEFAZ sem confirmação da chave: ' . substr((string) $emissao->motivo, 0, 400),
+            ]);
+        }
+    }
+
+    /**
+     * @param array<string,mixed> $emitOverride
+     * @return 'registrada'|'livre'|'indefinida'
+     */
+    private function reconciliarComSefaz(NfeEmissao $emissao, array $emitOverride): string
+    {
+        try {
+            $business = DB::table('business')->where('id', $emissao->business_id)->first();
+            if ($business === null) {
+                return 'indefinida';
+            }
+            $certData = $this->certificadoService->carregarParaSefaz((int) $emissao->business_id);
+            $tools = $this->criarTools($business, $certData, $emitOverride, (string) $emissao->modelo);
+        } catch (\Throwable $e) {
+            Log::warning('nfe.reconciliacao.sem_tools', ['emissao_id' => $emissao->id, 'erro' => $e::class]);
+
+            return 'indefinida';
+        }
+
+        return $this->consultarNaSefaz($emissao, $tools);
+    }
+
+    /**
+     * Pergunta à SEFAZ pela chave do XML enviado e grava o que ela responder. A chamada fica
+     * fora de transação: o processamento do retorno abre a dele, curta.
+     *
+     * @return 'registrada'|'livre'|'indefinida'
+     */
+    private function consultarNaSefaz(NfeEmissao $emissao, Tools $tools): string
+    {
+        $xmlAssinado = (string) ArquivoFiscal::ler($this->caminhoXmlEnviado($emissao));
+        if (! preg_match('/<infNFe[^>]*\bId="NFe(\d{44})"/', $xmlAssinado, $m)) {
+            return 'indefinida';
+        }
+
+        try {
+            $retorno = $tools->sefazConsultaChave($m[1]);
+            $cstat = (string) ((new Standardize($retorno))->toStd()->cStat ?? '');
+        } catch (\Throwable $e) {
+            Log::warning('nfe.reconciliacao.consulta_falhou', ['emissao_id' => $emissao->id, 'erro' => $e::class]);
+
+            return 'indefinida';
+        }
+
+        if (in_array($cstat, ['100', '150', '110', '205', '301', '302'], true)) {
+            DB::transaction(fn () => $this->processarRetorno(
+                $emissao,
+                $retorno,
+                $xmlAssinado,
+                (int) $emissao->business_id,
+                (string) $emissao->serie,
+                (int) $emissao->numero,
+            ));
+
+            return 'registrada';
+        }
+
+        if (in_array($cstat, ['101', '151', '155'], true)) {
+            // Nota cancelada continua registrada: só status, nunca apagada.
+            $emissao->update(['status' => 'cancelada', 'cstat' => $cstat, 'chave_44' => $m[1]]);
+
+            return 'registrada';
+        }
+
+        // 217: a SEFAZ não conhece esta chave, então este número não foi usado por ela.
+        return $cstat === '217' ? 'livre' : 'indefinida';
     }
 
     /**
