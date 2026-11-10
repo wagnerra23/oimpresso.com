@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { printSaleReceipt } from '@/Lib/printSaleReceipt';
+import { Grid } from '@/Components/layout';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 
@@ -424,16 +425,18 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
               </AlertDialogDescription>
             </AlertDialogHeader>
             {aExcluir && (
-              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-md bg-muted/40 px-3 py-2.5 text-sm">
-                <dt className="text-muted-foreground">Cliente</dt>
-                <dd>{aExcluir.customer_name ?? '—'}</dd>
-                <dt className="text-muted-foreground">Itens</dt>
-                <dd className="tabular-nums">
-                  {aExcluir.total_items} {aExcluir.total_items === 1 ? 'item' : 'itens'}
-                </dd>
-                <dt className="text-muted-foreground">Valor</dt>
-                <dd className="tabular-nums">{BRL.format(aExcluir.final_total)}</dd>
-              </dl>
+              <Grid asChild gap={2} className="grid-cols-[auto_1fr] gap-x-4 rounded-md bg-muted/40 px-3 py-2.5 text-sm">
+                <dl>
+                  <dt className="text-muted-foreground">Cliente</dt>
+                  <dd>{aExcluir.customer_name ?? '—'}</dd>
+                  <dt className="text-muted-foreground">Itens</dt>
+                  <dd className="tabular-nums">
+                    {aExcluir.total_items} {aExcluir.total_items === 1 ? 'item' : 'itens'}
+                  </dd>
+                  <dt className="text-muted-foreground">Valor</dt>
+                  <dd className="tabular-nums">{BRL.format(aExcluir.final_total)}</dd>
+                </dl>
+              </Grid>
             )}
             <AlertDialogFooter>
               <AlertDialogCancel disabled={excluindo}>Cancelar</AlertDialogCancel>
