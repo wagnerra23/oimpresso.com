@@ -30,7 +30,6 @@ interface Opcao { id: number; name: string; parent_id?: number }
 interface Lote { id: number; nome: string; modo: string; valor: string; qtd_itens: number; status: string; created_at: string }
 interface Linha { variation_id: number; produto: string; variacao: string; sku: string; preco_antes: number; preco_depois: number }
 interface Previa { linhas: Linha[]; ignoradas: number; assinatura: string }
-interface ItemEtiqueta { product_id: number; variation_id: number; nome: string; tamanho: string | null; preco: number; sku: string }
 interface Props { categorias: Opcao[]; marcas: Opcao[]; lotes?: Lote[] }
 
 const TODAS = '__todas__';
@@ -48,6 +47,8 @@ async function api(url: string, method: 'GET' | 'POST', body?: unknown) {
   if (!res.ok) throw new Error(json.message ?? `Erro ${res.status}`);
   return json;
 }
+
+interface ItemEtiqueta { product_id: number; variation_id: number; nome: string; tamanho: string | null; preco: number; sku: string }
 
 export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
   const [categoria, setCategoria] = useState(TODAS);
