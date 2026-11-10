@@ -783,11 +783,6 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/OficinaAuto/OficinaAutoTelasBrowserTest.php
 
-      - name: TEMP medir catalogo qr
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
-        continue-on-error: true
-        run: ./vendor/bin/pest tests/Browser/ProductCatalogue/MedirCqrTempTest.php
-
       # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
       # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
       # promovido a ENFORCING em 2026-09-05 (flip [W]), logo NÃO tem `continue-on-error`
