@@ -62,6 +62,35 @@ function statusView(status: string | null): StatusView {
   }
 }
 
+function CabecalhoDocumento({
+  titulo,
+  texto,
+  view,
+}: {
+  titulo: string;
+  texto: string;
+  view: StatusView;
+}) {
+  const StatusIcon = view.icon;
+
+  return (
+    <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+      <div className="space-y-1">
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="size-5 text-muted-foreground" aria-hidden />
+          {titulo}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">{texto}</p>
+      </div>
+
+      <Badge variant={view.variant} className="shrink-0">
+        <StatusIcon className={view.spin ? 'animate-spin' : undefined} aria-hidden />
+        {view.label}
+      </Badge>
+    </CardHeader>
+  );
+}
+
 function DocumentoFiscal({
   emissao,
   transactionId,
@@ -74,7 +103,6 @@ function DocumentoFiscal({
   aoVerificar: () => void;
 }) {
   const view = statusView(emissao.status);
-  const StatusIcon = view.icon;
   const isAuthorized = emissao.status === 'autorizada';
   const isRejected = emissao.status === 'rejeitada' || emissao.status === 'denegada';
 
@@ -93,22 +121,11 @@ function DocumentoFiscal({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-        <div className="space-y-1">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="size-5 text-muted-foreground" aria-hidden />
-            {emissao.modelo_label} da venda #{transactionId}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {emissao.motivo ?? 'Consultando a situação da nota junto à SEFAZ.'}
-          </p>
-        </div>
-
-        <Badge variant={view.variant} className="shrink-0">
-          <StatusIcon className={view.spin ? 'animate-spin' : undefined} aria-hidden />
-          {view.label}
-        </Badge>
-      </CardHeader>
+      <CabecalhoDocumento
+        titulo={`${emissao.modelo_label} da venda #${transactionId}`}
+        texto={emissao.motivo ?? 'Consultando a situação da nota junto à SEFAZ.'}
+        view={view}
+      />
 
       <CardContent className="space-y-6">
         <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -188,8 +205,6 @@ function NfceStatus({ transaction_id }: PageProps) {
     emissoes.length === 0
       ? consultasSemNota >= MAX_CONSULTAS_SEM_NOTA
       : !isPolling && emissoes.some((e) => !e.is_terminal);
-  const aguardando = statusView(null);
-  const IconeAguardando = aguardando.icon;
 
   return (
     <>
@@ -221,23 +236,15 @@ function NfceStatus({ transaction_id }: PageProps) {
 
         {emissoes.length === 0 ? (
           <Card>
-            <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-              <div className="space-y-1">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="size-5 text-muted-foreground" aria-hidden />
-                  Nota fiscal da venda #{transaction_id}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {error
-                    ? 'Não foi possível consultar a nota agora.'
-                    : 'A nota fiscal ainda não foi emitida para esta venda.'}
-                </p>
-              </div>
-              <Badge variant={aguardando.variant} className="shrink-0">
-                <IconeAguardando aria-hidden />
-                {aguardando.label}
-              </Badge>
-            </CardHeader>
+            <CabecalhoDocumento
+              titulo={`Nota fiscal da venda #${transaction_id}`}
+              texto={
+                error
+                  ? 'Não foi possível consultar a nota agora.'
+                  : 'A nota fiscal ainda não foi emitida para esta venda.'
+              }
+              view={statusView(null)}
+            />
             <CardContent>
               <Button variant="outline" onClick={() => refetch()} disabled={loading}>
                 <RefreshCw className={loading ? 'animate-spin' : undefined} aria-hidden />
