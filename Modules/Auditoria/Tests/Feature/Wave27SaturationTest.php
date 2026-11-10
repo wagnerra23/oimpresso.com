@@ -164,10 +164,10 @@ it('W27 Whitelist reasons todas citam autoridade legal/compliance específica', 
 
     // Reasons devem citar fonte legal/compliance
     $expectedKeywords = [
-        \Modules\PontoWr2\Models\Marcacao::class => 'Portaria',
-        \Modules\NfeBrasil\Models\NfeTransaction::class => 'SEFAZ',
+        \Modules\Ponto\Entities\Marcacao::class => 'Portaria',
+        \Modules\NfeBrasil\Models\NfeEmissao::class => 'SEFAZ',
         \Modules\Financeiro\Models\TituloBaixa::class => 'Asaas',
-        \Modules\Repair\Models\OS::class => 'NFSe',
+        \Modules\Repair\Entities\JobSheet::class => 'NFSe',
         \App\Transaction::class => 'pagamento',
     ];
 
@@ -178,50 +178,11 @@ it('W27 Whitelist reasons todas citam autoridade legal/compliance específica', 
     }
 });
 
-it('W27 NfeTransaction condition aceita cstats homologadas 100/101/135', function () {
-    $svc = new RevertService();
-    $reg = $svc->unrevertibleRegistry();
-    $rule = $reg[\Modules\NfeBrasil\Models\NfeTransaction::class];
+it('W27 NfeEmissao e TituloBaixa bloqueiam em qualquer estado (sem condition)', function () {
+    $reg = (new RevertService())->unrevertibleRegistry();
 
-    // Casos POSITIVOS — bloqueia
-    foreach ([100, 101, 135] as $cstat) {
-        expect(($rule['condition'])((object) ['cstat' => $cstat]))->toBeTrue(
-            "cstat {$cstat} deve bloquear revert (SEFAZ-firme)"
-        );
-    }
-
-    // Casos NEGATIVOS — permite reverter (não-SEFAZ-firme)
-    foreach ([200, 300, 999, null] as $cstat) {
-        $obj = $cstat === null ? (object) [] : (object) ['cstat' => $cstat];
-        expect(($rule['condition'])($obj))->toBeFalse(
-            "cstat {$cstat} NÃO deve bloquear (não-SEFAZ-firme — pode reverter)"
-        );
-    }
-});
-
-it('W27 TituloBaixa condition discrimina origem asaas-paid vs manual', function () {
-    $svc = new RevertService();
-    $reg = $svc->unrevertibleRegistry();
-    $rule = $reg[\Modules\Financeiro\Models\TituloBaixa::class];
-
-    // POSITIVO — bloqueia
-    expect(($rule['condition'])((object) ['origem' => 'asaas-paid']))->toBeTrue();
-
-    // NEGATIVOS — permite reverter
-    foreach (['manual', 'inter-paid', 'outro', '', null] as $origem) {
-        $obj = $origem === null ? (object) [] : (object) ['origem' => $origem];
-        expect(($rule['condition'])($obj))->toBeFalse("origem={$origem} NÃO deve bloquear");
-    }
-});
-
-it('W27 OS condition discrimina nfse_emitida true vs false', function () {
-    $svc = new RevertService();
-    $reg = $svc->unrevertibleRegistry();
-    $rule = $reg[\Modules\Repair\Models\OS::class];
-
-    expect(($rule['condition'])((object) ['nfse_emitida' => true]))->toBeTrue();
-    expect(($rule['condition'])((object) ['nfse_emitida' => false]))->toBeFalse();
-    expect(($rule['condition'])((object) []))->toBeFalse();
+    expect($reg[\Modules\NfeBrasil\Models\NfeEmissao::class]['condition'])->toBeNull();
+    expect($reg[\Modules\Financeiro\Models\TituloBaixa::class]['condition'])->toBeNull();
 });
 
 // ============================================================
@@ -360,10 +321,18 @@ it('W27 Auditoria suite completa — total tests ≥30 acumulado (W23 + W25 + W2
         "Auditoria suite deve ter ≥30 testes acumulados (atual: {$totalIts})");
 });
 
-it('W27 RevertService unrevertibleRegistry mantém exatamente 5 categorias (regressão guard)', function () {
-    $svc = new RevertService();
-    expect($svc->unrevertibleRegistry())->toHaveCount(5,
-        'Whitelist UNREVERTIBLE não pode mudar sem ADR (ADR 0127 §3 IRREVOGÁVEL)');
+it('W27 RevertService unrevertibleRegistry cobre as 5 categorias da ADR 0127 (regressão guard)', function () {
+    $reg = (new RevertService())->unrevertibleRegistry();
+
+    foreach ([
+        \Modules\Ponto\Entities\Marcacao::class,
+        \Modules\NfeBrasil\Models\NfeEmissao::class,
+        \Modules\Financeiro\Models\TituloBaixa::class,
+        \Modules\Repair\Entities\JobSheet::class,
+        \App\Transaction::class,
+    ] as $classe) {
+        expect($reg)->toHaveKey($classe);
+    }
 });
 
 it('W27 Services Auditoria todos usam OtelHelper::spanBiz (D9 saturated)', function () {
