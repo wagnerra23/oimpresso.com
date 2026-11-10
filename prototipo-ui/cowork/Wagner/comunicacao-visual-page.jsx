@@ -28,21 +28,6 @@ const MATERIAIS = [
   { id: 8, nome: "PS 2mm", categoria: "rígido", preco: 96 },
 ];
 
-// PCP (US-COMVIS-003) — OrdemProducao.etapa. As OS que já estão na fábrica.
-const ETAPAS = [
-  { id: "arte", label: "Arte" },
-  { id: "impressao", label: "Impressão" },
-  { id: "acabamento", label: "Acabamento" },
-  { id: "instalacao", label: "Instalação" },
-];
-const OPS = [
-  { id: "OP-2291", cliente: "Padaria Estrela", peca: "Fachada ACM 4,2×0,9 m", etapa: "arte", m2: 3.78, prazo: "hoje 17h", urgente: true },
-  { id: "OP-2288", cliente: "Mercado União", peca: "Banner 3×1,2 m (2un)", etapa: "impressao", m2: 7.2, prazo: "amanhã" },
-  { id: "OP-2285", cliente: "Auto Center Boa Vista", peca: "Adesivo perfurado vitrine", etapa: "impressao", m2: 5.4, prazo: "26/08" },
-  { id: "OP-2280", cliente: "Clínica Vida", peca: "Placa PS 0,6×0,4 (6un)", etapa: "acabamento", m2: 1.44, prazo: "26/08" },
-  { id: "OP-2274", cliente: "Posto BR Centro", peca: "Testeira lona 6×0,8 m", etapa: "instalacao", m2: 4.8, prazo: "27/08" },
-];
-
 let seq = 0;
 const novoItem = (p) => ({ id: "i" + ++seq, material_id: null, descricao: "", largura: 1, altura: 1, qtd: 1, preco: 0, ...p });
 const area = (i) => Math.max(0, i.largura) * Math.max(0, i.altura) * Math.max(0, i.qtd);
@@ -71,32 +56,45 @@ function Campo({ label, ...p }) {
   return <label className="cvi-fld"><small>{label}</small><input {...p} /></label>;
 }
 
-function Pcp({ ops }) {
+// Miniatura da Produção (rota pcv): lê window.PCVD, a mesma fonte do Painel de produção, para as duas
+// telas mostrarem as mesmas OS, setores e prazos. Sem lista própria aqui.
+function Pcp() {
   const { StatusBadge } = DS();
+  const D = window.PCVD;
+  if (!D) return <section className="cvi-pcp" data-contract="pcp"><p className="cvi-pcp-vazio">Carregando a produção…</p></section>;
+  const abertas = D.emProducao();
   return (
     <section className="cvi-pcp" data-contract="pcp">
       <header className="cvi-pcp-h">
-        <h2>Na fábrica agora</h2>
-        <small>OrdemProducao · etapa — o PCP completo vira tela própria (US-COMVIS-003)</small>
+        <div className="cvi-pcp-h-t">
+          <h2>Na fábrica agora</h2>
+          <small>Cada OS no setor em que está agora.</small>
+        </div>
+        <Btn size="sm" onClick={() => window.__selectRoute?.("pcv")}>Abrir painel de produção</Btn>
       </header>
       <div className="cvi-pcp-cols">
-        {ETAPAS.map((et) => {
-          const lista = ops.filter((o) => o.etapa === et.id);
+        {D.SETORES.map((s) => {
+          const lista = abertas.filter((o) => D.atual(o).setor === s.id);
           return (
-            <div className="cvi-pcp-col" key={et.id}>
-              <div className="cvi-pcp-col-h"><b>{et.label}</b><span className="mono">{lista.length}</span></div>
+            <div className="cvi-pcp-col" key={s.id}>
+              <div className="cvi-pcp-col-h"><b>{s.nome}</b><span className="mono">{lista.length}</span></div>
               {lista.length === 0
                 ? <p className="cvi-pcp-vazio">vazio</p>
-                : lista.map((o) => (
-                  <article className={"cvi-op" + (o.urgente ? " urgente" : "")} key={o.id}>
-                    <b className="mono">{o.id}</b>
-                    <span className="cvi-op-cli">{o.cliente}</span>
-                    <span className="cvi-op-peca">{o.peca}</span>
-                    <footer><span className="mono">{NUM(o.m2)} m²</span>{StatusBadge
-                      ? <StatusBadge tone={o.urgente ? "danger" : "neutral"} label={o.prazo} />
-                      : <span>{o.prazo}</span>}</footer>
-                  </article>
-                ))}
+                : lista.map((o) => {
+                  const alerta = D.atraso(o);
+                  const urgente = o.prioridade === "urgente" || alerta === "atrasada" || alerta === "vence hoje";
+                  const prazo = alerta || D.d2(o.prazo);
+                  return (
+                    <article className={"cvi-op" + (urgente ? " urgente" : "")} key={o.id}>
+                      <b className="mono">{o.id}</b>
+                      <span className="cvi-op-cli">{o.cliente}</span>
+                      <span className="cvi-op-peca">{o.titulo}</span>
+                      <footer><span className="mono">{o.qtd}</span>{StatusBadge
+                        ? <StatusBadge tone={urgente ? "danger" : "neutral"} label={prazo} />
+                        : <span>{prazo}</span>}</footer>
+                    </article>
+                  );
+                })}
             </div>
           );
         })}
@@ -246,7 +244,7 @@ function ComunicacaoVisualPage({ estado = "dados", papel = "balcao", dense = fal
         </p>
       </section>
 
-      {pcp && <Pcp ops={OPS} />}
+      {pcp && <Pcp />}
 
       <section className="cvi-proximas" data-contract="em-breve">
         <h2>Em breve nesta tela</h2>
