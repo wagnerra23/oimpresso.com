@@ -26,6 +26,7 @@ related_us: [US-VEST-031]
 | UC-VCUR-01 | o total se divide pela proporção vendida do produto em 90 dias, somando o total | must | US-VEST-031 | `CurvaDeCompraContratoTest` |
 | UC-VCUR-02 | produto novo usa a curva da categoria, pelo nome da variação | must | US-VEST-031 | `CurvaDeCompraContratoTest` |
 | UC-VCUR-03 | sem venda não sugere; outra empresa não entra; sugerir não grava nada | must `[T0]` | US-VEST-031 | `CurvaDeCompraContratoTest` |
+| UC-VCUR-04 | quem vê só algumas lojas soma só as vendas delas | must `[T0]` | US-VEST-031 · ADR 0093 | `CurvaDeCompraContratoTest` |
 
 ## UC-VCUR-01 · O total se divide pela proporção vendida do produto em 90 dias
 - **Persona:** quem compra para a loja, decidindo a grade da próxima reposição.
@@ -47,5 +48,13 @@ related_us: [US-VEST-031]
 - **Aceite:** Dado um produto sem venda nele nem na categoria · Então a resposta diz o motivo e não
   traz linhas. Venda e produto de outra empresa não entram na conta (produto alheio = não encontrado).
   Pedir a sugestão não cria venda, compra nem movimento de estoque.
+- **Teste:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php`
+- **Status: 🧪**
+
+## UC-VCUR-04 · Quem vê só algumas lojas soma só as vendas delas
+- **Persona:** gerente de uma loja, que não pode ver quanto as outras lojas venderam.
+- **Aceite:** Dado um usuário com acesso a uma loja e vendas em duas lojas · Quando pede a sugestão ·
+  Então só as vendas da loja dele entram na proporção, no produto e na categoria. Sem venda na loja
+  dele, a resposta diz o motivo. Quem vê todas as lojas soma todas.
 - **Teste:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php`
 - **Status: 🧪**
