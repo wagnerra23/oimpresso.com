@@ -26,10 +26,9 @@ charter_version: 2
 > ⚠️ **Correção factual 2026-07-28 (chip SDD).** A v1 deste charter afirmava *"perms
 > `vestuario.etiqueta.view` / `vestuario.etiqueta.create`"* como se fossem **aplicadas**. Elas
 > existem e estão registradas em `DataController::user_permissions()`, e gateiam a **entry de
-> sidebar** — mas `EtiquetaTagController::authorizeAccess()` **não bloqueia** quem não as tem:
-> emite `Log::warning('vestuario.etiqueta.permission_check_missing')` e segue o fluxo (o código
-> declara *"Sprint 3 vira hard-block"*). O que hoje protege os endpoints é a **stack de middleware
-> autenticada**. Ligar o hard-block é decisão de [W] — registrado no
+> sidebar**; em `EtiquetaTagController::authorizeAccess()` o bloqueio fica atrás da chave
+> `vestuario.etiqueta.exigir_permissao`, desligada por padrão (registra quem seria bloqueado).
+> Ligar em produção é ato de [W], depois da semana de log (VEST-D1) — registrado no
 > [SDD §9 D-1](../../../../../memory/requisitos/Vestuario/SDD-tela-etiqueta-tag-v1.0.md).
 >
 > **Contrato desta tela:** design e casos de uso em
@@ -41,14 +40,14 @@ charter_version: 2
 
 ## Mission
 
-Tela de geração de etiquetas TAG térmicas do vertical Vestuário: o operador monta uma lista de itens (produto/variação + quantidade) e imprime etiquetas com EAN-13 + QR Code. É a ferramenta de etiquetagem em lote da loja de vestuário (ROTA LIVRE) — da grade de itens ao envio pra impressão térmica.
+Tela de geração de etiquetas TAG térmicas do vertical Vestuário: o operador monta uma lista de itens (produto/variação + quantidade) e imprime etiquetas com o código que o caixa bipa + QR Code. É a ferramenta de etiquetagem em lote da loja de vestuário (ROTA LIVRE) — da grade de itens ao envio pra impressão térmica.
 
 ---
 
 ## Goals — Features (faz)
 
 - Lista editável de itens de etiqueta (produto/variação, quantidade), com edição por linha
-- Geração de EAN-13 + QR Code por item
+- Código de barras do `sub_sku` (EAN-13 quando válido, senão Code128) + QR Code por item
 - Montagem do payload de impressão + envio (POST com CSRF) pra a impressora térmica
 - AppShellV2 + PageHeader shared, tokens DS
 
@@ -79,7 +78,7 @@ Tela de geração de etiquetas TAG térmicas do vertical Vestuário: o operador 
 
 ## Automation hooks (faz)
 
-- Gera EAN-13/QR por item automaticamente ao montar a lista
+- Gera o código de barras e o QR por item ao montar a lista, sem inventar número
 - Monta o payload de impressão a partir dos itens editados
 
 ---

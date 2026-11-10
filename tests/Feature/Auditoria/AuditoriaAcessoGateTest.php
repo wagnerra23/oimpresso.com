@@ -159,7 +159,7 @@ it('UC-AUDD-03 · sem auditoria.view, /auditoria/{id} da própria empresa recusa
     expect($aceita->json('props.activity.id'))->toBe($linha->id);
 });
 
-it('UC-AUDD-02 · pela rota, linha da empresa 99 lida por usuário da 98 dá 404', function () {
+it('UC-AUDD-11 · pela rota, linha da empresa 99 lida por usuário da 98 vem nula e sem dado nenhum', function () {
     audGatePacote(true);
     $linha99 = audGateLinha((int) $this->b99->id);
     $url = "/auditoria/{$linha99->id}";
@@ -172,6 +172,8 @@ it('UC-AUDD-02 · pela rota, linha da empresa 99 lida por usuário da 98 dá 404
 
     $outra = $this->usuarioComPermissoes([AuditoriaLiberado::PERMISSAO], $this->b98);
     $cruzada = audGateParcial($outra, (int) $this->b98->id, $url, 'Auditoria/Detail', 'activity');
-    $cruzada->assertStatus(404);
+    $cruzada->assertStatus(200);
+    expect(array_key_exists('activity', $cruzada->json('props')))->toBeTrue();
+    expect($cruzada->json('props.activity'))->toBeNull();
     expect($cruzada->getContent())->not->toContain('auditoria-acesso-gate-test');
 });

@@ -12532,12 +12532,6 @@ parameters:
 			path: Modules/Vestuario/Config/retention.php
 
 		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: Modules/Vestuario/Database/Seeders/RepairSettingsSeeder.php
-
-		-
 			message: '#^PHPDoc tag @var above a method has no effect\.$#'
 			identifier: varTag.misplaced
 			count: 1
