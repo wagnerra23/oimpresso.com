@@ -3480,6 +3480,9 @@ class SellController extends Controller
                 'permissions' => [
                     'view_all' => auth()->user()->can('draft.view_all'),
                     'view_own' => auth()->user()->can('draft.view_own'),
+                    // P-076 — "Excluir rascunho" no menu Ações da linha. Mesma permissão que a lista
+                    // Blade usava pra mostrar o Excluir; SellPosController@destroy passou a aceitá-la.
+                    'delete' => auth()->user()->can('draft.delete'),
                 ],
                 'urls' => [
                     // O mesmo endpoint do DataTable do Blade (`sale_pos/draft.blade.php`). Antes apontava
@@ -3619,7 +3622,10 @@ class SellController extends Controller
                     DB::raw('COUNT( DISTINCT tsl.id) as total_items'),
                     DB::raw('SUM(tsl.quantity) as total_quantity'),
                     DB::raw("CONCAT(COALESCE(u.surname, ''), ' ', COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) as added_by"),
-                    'transactions.is_export'
+                    'transactions.is_export',
+                    // P-076 — coluna Valor da lista React de rascunhos e a confirmação de exclusão.
+                    // Só leitura do total gravado; o agrupamento por transactions.id mantém 1 valor por linha.
+                    'transactions.final_total'
                 );
 
             if ($is_quotation == 1) {

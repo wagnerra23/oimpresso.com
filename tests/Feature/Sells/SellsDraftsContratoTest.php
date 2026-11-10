@@ -17,7 +17,7 @@ use Tests\Support\EstoqueFixture;
  * endpoint que o Blade legado lê — sale_pos/draft.blade.php — e que a Page recebe em
  * `urls.datatable`).
  *
- * UCs: resources/js/Pages/Sells/Drafts.casos.md (UC-DRAFT-01..04). Derivados do aceite da
+ * UCs: resources/js/Pages/Sells/Drafts.casos.md (UC-DRAFT-01..04, 06 e 07). Derivados do aceite da
  * US-SELL-060 (SPEC) + CU-SELL-08/CU-SELL-13 (SDD-tela-venda-v1.0) + Drafts.charter.md
  * (Mission/Goals) + RUNBOOK-drafts.md §2 — não do `.tsx`.
  *
@@ -197,7 +197,8 @@ it('UC-DRAFT-03 a tela abre com draft.view_own e é negada (403) sem nenhuma das
     $resp->assertOk();
     $page = json_decode($resp->getContent(), true);
     expect($page['component'] ?? null)->toBe('Sells/Drafts');
-    expect($page['props']['permissions'])->toBe(['view_all' => false, 'view_own' => true]);
+    // `delete` (P-076): a tela só mostra "Excluir rascunho" ativo para quem tem draft.delete.
+    expect($page['props']['permissions'])->toBe(['view_all' => false, 'view_own' => true, 'delete' => false]);
 
     drfLogin($this, drfUsuario($this->bizId, ['access_all_locations']));
     drfPagina($this)->assertStatus(403);
@@ -217,4 +218,70 @@ it('UC-DRAFT-04 [T0] o KPI de rascunhos pendentes sobe só com rascunho comum do
     // Controle positivo: um rascunho comum do próprio business soma exatamente 1.
     drfTx($this, $this->bizId, $this->loc, $this->vendedorB->id, 'rC', 'draft', null);
     expect(drfKpiTotal($this))->toBe($antes + 1);
+});
+
+/** id da transação desta fixture pelo sufixo do invoice_no. */
+function drfId(object $test, string $sufixo): int
+{
+    return (int) DB::table('transactions')->where('invoice_no', $test->prefixo . $sufixo)->value('id');
+}
+
+/** DELETE /sells/{id} como a tela manda (XHR + JSON) — SellPosController@destroy. */
+function drfExcluir(object $test, int $id)
+{
+    return $test->withHeaders(['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'])
+        ->delete("/sells/{$id}");
+}
+
+it('UC-DRAFT-06 [T0] com draft.delete o rascunho excluído sai da lista e do total; a lista traz o valor do rascunho', function () {
+    drfLogin($this, drfUsuario($this->bizId, ['draft.view_all', 'draft.delete', 'access_all_locations']));
+
+    // A tela recebe a permissão que liga o "Excluir rascunho".
+    $page = json_decode(drfPagina($this)->assertOk()->getContent(), true);
+    expect($page['props']['permissions']['delete'])->toBeTrue();
+
+    // A lista traz o valor gravado de cada rascunho (coluna Valor e confirmação).
+    $json = $this->withHeaders(['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/sells/draft-dt?is_quotation=0')->assertOk()->json();
+    $linha = collect($json['data'])->first(fn ($r) => str_starts_with((string) $r['invoice_no'], $this->prefixo . 'rA'));
+    expect($linha)->not->toBeNull();
+    expect((float) $linha['final_total'])->toBe(10.0);
+
+    $antes = drfKpiTotal($this);
+    $alvo = drfId($this, 'rA');
+    expect($alvo)->toBeGreaterThan(0);
+
+    drfExcluir($this, $alvo)->assertOk()->assertJsonPath('success', true);
+
+    expect(DB::table('transactions')->where('id', $alvo)->exists())->toBeFalse();
+    expect(drfLista($this))->toBe(['rB']);
+    expect(drfKpiTotal($this))->toBe($antes - 1);
+});
+
+it('UC-DRAFT-07 [T0] draft.delete só apaga rascunho comum da própria empresa — e, com só view_own, só o próprio', function () {
+    $vendedor = drfUsuario($this->bizId, ['draft.view_own', 'draft.delete', 'access_all_locations']);
+    drfLogin($this, $vendedor);
+
+    drfTx($this, $this->bizId, $this->loc, $vendedor->id, 'qV', 'draft', 'quotation');
+    drfTx($this, $this->bizId, $this->loc, $vendedor->id, 'fV', 'final', null);
+    drfTx($this, $this->bizId, $this->loc, $vendedor->id, 'rV', 'draft', null);
+
+    // Recusados: cotação, venda final, rascunho de outra empresa e rascunho do colega.
+    foreach (['qV', 'fV', 'rX', 'rB'] as $sufixo) {
+        $id = drfId($this, $sufixo);
+        expect($id)->toBeGreaterThan(0);
+        drfExcluir($this, $id)->assertStatus(403);
+        expect(DB::table('transactions')->where('id', $id)->exists())->toBeTrue();
+    }
+
+    // Sem draft.delete, nem o próprio rascunho.
+    drfLogin($this, $this->vendedorA);
+    drfExcluir($this, drfId($this, 'rA'))->assertStatus(403);
+    expect(DB::table('transactions')->where('id', drfId($this, 'rA'))->exists())->toBeTrue();
+
+    // Controle positivo: o próprio rascunho comum sai.
+    drfLogin($this, $vendedor);
+    $proprio = drfId($this, 'rV');
+    drfExcluir($this, $proprio)->assertOk()->assertJsonPath('success', true);
+    expect(DB::table('transactions')->where('id', $proprio)->exists())->toBeFalse();
 });

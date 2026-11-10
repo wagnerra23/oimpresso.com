@@ -2014,7 +2014,8 @@ class SellPosController extends Controller
      */
     public function destroy($id)
     {
-        if (!auth()->user()->can('sell.delete') && !auth()->user()->can('direct_sell.delete') && !auth()->user()->can('so.delete')) {
+        if (!auth()->user()->can('sell.delete') && !auth()->user()->can('direct_sell.delete') && !auth()->user()->can('so.delete')
+            && !$this->podeExcluirComoRascunho($id)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -2037,6 +2038,38 @@ class SellPosController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * P-076 — quem tem só `draft.delete` exclui rascunho pela lista de rascunhos.
+     *
+     * A lista Blade (`SellController@getDraftDatables`) sempre mostrou o Excluir para `draft.delete`,
+     * mas o `destroy` só aceitava as permissões de excluir venda: o botão dava 403. Aqui a permissão
+     * de rascunho vale só para rascunho comum (status `draft`, fora cotação) da empresa da sessão;
+     * com `draft.view_own` sem `draft.view_all`, só o rascunho que o próprio usuário criou.
+     * Venda finalizada e cotação seguem exigindo as permissões de antes.
+     */
+    private function podeExcluirComoRascunho($id): bool
+    {
+        $user = auth()->user();
+        if (! $user->can('draft.delete')) {
+            return false;
+        }
+
+        $rascunho = Transaction::where('business_id', request()->session()->get('user.business_id'))
+            ->where('id', $id)
+            ->where('type', 'sell')
+            ->where('status', 'draft')
+            ->where(function ($q) {
+                $q->whereNull('sub_status')->orWhere('sub_status', '!=', 'quotation');
+            })
+            ->first(['id', 'created_by']);
+
+        if (empty($rascunho)) {
+            return false;
+        }
+
+        return $user->can('draft.view_all') || (int) $rascunho->created_by === (int) $user->id;
     }
 
     public function getSalesOrderLines()

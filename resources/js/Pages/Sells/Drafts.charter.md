@@ -38,9 +38,10 @@ Listar rascunhos de venda (status=draft, sub_status=NULL) — Larissa retoma pra
 - AppShellV2 + PageHeader inline
 - 1 KPI: total rascunhos pendentes
 - Search inline por nº / cliente
-- Tabela 6 cols (data + nº + cliente + local + itens + ações)
+- Tabela (data + idade + nº + cliente + local + itens + valor + ações) — coluna Valor desde 2026-11-10 (P-076, aprovada por [M])
 - Endpoint AJAX DataTables legacy preservado (`/sells/drafts` GET ajax) — fetch JSON
 - Action principal: "Continuar" → `/sells/{id}/edit`
+- Menu Ações da linha: "Imprimir rascunho" (recibo via `/sells/{id}/print`) e "Excluir rascunho" com confirmação (cliente, itens, valor) — gate `draft.delete` (UC-DRAFT-06/07)
 - Customers dropdown deferred (pré-carga pra autocomplete futuro)
 - Atalho `N` (nova venda), `Esc` (voltar)
 - Multi-tenant Tier 0 backend (ADR 0093)
@@ -82,6 +83,7 @@ Listar rascunhos de venda (status=draft, sub_status=NULL) — Larissa retoma pra
 | GET | `/sells/drafts` (X-Inertia) | Inertia render Sells/Drafts |
 | GET | `/sells/drafts` (sem X-Inertia) | Blade `sale_pos.draft` |
 | GET | `/sells/drafts` (Accept JSON / AJAX) | DataTables JSON `{data: [...]}` (alimenta tabela cliente) |
+| DELETE | `/sells/{id}` (AJAX) | `SellPosController@destroy` — `{success, msg}`; `draft.delete` vale só para rascunho comum (UC-DRAFT-07) |
 
 ---
 
