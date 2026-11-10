@@ -166,5 +166,6 @@ it('UC-PEDIT-20 · o Editar entrega a política e a margem gravadas para a tela'
         ->assertOk()
         ->assertJsonPath('component', 'Produto/Edit')
         ->assertJsonPath('props.product.politicaPreco', 'margem')
-        ->assertJsonPath('props.product.margemAlvoPct', 45.0);
+        // O json_encode do PHP escreve 45.0 como 45: a tela recebe um número, inteiro ou não.
+        ->assertJsonPath('props.product.margemAlvoPct', fn ($v) => is_numeric($v) && (float) $v === 45.0);
 });
