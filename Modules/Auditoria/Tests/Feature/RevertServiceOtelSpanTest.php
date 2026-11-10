@@ -24,7 +24,7 @@ it('OtelHelper zero-cost quando otel.enabled=false (default prod)', function () 
     config(['otel.enabled' => false]);
 
     $executed = false;
-    $result = OtelHelper::span('auditoria.test.span', ['business_id' => 1], function () use (&$executed) {
+    $result = OtelHelper::span('auditoria.test.span', ['business_id' => 98], function () use (&$executed) {
         $executed = true;
         return 'ok';
     });
