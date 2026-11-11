@@ -268,7 +268,7 @@ class DemoSeedCommand extends Command
         // Timestamps controlados: iniciou 90 min atrás, finalizou agora
         $iniciouEm    = now()->subMinutes(90);
         $finalizouEm  = now();
-        $duracaoSeg   = (int) $finalizouEm->diffInSeconds($iniciouEm); // ~5400
+        $duracaoSeg   = (int) $iniciouEm->diffInSeconds($finalizouEm); // ~5400 (Carbon 3: do início ao fim)
 
         // m2_orcado = area_m2 do primeiro item (banner 3×1.5 = 4.500 m²)
         $m2Orcado    = $primeiroItem ? (float) $primeiroItem->area_m2 : 4.5;
