@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeEvento;
+use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
+use Modules\NfeBrasil\Support\AmbienteDoEmitente;
+use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Tools;
@@ -41,6 +44,8 @@ use RuntimeException;
  */
 class NfeCartaCorrecaoService
 {
+    use ResolveUfEmitente;
+
     public function __construct(
         private readonly CertificadoService $certificadoService,
         /** @var Closure|null fn(string $configJson, array $certData): Tools — override pra testes */
@@ -240,12 +245,18 @@ class NfeCartaCorrecaoService
         return $tools;
     }
 
+    /**
+     * N4-14 (lote 1.4): o emitente sai das mesmas fontes da emissão, da manifestação e do DF-e.
+     * Antes: `env('NFE_AMBIENTE')` fora do config, `business.state` (coluna que não existe → sempre
+     * SP) e `business.cnpj ?? business.tax_number` (o default só-zeros passava, `tax_number` não existe).
+     */
     private function buildConfig(object $business): string
     {
-        $cnpj  = preg_replace('/\D/', '', (string) ($business->cnpj ?? $business->tax_number ?? ''));
-        $uf    = strtoupper((string) ($business->state ?? $business->uf ?? 'SP'));
+        $businessId = (int) $business->id;
+        $cnpj  = CnpjDoEmitente::obrigatorio($businessId);
+        $uf    = $this->resolverUfEmitente($businessId);
         $razao = $business->razao_social ?? $business->name ?? '';
-        $tpAmb = (int) ($business->ambiente ?? env('NFE_AMBIENTE', 2));
+        $tpAmb = AmbienteDoEmitente::resolver($businessId);
 
         return (string) json_encode([
             'atualizacao' => now()->format('Y-m-d\TH:i:s'),
