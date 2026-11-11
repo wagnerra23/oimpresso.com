@@ -23,9 +23,14 @@ function manifestacaoCtrlBootstrap(): array
     }
 
     try {
-        $business = \App\Business::first();
-        $user = \App\User::whereHas('roles', fn ($q) => $q->where('name', 'like', 'Admin%'))->first()
-            ?? \App\User::first();
+        // Admin da PRÓPRIA empresa (papel `Admin#{users.business_id}`), escolhido por id: é o
+        // que o Gate::before do AuthServiceProvider libera. O `whereHas(Admin%)->first()` sem
+        // ordem devolvia, conforme o plano do MySQL, um admin cujo papel não era o da empresa
+        // dele, e as rotas autenticadas davam 403 (run 42930817657, 2026-11-11).
+        $user = \App\User::whereHas('roles', fn ($q) => $q->whereRaw("roles.name = CONCAT('Admin#', users.business_id)"))
+            ->orderBy('id')
+            ->first();
+        $business = $user ? \App\Business::find($user->business_id) : null;
     } catch (\Throwable) {
         test()->markTestSkipped('Tabelas core indisponíveis.');
     }
