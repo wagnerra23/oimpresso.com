@@ -31,7 +31,7 @@ final class MatrizIfbrm
 
     public const VALORES = [100, 75, 50, 25];
 
-    /** @var array<string, array{titulo: string, itens: array<string, string>}> */
+    /** @var array<int, array{titulo: string, itens: array<string, string>}> chave = número do domínio (o PHP guarda '1'..'8' como inteiro) */
     public const DOMINIOS = [
         '1' => ['titulo' => 'Aprendizagem e aplicação de conhecimento', 'itens' => [
             '1.1' => 'Ver/ouvir com atenção', '1.2' => 'Concentrar a atenção',
@@ -101,7 +101,7 @@ final class MatrizIfbrm
      * o total só existe com os 30 itens pontuados (`completo`).
      *
      * @param  array<string, int>  $matriz
-     * @return array{por_dominio: array<string, ?int>, faltando: list<string>, completo: bool, total: ?int}
+     * @return array{por_dominio: array<int, ?int>, faltando: list<string>, completo: bool, total: ?int}
      */
     public static function pontuar(array $matriz): array
     {
