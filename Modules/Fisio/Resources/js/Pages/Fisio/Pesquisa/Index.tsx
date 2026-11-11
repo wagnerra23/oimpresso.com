@@ -5,8 +5,8 @@
 //   permissao: fisio.pesquisa · o nome do paciente só aparece para quem também tem fisio.editar
 //
 // Área do estudo (fonte: prototipo-ui/cowork/Wagner/prototipos/fisio/Pesquisa.dc.html).
-// Estudo, participantes, pendências e eventos adversos (P-06). As abas de exportação e assistente
-// do protótipo entram com P-07 e P-08. O software organiza o estudo; não decide conduta.
+// Estudo, participantes, pendências, eventos adversos (P-06) e exportação (P-07). O assistente
+// do protótipo entra com P-08. O software organiza o estudo; não decide conduta.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router, useForm, usePage } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
@@ -24,12 +24,12 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
 
 interface Momento { label: string; day_offset: number; window_days: number; instruments: string[] }
-interface Estudo { id: number; title: string; status: string; cep_opinion_number: string; protocol_version: string; tcle_version: string; starts_on: string; ends_on: string | null; momentos: Momento[] }
+interface Estudo { id: number; title: string; status: string; cep_opinion_number: string; protocol_version: string; tcle_version: string; starts_on: string; ends_on: string | null; locked_at: string | null; lock_reason: string | null; momentos: Momento[] }
 interface Participante { id: number; code: string; nome: string | null; entered_on: string; exited_on: string | null; exit_type: string | null; exit_reason: string | null }
 interface Pendencia { participant_id: number; code: string; moment: string; inicio: string; fim: string; faltando: string[]; situacao: 'futuro' | 'aberto' | 'vencido' }
 interface EventoAdverso { id: number; code: string; origin: 'crise_48h' | 'alerta_dor'; started_on: string; ended_on: string; detail: { dor?: number; limiar?: number; dias?: number } | null; reviewed_at: string | null; review_note: string | null }
-type Aba = 'part' | 'pend' | 'ea';
-const ABAS: { value: Aba; label: string }[] = [{ value: 'part', label: 'Participantes' }, { value: 'pend', label: 'Pendências' }, { value: 'ea', label: 'Eventos adversos' }];
+type Aba = 'part' | 'pend' | 'ea' | 'exp';
+const ABAS: { value: Aba; label: string }[] = [{ value: 'part', label: 'Participantes' }, { value: 'pend', label: 'Pendências' }, { value: 'ea', label: 'Eventos adversos' }, { value: 'exp', label: 'Exportação' }];
 const descreverEvento = (e: EventoAdverso) => e.origin === 'crise_48h'
   ? `Crise registrada por ${e.detail?.dias ?? 3} dias seguidos (mais de 48 h)`
   : `Dor ${e.detail?.dor ?? '?'} no limiar em vigor (${e.detail?.limiar ?? '?'})`;
@@ -53,6 +53,43 @@ const MOMENTOS_PADRAO: Momento[] = [
   { label: '8 semanas', day_offset: 56, window_days: 7, instruments: [] },
   { label: '12 semanas', day_offset: 84, window_days: 7, instruments: [] },
 ];
+
+/** Depois do travamento, toda mudança no estudo pede justificativa (fica no log). */
+function Justificativa({ estudo, valor, mudar, erro }: { estudo: Estudo; valor: string; mudar: (v: string) => void; erro?: string }) {
+  if (!estudo.locked_at) return null;
+  return (
+    <div className="grid gap-1">
+      <Textarea aria-label="Justificativa" placeholder="Estudo travado: por que mudar este dado?" value={valor} onChange={(e) => mudar(e.target.value)} />
+      {erro && <span className="text-xs text-destructive">{erro}</span>}
+    </div>
+  );
+}
+
+const ARQUIVOS = [
+  { arquivo: 'momentos', rotulo: 'Momentos (participante × momento × questionário)' },
+  { arquivo: 'diario', rotulo: 'Série diária de dor e adesão' },
+  { arquivo: 'participantes', rotulo: 'Participantes e saídas' },
+  { arquivo: 'dicionario', rotulo: 'Dicionário de dados' },
+];
+
+function Travar({ estudo, fechar }: { estudo: Estudo; fechar: () => void }) {
+  const f = useForm({ motivo: '' });
+  return (
+    <Dialog open onOpenChange={(o) => !o && fechar()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Travar os dados do estudo</DialogTitle></DialogHeader>
+        <p className="text-sm text-muted-foreground">Não tem volta. A exportação passa a usar só o que está gravado agora, e mudar participante ou evento depois exige justificativa.</p>
+        <Textarea aria-label="Motivo do travamento" value={f.data.motivo} onChange={(e) => f.setData('motivo', e.target.value)} placeholder="Ex.: fim da coleta do momento 12 semanas" />
+        {(f.errors.motivo || f.errors.geral) && <p className="text-sm text-destructive">{f.errors.motivo ?? f.errors.geral}</p>}
+        <DialogFooter>
+          <Button variant="outline" onClick={fechar}>Cancelar</Button>
+          <Button variant="destructive" disabled={f.processing || f.data.motivo.trim() === ''}
+            onClick={() => f.post(`/fisio/pesquisa/estudos/${estudo.id}/travar`, { preserveScroll: true, onSuccess: fechar })}>Travar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function NovoEstudo({ instrumentos, fechar }: { instrumentos: string[]; fechar: () => void }) {
   const f = useForm({ title: '', cep_opinion_number: '', protocol_version: '', tcle_version: '', starts_on: '', momentos: MOMENTOS_PADRAO });
@@ -91,7 +128,7 @@ function NovoEstudo({ instrumentos, fechar }: { instrumentos: string[]; fechar: 
 }
 
 function Incluir({ estudo, pacientes, fechar }: { estudo: Estudo; pacientes: { id: number; nome: string }[]; fechar: () => void }) {
-  const f = useForm({ patient_id: '', tcle_assinado: false });
+  const f = useForm({ patient_id: '', tcle_assinado: false, justificativa: '' });
   return (
     <Dialog open onOpenChange={(o) => !o && fechar()}>
       <DialogContent>
@@ -104,6 +141,7 @@ function Incluir({ estudo, pacientes, fechar }: { estudo: Estudo; pacientes: { i
           <Checkbox checked={f.data.tcle_assinado} onCheckedChange={(v) => f.setData('tcle_assinado', v === true)} />
           O paciente assinou o TCLE na versão {estudo.tcle_version}, aprovada pelo CEP.
         </label>
+        <Justificativa estudo={estudo} valor={f.data.justificativa} mudar={(v) => f.setData('justificativa', v)} />
         {f.errors.geral && <p className="text-sm text-destructive">{f.errors.geral}</p>}
         <DialogFooter>
           <Button variant="outline" onClick={fechar}>Cancelar</Button>
@@ -116,7 +154,7 @@ function Incluir({ estudo, pacientes, fechar }: { estudo: Estudo; pacientes: { i
 }
 
 function Saida({ estudo, p, fechar }: { estudo: Estudo; p: Participante; fechar: () => void }) {
-  const f = useForm({ tipo: 'perda_seguimento', motivo: '' });
+  const f = useForm({ tipo: 'perda_seguimento', motivo: '', justificativa: '' });
   return (
     <Dialog open onOpenChange={(o) => !o && fechar()}>
       <DialogContent>
@@ -126,6 +164,7 @@ function Saida({ estudo, p, fechar }: { estudo: Estudo; p: Participante; fechar:
           <SelectContent>{['perda_seguimento', 'conclusao', 'outro'].map((t) => <SelectItem key={t} value={t}>{SAIDAS[t]}</SelectItem>)}</SelectContent>
         </Select>
         <Textarea aria-label="Motivo" placeholder="Motivo (fica registrado e não é apagado)" value={f.data.motivo} onChange={(e) => f.setData('motivo', e.target.value)} />
+        <Justificativa estudo={estudo} valor={f.data.justificativa} mudar={(v) => f.setData('justificativa', v)} />
         {(f.errors.motivo || f.errors.geral) && <p className="text-sm text-destructive">{f.errors.motivo ?? f.errors.geral}</p>}
         <DialogFooter>
           <Button variant="outline" onClick={fechar}>Cancelar</Button>
@@ -138,14 +177,15 @@ function Saida({ estudo, p, fechar }: { estudo: Estudo; p: Participante; fechar:
 }
 
 function Revisar({ estudo, e, fechar }: { estudo: Estudo; e: EventoAdverso; fechar: () => void }) {
-  const f = useForm({ nota: '' });
+  const f = useForm({ nota: '', justificativa: '' });
   return (
     <Dialog open onOpenChange={(o) => !o && fechar()}>
       <DialogContent>
         <DialogHeader><DialogTitle>Revisar evento de {e.code}</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground">{descreverEvento(e)}</p>
         <Textarea aria-label="Nota da revisão" placeholder="O que foi avaliado e o que será comunicado ao CEP" value={f.data.nota} onChange={(ev) => f.setData('nota', ev.target.value)} />
-        {f.errors.nota && <p className="text-sm text-destructive">{f.errors.nota}</p>}
+        <Justificativa estudo={estudo} valor={f.data.justificativa} mudar={(v) => f.setData('justificativa', v)} />
+        {(f.errors.nota || f.errors.geral) && <p className="text-sm text-destructive">{f.errors.nota ?? f.errors.geral}</p>}
         <DialogFooter>
           <Button variant="outline" onClick={fechar}>Cancelar</Button>
           <Button disabled={f.processing || f.data.nota.trim() === ''}
@@ -160,6 +200,7 @@ export default function PesquisaIndex(props: Props) {
   const { estudos, estudo, ve_nome } = props;
   const [aba, setAba] = useState<Aba>('part');
   const [revendo, setRevendo] = useState<EventoAdverso | null>(null);
+  const [travando, setTravando] = useState(false);
   const [dialogo, setDialogo] = useState<'novo' | 'incluir' | null>(null);
   const [saindo, setSaindo] = useState<Participante | null>(null);
   const flash = (usePage().props as { flash?: { success?: string } }).flash?.success;
@@ -226,6 +267,16 @@ export default function PesquisaIndex(props: Props) {
                       </li>))}</ul>)}
                 </Deferred>
               )}
+              {aba === 'exp' && (
+                <div className="grid gap-3 text-sm">
+                  <p className="text-muted-foreground">CSV sem nome, CPF, telefone nem data do calendário: cada linha usa o código do participante e o dia do estudo. Dia sem check-in sai como NA, nunca como zero. Cada download fica registrado no log.</p>
+                  <ul className="grid gap-2">{ARQUIVOS.map((a) => (
+                    <li key={a.arquivo}><a className="underline" href={`/fisio/pesquisa/estudos/${estudo.id}/exportar/${a.arquivo}`}>{a.rotulo}</a></li>))}</ul>
+                  {estudo.locked_at
+                    ? <p className="text-muted-foreground">Travado em {new Date(estudo.locked_at).toLocaleString('pt-BR')}: {estudo.lock_reason}</p>
+                    : <div><Button variant="outline" onClick={() => setTravando(true)}>Travar dados</Button></div>}
+                </div>
+              )}
             </CardContent></Card>
           </>
         )}
@@ -233,6 +284,7 @@ export default function PesquisaIndex(props: Props) {
       {dialogo === 'novo' && <NovoEstudo instrumentos={props.instrumentos} fechar={() => setDialogo(null)} />}
       {dialogo === 'incluir' && estudo && <Deferred data="pacientes" fallback={null}><Incluir estudo={estudo} pacientes={props.pacientes ?? []} fechar={() => setDialogo(null)} /></Deferred>}
       {saindo && estudo && <Saida estudo={estudo} p={saindo} fechar={() => setSaindo(null)} />}
+      {travando && estudo && <Travar estudo={estudo} fechar={() => setTravando(false)} />}
       {revendo && estudo && <Revisar estudo={estudo} e={revendo} fechar={() => setRevendo(null)} />}
     </>
   );
