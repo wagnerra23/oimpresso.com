@@ -148,7 +148,8 @@ describe('Ordem de produção — local e produto da própria empresa (Tier 0 ·
         [$ordem, $linhaVenda, $variacao] = mfgGuardaRascunho($this, $user);
         $outroLocal = mfgGuardaLocal(MFG_EMP_BIZ);
 
-        $resposta = $this->actingAs($user)->put('/manufacturing/production/'.$ordem, mfgGuardaPayload($variacao, $outroLocal, [$linhaVenda => ['quantity' => '2']], ['final_total' => '30']));
+        // O total é do servidor (UC-OP-19): 4 do insumo a 7,5 = 30. O `final_total` do payload não entra.
+        $resposta = $this->actingAs($user)->put('/manufacturing/production/'.$ordem, mfgGuardaPayload($variacao, $outroLocal, [$linhaVenda => ['quantity' => '4']], ['final_total' => '30']));
 
         $resposta->assertRedirect('/manufacturing/production');
         $gravada = DB::table('transactions')->where('id', $ordem)->first(['location_id', 'final_total']);
