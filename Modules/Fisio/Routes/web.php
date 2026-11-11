@@ -6,6 +6,7 @@ use Modules\Fisio\Http\Controllers\ConfigAgendamentoController;
 use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\ConfiguracoesController;
+use Modules\Fisio\Http\Controllers\DocumentosPacienteController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\LaudoBiopsicossocialController;
@@ -136,6 +137,12 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('laudos-bps/{laudo}/apoio-fisio', [LaudoBiopsicossocialController::class, 'apoioFisio'])->whereNumber('laudo')->name('laudos-bps.apoio-fisio');
         Route::get('laudos-bps/{laudo}/pdf', [LaudoBiopsicossocialController::class, 'pdf'])->whereNumber('laudo')->name('laudos-bps.pdf');
         Route::post('laudos-bps/{laudo}/nova-versao', [LaudoBiopsicossocialController::class, 'novaVersao'])->whereNumber('laudo')->name('laudos-bps.nova-versao');
+
+        // Exames e receitas do paciente (US-FISIO-063). Anexar e tirar da lista exigem fisio.editar (no controller);
+        // o arquivo sai só pela rota que confere a empresa. Documento do prontuário não se apaga.
+        Route::post('pacientes/{id}/documentos', [DocumentosPacienteController::class, 'store'])->whereNumber('id')->name('pacientes.documentos.store');
+        Route::post('documentos/{documento}/tirar', [DocumentosPacienteController::class, 'tirar'])->whereNumber('documento')->name('documentos.tirar');
+        Route::get('documentos/{documento}/arquivo', [DocumentosPacienteController::class, 'arquivo'])->whereNumber('documento')->name('documentos.arquivo');
 
         // Link do portal do paciente (US-FISIO-007a): gerar devolve link + PIN UMA vez; revogar derruba.
         Route::post('pacientes/{id}/portal', [PortalLinkController::class, 'store'])->whereNumber('id')->name('pacientes.portal.store');

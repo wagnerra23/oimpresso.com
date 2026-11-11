@@ -18,6 +18,8 @@ use Inertia\Response;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Entities\DocumentoPaciente;
+use Modules\Fisio\Services\DocumentosDoPaciente;
 use Modules\Fisio\Services\EditorProgramaPayload;
 use Modules\Fisio\Services\Laudo\LaudoBiopsicossocialDocumento;
 use Modules\Fisio\Services\Laudo\MatrizIfbrm;
@@ -146,6 +148,9 @@ class PacientesController extends Controller
             // Laudo biopsicossocial (US-FISIO-060): catálogo da matriz é estático (vai junto); os laudos são query → defer.
             'laudo_bps_dominios' => MatrizIfbrm::DOMINIOS,
             'laudos_bps' => Inertia::defer(fn () => app(LaudoBiopsicossocialDocumento::class)->doPaciente($paciente, $this->businessId($request)), 'laudos_bps'),
+            // Exames e receitas (US-FISIO-063): a lista de tipos é estática (vai junto); os documentos são query → defer.
+            'documento_tipos' => DocumentoPaciente::TIPOS,
+            'documentos' => Inertia::defer(fn () => app(DocumentosDoPaciente::class)->daFicha($paciente), 'documentos'),
         ]);
     }
 
