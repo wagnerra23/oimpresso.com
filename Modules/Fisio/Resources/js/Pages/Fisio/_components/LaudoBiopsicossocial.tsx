@@ -122,7 +122,7 @@ function Formulario({ laudo, dominios, editavel }: { laudo: LaudoBps; dominios: 
   const id = d.identificacao ?? {};
   const matriz = d.matriz ?? {};
   const naoSalvo = JSON.stringify(d) !== JSON.stringify(laudo.dados);
-  const pont = useMemo(() => pontuarNaTela(dominios, matriz), [dominios, matriz]);
+  const pont = useMemo(() => pontuarNaTela(dominios, d.matriz ?? {}), [dominios, d.matriz]);
 
   // O que falta para finalizar — as mesmas quatro regras do LaudoBiopsicossocialController::finalizar.
   const areas = new Set(laudo.equipe.map((m) => m.area));
