@@ -38,9 +38,10 @@ class PesquisaController extends Controller
     public function index(Request $request): Response
     {
         $this->autorizar($request);
-        $estudos = Study::orderByDesc('starts_on')->get(['id', 'title', 'status', 'starts_on']);
+        $biz = $this->empresa($request);
+        $estudos = Study::where('business_id', $biz)->orderByDesc('starts_on')->get(['id', 'title', 'status', 'starts_on']);
         $escolhido = $request->integer('estudo') ?: $estudos->first()?->id;
-        $estudo = $escolhido ? Study::findOrFail($escolhido) : null;
+        $estudo = $escolhido ? Study::where('business_id', $biz)->findOrFail($escolhido) : null;
         $veNome = (bool) $request->user()?->can('fisio.editar');
 
         return Inertia::render('Fisio/Pesquisa/Index', [
@@ -135,7 +136,7 @@ class PesquisaController extends Controller
             ->where('p.business_id', $estudo->business_id)->where('c.business_id', $estudo->business_id)
             ->pluck('c.name', 'p.id') : collect();
 
-        return StudyParticipant::where('study_id', $estudo->id)->orderBy('code')->get()
+        return StudyParticipant::where('business_id', $estudo->business_id)->where('study_id', $estudo->id)->orderBy('code')->get()
             ->map(fn (StudyParticipant $p) => [
                 'id' => $p->id, 'code' => $p->code, 'nome' => $veNome ? ($nomes[$p->patient_id] ?? null) : null,
                 'entered_on' => $p->entered_on->toDateString(), 'exited_on' => $p->exited_on?->toDateString(),
