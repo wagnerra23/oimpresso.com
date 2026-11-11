@@ -47,9 +47,10 @@ it('UC-FBP-04 · preencher grava só o que veio; matriz validada e pontuada; Sim
     $r = $this->putJson($this->url, ['identificacao' => ['cid' => 'M79.7'], 'matriz' => ['1.1' => 100, '1.2' => '50'],
         'conclusao' => ['barreiras' => '1']])->assertOk();
 
+    // A coluna JSON do MySQL reordena as chaves ao gravar: compara chave e valor, não a ordem.
     $d = LaudoBiopsicossocial::query()->findOrFail($this->id)->dados;
-    expect($d['identificacao'])->toBe(['unidade_aps' => 'UBS Centro', 'natureza' => ['fisica'], 'cid' => 'M79.7'])
-        ->and($d['matriz'])->toBe(['1.1' => 100, '1.2' => 50])
+    expect($d['identificacao'])->toEqual(['unidade_aps' => 'UBS Centro', 'natureza' => ['fisica'], 'cid' => 'M79.7'])
+        ->and($d['matriz'])->toEqual(['1.1' => 100, '1.2' => 50])
         ->and($d['conclusao']['barreiras'])->toBeTrue()
         ->and($r->json('pontuacao.completo'))->toBeFalse()
         ->and($r->json('pontuacao.faltando'))->toHaveCount(28);
