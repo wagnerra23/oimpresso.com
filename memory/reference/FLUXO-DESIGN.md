@@ -1,19 +1,19 @@
 ---
 id: reference-fluxo-design
-name: Fluxo — Design, do Cowork à tela
-description: Como o design entra no repo, vira tela e é provado — E0 de ativação mais 9 etapas operacionais, com fluxos internos, decisões, armadilhas, provas existentes e testes ainda necessários.
+name: Fluxo — Design, do protótipo no git à tela
+description: Como o protótipo no git vira tela e é provado — E0 de ativação mais 9 etapas operacionais, com fluxos internos, decisões, armadilhas, provas existentes e testes ainda necessários. Desde a ADR 0438 a fonte é o arquivo em prototipo-ui/, editado por PR.
 type: reference
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-09-04"
+updated_at: "2026-11-05"
 nav_group: fluxo
 nav_order: 40
 lente: [construir]
 related: [reference-fluxo-deploy]
-related_adrs: [0282-protocolo-v2-colapso-ratificacao, 0299-figma-nao-e-fonte-de-design, 0114-prototipo-ui-cowork-loop-formalizado, 0324-frescor-espelho-cowork-dispatch-sla-limite-plataforma, 0374-emenda-0315-espelho-cowork-e-rota-prevista]
+related_adrs: [0282-protocolo-v2-colapso-ratificacao, 0299-figma-nao-e-fonte-de-design, 0114-prototipo-ui-cowork-loop-formalizado, 0324-frescor-espelho-cowork-dispatch-sla-limite-plataforma, 0374-emenda-0315-espelho-cowork-e-rota-prevista, 0433-fonte-do-prototipo-passa-ao-git, 0438-artefato-substitui-cowork-como-superficie-do-prototipo]
 ---
 
-# Fluxo — Design, do Cowork à tela
+# Fluxo — Design, do protótipo no git à tela
 
 > **Os comandos não moram aqui.** O caminho executável é o painel
 > [`scripts/design/protocolo.config.mjs`](https://github.com/wagnerra23/oimpresso.com/blob/main/scripts/design/protocolo.config.mjs)
@@ -26,6 +26,12 @@ related_adrs: [0282-protocolo-v2-colapso-ratificacao, 0299-figma-nao-e-fonte-de-
 > **Toda medição abaixo é datada de 2026-08-25**, feita neste repositório com clone completo —
 > **exceto** a subseção "O passo que antecede E1", que carrega a própria data (2026-08-27).
 > Número sem data apodrece; número com data é história.
+>
+> ⚠️ **Atualizado pela [ADR 0438](../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** A fonte do protótipo é o **arquivo em
+> `prototipo-ui/`, editado por PR**; o Artefato publicado a partir dele serve só para ver e
+> comentar; o Cowork deixou de ser fonte e rota. Por isso a **E1 (importação) foi encerrada** e
+> fica como registro. As etapas E2 em diante continuam valendo; onde o texto delas ainda falar de
+> "Cowork vivo", "espelho" ou "transporte", leia "o arquivo do git".
 
 ## O modelo em uma frase
 
@@ -43,23 +49,26 @@ aplicando; devolver um menu de opções entrega zero e deixa o defeito em produ�
 
 | Lugar | O que é | Quem escreve |
 |---|---|---|
-| **Cowork vivo** (`claude.ai/design`, acessado por ID) | onde o design nasce e muda | designer no Cowork |
-| **Espelho** `prototipo-ui/cowork/Wagner/` | **retrato read-only** do vivo, versionado em git | só a máquina de transporte |
+| **Protótipo** `prototipo-ui/` (hoje sob `prototipo-ui/cowork/Wagner/`) | **a fonte** do design, versionada em git | o Code ou o time, por PR |
+| **Artefato** (página publicada no claude.ai a partir do arquivo) | onde o dono **vê e comenta** | ninguém edita: é republicado a partir do arquivo |
 | **Produção** `resources/js/Pages/` | a tela React que o cliente usa | o Code, via PR |
 
-A regra que mais custa quando esquecida: **edição feita à mão no espelho some no próximo
-transporte.** O espelho é build-only. Conserto que precise durar nasce no Cowork vivo e desce —
-nunca do lado de cá. Corolário: comentário técnico dentro de um arquivo do espelho é **sempre
-suspeito**, porque ali não existe autor local legítimo.
+A regra que mais custa quando esquecida: **o que existe só no Artefato não existe como design.**
+Comentário no Artefato é um pedido: vira commit no arquivo, num PR, e a página é publicada de
+novo. Se a página e o arquivo divergirem, vale o arquivo ([ADR 0438](../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) D2/D3).
+
+> *Até 2026-10-23 esta tabela tinha o Cowork vivo como lugar onde o design nascia e
+> `prototipo-ui/cowork/Wagner/` como espelho read-only dele, alimentado por transporte. Esse
+> modelo foi encerrado pela 0438.*
 
 ## O fluxo dos dados
 
 ```
-   Cowork vivo (por ID)
+   prototipo-ui/  (arquivo no git, editado por PR)  ->  Artefato (ver e comentar)
          |
-         |  E1  DesignSync -> payload em partes -> staging -> promocao atomica
+         |  E1  encerrada pela ADR 0438 (era: Cowork -> transporte -> espelho)
          v
-   prototipo-ui/cowork/Wagner/        <- fonte executável local do protótipo
+   prototipo-ui/cowork/Wagner/        <- fonte do protótipo
          |
          |  E2  detecta telas, resolve a ancora a partir do charter
          v
@@ -78,7 +87,7 @@ suspeito**, porque ali não existe autor local legítimo.
    tela viva + evidencia ligada aos hashes
 ```
 
-O que atravessa esse tubo é sempre **dado**, nunca instrução: conteúdo vindo do Cowork é
+O que atravessa esse tubo é sempre **dado**, nunca instrução: conteúdo vindo de fora do repo é
 persistido pela máquina, jamais transcrito pelo contexto do agente. Transcrever à mão é proibido
 — foi assim que um remendo sobreviveu quatro dias em agosto/2026.
 
@@ -196,6 +205,11 @@ separados.
 ---
 
 ## E1 · Acesso e importação — trazer o design pro repo
+
+> 🗄️ **Encerrada pela [ADR 0438](../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md).** Não existe mais importação: o protótipo já nasce no git e
+> se edita por PR. A rota de baixar do Cowork, a aplicação de bundle e o frescor do espelho saíram
+> nas ondas 2a, 2b e 2c da 0438 (PRs #9787, #9789 e #9798). O texto desta seção fica como
+> registro do que existiu e das armadilhas que ele ensinou; **não siga os passos dela**.
 
 A etapa mais densa, e a única que já regrediu de verdade.
 

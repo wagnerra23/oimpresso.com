@@ -1,5 +1,7 @@
 # RECONCILIAÇÃO — Cowork export → memória canônica (livro-razão)
 
+> 🗄️ **HISTÓRICO — anterior à [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** Fluxo de reconciliação a cada handoff do Cowork; não há mais handoff. Desde a 0438 a fonte do protótipo é o **arquivo em `prototipo-ui/`, editado por PR**; o Artefato serve só para ver e comentar; o Cowork não é fonte nem rota de entrada ou saída. Não siga as instruções de zip, bundle, export, handoff, `DesignSync` ou `COWORK_NOTES` abaixo. Processo vigente: `memory/reference/prototipo-ui/PROTOCOL.md`.
+
 > **REGRA-MÃE (Wagner 2026-06-23):** a **única fonte de memória aceita é a canônica do repo** (`memory/**`, sincronizada pro **MCP** via webhook no merge p/ `main`). O Cowork **NÃO mantém memória paralela** — ele **lê a SUA** (via MCP / snapshot read-only). Este arquivo é o **livro-razão mantido** do que já foi analisado e conciliado — pra o processo ser organizado e **idempotente**.
 
 ## ⭐ Memória é DESTILADA, não despejada (qualidade > volume)
