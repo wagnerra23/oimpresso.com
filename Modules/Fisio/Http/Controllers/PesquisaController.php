@@ -14,8 +14,10 @@ use Inertia\Response;
 use InvalidArgumentException;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Study;
+use Modules\Fisio\Entities\StudyAdverseEvent;
 use Modules\Fisio\Entities\StudyParticipant;
 use Modules\Fisio\Services\Pesquisa\EstudoService;
+use Modules\Fisio\Services\Pesquisa\EventosAdversos;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 
 /**
@@ -29,7 +31,10 @@ class PesquisaController extends Controller
 {
     public const PERMISSAO = 'fisio.pesquisa';
 
-    public function __construct(private readonly EstudoService $estudos) {}
+    public function __construct(
+        private readonly EstudoService $estudos,
+        private readonly EventosAdversos $eventos,
+    ) {}
 
     /**
      * Área do estudo. O nome do paciente só vai à tela para quem também atende (`fisio.editar`):
@@ -59,6 +64,7 @@ class PesquisaController extends Controller
             'participantes' => Inertia::defer(fn () => $estudo === null ? [] : $this->participantes($estudo, $veNome)),
             'pendencias' => Inertia::defer(fn () => $estudo === null ? [] : $this->estudos->pendencias($estudo, now())),
             'pacientes' => Inertia::defer(fn () => $veNome && $estudo !== null ? $this->pacientesForaDoEstudo($estudo) : []),
+            'eventos' => Inertia::defer(fn () => $estudo === null ? [] : $this->eventos->doEstudo($estudo)),
         ]);
     }
 
@@ -125,6 +131,17 @@ class PesquisaController extends Controller
         }
 
         return $this->responder($request, ['exited_on' => $p->exited_on?->toDateString(), 'exit_type' => $p->exit_type], 200, 'Saída registrada.');
+    }
+
+    /** Revisão do evento adverso pela pesquisadora (etapa 07 P-06). O software não classifica. */
+    public function revisarEvento(Request $request, int $study, int $evento): JsonResponse|RedirectResponse
+    {
+        $this->autorizar($request);
+        $nota = (string) $request->validate(['nota' => ['required', 'string', 'max:1000']])['nota'];
+        $e = StudyAdverseEvent::where('study_id', $study)->findOrFail($evento);
+        $this->eventos->revisar($e, $nota, (int) $request->user()->id);
+
+        return $this->responder($request, ['reviewed_at' => $e->reviewed_at?->toIso8601String()], 200, 'Revisão registrada.');
     }
 
     /** @return list<array<string, mixed>> */
