@@ -49,7 +49,7 @@ it('writeArquivoXml não propaga exceção (graceful)', function () {
         $this->markTestSkipped('arquivos table missing');
     }
 
-    $service = new NfeService();
+    $service = app(NfeService::class);
     $reflection = new ReflectionClass(NfeService::class);
     $method = $reflection->getMethod('writeArquivoXml');
     $method->setAccessible(true);
@@ -81,7 +81,7 @@ it('writeArquivoXml é idempotente (rodar 2x não duplica)', function () {
         $this->markTestSkipped('arquivos table missing');
     }
 
-    $service = new NfeService();
+    $service = app(NfeService::class);
     $reflection = new ReflectionClass(NfeService::class);
     $method = $reflection->getMethod('writeArquivoXml');
     $method->setAccessible(true);
@@ -124,7 +124,7 @@ it('arquivos backfill double-write tem classified_by tag rastreável', function 
         $this->markTestSkipped('arquivos table missing');
     }
 
-    $service = new NfeService();
+    $service = app(NfeService::class);
     $reflection = new ReflectionClass(NfeService::class);
     $method = $reflection->getMethod('writeArquivoXml');
     $method->setAccessible(true);

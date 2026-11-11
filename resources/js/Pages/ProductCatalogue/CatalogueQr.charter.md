@@ -11,6 +11,7 @@ related_adrs: [93, 104, 180, 358]
 tier: C
 charter_version: 2
 related_runbook: memory/requisitos/ProductCatalogue/RUNBOOK-catalogue-qr.md
+related_visual_comparison: memory/requisitos/ProductCatalogue/CatalogueQr-visual-comparison.md
 related_us: [US-PCAT-003]
 ---
 
@@ -60,7 +61,7 @@ Assinatura com `productcatalogue_module` (como antes) **e** `product.view` no pa
 
 ## UX targets
 
-- Cabe em 1280px; duas colunas (forma × resultado) e uma coluna abaixo de 1024px.
+- Cabe em 1280px; duas colunas (forma × resultado) e uma coluna até 1100px (ponto de quebra do protótipo, medido em 2026-11-10).
 - Contraste do QR é leitura: a tela avisa que cor clara em fundo branco o celular não lê.
 
 ## Pendências antes de `status: live`

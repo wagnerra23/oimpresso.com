@@ -11,7 +11,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Modules\NfeBrasil\Events\NFCeAutorizada;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\NfeService;
 use Throwable;
@@ -33,7 +32,7 @@ use Throwable;
  *      → envia SEFAZ (autoriza4 indSinc=1)
  *      → persiste cstat + chave_44 + status
  *      → gera DANFE PDF via DanfeService::salvar
- *   3. Se status='autorizada' → event(NFCeAutorizada) → listeners encadeados:
+ *   3. Se autorizada, o próprio NfeService dispara NFCeAutorizada (lote 1.1, N4-09) → listeners:
  *      - EnviarDanfeNFCePorEmail (PR #200): email pro consumidor (opt-in)
  *      - Fase 2C futura: BroadcastStatusNfce → tela POS atualiza tempo real.
  *
@@ -108,18 +107,8 @@ class EmitirNfceJob implements ShouldQueue
                 'chave_44'       => $emissao->chave_44,
             ]);
 
-            // Fase 2B: dispatch event quando SEFAZ autorizou. Mesmo pattern do
-            // EmitirNFeAoReceberPagamento (NFe55). Listeners encadeados:
-            //   - EnviarDanfeNFCePorEmail (PR #200): manda DANFE pro consumidor
-            //     se Transaction.contact tem email (flag opt-in)
-            //   - Fase 2C futura: BroadcastStatusNfce → Centrifugo channel
-            //     `business.{id}.nfe-status` (US-NFE-002 AC #5)
-            //
-            // Status denegada/rejeitada NÃO dispara — ficam só no log + DB pra
-            // dashboard mostrar. Event futuro NFCeRejeitada cobrirá esse caso.
-            if ($emissao->status === 'autorizada') {
-                event(new NFCeAutorizada($emissao));
-            }
+            // NFCeAutorizada não sai daqui: o NfeService dispara na hora da autorização
+            // (lote 1.1, N4-09). Disparar aqui também mandaria o DANFE duas vezes.
         } catch (Throwable $e) {
             Log::error('NFC-e emission falhou', [
                 'business_id'    => $this->businessId,

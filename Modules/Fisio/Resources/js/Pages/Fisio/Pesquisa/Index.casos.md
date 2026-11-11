@@ -1,0 +1,96 @@
+---
+id: modules-fisio-pages-fisio-pesquisa-index-casos
+casos: Fisio · Área do estudo · /fisio/pesquisa
+irmaos: Index.charter.md (lei) · Index.tsx (tela)
+tecnica: Caso de uso = narrativa do pesquisador + critério de aceite verificável (Dado/Quando/Então)
+por_que: estudo observacional da clínica com a universidade (etapa 07); o comitê de ética exige consentimento por estudo, código sem identificação e registro de quem saiu.
+owner: wagner
+last_run: "2026-11-11"
+last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL do Fisio rodar FisioEstudoTest e FisioPesquisaTelaTest."
+related_us: []
+---
+
+# Casos de Uso & Aceite — Fisio · Área do estudo (`/fisio/pesquisa`)
+
+> **Âncora:** etapa 07 do Fisio §4.2 e §4.3 (`memory/requisitos/Fisio/etapas/07-pesquisa-fibromialgia.md`), ADR 0437 §5 e §7, e o protótipo `Pesquisa.dc.html`. Os UCs não derivam do `.tsx`.
+>
+> **Status:** ✅ passa (manifesto) · 🧪 teste cita o UC, sem veredito · ⬜ não verificado · ❌ quebrou. **O veredito é da lane** (G-7).
+
+## Rastreabilidade
+
+| UC | O que defende | Peso | Teste |
+|---|---|---|---|
+| UC-FES-01 | só o pesquisador cria estudo; instrumento fora da lista é recusado | must | `FisioEstudoTest` |
+| UC-FES-02 | código aleatório sem nome nem CPF; aceite do TCLE do estudo | must | `FisioEstudoTest` |
+| UC-FES-03 | saída com tipo e motivo, uma vez, sem apagar | must | `FisioEstudoTest` |
+| UC-FES-04 | pendência sai do momento, da entrada e da resposta na janela | must | `FisioEstudoTest` |
+| UC-FES-05 | revogar pelo portal tira do estudo na data | must | `FisioEstudoTest` |
+| UC-FES-06 | estudo, paciente e participante de outra clínica: 404 | must | `FisioEstudoTest` |
+| UC-FES-07 | a tela abre só para `fisio.pesquisa`; nome só para quem atende | must | `FisioPesquisaTelaTest` |
+| UC-FES-08 | a tela não lista estudo de outra clínica | must | `FisioPesquisaTelaTest` |
+| UC-FES-09 | crise por mais de 48 h vira evento adverso | must | `FisioEventoAdversoTest` |
+| UC-FES-10 | dor no limiar em vigor vira evento adverso, uma vez | must | `FisioEventoAdversoTest` |
+| UC-FES-11 | revisão com nota; sem gravidade; outra clínica 404 | must | `FisioEventoAdversoTest` |
+
+---
+
+## UC-FES-01 · Só o pesquisador cria estudo · `must`
+- **Persona:** pesquisadora responsável cadastrando o estudo aprovado pelo CEP.
+- **Aceite:** Sem `fisio.pesquisa`, criar dá 403. Com ela, o estudo nasce `ativo` na empresa da sessão, com os momentos na ordem enviada. Instrumento fora da lista liberada é recusado (422).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEstudoTest.php`
+- **Status: 🧪**
+
+## UC-FES-02 · Incluir com o TCLE do estudo `[T0]` · `must`
+- **Aceite:** Sem marcar o TCLE assinado, 422. Incluir gera código `P-` + 6 caracteres aleatórios e grava o consentimento `pesquisa` com o estudo, a versão do TCLE do estudo e canal `clinica`. Incluir de novo é recusado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEstudoTest.php`
+- **Status: 🧪**
+
+## UC-FES-03 · Saída registrada, nunca apagada · `must`
+- **Aceite:** Sem motivo, 422. Com tipo e motivo, a saída grava data, tipo e motivo; segunda saída é recusada; apagar a linha lança erro.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEstudoTest.php`
+- **Status: 🧪**
+
+## UC-FES-04 · Pendência derivada · `must`
+- **Aceite:** Dado momento no dia 28 ± 7 com EVA e RMDQ · Quando só a EVA foi respondida na janela · Então a pendência lista RMDQ, `aberto` na janela e `vencido` depois dela; resposta fora da janela não conta. Quem saiu não tem pendência.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEstudoTest.php`
+- **Status: 🧪**
+
+## UC-FES-05 · Revogar pelo portal tira do estudo · `must`
+- **Aceite:** O paciente revoga a pesquisa no portal · Então o participante sai naquela data com tipo `revogacao` e some das pendências.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEstudoTest.php`
+- **Status: 🧪**
+
+## UC-FES-06 · Outra clínica não existe `[T0]` · `must`
+- **Aceite:** Paciente da 99 não entra em estudo da 98; pesquisador da 98 não inclui em estudo da 99 nem registra saída de participante da 99 (404); pendências da 98 não trazem paciente da 99.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEstudoTest.php`
+- **Status: 🧪**
+
+## UC-FES-07 · Quem vê o quê `[T0]` · `must`
+- **Aceite:** Sem `fisio.pesquisa`, a tela dá 403. Com `fisio.pesquisa` sem `fisio.editar`, os participantes vêm só com código (`nome` nulo) e a lista de pacientes para incluir vem vazia. Com as duas, o nome aparece.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPesquisaTelaTest.php`
+- **Status: 🧪**
+
+## UC-FES-08 · Lista só da clínica `[T0]` · `must`
+- **Aceite:** A 98 não vê estudo da 99 na lista, e abrir o estudo da 99 pela URL dá 404.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPesquisaTelaTest.php`
+- **Status: 🧪**
+
+## UC-FES-09 · Crise por mais de 48 h · `must`
+- **Persona:** pesquisadora acompanhando a segurança do estudo (etapa 07 §4.2, P-06).
+- **Aceite:** Dado participante com crise no check-in em 3 dias seguidos · Então nasce um evento `crise_48h` que começa no 1º dia; se a crise continua, o fim acompanha e não nasce outro. Com 2 dias, nada. Paciente fora do estudo não gera evento.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php`
+- **Status: 🧪**
+
+## UC-FES-10 · Alerta de dor · `must`
+- **Aceite:** Dor no limiar em vigor do programa (a mesma regra que tira o jogo da tela) vira um evento `alerta_dor` com a dor e o limiar; reenviar o check-in não duplica; dor abaixo não gera nada.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php`
+- **Status: 🧪**
+
+## UC-FES-11 · Revisão é da pesquisadora `[T0]` · `must`
+- **Aceite:** O registro não tem gravidade. A pesquisadora revisa com nota obrigatória (quem e quando ficam gravados). Evento de estudo da 99 dá 404 para a 98 e não aparece na lista dela.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php`
+- **Status: 🧪**
+
+## Trilha do tempo
+- 2026-11-11 · etapa 07 P-06 — aba Eventos adversos: crise por mais de 48 h e alerta de dor, registrados a partir do check-in. O software não classifica gravidade.
+- 2026-11-11 · etapa 07 P-04 — tela nasce com participantes e pendências. Eventos adversos (P-06), exportação (P-07) e assistente (P-08) entram com as abas do protótipo.
