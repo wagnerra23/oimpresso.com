@@ -8,7 +8,6 @@ use App\Domain\Fsm\Models\SaleStageAction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Services\NfeService;
 use Modules\RecurringBilling\Events\InvoicePaid;
@@ -28,7 +27,7 @@ use Throwable;
  *      (US-NFE-043) pra cascade tributário e CertificadoService pro cert A1
  *   3. Idempotência: NfeEmissao com transaction_id = invoice.id é UNIQUE,
  *      segunda chamada retorna a emissão existente (sem duplicar fiscal)
- *   4. Se cStat 100/150 (autorizada) → dispara NFeAutorizada
+ *   4. Se cStat 100/150 (autorizada) → o NfeService dispara NFeAutorizada (lote 1.1)
  *   5. Se rejeitada → emissão fica salva com status='rejeitada' + cstat + motivo
  *      (sem retry automático — ajuste manual do business via UI)
  *
@@ -143,9 +142,8 @@ class EmitirNFeAoReceberPagamento implements ShouldQueue
             throw $e; // queue retenta (3 tries, backoff 60s)
         }
 
-        if ($emissao->status === 'autorizada') {
-            event(new NFeAutorizada($emissao));
-        }
+        // NFeAutorizada não sai daqui: o NfeService dispara na hora da autorização
+        // (lote 1.1, N4-09). Disparar aqui também mandaria o DANFE duas vezes.
 
         Log::info('NFe auto-emission processada', [
             'business_id'  => $event->businessId,
