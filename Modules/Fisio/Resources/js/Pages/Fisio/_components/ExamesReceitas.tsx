@@ -11,6 +11,23 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Segmented } from '@/Components/ui/segmented';
 import MedicamentosEmUso, { type Medicamento } from './MedicamentosEmUso';
+import { enviar as requisitar, errosDe } from '../Public/_components/portal';
+
+// A seção mora dentro de <Deferred>: visita Inertia a desmontaria e perderia o que foi digitado e o
+// erro (lápide §5 2026-10-13). Por isso o envio é JSON e só a prop da seção recarrega.
+export async function mandar(metodo: 'POST' | 'PUT', url: string, corpo?: unknown): Promise<Record<string, string> | null> {
+  try {
+    const r = await requisitar(metodo, url, corpo);
+    if (r.status >= 200 && r.status < 300) {
+      router.reload({ only: ['documentos', 'medicamentos'] });
+      return null;
+    }
+    const e = errosDe(r.json);
+    return Object.keys(e).length ? e : { geral: 'Não foi possível salvar. Tente de novo.' };
+  } catch {
+    return { geral: 'Sem conexão. Tente de novo.' };
+  }
+}
 
 export interface DocumentoFicha {
   id: number;
@@ -37,23 +54,21 @@ function Anexar({ pacienteId, tipos }: { pacienteId: number; tipos: Record<strin
   const [enviando, setEnviando] = useState(false);
   const [chave, setChave] = useState(0);
 
-  const enviar = () => {
+  const enviar = async () => {
     if (!arquivo) {
       setErros({ arquivo: 'Escolha uma foto ou um PDF.' });
       return;
     }
     setEnviando(true);
-    router.post(
-      `/fisio/pacientes/${pacienteId}/documentos`,
-      { arquivo, tipo, data_documento: dataDoc || null, observacao: obs || null },
-      {
-        forceFormData: true,
-        preserveScroll: true,
-        onSuccess: () => { setArquivo(null); setDataDoc(''); setObs(''); setErros({}); setChave((k) => k + 1); },
-        onError: (e) => setErros(e as Record<string, string>),
-        onFinish: () => setEnviando(false),
-      },
-    );
+    const corpo = new FormData();
+    corpo.append('arquivo', arquivo);
+    corpo.append('tipo', tipo);
+    if (dataDoc) corpo.append('data_documento', dataDoc);
+    if (obs.trim()) corpo.append('observacao', obs.trim());
+    const e = await mandar('POST', `/fisio/pacientes/${pacienteId}/documentos`, corpo);
+    setEnviando(false);
+    if (e) return setErros(e);
+    setArquivo(null); setDataDoc(''); setObs(''); setErros({}); setChave((k) => k + 1);
   };
 
   return (
@@ -80,9 +95,9 @@ function Anexar({ pacienteId, tipos }: { pacienteId: number; tipos: Record<strin
         <Label htmlFor="doc-arquivo">Foto ou PDF</Label>
         <Input key={chave} id="doc-arquivo" type="file" accept={ACEITOS} onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />
         <p className="text-xs text-muted-foreground">JPG, PNG, WebP ou PDF, até 10 MB. Fica no prontuário e só a sua clínica vê.</p>
-        {erros.arquivo && <p className="text-xs text-destructive">{erros.arquivo}</p>}
+        {(erros.arquivo || erros.geral) && <p className="text-xs text-destructive">{erros.arquivo ?? erros.geral}</p>}
       </div>
-      <Button type="button" className="self-start" disabled={enviando} onClick={enviar}>
+      <Button type="button" className="self-start" disabled={enviando} onClick={() => void enviar()}>
         <Paperclip className="size-4" aria-hidden="true" /> Anexar
       </Button>
     </fieldset>
@@ -95,11 +110,9 @@ function Linha({ doc, tipos, podeEditar }: { doc: DocumentoFicha; tipos: Record<
   const [erro, setErro] = useState<string | null>(null);
   const Icone = doc.formato === 'pdf' ? FileText : ImageIcon;
 
-  const tirar = () => {
-    router.post(`/fisio/documentos/${doc.id}/tirar`, { motivo }, {
-      preserveScroll: true,
-      onError: (e) => setErro((e as Record<string, string>).motivo ?? 'Não foi possível tirar da lista.'),
-    });
+  const tirar = async () => {
+    const e = await mandar('POST', `/fisio/documentos/${doc.id}/tirar`, { motivo });
+    if (e) setErro(e.motivo ?? e.geral ?? 'Não foi possível tirar da lista.');
   };
 
   return (
@@ -126,7 +139,7 @@ function Linha({ doc, tipos, podeEditar }: { doc: DocumentoFicha; tipos: Record<
           {erro && <p className="text-xs text-destructive">{erro}</p>}
           <p className="text-xs text-muted-foreground">O documento continua guardado no prontuário. Fica registrado quem tirou e quando.</p>
           <div className="flex gap-2">
-            <Button size="sm" variant="destructive" onClick={tirar}>Tirar da lista</Button>
+            <Button size="sm" variant="destructive" onClick={() => void tirar()}>Tirar da lista</Button>
             <Button size="sm" variant="ghost" onClick={() => { setTirando(false); setErro(null); }}>Cancelar</Button>
           </div>
         </div>

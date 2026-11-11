@@ -2,13 +2,13 @@
 // Casos: memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md (UC-FER-08..11).
 // O texto livre "Medicamentos em uso" da avaliação continua como está; esta lista é o que está em uso
 // agora. O sistema não confere interação, dose nem contraindicação (ADR 0437 §5): guarda o que foi digitado.
-import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { mandar } from './ExamesReceitas';
 
 export interface Medicamento {
   id: number;
@@ -36,9 +36,11 @@ function Novo({ pacienteId, onPronto }: { pacienteId: number; onPronto: () => vo
       {erros[k] && <p className="text-xs text-destructive">{erros[k]}</p>}
     </div>
   );
-  const salvar = () => router.post(`/fisio/pacientes/${pacienteId}/medicamentos`, f, {
-    preserveScroll: true, onSuccess: onPronto, onError: (e) => setErros(e as Record<string, string>),
-  });
+  const salvar = async () => {
+    const e = await mandar('POST', `/fisio/pacientes/${pacienteId}/medicamentos`, f);
+    if (e) return setErros(e);
+    onPronto();
+  };
 
   return (
     <fieldset className="flex flex-col gap-3 rounded-lg border border-border p-3" data-contract="fisio-medicamento-novo">
@@ -48,7 +50,8 @@ function Novo({ pacienteId, onPronto }: { pacienteId: number; onPronto: () => vo
         {campo('desde', 'Desde', 'date')}{campo('ate', 'Até (se já tem fim)', 'date')}
       </div>
       <div className="flex gap-2">
-        <Button type="button" onClick={salvar}>Incluir</Button>
+        {erros.geral && <p className="text-xs text-destructive">{erros.geral}</p>}
+        <Button type="button" onClick={() => void salvar()}>Incluir</Button>
         <Button type="button" variant="ghost" onClick={onPronto}>Cancelar</Button>
       </div>
     </fieldset>
@@ -59,10 +62,14 @@ function Linha({ m, podeEditar }: { m: Medicamento; podeEditar: boolean }) {
   const [tirando, setTirando] = useState(false);
   const [motivo, setMotivo] = useState('');
   const [erro, setErro] = useState<string | null>(null);
-  const encerrar = () => router.put(`/fisio/medicamentos/${m.id}`, { ate: hoje() }, { preserveScroll: true, onError: (e) => setErro(Object.values(e)[0] as string) });
-  const tirar = () => router.post(`/fisio/medicamentos/${m.id}/tirar`, { motivo }, {
-    preserveScroll: true, onError: (e) => setErro((e as Record<string, string>).motivo ?? 'Não foi possível tirar da lista.'),
-  });
+  const encerrar = async () => {
+    const e = await mandar('PUT', `/fisio/medicamentos/${m.id}`, { ate: hoje() });
+    if (e) setErro(Object.values(e)[0] ?? null);
+  };
+  const tirar = async () => {
+    const e = await mandar('POST', `/fisio/medicamentos/${m.id}/tirar`, { motivo });
+    if (e) setErro(e.motivo ?? e.geral ?? 'Não foi possível tirar da lista.');
+  };
 
   return (
     <tr className="border-t border-border align-top" data-contract="fisio-medicamento">
@@ -80,13 +87,13 @@ function Linha({ m, podeEditar }: { m: Medicamento; podeEditar: boolean }) {
             <Label htmlFor={`med-motivo-${m.id}`}>Por que sai da lista?</Label>
             <Input id={`med-motivo-${m.id}`} maxLength={255} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
             <div className="flex gap-2">
-              <Button size="sm" variant="destructive" onClick={tirar}>Tirar</Button>
+              <Button size="sm" variant="destructive" onClick={() => void tirar()}>Tirar</Button>
               <Button size="sm" variant="ghost" onClick={() => setTirando(false)}>Cancelar</Button>
             </div>
           </div>
         ) : (
           <div className="flex gap-1">
-            {m.em_uso && <Button size="sm" variant="outline" onClick={encerrar}>Encerrar hoje</Button>}
+            {m.em_uso && <Button size="sm" variant="outline" onClick={() => void encerrar()}>Encerrar hoje</Button>}
             <Button size="sm" variant="ghost" onClick={() => setTirando(true)}>Tirar da lista</Button>
           </div>
         ))}
