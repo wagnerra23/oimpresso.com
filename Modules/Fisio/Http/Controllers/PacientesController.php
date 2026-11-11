@@ -27,6 +27,7 @@ use Modules\Fisio\Services\Laudo\MatrizIfbrm;
 use Modules\Fisio\Services\PainelFisio;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 use Modules\Fisio\Services\ResponsavelPaciente;
+use Modules\Fisio\Services\Social\DadosSociais;
 
 /**
  * Pacientes do Fisio (US-FISIO-005). O paciente É um contact (ADR 0437 §4): aqui mora só o
@@ -153,6 +154,9 @@ class PacientesController extends Controller
             'documento_tipos' => DocumentoPaciente::TIPOS,
             'documentos' => Inertia::defer(fn () => app(DocumentosDoPaciente::class)->daFicha($paciente), 'documentos'),
             'medicamentos' => Inertia::defer(fn () => app(MedicamentosDoPaciente::class)->daFicha($paciente), 'documentos'),
+            // Dados sociais (US-FISIO-061): listas fechadas vão junto (estáticas); os valores são query → defer.
+            'opcoes_sociais' => ['opcoes' => DadosSociais::OPCOES, 'comorbidades' => DadosSociais::COMORBIDADES, 'ufs' => DadosSociais::UFS],
+            'dados_sociais' => Inertia::defer(fn () => app(DadosSociais::class)->doPaciente($paciente), 'dados_sociais'),
         ]);
     }
 
