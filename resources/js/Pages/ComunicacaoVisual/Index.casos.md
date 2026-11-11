@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
 last_run: "2026-11-11"
-last_run_ci: "2026-11-11 — revalidação depois do merge do main no PR #10717: este PR não muda o Index.tsx; a tela mudou no main pelo #10685 (UC-CVARQ-07) e pelo #10706 (UC-CVACE-04), revalidados nas entradas abaixo. Os UCs deste PR (UC-CVEMP-01..04) rodam na lane verticais-pest dele. ---- 2026-11-11 — revalidação depois do merge do main: a tela tem a mudança deste PR (limpa o link ao salvar, UC-CVACE-04) e a do #10685 (formatos aceitos no anexo, UC-CVARQ-07). GH run 42825757558 (verticais-pest, PR #10706, antes do merge) passou UC-CVACE-04 e UC-CVACEP-05/06; o #10685 traz o run 42825793065 da lane inteira; vitest local tests/js/cv-aceite-link.test.tsx 3 passed. Os outros UCs não foram rodados nesta data. ---- 2026-11-10 — a tela só passou a limpar o link ao salvar (UC-CVACE-04); vitest local tests/js/cv-aceite-link.test.tsx 3 passed; nenhum outro UC tocado nem rodado nesta data. ---- 2026-11-10 — GH run 42825793065 (verticais-pest, MySQL, PR #10685, commit 936431ad): a lane inteira 1287 passed / 12 skipped (9584 assertions), incluindo OrcamentoArquivosContratoTest UC-CVARQ-01..07; a mudança do Index.tsx foi só tirar .svg do seletor de arquivo (UC-CVARQ-07). ---- 2026-10-27 — GH run 40495854452 (verticais-pest, MySQL, PR #9994): OsPosCalculoContratoTest 5 passed (UC-CVPOS-01..05); os outros UCs da tela não foram rodados nesta data; a mudança do Index.tsx pelo #9860 (link de aceite, 2026-10-27) não foi revalidada aqui. ---- 2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
+last_run_ci: "2026-11-11 — revalidação depois do merge do main no PR #10737: este PR não muda o Index.tsx; a tela mudou no main pelo #10685 (UC-CVARQ-07) e pelo #10706 (UC-CVACE-04), revalidados nas entradas abaixo. Os UCs deste PR (UC-CVHIG-01..03) rodam na lane verticais-pest dele. ---- 2026-11-11 — revalidação depois do merge do main no PR #10717: este PR não muda o Index.tsx; a tela mudou no main pelo #10685 (UC-CVARQ-07) e pelo #10706 (UC-CVACE-04), revalidados nas entradas abaixo. Os UCs deste PR (UC-CVEMP-01..04) rodam na lane verticais-pest dele. ---- 2026-11-11 — revalidação depois do merge do main: a tela tem a mudança deste PR (limpa o link ao salvar, UC-CVACE-04) e a do #10685 (formatos aceitos no anexo, UC-CVARQ-07). GH run 42825757558 (verticais-pest, PR #10706, antes do merge) passou UC-CVACE-04 e UC-CVACEP-05/06; o #10685 traz o run 42825793065 da lane inteira; vitest local tests/js/cv-aceite-link.test.tsx 3 passed. Os outros UCs não foram rodados nesta data. ---- 2026-11-10 — a tela só passou a limpar o link ao salvar (UC-CVACE-04); vitest local tests/js/cv-aceite-link.test.tsx 3 passed; nenhum outro UC tocado nem rodado nesta data. ---- 2026-11-10 — GH run 42825793065 (verticais-pest, MySQL, PR #10685, commit 936431ad): a lane inteira 1287 passed / 12 skipped (9584 assertions), incluindo OrcamentoArquivosContratoTest UC-CVARQ-01..07; a mudança do Index.tsx foi só tirar .svg do seletor de arquivo (UC-CVARQ-07). ---- 2026-10-27 — GH run 40495854452 (verticais-pest, MySQL, PR #9994): OsPosCalculoContratoTest 5 passed (UC-CVPOS-01..05); os outros UCs da tela não foram rodados nesta data; a mudança do Index.tsx pelo #9860 (link de aceite, 2026-10-27) não foi revalidada aqui. ---- 2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -69,6 +69,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-10 | O hub abre pra quem tem permissão e renderiza a calculadora | must | `CU-CV-01` itens 1-2 | `ContratoTelaOrcamentoTest` | 🧪 ⏭ PR-skip |
 | UC-CV-11 | Salvar o orçamento grava os valores do servidor, atomicamente | should | `CU-CV-05` itens 1-4 | `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-12 | O catálogo de partida nasce completo, idempotente e isolado | should | `CU-CV-07` itens 1-3 | `MaterialSeederTest` | 🧪 ⏭ PR-skip |
+| UC-CVHIG-01 | Sem sessão e sem business_id, criar falha em vez de gravar empresa 0 | must `[T0]` | ADR 0093 · auditoria 2026-11-05 I-14 | `ComvisHigieneContratoTest` | 🧪 |
+| UC-CVHIG-02 | A demo não roda em produção | must | ADR 0093 · auditoria 2026-11-05 I-12 | `ComvisHigieneContratoTest` | 🧪 |
+| UC-CVHIG-03 | O health-check diário está agendado só em produção | must | ADR 0093 · auditoria 2026-11-05 I-11 | `ComvisHigieneContratoTest` | 🧪 |
 | UC-CVPRC-01 | Peça menor que o mínimo do material é cobrada pelo mínimo | must `[V0]` | `CU-CV-02` · DoD US-COMVIS-001 (mínimo) | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
 | UC-CVPRC-02 | Acabamento do catálogo entra no total pela base do tipo dele | must `[V0]` `[T0]` | `CU-CV-02` · DoD US-COMVIS-001 (acabamentos) · SPEC §12.1 | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
 | UC-CVPRC-03 | Perda % do material soma na área cobrada | must `[V0]` | Decisão [W] 2026-10-26 · US-COMVIS-001 | `OrcamentoPerdaEmendaContratoTest` | 🧪 |
@@ -414,7 +417,7 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 - **Persona:** dono de gráfica no primeiro dia — ele não vai cadastrar lona, vinil e ACM na mão
   antes de fazer o primeiro orçamento.
 - **Aceite:** Dado um business novo do vertical · Quando o `MaterialSeeder` roda · Então existem
-  **5** materiais com preço/m²; rodar de novo continua em **5** (idempotente); e `run(1)` e `run(99)`
+  **5** materiais com preço/m²; rodar de novo continua em **5** (idempotente); e `run(98)` e `run(99)`
   produzem catálogos que não se enxergam.
 - **Teste:** [`MaterialSeederTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/MaterialSeederTest.php)
   — os 4 casos (contagem, idempotência, isolamento por business, global scope no `find`).
@@ -427,6 +430,28 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 - **Status: 🧪 ⏭ PR-skip** — arquivo pula em SQLite; veredito da full-suite noturna.
 
 ---
+
+## UC-CVHIG-01 · Criar sem empresa falha · `must` `[T0]`
+
+**Dado** um processo sem sessão (fila, comando, app por token) **Quando** cria orçamento, material ou outra
+entidade do módulo sem `business_id` **Então** a criação falha com erro, e nenhuma linha com empresa 0 é
+gravada. Com o `business_id` explícito, grava na empresa certa.
+
+Status: 🧪
+
+## UC-CVHIG-02 · A demo não roda em produção · `must`
+
+**Dado** o ambiente de produção **Quando** alguém roda `comvis:demo-seed` **Então** o comando para com
+erro e não grava nada: em produção toda empresa é real.
+
+Status: 🧪
+
+## UC-CVHIG-03 · O health-check diário está agendado · `should`
+
+**Dado** o agendador **Então** `comvis:health --notify` roda todo dia às 06:40, só em produção, sem sobrepor
+uma execução à outra.
+
+Status: 🧪
 
 ## UC-CVPRC-01 · Peça menor que o mínimo do material é cobrada pelo mínimo · `must` `[V0]`
 

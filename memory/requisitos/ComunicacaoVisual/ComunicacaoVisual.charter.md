@@ -15,7 +15,7 @@ charter_version: 1
 
 # Module Charter — Modules/ComunicacaoVisual
 
-> **Status proposto:** módulo NÃO existe em código. Esta charter é o contrato de produto que guia a construção em paralelo à [SPEC.md](SPEC.md), seguindo o template canônico estabelecido em [Vestuario.charter.md](../Vestuario/Vestuario.charter.md). Piloto previsto: 1 dos 6 saudáveis OfficeImpresso migrado em Q3/26 via [Migration Factory ADR 0119](../../decisions/0119-migration-factory.md).
+> **Status proposto:** esta charter ainda não foi ratificada. O módulo existe em código desde 2026-05 (`Modules/ComunicacaoVisual/`, inventário em [SUPERFICIE.md](SUPERFICIE.md)); o scaffold entrou em 2026-05-10, o mesmo dia desta charter. Esta charter é o contrato de produto que guia a construção em paralelo à [SPEC.md](SPEC.md), seguindo o template canônico estabelecido em [Vestuario.charter.md](../Vestuario/Vestuario.charter.md). Piloto previsto: 1 dos 6 saudáveis OfficeImpresso migrado em Q3/26 via [Migration Factory ADR 0119](../../decisions/0119-migration-factory.md).
 >
 > Charter de **módulo inteiro** (não de página). Diferente de `*.charter.md` ao lado de `.tsx` (que é tela). Aqui o objeto governado é o módulo vertical inteiro do oimpresso conforme [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md).
 
@@ -195,8 +195,8 @@ Segue lifecycle canon de módulo vertical ([ADR 0121](../../decisions/0121-oimpr
 
 | Estado | Critério | Hoje |
 |---|---|---|
-| `proposto` | ADR feature-wish, sem código | ✅ **hoje** (esta charter + SPEC.md, Modules/ComunicacaoVisual ainda não existe) |
-| `em_construcao` | scaffold criado, P0 USs em desenvolvimento, sem cliente real ainda | meta M1 (jul/26) — `php artisan module:install ComunicacaoVisual` funciona em dev |
+| `proposto` | ADR feature-wish, sem código | até 2026-05 (esta charter + SPEC.md, antes do scaffold) |
+| `em_construcao` | scaffold criado, P0 USs em desenvolvimento, sem cliente real ainda | ✅ **hoje** (medido 2026-11-11: código no main, nenhum piloto registrado) |
 | `piloto` | 1 cliente real pagando, código vivendo | meta M3 (set/26) — 1ª piloto migrada (Vargas/Extreme/Gold a confirmar) |
 | `ativo` | 3+ clientes pagantes | meta M9-M12 (mar-jun/27) |
 | `maduro` | 10+ clientes, benchmark setorial habilitado via Jana | aberto (24m+) |

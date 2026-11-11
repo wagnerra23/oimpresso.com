@@ -57,6 +57,14 @@ class DemoSeedCommand extends Command
 
     public function handle(): int
     {
+        // Dados de demonstração nunca entram em empresa real (UC-CVHIG-02). Em produção não há como
+        // separar empresa de demo de empresa de cliente, então o comando não roda lá.
+        if (app()->environment(['live', 'production'])) {
+            $this->error('comvis:demo-seed não roda em produção: as empresas daqui são reais. Use o staging.');
+
+            return 1;
+        }
+
         // ----------------------------------------------------------------
         // 1. Validar --business obrigatório
         // ----------------------------------------------------------------
@@ -268,7 +276,7 @@ class DemoSeedCommand extends Command
         // Timestamps controlados: iniciou 90 min atrás, finalizou agora
         $iniciouEm    = now()->subMinutes(90);
         $finalizouEm  = now();
-        $duracaoSeg   = (int) $finalizouEm->diffInSeconds($iniciouEm); // ~5400
+        $duracaoSeg   = (int) $iniciouEm->diffInSeconds($finalizouEm); // ~5400 (Carbon 3: do início ao fim)
 
         // m2_orcado = area_m2 do primeiro item (banner 3×1.5 = 4.500 m²)
         $m2Orcado    = $primeiroItem ? (float) $primeiroItem->area_m2 : 4.5;
