@@ -2071,7 +2071,23 @@ class SellController extends Controller
             // F3 PaymentGateway UI Tela 3 — cobrança vinculada à venda (ADR 0144 + 0170).
             // null = não emitida ainda; UI mostra chip "Emitir cobrança" no footer drawer.
             'cobranca' => $this->buildCobrancaState($sale),
+            // Lote 3.3 NfeBrasil — /nfe-brasil/* exige o pacote fiscal_module. Sem ele a seção
+            // fiscal do drawer receberia 403 e mostraria o erro em toda venda; o drawer esconde.
+            'fiscal_liberado' => $this->fiscalLiberado($business_id),
         ]);
+    }
+
+    /**
+     * A empresa tem o pacote fiscal_module? Mesma regra das rotas (FiscalPacote, dono único).
+     * Sem o módulo Fiscal instalado, nenhuma rota /nfe-brasil/* passa — então false.
+     */
+    private function fiscalLiberado($business_id): bool
+    {
+        if (! class_exists(\Modules\Fiscal\Services\FiscalPacote::class)) {
+            return false;
+        }
+
+        return app(\Modules\Fiscal\Services\FiscalPacote::class)->ativo($business_id);
     }
 
     /**

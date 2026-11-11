@@ -102,3 +102,20 @@ it('3.3 · as rotas públicas assinadas seguem sem pacote (chegam ao controller)
     $contador = URL::temporarySignedRoute('nfe-brasil.contador.revisao', now()->addHour(), ['business' => 99, 'link' => 999999999]);
     $this->get($contador)->assertNotFound();
 });
+
+it('3.3 · a gaveta da venda só mostra a seção fiscal para empresa com o pacote', function () {
+    // Sem isto, a seção fiscal de toda venda de empresa sem pacote mostraria o 403 de /nfe-brasil/*.
+    $venda = fn (int $biz): int => (int) DB::table('transactions')->insertGetId([
+        'business_id' => $biz, 'location_id' => EstoqueFixture::locationId($biz), 'type' => 'sell',
+        'status' => 'final', 'payment_status' => 'paid', 'final_total' => 10.00, 'total_before_tax' => 10.00,
+        'invoice_no' => 'PAC33G-' . uniqid(), 'transaction_date' => now(), 'created_by' => EstoqueFixture::userId($biz),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $tx99 = $venda(99);
+    $tx98 = $venda(98);
+
+    ($this->como)(99, ['direct_sell.view'])->getJson("/sells/{$tx99}/sheet-data")
+        ->assertOk()->assertJsonPath('id', $tx99)->assertJsonPath('fiscal_liberado', false);
+    ($this->como)(98, ['direct_sell.view'])->getJson("/sells/{$tx98}/sheet-data")
+        ->assertOk()->assertJsonPath('id', $tx98)->assertJsonPath('fiscal_liberado', true);
+});
