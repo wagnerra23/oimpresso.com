@@ -674,6 +674,9 @@ jobs:
         # ENTRA 2026-11-04 — Fisio/FisioConfigAgendamentoTest (US-FISIO-015 · UC-FCA-01..04): agendamento
         # pelo app nasce desligado, salva horários e tipos liberados, versão da política, 403 e 98×99.
         #
+        # ENTRA 2026-11-11 — Fisio/FisioEventoAdversoTest (etapa 07 P-06 · UC-FES-09..11): check-in de participante
+        # vira evento adverso (crise > 48 h, dor no limiar), idempotente, sem gravidade, revisão só da 98.
+        #
         # ENTRA 2026-11-11 — Fisio/FisioPesquisaTelaTest (etapa 07 P-04 · UC-FES-07..08): /fisio/pesquisa só com
         # `fisio.pesquisa`, nome do paciente só para quem também atende, estudo da 99 fora da lista e 404.
         #
@@ -914,7 +917,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioConfigAgendamentoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php             Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php             Modules/Fisio/Tests/Feature/FisioEstudoTest.php \
-            Modules/Fisio/Tests/Feature/FisioPesquisaTelaTest.php || rc_principal=$?
+            Modules/Fisio/Tests/Feature/FisioPesquisaTelaTest.php \
+            Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php || rc_principal=$?
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php || rc_painel=$?
