@@ -42,7 +42,7 @@ class EstudoService
     public function criar(int $businessId, array $dados, array $momentos, ?int $autor): Study
     {
         foreach ($momentos as $m) {
-            $fora = array_diff($m['instruments'], CatalogoQuestionarios::LIVRES);
+            $fora = array_values(array_filter($m['instruments'], fn (string $c) => ! CatalogoQuestionarios::disponivel($c)));
             if ($fora !== []) {
                 throw new InvalidArgumentException('instrumento fora da lista liberada: '.implode(', ', $fora));
             }
@@ -196,6 +196,47 @@ class EstudoService
                     'fim' => $fim->toDateString(),
                     'faltando' => $faltando,
                     'situacao' => $dia->lessThan($inicio) ? 'futuro' : ($dia->greaterThan($fim) ? 'vencido' : 'aberto'),
+                ];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Avaliações do estudo em aberto para o paciente hoje (etapa 07 P-05): só a janela que já
+     * abriu e ainda não fechou, de estudo ativo em que ele está. É o que o portal e o WhatsApp
+     * cobram; o questionário em si é aplicado pela clínica enquanto o texto validado não está no
+     * catálogo (`texto_pendente`, ADR 0437 §8).
+     *
+     * @return list<array{study_id:int,participant_id:int,moment_id:int,momento:string,ate:string,questionarios:list<string>}>
+     */
+    public function avaliacoesAbertas(Patient $paciente, CarbonInterface $hoje): array
+    {
+        $estudos = Study::withoutGlobalScopes() // SUPERADMIN: roda no portal e em job, sem sessão; empresa do paciente.
+            ->where('business_id', (int) $paciente->business_id)
+            ->where('status', Study::STATUS_ATIVO)
+            ->whereIn('id', StudyParticipant::withoutGlobalScopes() // SUPERADMIN: idem.
+                ->where('business_id', (int) $paciente->business_id)
+                ->where('patient_id', (int) $paciente->id)->whereNull('exited_on')->select('study_id'))
+            ->get();
+
+        $out = [];
+        foreach ($estudos as $estudo) {
+            foreach ($this->pendencias($estudo, $hoje) as $p) {
+                if ($p['patient_id'] !== (int) $paciente->id || $p['situacao'] !== 'aberto') {
+                    continue;
+                }
+                $out[] = [
+                    'study_id' => (int) $estudo->id,
+                    'participant_id' => $p['participant_id'],
+                    'moment_id' => $p['moment_id'],
+                    'momento' => $p['moment'],
+                    'ate' => $p['fim'],
+                    'questionarios' => array_map(
+                        fn (string $c) => (string) (CatalogoQuestionarios::definicao($c)['nome'] ?? $c),
+                        $p['faltando'],
+                    ),
                 ];
             }
         }

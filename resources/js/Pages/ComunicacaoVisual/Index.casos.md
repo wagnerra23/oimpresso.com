@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-11-10"
-last_run_ci: "2026-11-10 — GH run 42825793065 (verticais-pest, MySQL, PR #10685, commit 936431ad): a lane inteira 1287 passed / 12 skipped (9584 assertions), incluindo OrcamentoArquivosContratoTest UC-CVARQ-01..07; a mudança do Index.tsx foi só tirar .svg do seletor de arquivo (UC-CVARQ-07). ---- 2026-10-27 — GH run 40495854452 (verticais-pest, MySQL, PR #9994): OsPosCalculoContratoTest 5 passed (UC-CVPOS-01..05); os outros UCs da tela não foram rodados nesta data; a mudança do Index.tsx pelo #9860 (link de aceite, 2026-10-27) não foi revalidada aqui. ---- 2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
+last_run: "2026-11-11"
+last_run_ci: "2026-11-11 — revalidação depois do merge do main no PR #10737: este PR não muda o Index.tsx; a tela mudou no main pelo #10685 (UC-CVARQ-07) e pelo #10706 (UC-CVACE-04), revalidados nas entradas abaixo. Os UCs deste PR (UC-CVHIG-01..03) rodam na lane verticais-pest dele. ---- 2026-11-11 — revalidação depois do merge do main no PR #10717: este PR não muda o Index.tsx; a tela mudou no main pelo #10685 (UC-CVARQ-07) e pelo #10706 (UC-CVACE-04), revalidados nas entradas abaixo. Os UCs deste PR (UC-CVEMP-01..04) rodam na lane verticais-pest dele. ---- 2026-11-11 — revalidação depois do merge do main: a tela tem a mudança deste PR (limpa o link ao salvar, UC-CVACE-04) e a do #10685 (formatos aceitos no anexo, UC-CVARQ-07). GH run 42825757558 (verticais-pest, PR #10706, antes do merge) passou UC-CVACE-04 e UC-CVACEP-05/06; o #10685 traz o run 42825793065 da lane inteira; vitest local tests/js/cv-aceite-link.test.tsx 3 passed. Os outros UCs não foram rodados nesta data. ---- 2026-11-10 — a tela só passou a limpar o link ao salvar (UC-CVACE-04); vitest local tests/js/cv-aceite-link.test.tsx 3 passed; nenhum outro UC tocado nem rodado nesta data. ---- 2026-11-10 — GH run 42825793065 (verticais-pest, MySQL, PR #10685, commit 936431ad): a lane inteira 1287 passed / 12 skipped (9584 assertions), incluindo OrcamentoArquivosContratoTest UC-CVARQ-01..07; a mudança do Index.tsx foi só tirar .svg do seletor de arquivo (UC-CVARQ-07). ---- 2026-10-27 — GH run 40495854452 (verticais-pest, MySQL, PR #9994): OsPosCalculoContratoTest 5 passed (UC-CVPOS-01..05); os outros UCs da tela não foram rodados nesta data; a mudança do Index.tsx pelo #9860 (link de aceite, 2026-10-27) não foi revalidada aqui. ---- 2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -69,6 +69,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-10 | O hub abre pra quem tem permissão e renderiza a calculadora | must | `CU-CV-01` itens 1-2 | `ContratoTelaOrcamentoTest` | 🧪 ⏭ PR-skip |
 | UC-CV-11 | Salvar o orçamento grava os valores do servidor, atomicamente | should | `CU-CV-05` itens 1-4 | `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-12 | O catálogo de partida nasce completo, idempotente e isolado | should | `CU-CV-07` itens 1-3 | `MaterialSeederTest` | 🧪 ⏭ PR-skip |
+| UC-CVHIG-01 | Sem sessão e sem business_id, criar falha em vez de gravar empresa 0 | must `[T0]` | ADR 0093 · auditoria 2026-11-05 I-14 | `ComvisHigieneContratoTest` | 🧪 |
+| UC-CVHIG-02 | A demo não roda em produção | must | ADR 0093 · auditoria 2026-11-05 I-12 | `ComvisHigieneContratoTest` | 🧪 |
+| UC-CVHIG-03 | O health-check diário está agendado só em produção | must | ADR 0093 · auditoria 2026-11-05 I-11 | `ComvisHigieneContratoTest` | 🧪 |
 | UC-CVPRC-01 | Peça menor que o mínimo do material é cobrada pelo mínimo | must `[V0]` | `CU-CV-02` · DoD US-COMVIS-001 (mínimo) | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
 | UC-CVPRC-02 | Acabamento do catálogo entra no total pela base do tipo dele | must `[V0]` `[T0]` | `CU-CV-02` · DoD US-COMVIS-001 (acabamentos) · SPEC §12.1 | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
 | UC-CVPRC-03 | Perda % do material soma na área cobrada | must `[V0]` | Decisão [W] 2026-10-26 · US-COMVIS-001 | `OrcamentoPerdaEmendaContratoTest` | 🧪 |
@@ -99,12 +102,17 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVPOS-03 | Peça sem custo deixa o orçado vazio; nenhuma com custo deixa o real vazio | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
 | UC-CVPOS-04 | OS, hora e m² de outra empresa nunca entram | must `[T0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
 | UC-CVPOS-05 | Flag desligada é 404; sem quem vê custo é 403 | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 run 40495854452 |
+| UC-CVEMP-01 | Cliente de outra empresa, ou que não é cliente, é recusado ao salvar e ao regravar | must `[T0]` | ADR 0093 · auditoria 2026-11-05 S6/I-08 | `OrcamentoEmpresaContratoTest` | 🧪 |
+| UC-CVEMP-02 | Vendedor de outra empresa é recusado | must `[T0]` | ADR 0093 · auditoria 2026-11-05 S6/I-08 | `OrcamentoEmpresaContratoTest` | 🧪 |
+| UC-CVEMP-03 | Calcular exige permissão do módulo | must | ADR 0093 · auditoria 2026-11-05 S9 | `OrcamentoEmpresaContratoTest` | 🧪 |
+| UC-CVEMP-04 | Aprovar não autoriza quem não está logado | must | ADR 0093 · auditoria 2026-11-05 S11 | `OrcamentoEmpresaContratoTest` | 🧪 |
 | UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-04 | Custo de material de outra empresa nunca entra | must `[T0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-05 | Só quem gerencia materiais vê custo e margem | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-06 | O custo mostrado é o que o orçamento grava | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVACE-04 | Editar fecha o link aberto; o cliente não aceita a versão antiga | must `[V0]` `[T0]` | US-COMVIS-023 · auditoria 2026-11-05 S7 | `OrcamentoAceiteRetratoContratoTest` · `tests/js/cv-aceite-link.test.tsx` | 🧪 |
 | UC-CVARQ-01 | Anexar grava o arquivo no orçamento e aprovar o leva para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-02 | Formato que a gráfica não usa é recusado | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-03 | Depois de virar OS o orçamento não recebe nem perde arquivo | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -422,6 +430,28 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 - **Status: 🧪 ⏭ PR-skip** — arquivo pula em SQLite; veredito da full-suite noturna.
 
 ---
+
+## UC-CVHIG-01 · Criar sem empresa falha · `must` `[T0]`
+
+**Dado** um processo sem sessão (fila, comando, app por token) **Quando** cria orçamento, material ou outra
+entidade do módulo sem `business_id` **Então** a criação falha com erro, e nenhuma linha com empresa 0 é
+gravada. Com o `business_id` explícito, grava na empresa certa.
+
+Status: 🧪
+
+## UC-CVHIG-02 · A demo não roda em produção · `must`
+
+**Dado** o ambiente de produção **Quando** alguém roda `comvis:demo-seed` **Então** o comando para com
+erro e não grava nada: em produção toda empresa é real.
+
+Status: 🧪
+
+## UC-CVHIG-03 · O health-check diário está agendado · `should`
+
+**Dado** o agendador **Então** `comvis:health --notify` roda todo dia às 06:40, só em produção, sem sobrepor
+uma execução à outra.
+
+Status: 🧪
 
 ## UC-CVPRC-01 · Peça menor que o mínimo do material é cobrada pelo mínimo · `must` `[V0]`
 
@@ -961,12 +991,50 @@ gera link (404), nem pelo serviço nem pelo controller.
 
 Status: 🧪
 
+## UC-CVEMP-01 · Cliente de outra empresa é recusado · `must` `[T0]`
+
+**Dado** um `contato_id` de outra empresa, ou um contato da empresa que não é cliente **Quando** o vendedor
+salva ou regrava o orçamento **Então** a resposta é 422 em `contato_id` e nada é gravado. Com um cliente da
+empresa, grava.
+
+Status: 🧪
+
+## UC-CVEMP-02 · Vendedor de outra empresa é recusado · `must` `[T0]`
+
+**Dado** um `vendedor_id` de usuário de outra empresa **Quando** o orçamento é salvo **Então** a resposta é
+422 em `vendedor_id`. Com um usuário da empresa, grava.
+
+Status: 🧪
+
+## UC-CVEMP-03 · Calcular exige permissão do módulo · `must`
+
+**Dado** um usuário logado sem nenhuma permissão do módulo **Quando** chama `POST .../api/calcular`
+**Então** a resposta é 403. Quem tem `orcamento.view`, `orcamento.create` ou `os.view` calcula: são os que
+abrem a calculadora.
+
+Status: 🧪
+
+## UC-CVEMP-04 · Aprovar não autoriza quem não está logado · `must`
+
+**Dado** uma requisição sem login, mesmo com `token` na rota **Quando** o `AprovarOrcamentoRequest` autoriza
+**Então** nega. O aceite do cliente é a rota pública própria.
+
+Status: 🧪
+
 ## UC-CVACE-02 · O cliente decide uma vez: aceitar vira OS com o total gravado, ajuste volta a rascunho · `must` `[V0]`
 
 **Dado** um link aberto **Quando** o cliente aceita **Então** o orçamento vira OS pelo mesmo caminho da
 tela, com `valor_total` igual ao `total` gravado, e o link não decide de novo. **Quando** pede ajuste
 com um comentário **Então** o orçamento volta a rascunho, sem OS; sem comentário, recusa. Link vencido,
 validade passada ou orçamento já aprovado não decidem.
+
+Status: 🧪
+
+## UC-CVACE-04 · Editar fecha o link aberto · `must` `[V0]` `[T0]`
+
+**Dado** um orçamento com link aberto **Quando** o vendedor salva uma alteração **Então** o link fecha na
+mesma transação, a tela deixa de mostrá-lo e o cliente vê o link como vencido. Um link novo aceita o valor
+novo. Fechar os links de um orçamento nunca toca os de outra empresa.
 
 Status: 🧪
 

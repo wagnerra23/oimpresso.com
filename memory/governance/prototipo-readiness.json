@@ -1067,6 +1067,16 @@
       ]
     },
     {
+      "tela": "Fisio/Pesquisa/Index",
+      "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Pesquisa/Index.tsx",
+      "modulo": "Fisio",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/prototipos/fisio/Pesquisa.dc.html",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Fisio/Protocolos/Index",
       "arquivo": "Modules/Fisio/Resources/js/Pages/Fisio/Protocolos/Index.tsx",
       "modulo": "Fisio",
@@ -1247,5 +1257,5 @@
       ]
     }
   ],
-  "total": 209
+  "total": 210
 }

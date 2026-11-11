@@ -120,7 +120,6 @@ Modules/Financeiro/Tests/Feature/Onda8bChipsDirectionTest.php  # 4 failed, 5 pas
 #    eles não dropam nada. Os que FALHAM foram pro bucket C (defeito real, onde
 #    sempre pertenceram); os que PASSAM saíram da quarentena (ver rodapé).
 #    Mesma classe do §5 2026-07-28: "hit que volta como comentário não é evidência".
-Modules/Financeiro/Tests/Feature/CashRegisterBridgeFinanceiroTest.php  # FICA — DEFEITO DE PRODUTO medido (run do #10487, 2026-11-05): TituloAutoService::detectLocationFromCashRegister filtra transactions.cash_register_id, coluna que não existe; a ponte caixa→título falha em todo fechamento (o listener engole e loga). Consertar passa a criar títulos em produção = regra de valor, decisão [W]. Ver rodapé.
 
 # ─────────────────────────────────────────────────────────────────────────
 # C) DB-dependente FALHANDO — defeito real a investigar
@@ -940,6 +939,7 @@ Modules/Financeiro/Tests/Feature/BoletoMockEmissaoTest.php  # 3 skipped (0 asser
 #                                      reduzida. Hipótese do vazador de permissão segue NÃO confirmada;
 #                                      se o 403 voltar, volta pra cá com o run id.
 
+# ── CashRegisterBridgeFinanceiroTest — SAIU em 2026-11-09 (lote 3.4): ponte consertada com OK [W] ──
 # ── CashRegisterBridgeFinanceiroTest — FICA, com motivo medido (2026-11-05) ──
 #   O arquivo foi reescrito (transação no tenant 98, listener registrado no teste, sem
 #   RefreshDatabase) e passou a EXERCER a ponte. Resultado: 4 failed, 2 passed. O log do

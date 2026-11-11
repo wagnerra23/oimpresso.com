@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 946,
-    "edges": 1276,
+    "nodes": 948,
+    "edges": 1279,
     "by_node_type": {
       "module": 43,
       "table": 108,
-      "adr": 153,
+      "adr": 155,
       "component": 553,
       "api": 89
     },
@@ -43,11 +43,11 @@
       "charteredByAdr": 30,
       "governedByAdr": 81,
       "hasComponent": 553,
-      "dependsOn": 139,
-      "delegatesTo": 127,
+      "dependsOn": 140,
+      "delegatesTo": 128,
       "migratesTo": 1,
       "supersedes": 27,
-      "supersedesPartially": 78,
+      "supersedesPartially": 79,
       "supersededBy": 31
     },
     "dangling": 0
@@ -317,6 +317,13 @@
       "type": "adr",
       "num": "0088",
       "slug": "0088-module-rename-php-only",
+      "exists": true
+    },
+    {
+      "id": "adr:0090",
+      "type": "adr",
+      "num": "0090",
+      "slug": "0090-nfe-replace-gradual-app-services",
       "exists": true
     },
     {
@@ -1123,6 +1130,13 @@
       "type": "adr",
       "num": "0448",
       "slug": "0448-fabricacao-cadastro-producao-execucao-product-bom-fonte-unica",
+      "exists": true
+    },
+    {
+      "id": "adr:0449",
+      "type": "adr",
+      "num": "0449",
+      "slug": "0449-nfebrasil-certificado-sem-fallback-legado",
       "exists": true
     },
     {
@@ -3526,7 +3540,7 @@
       "type": "component",
       "module": "Fisio",
       "name": "LaudoBiopsicossocialController",
-      "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão (US-FISIO-060)"
+      "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão; apoio de dor e adesão (ApoioFisioterapia) e PDF no layout oficial (LaudoBiopsicossocialDocumento) (US-FISIO-060)"
     },
     {
       "id": "component:Fisio/OnboardingController",
@@ -8292,6 +8306,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0449",
+      "to": "adr:0090",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -12728,6 +12748,13 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Regra do pacote fiscal_module nas rotas /nfe-brasil/* (middleware FiscalLiberado"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -12753,6 +12780,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Regra do pacote fiscal_module nas rotas /nfe-brasil/* (middleware FiscalLiberado"
     },
     {
       "from": "module:NfeBrasil",

@@ -13,6 +13,7 @@ use Modules\NfeBrasil\Http\Controllers\RevisaoContadorController;
 use Modules\NfeBrasil\Http\Controllers\RevisaoContadorLinkController;
 use Modules\NfeBrasil\Http\Controllers\SugestaoFiscalController;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
+use Modules\Fiscal\Http\Middleware\FiscalLiberado;
 use Modules\NfeBrasil\Http\Middleware\PermissaoNfe;
 
 /*
@@ -32,6 +33,12 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::match(['get', 'post'], 'install/update', [InstallController::class, 'update']);
     });
 
+// Lote 3.3 da auditoria NfeBrasil (N5-06, decisão [W] B-03 2026-11-10): todo grupo autenticado
+// de /nfe-brasil/* exige o pacote `fiscal_module` na assinatura da empresa, pelo mesmo middleware
+// do /fiscal (FiscalLiberado → FiscalPacote, regra única). Antes, o pacote só era checado no menu,
+// e quem conhecesse a URL emitia sem o pacote. Ficam FORA, de propósito: a página assinada do
+// contador e o DANFE por link assinado (sem login, sem sessão de empresa).
+
 // O `Route::resource('nfebrasil', NfeBrasilController)` do scaffold nWidart saiu em
 // 2026-10-27: o index devolvia "Hello World" e create/show/edit apontavam pra views que
 // nunca existiram. Nenhum link no app nem acesso registrado em produção. As telas
@@ -41,7 +48,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 // Permissão `nfe.configuracao.manage` validada no FormRequest.
 // Stack canônica oimpresso: web + auth + language + timezone + AdminSidebarMenu
 // (mesmo de Modules/Financeiro/Routes/web.php).
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', FiscalLiberado::class])
     ->prefix('nfe-brasil/configuracao')
     ->group(function () {
         // Tela GET legacy → redirect 302 pra /fiscal/config (UNIFICADA — Wagner 2026-05-27).
@@ -67,7 +74,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 // porque não tem payload a validar).
 // Só POST: ativar contingência é ATO, e ato não entra por GET — link/prefetch/crawler
 // não pode mudar o modo de emissão fiscal de um tenant.
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', FiscalLiberado::class])
     ->prefix('nfe-brasil/contingencia')
     ->group(function () {
         Route::post('ativar', [ContingenciaController::class, 'ativar'])
@@ -78,7 +85,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
 // US-NFE-010 fase 2 — UI tributação (regras NCM + config default).
 // Permissão `nfe.tributacao.manage` validada no FormRequest.
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', FiscalLiberado::class])
     ->prefix('nfe-brasil/tributacao')
     ->name('nfe-brasil.tributacao.')
     ->group(function () {
@@ -173,7 +180,7 @@ Route::middleware(['web', 'throttle:30,1', 'signed'])
 //
 // US-NFE-MANUAL — endpoints emissão manual (POST emitir + reenviar email + GET DANFE PDF).
 // Reusa NfeService.emitirParaTransaction com modelo configurável (55 NFe / 65 NFC-e).
-Route::middleware(['web', 'auth', 'SetSessionData'])
+Route::middleware(['web', 'auth', 'SetSessionData', FiscalLiberado::class])
     ->prefix('nfe-brasil/api')
     ->name('nfe-brasil.api.')
     ->group(function () {
@@ -194,7 +201,7 @@ Route::middleware(['web', 'auth', 'SetSessionData'])
 
 // US-NFE-MANUAL — POST endpoints de ação fiscal + GET DANFE PDF.
 // Web stack normal pra session+CSRF; mesmo middleware do API acima.
-Route::middleware(['web', 'auth', 'SetSessionData'])
+Route::middleware(['web', 'auth', 'SetSessionData', FiscalLiberado::class])
     ->prefix('nfe-brasil')
     ->name('nfe-brasil.')
     ->group(function () {
@@ -217,7 +224,7 @@ Route::middleware(['web', 'auth', 'SetSessionData'])
 // Page Inertia demo da fase 2C — badge reativo via useNfceStatus.
 // Acesso: /nfe-brasil/transactions/{tx}/status. Usuário consulta status de
 // uma venda já finalizada; serve também de dogfooding antes integração POS.
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', FiscalLiberado::class])
     ->prefix('nfe-brasil/transactions')
     ->name('nfe-brasil.transactions.')
     ->group(function () {
@@ -230,7 +237,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 // US-SELL-030 — Inutilização SEFAZ de faixa de números fiscais NFe.
 // Permissão: `fiscal.inutilizar` (role per-business, seeder NfeFiscalActionsSeeder).
 // Refs: SPEC.md US-SELL-030 + CONFAZ Ajuste SINIEF 07/2005 Art. 14
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', FiscalLiberado::class])
     ->prefix('nfe-brasil/inutilizacoes')
     ->name('nfe-brasil.inutilizacoes.')
     ->group(function () {
@@ -242,7 +249,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
 // US-NFE-052 (ADR 0116 caso Gold) — UI Manifestação do Destinatário.
 // Permissão `nfe.manifestacao.view` (index + JSON) + `nfe.manifestacao.manage` (mutations).
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', FiscalLiberado::class])
     ->prefix('nfe-brasil/manifestacao')
     ->name('nfe-brasil.manifestacao.')
     ->group(function () {

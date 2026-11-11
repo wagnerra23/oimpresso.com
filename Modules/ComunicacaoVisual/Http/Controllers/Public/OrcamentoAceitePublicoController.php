@@ -32,9 +32,9 @@ class OrcamentoAceitePublicoController extends Controller
         return $this->pagina($token, $orcamento);
     }
 
-    public function aceitar(string $token): RedirectResponse
+    public function aceitar(Request $request, string $token): RedirectResponse
     {
-        return $this->decidir($token, 'aceito', null, 'Orçamento aceito. Obrigado! A gráfica já recebeu o pedido.');
+        return $this->decidir($token, 'aceito', null, 'Orçamento aceito. Obrigado! A gráfica já recebeu o pedido.', $request);
     }
 
     public function ajuste(Request $request, string $token): RedirectResponse
@@ -47,11 +47,11 @@ class OrcamentoAceitePublicoController extends Controller
         return $this->decidir($token, 'ajuste', $comentario, 'Pedido de ajuste enviado. A gráfica vai revisar e mandar um novo orçamento.');
     }
 
-    private function decidir(string $token, string $decisao, ?string $comentario, string $feito): RedirectResponse
+    private function decidir(string $token, string $decisao, ?string $comentario, string $feito, ?Request $request = null): RedirectResponse
     {
         abort_if($this->aceite->paraCliente($token) === null, 404);
         try {
-            $this->aceite->decidir($token, $decisao, $comentario);
+            $this->aceite->decidir($token, $decisao, $comentario, $request?->ip(), $request?->userAgent());
         } catch (\DomainException $e) {
             // redirect explícito, não back(): com `no-referrer` o navegador não manda o Referer.
             return redirect("/orcamento-cv/{$token}")->withErrors(['decisao' => $e->getMessage()]);
