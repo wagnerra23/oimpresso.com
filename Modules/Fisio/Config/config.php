@@ -94,12 +94,13 @@ return [
     /*
      * Assistente de IA da pesquisadora (etapa 07 P-08). Liga por empresa em fisio_settings
      * (`pesquisa.assistente_ia`, desligado por padrão). provider/model nulos = padrão do
-     * laravel/ai (ADR 0035). `max_linhas` limita cada CSV mandado ao modelo.
+     * laravel/ai (ADR 0035). Sem `env()` aqui: o Larastan acusa `env()` fora de `config/`
+     * (com config em cache ele volta nulo). `max_linhas` limita cada CSV mandado ao modelo.
      */
     'pesquisa' => [
         'assistente' => [
-            'provider' => env('FISIO_PESQUISA_IA_PROVIDER'),
-            'model' => env('FISIO_PESQUISA_IA_MODEL'),
+            'provider' => null,
+            'model' => null,
             'max_linhas' => 4000,
         ],
     ],
