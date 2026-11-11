@@ -5,8 +5,8 @@
 //   permissao: fisio.pesquisa · o nome do paciente só aparece para quem também tem fisio.editar
 //
 // Área do estudo (fonte: prototipo-ui/cowork/Wagner/prototipos/fisio/Pesquisa.dc.html).
-// Estudo, participantes, pendências, eventos adversos (P-06) e exportação (P-07). O assistente
-// do protótipo entra com P-08. O software organiza o estudo; não decide conduta.
+// Estudo, participantes, pendências, eventos adversos (P-06), exportação (P-07) e assistente
+// da pesquisadora (P-08, só sugestões que ela aceita ou descarta). O software organiza o estudo; não decide conduta.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router, useForm, usePage } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
@@ -28,11 +28,13 @@ interface Estudo { id: number; title: string; status: string; cep_opinion_number
 interface Participante { id: number; code: string; nome: string | null; entered_on: string; exited_on: string | null; exit_type: string | null; exit_reason: string | null }
 interface Pendencia { participant_id: number; code: string; moment: string; inicio: string; fim: string; faltando: string[]; situacao: 'futuro' | 'aberto' | 'vencido' }
 interface EventoAdverso { id: number; code: string; origin: 'crise_48h' | 'alerta_dor'; started_on: string; ended_on: string; detail: { dor?: number; limiar?: number; dias?: number } | null; reviewed_at: string | null; review_note: string | null }
-type Aba = 'part' | 'pend' | 'ea' | 'exp';
-const ABAS: { value: Aba; label: string }[] = [{ value: 'part', label: 'Participantes' }, { value: 'pend', label: 'Pendências' }, { value: 'ea', label: 'Eventos adversos' }, { value: 'exp', label: 'Exportação' }];
+type Aba = 'part' | 'pend' | 'ea' | 'exp' | 'ia';
+const ABAS: { value: Aba; label: string }[] = [{ value: 'part', label: 'Participantes' }, { value: 'pend', label: 'Pendências' }, { value: 'ea', label: 'Eventos adversos' }, { value: 'exp', label: 'Exportação' }, { value: 'ia', label: 'Assistente' }];
 const descreverEvento = (e: EventoAdverso) => e.origin === 'crise_48h'
   ? `Crise registrada por ${e.detail?.dias ?? 3} dias seguidos (mais de 48 h)`
   : `Dor ${e.detail?.dor ?? '?'} no limiar em vigor (${e.detail?.limiar ?? '?'})`;
+interface Sugestao { id: number; kind: 'qualidade' | 'resumo' | 'padrao'; text: string; status: 'pendente' | 'aceita' | 'descartada'; decided_at: string | null }
+const TIPO_SUGESTAO: Record<Sugestao['kind'], string> = { qualidade: 'Qualidade', resumo: 'Resumo', padrao: 'Padrão' };
 interface Props {
   estudos: { id: number; title: string; status: string }[];
   estudo: Estudo | null;
@@ -42,6 +44,8 @@ interface Props {
   pendencias?: Pendencia[];
   pacientes?: { id: number; nome: string }[];
   eventos?: EventoAdverso[];
+  assistente_ligado: boolean;
+  sugestoes?: Sugestao[];
 }
 
 const data = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('pt-BR');
@@ -196,6 +200,48 @@ function Revisar({ estudo, e, fechar }: { estudo: Estudo; e: EventoAdverso; fech
   );
 }
 
+/** Assistente da pesquisadora (P-08): sugestão, não conclusão. Só nesta área; nunca vai ao paciente nem à ficha. */
+function Assistente({ estudo, ligado, podeLigar, sugestoes }: { estudo: Estudo; ligado: boolean; podeLigar: boolean; sugestoes: Sugestao[] }) {
+  const [ocupado, setOcupado] = useState(false);
+  const { errors } = usePage().props as { errors?: Record<string, string> };
+  const enviar = (url: string, dados: Record<string, unknown> = {}) => {
+    setOcupado(true);
+    router.post(url, dados, { preserveScroll: true, onFinish: () => setOcupado(false) });
+  };
+  if (!ligado) {
+    return (
+      <div className="grid gap-3 text-sm">
+        <p className="text-muted-foreground">O assistente lê só o dado sem identificação da exportação e devolve sugestões de qualidade do dado, resumo descritivo e padrões antes das crises. Ele começa desligado: quem liga é a clínica.</p>
+        {podeLigar ? <div><Button variant="outline" disabled={ocupado} onClick={() => enviar('/fisio/pesquisa/assistente', { ligado: true })}>Ligar o assistente</Button></div>
+          : <p className="text-muted-foreground">Peça à clínica para ligar.</p>}
+      </div>
+    );
+  }
+  return (
+    <div className="grid gap-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button disabled={ocupado} onClick={() => enviar(`/fisio/pesquisa/estudos/${estudo.id}/sugestoes`)}>{ocupado ? 'Pedindo…' : 'Pedir sugestões'}</Button>
+        {podeLigar && <Button variant="ghost" disabled={ocupado} onClick={() => enviar('/fisio/pesquisa/assistente', { ligado: false })}>Desligar</Button>}
+        <span className="text-muted-foreground">Recebe só dado sem identificação. Não aparece para o paciente nem na ficha clínica.</span>
+      </div>
+      {errors?.geral && <p className="text-destructive">{errors.geral}</p>}
+      {sugestoes.length === 0 ? <p className="text-muted-foreground">Nenhuma sugestão ainda.</p> : (
+        <ul className="divide-y rounded-md border">{sugestoes.map((g) => (
+          <li key={g.id} className="flex flex-wrap items-center gap-3 p-3">
+            <Badge variant="outline" className="w-24 justify-center">{TIPO_SUGESTAO[g.kind]}</Badge>
+            <span className="min-w-0 flex-1">{g.text}</span>
+            {g.status === 'pendente' ? (
+              <span className="flex gap-2">
+                <Button size="sm" variant="outline" disabled={ocupado} onClick={() => enviar(`/fisio/pesquisa/estudos/${estudo.id}/sugestoes/${g.id}/descartar`)}>Descartar</Button>
+                <Button size="sm" disabled={ocupado} onClick={() => enviar(`/fisio/pesquisa/estudos/${estudo.id}/sugestoes/${g.id}/aceitar`)}>Aceitar</Button>
+              </span>
+            ) : <span className="text-muted-foreground">{g.status}{g.decided_at ? ` em ${new Date(g.decided_at).toLocaleDateString('pt-BR')}` : ''}</span>}
+          </li>))}</ul>)}
+      <p className="text-xs text-muted-foreground">Sugestão, não conclusão. Quem aceitou ou descartou fica registrado.</p>
+    </div>
+  );
+}
+
 export default function PesquisaIndex(props: Props) {
   const { estudos, estudo, ve_nome } = props;
   const [aba, setAba] = useState<Aba>('part');
@@ -276,6 +322,11 @@ export default function PesquisaIndex(props: Props) {
                     ? <p className="text-muted-foreground">Travado em {new Date(estudo.locked_at).toLocaleString('pt-BR')}: {estudo.lock_reason}</p>
                     : <div><Button variant="outline" onClick={() => setTravando(true)}>Travar dados</Button></div>}
                 </div>
+              )}
+              {aba === 'ia' && (
+                <Deferred data="sugestoes" fallback={<Skeleton className="h-24 w-full" />}>
+                  <Assistente estudo={estudo} ligado={props.assistente_ligado} podeLigar={ve_nome} sugestoes={props.sugestoes ?? []} />
+                </Deferred>
               )}
             </CardContent></Card>
           </>
