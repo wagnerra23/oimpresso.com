@@ -329,6 +329,8 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ArquivoFiscalPrivadoContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/XmlAutorizadoComProtocoloContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/DuplicidadeSefazContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/DfeEsperaSefazContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/CartaCorrecaoEmitenteContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/EmissaoTravaDaVendaContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/NotaAutorizadaAvisoContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/GatesAcoesFiscaisContratoTest.php \

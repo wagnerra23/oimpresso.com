@@ -31,6 +31,10 @@ related_us: []
 | UC-FES-09 | crise por mais de 48 h vira evento adverso | must | `FisioEventoAdversoTest` |
 | UC-FES-10 | dor no limiar em vigor vira evento adverso, uma vez | must | `FisioEventoAdversoTest` |
 | UC-FES-11 | revisão com nota; sem gravidade; outra clínica 404 | must | `FisioEventoAdversoTest` |
+| UC-FES-12 | momentos em formato longo, sem identificação; não respondido é NA | must | `FisioExportacaoEstudoTest` |
+| UC-FES-13 | série diária: dia sem check-in é NA, dor zero é 0 | must | `FisioExportacaoEstudoTest` |
+| UC-FES-14 | só o pesquisador exporta; cada download no log; outra clínica 404 | must | `FisioExportacaoEstudoTest` |
+| UC-FES-15 | travamento com motivo; depois, justificativa e exportação congelada | must | `FisioExportacaoEstudoTest` |
 
 ---
 
@@ -91,6 +95,28 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php`
 - **Status: 🧪**
 
+## UC-FES-12 · Momentos sem identificação `[T0]` · `must`
+- **Persona:** universidade recebendo o arquivo do estudo (etapa 07 §4.4, P-07).
+- **Aceite:** O CSV de momentos tem uma linha por participante × momento × questionário, com o código, a versão do instrumento, o escore e o dia do estudo da resposta (a mais próxima do dia alvo na janela). Não respondido sai `NA`. O arquivo não tem nome, telefone nem data do calendário.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioExportacaoEstudoTest.php`
+- **Status: 🧪**
+
+## UC-FES-13 · Ausente é ausente · `must`
+- **Aceite:** Na série diária, dia sem check-in sai `NA` em todas as colunas; dor zero sai `0`. Itens feitos e prescritos saem do check-in e do programa do dia.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioExportacaoEstudoTest.php`
+- **Status: 🧪**
+
+## UC-FES-14 · Quem exporta e o rastro `[T0]` · `must`
+- **Aceite:** Sem `fisio.pesquisa`, 403. Cada download grava `estudo_exportado` no activity_log com o estudo e o arquivo. Estudo da 99 dá 404 para a 98.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioExportacaoEstudoTest.php`
+- **Status: 🧪**
+
+## UC-FES-15 · Travamento · `must`
+- **Aceite:** Travar exige motivo e é uma vez só. Depois, incluir, registrar saída ou revisar evento sem `justificativa` dá 422; com ela, a mudança passa e o activity_log grava `estudo_alterado_apos_travamento`. Dado gravado depois do travamento não entra na exportação.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioExportacaoEstudoTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-11 · etapa 07 P-07 — aba Exportação: 4 CSV (momentos, série diária, participantes, dicionário), `NA` para ausente, dia do estudo no lugar da data, travamento com justificativa, tudo no activity_log.
 - 2026-11-11 · etapa 07 P-06 — aba Eventos adversos: crise por mais de 48 h e alerta de dor, registrados a partir do check-in. O software não classifica gravidade.
 - 2026-11-11 · etapa 07 P-04 — tela nasce com participantes e pendências. Eventos adversos (P-06), exportação (P-07) e assistente (P-08) entram com as abas do protótipo.
