@@ -45,10 +45,13 @@ class QuestionariosController extends Controller
         ]);
 
         $instrumento = (string) $dados['instrumento'];
-        if (! in_array($instrumento, CatalogoQuestionarios::LIVRES, true)) {
-            $msg = in_array($instrumento, CatalogoQuestionarios::BLOQUEADOS, true)
-                ? 'Questionário bloqueado até haver licença de uso (ADR 0437 §8).'
-                : 'Questionário desconhecido.';
+        // De fibromialgia fora de `fisio.instrumentos_liberados` é recusado como os bloqueados (P-03).
+        if (! CatalogoQuestionarios::disponivel($instrumento)) {
+            $msg = match (true) {
+                in_array($instrumento, CatalogoQuestionarios::BLOQUEADOS, true) => 'Questionário bloqueado até haver licença de uso (ADR 0437 §8).',
+                in_array($instrumento, CatalogoQuestionarios::FIBROMIALGIA, true) => 'Questionário não liberado nesta instalação até a licença ser confirmada (ADR 0437 §8).',
+                default => 'Questionário desconhecido.',
+            };
             throw ValidationException::withMessages(['instrumento' => $msg]);
         }
 
@@ -58,12 +61,17 @@ class QuestionariosController extends Controller
             throw ValidationException::withMessages([$e->campo => $e->getMessage()]);
         }
 
+        // Versão do instrumento vem do catálogo, nunca do corpo: o estudo não mistura versões (P-03).
+        $versao = CatalogoQuestionarios::definicao($instrumento)['versao'] ?? null;
+
         $questionario = Questionnaire::query()->create([
             'business_id' => $biz,
             'patient_id' => $paciente->id,
             'instrument' => $instrumento,
+            'instrument_version' => $versao,
             'answers' => [
                 'definicao' => CatalogoQuestionarios::VERSAO,
+                'versao_instrumento' => $versao,
                 'respostas' => $resultado['respostas'],
                 'detalhe' => $resultado['detalhe'],
                 'registrado_por' => $request->user()->id,
