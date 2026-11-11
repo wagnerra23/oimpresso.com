@@ -141,6 +141,7 @@ function agndLimpar(): void
 
 beforeEach(function () {
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
     agndLimpar();
 });
 

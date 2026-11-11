@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa de quem remarca + critério de aceite verificá
 por_que: a tela muda preço em massa; ela só pode existir para quem ligou e tem permissão, e as etiquetas e a reversão não podem vazar entre empresas.
 owner: wagner
 related_us: [US-VEST-032]
-last_run: "2026-10-27"
+last_run: "2026-11-10"
 last_run_ci: "0 UC executado na lane — nasce neste PR"
 ---
 
@@ -22,7 +22,7 @@ last_run_ci: "0 UC executado na lane — nasce neste PR"
 | UC | O que defende | Peso | Âncora | Teste |
 |---|---|---|---|---|
 | UC-VREM-05 | desligada por padrão: sem o setting a tela e os endpoints dão 404 | must | US-VEST-032 | `RemarcacaoTelaContratoTest` |
-| UC-VREM-06 | ligada, a tela abre com categorias e marcas só da empresa; sem `product.update`, 403 | must `[T0]` | US-VEST-032 | `RemarcacaoTelaContratoTest` |
+| UC-VREM-06 | ligada, a tela abre com categorias e marcas só da empresa; sem `vestuario.remarcacao.aplicar`, 403; o menu só mostra a tela com a permissão e o setting ligado | must `[T0]` | US-VEST-032 | `RemarcacaoTelaContratoTest` |
 | UC-VREM-07 | prévia → gravar → etiquetas do lote; etiquetas de lote alheio dão 404 | must `[T0]` | US-VEST-032 | `RemarcacaoTelaContratoTest` |
 | UC-VREM-08 | o número digitado chega ao servidor como foi digitado, com ponto ou vírgula; texto inválido não é enviado | must `[V0]` | US-VEST-032 · regra mestre de valor | `vestuario-remarcacao-valor.test.tsx` |
 
@@ -35,20 +35,24 @@ last_run_ci: "0 UC executado na lane — nasce neste PR"
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-06 · Ligada, só com permissão, só dados da empresa `[T0]`
-- **Persona:** quem cuida dos preços da loja e tem permissão de editar produto.
-- **Aceite:** Dado o setting ligado · Quando quem tem `product.update` abre a tela · Então recebe a
-  página com categorias e marcas da própria empresa (nenhuma de outra). Sem a permissão, 403.
+- **Persona:** quem cuida dos preços da loja e recebeu a permissão de remarcar.
+- **Aceite:** Dado o setting ligado · Quando quem tem `vestuario.remarcacao.aplicar` abre a tela · Então recebe a
+  página com categorias e marcas da própria empresa (nenhuma de outra). Sem a permissão, 403, mesmo com
+  `product.update` (decisão [W] 2026-11-09: a operação altera até 2.000 preços de uma vez). No menu, "Remarcação"
+  só aparece para quem tem a permissão, na empresa com o setting ligado.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
-- **Regressão que defende:** tela aberta sem permissão de editar produto, ou listando categoria/marca de outra empresa.
+- **Regressão que defende:** remarcação aberta a quem só edita produto, ou listando categoria/marca de outra empresa.
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-07 · Do filtro às etiquetas `[T0]`
 - **Persona:** quem remarca e precisa reimprimir as etiquetas das peças remarcadas.
 - **Aceite:** Dado o setting ligado · Quando pede a prévia, grava com a assinatura dela e pede as
-  etiquetas do lote · Então recebe os itens com o preço novo no formato de `lote/pdf`. Pedir as
-  etiquetas (ou reverter) um lote de outra empresa dá 404/422 e não muda preço.
-- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
-- **Regressão que defende:** etiqueta ou reversão de lote de outra empresa, ou etiqueta saindo com o preço antigo.
+  etiquetas do lote · Então recebe os itens com o preço de hoje no formato de `lote/pdf`, e produto
+  simples sai sem o tamanho interno. Lote revertido não imprime. Lote acima de 500 etiquetas sai em
+  partes de 500, sem nenhuma de fora. Depois de reverter, some o atalho de imprimir daquele lote. Pedir
+  as etiquetas (ou reverter) um lote de outra empresa dá 404/422 e não muda preço.
+- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php` · `tests/js/vestuario-remarcacao-valor.test.tsx`
+- **Regressão que defende:** etiqueta ou reversão de lote de outra empresa, etiqueta saindo com o preço antigo ou com "DUMMY", ou lote cortado em silêncio.
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-08 · O valor digitado é o valor enviado `[V0]`

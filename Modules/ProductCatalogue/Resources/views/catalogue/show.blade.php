@@ -69,7 +69,7 @@
 								</tr>
 							@endif
 	      					<tr>
-	      						<td colspan="2"><br><br>{!! $product->product_description !!}</td>
+	      						<td colspan="2"><br><br>{!! \App\Util\HtmlSanitizer::clean($product->product_description) !!}</td>
 	      					</tr>
 	      				</table>
       				</div>

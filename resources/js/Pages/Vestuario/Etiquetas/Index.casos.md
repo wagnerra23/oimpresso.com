@@ -62,6 +62,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 | UC-VET-22 | Teto de etiquetas por pedido, com aviso e erro legíveis | must | `CU-VEST-02` item 6 | `EtiquetaLimitePermissaoContratoTest` | 🧪 |
 | UC-VET-23 | Sem a permissão: chave desligada registra, ligada bloqueia | must `[T0]` | `CU-VEST-08` item 4 | `EtiquetaLimitePermissaoContratoTest` | 🧪 |
 | UC-VET-09 | Endpoints de lote exigem sessão autenticada | must `[T0]` | `CU-VEST-08` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
+| UC-VET-10 | Gerar etiqueta tem limite por usuário (10 por minuto, ZPL e PDF juntos) | must | SDD §9 R-2 · decisão [W] 2026-11-09 | `RemarcacaoTelaContratoTest` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR **não executou teste algum** (CT 100/CI —
 > [ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). O veredito
@@ -280,6 +281,18 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
   etiqueta para "nenhum tenant" — é o degrau anterior a um vazamento. O middleware é a única
   coisa entre o endpoint e a internet enquanto a chave de permissão está desligada (UC-VET-23).
 - **Status: 🧪** — teste cita o UC; veredito pendente da lane (advisory).
+
+---
+
+## UC-VET-10 · Gerar etiqueta tem limite por usuário · `must`
+
+- **Persona:** quem imprime etiquetas; a hospedagem é compartilhada com as outras telas da empresa.
+- **Aceite:** Dado um usuário que fez 10 pedidos de lote no minuto · Quando faz o 11º, em ZPL ou PDF ·
+  Então recebe 429 com aviso para aguardar um minuto, e outro usuário segue gerando.
+- **Teste:** [`RemarcacaoTelaContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php)
+- **Contrato:** SDD §9 R-2 · decisão [W] 2026-11-09 (lote 3 da auditoria do Vestuario).
+- **Regressão que defende:** um usuário repetindo lotes de etiquetas sem limite no processo web.
+- **Status: 🧪** — teste cita o UC; veredito pendente da lane.
 
 ---
 

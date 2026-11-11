@@ -7,6 +7,7 @@ namespace Modules\Vestuario\Http\Controllers;
 use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
 use Menu;
+use Modules\Vestuario\Services\VestuarioSettingsResolver;
 
 /**
  * DataController — Modules/Vestuario (vertical lojas de vestuário CNAE 4781).
@@ -64,20 +65,21 @@ class DataController extends Controller
             ['value' => 'vestuario.access',          'label' => 'Vestuário: acessar módulo',            'default' => false],
             ['value' => 'vestuario.etiqueta.view',   'label' => 'Vestuário: ver etiquetas TAG',         'default' => false],
             ['value' => 'vestuario.etiqueta.create', 'label' => 'Vestuário: gerar etiquetas TAG (lote)', 'default' => false],
+            ['value' => RemarcacaoController::PERMISSAO, 'label' => 'Vestuário: remarcar e reverter preços em lote', 'default' => false],
         ];
     }
 
     /**
      * Injeta a entry "Vestuário" na sidebar admin (grupo VENDER · ADR 0180).
      *
-     * Ghost único "Etiquetas" → a única sub-feature roteada hoje
-     * (`/vestuario/etiquetas`, US-VEST-020). Demais US-VEST-* do backlog
-     * (devolução/comissão/liquidação/fidelidade) entram como ghosts quando
+     * Ghosts: "Etiquetas" (`/vestuario/etiquetas`, US-VEST-020) e, só com a permissão
+     * e a remarcação ligada na empresa, "Remarcação" (US-VEST-032). Demais US-VEST-*
+     * do backlog (devolução/comissão/liquidação/fidelidade) entram como ghosts quando
      * ganharem rota real — não declaradas aqui pra não criar link morto.
      */
     public function modifyAdminMenu(): void
     {
-        $module_util = new ModuleUtil();
+        $module_util = app(ModuleUtil::class);
 
         if (auth()->user()->can('superadmin')) {
             $is_enabled = $module_util->isModuleInstalled('Vestuario');
@@ -105,9 +107,14 @@ class DataController extends Controller
         $background_color = config('app.env') === 'demo' ? '#f0d9e8' : '';
         $segmento_ativo   = request()->segment(1) === 'vestuario';
 
+        $ghosts = [['key' => 'etiquetas', 'label' => 'Etiquetas', 'href' => '/vestuario/etiquetas']];
+        if ($this->remarcacaoNoMenu()) {
+            $ghosts[] = ['key' => 'remarcacao', 'label' => 'Remarcação', 'href' => '/vestuario/remarcacao'];
+        }
+
         Menu::modify(
             'admin-sidebar-menu',
-            function ($menu) use ($background_color, $segmento_ativo) {
+            function ($menu) use ($background_color, $segmento_ativo, $ghosts) {
                 $menu->url(
                     route('vestuario.etiquetas.index'),
                     'Vestuário',
@@ -123,12 +130,22 @@ class DataController extends Controller
                             'shortcut' => 'N',
                             'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)
                         ],
-                        'ghosts'   => [
-                            ['key' => 'etiquetas', 'label' => 'Etiquetas', 'href' => '/vestuario/etiquetas'],
-                        ],
+                        'ghosts'   => $ghosts,
                     ]
                 )->order(35);
             }
         );
+    }
+
+    /** Mesma regra do RemarcacaoController: permissão primeiro, para só quem a tem ler o setting. */
+    private function remarcacaoNoMenu(): bool
+    {
+        $user = auth()->user();
+        if (! $user->can('superadmin') && ! $user->can(RemarcacaoController::PERMISSAO)) {
+            return false;
+        }
+        $business_id = (int) (session('user.business_id') ?? session('business.id'));
+
+        return app(VestuarioSettingsResolver::class)->forBusiness($business_id)->getBool('remarcacao.enabled', false);
     }
 }

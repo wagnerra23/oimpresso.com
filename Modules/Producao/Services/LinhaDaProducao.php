@@ -7,6 +7,7 @@ namespace Modules\Producao\Services;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Modules\Producao\Entities\Ordem;
 
 /**
@@ -24,6 +25,8 @@ use Modules\Producao\Entities\Ordem;
  * - Gargalo (D5, regra simples): máquina acima da capacidade recebe UMA sugestão — mover a etapa
  *   pendente de menor duração que resolve para outra máquina do mesmo setor que tenha folga, com
  *   responsável que opere a de destino (UC-FLX-08). Nunca move sozinho; quem aplica é o PCP.
+ * - Mesma mídia (UC-PCLIN-01): avisa quando dá para evitar uma troca de mídia na impressão. Regra
+ *   simples, por máquina; o encaixe na bobina é da versão 2 (D-ENCAIXE). Nunca move sozinho.
  *
  * Tier 0 (ADR 0093): toda consulta por `$businessId` explícito.
  */
@@ -57,15 +60,16 @@ final class LinhaDaProducao
     /**
      * Máquinas com operadores e carga do dia, os blocos e a sugestão de gargalo.
      *
-     * @return array{postos: list<array<string, mixed>>, blocos: list<array<string, mixed>>, sugestao: ?array<string, mixed>}
+     * @return array{postos: list<array<string, mixed>>, blocos: list<array<string, mixed>>, sugestao: ?array<string, mixed>, agrupamento: ?array<string, mixed>}
      */
-    public function montar(int $businessId, CarbonInterface $dia, string $fimTurno): array
+    public function montar(int $businessId, CarbonInterface $dia, string $fimTurno, ?CarbonInterface $agora = null): array
     {
         $carga = collect($this->painel->carga($businessId, $dia))->keyBy('posto_id');
         $postos = $this->postos($businessId, $carga->all());
         $blocos = $this->blocos($businessId, $dia, $fimTurno, array_column($postos, 'id'));
 
-        return ['postos' => $postos, 'blocos' => $blocos, 'sugestao' => $this->sugestao($businessId, $postos, $blocos, $dia, $fimTurno)];
+        return ['postos' => $postos, 'blocos' => $blocos, 'sugestao' => $this->sugestao($businessId, $postos, $blocos, $dia, $fimTurno),
+            'agrupamento' => $this->agrupamento($businessId, $postos, $blocos, $dia, $fimTurno, $agora ?? now())];
     }
 
     /**
@@ -123,7 +127,7 @@ final class LinhaDaProducao
 
             return ['id' => (int) $e->id, 'os_tipo' => $e->os_tipo, 'os_id' => (int) $e->os_id, 'posto_id' => (int) $e->posto_id,
                 'numero' => $rotulos[$chave]['numero'] ?? ('OS '.$e->os_id), 'cliente' => $rotulos[$chave]['cliente'] ?? null,
-                'etapa' => $e->nome, 'status' => $e->status,
+                'etapa' => $e->nome, 'status' => $e->status, 'midias' => $rotulos[$chave]['midias'] ?? [],
                 'user_id' => $e->user_id !== null ? (int) $e->user_id : null,
                 'responsavel' => $e->user_id !== null ? ($nomes[(int) $e->user_id] ?? null) : null,
                 'inicio' => Carbon::parse($e->inicio_previsto)->format('Y-m-d\TH:i'), 'fim' => Carbon::parse($fim)->format('Y-m-d\TH:i'),
@@ -173,6 +177,52 @@ final class LinhaDaProducao
                         'para' => ['posto_id' => $destino['id'], 'nome' => $destino['nome'], 'horas' => $destino['horas'],
                             'depois' => round($destino['horas'] + $h, 1), 'capacidade' => $destino['capacidade'], 'inicio' => $inicio->format('Y-m-d\TH:i')]];
                 }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * UC-PCLIN-01: o primeiro par da fila de uma máquina de impressão em que duas OS usam a mesma mídia
+     * com bloco de outra mídia entre elas. Só conta OS com uma única mídia (com duas não dá para saber
+     * qual esta etapa imprime). A segunda vai para logo depois da primeira se ainda não começou e
+     * cabe ali, sem horário passado e sem passar do fim do turno. Trava é só de OS por item, que não tem mídia.
+     *
+     * @param  list<array<string, mixed>>  $postos
+     * @param  list<array<string, mixed>>  $blocos
+     * @return ?array<string, mixed>
+     */
+    private function agrupamento(int $businessId, array $postos, array $blocos, CarbonInterface $dia, string $fimTurno, CarbonInterface $agora): ?array
+    {
+        $fecha = Carbon::parse($dia->toDateString().' '.$fimTurno);
+        $midia = fn (array $b): ?int => count($b['midias']) === 1 ? $b['midias'][0] : null;
+
+        foreach ($postos as $p) {
+            if (! str_contains(Str::lower(Str::ascii((string) $p['setor'])), 'impress')) {
+                continue;
+            }
+            $fila = collect($blocos)->where('posto_id', $p['id'])->sortBy('inicio')->values();
+            foreach ($fila as $i => $a) {
+                $m = $midia($a);
+                $j = $m === null ? false : $fila->slice($i + 1)->search(fn ($x) => $midia($x) === $m);
+                if ($j === false || $j === $i + 1) {
+                    continue; // sem par, ou já estão juntas
+                }
+                $b = $fila[$j];
+                if ($b['os_tipo'].$b['os_id'] === $a['os_tipo'].$a['os_id'] || $b['status'] !== 'pendente') {
+                    continue;
+                }
+                $inicio = Carbon::parse($a['fim'])->ceilMinute(15);
+                $fim = $inicio->copy()->addMinutes(Carbon::parse($b['inicio'])->diffInMinutes(Carbon::parse($b['fim']), true));
+                $livre = $fila->every(fn ($x) => $x['id'] === $b['id'] || Carbon::parse($x['fim'])->lte($inicio) || Carbon::parse($x['inicio'])->gte($fim));
+                $nome = collect($this->quadro->midias($businessId, [['midias' => [$m]]]))->value('nome');
+                if (! $livre || $nome === null || $inicio->lt($agora) || $fim->gt($fecha)) {
+                    continue;
+                }
+
+                return ['programacao_id' => $b['id'], 'numero' => $b['numero'], 'junto_de' => $a['numero'], 'midia' => $nome,
+                    'posto_id' => $p['id'], 'posto' => $p['nome'], 'inicio' => $inicio->format('Y-m-d\TH:i')];
             }
         }
 

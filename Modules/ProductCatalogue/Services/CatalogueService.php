@@ -68,7 +68,7 @@ class CatalogueService
     public function buildShowPayload(int $businessId, int $productId, ?int $locationId): array
     {
         return OtelHelper::spanBiz('product_catalogue.build_show_payload', function () use ($businessId, $productId, $locationId): array {
-            $product = $this->repository->findProductWithDetails($businessId, $productId);
+            $product = $this->repository->findProductWithDetails($businessId, $productId, $locationId);
             $priceGroups = $this->repository->activePriceGroups($product->business_id);
 
             $allowedGroupPrices = [];

@@ -168,6 +168,9 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::post('pin', [PortalController::class, 'pin'])->name('pin');
         Route::post('consentimentos', [PortalController::class, 'consentir'])->name('consentimentos.store');
         Route::delete('consentimentos/{purpose}', [PortalController::class, 'revogar'])->name('consentimentos.destroy');
+        // Pesquisa é por estudo (etapa 07 P-02): revogar tira o paciente daquele estudo.
+        Route::delete('consentimentos/pesquisa/{study}', [PortalController::class, 'revogarPesquisa'])
+            ->whereNumber('study')->name('consentimentos.pesquisa.destroy');
         Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
         Route::post('pre-anamnese', [PortalController::class, 'preAnamnese'])->name('pre-anamnese');
         Route::post('desafio', [PortalController::class, 'desafio'])->name('desafio');
