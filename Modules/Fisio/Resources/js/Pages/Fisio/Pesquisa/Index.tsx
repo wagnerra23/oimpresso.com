@@ -206,7 +206,7 @@ function Revisar({ estudo, e, fechar }: { estudo: Estudo; e: EventoAdverso; fech
 function Assistente({ estudo, ligado, podeLigar, sugestoes }: { estudo: Estudo; ligado: boolean; podeLigar: boolean; sugestoes: Sugestao[] }) {
   const [ocupado, setOcupado] = useState(false);
   const { errors } = usePage().props as { errors?: Record<string, string> };
-  const enviar = (url: string, dados: Record<string, unknown> = {}) => {
+  const enviar = (url: string, dados: { ligado?: boolean } = {}) => {
     setOcupado(true);
     router.post(url, dados, { preserveScroll: true, onFinish: () => setOcupado(false) });
   };
