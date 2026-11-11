@@ -16,7 +16,7 @@ uses(Tests\TestCase::class);
  * e respeito ao global scope ao consultar.
  *
  * Padrão:
- * - Tests biz=1 (Wagner WR2) e biz=99 (fictício) conforme ADR 0101 — nunca biz=4
+ * - Tenant 98 contra 99, as duas fictícias (ADR 0358) — nunca a 4 nem a 1
  * - Cleanup via afterEach deletando rows inseridas pelos testes
  * - withoutGlobalScopes com comentário // SUPERADMIN: (ADR 0093)
  *
@@ -29,7 +29,7 @@ uses(Tests\TestCase::class);
  * @covers-us US-COMVIS-002
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-001 · US-COMVIS-002
  * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-07
  * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
@@ -45,16 +45,16 @@ beforeEach(function () {
     }
 });
 
-// Business IDs de teste — nunca biz=4 (ROTA LIVRE produção, ADR 0101)
-const SEEDER_BIZ_WAGNER  = 1;
+// Empresas de teste, as duas fictícias (ADR 0358). Nunca a 4 (cliente real) nem a 1 (empresa real).
+const SEEDER_BIZ_WAGNER  = 98;
 const SEEDER_BIZ_FICTICIO = 99;
 
 // ------------------------------------------------------------------
 // 1. Seeder cria 5 materiais para o business especificado
 // ------------------------------------------------------------------
 
-it('UC-CV-12 · MaterialSeeder cria exatamente 5 materiais default para biz=1', function () {
-    // Limpar rows pré-existentes dos materiais default pra biz=1 (seed pode ter rodado antes)
+it('UC-CV-12 · MaterialSeeder cria exatamente 5 materiais default para a empresa de teste', function () {
+    // Limpar rows pré-existentes dos materiais default pra empresa de teste (seed pode ter rodado antes)
     Material::withoutGlobalScopes() // SUPERADMIN: setup de teste
         ->where('business_id', SEEDER_BIZ_WAGNER)
         ->whereIn('nome', [
@@ -98,7 +98,7 @@ it('UC-CV-12 · MaterialSeeder cria exatamente 5 materiais default para biz=1', 
 // ------------------------------------------------------------------
 
 it('UC-CV-12 · MaterialSeeder é idempotente: rodar 2x resulta em 5 rows (não 10)', function () {
-    // Limpar rows pré-existentes pra biz=1
+    // Limpar rows pré-existentes pra empresa de teste
     Material::withoutGlobalScopes() // SUPERADMIN: setup de teste
         ->where('business_id', SEEDER_BIZ_WAGNER)
         ->whereIn('nome', [
@@ -142,10 +142,10 @@ it('UC-CV-12 · MaterialSeeder é idempotente: rodar 2x resulta em 5 rows (não 
 });
 
 // ------------------------------------------------------------------
-// 3. Multi-tenant: run(1) cria pra biz=1, run(99) cria pra biz=99 (rows separadas)
+// 3. Multi-tenant: run(1) cria pra empresa de teste, run(99) cria pra biz=99 (rows separadas)
 // ------------------------------------------------------------------
 
-it('UC-CV-12 · MaterialSeeder isola por business_id: run(1) e run(99) criam rows independentes', function () {
+it('UC-CV-12 · MaterialSeeder isola por business_id: run(98) e run(99) criam rows independentes', function () {
     // Limpar rows dos dois businesses pra evitar interferência
     Material::withoutGlobalScopes() // SUPERADMIN: setup de teste
         ->whereIn('business_id', [SEEDER_BIZ_WAGNER, SEEDER_BIZ_FICTICIO])
@@ -203,7 +203,7 @@ it('UC-CV-12 · MaterialSeeder isola por business_id: run(1) e run(99) criam row
 // ------------------------------------------------------------------
 
 it('UC-CV-04 · Material::find() via global scope não retorna rows de outro business', function () {
-    // Setup: inserir material no biz=1 via seeder
+    // Setup: inserir material na empresa de teste via seeder
     Material::withoutGlobalScopes() // SUPERADMIN: setup de teste
         ->where('business_id', SEEDER_BIZ_WAGNER)
         ->whereIn('nome', [
@@ -217,16 +217,16 @@ it('UC-CV-04 · Material::find() via global scope não retorna rows de outro bus
 
     (new MaterialSeeder())->run(SEEDER_BIZ_WAGNER);
 
-    // Pega o ID de um material do biz=1
+    // Pega o ID de um material da empresa de teste
     $materialBiz1 = Material::withoutGlobalScopes() // SUPERADMIN: busca sem scope pra obter ID
         ->where('business_id', SEEDER_BIZ_WAGNER)
         ->where('nome', 'ACM 3mm Branco')
         ->first();
 
-    // Simular sessão do biz=99 (fictício)
+    // Simular sessão do empresa 99
     session(['user.business_id' => SEEDER_BIZ_FICTICIO]);
 
-    // Global scope deve filtrar: material do biz=1 não pode aparecer pra sessão biz=99
+    // Global scope deve filtrar: material da empresa de teste não pode aparecer pra sessão da empresa 99
     $resultado = Material::find($materialBiz1->id);
 
     expect($resultado)->toBeNull();

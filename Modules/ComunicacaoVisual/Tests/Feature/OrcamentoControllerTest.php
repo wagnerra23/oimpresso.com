@@ -4,18 +4,26 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
-use Modules\ComunicacaoVisual\Entities\Material;
+use Illuminate\Support\Facades\Schema;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
 use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
+use Tests\Support\WithSeededTenant;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class, WithSeededTenant::class);
 
 beforeEach(function () {
     // CI SQLite :memory: sem migrate — controller persiste em comvis_orcamentos
     // + comvis_orcamento_itens; tests precisam schema MySQL UPos completo.
-    if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (Wagner Pest local segue mandatory — ADR 0101)');
+    if (DB::connection()->getDriverName() === 'sqlite' || ! Schema::hasTable('comvis_orcamentos')) {
+        $this->markTestSkipped('Requer MySQL com as tabelas comvis_* migradas.');
+    }
+    try {
+        $this->biz = $this->seededTenant();
+        $this->outra = $this->seededSupportClientTenant();
+    } catch (\Throwable $e) {
+        $this->markTestSkipped('Schema UltimatePOS ausente: '.$e->getMessage());
     }
 });
 
@@ -29,47 +37,34 @@ beforeEach(function () {
  *   POST /comunicacao-visual/api/orcamentos     → persiste + 201
  *   GET  /comunicacao-visual/api/orcamentos/{id} → retorna com itens
  *
- * Tests biz=1 (Wagner WR2) conforme ADR 0101 — nunca biz=4 (cliente ROTA LIVRE).
- * Multi-tenant Tier 0: biz=99 não deve ver orçamentos do biz=1.
+ * Tenant 98 contra 99, as duas fictícias (ADR 0358). O usuário é criado com exatamente as
+ * permissões de orçamento: o seed do CI não dá papel nenhum ao usuário da empresa, e um 403
+ * aqui é falha, não ambiente — até 2026-11-11 ele virava teste pulado.
  *
  * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
  *   UC-CV-02 — medida inválida vira 422 em PT-BR                       (CU-CV-02 item 5)
  *   UC-CV-05 — orçamento de outro business responde 404, não 403       (CU-CV-04 item 3) [T0]
  *   UC-CV-11 — salvar grava os valores do servidor, atomicamente       (CU-CV-05)
  *
- * ⚠️ Este arquivo ABORTA INTEIRO em SQLite (beforeEach). A lane do PR
- * (`modules-pest.yml`) roda sqlite :memory: sem migrate — logo o veredito real destes casos
- * vem da full-suite noturna (MySQL), não do PR. Ver SDD §6 (tabela das 3 portas) e §9 D-7.
+ * ⚠️ Pula em SQLite (beforeEach): roda na lane MySQL `verticais-pest.yml`.
  *
  * @covers-us US-COMVIS-001
  *
  * @see Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController
  * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-02/CU-CV-04/CU-CV-05
  * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
- * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 
 // ------------------------------------------------------------------
-// Helper: bootstrap user autenticado no biz=1
+// Helper: usuário da empresa com as permissões de orçamento, logado nela
 // ------------------------------------------------------------------
 
-function bootstrapComvisUser(): User
+function bootstrapComvisUser($test, ?Business $business = null): User
 {
-    try {
-        $business = Business::find(1) ?? Business::first();
-    } catch (\Throwable $e) {
-        test()->markTestSkipped('Tabela business indisponível: ' . $e->getMessage());
-    }
-
-    if (! $business) {
-        test()->markTestSkipped('Sem business no banco — rode seeder UltimatePOS antes.');
-    }
-
-    $user = User::where('business_id', $business->id)->first();
-    if (! $user) {
-        test()->markTestSkipped('Sem user no business_id=1.');
-    }
+    $business ??= $test->biz;
+    $user = $test->usuarioComPermissoes(['comvis.orcamento.view', 'comvis.orcamento.create'], $business);
 
     session([
         'user.business_id'         => $business->id,
@@ -77,7 +72,6 @@ function bootstrapComvisUser(): User
         'business.id'              => $business->id,
         'business.name'            => $business->name,
         'business.currency_symbol' => 'R$',
-        'is_admin'                 => true,
     ]);
 
     return $user;
@@ -107,19 +101,33 @@ function payloadCalculo(): array
     ];
 }
 
+/** Orçamento gravado direto na empresa dada. `numero` cabe nos 20 caracteres da coluna. */
+function orcamentoDeTeste(int $businessId, float $total = 100.00): Orcamento
+{
+    // SUPERADMIN: fixture criada para uma empresa escolhida pelo teste, sem depender da sessão.
+    return Orcamento::withoutGlobalScopes()->create([
+        'business_id'      => $businessId,
+        'numero'           => 'ORC-T-' . uniqid(),
+        'data_emissao'     => '2026-05-10',
+        'status'           => 'rascunho',
+        'subtotal'         => $total,
+        'desconto'         => 0.00,
+        'extras'           => 0.00,
+        'custo_instalacao' => 0.00,
+        'custo_entrega'    => 0.00,
+        'total'            => $total,
+    ]);
+}
+
 // ------------------------------------------------------------------
 // POST /calcular — preview authoritative sem persistência
 // ------------------------------------------------------------------
 
 it('POST /calcular retorna 200 com JSON shape calculado', function () {
-    $user = bootstrapComvisUser();
+    $user = bootstrapComvisUser($this);
 
     $response = $this->actingAs($user)
         ->postJson('/comunicacao-visual/api/calcular', payloadCalculo());
-
-    if ($response->status() === 403) {
-        test()->markTestSkipped('Gate de módulo bloqueia neste env.');
-    }
 
     $response->assertStatus(200);
     $response->assertJsonStructure([
@@ -157,17 +165,13 @@ it('POST /calcular retorna 200 com JSON shape calculado', function () {
 // ------------------------------------------------------------------
 
 it('UC-CV-11 · POST /orcamentos persiste no DB e retorna 201 com Orcamento + itens', function () {
-    $user = bootstrapComvisUser();
+    $user = bootstrapComvisUser($this);
 
     $payload              = payloadCalculo();
     $payload['observacoes'] = 'teste-store-' . uniqid();
 
     $response = $this->actingAs($user)
         ->postJson('/comunicacao-visual/api/orcamentos', $payload);
-
-    if ($response->status() === 403) {
-        test()->markTestSkipped('Gate de módulo bloqueia neste env.');
-    }
 
     $response->assertStatus(201);
     $json = $response->json();
@@ -180,19 +184,16 @@ it('UC-CV-11 · POST /orcamentos persiste no DB e retorna 201 com Orcamento + it
     expect($json['status'])->toBe('rascunho');
     expect($json['numero'])->toMatch('/^ORC-\d{4}-\d{5}$/');
 
-    // Persitiu no DB
+    // Persitiu no DB, na empresa do usuário
     $orcDb = Orcamento::withoutGlobalScopes()->find($json['id']);
     expect($orcDb)->not->toBeNull();
+    expect((int) $orcDb->business_id)->toBe($this->biz->id);
     expect($orcDb->total)->toEqual(600.00);
 
     // Item persitiu também
     $itensDb = OrcamentoItem::withoutGlobalScopes()->where('orcamento_id', $json['id'])->get();
     expect($itensDb)->toHaveCount(1);
     expect((float) $itensDb->first()->area_m2)->toEqual(4.500);
-
-    // Limpar
-    OrcamentoItem::withoutGlobalScopes()->where('orcamento_id', $json['id'])->delete();
-    Orcamento::withoutGlobalScopes()->where('id', $json['id'])->forceDelete();
 });
 
 // ------------------------------------------------------------------
@@ -200,26 +201,13 @@ it('UC-CV-11 · POST /orcamentos persiste no DB e retorna 201 com Orcamento + it
 // ------------------------------------------------------------------
 
 it('GET /orcamentos/{id} retorna Orcamento com itens', function () {
-    $user       = bootstrapComvisUser();
-    $businessId = session('user.business_id');
+    $user = bootstrapComvisUser($this);
+    $orc  = orcamentoDeTeste($this->biz->id, 270.00);
 
-    // Criar orçamento no biz=1 via withoutGlobalScopes (SUPERADMIN: setup de teste)
-    $orc = Orcamento::withoutGlobalScopes()->create([
-        'business_id'      => $businessId,
-        'numero'           => 'ORC-CTRL-TESTE-' . uniqid(),
-        'data_emissao'     => '2026-05-10',
-        'status'           => 'rascunho',
-        'subtotal'         => 270.00,
-        'desconto'         => 0.00,
-        'extras'           => 50.00,
-        'custo_instalacao' => 200.00,
-        'custo_entrega'    => 80.00,
-        'total'            => 600.00,
-    ]);
-
+    // SUPERADMIN: fixture criada para uma empresa escolhida pelo teste, sem depender da sessão.
     OrcamentoItem::withoutGlobalScopes()->create([
         'orcamento_id'     => $orc->id,
-        'business_id'      => $businessId,
+        'business_id'      => $this->biz->id,
         'descricao'        => 'Banner 3x1.5',
         'largura_m'        => 3.000,
         'altura_m'         => 1.500,
@@ -233,65 +221,30 @@ it('GET /orcamentos/{id} retorna Orcamento com itens', function () {
     $response = $this->actingAs($user)
         ->getJson("/comunicacao-visual/api/orcamentos/{$orc->id}");
 
-    if ($response->status() === 403) {
-        test()->markTestSkipped('Gate de módulo bloqueia neste env.');
-    }
-
     $response->assertStatus(200);
     $json = $response->json();
     expect($json['id'])->toBe($orc->id);
     expect($json['itens'])->toHaveCount(1);
     expect($json['itens'][0]['descricao'])->toBe('Banner 3x1.5');
-
-    // Limpar
-    OrcamentoItem::withoutGlobalScopes()->where('orcamento_id', $orc->id)->delete();
-    Orcamento::withoutGlobalScopes()->where('id', $orc->id)->forceDelete();
 });
 
 // ------------------------------------------------------------------
-// Multi-tenant Tier 0: biz=99 NÃO vê orçamentos do biz=1
+// Multi-tenant Tier 0: a outra empresa NÃO vê o orçamento
 // ADR 0093 — IRREVOGÁVEL
 // ------------------------------------------------------------------
 
 it('UC-CV-05 · Multi-tenant Tier 0: GET /orcamentos/{id} retorna 404 para session biz diferente', function () {
-    // Criar orçamento no biz=1 (SUPERADMIN: setup de teste)
-    $orc = Orcamento::withoutGlobalScopes()->create([
-        'business_id'      => 1,
-        'numero'           => 'ORC-MT-TESTE-' . uniqid(),
-        'data_emissao'     => '2026-05-10',
-        'status'           => 'rascunho',
-        'subtotal'         => 100.00,
-        'desconto'         => 0.00,
-        'extras'           => 0.00,
-        'custo_instalacao' => 0.00,
-        'custo_entrega'    => 0.00,
-        'total'            => 100.00,
-    ]);
+    $orc = orcamentoDeTeste($this->biz->id);
 
-    // Autenticar como usuário do biz=1 mas forçar sessão biz=99 pra simular outro tenant
-    try {
-        $user = User::where('business_id', 1)->first();
-    } catch (\Throwable) {
-        test()->markTestSkipped('User biz=1 indisponível.');
-    }
+    // Controle positivo: a própria empresa enxerga o orçamento — o 404 abaixo não é rota quebrada.
+    $dono = bootstrapComvisUser($this);
+    $this->actingAs($dono)->getJson("/comunicacao-visual/api/orcamentos/{$orc->id}")->assertStatus(200);
 
-    if (! $user) {
-        test()->markTestSkipped('User biz=1 indisponível.');
-    }
+    // Usuário da outra empresa, com as mesmas permissões, na sessão dela.
+    $alheio = bootstrapComvisUser($this, $this->outra);
 
-    // Sessão com biz=99 → global scope deve filtrar fora o orçamento do biz=1
-    session([
-        'user.business_id' => 99,
-        'business.id'      => 99,
-        'is_admin'         => true,
-    ]);
-
-    $response = $this->actingAs($user)
-        ->getJson("/comunicacao-visual/api/orcamentos/{$orc->id}");
-
-    // findOrFail com global scope biz=99 deve lançar 404 (não encontra o biz=1)
-    $response->assertStatus(404);
-
-    // Limpar
-    Orcamento::withoutGlobalScopes()->where('id', $orc->id)->forceDelete();
+    // findOrFail com o escopo da empresa 99 deve dar 404 (não 403, que confirmaria a existência)
+    $this->actingAs($alheio)
+        ->getJson("/comunicacao-visual/api/orcamentos/{$orc->id}")
+        ->assertStatus(404);
 });
