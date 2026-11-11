@@ -31,11 +31,14 @@ related_us: [US-FISIO-060]
 |---|---|---|---|---|
 | UC-FBP-01 | seção registrada não muda nem se apaga; correção é seção nova | must | US-FISIO-060 | `FisioLaudoBpsEsquemaTest` |
 | UC-FBP-02 | a empresa 99 não vê o laudo da 98 | must | US-FISIO-060 | `FisioLaudoBpsEsquemaTest` |
+| UC-FBP-03 | assinatura pelo sistema: autor, CREFITO e hora do servidor; sem CREFITO não assina; correção aponta a original | must | US-FISIO-060 | `FisioLaudoBpsAssinaturaTest` |
+| UC-FBP-04 | seção externa: nome, conselho e número obrigatórios para registrar; seção sem texto não se registra | must | US-FISIO-060 | `FisioLaudoBpsAssinaturaTest` |
+| UC-FBP-05 | sem `fisio.editar` 403; outra empresa 404; item fora dos quatro da LBI 404 | must | US-FISIO-060 | `FisioLaudoBpsAssinaturaTest` |
+| UC-FBP-06 | paciente bloqueado não recebe laudo novo | should | US-FISIO-060 | `FisioLaudoBpsAssinaturaTest` |
 
 As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 
-- [BACKLOG] o fisioterapeuta assina a seção de atividades com o CREFITO do perfil; carimbo com usuário e hora do servidor; sem `fisio.editar` 403; paciente de outra empresa 404.
-- [BACKLOG] seção de autor de fora da clínica: a clínica transcreve texto, nome, conselho e número; o PDF sai com espaço para a assinatura à mão ou por certificado externo.
+- [BACKLOG] o PDF sai com espaço para a assinatura à mão ou por certificado externo do autor de fora da clínica.
 - [BACKLOG] seção da fisioterapia pré-preenchida com dor média e variação de 30 e 90 dias, crises e adesão, cada número com data e fonte; sem dado suficiente, campo vazio com aviso.
 - [BACKLOG] questionários de fibromialgia no pré-preenchimento (depende da etapa 07, P-03).
 - [BACKLOG] PDF com as quatro seções; seção não registrada sai em branco com espaço de assinatura; uma linha no `activity_log` só com ids.
@@ -58,4 +61,35 @@ As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
   Então não acha nenhum; o usuário da 98 acha o laudo e a seção.
 - **Regressão que defende:** dado de saúde de uma clínica aparecendo para outra (ADR 0093).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-03 · Assinatura pelo sistema `[must]`
+- **Persona:** fisioterapeuta da clínica, autor da seção de atividades.
+- **Aceite:** Dado um rascunho com `assinatura=sistema` · Quando ele registra a seção · Então
+  autor é o nome do usuário logado, conselho é CREFITO, número é o CREFITO do perfil, e
+  `registrado_por`/`registrado_em` são o usuário e a hora do servidor. Nome, conselho e número
+  mandados no corpo são ignorados. Sem CREFITO no perfil, a seção não é registrada. Salvar de novo
+  um item já registrado cria rascunho novo com `amends_id` apontando a original, que fica intacta.
+- **Regressão que defende:** laudo assinado em nome de outro profissional.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsAssinaturaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-04 · Seção de autor de fora da clínica `[must]`
+- **Persona:** recepção ou fisioterapeuta transcrevendo o parecer do médico, do psicólogo ou do assistente social.
+- **Aceite:** Dado um rascunho com `assinatura=externa` · Quando falta nome, conselho ou número ·
+  Então não registra. Com os três e com texto, registra; `registrado_por` é quem transcreveu.
+  Seção sem texto não se registra.
+- **Regressão que defende:** seção sem autor identificável no documento que vai à perícia.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsAssinaturaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-05 · Permissão e isolamento nas rotas `[must]`
+- **Aceite:** Sem `fisio.editar`, criar e salvar respondem 403. Usuário da 99 recebe 404 para o
+  paciente e o laudo da 98. Item fora dos quatro da LBI responde 404. Nada da 99 entra no laudo da 98.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsAssinaturaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-06 · Paciente bloqueado `[should]`
+- **Aceite:** Paciente bloqueado (Lei 13.787/2018) não recebe laudo novo.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsAssinaturaTest.php`
 - **Status: 🧪**

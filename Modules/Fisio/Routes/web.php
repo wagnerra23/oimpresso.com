@@ -8,6 +8,7 @@ use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\ConfiguracoesController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
+use Modules\Fisio\Http\Controllers\LaudoBiopsicossocialController;
 use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\FiscalController;
@@ -107,6 +108,11 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Prontuário é append-only: estes verbos existem só para responder 405 com o motivo.
         Route::match(['put', 'patch', 'delete'], 'pacientes/{id}/registros/{registro}', [RegistrosController::class, 'imutavel'])
             ->whereNumber(['id', 'registro'])->name('pacientes.registros.imutavel');
+
+        // Laudo biopsicossocial (US-FISIO-060): criar, rascunho por seção e registrar. Escrita exige `fisio.editar`.
+        Route::post('pacientes/{id}/laudos-bps', [LaudoBiopsicossocialController::class, 'store'])->whereNumber('id')->name('pacientes.laudos-bps.store');
+        Route::put('laudos-bps/{laudo}/secoes/{item}', [LaudoBiopsicossocialController::class, 'salvar'])->whereNumber('laudo')->whereAlpha('item')->name('laudos-bps.secoes.salvar');
+        Route::post('laudos-bps/{laudo}/secoes/{item}/registrar', [LaudoBiopsicossocialController::class, 'registrar'])->whereNumber('laudo')->whereAlpha('item')->name('laudos-bps.secoes.registrar');
 
         // Link do portal do paciente (US-FISIO-007a): gerar devolve link + PIN UMA vez; revogar derruba.
         Route::post('pacientes/{id}/portal', [PortalLinkController::class, 'store'])->whereNumber('id')->name('pacientes.portal.store');

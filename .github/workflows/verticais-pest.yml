@@ -575,6 +575,8 @@ jobs:
         #
         # ENTRA 2026-11-11 — Fisio/FisioLaudoBpsEsquemaTest (US-FISIO-060, UC-FBP-01..02): laudo biopsicossocial;
         # seção registrada não muda nem se apaga (trigger + model) e a 99 não vê o laudo da 98.
+        # E FisioLaudoBpsAssinaturaTest (UC-FBP-03..06): carimbo do servidor, CREFITO do perfil, seção
+        # externa com autor obrigatório, 403/404 e paciente bloqueado.
         #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
@@ -850,6 +852,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsAssinaturaTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
