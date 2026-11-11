@@ -65,9 +65,7 @@
                                 }
                             @endphp
 
-                            @if(!empty($discount))
-                                <span class="label label-warning discount-badge">- {{($discount->discount_amount)}}%</span>
-                            @endif
+                            @include('productcatalogue::catalogue.partials.discount_badge', ['discount' => $discount])
 
                             @php
                                 $max_price = $product->variations->max('sell_price_inc_tax');

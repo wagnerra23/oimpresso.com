@@ -11,9 +11,7 @@
 					@else
 						<img src="{{$product->image_url}}" alt="Product image" class="attachment-img">
 					@endif
-					@if(!empty($discounts[$variation->id]))
-      					<span class="label label-warning discount-badge-small">- {{@num_format($discounts[$variation->id]->discount_amount)}}%</span>
-      				@endif
+					@include('productcatalogue::catalogue.partials.discount_badge', ['discount' => $discounts[$variation->id] ?? null, 'class' => 'discount-badge-small'])
 	                <div class="attachment-pushed">
 	                  <h4 class="attachment-heading">{{$variation->product_variation->name}} - {{ $variation->name }}</h4>
 
