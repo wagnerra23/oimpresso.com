@@ -7,6 +7,7 @@ use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\ConfiguracoesController;
 use Modules\Fisio\Http\Controllers\DocumentosPacienteController;
+use Modules\Fisio\Http\Controllers\DadosSociaisController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\LaudoBiopsicossocialController;
@@ -123,6 +124,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::delete('pacientes/{id}', [PacientesController::class, 'destroy'])->whereNumber('id')->name('pacientes.destroy');
 
         // Fisioterapeuta responsável: transferir o paciente (UC-FPS-31). Exige `fisio.editar`.
+        // Dados sociais (US-FISIO-061): opcionais, dado sensível; gravar exige fisio.editar (no controller).
+        Route::put('pacientes/{id}/dados-sociais', [DadosSociaisController::class, 'update'])->whereNumber('id')->name('pacientes.dados-sociais.update');
         Route::post('pacientes/{id}/responsavel', [ResponsavelController::class, 'store'])->whereNumber('id')->name('pacientes.responsavel.store');
 
         Route::post('pacientes/{id}/registros', [RegistrosController::class, 'store'])->whereNumber('id')->name('pacientes.registros.store');
