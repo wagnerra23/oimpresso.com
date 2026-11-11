@@ -2,7 +2,6 @@
 // Casos: memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md (UC-FER-*).
 // Documento do prontuário não se apaga: "Tirar da lista" pede o motivo e o servidor grava quem
 // tirou. O arquivo é servido por rota que confere a empresa; a tela nunca recebe caminho de disco.
-import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import { FileText, ImageIcon, Paperclip } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
@@ -11,23 +10,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Segmented } from '@/Components/ui/segmented';
 import MedicamentosEmUso, { type Medicamento } from './MedicamentosEmUso';
-import { enviar as requisitar, errosDe } from '../Public/_components/portal';
-
-// A seção mora dentro de <Deferred>: visita Inertia a desmontaria e perderia o que foi digitado e o
-// erro (lápide §5 2026-10-13). Por isso o envio é JSON e só a prop da seção recarrega.
-export async function mandar(metodo: 'POST' | 'PUT', url: string, corpo?: unknown): Promise<Record<string, string> | null> {
-  try {
-    const r = await requisitar(metodo, url, corpo);
-    if (r.status >= 200 && r.status < 300) {
-      router.reload({ only: ['documentos', 'medicamentos'] });
-      return null;
-    }
-    const e = errosDe(r.json);
-    return Object.keys(e).length ? e : { geral: 'Não foi possível salvar. Tente de novo.' };
-  } catch {
-    return { geral: 'Sem conexão. Tente de novo.' };
-  }
-}
+import { mandar } from './salvarSecao';
 
 export interface DocumentoFicha {
   id: number;
