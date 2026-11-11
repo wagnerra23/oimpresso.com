@@ -12,6 +12,7 @@ use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\FiscalController;
 use Modules\Fisio\Http\Controllers\PainelController;
+use Modules\Fisio\Http\Controllers\PesquisaController;
 use Modules\Fisio\Http\Controllers\PacotesController;
 use Modules\Fisio\Http\Controllers\PortalAgendaController;
 use Modules\Fisio\Http\Controllers\PortalController;
@@ -57,6 +58,13 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->group(function () {
         // Painel do profissional (US-FISIO-010): KPIs, fila de atenção e tabela. Só leitura.
         Route::get('/', [PainelController::class, 'index'])->name('painel');
+
+        // Área do estudo (etapa 07 P-04). Exige `fisio.pesquisa` (no controller), além de fisio.access.
+        Route::get('pesquisa', [PesquisaController::class, 'index'])->name('pesquisa.index');
+        Route::post('pesquisa/estudos', [PesquisaController::class, 'store'])->name('pesquisa.estudos.store');
+        Route::post('pesquisa/estudos/{study}/participantes', [PesquisaController::class, 'incluir'])->whereNumber('study')->name('pesquisa.participantes.store');
+        Route::post('pesquisa/estudos/{study}/participantes/{participant}/saida', [PesquisaController::class, 'saida'])
+            ->whereNumber('study')->whereNumber('participant')->name('pesquisa.participantes.saida');
 
         // Configurações › WhatsApp: a clínica escolhe o canal; número e driver são do módulo Whatsapp.
         Route::get('configuracoes/whatsapp', [ConfiguracoesController::class, 'whatsapp'])->name('configuracoes.whatsapp');
@@ -168,6 +176,9 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::post('pin', [PortalController::class, 'pin'])->name('pin');
         Route::post('consentimentos', [PortalController::class, 'consentir'])->name('consentimentos.store');
         Route::delete('consentimentos/{purpose}', [PortalController::class, 'revogar'])->name('consentimentos.destroy');
+        // Pesquisa é por estudo (etapa 07 P-02): revogar tira o paciente daquele estudo.
+        Route::delete('consentimentos/pesquisa/{study}', [PortalController::class, 'revogarPesquisa'])
+            ->whereNumber('study')->name('consentimentos.pesquisa.destroy');
         Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
         Route::post('pre-anamnese', [PortalController::class, 'preAnamnese'])->name('pre-anamnese');
         Route::post('desafio', [PortalController::class, 'desafio'])->name('desafio');

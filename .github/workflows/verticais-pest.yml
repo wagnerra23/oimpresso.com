@@ -573,6 +573,10 @@ jobs:
         # é ligada ao pacote pelo id, sem gravar título; venda cancelada tira a sobra do saldo.
         #
         #
+        # ENTRAM 2026-11-11 — Fisio/MatrizIfbrmTest e Fisio/FisioLaudoBpsEsquemaTest (US-FISIO-060, UC-FBP-01..03):
+        # laudo biopsicossocial no modelo SES-SC; total da matriz IFBr-M (menor valor de cada domínio),
+        # laudo finalizado e equipe imutáveis (trigger + model), e a 99 não vê o laudo da 98.
+        #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
         #
@@ -667,6 +671,17 @@ jobs:
         #
         # ENTRA 2026-11-04 — Fisio/FisioConfigAgendamentoTest (US-FISIO-015 · UC-FCA-01..04): agendamento
         # pelo app nasce desligado, salva horários e tipos liberados, versão da política, 403 e 98×99.
+        #
+        # ENTRA 2026-11-11 — Fisio/FisioPesquisaTelaTest (etapa 07 P-04 · UC-FES-07..08): /fisio/pesquisa só com
+        # `fisio.pesquisa`, nome do paciente só para quem também atende, estudo da 99 fora da lista e 404.
+        #
+        # ENTRA 2026-11-11 — Fisio/FisioEstudoTest (etapa 07 P-04 · UC-FES-01..06): estudo só pelo pesquisador
+        # (`fisio.pesquisa`), código do participante aleatório, aceite do TCLE do estudo, saída com motivo e sem
+        # exclusão, pendência derivada da janela, revogação pelo portal tira do estudo, 98×99.
+        #
+        # ENTRA 2026-11-11 — Fisio/FisioConsentimentoPesquisaTest (etapa 07 P-02 · UC-FPP-56..58): pesquisa
+        # por estudo com a versão do TCLE do estudo, `pesquisa_ia` antigo sem valor, `treino_ia` à parte,
+        # revogação pelo portal e estudo da 99 invisível para o token da 98.
         #
         # ENTRA 2026-11-04 — Fisio/FisioPortalAgendaTest (US-FISIO-016 · UC-FPA-01..07): agenda no portal pelas
         # rotas públicas — horários livres, marcar, regras do app, prazo de 24 h, confirmar, Cheguei, lista de
@@ -847,6 +862,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioProtocolosTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoEvolucaoTest.php \
+            Modules/Fisio/Tests/Unit/MatrizIfbrmTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
@@ -894,7 +911,8 @@ jobs:
             Modules/Fisio/Tests/Unit/CompatibilidadeEsperaTest.php \
             Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioConfigAgendamentoTest.php \
-            Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php || rc_principal=$?
+            Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php             Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php             Modules/Fisio/Tests/Feature/FisioEstudoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPesquisaTelaTest.php || rc_principal=$?
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php || rc_painel=$?
