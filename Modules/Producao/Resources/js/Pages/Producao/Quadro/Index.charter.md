@@ -5,7 +5,7 @@ component: Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/producao-cv-page.jsx
 owner: wagner
 status: draft
-last_validated: "2026-10-21"
+last_validated: "2026-11-09"
 parent_module: Producao
 related_adrs: [93, 358, 431]
 alcance:
@@ -34,7 +34,7 @@ na bobina (UC-FLX-13).
 
 - Quadro por setor ou por máquina; etapa atual = a em andamento, senão a próxima pendente — UC-PCV-05.
 - Filtro por texto, "Atrasadas ou vencendo", "Travadas por arte", setor e responsável, guardado na URL; a regra
-  é `Pages/Producao/_lib/filtro.ts`, a mesma que a Linha do tempo vai usar — UC-PCV-06.
+  é `Pages/Producao/_lib/filtro.ts`, a mesma da Linha do tempo — UC-PCV-06.
 - Mover a OS para outro setor pelo menu ⋮ ("Mover para …") ou arrastando o cartão, no modo "Por setor", só com
   `producao.etapa.mover`. Só a coluna muda; o evento "Moveu para X (à mão)" fica no histórico; a coluna manual some
   quando o operador inicia ou conclui uma etapa — UC-PCV-07.
@@ -43,13 +43,14 @@ na bobina (UC-FLX-13).
 - "Alocar" no cartão da etapa pendente, só com `producao.etapa.mover` — UC-FLX-10 (US-PCP-029).
 - Marcar OS da CV com peça medida e "Simular bobina" em lote, com cadastro da largura útil quando falta e o
   desenho das faixas; "Aceitar e gerar romaneios" só com o papel `producao.liberar` — UC-FLX-13 (US-PCP-024).
+- O número da OS por item abre a Ficha (`/producao/ordens/{id}`); a OS da Comunicação Visual não ganha link — UC-PCOSF-06.
 
 ## Non-Goals — Features (NÃO faz, nesta entrega)
 
 - ❌ Mover concluir, abrir ou fechar etapa ou apontamento (o protótipo só troca a coluna; ver UC-PCV-07 no casos).
 - ❌ Painel de eventos ao lado do quadro (os eventos estão no Painel, `/producao/painel`).
-- ❌ Aviso de conflito ao alocar (UC-FLX-10: o backend ainda não detecta sobreposição no posto).
-- ❌ A metade "na Linha" do UC-PCV-06: a Linha do tempo é a thread 07, que importa o mesmo `_lib/filtro.ts`.
+- ❌ Aviso de conflito ao alocar (UC-FLX-10): o `alocar` do Quadro não confere sobreposição no posto; só o `reprogramar` da Linha confere.
+- ❌ Levar o filtro ao trocar de aba para a Linha (UC-PCV-06): a Linha usa a mesma regra e lê o filtro da URL, mas as abas abrem a rota sem a query (`_components/ProducaoAbas.tsx`).
 
 ## Refs
 

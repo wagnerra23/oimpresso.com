@@ -5,7 +5,7 @@ component: Modules/Producao/Resources/js/Pages/Producao/Linha/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/producao-cv-page.jsx
 owner: wagner
 status: draft
-last_validated: "2026-10-22"
+last_validated: "2026-11-09"
 parent_module: Producao
 related_adrs: [93, 358, 431]
 alcance:
@@ -43,11 +43,14 @@ reprogramar arrastando, com a sugestão do gargalo pronta para aplicar e desfaze
   no app — UC-PCV-30.
 - O filtro do Quadro (busca, situação, setor, responsável), na URL e pela mesma regra `../_lib/filtro.ts` — UC-PCV-06.
 - "Eventos das máquinas hoje", filtrável pela máquina clicada — UC-PCV-29.
+- "Mesma mídia: dá para agrupar": aviso com "Agrupar" quando duas OS da mesma mídia estão separadas na mesma
+  impressora e a segunda cabe logo depois da primeira — UC-PCLIN-01 (lote 4.3 da auditoria, aprovado por [W] em 2026-11-05).
 
 ## Non-Goals — Features (NÃO faz, nesta entrega)
 
 - ❌ Abrir a ficha da OS ao clicar no bloco (a ficha é a thread 08).
-- ❌ "Mesma mídia: dá para agrupar" do protótipo (encaixe de mídia é versão 2, D-ENCAIXE).
+- ❌ Encaixe na bobina com economia em m² e R$ (versão 2, D-ENCAIXE). O aviso de mesma mídia acima só evita troca de
+  mídia na máquina; não calcula encaixe.
 - ❌ Gargalo por IA ou por mais de uma etapa de uma vez (D5: regra simples na V1).
 
 ## Refs

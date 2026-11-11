@@ -215,7 +215,8 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
       {emissoes.length > 0 && (
         <ul className="space-y-2 mb-3" data-contract="drawer-fiscal">
           {emissoes.map((em) => (
-            <EmissaoRow key={em.id} emissao={em} onReenviarEmail={reenviarEmail} />
+            <EmissaoRow
+                saleId={saleId} key={em.id} emissao={em} onReenviarEmail={reenviarEmail} />
           ))}
         </ul>
       )}
@@ -337,9 +338,11 @@ function ParteResumo({ titulo, parte }: { titulo: string; parte: ParteNota }) {
 // ─── Subcomponente — linha de emissão ────────────────────────────────────────
 
 function EmissaoRow({
+  saleId,
   emissao: em,
   onReenviarEmail,
 }: {
+  saleId: number;
   emissao: Emissao;
   onReenviarEmail: (emissaoId: number) => void;
 }) {
@@ -391,7 +394,7 @@ function EmissaoRow({
             Reenviar email
           </Button>
           <Button variant="ghost" size="sm" asChild className="h-7 px-2 text-xs">
-            <a href={`/nfe-brasil/transactions/${em.id}/status`} target="_blank" rel="noopener noreferrer">
+            <a href={`/nfe-brasil/transactions/${saleId}/status`} target="_blank" rel="noopener noreferrer">
               <ExternalLink size={11} className="mr-1" />
               Detalhes
             </a>

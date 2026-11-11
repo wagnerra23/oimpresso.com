@@ -668,6 +668,10 @@ jobs:
         # ENTRA 2026-11-04 — Fisio/FisioConfigAgendamentoTest (US-FISIO-015 · UC-FCA-01..04): agendamento
         # pelo app nasce desligado, salva horários e tipos liberados, versão da política, 403 e 98×99.
         #
+        # ENTRA 2026-11-11 — Fisio/FisioConsentimentoPesquisaTest (etapa 07 P-02 · UC-FPP-56..58): pesquisa
+        # por estudo com a versão do TCLE do estudo, `pesquisa_ia` antigo sem valor, `treino_ia` à parte,
+        # revogação pelo portal e estudo da 99 invisível para o token da 98.
+        #
         # ENTRA 2026-11-04 — Fisio/FisioPortalAgendaTest (US-FISIO-016 · UC-FPA-01..07): agenda no portal pelas
         # rotas públicas — horários livres, marcar, regras do app, prazo de 24 h, confirmar, Cheguei, lista de
         # espera, 404 para atendimento alheio e 403 sem PIN.
@@ -810,6 +814,7 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoPostosOperadoresTelaTest.php \
+            Modules/Producao/Tests/Feature/ProducaoCustoHoraDecimalContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoPrevistoRealizadoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoAprovacaoArteContratoTest.php \
@@ -826,6 +831,8 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoTurnoCalendarioContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoOrdemSituacaoRotasContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoFichaOsContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoIsolamentoEmpresasContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoEscopoDaEmpresaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php \
@@ -894,7 +901,7 @@ jobs:
             Modules/Fisio/Tests/Unit/CompatibilidadeEsperaTest.php \
             Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioConfigAgendamentoTest.php \
-            Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php || rc_principal=$?
+            Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php             Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php || rc_principal=$?
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php || rc_painel=$?

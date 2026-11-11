@@ -292,7 +292,7 @@ Fiscal). Âncora: US-FISCAL-013/014.
 ## UC-FNFE-09 — Retransmitir preserva a nota antiga: nunca deleta, e só 3 status passam
 Status: 🧪 (`AcoesContratoTest::UC-FNFE-09 · PRESERVA a nota antiga` + `· whitelist de status vem do Service` — **novos**, ainda sem veredito de lane)
 Dado uma nota `rejeitada`/`denegada`/`erro_envio` · Quando o operador retransmite · Então a nota antiga
-**continua na tabela** — marcada `status='inutilizada'` com `transaction_id=null` (libera a UNIQUE
+**continua na tabela** — marcada `status='inutilizada'` (a `denegada` mantém o status) com `transaction_id=null` (libera a UNIQUE
 biz+tx) e `metadata.original_transaction_id` preservando o vínculo — e uma nova é emitida com número
 novo. Nota em qualquer outro status é recusada antes de chamar o Service.
 Âncora: CU-FISC-11 do SDD §6.2 (os dois itens) + US-FISCAL-014 + **CONFAZ SINIEF 07/2005 Art. 14**

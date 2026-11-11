@@ -37,6 +37,7 @@ beforeEach(function () {
         test()->markTestSkipped('Tabelas rb_invoices/nfe_emissoes ausentes — rode migrations.');
     }
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
 });
 
 afterEach(function () {

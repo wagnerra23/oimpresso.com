@@ -584,6 +584,29 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-PCISO-01 · Linhas de romaneio de outra empresa não são lidas nem marcam peça · `must`
+
+**Dado** um romaneio da empresa 99 com a mesma OS-id e uma linha que aponta a peça da empresa 98 **Quando** a 98
+gera a versão seguinte **Então** a peça sai sem "já enviada" · A leitura desse romaneio pela 98 dá 404 · **Controle:**
+a peça que saiu na versão anterior da própria empresa continua marcada. Prova: `ProducaoIsolamentoEmpresasContratoTest`.
+
+Status: 🧪
+
+## UC-PCISO-05 · Operação de outra empresa não aparece na consulta · `must`
+
+**Dado** a mesma operação (código igual) cadastrada na 98 e na 99 **Quando** cada empresa consulta **Então** vê só a
+sua, e o id da outra não é encontrado. Prova: `ProducaoIsolamentoEmpresasContratoTest`.
+
+Status: 🧪
+
+## UC-PCISO-06 · Liberar recusa etapa de outra empresa · `must`
+
+**Dado** uma etapa real da empresa 99 no mapa de responsáveis do Liberar da 98 **Então** recusa, a OS segue aguardando
+liberação e a etapa alheia fica sem responsável · **Controle:** o mesmo Liberar passa com a etapa da própria OS.
+Prova: `ProducaoIsolamentoEmpresasContratoTest`.
+
+Status: 🧪
+
 ---
 
 ## Aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13)

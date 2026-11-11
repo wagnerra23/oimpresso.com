@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Fsm\SideEffects;
 
+use App\Contracts\Fiscal\CancelamentoFiscalDaVenda;
 use App\Domain\Fsm\Contracts\SideEffectInterface;
 use App\Domain\Fsm\Models\TransactionDocument;
 use App\Jobs\EstornarBoletoJob;
@@ -53,10 +54,18 @@ class CancelarVendaCascade implements SideEffectInterface
         //    dentro da transação do ExecuteStageActionService: a recusa não deixa nada pela metade.
         if ($subject instanceof \App\Transaction) {
             app(\App\Services\Sells\CancelamentoDaVenda::class)->aplicar($businessId, $transactionId, $motivo);
+
+            // A nota autorizada vive em nfe_emissoes; o passo 1 despacha de transaction_documents.
+            // Sem try: se não registrar, a venda não cancela e a nota não fica de pé sozinha.
+            foreach (app()->tagged(CancelamentoFiscalDaVenda::TAG) as $fonte) {
+                if ($fonte instanceof CancelamentoFiscalDaVenda) {
+                    $fonte->registrarDocumentos($businessId, $transactionId);
+                }
+            }
         }
 
         // 1) Cancelar NFes autorizadas
-        $this->cancelarNfes($businessId, $transactionId, $motivo);
+        $this->cancelarNfes($businessId, $transactionId, $this->justificativaFiscal($motivo));
 
         // 2) Cancelar boletos pending (Asaas/Inter) — hub EstornarBoletoJob
         //    roteia pro Cancelar*Job específico do gateway (US-CASCADE-BOLETO-002).
@@ -75,6 +84,14 @@ class CancelarVendaCascade implements SideEffectInterface
 
         // 4) Notificar cliente (Whatsapp/email)
         $this->notificarCliente($businessId, $transactionId, $motivo);
+    }
+
+    /** A SEFAZ exige justificativa de 15 a 255 caracteres; o motivo da venda não tem esse limite. */
+    private function justificativaFiscal(string $motivo): string
+    {
+        $motivo = trim($motivo);
+
+        return mb_substr(mb_strlen($motivo) < 15 ? "Cancelamento da venda: {$motivo}" : $motivo, 0, 255);
     }
 
     private function cancelarNfes(int $businessId, int $transactionId, string $motivo): void

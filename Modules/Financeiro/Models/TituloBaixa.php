@@ -5,6 +5,7 @@ namespace Modules\Financeiro\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Financeiro\Models\Concerns\AppendOnlyBuilder;
 use Modules\Financeiro\Models\Concerns\BusinessScope;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -60,6 +61,18 @@ class TituloBaixa extends Model
     public function estornoDe(): BelongsTo
     {
         return $this->belongsTo(TituloBaixa::class, 'estorno_de_id');
+    }
+
+    /**
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return AppendOnlyBuilder<static>
+     */
+    public function newEloquentBuilder($query): AppendOnlyBuilder
+    {
+        /** @var AppendOnlyBuilder<static> $builder */
+        $builder = new AppendOnlyBuilder($query);
+
+        return $builder;
     }
 
     public function delete()
