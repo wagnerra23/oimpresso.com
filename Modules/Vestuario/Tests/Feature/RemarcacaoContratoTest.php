@@ -68,6 +68,31 @@ it('UC-VREM-01 — a prévia mostra antes → depois de cada variação e não g
     expect(collect($this->svc->previa($this->biz, ['nome' => $this->tag], 'valor', 49.9)['linhas'])->pluck('preco_depois')->unique()->all())->toEqual([49.9]);
 });
 
+it('UC-VREM-01 — a prévia conta as peças com preço de grupo, por tipo', function () {
+    $grupo = DB::table('selling_price_groups')->insertGetId(['business_id' => $this->biz, 'name' => 'Atacado ' . $this->tag,
+        'created_at' => now(), 'updated_at' => now()]);
+    $vz = ($this->produto)($this->biz, ['Z' => 30.00]);
+    $linha = fn (int $var, float $preco, string $tipo) => ['variation_id' => $var, 'price_group_id' => $grupo, 'price_inc_tax' => $preco,
+        'price_type' => $tipo, 'created_at' => now(), 'updated_at' => now()];
+    DB::table('variation_group_prices')->insert([
+        $linha($this->va['P'], 50.00, 'fixed'),
+        $linha($this->va['M'], 10.00, 'percentage'),
+        $linha($vz['Z'], 0.00, 'fixed'), // preço zero é tabela sem preço: não muda nada para ninguém
+    ]);
+
+    expect($this->svc->precosDeGrupo([$this->va['P'], $this->va['M'], $vz['Z']]))->toBe(['fixos' => 1, 'percentuais' => 1]);
+    // a tabela do grupo continua intocada na prévia
+    expect((float) DB::table('variation_group_prices')->where('variation_id', $this->va['P'])->value('price_inc_tax'))->toBe(50.0);
+});
+
+it('UC-VREM-01 — produto simples não mostra a variação interna', function () {
+    $vs = ($this->produto)($this->biz, ['DUMMY' => 30.00]);
+    $p = $this->svc->previa($this->biz, ['nome' => $this->tag], 'percentual', -30);
+
+    expect(collect($p['linhas'])->firstWhere('variation_id', $vs['DUMMY'])['variacao'])->toBe('');
+    expect(collect($p['linhas'])->firstWhere('variation_id', $this->va['P'])['variacao'])->toBe('P');
+});
+
 it('UC-VREM-02 — gravar exige a prévia em dia, guarda o antes e deriva preço sem imposto e margem', function () {
     $vt = ($this->produto)($this->biz, ['U' => 110.00], 10.0);
     $p = $this->svc->previa($this->biz, ['nome' => $this->tag], 'percentual', -10);

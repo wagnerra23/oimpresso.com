@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 221 |
-| UC com teste que os cita | 215 |
+| UC declarados | 279 |
+| UC com teste que os cita | 273 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -107,6 +107,8 @@ authority: generated
 | UC | Tela | Status |
 |---|---|---|
 | UC-11 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-06 | Create | 🧪 aguarda veredito da lane |
+| UC-CIDX-09 | Create | 🧪 aguarda veredito da lane |
 | UC-COMR-01 | Show | 🧪 aguarda veredito da lane |
 | UC-COMR-02 | Show | 🧪 aguarda veredito da lane |
 | UC-COMR-03 | Show | 🧪 aguarda veredito da lane |
@@ -118,6 +120,8 @@ authority: generated
 | UC-DRAFT-03 | Drafts | 🧪 aguarda veredito da lane |
 | UC-DRAFT-04 | Drafts | 🧪 aguarda veredito da lane |
 | UC-DRAFT-05 | Drafts | 🧪 aguarda veredito da lane |
+| UC-DRAFT-06 | Drafts | 🧪 aguarda veredito da lane |
+| UC-DRAFT-07 | Drafts | 🧪 aguarda veredito da lane |
 | UC-ENTR-01 | Show | 🧪 aguarda veredito da lane |
 | UC-ENTR-02 | Show | 🧪 aguarda veredito da lane |
 | UC-ENTR-03 | Show | 🧪 aguarda veredito da lane |
@@ -157,6 +161,8 @@ authority: generated
 | UC-QUO-08 | Quotations | 🧪 aguarda veredito da lane |
 | UC-QUO-09 | Quotations | 🧪 aguarda veredito da lane |
 | UC-QUO-10 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-11 | Index | 🧪 aguarda veredito da lane |
+| UC-QUO-12 | Quotations | 🧪 aguarda veredito da lane |
 | UC-REM-01 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-02 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-03 | Shipments/Index | 🧪 aguarda veredito da lane |
@@ -176,6 +182,15 @@ authority: generated
 | UC-S11 | Index | 🧪 aguarda veredito da lane |
 | UC-S12 | Index | 🧪 aguarda veredito da lane |
 | UC-S1X | Index | 📝 sem_teste |
+| UC-SBON-01 | Create | 🧪 aguarda veredito da lane |
+| UC-SBON-02 | Index | 🧪 aguarda veredito da lane |
+| UC-SBON-03 | Index | 🧪 aguarda veredito da lane |
+| UC-SBON-04 | Index | 🧪 aguarda veredito da lane |
+| UC-SBON-05 | Index | 🧪 aguarda veredito da lane |
+| UC-SBON-06 | Index | 🧪 aguarda veredito da lane |
+| UC-SBON-07 | Index | 🧪 aguarda veredito da lane |
+| UC-SBON-08 | Index | 🧪 aguarda veredito da lane |
+| UC-SBON-09 | Index | 🧪 aguarda veredito da lane |
 | UC-SCAIXA-01 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SCAIXA-02 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SCAIXA-03 | Caixa/Index | 🧪 aguarda veredito da lane |
@@ -190,22 +205,40 @@ authority: generated
 | UC-SCAIXA-12 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SCAIXA-13 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SCAIXA-14 | Caixa/Index | 🧪 aguarda veredito da lane |
+| UC-SCAIXA-15 | Caixa/Index | 🧪 aguarda veredito da lane |
+| UC-SCOND-01 | Create | 🧪 aguarda veredito da lane |
+| UC-SCOND-02 | Create | 🧪 aguarda veredito da lane |
+| UC-SCOND-03 | Create | 🧪 aguarda veredito da lane |
+| UC-SDEV-01 | Index | 🧪 aguarda veredito da lane |
+| UC-SDEV-02 | Index | 🧪 aguarda veredito da lane |
+| UC-SDUP-01 | Create | 🧪 aguarda veredito da lane |
+| UC-SDUP-02 | Create | 🧪 aguarda veredito da lane |
+| UC-SDUP-03 | Create | 🧪 aguarda veredito da lane |
+| UC-SDUP-04 | Edit | 🧪 aguarda veredito da lane |
+| UC-SDUP-05 | Index | 🧪 aguarda veredito da lane |
+| UC-SDUP-06 | Index | 🧪 aguarda veredito da lane |
+| UC-SDUP-07 | Create | 🧪 aguarda veredito da lane |
+| UC-SDUP-08 | Create | 🧪 aguarda veredito da lane |
+| UC-SDUP-09 | Create | 🧪 aguarda veredito da lane |
+| UC-SDUP-10 | Create | 🧪 aguarda veredito da lane |
+| UC-SDUP-11 | Create | 🧪 aguarda veredito da lane |
+| UC-SDUP-12 | Create | 🧪 aguarda veredito da lane |
 | UC-SEDIT-01 | Edit | 🧪 aguarda veredito da lane |
-| UC-SEDIT-02 | Edit | 🧪 aguarda veredito da lane |
-| UC-SEDIT-03 | Edit | 🧪 aguarda veredito da lane |
-| UC-SEDIT-04 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-02 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-SEDIT-03 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-SEDIT-04 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-SEDIT-05 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-06 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-07 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-08 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-09 | Edit | 🧪 aguarda veredito da lane |
-| UC-SEDIT-10 | Edit | 🧪 aguarda veredito da lane |
-| UC-SEDIT-11 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-10 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-SEDIT-11 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-SEDIT-12 | Edit | 🧪 aguarda veredito da lane |
-| UC-SEDIT-13 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-13 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-SEDIT-14 | Edit | 🧪 aguarda veredito da lane |
-| UC-SEDIT-15 | Edit | 🧪 aguarda veredito da lane |
-| UC-SEDIT-16 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-15 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-SEDIT-16 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-SEDIT-17 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-18 | Edit | 🧪 aguarda veredito da lane |
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
@@ -214,6 +247,7 @@ authority: generated
 | UC-SIDX-04 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-05 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-06 | Index | 🧪 aguarda veredito da lane |
+| UC-SIDX-07 | Index | 🧪 aguarda veredito da lane |
 | UC-SRP-01 | Create | 🧪 aguarda veredito da lane |
 | UC-SRP-02 | Create | 🧪 aguarda veredito da lane |
 | UC-SRP-03 | Create | 🧪 aguarda veredito da lane |
@@ -277,6 +311,29 @@ authority: generated
 | UC-V372 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V373 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V374 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V380 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V381 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V382 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V383 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V384 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V385 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V386 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V387 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V388 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V389 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V390 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V391 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V392 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V393 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V394 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V395 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V396 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V397 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V398 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V399 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V400 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V401 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V402 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-VCAN-01 | Show | 🧪 aguarda veredito da lane |
 | UC-VCAN-02 | Show | 🧪 aguarda veredito da lane |
 | UC-VCAN-03 | Show | 🧪 aguarda veredito da lane |
@@ -327,6 +384,7 @@ authority: generated
 | UC-VST-03 | Create | 🧪 aguarda veredito da lane |
 | UC-VST-04 | Create | 🧪 aguarda veredito da lane |
 | UC-VST-05 | Create | 🧪 aguarda veredito da lane |
+| UC-VST-06 | Create | 🧪 aguarda veredito da lane |
 
 ---
 

@@ -33,9 +33,10 @@ related_us: [US-VEST-032]
 - **Aceite:** Dado um filtro (categoria, subcategoria, marca ou trecho do nome) · Quando pede a prévia
   com um percentual (ex.: −30%) ou um preço fixo · Então cada variação aparece com o preço de etiqueta
   de antes e o novo, arredondado a 2 casas; nenhum preço muda e nenhum lote é criado. Variação cujo
-  preço não mudaria, ou ficaria zero, fica fora.
-- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
-- **Regressão que defende:** gravar preço na prévia, ou mostrar preço que não será o gravado.
+  preço não mudaria, ou ficaria zero, fica fora. Produto simples não mostra a variação interna. Quando
+  há peças com preço de grupo, a prévia diz quantas: o fixo não muda e o percentual acompanha o preço novo.
+- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php` · `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php` · `tests/js/vestuario-remarcacao-valor.test.tsx`
+- **Regressão que defende:** gravar preço na prévia, mostrar preço que não será o gravado, ou afirmar que o preço de grupo não muda quando ele é percentual.
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-02 · Gravar exige a prévia em dia e guarda o antes

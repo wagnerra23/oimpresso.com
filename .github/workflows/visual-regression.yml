@@ -534,6 +534,21 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Fiscal/DasRenderTest.php
 
+      # ── E2E DE RENDER POR TELA — NfeBrasil (NASCE ADVISORY) ────────────────────────
+      # Buraco medido em 2026-11-05 (auditoria NfeBrasil, N1-07/N1-08): das 6 Pages do
+      # módulo nenhuma tinha axe, 4 não tinham teste de browser, e o NfceStatusTest existia
+      # mas nenhum workflow o chamava (e o guard dele pulava sempre). Este step roda os dois
+      # arquivos: render + axe CRITICAL das 6 telas. Não semeia nada e não captura imagem.
+      # Fora do visreg-screens.json pelo mesmo motivo do Fiscal/Das (catraca do tema escuro).
+      # ADVISORY no nascimento: Pest Browser é CI-only e não pôde rodar antes do PR.
+      # Promoção = remover o `continue-on-error` depois de 2 verdes que EXECUTARAM, lidos no
+      # log; é flip [W].
+      - name: E2E de render · NfeBrasil (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-nfebrasil
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/NfeBrasil/
+
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
       # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
       # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive

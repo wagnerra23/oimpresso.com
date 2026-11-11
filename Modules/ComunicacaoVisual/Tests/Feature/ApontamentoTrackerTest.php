@@ -104,7 +104,7 @@ it('iniciar() cria apontamento com finalizado_em null e em_andamento=true', func
 // Teste 2: finalizar() calcula duracao_segundos correto
 // ------------------------------------------------------------------
 
-it('finalizar() calcula duracao_segundos correto', function () {
+it('UC-CV-06 · finalizar() calcula duracao_segundos correto', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -134,7 +134,7 @@ it('finalizar() calcula duracao_segundos correto', function () {
 // Orçado=10, Produzido=8 → drift = (8-10)/10 × 100 = -20%
 // ------------------------------------------------------------------
 
-it('finalizar() calcula drift_percent correto (orcado=10 prod=8 → drift=-20%)', function () {
+it('UC-CV-06 · finalizar() calcula drift_percent correto (orcado=10 prod=8 → drift=-20%)', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -160,7 +160,7 @@ it('finalizar() calcula drift_percent correto (orcado=10 prod=8 → drift=-20%)'
 // Impossível dividir por zero — drift fica null
 // ------------------------------------------------------------------
 
-it('finalizar() drift null quando m2_orcado=0 (divisão por zero evitada)', function () {
+it('UC-CV-06 · finalizar() drift null quando m2_orcado=0 (divisão por zero evitada)', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -183,7 +183,7 @@ it('finalizar() drift null quando m2_orcado=0 (divisão por zero evitada)', func
 // Teste 5: cancelar() seta finalizado_em + m2_produzido=0 + prefixo [CANCELADO]
 // ------------------------------------------------------------------
 
-it('cancelar() define finalizado_em + m2_produzido=0 + observacoes "[CANCELADO]"', function () {
+it('UC-CV-06 · cancelar() define finalizado_em + m2_produzido=0 + observacoes "[CANCELADO]"', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -209,7 +209,7 @@ it('cancelar() define finalizado_em + m2_produzido=0 + observacoes "[CANCELADO]"
 // Teste 6: iniciar() throw se operador já tem apontamento em andamento
 // ------------------------------------------------------------------
 
-it('iniciar() lança RuntimeException se operador já tem apontamento ativo', function () {
+it('UC-CV-06 · iniciar() lança RuntimeException se operador já tem apontamento ativo', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -233,7 +233,7 @@ it('iniciar() lança RuntimeException se operador já tem apontamento ativo', fu
 // Teste 7: finalizar() throw se apontamento já finalizado
 // ------------------------------------------------------------------
 
-it('finalizar() lança RuntimeException se apontamento já finalizado', function () {
+it('UC-CV-06 · finalizar() lança RuntimeException se apontamento já finalizado', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
