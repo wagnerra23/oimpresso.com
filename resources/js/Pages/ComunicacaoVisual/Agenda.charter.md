@@ -29,5 +29,9 @@ Contrato comportamental: [`Agenda.casos.md`](Agenda.casos.md).
 ## Fora desta versão
 
 Ainda não estão na tela (não assuma que estão): arrastar instalação entre dias; checklist de EPI, foto,
-assinatura e comprovante (outras partes da US-COMVIS-007); aviso ao cliente por WhatsApp (PR separado).
+assinatura e comprovante (outras partes da US-COMVIS-007).
 A regra de conflito mora no backend (`AgendaInstalacao`); a tela só mostra a recusa.
+
+Desde 2026-10-21 ([PR #9723](https://github.com/wagnerra23/oimpresso.com/pull/9723)), agendar avisa o cliente
+por WhatsApp com OS, dia e hora: o evento `InstalacaoAgendada` é ouvido pelo `Modules/Whatsapp`
+(UC-CVINST-08..10). A tela não mostra nem controla o aviso. Até essa data ele constava aqui como fora desta versão.
