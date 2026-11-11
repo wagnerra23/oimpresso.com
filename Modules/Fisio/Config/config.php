@@ -71,7 +71,11 @@ return [
         'camera' => 'v1',
         'imagem' => 'v1',
         'marketing' => 'v1',
-        'pesquisa_ia' => 'v1',
+        // Treino de IA com dado do paciente: separado da pesquisa e opcional (ADR 0437 §7).
+        // A finalidade `pesquisa` NÃO mora aqui: é por estudo, e a versão é o TCLE aprovado
+        // pelo CEP daquele estudo (`fisio_studies.tcle_version`, etapa 07 P-02). A antiga
+        // `pesquisa_ia` saiu da lista: os aceites antigos ficam no banco e não valem para nada.
+        'treino_ia' => 'v1',
     ],
 
     /*
