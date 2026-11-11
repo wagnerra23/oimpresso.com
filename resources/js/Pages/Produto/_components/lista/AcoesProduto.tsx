@@ -59,16 +59,18 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
   const grupo1 = [
     // "Ver" abre o painel de detalhe do protótipo (`DetalheDrawer`) — o conteúdo da janela "Ver" da Blade.
     pode('view') && item('ver', 'Ver'),
-    pode('update') && item('editar', 'Editar'),
+    // UC-PIDX-45 (decisão [F] 2026-11-11): o excluído não se edita nem ganha estoque, código de barras ou
+    // preço — quem quer mexer restaura antes. Fica o que só lê (Ver, Histórico, Dados fiscais, anexo) e Duplicar.
+    !linha.excluido && pode('update') && item('editar', 'Editar'),
     // Como na lista Blade: só para produto com estoque gerenciado e com `product.opening_stock`. Abre a
     // página do `OpeningStockController@add` (a mesma que o cadastro abre em "salvar e estoque inicial").
-    linha.controla_estoque && pode('opening_stock') && item('estoque_inicial', 'Adicionar ou editar estoque inicial'),
+    !linha.excluido && linha.controla_estoque && pode('opening_stock') && item('estoque_inicial', 'Adicionar ou editar estoque inicial'),
     pode('view') && item('historico', 'Histórico de estoque do produto'),
   ].filter(Boolean);
   const grupo2 = [
     pode('create') && item('duplicar', 'Duplicar produto'),
-    item('rotulos', 'Gerar código de barras'),
-    pode('create') && gruposDePreco > 0 && item('precos', 'Adicionar ou editar preços por grupo'),
+    !linha.excluido && item('rotulos', 'Gerar código de barras'),
+    !linha.excluido && pode('create') && gruposDePreco > 0 && item('precos', 'Adicionar ou editar preços por grupo'),
     linha.anexo && item('anexo', 'Baixar anexo do produto'),
   ].filter(Boolean);
   const grupoFiscal = [
@@ -79,7 +81,8 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
   ].filter(Boolean);
   const grupo3 = [
     // Ativar e desativar exigem `product.update` no servidor (`activate`/`massDeactivate`).
-    // UC-PIDX-45 (AR-PROD-022): o excluído só oferece "Restaurar", com a mesma permissão do Excluir.
+    // UC-PIDX-45 (AR-PROD-022): no lugar de Ativar/Desativar/Excluir, o excluído oferece "Restaurar", com a
+    // mesma permissão do Excluir.
     !linha.excluido && pode('update') && (linha.inativo ? item('ativar', 'Ativar') : item('desativar', 'Desativar')),
     linha.excluido ? pode('delete') && item('restaurar', 'Restaurar') : pode('delete') && item('excluir', 'Excluir', true),
   ].filter(Boolean);
