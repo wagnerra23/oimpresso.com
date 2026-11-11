@@ -3,12 +3,12 @@
 // A IA só copiou o que está escrito; cada campo é sugestão (destacado) até o profissional confirmar ou
 // corrigir. Não há campo de interpretação: o sistema não diz se um resultado é normal nem sugere conduta
 // (ADR 0437 §5). Quem confirma fica registrado no servidor.
-import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import { mandar } from './ExamesReceitas';
 
 export interface MedicamentoTranscrito { nome: string; dose: string | null; frequencia: string | null }
 export interface CamposTranscricao {
@@ -55,15 +55,15 @@ export default function ConferirTranscricao({ t, receita }: { t: Transcricao; re
 
   const confirmar = () => {
     setEnviando(true);
-    const url = `/fisio/transcricoes/${t.id}/confirmar`;
-    const opcoes = { preserveScroll: true, onError: (e: Record<string, string>) => setErros(e), onFinish: () => setEnviando(false) };
-    if (receita) {
-      router.post(url, { data: f.data || null, medico: f.medico || null, crm: f.crm || null, medicamentos: meds.map((m) => ({ ...m })) }, opcoes);
-    } else {
-      router.post(url, { data: f.data || null, tipo_exame: f.tipo_exame || null, conclusao: f.conclusao || null }, opcoes);
-    }
+    const corpo = receita
+      ? { data: f.data || null, medico: f.medico || null, crm: f.crm || null, medicamentos: meds }
+      : { data: f.data || null, tipo_exame: f.tipo_exame || null, conclusao: f.conclusao || null };
+    void mandar('POST', `/fisio/transcricoes/${t.id}/confirmar`, corpo).then((e) => {
+      setEnviando(false);
+      if (e) setErros(e);
+    });
   };
-  const descartar = () => router.post(`/fisio/transcricoes/${t.id}/descartar`, {}, { preserveScroll: true });
+  const descartar = () => void mandar('POST', `/fisio/transcricoes/${t.id}/descartar`).then((e) => { if (e) setErros(e); });
 
   return (
     <fieldset className="flex flex-col gap-3 rounded-lg border border-border p-3" data-contract="fisio-transcricao-conferir">
@@ -103,7 +103,7 @@ export default function ConferirTranscricao({ t, receita }: { t: Transcricao; re
             className={f.conclusao !== '' && f.conclusao === (s.conclusao ?? '') ? SUGESTAO : ''} />
         </div>
       )}
-      {(erros.transcricao || erros.data) && <p className="text-xs text-destructive">{erros.transcricao ?? erros.data}</p>}
+      {(erros.transcricao || erros.data || erros.geral) && <p className="text-xs text-destructive">{erros.transcricao ?? erros.data ?? erros.geral}</p>}
       <div className="flex gap-2">
         <Button type="button" disabled={enviando} onClick={confirmar}>Confirmar e gravar</Button>
         <Button type="button" variant="ghost" onClick={descartar}>Descartar sugestão</Button>
