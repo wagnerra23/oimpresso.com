@@ -148,13 +148,14 @@ it('POST /calcular retorna 200 com JSON shape calculado', function () {
         ],
     ]);
 
-    // Valores calculados corretos
+    // Valores calculados corretos. O JSON tem um tipo numérico só: sem JSON_PRESERVE_ZERO_FRACTION,
+    // 270.0 sai como 270 e volta int. O contrato é o VALOR, então compara em float.
     $json = $response->json();
-    expect($json['itens'][0]['area_m2'])->toBe(4.5);    // 3 × 1.5 × 1
-    expect($json['itens'][0]['subtotal'])->toBe(270.0); // 4.5 × 60
-    expect($json['subtotal'])->toBe(270.0);
+    expect((float) $json['itens'][0]['area_m2'])->toBe(4.5);    // 3 × 1.5 × 1
+    expect((float) $json['itens'][0]['subtotal'])->toBe(270.0); // 4.5 × 60
+    expect((float) $json['subtotal'])->toBe(270.0);
     // total = 270 - 0 + 50 + 200 + 80 = 600
-    expect($json['total'])->toBe(600.0);
+    expect((float) $json['total'])->toBe(600.0);
 
     // NÃO deve ter persitido nada no banco
     expect(Orcamento::withoutGlobalScopes()->where('observacoes', 'banner externo teste')->count())->toBe(0);
