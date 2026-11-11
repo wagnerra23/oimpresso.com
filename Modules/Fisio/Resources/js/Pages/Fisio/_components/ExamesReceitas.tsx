@@ -10,6 +10,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Segmented } from '@/Components/ui/segmented';
+import MedicamentosEmUso, { type Medicamento } from './MedicamentosEmUso';
 
 export interface DocumentoFicha {
   id: number;
@@ -134,10 +135,11 @@ function Linha({ doc, tipos, podeEditar }: { doc: DocumentoFicha; tipos: Record<
   );
 }
 
-export default function ExamesReceitas({ pacienteId, tipos, documentos, podeEditar }: {
+export default function ExamesReceitas({ pacienteId, tipos, documentos, medicamentos, podeEditar }: {
   pacienteId: number;
   tipos: Record<string, string>;
   documentos: DocumentoFicha[];
+  medicamentos: Medicamento[];
   podeEditar: boolean;
 }) {
   return (
@@ -151,6 +153,7 @@ export default function ExamesReceitas({ pacienteId, tipos, documentos, podeEdit
           {documentos.map((d) => <Linha key={d.id} doc={d} tipos={tipos} podeEditar={podeEditar} />)}
         </ul>
       )}
+      <MedicamentosEmUso pacienteId={pacienteId} medicamentos={medicamentos} podeEditar={podeEditar} />
     </div>
   );
 }

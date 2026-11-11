@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 950,
-    "edges": 1281,
+    "nodes": 951,
+    "edges": 1282,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 155,
-      "component": 555,
+      "component": 556,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 555,
+      "hasComponent": 556,
       "dependsOn": 140,
       "delegatesTo": 128,
       "migratesTo": 1,
@@ -3555,6 +3555,13 @@
       "module": "Fisio",
       "name": "LaudoBiopsicossocialController",
       "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão; apoio de dor e adesão (ApoioFisioterapia) e PDF no layout oficial (LaudoBiopsicossocialDocumento) (US-FISIO-060)"
+    },
+    {
+      "id": "component:Fisio/MedicamentosPacienteController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "MedicamentosPacienteController",
+      "desc": "medicamentos em uso estruturados (fisio_patient_medications): incluir, alterar com antes/depois no activity_log e tirar da lista com motivo (US-FISIO-063)"
     },
     {
       "id": "component:Fisio/OnboardingController",
@@ -10790,6 +10797,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/LaudoBiopsicossocialController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/MedicamentosPacienteController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -10,6 +10,7 @@ use Modules\Fisio\Http\Controllers\DocumentosPacienteController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\LaudoBiopsicossocialController;
+use Modules\Fisio\Http\Controllers\MedicamentosPacienteController;
 use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\FiscalController;
@@ -143,6 +144,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('pacientes/{id}/documentos', [DocumentosPacienteController::class, 'store'])->whereNumber('id')->name('pacientes.documentos.store');
         Route::post('documentos/{documento}/tirar', [DocumentosPacienteController::class, 'tirar'])->whereNumber('documento')->name('documentos.tirar');
         Route::get('documentos/{documento}/arquivo', [DocumentosPacienteController::class, 'arquivo'])->whereNumber('documento')->name('documentos.arquivo');
+        // Medicamentos em uso, estruturados (US-FISIO-063 parte 2). Escrita exige fisio.editar; sai da lista com motivo.
+        Route::post('pacientes/{id}/medicamentos', [MedicamentosPacienteController::class, 'store'])->whereNumber('id')->name('pacientes.medicamentos.store');
+        Route::put('medicamentos/{medicamento}', [MedicamentosPacienteController::class, 'update'])->whereNumber('medicamento')->name('medicamentos.update');
+        Route::post('medicamentos/{medicamento}/tirar', [MedicamentosPacienteController::class, 'tirar'])->whereNumber('medicamento')->name('medicamentos.tirar');
 
         // Link do portal do paciente (US-FISIO-007a): gerar devolve link + PIN UMA vez; revogar derruba.
         Route::post('pacientes/{id}/portal', [PortalLinkController::class, 'store'])->whereNumber('id')->name('pacientes.portal.store');

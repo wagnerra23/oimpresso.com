@@ -21,6 +21,7 @@ use Modules\Fisio\Entities\Record;
 use Modules\Fisio\Entities\DocumentoPaciente;
 use Modules\Fisio\Services\DocumentosDoPaciente;
 use Modules\Fisio\Services\EditorProgramaPayload;
+use Modules\Fisio\Services\MedicamentosDoPaciente;
 use Modules\Fisio\Services\Laudo\LaudoBiopsicossocialDocumento;
 use Modules\Fisio\Services\Laudo\MatrizIfbrm;
 use Modules\Fisio\Services\PainelFisio;
@@ -151,6 +152,7 @@ class PacientesController extends Controller
             // Exames e receitas (US-FISIO-063): a lista de tipos é estática (vai junto); os documentos são query → defer.
             'documento_tipos' => DocumentoPaciente::TIPOS,
             'documentos' => Inertia::defer(fn () => app(DocumentosDoPaciente::class)->daFicha($paciente), 'documentos'),
+            'medicamentos' => Inertia::defer(fn () => app(MedicamentosDoPaciente::class)->daFicha($paciente), 'documentos'),
         ]);
     }
 
