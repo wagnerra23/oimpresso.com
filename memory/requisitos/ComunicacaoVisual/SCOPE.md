@@ -1,6 +1,6 @@
 ---
 module: ComunicacaoVisual
-purpose: "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto: hoje entrega cálculo de orçamento por m2 server-authoritative e apontamento de produção. PCP/FSM, materiais e integração fiscal existem como schema e contrato, não como fluxo navegável."
+purpose: "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto registrado: orçamento por m2 server-authoritative (salvar, aceite do cliente por link, aprovar), OS que nasce do orçamento e entra no quadro do PCP do Modules/Producao, agenda da instalação com aviso ao cliente, pós-cálculo da OS em JSON e o spool de apontamento sem tela. Faturamento da OS, cadastro de materiais e FSM própria não existem."
 migracao_ui: "concluido — 0 Blade servido"
 contains:
   - "AppOrcamentoRapidoController (orçamento rápido do app das lojas, /api/app/orcamentos — PR 16 propostas-app)"
@@ -34,9 +34,11 @@ not_contains:
   - "Núcleo transactions/contacts → UltimatePOS core"
   - "NFe backbone → Modules/NfeBrasil (consumido)"
   - "FSM canon (sale_processes/stages/actions) → app/Domain/Fsm/ (shared infra ADR 0143)"
+  - "Quadro do PCP, roteiros e apontamento por etapa → Modules/Producao (consumido via App\\Contracts\\Producao, ADR 0431/0436)"
+  - "Aviso ao cliente por WhatsApp → Modules/Whatsapp (ouve o evento InstalacaoAgendada)"
 trust_required: L2
 owner: wagner
-permission_prefix: com_visual.*
+permission_prefix: comvis.*
 charter_adr: 0121
 related_adrs:
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -51,7 +53,7 @@ drift_alerts: []
 
 > ADR mãe: [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
 > SPEC: [memory/requisitos/ComunicacaoVisual/SPEC.md](../../requisitos/ComunicacaoVisual/SPEC.md)
-> Status: 🟡 em construção · Piloto previsto 2026-Q3
+> Status: 🟡 em construção · a previsão de piloto em 2026-Q3 passou sem piloto registrado (nova data é decisão [W])
 > CNAE: 1813-0/01 · Concorrentes: Mubisys, Zênite, Calcgraf
 
 ## Estado Fase 1 V0 scaffold (2026-05-12)
@@ -64,17 +66,15 @@ Coexiste com legacy Sprint 1 (`comvis_*` tables — Material/Orcamento/Os/Aponta
 2. **Consumir FSM canon shared** `app/Domain/Fsm/` (ADR 0143 LIVE prod biz=1 desde 2026-05-12) via `current_stage_id` em `cv_ordens_producao` + trait `GuardsFsmTransitions`
 3. **Diferencial vs concorrentes:** cálculo m² + PCP gráfico FSM + dual-doc fiscal NFe55+NFSe56 paralelo + NFe-de-boleto-pago + IA conversacional (5 capacidades juntas, nenhum concorrente tem todas — Mubisys/Zênite/Calcgraf SPEC §4-5)
 
-## Sprint 2+ — adoção pós-piloto
+## User stories
 
-| US | Descrição | Sinal qualificado |
-|---|---|---|
-| US-COMVIS-001 | Scaffold módulo (este PR) | ADR 0121 §P7 |
-| US-COMVIS-002 | Migration `comvis_orcamentos` (cálculo m² + multi-tier price) | Piloto escolhido + assina contrato |
-| US-COMVIS-003 | Pages Inertia próprias (orçamento, PCP, apontamento) | US-COMVIS-002 done |
-| US-COMVIS-004 | Integração Modules/NfeBrasil (NFe-de-boleto-pago) | US-COMVIS-003 done |
+A numeração e o significado das US são os do [SPEC](SPEC.md): US-COMVIS-001 cálculo por m², 002 cadastro de
+material, 003 PCP (OS no quadro do Producao), 004 apontamento de máquina, e assim por diante. Até 2026-11-10 esta
+seção trazia uma tabela "Sprint 2+" com outra numeração (001 = scaffold, 002 = migration, 003 = telas, 004 = NfeBrasil),
+que contradizia o SPEC. O estado de cada US está na linha `**Implementado em:**` dela.
 
 ## Não-goals
 
-- ❌ NÃO codificar features sem cliente piloto pagante [ADR 0105]
-- ❌ NÃO duplicar shared Modules/Repair (consome via repair_settings)
+- ❌ NÃO abrir backlog por hipótese do agente sem sinal de cliente ou métrica [ADR 0105]; pedido do [W] é decisão, não proposta [ADR 0382]
+- ❌ NÃO duplicar o quadro, os roteiros nem o apontamento por etapa do Modules/Producao (consome via `App\Contracts\Producao`)
 - ❌ NÃO substituir núcleo UltimatePOS

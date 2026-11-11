@@ -2,7 +2,7 @@
 id: requisitos-comunicacao-visual-spec
 module: ComunicacaoVisual
 version: "1.0"
-last_updated: "2026-09-29"
+last_updated: "2026-11-10"
 status: rascunho
 piloto: Gold confirmado vertical comvis (perfil 04-gold-comvis) — Vargas REMOVIDO (autopeças confirmado 2026-05-10 → Modules/OficinaAuto)
 piloto_previsao: 2026-Q3
@@ -17,8 +17,8 @@ owner: [W]
 # Especificação funcional — Modules/ComunicacaoVisual
 
 > Convenção do ID: `US-COMVIS-NNN` para user stories, `R-COMVIS-NNN` para regras Gherkin.
-> Módulo NÃO existe em código ainda. Este SPEC é o contrato de construção, derivado de [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) (modular especializado por vertical).
-> Antes de scaffoldear, ler [Modules/Jana](../../../Modules/Jana) + [Modules/Repair](../../../Modules/Repair) + [Modules/NfeBrasil](../NfeBrasil/SPEC.md) e imitar ([ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md)).
+> O módulo existe em código (`Modules/ComunicacaoVisual/`, inventário em [SUPERFICIE.md](SUPERFICIE.md)). Este SPEC nasceu em 2026-05 como contrato de construção, derivado de [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) (modular especializado por vertical). O estado de cada US está na linha `**Implementado em:**` dela; o resumo derivado sai de `node scripts/governance/requisitos-status.mjs ComunicacaoVisual`.
+> A previsão de piloto (`piloto_previsao: 2026-Q3`) passou sem piloto registrado no git; a nova data é decisão [W].
 
 ## 1. Visão
 
@@ -178,7 +178,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Rota:** `GET /comvis/os/{id}/pos-calculo`
 > **Controller/ação:** `PosCalculoController`
 
-**Implementado em:** _pendente_ — parcial em 2026-10-27 (`Modules/ComunicacaoVisual/Services/PosCalculoDaOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OsPosCalculoController.php`): pós-cálculo da OS da CV em JSON (rota GET comunicacao-visual/api/os/{os}/pos-calculo, flag `COMVIS_POS_CALCULO_ENABLED` desligada, UC-CVPOS-01..05): orçado do item × real (m² impresso nas etapas × custo do m² do dia + horas de máquina e pessoa pelo contrato `App\Contracts\Producao\CustoRealDaOs`). Faltam terceiros, a tela, margem por cliente/produto/mês, alerta Jana e export. Antes, em 2026-10-20: a comparação por OS e por venda existe como leitura JSON no módulo Produção (`Modules/Producao/Services/PrevistoRealizadoDaOrdem.php` · `Modules/Producao/Http/Controllers/PrevistoRealizadoController.php`, rotas GET producao/ordens/{id}/previsto-realizado e producao/vendas/{id}/previsto-realizado, UC-FLX-15). Orçado = custo guardado na linha da venda (US-SELL-067); realizado = `pcp_ordens.custo_real` (US-PCP-021). Faltavam a rota, a tela, margem por cliente/produto/mês, alerta Jana e export; o item do orçamento CV (`custo_previsto` + `custo_maquina_previsto`) ainda não se liga à OS por item
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Services/PosCalculoDaOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OsPosCalculoController.php` · `Modules/Producao/Services/CustoRealDaOsService.php` · `app/Contracts/Producao/CustoRealDaOs.php` · `config/comunicacao-visual.php` — entregue em 2026-10-28 ([PR #9994](https://github.com/wagnerra23/oimpresso.com/pull/9994)): pós-cálculo da OS da CV em JSON (rota GET comunicacao-visual/api/os/{os}/pos-calculo, flag `COMVIS_POS_CALCULO_ENABLED` desligada, UC-CVPOS-01..05): orçado do item × real (m² impresso nas etapas × custo do m² do dia + horas de máquina e pessoa pelo contrato `App\Contracts\Producao\CustoRealDaOs`). Faltam terceiros, a tela, margem por cliente/produto/mês, alerta Jana e export. Antes, em 2026-10-20: a comparação por OS e por venda existe como leitura JSON no módulo Produção (`Modules/Producao/Services/PrevistoRealizadoDaOrdem.php` · `Modules/Producao/Http/Controllers/PrevistoRealizadoController.php`, rotas GET producao/ordens/{id}/previsto-realizado e producao/vendas/{id}/previsto-realizado, UC-FLX-15). Orçado = custo guardado na linha da venda (US-SELL-067); realizado = `pcp_ordens.custo_real` (US-PCP-021). Faltavam a rota, a tela, margem por cliente/produto/mês, alerta Jana e export; o item do orçamento CV (`custo_previsto` + `custo_maquina_previsto`) ainda não se liga à OS por item
 
 **Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OsPosCalculoContratoTest.php` (UC-CVPOS-01..05) · `Modules/Producao/Tests/Feature/ProducaoPrevistoRealizadoContratoTest.php` (UC-PCPR-01..05), lane `verticais-pest.yml`.
 
@@ -261,7 +261,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Área:** Fiscal
 > **Reusa:** [Modules/NFSe](../NFSe/) (já existe — falta o trigger comvis)
 
-**Implementado em:** _pendente_ — `Modules/NFSe` existe (`NfseEmissaoService`, desde 2026-05-01 — scaffold PR #85 + Service no commit `1595cc35d6` US-NFSE-004), mas o trigger instalacao-concluida→NFSe não foi construído no ComVis (depende de US-COMVIS-007 pendente)
+**Implementado em:** _pendente_ — `Modules/NFSe` existe (`NfseEmissaoService`, desde 2026-05-01 — scaffold PR #85 + Service no commit `1595cc35d6` US-NFSE-004), mas o trigger instalacao-concluida→NFSe não foi construído no ComVis (a US-COMVIS-007 está parcial: a agenda da instalação existe, o aceite da instalação pelo cliente, que seria o gatilho, não)
 
 **Como** financeiro
 **Quero** que ao concluir US-COMVIS-007 (instalação aceita pelo cliente) o sistema emita NFSe automática (CNAE 7319-0/03)
@@ -629,7 +629,7 @@ Frontend Inertia em `resources/js/Pages/ComunicacaoVisual/` seguindo Cockpit Pat
   - `superadmin_package()` — feature flags por business
 - **Eloquent global scope** `BusinessIdScope` em todas Models (skill `multi-tenant-patterns` Tier A — [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - **Tabela `business.vertical_id`** apontando pra `verticals.slug='ComunicacaoVisual'` (ADR 0121 §P4)
-- **Reuso Modules/Repair Kanban** pra PCP (US-COMVIS-003)
+- **Quadro do PCP do Modules/Producao** pra etapas da OS (US-COMVIS-003, ADR 0431/0436), pelo contrato `App\Contracts\Producao\ProgramacaoDaOs`. Até 2026-10 o plano era reusar o Kanban do Modules/Repair
 - **Reuso Modules/NfeBrasil** pra fiscal (US-COMVIS-006/008/009/016)
 - **Reuso Modules/Jana** pra IA (US-COMVIS-013/014)
 - **Reuso Modules/RecurringBilling** pra trigger boleto pago (US-COMVIS-009)
@@ -679,6 +679,8 @@ nfse_id (FK nfe_documents), comissao_calculada
 Todos com `business_id` indexado + FK + global scope (Tier 0 IRREVOGÁVEL).
 
 ## 7. Roadmap 12 meses
+
+> Roteiro escrito em 2026-05. As datas M1-M5 já passaram; o que entrou de fato está na linha `**Implementado em:**` de cada US, não nesta tabela. Repriorizar é decisão [W].
 
 | Mês | Fase | Entregas | Métrica de saída |
 |---|---|---|---|
@@ -1333,11 +1335,11 @@ Lacuna "orçamento enviado em PDF ou WhatsApp com aceite pelo link" (levantament
 - Cliente aceita → orçamento aprovado e OS criada pelo mesmo `OrcamentoViraOs` (sem recalcular valor: a OS leva o total gravado). Cliente pede ajuste → volta a rascunho com o comentário (obrigatório).
 - Link vencido, já usado, de orçamento aprovado/recusado/expirado ou fora da validade não decide nada.
 - Tier 0: o token resolve o orçamento e a empresa; tudo depois filtra pelo `business_id` do link.
-- Fora: envio pelo WhatsApp com opt-in (PR seguinte) e PDF.
+- Fora: envio pelo sistema (o botão "Enviar no WhatsApp" abre o WhatsApp do próprio vendedor com a mensagem pronta) e PDF.
 
 ---
 
-## 16. Total US recalibrado (base 18 + novas 15 = 33 US)
+## 16. Total US recalibrado (base 18 + novas 15 + 5 de outubro = 38 US)
 
 | Prioridade | US | Total esforço (h IA-pair) |
 |---|---|--:|
@@ -1345,7 +1347,9 @@ Lacuna "orçamento enviado em PDF ou WhatsApp com aceite pelo link" (levantament
 | **P1** | COMVIS-004, 005, 007, 008, 011 + NEW-002, NEW-004, NEW-007, NEW-008, NEW-010, NEW-013 | ~95h |
 | **P2** | COMVIS-010, 012, 013, 014, 015 + NEW-005 | ~50h |
 | **P3** | COMVIS-016, 018 | ~22h |
-| **Total** | **33 US** | **~277h IA-pair** |
+| **Total** | **33 US estimadas** (das 38) | **~277h IA-pair** |
+
+As 5 US de outubro de 2026 entraram depois desta conta e não têm estimativa aqui: P0 020 e 021; P1 019, 022 e 023. Contagem: `grep -c "^### US-COMVIS-" memory/requisitos/ComunicacaoVisual/SPEC.md`.
 
 Recalibrado ADR 0106 fator 10x — tarefas codáveis. Tarefas humano-limitadas (treinamento, canary, monitor) mantém wallclock (ver ROADMAP.md).
 
