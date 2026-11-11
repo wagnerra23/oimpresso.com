@@ -29,8 +29,11 @@ export interface Transcricao {
   conferido_em: string | null;
 }
 
-// Campo ainda igual à sugestão = destacado (amarelo do protótipo); corrigido = borda normal.
-const SUGESTAO = 'border-warning bg-warning-soft';
+// Campo ainda igual à sugestão = destacado (amarelo do protótipo); corrigido = normal.
+// Por `style`, não por classe: a borda e a sombra do campo vêm do CSS do shell e vencem o
+// utilitário (medido no staging em 2026-11-11: border-warning e ring sem efeito; fundo e outline
+// com o token aplicam). Mesmo mecanismo da lápide §5 2026-10-14.
+const SUGESTAO = { backgroundColor: 'color-mix(in oklch, var(--color-warning) 16%, transparent)', outline: '1px solid var(--color-warning)', outlineOffset: '-1px' };
 
 function Campo({ id, rotulo, valor, sugerido, tipo = 'text', onChange }: {
   id: string; rotulo: string; valor: string; sugerido: string; tipo?: string; onChange: (v: string) => void;
@@ -38,7 +41,8 @@ function Campo({ id, rotulo, valor, sugerido, tipo = 'text', onChange }: {
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>{rotulo}</Label>
-      <Input id={id} type={tipo} value={valor} onChange={(e) => onChange(e.target.value)} className={valor !== '' && valor === sugerido ? SUGESTAO : ''} />
+      <Input id={id} type={tipo} value={valor} onChange={(e) => onChange(e.target.value)} style={valor !== '' && valor === sugerido ? SUGESTAO : undefined}
+        data-sugestao={valor !== '' && valor === sugerido ? 'sim' : undefined} />
     </div>
   );
 }
@@ -100,7 +104,7 @@ export default function ConferirTranscricao({ t, receita }: { t: Transcricao; re
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`tr-conclusao-${t.id}`}>Conclusão, como está escrita</Label>
           <Textarea id={`tr-conclusao-${t.id}`} rows={3} value={f.conclusao} onChange={(e) => setF({ ...f, conclusao: e.target.value })}
-            className={f.conclusao !== '' && f.conclusao === (s.conclusao ?? '') ? SUGESTAO : ''} />
+            style={f.conclusao !== '' && f.conclusao === (s.conclusao ?? '') ? SUGESTAO : undefined} />
         </div>
       )}
       {(erros.transcricao || erros.data || erros.geral) && <p className="text-xs text-destructive">{erros.transcricao ?? erros.data ?? erros.geral}</p>}
