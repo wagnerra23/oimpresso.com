@@ -178,7 +178,7 @@
     },
     {
       "screen": "Fisio",
-      "note": "44 arquivo(s)",
+      "note": "46 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -719,8 +719,8 @@
   "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "c16d0db46d",
-  "generatedAt": "2026-11-10T17:14:02.946Z",
+  "measuredAgainstSha": "6d4953358b",
+  "generatedAt": "2026-11-11T17:23:18.982Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
