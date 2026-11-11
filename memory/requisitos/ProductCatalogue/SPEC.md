@@ -32,6 +32,8 @@ Medido em `747e0aa` (2026-11-11).
 
 ### US-PCAT-001 · Vitrine pública por empresa e local (`/catalogue/{business_id}/{location_id}`)
 
+> owner: W · status: done · type: story
+
 **Implementado em:** `Modules/ProductCatalogue/Routes/web.php` · `Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php` · `Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php` · `Modules/ProductCatalogue/Resources/views/catalogue/index.blade.php` · verificado@747e0aa (2026-11-11) — o filtro de empresa, local, produto ativo e "não vender" está no Repository (`listProductsByLocation`), não no Controller
 
 **Testado em:** `tests/Feature/Sells/CatalogoPublicoSituacaoContratoTest.php` (lane `sells-pest.yml`)
@@ -39,6 +41,8 @@ Medido em `747e0aa` (2026-11-11).
 **Aceite:** sem login, lista por categoria só os produtos da empresa da URL, ligados ao local, ativos e à venda; local de outra empresa dá 404; mais de 30 requisições por minuto por IP dão 429.
 
 ### US-PCAT-002 · Detalhe público do produto (`/show-catalogue/{business_id}/{product_id}`)
+
+> owner: W · status: done · type: story
 
 **Implementado em:** `Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php` · `Modules/ProductCatalogue/Services/CatalogueService.php` · `Modules/ProductCatalogue/Resources/views/catalogue/show.blade.php` · verificado@747e0aa (2026-11-11) — a resposta é um fragmento de modal que a vitrine carrega por AJAX; aberta direto, sai sem layout
 
@@ -48,6 +52,8 @@ Medido em `747e0aa` (2026-11-11).
 
 ### US-PCAT-003 · Tela admin que gera o QR do catálogo
 
+> owner: W · status: done · type: story
+
 **Implementado em:** `resources/js/Pages/ProductCatalogue/CatalogueQr.tsx` · `Modules/ProductCatalogue/Services/CatalogueQrService.php` · `Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php` · verificado@747e0aa (2026-11-11) — Inertia desde o F5 de 2026-10-27; contrato em `resources/js/Pages/ProductCatalogue/CatalogueQr.casos.md`
 
 **Testado em:** `tests/Feature/Sells/CatalogueQrContratoTest.php` (lane `sells-pest.yml`) · `tests/Browser/ProductCatalogue/CatalogueQrBrowserTest.php`
@@ -56,9 +62,13 @@ Medido em `747e0aa` (2026-11-11).
 
 ### US-PCAT-004 · Instalar, atualizar e desinstalar o módulo (padrão ADR 0011)
 
+> owner: W · status: todo · type: story
+
 **Implementado em:** _pendente_ — o código existe (`Modules/ProductCatalogue/Http/Controllers/InstallController.php`, 4 ações: index, install, uninstall, update), mas nenhum teste numa lane cobre a instalação
 
 ### US-PCAT-005 · Selo de desconto ativo na vitrine
+
+> owner: W · status: done · type: story
 
 **Implementado em:** `Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php` · `Modules/ProductCatalogue/Services/CatalogueService.php` · `Modules/ProductCatalogue/Resources/views/catalogue/partials/discount_badge.blade.php` · verificado@747e0aa (2026-11-11) — desconto fixo sai em dinheiro desde o #10779; o critério que escolhe o desconto do selo na listagem está em revisão no #10800
 
@@ -67,6 +77,8 @@ Medido em `747e0aa` (2026-11-11).
 **Aceite:** só desconto ativo, da empresa e do local, dentro da janela `starts_at ≤ agora ≤ ends_at`, por prioridade; porcentagem com "%", valor fixo em dinheiro; desconto de outra empresa no mesmo local não gera selo.
 
 ### US-PCAT-006 · Isolamento entre empresas na vitrine pública (Tier 0)
+
+> owner: W · status: done · type: story
 
 **Implementado em:** `Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php` · verificado@747e0aa (2026-11-11) — o isolamento é o `where('business_id', ...)` explícito de cada consulta; `App\Product` não tem global scope
 

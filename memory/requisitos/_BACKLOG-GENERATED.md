@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1087 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1088 tarefas abertas** em **60 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -67,6 +67,7 @@
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Backup`](#backup) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
+| [`ProductCatalogue`](#productcatalogue) | 1 | 0 | 0 | 0 | 1 |
 
 
 ## Jana
@@ -1572,3 +1573,10 @@
 ### todo
 
 - **US-MCP-017** — Tool `module-state <modulo>` (CQRS projection per bounded context) _(`p1` · @wagner)_
+
+## ProductCatalogue
+
+
+### todo
+
+- **US-PCAT-004** — Instalar, atualizar e desinstalar o módulo (padrão ADR 0011) _(@W)_
