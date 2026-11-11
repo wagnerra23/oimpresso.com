@@ -30,7 +30,12 @@ interface Props {
   className?: string;
   /** Sticky position. Default: bottom do main container. */
   position?: 'bottom' | 'top';
-  /** Texto custom do label. Default: "N item(s) selecionado(s)". */
+  /**
+   * O que vem depois do número: `label="produto(s) selecionado(s)"` mostra "2 produto(s)
+   * selecionado(s)". O número sempre aparece; antes de 2026-11-11 o label o substituía e as
+   * telas que passavam label mostravam a frase sem a contagem (Produto/Index, Forja Tasks).
+   * Sem label: "1 item selecionado" / "N itens selecionados".
+   */
   label?: string;
 }
 
@@ -69,7 +74,7 @@ export default function BulkActionBar({
         <X size={14} />
       </Button>
       <span aria-live="polite" className="text-sm font-medium text-foreground tabular-nums">
-        {label ?? defaultLabel}
+        {label ? `${selectedCount} ${label}` : defaultLabel}
       </span>
       <div className="h-5 w-px bg-border" aria-hidden />
       <div className="flex items-center gap-2">{children}</div>

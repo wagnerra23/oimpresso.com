@@ -92,6 +92,8 @@ Cobertos em `Modules/Financeiro/Tests/Feature/CaixaControllerTest.php` (6 cases)
 5. ✅ `clamp ?limit abaixo de 10 vira 10`
 6. ✅ `Tier 0 multi-tenant — não vaza caixa de outro business` — invariante ADR 0093
 
+UC-FCX-06 em `CaixaLancarRetroativoContratoTest.php`: o botão Lançar é a única escrita desta tela (ADR 0183 PR C). Permissão `financeiro.lancamentos.create`, caixa fechado da própria empresa, sem duplicar.
+
 ---
 
 ## Backlog (não no escopo F6 Soft)
