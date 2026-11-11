@@ -21,7 +21,7 @@ use Modules\ProductCatalogue\Services\CatalogueService;
  *   - {@see CatalogueQrService} — tela admin QR generator
  *   - {@see \Modules\ProductCatalogue\Repositories\ProductCatalogueRepository} — DB
  *
- * Pattern canônico: ADR 0011 (padrão Jana/Repair), inspirado em Modules/Jana/Services.
+ * Pattern canônico: ADR 0011 (padrão de módulo do projeto). Não depende de outro módulo.
  */
 class ProductCatalogueController extends Controller
 {
