@@ -60,7 +60,7 @@ Medido em `747e0aa` (2026-11-11).
 
 ### US-PCAT-005 · Selo de desconto ativo na vitrine
 
-**Implementado em:** `Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php` · `Modules/ProductCatalogue/Services/CatalogueService.php` · `Modules/ProductCatalogue/Resources/views/catalogue/partials/discount_badge.blade.php` · verificado@747e0aa (2026-11-11) — o selo casa o desconto por marca e depois por categoria; desconto fixo sai em dinheiro desde o #10779
+**Implementado em:** `Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php` · `Modules/ProductCatalogue/Services/CatalogueService.php` · `Modules/ProductCatalogue/Resources/views/catalogue/partials/discount_badge.blade.php` · verificado@747e0aa (2026-11-11) — desconto fixo sai em dinheiro desde o #10779; o critério que escolhe o desconto do selo na listagem está em revisão no #10800
 
 **Testado em:** `tests/Feature/Sells/CatalogoPublicoDescontoContratoTest.php` (lane `sells-pest.yml`)
 
