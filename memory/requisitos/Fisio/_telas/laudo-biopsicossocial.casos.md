@@ -38,13 +38,12 @@ related_us: [US-FISIO-060]
 | UC-FBP-07 | sugestão da fisioterapia: dor de 30 e 90 dias, crises, adesão e questionários com período e fonte | must | US-FISIO-060 | `FisioLaudoBpsSugestaoTest` |
 | UC-FBP-08 | sem dado suficiente: nenhum número, aviso no lugar | must | US-FISIO-060 | `FisioLaudoBpsSugestaoTest` |
 | UC-FBP-09 | o texto sugerido não conclui; leitura com `fisio.access`; outra empresa 404 | must | US-FISIO-060 | `FisioLaudoBpsSugestaoTest` |
+| UC-FBP-10 | o PDF traz só seção registrada, na ordem da LBI; correção substitui; o que falta sai em branco para assinar | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
+| UC-FBP-11 | cada PDF grava uma linha no `activity_log` só com ids; outra empresa 404 sem log | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
 
 As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 
-- [BACKLOG] o PDF sai com espaço para a assinatura à mão ou por certificado externo do autor de fora da clínica.
 - [BACKLOG] questionários de fibromialgia no pré-preenchimento (depende da etapa 07, P-03).
-- [BACKLOG] PDF com as quatro seções; seção não registrada sai em branco com espaço de assinatura; uma linha no `activity_log` só com ids.
-- [BACKLOG] o PDF traz a nota de que o laudo descreve e não enquadra: quem decide é a perícia.
 
 ---
 
@@ -122,4 +121,23 @@ As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
   usuário da outra empresa recebe 404.
 - **Âncora:** ADR 0437 §5 (linha da Anvisa: o software não conclui).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsSugestaoTest.php`
+- **Status: 🧪**
+
+## UC-FBP-10 · O PDF `[must]`
+- **Persona:** paciente levando o laudo à perícia.
+- **Aceite:** Dado um laudo com seções registradas, uma corrigida e uma em rascunho · Quando o
+  PDF é gerado · Então as quatro seções saem na ordem dos incisos I a IV do art. 2º, §1º, da LBI;
+  cada seção registrada traz o texto, autor, conselho e número; a corrigida mostra a versão mais
+  recente e avisa que corrige outra; a seção externa traz espaço para a assinatura manuscrita ou
+  por certificado digital; seção sem registro (rascunho incluído) sai em branco com campos de nome,
+  conselho, data e assinatura. O rodapé diz que o documento descreve e que o enquadramento cabe à perícia.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php`
+- **Status: 🧪**
+
+## UC-FBP-11 · Rastro da geração `[must]`
+- **Aceite:** Cada PDF gerado grava uma linha `laudo_bps_exportado` no `activity_log` com
+  empresa, paciente, laudo e quantas seções estavam registradas — sem nome nem texto clínico.
+  Quem só tem `fisio.access` gera o PDF. Usuário da outra empresa recebe 404 e nada é registrado.
+- **Âncora:** LGPD art. 11 (dado de saúde), mesmo rastro do laudo de evolução (UC-FLD-02).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php`
 - **Status: 🧪**

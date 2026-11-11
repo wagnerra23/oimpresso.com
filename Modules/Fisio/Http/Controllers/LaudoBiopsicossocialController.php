@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Fisio\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,9 @@ use Modules\Fisio\Entities\LaudoBiopsicossocialSecao as Secao;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Services\ConfiguracaoClinica;
 use Modules\Fisio\Services\DiaLocal;
+use Modules\Fisio\Services\LaudoBiopsicossocialDocumento;
 use Modules\Fisio\Services\LaudoBiopsicossocialFisio;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Escrita do laudo biopsicossocial (US-FISIO-060; Lei 15.176/2025; LBI art. 2º, §1º).
@@ -63,6 +66,35 @@ class LaudoBiopsicossocialController extends Controller
         $doc = LaudoBiopsicossocial::query()->where('business_id', $biz)->with('patient')->findOrFail($laudo);
 
         return response()->json($sugestao->montar($doc->patient, $biz, DiaLocal::de(now())));
+    }
+
+    /**
+     * PDF do laudo: só seção registrada; item sem registro sai em branco para assinatura à mão.
+     * Leitura (basta `fisio.access`). Cada geração grava uma linha no activity_log com ids e a
+     * contagem de seções — nunca nome nem texto clínico (LGPD art. 11), como o laudo de evolução.
+     */
+    public function pdf(Request $request, int $laudo, LaudoBiopsicossocialDocumento $documento): Response
+    {
+        $biz = $this->empresa($request);
+        $doc = LaudoBiopsicossocial::query()->where('business_id', $biz)->with('patient')->findOrFail($laudo);
+
+        $dados = $documento->montar($doc, $biz);
+        $pdf = Pdf::loadView('fisio::pdf.laudo-biopsicossocial', $dados)->setPaper('a4', 'portrait');
+
+        activity('fisio')
+            ->performedOn($doc->patient)
+            ->causedBy($request->user())
+            ->withProperties([
+                'business_id' => $biz, 'patient_id' => (int) $doc->patient_id, 'laudo_bps_id' => (int) $doc->id,
+                'secoes_registradas' => count(array_filter($dados['secoes'], fn (array $s) => $s['registrada'] !== null)),
+            ])
+            ->log('laudo_bps_exportado');
+
+        return response($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="laudo-biopsicossocial-paciente-'.$doc->patient_id.'-'.now()->format('Ymd-His').'.pdf"',
+            'Cache-Control' => 'no-store, private',
+        ]);
     }
 
     /** Salva o rascunho da seção do item (cria se não houver). Seção registrada não é tocada. */
