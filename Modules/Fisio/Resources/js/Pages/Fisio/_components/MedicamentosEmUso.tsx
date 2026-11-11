@@ -8,7 +8,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { mandar } from './ExamesReceitas';
+import { mandar } from './salvarSecao';
 
 export interface Medicamento {
   id: number;
