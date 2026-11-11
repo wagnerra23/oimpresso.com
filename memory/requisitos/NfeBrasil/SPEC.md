@@ -97,7 +97,7 @@ Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), n�
 **Quero** abrir nota emitida pela chave/número e baixar DANFE + XML
 **Para** reimprimir, enviar pra cliente, anexar em e-mail
 
-**Implementado em:** _parcial_ · `resources/js/Pages/Fiscal/Nfe.tsx` · `Modules/Fiscal/Http/Controllers/NfeCockpitController.php` · `Modules/NfeBrasil/Http/Controllers/NfeEmissaoController.php` · `Modules/NfeBrasil/Services/DanfeService.php` · verificado@444b248e60 (2026-11-11) — detalhe no parágrafo abaixo
+**Implementado em:** _pendente_ — a tela desta US (Emissoes/Show) não existe; a consulta e o DANFE hoje vivem em /fiscal/nfe e nas rotas de DANFE, descritas no parágrafo abaixo (verificado em 2026-11-11)
 
 **Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** A lista e o detalhe das notas vivem em `/fiscal/nfe`; o DANFE sai por `GET /nfe-brasil/emissoes/{id}/danfe-pdf` (permissão de consulta, [#10728](https://github.com/wagnerra23/oimpresso.com/pull/10728)) e por link assinado sem login (`nfe-brasil.danfe-publica`). A rota `emissoes/{chave}` e a tela `Pages/NfeBrasil/Emissoes/Show` desta US não existem. Falta o log auditado do re-download.
 
@@ -145,6 +145,8 @@ Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), n�
 
 **Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** Evento 110110 por `POST /fiscal/acoes/nfe/{emissao}/cce`; ambiente, UF e CNPJ vêm das fontes do emitente, não mais de `env()` e de SP fixo ([#10731](https://github.com/wagnerra23/oimpresso.com/pull/10731)). Falta o e-mail automático da CC-e ao destinatário.
 
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeCartaCorrecaoServiceTest.php` (covers US-NFE-005) · `Modules/NfeBrasil/Tests/Feature/CartaCorrecaoEmitenteContratoTest.php` (covers US-NFE-005)
+
 **Definition of Done:**
 - [ ] Valida limite legal: máximo 20 CCe por NFe; correção 15-1000 chars; não permite mudar valor/quantidade/CNPJ
 - [ ] Sequência crescente persistida em `nfe_eventos`
@@ -166,6 +168,8 @@ Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), n�
 
 **Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** Ativa e desativa por `POST /nfe-brasil/contingencia/*` (só POST), modos SVC-AN, SVC-RS, EPEC e off-line da NFC-e, retentativa ordenada pelo `nfe:retentar-contingencia`. **FS-DA não existe no código** (a emenda da ADR tech/0002 no lote 5.4 registra isso). A ativação é manual: o limiar de 3 falhas só sugere. Não há tela `Pages/NfeBrasil/Contingencia`; a escolha fica em `/fiscal/config`.
 
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ContingenciaAtivacaoTest.php` (covers US-NFE-006) · `Modules/NfeBrasil/Tests/Feature/ContingenciaEmissaoTest.php` (covers US-NFE-006) · `Modules/NfeBrasil/Tests/Feature/ContingenciaRetransmissaoTest.php` (covers US-NFE-006) · `Modules/NfeBrasil/Tests/Feature/SefazStatusRecorderTest.php` (covers US-NFE-006)
+
 **Definition of Done:**
 - [ ] Detecção automática: `SefazHealthCheck` ping a cada 30s → se 3 falhas seguidas, sugerir contingência
 - [ ] Ativação manual em 1 clique com motivo
@@ -185,7 +189,7 @@ Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), n�
 **Quero** dashboard com KPIs (autorizadas hoje, rejeitadas, contingência ativa, cert vencendo) + lista de rejeições com cStat + sugestão de correção
 **Para** atacar rejeições antes de o cliente perceber
 
-**Implementado em:** _parcial_ · `resources/js/Pages/Fiscal/Cockpit.tsx` · `Modules/Fiscal/Http/Controllers/CockpitController.php` · `Modules/NfeBrasil/Services/SefazStatusRecorder.php` · `Modules/NfeBrasil/Console/Commands/NfeHealthCommand.php` · verificado@444b248e60 (2026-11-11) — detalhe no parágrafo abaixo
+**Implementado em:** _pendente_ — a tela desta US (Monitor) não existe; os KPIs e alertas hoje vivem no cockpit /fiscal, descrito no parágrafo abaixo (verificado em 2026-11-11)
 
 **Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** O cockpit `/fiscal` mostra KPIs e alertas de notas, rejeições, certificado e DF-e com dado da empresa. O selo de status da SEFAZ no cockpit ainda é fixo (`mockSefazStatus`), embora o `nfe:health --ping-sefaz` já grave o ping por UF. Não há tela `Pages/NfeBrasil/Monitor` nem a tabela `cstat_correcoes`.
 
@@ -1889,10 +1893,12 @@ Como dono da empresa, quero que o XML das notas do mês chegue ao meu contador s
 
 ### US-NFE-071 · Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1**
 
-> owner: — · sprint: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `Modules/NfeBrasil/Services/ModoContingencia.php` · `Modules/NfeBrasil/Services/ContingenciaService.php` · `Modules/NfeBrasil/Services/NfeService.php` (`registrarEpec`) · `Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php` · verificado@444b248e60 (2026-11-11) — SVC-AN/SVC-RS e o evento EPEC 110140 estão no código desde 2026-10-21; faltam a marcação de contingência no DANFE e o smoke em homologação
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php` (covers US-NFE-071)
 
 Como gestor, quero que a NF-e em contingência use o modo certo para a UF e tenha o evento EPEC registrado antes de imprimir, para o DANFE valer e a nota não ser rejeitada.
 
