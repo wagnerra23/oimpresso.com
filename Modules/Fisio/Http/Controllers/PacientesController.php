@@ -27,6 +27,7 @@ use Modules\Fisio\Services\Laudo\MatrizIfbrm;
 use Modules\Fisio\Services\PainelFisio;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 use Modules\Fisio\Services\ResponsavelPaciente;
+use Modules\Fisio\Services\TranscricaoDocumentos;
 
 /**
  * Pacientes do Fisio (US-FISIO-005). O paciente É um contact (ADR 0437 §4): aqui mora só o
@@ -151,6 +152,8 @@ class PacientesController extends Controller
             'laudos_bps' => Inertia::defer(fn () => app(LaudoBiopsicossocialDocumento::class)->doPaciente($paciente, $this->businessId($request)), 'laudos_bps'),
             // Exames e receitas (US-FISIO-063): a lista de tipos é estática (vai junto); os documentos são query → defer.
             'documento_tipos' => DocumentoPaciente::TIPOS,
+            // Transcrição pela IA (parte 3): uma leitura de configuração da empresa, vai junto.
+            'transcricao_ia' => app(TranscricaoDocumentos::class)->ligada($this->businessId($request)),
             'documentos' => Inertia::defer(fn () => app(DocumentosDoPaciente::class)->daFicha($paciente), 'documentos'),
             'medicamentos' => Inertia::defer(fn () => app(MedicamentosDoPaciente::class)->daFicha($paciente), 'documentos'),
         ]);

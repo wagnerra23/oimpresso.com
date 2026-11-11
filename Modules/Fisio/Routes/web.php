@@ -27,6 +27,7 @@ use Modules\Fisio\Http\Controllers\ProtocolosController;
 use Modules\Fisio\Http\Controllers\QuestionariosController;
 use Modules\Fisio\Http\Controllers\RegistrosController;
 use Modules\Fisio\Http\Controllers\ResponsavelController;
+use Modules\Fisio\Http\Controllers\TranscricaoDocumentoController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
 
 /*
@@ -144,6 +145,11 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('pacientes/{id}/documentos', [DocumentosPacienteController::class, 'store'])->whereNumber('id')->name('pacientes.documentos.store');
         Route::post('documentos/{documento}/tirar', [DocumentosPacienteController::class, 'tirar'])->whereNumber('documento')->name('documentos.tirar');
         Route::get('documentos/{documento}/arquivo', [DocumentosPacienteController::class, 'arquivo'])->whereNumber('documento')->name('documentos.arquivo');
+        // Transcrição pela IA, conferida pelo profissional (US-FISIO-063 parte 3). Tudo exige fisio.editar; desligada por empresa.
+        Route::post('documentos/transcricao-ia', [TranscricaoDocumentoController::class, 'configurar'])->name('documentos.transcricao-ia');
+        Route::post('documentos/{documento}/transcricao', [TranscricaoDocumentoController::class, 'sugerir'])->whereNumber('documento')->name('documentos.transcricao.store');
+        Route::post('transcricoes/{transcricao}/confirmar', [TranscricaoDocumentoController::class, 'confirmar'])->whereNumber('transcricao')->name('transcricoes.confirmar');
+        Route::post('transcricoes/{transcricao}/descartar', [TranscricaoDocumentoController::class, 'descartar'])->whereNumber('transcricao')->name('transcricoes.descartar');
         // Medicamentos em uso, estruturados (US-FISIO-063 parte 2). Escrita exige fisio.editar; sai da lista com motivo.
         Route::post('pacientes/{id}/medicamentos', [MedicamentosPacienteController::class, 'store'])->whereNumber('id')->name('pacientes.medicamentos.store');
         Route::put('medicamentos/{medicamento}', [MedicamentosPacienteController::class, 'update'])->whereNumber('medicamento')->name('medicamentos.update');

@@ -39,8 +39,12 @@ related_us: [US-FISIO-063]
 | UC-FER-09 | alterar muda só o que veio e grava o antes e o depois no `activity_log` | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
 | UC-FER-10 | tirar da lista exige motivo, não apaga e trava a alteração; o banco recusa DELETE | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
 | UC-FER-11 | a ficha recebe os medicamentos deferidos, em uso primeiro; sem `fisio.editar` 403; outra empresa 404 | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
+| UC-FER-12 | transcrição pela IA desligada por padrão (o modelo nem é chamado); só quem edita liga; ligar vai ao `activity_log` | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-13 | a sugestão nasce pendente, só com os campos do schema; nada vai ao prontuário antes de conferir | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-14 | confirmar receita grava quem conferiu e os campos corrigidos; medicamentos entram com a receita como origem | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-15 | exame: conclusão guardada como escrita; confirmar sem mudar registra zero correções; descartar | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-16 | provedor fora da lista sem treino, tipo sem campos, sem `fisio.editar` e outra empresa recusados; o agente não tem campo de interpretação | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
 
-- [BACKLOG] transcrição sugerida pela IA e conferida pelo profissional (parte 3 da US).
 - [BACKLOG] envio pelo portal com consentimento próprio, pendente de conferência (parte 4 da US).
 
 ---
@@ -113,4 +117,37 @@ related_us: [US-FISIO-063]
 - **Aceite:** A ficha recebe os medicamentos por prop deferida, os em uso antes dos encerrados. Sem
   `fisio.editar`, incluir e alterar respondem 403. Usuário da 99 recebe 404 em incluir, alterar e
   tirar, e nada muda.
+- **Status:** 🧪
+
+## UC-FER-12 · Desligada até a clínica ligar `[must]`
+- **Aceite:** Dada uma empresa que não ligou · Quando peço a transcrição · Então 422 e o modelo
+  não é chamado. Sem `fisio.editar` não se liga (403). Ligar grava no `activity_log` quem ligou.
+- **Status:** 🧪
+
+## UC-FER-13 · Sugestão pendente, só com o que o schema pede `[must]`
+- **Aceite:** Dada a transcrição ligada · Quando peço a sugestão de uma receita · Então a foto vai
+  como anexo, a sugestão é gravada `pendente` só com data, médico, CRM e medicamentos (chave fora
+  do schema, como uma "interpretação", não passa), com o modelo e quem pediu · E nenhum medicamento
+  entra na lista nem a data do documento muda até alguém conferir.
+- **Status:** 🧪
+
+## UC-FER-14 · Conferir a receita `[must]`
+- **Aceite:** Dada uma sugestão pendente · Quando confirmo corrigindo uma dose e incluindo um
+  medicamento · Então a transcrição fica `conferida` com quem e quando, `corrected` lista o que foi
+  corrigido, cada medicamento entra na lista com origem `transcricao`, a receita e quem conferiu, e
+  a data confirmada vira a data do documento se ele não tinha · Quando confirmo ou descarto de novo
+  · Então 422.
+- **Status:** 🧪
+
+## UC-FER-15 · Conferir o exame `[must]`
+- **Aceite:** Dada a sugestão de um exame · Então ela traz só data, nome do exame e a conclusão
+  como está escrita · Quando confirmo sem mudar · Então `corrected` fica vazio, nenhum medicamento
+  é criado e a data já gravada no documento não muda · Descartar marca `descartada`.
+- **Status:** 🧪
+
+## UC-FER-16 · O que fica de fora `[must]`
+- **Aceite:** Provedor fora de `provedores_sem_treino`: 422 sem chamar o modelo. Documento "outro":
+  422. Sem `fisio.editar`: 403. Outra empresa: 404 em pedir, confirmar e descartar, e nada muda. O
+  schema do agente tem exatamente data, médico, CRM, medicamentos, exame e conclusão, e as
+  instruções proíbem interpretar (ADR 0437 §5; proposta da ADR 0450).
 - **Status:** 🧪

@@ -134,6 +134,19 @@ return [
      */
     'documentos' => [
         'max_kb' => 10240,  // 10 MB
+        /*
+         * Transcrição da foto pela IA (US-FISIO-063, parte 3). Ligada por empresa em `fisio_settings`
+         * (`documentos.transcricao_ia`, desligada por padrão). provider/model nulos = padrão do
+         * laravel/ai (ADR 0035). `provedores_sem_treino`: só estes recebem a foto. Entra aqui o
+         * provedor cuja API, por contrato, não usa o conteúdo enviado para treinar modelo
+         * (Anthropic e OpenAI pela API comercial). Provedor com plano gratuito que treina com o
+         * conteúdo (ex.: Gemini sem faturamento) não entra. Sem `env()` aqui (Larastan).
+         */
+        'transcricao' => [
+            'provider' => null,
+            'model' => null,
+            'provedores_sem_treino' => ['anthropic', 'openai'],
+        ],
     ],
 
     /*
