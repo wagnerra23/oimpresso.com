@@ -205,6 +205,7 @@ class ResyncFromCoreCommand extends Command
 
             DB::transaction(function () use ($service, $businessId, $c, $coreTotal, $ratio, &$corrigidos, &$baixasEstornadas, $detail) {
                 /** @var Titulo|null $titulo */
+                // SUPERADMIN: comando sem sessão; o filtro é o where business_id da empresa em processamento
                 $titulo = Titulo::query()
                     ->withoutGlobalScope(BusinessScopeImpl::class)
                     ->where('business_id', $businessId)
@@ -221,6 +222,7 @@ class ResyncFromCoreCommand extends Command
                 // 1) Estorna baixas-lixo (append-only — TECH-0002, nunca delete).
                 $garbage = $this->baixasLixo($businessId, (int) $titulo->id, $coreTotal, $ratio);
                 foreach ($garbage as $b) {
+                    // SUPERADMIN: comando sem sessão; o estorno grava com o business_id da empresa em processamento
                     TituloBaixa::query()
                         ->withoutGlobalScope(BusinessScopeImpl::class)
                         ->create([
