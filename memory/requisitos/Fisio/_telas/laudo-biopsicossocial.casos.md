@@ -35,14 +35,16 @@ related_us: [US-FISIO-060]
 | UC-FBP-04 | seção externa: nome, conselho e número obrigatórios para registrar; seção sem texto não se registra | must | US-FISIO-060 | `FisioLaudoBpsAssinaturaTest` |
 | UC-FBP-05 | sem `fisio.editar` 403; outra empresa 404; item fora dos quatro da LBI 404 | must | US-FISIO-060 | `FisioLaudoBpsAssinaturaTest` |
 | UC-FBP-06 | paciente bloqueado não recebe laudo novo | should | US-FISIO-060 | `FisioLaudoBpsAssinaturaTest` |
+| UC-FBP-07 | sugestão da fisioterapia: dor de 30 e 90 dias, crises, adesão e questionários com período e fonte | must | US-FISIO-060 | `FisioLaudoBpsSugestaoTest` |
+| UC-FBP-08 | sem dado suficiente: nenhum número, aviso no lugar | must | US-FISIO-060 | `FisioLaudoBpsSugestaoTest` |
+| UC-FBP-09 | o texto sugerido não conclui; leitura com `fisio.access`; outra empresa 404 | must | US-FISIO-060 | `FisioLaudoBpsSugestaoTest` |
 
 As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 
 - [BACKLOG] o PDF sai com espaço para a assinatura à mão ou por certificado externo do autor de fora da clínica.
-- [BACKLOG] seção da fisioterapia pré-preenchida com dor média e variação de 30 e 90 dias, crises e adesão, cada número com data e fonte; sem dado suficiente, campo vazio com aviso.
 - [BACKLOG] questionários de fibromialgia no pré-preenchimento (depende da etapa 07, P-03).
 - [BACKLOG] PDF com as quatro seções; seção não registrada sai em branco com espaço de assinatura; uma linha no `activity_log` só com ids.
-- [BACKLOG] nenhum texto gerado pelo sistema conclui que o paciente é pessoa com deficiência.
+- [BACKLOG] o PDF traz a nota de que o laudo descreve e não enquadra: quem decide é a perícia.
 
 ---
 
@@ -92,4 +94,32 @@ As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 ## UC-FBP-06 · Paciente bloqueado `[should]`
 - **Aceite:** Paciente bloqueado (Lei 13.787/2018) não recebe laudo novo.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsAssinaturaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-07 · Sugestão da seção de atividades `[must]`
+- **Persona:** fisioterapeuta abrindo a seção de atividades do laudo.
+- **Aceite:** Dado um paciente com check-ins, programa ativo e questionário · Quando ele pede a
+  sugestão · Então recebe, para 30 e 90 dias contados de hoje para trás, média (uma casa),
+  mínima e máxima da dor (escala 0 a 10) e o número de dias de crise; a adesão dos últimos 30 dias
+  (dias com exercício feito ÷ meta semanal × 30 ÷ 7, teto 100); e cada questionário com pontuação
+  e data. O texto cita o período de cada número e a fonte. Nada é gravado: a sugestão vira rascunho
+  só quando o profissional salva, depois de revisar.
+- **Âncora:** LBI art. 2º, §1º, II (limitação no desempenho de atividades).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsSugestaoTest.php`
+- **Status: 🧪**
+
+## UC-FBP-08 · Sem dado, sem número `[must]`
+- **Aceite:** Com menos de 7 dias de dor registrada na janela, a média não é calculada e entra
+  um aviso dizendo quantos registros há. Sem programa ativo, a adesão não é calculada. Sem
+  questionário, aviso. O texto não traz número que não foi medido.
+- **Regressão que defende:** média de 2 dias apresentada à perícia como se fosse o mês.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsSugestaoTest.php`
+- **Status: 🧪**
+
+## UC-FBP-09 · O software descreve, não enquadra `[must]`
+- **Aceite:** Mesmo com dor alta todos os dias, o texto sugerido não usa "deficiência",
+  "incapacidade", "grave", "severa" nem "invalidez". Quem só tem `fisio.access` vê a sugestão;
+  usuário da outra empresa recebe 404.
+- **Âncora:** ADR 0437 §5 (linha da Anvisa: o software não conclui).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsSugestaoTest.php`
 - **Status: 🧪**

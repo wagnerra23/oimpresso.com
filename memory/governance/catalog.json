@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 943,
-    "edges": 1273,
+    "nodes": 944,
+    "edges": 1274,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 153,
-      "component": 550,
+      "component": 551,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 550,
+      "hasComponent": 551,
       "dependsOn": 139,
       "delegatesTo": 127,
       "migratesTo": 1,
@@ -3513,6 +3513,13 @@
       "module": "Fisio",
       "name": "LaudoBiopsicossocialController",
       "desc": "cria o laudo, salva o rascunho de cada seção e registra com carimbo do servidor (US-FISIO-060)"
+    },
+    {
+      "id": "component:Fisio/LaudoBiopsicossocialFisio",
+      "type": "component",
+      "module": "Fisio",
+      "name": "LaudoBiopsicossocialFisio",
+      "desc": "sugestão da seção de atividades com dor, crises, adesão e questionários, cada número com período e fonte (US-FISIO-060)"
     },
     {
       "id": "component:Fisio/OnboardingController",
@@ -10711,6 +10718,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/LaudoBiopsicossocialController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/LaudoBiopsicossocialFisio",
       "type": "hasComponent",
       "source": "contains"
     },

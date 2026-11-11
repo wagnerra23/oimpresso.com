@@ -43,6 +43,7 @@ contains:
   - "PortalAgendaController — agenda do paciente no portal: horários livres, marcar, remarcar, cancelar, confirmar, Cheguei, nota e lista de espera (US-FISIO-016)"
   - "Laudo biopsicossocial integrado: quatro seções da LBI, cada uma com autor e assinatura; seção registrada append-only (fisio_laudos_bps, fisio_laudos_bps_secoes — US-FISIO-060)"
   - "LaudoBiopsicossocialController — cria o laudo, salva o rascunho de cada seção e registra com carimbo do servidor (US-FISIO-060)"
+  - "LaudoBiopsicossocialFisio — sugestão da seção de atividades com dor, crises, adesão e questionários, cada número com período e fonte (US-FISIO-060)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Preço do pacote, cobrança e títulos → Modules/Financeiro (via venda do núcleo); o Fisio só lê fin_titulos pelo model Titulo (F3, US-FISIO-021/022)"

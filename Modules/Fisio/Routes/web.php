@@ -111,6 +111,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 
         // Laudo biopsicossocial (US-FISIO-060): criar, rascunho por seção e registrar. Escrita exige `fisio.editar`.
         Route::post('pacientes/{id}/laudos-bps', [LaudoBiopsicossocialController::class, 'store'])->whereNumber('id')->name('pacientes.laudos-bps.store');
+        Route::get('laudos-bps/{laudo}/sugestao-fisio', [LaudoBiopsicossocialController::class, 'sugestaoFisio'])->whereNumber('laudo')->name('laudos-bps.sugestao-fisio');
         Route::put('laudos-bps/{laudo}/secoes/{item}', [LaudoBiopsicossocialController::class, 'salvar'])->whereNumber('laudo')->whereAlpha('item')->name('laudos-bps.secoes.salvar');
         Route::post('laudos-bps/{laudo}/secoes/{item}/registrar', [LaudoBiopsicossocialController::class, 'registrar'])->whereNumber('laudo')->whereAlpha('item')->name('laudos-bps.secoes.registrar');
 

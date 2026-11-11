@@ -15,6 +15,8 @@ use Modules\Fisio\Entities\LaudoBiopsicossocial;
 use Modules\Fisio\Entities\LaudoBiopsicossocialSecao as Secao;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Services\ConfiguracaoClinica;
+use Modules\Fisio\Services\DiaLocal;
+use Modules\Fisio\Services\LaudoBiopsicossocialFisio;
 
 /**
  * Escrita do laudo biopsicossocial (US-FISIO-060; Lei 15.176/2025; LBI art. 2º, §1º).
@@ -49,6 +51,18 @@ class LaudoBiopsicossocialController extends Controller
         ]);
 
         return $this->resposta($request, ['id' => $laudo->id], 'Laudo criado.', 201);
+    }
+
+    /**
+     * Sugestão da seção de atividades com o que o Fisio mede (dor, crises, adesão, questionários).
+     * Leitura: basta `fisio.access`. Nada é gravado; o profissional revisa e salva como rascunho.
+     */
+    public function sugestaoFisio(Request $request, int $laudo, LaudoBiopsicossocialFisio $sugestao): JsonResponse
+    {
+        $biz = $this->empresa($request);
+        $doc = LaudoBiopsicossocial::query()->where('business_id', $biz)->with('patient')->findOrFail($laudo);
+
+        return response()->json($sugestao->montar($doc->patient, $biz, DiaLocal::de(now())));
     }
 
     /** Salva o rascunho da seção do item (cria se não houver). Seção registrada não é tocada. */
