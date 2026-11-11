@@ -746,6 +746,9 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/MultiTenantTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/ApontamentoControllerTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/ApontamentoTrackerTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoControllerTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/MaterialSeederTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php \
