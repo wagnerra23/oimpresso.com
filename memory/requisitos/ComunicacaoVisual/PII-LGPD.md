@@ -60,7 +60,7 @@ Garantia automática: `Modules/ComunicacaoVisual/Tests/Feature/AuditTrailIntegri
 
 - Arte e foto do local vão para a tabela `media` do core, no disco público (`public/uploads/media`), e a OS aponta para o mesmo arquivo. Quem tem a URL baixa, sem login: não há rota de download por empresa.
 - Foto de fachada pode mostrar pessoa, placa ou endereço. Os arquivos não estão em `retention.php`.
-- Formatos aceitos: `OrcamentoArquivoController::EXTENSOES`. Em 2026-11-11 a lista inclui `svg`; a remoção está em PR aberto do lote 0.
+- Formatos aceitos: `OrcamentoArquivoController::EXTENSOES`. Desde 2026-11-11 ([PR #10685](https://github.com/wagnerra23/oimpresso.com/pull/10685), UC-CVARQ-07) `svg` não entra: o navegador executaria o script de um SVG aberto pela URL pública.
 
 ### 4.3 Aviso de instalação por WhatsApp (US-COMVIS-007)
 
@@ -70,7 +70,7 @@ Garantia automática: `Modules/ComunicacaoVisual/Tests/Feature/AuditTrailIntegri
 
 ### 4.4 API de apontamento (spool)
 
-Em 2026-11-11, `GET /comunicacao-visual/api/apontamentos` carrega a relação `operador` inteira (registro de `users`). A correção (permissão e resposta sem PII) está em PR aberto do lote 0.
+Desde 2026-11-11 ([PR #10704](https://github.com/wagnerra23/oimpresso.com/pull/10704)) a API exige `comvis.apontamento.create` (ou superadmin) e `GET /comunicacao-visual/api/apontamentos` devolve do operador só `id`, `first_name` e `last_name`. Até ali carregava o registro inteiro de `users` e não checava permissão.
 
 ## 5. Retention LGPD Art. 16
 
