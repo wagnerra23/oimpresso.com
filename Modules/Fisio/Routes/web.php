@@ -19,6 +19,7 @@ use Modules\Fisio\Http\Controllers\PesquisaController;
 use Modules\Fisio\Http\Controllers\PacotesController;
 use Modules\Fisio\Http\Controllers\PortalAgendaController;
 use Modules\Fisio\Http\Controllers\PortalController;
+use Modules\Fisio\Http\Controllers\PortalDocumentosController;
 use Modules\Fisio\Http\Controllers\PortalLinkController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
 use Modules\Fisio\Http\Controllers\FolhaProgramaController;
@@ -145,6 +146,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('pacientes/{id}/documentos', [DocumentosPacienteController::class, 'store'])->whereNumber('id')->name('pacientes.documentos.store');
         Route::post('documentos/{documento}/tirar', [DocumentosPacienteController::class, 'tirar'])->whereNumber('documento')->name('documentos.tirar');
         Route::get('documentos/{documento}/arquivo', [DocumentosPacienteController::class, 'arquivo'])->whereNumber('documento')->name('documentos.arquivo');
+        // Envio do portal pendente de conferência (parte 4): aceitar no prontuário ou recusar com motivo.
+        Route::post('documentos/{documento}/aceitar', [DocumentosPacienteController::class, 'aceitar'])->whereNumber('documento')->name('documentos.aceitar');
+        Route::post('documentos/{documento}/recusar', [DocumentosPacienteController::class, 'recusar'])->whereNumber('documento')->name('documentos.recusar');
         // Transcrição pela IA, conferida pelo profissional (US-FISIO-063 parte 3). Tudo exige fisio.editar; desligada por empresa.
         Route::post('documentos/transcricao-ia', [TranscricaoDocumentoController::class, 'configurar'])->name('documentos.transcricao-ia');
         Route::post('documentos/{documento}/transcricao', [TranscricaoDocumentoController::class, 'sugerir'])->whereNumber('documento')->name('documentos.transcricao.store');
@@ -221,6 +225,8 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
         Route::post('pre-anamnese', [PortalController::class, 'preAnamnese'])->name('pre-anamnese');
         Route::post('desafio', [PortalController::class, 'desafio'])->name('desafio');
+        // Foto de exame ou receita (US-FISIO-063 parte 4): exige o consentimento `documentos`; chega pendente à clínica.
+        Route::post('documentos', [PortalDocumentosController::class, 'store'])->name('documentos.store');
         // Agenda do paciente (US-FISIO-016): mesmo portão do portal (PIN + teleatendimento), business do token.
         Route::get('agenda', [PortalAgendaController::class, 'index'])->name('agenda.index');
         Route::get('agenda/horarios', [PortalAgendaController::class, 'horarios'])->name('agenda.horarios');

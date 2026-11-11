@@ -110,8 +110,10 @@ function Linha({ doc, tipos, podeEditar, transcricaoIa }: { doc: DocumentoFicha;
     });
   };
 
+  const pendente = doc.status === 'pendente';
+  // Pendente do portal: "Não aceitar" usa o mesmo painel de motivo, na rota de recusa.
   const tirar = () => {
-    router.post(`/fisio/documentos/${doc.id}/tirar`, { motivo }, {
+    router.post(`/fisio/documentos/${doc.id}/${pendente ? 'recusar' : 'tirar'}`, { motivo }, {
       preserveScroll: true,
       onError: (e) => setErro((e as Record<string, string>).motivo ?? 'Não foi possível tirar da lista.'),
     });
@@ -133,7 +135,13 @@ function Linha({ doc, tipos, podeEditar, transcricaoIa }: { doc: DocumentoFicha;
               <Sparkles className="size-4" aria-hidden="true" /> {lendo ? 'Lendo a foto…' : 'Sugerir campos pela IA'}
             </Button>
           )}
-          {podeEditar && doc.status === 'prontuario' && !tirando && (
+          {podeEditar && pendente && !tirando && (
+            <>
+              <Button size="sm" variant="ghost" onClick={() => setTirando(true)}>Não aceitar</Button>
+              <Button size="sm" onClick={() => router.post(`/fisio/documentos/${doc.id}/aceitar`, {}, { preserveScroll: true })}>Aceitar no prontuário</Button>
+            </>
+          )}
+          {podeEditar && !pendente && !tirando && (
             <Button size="sm" variant="ghost" onClick={() => setTirando(true)}>Tirar da lista</Button>
           )}
         </span>
@@ -146,12 +154,12 @@ function Linha({ doc, tipos, podeEditar, transcricaoIa }: { doc: DocumentoFicha;
       {!tirando && erro && <p className="text-xs text-destructive">{erro}</p>}
       {tirando && (
         <div className="flex flex-col gap-2">
-          <Label htmlFor={`doc-motivo-${doc.id}`}>Por que sai da lista?</Label>
+          <Label htmlFor={`doc-motivo-${doc.id}`}>{pendente ? 'Por que não aceitar?' : 'Por que sai da lista?'}</Label>
           <Input id={`doc-motivo-${doc.id}`} maxLength={255} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
           {erro && <p className="text-xs text-destructive">{erro}</p>}
-          <p className="text-xs text-muted-foreground">O documento continua guardado no prontuário. Fica registrado quem tirou e quando.</p>
+          <p className="text-xs text-muted-foreground">{pendente ? 'O envio sai da lista e não entra no prontuário. Fica registrado quem recusou e por quê.' : 'O documento continua guardado no prontuário. Fica registrado quem tirou e quando.'}</p>
           <div className="flex gap-2">
-            <Button size="sm" variant="destructive" onClick={tirar}>Tirar da lista</Button>
+            <Button size="sm" variant="destructive" onClick={tirar}>{pendente ? 'Não aceitar' : 'Tirar da lista'}</Button>
             <Button size="sm" variant="ghost" onClick={() => { setTirando(false); setErro(null); }}>Cancelar</Button>
           </div>
         </div>

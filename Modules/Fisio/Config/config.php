@@ -89,6 +89,9 @@ return [
         // pelo CEP daquele estudo (`fisio_studies.tcle_version`, etapa 07 P-02). A antiga
         // `pesquisa_ia` saiu da lista: os aceites antigos ficam no banco e não valem para nada.
         'treino_ia' => 'v1',
+        // Enviar foto de exame ou receita pelo portal (US-FISIO-063, parte 4). Separado do
+        // teleatendimento: sem ele o portal não recebe o envio.
+        'documentos' => 'v1',
     ],
 
     /*
@@ -142,6 +145,8 @@ return [
          * (Anthropic e OpenAI pela API comercial). Provedor com plano gratuito que treina com o
          * conteúdo (ex.: Gemini sem faturamento) não entra. Sem `env()` aqui (Larastan).
          */
+        // Envios pelo portal por paciente e por dia: acima disso o portal responde 429.
+        'portal_max_dia' => 10,
         'transcricao' => [
             'provider' => null,
             'model' => null,
