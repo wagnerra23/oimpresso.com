@@ -53,6 +53,13 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php`.
 - **Status: 🧪**
 
+## UC-PCCH-12 · Custo-hora sem float · `must` valor
+
+- **Persona:** gestor de produção.
+- **Aceite:** Dado o custo-hora digitado com três casas · Então grava e compara em centavos, arredondando a terceira casa para cima (1,005 → 1,01; 2,675 → 2,68; 30,001 → 30,00) · Dado o posto a 50,00 · Quando salva 50,001 · Então o custo direto fica; quando salva 50,01, sai · Dado "1e2" · Então a validação recusa e nada é gravado.
+- **Teste:** `Modules/Producao/Tests/Feature/ProducaoCustoHoraDecimalContratoTest.php`.
+- **Status: 🧪**
+
 ## Custeio RKW e ponto de equilíbrio (US-FIN-070 · UC-FLX-20)
 
 > **Âncora:** US-FIN-070 do `memory/requisitos/Financeiro/SPEC.md` (§Aceite: rateio das despesas fixas
@@ -347,6 +354,14 @@ o gestor troca a lista por "Bolha" **Então** Setup fica inativo e some da lista
 nasce e a pausa antiga segue apontando para Setup; voltando "Setup" à lista, o mesmo motivo reativa, sem
 duplicar. Antes, apagar o motivo usado dava erro de chave estrangeira (auditoria lote 2.4, P-08 do eixo 5).
 Prova: `ProducaoRoteirosContratoTest`.
+
+Status: 🧪
+
+## UC-PCISO-02 · A outra empresa não vê nem altera a ferramenta · `must`
+
+**Dado** uma ferramenta em cada empresa **Quando** a 99 abre a lista **Então** não vê a da 98 · Editar a ferramenta
+da 98 estando na 99 dá 404 e nada muda · **Controle:** a mesma rota altera a ferramenta da própria empresa.
+Prova: `ProducaoIsolamentoEmpresasContratoTest`.
 
 Status: 🧪
 

@@ -37,6 +37,7 @@ final class SituacaoDaOrdem
 
     public function ordem(int $businessId, int $ordemId): Ordem
     {
+        // SUPERADMIN: a rota pública /arte/{token} chega aqui com a sessão de quem abriu o link; a empresa vem do pedido.
         return Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->find($ordemId)
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS não encontrada.');
     }
@@ -116,6 +117,7 @@ final class SituacaoDaOrdem
     public function concluirItemSeTerminou(int $businessId, int $ordemId, int $userId): bool
     {
         return DB::transaction(function () use ($businessId, $ordemId, $userId): bool {
+            // SUPERADMIN: a rota pública /arte/{token} conclui a etapa aqui; a empresa vem do pedido, não da sessão de quem abriu.
             $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->lockForUpdate()->find($ordemId);
             $status = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordemId)->pluck('status');
             if (! $ordem || $ordem->currentStage?->key !== 'em_execucao' || ! $status->contains('concluida')
@@ -187,6 +189,7 @@ final class SituacaoDaOrdem
     public function liberarPeloSinalDaVenda(int $businessId, int $transactionId): int
     {
         // Todo pagamento de qualquer empresa passa aqui: venda sem OS sai na 1ª consulta (índice da venda).
+        // SUPERADMIN: gancho do pagamento, inclusive no público /confirm-payment; a empresa vem do pagamento, não da sessão.
         $ids = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
             ->where('transaction_id', $transactionId)->pluck('id');
         if ($ids->isEmpty() || $this->sinal->minimo($businessId, $transactionId) === null) {
@@ -214,6 +217,7 @@ final class SituacaoDaOrdem
         $this->processo->garantir($businessId);
 
         return DB::transaction(function () use ($businessId, $ordemId): bool {
+            // SUPERADMIN: chega pelo gancho do pagamento (público ou banco); a empresa vem do pagamento, não da sessão.
             $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->lockForUpdate()->find($ordemId);
             if (! $ordem || $ordem->currentStage?->key !== 'aguardando_liberacao') {
                 return false;
@@ -245,7 +249,7 @@ final class SituacaoDaOrdem
         $this->processo->garantir($businessId);
 
         return DB::transaction(function () use ($businessId, $ordemId, $user): array {
-            $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->lockForUpdate()->find($ordemId)
+            $ordem = Ordem::query()->where('business_id', $businessId)->with('currentStage')->lockForUpdate()->find($ordemId)
                 ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS não encontrada.');
             $falta = app(FaltaDeMaterialDaOs::class)->daOrdem($businessId, $ordem);
             if ($falta === [] && $ordem->currentStage?->key === 'aguardando_material') {
@@ -331,6 +335,7 @@ final class SituacaoDaOrdem
      */
     public function cancelarPelaVenda(int $businessId, int $transactionId): int
     {
+        // SUPERADMIN: chamado pelo gancho Transaction::updated; a empresa vem da venda cancelada, não da sessão.
         $ids = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
             ->where('transaction_id', $transactionId)->pluck('id');
         if ($ids->isEmpty()) {
@@ -340,6 +345,7 @@ final class SituacaoDaOrdem
         $canceladas = 0;
         foreach ($ids as $id) {
             $canceladas += DB::transaction(function () use ($businessId, $transactionId, $id): int {
+                // SUPERADMIN: mesmo gancho da leitura acima; a empresa vem da venda cancelada, não da sessão.
                 $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->lockForUpdate()->find($id);
                 if (! $ordem || $ordem->currentStage === null || $ordem->currentStage->is_terminal) {
                     return 0;

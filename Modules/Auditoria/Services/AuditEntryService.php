@@ -2,9 +2,11 @@
 
 namespace Modules\Auditoria\Services;
 
+use App\User;
 use App\Util\OtelHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -48,9 +50,13 @@ class AuditEntryService
                 }
             }
 
-            return $query
+            $pagina = $query
                 ->orderByDesc('id')
                 ->paginate($perPage ?? (int) config('auditoria.page_size', 50));
+
+            $this->anexarRotuloDoAutor($businessId, $pagina);
+
+            return $pagina;
         }, [
             'module'        => 'Auditoria',
             'filters_count' => count(array_intersect_key($filters, array_flip(self::ALLOWED_FILTERS))),
@@ -73,6 +79,22 @@ class AuditEntryService
     }
 
     /**
+     * Mesmo escopo de find(), para a carga deferida da tela de detalhe.
+     *
+     * Devolve null em vez de lançar: o 404 de um partial reload não é resposta Inertia, então a
+     * prop nunca chegaria, o <Deferred> ficaria no esqueleto e o core abriria o diálogo de erro.
+     * Com null a tela sai do esqueleto e mostra o estado de "não encontrada".
+     */
+    public function findOrNull(int $businessId, int $activityId): ?Activity
+    {
+        try {
+            return $this->find($businessId, $activityId);
+        } catch (ModelNotFoundException) {
+            return null;
+        }
+    }
+
+    /**
      * Subset de filtros aceitos (pra Controller passar pro Inertia preserve).
      *
      * @param  array<string,mixed>  $raw
@@ -81,6 +103,54 @@ class AuditEntryService
     public function normalizeFilters(array $raw): array
     {
         return array_intersect_key($raw, array_flip(self::ALLOWED_FILTERS));
+    }
+
+    /**
+     * Preenche `causer_label` (coluna "Por" da lista) em cada linha da página.
+     *
+     * Uma única consulta de nomes por página, só de usuários da empresa da trilha: quem é de
+     * outra empresa aparece pelo id, sem o nome. Não usa o relacionamento `causer` porque ele
+     * entraria inteiro no payload da tela, com e-mail e demais campos do usuário.
+     */
+    private function anexarRotuloDoAutor(int $businessId, LengthAwarePaginator $pagina): void
+    {
+        $ids = collect($pagina->items())
+            ->filter(fn (Activity $a) => $a->causer_type === User::class && $a->causer_id)
+            ->pluck('causer_id')
+            ->unique()
+            ->values();
+
+        // withTrashed: quem saiu da empresa continua sendo o autor do que fez.
+        $nomes = $ids->isEmpty()
+            ? collect()
+            : User::withTrashed()
+                ->where('business_id', $businessId)
+                ->whereIn('id', $ids)
+                ->get(['id', 'first_name', 'last_name'])
+                ->mapWithKeys(fn (User $u) => [$u->id => $u->nome_exibicao]);
+
+        foreach ($pagina->items() as $activity) {
+            $nome = $activity->causer_type === User::class ? $nomes->get($activity->causer_id) : null;
+            $activity->setAttribute('causer_label', $this->rotuloDoAutor($activity, $nome));
+        }
+    }
+
+    private function rotuloDoAutor(Activity $activity, ?string $nome): string
+    {
+        // Coluna própria do activity_log, fora do docblock do model do Spatie.
+        $origem = $activity->getAttribute('causer_kind');
+
+        if (! $activity->causer_id) {
+            return match ($origem) {
+                'agent' => 'IA',
+                'api'   => 'API',
+                default => 'Sistema',
+            };
+        }
+
+        $autor = $nome ?: (($activity->causer_type === User::class ? 'Usuário' : class_basename((string) $activity->causer_type)).' #'.$activity->causer_id);
+
+        return $origem === 'agent' ? 'IA · '.$autor : $autor;
     }
 
     /**

@@ -73,14 +73,41 @@ function inutUsuarioDe(int $businessId): App\User
     return App\User::where('business_id', $businessId)->firstOrFail();
 }
 
+/**
+ * Âncora da recusa: o 403 tem de vir do `CancelarNfeRequest::authorize()`.
+ *
+ * Status sozinho não prova isso (§5 2026-09-27): qualquer camada antes do controller
+ * pode devolver 403. Aqui o teste exige as três coisas juntas:
+ *   · o FormRequest foi resolvido pelo container (a requisição passou o middleware
+ *     e chegou ao `store`);
+ *   · a resposta é a da AuthorizationException e não traz `errors` (a validação,
+ *     que roda depois do authorize, não chegou a rodar);
+ *   · nenhuma inutilização foi gravada para o business.
+ */
+function inutEsperaRecusaDoGate($test, App\User $user, array $sessao, int $businessId): void
+{
+    $resolvido = 0;
+    app()->resolving(Modules\NfeBrasil\Http\Requests\CancelarNfeRequest::class, function () use (&$resolvido) {
+        $resolvido++;
+    });
+    $antes = DB::table('nfe_inutilizacoes')->where('business_id', $businessId)->count();
+
+    $test->actingAs($user)
+        ->withSession($sessao)
+        ->postJson(INUT_ROTA, INUT_PAYLOAD_INVALIDO)
+        ->assertStatus(403)
+        ->assertJsonPath('message', 'This action is unauthorized.')
+        ->assertJsonMissingPath('errors');
+
+    expect($resolvido)->toBe(1);
+    expect(DB::table('nfe_inutilizacoes')->where('business_id', $businessId)->count())->toBe($antes);
+}
+
 it('BARRA quem não tem a role fiscal.inutilizar (era o caso de TODOS, pois can() nunca casava)', function () {
     $user = inutUsuarioDe(1);
     $user->roles()->detach();
 
-    $this->actingAs($user)
-        ->withSession(['business.id' => 1, 'user.business_id' => 1])
-        ->postJson(INUT_ROTA, INUT_PAYLOAD_INVALIDO)
-        ->assertStatus(403);
+    inutEsperaRecusaDoGate($this, $user, ['business.id' => 1, 'user.business_id' => 1], 1);
 });
 
 it('LIBERA quem tem a role — 422 da validação prova que passou do gate sem tocar a SEFAZ', function () {
@@ -91,7 +118,8 @@ it('LIBERA quem tem a role — 422 da validação prova que passou do gate sem t
     $this->actingAs($user)
         ->withSession(['business.id' => 1, 'user.business_id' => 1])
         ->postJson(INUT_ROTA, INUT_PAYLOAD_INVALIDO)
-        ->assertStatus(422);
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['modelo']);
 });
 
 it('CROSS-TENANT: role de OUTRO business não autoriza (Tier 0 · ADR 0093)', function () {
@@ -109,10 +137,7 @@ it('CROSS-TENANT: role de OUTRO business não autoriza (Tier 0 · ADR 0093)', fu
     $user->roles()->detach();
     $user->assignRole(inutRoleFiscal($outroBusiness)); // role do outro tenant, não do dele
 
-    $this->actingAs($user)
-        ->withSession(['business.id' => 1, 'user.business_id' => 1])
-        ->postJson(INUT_ROTA, INUT_PAYLOAD_INVALIDO)
-        ->assertStatus(403);
+    inutEsperaRecusaDoGate($this, $user, ['business.id' => 1, 'user.business_id' => 1], 1);
 });
 
 it('sem contexto de business na sessão, barra (business_id vem da sessão, nunca do request)', function () {
@@ -120,8 +145,6 @@ it('sem contexto de business na sessão, barra (business_id vem da sessão, nunc
     $user->roles()->detach();
     $user->assignRole(inutRoleFiscal(1));
 
-    $this->actingAs($user)
-        ->withSession(['user.business_id' => 1]) // 'business.id' ausente de propósito
-        ->postJson(INUT_ROTA, INUT_PAYLOAD_INVALIDO)
-        ->assertStatus(403);
+    // 'business.id' ausente de propósito
+    inutEsperaRecusaDoGate($this, $user, ['user.business_id' => 1], 1);
 });

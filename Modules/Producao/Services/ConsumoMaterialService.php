@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Producao\Services;
 
 use App\Exceptions\PurchaseSellMismatch;
-use App\Scopes\ScopeByBusiness;
 use App\Transaction;
 use App\TransactionSellLine;
 use App\Utils\ProductUtil;
@@ -101,7 +100,7 @@ final class ConsumoMaterialService
     private function baixar(int $businessId, int $userId, Programacao $etapa, object $material, string $quantidade, string $chave, Carbon $momento, ?int $loteId): Consumo
     {
         // Trava a OS: uma baixa não passa pela conclusão que congela o custo.
-        $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')
+        $ordem = Ordem::query()->where('business_id', $businessId)->with('currentStage')
             ->lockForUpdate()->find((int) $etapa->os_id)
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS não encontrada.');
         $situacao = $ordem->currentStage?->key;

@@ -21,6 +21,7 @@ use App\Variation;
 use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\PurchaseCreatedOrModified;
@@ -469,6 +470,10 @@ class PurchaseController extends Controller
             'common_settings' => $common_settings,
             // "Comprar" da lista de produtos (/products) abre esta tela com o produto já na compra.
             'produto_inicial' => $this->produtoInicialDaCompra($business_id),
+            // US-VEST-031: "Sugerir pela curva" só com o módulo instalado e no pacote da empresa.
+            // A rota só existe com o módulo ativo. `purchase.create` já foi conferida em create().
+            'curva_compra_disponivel' => Route::has('vestuario.curva-compra')
+                && (bool) $this->moduleUtil->hasThePermissionInSubscription($business_id, 'vestuario_module', 'superadmin_package'),
         ]);
     }
 
