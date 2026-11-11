@@ -36,8 +36,8 @@ class LaudoBiopsicossocialSecao extends Model
     use HasBusinessScope;
     use SemExclusaoDeDadoClinico;
 
-    /** Os quatro itens do art. 2º, §1º, da LBI, na ordem da lei. */
-    public const ITENS = ['impedimentos', 'atividades', 'fatores', 'participacao'];
+    /** Os quatro itens do art. 2º, §1º, da LBI, na ordem da lei (incisos I a IV). */
+    public const ITENS = ['impedimentos', 'fatores', 'atividades', 'participacao'];
 
     /** Conselho que costuma escrever cada item. É sugestão para a tela, não restrição. */
     public const CONSELHO_SUGERIDO = [

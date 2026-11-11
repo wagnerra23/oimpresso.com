@@ -324,7 +324,7 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 ## User Stories — Laudo biopsicossocial (fibromialgia)
 
-> Pedido de [W] em 2026-11-11. Base legal: Lei 15.176/2025, que criou o art. 1º-C na Lei 14.705/2023: a equiparação da pessoa com fibromialgia à pessoa com deficiência depende de avaliação biopsicossocial por equipe multiprofissional, nos termos do art. 2º da Lei 13.146/2015 (LBI). As quatro seções do laudo são os quatro itens do §1º do art. 2º da LBI.
+> Pedido de [W] em 2026-11-11. Base legal: Lei 15.176/2025, que criou o art. 1º-C na Lei 14.705/2023: a equiparação da pessoa com fibromialgia à pessoa com deficiência depende de avaliação biopsicossocial por equipe multiprofissional, nos termos do art. 2º da Lei 13.146/2015 (LBI). As quatro seções do laudo são os quatro incisos do §1º do art. 2º da LBI, nesta ordem: I impedimentos nas funções e estruturas do corpo, II fatores socioambientais, psicológicos e pessoais, III limitação no desempenho de atividades, IV restrição de participação.
 
 ### US-FISIO-060 · Laudo biopsicossocial integrado, com assinatura por seção — **P1**
 
@@ -333,6 +333,6 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 > owner: — · priority: p1 · estimate: 12h · status: doing · type: story
 > blocked_by: nenhum para o documento, as assinaturas, a dor e a adesão. Os questionários de fibromialgia (FIQR-Br, ACR 2016/FSQ, PGIC, sentar e levantar em 30 s) entram quando a etapa 07 (P-03) estiver no `main`.
 
-**DoD:** quatro seções (impedimentos, atividades, fatores, participação), cada uma com autor, conselho (CRM, CREFITO, CRP, CRESS), número do registro e assinatura própria; seção registrada não muda nem se apaga, correção é seção nova; carimbo com usuário e hora do servidor; a seção da fisioterapia vem pré-preenchida com dor média e variação de 30 e 90 dias, crises e adesão, citando data e fonte, e fica vazia com aviso quando falta dado; autor de fora da clínica não tem usuário: a clínica transcreve o texto e o PDF sai com espaço para a assinatura dele; cada PDF gerado grava uma linha no `activity_log` só com ids; o texto gerado pelo sistema não conclui que o paciente é pessoa com deficiência (quem enquadra é a perícia, ADR 0437 §5); a empresa 99 não vê nada da 98 — `FisioLaudoBpsEsquemaTest`.
+**DoD:** quatro seções na ordem da LBI (I impedimentos, II fatores socioambientais, III atividades, IV participação), cada uma com autor, conselho (CRM, CREFITO, CRP, CRESS), número do registro e assinatura própria; seção registrada não muda nem se apaga, correção é seção nova; carimbo com usuário e hora do servidor; a seção da fisioterapia vem pré-preenchida com dor média e variação de 30 e 90 dias, crises e adesão, citando data e fonte, e fica vazia com aviso quando falta dado; autor de fora da clínica não tem usuário: a clínica transcreve o texto e o PDF sai com espaço para a assinatura dele; cada PDF gerado grava uma linha no `activity_log` só com ids; o texto gerado pelo sistema não conclui que o paciente é pessoa com deficiência (quem enquadra é a perícia, ADR 0437 §5); a empresa 99 não vê nada da 98 — `FisioLaudoBpsEsquemaTest`.
 
 **Testado em:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php`

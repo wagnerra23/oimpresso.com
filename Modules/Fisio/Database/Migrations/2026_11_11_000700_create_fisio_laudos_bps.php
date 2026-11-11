@@ -12,10 +12,10 @@ use Illuminate\Support\Facades\Schema;
  * pessoa com fibromialgia à pessoa com deficiência depende de avaliação biopsicossocial por
  * equipe multiprofissional, nos termos do art. 2º da Lei 13.146/2015 (LBI). O §1º do art. 2º
  * lista os quatro itens da avaliação, que viram as quatro seções do laudo:
- *   impedimentos  — funções e estruturas do corpo (costuma ser o médico, CRM)
- *   atividades    — limitação no desempenho de atividades (fisioterapeuta, CREFITO)
- *   fatores       — fatores socioambientais, psicológicos e pessoais (psicólogo, CRP)
- *   participacao  — restrição de participação (assistente social, CRESS)
+ *   I   impedimentos — funções e estruturas do corpo (costuma ser o médico, CRM)
+ *   II  fatores      — fatores socioambientais, psicológicos e pessoais (psicólogo, CRP)
+ *   III atividades   — limitação no desempenho de atividades (fisioterapeuta, CREFITO)
+ *   IV  participacao — restrição de participação (assistente social, CRESS)
  *
  * `fisio_laudos_bps` é o documento; `fisio_laudos_bps_secoes` guarda cada seção com o próprio
  * autor e a própria assinatura. Seção registrada (`registrado_em` preenchido) não muda nem se
@@ -49,7 +49,7 @@ return new class extends Migration
                 $t->id();
                 $t->unsignedInteger('business_id')->index();
                 $t->foreignId('laudo_id')->constrained('fisio_laudos_bps');
-                $t->string('item', 20)->comment('impedimentos | atividades | fatores | participacao');
+                $t->string('item', 20)->comment('impedimentos | fatores | atividades | participacao');
                 $t->text('texto')->nullable();
                 $t->string('autor_nome', 120)->nullable();
                 $t->string('conselho', 10)->nullable()->comment('CRM | CREFITO | CRP | CRESS');
