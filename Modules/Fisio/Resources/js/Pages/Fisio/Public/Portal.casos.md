@@ -63,6 +63,9 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-56 | pesquisa por estudo, com o TCLE do estudo; `pesquisa_ia` sem valor; `treino_ia` à parte | must | `FisioConsentimentoPesquisaTest` |
 | UC-FPP-57 | revogar a pesquisa de um estudo pelo portal | must | `FisioConsentimentoPesquisaTest` |
 | UC-FPP-58 | estudo de outra clínica não existe para o paciente | must | `FisioConsentimentoPesquisaTest` |
+| UC-FPP-59 | o portal avisa a avaliação do estudo em aberto | must | `FisioCobrancaAvaliacaoTest` |
+| UC-FPP-60 | o WhatsApp avisa uma vez por momento, com consentimento | must | `FisioCobrancaAvaliacaoTest` |
+| UC-FPP-61 | o aviso de uma empresa não alcança paciente de outra | must | `FisioCobrancaAvaliacaoTest` |
 
 ---
 
@@ -316,7 +319,24 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - **Aceite:** Estudo da 99 não recebe aceite de paciente da 98, e o portal da 98 responde 404 ao revogá-lo. Estudo encerrado não recebe aceite novo.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php`
 - **Status: 🧪**
+## UC-FPP-59 · A avaliação do estudo que vence aparece no Hoje · `must`
+- **Persona:** participante do estudo de fibromialgia (etapa 07 P-05).
+- **Aceite:** Com o momento de avaliação em aberto (janela aberta, questionário não respondido), o Hoje traz o momento, o último dia e os questionários. Futuro e vencido não aparecem. Quando a clínica registra o questionário, o aviso some. Quem não está no estudo não recebe aviso. O paciente não responde pelo portal: enquanto o texto validado não está no catálogo, a clínica aplica na sessão (ADR 0437 §8).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php`
+- **Status: 🧪**
+
+## UC-FPP-60 · Aviso pelo WhatsApp, uma vez por momento · `must`
+- **Aceite:** Sem consentimento de WhatsApp vigente, nada sai. Com ele, sai um aviso do momento aberto; no dia seguinte o mesmo momento não é avisado de novo; quando abre a janela do próximo momento, sai o aviso dele. Teto por hora e silêncio são os do lembrete diário.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php`
+- **Status: 🧪**
+
+## UC-FPP-61 · O aviso fica na empresa `[T0]` · `must`
+- **Aceite:** O job da 99 não avisa participante da 98.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-11 · etapa 07 P-05 — aviso da avaliação do estudo no Hoje e pelo WhatsApp (uma vez por momento, com consentimento). Protótipo: `PacienteHoje.dc.html` (#10761). A resposta pelo portal fica para quando o texto validado entrar no catálogo.
 - 2026-11-11 · etapa 07 P-02 — `pesquisa_ia` separado em `pesquisa` (por estudo, `fisio_studies`, versão do TCLE do estudo) e `treino_ia`. A tela de Configurações ainda não mostra o estudo: entra com a área do estudo (P-04). UC-FPP-56..58 entram com `FisioConsentimentoPesquisaTest`.
 - 2026-11-04 · Lote 5 — pré-anamnese no portal (`_components/PreAnamnese.tsx`, tabela `fisio_pre_anamneses`, US-FISIO-051). Regiões e faixas de tempo são rascunho do protótipo, pendentes da responsável técnica. UC-FPP-52..55 entram com `FisioPreAnamneseTest`.
 - 2026-11-04 · Lote 5 — tela de Configurações do paciente (`_components/Configuracoes.tsx`), só as autorizações por finalidade; horário do lembrete, acessibilidade e "meus dados" do protótipo ficam fora até o servidor sustentar. UC-FPP-50..51 entram com `FisioPortalConfiguracoesTest`.
