@@ -110,6 +110,8 @@ final class FisioFixtures
             'fisio.jogo.xp.missao' => 0,
             'fisio.jogo.xp.desafio_semanal' => 40,
             'fisio.jogo.teto_semanal_bonus' => 100,
+            // Como em produção: fibromialgia desligada. Quem testa os instrumentos liga (P-03).
+            'fisio.instrumentos_liberados' => [],
             'fisio.consent_versions.teleatendimento' => 'tele-v1',
             'fisio.consent_versions.whatsapp' => 'wa-v1',
             'fisio.portal.max_tentativas' => 5,

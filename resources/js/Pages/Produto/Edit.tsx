@@ -22,7 +22,7 @@ import { cestDoCadastro } from './_components/formulario/cest';
 import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formulario/metodoCusto';
 import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
 import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
-import type { EnderecoNoEstoque } from './_components/formulario/armazenagem';
+import type { EnderecoNoEstoque, SaldoPorLocal } from './_components/formulario/armazenagem';
 import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
@@ -104,6 +104,8 @@ export interface ProdutoEditPageProps {
   producao?: ProducaoDoProduto | null;
   /** CU-PROD-20: quais partes do endereço no estoque a empresa usa. */
   enderecoNoEstoque?: EnderecoNoEstoque;
+  /** CU-PROD-20: o saldo do produto em cada local (coluna "Em estoque", só leitura). */
+  saldoPorLocal?: SaldoPorLocal;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
@@ -226,7 +228,9 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
             metodoCusto={
               props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }
-            armazenagem={p.enableStock ? { valor: armazenagem, mudar: setArmazenagem, endereco } : undefined}
+            armazenagem={
+              p.enableStock ? { valor: armazenagem, mudar: setArmazenagem, endereco, saldos: props.saldoPorLocal ?? {} } : undefined
+            }
             politica={{ valor: politica, mudar: setPolitica }}
           />
           {/* CU-PROD-22: só leitura, fora do <form>. A prop é deferida: o card aparece quando ela chega,
