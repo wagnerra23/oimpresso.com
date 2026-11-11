@@ -22,7 +22,7 @@ import { EtapaConsentimento, EtapaPin } from './_components/Entrada';
 import { CartaoConstancia } from './_components/Constancia';
 import { TelaCrise, TelaHoje } from './_components/Hoje';
 import { ConviteInstalar } from './_components/Instalar';
-import { TelaConfiguracoes } from './_components/Configuracoes';
+import { TelaConfiguracoes, type EstudoAceito } from './_components/Configuracoes';
 import { TelaPreAnamnese, type OpcoesPreAnamnese } from './_components/PreAnamnese';
 import { TelaAgendar } from './_components/Agendar';
 import { TelaConsultas } from './_components/Consultas';
@@ -51,6 +51,7 @@ interface Props {
   consentimentos?: Record<string, boolean>;
   pre_anamnese?: OpcoesPreAnamnese | null;
   avaliacoes_estudo?: AvaliacaoEstudo[];
+  estudos_pesquisa?: EstudoAceito[];
 }
 
 /** Avaliação do estudo em aberto (etapa 07 P-05). A clínica aplica na sessão; o portal só avisa. */
@@ -104,7 +105,7 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
     return <TelaPreAnamnese token={token} clinica={props.clinica ?? null} opcoes={props.pre_anamnese} onVoltar={() => setTela('hoje')} />;
   }
   if (tela === 'config') {
-    return <TelaConfiguracoes token={token} clinica={props.clinica ?? null} consentimentos={props.consentimentos ?? {}} onVoltar={() => setTela('hoje')} />;
+    return <TelaConfiguracoes token={token} clinica={props.clinica ?? null} consentimentos={props.consentimentos ?? {}} estudos={props.estudos_pesquisa ?? []} onVoltar={() => setTela('hoje')} />;
   }
   if (tela === 'crise') {
     return <TelaCrise itens={crise} sequencia={jogo.sequencia} onVoltar={() => setTela('hoje')} onComecar={() => setTela('checkin-crise')} />;
