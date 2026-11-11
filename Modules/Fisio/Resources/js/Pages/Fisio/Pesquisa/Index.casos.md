@@ -39,6 +39,8 @@ related_us: []
 | UC-FES-17 | o modelo recebe só dado sem identificação | must | `FisioAssistentePesquisaTest` |
 | UC-FES-18 | sugestão nasce pendente; aceitar grava quem e quando | must | `FisioAssistentePesquisaTest` |
 | UC-FES-19 | nada sai da área do estudo; outra clínica 404 | must | `FisioAssistentePesquisaTest` |
+| UC-FES-21 | momento que ainda não abriu não vai ao modelo como falta | should | `FisioAssistentePesquisaTest` |
+| UC-FES-22 | a sugestão grava o modelo que respondeu | should | `FisioAssistentePesquisaTest` |
 
 ---
 
@@ -141,7 +143,20 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php`
 - **Status: 🧪**
 
+## UC-FES-21 · O assistente não acusa momento futuro · `should`
+- **Aceite:** O CSV de momentos mandado ao modelo deixa de fora o momento cuja janela ainda não abriu (situação `futuro` nas pendências). Na exportação para a universidade ele continua, como NA.
+- **Regressão que defende:** o modelo sugerir "EVA de 4 semanas ausente" no primeiro dia do estudo (smoke de staging de 2026-11-11).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php`
+- **Status: 🧪**
+
+## UC-FES-22 · Qual modelo gerou a sugestão · `should`
+- **Aceite:** Cada sugestão grava em `model` o modelo que de fato respondeu (`meta->model` da resposta), mesmo com `provider`/`model` nulos na config.
+- **Regressão que defende:** `model` nulo em toda sugestão: não dava para saber qual modelo a gerou (smoke de staging de 2026-11-11).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-11 · UC-FES-21..22 — o assistente não acusa momento futuro e grava o modelo que respondeu (achados do smoke de staging).
 - 2026-11-11 · etapa 07 P-08 — aba Assistente: sugestões de qualidade do dado, resumo descritivo e padrões antes da crise, sobre o dado sem identificação; a pesquisadora aceita ou descarta. Desligado por padrão.
 - 2026-11-11 · etapa 07 P-07 — aba Exportação: 4 CSV (momentos, série diária, participantes, dicionário), `NA` para ausente, dia do estudo no lugar da data, travamento com justificativa, tudo no activity_log.
 - 2026-11-11 · etapa 07 P-06 — aba Eventos adversos: crise por mais de 48 h e alerta de dor, registrados a partir do check-in. O software não classifica gravidade.
