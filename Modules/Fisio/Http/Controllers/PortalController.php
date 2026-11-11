@@ -16,6 +16,7 @@ use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\PortalToken;
 use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Entities\ProgramItem;
+use Modules\Fisio\Entities\Study;
 use Modules\Fisio\Services\AparelhosDoPortal;
 use Modules\Fisio\Services\CheckinDoPortal;
 use Modules\Fisio\Services\Consentimentos;
@@ -306,6 +307,32 @@ class PortalController extends Controller
         }
 
         return response()->json(['revogados' => $this->consentimentos->revogar($this->pacienteDe($linha), $purpose)]);
+    }
+
+    /**
+     * Revogação da pesquisa de UM estudo pelo próprio paciente (etapa 07 P-02). O estudo é
+     * procurado só na empresa do token: estudo de outra clínica responde 404, como inexistente.
+     * O que já foi coletado segue a regra escrita no TCLE.
+     */
+    public function revogarPesquisa(Request $request, string $token, int $study): JsonResponse
+    {
+        $linha = $this->tokens->resolver($token);
+        if ($linha === null) {
+            return $this->linkInvalido();
+        }
+        if (! $this->pinAceito($request, $linha)) {
+            return response()->json(['erro' => 'pin_pendente'], 403);
+        }
+        $paciente = $this->pacienteDe($linha);
+        $estudo = Study::withoutGlobalScopes() // SUPERADMIN: portal público sem sessão; filtra pelo business do paciente.
+            ->where('business_id', (int) $paciente->business_id)
+            ->whereKey($study)
+            ->first();
+        if ($estudo === null) {
+            return response()->json(['erro' => 'estudo_inexistente'], 404);
+        }
+
+        return response()->json(['revogados' => $this->consentimentos->revogarPesquisa($paciente, $estudo)]);
     }
 
     /**
