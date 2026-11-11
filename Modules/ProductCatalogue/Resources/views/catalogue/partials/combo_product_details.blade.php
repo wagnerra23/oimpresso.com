@@ -27,7 +27,8 @@
 							</tr>
 							<tr>
 								<th>@lang('lang_v1.price'):</th>
-			      				<td><span class="display_currency" data-currency_symbol="true">{{ $variation['variation']->sell_price_inc_tax }}</span></td>
+			      				{{-- Preço na unidade do combo (ex.: caixa), como o PDV: preço da unidade base × multiplicador. --}}
+			      				<td><span class="display_currency" data-currency_symbol="true">{{ $variation['variation']->sell_price_inc_tax * ($variation['multiplier'] ?? 1) }}</span></td>
 							</tr>
 							<tr>
 								<th>@lang('sale.qty'):</th>
