@@ -173,8 +173,8 @@ module: Fisio
 - [2026_11_04_000510_create_fisio_pre_anamneses.php](../../../Modules/Fisio/Database/Migrations/2026_11_04_000510_create_fisio_pre_anamneses.php)
 - [2026_11_05_000600_add_red_flags_avisados_to_fisio_checkins.php](../../../Modules/Fisio/Database/Migrations/2026_11_05_000600_add_red_flags_avisados_to_fisio_checkins.php)
 - [2026_11_11_000700_create_fisio_studies_and_research_consent.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000700_create_fisio_studies_and_research_consent.php)
-- [2026_11_11_000710_add_fibromialgia_to_fisio_questionnaires.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000710_add_fibromialgia_to_fisio_questionnaires.php)
 - [2026_11_11_000710_create_fisio_study_moments_and_participants.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000710_create_fisio_study_moments_and_participants.php)
+- [2026_11_11_000720_add_fibromialgia_to_fisio_questionnaires.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000720_add_fibromialgia_to_fisio_questionnaires.php)
 
 ## Seeders — 2
 
