@@ -68,7 +68,7 @@ class PesquisaController extends Controller
                 ])->values(),
             ],
             've_nome' => $veNome,
-            'instrumentos' => CatalogoQuestionarios::LIVRES,
+            'instrumentos' => array_keys(CatalogoQuestionarios::disponiveis()),
             'participantes' => Inertia::defer(fn () => $estudo === null ? [] : $this->participantes($estudo, $veNome)),
             'pendencias' => Inertia::defer(fn () => $estudo === null ? [] : $this->estudos->pendencias($estudo, now())),
             'pacientes' => Inertia::defer(fn () => $veNome && $estudo !== null ? $this->pacientesForaDoEstudo($estudo) : []),
@@ -93,7 +93,7 @@ class PesquisaController extends Controller
             'momentos.*.day_offset' => ['required', 'integer', 'min:0', 'max:3650'],
             'momentos.*.window_days' => ['required', 'integer', 'min:0', 'max:60'],
             'momentos.*.instruments' => ['present', 'array'],
-            'momentos.*.instruments.*' => ['string', 'in:'.implode(',', CatalogoQuestionarios::LIVRES)],
+            'momentos.*.instruments.*' => ['string', 'in:'.implode(',', array_keys(CatalogoQuestionarios::disponiveis()))],
         ]);
         $biz = (int) $request->session()->get('user.business_id');
 

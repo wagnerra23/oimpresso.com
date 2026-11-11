@@ -50,7 +50,11 @@ interface Props {
   red_flags?: string[];
   consentimentos?: Record<string, boolean>;
   pre_anamnese?: OpcoesPreAnamnese | null;
+  avaliacoes_estudo?: AvaliacaoEstudo[];
 }
+
+/** Avaliação do estudo em aberto (etapa 07 P-05). A clínica aplica na sessão; o portal só avisa. */
+interface AvaliacaoEstudo { moment_id: number; momento: string; ate: string; questionarios: string[] }
 
 function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica?: string | null; token?: string; children: ReactNode }) {
   return (
@@ -129,6 +133,15 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
         <span className="text-sm text-muted-foreground">Três perguntas rápidas sobre a sua dor. Leva uns 2 minutos.</span>
       </button>
     )}
+    {(props.avaliacoes_estudo ?? []).map((a) => (
+      <section key={a.moment_id} data-contract="fisio-portal-avaliacao-estudo" aria-label={`Avaliação do estudo · ${a.momento}`}
+        className="flex flex-col gap-1 rounded-lg border border-primary/30 bg-primary/5 p-4">
+        <span className="font-semibold">Avaliação do estudo · {a.momento}</span>
+        <span className="text-sm text-muted-foreground">
+          Até {new Date(`${a.ate}T12:00:00`).toLocaleDateString('pt-BR')}. {props.clinica ?? 'A clínica'} aplica com você na próxima sessão.
+        </span>
+      </section>
+    ))}
     <TelaHoje
       itens={itens}
       jogo={jogo}

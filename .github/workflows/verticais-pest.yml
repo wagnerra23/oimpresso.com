@@ -693,6 +693,9 @@ jobs:
         # (`fisio.pesquisa`), código do participante aleatório, aceite do TCLE do estudo, saída com motivo e sem
         # exclusão, pendência derivada da janela, revogação pelo portal tira do estudo, 98×99.
         #
+        # ENTRA 2026-11-11 — Fisio/FisioCobrancaAvaliacaoTest (etapa 07 P-05 · UC-FPP-59..61): aviso da avaliação
+        # do estudo no portal e pelo WhatsApp (uma vez por momento, com consentimento), 98×99.
+        #
         # ENTRA 2026-11-11 — Fisio/FisioConsentimentoPesquisaTest (etapa 07 P-02 · UC-FPP-56..58): pesquisa
         # por estudo com a versão do TCLE do estudo, `pesquisa_ia` antigo sem valor, `treino_ia` à parte,
         # revogação pelo portal e estudo da 99 invisível para o token da 98.
@@ -937,7 +940,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioPesquisaTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php \
             Modules/Fisio/Tests/Feature/FisioExportacaoEstudoTest.php \
-            Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php || rc_principal=$?
+            Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php \
+            Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php || rc_principal=$?
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php || rc_painel=$?
