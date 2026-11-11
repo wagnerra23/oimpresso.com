@@ -41,6 +41,7 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 | UC-FCX-03 | `?limit` é clampado (10..200), não recusado | should | `CU-FIN-20` | `CaixaControllerTest` | 🧪 |
 | UC-FCX-04 | Turno de outro negócio nunca aparece | must `[T0]` | `CU-FIN-21` + ADR 0093 | `CaixaControllerTest` | 🧪 |
 | UC-FCX-05 | Sem `view_cash_register` a tela é 403 | must | `CU-FIN-22` | `CaixaControllerTest` | 🧪 |
+| UC-FCX-06 | Lançar título do caixa fechado: permissão, empresa e sem duplicar | must `[T0]` `[V0]` | ADR 0183 PR C | `CaixaLancarRetroativoContratoTest` | 🧪 |
 
 ---
 
@@ -81,6 +82,13 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 
 ---
 
+## UC-FCX-06 · Lançar o título do caixa fechado `[T0]` `[V0]` `[must]`
+- **Âncora:** ADR 0183 PR C (`POST /financeiro/caixa/{id}/lancar`).
+- **Aceite:** Dado caixa fechado da empresa da sessão · Quando quem tem `financeiro.lancamentos.create` lança · Então nasce 1 título quitado com o valor das movimentações do caixa, e lançar de novo não duplica. Sem a permissão, 403. Caixa de outra empresa ou ainda aberto, 404.
+- **Teste:** `CaixaLancarRetroativoContratoTest` (4 casos, valor por dois caminhos).
+- **Regressão que defende:** a ponte voltar a quebrar em silêncio, ou um caixa alheio gerar título.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -91,7 +99,6 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - **[BACKLOG] Fechar turno pela tela React** — idem; a Blade tem `close_register_modal.blade.php`.
 - **[BACKLOG] Detalhe do turno (vendas/produtos/pagamentos do período)** — Blade tem
   `register_details` + `register_product_details` + `payment_details`; o React só lista.
-- **[BACKLOG] Lançar `fin_titulo` retroativo pro turno fechado sem vínculo** — o CTA já existe na
   tela (linha "Financeiro" sem título), sem teste que defenda o efeito.
 
 ## Como rodar a suíte

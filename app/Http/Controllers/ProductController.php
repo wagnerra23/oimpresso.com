@@ -40,6 +40,9 @@ class ProductController extends Controller
     /** Peso líquido (kg) e dimensões da embalagem (cm) — UC-PCAD-16 e UC-PEDIT-13, CU-PROD-17. */
     private const PESO_E_DIMENSOES = ['peso_liquido', 'largura_cm', 'altura_cm', 'comprimento_cm'];
 
+    /** Política de preço do produto (CU-PROD-21), nos nomes de Fluxos e da Fabricação. */
+    protected const POLITICAS_DE_PRECO = ['fixo', 'acompanha', 'margem'];
+
     /**
      * All Utils instance.
      */
@@ -2047,9 +2050,17 @@ class ProductController extends Controller
     protected function validarLocaisDeArmazenagem(Request $request, int $business_id, ?int $product_id = null): void
     {
         $request->validate(
-            ['local_padrao_id' => ['sometimes', 'nullable', 'integer']],
-            ['local_padrao_id.integer' => 'O local padrão não é válido.'],
+            [
+                'local_padrao_id' => ['sometimes', 'nullable', 'integer'],
+                'product_racks_remover' => ['sometimes', 'array'],
+                'product_racks_remover.*' => ['integer'],
+            ],
+            [
+                'local_padrao_id.integer' => 'O local padrão não é válido.',
+                'product_racks_remover.*' => 'Um dos locais a tirar não é válido.',
+            ],
         );
+        $remover = $product_id === null ? collect() : $this->locaisARemover($request);
 
         $doEnvio = collect(['product_racks', 'product_racks_update'])
             ->flatMap(fn ($chave) => is_array($request->input($chave)) ? array_keys($request->input($chave)) : [])
@@ -2058,13 +2069,30 @@ class ProductController extends Controller
             ->values();
         $padrao = $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null;
         $citados = $padrao === null ? $doEnvio : $doEnvio->concat([$padrao])->unique();
+        $erros = [];
+        if ($remover->isNotEmpty()) {
+            // Tirar um local só apaga o endereço dele, e só quando o produto não tem saldo ali: o
+            // saldo muda por compra, venda, ajuste ou transferência, nunca pelo cadastro ([M]
+            // 2026-10-22). Só sai local que já é de armazenagem deste produto, neste negócio.
+            $doProdutoAgora = DB::table('product_racks')->where('business_id', $business_id)
+                ->where('product_id', $product_id)->pluck('location_id')->map(fn ($id) => (int) $id);
+            $saldos = $this->saldoPorLocal($business_id, (int) $product_id);
+            if ($remover->diff($doProdutoAgora)->isNotEmpty()) {
+                $erros['product_racks_remover'] = 'Só dá para tirar o endereço de um local que o produto já tem.';
+            } elseif ($remover->contains(fn ($id) => abs($saldos[$id] ?? 0.0) > 0.00001)) {
+                $erros['product_racks_remover'] = 'Este local tem saldo do produto. O endereço só sai depois de transferir ou ajustar o estoque.';
+            }
+        }
         if ($citados->isEmpty()) {
+            if ($erros !== []) {
+                throw \Illuminate\Validation\ValidationException::withMessages($erros);
+            }
+
             return;
         }
 
         $doNegocio = DB::table('business_locations')->where('business_id', $business_id)
             ->whereIn('id', $citados->all())->pluck('id')->map(fn ($id) => (int) $id);
-        $erros = [];
         if ($doEnvio->diff($doNegocio)->isNotEmpty()) {
             $erros['product_racks'] = 'Um dos locais de armazenagem não pertence a este negócio.';
         }
@@ -2074,13 +2102,76 @@ class ProductController extends Controller
                 ->pluck('location_id')->map(fn ($id) => (int) $id);
             if (! $doNegocio->contains($padrao)) {
                 $erros['local_padrao_id'] = 'O local padrão não pertence a este negócio.';
-            } elseif (! $doEnvio->merge($doProduto)->contains($padrao)) {
+            } elseif (! $doEnvio->merge($doProduto->diff($remover))->contains($padrao)) {
                 $erros['local_padrao_id'] = 'O local padrão tem de ser um dos locais de armazenagem do produto.';
             }
         }
         if ($erros !== []) {
             throw \Illuminate\Validation\ValidationException::withMessages($erros);
         }
+    }
+
+    /** Os locais que o Editar pede para tirar (`product_racks_remover`), sem repetição. */
+    protected function locaisARemover(Request $request): \Illuminate\Support\Collection
+    {
+        $remover = $request->input('product_racks_remover');
+
+        return collect(is_array($remover) ? $remover : [])->map(fn ($id) => (int) $id)->unique()->values();
+    }
+
+    /**
+     * Saldo do produto por local (soma das variações), só nos locais do negócio. É o "Em estoque" do
+     * bloco "Locais de armazenagem" no Editar e o que impede tirar um local com saldo (CU-PROD-20).
+     *
+     * @return array<int, float> id do local => saldo
+     */
+    protected function saldoPorLocal(int $business_id, int $product_id): array
+    {
+        return DB::table('variation_location_details as vld')
+            ->join('business_locations as bl', 'bl.id', '=', 'vld.location_id')
+            ->where('bl.business_id', $business_id)
+            ->where('vld.product_id', $product_id)
+            ->groupBy('vld.location_id')
+            ->selectRaw('vld.location_id, SUM(vld.qty_available) as saldo')
+            ->pluck('saldo', 'location_id')
+            ->mapWithKeys(fn ($saldo, $local) => [(int) $local => (float) $saldo])
+            ->all();
+    }
+
+    /**
+     * Política de preço (CU-PROD-21): `fixo`, `acompanha` ou `margem`. Com `margem`, a margem alvo é
+     * obrigatória e fica acima de 0 e abaixo de 100: ela é sobre o preço de venda, então 100% não
+     * existe. O Blade não manda nenhum dos dois e não muda nada. Fora do `try`, como os outros.
+     */
+    protected function validarPoliticaDePreco(Request $request): void
+    {
+        $request->validate(
+            [
+                'politica_preco' => ['sometimes', 'string', 'in:'.implode(',', self::POLITICAS_DE_PRECO)],
+                'margem_alvo_pct' => ['nullable', 'required_if:politica_preco,margem', 'numeric', 'gt:0', 'lt:100'],
+            ],
+            [
+                'politica_preco.*' => 'A política de preço não é válida.',
+                'margem_alvo_pct.required_if' => 'Informe a margem alvo.',
+                'margem_alvo_pct.*' => 'A margem alvo tem que ser um número maior que 0 e menor que 100.',
+            ],
+        );
+    }
+
+    /**
+     * O que o store() e o update() gravam da política de preço. A margem alvo só fica com a política
+     * `margem`; nas outras volta a nula, porque a tela nem mostra o campo.
+     *
+     * @return array{politica_preco: string, margem_alvo_pct: float|null}
+     */
+    protected function politicaDePrecoDoEnvio(Request $request): array
+    {
+        $politica = (string) $request->input('politica_preco');
+
+        return [
+            'politica_preco' => $politica,
+            'margem_alvo_pct' => $politica === 'margem' ? round((float) $request->input('margem_alvo_pct'), 2) : null,
+        ];
     }
 
     /**
@@ -2135,6 +2226,7 @@ class ProductController extends Controller
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
         $this->validarLocaisDeArmazenagem($request, (int) $uc_pcad_05_bid);
+        $this->validarPoliticaDePreco($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -2178,6 +2270,10 @@ class ProductController extends Controller
             // Local padrão de armazenagem (CU-PROD-20): já validado contra os locais do envio.
             if ($request->filled('local_padrao_id')) {
                 $product_details['local_padrao_id'] = (int) $request->input('local_padrao_id');
+            }
+            // Política de preço (CU-PROD-21): sem ela no envio (Blade), vale o padrão da coluna, `fixo`.
+            if ($request->filled('politica_preco')) {
+                $product_details = array_merge($product_details, $this->politicaDePrecoDoEnvio($request));
             }
 
             if (! empty($request->input('sub_category_id'))) {
@@ -2494,6 +2590,9 @@ class ProductController extends Controller
                     'pesoLiquido' => $product->peso_liquido ?? null,
                     // CU-PROD-20: o local padrão de armazenagem (null = sem padrão).
                     'localPadraoId' => $product->local_padrao_id !== null ? (int) $product->local_padrao_id : null,
+                    // CU-PROD-21: a política de preço e a margem alvo (só com `margem`).
+                    'politicaPreco' => (string) ($product->politica_preco ?? 'fixo'),
+                    'margemAlvoPct' => $product->margem_alvo_pct !== null ? (float) $product->margem_alvo_pct : null,
                     'larguraCm' => $product->largura_cm ?? null,
                     'alturaCm' => $product->altura_cm ?? null,
                     'comprimentoCm' => $product->comprimento_cm ?? null,
@@ -2527,6 +2626,9 @@ class ProductController extends Controller
                 'subCategories' => $sub_categories,
                 'businessLocations' => $business_locations,
                 'rackDetails' => $rack_details,
+                // CU-PROD-20: o "Em estoque" de cada local, só leitura. Um SUM agrupado de um produto
+                // (rápido como os outros dados do Editar), por isso vem junto e não deferido.
+                'saldoPorLocal' => $product->enable_stock ? (object) $this->saldoPorLocal((int) $business_id, (int) $product->id) : (object) [],
                 'enderecoNoEstoque' => $this->enderecoNoEstoque(),
                 'productTypes' => $product_types,
                 'warranties' => $warranties,
@@ -2578,6 +2680,7 @@ class ProductController extends Controller
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
         $this->validarLocaisDeArmazenagem($request, (int) $business_id, (int) $id);
+        $this->validarPoliticaDePreco($request);
 
         try {
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
@@ -2632,6 +2735,12 @@ class ProductController extends Controller
             // Local padrão (CU-PROD-20): só mexe quando a chave vem; vazio volta a nulo. O Blade não manda.
             if ($request->has('local_padrao_id')) {
                 $product->setAttribute('local_padrao_id', $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null);
+            }
+            // Política de preço (CU-PROD-21): só mexe quando vem. O Blade não manda e não muda nada.
+            if ($request->filled('politica_preco')) {
+                foreach ($this->politicaDePrecoDoEnvio($request) as $coluna => $valor) {
+                    $product->setAttribute($coluna, $valor);
+                }
             }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
             $product->product_custom_field2 = $product_details['product_custom_field2'] ?? '';
@@ -2831,6 +2940,18 @@ class ProductController extends Controller
             $product_racks_update = $request->get('product_racks_update', null);
             if (! empty($product_racks_update)) {
                 $this->productUtil->updateRackDetails($business_id, $product->id, $product_racks_update);
+            }
+
+            // Locais de armazenagem tirados no Editar (CU-PROD-20), já conferidos sem saldo: sai só o
+            // endereço. Se um deles era o padrão e a tela não mandou outro, o padrão fica vazio.
+            $remover = $this->locaisARemover($request);
+            if ($remover->isNotEmpty()) {
+                DB::table('product_racks')->where('business_id', $business_id)
+                    ->where('product_id', $product->id)->whereIn('location_id', $remover->all())->delete();
+                if (! $request->has('local_padrao_id') && $remover->contains((int) $product->local_padrao_id)) {
+                    DB::table('products')->where('business_id', $business_id)->where('id', $product->id)
+                        ->update(['local_padrao_id' => null]);
+                }
             }
 
             //Set Module fields

@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 940,
-    "edges": 1270,
+    "nodes": 945,
+    "edges": 1275,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 153,
-      "component": 547,
+      "component": 552,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 547,
+      "hasComponent": 552,
       "dependsOn": 139,
       "delegatesTo": 127,
       "migratesTo": 1,
@@ -1996,6 +1996,13 @@
       "desc": ""
     },
     {
+      "id": "component:Auditoria/AuditoriaLiberado",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "AuditoriaLiberado",
+      "desc": "middleware das leituras: pacote auditoria_module + auditoria.view (superadmin passa)"
+    },
+    {
       "id": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
       "type": "component",
       "module": "Auditoria",
@@ -2323,6 +2330,13 @@
       "module": "ComunicacaoVisual",
       "name": "FsmProcessoComunicacaoVisualSeeder",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Http/Middleware/ComunicacaoVisualLiberado",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Http/Middleware/ComunicacaoVisualLiberado",
+      "desc": "UC-CVPAC-01..03)"
     },
     {
       "id": "component:ComunicacaoVisual/InstalacaoController",
@@ -3445,6 +3459,13 @@
       "desc": "envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
     },
     {
+      "id": "component:Fisio/Estudo de pesquisa",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Estudo de pesquisa",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/Exportação do prontuário em PDF",
       "type": "component",
       "module": "Fisio",
@@ -3494,6 +3515,20 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "desc": "US-FISIO-060)"
+    },
+    {
+      "id": "component:Fisio/LaudoBiopsicossocialController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "LaudoBiopsicossocialController",
+      "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão (US-FISIO-060)"
+    },
+    {
       "id": "component:Fisio/OnboardingController",
       "type": "component",
       "module": "Fisio",
@@ -3534,6 +3569,13 @@
       "module": "Fisio",
       "name": "PainelController",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/PesquisaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PesquisaController",
+      "desc": "estudo, participantes (código sem nome nem CPF), momentos de avaliação e pendências, com a permissão fisio.pesquisa (etapa 07 P-04)"
     },
     {
       "id": "component:Fisio/Portal público do paciente",
@@ -8593,6 +8635,12 @@
     },
     {
       "from": "module:Auditoria",
+      "to": "component:Auditoria/AuditoriaLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
       "to": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
       "type": "hasComponent",
       "source": "contains"
@@ -9098,6 +9146,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/FsmProcessoComunicacaoVisualSeeder",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Http/Middleware/ComunicacaoVisualLiberado",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10635,6 +10689,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Estudo de pesquisa",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Exportação do prontuário em PDF",
       "type": "hasComponent",
       "source": "contains"
@@ -10677,6 +10737,18 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/LaudoBiopsicossocialController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/OnboardingController",
       "type": "hasComponent",
       "source": "contains"
@@ -10708,6 +10780,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/PainelController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PesquisaController",
       "type": "hasComponent",
       "source": "contains"
     },

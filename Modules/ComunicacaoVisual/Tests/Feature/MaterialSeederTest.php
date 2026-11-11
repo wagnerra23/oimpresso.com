@@ -53,7 +53,7 @@ const SEEDER_BIZ_FICTICIO = 99;
 // 1. Seeder cria 5 materiais para o business especificado
 // ------------------------------------------------------------------
 
-it('MaterialSeeder cria exatamente 5 materiais default para biz=1', function () {
+it('UC-CV-12 · MaterialSeeder cria exatamente 5 materiais default para biz=1', function () {
     // Limpar rows pré-existentes dos materiais default pra biz=1 (seed pode ter rodado antes)
     Material::withoutGlobalScopes() // SUPERADMIN: setup de teste
         ->where('business_id', SEEDER_BIZ_WAGNER)
@@ -97,7 +97,7 @@ it('MaterialSeeder cria exatamente 5 materiais default para biz=1', function () 
 // 2. Idempotência: rodar 2x não duplica (5 rows totais, não 10)
 // ------------------------------------------------------------------
 
-it('MaterialSeeder é idempotente: rodar 2x resulta em 5 rows (não 10)', function () {
+it('UC-CV-12 · MaterialSeeder é idempotente: rodar 2x resulta em 5 rows (não 10)', function () {
     // Limpar rows pré-existentes pra biz=1
     Material::withoutGlobalScopes() // SUPERADMIN: setup de teste
         ->where('business_id', SEEDER_BIZ_WAGNER)
@@ -145,7 +145,7 @@ it('MaterialSeeder é idempotente: rodar 2x resulta em 5 rows (não 10)', functi
 // 3. Multi-tenant: run(1) cria pra biz=1, run(99) cria pra biz=99 (rows separadas)
 // ------------------------------------------------------------------
 
-it('MaterialSeeder isola por business_id: run(1) e run(99) criam rows independentes', function () {
+it('UC-CV-12 · MaterialSeeder isola por business_id: run(1) e run(99) criam rows independentes', function () {
     // Limpar rows dos dois businesses pra evitar interferência
     Material::withoutGlobalScopes() // SUPERADMIN: setup de teste
         ->whereIn('business_id', [SEEDER_BIZ_WAGNER, SEEDER_BIZ_FICTICIO])
@@ -202,7 +202,7 @@ it('MaterialSeeder isola por business_id: run(1) e run(99) criam rows independen
 // 4. Global scope: Material::find() filtra por business_id da sessão
 // ------------------------------------------------------------------
 
-it('Material::find() via global scope não retorna rows de outro business', function () {
+it('UC-CV-04 · Material::find() via global scope não retorna rows de outro business', function () {
     // Setup: inserir material no biz=1 via seeder
     Material::withoutGlobalScopes() // SUPERADMIN: setup de teste
         ->where('business_id', SEEDER_BIZ_WAGNER)

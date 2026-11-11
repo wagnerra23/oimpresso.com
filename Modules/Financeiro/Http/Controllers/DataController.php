@@ -100,6 +100,39 @@ class DataController extends Controller
         $background_color = config('app.env') == 'demo' ? '#ffd6a5' : '';
         $seg2 = request()->segment(2);
 
+        $user = auth()->user();
+        $pode = fn (string $permissao): bool => $user->can('superadmin') || $user->can($permissao);
+
+        // Cada aba declara a permissão que a tela exige. A entrada só existe se sobrar aba,
+        // e aponta para a primeira que a pessoa abre: o menu não mostra link que dá 403.
+        $caixa = $this->abasVisiveis($pode, [
+            ['key' => 'caixa',            'label' => 'Caixa',            'href' => '/financeiro/caixa',            'can' => 'view_cash_register'],
+            ['key' => 'conciliacao',      'label' => 'Conciliação',      'href' => '/financeiro/conciliacao',      'can' => 'financeiro.conciliacao.manage'],
+            ['key' => 'contas-bancarias', 'label' => 'Contas Bancárias', 'href' => '/financeiro/contas-bancarias', 'can' => 'financeiro.contas_bancarias.manage'],
+            ['key' => 'extrato',          'label' => 'Extrato',          'href' => '/financeiro/extrato',          'can' => 'financeiro.extrato.view'],
+        ]);
+        $cobranca = $this->abasVisiveis($pode, [
+            ['key' => 'cobranca',       'label' => 'Cobrança',         'href' => '/financeiro/cobranca',       'can' => 'financeiro.dashboard.view'],
+            ['key' => 'contas-receber', 'label' => 'Contas a Receber', 'href' => '/financeiro/contas-receber', 'can' => 'financeiro.contas_receber.view'],
+            // A tela do gateway só exige login; fica junto de quem já opera a cobrança.
+            ['key' => 'gateway',        'label' => 'Gateway',          'href' => '/settings/payment-gateways', 'can' => 'financeiro.dashboard.view'],
+        ]);
+        $hub = $this->abasVisiveis($pode, [
+            ['key' => 'unificado',     'label' => 'Lançamentos',    'href' => '/financeiro/unificado',    'can' => 'financeiro.dashboard.view'],
+            ['key' => 'contas-pagar',  'label' => 'Contas a Pagar', 'href' => '/financeiro/contas-pagar', 'can' => 'financeiro.contas_pagar.view'],
+            ['key' => 'fluxo',         'label' => 'Fluxo de Caixa', 'href' => '/financeiro/fluxo',        'can' => 'financeiro.dashboard.view'],
+            ['key' => 'dre',           'label' => 'DRE',            'href' => '/financeiro/dre',          'can' => 'financeiro.relatorios.view'],
+            ['key' => 'relatorios',    'label' => 'Relatórios',     'href' => '/financeiro/relatorios',   'can' => 'financeiro.relatorios.view'],
+            // F2 PR-2 (2026-06-10) — Impostos & obrigações (estimativa Simples; oficial = Fiscal).
+            ['key' => 'impostos',      'label' => 'Impostos',       'href' => '/financeiro/impostos',     'can' => 'financeiro.dashboard.view'],
+            // Dashboard deprecado 2026-06-06 (Wagner não usa) — landing = Unificada.
+            ['key' => 'plano-contas',  'label' => 'Plano de Contas', 'href' => '/financeiro/plano-contas', 'can' => 'financeiro.dashboard.view'],
+            ['key' => 'categorias',    'label' => 'Categorias',     'href' => '/financeiro/categorias',   'can' => 'financeiro.dashboard.view'],
+            ['key' => 'contador',      'label' => 'Contador',       'href' => '/financeiro/configuracoes/contador', 'can' => 'financeiro.advisor.grant'],
+            // US-FIN-077 — arquivo de lançamentos para o sistema do contador.
+            ['key' => 'exportacao-contabil', 'label' => 'Contabilidade', 'href' => '/financeiro/exportacao-contabil', 'can' => 'financeiro.relatorios.view'],
+        ]);
+
         // Wagner 2026-05-26 direção canon: grupo FINANÇAS agora tem 4 entries
         // FLAT no sidebar — substitui 1 entry "Financeiro" com 13 ghosts.
         // Espelha PR #1541 (Fiscal flat) e PR #1547 (Governança removida).
@@ -113,103 +146,96 @@ class DataController extends Controller
         // Gateway de Pagamento NÃO é mais entry própria do sidebar (PaymentGateway
         // DataController deixou de chamar Menu::modify). Vive como ghost da
         // Cobrança — fica acessível via PageHeader em /financeiro/cobranca.
-        //
-        // Sub-items legacy (DRE/Fluxo/Conciliação/Contas a Pagar/Plano de Contas/
-        // Categorias/Dashboard/Extrato/Contador/Relatórios) continuam acessíveis
-        // como ghosts do hub "Financeiro" (terceira entry).
         Menu::modify(
             'admin-sidebar-menu',
-            function ($menu) use ($background_color, $seg2) {
+            function ($menu) use ($background_color, $seg2, $caixa, $cobranca, $hub, $pode) {
                 // ENTRY 1 — Caixa (operação Larissa diária: abrir/fechar caixa).
-                $menu->url(
-                    url('/financeiro/caixa'),
-                    'Caixa',
-                    [
-                        'icon'     => 'fa fas fa-cash-register',
-                        'style'    => 'background-color:' . $background_color,
-                        'active'   => $seg2 === 'caixa',
-                        'group'    => 'financas',
-                        'shortcut' => 'G C',
-                        'primary'  => [
-                            'label'    => 'Abrir caixa',
-                            'href'     => '/financeiro/caixa',
-                            'shortcut' => 'N',
-                            'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)
-                        ],
-                        'ghosts'   => [
-                            ['key' => 'caixa',            'label' => 'Caixa',            'href' => '/financeiro/caixa'],
-                            ['key' => 'conciliacao',      'label' => 'Conciliação',      'href' => '/financeiro/conciliacao'],
-                            ['key' => 'contas-bancarias', 'label' => 'Contas Bancárias', 'href' => '/financeiro/contas-bancarias'],
-                            ['key' => 'extrato',          'label' => 'Extrato',          'href' => '/financeiro/extrato'],
-                        ],
-                    ]
-                )->order(85.00);
+                if ($caixa !== []) {
+                    $menu->url(
+                        url($caixa[0]['href']),
+                        'Caixa',
+                        array_filter([
+                            'icon'     => 'fa fas fa-cash-register',
+                            'style'    => 'background-color:' . $background_color,
+                            'active'   => $seg2 === 'caixa',
+                            'group'    => 'financas',
+                            'shortcut' => 'G C',
+                            'primary'  => $pode('view_cash_register') ? [
+                                'label'    => 'Abrir caixa',
+                                'href'     => '/financeiro/caixa',
+                                'shortcut' => 'N',
+                                'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)
+                            ] : null,
+                            'ghosts'   => $caixa,
+                        ], fn ($v) => $v !== null)
+                    )->order(85.00);
+                }
 
                 // ENTRY 2 — Cobrança (emitir boleto/pix/cartão). Gateway de
                 // Pagamento é GHOST aqui (PR #1577+ Wagner 2026-05-26).
-                $cobrancaAtiva = in_array($seg2, ['cobranca', 'contas-receber', 'boletos'])
-                    || (request()->segment(1) === 'settings' && $seg2 === 'payment-gateways');
-                $menu->url(
-                    url('/financeiro/cobranca'),
-                    'Cobrança',
-                    [
-                        'icon'     => 'fa fas fa-file-invoice-dollar',
-                        'style'    => 'background-color:' . $background_color,
-                        'active'   => $cobrancaAtiva,
-                        'group'    => 'financas',
-                        'shortcut' => 'G B',
-                        'primary'  => [
-                            'label'    => 'Nova cobrança',
-                            'href'     => '/financeiro/cobranca',
-                            'shortcut' => 'N',
-                        ],
-                        'ghosts'   => [
-                            ['key' => 'cobranca',        'label' => 'Cobrança',         'href' => '/financeiro/cobranca'],
-                            ['key' => 'contas-receber',  'label' => 'Contas a Receber', 'href' => '/financeiro/contas-receber'],
-                            ['key' => 'gateway',         'label' => 'Gateway',          'href' => '/settings/payment-gateways'],
-                        ],
-                    ]
-                )->order(85.10);
+                if ($cobranca !== []) {
+                    $cobrancaAtiva = in_array($seg2, ['cobranca', 'contas-receber', 'boletos'])
+                        || (request()->segment(1) === 'settings' && $seg2 === 'payment-gateways');
+                    $menu->url(
+                        url($cobranca[0]['href']),
+                        'Cobrança',
+                        array_filter([
+                            'icon'     => 'fa fas fa-file-invoice-dollar',
+                            'style'    => 'background-color:' . $background_color,
+                            'active'   => $cobrancaAtiva,
+                            'group'    => 'financas',
+                            'shortcut' => 'G B',
+                            'primary'  => $pode('financeiro.dashboard.view') ? [
+                                'label'    => 'Nova cobrança',
+                                'href'     => '/financeiro/cobranca',
+                                'shortcut' => 'N',
+                            ] : null,
+                            'ghosts'   => $cobranca,
+                        ], fn ($v) => $v !== null)
+                    )->order(85.10);
+                }
 
                 // ENTRY 3 — Financeiro (hub geral). Mantém label do lang module_label
                 // pra compat com modules superadmin + traduções i18n. Ghosts =
                 // restante das telas legacy (Fluxo/DRE/Pagar/Categorias/etc).
-                $financeiroAtiva = in_array($seg2, [
-                    'unificado','lancamentos','contas-pagar','fluxo','dre','plano-contas',
-                    'categorias','dashboard','configuracoes','relatorios','exportacao-contabil',
-                ]);
-                $menu->url(
-                    url('/financeiro/unificado'),
-                    __('financeiro::financeiro.module_label'),
-                    [
-                        'icon'     => 'fa fas fa-coins',
-                        'style'    => 'background-color:' . $background_color,
-                        'active'   => $financeiroAtiva,
-                        'group'    => 'financas',
-                        'shortcut' => 'G F',
-                        'primary'  => [
-                            'label'    => 'Novo título',
-                            'href'     => '/financeiro/unificado/novo',
-                            'shortcut' => 'N',
-                        ],
-                        'ghosts'   => [
-                            ['key' => 'unificado',     'label' => 'Lançamentos',    'href' => '/financeiro/unificado'],
-                            ['key' => 'contas-pagar',  'label' => 'Contas a Pagar', 'href' => '/financeiro/contas-pagar'],
-                            ['key' => 'fluxo',         'label' => 'Fluxo de Caixa', 'href' => '/financeiro/fluxo'],
-                            ['key' => 'dre',           'label' => 'DRE',            'href' => '/financeiro/dre'],
-                            ['key' => 'relatorios',    'label' => 'Relatórios',     'href' => '/financeiro/relatorios'],
-                            // F2 PR-2 (2026-06-10) — Impostos & obrigações (estimativa Simples; oficial = Fiscal).
-                            ['key' => 'impostos',      'label' => 'Impostos',       'href' => '/financeiro/impostos'],
-                            // Dashboard deprecado 2026-06-06 (Wagner não usa) — landing = Unificada.
-                            ['key' => 'plano-contas',  'label' => 'Plano de Contas','href' => '/financeiro/plano-contas'],
-                            ['key' => 'categorias',    'label' => 'Categorias',     'href' => '/financeiro/categorias'],
-                            ['key' => 'contador',      'label' => 'Contador',       'href' => '/financeiro/configuracoes/contador'],
-                            // US-FIN-077 — arquivo de lançamentos para o sistema do contador.
-                            ['key' => 'exportacao-contabil', 'label' => 'Contabilidade', 'href' => '/financeiro/exportacao-contabil'],
-                        ],
-                    ]
-                )->order(85.20);
+                if ($hub !== []) {
+                    $financeiroAtiva = in_array($seg2, [
+                        'unificado','lancamentos','contas-pagar','fluxo','dre','plano-contas',
+                        'categorias','dashboard','configuracoes','relatorios','exportacao-contabil',
+                    ]);
+                    $menu->url(
+                        url($hub[0]['href']),
+                        __('financeiro::financeiro.module_label'),
+                        array_filter([
+                            'icon'     => 'fa fas fa-coins',
+                            'style'    => 'background-color:' . $background_color,
+                            'active'   => $financeiroAtiva,
+                            'group'    => 'financas',
+                            'shortcut' => 'G F',
+                            'primary'  => $pode('financeiro.dashboard.view') ? [
+                                'label'    => 'Novo título',
+                                'href'     => '/financeiro/unificado/novo',
+                                'shortcut' => 'N',
+                            ] : null,
+                            'ghosts'   => $hub,
+                        ], fn ($v) => $v !== null)
+                    )->order(85.20);
+                }
             }
         );
+    }
+
+    /**
+     * Abas que a pessoa consegue abrir, sem a chave `can` (o React não precisa dela).
+     *
+     * @param  callable(string): bool  $pode
+     * @param  list<array{key: string, label: string, href: string, can: string}>  $abas
+     * @return list<array{key: string, label: string, href: string}>
+     */
+    private function abasVisiveis(callable $pode, array $abas): array
+    {
+        $visiveis = array_filter($abas, fn (array $aba): bool => $pode($aba['can']));
+
+        return array_values(array_map(fn (array $aba): array => array_diff_key($aba, ['can' => true]), $visiveis));
     }
 }

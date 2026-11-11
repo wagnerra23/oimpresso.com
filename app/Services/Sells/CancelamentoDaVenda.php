@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Sells;
 
+use App\Contracts\Fiscal\CancelamentoFiscalDaVenda;
 use App\Transaction;
 use App\TransactionSellLine;
 use App\Utils\ProductUtil;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Schema;
  *    O caminho é a própria venda (remover/devolver o pagamento): o Financeiro recusa estornar
  *    baixa que veio de pagamento de venda (`FinanceiroLancamentoAcoesController::estornar`).
  *    Esta checagem é o que garante que o `cancelarSeExistir` só roda sem pagamento.
+ *    Nota fiscal que não dá para cancelar também recusa (`CancelamentoFiscalDaVenda`): fora do
+ *    prazo legal ou ainda em processamento na SEFAZ.
  * 2. **Estoque volta exatamente pelo caminho que saiu:**
  *    - venda `final`: cada linha devolve `quantidade − já devolvida` (a devolução já repôs o
  *      resto) e libera o lote de compra pelo mesmo caminho da devolução
@@ -59,13 +62,19 @@ final class CancelamentoDaVenda
              FROM transaction_payments WHERE transaction_id = ? AND business_id = ?',
             [$transactionId, $businessId],
         );
+        $pendencias = [];
         if ((float) $r->recebido > 0) {
             $valor = number_format((float) $r->recebido, 2, ',', '.');
-
-            return ["A venda tem R$ {$valor} recebidos ({$r->n} pagamento(s)). Devolva ou remova os pagamentos na própria venda e cancele de novo."];
+            $pendencias[] = "A venda tem R$ {$valor} recebidos ({$r->n} pagamento(s)). Devolva ou remova os pagamentos na própria venda e cancele de novo.";
         }
 
-        return [];
+        foreach (app()->tagged(CancelamentoFiscalDaVenda::TAG) as $fonte) {
+            if ($fonte instanceof CancelamentoFiscalDaVenda) {
+                array_push($pendencias, ...$fonte->impedimentos($businessId, $transactionId));
+            }
+        }
+
+        return $pendencias;
     }
 
     /** @return array{estoque_linhas:int, reservas:int, titulo_cancelado:bool, ja_estava_cancelada:bool} */

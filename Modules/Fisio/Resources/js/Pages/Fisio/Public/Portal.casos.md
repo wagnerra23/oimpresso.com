@@ -60,6 +60,9 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-53 | pré-anamnese só com valores das listas, uma por paciente | must | `FisioPreAnamneseTest` |
 | UC-FPP-54 | sinal de alerta na pré-anamnese avisa o profissional | must | `FisioPreAnamneseTest` |
 | UC-FPP-55 | pré-anamnese só depois do PIN e da autorização, na clínica do link | must | `FisioPreAnamneseTest` |
+| UC-FPP-56 | pesquisa por estudo, com o TCLE do estudo; `pesquisa_ia` sem valor; `treino_ia` à parte | must | `FisioConsentimentoPesquisaTest` |
+| UC-FPP-57 | revogar a pesquisa de um estudo pelo portal | must | `FisioConsentimentoPesquisaTest` |
+| UC-FPP-58 | estudo de outra clínica não existe para o paciente | must | `FisioConsentimentoPesquisaTest` |
 
 ---
 
@@ -92,7 +95,7 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - **Status: 🧪**
 
 ## UC-FPP-06 · Cada consentimento por si · `must`
-- **Aceite:** WhatsApp, câmera, imagem, marketing e pesquisa são independentes do teleatendimento; purpose fora da lista é recusado. Revogar WhatsApp não fecha o portal; revogar teleatendimento fecha (o registro fica com `revoked_at`).
+- **Aceite:** WhatsApp, câmera, imagem, marketing e treino de IA são independentes do teleatendimento; purpose fora da lista é recusado. Revogar WhatsApp não fecha o portal; revogar teleatendimento fecha (o registro fica com `revoked_at`).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php`
 - **Status: 🧪**
 
@@ -296,7 +299,25 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php`
 - **Status: 🧪**
 
+
+## UC-FPP-56 · Pesquisa é por estudo, separada do treino de IA · `must`
+- **Persona:** paciente convidado para o estudo de fibromialgia da clínica com a universidade (etapa 07 P-02).
+- **Aceite:** O consentimento `pesquisa` grava o estudo (`study_id`) e a versão do TCLE aprovada pelo CEP daquele estudo, nunca do request. Aceitar de novo não duplica; outro estudo não herda o aceite; TCLE em versão nova pede aceite de novo. O antigo `pesquisa_ia` não faz ninguém participante nem vale como `treino_ia`, que é outra finalidade e começa desligada.
+- **Regressão que defende:** um aceite valendo para "pesquisa e IA" juntos; participante incluído por aceite antigo.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php`
+- **Status: 🧪**
+
+## UC-FPP-57 · O paciente revoga a pesquisa de um estudo pelo portal · `must`
+- **Aceite:** As rotas genéricas recusam `pesquisa` e `pesquisa_ia` (422) e aceitam `treino_ia`. `DELETE consentimentos/pesquisa/{estudo}` revoga só aquele estudo; a linha fica com `revoked_at` e o tratamento continua aberto.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php`
+- **Status: 🧪**
+
+## UC-FPP-58 · Estudo de outra clínica não existe para o paciente `[T0]` · `must`
+- **Aceite:** Estudo da 99 não recebe aceite de paciente da 98, e o portal da 98 responde 404 ao revogá-lo. Estudo encerrado não recebe aceite novo.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php`
+- **Status: 🧪**
 ## Trilha do tempo
+- 2026-11-11 · etapa 07 P-02 — `pesquisa_ia` separado em `pesquisa` (por estudo, `fisio_studies`, versão do TCLE do estudo) e `treino_ia`. A tela de Configurações ainda não mostra o estudo: entra com a área do estudo (P-04). UC-FPP-56..58 entram com `FisioConsentimentoPesquisaTest`.
 - 2026-11-04 · Lote 5 — pré-anamnese no portal (`_components/PreAnamnese.tsx`, tabela `fisio_pre_anamneses`, US-FISIO-051). Regiões e faixas de tempo são rascunho do protótipo, pendentes da responsável técnica. UC-FPP-52..55 entram com `FisioPreAnamneseTest`.
 - 2026-11-04 · Lote 5 — tela de Configurações do paciente (`_components/Configuracoes.tsx`), só as autorizações por finalidade; horário do lembrete, acessibilidade e "meus dados" do protótipo ficam fora até o servidor sustentar. UC-FPP-50..51 entram com `FisioPortalConfiguracoesTest`.
 - 2026-10-19 · T-08c (parte com fonte) — missões de hoje, desafio da semana e medalhas na tela Hoje (`_components/Constancia.tsx`, rota `fisio.portal.desafio`). UC-FPP-33..34 entram com `FisioJogoConstanciaTest`.
