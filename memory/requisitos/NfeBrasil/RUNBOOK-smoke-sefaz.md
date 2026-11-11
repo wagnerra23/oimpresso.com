@@ -57,7 +57,7 @@ ssh -4 -o ConnectTimeout=900 -i ~/.ssh/id_ed25519_oimpresso -p 65002 \
 
 **Resultado esperado:**
 
-- `cnpj` ≠ NULL e ≠ `'00.000.000/0000-00'`
+- `cnpj` preenchido e diferente do CNPJ só de zeros
 - `ncm_padrao` = `'49111000'` (ou outro NCM válido 8 dígitos)
 - `ambiente` = `2` (homologação)
 - `cert_ativo` = `1`, `cert_valido_ate` ≥ data de hoje
