@@ -45,4 +45,16 @@ class Study extends Model
         'starts_on' => 'date',
         'ends_on' => 'date',
     ];
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<StudyMoment, $this> */
+    public function moments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StudyMoment::class, 'study_id')->orderBy('sort')->orderBy('day_offset');
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<StudyParticipant, $this> */
+    public function participants(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StudyParticipant::class, 'study_id');
+    }
 }
