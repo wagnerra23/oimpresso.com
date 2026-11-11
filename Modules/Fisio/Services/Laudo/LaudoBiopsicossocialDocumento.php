@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Fisio\Services\Laudo;
 
+use Illuminate\Support\Facades\DB;
 use Modules\Fisio\Entities\LaudoBiopsicossocial;
 use Modules\Fisio\Entities\LaudoBiopsicossocialEquipe as Equipe;
 use Modules\Fisio\Entities\Patient;
@@ -16,6 +17,9 @@ use Modules\Fisio\Entities\Patient;
  * calculado, fatores contextuais, conclusão da equipe, as cinco áreas da equipe e local e data.
  * O que não foi preenchido sai em branco, para escrever à mão. Laudo em rascunho sai marcado como
  * documento de apoio, não finalizado.
+ *
+ * O cabeçalho identifica a clínica que preparou o documento (nome, CNPJ, cidade e telefone da
+ * primeira unidade cadastrada), sempre da empresa da sessão — nunca de outra.
  */
 final class LaudoBiopsicossocialDocumento
 {
@@ -35,6 +39,8 @@ final class LaudoBiopsicossocialDocumento
         }
 
         return [
+            'empresa' => $this->empresa($biz),
+            'emitido_em' => now()->format('d/m/Y H:i'),
             'laudo_id' => $laudo->id,
             'versao_modelo' => 'Versão 1.0 (Data 26/10/2026)',
             'paciente' => $laudo->patient?->contact?->name,
@@ -50,6 +56,21 @@ final class LaudoBiopsicossocialDocumento
             'finalizado' => $laudo->estaFinalizado(),
             'finalizado_em' => $laudo->finalizado_em?->format('d/m/Y H:i'),
             'corrige' => $laudo->amends_id,
+        ];
+    }
+
+    /** @return array{nome: string, cnpj: ?string, cidade: ?string, telefone: ?string} */
+    private function empresa(int $biz): array
+    {
+        $b = DB::table('business')->where('id', $biz)->first(['name', 'tax_number_1']);
+        $u = DB::table('business_locations')->where('business_id', $biz)->orderBy('id')->first(['city', 'state', 'mobile']);
+        $cidade = trim(implode('/', array_filter([trim((string) ($u->city ?? '')), trim((string) ($u->state ?? ''))])));
+
+        return [
+            'nome' => (string) ($b->name ?? ''),
+            'cnpj' => filled($b->tax_number_1 ?? null) ? (string) $b->tax_number_1 : null,
+            'cidade' => $cidade !== '' ? $cidade : null,
+            'telefone' => filled($u->mobile ?? null) ? (string) $u->mobile : null,
         ];
     }
 
