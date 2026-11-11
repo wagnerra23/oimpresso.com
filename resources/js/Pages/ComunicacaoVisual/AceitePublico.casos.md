@@ -24,6 +24,8 @@ related_us: [US-COMVIS-023]
 | UC-CVACEP-02 | token que não existe dá 404 | must `[T0]` | US-COMVIS-023 | `OrcamentoAceitePublicoContratoTest` |
 | UC-CVACEP-03 | aceitar pela página vira OS e a página mostra que foi enviado | must `[V0]` | US-COMVIS-023 | `OrcamentoAceitePublicoContratoTest` |
 | UC-CVACEP-04 | pedir ajuste exige texto; responder de novo mostra o motivo | must | US-COMVIS-023 | `OrcamentoAceitePublicoContratoTest` |
+| UC-CVACEP-05 | aceitar guarda o retrato do orçamento, o IP e o navegador | must `[V0]` `[LGPD]` | US-COMVIS-023 · auditoria 2026-11-05 S7 | `OrcamentoAceiteRetratoContratoTest` |
+| UC-CVACEP-06 | o retrato não leva custo; pedir ajuste não guarda IP nem navegador | must `[LGPD]` | US-COMVIS-023 · auditoria 2026-11-05 S7 | `OrcamentoAceiteRetratoContratoTest` |
 
 ## UC-CVACEP-01 · Link válido abre a página com itens e total · `must`
 
@@ -56,3 +58,18 @@ Status: ✅
 **Quando** tenta responder de novo **Então** volta com o erro "já foi usado" em `decisao`.
 
 Status: ✅
+
+## UC-CVACEP-05 · Aceitar guarda o retrato, o IP e o navegador · `must` `[V0]` `[LGPD]`
+
+**Dado** um link aberto **Quando** o cliente aceita **Então** o registro do aceite guarda número, valores
+e itens como estavam, além do IP e do navegador. O total do retrato, o do orçamento e o da OS são o mesmo, e
+a soma dos itens com os ajustes do próprio retrato chega a esse total. Mudar o orçamento depois não muda o retrato.
+
+Status: 🧪
+
+## UC-CVACEP-06 · O retrato não leva custo; ajuste não guarda IP · `must` `[LGPD]`
+
+**Dado** um link aberto **Quando** o cliente pede ajuste **Então** o registro guarda o retrato, sem custo
+nem margem, e não guarda IP nem navegador: só o aceite precisa dessa prova.
+
+Status: 🧪
