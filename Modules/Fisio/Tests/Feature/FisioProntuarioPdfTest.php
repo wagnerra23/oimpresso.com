@@ -8,8 +8,10 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Services\IdentidadeClinica;
 use Modules\Fisio\Services\ProntuarioExportacao;
 use Modules\Fisio\Tests\Support\FisioFixtures as F;
+use Tests\Support\EstoqueFixture;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
@@ -124,6 +126,23 @@ it('UC-FPS-19 · o HTML do PDF traz identificação, perfil clínico, carimbos e
 
     // A ordem no documento é a cronológica: a avaliação vem antes do adendo.
     expect(strpos($html, 'Dor lombar há 3 meses'))->toBeLessThan(strpos($html, 'Foram 3x10, não 3x12'));
+});
+
+it('UC-FPS-19 · o cabeçalho traz endereço e contato da própria clínica, nunca os de outra', function () {
+    // Estado inicial: uma unidade em cada empresa, com marcadores únicos. A transação desfaz.
+    foreach ([$this->b98 => 'RUA-CLINICA-98', $this->b99 => 'RUA-CLINICA-99'] as $biz => $marca) {
+        EstoqueFixture::locationId($biz, '-FISIO');
+        DB::table('business_locations')->where('business_id', $biz)->update(['landmark' => $marca, 'mobile' => "FONE-{$marca}"]);
+    }
+
+    $clinica = app(IdentidadeClinica::class)->montar($this->b98);
+    $html = view('fisio::pdf.prontuario', app(ProntuarioExportacao::class)->montar($this->p->fresh(), $this->b98))->render();
+
+    expect($clinica['nome'])->toBe((string) DB::table('business')->where('id', $this->b98)->value('name'))
+        ->and($clinica['endereco'])->toContain('RUA-CLINICA-98')
+        ->and($html)->toContain('RUA-CLINICA-98')
+        ->and($html)->toContain('FONE-RUA-CLINICA-98')
+        ->and(str_contains($html, 'RUA-CLINICA-99'))->toBeFalse();
 });
 
 it('UC-FPS-19 · a rota devolve o PDF para download, inclusive de paciente bloqueado', function () {

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Fisio\Http\Controllers;
 
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Services\FolhaPrograma;
+use Modules\Fisio\Services\ImpressoPdf;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -23,7 +23,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class FolhaProgramaController extends Controller
 {
-    public function __construct(private readonly FolhaPrograma $folha) {}
+    public function __construct(
+        private readonly FolhaPrograma $folha,
+        private readonly ImpressoPdf $impresso,
+    ) {}
 
     public function show(Request $request, int $id): Response
     {
@@ -32,7 +35,7 @@ class FolhaProgramaController extends Controller
 
         $dados = $this->folha->montar($programa, $biz);
 
-        $pdf = Pdf::loadView('fisio::pdf.folha-programa', $dados)->setPaper('a4', 'portrait');
+        $pdf = $this->impresso->gerar('fisio::pdf.folha-programa', $dados);
 
         activity('fisio')
             ->performedOn($programa->patient)
