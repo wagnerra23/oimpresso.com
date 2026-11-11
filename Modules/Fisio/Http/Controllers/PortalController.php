@@ -22,6 +22,7 @@ use Modules\Fisio\Services\CheckinDoPortal;
 use Modules\Fisio\Services\Consentimentos;
 use Modules\Fisio\Services\DiaLocal;
 use Modules\Fisio\Services\JogoService;
+use Modules\Fisio\Services\Pesquisa\EstudoService;
 use Modules\Fisio\Services\PortalTokenService;
 use Modules\Fisio\Services\PreAnamneseDoPortal;
 use Modules\Fisio\Services\SessaoDoPortal;
@@ -332,7 +333,11 @@ class PortalController extends Controller
             return response()->json(['erro' => 'estudo_inexistente'], 404);
         }
 
-        return response()->json(['revogados' => $this->consentimentos->revogarPesquisa($paciente, $estudo)]);
+        $revogados = $this->consentimentos->revogarPesquisa($paciente, $estudo);
+        // Revogar tira o participante do estudo a partir de hoje (etapa 07 P-04).
+        app(EstudoService::class)->sairPorRevogacao($paciente, $estudo);
+
+        return response()->json(['revogados' => $revogados]);
     }
 
     /**

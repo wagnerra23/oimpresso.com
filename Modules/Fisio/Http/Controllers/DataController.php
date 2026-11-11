@@ -60,7 +60,7 @@ class DataController extends Controller
 
     /**
      * `fisio.access` abre o módulo; `fisio.editar` grava (paciente, prontuário,
-     * programa, biblioteca própria). Nenhuma nasce concedida.
+     * programa, biblioteca própria); `fisio.pesquisa` é do pesquisador do estudo. Nenhuma nasce concedida.
      */
     public function user_permissions(): array
     {
@@ -73,6 +73,12 @@ class DataController extends Controller
             [
                 'value'   => 'fisio.editar',
                 'label'   => 'Fisio: cadastrar pacientes, prontuario e programas',
+                'default' => false,
+            ],
+            [
+                // Etapa 07 P-04: criar estudo, incluir e tirar participante, exportar. Não abre o prontuário.
+                'value'   => 'fisio.pesquisa',
+                'label'   => 'Fisio: pesquisador do estudo',
                 'default' => false,
             ],
         ];
