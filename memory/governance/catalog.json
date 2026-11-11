@@ -27,7 +27,7 @@
   "stats": {
     "modules": 38,
     "nodes": 948,
-    "edges": 1281,
+    "edges": 1283,
     "by_node_type": {
       "module": 43,
       "table": 108,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 81,
       "hasComponent": 553,
-      "dependsOn": 141,
-      "delegatesTo": 129,
+      "dependsOn": 142,
+      "delegatesTo": 130,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 79,
@@ -12776,6 +12776,13 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Regra do pacote fiscal_module nas rotas /nfe-brasil/* (middleware FiscalLiberado"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -12801,6 +12808,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Regra do pacote fiscal_module nas rotas /nfe-brasil/* (middleware FiscalLiberado"
     },
     {
       "from": "module:NfeBrasil",

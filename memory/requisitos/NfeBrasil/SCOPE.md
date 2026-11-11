@@ -39,6 +39,7 @@ not_contains:
   - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/Forja"
   - "IA da sugestão de tributação (SugestaoFiscalAgent + ProdutoFiscalTool, playbook Fiscal thread 10, #8997) → Modules/Jana"
+  - "Regra do pacote fiscal_module nas rotas /nfe-brasil/* (middleware FiscalLiberado → FiscalPacote, lote 3.3 da auditoria, decisão [W] B-03 2026-11-10) → Modules/Fiscal"
 trust_required: L3
 owner: wagner
 permission_prefix: nfebrasil.*

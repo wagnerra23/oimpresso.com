@@ -14,7 +14,7 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 116 arquivos em 18 papéis.
+**Total mapeado:** 118 arquivos em 18 papéis.
 
 ## Controllers — 12
 
@@ -88,7 +88,7 @@ module: ComunicacaoVisual
 
 - [web.php](../../../Modules/ComunicacaoVisual/Routes/web.php)
 
-## Migrations (schema) — 16
+## Migrations (schema) — 17
 
 - [2026_05_10_000040_create_comvis_materiais_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_10_000040_create_comvis_materiais_table.php)
 - [2026_05_10_000041_create_comvis_orcamentos_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_10_000041_create_comvis_orcamentos_table.php)
@@ -106,6 +106,7 @@ module: ComunicacaoVisual
 - [2026_10_26_100000_add_minimo_e_acabamentos_ao_orcamento_cv.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_100000_add_minimo_e_acabamentos_ao_orcamento_cv.php)
 - [2026_10_26_110000_add_perda_e_emenda_to_comvis_materiais.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_110000_add_perda_e_emenda_to_comvis_materiais.php)
 - [2026_10_26_200000_create_comvis_orcamento_aceites_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_200000_create_comvis_orcamento_aceites_table.php)
+- [2026_11_10_100000_add_retrato_ao_comvis_orcamento_aceites.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_11_10_100000_add_retrato_ao_comvis_orcamento_aceites.php)
 
 ## Seeders — 2
 
@@ -139,9 +140,9 @@ module: ComunicacaoVisual
 - [Agenda.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Agenda.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md)
 
-## Testes (Pest) — 37
+## Testes (Pest) — 38
 
-- 37 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
+- 38 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4
