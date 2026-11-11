@@ -334,6 +334,19 @@ final class JogoService
         return $this->limiar->limiar((string) $programa->pain_alert_mode, $programa->limiarDeDor(), $base, (int) ($cfg['margem'] ?? 2));
     }
 
+    /**
+     * Limiar de dor em vigor para o paciente num dia: programa ativo e check-ins desde o início
+     * dele (a dor de base precisa da janela inicial). Usado pelo registro de eventos adversos do
+     * estudo (etapa 07 P-06), com a MESMA regra que pausa o jogo.
+     */
+    public function limiarVigente(Patient $p, string $dia): int
+    {
+        $programa = $this->programaAtivo($p);
+        $de = $programa !== null ? self::inicioDoPrograma($programa) : DiaLocal::somar($dia, -self::HISTORICO_DIAS);
+
+        return $this->limiarDeDor($programa, $this->checkinsDoPaciente($p, min($de, $dia), $dia));
+    }
+
     /** @return array<int,int> nível => XP mínimo, de `config('fisio.jogo.niveis')` */
     public static function tabelaDeNiveis(): array
     {
