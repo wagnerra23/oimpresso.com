@@ -357,7 +357,7 @@ Como recepção ou fisioterapeuta da associação, quero registrar o perfil soci
 
 **Implementado em:** `Modules/Fisio/Services/Social/RelatorioAssociacao.php` (contagens, médias e a regra do "<5") · `Modules/Fisio/Http/Controllers/RelatorioAssociacaoController.php` (rotas `fisio.relatorio-associacao.index` e `fisio.relatorio-associacao.pdf`, permissão `fisio.relatorio`) · tela `Modules/Fisio/Resources/js/Pages/Fisio/Relatorio/Associacao.tsx` · PDF `Modules/Fisio/Resources/views/pdf/relatorio-associacao.blade.php` · menu e permissão em `Modules/Fisio/Http/Controllers/DataController.php`
 
-> owner: — · priority: p1 · estimate: 8h · status: review · type: story
+> owner: — · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-061 (dados sociais)
 
 Como coordenação da associação, quero um relatório por período com quem foi atendido, quanto e se melhorou, para prestar contas em editais, emendas e convênios sem expor ninguém.
