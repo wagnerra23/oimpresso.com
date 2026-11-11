@@ -41,6 +41,7 @@ final class FolhaPrograma
     public function __construct(
         private readonly MidiaExercicio $midia,
         private readonly VaultEncryptionService $vault,
+        private readonly IdentidadeClinica $identidade,
     ) {}
 
     /** @return array<string, mixed> */
@@ -77,7 +78,9 @@ final class FolhaPrograma
             'crise' => array_values(array_map('strval', (array) ($programa->crisis_items ?? []))),
             'itens' => $itens,
             'portal_ativo' => $temLink,
+            'programa_id' => (int) $programa->id,
             'empresa' => (string) DB::table('business')->where('id', $businessId)->value('name'),
+            'clinica' => $this->identidade->montar($businessId),
             'emitido_em' => now()->format('d/m/Y'),
         ];
     }
