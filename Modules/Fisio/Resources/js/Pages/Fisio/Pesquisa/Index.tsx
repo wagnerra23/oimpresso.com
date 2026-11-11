@@ -44,6 +44,8 @@ interface Props {
   eventos?: EventoAdverso[];
 }
 
+/** Recusa de regra vem do servidor em `errors.geral`, fora dos campos do formulário. */
+const erroGeral = (errors: object): string | undefined => (errors as Record<string, string | undefined>).geral;
 const data = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('pt-BR');
 const SAIDAS: Record<string, string> = { perda_seguimento: 'perda de seguimento', revogacao: 'revogou', conclusao: 'concluiu', outro: 'outro motivo' };
 const SITUACAO: Record<Pendencia['situacao'], 'outline' | 'secondary' | 'destructive'> = { futuro: 'outline', aberto: 'secondary', vencido: 'destructive' };
@@ -104,7 +106,7 @@ function Incluir({ estudo, pacientes, fechar }: { estudo: Estudo; pacientes: { i
           <Checkbox checked={f.data.tcle_assinado} onCheckedChange={(v) => f.setData('tcle_assinado', v === true)} />
           O paciente assinou o TCLE na versão {estudo.tcle_version}, aprovada pelo CEP.
         </label>
-        {f.errors.geral && <p className="text-sm text-destructive">{f.errors.geral}</p>}
+        {erroGeral(f.errors) && <p className="text-sm text-destructive">{erroGeral(f.errors)}</p>}
         <DialogFooter>
           <Button variant="outline" onClick={fechar}>Cancelar</Button>
           <Button disabled={f.processing || !f.data.patient_id || !f.data.tcle_assinado}
@@ -126,7 +128,7 @@ function Saida({ estudo, p, fechar }: { estudo: Estudo; p: Participante; fechar:
           <SelectContent>{['perda_seguimento', 'conclusao', 'outro'].map((t) => <SelectItem key={t} value={t}>{SAIDAS[t]}</SelectItem>)}</SelectContent>
         </Select>
         <Textarea aria-label="Motivo" placeholder="Motivo (fica registrado e não é apagado)" value={f.data.motivo} onChange={(e) => f.setData('motivo', e.target.value)} />
-        {(f.errors.motivo || f.errors.geral) && <p className="text-sm text-destructive">{f.errors.motivo ?? f.errors.geral}</p>}
+        {(f.errors.motivo || erroGeral(f.errors)) && <p className="text-sm text-destructive">{f.errors.motivo ?? erroGeral(f.errors)}</p>}
         <DialogFooter>
           <Button variant="outline" onClick={fechar}>Cancelar</Button>
           <Button disabled={f.processing || f.data.motivo.trim() === ''}
