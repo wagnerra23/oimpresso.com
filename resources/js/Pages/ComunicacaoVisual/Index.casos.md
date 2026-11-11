@@ -417,7 +417,7 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 - **Persona:** dono de gráfica no primeiro dia — ele não vai cadastrar lona, vinil e ACM na mão
   antes de fazer o primeiro orçamento.
 - **Aceite:** Dado um business novo do vertical · Quando o `MaterialSeeder` roda · Então existem
-  **5** materiais com preço/m²; rodar de novo continua em **5** (idempotente); e `run(1)` e `run(99)`
+  **5** materiais com preço/m²; rodar de novo continua em **5** (idempotente); e `run(98)` e `run(99)`
   produzem catálogos que não se enxergam.
 - **Teste:** [`MaterialSeederTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/MaterialSeederTest.php)
   — os 4 casos (contagem, idempotência, isolamento por business, global scope no `find`).
