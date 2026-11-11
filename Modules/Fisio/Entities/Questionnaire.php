@@ -18,6 +18,7 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property int $business_id
  * @property int $patient_id
  * @property string $instrument
+ * @property ?string $instrument_version versão do instrumento (etapa 07, P-03)
  * @property array $answers
  * @property ?string $score
  * @property \Illuminate\Support\Carbon $answered_at

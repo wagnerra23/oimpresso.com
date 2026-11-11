@@ -19,6 +19,8 @@ use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Entities\Record;
 use Modules\Fisio\Services\EditorProgramaPayload;
+use Modules\Fisio\Services\Laudo\LaudoBiopsicossocialDocumento;
+use Modules\Fisio\Services\Laudo\MatrizIfbrm;
 use Modules\Fisio\Services\PainelFisio;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 use Modules\Fisio\Services\ResponsavelPaciente;
@@ -126,7 +128,7 @@ class PacientesController extends Controller
             'pode_editar' => $this->podeEditar($request),
             'prontuario' => Inertia::defer(fn () => $this->linhaDoTempo($paciente)),
             // Catálogo estático (sem query): vai junto. O histórico é query → defer (US-FISIO-011).
-            'instrumentos' => array_values(CatalogoQuestionarios::todos()),
+            'instrumentos' => array_values(CatalogoQuestionarios::disponiveis()),
             'questionarios' => Inertia::defer(fn () => $this->historicoQuestionarios($paciente)),
             // Aba Programa (US-FISIO-006): queries → defer.
             'programa' => Inertia::defer(fn () => app(EditorProgramaPayload::class)->programaAtivo($paciente), 'programa'),
@@ -141,6 +143,9 @@ class PacientesController extends Controller
                 return $e;
             }),
             'serie_dor' => Inertia::defer(fn () => ($evolucao ??= app(PainelFisio::class)->evolucao($paciente))['serie_dor']),
+            // Laudo biopsicossocial (US-FISIO-060): catálogo da matriz é estático (vai junto); os laudos são query → defer.
+            'laudo_bps_dominios' => MatrizIfbrm::DOMINIOS,
+            'laudos_bps' => Inertia::defer(fn () => app(LaudoBiopsicossocialDocumento::class)->doPaciente($paciente, $this->businessId($request)), 'laudos_bps'),
         ]);
     }
 
@@ -389,6 +394,7 @@ class PacientesController extends Controller
             ->map(fn (Questionnaire $q) => [
                 'id' => $q->id,
                 'instrumento' => $q->instrument,
+                'versao' => $q->instrument_version,
                 'score' => $q->score !== null ? (float) $q->score : null,
                 'detalhe' => (array) ($q->answers['detalhe'] ?? []),
                 'answered_at' => $q->answered_at?->toIso8601String(),

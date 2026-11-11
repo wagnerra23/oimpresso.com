@@ -11,11 +11,10 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * Wave 18 D8 Security.
  *
- * Cobre POST /com-visual/orcamentos/{id}/aprovar (interno) e
- * POST /com-visual/aprovacao-publica/{token}/aprovar (cliente externo).
+ * Cobre POST /comunicacao-visual/api/orcamentos/{id}/aprovar, só com login. O aceite do cliente é outra
+ * rota (OrcamentoAceitePublicoController). A permissão comvis.orcamento.create é conferida no controller.
  *
- * Multi-tenant Tier 0: id resolvido por global scope quando rota interna;
- * token público resolve business_id via lookup separado (não aceita input).
+ * Multi-tenant Tier 0: o id é resolvido com o business_id da sessão.
  *
  * @see Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php
  */
@@ -23,8 +22,7 @@ class AprovarOrcamentoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Aceita auth interna OU token público válido (Controller valida).
-        return auth()->check() || $this->route('token') !== null;
+        return auth()->check();
     }
 
     public function rules(): array

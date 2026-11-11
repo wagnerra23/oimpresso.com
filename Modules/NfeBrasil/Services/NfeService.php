@@ -9,9 +9,12 @@ use App\Support\BR\Cnpj;
 use App\Transaction;
 use App\Util\OtelHelper;
 use Closure;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Events\NFCeAutorizada;
+use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Exceptions\AliquotaInternaNaoCadastradaException;
 use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
@@ -1138,13 +1141,46 @@ class NfeService
 
         // D9.a OTel — span envolve TUDO (validação, idempotência, reserva número,
         // HTTP SEFAZ sefazEnviaLote, processamento retorno). p99 crítico SEFAZ.
-        return OtelHelper::spanBiz('nfe.emitir', function () use ($businessId, $dadosNfe, $modelo, $transactionId): NfeEmissao {
+        return $this->comTravaDaVenda($businessId, $transactionId, fn (): NfeEmissao => OtelHelper::spanBiz('nfe.emitir', function () use ($businessId, $dadosNfe, $modelo, $transactionId): NfeEmissao {
             return $this->emitirInterno($businessId, $dadosNfe, $modelo, $transactionId);
         }, [
             'module'         => 'NfeBrasil',
             'modelo'         => (string) $modelo,
             'transaction_id' => $transactionId,
-        ]);
+        ]));
+    }
+
+    /** Segundos que a trava da venda dura se o processo morrer sem soltá-la. */
+    public const TRAVA_EMISSAO_SEGUNDOS = 300;
+
+    /**
+     * N4-16 (lote 1.2): uma venda, uma emissão de cada vez. A checagem de emissão existente
+     * (`emitirInterno` passo 1) lê sem trava; dois workers com a mesma venda passariam juntos
+     * por ela e cada um pegaria um número. Quem chega com a trava ocupada recebe erro e a fila
+     * tenta de novo depois — aí a checagem já encontra a emissão do primeiro.
+     *
+     * @template T
+     * @param  Closure(): T  $emitir
+     * @return T
+     */
+    private function comTravaDaVenda(int $businessId, ?int $transactionId, Closure $emitir): mixed
+    {
+        if ($transactionId === null) {
+            return $emitir();
+        }
+
+        $trava = Cache::lock("nfebrasil:emitir:{$businessId}:{$transactionId}", self::TRAVA_EMISSAO_SEGUNDOS);
+        if (! $trava->get()) {
+            throw new RuntimeException(
+                "Emissão da venda {$transactionId} já está em andamento. Aguarde o resultado antes de tentar de novo."
+            );
+        }
+
+        try {
+            return $emitir();
+        } finally {
+            $trava->release();
+        }
     }
 
     /**
@@ -2990,6 +3026,11 @@ class NfeService
             // US-NFE-044 — gera DANFE PDF (defensivo: falha não derruba a emissão)
             app(DanfeService::class)->salvar($emissao->refresh());
 
+            // N4-09 (lote 1.1): o aviso sai daqui, o único lugar onde a nota vira autorizada —
+            // emissão da venda, manual, retransmissão, contingência e reconciliação passam por
+            // aqui. Só depois do commit, para o ouvinte nunca ver nota que voltou atrás.
+            DB::afterCommit(fn () => $this->avisarAutorizacao($emissao));
+
             return;
         }
 
@@ -3030,6 +3071,19 @@ class NfeService
     private function caminhoXmlEnviado(NfeEmissao $emissao): string
     {
         return sprintf('nfe-brasil/%d/notas/%s-%s.xml', $emissao->business_id, $emissao->serie, $emissao->numero);
+    }
+
+    /**
+     * Dispara NFeAutorizada (modelo 55) ou NFCeAutorizada (65). Falha de ouvinte síncrono
+     * (WhatsApp, cache do cockpit) não desfaz a nota, que já está autorizada na SEFAZ.
+     */
+    private function avisarAutorizacao(NfeEmissao $emissao): void
+    {
+        try {
+            event((int) $emissao->modelo === 65 ? new NFCeAutorizada($emissao) : new NFeAutorizada($emissao));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /** SEFAZ respondeu duplicidade (204/539): a nota desta chave pode já estar autorizada. */
