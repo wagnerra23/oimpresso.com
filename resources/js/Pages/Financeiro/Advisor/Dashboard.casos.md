@@ -17,7 +17,7 @@ last_run: "2026-08-17"
 Charter em **draft** (Onda 31 · US-FIN-037). Portal isolado, **read-only**, guard `web-advisor`.
 
 ## UC-ADVD-01 — Ver só os clientes que concederam acesso
-Status: 🧪 (`Advisor/Onda31AdvisorPortalTest`)
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
 Quando o contador entra · Então vê no grid apenas os businesses com grant ATIVO (`revoked_at` nulo), com data da concessão e escopo.
 
 ## [BACKLOG] Falta de consentimento LGPD é inequívoca
@@ -25,11 +25,11 @@ Status: ⬜ sem prova — consented_at só aparece como fixture em scope_json; n
 Cliente sem consentimento aparece com badge de pendência e os KPIs de topo contam quantos estão pendentes.
 
 ## UC-ADVD-03 — Entrar no cliente é read-only forçado
-Status: 🧪 (`Onda31AdvisorPortalTest` + middleware `AdvisorViewScope`)
+Status: ❌ o middleware `AdvisorViewScope` não está montado em rota nenhuma (medido 2026-11-09). O link hoje manda o contador para o login do ERP, sem mostrar dado, e `AdvisorRotasContratoTest` fixa esse estado. Montar é decisão [W].
 O link leva a `/financeiro/{unificado,relatorios}?advisor_view=1&business_id=X` e qualquer tentativa de mutação é barrada pelo middleware.
 
 ## UC-ADVD-04 — Grant revogado desaparece na hora
-Status: 🧪 (`Onda31AdvisorPortalTest`)
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
 Revogado no lado do cliente · Então o card sai do grid e a URL do cliente deixa de responder.
 
 ## [BACKLOG] Sem números cross-client

@@ -124,7 +124,8 @@ it('R-NFE-022 · a emissão manual devolve 422 com a ação, não 500 com texto'
     ]);
 
     try {
-        $this->actingAs(test()->usuarioComPermissoes([]))
+        // Lote 3.1: emitir exige `nfebrasil.emit.manage`; sem ela a rota devolve 403 antes do NCM.
+        $this->actingAs(test()->usuarioComPermissoes(['nfebrasil.emit.manage']))
             ->withSession(['business.id' => $biz, 'user.business_id' => $biz]);
 
         $r = $this->postJson("/nfe-brasil/transactions/{$tx}/emitir", ['modelo' => '65']);
