@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-011
-// Cobre UC-FPS-13, UC-FPS-14, UC-FPS-15, UC-FPS-16 (Fisio/Pacientes/Show.casos.md).
+// Cobre UC-FPS-13, UC-FPS-14, UC-FPS-15, UC-FPS-16, UC-FPS-39, UC-FPS-40, UC-FPS-41 (Fisio/Pacientes/Show.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
@@ -143,4 +143,75 @@ it('UC-FPS-16 · o histórico é deferido e o catálogo vai com referências e s
     $codigos = collect($r->json('props.instrumentos'))->pluck('codigo')->all();
     expect($codigos)->toBe(['eva', 'rmdq', 'psfs', 'lefs', 'spadi'])
         ->and(collect($r->json('props.instrumentos'))->every(fn ($i) => count($i['referencias']) > 0))->toBeTrue();
+});
+
+/*
+ * Etapa 07 (P-03) — questionários de fibromialgia atrás de `fisio.instrumentos_liberados`
+ * (ADR 0437 §8: sem licença confirmada, não entra). F::configurar() deixa a lista vazia, como
+ * em produção; os casos abaixo ligam o que precisam.
+ */
+function fqFiqr(int $valor): array
+{
+    $itens = [];
+    for ($n = 1; $n <= 21; $n++) {
+        $itens[(string) $n] = $valor;
+    }
+
+    return ['instrumento' => 'fiqr', 'respostas' => ['itens' => $itens]];
+}
+
+it('UC-FPS-39 · desligado: o instrumento de fibromialgia não aparece na ficha e não aceita resposta', function () {
+    $url = "/fisio/pacientes/{$this->p->id}/questionarios";
+    foreach (['fiqr' => fqFiqr(5), 'pgic' => ['instrumento' => 'pgic', 'respostas' => ['valor' => 3]], 'sentar_levantar_30s' => ['instrumento' => 'sentar_levantar_30s', 'respostas' => ['valor' => 12]]] as $corpo) {
+        $this->postJson($url, $corpo)->assertStatus(422)->assertJsonValidationErrors('instrumento');
+    }
+
+    $codigos = collect(F::props($this, $this->u98, "/fisio/pacientes/{$this->p->id}", 'Fisio/Pacientes/Show', 'instrumentos'))->pluck('codigo')->all();
+    expect($codigos)->toBe(['eva', 'rmdq', 'psfs', 'lefs', 'spadi'])
+        ->and(Questionnaire::query()->where('patient_id', $this->p->id)->count())->toBe(0);
+});
+
+it('UC-FPS-39 UC-FPS-40 · ligado só o FIQR: ele aparece e grava com a versão; os outros seguem recusados', function () {
+    config(['fisio.instrumentos_liberados' => ['fiqr']]);
+    $url = "/fisio/pacientes/{$this->p->id}/questionarios";
+
+    $id = $this->postJson($url, fqFiqr(10) + ['versao' => 'inventada'])->assertCreated()->json('id');
+    $q = Questionnaire::query()->findOrFail($id);
+    expect($q->instrument)->toBe('fiqr')
+        ->and((float) $q->score)->toBe(100.0)
+        ->and($q->instrument_version)->toBe('fiqr-br-lupi-2017')               // do catálogo, não do corpo
+        ->and($q->answers['versao_instrumento'])->toBe('fiqr-br-lupi-2017')
+        ->and($q->answers['detalhe'])->toEqual(['funcao' => 30, 'impacto' => 20, 'sintomas' => 50]);
+
+    $this->postJson($url, ['instrumento' => 'pgic', 'respostas' => ['valor' => 3]])->assertStatus(422)->assertJsonValidationErrors('instrumento');
+
+    $codigos = collect(F::props($this, $this->u98, "/fisio/pacientes/{$this->p->id}", 'Fisio/Pacientes/Show', 'instrumentos'))->pluck('codigo')->all();
+    expect($codigos)->toBe(['eva', 'rmdq', 'psfs', 'lefs', 'spadi', 'fiqr']);
+
+    $hist = collect(F::props($this, $this->u98, "/fisio/pacientes/{$this->p->id}", 'Fisio/Pacientes/Show', 'questionarios'));
+    expect($hist->first()['versao'])->toBe('fiqr-br-lupi-2017');
+});
+
+it('UC-FPS-41 · ACR 2016 ligado: grava WPI, SSS e o resultado dos critérios como informação', function () {
+    config(['fisio.instrumentos_liberados' => ['acr2016']]);
+    $itens = [];
+    for ($n = 1; $n <= 26; $n++) {
+        $itens[(string) $n] = 0;
+    }
+    foreach ([2, 6, 10, 13, 15, 16, 17] as $n) {   // 7 áreas, 5 regiões
+        $itens[(string) $n] = 1;
+    }
+    $itens['20'] = 2;
+    $itens['21'] = 2;
+    $itens['22'] = 1;                               // SSS 5
+    $itens['26'] = 1;                               // há 3 meses ou mais
+
+    $id = $this->postJson("/fisio/pacientes/{$this->p->id}/questionarios", ['instrumento' => 'acr2016', 'respostas' => ['itens' => $itens]])
+        ->assertCreated()->json('id');
+    $q = Questionnaire::query()->findOrFail($id);
+    expect((float) $q->score)->toBe(12.0)
+        ->and($q->instrument_version)->toBe('acr2016-fsq-brasil-2020')
+        ->and((int) $q->answers['detalhe']['wpi'])->toBe(7)
+        ->and((int) $q->answers['detalhe']['sss'])->toBe(5)
+        ->and((int) $q->answers['detalhe']['criterios_acr2016_atendidos'])->toBe(1);
 });

@@ -23,6 +23,8 @@ class FisioServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         // US-FISIO-008: ponto de entrada único do jogo — check-in gravado lança o XP no ledger.
         Event::listen(CheckinRegistrado::class, [LancarXpDoCheckin::class, 'handle']);
+        // Etapa 07 P-06: check-in de participante de estudo pode virar evento adverso (crise > 48 h, alerta de dor).
+        Event::listen(CheckinRegistrado::class, [\Modules\Fisio\Listeners\RegistrarEventoAdversoDoEstudo::class, 'handle']);
         // US-FISIO-022: venda do pacote cancelada ou excluída tira do saldo as sessões que sobraram.
         \App\Transaction::observe(\Modules\Fisio\Observers\VendaDoPacoteObserver::class);
 

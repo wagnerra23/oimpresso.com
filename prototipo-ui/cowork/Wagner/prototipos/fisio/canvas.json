@@ -335,6 +335,13 @@
       "title": "Pesquisa · Comparativo de funções (AppBarber, Jane, Cliniko, Booksy, Physitrack, Doctoralia)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "LaudoBiopsicossocial.dc.html": {
+      "x": 16074,
+      "y": 0,
+      "w": 860,
+      "h": 1900,
+      "title": "Fisio · Laudo biopsicossocial (ficha, modelo SES-SC)"
     }
   },
   "order": [

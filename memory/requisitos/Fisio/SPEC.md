@@ -321,3 +321,18 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 2. **Financeiro**: falta serviço público para outro módulo criar título a receber; hoje há 7 criadores com a mesma lógica repetida.
 3. **RecurringBilling**: fatura recorrente de empresa cliente não vira título no Financeiro.
 4. **Sells**: a tela de venda não aceita contato e produto pré-preenchidos, que é o que "Renovar pacote" precisa.
+
+## User Stories — Laudo biopsicossocial (fibromialgia)
+
+> Pedido de [W] em 2026-11-11. Base legal: Lei 15.176/2025, que criou o art. 1º-C na Lei 14.705/2023: a equiparação da pessoa com fibromialgia à pessoa com deficiência depende de avaliação biopsicossocial por equipe multiprofissional (art. 2º da Lei 13.146/2015). Em Santa Catarina o laudo segue o modelo aprovado pela Deliberação 500/CIB/2026 da SES-SC (Nota Técnica Conjunta SES/FCEE nº 001/2026, versão 1.0 de 26/10/2026), usado para a Carteira de Identificação da Pessoa com Fibromialgia (CIPF). O laudo é emitido pela Atenção Primária do município e a carteira segue o fluxo da FCEE; o Fisio gera o laudo no layout oficial com o que a clínica avaliou.
+
+### US-FISIO-060 · Laudo de avaliação biopsicossocial no modelo SES-SC — **P1**
+
+**Implementado em:** _pendente_ — em construção por partes: matriz IFBr-M (`Modules/Fisio/Services/Laudo/MatrizIfbrm.php`), esquema e imutabilidade (`Modules/Fisio/Database/Migrations/2026_11_11_000700_create_fisio_laudos_bps.php`, `Modules/Fisio/Entities/LaudoBiopsicossocial.php`, `Modules/Fisio/Entities/LaudoBiopsicossocialEquipe.php`); faltam rotas de preenchimento e equipe, finalização, PDF e tela.
+
+> owner: — · priority: p1 · estimate: 14h · status: doing · type: story
+> blocked_by: nenhum para o formulário, a matriz, a equipe e o apoio de dor e adesão. Os questionários de fibromialgia (FIQR-Br, ACR 2016/FSQ, PGIC, sentar e levantar em 30 s) entram como apoio quando a etapa 07 (P-03) estiver no `main`.
+
+**DoD:** formulário campo a campo do modelo SES-SC: identificação (paciente, nascimento, diagnóstico por laudo ACR 2016 com data, unidade de APS, impedimentos, CID, natureza); matriz IFBr-M com 8 domínios e 30 itens (100/75/50/25) e total igual à soma do menor valor de cada domínio, calculado pelo sistema; fatores ambientais e fatores pessoais e psicológicos; conclusão com três perguntas Sim/Não e observação, marcadas só pela equipe; equipe com no mínimo dois profissionais de áreas distintas, um deles médico, validada antes de finalizar; local e data obrigatórios. Laudo finalizado não muda, correção é laudo novo. O PDF segue o layout oficial e cada geração grava uma linha no `activity_log` só com ids. A tela diz que a emissão da carteira segue o fluxo da FCEE, sem prometer resultado. A empresa 99 não vê nada da 98 — `MatrizIfbrmTest`, `FisioLaudoBpsEsquemaTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Unit/MatrizIfbrmTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php`
