@@ -352,6 +352,7 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 **Testado em:** `Modules/Fisio/Tests/Feature/FisioDocumentosPacienteTest.php` (UC-FER-01..07).
 
 **Contrato:** casos de uso UC-FER-* no arquivo `_telas/exames-e-receitas.casos.md` desta pasta.
+
 ## User Stories — Associação de fibromialgia (dados sociais e relatório agregado)
 
 > Contexto: o cliente atende pessoas com fibromialgia por uma associação que busca recursos em editais, emendas parlamentares e convênios com o município, e precisa mostrar quem é atendido, quanto e se melhora. [W] aprovou em 2026-11-11 os dados sociais opcionais no cadastro e o relatório agregado sem identificação.
