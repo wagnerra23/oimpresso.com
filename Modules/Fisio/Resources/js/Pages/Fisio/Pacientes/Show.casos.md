@@ -226,7 +226,7 @@ related_us: [US-FISIO-009, US-FISIO-061]
 
 ## UC-FPS-19 · Exportar o prontuário em PDF · `should`
 - **Persona:** fisioterapeuta que precisa entregar o prontuário (paciente, outro profissional, perícia).
-- **Aceite:** Quando clica "Exportar prontuário (PDF)" na ficha · Então recebe um PDF com a identificação do paciente (nome e telefone do contato), o perfil clínico e **todos** os registros assinados do paciente — avaliação, evolução, telemonitoramento e adendo (este apontando o registro que corrige) — do mais antigo para o mais novo, cada um com nome de quem assinou, CREFITO, data e hora. Rodapé com a empresa, a data de emissão e "Página X de Y". Registro sem assinatura não entra. Paciente bloqueado também exporta (a guarda continua).
+- **Aceite:** Quando clica "Exportar prontuário (PDF)" na ficha · Então recebe um PDF com a identificação do paciente (nome e telefone do contato), o perfil clínico e **todos** os registros assinados do paciente — avaliação, evolução, telemonitoramento e adendo (este apontando o registro que corrige) — do mais antigo para o mais novo, cada um com nome de quem assinou, CREFITO, data e hora. Cabeçalho com o nome, o documento, o endereço e o contato da própria clínica (do cadastro da empresa e da primeira unidade ativa — nunca de outra empresa); rodapé com a empresa, a data de emissão e "Página X de Y". Registro sem assinatura não entra. Paciente bloqueado também exporta (a guarda continua).
 - **Regressão que defende:** prontuário entregue incompleto ou sem o carimbo de cada registro.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
 - **Status: 🧪**
@@ -332,6 +332,7 @@ related_us: [US-FISIO-009, US-FISIO-061]
 ## Trilha do tempo
 - 2026-11-11 · US-FISIO-061 — seção "Dados sociais" na ficha (`_components/DadosSociais.tsx`, `DadosSociaisController`, tabela `fisio_patient_social`) vira UC-FSO-01..05, com teste escrito junto. Prefixo próprio (FSO) para não colidir com os UC-FPS de outras sessões na mesma ficha.
 - 2026-11-04 · Lote 2 — avaliação em seções do protótipo (`_components/AvaliacaoEstruturada.tsx`) vira UC-FAV-01..02; mesmo POST e mesmos 6 campos da Res. 414, sem migration.
+- 2026-11-11 · Base visual comum dos impressos (`pdf/_base`, `IdentidadeClinica`, `ImpressoPdf`): prontuário, laudo de evolução e folha do programa passam a ter o mesmo cabeçalho da clínica e o mesmo rodapé com "Página X de Y". UC-FPS-19 ganha o cabeçalho no aceite e um caso 98 contra 99; o conteúdo dos três não muda.
 - 2026-11-04 · Lote 2 — laudo de evolução em PDF (2º documento, ao lado do prontuário) vira UC-FLD-01..03; botão no mesmo componente da exportação.
 - 2026-10-19 · B-12 (etapa 01-biblioteca) — folha A4 do programa para imprimir vira UC-FPS-37..38 (`FolhaProgramaController` + `Services/FolhaPrograma.php`, botão no `EditorPrograma.tsx`), com teste escrito junto. Sem QR, para não revogar o link vivo do paciente.
 - 2026-10-18 · US-FISIO-007a — link do portal gerado na ficha (`_components/LinkPortal.tsx`, `PortalLinkController`) vira UC-FPS-33..35, com teste escrito junto.
