@@ -1,9 +1,10 @@
 // UC-PCAD-22 · UC-PEDIT-19 (CU-PROD-20) — bloco "Locais de armazenagem" do cadastro de produto.
 //
 // Contrato (SDD CU-PROD-20, decisões [M] 2026-10-22 + #10544): uma linha por local de estoque com o
-// padrão e o endereço (só as partes que a empresa usa); o cadastro não grava quantidade; linha já
-// gravada não sai pela tela; o envio usa os campos do Blade (`product_racks` cria, `product_racks_update`
-// muda) e `local_padrao_id`. Só aparece com o estoque controlado.
+// padrão e o endereço (só as partes que a empresa usa); o cadastro não grava quantidade; o envio usa
+// os campos do Blade (`product_racks` cria, `product_racks_update` muda) e `local_padrao_id`. Só
+// aparece com o estoque controlado. UC-PEDIT-21 ([M] 2026-10-22): no Editar, a coluna "Em estoque" é
+// só leitura e local gravado só sai sem saldo, pelo campo `product_racks_remover`.
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -41,7 +42,7 @@ vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: { children: unk
 
 import ProdutoCreate from '@/Pages/Produto/Create'
 import ProdutoEdit from '@/Pages/Produto/Edit'
-import { armazenagemInicial, camposDaArmazenagem, semLinha } from '@/Pages/Produto/_components/formulario/armazenagem'
+import { armazenagemInicial, camposDaArmazenagem, podeTirar, semLinha } from '@/Pages/Produto/_components/formulario/armazenagem'
 
 const listas = {
   categories: {},
@@ -117,7 +118,7 @@ describe('armazenagem — estado e envio', () => {
     expect(camposDaArmazenagem({ linhas: [], padrao: null })).toEqual({ local_padrao_id: '' })
   })
 
-  it('tirar a linha padrão passa o padrão para a primeira que sobra; linha gravada não sai', () => {
+  it('tirar a linha padrão passa o padrão para a primeira que sobra; linha gravada não sai sem saldo conhecido', () => {
     const e = {
       linhas: [
         { local: 1, prateleira: '', fileira: '', posicao: '', salvo: false },
@@ -168,32 +169,33 @@ describe('UC-PCAD-22 · Novo produto', () => {
   })
 })
 
+const produto = {
+  id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: null, unitId: 5,
+  subUnitIds: null, categoryId: null, subCategoryId: null, tax: null, taxType: 'exclusive',
+  origemMercadoria: 0, barcodeType: 'C128', enableStock: true, alertQuantity: null,
+  weight: null, productDescription: null, productLocations: [1], image: null,
+  warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
+  localPadraoId: 2,
+}
+
+function editar(extra: Record<string, unknown> = {}, saldoPorLocal: Record<string, number> = { 2: 5 }) {
+  return render(
+    <ProdutoEdit
+      {...(listas as never)}
+      product={{ ...produto, ...extra } as never}
+      rackDetails={{ 2: { location_id: 2, rack: 'A', row: '', position: '' } } as never}
+      enderecoNoEstoque={soPrateleira}
+      saldoPorLocal={saldoPorLocal}
+      subUnits={{}}
+      permissions={{ opening_stock: false, delete: false }}
+    />,
+  )
+}
+
 describe('UC-PEDIT-19 · Editar produto', () => {
-  const produto = {
-    id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: null, unitId: 5,
-    subUnitIds: null, categoryId: null, subCategoryId: null, tax: null, taxType: 'exclusive',
-    origemMercadoria: 0, barcodeType: 'C128', enableStock: true, alertQuantity: null,
-    weight: null, productDescription: null, productLocations: [1], image: null,
-    warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
-    localPadraoId: 2,
-  }
-
-  function editar(extra: Record<string, unknown> = {}) {
-    return render(
-      <ProdutoEdit
-        {...(listas as never)}
-        product={{ ...produto, ...extra } as never}
-        rackDetails={{ 2: { location_id: 2, rack: 'A', row: '', position: '' } } as never}
-        enderecoNoEstoque={soPrateleira}
-        subUnits={{}}
-        permissions={{ opening_stock: false, delete: false }}
-      />,
-    )
-  }
-
-  it('lê o local gravado e o padrão; a linha gravada não tem botão de tirar e vai em product_racks_update', () => {
+  it('lê o local gravado e o padrão; a linha gravada com saldo não sai e vai em product_racks_update', () => {
     editar()
-    expect(screen.queryByRole('button', { name: /Remover local/ })).toBeNull()
+    expect((screen.getByRole('button', { name: 'Tirar este endereço do produto: Depósito' }) as HTMLButtonElement).disabled).toBe(true)
     expect((screen.getByLabelText('Prateleira, Depósito') as HTMLInputElement).value).toBe('A')
     const p = salvar()
     expect(p.product_racks_update).toEqual({ 2: { rack: 'A', row: '', position: '' } })
@@ -205,5 +207,67 @@ describe('UC-PEDIT-19 · Editar produto', () => {
     editar({ enableStock: false })
     expect(screen.queryByTestId('bloco-armazenagem')).toBeNull()
     expect(salvar()).not.toHaveProperty('local_padrao_id')
+  })
+})
+
+describe('UC-PEDIT-21 · Em estoque e tirar local sem saldo', () => {
+  const gravado = { location_id: 2, rack: 'A', row: '', position: '' }
+
+  it('podeTirar: linha nova sempre; gravada só com o saldo conhecido e zerado', () => {
+    const nova = { local: 1, prateleira: '', fileira: '', posicao: '', salvo: false }
+    const salva = { ...nova, salvo: true }
+    expect(podeTirar(nova)).toBe(true)
+    expect(podeTirar(salva)).toBe(false)
+    expect(podeTirar(salva, { 1: 3 })).toBe(false)
+    expect(podeTirar(salva, { 1: -2 })).toBe(false)
+    expect(podeTirar(salva, { 1: 0 })).toBe(true)
+    expect(podeTirar(salva, {})).toBe(true)
+  })
+
+  it('tirar a linha gravada sem saldo leva o local em product_racks_remover e passa o padrão adiante', () => {
+    const e = armazenagemInicial({ 2: gravado, 1: { location_id: 1, rack: 'B', row: '', position: '' } }, { salvo: true, padrao: 2 })
+    const sem = semLinha(e, e.linhas.findIndex((l) => l.local === 2), { 1: 4 })
+    expect(sem.removidos).toEqual([2])
+    expect(sem.padrao).toBe(1)
+    expect(camposDaArmazenagem(sem)).toEqual({
+      product_racks_update: { 1: { rack: 'B', row: '', position: '' } },
+      product_racks_remover: [2],
+      local_padrao_id: 1,
+    })
+  })
+
+  it('local tirado e posto de volta na mesma edição vai como mudança, não como criação nem remoção', () => {
+    const e = { linhas: [{ local: 2, prateleira: 'C', fileira: '', posicao: '', salvo: false }], padrao: 2, removidos: [2] }
+    expect(camposDaArmazenagem(e)).toEqual({
+      product_racks_update: { 2: { rack: 'C', row: '', position: '' } },
+      local_padrao_id: 2,
+    })
+  })
+
+  it('mostra "Em estoque" só leitura; com saldo o botão de tirar fica desligado', () => {
+    editar({}, { 2: 12.5 })
+    expect(screen.getByTestId('bloco-armazenagem').textContent).toContain('Em estoque')
+    expect(screen.getByLabelText('Em estoque, Depósito').textContent).toBe('12,50')
+    const botao = screen.getByRole('button', { name: 'Tirar este endereço do produto: Depósito' }) as HTMLButtonElement
+    expect(botao.disabled).toBe(true)
+    expect(botao.title).toBe('Este local tem saldo do produto. O endereço só sai depois de transferir ou ajustar o estoque.')
+    fireEvent.click(botao)
+    expect(salvar()).not.toHaveProperty('product_racks_remover')
+  })
+
+  it('sem saldo, tirar o local o tira da tela e o envio pede a remoção', () => {
+    editar({}, {})
+    expect(screen.getByLabelText('Em estoque, Depósito').textContent).toBe('0,00')
+    fireEvent.click(screen.getByRole('button', { name: 'Tirar este endereço do produto: Depósito' }))
+    expect(screen.queryByLabelText('Prateleira, Depósito')).toBeNull()
+    const p = salvar()
+    expect(p.product_racks_remover).toEqual([2])
+    expect(p.local_padrao_id).toBe('')
+    expect(p).not.toHaveProperty('product_racks_update')
+  })
+
+  it('no Novo não há coluna "Em estoque"', () => {
+    novo()
+    expect(screen.getByTestId('bloco-armazenagem').textContent).not.toContain('Em estoque')
   })
 })

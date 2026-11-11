@@ -34,13 +34,17 @@ Dar ao pesquisador do estudo um lugar para cadastrar o estudo, incluir e acompan
 - Registrar a saída (perda de seguimento, conclusão, outro) com motivo, sem apagar — UC-FES-03.
 - Ver as pendências por participante e momento — UC-FES-04.
 - Ver e revisar os eventos adversos (crise por mais de 48 h, alerta de dor) — UC-FES-09..11.
+- Exportar para a universidade sem identificação e travar os dados — UC-FES-12..15.
+- Assistente de IA da pesquisadora: sugestões que ela aceita ou descarta, desligado por padrão — UC-FES-16..19.
 
 ## Non-Goals (não faz)
 
 - Decidir conduta ou classificar o participante. O software organiza o estudo (ADR 0437 §5).
 - Classificar a gravidade do evento adverso. Quem avalia é a pesquisadora — UC-FES-11.
 - Juntar dado de clínicas diferentes (ADR 0437 §7).
+- Levar sugestão do assistente ao paciente, ao prontuário ou à tela clínica do fisioterapeuta ([W] 2026-11-11; RDC 657/2022) — UC-FES-19.
 
 ## Automation Anti-hooks
 
 - Quem não tem `fisio.editar` vê só o código do participante, nunca o nome — UC-FES-07.
+- A exportação nunca leva nome, CPF, telefone, data de nascimento nem data do calendário — UC-FES-12.

@@ -2,17 +2,18 @@
 // (produto-blade-forms.jsx): uma linha por local de estoque, com o padrão, o local e o endereço
 // dentro dele. Só aparece com o estoque controlado.
 //
-// O endereço mostra só as partes que a empresa usa (prateleira, fileira, posição). Não há coluna de
-// quantidade: o cadastro não grava estoque (#10544); no Novo ele entra por "Salvar e adicionar
-// estoque inicial". Linha já gravada não sai por aqui (tirar um local salvo fica para outro PR).
+// O endereço mostra só as partes que a empresa usa (prateleira, fileira, posição). O cadastro não
+// grava estoque (#10544): no Novo ele entra por "Salvar e adicionar estoque inicial"; no Editar a
+// coluna "Em estoque" é só leitura, e local gravado só sai sem saldo ([M] 2026-10-22).
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Inline } from '@/Components/layout';
 import { X } from 'lucide-react';
-import { semLinha } from './armazenagem';
-import type { EnderecoNoEstoque, EstadoArmazenagem, LinhaArmazenagem } from './armazenagem';
+import { formatDecimalPtBR } from '@/Lib/numberPtBR';
+import { podeTirar, saldoNoLocal, semLinha } from './armazenagem';
+import type { EnderecoNoEstoque, EstadoArmazenagem, LinhaArmazenagem, SaldoPorLocal } from './armazenagem';
 import { opcoesDe } from './tipos';
 import type { OptionMap } from './tipos';
 
@@ -21,6 +22,8 @@ interface Props {
   mudar: (e: EstadoArmazenagem) => void;
   locais: OptionMap;
   endereco: EnderecoNoEstoque;
+  /** Editar: o saldo por local. Com ele aparece a coluna "Em estoque" e o local sem saldo pode sair. */
+  saldos?: SaldoPorLocal;
 }
 
 const PARTES: Array<{ chave: keyof EnderecoNoEstoque; campo: 'prateleira' | 'fileira' | 'posicao'; rotulo: string }> = [
@@ -29,7 +32,7 @@ const PARTES: Array<{ chave: keyof EnderecoNoEstoque; campo: 'prateleira' | 'fil
   { chave: 'posicao', campo: 'posicao', rotulo: 'Posição' },
 ];
 
-export function BlocoArmazenagem({ valor, mudar, locais, endereco }: Props) {
+export function BlocoArmazenagem({ valor, mudar, locais, endereco, saldos }: Props) {
   const todos = opcoesDe(locais).map(([id, nome]) => ({ id: Number(id), nome }));
   const nomeDe = (id: number) => todos.find((l) => l.id === id)?.nome ?? `Local ${id}`;
   const usados = valor.linhas.map((l) => l.local);
@@ -41,13 +44,13 @@ export function BlocoArmazenagem({ valor, mudar, locais, endereco }: Props) {
     const linhas = valor.linhas.map((l, j) => (j === i ? { ...l, ...linha } : l));
     // Trocar o local da linha que é o padrão leva o padrão junto.
     const padrao = linha.local !== undefined && antes && valor.padrao === antes.local ? linha.local : valor.padrao;
-    mudar({ linhas, padrao });
+    mudar({ ...valor, linhas, padrao });
   };
   const adicionar = () => {
     const proximo = livres[0];
     if (!proximo) return;
     const linhas = [...valor.linhas, { local: proximo.id, prateleira: '', fileira: '', posicao: '', salvo: false }];
-    mudar({ linhas, padrao: valor.padrao ?? proximo.id });
+    mudar({ ...valor, linhas, padrao: valor.padrao ?? proximo.id });
   };
 
   return (
@@ -73,6 +76,7 @@ export function BlocoArmazenagem({ valor, mudar, locais, endereco }: Props) {
                   {p.rotulo}
                 </th>
               ))}
+              {saldos && <th className="py-1 pr-2 text-right font-normal">Em estoque</th>}
               <th className="w-10" />
             </tr>
           </thead>
@@ -110,14 +114,26 @@ export function BlocoArmazenagem({ valor, mudar, locais, endereco }: Props) {
                     />
                   </td>
                 ))}
+                {saldos && (
+                  <td className="py-1 pr-2 text-right tabular-nums" aria-label={`Em estoque, ${nomeDe(l.local)}`}>
+                    {formatDecimalPtBR(saldoNoLocal(saldos, l.local), 2)}
+                  </td>
+                )}
                 <td className="py-1">
-                  {!l.salvo && (
+                  {(!l.salvo || saldos) && (
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      aria-label={`Remover local, linha ${i + 1}`}
-                      onClick={() => mudar(semLinha(valor, i))}
+                      // Tira só o endereço deste produto neste local; o local da empresa continua existindo.
+                      aria-label={`Tirar este endereço do produto: ${nomeDe(l.local)}`}
+                      title={
+                        podeTirar(l, saldos)
+                          ? 'Tirar este endereço do produto'
+                          : 'Este local tem saldo do produto. O endereço só sai depois de transferir ou ajustar o estoque.'
+                      }
+                      disabled={!podeTirar(l, saldos)}
+                      onClick={() => mudar(semLinha(valor, i, saldos))}
                     >
                       <X className="w-4 h-4" />
                     </Button>

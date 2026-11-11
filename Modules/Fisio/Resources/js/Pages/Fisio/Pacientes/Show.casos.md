@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · Show.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: a ficha é o prontuário legal (Res. COFFITO 414/2012, guarda de 20 anos pela Lei 13.787/2018) e o editor do programa que o paciente executa sozinho em casa. Editar evolução assinada, apagar paciente ou prescrever contra uma contraindicação sem aviso são falhas legais e clínicas.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-11"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioProntuarioTest, FisioProgramaEditorTest, FisioPacienteCrudTest, FisioMultiTenantTest e FisioWhatsappJobTest."
 related_us: [US-FISIO-009]
 ---
@@ -13,6 +13,8 @@ related_us: [US-FISIO-009]
 # Casos de Uso & Aceite — Fisio · Ficha do paciente (`/fisio/pacientes/{id}`)
 
 > **Âncora:** ADR 0437 §4 a §8 e handoff F1 (T-05, T-06, T-09). Padrão Cockpit + Apps Vinculados: abas Evolução, Programa, Prontuário, Questionários. Os UCs não derivam do `.tsx`.
+>
+> **Laudo biopsicossocial (US-FISIO-060, 2026-11-11):** o cartão "Laudo biopsicossocial" da ficha tem contrato próprio em [`laudo-biopsicossocial.casos.md`](../../../../../../../memory/requisitos/Fisio/_telas/laudo-biopsicossocial.casos.md) (UC-FBP-01..15; a ficha em si é o UC-FBP-15). Revalidado em 2026-11-11: o cartão só acrescenta uma prop deferida própria (`laudos_bps`) e o catálogo da matriz; os UCs desta ficha não mudam.
 >
 > **Status:** ✅ passa (manifesto) · 🧪 teste cita o UC, sem veredito · ⬜ não verificado · ❌ quebrou. **O veredito é da lane** (G-7).
 
@@ -39,7 +41,7 @@ related_us: [US-FISIO-009]
 | UC-FPS-16 | histórico de questionários na ficha, deferido, só do paciente e da clínica | should | `FisioQuestionarioTest` |
 | UC-FPS-39 | questionário de fibromialgia só aparece e só grava se liberado em `fisio.instrumentos_liberados` | must | `FisioQuestionarioTest` |
 | UC-FPS-40 | FIQR, PGIC e sentar e levantar pontuados no servidor, com a versão do instrumento gravada | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
-| UC-FPS-41 | critérios ACR 2016 (WPI, SSS, regiões, duração) calculados como informação, sem diagnóstico | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
+| UC-FPS-41 | critérios ACR 2016 (WPI, SSS, regiões, duração) calculados como informação, sem diagnóstico | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest`, `tests/js/fisio-questionarios-fibro.test.tsx` |
 | UC-FPS-17 | paciente bloqueado: prontuário só aceita adendo | must | `FisioProntuarioTest` |
 | UC-FPS-18 | paciente bloqueado: perfil clínico não aceita edição | must | `FisioPacienteCrudTest` |
 | UC-FPS-30 | quem cadastra é o responsável; a ficha mostra o responsável | should | `FisioPacienteResponsavelTest` |
@@ -182,7 +184,7 @@ related_us: [US-FISIO-009]
 ## UC-FPS-41 · Critérios ACR 2016 como informação · `must`
 - **Âncora:** Wolfe et al. 2016 (Semin Arthritis Rheum 46:319-29) · ADR 0437 §5 (o software não decide conduta).
 - **Aceite:** WPI = áreas com dor (0 a 19); SSS = fadiga, sono e cognição (0 a 3) + cefaleia, dor abdominal baixa e depressão (0 ou 1), de 0 a 12; escore = WPI + SSS. Os critérios contam como atendidos com (WPI ≥ 7 e SSS ≥ 5, ou WPI 4–6 e SSS ≥ 9), dor em pelo menos 4 de 5 regiões (mandíbula, tórax e abdome não contam) e sintomas há 3 meses ou mais. O resultado é mostrado ao profissional como informação; o software não grava nem sugere diagnóstico.
-- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php` · `Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php`
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php` · `Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php` · `tests/js/fisio-questionarios-fibro.test.tsx` (a ficha mostra os critérios com o aviso "não é diagnóstico")
 - **Status: 🧪**
 
 ## UC-FPS-17 · Bloqueado: o prontuário só recebe correção · `must`

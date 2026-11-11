@@ -12,12 +12,15 @@ use Modules\ComunicacaoVisual\Entities\Orcamento;
  *
  * Gerar: o operador pede o link de um orçamento salvo (rascunho ou enviado, ainda sem OS). Sai um
  * token aleatório; só o sha256 fica em `comvis_orcamento_aceites`, válido por DIAS_VALIDADE dias.
- * Gerar outro fecha o anterior. O orçamento passa a `enviado`.
+ * Gerar outro fecha o anterior, e editar o orçamento também (o cliente só decide a versão que viu).
+ * O orçamento passa a `enviado`.
  *
  * Decidir (cliente, sem login), uso único:
  *   aceitar → o orçamento vira OS pelo MESMO `OrcamentoViraOs::aprovar` da tela (nenhum valor é
  *             recalculado: a OS leva o total gravado — regra mestre de valor);
  *   ajuste  → o orçamento volta a `rascunho` e o comentário fica no link.
+ * Toda decisão guarda o retrato do orçamento (números e itens, nunca custo). O aceite guarda também
+ * IP e navegador, como prova de quem aceitou.
  * Recusa (exceção \DomainException, mensagem para o cliente): link desconhecido, vencido ou já
  * usado; orçamento já aprovado, recusado ou expirado; data de validade passada.
  *
@@ -52,8 +55,7 @@ final class AceiteDoOrcamento
             }
 
             $agora = now();
-            DB::table('comvis_orcamento_aceites')->where('business_id', $businessId)->where('orcamento_id', $orcamentoId)
-                ->whereNull('decisao')->where('expira_em', '>', $agora)->update(['expira_em' => $agora, 'updated_at' => $agora]);
+            $this->fecharLinksAbertos($businessId, $orcamentoId);
 
             $token = Str::random(48);
             $expira = $agora->copy()->addDays(self::DIAS_VALIDADE);
@@ -68,6 +70,19 @@ final class AceiteDoOrcamento
 
             return ['token' => $token, 'expira_em' => $expira];
         });
+    }
+
+    /**
+     * Fecha os links ainda abertos do orçamento (adianta `expira_em`). Quem chama já travou o orçamento.
+     *
+     * @return int quantos links foram fechados
+     */
+    public function fecharLinksAbertos(int $businessId, int $orcamentoId): int
+    {
+        $agora = now();
+
+        return DB::table('comvis_orcamento_aceites')->where('business_id', $businessId)->where('orcamento_id', $orcamentoId)
+            ->whereNull('decisao')->where('expira_em', '>', $agora)->update(['expira_em' => $agora, 'updated_at' => $agora]);
     }
 
     /**
@@ -114,7 +129,7 @@ final class AceiteDoOrcamento
      * @return array{decisao: string, os_numero: string|null}
      * @throws \DomainException o cliente não pode decidir por este link
      */
-    public function decidir(string $token, string $decisao, ?string $comentario = null): array
+    public function decidir(string $token, string $decisao, ?string $comentario = null, ?string $ip = null, ?string $userAgent = null): array
     {
         if (! in_array($decisao, ['aceito', 'ajuste'], true)) {
             throw new \DomainException('Escolha aceitar ou pedir ajuste.');
@@ -124,13 +139,17 @@ final class AceiteDoOrcamento
             throw new \DomainException('Conte o que precisa mudar no orçamento.');
         }
 
-        return DB::transaction(function () use ($token, $decisao, $comentario) {
-            $link = DB::table('comvis_orcamento_aceites')->where('token_hash', self::hash($token))->lockForUpdate()->first();
-            if ($link === null) {
+        return DB::transaction(function () use ($token, $decisao, $comentario, $ip, $userAgent) {
+            $achado = $this->link($token);
+            if ($achado === null) {
                 throw new \DomainException('Este link não existe.');
             }
-            $biz = (int) $link->business_id;
-            $orc = DB::table('comvis_orcamentos')->where('business_id', $biz)->where('id', $link->orcamento_id)
+            $biz = (int) $achado->business_id;
+            // Trava o orçamento antes do link, a mesma ordem de gerar() e da edição: quem edita espera
+            // a decisão, ou a decisão vê o link já fechado. Nunca as duas ao mesmo tempo.
+            $orc = DB::table('comvis_orcamentos')->where('business_id', $biz)->where('id', $achado->orcamento_id)
+                ->lockForUpdate()->first();
+            $link = DB::table('comvis_orcamento_aceites')->where('business_id', $biz)->where('id', $achado->id)
                 ->lockForUpdate()->first();
             $situacao = $orc === null ? 'indisponivel' : $this->situacao($link, $orc);
             if ($situacao !== 'aberto') {
@@ -143,6 +162,7 @@ final class AceiteDoOrcamento
             }
 
             $agora = now();
+            $retrato = $this->retrato($biz, $orc);
             $osNumero = null;
             if ($decisao === 'aceito') {
                 [$os] = $this->viraOs->aprovar($biz, (int) $orc->id, null);
@@ -153,10 +173,40 @@ final class AceiteDoOrcamento
             }
             DB::table('comvis_orcamento_aceites')->where('business_id', $biz)->where('id', $link->id)->update([
                 'decisao' => $decisao, 'comentario' => $comentario, 'decidido_em' => $agora, 'updated_at' => $agora,
+                'retrato_json' => json_encode($retrato, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                'ip' => $decisao === 'aceito' ? $ip : null,
+                'user_agent' => $decisao === 'aceito' && $userAgent !== null ? mb_substr($userAgent, 0, 500) : null,
             ]);
 
             return ['decisao' => $decisao, 'os_numero' => $osNumero];
         });
+    }
+
+    /**
+     * Números e itens do orçamento como estavam na decisão. Copia o que está gravado, sem recalcular,
+     * e nunca leva custo nem margem.
+     *
+     * @return array<string, mixed>
+     */
+    private function retrato(int $biz, object $orc): array
+    {
+        $itens = DB::table('comvis_orcamento_itens')->where('business_id', $biz)->where('orcamento_id', $orc->id)
+            ->orderBy('ordem')->orderBy('id')
+            ->get(['descricao', 'largura_m', 'altura_m', 'quantidade', 'area_m2', 'area_cobrada_m2', 'preco_unitario_m2', 'valor_acabamentos', 'subtotal']);
+
+        return [
+            'numero'           => $orc->numero,
+            'data_emissao'     => $orc->data_emissao,
+            'data_validade'    => $orc->data_validade,
+            'subtotal'         => $orc->subtotal,
+            'desconto'         => $orc->desconto,
+            'extras'           => $orc->extras,
+            'acabamentos'      => $orc->acabamentos,
+            'custo_instalacao' => $orc->custo_instalacao,
+            'custo_entrega'    => $orc->custo_entrega,
+            'total'            => $orc->total,
+            'itens'            => $itens->map(fn ($i) => (array) $i)->all(),
+        ];
     }
 
     /** aberto | decidido | vencido | fora_da_validade | indisponivel */

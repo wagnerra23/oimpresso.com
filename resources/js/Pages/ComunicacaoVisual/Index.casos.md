@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-10-27"
-last_run_ci: "2026-10-27 — GH run 40495854452 (verticais-pest, MySQL, PR #9994): OsPosCalculoContratoTest 5 passed (UC-CVPOS-01..05); os outros UCs da tela não foram rodados nesta data; a mudança do Index.tsx pelo #9860 (link de aceite, 2026-10-27) não foi revalidada aqui. ---- 2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
+last_run: "2026-11-11"
+last_run_ci: "2026-11-11 — revalidação depois do merge do main: a tela tem a mudança deste PR (limpa o link ao salvar, UC-CVACE-04) e a do #10685 (formatos aceitos no anexo, UC-CVARQ-07). GH run 42825757558 (verticais-pest, PR #10706, antes do merge) passou UC-CVACE-04 e UC-CVACEP-05/06; o #10685 traz o run 42825793065 da lane inteira; vitest local tests/js/cv-aceite-link.test.tsx 3 passed. Os outros UCs não foram rodados nesta data. ---- 2026-11-10 — a tela só passou a limpar o link ao salvar (UC-CVACE-04); vitest local tests/js/cv-aceite-link.test.tsx 3 passed; nenhum outro UC tocado nem rodado nesta data. ---- 2026-11-10 — GH run 42825793065 (verticais-pest, MySQL, PR #10685, commit 936431ad): a lane inteira 1287 passed / 12 skipped (9584 assertions), incluindo OrcamentoArquivosContratoTest UC-CVARQ-01..07; a mudança do Index.tsx foi só tirar .svg do seletor de arquivo (UC-CVARQ-07). ---- 2026-10-27 — GH run 40495854452 (verticais-pest, MySQL, PR #9994): OsPosCalculoContratoTest 5 passed (UC-CVPOS-01..05); os outros UCs da tela não foram rodados nesta data; a mudança do Index.tsx pelo #9860 (link de aceite, 2026-10-27) não foi revalidada aqui. ---- 2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -58,6 +58,11 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-04 | Material de outro business não precifica nada | must `[T0]` | `CU-CV-03` item 4 · `CU-CV-04` | `OrcamentoCalculatorTest` · `MaterialSeederTest` | 🧪 ⏭ PR-skip |
 | UC-CV-05 | Orçamento, OS e apontamento de outro business não aparecem | must `[T0]` | `CU-CV-04` itens 1-5 | `MultiTenantTest` · `Tier0GuardTest` · `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-06 | Um operador nunca tem dois spools abertos; drift vem do servidor | must | `CU-CV-06` itens 2-6 | `ApontamentoTrackerTest` · `ApontamentoControllerTest` | 🧪 ⏭ PR-skip |
+| UC-CVAPT-01 | A lista de apontamentos mostra do operador só id e nome | must | US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
+| UC-CVAPT-02 | Sem permissão de apontar não lista, não inicia, não finaliza nem cancela | must | US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
+| UC-CVAPT-03 | OS de outra empresa é recusada igual a OS que não existe | must `[T0]` | `CU-CV-04` · US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
+| UC-CVAPT-04 | Peça de orçamento de outra empresa não entra no apontamento | must `[T0]` | `CU-CV-04` · US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
+| UC-CVAPT-05 | O serviço também recusa OS de outra empresa | must `[T0]` | `CU-CV-04` · US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
 | UC-CV-07 | A calculadora recebe o catálogo do business | must | `CU-CV-09` itens 1-3 | `ContratoTelaOrcamentoTest` | 🧪 verde no CT 100 (2026-09-23) ⏭ PR-skip |
 | UC-CV-08 | O rastro de auditoria não carrega PII | must `[reg]` | `CU-CV-08` itens 1-5 | `AuditTrailIntegrityTest` · `LgpdComplianceTest` | 🧪 |
 | UC-CV-09 | O substrato nasce com os campos fiscais do CNAE 1813 | should | `CU-CV-10` item 1 | `ContratoTelaOrcamentoTest` | 🧪 |
@@ -100,18 +105,23 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVMRG-04 | Custo de material de outra empresa nunca entra | must `[T0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-05 | Só quem gerencia materiais vê custo e margem | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-06 | O custo mostrado é o que o orçamento grava | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVACE-04 | Editar fecha o link aberto; o cliente não aceita a versão antiga | must `[V0]` `[T0]` | US-COMVIS-023 · auditoria 2026-11-05 S7 | `OrcamentoAceiteRetratoContratoTest` · `tests/js/cv-aceite-link.test.tsx` | 🧪 |
 | UC-CVARQ-01 | Anexar grava o arquivo no orçamento e aprovar o leva para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-02 | Formato que a gráfica não usa é recusado | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-03 | Depois de virar OS o orçamento não recebe nem perde arquivo | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-04 | Outra empresa não anexa nem remove | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-05 | Sem permissão de criar não anexa nem remove | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-06 | Remover tira o arquivo e ele não vai para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-07 | SVG é recusado, porque executa script na origem do sistema | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 |
 | UC-CVSAL-01 | Salvar grava os valores do servidor, não os da tela | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-02 | Reabrir devolve as peças e os ajustes, e aparece na lista | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-03 | Regravar o reaberto mantém o número e troca as peças | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-04 | Orçamento que virou OS ou foi recusado não regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-05 | Outra empresa não reabre, não lista nem regrava | must `[T0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-06 | Sem permissão de criar não salva nem regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVPAC-01 | Empresa sem o pacote recebe 403 no hub, na agenda e na API, inclusive o admin | must | Camada 1 do pacote · auditoria 2026-11-05 I-04/S8 | `PacoteRotasContratoTest` | 🧪 |
+| UC-CVPAC-02 | Empresa com o pacote segue usando e a permissão continua valendo | must | Camada 1 do pacote · auditoria 2026-11-05 I-04/S8 | `PacoteRotasContratoTest` | 🧪 |
+| UC-CVPAC-03 | O link público do cliente não depende do pacote; toda rota operacional carrega o gate | must | Camada 1 do pacote · auditoria 2026-11-05 I-04/S8 | `PacoteRotasContratoTest` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** O PR que criou este arquivo não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -778,6 +788,47 @@ item gravado é o custo mostrado na tela.
 
 Status: 🧪
 
+## Apontamentos de produção (US-COMVIS-004)
+
+> Âncora: SPEC US-COMVIS-004 e SDD §6 `CU-CV-04`. A API `/comunicacao-visual/api/apontamentos` não
+> tem tela nem app consumindo em 2026-11-09. A permissão é a única que o `DataController` declara
+> para o tema, `comvis.apontamento.create`.
+
+## UC-CVAPT-01 · A lista de apontamentos mostra do operador só id e nome · `must`
+
+**Dado** um apontamento aberto **Quando** a lista é consultada **Então** `operador` traz só `id` e
+`nome`, e o e-mail e o usuário de login não aparecem em nenhum ponto da resposta.
+
+Status: 🧪
+
+## UC-CVAPT-02 · Sem permissão de apontar não lista, não inicia, não finaliza nem cancela · `must`
+
+**Dado** um usuário sem `comvis.apontamento.create` **Quando** ele lista, inicia, finaliza ou cancela
+**Então** as quatro respostas são 403 e o apontamento aberto continua igual.
+
+Status: 🧪
+
+## UC-CVAPT-03 · OS de outra empresa é recusada igual a OS que não existe · `must` `[T0]`
+
+**Dado** uma OS da 99 **Quando** o operador da 98 inicia nela **Então** a validação recusa `os_id` com
+a mesma mensagem de uma OS inexistente, e nada é gravado.
+
+Status: 🧪
+
+## UC-CVAPT-04 · Peça de orçamento de outra empresa não entra no apontamento · `must` `[T0]`
+
+**Dado** uma peça da 99 **Quando** o operador da 98 inicia com ela **Então** a validação recusa
+`orcamento_item_id` e nada é gravado. **Com** uma peça da 98, o apontamento nasce com o m² dela.
+
+Status: 🧪
+
+## UC-CVAPT-05 · O serviço também recusa OS de outra empresa · `must` `[T0]`
+
+**Dado** uma OS da 99 e uma sessão da 98 **Quando** o `ApontamentoTracker` é chamado direto
+**Então** ele lança erro, sem depender da validação do controller.
+
+Status: 🧪
+
 ## Arquivos do orçamento (US-COMVIS-020 · UC-FLX-01)
 
 > Âncora: SPEC US-COMVIS-020 — os arquivos anexados ao orçamento passam para a OS. Até 2026-10-21
@@ -797,7 +848,17 @@ Status: 🧪
 ## UC-CVARQ-02 · Formato que a gráfica não usa é recusado · `must`
 
 **Dado** um `.exe` **Quando** ele é anexado **Então** a validação recusa (formatos aceitos: pdf, jpg,
-jpeg, png, svg, ai, eps, cdr, tif, tiff, psd) e nada é gravado.
+jpeg, png, ai, eps, cdr, tif, tiff, psd) e nada é gravado.
+
+Status: 🧪
+
+## UC-CVARQ-07 · SVG é recusado, porque executa script na origem do sistema · `must`
+
+**Dado** um `.svg` com `<script>`, com a extensão em minúscula ou maiúscula **Quando** ele é anexado
+**Então** a validação recusa no campo do arquivo, nada é gravado em `media` e nada vai para o disco.
+O anexo fica em `public/uploads/media`, na mesma origem do sistema e sem login: aberto pela URL
+direta, o script rodaria com a sessão de quem abriu. Arte vetorial segue por pdf, ai, eps ou cdr.
+SVGs enviados antes de 2026-11-09 continuam em disco.
 
 Status: 🧪
 
@@ -910,6 +971,14 @@ validade passada ou orçamento já aprovado não decidem.
 
 Status: 🧪
 
+## UC-CVACE-04 · Editar fecha o link aberto · `must` `[V0]` `[T0]`
+
+**Dado** um orçamento com link aberto **Quando** o vendedor salva uma alteração **Então** o link fecha na
+mesma transação, a tela deixa de mostrá-lo e o cliente vê o link como vencido. Um link novo aceita o valor
+novo. Fechar os links de um orçamento nunca toca os de outra empresa.
+
+Status: 🧪
+
 ## UC-CVACE-03 · A calculadora gera o link e entrega pronto para o WhatsApp · `should`
 
 **Dado** um orçamento gravado, igual à tela e ainda não aprovado **Quando** o vendedor clica "Enviar no
@@ -918,6 +987,29 @@ oferece "Copiar link" e "Abrir no WhatsApp" (`wa.me` com o número do orçamento
 Orçamento já aprovado não oferece o link (o serviço recusaria).
 
 Teste: `tests/js/cv-aceite-link.test.tsx`
+
+Status: 🧪
+
+## UC-CVPAC-01 · Empresa sem o pacote recebe 403 · `must`
+
+**Dado** uma empresa cujo pacote não inclui `comunicacao_visual_module` **Quando** um usuário dela, mesmo
+o admin (que passa em todo `can()`), abre o hub, a agenda ou qualquer rota de `/comunicacao-visual/api/*`
+**Então** a resposta é 403, a mesma regra do menu e do app das lojas.
+
+Status: 🧪
+
+## UC-CVPAC-02 · Empresa com o pacote segue usando · `must`
+
+**Dado** uma empresa com o pacote **Quando** um usuário com permissão abre o hub ou a API **Então** a
+tela abre e a API responde normalmente. Sem a permissão da ação, a resposta segue 403.
+
+Status: 🧪
+
+## UC-CVPAC-03 · O link público não depende do pacote · `must`
+
+**Dado** uma empresa sem o pacote **Quando** o cliente abre `/orcamento-cv/{token}` **Então** o gate não
+interfere (o cliente não tem login). Toda rota `comunicacao-visual.*` e `comvis.api.*` carrega o gate;
+as rotas `comvis.aceite.*` e as de instalação, não.
 
 Status: 🧪
 

@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 944,
-    "edges": 1274,
+    "nodes": 948,
+    "edges": 1277,
     "by_node_type": {
       "module": 43,
       "table": 108,
-      "adr": 153,
-      "component": 551,
+      "adr": 155,
+      "component": 553,
       "api": 89
     },
     "by_edge_type": {
@@ -42,12 +42,12 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 551,
+      "hasComponent": 553,
       "dependsOn": 139,
       "delegatesTo": 127,
       "migratesTo": 1,
       "supersedes": 27,
-      "supersedesPartially": 78,
+      "supersedesPartially": 79,
       "supersededBy": 31
     },
     "dangling": 0
@@ -317,6 +317,13 @@
       "type": "adr",
       "num": "0088",
       "slug": "0088-module-rename-php-only",
+      "exists": true
+    },
+    {
+      "id": "adr:0090",
+      "type": "adr",
+      "num": "0090",
+      "slug": "0090-nfe-replace-gradual-app-services",
       "exists": true
     },
     {
@@ -1123,6 +1130,13 @@
       "type": "adr",
       "num": "0448",
       "slug": "0448-fabricacao-cadastro-producao-execucao-product-bom-fonte-unica",
+      "exists": true
+    },
+    {
+      "id": "adr:0449",
+      "type": "adr",
+      "num": "0449",
+      "slug": "0449-nfebrasil-certificado-sem-fallback-legado",
       "exists": true
     },
     {
@@ -2332,6 +2346,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/Http/Middleware/ComunicacaoVisualLiberado",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Http/Middleware/ComunicacaoVisualLiberado",
+      "desc": "UC-CVPAC-01..03)"
+    },
+    {
       "id": "component:ComunicacaoVisual/InstalacaoController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -3513,6 +3534,13 @@
       "module": "Fisio",
       "name": "Laudo de avaliação biopsicossocial no modelo SES-SC",
       "desc": "US-FISIO-060)"
+    },
+    {
+      "id": "component:Fisio/LaudoBiopsicossocialController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "LaudoBiopsicossocialController",
+      "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão; apoio de dor e adesão (ApoioFisioterapia) e PDF no layout oficial (LaudoBiopsicossocialDocumento) (US-FISIO-060)"
     },
     {
       "id": "component:Fisio/OnboardingController",
@@ -8278,6 +8306,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0449",
+      "to": "adr:0090",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -9132,6 +9166,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/FsmProcessoComunicacaoVisualSeeder",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Http/Middleware/ComunicacaoVisualLiberado",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10718,6 +10758,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/LaudoBiopsicossocialController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -576,6 +576,11 @@ jobs:
         # ENTRAM 2026-11-11 — Fisio/MatrizIfbrmTest e Fisio/FisioLaudoBpsEsquemaTest (US-FISIO-060, UC-FBP-01..03):
         # laudo biopsicossocial no modelo SES-SC; total da matriz IFBr-M (menor valor de cada domínio),
         # laudo finalizado e equipe imutáveis (trigger + model), e a 99 não vê o laudo da 98.
+        # E FisioLaudoBpsEscritaTest (UC-FBP-04..09): preencher, equipe, finalizar com as regras do
+        # modelo (médico + outra área, local e data, 30 itens, conclusão), nova versão, 403/404.
+        # E FisioLaudoBpsApoioTest (UC-FBP-10..12) e FisioLaudoBpsPdfTest (UC-FBP-13..14): apoio de dor e
+        # adesão com período e fonte; PDF no layout SES-SC e uma linha no activity_log só com ids.
+        # E FisioLaudoBpsTelaTest (UC-FBP-15): catálogo da matriz junto e laudos por prop deferida na ficha.
         #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
@@ -672,6 +677,12 @@ jobs:
         # ENTRA 2026-11-04 — Fisio/FisioConfigAgendamentoTest (US-FISIO-015 · UC-FCA-01..04): agendamento
         # pelo app nasce desligado, salva horários e tipos liberados, versão da política, 403 e 98×99.
         #
+        # ENTRA 2026-11-11 — Fisio/FisioAssistentePesquisaTest (etapa 07 P-08 · UC-FES-16..19): assistente desligado
+        # por padrão, entrada sem identificação, sugestão pendente até a pesquisadora decidir, nada no portal, 98×99.
+        #
+        # ENTRA 2026-11-11 — Fisio/FisioExportacaoEstudoTest (etapa 07 P-07 · UC-FES-12..15): CSV sem identificação,
+        # NA para ausente, activity_log por download, travamento com justificativa, 98×99.
+        #
         # ENTRA 2026-11-11 — Fisio/FisioEventoAdversoTest (etapa 07 P-06 · UC-FES-09..11): check-in de participante
         # vira evento adverso (crise > 48 h, dor no limiar), idempotente, sem gravidade, revisão só da 98.
         #
@@ -681,6 +692,9 @@ jobs:
         # ENTRA 2026-11-11 — Fisio/FisioEstudoTest (etapa 07 P-04 · UC-FES-01..06): estudo só pelo pesquisador
         # (`fisio.pesquisa`), código do participante aleatório, aceite do TCLE do estudo, saída com motivo e sem
         # exclusão, pendência derivada da janela, revogação pelo portal tira do estudo, 98×99.
+        #
+        # ENTRA 2026-11-11 — Fisio/FisioCobrancaAvaliacaoTest (etapa 07 P-05 · UC-FPP-59..61): aviso da avaliação
+        # do estudo no portal e pelo WhatsApp (uma vez por momento, com consentimento), 98×99.
         #
         # ENTRA 2026-11-11 — Fisio/FisioConsentimentoPesquisaTest (etapa 07 P-02 · UC-FPP-56..58): pesquisa
         # por estudo com a versão do TCLE do estudo, `pesquisa_ia` antigo sem valor, `treino_ia` à parte,
@@ -706,6 +720,9 @@ jobs:
         # ENTRA 2026-10-20 — ComunicacaoVisual/InstalacaoAgendaContratoTest (US-COMVIS-007 · UC-FLX-21,
         # UC-CVINST-01..07): agenda equipe e veículo na OS; conflito de pessoa ou veículo → 422 dizendo
         # com quem e quando; encostado e cancelada passam; equipe/OS da 99 → 422/404; sem permissão 403.
+        #
+        # ENTRA 2026-11-09 — ComunicacaoVisual/ApontamentoControllerTest (US-COMVIS-004 · UC-CVAPT-01..05):
+        # lista só com id e nome do operador; sem permissão 403; OS/peça da 99 recusadas na validação.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -725,6 +742,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/MigrationsTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/MultiTenantTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/ApontamentoControllerTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php \
@@ -734,8 +752,10 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoSalvarReabrirContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoArquivosContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMargemContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/PacoteRotasContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoAceiteLinkContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoAceitePublicoContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoAceiteRetratoContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php \
@@ -866,6 +886,10 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioLaudoEvolucaoTest.php \
             Modules/Fisio/Tests/Unit/MatrizIfbrmTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsApoioTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
@@ -915,7 +939,10 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioConfigAgendamentoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php             Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php             Modules/Fisio/Tests/Feature/FisioEstudoTest.php \
             Modules/Fisio/Tests/Feature/FisioPesquisaTelaTest.php \
-            Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php || rc_principal=$?
+            Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php \
+            Modules/Fisio/Tests/Feature/FisioExportacaoEstudoTest.php \
+            Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php \
+            Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php || rc_principal=$?
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php || rc_painel=$?
