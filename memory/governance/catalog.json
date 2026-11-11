@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 943,
-    "edges": 1273,
+    "nodes": 944,
+    "edges": 1274,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 153,
-      "component": 550,
+      "component": 551,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 550,
+      "hasComponent": 551,
       "dependsOn": 139,
       "delegatesTo": 127,
       "migratesTo": 1,
@@ -3555,6 +3555,13 @@
       "module": "Fisio",
       "name": "PainelController",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/PesquisaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PesquisaController",
+      "desc": "estudo, participantes (código sem nome nem CPF), momentos de avaliação e pendências, com a permissão fisio.pesquisa (etapa 07 P-04)"
     },
     {
       "id": "component:Fisio/Portal público do paciente",
@@ -10747,6 +10754,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/PainelController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PesquisaController",
       "type": "hasComponent",
       "source": "contains"
     },
