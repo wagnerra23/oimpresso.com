@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 941,
-    "edges": 1271,
+    "nodes": 942,
+    "edges": 1272,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 153,
-      "component": 548,
+      "component": 549,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 548,
+      "hasComponent": 549,
       "dependsOn": 139,
       "delegatesTo": 127,
       "migratesTo": 1,
@@ -3499,6 +3499,13 @@
       "module": "Fisio",
       "name": "Jogo de constância",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/Laudo biopsicossocial integrado: quatro seções da LBI, cada uma com autor e assinatura; seção registrada append-only",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Laudo biopsicossocial integrado: quatro seções da LBI, cada uma com autor e assinatura; seção registrada append-only",
+      "desc": "US-FISIO-060)"
     },
     {
       "id": "component:Fisio/OnboardingController",
@@ -10685,6 +10692,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Jogo de constância",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Laudo biopsicossocial integrado: quatro seções da LBI, cada uma com autor e assinatura; seção registrada append-only",
       "type": "hasComponent",
       "source": "contains"
     },
