@@ -42,7 +42,7 @@ contains:
   - "ConfigAgendamentoController — Configurações › Agendamento pelo app: ligar, quem marca, tipos liberados, horários e regras (US-FISIO-015)"
   - "PortalAgendaController — agenda do paciente no portal: horários livres, marcar, remarcar, cancelar, confirmar, Cheguei, nota e lista de espera (US-FISIO-016)"
   - "Laudo de avaliação biopsicossocial no modelo SES-SC (Deliberação 500/CIB/2026): formulário, matriz IFBr-M (MatrizIfbrm) e equipe; finalizado não muda (fisio_laudos_bps, fisio_laudos_bps_equipe — US-FISIO-060)"
-  - "LaudoBiopsicossocialController — cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão (US-FISIO-060)"
+  - "LaudoBiopsicossocialController — cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão; apoio de dor e adesão (ApoioFisioterapia) e PDF no layout oficial (LaudoBiopsicossocialDocumento) (US-FISIO-060)"
   - "Estudo de pesquisa (fisio_studies) e consentimento `pesquisa` por estudo, com a versão do TCLE aprovada pelo CEP; `treino_ia` separado (etapa 07 P-02)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"

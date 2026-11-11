@@ -115,6 +115,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('laudos-bps/{laudo}/equipe', [LaudoBiopsicossocialController::class, 'incluirMembro'])->whereNumber('laudo')->name('laudos-bps.equipe.store');
         Route::delete('laudos-bps/{laudo}/equipe/{membro}', [LaudoBiopsicossocialController::class, 'removerMembro'])->whereNumber(['laudo', 'membro'])->name('laudos-bps.equipe.destroy');
         Route::post('laudos-bps/{laudo}/finalizar', [LaudoBiopsicossocialController::class, 'finalizar'])->whereNumber('laudo')->name('laudos-bps.finalizar');
+        Route::get('laudos-bps/{laudo}/apoio-fisio', [LaudoBiopsicossocialController::class, 'apoioFisio'])->whereNumber('laudo')->name('laudos-bps.apoio-fisio');
+        Route::get('laudos-bps/{laudo}/pdf', [LaudoBiopsicossocialController::class, 'pdf'])->whereNumber('laudo')->name('laudos-bps.pdf');
         Route::post('laudos-bps/{laudo}/nova-versao', [LaudoBiopsicossocialController::class, 'novaVersao'])->whereNumber('laudo')->name('laudos-bps.nova-versao');
 
         // Link do portal do paciente (US-FISIO-007a): gerar devolve link + PIN UMA vez; revogar derruba.

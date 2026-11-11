@@ -578,6 +578,8 @@ jobs:
         # laudo finalizado e equipe imutáveis (trigger + model), e a 99 não vê o laudo da 98.
         # E FisioLaudoBpsEscritaTest (UC-FBP-04..09): preencher, equipe, finalizar com as regras do
         # modelo (médico + outra área, local e data, 30 itens, conclusão), nova versão, 403/404.
+        # E FisioLaudoBpsApoioTest (UC-FBP-10..12) e FisioLaudoBpsPdfTest (UC-FBP-13..14): apoio de dor e
+        # adesão com período e fonte; PDF no layout SES-SC e uma linha no activity_log só com ids.
         #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
@@ -859,6 +861,8 @@ jobs:
             Modules/Fisio/Tests/Unit/MatrizIfbrmTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsApoioTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
