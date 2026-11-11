@@ -60,6 +60,19 @@ return [
         ],
     ],
     /*
+     * Questionários de fibromialgia liberados nesta instalação (etapa 07, P-03; ADR 0437 §8).
+     * Sem licença confirmada o instrumento não entra: ele está no enum do banco, mas só aparece
+     * na ficha e só aceita resposta se o código estiver nesta lista. Ligado em local, staging e
+     * testes (para testar antes de levar à Anvisa) e vazio em qualquer outro ambiente — produção
+     * é `live`. A lista é de quem LIGA: ambiente desconhecido fica desligado. O FIQR exige
+     * licença da Mapi Research Trust para uso comercial. Liberar em produção = PR nesta chave,
+     * depois de a licença ser confirmada (P-01).
+     */
+    'instrumentos_liberados' => in_array(config('app.env'), ['local', 'staging', 'testing'], true)
+        ? ['acr2016', 'fiqr', 'pgic', 'sentar_levantar_30s']
+        : [],
+
+    /*
      * Versão vigente de cada consentimento (fisio_consents, ADR 0437 §7). Consentimento
      * dado numa versão antiga não vale: a versão vem SEMPRE daqui, nunca do corpo do
      * request. Mudar o texto de um termo = subir a versão dele aqui.
