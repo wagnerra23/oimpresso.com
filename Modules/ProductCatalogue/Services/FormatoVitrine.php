@@ -22,7 +22,7 @@ final class FormatoVitrine
 
     public function numero(float|int|string|null $valor): string
     {
-        $moeda = $this->business->currency;
+        $moeda = $this->moeda();
 
         return number_format(
             (float) $valor,
@@ -34,7 +34,7 @@ final class FormatoVitrine
 
     public function dinheiro(float|int|string|null $valor): string
     {
-        $simbolo = (string) ($this->business->currency->symbol ?? '');
+        $simbolo = (string) ($this->moeda()?->symbol ?? '');
         $numero = $this->numero($valor);
 
         if ($simbolo === '') {
@@ -44,6 +44,14 @@ final class FormatoVitrine
         return $this->business->currency_symbol_placement === 'after'
             ? $numero . ' ' . $simbolo
             : $simbolo . ' ' . $numero;
+    }
+
+    /** Moeda da empresa (relação `currency`, carregada pelo repositório). */
+    private function moeda(): ?\App\Currency
+    {
+        $moeda = $this->business->getRelationValue('currency');
+
+        return $moeda instanceof \App\Currency ? $moeda : null;
     }
 
     /**
