@@ -50,6 +50,7 @@ contains:
   - "MedicamentosPacienteController — medicamentos em uso estruturados (fisio_patient_medications): incluir, alterar com antes/depois no activity_log e tirar da lista com motivo (US-FISIO-063)"
   - "TranscricaoDocumentoController — transcrição da foto pela IA (TranscricaoDocumentoAgent, laravel/ai), desligada por empresa, só provedor sem treino; a IA só copia e o profissional confere antes de gravar (fisio_document_transcriptions, US-FISIO-063)"
   - "PortalDocumentosController — paciente envia foto de exame ou receita pelo portal com o consentimento `documentos`; chega pendente e a clínica aceita ou recusa na ficha (US-FISIO-063)"
+  - "DadosSociaisController — dados sociais do paciente, todos opcionais, em fisio_patient_social; nascimento, município e bairro no contato (US-FISIO-061)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Preço do pacote, cobrança e títulos → Modules/Financeiro (via venda do núcleo); o Fisio só lê fin_titulos pelo model Titulo (F3, US-FISIO-021/022)"

@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /fisio/pacientes/{id}
 //   module: Fisio
-//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07, UC-FPS-19..20) · US-FISIO-006 (UC-FPS-06, 08..10) · US-FISIO-011 (UC-FPS-13..16) · US-FISIO-007a (UC-FPS-33..35) · US-FISIO-060 (UC-FBP-15) · US-FISIO-063 (UC-FER-01..16)
+//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07, UC-FPS-19..20) · US-FISIO-006 (UC-FPS-06, 08..10) · US-FISIO-011 (UC-FPS-13..16) · US-FISIO-007a (UC-FPS-33..35) · US-FISIO-060 (UC-FBP-15) · US-FISIO-061 (UC-FSO-01..05) · US-FISIO-063 (UC-FER-01..16)
 //   permissao: fisio.access · editar, assinar e bloquear exigem fisio.editar
 //
 // Ficha do paciente: perfil clínico e prontuário (Res. COFFITO 414/2012). O prontuário só
@@ -33,6 +33,7 @@ import LinkPortal from '../_components/LinkPortal';
 import LaudoBiopsicossocial, { type Dominio, type LaudoBps } from '../_components/LaudoBiopsicossocial';
 import ExamesReceitas, { type DocumentoFicha } from '../_components/ExamesReceitas';
 import type { Medicamento } from '../_components/MedicamentosEmUso';
+import DadosSociais, { type DadosSociaisValores, type OpcoesSociais } from '../_components/DadosSociais';
 
 interface Paciente {
   id: number;
@@ -74,6 +75,8 @@ interface Props {
   transcricao_ia: boolean;
   documentos?: DocumentoFicha[];
   medicamentos?: Medicamento[];
+  opcoes_sociais: OpcoesSociais;
+  dados_sociais?: DadosSociaisValores;
 }
 
 const TIPO: Record<Registro['kind'], string> = {
@@ -233,7 +236,7 @@ function LinhaDoTempo({ registros, podeEditar, onCorrigir }: { registros: Regist
   );
 }
 
-export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios, profissionais, transferencias, evolucao, serie_dor, programa, exercicios, protocolos, laudos_bps, laudo_bps_dominios, documento_tipos, transcricao_ia, documentos, medicamentos }: Props) {
+export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios, profissionais, transferencias, evolucao, serie_dor, programa, exercicios, protocolos, laudos_bps, laudo_bps_dominios, opcoes_sociais, dados_sociais, documento_tipos, documentos, medicamentos, transcricao_ia }: Props) {
   const [corrigindo, setCorrigindo] = useState<Registro | null>(null);
 
   return (
@@ -314,6 +317,11 @@ export default function PacienteShow({ paciente, condicoes, pode_editar, prontua
             <Deferred data="laudos_bps" fallback={<Skeleton className="h-24 w-full" />}>
               <LaudoBiopsicossocial pacienteId={paciente.id} laudos={laudos_bps ?? []} dominios={laudo_bps_dominios} podeEditar={pode_editar && !paciente.bloqueado} />
             </Deferred>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-start-2">
+          <CardContent className="flex flex-col gap-4 p-4">
+            <DadosSociais pacienteId={paciente.id} dados={dados_sociais} opcoes={opcoes_sociais} podeEditar={pode_editar && !paciente.bloqueado} />
           </CardContent>
         </Card>
       </div>

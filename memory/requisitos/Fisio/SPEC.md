@@ -2,7 +2,7 @@
 id: requisitos-fisio-spec
 module: Fisio
 version: "1.0"
-last_updated: "2026-11-04"
+last_updated: "2026-11-11"
 owner: wagner
 status: rascunho
 status_nota: "ativo desde 2026-10-18 (ADR 0437 aceita); F1 no main, atrás do pacote fisio_module; em 2026-10-19 só US-FISIO-011 (texto dos questionários) e US-FISIO-012 seguem abertas"
@@ -352,3 +352,19 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 **Testado em:** `Modules/Fisio/Tests/Feature/FisioDocumentosPacienteTest.php` (UC-FER-01..07) · `Modules/Fisio/Tests/Feature/FisioMedicamentosPacienteTest.php` (UC-FER-08..11) · `Modules/Fisio/Tests/Feature/FisioTranscricaoDocumentoTest.php` (UC-FER-12..16) · `Modules/Fisio/Tests/Feature/FisioPortalDocumentosTest.php` (UC-FER-17..20).
 
 **Contrato:** casos de uso UC-FER-* no arquivo `_telas/exames-e-receitas.casos.md` desta pasta.
+
+## User Stories — Associação de fibromialgia (dados sociais e relatório agregado)
+
+> Contexto: o cliente atende pessoas com fibromialgia por uma associação que busca recursos em editais, emendas parlamentares e convênios com o município, e precisa mostrar quem é atendido, quanto e se melhora. [W] aprovou em 2026-11-11 os dados sociais opcionais no cadastro e o relatório agregado sem identificação.
+
+### US-FISIO-061 · Dados sociais do paciente, todos opcionais — **P1**
+
+**Implementado em:** `Modules/Fisio/Services/Social/DadosSociais.php` (listas fechadas, regras, validação do CNS e gravação) · `Modules/Fisio/Http/Controllers/DadosSociaisController.php` (rota `fisio.pacientes.dados-sociais.update`) · `Modules/Fisio/Entities/PatientSocial.php` · `Modules/Fisio/Database/Migrations/2026_11_11_000800_create_fisio_patient_social.php` · seção na ficha `Modules/Fisio/Resources/js/Pages/Fisio/_components/DadosSociais.tsx` (props `opcoes_sociais` e `dados_sociais` em `Modules/Fisio/Http/Controllers/PacientesController.php`)
+
+> owner: — · priority: p1 · estimate: 6h · status: done · type: story
+
+Como recepção ou fisioterapeuta da associação, quero registrar o perfil social do paciente sem obrigar nenhuma resposta, para a associação mostrar quem atende.
+
+**DoD:** nascimento, município, UF e bairro moram no contato (`contacts.dob`, `city`, `state`, `neighborhood` — o mesmo endereço do cadastro de clientes); sexo, gênero, raça/cor no padrão do IBGE, cartão SUS com dígito verificador, renda familiar em faixas de salário mínimo, NIS/CadÚnico, situação de trabalho (trabalhando, afastado pelo INSS, aposentado, desempregado, outro), escolaridade, diagnóstico informado (CID, quem e quando), tempo de sintomas, comorbidades, como chegou (UBS/CAPS, indicação, procura própria) e situação da carteira de fibromialgia (CIPF) moram em `fisio_patient_social`, 1:1, com "prefiro não informar" onde cabe. Nenhum campo é obrigatório. Seção própria e recolhida na ficha, com a finalidade escrita na tela, editável só com `fisio.editar`. Dado sensível (LGPD art. 11): não vai ao portal nem à exportação da pesquisa; o `activity_log` guarda só os nomes dos campos alterados. A empresa 99 não vê nem grava nada da 98 — `FisioDadosSociaisTest` (UC-FSO-01..05).
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php`
