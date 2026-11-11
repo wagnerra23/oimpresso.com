@@ -216,9 +216,11 @@ it('R-14 — o painel da receita abre ao clicar na linha e fecha com Esc', funct
     $page->script("(() => { const l = [...document.querySelectorAll('[data-contract=\"lista\"] [role=\"button\"]')]"
         .".find((x) => (x.textContent || '').includes('Receita painel browser')); if (l) l.click(); return 'OK'; })()");
     mfgTelEsperar($page, $dialogo, 'ABERTO', 'o painel abrir');
+    expect($page->script($dialogo))->toBe('ABERTO');
 
     $page->script("(() => { document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); return 'OK'; })()");
     mfgTelEsperar($page, $dialogo, 'FECHADO', 'o painel fechar com Esc');
+    expect($page->script($dialogo))->toBe('FECHADO');
 })->after(fn () => mfgTelLimpar());
 
 it('R-22 — a via de produção não mostra valor de compra', function () {
