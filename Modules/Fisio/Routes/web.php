@@ -71,6 +71,11 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('pesquisa/estudos/{study}/exportar/{arquivo}', [PesquisaController::class, 'exportar'])
             ->whereNumber('study')->whereIn('arquivo', ['momentos', 'diario', 'participantes', 'dicionario'])->name('pesquisa.exportar');
         Route::post('pesquisa/estudos/{study}/travar', [PesquisaController::class, 'travar'])->whereNumber('study')->name('pesquisa.travar');
+        // Assistente de IA da pesquisadora (etapa 07 P-08): desligado por padrão, só na área do estudo.
+        Route::post('pesquisa/assistente', [PesquisaController::class, 'assistente'])->name('pesquisa.assistente');
+        Route::post('pesquisa/estudos/{study}/sugestoes', [PesquisaController::class, 'sugerir'])->whereNumber('study')->name('pesquisa.sugestoes.store');
+        Route::post('pesquisa/estudos/{study}/sugestoes/{sugestao}/{decisao}', [PesquisaController::class, 'decidirSugestao'])
+            ->whereNumber('study')->whereNumber('sugestao')->whereIn('decisao', ['aceitar', 'descartar'])->name('pesquisa.sugestoes.decidir');
 
         // Configurações › WhatsApp: a clínica escolhe o canal; número e driver são do módulo Whatsapp.
         Route::get('configuracoes/whatsapp', [ConfiguracoesController::class, 'whatsapp'])->name('configuracoes.whatsapp');

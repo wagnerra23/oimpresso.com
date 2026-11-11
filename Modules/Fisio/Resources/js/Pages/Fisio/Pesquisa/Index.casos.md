@@ -35,6 +35,10 @@ related_us: []
 | UC-FES-13 | série diária: dia sem check-in é NA, dor zero é 0 | must | `FisioExportacaoEstudoTest` |
 | UC-FES-14 | só o pesquisador exporta; cada download no log; outra clínica 404 | must | `FisioExportacaoEstudoTest` |
 | UC-FES-15 | travamento com motivo; depois, justificativa e exportação congelada | must | `FisioExportacaoEstudoTest` |
+| UC-FES-16 | assistente desligado por padrão; só a clínica liga | must | `FisioAssistentePesquisaTest` |
+| UC-FES-17 | o modelo recebe só dado sem identificação | must | `FisioAssistentePesquisaTest` |
+| UC-FES-18 | sugestão nasce pendente; aceitar grava quem e quando | must | `FisioAssistentePesquisaTest` |
+| UC-FES-19 | nada sai da área do estudo; outra clínica 404 | must | `FisioAssistentePesquisaTest` |
 
 ---
 
@@ -116,7 +120,29 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioExportacaoEstudoTest.php`
 - **Status: 🧪**
 
+## UC-FES-16 · Desligado até a clínica ligar · `must`
+- **Persona:** pesquisadora que quer ajuda para conferir o dado (etapa 07 P-08; decisão [W] 2026-11-11: "seria um auxílio para pesquisador, ele confirma se quiser").
+- **Aceite:** Sem ligar, pedir sugestões dá 422 e o modelo não é chamado. Só quem tem `fisio.pesquisa` e `fisio.editar` liga (o pesquisador externo leva 403). Ligar na 98 não liga na 99.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php`
+- **Status: 🧪**
+
+## UC-FES-17 · Sem identificação para o modelo `[T0]` · `must`
+- **Aceite:** O que vai ao modelo são os mesmos CSVs da exportação: código do participante e dia do estudo; nem nome, nem telefone, nem data.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php`
+- **Status: 🧪**
+
+## UC-FES-18 · A pesquisadora decide · `must`
+- **Aceite:** Cada sugestão (qualidade, resumo, padrão) nasce `pendente`. Aceitar ou descartar grava quem e quando, uma vez só. Tipo fora da lista é ignorado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php`
+- **Status: 🧪**
+
+## UC-FES-19 · Fica na área do estudo `[T0]` · `must`
+- **Aceite:** A sugestão não aparece na ficha do paciente nem no portal (RDC 657/2022; ADR 0437 §5). Pedir sugestões em estudo da 99 dá 404 para a 98.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-11 · etapa 07 P-08 — aba Assistente: sugestões de qualidade do dado, resumo descritivo e padrões antes da crise, sobre o dado sem identificação; a pesquisadora aceita ou descarta. Desligado por padrão.
 - 2026-11-11 · etapa 07 P-07 — aba Exportação: 4 CSV (momentos, série diária, participantes, dicionário), `NA` para ausente, dia do estudo no lugar da data, travamento com justificativa, tudo no activity_log.
 - 2026-11-11 · etapa 07 P-06 — aba Eventos adversos: crise por mais de 48 h e alerta de dor, registrados a partir do check-in. O software não classifica gravidade.
 - 2026-11-11 · etapa 07 P-04 — tela nasce com participantes e pendências. Eventos adversos (P-06), exportação (P-07) e assistente (P-08) entram com as abas do protótipo.
