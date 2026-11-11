@@ -2,9 +2,11 @@
 
 namespace Modules\ComunicacaoVisual\Http\Controllers;
 
+use App\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Apontamento;
 use Modules\ComunicacaoVisual\Services\ApontamentoTracker;
 use RuntimeException;
@@ -24,7 +26,12 @@ use RuntimeException;
  * operador_id é resolvido de auth()->id() — nunca do body da request.
  *
  * Multi-tenant Tier 0 ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)):
- * business_id resolvido via session('user.business_id') — nunca do input.
+ * business_id resolvido via session('user.business_id') — nunca do input. Os ids que chegam no
+ * body só passam na validação se forem da empresa da sessão (UC-CVAPT-03/04).
+ *
+ * Permissão: listar, iniciar, finalizar e cancelar exigem comvis.apontamento.create, a única
+ * permissão do tema no DataController (UC-CVAPT-02). `em-andamento` devolve só o spool do próprio
+ * usuário e fica aberto.
  *
  * @see Modules\ComunicacaoVisual\Services\ApontamentoTracker
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-004
@@ -42,6 +49,8 @@ class ApontamentoController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->exigirApontar();
+
         $request->validate([
             'os_id'       => ['nullable', 'integer', 'min:1'],
             'operador_id' => ['nullable', 'integer', 'min:1'],
@@ -49,7 +58,7 @@ class ApontamentoController extends Controller
             'data_fim'    => ['nullable', 'date', 'after_or_equal:data_inicio'],
         ]);
 
-        $query = Apontamento::with(['os', 'orcamentoItem', 'operador'])
+        $query = Apontamento::with(['os', 'orcamentoItem', 'operador:id,first_name,last_name'])
             ->orderByDesc('iniciado_em');
 
         if ($request->filled('os_id')) {
@@ -68,9 +77,20 @@ class ApontamentoController extends Controller
             $query->where('comvis_apontamentos.iniciado_em', '<=', $request->input('data_fim') . ' 23:59:59');
         }
 
-        $apontamentos = $query->paginate(25);
+        // Do operador só id e nome: `users` guarda e-mail, documento e dados bancários (UC-CVAPT-01).
+        $pagina = $query->paginate(25);
+        $resposta = $pagina->toArray();
+        $resposta['data'] = array_map(static function (Apontamento $apontamento): array {
+            $linha = $apontamento->toArray();
+            $operador = $apontamento->operador;
+            $linha['operador'] = $operador instanceof User
+                ? ['id' => $operador->id, 'nome' => $operador->nome_exibicao]
+                : null;
 
-        return response()->json($apontamentos, 200);
+            return $linha;
+        }, $pagina->items());
+
+        return response()->json($resposta, 200);
     }
 
     // ------------------------------------------------------------------
@@ -80,13 +100,17 @@ class ApontamentoController extends Controller
 
     public function iniciar(Request $request): JsonResponse
     {
+        $this->exigirApontar();
+        $businessId = $this->businessId();
+
         $validated = $request->validate([
-            'os_id'             => ['required', 'integer', 'min:1', 'exists:comvis_os,id'],
-            'orcamento_item_id' => ['nullable', 'integer', 'min:1', 'exists:comvis_orcamento_itens,id'],
+            'os_id'             => ['required', 'integer', 'min:1', Rule::exists('comvis_os', 'id')->where('business_id', $businessId)],
+            'orcamento_item_id' => ['nullable', 'integer', 'min:1', Rule::exists('comvis_orcamento_itens', 'id')->where('business_id', $businessId)],
             'maquina'           => ['nullable', 'string', 'max:80'],
         ], [
             'os_id.required' => 'A OS é obrigatória.',
             'os_id.exists'   => 'OS não encontrada.',
+            'orcamento_item_id.exists' => 'Peça do orçamento não encontrada.',
             'maquina.max'    => 'O nome da máquina deve ter no máximo 80 caracteres.',
         ]);
 
@@ -110,6 +134,8 @@ class ApontamentoController extends Controller
 
     public function finalizar(Request $request, int $apontamento): JsonResponse
     {
+        $this->exigirApontar();
+
         $validated = $request->validate([
             'm2_produzido' => ['required', 'numeric', 'gte:0'],
             'observacoes'  => ['nullable', 'string', 'max:500'],
@@ -137,6 +163,8 @@ class ApontamentoController extends Controller
 
     public function cancelar(Request $request, int $apontamento): JsonResponse
     {
+        $this->exigirApontar();
+
         $validated = $request->validate([
             'motivo' => ['required', 'string', 'min:5', 'max:500'],
         ], [
@@ -170,5 +198,18 @@ class ApontamentoController extends Controller
         }
 
         return response()->json($ativo, 200);
+    }
+
+    private function businessId(): int
+    {
+        return (int) (session('user.business_id') ?? session('business.id'));
+    }
+
+    private function exigirApontar(): void
+    {
+        $user = auth()->user();
+        if (! $user->can('superadmin') && ! $user->can('comvis.apontamento.create')) {
+            abort(403, 'Sem permissão para registrar apontamento (comvis.apontamento.create).');
+        }
     }
 }
