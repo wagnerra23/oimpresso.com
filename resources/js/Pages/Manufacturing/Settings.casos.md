@@ -30,7 +30,7 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-CFG-01 · A rota `/manufacturing/v2/settings` serve a tela nova
+## UC-MCFG-01 · A rota `/manufacturing/v2/settings` serve a tela nova
 - **Persona:** Wagner — chega pela aba "Configurações" das telas v2.
 - **Aceite:** Dado o app carregado · Quando se pergunta ao **registry de rotas** quem serve
   `GET manufacturing/v2/settings` · Então existe rota e a ação é o `SettingsController`.
@@ -41,7 +41,7 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-CFG-02 · A escrita continua no endpoint legado — `store()` NÃO muda
+## UC-MCFG-02 · A escrita continua no endpoint legado — `store()` NÃO muda
 - **Persona:** Wagner — a tela Blade antiga e a nova postam no MESMO lugar.
 - **Aceite:** Dado o `SettingsController` · Quando se lê o `store()` · Então ele segue lendo
   exatamente as 3 chaves (`ref_no_prefix`, `disable_editing_ingredient_qty`,
@@ -56,7 +56,7 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-CFG-03 · Business sem configuração salva NÃO quebra a tela
+## UC-MCFG-03 · Business sem configuração salva NÃO quebra a tela
 - **Persona:** business novo — `manufacturing_settings` nunca foi gravado.
 - **Aceite:** Dado `ManufacturingUtil::getSettings()` devolvendo `[]` · Quando o controller
   monta o payload · Então `ref_no_prefix` vira `''` e as duas travas viram `false` — nunca
@@ -70,7 +70,7 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-CFG-04 · Escrita scoped por business — nunca escreve no business errado
+## UC-MCFG-04 · Escrita scoped por business — nunca escreve no business errado
 - **Persona:** qualquer tenant — Tier 0.
 - **Aceite:** Dado o `store()` · Quando ele grava · Então o update é
   `Business::where('id', $business_id)->update(...)` — nunca um update sem cláusula de tenant.
