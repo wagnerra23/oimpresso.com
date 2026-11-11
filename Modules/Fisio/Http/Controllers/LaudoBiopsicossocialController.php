@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Fisio\Http\Controllers;
 
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +17,7 @@ use Modules\Fisio\Entities\LaudoBiopsicossocialEquipe as Equipe;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Services\ConfiguracaoClinica;
 use Modules\Fisio\Services\DiaLocal;
+use Modules\Fisio\Services\ImpressoPdf;
 use Modules\Fisio\Services\Laudo\ApoioFisioterapia;
 use Modules\Fisio\Services\Laudo\LaudoBiopsicossocialDocumento;
 use Modules\Fisio\Services\Laudo\MatrizIfbrm;
@@ -229,15 +229,13 @@ class LaudoBiopsicossocialController extends Controller
      * PDF no layout oficial. Leitura (basta `fisio.access`). Cada geração grava uma linha no
      * activity_log só com ids, o estado e o total — nunca nome nem texto clínico (LGPD art. 11).
      */
-    public function pdf(Request $request, int $laudo, LaudoBiopsicossocialDocumento $documento): Response
+    public function pdf(Request $request, int $laudo, LaudoBiopsicossocialDocumento $documento, ImpressoPdf $impresso): Response
     {
         $biz = $this->empresa($request);
         $doc = LaudoBiopsicossocial::query()->where('business_id', $biz)->with('patient')->findOrFail($laudo);
 
         $dados = $documento->montar($doc, $biz);
-        $pdf = Pdf::loadView('fisio::pdf.laudo-biopsicossocial', $dados)->setPaper('a4', 'portrait');
-        $pdf->render();
-        $this->numerarPaginas($pdf->getDomPDF(), (int) $doc->id);
+        $pdf = $impresso->gerar('fisio::pdf.laudo-biopsicossocial', $dados);
 
         activity('fisio')
             ->performedOn($doc->patient)
@@ -251,14 +249,6 @@ class LaudoBiopsicossocialController extends Controller
             'Content-Disposition' => 'attachment; filename="laudo-biopsicossocial-paciente-'.$doc->patient_id.'-'.now()->format('Ymd-His').'.pdf"',
             'Cache-Control' => 'no-store, private',
         ]);
-    }
-
-    /** "Laudo nº N · Página X de Y" no canto inferior direito — o total só existe depois do render. */
-    private function numerarPaginas(\Dompdf\Dompdf $dompdf, int $laudoId): void
-    {
-        $canvas = $dompdf->getCanvas();
-        $fonte = $dompdf->getFontMetrics()->getFont('DejaVu Sans');
-        $canvas->page_text($canvas->get_width() - 150, $canvas->get_height() - 30, 'Laudo nº '.$laudoId.' · Página {PAGE_NUM} de {PAGE_COUNT}', $fonte, 7, [0.34, 0.33, 0.31]);
     }
 
     private function empresa(Request $request): int

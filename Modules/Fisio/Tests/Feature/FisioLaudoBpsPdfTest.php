@@ -55,9 +55,11 @@ it('UC-FBP-13 · o PDF segue o formulário; rascunho sai como documento de apoio
         ->and($html)->toContain('Deliberação 500/CIB/2026')
         // Área sem profissional: linha em branco para nome, registro e assinatura.
         ->and($html)->toContain('<tr><td>Serviço Social</td><td>&nbsp;</td><td>____________</td>')
-        // Cabeçalho com a clínica da sessão e as seis seções numeradas na ordem do modelo.
-        ->and($d['empresa']['nome'])->toBe((string) DB::table('business')->where('id', $this->b98)->value('name'))
-        ->and($html)->toContain('<div class="clinica">'.e($d['empresa']['nome']).'</div>')
+        // Base comum dos impressos: cabeçalho com a clínica da sessão (IdentidadeClinica) e o nº do
+        // laudo; depois as seis seções numeradas na ordem do modelo.
+        ->and($d['clinica']['nome'])->toBe((string) DB::table('business')->where('id', $this->b98)->value('name'))
+        ->and($html)->toContain('<div class="clinica-nome">'.e($d['clinica']['nome']).'</div>')
+        ->and($html)->toContain('Laudo nº '.$this->id.' · rascunho')
         ->and(strpos($html, '1.</span>Identificação'))->toBeLessThan(strpos($html, '2.</span>Matriz'))
         ->and(strpos($html, '2.</span>Matriz'))->toBeLessThan(strpos($html, '3.</span>Fatores contextuais'))
         ->and(strpos($html, '3.</span>Fatores contextuais'))->toBeLessThan(strpos($html, '4.</span>Conclusão da equipe'))

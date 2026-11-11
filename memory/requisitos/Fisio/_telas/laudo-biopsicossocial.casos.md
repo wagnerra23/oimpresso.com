@@ -165,6 +165,11 @@ related_us: [US-FISIO-060]
   e o total; equipe em tabela com área, nome, registro e linha de assinatura e carimbo; rodapé que
   diz que a conclusão e a decisão são da equipe e do fluxo oficial, e "Laudo nº N · Página X de Y"
   em todas as páginas.
+  Base comum (2026-11-11, depois do #10782): o laudo usa o cabeçalho, o rodapé e a numeração dos
+  outros impressos do Fisio (pdf/_base, IdentidadeClinica, ImpressoPdf). O cabeçalho traz a clínica
+  com documento, endereço e contato da unidade ativa e, à direita, "Laudo nº N · rascunho" ou
+  "finalizado em …"; o rodapé repete a clínica e um aviso curto, com "Página X de Y" em todas as
+  páginas. O texto completo sobre a deliberação e o fluxo da APS e da FCEE fica no fim do documento.
 - **Âncora:** Deliberação 500/CIB/2026, arts. 1º a 3º; modelo versão 1.0 de 26/10/2026.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php`
 - **Status: 🧪**
