@@ -38,6 +38,8 @@ on:
       - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
       - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
       - 'Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php'  # vitrine pública
+      - 'Modules/ProductCatalogue/Services/CatalogueService.php'  # vitrine pública (selo de desconto)
+      - 'Modules/ProductCatalogue/Services/FormatoVitrine.php'
       - 'Modules/ProductCatalogue/Resources/views/catalogue/**'
       - 'app/Transaction.php'
       - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
@@ -239,6 +241,8 @@ jobs:
               - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
               - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
               - 'Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php'  # vitrine pública
+              - 'Modules/ProductCatalogue/Services/CatalogueService.php'  # vitrine pública (selo de desconto)
+              - 'Modules/ProductCatalogue/Services/FormatoVitrine.php'
               - 'Modules/ProductCatalogue/Resources/views/catalogue/**'
               - 'app/Transaction.php'
               - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
@@ -658,6 +662,7 @@ jobs:
             tests/Feature/Sells/SellsCondicaoClienteContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
             tests/Feature/Sells/CatalogoPublicoXssContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoDescontoContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
 
