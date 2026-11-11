@@ -25,6 +25,9 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property ?\Illuminate\Support\Carbon $ends_on
  * @property ?int $responsible_user_id
  * @property string $status
+ * @property ?\Illuminate\Support\Carbon $locked_at
+ * @property ?int $locked_by
+ * @property ?string $lock_reason
  */
 class Study extends Model
 {
@@ -44,6 +47,7 @@ class Study extends Model
     protected $casts = [
         'starts_on' => 'date',
         'ends_on' => 'date',
+        'locked_at' => 'datetime',
     ];
 
     /** @return \Illuminate\Database\Eloquent\Relations\HasMany<StudyMoment, $this> */
