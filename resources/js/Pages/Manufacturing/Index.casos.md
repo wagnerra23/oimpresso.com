@@ -289,6 +289,21 @@ last_run: "2026-10-07"
 
 ---
 
+## UC-OP-19 · O total da ordem é calculado no servidor; o do navegador não entra
+- **Persona:** Wagner — o custo gravado na ordem é lançamento contábil; ninguém pode digitá-lo.
+- **Aceite:** Dado um POST ou PUT com `final_total` forjado · Quando a ordem é gravada · Então o total gravado
+  é ingredientes (Σ consumo × custo do insumo × multiplicador da sub-unidade) + custo extra (% sobre os
+  ingredientes · valor × quantidade produzida com as perdidas · valor fixo), e no mesmo dia bate com o "total
+  de hoje" do painel. O custo unitário do acabado sai desse total.
+- **Fonte:** SDD Fabricação §4 ("o cliente nunca é fonte de `final_total`") · handoff §9 e §6 regra 4 ·
+  ADR 0448.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemTotalServidorTest.php` — à mão e contra o
+  `detalheOrdem`.
+- **Regressão que defende:** voltar a gravar o `final_total` que vem no request.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.
@@ -319,3 +334,4 @@ last_run: "2026-10-07"
   produto da própria empresa. Vermelho só com o teste na run 39441296307 (500 na variação inexistente; ordem
   de outra empresa gravada antes do 404 acidental); verde com o conserto na run 39446612104.
 - 2026-11-09 · [C] UC-OP-14 (US-MANU-008 H1): o item H1 do backlog virou caso com teste. A tela não mudou.
+- 2026-11-11 · [C] UC-OP-19 (lote 1.5 da auditoria): total da ordem calculado no servidor. A tela não mudou.
