@@ -83,7 +83,7 @@ interface ArquivoTela {
 }
 
 /** Extensões aceitas (espelha OrcamentoArquivoController::EXTENSOES). */
-const EXTENSOES_ARQUIVO = '.pdf,.jpg,.jpeg,.png,.svg,.ai,.eps,.cdr,.tif,.tiff,.psd';
+const EXTENSOES_ARQUIVO = '.pdf,.jpg,.jpeg,.png,.ai,.eps,.cdr,.tif,.tiff,.psd';
 
 /** Linha da lista "Orçamentos salvos" (OrcamentoController::recentes). */
 interface OrcamentoResumo {

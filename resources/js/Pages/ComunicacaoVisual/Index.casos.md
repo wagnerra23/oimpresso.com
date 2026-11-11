@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-10-27"
-last_run_ci: "2026-10-27 — GH run 40495854452 (verticais-pest, MySQL, PR #9994): OsPosCalculoContratoTest 5 passed (UC-CVPOS-01..05); os outros UCs da tela não foram rodados nesta data; a mudança do Index.tsx pelo #9860 (link de aceite, 2026-10-27) não foi revalidada aqui. ---- 2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
+last_run: "2026-11-10"
+last_run_ci: "2026-11-10 — GH run 42825793065 (verticais-pest, MySQL, PR #10685, commit 936431ad): a lane inteira 1287 passed / 12 skipped (9584 assertions), incluindo OrcamentoArquivosContratoTest UC-CVARQ-01..07; a mudança do Index.tsx foi só tirar .svg do seletor de arquivo (UC-CVARQ-07). ---- 2026-10-27 — GH run 40495854452 (verticais-pest, MySQL, PR #9994): OsPosCalculoContratoTest 5 passed (UC-CVPOS-01..05); os outros UCs da tela não foram rodados nesta data; a mudança do Index.tsx pelo #9860 (link de aceite, 2026-10-27) não foi revalidada aqui. ---- 2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -106,6 +106,7 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVARQ-04 | Outra empresa não anexa nem remove | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-05 | Sem permissão de criar não anexa nem remove | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-06 | Remover tira o arquivo e ele não vai para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-07 | SVG é recusado, porque executa script na origem do sistema | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 |
 | UC-CVSAL-01 | Salvar grava os valores do servidor, não os da tela | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-02 | Reabrir devolve as peças e os ajustes, e aparece na lista | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-03 | Regravar o reaberto mantém o número e troca as peças | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -797,7 +798,17 @@ Status: 🧪
 ## UC-CVARQ-02 · Formato que a gráfica não usa é recusado · `must`
 
 **Dado** um `.exe` **Quando** ele é anexado **Então** a validação recusa (formatos aceitos: pdf, jpg,
-jpeg, png, svg, ai, eps, cdr, tif, tiff, psd) e nada é gravado.
+jpeg, png, ai, eps, cdr, tif, tiff, psd) e nada é gravado.
+
+Status: 🧪
+
+## UC-CVARQ-07 · SVG é recusado, porque executa script na origem do sistema · `must`
+
+**Dado** um `.svg` com `<script>`, com a extensão em minúscula ou maiúscula **Quando** ele é anexado
+**Então** a validação recusa no campo do arquivo, nada é gravado em `media` e nada vai para o disco.
+O anexo fica em `public/uploads/media`, na mesma origem do sistema e sem login: aberto pela URL
+direta, o script rodaria com a sessão de quem abriu. Arte vetorial segue por pdf, ai, eps ou cdr.
+SVGs enviados antes de 2026-11-09 continuam em disco.
 
 Status: 🧪
 
