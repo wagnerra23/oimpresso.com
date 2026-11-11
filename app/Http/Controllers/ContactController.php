@@ -2691,12 +2691,19 @@ class ContactController extends Controller
                 $contacts->onlyCustomers();
             }
 
-            if (! empty($term)) {
-                $contacts->where(function ($query) use ($term) {
-                    $query->where('contacts.name', 'like', '%'.$term.'%')
-                            ->orWhere('supplier_business_name', 'like', '%'.$term.'%')
-                            ->orWhere('mobile', 'like', '%'.$term.'%')
-                            ->orWhere('contacts.contact_id', 'like', '%'.$term.'%');
+            // Cada palavra digitada casa em separado (E entre palavras, OU entre colunas).
+            // Com o termo inteiro num LIKE só, "NOME SOBRE" não achava o cadastro gravado
+            // com espaço duplo, nome do meio ou espaço não-separável vindo de importação —
+            // e o cliente que aparecia com "NOME" sumia ao digitar o começo do sobrenome
+            // (ROTA LIVRE, 2026-11-10). O resultado é sempre um superconjunto do anterior:
+            // quem casava o termo inteiro casa cada palavra dele.
+            $palavras = preg_split('/[\s\p{Z}]+/u', trim((string) $term), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            foreach ($palavras as $palavra) {
+                $contacts->where(function ($query) use ($palavra) {
+                    $query->where('contacts.name', 'like', '%'.$palavra.'%')
+                            ->orWhere('supplier_business_name', 'like', '%'.$palavra.'%')
+                            ->orWhere('mobile', 'like', '%'.$palavra.'%')
+                            ->orWhere('contacts.contact_id', 'like', '%'.$palavra.'%');
                 });
             }
 

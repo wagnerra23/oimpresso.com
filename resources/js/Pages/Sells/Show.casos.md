@@ -293,6 +293,41 @@ last_run: "2026-10-21"
 - **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-09`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## UC-VCAN-10 · Cancelar a venda cancela a NF-e e a NFC-e dela `[must]`
+- **Aceite:** Dado uma venda com nota autorizada · Quando a venda é cancelada pela FSM · Então o `CancelarNfeJob` é despachado para aquela nota, o job chama o cancelamento na SEFAZ e a nota continua no banco.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-10`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-11 · Nota fora do prazo recusa o cancelamento e a venda fica como estava `[must]`
+- **Aceite:** Dado uma NF-e com mais de 168 horas ou NFC-e com mais de 24 horas · Quando a venda é cancelada · Então a recusa diz o prazo, a venda segue `final`, o estoque não volta e nenhum job sai.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-11`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-12 · Nota em processamento ou sem protocolo recusa o cancelamento `[must]`
+- **Aceite:** Dado uma nota enviando, em contingência ou sem protocolo de autorização · Quando a venda é cancelada · Então a recusa diz o motivo e a venda segue `final`.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-12`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-13 · Nota de outra empresa não entra no cancelamento `[T0]` `[must]`
+- **Aceite:** Dado uma nota de outra empresa com o mesmo id de venda · Quando a venda é cancelada · Então a nota de fora não recusa, não vira documento e não dispara job.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-13`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-14 · Nota já cancelada não dispara job e continua no banco `[must]`
+- **Aceite:** Dado uma venda com nota `cancelada` · Quando a venda é cancelada · Então nenhum job sai e a nota continua registrada.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-14`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-15 · Motivo curto chega à SEFAZ com o tamanho exigido `[must]`
+- **Aceite:** Dado um motivo com menos de 15 caracteres · Quando a venda é cancelada · Então o job recebe o motivo com o prefixo "Cancelamento da venda:".
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-15`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-16 · Nota que não cancelou vira alerta só da empresa no cockpit `[T0]` `[must]`
+- **Aceite:** Dado um `CancelarNfeJob` que esgotou as tentativas · Quando ele desiste · Então fica um alerta `nfe_cancelamento_falhou` por documento, e o cockpit Fiscal só o mostra para a empresa da nota.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-16`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Comissão por regra da venda (US-COMM-015 · lacunas [W] 2026-10-27)
 
 > Só o cálculo, pelo servidor (`GET /sells/{id}/comissao-por-regra`), atrás da flag `SELLS_COMISSAO_POR_REGRA`

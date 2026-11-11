@@ -15,7 +15,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 >
 > **O que isto é:** o módulo `Produto` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Produto/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`products`, `variations`, `product_variations`, `variation_location_details`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 151 arquivos em 9 papéis.
+**Total mapeado:** 152 arquivos em 9 papéis.
 
 ## Controllers — 8
 
@@ -175,7 +175,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [StockHistory.casos.md](../../../resources/js/Pages/Produto/StockHistory.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Produto/Unificado/Index.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 17
+## Demais arquivos (manifestos, docs, assets e misc) — 18
 
 - [catalogo.ts](../../../resources/js/Pages/Produto/Unificado/_components/catalogo.ts)
 - [armazenagem.ts](../../../resources/js/Pages/Produto/_components/formulario/armazenagem.ts)
@@ -184,6 +184,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [envio.ts](../../../resources/js/Pages/Produto/_components/formulario/envio.ts)
 - [metodoCusto.ts](../../../resources/js/Pages/Produto/_components/formulario/metodoCusto.ts)
 - [ncm.ts](../../../resources/js/Pages/Produto/_components/formulario/ncm.ts)
+- [politicaPreco.ts](../../../resources/js/Pages/Produto/_components/formulario/politicaPreco.ts)
 - [precos.ts](../../../resources/js/Pages/Produto/_components/formulario/precos.ts)
 - [tipos.ts](../../../resources/js/Pages/Produto/_components/formulario/tipos.ts)
 - [cadastro-rapido-dominio.ts](../../../resources/js/Pages/Produto/_components/lista/cadastro-rapido-dominio.ts)

@@ -1,5 +1,7 @@
 /* producao-cv.css — módulo Produção (comunicação visual). Tokens do DS; sem cor crua fora de oklch de domínio dos setores. */
-.pcv-root{display:flex;flex-direction:column;min-height:100%;background:var(--bg)}
+/* A tela rola por dentro: no protótipo o .main-body tem overflow:hidden e cada tela é o único filho que rola
+   (como .pd-page, .fx-page, .bkp-page). Sem isso, tudo abaixo da janela ficava inalcançável. */
+.pcv-root{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;background:var(--bg)}
 .pcv-root>*{flex:none}
 .pcv-ph{padding:0 24px}
 .pcv-body{padding:18px 24px 32px;display:flex;flex-direction:column;gap:16px}
@@ -16,7 +18,7 @@
 .pcv-link:hover{text-decoration:underline;text-underline-offset:3px}
 .pcv-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 .pcv-alertas{display:flex;flex-direction:column;gap:10px}
-.pcv-al-a{margin-top:8px}
+.pcv-al-a{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px} /* dois botões no mesmo aviso não podem encostar */
 /* carga + encaixe */
 .pcv-carga{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .pcv-carga li{display:grid;grid-template-columns:170px minmax(0,1fr) 100px;gap:12px;align-items:center;font-size:13px}
@@ -61,6 +63,8 @@
 .pcv-g-lab small{font-size:11.5px;color:var(--text-mute)}
 .pcv-g-track{position:relative}
 .pcv-g-head .pcv-g-track span{position:absolute;top:8px;transform:translateX(-50%);font:400 11px var(--font-mono);color:var(--text-mute)}
+/* A última hora da régua (19h) encosta na borda direita: centralizada, metade dela saía da linha do tempo e criava rolagem lateral. */
+.pcv-g-head .pcv-g-track span:last-child{transform:translateX(-100%)}
 .pcv-g-now{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);z-index:1}
 .pcv-g-blk{all:unset;box-sizing:border-box;cursor:pointer;position:absolute;top:8px;bottom:8px;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:0 8px;overflow:hidden;border-radius:6px;font-size:11.5px;background:color-mix(in oklch,var(--c) 18%,var(--surface));border:1px solid color-mix(in oklch,var(--c) 45%,transparent);color:var(--text)}
 .pcv-g-blk span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-dim)}

@@ -38,8 +38,8 @@ interface Gerado { link: string; local: string }
 
 // Cores dos PIXELS do PNG (dado escolhido pelo operador), não cor de interface: por isso não
 // passam por token do DS. Em rgb() e não em hex porque o ui:lint R1 conta hex literal em Page
-// como cor de UI crua — e aqui não é UI. A Blade usava #000000 como padrão.
-const CORES = ['rgb(17, 17, 17)', 'rgb(91, 63, 168)', 'rgb(35, 94, 169)', 'rgb(235, 48, 136)'];
+// como cor de UI crua — e aqui não é UI. Valores medidos no protótipo (2026-11-10).
+const CORES = ['rgb(17, 17, 17)', 'rgb(121, 91, 191)', 'rgb(35, 94, 169)', 'rgb(235, 48, 136)'];
 const COR_TITULO = 'rgb(0, 66, 132)';
 const COR_SUBTITULO = 'rgb(79, 79, 79)';
 const INSTRUCOES = [
@@ -67,14 +67,15 @@ function carregarGerador(src: string): Promise<QRCodeCtor> {
 
 function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
   const [local, setLocal] = useState('');
-  const [cor, setCor] = useState(CORES[0]);
+  const [cor, setCor] = useState(CORES[1]);
   const [titulo, setTitulo] = useState(negocio.nome);
   const [subtitulo, setSubtitulo] = useState('Catálogo de produtos');
   const temLogo = !!negocio.logo_url;
   const [logo, setLogo] = useState(temLogo);
   const [gerado, setGerado] = useState<Gerado | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [copiado, setCopiado] = useState(false);
+  const [copia, setCopia] = useState<'ocioso' | 'copiado' | 'falhou'>('ocioso');
+  const timerCopia = useRef<ReturnType<typeof setTimeout>>(undefined);
   const alvo = useRef<HTMLDivElement>(null);
 
   // Mudou a forma, o QR antigo deixa de valer: gera de novo só com o clique (anti-hook do charter).
@@ -113,6 +114,8 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
 
   useEffect(() => {
     if (!gerado && alvo.current) alvo.current.innerHTML = '';
+    clearTimeout(timerCopia.current);
+    setCopia('ocioso');
   }, [gerado]);
 
   const baixar = () => {
@@ -124,11 +127,19 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
     a.click();
   };
 
-  const copiar = () => {
+  // Só diz "copiado" depois que o navegador confirma. A escrita pode ser recusada (permissão,
+  // aba sem foco) e, fora de contexto seguro, navigator.clipboard nem existe: o erro cai no catch.
+  const copiar = async () => {
     if (!gerado) return;
-    navigator.clipboard?.writeText(gerado.link);
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 1600);
+    clearTimeout(timerCopia.current);
+    try {
+      await navigator.clipboard.writeText(gerado.link);
+    } catch {
+      setCopia('falhou');
+      return;
+    }
+    setCopia('copiado');
+    timerCopia.current = setTimeout(() => setCopia('ocioso'), 1600);
   };
 
   const cabecalho = (
@@ -154,10 +165,11 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
   return (
     <>
       {cabecalho}
-      <Grid fit="lg" gap={6} className="px-6 pt-4 pb-8">
-        <section data-contract="formulario" className="rounded-lg border bg-card p-5">
-          <h2 className="mb-4 text-sm font-semibold">Como o QR vai sair</h2>
+      <Grid gap={6} className="items-start px-6 pt-4 pb-8 min-[1101px]:grid-cols-[minmax(0,1.15fr)_minmax(300px,.85fr)]">
+        <section data-contract="formulario" className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-[13.5px] font-semibold">Como o QR vai sair</h2>
           <Stack gap={4}>
+          <Grid gap={3} className="min-[1101px]:grid-cols-2">
             <Stack gap={1}>
               <Label htmlFor="cqr-local">Local comercial</Label>
               <Select value={local} onValueChange={mudou(setLocal)}>
@@ -177,7 +189,7 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
                 {CORES.map((c) => (
                   <button key={c} type="button" aria-label={`Cor ${c}`} aria-pressed={cor === c}
                     onClick={() => mudou(setCor)(c)}
-                    className={`size-7 rounded-full border-2 ${cor === c ? 'border-ring' : 'border-transparent'}`}
+                    className={`size-7 rounded-[7px] border-2 ${cor === c ? 'border-primary ring-[3px] ring-primary/20' : 'border-border'}`}
                     style={{ background: c }} />
                 ))}
               </Inline>
@@ -202,6 +214,7 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
                 </p>
               </div>
             </Inline>
+          </Grid>
 
             <Inline gap={3}>
               <Button disabled={!local} onClick={gerar}><QrCode className="size-4" /> Gerar QR code</Button>
@@ -210,9 +223,13 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
           </Stack>
 
           <div data-contract="instrucoes" className="mt-6 border-t pt-4 text-sm">
-            <b>Instruções</b>
-            <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted-foreground">
-              {INSTRUCOES.map((t) => <li key={t}>{t}</li>)}
+            <b className="text-[11px] uppercase tracking-[.06em] text-muted-foreground">Instruções</b>
+            <ol className="mt-2 space-y-1.5 text-[12.5px] text-muted-foreground">
+              {INSTRUCOES.map((t, i) => (
+                <Inline asChild key={t} gap={2} align="baseline">
+                  <li><span className="inline-block size-[18px] shrink-0 rounded-[5px] border bg-muted text-center text-[10px] leading-[16px]">{i + 1}</span>{t}</li>
+                </Inline>
+              ))}
             </ol>
           </div>
         </section>
@@ -233,8 +250,13 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
               </code></Inline>
               <Inline gap={2} wrap>
                 <Button onClick={baixar}><Download className="size-4" /> Baixar imagem</Button>
-                <Button variant="outline" onClick={copiar}>{copiado ? 'Link copiado' : 'Copiar link'}</Button>
+                <Button variant="outline" onClick={copiar}>{copia === 'copiado' ? 'Link copiado' : 'Copiar link'}</Button>
               </Inline>
+              {copia === 'falhou' && (
+                <Alert variant="destructive">
+                  <AlertDescription>Não foi possível copiar o link. Selecione o endereço acima e copie manualmente.</AlertDescription>
+                </Alert>
+              )}
               <Inline gap={2} wrap>
                 <Badge variant="secondary">{gerado.local}</Badge>
                 <Badge variant="outline">256 × 256 px · PNG</Badge>

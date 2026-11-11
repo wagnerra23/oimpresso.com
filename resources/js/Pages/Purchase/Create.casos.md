@@ -415,6 +415,34 @@ Status: 🧪
 - **Contrato:** ADR 0093. Auditoria Compras 2026-11-05, achado A5.
 - **Status: 🧪**
 
+## Sugerir pela curva de venda (US-VEST-031, decisão [W] 2026-10-26)
+
+A conta é da `CurvaDeCompra` (`UC-VCUR-01..04`, `memory/requisitos/Vestuario/_telas/curva-de-compra.casos.md`). Aqui, o que a tela faz com ela.
+
+## UC-PURCRE-16 · A sugestão preenche a grade e a soma bate com o total · `must` `[V0]`
+
+- **Aceite:** Dado um produto com grade aberta · Quando quem compra digita o total e pede a sugestão · Então cada célula recebe a quantidade do servidor, a soma bate com o total e nada entra nos itens da compra. Sem venda no produto nem na categoria, a tela mostra o motivo e a grade fica como estava.
+- **Teste:** [`tests/js/purchase-sugerir-curva.test.tsx`](../../../../tests/js/purchase-sugerir-curva.test.tsx)
+- **Status: 🧪**
+
+## UC-PURCRE-17 · Quem compra edita a sugestão antes de salvar · `must` `[V0]`
+
+- **Aceite:** Dado uma grade preenchida pela sugestão · Quando a pessoa muda uma célula, adiciona à compra e salva · Então o POST leva a quantidade editada. Até salvar, nada é enviado.
+- **Teste:** [`tests/js/purchase-sugerir-curva.test.tsx`](../../../../tests/js/purchase-sugerir-curva.test.tsx)
+- **Status: 🧪**
+
+## UC-PURCRE-18 · A empresa 98 não enxerga dado da 99 · `must` `[T0]`
+
+- **Aceite:** Dado um produto de outra empresa · Quando a sugestão é pedida com o id dele · Então a resposta é "produto não encontrado", sem linhas.
+- **Teste:** [`tests/Feature/Purchase/SugerirPelaCurvaContratoTest.php`](../../../../tests/Feature/Purchase/SugerirPelaCurvaContratoTest.php)
+- **Status: 🧪**
+
+## UC-PURCRE-19 · O botão depende do pacote da empresa · `must`
+
+- **Aceite:** Dado uma empresa sem o Vestuário no pacote · Quando abre a nova compra · Então "Sugerir pela curva" não aparece. Com o módulo no pacote, aparece; a tela já exige `purchase.create`.
+- **Teste:** [`tests/Feature/Purchase/SugerirPelaCurvaContratoTest.php`](../../../../tests/Feature/Purchase/SugerirPelaCurvaContratoTest.php) · [`tests/js/purchase-sugerir-curva.test.tsx`](../../../../tests/js/purchase-sugerir-curva.test.tsx)
+- **Status: 🧪**
+
 ## `[BACKLOG]` — achados sem contrato em 2 fontes, ou sem teste que os defenda
 
 - `[BACKLOG]` 🔴 **Tirar o `describe('Tier 0 cross-tenant (synthetic sqlite)')` da quarentena.** São

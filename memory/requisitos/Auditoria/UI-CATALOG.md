@@ -1,21 +1,23 @@
-# Auditoria — UI Catalog (auto-gerado bulk W31-10)
+# Auditoria — UI Catalog
 
-> **Ultima atualizacao:** 2026-05-17 (W31-10)
-> **Auto-regeneravel.** Manter versao; reescrever via gerador (nao editar manual em campos de auto-status).
+> **Ultima atualizacao:** 2026-11-09, a mao. O gerador bulk W31-10 de 2026-05-17 nao esta versionado neste repo.
 > Pages dir: `resources/js/Pages/Auditoria/`
 
 ## Resumo
 
+Medido em 2026-11-09 (`ls resources/js/Pages/Auditoria/`).
+
 - Telas Inertia tsx: **2**
-- Charters `.charter.md`: **1** (cobertura: 50%)
+- Charters `.charter.md`: **2** (ambos `status: draft`)
+- Casos `.casos.md`: **2** (5 UCs)
 - Blade legacy do modulo (Modules/<X>/Resources/views): **0**
 
 ## Telas Inertia tsx
 
-| Tela | Charter | review.md | Status | Round | Smoke pendente |
-|---|:---:|:---:|---|---:|:---:|
-| `Detail.tsx` | - | - | legacy | 0 | sim |
-| `Index.tsx` | OK | - | charter-WIP | 1 | sim |
+| Tela | Charter | Casos | review.md | Status | Smoke pendente |
+|---|:---:|:---:|:---:|---|:---:|
+| `Detail.tsx` | OK | OK | - | awaiting-smoke-browser | sim |
+| `Index.tsx` | OK | OK | - | awaiting-smoke-browser | sim |
 
 
 ## Blade legacy restantes
@@ -36,18 +38,17 @@ sem Blade legacy direto neste modulo
 - **Status pipeline:**
   - `legacy` — sem charter, sem review (precisa charter + MWART F1 design)
   - `charter-WIP` — charter aberto sem status valido
-  - `awaiting-smoke-browser` — charter `draft` aceito, falta smoke biz=1 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md))
+  - `awaiting-smoke-browser` — charter `draft` aceito, falta smoke em tela. Teste automatizado usa o tenant ficticio 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
   - `review-pending` — tela em revisao por Wagner
   - `reviewed-no-charter` — review.md existe mas charter ausente (regularizar)
-  - `live` — charter status `live` + smoke validado biz=1
+  - `live` — charter status `live` + smoke validado
 
-## Como regenerar
+## Portas vivas
 
 ```bash
-bash /tmp/generate_catalogs.sh
+npm run screen-coverage:report
 ```
 
-(Em S4+ vira `php artisan ui:catalog-generate` — issue futura)
-
----
-Gerado por W31-10 (bulk-screen-review-r1, areas isoladas, sem git ops).
+```bash
+npm run casos:report
+```
