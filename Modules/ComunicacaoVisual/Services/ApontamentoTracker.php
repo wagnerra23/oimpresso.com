@@ -155,7 +155,9 @@ class ApontamentoTracker
         }
 
         $finalizadoEm    = now();
-        $duracaoSegundos = (int) $finalizadoEm->diffInSeconds($apontamento->iniciado_em);
+        // Carbon 3: $a->diffInSeconds($b) é b - a, com sinal. Do início ao fim dá positivo; a ordem
+        // inversa dava negativo e a coluna unsignedInteger gravava 0 (medido na lane MySQL, #10776).
+        $duracaoSegundos = (int) $apontamento->iniciado_em->diffInSeconds($finalizadoEm);
         $m2Orcado        = $apontamento->m2_orcado !== null ? (float) $apontamento->m2_orcado : null;
 
         // Drift: null quando m2_orcado = 0 ou null (impossível dividir)
@@ -221,9 +223,11 @@ class ApontamentoTracker
             );
         }
 
+        $canceladoEm = now();
+
         $apontamento->update([
-            'finalizado_em'    => now(),
-            'duracao_segundos' => (int) now()->diffInSeconds($apontamento->iniciado_em),
+            'finalizado_em'    => $canceladoEm,
+            'duracao_segundos' => (int) $apontamento->iniciado_em->diffInSeconds($canceladoEm),
             'm2_produzido'     => 0,
             'drift_percent'    => null,
             'observacoes'      => "[CANCELADO] {$motivo}",

@@ -5,8 +5,8 @@ irmaos: AceitePublico.charter.md (lei) · AceitePublico.tsx (código) · ../../.
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: o link é o único ponto em que alguém de fora decide sobre um orçamento; o que ele mostra e o que ele aceita não podem mudar sem querer.
 owner: wagner
-last_run: "2026-10-27"
-last_run_ci: "0 UC executado na lane — trio nasce neste PR; CT 100 (cópia isolada do branch) no corpo do PR. 2026-10-27: a tela trocou flex/grid solto por Inline/Grid (ratchet ADR 0253), sem mudar o que mostra nem o que aceita"
+last_run: "2026-11-10"
+last_run_ci: "2026-11-10 — manifesto scripts/casos-test-results.json (generated_at 2026-11-10, #10679): UC-CVACEP-01..04 pass, 1 teste cada, OrcamentoAceitePublicoContratoTest na lane verticais-pest (MySQL). ---- REGISTRO ANTERIOR: 0 UC executado na lane — trio nasce neste PR; CT 100 (cópia isolada do branch) no corpo do PR. 2026-10-27: a tela trocou flex/grid solto por Inline/Grid (ratchet ADR 0253), sem mudar o que mostra nem o que aceita"
 related_us: [US-COMVIS-023]
 ---
 
@@ -34,14 +34,14 @@ related_us: [US-COMVIS-023]
 sem nenhum campo de custo, e a resposta traz `X-Robots-Tag: noindex, nofollow` e
 `Referrer-Policy: no-referrer`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-CVACEP-02 · Token que não existe dá 404 · `must` `[T0]`
 
 **Dado** um token de 48 caracteres que não está no banco **Quando** alguém o abre ou posta nele
 **Então** a resposta é 404, sem dizer por quê, e nada é gravado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-CVACEP-03 · Aceitar pela página vira OS · `must` `[V0]`
 
@@ -49,7 +49,7 @@ Status: 🧪
 "Orçamento aceito", a OS existe com `valor_total` igual ao total do orçamento, e a página passa a
 mostrar o link como respondido.
 
-Status: 🧪
+Status: ✅
 
 ## UC-CVACEP-04 · Pedir ajuste exige texto; responder de novo mostra o motivo · `must`
 
@@ -57,7 +57,7 @@ Status: 🧪
 `comentario` e o orçamento não muda. **Quando** manda o texto **Então** o orçamento volta a rascunho.
 **Quando** tenta responder de novo **Então** volta com o erro "já foi usado" em `decisao`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-CVACEP-05 · Aceitar guarda o retrato, o IP e o navegador · `must` `[V0]` `[LGPD]`
 
