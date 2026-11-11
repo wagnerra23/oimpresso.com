@@ -11,9 +11,11 @@ use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use App\Variation;
 use DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Modules\Manufacturing\Concerns\LogsWithPiiRedactor;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
@@ -22,6 +24,7 @@ use Modules\Manufacturing\Http\Requests\StoreProductionRequest;
 use Modules\Manufacturing\Services\ProductionService;
 use Modules\Manufacturing\Services\RecipeBomService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProductionController extends Controller
@@ -206,6 +209,8 @@ class ProductionController extends Controller
         $this->garantirProdutoELocalDaEmpresa($request, $business_id);
 
         try {
+            $nivelTransacao = DB::transactionLevel();
+
             // Rules originais já validadas pelo FormRequest — bloco removido. Preservado payload original.
 
             //Create Production purchase
@@ -380,8 +385,12 @@ class ProductionController extends Controller
             $output = ['success' => 1,
                 'msg' => __('lang_v1.added_success'),
             ];
-        } catch (Exception $e) {
-            DB::rollBack();
+        } catch (ModelNotFoundException|ValidationException|HttpExceptionInterface $e) {
+            // 404, validação e abort não são falha da ordem: seguem para o handler (UC-OP-15).
+            $this->desfazerTransacaoDaOrdem($nivelTransacao);
+            throw $e;
+        } catch (\Exception $e) {
+            $this->desfazerTransacaoDaOrdem($nivelTransacao);
             $this->logSafeEmergency('production', $e); // D7.a Wave 17 LGPD
 
             $output = ['success' => 0,
@@ -666,6 +675,8 @@ class ProductionController extends Controller
         $this->garantirProdutoELocalDaEmpresa($request, $business_id);
 
         try {
+            $nivelTransacao = DB::transactionLevel();
+
             $request->validate([
                 'transaction_date' => 'required',
                 'location_id' => 'required',
@@ -843,8 +854,12 @@ class ProductionController extends Controller
             $output = ['success' => 1,
                 'msg' => __('lang_v1.updated_success'),
             ];
-        } catch (Exception $e) {
-            DB::rollBack();
+        } catch (ModelNotFoundException|ValidationException|HttpExceptionInterface $e) {
+            // 404, validação e abort não são falha da ordem: seguem para o handler (UC-OP-15).
+            $this->desfazerTransacaoDaOrdem($nivelTransacao);
+            throw $e;
+        } catch (\Exception $e) {
+            $this->desfazerTransacaoDaOrdem($nivelTransacao);
             $this->logSafeEmergency('production', $e); // D7.a Wave 17 LGPD
 
             $output = ['success' => 0,
@@ -853,6 +868,17 @@ class ProductionController extends Controller
         }
 
         return redirect()->action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'index'])->with('status', $output);
+    }
+
+    /**
+     * Desfaz só o que esta requisição abriu. O nível vem do início do `try`: o erro pode nascer
+     * antes do `DB::beginTransaction()`, e aí não há nada desta ordem a desfazer.
+     */
+    private function desfazerTransacaoDaOrdem(int $nivelTransacao): void
+    {
+        while (DB::transactionLevel() > $nivelTransacao) {
+            DB::rollBack();
+        }
     }
 
     /**

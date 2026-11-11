@@ -50,6 +50,7 @@ final class CriarOsDaVenda
             return false;
         }
 
+        // SUPERADMIN: chamado pelo gancho do histórico do FSM em qualquer transição; a empresa vem do registro, não da sessão.
         return SaleProcess::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
             ->where('key', CatalogoModelos::chaveProcesso((string) $etapa->modelo, 'producao'))->exists();
     }
@@ -80,6 +81,7 @@ final class CriarOsDaVenda
                 if ($roteiroId === null) {
                     continue;
                 }
+                // SUPERADMIN: roda no CriarOsDaVendaJob; a empresa vem do job, e o firstOrCreate não pode depender de sessão.
                 $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->firstOrCreate(
                     ['business_id' => $businessId, 'transaction_sell_line_id' => $linha->id],
                     ['transaction_id' => $transactionId, 'product_id' => $linha->product_id, 'variation_id' => $linha->variation_id,

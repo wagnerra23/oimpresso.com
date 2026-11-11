@@ -1,9 +1,9 @@
 # Módulo: Auditoria
 
-> **Camada de governança transversal — UI rica /auditoria + undo sobre activity_log existente. Distingue User vs IA (causer_kind). Whitelist UNREVERTIBLE de 5 categorias. Per ADR 0127.**
+> **Camada de governança transversal — UI /auditoria sobre activity_log existente, por business. Reverter está codificado e desligado da rota (501 em 2026-11-09). Per ADR 0127.**
 
 - **Alias:** `auditoria`
-- **Versão:** ?
+- **Versão:** não declarada em `module.json`
 - **Path:** `D:\oimpresso.com\Modules/Auditoria`
 - **Status:** 🟢 ativo
 - **Providers:** Modules\Auditoria\Providers\AuditoriaServiceProvider
@@ -11,7 +11,7 @@
 
 ## Sinais detectados
 
-- ℹ️ Módulo sem views (provável API-only ou service)
+- ℹ️ Sem views Blade: as telas são 2 Pages Inertia em `resources/js/Pages/Auditoria/`
 - 🔗 Registra 3 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions
 - ✅ Tem testes (10)
 - 🔗 Acoplamento: depende de 4 outro(s) módulo(s)
@@ -23,7 +23,7 @@
 
 | Peça | Qtde |
 |---|---:|
-| Rotas (web+api) | 7 |
+| Rotas (web+api) | 8 |
 | Controllers | 3 |
 | Entities (Models) | 1 |
 | Services | 3 |
@@ -44,9 +44,10 @@
 | `GET` | `/{activityId}` | `[AuditoriaController::class, 'show']` |
 | `POST` | `/{activityId}/revert` | `[AuditoriaController::class, 'revert']` |
 | `GET` | `/reports/activity-log` | `function (` |
+| `POST` | `install` | `[InstallController::class, 'install']` |
 | `GET` | `install` | `[InstallController::class, 'index']` |
-| `GET` | `install/uninstall` | `[InstallController::class, 'uninstall']` |
-| `GET` | `install/update` | `[InstallController::class, 'update']` |
+| `GET, POST` | `install/uninstall` | `[InstallController::class, 'uninstall']` |
+| `GET, POST` | `install/update` | `[InstallController::class, 'update']` |
 
 ### `api.php`
 
@@ -74,7 +75,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Processamento / eventos
 
-**Commands (artisan):** `AuditoriaHealthCommand`
+**Commands (artisan):** `AuditoriaHealthCommand` (`auditoria:health`) · `BackfillActivityBusinessIdCommand` (`auditoria:backfill-business-id`). Nenhum agendado em 2026-11-09.
 
 ## Configuração (`Config/config.php`)
 
@@ -115,5 +116,5 @@ _Referências a outros módulos encontradas no código PHP._
 - [ ] Marcar rotas que devem virar Inertia
 
 ---
-**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06.**
+**Gerado automaticamente por `ModuleSpecGenerator` em 2026-05-29 08:06. Rotas, comandos e sinais ajustados à mão em 2026-11-09, sem regenerar.**
 **Reaxecutar com:** `php artisan module:spec Auditoria`

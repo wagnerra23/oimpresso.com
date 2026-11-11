@@ -219,3 +219,25 @@ it('FASE 2: grava o alerta em mcp_alertas_eventos e não duplica na mesma streak
     \Artisan::call('whatsapp:channel-health-snapshot');
     expect(DB::table('mcp_alertas_eventos')->where('tipo', 'whatsapp_channel_down')->count())->toBe(1);
 });
+
+it('Tier 0: cada snapshot e cada alerta levam a empresa do próprio canal', function () {
+    $nosso = makeSnapChannel(98, 'healthy');
+    $deles = makeSnapChannel(99, 'disconnected');
+    // Histórico caído da outra empresa — não pode virar alerta nem queda no nosso canal.
+    DB::table('channel_health_snapshots')->insert([
+        'business_id' => 99, 'channel_id' => $deles->id, 'channel_health' => 'disconnected',
+        'recorded_at' => now()->subMinutes(12),
+    ]);
+
+    \Artisan::call('whatsapp:channel-health-snapshot');
+
+    $novos = DB::table('channel_health_snapshots')->where('recorded_at', '>', now()->subMinute())->get();
+    expect($novos)->toHaveCount(2);
+    foreach ($novos as $s) {
+        expect((int) $s->business_id)->toBe((int) ((int) $s->channel_id === (int) $nosso->id ? $nosso->business_id : $deles->business_id));
+    }
+    $alertas = DB::table('mcp_alertas_eventos')->where('tipo', 'whatsapp_channel_down')->get();
+    expect($alertas)->toHaveCount(1)
+        ->and((int) $alertas[0]->business_id)->toBe(99)
+        ->and(json_decode($alertas[0]->metadata, true)['channel_id'])->toBe((int) $deles->id);
+});

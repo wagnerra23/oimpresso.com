@@ -22,6 +22,9 @@ import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
 import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formulario/metodoCusto';
 import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
+import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
+import type { EnderecoNoEstoque } from './_components/formulario/armazenagem';
+import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
 
 function localUnico(locais: OptionMap): number[] {
   const ids = opcoesDe(locais).map(([id]) => Number(id));
@@ -74,6 +77,8 @@ export interface ProdutoCreatePageProps {
   expiryType?: string;
   enableLot: boolean;
   enableRacks: boolean;
+  /** CU-PROD-20: quais partes do endereço no estoque a empresa usa. */
+  enderecoNoEstoque?: EnderecoNoEstoque;
   /** Método de custo (US-COM-024): null quando o módulo Compras não está no pacote. */
   metodoCusto?: MetodoCustoDoFormulario | null;
   /** Margem mínima da empresa em % (UC-FLX-35): null quando a regra está desligada. */
@@ -132,6 +137,18 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     product_custom_field4: '',
   });
 
+  // CU-PROD-20: locais de armazenagem. Começa no local único (ou no primeiro), que é o padrão;
+  // duplicar traz os locais e o endereço do produto original.
+  const [armazenagem, setArmazenagem] = useState(() =>
+    armazenagemInicial(props.rackDetails as never, {
+      salvo: false,
+      localInicial: Number(opcoesDe(props.businessLocations)[0]?.[0] ?? 0) || null,
+    }),
+  );
+  // CU-PROD-21: produto novo começa com Preço fixo (US-PROD-030, padrão do protótipo).
+  const [politica, setPolitica] = useState(() => politicaInicial());
+  const endereco: EnderecoNoEstoque = props.enderecoNoEstoque ?? { prateleira: props.enableRacks, fileira: false, posicao: false };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Variável e composto sairiam sem variação/itens (tipos.ts tipoSemEditor): não salva.
@@ -141,7 +158,12 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     // Variável e composto têm o próprio editor de preço; só o simples manda os cinco campos.
     transform((d) => {
       const comPreco = d.type === 'single' ? { ...d, ...camposDePreco(preco, aliquotaDoImposto(d.tax, props.taxAttributes)) } : d;
-      const comMetodo = { ...comPreco, ...camposDoMetodoCusto(props.metodoCusto, metodoCusto) };
+      const comMetodo = {
+        ...comPreco,
+        ...camposDoMetodoCusto(props.metodoCusto, metodoCusto),
+        ...(d.enable_stock === 1 ? camposDaArmazenagem(armazenagem) : {}),
+        ...camposDaPolitica(politica),
+      };
       return envio ? { ...comMetodo, submit_type: envio } : comMetodo;
     });
     post('/products');
@@ -196,6 +218,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
             metodoCusto={
               props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }
+            armazenagem={data.enable_stock === 1 ? { valor: armazenagem, mudar: setArmazenagem, endereco } : undefined}
+            politica={{ valor: politica, mudar: setPolitica }}
           />
           <AcoesDoCadastro
             form="produto-create-form"

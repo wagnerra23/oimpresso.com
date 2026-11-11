@@ -147,6 +147,8 @@ jobs:
         # Idempotency-Key, tenant 98 x 2. Daemon falso (Http::fake) - nenhuma mensagem real sai.
         # 2026-10-26 — + NotificadorClienteWhatsappContratoTest (US-WA-319): aviso automatico por WhatsApp
         # com anexo. CT 100 MySQL: 5 passed / 25 assertions; mutante sem filtro business_id no contato -> 1 failed.
+        # 2026-11-06 — + IsolamentoTabelasSemCoberturaContratoTest (auditoria Whatsapp lote 1): isolamento entre
+        # empresas de whatsapp_lid_pn_map, whatsapp_reminders e whatsapp_jana_correcoes. Tenant 98 x outro tenant.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -165,6 +167,7 @@ jobs:
             Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php \
             Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php \
             Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/IsolamentoTabelasSemCoberturaContratoTest.php \
             Modules/Whatsapp/Tests/Feature/RecebimentoOmnicanalContratoTest.php \
             Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php \
             Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php \

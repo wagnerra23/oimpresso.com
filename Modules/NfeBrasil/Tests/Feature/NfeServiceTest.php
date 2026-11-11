@@ -177,6 +177,7 @@ beforeEach(function () {
         test()->markTestSkipped('Tabela nfe_emissoes não existe — rode migrations primeiro.');
     }
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
 });
 
 afterEach(function () {
@@ -213,7 +214,7 @@ it('emitir retorna NfeEmissao autorizada quando SEFAZ mock autoriza', function (
     expect($emissao->xml_path)->not->toBeNull();
 
     // XML salvo no storage fake
-    Storage::assertExists($emissao->xml_path);
+    Storage::disk('nfe_fiscal')->assertExists($emissao->xml_path);
 })->group('nfe');
 
 it('emitir retorna NfeEmissao rejeitada quando SEFAZ retorna cStat 225', function () {

@@ -3,7 +3,7 @@
 //   stories: US-VEST-032 (Remarcação por coleção, com prévia e reversão)
 //   protótipo: prototipo-ui/cowork/Wagner/vestuario-remarcacao-page.jsx (ADR 0438)
 //   runbook: memory/requisitos/Vestuario/RUNBOOK-remarcacao.md
-//   permissao: product.update · liga por empresa: setting remarcacao.enabled
+//   permissao: vestuario.remarcacao.aplicar · liga por empresa: setting remarcacao.enabled
 
 import { useState } from 'react';
 import { Deferred, Head } from '@inertiajs/react';
@@ -20,6 +20,7 @@ import { Segmented } from '@/Components/ui/segmented';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline } from '@/Components/layout';
+import { parseDecimalPtBR } from '@/Lib/numberPtBR';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -28,13 +29,13 @@ import {
 interface Opcao { id: number; name: string; parent_id?: number }
 interface Lote { id: number; nome: string; modo: string; valor: string; qtd_itens: number; status: string; created_at: string }
 interface Linha { variation_id: number; produto: string; variacao: string; sku: string; preco_antes: number; preco_depois: number }
-interface Previa { linhas: Linha[]; ignoradas: number; assinatura: string }
+interface Previa { linhas: Linha[]; ignoradas: number; assinatura: string; grupos: { fixos: number; percentuais: number } }
 interface Props { categorias: Opcao[]; marcas: Opcao[]; lotes?: Lote[] }
 
 const TODAS = '__todas__';
+const ETIQUETAS_POR_ARQUIVO = 500; // teto de POST /vestuario/etiquetas/lote/pdf
 const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-// Valor digitado em pt-BR ("39,90"); vai ao servidor como número com 2 casas (regra mestre de valor).
-const num = (s: string) => Math.round((parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0) * 100) / 100;
+const variacoes = (n: number) => (n === 1 ? '1 variação tem' : `${n} variações têm`);
 const csrf = () => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
 
 async function api(url: string, method: 'GET' | 'POST', body?: unknown) {
@@ -47,6 +48,8 @@ async function api(url: string, method: 'GET' | 'POST', body?: unknown) {
   if (!res.ok) throw new Error(json.message ?? `Erro ${res.status}`);
   return json;
 }
+
+interface ItemEtiqueta { product_id: number; variation_id: number; nome: string; tamanho: string | null; preco: number; sku: string }
 
 export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
   const [categoria, setCategoria] = useState(TODAS);
@@ -61,13 +64,21 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
   const [feito, setFeito] = useState<{ lote: number; n: number } | null>(null);
+  const [partes, setPartes] = useState<{ lote: number; total: number; grupos: ItemEtiqueta[][] } | null>(null);
   const [lista, setLista] = useState<Lote[] | null>(null);
 
   const pais = categorias.filter((c) => !c.parent_id);
   const filhas = categorias.filter((c) => c.parent_id && String(c.parent_id) === categoria);
   const id = (v: string) => (v === TODAS ? null : Number(v));
+  // Valor digitado vai ao servidor com 2 casas (regra mestre de valor). Texto que não é número
+  // para aqui, dentro do `rodar`: vira aviso na tela e nada é enviado.
+  const valorDigitado = () => {
+    const n = parseDecimalPtBR(valor);
+    if (!Number.isFinite(n)) throw new Error('Valor inválido. Digite um número, por exemplo 39,90.');
+    return Math.round(n * 100) / 100;
+  };
   const corpo = () => ({
-    modo, valor: num(valor), nome,
+    modo, valor: valorDigitado(), nome,
     filtro: { category_id: id(categoria), sub_category_id: id(subcategoria), brand_id: id(marca), nome: nomeFiltro.trim() || null },
   });
   const linhasLote = lista ?? lotes ?? [];
@@ -78,9 +89,10 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
   }
   const verPrevia = () => rodar(async () => { setFeito(null); setPrevia(await api('/vestuario/remarcacao/previa', 'POST', corpo())); });
   const gravar = () => rodar(async () => {
-    const r = await api('/vestuario/remarcacao', 'POST', { ...corpo(), assinatura: previa?.assinatura });
+    const dados = corpo();
+    const r = await api('/vestuario/remarcacao', 'POST', { ...dados, assinatura: previa?.assinatura });
     setFeito({ lote: r.lote, n: previa?.linhas.length ?? 0 });
-    setLista([{ id: r.lote, nome, modo, valor: String(num(valor)), qtd_itens: previa?.linhas.length ?? 0, status: 'aplicada', created_at: new Date().toISOString() }, ...linhasLote]);
+    setLista([{ id: r.lote, nome, modo, valor: String(dados.valor), qtd_itens: previa?.linhas.length ?? 0, status: 'aplicada', created_at: new Date().toISOString() }, ...linhasLote]);
     setPrevia(null); setConfirmar(false);
   });
   const reverter = (l: Lote) => rodar(async () => {
@@ -88,18 +100,27 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
     const r = await api(`/vestuario/remarcacao/${l.id}/reverter`, 'POST');
     setAviso(`${r.revertidos} revertidas${r.conflitos ? ` · ${r.conflitos} ficaram como estavam (preço mexido depois)` : ''}.`);
     setLista(linhasLote.map((x) => (x.id === l.id ? { ...x, status: 'revertida' } : x)));
+    setFeito((f) => (f?.lote === l.id ? null : f));
+    setPartes((p) => (p?.lote === l.id ? null : p));
   });
-  const etiquetas = (lote: number) => rodar(async () => {
-    const { items } = await api(`/vestuario/remarcacao/${lote}/etiquetas`, 'GET');
+  const baixarPdf = async (lote: number, items: ItemEtiqueta[], sufixo = '') => {
     const res = await fetch('/vestuario/etiquetas/lote/pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/pdf', 'X-CSRF-TOKEN': csrf() },
-      body: JSON.stringify({ items: items.slice(0, 500) }),
+      body: JSON.stringify({ items }),
     });
     if (!res.ok) throw new Error(`Etiquetas: erro ${res.status}`);
     const url = URL.createObjectURL(await res.blob());
-    const a = Object.assign(document.createElement('a'), { href: url, download: `etiquetas-remarcacao-${lote}.pdf` });
+    const a = Object.assign(document.createElement('a'), { href: url, download: `etiquetas-remarcacao-${lote}${sufixo}.pdf` });
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  };
+  const etiquetas = (lote: number) => rodar(async () => {
+    const items: ItemEtiqueta[] = (await api(`/vestuario/remarcacao/${lote}/etiquetas`, 'GET')).items;
+    if (items.length <= ETIQUETAS_POR_ARQUIVO) { setPartes(null); await baixarPdf(lote, items); return; }
+    // O arquivo aceita 500 etiquetas: acima disso a pessoa baixa parte a parte, sem nada cortado.
+    const grupos: ItemEtiqueta[][] = [];
+    for (let i = 0; i < items.length; i += ETIQUETAS_POR_ARQUIVO) grupos.push(items.slice(i, i + ETIQUETAS_POR_ARQUIVO));
+    setPartes({ lote, total: items.length, grupos });
   });
 
   const selectDe = (rotulo: string, v: string, set: (v: string) => void, ops: Opcao[]) => (
@@ -131,6 +152,16 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
           </Inline>
         )}
         {aviso && <div className="rounded-md border p-3 text-sm" role="alert">{aviso}</div>}
+        {partes && (
+          <Inline wrap gap={2} className="rounded-md border p-3 text-sm" role="status">
+            <span>{partes.total} etiquetas: cada arquivo aceita {ETIQUETAS_POR_ARQUIVO}. Baixe todas as partes.</span>
+            {partes.grupos.map((g, i) => (
+              <Button key={i} size="sm" variant="outline" disabled={ocupado} onClick={() => rodar(() => baixarPdf(partes.lote, g, `-parte-${i + 1}`))}>
+                <Printer className="mr-1 h-4 w-4" /> Parte {i + 1}
+              </Button>
+            ))}
+          </Inline>
+        )}
 
         <Card data-contract="filtro">
           <CardHeader><CardTitle className="text-sm">1 · Quais peças</CardTitle></CardHeader>
@@ -169,8 +200,13 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
               <Inline wrap align="stretch" gap={2} className="text-xs">
                 <Badge variant="outline">{previa.linhas.length} variações mudam de preço</Badge>
                 {previa.ignoradas > 0 && <Badge variant="outline">{previa.ignoradas} sem mudança, fora da lista</Badge>}
-                <Badge variant="outline">Tabelas de preço por grupo não mudam</Badge>
               </Inline>
+              {(previa.grupos.fixos > 0 || previa.grupos.percentuais > 0) && (
+                <div role="note" className="space-y-1 rounded border border-warning/20 bg-warning-soft px-3 py-2 text-sm text-warning-fg">
+                  {previa.grupos.fixos > 0 && <p>{variacoes(previa.grupos.fixos)} preço fixo em tabela de grupo: esse preço não muda com a remarcação.</p>}
+                  {previa.grupos.percentuais > 0 && <p>{variacoes(previa.grupos.percentuais)} preço de grupo em percentual: esse preço acompanha o preço novo.</p>}
+                </div>
+              )}
               <table className="w-full text-sm tabular-nums">
                 <thead><tr className="border-b text-left text-xs text-muted-foreground">
                   <th className="p-2">Produto</th><th className="p-2">Variação</th><th className="p-2">SKU</th>
@@ -187,7 +223,7 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
               </table>
               <Inline justify="between" gap={3}>
                 <p className="text-xs text-muted-foreground">Se algum preço mudar antes de gravar, a gravação é recusada e a prévia precisa ser refeita.</p>
-                <Button disabled={ocupado || previa.linhas.length === 0} onClick={() => setConfirmar(true)}>Gravar remarcação</Button>
+                <Button disabled={ocupado || previa.linhas.length === 0} onClick={() => rodar(async () => { valorDigitado(); setConfirmar(true); })}>Gravar remarcação</Button>
               </Inline>
             </CardContent>
           </Card>

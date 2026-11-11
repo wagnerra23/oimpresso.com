@@ -237,16 +237,32 @@ class PurchaseOrderController extends Controller
      */
     private function assertRefsDoPedidoNovo(Request $request): void
     {
+        $toIds = fn ($ids) => collect($ids)->filter(fn ($id) => ! empty($id))
+            ->map(fn ($id) => (int) $id)->unique()->values();
+
+        abort_if(
+            $toIds(collect($request->input('purchases', []))->pluck('purchase_line_id'))->isNotEmpty(),
+            422,
+            'Linha de compra inválida para um pedido novo.'
+        );
+
+        $this->assertRefsDoPedido($request);
+    }
+
+    /**
+     * Ids que o formulário do pedido manda crus, ao criar e ao editar (UC-PEDC-11, ADR 0093).
+     *
+     * `purchases.*.purchase_order_line_id` e `purchases.*.purchase_requisition_line_id` descem para
+     * `ProductUtil::updatePurchaseOrderLine`, que soma a quantidade na linha sem filtrar empresa;
+     * `purchase_requisition_ids` desce para `TransactionUtil::updatePurchaseOrderStatus`. A edição
+     * reenvia só referências que a própria empresa já tinha, então a mesma trava vale nas duas portas.
+     */
+    private function assertRefsDoPedido(Request $request): void
+    {
         $business_id = (int) $request->session()->get('user.business_id');
         $toIds = fn ($ids) => collect($ids)->filter(fn ($id) => ! empty($id))
             ->map(fn ($id) => (int) $id)->unique()->values();
         $linhas = collect($request->input('purchases', []));
-
-        abort_if(
-            $toIds($linhas->pluck('purchase_line_id'))->isNotEmpty(),
-            422,
-            'Linha de compra inválida para um pedido novo.'
-        );
 
         $requisicoes = $toIds($request->input('purchase_requisition_ids', []));
         if ($requisicoes->isNotEmpty()) {
@@ -266,6 +282,17 @@ class PurchaseOrderController extends Controller
                 ->where('transactions.type', 'purchase_requisition')
                 ->count();
             abort_if($validas !== $linhasRequisicao->count(), 422, 'Linha de requisição inválida para este negócio.');
+        }
+
+        $linhasPedido = $toIds($linhas->pluck('purchase_order_line_id'));
+        if ($linhasPedido->isNotEmpty()) {
+            $validas = PurchaseLine::query()
+                ->join('transactions', 'transactions.id', '=', 'purchase_lines.transaction_id')
+                ->whereIn('purchase_lines.id', $linhasPedido->all())
+                ->where('transactions.business_id', $business_id)
+                ->where('transactions.type', 'purchase_order')
+                ->count();
+            abort_if($validas !== $linhasPedido->count(), 422, 'Linha de pedido de compra inválida para este negócio.');
         }
     }
 
@@ -815,6 +842,9 @@ class PurchaseOrderController extends Controller
         $transaction = Transaction::where('business_id', $business_id)
             ->where('type', 'purchase_order')
             ->findOrFail($id);
+
+        // Tier 0 (ADR 0093) — fora do try pelo mesmo motivo do store(): dentro dele o 422 vira mensagem genérica.
+        $this->assertRefsDoPedido($request);
 
         try {
             //Validate document size

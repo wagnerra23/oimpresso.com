@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: indicador que diverge do quadro engana o PCP; alerta decorativo ensina a ignorar alerta; evento de outra empresa no feed é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-27"
+last_run: "2026-11-10"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o ProducaoQuadroContratoTest."
 ---
 
@@ -83,6 +83,14 @@ rede **Então** no lugar do esqueleto aparece "Não foi possível carregar a pro
 de novo…" e o botão "Tentar de novo", que pede de novo só os dados do Painel · O modal com a página de erro do
 Inertia não abre por cima · **Controle:** com o Painel já carregado, um erro de outra requisição não troca a tela
 pelo erro. Prova: `tests/js/producao-painel-erro.test.tsx` (vitest, job "Frontend / Vite build" do CI).
+
+Status: 🧪
+
+## UC-PCISO-03 · Refugo de outra empresa não entra no indicador do Painel · `must`
+
+**Dado** um refugo lançado na empresa 99 nesta semana **Quando** o gestor da 98 abre o Painel **Então** o indicador de
+refugo da semana não muda · **Controle:** o da 99 sobe 1 ocorrência e 7 peças; refugo da 98 sobe só o da 98.
+Prova: `ProducaoIsolamentoEmpresasContratoTest`.
 
 Status: 🧪
 
