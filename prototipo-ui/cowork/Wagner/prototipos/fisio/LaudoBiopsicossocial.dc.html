@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fisio · Laudo biopsicossocial</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:oklch(0.985 0.003 90)}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<!--
+  US-FISIO-060 · cartão "Laudo biopsicossocial" na ficha do paciente (Pacientes/Show).
+  Gerado pelo Code em 2026-11-11 (ADR 0282 §0.1: falta fonte visual, o Code desenha ancorado no DS).
+  Lei 15.176/2025 + LBI art. 2º, §1º: quatro seções, uma por inciso, cada uma com autor e assinatura.
+  Estado mostrado: I e IV sem registro, II externa registrada, III em rascunho com a sugestão do Fisio aberta.
+  O PDF segue o padrão do Laudo.dc.html; esta tela é só o preenchimento.
+-->
+<div style="width: 820px; box-sizing: border-box; padding: 20px; font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 14px; color: oklch(0.22 0.01 80)">
+<section aria-labelledby="bps-titulo" style="background: #FFFFFF; border: 1px solid oklch(0.9 0.005 80); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+
+  <header style="display: flex; align-items: flex-start; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <h2 id="bps-titulo" style="margin: 0; font-size: 16px; font-weight: 600">Laudo biopsicossocial</h2>
+      <span style="font-size: 12px; color: oklch(0.45 0.01 80)">Laudo nº 12 · aberto em 05/11/2026 · Lei 15.176/2025 e LBI art. 2º, §1º</span>
+    </div>
+    <div style="margin-left: auto; display: flex; gap: 8px">
+      <button type="button" style="height: 36px; padding: 0 12px; border-radius: 6px; border: 1px solid oklch(0.88 0.005 80); background: #FFFFFF">Baixar PDF</button>
+      <button type="button" style="height: 36px; padding: 0 12px; border-radius: 6px; border: 1px solid oklch(0.88 0.005 80); background: #FFFFFF">Novo laudo</button>
+    </div>
+  </header>
+
+  <p style="margin: 0; font-size: 12px; color: oklch(0.45 0.01 80)">Cada seção é escrita e assinada por quem avaliou. Seção registrada não muda: corrigir abre uma versão nova. O laudo descreve; o enquadramento é da perícia.</p>
+
+  <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+    <li style="border: 1px solid oklch(0.92 0.005 80); border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; gap: 10px">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: oklch(0.45 0.01 80); width: 24px">I</span>
+      <span style="flex: 1">Impedimentos nas funções e estruturas do corpo <span style="color: oklch(0.45 0.01 80)">· costuma ser o médico (CRM)</span></span>
+      <span style="font-size: 12px; padding: 2px 8px; border-radius: 4px; border: 1px solid oklch(0.88 0.005 80)">Em branco no PDF</span>
+      <button type="button" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 0; background: transparent; color: oklch(0.45 0.15 295)">Transcrever</button>
+    </li>
+    <li style="border: 1px solid oklch(0.92 0.005 80); border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; gap: 10px">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: oklch(0.45 0.01 80); width: 24px">II</span>
+      <span style="flex: 1">Fatores socioambientais, psicológicos e pessoais <span style="color: oklch(0.45 0.01 80)">· Psicóloga Ana P. · CRP 12/00000 · externa</span></span>
+      <span style="font-size: 12px; padding: 2px 8px; border-radius: 4px; background: oklch(0.95 0.03 150); color: oklch(0.38 0.08 150)">Registrada 07/11/2026</span>
+      <button type="button" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 0; background: transparent; color: oklch(0.45 0.15 295)">Corrigir</button>
+    </li>
+    <li style="border: 1px solid oklch(0.55 0.15 295); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: oklch(0.45 0.01 80); width: 24px">III</span>
+        <span style="flex: 1; font-weight: 600">Limitação no desempenho de atividades</span>
+        <span style="font-size: 12px; padding: 2px 8px; border-radius: 4px; background: oklch(0.96 0.03 85); color: oklch(0.42 0.08 70)">Rascunho</span>
+      </div>
+      <div role="group" aria-label="Quem assina" style="display: flex; gap: 8px">
+        <button type="button" aria-pressed="true" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid oklch(0.55 0.15 295); background: oklch(0.55 0.15 295); color: #FFFFFF">Eu assino (CREFITO do meu perfil)</button>
+        <button type="button" aria-pressed="false" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid oklch(0.88 0.005 80); background: #FFFFFF">Profissional de fora da clínica</button>
+      </div>
+      <div style="border-radius: 6px; background: oklch(0.97 0.01 295); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12px; font-weight: 600">Sugestão do Fisio — revise antes de usar</span>
+        <span style="font-size: 13px">Dor referida no check-in diário (0 a 10), 13/10/2026 a 11/11/2026: média 6,1, mínima 3 e máxima 9, em 26 dias com registro. Dias de crise: 4.<br>Adesão ao programa domiciliar, 13/10 a 11/11/2026: 72% (9 dias com exercício, meta de 3 por semana).<br>Fonte: registros do paciente no Fisio.</span>
+        <span style="font-size: 12px; color: oklch(0.45 0.01 80)">Sem dado suficiente: dor dos últimos 90 dias (5 registros, mínimo 7). Questionários de fibromialgia: nenhum respondido.</span>
+        <button type="button" style="align-self: flex-start; height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid oklch(0.88 0.005 80); background: #FFFFFF">Usar no texto</button>
+      </div>
+      <label for="bps-texto" style="font-size: 12px; color: oklch(0.45 0.01 80)">Texto da seção</label>
+      <textarea id="bps-texto" rows="6" style="font: inherit; padding: 8px; border-radius: 6px; border: 1px solid oklch(0.88 0.005 80)">Paciente relata dificuldade para permanecer em pé por mais de 20 minutos e para tarefas domésticas com os braços elevados…</textarea>
+      <div style="display: flex; gap: 8px; align-items: center">
+        <button type="button" style="height: 36px; padding: 0 12px; border-radius: 6px; border: 1px solid oklch(0.88 0.005 80); background: #FFFFFF">Salvar rascunho</button>
+        <button type="button" style="height: 36px; padding: 0 12px; border-radius: 6px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF">Registrar e assinar</button>
+        <span style="font-size: 12px; color: oklch(0.45 0.01 80)">Ao registrar, seu nome, CREFITO, data e hora são gravados pelo sistema.</span>
+      </div>
+    </li>
+    <li style="border: 1px solid oklch(0.92 0.005 80); border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; gap: 10px">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: oklch(0.45 0.01 80); width: 24px">IV</span>
+      <span style="flex: 1">Restrição de participação <span style="color: oklch(0.45 0.01 80)">· costuma ser o assistente social (CRESS)</span></span>
+      <span style="font-size: 12px; padding: 2px 8px; border-radius: 4px; border: 1px solid oklch(0.88 0.005 80)">Em branco no PDF</span>
+      <button type="button" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 0; background: transparent; color: oklch(0.45 0.15 295)">Transcrever</button>
+    </li>
+  </ol>
+
+  <footer style="font-size: 12px; color: oklch(0.45 0.01 80)">Seção de fora da clínica: transcreva o texto e os dados de quem escreveu; o PDF sai com espaço para a assinatura dele, à mão ou por certificado digital. Seção sem registro sai em branco.</footer>
+</section>
+</div>
+</x-dc>
+</body>
+</html>

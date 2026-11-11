@@ -23,7 +23,7 @@ Sirva `prototipo-ui/` (não esta pasta, senão o `support.js` não resolve) e ab
 
 | Clínica | Paciente (celular) |
 |---|---|
-| Main (Painel), Agenda, Avaliacao, Evolucao, EvolucaoDitada, Prescricao, Contraindicacao, Biblioteca, BuscaBiblioteca, Protocolos, Questionarios, Laudo, Teleconsulta, Financeiro, FiscalFila, Planos, Onboarding, PacienteNovo, CameraLiberacao, ConfigAgendamentoOnline, ConfigWhatsApp | PacienteAcesso, PacienteHoje, PacienteCheckin, PacienteCrise, PacienteNota, PacienteJornada, PacienteProgresso, PacienteConsultas, PacienteAgendar, PacienteAgendaConfirmar, PacienteSerieConfirmar, PacienteQuestionario, PacientePreAnamnese, PacienteCamera, PacienteCameraPreparo, PacienteCameraClasse2, PacienteConfig, PacienteInstalar |
+| Main (Painel), Agenda, Avaliacao, Evolucao, EvolucaoDitada, Prescricao, Contraindicacao, Biblioteca, BuscaBiblioteca, Protocolos, Questionarios, Laudo, LaudoBiopsicossocial, Teleconsulta, Financeiro, FiscalFila, Planos, Onboarding, PacienteNovo, CameraLiberacao, ConfigAgendamentoOnline, ConfigWhatsApp | PacienteAcesso, PacienteHoje, PacienteCheckin, PacienteCrise, PacienteNota, PacienteJornada, PacienteProgresso, PacienteConsultas, PacienteAgendar, PacienteAgendaConfirmar, PacienteSerieConfirmar, PacienteQuestionario, PacientePreAnamnese, PacienteCamera, PacienteCameraPreparo, PacienteCameraClasse2, PacienteConfig, PacienteInstalar |
 
 `ComparativoAgendamento` é pesquisa de mercado, não tela.
 
@@ -35,3 +35,7 @@ Ligá-los a estes arquivos é um passo separado:
 - `Painel.charter.md` → `Main.dc.html`
 - `Biblioteca/Index.charter.md` → `Biblioteca.dc.html`
 - `Public/Portal.charter.md` → `PacienteAcesso`, `PacienteHoje`, `PacienteCheckin`, `PacienteCrise`, `PacienteNota`
+
+## Telas geradas no git depois da cópia
+
+- `LaudoBiopsicossocial.dc.html` (2026-11-11, US-FISIO-060): cartão do laudo biopsicossocial na ficha do paciente. Não veio do Artefato: o Code desenhou ancorado no DS porque faltava fonte visual (ADR 0282 §0.1). O PDF desse laudo segue o padrão do `Laudo.dc.html`.
