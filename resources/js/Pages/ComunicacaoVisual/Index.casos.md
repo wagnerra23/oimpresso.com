@@ -235,8 +235,8 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 ## UC-CV-05 · Orçamento, OS e apontamento de outro business não aparecem · `must` `[T0]`
 
 - **Persona:** Wagner / WR2 SC (biz=1) — vale para **as 10 entidades** do módulo, não só as 3 do fluxo.
-- **Aceite:** Dado dados nos businesses 1 e 99 · Quando a sessão é do business 1 · Então:
-  (a) `Material`, `Orcamento`, `OrcamentoItem` e `Os` do 99 **não** aparecem — e os do 1 aparecem
+- **Aceite:** Dado dados nas empresas de teste 98 e 99 · Quando a sessão é de uma delas · Então:
+  (a) `Material`, `Orcamento`, `OrcamentoItem` e `Os` da outra **não** aparecem — e os dela aparecem
   (controle positivo); (b) as 5 entidades do PCP (`Substrato`, `Acabamento`, `InstalacaoCatalogo`,
   `OrdemProducao`, `Instalacao`) idem; (c) `GET /…/api/orcamentos/{id}` de outro business ⇒ **404**,
   não 403 (403 confirmaria a existência); (d) `GET /…/api/apontamentos/em-andamento` de outra
@@ -251,7 +251,7 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
   (o `em-andamento` vazio).
 - **Contrato:** `CU-CV-04` do SDD ·
   [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) (Tier 0 IRREVOGÁVEL) ·
-  [ADR 0101](../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md) (biz=1, nunca biz=4).
+  [ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) (tenant 98 contra 99, nunca a 4).
 - **Regressão que defende:** 10 Entities, 10 global scopes. Entidade nova nascendo sem o scope é
   o vetor mais banal de vazamento cross-tenant, e o módulo tem **5 entidades sem consumidor**
   ([SDD §5.4.5](../../../../memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md))

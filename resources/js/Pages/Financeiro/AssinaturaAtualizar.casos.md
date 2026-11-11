@@ -24,20 +24,29 @@ Quando o operador abre a tela · Então lista as assinaturas ativas do business 
 Status: ⬜ sem prova — AssinaturaAtualizarGuardTest tem só 2 testes (A1 render, A2 guest) — não há prova do preview de diff. Vira `UC-ASS-02` quando existir teste citando o id (G-2).
 Quando altera valor/ciclo/forma · Então vê o diff campo a campo antes de confirmar; nada é enviado por mudança de campo.
 
-## [BACKLOG] Sem diff real, sem PATCH
-Status: ⬜ sem prova — nenhum teste exercita PATCH com payload sem mudança. Vira `UC-ASS-03` quando existir teste citando o id (G-2).
-O botão salvar só habilita com mudança real e o `PATCH` recusa payload vazio (sem patch cego).
+## UC-ASS-03 — Sem mudança real, nada é gravado
+Status: 🧪 (`AssinaturaPermissaoPatchContratoTest`)
+`PATCH` sem nenhum campo devolve 422. Com os mesmos valores responde `skipped: no_changes` e a linha não muda.
 
-## [BACKLOG] Validação do contrato de campos
-Status: ⬜ sem prova — nenhum teste exercita UpdateAssinaturaRequest (valor/ciclo/forma_pagamento). Vira `UC-ASS-04` quando existir teste citando o id (G-2).
-`valor` 0,01..999.999,99 · `ciclo` mensal|trimestral|semestral|anual · `forma_pagamento` boleto|pix|cartao; todos `sometimes`, ao menos um obrigatório.
+## UC-ASS-04 — Validação do contrato de campos
+Status: 🧪 (`AssinaturaPermissaoPatchContratoTest`)
+`valor` ≥ 0,01 · `ciclo` mensal|trimestral|semestral|anual · `forma_pagamento` boleto|pix|cartao, todos opcionais. Fora disso, 422 no campo e nada é gravado.
 
-## [BACKLOG] Nunca cobra agora, nunca loga valor/PII
-Status: ⬜ sem prova — sem prova de não-cobrança nem de ausência de PII em log. Vira `UC-ASS-05` quando existir teste citando o id (G-2).
-Salvar altera o contrato da assinatura; não emite fatura nem cobra no gateway, e nem Controller nem log imprimem valor real ou PII (biz=4 prod).
+## UC-ASS-05 — Salvar não cobra, e o log não carrega o valor
+Status: 🧪 (`AssinaturaPermissaoPatchContratoTest`)
+Salvar altera o contrato da assinatura, não cria fatura, e o log `rb.subscription.atualizada` traz só ids e flags.
+
+## UC-ASS-06 — A tela exige a permissão de editar assinatura
+Status: 🧪 (`AssinaturaPermissaoPatchContratoTest`)
+Sem `recurringbilling.subscriptions.manage`, 403. Com ela, lista só as assinaturas da empresa da sessão.
+
+## UC-ASS-07 — O PATCH respeita permissão e empresa
+Status: 🧪 (`AssinaturaPermissaoPatchContratoTest`)
+Sem a permissão, 403 e nada muda. Com ela, grava valor e forma. Assinatura de outra empresa, 404 e nada muda.
 
 ## Trilha do tempo
 - 2026-08-17 · [CC] criado no espelho Cowork. Tela Tier-dinheiro com 1 arquivo de teste pequeno (2 KB) — UC-ASS-02 e 05 são o débito visível.
+- 2026-11-09 · lote 3.1 da auditoria: UC-ASS-03..07 com teste pelas rotas; o teto de 999.999,99 saiu do contrato porque o Request nunca o aplicou. UC-ASS-02 (preview) segue sem prova.
 
 [ADR 0264]: ../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0093]: ../../memory/decisions/0093-multi-tenant-isolation-tier-0.md

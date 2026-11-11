@@ -26,11 +26,8 @@ function assinaturaAtualizarBootstrap(): User
         test()->markTestSkipped('Tabela business indisponível: '.$e->getMessage());
     }
 
-    $user = User::where('business_id', $business->id)->first();
-
-    if (! $user) {
-        test()->markTestSkipped('Sem user no business.');
-    }
+    // A tela exige a permissão desde o lote 3.1: "o primeiro usuário" do seed não a tem.
+    $user = test()->usuarioComPermissoes(['recurringbilling.subscriptions.manage'], $business);
 
     session([
         'user.business_id' => $business->id,
