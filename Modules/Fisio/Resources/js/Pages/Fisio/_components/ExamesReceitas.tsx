@@ -12,6 +12,23 @@ import { Label } from '@/Components/ui/label';
 import { Segmented } from '@/Components/ui/segmented';
 import MedicamentosEmUso, { type Medicamento } from './MedicamentosEmUso';
 import ConferirTranscricao, { TranscricaoConferida, type Transcricao } from './ConferirTranscricao';
+import { enviar as requisitar, errosDe } from '../Public/_components/portal';
+
+// A seção mora dentro de <Deferred>: visita Inertia a desmontaria e perderia o que foi digitado e o
+// erro (lápide §5 2026-10-13). Por isso o envio é JSON e só a prop da seção recarrega.
+export async function mandar(metodo: 'POST' | 'PUT', url: string, corpo?: unknown, recarregar: string[] = ['documentos', 'medicamentos']): Promise<Record<string, string> | null> {
+  try {
+    const r = await requisitar(metodo, url, corpo);
+    if (r.status >= 200 && r.status < 300) {
+      router.reload({ only: recarregar });
+      return null;
+    }
+    const e = errosDe(r.json);
+    return Object.keys(e).length ? e : { geral: 'Não foi possível salvar. Tente de novo.' };
+  } catch {
+    return { geral: 'Sem conexão. Tente de novo.' };
+  }
+}
 
 export interface DocumentoFicha {
   id: number;
@@ -40,23 +57,21 @@ function Anexar({ pacienteId, tipos }: { pacienteId: number; tipos: Record<strin
   const [enviando, setEnviando] = useState(false);
   const [chave, setChave] = useState(0);
 
-  const enviar = () => {
+  const enviar = async () => {
     if (!arquivo) {
       setErros({ arquivo: 'Escolha uma foto ou um PDF.' });
       return;
     }
     setEnviando(true);
-    router.post(
-      `/fisio/pacientes/${pacienteId}/documentos`,
-      { arquivo, tipo, data_documento: dataDoc || null, observacao: obs || null },
-      {
-        forceFormData: true,
-        preserveScroll: true,
-        onSuccess: () => { setArquivo(null); setDataDoc(''); setObs(''); setErros({}); setChave((k) => k + 1); },
-        onError: (e) => setErros(e as Record<string, string>),
-        onFinish: () => setEnviando(false),
-      },
-    );
+    const corpo = new FormData();
+    corpo.append('arquivo', arquivo);
+    corpo.append('tipo', tipo);
+    if (dataDoc) corpo.append('data_documento', dataDoc);
+    if (obs.trim()) corpo.append('observacao', obs.trim());
+    const e = await mandar('POST', `/fisio/pacientes/${pacienteId}/documentos`, corpo);
+    setEnviando(false);
+    if (e) return setErros(e);
+    setArquivo(null); setDataDoc(''); setObs(''); setErros({}); setChave((k) => k + 1);
   };
 
   return (
@@ -83,9 +98,9 @@ function Anexar({ pacienteId, tipos }: { pacienteId: number; tipos: Record<strin
         <Label htmlFor="doc-arquivo">Foto ou PDF</Label>
         <Input key={chave} id="doc-arquivo" type="file" accept={ACEITOS} onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />
         <p className="text-xs text-muted-foreground">JPG, PNG, WebP ou PDF, até 10 MB. Fica no prontuário e só a sua clínica vê.</p>
-        {erros.arquivo && <p className="text-xs text-destructive">{erros.arquivo}</p>}
+        {(erros.arquivo || erros.geral) && <p className="text-xs text-destructive">{erros.arquivo ?? erros.geral}</p>}
       </div>
-      <Button type="button" className="self-start" disabled={enviando} onClick={enviar}>
+      <Button type="button" className="self-start" disabled={enviando} onClick={() => void enviar()}>
         <Paperclip className="size-4" aria-hidden="true" /> Anexar
       </Button>
     </fieldset>
@@ -103,20 +118,21 @@ function Linha({ doc, tipos, podeEditar, transcricaoIa }: { doc: DocumentoFicha;
 
   const sugerir = () => {
     setLendo(true);
-    router.post(`/fisio/documentos/${doc.id}/transcricao`, {}, {
-      preserveScroll: true,
-      onError: (e) => setErro((e as Record<string, string>).transcricao ?? 'Não foi possível ler o documento.'),
-      onFinish: () => setLendo(false),
+    void mandar('POST', `/fisio/documentos/${doc.id}/transcricao`).then((e) => {
+      setLendo(false);
+      if (e) setErro(e.transcricao ?? e.geral ?? 'Não foi possível ler o documento.');
     });
   };
 
   const pendente = doc.status === 'pendente';
   // Pendente do portal: "Não aceitar" usa o mesmo painel de motivo, na rota de recusa.
-  const tirar = () => {
-    router.post(`/fisio/documentos/${doc.id}/${pendente ? 'recusar' : 'tirar'}`, { motivo }, {
-      preserveScroll: true,
-      onError: (e) => setErro((e as Record<string, string>).motivo ?? 'Não foi possível tirar da lista.'),
-    });
+  const tirar = async () => {
+    const e = await mandar('POST', `/fisio/documentos/${doc.id}/${pendente ? 'recusar' : 'tirar'}`, { motivo });
+    if (e) setErro(e.motivo ?? e.geral ?? 'Não foi possível tirar da lista.');
+  };
+  const aceitar = async () => {
+    const e = await mandar('POST', `/fisio/documentos/${doc.id}/aceitar`);
+    if (e) setErro(e.documento ?? e.geral ?? 'Não foi possível aceitar.');
   };
 
   return (
@@ -138,7 +154,7 @@ function Linha({ doc, tipos, podeEditar, transcricaoIa }: { doc: DocumentoFicha;
           {podeEditar && pendente && !tirando && (
             <>
               <Button size="sm" variant="ghost" onClick={() => setTirando(true)}>Não aceitar</Button>
-              <Button size="sm" onClick={() => router.post(`/fisio/documentos/${doc.id}/aceitar`, {}, { preserveScroll: true })}>Aceitar no prontuário</Button>
+              <Button size="sm" onClick={() => void aceitar()}>Aceitar no prontuário</Button>
             </>
           )}
           {podeEditar && !pendente && !tirando && (
@@ -159,7 +175,7 @@ function Linha({ doc, tipos, podeEditar, transcricaoIa }: { doc: DocumentoFicha;
           {erro && <p className="text-xs text-destructive">{erro}</p>}
           <p className="text-xs text-muted-foreground">{pendente ? 'O envio sai da lista e não entra no prontuário. Fica registrado quem recusou e por quê.' : 'O documento continua guardado no prontuário. Fica registrado quem tirou e quando.'}</p>
           <div className="flex gap-2">
-            <Button size="sm" variant="destructive" onClick={tirar}>{pendente ? 'Não aceitar' : 'Tirar da lista'}</Button>
+            <Button size="sm" variant="destructive" onClick={() => void tirar()}>{pendente ? 'Não aceitar' : 'Tirar da lista'}</Button>
             <Button size="sm" variant="ghost" onClick={() => { setTirando(false); setErro(null); }}>Cancelar</Button>
           </div>
         </div>
@@ -170,7 +186,7 @@ function Linha({ doc, tipos, podeEditar, transcricaoIa }: { doc: DocumentoFicha;
 
 function ChaveTranscricao({ ligada }: { ligada: boolean }) {
   const [confirmando, setConfirmando] = useState(false);
-  const trocar = () => router.post('/fisio/documentos/transcricao-ia', { ligado: !ligada }, { preserveScroll: true, onFinish: () => setConfirmando(false) });
+  const trocar = () => void mandar('POST', '/fisio/documentos/transcricao-ia', { ligado: !ligada }, ['transcricao_ia', 'documentos']).then(() => setConfirmando(false));
   return (
     <div className="flex flex-col gap-2 rounded-md bg-muted px-3 py-2 text-xs" data-contract="fisio-transcricao-chave">
       <div className="flex flex-wrap items-center gap-2">
