@@ -61,7 +61,7 @@ class EstudoService
                 'status' => Study::STATUS_ATIVO,
                 'created_by' => $autor,
             ]);
-            foreach (array_values($momentos) as $i => $m) {
+            foreach ($momentos as $i => $m) {
                 StudyMoment::withoutGlobalScopes()->create([ // SUPERADMIN: mesma empresa do estudo.
                     'business_id' => $businessId,
                     'study_id' => $estudo->id,

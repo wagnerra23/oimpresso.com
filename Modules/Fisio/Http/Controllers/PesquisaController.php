@@ -59,8 +59,9 @@ class PesquisaController extends Controller
             // O TCLE foi assinado na clínica, na versão aprovada pelo CEP.
             'tcle_assinado' => ['accepted'],
         ]);
-        $estudo = Study::findOrFail($study);
-        $paciente = Patient::findOrFail((int) $dados['patient_id']);
+        $biz = $this->empresa($request);
+        $estudo = Study::where('business_id', $biz)->findOrFail($study);
+        $paciente = Patient::where('business_id', $biz)->findOrFail((int) $dados['patient_id']);
         if ($estudo->status !== Study::STATUS_ATIVO) {
             return response()->json(['erro' => 'estudo_fora_de_andamento'], 422);
         }
@@ -81,7 +82,7 @@ class PesquisaController extends Controller
             'tipo' => ['required', 'string', 'in:'.implode(',', StudyParticipant::SAIDAS)],
             'motivo' => ['required', 'string', 'max:500'],
         ]);
-        $p = StudyParticipant::where('study_id', $study)->findOrFail($participant);
+        $p = StudyParticipant::where('business_id', $this->empresa($request))->where('study_id', $study)->findOrFail($participant);
 
         try {
             $this->estudos->registrarSaida($p, (string) $dados['tipo'], (string) $dados['motivo'], (int) $request->user()->id);
@@ -90,6 +91,12 @@ class PesquisaController extends Controller
         }
 
         return response()->json(['exited_on' => $p->exited_on?->toDateString(), 'exit_type' => $p->exit_type]);
+    }
+
+    /** Empresa da sessão: toda consulta do controller filtra por ela, além do escopo global (ADR 0093). */
+    private function empresa(Request $request): int
+    {
+        return (int) $request->session()->get('user.business_id');
     }
 
     private function autorizar(Request $request): void
