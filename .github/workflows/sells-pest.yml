@@ -37,6 +37,8 @@ on:
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
       - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
       - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
+      - 'Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php'  # vitrine pública
+      - 'Modules/ProductCatalogue/Resources/views/catalogue/**'
       - 'app/Transaction.php'
       - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
       - 'Modules/Compras/Providers/ComprasServiceProvider.php'
@@ -234,6 +236,8 @@ jobs:
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
               - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
               - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
+              - 'Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php'  # vitrine pública
+              - 'Modules/ProductCatalogue/Resources/views/catalogue/**'
               - 'app/Transaction.php'
               - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
               - 'Modules/Compras/Providers/ComprasServiceProvider.php'
@@ -642,12 +646,14 @@ jobs:
             tests/Feature/Sells/SellsIndexRascunhosContratoTest.php \
             tests/Feature/Sells/SellsIndexPilulaNotaContratoTest.php \
             tests/Feature/Sells/SellsDuplicarContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoSituacaoContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoVisivelContratoTest.php \
             tests/Feature/Sells/SellLinesOutraEmpresaContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoNaoEReceitaContratoTest.php \
             tests/Feature/Sells/SellsCondicaoClienteContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoXssContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
 

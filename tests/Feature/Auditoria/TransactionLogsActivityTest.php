@@ -4,7 +4,9 @@ use App\Transaction;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Auditoria\Services\AuditEntryService;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Support\EstoqueFixture;
 
 /**
  * US-AUDIT-001 — trait LogsActivity em App\Transaction.
@@ -163,31 +165,32 @@ it('cenario 3: updated em campo NAO logado (invoice_no) NAO gera entry duplicado
     expect($countAfter)->toBe($countBefore, 'campo fora do logOnly nao deve gerar nova entry (dontSubmitEmptyLogs)');
 });
 
-it('cenario 4: multi-tenant Tier 0 — query Activity scoped por business_id NAO mistura businesses', function () {
-    // Cria tx no business primario
-    $tx = audit_makeSell(
-        $this->business->id,
-        $this->location->id,
-        $this->contact->id,
-        $this->user->id
-    );
+it('cenario 4: multi-tenant Tier 0 — log da venda fica no tenant dela e nao aparece no outro', function () {
+    $outro = $this->seededSupportClientTenant();
+    $contatoOutro = DB::table('contacts')->insertGetId([
+        'business_id' => $outro->id, 'type' => 'customer', 'name' => 'Cliente Audit',
+        'contact_id' => 'AUD'.uniqid(), 'created_by' => $outro->owner_id,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
 
-    $logsThisBiz = Activity::query()
-        ->where('business_id', $this->business->id)
+    // A sessao continua no tenant principal: quem define o tenant do log e a venda.
+    $minha = audit_makeSell($this->business->id, $this->location->id, $this->contact->id, $this->user->id);
+    $alheia = audit_makeSell($outro->id, EstoqueFixture::locationId((int) $outro->id), $contatoOutro, $outro->owner_id);
+
+    $logDe = fn (Transaction $tx) => Activity::query()
         ->where('subject_type', Transaction::class)
         ->where('subject_id', $tx->id)
-        ->count();
+        ->where('event', 'created')
+        ->firstOrFail();
 
-    expect($logsThisBiz)->toBeGreaterThan(0, 'log da venda deve aparecer no proprio business');
+    expect((int) $logDe($minha)->business_id)->toBe((int) $this->business->id);
+    expect((int) $logDe($alheia)->business_id)->toBe((int) $outro->id);
 
-    // Mesmo subject_id em business diferente NAO deve aparecer (paranoia leak cross-tenant)
-    $logsOtherBiz = Activity::query()
-        ->where('business_id', '!=', $this->business->id)
-        ->where('subject_type', Transaction::class)
-        ->where('subject_id', $tx->id)
-        ->count();
+    $ids = collect(app(AuditEntryService::class)->list((int) $this->business->id, ['event' => 'created'], 200)->items())
+        ->pluck('id')->all();
 
-    expect($logsOtherBiz)->toBe(0, 'activity nao deve vazar pra outro business_id (Tier 0 IRREVOGAVEL)');
+    expect(in_array($logDe($minha)->id, $ids, true))->toBeTrue();
+    expect(in_array($logDe($alheia)->id, $ids, true))->toBeFalse();
 });
 
 it('cenario 5: PII redact — properties JSON nao contem regex CPF/CNPJ', function () {

@@ -96,10 +96,9 @@ function withoutScopesGuardCollectFiles(): array
  * @param  array<int, array{path: string, relpath: string, content: string}>  $files
  * @return array<int, string>
  */
-function withoutScopesGuardScan(array $files): array
+function withoutScopesGuardScan(array $files, string $callPattern = '/withoutGlobalScopes\s*\(/'): array
 {
     $violations = [];
-    $callPattern = '/withoutGlobalScopes\s*\(/';
 
     foreach ($files as $file) {
         $lines = preg_split('/\R/', $file['content']) ?: [];
@@ -167,4 +166,17 @@ it('guard: toda chamada withoutGlobalScopes em produção tem // SUPERADMIN comm
     }
 
     expect($violations)->toBeEmpty();
+})->group('guard');
+
+it('UC-PCESC-04 · guard: toda dispensa de escopo do Producao, no singular ou no plural, traz // SUPERADMIN', function () {
+    $singularOuPlural = '/withoutGlobalScopes?\s*\(/';
+
+    // Controle: sem o comentário o scan acusa (senão o guard passaria sem medir nada).
+    $semComentario = [['path' => 'x', 'relpath' => 'x.php', 'content' => "<?php\nOrdem::withoutGlobalScope(X::class)->first();\n"]];
+    expect(withoutScopesGuardScan($semComentario, $singularOuPlural))->toHaveCount(1);
+
+    $files = array_values(array_filter(withoutScopesGuardCollectFiles(), fn (array $f) => str_starts_with($f['relpath'], 'Modules/Producao/')));
+    expect($files)->not->toBeEmpty();
+
+    expect(withoutScopesGuardScan($files, $singularOuPlural))->toBe([]);
 })->group('guard');

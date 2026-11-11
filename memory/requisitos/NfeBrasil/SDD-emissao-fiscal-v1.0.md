@@ -194,7 +194,7 @@ de 2s e lá há cache de 60s. Confundir os dois é o vetor das telas competindo 
 | **[ADR 0093] multi-tenant** | Models com `HasBusinessScope`: `NfeEmissao`, `NfeEvento`, `NfeDfeRecebido`, `NfeDfeEvento`, `NfeDfeNsuState`, `NfeCertificado`, `NfeFiscalRule`, `NfeBusinessConfig`. **Assimetria medida (§5.4.2):** parte dos Controllers faz `where('business_id', …)` explícito (defesa em profundidade) e parte confia só no scope — e o `ScopeByBusiness` faz early-return quando `! auth()->check()`. |
 | **[ADR 0101] biz=1, nunca biz=4** | biz=1 e biz=2 são os semeados pelo `pest-mysql-setup`. biz=4 é a Larissa em produção — **jamais** em teste. |
 | **REGRA MESTRE valor/estoque `[V0]`** | `MotorTributarioService` e a cascade `ProdutoFiscalContext` decidem **alíquota, CST/CSOSN e CFOP** de cada item — erro ali vira multa fiscal, não bug de tela. `NfeFiscalRule` e `NfeBusinessConfig` são superfícies `[V0]`. |
-| **Numeração fiscal** | NFe cancelada via SEFAZ **nunca** sofre `forceDelete()` — o número permanece usado oficialmente (CONFAZ Ajuste SINIEF 07/2005 Art. 14). Só `rejeitada`/`denegada`/`erro_envio` viram `inutilizada`. Ver [adr/tech/0001](adr/tech/0001-numeracao-com-lockForUpdate.md) e [adr/tech/0003](adr/tech/0003-retencao-xml-5-anos-write-once.md). |
+| **Numeração fiscal** | NFe cancelada via SEFAZ **nunca** sofre `forceDelete()` — o número permanece usado oficialmente (CONFAZ Ajuste SINIEF 07/2005 Art. 14). Só `rejeitada`/`erro_envio` viram `inutilizada`; `denegada` está registrada na SEFAZ e mantém o status. Ver [adr/tech/0001](adr/tech/0001-numeracao-com-lockForUpdate.md) e [adr/tech/0003](adr/tech/0003-retencao-xml-5-anos-write-once.md). |
 | **PII / LGPD** | `NfeCertificado.encrypted_password` é `$hidden`. O XML da NF-e carrega **CPF/CNPJ e endereço do consumidor** — [PII-LGPD-FISCAL.md](PII-LGPD-FISCAL.md) é o documento dono. Anti-hook de charter: *"não loga PII — conteúdo XML não vai em log plain text"*. |
 | **[ADR 0062] runtime** | Pest deste módulo roda no CI / CT 100 — **nunca** local. E o `oimpresso-staging` **não tem as tabelas do NfeBrasil** (§8.2), então a lane de CI é o único lugar que executa de verdade. |
 
@@ -555,7 +555,8 @@ ela vê o desfecho SEFAZ da nota **daquela venda** e a consulta para sozinha qua
 
 #### CU-NFE-04 — O número fiscal nunca é reaproveitado nem apagado `[must]` `[T0]` `[reg]` 🧪
 *Dado* uma nota que precisou ser retransmitida; *quando* a nova sai; *então* a antiga **permanece
-no banco** (marcada `inutilizada`, `transaction_id` liberado) e a nova recebe número novo.
+no banco** (marcada `inutilizada`, ou mantida `denegada`, com `transaction_id` liberado) e a nova
+recebe número novo. Antes de liberar um `erro_envio`, o sistema consulta a chave na SEFAZ.
 > 🔗 Contrato canônico: [`CU-FISC-11`](../Fiscal/SDD-cockpit-fiscal-v1.0.md). Base legal: CONFAZ
 > Ajuste SINIEF 07/2005 Art. 14 + [adr/tech/0001](adr/tech/0001-numeracao-com-lockForUpdate.md).
 > Testes deste lado: `NfeServiceRetransmitirTest`, `NfeServiceIdempotenciaRetryTest`.

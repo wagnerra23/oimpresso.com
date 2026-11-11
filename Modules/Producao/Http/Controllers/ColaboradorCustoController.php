@@ -6,6 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Producao\Http\Controllers\Concerns\ExigePacoteProducao;
+use Modules\Producao\Services\CustoHoraDecimal;
 use Illuminate\Validation\Rule;
 use Modules\Producao\Entities\ColaboradorCusto;
 
@@ -26,11 +27,11 @@ class ColaboradorCustoController extends Controller
         $request->merge(['user_id' => $userId]);
         $dados = $request->validate([
             'user_id' => [Rule::exists('users', 'id')->where('business_id', $biz)],
-            'custo_hora' => ['required', 'numeric', 'min:0', 'max:99999'],
+            'custo_hora' => ['required', 'numeric', 'not_regex:/e/i', 'min:0', 'max:99999'],
         ]);
         ColaboradorCusto::query()->updateOrCreate(
             ['business_id' => $biz, 'user_id' => $userId],
-            ['custo_hora' => round((float) $dados['custo_hora'], 2)],
+            ['custo_hora' => CustoHoraDecimal::comDuasCasas($dados['custo_hora'])],
         );
 
         return back()->with('status', ['success' => 1, 'msg' => 'Custo-hora salvo.']);
