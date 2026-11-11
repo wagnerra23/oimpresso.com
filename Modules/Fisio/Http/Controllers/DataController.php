@@ -81,6 +81,12 @@ class DataController extends Controller
                 'label'   => 'Fisio: pesquisador do estudo',
                 'default' => false,
             ],
+            [
+                // US-FISIO-062: relatório agregado para a associação (só contagem e média, grupo < 5 sai "<5").
+                'value'   => 'fisio.relatorio',
+                'label'   => 'Fisio: relatorio agregado da associacao',
+                'default' => false,
+            ],
         ];
     }
 
@@ -137,6 +143,13 @@ class DataController extends Controller
                     $sub->url(url('/fisio/pesquisa'), 'Pesquisa', [
                         'icon' => 'fa fa-flask',
                         'active' => request()->segment(2) === 'pesquisa',
+                    ]);
+                }
+                // US-FISIO-062: relatório agregado, só para quem tem `fisio.relatorio` (a mesma do controller).
+                if (auth()->user()?->can('fisio.relatorio')) {
+                    $sub->url(url('/fisio/relatorio-associacao'), 'Relatório da associação', [
+                        'icon' => 'fa fa-chart-bar',
+                        'active' => request()->segment(2) === 'relatorio-associacao',
                     ]);
                 }
                 $sub->url(url('/fisio/fiscal'), 'Fila fiscal', [

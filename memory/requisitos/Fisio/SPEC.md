@@ -352,3 +352,16 @@ Como recepção ou fisioterapeuta da associação, quero registrar o perfil soci
 **DoD:** nascimento, município, UF e bairro moram no contato (`contacts.dob`, `city`, `state`, `neighborhood` — o mesmo endereço do cadastro de clientes); sexo, gênero, raça/cor no padrão do IBGE, cartão SUS com dígito verificador, renda familiar em faixas de salário mínimo, NIS/CadÚnico, situação de trabalho (trabalhando, afastado pelo INSS, aposentado, desempregado, outro), escolaridade, diagnóstico informado (CID, quem e quando), tempo de sintomas, comorbidades, como chegou (UBS/CAPS, indicação, procura própria) e situação da carteira de fibromialgia (CIPF) moram em `fisio_patient_social`, 1:1, com "prefiro não informar" onde cabe. Nenhum campo é obrigatório. Seção própria e recolhida na ficha, com a finalidade escrita na tela, editável só com `fisio.editar`. Dado sensível (LGPD art. 11): não vai ao portal nem à exportação da pesquisa; o `activity_log` guarda só os nomes dos campos alterados. A empresa 99 não vê nem grava nada da 98 — `FisioDadosSociaisTest` (UC-FSO-01..05).
 
 **Testado em:** `Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php`
+
+### US-FISIO-062 · Relatório agregado para a associação — **P1**
+
+**Implementado em:** `Modules/Fisio/Services/Social/RelatorioAssociacao.php` (contagens, médias e a regra do "<5") · `Modules/Fisio/Http/Controllers/RelatorioAssociacaoController.php` (rotas `fisio.relatorio-associacao.index` e `fisio.relatorio-associacao.pdf`, permissão `fisio.relatorio`) · tela `Modules/Fisio/Resources/js/Pages/Fisio/Relatorio/Associacao.tsx` · PDF `Modules/Fisio/Resources/views/pdf/relatorio-associacao.blade.php` · menu e permissão em `Modules/Fisio/Http/Controllers/DataController.php`
+
+> owner: — · priority: p1 · estimate: 8h · status: review · type: story
+> blocked_by: US-FISIO-061 (dados sociais)
+
+Como coordenação da associação, quero um relatório por período com quem foi atendido, quanto e se melhorou, para prestar contas em editais, emendas e convênios sem expor ninguém.
+
+**DoD:** tela e PDF por período com pessoas atendidas (cada uma uma vez: agenda com presença, prontuário assinado, check-in ou questionário), atendimentos, taxa de presença, adesão média aos exercícios em casa, perfil (faixa etária, sexo, município, renda, situação de trabalho) e a média da primeira e da última aplicação de FIQR, EVA, PGIC e sentar e levantar em 30 s. Só contagem e média, nunca linha por paciente; grupo com menos de 5 pessoas sai "<5" e sem média; município pequeno soma em "Outros municípios"; período com menos de 5 atendidos mostra só o total. Permissão própria `fisio.relatorio`; cada PDF grava uma linha no `activity_log` sem paciente. A empresa 99 não entra nos números da 98 — `FisioRelatorioAssociacaoTest` (UC-FRA-01..05).
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioRelatorioAssociacaoTest.php`
