@@ -8,6 +8,7 @@ use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\ConfiguracoesController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
+use Modules\Fisio\Http\Controllers\LaudoBiopsicossocialController;
 use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\FiscalController;
@@ -117,6 +118,14 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Prontuário é append-only: estes verbos existem só para responder 405 com o motivo.
         Route::match(['put', 'patch', 'delete'], 'pacientes/{id}/registros/{registro}', [RegistrosController::class, 'imutavel'])
             ->whereNumber(['id', 'registro'])->name('pacientes.registros.imutavel');
+
+        // Laudo biopsicossocial no modelo SES-SC (US-FISIO-060). Escrita exige `fisio.editar` (no controller).
+        Route::post('pacientes/{id}/laudos-bps', [LaudoBiopsicossocialController::class, 'store'])->whereNumber('id')->name('pacientes.laudos-bps.store');
+        Route::put('laudos-bps/{laudo}', [LaudoBiopsicossocialController::class, 'update'])->whereNumber('laudo')->name('laudos-bps.update');
+        Route::post('laudos-bps/{laudo}/equipe', [LaudoBiopsicossocialController::class, 'incluirMembro'])->whereNumber('laudo')->name('laudos-bps.equipe.store');
+        Route::delete('laudos-bps/{laudo}/equipe/{membro}', [LaudoBiopsicossocialController::class, 'removerMembro'])->whereNumber(['laudo', 'membro'])->name('laudos-bps.equipe.destroy');
+        Route::post('laudos-bps/{laudo}/finalizar', [LaudoBiopsicossocialController::class, 'finalizar'])->whereNumber('laudo')->name('laudos-bps.finalizar');
+        Route::post('laudos-bps/{laudo}/nova-versao', [LaudoBiopsicossocialController::class, 'novaVersao'])->whereNumber('laudo')->name('laudos-bps.nova-versao');
 
         // Link do portal do paciente (US-FISIO-007a): gerar devolve link + PIN UMA vez; revogar derruba.
         Route::post('pacientes/{id}/portal', [PortalLinkController::class, 'store'])->whereNumber('id')->name('pacientes.portal.store');

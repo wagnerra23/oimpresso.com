@@ -6,8 +6,8 @@ type: sdd
 module: ComunicacaoVisual
 status: ativo
 owner: W
-version: 1.0.0
-last_updated: "2026-07-28"
+version: 1.1.0
+last_updated: "2026-11-10"
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -20,7 +20,7 @@ related_docs:
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
-  - 0101-tests-business-id-1-nunca-cliente
+  - 0358-doutrina-de-teste-tenant-98-supersede-0101
   - 0104-processo-mwart-canonico-unico-caminho
   - 0105-cliente-como-sinal-guiar-sem-mandar
   - 0110-cockpit-pattern-v2-canon-list-detail
@@ -28,12 +28,22 @@ related_adrs:
   - 0121-oimpresso-modular-especializado-por-vertical
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
   - 0264-governanca-executavel-trio-dominio-e2e
+  - 0431-pcp-sai-do-desejo-modules-producao
+  - 0436-os-por-item-producao-dona-da-os-do-pedido
   - 0351-sdd-from-source
 related_us:
   - US-COMVIS-001
   - US-COMVIS-002
+  - US-COMVIS-003
   - US-COMVIS-004
+  - US-COMVIS-005
   - US-COMVIS-006
+  - US-COMVIS-007
+  - US-COMVIS-019
+  - US-COMVIS-020
+  - US-COMVIS-021
+  - US-COMVIS-022
+  - US-COMVIS-023
 ---
 
 # SDD — Software Design Document · Orçamento por m² (domínio ComunicacaoVisual)
@@ -42,15 +52,20 @@ related_us:
 > ([ADR 0351](../../decisions/0351-sdd-from-source.md)), chip da **Onda 4** do
 > [passo 5](../_Governanca/programa-ondas/passo-5-sdd-por-modulo.md).
 >
-> ⚠️ **Este módulo é o primeiro do passo 5 SEM CLIENTE EM PRODUÇÃO.** Os irmãos (Produto,
-> Sells, Vestuario) documentam código que a Larissa usa hoje. Aqui, **14 das 18 US são plano**
-> e o SDD documenta a **fatia de código que existe** — não o SPEC inteiro. Onde não há código,
-> **não nasce CU** (§6.9): caso sem implementação vira UC órfão, que o `casos-gate` G-2 pune e
-> que **bloqueia o merge de quem for implementar** ([proibicoes §5](../../proibicoes.md) 2026-07-16).
+> ⚠️ **Módulo sem cliente em produção registrado.** Os irmãos (Produto, Sells, Vestuario) documentam
+> código que a Larissa usa hoje; aqui nenhum documento registra piloto migrado, e o uso real não foi
+> medido. Quantas US têm código não se repete neste texto: `node scripts/governance/anchor-lint.mjs --json`
+> responde. Onde não há código, **não nasce CU** (§6.9): caso sem implementação vira UC órfão, que o
+> `casos-gate` G-2 pune e que **bloqueia o merge de quem for implementar** ([proibicoes §5](../../proibicoes.md) 2026-07-16).
 >
-> **Escopo:** a família de **orçamento por m² + apontamento de produção** — a tela
-> `ComunicacaoVisual/Index` (`/comunicacao-visual`) e as duas APIs JSON que a sustentam.
-> O SDD é do **MÓDULO/família, nunca da tela** ([ADR 0351](../../decisions/0351-sdd-from-source.md) Fase 2.1).
+> **Escopo:** o fluxo do orçamento até o pós-cálculo. Telas `ComunicacaoVisual/Index` (`/comunicacao-visual`),
+> `ComunicacaoVisual/Agenda` (`/comunicacao-visual/agenda`) e `ComunicacaoVisual/AceitePublico`
+> (`/orcamento-cv/{token}`), mais as APIs JSON que as sustentam. O SDD é do **MÓDULO/família, nunca da tela**
+> ([ADR 0351](../../decisions/0351-sdd-from-source.md) Fase 2.1).
+>
+> **Revisão 2026-11-10** (auditoria de 2026-11-05): o que era verdade em 2026-07-28 e deixou de ser
+> virou passado datado (§5.4), o fluxo ponta a ponta entrou em §5.5 e o inventário de §6.9 foi refeito.
+> Faturamento segue como lacuna (§5.5, passo 8).
 
 ---
 
@@ -62,8 +77,8 @@ related_us:
 
 | # | Fonte | Estado | O que rendeu |
 |---|---|---|---|
-| 1 | **Documentação canon** | ✅ | [`SPEC.md`](SPEC.md) (18 US) · [`BRIEFING.md`](BRIEFING.md) (destilado honesto, 2026-06-15) · [`PII-LGPD.md`](PII-LGPD.md) · [`Index.charter.md`](../../../resources/js/Pages/ComunicacaoVisual/Index.charter.md) · [`CAPTERRA-FICHA.md`](CAPTERRA-FICHA.md) |
-| 2 | **React/Laravel atual** | ✅ | `Index.tsx` (531 linhas) · `OrcamentoController` · `OrcamentoCalculator` · `ApontamentoController` · `ApontamentoTracker` · `Routes/web.php` · 10 Entities · 9 migrations · 20 arquivos Pest |
+| 1 | **Documentação canon** | ✅ | [`SPEC.md`](SPEC.md) · [`BRIEFING.md`](BRIEFING.md) · [`PII-LGPD.md`](PII-LGPD.md) · charter e casos das 3 telas em `resources/js/Pages/ComunicacaoVisual/` · [`CAPTERRA-FICHA.md`](CAPTERRA-FICHA.md) |
+| 2 | **React/Laravel atual** | ✅ | Inventário de arquivos em [`SUPERFICIE.md`](SUPERFICIE.md), conferido por `node scripts/governance/module-surface.mjs ComunicacaoVisual --check`. Serviços que carregam o fluxo: `OrcamentoCalculator` · `OrcamentoGravador` · `MargemDoOrcamento` · `OrcamentoViraOs` · `AceiteDoOrcamento` · `RoteiroPadraoDaOs` · `AgendaInstalacao` · `PosCalculoDaOs` · `ApontamentoTracker` |
 | 3 | **Blade AdminLTE legada** | ❌ **não existe** | `find resources/views -ipath "*comvis*" -o -ipath "*comunicacao*"` = **0 arquivos**. Não há tela Blade a migrar: o módulo **nasceu Inertia**. Não é gap de análise — é ausência de fato. |
 | 4 | **Delphi / Office Comercial** | ⚠️ **existe corpus, mas NÃO destilado pra este módulo** | `find memory -iname "*ANTI-REGRESSAO*"` = **2 arquivos, ambos do Produto**. O corpus legado existe ([`memory/legacy-delphi/`](../../legacy-delphi/_INDEX.md) · [`memory/dominios/wr-comercial/`](../../dominios/wr-comercial/README.md) · [`PLANO-MIGRACAO-6-SAUDAVEIS.md`](PLANO-MIGRACAO-6-SAUDAVEIS.md)) e é **do ramo certo** (gráfica), mas **nenhuma feature do OfficeImpresso foi destilada em contrato de paridade** pra ComVis. |
 
@@ -79,16 +94,18 @@ related_us:
 
 A [Fase 1.1 do agent](../../../.claude/agents/sdd-from-source.md) avisa que a Blade homônima
 engana (no Produto, `show.blade.php` não era a ficha que a operadora abre). Aqui a varredura foi
-feita e **voltou vazia**: não há `resources/views/**` do módulo, e `Modules/ComunicacaoVisual/Resources/views/`
-tem só o esqueleto nWidart. A única superfície humana é a rota Inertia `/comunicacao-visual`
-([`Routes/web.php`](../../../Modules/ComunicacaoVisual/Routes/web.php)) — **1 render, contado**
-(`git grep "ComunicacaoVisual/Index" -- '*.php'` = 2 hits: 1 comentário no `DataController`, 1 render real).
+feita e **voltou vazia**: não há `resources/views/**` do módulo nem `Modules/ComunicacaoVisual/Resources/views/`.
+As superfícies humanas são os **3 renders Inertia**: `git grep -n "Inertia::render" -- 'Modules/ComunicacaoVisual/*.php'`
+devolve `Routes/web.php` (Index), `AgendaController` (Agenda) e `OrcamentoAceitePublicoController` (AceitePublico),
+além de 1 comentário no `DataController`.
 
 ### 0.3 O que este SDD NÃO cobre — e por quê
 
-O `SPEC.md` descreve um ERP vertical completo (PCP Kanban, instalação/EPI, NFSe, DAM, CT-e,
-loja whitelabel, IA Jana). **Nada disso tem código.** Cobrir aqui seria escrever contrato pra
-vapor. O inventário do que é plano está no §6.9 — como lista, não como CU.
+O `SPEC.md` descreve um ERP vertical completo. Parte já tem código e está em §5.5; o resto (NFSe, DAM,
+CT-e, loja whitelabel, IA Jana, comissão) não tem. Cobrir o que não existe seria escrever contrato pra
+vapor: o inventário do que é plano está no §6.9, como lista, não como CU. A produção propriamente dita
+(quadro, roteiros, apontamento por etapa) é do `Modules/Producao` ([ADR 0431](../../decisions/0431-pcp-sai-do-desejo-modules-producao.md));
+aqui só entra a costura com ele.
 
 ---
 
@@ -96,30 +113,37 @@ vapor. O inventário do que é plano está no §6.9 — como lista, não como CU
 
 ### 1.1 O que é
 
-O vertical **ComunicacaoVisual** (CNAE 1813-0/01 — impressão de material publicitário) entrega
-hoje **uma coisa que funciona ponta-a-ponta**: transformar `largura × altura × qtd × preço/m²`
-num total confiável, com o **servidor como fonte de verdade**. Em volta disso há um segundo
-serviço sem tela — o **apontamento de produção** (spool de plotter: iniciar/finalizar/cancelar,
-com duração e *drift* entre m² orçado e m² produzido).
+O vertical **ComunicacaoVisual** (CNAE 1813-0/01, impressão de material publicitário) transforma
+`largura × altura × qtd × preço/m²` num total confiável, com o **servidor como fonte de verdade**, e leva
+esse orçamento até a OS: salvar, mandar ao cliente por link, aprovar, entrar no quadro do PCP, agendar a
+instalação e comparar orçado com realizado. O fluxo completo está em §5.5.
 
-O resto do módulo é **schema + contrato**, não fluxo navegável.
+Um segundo serviço segue **sem tela**: o spool de plotter do próprio módulo (iniciar/finalizar/cancelar,
+com duração e *drift* entre m² orçado e m² produzido). O apontamento que o operador faz de fato é por
+etapa, no `Modules/Producao`.
 
-### 1.2 Família — 1 tela, 2 APIs, 10 entidades
+### 1.2 Família
 
 | Superfície | Rota | Estado |
 |---|---|---|
-| **Hub + calculadora** `Index.tsx` | `GET /comunicacao-visual` | ✅ **entregue** (única tela) |
-| **API de orçamento** | `POST /…/api/calcular` · `POST /…/api/orcamentos` · `GET /…/api/orcamentos/{id}` | ✅ entregue — a tela consome **só** `calcular` |
-| **API de apontamento** | `POST iniciar` · `POST {id}/finalizar` · `POST {id}/cancelar` · `GET` · `GET em-andamento` | ✅ entregue — **sem tela** |
+| **Hub + calculadora** `Index.tsx` | `GET /comunicacao-visual` | ✅ entregue |
+| **Agenda de instalação** `Agenda.tsx` | `GET /comunicacao-visual/agenda` | ✅ entregue |
+| **Aceite do cliente** `AceitePublico.tsx` | `GET` · `POST …/aceitar` · `POST …/ajuste` em `/orcamento-cv/{token}`, sem login | ✅ entregue |
+| **API de orçamento** | `calcular` · `orcamentos` (`GET`/`POST`) · `orcamentos/{id}` (`GET`/`PUT`) · `{id}/aprovar` · `{id}/link` · `{id}/arquivos` | ✅ entregue; `Index.tsx` consome as de escrita |
+| **API de roteiro padrão** | `GET`/`PUT /…/api/roteiro-padrao` | ✅ entregue |
+| **API de instalação** | `GET /…/api/instalacoes` · `POST /…/api/os/{os}/instalacao` | ✅ entregue |
+| **API de pós-cálculo** | `GET /…/api/os/{os}/pos-calculo` | 🟡 só JSON, atrás de `COMVIS_POS_CALCULO_ENABLED` (padrão desligada, `config/comunicacao-visual.php`) |
+| **API de apontamento (spool)** | `POST iniciar` · `POST {id}/finalizar` · `POST {id}/cancelar` · `GET` · `GET em-andamento` | ✅ entregue, **sem tela** |
+| **Orçamento rápido do app** | `/api/app/orcamentos` (`AppOrcamentoRapidoController`) | ✅ entregue; grava pelo mesmo `OrcamentoGravador` |
 | **Install 1-clique** | `GET install` · `install/uninstall` · `install/update` | ✅ entregue ([ADR 0024](../../decisions/0024-instalacao-1-clique-modulos.md)) |
-| PCP / OS / instalação / substrato / acabamento | — | 🟡 **schema órfão** — migrations + Entities, zero controller/rota |
+| Substrato / catálogo de instalação / `cv_ordens_producao` | — | 🟡 **schema sem fluxo** (§5.4.5) |
 
 ### 1.3 Vertical
 
-Módulo **em construção** ([ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)),
-piloto previsto Q3/2026. Candidatos: as 6-7 gráficas saudáveis do OfficeImpresso legado
-(Extreme, Gold, Zoom, Fixar, Mhundo, Produart — Vargas saiu pra OficinaAuto). **Zero business
-em produção hoje** — ou seja, nenhum dos CU abaixo tem sinal de cliente ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)).
+Módulo **em construção** ([ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)).
+A previsão de piloto em Q3/2026 passou sem piloto registrado; a nova data é decisão [W]. Candidatos: as
+gráficas saudáveis do OfficeImpresso legado ([`PLANO-MIGRACAO-6-SAUDAVEIS.md`](PLANO-MIGRACAO-6-SAUDAVEIS.md)).
+Nenhum CU abaixo tem sinal de cliente ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)).
 
 ---
 
@@ -131,11 +155,13 @@ em produção hoje** — ou seja, nenhum dos CU abaixo tem sinal de cliente ([AD
 |---|---|---|---|
 | **Larissa-equivalente** (dona-operadora de gráfica pequena) | 3-25 funcionários, balcão, monitor 1280px, não-técnica | Chega o cliente pedindo "banner 3×1,5 pra sábado"; ela precisa do preço em <2min sem abrir Excel | [`Index.charter.md`](../../../resources/js/Pages/ComunicacaoVisual/Index.charter.md) §Persona-alvo · SPEC §2 |
 | **Operador de plotter** | opera a máquina, usa o celular ao lado dela | Registra início/fim do trabalho e m² produzido | SPEC US-COMVIS-004 · `ApontamentoTracker` |
-| **Wagner [W]** (biz=1, WR2 SC) | dono do produto | É o business dos testes ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) — **nunca biz=4** | proibicoes §R6 |
+| **Coordenador de instalação** | agenda equipe e veículo | Vê a semana por pessoa e agenda sem conflito | [`Agenda.charter.md`](../../../resources/js/Pages/ComunicacaoVisual/Agenda.charter.md) |
+| **Cliente da gráfica** | sem conta no sistema, quase sempre no celular | Confere o orçamento pelo link e aceita ou pede ajuste | [`AceitePublico.charter.md`](../../../resources/js/Pages/ComunicacaoVisual/AceitePublico.charter.md) |
+| **Wagner [W]** | dono do produto | Teste automatizado roda em tenant fictício 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)), **nunca biz=4** | proibicoes §R6 |
 
 > ⚠️ **A persona operadora ainda é hipótese.** Diferente do Produto/Sells (onde a Larissa da
-> ROTA LIVRE usa a tela todo dia), aqui **ninguém usou a calculadora em produção**. O perfil
-> vem de pesquisa de mercado, não de uso observado.
+> ROTA LIVRE usa a tela todo dia), aqui não há registro de uso em produção. O perfil vem de pesquisa
+> de mercado, não de uso observado.
 
 ---
 
@@ -143,11 +169,11 @@ em produção hoje** — ou seja, nenhum dos CU abaixo tem sinal de cliente ([AD
 
 | Regra | Onde morde nesta família |
 |---|---|
-| **Multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) | **10/10 Entities** declaram `addGlobalScope('business_id')`. O `OrcamentoCalculator` resolve preço de catálogo via `Material::find()` — se o scope cair, um business precifica com a tabela de outro. **CU-CV-04.** |
+| **Multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) | Toda Entity declara o escopo de `business_id` (`git grep -lE "addGlobalScope\('business_id'|EscopoPorNegocioDaSessao" -- 'Modules/ComunicacaoVisual/Entities/*.php'` lista todas). Fora de sessão (fila, token, link público) o escopo não filtra, e por isso `OrcamentoGravador`, `OrcamentoViraOs` e `AceiteDoOrcamento` passam `business_id` explícito. O `OrcamentoCalculator` resolve preço de catálogo via `Material`: se o escopo cair, um business precifica com a tabela de outro. **CU-CV-04.** |
 | **REGRA MESTRE valor/estoque** ([proibicoes](../../proibicoes.md)) | Todo o `OrcamentoCalculator` é `[V0]`: área, subtotal, desconto, extras, total. É a razão de o backend ser authoritative (**CU-CV-02**). O incidente `num_uf` ×100 de 2026-06-05 é o precedente vivo. |
-| **Tests biz=1, nunca biz=4** ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) | Cumprido — `Wave27ComVisPolishTest` tem guard que varre `business_id=4` no código PHP das waves. |
-| **PII / LGPD** | `observacoes` é o **único** campo de texto livre com risco de PII; o `OrcamentoCalculator` passa por `PiiRedactor` antes de qualquer span/log. Whitelist de `LogsActivity` exclui `contato_id` e `observacoes`. **CU-CV-08.** |
-| **MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) | ⚠️ **Não se aplica como migração** — não há Blade de origem (§0.2). O charter existe (F1.5), mas o `RUNBOOK-<tela>.md` do módulo **não existe** — o hook runtime bloqueia Edit no `.tsx` até criar. **Reportado, não resolvido neste PR** (§9 D-5). |
+| **Teste nunca em biz=4** ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)) | `Wave27ComVisPolishTest` tem guard que varre `business_id=4` no código PHP das waves. Os contratos de outubro já usam 98 contra 99; a migração dos arquivos antigos é do lote de testes. |
+| **PII / LGPD** | `observacoes` e o comentário do aceite são texto livre. O `OrcamentoCalculator` passa `observacoes` por `PiiRedactor` antes de span/log. Whitelist de `LogsActivity` exclui `contato_id` e `observacoes`. Superfícies e lacunas em [`PII-LGPD.md`](PII-LGPD.md). **CU-CV-08.** |
+| **MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) | ⚠️ **Não se aplica como migração**: não há Blade de origem (§0.2). Cada tela tem charter, casos e RUNBOOK ao lado (`RUNBOOK-comunicacao-visual-index.md`, `RUNBOOK-agenda.md`, `RUNBOOK-aceite-publico.md`). |
 | **Append-only por lei** | `Apontamento` **não** usa `SoftDeletes` de propósito (registro produtivo); `Orcamento`/`Os` usam. Coberto por `LgpdComplianceTest`. |
 
 ---
@@ -180,32 +206,41 @@ ausência por natureza, não lacuna.
 
 ```
 Pages/ComunicacaoVisual/Index.tsx          preview client-side (espelho da fórmula)
-        │  fetch POST /comunicacao-visual/api/calcular   (X-CSRF-TOKEN)
+        │  fetch /comunicacao-visual/api/*   (X-CSRF-TOKEN)
         ▼
 Routes/web.php   ── closure com gate de permission ─→ Inertia::render('ComunicacaoVisual/Index')
-        │                                                    props: bizName  ⚠️ só isso (§5.4.1)
+        │                     props: bizName · materiais · podeCriar · podeVerCusto · orcamento · recentes (defer)
         ▼
-OrcamentoController  @calcular · @store · @show          validação PT-BR centralizada
+OrcamentoController  calcular · index · store · show · update · aprovar     validação PT-BR centralizada
         │
         ▼
 OrcamentoCalculator  ← AUTHORITATIVE                     OtelHelper::spanBiz + PiiRedactor
         │  resolverPreco():  input override → Material (global scope) → throw
         ▼
-Entities  Orcamento · OrcamentoItem · Material           addGlobalScope(business_id)
+OrcamentoGravador → Orcamento · OrcamentoItem            business_id explícito
+        ▼
+OrcamentoViraOs → Os · OsItem → RoteiroPadraoDaOs → App\Contracts\Producao\ProgramacaoDaOs (Modules/Producao)
 
-ApontamentoController  @iniciar/@finalizar/@cancelar/@index/@emAndamento     (SEM TELA)
-        └→ ApontamentoTracker  ← duração + drift server-side, 1 spool por operador
+OrcamentoAceiteController + Public/OrcamentoAceitePublicoController → AceiteDoOrcamento → OrcamentoViraOs
+AgendaController + InstalacaoController → AgendaInstalacao → evento InstalacaoAgendada → Modules/Whatsapp
+OsPosCalculoController → PosCalculoDaOs → App\Contracts\Producao\CustoRealDaOs (Modules/Producao)
+ApontamentoController → ApontamentoTracker               spool sem tela; 1 aberto por operador
 ```
 
 ### 5.2 Modelo de dados (núcleo entregue)
 
 | Tabela | Papel | Chaves que importam |
 |---|---|---|
-| `comvis_materiais` | catálogo por business | `preco_venda_m2` alimenta o cálculo · sem UNIQUE por nome (duplicata permitida) |
-| `comvis_orcamentos` | cabeçalho | **UNIQUE `(business_id, numero)`** — a trava real da numeração (§5.4.3) |
-| `comvis_orcamento_itens` | linha calculada | `area_m2`, `preco_unitario_m2`, `subtotal` gravados **já calculados** pelo Service |
-| `comvis_os` / `comvis_apontamentos` | OS + spool | `drift_percent` e `duracao_segundos` derivados no Service, nunca no cliente |
-| `cv_substratos` / `cv_acabamentos` / `cv_instalacoes_catalogo` / `cv_ordens_producao` / `cv_instalacoes` | schema do PCP | migrados, **sem controller nem rota** — órfãos (§5.4.5) |
+| `comvis_materiais` | catálogo por business | `preco_venda_m2` alimenta o cálculo · `minimo_m2`, `perda_pct`, `largura_bobina_m`, `preco_solda_m` entram na área cobrada e na emenda · `preco_custo_m2` alimenta custo e margem · sem UNIQUE por nome |
+| `comvis_orcamentos` | cabeçalho | **UNIQUE `(business_id, numero)`**, a trava real da numeração (§5.4.3) · status `rascunho`/`enviado`/`aprovado`/`recusado`/`expirado` |
+| `comvis_orcamento_itens` | linha calculada | `area_m2`, `preco_unitario_m2`, `subtotal` gravados **já calculados** · `custo_previsto` e `custo_maquina_previsto` guardam o custo do dia |
+| `comvis_orcamento_aceites` | link do cliente | só o `token_hash` (sha256) · `expira_em`, `decisao`, `comentario`, `decidido_em` |
+| `comvis_os` / `comvis_os_itens` | OS e peças | nasce de `OrcamentoViraOs` com `status_etapa = arte` e `valor_total` do orçamento |
+| `pcp_programacoes` (Producao) | etapas da OS no quadro | `os_tipo = comvis_os`, cópia do roteiro no instante |
+| `cv_instalacoes` | agenda da instalação | janela, equipe e veículo por OS |
+| `cv_acabamentos` | acabamentos cobrados | preço do catálogo no dia, por tipo de base |
+| `comvis_apontamentos` | spool sem tela | `drift_percent` e `duracao_segundos` derivados no Service, nunca no cliente |
+| `cv_substratos` / `cv_instalacoes_catalogo` / `cv_ordens_producao` | schema sem fluxo | migrados, **sem controller nem rota** (§5.4.5) |
 
 ### 5.3 Fluxos críticos
 
@@ -213,20 +248,24 @@ ApontamentoController  @iniciar/@finalizar/@cancelar/@index/@emAndamento     (SE
 
 #### F1 — Abrir o hub `/comunicacao-visual`
 `Routes/web.php` closure → gate `superadmin ∥ comvis.orcamento.view ∥ comvis.os.view` (senão **403**)
-→ `Inertia::render('ComunicacaoVisual/Index', ['bizName' => session('business.name')])`.
-⚠️ **Só `bizName`** — ver §5.4.1.
+→ `Inertia::render('ComunicacaoVisual/Index', …)` com `bizName`, `materiais` (catálogo ativo do business,
+eager de propósito), `podeCriar`, `podeVerCusto`, `orcamento` (`?orcamento={id}`) e `recentes` (deferido).
 
 #### F2 — Calcular na tela (preview client-side)
-`areaDe = max(0,largura) × max(0,altura) × max(0,qtd)` · `subtotalDe = area × max(0,preço)` ·
-`totalLocal = max(0, subtotal − desconto + extras)`. Qualquer edição **invalida** o resultado
-conferido (`setConferido(null)`) — o selo de "conferido" nunca sobrevive a uma mudança.
+`areaDe = arred(max(0,largura) × max(0,altura) × max(0,qtd), 3)` · `subtotalDe = arred(area × preço, 2)` ·
+`totalLocal = subtotal − desconto + extras + instalação + entrega`, sem piso em zero, porque o servidor
+também não tem. Qualquer edição **invalida** o resultado conferido (`setConferido(null)`). Mínimo, perda,
+emenda e acabamentos só existem no servidor: o preview não os calcula.
 
 #### F3 — Conferir no servidor (`POST /…/api/calcular`) `[V0]`
 `OrcamentoController@calcular` → `validarPayload` (`largura_m`/`altura_m` `gt:0`, `quantidade min:1`,
 `itens min:1`) → `OrcamentoCalculator::calcular`:
-`area_m2 = round(l × a × q, 3)` · `subtotal_item = round(area × preço, 2)` ·
-`total = round(subtotal − desconto + extras + custo_instalacao + custo_entrega, 2)`,
-tudo `PHP_ROUND_HALF_UP`. `InvalidArgumentException` → **422** com mensagem PT-BR.
+`area_m2 = round(l × a × q, 3)` · `area_cobrada_m2 = max(l × a, minimo_m2) × (1 + perda_pct/100) × q` ·
+`subtotal_item = round(area_cobrada × preço, 2)` ·
+`total = round(subtotal − desconto + extras + acabamentos + custo_instalacao + custo_entrega, 2)`,
+tudo `PHP_ROUND_HALF_UP`. Peça maior que a bobina soma a linha "Emenda (solda)" junto dos acabamentos.
+`InvalidArgumentException` → **422** com mensagem PT-BR. Para quem vê custo, `MargemDoOrcamento` só
+acrescenta custo e margem: preço e total não mudam.
 A tela compara `|servidor − local| < 0,01` e, divergindo, **mostra o do servidor e diz "vale este"**.
 
 #### F4 — Resolver o preço/m² `[V0]`
@@ -234,48 +273,37 @@ A tela compara `|servidor − local| < 0,01` e, divergindo, **mostra o do servid
 **(2)** `Material::find(material_id)` **com global scope ativo** (material de outro business ⇒ "não
 encontrado"; `preco_venda_m2 ≤ 0` ⇒ throw) → **(3)** throw *"obrigatório quando material_id não é informado"*.
 
-#### F5 — Persistir orçamento (`POST /…/api/orcamentos`)
-Recalcula (nunca confia no cliente) → `business_id` de `session('user.business_id') ?? session('business.id')`
-→ `gerarNumero()` (`ORC-{ano}-{5 dígitos}`, `MAX(numero)` filtrado por business + prefixo do ano) →
-`DB::transaction` grava cabeçalho + itens → **201** com `itens` carregados.
-⚠️ A tela **não chama este endpoint** (o botão "salvar" não existe) — §5.4.2.
+#### F5 — Persistir orçamento (`POST`/`PUT /…/api/orcamentos`)
+Recalcula (nunca confia no cliente) → `OrcamentoGravador::gravar`/`regravar` com `business_id` da sessão →
+`proximoNumero()` (`ORC-{ano}-{5 dígitos}`, `MAX(numero)` filtrado por business + prefixo do ano) →
+`DB::transaction` grava cabeçalho, itens e custo do dia → **201** com `itens`. A tela chama este endpoint
+pelo botão "Salvar orçamento" / "Salvar alterações".
 
 #### F6 — Apontar produção (spool)
 `iniciar(osId, operadorId, orcamentoItemId?, maquina?)`: valida OS pelo global scope; **recusa
 se o operador já tem apontamento aberto**; faz snapshot de `m2_orcado` a partir de
 `OrcamentoItem.area_m2`. `finalizar`: `duracao_segundos` + `drift_percent = round(((prod − orc)/orc) × 100, 2)`,
 **null** se `m2_orcado ≤ 0` (divisão por zero evitada). `cancelar`: `m2_produzido = 0` + prefixo
-`[CANCELADO]` nas observações. Sem tela — só HTTP JSON.
+`[CANCELADO]` nas observações. Sem tela, só HTTP JSON; `PosCalculoDaOs` não o lê, para não contar o mesmo m² duas vezes.
 
-### 5.4 Onde os dois mundos ainda não se conversam
+### 5.4 Onde os dois mundos se conversam, e onde ainda não
 
-#### 5.4.1 A rota não entrega o catálogo que a tela declara ⚙️ derivado · medido 2026-07-28
+Os itens 5.4.1, 5.4.2, 5.4.5 e 5.4.6 foram lacunas medidas em 2026-07-28. Ficam com o número original
+porque testes e casos citam estes parágrafos.
 
-`Index.tsx` declara `Props { bizName?, materiais?, podeCriar? }`, monta o `<select>` de material a
-partir de `materiais` e escolhe a copy final por `podeCriar`. **A única rota que renderiza a página
-passa apenas `bizName`** — varredura contada: `git grep "ComunicacaoVisual/Index" -- '*.php'` = 2
-ocorrências, sendo **1 comentário** (`DataController:89`) e **1 render real** (`Routes/web.php:25`);
-`git grep "'materiais'" -- Modules/ComunicacaoVisual` = **1 ocorrência, e é string de tradução**.
+#### 5.4.1 O catálogo chega à tela ✅ resolvido em 2026-09-24
 
-Consequência, em cadeia: `materiais = []` ⇒ `semCatalogo = true` ⇒ o `<select>` fica **`disabled`
-mostrando "Sem catálogo"** ⇒ `material_id` é sempre `null` ⇒ o payload nunca exercita o ramo (2)
-do `resolverPreco` (§F4) ⇒ **a operadora digita o preço/m² à mão em toda peça**. E `podeCriar`
-sempre `false` ⇒ a copy final é sempre a variante *"Salvar e enviar orçamento chega em breve"*.
+Em 2026-07-28 a rota passava só `bizName`, o seletor ficava em "Sem catálogo" e a operadora digitava o
+preço/m² em toda peça. O [PR #7870](https://github.com/wagnerra23/oimpresso.com/pull/7870) passou
+`materiais` na closure de `Routes/web.php`. É eager de propósito: deferido, o primeiro paint mostraria
+o aviso falso de catálogo vazio. **CU-CV-09.**
 
-Três fontes prometem o contrário: o **docblock do próprio `.tsx`** (*"Seletor de material puxa o
-catálogo do business (preço/m² preenche sozinho)"*), o **[`BRIEFING.md`](BRIEFING.md)** (mesma frase)
-e o **DoD da US-COMVIS-002** (*"alimentar US-COMVIS-001 sem hard-code"*). O `MaterialSeeder` **semeia
-5 materiais** — que a tela nunca vê. **CU-CV-09**, previsto quebrado.
+#### 5.4.2 A API de orçamento tem consumidor ✅ resolvido em outubro de 2026
 
-> **Duas correções são válidas** (passar `materiais` na closure **ou** a tela buscar por fetch).
-> O contrato é *"o catálogo do business chega à calculadora"*, não *"a prop se chama `materiais`"* —
-> o teste é a instância de hoje e deve ser reescrito se [W] escolher o outro caminho.
-
-#### 5.4.2 Metade da API de orçamento não tem consumidor ⚙️ derivado
-
-`store` e `show` existem, estão testados e **ninguém os chama**: `git grep "api/orcamentos" -- '*.tsx'`
-= **0**. A tela só usa `calcular`. Não é bug — é o TODO declarado no cabeçalho do `.tsx` ("Sprint 2").
-Registrado pra que ninguém conclua, lendo os testes, que "salvar orçamento" funciona pela UI.
+Em 2026-07-28 `store` e `show` não tinham quem os chamasse. Hoje `Index.tsx` usa `calcular`, `store`,
+`update`, `aprovar`, `link` e `arquivos` (`git grep -n "api/orcamentos" -- 'resources/js/*.tsx'`). Reabrir
+e listar passam pelas props da rota, então `GET /…/api/orcamentos` e `GET /…/api/orcamentos/{id}` seguem
+sem consumidor nas telas.
 
 #### 5.4.3 A numeração é sequencial por leitura, não por reserva ⚙️ derivado
 
@@ -293,26 +321,48 @@ adotou (`auth()->user()->business_id`, US-COM-007) justamente por ser mais difí
 **Observação, não achado** — não varri o middleware `SetSessionData` a fundo o suficiente pra
 afirmar exploração ([proibicoes §5](../../proibicoes.md) 2026-07-15). Vira §9 D-3.
 
-#### 5.4.5 Cinco entidades do PCP são schema órfão ⚙️ derivado
+#### 5.4.5 Três entidades seguem sem fluxo ⚙️ derivado · medido 2026-11-10
 
-`Substrato`, `Acabamento`, `InstalacaoCatalogo`, `OrdemProducao`, `Instalacao` têm migration,
-Entity, global scope e teste de isolamento — e **zero controller, zero rota, zero tela**. O
-`FsmProcessoComunicacaoVisualSeeder` (em `database/seeders/`, não no módulo) cadastra o pipeline
-FSM de 13 stages e é testado, mas **nada o executa em runtime**. É custo de manutenção sem uso —
-declarado, não escondido (§9 D-1).
+Em 2026-07-28 eram cinco. `Instalacao` ganhou a agenda (`AgendaInstalacao`) e `Acabamento` entrou no
+preço ([PR #9852](https://github.com/wagnerra23/oimpresso.com/pull/9852)). `Substrato`,
+`InstalacaoCatalogo` e `OrdemProducao` seguem com migration, Entity, escopo e teste de isolamento, sem
+controller, rota ou tela. O `FsmProcessoComunicacaoVisualSeeder` (em `database/seeders/`) cadastra o
+pipeline FSM e é testado, mas **nada o executa em runtime**, e `cv_ordens_producao`, a tabela que o
+consumiria, nunca recebe linha fora dos testes. Qual OS é a canônica é decisão [W] aberta (§9 D-1).
 
-#### 5.4.6 O `minimo_m2` do DoD não existe no schema ⚙️ derivado · medido 2026-07-28
+#### 5.4.6 O mínimo cobrado existe ✅ resolvido em 2026-10-26
 
-O DoD da US-COMVIS-001 pede *"mínimo cobrado configurável (`material.minimo_m2` — ex: 0,5m² mesmo
-se a peça é menor)"*. A migration `comvis_materiais` tem `estoque_minimo_m2` (**estoque**, outra
-coisa) e **não tem** `minimo_m2`; o `OrcamentoCalculator` não aplica piso algum. A linha
-`Implementado em:` da US já declara isso — aqui fica a confirmação pelo schema.
+Em 2026-07-28 `comvis_materiais` não tinha `minimo_m2`. A migration `2026_10_26_100000_add_minimo_e_acabamentos_ao_orcamento_cv`
+criou a coluna, e o `OrcamentoCalculator` aplica o mínimo por peça ([PR #9852](https://github.com/wagnerra23/oimpresso.com/pull/9852), UC-CVPRC-01).
 
 #### 5.4.7 O vertical não tem dicionário de domínio ⚠️
 
 Não existe `memory/dominio/comunicacao-visual.md` — o módulo **não é coberto pelo `dominio-gate`**
 (G-4, required). Os enums do schema (`categoria`, `unidade`, `status`) não têm fonte única.
 Enquanto o módulo não tiver piloto isso é barato; no cutover vira obrigatório. §9 D-6.
+
+### 5.5 Fluxo ponta a ponta — do orçamento ao pós-cálculo
+
+<!-- derivado: re-rodável do fonte -->
+
+| # | Passo | Quem | Onde está | Casos |
+|---|---|---|---|---|
+| 1 | **Calcular e salvar** o orçamento (`rascunho`), com peças, acabamentos, custo do dia e arquivos | operadora | `Index.tsx` · `OrcamentoController` · `OrcamentoGravador` · `OrcamentoArquivoController` | UC-CV, UC-CVPRC, UC-CVSAL, UC-CVMRG, UC-CVARQ |
+| 2 | **Mandar ao cliente:** "Enviar no WhatsApp" gera o link (7 dias, uma resposta) e oferece "Copiar link" e "Abrir no WhatsApp". O envio é do WhatsApp do próprio vendedor, nada sai pelo sistema. O orçamento passa a `enviado` | operadora | `OrcamentoAceiteController` · `AceiteDoOrcamento::gerar` | UC-CVACE-01, UC-CVACE-03 |
+| 3 | **Cliente decide** em `/orcamento-cv/{token}`, sem login e uma vez só. Aceitar segue para o passo 4; pedir ajuste exige texto e volta o orçamento a `rascunho` | cliente | `AceitePublico.tsx` · `AceiteDoOrcamento::decidir` | UC-CVACE-02, UC-CVACEP |
+| 3b | **Aprovação interna**, alternativa ao link: "Aprovar e criar OS" | operadora | `OrcamentoController@aprovar` | UC-FLX-01 |
+| 4 | **OS sem redigitar:** `comvis_os` em `status_etapa = arte`, itens, arquivos e `valor_total` do orçamento, sem recalcular. Idempotente | sistema | `OrcamentoViraOs::aprovar` | UC-CVOS-01..08 |
+| 5 | **Roteiro no PCP:** com roteiro padrão definido e `Modules/Producao` ligado, as etapas entram em `pcp_programacoes` e a OS aparece em `/producao/quadro`. Sem isso, a OS nasce fora do quadro. Trocar o roteiro de uma OS à mão ainda não existe | sistema | `RoteiroPadraoDaOs` · `App\Contracts\Producao\ProgramacaoDaOs` | UC-CVOS-09..11 |
+| 6 | **Produzir:** operador aponta por etapa e informa o m² impresso | operador | `Modules/Producao` (`ApontamentoOperadorService`) | casos do Producao |
+| 7 | **Instalação:** agenda equipe e veículo na OS, com bloqueio de conflito; o agendamento dispara `InstalacaoAgendada` e o `Modules/Whatsapp` avisa o cliente | coordenador | `Agenda.tsx` · `InstalacaoController` · `AgendaInstalacao` · `NotifyInstalacaoCvCustomer` | UC-CVINST |
+| 8 | **Faturamento: LACUNA, não é passo do fluxo.** Nenhum código liga `comvis_os` a venda, NF-e ou NFS-e: em `Services`, `Entities` e `Http` do módulo a única menção é `OrdemProducao.transaction_id`, entidade sem fluxo (§5.4.5). Se entra no roadmap é decisão [W] | — | — | — |
+| 9 | **Pós-cálculo:** custo orçado × real e as duas margens, em JSON, para quem vê custo e com a flag ligada | gestor | `OsPosCalculoController` · `PosCalculoDaOs` · `App\Contracts\Producao\CustoRealDaOs` | UC-CVPOS-01..05 |
+
+**Três costuras abertas, descritas como estão:**
+
+- **Etapa da OS parada.** `status_etapa` nasce `arte` e nenhum código de produção a atualiza (`git grep -n "status_etapa" -- 'Modules/*.php' 'app/*.php'`: fora do seed de demonstração, só leituras). Por isso o `fechada` do pós-cálculo, que depende de `concluida`, não fica verdadeiro pelo fluxo. Quem avança a etapa e qual OS é a canônica são decisão [W] aberta.
+- **Aviso de instalação.** Segue o opt-out por contato: `Contact::canReceiveWhatsappNotification()` trata `null` como permitido. O charter do módulo promete opt-in por OS; qual dos dois vale é decisão [W] aberta.
+- **Dono da OS por item.** A [ADR 0436](../../decisions/0436-os-por-item-producao-dona-da-os-do-pedido.md) segue `proposto`, e a US-COMVIS-003 já se apoia nela.
 
 ---
 
@@ -323,19 +373,20 @@ Enquanto o módulo não tiver piloto isso é barato; no cutover vira obrigatóri
 > lane**, nunca da leitura: `✅` provado por teste verde que o cita · `🟡` parcial · `🔴`
 > falso/quebrado · `⬜` não-verificado · `🧪` teste existe, veredito pendente.
 >
-> ⚖️ **A força do veredito aqui é MAIS FRACA do que parece — leia antes de confiar.** Três portas
-> distintas, medidas separadamente:
+> ⚖️ **A força do veredito aqui é MAIS FRACA do que parece — leia antes de confiar.** Três perguntas
+> distintas, cada uma com o seu dono:
 >
-> | Pergunta | Porta medida | Resposta |
-> |---|---|---|
-> | roda em algum lugar? | [`phpunit.xml`](../../../phpunit.xml) (`./Modules/ComunicacaoVisual/Tests/Feature` na testsuite `Feature`) + [`scripts/tests/shards-plan.mjs`](../../../scripts/tests/shards-plan.mjs) (`--roots tests,Modules`) | ✅ **sim** — está no universo da full-suite noturna (MySQL real) |
-> | roda no PR? | [`.github/workflows/modules-pest.yml`](../../../.github/workflows/modules-pest.yml) — matrix de 6 módulos, `DB_CONNECTION=sqlite :memory:` **sem migrate** | ⚠️ **parcialmente**: **6 dos 20 arquivos** abortam no `beforeEach` com `markTestSkipped('SQLite-incompatível')` — incluindo `MultiTenantTest`, `Tier0GuardTest`, `OrcamentoControllerTest`, `MaterialSeederTest`, `MigrationsTest` e `CustomerJourneyTest` |
-> | **bloqueia merge?** | [`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json) — os únicos contextos Pest **required** são `PHP / Pest (Financeiro · MySQL)`, `PHP / Pest (NfeBrasil · MySQL)` e `PHP / Pest (Unit)` | ❌ **não** — `Pest ComunicacaoVisual` é **advisory** |
+> | Pergunta | Quem responde hoje |
+> |---|---|
+> | roda em algum lugar? | [`phpunit.xml`](../../../phpunit.xml) + [`scripts/tests/shards-plan.mjs`](../../../scripts/tests/shards-plan.mjs) (full-suite noturna, MySQL) |
+> | roda no PR? | `node scripts/governance/test-lane-coverage.mjs` · listas de arquivos em [`.github/workflows/verticais-pest.yml`](../../../.github/workflows/verticais-pest.yml) (MySQL, nascida em 2026-08-10) e [`.github/ci-sqlite-pest.list`](../../../.github/ci-sqlite-pest.list) |
+> | bloqueia merge? | [`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json) |
 >
-> **Leitura honesta:** o verde da lane `Pest ComunicacaoVisual` no PR **não prova o isolamento
-> multi-tenant** — prova que os testes que o provariam foram *pulados*. É a família "verde por
-> não-execução" ([proibicoes §5](../../proibicoes.md) 2026-07-24). O que os `[T0]` deste SDD
-> exercitam de verdade é a **full-suite noturna**, não o PR. Marcado caso a caso abaixo com **⏭ PR-skip**.
+> **Fato datado, 2026-07-28:** a lane `Pest ComunicacaoVisual` do PR rodava em SQLite e 6 dos 20 arquivos
+> abortavam em `markTestSkipped`, incluindo `MultiTenantTest` e `Tier0GuardTest`. O verde provava que tinham
+> sido *pulados* ([proibicoes §5](../../proibicoes.md) 2026-07-24). A `verticais-pest.yml` fechou parte disso.
+> Os marcadores **⏭ PR-skip** abaixo são daquela medição: o veredito atual de cada caso está no
+> `Index.casos.md` e em `scripts/casos-test-results.json`.
 
 ### 6.1 Cálculo de valor — o núcleo `[V0]` (`CU-CV`)
 
@@ -359,7 +410,7 @@ oficial é o **recalculado no backend**, e qualquer valor vindo do cliente é de
 
 1. `[V0]` `area_m2 = round(largura × altura × qtd, 3, HALF_UP)`.
 2. `[V0]` `subtotal_item = round(area_m2 × preco_unitario_m2, 2, HALF_UP)`.
-3. `[V0]` `total = round(subtotal − desconto + extras + custo_instalacao + custo_entrega, 2, HALF_UP)`.
+3. `[V0]` `total = round(subtotal − desconto + extras + acabamentos + custo_instalacao + custo_entrega, 2, HALF_UP)`.
 4. `[V0]` **dupla-confirmação** no cenário canônico do `OrcamentoCalculatorTest` (banner 3 m × 1,5 m,
    1 peça): `area = 4,5` e o total fecha por **dois caminhos independentes** — recomputo à mão da
    fórmula **e** soma das linhas devolvida pelo Service.
@@ -382,7 +433,7 @@ servidor calcula; *então* a origem do preço segue uma ordem única e explícit
 #### CU-CV-04 — Isolar catálogo, orçamento, OS e apontamento por business `[must]` `[T0]` 🧪 ⏭ PR-skip
 <!-- derivado: re-rodável do fonte (MultiTenantTest · Tier0GuardTest · MaterialSeederTest · ADR 0093) -->
 *Dado* dados nos businesses 1 e 99; *quando* a sessão é do business 1; *então* nada do 99 aparece,
-em nenhuma das 10 entidades.
+em nenhuma das entidades.
 
 1. `[T0]` `Material`, `Orcamento`, `OrcamentoItem` e `Os` do biz=1 **não** aparecem com sessão biz=99 (e o controle positivo — aparecem com sessão biz=1 — também vale).
 2. `[T0]` o mesmo para as 5 entidades do PCP (`Substrato`, `Acabamento`, `InstalacaoCatalogo`, `OrdemProducao`, `Instalacao`).
@@ -402,7 +453,7 @@ sequencial dentro do business.
 3. `[must]` cabeçalho e itens são atômicos (`DB::transaction`) — não existe orçamento sem linha.
 4. `[must]` a sequência é **por business e por ano-civil**.
 5. `[should]` a corrida entre dois `store` simultâneos é barrada pelo `UNIQUE (business_id, numero)` — falha visível, nunca dois orçamentos com o mesmo número. **`[BACKLOG]`** — sem teste hoje (§9 D-2).
-6. ⚠️ **Nenhuma tela chama este endpoint** (§5.4.2) — o contrato é de API, não de UI.
+6. A tela chama este endpoint pelo botão "Salvar orçamento" (§5.4.2).
 
 ### 6.2 Produção (`CU-CV`)
 
@@ -442,23 +493,22 @@ o log guarda o que é de negócio e **nunca** o que pode ser pessoal.
 4. `[reg]` `observacoes` passa por `PiiRedactor` **antes** de qualquer span/log do `OrcamentoCalculator`; o DB guarda o original (a anonimização é do `right_to_be_forgotten`).
 5. `[must]` `logOnlyDirty` + `dontSubmitEmptyLogs` ativos — sem entrada de log sem mudança real.
 6. `[reg]` `retention.php` declara janela e `pii_fields` para as 3 entidades; telemetria ≤ 365 dias.
-7. `[reg]` **10/10** Entities declaram `LogsActivity` **e** `addGlobalScope('business_id')`.
+7. `[reg]` Toda Entity declara o escopo de `business_id`, e todas menos `OsItem` declaram `LogsActivity` (`git grep -L LogsActivity -- 'Modules/ComunicacaoVisual/Entities/*.php'`).
 
-#### CU-CV-09 — A calculadora recebe o catálogo do business `[must]` 🔴 **previsto quebrado** (§5.4.1)
-<!-- derivado: re-rodável do fonte (Routes/web.php:25 · Index.tsx Props/escolherMaterial · BRIEFING · SPEC US-COMVIS-002 DoD) -->
+#### CU-CV-09 — A calculadora recebe o catálogo do business `[must]` 🧪 (§5.4.1; estado em `UC-CV-07` do `Index.casos.md`)
+<!-- derivado: re-rodável do fonte (Routes/web.php · Index.tsx Props/escolherMaterial · ContratoTelaOrcamentoTest) -->
 *Dado* um business com materiais cadastrados; *quando* a operadora abre `/comunicacao-visual`;
 *então* ela escolhe o material numa lista e o preço/m² preenche sozinho — em vez de digitar
 o preço de cabeça em cada peça.
 
-1. `[must]` a página entrega à calculadora o catálogo **ativo** do business — hoje **não entrega**.
+1. `[must]` a página entrega à calculadora o catálogo **ativo** do business.
 2. `[T0]` o catálogo entregue contém **apenas** materiais do próprio business.
 3. `[must]` escolher um material preenche o preço/m² a partir do catálogo (`escolherMaterial`).
 4. `[should]` sem material cadastrado, a tela continua usável com preço digitado (o aviso "sem catálogo" já existe e é bom).
 5. `[should]` a copy final de salvar/WhatsApp reflete a permissão real de criar, não o default `false`.
 
-> **Duas correções são válidas** — passar a prop na closure da rota **ou** a tela buscar o catálogo
-> por fetch. O contrato é *"o catálogo chega à calculadora"*; o assert é comportamental (o **nome**
-> do material chega pra escolha), não acoplado ao nome da prop.
+> Em 2026-09-24 a correção escolhida foi passar a prop na closure da rota. O assert segue comportamental
+> (o **nome** do material chega pra escolha), não acoplado ao nome da prop.
 
 #### CU-CV-10 — Nascer com a tributária do CNAE 1813 `[should]` 🟡 **parcial**
 <!-- derivado: re-rodável do fonte (migration cv_substratos · SPEC US-COMVIS-006 DoD) -->
@@ -473,19 +523,16 @@ vêm preenchidos com o padrão de impresso publicitário — sem contador config
 
 > Regra dura do chip: **US `todo` não ganha UC**. Caso sem implementação vira UC órfão, o G-2
 > pune, e o merge de quem for implementar trava ([proibicoes §5](../../proibicoes.md) 2026-07-16).
-> As 14 US abaixo estão declaradas `_pendente_` no [`SPEC.md`](SPEC.md) e ficam aqui **como
-> inventário**, não como contrato.
+> As US abaixo estão declaradas `_pendente_` no [`SPEC.md`](SPEC.md) e ficam aqui **como inventário**,
+> não como contrato. US-COMVIS-003, 005, 007, 019, 020, 021, 022 e 023 ganharam código e estão em §5.5.
 
 | US | Capacidade | O que existe hoje |
 |---|---|---|
-| US-COMVIS-003 | PCP gráfico (Kanban) | migration `cv_ordens_producao` + Entity + seeder FSM — **sem controller/rota/tela** |
-| US-COMVIS-005 | Pós-cálculo (orçado × realizado) | nada (depende de US-004 completa) |
-| US-COMVIS-007 | Instalação/fachada (agenda + EPI) | migration `cv_instalacoes` + Entity — **sem controller** |
 | US-COMVIS-008 | NFSe da instalação | `Modules/NFSe` existe; o **trigger** ComVis não |
 | US-COMVIS-009 | NFe de boleto pago | núcleo entregue em `RecurringBilling`; o **adapter** ComVis não existe |
-| US-COMVIS-010 | Provador de orçamento público | nada |
+| US-COMVIS-010 | Provador de orçamento público | nada (o aceite por link da US-023 é outra coisa: orçamento já feito pela gráfica) |
 | US-COMVIS-011 | Comissão por OS | nada |
-| US-COMVIS-012 | DAM (arquivo print-ready) | nada |
+| US-COMVIS-012 | DAM (arquivo print-ready) | nada (arquivos anexados ao orçamento não têm validação de arte) |
 | US-COMVIS-013 | Bulk update de preço via Jana | nada |
 | US-COMVIS-014 | Dashboard conversacional Jana | nada |
 | US-COMVIS-015 | Cadastro de máquina + CMYK | nada (`cv_maquinas` nem migrada) |
@@ -512,27 +559,22 @@ vêm preenchidos com o padrão de impresso publicitário — sem contador config
 | NFR-2 | **Rate limit** no endpoint de cálculo | ✅ `throttle:60,1` no grupo `/api` |
 | NFR-3 | **Observabilidade** — span OTel por operação de negócio | ✅ 4 spans (`comvis.orcamento.calcular` + 3 de apontamento), cobertos por `Wave28SaturationTest` |
 | NFR-4 | **PII fora da telemetria** | ✅ `PiiRedactor` antes do span |
-| NFR-5 | `Inertia::defer` em prop cara | ⚪ **não se aplica hoje** — a página não tem prop cara (só `bizName`). Vira obrigatório quando o catálogo entrar (CU-CV-09) |
+| NFR-5 | `Inertia::defer` em prop cara | ✅ `recentes` é deferido. `materiais` é eager de propósito (§5.4.1) |
 | NFR-6 | **Feedback <2min no balcão** (SPEC §3) | 🟡 o preview é instantâneo; o ida-e-volta ao servidor é 1 request. **Nunca medido com usuário real** |
-| NFR-7 | **Mobile-first no apontamento** (DoD US-004) | ❌ não existe tela |
+| NFR-7 | **Mobile-first no apontamento** (DoD US-004) | 🟡 o apontamento por etapa é do `Modules/Producao`; o spool do módulo segue sem tela |
 | NFR-8 | **Acessibilidade** | 🟡 `aria-label` nos controles densos; sem auditoria a11y da tela |
 
 ---
 
 ## 8. Estratégia de qualidade e rollout
 
-**O que a suíte cobre de verdade (20 arquivos, ~3,6k linhas):**
+**Fato datado, 2026-07-28** (20 arquivos à época): a fórmula pura e os guards estruturais rodavam no PR; os
+arquivos HTTP + DB pulavam em SQLite. Desde então os contratos de outubro nasceram em MySQL. Em que lane
+cada arquivo roda hoje é do `test-lane-coverage.mjs` e da `verticais-pest.yml` (§6).
 
-| Camada | Arquivos | Executa no PR? |
-|---|---|---|
-| Fórmula pura (`OrcamentoCalculator`) | `OrcamentoCalculatorTest` | ✅ **sim** — os cenários sem DB são a cobertura real do `[V0]` na lane |
-| HTTP + DB (orçamento, apontamento, multi-tenant, migrations, seeder) | `OrcamentoControllerTest` · `ApontamentoControllerTest` · `MultiTenantTest` · `Tier0GuardTest` · `MigrationsTest` · `MaterialSeederTest` · `CustomerJourneyTest` | ⚠️ **não** — `markTestSkipped` em SQLite; só na full-suite noturna (MySQL) |
-| Estrutura/governança (charter, changelog, spans, whitelist, scorecard) | `Wave23/25/26/27/28` · `AuditTrailIntegrityTest` · `LgpdComplianceTest` · `DataControllerTest` | ✅ sim (reflection/arquivo, sem DB) |
-
-> ⚠️ **A conclusão desconfortável:** boa parte da suíte é **guard estrutural** (o arquivo existe,
-> a classe declara o método, o changelog tem a entrada) — trava o contorno, não exercita o
-> comportamento. E o pedaço que exercita comportamento com DB é justamente o que **não roda no PR**.
-> Isso não invalida os testes; invalida a leitura de que "lane verde = módulo provado".
+> ⚠️ **A conclusão segue valendo:** parte da suíte é **guard estrutural** (o arquivo existe, a classe declara
+> o método, o changelog tem a entrada): trava o contorno, não exercita o comportamento. Lane verde não
+> significa módulo provado; o veredito por caso está no manifesto.
 
 **Rollout:** [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) manda não
 escalar além de P0 antes da 1ª piloto migrada. Este SDD **não propõe feature** — só nomeia o
@@ -544,14 +586,16 @@ contrato do que já existe.
 
 | # | Dívida | Gravidade | Dono |
 |---|---|---|---|
-| **D-1** | 5 entidades do PCP + pipeline FSM = **schema órfão** sem consumidor (§5.4.5) | 🟡 custo de manutenção; risco de "parece pronto" | decisão de produto — [W] |
+| **D-1** | 3 entidades + pipeline FSM **sem fluxo** (§5.4.5) e duas noções de OS (`comvis_os` viva × `cv_ordens_producao`) | 🟡 custo de manutenção; risco de "parece pronto" | decisão [W] |
 | **D-2** | Numeração de orçamento sem reserva atômica (§5.4.3) — falha visível, não silenciosa | 🟡 | técnico; vira US quando `store` ganhar consumidor |
 | **D-3** | `business_id` da escrita vem da sessão, não de `auth()` (§5.4.4) — **observação, não achado** | ⚪ a confirmar | precisa varredura do `SetSessionData` antes de virar afirmação |
 | **D-4** | **Sem `ANTI-REGRESSAO-*.md`** — a fonte 4 não foi destilada (§0.1) | 🟠 **pré-requisito do cutover** | [W] decide quando (nasce com a 1ª piloto) |
-| **D-5** | **Sem `RUNBOOK-<tela>.md`** — o hook MWART bloqueia Edit no `.tsx` até criar | 🟡 trava trabalho futuro na tela | técnico, fora do escopo deste PR |
+| **D-5** | ✅ fechada: as 3 telas têm RUNBOOK | — | — |
 | **D-6** | Sem `memory/dominio/comunicacao-visual.md` → módulo fora do `dominio-gate` (G-4, required) (§5.4.7) | 🟡 barato hoje, obrigatório no cutover | técnico |
-| **D-7** | Os `[T0]` **não são exercitados no PR** (§6, tabela das 3 portas) | 🟠 o mais sério: Tier 0 sem prova executada no gate de entrada | decisão [W] — ver §10 |
-| **D-8** | `minimo_m2` do DoD não existe no schema (§5.4.6) | ⚪ feature não entregue, já declarada no SPEC | — |
+| **D-7** | Os `[T0]` não eram exercitados no PR em 2026-07-28 (§6). `MultiTenantTest` e `Tier0GuardTest` entraram na `verticais-pest.yml` | 🟡 conferir por arquivo no `test-lane-coverage.mjs` | lote de testes |
+| **D-8** | ✅ fechada: `minimo_m2` existe (§5.4.6) | — | — |
+| **D-9** | **Faturamento da OS não existe** (§5.5, passo 8) | 🟠 o fluxo termina sem nota | decisão [W] |
+| **D-10** | `status_etapa` da OS nunca avança (§5.5) | 🟠 etapa e `fechada` do pós-cálculo não refletem a produção | decisão [W] |
 
 ---
 
@@ -559,23 +603,18 @@ contrato do que já existe.
 
 Ordenado por **razão custo/risco**, não por tamanho. Nada aqui é promessa — é fila proposta.
 
-1. **Fechar CU-CV-09** (a rota entregar o catálogo). É o menor diff do módulo e destrava a única
-   promessa de UI que hoje é falsa. Cuidado: ao virar prop cara, `Inertia::defer` (NFR-5).
-2. **Resolver D-7** — decidir se as suítes DB do ComVis passam a rodar contra MySQL no PR
-   (como Financeiro/NfeBrasil) ou se o veredito Tier 0 fica declaradamente noturno. **É decisão
-   [W]**, porque mexer no `modules-pest.yml` afeta **6 módulos** — este chip não toca lá.
-3. **Seed tributária CNAE 1813** (CU-CV-10 item 2) — barato, e é P0 no SPEC.
-4. **CRUD de materiais** (CU-CV-07 item 4) — sem ele o catálogo do CU-CV-09 nasce vazio na prática.
-5. **Decidir o destino do schema órfão** (D-1): construir o PCP ou marcar as 5 entidades como
-   reservadas — hoje elas custam manutenção e sugerem capacidade inexistente.
-6. **`ANTI-REGRESSAO` + `RUNBOOK` + dicionário de domínio** (D-4/D-5/D-6) — o pacote de cutover,
+1. **Decidir faturamento e etapa da OS** (D-9, D-10): sem isso o fluxo não fecha. **Decisão [W].**
+2. **Seed tributária CNAE 1813** (CU-CV-10 item 2): barato, e é P0 no SPEC.
+3. **CRUD de materiais** (CU-CV-07 item 4): sem ele o catálogo só nasce por seeder.
+4. **Decidir o destino do schema sem fluxo** (D-1): construir ou marcar como reservado.
+5. **`ANTI-REGRESSAO` + dicionário de domínio** (D-4/D-6): o pacote de cutover, quando a 1ª piloto for escolhida.
    quando a 1ª piloto for escolhida.
 
 ---
 
 ## 11. Referências
 
-- [`SPEC.md`](SPEC.md) — 18 US · [`BRIEFING.md`](BRIEFING.md) — destilado honesto do que roda
+- [`SPEC.md`](SPEC.md) · [`BRIEFING.md`](BRIEFING.md) · [`SUPERFICIE.md`](SUPERFICIE.md)
 - [`Index.charter.md`](../../../resources/js/Pages/ComunicacaoVisual/Index.charter.md) (lei) ·
   [`Index.casos.md`](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md) (contrato)
 - [`PII-LGPD.md`](PII-LGPD.md) · [`ROADMAP.md`](ROADMAP.md) · [`PLANO-MIGRACAO-6-SAUDAVEIS.md`](PLANO-MIGRACAO-6-SAUDAVEIS.md)
@@ -592,3 +631,4 @@ Ordenado por **razão custo/risco**, não por tamanho. Nada aqui é promessa —
 | Data | Versão | O quê |
 |---|---|---|
 | 2026-07-28 | 1.0.0 | Nasce. Chip da Onda 4 do passo 5 — 3 fontes trianguladas (Blade **inexistente**, Delphi **não destilado**), 10 CU sobre a superfície entregue, 14 US inventariadas como plano sem CU, 8 dívidas nomeadas. Achado principal: **CU-CV-09** (a rota não entrega o catálogo que a tela declara) e **D-7** (os `[T0]` não rodam no PR). |
+| 2026-11-10 | 1.1.0 | Revisão pós-auditoria de 2026-11-05: §5.4 com as lacunas resolvidas em passado datado (#7870, #9852), §5.5 com o fluxo orçamento → aceite → OS → PCP → instalação → pós-cálculo, faturamento como lacuna declarada, §6.9 e dívidas refeitos. Nenhum CU novo: os casos seguem nos `.casos.md`. |
