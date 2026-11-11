@@ -139,8 +139,9 @@ module: Fisio
 
 - [VendaDoPacoteObserver.php](../../../Modules/Fisio/Observers/VendaDoPacoteObserver.php)
 
-## Jobs — 2
+## Jobs — 3
 
+- [CobrarAvaliacaoDoEstudoJob.php](../../../Modules/Fisio/Jobs/CobrarAvaliacaoDoEstudoJob.php)
 - [EnviarLembreteDiarioJob.php](../../../Modules/Fisio/Jobs/EnviarLembreteDiarioJob.php)
 - [EnviarProgramaWhatsappJob.php](../../../Modules/Fisio/Jobs/EnviarProgramaWhatsappJob.php)
 
