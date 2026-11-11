@@ -54,6 +54,7 @@ Garantia automática: `Modules/ComunicacaoVisual/Tests/Feature/AuditTrailIntegri
 
 - **O que a página mostra:** nome da empresa, número, datas, itens (descrição, medidas, quantidade, subtotal) e totais. Nunca custo, margem ou dado do contato (`AceiteDoOrcamento::paraCliente`).
 - **O que o cliente escreve:** o `comentario` do pedido de ajuste, até 2000 caracteres, gravado em `comvis_orcamento_aceites.comentario`. Não passa por `PiiRedactor` e não é logado. Não está em `retention.php`.
+- **O que a decisão grava** (desde 2026-11-11, [PR #10706](https://github.com/wagnerra23/oimpresso.com/pull/10706)): o retrato do orçamento em `retrato_json` (números e itens, nunca custo) em toda decisão; e, **só no aceite**, o `ip` e o `user_agent` (até 500 caracteres) de quem aceitou, como prova. IP é dado pessoal (LGPD Art. 5º I). Os três campos também não estão em `retention.php`.
 - **Proteção do link:** só o sha256 do token fica no banco; resposta com `X-Robots-Tag: noindex, nofollow` e `Referrer-Policy: no-referrer`; throttle 30/min por IP; token desconhecido devolve 404 sem dizer por quê.
 
 ### 4.2 Arquivos do orçamento e da OS (US-COMVIS-020)
@@ -77,7 +78,7 @@ Desde 2026-11-11 ([PR #10704](https://github.com/wagnerra23/oimpresso.com/pull/1
 - Apontamento/Orcamento/Os: **5 anos** (CCom Art. 195 — guarda fiscal)
 - Telemetria operacional: **12 meses**
 - Direito ao esquecimento (LGPD Art. 18 VI): anonimiza `observacoes` + preserva IDs fiscais
-- Fora de `retention.php`: `comvis_orcamento_aceites` (comentário do cliente) e os arquivos em `media`
+- Fora de `retention.php`: `comvis_orcamento_aceites` (comentário, IP e navegador do cliente) e os arquivos em `media`
 - O comentário de `retention.php` prevê um job `comvis:purge-expired` que apaga de vez. Ele não existe. Aposentar esse TODO é decisão [W]: a lápide de 2026-07-27 em [`proibicoes.md`](../../proibicoes.md) registra que num ERP não se apaga PII por TTL
 
 Detalhes: [`Modules/ComunicacaoVisual/Config/retention.php`](../../../Modules/ComunicacaoVisual/Config/retention.php) (canon) + shim `config/retention.comunicacaovisual.php` (rubrica path).
@@ -96,7 +97,7 @@ ComVis NÃO reimplementa — sempre `use App\Support\Privacy\PiiRedactor;` no c�
 - [x] `PiiRedactor` (core) no log free-text do cálculo
 - [x] Pest cross-tenant (Tier 0 ADR 0093)
 - [x] Página pública do aceite sem custo, sem dado do contato, sem indexação
-- [ ] Comentário do aceite e arquivos com janela de retenção
+- [ ] Comentário, IP e navegador do aceite e os arquivos com janela de retenção
 - [ ] Arquivos com download por empresa
 - [ ] Consentimento do aviso de instalação decidido (opt-out × opt-in por OS)
 
