@@ -182,7 +182,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 **Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OsPosCalculoContratoTest.php` (UC-CVPOS-01..05) · `Modules/Producao/Tests/Feature/ProducaoPrevistoRealizadoContratoTest.php` (UC-PCPR-01..05), lane `verticais-pest.yml`.
 
-> owner: wagner · priority: p1 · estimate: 6h · status: doing · type: story
+> owner: wagner · priority: p1 · estimate: 6h · type: story
 
 **Como** dono/gestor
 **Quero** ver, ao fechar OS, comparativo: custo orçado vs custo real (mídia consumida + tinta + mão-de-obra etapa + instalação)
