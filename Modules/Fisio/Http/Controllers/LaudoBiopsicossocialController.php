@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Fisio\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,11 @@ use Modules\Fisio\Entities\LaudoBiopsicossocial;
 use Modules\Fisio\Entities\LaudoBiopsicossocialEquipe as Equipe;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Services\ConfiguracaoClinica;
+use Modules\Fisio\Services\DiaLocal;
+use Modules\Fisio\Services\Laudo\ApoioFisioterapia;
+use Modules\Fisio\Services\Laudo\LaudoBiopsicossocialDocumento;
 use Modules\Fisio\Services\Laudo\MatrizIfbrm;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Escrita do laudo biopsicossocial no modelo SES-SC (US-FISIO-060; Deliberação 500/CIB/2026).
@@ -209,6 +214,41 @@ class LaudoBiopsicossocialController extends Controller
         });
 
         return $this->resposta($request, ['id' => $novo->id], 'Nova versão aberta.', 201);
+    }
+
+    /** Apoio da fisioterapia (dor, crises, adesão, questionários). Leitura com `fisio.access`; nada é gravado. */
+    public function apoioFisio(Request $request, int $laudo, ApoioFisioterapia $apoio): JsonResponse
+    {
+        $biz = $this->empresa($request);
+        $doc = LaudoBiopsicossocial::query()->where('business_id', $biz)->with('patient')->findOrFail($laudo);
+
+        return response()->json($apoio->montar($doc->patient, $biz, DiaLocal::de(now())));
+    }
+
+    /**
+     * PDF no layout oficial. Leitura (basta `fisio.access`). Cada geração grava uma linha no
+     * activity_log só com ids, o estado e o total — nunca nome nem texto clínico (LGPD art. 11).
+     */
+    public function pdf(Request $request, int $laudo, LaudoBiopsicossocialDocumento $documento): Response
+    {
+        $biz = $this->empresa($request);
+        $doc = LaudoBiopsicossocial::query()->where('business_id', $biz)->with('patient')->findOrFail($laudo);
+
+        $dados = $documento->montar($doc, $biz);
+        $pdf = Pdf::loadView('fisio::pdf.laudo-biopsicossocial', $dados)->setPaper('a4', 'portrait');
+
+        activity('fisio')
+            ->performedOn($doc->patient)
+            ->causedBy($request->user())
+            ->withProperties(['business_id' => $biz, 'patient_id' => (int) $doc->patient_id, 'laudo_bps_id' => (int) $doc->id,
+                'finalizado' => $dados['finalizado'], 'total' => $dados['pontuacao']['total']])
+            ->log('laudo_bps_exportado');
+
+        return response($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="laudo-biopsicossocial-paciente-'.$doc->patient_id.'-'.now()->format('Ymd-His').'.pdf"',
+            'Cache-Control' => 'no-store, private',
+        ]);
     }
 
     private function empresa(Request $request): int
