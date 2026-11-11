@@ -8,7 +8,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
-import { mandar } from './ExamesReceitas';
+import { mandar } from './salvarSecao';
 
 export interface MedicamentoTranscrito { nome: string; dose: string | null; frequencia: string | null }
 export interface CamposTranscricao {
