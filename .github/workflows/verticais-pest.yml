@@ -791,6 +791,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairFormVendaContratoTest.php \
             Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
+            Modules/Vestuario/Tests/Feature/VestuarioPacoteGateTest.php \
             Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php \
             Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php \
             Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php \
