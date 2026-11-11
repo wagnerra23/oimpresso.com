@@ -51,9 +51,7 @@ related_us: [US-FISIO-060]
 | UC-FBP-14 | cada PDF grava uma linha no `activity_log` só com ids; outra empresa 404 sem log | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
 | UC-FBP-15 | a ficha recebe o catálogo da matriz e os laudos deferidos com pontuação e equipe; a 99 não vê | must | US-FISIO-060 | `FisioLaudoBpsTelaTest` |
 
-As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
-
-- [BACKLOG] questionários de fibromialgia no apoio (dependem da etapa 07, P-03).
+- [BACKLOG] conferência em staging com print de um laudo gerado com paciente de teste.
 
 ---
 
@@ -135,7 +133,8 @@ As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 - **Aceite:** Pedido o apoio · Então vêm, para 30 e 90 dias contados de hoje para trás, média (uma
   casa), mínima e máxima da dor do check-in (0 a 10) e os dias de crise; a adesão dos últimos 30
   dias (dias com exercício feito ÷ meta semanal × 30 ÷ 7, teto 100); e cada questionário com
-  pontuação e data. Cada número cita período e fonte. Nada é gravado: o profissional decide o que usar.
+  o nome do catálogo, pontuação e data — inclusive os de fibromialgia da etapa 07 (ACR 2016, FIQR,
+  PGIC, sentar e levantar em 30 s). Cada número cita período e fonte. Nada é gravado: o profissional decide o que usar.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsApoioTest.php`
 - **Status: 🧪**
 
