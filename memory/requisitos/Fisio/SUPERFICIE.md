@@ -14,7 +14,7 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 296 arquivos em 20 papéis.
+**Total mapeado:** 304 arquivos em 20 papéis.
 
 ## Controllers — 26
 
@@ -49,7 +49,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 46
+## Services — 49
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AgendaDaSemana.php](../../../Modules/Fisio/Services/Agenda/AgendaDaSemana.php)
@@ -68,6 +68,8 @@ module: Fisio
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
 - [FolhaPrograma.php](../../../Modules/Fisio/Services/FolhaPrograma.php)
 - [JogoService.php](../../../Modules/Fisio/Services/JogoService.php)
+- [ApoioFisioterapia.php](../../../Modules/Fisio/Services/Laudo/ApoioFisioterapia.php)
+- [LaudoBiopsicossocialDocumento.php](../../../Modules/Fisio/Services/Laudo/LaudoBiopsicossocialDocumento.php)
 - [MatrizIfbrm.php](../../../Modules/Fisio/Services/Laudo/MatrizIfbrm.php)
 - [LaudoEvolucao.php](../../../Modules/Fisio/Services/LaudoEvolucao.php)
 - [LimiarDorCalculator.php](../../../Modules/Fisio/Services/LimiarDorCalculator.php)
@@ -81,6 +83,7 @@ module: Fisio
 - [PainelFisio.php](../../../Modules/Fisio/Services/PainelFisio.php)
 - [EstudoService.php](../../../Modules/Fisio/Services/Pesquisa/EstudoService.php)
 - [EventosAdversos.php](../../../Modules/Fisio/Services/Pesquisa/EventosAdversos.php)
+- [ExportacaoEstudo.php](../../../Modules/Fisio/Services/Pesquisa/ExportacaoEstudo.php)
 - [PortalTokenService.php](../../../Modules/Fisio/Services/PortalTokenService.php)
 - [PreAnamneseDoPortal.php](../../../Modules/Fisio/Services/PreAnamneseDoPortal.php)
 - [ProntuarioExportacao.php](../../../Modules/Fisio/Services/ProntuarioExportacao.php)
@@ -161,7 +164,7 @@ module: Fisio
 
 - [web.php](../../../Modules/Fisio/Routes/web.php)
 
-## Migrations (schema) — 21
+## Migrations (schema) — 22
 
 - [2026_10_18_000001_create_fisio_tables.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000001_create_fisio_tables.php)
 - [2026_10_18_000002_add_synonyms_to_fisio_exercises.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000002_add_synonyms_to_fisio_exercises.php)
@@ -184,6 +187,7 @@ module: Fisio
 - [2026_11_11_000710_create_fisio_study_moments_and_participants.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000710_create_fisio_study_moments_and_participants.php)
 - [2026_11_11_000720_add_fibromialgia_to_fisio_questionnaires.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000720_add_fibromialgia_to_fisio_questionnaires.php)
 - [2026_11_11_000720_create_fisio_study_adverse_events.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000720_create_fisio_study_adverse_events.php)
+- [2026_11_11_000730_add_lock_to_fisio_studies.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000730_add_lock_to_fisio_studies.php)
 
 ## Seeders — 2
 
@@ -194,9 +198,10 @@ module: Fisio
 
 - [config.php](../../../Modules/Fisio/Config/config.php)
 
-## Views (Blade) — 3
+## Views (Blade) — 4
 
 - [folha-programa.blade.php](../../../Modules/Fisio/Resources/views/pdf/folha-programa.blade.php)
+- [laudo-biopsicossocial.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-biopsicossocial.blade.php)
 - [laudo-evolucao.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-evolucao.blade.php)
 - [prontuario.blade.php](../../../Modules/Fisio/Resources/views/pdf/prontuario.blade.php)
 
@@ -276,9 +281,9 @@ module: Fisio
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Protocolos/Index.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
 
-## Testes (Pest) — 70
+## Testes (Pest) — 73
 
-- 54 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 57 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 2 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
 - 14 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
