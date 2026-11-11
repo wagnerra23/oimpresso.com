@@ -2,7 +2,7 @@
 id: requisitos-sells-briefing
 module: Sells
 status: producao
-updated_at: "2026-10-27"
+updated_at: "2026-11-10"
 distilled_at: "2026-09-06"
 distilled_by: jana:distill-module-truth
 ---
@@ -14,6 +14,7 @@ Sells é feature CORE do UltimatePOS (não existe um módulo `Sells` sob `Module
 
 ## Capacidades
 - Venda V2 em produção; a preview V3 não escreve (sem `store()`, sem POST) mas calcula no front o lançamento de item — área, quantidade faturada, unitário líquido, total, parcelas e tributação/DIFAL (conflito registrado no charter, decisão de [L]) — enquanto os totais de topo chegam prontos do controller (cena estática, `CreateV3.charter.md`); a preview tem drawer de item com abas (#6360).
+- Lista de rascunhos (`Drafts`): coluna Valor e menu Ações com Imprimir e Excluir; o Excluir pede confirmação e exige `draft.delete`, que agora vale só para rascunho comum da própria empresa (P-076, UC-DRAFT-06/07). A ROTA LIVRE usa o rascunho como venda condicional.
 - Drawer `SaleSheet` com FSM: ações por estágio, RBAC e timeline auditável (ADR 0143).
 - Integração veículo/Oficina, ligada só quando `OficinaAuto` está instalado.
 - Emissão fiscal NFe/NFS-e individual e em lote a partir da lista de vendas.
@@ -29,6 +30,7 @@ Sells é feature CORE do UltimatePOS (não existe um módulo `Sells` sob `Module
 - US-SELL-075 (maquininha/TEF): a camada independente da adquirente existe (`Modules/PaymentGateway/Services/Tef/`, driver `simulador`, flag `SELLS_TEF_ENABLED` desligada). **Decisão [W] pendente: qual integrador.** Pesquisa de 2026-10-27: o caixa é web, então TEF clássico (SiTef, PayGo) exige um agente instalado no PC da loja; terminal em nuvem (Mercado Pago Point pela API Orders, Stone Connect) funciona direto do navegador e tem sandbox. Recomendação técnica: terminal em nuvem, começando pela adquirente que a loja já usa. Envolve contrato e credencial da empresa, por isso é do [W].
 
 ## Última mudança
+2026-11-10: excluir rascunho pela lista + coluna Valor (P-076, aprovado por [M]). Antes:
 Contrato de comportamento do editor (#6455, 2026-08-31) e as abas do drawer de item (#6360, 2026-08-27); depois, a Fronteira da preview (#6484, 2026-09-03) e o design-sync (#6892, 2026-09-06).
 
 ## Proveniência (destilado de)
