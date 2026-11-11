@@ -342,6 +342,20 @@
       "w": 860,
       "h": 1900,
       "title": "Fisio · Laudo biopsicossocial (ficha, modelo SES-SC)"
+    },
+    "ExamesReceitas.dc.html": {
+      "x": 16974,
+      "y": 0,
+      "w": 860,
+      "h": 1500,
+      "title": "Fisio · Exames e receitas (ficha: anexos, conferência da transcrição, medicamentos)"
+    },
+    "PacienteEnviarExame.dc.html": {
+      "x": 17874,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Paciente · Enviar exame ou receita (portal)"
     }
   },
   "order": [
