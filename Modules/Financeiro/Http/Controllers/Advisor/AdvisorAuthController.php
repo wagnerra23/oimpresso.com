@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Modules\Financeiro\Models\Advisor;
@@ -24,6 +26,14 @@ use Modules\Financeiro\Models\Advisor;
  */
 class AdvisorAuthController extends Controller
 {
+    /** Erros de senha por conta e IP antes de travar (UC-ADVL-04). */
+    private const MAX_ERROS_POR_CONTA = 5;
+
+    /** Erros por IP, somando todas as contas: barra a varredura de e-mails. */
+    private const MAX_ERROS_POR_IP = 20;
+
+    private const JANELA_SEGUNDOS = 60;
+
     /**
      * GET /advisor/login
      */
@@ -40,8 +50,9 @@ class AdvisorAuthController extends Controller
     /**
      * POST /advisor/login
      *
-     * Throttle não-implementado no MVP — adicionar `RateLimiter::for('advisor-login', ...)`
-     * em Onda 32 quando o portal ganhar audience real.
+     * Conta só erro de senha (acerto zera a conta), por isso o limite mora aqui e não no
+     * middleware `throttle`, que contaria também os logins certos. Travado, responde
+     * com o aviso na própria tela em vez de 429, que o Inertia mostraria como erro cru.
      */
     public function login(Request $request): RedirectResponse
     {
@@ -50,11 +61,27 @@ class AdvisorAuthController extends Controller
             'password' => ['required', 'string', 'min:6'],
         ]);
 
+        $chaveConta = 'advisor-login:conta:'.sha1(Str::lower($credentials['email']).'|'.$request->ip());
+        $chaveIp = 'advisor-login:ip:'.sha1((string) $request->ip());
+
+        if (RateLimiter::tooManyAttempts($chaveConta, self::MAX_ERROS_POR_CONTA)
+            || RateLimiter::tooManyAttempts($chaveIp, self::MAX_ERROS_POR_IP)) {
+            $segundos = max(1, RateLimiter::availableIn($chaveConta), RateLimiter::availableIn($chaveIp));
+            Log::warning('Onda 31: advisor login travado por tentativas', ['ip' => $request->ip()]);
+
+            return back()
+                ->withInput($request->only('email'))
+                ->with('error', "Muitas tentativas. Tente de novo em {$segundos} segundos.");
+        }
+
         $advisor = Advisor::where('email', $credentials['email'])
             ->where('ativo', true)
             ->first();
 
         if (! $advisor || ! $advisor->password_hash || ! Hash::check($credentials['password'], $advisor->password_hash)) {
+            RateLimiter::hit($chaveConta, self::JANELA_SEGUNDOS);
+            RateLimiter::hit($chaveIp, self::JANELA_SEGUNDOS);
+
             Log::warning('Onda 31: advisor login falhou', [
                 'ip' => $request->ip(),
             ]);
@@ -63,6 +90,7 @@ class AdvisorAuthController extends Controller
                 ->with('error', 'Email ou senha incorretos.');
         }
 
+        RateLimiter::clear($chaveConta);
         Auth::guard('web-advisor')->login($advisor, $request->boolean('remember'));
         $request->session()->regenerate();
 
