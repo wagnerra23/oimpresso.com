@@ -53,5 +53,4 @@ clientes dele. Tela única de autenticação fora do AppShell principal.
 - TODO backend: criar fluxo de reset de senha do advisor (rota + controller +
   e-mail) sob o guard `web-advisor`; depois adicionar o link "Esqueceu a senha?"
   nesta tela apontando pra rota nova.
-- TODO backend: throttle no POST `/advisor/login` (controller marca como
-  pendente — `RateLimiter::for('advisor-login', ...)`).
+- Limite de tentativas no POST `/advisor/login`: UC-ADVL-04 (5 erros por conta e IP, 20 por IP, em 1 minuto).
