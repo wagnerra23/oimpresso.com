@@ -11,12 +11,14 @@ use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\OsPosCalculoController;
 use Modules\ComunicacaoVisual\Http\Controllers\Public\OrcamentoAceitePublicoController;
 use Modules\ComunicacaoVisual\Http\Controllers\RoteiroPadraoController;
+use Modules\ComunicacaoVisual\Http\Middleware\ComunicacaoVisualLiberado;
 
 // Rota raiz do módulo: renderiza Index.tsx — calculadora de orçamento por m²
 // (US-COMVIS-001) + cartões "em breve" das outras áreas. Nasceu em 2026-05-26
 // como hub stub no lugar do dropdown legacy do DataController, que apontava
 // pra URLs /comunicacao-visual/admin/* inexistentes (404).
-Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+// ComunicacaoVisualLiberado: pacote da empresa em TODA rota do grupo (Camada 1, UC-CVPAC-01).
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', ComunicacaoVisualLiberado::class])
     ->prefix('comunicacao-visual')
     ->group(function () {
         Route::get('/', function (\Illuminate\Http\Request $request) {
@@ -104,7 +106,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 // Middleware padrão UltimatePOS pra rotas admin com autenticação completa.
 // Wave 10 D8 Security: throttle:60,1 — proteção contra abuso de cálculo m² authoritative
 // (endpoint stateless mas faz DB-write em /orcamentos e /apontamentos).
-Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'throttle:60,1'])
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', 'throttle:60,1', ComunicacaoVisualLiberado::class])
     ->prefix('comunicacao-visual/api')
     ->group(function () {
         // Preview authoritative server-side (sem persistência)

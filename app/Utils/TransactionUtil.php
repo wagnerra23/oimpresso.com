@@ -4852,6 +4852,41 @@ class TransactionUtil extends Util
      * @param  int  $transaction_id
      * @return array
      */
+    /**
+     * P-076 — quem tem só `draft.delete` exclui rascunho pela lista de rascunhos.
+     *
+     * Os dois `destroy` de venda (`SellController` atende `DELETE /sells/{id}`, usado pela lista
+     * React; `SellPosController` atende o Excluir da lista Blade `sale_pos/draft`) aceitavam só
+     * as permissões de excluir venda, então o Excluir de rascunho dava 403 para quem tinha só
+     * `draft.delete`. A regra mora aqui, num lugar só, e os dois chamam.
+     *
+     * Vale só para rascunho comum (status `draft`, fora cotação) da empresa da sessão; com
+     * `draft.view_own` sem `draft.view_all`, só o rascunho que o próprio usuário criou. Venda
+     * finalizada e cotação seguem exigindo as permissões de antes. Não mexe em valor nem estoque:
+     * só decide se o `destroy` prossegue; quem apaga continua sendo `deleteSale`.
+     */
+    public function podeExcluirComoRascunho($user, $business_id, $transaction_id): bool
+    {
+        if (empty($user) || ! $user->can('draft.delete')) {
+            return false;
+        }
+
+        $rascunho = Transaction::where('business_id', $business_id)
+            ->where('id', $transaction_id)
+            ->where('type', 'sell')
+            ->where('status', 'draft')
+            ->where(function ($q) {
+                $q->whereNull('sub_status')->orWhere('sub_status', '!=', 'quotation');
+            })
+            ->first(['id', 'created_by']);
+
+        if (empty($rascunho)) {
+            return false;
+        }
+
+        return $user->can('draft.view_all') || (int) $rascunho->created_by === (int) $user->id;
+    }
+
     public function deleteSale($business_id, $transaction_id)
     {
         //Check if return exist then not allowed

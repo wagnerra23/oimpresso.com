@@ -118,6 +118,7 @@ Cada tarefa vira um PR pequeno. A ordem respeita as dependências.
 | P-05 | Cobrança do questionário que vence, pelo portal e pelo WhatsApp | P-03, P-04 | lembrete respeita o consentimento de WhatsApp |
 | P-06 | Registro de eventos adversos a partir de crise e alerta de dor | P-04 | registra e mostra; não classifica |
 | P-07 | Exportação sem identificação, dicionário de dados e travamento | P-04 | registro no `activity_log`; ausente sai como ausente |
+| P-08 | Assistente de IA da pesquisadora, só na área do estudo: conferência de qualidade do dado (faltante, fora de faixa, momento vencido), resumo descritivo e sugestão de padrões que antecedem crises | P-07 | decisão [W] 2026-11-11: "seria um auxílio para pesquisador, ele confirma se quiser". Tudo é sugestão que a pesquisadora aceita ou descarta, com registro de quem decidiu; a IA recebe só dado sem identificação (os CSVs da P-07); nada vai para o paciente, o prontuário nem a tela clínica (RDC 657/2022; ADR 0437 §5, ADR 0447); desligado por padrão por configuração da empresa; camada de IA canônica (ADR 0035) |
 
 **Ordem sugerida:** P-01 e P-02 em paralelo; depois P-03 e P-04; depois P-05, P-06 e P-07. P-01, P-02 e P-03 servem ao atendimento mesmo sem estudo e se pagam primeiro.
 
@@ -151,7 +152,7 @@ Pesquisa de 2026-11-11; fontes na §9.
 2. **Adesão medida, não relatada.** A câmera conta repetições no aparelho (ADR 0447). Nos estudos achados, a adesão é autorrelatada.
 3. **Dado diário de vida real em português.** Dor do dia + crise + adesão, no atendimento comum. A pesquisa não achou modelo publicado de previsão de crise de fibromialgia com dado diário de celular; os próprios autores citam a falta de dados longitudinais grandes. Um estudo da clínica com a universidade preenche essa lacuna.
 4. **IA que organiza, não que decide:** ditado estruturado (etapa 05), conferência de qualidade do dado antes de exportar (faltante, fora de faixa, momento vencido) e resumo descritivo para a pesquisadora. Tudo revisado por pessoa.
-5. **IA de previsão fica com a universidade.** Buscar o que antecede uma crise no arquivo exportado é pesquisa. Mostrar a previsão ao paciente ou ao profissional dentro do app torna o software dispositivo médico (RDC 657/2022) e depende da consulta à Anvisa já pendente (ADR 0447). O Stanza mostra o caminho: estudo primeiro, aprovação depois.
+5. **IA de previsão fica com a universidade.** _(2026-11-11: a sugestão de padrões que antecedem crises entrou como P-08, só para a pesquisadora conferir no arquivo, nunca para o paciente nem para o profissional na tela clínica.)_ Buscar o que antecede uma crise no arquivo exportado é pesquisa. Mostrar a previsão ao paciente ou ao profissional dentro do app torna o software dispositivo médico (RDC 657/2022) e depende da consulta à Anvisa já pendente (ADR 0447). O Stanza mostra o caminho: estudo primeiro, aprovação depois.
 
 ---
 

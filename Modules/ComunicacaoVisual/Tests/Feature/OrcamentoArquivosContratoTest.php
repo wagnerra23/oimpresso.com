@@ -96,6 +96,23 @@ it('UC-CVARQ-02 · formato que a gráfica não usa é recusado e nada é gravado
     expect(cvarqDoOrcamento($this->orc->id))->toHaveCount(0);
 });
 
+it('UC-CVARQ-07 · SVG é recusado no upload, em qualquer caixa, e nada vai para o disco', function () {
+    // O arquivo fica em public/uploads/media, mesma origem do sistema: SVG com script rodaria com a sessão de quem abre.
+    foreach (['arte.svg', 'LOGO.SVG'] as $nome) {
+        try {
+            cvarqChamar($this, 'store', ['request' => cvarqEnvio([
+                UploadedFile::fake()->createWithContent($nome, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'),
+            ]), 'id' => $this->orc->id]);
+            $this->fail("{$nome} deveria ser recusado.");
+        } catch (ValidationException $e) {
+            expect(array_keys($e->errors()))->toBe(['arquivos.0']);
+        }
+    }
+
+    expect(cvarqDoOrcamento($this->orc->id))->toHaveCount(0)
+        ->and(Storage::disk(config('filesystems.default'))->allFiles())->toBe([]);
+});
+
 it('UC-CVARQ-03 · depois de virar OS o orçamento não recebe nem perde arquivo', function () {
     Media::create(['business_id' => $this->biz->id, 'file_name' => '1_1_arte.pdf', 'model_type' => Orcamento::class, 'model_id' => $this->orc->id]);
     app(OrcamentoViraOs::class)->aprovar($this->biz->id, $this->orc->id);

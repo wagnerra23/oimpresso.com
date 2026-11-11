@@ -42,6 +42,9 @@ class EnvioWhatsappFisio
 
     public const LEMBRETE = 'lembrete';
 
+    /** Aviso da avaliação do estudo (etapa 07 P-05): um por participante e momento. */
+    public const AVALIACAO_ESTUDO = 'avaliacao_estudo';
+
     /** Saúde em que o módulo Whatsapp não consegue entregar nem pelo fallback. */
     private const CAIDO = ['disconnected', 'banned'];
 
@@ -207,7 +210,7 @@ class EnvioWhatsappFisio
         $agendados = Activity::query()
             ->where('log_name', self::LOG)
             ->where('business_id', $businessId)
-            ->whereIn('event', ['whatsapp_'.self::PROGRAMA, 'whatsapp_'.self::LEMBRETE])
+            ->whereIn('event', ['whatsapp_'.self::PROGRAMA, 'whatsapp_'.self::LEMBRETE, 'whatsapp_'.self::AVALIACAO_ESTUDO])
             ->where('created_at', '>=', $agora->copy()->subDay())
             ->pluck('properties')
             ->map(function ($p) {
