@@ -1,0 +1,209 @@
+/**
+ * Vestuario/Remarcacao/Index: o número que sai da tela é o número que a pessoa digitou.
+ *
+ * @covers-us UC-VREM-08
+ *
+ * O Pest prova a conta do servidor, mas o servidor recebe um número pronto: `-25` e `-2.5` passam
+ * os dois na validação (`between:-90,300`). Só o render prova o que a tela manda no POST.
+ * Os valores são fictícios.
+ */
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+
+vi.mock('@inertiajs/react', () => ({
+  Head: () => null,
+  Deferred: ({ children }: { children: React.ReactNode }) => children,
+}))
+vi.mock('@/Layouts/AppShellV2', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}))
+
+import RemarcacaoIndex from '@/Pages/Vestuario/Remarcacao/Index'
+
+const PREVIA = {
+  linhas: [{ variation_id: 1, produto: 'Camisa', variacao: 'M', sku: 'CAM-M', preco_antes: 100, preco_depois: 97.5 }],
+  ignoradas: 0,
+  assinatura: 'a'.repeat(64),
+  grupos: { fixos: 0, percentuais: 0 },
+}
+
+const fetchMock = vi.fn()
+
+function corpoDaChamada(n: number) {
+  return JSON.parse(fetchMock.mock.calls[n][1].body as string)
+}
+
+function abrirTela(modo: 'percentual' | 'valor') {
+  render(<RemarcacaoIndex categorias={[]} marcas={[]} lotes={[]} />)
+  if (modo === 'valor') fireEvent.click(screen.getByRole('radio', { name: 'Valor fixo' }))
+}
+
+function digitar(texto: string) {
+  fireEvent.change(document.getElementById('rem-valor') as HTMLInputElement, { target: { value: texto } })
+}
+
+beforeEach(() => {
+  fetchMock.mockReset()
+  fetchMock.mockImplementation(async (url: string) => ({
+    ok: true,
+    status: 200,
+    json: async () => (url.endsWith('/previa') ? PREVIA : { lote: 7 }),
+  }))
+  vi.stubGlobal('fetch', fetchMock)
+})
+
+afterEach(() => vi.unstubAllGlobals())
+
+describe('UC-VREM-01 · a prévia avisa o que acontece com o preço de grupo', () => {
+  function verPrevia(grupos: { fixos: number; percentuais: number }) {
+    fetchMock.mockImplementation(async () => ({ ok: true, status: 200, json: async () => ({ ...PREVIA, grupos }) }))
+    abrirTela('percentual')
+    fireEvent.click(screen.getByRole('button', { name: 'Ver prévia' }))
+    return screen.findByRole('button', { name: 'Gravar remarcação' })
+  }
+
+  it('UC-VREM-01 · preço fixo fica para trás e percentual acompanha, com a contagem', async () => {
+    await verPrevia({ fixos: 3, percentuais: 1 })
+
+    const nota = screen.getByRole('note').textContent
+    expect(nota).toContain('3 variações têm preço fixo')
+    expect(nota).toContain('não muda')
+    expect(nota).toContain('1 variação tem preço de grupo em percentual')
+    expect(nota).toContain('acompanha')
+  })
+
+  it('UC-VREM-01 · sem preço de grupo não há aviso, nem o selo que afirmava o contrário', async () => {
+    await verPrevia({ fixos: 0, percentuais: 0 })
+
+    expect(screen.queryByRole('note')).toBeNull()
+    expect(screen.queryByText('Tabelas de preço por grupo não mudam')).toBeNull()
+  })
+})
+
+describe('UC-VREM-08 · o valor digitado chega ao servidor como foi digitado', () => {
+  it.each([
+    ['percentual', '-2.5', -2.5],
+    ['percentual', '12.5', 12.5],
+    ['percentual', '-2,5', -2.5],
+    ['percentual', '-30', -30],
+    ['valor', '39.90', 39.9],
+    ['valor', '80.00', 80],
+    ['valor', '39,90', 39.9],
+    ['valor', '1.234,56', 1234.56],
+  ] as const)('UC-VREM-08 · %s "%s" vai na prévia como %s', async (modo, texto, esperado) => {
+    abrirTela(modo)
+    digitar(texto)
+    fireEvent.click(screen.getByRole('button', { name: 'Ver prévia' }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    expect(fetchMock.mock.calls[0][0]).toBe('/vestuario/remarcacao/previa')
+    expect(corpoDaChamada(0).valor).toBe(esperado)
+    expect(corpoDaChamada(0).modo).toBe(modo)
+  })
+
+  it('UC-VREM-08 · a gravação manda o mesmo número da prévia', async () => {
+    abrirTela('valor')
+    digitar('39.90')
+    fireEvent.click(screen.getByRole('button', { name: 'Ver prévia' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Gravar remarcação' }))
+    fireEvent.change(await screen.findByLabelText('Nome da remarcação'), { target: { value: 'Teste' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Gravar' }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    expect(fetchMock.mock.calls[1][0]).toBe('/vestuario/remarcacao')
+    expect(corpoDaChamada(1).valor).toBe(39.9)
+    expect(corpoDaChamada(1).valor).toBe(corpoDaChamada(0).valor)
+  })
+
+  it.each(['abc', '-', '.'])('UC-VREM-08 · texto "%s" não vira número: nada vai ao servidor e a tela avisa', async (texto) => {
+    abrirTela('percentual')
+    digitar(texto)
+    fireEvent.click(screen.getByRole('button', { name: 'Ver prévia' }))
+
+    expect((await screen.findByRole('alert')).textContent).toContain('Valor inválido')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('UC-VREM-08 · valor apagado depois da prévia não abre a confirmação nem grava', async () => {
+    abrirTela('valor')
+    digitar('39,90')
+    fireEvent.click(screen.getByRole('button', { name: 'Ver prévia' }))
+    const gravar = await screen.findByRole('button', { name: 'Gravar remarcação' })
+    digitar('abc')
+    fireEvent.click(gravar)
+
+    expect((await screen.findByRole('alert')).textContent).toContain('Valor inválido')
+    expect(screen.queryByLabelText('Nome da remarcação')).toBeNull()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('UC-VREM-07 · etiquetas do lote na tela', () => {
+  const LOTE = { id: 7, nome: 'Verão', modo: 'percentual', valor: '-30', qtd_itens: 1, status: 'aplicada', created_at: '2026-11-10 10:00:00' }
+  const itens = (n: number) => Array.from({ length: n }, (_, i) => ({ product_id: 1, variation_id: i + 1, nome: 'Peça', tamanho: 'M', preco: 10, sku: `S${i + 1}` }))
+
+  function responder(qtd: number) {
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.endsWith('/etiquetas')) return { ok: true, status: 200, json: async () => ({ items: itens(qtd) }) }
+      // O arquivo demora: a tela segue ocupada (botões desabilitados) depois que o pedido já saiu.
+      if (url.endsWith('/lote/pdf')) return { ok: true, status: 200, blob: () => new Promise<Blob>((ok) => setTimeout(() => ok(new Blob(['pdf'])), 20)) }
+      if (url.endsWith('/reverter')) return { ok: true, status: 200, json: async () => ({ revertidos: 1, conflitos: 0 }) }
+      return { ok: true, status: 200, json: async () => (url.endsWith('/previa') ? PREVIA : { lote: 7 }) }
+    })
+  }
+  const chamadasPdf = () => fetchMock.mock.calls.filter(([u]) => String(u).endsWith('/lote/pdf'))
+  // Enquanto uma ação roda, todos os botões ficam desabilitados e um clique neles é ignorado:
+  // espera a tela liberar antes de clicar, como a pessoa faria.
+  async function clicarQuandoLivre(nome: string | RegExp) {
+    const botao = () => screen.getByRole('button', { name: nome }) as HTMLButtonElement
+    await waitFor(() => expect(botao().disabled).toBe(false))
+    fireEvent.click(botao())
+  }
+
+  beforeEach(() => {
+    URL.createObjectURL = vi.fn(() => 'blob:x')
+    URL.revokeObjectURL = vi.fn()
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+  })
+
+  it('UC-VREM-07 · até 500 etiquetas baixa direto, em um arquivo', async () => {
+    responder(500)
+    render(<RemarcacaoIndex categorias={[]} marcas={[]} lotes={[LOTE]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Etiquetas/ }))
+
+    await waitFor(() => expect(chamadasPdf()).toHaveLength(1))
+    expect(JSON.parse(chamadasPdf()[0][1].body as string).items).toHaveLength(500)
+  })
+
+  it('UC-VREM-07 · acima de 500 sai em partes e nenhuma etiqueta fica de fora', async () => {
+    responder(1200)
+    render(<RemarcacaoIndex categorias={[]} marcas={[]} lotes={[LOTE]} />)
+    fireEvent.click(screen.getByRole('button', { name: /Etiquetas/ }))
+
+    await screen.findByRole('button', { name: /Parte 3/ })
+    expect(chamadasPdf()).toHaveLength(0)
+    for (const parte of [1, 2, 3]) {
+      await clicarQuandoLivre(new RegExp(`Parte ${parte}`))
+      await waitFor(() => expect(chamadasPdf()).toHaveLength(parte))
+    }
+
+    const lotes = chamadasPdf().map(([, init]) => JSON.parse(init.body as string).items as { variation_id: number }[])
+    expect(lotes.map((l) => l.length)).toEqual([500, 500, 200])
+    expect(new Set(lotes.flat().map((i) => i.variation_id)).size).toBe(1200)
+  })
+
+  it('UC-VREM-07 · depois de reverter, some o atalho de imprimir daquele lote', async () => {
+    responder(1)
+    abrirTela('valor')
+    digitar('39,90')
+    fireEvent.click(screen.getByRole('button', { name: 'Ver prévia' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Gravar remarcação' }))
+    fireEvent.change(await screen.findByLabelText('Nome da remarcação'), { target: { value: 'Teste' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Gravar' }))
+    await screen.findByRole('button', { name: 'Imprimir etiquetas' })
+
+    await clicarQuandoLivre('Reverter')
+
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Imprimir etiquetas' })).toBeNull())
+  })
+})

@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1082 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1085 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -54,6 +54,7 @@
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
+| [`Auditoria`](#auditoria) | 4 | 0 | 0 | 0 | 4 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`Estoque`](#estoque) | 3 | 1 | 0 | 0 | 2 |
@@ -64,7 +65,6 @@
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Relatorios`](#relatorios) | 2 | 1 | 0 | 0 | 1 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
-| [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
 | [`Backup`](#backup) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
 
@@ -1457,6 +1457,16 @@
 - **US-SHEET-004** — Post-share (revogar / listar shares ativos)
 - **US-SHEET-005** — Embed view (iframe-friendly)
 
+## Auditoria
+
+
+### todo
+
+- **US-AUDIT-006** — Resolver de causer (user/agent/system/api) `parcial`
+- **US-AUDIT-008** — RevertService com registry UNREVERTIBLE `parcial`
+- **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
+- **US-AUDIT-010** — AuditoriaController + permissões + redirect 301 `parcial`
+
 ## ConsultaOs
 
 
@@ -1546,13 +1556,6 @@
 ### todo
 
 - **US-ADM-001** — ..010
-
-## Auditoria
-
-
-### todo
-
-- **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
 
 ## Backup
 

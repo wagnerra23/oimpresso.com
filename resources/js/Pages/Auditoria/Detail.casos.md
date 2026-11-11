@@ -5,7 +5,7 @@ irmaos: Detail.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: ver o diff de UMA alteração do próprio business — e nunca a de outro — é durável, não muda no refactor.
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-11-10"
 ---
 
 # Casos de Uso & Aceite — Auditoria / Detail
@@ -24,12 +24,30 @@ last_run: "2026-09-30"
 - **Persona:** auditor — investiga uma mudança específica sem abrir o banco (CU-AUD-02).
 - **Aceite:** Dado uma alteração do business 98 com `properties.old` e `properties.attributes` · Quando o detalhe é carregado para o business 98 · Então vem essa entrada com os dois lados intactos (é deles que a tela monta Campo · Antes · Depois).
 - **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-01 · detalhe traz old e attributes").
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-AUDD-02 · Alteração de outro business não abre
 - **Persona:** admin do business 99 — não pode ler a trilha do 98, nem chutando o id (Tier 0, ADR 0093).
 - **Aceite:** Dado uma alteração do business 98 · Quando o detalhe é pedido com o id dela para o business 99 · Então **não é encontrada** (`ModelNotFoundException` → 404), sem devolver dado nenhum.
-- **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-02 · cross-tenant não abre").
+- **Teste:** `AuditoriaTelasContratoTest` ("UC-AUDD-02 · cross-tenant não abre"), no serviço. Pela rota, o caso vigente é o UC-AUDD-11.
+- **Status: ✅**
+
+## UC-AUDD-03 · Sem a permissão, o detalhe não abre nem na própria empresa
+- **Persona:** dono do negócio — o detalhe mostra o antes e o depois de cada campo (SPEC US-AUDIT-010; ADR 0127 §princípio 5).
+- **Aceite:** Dado uma alteração da própria empresa e usuário sem `auditoria.view` · Quando pede `/auditoria/{id}` · Então **403**. Com a permissão, a mesma requisição traz a alteração.
+- **Teste:** `AuditoriaAcessoGateTest` ("UC-AUDD-03 · …").
+- **Status: 🧪**
+
+## UC-AUDD-10 · Enquanto a alteração carrega, vejo que está carregando, e nunca "não encontrada"
+- **Persona:** auditor — abre uma entrada que existe e não pode ler, nem por um instante, que ela não existe (CU-AUD-02).
+- **Aceite:** Dado uma alteração do business 98 · Quando a tela abre · Então o primeiro render não traz `activity` e a declara deferida, a tela mostra o esqueleto sem o texto "Atividade não encontrada", e o pedido parcial entrega o registro, que substitui o esqueleto.
+- **Teste:** `AuditoriaDetailDeferidoContratoTest` ("UC-AUDD-10 · a primeira visita não traz a prop") com os headers do cliente Inertia · `tests/js/auditoria-detail-deferido.test.tsx` ("UC-AUDD-10 ·", render).
+- **Status: 🧪**
+
+## UC-AUDD-11 · Registro inexistente ou de outro business termina em "não encontrada"
+- **Persona:** admin — abriu um id que não existe, ou que é de outra empresa; a tela responde e não fica carregando para sempre (Tier 0, ADR 0093).
+- **Aceite:** Dado um id inexistente, ou uma alteração do business vizinho · Quando o pedido parcial responde para o business 98 · Então `activity` vem presente e `null`, sem dado nenhum do registro, e a tela sai do esqueleto para "Atividade não encontrada".
+- **Teste:** `AuditoriaDetailDeferidoContratoTest` ("UC-AUDD-11 · registro inexistente", "UC-AUDD-11 · registro de outra empresa") · `AuditoriaAcessoGateTest` ("UC-AUDD-11 · pela rota…", tenants 98 × 99 com a dona como controle) · `tests/js/auditoria-detail-deferido.test.tsx` ("UC-AUDD-11 ·", render).
 - **Status: 🧪**
 
 ---
