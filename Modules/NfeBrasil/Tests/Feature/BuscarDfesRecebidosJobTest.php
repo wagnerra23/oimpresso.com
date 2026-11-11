@@ -16,16 +16,23 @@ uses(Tests\TestCase::class);
 it('handle delega ao DistribuicaoDfeService::puxarLote com businessId', function () {
     $businessId = 1;
 
+    // Guarda o argumento recebido: o assert final mede a chamada, em vez de
+    // um expect(true) decorativo que passaria mesmo sem o mock ser chamado.
+    $recebido = [];
     $serviceMock = \Mockery::mock(DistribuicaoDfeService::class);
     $serviceMock->shouldReceive('puxarLote')
         ->once()
         ->with($businessId)
-        ->andReturn(['processados' => 0, 'last_nsu' => 0]);
+        ->andReturnUsing(function (int $biz) use (&$recebido) {
+            $recebido[] = $biz;
+
+            return ['processados' => 0, 'last_nsu' => 0];
+        });
 
     $job = new BuscarDfesRecebidosJob($businessId);
     $job->handle($serviceMock);
 
-    expect(true)->toBeTrue(); // mock expectations validam acima
+    expect($recebido)->toBe([$businessId]);
 
     \Mockery::close();
 });

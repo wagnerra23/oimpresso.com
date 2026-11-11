@@ -48,6 +48,7 @@ class UpsertCategoriaRequest extends FormRequest
                     if ($value === null) {
                         return;
                     }
+                    // SUPERADMIN: a validação filtra pela empresa da sessão com o where business_id explícito
                     $exists = PlanoConta::query()
                         ->withoutGlobalScope(BusinessScopeImpl::class)
                         ->where('id', $value)

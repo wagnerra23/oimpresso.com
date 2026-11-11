@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 941,
-    "edges": 1271,
+    "nodes": 944,
+    "edges": 1274,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 153,
-      "component": 548,
+      "component": 551,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 548,
+      "hasComponent": 551,
       "dependsOn": 139,
       "delegatesTo": 127,
       "migratesTo": 1,
@@ -3452,6 +3452,13 @@
       "desc": "envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
     },
     {
+      "id": "component:Fisio/Estudo de pesquisa",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Estudo de pesquisa",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/Exportação do prontuário em PDF",
       "type": "component",
       "module": "Fisio",
@@ -3501,6 +3508,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "desc": "US-FISIO-060)"
+    },
+    {
       "id": "component:Fisio/OnboardingController",
       "type": "component",
       "module": "Fisio",
@@ -3541,6 +3555,13 @@
       "module": "Fisio",
       "name": "PainelController",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/PesquisaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PesquisaController",
+      "desc": "estudo, participantes (código sem nome nem CPF), momentos de avaliação e pendências, com a permissão fisio.pesquisa (etapa 07 P-04)"
     },
     {
       "id": "component:Fisio/Portal público do paciente",
@@ -10648,6 +10669,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Estudo de pesquisa",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Exportação do prontuário em PDF",
       "type": "hasComponent",
       "source": "contains"
@@ -10690,6 +10717,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/OnboardingController",
       "type": "hasComponent",
       "source": "contains"
@@ -10721,6 +10754,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/PainelController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PesquisaController",
       "type": "hasComponent",
       "source": "contains"
     },

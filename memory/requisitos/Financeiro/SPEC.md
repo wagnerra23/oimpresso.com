@@ -2004,7 +2004,7 @@ Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250
 
 **Implementado em:** `resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx` + `Modules/Financeiro/Http/Controllers/AssinaturaController.php` · verificado@8a5e9b49c8 (2026-07-01)
 
-**Testado em:** `Modules/Financeiro/Tests/Feature/AssinaturaAtualizarGuardTest.php` (A1 render + A2 auth guard)
+**Testado em:** `Modules/Financeiro/Tests/Feature/AssinaturaAtualizarGuardTest.php` (A1 render + A2 auth guard) + `Modules/Financeiro/Tests/Feature/AssinaturaPermissaoPatchContratoTest.php` (permissão, empresa e PATCH)
 
 **Retro-US (reconciliação código-sem-US, 2026-07-01):** tela entregue (charter `draft` de 2026-05-31 aguardando [W] revisar Non-Goals/Anti-hooks) referenciando só a task MCP FIN-004 ("Atualizar cobrança ROTA LIVRE" — HITL pendente), que não é US de SPEC. O `charter-us-lint` expôs a órfã. Esta US registra o entregue; não é escopo novo.
 
