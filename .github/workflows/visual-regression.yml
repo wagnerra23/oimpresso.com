@@ -652,6 +652,21 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Manufacturing/RecipesIndexTest.php
 
+      # ── E2E DE RENDER + AXE — as outras 5 telas do Manufacturing (NASCE ADVISORY) ──────
+      # Auditoria do Manufacturing, lote 3.6 (2026-11-11): `screen-coverage-map` dava
+      # "e2e (Browser)" ✗ em Ordens, Insumos, Relatório, Configurações e Editor de ingredientes,
+      # e nenhuma tinha axe executado. O mesmo arquivo carrega os 4 casos de navegador que viviam
+      # em `test.fixme` no Playwright (nenhum workflow roda `e2e/*.spec.ts`): margem filtra (R-05),
+      # painel fecha com Esc (R-14), via de produção sem valor de compra (R-22) e o editor abrindo
+      # a ficha (UC-INGRED-01). Esses semeiam a própria receita (SKU `MFGTEL-`) e apagam no
+      # `->after()`. Não executado antes do PR: promoção a enforcing = remover o
+      # `continue-on-error` depois de 2 verdes que executaram.
+      - name: E2E de render + axe · Manufacturing (5 telas) (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-manufacturing-telas
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Manufacturing/TelasFabricacaoTest.php
+
       # ── E2E DE RENDER POR TELA — Home/Visão geral (NASCE ADVISORY) ─────────────
       # Buraco medido em 2026-09-03 por `node scripts/qa/screen-coverage-map.mjs`: a linha
       # `Home` sai `Telas 1 · Charter 1 · E2E 1 · Score 1 · VRT 1 · L2 0`, e esse `E2E 1` é da
