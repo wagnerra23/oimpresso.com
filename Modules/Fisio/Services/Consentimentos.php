@@ -175,7 +175,7 @@ class Consentimentos
                 'study_id' => (int) $estudo->id,
                 'titulo' => (string) $estudo->title,
                 'versao' => (string) $c->version,
-                'aceito_em' => $c->granted_at?->format('Y-m-d') ?? '',
+                'aceito_em' => $c->granted_at->format('Y-m-d'),
                 'canal' => (string) $c->channel,
             ];
         }
