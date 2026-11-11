@@ -169,3 +169,26 @@ test('desconto da empresa 99 no mesmo local não vira selo da 98', function () {
 
     expect(cpcritSelos($this, $produto))->toBe(['lista' => [], 'detalhe' => []]);
 });
+
+test('custo: sem desconto vigente a listagem não faz consulta de desconto; com desconto, uma por produto', function () {
+    for ($i = 0; $i < 20; $i++) {
+        cpcritProduto($this, null, $this->camisas);
+    }
+    $contar = function (): int {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        test()->get("/catalogue/{$this->biz}/{$this->local}")->assertOk();
+        $n = collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], '`discounts`'))->count();
+        DB::disableQueryLog();
+
+        return $n;
+    };
+
+    $semDesconto = $contar();
+    cpcritDesconto($this, null, $this->calcas, 10);
+    $comDesconto = $contar();
+
+    fwrite(STDERR, "\n[custo vitrine] 20 produtos: consultas em discounts sem desconto vigente={$semDesconto}, com desconto vigente={$comDesconto}\n");
+    expect($semDesconto)->toBe(1);
+    expect($comDesconto)->toBe(21);
+});
