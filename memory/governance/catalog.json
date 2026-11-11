@@ -27,7 +27,7 @@
   "stats": {
     "modules": 38,
     "nodes": 950,
-    "edges": 1281,
+    "edges": 1285,
     "by_node_type": {
       "module": 43,
       "table": 108,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 81,
       "hasComponent": 555,
-      "dependsOn": 140,
-      "delegatesTo": 128,
+      "dependsOn": 142,
+      "delegatesTo": 130,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 79,
@@ -5861,10 +5861,10 @@
       "id": "module:ComunicacaoVisual",
       "type": "module",
       "module": "ComunicacaoVisual",
-      "purpose": "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto: hoje entrega cálculo de orçamento por m2 server-authoritative e apontamento de produção. PCP/FSM, materiais e integração fiscal existem como schema e contrato, não como fluxo navegável.",
+      "purpose": "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto registrado: orçamento por m2 server-authoritative (salvar, aceite do cliente por link, aprovar), OS que nasce do orçamento e entra no quadro do PCP do Modules/Producao, agenda da instalação com aviso ao cliente, pós-cálculo da OS em JSON e o spool de apontamento sem tela. Faturamento da OS, cadastro de materiais e FSM própria não existem.",
       "trust": "L2",
       "owner": "wagner",
-      "permission_prefix": "com_visual.*",
+      "permission_prefix": "comvis.*",
       "charter_adr": "0121",
       "path": "memory/requisitos/ComunicacaoVisual/SCOPE.md",
       "catalog_kind": "scope",
@@ -9080,10 +9080,24 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "module:Producao",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Quadro do PCP, roteiros e apontamento por etapa"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "module:Repair",
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Kanban shared infra"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "module:Whatsapp",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Aviso ao cliente por WhatsApp"
     },
     {
       "from": "module:ComunicacaoVisual",
@@ -9094,10 +9108,24 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "module:Producao",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Quadro do PCP, roteiros e apontamento por etapa"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "module:Repair",
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Kanban shared infra"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "module:Whatsapp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Aviso ao cliente por WhatsApp"
     },
     {
       "from": "module:ComunicacaoVisual",

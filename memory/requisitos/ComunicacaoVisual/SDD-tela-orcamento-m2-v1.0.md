@@ -171,7 +171,7 @@ Nenhum CU abaixo tem sinal de cliente ([ADR 0105](../../decisions/0105-cliente-c
 |---|---|
 | **Multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) | Toda Entity declara o escopo de `business_id` (`git grep -lE "addGlobalScope\('business_id'|EscopoPorNegocioDaSessao" -- 'Modules/ComunicacaoVisual/Entities/*.php'` lista todas). Fora de sessão (fila, token, link público) o escopo não filtra, e por isso `OrcamentoGravador`, `OrcamentoViraOs` e `AceiteDoOrcamento` passam `business_id` explícito. O `OrcamentoCalculator` resolve preço de catálogo via `Material`: se o escopo cair, um business precifica com a tabela de outro. **CU-CV-04.** |
 | **REGRA MESTRE valor/estoque** ([proibicoes](../../proibicoes.md)) | Todo o `OrcamentoCalculator` é `[V0]`: área, subtotal, desconto, extras, total. É a razão de o backend ser authoritative (**CU-CV-02**). O incidente `num_uf` ×100 de 2026-06-05 é o precedente vivo. |
-| **Teste nunca em biz=4** ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)) | `Wave27ComVisPolishTest` tem guard que varre `business_id=4` no código PHP das waves. Os contratos de outubro já usam 98 contra 99; a migração dos arquivos antigos é do lote de testes. |
+| **Teste nunca em biz=4** ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)) | `Wave27ComVisPolishTest` tem guard que varre `business_id=4` no código PHP das waves. Os contratos de outubro e, desde 2026-11-10, `MultiTenantTest` e `Tier0GuardTest` usam 98 contra 99. |
 | **PII / LGPD** | `observacoes` e o comentário do aceite são texto livre. O `OrcamentoCalculator` passa `observacoes` por `PiiRedactor` antes de span/log. Whitelist de `LogsActivity` exclui `contato_id` e `observacoes`. Superfícies e lacunas em [`PII-LGPD.md`](PII-LGPD.md). **CU-CV-08.** |
 | **MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) | ⚠️ **Não se aplica como migração**: não há Blade de origem (§0.2). Cada tela tem charter, casos e RUNBOOK ao lado (`RUNBOOK-comunicacao-visual-index.md`, `RUNBOOK-agenda.md`, `RUNBOOK-aceite-publico.md`). |
 | **Append-only por lei** | `Apontamento` **não** usa `SoftDeletes` de propósito (registro produtivo); `Orcamento`/`Os` usam. Coberto por `LgpdComplianceTest`. |
@@ -247,7 +247,8 @@ ApontamentoController → ApontamentoTracker               spool sem tela; 1 abe
 <!-- derivado: re-rodável do fonte -->
 
 #### F1 — Abrir o hub `/comunicacao-visual`
-`Routes/web.php` closure → gate `superadmin ∥ comvis.orcamento.view ∥ comvis.os.view` (senão **403**)
+`Routes/web.php`: o middleware `ComunicacaoVisualLiberado` exige o pacote da empresa em toda rota do módulo, menos o link
+público (desde 2026-11-11, #10671) → closure com gate `superadmin ∥ comvis.orcamento.view ∥ comvis.os.view` (senão **403**)
 → `Inertia::render('ComunicacaoVisual/Index', …)` com `bizName`, `materiais` (catálogo ativo do business,
 eager de propósito), `podeCriar`, `podeVerCusto`, `orcamento` (`?orcamento={id}`) e `recentes` (deferido).
 
@@ -432,10 +433,10 @@ servidor calcula; *então* a origem do preço segue uma ordem única e explícit
 
 #### CU-CV-04 — Isolar catálogo, orçamento, OS e apontamento por business `[must]` `[T0]` 🧪 ⏭ PR-skip
 <!-- derivado: re-rodável do fonte (MultiTenantTest · Tier0GuardTest · MaterialSeederTest · ADR 0093) -->
-*Dado* dados nos businesses 1 e 99; *quando* a sessão é do business 1; *então* nada do 99 aparece,
+*Dado* dados nos tenants fictícios 98 e 99; *quando* a sessão é do 99; *então* nada do 98 aparece,
 em nenhuma das entidades.
 
-1. `[T0]` `Material`, `Orcamento`, `OrcamentoItem` e `Os` do biz=1 **não** aparecem com sessão biz=99 (e o controle positivo — aparecem com sessão biz=1 — também vale).
+1. `[T0]` `Material`, `Orcamento`, `OrcamentoItem` e `Os` do tenant 98 **não** aparecem com sessão do 99 (e o controle positivo — aparecem com sessão do 98 — também vale).
 2. `[T0]` o mesmo para as 5 entidades do PCP (`Substrato`, `Acabamento`, `InstalacaoCatalogo`, `OrdemProducao`, `Instalacao`).
 3. `[T0]` `GET /…/api/orcamentos/{id}` de outro business ⇒ **404** (não 403 — não revelar existência).
 4. `[T0]` `GET /…/api/apontamentos/em-andamento` com sessão de outro business ⇒ vazio.
