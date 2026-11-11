@@ -39,12 +39,14 @@ Mostrar e editar o perfil clínico do paciente, manter o prontuário (avaliaçã
 - Mostrar o fisioterapeuta responsável e transferir o paciente para outro profissional da empresa, com o histórico das transferências — UC-FPS-30..32.
 - Exportar o prontuário em PDF (identificação, perfil clínico e todos os registros assinados em ordem cronológica, com carimbo; rodapé com empresa, emissão e "Página X de Y"); cada exportação fica no `activity_log` sem PII — UC-FPS-19, UC-FPS-20. Exportar exige só `fisio.access`.
 - Registrar questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação do servidor e ver o histórico — UC-FPS-13..16 (US-FISIO-011). Mostra o número e a referência; não interpreta (SaMD, ADR 0437 §5).
+- Montar o laudo de avaliação biopsicossocial para fibromialgia no modelo da SES-SC (US-FISIO-060; Deliberação 500/CIB/2026): identificação, matriz IFBr-M com o total calculado (menor valor de cada domínio), fatores contextuais com o apoio da fisioterapia, conclusão marcada pela equipe, equipe com um médico e outra área, local e data; finalizar congela, corrigir abre nova versão; PDF no layout oficial. Avisa que a emissão é da Atenção Primária e a carteira segue o fluxo da FCEE. Protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/LaudoBiopsicossocial.dc.html`. Contrato: [`laudo-biopsicossocial.casos.md`](../../../../../../../memory/requisitos/Fisio/_telas/laudo-biopsicossocial.casos.md) — UC-FBP-01..15.
 
 ## Non-Goals — Features (NÃO faz)
 
 - ❌ Editar ou apagar registro assinado (não existe rota; o banco recusa).
 - ❌ Envio do programa pelo WhatsApp (US-FISIO-009).
 - ❌ Avisar o profissional que recebeu o paciente, ou comparar resultados entre profissionais (fora do escopo do responsável).
+- ❌ Responder a conclusão do laudo biopsicossocial (impedimento de longo prazo, barreiras, equiparação) a partir da pontuação, ou escrever que o paciente é pessoa com deficiência: quem conclui é a equipe (pedido [W] 2026-11-11; ADI 5033647-81.2025.8.24.0000; ADR 0437 §5).
 - ❌ PDF do programa de exercícios (vem depois da US-FISIO-006); o PDF daqui é só o prontuário.
 
 ## Refs

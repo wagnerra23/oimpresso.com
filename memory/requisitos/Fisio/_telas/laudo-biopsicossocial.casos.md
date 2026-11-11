@@ -49,10 +49,10 @@ related_us: [US-FISIO-060]
 | UC-FBP-12 | o texto de apoio não conclui; leitura com `fisio.access`; outra empresa 404 | must | US-FISIO-060 | `FisioLaudoBpsApoioTest` |
 | UC-FBP-13 | o PDF segue o formulário SES-SC; rascunho sai como documento de apoio; vazio sai em branco | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
 | UC-FBP-14 | cada PDF grava uma linha no `activity_log` só com ids; outra empresa 404 sem log | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
+| UC-FBP-15 | a ficha recebe o catálogo da matriz e os laudos deferidos com pontuação e equipe; a 99 não vê | must | US-FISIO-060 | `FisioLaudoBpsTelaTest` |
 
 As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 
-- [BACKLOG] cartão do laudo na ficha do paciente, com o aviso de que a emissão da carteira segue o fluxo da APS e da FCEE.
 - [BACKLOG] questionários de fibromialgia no apoio (dependem da etapa 07, P-03).
 
 ---
@@ -169,4 +169,16 @@ As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
   A outra empresa recebe 404 e nada é registrado.
 - **Âncora:** LGPD art. 11 · mesmo rastro do laudo de evolução (UC-FLD-02).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php`
+- **Status: 🧪**
+
+## UC-FBP-15 · O laudo na ficha do paciente `[must]`
+- **Persona:** fisioterapeuta na ficha do paciente.
+- **Aceite:** A ficha recebe o catálogo da matriz (8 domínios, 30 itens) junto da página e os laudos
+  por prop deferida (grupo próprio), o mais recente primeiro, com formulário, pontuação e equipe. O
+  cartão "Laudo biopsicossocial" (`Fisio/_components/LaudoBiopsicossocial.tsx`, protótipo
+  `LaudoBiopsicossocial.dc.html`) mostra o aviso de que a emissão é da Atenção Primária e a carteira
+  segue o fluxo da FCEE; abre um domínio da matriz por vez com 100/75/50/25; mostra o apoio da
+  fisioterapia; deixa a conclusão sem resposta até a equipe marcar; monta a equipe; salva, finaliza,
+  baixa o PDF e abre nova versão de laudo finalizado. Usuário da outra empresa recebe 404 na ficha.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php`
 - **Status: 🧪**
