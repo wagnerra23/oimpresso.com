@@ -60,10 +60,13 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('/', [PainelController::class, 'index'])->name('painel');
 
         // Área do estudo (etapa 07 P-04). Exige `fisio.pesquisa` (no controller), além de fisio.access.
+        Route::get('pesquisa', [PesquisaController::class, 'index'])->name('pesquisa.index');
         Route::post('pesquisa/estudos', [PesquisaController::class, 'store'])->name('pesquisa.estudos.store');
         Route::post('pesquisa/estudos/{study}/participantes', [PesquisaController::class, 'incluir'])->whereNumber('study')->name('pesquisa.participantes.store');
         Route::post('pesquisa/estudos/{study}/participantes/{participant}/saida', [PesquisaController::class, 'saida'])
             ->whereNumber('study')->whereNumber('participant')->name('pesquisa.participantes.saida');
+        Route::post('pesquisa/estudos/{study}/eventos/{evento}/revisar', [PesquisaController::class, 'revisarEvento'])
+            ->whereNumber('study')->whereNumber('evento')->name('pesquisa.eventos.revisar');
 
         // Configurações › WhatsApp: a clínica escolhe o canal; número e driver são do módulo Whatsapp.
         Route::get('configuracoes/whatsapp', [ConfiguracoesController::class, 'whatsapp'])->name('configuracoes.whatsapp');
