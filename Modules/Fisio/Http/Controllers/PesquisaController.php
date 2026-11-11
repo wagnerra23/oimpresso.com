@@ -140,7 +140,7 @@ class PesquisaController extends Controller
     {
         $this->autorizar($request);
         $nota = (string) $request->validate(['nota' => ['required', 'string', 'max:1000']])['nota'];
-        $e = StudyAdverseEvent::where('study_id', $study)->findOrFail($evento);
+        $e = StudyAdverseEvent::where('business_id', $this->empresa($request))->where('study_id', $study)->findOrFail($evento);
         $this->eventos->revisar($e, $nota, (int) $request->user()->id);
 
         return $this->responder($request, ['reviewed_at' => $e->reviewed_at?->toIso8601String()], 200, 'Revisão registrada.');
