@@ -60,6 +60,20 @@ return [
         ],
     ],
     /*
+     * Questionários de fibromialgia liberados nesta instalação (etapa 07, P-03; ADR 0437 §8).
+     * Sem licença confirmada o instrumento não entra: ele está no enum do banco, mas só aparece
+     * na ficha e só aceita resposta se o código estiver nesta lista. Ligado em local e staging
+     * (para testar antes de levar à Anvisa), desligado em produção. O FIQR exige licença da Mapi
+     * Research Trust para uso comercial. Liberar um em produção = pôr o código em
+     * FISIO_INSTRUMENTOS_LIBERADOS (separado por vírgula) depois de confirmar a licença.
+     * Lido durante o `config:cache`, como os demais env() deste arquivo.
+     */
+    'instrumentos_liberados' => env('FISIO_INSTRUMENTOS_LIBERADOS') !== null
+        ? array_values(array_filter(array_map('trim', explode(',', (string) env('FISIO_INSTRUMENTOS_LIBERADOS')))))
+        // Lista de ambientes que LIGAM (não de quem desliga): ambiente desconhecido fica desligado.
+        : (in_array(env('APP_ENV'), ['local', 'staging', 'testing'], true) ? ['acr2016', 'fiqr', 'pgic', 'sentar_levantar_30s'] : []),
+
+    /*
      * Versão vigente de cada consentimento (fisio_consents, ADR 0437 §7). Consentimento
      * dado numa versão antiga não vale: a versão vem SEMPRE daqui, nunca do corpo do
      * request. Mudar o texto de um termo = subir a versão dele aqui.
