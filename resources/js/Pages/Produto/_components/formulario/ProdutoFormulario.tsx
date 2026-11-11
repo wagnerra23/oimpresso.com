@@ -7,7 +7,7 @@ import type { FormEvent } from 'react';
 import { BlocoDados } from './BlocoDados';
 import { BlocoConfiguracoes } from './BlocoConfiguracoes';
 import { BlocoArmazenagem } from './BlocoArmazenagem';
-import type { EnderecoNoEstoque, EstadoArmazenagem } from './armazenagem';
+import type { EnderecoNoEstoque, EstadoArmazenagem, SaldoPorLocal } from './armazenagem';
 import { BlocoFiscal } from './BlocoFiscal';
 import { BlocoImpostosPrecos } from './BlocoImpostosPrecos';
 import type { PrecoSimples } from './precos';
@@ -42,7 +42,7 @@ interface Props {
   /** Método de custo (US-COM-024), mostrado no card "Impostos e preços". */
   metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
   /** Locais de armazenagem (CU-PROD-20): só com o estoque controlado; sem isto o bloco não aparece. */
-  armazenagem?: { valor: EstadoArmazenagem; mudar: (e: EstadoArmazenagem) => void; endereco: EnderecoNoEstoque };
+  armazenagem?: { valor: EstadoArmazenagem; mudar: (e: EstadoArmazenagem) => void; endereco: EnderecoNoEstoque; saldos?: SaldoPorLocal };
   /** Política de preço (CU-PROD-21), no card "Impostos e preços". */
   politica?: { valor: EstadoPolitica; mudar: (e: EstadoPolitica) => void };
 }
@@ -79,6 +79,7 @@ export function ProdutoFormulario({
               mudar={armazenagem.mudar}
               locais={opcoes.businessLocations}
               endereco={armazenagem.endereco}
+              saldos={armazenagem.saldos}
             />
           ) : undefined
         }

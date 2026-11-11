@@ -60,6 +60,19 @@ return [
         ],
     ],
     /*
+     * Questionários de fibromialgia liberados nesta instalação (etapa 07, P-03; ADR 0437 §8).
+     * Sem licença confirmada o instrumento não entra: ele está no enum do banco, mas só aparece
+     * na ficha e só aceita resposta se o código estiver nesta lista. Ligado em local, staging e
+     * testes (para testar antes de levar à Anvisa) e vazio em qualquer outro ambiente — produção
+     * é `live`. A lista é de quem LIGA: ambiente desconhecido fica desligado. O FIQR exige
+     * licença da Mapi Research Trust para uso comercial. Liberar em produção = PR nesta chave,
+     * depois de a licença ser confirmada (P-01).
+     */
+    'instrumentos_liberados' => in_array(config('app.env'), ['local', 'staging', 'testing'], true)
+        ? ['acr2016', 'fiqr', 'pgic', 'sentar_levantar_30s']
+        : [],
+
+    /*
      * Versão vigente de cada consentimento (fisio_consents, ADR 0437 §7). Consentimento
      * dado numa versão antiga não vale: a versão vem SEMPRE daqui, nunca do corpo do
      * request. Mudar o texto de um termo = subir a versão dele aqui.
@@ -71,7 +84,25 @@ return [
         'camera' => 'v1',
         'imagem' => 'v1',
         'marketing' => 'v1',
-        'pesquisa_ia' => 'v1',
+        // Treino de IA com dado do paciente: separado da pesquisa e opcional (ADR 0437 §7).
+        // A finalidade `pesquisa` NÃO mora aqui: é por estudo, e a versão é o TCLE aprovado
+        // pelo CEP daquele estudo (`fisio_studies.tcle_version`, etapa 07 P-02). A antiga
+        // `pesquisa_ia` saiu da lista: os aceites antigos ficam no banco e não valem para nada.
+        'treino_ia' => 'v1',
+    ],
+
+    /*
+     * Assistente de IA da pesquisadora (etapa 07 P-08). Liga por empresa em fisio_settings
+     * (`pesquisa.assistente_ia`, desligado por padrão). provider/model nulos = padrão do
+     * laravel/ai (ADR 0035). Sem `env()` aqui: o Larastan acusa `env()` fora de `config/`
+     * (com config em cache ele volta nulo). `max_linhas` limita cada CSV mandado ao modelo.
+     */
+    'pesquisa' => [
+        'assistente' => [
+            'provider' => null,
+            'model' => null,
+            'max_linhas' => 4000,
+        ],
     ],
 
     /*

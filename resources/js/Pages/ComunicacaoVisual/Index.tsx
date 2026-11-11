@@ -83,7 +83,7 @@ interface ArquivoTela {
 }
 
 /** Extensões aceitas (espelha OrcamentoArquivoController::EXTENSOES). */
-const EXTENSOES_ARQUIVO = '.pdf,.jpg,.jpeg,.png,.svg,.ai,.eps,.cdr,.tif,.tiff,.psd';
+const EXTENSOES_ARQUIVO = '.pdf,.jpg,.jpeg,.png,.ai,.eps,.cdr,.tif,.tiff,.psd';
 
 /** Linha da lista "Orçamentos salvos" (OrcamentoController::recentes). */
 interface OrcamentoResumo {
@@ -441,6 +441,9 @@ export default function Index({
       )) as { id: number; numero: string; status: string };
       setSalvo({ id: data.id, numero: data.numero, status: data.status });
       setAlterado(false);
+      // UC-CVACE-04: salvar fecha o link aberto no servidor; o antigo não pode continuar na tela.
+      setLinkCliente(null);
+      setLinkCopiado(false);
       window.history.replaceState(window.history.state, '', `/comunicacao-visual?orcamento=${data.id}`);
       router.reload({ only: ['recentes'] });
     } catch (e) {

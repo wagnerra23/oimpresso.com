@@ -53,21 +53,21 @@ it('Apontamento.getActivitylogOptions() retorna LogOptions namespaced comvis.apo
     expect($opts->logName)->toBe('comvis.apontamento');
 });
 
-it('Orcamento whitelist logOnly NÃO inclui contato_id (PII reference) nem observacoes (free-text)', function () {
+it('UC-CV-08 · Orcamento whitelist logOnly NÃO inclui contato_id (PII reference) nem observacoes (free-text)', function () {
     $opts = (new Orcamento())->getActivitylogOptions();
 
     expect(in_array('contato_id', $opts->logAttributes, true))->toBeFalse('contato_id é PII reference — não logar em activity_log');
     expect(in_array('observacoes', $opts->logAttributes, true))->toBeFalse('observacoes pode conter PII free-text — não logar');
 });
 
-it('Apontamento whitelist logOnly NÃO inclui observacoes nem operador_id', function () {
+it('UC-CV-08 · Apontamento whitelist logOnly NÃO inclui observacoes nem operador_id', function () {
     $opts = (new Apontamento())->getActivitylogOptions();
 
     expect(in_array('observacoes', $opts->logAttributes, true))->toBeFalse('observacoes pode conter PII free-text — não logar');
     expect(in_array('operador_id', $opts->logAttributes, true))->toBeFalse('operador_id é PII reference — log captura via causer Spatie automaticamente');
 });
 
-it('whitelist logOnly cobre campos críticos de negócio (status/totais/datas)', function () {
+it('UC-CV-08 · whitelist logOnly cobre campos críticos de negócio (status/totais/datas)', function () {
     // W27 D7 forensic fix: Pest expect()->toContain($a, $b) checa AMBOS valores em array,
     // não passa $b como mensagem. Mensagem semântica vai pro nome do test (acima).
     $orcOpts = (new Orcamento())->getActivitylogOptions();
@@ -85,7 +85,7 @@ it('whitelist logOnly cobre campos críticos de negócio (status/totais/datas)',
     expect($apOpts->logAttributes)->toContain('drift_percent');
 });
 
-it('logOnlyDirty ativo previne polution log (só mudanças reais)', function () {
+it('UC-CV-08 · logOnlyDirty ativo previne polution log (só mudanças reais)', function () {
     foreach ([Orcamento::class, Os::class, Apontamento::class] as $class) {
         $opts = (new $class())->getActivitylogOptions();
         expect($opts->logOnlyDirty)->toBeTrue(
@@ -94,7 +94,7 @@ it('logOnlyDirty ativo previne polution log (só mudanças reais)', function () 
     }
 });
 
-it('dontSubmitEmptyLogs ativo previne log entry sem mudança real', function () {
+it('UC-CV-08 · dontSubmitEmptyLogs ativo previne log entry sem mudança real', function () {
     foreach ([Orcamento::class, Os::class, Apontamento::class] as $class) {
         $opts = (new $class())->getActivitylogOptions();
         expect($opts->submitEmptyLogs)->toBeFalse(

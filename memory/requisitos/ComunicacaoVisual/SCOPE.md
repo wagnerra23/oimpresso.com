@@ -6,6 +6,7 @@ contains:
   - "AppOrcamentoRapidoController (orçamento rápido do app das lojas, /api/app/orcamentos — PR 16 propostas-app)"
   - "ApontamentoController"
   - "DataController"
+  - "Http/Middleware/ComunicacaoVisualLiberado (pacote comunicacao_visual_module nas rotas web e API; a página pública do aceite fica fora — UC-CVPAC-01..03)"
   - "InstallController"
   - "OrcamentoController"
   - "OrcamentoArquivoController (arquivos anexados ao orçamento antes de virar OS — /comunicacao-visual/api/orcamentos/{id}/arquivos, UC-FLX-01)"
