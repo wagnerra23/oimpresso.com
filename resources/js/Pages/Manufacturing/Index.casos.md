@@ -289,7 +289,7 @@ last_run: "2026-10-07"
 
 ---
 
-## UC-OP-17 · A ordem grava quantidade e custo como informados, sem reconverter número
+## UC-OP-20 · A ordem grava quantidade e custo como informados, sem reconverter número
 - **Persona:** Eliana (produção) — lança um consumo fracionado (0,125) e um lote grande de item barato.
 - **Aceite:** Dado um consumo de 0,125 · Quando finalizo · Então a linha grava 0,125 e o estoque baixa 0,125
   (não 125) · Dado um insumo com custo de 3 casas (12,345) · Então o preço da linha é 12,345 · Dado 3
@@ -335,4 +335,4 @@ last_run: "2026-10-07"
   produto da própria empresa. Vermelho só com o teste na run 39441296307 (500 na variação inexistente; ordem
   de outra empresa gravada antes do 404 acidental); verde com o conserto na run 39446612104.
 - 2026-11-09 · [C] UC-OP-14 (US-MANU-008 H1): o item H1 do backlog virou caso com teste. A tela não mudou.
-- 2026-11-11 · [C] UC-OP-17 (lote 1.2 da auditoria): quantidade e custo da ordem sem reconversão de número. A tela não mudou.
+- 2026-11-11 · [C] UC-OP-20 (lote 1.2 da auditoria): quantidade e custo da ordem sem reconversão de número. A tela não mudou.

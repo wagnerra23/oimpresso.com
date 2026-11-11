@@ -352,7 +352,7 @@ class ProductionController extends Controller
             $production_sell = Transaction::create($transaction_sell_data);
 
             if (! empty($sell_lines)) {
-                // As linhas já vêm em número (num_uf acima): sem uf_data=false o core relê e 0,125 vira 125 (UC-OP-17).
+                // As linhas já vêm em número (num_uf acima): sem uf_data=false o core relê e 0,125 vira 125 (UC-OP-20).
                 $this->transactionUtil->createOrUpdateSellLines($production_sell, $sell_lines, $transaction_sell_data['location_id'], null, null, ['mfg_waste_percent' => 'mfg_waste_percent', 'mfg_ingredient_group_id' => 'mfg_ingredient_group_id'], false);
             }
 
@@ -825,7 +825,7 @@ class ProductionController extends Controller
             }
 
             if (! empty($sell_lines)) {
-                // As linhas já vêm em número (num_uf acima): sem uf_data=false o core relê e 0,125 vira 125 (UC-OP-17).
+                // As linhas já vêm em número (num_uf acima): sem uf_data=false o core relê e 0,125 vira 125 (UC-OP-20).
                 $this->transactionUtil->createOrUpdateSellLines($production_sell, $sell_lines, $transaction->location_id, false, 'draft', ['mfg_waste_percent' => 'mfg_waste_percent', 'mfg_ingredient_group_id' => 'mfg_ingredient_group_id'], false);
             }
 
@@ -876,7 +876,7 @@ class ProductionController extends Controller
      * Número para os utilitários do core que relêem o valor com `num_uf` (`createOrUpdatePurchaseLines`).
      * Vírgula decimal e sem separador de milhar: o `num_uf` lê sem ambiguidade. O `num_f` que estava aqui
      * arredondava a 2 casas (custo unitário 0,005 virava 0,01) e, com milhar em vírgula, devolvia "1,500.00",
-     * que o `num_uf` lê como 1,5. Nada é arredondado no meio da conta (handoff §7 ponto 6, UC-OP-17).
+     * que o `num_uf` lê como 1,5. Nada é arredondado no meio da conta (handoff §7 ponto 6, UC-OP-20).
      */
     private function numeroParaCore(float $valor): string
     {

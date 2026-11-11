@@ -118,8 +118,8 @@ function mfgNumLinhaCompra(int $ordem): object
     return DB::table('purchase_lines')->where('transaction_id', $ordem)->first(['quantity', 'purchase_price', 'purchase_price_inc_tax']);
 }
 
-describe('Ordem de produção — quantidade e custo gravados como informados (UC-OP-17)', function () {
-    it('UC-OP-17 — consumo de 0,125 grava 0,125 na linha e baixa 0,125 do insumo', function () {
+describe('Ordem de produção — quantidade e custo gravados como informados (UC-OP-20)', function () {
+    it('UC-OP-20 — consumo de 0,125 grava 0,125 na linha e baixa 0,125 do insumo', function () {
         $user = mfgNumUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo fracionado');
         $local = mfgNumLocal();
@@ -136,7 +136,7 @@ describe('Ordem de produção — quantidade e custo gravados como informados (U
         expect((float) DB::table('purchase_lines')->where('id', $compra)->value('mfg_quantity_used'))->toBe(0.125);
     });
 
-    it('UC-OP-17 — custo de insumo com 3 casas (12,345) grava 12,345 no preço da linha', function () {
+    it('UC-OP-20 — custo de insumo com 3 casas (12,345) grava 12,345 no preço da linha', function () {
         $user = mfgNumUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo custo tres casas');
         $insumo = mfgNumInsumo($linhaReceita);
@@ -153,7 +153,7 @@ describe('Ordem de produção — quantidade e custo gravados como informados (U
         expect(round((float) $linha->quantity * (float) $linha->unit_price_inc_tax, 4))->toBe(24.69);
     });
 
-    it('UC-OP-17 — custo unitário do acabado não é arredondado a 2 casas: 100 por 3 grava 33,3333', function () {
+    it('UC-OP-20 — custo unitário do acabado não é arredondado a 2 casas: 100 por 3 grava 33,3333', function () {
         $user = mfgNumUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo custo dizima');
         $local = mfgNumLocal();
@@ -167,7 +167,7 @@ describe('Ordem de produção — quantidade e custo gravados como informados (U
         expect(round((float) $compra->quantity * (float) $compra->purchase_price_inc_tax, 2))->toBe(100.0);
     });
 
-    it('UC-OP-17 — custo unitário abaixo de um centavo não vira zero nem dobra: 2 por 400 grava 0,005', function () {
+    it('UC-OP-20 — custo unitário abaixo de um centavo não vira zero nem dobra: 2 por 400 grava 0,005', function () {
         $user = mfgNumUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo custo pequeno');
         $local = mfgNumLocal();
@@ -180,7 +180,7 @@ describe('Ordem de produção — quantidade e custo gravados como informados (U
         expect(round((float) $compra->quantity * (float) $compra->purchase_price_inc_tax, 2))->toBe(2.0);
     });
 
-    it('UC-OP-17 — quantidade líquida com 3 casas (2,5 menos 0,375 perdidas) grava 2,125 no acabado', function () {
+    it('UC-OP-20 — quantidade líquida com 3 casas (2,5 menos 0,375 perdidas) grava 2,125 no acabado', function () {
         $user = mfgNumUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo perda fracionada');
         $local = mfgNumLocal();
