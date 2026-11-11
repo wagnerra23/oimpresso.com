@@ -26,6 +26,8 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property ?int $responsible_user_id
  * @property string $status
  * @property ?\Illuminate\Support\Carbon $locked_at
+ * @property ?int $locked_by
+ * @property ?string $lock_reason
  */
 class Study extends Model
 {
