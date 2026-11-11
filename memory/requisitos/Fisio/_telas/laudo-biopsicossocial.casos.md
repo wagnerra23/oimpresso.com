@@ -38,15 +38,18 @@ related_us: [US-FISIO-060]
 | UC-FBP-01 | matriz com os 8 domínios e 30 itens do modelo; total = soma do menor valor de cada domínio | must | US-FISIO-060 | `MatrizIfbrmTest` |
 | UC-FBP-02 | laudo finalizado e sua equipe não mudam; correção é laudo novo | must | US-FISIO-060 | `FisioLaudoBpsEsquemaTest` |
 | UC-FBP-03 | a empresa 99 não vê o laudo da 98 | must | US-FISIO-060 | `FisioLaudoBpsEsquemaTest` |
+| UC-FBP-04 | preencher grava só o que veio; matriz validada e pontuada; Sim/Não como booleano | must | US-FISIO-060 | `FisioLaudoBpsEscritaTest` |
+| UC-FBP-05 | equipe: fisioterapeuta da clínica com nome e CREFITO do servidor; profissional de fora com nome, área e registro | must | US-FISIO-060 | `FisioLaudoBpsEscritaTest` |
+| UC-FBP-06 | finalizar exige 30 itens, conclusão respondida, local e data, e dois profissionais de áreas distintas com médico | must | US-FISIO-060 | `FisioLaudoBpsEscritaTest` |
+| UC-FBP-07 | nova versão copia formulário e equipe para rascunho que aponta o original | must | US-FISIO-060 | `FisioLaudoBpsEscritaTest` |
+| UC-FBP-08 | sem `fisio.editar` 403; outra empresa 404; paciente bloqueado sem laudo novo | must | US-FISIO-060 | `FisioLaudoBpsEscritaTest` |
+| UC-FBP-09 | o sistema não marca a conclusão, mesmo com pontuação abaixo de 500 | must | US-FISIO-060 | `FisioLaudoBpsEscritaTest` |
 
 As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 
-- [BACKLOG] preencher o formulário por rota, com `fisio.editar`; outra empresa 404; paciente bloqueado não recebe laudo novo.
-- [BACKLOG] incluir e tirar profissional da equipe; o fisioterapeuta da clínica assina com o CREFITO do perfil; profissional de fora entra com nome, área e registro.
-- [BACKLOG] finalizar só com os 30 itens pontuados, as três perguntas da conclusão respondidas pela equipe, local e data, e equipe com dois profissionais de áreas distintas, um deles médico.
 - [BACKLOG] sugestão de apoio ao texto com dor, crises e adesão, cada número com período e fonte; sem dado suficiente, aviso.
 - [BACKLOG] PDF no layout oficial; antes de finalizar sai marcado como documento de apoio; cada geração grava uma linha no `activity_log` só com ids.
-- [BACKLOG] o software nunca marca a conclusão nem escreve que o paciente é pessoa com deficiência.
+- [BACKLOG] o texto de apoio gerado pelo sistema não escreve que o paciente é pessoa com deficiência.
 
 ---
 
@@ -75,4 +78,50 @@ As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
   Então não acha nada; o usuário da 98 acha.
 - **Regressão que defende:** dado de saúde de uma clínica aparecendo para outra (ADR 0093).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-04 · Preencher o formulário `[must]`
+- **Persona:** fisioterapeuta ou equipe preenchendo o laudo.
+- **Aceite:** Cada envio grava só os blocos que vieram (identificação, matriz, fatores, conclusão,
+  local, data); o resto fica. A matriz aceita só itens do modelo e valores 100/75/50/25; item
+  enviado vazio sai da matriz; a resposta traz a pontuação (por domínio, o que falta e o total).
+  As perguntas da conclusão chegam do formulário como "1"/"0" e são gravadas como Sim/Não.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-05 · Equipe `[must]`
+- **Aceite:** O fisioterapeuta da clínica entra com assinatura `sistema` só na área
+  Fisioterapia/TO; nome é o do usuário e registro é o CREFITO do perfil, ignorando o que vier no
+  corpo. Profissional de fora entra com `externa`, área, nome e registro obrigatórios; o PDF reserva
+  espaço para a assinatura e o carimbo dele. Enquanto o laudo é rascunho, dá para tirar alguém.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-06 · Finalizar `[must]`
+- **Aceite:** Finalizar recusa, dizendo o motivo, quando falta item da matriz, quando alguma das três
+  perguntas da conclusão está sem resposta, quando falta local ou data, e quando a equipe não tem
+  dois profissionais de áreas distintas com um médico (dois médicos não bastam; fisioterapia e
+  enfermagem sem médico não bastam). Com tudo certo, grava quem finalizou e quando, e devolve o
+  total. Depois disso, preencher, mexer na equipe e finalizar de novo são recusados.
+- **Âncora:** modelo SES-SC: "mínimo de dois profissionais de áreas distintas, sendo um deles o médico"; "Local e data: (obrigatório)".
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-07 · Nova versão `[must]`
+- **Aceite:** Só laudo finalizado abre nova versão; ela nasce em rascunho, com o formulário e a
+  equipe copiados e `amends_id` no original, que fica intacto.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-08 · Permissão e isolamento `[must]`
+- **Aceite:** Sem `fisio.editar`, criar e preencher dão 403. Usuário da 99 recebe 404 em tudo do
+  laudo da 98 e nada entra nele. Paciente bloqueado (Lei 13.787/2018) não recebe laudo novo.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-09 · O sistema não conclui `[must]`
+- **Aceite:** Com a matriz inteira em 25 (total 200, abaixo dos 500 do formulário), o laudo continua
+  sem nenhuma resposta na conclusão: só a equipe marca as três perguntas.
+- **Âncora:** ADI 5033647-81.2025.8.24.0000 (citada na Deliberação 500/CIB/2026) · ADR 0437 §5.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php`
 - **Status: 🧪**

@@ -3522,6 +3522,13 @@
       "desc": "US-FISIO-060)"
     },
     {
+      "id": "component:Fisio/LaudoBiopsicossocialController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "LaudoBiopsicossocialController",
+      "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão (US-FISIO-060)"
+    },
+    {
       "id": "component:Fisio/OnboardingController",
       "type": "component",
       "module": "Fisio",
@@ -10731,6 +10738,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/LaudoBiopsicossocialController",
       "type": "hasComponent",
       "source": "contains"
     },
