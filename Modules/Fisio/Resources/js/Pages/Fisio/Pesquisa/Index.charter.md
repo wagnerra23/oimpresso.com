@@ -34,6 +34,7 @@ Dar ao pesquisador do estudo um lugar para cadastrar o estudo, incluir e acompan
 - Registrar a saída (perda de seguimento, conclusão, outro) com motivo, sem apagar — UC-FES-03.
 - Ver as pendências por participante e momento — UC-FES-04.
 - Ver e revisar os eventos adversos (crise por mais de 48 h, alerta de dor) — UC-FES-09..11.
+- Exportar para a universidade sem identificação e travar os dados — UC-FES-12..15.
 
 ## Non-Goals (não faz)
 
@@ -44,3 +45,4 @@ Dar ao pesquisador do estudo um lugar para cadastrar o estudo, incluir e acompan
 ## Automation Anti-hooks
 
 - Quem não tem `fisio.editar` vê só o código do participante, nunca o nome — UC-FES-07.
+- A exportação nunca leva nome, CPF, telefone, data de nascimento nem data do calendário — UC-FES-12.
