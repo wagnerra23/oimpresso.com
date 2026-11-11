@@ -1174,6 +1174,10 @@ qual é o local padrão.
   `products.local_padrao_id`; o `store()` e o `update()` gravam o padrão e o endereço (`product_racks`)
   sem mexer em saldo e recusam local de outra empresa. Casos `UC-PCAD-22` e `UC-PEDIT-19`. O bloco
   "Locais de armazenagem" da tela vem no PR seguinte.
+- **Na tela (2026-11-10):** o bloco "Locais de armazenagem" está no Novo e no Editar (#10628). No
+  Editar entrou a coluna "Em estoque", só leitura, e o local gravado sai só sem saldo, como a [M]
+  decidiu: o envio leva `product_racks_remover`, e o servidor confere o saldo de novo, apaga só o
+  endereço e não mexe em quantidade. Caso `UC-PEDIT-21`.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
