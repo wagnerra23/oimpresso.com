@@ -126,7 +126,7 @@ class PacientesController extends Controller
             'pode_editar' => $this->podeEditar($request),
             'prontuario' => Inertia::defer(fn () => $this->linhaDoTempo($paciente)),
             // Catálogo estático (sem query): vai junto. O histórico é query → defer (US-FISIO-011).
-            'instrumentos' => array_values(CatalogoQuestionarios::todos()),
+            'instrumentos' => array_values(CatalogoQuestionarios::disponiveis()),
             'questionarios' => Inertia::defer(fn () => $this->historicoQuestionarios($paciente)),
             // Aba Programa (US-FISIO-006): queries → defer.
             'programa' => Inertia::defer(fn () => app(EditorProgramaPayload::class)->programaAtivo($paciente), 'programa'),
@@ -389,6 +389,7 @@ class PacientesController extends Controller
             ->map(fn (Questionnaire $q) => [
                 'id' => $q->id,
                 'instrumento' => $q->instrument,
+                'versao' => $q->instrument_version,
                 'score' => $q->score !== null ? (float) $q->score : null,
                 'detalhe' => (array) ($q->answers['detalhe'] ?? []),
                 'answered_at' => $q->answered_at?->toIso8601String(),

@@ -38,6 +38,12 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
 - **Questionário** (`fisio_questionnaires.instrument`): só os de uso livre (ADR 0437 §8) — `eva`,
   `rmdq` (Roland-Morris), `psfs`, `lefs`, `spadi`. ODI, NDI, KOOS, QuickDASH e WOMAC ficam fora até
   haver licença comercial.
+  Fibromialgia (etapa 07, P-03, 2026-11-11): `acr2016` (critérios ACR 2016, WPI + SSS, versão
+  FSQ-Brasil), `fiqr` (FIQR-Br), `pgic` (impressão global de mudança) e `sentar_levantar_30s` (teste de
+  desempenho, registrado pelo profissional). Estar no enum não libera: só aparecem e aceitam resposta se
+  estiverem em `config('fisio.instrumentos_liberados')`, desligado em produção até a licença (P-01). A
+  versão do instrumento fica em `instrument_version`. O resultado dos critérios ACR é informação para o
+  profissional, nunca diagnóstico automático (ADR 0437 §5).
 - **Lançamento do pacote** (`fisio_package_ledger.kind`, append-only, US-FISIO-020): `credito`
   (sessões na abertura), `debito` (uma sessão usada; `ref` diz o atendimento), `estorno`
   (devolve um débito, `ref = estorno:<id>`, +1; ou tira a sobra do saldo quando a venda do pacote é
@@ -70,7 +76,7 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
     "fisio_programs.origin": ["manual", "protocolo"],
     "fisio_programs.pain_alert_mode": ["absoluto", "sobre_basal"],
     "fisio_game_ledger.reason": ["exercicio_concluido", "checkin", "missao", "desafio_semanal"],
-    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"],
+    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi", "acr2016", "fiqr", "pgic", "sentar_levantar_30s"],
     "fisio_appointment_types.modality": ["presencial", "teleconsulta"],
     "fisio_appointments.source": ["clinica", "online", "lista_espera"],
     "fisio_appointments.cancelled_by": ["clinica", "paciente"],
