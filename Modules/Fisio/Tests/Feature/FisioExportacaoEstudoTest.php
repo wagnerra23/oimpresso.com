@@ -51,7 +51,7 @@ function fexBaixar($t, int $estudo, string $arquivo): array
     $r = $t->get("/fisio/pesquisa/estudos/{$estudo}/exportar/{$arquivo}")->assertOk();
     expect($r->headers->get('content-type'))->toContain('text/csv');
 
-    return array_map(fn ($l) => str_getcsv($l, ',', '"', ''), array_values(array_filter(explode("\n", $r->streamedContent() ?: $r->getContent()))));
+    return array_map(fn ($l) => str_getcsv($l, ',', '"', ''), array_values(array_filter(explode("\n", (string) $r->getContent()))));
 }
 
 it('UC-FES-12 · momentos em formato longo, com o código e sem identificação; não respondido sai NA', function () {
