@@ -104,7 +104,16 @@ export interface NaturezaFiscalProduto {
 /** Os erros de validação que os blocos exibem. */
 export type ErrosProduto = Partial<
   Record<
-    'name' | 'origem_mercadoria' | 'ncm' | 'cest' | 'peso_liquido' | 'largura_cm' | 'altura_cm' | 'comprimento_cm',
+    | 'name'
+    | 'origem_mercadoria'
+    | 'ncm'
+    | 'cest'
+    | 'peso_liquido'
+    | 'largura_cm'
+    | 'altura_cm'
+    | 'comprimento_cm'
+    | 'politica_preco'
+    | 'margem_alvo_pct',
     string
   >
 >;

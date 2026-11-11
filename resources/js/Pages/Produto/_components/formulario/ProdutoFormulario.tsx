@@ -6,10 +6,13 @@
 import type { FormEvent } from 'react';
 import { BlocoDados } from './BlocoDados';
 import { BlocoConfiguracoes } from './BlocoConfiguracoes';
+import { BlocoArmazenagem } from './BlocoArmazenagem';
+import type { EnderecoNoEstoque, EstadoArmazenagem } from './armazenagem';
 import { BlocoFiscal } from './BlocoFiscal';
 import { BlocoImpostosPrecos } from './BlocoImpostosPrecos';
 import type { PrecoSimples } from './precos';
 import type { MetodoCustoDoFormulario } from './metodoCusto';
+import type { EstadoPolitica } from './politicaPreco';
 import type {
   CamposProduto,
   DefinirCampo,
@@ -38,6 +41,10 @@ interface Props {
   naturezaFiscal?: NaturezaFiscalProduto | null;
   /** Método de custo (US-COM-024), mostrado no card "Impostos e preços". */
   metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
+  /** Locais de armazenagem (CU-PROD-20): só com o estoque controlado; sem isto o bloco não aparece. */
+  armazenagem?: { valor: EstadoArmazenagem; mudar: (e: EstadoArmazenagem) => void; endereco: EnderecoNoEstoque };
+  /** Política de preço (CU-PROD-21), no card "Impostos e preços". */
+  politica?: { valor: EstadoPolitica; mudar: (e: EstadoPolitica) => void };
 }
 
 export function ProdutoFormulario({
@@ -53,6 +60,8 @@ export function ProdutoFormulario({
   preco,
   naturezaFiscal,
   metodoCusto,
+  armazenagem,
+  politica,
 }: Props) {
   return (
     <form id={id} onSubmit={onSubmit} className="space-y-6">
@@ -63,6 +72,16 @@ export function ProdutoFormulario({
         definir={definir}
         errors={errors}
         mostrarValidade={mostrarValidade}
+        armazenagem={
+          armazenagem && opcoes.businessLocations ? (
+            <BlocoArmazenagem
+              valor={armazenagem.valor}
+              mudar={armazenagem.mudar}
+              locais={opcoes.businessLocations}
+              endereco={armazenagem.endereco}
+            />
+          ) : undefined
+        }
       />
       <BlocoFiscal data={data} definir={definir} errors={errors} naturezaFiscal={naturezaFiscal} />
       <BlocoImpostosPrecos
@@ -73,6 +92,14 @@ export function ProdutoFormulario({
         tipoAtual={tipoAtual}
         preco={preco}
         metodoCusto={metodoCusto}
+        politica={
+          politica
+            ? {
+                ...politica,
+                erros: { politica: errors.politica_preco, margem: errors.margem_alvo_pct },
+              }
+            : undefined
+        }
       />
     </form>
   );

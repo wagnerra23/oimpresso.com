@@ -40,6 +40,9 @@ class ProductController extends Controller
     /** Peso líquido (kg) e dimensões da embalagem (cm) — UC-PCAD-16 e UC-PEDIT-13, CU-PROD-17. */
     private const PESO_E_DIMENSOES = ['peso_liquido', 'largura_cm', 'altura_cm', 'comprimento_cm'];
 
+    /** Política de preço do produto (CU-PROD-21), nos nomes de Fluxos e da Fabricação. */
+    protected const POLITICAS_DE_PRECO = ['fixo', 'acompanha', 'margem'];
+
     /**
      * All Utils instance.
      */
@@ -2084,6 +2087,42 @@ class ProductController extends Controller
     }
 
     /**
+     * Política de preço (CU-PROD-21): `fixo`, `acompanha` ou `margem`. Com `margem`, a margem alvo é
+     * obrigatória e fica acima de 0 e abaixo de 100: ela é sobre o preço de venda, então 100% não
+     * existe. O Blade não manda nenhum dos dois e não muda nada. Fora do `try`, como os outros.
+     */
+    protected function validarPoliticaDePreco(Request $request): void
+    {
+        $request->validate(
+            [
+                'politica_preco' => ['sometimes', 'string', 'in:'.implode(',', self::POLITICAS_DE_PRECO)],
+                'margem_alvo_pct' => ['nullable', 'required_if:politica_preco,margem', 'numeric', 'gt:0', 'lt:100'],
+            ],
+            [
+                'politica_preco.*' => 'A política de preço não é válida.',
+                'margem_alvo_pct.required_if' => 'Informe a margem alvo.',
+                'margem_alvo_pct.*' => 'A margem alvo tem que ser um número maior que 0 e menor que 100.',
+            ],
+        );
+    }
+
+    /**
+     * O que o store() e o update() gravam da política de preço. A margem alvo só fica com a política
+     * `margem`; nas outras volta a nula, porque a tela nem mostra o campo.
+     *
+     * @return array{politica_preco: string, margem_alvo_pct: float|null}
+     */
+    protected function politicaDePrecoDoEnvio(Request $request): array
+    {
+        $politica = (string) $request->input('politica_preco');
+
+        return [
+            'politica_preco' => $politica,
+            'margem_alvo_pct' => $politica === 'margem' ? round((float) $request->input('margem_alvo_pct'), 2) : null,
+        ];
+    }
+
+    /**
      * Peso líquido e dimensões: número de 0 a 99999, com ponto decimal (a tela manda assim).
      * Fora do `try`, como a origem. Ausente ou vazio não valida: os quatro são opcionais.
      */
@@ -2135,6 +2174,7 @@ class ProductController extends Controller
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
         $this->validarLocaisDeArmazenagem($request, (int) $uc_pcad_05_bid);
+        $this->validarPoliticaDePreco($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -2178,6 +2218,10 @@ class ProductController extends Controller
             // Local padrão de armazenagem (CU-PROD-20): já validado contra os locais do envio.
             if ($request->filled('local_padrao_id')) {
                 $product_details['local_padrao_id'] = (int) $request->input('local_padrao_id');
+            }
+            // Política de preço (CU-PROD-21): sem ela no envio (Blade), vale o padrão da coluna, `fixo`.
+            if ($request->filled('politica_preco')) {
+                $product_details = array_merge($product_details, $this->politicaDePrecoDoEnvio($request));
             }
 
             if (! empty($request->input('sub_category_id'))) {
@@ -2494,6 +2538,9 @@ class ProductController extends Controller
                     'pesoLiquido' => $product->peso_liquido ?? null,
                     // CU-PROD-20: o local padrão de armazenagem (null = sem padrão).
                     'localPadraoId' => $product->local_padrao_id !== null ? (int) $product->local_padrao_id : null,
+                    // CU-PROD-21: a política de preço e a margem alvo (só com `margem`).
+                    'politicaPreco' => (string) ($product->politica_preco ?? 'fixo'),
+                    'margemAlvoPct' => $product->margem_alvo_pct !== null ? (float) $product->margem_alvo_pct : null,
                     'larguraCm' => $product->largura_cm ?? null,
                     'alturaCm' => $product->altura_cm ?? null,
                     'comprimentoCm' => $product->comprimento_cm ?? null,
@@ -2578,6 +2625,7 @@ class ProductController extends Controller
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
         $this->validarLocaisDeArmazenagem($request, (int) $business_id, (int) $id);
+        $this->validarPoliticaDePreco($request);
 
         try {
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
@@ -2632,6 +2680,12 @@ class ProductController extends Controller
             // Local padrão (CU-PROD-20): só mexe quando a chave vem; vazio volta a nulo. O Blade não manda.
             if ($request->has('local_padrao_id')) {
                 $product->setAttribute('local_padrao_id', $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null);
+            }
+            // Política de preço (CU-PROD-21): só mexe quando vem. O Blade não manda e não muda nada.
+            if ($request->filled('politica_preco')) {
+                foreach ($this->politicaDePrecoDoEnvio($request) as $coluna => $valor) {
+                    $product->setAttribute($coluna, $valor);
+                }
             }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
             $product->product_custom_field2 = $product_details['product_custom_field2'] ?? '';

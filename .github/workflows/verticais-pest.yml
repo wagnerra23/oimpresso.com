@@ -742,6 +742,7 @@ jobs:
             Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php \
             Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php \
             Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php \
+            Modules/Vestuario/Tests/Feature/VestuarioFkESeederTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php \
@@ -806,6 +807,7 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoPostosOperadoresTelaTest.php \
+            Modules/Producao/Tests/Feature/ProducaoCustoHoraDecimalContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoPrevistoRealizadoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoAprovacaoArteContratoTest.php \
@@ -822,6 +824,8 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoTurnoCalendarioContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoOrdemSituacaoRotasContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoFichaOsContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoIsolamentoEmpresasContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoEscopoDaEmpresaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php \

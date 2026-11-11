@@ -45,6 +45,7 @@ class PluggySyncCommand extends Command
         // o cron sincroniza toda conta vinculada ao Pluggy, de todos os tenants. Cada conta
         // é sincronizada com o business_id DELA (argumento explícito do syncAccount), sem
         // mistura entre tenants.
+        // SUPERADMIN: cron sem sessão percorre as contas de todas as empresas; cada uma sincroniza com o próprio business_id
         $contas = ContaBancaria::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
             ->whereNotNull('metadata->pluggy->account_id')
