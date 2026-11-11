@@ -37,17 +37,17 @@ Pontuação calculada pelo sistema; a conclusão é da equipe e do fluxo oficial
     .apoio { border: 0.75pt solid #a16207; background: #fffbeb; color: #713f12; padding: 1.8mm 2.5mm; margin-bottom: 3mm; font-size: 8pt; }
 
     table.campos, table.matriz, table.resumo, table.conclusao, table.equipe { width: 100%; border-collapse: collapse; }
-    table.campos td, table.matriz td, table.matriz th, table.resumo td, table.resumo th,
-    table.conclusao td, table.equipe td, table.equipe th { vertical-align: top; text-align: left; }
+    table.campos td, table.matriz td, table.matriz th, table.conclusao td, table.equipe td,
+    table.equipe th { vertical-align: top; text-align: left; }
 
     .campos td { border: 0.5pt solid #dfdedb; padding: 1.2mm 2mm 1.6mm; }
     .rot { display: block; font-size: 6.8pt; text-transform: uppercase; letter-spacing: 0.3pt; color: #58554f; margin-bottom: 0.6mm; }
     .val { min-height: 4mm; }
-    .texto { white-space: pre-line; min-height: 10mm; }
+    .texto { white-space: pre-line; min-height: 7mm; }
 
     .legenda { font-size: 7.3pt; color: #58554f; margin: 0 0 2mm; }
-    .dominio { page-break-inside: avoid; margin-bottom: 1.8mm; }
-    .matriz th, .matriz td { border: 0.5pt solid #dfdedb; padding: 0.7mm 1.8mm; }
+    .dominio { page-break-inside: avoid; margin-bottom: 1.5mm; }
+    .matriz th, .matriz td { border: 0.5pt solid #dfdedb; padding: 0.4mm 1.8mm; }
     .matriz th { background: #f4f3f0; font-size: 8pt; }
     .matriz th.col, .matriz td.col { width: 11mm; text-align: center; }
     .matriz tr.par td { background: #faf9f7; }
@@ -65,14 +65,14 @@ Pontuação calculada pelo sistema; a conclusão é da equipe e do fluxo oficial
     .conclusao td.resp { width: 32mm; white-space: nowrap; }
     .conclusao tr.destaque td { background: #f4f3f0; font-weight: bold; }
 
-    .equipe th, .equipe td { border: 0.5pt solid #dfdedb; padding: 1.2mm 2mm; }
+    .equipe th, .equipe td { border: 0.5pt solid #dfdedb; padding: 1mm 2mm; }
     .equipe th { background: #f4f3f0; font-size: 7.3pt; font-weight: normal; color: #58554f; text-transform: uppercase; }
-    .equipe td.assin { width: 52mm; height: 10mm; vertical-align: bottom; }
+    .equipe td.assin { width: 52mm; height: 8mm; vertical-align: bottom; }
     .equipe .linha { border-top: 0.5pt solid #1d1a15; font-size: 6.8pt; color: #58554f; padding-top: 0.5mm; }
     .equipe { page-break-inside: avoid; }
 
-    .final { margin-top: 3mm; font-size: 7.5pt; color: #58554f; }
-    .fluxo { margin-top: 4mm; }
+    .final { margin: 2.5mm 0 0; font-size: 7.5pt; color: #58554f; }
+    .fluxo { margin: 2.5mm 0 0; }
 </style>
 @endsection
 
@@ -138,7 +138,7 @@ Pontuação calculada pelo sistema; a conclusão é da equipe e do fluxo oficial
     <tr><td>Há impedimento de longo prazo?</td><td class="resp">{{ $sn($conclusao['impedimento_longo_prazo'] ?? null, true) }} Sim &nbsp; {{ $sn($conclusao['impedimento_longo_prazo'] ?? null, false) }} Não</td></tr>
     <tr><td>Há barreiras que, na interação com o impedimento, geram limitação de atividades e restrição de participação?</td><td class="resp">{{ $sn($conclusao['barreiras'] ?? null, true) }} Sim &nbsp; {{ $sn($conclusao['barreiras'] ?? null, false) }} Não</td></tr>
     <tr class="destaque"><td>Equiparação à pessoa com deficiência (para fins da CIPF)</td><td class="resp">{{ $sn($conclusao['equiparacao'] ?? null, true) }} SIM &nbsp; {{ $sn($conclusao['equiparacao'] ?? null, false) }} NÃO</td></tr>
-    <tr><td colspan="2"><span class="rot">Observação</span><div class="texto" style="min-height:8mm">{{ $conclusao['obs'] ?? '' }}</div></td></tr>
+    <tr><td colspan="2"><span class="rot">Observação</span><div class="texto" style="min-height:6mm">{{ $conclusao['obs'] ?? '' }}</div></td></tr>
 </table>
 
 <div class="secao"><span class="num">5.</span>Equipe multiprofissional e interdisciplinar</div>
