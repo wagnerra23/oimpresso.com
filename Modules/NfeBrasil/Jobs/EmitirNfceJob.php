@@ -6,6 +6,7 @@ namespace Modules\NfeBrasil\Jobs;
 
 use App\Transaction;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -49,7 +50,7 @@ use Throwable;
  * @see memory/requisitos/NfeBrasil/SPEC.md US-NFE-002
  * @see Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php (pattern NFe55)
  */
-class EmitirNfceJob implements ShouldQueue
+class EmitirNfceJob implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -66,6 +67,18 @@ class EmitirNfceJob implements ShouldQueue
         public readonly int $transactionId,
     ) {
         $this->onQueue('nfe');
+    }
+
+    /**
+     * N4-16 (lote 1.2): a venda dispara SellCreatedOrModified a cada gravação; sem isto duas
+     * gravações enfileiram dois jobs da mesma venda. O segundo é descartado enquanto o
+     * primeiro estiver na fila. A trava do NfeService cobre o resto (emissão manual, retry).
+     */
+    public int $uniqueFor = 300;
+
+    public function uniqueId(): string
+    {
+        return $this->businessId . ':' . $this->transactionId;
     }
 
     /**

@@ -44,12 +44,15 @@ related_us: [US-FISIO-060]
 | UC-FBP-07 | nova versão copia formulário e equipe para rascunho que aponta o original | must | US-FISIO-060 | `FisioLaudoBpsEscritaTest` |
 | UC-FBP-08 | sem `fisio.editar` 403; outra empresa 404; paciente bloqueado sem laudo novo | must | US-FISIO-060 | `FisioLaudoBpsEscritaTest` |
 | UC-FBP-09 | o sistema não marca a conclusão, mesmo com pontuação abaixo de 500 | must | US-FISIO-060 | `FisioLaudoBpsEscritaTest` |
+| UC-FBP-10 | apoio da fisioterapia: dor de 30 e 90 dias, crises, adesão e questionários com período e fonte | must | US-FISIO-060 | `FisioLaudoBpsApoioTest` |
+| UC-FBP-11 | sem dado suficiente: nenhum número, aviso no lugar | must | US-FISIO-060 | `FisioLaudoBpsApoioTest` |
+| UC-FBP-12 | o texto de apoio não conclui; leitura com `fisio.access`; outra empresa 404 | must | US-FISIO-060 | `FisioLaudoBpsApoioTest` |
+| UC-FBP-13 | o PDF segue o formulário SES-SC; rascunho sai como documento de apoio; vazio sai em branco | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
+| UC-FBP-14 | cada PDF grava uma linha no `activity_log` só com ids; outra empresa 404 sem log | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
 
 As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 
-- [BACKLOG] sugestão de apoio ao texto com dor, crises e adesão, cada número com período e fonte; sem dado suficiente, aviso.
-- [BACKLOG] PDF no layout oficial; antes de finalizar sai marcado como documento de apoio; cada geração grava uma linha no `activity_log` só com ids.
-- [BACKLOG] o texto de apoio gerado pelo sistema não escreve que o paciente é pessoa com deficiência.
+- [BACKLOG] cartão do laudo na ficha do paciente, com o aviso de que a emissão da carteira segue o fluxo da APS e da FCEE.
 
 ---
 
@@ -124,4 +127,46 @@ As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
   sem nenhuma resposta na conclusão: só a equipe marca as três perguntas.
 - **Âncora:** ADI 5033647-81.2025.8.24.0000 (citada na Deliberação 500/CIB/2026) · ADR 0437 §5.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-10 · Apoio da fisioterapia `[must]`
+- **Persona:** fisioterapeuta preparando a descrição dos impedimentos e a pontuação da matriz.
+- **Aceite:** Pedido o apoio · Então vêm, para 30 e 90 dias contados de hoje para trás, média (uma
+  casa), mínima e máxima da dor do check-in (0 a 10) e os dias de crise; a adesão dos últimos 30
+  dias (dias com exercício feito ÷ meta semanal × 30 ÷ 7, teto 100); e cada questionário com
+  o nome do catálogo, pontuação e data — inclusive os de fibromialgia da etapa 07 (ACR 2016, FIQR,
+  PGIC, sentar e levantar em 30 s). Cada número cita período e fonte. Nada é gravado: o profissional decide o que usar.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsApoioTest.php`
+- **Status: 🧪**
+
+## UC-FBP-11 · Sem dado, sem número `[must]`
+- **Aceite:** Com menos de 7 dias de dor na janela, a média não é calculada e entra um aviso com a
+  contagem. Sem programa ativo, a adesão não é calculada. Sem questionário, aviso.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsApoioTest.php`
+- **Status: 🧪**
+
+## UC-FBP-12 · O apoio não conclui `[must]`
+- **Aceite:** Mesmo com dor alta todos os dias, o texto não usa "deficiência", "incapacidade",
+  "grave", "severa" nem "invalidez". Quem só tem `fisio.access` lê o apoio; a outra empresa recebe 404.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsApoioTest.php`
+- **Status: 🧪**
+
+## UC-FBP-13 · PDF no layout oficial `[must]`
+- **Persona:** paciente levando o laudo à unidade de saúde.
+- **Aceite:** O PDF traz, na ordem do modelo SES-SC: identificação, matriz com as 30 linhas e as
+  colunas 100/75/50/25, o menor valor de cada domínio e a pontuação total calculada, fatores
+  contextuais, conclusão da equipe, as cinco áreas da equipe e local e data. O que não foi preenchido
+  sai em branco, inclusive a conclusão; área sem profissional sai com a linha para preencher.
+  Laudo em rascunho traz o aviso "Documento de apoio, não finalizado". O rodapé cita a deliberação e
+  diz que a emissão do laudo cabe à APS e a da carteira, à FCEE.
+- **Âncora:** Deliberação 500/CIB/2026, arts. 1º a 3º; modelo versão 1.0 de 26/10/2026.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php`
+- **Status: 🧪**
+
+## UC-FBP-14 · Rastro da geração `[must]`
+- **Aceite:** Cada PDF grava `laudo_bps_exportado` no `activity_log` com empresa, paciente, laudo,
+  se está finalizado e o total — sem nome nem texto clínico. Quem só tem `fisio.access` gera o PDF.
+  A outra empresa recebe 404 e nada é registrado.
+- **Âncora:** LGPD art. 11 · mesmo rastro do laudo de evolução (UC-FLD-02).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php`
 - **Status: 🧪**

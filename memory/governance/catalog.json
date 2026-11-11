@@ -3526,7 +3526,7 @@
       "type": "component",
       "module": "Fisio",
       "name": "LaudoBiopsicossocialController",
-      "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão (US-FISIO-060)"
+      "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão; apoio de dor e adesão (ApoioFisioterapia) e PDF no layout oficial (LaudoBiopsicossocialDocumento) (US-FISIO-060)"
     },
     {
       "id": "component:Fisio/OnboardingController",
