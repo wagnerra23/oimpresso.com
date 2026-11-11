@@ -53,7 +53,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 53
+## Services — 55
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AgendaDaSemana.php](../../../Modules/Fisio/Services/Agenda/AgendaDaSemana.php)
@@ -72,6 +72,8 @@ module: Fisio
 - [FilaFiscalDoDia.php](../../../Modules/Fisio/Services/Fiscal/FilaFiscalDoDia.php)
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
 - [FolhaPrograma.php](../../../Modules/Fisio/Services/FolhaPrograma.php)
+- [IdentidadeClinica.php](../../../Modules/Fisio/Services/IdentidadeClinica.php)
+- [ImpressoPdf.php](../../../Modules/Fisio/Services/ImpressoPdf.php)
 - [JogoService.php](../../../Modules/Fisio/Services/JogoService.php)
 - [ApoioFisioterapia.php](../../../Modules/Fisio/Services/Laudo/ApoioFisioterapia.php)
 - [LaudoBiopsicossocialDocumento.php](../../../Modules/Fisio/Services/Laudo/LaudoBiopsicossocialDocumento.php)
@@ -215,8 +217,9 @@ module: Fisio
 
 - [config.php](../../../Modules/Fisio/Config/config.php)
 
-## Views (Blade) — 4
+## Views (Blade) — 5
 
+- [_base.blade.php](../../../Modules/Fisio/Resources/views/pdf/_base.blade.php)
 - [folha-programa.blade.php](../../../Modules/Fisio/Resources/views/pdf/folha-programa.blade.php)
 - [laudo-biopsicossocial.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-biopsicossocial.blade.php)
 - [laudo-evolucao.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-evolucao.blade.php)
