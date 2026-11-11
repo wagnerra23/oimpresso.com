@@ -14,7 +14,7 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 326 arquivos em 20 papéis.
+**Total mapeado:** 329 arquivos em 20 papéis.
 
 ## Controllers — 28
 
@@ -51,7 +51,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 52
+## Services — 54
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AgendaDaSemana.php](../../../Modules/Fisio/Services/Agenda/AgendaDaSemana.php)
@@ -70,6 +70,8 @@ module: Fisio
 - [FilaFiscalDoDia.php](../../../Modules/Fisio/Services/Fiscal/FilaFiscalDoDia.php)
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
 - [FolhaPrograma.php](../../../Modules/Fisio/Services/FolhaPrograma.php)
+- [IdentidadeClinica.php](../../../Modules/Fisio/Services/IdentidadeClinica.php)
+- [ImpressoPdf.php](../../../Modules/Fisio/Services/ImpressoPdf.php)
 - [JogoService.php](../../../Modules/Fisio/Services/JogoService.php)
 - [ApoioFisioterapia.php](../../../Modules/Fisio/Services/Laudo/ApoioFisioterapia.php)
 - [LaudoBiopsicossocialDocumento.php](../../../Modules/Fisio/Services/Laudo/LaudoBiopsicossocialDocumento.php)
@@ -210,8 +212,9 @@ module: Fisio
 
 - [config.php](../../../Modules/Fisio/Config/config.php)
 
-## Views (Blade) — 4
+## Views (Blade) — 5
 
+- [_base.blade.php](../../../Modules/Fisio/Resources/views/pdf/_base.blade.php)
 - [folha-programa.blade.php](../../../Modules/Fisio/Resources/views/pdf/folha-programa.blade.php)
 - [laudo-biopsicossocial.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-biopsicossocial.blade.php)
 - [laudo-evolucao.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-evolucao.blade.php)
