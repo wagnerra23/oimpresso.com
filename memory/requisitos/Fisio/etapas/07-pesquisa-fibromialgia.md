@@ -2,7 +2,7 @@
 
 > **Status:** proposta, aguardando aprovação de [W]. Nada aqui foi implementado.
 > **Origem:** pedido de [W] em 2026-11-11: o software precisa estar preparado para as atividades de um estudo científico de fibromialgia. Desenho escolhido por [W] no mesmo dia: **clínica + universidade**.
-> **Fontes:** esta etapa foi escrita **sem pesquisa na web**. Fatos de licença, referências de validação brasileira e o panorama de concorrentes (§8) estão marcados **"a conferir"**. O que está dito sobre o código foi medido no `main` em 2026-11-11.
+> **Fontes:** a primeira versão saiu sem pesquisa na web; a pesquisa foi feita no mesmo dia (2026-11-11) e as fontes estão na §9. O que ainda não foi confirmado continua marcado **"a conferir"**. O que está dito sobre o código foi medido no `main` em 2026-11-11.
 > **Linha da Anvisa (ADR 0437 §5):** nada desta etapa decide conduta. O software coleta, organiza e exporta. Quem analisa é o pesquisador.
 
 ---
@@ -50,8 +50,8 @@ Nenhum dos 5 instrumentos atuais é específico de fibromialgia. Conjunto mínim
 
 | instrumento | mede | quando | licença |
 |---|---|---|---|
-| **Critérios ACR 2016**: índice de dor generalizada (WPI, 19 regiões, 0–19) + escala de gravidade dos sintomas (SSS, 0–12) | diagnóstico e gravidade | entrada e a cada momento do estudo | a conferir (publicados em artigo; uso em software não confirmado) |
-| **FIQR** (versão brasileira) | impacto da fibromialgia | entrada e a cada momento | **a conferir**: a SBR cita FIQR para acompanhamento (protocolo 11); a licença para software e a referência da validação brasileira não foram verificadas |
+| **Critérios ACR 2016**: índice de dor generalizada (WPI, 19 regiões, 0–19) + escala de gravidade dos sintomas (SSS, 0–12) | diagnóstico e gravidade | entrada e a cada momento do estudo | versão brasileira validada: **FSQ-Brasil** (2020, validada contra os critérios de 1990, não os de 2016). Licença para software **a conferir** |
+| **FIQR** (versão brasileira **FIQR-Br**, Lupi et al. 2017, que corrige problemas da versão de 2013) | impacto da fibromialgia | entrada e a cada momento | **uso acadêmico e clínico gratuito; uso comercial exige licença da Mapi Research Trust**. Software vendido pelo oimpresso é uso comercial até prova em contrário: perguntar à Mapi antes de entrar no enum |
 | **PGIC**: impressão global de melhora | percepção de mudança pelo paciente | a partir do 2º momento | a conferir |
 | **Sentar e levantar em 30 s** | função física | entrada e a cada momento | teste de desempenho; registrado pelo profissional, sem questionário |
 | Escala de sono | sono | entrada e fim | a escolher com a universidade; PSQI tem direito autoral, **a conferir** |
@@ -132,20 +132,38 @@ Cada tarefa vira um PR pequeno. A ordem respeita as dependências.
 
 ---
 
-## 8. Referências de mercado e onde a IA entra (a conferir)
+## 8. Quem são os melhores e onde a IA entra
 
-Panorama **de memória, sem pesquisa na web nesta data**; serve para orientar uma pesquisa de verdade, não como fato.
+Pesquisa de 2026-11-11; fontes na §9.
 
-| quem | o que faz | o que vale olhar |
-|---|---|---|
-| Stanza (Swing Therapeutics, EUA) | app para fibromialgia baseado em terapia de aceitação e compromisso; autorizado pelo FDA como terapia digital, com ensaio clínico próprio | como um app de fibromialgia virou evidência e aprovação regulatória |
-| FibroGuide (Universidade de Michigan) | programa gratuito de autocuidado para fibromialgia | conteúdo educativo de base acadêmica |
-| Sword Health, Hinge Health, Kaia | fisioterapia digital para dor musculoesquelética, com acompanhamento de movimento por sensor ou câmera e muitos estudos publicados | publicam com dado real do próprio produto |
-| REDCap, Castor | plataformas de coleta de dados de pesquisa usadas por universidades | o formato de exportação e o dicionário de dados que o pesquisador espera |
+| quem | o que faz | evidência | o que vale para nós |
+|---|---|---|---|
+| **Stanza** (Swing Therapeutics, EUA) | app de terapia de aceitação e compromisso para fibromialgia, autoguiado, com receita | autorização De Novo do FDA em maio de 2023; ensaio PROSPER-FM (275 pacientes, 12 semanas, publicado na Lancet em 2024): 70,6% relataram melhora no PGIC contra 22,2% no controle, e melhora no FIQR | é a referência: mostrou que um app de fibromialgia vira evidência e produto aprovado. Usou **PGIC e FIQR**, os mesmos desfechos propostos na §4.1 |
+| **ProFibro** (USP) | app gratuito em português para fibromialgia: educação, automonitoramento, sono e exercício graduado | ensaio com 40 pacientes, 6 semanas: app e livro impresso melhoraram igual | o concorrente acadêmico brasileiro; mostra que **conteúdo sozinho não basta**, o diferencial precisa ser outro |
+| **Sword Health, Hinge Health** | fisioterapia digital com acompanhamento de movimento | estudos grandes em joelho e coluna; nenhum ensaio específico de fibromialgia encontrado | o modelo de publicar com dado do próprio produto; fibromialgia ainda está descoberta |
+| Estudos em andamento | app Bei (Madri, início em 2026); reabilitação remota com visão computacional (NCT06672419) | protocolos, sem resultado | a câmera para exercício em fibromialgia está sendo testada agora, fora do Brasil |
+
+**O problema que todos têm: adesão.** Num estudo de 2026 com app de dor, só 27% dos pacientes cumpriram o critério de adesão e 46% ainda usavam na semana 4. Programas com acompanhamento profissional relatam adesão alta.
 
 **Onde o Fisio pode se destacar, sem cruzar a linha da Anvisa:**
 
-1. **Dado de vida real brasileiro.** Dor diária pelo paciente + adesão medida pela câmera + desfechos validados, em português, no atendimento comum. A maior parte dos estudos citados é dos EUA ou da Europa. *A conferir.*
-2. **Adesão objetiva.** A câmera conta repetições no aparelho (ADR 0447). Em estudo de exercício, adesão costuma ser autorrelatada; medida objetiva é diferencial para publicação.
-3. **IA que organiza, não que decide:** ditado transcrito e estruturado (etapa 05), conferência de qualidade do dado antes da exportação (faltantes, valores fora da faixa, momentos vencidos) e resumo descritivo para a pesquisadora. Tudo revisado por humano.
-4. **IA que a universidade roda, não o app.** Busca de padrões de crise (sono, carga, dia da semana) feita pela pesquisadora sobre o arquivo exportado, fora do software. O mesmo modelo **mostrado ao paciente ou ao profissional** como previsão vira software como dispositivo médico (RDC 657/2022) e exige a consulta à Anvisa que já está pendente (ADR 0447).
+1. **Fisioterapeuta no meio.** O Fisio não é app de autoajuda: o profissional prescreve, acompanha e é avisado. É exatamente o que separa adesão baixa de adesão alta na literatura acima.
+2. **Adesão medida, não relatada.** A câmera conta repetições no aparelho (ADR 0447). Nos estudos achados, a adesão é autorrelatada.
+3. **Dado diário de vida real em português.** Dor do dia + crise + adesão, no atendimento comum. A pesquisa não achou modelo publicado de previsão de crise de fibromialgia com dado diário de celular; os próprios autores citam a falta de dados longitudinais grandes. Um estudo da clínica com a universidade preenche essa lacuna.
+4. **IA que organiza, não que decide:** ditado estruturado (etapa 05), conferência de qualidade do dado antes de exportar (faltante, fora de faixa, momento vencido) e resumo descritivo para a pesquisadora. Tudo revisado por pessoa.
+5. **IA de previsão fica com a universidade.** Buscar o que antecede uma crise no arquivo exportado é pesquisa. Mostrar a previsão ao paciente ou ao profissional dentro do app torna o software dispositivo médico (RDC 657/2022) e depende da consulta à Anvisa já pendente (ADR 0447). O Stanza mostra o caminho: estudo primeiro, aprovação depois.
+
+---
+
+## 9. Fontes (consultadas em 2026-11-11)
+
+- Stanza, resultado do ensaio: https://www.businesswire.com/news/home/20231114748380/en/Swing-Therapeutics-Announces-Positive-Results-from-Pivotal-Phase-3-Trial-of-Stanza-a-Digital-Therapy-for-Fibromyalgia-Symptoms
+- Stanza, publicação na Lancet: https://www.businesswire.com/news/home/20240709148056/en/Swing-Therapeutics-Announces-The-Lancet-Publication-of-Data-from-Phase-3-Trial-of-Stanza%E2%84%A2---a-Digital-Behavioral-Therapy-for-Fibromyalgia-Symptoms
+- FIQR, licença (Mapi para uso comercial): https://fiqrinfo.ipage.com/index.html e https://www.sralab.org/rehabilitation-measures/revised-fibromyalgia-impact-questionnaire
+- FIQR-Br (Lupi et al., 2017): https://informahealthcare.com/doi/abs/10.1080/09638288.2016.1207106 ; versão de 2013 (Paiva et al.): https://www.springermedizin.de/a-brazilian-portuguese-version-of-the-revised-fibromyalgia-impac/8716712
+- FSQ-Brasil (2020): https://link.springer.com/10.1186/s42358-020-00139-3 ; FiRST brasileiro (2022): https://link.springer.com/10.1186/s42358-022-00271-2
+- ProFibro: https://clinicaltrials.gov/study/NCT03004911 e https://bv.fapesp.br/en/publicacao/197246/effects-of-a-six-week-mobile-app-versus-paper-book-intervent
+- App Bei: https://clinicaltrials.gov/study/NCT07090434 ; reabilitação com visão computacional: https://www.syfrah.com/trial/NCT06672419
+- Adesão em app de dor (JMIR mHealth 2026): https://mhealth.jmir.org/2026/1/e78827/XML
+- Previsão de dor diária em fibromialgia: https://cris.haifa.ac.il/en/publications/predicting-daily-pain-fluctuations-in-fibromyalgia-the-role-of-me/
+- Sword e Hinge, avaliação independente (PHTI): https://phti.org/?p=1710
