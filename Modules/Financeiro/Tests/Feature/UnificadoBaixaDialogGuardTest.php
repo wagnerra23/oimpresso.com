@@ -186,9 +186,9 @@ it('GUARD G3: baixa parcial reduz valor_aberto e marca parcial', function () {
     expect((float) $filho->valor_total)->toBe(40.0);
     expect($filho->status)->toBe('quitado');
 
-    TituloBaixa::where('titulo_id', $filho->id)->forceDelete();
+    DB::table('fin_titulo_baixas')->where('titulo_id', $filho->id)->delete();
     bxCleanup($filho);
-    TituloBaixa::where('titulo_id', $titulo->id)->forceDelete();
+    DB::table('fin_titulo_baixas')->where('titulo_id', $titulo->id)->delete();
     bxCleanup($titulo);
 });
 
@@ -232,6 +232,6 @@ it('GUARD G5: body vazio mantém baixa instantânea legacy', function () {
     $titulo->refresh();
     expect($titulo->status)->toBe('quitado');
 
-    TituloBaixa::where('titulo_id', $titulo->id)->forceDelete();
+    DB::table('fin_titulo_baixas')->where('titulo_id', $titulo->id)->delete();
     bxCleanup($titulo);
 });
