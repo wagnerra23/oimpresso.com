@@ -1,12 +1,17 @@
 ---
 title: "RUNBOOK — Smoke fiscal SEFAZ-SC homologação biz=1"
 type: runbook
-owner: wagner
-last_validated: 2026-05-08
-related_adrs: [0030, 0058, 0062, 0093]
+module: NfeBrasil
+owner: W
+last_validated: "2026-05-08"
+related_adrs:
+  - 0030-credenciais-jamais-em-git
+  - 0058-reverb-substituido-por-centrifugo-frankenphp
+  - 0062-separacao-runtime-hostinger-ct100
+  - 0093-multi-tenant-isolation-tier-0
 related_us: [US-NFE-002, US-RB-044]
-related_cycle_goals: [CYCLE-03 #8 — Smoke fiscal SEFAZ-SC]
-status: live
+related_cycle_goals: ["CYCLE-03 #8 — Smoke fiscal SEFAZ-SC"]
+status: ativo
 charter_version: 1
 ---
 
@@ -17,6 +22,13 @@ charter_version: 1
 > **Onde rodar:** `business_id=1` (Wagner WR2 Sistemas — Tubarão/SC), ambiente SEFAZ homologação (`business.ambiente=2`).
 >
 > **🚨 NUNCA rodar em `business_id=4`** (RotaLivre cliente). Regra documentada em [auto-mem `feedback_test_business_id_1_nunca_4`](C:/Users/wagne/.claude/projects/D--oimpresso-com/memory/feedback_test_business_id_1_nunca_4.md) — gravidade alta porque biz=4 concentra 99% do volume real de vendas; smoke nesse tenant pode contaminar dados operacionais.
+
+> **Revisado em 2026-11-11 (auditoria NfeBrasil, lote 5.2).** O passo a passo foi conferido contra o código de
+> `origin/main`; o smoke em si **não rodou de novo** (o `last_validated` segue sendo o de maio). Mudou desde maio:
+> - a emissão automática tem **duas travas**, e as duas precisam estar ligadas (Passos 1 e 1b);
+> - toda rota `/nfe-brasil/*` com login exige o pacote `fiscal_module` na assinatura da empresa ([#10732](https://github.com/wagnerra23/oimpresso.com/pull/10732));
+> - o certificado vem só de `nfe_certificados`, sem fallback para `business.certificado` ([#10733](https://github.com/wagnerra23/oimpresso.com/pull/10733); ADR 0449 **proposta**);
+> - XML e DANFE ficam no disco privado `nfe_fiscal` ([#10692](https://github.com/wagnerra23/oimpresso.com/pull/10692)), e o XML guardado leva o protocolo ([#10696](https://github.com/wagnerra23/oimpresso.com/pull/10696)).
 
 Origem: migrado de auto-mem `runbook_smoke_sefaz_biz1.md` (sessão Opus 2026-05-07/08) pra git canônico — operacionaliza Goal #8 do CYCLE-03 e obedece [ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) (zero auto-mem privada).
 
@@ -51,12 +63,13 @@ ssh -4 -o ConnectTimeout=900 -i ~/.ssh/id_ed25519_oimpresso -p 65002 \
 - `cert_ativo` = `1`, `cert_valido_ate` ≥ data de hoje
 - `regime` = `'simples'` (ou outro vigente em biz=1)
 - `cfop` = `'5102'` (varejo) ou compatível com produto-teste
+- a empresa tem o pacote `fiscal_module` na assinatura (sem ele `/nfe-brasil/*` responde como bloqueado, [#10732](https://github.com/wagnerra23/oimpresso.com/pull/10732))
 
 Se algum item falha → consultar [SPEC NfeBrasil](SPEC.md) seção "Setup biz=1" pra restaurar.
 
 ---
 
-## Passo 1 — Habilitar flag NFC-e auto-emission
+## Passo 1 — Ligar a trava global (flag `NFEBRASIL_AUTO_EMISSION_NFCE`)
 
 ⚠️ **IRREVERSÍVEL parcial:** ao ligar a flag, qualquer venda finalizada `paid` em biz=1 vai disparar Job. Antes de ligar:
 
@@ -75,6 +88,20 @@ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@<HOSTINGER_IP> \
      php artisan config:clear'
 ```
 
+Esta trava é do **sistema inteiro**. Sozinha ela não emite nada: o listener
+`EmitirNfceAoFinalizarVenda` também lê a trava da empresa (Passo 1b) e sai sem despachar o job se ela estiver
+desligada. Foi esse segundo gate que impediu a emissão em outras empresas quando a flag global ficou ligada.
+
+## Passo 1b — Ligar a trava da empresa (`nfe_business_configs.auto_emission_enabled`)
+
+Na tela **Tributação** (`/nfe-brasil/tributacao`) de biz=1, cartão **Emissão automática**, ligar a chave.
+O clique faz `POST /nfe-brasil/tributacao/auto-emission/toggle`, que exige `nfe.tributacao.manage` desde
+[#10728](https://github.com/wagnerra23/oimpresso.com/pull/10728), e grava `auto_emission.toggled` no log de atividade. Não use SQL direto: a tela é o caminho que
+deixa rastro.
+
+Sem esta trava, a venda finalizada gera só a linha `NFC-e auto-emission DISABLED — listener no-op (per-business gate)`
+no `laravel.log`.
+
 ---
 
 ## Passo 2 — Criar venda teste via UI POS
@@ -91,7 +118,7 @@ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@<HOSTINGER_IP> \
 
 ## Passo 3 — Verificar status NFC-e (Page Inertia)
 
-Navegar `/nfe-brasil/transactions/{transaction_id}/status` (Page Inertia da fase 2C, US-NFE-002).
+Navegar `/nfe-brasil/transactions/{transaction_id}/status` (Page Inertia da fase 2C, US-NFE-002). A página e o JSON de status exigem uma permissão de consulta (`nfebrasil.consult.view`, `fiscal.nfe.view` ou ver venda, [#10728](https://github.com/wagnerra23/oimpresso.com/pull/10728)).
 
 A Page polla `/nfe-brasil/api/transactions/{tx}/nfe-status` a cada 2s. Estados terminais (`autorizada` / `rejeitada` / `denegada`) param o polling.
 
@@ -118,8 +145,9 @@ ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@<HOSTINGER_IP> \
        ORDER BY id DESC LIMIT 3"'
 ```
 
-XML autorizado fica em `storage/app/nfe-brasil/1/notas/{serie}-{numero}.xml`.
-DANFE PDF fica em `storage/app/nfe-brasil/1/danfe/{chave_44}.pdf`.
+XML autorizado (`nfeProc`, com o protocolo) e DANFE ficam no disco privado `nfe_fiscal`
+(`storage/app/nfe-fiscal`), fora da pasta servida pelo Apache ([#10692](https://github.com/wagnerra23/oimpresso.com/pull/10692)). Para baixar o DANFE use
+`/nfe-brasil/emissoes/{id}/danfe-pdf` com login, ou a tela `/fiscal/nfe`.
 
 ---
 
@@ -131,7 +159,9 @@ DANFE PDF fica em `storage/app/nfe-brasil/1/danfe/{chave_44}.pdf`.
 | `cstat=217` "NFe não consta" | Replicação SEFAZ; pode reenviar | Aguardar 30s e re-emitir |
 | `cstat=225` "Falha sequencial" | Número duplicado | Resetar `business.ultimo_numero_nfe` |
 | `cstat=110/205` denegada | Emitente irregular | Verificar CNPJ + cert no SEFAZ-SC |
-| Job não dispara | Flag `auto_emission_on_sell_completed=false` | Re-checar `.env` no Hostinger + `config:clear` |
+| Job não dispara, log `(global flag)` | Flag `auto_emission_on_sell_completed=false` | Re-checar `.env` no Hostinger + `config:clear` |
+| Job não dispara, log `(per-business gate)` | Trava da empresa desligada | Passo 1b |
+| Venda não é NFC-e | Venda `due` (a prazo) ou bonificação | NFC-e só sai de venda `paid`/`partial`; bonificação vai em NF-e |
 | `RuntimeException sem NCM padrão` | Template não setou `ncm_default` E `business.ncm_padrao` vazio | Aplicar template OU `UPDATE business SET ncm_padrao='49111000' WHERE id=1` |
 
 Logs: `storage/logs/laravel.log` no Hostinger. Filtrar por `NFC-e` ou `NfeService`.
@@ -140,7 +170,8 @@ Logs: `storage/logs/laravel.log` no Hostinger. Filtrar por `NFC-e` ou `NfeServic
 
 ## Rollback (desabilitar emissão automática)
 
-Pra desabilitar a flag rapidamente:
+Desligue primeiro a trava da empresa (chave **Emissão automática** em `/nfe-brasil/tributacao`), que é
+imediata e não mexe no `.env`. Para desligar também a flag global:
 
 ```bash
 ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@<HOSTINGER_IP> \
