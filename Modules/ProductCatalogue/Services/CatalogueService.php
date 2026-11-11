@@ -89,11 +89,14 @@ class CatalogueService
         foreach ($porCategoria as $produtos) {
             foreach ($produtos as $product) {
                 $variationId = $product->type !== 'variable' ? $product->variations->first()?->id : null;
+                // getProductDiscount devolve o Discount ou null (o docblock dele diz `obj`).
                 $desconto = $this->productUtil->getProductDiscount($product, $businessId, $locationId, false, null, $variationId);
-                if (! empty($desconto)) {
-                    $desconto->selo = $formato->seloDesconto($desconto);
+                if ($desconto instanceof \App\Discount) {
+                    $desconto->setAttribute('selo', $formato->seloDesconto($desconto));
+                    $product->desconto_vitrine = $desconto;
+                } else {
+                    $product->desconto_vitrine = null;
                 }
-                $product->desconto_vitrine = $desconto;
             }
         }
     }
