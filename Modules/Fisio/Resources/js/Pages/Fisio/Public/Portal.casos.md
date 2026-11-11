@@ -67,6 +67,12 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-60 | o WhatsApp avisa uma vez por momento, com consentimento | must | `FisioCobrancaAvaliacaoTest` |
 | UC-FPP-61 | o aviso de uma empresa não alcança paciente de outra | must | `FisioCobrancaAvaliacaoTest` |
 
+> **Enviar exame ou receita (US-FISIO-063, 2026-11-11):** a tela nova do portal tem os casos em
+> `memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md` (UC-FER-17..20, testados em
+> `FisioPortalDocumentosTest`): consentimento próprio `documentos`, portões do envio, envio pendente que
+> só entra no prontuário quando a clínica aceita, e isolamento entre empresas. Ficam lá porque o envio
+> tem tabela e conferência próprias, compartilhadas com a ficha.
+
 ---
 
 ## UC-FPP-01 · O link abre o PIN, não o prontuário · `must`
