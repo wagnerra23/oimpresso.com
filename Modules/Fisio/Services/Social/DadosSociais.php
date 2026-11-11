@@ -198,7 +198,7 @@ class DadosSociais
             ->performedOn($paciente)
             ->causedBy(User::query()->find($userId))
             ->event('dados_sociais_atualizados')
-            ->withProperties(['campos' => array_values(array_keys(array_intersect_key($dados, [...self::DO_CONTATO, ...$social])))])
+            ->withProperties(['campos' => array_keys(array_intersect_key($dados, [...self::DO_CONTATO, ...$social]))])
             ->log('dados_sociais_atualizados');
     }
 
