@@ -573,6 +573,10 @@ jobs:
         # é ligada ao pacote pelo id, sem gravar título; venda cancelada tira a sobra do saldo.
         #
         #
+        # ENTRAM 2026-11-11 — Fisio/MatrizIfbrmTest e Fisio/FisioLaudoBpsEsquemaTest (US-FISIO-060, UC-FBP-01..03):
+        # laudo biopsicossocial no modelo SES-SC; total da matriz IFBr-M (menor valor de cada domínio),
+        # laudo finalizado e equipe imutáveis (trigger + model), e a 99 não vê o laudo da 98.
+        #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
         #
@@ -854,6 +858,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioProtocolosTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoEvolucaoTest.php \
+            Modules/Fisio/Tests/Unit/MatrizIfbrmTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
