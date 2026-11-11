@@ -39,6 +39,7 @@ Mostrar e editar o perfil clínico do paciente, manter o prontuário (avaliaçã
 - Mostrar o fisioterapeuta responsável e transferir o paciente para outro profissional da empresa, com o histórico das transferências — UC-FPS-30..32.
 - Exportar o prontuário em PDF (identificação, perfil clínico e todos os registros assinados em ordem cronológica, com carimbo; rodapé com empresa, emissão e "Página X de Y"); cada exportação fica no `activity_log` sem PII — UC-FPS-19, UC-FPS-20. Exportar exige só `fisio.access`.
 - Registrar questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação do servidor e ver o histórico — UC-FPS-13..16 (US-FISIO-011). Mostra o número e a referência; não interpreta (SaMD, ADR 0437 §5).
+- Registrar os questionários de fibromialgia (critérios ACR 2016, FIQR, PGIC, sentar e levantar em 30 s) só quando liberados em `fisio.instrumentos_liberados` (desligado em produção até a licença) — UC-FPS-39..41 (etapa 07, P-03). Os critérios ACR aparecem como informação para o profissional, com o aviso de que não é diagnóstico; a versão do instrumento fica registrada com a resposta. Grupo "Fibromialgia · pesquisa" no protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/Questionarios.dc.html`.
 
 ## Non-Goals — Features (NÃO faz)
 

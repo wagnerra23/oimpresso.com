@@ -107,7 +107,10 @@ function nfceJobMakeTransaction(int $businessId): int
     ]);
 }
 
-it('status=autorizada → dispatch event NFCeAutorizada (com listener fake)', function () {
+// Lote 1.1 (N4-09): quem dispara NFCeAutorizada é o NfeService, na autorização. O job não
+// dispara de novo — senão o DANFE sairia duas vezes. A prova do disparo está em
+// NotaAutorizadaAvisoContratoTest.
+it('status=autorizada → o job NÃO dispara NFCeAutorizada (o NfeService já disparou)', function () {
     Event::fake([NFCeAutorizada::class]);
 
     $txId = nfceJobMakeTransaction(1);
@@ -130,10 +133,7 @@ it('status=autorizada → dispatch event NFCeAutorizada (com listener fake)', fu
 
     (new EmitirNfceJob(1, $txId))->handle($service);
 
-    Event::assertDispatched(NFCeAutorizada::class, function ($e) use ($emissao) {
-        return $e->emissao->id === $emissao->id
-            && $e->emissao->cstat === '100';
-    });
+    Event::assertNotDispatched(NFCeAutorizada::class);
 
     DB::table('transactions')->where('id', $txId)->delete();
 });
