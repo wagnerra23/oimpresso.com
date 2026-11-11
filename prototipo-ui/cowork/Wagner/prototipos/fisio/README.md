@@ -23,7 +23,7 @@ Sirva `prototipo-ui/` (não esta pasta, senão o `support.js` não resolve) e ab
 
 | Clínica | Paciente (celular) |
 |---|---|
-| Main (Painel), Agenda, Avaliacao, Evolucao, EvolucaoDitada, Prescricao, Contraindicacao, Biblioteca, BuscaBiblioteca, Protocolos, Questionarios, Laudo, Teleconsulta, Financeiro, FiscalFila, Planos, Onboarding, PacienteNovo, CameraLiberacao, ConfigAgendamentoOnline, ConfigWhatsApp | PacienteAcesso, PacienteHoje, PacienteCheckin, PacienteCrise, PacienteNota, PacienteJornada, PacienteProgresso, PacienteConsultas, PacienteAgendar, PacienteAgendaConfirmar, PacienteSerieConfirmar, PacienteQuestionario, PacientePreAnamnese, PacienteCamera, PacienteCameraPreparo, PacienteCameraClasse2, PacienteConfig, PacienteInstalar |
+| Main (Painel), Agenda, Avaliacao, Evolucao, EvolucaoDitada, Prescricao, Contraindicacao, Biblioteca, BuscaBiblioteca, Protocolos, Questionarios, Laudo, Teleconsulta, Financeiro, FiscalFila, Planos, Onboarding, PacienteNovo, CameraLiberacao, ConfigAgendamentoOnline, ConfigWhatsApp, Pesquisa (2026-11-11, etapa 07) | PacienteAcesso, PacienteHoje, PacienteCheckin, PacienteCrise, PacienteNota, PacienteJornada, PacienteProgresso, PacienteConsultas, PacienteAgendar, PacienteAgendaConfirmar, PacienteSerieConfirmar, PacienteQuestionario, PacientePreAnamnese, PacienteCamera, PacienteCameraPreparo, PacienteCameraClasse2, PacienteConfig, PacienteInstalar |
 
 `ComparativoAgendamento` é pesquisa de mercado, não tela.
 
