@@ -87,59 +87,80 @@ describe('Isolamento multi-tenant Manufacturing (DB-dependent — MySQL only)', 
 // MfgIngredientGroup — isolamento DIRETO via coluna business_id
 // ------------------------------------------------------------------
 
-it('MfgIngredientGroup biz=1 não aparece quando filtrado por biz=99', function () {
-    $group = MfgIngredientGroup::create([ // SUPERADMIN: inserção direta de teste (sem global scope na Model)
-        'business_id' => BIZ_WAGNER,
-        'name'        => 'Grupo Teste Isolamento Wagner',
-        'description' => 'Grupo do biz=1 que NÃO pode aparecer em queries do biz=99',
-    ]);
+// Até 2026-11-11 estes três casos filtravam `where('business_id', 99)` no próprio teste: provavam
+// que o SQL filtra, não que a aplicação isola. Agora a consulta vai SEM filtro, como o código do
+// módulo faz, e quem recorta é o ScopeByBusiness do model (sessão de um usuário da empresa 98).
+// Âncora positiva: o grupo da própria empresa aparece pela mesma consulta.
 
-    // Filtro explícito biz=99 — NÃO deve retornar o registro de biz=1
-    $resultado = MfgIngredientGroup::where('business_id', BIZ_FICTICIO)
-        ->where('id', $group->id)
-        ->get();
-
-    expect($resultado)->toHaveCount(0);
-})->after(function () {
-    MfgIngredientGroup::where('name', 'Grupo Teste Isolamento Wagner')->delete();
-});
-
-it('MfgIngredientGroup biz=1 aparece quando filtrado por biz=1', function () {
-    $group = MfgIngredientGroup::create([ // SUPERADMIN: inserção direta de teste
-        'business_id' => BIZ_WAGNER,
-        'name'        => 'Grupo Teste Visivel Wagner',
-        'description' => 'Confirma que filtro biz=1 retorna registro próprio',
-    ]);
-
-    $resultado = MfgIngredientGroup::where('business_id', BIZ_WAGNER)
-        ->where('id', $group->id)
-        ->get();
-
-    expect($resultado)->toHaveCount(1);
-    expect($resultado->first()->name)->toBe('Grupo Teste Visivel Wagner');
-    expect((int) $resultado->first()->business_id)->toBe(BIZ_WAGNER);
-})->after(function () {
-    MfgIngredientGroup::where('name', 'Grupo Teste Visivel Wagner')->delete();
-});
-
-it('listagem MfgIngredientGroup com filtro biz=99 não vaza grupos do biz=1', function () {
-    // Insere 3 grupos pra biz=1
-    foreach (['Lote-Iso-A', 'Lote-Iso-B', 'Lote-Iso-C'] as $nome) {
-        MfgIngredientGroup::create([ // SUPERADMIN: setup de cenário
-            'business_id' => BIZ_WAGNER,
-            'name'        => $nome,
-            'description' => 'lote-isolamento',
+if (! function_exists('mfgIsoGrupo')) {
+    function mfgIsoGrupo(int $biz, string $nome): int
+    {
+        // SUPERADMIN: fixture grava direto, a sessão ainda não existe.
+        return (int) MfgIngredientGroup::withoutGlobalScopes()->insertGetId([
+            'business_id' => $biz, 'name' => $nome, 'description' => 'mfg-iso-grupo',
+            'created_at' => now(), 'updated_at' => now(),
         ]);
     }
+}
 
-    // Query "as if biz=99" — escopo correto não pode pegar nada
-    $vazamento = MfgIngredientGroup::where('business_id', BIZ_FICTICIO)
-        ->where('description', 'lote-isolamento')
-        ->count();
+if (! function_exists('mfgIsoEntrarNa98')) {
+    function mfgIsoEntrarNa98($test): void
+    {
+        $dono = (int) DB::table('users')->min('id');
+        if (! DB::table('business')->where('id', 98)->exists()) {
+            (new App\Business)->forceFill(['id' => 98, 'name' => 'Tenant fictício mfg 98', 'currency_id' => 1, 'owner_id' => $dono])->save();
+        }
+        $user = App\User::firstOrCreate(['username' => 'mfg_iso_grupo_98'], [
+            'email' => 'mfg_iso_grupo_98@test.local', 'password' => bcrypt('secret'),
+            'business_id' => 98, 'first_name' => 'Iso', 'last_name' => 'Grupo',
+            'user_type' => 'user', 'allow_login' => 1,
+        ]);
+        $test->actingAs($user);
+        session(['user.business_id' => 98]);
+    }
+}
 
-    expect($vazamento)->toBe(0);
+it('MfgIngredientGroup de outra empresa não aparece na consulta sem filtro da empresa 98', function () {
+    $alheio = mfgIsoGrupo(BIZ_FICTICIO, 'Grupo Iso Alheio');
+    $proprio = mfgIsoGrupo(98, 'Grupo Iso Proprio');
+    mfgIsoEntrarNa98($this);
+
+    expect(MfgIngredientGroup::find($alheio))->toBeNull();
+    expect(MfgIngredientGroup::find($proprio))->not->toBeNull();
 })->after(function () {
-    MfgIngredientGroup::where('description', 'lote-isolamento')->delete();
+    // SUPERADMIN: limpeza de teste, as duas empresas.
+    MfgIngredientGroup::withoutGlobalScopes()->where('description', 'mfg-iso-grupo')->delete();
+});
+
+it('MfgIngredientGroup da própria empresa aparece com o business certo', function () {
+    $proprio = mfgIsoGrupo(98, 'Grupo Iso Visivel');
+    mfgIsoEntrarNa98($this);
+
+    $resultado = MfgIngredientGroup::where('id', $proprio)->get();
+
+    expect($resultado)->toHaveCount(1);
+    expect($resultado->first()->name)->toBe('Grupo Iso Visivel');
+    expect((int) $resultado->first()->business_id)->toBe(98);
+})->after(function () {
+    // SUPERADMIN: limpeza de teste.
+    MfgIngredientGroup::withoutGlobalScopes()->where('description', 'mfg-iso-grupo')->delete();
+});
+
+it('listagem MfgIngredientGroup da empresa 98 não traz grupos da 99', function () {
+    $alheios = [];
+    foreach (['Lote-Iso-A', 'Lote-Iso-B', 'Lote-Iso-C'] as $nome) {
+        $alheios[] = mfgIsoGrupo(BIZ_FICTICIO, $nome);
+    }
+    $proprio = mfgIsoGrupo(98, 'Lote-Iso-Proprio');
+    mfgIsoEntrarNa98($this);
+
+    $ids = MfgIngredientGroup::where('description', 'mfg-iso-grupo')->pluck('id')->map(fn ($i) => (int) $i)->all();
+
+    expect($ids)->toBe([$proprio]);
+    expect(array_intersect($ids, $alheios))->toBe([]);
+})->after(function () {
+    // SUPERADMIN: limpeza de teste.
+    MfgIngredientGroup::withoutGlobalScopes()->where('description', 'mfg-iso-grupo')->delete();
 });
 
 // ------------------------------------------------------------------
