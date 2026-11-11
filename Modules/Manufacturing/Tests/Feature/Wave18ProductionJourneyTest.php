@@ -9,7 +9,9 @@ use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 use Modules\Manufacturing\Services\ProductionService;
 use Modules\Manufacturing\Services\RecipeBomService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
+require_once __DIR__.'/../Support/receita-empresa-fixtures.php';
 
 /**
  * Wave 18 — D5 Journey real biz=1 Manufacturing (2026-05-16).
@@ -34,20 +36,12 @@ beforeEach(function () {
 });
 
 it('journey biz=1: criar recipe + 2 ingredients + resolver BOM via Service', function () {
-    $variationBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', 1)
-        ->select('v.id', 'v.product_id')
-        ->first();
-
-    if (! $variationBiz1) {
-        $this->markTestSkipped('Sem variation biz=1.');
-    }
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
     // Cria recipe pai
     $recipe = MfgRecipe::create([
-        'product_id'       => $variationBiz1->product_id,
-        'variation_id'     => $variationBiz1->id,
+        'product_id'       => $variacao->product_id,
+        'variation_id'     => $variacao->id,
         'instructions'     => 'wave18-journey-bom',
         'waste_percent'    => 0,
         'ingredients_cost' => 15.0000,
@@ -60,13 +54,13 @@ it('journey biz=1: criar recipe + 2 ingredients + resolver BOM via Service', fun
     // 2 ingredients via Eloquent — usa variation biz=1 mesmo
     MfgRecipeIngredient::create([
         'mfg_recipe_id' => $recipe->id,
-        'variation_id'  => $variationBiz1->id,
+        'variation_id'  => $variacao->id,
         'quantity'      => 2.0000,
         'sort_order'    => 0,
     ]);
     MfgRecipeIngredient::create([
         'mfg_recipe_id' => $recipe->id,
-        'variation_id'  => $variationBiz1->id,
+        'variation_id'  => $variacao->id,
         'quantity'      => 3.0000,
         'sort_order'    => 1,
     ]);
@@ -74,31 +68,23 @@ it('journey biz=1: criar recipe + 2 ingredients + resolver BOM via Service', fun
     // Service resolver BOM biz=1 → deve retornar 2
     /** @var RecipeBomService $svc */
     $svc = app(RecipeBomService::class);
-    $bom = $svc->resolveBom($recipe->id, 1);
+    $bom = $svc->resolveBom($recipe->id, MFG_EMP_BIZ);
     expect($bom->count())->toBe(2);
 
     // Mesma chamada biz=99 → vazio (Tier 0)
-    $bomVazio = $svc->resolveBom($recipe->id, 99);
+    $bomVazio = $svc->resolveBom($recipe->id, MFG_EMP_OUTRO);
     expect($bomVazio->count())->toBe(0);
 })->after(function () {
     MfgRecipe::where('instructions', 'wave18-journey-bom')->delete();
 });
 
 it('journey biz=1: calculateCost + calculateUnitCost respeitam total_quantity', function () {
-    $variationBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', 1)
-        ->select('v.id', 'v.product_id')
-        ->first();
-
-    if (! $variationBiz1) {
-        $this->markTestSkipped('Sem variation biz=1.');
-    }
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
     // Custo dinâmico depende de variation.dpp_inc_tax — sem isso, custo=0 mas service não quebra
     $recipe = MfgRecipe::create([
-        'product_id'       => $variationBiz1->product_id,
-        'variation_id'     => $variationBiz1->id,
+        'product_id'       => $variacao->product_id,
+        'variation_id'     => $variacao->id,
         'instructions'     => 'wave18-journey-cost',
         'waste_percent'    => 0,
         'ingredients_cost' => 0,
@@ -110,7 +96,7 @@ it('journey biz=1: calculateCost + calculateUnitCost respeitam total_quantity', 
 
     MfgRecipeIngredient::create([
         'mfg_recipe_id' => $recipe->id,
-        'variation_id'  => $variationBiz1->id,
+        'variation_id'  => $variacao->id,
         'quantity'      => 1.0000,
         'sort_order'    => 0,
     ]);

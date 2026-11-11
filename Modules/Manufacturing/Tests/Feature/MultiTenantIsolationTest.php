@@ -10,7 +10,9 @@ use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
+require_once __DIR__.'/../Support/receita-empresa-fixtures.php';
 
 /**
  * Wave 13 — D1 boost Manufacturing (adoção HasBusinessScope).
@@ -148,19 +150,11 @@ it('listagem MfgIngredientGroup com filtro biz=99 não vaza grupos do biz=1', fu
 
 it('MfgRecipe pertence a apenas um business via chain variation→product.business_id', function () {
     // Pré-condição: existe pelo menos 1 product em biz=1 com variation pra cravar a recipe.
-    $variationBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', BIZ_WAGNER)
-        ->select('v.id', 'p.business_id')
-        ->first();
-
-    if (! $variationBiz1) {
-        $this->markTestSkipped('Sem variation em biz=1 — seed UltimatePOS Demo ausente pra esse teste de chain isolation.');
-    }
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
     $recipe = MfgRecipe::create([
-        'product_id'       => DB::table('variations')->where('id', $variationBiz1->id)->value('product_id'),
-        'variation_id'     => $variationBiz1->id,
+        'product_id'       => DB::table('variations')->where('id', $variacao->id)->value('product_id'),
+        'variation_id'     => $variacao->id,
         'instructions'     => 'recipe-teste-isolamento-chain',
         'waste_percent'    => 0,
         'ingredients_cost' => 10.0000,
@@ -181,7 +175,7 @@ it('MfgRecipe pertence a apenas um business via chain variation→product.busine
     // Mas com filtro biz=1 a recipe aparece
     $proprio = MfgRecipe::join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
         ->join('products as p', 'v.product_id', '=', 'p.id')
-        ->where('p.business_id', BIZ_WAGNER)
+        ->where('p.business_id', MFG_EMP_BIZ)
         ->where('mfg_recipes.id', $recipe->id)
         ->count();
 
@@ -195,19 +189,11 @@ it('MfgRecipe pertence a apenas um business via chain variation→product.busine
 // ------------------------------------------------------------------
 
 it('MfgRecipeIngredient herda isolamento via parent MfgRecipe (cascade)', function () {
-    $variationBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', BIZ_WAGNER)
-        ->select('v.id', 'v.product_id', 'p.business_id')
-        ->first();
-
-    if (! $variationBiz1) {
-        $this->markTestSkipped('Sem variation em biz=1 pra cravar parent recipe.');
-    }
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
     $recipe = MfgRecipe::create([
-        'product_id'       => $variationBiz1->product_id,
-        'variation_id'     => $variationBiz1->id,
+        'product_id'       => $variacao->product_id,
+        'variation_id'     => $variacao->id,
         'instructions'     => 'recipe-teste-ingredient-cascade',
         'waste_percent'    => 0,
         'ingredients_cost' => 0,
@@ -218,7 +204,7 @@ it('MfgRecipeIngredient herda isolamento via parent MfgRecipe (cascade)', functi
 
     $ingredient = MfgRecipeIngredient::create([
         'mfg_recipe_id' => $recipe->id,
-        'variation_id'  => $variationBiz1->id,
+        'variation_id'  => $variacao->id,
         'quantity'      => 2.5000,
     ]);
 
@@ -236,7 +222,7 @@ it('MfgRecipeIngredient herda isolamento via parent MfgRecipe (cascade)', functi
     $proprio = MfgRecipeIngredient::join('mfg_recipes as r', 'mfg_recipe_ingredients.mfg_recipe_id', '=', 'r.id')
         ->join('variations as v', 'r.variation_id', '=', 'v.id')
         ->join('products as p', 'v.product_id', '=', 'p.id')
-        ->where('p.business_id', BIZ_WAGNER)
+        ->where('p.business_id', MFG_EMP_BIZ)
         ->where('mfg_recipe_ingredients.id', $ingredient->id)
         ->count();
 
