@@ -5,6 +5,7 @@ namespace Modules\ComunicacaoVisual\Entities;
 use App\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Modules\ComunicacaoVisual\Entities\Concerns\EscopoPorNegocioDaSessao;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -41,6 +42,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class Apontamento extends Model
 {
+    use EscopoPorNegocioDaSessao; // Tier 0 ADR 0093 — mesmo filtro da closure antiga, reconhecido pelo MultiTenantScopeArchitectureTest
     // Sem SoftDeletes — append-only, registro legal de produção
     use LogsActivity;
 
@@ -96,13 +98,6 @@ class Apontamento extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('comvis_apontamentos.business_id', $businessId);
-            }
-        });
-
         static::creating(function (Apontamento $row) {
             if ($row->business_id === null) {
                 $row->business_id = session('user.business_id') ?? session('business.id')

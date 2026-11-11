@@ -4,6 +4,7 @@ namespace Modules\ComunicacaoVisual\Entities;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Modules\ComunicacaoVisual\Entities\Concerns\EscopoPorNegocioDaSessao;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
@@ -34,6 +35,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class InstalacaoCatalogo extends Model
 {
+    use EscopoPorNegocioDaSessao; // Tier 0 ADR 0093 — mesmo filtro da closure antiga, reconhecido pelo MultiTenantScopeArchitectureTest
     use SoftDeletes;
     use LogsActivity;
 
@@ -80,13 +82,6 @@ class InstalacaoCatalogo extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('cv_instalacoes_catalogo.business_id', $businessId);
-            }
-        });
-
         static::creating(function (InstalacaoCatalogo $row) {
             if ($row->business_id === null) {
                 $row->business_id = session('user.business_id') ?? session('business.id')

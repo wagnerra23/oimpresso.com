@@ -6,6 +6,7 @@ use App\Domain\Fsm\Concerns\GuardsFsmTransitions;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Modules\ComunicacaoVisual\Entities\Concerns\EscopoPorNegocioDaSessao;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -59,6 +60,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class OrdemProducao extends Model
 {
+    use EscopoPorNegocioDaSessao; // Tier 0 ADR 0093 — mesmo filtro da closure antiga, reconhecido pelo MultiTenantScopeArchitectureTest
     use SoftDeletes;
     use GuardsFsmTransitions;
     use LogsActivity;
@@ -147,13 +149,6 @@ class OrdemProducao extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('cv_ordens_producao.business_id', $businessId);
-            }
-        });
-
         static::creating(function (OrdemProducao $row) {
             if ($row->business_id === null) {
                 $row->business_id = session('user.business_id') ?? session('business.id')
