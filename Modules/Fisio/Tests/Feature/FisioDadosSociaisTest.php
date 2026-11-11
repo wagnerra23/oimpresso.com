@@ -48,6 +48,8 @@ function fsoPayload(array $mudar = []): array
 
 it('UC-FSO-01 · grava os dados sociais; nascimento, município e bairro vão para o contato; nada é obrigatório', function () {
     $this->put("/fisio/pacientes/{$this->p->id}/dados-sociais", [])->assertSessionHasNoErrors()->assertRedirect();
+    // A tela manda todos os campos nulos quando ninguém respondeu: também não cria linha vazia.
+    $this->put("/fisio/pacientes/{$this->p->id}/dados-sociais", array_fill_keys(array_keys(fsoPayload()), null))->assertSessionHasNoErrors();
     expect(DB::table('fisio_patient_social')->where('patient_id', $this->p->id)->exists())->toBeFalse();
 
     $this->put("/fisio/pacientes/{$this->p->id}/dados-sociais", fsoPayload())->assertSessionHasNoErrors()->assertRedirect()

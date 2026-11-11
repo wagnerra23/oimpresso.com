@@ -184,7 +184,9 @@ class DadosSociais
                 DB::table('contacts')->where('business_id', $paciente->business_id)->where('id', $paciente->contact_id)
                     ->update([...$contato, 'updated_at' => now()]);
             }
-            if ($social !== []) {
+            // Tudo vazio e ainda sem linha: não cria linha vazia (ninguém respondeu nada).
+            $temResposta = array_filter($social, fn ($v) => $v !== null && $v !== []) !== [];
+            if ($social !== [] && ($temResposta || PatientSocial::query()->where('patient_id', $paciente->id)->exists())) {
                 PatientSocial::query()->updateOrCreate(
                     ['patient_id' => $paciente->id],
                     [...$social, 'business_id' => $paciente->business_id, 'updated_by' => $userId],

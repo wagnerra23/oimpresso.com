@@ -2,8 +2,8 @@
 // Todos os campos são opcionais. Dado sensível (LGPD art. 11): a finalidade aparece na tela e
 // nada daqui vai ao portal nem à exportação da pesquisa. Listas e rótulos vêm do servidor
 // (DadosSociais::OPCOES) — uma fonte só para a ficha e o relatório agregado.
-import { Deferred, useForm } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { Deferred, useForm, type InertiaFormProps } from '@inertiajs/react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -50,12 +50,14 @@ function Leitura({ dados, opcoes }: { dados: DadosSociaisValores; opcoes: Opcoes
   );
 }
 
-function Formulario({ pacienteId, dados, opcoes }: { pacienteId: number; dados: DadosSociaisValores; opcoes: OpcoesSociais }) {
-  const form = useForm<DadosSociaisValores>({ ...dados, comorbidades: (dados.comorbidades as string[]) ?? [] });
+// O form recebe o estado do pai: o <Deferred> desmonta o filho a cada visita (o envio volta pela
+// página e a prop deferida é buscada de novo), e o que foi digitado e o erro do campo sumiriam
+// (lápide §5 2026-10-13, medido no staging em 2026-11-11).
+function Formulario({ pacienteId, form, opcoes }: { pacienteId: number; form: InertiaFormProps<DadosSociaisValores>; opcoes: OpcoesSociais }) {
   const erros = form.errors as Record<string, string>;
   const salvar = (e: FormEvent) => {
     e.preventDefault();
-    form.put(`/fisio/pacientes/${pacienteId}/dados-sociais`, { preserveScroll: true });
+    form.put(`/fisio/pacientes/${pacienteId}/dados-sociais`, { preserveScroll: true, preserveState: true, onSuccess: () => form.setDefaults() });
   };
   const escolha = (campo: string, rotulo: string, lista: Record<string, string>) => (
     <div key={campo} className="flex flex-col gap-1.5">
@@ -110,6 +112,17 @@ export default function DadosSociais({ pacienteId, dados, opcoes, podeEditar }: 
   pacienteId: number; dados?: DadosSociaisValores; opcoes: OpcoesSociais; podeEditar: boolean;
 }) {
   const [aberto, setAberto] = useState(false);
+  const form = useForm<DadosSociaisValores>({});
+  const [pronto, setPronto] = useState(false);
+  // Carrega os valores do servidor UMA vez; depois o form é a fonte (não apaga o que foi digitado).
+  useEffect(() => {
+    if (dados && !pronto) {
+      const v = { ...dados, comorbidades: (dados.comorbidades as string[]) ?? [] };
+      form.setDefaults(v);
+      form.setData(v);
+      setPronto(true);
+    }
+  }, [dados, pronto]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <section className="flex flex-col gap-3" data-contract="fisio-dados-sociais">
       <button type="button" className="flex items-center gap-2 text-left text-base font-semibold" aria-expanded={aberto} onClick={() => setAberto(!aberto)}>
@@ -123,11 +136,13 @@ export default function DadosSociais({ pacienteId, dados, opcoes, podeEditar }: 
             (editais, emendas e convênios). Raça/cor e saúde são dados sensíveis (LGPD, art. 11): não vão ao app do paciente
             nem à exportação da pesquisa.
           </p>
-          <Deferred data="dados_sociais" fallback={<Skeleton className="h-40 w-full" />}>
-            {podeEditar
-              ? <Formulario pacienteId={pacienteId} dados={dados ?? {}} opcoes={opcoes} />
-              : <Leitura dados={dados ?? {}} opcoes={opcoes} />}
-          </Deferred>
+          {podeEditar && pronto ? (
+            <Formulario pacienteId={pacienteId} form={form} opcoes={opcoes} />
+          ) : (
+            <Deferred data="dados_sociais" fallback={<Skeleton className="h-40 w-full" />}>
+              {podeEditar ? <Skeleton className="h-40 w-full" /> : <Leitura dados={dados ?? {}} opcoes={opcoes} />}
+            </Deferred>
+          )}
         </>
       )}
     </section>
