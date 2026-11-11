@@ -581,6 +581,8 @@ jobs:
         # E FisioLaudoBpsApoioTest (UC-FBP-10..12) e FisioLaudoBpsPdfTest (UC-FBP-13..14): apoio de dor e
         # adesão com período e fonte; PDF no layout SES-SC e uma linha no activity_log só com ids.
         # E FisioLaudoBpsTelaTest (UC-FBP-15): catálogo da matriz junto e laudos por prop deferida na ficha.
+        # ENTRA 2026-11-11 — Fisio/FisioDadosSociaisTest (US-FISIO-061, UC-FSO-01..05): dados sociais opcionais,
+        # CNS com dígito, 403/404/bloqueado e nada no portal nem na exportação da pesquisa.
         #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
@@ -785,6 +787,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairFormVendaContratoTest.php \
             Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
+            Modules/Vestuario/Tests/Feature/VestuarioPacoteGateTest.php \
             Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php \
             Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php \
             Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php \
@@ -952,7 +955,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php \
             Modules/Fisio/Tests/Feature/FisioExportacaoEstudoTest.php \
             Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php \
-            Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php || rc_principal=$?
+            Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php \
+            Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php || rc_principal=$?
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php || rc_painel=$?

@@ -47,6 +47,7 @@ contains:
   - "PesquisaController — estudo, participantes (código sem nome nem CPF), momentos de avaliação e pendências, com a permissão fisio.pesquisa (etapa 07 P-04)"
   - "Exames e receitas do paciente (fisio_patient_documents): foto ou PDF guardado pelo Modules/Arquivos, servido por rota que confere a empresa; não se apaga, sai da lista com motivo (US-FISIO-063)"
   - "DocumentosPacienteController — anexar, abrir e tirar da lista os exames e receitas na ficha (US-FISIO-063)"
+  - "DadosSociaisController — dados sociais do paciente, todos opcionais, em fisio_patient_social; nascimento, município e bairro no contato (US-FISIO-061)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Preço do pacote, cobrança e títulos → Modules/Financeiro (via venda do núcleo); o Fisio só lê fin_titulos pelo model Titulo (F3, US-FISIO-021/022)"
