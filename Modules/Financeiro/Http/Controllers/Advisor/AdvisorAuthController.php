@@ -83,7 +83,6 @@ class AdvisorAuthController extends Controller
             RateLimiter::hit($chaveIp, self::JANELA_SEGUNDOS);
 
             Log::warning('Onda 31: advisor login falhou', [
-                'email' => $credentials['email'],
                 'ip' => $request->ip(),
             ]);
             return back()
@@ -97,7 +96,6 @@ class AdvisorAuthController extends Controller
 
         Log::info('Onda 31: advisor login ok', [
             'advisor_id' => $advisor->id,
-            'email' => $advisor->email,
             'ip' => $request->ip(),
         ]);
 

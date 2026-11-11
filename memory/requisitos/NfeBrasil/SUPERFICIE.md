@@ -53,8 +53,9 @@ module: NfeBrasil
 
 - [PermissaoNfe.php](../../../Modules/NfeBrasil/Http/Middleware/PermissaoNfe.php)
 
-## Services — 41
+## Services — 42
 
+- [CancelamentoFiscalNfeBrasil.php](../../../Modules/NfeBrasil/Services/CancelamentoFiscalNfeBrasil.php)
 - [CertificadoService.php](../../../Modules/NfeBrasil/Services/CertificadoService.php)
 - [ResolveUfEmitente.php](../../../Modules/NfeBrasil/Services/Concerns/ResolveUfEmitente.php)
 - [ContingenciaService.php](../../../Modules/NfeBrasil/Services/ContingenciaService.php)
