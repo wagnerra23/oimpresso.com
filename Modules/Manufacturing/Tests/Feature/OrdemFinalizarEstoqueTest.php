@@ -144,8 +144,8 @@ function mfgFinOrdemMaisRecente(): int
     return (int) DB::table('transactions')->where('business_id', MFG_EMP_BIZ)->where('type', 'production_purchase')->orderByDesc('id')->value('id');
 }
 
-describe('Ordem de produção — finalizar movimenta estoque, rascunho não (UC-EST-08b)', function () {
-    it('UC-EST-08b — POST finalizando dá entrada no acabado e baixa o insumo, e a compra do insumo registra o consumo', function () {
+describe('Ordem de produção — finalizar movimenta estoque, rascunho não (UC-EST-08B)', function () {
+    it('UC-EST-08B — POST finalizando dá entrada no acabado e baixa o insumo, e a compra do insumo registra o consumo', function () {
         $user = mfgFinUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo finalizar post');
         mfgFinControlaEstoque($acabado);
@@ -163,7 +163,7 @@ describe('Ordem de produção — finalizar movimenta estoque, rascunho não (UC
         expect((int) DB::table('transactions')->where('id', mfgFinOrdemMaisRecente())->value('mfg_is_final'))->toBe(1);
     });
 
-    it('UC-EST-08b — POST como rascunho grava a ordem e não mexe no estoque do acabado nem do insumo', function () {
+    it('UC-EST-08B — POST como rascunho grava a ordem e não mexe no estoque do acabado nem do insumo', function () {
         $user = mfgFinUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo rascunho post');
         mfgFinControlaEstoque($acabado);
@@ -181,7 +181,7 @@ describe('Ordem de produção — finalizar movimenta estoque, rascunho não (UC
         expect(mfgFinConsumido($compra))->toBe(0.0);
     });
 
-    it('UC-EST-08b — PUT finalizando o rascunho dá entrada no acabado e baixa o insumo uma vez', function () {
+    it('UC-EST-08B — PUT finalizando o rascunho dá entrada no acabado e baixa o insumo uma vez', function () {
         $user = mfgFinUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo finalizar put');
         mfgFinControlaEstoque($acabado);
@@ -205,7 +205,7 @@ describe('Ordem de produção — finalizar movimenta estoque, rascunho não (UC
         expect((int) DB::table('transactions')->where('id', $ordem)->value('mfg_is_final'))->toBe(1);
     });
 
-    it('UC-EST-08b — unidades perdidas na ordem não entram no estoque do acabado', function () {
+    it('UC-EST-08B — unidades perdidas na ordem não entram no estoque do acabado', function () {
         $user = mfgFinUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo perdidas');
         mfgFinControlaEstoque($acabado);

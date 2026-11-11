@@ -336,4 +336,4 @@ last_run: "2026-10-07"
   produto da própria empresa. Vermelho só com o teste na run 39441296307 (500 na variação inexistente; ordem
   de outra empresa gravada antes do 404 acidental); verde com o conserto na run 39446612104.
 - 2026-11-09 · [C] UC-OP-14 (US-MANU-008 H1): o item H1 do backlog virou caso com teste. A tela não mudou.
-- 2026-11-11 · [C] UC-OP-16 (lote 1.1 da auditoria): consumo declarado na linha e sub-unidade, com teste. A entrada e a baixa ao finalizar ficam em UC-EST-08b (`Estoque/Movimentacao.casos.md`). A tela não mudou.
+- 2026-11-11 · [C] UC-OP-16 (lote 1.1 da auditoria): consumo declarado na linha e sub-unidade, com teste. A entrada e a baixa ao finalizar ficam em UC-EST-08B (`Estoque/Movimentacao.casos.md`). A tela não mudou.
