@@ -22,6 +22,7 @@ last_validated: "2026-11-11"
 | Item | Valor |
 |---|---|
 | Produção | https://oimpresso.com/comunicacao-visual, sessão de **biz=1** (WR2 Sistemas), código do deploy `93cc0a40cf` (run 43087401347, sucesso), que já contém os lotes 0 e 1 |
+| Código servido | o chunk da tela em `/build-inertia/manifest.json` (`assets/Index-D4e4Nfkb.js`) tem `EXTENSOES_ARQUIVO` **sem** `.svg`, a versão posterior ao #10685 (lote 0). Prova no artefato servido, não só no run de deploy |
 | Protótipo | espelho no git em `07d9047f13` (último commit do `.jsx`: `5e653fdbeb`), servido por http local sob `/prototipo-ui/cowork/Wagner/`, `localStorage["oimpresso.route"]="cv"`, nenhuma folha CSS em 404 |
 | Viewport | iframe de **1280×900** nos dois lados (a janela tinha zoom de 50%, então a medição foi dentro do iframe, `innerWidth` 1280 conferido) |
 | Tema | **claro** nos dois lados. A conta de biz=1 usa `data-theme=light` vindo do servidor. Forçar `dark` só pela classe gera um estado que o app nunca mostra (`.cockpit` claro com cards escuros), então o escuro **não foi medido** em produção |
