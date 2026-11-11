@@ -928,29 +928,23 @@ class TituloAutoService
     }
 
     /**
-     * Detecta location_id do caixa via primeira transaction linked.
+     * Local do caixa, lido de `cash_registers.location_id`.
      *
-     * R4 fallback chain — cash_registers NÃO tem location_id (bug P4).
-     * Usamos transactions.cash_register_id (UPOS pattern) pra ler location.
+     * A ADR 0183 (D4) dizia que a coluna não existe, e o código buscava
+     * `transactions.cash_register_id`, que é a que não existe: a consulta quebrava em todo
+     * fechamento e o listener só registrava o erro. A coluna veio na migration de 2019-09-04.
      */
     private function detectLocationFromCashRegister(CashRegister $cr): array
     {
-        $row = DB::table('transactions as t')
-            ->leftJoin('business_locations as bl', 'bl.id', '=', 't.location_id')
-            ->where('t.cash_register_id', $cr->id)
-            ->where('t.business_id', $cr->business_id)
-            ->select('t.location_id', 'bl.name as location_name')
-            ->orderBy('t.id', 'asc')
-            ->limit(1)
-            ->first();
-
-        if ($row) {
-            return [
-                'id'   => $row->location_id ? (int) $row->location_id : null,
-                'name' => $row->location_name ?? null,
-            ];
+        if (! $cr->location_id) {
+            return ['id' => null, 'name' => null];
         }
 
-        return ['id' => null, 'name' => null];
+        $nome = DB::table('business_locations')
+            ->where('business_id', $cr->business_id)
+            ->where('id', $cr->location_id)
+            ->value('name');
+
+        return ['id' => (int) $cr->location_id, 'name' => $nome];
     }
 }
