@@ -41,7 +41,7 @@ related_us: [US-FISIO-009]
 | UC-FPS-16 | histórico de questionários na ficha, deferido, só do paciente e da clínica | should | `FisioQuestionarioTest` |
 | UC-FPS-39 | questionário de fibromialgia só aparece e só grava se liberado em `fisio.instrumentos_liberados` | must | `FisioQuestionarioTest` |
 | UC-FPS-40 | FIQR, PGIC e sentar e levantar pontuados no servidor, com a versão do instrumento gravada | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
-| UC-FPS-41 | critérios ACR 2016 (WPI, SSS, regiões, duração) calculados como informação, sem diagnóstico | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
+| UC-FPS-41 | critérios ACR 2016 (WPI, SSS, regiões, duração) calculados como informação, sem diagnóstico | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest`, `tests/js/fisio-questionarios-fibro.test.tsx` |
 | UC-FPS-17 | paciente bloqueado: prontuário só aceita adendo | must | `FisioProntuarioTest` |
 | UC-FPS-18 | paciente bloqueado: perfil clínico não aceita edição | must | `FisioPacienteCrudTest` |
 | UC-FPS-30 | quem cadastra é o responsável; a ficha mostra o responsável | should | `FisioPacienteResponsavelTest` |
@@ -184,7 +184,7 @@ related_us: [US-FISIO-009]
 ## UC-FPS-41 · Critérios ACR 2016 como informação · `must`
 - **Âncora:** Wolfe et al. 2016 (Semin Arthritis Rheum 46:319-29) · ADR 0437 §5 (o software não decide conduta).
 - **Aceite:** WPI = áreas com dor (0 a 19); SSS = fadiga, sono e cognição (0 a 3) + cefaleia, dor abdominal baixa e depressão (0 ou 1), de 0 a 12; escore = WPI + SSS. Os critérios contam como atendidos com (WPI ≥ 7 e SSS ≥ 5, ou WPI 4–6 e SSS ≥ 9), dor em pelo menos 4 de 5 regiões (mandíbula, tórax e abdome não contam) e sintomas há 3 meses ou mais. O resultado é mostrado ao profissional como informação; o software não grava nem sugere diagnóstico.
-- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php` · `Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php`
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php` · `Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php` · `tests/js/fisio-questionarios-fibro.test.tsx` (a ficha mostra os critérios com o aviso "não é diagnóstico")
 - **Status: 🧪**
 
 ## UC-FPS-17 · Bloqueado: o prontuário só recebe correção · `must`
