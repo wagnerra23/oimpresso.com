@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 942,
-    "edges": 1272,
+    "nodes": 943,
+    "edges": 1273,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 153,
-      "component": 549,
+      "component": 550,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 549,
+      "hasComponent": 550,
       "dependsOn": 139,
       "delegatesTo": 127,
       "migratesTo": 1,
@@ -3506,6 +3506,13 @@
       "module": "Fisio",
       "name": "Jogo de constância",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "desc": "US-FISIO-060)"
     },
     {
       "id": "component:Fisio/OnboardingController",
@@ -10698,6 +10705,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Jogo de constância",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
       "type": "hasComponent",
       "source": "contains"
     },
