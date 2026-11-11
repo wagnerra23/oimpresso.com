@@ -42,6 +42,7 @@ contains:
   - "ConfigAgendamentoController — Configurações › Agendamento pelo app: ligar, quem marca, tipos liberados, horários e regras (US-FISIO-015)"
   - "PortalAgendaController — agenda do paciente no portal: horários livres, marcar, remarcar, cancelar, confirmar, Cheguei, nota e lista de espera (US-FISIO-016)"
   - "Estudo de pesquisa (fisio_studies) e consentimento `pesquisa` por estudo, com a versão do TCLE aprovada pelo CEP; `treino_ia` separado (etapa 07 P-02)"
+  - "PesquisaController — estudo, participantes (código sem nome nem CPF), momentos de avaliação e pendências, com a permissão fisio.pesquisa (etapa 07 P-04)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Preço do pacote, cobrança e títulos → Modules/Financeiro (via venda do núcleo); o Fisio só lê fin_titulos pelo model Titulo (F3, US-FISIO-021/022)"
