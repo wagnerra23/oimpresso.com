@@ -32,6 +32,8 @@ use Modules\Fisio\Exceptions\DadoClinicoImutavelException;
  * @property ?int $finalizado_por
  * @property ?\Illuminate\Support\Carbon $finalizado_em
  * @property ?int $amends_id
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
  */
 class LaudoBiopsicossocial extends Model
 {
