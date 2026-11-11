@@ -79,7 +79,7 @@ it('journey biz=1: criar recipe + 2 ingredients + resolver BOM via Service', fun
 });
 
 it('journey biz=1: calculateCost + calculateUnitCost respeitam total_quantity', function () {
-    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ, 'Produto fixture mfg', 4.0);
 
     // Custo dinâmico depende de variation.dpp_inc_tax — sem isso, custo=0 mas service não quebra
     $recipe = MfgRecipe::create([
@@ -107,9 +107,10 @@ it('journey biz=1: calculateCost + calculateUnitCost respeitam total_quantity', 
     $cost = $svc->calculateCost($recipe);
     $unit = $svc->calculateUnitCost($recipe);
 
-    // Custo total ≥ extra_cost (5) — independe de dpp_inc_tax existir
-    expect($cost)->toBeGreaterThanOrEqual(10.0);
-    expect($unit)->toBe($cost / 5.0);
+    // Custo fixo (UC-RECIPE-04): ingredientes + extra = 1 × 4,00 + 10,00 = 14,00; por unidade,
+    // ÷ 5 produzidas = 2,80. Antes era `>= 10`, que passava com qualquer custo de ingrediente.
+    expect(round($cost, 2))->toBe(14.0);
+    expect(round($unit, 2))->toBe(2.8);
 })->after(function () {
     MfgRecipe::where('instructions', 'wave18-journey-cost')->delete();
 });

@@ -72,8 +72,11 @@ it('expand: BOM com 5 ingredients via Service resolve corretamente biz=1', funct
     MfgRecipe::where('instructions', 'wave25-bom-expand-5')->delete();
 });
 
-it('expand: calculateCost com waste_percent=10 aplica fator 1.10 sobre ingredientes', function () {
-    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
+// O nome antigo ("aplica fator 1.10 sobre ingredientes") afirmava o contrário do contrato:
+// desperdício é somente na Produção (D4, decisão [W] 2026-10-23) e o custo unitário divide pela
+// quantidade produzida, nunca pelo rendimento (UC-RECIPE-03, R-11). O assert era `>= 0`.
+it('expand: UC-RECIPE-03 waste_percent=10 não entra no custo da receita', function () {
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ, 'Produto fixture mfg', 2.0);
 
     $recipe = MfgRecipe::create([
         'product_id'           => $variacao->product_id,
@@ -98,9 +101,9 @@ it('expand: calculateCost com waste_percent=10 aplica fator 1.10 sobre ingredien
     $svc = app(RecipeBomService::class);
     $recipe->load('ingredients.variation', 'ingredients.sub_unit');
 
-    $cost = $svc->calculateCost($recipe);
-    // Independe do dpp_inc_tax real — o que validamos é que o service não quebra com waste≠0
-    expect($cost)->toBeGreaterThanOrEqual(0.0);
+    // 10 × 2,00 = 20,00 — e não 22,00 (que seria o desperdício embutido no custo).
+    expect(round($svc->calculateCost($recipe), 2))->toBe(20.0);
+    expect(round($svc->calculateUnitCost($recipe), 2))->toBe(20.0);
 })->after(function () {
     MfgRecipe::where('instructions', 'wave25-waste-10')->delete();
 });

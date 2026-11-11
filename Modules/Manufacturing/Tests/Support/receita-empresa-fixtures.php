@@ -118,10 +118,10 @@ if (! function_exists('mfgEmpVariacao')) {
      * auditoria do Manufacturing lote 3.2). Devolve objeto com `id`, `variation_id`, `product_id`
      * e `business_id`, a mesma forma que o `->first()` antigo entregava.
      */
-    function mfgEmpVariacao(int $biz, string $nome = 'Produto fixture mfg'): object
+    function mfgEmpVariacao(int $biz, string $nome = 'Produto fixture mfg', float $custo = 0.0): object
     {
         $dono = (int) DB::table('users')->min('id');
-        [$product, $variation] = mfgEmpProduto($biz, $nome, $dono);
+        [$product, $variation] = mfgEmpProduto($biz, $nome, $dono, $custo);
 
         return (object) ['id' => $variation, 'variation_id' => $variation, 'product_id' => $product, 'business_id' => $biz];
     }
