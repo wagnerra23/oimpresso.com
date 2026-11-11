@@ -89,7 +89,7 @@ it('UC-FER-13 · a sugestão nasce pendente, só com os campos do schema, e nada
     expect($t->status)->toBe('pendente')
         // A coluna JSON do MySQL reordena as chaves ao gravar: compara o conjunto, não a ordem.
         ->and(array_keys($t->suggested))->toEqualCanonicalizing(['data', 'medico', 'crm', 'medicamentos'])
-        ->and($t->suggested['medicamentos'][0])->toBe(['nome' => 'Pregabalina', 'dose' => '75 mg', 'frequencia' => '1 cápsula à noite'])
+        ->and($t->suggested['medicamentos'][0])->toEqual(['nome' => 'Pregabalina', 'dose' => '75 mg', 'frequencia' => '1 cápsula à noite'])
         ->and(json_encode($t->suggested))->not->toContain('alterado')
         ->and($t->model)->toBe('modelo-teste')
         ->and($t->requested_by)->toBe($this->u98->id);
