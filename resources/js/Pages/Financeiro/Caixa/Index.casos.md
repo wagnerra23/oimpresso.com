@@ -99,7 +99,6 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - **[BACKLOG] Fechar turno pela tela React** — idem; a Blade tem `close_register_modal.blade.php`.
 - **[BACKLOG] Detalhe do turno (vendas/produtos/pagamentos do período)** — Blade tem
   `register_details` + `register_product_details` + `payment_details`; o React só lista.
-  tela (linha "Financeiro" sem título), sem teste que defenda o efeito.
 
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane `financeiro-pest.yml` (check **required** `PHP / Pest (Financeiro · MySQL)`).
