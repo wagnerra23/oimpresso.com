@@ -131,6 +131,14 @@ class DataController extends Controller
                 // nenhuma). Rótulos do protótipo (`fisio-page.jsx`, lista CLINICA). Mesma regra
                 // de acesso do grupo: as 4 rotas estão sob FisioLiberado (`fisio.access`);
                 // gravar exige `fisio.editar`, checado em cada controller.
+                // Etapa 07 P-04: área do estudo, só para o pesquisador (`fisio.pesquisa`), a mesma
+                // permissão que o PesquisaController exige.
+                if (auth()->user()?->can('fisio.pesquisa')) {
+                    $sub->url(url('/fisio/pesquisa'), 'Pesquisa', [
+                        'icon' => 'fa fa-flask',
+                        'active' => request()->segment(2) === 'pesquisa',
+                    ]);
+                }
                 $sub->url(url('/fisio/fiscal'), 'Fila fiscal', [
                     'icon' => 'fa fa-file-invoice',
                     'active' => request()->segment(2) === 'fiscal',

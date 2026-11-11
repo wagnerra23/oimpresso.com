@@ -1,0 +1,198 @@
+// @memcofre
+//   tela: /fisio/pesquisa
+//   module: Fisio
+//   stories: etapa 07 P-04 (UC-FES-01..08)
+//   permissao: fisio.pesquisa · o nome do paciente só aparece para quem também tem fisio.editar
+//
+// Área do estudo (fonte: prototipo-ui/cowork/Wagner/prototipos/fisio/Pesquisa.dc.html).
+// Estudo, participantes e pendências. As abas de eventos adversos, exportação e assistente
+// do protótipo entram com P-06, P-07 e P-08. O software organiza o estudo; não decide conduta.
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { Deferred, router, useForm, usePage } from '@inertiajs/react';
+import { useState, type ReactNode } from 'react';
+import { PageHeader } from '@/Components/PageHeader';
+import SubNav from '@/Components/shared/SubNav';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent } from '@/Components/ui/card';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Skeleton } from '@/Components/ui/skeleton';
+import { Textarea } from '@/Components/ui/textarea';
+
+interface Momento { label: string; day_offset: number; window_days: number; instruments: string[] }
+interface Estudo { id: number; title: string; status: string; cep_opinion_number: string; protocol_version: string; tcle_version: string; starts_on: string; ends_on: string | null; momentos: Momento[] }
+interface Participante { id: number; code: string; nome: string | null; entered_on: string; exited_on: string | null; exit_type: string | null; exit_reason: string | null }
+interface Pendencia { participant_id: number; code: string; moment: string; inicio: string; fim: string; faltando: string[]; situacao: 'futuro' | 'aberto' | 'vencido' }
+interface Props {
+  estudos: { id: number; title: string; status: string }[];
+  estudo: Estudo | null;
+  ve_nome: boolean;
+  instrumentos: string[];
+  participantes?: Participante[];
+  pendencias?: Pendencia[];
+  pacientes?: { id: number; nome: string }[];
+}
+
+const data = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('pt-BR');
+const SAIDAS: Record<string, string> = { perda_seguimento: 'perda de seguimento', revogacao: 'revogou', conclusao: 'concluiu', outro: 'outro motivo' };
+const SITUACAO: Record<Pendencia['situacao'], 'outline' | 'secondary' | 'destructive'> = { futuro: 'outline', aberto: 'secondary', vencido: 'destructive' };
+const MOMENTOS_PADRAO: Momento[] = [
+  { label: 'Entrada', day_offset: 0, window_days: 3, instruments: [] },
+  { label: '4 semanas', day_offset: 28, window_days: 7, instruments: [] },
+  { label: '8 semanas', day_offset: 56, window_days: 7, instruments: [] },
+  { label: '12 semanas', day_offset: 84, window_days: 7, instruments: [] },
+];
+
+function NovoEstudo({ instrumentos, fechar }: { instrumentos: string[]; fechar: () => void }) {
+  const f = useForm({ title: '', cep_opinion_number: '', protocol_version: '', tcle_version: '', starts_on: '', momentos: MOMENTOS_PADRAO });
+  const alternar = (i: number, instr: string, on: boolean) => f.setData('momentos', f.data.momentos.map((m, k) => k !== i ? m
+    : { ...m, instruments: on ? [...m.instruments, instr] : m.instruments.filter((x) => x !== instr) }));
+  const campo = (k: 'title' | 'cep_opinion_number' | 'protocol_version' | 'tcle_version' | 'starts_on', rotulo: string, tipo = 'text') => (
+    <div className="grid gap-1"><Label htmlFor={`est-${k}`}>{rotulo}</Label>
+      <Input id={`est-${k}`} type={tipo} value={f.data[k]} onChange={(e) => f.setData(k, e.target.value)} />
+      {f.errors[k] && <span className="text-xs text-destructive">{f.errors[k]}</span>}</div>
+  );
+  return (
+    <Dialog open onOpenChange={(o) => !o && fechar()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader><DialogTitle>Novo estudo</DialogTitle></DialogHeader>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {campo('title', 'Título')}{campo('cep_opinion_number', 'Número do parecer do CEP')}
+          {campo('protocol_version', 'Versão do protocolo')}{campo('tcle_version', 'Versão do TCLE aprovada')}
+          {campo('starts_on', 'Início', 'date')}
+        </div>
+        <p className="text-sm font-medium">Momentos de avaliação e questionários de cada um</p>
+        <ul className="grid gap-2">{f.data.momentos.map((m, i) => (
+          <li key={m.label} className="flex flex-wrap items-center gap-3 text-sm">
+            <span className="w-28">{m.label} <span className="text-muted-foreground">(dia {m.day_offset} ± {m.window_days})</span></span>
+            {instrumentos.map((instr) => (
+              <label key={instr} className="flex items-center gap-1 uppercase">
+                <Checkbox checked={m.instruments.includes(instr)} onCheckedChange={(v) => alternar(i, instr, v === true)} />{instr}
+              </label>))}
+          </li>))}</ul>
+        <DialogFooter>
+          <Button variant="outline" onClick={fechar}>Cancelar</Button>
+          <Button disabled={f.processing} onClick={() => f.post('/fisio/pesquisa/estudos', { onSuccess: fechar })}>Criar estudo</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Incluir({ estudo, pacientes, fechar }: { estudo: Estudo; pacientes: { id: number; nome: string }[]; fechar: () => void }) {
+  const f = useForm({ patient_id: '', tcle_assinado: false });
+  return (
+    <Dialog open onOpenChange={(o) => !o && fechar()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Incluir participante</DialogTitle></DialogHeader>
+        <Select value={f.data.patient_id} onValueChange={(v) => f.setData('patient_id', v)}>
+          <SelectTrigger aria-label="Paciente"><SelectValue placeholder="Escolha o paciente" /></SelectTrigger>
+          <SelectContent>{pacientes.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.nome}</SelectItem>)}</SelectContent>
+        </Select>
+        <label className="flex items-start gap-2 text-sm">
+          <Checkbox checked={f.data.tcle_assinado} onCheckedChange={(v) => f.setData('tcle_assinado', v === true)} />
+          O paciente assinou o TCLE na versão {estudo.tcle_version}, aprovada pelo CEP.
+        </label>
+        {f.errors.geral && <p className="text-sm text-destructive">{f.errors.geral}</p>}
+        <DialogFooter>
+          <Button variant="outline" onClick={fechar}>Cancelar</Button>
+          <Button disabled={f.processing || !f.data.patient_id || !f.data.tcle_assinado}
+            onClick={() => f.post(`/fisio/pesquisa/estudos/${estudo.id}/participantes`, { preserveScroll: true, onSuccess: fechar })}>Incluir</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Saida({ estudo, p, fechar }: { estudo: Estudo; p: Participante; fechar: () => void }) {
+  const f = useForm({ tipo: 'perda_seguimento', motivo: '' });
+  return (
+    <Dialog open onOpenChange={(o) => !o && fechar()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Saída de {p.code}</DialogTitle></DialogHeader>
+        <Select value={f.data.tipo} onValueChange={(v) => f.setData('tipo', v)}>
+          <SelectTrigger aria-label="Tipo de saída"><SelectValue /></SelectTrigger>
+          <SelectContent>{['perda_seguimento', 'conclusao', 'outro'].map((t) => <SelectItem key={t} value={t}>{SAIDAS[t]}</SelectItem>)}</SelectContent>
+        </Select>
+        <Textarea aria-label="Motivo" placeholder="Motivo (fica registrado e não é apagado)" value={f.data.motivo} onChange={(e) => f.setData('motivo', e.target.value)} />
+        {(f.errors.motivo || f.errors.geral) && <p className="text-sm text-destructive">{f.errors.motivo ?? f.errors.geral}</p>}
+        <DialogFooter>
+          <Button variant="outline" onClick={fechar}>Cancelar</Button>
+          <Button disabled={f.processing || f.data.motivo.trim() === ''}
+            onClick={() => f.post(`/fisio/pesquisa/estudos/${estudo.id}/participantes/${p.id}/saida`, { preserveScroll: true, onSuccess: fechar })}>Registrar saída</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default function PesquisaIndex(props: Props) {
+  const { estudos, estudo, ve_nome } = props;
+  const [aba, setAba] = useState<'part' | 'pend'>('part');
+  const [dialogo, setDialogo] = useState<'novo' | 'incluir' | null>(null);
+  const [saindo, setSaindo] = useState<Participante | null>(null);
+  const flash = (usePage().props as { flash?: { success?: string } }).flash?.success;
+
+  return (
+    <>
+      <PageHeader
+        title={estudo?.title ?? 'Pesquisa'}
+        subtitle={estudo ? `Parecer CEP ${estudo.cep_opinion_number} · protocolo ${estudo.protocol_version} · TCLE ${estudo.tcle_version} · desde ${data(estudo.starts_on)}` : 'Estudos da clínica, com consentimento por estudo.'}
+        actions={<>
+          {estudo && ve_nome && estudo.status === 'ativo' && <Button variant="outline" onClick={() => setDialogo('incluir')}>Incluir participante</Button>}
+          <Button onClick={() => setDialogo('novo')}>Novo estudo</Button>
+        </>}
+      />
+      <div className="mx-auto grid w-full max-w-5xl gap-4 p-4" data-contract="fisio-pesquisa">
+        <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">Área do pesquisador. O código do participante não vem do nome nem do CPF. A tabela que liga código a paciente fica só na clínica.</p>
+        {flash && <p className="text-sm text-muted-foreground" role="status">{flash}</p>}
+        {estudos.length > 1 && (
+          <Select value={String(estudo?.id ?? '')} onValueChange={(v) => router.get('/fisio/pesquisa', { estudo: v })}>
+            <SelectTrigger className="max-w-sm" aria-label="Estudo"><SelectValue /></SelectTrigger>
+            <SelectContent>{estudos.map((e) => <SelectItem key={e.id} value={String(e.id)}>{e.title}</SelectItem>)}</SelectContent>
+          </Select>
+        )}
+        {estudo === null ? <p className="text-sm text-muted-foreground">Nenhum estudo cadastrado.</p> : (
+          <>
+            <SubNav variant="segmented" ariaLabel="Seções do estudo" value={aba} onChange={(v) => setAba(v === 'pend' ? 'pend' : 'part')}
+              items={[{ value: 'part', label: 'Participantes' }, { value: 'pend', label: 'Pendências' }]} />
+            <Card><CardContent className="pt-6">
+              {aba === 'part' ? (
+                <Deferred data="participantes" fallback={<Skeleton className="h-24 w-full" />}>
+                  {(props.participantes ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Nenhum participante ainda.</p> : (
+                    <ul className="divide-y rounded-md border">{(props.participantes ?? []).map((p) => (
+                      <li key={p.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
+                        <span className="w-24 font-mono font-medium">{p.code}</span>
+                        {ve_nome && <span className="min-w-0 flex-1 truncate">{p.nome ?? '—'}</span>}
+                        <span className="font-mono text-muted-foreground">{data(p.entered_on)}</span>
+                        {p.exited_on ? <span className="flex-1"><Badge variant="outline">{SAIDAS[p.exit_type ?? 'outro']} em {data(p.exited_on)}</Badge> <span className="text-muted-foreground">{p.exit_reason}</span></span>
+                          : <><Badge variant="secondary">no estudo</Badge><Button size="sm" variant="outline" onClick={() => setSaindo(p)}>Registrar saída</Button></>}
+                      </li>))}</ul>)}
+                </Deferred>
+              ) : (
+                <Deferred data="pendencias" fallback={<Skeleton className="h-24 w-full" />}>
+                  {(props.pendencias ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Nenhum questionário pendente.</p> : (
+                    <ul className="divide-y rounded-md border">{(props.pendencias ?? []).map((q) => (
+                      <li key={`${q.participant_id}-${q.moment}`} className="flex flex-wrap items-center gap-3 p-3 text-sm">
+                        <span className="w-24 font-mono">{q.code}</span><span className="w-28">{q.moment}</span>
+                        <span className="font-mono text-muted-foreground">{data(q.inicio)} a {data(q.fim)}</span>
+                        <span className="flex-1 uppercase">{q.faltando.join(', ')}</span><Badge variant={SITUACAO[q.situacao]}>{q.situacao}</Badge>
+                      </li>))}</ul>)}
+                </Deferred>
+              )}
+            </CardContent></Card>
+          </>
+        )}
+      </div>
+      {dialogo === 'novo' && <NovoEstudo instrumentos={props.instrumentos} fechar={() => setDialogo(null)} />}
+      {dialogo === 'incluir' && estudo && <Deferred data="pacientes" fallback={null}><Incluir estudo={estudo} pacientes={props.pacientes ?? []} fechar={() => setDialogo(null)} /></Deferred>}
+      {saindo && estudo && <Saida estudo={estudo} p={saindo} fechar={() => setSaindo(null)} />}
+    </>
+  );
+}
+
+PesquisaIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
