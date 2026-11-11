@@ -57,6 +57,14 @@ class DemoSeedCommand extends Command
 
     public function handle(): int
     {
+        // Dados de demonstração nunca entram em empresa real (UC-CVHIG-02). Em produção não há como
+        // separar empresa de demo de empresa de cliente, então o comando não roda lá.
+        if (app()->environment(['live', 'production'])) {
+            $this->error('comvis:demo-seed não roda em produção: as empresas daqui são reais. Use o staging.');
+
+            return 1;
+        }
+
         // ----------------------------------------------------------------
         // 1. Validar --business obrigatório
         // ----------------------------------------------------------------
