@@ -125,8 +125,13 @@ export function BlocoArmazenagem({ valor, mudar, locais, endereco, saldos }: Pro
                       type="button"
                       variant="ghost"
                       size="icon"
-                      aria-label={`Remover local, linha ${i + 1}`}
-                      title={podeTirar(l, saldos) ? undefined : 'Local com saldo não pode ser tirado. Transfira ou ajuste o estoque antes.'}
+                      // Tira só o endereço deste produto neste local; o local da empresa continua existindo.
+                      aria-label={`Tirar este endereço do produto: ${nomeDe(l.local)}`}
+                      title={
+                        podeTirar(l, saldos)
+                          ? 'Tirar este endereço do produto'
+                          : 'Este local tem saldo do produto. O endereço só sai depois de transferir ou ajustar o estoque.'
+                      }
                       disabled={!podeTirar(l, saldos)}
                       onClick={() => mudar(semLinha(valor, i, saldos))}
                     >

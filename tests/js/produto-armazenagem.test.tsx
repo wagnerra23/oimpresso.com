@@ -195,7 +195,7 @@ function editar(extra: Record<string, unknown> = {}, saldoPorLocal: Record<strin
 describe('UC-PEDIT-19 · Editar produto', () => {
   it('lê o local gravado e o padrão; a linha gravada com saldo não sai e vai em product_racks_update', () => {
     editar()
-    expect((screen.getByRole('button', { name: /Remover local/ }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: 'Tirar este endereço do produto: Depósito' }) as HTMLButtonElement).disabled).toBe(true)
     expect((screen.getByLabelText('Prateleira, Depósito') as HTMLInputElement).value).toBe('A')
     const p = salvar()
     expect(p.product_racks_update).toEqual({ 2: { rack: 'A', row: '', position: '' } })
@@ -248,8 +248,9 @@ describe('UC-PEDIT-21 · Em estoque e tirar local sem saldo', () => {
     editar({}, { 2: 12.5 })
     expect(screen.getByTestId('bloco-armazenagem').textContent).toContain('Em estoque')
     expect(screen.getByLabelText('Em estoque, Depósito').textContent).toBe('12,50')
-    const botao = screen.getByRole('button', { name: 'Remover local, linha 1' }) as HTMLButtonElement
+    const botao = screen.getByRole('button', { name: 'Tirar este endereço do produto: Depósito' }) as HTMLButtonElement
     expect(botao.disabled).toBe(true)
+    expect(botao.title).toBe('Este local tem saldo do produto. O endereço só sai depois de transferir ou ajustar o estoque.')
     fireEvent.click(botao)
     expect(salvar()).not.toHaveProperty('product_racks_remover')
   })
@@ -257,7 +258,7 @@ describe('UC-PEDIT-21 · Em estoque e tirar local sem saldo', () => {
   it('sem saldo, tirar o local o tira da tela e o envio pede a remoção', () => {
     editar({}, {})
     expect(screen.getByLabelText('Em estoque, Depósito').textContent).toBe('0,00')
-    fireEvent.click(screen.getByRole('button', { name: 'Remover local, linha 1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tirar este endereço do produto: Depósito' }))
     expect(screen.queryByLabelText('Prateleira, Depósito')).toBeNull()
     const p = salvar()
     expect(p.product_racks_remover).toEqual([2])

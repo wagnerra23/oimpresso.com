@@ -2078,9 +2078,9 @@ class ProductController extends Controller
                 ->where('product_id', $product_id)->pluck('location_id')->map(fn ($id) => (int) $id);
             $saldos = $this->saldoPorLocal($business_id, (int) $product_id);
             if ($remover->diff($doProdutoAgora)->isNotEmpty()) {
-                $erros['product_racks_remover'] = 'Só dá para tirar um local de armazenagem que o produto já tem.';
+                $erros['product_racks_remover'] = 'Só dá para tirar o endereço de um local que o produto já tem.';
             } elseif ($remover->contains(fn ($id) => abs($saldos[$id] ?? 0.0) > 0.00001)) {
-                $erros['product_racks_remover'] = 'Local com saldo não pode ser tirado. Transfira ou ajuste o estoque antes.';
+                $erros['product_racks_remover'] = 'Este local tem saldo do produto. O endereço só sai depois de transferir ou ajustar o estoque.';
             }
         }
         if ($citados->isEmpty()) {
