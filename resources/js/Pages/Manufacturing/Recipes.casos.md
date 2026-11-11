@@ -86,7 +86,7 @@ last_run: "2026-10-27"
   O `Inertia::render('Manufacturing/Recipes'` com `recipes`/`permissions`/`producao`/`settings`
   está no mesmo teste, pelo assert estrutural do UC-RECIPE-06.
 - ⚠️ **O que este teste NÃO prova:** que a resposta HTTP real traz o payload. Nenhum caso prova isso hoje
-  (até 2026-11-11 esta linha apontava para um UC-RECIPE-08 que nunca existiu neste arquivo).
+  (até 2026-11-11 esta linha apontava para um caso "08" de receitas que nunca existiu neste arquivo).
 - **Fonte:** decisão [W] 2026-09-02 (o endereço) + §15.2 do handoff (o conteúdo da tela).
 - **Teste:** `Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php`
 - **Regressão que defende:** alguém "consertar" o controller devolvendo a view Blade e a tela
