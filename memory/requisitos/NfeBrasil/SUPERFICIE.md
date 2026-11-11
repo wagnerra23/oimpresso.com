@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 352 arquivos em 20 papéis.
+**Total mapeado:** 353 arquivos em 20 papéis.
 
 ## Controllers — 16
 
@@ -53,8 +53,9 @@ module: NfeBrasil
 
 - [PermissaoNfe.php](../../../Modules/NfeBrasil/Http/Middleware/PermissaoNfe.php)
 
-## Services — 41
+## Services — 42
 
+- [CancelamentoFiscalNfeBrasil.php](../../../Modules/NfeBrasil/Services/CancelamentoFiscalNfeBrasil.php)
 - [CertificadoService.php](../../../Modules/NfeBrasil/Services/CertificadoService.php)
 - [ResolveUfEmitente.php](../../../Modules/NfeBrasil/Services/Concerns/ResolveUfEmitente.php)
 - [ContingenciaService.php](../../../Modules/NfeBrasil/Services/ContingenciaService.php)
