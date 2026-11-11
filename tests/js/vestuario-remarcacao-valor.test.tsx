@@ -145,12 +145,20 @@ describe('UC-VREM-07 · etiquetas do lote na tela', () => {
   function responder(qtd: number) {
     fetchMock.mockImplementation(async (url: string) => {
       if (url.endsWith('/etiquetas')) return { ok: true, status: 200, json: async () => ({ items: itens(qtd) }) }
-      if (url.endsWith('/lote/pdf')) return { ok: true, status: 200, blob: async () => new Blob(['pdf']) }
+      // O arquivo demora: a tela segue ocupada (botões desabilitados) depois que o pedido já saiu.
+      if (url.endsWith('/lote/pdf')) return { ok: true, status: 200, blob: () => new Promise<Blob>((ok) => setTimeout(() => ok(new Blob(['pdf'])), 20)) }
       if (url.endsWith('/reverter')) return { ok: true, status: 200, json: async () => ({ revertidos: 1, conflitos: 0 }) }
       return { ok: true, status: 200, json: async () => (url.endsWith('/previa') ? PREVIA : { lote: 7 }) }
     })
   }
   const chamadasPdf = () => fetchMock.mock.calls.filter(([u]) => String(u).endsWith('/lote/pdf'))
+  // Enquanto uma ação roda, todos os botões ficam desabilitados e um clique neles é ignorado:
+  // espera a tela liberar antes de clicar, como a pessoa faria.
+  async function clicarQuandoLivre(nome: string | RegExp) {
+    const botao = () => screen.getByRole('button', { name: nome }) as HTMLButtonElement
+    await waitFor(() => expect(botao().disabled).toBe(false))
+    fireEvent.click(botao())
+  }
 
   beforeEach(() => {
     URL.createObjectURL = vi.fn(() => 'blob:x')
@@ -174,12 +182,8 @@ describe('UC-VREM-07 · etiquetas do lote na tela', () => {
 
     await screen.findByRole('button', { name: /Parte 3/ })
     expect(chamadasPdf()).toHaveLength(0)
-    // A tela desabilita os botões enquanto um download roda (`ocupado`). Clique em botão
-    // desabilitado se perde, então cada parte só é clicada depois que o botão volta.
     for (const parte of [1, 2, 3]) {
-      const botao = screen.getByRole('button', { name: new RegExp(`Parte ${parte}`) }) as HTMLButtonElement
-      await waitFor(() => expect(botao.disabled).toBe(false))
-      fireEvent.click(botao)
+      await clicarQuandoLivre(new RegExp(`Parte ${parte}`))
       await waitFor(() => expect(chamadasPdf()).toHaveLength(parte))
     }
 
@@ -198,7 +202,7 @@ describe('UC-VREM-07 · etiquetas do lote na tela', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Gravar' }))
     await screen.findByRole('button', { name: 'Imprimir etiquetas' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reverter' }))
+    await clicarQuandoLivre('Reverter')
 
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Imprimir etiquetas' })).toBeNull())
   })

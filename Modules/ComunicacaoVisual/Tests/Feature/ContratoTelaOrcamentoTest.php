@@ -104,7 +104,7 @@ function contratoTelaCvUser(): array
 // UC-CV-07 — a calculadora recebe o catálogo do business (CU-CV-09)
 // ------------------------------------------------------------------
 
-it('UC-CV-07 — a pagina do hub entrega o catalogo de materiais do business a calculadora', function () {
+it('UC-CV-07 · UC-CV-10 — a pagina do hub entrega o catalogo de materiais do business a calculadora', function () {
     [$business, $user] = contratoTelaCvUser();
 
     // Nome único: o assert é sobre o CONTEÚDO chegar, não sobre o nome da prop.
