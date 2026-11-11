@@ -209,7 +209,7 @@ class PesquisaController extends Controller
     public function sugerir(Request $request, int $study): JsonResponse|RedirectResponse
     {
         $this->autorizar($request);
-        $estudo = Study::findOrFail($study);
+        $estudo = Study::where('business_id', $this->empresa($request))->findOrFail($study);
         try {
             $novas = $this->assistente->gerar($estudo, (int) $request->user()->id);
         } catch (InvalidArgumentException $e) {
@@ -228,7 +228,7 @@ class PesquisaController extends Controller
     public function decidirSugestao(Request $request, int $study, int $sugestao, string $decisao): JsonResponse|RedirectResponse
     {
         $this->autorizar($request);
-        $s = StudyAiSuggestion::where('study_id', $study)->findOrFail($sugestao);
+        $s = StudyAiSuggestion::where('business_id', $this->empresa($request))->where('study_id', $study)->findOrFail($sugestao);
         try {
             $this->assistente->decidir($s, $decisao === 'aceitar', (int) $request->user()->id);
         } catch (InvalidArgumentException $e) {
