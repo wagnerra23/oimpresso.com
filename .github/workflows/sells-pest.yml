@@ -660,6 +660,7 @@ jobs:
             tests/Feature/Sells/CatalogueQrContratoTest.php \
             tests/Feature/Sells/CatalogoPublicoXssContratoTest.php \
             Modules/ProductCatalogue/Tests/Feature \
+            tests/Feature/Sells/CatalogoPublicoDescontoContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
 
