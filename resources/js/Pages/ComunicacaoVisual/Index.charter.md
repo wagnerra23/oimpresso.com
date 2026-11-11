@@ -3,7 +3,7 @@ id: resources-js-pages-comunicacao-visual-index-charter
 page: /comunicacao-visual
 component: resources/js/Pages/ComunicacaoVisual/Index.tsx
 bundle_source: prototipo-ui/cowork/Wagner/comunicacao-visual-page.jsx  # 2026-09-06 [C]: porte REVERSO do vivo no Cowork (shell: "Telas que existiam no vivo e faltavam no Cowork") — fonte de bundle, não design aprovado (§5 2026-08-28)
-related_us: [US-COMVIS-001, US-COMVIS-020, US-COMVIS-021, US-COMVIS-022]
+related_us: [US-COMVIS-001, US-COMVIS-003, US-COMVIS-020, US-COMVIS-021, US-COMVIS-022, US-COMVIS-023]
 related_us_nota: "2026-09-06 [C]: a tela É a calculadora por m² (US-COMVIS-001 · P0) — declarado ao tocar o charter (charter-us-lint no-new-lie)"
 related_prototype: "n/a — ferramenta bespoke (calculadora de m²) construida do Design System; arquetipo unico no repo (so 1 tela do tipo), sem padrao de tela dedicado"
 status: draft
@@ -29,7 +29,7 @@ Calculadora de orçamento por m² do vertical ComVis (US-COMVIS-001 · P0). É o
 3d. **Arquivos do orçamento** (US-COMVIS-020) — com o orçamento salvo, "Anexar arquivo" grava a arte/foto em `media`; ao aprovar vai para a OS. Depois da OS não se anexa nem remove (UC-CVARQ-01..06).
 3e. **Mandar ao cliente** (US-COMVIS-023) — orçamento gravado, igual à tela e ainda não aprovado mostra "Enviar no WhatsApp": gera o link de aceite (7 dias, uma resposta) e oferece "Copiar link" e "Abrir no WhatsApp" (o WhatsApp do próprio vendedor, com a mensagem pronta; nada sai do sistema). O orçamento passa a enviado (UC-CVACE-03). Salvar uma alteração fecha o link e tira ele da tela (UC-CVACE-04).
 3f. **Roteiro da produção** (US-COMVIS-003, decisão [W] 2026-10-26) — para quem cuida do catálogo, o cartão escolhe o roteiro padrão com que toda OS nasce no quadro do PCP (UC-CVOS-11).
-3e. **Custo e margem por peça** (US-COMVIS-022 · UC-FLX-03) — ao conferir, quem gerencia materiais vê custo e margem de cada peça e do orçamento (peças menos desconto). Peça sem custo cadastrado fica sem margem. Preço e total não mudam (UC-CVMRG-01..06).
+3g. **Custo e margem por peça** (US-COMVIS-022 · UC-FLX-03) — ao conferir, quem gerencia materiais vê custo e margem de cada peça e do orçamento (peças menos desconto). Peça sem custo cadastrado fica sem margem. Preço e total não mudam (UC-CVMRG-01..06).
 4. **"Em breve nesta tela"** — 3 cartões honestos (Ordens de serviço · Materiais · Apontamentos), sem ação.
 
 Contrato comportamental: [`Index.casos.md`](Index.casos.md).
@@ -46,7 +46,7 @@ Tela Inertia **no ar** (`Index.tsx`), servida pela rota `comunicacao-visual.inde
 
 Os 3 widgets que este charter descrevia até 2026-09-23 **não existem na tela**; ficam como próximo, cada um na sua US:
 
-- Orçamentos pendentes de aprovação do cliente — depende de salvar orçamento (UC-CV-11)
+- Orçamentos pendentes de aprovação do cliente — salvar existe desde 2026-10-21 e o cartão "Orçamentos salvos" mostra o status de cada um; uma lista só dos que esperam o cliente não existe
 - CRUD de materiais — US-COMVIS-002
 - OS em produção / PCP em miniatura — US-COMVIS-003
 - Apontamentos do dia (m² produzido + drift) — US-COMVIS-004
@@ -61,7 +61,7 @@ Os 3 widgets que este charter descrevia até 2026-09-23 **não existem na tela**
 
 - F2 backend baseline: ✅ API JSON (`/comunicacao-visual/api/*`)
 - F3 frontend: ✅ calculadora no ar — os 3 widgets do "Próximo" não
-- F4 QA: parcial — trio completo (charter · casos · teste), UC-CV-07 vermelho esperado
+- F4 QA: parcial — trio completo (charter · casos · teste). UC-CV-07 está 🧪 no `Index.casos.md`: verde no CT 100 desde 2026-09-23, sem veredito ✅ no manifesto. Até 2026-09-23 era vermelho esperado
 - F5 cutover: aguarda piloto (ADR 0105)
 
 ## Wave histórica

@@ -9,8 +9,8 @@
       			<div class="col-md-4">
       				<div class="thumbnail">
       					<img src="{{$product->image_url}}" alt="Product image">
-      					@if($product->type == 'single' && !empty($discounts[$product->variations->first()->id]))
-      						<span class="label label-warning discount-badge">- {{@num_format($discounts[$product->variations->first()->id]->discount_amount)}}%</span>
+      					@if($product->type == 'single')
+      						@include('productcatalogue::catalogue.partials.discount_badge', ['discount' => $discounts[$product->variations->first()->id] ?? null])
       					@endif
       				</div>
       			</div>
