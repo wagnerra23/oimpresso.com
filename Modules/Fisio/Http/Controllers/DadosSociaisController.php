@@ -19,7 +19,9 @@ class DadosSociaisController extends Controller
     public function update(Request $request, int $id, DadosSociais $social): RedirectResponse
     {
         abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
-        $paciente = Patient::query()->findOrFail($id);
+        // Filtro de empresa explícito além do escopo do model (Tier 0, ADR 0093): outra empresa → 404.
+        $businessId = (int) $request->session()->get('user.business_id');
+        $paciente = Patient::query()->where('business_id', $businessId)->findOrFail($id);
 
         $dados = $request->validate($social->regras());
         $social->gravar($paciente, $dados, (int) $request->user()->id);
