@@ -2014,7 +2014,8 @@ class SellPosController extends Controller
      */
     public function destroy($id)
     {
-        if (!auth()->user()->can('sell.delete') && !auth()->user()->can('direct_sell.delete') && !auth()->user()->can('so.delete')) {
+        if (!auth()->user()->can('sell.delete') && !auth()->user()->can('direct_sell.delete') && !auth()->user()->can('so.delete')
+            && !$this->transactionUtil->podeExcluirComoRascunho(auth()->user(), request()->session()->get('user.business_id'), $id)) {
             abort(403, 'Unauthorized action.');
         }
 

@@ -63,21 +63,29 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** desconto abaixo do piso passando sem aprovação; ou o bloqueio travando venda de quem não configurou margem.
 - **Status: 🧪**
 
+## UC-DRAFT-06 · Excluir o rascunho pelo menu Ações da lista `[T0]` `[must]`
+- **Pedido de origem:** P-076 (ROTA LIVRE, 2026-10-23 — usa o rascunho como venda condicional e precisa apagar o que não virou venda; reclamou de novo em 2026-11-10)
+- **Persona:** Larissa / vendedor do balcão com `draft.delete`.
+- **Aceite:** Dado um rascunho na lista e um usuário com `draft.delete` · Quando abro o menu Ações da linha e escolho "Excluir rascunho" · Então aparece a confirmação com o cliente, os itens e o valor · E, confirmado, o rascunho some da lista e o total de rascunhos diminui 1. "Continuar venda" continua à vista na linha, e a lista mostra o valor de cada rascunho (coluna Valor). Sem `draft.delete`, o item aparece desabilitado, com o aviso de que falta a permissão.
+- **Fontes:** lista Blade `sale_pos/draft` (menu Ações com Excluir para `draft.delete`, `SellController@getDraftDatables`) · desenho `prototipo-ui/cowork/Wagner/venda-blade.jsx` (`TelaDraft`, PR #9800) aprovado por [M] em 2026-11-10, com a coluna Valor e o Imprimir.
+- **Exclusão:** apaga de vez, como a lista antiga (`TransactionUtil::deleteSale`, que grava `sell_deleted` no log de atividade). Se o [W] decidir a D-23 por "fica como cancelado", muda aqui e no teste.
+- **Teste:** `SellsDraftsContratoTest` — `UC-DRAFT-06 [T0] com draft.delete o rascunho excluído sai da lista e do total…`.
+- **Regressão que defende:** a lista perder de novo o Excluir; o valor sumir da linha e da confirmação.
+- **Status: 🧪**
+
+## UC-DRAFT-07 · A permissão de excluir rascunho só alcança rascunho comum `[T0]` `[must]`
+- **Aceite:** Dado um usuário com `draft.delete` · Quando tenta excluir uma venda finalizada, uma cotação ou um rascunho de outra empresa · Então recebe 403 e nada é apagado. Com `draft.view_own` sem `draft.view_all`, o rascunho de outro vendedor também é recusado; o próprio rascunho comum sai. Sem `draft.delete`, nem o próprio. Vale igual por `DELETE /sells/{id}` e por `DELETE /pos/{id}`.
+- **Fontes:** os dois `destroy` de venda — `SellController` (`DELETE /sells/{id}`, usado por esta tela) e `SellPosController` (`DELETE /pos/{id}`, usado pela lista Blade) — aceitavam só `sell.delete`/`direct_sell.delete`/`so.delete`, então o Excluir de rascunho dava 403 para quem só tinha `draft.delete`. A regra mora em `TransactionUtil::podeExcluirComoRascunho` e vale nas duas rotas; o recorte segue o que a lista mostra (UC-DRAFT-01/02) · ADR 0093.
+- **Teste:** `SellsDraftsContratoTest` — `UC-DRAFT-07 [T0] draft.delete só apaga rascunho comum da própria empresa…`.
+- **Regressão que defende:** a permissão de rascunho apagando venda final ou cotação; vendedor apagando o rascunho do colega; rascunho de outra empresa.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** A **lista** (`/sells/draft-dt?is_quotation=0`) não filtra `sub_status`: pela leitura de `SellController@getDraftDatables`, o ramo `is_quotation=0` só exige `status = draft`, então cotações e proformas entrariam na lista de rascunhos — enquanto o KPI (UC-DRAFT-04) as exclui e o charter declara `sub_status=NULL`. O Blade legado usa o mesmo endpoint, logo o comportamento é herdado. **Hipótese, não medida** (não rodei teste). Decisão [W]: a lista deve seguir o charter (filtrar) ou o charter deve ser corrigido pro que o legado sempre fez? Ganha id junto da decisão.
 - **[BACKLOG]** O endpoint de dados `/sells/draft-dt?is_quotation=0` não checa `draft.view_all`/`draft.view_own` (o gate está só em `getDrafts`). O mesmo achado foi **medido** para cotações no CT 100 em 2026-10-06 (ver `Quotations.casos.md`); para rascunhos é **hipótese** pela mesma leitura. Outro business segue fora (o `[T0]` do UC-DRAFT-01 vale). Ganha id junto do conserto (gate no `getDraftDatables`).
 - **[BACKLOG]** "Continuar" leva ao editor `/sells/{id}/edit` (US-SELL-060 aceite 4). É link do front; os guards do editor são contrato da US-SELL-059 (`Edit.casos.md`). Ganha id se houver e2e.
 - **[BACKLOG]** O KPI conta todos os rascunhos do business mesmo para quem tem só `draft.view_own` (a lista é recortada por autor, o KPI não). Sem fonte que diga qual dos dois é o certo — pergunta ao [W].
-- **[BACKLOG] Excluir o rascunho pelo menu Ações da lista** — pedido da ROTA LIVRE (2026-10-23), que usa o rascunho como venda condicional e precisa apagar o que não virou venda. Medido em produção no mesmo dia: as 51 linhas da lista só têm "Continuar venda"; a lista Blade (`sale_pos/draft`) tinha o menu Ações com Excluir, só para quem tem `draft.delete` (`SellController@getDraftDatables`). Aceite: Dado um rascunho na lista e um usuário com `draft.delete` · Quando abro o menu Ações da linha e escolho "Excluir rascunho" · Então aparece a confirmação com o cliente, os itens e o valor · E, confirmado, o rascunho some da lista e o total de rascunhos diminui 1. Sem `draft.delete`, o item aparece sem efeito, com o aviso de que falta a permissão. "Continuar venda" continua à vista na linha. Desenho no protótipo `prototipo-ui/cowork/Wagner/venda-blade.jsx` (`TelaDraft`), à espera da aprovação da [M]. Ganha id quando a tela tiver teste que o defenda.
-  - Pedido: P-076
-  - Âncora: Lista Blade `sale_pos/draft` (`draft.delete`) · `Sells/Drafts.casos.md`
-  - Fazer: Menu Ações em cada linha, com Imprimir e Excluir; o Excluir pede confirmação e respeita a permissão.
-  - Hoje: miss | Não tem | Em produção a lista só tem "Continuar venda" (51 de 51 linhas, medido em 23/10/2026); desenho no PR #9800, em rascunho
-  - Comunicação visual: ok | Sim | orçamento salvo que não fechou
-  - Clientes: Rota Livre
-  - Etiquetas: miss, cv, decisao
-
 **Vindos da comparação com concorrentes (2026-10-23).** Fontes: ajuda do Omie (exclusão de pedidos em lote), ajuda do Shopify (draft orders), ajuda do Lightspeed (layaway) e a página do ERP de moda da UNA (pedido condicional). Nenhum tem cliente que pediu ainda.
 
 - **[BACKLOG] Excluir vários rascunhos de uma vez** — Aceite: Dado 3 rascunhos marcados na lista e um usuário com `draft.delete` · Quando escolho "Excluir selecionados" · Então a confirmação diz quantos são e o valor somado · E, confirmado, os 3 somem e o total diminui 3. Rascunho que já virou venda não pode estar entre eles. Fonte: Omie (exclusão em lote, sem volta, recusa pedido já faturado, cancelado ou devolvido).
