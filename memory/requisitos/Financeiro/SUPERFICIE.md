@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 437 arquivos em 22 papéis.
+**Total mapeado:** 439 arquivos em 22 papéis.
 
 ## Controllers — 27
 
@@ -95,7 +95,7 @@ module: Financeiro
 
 - [CnabDirectStrategy.php](../../../Modules/Financeiro/Strategies/CnabDirectStrategy.php)
 
-## Models / Entities — 23
+## Models / Entities — 24
 
 - [AccountsLegacyMap.php](../../../Modules/Financeiro/Models/AccountsLegacyMap.php)
 - [Advisor.php](../../../Modules/Financeiro/Models/Advisor.php)
@@ -106,6 +106,7 @@ module: Financeiro
 - [CaixaMovimento.php](../../../Modules/Financeiro/Models/CaixaMovimento.php)
 - [Categoria.php](../../../Modules/Financeiro/Models/Categoria.php)
 - [CentroCusto.php](../../../Modules/Financeiro/Models/CentroCusto.php)
+- [AppendOnlyBuilder.php](../../../Modules/Financeiro/Models/Concerns/AppendOnlyBuilder.php)
 - [BusinessScope.php](../../../Modules/Financeiro/Models/Concerns/BusinessScope.php)
 - [BusinessScopeImpl.php](../../../Modules/Financeiro/Models/Concerns/BusinessScopeImpl.php)
 - [ConciliacaoRegra.php](../../../Modules/Financeiro/Models/ConciliacaoRegra.php)
@@ -354,9 +355,9 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 113
+## Testes (Pest) — 114
 
-- 107 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 108 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 2 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
