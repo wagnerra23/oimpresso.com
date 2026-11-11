@@ -52,6 +52,10 @@ it('UC-FBP-10 · dor de 30 e 90 dias, crises, adesão e questionários com perí
     // SUPERADMIN: fixture de estado inicial na 98.
     Questionnaire::withoutGlobalScopes()->create(['business_id' => $this->b98, 'patient_id' => $this->p->id,
         'instrument' => 'rmdq', 'answers' => [], 'score' => '14', 'answered_at' => '2026-10-20 10:00:00']);
+    // Instrumento de fibromialgia (P-03): entra no apoio pelo nome do catálogo, com a pontuação gravada.
+    // SUPERADMIN: fixture de estado inicial na 98.
+    Questionnaire::withoutGlobalScopes()->create(['business_id' => $this->b98, 'patient_id' => $this->p->id,
+        'instrument' => 'fiqr', 'answers' => [], 'score' => '45', 'answered_at' => '2026-11-03 10:00:00']);
 
     $d = $this->getJson("/fisio/laudos-bps/{$this->laudoId}/apoio-fisio")->assertOk()->json();
 
@@ -63,13 +67,16 @@ it('UC-FBP-10 · dor de 30 e 90 dias, crises, adesão e questionários com perí
         'media' => 5.0, 'minima' => 1, 'maxima' => 9, 'crises' => 3]);
     // Adesão: 6 dias com exercício ÷ (3 × 30 ÷ 7 = 12,857) = 46,7% → 47.
     expect($d['adesao'])->toMatchArray(['dias_com_exercicio' => 6, 'meta_semanal' => 3, 'percentual' => 47]);
-    expect($d['questionarios'][0])->toMatchArray(['instrumento' => 'RMDQ', 'em' => '20/10/2026'])
+    expect($d['questionarios'][0])->toMatchArray(['instrumento' => 'Roland-Morris (RMDQ) — incapacidade por dor lombar', 'em' => '20/10/2026'])
+        ->and($d['questionarios'][1])->toMatchArray(['instrumento' => 'FIQR — Questionário de Impacto da Fibromialgia Revisado', 'em' => '03/11/2026'])
+        ->and((float) $d['questionarios'][1]['pontuacao'])->toBe(45.0)
         ->and($d['avisos'])->toBe([]);
 
     expect($d['texto'])->toContain('13/10/2026 a 11/11/2026: média 5,0, mínima 2 e máxima 8, em 8 dias com registro. Dias de crise registrados: 2.')
         ->and($d['texto'])->toContain('14/08/2026 a 11/11/2026: média 5,0, mínima 1 e máxima 9, em 12 dias com registro. Dias de crise registrados: 3.')
         ->and($d['texto'])->toContain('47% (6 dias com exercício feito, para a meta de 3 sessões por semana)')
         ->and($d['texto'])->toContain('em 20/10/2026.')
+        ->and($d['texto'])->toContain('FIQR — Questionário de Impacto da Fibromialgia Revisado: ')
         ->and($d['texto'])->toContain('Fonte: registros do paciente no Fisio');
 });
 

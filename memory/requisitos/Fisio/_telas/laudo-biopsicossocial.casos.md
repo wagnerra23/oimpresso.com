@@ -53,7 +53,6 @@ related_us: [US-FISIO-060]
 As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 
 - [BACKLOG] cartão do laudo na ficha do paciente, com o aviso de que a emissão da carteira segue o fluxo da APS e da FCEE.
-- [BACKLOG] questionários de fibromialgia no apoio (dependem da etapa 07, P-03).
 
 ---
 
@@ -135,7 +134,8 @@ As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 - **Aceite:** Pedido o apoio · Então vêm, para 30 e 90 dias contados de hoje para trás, média (uma
   casa), mínima e máxima da dor do check-in (0 a 10) e os dias de crise; a adesão dos últimos 30
   dias (dias com exercício feito ÷ meta semanal × 30 ÷ 7, teto 100); e cada questionário com
-  pontuação e data. Cada número cita período e fonte. Nada é gravado: o profissional decide o que usar.
+  o nome do catálogo, pontuação e data — inclusive os de fibromialgia da etapa 07 (ACR 2016, FIQR,
+  PGIC, sentar e levantar em 30 s). Cada número cita período e fonte. Nada é gravado: o profissional decide o que usar.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsApoioTest.php`
 - **Status: 🧪**
 

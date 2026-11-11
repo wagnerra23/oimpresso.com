@@ -9,6 +9,7 @@ use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Services\DiaLocal;
+use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 
 /**
  * Apoio da fisioterapia ao laudo biopsicossocial (US-FISIO-060), montado só com o que o Fisio já
@@ -62,10 +63,13 @@ final class ApoioFisioterapia
             $avisos[] = 'Adesão: sem programa ativo, não calculada.';
         }
 
+        // Nome do catálogo (inclui os de fibromialgia da P-03: ACR 2016, FIQR, PGIC, sentar e levantar 30 s);
+        // instrumento fora do catálogo sai pelo código. A pontuação é a gravada; aqui não se interpreta.
+        $nomes = collect(CatalogoQuestionarios::todos())->pluck('nome', 'codigo');
         $questionarios = Questionnaire::query()->where('business_id', $biz)->where('patient_id', $paciente->id)
             ->orderBy('answered_at')->orderBy('id')->get()
-            ->map(fn (Questionnaire $q) => ['instrumento' => strtoupper((string) $q->instrument), 'pontuacao' => (string) $q->score,
-                'em' => $q->answered_at->format('d/m/Y')])->values()->all();
+            ->map(fn (Questionnaire $q) => ['instrumento' => (string) ($nomes[$q->instrument] ?? strtoupper((string) $q->instrument)),
+                'pontuacao' => (string) $q->score, 'em' => $q->answered_at->format('d/m/Y')])->values()->all();
         if ($questionarios === []) {
             $avisos[] = 'Questionários: nenhum respondido.';
         }
