@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\NfeService;
@@ -155,6 +156,42 @@ class CancelarNfeJob implements ShouldQueue
                 'error'                   => $e->getMessage(),
             ]);
             throw $e; // re-lança pra fila retentar (tries=3, backoff=60)
+        }
+    }
+
+    /** Tipo do alerta da nota que não cancelou depois da venda cancelada (lido pelo cockpit Fiscal). */
+    public const TIPO_ALERTA = 'nfe_cancelamento_falhou';
+
+    /**
+     * Esgotou as tentativas: a venda já está cancelada e a nota segue autorizada na SEFAZ. Vira
+     * alerta da empresa no cockpit Fiscal, um por documento (molde: BuscarDfesRecebidosJob::failed).
+     * Falha ao gravar o alerta não derruba o failed().
+     */
+    public function failed(\Throwable $exception): void
+    {
+        try {
+            $agora = now();
+            $chave = sprintf('%s:%d:%d', self::TIPO_ALERTA, $this->businessId, $this->transactionDocumentId);
+            $venda = TransactionDocument::query()
+                ->where('business_id', $this->businessId)
+                ->whereKey($this->transactionDocumentId)
+                ->value('transaction_id');
+            $dados = [
+                'severidade' => 'high',
+                'titulo'     => 'Venda cancelada com NF-e ainda autorizada',
+                'descricao'  => mb_substr("Venda #{$venda}: {$exception->getMessage()}", 0, 1000),
+                'metadata'   => json_encode(['origem' => self::class, 'transaction_document_id' => $this->transactionDocumentId], JSON_UNESCAPED_UNICODE),
+                'updated_at' => $agora,
+            ];
+            DB::table('mcp_alertas_eventos')->where('chave_idempotencia', $chave)->exists()
+                ? DB::table('mcp_alertas_eventos')->where('chave_idempotencia', $chave)->update($dados)
+                : DB::table('mcp_alertas_eventos')->insert($dados + [
+                    'business_id' => $this->businessId, 'tipo' => self::TIPO_ALERTA,
+                    'chave_idempotencia' => $chave, 'status' => 'aberto',
+                    'criado_em' => $agora, 'created_at' => $agora,
+                ]);
+        } catch (\Throwable $t) {
+            Log::error('CancelarNfeJob: alerta não gravado', ['business_id' => $this->businessId, 'erro' => $t->getMessage()]);
         }
     }
 }

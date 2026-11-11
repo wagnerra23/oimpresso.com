@@ -14,6 +14,7 @@ use Modules\NfeBrasil\Http\Controllers\RevisaoContadorLinkController;
 use Modules\NfeBrasil\Http\Controllers\SugestaoFiscalController;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
 use Modules\Fiscal\Http\Middleware\FiscalLiberado;
+use Modules\NfeBrasil\Http\Middleware\PermissaoNfe;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,7 +60,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // via Inertia useForm. ZERO duplicação de lógica (comment em ConfigController).
         Route::post('certificado', [CertificadoController::class, 'upload'])
             ->name('nfe-brasil.certificado.upload');
+        // Lote 3.2 (N5-05): ping na SEFAZ com o A1 da empresa — antes bastava login.
         Route::post('certificado/testar', [CertificadoController::class, 'testar'])
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::TESTAR_CERTIFICADO)
             ->name('nfe-brasil.certificado.testar');
         Route::post('certificado/ambiente', [CertificadoController::class, 'updateAmbiente'])
             ->name('nfe-brasil.certificado.ambiente');
@@ -89,7 +92,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('/', [TributacaoController::class, 'index'])->name('index');
 
         // Per-business auto-emission gate (ADR 0093 multi-tenant Tier 0).
+        // Lote 3.2 (N5-04): mesma permissão das outras mutações da tributação.
         Route::post('auto-emission/toggle', [TributacaoController::class, 'toggleAutoEmission'])
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::TRIBUTACAO)
             ->name('auto-emission.toggle');
 
         // Config default (Nível 4 cascade)
@@ -123,6 +128,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // Templates tributários L1 (US-NFE-TPL-001)
         Route::post('templates/{slug}/aplicar', [TributacaoController::class, 'aplicarTemplate'])
             ->where('slug', '[a-z0-9\-]+')
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::TRIBUTACAO)
             ->name('templates.aplicar');
 
         // CRUD regras
@@ -180,10 +186,12 @@ Route::middleware(['web', 'auth', 'SetSessionData', FiscalLiberado::class])
     ->group(function () {
         Route::get('transactions/{tx}/nfe-status', [NfeStatusController::class, 'show'])
             ->whereNumber('tx')
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::CONSULTA)
             ->name('transactions.nfe-status');
         // Lista todas emissões da TX (NFC-e 65 + NFe 55) — alimenta SaleSheet section Fiscal.
         Route::get('transactions/{tx}/emissoes', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'listar'])
             ->whereNumber('tx')
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::CONSULTA)
             ->name('transactions.emissoes');
         // US-NFE-069 · UC-FLX-27: as duas partes (NF-e + NFS-e) antes de confirmar a emissão.
         Route::get('transactions/{tx}/separacao', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'separacao'])
@@ -205,9 +213,11 @@ Route::middleware(['web', 'auth', 'SetSessionData', FiscalLiberado::class])
             ->name('transactions.emitir');
         Route::post('emissoes/{id}/reenviar-email', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'reenviarEmail'])
             ->whereNumber('id')
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::REENVIAR)
             ->name('emissoes.reenviar-email');
         Route::get('emissoes/{id}/danfe-pdf', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'danfePdf'])
             ->whereNumber('id')
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::CONSULTA)
             ->name('emissoes.danfe-pdf');
     });
 
@@ -220,6 +230,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
     ->group(function () {
         Route::get('{tx}/status', [NfeStatusController::class, 'showPage'])
             ->whereNumber('tx')
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::CONSULTA)
             ->name('status');
     });
 
@@ -230,7 +241,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
     ->prefix('nfe-brasil/inutilizacoes')
     ->name('nfe-brasil.inutilizacoes.')
     ->group(function () {
-        Route::get('/', [NfeInutilizacaoController::class, 'index'])->name('index');
+        Route::get('/', [NfeInutilizacaoController::class, 'index'])
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::INUTILIZACOES)
+            ->name('index');
         Route::post('/', [NfeInutilizacaoController::class, 'store'])->name('store');
     });
 

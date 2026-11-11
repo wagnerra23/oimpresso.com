@@ -156,7 +156,7 @@ it('POST /calcular retorna 200 com JSON shape calculado', function () {
 // POST /orcamentos — persiste + retorna 201
 // ------------------------------------------------------------------
 
-it('POST /orcamentos persiste no DB e retorna 201 com Orcamento + itens', function () {
+it('UC-CV-11 · POST /orcamentos persiste no DB e retorna 201 com Orcamento + itens', function () {
     $user = bootstrapComvisUser();
 
     $payload              = payloadCalculo();
@@ -253,7 +253,7 @@ it('GET /orcamentos/{id} retorna Orcamento com itens', function () {
 // ADR 0093 — IRREVOGÁVEL
 // ------------------------------------------------------------------
 
-it('Multi-tenant Tier 0: GET /orcamentos/{id} retorna 404 para session biz diferente', function () {
+it('UC-CV-05 · Multi-tenant Tier 0: GET /orcamentos/{id} retorna 404 para session biz diferente', function () {
     // Criar orçamento no biz=1 (SUPERADMIN: setup de teste)
     $orc = Orcamento::withoutGlobalScopes()->create([
         'business_id'      => 1,
