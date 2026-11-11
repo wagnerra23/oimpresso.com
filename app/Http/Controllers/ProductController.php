@@ -2052,9 +2052,17 @@ class ProductController extends Controller
     protected function validarLocaisDeArmazenagem(Request $request, int $business_id, ?int $product_id = null): void
     {
         $request->validate(
-            ['local_padrao_id' => ['sometimes', 'nullable', 'integer']],
-            ['local_padrao_id.integer' => 'O local padrão não é válido.'],
+            [
+                'local_padrao_id' => ['sometimes', 'nullable', 'integer'],
+                'product_racks_remover' => ['sometimes', 'array'],
+                'product_racks_remover.*' => ['integer'],
+            ],
+            [
+                'local_padrao_id.integer' => 'O local padrão não é válido.',
+                'product_racks_remover.*' => 'Um dos locais a tirar não é válido.',
+            ],
         );
+        $remover = $product_id === null ? collect() : $this->locaisARemover($request);
 
         $doEnvio = collect(['product_racks', 'product_racks_update'])
             ->flatMap(fn ($chave) => is_array($request->input($chave)) ? array_keys($request->input($chave)) : [])
@@ -2063,13 +2071,30 @@ class ProductController extends Controller
             ->values();
         $padrao = $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null;
         $citados = $padrao === null ? $doEnvio : $doEnvio->concat([$padrao])->unique();
+        $erros = [];
+        if ($remover->isNotEmpty()) {
+            // Tirar um local só apaga o endereço dele, e só quando o produto não tem saldo ali: o
+            // saldo muda por compra, venda, ajuste ou transferência, nunca pelo cadastro ([M]
+            // 2026-10-22). Só sai local que já é de armazenagem deste produto, neste negócio.
+            $doProdutoAgora = DB::table('product_racks')->where('business_id', $business_id)
+                ->where('product_id', $product_id)->pluck('location_id')->map(fn ($id) => (int) $id);
+            $saldos = $this->saldoPorLocal($business_id, (int) $product_id);
+            if ($remover->diff($doProdutoAgora)->isNotEmpty()) {
+                $erros['product_racks_remover'] = 'Só dá para tirar o endereço de um local que o produto já tem.';
+            } elseif ($remover->contains(fn ($id) => abs($saldos[$id] ?? 0.0) > 0.00001)) {
+                $erros['product_racks_remover'] = 'Este local tem saldo do produto. O endereço só sai depois de transferir ou ajustar o estoque.';
+            }
+        }
         if ($citados->isEmpty()) {
+            if ($erros !== []) {
+                throw \Illuminate\Validation\ValidationException::withMessages($erros);
+            }
+
             return;
         }
 
         $doNegocio = DB::table('business_locations')->where('business_id', $business_id)
             ->whereIn('id', $citados->all())->pluck('id')->map(fn ($id) => (int) $id);
-        $erros = [];
         if ($doEnvio->diff($doNegocio)->isNotEmpty()) {
             $erros['product_racks'] = 'Um dos locais de armazenagem não pertence a este negócio.';
         }
@@ -2079,13 +2104,40 @@ class ProductController extends Controller
                 ->pluck('location_id')->map(fn ($id) => (int) $id);
             if (! $doNegocio->contains($padrao)) {
                 $erros['local_padrao_id'] = 'O local padrão não pertence a este negócio.';
-            } elseif (! $doEnvio->merge($doProduto)->contains($padrao)) {
+            } elseif (! $doEnvio->merge($doProduto->diff($remover))->contains($padrao)) {
                 $erros['local_padrao_id'] = 'O local padrão tem de ser um dos locais de armazenagem do produto.';
             }
         }
         if ($erros !== []) {
             throw \Illuminate\Validation\ValidationException::withMessages($erros);
         }
+    }
+
+    /** Os locais que o Editar pede para tirar (`product_racks_remover`), sem repetição. */
+    protected function locaisARemover(Request $request): \Illuminate\Support\Collection
+    {
+        $remover = $request->input('product_racks_remover');
+
+        return collect(is_array($remover) ? $remover : [])->map(fn ($id) => (int) $id)->unique()->values();
+    }
+
+    /**
+     * Saldo do produto por local (soma das variações), só nos locais do negócio. É o "Em estoque" do
+     * bloco "Locais de armazenagem" no Editar e o que impede tirar um local com saldo (CU-PROD-20).
+     *
+     * @return array<int, float> id do local => saldo
+     */
+    protected function saldoPorLocal(int $business_id, int $product_id): array
+    {
+        return DB::table('variation_location_details as vld')
+            ->join('business_locations as bl', 'bl.id', '=', 'vld.location_id')
+            ->where('bl.business_id', $business_id)
+            ->where('vld.product_id', $product_id)
+            ->groupBy('vld.location_id')
+            ->selectRaw('vld.location_id, SUM(vld.qty_available) as saldo')
+            ->pluck('saldo', 'location_id')
+            ->mapWithKeys(fn ($saldo, $local) => [(int) $local => (float) $saldo])
+            ->all();
     }
 
     /**
@@ -2576,6 +2628,9 @@ class ProductController extends Controller
                 'subCategories' => $sub_categories,
                 'businessLocations' => $business_locations,
                 'rackDetails' => $rack_details,
+                // CU-PROD-20: o "Em estoque" de cada local, só leitura. Um SUM agrupado de um produto
+                // (rápido como os outros dados do Editar), por isso vem junto e não deferido.
+                'saldoPorLocal' => $product->enable_stock ? (object) $this->saldoPorLocal((int) $business_id, (int) $product->id) : (object) [],
                 'enderecoNoEstoque' => $this->enderecoNoEstoque(),
                 'productTypes' => $product_types,
                 'warranties' => $warranties,
@@ -2887,6 +2942,18 @@ class ProductController extends Controller
             $product_racks_update = $request->get('product_racks_update', null);
             if (! empty($product_racks_update)) {
                 $this->productUtil->updateRackDetails($business_id, $product->id, $product_racks_update);
+            }
+
+            // Locais de armazenagem tirados no Editar (CU-PROD-20), já conferidos sem saldo: sai só o
+            // endereço. Se um deles era o padrão e a tela não mandou outro, o padrão fica vazio.
+            $remover = $this->locaisARemover($request);
+            if ($remover->isNotEmpty()) {
+                DB::table('product_racks')->where('business_id', $business_id)
+                    ->where('product_id', $product->id)->whereIn('location_id', $remover->all())->delete();
+                if (! $request->has('local_padrao_id') && $remover->contains((int) $product->local_padrao_id)) {
+                    DB::table('products')->where('business_id', $business_id)->where('id', $product->id)
+                        ->update(['local_padrao_id' => null]);
+                }
             }
 
             //Set Module fields
