@@ -345,7 +345,7 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 **Implementado em:** `Modules/Fisio/Services/Social/DadosSociais.php` (listas fechadas, regras, validação do CNS e gravação) · `Modules/Fisio/Http/Controllers/DadosSociaisController.php` (rota `fisio.pacientes.dados-sociais.update`) · `Modules/Fisio/Entities/PatientSocial.php` · `Modules/Fisio/Database/Migrations/2026_11_11_000800_create_fisio_patient_social.php` · seção na ficha `Modules/Fisio/Resources/js/Pages/Fisio/_components/DadosSociais.tsx` (props `opcoes_sociais` e `dados_sociais` em `Modules/Fisio/Http/Controllers/PacientesController.php`)
 
-> owner: — · priority: p1 · estimate: 6h · status: review · type: story
+> owner: — · priority: p1 · estimate: 6h · status: done · type: story
 
 Como recepção ou fisioterapeuta da associação, quero registrar o perfil social do paciente sem obrigar nenhuma resposta, para a associação mostrar quem atende.
 
