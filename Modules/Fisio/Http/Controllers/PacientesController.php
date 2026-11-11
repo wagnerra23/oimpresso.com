@@ -19,6 +19,7 @@ use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Entities\Record;
 use Modules\Fisio\Services\EditorProgramaPayload;
+use Modules\Fisio\Services\LaudoBiopsicossocialDocumento;
 use Modules\Fisio\Services\PainelFisio;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 use Modules\Fisio\Services\ResponsavelPaciente;
@@ -141,6 +142,8 @@ class PacientesController extends Controller
                 return $e;
             }),
             'serie_dor' => Inertia::defer(fn () => ($evolucao ??= app(PainelFisio::class)->evolucao($paciente))['serie_dor']),
+            // Laudo biopsicossocial (US-FISIO-060): laudos do paciente com o estado de cada seção → defer.
+            'laudos_bps' => Inertia::defer(fn () => app(LaudoBiopsicossocialDocumento::class)->doPaciente($paciente, $this->businessId($request)), 'laudos_bps'),
         ]);
     }
 

@@ -40,6 +40,7 @@ related_us: [US-FISIO-060]
 | UC-FBP-09 | o texto sugerido não conclui; leitura com `fisio.access`; outra empresa 404 | must | US-FISIO-060 | `FisioLaudoBpsSugestaoTest` |
 | UC-FBP-10 | o PDF traz só seção registrada, na ordem da LBI; correção substitui; o que falta sai em branco para assinar | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
 | UC-FBP-11 | cada PDF grava uma linha no `activity_log` só com ids; outra empresa 404 sem log | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
+| UC-FBP-12 | a ficha recebe os laudos por prop deferida, por inciso, com seção registrada e rascunho; a 99 não vê | must | US-FISIO-060 | `FisioLaudoBpsTelaTest` |
 
 As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
 
@@ -140,4 +141,15 @@ As próximas partes da US entram como `[BACKLOG]` até ganharem teste:
   Quem só tem `fisio.access` gera o PDF. Usuário da outra empresa recebe 404 e nada é registrado.
 - **Âncora:** LGPD art. 11 (dado de saúde), mesmo rastro do laudo de evolução (UC-FLD-02).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php`
+- **Status: 🧪**
+
+## UC-FBP-12 · O laudo na ficha do paciente `[must]`
+- **Persona:** fisioterapeuta na ficha do paciente.
+- **Aceite:** Dada a ficha · Quando ela carrega · Então `laudos_bps` chega como prop deferida
+  (grupo próprio) com os laudos do paciente, o mais recente primeiro; cada laudo traz os quatro
+  incisos na ordem da LBI, e cada inciso traz a seção registrada mais recente e o rascunho aberto.
+  O cartão "Laudo biopsicossocial" (`Fisio/_components/LaudoBiopsicossocial.tsx`, protótipo
+  `LaudoBiopsicossocial.dc.html`) mostra o estado de cada seção, abre o editor de uma por vez,
+  mostra a sugestão do Fisio na seção III e baixa o PDF. Usuário da outra empresa recebe 404 na ficha.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php`
 - **Status: 🧪**

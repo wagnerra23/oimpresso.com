@@ -39,12 +39,14 @@ Mostrar e editar o perfil clínico do paciente, manter o prontuário (avaliaçã
 - Mostrar o fisioterapeuta responsável e transferir o paciente para outro profissional da empresa, com o histórico das transferências — UC-FPS-30..32.
 - Exportar o prontuário em PDF (identificação, perfil clínico e todos os registros assinados em ordem cronológica, com carimbo; rodapé com empresa, emissão e "Página X de Y"); cada exportação fica no `activity_log` sem PII — UC-FPS-19, UC-FPS-20. Exportar exige só `fisio.access`.
 - Registrar questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação do servidor e ver o histórico — UC-FPS-13..16 (US-FISIO-011). Mostra o número e a referência; não interpreta (SaMD, ADR 0437 §5).
+- Montar o laudo biopsicossocial (US-FISIO-060; Lei 15.176/2025, LBI art. 2º, §1º): quatro seções na ordem dos incisos, cada uma escrita e assinada por quem avaliou; o fisioterapeuta assina a sua com o CREFITO do perfil, e a clínica transcreve a de profissional de fora (o PDF sai com espaço para a assinatura dele); a seção III pode partir da sugestão do Fisio (dor, crises, adesão, questionários, com período e fonte). Protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/LaudoBiopsicossocial.dc.html`. Contrato: [`laudo-biopsicossocial.casos.md`](../../../../../../../memory/requisitos/Fisio/_telas/laudo-biopsicossocial.casos.md) — UC-FBP-01..12.
 
 ## Non-Goals — Features (NÃO faz)
 
 - ❌ Editar ou apagar registro assinado (não existe rota; o banco recusa).
 - ❌ Envio do programa pelo WhatsApp (US-FISIO-009).
 - ❌ Avisar o profissional que recebeu o paciente, ou comparar resultados entre profissionais (fora do escopo do responsável).
+- ❌ Concluir no laudo biopsicossocial que o paciente é pessoa com deficiência, ou classificar a limitação: o software descreve; quem enquadra é a perícia (pedido [W] 2026-11-11; ADR 0437 §5).
 - ❌ PDF do programa de exercícios (vem depois da US-FISIO-006); o PDF daqui é só o prontuário.
 
 ## Refs

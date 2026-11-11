@@ -7,6 +7,7 @@ namespace Modules\Fisio\Services;
 use Illuminate\Support\Facades\DB;
 use Modules\Fisio\Entities\LaudoBiopsicossocial;
 use Modules\Fisio\Entities\LaudoBiopsicossocialSecao as Secao;
+use Modules\Fisio\Entities\Patient;
 
 /**
  * Monta o PDF do laudo biopsicossocial (US-FISIO-060; Lei 15.176/2025; LBI art. 2º, §1º).
@@ -27,6 +28,48 @@ final class LaudoBiopsicossocialDocumento
         'atividades' => ['III', 'Limitação no desempenho de atividades'],
         'participacao' => ['IV', 'Restrição de participação'],
     ];
+
+    /**
+     * Laudos do paciente para a ficha (mais recente primeiro): por item, a última seção
+     * registrada e o rascunho aberto, se houver.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function doPaciente(Patient $paciente, int $biz): array
+    {
+        $laudos = LaudoBiopsicossocial::query()->where('business_id', $biz)->where('patient_id', $paciente->id)
+            ->orderByDesc('id')->get();
+        $secoes = Secao::query()->where('business_id', $biz)->whereIn('laudo_id', $laudos->pluck('id'))
+            ->orderBy('id')->get()->groupBy('laudo_id');
+
+        return $laudos->map(function (LaudoBiopsicossocial $l) use ($secoes) {
+            $doLaudo = ($secoes->get($l->id) ?? collect())->groupBy('item');
+
+            return [
+                'id' => $l->id,
+                'criado_em' => $l->created_at->format('d/m/Y'),
+                'secoes' => array_map(function (string $item) use ($doLaudo) {
+                    $lista = $doLaudo->get($item) ?? collect();
+                    $registrada = $lista->whereNotNull('registrado_em')->last();
+                    $rascunho = $lista->whereNull('registrado_em')->last();
+
+                    return [
+                        'item' => $item, 'inciso' => self::TITULOS[$item][0], 'titulo' => self::TITULOS[$item][1],
+                        'conselho_sugerido' => Secao::CONSELHO_SUGERIDO[$item],
+                        'registrada' => $registrada === null ? null : [
+                            'autor' => $registrada->autor_nome, 'conselho' => $registrada->conselho, 'registro' => $registrada->registro_conselho,
+                            'externa' => $registrada->assinatura === Secao::ASSINATURA_EXTERNA,
+                            'registrado_em' => $registrada->registrado_em->format('d/m/Y H:i'), 'texto' => $registrada->texto,
+                        ],
+                        'rascunho' => $rascunho === null ? null : [
+                            'texto' => $rascunho->texto, 'assinatura' => $rascunho->assinatura, 'autor_nome' => $rascunho->autor_nome,
+                            'conselho' => $rascunho->conselho, 'registro_conselho' => $rascunho->registro_conselho,
+                        ],
+                    ];
+                }, Secao::ITENS),
+            ];
+        })->values()->all();
+    }
 
     /** @return array<string, mixed> */
     public function montar(LaudoBiopsicossocial $laudo, int $biz): array

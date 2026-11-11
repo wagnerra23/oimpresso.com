@@ -579,6 +579,7 @@ jobs:
         # externa com autor obrigatório, 403/404 e paciente bloqueado.
         # E FisioLaudoBpsSugestaoTest (UC-FBP-07..09): dor, crises e adesão com período e fonte; aviso sem dado.
         # E FisioLaudoBpsPdfTest (UC-FBP-10..11): PDF só com o registrado, em branco o que falta, log só com ids.
+        # E FisioLaudoBpsTelaTest (UC-FBP-12): a ficha recebe os laudos por prop deferida, por inciso.
         #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
@@ -857,6 +858,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioLaudoBpsAssinaturaTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoBpsSugestaoTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php \
+            Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
