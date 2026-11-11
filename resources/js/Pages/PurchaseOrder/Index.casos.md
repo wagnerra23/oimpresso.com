@@ -89,6 +89,16 @@ last_run: "2026-10-13"
 - **Contrato:** ADR 0093 (sub-unidade). Auditoria Compras 2026-11-05, achado D3 (lote 2.3).
 - **Status: 🧪**
 
+## UC-PEDC-11 · Criar ou editar pedido só soma em linha e requisição da própria empresa · `[T0]`
+- **Aceite:** Dado uma linha de pedido, uma linha de requisição ou uma requisição de outra empresa · Quando o pedido
+  novo chega com `purchase_order_line_id`, ou a edição chega com `purchase_order_line_id`,
+  `purchase_requisition_line_id` ou `purchase_requisition_ids` apontando para ela · Então responde 422, nenhuma linha
+  é gravada e a quantidade pedida e o status da outra empresa ficam como estavam. Com referências da própria empresa,
+  a quantidade soma na própria linha (0 → 4) como antes.
+- **Teste:** `tests/Feature/Purchase/PedidoCompraLinhaRefTenantTest.php`
+- **Contrato:** ADR 0093. Scorecard do `ProductUtil`, rejulgamento de 2026-11-10.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Alterar status e editar envio pela tela nova (PR próprio).
 - [BACKLOG] Excluir pedido e enviar notificação pela tela nova.
@@ -99,3 +109,4 @@ last_run: "2026-10-13"
 - 2026-11-05 · [CL] UC-PEDC-06 e UC-PEDC-07 (lote 0 da auditoria de Compras, PR 0.3).
 - 2026-11-05 · [CL] UC-PEDC-08 (lote 0 da auditoria de Compras, PR 0.4).
 - 2026-11-06 · [CL] UC-PEDC-09 e UC-PEDC-10 (lote 2 da auditoria de Compras, PR 2.3).
+- 2026-11-10 · [CL] UC-PEDC-11 (rejulgamento do scorecard do `ProductUtil`).

@@ -64,5 +64,13 @@ perda do arranjo contra imprimir uma a uma · OS sem peça medida não pode ser 
 
 Status: 🧪
 
+## UC-PCISO-04 · Coluna manual de outra empresa não move o cartão · `must`
+
+**Dado** uma coluna manual da empresa 99 com a mesma OS-id de uma OS da 98 **Quando** o gestor da 98 abre o Quadro
+**Então** o cartão fica na coluna da etapa atual · **Controle:** o movimento feito pela 98 muda o cartão e a linha da
+99 não é tocada. Prova: `ProducaoIsolamentoEmpresasContratoTest`.
+
+Status: 🧪
+
 ## Trilha do tempo
 - 2026-11-06 · [W+C] Auditoria lote 3.5: o número do cartão de uma OS por item é link para a Ficha. O caso é o UC-PCOSF-06, em `../Os/Show.casos.md`; os casos desta tela foram relidos e seguem valendo.

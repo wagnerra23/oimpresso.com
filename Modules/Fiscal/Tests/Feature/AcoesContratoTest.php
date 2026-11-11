@@ -376,7 +376,8 @@ it('UC-FNFE-09 · retransmitir PRESERVA a nota antiga — nunca deleta (CONFAZ A
 
     // O que ela faz NO LUGAR de deletar: marca `inutilizada`, zera o `transaction_id`
     // (libera a UNIQUE biz+tx) e preserva o vínculo da nota antiga no metadata.
-    expect($corpo)->toContain("'status' => 'inutilizada'")
+    // Denegada está registrada na SEFAZ e mantém o status (lote 0.3 do NfeBrasil).
+    expect($corpo)->toContain("=== 'denegada' ? 'denegada' : 'inutilizada'")
         ->and($corpo)->toContain("'transaction_id' => null")
         ->and($corpo)->toContain('original_transaction_id');
 });

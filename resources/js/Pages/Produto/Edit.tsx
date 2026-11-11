@@ -21,6 +21,9 @@ import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
 import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formulario/metodoCusto';
 import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
+import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
+import type { EnderecoNoEstoque } from './_components/formulario/armazenagem';
+import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
 import type {
@@ -55,6 +58,11 @@ interface ProdutoEditModel {
   naturezaFiscal?: NaturezaFiscalProduto | null;
   barcodeType: string;
   enableStock: boolean;
+  /** CU-PROD-20: o local padrão de armazenagem (null = sem padrão). */
+  localPadraoId?: number | null;
+  /** CU-PROD-21: a política de preço gravada (`fixo` · `acompanha` · `margem`) e a margem alvo. */
+  politicaPreco?: string | null;
+  margemAlvoPct?: number | null;
   alertQuantity: string | null;
   weight: number | null;
   productDescription: string | null;
@@ -94,6 +102,8 @@ export interface ProdutoEditPageProps {
   margemMinima?: number | null;
   /** CU-PROD-22: card "Produção" (deferido). Null sem o módulo Produção, em composição e em serviço. */
   producao?: ProducaoDoProduto | null;
+  /** CU-PROD-20: quais partes do endereço no estoque a empresa usa. */
+  enderecoNoEstoque?: EnderecoNoEstoque;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
@@ -111,6 +121,14 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     precoGravado ? { compra: precoGravado.compra, margem: precoGravado.margem, venda: precoGravado.venda } : null,
   );
   const [metodoCusto, setMetodoCusto] = useState(() => valorInicialDoMetodo(props.metodoCusto));
+  // CU-PROD-20: os locais de armazenagem gravados e o padrão. Só com o estoque controlado.
+  const [armazenagem, setArmazenagem] = useState(() =>
+    armazenagemInicial(props.rackDetails as never, { salvo: true, padrao: p.localPadraoId ?? null }),
+  );
+  // CU-PROD-21: a política de preço gravada. Só vai no envio quando muda.
+  const [politicaGravada] = useState(() => politicaInicial({ politica: p.politicaPreco, margemAlvoPct: p.margemAlvoPct }));
+  const [politica, setPolitica] = useState(politicaGravada);
+  const endereco: EnderecoNoEstoque = props.enderecoNoEstoque ?? { prateleira: false, fileira: false, posicao: false };
   const { data, setData, put, transform, processing, errors } = useForm({
     name: p.name,
     sku: p.sku,
@@ -154,6 +172,8 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
         ...(cest !== cestGravado ? { cest } : {}),
         ...camposDoPrecoEditado(precoGravado, preco, aliquotaDoImposto(d.tax, props.taxAttributes), String(d.tax) !== String(impostoGravado)),
         ...camposDoMetodoCusto(props.metodoCusto, metodoCusto),
+        ...(p.enableStock ? camposDaArmazenagem(armazenagem) : {}),
+        ...camposDaPolitica(politica, politicaGravada),
       };
     });
     put(`/products/${p.id}`);
@@ -206,6 +226,8 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
             metodoCusto={
               props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }
+            armazenagem={p.enableStock ? { valor: armazenagem, mudar: setArmazenagem, endereco } : undefined}
+            politica={{ valor: politica, mudar: setPolitica }}
           />
           {/* CU-PROD-22: só leitura, fora do <form>. A prop é deferida: o card aparece quando ela chega,
               sem esqueleto (é o último antes do rodapé). Null sem o módulo Produção, em composição e

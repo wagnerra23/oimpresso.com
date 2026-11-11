@@ -53,6 +53,10 @@ it('resolve o ambiente gravado na empresa (1 = produção, 2 = homologação)', 
 })->with([1, 2]);
 
 it('empresa inexistente cai em homologação', function () {
+    if (! Schema::hasColumn('business', 'ambiente')) {
+        $this->markTestSkipped('business.ambiente ausente neste schema.');
+    }
+
     expect(AmbienteDoEmitente::resolver(999_999_999))->toBe(2);
 });
 
