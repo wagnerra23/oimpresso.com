@@ -33,10 +33,12 @@ Dar ao pesquisador do estudo um lugar para cadastrar o estudo, incluir e acompan
 - Incluir participante com o aceite do TCLE na versão do estudo e código que não vem do nome nem do CPF — UC-FES-02.
 - Registrar a saída (perda de seguimento, conclusão, outro) com motivo, sem apagar — UC-FES-03.
 - Ver as pendências por participante e momento — UC-FES-04.
+- Ver e revisar os eventos adversos (crise por mais de 48 h, alerta de dor) — UC-FES-09..11.
 
 ## Non-Goals (não faz)
 
 - Decidir conduta ou classificar o participante. O software organiza o estudo (ADR 0437 §5).
+- Classificar a gravidade do evento adverso. Quem avalia é a pesquisadora — UC-FES-11.
 - Juntar dado de clínicas diferentes (ADR 0437 §7).
 
 ## Automation Anti-hooks

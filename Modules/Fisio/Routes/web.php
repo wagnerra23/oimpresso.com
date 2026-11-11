@@ -66,6 +66,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('pesquisa/estudos/{study}/participantes', [PesquisaController::class, 'incluir'])->whereNumber('study')->name('pesquisa.participantes.store');
         Route::post('pesquisa/estudos/{study}/participantes/{participant}/saida', [PesquisaController::class, 'saida'])
             ->whereNumber('study')->whereNumber('participant')->name('pesquisa.participantes.saida');
+        Route::post('pesquisa/estudos/{study}/eventos/{evento}/revisar', [PesquisaController::class, 'revisarEvento'])
+            ->whereNumber('study')->whereNumber('evento')->name('pesquisa.eventos.revisar');
 
         // Configurações › WhatsApp: a clínica escolhe o canal; número e driver são do módulo Whatsapp.
         Route::get('configuracoes/whatsapp', [ConfiguracoesController::class, 'whatsapp'])->name('configuracoes.whatsapp');

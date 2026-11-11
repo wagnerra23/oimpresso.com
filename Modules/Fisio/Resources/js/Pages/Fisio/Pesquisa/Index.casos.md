@@ -28,6 +28,9 @@ related_us: []
 | UC-FES-06 | estudo, paciente e participante de outra clínica: 404 | must | `FisioEstudoTest` |
 | UC-FES-07 | a tela abre só para `fisio.pesquisa`; nome só para quem atende | must | `FisioPesquisaTelaTest` |
 | UC-FES-08 | a tela não lista estudo de outra clínica | must | `FisioPesquisaTelaTest` |
+| UC-FES-09 | crise por mais de 48 h vira evento adverso | must | `FisioEventoAdversoTest` |
+| UC-FES-10 | dor no limiar em vigor vira evento adverso, uma vez | must | `FisioEventoAdversoTest` |
+| UC-FES-11 | revisão com nota; sem gravidade; outra clínica 404 | must | `FisioEventoAdversoTest` |
 
 ---
 
@@ -72,5 +75,22 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPesquisaTelaTest.php`
 - **Status: 🧪**
 
+## UC-FES-09 · Crise por mais de 48 h · `must`
+- **Persona:** pesquisadora acompanhando a segurança do estudo (etapa 07 §4.2, P-06).
+- **Aceite:** Dado participante com crise no check-in em 3 dias seguidos · Então nasce um evento `crise_48h` que começa no 1º dia; se a crise continua, o fim acompanha e não nasce outro. Com 2 dias, nada. Paciente fora do estudo não gera evento.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php`
+- **Status: 🧪**
+
+## UC-FES-10 · Alerta de dor · `must`
+- **Aceite:** Dor no limiar em vigor do programa (a mesma regra que tira o jogo da tela) vira um evento `alerta_dor` com a dor e o limiar; reenviar o check-in não duplica; dor abaixo não gera nada.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php`
+- **Status: 🧪**
+
+## UC-FES-11 · Revisão é da pesquisadora `[T0]` · `must`
+- **Aceite:** O registro não tem gravidade. A pesquisadora revisa com nota obrigatória (quem e quando ficam gravados). Evento de estudo da 99 dá 404 para a 98 e não aparece na lista dela.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEventoAdversoTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-11 · etapa 07 P-06 — aba Eventos adversos: crise por mais de 48 h e alerta de dor, registrados a partir do check-in. O software não classifica gravidade.
 - 2026-11-11 · etapa 07 P-04 — tela nasce com participantes e pendências. Eventos adversos (P-06), exportação (P-07) e assistente (P-08) entram com as abas do protótipo.
