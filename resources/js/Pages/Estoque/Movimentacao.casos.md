@@ -101,6 +101,15 @@ last_run: "2026-07-02"
 
 ---
 
+## UC-EST-08b · Ordem de fabricação: finalizar dá entrada no acabado e baixa os insumos; rascunho não mexe
+- **Fluxo:** a ordem de produção da Fabricação (`Modules/Manufacturing`, `ProductionController` store e update) grava a ordem; só ao finalizar o acabado entra no local (`createOrUpdatePurchaseLines` → `updateProductQuantity`), cada insumo baixa no mesmo local (`decreaseProductQuantity`) e a compra de onde ele sai registra o consumo (`mapPurchaseSell` → `purchase_lines.mfg_quantity_used`). Unidades perdidas na ordem não entram no estoque.
+- **Aceite:** Dado insumo com 20 em estoque · Quando finalizo uma ordem de 3 que consome 6 (POST, ou PUT de um rascunho) · Então acabado=3, insumo=14 e a compra do insumo registra 6 consumidos · Quando gravo como rascunho · Então nada muda · Dado 5 produzidas e 1 perdida · Então acabado=4.
+- **Fonte:** handoff Fabricação §6 regra 3 e §9 (finalizar é atômico: ordem + entrada + baixa).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemFinalizarEstoqueTest.php`.
+- **Status: 🧪**
+
+---
+
 ## UC-EST-09 · Transferência CONCLUÍDA é terminal → repetir NÃO movimenta de novo
 - **Fluxo:** a transferência move o saldo no instante em que vira terminal (`final`/`received`). Repetir a conclusão — `POST /stock-transfers/update-status/{id}` ou `PUT /stock-transfers/{id}` — tem de ser RECUSADO, senão o saldo é movido outra vez, sem teto (`decreaseProductQuantity` usa `decrement()` puro, então a origem atravessa o zero). Contrato R-XFER-003 do `StockTransfer/Index.charter.md`; complementa UC-EST-06, que cobre UMA transferência mas não a repetição.
 - **Aceite:** Dado origem=7 e destino=3 numa transferência já `final` · Quando repete a conclusão pelos DOIS caminhos · Então origem=7 e destino=3 (intocados). E: 3 repetições seguidas não levam a origem a −2.
@@ -148,7 +157,6 @@ last_run: "2026-07-02"
 > não esquecidos, sem virar dívida no baseline.
 
 - **[BACKLOG] UC-EST-02b — Compra RASCUNHO não entra / RECEIVED entra (decisão de status via `createOrUpdatePurchaseLines`)** — reforço não-tautológico do UC-EST-02: provar que só o status terminal `received` movimenta. Exige fixture de purchase Transaction + purchase_lines.
-- **[BACKLOG] UC-EST-08b — Fabricação fluxo completo (`Modules/Manufacturing/ProductionController`)** — receita/BOM real consome ingredientes + produz acabado end-to-end (UC-EST-08 cobre a decomposição via `decreaseProductQuantityCombo`).
 - **[BACKLOG] OS OficinaAuto → baixa peça ao concluir** — já coberto por `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemStockBaixaTest.php` (skip-gracioso; roda no CT 100).
 - **[BACKLOG] INV-1/INV-4** — já cobertas: INV-1 (saldo só por caminho auditável) por `ProductStockLogsActivityTest`/`ConsumirEstoqueAuditTest`; INV-4 (reserva ≠ baixa) por `StockReservationsTest` (caso 9).
 
