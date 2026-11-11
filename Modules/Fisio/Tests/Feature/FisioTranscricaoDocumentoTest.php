@@ -87,7 +87,8 @@ it('UC-FER-13 · a sugestão nasce pendente, só com os campos do schema, e nada
 
     $t = TranscricaoDocumento::query()->findOrFail($id);
     expect($t->status)->toBe('pendente')
-        ->and(array_keys($t->suggested))->toBe(['data', 'medico', 'crm', 'medicamentos'])
+        // A coluna JSON do MySQL reordena as chaves ao gravar: compara o conjunto, não a ordem.
+        ->and(array_keys($t->suggested))->toEqualCanonicalizing(['data', 'medico', 'crm', 'medicamentos'])
         ->and($t->suggested['medicamentos'][0])->toBe(['nome' => 'Pregabalina', 'dose' => '75 mg', 'frequencia' => '1 cápsula à noite'])
         ->and(json_encode($t->suggested))->not->toContain('alterado')
         ->and($t->model)->toBe('modelo-teste')
@@ -134,6 +135,20 @@ it('UC-FER-14 · confirmar receita grava quem conferiu e os campos corrigidos; o
     expect(MedicamentoPaciente::query()->where('patient_id', $this->p->id)->count())->toBe(2);
 });
 
+it('UC-FER-14 · receita confirmada sem mudar nada: zero campos corrigidos, mesmo com as chaves reordenadas pelo MySQL', function () use ($receita) {
+    TranscricaoDocumentoAgent::fake($receita);
+    ftrLigar($this);
+    $doc = ftrDoc($this);
+    $id = (int) $this->postJson("/fisio/documentos/{$doc}/transcricao")->assertCreated()->json('id');
+
+    $this->postJson("/fisio/transcricoes/{$id}/confirmar", [
+        'data' => '2026-11-03', 'medico' => 'Dra. Fixture', 'crm' => 'CRM-SC 00000',
+        'medicamentos' => [['nome' => 'Pregabalina', 'dose' => '75 mg', 'frequencia' => '1 cápsula à noite']],
+    ])->assertOk();
+
+    expect(TranscricaoDocumento::query()->findOrFail($id)->corrected)->toBe([]);
+});
+
 it('UC-FER-15 · exame: a conclusão é guardada como foi escrita; confirmar sem mudar nada registra zero correções e nenhum medicamento', function () {
     $conclusao = 'Discreta protrusão discal em L4-L5, sem compressão radicular.';
     $exame = ['data' => '2026-10-20', 'medico' => null, 'crm' => null, 'medicamentos' => [],
@@ -144,7 +159,7 @@ it('UC-FER-15 · exame: a conclusão é guardada como foi escrita; confirmar sem
     $id = (int) $this->postJson("/fisio/documentos/{$doc}/transcricao")->assertCreated()->json('id');
 
     $t = TranscricaoDocumento::query()->findOrFail($id);
-    expect(array_keys($t->suggested))->toBe(['data', 'tipo_exame', 'conclusao'])->and($t->suggested['conclusao'])->toBe($conclusao);
+    expect(array_keys($t->suggested))->toEqualCanonicalizing(['data', 'tipo_exame', 'conclusao'])->and($t->suggested['conclusao'])->toBe($conclusao);
 
     $this->postJson("/fisio/transcricoes/{$id}/confirmar", ['data' => '2026-10-20', 'tipo_exame' => 'Ressonância magnética da coluna lombar', 'conclusao' => $conclusao])->assertOk();
     $t->refresh();
