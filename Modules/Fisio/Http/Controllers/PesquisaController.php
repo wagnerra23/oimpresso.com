@@ -16,9 +16,11 @@ use InvalidArgumentException;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Study;
 use Modules\Fisio\Entities\StudyAdverseEvent;
+use Modules\Fisio\Entities\StudyAiSuggestion;
 use Modules\Fisio\Entities\StudyParticipant;
 use Modules\Fisio\Services\Pesquisa\EstudoService;
 use Modules\Fisio\Services\Pesquisa\EventosAdversos;
+use Modules\Fisio\Services\Pesquisa\AssistentePesquisa;
 use Modules\Fisio\Services\Pesquisa\ExportacaoEstudo;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 
@@ -37,6 +39,7 @@ class PesquisaController extends Controller
         private readonly EstudoService $estudos,
         private readonly EventosAdversos $eventos,
         private readonly ExportacaoEstudo $exportacao,
+        private readonly AssistentePesquisa $assistente,
     ) {}
 
     /**
@@ -69,6 +72,8 @@ class PesquisaController extends Controller
             'pendencias' => Inertia::defer(fn () => $estudo === null ? [] : $this->estudos->pendencias($estudo, now())),
             'pacientes' => Inertia::defer(fn () => $veNome && $estudo !== null ? $this->pacientesForaDoEstudo($estudo) : []),
             'eventos' => Inertia::defer(fn () => $estudo === null ? [] : $this->eventos->doEstudo($estudo)),
+            'assistente_ligado' => $this->assistente->ligado((int) $request->session()->get('user.business_id')),
+            'sugestoes' => Inertia::defer(fn () => $estudo === null ? [] : $this->assistente->doEstudo($estudo)),
         ]);
     }
 
@@ -177,6 +182,56 @@ class PesquisaController extends Controller
             'Content-Disposition' => 'attachment; filename="estudo-'.$estudo->id.'-'.$arquivo.'-'.now()->format('Ymd-His').'.csv"',
             'Cache-Control' => 'no-store, private',
         ]);
+    }
+
+    /**
+     * Liga ou desliga o assistente de IA da pesquisadora para a empresa (etapa 07 P-08).
+     * Exige também `fisio.editar`: quem decide mandar o dado do estudo para a IA é a clínica.
+     */
+    public function assistente(Request $request): JsonResponse|RedirectResponse
+    {
+        $this->autorizar($request);
+        abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
+        $ligar = (bool) $request->validate(['ligado' => ['required', 'boolean']])['ligado'];
+        $biz = (int) $request->session()->get('user.business_id');
+        $this->assistente->ligar($biz, $ligar, (int) $request->user()->id);
+        activity('fisio')->causedBy($request->user())
+            ->withProperties(['business_id' => $biz, 'ligado' => $ligar])->log('assistente_pesquisa_configurado');
+
+        return $this->responder($request, ['ligado' => $ligar], 200, $ligar ? 'Assistente ligado.' : 'Assistente desligado.');
+    }
+
+    /** Pede sugestões ao assistente sobre o dado sem identificação do estudo (etapa 07 P-08). */
+    public function sugerir(Request $request, int $study): JsonResponse|RedirectResponse
+    {
+        $this->autorizar($request);
+        $estudo = Study::findOrFail($study);
+        try {
+            $novas = $this->assistente->gerar($estudo, (int) $request->user()->id);
+        } catch (InvalidArgumentException $e) {
+            return $this->recusar($request, $e->getMessage());
+        } catch (\Throwable $e) {
+            report($e);
+
+            return $request->header('X-Inertia') ? back()->withErrors(['geral' => 'Assistente indisponível agora. Tente de novo em instantes.'])
+                : response()->json(['erro' => 'assistente_indisponivel'], 503);
+        }
+
+        return $this->responder($request, ['criadas' => count($novas)], 201, count($novas).' sugestão(ões) para revisar.');
+    }
+
+    /** A pesquisadora aceita ou descarta; quem e quando ficam gravados. */
+    public function decidirSugestao(Request $request, int $study, int $sugestao, string $decisao): JsonResponse|RedirectResponse
+    {
+        $this->autorizar($request);
+        $s = StudyAiSuggestion::where('study_id', $study)->findOrFail($sugestao);
+        try {
+            $this->assistente->decidir($s, $decisao === 'aceitar', (int) $request->user()->id);
+        } catch (InvalidArgumentException $e) {
+            return $this->recusar($request, $e->getMessage());
+        }
+
+        return $this->responder($request, ['status' => $s->status], 200, $s->status === StudyAiSuggestion::ACEITA ? 'Sugestão aceita.' : 'Sugestão descartada.');
     }
 
     /** Travar é uma vez só e exige motivo (etapa 07 P-07). */
