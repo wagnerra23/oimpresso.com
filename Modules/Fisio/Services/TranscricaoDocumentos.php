@@ -254,12 +254,28 @@ final class TranscricaoDocumentos
     {
         $out = [];
         foreach ($confirmado as $campo => $valor) {
-            if (($sugerido[$campo] ?? null) !== $valor) {
+            // A sugestão volta da coluna JSON do MySQL com as chaves de cada medicamento em outra
+            // ordem: compara com as chaves ordenadas, e estrito (`==` trataria "00000" como "0").
+            if (self::ordenado($sugerido[$campo] ?? null) !== self::ordenado($valor)) {
                 $out[] = $campo;
             }
         }
 
         return $out;
+    }
+
+    /** Ordena as chaves de arrays associativos (recursivo); listas mantêm a ordem dos itens. */
+    private static function ordenado(mixed $v): mixed
+    {
+        if (! is_array($v)) {
+            return $v;
+        }
+        $v = array_map(self::ordenado(...), $v);
+        if (! array_is_list($v)) {
+            ksort($v);
+        }
+
+        return $v;
     }
 
     private function anexo(DocumentoPaciente $doc): Image|Document|null
