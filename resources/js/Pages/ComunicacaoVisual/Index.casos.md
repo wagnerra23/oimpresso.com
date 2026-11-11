@@ -58,6 +58,11 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-04 | Material de outro business não precifica nada | must `[T0]` | `CU-CV-03` item 4 · `CU-CV-04` | `OrcamentoCalculatorTest` · `MaterialSeederTest` | 🧪 ⏭ PR-skip |
 | UC-CV-05 | Orçamento, OS e apontamento de outro business não aparecem | must `[T0]` | `CU-CV-04` itens 1-5 | `MultiTenantTest` · `Tier0GuardTest` · `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-06 | Um operador nunca tem dois spools abertos; drift vem do servidor | must | `CU-CV-06` itens 2-6 | `ApontamentoTrackerTest` · `ApontamentoControllerTest` | 🧪 ⏭ PR-skip |
+| UC-CVAPT-01 | A lista de apontamentos mostra do operador só id e nome | must | US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
+| UC-CVAPT-02 | Sem permissão de apontar não lista, não inicia, não finaliza nem cancela | must | US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
+| UC-CVAPT-03 | OS de outra empresa é recusada igual a OS que não existe | must `[T0]` | `CU-CV-04` · US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
+| UC-CVAPT-04 | Peça de orçamento de outra empresa não entra no apontamento | must `[T0]` | `CU-CV-04` · US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
+| UC-CVAPT-05 | O serviço também recusa OS de outra empresa | must `[T0]` | `CU-CV-04` · US-COMVIS-004 | `ApontamentoControllerTest` | 🧪 |
 | UC-CV-07 | A calculadora recebe o catálogo do business | must | `CU-CV-09` itens 1-3 | `ContratoTelaOrcamentoTest` | 🧪 verde no CT 100 (2026-09-23) ⏭ PR-skip |
 | UC-CV-08 | O rastro de auditoria não carrega PII | must `[reg]` | `CU-CV-08` itens 1-5 | `AuditTrailIntegrityTest` · `LgpdComplianceTest` | 🧪 |
 | UC-CV-09 | O substrato nasce com os campos fiscais do CNAE 1813 | should | `CU-CV-10` item 1 | `ContratoTelaOrcamentoTest` | 🧪 |
@@ -780,6 +785,47 @@ Status: 🧪
 
 **Dado** o mesmo cálculo **Quando** ele é mostrado e gravado **Então** o `custo_previsto` de cada
 item gravado é o custo mostrado na tela.
+
+Status: 🧪
+
+## Apontamentos de produção (US-COMVIS-004)
+
+> Âncora: SPEC US-COMVIS-004 e SDD §6 `CU-CV-04`. A API `/comunicacao-visual/api/apontamentos` não
+> tem tela nem app consumindo em 2026-11-09. A permissão é a única que o `DataController` declara
+> para o tema, `comvis.apontamento.create`.
+
+## UC-CVAPT-01 · A lista de apontamentos mostra do operador só id e nome · `must`
+
+**Dado** um apontamento aberto **Quando** a lista é consultada **Então** `operador` traz só `id` e
+`nome`, e o e-mail e o usuário de login não aparecem em nenhum ponto da resposta.
+
+Status: 🧪
+
+## UC-CVAPT-02 · Sem permissão de apontar não lista, não inicia, não finaliza nem cancela · `must`
+
+**Dado** um usuário sem `comvis.apontamento.create` **Quando** ele lista, inicia, finaliza ou cancela
+**Então** as quatro respostas são 403 e o apontamento aberto continua igual.
+
+Status: 🧪
+
+## UC-CVAPT-03 · OS de outra empresa é recusada igual a OS que não existe · `must` `[T0]`
+
+**Dado** uma OS da 99 **Quando** o operador da 98 inicia nela **Então** a validação recusa `os_id` com
+a mesma mensagem de uma OS inexistente, e nada é gravado.
+
+Status: 🧪
+
+## UC-CVAPT-04 · Peça de orçamento de outra empresa não entra no apontamento · `must` `[T0]`
+
+**Dado** uma peça da 99 **Quando** o operador da 98 inicia com ela **Então** a validação recusa
+`orcamento_item_id` e nada é gravado. **Com** uma peça da 98, o apontamento nasce com o m² dela.
+
+Status: 🧪
+
+## UC-CVAPT-05 · O serviço também recusa OS de outra empresa · `must` `[T0]`
+
+**Dado** uma OS da 99 e uma sessão da 98 **Quando** o `ApontamentoTracker` é chamado direto
+**Então** ele lança erro, sem depender da validação do controller.
 
 Status: 🧪
 

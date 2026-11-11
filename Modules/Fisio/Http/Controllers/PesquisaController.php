@@ -11,13 +11,17 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use InvalidArgumentException;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Study;
 use Modules\Fisio\Entities\StudyAdverseEvent;
+use Modules\Fisio\Entities\StudyAiSuggestion;
 use Modules\Fisio\Entities\StudyParticipant;
 use Modules\Fisio\Services\Pesquisa\EstudoService;
 use Modules\Fisio\Services\Pesquisa\EventosAdversos;
+use Modules\Fisio\Services\Pesquisa\AssistentePesquisa;
+use Modules\Fisio\Services\Pesquisa\ExportacaoEstudo;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 
 /**
@@ -34,6 +38,8 @@ class PesquisaController extends Controller
     public function __construct(
         private readonly EstudoService $estudos,
         private readonly EventosAdversos $eventos,
+        private readonly ExportacaoEstudo $exportacao,
+        private readonly AssistentePesquisa $assistente,
     ) {}
 
     /**
@@ -56,16 +62,19 @@ class PesquisaController extends Controller
                 'cep_opinion_number' => $estudo->cep_opinion_number, 'protocol_version' => $estudo->protocol_version,
                 'tcle_version' => $estudo->tcle_version, 'starts_on' => $estudo->starts_on->toDateString(),
                 'ends_on' => $estudo->ends_on?->toDateString(),
+                'locked_at' => $estudo->locked_at?->toIso8601String(), 'lock_reason' => $estudo->lock_reason,
                 'momentos' => $estudo->moments->map(fn ($m) => [
                     'label' => $m->label, 'day_offset' => $m->day_offset, 'window_days' => $m->window_days, 'instruments' => $m->instruments,
                 ])->values(),
             ],
             've_nome' => $veNome,
-            'instrumentos' => CatalogoQuestionarios::LIVRES,
+            'instrumentos' => array_keys(CatalogoQuestionarios::disponiveis()),
             'participantes' => Inertia::defer(fn () => $estudo === null ? [] : $this->participantes($estudo, $veNome)),
             'pendencias' => Inertia::defer(fn () => $estudo === null ? [] : $this->estudos->pendencias($estudo, now())),
             'pacientes' => Inertia::defer(fn () => $veNome && $estudo !== null ? $this->pacientesForaDoEstudo($estudo) : []),
             'eventos' => Inertia::defer(fn () => $estudo === null ? [] : $this->eventos->doEstudo($estudo)),
+            'assistente_ligado' => $this->assistente->ligado((int) $request->session()->get('user.business_id')),
+            'sugestoes' => Inertia::defer(fn () => $estudo === null ? [] : $this->assistente->doEstudo($estudo)),
         ]);
     }
 
@@ -84,7 +93,7 @@ class PesquisaController extends Controller
             'momentos.*.day_offset' => ['required', 'integer', 'min:0', 'max:3650'],
             'momentos.*.window_days' => ['required', 'integer', 'min:0', 'max:60'],
             'momentos.*.instruments' => ['present', 'array'],
-            'momentos.*.instruments.*' => ['string', 'in:'.implode(',', CatalogoQuestionarios::LIVRES)],
+            'momentos.*.instruments.*' => ['string', 'in:'.implode(',', array_keys(CatalogoQuestionarios::disponiveis()))],
         ]);
         $biz = (int) $request->session()->get('user.business_id');
 
@@ -107,6 +116,9 @@ class PesquisaController extends Controller
         if ($estudo->status !== Study::STATUS_ATIVO) {
             return $this->recusar($request, 'estudo_fora_de_andamento');
         }
+        if ($falta = $this->justificativaAposTravamento($request, $estudo, 'participante_incluido')) {
+            return $falta;
+        }
 
         try {
             $p = $this->estudos->incluir($estudo, $paciente, (int) $request->user()->id, $request->ip());
@@ -124,7 +136,11 @@ class PesquisaController extends Controller
             'tipo' => ['required', 'string', 'in:'.implode(',', StudyParticipant::SAIDAS)],
             'motivo' => ['required', 'string', 'max:500'],
         ]);
-        $p = StudyParticipant::where('business_id', $this->empresa($request))->where('study_id', $study)->findOrFail($participant);
+        $biz = $this->empresa($request);
+        $p = StudyParticipant::where('business_id', $biz)->where('study_id', $study)->findOrFail($participant);
+        if ($falta = $this->justificativaAposTravamento($request, Study::where('business_id', $biz)->findOrFail($study), 'saida_registrada')) {
+            return $falta;
+        }
 
         try {
             $this->estudos->registrarSaida($p, (string) $dados['tipo'], (string) $dados['motivo'], (int) $request->user()->id);
@@ -140,10 +156,123 @@ class PesquisaController extends Controller
     {
         $this->autorizar($request);
         $nota = (string) $request->validate(['nota' => ['required', 'string', 'max:1000']])['nota'];
-        $e = StudyAdverseEvent::where('business_id', $this->empresa($request))->where('study_id', $study)->findOrFail($evento);
+        $biz = $this->empresa($request);
+        $e = StudyAdverseEvent::where('business_id', $biz)->where('study_id', $study)->findOrFail($evento);
+        if ($falta = $this->justificativaAposTravamento($request, Study::where('business_id', $biz)->findOrFail($study), 'evento_revisado')) {
+            return $falta;
+        }
         $this->eventos->revisar($e, $nota, (int) $request->user()->id);
 
         return $this->responder($request, ['reviewed_at' => $e->reviewed_at?->toIso8601String()], 200, 'Revisão registrada.');
+    }
+
+    /**
+     * Exportação para a universidade (etapa 07 P-07): um arquivo CSV por chamada, sem
+     * identificação, e uma linha no activity_log só com ids e o nome do arquivo.
+     */
+    public function exportar(Request $request, int $study, string $arquivo): HttpResponse
+    {
+        $this->autorizar($request);
+        abort_unless(in_array($arquivo, ExportacaoEstudo::ARQUIVOS, true), 404);
+        $estudo = Study::where('business_id', $this->empresa($request))->findOrFail($study);
+        $csv = $this->exportacao->csv($this->exportacao->linhas($estudo, $arquivo));
+
+        activity('fisio')->performedOn($estudo)->causedBy($request->user())
+            ->withProperties(['business_id' => (int) $estudo->business_id, 'study_id' => (int) $estudo->id, 'arquivo' => $arquivo, 'travado' => $estudo->locked_at !== null])
+            ->log('estudo_exportado');
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="estudo-'.$estudo->id.'-'.$arquivo.'-'.now()->format('Ymd-His').'.csv"',
+            'Cache-Control' => 'no-store, private',
+        ]);
+    }
+
+    /**
+     * Liga ou desliga o assistente de IA da pesquisadora para a empresa (etapa 07 P-08).
+     * Exige também `fisio.editar`: quem decide mandar o dado do estudo para a IA é a clínica.
+     */
+    public function assistente(Request $request): JsonResponse|RedirectResponse
+    {
+        $this->autorizar($request);
+        abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
+        $ligar = (bool) $request->validate(['ligado' => ['required', 'boolean']])['ligado'];
+        $biz = (int) $request->session()->get('user.business_id');
+        $this->assistente->ligar($biz, $ligar, (int) $request->user()->id);
+        activity('fisio')->causedBy($request->user())
+            ->withProperties(['business_id' => $biz, 'ligado' => $ligar])->log('assistente_pesquisa_configurado');
+
+        return $this->responder($request, ['ligado' => $ligar], 200, $ligar ? 'Assistente ligado.' : 'Assistente desligado.');
+    }
+
+    /** Pede sugestões ao assistente sobre o dado sem identificação do estudo (etapa 07 P-08). */
+    public function sugerir(Request $request, int $study): JsonResponse|RedirectResponse
+    {
+        $this->autorizar($request);
+        $estudo = Study::where('business_id', $this->empresa($request))->findOrFail($study);
+        try {
+            $novas = $this->assistente->gerar($estudo, (int) $request->user()->id);
+        } catch (InvalidArgumentException $e) {
+            return $this->recusar($request, $e->getMessage());
+        } catch (\Throwable $e) {
+            report($e);
+
+            return $request->header('X-Inertia') ? back()->withErrors(['geral' => 'Assistente indisponível agora. Tente de novo em instantes.'])
+                : response()->json(['erro' => 'assistente_indisponivel'], 503);
+        }
+
+        return $this->responder($request, ['criadas' => count($novas)], 201, count($novas).' sugestão(ões) para revisar.');
+    }
+
+    /** A pesquisadora aceita ou descarta; quem e quando ficam gravados. */
+    public function decidirSugestao(Request $request, int $study, int $sugestao, string $decisao): JsonResponse|RedirectResponse
+    {
+        $this->autorizar($request);
+        $s = StudyAiSuggestion::where('business_id', $this->empresa($request))->where('study_id', $study)->findOrFail($sugestao);
+        try {
+            $this->assistente->decidir($s, $decisao === 'aceitar', (int) $request->user()->id);
+        } catch (InvalidArgumentException $e) {
+            return $this->recusar($request, $e->getMessage());
+        }
+
+        return $this->responder($request, ['status' => $s->status], 200, $s->status === StudyAiSuggestion::ACEITA ? 'Sugestão aceita.' : 'Sugestão descartada.');
+    }
+
+    /** Travar é uma vez só e exige motivo (etapa 07 P-07). */
+    public function travar(Request $request, int $study): JsonResponse|RedirectResponse
+    {
+        $this->autorizar($request);
+        $motivo = (string) $request->validate(['motivo' => ['required', 'string', 'max:500']])['motivo'];
+        $estudo = Study::where('business_id', $this->empresa($request))->findOrFail($study);
+        if ($estudo->locked_at !== null) {
+            return $this->recusar($request, 'estudo já travado');
+        }
+        $estudo->forceFill(['locked_at' => now(), 'locked_by' => (int) $request->user()->id, 'lock_reason' => $motivo])->save();
+        activity('fisio')->performedOn($estudo)->causedBy($request->user())
+            ->withProperties(['business_id' => (int) $estudo->business_id, 'study_id' => (int) $estudo->id, 'motivo' => $motivo])
+            ->log('estudo_travado');
+
+        return $this->responder($request, ['locked_at' => $estudo->locked_at->toIso8601String()], 200, 'Estudo travado.');
+    }
+
+    /**
+     * Depois do travamento, mudar o estudo exige `justificativa`, que vai para o activity_log.
+     * Devolve a resposta de recusa, ou null para seguir.
+     */
+    private function justificativaAposTravamento(Request $request, Study $estudo, string $acao): JsonResponse|RedirectResponse|null
+    {
+        if ($estudo->locked_at === null) {
+            return null;
+        }
+        $justificativa = trim((string) $request->input('justificativa', ''));
+        if ($justificativa === '') {
+            return $this->recusar($request, 'estudo travado: informe a justificativa');
+        }
+        activity('fisio')->performedOn($estudo)->causedBy($request->user())
+            ->withProperties(['business_id' => (int) $estudo->business_id, 'study_id' => (int) $estudo->id, 'acao' => $acao, 'justificativa' => mb_substr($justificativa, 0, 500)])
+            ->log('estudo_alterado_apos_travamento');
+
+        return null;
     }
 
     /** @return list<array<string, mixed>> */
