@@ -662,6 +662,7 @@ jobs:
             Modules/ProductCatalogue/Tests/Feature \
             tests/Feature/Sells/CatalogoPublicoDescontoContratoTest.php \
             tests/Feature/Sells/CatalogoPublicoDescontoCriterioContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoFormatoContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
 
