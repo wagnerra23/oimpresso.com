@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · Show.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: a ficha é o prontuário legal (Res. COFFITO 414/2012, guarda de 20 anos pela Lei 13.787/2018) e o editor do programa que o paciente executa sozinho em casa. Editar evolução assinada, apagar paciente ou prescrever contra uma contraindicação sem aviso são falhas legais e clínicas.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-11"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioProntuarioTest, FisioProgramaEditorTest, FisioPacienteCrudTest, FisioMultiTenantTest e FisioWhatsappJobTest."
 related_us: [US-FISIO-009]
 ---
@@ -13,6 +13,8 @@ related_us: [US-FISIO-009]
 # Casos de Uso & Aceite — Fisio · Ficha do paciente (`/fisio/pacientes/{id}`)
 
 > **Âncora:** ADR 0437 §4 a §8 e handoff F1 (T-05, T-06, T-09). Padrão Cockpit + Apps Vinculados: abas Evolução, Programa, Prontuário, Questionários. Os UCs não derivam do `.tsx`.
+>
+> **Laudo biopsicossocial (US-FISIO-060, 2026-11-11):** o cartão "Laudo biopsicossocial" da ficha tem contrato próprio em [`laudo-biopsicossocial.casos.md`](../../../../../../../memory/requisitos/Fisio/_telas/laudo-biopsicossocial.casos.md) (UC-FBP-01..15; a ficha em si é o UC-FBP-15). Revalidado em 2026-11-11: o cartão só acrescenta uma prop deferida própria (`laudos_bps`) e o catálogo da matriz; os UCs desta ficha não mudam.
 >
 > **Status:** ✅ passa (manifesto) · 🧪 teste cita o UC, sem veredito · ⬜ não verificado · ❌ quebrou. **O veredito é da lane** (G-7).
 
