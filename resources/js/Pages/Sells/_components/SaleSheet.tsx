@@ -119,6 +119,8 @@ interface SaleDetail {
   };
   /** F3 PaymentGateway — cobrança vinculada (ADR 0144 + 0170). null = não emitida. */
   cobranca?: CobrancaState | null;
+  /** Empresa com o pacote fiscal_module (lote 3.3 NfeBrasil). false = sem a seção fiscal. */
+  fiscal_liberado?: boolean;
   /** P-031 — venda de onde esta foi duplicada (null = não duplicada). */
   duplicated_from?: VendaRef | null;
   /** P-031 — vendas duplicadas a partir desta. */
@@ -746,8 +748,10 @@ export default function SaleSheet({
                 </Section>
               )}
 
-              {/* Fiscal — emissões NFC-e/NFe + ações (US-NFE-MANUAL) */}
-              <FiscalSection saleId={data.id} enabled={open} />
+              {/* Fiscal — emissões NFC-e/NFe + ações (US-NFE-MANUAL). Só aparece com o pacote
+                  fiscal_module: sem ele as rotas /nfe-brasil/* respondem 403 (lote 3.3), e a
+                  seção mostraria esse erro em toda venda de quem não usa NF-e. */}
+              {data.fiscal_liberado !== false && <FiscalSection saleId={data.id} enabled={open} />}
 
               {/* Pipeline FSM — ações disponíveis (Wire-up UI FSM) */}
               <Section title="Pipeline FSM" icon={CheckCircle2}>
