@@ -1040,7 +1040,7 @@ E o cTribNac usado fica gravado na nfse_emissoes
 - [x] Lib base: `nfephp-org/sped-nfe`, decidido em [adr/arq/0002](adr/arq/0002-lib-sped-nfe-vs-acbr.md)
 - [x] DANFE PDF: `nfephp-org/sped-da` (`DanfeService`), mesma ADR
 - [x] CBS/IBS: schema flexível desde já, em [adr/arq/0004](adr/arq/0004-schema-flexivel-cbs-ibs-reforma-tributaria.md)
-- [x] Cert A1: o oimpresso armazena criptografado e não renova ([adr/arq/0003](adr/arq/0003-cert-a1-storage-criptografado.md)). Desde [#10733](https://github.com/wagnerra23/oimpresso.com/pull/10733) o certificado vem só de `nfe_certificados`, sem o fallback de `business.certificado` ([ADR 0449](adr/0449-nfebrasil-certificado-sem-fallback-legado.md), **proposta**; a ratificação é do [W])
+- [x] Cert A1: o oimpresso armazena criptografado e não renova ([adr/arq/0003](adr/arq/0003-cert-a1-storage-criptografado.md)). Desde [#10733](https://github.com/wagnerra23/oimpresso.com/pull/10733) o certificado vem só de `nfe_certificados`, sem o fallback de `business.certificado` ([ADR 0449](../../decisions/0449-nfebrasil-certificado-sem-fallback-legado.md), **proposta**; a ratificação é do [W])
 - [x] Manifestação: manual por botão, sem confirmação automática (US-NFE-052, tela `/nfe-brasil/manifestacao`)
 - [ ] Contingência EPEC requer cert separado (homologação SEFAZ-AN)? Validar com contador. Segue aberta; a contingência em si está em [adr/tech/0002](adr/tech/0002-contingencia-epec-fsda-retentativa-ordenada.md)
 
