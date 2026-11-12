@@ -306,6 +306,19 @@ last_run: "2026-10-07"
 
 ---
 
+## UC-OP-17 · Excluir rascunho só apaga ordem da minha empresa
+- **Persona:** Eliana (produção) — descarta um rascunho de ordem.
+- **Aceite:** Dado um rascunho de ordem da minha empresa · Quando excluo (DELETE
+  `/manufacturing/production/{id}`) · Então ele é apagado · Dado o rascunho de outra empresa · Quando
+  mando excluir o id dele · Então ele continua lá.
+- **Fonte:** ADR 0093 · auditoria do Manufacturing 2026-11-09, eixo 1 §5 (`destroy` sem teste).
+- **Teste:** `IsolamentoEscritasEmpresaTest.php`
+- **Regressão que defende:** o `destroy` perder o `where('business_id', …)` e apagar ordem de outra empresa
+  pelo id.
+- **Status: 🧪**
+
+---
+
 ## UC-OP-20 · A ordem grava quantidade e custo como informados, sem reconverter número
 - **Persona:** Eliana (produção) — lança um consumo fracionado (0,125) e um lote grande de item barato.
 - **Aceite:** Dado um consumo de 0,125 · Quando finalizo · Então a linha grava 0,125 e o estoque baixa 0,125
