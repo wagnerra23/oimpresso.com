@@ -104,7 +104,8 @@ it('UC-FER-19 · a clínica aceita (pode acertar o tipo) ou recusa com motivo; n
 
     F::como($this, $this->u98);
     $docs = F::props($this, $this->u98, "/fisio/pacientes/{$this->p->id}", 'Fisio/Pacientes/Show', 'documentos');
-    expect(collect($docs)->pluck('status', 'id')->all())->toBe([$aceitar => 'pendente', $recusar => 'pendente']);
+    // Os dois chegam no mesmo dia: a ordem entre eles não é contrato, os pares id → status são.
+    expect(collect($docs)->pluck('status', 'id')->all())->toEqual([$aceitar => 'pendente', $recusar => 'pendente']);
 
     $this->postJson("/fisio/documentos/{$aceitar}/aceitar", ['tipo' => 'exame_laboratorial', 'data_documento' => '2026-11-02'])->assertOk();
     $d = DocumentoPaciente::query()->findOrFail($aceitar);
