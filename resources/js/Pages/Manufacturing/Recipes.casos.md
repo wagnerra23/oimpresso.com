@@ -357,8 +357,10 @@ last_run: "2026-10-27"
   A4 por receita (R-23).
 
 > Fora o da paginação (Pest com fixture HTTP) e o primeiro, os seis acima são comportamento de
-> **navegador** (eram oito até 2026-10-02; busca, KPI-filtro e ordenação viraram UC) — o lugar deles é o spec Playwright
-> (`e2e/manufacturing-recipes.spec.ts`), não Pest. Entram como UC quando o teste existir e citar o id.
+> **navegador** (eram oito até 2026-10-02; busca, KPI-filtro e ordenação viraram UC). Até 2026-11-11 o lugar
+> deles era um spec Playwright que nenhum workflow executava, todo em `test.fixme`; desde então R-14 e R-22
+> têm caso em `tests/Browser/Manufacturing/TelasFabricacaoTest.php` (Pest Browser, step advisory do
+> `visual-regression`). Entram como UC depois do primeiro verde que executou.
 
 ## Ambiguidade declarada (não inventei desempate)
 
