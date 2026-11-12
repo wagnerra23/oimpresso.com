@@ -115,3 +115,26 @@ it('usa a logomarca oficial no topo e o símbolo no ícone da aba', function () 
     expect(is_file(public_path('uniafibro/logomarca.png')))->toBeTrue();
     expect(is_file(public_path('uniafibro/favicon.png')))->toBeTrue();
 });
+
+it('conquistas: cada marco da luta pelas leis aponta o documento oficial', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('Conquistas: a luta pelas leis');
+    expect($html)->toContain('Lei 8.394/2023');
+    $ini = strpos($html, 'id="conquistas"');
+    $fim = strpos($html, '</section>', $ini);
+    preg_match_all('/<li[^>]*><span class="ano">.*?<\/li>/s', substr($html, $ini, $fim - $ini), $m);
+    expect(count($m[0]))->toBeGreaterThanOrEqual(5);
+    foreach ($m[0] as $marco) {
+        expect($marco)->toContain('class="fonte"');
+    }
+});
+
+it('atendimento: começa pelo posto de saúde e lista os serviços de referência com fonte', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('Onde buscar atendimento em SC');
+    expect($html)->toContain('Unidade Básica de Saúde');
+    expect($html)->toContain('<table class="servicos">');
+    expect($html)->toContain('saude.sc.gov.br');
+});

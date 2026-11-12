@@ -207,6 +207,16 @@
         .numeros span { color: var(--texto); }
         .numeros a { display: inline-block; padding: 6px 0; font-size: 0.9rem; margin-top: auto; }
 
+        .fonte-card { display: inline-block; padding: 6px 0 0; margin-right: 12px; font-size: 0.92rem; }
+        .linha li.causa::before { background: var(--superficie); box-shadow: inset 0 0 0 3px var(--lilas); }
+        .passos { margin: 0 0 22px; padding-left: 22px; display: grid; gap: 8px; max-width: 70ch; }
+        .tabela-rolagem { overflow-x: auto; border-radius: 16px; border: 1px solid var(--borda); background: var(--superficie); box-shadow: var(--sombra); }
+        .servicos { width: 100%; border-collapse: collapse; min-width: 640px; }
+        .servicos caption { text-align: left; padding: 14px 16px 6px; color: var(--texto-suave); font-size: 0.95rem; }
+        .servicos th, .servicos td { text-align: left; padding: 10px 16px; border-top: 1px solid var(--borda); vertical-align: top; }
+        .servicos thead th { color: var(--roxo); font-size: 0.95rem; }
+        .fontes-secao { margin-top: 12px; color: var(--texto-suave); font-size: 0.95rem; max-width: 70ch; }
+
         /* Vozes */
         .vozes { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); }
         .voz { margin: 0; background: var(--superficie); border: 1px solid var(--borda); border-radius: 18px;
@@ -214,7 +224,7 @@
         .voz blockquote { margin: 0; position: relative; padding-top: 22px; }
         .voz blockquote::before { content: "\201C"; position: absolute; top: -18px; left: -4px;
                font: 700 4rem/1 Georgia, serif; color: var(--lilas); }
-        .voz blockquote p { margin: 0; font-size: 1.12rem; line-height: 1.5; font-style: italic; }
+        .voz blockquote p { margin: 0; font-size: 1.12rem; line-height: 1.5; font-style: italic; max-width: 60ch; }
         .voz figcaption { margin-top: auto; display: flex; flex-direction: column; font-size: 0.95rem; }
         .voz figcaption span { color: var(--texto-suave); }
         .voz figcaption a { display: inline-block; padding: 6px 0 0; }
@@ -255,8 +265,9 @@
                 <li><a href="#fibromialgia">Fibromialgia</a></li>
                 <li><a href="#vozes">Vozes</a></li>
                 <li><a href="#quem-somos">Quem somos</a></li>
+                <li><a href="#conquistas">Conquistas</a></li>
                 <li><a href="#direitos">Direitos</a></li>
-                <li><a href="#app">App</a></li>
+                <li><a href="#atendimento">Atendimento</a></li>
                 <li><a href="#contato">Contato</a></li>
             </ul>
         </div>
@@ -283,37 +294,38 @@
     <main id="conteudo">
         <section class="secao" id="fibromialgia" aria-labelledby="t-fibro">
             <h2 id="t-fibro">O que é a fibromialgia</h2>
-            <p class="sub">A fibromialgia é uma condição de dor crônica. Ela é real, tem nome e tem
-                cuidado — e ninguém precisa enfrentá-la sozinha.</p>
+            <p class="sub">A dor é real, mesmo quando os exames vêm normais. A ciência já sabe bastante sobre a
+                fibromialgia — e ninguém precisa enfrentá-la sozinha.</p>
             <div class="grade">
                 <div class="cartao">
-                    <span class="rotulo">Dor</span>
-                    <h3>Dor espalhada pelo corpo</h3>
-                    <p>A principal característica é a dor generalizada e persistente, em várias partes
-                        do corpo, que dura meses.</p>
+                    <span class="rotulo">O que é</span>
+                    <h3>Dor crônica espalhada pelo corpo</h3>
+                    <p>Muitas vezes vem junto com cansaço, sono que não descansa e dificuldade de concentração. Não deforma nem destrói as articulações: o sistema nervoso passa a processar a dor de forma amplificada.</p>
+                    <a class="fonte-card" href="https://www.fai2r.org/wp-content/uploads/2018/11/Anx_tuto_fibromyalgie_FAI2R-wolfe2016.pdf" rel="noopener">Critérios ACR, Wolfe 2016</a>
                 </div>
                 <div class="cartao">
-                    <span class="rotulo">Além da dor</span>
-                    <h3>Cansaço, sono e memória</h3>
-                    <p>É comum vir acompanhada de cansaço intenso, sono que não descansa e dificuldade
-                        de concentração e de memória.</p>
+                    <span class="rotulo">Quem tem</span>
+                    <h3>Cerca de 2% dos brasileiros</h3>
+                    <p>Estudos estimam que 2% a 2,5% dos brasileiros vivem com fibromialgia, a maioria mulheres — mas homens também podem ter. No mundo, a média fica perto de 3%.</p>
                 </div>
                 <div class="cartao">
                     <span class="rotulo">Diagnóstico</span>
-                    <h3>Feito por profissional de saúde</h3>
-                    <p>O diagnóstico é clínico: o médico avalia a história e o exame da pessoa. Exames
-                        de laboratório costumam vir normais, e isso não quer dizer que a dor não existe.</p>
+                    <h3>Feito pelo médico, na consulta</h3>
+                    <p>O médico avalia onde dói, há quanto tempo (pelo menos três meses) e os outros sintomas. Não há exame de sangue ou de imagem que confirme a fibromialgia: os exames servem para descartar outras doenças.</p>
+                    <a class="fonte-card" href="https://www.fai2r.org/wp-content/uploads/2018/11/Anx_tuto_fibromyalgie_FAI2R-wolfe2016.pdf" rel="noopener">Critérios ACR, Wolfe 2016</a>
                 </div>
                 <div class="cartao">
-                    <span class="rotulo">Cuidado</span>
-                    <h3>Acompanhamento contínuo</h3>
-                    <p>O cuidado costuma combinar acompanhamento médico, atividade física orientada e
-                        apoio emocional, definidos com a equipe de saúde de cada pessoa.</p>
+                    <span class="rotulo">Tratamento</span>
+                    <h3>Movimento é a recomendação mais forte</h3>
+                    <p>As diretrizes europeias recomendam, antes de tudo, exercício físico regular, em terra ou na água, começando devagar. Informação, terapia psicológica, tai chi, yoga, hidroterapia e acupuntura ajudam algumas pessoas. Remédios, só com orientação médica.</p>
+                    <a class="fonte-card" href="https://pubmed.ncbi.nlm.nih.gov/27377815/" rel="noopener">EULAR 2016</a>
+                    <a class="fonte-card" href="https://cochrane.org/pt/CD011336/MUSKEL_exercicio-fisico-aquatico-para-fibromialgia" rel="noopener">Cochrane, exercício na água</a>
                 </div>
             </div>
             <div class="faixa">
-                <p><strong>Importante:</strong> este conteúdo é informativo e não substitui a consulta
-                    com profissional de saúde.</p>
+                <p><strong>Cuidado com promessas.</strong> Não há cura conhecida, mas os sintomas podem melhorar.
+                    Desconfie de quem promete cura rápida. Antes de começar ou parar qualquer tratamento, converse
+                    com seu médico. Este conteúdo é informativo e não substitui a consulta com profissional de saúde.</p>
             </div>
         </section>
 
@@ -444,7 +456,7 @@
                     <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/documentos/KDdmV" rel="noopener">Alesc — PL 113/2024</a></li>
                 <li><span class="ano">out. 2024</span><p>O AMASF completa quatro anos com cerca de 10
                     mil atendimentos. A coordenação do ambulatório chama Giselli de "parceira
-                    incansável" e lembra conquistas da associação, como o cartão do fibromiálgico e a
+                    incansável", e ela comemora conquistas como o cartão do fibromiálgico e a
                     gratuidade nas passagens de ônibus.</p>
                     <a class="fonte" href="https://www.unesc.net/noticias/categoria/geral/amasf-da-unesc-completa-quatro-anos-de-atendimento-as-pessoas-portadoras-de-fibromialgia" rel="noopener">Unesc, 01/10/2024</a></li>
                 <li><span class="ano">abr. 2025</span><p>Sem verba pública, a associação faz um café
@@ -506,47 +518,113 @@
             </div>
         </section>
 
-        <section class="secao" id="direitos" aria-labelledby="t-direitos">
+        <section class="secao" id="conquistas" aria-labelledby="t-conquistas">
+            <h2 id="t-conquistas">Conquistas: a luta pelas leis</h2>
+            <p class="sub">Leis são propostas por vereadores e deputados. O que a associação faz é levar a
+                pauta à tribuna, estar presente e não deixar o assunto morrer. Cada marco tem o documento oficial.</p>
+            <p class="legenda"><span>da associação</span><span class="rede">da causa da fibromialgia</span></p>
+            <ol class="linha">
+                <li><span class="ano">mai. 2023</span><p><strong>Na tribuna.</strong> Giselli Cunha ocupa a Tribuna Livre da Câmara de Criciúma no dia em que os vereadores aprovam o projeto que reconhece a pessoa com fibromialgia como pessoa com deficiência.</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/noticia/tribuna-livre-traz-a-fibromialgia-novamente-para-a-pauta-8328" rel="noopener">Câmara de Criciúma, 30/05/2023</a></li>
+                <li><span class="ano">jul. 2023</span><p><strong>Pessoa com deficiência em Criciúma.</strong> A Câmara derruba o veto do prefeito e promulga a Lei 8.394/2023. Para a associação, “um divisor de águas”.</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/lei-municipal/lei-ordinaria-28/lei-8394-2023-8394" rel="noopener">Lei 8.394/2023</a>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/noticia/fibromialgicos-passam-a-ser-reconhecidos-como-pessoas-com-deficiencia-em-criciuma-8425" rel="noopener">Câmara de Criciúma, 21/07/2023</a></li>
+                <li><span class="ano">out. 2023</span><p><strong>Reconhecimento.</strong> A Câmara de Criciúma aprova, por unanimidade, Moção de Aplauso à Associação Girassóis pelo trabalho com as pessoas com fibromialgia.</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/documento/mocao-no-45-2023-1002060" rel="noopener">Moção 45/2023</a></li>
+                <li><span class="ano">mai. 2024</span><p><strong>A voz vai além de SC.</strong> Giselli volta à Tribuna Livre de Criciúma e é palestrante na audiência pública sobre fibromialgia da Assembleia Legislativa do Rio de Janeiro.</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/documento/pauta-no-88-2024-1007495" rel="noopener">Pauta 88/2024 da Câmara</a>
+                    <a class="fonte" href="https://www.folhanit.com.br/?p=10141" rel="noopener">Folha NIT, 30/04/2024</a></li>
+                <li class="causa"><span class="ano">jun. 2024</span><p><strong>Lei estadual.</strong> Santa Catarina equipara a pessoa com fibromialgia à pessoa com deficiência e cria a carteirinha estadual, que dá passe livre no transporte intermunicipal (Lei 18.928/2024).</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/documentos/K9XMa" rel="noopener">Alesc</a>
+                    <a class="fonte" href="https://www.fcee.sc.gov.br/informacoes/beneficios-para-pessoas-com-deficiencia/carteira-de-identificacao-da-pessoa-com-fibromialgia" rel="noopener">FCEE</a></li>
+                <li><span class="ano">jul. 2025</span><p><strong>Utilidade pública.</strong> Criciúma declara a AGFESC entidade de utilidade pública municipal (Lei 8.786/2025).</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/lei-municipal/lei-ordinaria-28/lei-no-8786-de-10-de-julho-de-2025-8786" rel="noopener">Lei 8.786/2025</a></li>
+                <li class="causa"><span class="ano">jul. 2025</span><p><strong>Lei nacional.</strong> A Lei federal 15.176/2025 leva o reconhecimento a todo o Brasil, a partir de 2026, com avaliação biopsicossocial. Criciúma já garantia esse direito desde 2023.</p>
+                    <a class="fonte" href="https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/L15176.htm" rel="noopener">Planalto</a>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/noticia/legislacao-de-criciuma-antecipa-direito-garantido-por-nova-lei-federal-sobre-fibromialgia-101382" rel="noopener">Câmara de Criciúma, 30/07/2025</a></li>
+                <li class="causa"><span class="ano">jun. 2026</span><p><strong>A lei de SC se mantém.</strong> O Tribunal de Justiça de SC valida a lei estadual e a carteirinha da fibromialgia.</p>
+                    <a class="fonte" href="https://www.tjsc.jus.br/web/imprensa/-/tj-valida-lei-sobre-fibromialgia-e-autoriza-criacao-de-carteira-de-identificacao-em-sc" rel="noopener">TJSC, 10/06/2026</a></li>
+            </ol>
+        </section>
+
+        <section class="secao banda" id="direitos" aria-labelledby="t-direitos">
             <h2 id="t-direitos">Seus direitos</h2>
-            <p class="sub">A lei brasileira e a lei de Santa Catarina reconhecem a pessoa com
-                fibromialgia. Veja o que cada uma diz.</p>
+            <p class="sub">O que vale hoje, o que depende de avaliação e onde pedir. Nada aqui é automático:
+                o que pesa é mostrar como a fibromialgia limita o seu dia a dia.</p>
             <div class="grade">
                 <div class="cartao">
                     <span class="rotulo">Lei federal</span>
-                    <h3>Lei 15.176/2025</h3>
-                    <p>Cria o programa nacional de proteção dos direitos da pessoa com fibromialgia e
-                        permite que ela seja equiparada à pessoa com deficiência.</p>
-                    <p>A equiparação <strong>não é automática</strong>: depende de avaliação
-                        biopsicossocial, feita por equipe multiprofissional, nos termos do Estatuto da
-                        Pessoa com Deficiência (Lei 13.146/2015). A lei vale desde janeiro de 2026.</p>
+                    <h3>Tratamento pelo SUS</h3>
+                    <p>A Lei 14.705/2023 garante atendimento integral no SUS: equipe com médico, psicólogo, nutricionista e fisioterapeuta, exames, remédios e terapias. Comece pela Unidade Básica de Saúde do seu bairro.</p>
+                    <a class="fonte-card" href="https://www2.camara.leg.br/legin/fed/lei/2023/lei-14705-25-outubro-2023-794853-normaatualizada-pl.pdf" rel="noopener">Texto da lei</a>
                 </div>
                 <div class="cartao">
                     <span class="rotulo">Lei federal</span>
-                    <h3>Lei 14.705/2023</h3>
-                    <p>Estabelece diretrizes para o atendimento às pessoas com fibromialgia no SUS,
-                        com cuidado multidisciplinar.</p>
+                    <h3>Fibromialgia e deficiência</h3>
+                    <p>Desde 2026, pela Lei 15.176/2025, a pessoa com fibromialgia pode ser reconhecida como pessoa com deficiência. A equiparação <strong>não é automática</strong>: depende de avaliação biopsicossocial, feita por equipe multiprofissional.</p>
+                    <a class="fonte-card" href="https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/L15176.htm" rel="noopener">Planalto</a>
                 </div>
                 <div class="cartao">
                     <span class="rotulo">Santa Catarina</span>
-                    <h3>Lei estadual 18.928/2024</h3>
-                    <p>Equipara a pessoa com fibromialgia à pessoa com deficiência em Santa Catarina e
-                        autoriza o governo do estado a criar a Carteira Estadual de Identificação da
-                        Pessoa com Fibromialgia (CIPF), para facilitar o atendimento prioritário.</p>
-                    <p>A carteira é emitida pela FCEE (Fundação Catarinense de Educação Especial),
-                        pelo site da fundação e pelo app FCEE Digital.</p>
-                    <p>O Tribunal de Justiça de SC validou a lei, com a ressalva de que o diagnóstico,
-                        sozinho, não garante o enquadramento como pessoa com deficiência.</p>
+                    <h3>Carteira catarinense (CIPF)</h3>
+                    <p>A Lei estadual 18.928/2024 criou a Carteira da Pessoa com Fibromialgia, emitida pela FCEE. Precisa de CPF, documento com foto e laudo de avaliação biopsicossocial. Peça no FCEE Digital; a análise leva até 30 dias.</p>
+                    <a class="fonte-card" href="https://www.fcee.sc.gov.br/fceedigital" rel="noopener">Pedir no FCEE Digital</a>
+                    <a class="fonte-card" href="https://www.fcee.sc.gov.br/informacoes/beneficios-para-pessoas-com-deficiencia/carteira-de-identificacao-da-pessoa-com-fibromialgia" rel="noopener">Regras da FCEE</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Santa Catarina</span>
+                    <h3>O que a carteira oferece</h3>
+                    <p>Prioridade no atendimento em serviços públicos e privados e gratuidade no transporte intermunicipal de SC, conforme as regras da FCEE. Vale por 5 anos. O TJSC validou a lei, com a ressalva de que o diagnóstico, sozinho, não garante o enquadramento.</p>
+                    <a class="fonte-card" href="https://www.tjsc.jus.br/web/imprensa/-/tj-valida-lei-sobre-fibromialgia-e-autoriza-criacao-de-carteira-de-identificacao-em-sc" rel="noopener">TJSC, 10/06/2026</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">INSS</span>
+                    <h3>Aposentadoria da pessoa com deficiência</h3>
+                    <p>Quem é reconhecido como pessoa com deficiência pode se aposentar com menos tempo de contribuição (LC 142/2013). O INSS faz avaliação médica e social. Peça pelo Meu INSS ou telefone 135.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">INSS</span>
+                    <h3>BPC/LOAS</h3>
+                    <p>Pessoa com deficiência de baixa renda pode ter direito a um salário mínimo por mês. Exige CadÚnico atualizado no CRAS e avaliação do INSS. Ter fibromialgia, sozinho, não garante o benefício.</p>
                 </div>
             </div>
             <div class="faixa">
-                <!-- PREENCHER [W]: se a associação orienta sobre o laudo ou sobre como pedir a CIPF,
-                     acrescente aqui o caminho (sem prometer resultado). -->
-                <p><strong>Laudo e avaliação:</strong> guarde seus laudos e relatórios médicos. A
-                    avaliação biopsicossocial olha como a condição afeta o dia a dia, não só o
-                    diagnóstico. Em dúvida, procure a associação da sua cidade ou a Defensoria Pública.
-                    Este resumo é informativo e não substitui orientação jurídica.</p>
+                <p><strong>Leve relatórios, não só o CID.</strong> Peça ao médico, ao fisioterapeuta e ao psicólogo
+                    relatórios que descrevam suas limitações no dia a dia e no trabalho. Não pode pagar advogado?
+                    Procure a Defensoria Pública de SC; para CadÚnico e BPC, o CRAS do seu município. Este resumo é
+                    informativo e não substitui orientação jurídica.</p>
             </div>
         </section>
+
+        <section class="secao" id="atendimento" aria-labelledby="t-atendimento">
+            <h2 id="t-atendimento">Onde buscar atendimento em SC</h2>
+            <p class="sub">Santa Catarina montou uma rede regional para a dor crônica, e a fibromialgia está
+                incluída. A porta de entrada é sempre o posto de saúde.</p>
+            <ol class="passos">
+                <li><strong>Comece pela Unidade Básica de Saúde</strong> do seu bairro. Conte seus sintomas; o médico pode pedir exames para descartar outras doenças.</li>
+                <li><strong>Com o diagnóstico, peça um laudo</strong> e guarde exames e receitas.</li>
+                <li><strong>Se o tratamento no posto não bastar</strong>, o médico pode encaminhar você, pela regulação (SISREG), à equipe especializada da sua região.</li>
+                <li><strong>Procure um grupo de apoio</strong> ou a associação da sua cidade.</li>
+                <li><strong>Peça a carteirinha da fibromialgia</strong> na FCEE.</li>
+            </ol>
+            <div class="tabela-rolagem" role="region" aria-labelledby="t-servicos" tabindex="0">
+                <table class="servicos">
+                    <caption id="t-servicos">Serviços de referência pelo SUS (confirme sempre com a Secretaria de Saúde do seu município)</caption>
+                    <thead><tr><th scope="col">Região</th><th scope="col">Serviço</th><th scope="col">Cidade</th><th scope="col">Como chegar</th></tr></thead>
+                    <tbody>
+                    <tr><th scope="row">Sul</th><td>AMASF — Ambulatório de Fibromialgia da Unesc</td><td>Criciúma</td><td>Encaminhamento do posto · (48) 3431-4591</td></tr>
+                    <tr><th scope="row">Grande Florianópolis</th><td>Ambulatório de Dor Neuropática e Fibromialgia do Hospital Florianópolis</td><td>Florianópolis</td><td>Regulação estadual</td></tr>
+                    <tr><th scope="row">Vale do Itajaí</th><td>Equipe de Reabilitação Especializada — FURB</td><td>Blumenau</td><td>Encaminhamento do posto (SISREG)</td></tr>
+                    <tr><th scope="row">Foz do Rio Itajaí</th><td>Equipe de Reabilitação Especializada — Univali</td><td>Itajaí</td><td>Encaminhamento do posto (SISREG)</td></tr>
+                    <tr><th scope="row">Meio-Oeste</th><td>Equipe de Reabilitação Especializada — Unoesc</td><td>Joaçaba</td><td>Encaminhamento do posto (SISREG)</td></tr>
+                    <tr><th scope="row">Serra</th><td>Equipe de Reabilitação Especializada — Uniplac</td><td>Lages</td><td>Encaminhamento do posto (SISREG)</td></tr>
+                    <tr><th scope="row">Grande Oeste e Norte</th><td>Ainda sem equipe estadual de referência (jul. 2026)</td><td>—</td><td>Posto de saúde e Secretaria Municipal</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="fontes-secao">Fontes: <a class="fonte-card" href="https://www.saude.sc.gov.br/index.php/pt/atencao-primaria-a-saude/linhas-de-cuidado/linhas-de-cuidado-documentos/linha-de-cuidado-da-pessoa-com-dor-cronica/download" rel="noopener">Linha de Cuidado da Dor Crônica, SES/SC (jul. 2026)</a> · <a class="fonte-card" href="https://portalelegis.alesc.sc.gov.br/documentos/xmDvD" rel="noopener">Resposta da SES à Alesc (out. 2025)</a> · <a class="fonte-card" href="https://www.unesc.net/noticias/categoria/extensao/fevereiro-roxo-amplia-alerta-e-reforca-importancia-do-diagnostico-clinico-da-fibromialgia" rel="noopener">Unesc (fev. 2026)</a></p>
+        </section>
+
 
         <section class="secao banda" id="app" aria-labelledby="t-app">
             <h2 id="t-app">App Uniafibro</h2>
