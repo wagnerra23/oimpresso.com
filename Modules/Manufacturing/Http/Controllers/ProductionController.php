@@ -246,14 +246,14 @@ class ProductionController extends Controller
             if (! empty($waste_units)) {
                 $new_qty = $uf_qty - $waste_units;
                 $uf_qty = $new_qty;
-                $quantity = $this->productUtil->num_f($new_qty);
+                $quantity = $this->numeroParaCore($new_qty);
             }
 
             $final_total_uf = $this->productUtil->num_uf($final_total);
 
             $unit_purchase_line_total = $final_total_uf / $uf_qty;
 
-            $unit_purchase_line_total_f = $this->productUtil->num_f($unit_purchase_line_total);
+            $unit_purchase_line_total_f = $this->numeroParaCore($unit_purchase_line_total);
 
             $transaction_data['mfg_wasted_units'] = $waste_units;
             $transaction_data['mfg_production_cost'] = $this->productUtil->num_uf($request->input('production_cost'));
@@ -352,7 +352,8 @@ class ProductionController extends Controller
             $production_sell = Transaction::create($transaction_sell_data);
 
             if (! empty($sell_lines)) {
-                $this->transactionUtil->createOrUpdateSellLines($production_sell, $sell_lines, $transaction_sell_data['location_id'], null, null, ['mfg_waste_percent' => 'mfg_waste_percent', 'mfg_ingredient_group_id' => 'mfg_ingredient_group_id']);
+                // As linhas já vêm em número (num_uf acima): sem uf_data=false o core relê e 0,125 vira 125 (UC-OP-20).
+                $this->transactionUtil->createOrUpdateSellLines($production_sell, $sell_lines, $transaction_sell_data['location_id'], null, null, ['mfg_waste_percent' => 'mfg_waste_percent', 'mfg_ingredient_group_id' => 'mfg_ingredient_group_id'], false);
             }
 
             if ($production_sell->status == 'final') {
@@ -706,14 +707,14 @@ class ProductionController extends Controller
             if (! empty($waste_units)) {
                 $new_qty = $uf_qty - $waste_units;
                 $uf_qty = $new_qty;
-                $quantity = $this->productUtil->num_f($new_qty);
+                $quantity = $this->numeroParaCore($new_qty);
             }
 
             $final_total_uf = $this->productUtil->num_uf($final_total);
 
             $unit_purchase_line_total = $final_total_uf / $uf_qty;
 
-            $unit_purchase_line_total_f = $this->productUtil->num_f($unit_purchase_line_total);
+            $unit_purchase_line_total_f = $this->numeroParaCore($unit_purchase_line_total);
 
             $transaction_data['mfg_wasted_units'] = $waste_units;
             $transaction_data['mfg_production_cost'] = $this->productUtil->num_uf($request->input('production_cost'));
@@ -824,7 +825,8 @@ class ProductionController extends Controller
             }
 
             if (! empty($sell_lines)) {
-                $this->transactionUtil->createOrUpdateSellLines($production_sell, $sell_lines, $transaction->location_id, false, 'draft', ['mfg_waste_percent' => 'mfg_waste_percent', 'mfg_ingredient_group_id' => 'mfg_ingredient_group_id']);
+                // As linhas já vêm em número (num_uf acima): sem uf_data=false o core relê e 0,125 vira 125 (UC-OP-20).
+                $this->transactionUtil->createOrUpdateSellLines($production_sell, $sell_lines, $transaction->location_id, false, 'draft', ['mfg_waste_percent' => 'mfg_waste_percent', 'mfg_ingredient_group_id' => 'mfg_ingredient_group_id'], false);
             }
 
             if ($transaction_sell_data['status'] == 'final') {
@@ -868,6 +870,17 @@ class ProductionController extends Controller
         }
 
         return redirect()->action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'index'])->with('status', $output);
+    }
+
+    /**
+     * Número para os utilitários do core que relêem o valor com `num_uf` (`createOrUpdatePurchaseLines`).
+     * Vírgula decimal e sem separador de milhar: o `num_uf` lê sem ambiguidade. O `num_f` que estava aqui
+     * arredondava a 2 casas (custo unitário 0,005 virava 0,01) e, com milhar em vírgula, devolvia "1,500.00",
+     * que o `num_uf` lê como 1,5. Nada é arredondado no meio da conta (handoff §7 ponto 6, UC-OP-20).
+     */
+    private function numeroParaCore(float $valor): string
+    {
+        return number_format($valor, 8, ',', '');
     }
 
     /**
