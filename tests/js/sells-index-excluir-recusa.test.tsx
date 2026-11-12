@@ -9,7 +9,7 @@
 
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
-import { ActionsMenu, type SaleRow } from '@/Pages/Sells/_components/SellsTabelaUnificada';
+import { AcoesDaVenda, type SaleRow } from '@/Pages/Sells/_components/SellsTabelaUnificada';
 
 const RASCUNHO = { id: 41, invoice_no: 'R-0041', status: 'draft', payment_status: 'due' } as unknown as SaleRow;
 const VENDA = { id: 42, invoice_no: 'V-0042', status: 'final', payment_status: 'paid' } as unknown as SaleRow;
@@ -24,7 +24,7 @@ function responder(status: number, corpo: unknown) {
 
 function excluir(linha: SaleRow, rotulo: string) {
   const onChange = vi.fn();
-  render(<ActionsMenu row={linha} onView={() => {}} onChange={onChange} />);
+  render(<AcoesDaVenda row={linha} onView={() => {}} onChange={onChange} />);
   fireEvent.keyDown(screen.getByRole('button', { name: 'Ações da venda' }), { key: 'Enter' });
   fireEvent.click(screen.getByRole('menuitem', { name: rotulo }));
   return onChange;

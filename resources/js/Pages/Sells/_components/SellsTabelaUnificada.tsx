@@ -468,7 +468,7 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
               <button className="vd-row-act" title="Baixar XML" type="button"><FileText size={11} /></button>
             )}
             <button className="vd-row-act" title="Imprimir recibo (R)" type="button"><Printer size={11} /></button>
-            <ActionsMenu row={v} onView={ctx.onView} onChange={ctx.onPaySuccess} />
+            <AcoesDaVenda row={v} onView={ctx.onView} onChange={ctx.onPaySuccess} />
           </div>
         </td>
       );
@@ -492,13 +492,13 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
 }
 
 // ──────────────────────────────────────────────────────────────
-// ActionsMenu — dropdown "Ações" por linha (paridade Blade).
+// AcoesDaVenda — dropdown "Ações" por linha (paridade Blade).
 // Restaurado do commit d6f4dddcdc (perdido no rewrite Cowork KB-9.75 #1032).
 // Ver/Editar/Adicionar pagamento/Imprimir/Devolução/Excluir. As ações são
 // enforcadas no backend (403/permissão); Devolução → /sell-return/add/{id}
 // por visita Inertia (SellReturn/Add — carga completa cairia no Blade legado). onView abre o drawer; onChange faz refetch.
 // ──────────────────────────────────────────────────────────────
-export function ActionsMenu({
+export function AcoesDaVenda({
   row,
   onView,
   onChange,
