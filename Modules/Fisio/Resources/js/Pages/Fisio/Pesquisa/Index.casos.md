@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do pesquisador + critério de aceite verificável (Dado/Quando/Então)
 por_que: estudo observacional da clínica com a universidade (etapa 07); o comitê de ética exige consentimento por estudo, código sem identificação e registro de quem saiu.
 owner: wagner
-last_run: "2026-11-11"
+last_run: "2026-11-12"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL do Fisio rodar FisioEstudoTest e FisioPesquisaTelaTest."
 related_us: []
 ---
