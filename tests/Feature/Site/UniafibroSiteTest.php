@@ -86,7 +86,7 @@ it('direitos: cita as leis com número e não promete equiparação automática'
     expect($html)->toContain('não substitui orientação jurídica');
 });
 
-it('quem somos destaca a fundadora Giselli Cunha e a história desde 2020', function () {
+it('quem somos destaca a fundadora Giselli Cunha e a história desde 2019', function () {
     $html = uniafibroHtml();
 
     expect($html)->toContain('Quem começou tudo');
