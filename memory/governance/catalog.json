@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 969,
-    "edges": 1301,
+    "nodes": 971,
+    "edges": 1303,
     "by_node_type": {
       "module": 43,
       "table": 116,
       "adr": 155,
-      "component": 563,
+      "component": 565,
       "api": 92
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 95,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 563,
+      "hasComponent": 565,
       "dependsOn": 141,
       "delegatesTo": 129,
       "migratesTo": 1,
@@ -3489,6 +3489,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/DocumentosPacienteController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "DocumentosPacienteController",
+      "desc": "anexar, abrir e tirar da lista os exames e receitas na ficha (US-FISIO-063)"
+    },
+    {
       "id": "component:Fisio/Editor de programa por paciente, protocolos-modelo",
       "type": "component",
       "module": "Fisio",
@@ -3507,6 +3514,13 @@
       "type": "component",
       "module": "Fisio",
       "name": "Estudo de pesquisa",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Exames e receitas do paciente",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Exames e receitas do paciente",
       "desc": ""
     },
     {
@@ -10912,6 +10926,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/DocumentosPacienteController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Editor de programa por paciente, protocolos-modelo",
       "type": "hasComponent",
       "source": "contains"
@@ -10925,6 +10945,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Estudo de pesquisa",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Exames e receitas do paciente",
       "type": "hasComponent",
       "source": "contains"
     },

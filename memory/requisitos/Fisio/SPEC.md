@@ -337,6 +337,22 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 **Testado em:** `Modules/Fisio/Tests/Unit/MatrizIfbrmTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsApoioTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php`
 
+## User Stories — Exames e receitas do paciente
+
+> Pedido de [W] em 2026-11-11: anexar exames e receitas e preencher os campos pela foto, com transcrição pela IA conferida pelo profissional, e o envio pelo portal. A IA só transcreve; nada interpreta dado clínico (ADR 0437 §5 e proposta da ADR 0450). Protótipo: `prototipo-ui/cowork/Wagner/prototipos/fisio/ExamesReceitas.dc.html` e `PacienteEnviarExame.dc.html`.
+
+### US-FISIO-063 · Exames e receitas por foto, com transcrição sugerida e conferida — **P1**
+
+**Implementado em:** _pendente_ — em construção por partes. Parte 1 (anexos na ficha): `Modules/Fisio/Database/Migrations/2026_11_11_000830_create_fisio_patient_documents.php`, `Modules/Fisio/Entities/DocumentoPaciente.php`, `Modules/Fisio/Services/DocumentosDoPaciente.php`, `Modules/Fisio/Http/Controllers/DocumentosPacienteController.php`, seção `Modules/Fisio/Resources/js/Pages/Fisio/_components/ExamesReceitas.tsx` na ficha. Faltam: lista de medicamentos estruturada, transcrição pela IA e envio pelo portal.
+
+> owner: — · priority: p1 · estimate: 16h · status: doing · type: story
+
+**DoD:** (1) na ficha, anexar foto ou PDF com tipo (exame de imagem, laboratorial, laudo médico, receita, outro), data e observação; o arquivo vai para o `Modules/Arquivos` (ADR 0123) e só sai pela rota que confere a empresa; o documento não se apaga, tirar da lista exige motivo e grava quem tirou. (2) Lista de medicamentos estruturada (nome, dose, frequência, desde, até), com o texto "Medicamentos em uso" da avaliação funcionando como hoje. (3) Transcrição pela IA a partir da foto, desligada por empresa até ser ligada: na receita, medicamento, dose, data e médico/CRM; no exame, tipo, data e conclusão transcrita literalmente; cada campo nasce como sugestão e o profissional confirma ou corrige antes de gravar, com quem confirmou registrado; a IA nunca interpreta. (4) Envio pelo portal com consentimento próprio; chega como pendente de conferência e só entra no prontuário quando alguém da clínica aceita. A empresa 99 não vê nada da 98, inclusive no download — `FisioDocumentosPacienteTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioDocumentosPacienteTest.php` (UC-FER-01..07).
+
+**Contrato:** casos de uso UC-FER-* no arquivo `_telas/exames-e-receitas.casos.md` desta pasta.
+
 ## User Stories — Associação de fibromialgia (dados sociais e relatório agregado)
 
 > Contexto: o cliente atende pessoas com fibromialgia por uma associação que busca recursos em editais, emendas parlamentares e convênios com o município, e precisa mostrar quem é atendido, quanto e se melhora. [W] aprovou em 2026-11-11 os dados sociais opcionais no cadastro e o relatório agregado sem identificação.

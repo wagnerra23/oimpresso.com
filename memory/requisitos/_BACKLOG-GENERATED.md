@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1088 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1089 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -18,8 +18,8 @@
 | [`NfeBrasil`](#nfebrasil) | 35 | 0 | 0 | 6 | 29 |
 | [`Producao`](#producao) | 34 | 2 | 0 | 0 | 32 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
+| [`Fisio`](#fisio) | 28 | 0 | 0 | 0 | 28 |
 | [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
-| [`Fisio`](#fisio) | 27 | 0 | 0 | 0 | 27 |
 | [`Marketplaces`](#marketplaces) | 27 | 0 | 0 | 0 | 27 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
@@ -677,39 +677,6 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
-## Crm
-
-
-### todo
-
-- **US-CRM-001** — Migration estender `contacts` com colunas pipeline · **P0** · 2H
-- **US-CRM-002** — `crm_motivos_perda` catálogo + seeder padrão · **P0** · 2H
-- **US-CRM-003** — `crm_lead_interactions` timeline append-only + observers · **P0** · 4H
-- **US-CRM-004** — `crm_lead_tags` + pivot · **P1** · 2H
-- **US-CRM-010** — Listener `WhatsappMessageReceived` cria/resolve lead · **P0** · 4H
-- **US-CRM-011** — `JanaIntencaoAgent` classifica intenção mensagem entrante · **P0** · 6H
-- **US-CRM-012** — `CrmLeadFromWhatsappService.createOrUpdate` + round-robin · **P0** · 4H
-- **US-CRM-013** — Auto-resposta template WhatsApp ao criar lead · **P1** · 2H
-- **US-CRM-014** — Vincular `whatsapp_conversations.contact_id` ao Lead criado · **P0** · 2H
-- **US-CRM-020** — `ConvertLeadToSaleService` cria Transaction + inicia FSM `quote_draft` · **P0** · 6H
-- **US-CRM-021** — UI kanban "Ganho" dispara ConvertLeadToSale + redireciona SaleSheet · **P0** · 4H
-- **US-CRM-022** — UI kanban "Perdido" modal obrigatório motivo + data reabordagem · **P0** · 4H
-- **US-CRM-023** — Cron `lead:reactivate-cold` reabre leads "perdido_timing" com data atingida · **P1** · 2H
-- **US-CRM-030** — `crm_lead_scoring_log` + cron `lead:rescore` regras simples · **P1** · 6H
-- **US-CRM-031** — SLA novo lead → alerta vendedor superior se sla_responder_em vencido · **P1** · 4H
-- **US-CRM-032** — Dashboard pipeline com forecast (sum valor_estimado per stage) · **P2** · 6H
-- **US-CRM-040** — API REST pública `/api/v1/crm/leads` (token `business_uuid` + reCAPTCHA + rate-limit) · **P1** · 6H
-- **US-CRM-041** — Form embed JS oimpresso.com captura → POST API · **P2** · 4H
-- **US-CRM-050** — `lgpd_consent_at` + opt-in/opt-out + endpoint direito esquecimento · **P0** · 6H
-- **US-CRM-060** — MWART tela Lead Kanban (atual `crm::lead.index lead_view=kanban`) · **P1** · 12H
-- **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
-- **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
-- **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
-- **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
-- **US-CRM-094** — Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
-- **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
-- **US-CRM-098** — Segmentação RFM — recência, frequência e valor por cliente
-
 ## Fisio
 
 
@@ -742,6 +709,40 @@
 - **US-FISIO-060** — Laudo de avaliação biopsicossocial no modelo SES-SC — **P1**
 - **US-FISIO-061** — Dados sociais do paciente, todos opcionais — **P1**
 - **US-FISIO-062** — Relatório agregado para a associação — **P1**
+- **US-FISIO-063** — Exames e receitas por foto, com transcrição sugerida e conferida — **P1**
+
+## Crm
+
+
+### todo
+
+- **US-CRM-001** — Migration estender `contacts` com colunas pipeline · **P0** · 2H
+- **US-CRM-002** — `crm_motivos_perda` catálogo + seeder padrão · **P0** · 2H
+- **US-CRM-003** — `crm_lead_interactions` timeline append-only + observers · **P0** · 4H
+- **US-CRM-004** — `crm_lead_tags` + pivot · **P1** · 2H
+- **US-CRM-010** — Listener `WhatsappMessageReceived` cria/resolve lead · **P0** · 4H
+- **US-CRM-011** — `JanaIntencaoAgent` classifica intenção mensagem entrante · **P0** · 6H
+- **US-CRM-012** — `CrmLeadFromWhatsappService.createOrUpdate` + round-robin · **P0** · 4H
+- **US-CRM-013** — Auto-resposta template WhatsApp ao criar lead · **P1** · 2H
+- **US-CRM-014** — Vincular `whatsapp_conversations.contact_id` ao Lead criado · **P0** · 2H
+- **US-CRM-020** — `ConvertLeadToSaleService` cria Transaction + inicia FSM `quote_draft` · **P0** · 6H
+- **US-CRM-021** — UI kanban "Ganho" dispara ConvertLeadToSale + redireciona SaleSheet · **P0** · 4H
+- **US-CRM-022** — UI kanban "Perdido" modal obrigatório motivo + data reabordagem · **P0** · 4H
+- **US-CRM-023** — Cron `lead:reactivate-cold` reabre leads "perdido_timing" com data atingida · **P1** · 2H
+- **US-CRM-030** — `crm_lead_scoring_log` + cron `lead:rescore` regras simples · **P1** · 6H
+- **US-CRM-031** — SLA novo lead → alerta vendedor superior se sla_responder_em vencido · **P1** · 4H
+- **US-CRM-032** — Dashboard pipeline com forecast (sum valor_estimado per stage) · **P2** · 6H
+- **US-CRM-040** — API REST pública `/api/v1/crm/leads` (token `business_uuid` + reCAPTCHA + rate-limit) · **P1** · 6H
+- **US-CRM-041** — Form embed JS oimpresso.com captura → POST API · **P2** · 4H
+- **US-CRM-050** — `lgpd_consent_at` + opt-in/opt-out + endpoint direito esquecimento · **P0** · 6H
+- **US-CRM-060** — MWART tela Lead Kanban (atual `crm::lead.index lead_view=kanban`) · **P1** · 12H
+- **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
+- **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
+- **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
+- **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
+- **US-CRM-094** — Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
+- **US-CRM-096** — Captura de lead com origem e UTM — o lead entra no funil já com a origem
+- **US-CRM-098** — Segmentação RFM — recência, frequência e valor por cliente
 
 ## Marketplaces
 
