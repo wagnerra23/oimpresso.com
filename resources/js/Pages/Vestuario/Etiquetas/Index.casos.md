@@ -24,8 +24,9 @@ last_run_ci: "2026-10-14 (PR #9400, decisao [W] tirar US-VEST-020 do subtitulo) 
 > e fecha a **única lacuna** que `node scripts/governance/requisitos-status.mjs Vestuario` nomeava.
 >
 > ⚠️ **Módulo do cliente piloto.** ROTA LIVRE (`business_id=4`, Larissa) roda vestuário em produção
-> há 2+ anos. **Nenhum teste daqui usa biz=4** — biz=1 (Wagner) e biz=99 (adversário),
-> [ADR 0101](../../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md).
+> há 2+ anos. **Nenhum teste daqui usa biz=4** — o tenant de teste é o fictício 98, com o 99 de adversário
+> ([ADR 0358](../../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)); `UsVest020EtiquetaTagControllerTest` e
+> `W27EtiquetaGradeTest` ainda usam biz=1 (legado fora da doutrina, medido em 2026-11-12).
 
 ⚖️ **FORÇA DO VEREDITO — leia antes de confiar no status.** A lane que roda estes testes é o job
 `Pest Vestuario` do workflow `Modules Pest` (`.github/workflows/modules-pest.yml`, matrix
