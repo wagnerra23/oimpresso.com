@@ -138,7 +138,7 @@
             margin-top: 56px; padding-bottom: 56px;
         }
         /* Leitura confortável: nenhuma linha de texto corrido passa de ~70 caracteres. */
-        .fundadora p, .linha p, .faixa p, .app p, .cartao p { max-width: 70ch; }
+        .fundadora p, .linha p, .faixa p, .app p, .cartao p, .legenda { max-width: 70ch; }
         .grade { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
         .cartao {
             background: var(--superficie); border: 1px solid var(--borda); border-radius: 16px;
@@ -185,6 +185,10 @@
             border-radius: 50%; background: var(--roxo); border: 3px solid var(--fundo);
         }
         .linha .ano { font-weight: 800; color: var(--roxo); }
+        .linha li.rede::before { background: var(--superficie); border-color: var(--lilas); box-shadow: inset 0 0 0 3px var(--lilas); }
+        .legenda { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: -4px 0 14px; color: var(--texto-suave); font-size: 0.95rem; }
+        .legenda span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; background: var(--roxo); }
+        .legenda span.rede::before { background: var(--superficie); box-shadow: inset 0 0 0 3px var(--lilas); }
         .linha p { margin: 2px 0 0; }
 
         .linha .fonte { display: block; padding: 4px 0; margin-top: 2px; font-size: 0.92rem; }
@@ -315,9 +319,7 @@
                         antes da fundação formal da associação.</p>
                     <p>Fez tudo sem verba pública, com dinheiro próprio — chegou a perder dois carros
                         trabalhando pela associação.</p>
-                    <p>O modelo de Criciúma virou referência: a Unisul, Indaial e Concórdia vieram
-                        conhecer o trabalho dela para levá-lo às suas regiões. Hoje é ela quem leva a
-                        pauta da fibromialgia às câmaras de vereadores, à Alesc e ao governo do estado.</p>
+                    <p>O modelo é dela: Giselli montou o trabalho e o ambulatório antes de existir associação registrada. Esse modelo virou referência — Indaial foi buscar recursos para replicá-lo, Tubarão criou seu programa com a Unisul contando com a associação, e Concórdia também veio conhecê-lo. Hoje é ela quem leva a pauta da fibromialgia às câmaras de vereadores, à Alesc e ao governo do estado.</p>
                 </div>
             </div>
 
@@ -337,6 +339,7 @@
             </div>
 
             <h3 class="titulo-linha">Nossa história</h3>
+            <p class="legenda"><span>Girassóis, Criciúma e região</span><span class="rede">outras associações e reforços pelo estado</span></p>
             <ol class="linha">
                 <li><span class="ano">2019</span><p>Giselli Cunha começa, em Criciúma, a luta por
                     atendimento à fibromialgia, com dinheiro próprio. Tudo o que veio depois partiu
@@ -351,9 +354,14 @@
                     fibromialgia gratuito pelo SUS. Começa a atender em 1º de outubro.</p>
                     <a class="fonte" href="https://www.unesc.net/noticias/categoria/geral/amasf-unesc-um-refugio-em-meio-as-dores-da-fibromialgia" rel="noopener">Unesc — "Amasf Unesc: um refúgio em meio às dores da fibromialgia"</a>
                     <a class="fonte" href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">4oito — "O atendimento que oportuniza a chance de uma vida sem dor"</a></li>
+                <li class="rede"><span class="ano">2021</span><p>Nasce em Concórdia a AFICOR, associação de fibromiálgicos do Alto Uruguai Catarinense — a luta ganha força no Oeste, a partir do modelo que Giselli já tinha montado em Criciúma.</p>
+                    <span class="fonte relato">ligação com Criciúma: relato da associação</span>
+                    <a class="fonte" href="https://www.nsctotal.com.br/?p=7177089" rel="noopener">NSC Total</a></li>
                 <li><span class="ano">set. 2021</span><p>O AMASF é credenciado ao consórcio de saúde
                     da região (Cisamrec) e passa a atender 27 municípios. Em abril de 2022 já eram
                     quase 5 mil atendimentos.</p>
+                    <a class="fonte" href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">4oito, 12/05/2022</a></li>
+                <li class="rede"><span class="ano">mai. 2022</span><p>Indaial busca recursos para replicar o modelo do AMASF de Criciúma; a equipe do ambulatório leva palestras à associação de Cocal do Sul.</p>
                     <a class="fonte" href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">4oito, 12/05/2022</a></li>
                 <li><span class="ano">mai. 2023</span><p>2º Encontro das Pessoas com Fibromialgia,
                     na Praça Nereu Ramos, organizado pela associação com o AMASF, a Unesc, a Câmara e a
@@ -366,6 +374,8 @@
                 <li><span class="ano">set. 2023</span><p>Fundação formal da AGFESC, em 5 de setembro,
                     em Criciúma.</p>
                     <span class="fonte relato">ata de fundação da associação</span></li>
+                <li class="rede"><span class="ano">2023</span><p>Nasce em Indaial a AREFI, associação de fibromiálgicos do Médio Vale do Itajaí.</p>
+                    <a class="fonte" href="https://www.timbonet.com.br/arefi-vale-convida-a-comunidade-para-o-1o-seminario-estadual-de-fibromialgia-em-indaial/" rel="noopener">Timbó Net</a></li>
                 <li><span class="ano">nov. 2023</span><p>A Unesc conta a história do AMASF: 547
                     pessoas em tratamento (97% mulheres), mais de 6 mil atendimentos em três anos e
                     467 associadas aos Girassóis. Para Giselli, a universidade "foi o único lugar que
@@ -373,8 +383,12 @@
                     <a class="fonte" href="https://www.unesc.net/noticias/categoria/geral/amasf-unesc-um-refugio-em-meio-as-dores-da-fibromialgia" rel="noopener">Unesc, 01/11/2023</a></li>
                 <li><span class="ano">2024</span><p>A associação ganha CNPJ (março); Giselli fala no
                     1º Seminário Estadual de Fibromialgia, em Indaial, e é convidada para a audiência
-                    pública sobre fibromialgia na Assembleia Legislativa do Rio de Janeiro (maio).</p>
+                    pública sobre fibromialgia na Assembleia Legislativa do Rio de Janeiro (maio). O
+                    seminário de Indaial, organizado pela AREFI, reuniu Giselli e a equipe do AMASF.</p>
+                    <a class="fonte" href="https://www.timbonet.com.br/arefi-vale-convida-a-comunidade-para-o-1o-seminario-estadual-de-fibromialgia-em-indaial/" rel="noopener">Timbó Net, 15/05/2024</a>
                     <a class="fonte" href="https://www.folhanit.com.br/?p=10141" rel="noopener">Folha NIT, 30/04/2024</a></li>
+                <li class="rede"><span class="ano">jul. 2024</span><p>A AFICOR, de Concórdia, é reconhecida de utilidade pública estadual pela Alesc.</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/documentos/KDdmV" rel="noopener">Alesc — PL 113/2024</a></li>
                 <li><span class="ano">out. 2024</span><p>O AMASF completa quatro anos com cerca de 10
                     mil atendimentos. A coordenação do ambulatório chama Giselli de "parceira
                     incansável" e lembra conquistas da associação, como o cartão do fibromiálgico e a
@@ -388,12 +402,20 @@
                     4.970 atendimentos só naquele ano.</p>
                     <a class="fonte" href="https://www.even3.com.br/1-forum-nacional-de-fibromialgia-547530/" rel="noopener">Página do fórum (Even3)</a>
                     <a class="fonte" href="https://noticias.unesc.net/institucional/2025/04/06/clinicas-integradas-da-unesc-ultrapassam-202-mil-atendimentos-em-2024-e-seguem-ampliando-servicos/" rel="noopener">Unesc, 06/04/2025</a></li>
+                <li class="rede"><span class="ano">ago. 2025</span><p>A ACPFA, associação catarinense de fibromiálgicos de Joinville, é reconhecida de utilidade pública estadual.</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/documentos/QYZRZ" rel="noopener">Alesc — Lei 19.406/2025</a></li>
+                <li class="rede"><span class="ano">out. 2025</span><p>A Comissão de Saúde da Alesc leva o Seminário Regional sobre Fibromialgia a Capivari de Baixo, na Univinte.</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/comissoes-permanentes/agenda/anexo/c1500552-d290-4dfa-a5b9-8e7e0f49aee6" rel="noopener">Agenda da Alesc</a></li>
+                <li class="rede"><span class="ano">nov. 2025</span><p>Congresso sobre fibromialgia em Concórdia, feito pela Alesc com a AFICOR.</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/comissoes-permanentes/agenda/anexo/6b19a732-21d8-4dca-aeeb-d5958cf1f362" rel="noopener">Agenda da Alesc</a></li>
                 <li><span class="ano">fev. 2026</span><p>O AMASF passa de 10 mil atendimentos e chega
                     aos seis anos.</p>
                     <a class="fonte" href="https://www.unesc.net/noticias/categoria/extensao/fevereiro-roxo-amplia-alerta-e-reforca-importancia-do-diagnostico-clinico-da-fibromialgia" rel="noopener">Unesc, fev. 2026</a></li>
                 <li><span class="ano">mar. 2026</span><p>Fala no lançamento do Movimento Catarinense
                     Pró-Cannabis Medicinal, em Florianópolis.</p>
                     <a class="fonte" href="https://informefloripa.com/lancado-o-movimento-pro-cannabis-medicinal-de-santa-catarina/" rel="noopener">Informe Floripa, 23/03/2026</a></li>
+                <li class="rede"><span class="ano">ago. 2026</span><p>Tubarão abre seu Programa de Fibromialgia com a Unisul, com equipe multiprofissional pelo SUS — e aceita a declaração da associação Girassóis enquanto a carteirinha não sai.</p>
+                    <a class="fonte" href="https://www.cnttubarao.com.br/2026/07/28/programa-fibromialgia-tubarao-unisul/" rel="noopener">CNT Tubarão, 28/07/2026</a></li>
                 <li><span class="ano">2026</span><p>Grupos ativos em Tubarão, Laguna, Balneário
                     Rincão e Urussanga; fala na Câmara de Urussanga; reunião na Alesc com o Secretário
                     de Estado da Saúde sobre a avaliação biopsicossocial (agosto); a associação passa a
