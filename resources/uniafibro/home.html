@@ -5,131 +5,333 @@
     cookies de rastreio, sem analytics). Imagens por caminho relativo no próprio domínio.
     Ver memory/requisitos/Site/RUNBOOK-uniafibro.md.
 
-    PREENCHER [W]: os pontos marcados com "PREENCHER [W]" abaixo.
+    PREENCHER [W]: cada ponto marcado "PREENCHER [W]" abaixo. Regra deste arquivo: nada de CNPJ,
+    endereço, diretoria, números ou nomes de associações sem confirmação da associação.
+    "Seus direitos" cita só leis conferidas no texto oficial (número e data no próprio texto).
 -->
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Uniafibro — União das Associações de Fibromialgia de SC</title>
-    <meta name="description" content="Uniafibro — União das Associações de Fibromialgia de Santa Catarina. Juntas somos mais fortes.">
+    <meta name="description" content="A Uniafibro reúne as associações de fibromialgia de Santa Catarina. Informação sobre a fibromialgia, os direitos de quem tem fibromialgia e o app Uniafibro. Juntas somos mais fortes.">
     <meta name="theme-color" content="#6b3fa0">
+    <meta property="og:type" content="website">
     <meta property="og:title" content="Uniafibro — União das Associações de Fibromialgia de SC">
     <meta property="og:description" content="Juntas somos mais fortes.">
     <meta property="og:image" content="https://uniafibro.com.br/uniafibro/logo.png">
     <meta property="og:url" content="https://uniafibro.com.br/">
     <meta property="og:locale" content="pt_BR">
+    <link rel="canonical" href="https://uniafibro.com.br/">
     <link rel="icon" type="image/png" href="/uniafibro/logo.png">
     <link rel="apple-touch-icon" href="/uniafibro/logo.png">
     <style>
         :root {
             --roxo: #6b3fa0;
-            --roxo-escuro: #4b2477;
             --lilas: #a78bdb;
+            --lilas-claro: #efe8f9;
             --fundo: #faf7fd;
             --superficie: #ffffff;
             --texto: #2a2135;
             --texto-suave: #5d5270;
             --borda: #e6ddf2;
+            --sombra: 0 10px 30px rgba(75, 36, 119, 0.10);
         }
         @media (prefers-color-scheme: dark) {
             :root {
-                --fundo: #17121e;
-                --superficie: #211a2b;
+                --roxo: #c3a9ef;
+                --lilas-claro: #2c2238;
+                --fundo: #15111b;
+                --superficie: #1f1828;
                 --texto: #f1ecf7;
                 --texto-suave: #c3b8d3;
                 --borda: #3a2f48;
-                --roxo: #b79be6;
+                --sombra: 0 10px 30px rgba(0, 0, 0, 0.35);
             }
         }
         * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
         body {
             margin: 0;
             background: var(--fundo);
             color: var(--texto);
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 17px;
-            line-height: 1.6;
-        }
-        .topo {
-            background: linear-gradient(135deg, #a78bdb 0%, #6b3fa0 60%, #4b2477 100%);
-            color: #fff;
-            text-align: center;
-            padding: 48px 16px 56px;
-        }
-        .topo img {
-            width: 160px;
-            height: 160px;
-            background: #fff;
-            border-radius: 50%;
-            padding: 14px;
-            box-shadow: 0 8px 24px rgba(30, 10, 60, 0.25);
-        }
-        .topo h1 { margin: 20px 0 4px; font-size: 2.2rem; letter-spacing: 0.01em; }
-        .topo .nome { margin: 0; font-size: 1.05rem; opacity: 0.95; }
-        .topo .lema { margin: 18px 0 0; font-size: 1.35rem; font-style: italic; font-weight: 600; }
-        main { max-width: 720px; margin: 0 auto; padding: 8px 16px 32px; }
-        section {
-            background: var(--superficie);
-            border: 1px solid var(--borda);
-            border-radius: 14px;
-            padding: 22px 24px;
-            margin-top: 20px;
-        }
-        h2 { margin: 0 0 10px; font-size: 1.3rem; color: var(--roxo); }
-        p { margin: 0 0 10px; }
-        p:last-child { margin-bottom: 0; }
-        .suave { color: var(--texto-suave); }
-        .selo {
-            display: inline-block;
-            margin-top: 6px;
-            padding: 6px 14px;
-            border-radius: 999px;
-            border: 1px solid var(--roxo);
-            color: var(--roxo);
-            font-weight: 600;
-            font-size: 0.95rem;
+            line-height: 1.65;
         }
         a { color: var(--roxo); }
-        footer { text-align: center; padding: 8px 16px 32px; font-size: 0.85rem; color: var(--texto-suave); }
+        a:focus-visible { outline: 3px solid var(--lilas); outline-offset: 3px; border-radius: 4px; }
+        .pular {
+            position: absolute; left: -9999px; top: 8px; z-index: 10;
+            background: #fff; color: #4b2477; padding: 8px 14px; border-radius: 8px;
+        }
+        .pular:focus { left: 16px; }
+
+        /* Navegação */
+        .nav {
+            position: sticky; top: 0; z-index: 5;
+            background: rgba(75, 36, 119, 0.94);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .nav-in {
+            max-width: 1040px; margin: 0 auto; padding: 10px 16px;
+            display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap;
+        }
+        .marca { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 700; }
+        .marca img { width: 34px; height: 34px; background: #fff; border-radius: 50%; padding: 3px; }
+        .nav ul { list-style: none; margin: 0 0 0 auto; padding: 0; display: flex; gap: 4px 18px; flex-wrap: wrap; }
+        .nav ul a { color: #f3ecfc; text-decoration: none; font-size: 0.95rem; }
+        .nav ul a:hover { text-decoration: underline; }
+
+        /* Topo */
+        .topo {
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.18), transparent 40%),
+                linear-gradient(135deg, #a78bdb 0%, #6b3fa0 55%, #4b2477 100%);
+            color: #fff;
+        }
+        .topo-in {
+            max-width: 1040px; margin: 0 auto; padding: 56px 16px 64px;
+            display: grid; grid-template-columns: 1fr; gap: 32px; align-items: center; text-align: center;
+        }
+        .topo-logo { order: -1; display: flex; justify-content: center; }
+        @media (min-width: 820px) {
+            .topo-in { grid-template-columns: 1.2fr 1fr; text-align: left; padding: 72px 16px 80px; }
+            .topo-logo { order: 0; }
+            .topo .topo-acoes { justify-content: flex-start; }
+        }
+        .topo h1 { margin: 0; font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.1; letter-spacing: 0.01em; }
+        .topo .nome { margin: 10px 0 0; font-size: 1.15rem; opacity: 0.95; }
+        .topo .lema { margin: 22px 0 0; font-size: clamp(1.4rem, 3.4vw, 1.9rem); font-style: italic; font-weight: 700; }
+        .topo-acoes { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        .btn {
+            display: inline-block; padding: 12px 22px; border-radius: 999px; font-weight: 700;
+            text-decoration: none; font-size: 1rem;
+        }
+        .btn-claro { background: #fff; color: #4b2477; }
+        .btn-contorno { border: 2px solid rgba(255, 255, 255, 0.85); color: #fff; }
+        .topo-logo img {
+            width: min(280px, 60vw); height: auto; aspect-ratio: 1;
+            background: #fff; border-radius: 50%; padding: 20px;
+            box-shadow: 0 18px 48px rgba(30, 10, 60, 0.35);
+        }
+
+        /* Seções */
+        .secao { max-width: 1040px; margin: 0 auto; padding: 56px 16px 8px; }
+        .secao > h2 { margin: 0 0 6px; font-size: clamp(1.6rem, 3.5vw, 2rem); color: var(--roxo); }
+        .secao > .sub { margin: 0 0 24px; color: var(--texto-suave); max-width: 720px; }
+        .grade { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+        .cartao {
+            background: var(--superficie); border: 1px solid var(--borda); border-radius: 16px;
+            padding: 22px 22px 20px; box-shadow: var(--sombra);
+        }
+        .grade + .cartao { margin-top: 16px; }
+        .cartao h3 { margin: 0 0 8px; font-size: 1.12rem; }
+        .cartao p { margin: 0 0 10px; }
+        .cartao p:last-child { margin-bottom: 0; }
+        .rotulo {
+            display: inline-block; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em;
+            text-transform: uppercase; color: var(--roxo); background: var(--lilas-claro);
+            padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
+        }
+        .faixa {
+            background: var(--lilas-claro); border-radius: 16px; padding: 18px 22px; margin-top: 18px;
+            border-left: 5px solid var(--roxo);
+        }
+        .faixa p { margin: 0; }
+        .suave { color: var(--texto-suave); }
+
+        /* App */
+        .app {
+            display: grid; gap: 24px; grid-template-columns: 1fr; align-items: center; justify-items: center; text-align: center;
+            background: linear-gradient(135deg, var(--superficie), var(--lilas-claro));
+            border: 1px solid var(--borda); border-radius: 20px; padding: 28px; box-shadow: var(--sombra);
+        }
+        @media (min-width: 720px) { .app { grid-template-columns: auto 1fr; justify-items: start; text-align: left; } }
+        .app img { width: 120px; height: 120px; border-radius: 28px; background: #fff; padding: 10px; box-shadow: var(--sombra); }
+        .app p { margin: 0; }
+        .selo {
+            display: inline-block; margin-top: 12px; padding: 8px 16px; border-radius: 999px;
+            border: 2px solid var(--roxo); color: var(--roxo); font-weight: 700;
+        }
+
+        footer { margin-top: 64px; background: #2a1840; color: #e7dcf6; }
+        .rodape {
+            max-width: 1040px; margin: 0 auto; padding: 28px 16px;
+            display: flex; gap: 8px 24px; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
-    <header class="topo">
-        <img src="/uniafibro/logo.png" alt="Logo da Uniafibro: seis pessoas de mãos dadas em roda, com o laço roxo da fibromialgia ao centro" width="160" height="160">
-        <h1>Uniafibro</h1>
-        <p class="nome">União das Associações de Fibromialgia de SC</p>
-        <p class="lema">Juntas somos mais fortes.</p>
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+    <nav class="nav" aria-label="Seções da página">
+        <div class="nav-in">
+            <a class="marca" href="#topo"><img src="/uniafibro/logo.png" alt="" width="34" height="34">Uniafibro</a>
+            <ul>
+                <li><a href="#fibromialgia">Fibromialgia</a></li>
+                <li><a href="#quem-somos">Quem somos</a></li>
+                <li><a href="#direitos">Direitos</a></li>
+                <li><a href="#app">App</a></li>
+                <li><a href="#contato">Contato</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="topo" id="topo">
+        <div class="topo-in">
+            <div>
+                <h1>Uniafibro</h1>
+                <p class="nome">União das Associações de Fibromialgia de SC</p>
+                <p class="lema">Juntas somos mais fortes.</p>
+                <div class="topo-acoes">
+                    <a class="btn btn-claro" href="#direitos">Conheça seus direitos</a>
+                    <a class="btn btn-contorno" href="#contato">Fale com a associação</a>
+                </div>
+            </div>
+            <div class="topo-logo">
+                <img src="/uniafibro/logo.png" alt="Logo da Uniafibro: seis pessoas de mãos dadas em roda, com o laço roxo da fibromialgia ao centro" width="280" height="280">
+            </div>
+        </div>
     </header>
 
-    <main>
-        <section aria-labelledby="quem-somos">
-            <h2 id="quem-somos">Quem somos</h2>
+    <main id="conteudo">
+        <section class="secao" id="fibromialgia" aria-labelledby="t-fibro">
+            <h2 id="t-fibro">O que é a fibromialgia</h2>
+            <p class="sub">A fibromialgia é uma condição de dor crônica. Ela é real, tem nome e tem
+                cuidado — e ninguém precisa enfrentá-la sozinha.</p>
+            <div class="grade">
+                <div class="cartao">
+                    <span class="rotulo">Dor</span>
+                    <h3>Dor espalhada pelo corpo</h3>
+                    <p>A principal característica é a dor generalizada e persistente, em várias partes
+                        do corpo, que dura meses.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Além da dor</span>
+                    <h3>Cansaço, sono e memória</h3>
+                    <p>É comum vir acompanhada de cansaço intenso, sono que não descansa e dificuldade
+                        de concentração e de memória.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Diagnóstico</span>
+                    <h3>Feito por profissional de saúde</h3>
+                    <p>O diagnóstico é clínico: o médico avalia a história e o exame da pessoa. Exames
+                        de laboratório costumam vir normais, e isso não quer dizer que a dor não existe.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Cuidado</span>
+                    <h3>Acompanhamento contínuo</h3>
+                    <p>O cuidado costuma combinar acompanhamento médico, atividade física orientada e
+                        apoio emocional, definidos com a equipe de saúde de cada pessoa.</p>
+                </div>
+            </div>
+            <div class="faixa">
+                <p><strong>Importante:</strong> este conteúdo é informativo e não substitui a consulta
+                    com profissional de saúde.</p>
+            </div>
+        </section>
+
+        <section class="secao" id="quem-somos" aria-labelledby="t-quem">
+            <h2 id="t-quem">Quem somos</h2>
             <!-- PREENCHER [W]: texto provisório e neutro. Troque pelo texto oficial da associação
-                 (história, missão, associações filiadas). Não acrescentar CNPJ, endereço,
-                 diretoria ou números sem confirmação. -->
-            <p>
-                A Uniafibro é a união das associações de fibromialgia de Santa Catarina.
-                Reunimos as associações do estado para que pessoas com fibromialgia, suas
-                famílias e quem cuida delas encontrem apoio e informação.
-            </p>
+                 (história, fundação, missão). Não acrescentar CNPJ, endereço, diretoria ou números
+                 sem confirmação. -->
+            <p class="sub">A Uniafibro é a união das associações de fibromialgia de Santa Catarina.
+                Reunimos as associações do estado para que pessoas com fibromialgia, suas famílias e
+                quem cuida delas encontrem apoio e informação.</p>
+            <div class="grade">
+                <div class="cartao">
+                    <h3>Acolher</h3>
+                    <p>Aproximar quem convive com a fibromialgia de quem passa pelo mesmo caminho.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Informar</h3>
+                    <p>Levar informação clara sobre a condição e sobre os direitos de quem tem
+                        fibromialgia.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Unir</h3>
+                    <p>Dar voz conjunta às associações de Santa Catarina.</p>
+                </div>
+            </div>
+            <div class="cartao">
+                <h3>Associações-membro</h3>
+                <!-- PREENCHER [W]: quando a lista estiver confirmada, troque o parágrafo abaixo por
+                     uma lista (<ul>) com o nome e a cidade de cada associação. -->
+                <p class="suave">A lista das associações que formam a Uniafibro será publicada em breve.</p>
+            </div>
         </section>
 
-        <section aria-labelledby="app">
-            <h2 id="app">App Uniafibro</h2>
-            <p>O app Uniafibro para Android está em fase de testes.</p>
-            <span class="selo">Em breve na Google Play</span>
+        <section class="secao" id="direitos" aria-labelledby="t-direitos">
+            <h2 id="t-direitos">Seus direitos</h2>
+            <p class="sub">A lei brasileira e a lei de Santa Catarina reconhecem a pessoa com
+                fibromialgia. Veja o que cada uma diz.</p>
+            <div class="grade">
+                <div class="cartao">
+                    <span class="rotulo">Lei federal</span>
+                    <h3>Lei 15.176/2025</h3>
+                    <p>Cria o programa nacional de proteção dos direitos da pessoa com fibromialgia e
+                        permite que ela seja equiparada à pessoa com deficiência.</p>
+                    <p>A equiparação <strong>não é automática</strong>: depende de avaliação
+                        biopsicossocial, feita por equipe multiprofissional, nos termos do Estatuto da
+                        Pessoa com Deficiência (Lei 13.146/2015). A lei vale desde janeiro de 2026.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Lei federal</span>
+                    <h3>Lei 14.705/2023</h3>
+                    <p>Estabelece diretrizes para o atendimento às pessoas com fibromialgia no SUS,
+                        com cuidado multidisciplinar.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Santa Catarina</span>
+                    <h3>Lei estadual 18.928/2024</h3>
+                    <p>Equipara a pessoa com fibromialgia à pessoa com deficiência em Santa Catarina e
+                        autoriza o governo do estado a criar a Carteira Estadual de Identificação da
+                        Pessoa com Fibromialgia (CIPF), para facilitar o atendimento prioritário.</p>
+                    <p>O Tribunal de Justiça de SC validou a lei, com a ressalva de que o diagnóstico,
+                        sozinho, não garante o enquadramento como pessoa com deficiência.</p>
+                </div>
+            </div>
+            <div class="faixa">
+                <!-- PREENCHER [W]: se a associação orienta sobre o laudo ou sobre como pedir a CIPF,
+                     acrescente aqui o caminho (sem prometer resultado). -->
+                <p><strong>Laudo e avaliação:</strong> guarde seus laudos e relatórios médicos. A
+                    avaliação biopsicossocial olha como a condição afeta o dia a dia, não só o
+                    diagnóstico. Em dúvida, procure a associação da sua cidade ou a Defensoria Pública.
+                    Este resumo é informativo e não substitui orientação jurídica.</p>
+            </div>
         </section>
 
-        <section aria-labelledby="contato">
-            <h2 id="contato">Contato</h2>
-            <!-- PREENCHER [W]: troque o parágrafo abaixo pelo e-mail e/ou telefone de contato da associação. -->
-            <p class="suave">Os canais de contato da associação serão publicados em breve.</p>
+        <section class="secao" id="app" aria-labelledby="t-app">
+            <h2 id="t-app">App Uniafibro</h2>
+            <div class="app">
+                <img src="/uniafibro/logo.png" alt="Ícone do app Uniafibro" width="120" height="120">
+                <div>
+                    <p>O app Uniafibro para Android está em fase de testes.</p>
+                    <span class="selo">Em breve na Google Play</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="secao" id="contato" aria-labelledby="t-contato">
+            <h2 id="t-contato">Contato</h2>
+            <div class="cartao">
+                <!-- PREENCHER [W]: troque o parágrafo abaixo pelo e-mail e/ou telefone de contato da
+                     associação (e, se quiser, as redes sociais). -->
+                <p class="suave">Os canais de contato da associação serão publicados em breve.</p>
+            </div>
         </section>
     </main>
 
     <footer>
-        &copy; Uniafibro · feito com oimpresso
+        <div class="rodape">
+            <span>&copy; Uniafibro · União das Associações de Fibromialgia de SC</span>
+            <span>feito com oimpresso</span>
+        </div>
     </footer>
 </body>
 </html>

@@ -70,3 +70,18 @@ it('as rotas da Uniafibro não capturam oimpresso.com', function () {
 it('o logo existe no public/', function () {
     expect(is_file(public_path('uniafibro/logo.png')))->toBeTrue();
 });
+
+it('direitos: cita as leis com número e não promete equiparação automática', function () {
+    $html = uniafibroHtml();
+
+    // Fontes conferidas no texto oficial (Planalto · Alesc/TJSC) em 2026-11-12.
+    expect($html)->toContain('Lei 15.176/2025');
+    expect($html)->toContain('Lei 14.705/2023');
+    expect($html)->toContain('Lei estadual 18.928/2024');
+    expect($html)->toContain('avaliação');
+    expect($html)->toContain('biopsicossocial');
+    expect($html)->toContain('não é automática');
+    // Conteúdo de saúde e de direitos é informativo — o aviso não pode sumir.
+    expect($html)->toContain('não substitui a consulta');
+    expect($html)->toContain('não substitui orientação jurídica');
+});
