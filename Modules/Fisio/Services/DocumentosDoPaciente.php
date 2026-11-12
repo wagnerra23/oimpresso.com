@@ -159,8 +159,11 @@ final class DocumentosDoPaciente
             ->orderByDesc('id')
             ->get();
         $nomes = $this->nomesDeUsuario($docs->pluck('created_by')->merge($docs->pluck('reviewed_by'))->filter()->unique()->values()->all());
+        // Transcrição sugerida/conferida (parte 3). Resolvida aqui, não no construtor: o serviço de
+        // transcrição depende deste.
+        $transcricoes = app(TranscricaoDocumentos::class)->daFicha($docs->pluck('id')->map(fn ($i) => (int) $i)->values()->all());
 
-        return $docs->map(function (DocumentoPaciente $d) use ($nomes) {
+        return $docs->map(function (DocumentoPaciente $d) use ($nomes, $transcricoes) {
             $a = $d->arquivos->sortByDesc('id')->first();
 
             return [
@@ -174,6 +177,8 @@ final class DocumentosDoPaciente
                 'url' => "/fisio/documentos/{$d->id}/arquivo",
                 'anexado_por' => $d->created_by ? ($nomes[$d->created_by] ?? null) : null,
                 'anexado_em' => $d->created_at?->toIso8601String(),
+                'transcrevivel' => TranscricaoDocumentos::modo($d) !== null,
+                'transcricao' => $transcricoes[(int) $d->id] ?? null,
             ];
         })->values()->all();
     }

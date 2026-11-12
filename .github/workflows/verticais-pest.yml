@@ -702,6 +702,8 @@ jobs:
         # exige motivo e não apaga; trigger recusa DELETE.
         # E FisioMedicamentosPacienteTest (UC-FER-08..11): medicamentos em uso estruturados, alteração com antes/depois
         # no activity_log, tirar da lista com motivo, 98×99.
+        # E FisioTranscricaoDocumentoTest (UC-FER-12..16): transcrição pela IA (Agent::fake) desligada por padrão,
+        # provedor só da lista sem treino, sugestão pendente só com os campos do schema, conferência registra quem e o que corrigiu.
         #
         # ENTRA 2026-11-11 — Fisio/FisioCobrancaAvaliacaoTest (etapa 07 P-05 · UC-FPP-59..61): aviso da avaliação
         # do estudo no portal e pelo WhatsApp (uma vez por momento, com consentimento), 98×99.
@@ -908,6 +910,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioDocumentosPacienteTest.php \
             Modules/Fisio/Tests/Feature/FisioMedicamentosPacienteTest.php \
+            Modules/Fisio/Tests/Feature/FisioTranscricaoDocumentoTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
