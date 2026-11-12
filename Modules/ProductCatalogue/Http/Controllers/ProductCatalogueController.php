@@ -12,7 +12,7 @@ use Modules\ProductCatalogue\Services\CatalogueService;
  * Wave 16 D4 Architecture — Controller refatorado pra ser MAGRO (single responsibility).
  *
  * Responsabilidades exclusivas do Controller (≤30 linhas/método):
- *   - Receber HTTP Request (validações via FormRequest separado quando aplicável)
+ *   - Receber HTTP Request (lê os parâmetros direto do request; não há FormRequest)
  *   - Delegar lógica de negócio aos Services injetados via constructor
  *   - Devolver Response/View
  *

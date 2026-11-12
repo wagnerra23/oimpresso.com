@@ -51,8 +51,7 @@ Modules/ProductCatalogue/
 ├── Console/Commands/ProductCatalogueHealthCommand.php  # canon `--detail` flag
 ├── Database/Migrations/                                # grava a versão do módulo na tabela `system` (sem tabela própria)
 ├── Http/
-│   ├── Controllers/ProductCatalogueController.php      # Magro (<200 linhas) — Wave 16 D4
-│   └── Requests/                                       # ShowPublicCatalogue, ShowProduct, GenerateQr (FormRequest validation)
+│   └── Controllers/ProductCatalogueController.php      # Magro (<200 linhas) — Wave 16 D4
 ├── Repositories/ProductCatalogueRepository.php         # TODA query DB (multi-tenant Tier 0)
 ├── Resources/
 │   ├── assets/plugins/easy.qrcode.min.js              # Gerador QR client-side
