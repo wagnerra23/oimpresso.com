@@ -5,31 +5,31 @@ declare(strict_types=1);
 /**
  * Política de retenção LGPD — Modules/ProductCatalogue (Wave 25 D7.c).
  *
- * ProductCatalogue é catálogo público QR — exibe produtos do business via URL
- * `/catalogue/{business_id}/{location_id}` sem auth (vínculo único = QR code).
- * Não armazena PII do cliente (consumidor final scan QR, não cria conta).
- * Persiste apenas metadados de produto (já no schema core: `products`, `categories`,
- * `discounts`, `business_locations`).
+ * Estado medido em 2026-11-11 — este arquivo é inerte e descreve algo que não existe:
  *
- * Por que ter retention.php mesmo sem PII direta?
- *  - **LGPD Art. 16**: dado de produto é dado da empresa (não titular), mas
- *    `product_catalogue_version` (table própria do módulo) pode acumular versões
- *    históricas — limite pra cleanup ad-hoc.
- *  - **Logs/Telemetria**: spans `product_catalogue.build_*_payload` via OpenTelemetry
- *    podem capturar IP do scanner (PII indireta em sample bursty) — retention OTel
- *    é gerido pelo collector central, não aqui.
- *  - **Compliance Audit Wave 25 D7.c**: rubrica governance v3 exige `retention.php`
- *    canônico em todo módulo functional_horizontal pra fechar a dimensão.
+ *  - **Não há tabela `product_catalogue_version`.** A única migration do módulo
+ *    (`2020_09_29_184909_add_product_catalogue_version.php`) grava a linha
+ *    `productcatalogue_version` na tabela `system` do núcleo (a versão do módulo
+ *    instalado). Não há histórico de catálogo nem dado a reter.
+ *  - **Nenhum código de produção lê este arquivo.** O ServiceProvider só faz
+ *    `mergeConfigFrom` do `config.php`; `config('productcatalogue.retention')` não
+ *    existe e as variáveis `PRODUCTCATALOGUE_RETENTION_*` só aparecem aqui. O único
+ *    leitor é o `Tests/Feature/Wave26ProductCatalogueSaturationTest.php`, que não roda
+ *    em lane e sai no #10784.
+ *  - **Os spans não carregam IP.** `product_catalogue.build_*_payload` declaram só
+ *    `business_id`, `location_id` e `product_id` (`Services/CatalogueService.php`).
+ *  - **LGPD Art. 16:** a vitrine não coleta dado pessoal (o visitante é anônimo,
+ *    sem conta nem formulário), coerente com `module.json` `retention_days: 0`.
+ *  - O motivo original (rubrica "Compliance Audit Wave 25 D7.c", governance v3)
+ *    foi aposentado pela ADR 0399.
  *
- * Multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093]):
- * `business_id` global scope em toda query (ProductCatalogueRepository defesa em
- * profundidade — rota pública, atacante pode tentar enumerar tenants via QR).
+ * Não ligar purge nem retenção aqui: num ERP o controle é por permissão de acesso,
+ * não por apagar dado (proibicoes.md §5 2026-07-27). Os valores abaixo ficam como
+ * estavam só por não terem efeito; se este arquivo sair, sai inteiro.
  *
- * Append-only contrato:
- * `activity_log` (se aplicado a Product/Discount via core) é AUDITORIA —
- * NUNCA purgada pelo módulo.
+ * Isolamento por empresa (ADR 0093): não vem de global scope (`App\Product` não tem);
+ * vem do `where('business_id', ...)` de cada consulta do ProductCatalogueRepository.
  *
- * @see Modules/ProductCatalogue/Services/CatalogueService.php
  * @see Modules/ProductCatalogue/Database/Migrations/2020_09_29_184909_add_product_catalogue_version.php
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
@@ -39,8 +39,7 @@ return [
     |--------------------------------------------------------------------------
     | Habilitar política de retenção
     |--------------------------------------------------------------------------
-    | Default false — sem job purge implementado (ADR 0105 sinal qualificado).
-    | Cliente que use catálogo QR em escala pede ativação manual.
+    | false e sem job de purge. Não ligar (proibicoes.md §5 2026-07-27).
     */
     'enabled' => env('PRODUCTCATALOGUE_RETENTION_ENABLED', false),
 
@@ -48,10 +47,9 @@ return [
     |--------------------------------------------------------------------------
     | Retenção por entidade (em DIAS)
     |--------------------------------------------------------------------------
-    | product_catalogue_version: 1095 (3 anos) — versão histórica do catálogo
-    |   QR exibido publicamente; útil pra rollback. Pós 3y purga.
-    | Outras entidades (products/categories/discounts/business_locations) são core
-    |   UltimatePOS — retention é responsabilidade do core, NÃO deste módulo.
+    | `product_catalogue_version` NÃO é tabela (ver docblock): a chave não aponta
+    |   para dado nenhum. products/categories/discounts/business_locations são do
+    |   núcleo, não deste módulo.
     */
     'entities' => [
         'product_catalogue_version' => 1095,  // 3 anos
@@ -61,9 +59,7 @@ return [
     |--------------------------------------------------------------------------
     | Estratégia de purge
     |--------------------------------------------------------------------------
-    | 'soft_delete' = marca `deleted_at`
-    | 'hard_delete' = DELETE definitivo (recomendado pra versões antigas)
-    | 'anonymize'   = N/A (sem PII no schema)
+    | Valor sem efeito: nenhum código de produção lê este arquivo e não há tabela a purgar.
     */
     'strategy' => env('PRODUCTCATALOGUE_RETENTION_STRATEGY', 'hard_delete'),
 
@@ -71,7 +67,7 @@ return [
     |--------------------------------------------------------------------------
     | Janela de aviso prévio (em DIAS)
     |--------------------------------------------------------------------------
-    | Sem titular (dado de empresa) — janela mantida pra alinhar com padrão D7.c.
+    | Sem efeito, pelo mesmo motivo.
     */
     'notice_period_days' => 30,
 ];
