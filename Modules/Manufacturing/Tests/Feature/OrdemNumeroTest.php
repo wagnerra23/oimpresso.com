@@ -156,9 +156,11 @@ describe('Ordem de produção — quantidade e custo gravados como informados (U
     it('UC-OP-20 — custo unitário do acabado não é arredondado a 2 casas: 100 por 3 grava 33,3333', function () {
         $user = mfgNumUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo custo dizima');
+        // O total vem do servidor (UC-OP-19): 2 do insumo × 50 = 100. O `final_total` do navegador não entra.
+        DB::table('variations')->where('id', mfgNumInsumo($linhaReceita))->update(['default_purchase_price' => 50, 'dpp_inc_tax' => 50]);
         $local = mfgNumLocal();
 
-        $resposta = $this->actingAs($user)->post('/manufacturing/production', mfgNumPayload($acabado, $local, [$linhaReceita => ['quantity' => '2']], ['quantity' => '3', 'final_total' => '100']));
+        $resposta = $this->actingAs($user)->post('/manufacturing/production', mfgNumPayload($acabado, $local, [$linhaReceita => ['quantity' => '2']], ['quantity' => '3']));
 
         $resposta->assertRedirect('/manufacturing/production');
         $compra = mfgNumLinhaCompra(mfgNumOrdem());
@@ -170,9 +172,11 @@ describe('Ordem de produção — quantidade e custo gravados como informados (U
     it('UC-OP-20 — custo unitário abaixo de um centavo não vira zero nem dobra: 2 por 400 grava 0,005', function () {
         $user = mfgNumUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo custo pequeno');
+        // O total vem do servidor (UC-OP-19): 2 do insumo × 1 = 2. O `final_total` do navegador não entra.
+        DB::table('variations')->where('id', mfgNumInsumo($linhaReceita))->update(['default_purchase_price' => 1, 'dpp_inc_tax' => 1]);
         $local = mfgNumLocal();
 
-        $resposta = $this->actingAs($user)->post('/manufacturing/production', mfgNumPayload($acabado, $local, [$linhaReceita => ['quantity' => '2']], ['quantity' => '400', 'final_total' => '2']));
+        $resposta = $this->actingAs($user)->post('/manufacturing/production', mfgNumPayload($acabado, $local, [$linhaReceita => ['quantity' => '2']], ['quantity' => '400']));
 
         $resposta->assertRedirect('/manufacturing/production');
         $compra = mfgNumLinhaCompra(mfgNumOrdem());
@@ -183,9 +187,11 @@ describe('Ordem de produção — quantidade e custo gravados como informados (U
     it('UC-OP-20 — quantidade líquida com 3 casas (2,5 menos 0,375 perdidas) grava 2,125 no acabado', function () {
         $user = mfgNumUsuario();
         [, $acabado, $linhaReceita] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo perda fracionada');
+        // O total vem do servidor (UC-OP-19): 2 do insumo × 8.5 = 17. O `final_total` do navegador não entra.
+        DB::table('variations')->where('id', mfgNumInsumo($linhaReceita))->update(['default_purchase_price' => 8.5, 'dpp_inc_tax' => 8.5]);
         $local = mfgNumLocal();
 
-        $resposta = $this->actingAs($user)->post('/manufacturing/production', mfgNumPayload($acabado, $local, [$linhaReceita => ['quantity' => '2']], ['quantity' => '2,5', 'mfg_wasted_units' => '0,375', 'final_total' => '17']));
+        $resposta = $this->actingAs($user)->post('/manufacturing/production', mfgNumPayload($acabado, $local, [$linhaReceita => ['quantity' => '2']], ['quantity' => '2,5', 'mfg_wasted_units' => '0,375']));
 
         $resposta->assertRedirect('/manufacturing/production');
         $compra = mfgNumLinhaCompra(mfgNumOrdem());
