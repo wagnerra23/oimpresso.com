@@ -143,7 +143,7 @@ last_run: "2026-10-29"
 ## UC-CIDX-14 · A anotação da aba Documentos é uma só, e a recusa aparece `[must]`
 - **Persona:** quem escreve anotações internas sobre o cliente na aba Documentos.
 - **Aceite:** Dado uma anotação nova · Quando o primeiro salvamento automático cria a nota · Então a resposta traz o id dela e o salvamento seguinte atualiza a mesma nota (uma nota só no banco, da empresa da sessão) · E quando o servidor recusa (200 com `success: false`) a tela mostra "Erro ao salvar", nunca "Salvo".
-- **Âncora de contrato:** `DocumentAndNoteController::store` passa a devolver `note.id`; a tela (`DocumentsTab`) já usava esse id para o PUT seguinte. Antes de 2026-11-12, sem o id, cada pausa na digitação criava uma nota nova.
+- **Âncora de contrato:** `DocumentAndNoteController::store` passa a devolver `note.id`; a tela (`DocumentsTab`) já usava esse id para o PUT seguinte. Antes de 2026-11-12, sem o id, cada pausa na digitação criava uma nota nova. O teste deste caso achou mais dois, consertados junto: o `update` lia `heading` sem conferir se veio (a tela só mandava o título preenchido), e dava 500 ao editar anotação sem título; e o controller não importava `Exception`, então nenhum dos 4 `catch` pegava erro.
 - **Teste:** `tests/Feature/Cliente/ClienteAnotacaoTest.php` (Pest) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-14 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
 

@@ -136,7 +136,8 @@ export default function DocumentsTab({
         body.append('notable_id', String(contactId));
         body.append('notable_type', notableType);
         body.append('description', primaryNote);
-        if (noteHeading) body.append('heading', noteHeading);
+        // Sempre, mesmo vazio: é assim que se apaga o título, e o update do servidor espera a chave.
+        body.append('heading', noteHeading);
 
         let url = '/note-documents';
         if (noteId) {
