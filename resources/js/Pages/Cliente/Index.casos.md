@@ -125,6 +125,28 @@ last_run: "2026-10-29"
 
 ---
 
+## UC-CIDX-12 · Enviar o extrato por e-mail sai de verdade, com o modelo da empresa `[must]`
+- **Persona:** quem atende o cliente e manda o extrato pela aba Extrato da gaveta (Operações).
+- **Como usa:** Extrato → **Enviar por e-mail** → digita o e-mail → Enviar.
+- **Aceite:** Dado o modelo "Enviar razão" da empresa com assunto e texto · Quando envio só com o e-mail e o formato · Então sai um e-mail para o endereço digitado com o assunto do modelo · E sem e-mail nada sai e a resposta diz por quê · E quando o servidor recusa (200 com `success: 0`) a tela mostra "Falha: …", nunca "Extrato enviado".
+- **Âncora de contrato:** `ContactController::sendLedger` lê `to_email`, `ledger_format`, `subject`, `email_body` (os nomes do modal Blade `notification/show_template`); modelo via `NotificationTemplate::getTemplate(…, 'send_ledger')`, o mesmo que o modal Blade abre. Antes de 2026-11-12 a aba mandava `email`/`format`, o método caía no erro e a tela dizia "Extrato enviado".
+- **Teste:** `tests/Feature/Cliente/ClienteExtratoEmailTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-extrato-email.test.tsx` (Vitest, `Frontend / Vite build`) — `UC-CIDX-12 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
+
+## UC-CIDX-13 · Desconto no extrato: recusa do servidor aparece, o modal não fecha `[must]`
+- **Persona:** quem lança desconto no extrato do cliente (permissão `discount.manage`).
+- **Aceite:** Dado o servidor respondendo 200 com `{success: 0, msg}` · Quando aplico o desconto · Então a mensagem aparece no modal e ele não fecha · Controle: com `{success: true}` o modal fecha.
+- **Âncora de contrato:** `LedgerDiscountController::store` (responde `success: 0` em vez de erro HTTP). Só a tela: não muda o que o servidor grava.
+- **Teste:** `tests/js/cliente-ficha-recusa-servidor.test.tsx` — `UC-CIDX-13 …` (Vitest, `Frontend / Vite build`).
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane Vitest.
+
+## UC-CIDX-14 · A anotação da aba Documentos é uma só, e a recusa aparece `[must]`
+- **Persona:** quem escreve anotações internas sobre o cliente na aba Documentos.
+- **Aceite:** Dado uma anotação nova · Quando o primeiro salvamento automático cria a nota · Então a resposta traz o id dela e o salvamento seguinte atualiza a mesma nota (uma nota só no banco, da empresa da sessão) · E quando o servidor recusa (200 com `success: false`) a tela mostra "Erro ao salvar", nunca "Salvo".
+- **Âncora de contrato:** `DocumentAndNoteController::store` passa a devolver `note.id`; a tela (`DocumentsTab`) já usava esse id para o PUT seguinte. Antes de 2026-11-12, sem o id, cada pausa na digitação criava uma nota nova. O teste deste caso achou mais dois, consertados junto: o `update` lia `heading` sem conferir se veio (a tela só mandava o título preenchido), e dava 500 ao editar anotação sem título; e o controller não importava `Exception`, então nenhum dos 4 `catch` pegava erro.
+- **Teste:** `tests/Feature/Cliente/ClienteAnotacaoTest.php` (Pest) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-14 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.
@@ -246,6 +268,7 @@ last_run: "2026-10-29"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-11-12 · [F+C] **UC-CIDX-12..14**: na gaveta (aba Operações, componentes `_show/*`), o envio do extrato por e-mail manda os campos que o servidor lê e usa o modelo da empresa; desconto e anotação mostram a recusa do servidor; a anotação não se duplica mais a cada salvamento. Não mexe em `Index.tsx`.
 - 2026-10-29 · [W+C] **UC-CIDX-09..11** (P-025): sinal mínimo por cliente (`contacts.sinal_minimo_pct`), campo na aba Comercial, lido por `SinalDaOrdem::minimo` no Liberar da OS. O prazo do cliente já existia (`pay_term_number`).
 - 2026-10-29 · [W+C] **UC-CIDX-06..08** (P-087): tabela de preço no próprio cliente (`contacts.selling_price_group_id`), que vale no lugar da do grupo na busca de cliente da venda. Comportamento novo na aba Comercial (campo "Tabela própria do cliente"); `last_run` sobe por isso.
 - 2026-10-23 · [M+C] Backlog de saldo a favor e limite de crédito no drawer, sem id.
