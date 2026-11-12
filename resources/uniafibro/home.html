@@ -1,18 +1,12 @@
-{{--
+<!DOCTYPE html>
+<!--
     Página inicial da Uniafibro — https://uniafibro.com.br
-    Sem JavaScript, sem cookies de rastreio, sem analytics. Imagens servidas pelo próprio domínio
-    (caminho relativo, não asset(): asset() aponta para oimpresso.com).
+    HTML estático servido por UniafibroSiteController@home (sem Blade, sem JavaScript, sem
+    cookies de rastreio, sem analytics). Imagens por caminho relativo no próprio domínio.
     Ver memory/requisitos/Site/RUNBOOK-uniafibro.md.
 
-    PREENCHER [W]: os pontos marcados com "PREENCHER [W]" abaixo. Enquanto o contato estiver
-    vazio, a seção mostra "Em breve" em vez de um endereço inventado.
---}}
-@php
-    // PREENCHER [W]: e-mail e/ou telefone de contato da associação. Deixe '' para ocultar.
-    $contatoEmail = '';
-    $contatoTelefone = '';
-@endphp
-<!DOCTYPE html>
+    PREENCHER [W]: os pontos marcados com "PREENCHER [W]" abaixo.
+-->
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
@@ -111,9 +105,9 @@
     <main>
         <section aria-labelledby="quem-somos">
             <h2 id="quem-somos">Quem somos</h2>
-            {{-- PREENCHER [W]: texto provisório e neutro. Troque pelo texto oficial da associação
+            <!-- PREENCHER [W]: texto provisório e neutro. Troque pelo texto oficial da associação
                  (história, missão, associações filiadas). Não acrescentar CNPJ, endereço,
-                 diretoria ou números sem confirmação. --}}
+                 diretoria ou números sem confirmação. -->
             <p>
                 A Uniafibro é a união das associações de fibromialgia de Santa Catarina.
                 Reunimos as associações do estado para que pessoas com fibromialgia, suas
@@ -129,21 +123,13 @@
 
         <section aria-labelledby="contato">
             <h2 id="contato">Contato</h2>
-            @if ($contatoEmail !== '' || $contatoTelefone !== '')
-                @if ($contatoEmail !== '')
-                    <p>E-mail: <a href="mailto:{{ $contatoEmail }}">{{ $contatoEmail }}</a></p>
-                @endif
-                @if ($contatoTelefone !== '')
-                    <p>Telefone: {{ $contatoTelefone }}</p>
-                @endif
-            @else
-                <p class="suave">Os canais de contato da associação serão publicados em breve.</p>
-            @endif
+            <!-- PREENCHER [W]: troque o parágrafo abaixo pelo e-mail e/ou telefone de contato da associação. -->
+            <p class="suave">Os canais de contato da associação serão publicados em breve.</p>
         </section>
     </main>
 
     <footer>
-        &copy; {{ date('Y') }} Uniafibro · feito com oimpresso
+        &copy; Uniafibro · feito com oimpresso
     </footer>
 </body>
 </html>

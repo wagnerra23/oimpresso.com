@@ -25,30 +25,30 @@ domínio novo.
 
 | Rota | Nome | O que faz |
 |---|---|---|
-| `GET uniafibro.com.br/` | `uniafibro.home` | página da associação (`resources/views/uniafibro/home.blade.php`) |
+| `GET uniafibro.com.br/` | `uniafibro.home` | página da associação (HTML estático `resources/uniafibro/home.html`) |
 | `GET uniafibro.com.br/{caminho}` | `uniafibro.outros` | 302 para `https://uniafibro.com.br/` (não deixa abrir tela do ERP) |
 | `GET www.uniafibro.com.br/{caminho?}` | `uniafibro.www` | 301 para `https://uniafibro.com.br/` |
 
 As rotas ficam em `routes/web.php` **antes** do `/` sem domínio: o roteador devolve a primeira
 rota registrada que casa.
 
-## 2. Por que Blade e não Inertia
+## 2. Por que HTML estático (nem Inertia, nem Blade)
 
 O `AppServiceProvider` fixa a raiz das URLs em `config('app.url')` (oimpresso.com). Numa página
 Inertia servida em outro domínio, os scripts do Vite viriam de `https://oimpresso.com/build/...`,
 outra origem, e o navegador bloquearia por CORS — é o mesmo motivo do 301 de `www.oimpresso.com`
 no `.htaccess` raiz. Além disso, o layout Inertia é o shell do oimpresso (título, PWA), não a marca
 da associação. A página é HTML + CSS inline, **sem JavaScript, sem analytics**, e o logo é servido
-por caminho relativo (`/uniafibro/logo.png`), não por `asset()`.
+por caminho relativo (`/uniafibro/logo.png`), não por `asset()`. Não é Blade para não somar rota
+nova na catraca da migração Blade→React (ADR 0277): o conteúdo não tem nada dinâmico.
 
 ## 3. O que o [W] precisa preencher
 
-Na própria view, marcado com `PREENCHER [W]`:
+No próprio `resources/uniafibro/home.html`, marcado com `PREENCHER [W]`:
 
 - **Quem somos** — o texto atual é provisório e neutro. Não acrescentar CNPJ, endereço, diretoria
   ou números sem confirmação.
-- **Contato** — `$contatoEmail` / `$contatoTelefone` no topo da view. Vazio = a seção mostra
-  "serão publicados em breve".
+- **Contato** — trocar o parágrafo marcado na seção Contato (hoje: "serão publicados em breve").
 - **App** — está em teste interno na Play; o link entra só quando o app ficar público.
 
 ## 4. Hospedagem e DNS

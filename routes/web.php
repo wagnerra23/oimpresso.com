@@ -463,7 +463,7 @@ if (app()->environment(['local', 'testing', 'staging'])) {
 // O portal do paciente continua em oimpresso.com/fisio — nada do Fisio vem para cá.
 // Ver memory/requisitos/Site/RUNBOOK-uniafibro.md.
 Route::domain('www.uniafibro.com.br')->group(function () {
-    Route::get('/{caminho?}', [\App\Http\Controllers\UniafibroSiteController::class, 'paraDominioPrincipal'])
+    Route::permanentRedirect('/{caminho?}', 'https://uniafibro.com.br/')
         ->where('caminho', '.*')
         ->name('uniafibro.www');
 });
@@ -472,7 +472,7 @@ Route::domain('uniafibro.com.br')->middleware('throttle:60,1')->group(function (
         ->name('uniafibro.home');
     // Qualquer outro caminho no domínio da associação volta para a página inicial, em vez de
     // cair numa tela do ERP.
-    Route::get('/{caminho}', [\App\Http\Controllers\UniafibroSiteController::class, 'paraInicio'])
+    Route::redirect('/{caminho}', 'https://uniafibro.com.br/')
         ->where('caminho', '.*')
         ->name('uniafibro.outros');
 });

@@ -16,22 +16,35 @@ function uniafibroRotaPara(string $url): ?string
     return Route::getRoutes()->match(Request::create($url))->getName();
 }
 
+function uniafibroHtml(): string
+{
+    return (string) file_get_contents(resource_path('uniafibro/home.html'));
+}
+
 it('abre a página da associação em uniafibro.com.br, sem login', function () {
     $this->assertGuest();
 
     $r = $this->get('http://uniafibro.com.br/');
 
     $r->assertOk();
-    $r->assertSee('Uniafibro', false);
-    $r->assertSee('União das Associações de Fibromialgia de SC', false);
-    $r->assertSee('Juntas somos mais fortes.', false);
-    $r->assertSee('Em breve na Google Play', false);
+    expect((string) $r->headers->get('Content-Type'))->toContain('text/html');
+    // A resposta É o arquivo estático (BinaryFileResponse — getContent() é vazio por design).
+    expect($r->baseResponse->getFile()->getRealPath())->toBe(realpath(resource_path('uniafibro/home.html')));
+});
+
+it('a página traz nome, lema, app "em breve" e logo do próprio domínio', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toStartWith('<!DOCTYPE html>');
+    expect($html)->toContain('União das Associações de Fibromialgia de SC');
+    expect($html)->toContain('Juntas somos mais fortes.');
+    expect($html)->toContain('Em breve na Google Play');
     // A imagem vem do próprio domínio (caminho relativo), não de oimpresso.com.
-    $r->assertSee('src="/uniafibro/logo.png"', false);
+    expect($html)->toContain('src="/uniafibro/logo.png"');
 });
 
 it('não publica link da Play nem carrega script ou rastreador', function () {
-    $html = (string) $this->get('http://uniafibro.com.br/')->getContent();
+    $html = uniafibroHtml();
 
     expect($html)->not->toContain('play.google.com');
     expect($html)->not->toContain('<script');
