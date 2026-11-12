@@ -35,8 +35,11 @@ related_us: [US-FISIO-063]
 | UC-FER-05 | documento não se apaga, nem pelo model nem pelo banco | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
 | UC-FER-06 | sem `fisio.editar` 403; outra empresa 404; paciente bloqueado não recebe documento | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
 | UC-FER-07 | a ficha recebe os tipos junto e os documentos deferidos, sem caminho de disco e sem os tirados | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
+| UC-FER-08 | incluir medicamento com nome, dose, frequência, desde e até; nome obrigatório; fim não antes do início | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
+| UC-FER-09 | alterar muda só o que veio e grava o antes e o depois no `activity_log` | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
+| UC-FER-10 | tirar da lista exige motivo, não apaga e trava a alteração; o banco recusa DELETE | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
+| UC-FER-11 | a ficha recebe os medicamentos deferidos, em uso primeiro; sem `fisio.editar` 403; outra empresa 404 | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
 
-- [BACKLOG] lista de medicamentos estruturada (parte 2 da US).
 - [BACKLOG] transcrição sugerida pela IA e conferida pelo profissional (parte 3 da US).
 - [BACKLOG] envio pelo portal com consentimento próprio, pendente de conferência (parte 4 da US).
 
@@ -86,4 +89,28 @@ related_us: [US-FISIO-063]
   chegam por prop deferida (`documentos`), cada um com tipo, data, observação, formato e o
   endereço da rota que serve; nunca caminho de disco nem nome original do arquivo; documentos
   tirados da lista não aparecem.
+- **Status:** 🧪
+
+## UC-FER-08 · Incluir medicamento `[must]`
+- **Persona:** fisioterapeuta registrando o que o paciente toma.
+- **Aceite:** Dado um paciente da empresa · Quando incluo nome, dose, frequência e desde · Então o
+  medicamento é gravado na empresa do paciente, com origem `manual` e quem incluiu · Quando falta o
+  nome ou o fim é antes do início · Então 422 e nada é gravado. O texto livre "Medicamentos em uso"
+  da avaliação não muda.
+- **Status:** 🧪
+
+## UC-FER-09 · Alterar com rastro `[must]`
+- **Aceite:** Dado um medicamento · Quando mudo só a dose · Então só a dose muda e o `activity_log`
+  guarda o antes e o depois · Quando o fim fica antes do início gravado · Então 422.
+- **Status:** 🧪
+
+## UC-FER-10 · Tirar da lista sem apagar `[must]`
+- **Aceite:** Sem motivo, 422. Com motivo, ficam quem e por quê; o medicamento sai da ficha e não
+  aceita mais alteração. Model e banco recusam apagar.
+- **Status:** 🧪
+
+## UC-FER-11 · O que a ficha recebe e quem escreve `[must]`
+- **Aceite:** A ficha recebe os medicamentos por prop deferida, os em uso antes dos encerrados. Sem
+  `fisio.editar`, incluir e alterar respondem 403. Usuário da 99 recebe 404 em incluir, alterar e
+  tirar, e nada muda.
 - **Status:** 🧪
