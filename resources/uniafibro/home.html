@@ -143,6 +143,28 @@
         .faixa p { margin: 0; }
         .suave { color: var(--texto-suave); }
 
+        /* Fundadora + linha do tempo */
+        .fundadora {
+            display: grid; gap: 20px; grid-template-columns: 1fr; align-items: start;
+            background: linear-gradient(135deg, #6b3fa0, #4b2477); color: #fff;
+            border-radius: 20px; padding: 26px; box-shadow: var(--sombra); margin-bottom: 28px;
+        }
+        @media (min-width: 720px) { .fundadora { grid-template-columns: auto 1fr; } }
+        .fundadora img { width: 96px; height: 96px; background: #fff; border-radius: 50%; padding: 8px; }
+        .fundadora h3 { margin: 0 0 8px; font-size: 1.6rem; }
+        .fundadora p { margin: 0 0 10px; }
+        .fundadora p:last-child { margin-bottom: 0; }
+        .fundadora .rotulo { background: rgba(255, 255, 255, 0.18); color: #fff; }
+        .titulo-linha { margin: 0 0 12px; font-size: 1.25rem; color: var(--roxo); }
+        .linha { list-style: none; margin: 0 0 28px; padding: 0 0 0 4px; border-left: 3px solid var(--lilas); }
+        .linha li { position: relative; padding: 0 0 16px 22px; }
+        .linha li::before {
+            content: ""; position: absolute; left: -10px; top: 5px; width: 14px; height: 14px;
+            border-radius: 50%; background: var(--roxo); border: 3px solid var(--fundo);
+        }
+        .linha .ano { font-weight: 800; color: var(--roxo); }
+        .linha p { margin: 2px 0 0; }
+
         /* App */
         .app {
             display: grid; gap: 24px; grid-template-columns: 1fr; align-items: center; justify-items: center; text-align: center;
@@ -237,12 +259,44 @@
 
         <section class="secao" id="quem-somos" aria-labelledby="t-quem">
             <h2 id="t-quem">Quem somos</h2>
-            <!-- PREENCHER [W]: texto provisório e neutro. Troque pelo texto oficial da associação
-                 (história, fundação, missão). Não acrescentar CNPJ, endereço, diretoria ou números
-                 sem confirmação. -->
+            <!-- Fonte (Wagner, 2026-11-12): docs "AGFESC — Diagnóstico crítico e plano de expansão"
+                 e "Exposição de motivos – Estatuto da UNIAFIBRO-SC". CONFIRMAR [W]: grafia do nome
+                 (Giselli/Gisele), a autoria da AMASF e o número de atendimentos. -->
             <p class="sub">A Uniafibro é a união das associações de fibromialgia de Santa Catarina.
-                Reunimos as associações do estado para que pessoas com fibromialgia, suas famílias e
-                quem cuida delas encontrem apoio e informação.</p>
+                Nasceu de um grupo de mulheres que transformou a própria dor em cuidado para os
+                outros — e que hoje leva esse cuidado a outras cidades do estado.</p>
+
+            <div class="fundadora">
+                <img src="/uniafibro/logo.png" alt="" width="96" height="96">
+                <div>
+                    <span class="rotulo">Quem começou tudo</span>
+                    <h3>Giselli Cunha</h3>
+                    <p>Presidente e fundadora da AGFESC, a associação de Criciúma que deu origem à
+                        Uniafibro. Foi por iniciativa dela que Criciúma ganhou, em 2020, o AMASF —
+                        Ambulatório de Atenção à Pessoa com Fibromialgia da Unesc, gratuito e aberto
+                        pelo SUS: fisioterapia de solo e aquática, psicologia, nutrição, farmácia e
+                        reumatologia, num só lugar. Isso três anos antes de a associação existir.</p>
+                    <p>É dela a liderança do grupo de mulheres que hoje forma a rede, e é ela quem
+                        leva a pauta da fibromialgia às conversas com o governo do estado.</p>
+                </div>
+            </div>
+
+            <h3 class="titulo-linha">Nossa história</h3>
+            <ol class="linha">
+                <li><span class="ano">2020</span><p>Abre em Criciúma o AMASF, ambulatório de
+                    fibromialgia da Unesc, por iniciativa de Giselli Cunha.</p></li>
+                <li><span class="ano">2023</span><p>Fundação da AGFESC, em 5 de setembro, em
+                    Criciúma.</p></li>
+                <li><span class="ano">2024</span><p>A associação ganha CNPJ e Giselli fala, como
+                    presidente, no 1º Seminário Estadual de Fibromialgia, em Indaial.</p></li>
+                <li><span class="ano">2025</span><p>O AMASF passa de 10 mil atendimentos.</p></li>
+                <li><span class="ano">2026</span><p>Grupos ativos em Tubarão, Laguna, Balneário
+                    Rincão e Urussanga; reunião na Alesc com o Secretário de Estado da Saúde sobre a
+                    avaliação biopsicossocial; a associação passa a apoiar a emissão da carteirinha
+                    da fibromialgia junto à FCEE. Nasce a Uniafibro, para unir as associações de
+                    Santa Catarina.</p></li>
+            </ol>
+
             <div class="grade">
                 <div class="cartao">
                     <h3>Acolher</h3>
@@ -292,6 +346,8 @@
                     <p>Equipara a pessoa com fibromialgia à pessoa com deficiência em Santa Catarina e
                         autoriza o governo do estado a criar a Carteira Estadual de Identificação da
                         Pessoa com Fibromialgia (CIPF), para facilitar o atendimento prioritário.</p>
+                    <p>A carteira é emitida pela FCEE (Fundação Catarinense de Educação Especial),
+                        pelo site da fundação e pelo app FCEE Digital.</p>
                     <p>O Tribunal de Justiça de SC validou a lei, com a ressalva de que o diagnóstico,
                         sozinho, não garante o enquadramento como pessoa com deficiência.</p>
                 </div>
