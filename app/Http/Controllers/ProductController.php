@@ -314,6 +314,9 @@ class ProductController extends Controller
                 'permissions' => [
                     'create' => auth()->user()->can('product.create'),
                     'update' => auth()->user()->can('product.update'),
+                    // UC-PIDX-47 (#10765): só os locais de armazenagem; a lista mostra "Locais de
+                    // armazenagem" para quem tem isto sem `product.update`.
+                    'armazenagem' => auth()->user()->can('product.armazenagem'),
                     'delete' => auth()->user()->can('product.delete'),
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
                     'view' => auth()->user()->can('product.view'),
@@ -658,7 +661,7 @@ class ProductController extends Controller
      * @return array<string, mixed>|null
      */
     /**
-     * UC-PIDX-47 (D-29): a receita da Fabricação no painel, só leitura. Os números são os da tela de
+     * UC-PIDX-48 (D-29): a receita da Fabricação no painel, só leitura. Os números são os da tela de
      * Receitas (`ReceitaDoProduto` → `RecipeBomService::presentRecipe`): o painel não recalcula nada.
      * null = a empresa não tem a Fabricação; [] = tem, mas o produto não tem receita. Custo e margem só
      * para quem vê o preço de compra (o servidor nem envia); "Abrir receita" só para quem abre as receitas.
@@ -2650,6 +2653,8 @@ class ProductController extends Controller
                 'permissions' => [
                     'update' => auth()->user()->can('product.update'),
                     'delete' => auth()->user()->can('product.delete'),
+                    // UC-PSHOW-08 (#10765): "Locais de armazenagem" para quem só tem `product.armazenagem`.
+                    'armazenagem' => auth()->user()->can('product.armazenagem'),
                     // EAGER: 2 booleanos já resolvidos. O `.tsx` aplica default fail-closed,
                     // então ausência da prop nunca vira permissão.
                     'view_purchase_price' => $podeVerCusto,

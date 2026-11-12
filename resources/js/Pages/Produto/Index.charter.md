@@ -275,7 +275,7 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
 
 | Data | Autor | Mudança |
 |---|---|---|
-| 2026-11-12 | [F+C] | **D-29 (decisão [F]):** o Non-Goal "Sub-views de BOM/Insumos/Tabelas" passa a dizer que o que fica fora é **editar** a ficha técnica na consulta. O painel ganha a aba Receita, só leitura, com "Abrir receita" na Fabricação (UC-PIDX-47). |
+| 2026-11-12 | [F+C] | **D-29 (decisão [F]):** o Non-Goal "Sub-views de BOM/Insumos/Tabelas" passa a dizer que o que fica fora é **editar** a ficha técnica na consulta. O painel ganha a aba Receita, só leitura, com "Abrir receita" na Fabricação (UC-PIDX-48). |
 | 2026-10-10 | [F+C] | **v3 — tela certa.** Âncora = vista `lista` de `produto-blade.jsx` (cópia `cowork/Felipe/`). Mission, Goals, Non-Goals, UX e Anti-hooks reescritos para a lista do protótipo + paridade total com a lista Blade, autorizado por [W] via WhatsApp (repassado pelo [F]). Os Non-Goals da v2 (sem tabela, sem densidade, sem ações em massa, sem filtros avançados, read-only) eram do catálogo de cards, o desenho errado. `Index.casos.md` reconcilia na etapa do contrato. |
 | 2026-05-09 | [CL] | Charter draft criado em batch. Path `Pages/Produto/Index.tsx` (flat). **Decisão pendente Wagner:** mantém Page simples + Page unificada (`Produto/Unificado/`) como duas opções, OU consolida em uma só? Material `prod-page.jsx` é mais "balcão rápido", `produto-app.jsx` é "admin completo". **Aprovação pendente** em Non-Goals + Anti-hooks pra `status: live`. |
 

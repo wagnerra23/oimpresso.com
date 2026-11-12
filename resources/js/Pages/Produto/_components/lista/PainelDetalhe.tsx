@@ -263,7 +263,7 @@ function PrecosPropostos({ itens, irPara }: { itens: PrecoPropostoDoProduto[]; i
  * posto (US-PCP-030).
  */
 /**
- * UC-PIDX-47 (D-29): a receita da Fabricação, só leitura — insumos, quantidades, custo e margem, com
+ * UC-PIDX-48 (D-29): a receita da Fabricação, só leitura — insumos, quantidades, custo e margem, com
  * "Abrir receita" na Fabricação, que é onde ela se edita. Nada é calculado aqui: os números chegam do
  * servidor, pela mesma conta da tela de Receitas.
  */
@@ -399,13 +399,15 @@ interface Props {
   aoMudarAba: (aba: AbaDoDetalhe) => void;
   aoFechar: () => void;
   podeEditar: boolean;
+  /** UC-PIDX-47 (#10765): só `product.armazenagem`: o rodapé leva ao Editar só com os locais. */
+  podeArmazenagem?: boolean;
   podePrecos: boolean;
   /** A empresa emite nota (módulo Fiscal no pacote): só então a aba Fiscal existe. */
   emiteNota: boolean;
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podePrecos, emiteNota, irPara }: Props) {
+export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podeArmazenagem, podePrecos, emiteNota, irPara }: Props) {
   // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
@@ -431,7 +433,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
         // Produto que não controla estoque também tem a aba, com o aviso (protótipo). Sem a
         // permissão de ver o relatório de estoque, a aba segue fora.
         ...(d.estoque !== null || !d.dados.controla_estoque ? [{ key: 'estoque', label: 'Estoque', href: '#' }] : []),
-        // UC-PIDX-47 (D-29): só aparece quando o produto tem receita na Fabricação.
+        // UC-PIDX-48 (D-29): só aparece quando o produto tem receita na Fabricação.
         ...(d.receitas && d.receitas.length > 0
           ? [{ key: 'receita', label: 'Receita', href: '#', badge: d.receitas.reduce((n, r) => n + r.insumos.length, 0) }]
           : []),
@@ -927,6 +929,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
               {podeEditar && !d.excluido && (
                 <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
                   <Pencil size={13} aria-hidden /> Editar produto
+                </Button>
+              )}
+              {!podeEditar && podeArmazenagem && !d.excluido && d.dados.controla_estoque && (
+                <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
+                  <Pencil size={13} aria-hidden /> Locais de armazenagem
                 </Button>
               )}
               {/* Sem "Comprar": a consulta não é a tela de compras (decisão [F] 2026-10-26, UC-PIDX-11). */}

@@ -802,3 +802,5 @@ Modules/Whatsapp/Tests/Feature/BackfillChannelAccessCommandTest.php
 Modules/Whatsapp/Tests/Feature/BlockContactTest.php
 Modules/Whatsapp/Tests/Feature/LinkContactTest.php
 Modules/Whatsapp/Tests/Feature/ConversationTagsTest.php
+# Uniafibro (uniafibro.com.br) — página da associação servida por este app; rota por domínio, sem DB.
+tests/Feature/Site/UniafibroSiteTest.php

@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-47 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-48 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\Contracts\Fabricacao\ReceitaDoProduto;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -75,7 +75,7 @@ function prpCenario(int $biz): array
     return [$banner, $lona, $receita];
 }
 
-it('UC-PIDX-47 · o painel mostra insumos, custo e margem da receita, os mesmos da tela de Receitas', function () {
+it('UC-PIDX-48 · o painel mostra insumos, custo e margem da receita, os mesmos da tela de Receitas', function () {
     [$banner, $lona, $receita] = prpCenario($this->business->id);
     prpEntrar($this, ['product.view', 'view_purchase_price', 'manufacturing.access_recipe', 'access_all_locations']);
 
@@ -100,7 +100,7 @@ it('UC-PIDX-47 · o painel mostra insumos, custo e margem da receita, os mesmos 
     expect($r['link'])->toBe('/manufacturing/recipe?q=' . rawurlencode($r['sku']));
 });
 
-it('UC-PIDX-47 · sem ver o preço de compra não vêm custo nem margem; sem abrir receitas, não vem o link', function () {
+it('UC-PIDX-48 · sem ver o preço de compra não vêm custo nem margem; sem abrir receitas, não vem o link', function () {
     [$banner] = prpCenario($this->business->id);
     prpEntrar($this, ['product.view', 'access_all_locations']);
 
@@ -113,7 +113,7 @@ it('UC-PIDX-47 · sem ver o preço de compra não vêm custo nem margem; sem abr
     expect($r['link'])->toBeNull();
 });
 
-it('UC-PIDX-47 · produto sem receita não traz receita; a receita só sai para a empresa dona dela', function () {
+it('UC-PIDX-48 · produto sem receita não traz receita; a receita só sai para a empresa dona dela', function () {
     [$banner, $lona] = prpCenario($this->business->id);
     prpEntrar($this, ['product.view', 'view_purchase_price', 'access_all_locations']);
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Contracts\Fabricacao;
 
 /**
- * A receita da Fabricação de um produto, vista pelo painel da consulta de produto (UC-PIDX-47 · D-29:
+ * A receita da Fabricação de um produto, vista pelo painel da consulta de produto (UC-PIDX-48 · D-29:
  * resumo só leitura, com "Abrir receita"; a edição continua na Fabricação).
  *
  * O núcleo (`app/`) não importa de módulo (tests/Feature/Architecture/DependencyDirectionTest). Quem

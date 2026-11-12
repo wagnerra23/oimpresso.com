@@ -518,7 +518,7 @@ class RecipeBomService implements ReceitaDoProduto
     }
 
     /**
-     * UC-PIDX-47 (D-29): as fichas das receitas de UM produto, para o painel da consulta de produto. A mesma
+     * UC-PIDX-48 (D-29): as fichas das receitas de UM produto, para o painel da consulta de produto. A mesma
      * consulta e a mesma conta (`presentRecipe`) da tela de Receitas: o painel mostra o número dela.
      *
      * @return list<array<string, mixed>>

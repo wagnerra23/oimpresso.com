@@ -201,7 +201,7 @@ export interface PrecoPropostoDoProduto {
 }
 
 /**
- * UC-PIDX-47 (D-29): a receita da Fabricação, só leitura. Os números são os da tela de Receitas. Custo,
+ * UC-PIDX-48 (D-29): a receita da Fabricação, só leitura. Os números são os da tela de Receitas. Custo,
  * custo por unidade e margem vêm null para quem não vê o preço de compra; `link` (abrir a receita na
  * Fabricação) vem null para quem não abre as receitas.
  */
@@ -331,7 +331,7 @@ export interface DetalheProdutoDados {
   };
   /** null = sem o módulo Produção ou produto sem roteiro. */
   roteiro?: RoteiroDoProduto | null;
-  /** UC-PIDX-47: null = a empresa não tem a Fabricação; [] = o produto não tem receita. */
+  /** UC-PIDX-48: null = a empresa não tem a Fabricação; [] = o produto não tem receita. */
   receitas?: ReceitaDoProdutoNoPainel[] | null;
   /** Só vem para quem vê o preço de venda (ausência ≠ lista vazia). */
   precos_propostos?: PrecoPropostoDoProduto[];
@@ -390,6 +390,8 @@ export interface PermissoesLista {
   etiquetas?: boolean;
   view_purchase_price?: boolean;
   access_default_selling_price?: boolean;
+  /** `product.armazenagem` (#10765): só os locais de armazenagem do produto. */
+  armazenagem?: boolean;
 }
 
 /** Rótulos do protótipo (TYPE_LABEL do produto-blade.jsx). */

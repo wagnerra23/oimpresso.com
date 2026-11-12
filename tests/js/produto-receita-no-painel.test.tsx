@@ -1,5 +1,5 @@
 /**
- * UC-PIDX-47 (D-29, decisão [F] 2026-11-12): a receita da Fabricação no painel, só leitura — insumos,
+ * UC-PIDX-48 (D-29, decisão [F] 2026-11-12): a receita da Fabricação no painel, só leitura — insumos,
  * quantidades, custo, custo por unidade e margem, com "Abrir receita" na Fabricação. A aba só aparece com
  * receita; os números chegam do servidor (a conta da tela de Receitas) e aqui só se formatam.
  */
@@ -81,7 +81,7 @@ const RECEITA: ReceitaDoProdutoNoPainel = {
   custo_total: 22, custo_unitario: 22, margem: 50, link: '/manufacturing/recipe?q=BAN-1',
 };
 
-describe('UC-PIDX-47 · aba Receita no painel', () => {
+describe('UC-PIDX-48 · aba Receita no painel', () => {
   it('sem receita a aba não existe; com receita ela aparece, com o número de insumos', () => {
     const sem = abrir(detalhe({ receitas: [] }));
     expect(sem.painel.queryByRole('tab', { name: /Receita/ })).toBeNull();
