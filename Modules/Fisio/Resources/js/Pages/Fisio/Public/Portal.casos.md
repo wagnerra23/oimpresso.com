@@ -72,8 +72,8 @@ related_us: [US-FISIO-007, US-FISIO-008]
 > do PDF têm o caso em `memory/requisitos/Fisio/_telas/laudo-biopsicossocial.casos.md` (UC-FBP-16, testado em
 > `FisioLaudoBpsPdfTest`): só o laudo finalizado e vigente do próprio paciente, com os portões do portal.
 
-> **Enviar exame ou receita (US-FISIO-063, 2026-11-11):** a tela nova do portal tem os casos em
-> `memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md` (UC-FER-17..20, testados em
+> **Enviar exame, receita ou atestado (US-FISIO-063, 2026-11-11; atestado em 2026-11-12):** a tela nova do portal tem os casos em
+> `memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md` (UC-FER-17..21, testados em
 > `FisioPortalDocumentosTest`): consentimento próprio `documentos`, portões do envio, envio pendente que
 > só entra no prontuário quando a clínica aceita, e isolamento entre empresas. Ficam lá porque o envio
 > tem tabela e conferência próprias, compartilhadas com a ficha.

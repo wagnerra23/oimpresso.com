@@ -43,6 +43,7 @@ class DocumentoPaciente extends Model
         'exame_laboratorial' => 'Exame laboratorial',
         'laudo_medico' => 'Laudo médico',
         'receita' => 'Receita',
+        'atestado' => 'Atestado médico',
         'outro' => 'Outro',
     ];
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-063
-// Cobre UC-FER-17..UC-FER-20 (memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md).
+// Cobre UC-FER-17..UC-FER-21 (memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
@@ -144,4 +144,30 @@ it('UC-FER-20 · sem fisio.editar 403; outra empresa 404 em aceitar, recusar e a
     $outro = F::paciente($this->b99, $this->u99->id);
     $token99 = fpdPronto($this, $outro);
     expect(F::portalProps($this, $token99)['envio_documentos']['enviados'])->toBe([]);
+});
+
+it('UC-FER-21 · atestado médico é tipo da lista: entra pela ficha e pelo portal, não é transcrito, e o termo novo pede aceite de novo', function () {
+    expect(DocumentoPaciente::TIPOS)->toHaveKey('atestado')
+        ->and(DocumentoPaciente::TIPOS['atestado'])->toBe('Atestado médico');
+
+    // Portal: com o termo aceito na versão vigente, o atestado chega pendente como os outros tipos.
+    $token = fpdPronto($this, $this->p);
+    $id = (int) fpdEnviar($this, $token, ['tipo' => 'atestado', 'observacao' => 'atestado de 3 dias'])->assertCreated()->json('id');
+    $d = DocumentoPaciente::query()->withoutGlobalScopes()->findOrFail($id); // SUPERADMIN: portal sem sessão.
+    expect($d->kind)->toBe('atestado')->and($d->status)->toBe('pendente')->and($d->business_id)->toBe($this->b98);
+    expect(F::portalProps($this, $token)['envio_documentos']['tipos'])->toHaveKey('atestado');
+
+    // Ficha: a clínica anexa direto; a lista de tipos vem junto e o atestado não oferece transcrição.
+    F::como($this, $this->u98);
+    $ficha = (int) $this->postJson("/fisio/pacientes/{$this->p->id}/documentos", [
+        'arquivo' => fpdFoto(), 'tipo' => 'atestado', 'data_documento' => '2026-11-10',
+    ])->assertCreated()->json('id');
+    expect(F::props($this, $this->u98, "/fisio/pacientes/{$this->p->id}", 'Fisio/Pacientes/Show', 'documento_tipos'))->toHaveKey('atestado');
+    $docs = collect(F::props($this, $this->u98, "/fisio/pacientes/{$this->p->id}", 'Fisio/Pacientes/Show', 'documentos'))->keyBy('id');
+    expect($docs[$ficha]['tipo'])->toBe('atestado')->and($docs[$ficha]['transcrevivel'])->toBeFalse();
+
+    // O texto do termo passou a nomear o atestado: versão nova, e o aceite da anterior não vale mais.
+    config(['fisio.consent_versions.documentos' => 'doc-v2']);
+    fpdEnviar($this, $token, ['tipo' => 'atestado'])->assertForbidden()->assertJson(['erro' => 'consentimento_documentos']);
+    expect(F::portalProps($this, $token)['envio_documentos']['consentido'])->toBeFalse();
 });
