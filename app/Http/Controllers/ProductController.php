@@ -1074,9 +1074,9 @@ class ProductController extends Controller
      * componente limita. É a conta do núcleo para o combo na venda (`ProductUtil::calculateComboQuantity`):
      * por componente que controla estoque, saldo no local ÷ (quantidade no kit × multiplicador da unidade
      * do item); vale o menor, arredondado para baixo. Componente que não controla estoque não limita.
-     * Diferença de propósito: lá um componente com saldo zero que vem primeiro na lista não zera o resultado
-     * (o `0` faz as vezes de "ainda não calculado"); aqui zero é zero, em qualquer ordem. Contas em 4 casas,
-     * como a quantidade do estoque.
+     * Até 2026-11-12 havia uma diferença: lá um componente com saldo zero tinha a conta sobrescrita pelo
+     * seguinte (o `0` fazia as vezes de "ainda não calculado"). Corrigido lá pela D-30; aqui zero sempre foi
+     * zero, em qualquer ordem. Contas em 4 casas, como a quantidade do estoque.
      *
      * Locais: os do kit (`product_locations`) que o usuário pode ver; kit sem local, todos os que ele vê.
      * null quando nenhum componente controla estoque (não há o que limitar).
