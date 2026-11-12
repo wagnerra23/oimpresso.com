@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Etapa 07 P-04 · tela /fisio/pesquisa (UC-FES-07..08, Fisio/Pesquisa/Index.casos.md).
+// Etapa 07 P-04 · tela /fisio/pesquisa (UC-FES-07..08 e UC-FES-20, Fisio/Pesquisa/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
@@ -66,4 +66,15 @@ it('UC-FES-08 · a 98 não lista nem abre estudo da 99', function () {
         ->and(collect($r->json('props.estudos'))->pluck('id')->all())->toBe([$this->e98->id])
         ->and($r->json('props.estudo.id'))->toBe($this->e98->id);
     $this->get('/fisio/pesquisa?estudo='.$this->e99->id)->assertNotFound();
+});
+
+it('UC-FES-20 · a tela mostra o nome curto do questionário, nunca o código interno', function () {
+    $rotulos = F::props($this, $this->pesqExterno, '/fisio/pesquisa', 'Fisio/Pesquisa/Index', 'rotulos');
+    expect($rotulos['sentar_levantar_30s'])->toBe('Sentar e levantar em 30 segundos')
+        ->and($rotulos['fiqr'])->toBe('FIQR')
+        ->and($rotulos['eva'])->toBe('EVA/END');
+    foreach ($rotulos as $codigo => $rotulo) {
+        expect($rotulo)->not->toBe('', "rótulo vazio para {$codigo}");
+        expect(str_contains($rotulo, '_'))->toBeFalse("rótulo com cara de código para {$codigo}");
+    }
 });

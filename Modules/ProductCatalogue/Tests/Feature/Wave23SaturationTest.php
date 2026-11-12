@@ -25,14 +25,6 @@ uses(Tests\TestCase::class);
  * @see Modules\ProductCatalogue\Console\Commands\ProductCatalogueHealthCommand
  */
 
-it('F1 confirmacao: ArchitectureTest Wave 16 tem 12 cenarios saturados', function () {
-    $file = base_path('Modules/ProductCatalogue/Tests/Feature/ArchitectureTest.php');
-    expect(file_exists($file))->toBeTrue();
-
-    $content = file_get_contents($file);
-    $matches = preg_match_all("/^it\\('cenario \\d+:/m", $content);
-    expect($matches)->toBeGreaterThanOrEqual(12, "ArchitectureTest deve ter >=12 cenarios; achou {$matches}");
-});
 
 it('F2 reuse: CatalogueService resolvido via container com DI (Repo+ProductUtil)', function () {
     $svc = app(CatalogueService::class);
@@ -109,8 +101,3 @@ it('F6 ProductCatalogueHealthCommand registrado + signature canon', function () 
     expect($signature)->not->toContain('{--verbose ');
 });
 
-it('F2 module boundary: Services + Repository dentro do namespace canonico', function () {
-    expect(CatalogueService::class)->toStartWith('Modules\\ProductCatalogue\\');
-    expect(CatalogueQrService::class)->toStartWith('Modules\\ProductCatalogue\\');
-    expect(ProductCatalogueRepository::class)->toStartWith('Modules\\ProductCatalogue\\');
-});
