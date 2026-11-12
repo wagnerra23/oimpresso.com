@@ -177,6 +177,9 @@ jobs:
       - name: Comportamento React — Catálogo QR, copiar link
         run: npx vitest run tests/js/catalogue-qr-copiar.test.tsx
 
+      - name: Comportamento React — Catálogo QR, anúncio e nomes
+        run: npx vitest run tests/js/catalogue-qr-anuncio.test.tsx
+
       - name: Comportamento React — Oficina, aviso da aprovação pública
         run: npx vitest run tests/js/oficina-aprovacao-publica-aviso.test.tsx
 

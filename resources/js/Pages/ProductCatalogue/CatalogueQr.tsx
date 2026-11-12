@@ -40,6 +40,8 @@ interface Gerado { link: string; local: string }
 // passam por token do DS. Em rgb() e não em hex porque o ui:lint R1 conta hex literal em Page
 // como cor de UI crua — e aqui não é UI. Valores medidos no protótipo (2026-11-10).
 const CORES = ['rgb(17, 17, 17)', 'rgb(121, 91, 191)', 'rgb(35, 94, 169)', 'rgb(235, 48, 136)'];
+// Nome acessível de cada swatch, na mesma ordem: o leitor de tela anunciava o valor rgb.
+const NOMES_COR = ['preto', 'roxo', 'azul', 'rosa'];
 const COR_TITULO = 'rgb(0, 66, 132)';
 const COR_SUBTITULO = 'rgb(79, 79, 79)';
 const INSTRUCOES = [
@@ -74,17 +76,23 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
   const [logo, setLogo] = useState(temLogo);
   const [gerado, setGerado] = useState<Gerado | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [gerando, setGerando] = useState(false);
+  // Texto da região role=status: QR gerado e link copiado mudavam em silêncio para o leitor de tela.
+  const [anuncio, setAnuncio] = useState('');
   const [copia, setCopia] = useState<'ocioso' | 'copiado' | 'falhou'>('ocioso');
   const timerCopia = useRef<ReturnType<typeof setTimeout>>(undefined);
   const alvo = useRef<HTMLDivElement>(null);
 
   // Mudou a forma, o QR antigo deixa de valer: gera de novo só com o clique (anti-hook do charter).
-  const mudou = <T,>(set: (v: T) => void) => (v: T) => { set(v); setGerado(null); };
+  const mudou = <T,>(set: (v: T) => void) => (v: T) => { set(v); setGerado(null); setAnuncio(''); };
 
   const gerar = async () => {
-    if (!local) return;
+    if (!local || gerando) return;
     setErro(null);
     const link = `${link_base}/${local}`;
+    // O script do gerador baixa no primeiro clique: até ele chegar o botão diz que está gerando.
+    setGerando(true);
+    setAnuncio('Gerando QR code…');
     try {
       const QRCode = await carregarGerador(qr_script);
       const el = alvo.current;
@@ -106,9 +114,14 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
       }
       if (logo && negocio.logo_url) opts.logo = negocio.logo_url;
       new QRCode(el, opts);
-      setGerado({ link, local: locais.find((l) => String(l.id) === local)?.nome ?? '' });
+      const nomeLocal = locais.find((l) => String(l.id) === local)?.nome ?? '';
+      setGerado({ link, local: nomeLocal });
+      setAnuncio(`QR code gerado para ${nomeLocal}.`);
     } catch {
+      setAnuncio('');
       setErro('Não foi possível carregar o gerador de QR. Nada foi publicado — recarregue a tela.');
+    } finally {
+      setGerando(false);
     }
   };
 
@@ -139,6 +152,7 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
       return;
     }
     setCopia('copiado');
+    setAnuncio('Link copiado.');
     timerCopia.current = setTimeout(() => setCopia('ocioso'), 1600);
   };
 
@@ -185,11 +199,13 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
 
             <Stack gap={1}>
               <Label>Cor do QR code</Label>
-              <Inline gap={2}>
-                {CORES.map((c) => (
-                  <button key={c} type="button" aria-label={`Cor ${c}`} aria-pressed={cor === c}
+              {/* No toque o alvo vai a 44 px por um ::after transparente, e o espaço entre os swatches
+                  cresce para os alvos não se sobreporem. No mouse o desenho é o do protótipo (28 px, gap 8). */}
+              <Inline gap={2} className="pointer-coarse:gap-4">
+                {CORES.map((c, i) => (
+                  <button key={c} type="button" aria-label={`Cor do QR: ${NOMES_COR[i]}`} aria-pressed={cor === c}
                     onClick={() => mudou(setCor)(c)}
-                    className={`size-7 rounded-[7px] border-2 ${cor === c ? 'border-primary ring-[3px] ring-primary/20' : 'border-border'}`}
+                    className={`relative size-7 rounded-[7px] border-2 pointer-coarse:after:absolute pointer-coarse:after:-inset-2 pointer-coarse:after:content-[''] ${cor === c ? 'border-primary ring-[3px] ring-primary/20' : 'border-border'}`}
                     style={{ background: c }} />
                 ))}
               </Inline>
@@ -217,7 +233,9 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
           </Grid>
 
             <Inline gap={3}>
-              <Button disabled={!local} onClick={gerar}><QrCode className="size-4" /> Gerar QR code</Button>
+              <Button disabled={!local || gerando} aria-busy={gerando} onClick={gerar}>
+                <QrCode className="size-4" /> {gerando ? 'Gerando QR code…' : 'Gerar QR code'}
+              </Button>
               {!local && <span className="text-sm text-muted-foreground">Escolha o local comercial primeiro.</span>}
             </Inline>
           </Stack>
@@ -235,6 +253,7 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
         </section>
 
         <section data-contract="saida" className="rounded-lg border bg-card p-5">
+          <p role="status" className="sr-only">{anuncio}</p>
           {erro && (
             <Alert variant="destructive" className="mb-4"><AlertDescription>{erro}</AlertDescription></Alert>
           )}
