@@ -58,7 +58,9 @@ const TUDO: PermissoesLista = {
 const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, emite_nota: true, woocommerce: false, papel: null, rotulos_campos: {} };
 // O cenário medido em produção em 2026-10-17 tinha a coluna Imposto ligada: até 2026-10-26 ela
 // nascia ligada (desde então nasce desligada, UC-PIDX-34). Com ela são 12 colunas, o caso mais apertado.
-const PADRAO = { ...visibilidadePadrao(colunasOpcionais({})), imposto: true };
+// A tela medida (produção, 2026-10-17) tinha Tipo e Imposto ligadas. Desde o UC-PIDX-46 o Tipo nasce
+// desligado, e desde o UC-PIDX-34 o Imposto também; aqui as duas são ligadas para reproduzir a medição.
+const PADRAO = { ...visibilidadePadrao(colunasOpcionais({})), tipo: true, imposto: true };
 
 /** As colunas de saída, com a largura do protótipo — o que a tela entrega ao encaixe. */
 const colunasDoPrototipo = () => colunasDaLista({ visiveis: PADRAO, densa: false, permissions: TUDO, contexto: CONTEXTO, aoEscolher: () => undefined });
