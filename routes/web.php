@@ -750,6 +750,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('products.unificado.index');
 
     Route::get('/products/stock-history/{id}', [ProductController::class, 'productStockHistory']);
+    // CU-PROD-20 (#10765): só os locais de armazenagem; product.update ou product.armazenagem.
+    Route::patch('/products/{id}/armazenagem', [ProductController::class, 'atualizarArmazenagem'])->whereNumber('id');
     Route::get('/delete-media/{media_id}', [ProductController::class, 'deleteMedia']);
     Route::post('/products/mass-deactivate', [ProductController::class, 'massDeactivate']);
     Route::get('/products/activate/{id}', [ProductController::class, 'activate']);

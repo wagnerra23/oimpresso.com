@@ -383,6 +383,14 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
+                {!! Form::checkbox('permissions[]', 'product.armazenagem', false, 
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.product.armazenagem' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
                 {!! Form::checkbox('permissions[]', 'product.delete', false, 
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.product.delete' ) }}
               </label>
