@@ -70,3 +70,71 @@ it('as rotas da Uniafibro não capturam oimpresso.com', function () {
 it('o logo existe no public/', function () {
     expect(is_file(public_path('uniafibro/logo.png')))->toBeTrue();
 });
+
+it('direitos: cita as leis com número e não promete equiparação automática', function () {
+    $html = uniafibroHtml();
+
+    // Fontes conferidas no texto oficial (Planalto · Alesc/TJSC) em 2026-11-12.
+    expect($html)->toContain('Lei 15.176/2025');
+    expect($html)->toContain('Lei 14.705/2023');
+    expect($html)->toContain('Lei estadual 18.928/2024');
+    expect($html)->toContain('avaliação');
+    expect($html)->toContain('biopsicossocial');
+    expect($html)->toContain('não é automática');
+    // Conteúdo de saúde e de direitos é informativo — o aviso não pode sumir.
+    expect($html)->toContain('não substitui a consulta');
+    expect($html)->toContain('não substitui orientação jurídica');
+});
+
+it('quem somos destaca a fundadora Giselli Cunha e a história desde 2019', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('Quem começou tudo');
+    expect($html)->toContain('Giselli Cunha');
+    expect($html)->toContain('Nossa história');
+    expect($html)->toContain('AMASF');
+});
+
+it('vozes: só falas publicadas, cada uma com o link da matéria', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('Vozes da fibromialgia');
+    // Cada depoimento é uma <figure class="voz"> com link para a fonte pública.
+    preg_match_all('/<figure class="voz[^"]*">(.*?)<\/figure>/s', $html, $m);
+    expect(count($m[1]))->toBeGreaterThanOrEqual(3);
+    foreach ($m[1] as $fig) {
+        expect($fig)->toMatch('/href="https:\/\/[^"]+"/');
+    }
+});
+
+it('usa a logomarca oficial no topo e o símbolo no ícone da aba', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('src="/uniafibro/logomarca.png"');
+    expect($html)->toContain('href="/uniafibro/favicon.png"');
+    expect(is_file(public_path('uniafibro/logomarca.png')))->toBeTrue();
+    expect(is_file(public_path('uniafibro/favicon.png')))->toBeTrue();
+});
+
+it('conquistas: cada marco da luta pelas leis aponta o documento oficial', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('Conquistas: a luta pelas leis');
+    expect($html)->toContain('Lei 8.394/2023');
+    $ini = strpos($html, 'id="conquistas"');
+    $fim = strpos($html, '</section>', $ini);
+    preg_match_all('/<li[^>]*><span class="ano">.*?<\/li>/s', substr($html, $ini, $fim - $ini), $m);
+    expect(count($m[0]))->toBeGreaterThanOrEqual(5);
+    foreach ($m[0] as $marco) {
+        expect($marco)->toContain('class="fonte"');
+    }
+});
+
+it('atendimento: começa pelo posto de saúde e lista os serviços de referência com fonte', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('Onde buscar atendimento em SC');
+    expect($html)->toContain('Unidade Básica de Saúde');
+    expect($html)->toContain('<table class="servicos">');
+    expect($html)->toContain('saude.sc.gov.br');
+});

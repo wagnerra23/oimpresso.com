@@ -5,131 +5,653 @@
     cookies de rastreio, sem analytics). Imagens por caminho relativo no próprio domínio.
     Ver memory/requisitos/Site/RUNBOOK-uniafibro.md.
 
-    PREENCHER [W]: os pontos marcados com "PREENCHER [W]" abaixo.
+    PREENCHER [W]: cada ponto marcado "PREENCHER [W]" abaixo. Regra deste arquivo: nada de CNPJ,
+    endereço, diretoria, números ou nomes de associações sem confirmação da associação.
+    "Seus direitos" cita só leis conferidas no texto oficial (número e data no próprio texto).
 -->
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Uniafibro — União das Associações de Fibromialgia de SC</title>
-    <meta name="description" content="Uniafibro — União das Associações de Fibromialgia de Santa Catarina. Juntas somos mais fortes.">
+    <meta name="description" content="A Uniafibro reúne as associações de fibromialgia de Santa Catarina. Informação sobre a fibromialgia, os direitos de quem tem fibromialgia e o app Uniafibro. Juntas somos mais fortes.">
     <meta name="theme-color" content="#6b3fa0">
+    <meta property="og:type" content="website">
     <meta property="og:title" content="Uniafibro — União das Associações de Fibromialgia de SC">
     <meta property="og:description" content="Juntas somos mais fortes.">
-    <meta property="og:image" content="https://uniafibro.com.br/uniafibro/logo.png">
+    <meta property="og:image" content="https://uniafibro.com.br/uniafibro/logomarca.png">
     <meta property="og:url" content="https://uniafibro.com.br/">
     <meta property="og:locale" content="pt_BR">
-    <link rel="icon" type="image/png" href="/uniafibro/logo.png">
-    <link rel="apple-touch-icon" href="/uniafibro/logo.png">
+    <link rel="canonical" href="https://uniafibro.com.br/">
+    <link rel="icon" type="image/png" href="/uniafibro/favicon.png">
+    <link rel="apple-touch-icon" href="/uniafibro/simbolo-180.png">
     <style>
         :root {
             --roxo: #6b3fa0;
-            --roxo-escuro: #4b2477;
             --lilas: #a78bdb;
+            --lilas-claro: #efe8f9;
             --fundo: #faf7fd;
             --superficie: #ffffff;
             --texto: #2a2135;
             --texto-suave: #5d5270;
             --borda: #e6ddf2;
+            --banda: #f1e9fb;
+            --sombra: 0 10px 30px rgba(75, 36, 119, 0.10);
         }
         @media (prefers-color-scheme: dark) {
             :root {
-                --fundo: #17121e;
-                --superficie: #211a2b;
+                --roxo: #c3a9ef;
+                --lilas-claro: #2c2238;
+                --fundo: #15111b;
+                --superficie: #1f1828;
                 --texto: #f1ecf7;
                 --texto-suave: #c3b8d3;
                 --borda: #3a2f48;
-                --roxo: #b79be6;
+                --banda: #1c1525;
+                --sombra: 0 10px 30px rgba(0, 0, 0, 0.35);
             }
         }
         * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
         body {
             margin: 0;
             background: var(--fundo);
             color: var(--texto);
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 17px;
-            line-height: 1.6;
-        }
-        .topo {
-            background: linear-gradient(135deg, #a78bdb 0%, #6b3fa0 60%, #4b2477 100%);
-            color: #fff;
-            text-align: center;
-            padding: 48px 16px 56px;
-        }
-        .topo img {
-            width: 160px;
-            height: 160px;
-            background: #fff;
-            border-radius: 50%;
-            padding: 14px;
-            box-shadow: 0 8px 24px rgba(30, 10, 60, 0.25);
-        }
-        .topo h1 { margin: 20px 0 4px; font-size: 2.2rem; letter-spacing: 0.01em; }
-        .topo .nome { margin: 0; font-size: 1.05rem; opacity: 0.95; }
-        .topo .lema { margin: 18px 0 0; font-size: 1.35rem; font-style: italic; font-weight: 600; }
-        main { max-width: 720px; margin: 0 auto; padding: 8px 16px 32px; }
-        section {
-            background: var(--superficie);
-            border: 1px solid var(--borda);
-            border-radius: 14px;
-            padding: 22px 24px;
-            margin-top: 20px;
-        }
-        h2 { margin: 0 0 10px; font-size: 1.3rem; color: var(--roxo); }
-        p { margin: 0 0 10px; }
-        p:last-child { margin-bottom: 0; }
-        .suave { color: var(--texto-suave); }
-        .selo {
-            display: inline-block;
-            margin-top: 6px;
-            padding: 6px 14px;
-            border-radius: 999px;
-            border: 1px solid var(--roxo);
-            color: var(--roxo);
-            font-weight: 600;
-            font-size: 0.95rem;
+            line-height: 1.65;
         }
         a { color: var(--roxo); }
-        footer { text-align: center; padding: 8px 16px 32px; font-size: 0.85rem; color: var(--texto-suave); }
+        a:focus-visible { outline: 3px solid var(--lilas); outline-offset: 3px; border-radius: 4px; }
+        .pular {
+            position: absolute; left: -9999px; top: 8px; z-index: 10;
+            background: #fff; color: #4b2477; padding: 8px 14px; border-radius: 8px;
+        }
+        .pular:focus { left: 16px; }
+
+        /* Navegação */
+        .nav {
+            position: sticky; top: 0; z-index: 5;
+            background: rgba(75, 36, 119, 0.94);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .nav-in {
+            max-width: 1040px; margin: 0 auto; padding: 10px 16px;
+            display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap;
+        }
+        .marca { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 700; }
+        .marca img { width: 34px; height: 34px; background: #fff; border-radius: 50%; padding: 3px; }
+        .nav ul { list-style: none; margin: 0 0 0 auto; padding: 0; display: flex; gap: 4px 18px; flex-wrap: wrap; }
+        /* Alvo de toque >= 44px (público com dor crônica, muitas vezes com dor nas mãos). */
+        .nav ul a { display: inline-block; padding: 12px 6px; color: #f3ecfc; text-decoration: none; font-size: 1rem; }
+        .nav ul a:hover { text-decoration: underline; }
+
+        /* Topo */
+        .topo {
+            position: relative;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.22), transparent 38%),
+                radial-gradient(circle at 88% 78%, rgba(255, 255, 255, 0.12), transparent 42%),
+                linear-gradient(135deg, #a78bdb 0%, #6b3fa0 55%, #4b2477 100%);
+            color: #fff;
+        }
+        /* Camada: a onda que "derrete" o topo na página. */
+        .onda { display: block; width: 100%; height: 56px; color: var(--fundo); margin-top: -1px; }
+        .topo-in {
+            max-width: 1040px; margin: 0 auto; padding: 56px 16px 64px;
+            display: grid; grid-template-columns: 1fr; gap: 32px; align-items: center; text-align: center;
+        }
+        .topo-logo { order: -1; display: flex; justify-content: center; }
+        @media (min-width: 820px) {
+            .topo-in { grid-template-columns: 1.2fr 1fr; text-align: left; padding: 72px 16px 80px; }
+            .topo-logo { order: 0; }
+            .topo .topo-acoes { justify-content: flex-start; }
+        }
+        .topo h1 { margin: 0; font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.1; letter-spacing: 0.01em; }
+        .topo .nome { margin: 10px 0 0; font-size: 1.15rem; opacity: 0.95; }
+        .topo .lema { margin: 22px 0 0; font-size: clamp(1.4rem, 3.4vw, 1.9rem); font-style: italic; font-weight: 700; }
+        .topo-acoes { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        .btn {
+            display: inline-block; padding: 12px 22px; border-radius: 999px; font-weight: 700;
+            text-decoration: none; font-size: 1rem;
+        }
+        .btn-claro { background: #fff; color: #4b2477; }
+        .btn-contorno { border: 2px solid rgba(255, 255, 255, 0.85); color: #fff; }
+        /* A logomarca tem fundo branco e o nome embaixo: vai num cartão quadrado, nunca num círculo que a corte. */
+        .topo-logo img {
+            width: min(340px, 78vw); height: auto; aspect-ratio: 1;
+            background: #fff; border-radius: 28px; padding: 10px;
+            outline: 10px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 18px 48px rgba(30, 10, 60, 0.35), 0 0 0 26px rgba(255, 255, 255, 0.07);
+        }
+
+        /* Seções */
+        .secao { max-width: 1040px; margin: 0 auto; padding: 56px 16px 8px; }
+        .secao > h2 { margin: 0 0 6px; font-size: clamp(1.6rem, 3.5vw, 2rem); color: var(--roxo); }
+        .secao > .sub { margin: 0 0 24px; color: var(--texto-suave); max-width: 68ch; }
+        /* Camada: faixa de fundo em largura total, sem wrapper extra no HTML. */
+        .banda {
+            background: var(--banda);
+            box-shadow: 0 0 0 100vmax var(--banda);
+            clip-path: inset(0 -100vmax);
+            margin-top: 56px; padding-bottom: 56px;
+        }
+        /* Leitura confortável: nenhuma linha de texto corrido passa de ~70 caracteres. */
+        .fundadora p, .linha p, .faixa p, .app p, .cartao p, .legenda { max-width: 70ch; }
+        .grade { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+        .cartao {
+            background: var(--superficie); border: 1px solid var(--borda); border-radius: 16px;
+            padding: 22px 22px 20px; box-shadow: var(--sombra);
+        }
+        .grade + .cartao { margin-top: 16px; }
+        .membros { list-style: none; margin: 4px 0 12px; padding: 0; display: grid; gap: 10px; }
+        .membros li { display: flex; flex-direction: column; padding: 10px 14px; border-radius: 12px; background: var(--lilas-claro); }
+        .membros span { color: var(--texto-suave); font-size: 0.95rem; }
+        /* Camada: cartões ganham profundidade ao passar o mouse (só com movimento liberado). */
+        @media (prefers-reduced-motion: no-preference) {
+            .cartao, .numeros > div { transition: transform .18s ease, box-shadow .18s ease; }
+            .cartao:hover, .numeros > div:hover { transform: translateY(-3px); box-shadow: 0 16px 36px rgba(75, 36, 119, 0.16); }
+        }
+        .cartao h3 { margin: 0 0 8px; font-size: 1.12rem; }
+        .cartao p { margin: 0 0 10px; }
+        .cartao p:last-child { margin-bottom: 0; }
+        .rotulo {
+            display: inline-block; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.04em;
+            text-transform: uppercase; color: var(--roxo); background: var(--lilas-claro);
+            padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
+        }
+        .faixa {
+            background: var(--lilas-claro); border-radius: 16px; padding: 18px 22px; margin-top: 18px;
+            border-left: 5px solid var(--roxo);
+        }
+        .faixa p { margin: 0; }
+        .suave { color: var(--texto-suave); }
+
+        /* Fundadora + linha do tempo */
+        .fundadora {
+            display: grid; gap: 20px; grid-template-columns: 1fr; align-items: start;
+            background: linear-gradient(135deg, #6b3fa0, #4b2477); color: #fff;
+            border-radius: 20px; padding: 26px; box-shadow: var(--sombra); margin-bottom: 28px;
+        }
+        @media (min-width: 720px) { .fundadora { grid-template-columns: 220px 1fr; gap: 28px; align-items: center; } }
+        .foto-fundadora { width: min(220px, 100%); height: auto; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 18px; border: 4px solid rgba(255, 255, 255, 0.85); box-shadow: 0 12px 30px rgba(20, 5, 40, 0.35); justify-self: center; }
+        .fundadora h3 { margin: 0 0 8px; font-size: 1.6rem; }
+        .fundadora p { margin: 0 0 10px; }
+        .fundadora p:last-child { margin-bottom: 0; }
+        .fundadora .rotulo { background: rgba(255, 255, 255, 0.18); color: #fff; }
+        .titulo-linha { margin: 0 0 12px; font-size: 1.25rem; color: var(--roxo); }
+        .linha { list-style: none; margin: 0 0 28px; padding: 0 0 0 4px; border-left: 3px solid var(--lilas); }
+        .linha li { position: relative; padding: 0 0 16px 22px; }
+        .linha li::before {
+            content: ""; position: absolute; left: -10px; top: 5px; width: 14px; height: 14px;
+            border-radius: 50%; background: var(--roxo); border: 3px solid var(--fundo);
+        }
+        .linha .ano { font-weight: 800; color: var(--roxo); }
+        .linha li.rede::before { background: var(--superficie); border-color: var(--lilas); box-shadow: inset 0 0 0 3px var(--lilas); }
+        .legenda { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: -4px 0 14px; color: var(--texto-suave); font-size: 0.95rem; }
+        .legenda span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; background: var(--roxo); }
+        .legenda span.rede::before { background: var(--superficie); box-shadow: inset 0 0 0 3px var(--lilas); }
+        .linha p { margin: 2px 0 0; }
+
+        .linha .fonte { display: block; padding: 4px 0; margin-top: 2px; font-size: 0.92rem; }
+        .linha .fonte::before { content: "Fonte: "; color: var(--texto-suave); }
+        .linha .relato { color: var(--texto-suave); font-style: italic; }
+        .numeros { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 0 0 28px; }
+        .numeros > div {
+            background: var(--superficie); border: 1px solid var(--borda); border-radius: 16px;
+            padding: 18px; box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 6px;
+        }
+        .numeros strong { font-size: 2rem; line-height: 1.1; color: var(--roxo); }
+        .numeros span { color: var(--texto); }
+        .numeros a { display: inline-block; padding: 6px 0; font-size: 0.9rem; margin-top: auto; }
+
+        .fonte-card { display: inline-block; padding: 6px 0 0; margin-right: 12px; font-size: 0.92rem; }
+        .linha li.causa::before { background: var(--superficie); box-shadow: inset 0 0 0 3px var(--lilas); }
+        .passos { margin: 0 0 22px; padding-left: 22px; display: grid; gap: 8px; max-width: 70ch; }
+        .tabela-rolagem { overflow-x: auto; border-radius: 16px; border: 1px solid var(--borda); background: var(--superficie); box-shadow: var(--sombra); }
+        .servicos { width: 100%; border-collapse: collapse; min-width: 640px; }
+        .servicos caption { text-align: left; padding: 14px 16px 6px; color: var(--texto-suave); font-size: 0.95rem; }
+        .servicos th, .servicos td { text-align: left; padding: 10px 16px; border-top: 1px solid var(--borda); vertical-align: top; }
+        .servicos thead th { color: var(--roxo); font-size: 0.95rem; }
+        .fontes-secao { margin-top: 12px; color: var(--texto-suave); font-size: 0.95rem; max-width: 70ch; }
+
+        /* Vozes */
+        .vozes { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); }
+        .voz { margin: 0; background: var(--superficie); border: 1px solid var(--borda); border-radius: 18px;
+               padding: 22px 22px 18px; box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 14px; }
+        .voz blockquote { margin: 0; position: relative; padding-top: 22px; }
+        .voz blockquote::before { content: "\201C"; position: absolute; top: -18px; left: -4px;
+               font: 700 4rem/1 Georgia, serif; color: var(--lilas); }
+        .voz blockquote p { margin: 0; font-size: 1.12rem; line-height: 1.5; font-style: italic; max-width: 60ch; }
+        .voz figcaption { margin-top: auto; display: flex; flex-direction: column; font-size: 0.95rem; }
+        .voz figcaption span { color: var(--texto-suave); }
+        .voz figcaption a { display: inline-block; padding: 6px 0 0; }
+        .voz.destaque { grid-column: 1 / -1; background: linear-gradient(135deg, #6b3fa0, #4b2477); color: #fff; border: 0; }
+        .voz.destaque blockquote p { font-size: clamp(1.25rem, 2.6vw, 1.6rem); max-width: 46ch; }
+        .voz.destaque blockquote::before { color: rgba(255, 255, 255, 0.45); }
+        .voz.destaque figcaption span, .voz.destaque figcaption a { color: #f1e9fb; }
+
+        /* App */
+        .app {
+            display: grid; gap: 24px; grid-template-columns: 1fr; align-items: center; justify-items: center; text-align: center;
+            background: linear-gradient(135deg, var(--superficie), var(--lilas-claro));
+            border: 1px solid var(--borda); border-radius: 20px; padding: 28px; box-shadow: var(--sombra);
+        }
+        @media (min-width: 720px) { .app { grid-template-columns: auto 1fr; justify-items: start; text-align: left; } }
+        .app img { width: 120px; height: 120px; border-radius: 28px; background: #fff; padding: 10px; box-shadow: var(--sombra); }
+        .app p { margin: 0; }
+        .selo {
+            display: inline-block; margin-top: 12px; padding: 8px 16px; border-radius: 999px;
+            border: 2px solid var(--roxo); color: var(--roxo); font-weight: 700;
+        }
+
+        footer { margin-top: 64px; background: #2a1840; color: #e7dcf6; }
+        .rodape {
+            max-width: 1040px; margin: 0 auto; padding: 28px 16px;
+            display: flex; gap: 8px 24px; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
-    <header class="topo">
-        <img src="/uniafibro/logo.png" alt="Logo da Uniafibro: seis pessoas de mãos dadas em roda, com o laço roxo da fibromialgia ao centro" width="160" height="160">
-        <h1>Uniafibro</h1>
-        <p class="nome">União das Associações de Fibromialgia de SC</p>
-        <p class="lema">Juntas somos mais fortes.</p>
+    <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+    <nav class="nav" aria-label="Seções da página">
+        <div class="nav-in">
+            <a class="marca" href="#topo"><img src="/uniafibro/simbolo-180.png" alt="" width="34" height="34">Uniafibro</a>
+            <ul>
+                <li><a href="#fibromialgia">Fibromialgia</a></li>
+                <li><a href="#vozes">Vozes</a></li>
+                <li><a href="#quem-somos">Quem somos</a></li>
+                <li><a href="#conquistas">Conquistas</a></li>
+                <li><a href="#direitos">Direitos</a></li>
+                <li><a href="#atendimento">Atendimento</a></li>
+                <li><a href="#contato">Contato</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="topo" id="topo">
+        <div class="topo-in">
+            <div>
+                <h1>Uniafibro</h1>
+                <p class="nome">União das Associações de Fibromialgia de SC</p>
+                <p class="lema">Juntas somos mais fortes.</p>
+                <div class="topo-acoes">
+                    <a class="btn btn-claro" href="#direitos">Conheça seus direitos</a>
+                    <a class="btn btn-contorno" href="#contato">Fale com a associação</a>
+                </div>
+            </div>
+            <div class="topo-logo">
+                <img src="/uniafibro/logomarca.png" alt="Logomarca da Uniafibro: seis pessoas de mãos dadas em roda em volta do mapa de Santa Catarina e do laço roxo da fibromialgia; abaixo, Uniafibro — União das Associações de Fibromialgia — Juntas somos mais fortes." width="320" height="320">
+            </div>
+        </div>
+        <svg class="onda" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 44 C240 84 480 4 720 34 C960 64 1200 14 1440 44 L1440 80 L0 80 Z" fill="currentColor"/></svg>
     </header>
 
-    <main>
-        <section aria-labelledby="quem-somos">
-            <h2 id="quem-somos">Quem somos</h2>
-            <!-- PREENCHER [W]: texto provisório e neutro. Troque pelo texto oficial da associação
-                 (história, missão, associações filiadas). Não acrescentar CNPJ, endereço,
-                 diretoria ou números sem confirmação. -->
-            <p>
-                A Uniafibro é a união das associações de fibromialgia de Santa Catarina.
-                Reunimos as associações do estado para que pessoas com fibromialgia, suas
-                famílias e quem cuida delas encontrem apoio e informação.
-            </p>
+    <main id="conteudo">
+        <section class="secao" id="fibromialgia" aria-labelledby="t-fibro">
+            <h2 id="t-fibro">O que é a fibromialgia</h2>
+            <p class="sub">A dor é real, mesmo quando os exames vêm normais. A ciência já sabe bastante sobre a
+                fibromialgia — e ninguém precisa enfrentá-la sozinha.</p>
+            <div class="grade">
+                <div class="cartao">
+                    <span class="rotulo">O que é</span>
+                    <h3>Dor crônica espalhada pelo corpo</h3>
+                    <p>Muitas vezes vem junto com cansaço, sono que não descansa e dificuldade de concentração. Não deforma nem destrói as articulações: o sistema nervoso passa a processar a dor de forma amplificada.</p>
+                    <a class="fonte-card" href="https://www.fai2r.org/wp-content/uploads/2018/11/Anx_tuto_fibromyalgie_FAI2R-wolfe2016.pdf" rel="noopener">Critérios ACR, Wolfe 2016</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Quem tem</span>
+                    <h3>Cerca de 2% dos brasileiros</h3>
+                    <p>Estudos estimam que 2% a 2,5% dos brasileiros vivem com fibromialgia, a maioria mulheres — mas homens também podem ter. No mundo, a média fica perto de 3%.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Diagnóstico</span>
+                    <h3>Feito pelo médico, na consulta</h3>
+                    <p>O médico avalia onde dói, há quanto tempo (pelo menos três meses) e os outros sintomas. Não há exame de sangue ou de imagem que confirme a fibromialgia: os exames servem para descartar outras doenças.</p>
+                    <a class="fonte-card" href="https://www.fai2r.org/wp-content/uploads/2018/11/Anx_tuto_fibromyalgie_FAI2R-wolfe2016.pdf" rel="noopener">Critérios ACR, Wolfe 2016</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Tratamento</span>
+                    <h3>Movimento é a recomendação mais forte</h3>
+                    <p>As diretrizes europeias recomendam, antes de tudo, exercício físico regular, em terra ou na água, começando devagar. Informação, terapia psicológica, tai chi, yoga, hidroterapia e acupuntura ajudam algumas pessoas. Remédios, só com orientação médica.</p>
+                    <a class="fonte-card" href="https://pubmed.ncbi.nlm.nih.gov/27377815/" rel="noopener">EULAR 2016</a>
+                    <a class="fonte-card" href="https://cochrane.org/pt/CD011336/MUSKEL_exercicio-fisico-aquatico-para-fibromialgia" rel="noopener">Cochrane, exercício na água</a>
+                </div>
+            </div>
+            <div class="faixa">
+                <p><strong>Cuidado com promessas.</strong> Não há cura conhecida, mas os sintomas podem melhorar.
+                    Desconfie de quem promete cura rápida. Antes de começar ou parar qualquer tratamento, converse
+                    com seu médico. Este conteúdo é informativo e não substitui a consulta com profissional de saúde.</p>
+            </div>
         </section>
 
-        <section aria-labelledby="app">
-            <h2 id="app">App Uniafibro</h2>
-            <p>O app Uniafibro para Android está em fase de testes.</p>
-            <span class="selo">Em breve na Google Play</span>
+        <section class="secao" id="vozes" aria-labelledby="t-vozes">
+            <h2 id="t-vozes">Vozes da fibromialgia</h2>
+            <p class="sub">Por trás de cada número há uma pessoa. Estas são falas reais, publicadas pela Unesc e pela imprensa da região.</p>
+            <div class="vozes">
+                <figure class="voz destaque">
+                    <blockquote><p>Muitos pensam que não queremos trabalhar, que só reclamamos, que nos isolamos, que não queremos sair com a família.</p></blockquote>
+                    <figcaption><strong>Giselli Cunha</strong><span>fundadora, Criciúma — 4oito, 2022</span><a href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+                <figure class="voz">
+                    <blockquote><p>É uma dor terrível, vai dos fios de cabelo até os pés.</p></blockquote>
+                    <figcaption><strong>Nerci</strong><span>paciente do AMASF, Criciúma — Unesc, 2023</span><a href="https://www.unesc.net/noticias/categoria/geral/amasf-unesc-um-refugio-em-meio-as-dores-da-fibromialgia" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+                <figure class="voz">
+                    <blockquote><p>Quando falamos com alguém que entende a gente faz toda a diferença.</p></blockquote>
+                    <figcaption><strong>Giselli Cunha</strong><span>4oito, 2022</span><a href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+                <figure class="voz">
+                    <blockquote><p>Muitas vezes chegamos com muita dor e saímos daqui aliviados.</p></blockquote>
+                    <figcaption><strong>Jucimere</strong><span>paciente do AMASF — 4oito, 2022</span><a href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+                <figure class="voz">
+                    <blockquote><p>Como fibromiálgicos conquistamos a esperança e o tratamento e uma melhor qualidade de vida.</p></blockquote>
+                    <figcaption><strong>Giselli Cunha</strong><span>nos 4 anos do AMASF — Unesc, 2024</span><a href="https://www.unesc.net/noticias/categoria/geral/amasf-da-unesc-completa-quatro-anos-de-atendimento-as-pessoas-portadoras-de-fibromialgia" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+            </div>
+            <!-- PREENCHER [W]: depoimentos novos de associadas entram aqui, só com autorização
+                 por escrito (nome como a pessoa quiser aparecer, cidade, texto aprovado por ela). -->
+            <div class="faixa">
+                <p><strong>Você também tem uma história?</strong> Conte para a associação da sua cidade. Com a sua autorização, ela pode ajudar outras pessoas a não se sentirem sozinhas.</p>
+            </div>
         </section>
 
-        <section aria-labelledby="contato">
-            <h2 id="contato">Contato</h2>
-            <!-- PREENCHER [W]: troque o parágrafo abaixo pelo e-mail e/ou telefone de contato da associação. -->
-            <p class="suave">Os canais de contato da associação serão publicados em breve.</p>
+        <section class="secao banda" id="quem-somos" aria-labelledby="t-quem">
+            <h2 id="t-quem">Quem somos</h2>
+            <!-- Fonte (Wagner, 2026-11-12): docs "AGFESC — Diagnóstico crítico e plano de expansão"
+                 e "Exposição de motivos – Estatuto da UNIAFIBRO-SC". Grafia "Giselli" confirmada pelo [W] em 2026-11-12 (a Unesc escreve "Gisele"). CONFIRMAR [W]:
+                 fatos sem matéria pública (2019, carros, modelo copiado). -->
+            <p class="sub">A Uniafibro é a união das associações de fibromialgia de Santa Catarina.
+                Nasceu de um grupo de mulheres que transformou a própria dor em cuidado para os
+                outros — e que hoje leva esse cuidado a outras cidades do estado.</p>
+
+            <div class="fundadora">
+                <img class="foto-fundadora" src="/uniafibro/giselli.jpg" alt="Giselli Cunha, de camiseta lilás com o laço da fibromialgia, falando na plenária de uma câmara de vereadores" width="480" height="600" loading="lazy">
+                <div>
+                    <span class="rotulo">Quem começou tudo</span>
+                    <h3>Giselli Cunha</h3>
+                    <p>Foi ela quem começou tudo, em 2019. Presidente e fundadora da Associação
+                        Girassóis Fibromiálgicos do Extremo Sul Catarinense (AGFESC), de Criciúma, que
+                        deu origem à Uniafibro. Por iniciativa dela e do grupo de mulheres que reuniu,
+                        Criciúma ganhou em 2020 o AMASF — Ambulatório de Atenção à Pessoa com
+                        Fibromialgia da Unesc, gratuito pelo SUS: fisioterapia de solo e aquática,
+                        psicologia, nutrição, farmácia e reumatologia, num só lugar. Isso três anos
+                        antes da fundação formal da associação.</p>
+                    <p>Fez tudo sem verba pública, com dinheiro próprio — chegou a perder dois carros
+                        trabalhando pela associação.</p>
+                    <p>O modelo é dela: Giselli montou o trabalho e o ambulatório antes de existir associação registrada. Esse modelo virou referência — Indaial foi buscar recursos para replicá-lo, Tubarão criou seu programa com a Unisul contando com a associação, e Concórdia também veio conhecê-lo. Hoje é ela quem leva a pauta da fibromialgia às câmaras de vereadores, à Alesc e ao governo do estado.</p>
+                </div>
+            </div>
+
+            <!-- Cronologia: fontes públicas (Unesc, 4oito 12/05/2022, Engeplus 08/05/2023, Portal
+                 Litoral Sul 22/07/2023, Folha NIT 30/04/2024, TN Sul 01/04/2025, Informe Floripa
+                 23/03/2026, JPanorama SC, Eu Voluntário/Sesi-Senai) + relato do [W] (2019, carros,
+                 modelo copiado) + docs AGFESC do [W] (fundação, CNPJ, Indaial, Alesc, FCEE). -->
+            <h3 class="titulo-linha">O que a luta dela abriu, em números</h3>
+            <div class="numeros">
+                <div><strong>+10 mil</strong><span>atendimentos no AMASF, o ambulatório que o grupo
+                    dela trouxe para a Unesc (até 2025)</span><a href="https://www.unesc.net/noticias/categoria/extensao/fevereiro-roxo-amplia-alerta-e-reforca-importancia-do-diagnostico-clinico-da-fibromialgia" rel="noopener">Unesc, fev. 2026</a></div>
+                <div><strong>27</strong><span>municípios com acesso ao AMASF pelo consórcio de saúde
+                    da região (Cisamrec)</span><a href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">4oito, mai. 2022</a></div>
+                <div><strong>800</strong><span>pessoas associadas aos Girassóis</span><a href="https://euvoluntario.sesisenai.org.br/detalhes-instituicao/associacao-girassois-fibromialgicos-extremo-sul-catarinense-das-regioes-da-amres-amesc-e-amurel-237" rel="noopener">Eu Voluntário (Sesi/Senai)</a></div>
+                <div><strong>3 regiões</strong><span>Amrec, Amesc e Amurel — de Passo de Torres a
+                    Garopaba</span><a href="https://www.jpanoramasc.com/post/presidente-da-associa%C3%A7%C3%A3o-girass%C3%B3is-fala-sobre-fibromialgia-na-c%C3%A2mara" rel="noopener">JPanorama SC</a></div>
+            </div>
+
+            <h3 class="titulo-linha">Nossa história</h3>
+            <p class="legenda"><span>Girassóis, Criciúma e região</span><span class="rede">outras associações e reforços pelo estado</span></p>
+            <ol class="linha">
+                <li><span class="ano">2019</span><p>Giselli Cunha começa, em Criciúma, a luta por
+                    atendimento à fibromialgia, com dinheiro próprio. Tudo o que veio depois partiu
+                    daqui.</p>
+                    <span class="fonte relato">relato da associação</span></li>
+                <li><span class="ano">ago. 2020</span><p>Em plena pandemia, sem apoio na saúde
+                    pública, ela reúne um grupo de mulheres com fibromialgia para acolhimento — o
+                    começo dos Girassóis.</p>
+                    <a class="fonte" href="https://euvoluntario.sesisenai.org.br/detalhes-instituicao/associacao-girassois-fibromialgicos-extremo-sul-catarinense-das-regioes-da-amres-amesc-e-amurel-237" rel="noopener">Histórico da associação — Eu Voluntário</a></li>
+                <li><span class="ano">out. 2020</span><p>O grupo leva a demanda à Prefeitura, à
+                    Câmara e à reitoria da Unesc, e a universidade cria o AMASF, ambulatório de
+                    fibromialgia gratuito pelo SUS. Começa a atender em 1º de outubro.</p>
+                    <a class="fonte" href="https://www.unesc.net/noticias/categoria/geral/amasf-unesc-um-refugio-em-meio-as-dores-da-fibromialgia" rel="noopener">Unesc — "Amasf Unesc: um refúgio em meio às dores da fibromialgia"</a>
+                    <a class="fonte" href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">4oito — "O atendimento que oportuniza a chance de uma vida sem dor"</a></li>
+                <li class="rede"><span class="ano">2021</span><p>Nasce em Concórdia a AFICOR, associação de fibromiálgicos do Alto Uruguai Catarinense — a luta ganha força no Oeste, a partir do modelo que Giselli já tinha montado em Criciúma.</p>
+                    <span class="fonte relato">ligação com Criciúma: relato da associação</span>
+                    <a class="fonte" href="https://www.nsctotal.com.br/?p=7177089" rel="noopener">NSC Total</a></li>
+                <li><span class="ano">set. 2021</span><p>O AMASF é credenciado ao consórcio de saúde
+                    da região (Cisamrec) e passa a atender 27 municípios. Em abril de 2022 já eram
+                    quase 5 mil atendimentos.</p>
+                    <a class="fonte" href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">4oito, 12/05/2022</a></li>
+                <li class="rede"><span class="ano">mai. 2022</span><p>Indaial busca recursos para replicar o modelo do AMASF de Criciúma; a equipe do ambulatório leva palestras à associação de Cocal do Sul.</p>
+                    <a class="fonte" href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">4oito, 12/05/2022</a></li>
+                <li><span class="ano">mai. 2023</span><p>2º Encontro das Pessoas com Fibromialgia,
+                    na Praça Nereu Ramos, organizado pela associação com o AMASF, a Unesc, a Câmara e a
+                    Prefeitura.</p>
+                    <a class="fonte" href="https://engeplus.com.br/noticia/encontro-das-pessoas-com-fibromialgia-tera-segunda-edicao-no-proximo-sabado-188449" rel="noopener">Engeplus, 08/05/2023</a></li>
+                <li><span class="ano">jul. 2023</span><p>Criciúma aprova a Lei 8.394/2023, que
+                    reconhece a pessoa com fibromialgia como pessoa com deficiência no município —
+                    "um divisor de águas", segundo a associação.</p>
+                    <a class="fonte" href="https://portallitoralsul.com.br/noticia/35628/camara-de-criciuma-aprova-projeto-que-passa-a-considerar-pessoas-com-fibromialgia-como-pcd" rel="noopener">Portal Litoral Sul, 22/07/2023</a></li>
+                <li><span class="ano">set. 2023</span><p>Fundação formal da AGFESC, em 5 de setembro,
+                    em Criciúma.</p>
+                    <span class="fonte relato">ata de fundação da associação</span></li>
+                <li class="rede"><span class="ano">2023</span><p>Nasce em Indaial a AREFI, associação de fibromiálgicos do Médio Vale do Itajaí.</p>
+                    <a class="fonte" href="https://www.timbonet.com.br/arefi-vale-convida-a-comunidade-para-o-1o-seminario-estadual-de-fibromialgia-em-indaial/" rel="noopener">Timbó Net</a></li>
+                <li><span class="ano">nov. 2023</span><p>A Unesc conta a história do AMASF: 547
+                    pessoas em tratamento (97% mulheres), mais de 6 mil atendimentos em três anos e
+                    467 associadas aos Girassóis. Para Giselli, a universidade "foi o único lugar que
+                    abriu a porta para a gente".</p>
+                    <a class="fonte" href="https://www.unesc.net/noticias/categoria/geral/amasf-unesc-um-refugio-em-meio-as-dores-da-fibromialgia" rel="noopener">Unesc, 01/11/2023</a></li>
+                <li><span class="ano">2024</span><p>A associação ganha CNPJ (março); Giselli fala no
+                    1º Seminário Estadual de Fibromialgia, em Indaial, e é convidada para a audiência
+                    pública sobre fibromialgia na Assembleia Legislativa do Rio de Janeiro (maio). O
+                    seminário de Indaial, organizado pela AREFI, reuniu Giselli e a equipe do AMASF.</p>
+                    <a class="fonte" href="https://www.timbonet.com.br/arefi-vale-convida-a-comunidade-para-o-1o-seminario-estadual-de-fibromialgia-em-indaial/" rel="noopener">Timbó Net, 15/05/2024</a>
+                    <a class="fonte" href="https://www.folhanit.com.br/?p=10141" rel="noopener">Folha NIT, 30/04/2024</a></li>
+                <li class="rede"><span class="ano">jul. 2024</span><p>A AFICOR, de Concórdia, é reconhecida de utilidade pública estadual pela Alesc.</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/documentos/KDdmV" rel="noopener">Alesc — PL 113/2024</a></li>
+                <li><span class="ano">out. 2024</span><p>O AMASF completa quatro anos com cerca de 10
+                    mil atendimentos. A coordenação do ambulatório chama Giselli de "parceira
+                    incansável", e ela comemora conquistas como o cartão do fibromiálgico e a
+                    gratuidade nas passagens de ônibus.</p>
+                    <a class="fonte" href="https://www.unesc.net/noticias/categoria/geral/amasf-da-unesc-completa-quatro-anos-de-atendimento-as-pessoas-portadoras-de-fibromialgia" rel="noopener">Unesc, 01/10/2024</a></li>
+                <li><span class="ano">abr. 2025</span><p>Sem verba pública, a associação faz um café
+                    solidário para bancar a campanha Maio Roxo e o fórum nacional.</p>
+                    <a class="fonte" href="https://tnsul.com/2025/04/01/associacao-girassois-fibromialgicos-promove-cafe-solidario-para-maio-roxo/" rel="noopener">TN Sul, 01/04/2025</a></li>
+                <li><span class="ano">mai. 2025</span><p>1º Fórum Nacional de Fibromialgia, na Unesc,
+                    em Criciúma, reunindo associações de todo o país. Em 2024 o ambulatório tinha feito
+                    4.970 atendimentos só naquele ano.</p>
+                    <a class="fonte" href="https://www.even3.com.br/1-forum-nacional-de-fibromialgia-547530/" rel="noopener">Página do fórum (Even3)</a>
+                    <a class="fonte" href="https://noticias.unesc.net/institucional/2025/04/06/clinicas-integradas-da-unesc-ultrapassam-202-mil-atendimentos-em-2024-e-seguem-ampliando-servicos/" rel="noopener">Unesc, 06/04/2025</a></li>
+                <li class="rede"><span class="ano">ago. 2025</span><p>A ACPFA, associação catarinense de fibromiálgicos de Joinville, é reconhecida de utilidade pública estadual.</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/documentos/QYZRZ" rel="noopener">Alesc — Lei 19.406/2025</a></li>
+                <li class="rede"><span class="ano">out. 2025</span><p>A Comissão de Saúde da Alesc leva o Seminário Regional sobre Fibromialgia a Capivari de Baixo, na Univinte.</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/comissoes-permanentes/agenda/anexo/c1500552-d290-4dfa-a5b9-8e7e0f49aee6" rel="noopener">Agenda da Alesc</a></li>
+                <li class="rede"><span class="ano">nov. 2025</span><p>Congresso sobre fibromialgia em Concórdia, feito pela Alesc com a AFICOR.</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/comissoes-permanentes/agenda/anexo/6b19a732-21d8-4dca-aeeb-d5958cf1f362" rel="noopener">Agenda da Alesc</a></li>
+                <li><span class="ano">fev. 2026</span><p>O AMASF passa de 10 mil atendimentos e chega
+                    aos seis anos.</p>
+                    <a class="fonte" href="https://www.unesc.net/noticias/categoria/extensao/fevereiro-roxo-amplia-alerta-e-reforca-importancia-do-diagnostico-clinico-da-fibromialgia" rel="noopener">Unesc, fev. 2026</a></li>
+                <li class="rede"><span class="ano">fev. 2026</span><p>Em Maravilha, no Extremo Oeste, a AFIBROMAR se organiza e entra na rede — a Uniafibro passa a ir do Sul ao Oeste do estado.</p>
+                    <span class="fonte relato">relato da associação</span></li>
+                <li><span class="ano">mar. 2026</span><p>Fala no lançamento do Movimento Catarinense
+                    Pró-Cannabis Medicinal, em Florianópolis.</p>
+                    <a class="fonte" href="https://informefloripa.com/lancado-o-movimento-pro-cannabis-medicinal-de-santa-catarina/" rel="noopener">Informe Floripa, 23/03/2026</a></li>
+                <li class="rede"><span class="ano">ago. 2026</span><p>Tubarão abre seu Programa de Fibromialgia com a Unisul, com equipe multiprofissional pelo SUS — e aceita a declaração da associação Girassóis enquanto a carteirinha não sai.</p>
+                    <a class="fonte" href="https://www.cnttubarao.com.br/2026/07/28/programa-fibromialgia-tubarao-unisul/" rel="noopener">CNT Tubarão, 28/07/2026</a></li>
+                <li><span class="ano">2026</span><p>Grupos ativos em Tubarão, Laguna, Balneário
+                    Rincão e Urussanga; fala na Câmara de Urussanga; reunião na Alesc com o Secretário
+                    de Estado da Saúde sobre a avaliação biopsicossocial (agosto); a associação passa a
+                    apoiar a emissão da carteirinha da fibromialgia junto à FCEE (novembro). Nasce a
+                    Uniafibro, para unir as associações de Santa Catarina.</p>
+                    <a class="fonte" href="https://www.jpanoramasc.com/post/presidente-da-associa%C3%A7%C3%A3o-girass%C3%B3is-fala-sobre-fibromialgia-na-c%C3%A2mara" rel="noopener">JPanorama SC — fala na Câmara de Urussanga</a>
+                    <a class="fonte" href="https://www.fcee.sc.gov.br/informacoes/beneficios-para-pessoas-com-deficiencia/carteira-de-identificacao-da-pessoa-com-fibromialgia" rel="noopener">FCEE — carteirinha da fibromialgia</a></li>
+            </ol>
+
+            <div class="grade">
+                <div class="cartao">
+                    <h3>Acolher</h3>
+                    <p>Aproximar quem convive com a fibromialgia de quem passa pelo mesmo caminho.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Informar</h3>
+                    <p>Levar informação clara sobre a condição e sobre os direitos de quem tem
+                        fibromialgia.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Unir</h3>
+                    <p>Dar voz conjunta às associações de Santa Catarina.</p>
+                </div>
+            </div>
+            <div class="cartao">
+                <h3>Associações-membro</h3>
+                <ul class="membros">
+                    <li><strong>AGFESC — Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense</strong><span>Criciúma e região (Amrec, Amesc e Amurel)</span></li>
+                    <li><strong>AFIBROMAR</strong><span>Maravilha e Extremo Oeste</span></li>
+                </ul>
+                <!-- PREENCHER [W]: acrescente as demais associações-membro confirmadas (nome + cidade). -->
+                <p class="suave">Outras associações estão chegando à rede.</p>
+            </div>
+        </section>
+
+        <section class="secao" id="conquistas" aria-labelledby="t-conquistas">
+            <h2 id="t-conquistas">Conquistas: a luta pelas leis</h2>
+            <p class="sub">Leis são propostas por vereadores e deputados. O que a associação faz é levar a
+                pauta à tribuna, estar presente e não deixar o assunto morrer. Cada marco tem o documento oficial.</p>
+            <p class="legenda"><span>da associação</span><span class="rede">da causa da fibromialgia</span></p>
+            <ol class="linha">
+                <li><span class="ano">mai. 2023</span><p><strong>Na tribuna.</strong> Giselli Cunha ocupa a Tribuna Livre da Câmara de Criciúma no dia em que os vereadores aprovam o projeto que reconhece a pessoa com fibromialgia como pessoa com deficiência.</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/noticia/tribuna-livre-traz-a-fibromialgia-novamente-para-a-pauta-8328" rel="noopener">Câmara de Criciúma, 30/05/2023</a></li>
+                <li><span class="ano">jul. 2023</span><p><strong>Pessoa com deficiência em Criciúma.</strong> A Câmara derruba o veto do prefeito e promulga a Lei 8.394/2023. Para a associação, “um divisor de águas”.</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/lei-municipal/lei-ordinaria-28/lei-8394-2023-8394" rel="noopener">Lei 8.394/2023</a>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/noticia/fibromialgicos-passam-a-ser-reconhecidos-como-pessoas-com-deficiencia-em-criciuma-8425" rel="noopener">Câmara de Criciúma, 21/07/2023</a></li>
+                <li><span class="ano">out. 2023</span><p><strong>Reconhecimento.</strong> A Câmara de Criciúma aprova, por unanimidade, Moção de Aplauso à Associação Girassóis pelo trabalho com as pessoas com fibromialgia.</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/documento/mocao-no-45-2023-1002060" rel="noopener">Moção 45/2023</a></li>
+                <li><span class="ano">mai. 2024</span><p><strong>A voz vai além de SC.</strong> Giselli volta à Tribuna Livre de Criciúma e é palestrante na audiência pública sobre fibromialgia da Assembleia Legislativa do Rio de Janeiro.</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/documento/pauta-no-88-2024-1007495" rel="noopener">Pauta 88/2024 da Câmara</a>
+                    <a class="fonte" href="https://www.folhanit.com.br/?p=10141" rel="noopener">Folha NIT, 30/04/2024</a></li>
+                <li class="causa"><span class="ano">jun. 2024</span><p><strong>Lei estadual.</strong> Santa Catarina equipara a pessoa com fibromialgia à pessoa com deficiência e cria a carteirinha estadual, que dá passe livre no transporte intermunicipal (Lei 18.928/2024).</p>
+                    <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/documentos/K9XMa" rel="noopener">Alesc</a>
+                    <a class="fonte" href="https://www.fcee.sc.gov.br/informacoes/beneficios-para-pessoas-com-deficiencia/carteira-de-identificacao-da-pessoa-com-fibromialgia" rel="noopener">FCEE</a></li>
+                <li><span class="ano">jul. 2025</span><p><strong>Utilidade pública.</strong> Criciúma declara a AGFESC entidade de utilidade pública municipal (Lei 8.786/2025).</p>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/lei-municipal/lei-ordinaria-28/lei-no-8786-de-10-de-julho-de-2025-8786" rel="noopener">Lei 8.786/2025</a></li>
+                <li class="causa"><span class="ano">jul. 2025</span><p><strong>Lei nacional.</strong> A Lei federal 15.176/2025 leva o reconhecimento a todo o Brasil, a partir de 2026, com avaliação biopsicossocial. Criciúma já garantia esse direito desde 2023.</p>
+                    <a class="fonte" href="https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/L15176.htm" rel="noopener">Planalto</a>
+                    <a class="fonte" href="https://www.camaracriciuma.sc.gov.br/noticia/legislacao-de-criciuma-antecipa-direito-garantido-por-nova-lei-federal-sobre-fibromialgia-101382" rel="noopener">Câmara de Criciúma, 30/07/2025</a></li>
+                <li class="causa"><span class="ano">jun. 2026</span><p><strong>A lei de SC se mantém.</strong> O Tribunal de Justiça de SC valida a lei estadual e a carteirinha da fibromialgia.</p>
+                    <a class="fonte" href="https://www.tjsc.jus.br/web/imprensa/-/tj-valida-lei-sobre-fibromialgia-e-autoriza-criacao-de-carteira-de-identificacao-em-sc" rel="noopener">TJSC, 10/06/2026</a></li>
+            </ol>
+        </section>
+
+        <section class="secao banda" id="direitos" aria-labelledby="t-direitos">
+            <h2 id="t-direitos">Seus direitos</h2>
+            <p class="sub">O que vale hoje, o que depende de avaliação e onde pedir. Nada aqui é automático:
+                o que pesa é mostrar como a fibromialgia limita o seu dia a dia.</p>
+            <div class="grade">
+                <div class="cartao">
+                    <span class="rotulo">Lei federal</span>
+                    <h3>Tratamento pelo SUS</h3>
+                    <p>A Lei 14.705/2023 garante atendimento integral no SUS: equipe com médico, psicólogo, nutricionista e fisioterapeuta, exames, remédios e terapias. Comece pela Unidade Básica de Saúde do seu bairro.</p>
+                    <a class="fonte-card" href="https://www2.camara.leg.br/legin/fed/lei/2023/lei-14705-25-outubro-2023-794853-normaatualizada-pl.pdf" rel="noopener">Texto da lei</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Lei federal</span>
+                    <h3>Fibromialgia e deficiência</h3>
+                    <p>Desde 2026, pela Lei 15.176/2025, a pessoa com fibromialgia pode ser reconhecida como pessoa com deficiência. A equiparação <strong>não é automática</strong>: depende de avaliação biopsicossocial, feita por equipe multiprofissional.</p>
+                    <a class="fonte-card" href="https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/L15176.htm" rel="noopener">Planalto</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Santa Catarina</span>
+                    <h3>Carteira catarinense (CIPF)</h3>
+                    <p>A Lei estadual 18.928/2024 criou a Carteira da Pessoa com Fibromialgia, emitida pela FCEE. Precisa de CPF, documento com foto e laudo de avaliação biopsicossocial. Peça no FCEE Digital; a análise leva até 30 dias.</p>
+                    <a class="fonte-card" href="https://www.fcee.sc.gov.br/fceedigital" rel="noopener">Pedir no FCEE Digital</a>
+                    <a class="fonte-card" href="https://www.fcee.sc.gov.br/informacoes/beneficios-para-pessoas-com-deficiencia/carteira-de-identificacao-da-pessoa-com-fibromialgia" rel="noopener">Regras da FCEE</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Santa Catarina</span>
+                    <h3>O que a carteira oferece</h3>
+                    <p>Prioridade no atendimento em serviços públicos e privados e gratuidade no transporte intermunicipal de SC, conforme as regras da FCEE. Vale por 5 anos. O TJSC validou a lei, com a ressalva de que o diagnóstico, sozinho, não garante o enquadramento.</p>
+                    <a class="fonte-card" href="https://www.tjsc.jus.br/web/imprensa/-/tj-valida-lei-sobre-fibromialgia-e-autoriza-criacao-de-carteira-de-identificacao-em-sc" rel="noopener">TJSC, 10/06/2026</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">INSS</span>
+                    <h3>Aposentadoria da pessoa com deficiência</h3>
+                    <p>Quem é reconhecido como pessoa com deficiência pode se aposentar com menos tempo de contribuição (LC 142/2013). O INSS faz avaliação médica e social. Peça pelo Meu INSS ou telefone 135.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">INSS</span>
+                    <h3>BPC/LOAS</h3>
+                    <p>Pessoa com deficiência de baixa renda pode ter direito a um salário mínimo por mês. Exige CadÚnico atualizado no CRAS e avaliação do INSS. Ter fibromialgia, sozinho, não garante o benefício.</p>
+                </div>
+            </div>
+            <div class="faixa">
+                <p><strong>Leve relatórios, não só o CID.</strong> Peça ao médico, ao fisioterapeuta e ao psicólogo
+                    relatórios que descrevam suas limitações no dia a dia e no trabalho. Não pode pagar advogado?
+                    Procure a Defensoria Pública de SC; para CadÚnico e BPC, o CRAS do seu município. Este resumo é
+                    informativo e não substitui orientação jurídica.</p>
+            </div>
+        </section>
+
+        <section class="secao" id="atendimento" aria-labelledby="t-atendimento">
+            <h2 id="t-atendimento">Onde buscar atendimento em SC</h2>
+            <p class="sub">Santa Catarina montou uma rede regional para a dor crônica, e a fibromialgia está
+                incluída. A porta de entrada é sempre o posto de saúde.</p>
+            <ol class="passos">
+                <li><strong>Comece pela Unidade Básica de Saúde</strong> do seu bairro. Conte seus sintomas; o médico pode pedir exames para descartar outras doenças.</li>
+                <li><strong>Com o diagnóstico, peça um laudo</strong> e guarde exames e receitas.</li>
+                <li><strong>Se o tratamento no posto não bastar</strong>, o médico pode encaminhar você, pela regulação (SISREG), à equipe especializada da sua região.</li>
+                <li><strong>Procure um grupo de apoio</strong> ou a associação da sua cidade.</li>
+                <li><strong>Peça a carteirinha da fibromialgia</strong> na FCEE.</li>
+            </ol>
+            <div class="tabela-rolagem" role="region" aria-labelledby="t-servicos" tabindex="0">
+                <table class="servicos">
+                    <caption id="t-servicos">Serviços de referência pelo SUS (confirme sempre com a Secretaria de Saúde do seu município)</caption>
+                    <thead><tr><th scope="col">Região</th><th scope="col">Serviço</th><th scope="col">Cidade</th><th scope="col">Como chegar</th></tr></thead>
+                    <tbody>
+                    <tr><th scope="row">Sul</th><td>AMASF — Ambulatório de Fibromialgia da Unesc</td><td>Criciúma</td><td>Encaminhamento do posto · (48) 3431-4591</td></tr>
+                    <tr><th scope="row">Grande Florianópolis</th><td>Ambulatório de Dor Neuropática e Fibromialgia do Hospital Florianópolis</td><td>Florianópolis</td><td>Regulação estadual</td></tr>
+                    <tr><th scope="row">Vale do Itajaí</th><td>Equipe de Reabilitação Especializada — FURB</td><td>Blumenau</td><td>Encaminhamento do posto (SISREG)</td></tr>
+                    <tr><th scope="row">Foz do Rio Itajaí</th><td>Equipe de Reabilitação Especializada — Univali</td><td>Itajaí</td><td>Encaminhamento do posto (SISREG)</td></tr>
+                    <tr><th scope="row">Meio-Oeste</th><td>Equipe de Reabilitação Especializada — Unoesc</td><td>Joaçaba</td><td>Encaminhamento do posto (SISREG)</td></tr>
+                    <tr><th scope="row">Serra</th><td>Equipe de Reabilitação Especializada — Uniplac</td><td>Lages</td><td>Encaminhamento do posto (SISREG)</td></tr>
+                    <tr><th scope="row">Grande Oeste e Norte</th><td>Ainda sem equipe estadual de referência (jul. 2026)</td><td>—</td><td>Posto de saúde e Secretaria Municipal</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="fontes-secao">Fontes: <a class="fonte-card" href="https://www.saude.sc.gov.br/index.php/pt/atencao-primaria-a-saude/linhas-de-cuidado/linhas-de-cuidado-documentos/linha-de-cuidado-da-pessoa-com-dor-cronica/download" rel="noopener">Linha de Cuidado da Dor Crônica, SES/SC (jul. 2026)</a> · <a class="fonte-card" href="https://portalelegis.alesc.sc.gov.br/documentos/xmDvD" rel="noopener">Resposta da SES à Alesc (out. 2025)</a> · <a class="fonte-card" href="https://www.unesc.net/noticias/categoria/extensao/fevereiro-roxo-amplia-alerta-e-reforca-importancia-do-diagnostico-clinico-da-fibromialgia" rel="noopener">Unesc (fev. 2026)</a></p>
+        </section>
+
+
+        <section class="secao banda" id="app" aria-labelledby="t-app">
+            <h2 id="t-app">App Uniafibro</h2>
+            <div class="app">
+                <img src="/uniafibro/logo.png" alt="Ícone do app Uniafibro" width="120" height="120">
+                <div>
+                    <p>O app Uniafibro para Android está em fase de testes.</p>
+                    <span class="selo">Em breve na Google Play</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="secao" id="contato" aria-labelledby="t-contato">
+            <h2 id="t-contato">Contato</h2>
+            <div class="cartao">
+                <!-- PREENCHER [W]: troque o parágrafo abaixo pelo e-mail e/ou telefone de contato da
+                     associação (e, se quiser, as redes sociais). -->
+                <p class="suave">Os canais de contato da associação serão publicados em breve.</p>
+            </div>
         </section>
     </main>
 
     <footer>
-        &copy; Uniafibro · feito com oimpresso
+        <div class="rodape">
+            <span>&copy; Uniafibro · União das Associações de Fibromialgia de SC</span>
+            <span>feito com oimpresso</span>
+        </div>
     </footer>
 </body>
 </html>
