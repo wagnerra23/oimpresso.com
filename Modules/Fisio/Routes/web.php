@@ -17,6 +17,7 @@ use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\FiscalController;
 use Modules\Fisio\Http\Controllers\PainelController;
 use Modules\Fisio\Http\Controllers\PesquisaController;
+use Modules\Fisio\Http\Controllers\PacoteComprovanteController;
 use Modules\Fisio\Http\Controllers\PacotesController;
 use Modules\Fisio\Http\Controllers\PortalAgendaController;
 use Modules\Fisio\Http\Controllers\PortalController;
@@ -178,6 +179,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('pacotes/{pacote}/consumir', [PacotesController::class, 'consumir'])->whereNumber('pacote')->name('pacotes.consumir');
         Route::post('pacotes/{pacote}/venda', [PacotesController::class, 'ligarVenda'])->whereNumber('pacote')->name('pacotes.venda');
         Route::post('pacotes/lancamentos/{lancamento}/estornar', [PacotesController::class, 'estornar'])->whereNumber('lancamento')->name('pacotes.estornar');
+        // Comprovante (voucher) do pacote em PDF (UC-FPK-10): leitura com fisio.access; só sessões, sem valor.
+        Route::get('pacotes/{pacote}/comprovante.pdf', [PacoteComprovanteController::class, 'show'])->whereNumber('pacote')->name('pacotes.comprovante');
         // Documentos fiscais do dia (US-FISIO-023): NFS-e lida do NFSe; Receita Saúde só marca o envio.
         Route::get('fiscal', [FiscalController::class, 'index'])->name('fiscal.index');
         Route::post('fiscal/recibos/{payment}/enviado', [FiscalController::class, 'marcarEnviado'])->whereNumber('payment')->name('fiscal.recibos.enviado');

@@ -277,7 +277,7 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: US-FISIO-020. Fonte de design `prototipo-ui/cowork/Wagner/prototipos/fisio/Financeiro.dc.html`. Página própria em `/fisio/pacientes/{id}/pacote` (a barra de abas da ficha é do lote 1). Só leitura de dinheiro: títulos e nota vêm do Financeiro e do NFSe pela venda do pacote.
 
-**DoD:** mostra saldo, sessões do ledger, títulos da venda do pacote e status da NFS-e; empresa sem venda ligada mostra estado vazio sem erro; Pix Automático só aparece para `atendimento.tipo = pj`; paciente de outra empresa 404; nenhum valor gravado pela tela.
+**DoD:** mostra saldo, sessões do ledger, títulos da venda do pacote e status da NFS-e; empresa sem venda ligada mostra estado vazio sem erro; Pix Automático só aparece para `atendimento.tipo = pj`; paciente de outra empresa 404; nenhum valor gravado pela tela. Comprovante (voucher) do pacote em PDF para entregar ao paciente, só com sessões e sem valor (UC-FPK-10, `Modules/Fisio/Http/Controllers/PacoteComprovanteController.php`, `Modules/Fisio/Services/Pacotes/ComprovantePacote.php`).
 
 ### US-FISIO-022 · Vender e renovar pacote pela venda do núcleo — **P0**
 

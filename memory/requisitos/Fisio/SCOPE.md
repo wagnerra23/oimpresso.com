@@ -33,6 +33,7 @@ contains:
   - "EnvioWhatsappController — envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
   - "Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro (SaldoDoPacote, US-FISIO-020)"
   - "PacotesController — aba Pacote e cobrança: abre pacote e registra sessão; títulos e NFS-e só lidos do Financeiro e do NFSe (US-FISIO-021)"
+  - "PacoteComprovanteController — comprovante (voucher) do pacote de sessões em PDF, só sessões e sem valor (US-FISIO-021, UC-FPK-10)"
   - "VendaDoPacoteObserver — liga a venda do núcleo ao pacote pelo id; venda cancelada tira a sobra do saldo, sem tocar no Financeiro (US-FISIO-022)"
   - "FiscalController — documentos fiscais do dia: NFS-e lida do NFSe e fila do Receita Saúde sobre transaction_payments; grava só a marca de envio em fisio_health_receipts (US-FISIO-023)"
   - "ConfiguracoesController — Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
