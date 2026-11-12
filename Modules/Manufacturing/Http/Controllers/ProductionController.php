@@ -773,7 +773,9 @@ class ProductionController extends Controller
             //Adjust stock over selling if found
             $this->productUtil->adjustStockOverSelling($transaction);
 
+            // O local acompanha a ordem: sem ele, o acabado entrava no local novo e o insumo saía do antigo (UC-OP-18).
             $transaction_sell_data = [
+                'location_id' => $transaction->location_id,
                 'transaction_date' => $transaction->transaction_date,
                 'status' => $is_final ? 'final' : 'draft',
                 'payment_status' => 'due',

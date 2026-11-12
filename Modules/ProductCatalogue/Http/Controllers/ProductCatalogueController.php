@@ -12,7 +12,7 @@ use Modules\ProductCatalogue\Services\CatalogueService;
  * Wave 16 D4 Architecture — Controller refatorado pra ser MAGRO (single responsibility).
  *
  * Responsabilidades exclusivas do Controller (≤30 linhas/método):
- *   - Receber HTTP Request (validações via FormRequest separado quando aplicável)
+ *   - Receber HTTP Request (lê os parâmetros direto do request; não há FormRequest)
  *   - Delegar lógica de negócio aos Services injetados via constructor
  *   - Devolver Response/View
  *
@@ -21,7 +21,7 @@ use Modules\ProductCatalogue\Services\CatalogueService;
  *   - {@see CatalogueQrService} — tela admin QR generator
  *   - {@see \Modules\ProductCatalogue\Repositories\ProductCatalogueRepository} — DB
  *
- * Pattern canônico: ADR 0011 (padrão Jana/Repair), inspirado em Modules/Jana/Services.
+ * Pattern canônico: ADR 0011 (padrão de módulo do projeto). Não depende de outro módulo.
  */
 class ProductCatalogueController extends Controller
 {

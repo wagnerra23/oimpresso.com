@@ -168,7 +168,7 @@ imprimir data na etiqueta, **o shift não é bug** — é contrato.
 |---|---|---|
 | **Multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) | `VestuarioSetting` tem global scope `business_id` + `UNIQUE(business_id)`; o Controller deriva o biz da sessão web; a config de um business **nunca** resolve para outro | `VestuarioSetting::booted` · `EtiquetaTagController::businessIdFromSession` |
 | **`withoutGlobalScopes` só com comentário** | `VestuarioSettingsResolver::loadSettings` usa `withoutGlobalScopes(['business_id'])` **com** o comentário `// SUPERADMIN: resolver pode rodar fora sessão (jobs/CLI)` e **re-aplica** o filtro no `where('business_id', $businessId)` logo abaixo | `VestuarioSettingsResolver::loadSettings` |
-| **Teste biz=1, NUNCA biz=4** ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) | todo teste do domínio usa biz=1 (Wagner) e biz=99 (adversário). biz=4 é PRODUÇÃO | `Modules/Vestuario/Tests/Feature/*` |
+| **Teste no tenant 98, NUNCA biz=4** ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)) | teste novo usa o tenant fictício 98 e o 99 de adversário; os contratos novos (curva, remarcação, limite de etiqueta, pacote, FK) já rodam no tenant 98; `UsVest020EtiquetaTagControllerTest`, `VestuarioSetting*Test` e `W27EtiquetaGradeTest` ainda usam biz=1 (legado fora da doutrina, medido em 2026-11-12). biz=4 é PRODUÇÃO | `Modules/Vestuario/Tests/Feature/*` |
 | **REGRA MESTRE valor/estoque** ([proibicoes](../../proibicoes.md)) | a geração de etiqueta é **read-only** — não move estoque nem grava preço. É o `CU-VEST-07`, marcado `[V0]` justamente para que qualquer mudança futura passe pela dupla-confirmação | §6 `CU-VEST-07` |
 | **PII / LGPD** | a etiqueta carrega **produto**, nunca cliente. Sem CPF/CNPJ/nome de pessoa no ZPL, no PDF ou no log | [`PII-LGPD.md`](PII-LGPD.md) · `Log::info('vestuario.etiqueta.*')` loga só biz/contagem/bytes |
 | **MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) | a tela tem RUNBOOK (F1) — mas ele **não estava declarado no charter**, e por isso ficava invisível para o hook e para o mapa (§9 D-3) | `RUNBOOK-etiqueta-tag.md` |
@@ -613,7 +613,7 @@ texto de aviso ao cliente e mantém a tela antiga disponível — coexistência,
 - [`memory/requisitos/Vestuario/SCOPE.md`](SCOPE.md)
 - [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) (mãe do vertical) ·
   [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) ·
-  [0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) ·
+  [0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) ·
   [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) ·
   [0264](../../decisions/0264-governanca-executavel-trio-dominio-e2e.md) ·
   [0351](../../decisions/0351-sdd-from-source.md)

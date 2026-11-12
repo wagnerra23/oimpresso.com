@@ -6,7 +6,7 @@ type: runbook
 authority: canonical
 lifecycle: ativo
 owner: W
-last_updated: 2026-05-20
+last_updated: 2026-11-12
 pii: false
 related_us: [US-VEST-020]
 related_adrs:
@@ -25,7 +25,7 @@ related_adrs:
 
 Hoje ROTA LIVRE imprime etiqueta UltimatePOS padrão (SKU + nome + preço). Concorrentes verticais (Linx Microvix, Mubisys, ProMoz) imprimem **TAM-COR-COLEÇÃO + EAN-13 + QR Code** legível humano. Sem isso, balcão perde 5–10s por peça lendo barcode pequeno.
 
-`EtiquetaTagService` + 14 testes Pest **já existem** desde Wave 27 (PR histórico). Falta camada HTTP/UI + QR + settings configurable + PDF fallback pra fechar a US.
+`EtiquetaTagService` + testes Pest **já existiam** desde Wave 27 (PR histórico; a contagem da época não é mantida aqui, a lista viva é `Modules/Vestuario/Tests/Feature/`). Falta camada HTTP/UI + QR + settings configurable + PDF fallback pra fechar a US.
 
 ## Acceptance criteria (US-VEST-020)
 
@@ -80,7 +80,7 @@ Defaults preservam comportamento atual (50×30mm @ 203dpi, sem QR). Cliente liga
 
 - Controller usa `auth()->user()->business_id` (sessão web) — sem `withoutGlobalScopes` no controller
 - Service aceita `$businessId` override (jobs/CLI)
-- Pest test biz=**1** (Wagner), NUNCA biz=4 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md))
+- Pest no tenant fictício **98**, adversário 99, NUNCA biz=4 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)); os contratos novos (curva, remarcação, limite de etiqueta, pacote, FK) já rodam no tenant 98; `UsVest020EtiquetaTagControllerTest`, `VestuarioSetting*Test` e `W27EtiquetaGradeTest` ainda usam biz=1 (legado fora da doutrina, medido em 2026-11-12)
 - Cross-tenant adversário: biz=99
 - `VestuarioSettingsResolver` usa `withoutGlobalScopes(['business_id'])` com comentário `// SUPERADMIN: resolver pode rodar fora sessão (jobs/CLI)` — já presente
 
