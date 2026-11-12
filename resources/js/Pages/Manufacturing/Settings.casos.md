@@ -76,7 +76,8 @@ last_run: "2026-10-06"
   `Business::where('id', $business_id)->update(...)` — nunca um update sem cláusula de tenant.
 - **Fonte:** [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) +
   SPEC.md DoD ("Escrita scoped por business_id").
-- **Teste:** `Wave31SettingsInertiaTest.php`
+- **Teste:** `Wave31SettingsInertiaTest.php` e, por HTTP desde 2026-11-11, `IsolamentoEscritasEmpresaTest.php`
+  (o POST grava na empresa da sessão e a configuração da outra não muda).
 - **Regressão que defende:** alguém trocar por `Business::update(...)` em massa (o Eloquent
   permite) e reconfigurar o módulo de TODOS os tenants de uma vez.
 - **Status: 🧪**

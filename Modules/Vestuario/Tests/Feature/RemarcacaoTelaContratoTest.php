@@ -105,6 +105,26 @@ it('UC-VREM-06 — ligada, abre só com a permissão própria e só com dados da
     ($this->como)($semPermissao, $this->biz->id)->get('/vestuario/remarcacao')->assertForbidden();
 });
 
+it('UC-VREM-06 — categorias e o histórico de lotes (prop deferida) mostram só a empresa da sessão [T0]', function () {
+    ($this->ligar)($this->biz->id, true);
+    $categoria = fn (int $biz) => DB::table('categories')->insertGetId(['name' => 'Cat ' . $this->tag . ' ' . $biz, 'business_id' => $biz,
+        'short_code' => 'CAT', 'parent_id' => 0, 'category_type' => 'product',
+        'created_by' => (int) DB::table('business')->where('id', $biz)->value('owner_id'), 'created_at' => now(), 'updated_at' => now()]);
+    $lote = fn (int $biz) => DB::table('vestuario_remarcacoes')->insertGetId(['business_id' => $biz, 'nome' => 'Lote ' . $this->tag,
+        'filtro' => json_encode(['nome' => $this->tag]), 'modo' => 'percentual', 'valor' => -10, 'qtd_itens' => 1,
+        'aplicada_por' => $this->editor->id, 'created_at' => now(), 'updated_at' => now()]);
+
+    [$catMinha, $catAlheia] = [$categoria($this->biz->id), $categoria($this->outra->id)];
+    [$loteMeu, $loteAlheio] = [$lote($this->biz->id), $lote($this->outra->id)];
+
+    ($this->como)($this->editor, $this->biz->id)->get('/vestuario/remarcacao')->assertOk()
+        ->assertInertia(fn (Assert $p) => $p->component('Vestuario/Remarcacao/Index', false)
+            // controle positivo: a da própria empresa aparece, então o filtro não está vazio por acaso
+            ->where('categorias', fn ($c) => collect($c)->pluck('id')->contains($catMinha) && collect($c)->pluck('id')->doesntContain($catAlheia))
+            ->loadDeferredProps(fn (Assert $r) => $r->where('lotes', fn ($l) => collect($l)->pluck('id')->contains($loteMeu)
+                && collect($l)->pluck('id')->doesntContain($loteAlheio))));
+});
+
 it('UC-VREM-06 — quem só edita produto não remarca, nem na prévia nem revertendo [T0]', function () {
     ($this->ligar)($this->biz->id, true);
     $soProduto = $this->usuarioComPermissoes(['product.update'], $this->biz);

@@ -8,6 +8,33 @@ Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.
 
 ## [Unreleased]
 
+### Auditoria NfeBrasil — 2026-11-10 e 2026-11-11
+
+Cinco lotes, cada item com o PR que mudou o código.
+
+- **Lote 0 — arquivos e números:** XML, DANFE e DF-e no disco privado `nfe_fiscal` ([#10692](https://github.com/wagnerra23/oimpresso.com/pull/10692)); XML
+  autorizado guardado com o protocolo, `nfeProc` ([#10696](https://github.com/wagnerra23/oimpresso.com/pull/10696)); consulta à SEFAZ antes de liberar número em
+  duplicidade, `denegada` mantém o status ([#10698](https://github.com/wagnerra23/oimpresso.com/pull/10698)); inutilização não sobrescreve nota autorizada ou
+  cancelada ([#10701](https://github.com/wagnerra23/oimpresso.com/pull/10701)); "Detalhes" da venda abre a nota certa em NF-e e NFC-e ([#10702](https://github.com/wagnerra23/oimpresso.com/pull/10702)).
+- **Lote 1 — motor:** toda nota autorizada dispara `NFeAutorizada`/`NFCeAutorizada` ([#10723](https://github.com/wagnerra23/oimpresso.com/pull/10723)); uma
+  emissão por venda de cada vez ([#10725](https://github.com/wagnerra23/oimpresso.com/pull/10725)); DF-e espera 1 h depois de 137 e trata o 656 ([#10729](https://github.com/wagnerra23/oimpresso.com/pull/10729));
+  CC-e com ambiente, UF e CNPJ do emitente ([#10731](https://github.com/wagnerra23/oimpresso.com/pull/10731)); certificado só de `nfe_certificados`, sem fallback
+  legado ([#10733](https://github.com/wagnerra23/oimpresso.com/pull/10733), ADR 0449 **proposta**).
+- **Lote 2 — cancelamento:** cancelar a venda cancela a NF-e autorizada ([#10697](https://github.com/wagnerra23/oimpresso.com/pull/10697)).
+- **Lote 3 — permissões e pacote:** emitir exige `nfebrasil.emit.manage`, dado a quem já cria venda
+  ([#10722](https://github.com/wagnerra23/oimpresso.com/pull/10722)); permissão nas ações fiscais que só exigiam login ([#10728](https://github.com/wagnerra23/oimpresso.com/pull/10728)); `/nfe-brasil/*` com login
+  exige o pacote `fiscal_module`, com o link do contador e o DANFE assinado de fora ([#10732](https://github.com/wagnerra23/oimpresso.com/pull/10732)).
+- **Lote 4 — testes:** [#10726](https://github.com/wagnerra23/oimpresso.com/pull/10726) · [#10727](https://github.com/wagnerra23/oimpresso.com/pull/10727) · [#10730](https://github.com/wagnerra23/oimpresso.com/pull/10730) · [#10734](https://github.com/wagnerra23/oimpresso.com/pull/10734) (asserts que provam a camada da recusa, isolamento
+  98×99 de contadores/envios/cursor NSU, render e axe das telas, 16 arquivos novos na lane MySQL).
+- **Lote 5 — documentação:** SPEC, SDD, RUNBOOKs, SCOPE, charter do contador, ADR TECH-0004 (proposta, emenda
+  TECH-0002 e UI-0001) e este changelog.
+
+> **Nota de 2026-11-11 sobre os "Planejado" abaixo.** São o plano de abril e ficam como foram escritos. Onde o
+> código seguiu outro caminho: a emissão NFC-e sai de um listener de `SellCreatedOrModified`, não de Observer em
+> `Transaction`; os pacotes são `nfephp-org/sped-nfe` e `nfephp-org/sped-da`, não `eduardokum/*`; o status chega
+> por polling, não por broadcast Echo, e FS-DA não foi feito (ADR TECH-0004, proposta); a tabela
+> `nfe_number_sequences` não existe (a numeração usa `lockForUpdate`, TECH-0001); o SPED é do Modules/Fiscal.
+
 ### Planejado (Fase 1 — MVP NFC-e Simples Nacional SP)
 
 - Schema base: `nfe_certificados`, `nfe_emissoes`, `nfe_eventos`, `nfe_business_configs`, `nfe_number_sequences`

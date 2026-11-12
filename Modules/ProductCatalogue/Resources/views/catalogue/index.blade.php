@@ -58,14 +58,8 @@
                             <a href="#" class="show-product-details" data-href="{{action([\Modules\ProductCatalogue\Http\Controllers\ProductCatalogueController::class, 'show'],  [$business->id, $product->id])}}?location_id={{$business_location->id}}">
                             <img src="{{$product->image_url}}" class="img-responsive catalogue"></a>
 
-                            @php
-                                $discount = $discounts->firstWhere('brand_id', $product->brand_id);
-                                if(empty($discount)){
-                                    $discount = $discounts->firstWhere('category_id', $product->category_id);
-                                }
-                            @endphp
-
-                            @include('productcatalogue::catalogue.partials.discount_badge', ['discount' => $discount])
+                            {{-- Mesmo desconto que o PDV aplicaria: vem do CatalogueService (getProductDiscount). --}}
+                            @include('productcatalogue::catalogue.partials.discount_badge', ['discount' => $product->desconto_vitrine ?? null])
 
                             @php
                                 $max_price = $product->variations->max('sell_price_inc_tax');

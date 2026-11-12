@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-PCAT-003
 
 /**
  * Pest 4 Browser — comportamento + acessibilidade da tela

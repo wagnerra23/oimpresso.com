@@ -89,6 +89,9 @@ return [
         // pelo CEP daquele estudo (`fisio_studies.tcle_version`, etapa 07 P-02). A antiga
         // `pesquisa_ia` saiu da lista: os aceites antigos ficam no banco e não valem para nada.
         'treino_ia' => 'v1',
+        // Enviar foto de exame ou receita pelo portal (US-FISIO-063, parte 4). Separado do
+        // teleatendimento: sem ele o portal não recebe o envio.
+        'documentos' => 'v1',
     ],
 
     /*
@@ -126,6 +129,29 @@ return [
     'midia' => [
         'foto_max_kb' => 10240,   // 10 MB
         'video_max_kb' => 51200,  // 50 MB
+    ],
+
+    /*
+     * Exames e receitas do paciente (US-FISIO-063): foto ou PDF, teto em KB validado no servidor.
+     * Abaixo do `upload_max_filesize` de public/.user.ini (64M).
+     */
+    'documentos' => [
+        'max_kb' => 10240,  // 10 MB
+        /*
+         * Transcrição da foto pela IA (US-FISIO-063, parte 3). Ligada por empresa em `fisio_settings`
+         * (`documentos.transcricao_ia`, desligada por padrão). provider/model nulos = padrão do
+         * laravel/ai (ADR 0035). `provedores_sem_treino`: só estes recebem a foto. Entra aqui o
+         * provedor cuja API, por contrato, não usa o conteúdo enviado para treinar modelo
+         * (Anthropic e OpenAI pela API comercial). Provedor com plano gratuito que treina com o
+         * conteúdo (ex.: Gemini sem faturamento) não entra. Sem `env()` aqui (Larastan).
+         */
+        // Envios pelo portal por paciente e por dia: acima disso o portal responde 429.
+        'portal_max_dia' => 10,
+        'transcricao' => [
+            'provider' => null,
+            'model' => null,
+            'provedores_sem_treino' => ['anthropic', 'openai'],
+        ],
     ],
 
     /*

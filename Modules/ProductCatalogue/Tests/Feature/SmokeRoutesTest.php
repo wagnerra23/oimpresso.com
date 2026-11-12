@@ -32,4 +32,6 @@ it('rota admin do catálogo carrega a pilha de middleware do UltimatePOS', funct
     expect($middleware)->toContain('web');
     expect($middleware)->toContain('auth');
     expect($middleware)->toContain('SetSessionData');
+    // Lote 4 (2026-11-12): a stack admin do módulo não tinha CheckUserLogin.
+    expect($middleware)->toContain('CheckUserLogin');
 });
