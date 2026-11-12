@@ -335,6 +335,22 @@ last_run: "2026-10-07"
 
 ---
 
+## UC-OP-18 · Trocar o local do rascunho leva a ordem inteira para o local novo
+- **Persona:** Eliana (produção) — gravou o rascunho na Matriz e vai produzir na Filial.
+- **Aceite:** Dado um rascunho gravado no local A · Quando edito para o local B e finalizo · Então o acabado
+  entra em B, o insumo sai de B e o local A fica como estava · Quando edito para B sem finalizar · Então a
+  venda de produção da ordem também passa para B e o estoque não muda · Dado o mesmo local · Então entrada
+  e baixa acontecem nele (âncora positiva).
+- **Fonte:** handoff Fabricação §6 (um campo Local por ordem) e §9 (finalizar é atômico; meio caminho deixa
+  estoque mentindo).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemTrocaLocalTest.php` — saldo dos dois locais e local da
+  venda de produção.
+- **Regressão que defende:** o `update` regravar o local da ordem e não o da venda de produção, e a baixa do
+  insumo sair do local antigo.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.
@@ -367,3 +383,4 @@ last_run: "2026-10-07"
 - 2026-11-09 · [C] UC-OP-14 (US-MANU-008 H1): o item H1 do backlog virou caso com teste. A tela não mudou.
 - 2026-11-11 · [C] UC-OP-16 (lote 1.1 da auditoria): consumo declarado na linha e sub-unidade, com teste. A entrada e a baixa ao finalizar ficam em UC-EST-08B (`Estoque/Movimentacao.casos.md`). A tela não mudou.
 - 2026-11-11 · [C] UC-OP-20 (lote 1.2 da auditoria): quantidade e custo da ordem sem reconversão de número. A tela não mudou.
+- 2026-11-11 · [C] UC-OP-18 (lote 1.3 da auditoria): trocar o local do rascunho leva entrada e baixa juntas. A tela não mudou.
