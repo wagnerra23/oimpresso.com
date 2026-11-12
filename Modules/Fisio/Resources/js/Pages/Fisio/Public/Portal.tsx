@@ -15,7 +15,8 @@
 // aparelho lembrado (o servidor decide pelo cabeçalho X-Fisio-Offline)  → _components/Instalar.tsx
 // Nada clínico aparece antes do PIN e do consentimento: isso é garantido no servidor.
 import { Head, router } from '@inertiajs/react';
-import { HeartPulse, ShieldCheck } from 'lucide-react';
+import { FileText, HeartPulse, ShieldCheck } from 'lucide-react';
+import { Button } from '@/Components/ui/button';
 import { useEffect, useState, type ReactNode } from 'react';
 import { TelaCheckin, InstrucaoDaFisio } from './_components/Checkin';
 import { EtapaConsentimento, EtapaPin } from './_components/Entrada';
@@ -54,7 +55,11 @@ interface Props {
   avaliacoes_estudo?: AvaliacaoEstudo[];
   envio_documentos?: EnvioDocumentos;
   estudos_pesquisa?: EstudoAceito[];
+  laudos_bps?: LaudoDoPortal[];
 }
+
+/** Laudo biopsicossocial finalizado e vigente (UC-FBP-16): o paciente baixa o PDF para levar à unidade de saúde. */
+interface LaudoDoPortal { id: number; finalizado_em: string }
 
 /** Avaliação do estudo em aberto (etapa 07 P-05). A clínica aplica na sessão; o portal só avisa. */
 interface AvaliacaoEstudo { moment_id: number; momento: string; ate: string; questionarios: string[] }
@@ -159,6 +164,18 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
       onCrise={() => setTela('crise')}
       constancia={props.constancia && <CartaoConstancia token={token} inicial={props.constancia} />}
     />
+    {(props.laudos_bps ?? []).map((l) => (
+      <section key={l.id} data-contract="fisio-portal-laudo-bps" aria-label="Seu laudo biopsicossocial"
+        className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4">
+        <span className="font-semibold">Seu laudo biopsicossocial</span>
+        <span className="text-sm text-muted-foreground">
+          Finalizado em {new Date(`${l.finalizado_em}T12:00:00`).toLocaleDateString('pt-BR')}. Você pode imprimir e levar à unidade de saúde. A carteira de fibromialgia segue o fluxo da FCEE.
+        </span>
+        <Button asChild variant="outline" className="h-12">
+          <a href={`/fisio/p/${token}/laudos-bps/${l.id}/pdf`}><FileText className="size-4" aria-hidden="true" /> Baixar o laudo (PDF)</a>
+        </Button>
+      </section>
+    ))}
     <ConviteInstalar diasCumpridos={jogo.dias_cumpridos} />
     <button type="button" className="self-center text-sm text-muted-foreground underline-offset-4 hover:underline" onClick={() => setTela('config')}>Configurações e autorizações</button>
     <button type="button" className="self-center text-sm text-primary underline-offset-4 hover:underline" onClick={() => setTela('consultas')}>Minhas consultas</button>
