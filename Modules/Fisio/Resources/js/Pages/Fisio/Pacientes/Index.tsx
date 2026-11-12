@@ -24,6 +24,7 @@ import OrigemContato, { type NovoContato, type Origem } from './_components/Orig
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
 import FiltroResponsavel from '../_components/FiltroResponsavel';
 import type { Profissional } from '../_components/ResponsavelPaciente';
+import { faltaParaCadastrar } from '../_components/novoPaciente';
 
 interface Paciente {
   id: number;
@@ -115,9 +116,9 @@ function NovoPaciente({ condicoes, onClose }: { condicoes: string[]; onClose: ()
     }));
     form.post('/fisio/pacientes', { onSuccess: onClose });
   };
-  const pronto = origem === 'existente'
-    ? form.data.contact_id !== null
-    : form.data.novo_contato.nome.trim() !== '' && form.data.novo_contato.telefone !== '';
+  // Diz o que falta em vez de só deixar o botão cinza (UC-FPI-21); o botão segue a mesma regra.
+  const falta = faltaParaCadastrar(origem, form.data.contact_id, form.data.novo_contato.nome, form.data.novo_contato.telefone);
+  const pronto = falta === null;
 
   return (
     <Sheet open onOpenChange={(aberto) => !aberto && onClose()}>
@@ -146,8 +147,9 @@ function NovoPaciente({ condicoes, onClose }: { condicoes: string[]; onClose: ()
               onChange={(campo, valor) => form.setData(campo, valor as never)}
             />
           </Secao>
-          <SheetFooter>
-            <Button type="submit" disabled={form.processing || !pronto}>Cadastrar paciente</Button>
+          <SheetFooter className="flex-col items-stretch gap-2">
+            {falta && <p id="novo-paciente-falta" className="text-sm text-muted-foreground" data-contract="fisio-novo-paciente-falta">{falta}</p>}
+            <Button type="submit" disabled={form.processing || !pronto} aria-describedby={falta ? 'novo-paciente-falta' : undefined}>Cadastrar paciente</Button>
           </SheetFooter>
         </form>
       </SheetContent>

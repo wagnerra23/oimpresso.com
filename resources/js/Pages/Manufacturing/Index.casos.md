@@ -289,6 +289,39 @@ last_run: "2026-10-07"
 
 ---
 
+## UC-OP-16 · O consumo baixado é o declarado na linha, na unidade base
+- **Persona:** Eliana (produção) — ajusta o consumo real de um insumo e finaliza a ordem.
+- **Aceite:** Dado uma linha de insumo com consumo declarado e % de perda gravada · Quando finalizo a
+  ordem · Então o estoque do insumo baixa exatamente o consumo declarado, sem descontar nem somar a % da
+  linha · Dado o insumo lançado numa sub-unidade (embalagem de 5) e o acabado numa sub-unidade (pacote de
+  10) · Quando finalizo · Então a baixa e a entrada acontecem na unidade base (quantidade × multiplicador).
+- **Fonte:** handoff Fabricação §7 ponto 4 (o multiplicador da sub-unidade multiplica a linha) ·
+  CU-MFG-18 (o operador ajusta o consumo real) · ADR 0448 D4 (o desperdício saiu da composição; a perda
+  real vai para a ordem).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemFinalizarEstoqueTest.php` — confere o saldo e o
+  consumo registrado na compra do insumo (`mfg_quantity_used`).
+- **Regressão que defende:** a % de perda da linha voltar a mexer na baixa, ou a sub-unidade baixar e dar
+  entrada sem o multiplicador.
+- **Status: 🧪**
+
+---
+
+## UC-OP-20 · A ordem grava quantidade e custo como informados, sem reconverter número
+- **Persona:** Eliana (produção) — lança um consumo fracionado (0,125) e um lote grande de item barato.
+- **Aceite:** Dado um consumo de 0,125 · Quando finalizo · Então a linha grava 0,125 e o estoque baixa 0,125
+  (não 125) · Dado um insumo com custo de 3 casas (12,345) · Então o preço da linha é 12,345 · Dado 3
+  unidades por 100 · Então o custo unitário do acabado é 33,3333 e quantidade × custo volta a 100 · Dado 400
+  unidades por 2 · Então o custo unitário é 0,005 (não 0,00 nem 0,01) · Dado 2,5 produzidas e 0,375
+  perdidas · Então o acabado grava 2,125.
+- **Fonte:** handoff Fabricação §7 ponto 6 ("Nada é arredondado no meio da conta") e §9 (custo recalculado no
+  servidor) · regra mestre de valor e estoque (`proibicoes.md`, incidente de 2026-06-05).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemNumeroTest.php` — cada caso por dois caminhos.
+- **Regressão que defende:** a quantidade e o preço da linha passarem por `num_uf` duas vezes (0,125 vira
+  125) e o custo unitário do acabado passar por `num_f` (2 casas).
+- **Status: 🧪**
+
+---
+
 ## UC-OP-18 · Trocar o local do rascunho leva a ordem inteira para o local novo
 - **Persona:** Eliana (produção) — gravou o rascunho na Matriz e vai produzir na Filial.
 - **Aceite:** Dado um rascunho gravado no local A · Quando edito para o local B e finalizo · Então o acabado
@@ -335,4 +368,6 @@ last_run: "2026-10-07"
   produto da própria empresa. Vermelho só com o teste na run 39441296307 (500 na variação inexistente; ordem
   de outra empresa gravada antes do 404 acidental); verde com o conserto na run 39446612104.
 - 2026-11-09 · [C] UC-OP-14 (US-MANU-008 H1): o item H1 do backlog virou caso com teste. A tela não mudou.
+- 2026-11-11 · [C] UC-OP-16 (lote 1.1 da auditoria): consumo declarado na linha e sub-unidade, com teste. A entrada e a baixa ao finalizar ficam em UC-EST-08B (`Estoque/Movimentacao.casos.md`). A tela não mudou.
+- 2026-11-11 · [C] UC-OP-20 (lote 1.2 da auditoria): quantidade e custo da ordem sem reconversão de número. A tela não mudou.
 - 2026-11-11 · [C] UC-OP-18 (lote 1.3 da auditoria): trocar o local do rascunho leva entrada e baixa juntas. A tela não mudou.

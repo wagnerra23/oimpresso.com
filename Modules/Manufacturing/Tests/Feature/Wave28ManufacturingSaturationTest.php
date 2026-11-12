@@ -46,18 +46,42 @@ describe('Wave 28 Manufacturing POLISH 77-90 → ≥92', function () {
         expect($src)->toContain('return 0.0');
     });
 
-    it('D2 W28: RecipeBomService.calculateCost preserva paridade legacy ManufacturingUtil (waste + production_cost_type)', function () {
-        $src = file_get_contents((new ReflectionClass(RecipeBomService::class))->getFileName());
+    // Até 2026-11-11 este caso lia o fonte do Service procurando as strings 'percentage',
+    // 'per_unit', 'base_unit_multiplier' e 'dpp_inc_tax' — e o nome prometia "waste", que nem
+    // estava no assert. Agora EXECUTA `calculateCost` sobre receitas em memória e confere os
+    // números do contrato: UC-RECIPE-04 (as 3 fórmulas, mesmo extra 18) e o multiplicador da
+    // sub-unidade (UC-INS-03). Desperdício não entra no custo (UC-RECIPE-03, D4 de [W]).
+    it('D2 W28: UC-RECIPE-04 calculateCost aplica as 3 fórmulas, a sub-unidade e ignora o desperdício', function () {
+        $receita = function (string $tipo, float $multiplicador = 0.0, float $desperdicio = 0.0): MfgRecipe {
+            $recipe = new MfgRecipe([
+                'total_quantity' => 10, 'extra_cost' => 18, 'production_cost_type' => $tipo,
+                'waste_percent' => $desperdicio,
+            ]);
+            $ing = new Modules\Manufacturing\Entities\MfgRecipeIngredient(['quantity' => 10]);
+            $variacao = new App\Variation();
+            $variacao->dpp_inc_tax = 9.20;
+            $ing->setRelation('variation', $variacao);
+            if ($multiplicador > 0) {
+                $unidade = new App\Unit();
+                $unidade->base_unit_multiplier = $multiplicador;
+                $ing->setRelation('sub_unit', $unidade);
+            } else {
+                $ing->setRelation('sub_unit', null);
+            }
+            $recipe->setRelation('ingredients', collect([$ing]));
 
-        // 3 modos canon de production_cost_type ('percentage' / 'per_unit' / fallback fixed)
-        expect($src)->toContain("'percentage'");
-        expect($src)->toContain("'per_unit'");
+            return $recipe;
+        };
+        $bom = new RecipeBomService();
 
-        // base_unit_multiplier aplicado quando sub_unit existe (paridade legacy)
-        expect($src)->toContain('base_unit_multiplier');
-
-        // dpp_inc_tax * quantity — fórmula base ingrediente
-        expect($src)->toContain('dpp_inc_tax');
+        // ingredientes = 10 × 9,20 = 92,00
+        expect(round($bom->calculateCost($receita('percentage')), 2))->toBe(108.56); // 92 + 92 × 0,18
+        expect(round($bom->calculateCost($receita('per_unit')), 2))->toBe(272.0);    // 92 + 18 × 10
+        expect(round($bom->calculateCost($receita('fixed')), 2))->toBe(110.0);       // 92 + 18
+        // sub-unidade ×5: ingredientes = 460,00
+        expect(round($bom->calculateCost($receita('fixed', 5)), 2))->toBe(478.0);
+        // 10% de desperdício gravado não muda o custo
+        expect(round($bom->calculateCost($receita('fixed', 0, 10)), 2))->toBe(110.0);
     });
 
     it('D2 W28: RecipeBomService.resolveBom valida chain multi-tenant via products.business_id', function () {

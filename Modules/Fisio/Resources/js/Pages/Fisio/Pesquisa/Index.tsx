@@ -40,6 +40,7 @@ interface Props {
   estudo: Estudo | null;
   ve_nome: boolean;
   instrumentos: string[];
+  rotulos: Record<string, string>;
   participantes?: Participante[];
   pendencias?: Pendencia[];
   pacientes?: { id: number; nome: string }[];
@@ -97,7 +98,7 @@ function Travar({ estudo, fechar }: { estudo: Estudo; fechar: () => void }) {
   );
 }
 
-function NovoEstudo({ instrumentos, fechar }: { instrumentos: string[]; fechar: () => void }) {
+function NovoEstudo({ instrumentos, rotulos, fechar }: { instrumentos: string[]; rotulos: Record<string, string>; fechar: () => void }) {
   const f = useForm({ title: '', cep_opinion_number: '', protocol_version: '', tcle_version: '', starts_on: '', momentos: MOMENTOS_PADRAO });
   const alternar = (i: number, instr: string, on: boolean) => f.setData('momentos', f.data.momentos.map((m, k) => k !== i ? m
     : { ...m, instruments: on ? [...m.instruments, instr] : m.instruments.filter((x) => x !== instr) }));
@@ -120,8 +121,8 @@ function NovoEstudo({ instrumentos, fechar }: { instrumentos: string[]; fechar: 
           <li key={m.label} className="flex flex-wrap items-center gap-3 text-sm">
             <span className="w-28">{m.label} <span className="text-muted-foreground">(dia {m.day_offset} ± {m.window_days})</span></span>
             {instrumentos.map((instr) => (
-              <label key={instr} className="flex items-center gap-1 uppercase">
-                <Checkbox checked={m.instruments.includes(instr)} onCheckedChange={(v) => alternar(i, instr, v === true)} />{instr}
+              <label key={instr} className="flex items-center gap-1">
+                <Checkbox checked={m.instruments.includes(instr)} onCheckedChange={(v) => alternar(i, instr, v === true)} />{rotulos[instr] ?? instr}
               </label>))}
           </li>))}</ul>
         <DialogFooter>
@@ -297,7 +298,7 @@ export default function PesquisaIndex(props: Props) {
                       <li key={`${q.participant_id}-${q.moment}`} className="flex flex-wrap items-center gap-3 p-3 text-sm">
                         <span className="w-24 font-mono">{q.code}</span><span className="w-28">{q.moment}</span>
                         <span className="font-mono text-muted-foreground">{data(q.inicio)} a {data(q.fim)}</span>
-                        <span className="flex-1 uppercase">{q.faltando.join(', ')}</span><Badge variant={SITUACAO[q.situacao]}>{q.situacao}</Badge>
+                        <span className="flex-1">{q.faltando.map((c) => props.rotulos[c] ?? c).join(', ')}</span><Badge variant={SITUACAO[q.situacao]}>{q.situacao}</Badge>
                       </li>))}</ul>)}
                 </Deferred>
               )}
@@ -334,7 +335,7 @@ export default function PesquisaIndex(props: Props) {
           </>
         )}
       </div>
-      {dialogo === 'novo' && <NovoEstudo instrumentos={props.instrumentos} fechar={() => setDialogo(null)} />}
+      {dialogo === 'novo' && <NovoEstudo instrumentos={props.instrumentos} rotulos={props.rotulos} fechar={() => setDialogo(null)} />}
       {dialogo === 'incluir' && estudo && <Deferred data="pacientes" fallback={null}><Incluir estudo={estudo} pacientes={props.pacientes ?? []} fechar={() => setDialogo(null)} /></Deferred>}
       {saindo && estudo && <Saida estudo={estudo} p={saindo} fechar={() => setSaindo(null)} />}
       {travando && estudo && <Travar estudo={estudo} fechar={() => setTravando(false)} />}

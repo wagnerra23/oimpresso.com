@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-PCAT-003
 // Cobre UC-CQR-01, UC-CQR-03, UC-CQR-06, UC-CQR-08, UC-CQR-10, UC-CQR-11 (ProductCatalogue/CatalogueQr.casos.md).
 
 use App\Utils\ModuleUtil;
