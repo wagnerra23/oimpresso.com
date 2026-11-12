@@ -56,6 +56,8 @@ class OpeningStockController extends Controller
                                 'second_unit',
                             ])
                             ->first();
+        // UC-PIDX-45: o excluído só ganha estoque inicial depois de restaurado.
+        abort_if(! empty($product) && $product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
         if (! empty($product) && $product->enable_stock == 1) {
             //Get Opening Stock Transactions for the product if exists
             $transactions = Transaction::where('business_id', $business_id)
@@ -142,6 +144,12 @@ class OpeningStockController extends Controller
         if (! auth()->user()->can('product.opening_stock')) {
             abort(403, 'Unauthorized action.');
         }
+
+        // UC-PIDX-45: o excluído só ganha estoque inicial depois de restaurado. Fora do try: o catch
+        // genérico engoliria o abort.
+        $alvo = Product::where('business_id', $request->session()->get('user.business_id'))
+            ->where('id', (int) $request->input('product_id'))->first();
+        abort_if($alvo !== null && $alvo->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         try {
             $opening_stocks = $request->input('stocks');
@@ -403,6 +411,8 @@ class OpeningStockController extends Controller
         // Sem `with()`: as relações são lidas adiante por `getRelationValue` (um produto só). O Larastan
         // não enxerga `variations` no App\Product e a catraca não deixa o baseline crescer.
         $product = Product::where('business_id', $business_id)->where('id', $product_id)->first();
+        // UC-PIDX-45: o excluído só ganha estoque inicial depois de restaurado.
+        abort_if($product !== null && $product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         return $product !== null && (int) $product->getAttribute('enable_stock') === 1 ? $product : null;
     }
