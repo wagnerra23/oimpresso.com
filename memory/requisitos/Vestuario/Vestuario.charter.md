@@ -97,7 +97,7 @@ Validação: ROTA LIVRE biz=4, 17.251+ vendas, 99% volume sistema, em prod desde
 > Jana = Modules/Jana. Hooks abaixo são **propostos** — exigem sinal qualificado ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) antes de virar US ativa.
 
 - ✅ **Alerta estoque baixo por variant** — quando `qty_available < min_stock` por SKU+tamanho+cor, Jana sugere reposição no chat contextual
-- ✅ **Comparativo semanal de vendas** — Larissa pergunta "como foi essa semana vs anterior?" → ContextoNegocio responde com 3 ângulos faturamento ([ADR 0052](../../decisions/0052-contexto-negocio-3-angulos-faturamento.md))
+- ✅ **Comparativo semanal de vendas** — Larissa pergunta "como foi essa semana vs anterior?" → ContextoNegocio responde com 3 ângulos faturamento ([ADR 0052](../../decisions/0052-contextonegocio-expor-multiplos-angulos.md))
 - ✅ **Sugestão de preço sazonal** — fim de coleção, Jana sugere desconto baseado em curva histórica de venda do SKU
 - ✅ **Detecção de divergência inventário** — drift > 2% / mês dispara alerta passivo no brief diário
 - ✅ **Resumo do dia 18h** — Larissa recebe no brief: "vendeu R$ X, ticket médio Y, top 3 SKUs, alertas Z"

@@ -48,7 +48,7 @@ Tela de geração de etiquetas TAG térmicas do vertical Vestuário: o operador 
 
 - Lista editável de itens de etiqueta (produto/variação, quantidade), com edição por linha
 - Código de barras do `sub_sku` (EAN-13 quando válido, senão Code128) + QR Code por item
-- Montagem do payload de impressão + envio (POST com CSRF) pra a impressora térmica
+- Montagem do payload de impressão (POST com CSRF) e download do arquivo: `.zpl` para a impressora térmica (o operador envia por TCP/USB) ou `.pdf` A4; a tela não fala com a impressora
 - AppShellV2 + PageHeader shared, tokens DS
 
 ---
@@ -78,7 +78,7 @@ Tela de geração de etiquetas TAG térmicas do vertical Vestuário: o operador 
 
 ## Automation hooks (faz)
 
-- Gera o código de barras e o QR por item ao montar a lista, sem inventar número
+- Gera o código de barras e o QR por item no servidor, quando o operador pede o arquivo, sem inventar número
 - Monta o payload de impressão a partir dos itens editados
 
 ---
