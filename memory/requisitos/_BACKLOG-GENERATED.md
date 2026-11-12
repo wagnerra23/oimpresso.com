@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1086 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1079 tarefas abertas** em **60 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -18,15 +18,14 @@
 | [`NfeBrasil`](#nfebrasil) | 35 | 0 | 0 | 6 | 29 |
 | [`Producao`](#producao) | 34 | 2 | 0 | 0 | 32 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
+| [`Fisio`](#fisio) | 28 | 0 | 0 | 0 | 28 |
 | [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
 | [`Marketplaces`](#marketplaces) | 27 | 0 | 0 | 0 | 27 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
-| [`Fisio`](#fisio) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
-| [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
 | [`Compras`](#compras) | 20 | 2 | 0 | 0 | 17 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
@@ -42,6 +41,7 @@
 | [`Produto`](#produto) | 12 | 1 | 0 | 0 | 11 |
 | [`Superadmin`](#superadmin) | 12 | 0 | 0 | 0 | 12 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
+| [`Vestuario`](#vestuario) | 10 | 1 | 0 | 0 | 9 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
@@ -67,6 +67,7 @@
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Backup`](#backup) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
+| [`ProductCatalogue`](#productcatalogue) | 1 | 0 | 0 | 0 | 1 |
 
 
 ## Jana
@@ -677,6 +678,40 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
+## Fisio
+
+
+### todo
+
+- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
+- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
+- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
+- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
+- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
+- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
+- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
+- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
+- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
+- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
+- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
+- **US-FISIO-012** — Fecha o loop da F1 — **P1**
+- **US-FISIO-013** — Schema da agenda: tipos, atendimentos, bloqueios, lista de espera e regras da clínica — **P0**
+- **US-FISIO-014** — Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
+- **US-FISIO-015** — Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
+- **US-FISIO-016** — Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
+- **US-FISIO-020** — Pacote de sessões com saldo derivado de ledger append-only — **P0**
+- **US-FISIO-021** — Tela "Pacote e cobrança" da ficha do paciente — **P0**
+- **US-FISIO-022** — Vender e renovar pacote pela venda do núcleo — **P0**
+- **US-FISIO-023** — Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0**
+- **US-FISIO-024** — Lote do Receita Saúde no layout oficial — **P1**
+- **US-FISIO-025** — Planos do produto Fisio no Superadmin — **P1**
+- **US-FISIO-050** — Primeira configuração da clínica (Onboarding, 5 passos) — **P1**
+- **US-FISIO-051** — Pré-anamnese no portal antes da primeira consulta — **P1**
+- **US-FISIO-060** — Laudo de avaliação biopsicossocial no modelo SES-SC — **P1**
+- **US-FISIO-061** — Dados sociais do paciente, todos opcionais — **P1**
+- **US-FISIO-062** — Relatório agregado para a associação — **P1**
+- **US-FISIO-063** — Exames e receitas por foto, com transcrição sugerida e conferida — **P1**
+
 ## Crm
 
 
@@ -806,37 +841,6 @@
 - **US-ARQ-024** — Migrar `Modules/Ponto/Importacao` (arquivos folha eSocial — médio risco compliance) `p1`
 - **US-ARQ-025** — Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`) `p1`
 
-## Fisio
-
-
-### todo
-
-- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
-- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
-- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
-- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
-- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
-- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
-- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
-- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
-- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
-- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
-- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
-- **US-FISIO-012** — Fecha o loop da F1 — **P1**
-- **US-FISIO-013** — Schema da agenda: tipos, atendimentos, bloqueios, lista de espera e regras da clínica — **P0**
-- **US-FISIO-014** — Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
-- **US-FISIO-015** — Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
-- **US-FISIO-016** — Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
-- **US-FISIO-020** — Pacote de sessões com saldo derivado de ledger append-only — **P0**
-- **US-FISIO-021** — Tela "Pacote e cobrança" da ficha do paciente — **P0**
-- **US-FISIO-022** — Vender e renovar pacote pela venda do núcleo — **P0**
-- **US-FISIO-023** — Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0**
-- **US-FISIO-024** — Lote do Receita Saúde no layout oficial — **P1**
-- **US-FISIO-025** — Planos do produto Fisio no Superadmin — **P1**
-- **US-FISIO-050** — Primeira configuração da clínica (Onboarding, 5 passos) — **P1**
-- **US-FISIO-051** — Pré-anamnese no portal antes da primeira consulta — **P1**
-- **US-FISIO-060** — Laudo de avaliação biopsicossocial no modelo SES-SC — **P1**
-
 ## Inventory
 
 
@@ -926,36 +930,6 @@
 ### in_progress
 
 - **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
-
-## Vestuario
-
-
-### doing
-
-- **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
-
-### todo
-
-- **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
-- **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
-- **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_
-- **US-VEST-029** — Atributo "estação" (verão/inverno/meia-estação/atemporal) `p1` _(`p1`)_
-- **US-VEST-031** — Sugestão de compra por tamanho pela curva de venda `p1` _(`p1`)_
-- **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
-- **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
-- **US-VEST-032** — Remarcação por coleção, com prévia e reversão `p2` _(`p2`)_
-- **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
-- **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
-- **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
-- **US-VEST-001** — Cadastro de produto com variações tamanho + cor `live`
-- **US-VEST-002** — Venda balcão (PDV) com leitor de código de barras `live`
-- **US-VEST-003** — Emissão de NFC-e modelo 65 a partir do POS `live (parcial — biz=4 não usa hoje, mas infra existe)`
-- **US-VEST-004** — Histórico de vendas com filtros (cliente, período, vendedor) `live`
-- **US-VEST-005** — Estoque por localização (matriz tamanho × cor × loja) `live`
-- **US-VEST-006** — Compra (purchase) com fornecedor + recebimento `live`
-- **US-VEST-007** — Conta a receber (boleto Asaas) e a pagar `live`
-- **US-VEST-008** — Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
-- **US-VEST-009** — Sidebar/topnav adaptado por monitor 1280px `live`
 
 ## Compras
 
@@ -1296,6 +1270,25 @@
 - **US-CMS-009** — Importer WordPress (XML/REST API)
 - **US-CMS-010** — Editor visual drag-drop (page builder)
 
+## Vestuario
+
+
+### doing
+
+- **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
+
+### todo
+
+- **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
+- **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
+- **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_
+- **US-VEST-029** — Atributo "estação" (verão/inverno/meia-estação/atemporal) `p1` _(`p1`)_
+- **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
+- **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
+- **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
+- **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
+- **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
+
 ## Cliente
 
 
@@ -1571,3 +1564,10 @@
 ### todo
 
 - **US-MCP-017** — Tool `module-state <modulo>` (CQRS projection per bounded context) _(`p1` · @wagner)_
+
+## ProductCatalogue
+
+
+### todo
+
+- **US-PCAT-004** — Instalar, atualizar e desinstalar o módulo (padrão ADR 0011) _(@W)_

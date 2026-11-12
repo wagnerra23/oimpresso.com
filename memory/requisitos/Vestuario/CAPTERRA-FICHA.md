@@ -5,7 +5,7 @@ id: requisitos-vestuario-capterra-ficha
 # CAPTERRA-FICHA — Vestuario
 
 > Ficha canônica de benchmark do módulo vertical Vestuario.
-> **Bucket**: `vertical_client_facing` ([ADR 0160](../../decisions/0160-scoped-scorecard-evaluator-v3.md))
+> **Bucket**: `vertical_client_facing` ([ADR 0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md))
 > **Wave 23** — saturação 67 → ≥85 (rubrica scoped vertical_client_facing.yaml)
 > ADR governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md) + [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
 

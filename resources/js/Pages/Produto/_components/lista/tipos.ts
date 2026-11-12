@@ -213,6 +213,8 @@ export interface DetalheProdutoDados {
   sku: string;
   tipo: TipoProduto;
   inativo: boolean;
+  /** UC-PIDX-45: excluído. O painel não oferece Editar nem Preços por grupo — quem quer mexer restaura antes. */
+  excluido?: boolean;
   imagem: string | null;
   dados: {
     codigo_de_barras: string;

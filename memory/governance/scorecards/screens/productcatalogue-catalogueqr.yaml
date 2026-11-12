@@ -1,0 +1,65 @@
+# Scorecard de tela — primeira medição (2026-11-12).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), skill screen-grade.
+# Fontes: CatalogueQr.tsx + charter + casos, e duas medições de terceiros que já existiam:
+#   - E2E Pest Browser (tests/Browser/ProductCatalogue/CatalogueQrBrowserTest.php), run 43026605757:
+#     7 passed / 27 assertions, incluindo axe nível 1 e scroll horizontal 0 a 1280, antes e depois de gerar.
+#   - CatalogueQr-visual-comparison.md (2026-11-10): 25 itens medidos contra o protótipo com a mesma sonda.
+# O resto é leitura de código: produção não foi aberta para este scorecard.
+# Persona: ProductCatalogue não está em personas-por-modulo.yml (a tela é ghost do hub Vendas, mas
+# quem a usa é quem imprime o QR no escritório, não o balcão). Peso uniforme: nota = média das
+# 16 dimensões, arredondada (1222/16 = 76,4).
+screen: ProductCatalogue/CatalogueQr
+path: resources/js/Pages/ProductCatalogue/CatalogueQr.tsx
+archetype: form        # formulário + prévia do resultado, página inteira
+persona: sem-mapeamento
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — primeira medição, baseline = a própria nota
+peso_real: 1.0
+source: leitura-codigo-e2e-visual-comparison-2026-11-12
+graded_at: "2026-11-12"
+resumo: "Gerador do QR por local: forma à esquerda, resultado à direita, com aviso honesto de que o catálogo é público. O QR só nasce do clique e some quando uma opção muda; copiar só confirma depois do navegador. Perde em: charter ainda draft porque o smoke de produção nunca chegou à tela, resultado e cópia sem anúncio para leitor de tela, swatches com nome técnico ('Cor rgb(...)') e 28px, e o selo '256 × 256 px' que não bate com o PNG real (299 × 359)."
+dimensoes: { density: 74, discoverability: 76, speed_to_task: 78, error_recovery: 78, cognitive_load: 80, aesthetic_usability: 76, affordance: 76, brand_confidence: 70, mobile_fit: 72, a11y_wcag: 74, i18n_ptbr: 80, performance_perceived: 72, information_hierarchy: 80, microcopy: 80, internal_consistency: 78, preflight_conformance: 78 }
+evidencias:
+  density: "CatalogueQr.tsx:172 formulário em 2 colunas a partir de 1101px; visual-comparison itens 16 e 21: botão 36px (proto 30) e 24px entre seções (proto 14)"
+  discoverability: "charter: ghost do hub Vendas, sem entry própria; CatalogueQr.tsx:148 botão 'Produtos' no cabeçalho"
+  speed_to_task: "título já vem com o nome do negócio (CatalogueQr.tsx:71); 3 passos: local, gerar, baixar"
+  error_recovery: "CatalogueQr.tsx:111 falha do gerador vira Alert, mas só manda recarregar, sem botão de tentar de novo; CatalogueQr.tsx:132-142 falha da cópia mostra o aviso para copiar à mão (UC-CQR-12)"
+  cognitive_load: "duas seções (forma × saída) e instruções numeradas (CatalogueQr.tsx:225-233)"
+  aesthetic_usability: "alinhada ao protótipo medido no #10699 (visual-comparison itens 1-11); itens 16-22 ficam como resíduo de DS"
+  affordance: "CatalogueQr.tsx:220-221 'Gerar' desabilitado com o motivo ao lado (UC-CQR-13); switch do logo desabilitado com o motivo (UC-CQR-17)"
+  brand_confidence: "charter status draft: o smoke de produção não mediu a tela nenhuma vez (charter, Pendências)"
+  mobile_fit: "1 coluna abaixo de 1101px; swatches size-7 (28px), abaixo de 44px de alvo de toque"
+  a11y_wcag: "axe nível 1 passa antes e depois de gerar (run 43026605757). Falta: nenhum aria-live (QR gerado e 'Link copiado' mudam em silêncio); swatch com aria-label 'Cor rgb(17, 17, 17)'"
+  i18n_ptbr: "toda a copy em PT-BR; o nome acessível dos swatches é o valor rgb, não o nome da cor"
+  performance_perceived: "props leves, sem Deferred necessário; o script do gerador carrega no primeiro clique e o botão não mostra progresso enquanto isso (CatalogueQr.tsx:89)"
+  information_hierarchy: "cabeçalho → forma → saída; aviso de catálogo público junto do resultado"
+  microcopy: "aviso público direto (CatalogueQr.tsx:264-268); o selo '256 × 256 px · PNG' não bate com o canvas real de 299 × 359 (visual-comparison item 20)"
+  internal_consistency: "Select, Input, Switch, Alert, EmptyState e primitivas de layout do DS; Badge onde o protótipo usa StatusBadge (visual-comparison item 22)"
+  preflight_conformance: "trio + RUNBOOK-catalogue-qr.md + visual-comparison + contrato catalogo-qr.contract.json + E2E com axe; charter draft"
+gaps:
+  - dim: "Brand-confidence"
+    best_of_class: "Stripe Dashboard: tela só sai de beta com sinal de uso medido"
+    fix: "Fazer o smoke de produção chegar à tela e datar o campo smoke: no charter, o que destrava status live"
+    esforco: baixo
+    origin: charter-pendencias-2026-11-11
+  - dim: "A11y-WCAG"
+    best_of_class: "GitHub: ação de copiar anuncia 'Copied!' numa região aria-live"
+    fix: "Região aria-live para 'QR gerado' e 'Link copiado'; swatches com nome da cor (Preto, Roxo, Azul, Rosa)"
+    esforco: baixo
+    origin: auditoria-eixo6-A3-2026-11-09
+  - dim: "Microcopy"
+    best_of_class: "Shopify: o tamanho mostrado é o do arquivo baixado"
+    fix: "O selo mostra o tamanho real do canvas, ou o PNG passa a sair em 256 × 256 (decisão [W] já pendente no charter)"
+    esforco: baixo
+    origin: visual-comparison-item-20-2026-11-10
+  - dim: "Mobile-fit"
+    best_of_class: "Apple HIG / Material: alvo de toque de 44px"
+    fix: "Área de toque dos swatches em 44px, mantendo o desenho de 28px"
+    esforco: baixo
+    origin: leitura-codigo-2026-11-12
+  - dim: "Performance-perceived"
+    best_of_class: "Linear: botão entra em estado de carregamento na primeira ação lenta"
+    fix: "Botão 'Gerar' em estado de carregando enquanto o script do gerador baixa"
+    esforco: baixo
+    origin: leitura-codigo-2026-11-12

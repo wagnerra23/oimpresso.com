@@ -1,0 +1,184 @@
+---
+id: requisitos-fisio-telas-exames-e-receitas-casos
+casos: Exames e receitas do paciente — anexos do prontuário, medicamentos, transcrição sugerida pela IA e envio pelo portal · fisio_patient_documents
+irmaos: ../SPEC.md (US-FISIO-063) · ../../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.casos.md (ficha) · ../../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md (portal)
+tecnica: Caso de uso = narrativa do profissional + critério de aceite verificável (Dado/Quando/Então)
+por_que: exame e receita que o paciente traz são parte do prontuário. Arquivo que some, que outra clínica abre ou que a IA "interpreta" tira o valor do registro e muda o enquadramento do software na Anvisa.
+owner: wagner
+last_run: "2026-11-11"
+last_run_ci: "0 UC executado em MySQL nesta sessão (ADR 0358: MySQL só no CT 100/CI). Veredito: lane PHP / Pest (Verticais · MySQL)."
+related_us: [US-FISIO-063]
+---
+
+# Casos de Uso & Aceite — Exames e receitas (US-FISIO-063)
+
+> **Casa do contrato** (`memory/requisitos/<Mod>/_telas/`): a seção nasce na ficha do paciente, mas
+> tem tabela, rotas e regras próprias. O `Show.casos.md` segue dono da ficha.
+>
+> **Âncora:** Res. COFFITO 414/2012 (prontuário) · Lei 13.787/2018 (guarda de 20 anos) · ADR 0123
+> (`Modules/Arquivos`) · ADR 0093 (multi-tenant) · ADR 0437 §5 e §7 (o software não interpreta dado
+> clínico; consentimentos separados) · proposta da ADR 0450.
+>
+> ⚖️ **Força do veredito:** lane `PHP / Pest (Verticais · MySQL)` — **ADVISORY** (não está em
+> `governance/required-checks-baseline.json`).
+>
+> **Status:** ✅ passa (manifesto) · 🧪 teste cita o UC, sem veredito · ⬜ não verificado · ❌ quebrou.
+
+## Rastreabilidade
+
+| UC | O que defende | Peso | Âncora | Teste |
+|---|---|---|---|---|
+| UC-FER-01 | anexar grava o documento na empresa do paciente e o arquivo sob `biz-{id}/`, ligado ao documento | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
+| UC-FER-02 | sem arquivo, tipo fora da lista, formato errado, data futura ou observação longa: 422 e nada gravado | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
+| UC-FER-03 | abrir: a empresa dona recebe o arquivo com `nosniff` e a abertura vai ao `activity_log`; outra empresa 404 sem log | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
+| UC-FER-04 | tirar da lista exige motivo, grava quem e quando, mantém documento e arquivo; repetir não muda nada | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
+| UC-FER-05 | documento não se apaga, nem pelo model nem pelo banco | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
+| UC-FER-06 | sem `fisio.editar` 403; outra empresa 404; paciente bloqueado não recebe documento | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
+| UC-FER-07 | a ficha recebe os tipos junto e os documentos deferidos, sem caminho de disco e sem os tirados | must | US-FISIO-063 | `FisioDocumentosPacienteTest` |
+| UC-FER-08 | incluir medicamento com nome, dose, frequência, desde e até; nome obrigatório; fim não antes do início | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
+| UC-FER-09 | alterar muda só o que veio e grava o antes e o depois no `activity_log` | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
+| UC-FER-10 | tirar da lista exige motivo, não apaga e trava a alteração; o banco recusa DELETE | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
+| UC-FER-11 | a ficha recebe os medicamentos deferidos, em uso primeiro; sem `fisio.editar` 403; outra empresa 404 | must | US-FISIO-063 | `FisioMedicamentosPacienteTest` |
+| UC-FER-12 | transcrição pela IA desligada por padrão (o modelo nem é chamado); só quem edita liga; ligar vai ao `activity_log` | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-13 | a sugestão nasce pendente, só com os campos do schema; nada vai ao prontuário antes de conferir | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-14 | confirmar receita grava quem conferiu e os campos corrigidos; medicamentos entram com a receita como origem | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-15 | exame: conclusão guardada como escrita; confirmar sem mudar registra zero correções; descartar | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-16 | provedor fora da lista sem treino, tipo sem campos, sem `fisio.editar` e outra empresa recusados; o agente não tem campo de interpretação | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-17 | portal: sem o consentimento `documentos` recusa; com ele, o envio chega pendente na empresa do paciente, sem voltar o arquivo | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
+| UC-FER-18 | portal: link inválido 404, sem PIN 403, consentimento revogado 403, teto do dia 429 | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
+| UC-FER-19 | a clínica aceita (pode acertar tipo e data) ou recusa com motivo; nada entra sozinho e nada se apaga | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
+| UC-FER-20 | sem `fisio.editar` 403; outra empresa 404 em aceitar, recusar e abrir; o portal de outro paciente não vê os envios | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
+
+- [BACKLOG] conferência em staging com print do anexo, da sugestão conferida e do envio pelo portal.
+
+---
+
+## UC-FER-01 · Anexar foto ou PDF ao prontuário `[must]`
+- **Persona:** fisioterapeuta com a receita que o paciente trouxe.
+- **Aceite:** Dado um paciente da empresa · Quando anexo uma foto ou um PDF com tipo, data e
+  observação · Então o documento é gravado na empresa do paciente, com quem anexou, origem
+  `clinica` e situação `prontuario`, e o arquivo fica no `Modules/Arquivos` sob `biz-{id}/`,
+  ligado ao documento (não ao paciente direto).
+- **Status:** 🧪
+
+## UC-FER-02 · Validação do envio `[must]`
+- **Aceite:** Dado o formulário · Quando falta o arquivo, o tipo não é da lista fechada, o arquivo
+  não é JPG, PNG, WebP ou PDF, a data é depois de hoje ou a observação passa de 500 caracteres ·
+  Então a resposta é 422 com o campo e nada é gravado.
+- **Status:** 🧪
+
+## UC-FER-03 · Abrir o arquivo `[must]`
+- **Aceite:** Dado um documento da empresa 98 · Quando alguém da 98 com `fisio.access` abre ·
+  Então recebe o arquivo com o tipo certo, `X-Content-Type-Options: nosniff` e cache `private`, e
+  a abertura grava uma linha no `activity_log` só com ids · Quando alguém da 99 pede o mesmo
+  endereço · Então recebe 404 e nada é logado.
+- **Status:** 🧪
+
+## UC-FER-04 · Tirar da lista sem apagar `[must]`
+- **Aceite:** Dado um documento na lista · Quando tiro sem motivo · Então 422 · Quando tiro com
+  motivo · Então ficam gravados quem, quando e o motivo, uma linha no `activity_log`, e o
+  documento e o arquivo continuam (o arquivo ainda abre) · Quando outra pessoa tira de novo ·
+  Então nada muda.
+- **Status:** 🧪
+
+## UC-FER-05 · Documento não se apaga `[must]`
+- **Aceite:** Dado um documento · Quando o model ou o banco tentam apagar · Então a exclusão é
+  recusada (exceção no model, trigger no MySQL) e a linha continua.
+- **Status:** 🧪
+
+## UC-FER-06 · Permissão e empresa `[must]`
+- **Aceite:** Sem `fisio.editar`, anexar e tirar respondem 403. Usuário da 99 anexando no paciente
+  da 98 ou tirando documento da 98 recebe 404 e nada muda. Paciente bloqueado não recebe documento
+  novo (422).
+- **Status:** 🧪
+
+## UC-FER-07 · O que a ficha recebe `[must]`
+- **Aceite:** Dada a ficha · Quando ela abre · Então a lista de tipos vem junto e os documentos
+  chegam por prop deferida (`documentos`), cada um com tipo, data, observação, formato e o
+  endereço da rota que serve; nunca caminho de disco nem nome original do arquivo; documentos
+  tirados da lista não aparecem.
+- **Status:** 🧪
+
+## UC-FER-08 · Incluir medicamento `[must]`
+- **Persona:** fisioterapeuta registrando o que o paciente toma.
+- **Aceite:** Dado um paciente da empresa · Quando incluo nome, dose, frequência e desde · Então o
+  medicamento é gravado na empresa do paciente, com origem `manual` e quem incluiu · Quando falta o
+  nome ou o fim é antes do início · Então 422 e nada é gravado. O texto livre "Medicamentos em uso"
+  da avaliação não muda.
+- **Status:** 🧪
+
+## UC-FER-09 · Alterar com rastro `[must]`
+- **Aceite:** Dado um medicamento · Quando mudo só a dose · Então só a dose muda e o `activity_log`
+  guarda o antes e o depois · Quando o fim fica antes do início gravado · Então 422.
+- **Status:** 🧪
+
+## UC-FER-10 · Tirar da lista sem apagar `[must]`
+- **Aceite:** Sem motivo, 422. Com motivo, ficam quem e por quê; o medicamento sai da ficha e não
+  aceita mais alteração. Model e banco recusam apagar.
+- **Status:** 🧪
+
+## UC-FER-11 · O que a ficha recebe e quem escreve `[must]`
+- **Aceite:** A ficha recebe os medicamentos por prop deferida, os em uso antes dos encerrados. Sem
+  `fisio.editar`, incluir e alterar respondem 403. Usuário da 99 recebe 404 em incluir, alterar e
+  tirar, e nada muda.
+- **Status:** 🧪
+
+## UC-FER-12 · Desligada até a clínica ligar `[must]`
+- **Aceite:** Dada uma empresa que não ligou · Quando peço a transcrição · Então 422 e o modelo
+  não é chamado. Sem `fisio.editar` não se liga (403). Ligar grava no `activity_log` quem ligou.
+- **Status:** 🧪
+
+## UC-FER-13 · Sugestão pendente, só com o que o schema pede `[must]`
+- **Aceite:** Dada a transcrição ligada · Quando peço a sugestão de uma receita · Então a foto vai
+  como anexo, a sugestão é gravada `pendente` só com data, médico, CRM e medicamentos (chave fora
+  do schema, como uma "interpretação", não passa), com o modelo e quem pediu · E nenhum medicamento
+  entra na lista nem a data do documento muda até alguém conferir.
+- **Status:** 🧪
+
+## UC-FER-14 · Conferir a receita `[must]`
+- **Aceite:** Dada uma sugestão pendente · Quando confirmo corrigindo uma dose e incluindo um
+  medicamento · Então a transcrição fica `conferida` com quem e quando, `corrected` lista o que foi
+  corrigido, cada medicamento entra na lista com origem `transcricao`, a receita e quem conferiu, e
+  a data confirmada vira a data do documento se ele não tinha · Quando confirmo ou descarto de novo
+  · Então 422.
+- **Status:** 🧪
+
+## UC-FER-15 · Conferir o exame `[must]`
+- **Aceite:** Dada a sugestão de um exame · Então ela traz só data, nome do exame e a conclusão
+  como está escrita · Quando confirmo sem mudar · Então `corrected` fica vazio, nenhum medicamento
+  é criado e a data já gravada no documento não muda · Descartar marca `descartada`.
+- **Status:** 🧪
+
+## UC-FER-16 · O que fica de fora `[must]`
+- **Aceite:** Provedor fora de `provedores_sem_treino`: 422 sem chamar o modelo. Documento "outro":
+  422. Sem `fisio.editar`: 403. Outra empresa: 404 em pedir, confirmar e descartar, e nada muda. O
+  schema do agente tem exatamente data, médico, CRM, medicamentos, exame e conclusão, e as
+  instruções proíbem interpretar (ADR 0437 §5; proposta da ADR 0450).
+- **Status:** 🧪
+
+## UC-FER-17 · Enviar pelo portal com consentimento próprio `[must]`
+- **Persona:** paciente com a receita na mão, no celular.
+- **Aceite:** Dado o portal aberto (PIN e teleatendimento) · Quando envio sem ter aceitado a
+  finalidade `documentos` · Então 403 e nada é gravado · Quando aceito (versão vigente da config,
+  carimbada) e envio foto, tipo e recado · Então o documento nasce `pendente`, origem `portal`, sem
+  autor de usuário, na empresa do token, e o arquivo fica sob `biz-{id}/` · E o portal só mostra
+  tipo, data e situação do envio, nunca o endereço do arquivo.
+- **Status:** 🧪
+
+## UC-FER-18 · Portões do envio `[must]`
+- **Aceite:** Link inválido: 404. Sem PIN: 403 `pin_pendente`. Consentimento `documentos` revogado:
+  403. Passou do teto do dia (`fisio.documentos.portal_max_dia`): 429, antes de ler o arquivo.
+- **Status:** 🧪
+
+## UC-FER-19 · A clínica confere o envio `[must]`
+- **Aceite:** Dado um envio pendente · Então ele aparece na ficha marcado como pendente · Quando
+  aceito (podendo acertar tipo e data) · Então entra no prontuário com quem aceitou e quando, e
+  aceitar de novo dá 422 · Quando recuso sem motivo · Então 422 · Com motivo · Então fica
+  `recusado`, sai da lista, e a linha e o arquivo continuam · E o portal mostra "guardado no seu
+  prontuário" ou "a clínica não aceitou", sem o motivo.
+- **Status:** 🧪
+
+## UC-FER-20 · Isolamento da conferência `[must]`
+- **Aceite:** Sem `fisio.editar`, aceitar e recusar dão 403. Usuário da 99 recebe 404 em aceitar,
+  recusar e abrir o arquivo, e nada muda. O portal de um paciente da 99 não lista os envios da 98.
+- **Status:** 🧪

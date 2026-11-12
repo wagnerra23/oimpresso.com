@@ -21,11 +21,12 @@ use Illuminate\Support\Facades\DB;
  * filtros multi-tenant (`business_id`) e relações eager-loaded num único lugar,
  * permitindo Services chamarem métodos semânticos em vez de queries inline.
  *
- * Pattern canônico inspirado em Modules/Jana/Services + ADR 0011 (padrão Jana/Repair).
+ * Pattern canônico: ADR 0011 (padrão de módulo do projeto).
  *
- * Multi-tenant Tier 0 (ADR 0093): toda query filtra por `business_id` explícito —
- * App\Product já tem global scope mas reforçamos defensivamente no catálogo público
- * (rota SEM AUTH onde atacante pode enumerar tenants).
+ * Multi-tenant Tier 0 (ADR 0093): toda query filtra por `business_id` explícito, e
+ * esse filtro é a ÚNICA defesa — `App\Product` NÃO tem global scope de `business_id`.
+ * A rota é pública (sem auth) e o ID é numérico, então um atacante pode tentar
+ * outras empresas pela URL. Tirar um `where('business_id', ...)` daqui vaza dado.
  *
  * @see Modules\ProductCatalogue\Services\CatalogueService
  * @see Modules\ProductCatalogue\Services\CatalogueQrService

@@ -18,8 +18,8 @@ revenue_pricing:
 revenue_take_rate: "n/a (subscription puro — emissão fiscal não tem GMV)"
 references:
   - https://claude.ai/chat/b782e544-d84d-4e00-8d0c-a40e2215ebd3
-  - eduardokum/sped-nfe
-  - eduardokum/sped-da
+  - nfephp-org/sped-nfe
+  - nfephp-org/sped-da
   - reference_ultimatepos_integracao.md
   - feedback_carbon_timezone_bug.md
 related_modules:
@@ -27,7 +27,7 @@ related_modules:
   - PontoWr2
   - Officeimpresso
 last_generated: 2026-04-24
-last_updated: 2026-04-24
+last_updated: 2026-11-11
 ---
 
 # NfeBrasil
@@ -118,6 +118,9 @@ NfeBrasil é **compliance-forced**: tenant que opera no varejo BR PRECISA emitir
 - **MemCofre** — telas finais terão `// @memcofre US-NFE-NNN` declarando stories cobertas.
 
 ## Próximos passos imediatos
+
+> Lista de 2026-04-24, mantida como foi escrita. O estado de hoje está no [BRIEFING](BRIEFING.md) e no
+> [CHANGELOG](CHANGELOG.md) (auditoria de 2026-11-10/11). A lib decidida foi `nfephp-org/sped-nfe`.
 
 1. **Validar com ROTA LIVRE** (biz=4, SP, Simples Nacional): qual CSOSN aplica? Qual CSC já tem cadastrado na SEFAZ-SP?
 2. **Decidir lib**: `eduardokum/sped-nfe` vs alternativa? Ver ADR ARQ-0002 (decisão tomada)
