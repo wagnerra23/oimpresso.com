@@ -52,12 +52,12 @@ it('não publica link da Play nem carrega script ou rastreador', function () {
 });
 
 it('www.uniafibro.com.br redireciona (301) para o domínio principal', function () {
-    $this->get('http://www.uniafibro.com.br/')->assertRedirect('https://uniafibro.com.br/')->assertStatus(301);
-    $this->get('http://www.uniafibro.com.br/qualquer')->assertRedirect('https://uniafibro.com.br/');
+    $this->get('http://www.uniafibro.com.br/')->assertRedirect('https://uniafibro.com.br')->assertStatus(301);
+    $this->get('http://www.uniafibro.com.br/qualquer')->assertRedirect('https://uniafibro.com.br');
 });
 
 it('outro caminho no domínio da associação volta ao início em vez de abrir o ERP', function () {
-    $this->get('http://uniafibro.com.br/login')->assertRedirect('https://uniafibro.com.br/');
+    $this->get('http://uniafibro.com.br/login')->assertRedirect('https://uniafibro.com.br');
 });
 
 it('as rotas da Uniafibro não capturam oimpresso.com', function () {
