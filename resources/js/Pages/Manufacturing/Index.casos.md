@@ -180,12 +180,15 @@ last_run: "2026-10-07"
   Então a quantidade mostrada é a gravada na linha do produto (líquida, a que entrou no estoque) e,
   ao lado, quantas se perderam ("+1,00 perdida" na lista; "1,00 UNID em estoque · 1,00 perdida" no
   cabeçalho do painel). A soma das duas é a "Quantidade" bruta da tela antiga. Sem perda, nada muda.
+  Dado a ordem lançada numa sub-unidade (pacote de 10) · Então a lista mostra a quantidade e a unidade da
+  ordem (3 PCT, não 30 na base), igual ao painel, e as perdidas na mesma unidade.
 - **Fonte:** `ProductionController::store()` (grava produzida − perdidas na `purchase_line`) e
   `show()` (mostra a bruta e a desperdiçada). O protótipo `manufacturing-producao.jsx` não modela
   perda na ordem. Achado em produção 2026-10-06: ordem 2021/0001 com "1,00 UNID" na lista e no
   painel contra "Quantidade 2,00 · desperdiçada 1,00" na tela antiga.
 - **Teste:** `Modules/Manufacturing/Tests/Feature/DetalheOrdemProducaoTest.php` — confere 5 + 1 à mão
   e contra as variáveis do `show()` legado (`quantity` = 6, `quantity_wasted` = 1).
+  `ProducaoSubUnidadeTest.php` — a sub-unidade, à mão e contra o painel.
 - **Regressão que defende:** mostrar a líquida sem dizer que é líquida, ou somar a perda no número
   principal e dividir o custo por unidade pelo que não entrou no estoque.
 - **Status: 🧪**
@@ -384,3 +387,4 @@ last_run: "2026-10-07"
 - 2026-11-11 · [C] UC-OP-16 (lote 1.1 da auditoria): consumo declarado na linha e sub-unidade, com teste. A entrada e a baixa ao finalizar ficam em UC-EST-08B (`Estoque/Movimentacao.casos.md`). A tela não mudou.
 - 2026-11-11 · [C] UC-OP-20 (lote 1.2 da auditoria): quantidade e custo da ordem sem reconversão de número. A tela não mudou.
 - 2026-11-11 · [C] UC-OP-18 (lote 1.3 da auditoria): trocar o local do rascunho leva entrada e baixa juntas. A tela não mudou.
+- 2026-11-11 · [C] UC-OP-09 ganha o caso da sub-unidade (lote 1.4 da auditoria): a lista fala a unidade do painel. A tela não mudou.
