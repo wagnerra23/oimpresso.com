@@ -67,6 +67,46 @@ class DocumentosPacienteController extends Controller
         return back()->with('success', $tirou ? 'Documento tirado da lista. Ele continua no prontuário.' : 'O documento já estava fora da lista.');
     }
 
+    /** Aceita no prontuário o envio do portal; o profissional pode acertar tipo e data. */
+    public function aceitar(Request $request, int $documento): JsonResponse|RedirectResponse
+    {
+        $doc = $this->documento($request, $documento);
+        $this->exigirEdicao($request);
+        $acerto = $request->validate([
+            'tipo' => ['nullable', 'string', \Illuminate\Validation\Rule::in(array_keys(DocumentoPaciente::TIPOS))],
+            'data_documento' => ['nullable', 'date', 'before_or_equal:today'],
+        ]);
+        try {
+            $this->documentos->aceitar($doc, $request->user(), $acerto);
+        } catch (\InvalidArgumentException $e) {
+            throw ValidationException::withMessages(['documento' => $e->getMessage()]);
+        }
+
+        return $request->expectsJson()
+            ? response()->json(['status' => $doc->status])
+            : back()->with('success', 'Documento aceito no prontuário.');
+    }
+
+    /** Recusa o envio do portal com motivo; nada é apagado. */
+    public function recusar(Request $request, int $documento): JsonResponse|RedirectResponse
+    {
+        $doc = $this->documento($request, $documento);
+        $this->exigirEdicao($request);
+        $dados = $request->validate(['motivo' => ['required', 'string', 'min:3', 'max:255']], [
+            'motivo.required' => 'Diga por que o envio não foi aceito.',
+            'motivo.min' => 'Diga por que o envio não foi aceito.',
+        ]);
+        try {
+            $this->documentos->recusar($doc, $request->user(), trim($dados['motivo']));
+        } catch (\InvalidArgumentException $e) {
+            throw ValidationException::withMessages(['documento' => $e->getMessage()]);
+        }
+
+        return $request->expectsJson()
+            ? response()->json(['status' => $doc->status])
+            : back()->with('success', 'Envio não aceito. Ele fica guardado fora da lista.');
+    }
+
     public function arquivo(Request $request, int $documento, VaultEncryptionService $vault): Response
     {
         $doc = $this->documento($request, $documento);

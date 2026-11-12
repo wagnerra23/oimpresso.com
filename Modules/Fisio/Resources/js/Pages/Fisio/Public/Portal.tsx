@@ -26,6 +26,7 @@ import { TelaConfiguracoes, type EstudoAceito } from './_components/Configuracoe
 import { TelaPreAnamnese, type OpcoesPreAnamnese } from './_components/PreAnamnese';
 import { TelaAgendar } from './_components/Agendar';
 import { TelaConsultas } from './_components/Consultas';
+import { TelaEnviarDocumento, type EnvioDocumentos } from './_components/EnviarDocumento';
 import type { ConsultaPortal } from './_components/agendaPortal';
 import { enviarFila, limparFila, registrarAppDoPortal, type Constancia, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
 
@@ -51,6 +52,7 @@ interface Props {
   consentimentos?: Record<string, boolean>;
   pre_anamnese?: OpcoesPreAnamnese | null;
   avaliacoes_estudo?: AvaliacaoEstudo[];
+  envio_documentos?: EnvioDocumentos;
   estudos_pesquisa?: EstudoAceito[];
 }
 
@@ -77,7 +79,7 @@ function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica
   );
 }
 
-type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise' | 'config' | 'pre-anamnese' | 'consultas' | 'agendar';
+type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise' | 'config' | 'pre-anamnese' | 'consultas' | 'agendar' | 'documentos';
 
 function vezesIniciais(itens: ItemHoje[], relato: Relato | null | undefined): Record<number, number> {
   const out: Record<number, number> = {};
@@ -100,6 +102,9 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
   }
   if (tela === 'agendar') {
     return <TelaAgendar token={token} remarcar={remarcar} onVoltar={() => setTela('consultas')} onPronto={() => setTela('consultas')} />;
+  }
+  if (tela === 'documentos' && props.envio_documentos) {
+    return <TelaEnviarDocumento token={token} clinica={props.clinica ?? null} envio={props.envio_documentos} onVoltar={() => setTela('hoje')} />;
   }
   if (tela === 'pre-anamnese' && props.pre_anamnese) {
     return <TelaPreAnamnese token={token} clinica={props.clinica ?? null} opcoes={props.pre_anamnese} onVoltar={() => setTela('hoje')} />;
@@ -157,6 +162,9 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
     <ConviteInstalar diasCumpridos={jogo.dias_cumpridos} />
     <button type="button" className="self-center text-sm text-muted-foreground underline-offset-4 hover:underline" onClick={() => setTela('config')}>Configurações e autorizações</button>
     <button type="button" className="self-center text-sm text-primary underline-offset-4 hover:underline" onClick={() => setTela('consultas')}>Minhas consultas</button>
+    {props.envio_documentos && (
+      <button type="button" data-contract="fisio-portal-enviar-documento-convite" className="self-center text-sm text-primary underline-offset-4 hover:underline" onClick={() => setTela('documentos')}>Enviar exame ou receita</button>
+    )}
     </>
   );
 }

@@ -122,6 +122,86 @@ final class DocumentosDoPaciente
     }
 
     /**
+     * Aceita no prontuário o que o paciente mandou pelo portal (parte 4). O profissional pode
+     * acertar o tipo e a data. Só documento pendente; quem aceitou e quando ficam gravados.
+     *
+     * @param  array{tipo?: ?string, data_documento?: ?string}  $acerto
+     */
+    public function aceitar(DocumentoPaciente $doc, User $autor, array $acerto = []): void
+    {
+        if ($doc->status !== DocumentoPaciente::PENDENTE) {
+            throw new \InvalidArgumentException('Só documento pendente de conferência pode ser aceito.');
+        }
+        $doc->forceFill(array_filter([
+            'status' => DocumentoPaciente::NO_PRONTUARIO,
+            'reviewed_by' => (int) $autor->id,
+            'reviewed_at' => now(),
+            'kind' => $acerto['tipo'] ?? null,
+            'document_date' => $acerto['data_documento'] ?? null,
+        ], fn ($v) => $v !== null))->save();
+
+        activity(self::LOG)->performedOn($doc)->causedBy($autor)
+            ->withProperties(['patient_id' => (int) $doc->patient_id, 'document_id' => (int) $doc->id])
+            ->log('fisio.documento.aceito');
+    }
+
+    /**
+     * Recusa o envio do portal (foto errada, ilegível, de outra pessoa). Sai da lista com o motivo;
+     * a linha e o arquivo ficam guardados, como tudo que entrou no sistema da clínica.
+     */
+    public function recusar(DocumentoPaciente $doc, User $autor, string $motivo): void
+    {
+        if ($doc->status !== DocumentoPaciente::PENDENTE) {
+            throw new \InvalidArgumentException('Só documento pendente de conferência pode ser recusado.');
+        }
+        $doc->forceFill([
+            'status' => DocumentoPaciente::RECUSADO,
+            'reviewed_by' => (int) $autor->id,
+            'reviewed_at' => now(),
+            'removed_reason' => $motivo,
+        ])->save();
+
+        activity(self::LOG)->performedOn($doc)->causedBy($autor)
+            ->withProperties(['patient_id' => (int) $doc->patient_id, 'document_id' => (int) $doc->id])
+            ->log('fisio.documento.recusado');
+    }
+
+    /** Envios do portal deste paciente hoje (para o teto diário). */
+    public function enviadosHoje(Patient $paciente): int
+    {
+        return DocumentoPaciente::withoutGlobalScopes() // SUPERADMIN: portal sem sessão; filtra pela empresa do paciente.
+            ->where('business_id', (int) $paciente->business_id)
+            ->where('patient_id', (int) $paciente->id)
+            ->where('origin', DocumentoPaciente::ORIGEM_PORTAL)
+            ->where('created_at', '>=', now()->startOfDay())
+            ->count();
+    }
+
+    /**
+     * O que o portal mostra ao paciente: os últimos envios dele, só tipo, data e situação. Nem o
+     * arquivo, nem a transcrição, nem o motivo da recusa voltam por aqui.
+     *
+     * @return list<array{tipo: string, enviado_em: string, situacao: string}>
+     */
+    public function enviadosPeloPortal(Patient $paciente): array
+    {
+        return DocumentoPaciente::withoutGlobalScopes() // SUPERADMIN: portal sem sessão; filtra pela empresa do paciente.
+            ->where('business_id', (int) $paciente->business_id)
+            ->where('patient_id', (int) $paciente->id)
+            ->where('origin', DocumentoPaciente::ORIGEM_PORTAL)
+            ->orderByDesc('id')->limit(10)->get()
+            ->map(fn (DocumentoPaciente $d) => [
+                'tipo' => $d->kind,
+                'enviado_em' => $d->created_at->toIso8601String(),
+                'situacao' => match ($d->status) {
+                    DocumentoPaciente::PENDENTE => 'aguardando',
+                    DocumentoPaciente::RECUSADO => 'nao_aceito',
+                    default => 'no_prontuario',
+                },
+            ])->values()->all();
+    }
+
+    /**
      * O arquivo do documento, para servir. Filtra pela empresa do documento além do escopo do
      * `Arquivo` (que lê a sessão) e pelo tipo da lista fechada.
      */

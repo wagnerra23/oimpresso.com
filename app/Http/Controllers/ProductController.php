@@ -799,6 +799,8 @@ class ProductController extends Controller
             'sku' => (string) $produto->sku,
             'tipo' => $tipo,
             'inativo' => (bool) $produto->is_inactive,
+            // UC-PIDX-45: excluído (AR-PROD-022). O painel tira Editar e Preços por grupo, como o menu da linha.
+            'excluido' => $produto->getAttribute('deleted_at') !== null,
             // Sem foto vai null (o painel desenha a caixa "Sem imagem" do protótipo): o acessor
             // `image_url` devolveria a imagem genérica /img/default.png — UC-PIDX-22.
             'imagem' => empty($produto->image) ? null : $produto->image_url,
