@@ -30,6 +30,9 @@ class Consentimentos
 
     public const PESQUISA = 'pesquisa';
 
+    /** Enviar foto de exame ou receita pelo portal (US-FISIO-063, parte 4). */
+    public const DOCUMENTOS = 'documentos';
+
     /** @return list<string> finalidades aceitas (lista fechada da config) */
     public function finalidades(): array
     {

@@ -44,8 +44,12 @@ related_us: [US-FISIO-063]
 | UC-FER-14 | confirmar receita grava quem conferiu e os campos corrigidos; medicamentos entram com a receita como origem | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
 | UC-FER-15 | exame: conclusão guardada como escrita; confirmar sem mudar registra zero correções; descartar | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
 | UC-FER-16 | provedor fora da lista sem treino, tipo sem campos, sem `fisio.editar` e outra empresa recusados; o agente não tem campo de interpretação | must | US-FISIO-063 | `FisioTranscricaoDocumentoTest` |
+| UC-FER-17 | portal: sem o consentimento `documentos` recusa; com ele, o envio chega pendente na empresa do paciente, sem voltar o arquivo | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
+| UC-FER-18 | portal: link inválido 404, sem PIN 403, consentimento revogado 403, teto do dia 429 | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
+| UC-FER-19 | a clínica aceita (pode acertar tipo e data) ou recusa com motivo; nada entra sozinho e nada se apaga | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
+| UC-FER-20 | sem `fisio.editar` 403; outra empresa 404 em aceitar, recusar e abrir; o portal de outro paciente não vê os envios | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
 
-- [BACKLOG] envio pelo portal com consentimento próprio, pendente de conferência (parte 4 da US).
+- [BACKLOG] conferência em staging com print do anexo, da sugestão conferida e do envio pelo portal.
 
 ---
 
@@ -150,4 +154,31 @@ related_us: [US-FISIO-063]
   422. Sem `fisio.editar`: 403. Outra empresa: 404 em pedir, confirmar e descartar, e nada muda. O
   schema do agente tem exatamente data, médico, CRM, medicamentos, exame e conclusão, e as
   instruções proíbem interpretar (ADR 0437 §5; proposta da ADR 0450).
+- **Status:** 🧪
+
+## UC-FER-17 · Enviar pelo portal com consentimento próprio `[must]`
+- **Persona:** paciente com a receita na mão, no celular.
+- **Aceite:** Dado o portal aberto (PIN e teleatendimento) · Quando envio sem ter aceitado a
+  finalidade `documentos` · Então 403 e nada é gravado · Quando aceito (versão vigente da config,
+  carimbada) e envio foto, tipo e recado · Então o documento nasce `pendente`, origem `portal`, sem
+  autor de usuário, na empresa do token, e o arquivo fica sob `biz-{id}/` · E o portal só mostra
+  tipo, data e situação do envio, nunca o endereço do arquivo.
+- **Status:** 🧪
+
+## UC-FER-18 · Portões do envio `[must]`
+- **Aceite:** Link inválido: 404. Sem PIN: 403 `pin_pendente`. Consentimento `documentos` revogado:
+  403. Passou do teto do dia (`fisio.documentos.portal_max_dia`): 429, antes de ler o arquivo.
+- **Status:** 🧪
+
+## UC-FER-19 · A clínica confere o envio `[must]`
+- **Aceite:** Dado um envio pendente · Então ele aparece na ficha marcado como pendente · Quando
+  aceito (podendo acertar tipo e data) · Então entra no prontuário com quem aceitou e quando, e
+  aceitar de novo dá 422 · Quando recuso sem motivo · Então 422 · Com motivo · Então fica
+  `recusado`, sai da lista, e a linha e o arquivo continuam · E o portal mostra "guardado no seu
+  prontuário" ou "a clínica não aceitou", sem o motivo.
+- **Status:** 🧪
+
+## UC-FER-20 · Isolamento da conferência `[must]`
+- **Aceite:** Sem `fisio.editar`, aceitar e recusar dão 403. Usuário da 99 recebe 404 em aceitar,
+  recusar e abrir o arquivo, e nada muda. O portal de um paciente da 99 não lista os envios da 98.
 - **Status:** 🧪

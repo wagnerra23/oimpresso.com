@@ -5,7 +5,7 @@ irmaos: Portal.charter.md (lei) · Portal.tsx (tela) + _components/Entrada.tsx, 
 tecnica: Caso de uso = narrativa do paciente + critério de aceite verificável (Dado/Quando/Então)
 por_que: o portal é público na internet e mostra dado de saúde. Sem PIN/lockout é força bruta; sem consentimento é LGPD; sem telemonitoramento o check-in não vale como prontuário (Res. COFFITO 619/2025); conduta calculada pelo software vira dispositivo médico (Anvisa/SaMD); XP que premia exceder o prescrito incentiva lesão.
 owner: wagner
-last_run: "2026-11-05"
+last_run: "2026-11-11"
 last_run_ci: "_pendente_ — a US-FISIO-007b põe FisioCheckinTest, FisioJogoTest, FisioPortalSegurancaClinicaTest e FisioPortalAparelhoTest na lane Verticais (MySQL); o veredito por UC entra quando o manifesto da lane for regenerado."
 related_us: [US-FISIO-007, US-FISIO-008]
 ---
@@ -67,6 +67,12 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-60 | o WhatsApp avisa uma vez por momento, com consentimento | must | `FisioCobrancaAvaliacaoTest` |
 | UC-FPP-61 | o aviso de uma empresa não alcança paciente de outra | must | `FisioCobrancaAvaliacaoTest` |
 | UC-FPP-62 | Configurações mostra o estudo aceito e o treino de IA; o paciente sai do estudo por ali | must | `FisioConsentimentoPesquisaTest` |
+
+> **Enviar exame ou receita (US-FISIO-063, 2026-11-11):** a tela nova do portal tem os casos em
+> `memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md` (UC-FER-17..20, testados em
+> `FisioPortalDocumentosTest`): consentimento próprio `documentos`, portões do envio, envio pendente que
+> só entra no prontuário quando a clínica aceita, e isolamento entre empresas. Ficam lá porque o envio
+> tem tabela e conferência próprias, compartilhadas com a ficha.
 
 ---
 
