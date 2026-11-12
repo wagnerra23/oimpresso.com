@@ -68,6 +68,10 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-61 | o aviso de uma empresa não alcança paciente de outra | must | `FisioCobrancaAvaliacaoTest` |
 | UC-FPP-62 | Configurações mostra o estudo aceito e o treino de IA; o paciente sai do estudo por ali | must | `FisioConsentimentoPesquisaTest` |
 
+> **Laudo biopsicossocial (US-FISIO-060, 2026-11-12):** o cartão "Seu laudo biopsicossocial" na tela Hoje e o download
+> do PDF têm o caso em `memory/requisitos/Fisio/_telas/laudo-biopsicossocial.casos.md` (UC-FBP-16, testado em
+> `FisioLaudoBpsPdfTest`): só o laudo finalizado e vigente do próprio paciente, com os portões do portal.
+
 > **Enviar exame, receita ou atestado (US-FISIO-063, 2026-11-11; atestado em 2026-11-12):** a tela nova do portal tem os casos em
 > `memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md` (UC-FER-17..21, testados em
 > `FisioPortalDocumentosTest`): consentimento próprio `documentos`, portões do envio, envio pendente que

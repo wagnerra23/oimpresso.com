@@ -1203,6 +1203,18 @@ qual é o local padrão.
     decide onde guardar. Cada empresa pode dar, se quiser.
   - **Se o [W] mergear o PR desta proposta, vale a proposta** e a implementação vem num PR seguinte.
     Para mudar, basta comentar no PR.
+  - **Valendo (2026-11-12):** o merge do #10765 foi autorizado pelo [F], não pelo [W] (registrado no PR).
+  - **No servidor (2026-11-12):** permissão `product.armazenagem` na tela de papéis; rota
+    `PATCH /products/{id}/armazenagem`, que grava só locais, endereço e local padrão; histórico
+    `armazenagem_alterada` no log do produto, com o antes e o depois, também quando a mudança vem do
+    Editar completo. Caso `UC-PEDIT-22`. A tela (Editar aberto só com o bloco liberado para quem tem só
+    a permissão nova) vem no PR seguinte.
+  - **Na tela (2026-11-12):** quem tem só `product.armazenagem` abre o Editar com o nome, o código e o
+    bloco "Locais de armazenagem". **Mudança em relação à proposta:** o resto do produto não aparece,
+    em vez de aparecer bloqueado, porque o Editar completo mostra preço de compra e de venda, e o
+    servidor mandaria esses valores mesmo com os campos travados. Assim o servidor nem envia preço e
+    imposto para quem não pode editá-los. Caso `UC-PEDIT-23`. Ainda falta o caminho até a tela: a lista e
+    a ficha só mostram "Editar" para quem tem `product.update`.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 

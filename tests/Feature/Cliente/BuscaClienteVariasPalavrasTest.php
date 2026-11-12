@@ -92,3 +92,64 @@ test('Tier 0 — cliente de outra empresa não volta na busca', function () {
     expect($achados)->toContain($meu)
         ->and($achados)->not->toContain($alheio);
 });
+
+/*
+ * Lista de clientes (/cliente, prop `customers` carregada em parcial — headers do @inertiajs/core,
+ * §5 2026-09-08). Mesma regra: cada palavra casa em separado (pedido da ROTA LIVRE, 2026-11-11).
+ */
+
+function bcvpListaCliente(int $businessId, int $userId, string $nome): int
+{
+    $linha = [
+        'business_id' => $businessId, 'type' => 'customer', 'name' => $nome,
+        'created_by' => $userId, 'contact_status' => 'active',
+        'created_at' => now(), 'updated_at' => now(),
+    ];
+    if (Schema::hasColumn('contacts', 'is_customer')) {
+        $linha['is_customer'] = 1;
+    }
+
+    return (int) DB::table('contacts')->insertGetId($linha);
+}
+
+/** Ids que a lista /cliente devolve para a busca. */
+function bcvpLista($teste, string $termo): array
+{
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $r = $teste->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => $versao,
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Partial-Component' => 'Cliente/Index',
+        'X-Inertia-Partial-Data' => 'customers',
+        'Accept' => 'text/html, application/xhtml+xml',
+    ])->get('/cliente?' . http_build_query(['type' => 'customer', 'q' => $termo]));
+    $r->assertOk();
+
+    return collect($r->json('props.customers.data'))->pluck('id')->map(fn ($id) => (int) $id)->all();
+}
+
+test('lista de clientes: nome e começo do sobrenome acham o cadastro com nome do meio', function () {
+    $marca = 'ZQX' . random_int(1000, 9999);
+    $id = bcvpListaCliente($this->business->id, $this->user->id, "{$marca}MARINA DE SOUZA {$marca}TEIXEIRA");
+    $outra = bcvpListaCliente($this->business->id, $this->user->id, "{$marca}MARINA {$marca}LOPES");
+
+    // Controle positivo: o primeiro nome sozinho acha as duas.
+    $soNome = bcvpLista($this, "{$marca}MARINA");
+    expect($soNome)->toContain($id)->and($soNome)->toContain($outra);
+
+    $achados = bcvpLista($this, "{$marca}MARINA {$marca}TEI");
+    expect($achados)->toContain($id)
+        ->and($achados)->not->toContain($outra);
+});
+
+test('lista de clientes: Tier 0 — cliente de outra empresa não volta na busca', function () {
+    $marca = 'ZQX' . random_int(1000, 9999);
+    $outro = $this->seededSupportClientTenant();
+    $alheio = bcvpListaCliente($outro->id, $this->user->id, "{$marca}MARINA {$marca}TEIXEIRA");
+    $meu = bcvpListaCliente($this->business->id, $this->user->id, "{$marca}MARINA {$marca}TEIXEIRA");
+
+    $achados = bcvpLista($this, "{$marca}MARINA {$marca}TEI");
+    expect($achados)->toContain($meu)
+        ->and($achados)->not->toContain($alheio);
+});

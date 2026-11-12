@@ -14,9 +14,9 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 353 arquivos em 20 papéis.
+**Total mapeado:** 354 arquivos em 20 papéis.
 
-## Controllers — 32
+## Controllers — 33
 
 - [AgendaController.php](../../../Modules/Fisio/Http/Controllers/AgendaController.php)
 - [BibliotecaController.php](../../../Modules/Fisio/Http/Controllers/BibliotecaController.php)
@@ -41,6 +41,7 @@ module: Fisio
 - [PortalAgendaController.php](../../../Modules/Fisio/Http/Controllers/PortalAgendaController.php)
 - [PortalController.php](../../../Modules/Fisio/Http/Controllers/PortalController.php)
 - [PortalDocumentosController.php](../../../Modules/Fisio/Http/Controllers/PortalDocumentosController.php)
+- [PortalLaudoController.php](../../../Modules/Fisio/Http/Controllers/PortalLaudoController.php)
 - [PortalLinkController.php](../../../Modules/Fisio/Http/Controllers/PortalLinkController.php)
 - [ProgramasController.php](../../../Modules/Fisio/Http/Controllers/ProgramasController.php)
 - [ProntuarioPdfController.php](../../../Modules/Fisio/Http/Controllers/ProntuarioPdfController.php)

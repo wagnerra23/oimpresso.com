@@ -50,6 +50,7 @@ related_us: [US-FISIO-060]
 | UC-FBP-13 | o PDF segue o formulário SES-SC; rascunho sai como documento de apoio; vazio sai em branco | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
 | UC-FBP-14 | cada PDF grava uma linha no `activity_log` só com ids; outra empresa 404 sem log | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
 | UC-FBP-15 | a ficha recebe o catálogo da matriz e os laudos deferidos com pontuação e equipe; a 99 não vê | must | US-FISIO-060 | `FisioLaudoBpsTelaTest` |
+| UC-FBP-16 | o paciente baixa no portal só o próprio laudo finalizado e vigente; rascunho, laudo corrigido, outra empresa e sem PIN ficam de fora; o download vai ao `activity_log` com origem `portal` | must | US-FISIO-060 | `FisioLaudoBpsPdfTest` |
 
 - [BACKLOG] conferência em staging com print de um laudo gerado com paciente de teste.
 
@@ -196,4 +197,18 @@ related_us: [US-FISIO-060]
   fisioterapia; deixa a conclusão sem resposta até a equipe marcar; monta a equipe; salva, finaliza,
   baixa o PDF e abre nova versão de laudo finalizado. Usuário da outra empresa recebe 404 na ficha.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php`
+- **Status: 🧪**
+
+## UC-FBP-16 · O paciente baixa o próprio laudo no portal `[must]`
+- **Persona:** paciente com fibromialgia que precisa levar o laudo à unidade de saúde para pedir a
+  carteira (pedido do [W] em 2026-11-12).
+- **Aceite:** Dado o portal aberto (PIN e teleatendimento) · Quando o laudo do paciente ainda é
+  rascunho · Então o portal não lista nada e o download dá 404 · Quando a clínica finaliza ·
+  Então o portal mostra o cartão "Seu laudo biopsicossocial" com a data e o botão de baixar, e o
+  PDF é o mesmo da ficha (`Cache-Control: no-store`), com uma linha no `activity_log` só com ids e
+  `origem: portal` · Quando a clínica abre e finaliza uma correção · Então só a versão nova
+  aparece, a corrigida dá 404, e o rascunho da correção nunca aparece · E o portal de um paciente
+  da 99 não lista nem baixa o laudo da 98; link sem PIN dá 403. O cartão diz que a carteira segue o
+  fluxo da FCEE, sem prometer resultado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php`
 - **Status: 🧪**

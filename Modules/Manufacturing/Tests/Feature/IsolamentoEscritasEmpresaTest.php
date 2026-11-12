@@ -16,7 +16,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *
  *  - UC-OP-17    excluir rascunho de ordem (`ProductionController::destroy`);
  *  - UC-INGRED-15 grupo de ingredientes de outra empresa no salvar da receita (`RecipeController::store`);
- *  - UC-CFG-04   gravar as configurações (`SettingsController::store`), agora por HTTP.
+ *  - UC-MCFG-04  gravar as configurações (`SettingsController::store`), agora por HTTP.
  *
  * Cada caso tem a âncora positiva: a mesma chamada sobre o dado da própria empresa funciona,
  * para a ausência de escrita no outro lado não ser uma requisição que nem chegou ao código.
@@ -123,8 +123,8 @@ describe('UC-INGRED-15 — grupo de ingredientes de outra empresa não é renome
     });
 });
 
-describe('UC-CFG-04 — gravar configurações só altera a empresa da sessão (por HTTP)', function () {
-    it('UC-CFG-04 o POST grava na 98 e a configuração da 99 não muda', function () {
+describe('UC-MCFG-04 — gravar configurações só altera a empresa da sessão (por HTTP)', function () {
+    it('UC-MCFG-04 o POST grava na 98 e a configuração da 99 não muda', function () {
         $user = mfgEmpUsuario('mfg_iso_config');
         mfgEmpNegocio(MFG_EMP_OUTRO);
         $antesOutra = DB::table('business')->where('id', MFG_EMP_OUTRO)->value('manufacturing_settings');
