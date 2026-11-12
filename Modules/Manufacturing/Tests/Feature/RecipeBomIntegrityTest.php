@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Schema;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
+require_once __DIR__.'/../Support/receita-empresa-fixtures.php';
 
 /**
  * Testa integridade BOM (Bill of Materials) do Manufacturing — multi-tenant Tier 0.
@@ -39,19 +41,11 @@ beforeEach(function () {
 });
 
 it('cenário válido: recipe e ingredient pertencem ao mesmo business via chain products.business_id', function () {
-    $variationBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', 1) // biz=1 Wagner
-        ->select('v.id as variation_id', 'v.product_id', 'p.business_id')
-        ->first();
-
-    if (! $variationBiz1) {
-        $this->markTestSkipped('Sem variation em biz=1 — base sem seed UltimatePOS Demo.');
-    }
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
     $recipe = MfgRecipe::create([
-        'product_id'       => $variationBiz1->product_id,
-        'variation_id'     => $variationBiz1->variation_id,
+        'product_id'       => $variacao->product_id,
+        'variation_id'     => $variacao->variation_id,
         'instructions'     => 'bom-integrity-cenario-valido',
         'waste_percent'    => 0,
         'ingredients_cost' => 5.0000,
@@ -62,7 +56,7 @@ it('cenário válido: recipe e ingredient pertencem ao mesmo business via chain 
 
     $ingredient = MfgRecipeIngredient::create([
         'mfg_recipe_id' => $recipe->id,
-        'variation_id'  => $variationBiz1->variation_id, // mesma variation = mesmo biz por construção
+        'variation_id'  => $variacao->variation_id, // mesma variation = mesmo biz por construção
         'quantity'      => 1.0000,
     ]);
 
@@ -81,25 +75,17 @@ it('cenário válido: recipe e ingredient pertencem ao mesmo business via chain 
         ->value('p.business_id');
 
     expect((int) $bizIngredient)->toBe((int) $bizRecipe);
-    expect((int) $bizRecipe)->toBe(1);
+    expect((int) $bizRecipe)->toBe(MFG_EMP_BIZ);
 })->after(function () {
     MfgRecipe::where('instructions', 'bom-integrity-cenario-valido')->delete();
 });
 
 it('cascade delete: apagar recipe pai remove ingredient filho (sem órfão cross-tenant)', function () {
-    $variationBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', 1)
-        ->select('v.id as variation_id', 'v.product_id')
-        ->first();
-
-    if (! $variationBiz1) {
-        $this->markTestSkipped('Sem variation em biz=1.');
-    }
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
     $recipe = MfgRecipe::create([
-        'product_id'       => $variationBiz1->product_id,
-        'variation_id'     => $variationBiz1->variation_id,
+        'product_id'       => $variacao->product_id,
+        'variation_id'     => $variacao->variation_id,
         'instructions'     => 'bom-integrity-cascade-test',
         'waste_percent'    => 0,
         'ingredients_cost' => 0,
@@ -110,7 +96,7 @@ it('cascade delete: apagar recipe pai remove ingredient filho (sem órfão cross
 
     $ingredientId = MfgRecipeIngredient::create([
         'mfg_recipe_id' => $recipe->id,
-        'variation_id'  => $variationBiz1->variation_id,
+        'variation_id'  => $variacao->variation_id,
         'quantity'      => 0.5000,
     ])->id;
 
@@ -125,27 +111,13 @@ it('cascade delete: apagar recipe pai remove ingredient filho (sem órfão cross
 });
 
 it('tentativa cross-tenant: ingredient apontando pra variation de outro business gera inconsistência detectável', function () {
-    // Busca variation em biz=1 pra criar a recipe
-    $varBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', 1)
-        ->select('v.id as variation_id', 'v.product_id')
-        ->first();
-
-    // Busca variation em outro business (qualquer biz_id != 1) pra simular cross-tenant attack
-    $varOutroBiz = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', '!=', 1)
-        ->select('v.id as variation_id', 'v.product_id', 'p.business_id')
-        ->first();
-
-    if (! $varBiz1 || ! $varOutroBiz) {
-        $this->markTestSkipped('Setup multi-tenant insuficiente — precisa de variations em ≥2 businesses.');
-    }
+    // Receita na empresa 98 e insumo na 99 (fixtures; antes dependia de seed em biz=1 e pulava).
+    $varBiz1 = mfgEmpVariacao(MFG_EMP_BIZ);
+    $varOutroBiz = mfgEmpVariacao(MFG_EMP_OUTRO, 'Insumo de outra empresa');
 
     $recipe = MfgRecipe::create([
         'product_id'       => $varBiz1->product_id,
-        'variation_id'     => $varBiz1->variation_id, // recipe ancorada em biz=1
+        'variation_id'     => $varBiz1->variation_id, // recipe ancorada na empresa 98
         'instructions'     => 'bom-integrity-cross-tenant-attack',
         'waste_percent'    => 0,
         'ingredients_cost' => 0,
@@ -185,7 +157,7 @@ it('tentativa cross-tenant: ingredient apontando pra variation de outro business
     $vazamento = DB::table('mfg_recipe_ingredients as mri')
         ->join('variations as v', 'mri.variation_id', '=', 'v.id')
         ->join('products as p', 'v.product_id', '=', 'p.id')
-        ->where('p.business_id', 1)
+        ->where('p.business_id', MFG_EMP_BIZ)
         ->where('mri.id', $ingredientMalicioso->id)
         ->count();
 

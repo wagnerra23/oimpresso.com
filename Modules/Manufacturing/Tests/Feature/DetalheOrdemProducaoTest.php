@@ -109,7 +109,7 @@ function mfgDetLegado($test, $user, int $ordem): array
 }
 
 describe('Detalhe da ordem de produção — mesmas contas da tela antiga', function () {
-    it('custo percentual: ingredientes pelo preço de hoje e custo extra sobre eles', function () {
+    it('UC-OP-07 custo percentual: ingredientes pelo preço de hoje e custo extra sobre eles', function () {
         $user = mfgDetUsuario();
         $ordem = mfgDetOrdem(MFG_EMP_BIZ, $user->id, 'percentage', 10);
 
@@ -139,7 +139,7 @@ describe('Detalhe da ordem de produção — mesmas contas da tela antiga', func
         expect((float) $legado['total_production_cost'])->toEqualWithDelta($d['custo']['extra'], 0.0001);
     });
 
-    it('custo por unidade: custo × (produzidas + perdidas), como a tela antiga', function () {
+    it('UC-OP-07 custo por unidade: custo × (produzidas + perdidas), como a tela antiga', function () {
         $user = mfgDetUsuario();
         $ordem = mfgDetOrdem(MFG_EMP_BIZ, $user->id, 'per_unit', 2);
 
@@ -153,7 +153,7 @@ describe('Detalhe da ordem de produção — mesmas contas da tela antiga', func
         expect((float) mfgDetLegado($this, $user, $ordem)['total_production_cost'])->toEqualWithDelta(12.0, 0.0001);
     });
 
-    it('custo fixo: o valor gravado na ordem, sem conta', function () {
+    it('UC-OP-07 custo fixo: o valor gravado na ordem, sem conta', function () {
         $user = mfgDetUsuario();
         $ordem = mfgDetOrdem(MFG_EMP_BIZ, $user->id, 'fixed', 10);
 
@@ -163,7 +163,7 @@ describe('Detalhe da ordem de produção — mesmas contas da tela antiga', func
         expect((float) mfgDetLegado($this, $user, $ordem)['total_production_cost'])->toEqualWithDelta(10.0, 0.0001);
     });
 
-    it('ordem de outra empresa não tem detalhe (Tier 0)', function () {
+    it('UC-OP-07 ordem de outra empresa não tem detalhe (Tier 0)', function () {
         $user = mfgDetUsuario();
         $alheia = mfgDetOrdem(MFG_EMP_OUTRO, $user->id, 'percentage', 10);
         $propria = mfgDetOrdem(MFG_EMP_BIZ, $user->id, 'percentage', 10);
@@ -173,7 +173,7 @@ describe('Detalhe da ordem de produção — mesmas contas da tela antiga', func
         expect($service->detalheOrdem(MFG_EMP_BIZ, $alheia))->toBeNull();
     });
 
-    it('a tela só calcula o detalhe quando o pede, pela ordem da própria empresa', function () {
+    it('UC-OP-07 a tela só calcula o detalhe quando o pede, pela ordem da própria empresa', function () {
         $user = mfgDetUsuario();
         $propria = mfgDetOrdem(MFG_EMP_BIZ, $user->id, 'percentage', 10);
         $alheia = mfgDetOrdem(MFG_EMP_OUTRO, $user->id, 'percentage', 10);

@@ -5,9 +5,9 @@ irmaos: Show.charter.md (lei) · Show.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: a ficha é o prontuário legal (Res. COFFITO 414/2012, guarda de 20 anos pela Lei 13.787/2018) e o editor do programa que o paciente executa sozinho em casa. Editar evolução assinada, apagar paciente ou prescrever contra uma contraindicação sem aviso são falhas legais e clínicas.
 owner: wagner
-last_run: "2026-11-11"
+last_run: "2026-11-12"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioProntuarioTest, FisioProgramaEditorTest, FisioPacienteCrudTest, FisioMultiTenantTest e FisioWhatsappJobTest."
-related_us: [US-FISIO-009]
+related_us: [US-FISIO-009, US-FISIO-061]
 ---
 
 # Casos de Uso & Aceite — Fisio · Ficha do paciente (`/fisio/pacientes/{id}`)
@@ -58,6 +58,11 @@ related_us: [US-FISIO-009]
 | UC-FPS-33 | gerar link do portal: link e PIN uma vez, só hash no banco, link anterior morre | must | `FisioPortalLinkTest` |
 | UC-FPS-34 | revogar o link do portal derruba o acesso e fica registrado | must | `FisioPortalLinkTest` |
 | UC-FPS-35 | gerar/revogar exige `fisio.editar`; outra clínica 404; bloqueado não recebe link | must | `FisioPortalLinkTest` |
+| UC-FSO-01 | dados sociais opcionais gravam; nascimento, município, UF e bairro vão para o contato | should | `FisioDadosSociaisTest` |
+| UC-FSO-02 | cartão SUS com dígito errado e opção fora da lista são recusados | must | `FisioDadosSociaisTest` |
+| UC-FSO-03 | gravar exige `fisio.editar`; outra clínica 404; bloqueado não muda | must | `FisioDadosSociaisTest` |
+| UC-FSO-04 | dados sociais não vão ao portal nem à exportação da pesquisa | must | `FisioDadosSociaisTest` |
+| UC-FSO-05 | listas junto, valores por prop deferida; log só com os nomes dos campos | should | `FisioDadosSociaisTest` |
 
 ---
 
@@ -288,6 +293,33 @@ related_us: [US-FISIO-009]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`
 - **Status: 🧪**
 
+## UC-FSO-01 · Dados sociais, todos opcionais · `should`
+- **Persona:** recepção ou fisioterapeuta da associação, no cadastro ou numa sessão.
+- **Aceite:** Dado um paciente ativo · Quando a seção "Dados sociais" é salva vazia, nada é exigido e nada é gravado · Quando salva com nascimento, município, UF e bairro, eles vão para o **contato** (`dob`, `city`, `state`, `neighborhood`), sem cópia no Fisio · os demais (sexo, gênero, raça/cor IBGE, CNS, renda em salários mínimos, NIS/CadÚnico, situação de trabalho, escolaridade, diagnóstico informado com CID, quem e quando, tempo de sintomas, comorbidades, como chegou, carteira CIPF) vão para `fisio_patient_social` no business do paciente. "Prefiro não informar" é resposta; limpar um campo grava nulo sem apagar a linha.
+- **Âncora:** pedido [W] 2026-11-11 (dados sociais opcionais no cadastro); ADR 0437 §7.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php`
+- **Status: 🧪**
+
+## UC-FSO-02 · Cartão SUS com dígito verificador · `must`
+- **Aceite:** CNS com 15 números e dígito certo (definitivo 1/2, provisório 7/8/9) grava só os números, aceitando espaço e ponto; dígito errado, tamanho errado ou opção fora das listas fechadas → erro no campo e nada gravado. Nascimento no futuro é recusado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php`
+- **Status: 🧪**
+
+## UC-FSO-03 · Quem grava e de quem `[T0]` · `must`
+- **Aceite:** Sem `fisio.editar` → 403; paciente de outra clínica → 404 (a ficha também); paciente bloqueado → erro e nada muda, nem no contato.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php`
+- **Status: 🧪**
+
+## UC-FSO-04 · Dado sensível fica na ficha `[T0]` · `must`
+- **Aceite:** Com os dados sociais preenchidos, as props do portal do paciente e os quatro CSV da exportação da pesquisa não trazem CNS, situação de trabalho, CID, município nem nascimento (LGPD art. 11; pedido [W] 2026-11-11).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php`
+- **Status: 🧪**
+
+## UC-FSO-05 · Seção recolhida na ficha · `should`
+- **Aceite:** As listas fechadas (`opcoes_sociais`) vão junto com a página; os valores (`dados_sociais`) chegam por prop deferida em grupo próprio. A seção abre recolhida, explica a finalidade e é editável só por quem tem `fisio.editar`. Cada gravação deixa uma linha no `activity_log` com os NOMES dos campos alterados, nunca os valores.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -298,6 +330,7 @@ related_us: [US-FISIO-009]
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-11-11 · US-FISIO-061 — seção "Dados sociais" na ficha (`_components/DadosSociais.tsx`, `DadosSociaisController`, tabela `fisio_patient_social`) vira UC-FSO-01..05, com teste escrito junto. Prefixo próprio (FSO) para não colidir com os UC-FPS de outras sessões na mesma ficha.
 - 2026-11-04 · Lote 2 — avaliação em seções do protótipo (`_components/AvaliacaoEstruturada.tsx`) vira UC-FAV-01..02; mesmo POST e mesmos 6 campos da Res. 414, sem migration.
 - 2026-11-11 · Base visual comum dos impressos (`pdf/_base`, `IdentidadeClinica`, `ImpressoPdf`): prontuário, laudo de evolução e folha do programa passam a ter o mesmo cabeçalho da clínica e o mesmo rodapé com "Página X de Y". UC-FPS-19 ganha o cabeçalho no aceite e um caso 98 contra 99; o conteúdo dos três não muda.
 - 2026-11-04 · Lote 2 — laudo de evolução em PDF (2º documento, ao lado do prontuário) vira UC-FLD-01..03; botão no mesmo componente da exportação.

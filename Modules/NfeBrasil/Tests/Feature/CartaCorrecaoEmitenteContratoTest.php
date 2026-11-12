@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-NFE-005 — CC-e com ambiente, UF e CNPJ das fontes do emitente (lote 1.4, #10731).
+
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;

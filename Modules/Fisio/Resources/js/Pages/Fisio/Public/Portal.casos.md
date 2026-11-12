@@ -5,7 +5,7 @@ irmaos: Portal.charter.md (lei) · Portal.tsx (tela) + _components/Entrada.tsx, 
 tecnica: Caso de uso = narrativa do paciente + critério de aceite verificável (Dado/Quando/Então)
 por_que: o portal é público na internet e mostra dado de saúde. Sem PIN/lockout é força bruta; sem consentimento é LGPD; sem telemonitoramento o check-in não vale como prontuário (Res. COFFITO 619/2025); conduta calculada pelo software vira dispositivo médico (Anvisa/SaMD); XP que premia exceder o prescrito incentiva lesão.
 owner: wagner
-last_run: "2026-11-05"
+last_run: "2026-11-11"
 last_run_ci: "_pendente_ — a US-FISIO-007b põe FisioCheckinTest, FisioJogoTest, FisioPortalSegurancaClinicaTest e FisioPortalAparelhoTest na lane Verticais (MySQL); o veredito por UC entra quando o manifesto da lane for regenerado."
 related_us: [US-FISIO-007, US-FISIO-008]
 ---
@@ -66,6 +66,13 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-59 | o portal avisa a avaliação do estudo em aberto | must | `FisioCobrancaAvaliacaoTest` |
 | UC-FPP-60 | o WhatsApp avisa uma vez por momento, com consentimento | must | `FisioCobrancaAvaliacaoTest` |
 | UC-FPP-61 | o aviso de uma empresa não alcança paciente de outra | must | `FisioCobrancaAvaliacaoTest` |
+| UC-FPP-62 | Configurações mostra o estudo aceito e o treino de IA; o paciente sai do estudo por ali | must | `FisioConsentimentoPesquisaTest` |
+
+> **Enviar exame ou receita (US-FISIO-063, 2026-11-11):** a tela nova do portal tem os casos em
+> `memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md` (UC-FER-17..20, testados em
+> `FisioPortalDocumentosTest`): consentimento próprio `documentos`, portões do envio, envio pendente que
+> só entra no prontuário quando a clínica aceita, e isolamento entre empresas. Ficam lá porque o envio
+> tem tabela e conferência próprias, compartilhadas com a ficha.
 
 ---
 
@@ -335,7 +342,15 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php`
 - **Status: 🧪**
 
+## UC-FPP-62 · Em Configurações o paciente vê o estudo e sai dele · `must`
+- **Persona:** participante do estudo de fibromialgia (etapa 07 P-02).
+- **Aceite:** A seção Pesquisa lista cada estudo com aceite vigente (título, versão do termo, onde e quando assinou) e a chave do treino de IA, desligada por padrão. Desligar o estudo pede confirmação e chama `DELETE consentimentos/pesquisa/{estudo}`; depois disso o estudo some da lista. Estudo de outra empresa nunca aparece, mesmo com linha de consentimento apontando para ele.
+- **Regressão que defende:** a saída do estudo existir só como rota, sem nenhum caminho na tela (achado no smoke de staging de 2026-11-11).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-11 · etapa 07 P-02 — seção Pesquisa nas Configurações do portal (estudo aceito com saída confirmada e treino de IA), conforme `PacienteConfig.dc.html` (#10761). Achado no smoke de staging: a rota de saída existia, a tela não.
 - 2026-11-11 · etapa 07 P-05 — aviso da avaliação do estudo no Hoje e pelo WhatsApp (uma vez por momento, com consentimento). Protótipo: `PacienteHoje.dc.html` (#10761). A resposta pelo portal fica para quando o texto validado entrar no catálogo.
 - 2026-11-11 · etapa 07 P-02 — `pesquisa_ia` separado em `pesquisa` (por estudo, `fisio_studies`, versão do TCLE do estudo) e `treino_ia`. A tela de Configurações ainda não mostra o estudo: entra com a área do estudo (P-04). UC-FPP-56..58 entram com `FisioConsentimentoPesquisaTest`.
 - 2026-11-04 · Lote 5 — pré-anamnese no portal (`_components/PreAnamnese.tsx`, tabela `fisio_pre_anamneses`, US-FISIO-051). Regiões e faixas de tempo são rascunho do protótipo, pendentes da responsável técnica. UC-FPP-52..55 entram com `FisioPreAnamneseTest`.

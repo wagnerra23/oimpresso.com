@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Modules\Fisio\Entities\Checkin;
+use Modules\Fisio\Entities\DocumentoPaciente;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\PortalToken;
 use Modules\Fisio\Entities\Program;
@@ -21,6 +22,7 @@ use Modules\Fisio\Services\AparelhosDoPortal;
 use Modules\Fisio\Services\CheckinDoPortal;
 use Modules\Fisio\Services\Consentimentos;
 use Modules\Fisio\Services\DiaLocal;
+use Modules\Fisio\Services\DocumentosDoPaciente;
 use Modules\Fisio\Services\JogoService;
 use Modules\Fisio\Services\Pesquisa\EstudoService;
 use Modules\Fisio\Services\PortalTokenService;
@@ -103,6 +105,8 @@ class PortalController extends Controller
             'modo' => $modo,
             'jogo' => $this->jogo->estado($paciente),
             'consentimentos' => $this->consentimentos->situacao($paciente),
+            // Etapa 07 P-02: estudos que o paciente aceitou; em Configurações ele sai de cada um.
+            'estudos_pesquisa' => $this->consentimentos->estudos($paciente),
             // Etapa 07 P-05: avaliação do estudo em aberto (a clínica aplica na sessão).
             'avaliacoes_estudo' => app(EstudoService::class)->avaliacoesAbertas($paciente, now()),
             // Pré-anamnese (Lote 5): as opções só enquanto o paciente não respondeu.
@@ -112,6 +116,14 @@ class PortalController extends Controller
                 'sinais' => $this->preAnamnese->sinais(),
             ],
             'registrado_hoje' => $deHoje !== null,
+            // Envio de exame ou receita (US-FISIO-063 parte 4): consentimento próprio e os últimos envios,
+            // só tipo, data e situação (sem arquivo, transcrição nem motivo de recusa).
+            'envio_documentos' => [
+                'consentido' => $this->consentimentos->vigente($paciente, Consentimentos::DOCUMENTOS),
+                'version' => $this->consentimentos->versaoVigente(Consentimentos::DOCUMENTOS),
+                'tipos' => DocumentoPaciente::TIPOS,
+                'enviados' => app(DocumentosDoPaciente::class)->enviadosPeloPortal($paciente),
+            ],
             // O portal só guarda check-in na fila offline quando o aparelho é lembrado (UC-FPP-31).
             'guardar_offline' => $this->lembrado($request, $linha),
         ];
