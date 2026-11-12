@@ -105,6 +105,8 @@ class PortalController extends Controller
             'modo' => $modo,
             'jogo' => $this->jogo->estado($paciente),
             'consentimentos' => $this->consentimentos->situacao($paciente),
+            // Etapa 07 P-02: estudos que o paciente aceitou; em Configurações ele sai de cada um.
+            'estudos_pesquisa' => $this->consentimentos->estudos($paciente),
             // Etapa 07 P-05: avaliação do estudo em aberto (a clínica aplica na sessão).
             'avaliacoes_estudo' => app(EstudoService::class)->avaliacoesAbertas($paciente, now()),
             // Pré-anamnese (Lote 5): as opções só enquanto o paciente não respondeu.

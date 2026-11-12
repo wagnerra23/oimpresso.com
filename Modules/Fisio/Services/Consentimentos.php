@@ -150,6 +150,42 @@ class Consentimentos
         return $this->ativosPesquisa($paciente, $estudo)->update(['revoked_at' => now()]);
     }
 
+    /**
+     * Estudos com consentimento de pesquisa ativo do paciente, para a tela de Configurações do
+     * portal (etapa 07 P-02): é dali que ele sai do estudo. Só estudo da empresa do paciente; o
+     * aceite precisa estar na versão do TCLE vigente daquele estudo.
+     *
+     * @return list<array{study_id:int,titulo:string,versao:string,aceito_em:string,canal:string}>
+     */
+    public function estudos(Patient $paciente): array
+    {
+        $aceites = $this->ativos($paciente, self::PESQUISA)->whereNotNull('study_id')->orderBy('granted_at')->get();
+        if ($aceites->isEmpty()) {
+            return [];
+        }
+        $estudos = Study::withoutGlobalScopes() // SUPERADMIN: portal público sem sessão; filtra pelo business do paciente.
+            ->where('business_id', (int) $paciente->business_id)
+            ->whereIn('id', $aceites->pluck('study_id')->all())
+            ->get()->keyBy('id');
+
+        $out = [];
+        foreach ($aceites as $c) {
+            $estudo = $estudos->get((int) $c->study_id);
+            if ($estudo === null || (string) $c->version !== (string) $estudo->tcle_version) {
+                continue;
+            }
+            $out[] = [
+                'study_id' => (int) $estudo->id,
+                'titulo' => (string) $estudo->title,
+                'versao' => (string) $c->version,
+                'aceito_em' => $c->granted_at->format('Y-m-d'),
+                'canal' => (string) $c->channel,
+            ];
+        }
+
+        return $out;
+    }
+
     /** @return \Illuminate\Database\Eloquent\Builder<Consent> */
     private function ativosPesquisa(Patient $paciente, Study $estudo)
     {
