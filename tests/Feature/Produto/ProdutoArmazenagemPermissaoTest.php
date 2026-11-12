@@ -195,7 +195,9 @@ function paVisitaInertia(): array
 }
 
 it('UC-PEDIT-23 · só com product.armazenagem o Editar abre só com os locais, sem preço nem imposto', function () {
-    paEntrar($this, paUsuario((int) $this->business->id, ['product.armazenagem']));
+    // A lista de locais segue os locais que a pessoa pode acessar (BusinessLocation::forDropdown), como
+    // no Editar completo: o estoquista precisa de acesso aos locais para vê-los.
+    paEntrar($this, paUsuario((int) $this->business->id, ['product.armazenagem', 'access_all_locations']));
 
     $r = $this->withHeaders(paVisitaInertia())->get("/products/{$this->produto->productId}/edit");
     $r->assertOk()->assertJsonPath('component', 'Produto/Edit')->assertJsonPath('props.somenteArmazenagem', true);
