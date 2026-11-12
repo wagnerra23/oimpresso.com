@@ -1178,6 +1178,31 @@ qual é o local padrão.
   Editar entrou a coluna "Em estoque", só leitura, e o local gravado sai só sem saldo, como a [M]
   decidiu: o envio leva `product_racks_remover`, e o servidor confere o saldo de novo, apaga só o
   endereço e não mexe em quantidade. Caso `UC-PEDIT-21`.
+- 🔶 **Quem edita os locais de armazenagem — proposta de 2026-11-11.** Pergunta do [F]: quem deveria
+  mudar esse dado, o estoquista, o vendedor ou o administrador?
+  - **Hoje (medido em 2026-11-11):** quem tem `product.update` edita os locais, junto com o resto do
+    produto (nome, preço, impostos). O estoquista que só precisa acertar a prateleira teria de receber
+    acesso a preço e imposto. O dado em si não é sensível (não é dado pessoal nem valor em dinheiro); o
+    que pede controle é o acesso que vem junto com ele.
+  - **Proposta:**
+    1. **Permissão nova `product.armazenagem`**, "Editar locais de armazenagem do produto", na tela de
+       papéis junto das de Produtos. Nasce sem ninguém, como `sell.aprovar_margem_baixa`: o
+       administrador já passa por tudo, e cada empresa marca a permissão no papel do estoquista.
+    2. **`product.update` continua bastando.** Quem já edita produto segue editando os locais; ninguém
+       perde acesso no dia em que isto entrar.
+    3. **Só com `product.armazenagem`, só os locais.** O Editar abre com o resto bloqueado e o bloco
+       "Locais de armazenagem" liberado. O envio vai a uma rota própria, que grava só locais, endereço
+       e local padrão (as mesmas regras de `UC-PEDIT-19` e `UC-PEDIT-21`, incluindo a de saldo) e ignora
+       qualquer outro campo, mesmo que venha.
+    4. **Histórico de quem mudou.** Hoje o log do produto (`inventory.product`) não guarda o local padrão,
+       e o endereço fica em outra tabela (`product_racks`), sem log. A proposta registra no histórico
+       cada troca de endereço, de local padrão e cada local tirado, com quem fez e quando.
+    5. **O saldo segue só leitura para todos.** Estoque só muda por compra, venda, ajuste ou
+       transferência.
+  - **O vendedor** não recebe a permissão por padrão: ele usa o endereço para achar o produto, não
+    decide onde guardar. Cada empresa pode dar, se quiser.
+  - **Se o [W] mergear o PR desta proposta, vale a proposta** e a implementação vem num PR seguinte.
+    Para mudar, basta comentar no PR.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
@@ -1516,6 +1541,7 @@ de produção ele segue, e um link para a tela de Roteiros.
 
 **Histórico:**
 
+- 2026-11-11 — **`CU-PROD-20`: proposta de quem edita os locais de armazenagem** (v1.0.18): permissão nova `product.armazenagem` só para os locais, sem dar acesso a preço e imposto; `product.update` continua bastando; rota própria que grava só os locais; histórico de quem mudou. Vale se o [W] mergear o PR. Pergunta do [F]. [F+C]
 - 2026-10-22 — **`CU-PROD-21`: política de preço do produto** (v1.0.17): três opções com os nomes de Fluxos e da Fabricação (Preço fixo · Acompanha o custo · Margem alvo), produto novo com Preço fixo, só no protótipo. Registrado que a US-PROD-030 usa outros nomes e ficou atrás do fluxo decidido depois (ADR 0435 e regra da compra no código). [M+C]
 - 2026-10-27 — **Estoque mínimo: o comprador e o cálculo** (v1.0.16), a partir do comentário do [W] no #9930: `CU-PROD-04` item 2 passa a dizer que o item abaixo do mínimo já aparece na lista Necessidade de compra (US-COM-030, #9878), que falta gerar a requisição ou a cotação dali (US-COM-031), e como calcular o mínimo (consumo médio × prazo total de reposição, com margem de segurança proposta). Registra o que falta para o sistema sugerir o mínimo e o conflito com o "Pedir até" do MRP. Texto sobreposto com autorização da [M]. Na mesma versão, revisão da [M] a partir de um caso do [L]: o **estoque máximo volta, opcional por produto**, como teto da compra (barra de pouco giro enferruja parada); substitui a decisão de 2026-10-22 de não ter máximo. [F+C] [M+C]
 - 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]
