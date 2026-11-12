@@ -222,6 +222,13 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Onde:** widget "Aproveitamento de mídia" do Painel, com a escolha da bobina. O % é a área das peças das OS dividida pela mídia que o operador informou no apontamento, e a sobra é o resto. Só entram as OS com a impressão concluída, porque a impressão em andamento ainda vai gastar mídia. Exemplo: Lona 440 g 1,60 m, OS-2603 (120 m² em 133,4 m²) e OS-2598 (88 m² em 90,8 m²), 92,8% aproveitado.
 - **Do apontamento ao Painel:** ao concluir a impressão no celular com "Mídia usada até agora" preenchida, a OS entra na conta da bobina dela. Sem internet, a mídia segue a fila do UC-PCV-23 e só entra quando o toque chega. Mídia informada menor que a área das peças deixa a OS fora da conta, com o aviso "Confira o apontamento".
 - **Versão 2 (fora deste caso):** a sugestão de encaixe na bobina. No sistema, o simulador já existe (`AproveitamentoDeMidia`, US-PCP-024); o agregado do Painel ainda não (`PainelDaProducao` o lista como fora do corte).
+- **Decisão pendente [W] (2026-11-12):** o simulador de bobina (#9666, 20/10) entrou antes da hora pela D-ENCAIXE, que deixou o encaixe para a versão 2. A versão 1 (o % aproveitado) não existe no sistema e não está em nenhuma etapa. Os dois respondem perguntas diferentes:
+  - **Exemplo.** Quatro banners de 0,80 × 6 m numa lona de 1,60 m.
+    - *Simulador (antes de imprimir):* "um por vez gasta 24 m de bobina; dois lado a lado, 12 m". Diz quanto **vai** gastar.
+    - *Versão 1 (depois de imprimir):* o operador informa que usou 13 m (20,8 m² de mídia). As peças somam 19,2 m², então o Painel mostra **92% aproveitado** e 1,6 m² de sobra. Diz quanto **gastou** de verdade.
+  - **(A) — recomendada:** o simulador fica como está, e a versão 1 entra numa etapa do roteiro (widget do Painel, como no protótipo). Os dois convivem: um planeja, o outro mede.
+  - **(B):** o simulador substitui a versão 1. O % aproveitado não é feito, e o Painel segue sem mostrar quanto de mídia se perdeu de verdade.
+  - **Merge deste PR = (A).** Para (B), comente no PR.
 
 ### UC-PCV-27 · Produtividade sem expor o indivíduo · `should` `[LGPD]` · ✅
 - **Aceite:** Sem `producao.desempenho.ver` · Então a produtividade aparece só por setor · Com a permissão · Então aparece por pessoa · E o acesso fica no log.

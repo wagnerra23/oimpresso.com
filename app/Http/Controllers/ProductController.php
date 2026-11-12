@@ -796,11 +796,28 @@ class ProductController extends Controller
             }
         }
 
+        // UC-PIDX-31: null sem o módulo Fiscal. Sem decisão registrada é mercadoria.
+        $natureza = app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)
+            ? (app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, [$id])[$id] ?? ['natureza' => 'mercadoria', 'codigo_servico' => null])
+            : null;
+        // UC-PIDX-46 (resto da CV1): o "O que é" do painel, pela mesma regra do filtro "Uso" (UC-PIDX-44).
+        // Material = insumo de alguma receita da Fabricação; Serviço = natureza fiscal serviço; os dois podem
+        // valer juntos; nenhum = Para vender.
+        $uso = [];
+        if (app()->bound(\App\Contracts\Fabricacao\ProdutosDeReceita::class)
+            && in_array($id, app(\App\Contracts\Fabricacao\ProdutosDeReceita::class)->materiais($business_id), true)) {
+            $uso[] = 'material';
+        }
+        if (($natureza['natureza'] ?? null) === 'servico') {
+            $uso[] = 'servico';
+        }
+
         return [
             'id' => (int) $produto->id,
             'nome' => (string) $produto->name,
             'sku' => (string) $produto->sku,
             'tipo' => $tipo,
+            'uso' => $uso === [] ? ['vender'] : $uso,
             'inativo' => (bool) $produto->is_inactive,
             // UC-PIDX-45: excluído (AR-PROD-022). O painel tira Editar e Preços por grupo, como o menu da linha.
             'excluido' => $produto->getAttribute('deleted_at') !== null,
@@ -852,10 +869,7 @@ class ProductController extends Controller
                 'origem' => (string) ($produto->origem_mercadoria ?? 0),
                 'origem_por_produto' => true,
                 'link_modulo' => $this->linkTributacaoDoProduto($business_id, $id),
-                // UC-PIDX-31: null sem o módulo Fiscal. Sem decisão registrada é mercadoria.
-                'natureza' => app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)
-                    ? (app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, [$id])[$id] ?? ['natureza' => 'mercadoria', 'codigo_servico' => null])
-                    : null,
+                'natureza' => $natureza,
             ],
             'prateleiras' => [
                 'colunas' => [
@@ -2214,6 +2228,7 @@ class ProductController extends Controller
         }
         $business_id = (int) $request->session()->get('user.business_id');
         $product = Product::where('business_id', $business_id)->where('id', $id)->firstOrFail();
+        abort_if($product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
         if (! $product->enable_stock) {
             throw \Illuminate\Validation\ValidationException::withMessages(['product_racks' => 'Este produto não controla estoque, então não tem locais de armazenagem.']);
         }
@@ -2243,6 +2258,7 @@ class ProductController extends Controller
     protected function editSoArmazenagem(int $business_id, int $id)
     {
         $product = Product::where('business_id', $business_id)->where('id', $id)->firstOrFail();
+        abort_if($product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
         if (! $product->enable_stock) {
             abort(403, 'Este produto não controla estoque, então não tem locais de armazenagem.');
         }
@@ -2667,6 +2683,7 @@ class ProductController extends Controller
                             ->with(['product_locations'])
                             ->where('id', $id)
                             ->firstOrFail();
+        abort_if($product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         //Sub-category
         $sub_categories = [];
@@ -2803,9 +2820,11 @@ class ProductController extends Controller
         // Query separada DE PROPÓSITO — não atribui a $product pra NÃO narrowar o Product|null do
         // `$product = ...->first()` de baixo (preserva o phpstan-baseline; custo = 1 SELECT indexado
         // por (business_id, id) num fluxo raro de edição).
-        Product::where('business_id', $business_id)
+        $alvo = Product::where('business_id', $business_id)
                 ->where('id', $id)
                 ->firstOrFail();
+        // UC-PIDX-45: o excluído só se edita depois de restaurar.
+        abort_if($alvo->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         $this->validarOrigemMercadoria($request);
         $this->validarNcm($request);
@@ -3917,6 +3936,7 @@ class ProductController extends Controller
         $product = Product::where('business_id', $business_id)
                     ->with(['variations', 'variations.group_prices', 'variations.product_variation'])
                             ->findOrFail($id);
+        abort_if($product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         $price_groups = SellingPriceGroup::where('business_id', $business_id)
                                             ->active()
@@ -3969,6 +3989,12 @@ class ProductController extends Controller
         if (! auth()->user()->can('product.create')) {
             abort(403, 'Unauthorized action.');
         }
+
+        // UC-PIDX-45: o excluído só tem preço alterado depois de restaurar. Fora do try: o catch
+        // genérico abaixo engoliria o abort e devolveria "algo deu errado".
+        $alvo = Product::where('business_id', $request->session()->get('user.business_id'))
+            ->where('id', (int) $request->input('product_id'))->first();
+        abort_if($alvo !== null && $alvo->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -4309,6 +4335,7 @@ class ProductController extends Controller
 
             $products = Product::where('business_id', $business_id)
                                 ->whereIn('id', $selected_products)
+                                ->whereNull('deleted_at') // UC-PIDX-45: excluído fica fora do lote até ser restaurado
                                 ->with(['variations', 'variations.product_variation', 'variations.group_prices', 'product_locations'])
                                 ->get();
 
@@ -4416,6 +4443,9 @@ class ProductController extends Controller
                 //Update product
                 $product = Product::where('business_id', $business_id)
                                 ->findOrFail($id);
+                if ($product->estaExcluido()) {
+                    continue; // UC-PIDX-45: excluído fica fora do lote até ser restaurado
+                }
 
                 $product->update($update_data);
 
@@ -4610,7 +4640,8 @@ class ProductController extends Controller
             return response()->json(['success' => 0, 'msg' => 'Nenhum produto selecionado.'], 422);
         }
 
-        $alterados = Product::where('business_id', $business_id)->whereIn('id', $ids)->update(['ncm' => $ncm]);
+        // UC-PIDX-45: o excluído fica fora do lote até ser restaurado (a contagem diz quantos mudaram de fato).
+        $alterados = Product::where('business_id', $business_id)->whereIn('id', $ids)->whereNull('deleted_at')->update(['ncm' => $ncm]);
 
         return response()->json(['success' => 1, 'msg' => $alterados . ' produto(s) com o NCM ' . $ncm . '.']);
     }
@@ -4632,6 +4663,7 @@ class ProductController extends Controller
 
             $products = Product::where('business_id', $business_id)
                                 ->whereIn('id', $product_ids)
+                                ->whereNull('deleted_at') // UC-PIDX-45: excluído fica fora do lote até ser restaurado
                                 ->with(['product_locations'])
                                 ->get();
             DB::beginTransaction();

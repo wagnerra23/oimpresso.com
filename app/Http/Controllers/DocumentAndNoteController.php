@@ -6,6 +6,7 @@ use App\DocumentAndNote;
 use App\Media;
 use App\User;
 use App\Utils\ModuleUtil;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -242,6 +243,9 @@ class DocumentAndNoteController extends Controller
             $output = [
                 'success' => true,
                 'msg' => __('lang_v1.success'),
+                // A aba Documentos da ficha React salva a anotação sozinha enquanto se digita: com o id,
+                // os salvamentos seguintes atualizam esta nota. Sem ele, cada pausa criava uma nota nova.
+                'note' => ['id' => $model_note->id],
             ];
         } catch (Exception $e) {
             DB::rollBack();
@@ -336,7 +340,9 @@ class DocumentAndNoteController extends Controller
                 $document_note->disableLogging();
             }
 
-            $document_note->heading = $input['heading'];
+            // A aba Documentos da ficha React só mandava o título quando preenchido: sem a chave,
+            // isto dava "Undefined array key" e 500. Sem título no pedido, o título gravado fica.
+            $document_note->heading = array_key_exists('heading', $input) ? $input['heading'] : $document_note->heading;
             $document_note->description = $input['description'];
             $document_note->is_private = $input['is_private'];
             $document_note->save();
