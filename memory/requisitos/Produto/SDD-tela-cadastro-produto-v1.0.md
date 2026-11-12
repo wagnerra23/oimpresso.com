@@ -1215,6 +1215,9 @@ qual é o local padrão.
     servidor mandaria esses valores mesmo com os campos travados. Assim o servidor nem envia preço e
     imposto para quem não pode editá-los. Caso `UC-PEDIT-23`. Ainda falta o caminho até a tela: a lista e
     a ficha só mostram "Editar" para quem tem `product.update`.
+  - **O caminho até a tela (2026-11-12):** para quem tem só `product.armazenagem`, o menu da linha e o
+    painel da lista (`UC-PIDX-47`) e a ficha (`UC-PSHOW-08`) mostram "Locais de armazenagem" no lugar de
+    "Editar", só em produto com estoque controlado.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 

@@ -314,6 +314,9 @@ class ProductController extends Controller
                 'permissions' => [
                     'create' => auth()->user()->can('product.create'),
                     'update' => auth()->user()->can('product.update'),
+                    // UC-PIDX-47 (#10765): só os locais de armazenagem; a lista mostra "Locais de
+                    // armazenagem" para quem tem isto sem `product.update`.
+                    'armazenagem' => auth()->user()->can('product.armazenagem'),
                     'delete' => auth()->user()->can('product.delete'),
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
                     'view' => auth()->user()->can('product.view'),
@@ -2609,6 +2612,8 @@ class ProductController extends Controller
                 'permissions' => [
                     'update' => auth()->user()->can('product.update'),
                     'delete' => auth()->user()->can('product.delete'),
+                    // UC-PSHOW-08 (#10765): "Locais de armazenagem" para quem só tem `product.armazenagem`.
+                    'armazenagem' => auth()->user()->can('product.armazenagem'),
                     // EAGER: 2 booleanos já resolvidos. O `.tsx` aplica default fail-closed,
                     // então ausência da prop nunca vira permissão.
                     'view_purchase_price' => $podeVerCusto,
