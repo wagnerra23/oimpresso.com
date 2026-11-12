@@ -215,6 +215,8 @@ export interface DetalheProdutoDados {
   inativo: boolean;
   /** UC-PIDX-45: excluído. O painel não oferece Editar nem Preços por grupo — quem quer mexer restaura antes. */
   excluido?: boolean;
+  /** UC-PIDX-46 (resto da CV1): o "Uso" do produto, pela regra do filtro (UC-PIDX-44). Material e Serviço podem vir juntos. */
+  uso?: Uso[];
   imagem: string | null;
   dados: {
     codigo_de_barras: string;
@@ -474,7 +476,8 @@ export function colunasOpcionais(rotulos: Record<string, string | null>, temAliq
     { id: 'compra', rotulo: 'Preço de compra un.', padrao: true },
     { id: 'venda', rotulo: 'Preço de venda', padrao: true },
     { id: 'estoque', rotulo: 'Estoque atual', padrao: true },
-    { id: 'tipo', rotulo: 'Tipo', padrao: true },
+    // UC-PIDX-46 (resto da CV1): o Tipo sai do padrão — o painel já diz o que é; segue no menu Colunas.
+    { id: 'tipo', rotulo: 'Tipo', padrao: false },
     { id: 'categoria', rotulo: 'Categoria', padrao: true },
     { id: 'marca', rotulo: 'Marca', padrao: true },
     ...(temAliquota ? [{ id: 'imposto', rotulo: 'Imposto', padrao: false }] : []),
@@ -507,6 +510,18 @@ export const USOS: Array<Opcao & { id: Uso }> = [
   { id: 'material', nome: 'Material' },
   { id: 'servico', nome: 'Serviço' },
 ];
+/**
+ * UC-PIDX-46 (resto da CV1): o "O que é" do painel — o uso, e a forma do cadastro só quando ela muda
+ * alguma coisa: "Para vender · com 8 variações", "Material · kit com 4 itens". Produto único não diz
+ * "único": é o caso comum e não acrescenta nada.
+ */
+export function oQueE(uso: Uso[] | undefined, tipo: TipoProduto, variacoes: number, itensDoKit: number): string {
+  const nomes = (uso && uso.length > 0 ? uso : (['vender'] as Uso[])).map((u) => USOS.find((x) => x.id === u)?.nome ?? u);
+  const partes = [nomes.join(' e ')];
+  if (tipo === 'variable') partes.push(`com ${variacoes} ${variacoes === 1 ? 'variação' : 'variações'}`);
+  if (tipo === 'combo') partes.push(`kit com ${itensDoKit} ${itensDoKit === 1 ? 'item' : 'itens'}`);
+  return partes.join(' · ');
+}
 export const SITUACOES: Opcao[] = [
   { id: 'active', nome: 'Ativo' },
   { id: 'inactive', nome: 'Inativo' },

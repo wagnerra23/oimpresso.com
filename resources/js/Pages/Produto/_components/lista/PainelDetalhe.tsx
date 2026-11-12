@@ -16,7 +16,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import { TIPO_ROTULO, dataBr, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
+import { TIPO_ROTULO, dataBr, oQueE, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
 import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 
 type Aba = AbaDoDetalhe;
@@ -406,7 +406,10 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
             <Inline className={TOPO}>
               <Inline wrap gap={2}>
                 <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-dim)]">{d.sku}</span>
-                <span className={`pb-pill ${d.tipo}`}>{TIPO_ROTULO[d.tipo] ?? d.tipo}</span>
+                {/* UC-PIDX-46: o "O que é" no lugar do tipo do cadastro (a cor do selo segue a do tipo). */}
+                <span className={`pb-pill ${d.tipo}`} title={`O que é · cadastro: ${TIPO_ROTULO[d.tipo] ?? d.tipo}`} data-contract="produto-detalhe-o-que-e">
+                  {oQueE(d.uso, d.tipo, d.variacoes.length, d.composicao.length)}
+                </span>
                 {d.excluido ? <span className="pb-pill off">Excluído</span> : d.inativo && <span className="pb-pill off">Inativo</span>}
               </Inline>
               <Fechar />

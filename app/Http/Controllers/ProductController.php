@@ -793,11 +793,28 @@ class ProductController extends Controller
             }
         }
 
+        // UC-PIDX-31: null sem o módulo Fiscal. Sem decisão registrada é mercadoria.
+        $natureza = app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)
+            ? (app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, [$id])[$id] ?? ['natureza' => 'mercadoria', 'codigo_servico' => null])
+            : null;
+        // UC-PIDX-46 (resto da CV1): o "O que é" do painel, pela mesma regra do filtro "Uso" (UC-PIDX-44).
+        // Material = insumo de alguma receita da Fabricação; Serviço = natureza fiscal serviço; os dois podem
+        // valer juntos; nenhum = Para vender.
+        $uso = [];
+        if (app()->bound(\App\Contracts\Fabricacao\ProdutosDeReceita::class)
+            && in_array($id, app(\App\Contracts\Fabricacao\ProdutosDeReceita::class)->materiais($business_id), true)) {
+            $uso[] = 'material';
+        }
+        if (($natureza['natureza'] ?? null) === 'servico') {
+            $uso[] = 'servico';
+        }
+
         return [
             'id' => (int) $produto->id,
             'nome' => (string) $produto->name,
             'sku' => (string) $produto->sku,
             'tipo' => $tipo,
+            'uso' => $uso === [] ? ['vender'] : $uso,
             'inativo' => (bool) $produto->is_inactive,
             // UC-PIDX-45: excluído (AR-PROD-022). O painel tira Editar e Preços por grupo, como o menu da linha.
             'excluido' => $produto->getAttribute('deleted_at') !== null,
@@ -849,10 +866,7 @@ class ProductController extends Controller
                 'origem' => (string) ($produto->origem_mercadoria ?? 0),
                 'origem_por_produto' => true,
                 'link_modulo' => $this->linkTributacaoDoProduto($business_id, $id),
-                // UC-PIDX-31: null sem o módulo Fiscal. Sem decisão registrada é mercadoria.
-                'natureza' => app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)
-                    ? (app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, [$id])[$id] ?? ['natureza' => 'mercadoria', 'codigo_servico' => null])
-                    : null,
+                'natureza' => $natureza,
             ],
             'prateleiras' => [
                 'colunas' => [

@@ -180,6 +180,9 @@ jobs:
       - name: Comportamento React — Oficina, aviso da aprovação pública
         run: npx vitest run tests/js/oficina-aprovacao-publica-aviso.test.tsx
 
+      - name: Produto — "O que é" no painel e a coluna Tipo fora do padrão (UC-PIDX-46)
+        run: npx vitest run tests/js/produto-o-que-e.test.tsx
+
       - name: Caixinha (Checkbox) igual à do DS
         run: npx vitest run tests/js/checkbox-igual-ds.test.tsx
 

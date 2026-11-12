@@ -100,6 +100,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 | UC-PIDX-43 | Informar NCM em vários produtos de uma vez | should | `ProductController::bulkUpdateNcm` (`POST /products/bulk-update-ncm`) + `NcmEmLote.tsx` na barra de selecionados | `ProdutoNcmEmLoteTest` (lane Estoque · MySQL) + `produto-ncm-em-lote.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-44 | Filtro "Uso": Para vender, Material e Serviço | should | `ProductController::consultaListaProdutos` (`uso`) + `App\Contracts\Fabricacao\ProdutosDeReceita` (Manufacturing) + `FiltrosLista.tsx` | `ProdutoListaUsoTest` (lane Estoque · MySQL) + `produto-filtro-uso.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-45 | Excluir sem perder e restaurar | must | `ProductController::destroy` / `massDestroy` / `restaurar` + `consultaListaProdutos` (`deleted_at`) + `AcoesProduto.tsx` | `ProdutoExcluirRestaurarTest` (lane Estoque · MySQL) + `produto-excluir-restaurar.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-46 | "O que é" no painel e a coluna Tipo fora do padrão (resto da CV1) | should | `ProductController::buildProdutoDetalhe` (`uso`) + `oQueE` em `tipos.ts` + `PainelDetalhe.tsx` + `colunasOpcionais` | `ProdutoListaUsoTest` (lane Estoque · MySQL) + `produto-o-que-e.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -610,6 +611,14 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Fora daqui:** restaurar vários de uma vez; o valor do estoque do excluído continua no "Valor em estoque" e no Relatório de estoque, como o de qualquer produto inativo (o estoque físico é real).
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-46 · "O que é" no painel e a coluna Tipo fora do padrão (resto da CV1) · `should`
+- **Persona:** quem cuida do estoque numa comunicação visual e abre um produto para saber se é material, se é para vender ou se é serviço, sem ler o tipo do cadastro (único, variável, composição).
+- **Aceite:** Dado lona (entra na receita do banner), banner e instalação (natureza fiscal serviço) · Quando abro o painel da lona · Então o selo diz "Material" · Na instalação, "Serviço" · No banner, "Para vender" · Um produto que é material e serviço diz os dois · A forma do cadastro só aparece quando muda algo: "Para vender · com 8 variações", "Material · kit com 4 itens"; o produto único não diz "único" · E a coluna Tipo sai das colunas que a lista mostra por padrão (continua no menu Colunas; quem já tinha escolhido as colunas mantém a escolha).
+- **Teste:** [`ProdutoListaUsoTest`](../../../../tests/Feature/Produto/ProdutoListaUsoTest.php) — `UC-PIDX-46` (o detalhe traz o mesmo uso que o filtro, com a SQL real da receita; material e serviço juntos — lane Estoque · MySQL) e [`produto-o-que-e.test.tsx`](../../../../tests/js/produto-o-que-e.test.tsx) — `UC-PIDX-46` (o selo do painel; variações e kit; sem o uso, "Para vender"; Tipo fora do padrão — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-12: voltar o selo ao tipo do cadastro e o Tipo ao padrão derruba 3 dos 5 casos de tela.
+- **Contrato:** backlog CV1 (pesquisa de 2026-10-20, shopVOX produtos × materiais e Calcgraf insumos e acabados) e a regra do UC-PIDX-44: o uso vem da receita da Fabricação e da natureza fiscal, sem campo novo. O selo mantém a cor do tipo do cadastro, e o tipo segue no título do selo. O padrão de colunas do protótipo (`PB_COLS_PADRAO` em `produto-blade.jsx`) também deixa de ligar o Tipo; os testes de encaixe e de arrasto, que reproduzem medições feitas com o Tipo visível, ligam-no no próprio cenário.
+- **Gates:** o mesmo do painel (`product.view`). Tier 0: a receita e a natureza são lidas só da empresa do usuário, pelos mesmos contratos do filtro.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -782,11 +791,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 **Comunicação visual**
 
 - O filtro "Uso" (Para vender, Material, Serviço) da CV1 saiu deste backlog em 2026-11-06: virou UC-PIDX-44, com teste.
-- **[BACKLOG] "O que é" no painel e a coluna Tipo fora do padrão (resto da CV1)** — No painel fica um
-  rótulo só, "O que é", com o uso (a mesma regra do UC-PIDX-44); a forma do cadastro aparece só quando
-  muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai do padrão
-  da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf (insumos e
-  acabados).
+- "O que é" no painel e a coluna Tipo fora do padrão (resto da CV1) saiu deste backlog em 2026-11-12: virou UC-PIDX-46, com teste.
 - **[BACKLOG] De onde vem o separado, no painel (CV4)** `[V0]` — a parte da lista ("20 m² separados para vendas ·
   30 m² livres") saiu deste backlog em 2026-11-04 e virou UC-PIDX-38. Fica o painel. Fonte: Calcgraf (material
   empenhado), shopVOX (quantidade reservada).
@@ -920,6 +925,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Campo "Compra com nota" no lançamento — Sai antes, mas é um campo novo na compra, e o saldo fica tão certo quanto quem marca o campo.
 
 ## Trilha do tempo
+- 2026-11-12 · [F+C] **UC-PIDX-46**: o painel diz "O que é" o produto (Para vender, Material ou Serviço, pela regra do filtro "Uso") e a coluna Tipo deixa de vir ligada (resto da CV1).
 - 2026-11-12 · [F+C] **UC-PIDX-45**: o servidor passa a recusar (409) Editar, Preços por grupo e Estoque inicial do excluído, e as ações em lote deixam o excluído de fora. Antes só a tela escondia essas ações.
 - 2026-11-12 · [F+C] Decisões D-19 (juntar produtos é outra tela, do responsável, com histórico), D-29 (receita no painel, só leitura), D-30 (kits seguem "Permitir vender sem estoque") e D-31 (o "entrou com nota" vem da compra criada a partir da nota).
 - 2026-11-11 · [F+C] **UC-PIDX-45**: o excluído deixa de oferecer Editar, Estoque inicial, Código de barras e Preços por grupo (menu da linha e rodapé do painel), por decisão [F] depois do teste em produção.
