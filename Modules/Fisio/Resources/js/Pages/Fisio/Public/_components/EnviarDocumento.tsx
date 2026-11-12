@@ -1,4 +1,4 @@
-// Enviar foto de exame ou receita pelo portal (US-FISIO-063, parte 4). Protótipo: PacienteEnviarExame.dc.html.
+// Enviar foto de exame, receita ou atestado pelo portal (US-FISIO-063, parte 4; atestado em UC-FER-21). Protótipo: PacienteEnviarExame.dc.html.
 // Casos: Portal.casos.md (UC-FPP-62..64) e exames-e-receitas.casos.md (UC-FER-17..20).
 // Antes do primeiro envio o paciente aceita o consentimento próprio desta finalidade (separado do
 // teleatendimento, revogável nas Configurações). O que ele envia chega à clínica como pendente de
@@ -23,7 +23,7 @@ const SITUACAO: Record<string, string> = {
 };
 // Palavras do paciente para os tipos do servidor.
 const ROTULO: Record<string, string> = {
-  receita: 'Receita', exame_imagem: 'Exame de imagem', exame_laboratorial: 'Exame de sangue', laudo_medico: 'Laudo médico', outro: 'Outro',
+  receita: 'Receita', atestado: 'Atestado médico', exame_imagem: 'Exame de imagem', exame_laboratorial: 'Exame de sangue', laudo_medico: 'Laudo médico', outro: 'Outro',
 };
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
@@ -81,7 +81,7 @@ export function TelaEnviarDocumento({ token, clinica, envio, onVoltar }: { token
     <div className="flex flex-1 flex-col gap-5" data-contract="fisio-portal-enviar-documento">
       <div className="flex items-center gap-2">
         <Button type="button" variant="ghost" size="icon" onClick={onVoltar} aria-label="Voltar"><ArrowLeft aria-hidden="true" /></Button>
-        <h1 className="text-2xl font-semibold leading-tight">Enviar exame ou receita</h1>
+        <h1 className="text-2xl font-semibold leading-tight">Enviar exame, receita ou atestado</h1>
       </div>
 
       {!consentido ? (
@@ -93,7 +93,7 @@ export function TelaEnviarDocumento({ token, clinica, envio, onVoltar }: { token
           </p>
           <div className="flex items-start gap-3">
             <Checkbox id="doc-aceito" className="mt-0.5 size-6" checked={aceito} onCheckedChange={(v) => setAceito(v === true)} />
-            <Label htmlFor="doc-aceito" className="font-normal leading-snug">Autorizo enviar fotos de exames e receitas para {nome}.</Label>
+            <Label variant="shadcn" htmlFor="doc-aceito" className="font-normal leading-snug">Autorizo enviar fotos de exames, receitas e atestados para {nome}.</Label>
           </div>
           <Button type="button" className="h-12" disabled={!aceito} onClick={() => void autorizar()}>Continuar</Button>
         </section>
@@ -109,7 +109,7 @@ export function TelaEnviarDocumento({ token, clinica, envio, onVoltar }: { token
               ))}
             </div>
           </fieldset>
-          <Label htmlFor="doc-arquivo" className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-primary/40 bg-card text-center font-normal">
+          <Label variant="shadcn" htmlFor="doc-arquivo" className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-primary/40 bg-card text-center font-normal leading-snug">
             <Camera className="size-7" aria-hidden="true" />
             <span className="font-medium">{arquivo ? arquivo.name : 'Tirar foto ou escolher arquivo'}</span>
             <span className="text-sm text-muted-foreground">foto ou PDF, até 10 MB</span>

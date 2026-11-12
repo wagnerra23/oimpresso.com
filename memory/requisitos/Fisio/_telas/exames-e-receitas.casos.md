@@ -48,7 +48,9 @@ related_us: [US-FISIO-063]
 | UC-FER-18 | portal: link inválido 404, sem PIN 403, consentimento revogado 403, teto do dia 429 | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
 | UC-FER-19 | a clínica aceita (pode acertar tipo e data) ou recusa com motivo; nada entra sozinho e nada se apaga | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
 | UC-FER-20 | sem `fisio.editar` 403; outra empresa 404 em aceitar, recusar e abrir; o portal de outro paciente não vê os envios | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
+| UC-FER-21 | atestado médico é tipo da lista na ficha e no portal, não é transcrito, e o termo `documentos` que passou a nomeá-lo pede aceite de novo | must | US-FISIO-063 | `FisioPortalDocumentosTest` |
 
+- [BACKLOG] transcrição do atestado (data, médico/CRM, dias de afastamento): o agente hoje só tem os campos de receita e exame; entra quando o [W] pedir.
 - [BACKLOG] conferência em staging com print do anexo, da sugestão conferida e do envio pelo portal.
 
 ---
@@ -181,4 +183,14 @@ related_us: [US-FISIO-063]
 ## UC-FER-20 · Isolamento da conferência `[must]`
 - **Aceite:** Sem `fisio.editar`, aceitar e recusar dão 403. Usuário da 99 recebe 404 em aceitar,
   recusar e abrir o arquivo, e nada muda. O portal de um paciente da 99 não lista os envios da 98.
+- **Status:** 🧪
+
+## UC-FER-21 · Atestado médico `[must]`
+- **Persona:** paciente com o atestado que o médico deu; fisioterapeuta que guarda o atestado na ficha.
+- **Aceite:** Dada a lista fechada de tipos · Então ela tem `atestado` ("Atestado médico"), e a ficha
+  e o portal recebem esse tipo junto com os outros · Quando o paciente envia um atestado pelo portal ·
+  Então ele chega `pendente` na empresa do token, como exame e receita · Quando a clínica anexa um
+  atestado na ficha · Então ele é gravado e não oferece transcrição pela IA (`transcrevivel` falso) ·
+  E como o texto do termo `documentos` passou a nomear o atestado, a versão do termo sobe e quem
+  aceitou a anterior precisa aceitar de novo antes do próximo envio (403 `consentimento_documentos`).
 - **Status:** 🧪

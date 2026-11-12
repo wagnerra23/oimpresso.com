@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 14 |
 | Telas com `casos.md` | 18 |
-| UC declarados | 243 |
-| UC com teste que os cita | 243 |
+| UC declarados | 245 |
+| UC com teste que os cita | 245 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -122,6 +122,7 @@ authority: generated
 | UC-FER-18 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
 | UC-FER-19 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
 | UC-FER-20 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-21 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
 | UC-FES-01 | Pesquisa/Index | 🧪 aguarda veredito da lane |
 | UC-FES-02 | Pesquisa/Index | 🧪 aguarda veredito da lane |
 | UC-FES-03 | Pesquisa/Index | 🧪 aguarda veredito da lane |
@@ -192,6 +193,7 @@ authority: generated
 | UC-FPK-07 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPK-08 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPK-09 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
+| UC-FPK-10 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPN-01 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-02 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-03 | Painel | 🧪 aguarda veredito da lane |

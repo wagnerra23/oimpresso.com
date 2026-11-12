@@ -145,7 +145,7 @@ export function TelaCheckin({ token, itens, vezes, onVezes, relato, sinais, cris
                 return (
                   <li key={i.id} className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2">
                     <Checkbox id={`ck-${i.id}`} checked={n >= 1} onCheckedChange={(v) => onVezes(i.id, v === true ? Math.max(1, n) : 0)} />
-                    <Label htmlFor={`ck-${i.id}`} className="flex-1 font-normal">{i.nome}</Label>
+                    <Label variant="shadcn" htmlFor={`ck-${i.id}`} className="flex-1 font-normal leading-snug">{i.nome}</Label>
                     {i.times_per_day > 1 && n >= 1 && (
                       <div className="flex items-center gap-1" role="group" aria-label={`Vezes de ${i.nome ?? 'exercício'}`}>
                         <Button type="button" variant="outline" size="icon-sm" aria-label="Uma vez a menos" disabled={n <= 1} onClick={() => onVezes(i.id, n - 1)}>−</Button>
@@ -188,7 +188,7 @@ export function TelaCheckin({ token, itens, vezes, onVezes, relato, sinais, cris
             {sinais.map((s) => (
               <div key={s} className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2">
                 <Checkbox id={`sinal-${s}`} checked={flags.includes(s)} onCheckedChange={(v) => setFlags(v === true ? [...flags, s] : flags.filter((f) => f !== s))} />
-                <Label htmlFor={`sinal-${s}`} className="font-normal">{SINAIS[s] ?? s}</Label>
+                <Label variant="shadcn" htmlFor={`sinal-${s}`} className="font-normal leading-snug">{SINAIS[s] ?? s}</Label>
               </div>
             ))}
           </div>
