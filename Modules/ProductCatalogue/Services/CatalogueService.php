@@ -89,7 +89,9 @@ class CatalogueService
         foreach ($porCategoria as $produtos) {
             foreach ($produtos as $product) {
                 $variationId = $product->type !== 'variable' ? $product->variations->first()?->id : null;
-                // getProductDiscount devolve o Discount ou null (o docblock dele diz `obj`).
+                // getProductDiscount devolve o Discount ou null (é um `->first()`), mas o docblock
+                // dele declara `obj`, que o PHPStan lê como classe inexistente.
+                /** @var \App\Discount|null $desconto */
                 $desconto = $this->productUtil->getProductDiscount($product, $businessId, $locationId, false, null, $variationId);
                 if ($desconto instanceof \App\Discount) {
                     $desconto->setAttribute('selo', $formato->seloDesconto($desconto));
