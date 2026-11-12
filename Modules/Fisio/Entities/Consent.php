@@ -18,6 +18,7 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property int $business_id
  * @property int $patient_id
  * @property string $purpose
+ * @property ?int $study_id  estudo, só na finalidade `pesquisa` (etapa 07 P-02)
  * @property string $version
  * @property \Illuminate\Support\Carbon $granted_at
  * @property ?\Illuminate\Support\Carbon $revoked_at

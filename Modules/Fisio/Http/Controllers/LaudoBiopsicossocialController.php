@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Fisio\Http\Controllers;
 
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +17,7 @@ use Modules\Fisio\Entities\LaudoBiopsicossocialEquipe as Equipe;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Services\ConfiguracaoClinica;
 use Modules\Fisio\Services\DiaLocal;
+use Modules\Fisio\Services\ImpressoPdf;
 use Modules\Fisio\Services\Laudo\ApoioFisioterapia;
 use Modules\Fisio\Services\Laudo\LaudoBiopsicossocialDocumento;
 use Modules\Fisio\Services\Laudo\MatrizIfbrm;
@@ -229,13 +229,13 @@ class LaudoBiopsicossocialController extends Controller
      * PDF no layout oficial. Leitura (basta `fisio.access`). Cada geração grava uma linha no
      * activity_log só com ids, o estado e o total — nunca nome nem texto clínico (LGPD art. 11).
      */
-    public function pdf(Request $request, int $laudo, LaudoBiopsicossocialDocumento $documento): Response
+    public function pdf(Request $request, int $laudo, LaudoBiopsicossocialDocumento $documento, ImpressoPdf $impresso): Response
     {
         $biz = $this->empresa($request);
         $doc = LaudoBiopsicossocial::query()->where('business_id', $biz)->with('patient')->findOrFail($laudo);
 
         $dados = $documento->montar($doc, $biz);
-        $pdf = Pdf::loadView('fisio::pdf.laudo-biopsicossocial', $dados)->setPaper('a4', 'portrait');
+        $pdf = $impresso->gerar('fisio::pdf.laudo-biopsicossocial', $dados);
 
         activity('fisio')
             ->performedOn($doc->patient)

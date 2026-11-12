@@ -502,6 +502,14 @@ describe('UC-PIDX-11 · rodapé', () => {
     expect(painel.queryByRole('button', { name: /compr/i })).toBeNull();
     expect(irPara).not.toHaveBeenCalled();
   });
+
+  it('UC-PIDX-45 · produto excluído: sem "Editar produto" e sem "Preços por grupo", com o selo "Excluído"', () => {
+    // Decisão [F] 2026-11-11: o excluído não se edita pelo painel — quem quer mexer restaura antes.
+    const { painel } = abrir(detalhe({ inativo: true, excluido: true }));
+    expect(rotulosDoRodape(painel)).toEqual(['Imprimir', 'Fechar']);
+    expect(painel.getByText('Excluído')).toBeTruthy();
+    expect(painel.queryByText('Inativo')).toBeNull();
+  });
 });
 
 // Produto composto com todas as permissões: a variação dele (o preço da composição) e dois itens.

@@ -7,6 +7,7 @@ namespace Modules\Fisio\Services\Laudo;
 use Modules\Fisio\Entities\LaudoBiopsicossocial;
 use Modules\Fisio\Entities\LaudoBiopsicossocialEquipe as Equipe;
 use Modules\Fisio\Entities\Patient;
+use Modules\Fisio\Services\IdentidadeClinica;
 
 /**
  * Dados do laudo biopsicossocial para o PDF (layout do modelo SES-SC, Deliberação 500/CIB/2026)
@@ -16,9 +17,14 @@ use Modules\Fisio\Entities\Patient;
  * calculado, fatores contextuais, conclusão da equipe, as cinco áreas da equipe e local e data.
  * O que não foi preenchido sai em branco, para escrever à mão. Laudo em rascunho sai marcado como
  * documento de apoio, não finalizado.
+ *
+ * O cabeçalho é o comum dos impressos do Fisio (pdf/_base.blade.php): a clínica vem de
+ * IdentidadeClinica, sempre da empresa da sessão — nunca de outra.
  */
 final class LaudoBiopsicossocialDocumento
 {
+    public function __construct(private readonly IdentidadeClinica $identidade) {}
+
     /** @return array<string, mixed> */
     public function montar(LaudoBiopsicossocial $laudo, int $biz): array
     {
@@ -35,6 +41,8 @@ final class LaudoBiopsicossocialDocumento
         }
 
         return [
+            'clinica' => $this->identidade->montar($biz),
+            'emitido_em' => now()->format('d/m/Y H:i'),
             'laudo_id' => $laudo->id,
             'versao_modelo' => 'Versão 1.0 (Data 26/10/2026)',
             'paciente' => $laudo->patient?->contact?->name,

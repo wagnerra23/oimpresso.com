@@ -163,6 +163,34 @@ it('UC-PIDX-45 · excluir e restaurar pedem product.delete; produto de outra emp
     $this->withHeaders($this->ajax)->post('/products/restaurar/' . $deFora->productId)->assertNotFound();
 });
 
+it('UC-PIDX-45 · o painel do produto sabe que ele está excluído (e deixa de saber ao restaurar)', function () {
+    // Decisão [F] 2026-11-11: o painel tira "Editar produto" e "Preços por grupo" do excluído. Para isso o
+    // detalhe (`?ver=`) leva `excluido`; o controle negativo é o mesmo produto antes de excluir e depois de restaurar.
+    $biz = $this->business->id;
+    $p = perProduto($biz);
+    perEntrar($this, ['product.view', 'product.delete', 'access_all_locations']);
+    $detalhe = function () use ($p) {
+        $r = $this->get('/products?ver=' . $p->productId, [
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
+            'X-Inertia-Partial-Component' => 'Produto/Index',
+            'X-Inertia-Partial-Data' => 'detalhe',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+        $r->assertOk();
+
+        return $r->json('props.detalhe');
+    };
+
+    expect($detalhe()['excluido'])->toBeFalse();
+
+    $this->withHeaders($this->ajax)->delete('/products/' . $p->productId)->assertOk();
+    expect($detalhe()['excluido'])->toBeTrue();
+
+    $this->withHeaders($this->ajax)->post('/products/restaurar/' . $p->productId)->assertOk();
+    expect($detalhe()['excluido'])->toBeFalse();
+});
+
 it('UC-PIDX-45 · o indicador "Total" deixa de contar o excluído', function () {
     $biz = $this->business->id;
     $p = perProduto($biz);
