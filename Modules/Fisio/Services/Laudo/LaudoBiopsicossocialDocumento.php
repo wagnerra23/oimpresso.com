@@ -80,4 +80,28 @@ final class LaudoBiopsicossocialDocumento
                 'equipe' => $l->equipe->map(fn (Equipe $m) => $m->only(['id', 'area', 'nome', 'registro', 'assinatura']))->values()->all(),
             ])->values()->all();
     }
+
+    /**
+     * Laudos que o paciente pode baixar no portal (pedido do [W] em 2026-11-12; UC-FBP-16): só os
+     * FINALIZADOS e, numa cadeia de correções, só o mais recente (o laudo que outro finalizado
+     * corrige sai da lista). Rascunho nunca aparece. O portal não tem sessão de usuário, então o
+     * filtro de empresa é o do paciente, que veio assinado no token.
+     *
+     * @return list<array{id:int, finalizado_em:string}>
+     */
+    public function finalizadosDoPortal(Patient $paciente): array
+    {
+        $finalizados = LaudoBiopsicossocial::withoutGlobalScopes() // SUPERADMIN: portal sem sessão; filtra pela empresa do paciente.
+            ->where('business_id', (int) $paciente->business_id)
+            ->where('patient_id', (int) $paciente->id)
+            ->whereNotNull('finalizado_em')
+            ->orderByDesc('finalizado_em')->orderByDesc('id')
+            ->get(['id', 'amends_id', 'finalizado_em']);
+        $corrigidos = $finalizados->pluck('amends_id')->filter()->map(fn ($v) => (int) $v)->all();
+
+        return $finalizados
+            ->reject(fn (LaudoBiopsicossocial $l) => in_array((int) $l->id, $corrigidos, true))
+            ->map(fn (LaudoBiopsicossocial $l) => ['id' => (int) $l->id, 'finalizado_em' => $l->finalizado_em->format('Y-m-d')])
+            ->values()->all();
+    }
 }

@@ -24,6 +24,7 @@ use Modules\Fisio\Services\Consentimentos;
 use Modules\Fisio\Services\DiaLocal;
 use Modules\Fisio\Services\DocumentosDoPaciente;
 use Modules\Fisio\Services\JogoService;
+use Modules\Fisio\Services\Laudo\LaudoBiopsicossocialDocumento;
 use Modules\Fisio\Services\Pesquisa\EstudoService;
 use Modules\Fisio\Services\PortalTokenService;
 use Modules\Fisio\Services\PreAnamneseDoPortal;
@@ -124,6 +125,8 @@ class PortalController extends Controller
                 'tipos' => DocumentoPaciente::TIPOS,
                 'enviados' => app(DocumentosDoPaciente::class)->enviadosPeloPortal($paciente),
             ],
+            // Laudo biopsicossocial (US-FISIO-060, UC-FBP-16): só os finalizados e vigentes, para o paciente baixar.
+            'laudos_bps' => app(LaudoBiopsicossocialDocumento::class)->finalizadosDoPortal($paciente),
             // O portal só guarda check-in na fila offline quando o aparelho é lembrado (UC-FPP-31).
             'guardar_offline' => $this->lembrado($request, $linha),
         ];

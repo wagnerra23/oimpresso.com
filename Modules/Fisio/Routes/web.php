@@ -21,6 +21,7 @@ use Modules\Fisio\Http\Controllers\PacotesController;
 use Modules\Fisio\Http\Controllers\PortalAgendaController;
 use Modules\Fisio\Http\Controllers\PortalController;
 use Modules\Fisio\Http\Controllers\PortalDocumentosController;
+use Modules\Fisio\Http\Controllers\PortalLaudoController;
 use Modules\Fisio\Http\Controllers\PortalLinkController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
 use Modules\Fisio\Http\Controllers\FolhaProgramaController;
@@ -235,6 +236,8 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::post('desafio', [PortalController::class, 'desafio'])->name('desafio');
         // Foto de exame ou receita (US-FISIO-063 parte 4): exige o consentimento `documentos`; chega pendente à clínica.
         Route::post('documentos', [PortalDocumentosController::class, 'store'])->name('documentos.store');
+        // Laudo biopsicossocial (US-FISIO-060, UC-FBP-16): o paciente baixa só o próprio laudo FINALIZADO e vigente.
+        Route::get('laudos-bps/{laudo}/pdf', [PortalLaudoController::class, 'pdf'])->whereNumber('laudo')->name('laudos-bps.pdf');
         // Agenda do paciente (US-FISIO-016): mesmo portão do portal (PIN + teleatendimento), business do token.
         Route::get('agenda', [PortalAgendaController::class, 'index'])->name('agenda.index');
         Route::get('agenda/horarios', [PortalAgendaController::class, 'horarios'])->name('agenda.horarios');

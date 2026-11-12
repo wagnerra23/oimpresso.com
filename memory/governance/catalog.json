@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 974,
-    "edges": 1306,
+    "nodes": 976,
+    "edges": 1308,
     "by_node_type": {
       "module": 43,
       "table": 116,
       "adr": 155,
-      "component": 568,
+      "component": 570,
       "api": 92
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 95,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 568,
+      "hasComponent": 570,
       "dependsOn": 141,
       "delegatesTo": 129,
       "migratesTo": 1,
@@ -3669,6 +3669,13 @@
       "module": "Fisio",
       "name": "PortalDocumentosController",
       "desc": "paciente envia foto de exame ou receita pelo portal com o consentimento `documentos`; chega pendente e a clínica aceita ou recusa na ficha (US-FISIO-063)"
+    },
+    {
+      "id": "component:Fisio/PortalLaudoController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PortalLaudoController",
+      "desc": "paciente baixa pelo portal o próprio laudo biopsicossocial finalizado e vigente, com o mesmo PDF da ficha (US-FISIO-060, UC-FBP-16)"
     },
     {
       "id": "component:Fisio/PortalLinkController",
@@ -11105,6 +11112,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/PortalDocumentosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PortalLaudoController",
       "type": "hasComponent",
       "source": "contains"
     },
