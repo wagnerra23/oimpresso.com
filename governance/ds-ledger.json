@@ -178,7 +178,7 @@
     },
     {
       "screen": "Fisio",
-      "note": "46 arquivo(s)",
+      "note": "54 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -618,7 +618,7 @@
     },
     {
       "screen": "Produto",
-      "note": "67 arquivo(s)",
+      "note": "68 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -719,8 +719,8 @@
   "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "6d4953358b",
-  "generatedAt": "2026-11-11T17:23:18.982Z",
+  "measuredAgainstSha": "ceacd445fb",
+  "generatedAt": "2026-11-12T17:49:49.534Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

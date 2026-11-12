@@ -9,6 +9,7 @@
     "Cliente/Ledger",
     "Cliente/Map",
     "Compras/Index",
+    "ComunicacaoVisual/Agenda",
     "Essentials/Documents/Index",
     "Essentials/Knowledge/Index",
     "Essentials/Messages/Index",
@@ -71,6 +72,7 @@
     "Ponto/Intercorrencias/Index",
     "Ponto/Intercorrencias/Show",
     "Ponto/Relatorios/Index",
+    "ProductCatalogue/CatalogueQr",
     "Produto/Create",
     "Produto/Edit",
     "Produto/Index",
@@ -122,16 +124,6 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/comissionados-page.jsx",
-      "falta": [
-        "scorecard"
-      ]
-    },
-    {
-      "tela": "ComunicacaoVisual/Agenda",
-      "arquivo": "resources/js/Pages/ComunicacaoVisual/Agenda.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Wagner/producao-cv-campo.jsx",
       "falta": [
         "scorecard"
       ]
@@ -422,16 +414,6 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/ponto-mobile.jsx",
-      "falta": [
-        "scorecard"
-      ]
-    },
-    {
-      "tela": "ProductCatalogue/CatalogueQr",
-      "arquivo": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx",
-      "modulo": "core",
-      "status": "1-ciclo",
-      "prototipo": "prototipo-ui/cowork/Wagner/catalogo-qr-page.jsx",
       "falta": [
         "scorecard"
       ]
