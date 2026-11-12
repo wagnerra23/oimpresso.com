@@ -6,6 +6,29 @@ id: requisitos-vestuario-changelog
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).
 
+## [Unreleased] - 2026-11-12 — auditoria do módulo, lotes 0 a 4
+
+### Fixed
+
+- Remarcação lê o valor digitado com o parser canônico pt-BR (#10639).
+- Etiqueta imprime o `sub_sku`, que é o código que o caixa bipa (EAN-13 só quando o `sub_sku` já é EAN), e o ZPL escapa os campos (#10640).
+- Teto de etiquetas por pedido; permissão `vestuario.etiqueta.*` atrás da chave `VESTUARIO_ETIQUETA_EXIGIR_PERMISSAO`, desligada por padrão (#10650).
+- Remarcação com permissão própria, limite de etiquetas e entrada de menu (#10647).
+- Curva de compra soma só as lojas que o usuário vê (#10655).
+- FK de empresa nas 5 tabelas `vestuario_*` e seeder sem empresa padrão (#10654).
+- Remarcação sem corrida entre duas gravações e reversão com o preço exato de antes (#10710); etiquetas do lote com o preço de hoje e sem corte em 500 (#10711); prévia avisa preço de grupo (#10713).
+- Rotas do módulo exigem o pacote `vestuario_module` da empresa, middleware `VestuarioLiberado` (#10658).
+
+### Added
+
+- Etiqueta acha a peça por nome ou SKU, sem digitar id (#10665).
+- Botão "Sugerir pela curva" na nova compra (#10660).
+
+### Preserved (Tier 0)
+
+- Remarcação segue desligada na ROTA LIVRE (`remarcacao.enabled`); ligar é decisão [W].
+- ADR 0066 `format_date` shift +3h intocado.
+
 ## [Unreleased] - 2026-05-17 — Wave 27 POLISH FINAL (90 → ≥95 vertical_client_facing)
 
 ### Added
