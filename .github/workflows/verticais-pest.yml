@@ -583,6 +583,8 @@ jobs:
         # E FisioLaudoBpsTelaTest (UC-FBP-15): catálogo da matriz junto e laudos por prop deferida na ficha.
         # ENTRA 2026-11-11 — Fisio/FisioDadosSociaisTest (US-FISIO-061, UC-FSO-01..05): dados sociais opcionais,
         # CNS com dígito, 403/404/bloqueado e nada no portal nem na exportação da pesquisa.
+        # ENTRA 2026-11-11 — Fisio/FisioRelatorioAssociacaoTest (US-FISIO-062, UC-FRA-01..05): relatório agregado,
+        # "<5" por grupo, 403 sem fisio.relatorio, 99 fora da conta da 98, PDF com rastro sem paciente.
         #
         # ENTRA 2026-11-04 — Fisio/FisioLaudoEvolucaoTest (Lote 2): laudo de evolução em PDF só com o que está
         # assinado, uma linha no activity_log sem PII, 404 entre 98 e 99 e 403 sem fisio.access (UC-FLD-01..03).
@@ -965,7 +967,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioExportacaoEstudoTest.php \
             Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php \
             Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php \
-            Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php || rc_principal=$?
+            Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php \
+            Modules/Fisio/Tests/Feature/FisioRelatorioAssociacaoTest.php || rc_principal=$?
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php || rc_painel=$?

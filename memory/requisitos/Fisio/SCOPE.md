@@ -51,6 +51,7 @@ contains:
   - "TranscricaoDocumentoController — transcrição da foto pela IA (TranscricaoDocumentoAgent, laravel/ai), desligada por empresa, só provedor sem treino; a IA só copia e o profissional confere antes de gravar (fisio_document_transcriptions, US-FISIO-063)"
   - "PortalDocumentosController — paciente envia foto de exame ou receita pelo portal com o consentimento `documentos`; chega pendente e a clínica aceita ou recusa na ficha (US-FISIO-063)"
   - "DadosSociaisController — dados sociais do paciente, todos opcionais, em fisio_patient_social; nascimento, município e bairro no contato (US-FISIO-061)"
+  - "RelatorioAssociacaoController — relatório agregado da associação por período, tela e PDF, só contagem e média com grupo < 5 como \"<5\" (RelatorioAssociacao, permissão fisio.relatorio — US-FISIO-062)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Preço do pacote, cobrança e títulos → Modules/Financeiro (via venda do núcleo); o Fisio só lê fin_titulos pelo model Titulo (F3, US-FISIO-021/022)"
