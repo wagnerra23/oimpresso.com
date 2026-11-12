@@ -91,7 +91,7 @@ export function TelaConfiguracoes({ token, clinica, consentimentos, estudos = []
         <h2 id="cfg-aut" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Suas autorizações</h2>
         {AUTORIZACOES.map((a) => (
           <div key={a.purpose} className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
-            <Label htmlFor={`cfg-${a.purpose}`} className="flex flex-1 flex-col items-start gap-0.5 font-normal">
+            <Label variant="shadcn" htmlFor={`cfg-${a.purpose}`} className="flex flex-1 flex-col items-start gap-0.5 font-normal leading-snug">
               <span className="font-semibold">{a.titulo}</span>
               <span className="text-sm text-muted-foreground">{a.detalhe(nome)}</span>
             </Label>
@@ -115,7 +115,7 @@ export function TelaConfiguracoes({ token, clinica, consentimentos, estudos = []
         <h2 id="cfg-pesquisa" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pesquisa</h2>
         {estudos.map((e) => (
           <div key={e.study_id} className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
-            <Label htmlFor={`cfg-estudo-${e.study_id}`} className="flex flex-1 flex-col items-start gap-0.5 font-normal">
+            <Label variant="shadcn" htmlFor={`cfg-estudo-${e.study_id}`} className="flex flex-1 flex-col items-start gap-0.5 font-normal leading-snug">
               <span className="font-semibold">{e.titulo}</span>
               <span className="text-sm text-muted-foreground">
                 {noEstudo[e.study_id]
@@ -138,7 +138,7 @@ export function TelaConfiguracoes({ token, clinica, consentimentos, estudos = []
           </div>
         )}
         <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
-          <Label htmlFor="cfg-treino_ia" className="flex flex-1 flex-col items-start gap-0.5 font-normal">
+          <Label variant="shadcn" htmlFor="cfg-treino_ia" className="flex flex-1 flex-col items-start gap-0.5 font-normal leading-snug">
             <span className="font-semibold">Treino de inteligência artificial</span>
             <span className="text-sm text-muted-foreground">Uso dos seus dados sem identificação para treinar IA. Não é a mesma coisa que participar de um estudo.</span>
           </Label>

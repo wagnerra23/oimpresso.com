@@ -93,7 +93,7 @@ export function TelaEnviarDocumento({ token, clinica, envio, onVoltar }: { token
           </p>
           <div className="flex items-start gap-3">
             <Checkbox id="doc-aceito" className="mt-0.5 size-6" checked={aceito} onCheckedChange={(v) => setAceito(v === true)} />
-            <Label htmlFor="doc-aceito" className="font-normal leading-snug">Autorizo enviar fotos de exames, receitas e atestados para {nome}.</Label>
+            <Label variant="shadcn" htmlFor="doc-aceito" className="font-normal leading-snug">Autorizo enviar fotos de exames, receitas e atestados para {nome}.</Label>
           </div>
           <Button type="button" className="h-12" disabled={!aceito} onClick={() => void autorizar()}>Continuar</Button>
         </section>
@@ -109,7 +109,7 @@ export function TelaEnviarDocumento({ token, clinica, envio, onVoltar }: { token
               ))}
             </div>
           </fieldset>
-          <Label htmlFor="doc-arquivo" className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-primary/40 bg-card text-center font-normal">
+          <Label variant="shadcn" htmlFor="doc-arquivo" className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-primary/40 bg-card text-center font-normal leading-snug">
             <Camera className="size-7" aria-hidden="true" />
             <span className="font-medium">{arquivo ? arquivo.name : 'Tirar foto ou escolher arquivo'}</span>
             <span className="text-sm text-muted-foreground">foto ou PDF, até 10 MB</span>
