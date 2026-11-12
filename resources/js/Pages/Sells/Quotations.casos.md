@@ -4,7 +4,7 @@ irmaos: Quotations.charter.md (lei) · Quotations.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: cotação é proposta ao cliente que divide a tabela `transactions` com o rascunho e se distingue só por `sub_status = quotation` — quem vê qual cotação, e de qual empresa, não pode mudar num refactor visual.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-11-12"
 last_run_ci: "UC-QUO-01 3/3 verde no CT 100 (19 assertions, 2026-10-06) — veredito da lane PHP / Pest (Sells · MySQL) pendente deste PR"
 ---
 
@@ -211,6 +211,7 @@ Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do tes
   - Etiquetas: part, cv
 
 ## Trilha do tempo
+- 2026-11-12 · [F+C] `last_run` 2026-10-21 → 2026-11-12 por conferência, não por run novo (G-6): a única mudança em `Quotations.tsx` depois de 2026-10-21 é a linha "Cópia de" do #10182, que é o UC-QUO-12 e tem teste próprio (`SellsQuotationsContratoTest`). Filtro da lista, permissões e conversão de UC-QUO-01..04 não mudaram. Nenhum teste re-rodado aqui.
 - 2026-11-12 · [F+C] UC-QUO-13: `quotation.delete` exclui cotação (antes a lista antiga mostrava Excluir e o servidor respondia 403). Teste `SellsQuotationsContratoTest`, nasce sem run.
 - 2026-10-27 · [CL] UC-OAC-01..04 (US-SELL-074, fatia 1): gerar o link de aprovação e o que o cliente vê. Teste `OrcamentoAceiteLinkContratoTest`, nasce sem run.
 - 2026-10-23 · [M+C] Backlog: orçamento duplicado mostra de onde veio, sem id.
