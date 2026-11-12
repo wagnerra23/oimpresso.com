@@ -337,7 +337,7 @@ interface Props {
   aoMudarAba: (aba: AbaDoDetalhe) => void;
   aoFechar: () => void;
   podeEditar: boolean;
-  /** UC-PIDX-46 (#10765): só `product.armazenagem`: o rodapé leva ao Editar só com os locais. */
+  /** UC-PIDX-47 (#10765): só `product.armazenagem`: o rodapé leva ao Editar só com os locais. */
   podeArmazenagem?: boolean;
   podePrecos: boolean;
   /** A empresa emite nota (módulo Fiscal no pacote): só então a aba Fiscal existe. */

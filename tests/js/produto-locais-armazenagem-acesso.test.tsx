@@ -1,4 +1,4 @@
-// UC-PIDX-46 (Index.casos.md) e UC-PSHOW-08 (Show.casos.md) — o caminho até o Editar só com os locais.
+// UC-PIDX-47 (Index.casos.md) e UC-PSHOW-08 (Show.casos.md) — o caminho até o Editar só com os locais.
 //
 // Contrato (CU-PROD-20, proposta #10765): quem tem `product.armazenagem` sem `product.update` vê
 // "Locais de armazenagem" no menu da linha, no rodapé do painel de detalhe e na ficha, e não vê
@@ -70,7 +70,7 @@ afterEach(() => {
   document.querySelectorAll('.cockpit').forEach((e) => e.remove());
 });
 
-describe('UC-PIDX-46 · menu da linha', () => {
+describe('UC-PIDX-47 · menu da linha', () => {
   it('só com product.armazenagem: tem "Locais de armazenagem", não tem "Editar", e o item leva à ação armazenagem', () => {
     const { aoEscolher, itens } = abrirMenu(ESTOQUISTA);
     expect(itens()).toContain(ITEM);
@@ -95,7 +95,7 @@ describe('UC-PIDX-46 · menu da linha', () => {
   });
 });
 
-describe('UC-PIDX-46 · rodapé do painel de detalhe', () => {
+describe('UC-PIDX-47 · rodapé do painel de detalhe', () => {
   it('só com a permissão de locais: o botão leva ao Editar do produto', () => {
     const { irPara, painel } = abrirPainel(detalhe(), false, true);
     expect(painel.queryByRole('button', { name: /Editar produto/ })).toBeNull();

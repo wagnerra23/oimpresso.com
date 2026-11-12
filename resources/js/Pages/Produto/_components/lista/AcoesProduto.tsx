@@ -63,7 +63,7 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
     // UC-PIDX-45 (decisão [F] 2026-11-11): o excluído não se edita nem ganha estoque, código de barras ou
     // preço — quem quer mexer restaura antes. Fica o que só lê (Ver, Histórico, Dados fiscais, anexo) e Duplicar.
     !linha.excluido && pode('update') && item('editar', 'Editar'),
-    // UC-PIDX-46 (#10765): quem só pode mexer nos locais de armazenagem abre o Editar enxuto, que só
+    // UC-PIDX-47 (#10765): quem só pode mexer nos locais de armazenagem abre o Editar enxuto, que só
     // tem os locais. Quem tem `product.update` já chega lá pelo Editar.
     !linha.excluido && linha.controla_estoque && !pode('update') && pode('armazenagem') && item('armazenagem', 'Locais de armazenagem'),
     // Como na lista Blade: só para produto com estoque gerenciado e com `product.opening_stock`. Abre a
