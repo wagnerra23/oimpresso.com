@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-44 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-44 e UC-PIDX-46 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\Contracts\Fabricacao\ProdutosDeReceita;
 use App\Contracts\Fiscal\NaturezaDoProduto;
@@ -45,7 +45,15 @@ function pluServicos(array $ids): void
 
         public function dosProdutos(int $businessId, array $productIds): array
         {
-            return [];
+            // O painel lê a natureza de um produto por aqui (UC-PIDX-46); a lista, por produtosCom.
+            $out = [];
+            foreach ($productIds as $id) {
+                if (in_array($id, $this->ids, true)) {
+                    $out[$id] = ['natureza' => 'servico', 'codigo_servico' => null];
+                }
+            }
+
+            return $out;
         }
 
         public function produtosCom(int $businessId, string $natureza): array
@@ -143,4 +151,35 @@ it('UC-PIDX-44 · receita de outra empresa não faz material aqui; o contexto of
     $r->assertOk();
     expect($r->json('props.contexto.usos'))->toBe(['vender', 'material', 'servico']);
     expect(pluIds($this, '?uso=material&per_page=-1'))->not->toContain($lonaDeFora->productId);
+});
+
+/** O "uso" que o painel recebe no detalhe do produto. */
+function pluUsoDoPainel($teste, int $id): array
+{
+    $r = $teste->get('/products?ver=' . $id, $teste->inertia + ['X-Inertia-Partial-Data' => 'detalhe']);
+    $r->assertOk();
+    expect($r->json('props.detalhe.id'))->toBe($id);
+
+    return $r->json('props.detalhe.uso');
+}
+
+it('UC-PIDX-46 · o painel diz o mesmo uso que o filtro: lona Material, instalação Serviço, banner Para vender', function () {
+    $biz = $this->business->id;
+    $lona = EstoqueFixture::singleProduct($biz);
+    $banner = EstoqueFixture::singleProduct($biz);
+    $instalacao = EstoqueFixture::singleProduct($biz);
+    $vinilComInstalacao = EstoqueFixture::singleProduct($biz);
+    pluReceita($banner, $lona);
+    pluReceita($banner, $vinilComInstalacao);
+    pluServicos([$instalacao->productId, $vinilComInstalacao->productId]);
+
+    pluEntrar($this);
+    expect(pluUsoDoPainel($this, $lona->productId))->toBe(['material']);
+    expect(pluUsoDoPainel($this, $instalacao->productId))->toBe(['servico']);
+    expect(pluUsoDoPainel($this, $banner->productId))->toBe(['vender']);
+    // Material e serviço ao mesmo tempo: os dois, como no filtro (que o mostra nas duas opções).
+    expect(pluUsoDoPainel($this, $vinilComInstalacao->productId))->toBe(['material', 'servico']);
+    // Mesma regra do filtro, conferida pelo próprio filtro.
+    expect(pluIds($this, '?uso=material&per_page=-1'))->toContain($vinilComInstalacao->productId);
+    expect(pluIds($this, '?uso=servico&per_page=-1'))->toContain($vinilComInstalacao->productId);
 });
