@@ -94,3 +94,24 @@ it('quem somos destaca a fundadora Giselli Cunha e a história desde 2019', func
     expect($html)->toContain('Nossa história');
     expect($html)->toContain('AMASF');
 });
+
+it('vozes: só falas publicadas, cada uma com o link da matéria', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('Vozes da fibromialgia');
+    // Cada depoimento é uma <figure class="voz"> com link para a fonte pública.
+    preg_match_all('/<figure class="voz[^"]*">(.*?)<\/figure>/s', $html, $m);
+    expect(count($m[1]))->toBeGreaterThanOrEqual(3);
+    foreach ($m[1] as $fig) {
+        expect($fig)->toMatch('/href="https:\/\/[^"]+"/');
+    }
+});
+
+it('usa a logomarca oficial no topo e o símbolo no ícone da aba', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('src="/uniafibro/logomarca.png"');
+    expect($html)->toContain('href="/uniafibro/favicon.png"');
+    expect(is_file(public_path('uniafibro/logomarca.png')))->toBeTrue();
+    expect(is_file(public_path('uniafibro/favicon.png')))->toBeTrue();
+});

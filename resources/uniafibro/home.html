@@ -207,6 +207,22 @@
         .numeros span { color: var(--texto); }
         .numeros a { display: inline-block; padding: 6px 0; font-size: 0.9rem; margin-top: auto; }
 
+        /* Vozes */
+        .vozes { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); }
+        .voz { margin: 0; background: var(--superficie); border: 1px solid var(--borda); border-radius: 18px;
+               padding: 22px 22px 18px; box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 14px; }
+        .voz blockquote { margin: 0; position: relative; padding-top: 22px; }
+        .voz blockquote::before { content: "\201C"; position: absolute; top: -18px; left: -4px;
+               font: 700 4rem/1 Georgia, serif; color: var(--lilas); }
+        .voz blockquote p { margin: 0; font-size: 1.12rem; line-height: 1.5; font-style: italic; }
+        .voz figcaption { margin-top: auto; display: flex; flex-direction: column; font-size: 0.95rem; }
+        .voz figcaption span { color: var(--texto-suave); }
+        .voz figcaption a { display: inline-block; padding: 6px 0 0; }
+        .voz.destaque { grid-column: 1 / -1; background: linear-gradient(135deg, #6b3fa0, #4b2477); color: #fff; border: 0; }
+        .voz.destaque blockquote p { font-size: clamp(1.25rem, 2.6vw, 1.6rem); max-width: 46ch; }
+        .voz.destaque blockquote::before { color: rgba(255, 255, 255, 0.45); }
+        .voz.destaque figcaption span, .voz.destaque figcaption a { color: #f1e9fb; }
+
         /* App */
         .app {
             display: grid; gap: 24px; grid-template-columns: 1fr; align-items: center; justify-items: center; text-align: center;
@@ -237,6 +253,7 @@
             <a class="marca" href="#topo"><img src="/uniafibro/simbolo-180.png" alt="" width="34" height="34">Uniafibro</a>
             <ul>
                 <li><a href="#fibromialgia">Fibromialgia</a></li>
+                <li><a href="#vozes">Vozes</a></li>
                 <li><a href="#quem-somos">Quem somos</a></li>
                 <li><a href="#direitos">Direitos</a></li>
                 <li><a href="#app">App</a></li>
@@ -297,6 +314,38 @@
             <div class="faixa">
                 <p><strong>Importante:</strong> este conteúdo é informativo e não substitui a consulta
                     com profissional de saúde.</p>
+            </div>
+        </section>
+
+        <section class="secao" id="vozes" aria-labelledby="t-vozes">
+            <h2 id="t-vozes">Vozes da fibromialgia</h2>
+            <p class="sub">Por trás de cada número há uma pessoa. Estas são falas reais, publicadas pela Unesc e pela imprensa da região.</p>
+            <div class="vozes">
+                <figure class="voz destaque">
+                    <blockquote><p>Muitos pensam que não queremos trabalhar, que só reclamamos, que nos isolamos, que não queremos sair com a família.</p></blockquote>
+                    <figcaption><strong>Giselli Cunha</strong><span>fundadora, Criciúma — 4oito, 2022</span><a href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+                <figure class="voz">
+                    <blockquote><p>É uma dor terrível, vai dos fios de cabelo até os pés.</p></blockquote>
+                    <figcaption><strong>Nerci</strong><span>paciente do AMASF, Criciúma — Unesc, 2023</span><a href="https://www.unesc.net/noticias/categoria/geral/amasf-unesc-um-refugio-em-meio-as-dores-da-fibromialgia" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+                <figure class="voz">
+                    <blockquote><p>Quando falamos com alguém que entende a gente faz toda a diferença.</p></blockquote>
+                    <figcaption><strong>Giselli Cunha</strong><span>4oito, 2022</span><a href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+                <figure class="voz">
+                    <blockquote><p>Muitas vezes chegamos com muita dor e saímos daqui aliviados.</p></blockquote>
+                    <figcaption><strong>Jucimere</strong><span>paciente do AMASF — 4oito, 2022</span><a href="https://www.4oito.com.br/noticia/fibromialgia-o-atendimento-que-oportuniza-a-chance-de-uma-vida-sem-dor-57396" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+                <figure class="voz">
+                    <blockquote><p>Como fibromiálgicos conquistamos a esperança e o tratamento e uma melhor qualidade de vida.</p></blockquote>
+                    <figcaption><strong>Giselli Cunha</strong><span>nos 4 anos do AMASF — Unesc, 2024</span><a href="https://www.unesc.net/noticias/categoria/geral/amasf-da-unesc-completa-quatro-anos-de-atendimento-as-pessoas-portadoras-de-fibromialgia" rel="noopener">ver a matéria</a></figcaption>
+                </figure>
+            </div>
+            <!-- PREENCHER [W]: depoimentos novos de associadas entram aqui, só com autorização
+                 por escrito (nome como a pessoa quiser aparecer, cidade, texto aprovado por ela). -->
+            <div class="faixa">
+                <p><strong>Você também tem uma história?</strong> Conte para a associação da sua cidade. Com a sua autorização, ela pode ajudar outras pessoas a não se sentirem sozinhas.</p>
             </div>
         </section>
 
