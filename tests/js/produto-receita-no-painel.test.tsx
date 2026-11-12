@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
 import PainelDetalheProduto from '@/Pages/Produto/_components/lista/PainelDetalhe';
 import type { AbaDoDetalhe, DetalheProdutoDados, ReceitaDoProdutoNoPainel } from '@/Pages/Produto/_components/lista/tipos';
+import { brl } from '@/Pages/Produto/Unificado/_components/catalogo';
 
 const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados => ({
   id: 7,
@@ -99,7 +100,8 @@ describe('UC-PIDX-48 · aba Receita no painel', () => {
     expect(linha.textContent).toContain('LONA-440');
     expect(linha.textContent).toContain('2');
     expect(secao.getByText('50%')).toBeTruthy();
-    expect(secao.getAllByText((t) => t.replace(/\s/g, ' ').includes('R$ 22,00'))).toHaveLength(2);
+    // Custo da receita e custo por unidade: 22 cada (o cenário rende 1), no formato de moeda do painel.
+    expect(secao.getAllByText((t) => t.replace(/\s/g, ' ') === brl(22).replace(/\s/g, ' '))).toHaveLength(2);
   });
 
   it('"Abrir receita" leva à Fabricação; sem o link (sem permissão), o botão não aparece', () => {
