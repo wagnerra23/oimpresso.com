@@ -68,4 +68,5 @@ Assinatura com `productcatalogue_module` (como antes) **e** `product.view` no pa
 
 - [x] [W] aprova Non-Goals + Anti-hooks e o screenshot — [W] 2026-10-09, no chat da sessão: *"aprovado"*.
 - [ ] Smoke em produção (`smoke:` datado no frontmatter). Em 2026-10-09 o `screen-smoke-after-merge` saiu NÃO MEDIDO: a tela não tinha rota em `scripts/screen-smoke/routes.json`.
+  Estado em 2026-11-11: a rota entrou no `routes.json` no mesmo dia (#9109, label `catalogo-qr`), mas o smoke ainda **não mediu a tela nenhuma vez**. Dos merges que tocaram a tela depois disso, o do #9997 (F5) e o do #10691 saíram `skipped`; o do #10695 foi cancelado; o do #10699 (run `43031538109`) caiu no passo "Instalar deps + Chromium do Playwright" por falha de DNS do apt, antes de abrir qualquer tela. A pendência continua aberta, agora por falta de uma execução que chegue até a tela.
 - [ ] Confirmar se o PNG deve ganhar tamanho maior pra impressão A4 (hoje 256 px).
