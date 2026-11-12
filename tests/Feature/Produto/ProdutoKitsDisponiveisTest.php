@@ -11,8 +11,8 @@ use Tests\Support\EstoqueFixture;
 /**
  * Quantos kits dá para vender em cada local (painel do kit, aba Composição). Mexe em ESTOQUE (só
  * leitura), então a conta é provada por dois caminhos: (1) a conta feita à mão no teste; (2) a conta
- * que o núcleo usa para o combo na venda (`ProductUtil::calculateComboQuantity`), nos casos em que
- * ela está certa (todo componente com saldo — ver o docblock de `kitsPorLocal` sobre o zero).
+ * que o núcleo usa para o combo na venda (`ProductUtil::calculateComboQuantity`). Até a D-30 (2026-11-12)
+ * a do núcleo errava com componente zerado; os casos D-30 abaixo provam que agora as duas dão o mesmo.
  *
  * Tenant semeado do CI (ADR 0358). Nunca biz=4. Pest só no CI / CT 100.
  */
@@ -121,6 +121,40 @@ it('UC-PIDX-40 · componente sem saldo dá zero kits, e ele é quem limita', fun
 
     expect($linha['kits'])->toBe(0);
     expect($linha['limita'])->toBe(DB::table('products')->where('id', $canetas->productId)->value('name'));
+});
+
+it('UC-PIDX-40 · D-30 · componente zerado no começo ou no meio da lista dá zero kits na conta da venda', function () {
+    // Decisão [F] 2026-11-12 (D-30): a conta do núcleo usava 0 como "ainda não calculado", e o componente
+    // seguinte sobrescrevia o zero. Antes: 5 kits e 4 kits; à mão e no painel: 0 e 0.
+    $biz = $this->business->id;
+    $matriz = EstoqueFixture::locationId($biz);
+    $a = EstoqueFixture::singleProduct($biz);
+    $b = EstoqueFixture::singleProduct($biz);
+    $c = EstoqueFixture::singleProduct($biz);
+    EstoqueFixture::setStock($a, 0, $matriz, 0);
+    EstoqueFixture::setStock($b, 0, $matriz, 5);
+    $primeiroZerado = pkdKit($biz, [[$a, 2], [$b, 1]]);
+
+    $d = EstoqueFixture::singleProduct($biz);
+    EstoqueFixture::setStock($c, 0, $matriz, 10);
+    EstoqueFixture::setStock($d, 0, $matriz, 4);
+    $meioZerado = pkdKit($biz, [[$c, 1], [$a, 1], [$d, 1]]);
+
+    $util = app(\App\Utils\ProductUtil::class);
+    $combo = fn ($kit) => json_decode((string) DB::table('variations')->where('id', $kit->variationId())->value('combo_variations'), true);
+
+    pkdEntrar($this);
+    foreach ([$primeiroZerado, $meioZerado] as $kit) {
+        // Caminho 1 — a conta do núcleo, usada pela venda.
+        expect((int) $util->calculateComboQuantity($matriz, $combo($kit)))->toBe(0);
+        // Caminho 2 — a conta do painel (UC-PIDX-40), feita à parte.
+        expect(pkdLocal(pkdDetalhe($this, $kit->productId), $matriz)['kits'])->toBe(0);
+    }
+
+    // Controle: com saldo em todos, as duas contas seguem iguais e diferentes de zero.
+    EstoqueFixture::setStock($a, 0, $matriz, 6);
+    expect((int) $util->calculateComboQuantity($matriz, $combo($primeiroZerado)))->toBe(3);
+    expect(pkdLocal(pkdDetalhe($this, $primeiroZerado->productId), $matriz)['kits'])->toBe(3);
 });
 
 it('UC-PIDX-40 · a quantidade em subunidade conta pelo multiplicador', function () {

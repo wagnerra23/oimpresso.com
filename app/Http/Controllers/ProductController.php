@@ -1074,9 +1074,9 @@ class ProductController extends Controller
      * componente limita. É a conta do núcleo para o combo na venda (`ProductUtil::calculateComboQuantity`):
      * por componente que controla estoque, saldo no local ÷ (quantidade no kit × multiplicador da unidade
      * do item); vale o menor, arredondado para baixo. Componente que não controla estoque não limita.
-     * Diferença de propósito: lá um componente com saldo zero que vem primeiro na lista não zera o resultado
-     * (o `0` faz as vezes de "ainda não calculado"); aqui zero é zero, em qualquer ordem. Contas em 4 casas,
-     * como a quantidade do estoque.
+     * Até 2026-11-12 havia uma diferença: lá um componente com saldo zero tinha a conta sobrescrita pelo
+     * seguinte (o `0` fazia as vezes de "ainda não calculado"). Corrigido lá pela D-30; aqui zero sempre foi
+     * zero, em qualquer ordem. Contas em 4 casas, como a quantidade do estoque.
      *
      * Locais: os do kit (`product_locations`) que o usuário pode ver; kit sem local, todos os que ele vê.
      * null quando nenhum componente controla estoque (não há o que limitar).
@@ -2232,6 +2232,34 @@ class ProductController extends Controller
     }
 
     /**
+     * O Editar de quem tem `product.armazenagem` sem `product.update` (UC-PEDIT-23, proposta #10765).
+     * Manda só o que o bloco "Locais de armazenagem" precisa: nome, código, local padrão, endereço por
+     * local, saldo por local e os locais do negócio. Preço, imposto e o resto do produto não saem do
+     * servidor, nem para leitura. Produto sem estoque controlado não tem locais: 403.
+     */
+    protected function editSoArmazenagem(int $business_id, int $id)
+    {
+        $product = Product::where('business_id', $business_id)->where('id', $id)->firstOrFail();
+        if (! $product->enable_stock) {
+            abort(403, 'Este produto não controla estoque, então não tem locais de armazenagem.');
+        }
+
+        return Inertia::render('Produto/Edit', [
+            'somenteArmazenagem' => true,
+            'product' => [
+                'id' => (int) $product->id,
+                'name' => (string) $product->name,
+                'sku' => (string) $product->sku,
+                'localPadraoId' => $product->local_padrao_id !== null ? (int) $product->local_padrao_id : null,
+            ],
+            'rackDetails' => $this->productUtil->getRackDetails($business_id, $product->id),
+            'businessLocations' => BusinessLocation::forDropdown($business_id),
+            'enderecoNoEstoque' => $this->enderecoNoEstoque(),
+            'saldoPorLocal' => (object) $this->saldoPorLocal($business_id, (int) $product->id),
+        ]);
+    }
+
+    /**
      * Política de preço (CU-PROD-21): `fixo`, `acompanha` ou `margem`. Com `margem`, a margem alvo é
      * obrigatória e fica acima de 0 e abaixo de 100: ela é sobre o preço de venda, então 100% não
      * existe. O Blade não manda nenhum dos dois e não muda nada. Fora do `try`, como os outros.
@@ -2610,8 +2638,14 @@ class ProductController extends Controller
 
     public function edit($id)
     {
-        if (! auth()->user()->can('product.update')) {
-            abort(403, 'Unauthorized action.');
+        $user = auth()->user();
+        if (! $user->can('product.update')) {
+            // UC-PEDIT-23 (#10765): só com `product.armazenagem`, o Editar abre só com os locais.
+            if (! $user->can('product.armazenagem')) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            return $this->editSoArmazenagem((int) request()->session()->get('user.business_id'), (int) $id);
         }
 
         $business_id = request()->session()->get('user.business_id');
