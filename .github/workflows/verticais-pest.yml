@@ -798,6 +798,7 @@ jobs:
             Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php \
             Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php \
             Modules/Vestuario/Tests/Feature/VestuarioFkESeederTest.php \
+            Modules/Vestuario/Tests/Feature/VestuarioSettingsIsolamentoContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php \
