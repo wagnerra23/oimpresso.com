@@ -14,9 +14,9 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 322 arquivos em 20 papéis.
+**Total mapeado:** 350 arquivos em 20 papéis.
 
-## Controllers — 27
+## Controllers — 31
 
 - [AgendaController.php](../../../Modules/Fisio/Http/Controllers/AgendaController.php)
 - [BibliotecaController.php](../../../Modules/Fisio/Http/Controllers/BibliotecaController.php)
@@ -26,11 +26,13 @@ module: Fisio
 - [ConfiguracoesController.php](../../../Modules/Fisio/Http/Controllers/ConfiguracoesController.php)
 - [DadosSociaisController.php](../../../Modules/Fisio/Http/Controllers/DadosSociaisController.php)
 - [DataController.php](../../../Modules/Fisio/Http/Controllers/DataController.php)
+- [DocumentosPacienteController.php](../../../Modules/Fisio/Http/Controllers/DocumentosPacienteController.php)
 - [EnvioWhatsappController.php](../../../Modules/Fisio/Http/Controllers/EnvioWhatsappController.php)
 - [FiscalController.php](../../../Modules/Fisio/Http/Controllers/FiscalController.php)
 - [FolhaProgramaController.php](../../../Modules/Fisio/Http/Controllers/FolhaProgramaController.php)
 - [InstallController.php](../../../Modules/Fisio/Http/Controllers/InstallController.php)
 - [LaudoBiopsicossocialController.php](../../../Modules/Fisio/Http/Controllers/LaudoBiopsicossocialController.php)
+- [MedicamentosPacienteController.php](../../../Modules/Fisio/Http/Controllers/MedicamentosPacienteController.php)
 - [OnboardingController.php](../../../Modules/Fisio/Http/Controllers/OnboardingController.php)
 - [PacientesController.php](../../../Modules/Fisio/Http/Controllers/PacientesController.php)
 - [PacotesController.php](../../../Modules/Fisio/Http/Controllers/PacotesController.php)
@@ -44,13 +46,15 @@ module: Fisio
 - [ProtocolosController.php](../../../Modules/Fisio/Http/Controllers/ProtocolosController.php)
 - [QuestionariosController.php](../../../Modules/Fisio/Http/Controllers/QuestionariosController.php)
 - [RegistrosController.php](../../../Modules/Fisio/Http/Controllers/RegistrosController.php)
+- [RelatorioAssociacaoController.php](../../../Modules/Fisio/Http/Controllers/RelatorioAssociacaoController.php)
 - [ResponsavelController.php](../../../Modules/Fisio/Http/Controllers/ResponsavelController.php)
+- [TranscricaoDocumentoController.php](../../../Modules/Fisio/Http/Controllers/TranscricaoDocumentoController.php)
 
 ## Middleware — 1
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 53
+## Services — 57
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AgendaDaSemana.php](../../../Modules/Fisio/Services/Agenda/AgendaDaSemana.php)
@@ -64,6 +68,7 @@ module: Fisio
 - [ConfiguracaoClinica.php](../../../Modules/Fisio/Services/ConfiguracaoClinica.php)
 - [Consentimentos.php](../../../Modules/Fisio/Services/Consentimentos.php)
 - [DiaLocal.php](../../../Modules/Fisio/Services/DiaLocal.php)
+- [DocumentosDoPaciente.php](../../../Modules/Fisio/Services/DocumentosDoPaciente.php)
 - [EditorProgramaPayload.php](../../../Modules/Fisio/Services/EditorProgramaPayload.php)
 - [FilaFiscalDoDia.php](../../../Modules/Fisio/Services/Fiscal/FilaFiscalDoDia.php)
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
@@ -78,6 +83,7 @@ module: Fisio
 - [LimiarDorCalculator.php](../../../Modules/Fisio/Services/LimiarDorCalculator.php)
 - [LinguagemAnvisa.php](../../../Modules/Fisio/Services/LinguagemAnvisa.php)
 - [MedalhasCalculator.php](../../../Modules/Fisio/Services/MedalhasCalculator.php)
+- [MedicamentosDoPaciente.php](../../../Modules/Fisio/Services/MedicamentosDoPaciente.php)
 - [MetaSemanal.php](../../../Modules/Fisio/Services/MetaSemanal.php)
 - [MidiaExercicio.php](../../../Modules/Fisio/Services/MidiaExercicio.php)
 - [MissoesCalculator.php](../../../Modules/Fisio/Services/MissoesCalculator.php)
@@ -98,6 +104,8 @@ module: Fisio
 - [SequenciaCalculator.php](../../../Modules/Fisio/Services/SequenciaCalculator.php)
 - [SessaoDoPortal.php](../../../Modules/Fisio/Services/SessaoDoPortal.php)
 - [DadosSociais.php](../../../Modules/Fisio/Services/Social/DadosSociais.php)
+- [RelatorioAssociacao.php](../../../Modules/Fisio/Services/Social/RelatorioAssociacao.php)
+- [TranscricaoDocumentos.php](../../../Modules/Fisio/Services/TranscricaoDocumentos.php)
 - [AgendaDeEnvio.php](../../../Modules/Fisio/Services/Whatsapp/AgendaDeEnvio.php)
 - [CanalDaClinica.php](../../../Modules/Fisio/Services/Whatsapp/CanalDaClinica.php)
 - [EnvioWhatsappFisio.php](../../../Modules/Fisio/Services/Whatsapp/EnvioWhatsappFisio.php)
@@ -106,7 +114,7 @@ module: Fisio
 - [MensagensFisio.php](../../../Modules/Fisio/Services/Whatsapp/MensagensFisio.php)
 - [XpDoDiaCalculator.php](../../../Modules/Fisio/Services/XpDoDiaCalculator.php)
 
-## Models / Entities — 33
+## Models / Entities — 36
 
 - [Appointment.php](../../../Modules/Fisio/Entities/Appointment.php)
 - [AppointmentType.php](../../../Modules/Fisio/Entities/AppointmentType.php)
@@ -116,11 +124,13 @@ module: Fisio
 - [SemExclusaoDeDadoClinico.php](../../../Modules/Fisio/Entities/Concerns/SemExclusaoDeDadoClinico.php)
 - [Consent.php](../../../Modules/Fisio/Entities/Consent.php)
 - [Desafio.php](../../../Modules/Fisio/Entities/Desafio.php)
+- [DocumentoPaciente.php](../../../Modules/Fisio/Entities/DocumentoPaciente.php)
 - [Exercise.php](../../../Modules/Fisio/Entities/Exercise.php)
 - [ExerciseFavorite.php](../../../Modules/Fisio/Entities/ExerciseFavorite.php)
 - [GameLedger.php](../../../Modules/Fisio/Entities/GameLedger.php)
 - [LaudoBiopsicossocial.php](../../../Modules/Fisio/Entities/LaudoBiopsicossocial.php)
 - [LaudoBiopsicossocialEquipe.php](../../../Modules/Fisio/Entities/LaudoBiopsicossocialEquipe.php)
+- [MedicamentoPaciente.php](../../../Modules/Fisio/Entities/MedicamentoPaciente.php)
 - [Pacote.php](../../../Modules/Fisio/Entities/Pacote.php)
 - [PacoteLancamento.php](../../../Modules/Fisio/Entities/PacoteLancamento.php)
 - [Patient.php](../../../Modules/Fisio/Entities/Patient.php)
@@ -140,6 +150,7 @@ module: Fisio
 - [StudyAiSuggestion.php](../../../Modules/Fisio/Entities/StudyAiSuggestion.php)
 - [StudyMoment.php](../../../Modules/Fisio/Entities/StudyMoment.php)
 - [StudyParticipant.php](../../../Modules/Fisio/Entities/StudyParticipant.php)
+- [TranscricaoDocumento.php](../../../Modules/Fisio/Entities/TranscricaoDocumento.php)
 - [WaitlistEntry.php](../../../Modules/Fisio/Entities/WaitlistEntry.php)
 
 ## Observers — 1
@@ -172,7 +183,7 @@ module: Fisio
 
 - [web.php](../../../Modules/Fisio/Routes/web.php)
 
-## Migrations (schema) — 24
+## Migrations (schema) — 27
 
 - [2026_10_18_000001_create_fisio_tables.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000001_create_fisio_tables.php)
 - [2026_10_18_000002_add_synonyms_to_fisio_exercises.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000002_add_synonyms_to_fisio_exercises.php)
@@ -198,6 +209,9 @@ module: Fisio
 - [2026_11_11_000730_add_lock_to_fisio_studies.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000730_add_lock_to_fisio_studies.php)
 - [2026_11_11_000740_create_fisio_study_ai_suggestions.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000740_create_fisio_study_ai_suggestions.php)
 - [2026_11_11_000800_create_fisio_patient_social.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000800_create_fisio_patient_social.php)
+- [2026_11_11_000830_create_fisio_patient_documents.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000830_create_fisio_patient_documents.php)
+- [2026_11_11_000840_create_fisio_patient_medications.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000840_create_fisio_patient_medications.php)
+- [2026_11_11_000850_create_fisio_document_transcriptions.php](../../../Modules/Fisio/Database/Migrations/2026_11_11_000850_create_fisio_document_transcriptions.php)
 
 ## Seeders — 2
 
@@ -208,15 +222,16 @@ module: Fisio
 
 - [config.php](../../../Modules/Fisio/Config/config.php)
 
-## Views (Blade) — 5
+## Views (Blade) — 6
 
 - [_base.blade.php](../../../Modules/Fisio/Resources/views/pdf/_base.blade.php)
 - [folha-programa.blade.php](../../../Modules/Fisio/Resources/views/pdf/folha-programa.blade.php)
 - [laudo-biopsicossocial.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-biopsicossocial.blade.php)
 - [laudo-evolucao.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-evolucao.blade.php)
 - [prontuario.blade.php](../../../Modules/Fisio/Resources/views/pdf/prontuario.blade.php)
+- [relatorio-associacao.blade.php](../../../Modules/Fisio/Resources/views/pdf/relatorio-associacao.blade.php)
 
-## Telas (Inertia/React) — 13
+## Telas (Inertia/React) — 14
 
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.tsx)
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx)
@@ -231,8 +246,9 @@ module: Fisio
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pesquisa/Index.tsx)
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Protocolos/Index.tsx)
 - [Portal.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx)
+- [Associacao.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Relatorio/Associacao.tsx)
 
-## Componentes / apoio de tela — 27
+## Componentes / apoio de tela — 30
 
 - [AcoesAgenda.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/_components/AcoesAgenda.tsx)
 - [SemanaHoras.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/_components/SemanaHoras.tsx)
@@ -250,19 +266,22 @@ module: Fisio
 - [Instalar.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Instalar.tsx)
 - [PreAnamnese.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/PreAnamnese.tsx)
 - [AvaliacaoEstruturada.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/AvaliacaoEstruturada.tsx)
+- [ConferirTranscricao.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/ConferirTranscricao.tsx)
 - [DadosSociais.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/DadosSociais.tsx)
 - [EditorPrograma.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/EditorPrograma.tsx)
 - [EvolucaoPaciente.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/EvolucaoPaciente.tsx)
+- [ExamesReceitas.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/ExamesReceitas.tsx)
 - [ExportarProntuarioPdf.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/ExportarProntuarioPdf.tsx)
 - [FiltroResponsavel.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/FiltroResponsavel.tsx)
 - [LaudoBiopsicossocial.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/LaudoBiopsicossocial.tsx)
 - [LinkPortal.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/LinkPortal.tsx)
+- [MedicamentosEmUso.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/MedicamentosEmUso.tsx)
 - [MidiaExercicio.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/MidiaExercicio.tsx)
 - [PerfilClinicoCampos.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/PerfilClinicoCampos.tsx)
 - [Questionarios.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/Questionarios.tsx)
 - [ResponsavelPaciente.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/ResponsavelPaciente.tsx)
 
-## Charters (lei da tela) — 13
+## Charters (lei da tela) — 14
 
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.charter.md)
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.charter.md)
@@ -277,8 +296,9 @@ module: Fisio
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pesquisa/Index.charter.md)
 - [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Protocolos/Index.charter.md)
 - [Portal.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.charter.md)
+- [Associacao.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Relatorio/Associacao.charter.md)
 
-## Casos (contrato UC) — 13
+## Casos (contrato UC) — 14
 
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.casos.md)
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.casos.md)
@@ -293,17 +313,19 @@ module: Fisio
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pesquisa/Index.casos.md)
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Protocolos/Index.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
+- [Associacao.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Relatorio/Associacao.casos.md)
 
-## Testes (Pest) — 77
+## Testes (Pest) — 81
 
-- 61 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 65 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 2 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
 - 14 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 21
+## Demais arquivos (manifestos, docs, assets e misc) — 24
 
 - [AssistentePesquisaAgent.php](../../../Modules/Fisio/Ai/Agents/AssistentePesquisaAgent.php)
+- [TranscricaoDocumentoAgent.php](../../../Modules/Fisio/Ai/Agents/TranscricaoDocumentoAgent.php)
 - [LinkDoPortal.php](../../../Modules/Fisio/Contracts/LinkDoPortal.php)
 - [CheckinFactory.php](../../../Modules/Fisio/Database/Factories/CheckinFactory.php)
 - [ExerciseFactory.php](../../../Modules/Fisio/Database/Factories/ExerciseFactory.php)
@@ -319,6 +341,8 @@ module: Fisio
 - [avaliacao.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/avaliacao.ts)
 - [avisoQr.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/avisoQr.ts)
 - [condicoes.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/condicoes.ts)
+- [novoPaciente.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/novoPaciente.ts)
+- [salvarSecao.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/salvarSecao.ts)
 - [fisio.php](../../../Modules/Fisio/Resources/lang/pt/fisio.php)
 - [README.md](../../../Modules/Fisio/Tests/README.md)
 - [composer.json](../../../Modules/Fisio/composer.json)

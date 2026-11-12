@@ -109,7 +109,7 @@ body{margin:0}
     <header class="ph" role="banner">
     <div class="ph-row">
       <div class="ph-l"><p class="ph-ctx"><span>Fisio</span><span> › Pesquisa</span></p><h1 class="ph-h1">Fibromialgia e exercício</h1><p class="ph-sub">Parecer CEP [Nº] · protocolo p1 · TCLE tcle-1 · desde 01/11/2026 · pesquisadora responsável [NOME]</p></div>
-      <div class="ph-r"><span class="pill" style="height: 24px; background: var(--pos-soft); color: var(--pos)">em andamento</span><button type="button" class="btn">Incluir participante</button></div>
+      <div class="ph-r"><span class="pill" style="height: 24px; background: var(--pos-soft); color: var(--pos)">em andamento</span><button type="button" class="btn" onClick="{{abrir}}">Incluir participante</button></div>
     </div>
   </header>
     <main style="padding: 24px; display: flex; flex-direction: column; gap: 18px; box-sizing: border-box; max-width: 1180px; width: 100%">
@@ -185,6 +185,18 @@ body{margin:0}
           <div style="padding: 10px 16px; font-size: 12px" class="dim">Sugestão, não conclusão. Quem aceitou fica registrado.</div>
         </section>
       </sc-if>
+      <sc-if value="{{incluir}}" hint-placeholder-val="{{ false }}">
+        <div role="dialog" aria-modal="true" aria-labelledby="dlg-incluir" style="position: fixed; inset: 0; background: oklch(0.2 0.01 80 / .35); display: grid; place-items: center; z-index: 10">
+          <div class="card" style="width: min(460px, 92vw); padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <h2 id="dlg-incluir" style="margin: 0; font-size: 16px">Incluir participante</h2>
+            <label style="display: flex; flex-direction: column; gap: 4px"><span class="dim" style="font-size: 12px">Paciente</span>
+              <select style="height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; padding: 0 8px"><option>Clara R.</option><option>Sônia T.</option></select></label>
+            <label style="display: flex; gap: 8px; align-items: flex-start"><input type="checkbox" checked> <span>O paciente assinou o TCLE na versão <span class="mono">tcle-1</span>, aprovada pelo CEP.</span></label>
+            <span class="dim" style="font-size: 12px">O código do participante é sorteado na inclusão. Ele não vem do nome nem do CPF.</span>
+            <div style="display: flex; gap: 8px; justify-content: flex-end"><button type="button" class="btn" onClick="{{fechar}}">Cancelar</button><button type="button" class="btn btn-p" onClick="{{fechar}}">Incluir</button></div>
+          </div>
+        </div>
+      </sc-if>
     </main>
   </div>
 </div>
@@ -222,7 +234,7 @@ function SB(active) {
   };
 }
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { tab: 'part' }; }
+  constructor(props) { super(props); this.state = { tab: 'part', incluir: false }; }
   renderVals() {
     const s = this.state;
     const tab = (k, t) => { const on = s.tab === k; return { t, on: on ? 'true' : 'false', pick: () => this.setState({ tab: k }), bg: on ? 'var(--surface)' : 'transparent', w: on ? '600' : '400' }; };
@@ -235,6 +247,7 @@ class Component extends DCLogic {
       ...SB('pesquisa'),
       kpis: [{ l: 'Participantes', v: '12', d: '10 no estudo · 2 saíram' }, { l: 'Pendências abertas', v: '4', d: '1 vencida' }, { l: 'Eventos adversos', v: '3', d: 'aguardando revisão' }, { l: 'Exportações', v: '2', d: 'última em 09/11' }],
       tabs: [tab('part', 'Participantes'), tab('pend', 'Pendências'), tab('ea', 'Eventos adversos'), tab('exp', 'Exportação'), tab('ia', 'Assistente')],
+      incluir: s.incluir, abrir: () => this.setState({ incluir: true }), fechar: () => this.setState({ incluir: false }),
       part: s.tab === 'part', pend: s.tab === 'pend', ea: s.tab === 'ea', exp: s.tab === 'exp', ia: s.tab === 'ia',
       participantes: [p('P-7KQ3MA', 'Marta L.', '01/11/2026', 'ativo', ''), p('P-H4XC9T', 'Ana N.', '03/11/2026', 'ativo', ''), p('P-9RWE3F', 'Lúcia M.', '01/11/2026', 'perda', 'não atende há 5 semanas'), p('P-D7NUY4', 'Paula S.', '04/11/2026', 'rev', 'revogou pelo portal em 10/11')],
       pendencias: [q('P-7KQ3MA', '4 semanas', '22/11 a 06/12', 'EVA, RMDQ', 'futuro'), q('P-H4XC9T', 'Entrada', '31/10 a 06/11', 'RMDQ', 'vencido'), q('P-H4XC9T', '4 semanas', '24/11 a 08/12', 'EVA, RMDQ', 'futuro')],
