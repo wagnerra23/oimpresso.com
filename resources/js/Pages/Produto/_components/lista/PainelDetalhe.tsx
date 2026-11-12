@@ -337,13 +337,15 @@ interface Props {
   aoMudarAba: (aba: AbaDoDetalhe) => void;
   aoFechar: () => void;
   podeEditar: boolean;
+  /** UC-PIDX-46 (#10765): só `product.armazenagem`: o rodapé leva ao Editar só com os locais. */
+  podeArmazenagem?: boolean;
   podePrecos: boolean;
   /** A empresa emite nota (módulo Fiscal no pacote): só então a aba Fiscal existe. */
   emiteNota: boolean;
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podePrecos, emiteNota, irPara }: Props) {
+export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podeArmazenagem, podePrecos, emiteNota, irPara }: Props) {
   // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
@@ -856,6 +858,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
               {podeEditar && !d.excluido && (
                 <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
                   <Pencil size={13} aria-hidden /> Editar produto
+                </Button>
+              )}
+              {!podeEditar && podeArmazenagem && !d.excluido && d.dados.controla_estoque && (
+                <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
+                  <Pencil size={13} aria-hidden /> Locais de armazenagem
                 </Button>
               )}
               {/* Sem "Comprar": a consulta não é a tela de compras (decisão [F] 2026-10-26, UC-PIDX-11). */}

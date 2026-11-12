@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-// Cobre UC-PEDIT-22 e UC-PEDIT-23 (resources/js/Pages/Produto/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PEDIT-22 e UC-PEDIT-23 (resources/js/Pages/Produto/Edit.casos.md), UC-PIDX-46 (Index.casos.md)
+// e UC-PSHOW-08 (Show.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -239,4 +240,37 @@ it('UC-PEDIT-23 · produto de outro negócio dá 404 no Editar só de locais [T0
     paEntrar($this, paUsuario((int) $this->business->id, ['product.armazenagem']));
 
     $this->get("/products/{$alheio->productId}/edit")->assertNotFound();
+});
+
+// ─── UC-PIDX-46 · UC-PSHOW-08 · o caminho até o Editar só com os locais ────
+
+function paSessaoDeTela(object $test, array $permissoes): void
+{
+    $user = paUsuario((int) $test->business->id, $permissoes);
+    $test->actingAs($user);
+    session([
+        'user.business_id' => (int) $test->business->id, 'user.id' => $user->id, 'business.id' => (int) $test->business->id,
+        'currency' => ['symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','], 'business.date_format' => 'd/m/Y',
+    ]);
+}
+
+it('UC-PIDX-46 · a lista entrega a permissão de locais, e quem só tem ela não tem a de editar', function () {
+    paSessaoDeTela($this, ['product.view', 'access_all_locations', 'product.armazenagem']);
+
+    $r = $this->withHeaders(paVisitaInertia())->get('/products');
+    $r->assertOk()->assertJsonPath('component', 'Produto/Index');
+    expect($r->json('props.permissions.armazenagem'))->toBeTrue();
+    expect($r->json('props.permissions.update'))->toBeFalse();
+});
+
+it('UC-PSHOW-08 · a ficha entrega a permissão de locais; sem ela, a chave vem falsa', function () {
+    paSessaoDeTela($this, ['product.view', 'access_all_locations', 'product.armazenagem']);
+    $r = $this->withHeaders(paVisitaInertia())->get("/products/{$this->produto->productId}");
+    $r->assertOk()->assertJsonPath('component', 'Produto/Show');
+    expect($r->json('props.permissions.armazenagem'))->toBeTrue();
+
+    paSessaoDeTela($this, ['product.view', 'access_all_locations']);
+    $r = $this->withHeaders(paVisitaInertia())->get("/products/{$this->produto->productId}");
+    $r->assertOk();
+    expect($r->json('props.permissions.armazenagem'))->toBeFalse();
 });

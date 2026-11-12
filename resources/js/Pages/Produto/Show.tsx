@@ -54,6 +54,8 @@ export interface ProdutoShowPageProps {
     // as emite. Todo consumo aplica `?? false` (fail-closed): ausência nunca vira permissão.
     view_purchase_price?: boolean;
     access_default_selling_price?: boolean;
+    /** `product.armazenagem` (#10765): só os locais de armazenagem. Ausente = sem permissão. */
+    armazenagem?: boolean;
   };
 }
 
@@ -120,6 +122,15 @@ function ProdutoShow(props: ProdutoShowPageProps) {
                   <Link href={`/products/${product.id}/edit`}>
                     <Edit className="w-4 h-4 mr-1.5" />
                     Editar
+                  </Link>
+                </Button>
+              )}
+              {/* #10765: quem só pode mexer nos locais abre o Editar enxuto, que só tem os locais. */}
+              {!permissions.update && (permissions.armazenagem ?? false) && product.enableStock && (
+                <Button asChild>
+                  <Link href={`/products/${product.id}/edit`}>
+                    <Edit className="w-4 h-4 mr-1.5" />
+                    Locais de armazenagem
                   </Link>
                 </Button>
               )}
