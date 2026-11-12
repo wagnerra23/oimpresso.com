@@ -24,6 +24,7 @@ use Modules\Fisio\Services\Laudo\MatrizIfbrm;
 use Modules\Fisio\Services\PainelFisio;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 use Modules\Fisio\Services\ResponsavelPaciente;
+use Modules\Fisio\Services\Social\DadosSociais;
 
 /**
  * Pacientes do Fisio (US-FISIO-005). O paciente É um contact (ADR 0437 §4): aqui mora só o
@@ -146,6 +147,9 @@ class PacientesController extends Controller
             // Laudo biopsicossocial (US-FISIO-060): catálogo da matriz é estático (vai junto); os laudos são query → defer.
             'laudo_bps_dominios' => MatrizIfbrm::DOMINIOS,
             'laudos_bps' => Inertia::defer(fn () => app(LaudoBiopsicossocialDocumento::class)->doPaciente($paciente, $this->businessId($request)), 'laudos_bps'),
+            // Dados sociais (US-FISIO-061): listas fechadas vão junto (estáticas); os valores são query → defer.
+            'opcoes_sociais' => ['opcoes' => DadosSociais::OPCOES, 'comorbidades' => DadosSociais::COMORBIDADES, 'ufs' => DadosSociais::UFS],
+            'dados_sociais' => Inertia::defer(fn () => app(DadosSociais::class)->doPaciente($paciente), 'dados_sociais'),
         ]);
     }
 
