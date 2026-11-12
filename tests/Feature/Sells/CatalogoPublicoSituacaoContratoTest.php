@@ -1,6 +1,9 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-PCAT-001
+// @covers-us US-PCAT-002
+// @covers-us US-PCAT-006
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;

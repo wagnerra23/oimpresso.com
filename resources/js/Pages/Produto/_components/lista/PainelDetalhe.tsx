@@ -407,7 +407,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
               <Inline wrap gap={2}>
                 <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-dim)]">{d.sku}</span>
                 <span className={`pb-pill ${d.tipo}`}>{TIPO_ROTULO[d.tipo] ?? d.tipo}</span>
-                {d.inativo && <span className="pb-pill off">Inativo</span>}
+                {d.excluido ? <span className="pb-pill off">Excluído</span> : d.inativo && <span className="pb-pill off">Inativo</span>}
               </Inline>
               <Fechar />
             </Inline>
@@ -852,13 +852,14 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
             </div>
 
             <SheetFooter className="mt-0 flex-row flex-wrap justify-end gap-2 border-t border-[var(--border)] px-[18px] py-3 [&_button]:h-[30px] [&_button]:px-3 [&_button]:text-[12.5px]">
-              {podeEditar && (
+              {/* UC-PIDX-45: excluído não se edita aqui — restaura primeiro (decisão [F] 2026-11-11). */}
+              {podeEditar && !d.excluido && (
                 <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
                   <Pencil size={13} aria-hidden /> Editar produto
                 </Button>
               )}
               {/* Sem "Comprar": a consulta não é a tela de compras (decisão [F] 2026-10-26, UC-PIDX-11). */}
-              {podePrecos && (
+              {podePrecos && !d.excluido && (
                 <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/products/add-selling-prices/${d.id}`)}>
                   Preços por grupo
                 </Button>
