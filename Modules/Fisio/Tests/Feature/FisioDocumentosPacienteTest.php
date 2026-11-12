@@ -174,7 +174,7 @@ it('UC-FER-07 · a ficha recebe os tipos junto e os documentos deferidos, sem ca
     $r = $this->get("/fisio/pacientes/{$this->p->id}", ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao])->assertOk();
     expect($r->json('props'))->not->toHaveKey('documentos')
         ->and($r->json('deferredProps.documentos'))->toContain('documentos')
-        ->and(array_keys((array) $r->json('props.documento_tipos')))->toBe(['exame_imagem', 'exame_laboratorial', 'laudo_medico', 'receita', 'outro']);
+        ->and(array_keys((array) $r->json('props.documento_tipos')))->toBe(['exame_imagem', 'exame_laboratorial', 'laudo_medico', 'receita', 'atestado', 'outro']);
 
     $fica = (int) ferAnexar($this, $this->p->id)->assertCreated()->json('id');
     $sai = (int) ferAnexar($this, $this->p->id, ['arquivo' => ferPdf(), 'tipo' => 'laudo_medico'])->assertCreated()->json('id');
