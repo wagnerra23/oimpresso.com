@@ -97,13 +97,16 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
           <Button
             variant="outline"
             size="sm"
-            // 12px como o `Kebab` do protótipo (medido com design-diff em 2026-10-11; o `sm` dava 14px).
-            className="text-[12px]"
+            // Do tamanho do `Kebab` do protótipo (`os-btn sm`, medido no render em 2026-11-12): 26px de
+            // altura, letra 11,5px e seta de 12px — 72px de largura. Com o `sm` do DS (32px de altura e a
+            // seta forçada a 16px pelo `size-4` do botão) ele dava 80px e não cabia nos 76px da coluna
+            // "Ação" (96 menos a margem): a célula cortava e mostrava ".." ao lado do botão.
+            className="h-[26px] text-[11.5px]"
             aria-label={`Ações do produto ${linha.nome}`}
             onClick={parar}
             onKeyDown={parar}
           >
-            Ações <ChevronDown size={12} aria-hidden />
+            Ações <ChevronDown className="size-3" aria-hidden />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="min-w-[236px]" onClick={parar} onKeyDown={parar}>

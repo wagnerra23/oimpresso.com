@@ -11,6 +11,7 @@ import { ArrowUpDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { cn } from '@/Lib/utils';
 
 /**
  * DataTable reusável com TanStack Table v8 + server-side pagination
@@ -238,6 +239,17 @@ function Rolagem({ ativa, alturaMaxima, children }: { ativa: boolean; alturaMaxi
  * com a caixinha mede o mesmo que as outras.
  */
 const CLASSE_CAIXINHA = '-my-0.5 align-middle';
+
+/**
+ * Célula da caixinha (cabeçalho e linha): 34px sem margem lateral, a caixinha de 16px centrada.
+ *
+ * Com a margem das outras células (`px-2.5` = 10+10) sobravam 14px para uma caixinha de 16: na
+ * densidade `grid`, que corta o que transborda com reticências, a linha mostrava "☐.." — a caixinha
+ * aparada nos lados (parecia redonda) e as reticências do corte. Medido 2026-11-12 no render: célula
+ * 34, conteúdo 14, `scrollWidth` 47. Sem margem lateral sobram 9px de cada lado. O `cn` tira a margem
+ * lateral de qualquer densidade (`p-3`, `px-2.5`) e mantém a vertical.
+ */
+const CELULA_CAIXINHA = 'w-[34px] px-0 text-center';
 
 /** `grid`: número em fonte mono sai em 12px com −0,01em, como o `GridCell mono` do DataGrid. */
 const GRID_MONO = 'font-mono tabular-nums text-[12px] tracking-[-.01em]';
@@ -636,7 +648,7 @@ export default function DataTable<T>({
             {table.getHeaderGroups().map((group) => (
               <tr key={group.id}>
                 {selection && (
-                  <th scope="col" className={`${dens.th} w-[34px] text-center`}>
+                  <th scope="col" className={cn(dens.th, CELULA_CAIXINHA)}>
                     {/* "Marcar todas" parcial = estado `indeterminate` do `Checkbox` (tracinho). */}
                     <Checkbox
                       className={CLASSE_CAIXINHA}
@@ -774,7 +786,7 @@ export default function DataTable<T>({
                       // `keydown`, o Espaço na caixinha subiria até o `<tr>`, que dá
                       // `preventDefault` — a caixinha não marcaria e a linha abriria.
                       <td
-                        className={`${classeTd} w-[34px] text-center`}
+                        className={cn(classeTd, CELULA_CAIXINHA)}
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => e.stopPropagation()}
                       >
