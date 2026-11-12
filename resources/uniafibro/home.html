@@ -145,6 +145,9 @@
             padding: 22px 22px 20px; box-shadow: var(--sombra);
         }
         .grade + .cartao { margin-top: 16px; }
+        .membros { list-style: none; margin: 4px 0 12px; padding: 0; display: grid; gap: 10px; }
+        .membros li { display: flex; flex-direction: column; padding: 10px 14px; border-radius: 12px; background: var(--lilas-claro); }
+        .membros span { color: var(--texto-suave); font-size: 0.95rem; }
         /* Camada: cartões ganham profundidade ao passar o mouse (só com movimento liberado). */
         @media (prefers-reduced-motion: no-preference) {
             .cartao, .numeros > div { transition: transform .18s ease, box-shadow .18s ease; }
@@ -172,7 +175,7 @@
             border-radius: 20px; padding: 26px; box-shadow: var(--sombra); margin-bottom: 28px;
         }
         @media (min-width: 720px) { .fundadora { grid-template-columns: auto 1fr; } }
-        .fundadora img { width: 96px; height: 96px; background: #fff; border-radius: 50%; padding: 8px; }
+        .iniciais { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%; background: #fff; color: #4b2477; font-size: 2.2rem; font-weight: 800; letter-spacing: .02em; }
         .fundadora h3 { margin: 0 0 8px; font-size: 1.6rem; }
         .fundadora p { margin: 0 0 10px; }
         .fundadora p:last-child { margin-bottom: 0; }
@@ -306,7 +309,7 @@
                 outros — e que hoje leva esse cuidado a outras cidades do estado.</p>
 
             <div class="fundadora">
-                <img src="/uniafibro/logo.png" alt="" width="96" height="96">
+                <span class="iniciais" aria-hidden="true">GC</span>
                 <div>
                     <span class="rotulo">Quem começou tudo</span>
                     <h3>Giselli Cunha</h3>
@@ -411,6 +414,8 @@
                 <li><span class="ano">fev. 2026</span><p>O AMASF passa de 10 mil atendimentos e chega
                     aos seis anos.</p>
                     <a class="fonte" href="https://www.unesc.net/noticias/categoria/extensao/fevereiro-roxo-amplia-alerta-e-reforca-importancia-do-diagnostico-clinico-da-fibromialgia" rel="noopener">Unesc, fev. 2026</a></li>
+                <li class="rede"><span class="ano">fev. 2026</span><p>Em Maravilha, no Extremo Oeste, a AFIBROMAR se organiza e entra na rede — a Uniafibro passa a ir do Sul ao Oeste do estado.</p>
+                    <span class="fonte relato">relato da associação</span></li>
                 <li><span class="ano">mar. 2026</span><p>Fala no lançamento do Movimento Catarinense
                     Pró-Cannabis Medicinal, em Florianópolis.</p>
                     <a class="fonte" href="https://informefloripa.com/lancado-o-movimento-pro-cannabis-medicinal-de-santa-catarina/" rel="noopener">Informe Floripa, 23/03/2026</a></li>
@@ -442,9 +447,12 @@
             </div>
             <div class="cartao">
                 <h3>Associações-membro</h3>
-                <!-- PREENCHER [W]: quando a lista estiver confirmada, troque o parágrafo abaixo por
-                     uma lista (<ul>) com o nome e a cidade de cada associação. -->
-                <p class="suave">A lista das associações que formam a Uniafibro será publicada em breve.</p>
+                <ul class="membros">
+                    <li><strong>AGFESC — Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense</strong><span>Criciúma e região (Amrec, Amesc e Amurel)</span></li>
+                    <li><strong>AFIBROMAR</strong><span>Maravilha e Extremo Oeste</span></li>
+                </ul>
+                <!-- PREENCHER [W]: acrescente as demais associações-membro confirmadas (nome + cidade). -->
+                <p class="suave">Outras associações estão chegando à rede.</p>
             </div>
         </section>
 
