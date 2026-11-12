@@ -45,6 +45,8 @@ contains:
   - "LaudoBiopsicossocialController — cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão; apoio de dor e adesão (ApoioFisioterapia) e PDF no layout oficial (LaudoBiopsicossocialDocumento) (US-FISIO-060)"
   - "Estudo de pesquisa (fisio_studies) e consentimento `pesquisa` por estudo, com a versão do TCLE aprovada pelo CEP; `treino_ia` separado (etapa 07 P-02)"
   - "PesquisaController — estudo, participantes (código sem nome nem CPF), momentos de avaliação e pendências, com a permissão fisio.pesquisa (etapa 07 P-04)"
+  - "Exames e receitas do paciente (fisio_patient_documents): foto ou PDF guardado pelo Modules/Arquivos, servido por rota que confere a empresa; não se apaga, sai da lista com motivo (US-FISIO-063)"
+  - "DocumentosPacienteController — anexar, abrir e tirar da lista os exames e receitas na ficha (US-FISIO-063)"
   - "DadosSociaisController — dados sociais do paciente, todos opcionais, em fisio_patient_social; nascimento, município e bairro no contato (US-FISIO-061)"
   - "RelatorioAssociacaoController — relatório agregado da associação por período, tela e PDF, só contagem e média com grupo < 5 como \"<5\" (RelatorioAssociacao, permissão fisio.relatorio — US-FISIO-062)"
 not_contains:
