@@ -1,6 +1,6 @@
 // Consulta de produto (Produto/Index): excluir sem perder e restaurar (UC-PIDX-45 · D13 · AR-PROD-022). O que o
 // servidor guarda e devolve está em tests/Feature/Produto/ProdutoExcluirRestaurarTest.php; aqui, o menu da
-// linha (excluído só oferece "Restaurar"), a situação "Excluídos" e a 2ª linha da célula.
+// linha (excluído oferece "Restaurar" e não oferece o que muda o cadastro), a situação "Excluídos" e a 2ª linha da célula.
 //
 // Cobre UC-PIDX-45 (resources/js/Pages/Produto/Index.casos.md).
 // Roda no job Frontend / Vite build (.github/workflows/ci.yml).
@@ -50,10 +50,23 @@ describe('UC-PIDX-45 · excluir sem perder e restaurar', () => {
     expect(aoEscolher).toHaveBeenCalledWith('restaurar', EXCLUIDA);
   });
 
-  it('sem permissão de excluir não há Restaurar (o menu abriu: Editar está lá)', () => {
+  it('sem permissão de excluir não há Restaurar (o menu abriu: Ver está lá)', () => {
     const lista = abrirMenu(EXCLUIDA, { ...TUDO, delete: false }).itens();
-    expect(lista).toContain('Editar');
+    expect(lista).toContain('Ver');
     expect(lista).not.toContain('Restaurar');
+  });
+
+  it('o excluído não oferece o que muda o cadastro: fica Ver, Histórico, Duplicar, Dados fiscais e Restaurar', () => {
+    // Decisão [F] 2026-11-11: quem quer editar, mexer no estoque inicial, gerar código de barras ou mudar
+    // preço restaura antes. Discriminante: com TODAS as permissões, o ativo mostra os quatro itens.
+    const ativo = abrirMenu(LINHA).itens();
+    for (const rotulo of ['Editar', 'Adicionar ou editar estoque inicial', 'Gerar código de barras', 'Adicionar ou editar preços por grupo']) {
+      expect(ativo).toContain(rotulo);
+    }
+    cleanup();
+    expect(abrirMenu(EXCLUIDA).itens()).toEqual([
+      'Ver', 'Histórico de estoque do produto', 'Duplicar produto', 'Dados fiscais (NCM/CFOP)', 'Restaurar',
+    ]);
   });
 
   it('"Excluídos" é uma situação do filtro e vira chip; a célula diz "excluído"', () => {
