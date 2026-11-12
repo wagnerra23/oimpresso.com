@@ -1,7 +1,7 @@
 ---
 module: Vestuario
 version: "1.0"
-last_updated: "2026-11-09"
+last_updated: "2026-11-12"
 owner: wagner
 status: ativo
 status_detalhe: "live em produção via ROTA LIVRE biz=4 desde 2024-Q1"
@@ -25,7 +25,7 @@ related_adrs:
 > Convenção do ID: `US-VEST-NNN` para user stories, `R-VEST-NNN` para regras Gherkin.
 > Campo `Implementado em` linka com Page React (`resources/js/Pages/...`) ou Controller core UltimatePOS quando capacidade já existe no núcleo.
 
-> ⚠️ **Estado especial deste módulo:** o código vertical "Modules/Vestuario" **não existe como pasta física** ainda. ROTA LIVRE usa o **núcleo UltimatePOS + Modules/{Financeiro, NfeBrasil, Copiloto}** com customizações pontuais há 2+ anos. Esta SPEC formaliza o que **está em produção** (validado) + identifica o que **falta encapsular** num `Modules/Vestuario/` próprio pra atender ROTA LIVRE de forma estado-da-arte e habilitar revenda do módulo. Ver ADR 0121 §P7.
+> **Duas camadas neste módulo.** As US 001 a 009 (§3) descrevem o que a ROTA LIVRE usa há 2+ anos pelo **núcleo** (UltimatePOS + `Modules/{Financeiro, NfeBrasil}`). A pasta `Modules/Vestuario/` existe desde 2026-05 e guarda o que é só do vertical: etiqueta (US-VEST-020), curva de compra (US-VEST-031) e remarcação (US-VEST-032). As rotas do módulo exigem o pacote `vestuario_module` da empresa (`Modules/Vestuario/Http/Middleware/VestuarioLiberado.php`). Ver ADR 0121 §P7.
 
 ## 1. Visão
 
@@ -47,7 +47,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 | Operadora principal | Dona da loja (role `Admin#4`) |
 | Auxiliares | Vendedor de balcão (Vendas#4), operador de caixa (Caixa#4) |
 
-**Sensibilidades operacionais documentadas** (auto-mem `cliente_rotalivre.md`):
+**Sensibilidades operacionais documentadas** ([`memory/reference/cliente-rotalivre.md`](../../reference/cliente-rotalivre.md)):
 
 1. **Horários decorados com shift +3h** ([ADR 0066](../../decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md)) — qualquer correção visual de datetime quebra percepção. NÃO mexer.
 2. **`transaction_date` retroativo é fluxo normal** — Larissa registra balcão em lote no fim do dia. Não tentar "corrigir" por algoritmo.
@@ -57,12 +57,13 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 
 ## 3. Capacidades em produção (validadas em ROTA LIVRE 2 anos)
 
-> Estas US descrevem o que **já funciona em prod**. Marcadas `live`. Implementação atual é via núcleo UltimatePOS + módulos compartilhados.
+> Estas US descrevem o que **já funciona em prod**. Marcadas `live` no título e `status: done` na linha de metadados (é essa linha que os lints e o MCP leem). Implementação via núcleo UltimatePOS + módulos compartilhados; nenhuma delas tem teste que declare `@covers-us` (dívida que o anchor-lint registra).
 
 ### US-VEST-001 · Cadastro de produto com variações tamanho + cor `live`
 
+> status: done · type: story
 > **Área:** Catalog
-> **Implementado em:** [`app/Variation.php`](../../../app/Variation.php) · [`app/ProductVariation.php`](../../../app/ProductVariation.php) · [`app/VariationTemplate.php`](../../../app/VariationTemplate.php) · [`app/Http/Controllers/VariationTemplateController.php`](../../../app/Http/Controllers/VariationTemplateController.php) · UI legacy `/products`
+> **Implementado em:** [`app/Variation.php`](../../../app/Variation.php) · [`app/ProductVariation.php`](../../../app/ProductVariation.php) · [`app/VariationTemplate.php`](../../../app/VariationTemplate.php) · [`app/Http/Controllers/VariationTemplateController.php`](../../../app/Http/Controllers/VariationTemplateController.php) · tela `/products` em Inertia (`ProductController`)
 
 **Como** Larissa-Admin
 **Quero** cadastrar SKU "Camiseta Básica Algodão" com matriz tamanho (PP/P/M/G/GG) × cor (preta/branca/azul) gerando 15 variations
@@ -77,9 +78,10 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 
 ### US-VEST-002 · Venda balcão (PDV) com leitor de código de barras `live`
 
+> status: done · type: story
 > **Área:** POS
 > **Rota:** `GET /pos/create`
-> **Implementado em:** [`app/Http/Controllers/SellPosController.php`](../../../app/Http/Controllers/SellPosController.php) · UI legacy Blade `/pos/create`
+> **Implementado em:** [`app/Http/Controllers/SellPosController.php`](../../../app/Http/Controllers/SellPosController.php) · tela Inertia Sells/Create
 
 **Como** vendedor de balcão
 **Quero** abrir POS, bipar código de barras da etiqueta, escolher tamanho+cor da peça, finalizar com cartão/dinheiro/pix
@@ -94,6 +96,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 
 ### US-VEST-003 · Emissão de NFC-e modelo 65 a partir do POS `live (parcial — biz=4 não usa hoje, mas infra existe)`
 
+> status: done · type: story
 > **Área:** Fiscal
 > **Implementado em:** [`Modules/NfeBrasil/`](../../../Modules/NfeBrasil/) — ver [SPEC NfeBrasil §US-NFE-002](../NfeBrasil/SPEC.md)
 
@@ -101,16 +104,17 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 
 ### US-VEST-004 · Histórico de vendas com filtros (cliente, período, vendedor) `live`
 
+> status: done · type: story
 > **Área:** Reports
 > **Rota:** `GET /sells`
-> **Implementado em:** [`app/Http/Controllers/SellController.php`](../../../app/Http/Controllers/SellController.php) — UI Blade legacy
+> **Implementado em:** [`app/Http/Controllers/SellController.php`](../../../app/Http/Controllers/SellController.php) — tela Inertia Sells/Index
 
 **Como** Larissa-Admin
 **Quero** listar vendas filtrando por data, cliente, status pagamento, vendedor
 **Para** auditar fechamento mensal e responder dúvida de cliente (ex: "comprei dia 15, qual valor?")
 
 **Definition of Done:** (em prod)
-- [x] DataTables 21 colunas com `columnDefs` escondendo 5 default (monitor 1280px Larissa)
+- [x] Lista com colunas opcionais escondidas por padrão (monitor 1280px da operadora); a regra vem do tempo do DataTables Blade
 - [x] Locale pt-BR DataTables (`public/locale/datatables/pt-BR.json`)
 - [x] Coluna `transaction_date` aceita retroativo (Larissa registra em lote)
 - [x] Export CSV com escape correto de PT-BR
@@ -118,8 +122,9 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 
 ### US-VEST-005 · Estoque por localização (matriz tamanho × cor × loja) `live`
 
+> status: done · type: story
 > **Área:** Stock
-> **Implementado em:** [`app/VariationLocationDetails.php`](../../../app/VariationLocationDetails.php) · UI legacy `/products` aba estoque
+> **Implementado em:** [`app/VariationLocationDetails.php`](../../../app/VariationLocationDetails.php) · tela `/products` (Inertia)
 
 **Como** Larissa-Admin
 **Quero** ver tabela "Camiseta Básica" com 15 linhas (5 tamanhos × 3 cores) mostrando qty disponível em BL0001
@@ -129,10 +134,10 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 - [x] Tabela `variation_location_details` com qty_available indexed por (variation_id, location_id)
 - [x] Movimentações via `Transaction::sell|purchase|opening_stock` ajustam automaticamente
 - [x] `OpeningStock` permite carga inicial sem afetar `purchase`/`sell` históricos
-- [x] Trigger MySQL imutabilidade movimentações financeiras (não rollback silencioso)
 
 ### US-VEST-006 · Compra (purchase) com fornecedor + recebimento `live`
 
+> status: done · type: story
 > **Área:** Purchases
 > **Implementado em:** [`app/Http/Controllers/PurchaseController.php`](../../../app/Http/Controllers/PurchaseController.php)
 
@@ -141,13 +146,14 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 **Para** ter estoque atualizado e rastrear contas a pagar
 
 **Definition of Done:** (em prod)
-- [x] FormRequest valida fornecedor pertence ao business
+- [x] Validação do fornecedor dentro da ação `store` do `PurchaseController` (não há FormRequest)
 - [x] Linha de purchase grava por (variation_id, qty, unit_cost)
 - [x] Atualiza estoque + cria payable em `Modules/Financeiro` (via Observer Transaction)
 - [x] Custo médio ponderado calculado em `Variation::default_purchase_price`
 
 ### US-VEST-007 · Conta a receber (boleto Asaas) e a pagar `live`
 
+> status: done · type: story
 > **Área:** Financeiro
 > **Implementado em:** [`Modules/Financeiro/`](../../../Modules/Financeiro/) · [`Modules/RecurringBilling/`](../../../Modules/RecurringBilling/) — ver [SPEC RecurringBilling §US-RB-044](../RecurringBilling/SPEC.md)
 
@@ -155,8 +161,9 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 
 ### US-VEST-008 · Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
 
+> status: done · type: story
 > **Área:** Invoice numbering
-> **Implementado em:** [`app/Http/Controllers/InvoiceLayoutController.php`](../../../app/Http/Controllers/InvoiceLayoutController.php) · `business.invoice_schemes`
+> **Implementado em:** [`app/Http/Controllers/InvoiceSchemeController.php`](../../../app/Http/Controllers/InvoiceSchemeController.php) · tabela `invoice_schemes`
 
 **Como** Larissa-Admin
 **Quero** rodar 2 schemes em paralelo (legacy `17NNN` antigo + `2026/NNNN` novo)
@@ -169,8 +176,9 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 
 ### US-VEST-009 · Sidebar/topnav adaptado por monitor 1280px `live`
 
+> status: done · type: story
 > **Área:** UX
-> **Implementado em:** [`Modules/Vestuario/Http/Controllers/DataController.php`](../../../Modules/Vestuario/Http/Controllers/DataController.php) · verificado@08c4a8f (2026-06-21)
+> **Implementado em:** [`app/Utils/Util.php`](../../../app/Utils/Util.php) (`format_date` com o shift) · [`public/locale/datatables/pt-BR.json`](../../../public/locale/datatables/pt-BR.json) — o `DataController` do módulo só monta menu e permissões; o ajuste de 1280px não tem um arquivo dono
 
 **Definition of Done (em prod, em forma genérica):**
 - [x] Locale pt-BR DataTables global
@@ -196,8 +204,8 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 > (`UC-VET-01`…`UC-VET-09`). O RUNBOOK MWART é [`RUNBOOK-etiqueta-tag.md`](RUNBOOK-etiqueta-tag.md).
 
 **Acceptance criteria:**
-- [x] Layout etiqueta térmica (Argox/Zebra padrão) com campos: nome, tamanho, cor, valor, código barras, QR — `EtiquetaTagService::buildZpl`
-- [x] Geração lote: selecionar produto + variação → imprime N etiquetas — `EtiquetaTagController::storeZpl` (⚠️ hoje o operador digita o `product_id`; buscar a peça por nome é gap de adoção, SDD §5.4 D-1)
+- [x] Layout etiqueta térmica (Argox/Zebra padrão) com campos: nome, tamanho, cor, valor, código barras, QR — `EtiquetaTagService::buildZpl`; o código de barras é o `sub_sku` (EAN-13 quando ele já é um EAN válido, Code128 nos demais), que é o que o PDV procura (#10640)
+- [x] Geração lote: selecionar produto + variação → imprime N etiquetas — `EtiquetaTagController::storeZpl`; a peça é achada por nome ou SKU (`resources/js/Pages/Vestuario/Etiquetas/_components/BuscaVariacao.tsx`, #10665)
 - [x] Configurável por business (largura/altura/margem) — `vestuario_settings.etiqueta.*` via `VestuarioSettingsResolver`
 - [x] Impressão direta via `escpos-php` ou navegador (PDF + autoprint) — **parcial**: entregue como download `.zpl` (envio TCP/USB pelo operador) + PDF download; **não há autoprint**
 - [x] Test Pest: gera PDF com 10 etiquetas, valida campos presentes — `UsVest020EtiquetaTagControllerTest`
@@ -212,15 +220,17 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 > owner: — · priority: p0 · estimate: 16h · status: doing · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — em andamento. Decisão [W] 2026-10-26: o crédito é o saldo de **Adiantamento** do cliente (`contacts.balance`), que o caixa já aceita; `vest_creditos_cliente` fica sem uso. Feito: a devolução vira saldo (`POST /sell-return/{id}/vale-troca`, `App\Services\Sells\ValeTrocaService`, UC-SRETVT-01..05 em `SellReturn/Index.casos.md`). Falta o botão na tela de devolução e o prazo CDC com sobreposição do gestor.
+**Implementado em:** _pendente_ — o prazo CDC com sobreposição do gestor não existe. Já entregue no núcleo, verificado em 2026-11-12: `app/Services/Sells/ValeTrocaService.php`, `app/Http/Controllers/SellReturnController.php` (`POST /sell-return/{id}/vale-troca`) e `resources/js/Pages/SellReturn/Add.tsx`; a devolução vira saldo de Adiantamento do cliente (UC-SRETVT-01..05 em `resources/js/Pages/SellReturn/Index.casos.md`) e a tela de devolução já oferece o vale-troca. A âncora fica `_pendente_` porque a US segue aberta: `_parcial_` com `status: doing` é conflito no doneness-lint.
+
+> **Decisão [W] 2026-10-26:** o crédito é o saldo de **Adiantamento** do cliente (`contacts.balance`), que o caixa já aceita. As tabelas `vestuario_devolucoes` e `vestuario_creditos_cliente` e o `Modules/Vestuario/Services/DevolucaoService.php` ficaram sem chamador em produção; o destino deles é decisão [W] aberta. Os critérios abaixo que pediam tabela própria foram escritos antes dessa decisão e estão marcados como superados.
 
 **Contexto.** CDC (Lei 8.078/90 art. 49) garante 7 dias devolução compras online + prazo legal 30d defeitos. Vestuário é setor com **alta taxa de troca por tamanho** (~15-25% segundo Linx Retail Insights). Hoje ROTA LIVRE faz troca via "criar venda nova + cancelar antiga" — perde rastreabilidade e quebra DRE. Concorrentes (Linx, ProMoz) têm fluxo dedicado **Devolução** que gera crédito automático na ficha do cliente, usável próxima compra.
 
 **Acceptance criteria:**
-- [ ] Tabela `vest_devolucoes` (id, business_id, transaction_id_origem, motivo enum [tamanho, cor, defeito, arrependimento], dias_desde_venda, valor_credito)
+- [ ] ~~Tabela própria de devoluções~~ — superado pela decisão de 2026-10-26: a devolução é a `sell_return` do núcleo
 - [ ] Validação automática: dias_desde_venda ≤ 7 (online) ou ≤ 30 (defeito) — fora disso, gestor sobrepõe com motivo
-- [ ] Crédito vai pra `vest_creditos_cliente` (saldo positivo do contact)
-- [ ] Próxima venda do contact pode usar crédito (linha negativa antes de pagamento)
+- [x] Crédito vai pro saldo de Adiantamento do cliente (`ValeTrocaService`), decisão [W] 2026-10-26
+- [x] Próxima venda do cliente usa o saldo como forma de pagamento Adiantamento (o caixa já aceita)
 - [ ] Estoque retorna pra location origem
 - [ ] Audit log Spatie por mutação
 - [ ] Teste Pest: 3 cenários (devolução prazo OK, fora prazo com override, defeito 30d)
@@ -341,7 +351,7 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 
 ### US-VEST-031 · Sugestão de compra por tamanho pela curva de venda `p1`
 
-> owner: — · priority: p1 · estimate: 8h · type: story
+> owner: — · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: —
 > **Implementado em:** `Modules/Vestuario/Services/CurvaDeCompra.php` · `Modules/Vestuario/Http/Controllers/CurvaCompraController.php` · `resources/js/Pages/Purchase/_components/SugerirPelaCurva.tsx` — cálculo, endpoint GET /vestuario/curva-compra e botão "Sugerir pela curva" na tela da compra
 > **Testado em:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php` · `tests/Feature/Purchase/SugerirPelaCurvaContratoTest.php` · `tests/js/purchase-sugerir-curva.test.tsx`
@@ -362,7 +372,7 @@ Lacuna "Grade cor e tamanho com curva de compra" (levantamento 2026-10-25, frent
 
 ### US-VEST-032 · Remarcação por coleção, com prévia e reversão `p2`
 
-> owner: — · priority: p2 · estimate: 10h · type: story
+> owner: — · priority: p2 · estimate: 10h · status: done · type: story
 > blocked_by: —
 > **Implementado em:** `Modules/Vestuario/Services/Remarcacao.php` · `Modules/Vestuario/Http/Controllers/RemarcacaoController.php` · `resources/js/Pages/Vestuario/Remarcacao/Index.tsx` · `Modules/Vestuario/Database/Migrations/2026_10_27_000001_create_vestuario_remarcacoes_tables.php`
 > **Testado em:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php` · `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
@@ -379,7 +389,7 @@ Diferente da US-VEST-023 (liquidação aplicada em runtime no carrinho): aqui o 
 - Prévia antes → depois por variação; gravar só com a prévia em dia (se algum preço mudou, pede nova prévia).
 - Lote guarda o antes de cada variação; reverter devolve o antes e não pisa em preço mexido depois (conta como conflito).
 - Tabelas de preço (`variation_group_prices`) não são tocadas. A prévia avisa quantas peças têm preço de grupo: o fixo não muda e o percentual acompanha o preço novo.
-- Liga por empresa: setting `remarcacao.enabled` do Vestuário, desligado por padrão.
+- Liga por empresa: setting `remarcacao.enabled` do Vestuário, desligado por padrão. `status: done` aqui é código entregue; ligar na ROTA LIVRE é decisão [W] e segue desligado.
 - Depois de gravar, as variações remarcadas vão para a tela de etiquetas.
 - Tier 0: produtos, lotes e reversão só da empresa.
 
@@ -419,7 +429,7 @@ Diferente da US-VEST-023 (liquidação aplicada em runtime no carrinho): aqui o 
 
 | Modelo | Vestuário usa pra | Customização |
 |--------|-------------------|--------------|
-| `App\Product` | peça (camiseta, calça) | + `estacao_id`, `genero` (M/F/Infantil/Unissex) |
+| `App\Product` | peça (camiseta, calça) | reutilizar; estação/coleção como atributo é a US-VEST-029 (a coluna não existe hoje) |
 | `App\Variation` | combinação tam+cor | sub_sku como código de barras impresso |
 | `App\VariationTemplate` | template "tamanhos PP-GG", "cores básicas" | reutilizável |
 | `App\VariationLocationDetails` | estoque por loja | reutilizar |
@@ -431,19 +441,15 @@ Diferente da US-VEST-023 (liquidação aplicada em runtime no carrinho): aqui o 
 | `Modules\NfeBrasil` | NFC-e modelo 65 PDV | reutilizar (US-NFE-002) |
 | `Modules\RecurringBilling` | boleto avulso Asaas | reutilizar (US-RB-044) |
 
-### Tabelas novas Modules/Vestuario (a criar quando US-VEST-020+ entrarem)
+### Tabelas do módulo
 
-- `vest_estacoes` — coleção/estação por business
-- `vest_devolucoes` + `vest_creditos_cliente` — fluxo CDC
-- `vest_comissao_regras` — comissão vendedor escalonada
-- `vest_liquidacoes` — campanhas desconto em massa
-- `vest_fidelidade_regras` + `vest_fidelidade_movimentos` — programa pontos
-- `vest_gift_cards` — vale-presente
-- `vest_crediarios` + `vest_crediario_parcelas` — layaway
-- `vest_reservas_provador` — fila provador
-- `vest_sacoleiras` + `vest_consignacoes` — venda externa
+Existem hoje, com prefixo `vestuario_*` e `business_id` + FK desde #10654:
 
-Todas com `business_id` indexed + FK + global scope (skill `multi-tenant-patterns` Tier A — ADR 0093).
+- `vestuario_settings` — configuração por empresa (etiqueta, remarcação)
+- `vestuario_remarcacoes` + `vestuario_remarcacao_itens` — lotes da US-VEST-032
+- `vestuario_devolucoes` + `vestuario_creditos_cliente` — sem chamador em produção desde a decisão de 2026-10-26 (ver US-VEST-021)
+
+As US abertas do §4 citam nomes `vest_*` (estações, comissão, liquidação, fidelidade, gift card, crediário, provador, sacoleira). São rascunho de desenho, não tabelas; quando uma delas for feita, o nome segue o prefixo `vestuario_*`. Toda tabela nova leva `business_id` indexado + FK + global scope (skill `multi-tenant-patterns`, ADR 0093).
 
 ### Padrões obrigatórios
 
@@ -456,7 +462,7 @@ Todas com `business_id` indexed + FK + global scope (skill `multi-tenant-pattern
 
 | Quarter | US prioridade | Marco |
 |---------|---------------|-------|
-| **2026-Q2 (atual)** | US-VEST-029 (estação) + US-VEST-020 (etiqueta) | fundação pra liquidação/comissão |
+| **2026-Q2** | US-VEST-029 (estação) + US-VEST-020 (etiqueta) | fundação pra liquidação/comissão (020 entregue; 029 não começou) |
 | **2026-Q3** | US-VEST-021 (devolução CDC) + US-VEST-023 (liquidação) + US-VEST-022 (comissão) | paridade Linx Microvix em ROTA LIVRE |
 | **2026-Q4** | US-VEST-024 (fidelidade) + US-VEST-025 (gift card) | sazonalidade Black Friday + Natal |
 | **2027-Q1** | US-VEST-026 (crediário) + US-VEST-027 (provador) | revenda pra 2º cliente Vestuario |
@@ -471,7 +477,7 @@ Todas com `business_id` indexed + FK + global scope (skill `multi-tenant-pattern
 - ⛔ **Criar role custom sem `location.4` explícita** — trava busca produto em `/sells/create` (incidente 2026-04-24).
 - ⛔ **Usar `withoutGlobalScopes` em Model com `business_id`** sem comment `// SUPERADMIN: <razão>` (Tier 0 ADR 0093).
 - ⛔ **Hard-deletar `Variation` com sell_lines históricos** — quebra rastreabilidade contábil. Usar soft delete.
-- ⛔ **Criar tabela `vest_*` sem `business_id` indexed + FK** — Tier 0 IRREVOGÁVEL.
+- ⛔ **Criar tabela `vestuario_*` sem `business_id` indexed + FK** — Tier 0 IRREVOGÁVEL.
 - ⛔ **Subir feature de fidelidade sem opt-in LGPD** — Art. 7 LGPD (consentimento explícito).
 - ⛔ **Implementar US-VEST-030 (ecommerce) sem 3+ sinais qualificados** — ADR 0105.
 - ⛔ **Usar `business_id=4` em teste, fixture ou smoke** (cliente piloto, produção real) — teste automatizado roda no tenant fictício 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)); smoke manual em produção fica na biz=1 (regra R6 de [`proibicoes.md`](../../proibicoes.md)).
@@ -502,7 +508,6 @@ Todas com `business_id` indexed + FK + global scope (skill `multi-tenant-pattern
 ## 11. Decisões pendentes
 
 - [ ] Regime tributário ROTA LIVRE — discovery com Larissa (MEI? Simples? bloqueador US-VEST-003 NFC-e regular)
-- [ ] Modules/Vestuario fica hoje **virtual** (núcleo + customizações em DataController genérico) ou criar pasta `Modules/Vestuario/` formal? — depende do 2º cliente Vestuario chegar (ADR 0105)
 - [ ] Comissão vendedor: começar pelo escalonado simples (US-VEST-022) ou fechar discovery com 1 loja real antes de codar?
 - [ ] Etiqueta térmica: padrão Argox/Zebra é universal SC ou tem variação regional?
 - [ ] Programa fidelidade: pontos não-transferíveis (LGPD-easy) ou transferíveis (Linx tem)?
@@ -518,14 +523,13 @@ Todas com `business_id` indexed + FK + global scope (skill `multi-tenant-pattern
 - ADR 0089 — Capterra-driven evolution
 - ADR 0105 — Cliente como sinal qualificado
 - ADR 0106 — Recalibração velocidade fator 10x IA-pair
-- Auto-mem `cliente_rotalivre.md` — perfil + sensibilidades + histórico incidentes
-- Auto-mem `reference_clientes_ativos.md` — 56 businesses, ROTA LIVRE concentra 99% volume
-- Auto-mem `reference_db_schema.md` — schema UltimatePOS multi-tenant
-- Auto-mem `reference_ultimatepos_integracao.md` — hooks DataController + Observer Transaction
+- [`memory/reference/cliente-rotalivre.md`](../../reference/cliente-rotalivre.md) — perfil, sensibilidades e incidentes da cliente piloto (as auto-mems antigas foram migradas para `memory/reference/`)
 - SPEC `Modules/RecurringBilling` — fluxo boleto-pago + NFe automática (US-RB-044)
 - SPEC `Modules/NfeBrasil` — NFC-e modelo 65 (US-NFE-002)
 - SPEC `Modules/Financeiro` — extrato bancário + AR/AP
 
 ---
 
-**Última atualização:** 2026-05-10 — SPEC criada formalizando o que ROTA LIVRE usa em prod há 2 anos + identificando gaps vertical vs Linx Microvix/ProMoz/Vendizap. Próximo passo: tasks-create no MCP pras US-VEST-029 (P1) + US-VEST-020 (P0) que destravam o resto do roadmap Q3-2026.
+**Última atualização:** 2026-11-12 — reconciliação com os lotes 0 a 4 da auditoria (etiqueta bipável e busca por nome, remarcação, botão da curva na compra, acesso pelo pacote): status das US 001 a 009, 031 e 032, âncoras 008, 009 e 021, fósseis de antes de a pasta do módulo existir.
+
+**2026-05-10** — SPEC criada formalizando o que ROTA LIVRE usa em prod há 2 anos + identificando gaps vertical vs Linx Microvix/ProMoz/Vendizap.
