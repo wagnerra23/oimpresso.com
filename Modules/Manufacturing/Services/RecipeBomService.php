@@ -536,6 +536,8 @@ class RecipeBomService implements ReceitaDoProduto
     /**
      * A consulta das receitas da empresa com o que `presentRecipe` lê. Tier 0 ({@see ADR 0093}): pelo
      * `products.business_id` do produto da receita.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder<MfgRecipe>
      */
     private function consultaReceitasComCusto(int $businessId): \Illuminate\Database\Eloquent\Builder
     {
