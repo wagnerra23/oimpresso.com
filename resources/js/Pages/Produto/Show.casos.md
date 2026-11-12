@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — consultar a ficha não pode mostrar MENOS (nem a quem não devia) do que a tela velha (Blade + Delphi) já mostrava.
 owner: wagner
-last_run: "2026-07-26"
-last_run_ci: "0 UC executado — trio nasce agora (agent sdd-from-source, ADR 0351). UC-PSHOW-01/02/03/06 têm Pest failing-first (ProdutoShowContratoTest, lane Estoque · MySQL); 04/05/07 são stub test.fixme. Veredito ⬜/🔶 honesto até a lane publicar."
+last_run: "2026-11-12"
+last_run_ci: "PR de 2026-11-12 (link Locais de armazenagem na ficha, UC-PSHOW-08): local, os 2 testes da ficha no produto-locais-armazenagem-acesso passaram; o resto da ficha não mudou; lane PHP / Pest (Estoque · MySQL), job 131372610661 (head 21e1cb2): 668 passed, 0 falhas (3408 assertions), com os casos do UC-PSHOW-08 em ProdutoArmazenagemPermissaoTest verdes. Antes: 0 UC executado — trio nasce agora (agent sdd-from-source, ADR 0351). UC-PSHOW-01/02/03/06 têm Pest failing-first (ProdutoShowContratoTest, lane Estoque · MySQL); 04/05/07 são stub test.fixme. Veredito ⬜/🔶 honesto até a lane publicar."
 ---
 
 # Casos de Uso & Aceite — Ficha do produto
@@ -56,6 +56,7 @@ last_run_ci: "0 UC executado — trio nasce agora (agent sdd-from-source, ADR 03
 | UC-PSHOW-05 | Preço de compra e de venda declaram a **mesma base de imposto** | must `[V0]` | Blade (4 colunas exc/inc rotuladas) + REGRA MESTRE | `e2e/produto-show.spec.ts` (stub) | 🔶 decisão [W] — não afirmo bug |
 | UC-PSHOW-06 | Abrir a ficha não escreve no banco (GET é leitura pura) | must | charter §Anti-hooks + `AR-PROD-064` | `ProdutoShowContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PSHOW-07 | Ficha mostra o alerta de estoque mínimo | should | Blade `view-modal:67-70` + `AR-PROD-053` | `e2e/produto-show.spec.ts` (stub) | ⬜ não verificado |
+| UC-PSHOW-08 | Ficha leva ao Editar só com os locais para quem só pode mexer neles | should | `CU-PROD-20` (proposta #10765) · `ProductController::show` (`permissions.armazenagem`): com `product.armazenagem` sem `product.update`, o link "Locais de armazenagem" (para `/products/{id}/edit`) aparece no lugar de "Editar"; produto sem estoque controlado não tem o link | `ProdutoArmazenagemPermissaoTest` (Pest) + `produto-locais-armazenagem-acesso.test.tsx` (Vitest) | ✅ verde no CI (job 131372610661 Pest + Frontend / Vite build) |
 
 > ⚠️ **Nenhum status aqui é "✅".** Os 4 UCs com Pest nasceram agora e **não rodei** — testes são
 > CT 100/CI ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
