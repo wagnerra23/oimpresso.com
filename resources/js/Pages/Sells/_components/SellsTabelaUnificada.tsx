@@ -498,7 +498,7 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
 // enforcadas no backend (403/permissão); Devolução → /sell-return/add/{id}
 // por visita Inertia (SellReturn/Add — carga completa cairia no Blade legado). onView abre o drawer; onChange faz refetch.
 // ──────────────────────────────────────────────────────────────
-function ActionsMenu({
+export function ActionsMenu({
   row,
   onView,
   onChange,
@@ -527,8 +527,10 @@ function ActionsMenu({
         },
         credentials: 'same-origin',
       });
-      if (!res.ok) {
-        const json = await res.json().catch(() => null);
+      // O destroy responde 200 com {success:false, msg} quando recusa (ex.: venda com
+      // devolução). Olhar só o status deixava a linha na tela sem explicação.
+      const json = await res.json().catch(() => null);
+      if (!res.ok || json?.success === false) {
         alert(json?.msg ?? `Falha ao excluir ${rotulo}.`);
         return;
       }

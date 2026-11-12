@@ -127,6 +127,21 @@ empresa não mostra nada. Âncora: pedido P-037.
 
 Status: 🧪
 
+## UC-QUO-13 · Quem tem "excluir cotação" exclui a cotação pela lista antiga · `[T0]` `must`
+
+**Dado** um vendedor do business 98 com `quotation.delete` e só `quotation.view_own`
+**Quando** exclui a própria cotação pela lista (`DELETE /sells/{id}` ou `DELETE /pos/{id}`)
+**Então** a cotação sai **E** a cotação do colega, a de outra empresa, o rascunho comum e a venda
+final respondem 403 e continuam lá **E** com `quotation.view_all` a do colega também sai, a de outra
+empresa nunca **E** quem tem só `draft.delete` não vê Excluir na cotação e recebe 403.
+
+- **Origem:** a lista antiga (`sale_pos/quotations` · `GET /sells/draft-dt?is_quotation=1`) mostrava Excluir para `quotation.delete`, e os dois `destroy` respondiam 403: aceitavam só as permissões de excluir venda. Achado ao conferir o caso irmão dos rascunhos (P-076, UC-DRAFT-06/07). A tela React não tem Excluir; este caso cobre a lista antiga e o servidor.
+- **Regra:** `TransactionUtil::podeExcluirComoCotacao` (mesmo recorte de `quotation.view_own` da lista), chamada por `SellController::destroy` e `SellPosController::destroy`. O menu Ações da lista mostra Excluir com a permissão que o servidor aceita para a linha: cotação pede `quotation.delete`, rascunho pede `draft.delete`.
+- **Âncora de contrato:** permissões `quotation.delete`/`quotation.view_*` (`PermissionCatalog`) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md). Não toca valor nem estoque: só decide se o `destroy` prossegue.
+- **Teste:** `tests/Feature/Sells/SellsQuotationsContratoTest.php` — `UC-QUO-13 …` (2 casos).
+
+Status: ⬜ — nasce neste PR; veredito pendente da lane `PHP / Pest (Sells · MySQL)`.
+
 ## Aprovação do orçamento pelo link (US-SELL-074)
 
 Fatia 1: o vendedor gera o link e o serviço monta o que o cliente vê. A página pública, a decisão
@@ -196,6 +211,7 @@ Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do tes
   - Etiquetas: part, cv
 
 ## Trilha do tempo
+- 2026-11-12 · [F+C] UC-QUO-13: `quotation.delete` exclui cotação (antes a lista antiga mostrava Excluir e o servidor respondia 403). Teste `SellsQuotationsContratoTest`, nasce sem run.
 - 2026-10-27 · [CL] UC-OAC-01..04 (US-SELL-074, fatia 1): gerar o link de aprovação e o que o cliente vê. Teste `OrcamentoAceiteLinkContratoTest`, nasce sem run.
 - 2026-10-23 · [M+C] Backlog: orçamento duplicado mostra de onde veio, sem id.
 - 2026-10-21 · [CL] UC-QUO-09 (US-PCP-028 · UC-FLX-06): entrega prevista na confirmação de converter. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.

@@ -3772,7 +3772,9 @@ class SellController extends Controller
                                     </li>';
                         }
 
-                        if (auth()->user()->can('draft.delete') || auth()->user()->can('quotation.delete')) {
+                        // Excluir só com a permissão que o destroy aceita para ESTA linha: cotação pede
+                        // `quotation.delete`, rascunho pede `draft.delete` (TransactionUtil::podeExcluirComo*).
+                        if (auth()->user()->can($row->sub_status == 'quotation' ? 'quotation.delete' : 'draft.delete')) {
                             $html .= '<li>
                                 <a href="'.action([\App\Http\Controllers\SellPosController::class, 'destroy'], [$row->id]).'" class="delete-sale"><i class="fas fa-trash"></i>'.__('messages.delete').'</a>
                                 </li>';
@@ -4225,8 +4227,10 @@ class SellController extends Controller
     public function destroy($id)
     {
         // P-076 — `draft.delete` também exclui rascunho comum (regra em TransactionUtil::podeExcluirComoRascunho).
+        // E `quotation.delete` exclui cotação (TransactionUtil::podeExcluirComoCotacao).
         if (! auth()->user()->can('sell.delete') && ! auth()->user()->can('direct_sell.delete') && ! auth()->user()->can('so.delete')
-            && ! $this->transactionUtil->podeExcluirComoRascunho(auth()->user(), request()->session()->get('user.business_id'), $id)) {
+            && ! $this->transactionUtil->podeExcluirComoRascunho(auth()->user(), request()->session()->get('user.business_id'), $id)
+            && ! $this->transactionUtil->podeExcluirComoCotacao(auth()->user(), request()->session()->get('user.business_id'), $id)) {
             abort(403, 'Unauthorized action.');
         }
 
