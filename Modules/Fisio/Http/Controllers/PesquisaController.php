@@ -69,6 +69,13 @@ class PesquisaController extends Controller
             ],
             've_nome' => $veNome,
             'instrumentos' => array_keys(CatalogoQuestionarios::disponiveis()),
+            // Nome curto de cada questionário (o trecho antes do " — " do nome do catálogo), para a
+            // tela não mostrar o código interno (`sentar_levantar_30s`). Todo o catálogo, porque a
+            // pendência pode citar questionário que deixou de estar liberado.
+            'rotulos' => array_map(
+                fn (array $d) => trim(explode(' — ', (string) $d['nome'])[0]),
+                CatalogoQuestionarios::todos(),
+            ),
             'participantes' => Inertia::defer(fn () => $estudo === null ? [] : $this->participantes($estudo, $veNome)),
             'pendencias' => Inertia::defer(fn () => $estudo === null ? [] : $this->estudos->pendencias($estudo, now())),
             'pacientes' => Inertia::defer(fn () => $veNome && $estudo !== null ? $this->pacientesForaDoEstudo($estudo) : []),

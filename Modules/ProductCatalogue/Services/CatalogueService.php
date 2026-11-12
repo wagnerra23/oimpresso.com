@@ -47,7 +47,7 @@ class CatalogueService
             'products' => $this->repository->listProductsByLocation($businessId, $locationId),
             'business' => $business = $this->repository->findBusinessWithCurrency($businessId),
             'business_location' => $this->repository->findLocationForBusiness($businessId, $locationId),
-            'discounts' => $this->formatDiscountAmounts(
+            'discounts' => $this->anexarSelo(
                 $this->repository->activeDiscounts($businessId, $locationId),
                 $business,
             ),
@@ -82,6 +82,7 @@ class CatalogueService
             );
 
             $comboVariations = $this->collectComboVariations($product);
+            $this->anexarSelo($discounts, $this->repository->findBusinessWithCurrency($businessId));
 
             return [
                 'product' => $product,
@@ -98,12 +99,16 @@ class CatalogueService
     }
 
     /**
-     * Formata `discount_amount` de cada Discount usando ProductUtil + currency do business.
+     * Anexa a cada desconto o texto do selo (`selo`), conforme o tipo: porcentagem ou dinheiro.
+     * Não reescreve `discount_amount`: o número segue cru para quem precisar calcular.
      */
-    private function formatDiscountAmounts(\Illuminate\Support\Collection $discounts, \App\Business $business): \Illuminate\Support\Collection
+    private function anexarSelo(iterable $discounts, \App\Business $business): iterable
     {
-        foreach ($discounts as $key => $value) {
-            $discounts[$key]->discount_amount = $this->productUtil->num_f($value->discount_amount, false, $business);
+        $formato = new FormatoVitrine($business);
+        foreach ($discounts as $discount) {
+            if (! empty($discount)) {
+                $discount->selo = $formato->seloDesconto($discount);
+            }
         }
 
         return $discounts;

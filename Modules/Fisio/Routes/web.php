@@ -6,6 +6,7 @@ use Modules\Fisio\Http\Controllers\ConfigAgendamentoController;
 use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\ConfiguracoesController;
+use Modules\Fisio\Http\Controllers\DadosSociaisController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\LaudoBiopsicossocialController;
@@ -24,6 +25,7 @@ use Modules\Fisio\Http\Controllers\ProntuarioPdfController;
 use Modules\Fisio\Http\Controllers\ProtocolosController;
 use Modules\Fisio\Http\Controllers\QuestionariosController;
 use Modules\Fisio\Http\Controllers\RegistrosController;
+use Modules\Fisio\Http\Controllers\RelatorioAssociacaoController;
 use Modules\Fisio\Http\Controllers\ResponsavelController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
 
@@ -59,6 +61,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->group(function () {
         // Painel do profissional (US-FISIO-010): KPIs, fila de atenção e tabela. Só leitura.
         Route::get('/', [PainelController::class, 'index'])->name('painel');
+
+        // Relatório agregado para a associação (US-FISIO-062). Exige `fisio.relatorio` (no controller).
+        Route::get('relatorio-associacao', [RelatorioAssociacaoController::class, 'index'])->name('relatorio-associacao.index');
+        Route::get('relatorio-associacao.pdf', [RelatorioAssociacaoController::class, 'pdf'])->name('relatorio-associacao.pdf');
 
         // Área do estudo (etapa 07 P-04). Exige `fisio.pesquisa` (no controller), além de fisio.access.
         Route::get('pesquisa', [PesquisaController::class, 'index'])->name('pesquisa.index');
@@ -120,6 +126,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::delete('pacientes/{id}', [PacientesController::class, 'destroy'])->whereNumber('id')->name('pacientes.destroy');
 
         // Fisioterapeuta responsável: transferir o paciente (UC-FPS-31). Exige `fisio.editar`.
+        // Dados sociais (US-FISIO-061): opcionais, dado sensível; gravar exige fisio.editar (no controller).
+        Route::put('pacientes/{id}/dados-sociais', [DadosSociaisController::class, 'update'])->whereNumber('id')->name('pacientes.dados-sociais.update');
         Route::post('pacientes/{id}/responsavel', [ResponsavelController::class, 'store'])->whereNumber('id')->name('pacientes.responsavel.store');
 
         Route::post('pacientes/{id}/registros', [RegistrosController::class, 'store'])->whereNumber('id')->name('pacientes.registros.store');
