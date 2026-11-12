@@ -129,6 +129,27 @@ return [
     ],
 
     /*
+     * Exames e receitas do paciente (US-FISIO-063): foto ou PDF, teto em KB validado no servidor.
+     * Abaixo do `upload_max_filesize` de public/.user.ini (64M).
+     */
+    'documentos' => [
+        'max_kb' => 10240,  // 10 MB
+        /*
+         * Transcrição da foto pela IA (US-FISIO-063, parte 3). Ligada por empresa em `fisio_settings`
+         * (`documentos.transcricao_ia`, desligada por padrão). provider/model nulos = padrão do
+         * laravel/ai (ADR 0035). `provedores_sem_treino`: só estes recebem a foto. Entra aqui o
+         * provedor cuja API, por contrato, não usa o conteúdo enviado para treinar modelo
+         * (Anthropic e OpenAI pela API comercial). Provedor com plano gratuito que treina com o
+         * conteúdo (ex.: Gemini sem faturamento) não entra. Sem `env()` aqui (Larastan).
+         */
+        'transcricao' => [
+            'provider' => null,
+            'model' => null,
+            'provedores_sem_treino' => ['anthropic', 'openai'],
+        ],
+    ],
+
+    /*
      * Linguagem proibida no texto que a clínica salva (B-06 · UC-FBI-12). Cópia LITERAL da ADR 0437 §5
      * ("Proibido: ..."), nunca ampliada aqui: termo novo entra pela ADR primeiro. Quem lê é
      * Modules\Fisio\Services\LinguagemAnvisa, que compara sem maiúscula, sem acento e por palavra

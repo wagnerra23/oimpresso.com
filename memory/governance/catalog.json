@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 948,
-    "edges": 1283,
+    "nodes": 973,
+    "edges": 1305,
     "by_node_type": {
       "module": 43,
-      "table": 108,
+      "table": 116,
       "adr": 155,
-      "component": 553,
-      "api": 89
+      "component": 567,
+      "api": 92
     },
     "by_edge_type": {
-      "ownsTable": 97,
+      "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 93,
+      "providesApi": 95,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 553,
-      "dependsOn": 142,
-      "delegatesTo": 130,
+      "hasComponent": 567,
+      "dependsOn": 141,
+      "delegatesTo": 129,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 79,
@@ -1226,8 +1226,15 @@
       "prefix": "/api/v1/*",
       "providers": [
         "Financeiro",
-        "NfeBrasil",
         "RecurringBilling"
+      ]
+    },
+    {
+      "id": "api:/api/v1/nfebrasil",
+      "type": "api",
+      "prefix": "/api/v1/nfebrasil",
+      "providers": [
+        "NfeBrasil"
       ]
     },
     {
@@ -1546,6 +1553,22 @@
       "id": "api:/nfe-brasil/*",
       "type": "api",
       "prefix": "/nfe-brasil/*",
+      "providers": [
+        "NfeBrasil"
+      ]
+    },
+    {
+      "id": "api:/nfe-brasil/contador/*",
+      "type": "api",
+      "prefix": "/nfe-brasil/contador/*",
+      "providers": [
+        "NfeBrasil"
+      ]
+    },
+    {
+      "id": "api:/nfe-brasil/danfe/{business}/{emissao}",
+      "type": "api",
+      "prefix": "/nfe-brasil/danfe/{business}/{emissao}",
       "providers": [
         "NfeBrasil"
       ]
@@ -3452,11 +3475,25 @@
       "desc": "Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
     },
     {
+      "id": "component:Fisio/DadosSociaisController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "DadosSociaisController",
+      "desc": "dados sociais do paciente, todos opcionais, em fisio_patient_social; nascimento, município e bairro no contato (US-FISIO-061)"
+    },
+    {
       "id": "component:Fisio/DataController",
       "type": "component",
       "module": "Fisio",
       "name": "DataController",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/DocumentosPacienteController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "DocumentosPacienteController",
+      "desc": "anexar, abrir e tirar da lista os exames e receitas na ficha (US-FISIO-063)"
     },
     {
       "id": "component:Fisio/Editor de programa por paciente, protocolos-modelo",
@@ -3477,6 +3514,13 @@
       "type": "component",
       "module": "Fisio",
       "name": "Estudo de pesquisa",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Exames e receitas do paciente",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Exames e receitas do paciente",
       "desc": ""
     },
     {
@@ -3541,6 +3585,13 @@
       "module": "Fisio",
       "name": "LaudoBiopsicossocialController",
       "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão; apoio de dor e adesão (ApoioFisioterapia) e PDF no layout oficial (LaudoBiopsicossocialDocumento) (US-FISIO-060)"
+    },
+    {
+      "id": "component:Fisio/MedicamentosPacienteController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "MedicamentosPacienteController",
+      "desc": "medicamentos em uso estruturados (fisio_patient_medications): incluir, alterar com antes/depois no activity_log e tirar da lista com motivo (US-FISIO-063)"
     },
     {
       "id": "component:Fisio/OnboardingController",
@@ -3662,11 +3713,25 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/RelatorioAssociacaoController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "RelatorioAssociacaoController",
+      "desc": "relatório agregado da associação por período, tela e PDF, só contagem e média com grupo < 5 como \\\"<5\\\" (RelatorioAssociacao, permissão fisio.relatorio — US-FISIO-062)"
+    },
+    {
       "id": "component:Fisio/ResponsavelController",
       "type": "component",
       "module": "Fisio",
       "name": "ResponsavelController",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/TranscricaoDocumentoController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "TranscricaoDocumentoController",
+      "desc": "transcrição da foto pela IA (TranscricaoDocumentoAgent, laravel/ai), desligada por empresa, só provedor sem treino; a IA só copia e o profissional confere antes de gravar (fisio_document_transcriptions, US-FISIO-063)"
     },
     {
       "id": "component:Fisio/VendaDoPacoteObserver",
@@ -4271,6 +4336,13 @@
       "desc": ""
     },
     {
+      "id": "component:NfeBrasil/Comandos nfe:*",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "Comandos nfe:*",
+      "desc": "health, retentar-contingencia, enviar-xml-contador, importar-regras-csv, migrate-cert-business, mover-arquivos-fiscais (#10692), puxar DF-e"
+    },
+    {
       "id": "component:NfeBrasil/ConfigDefaultController",
       "type": "component",
       "module": "NfeBrasil",
@@ -4320,11 +4392,25 @@
       "desc": ""
     },
     {
+      "id": "component:NfeBrasil/Jobs EmitirNfceJob",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "Jobs EmitirNfceJob",
+      "desc": ""
+    },
+    {
       "id": "component:NfeBrasil/ManifestacaoController",
       "type": "component",
       "module": "NfeBrasil",
       "name": "ManifestacaoController",
       "desc": "Manifestação do Destinatário (US-NFE-052, PR #317)"
+    },
+    {
+      "id": "component:NfeBrasil/Middleware PermissaoNfe",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "Middleware PermissaoNfe",
+      "desc": "permissão por rota nas ações fiscais que só exigiam login (lote 3.2 da auditoria, #10728)"
     },
     {
       "id": "component:NfeBrasil/NfeEmissaoController",
@@ -5076,10 +5162,31 @@
       "desc": "regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
     },
     {
+      "id": "component:ProductCatalogue/CatalogueQrService",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "CatalogueQrService",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/CatalogueService",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "CatalogueService",
+      "desc": ""
+    },
+    {
       "id": "component:ProductCatalogue/DataController",
       "type": "component",
       "module": "ProductCatalogue",
       "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/FormatoVitrine",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "FormatoVitrine",
       "desc": ""
     },
     {
@@ -5094,6 +5201,20 @@
       "type": "component",
       "module": "ProductCatalogue",
       "name": "ProductCatalogueController",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/ProductCatalogueHealthCommand",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "ProductCatalogueHealthCommand",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/ProductCatalogueRepository",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "ProductCatalogueRepository",
       "desc": ""
     },
     {
@@ -7367,9 +7488,64 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_dfe_eventos",
+      "type": "table",
+      "name": "nfe_dfe_eventos",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_dfe_itens",
+      "type": "table",
+      "name": "nfe_dfe_itens",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_dfe_nsu_state",
+      "type": "table",
+      "name": "nfe_dfe_nsu_state",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_dfe_recebidos",
+      "type": "table",
+      "name": "nfe_dfe_recebidos",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_emissoes",
       "type": "table",
       "name": "nfe_emissoes",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_envios_contador",
+      "type": "table",
+      "name": "nfe_envios_contador",
       "owners": [
         "NfeBrasil"
       ],
@@ -7433,6 +7609,28 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_locais_emissores",
+      "type": "table",
+      "name": "nfe_locais_emissores",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_naturezas_produto",
+      "type": "table",
+      "name": "nfe_naturezas_produto",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_operacoes_fiscais",
       "type": "table",
       "name": "nfe_operacoes_fiscais",
@@ -7469,6 +7667,17 @@
       "id": "table:nfe_sugestoes_fiscais",
       "type": "table",
       "name": "nfe_sugestoes_fiscais",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfse_eventos_cancelamento",
+      "type": "table",
+      "name": "nfse_eventos_cancelamento",
       "owners": [
         "NfeBrasil"
       ],
@@ -10719,7 +10928,19 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/DadosSociaisController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/DocumentosPacienteController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10738,6 +10959,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Estudo de pesquisa",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Exames e receitas do paciente",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10792,6 +11019,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/LaudoBiopsicossocialController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/MedicamentosPacienteController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10899,7 +11132,19 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/RelatorioAssociacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/ResponsavelController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/TranscricaoDocumentoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12783,6 +13028,13 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "SPED Fiscal/EFD"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -12808,6 +13060,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Schema nfse_emissoes"
     },
     {
       "from": "module:NfeBrasil",
@@ -12818,6 +13077,13 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "SPED Fiscal/EFD"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -12843,6 +13109,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Schema nfse_emissoes"
     },
     {
       "from": "module:NfeBrasil",
@@ -12859,6 +13132,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/CertificadoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/Comandos nfe:*",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12906,7 +13185,19 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/Jobs EmitirNfceJob",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/ManifestacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/Middleware PermissaoNfe",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12978,7 +13269,37 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_eventos",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_itens",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_nsu_state",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_recebidos",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "table:nfe_emissoes",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_envios_contador",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -13014,6 +13335,18 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "table:nfe_locais_emissores",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_naturezas_produto",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "table:nfe_operacoes_fiscais",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -13038,13 +13371,31 @@
     },
     {
       "from": "module:NfeBrasil",
-      "to": "api:/api/v1/*",
+      "to": "table:nfse_eventos_cancelamento",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/api/v1/nfebrasil",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:NfeBrasil",
       "to": "api:/nfe-brasil/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/contador/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/danfe/{business}/{emissao}",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -14174,48 +14525,6 @@
     },
     {
       "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MCP server admin"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tasks Jira-style"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:KB",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tasks Jira-style"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:KB",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:ProductCatalogue",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -14228,7 +14537,25 @@
     },
     {
       "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/CatalogueQrService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/CatalogueService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
       "to": "component:ProductCatalogue/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/FormatoVitrine",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -14241,6 +14568,18 @@
     {
       "from": "module:ProductCatalogue",
       "to": "component:ProductCatalogue/ProductCatalogueController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/ProductCatalogueHealthCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/ProductCatalogueRepository",
       "type": "hasComponent",
       "source": "contains"
     },

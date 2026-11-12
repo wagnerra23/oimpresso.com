@@ -2,7 +2,7 @@
 id: requisitos-fisio-spec
 module: Fisio
 version: "1.0"
-last_updated: "2026-11-04"
+last_updated: "2026-11-11"
 owner: wagner
 status: rascunho
 status_nota: "ativo desde 2026-10-18 (ADR 0437 aceita); F1 no main, atrás do pacote fisio_module; em 2026-10-19 só US-FISIO-011 (texto dos questionários) e US-FISIO-012 seguem abertas"
@@ -336,3 +336,48 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 **DoD:** formulário campo a campo do modelo SES-SC: identificação (paciente, nascimento, diagnóstico por laudo ACR 2016 com data, unidade de APS, impedimentos, CID, natureza); matriz IFBr-M com 8 domínios e 30 itens (100/75/50/25) e total igual à soma do menor valor de cada domínio, calculado pelo sistema; fatores ambientais e fatores pessoais e psicológicos; conclusão com três perguntas Sim/Não e observação, marcadas só pela equipe; equipe com no mínimo dois profissionais de áreas distintas, um deles médico, validada antes de finalizar; local e data obrigatórios. Laudo finalizado não muda, correção é laudo novo. O PDF segue o layout oficial e cada geração grava uma linha no `activity_log` só com ids. A tela diz que a emissão da carteira segue o fluxo da FCEE, sem prometer resultado. A empresa 99 não vê nada da 98 — `MatrizIfbrmTest`, `FisioLaudoBpsEsquemaTest`, `FisioLaudoBpsEscritaTest`, `FisioLaudoBpsApoioTest`, `FisioLaudoBpsPdfTest`, `FisioLaudoBpsTelaTest`.
 
 **Testado em:** `Modules/Fisio/Tests/Unit/MatrizIfbrmTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsEsquemaTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsEscritaTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsApoioTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php` · `Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php`
+
+## User Stories — Exames e receitas do paciente
+
+> Pedido de [W] em 2026-11-11: anexar exames e receitas e preencher os campos pela foto, com transcrição pela IA conferida pelo profissional, e o envio pelo portal. A IA só transcreve; nada interpreta dado clínico (ADR 0437 §5 e proposta da ADR 0450). Protótipo: `prototipo-ui/cowork/Wagner/prototipos/fisio/ExamesReceitas.dc.html` e `PacienteEnviarExame.dc.html`.
+
+### US-FISIO-063 · Exames e receitas por foto, com transcrição sugerida e conferida — **P1**
+
+**Implementado em:** _pendente_ — em construção por partes. Parte 1 (anexos na ficha): `Modules/Fisio/Database/Migrations/2026_11_11_000830_create_fisio_patient_documents.php`, `Modules/Fisio/Entities/DocumentoPaciente.php`, `Modules/Fisio/Services/DocumentosDoPaciente.php`, `Modules/Fisio/Http/Controllers/DocumentosPacienteController.php`, seção `Modules/Fisio/Resources/js/Pages/Fisio/_components/ExamesReceitas.tsx` na ficha. Parte 2 (medicamentos): `Modules/Fisio/Database/Migrations/2026_11_11_000840_create_fisio_patient_medications.php`, `Modules/Fisio/Entities/MedicamentoPaciente.php`, `Modules/Fisio/Services/MedicamentosDoPaciente.php`, `Modules/Fisio/Http/Controllers/MedicamentosPacienteController.php`, `Modules/Fisio/Resources/js/Pages/Fisio/_components/MedicamentosEmUso.tsx`. Parte 3 (transcrição): `Modules/Fisio/Database/Migrations/2026_11_11_000850_create_fisio_document_transcriptions.php`, `Modules/Fisio/Entities/TranscricaoDocumento.php`, `Modules/Fisio/Ai/Agents/TranscricaoDocumentoAgent.php`, `Modules/Fisio/Services/TranscricaoDocumentos.php`, `Modules/Fisio/Http/Controllers/TranscricaoDocumentoController.php`, `Modules/Fisio/Resources/js/Pages/Fisio/_components/ConferirTranscricao.tsx`. Falta: envio pelo portal.
+
+> owner: — · priority: p1 · estimate: 16h · status: doing · type: story
+
+**DoD:** (1) na ficha, anexar foto ou PDF com tipo (exame de imagem, laboratorial, laudo médico, receita, outro), data e observação; o arquivo vai para o `Modules/Arquivos` (ADR 0123) e só sai pela rota que confere a empresa; o documento não se apaga, tirar da lista exige motivo e grava quem tirou. (2) Lista de medicamentos estruturada (nome, dose, frequência, desde, até), com o texto "Medicamentos em uso" da avaliação funcionando como hoje. (3) Transcrição pela IA a partir da foto, desligada por empresa até ser ligada: na receita, medicamento, dose, data e médico/CRM; no exame, tipo, data e conclusão transcrita literalmente; cada campo nasce como sugestão e o profissional confirma ou corrige antes de gravar, com quem confirmou registrado; a IA nunca interpreta. (4) Envio pelo portal com consentimento próprio; chega como pendente de conferência e só entra no prontuário quando alguém da clínica aceita. A empresa 99 não vê nada da 98, inclusive no download — `FisioDocumentosPacienteTest`, `FisioMedicamentosPacienteTest`, `FisioTranscricaoDocumentoTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioDocumentosPacienteTest.php` (UC-FER-01..07) · `Modules/Fisio/Tests/Feature/FisioMedicamentosPacienteTest.php` (UC-FER-08..11) · `Modules/Fisio/Tests/Feature/FisioTranscricaoDocumentoTest.php` (UC-FER-12..16).
+
+**Contrato:** casos de uso UC-FER-* no arquivo `_telas/exames-e-receitas.casos.md` desta pasta.
+
+## User Stories — Associação de fibromialgia (dados sociais e relatório agregado)
+
+> Contexto: o cliente atende pessoas com fibromialgia por uma associação que busca recursos em editais, emendas parlamentares e convênios com o município, e precisa mostrar quem é atendido, quanto e se melhora. [W] aprovou em 2026-11-11 os dados sociais opcionais no cadastro e o relatório agregado sem identificação.
+
+### US-FISIO-061 · Dados sociais do paciente, todos opcionais — **P1**
+
+**Implementado em:** `Modules/Fisio/Services/Social/DadosSociais.php` (listas fechadas, regras, validação do CNS e gravação) · `Modules/Fisio/Http/Controllers/DadosSociaisController.php` (rota `fisio.pacientes.dados-sociais.update`) · `Modules/Fisio/Entities/PatientSocial.php` · `Modules/Fisio/Database/Migrations/2026_11_11_000800_create_fisio_patient_social.php` · seção na ficha `Modules/Fisio/Resources/js/Pages/Fisio/_components/DadosSociais.tsx` (props `opcoes_sociais` e `dados_sociais` em `Modules/Fisio/Http/Controllers/PacientesController.php`)
+
+> owner: — · priority: p1 · estimate: 6h · status: done · type: story
+
+Como recepção ou fisioterapeuta da associação, quero registrar o perfil social do paciente sem obrigar nenhuma resposta, para a associação mostrar quem atende.
+
+**DoD:** nascimento, município, UF e bairro moram no contato (`contacts.dob`, `city`, `state`, `neighborhood` — o mesmo endereço do cadastro de clientes); sexo, gênero, raça/cor no padrão do IBGE, cartão SUS com dígito verificador, renda familiar em faixas de salário mínimo, NIS/CadÚnico, situação de trabalho (trabalhando, afastado pelo INSS, aposentado, desempregado, outro), escolaridade, diagnóstico informado (CID, quem e quando), tempo de sintomas, comorbidades, como chegou (UBS/CAPS, indicação, procura própria) e situação da carteira de fibromialgia (CIPF) moram em `fisio_patient_social`, 1:1, com "prefiro não informar" onde cabe. Nenhum campo é obrigatório. Seção própria e recolhida na ficha, com a finalidade escrita na tela, editável só com `fisio.editar`. Dado sensível (LGPD art. 11): não vai ao portal nem à exportação da pesquisa; o `activity_log` guarda só os nomes dos campos alterados. A empresa 99 não vê nem grava nada da 98 — `FisioDadosSociaisTest` (UC-FSO-01..05).
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioDadosSociaisTest.php`
+
+### US-FISIO-062 · Relatório agregado para a associação — **P1**
+
+**Implementado em:** `Modules/Fisio/Services/Social/RelatorioAssociacao.php` (contagens, médias e a regra do "<5") · `Modules/Fisio/Http/Controllers/RelatorioAssociacaoController.php` (rotas `fisio.relatorio-associacao.index` e `fisio.relatorio-associacao.pdf`, permissão `fisio.relatorio`) · tela `Modules/Fisio/Resources/js/Pages/Fisio/Relatorio/Associacao.tsx` · PDF `Modules/Fisio/Resources/views/pdf/relatorio-associacao.blade.php` · menu e permissão em `Modules/Fisio/Http/Controllers/DataController.php`
+
+> owner: — · priority: p1 · estimate: 8h · status: done · type: story
+> blocked_by: US-FISIO-061 (dados sociais)
+
+Como coordenação da associação, quero um relatório por período com quem foi atendido, quanto e se melhorou, para prestar contas em editais, emendas e convênios sem expor ninguém.
+
+**DoD:** tela e PDF por período com pessoas atendidas (cada uma uma vez: agenda com presença, prontuário assinado, check-in ou questionário), atendimentos, taxa de presença, adesão média aos exercícios em casa, perfil (faixa etária, sexo, município, renda, situação de trabalho) e a média da primeira e da última aplicação de FIQR, EVA, PGIC e sentar e levantar em 30 s. Só contagem e média, nunca linha por paciente; grupo com menos de 5 pessoas sai "<5" e sem média; município pequeno soma em "Outros municípios"; período com menos de 5 atendidos mostra só o total. Permissão própria `fisio.relatorio`; cada PDF grava uma linha no `activity_log` sem paciente. A empresa 99 não entra nos números da 98 — `FisioRelatorioAssociacaoTest` (UC-FRA-01..05).
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioRelatorioAssociacaoTest.php`
