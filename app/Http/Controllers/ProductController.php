@@ -657,6 +657,46 @@ class ProductController extends Controller
      *
      * @return array<string, mixed>|null
      */
+    /**
+     * UC-PIDX-47 (D-29): a receita da Fabricação no painel, só leitura. Os números são os da tela de
+     * Receitas (`ReceitaDoProduto` → `RecipeBomService::presentRecipe`): o painel não recalcula nada.
+     * null = a empresa não tem a Fabricação; [] = tem, mas o produto não tem receita. Custo e margem só
+     * para quem vê o preço de compra (o servidor nem envia); "Abrir receita" só para quem abre as receitas.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    protected function receitasDoProduto(int $business_id, int $id): ?array
+    {
+        // A mesma regra do Roteiro (UC-PIDX-29): o contrato ligado pelo módulo e o módulo no pacote da empresa.
+        if (! app()->bound(\App\Contracts\Fabricacao\ReceitaDoProduto::class)
+            || ! $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) {
+            return null;
+        }
+        $verCusto = auth()->user()->can('view_purchase_price');
+        $abrir = auth()->user()->can('manufacturing.access_recipe');
+
+        return array_map(function (array $f) use ($verCusto, $abrir): array {
+            $insumos = [];
+            foreach ($f['grupos'] as $g) {
+                foreach ($g['itens'] as $i) {
+                    $insumos[] = ['nome' => (string) $i['nome'], 'sku' => (string) $i['sku'], 'quantidade' => (float) $i['quantidade'], 'unidade' => (string) $i['unidade']];
+                }
+            }
+
+            return [
+                'nome' => (string) $f['name'],
+                'sku' => (string) $f['sku'],
+                'rendimento' => (float) $f['qtd'],
+                'unidade' => (string) $f['un'],
+                'insumos' => $insumos,
+                'custo_total' => $verCusto ? (float) $f['custos']['total'] : null,
+                'custo_unitario' => $verCusto ? (float) $f['custos']['unit'] : null,
+                'margem' => $verCusto ? (float) $f['custos']['margem'] : null,
+                'link' => $abrir ? '/manufacturing/recipe?q=' . rawurlencode((string) $f['sku']) : null,
+            ];
+        }, app(\App\Contracts\Fabricacao\ReceitaDoProduto::class)->fichasDoProduto($id, $business_id));
+    }
+
     protected function buildProdutoDetalhe(int $business_id, int $id): ?array
     {
         $produto = Product::where('business_id', $business_id)->find($id);
@@ -814,6 +854,7 @@ class ProductController extends Controller
             'nome' => (string) $produto->name,
             'sku' => (string) $produto->sku,
             'tipo' => $tipo,
+            'receitas' => $this->receitasDoProduto($business_id, $id),
             'uso' => $uso === [] ? ['vender'] : $uso,
             'inativo' => (bool) $produto->is_inactive,
             // UC-PIDX-45: excluído (AR-PROD-022). O painel tira Editar e Preços por grupo, como o menu da linha.

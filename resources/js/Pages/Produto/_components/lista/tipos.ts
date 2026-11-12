@@ -182,7 +182,7 @@ export interface RelatorioEstoqueLista {
 
 /** Painel de detalhe (ProductController::buildProdutoDetalhe). Chave de preço ausente = sem permissão. */
 /** Abas do painel de detalhe. Quem abre o painel escolhe em qual ele começa. */
-export type AbaDoDetalhe = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'roteiro' | 'fiscal' | 'prateleira';
+export type AbaDoDetalhe = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'receita' | 'roteiro' | 'fiscal' | 'prateleira';
 
 /** Preço proposto pela compra recebida, aguardando aprovação (UC-PIDX-28). */
 export interface PrecoPropostoDoProduto {
@@ -198,6 +198,23 @@ export interface PrecoPropostoDoProduto {
   compra_data: string | null;
   /** Detalhe da compra, onde se aprova ou recusa; null sem `purchase.view`. */
   compra_url: string | null;
+}
+
+/**
+ * UC-PIDX-47 (D-29): a receita da Fabricação, só leitura. Os números são os da tela de Receitas. Custo,
+ * custo por unidade e margem vêm null para quem não vê o preço de compra; `link` (abrir a receita na
+ * Fabricação) vem null para quem não abre as receitas.
+ */
+export interface ReceitaDoProdutoNoPainel {
+  nome: string;
+  sku: string;
+  rendimento: number;
+  unidade: string;
+  insumos: Array<{ nome: string; sku: string; quantidade: number; unidade: string }>;
+  custo_total: number | null;
+  custo_unitario: number | null;
+  margem: number | null;
+  link: string | null;
 }
 
 /** Roteiro de produção do produto, com o posto e o setor de cada etapa (UC-PIDX-29). */
@@ -314,6 +331,8 @@ export interface DetalheProdutoDados {
   };
   /** null = sem o módulo Produção ou produto sem roteiro. */
   roteiro?: RoteiroDoProduto | null;
+  /** UC-PIDX-47: null = a empresa não tem a Fabricação; [] = o produto não tem receita. */
+  receitas?: ReceitaDoProdutoNoPainel[] | null;
   /** Só vem para quem vê o preço de venda (ausência ≠ lista vazia). */
   precos_propostos?: PrecoPropostoDoProduto[];
   /** UC-PIDX-30: ausente sem permissão de ver requisições; null = nenhuma aberta. */
