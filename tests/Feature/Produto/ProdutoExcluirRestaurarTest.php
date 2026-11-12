@@ -215,3 +215,58 @@ it('UC-PIDX-45 · o indicador "Total" deixa de contar o excluído', function () 
     expect($depois['total'])->toBe($antes['total'] - 1);
     expect($depois['inativos'])->toBe($antes['inativos']);
 });
+
+/**
+ * UC-PIDX-45 (decisão [F] 2026-11-11): "quem quer mexer restaura antes". A tela já não oferece Editar, Estoque
+ * inicial e Preços por grupo para o excluído; aqui o servidor recusa as mesmas portas com 409, para quem chega
+ * por fora da tela (link antigo, aba aberta antes de excluir). Controle: o mesmo pedido num produto ativo NÃO
+ * recebe 409 — sem isso o 409 poderia vir de qualquer outra coisa.
+ */
+it('UC-PIDX-45 · o servidor recusa editar, preço por grupo e estoque inicial do excluído; o ativo passa', function () {
+    $biz = $this->business->id;
+    $excluido = perProduto($biz);
+    $ativo = perProduto($biz);
+    perEntrar($this, ['product.view', 'product.update', 'product.create', 'product.delete', 'product.opening_stock', 'access_all_locations']);
+    $this->withHeaders($this->ajax)->delete('/products/' . $excluido->productId)->assertOk()->assertJson(['success' => true]);
+    $nomeAntes = DB::table('products')->where('id', $excluido->productId)->value('name');
+
+    $portas = fn (int $id) => [
+        'editar (tela)' => fn () => $this->withHeaders($this->ajax)->get('/products/' . $id . '/edit'),
+        'editar (gravar)' => fn () => $this->withHeaders($this->ajax)->put('/products/' . $id, ['name' => 'Nome trocado por fora']),
+        'preços por grupo (tela)' => fn () => $this->withHeaders($this->ajax)->get('/products/add-selling-prices/' . $id),
+        'preços por grupo (gravar)' => fn () => $this->withHeaders($this->ajax)->post('/products/save-selling-prices', ['product_id' => $id, 'group_prices' => []]),
+        'estoque inicial (tela)' => fn () => $this->withHeaders($this->ajax)->get('/opening-stock/add/' . $id),
+        'estoque inicial (gravar)' => fn () => $this->withHeaders($this->ajax)->post('/opening-stock/save', ['product_id' => $id, 'stocks' => []]),
+        'estoque inicial (janela)' => fn () => $this->withHeaders($this->ajax)->get('/opening-stock/dados/' . $id),
+    ];
+
+    foreach ($portas($excluido->productId) as $porta => $pedido) {
+        $r = $pedido();
+        expect($r->status())->toBe(409, "o excluído deveria ser recusado em: {$porta}");
+        expect((string) $r->json('message'))->toContain('Restaure antes de alterar');
+    }
+    // Nada foi gravado no excluído.
+    expect(DB::table('products')->where('id', $excluido->productId)->value('name'))->toBe($nomeAntes);
+
+    foreach ($portas($ativo->productId) as $porta => $pedido) {
+        expect($pedido()->status())->not->toBe(409, "o ativo não deveria ser recusado em: {$porta}");
+    }
+});
+
+it('UC-PIDX-45 · "Informar NCM" em lote deixa o excluído de fora e conta só o que mudou', function () {
+    $biz = $this->business->id;
+    $excluido = perProduto($biz);
+    $ativo = perProduto($biz);
+    perEntrar($this, ['product.view', 'product.update', 'product.delete', 'access_all_locations']);
+    $this->withHeaders($this->ajax)->delete('/products/' . $excluido->productId)->assertOk();
+    $ncmAntes = DB::table('products')->where('id', $excluido->productId)->value('ncm');
+
+    $r = $this->withHeaders($this->ajax)->post('/products/bulk-update-ncm', [
+        'products' => $ativo->productId . ',' . $excluido->productId,
+        'ncm' => '6109.10.00',
+    ])->assertOk();
+
+    expect((string) $r->json('msg'))->toStartWith('1 produto(s)');
+    expect(DB::table('products')->where('id', $ativo->productId)->value('ncm'))->toBe('61091000');
+    expect(DB::table('products')->where('id', $excluido->productId)->value('ncm'))->toBe($ncmAntes);
+});
