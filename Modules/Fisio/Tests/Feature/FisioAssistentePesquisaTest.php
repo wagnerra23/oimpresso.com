@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Etapa 07 P-08 · assistente de IA da pesquisadora (UC-FES-16..19, Fisio/Pesquisa/Index.casos.md).
+// Etapa 07 P-08 · assistente de IA da pesquisadora (UC-FES-16..19, UC-FES-21..22, Fisio/Pesquisa/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
@@ -107,4 +107,38 @@ it('UC-FES-19 · nada sai da área do estudo: portal e ficha não trazem a suges
     $portal = json_encode(F::portalProps($this, $token));
     expect($ficha)->not->toContain('Hipótese: adesão cai')
         ->and($portal)->not->toContain('Hipótese: adesão cai');
+});
+
+it('UC-FES-21 · momento que ainda não abriu não vai ao modelo como falta; a exportação para a universidade não muda', function () {
+    $svc = app(EstudoService::class);
+    $dados = ['title' => 'Fibro 2', 'cep_opinion_number' => '2', 'protocol_version' => 'p1', 'tcle_version' => 't1', 'starts_on' => '2026-11-01'];
+    $estudo = $svc->criar($this->b98, $dados, [
+        ['label' => 'Entrada', 'day_offset' => 0, 'window_days' => 3, 'instruments' => ['eva']],
+        ['label' => '4 semanas', 'day_offset' => 28, 'window_days' => 7, 'instruments' => ['eva']],
+    ], null);
+    $outro = F::paciente($this->b98, $this->clinica->id);
+    $part = $svc->incluir($estudo, $outro, null, null);
+
+    $paraIa = app(AssistentePesquisa::class)->dadosParaIa($estudo)['momentos'];
+    $exportado = app(\Modules\Fisio\Services\Pesquisa\ExportacaoEstudo::class)->linhas($estudo, 'momentos');
+    $momentosIa = array_map(fn (array $l) => $l[1], array_slice($paraIa, 1));
+    $momentosExp = array_map(fn (array $l) => $l[1], array_slice($exportado, 1));
+
+    expect($paraIa[0][0])->toBe('participante')
+        ->and($momentosIa)->toBe(['Entrada'])
+        ->and($paraIa[1][0])->toBe($part->code)
+        ->and($momentosExp)->toBe(['Entrada', '4 semanas']);
+});
+
+it('UC-FES-22 · a sugestão grava o modelo que respondeu, mesmo com o modelo da config em branco', function () use ($falsas) {
+    AssistentePesquisaAgent::fake($falsas);
+    expect(config('fisio.pesquisa.assistente.model'))->toBeNull();
+    app(AssistentePesquisa::class)->ligar($this->b98, true, $this->clinica->id);
+    $criadas = app(AssistentePesquisa::class)->gerar($this->estudo, $this->clinica->id);
+
+    $modelos = DB::table('fisio_study_ai_suggestions')->whereIn('id', array_map(fn ($s) => $s->id, $criadas))->pluck('model')->unique()->values()->all();
+    expect($criadas)->toHaveCount(3)
+        ->and($modelos)->toHaveCount(1)
+        ->and($modelos[0])->toBeString()
+        ->and(trim((string) $modelos[0]))->not->toBe('');
 });

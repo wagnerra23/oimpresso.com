@@ -25,6 +25,7 @@ class AssistentePesquisa
     public function __construct(
         private readonly ConfiguracaoClinica $config,
         private readonly ExportacaoEstudo $exportacao,
+        private readonly EstudoService $estudos,
     ) {}
 
     public function ligado(int $businessId): bool
@@ -61,7 +62,9 @@ class AssistentePesquisa
                 'text' => mb_substr($texto, 0, 2000),
                 'status' => StudyAiSuggestion::PENDENTE,
                 'requested_by' => $autor,
-                'model' => $agente->model(),
+                // O modelo que de fato respondeu; com provider/model nulos na config, o padrão do
+                // laravel/ai. Sem isso a sugestão não dizia qual modelo a gerou (smoke 2026-11-11).
+                'model' => mb_substr((string) ($resposta->meta->model ?? $agente->model() ?? ''), 0, 80) ?: null,
             ]);
         }
 
@@ -72,14 +75,30 @@ class AssistentePesquisa
      * O que vai para o modelo: os mesmos CSVs da exportação para a universidade (sem nome, CPF,
      * telefone nem data), cortados em `max_linhas`. A ficha do paciente nunca entra.
      *
+     * Momento cuja janela ainda não abriu sai do CSV de momentos: lá ele aparece como NA e o
+     * modelo o tomava por dado faltante (smoke 2026-11-11). A exportação para a universidade
+     * não muda; o filtro é só do que vai à IA.
+     *
      * @return array{momentos:list<list<string>>,diario:list<list<string>>}
      */
     public function dadosParaIa(Study $estudo): array
     {
         $max = (int) config('fisio.pesquisa.assistente.max_linhas', 4000);
 
+        $futuros = [];
+        foreach ($this->estudos->pendencias($estudo, now()) as $p) {
+            if ($p['situacao'] === 'futuro') {
+                $futuros[$p['code'].'|'.$p['moment']] = true;
+            }
+        }
+        $momentos = array_values(array_filter(
+            $this->exportacao->linhas($estudo, 'momentos'),
+            fn (array $l, int $i) => $i === 0 || ! isset($futuros[$l[0].'|'.$l[1]]),
+            ARRAY_FILTER_USE_BOTH,
+        ));
+
         return [
-            'momentos' => array_slice($this->exportacao->linhas($estudo, 'momentos'), 0, $max),
+            'momentos' => array_slice($momentos, 0, $max),
             'diario' => array_slice($this->exportacao->linhas($estudo, 'diario'), 0, $max),
         ];
     }
