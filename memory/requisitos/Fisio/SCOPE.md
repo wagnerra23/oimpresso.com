@@ -49,6 +49,7 @@ contains:
   - "DocumentosPacienteController — anexar, abrir e tirar da lista os exames e receitas na ficha (US-FISIO-063)"
   - "MedicamentosPacienteController — medicamentos em uso estruturados (fisio_patient_medications): incluir, alterar com antes/depois no activity_log e tirar da lista com motivo (US-FISIO-063)"
   - "DadosSociaisController — dados sociais do paciente, todos opcionais, em fisio_patient_social; nascimento, município e bairro no contato (US-FISIO-061)"
+  - "RelatorioAssociacaoController — relatório agregado da associação por período, tela e PDF, só contagem e média com grupo < 5 como \"<5\" (RelatorioAssociacao, permissão fisio.relatorio — US-FISIO-062)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Preço do pacote, cobrança e títulos → Modules/Financeiro (via venda do núcleo); o Fisio só lê fin_titulos pelo model Titulo (F3, US-FISIO-021/022)"
