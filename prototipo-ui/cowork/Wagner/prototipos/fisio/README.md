@@ -39,3 +39,5 @@ Ligá-los a estes arquivos é um passo separado:
 ## Telas geradas no git depois da cópia
 
 - `LaudoBiopsicossocial.dc.html` (2026-11-11, US-FISIO-060): cartão do laudo biopsicossocial na ficha do paciente, campo por campo do modelo da SES-SC (Deliberação 500/CIB/2026). Não veio do Artefato: o Code desenhou ancorado no DS porque faltava fonte visual (ADR 0282 §0.1). O PDF desse laudo segue o padrão do `Laudo.dc.html`.
+- `ExamesReceitas.dc.html` (2026-11-11, US-FISIO-063): cartão "Exames e receitas" na ficha do paciente — anexar foto ou PDF com tipo, data e observação; envio do portal pendente de conferência; conferência da transcrição sugerida pela IA campo a campo (a IA só copia, não interpreta — ADR 0437 §5); lista de documentos (tirar da lista pede motivo, o arquivo fica); medicamentos em uso estruturados. Gerado pelo Code ancorado no cartão do laudo (ADR 0282 §0.1).
+- `PacienteEnviarExame.dc.html` (2026-11-11, US-FISIO-063): portal do paciente — consentimento próprio antes do primeiro envio, tipo do documento, foto ou PDF e recado. Chega à clínica como pendente.
