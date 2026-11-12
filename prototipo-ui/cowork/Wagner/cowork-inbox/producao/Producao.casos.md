@@ -169,6 +169,10 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Aceite (campo):** Dado uma instalação fora da cidade · Quando o instalador lança o estacionamento pelo celular sem a foto do recibo · Então o lançamento fica bloqueado · E com a foto a despesa entra na OS como "Aguardando conferência", com o nome dele.
 - **Aceite (escritório):** Dado uma despesa aguardando conferência · Quando quem cuida do custo marca "Cobrar do cliente" ou "Só no custo" · Então ela sai de "Aguardando conferência" e soma no total escolhido · E a marcada "cobrar do cliente" vai para o faturamento da venda, separada do serviço · E a não reembolsável entra no custo real · E despesa aguardando não entra em nenhum dos dois totais.
 - **Falta (decisão [W]):** como a despesa reembolsável aparece na nota. Se entrar no total da venda, a regra A de 2026-10-21 (`Fiscal/Nfse.casos.md`) divide pelo bruto entre NF-e e NFS-e.
+  - **Exemplo (valores de exemplo, 2026-11-12).** Venda de fachada: placa 800 (mercadoria, NF-e) + instalação 200 (serviço, NFS-e) = 1.000. O instalador paga 20 de estacionamento, e o escritório marca "Cobrar do cliente".
+  - **(A) Entra na venda como acréscimo:** a venda passa a 1.020. Pela regra A, os 20 se dividem pelo bruto: 80% na NF-e e 20% na NFS-e. Ficam NF-e 816 e NFS-e 204. O cliente recebe uma cobrança só, mas a despesa passa a fazer parte do valor das notas, e o imposto delas é calculado sobre esse valor.
+  - **(B) Fica fora das notas:** as notas continuam NF-e 800 e NFS-e 200. Os 20 viram uma cobrança separada no financeiro, "Reembolso de despesa da OS", com o recibo anexado. O cliente recebe dois valores.
+  - **Merge não escolhe:** mexe em valor e em imposto. Comente (A) ou (B) no PR; vale conferir com a contabilidade antes. O código só nasce depois, com o antes → depois do faturamento mostrado ao [W].
 - **Valor:** regra mestre. A soma dos dois totais tem de bater com a soma das despesas lançadas (dupla prova), e o antes → depois do faturamento vai ao [W] antes de ligar.
 
 ### UC-PCV-17 · Refugo com motivo · `must` valor · ✅
