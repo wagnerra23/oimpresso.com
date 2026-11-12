@@ -25,6 +25,7 @@ use Modules\Fisio\Http\Controllers\ProntuarioPdfController;
 use Modules\Fisio\Http\Controllers\ProtocolosController;
 use Modules\Fisio\Http\Controllers\QuestionariosController;
 use Modules\Fisio\Http\Controllers\RegistrosController;
+use Modules\Fisio\Http\Controllers\RelatorioAssociacaoController;
 use Modules\Fisio\Http\Controllers\ResponsavelController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
 
@@ -60,6 +61,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->group(function () {
         // Painel do profissional (US-FISIO-010): KPIs, fila de atenção e tabela. Só leitura.
         Route::get('/', [PainelController::class, 'index'])->name('painel');
+
+        // Relatório agregado para a associação (US-FISIO-062). Exige `fisio.relatorio` (no controller).
+        Route::get('relatorio-associacao', [RelatorioAssociacaoController::class, 'index'])->name('relatorio-associacao.index');
+        Route::get('relatorio-associacao.pdf', [RelatorioAssociacaoController::class, 'pdf'])->name('relatorio-associacao.pdf');
 
         // Área do estudo (etapa 07 P-04). Exige `fisio.pesquisa` (no controller), além de fisio.access.
         Route::get('pesquisa', [PesquisaController::class, 'index'])->name('pesquisa.index');
