@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 951,
-    "edges": 1286,
+    "nodes": 956,
+    "edges": 1285,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 155,
-      "component": 556,
+      "component": 561,
       "api": 89
     },
     "by_edge_type": {
@@ -42,9 +42,9 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 556,
-      "dependsOn": 142,
-      "delegatesTo": 130,
+      "hasComponent": 561,
+      "dependsOn": 139,
+      "delegatesTo": 127,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 79,
@@ -5097,10 +5097,31 @@
       "desc": "regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
     },
     {
+      "id": "component:ProductCatalogue/CatalogueQrService",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "CatalogueQrService",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/CatalogueService",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "CatalogueService",
+      "desc": ""
+    },
+    {
       "id": "component:ProductCatalogue/DataController",
       "type": "component",
       "module": "ProductCatalogue",
       "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/FormatoVitrine",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "FormatoVitrine",
       "desc": ""
     },
     {
@@ -5115,6 +5136,20 @@
       "type": "component",
       "module": "ProductCatalogue",
       "name": "ProductCatalogueController",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/ProductCatalogueHealthCommand",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "ProductCatalogueHealthCommand",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/ProductCatalogueRepository",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "ProductCatalogueRepository",
       "desc": ""
     },
     {
@@ -14213,48 +14248,6 @@
     },
     {
       "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MCP server admin"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tasks Jira-style"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:KB",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tasks Jira-style"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:KB",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:ProductCatalogue",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -14267,7 +14260,25 @@
     },
     {
       "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/CatalogueQrService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/CatalogueService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
       "to": "component:ProductCatalogue/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/FormatoVitrine",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -14280,6 +14291,18 @@
     {
       "from": "module:ProductCatalogue",
       "to": "component:ProductCatalogue/ProductCatalogueController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/ProductCatalogueHealthCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/ProductCatalogueRepository",
       "type": "hasComponent",
       "source": "contains"
     },
