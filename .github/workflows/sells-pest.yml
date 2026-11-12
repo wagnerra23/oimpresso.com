@@ -36,6 +36,7 @@ on:
       - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
       - 'Modules/ProductCatalogue/**'  # modulo inteiro: testes, rotas, Requests, Repository, views
+      - 'app/Http/Middleware/AdminSidebarMenu.php'  # ghost Catálogo QR do hub Vendas (CatalogueQrMenuContratoTest)
       - 'resources/js/Pages/ProductCatalogue/**'
       - 'app/Transaction.php'
       - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
@@ -235,6 +236,7 @@ jobs:
               - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
               - 'Modules/ProductCatalogue/**'  # mesmo escopo do push (as duas camadas mudam juntas)
+              - 'app/Http/Middleware/AdminSidebarMenu.php'  # idem push
               - 'resources/js/Pages/ProductCatalogue/**'
               - 'app/Transaction.php'
               - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
@@ -658,6 +660,7 @@ jobs:
             tests/Feature/Sells/SellsBonificacaoNaoEReceitaContratoTest.php \
             tests/Feature/Sells/SellsCondicaoClienteContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
+            tests/Feature/Sells/CatalogueQrMenuContratoTest.php \
             tests/Feature/Sells/CatalogoPublicoXssContratoTest.php \
             Modules/ProductCatalogue/Tests/Feature \
             tests/Feature/Sells/CatalogoPublicoDescontoContratoTest.php \

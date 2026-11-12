@@ -9048,12 +9048,6 @@ parameters:
 			path: Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php
 
 		-
-			message: '#^Static method Illuminate\\Support\\Facades\\Route\:\:middleware\(\) invoked with 8 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: Modules/ProductCatalogue/Routes/web.php
-
-		-
 			message: '#^Access to an undefined property App\\Product\:\:\$variations\.$#'
 			identifier: property.notFound
 			count: 1
