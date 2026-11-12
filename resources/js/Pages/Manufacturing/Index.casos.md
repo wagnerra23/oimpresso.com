@@ -289,6 +289,23 @@ last_run: "2026-10-07"
 
 ---
 
+## UC-OP-16 · O consumo baixado é o declarado na linha, na unidade base
+- **Persona:** Eliana (produção) — ajusta o consumo real de um insumo e finaliza a ordem.
+- **Aceite:** Dado uma linha de insumo com consumo declarado e % de perda gravada · Quando finalizo a
+  ordem · Então o estoque do insumo baixa exatamente o consumo declarado, sem descontar nem somar a % da
+  linha · Dado o insumo lançado numa sub-unidade (embalagem de 5) e o acabado numa sub-unidade (pacote de
+  10) · Quando finalizo · Então a baixa e a entrada acontecem na unidade base (quantidade × multiplicador).
+- **Fonte:** handoff Fabricação §7 ponto 4 (o multiplicador da sub-unidade multiplica a linha) ·
+  CU-MFG-18 (o operador ajusta o consumo real) · ADR 0448 D4 (o desperdício saiu da composição; a perda
+  real vai para a ordem).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemFinalizarEstoqueTest.php` — confere o saldo e o
+  consumo registrado na compra do insumo (`mfg_quantity_used`).
+- **Regressão que defende:** a % de perda da linha voltar a mexer na baixa, ou a sub-unidade baixar e dar
+  entrada sem o multiplicador.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.
@@ -319,3 +336,4 @@ last_run: "2026-10-07"
   produto da própria empresa. Vermelho só com o teste na run 39441296307 (500 na variação inexistente; ordem
   de outra empresa gravada antes do 404 acidental); verde com o conserto na run 39446612104.
 - 2026-11-09 · [C] UC-OP-14 (US-MANU-008 H1): o item H1 do backlog virou caso com teste. A tela não mudou.
+- 2026-11-11 · [C] UC-OP-16 (lote 1.1 da auditoria): consumo declarado na linha e sub-unidade, com teste. A entrada e a baixa ao finalizar ficam em UC-EST-08B (`Estoque/Movimentacao.casos.md`). A tela não mudou.

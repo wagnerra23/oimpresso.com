@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 960,
-    "edges": 1289,
+    "nodes": 974,
+    "edges": 1306,
     "by_node_type": {
       "module": 43,
-      "table": 108,
+      "table": 116,
       "adr": 155,
-      "component": 565,
-      "api": 89
+      "component": 568,
+      "api": 92
     },
     "by_edge_type": {
-      "ownsTable": 97,
+      "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 93,
+      "providesApi": 95,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 565,
-      "dependsOn": 139,
-      "delegatesTo": 127,
+      "hasComponent": 568,
+      "dependsOn": 141,
+      "delegatesTo": 129,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 79,
@@ -1226,8 +1226,15 @@
       "prefix": "/api/v1/*",
       "providers": [
         "Financeiro",
-        "NfeBrasil",
         "RecurringBilling"
+      ]
+    },
+    {
+      "id": "api:/api/v1/nfebrasil",
+      "type": "api",
+      "prefix": "/api/v1/nfebrasil",
+      "providers": [
+        "NfeBrasil"
       ]
     },
     {
@@ -1546,6 +1553,22 @@
       "id": "api:/nfe-brasil/*",
       "type": "api",
       "prefix": "/nfe-brasil/*",
+      "providers": [
+        "NfeBrasil"
+      ]
+    },
+    {
+      "id": "api:/nfe-brasil/contador/*",
+      "type": "api",
+      "prefix": "/nfe-brasil/contador/*",
+      "providers": [
+        "NfeBrasil"
+      ]
+    },
+    {
+      "id": "api:/nfe-brasil/danfe/{business}/{emissao}",
+      "type": "api",
+      "prefix": "/nfe-brasil/danfe/{business}/{emissao}",
       "providers": [
         "NfeBrasil"
       ]
@@ -4320,6 +4343,13 @@
       "desc": ""
     },
     {
+      "id": "component:NfeBrasil/Comandos nfe:*",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "Comandos nfe:*",
+      "desc": "health, retentar-contingencia, enviar-xml-contador, importar-regras-csv, migrate-cert-business, mover-arquivos-fiscais (#10692), puxar DF-e"
+    },
+    {
       "id": "component:NfeBrasil/ConfigDefaultController",
       "type": "component",
       "module": "NfeBrasil",
@@ -4369,11 +4399,25 @@
       "desc": ""
     },
     {
+      "id": "component:NfeBrasil/Jobs EmitirNfceJob",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "Jobs EmitirNfceJob",
+      "desc": ""
+    },
+    {
       "id": "component:NfeBrasil/ManifestacaoController",
       "type": "component",
       "module": "NfeBrasil",
       "name": "ManifestacaoController",
       "desc": "Manifestação do Destinatário (US-NFE-052, PR #317)"
+    },
+    {
+      "id": "component:NfeBrasil/Middleware PermissaoNfe",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "Middleware PermissaoNfe",
+      "desc": "permissão por rota nas ações fiscais que só exigiam login (lote 3.2 da auditoria, #10728)"
     },
     {
       "id": "component:NfeBrasil/NfeEmissaoController",
@@ -7451,9 +7495,64 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_dfe_eventos",
+      "type": "table",
+      "name": "nfe_dfe_eventos",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_dfe_itens",
+      "type": "table",
+      "name": "nfe_dfe_itens",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_dfe_nsu_state",
+      "type": "table",
+      "name": "nfe_dfe_nsu_state",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_dfe_recebidos",
+      "type": "table",
+      "name": "nfe_dfe_recebidos",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_emissoes",
       "type": "table",
       "name": "nfe_emissoes",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_envios_contador",
+      "type": "table",
+      "name": "nfe_envios_contador",
       "owners": [
         "NfeBrasil"
       ],
@@ -7517,6 +7616,28 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_locais_emissores",
+      "type": "table",
+      "name": "nfe_locais_emissores",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_naturezas_produto",
+      "type": "table",
+      "name": "nfe_naturezas_produto",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_operacoes_fiscais",
       "type": "table",
       "name": "nfe_operacoes_fiscais",
@@ -7553,6 +7674,17 @@
       "id": "table:nfe_sugestoes_fiscais",
       "type": "table",
       "name": "nfe_sugestoes_fiscais",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfse_eventos_cancelamento",
+      "type": "table",
+      "name": "nfse_eventos_cancelamento",
       "owners": [
         "NfeBrasil"
       ],
@@ -12909,6 +13041,13 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "SPED Fiscal/EFD"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -12934,6 +13073,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Schema nfse_emissoes"
     },
     {
       "from": "module:NfeBrasil",
@@ -12944,6 +13090,13 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "SPED Fiscal/EFD"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -12969,6 +13122,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Schema nfse_emissoes"
     },
     {
       "from": "module:NfeBrasil",
@@ -12985,6 +13145,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/CertificadoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/Comandos nfe:*",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13032,7 +13198,19 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/Jobs EmitirNfceJob",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/ManifestacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/Middleware PermissaoNfe",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13104,7 +13282,37 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_eventos",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_itens",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_nsu_state",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_recebidos",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "table:nfe_emissoes",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_envios_contador",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -13140,6 +13348,18 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "table:nfe_locais_emissores",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_naturezas_produto",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "table:nfe_operacoes_fiscais",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -13164,13 +13384,31 @@
     },
     {
       "from": "module:NfeBrasil",
-      "to": "api:/api/v1/*",
+      "to": "table:nfse_eventos_cancelamento",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/api/v1/nfebrasil",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:NfeBrasil",
       "to": "api:/nfe-brasil/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/contador/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/danfe/{business}/{emissao}",
       "type": "providesApi",
       "source": "url_prefixes"
     },
