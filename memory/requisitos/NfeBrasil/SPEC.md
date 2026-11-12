@@ -1,7 +1,7 @@
 ---
 module: NfeBrasil
 version: "1.0"
-last_updated: "2026-06-13"
+last_updated: "2026-11-11"
 owner: wagner
 na_justified:
   D7.a: "Fiscal compliance CONFAZ SINIEF 07/2005 — CPF/CNPJ em logs SEFAZ obrigatórios. PiiRedactor NÃO aplica em dados fiscais (XML original preservado). Detalhe em PII-LGPD-FISCAL.md."
@@ -62,15 +62,17 @@ na_justified:
 **Quero** clicar "Finalizar venda" no POS e o sistema emitir NFC-e em background, retornar DANFE imprimível em até 5s
 **Para** atender exigência fiscal sem fricção no balcão
 
-**Implementado em:** _pendente_ — emissão NFC-e a partir de venda (job + listener) não construída; falta integração `/sells/create` + tela de sucesso em Pages/NfeBrasil/Emissao
+**Implementado em:** _parcial_ · `Modules/NfeBrasil/Listeners/EmitirNfceAoFinalizarVenda.php` · `Modules/NfeBrasil/Jobs/EmitirNfceJob.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Http/Controllers/NfeStatusController.php` · `Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php` · `Modules/NfeBrasil/Tests/Feature/EmissaoTravaDaVendaContratoTest.php` · verificado@444b248e60 (2026-11-11) — a emissão existe e rodou em produção (recusa 781 em biz=1, ver abaixo); falta a 1ª NFC-e autorizada (US-NFE-054)
+
+**Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** o listener ouve `App\Events\SellCreatedOrModified` (não `TransactionCompleted`) e só despacha o `EmitirNfceJob` com as **duas travas** ligadas: a global `nfebrasil.auto_emission_on_sell_completed` e a da empresa `nfe_business_configs.auto_emission_enabled`. O job é `ShouldBeUnique` e o `NfeService::emitir` pega um `Cache::lock` por empresa+venda: uma emissão por venda de cada vez ([#10725](https://github.com/wagnerra23/oimpresso.com/pull/10725)). Toda nota autorizada dispara `NFeAutorizada`/`NFCeAutorizada` de dentro do `NfeService::processarRetorno`, depois do commit ([#10723](https://github.com/wagnerra23/oimpresso.com/pull/10723)). O status chega à tela por **polling** (`GET /nfe-brasil/api/transactions/{tx}/nfe-status`), não por broadcast (ver ADR ui/0001 e a emenda do lote 5.4). XML e DANFE ficam no disco privado ([#10692](https://github.com/wagnerra23/oimpresso.com/pull/10692)) e o XML guardado leva o protocolo (`nfeProc`, [#10696](https://github.com/wagnerra23/oimpresso.com/pull/10696)). Emitir manualmente exige `nfebrasil.emit.manage` ([#10722](https://github.com/wagnerra23/oimpresso.com/pull/10722)) e toda rota `/nfe-brasil/*` autenticada exige o pacote `fiscal_module` ([#10732](https://github.com/wagnerra23/oimpresso.com/pull/10732)).
 
 **Definition of Done:**
-- [ ] Listener escuta `App\Events\TransactionCompleted` (core) → dispatch job `EmitirNfceJob` na queue `nfe`
-- [ ] Job monta XML via `eduardokum/sped-nfe` builder
+- [x] Listener escuta `App\Events\SellCreatedOrModified` (core) → dispatch job `EmitirNfceJob` na queue `nfe`
+- [x] Job monta XML via `nfephp-org/sped-nfe` (`Make`/`Tools`)
 - [ ] Tributação calculada por `MotorTributarioService` baseada em produto.NCM + business.regime
 - [ ] Idempotência: `(business_id, transaction_id)` UNIQUE em `nfe_emissoes` (re-emitir mesma venda = no-op)
-- [ ] Status retornado via broadcast `business.{id}.nfe-status` (frontend escuta com Echo)
-- [ ] PDF gerado via `eduardokum/sped-da` salvo em `storage/app/nfe-brasil/{business_id}/danfe/{chave}.pdf`
+- [x] ~~Status retornado via broadcast `business.{id}.nfe-status`~~ — substituído por polling do `NfeStatusController` (sem daemon no Hostinger, ADR 0058/0062)
+- [x] PDF gerado via `nfephp-org/sped-da` (`DanfeService`), no disco privado desde [#10692](https://github.com/wagnerra23/oimpresso.com/pull/10692)
 - [ ] Test Feature: emissão happy path + idempotência + rejeição cStat 217 + isolamento
 
 **Pré-voo da NFC-e automática — medido em produção em 2026-10-26 (só leitura), [W] 2026-10-26:**
@@ -95,7 +97,9 @@ Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), n�
 **Quero** abrir nota emitida pela chave/número e baixar DANFE + XML
 **Para** reimprimir, enviar pra cliente, anexar em e-mail
 
-**Implementado em:** _pendente_ — tela de visualização/reimpressão (Pages/NfeBrasil/Emissoes/Show) não construída
+**Implementado em:** _pendente_ — a tela desta US (Emissoes/Show) não existe; a consulta e o DANFE hoje vivem em /fiscal/nfe e nas rotas de DANFE, descritas no parágrafo abaixo (verificado em 2026-11-11)
+
+**Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** A lista e o detalhe das notas vivem em `/fiscal/nfe`; o DANFE sai por `GET /nfe-brasil/emissoes/{id}/danfe-pdf` (permissão de consulta, [#10728](https://github.com/wagnerra23/oimpresso.com/pull/10728)) e por link assinado sem login (`nfe-brasil.danfe-publica`). A rota `emissoes/{chave}` e a tela `Pages/NfeBrasil/Emissoes/Show` desta US não existem. Falta o log auditado do re-download.
 
 **Definition of Done:**
 - [ ] Mostra: chave acesso (44 dígitos formatado em 11 grupos), número, série, data emissão, valor, cStat, link DANFE PDF, link XML
@@ -114,7 +118,9 @@ Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), n�
 **Quero** cancelar uma NFC-e em até 24h ou NF-e em até 168h informando justificativa (15-255 chars)
 **Para** corrigir venda errada sem deixar rastro errado pra Receita
 
-**Implementado em:** _pendente_ — cancelamento (serviço SEFAZ + botão na tela Emissoes/Show) não construído
+**Implementado em:** _parcial_ · `Modules/NfeBrasil/Services/NfeService.php` (`cancelar`) · `Modules/Fiscal/Http/Controllers/AcoesController.php` (`cancelarNfe`) · `Modules/NfeBrasil/Jobs/CancelarNfeJob.php` · `app/Domain/Fsm/SideEffects/CancelarVendaCascade.php` · `Modules/NfeBrasil/Tests/Feature/NfeServiceCancelarTest.php` · `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` · verificado@444b248e60 (2026-11-11) — detalhe no parágrafo abaixo
+
+**Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** O botão está em `/fiscal/nfe` (`POST /fiscal/acoes/nfe/{emissao}/cancelar`); cancelar a venda cancela a NF-e autorizada ([#10697](https://github.com/wagnerra23/oimpresso.com/pull/10697)). A nota cancelada fica no banco com status `cancelada`. Falta o estorno automático no Financeiro desta DoD.
 
 **Definition of Done:**
 - [ ] Valida prazo legal antes de chamar SEFAZ (NFC-e: 24h; NF-e: 168h)
@@ -135,7 +141,11 @@ Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), n�
 **Quero** enviar CCe pra corrigir erro não-monetário (ex: nome do destinatário errado, transportadora) sem cancelar e re-emitir
 **Para** evitar custo de re-emissão e manter histórico
 
-**Implementado em:** _pendente_ — Carta de Correção Eletrônica (serviço + botão CCe na tela Emissoes/Show) não construída
+**Implementado em:** _parcial_ · `Modules/NfeBrasil/Services/NfeCartaCorrecaoService.php` · `Modules/Fiscal/Http/Controllers/AcoesController.php` (`cartaCorrecao`) · `Modules/NfeBrasil/Tests/Feature/NfeCartaCorrecaoServiceTest.php` · `Modules/NfeBrasil/Tests/Feature/CartaCorrecaoEmitenteContratoTest.php` · verificado@444b248e60 (2026-11-11) — detalhe no parágrafo abaixo
+
+**Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** Evento 110110 por `POST /fiscal/acoes/nfe/{emissao}/cce`; ambiente, UF e CNPJ vêm das fontes do emitente, não mais de `env()` e de SP fixo ([#10731](https://github.com/wagnerra23/oimpresso.com/pull/10731)). Falta o e-mail automático da CC-e ao destinatário.
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeCartaCorrecaoServiceTest.php` (covers US-NFE-005) · `Modules/NfeBrasil/Tests/Feature/CartaCorrecaoEmitenteContratoTest.php` (covers US-NFE-005)
 
 **Definition of Done:**
 - [ ] Valida limite legal: máximo 20 CCe por NFe; correção 15-1000 chars; não permite mudar valor/quantidade/CNPJ
@@ -154,7 +164,11 @@ Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), n�
 **Quero** ativar contingência (EPEC ou FS-DA pra NF-e, off-line pra NFC-e) e seguir vendendo offline
 **Para** não parar caixa quando SEFAZ está com problema
 
-**Implementado em:** _pendente_ — modo contingência (EPEC/FS-DA + tela Pages/NfeBrasil/Contingencia) não construído
+**Implementado em:** _parcial_ · `Modules/NfeBrasil/Services/ContingenciaService.php` · `Modules/NfeBrasil/Services/ModoContingencia.php` · `Modules/NfeBrasil/Http/Controllers/ContingenciaController.php` · `Modules/NfeBrasil/Jobs/RetentarContingenciaJob.php` · `Modules/NfeBrasil/Services/SefazStatusRecorder.php` · `Modules/NfeBrasil/Tests/Feature/ContingenciaAtivacaoTest.php` · `Modules/NfeBrasil/Tests/Feature/ContingenciaRetransmissaoTest.php` · verificado@444b248e60 (2026-11-11) — detalhe no parágrafo abaixo
+
+**Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** Ativa e desativa por `POST /nfe-brasil/contingencia/*` (só POST), modos SVC-AN, SVC-RS, EPEC e off-line da NFC-e, retentativa ordenada pelo `nfe:retentar-contingencia`. **FS-DA não existe no código** (a emenda da ADR tech/0002 no lote 5.4 registra isso). A ativação é manual: o limiar de 3 falhas só sugere. Não há tela `Pages/NfeBrasil/Contingencia`; a escolha fica em `/fiscal/config`.
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ContingenciaAtivacaoTest.php` (covers US-NFE-006) · `Modules/NfeBrasil/Tests/Feature/ContingenciaEmissaoTest.php` (covers US-NFE-006) · `Modules/NfeBrasil/Tests/Feature/ContingenciaRetransmissaoTest.php` (covers US-NFE-006) · `Modules/NfeBrasil/Tests/Feature/SefazStatusRecorderTest.php` (covers US-NFE-006)
 
 **Definition of Done:**
 - [ ] Detecção automática: `SefazHealthCheck` ping a cada 30s → se 3 falhas seguidas, sugerir contingência
@@ -175,7 +189,9 @@ Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), n�
 **Quero** dashboard com KPIs (autorizadas hoje, rejeitadas, contingência ativa, cert vencendo) + lista de rejeições com cStat + sugestão de correção
 **Para** atacar rejeições antes de o cliente perceber
 
-**Implementado em:** _pendente_ — monitor de rejeições + status SEFAZ (tela Pages/NfeBrasil/Monitor) não construído
+**Implementado em:** _pendente_ — a tela desta US (Monitor) não existe; os KPIs e alertas hoje vivem no cockpit /fiscal, descrito no parágrafo abaixo (verificado em 2026-11-11)
+
+**Estado em 2026-11-11 (auditoria NfeBrasil, lote 5):** O cockpit `/fiscal` mostra KPIs e alertas de notas, rejeições, certificado e DF-e com dado da empresa. O selo de status da SEFAZ no cockpit ainda é fixo (`mockSefazStatus`), embora o `nfe:health --ping-sefaz` já grave o ping por UF. Não há tela `Pages/NfeBrasil/Monitor` nem a tabela `cstat_correcoes`.
 
 **Definition of Done:**
 - [ ] KPIs: autorizadas (hoje/semana/mês), rejeitadas, em contingência, cert dias restantes
@@ -1022,12 +1038,15 @@ E o cTribNac usado fica gravado na nfse_emissoes
 
 ## 4. Decisões pendentes
 
-- [ ] Lib base: `eduardokum/sped-nfe` (recomendado) vs alternativa? — provavelmente sped-nfe (já maduro, BR)
-- [ ] DANFE PDF: `eduardokum/sped-da` ou customizar? — sped-da pra MVP
-- [ ] CBS/IBS: começar schema flexível agora ou esperar consolidação 2027?
-- [ ] Cert A1 gerenciado: oimpresso renova/armazena ou só armazena? Implicação legal séria
-- [ ] Manifestação automática (Confirmação) por padrão ou apenas manual?
-- [ ] Contingência EPEC requer cert separado (homologação SEFAZ-AN)? Validar com contador
+> Revisado em 2026-11-11 (auditoria NfeBrasil, lote 5). Os pacotes reais são `nfephp-org/sped-nfe` e
+> `nfephp-org/sped-da` (`composer.json`); `eduardokum/*` foi o nome usado no rascunho de abril.
+
+- [x] Lib base: `nfephp-org/sped-nfe`, decidido em [adr/arq/0002](adr/arq/0002-lib-sped-nfe-vs-acbr.md)
+- [x] DANFE PDF: `nfephp-org/sped-da` (`DanfeService`), mesma ADR
+- [x] CBS/IBS: schema flexível desde já, em [adr/arq/0004](adr/arq/0004-schema-flexivel-cbs-ibs-reforma-tributaria.md)
+- [x] Cert A1: o oimpresso armazena criptografado e não renova ([adr/arq/0003](adr/arq/0003-cert-a1-storage-criptografado.md)). Desde [#10733](https://github.com/wagnerra23/oimpresso.com/pull/10733) o certificado vem só de `nfe_certificados`, sem o fallback de `business.certificado` ([ADR 0449](../../decisions/0449-nfebrasil-certificado-sem-fallback-legado.md), **proposta**; a ratificação é do [W])
+- [x] Manifestação: manual por botão, sem confirmação automática (US-NFE-052, tela `/nfe-brasil/manifestacao`)
+- [ ] Contingência EPEC requer cert separado (homologação SEFAZ-AN)? Validar com contador. Segue aberta; a contingência em si está em [adr/tech/0002](adr/tech/0002-contingencia-epec-fsda-retentativa-ordenada.md)
 
 ## 5. Referências cruzadas
 
@@ -1258,7 +1277,7 @@ Resgatar arquivos legados UltimatePOS órfãos e migrar pro padrão `Modules/Nfe
 > US-NFE-008 é a narrativa do operador e a US-NFE-050 é o service que a entrega, e o mesmo teste
 > cobre as duas.
 
-Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` envolvendo `eduardokum/sped-nfe::Tools::sefazManifesta($chave, $tpEvento, $xJust='')`.
+Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` envolvendo `nfephp-org/sped-nfe::Tools::sefazManifesta($chave, $tpEvento, $xJust='')`.
 
 **Acceptance criteria:**
 - Métodos: `cienciar(NfeDfeRecebido $dfe)`, `confirmar(NfeDfeRecebido $dfe)`, `desconhecer(NfeDfeRecebido $dfe)`, `naoRealizada(NfeDfeRecebido $dfe, string $justificativa)`
@@ -1271,7 +1290,7 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` en
 - Carrega cert via `Modules/NfeBrasil/Services/CertificadoService.php` (já existente)
 - Tests Pest: 4 eventos + idempotência + justificativa obrigatória + isolamento multi-tenant
 
-**Refs:** ADR 0116 · `Modules/NfeBrasil/Services/CertificadoService.php` · `eduardokum/sped-nfe::Tools` Make.php
+**Refs:** ADR 0116 · `Modules/NfeBrasil/Services/CertificadoService.php` · `nfephp-org/sped-nfe::Tools` Make.php
 
 ### US-NFE-051 · DistribuicaoDfeService + Job agendado puxa XMLs por NSU
 
@@ -1301,7 +1320,7 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php`
 - Audit log: NSUs processados + count XMLs novos
 - Tests Pest: lote vazio (no-op), lote com 3 docs, throttle respeitado, cert ausente skipa, isolamento multi-tenant
 
-**Refs:** ADR 0116 · `eduardokum/sped-nfe::Tools::sefazDistDFe`
+**Refs:** ADR 0116 · `nfephp-org/sped-nfe::Tools::sefazDistDFe`
 
 ### US-NFE-052 · UI listar XMLs recebidos + 4 botões manifestar + alerta prazo 180d
 
@@ -1335,7 +1354,7 @@ Página Inertia `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` listando N
   - Vermelho: ≤ 7 dias do prazo OU já vencido
 - 4 botões por linha conforme estado: [Ciência] [Confirmação] [Desconhecer] [Não Realizada]
 - Modal "Não Realizada" exige justificativa (textarea ≥15 chars)
-- Botão "Baixar XML" + "Visualizar DANFE PDF" (gera via `eduardokum/sped-da`)
+- Botão "Baixar XML" + "Visualizar DANFE PDF" (gera via `nfephp-org/sped-da`)
 - Permissão `nfe.manifestacao.view` + `nfe.manifestacao.manage`
 - Bulk action: "Confirmar selecionadas" (pra operadora bater 50 notas em 1 clique)
 - Tests Pest Browser: listagem renderiza, click confirma, prazo countdown correto
@@ -1874,10 +1893,12 @@ Como dono da empresa, quero que o XML das notas do mês chegue ao meu contador s
 
 ### US-NFE-071 · Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1**
 
-> owner: — · sprint: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `Modules/NfeBrasil/Services/ModoContingencia.php` · `Modules/NfeBrasil/Services/ContingenciaService.php` · `Modules/NfeBrasil/Services/NfeService.php` (`registrarEpec`) · `Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php` · verificado@444b248e60 (2026-11-11) — SVC-AN/SVC-RS e o evento EPEC 110140 estão no código desde 2026-10-21; faltam a marcação de contingência no DANFE e o smoke em homologação
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php` (covers US-NFE-071)
 
 Como gestor, quero que a NF-e em contingência use o modo certo para a UF e tenha o evento EPEC registrado antes de imprimir, para o DANFE valer e a nota não ser rejeitada.
 
