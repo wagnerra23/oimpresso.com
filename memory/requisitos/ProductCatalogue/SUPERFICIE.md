@@ -14,21 +14,13 @@ module: ProductCatalogue
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ProductCatalogue/**` + `resources/js/Pages/ProductCatalogue/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 58 arquivos em 15 papéis.
+**Total mapeado:** 50 arquivos em 14 papéis.
 
 ## Controllers — 3
 
 - [DataController.php](../../../Modules/ProductCatalogue/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/ProductCatalogue/Http/Controllers/InstallController.php)
 - [ProductCatalogueController.php](../../../Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php)
-
-## Requests (validação) — 5
-
-- [GenerateQrRequest.php](../../../Modules/ProductCatalogue/Http/Requests/GenerateQrRequest.php)
-- [ShowProductRequest.php](../../../Modules/ProductCatalogue/Http/Requests/ShowProductRequest.php)
-- [ShowPublicCatalogueRequest.php](../../../Modules/ProductCatalogue/Http/Requests/ShowPublicCatalogueRequest.php)
-- [StoreProductCatalogueRequest.php](../../../Modules/ProductCatalogue/Http/Requests/StoreProductCatalogueRequest.php)
-- [UpdateProductCatalogueRequest.php](../../../Modules/ProductCatalogue/Http/Requests/UpdateProductCatalogueRequest.php)
 
 ## Services — 3
 
@@ -63,16 +55,13 @@ module: ProductCatalogue
 - [config.php](../../../Modules/ProductCatalogue/Config/config.php)
 - [retention.php](../../../Modules/ProductCatalogue/Config/retention.php)
 
-## Views (Blade) — 8
+## Views (Blade) — 5
 
 - [index.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/index.blade.php)
 - [combo_product_details.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/combo_product_details.blade.php)
 - [discount_badge.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/discount_badge.blade.php)
-- [single_product_details.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/single_product_details.blade.php)
 - [variable_product_details.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/partials/variable_product_details.blade.php)
 - [show.blade.php](../../../Modules/ProductCatalogue/Resources/views/catalogue/show.blade.php)
-- [index.blade.php](../../../Modules/ProductCatalogue/Resources/views/index.blade.php)
-- [master.blade.php](../../../Modules/ProductCatalogue/Resources/views/layouts/master.blade.php)
 
 ## Telas (Inertia/React) — 1
 
