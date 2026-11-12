@@ -50,6 +50,7 @@ contains:
   - "MedicamentosPacienteController — medicamentos em uso estruturados (fisio_patient_medications): incluir, alterar com antes/depois no activity_log e tirar da lista com motivo (US-FISIO-063)"
   - "TranscricaoDocumentoController — transcrição da foto pela IA (TranscricaoDocumentoAgent, laravel/ai), desligada por empresa, só provedor sem treino; a IA só copia e o profissional confere antes de gravar (fisio_document_transcriptions, US-FISIO-063)"
   - "PortalDocumentosController — paciente envia foto de exame ou receita pelo portal com o consentimento `documentos`; chega pendente e a clínica aceita ou recusa na ficha (US-FISIO-063)"
+  - "PortalLaudoController — paciente baixa pelo portal o próprio laudo biopsicossocial finalizado e vigente, com o mesmo PDF da ficha (US-FISIO-060, UC-FBP-16)"
   - "DadosSociaisController — dados sociais do paciente, todos opcionais, em fisio_patient_social; nascimento, município e bairro no contato (US-FISIO-061)"
   - "RelatorioAssociacaoController — relatório agregado da associação por período, tela e PDF, só contagem e média com grupo < 5 como \"<5\" (RelatorioAssociacao, permissão fisio.relatorio — US-FISIO-062)"
 not_contains:

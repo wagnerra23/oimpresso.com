@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 24 |
+| US no SPEC | 28 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 12 |
-| Telas com `casos.md` | 14 |
-| UC declarados | 161 |
-| UC com teste que os cita | 161 |
+| Telas (.tsx) | 14 |
+| Telas com `casos.md` | 18 |
+| UC declarados | 243 |
+| UC com teste que os cita | 243 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -59,6 +59,9 @@ authority: generated
 | UC-FAG-03 | Agenda/Index | 🧪 aguarda veredito da lane |
 | UC-FAG-04 | Agenda/Index | 🧪 aguarda veredito da lane |
 | UC-FAG-05 | Agenda/Index | 🧪 aguarda veredito da lane |
+| UC-FAG-06 | Agenda/Index | 🧪 aguarda veredito da lane |
+| UC-FAG-07 | Agenda/Index | 🧪 aguarda veredito da lane |
+| UC-FAG-08 | Agenda/Index | 🧪 aguarda veredito da lane |
 | UC-FAV-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FAV-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FBI-01 | Biblioteca/Index | 🧪 aguarda veredito da lane |
@@ -73,6 +76,22 @@ authority: generated
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-11 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-12 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBP-01 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-02 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-03 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-04 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-05 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-06 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-07 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-08 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-09 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-10 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-11 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-12 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-13 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-14 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-15 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
+| UC-FBP-16 | laudo-biopsicossocial (blade) | 🧪 aguarda veredito da lane |
 | UC-FCA-01 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
 | UC-FCA-02 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
 | UC-FCA-03 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
@@ -83,6 +102,48 @@ authority: generated
 | UC-FCW-04 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-05 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-06 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
+| UC-FER-01 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-02 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-03 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-04 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-05 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-06 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-07 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-08 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-09 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-10 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-11 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-12 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-13 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-14 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-15 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-16 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-17 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-18 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-19 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FER-20 | exames-e-receitas (blade) | 🧪 aguarda veredito da lane |
+| UC-FES-01 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-02 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-03 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-04 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-05 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-06 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-07 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-08 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-09 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-10 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-11 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-12 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-13 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-14 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-15 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-16 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-17 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-18 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-19 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-20 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-21 | Pesquisa/Index | 🧪 aguarda veredito da lane |
+| UC-FES-22 | Pesquisa/Index | 🧪 aguarda veredito da lane |
 | UC-FFI-01 | Fiscal/Index | 🧪 aguarda veredito da lane |
 | UC-FFI-02 | Fiscal/Index | 🧪 aguarda veredito da lane |
 | UC-FFI-03 | Fiscal/Index | 🧪 aguarda veredito da lane |
@@ -121,6 +182,7 @@ authority: generated
 | UC-FPI-06 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-07 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-20 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-21 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPK-01 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPK-02 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
 | UC-FPK-03 | Pacientes/Pacote | 🧪 aguarda veredito da lane |
@@ -179,6 +241,13 @@ authority: generated
 | UC-FPP-53 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-54 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-55 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-56 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-57 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-58 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-59 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-60 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-61 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-62 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPR-01 | Protocolos/Index | 🧪 aguarda veredito da lane |
 | UC-FPR-02 | Protocolos/Index | 🧪 aguarda veredito da lane |
 | UC-FPR-03 | Protocolos/Index | 🧪 aguarda veredito da lane |
@@ -214,6 +283,19 @@ authority: generated
 | UC-FPS-36 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-37 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-38 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-39 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-40 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-41 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FRA-01 | Relatorio/Associacao | 🧪 aguarda veredito da lane |
+| UC-FRA-02 | Relatorio/Associacao | 🧪 aguarda veredito da lane |
+| UC-FRA-03 | Relatorio/Associacao | 🧪 aguarda veredito da lane |
+| UC-FRA-04 | Relatorio/Associacao | 🧪 aguarda veredito da lane |
+| UC-FRA-05 | Relatorio/Associacao | 🧪 aguarda veredito da lane |
+| UC-FSO-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FSO-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FSO-03 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FSO-04 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FSO-05 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-OAP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 
 ---

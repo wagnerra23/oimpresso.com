@@ -17,11 +17,11 @@ authority: generated
 | Elo | Quantidade |
 |---|---:|
 | US no SPEC | 13 |
-| CU no SDD | 20 |
+| CU no SDD | 21 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
-| UC declarados | 202 |
-| UC com teste que os cita | 185 |
+| UC declarados | 232 |
+| UC com teste que os cita | 215 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -29,8 +29,6 @@ authority: generated
 |---|---|
 | `CU-PROD-09` sem UC | caso de uso que o exercite — Código de barras + etiqueta |
 | `CU-PROD-12` sem UC | caso de uso que o exercite — Correção de valor / agregação de inventário |
-| `CU-PROD-20` sem UC | caso de uso que o exercite — Locais de armazenagem e endereço no estoque |
-| `CU-PROD-21` sem UC | caso de uso que o exercite — Política de preço do produto |
 | `US-PROD-024` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIK |
 
 ### Backlog — NÃO é lacuna
@@ -50,7 +48,6 @@ authority: generated
 | US-PROD-026 | `todo` | Fornecedores/cotação por produto (melhor preço no drawer) |
 | US-PROD-027 | `todo` | [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do P |
 | US-PROD-029 | `todo` | Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é toc |
-| US-PROD-030 | `todo` | ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o |
 | US-PROD-031 | `todo` | Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha |
 | US-PROD-032 | `todo` | ⚠️Tier0 · Formação de preço: imposto do Simples, comissão e lucro tirados do pre |
 
@@ -82,9 +79,12 @@ authority: generated
 | UC-FLX-18 | Index | 🧪 aguarda veredito da lane |
 | UC-FLX-19 | Index | 🧪 aguarda veredito da lane |
 | UC-FLX-31 | Index | 🧪 aguarda veredito da lane |
-| UC-FLX-38 | Index | 🧪 aguarda veredito da lane |
+| UC-FLX-35 | Create | 🧪 aguarda veredito da lane |
+| UC-FLX-38 | Create | 🧪 aguarda veredito da lane |
 | UC-IMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-INSMET-10 | Create | 🧪 aguarda veredito da lane |
+| UC-NFTR-24 | Index | 🧪 aguarda veredito da lane |
 | UC-NFTR-29 | Index | 🧪 aguarda veredito da lane |
 | UC-NFTR-32 | Create | 🧪 aguarda veredito da lane |
 | UC-PATPRC-01 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
@@ -122,6 +122,12 @@ authority: generated
 | UC-PCAD-15 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-16 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-17 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-18 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-19 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-20 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-21 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-22 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-23 | Create | 🧪 aguarda veredito da lane |
 | UC-PCADAP-01 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-02 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-03 | Cadastros/Index | 🧪 aguarda veredito da lane |
@@ -144,6 +150,8 @@ authority: generated
 | UC-PCADAP-20 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-21 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-22 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-23 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCROT-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-PCROT-04 | Index | 🧪 aguarda veredito da lane |
 | UC-PEDIT-01 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-02 | Edit | 🧪 aguarda veredito da lane |
@@ -160,6 +168,14 @@ authority: generated
 | UC-PEDIT-13 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-14 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-15 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-16 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-17 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-18 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-19 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-20 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-21 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-22 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-23 | Edit | 🧪 aguarda veredito da lane |
 | UC-PETQ-01 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-02 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-03 | Etiquetas/Index | 🧪 aguarda veredito da lane |
@@ -203,6 +219,17 @@ authority: generated
 | UC-PIDX-32 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-33 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-34 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-35 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-36 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-37 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-38 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-39 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-40 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-41 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-42 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-43 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-44 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-45 | Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
