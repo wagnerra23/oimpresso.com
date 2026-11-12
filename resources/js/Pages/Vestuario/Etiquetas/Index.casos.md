@@ -48,7 +48,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 
 | UC | Caso de uso | Prio | Âncora (SDD §6) | Teste | Status |
 |----|-------------|------|-----------------|-------|--------|
-| UC-VET-01 | Settings de etiqueta de um business não vazam pro outro | must `[T0]` | `CU-VEST-01` item 3 · `CU-VEST-05` item 3 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
+| UC-VET-01 | Settings de etiqueta de um business não vazam pro outro | must `[T0]` | `CU-VEST-01` item 3 · `CU-VEST-05` item 3 | `VestuarioSettingsIsolamentoContratoTest` (MySQL, 98×99) · `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
 | UC-VET-02 | Business sem settings recebe defaults; config exposta não carrega URL do cliente | must | `CU-VEST-01` itens 2 e 4 | `UsVest020EtiquetaTagControllerTest` · `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-03 | Todo EAN-13 impresso passa no check GS1 | must | `CU-VEST-03` itens 1 e 3 | `EtiquetaTagContratoTest` · `W27EtiquetaGradeTest` | 🧪 |
 | UC-VET-04 | Lote de N itens gera N etiquetas; lote vazio é rejeitado | must | `CU-VEST-02` itens 1-3 | `W27EtiquetaGradeTest` | 🧪 |
@@ -56,7 +56,7 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 | UC-VET-20 | O código impresso é o sub_sku que o caixa bipa | must | `CU-VEST-03` itens 1, 2, 4 e 5 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-21 | Texto do cadastro não vira comando de impressora | must | `CU-VEST-02` item 2 | `EtiquetaTagContratoTest` | 🧪 |
 | UC-VET-06 | Gerar etiqueta NÃO grava nada e não lê preço do produto | must `[V0]` | `CU-VEST-07` itens 1-2 | `EtiquetaTagContratoTest` | 🧪 |
-| UC-VET-07 | QR Code liga por business e não vaza | should `[T0]` | `CU-VEST-05` itens 1-2 | `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
+| UC-VET-07 | QR Code liga por business e não vaza | should `[T0]` | `CU-VEST-05` itens 1-2 | `VestuarioSettingsIsolamentoContratoTest` (MySQL, 98×99) · `UsVest020EtiquetaTagControllerTest` | 🧪 *(skip gracioso sem tabela)* |
 | UC-VET-24 | Achar a peça por nome ou SKU, sem digitar id | must | `CU-VEST-01` item 6 | `tests/js/vestuario-etiquetas-busca.test.tsx` | 🧪 |
 | UC-VET-08 | PDF A4 traz as N etiquetas com os mesmos campos do ZPL | must | `CU-VEST-06` itens 1-4 | `UsVest020EtiquetaTagControllerTest` | 🧪 |
 | UC-VET-22 | Teto de etiquetas por pedido, com aviso e erro legíveis | must | `CU-VEST-02` item 6 | `EtiquetaLimitePermissaoContratoTest` | 🧪 |
@@ -76,6 +76,8 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 - **Aceite:** Dado que o business 1 configurou `etiqueta.width_dots` e `etiqueta.qr_enabled` ·
   Quando a configuração do business 99 é resolvida · Então o 99 recebe os **defaults**, e nenhum
   valor configurado pelo 1 aparece na resposta dele.
+- **Teste (MySQL):** [`VestuarioSettingsIsolamentoContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/VestuarioSettingsIsolamentoContratoTest.php)
+  — tenant 98 × 99 na lane `verticais-pest`; roda, ao contrário dos casos em sqlite que pulam.
 - **Teste:** [`UsVest020EtiquetaTagControllerTest`](../../../../../Modules/Vestuario/Tests/Feature/UsVest020EtiquetaTagControllerTest.php)
   — *"settings biz=1 não vazam pra biz=99 (cross-tenant adversário)"*.
 - **Contrato:** `CU-VEST-01` item 3 + `CU-VEST-05` item 3 do SDD ·
@@ -213,6 +215,8 @@ G-2 UC↔teste) e o `anchor-lint ADR 0273`, esses sim required.
 - **Aceite:** Dado `etiqueta.qr_enabled = true` no business 1 · Quando a etiqueta dele é gerada ·
   Então o ZPL contém a instrução de QR e o payload · **E** o business 99, sem configuração,
   continua sem QR.
+- **Teste (MySQL):** [`VestuarioSettingsIsolamentoContratoTest`](../../../../../Modules/Vestuario/Tests/Feature/VestuarioSettingsIsolamentoContratoTest.php)
+  — tenant 98 × 99 na lane `verticais-pest`; roda, ao contrário dos casos em sqlite que pulam.
 - **Teste:** [`UsVest020EtiquetaTagControllerTest`](../../../../../Modules/Vestuario/Tests/Feature/UsVest020EtiquetaTagControllerTest.php)
   — *"ZPL contém instrução ^BQ quando qr_enabled=true via settings"* + *"ZPL NÃO contém ^BQ por
   default"* + *"settings biz=1 não vazam pra biz=99"*.
