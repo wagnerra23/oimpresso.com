@@ -9,7 +9,7 @@
       			<div class="col-md-4">
       				<div class="thumbnail">
       					<img src="{{$product->image_url}}" alt="Product image">
-      					@if($product->type == 'single')
+      					@if($product->type != 'variable')
       						@include('productcatalogue::catalogue.partials.discount_badge', ['discount' => $discounts[$product->variations->first()->id] ?? null])
       					@endif
       				</div>
