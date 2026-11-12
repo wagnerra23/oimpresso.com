@@ -86,9 +86,10 @@ it('UC-FRA-01 · conta cada pessoa uma vez e calcula presença e a evolução m�
         ->and($r['suprimido'])->toBeFalse()
         ->and($r['presenca'])->toBe(['agendados' => 6, 'presentes' => 5, 'faltas' => 1, 'taxa' => 83])
         ->and($fiqr['n'])->toBe(6)
-        ->and($fiqr['primeira'])->toBe(65.0)
-        ->and($fiqr['ultima'])->toBe(50.0)
-        ->and($fiqr['diferenca'])->toBe(-15.0)
+        // Os números chegam pelas props Inertia (JSON): 65.0 vira 65 e volta int. O cast compara o valor, não o tipo do JSON.
+        ->and((float) $fiqr['primeira'])->toBe(65.0)
+        ->and((float) $fiqr['ultima'])->toBe(50.0)
+        ->and((float) $fiqr['diferenca'])->toBe(-15.0)
         ->and(fraLinha($r['perfil']['faixa_etaria'], '40_49'))->toBe(6)
         ->and(fraLinha($r['perfil']['situacao_trabalho'], 'afastado_inss'))->toBe(6)
         ->and(fraLinha($r['perfil']['municipio'], 'Tubarão/SC'))->toBe(6);
