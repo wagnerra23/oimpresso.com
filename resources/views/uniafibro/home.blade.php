@@ -1,0 +1,149 @@
+{{--
+    Página inicial da Uniafibro — https://uniafibro.com.br
+    Sem JavaScript, sem cookies de rastreio, sem analytics. Imagens servidas pelo próprio domínio
+    (caminho relativo, não asset(): asset() aponta para oimpresso.com).
+    Ver memory/requisitos/Site/RUNBOOK-uniafibro.md.
+
+    PREENCHER [W]: os pontos marcados com "PREENCHER [W]" abaixo. Enquanto o contato estiver
+    vazio, a seção mostra "Em breve" em vez de um endereço inventado.
+--}}
+@php
+    // PREENCHER [W]: e-mail e/ou telefone de contato da associação. Deixe '' para ocultar.
+    $contatoEmail = '';
+    $contatoTelefone = '';
+@endphp
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Uniafibro — União das Associações de Fibromialgia de SC</title>
+    <meta name="description" content="Uniafibro — União das Associações de Fibromialgia de Santa Catarina. Juntas somos mais fortes.">
+    <meta name="theme-color" content="#6b3fa0">
+    <meta property="og:title" content="Uniafibro — União das Associações de Fibromialgia de SC">
+    <meta property="og:description" content="Juntas somos mais fortes.">
+    <meta property="og:image" content="https://uniafibro.com.br/uniafibro/logo.png">
+    <meta property="og:url" content="https://uniafibro.com.br/">
+    <meta property="og:locale" content="pt_BR">
+    <link rel="icon" type="image/png" href="/uniafibro/logo.png">
+    <link rel="apple-touch-icon" href="/uniafibro/logo.png">
+    <style>
+        :root {
+            --roxo: #6b3fa0;
+            --roxo-escuro: #4b2477;
+            --lilas: #a78bdb;
+            --fundo: #faf7fd;
+            --superficie: #ffffff;
+            --texto: #2a2135;
+            --texto-suave: #5d5270;
+            --borda: #e6ddf2;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --fundo: #17121e;
+                --superficie: #211a2b;
+                --texto: #f1ecf7;
+                --texto-suave: #c3b8d3;
+                --borda: #3a2f48;
+                --roxo: #b79be6;
+            }
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--fundo);
+            color: var(--texto);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+        .topo {
+            background: linear-gradient(135deg, #a78bdb 0%, #6b3fa0 60%, #4b2477 100%);
+            color: #fff;
+            text-align: center;
+            padding: 48px 16px 56px;
+        }
+        .topo img {
+            width: 160px;
+            height: 160px;
+            background: #fff;
+            border-radius: 50%;
+            padding: 14px;
+            box-shadow: 0 8px 24px rgba(30, 10, 60, 0.25);
+        }
+        .topo h1 { margin: 20px 0 4px; font-size: 2.2rem; letter-spacing: 0.01em; }
+        .topo .nome { margin: 0; font-size: 1.05rem; opacity: 0.95; }
+        .topo .lema { margin: 18px 0 0; font-size: 1.35rem; font-style: italic; font-weight: 600; }
+        main { max-width: 720px; margin: 0 auto; padding: 8px 16px 32px; }
+        section {
+            background: var(--superficie);
+            border: 1px solid var(--borda);
+            border-radius: 14px;
+            padding: 22px 24px;
+            margin-top: 20px;
+        }
+        h2 { margin: 0 0 10px; font-size: 1.3rem; color: var(--roxo); }
+        p { margin: 0 0 10px; }
+        p:last-child { margin-bottom: 0; }
+        .suave { color: var(--texto-suave); }
+        .selo {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--roxo);
+            color: var(--roxo);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        a { color: var(--roxo); }
+        footer { text-align: center; padding: 8px 16px 32px; font-size: 0.85rem; color: var(--texto-suave); }
+    </style>
+</head>
+<body>
+    <header class="topo">
+        <img src="/uniafibro/logo.png" alt="Logo da Uniafibro: seis pessoas de mãos dadas em roda, com o laço roxo da fibromialgia ao centro" width="160" height="160">
+        <h1>Uniafibro</h1>
+        <p class="nome">União das Associações de Fibromialgia de SC</p>
+        <p class="lema">Juntas somos mais fortes.</p>
+    </header>
+
+    <main>
+        <section aria-labelledby="quem-somos">
+            <h2 id="quem-somos">Quem somos</h2>
+            {{-- PREENCHER [W]: texto provisório e neutro. Troque pelo texto oficial da associação
+                 (história, missão, associações filiadas). Não acrescentar CNPJ, endereço,
+                 diretoria ou números sem confirmação. --}}
+            <p>
+                A Uniafibro é a união das associações de fibromialgia de Santa Catarina.
+                Reunimos as associações do estado para que pessoas com fibromialgia, suas
+                famílias e quem cuida delas encontrem apoio e informação.
+            </p>
+        </section>
+
+        <section aria-labelledby="app">
+            <h2 id="app">App Uniafibro</h2>
+            <p>O app Uniafibro para Android está em fase de testes.</p>
+            <span class="selo">Em breve na Google Play</span>
+        </section>
+
+        <section aria-labelledby="contato">
+            <h2 id="contato">Contato</h2>
+            @if ($contatoEmail !== '' || $contatoTelefone !== '')
+                @if ($contatoEmail !== '')
+                    <p>E-mail: <a href="mailto:{{ $contatoEmail }}">{{ $contatoEmail }}</a></p>
+                @endif
+                @if ($contatoTelefone !== '')
+                    <p>Telefone: {{ $contatoTelefone }}</p>
+                @endif
+            @else
+                <p class="suave">Os canais de contato da associação serão publicados em breve.</p>
+            @endif
+        </section>
+    </main>
+
+    <footer>
+        &copy; {{ date('Y') }} Uniafibro · feito com oimpresso
+    </footer>
+</body>
+</html>
