@@ -35,12 +35,8 @@ on:
       - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
       - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
-      - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
-      - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
-      - 'Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php'  # vitrine pública
-      - 'Modules/ProductCatalogue/Services/CatalogueService.php'  # vitrine pública (selo de desconto)
-      - 'Modules/ProductCatalogue/Services/FormatoVitrine.php'
-      - 'Modules/ProductCatalogue/Resources/views/catalogue/**'
+      - 'Modules/ProductCatalogue/**'  # modulo inteiro: testes, rotas, Requests, Repository, views
+      - 'resources/js/Pages/ProductCatalogue/**'
       - 'app/Transaction.php'
       - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
       - 'Modules/Compras/Providers/ComprasServiceProvider.php'
@@ -238,12 +234,8 @@ jobs:
               - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
               - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
-              - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
-              - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
-              - 'Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php'  # vitrine pública
-              - 'Modules/ProductCatalogue/Services/CatalogueService.php'  # vitrine pública (selo de desconto)
-              - 'Modules/ProductCatalogue/Services/FormatoVitrine.php'
-              - 'Modules/ProductCatalogue/Resources/views/catalogue/**'
+              - 'Modules/ProductCatalogue/**'  # mesmo escopo do push (as duas camadas mudam juntas)
+              - 'resources/js/Pages/ProductCatalogue/**'
               - 'app/Transaction.php'
               - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
               - 'Modules/Compras/Providers/ComprasServiceProvider.php'
@@ -558,6 +550,11 @@ jobs:
         # 2026-10-20 — + SellsTravaAposNotaContratoTest (US-SELL-072, UC-SEDIT-13..18): nota autorizada
         # recusa itens/valores/cliente no PUT /pos/{id} e deixa a observação; nota cancelada não trava;
         # pagamento trava só valores; nota do 2º business não trava; sem nota nem pagamento, como antes.
+        # 2026-11-11 — + Modules/ProductCatalogue/Tests/Feature (diretório). Os 7 arquivos do módulo não
+        # rodavam em lane nenhuma (test-lane-coverage --modulo ProductCatalogue: 7 órfãos). Aqui e não na
+        # lista sqlite: lá a vitrine pública pula inteira. Nem na matrix de modules-pest.yml, que roda
+        # sqlite. O filtro passou a cobrir Modules/ProductCatalogue/** e a Page, para que Repository,
+        # rotas e views também disparem a lane (antes caíam no skip-as-pass).
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -662,6 +659,7 @@ jobs:
             tests/Feature/Sells/SellsCondicaoClienteContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
             tests/Feature/Sells/CatalogoPublicoXssContratoTest.php \
+            Modules/ProductCatalogue/Tests/Feature \
             tests/Feature/Sells/CatalogoPublicoDescontoContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
