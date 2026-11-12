@@ -90,7 +90,7 @@ Medido em `747e0aa` (2026-11-11).
 
 ## Pendências
 
-- **SDD da vitrine:** não existe. A matriz §3 do `TEAM.md` não tem linha para requisito ou SDD de vitrine pública; a mais próxima é "Blade views legacy (UltimatePOS)", com ✅ para [M] e [L] (em par). Quem escreve fica para o [W] decidir.
+- **SDD da vitrine:** não existe. A matriz §3 do `TEAM.md` não tem linha para requisito ou SDD de vitrine pública; a mais próxima é "Blade views legacy (UltimatePOS)", com ✅ para [M] e [L] (em par). Decisão [W] 2026-11-12: o SDD fica com [M] e [L] em par. Ainda não foi escrito.
 - **Assinatura nas rotas públicas:** só a tela do QR confere `productcatalogue_module`; `/catalogue` e `/show-catalogue` não conferem. Se é intencional é decisão [W].
 
 ## Backlog (feature wish — sem sinal qualificado ADR 0105)

@@ -46,7 +46,7 @@ Para recontar: `git ls-files 'tests/Feature/Sells/Catalog*Contrato*.php' 'tests/
 
 - 🟡 `business_id` numérico exposto na URL pública (enumeração). Sem slug amigável.
 - 🟡 As rotas públicas não conferem se a empresa assinou `productcatalogue_module`; só a tela do QR confere. Se isso é intencional não está decidido (decisão [W]).
-- 🟡 Vitrine sem SDD e sem `.casos.md` (a tela Blade fica fora do regime de casos). Quem escreve o SDD está em aberto no [SPEC](SPEC.md).
+- 🟡 Vitrine sem SDD e sem `.casos.md` (a tela Blade fica fora do regime de casos). O SDD fica com [M] e [L] em par (decisão [W] 2026-11-12, registrada no [SPEC](SPEC.md)).
 - 🟡 O detalhe monta os preços de grupo (atacado) no payload (`CatalogueService.php:72-89`), mas nenhuma view da vitrine os mostra (`git grep allowed_group_prices -- Modules/ProductCatalogue/Resources` = 0). Mostrar ou cortar é decisão em aberto.
 - 🔒 Embed widget JS, analytics, OG tags (feature wish, sem sinal).
 
