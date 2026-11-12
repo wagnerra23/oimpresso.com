@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-007
-// Cobre UC-FPP-56..UC-FPP-58 (Fisio/Public/Portal.casos.md) · etapa 07 P-02.
+// Cobre UC-FPP-56..UC-FPP-58 e UC-FPP-62 (Fisio/Public/Portal.casos.md) · etapa 07 P-02.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
@@ -109,4 +109,28 @@ it('UC-FPP-58 · estudo de outra clínica: não concede e o portal responde 404 
     $encerrado = fisioPesqEstudo($this->b98, ['status' => Study::STATUS_ENCERRADO]);
     expect(fn () => $this->svc->concederPesquisa($this->p, $encerrado, null, 'clinica'))->toThrow(InvalidArgumentException::class)
         ->and(DB::table('fisio_consents')->where('purpose', 'pesquisa')->where('patient_id', $this->p->id)->count())->toBe(0);
+});
+
+it('UC-FPP-62 · Configurações do portal lista o estudo aceito; depois de sair, ele some; estudo de outra clínica nunca aparece [T0]', function () {
+    $estudo = fisioPesqEstudo($this->b98, ['title' => 'Estudo de fibromialgia']);
+    $this->svc->concederPesquisa($this->p, $estudo, null, 'clinica');
+    // Linha forjada apontando estudo da 99 (o serviço recusaria; aqui entra direto no banco).
+    $estudo99 = fisioPesqEstudo($this->b99, ['title' => 'Estudo da outra clinica']);
+    DB::table('fisio_consents')->insert([
+        'business_id' => $this->b98, 'patient_id' => $this->p->id, 'purpose' => 'pesquisa',
+        'study_id' => $estudo99->id, 'version' => 'tcle-2', 'granted_at' => now(), 'channel' => 'clinica',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $token = F::portalPronto($this, $this->p);
+
+    $lista = F::portalProps($this, $token)['estudos_pesquisa'];
+    expect($lista)->toHaveCount(1)
+        ->and($lista[0]['study_id'])->toBe($estudo->id)
+        ->and($lista[0]['titulo'])->toBe('Estudo de fibromialgia')
+        ->and($lista[0]['versao'])->toBe('tcle-2')
+        ->and($lista[0]['aceito_em'])->toBe('2026-11-11')
+        ->and($lista[0]['canal'])->toBe('clinica');
+
+    $this->deleteJson('/fisio/p/'.$token.'/consentimentos/pesquisa/'.$estudo->id)->assertOk();
+    expect(F::portalProps($this, $token)['estudos_pesquisa'])->toBe([]);
 });
