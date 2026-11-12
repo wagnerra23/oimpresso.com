@@ -39,6 +39,7 @@ related_us: []
 | UC-FES-17 | o modelo recebe só dado sem identificação | must | `FisioAssistentePesquisaTest` |
 | UC-FES-18 | sugestão nasce pendente; aceitar grava quem e quando | must | `FisioAssistentePesquisaTest` |
 | UC-FES-19 | nada sai da área do estudo; outra clínica 404 | must | `FisioAssistentePesquisaTest` |
+| UC-FES-20 | questionário aparece pelo nome curto, nunca pelo código interno | should | `FisioPesquisaTelaTest` |
 
 ---
 
@@ -141,7 +142,14 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioAssistentePesquisaTest.php`
 - **Status: 🧪**
 
+## UC-FES-20 · Nome do questionário, não o código · `should`
+- **Aceite:** No diálogo Novo estudo e na aba Pendências cada questionário aparece pelo nome curto (o trecho antes do " — " no catálogo): "Sentar e levantar em 30 segundos", "FIQR", "EVA/END". Nenhum rótulo é vazio ou tem cara de código (`_`).
+- **Regressão que defende:** `SENTAR_LEVANTAR_30S` na tela (smoke de staging de 2026-11-11).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPesquisaTelaTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-11 · UC-FES-20 — rótulo curto do questionário no Novo estudo e nas Pendências (achado do smoke de staging).
 - 2026-11-11 · etapa 07 P-08 — aba Assistente: sugestões de qualidade do dado, resumo descritivo e padrões antes da crise, sobre o dado sem identificação; a pesquisadora aceita ou descarta. Desligado por padrão.
 - 2026-11-11 · etapa 07 P-07 — aba Exportação: 4 CSV (momentos, série diária, participantes, dicionário), `NA` para ausente, dia do estudo no lugar da data, travamento com justificativa, tudo no activity_log.
 - 2026-11-11 · etapa 07 P-06 — aba Eventos adversos: crise por mais de 48 h e alerta de dor, registrados a partir do check-in. O software não classifica gravidade.
