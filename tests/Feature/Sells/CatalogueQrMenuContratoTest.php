@@ -56,8 +56,10 @@ function cqrMenuAssinatura(bool $temModulo): void
 function cqrMenuEntrar($teste, array $permissoes): \App\User
 {
     $user = $teste->usuarioComPermissoes($permissoes, $teste->business);
+    // Sem session() à mão: o SetSessionData só monta a sessão quando a chave `user` não existe.
+    // Gravar `user.*` aqui deixava `business.enabled_modules` de fora e o /sells quebrava
+    // (Util.php: Undefined array key "enabled_modules"). O middleware monta tudo a partir do login.
     $teste->actingAs($user);
-    session(['user.business_id' => $teste->business->id, 'user.id' => $user->id, 'business.id' => $teste->business->id]);
 
     return $user;
 }
