@@ -3271,21 +3271,23 @@ class ContactController extends Controller
         }
 
         try {
-            $data = $request->only(['to_email', 'subject', 'email_body', 'cc', 'bcc', 'ledger_format']);
             $business_id = request()->session()->get('business.id');
 
             // A aba Extrato da ficha React pede só o e-mail: assunto, texto e cópias vêm do modelo
             // "Enviar razão" da empresa, como o modal Blade já fazia ao abrir (NotificationController@getTemplate).
+            // O modelo é o padrão; o que o pedido trouxer preenchido tem prioridade.
             $modelo = NotificationTemplate::getTemplate($business_id, 'send_ledger');
-            foreach (['subject', 'email_body', 'cc', 'bcc'] as $campo) {
-                if (empty($data[$campo])) {
-                    $data[$campo] = $modelo[$campo] ?? '';
-                }
-            }
-            if (empty($data['subject'])) {
-                $data['subject'] = __('lang_v1.send_ledger');
-            }
-            $data['ledger_format'] = $data['ledger_format'] ?? 'format_1';
+            $padrao = [
+                'subject' => $modelo['subject'] ?: __('lang_v1.send_ledger'),
+                'email_body' => $modelo['email_body'],
+                'cc' => $modelo['cc'],
+                'bcc' => $modelo['bcc'],
+                'ledger_format' => 'format_1',
+            ];
+            $data = array_merge($padrao, array_filter(
+                $request->only(['to_email', 'subject', 'email_body', 'cc', 'bcc', 'ledger_format']),
+                fn ($valor) => filled($valor)
+            ));
 
             $emails_array = array_values(array_filter(array_map('trim', explode(',', (string) ($data['to_email'] ?? '')))));
             if (empty($emails_array)) {
