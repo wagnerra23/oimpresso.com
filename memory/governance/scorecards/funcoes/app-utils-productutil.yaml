@@ -35,6 +35,13 @@
 #   updatePurchaseOrderLine). Nas outras 36 funções só linha: `line`/`linhas` deslocados pelo diff (+6 depois
 #   da função). NÃO é revalidação delas; as 5 funções acrescentadas em outubro seguem sem julgamento.
 #
+# Rejulgamento parcial 2026-11-12 [F+C] (PR #10833): a fonte mudou só dentro de filterProduct, no ramo
+#   `like` — o termo é quebrado em palavras e cada uma precisa casar (+35/-26, um hunk em 1656-1697).
+#   Rejulgado filterProduct: C1, C3 e C6 seguem válidos (C6: cada palavra entra como parâmetro do like);
+#   C5 segue n/a (o laço só acrescenta where na mesma query); C8 recontado. Nas funções depois do hunk
+#   só `line`/`linhas` (+9); os números citados dentro de `nota` NÃO foram deslocados. NÃO é revalidação
+#   delas. Desvio anterior a este PR, não corrigido aqui: getProductAlert aponta 4 linhas antes da função.
+#
 # validation_status: pareceres-ancorados-nao-validados — os vereditos são PARECER ancorado em
 #   evidência+intenção externa, NÃO achados provados. O INSTRUMENTO (juiz) foi calibrado em fixture
 #   sintética não-circular (método §5 rodada 3, κ=1,0), mas isso NÃO re-valida estes vereditos sobre a
@@ -44,7 +51,7 @@ file: app/Utils/ProductUtil.php
 module: Produto
 rubric: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
 rubric_version: "1.1"
-source_blob_sha: "9999e7e422db01c15638af37d2fb261b4da36b80"
+source_blob_sha: "db3b6be73b7c0e31f827881a4fda32337568c708"
 judged_at: "2026-07-21"
 judge: "claude-opus-4-8"
 source: full-sweep-2026-07-21
@@ -482,49 +489,49 @@ functions:
     vereditos:
       C1: { status: concordo, evidencia: { quote: "->where('products.business_id', $business_id)->where('products.type', '!=', 'modifier')", linhas: "1642-1643" }, ancora: "0093", nota: "escopado por business_id" }
       C2: { status: n/a, motivo: "filtra/lista produtos; seleciona preço mas não muta" }
-      C3: { status: concordo, evidencia: { quote: "->get();", linhas: "1744-1745" }, ancora: "§5 2026-07-15", nota: "Collection vazia p/ 0-match, tipada" }
+      C3: { status: concordo, evidencia: { quote: "->get();", linhas: "1753-1754" }, ancora: "§5 2026-07-15", nota: "Collection vazia p/ 0-match, tipada" }
       C4: { status: n/a, motivo: "read-only" }
       C5: { status: n/a, motivo: "query builder único" }
-      C6: { status: n/a, motivo: "DB::raw (1735) só com IF/NULLIF/expressão de coluna (rejulgado 2026-10-02); search_term entra via where(...,'like','%'.$term.'%') — parâmetro bound, não SQL cru" }
+      C6: { status: n/a, motivo: "DB::raw (1744) só com IF/NULLIF/expressão de coluna (rejulgado 2026-10-02); search_term é quebrado em palavras e cada uma entra via where(...,'like','%'.$palavra.'%') — parâmetro bound, não SQL cru (rejulgado 2026-11-12)" }
       C7a: { status: incerto, evidencia: { quote: "@return object", linhas: "1603" }, ancora: "§5 2026-07-15", nota: "retorna Collection (que é objeto); docblock frouxo mas não claramente errado" }
       C7b: { status: n/a, motivo: "um único tipo real" }
       C7c: { status: n/a, motivo: "Collection vazia, não null" }
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
-      C8: { consumidores: 2, testes_diretos: 0, nota: "ProductController:1552, SellPosController:2827" }
+      C8: { consumidores: 3, testes_diretos: 3, nota: "git grep 'filterProduct(' 2026-11-12: ProductController:3275, SellPosController:433 e :3188; testes diretos BuscaProdutoPrecoDeGrupoContratoTest, BuscaProdutoVariasPalavrasTest, SellsCreateV3GravarContratoTest" }
   - function: getProductStockDetails
-    line: 1748
+    line: 1757
     vereditos:
-      C1: { status: concordo, evidencia: { quote: "->where('p.business_id', $business_id)->whereIn('p.type', ['single', 'variable'])", linhas: "1756-1757" }, ancora: "0093", nota: "query principal escopada por business_id; subqueries raw escopadas transitivamente por vld.location_id" }
+      C1: { status: concordo, evidencia: { quote: "->where('p.business_id', $business_id)->whereIn('p.type', ['single', 'variable'])", linhas: "1765-1766" }, ancora: "0093", nota: "query principal escopada por business_id; subqueries raw escopadas transitivamente por vld.location_id" }
       C2: { status: n/a, motivo: "relatório de estoque/valor agregado; não muta" }
-      C3: { status: concordo, evidencia: { quote: "return $products->get(); ... return $products->paginate(); ... return $products", linhas: "1884-1890" }, ancora: "§5 2026-07-15", nota: "cada ramo retorna tipado; vazio → coleção/paginator vazio" }
+      C3: { status: concordo, evidencia: { quote: "return $products->get(); ... return $products->paginate(); ... return $products", linhas: "1893-1899" }, ancora: "§5 2026-07-15", nota: "cada ramo retorna tipado; vazio → coleção/paginator vazio" }
       C4: { status: n/a, motivo: "read-only" }
       C5: { status: n/a, motivo: "query builder; sem loop PHP com query" }
-      C6: { status: discordo, evidencia: { quote: "$location_filter .= \"AND transactions.location_id=$location_id\"", linhas: "1760, 1768" }, ancora: "Laravel security", nota: "$location_id (filters) e $locations_imploded (permitted_locations, ints) interpolados em DB::raw (1826 e nos selects) sem binding; explorabilidade menor (ints) mas viola C6" }
+      C6: { status: discordo, evidencia: { quote: "$location_filter .= \"AND transactions.location_id=$location_id\"", linhas: "1769, 1777" }, ancora: "Laravel security", nota: "$location_id (filters) e $locations_imploded (permitted_locations, ints) interpolados em DB::raw (1826 e nos selects) sem binding; explorabilidade menor (ints) mas viola C6" }
       C7a: { status: n/a, motivo: "sem declaração de retorno a comparar" }
-      C7b: { status: discordo, evidencia: { quote: "get() | paginate() | Builder", linhas: "1884-1890" }, ancora: "rubrica v1.1", nota: "Collection|LengthAwarePaginator|Builder em caminhos diferentes sem union declarada" }
+      C7b: { status: discordo, evidencia: { quote: "get() | paginate() | Builder", linhas: "1893-1899" }, ancora: "rubrica v1.1", nota: "Collection|LengthAwarePaginator|Builder em caminhos diferentes sem union declarada" }
       C7c: { status: n/a, motivo: "sem null" }
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
       C8: { consumidores: 2, testes_diretos: 0, nota: "Connector CommonResourceController:577, ReportController:364 (linha 511 é comentário)" }
   - function: __getComboProductDetails
-    line: 1900
+    line: 1909
     vereditos:
-      C1: { status: concordo, evidencia: { quote: "$combo_variations[$key]['sub_units'] = $this->getSubUnits($business_id, ...['product']->unit_id, true)", linhas: "1907" }, ancora: "INV6", nota: "Variation::find (1905) unscoped mas combo_variations do produto owned; getSubUnits escopa por business_id" }
+      C1: { status: concordo, evidencia: { quote: "$combo_variations[$key]['sub_units'] = $this->getSubUnits($business_id, ...['product']->unit_id, true)", linhas: "1916" }, ancora: "INV6", nota: "Variation::find (1905) unscoped mas combo_variations do produto owned; getSubUnits escopa por business_id" }
       C2: { status: n/a, motivo: "monta detalhes/multiplier de combo; não muta valor persistido" }
-      C3: { status: concordo, evidencia: { quote: "return $combo_variations", linhas: "1919" }, ancora: "§5 2026-07-15", nota: "array enriquecido tipado" }
+      C3: { status: concordo, evidencia: { quote: "return $combo_variations", linhas: "1928" }, ancora: "§5 2026-07-15", nota: "array enriquecido tipado" }
       C4: { status: n/a, motivo: "read-only" }
-      C5: { status: discordo, evidencia: { quote: "foreach ($combo_variations as $key => $value) { $combo_variations[$key]['variation'] = Variation::with(['product'])->find(", linhas: "1902-1907" }, ancora: "Eloquent N+1", nota: "Variation::find + getSubUnits por item de combo" }
+      C5: { status: discordo, evidencia: { quote: "foreach ($combo_variations as $key => $value) { $combo_variations[$key]['variation'] = Variation::with(['product'])->find(", linhas: "1911-1916" }, ancora: "Eloquent N+1", nota: "Variation::find + getSubUnits por item de combo" }
       C6: { status: n/a, motivo: "sem SQL cru" }
-      C7a: { status: concordo, evidencia: { quote: "@return array", linhas: "1898" }, ancora: "docblock", nota: "docblock array bate com retorno array" }
+      C7a: { status: concordo, evidencia: { quote: "@return array", linhas: "1907" }, ancora: "docblock", nota: "docblock array bate com retorno array" }
       C7b: { status: n/a, motivo: "um único tipo real" }
       C7c: { status: n/a, motivo: "sem nullabilidade" }
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
       C8: { consumidores: 4, testes_diretos: 0, nota: "Officeimpresso:102, CatalogueService:150, ProductController:1407/1893" }
   - function: getVariationStockDetails
-    line: 1922
+    line: 1931
     vereditos:
-      C1: { status: concordo, evidencia: { quote: "->where('p.business_id', $business_id)->where('variations.id', $variation_id)", linhas: "1932-1933" }, ancora: "0093", nota: "escopado por business_id em ambas as queries (1932 e 1958)" }
+      C1: { status: concordo, evidencia: { quote: "->where('p.business_id', $business_id)->where('variations.id', $variation_id)", linhas: "1941-1942" }, ancora: "0093", nota: "escopado por business_id em ambas as queries (1932 e 1958)" }
       C2: { status: n/a, motivo: "relatório de movimentação; não muta" }
-      C3: { status: incerto, evidencia: { quote: "if ($purchase_details->type == 'variable')", linhas: "1972" }, ancora: "§5 2026-07-15", nota: "0-row → null-deref em $purchase_details->type (sem contrato de ausência explícito); na prática query agregada retorna 1 row p/ variation válida — depende de caller passar id válido" }
+      C3: { status: incerto, evidencia: { quote: "if ($purchase_details->type == 'variable')", linhas: "1981" }, ancora: "§5 2026-07-15", nota: "0-row → null-deref em $purchase_details->type (sem contrato de ausência explícito); na prática query agregada retorna 1 row p/ variation válida — depende de caller passar id válido" }
       C4: { status: n/a, motivo: "read-only" }
       C5: { status: n/a, motivo: "3 queries, sem loop com query" }
       C6: { status: n/a, motivo: "DB::raw só com IF/SUM de colunas" }
@@ -534,13 +541,13 @@ functions:
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
       C8: { consumidores: 1, testes_diretos: 0, nota: "ProductController:2675" }
   - function: getVariationStockHistory
-    line: 1996
+    line: 2005
     vereditos:
-      C1: { status: incerto, evidencia: { quote: "->where('transactions.location_id', $location_id)", linhas: "2010" }, ancora: "INV6", nota: "⚠ $business_id RECEBIDO e NUNCA usado no corpo (1998-2040); scoping 100% por location_id request-derived (ProductController:2676). INV6 diz location transitivo-safe, mas sibling getVariationStockDetails ADICIONA p.business_id — mais fraco; impacto incerto sem verificar validação de location no caller. Candidato a US (defesa-em-profundidade + param morto)" }
+      C1: { status: incerto, evidencia: { quote: "->where('transactions.location_id', $location_id)", linhas: "2019" }, ancora: "INV6", nota: "⚠ $business_id RECEBIDO e NUNCA usado no corpo (1998-2040); scoping 100% por location_id request-derived (ProductController:2676). INV6 diz location transitivo-safe, mas sibling getVariationStockDetails ADICIONA p.business_id — mais fraco; impacto incerto sem verificar validação de location no caller. Candidato a US (defesa-em-profundidade + param morto)" }
       C2: { status: n/a, motivo: "reconstrói histórico (soma acumulada via roundQuantity); read-only" }
-      C3: { status: concordo, evidencia: { quote: "return array_reverse($stock_history_array)", linhas: "2189" }, ancora: "§5 2026-07-15", nota: "array vazio p/ sem histórico, tipado" }
+      C3: { status: concordo, evidencia: { quote: "return array_reverse($stock_history_array)", linhas: "2198" }, ancora: "§5 2026-07-15", nota: "array vazio p/ sem histórico, tipado" }
       C4: { status: n/a, motivo: "read-only" }
-      C5: { status: concordo, evidencia: { quote: "foreach ($stock_history as $stock_line) { ... $this->roundQuantity($stock)", linhas: "2045" }, ancora: "Eloquent N+1", nota: "loop sobre $stock_history JÁ carregado (query única antes); só array-building + roundQuantity, ZERO query no loop" }
+      C5: { status: concordo, evidencia: { quote: "foreach ($stock_history as $stock_line) { ... $this->roundQuantity($stock)", linhas: "2054" }, ancora: "Eloquent N+1", nota: "loop sobre $stock_history JÁ carregado (query única antes); só array-building + roundQuantity, ZERO query no loop" }
       C6: { status: n/a, motivo: "sem DB::raw" }
       C7a: { status: n/a, motivo: "sem declaração de retorno a comparar" }
       C7b: { status: n/a, motivo: "um único tipo real" }
@@ -548,26 +555,26 @@ functions:
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
       C8: { consumidores: 1, testes_diretos: 0, nota: "ProductController:2676" }
   - function: getVariationStockMisMatch
-    line: 2196
+    line: 2205
     vereditos:
-      C1: { status: concordo, evidencia: { quote: "->where('p.business_id', $business_id)->where('vld.location_id', $location_id)", linhas: "2202-2203" }, ancora: "0093", nota: "query principal escopada por business_id" }
+      C1: { status: concordo, evidencia: { quote: "->where('p.business_id', $business_id)->where('vld.location_id', $location_id)", linhas: "2211-2212" }, ancora: "0093", nota: "query principal escopada por business_id" }
       C2: { status: n/a, motivo: "calcula divergência de saldo (relatório de reconciliação); não muta" }
-      C3: { status: concordo, evidencia: { quote: "return $stock_details", linhas: "2290" }, ancora: "§5 2026-07-15", nota: "Collection com total_stock_calculated anexado; vazia p/ 0-row" }
+      C3: { status: concordo, evidencia: { quote: "return $stock_details", linhas: "2299" }, ancora: "§5 2026-07-15", nota: "Collection com total_stock_calculated anexado; vazia p/ 0-row" }
       C4: { status: n/a, motivo: "read-only" }
-      C5: { status: concordo, evidencia: { quote: "foreach ($stock_details as $index => $row) { $total_sold = $row->total_sold ?: 0;", linhas: "2270-2288" }, ancora: "Eloquent N+1", nota: "loop sobre $stock_details já carregado; só aritmética, ZERO query" }
-      C6: { status: discordo, evidencia: { quote: "WHERE transactions.status='final' AND transactions.type='sell' AND transactions.location_id=$location_id", linhas: "2206, 2210, 2214" }, ancora: "Laravel security", nota: "$location_id (request, ReportController:2903) interpolado em ~11 subqueries DB::raw sem binding" }
+      C5: { status: concordo, evidencia: { quote: "foreach ($stock_details as $index => $row) { $total_sold = $row->total_sold ?: 0;", linhas: "2279-2297" }, ancora: "Eloquent N+1", nota: "loop sobre $stock_details já carregado; só aritmética, ZERO query" }
+      C6: { status: discordo, evidencia: { quote: "WHERE transactions.status='final' AND transactions.type='sell' AND transactions.location_id=$location_id", linhas: "2215, 2219, 2223" }, ancora: "Laravel security", nota: "$location_id (request, ReportController:2903) interpolado em ~11 subqueries DB::raw sem binding" }
       C7a: { status: n/a, motivo: "sem declaração de retorno a comparar" }
       C7b: { status: n/a, motivo: "um único tipo real" }
       C7c: { status: n/a, motivo: "Collection vazia, não null" }
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
       C8: { consumidores: 1, testes_diretos: 0, nota: "ReportController:2903" }
   - function: fixVariationStockMisMatch
-    line: 2293
+    line: 2302
     vereditos:
-      C1: { status: concordo, evidencia: { quote: "->where('bl.business_id', $business_id)", linhas: "2297, 2315" }, ancora: "0093", nota: "mutador de estoque EXPLICITAMENTE escopado via join business_locations.business_id (discriminante — não depende de transitivo)" }
-      C2: { status: concordo, evidencia: { quote: "$stock = $this->num_uf($stock); $vld->qty_available = $stock", linhas: "2311-2313" }, ancora: "REGRA MESTRE + EstoqueFixMismatchNumUfTest (US-PROD-028)", nota: "corrigido no PR #4636: input locale passa por num_uf; golden direto prova '1.500'→1500 e a contrap prova o sibling updateProductQuantity" }
+      C1: { status: concordo, evidencia: { quote: "->where('bl.business_id', $business_id)", linhas: "2306, 2324" }, ancora: "0093", nota: "mutador de estoque EXPLICITAMENTE escopado via join business_locations.business_id (discriminante — não depende de transitivo)" }
+      C2: { status: concordo, evidencia: { quote: "$stock = $this->num_uf($stock); $vld->qty_available = $stock", linhas: "2320-2322" }, ancora: "REGRA MESTRE + EstoqueFixMismatchNumUfTest (US-PROD-028)", nota: "corrigido no PR #4636: input locale passa por num_uf; golden direto prova '1.500'→1500 e a contrap prova o sibling updateProductQuantity" }
       C3: { status: n/a, motivo: "void" }
-      C4: { status: incerto, evidencia: { quote: "$vld->save(); ... ->where('variation_location_details.id', '!=', $vld->id)->delete()", linhas: "2303, 2307-2317" }, ancora: "INV3", nota: "2 escritas (update qty_available + delete de VLD duplicados) sem tx interna; caller ReportController não verificado envolvendo — save-ok/delete-fail deixa estado parcial" }
+      C4: { status: incerto, evidencia: { quote: "$vld->save(); ... ->where('variation_location_details.id', '!=', $vld->id)->delete()", linhas: "2312, 2316-2326" }, ancora: "INV3", nota: "2 escritas (update qty_available + delete de VLD duplicados) sem tx interna; caller ReportController não verificado envolvendo — save-ok/delete-fail deixa estado parcial" }
       C5: { status: n/a, motivo: "sem loop" }
       C6: { status: n/a, motivo: "sem SQL cru interpolado" }
       C7a: { status: n/a, motivo: "sem declaração de retorno a comparar" }
@@ -576,15 +583,15 @@ functions:
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
       C8: { consumidores: 1, testes_diretos: 1, nota: "ReportController:2928; teste direto EstoqueFixMismatchNumUfTest (US-PROD-028)" }
   - function: getProductAlert
-    line: 2331
+    line: 2340
     vereditos:
-      C1: { status: concordo, evidencia: { quote: "->where('p.business_id', $business_id)->where('p.enable_stock', 1)", linhas: "2358-2359" }, ancora: "0093", nota: "escopado por business_id + filtro permitted_locations" }
+      C1: { status: concordo, evidencia: { quote: "->where('p.business_id', $business_id)->where('p.enable_stock', 1)", linhas: "2367-2368" }, ancora: "0093", nota: "escopado por business_id + filtro permitted_locations" }
       C2: { status: n/a, motivo: "lista produtos abaixo do alerta; não muta" }
       C3: { status: n/a, motivo: "retorna query builder (não dado); caller executa" }
       C4: { status: n/a, motivo: "read-only" }
       C5: { status: n/a, motivo: "query builder único" }
       C6: { status: n/a, motivo: "whereRaw compara 2 COLUNAS (qty_available <= alert_quantity), sem variável interpolada (2363)" }
-      C7a: { status: discordo, evidencia: { quote: "@return array", linhas: "2329" }, ancora: "§5 2026-07-15", nota: "docblock diz array mas retorna QUERY BUILDER (select->groupBy->orderBy sem ->get); caller precisa executar" }
+      C7a: { status: discordo, evidencia: { quote: "@return array", linhas: "2338" }, ancora: "§5 2026-07-15", nota: "docblock diz array mas retorna QUERY BUILDER (select->groupBy->orderBy sem ->get); caller precisa executar" }
       C7b: { status: n/a, motivo: "um único tipo real" }
       C7c: { status: n/a, motivo: "sem nullabilidade" }
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
