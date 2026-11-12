@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-021
-// Cobre UC-FPK-01..06 (Fisio/Pacientes/Pacote.casos.md).
+// Cobre UC-FPK-01..06 e UC-FPK-10 (Fisio/Pacientes/Pacote.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -109,4 +109,38 @@ it('UC-FPK-06 · pacote sem venda ligada: cobrança vazia e sem nota, sem erro',
     app(SaldoDoPacote::class)->abrir($this->pac, '5 sessões', 5, null, null, $this->u98->id);
 
     expect(F::props($this, $this->u98, "/fisio/pacientes/{$this->pac->id}/pacote", 'Fisio/Pacientes/Pacote', 'cobranca'))->toBe([]);
+});
+
+it('UC-FPK-10 · comprovante do pacote em PDF: só sessões, sem valor; quem vê imprime; outra empresa 404 sem log', function () {
+    $saldo = app(\Modules\Fisio\Services\Pacotes\SaldoDoPacote::class);
+    $pacote = $saldo->abrir($this->pac, '10 sessões de fisioterapia', 10, now()->addMonths(2)->toDateString(), 2, $this->u98->id);
+    $saldo->consumir($pacote, $this->u98->id, 'agendamento:1');
+    $devolver = $saldo->consumir($pacote, $this->u98->id, 'agendamento:2');
+    $saldo->estornar($devolver, $this->u98->id, 'faltou com aviso');
+    $saldo->consumir($pacote, $this->u98->id, 'agendamento:3');
+
+    F::como($this, $this->u98);
+    $d = app(\Modules\Fisio\Services\Pacotes\ComprovantePacote::class)->montar($pacote->fresh(), $this->b98);
+    expect($d['contratadas'])->toBe(10)->and($d['usadas'])->toBe(2)->and($d['saldo'])->toBe(8)
+        ->and(array_column($d['sessoes'], 'devolvida'))->toBe([false, true, false])
+        ->and($d['venda'])->toBeNull()->and($d['vencido'])->toBeFalse()->and($d['encerrado'])->toBeFalse();
+    $html = view('fisio::pdf.comprovante-pacote', $d)->render();
+    expect($html)->toContain('10 sessões de fisioterapia')
+        ->and($html)->toContain('Não é recibo de pagamento nem nota fiscal')
+        ->and($html)->toContain('Pacote nº '.$pacote->id)
+        ->and($html)->toContain('devolvida ao pacote')
+        ->and($html)->not->toContain('R$');
+
+    // Quem só vê a ficha (fisio.access) imprime: a rota devolve o PDF e registra só ids.
+    F::como($this, $this->leitor98);
+    $r = $this->get("/fisio/pacotes/{$pacote->id}/comprovante.pdf")->assertOk();
+    expect($r->headers->get('Content-Type'))->toContain('application/pdf')
+        ->and(substr((string) $r->getContent(), 0, 5))->toBe('%PDF-');
+    $log = DB::table('activity_log')->where('description', 'pacote_comprovante_impresso')->where('subject_id', $this->pac->id)->sole();
+    expect(json_decode((string) $log->properties, true))->toEqual(['business_id' => $this->b98, 'patient_id' => $this->pac->id, 'package_id' => $pacote->id]);
+
+    // A 99 não imprime o pacote da 98, e nada vai ao log.
+    F::como($this, $this->u99);
+    $this->get("/fisio/pacotes/{$pacote->id}/comprovante.pdf")->assertNotFound();
+    expect(DB::table('activity_log')->where('description', 'pacote_comprovante_impresso')->where('subject_id', $this->pac->id)->count())->toBe(1);
 });

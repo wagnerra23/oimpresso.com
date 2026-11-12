@@ -14,9 +14,9 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 354 arquivos em 20 papéis.
+**Total mapeado:** 357 arquivos em 20 papéis.
 
-## Controllers — 33
+## Controllers — 34
 
 - [AgendaController.php](../../../Modules/Fisio/Http/Controllers/AgendaController.php)
 - [BibliotecaController.php](../../../Modules/Fisio/Http/Controllers/BibliotecaController.php)
@@ -35,6 +35,7 @@ module: Fisio
 - [MedicamentosPacienteController.php](../../../Modules/Fisio/Http/Controllers/MedicamentosPacienteController.php)
 - [OnboardingController.php](../../../Modules/Fisio/Http/Controllers/OnboardingController.php)
 - [PacientesController.php](../../../Modules/Fisio/Http/Controllers/PacientesController.php)
+- [PacoteComprovanteController.php](../../../Modules/Fisio/Http/Controllers/PacoteComprovanteController.php)
 - [PacotesController.php](../../../Modules/Fisio/Http/Controllers/PacotesController.php)
 - [PainelController.php](../../../Modules/Fisio/Http/Controllers/PainelController.php)
 - [PesquisaController.php](../../../Modules/Fisio/Http/Controllers/PesquisaController.php)
@@ -56,7 +57,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 57
+## Services — 58
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AgendaDaSemana.php](../../../Modules/Fisio/Services/Agenda/AgendaDaSemana.php)
@@ -90,6 +91,7 @@ module: Fisio
 - [MidiaExercicio.php](../../../Modules/Fisio/Services/MidiaExercicio.php)
 - [MissoesCalculator.php](../../../Modules/Fisio/Services/MissoesCalculator.php)
 - [NivelCalculator.php](../../../Modules/Fisio/Services/NivelCalculator.php)
+- [ComprovantePacote.php](../../../Modules/Fisio/Services/Pacotes/ComprovantePacote.php)
 - [SaldoDoPacote.php](../../../Modules/Fisio/Services/Pacotes/SaldoDoPacote.php)
 - [PainelFisio.php](../../../Modules/Fisio/Services/PainelFisio.php)
 - [AssistentePesquisa.php](../../../Modules/Fisio/Services/Pesquisa/AssistentePesquisa.php)
@@ -224,9 +226,10 @@ module: Fisio
 
 - [config.php](../../../Modules/Fisio/Config/config.php)
 
-## Views (Blade) — 6
+## Views (Blade) — 7
 
 - [_base.blade.php](../../../Modules/Fisio/Resources/views/pdf/_base.blade.php)
+- [comprovante-pacote.blade.php](../../../Modules/Fisio/Resources/views/pdf/comprovante-pacote.blade.php)
 - [folha-programa.blade.php](../../../Modules/Fisio/Resources/views/pdf/folha-programa.blade.php)
 - [laudo-biopsicossocial.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-biopsicossocial.blade.php)
 - [laudo-evolucao.blade.php](../../../Modules/Fisio/Resources/views/pdf/laudo-evolucao.blade.php)

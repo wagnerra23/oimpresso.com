@@ -5,7 +5,7 @@ irmaos: Pacote.charter.md (lei) · Pacote.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: o pacote vendido é dinheiro já recebido pela clínica; sessão debitada duas vezes ou título duplicado em outro módulo vira cobrança errada ao paciente.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-12"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL do Fisio rodar FisioPacoteTelaTest."
 related_us: [US-FISIO-021, US-FISIO-020, US-FISIO-022]
 ---
@@ -29,6 +29,7 @@ related_us: [US-FISIO-021, US-FISIO-020, US-FISIO-022]
 | UC-FPK-07 | ligar a venda do paciente ao pacote, sem gravar título | must | `FisioPacoteVendaTest` |
 | UC-FPK-08 | recusa venda de outro paciente, outra empresa, não finalizada ou já ligada | must | `FisioPacoteVendaTest` |
 | UC-FPK-09 | venda cancelada tira a sobra do saldo e encerra o pacote | must | `FisioPacoteVendaTest` |
+| UC-FPK-10 | comprovante (voucher) do pacote em PDF: só sessões, sem valor; quem vê imprime; outra empresa 404 sem log | must | `FisioPacoteTelaTest` |
 
 ---
 
@@ -77,4 +78,10 @@ related_us: [US-FISIO-021, US-FISIO-020, US-FISIO-022]
 ## UC-FPK-09 · Venda cancelada · `must`
 - **Aceite:** Dado pacote de 10 com 3 sessões usadas e venda ligada · Quando a venda é cancelada no núcleo · Então um estorno de −7 zera o saldo, o pacote fica encerrado e os 3 débitos continuam; o mesmo aviso de novo não lança outro estorno. Devolver dinheiro é do Financeiro.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPacoteVendaTest.php`
+- **Status: 🧪**
+
+## UC-FPK-10 · Comprovante (voucher) do pacote · `must`
+- **Persona:** recepção ou fisioterapeuta que entrega ao paciente o papel do pacote (pedido do [W] em 2026-11-12: "o voucher é o comprovante do pacote de sessões").
+- **Aceite:** Dado um pacote de 10 com duas sessões realizadas e uma devolvida · Quando clico em "Imprimir comprovante" · Então abre um PDF na base comum dos impressos com a clínica no cabeçalho, "Pacote nº", o paciente, 10 contratadas, 2 usadas, 8 restam, validade e ritmo, e a lista de sessões com a devolvida marcada · E o comprovante não mostra valor em dinheiro e diz que não é recibo nem nota fiscal (o preço é da venda do núcleo; da venda só aparece o número) · Quem só tem `fisio.access` imprime · Cada impressão grava no `activity_log` só os ids · Pacote de outra empresa dá 404 e nada vai ao log.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacoteTelaTest.php`
 - **Status: 🧪**
