@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-060
-// Cobre UC-FBP-13..UC-FBP-14 (memory/requisitos/Fisio/_telas/laudo-biopsicossocial.casos.md).
+// Cobre UC-FBP-13..UC-FBP-14 e UC-FBP-16 (memory/requisitos/Fisio/_telas/laudo-biopsicossocial.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -87,4 +87,47 @@ it('UC-FBP-14 · a rota baixa o PDF e grava uma linha no activity_log só com id
     F::como($this, $this->u99);
     $this->get("/fisio/laudos-bps/{$this->id}/pdf")->assertNotFound();
     expect(DB::table('activity_log')->where('description', 'laudo_bps_exportado')->where('subject_id', $this->p->id)->count())->toBe(1);
+});
+
+it('UC-FBP-16 · o paciente baixa no portal só o próprio laudo finalizado e vigente; rascunho, corrigido e outra empresa ficam de fora', function () {
+    // Rascunho: o portal não lista nem baixa.
+    $token = F::portalPronto($this, $this->p);
+    expect(F::portalProps($this, $token)['laudos_bps'])->toBe([]);
+    $this->get("/fisio/p/{$token}/laudos-bps/{$this->id}/pdf")->assertNotFound();
+
+    // Finaliza pela rota da clínica (conclusão, local, data e a segunda área da equipe).
+    F::como($this, $this->u98);
+    $this->putJson("/fisio/laudos-bps/{$this->id}", ['conclusao' => ['impedimento_longo_prazo' => '1', 'barreiras' => true, 'equiparacao' => '0'],
+        'local' => 'Florianópolis', 'data' => '2026-11-11'])->assertOk();
+    $this->postJson("/fisio/laudos-bps/{$this->id}/equipe", ['area' => 'fisioterapia_to', 'assinatura' => 'sistema'])->assertCreated();
+    $this->postJson("/fisio/laudos-bps/{$this->id}/finalizar")->assertOk();
+
+    $lista = F::portalProps($this, $token)['laudos_bps'];
+    expect(array_column($lista, 'id'))->toBe([$this->id]);
+    $r = $this->get("/fisio/p/{$token}/laudos-bps/{$this->id}/pdf")->assertOk();
+    expect($r->headers->get('Content-Type'))->toContain('application/pdf')
+        ->and(substr((string) $r->getContent(), 0, 5))->toBe('%PDF-')
+        ->and((string) $r->headers->get('Cache-Control'))->toContain('no-store');
+    $log = DB::table('activity_log')->where('description', 'laudo_bps_exportado')->where('subject_id', $this->p->id)->latest('id')->first();
+    $props = json_decode((string) $log->properties, true);
+    expect($props['origem'])->toBe('portal')->and($props['laudo_bps_id'])->toBe($this->id)
+        ->and(str_contains((string) $log->properties, 'MEDICA-FIXTURE'))->toBeFalse();
+
+    // Correção: a nova versão finalizada substitui a anterior, que sai da lista e do download.
+    $novo = (int) $this->postJson("/fisio/laudos-bps/{$this->id}/nova-versao")->assertCreated()->json('id');
+    expect(array_column(F::portalProps($this, $token)['laudos_bps'], 'id'))->toBe([$this->id]); // rascunho da correção não aparece
+    $this->postJson("/fisio/laudos-bps/{$novo}/finalizar")->assertOk();
+    expect(array_column(F::portalProps($this, $token)['laudos_bps'], 'id'))->toBe([$novo]);
+    $this->get("/fisio/p/{$token}/laudos-bps/{$this->id}/pdf")->assertNotFound();
+
+    // Outro paciente da outra empresa não baixa o laudo deste, nem adivinhando o id.
+    $outro = F::paciente((int) $this->seededSupportClientTenant()->id, $this->u99->id);
+    $token99 = F::portalPronto($this, $outro);
+    expect(F::portalProps($this, $token99)['laudos_bps'])->toBe([]);
+    $this->get("/fisio/p/{$token99}/laudos-bps/{$novo}/pdf")->assertNotFound();
+
+    // Sem PIN: 403 antes de qualquer leitura.
+    $semPin = F::emitirPortal($this->p)['token'];
+    $this->flushSession();
+    $this->get("/fisio/p/{$semPin}/laudos-bps/{$novo}/pdf")->assertForbidden();
 });

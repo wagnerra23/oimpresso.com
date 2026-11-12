@@ -180,12 +180,15 @@ last_run: "2026-10-07"
   Então a quantidade mostrada é a gravada na linha do produto (líquida, a que entrou no estoque) e,
   ao lado, quantas se perderam ("+1,00 perdida" na lista; "1,00 UNID em estoque · 1,00 perdida" no
   cabeçalho do painel). A soma das duas é a "Quantidade" bruta da tela antiga. Sem perda, nada muda.
+  Dado a ordem lançada numa sub-unidade (pacote de 10) · Então a lista mostra a quantidade e a unidade da
+  ordem (3 PCT, não 30 na base), igual ao painel, e as perdidas na mesma unidade.
 - **Fonte:** `ProductionController::store()` (grava produzida − perdidas na `purchase_line`) e
   `show()` (mostra a bruta e a desperdiçada). O protótipo `manufacturing-producao.jsx` não modela
   perda na ordem. Achado em produção 2026-10-06: ordem 2021/0001 com "1,00 UNID" na lista e no
   painel contra "Quantidade 2,00 · desperdiçada 1,00" na tela antiga.
 - **Teste:** `Modules/Manufacturing/Tests/Feature/DetalheOrdemProducaoTest.php` — confere 5 + 1 à mão
   e contra as variáveis do `show()` legado (`quantity` = 6, `quantity_wasted` = 1).
+  `ProducaoSubUnidadeTest.php` — a sub-unidade, à mão e contra o painel.
 - **Regressão que defende:** mostrar a líquida sem dizer que é líquida, ou somar a perda no número
   principal e dividir o custo por unidade pelo que não entrou no estoque.
 - **Status: 🧪**
@@ -351,6 +354,21 @@ last_run: "2026-10-07"
 
 ---
 
+## UC-OP-19 · O total da ordem é calculado no servidor; o do navegador não entra
+- **Persona:** Wagner — o custo gravado na ordem é lançamento contábil; ninguém pode digitá-lo.
+- **Aceite:** Dado um POST ou PUT com `final_total` forjado · Quando a ordem é gravada · Então o total gravado
+  é ingredientes (Σ consumo × custo do insumo × multiplicador da sub-unidade) + custo extra (% sobre os
+  ingredientes · valor × quantidade produzida com as perdidas · valor fixo), e no mesmo dia bate com o "total
+  de hoje" do painel. O custo unitário do acabado sai desse total.
+- **Fonte:** SDD Fabricação §4 ("o cliente nunca é fonte de `final_total`") · handoff §9 e §6 regra 4 ·
+  ADR 0448.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemTotalServidorTest.php` — à mão e contra o
+  `detalheOrdem`.
+- **Regressão que defende:** voltar a gravar o `final_total` que vem no request.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.
@@ -384,3 +402,5 @@ last_run: "2026-10-07"
 - 2026-11-11 · [C] UC-OP-16 (lote 1.1 da auditoria): consumo declarado na linha e sub-unidade, com teste. A entrada e a baixa ao finalizar ficam em UC-EST-08B (`Estoque/Movimentacao.casos.md`). A tela não mudou.
 - 2026-11-11 · [C] UC-OP-20 (lote 1.2 da auditoria): quantidade e custo da ordem sem reconversão de número. A tela não mudou.
 - 2026-11-11 · [C] UC-OP-18 (lote 1.3 da auditoria): trocar o local do rascunho leva entrada e baixa juntas. A tela não mudou.
+- 2026-11-11 · [C] UC-OP-09 ganha o caso da sub-unidade (lote 1.4 da auditoria): a lista fala a unidade do painel. A tela não mudou.
+- 2026-11-11 · [C] UC-OP-19 (lote 1.5 da auditoria): total da ordem calculado no servidor. A tela não mudou.

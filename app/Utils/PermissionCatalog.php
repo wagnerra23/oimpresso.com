@@ -111,6 +111,7 @@ class PermissionCatalog
         'print_labels.access',
         'product.create',
         'product.delete',
+        'product.armazenagem',
         'product.opening_stock',
         'product.update',
         'product.view',

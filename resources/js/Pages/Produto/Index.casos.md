@@ -738,11 +738,12 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   outros dois ficam inativos com "unido em Lona 440g". Nada se apaga, e o histórico mostra quem juntou e
   quando. A tela mostra a prévia do estoque e do custo antes de confirmar. Hoje não há como juntar: o
   duplicado só pode ser inativado, com o estoque separado. Evitar a duplicação na entrada é o caso de
-  `Purchase/Create.casos.md` do mesmo dia. Falta decisão [W]: quem pode juntar e se a junção pode ser
-  desfeita. Mexe em estoque e custo: Regra Mestre, com dupla prova e antes e depois.
+  `Purchase/Create.casos.md` do mesmo dia. Decidido em 2026-11-12 (D-19): a junção não é da consulta de
+  produto; é feita em outra tela, pelo responsável, com histórico, no mesmo princípio dos itens pendentes de
+  vínculo da compra (D-20). Mexe em estoque e custo: Regra Mestre, com dupla prova e antes e depois.
   - Pedido: P-152
   - Âncora: Consulta de produto · custo médio da compra (fluxo de Compra do [W]) · produto duplicado pela nota (P-151) · `Produto/Index.casos.md`
-  - Fazer: Ação "Juntar com outro produto" na consulta de produto, com prévia do estoque e do custo médio antes de confirmar; inativar o duplicado em vez de apagar.
+  - Fazer: Tela separada de vínculo de produtos, operada pelo responsável e com histórico (D-19), como a dos itens pendentes da compra: prévia do estoque e do custo médio antes de confirmar; inativar o duplicado em vez de apagar. Não é uma ação da consulta de produto.
   - Hoje: miss | Não tem | Não há como juntar produtos; o duplicado só pode ser inativado, e o estoque dele fica separado
   - Comunicação visual: ok | Sim | material cadastrado de novo a cada fornecedor
   - Clientes: PraMoto, Techpress
@@ -803,7 +804,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   Quando abro o painel, Então vejo materiais e quantidades da receita. ⚠️ Conferir com o charter: o
   Non-Goal "Sub-views de BOM/Insumos ficam em `/products/unificado`" pode valer aqui — decisão [W].
   Fonte: shopVOX (lista de materiais, mão de obra e máquina do produto).
-  Espera a decisão D-29 (abaixo).
+  Decidido em 2026-11-12 (D-29): resumo só leitura no painel, com "Abrir receita".
 - **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — cada rolo é um lote, e o
   relatório de Lotes já mostra em que OS cada rolo foi usado (US-COM-025 · UC-FLX-18, parcial). A
   consulta seria a porta de entrada: a aba Rolos do painel lista os rolos e leva ao relatório de
@@ -822,7 +823,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   abrir esse produto; e no painel da pilha CR2032 vejo os produtos e aparelhos que a usam. Produto sem
   pilha não mostra nada. A venda pede o modelo e a série do aparelho (Sells/Create.casos.md, mesmo
   pedido).
-- **[BACKLOG] A venda não deixa vender mais kits do que os componentes permitem** `[V0]` — a parte do painel ("3 kits disponíveis" e quem limita) saiu deste backlog em 2026-11-04 e virou UC-PIDX-40. Fica a venda. O PDV Blade já usa `ProductUtil::calculateComboQuantity` para o saldo do combo (`SellPosController`, `getDetailsFromVariation`), mas essa conta tem um defeito, descrito no UC-PIDX-40: componente com saldo zero que vem primeiro na lista não zera o resultado (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Consertar mexe no que a venda deixa vender: Regra Mestre (dupla prova e antes e depois), decisão [W]. A venda React (Sells/CreateV3) não foi conferida. Espera a decisão D-30 (abaixo).
+- **[BACKLOG] A venda não deixa vender mais kits do que os componentes permitem** `[V0]` — a parte do painel ("3 kits disponíveis" e quem limita) saiu deste backlog em 2026-11-04 e virou UC-PIDX-40. Fica a venda. O PDV Blade já usa `ProductUtil::calculateComboQuantity` para o saldo do combo (`SellPosController`, `getDetailsFromVariation`), mas essa conta tem um defeito, descrito no UC-PIDX-40: componente com saldo zero que vem primeiro na lista não zera o resultado (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Consertar mexe no que a venda deixa vender: Regra Mestre (dupla prova e antes e depois), decisão [W]. A venda React (Sells/CreateV3) não foi conferida. Decidido em 2026-11-12 (D-30): corrigir a conta e seguir "Permitir vender sem estoque".
 - **[BACKLOG] Saldo fiscal no painel do produto** `[E0]` (pedido de 2026-10-27) — Aceite: Dado um
   produto com 5 un. no estoque, das quais 3 entraram com nota, Quando abro a aba Fiscal do painel,
   Então ela mostra "Saldo fiscal 3 un. · Estoque real 5 un." e de onde vem a diferença (compras sem
@@ -831,7 +832,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   compra), lido das próprias notas; não mexe no estoque. É também o número que falta ao inventário do
   SPED (Bloco H). Pedido da PraMoto, que compra com e sem nota; a compra e o aviso na emissão estão em
   `Purchase/Create.casos.md` e `Fiscal/Nfe.casos.md`.
-  Espera a decisão D-31 (abaixo): hoje nenhuma compra registra se entrou com nota.
+  Decidido em 2026-11-12 (D-31): vem da compra criada a partir da nota. Espera a fase 3 da entrada por XML (P-100).
 - O filtro "Falta NCM" e o link do card de Saúde fiscal saíram deste backlog em 2026-11-06: viraram UC-PIDX-42, com teste.
 - O NCM em lote saiu deste backlog em 2026-11-06: virou UC-PIDX-43, com teste.
 
@@ -892,7 +893,7 @@ há item aqui.
 Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma diz quais pedidos ela destrava.
 
 - **[DECISÃO] D-19 · Quem junta produtos duplicados, e a junção pode ser desfeita?**
-  - Estado: Em aberto
+  - Estado: Decidida em 2026-11-12 · [F] — O vínculo de produtos é feito em outra tela, pelo responsável, gerando histórico. Mesmo princípio da compra (D-20 em `Purchase/Create.casos.md`): os itens pendentes de vínculo ou de conversão de unidade ficam numa tela separada para o responsável resolver. A consulta de produto não junta produtos.
   - Texto: O caso 152 soma o estoque, recalcula o custo médio e passa compras, vendas e vínculos de fornecedor para o produto que fica; os outros ficam inativos, sem apagar nada.
   - Opção: Permissão própria, sem desfazer — Só quem tem a permissão junta, com prévia e confirmação; se errar, separa à mão com ajuste de estoque.
   - Opção: Pode desfazer — A junção guarda o que era de cada produto e pode ser desfeita enquanto não houver movimento novo no produto que ficou. Mais seguro, mas dá mais trabalho para construir.
@@ -903,22 +904,23 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Não — Os filtros já ficam no endereço da página; quem quer guardar um recorte salva o link. Nada a construir.
   - Opção: Sim, só nesta tela — Recortes com nome por usuário na consulta de produto, guardados no servidor para valer em qualquer computador.
 - **[DECISÃO] D-29 · A receita da Fabricação aparece no painel do produto (CV6)?**
-  - Estado: Em aberto
+  - Estado: Decidida em 2026-11-12 · [F] — Resumo no painel, só leitura: insumos, quantidades, custo pela receita e margem, com "Abrir receita" que leva à Fabricação. A edição continua na Fabricação.
   - Texto: O painel mostra os itens de um kit (aba Composição, UC-PIDX-40), mas não a receita da Fabricação de um produto feito sob encomenda. O que já está decidido: a receita é a fonte do material (`_DECISOES-W-2026-10-15.md`), o aviso de custo desatualizado fica na receita (SPEC do Produto) e o charter, autorizado em 2026-10-10, diz *"❌ Sub-views de BOM/Insumos/Tabelas (ficam em `/products/unificado`)"*. Concorrentes: no shopVOX o produto é montado por materiais, máquina e mão de obra no próprio cadastro; no Odoo o produto leva à lista de materiais; no Office Comercial o cadastro tem a aba Composição (`AR-PROD-150..167`).
   - Opção: Resumo no painel (recomendação [F+C]) — Só leitura: insumos, quantidades, custo pela receita e margem, com "Abrir receita" que leva à Fabricação. A edição continua na Fabricação. O Non-Goal do charter passa a dizer que o que fica fora é editar a ficha técnica na consulta.
   - Opção: Só o link — O painel leva à receita na Fabricação, sem mostrar os insumos. O charter fica como está.
 - **[DECISÃO] D-30 · A venda deixa vender mais kits do que os componentes permitem?**
-  - Estado: Em aberto
+  - Estado: Decidida em 2026-11-12 · [F] — Corrigir a conta e seguir "Permitir vender sem estoque": o kit segue a regra de qualquer produto da empresa. Desligada, a venda não passa de quantos kits dá; ligada, passa e os componentes ficam negativos.
   - Texto: Kits disponíveis deveriam ser o menor resultado, entre os componentes que controlam estoque, de saldo ÷ quantidade por kit, arredondado para baixo; um componente zerado dá 0 kits. A conta do núcleo (`ProductUtil::calculateComboQuantity`) trata o zero como "ainda não calculei": se o primeiro componente zera, o seguinte sobrescreve (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Corrigir muda o que a venda deixa vender, então pede a dupla prova e o antes e depois de cada kit afetado.
   - Opção: Corrigir e seguir "Permitir vender sem estoque" (recomendação [F+C]) — Com a chave da empresa desligada, a venda não deixa passar de quantos kits dá; ligada, deixa e os componentes ficam negativos, como em qualquer produto.
   - Opção: Corrigir só a conta e não barrar — A venda mostra o número certo, mas não barra.
 - **[DECISÃO] D-31 · De onde vem o "entrou com nota" do saldo fiscal?**
-  - Estado: Em aberto
+  - Estado: Decidida em 2026-11-12 · [F] — Vem da compra: a compra criada a partir da nota fica ligada a ela (`nfe_dfe_recebidos.transaction_id`), e é essa ligação que conta. Compra lançada à mão, sem XML, conta como sem nota. Depende da fase 3 da entrada por XML (P-100, em Compras).
   - Texto: O saldo fiscal do painel conta o que entrou com nota menos o que saiu com nota. Hoje nenhuma compra registra se entrou com nota: a ligação da nota com a compra (`nfe_dfe_recebidos.transaction_id`) existe, mas nenhum fluxo a preenche, porque a compra a partir da nota ainda não existe (P-100). Sem isso, toda compra contaria como sem nota.
   - Opção: Esperar a compra a partir da nota (recomendação [F+C]) — O saldo fiscal nasce certo, ligado à nota de verdade. Depende do P-100, em Compras.
   - Opção: Campo "Compra com nota" no lançamento — Sai antes, mas é um campo novo na compra, e o saldo fica tão certo quanto quem marca o campo.
 
 ## Trilha do tempo
+- 2026-11-12 · [F+C] Decisões D-19 (juntar produtos é outra tela, do responsável, com histórico), D-29 (receita no painel, só leitura), D-30 (kits seguem "Permitir vender sem estoque") e D-31 (o "entrou com nota" vem da compra criada a partir da nota).
 - 2026-11-11 · [F+C] **UC-PIDX-45**: o excluído deixa de oferecer Editar, Estoque inicial, Código de barras e Preços por grupo (menu da linha e rodapé do painel), por decisão [F] depois do teste em produção.
 - 2026-11-06 · [F+C] **UC-PIDX-44**: filtro "Uso" (Para vender, Material, Serviço) na consulta de produto (CV1).
 - 2026-11-06 · [F+C] **UC-PIDX-45**: "Excluir" não apaga mais — o produto vai para "Situação: Excluídos" e "Restaurar" o devolve (D13 · `AR-PROD-022`).

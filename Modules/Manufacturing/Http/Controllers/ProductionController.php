@@ -217,7 +217,7 @@ class ProductionController extends Controller
             $manufacturing_settings = $this->mfgUtil->getSettings($business_id);
             $user_id = $request->session()->get('user.id');
 
-            $transaction_data = $request->only(['ref_no', 'transaction_date', 'location_id', 'final_total']);
+            $transaction_data = $request->only(['ref_no', 'transaction_date', 'location_id']);
 
             $is_final = ! empty($request->input('finalize')) ? 1 : 0;
             $transaction_data['business_id'] = $business_id;
@@ -226,7 +226,6 @@ class ProductionController extends Controller
             $transaction_data['status'] = $is_final ? 'received' : 'pending';
             $transaction_data['payment_status'] = 'due';
             $transaction_data['transaction_date'] = $this->productUtil->uf_date($transaction_data['transaction_date'], true);
-            $transaction_data['final_total'] = $this->productUtil->num_uf($transaction_data['final_total']);
 
             //Update reference count
             $ref_count = $this->productUtil->setAndGetReferenceCount($transaction_data['type']);
@@ -239,17 +238,56 @@ class ProductionController extends Controller
             $variation = Variation::where('id', $variation_id)
                                 ->with(['product'])
                                 ->first();
-            $final_total = $request->input('final_total');
+            // Linhas de consumo montadas ANTES do total: o total da ordem sai delas, no servidor (UC-OP-19).
+            $sell_lines = [];
+            $ingredient_quantities = ! empty($request->input('ingredients')) ? $request->input('ingredients') : [];
+
+            //Get ingredient details to create sell lines
+            $recipe = MfgRecipe::where('variation_id', $variation_id)->first();
+
+            $all_variation_details = $this->mfgUtil->getIngredientDetails($recipe, $business_id);
+
+            foreach ($all_variation_details as $variation_details) {
+                $insumo = $variation_details['variation'];
+
+                $line_sub_unit_id = ! empty($ingredient_quantities[$variation_details['id']]['sub_unit_id']) ?
+                                $ingredient_quantities[$variation_details['id']]['sub_unit_id'] : null;
+                $line_multiplier = ! empty($line_sub_unit_id) ? $variation_details['sub_units'][$line_sub_unit_id]['multiplier'] : 1;
+
+                $mfg_waste_percent = ! empty($ingredient_quantities[$variation_details['id']]['mfg_waste_percent']) ? $this->productUtil->num_uf($ingredient_quantities[$variation_details['id']]['mfg_waste_percent']) : 0;
+
+                $mfg_ingredient_group_id = ! empty($ingredient_quantities[$variation_details['id']]['mfg_ingredient_group_id']) ? $ingredient_quantities[$variation_details['id']]['mfg_ingredient_group_id'] : null;
+
+                $sell_lines[] = [
+                    'product_id' => $insumo->product_id,
+                    'variation_id' => $insumo->id,
+                    'quantity' => $this->productUtil->num_uf($ingredient_quantities[$variation_details['id']]['quantity']),
+                    'item_tax' => 0,
+                    'tax_id' => null,
+                    'unit_price' => $insumo->dpp_inc_tax * $line_multiplier,
+                    'unit_price_inc_tax' => $insumo->dpp_inc_tax * $line_multiplier,
+                    'enable_stock' => $variation_details['enable_stock'],
+                    'product_unit_id' => $insumo->product->unit_id,
+                    'sub_unit_id' => $line_sub_unit_id,
+                    'base_unit_multiplier' => $line_multiplier,
+                    'mfg_waste_percent' => $mfg_waste_percent,
+                    'mfg_ingredient_group_id' => $mfg_ingredient_group_id,
+                ];
+            }
+
             $quantity = $request->input('quantity');
             $waste_units = $this->productUtil->num_uf($request->input('mfg_wasted_units'));
             $uf_qty = $this->productUtil->num_uf($quantity);
+            // SDD §4 / handoff §9: o cliente nunca é fonte de `final_total` (UC-OP-19).
+            $final_total = $this->totalDaOrdem($sell_lines, $uf_qty, $this->productUtil->num_uf($request->input('production_cost')), $request->input('mfg_production_cost_type'));
+            $transaction_data['final_total'] = $final_total;
             if (! empty($waste_units)) {
                 $new_qty = $uf_qty - $waste_units;
                 $uf_qty = $new_qty;
                 $quantity = $this->numeroParaCore($new_qty);
             }
 
-            $final_total_uf = $this->productUtil->num_uf($final_total);
+            $final_total_uf = $final_total;
 
             $unit_purchase_line_total = $final_total_uf / $uf_qty;
 
@@ -312,41 +350,6 @@ class ProductionController extends Controller
                 'final_total' => $transaction->final_total,
             ];
 
-            $sell_lines = [];
-            $ingredient_quantities = ! empty($request->input('ingredients')) ? $request->input('ingredients') : [];
-
-            //Get ingredient details to create sell lines
-            $recipe = MfgRecipe::where('variation_id', $variation_id)->first();
-
-            $all_variation_details = $this->mfgUtil->getIngredientDetails($recipe, $business_id);
-
-            foreach ($all_variation_details as $variation_details) {
-                $variation = $variation_details['variation'];
-
-                $line_sub_unit_id = ! empty($ingredient_quantities[$variation_details['id']]['sub_unit_id']) ?
-                                $ingredient_quantities[$variation_details['id']]['sub_unit_id'] : null;
-                $line_multiplier = ! empty($line_sub_unit_id) ? $variation_details['sub_units'][$line_sub_unit_id]['multiplier'] : 1;
-
-                $mfg_waste_percent = ! empty($ingredient_quantities[$variation_details['id']]['mfg_waste_percent']) ? $this->productUtil->num_uf($ingredient_quantities[$variation_details['id']]['mfg_waste_percent']) : 0;
-
-                $mfg_ingredient_group_id = ! empty($ingredient_quantities[$variation_details['id']]['mfg_ingredient_group_id']) ? $ingredient_quantities[$variation_details['id']]['mfg_ingredient_group_id'] : null;
-
-                $sell_lines[] = [
-                    'product_id' => $variation->product_id,
-                    'variation_id' => $variation->id,
-                    'quantity' => $this->productUtil->num_uf($ingredient_quantities[$variation_details['id']]['quantity']),
-                    'item_tax' => 0,
-                    'tax_id' => null,
-                    'unit_price' => $variation->dpp_inc_tax * $line_multiplier,
-                    'unit_price_inc_tax' => $variation->dpp_inc_tax * $line_multiplier,
-                    'enable_stock' => $variation_details['enable_stock'],
-                    'product_unit_id' => $variation->product->unit_id,
-                    'sub_unit_id' => $line_sub_unit_id,
-                    'base_unit_multiplier' => $line_multiplier,
-                    'mfg_waste_percent' => $mfg_waste_percent,
-                    'mfg_ingredient_group_id' => $mfg_ingredient_group_id,
-                ];
-            }
 
             //Create Sell Transfer transaction
             $production_sell = Transaction::create($transaction_sell_data);
@@ -685,7 +688,7 @@ class ProductionController extends Controller
             ]);
 
             //Create Production purchase
-            $transaction_data = $request->only(['ref_no', 'transaction_date', 'location_id', 'final_total']);
+            $transaction_data = $request->only(['ref_no', 'transaction_date', 'location_id']);
 
             $is_final = ! empty($request->input('finalize')) ? 1 : 0;
 
@@ -694,23 +697,80 @@ class ProductionController extends Controller
             $transaction_data['status'] = $is_final ? 'received' : 'pending';
             $transaction_data['payment_status'] = 'due';
             $transaction_data['transaction_date'] = $this->productUtil->uf_date($transaction_data['transaction_date'], true);
-            $transaction_data['final_total'] = $this->productUtil->num_uf($transaction_data['final_total']);
 
             $variation_id = $request->input('variation_id');
             $variation = Variation::where('id', $variation_id)
                                 ->with(['product'])
                                 ->first();
-            $final_total = $request->input('final_total');
+            $transaction = Transaction::where('business_id', $business_id)
+                                    ->where('type', 'production_purchase')
+                                    ->findOrFail($id);
+
+            //Finalized production should not be editable
+            if ($transaction->mfg_is_final == 1) {
+                $output = ['success' => 0,
+                    'msg' => __('messages.something_went_wrong'),
+                ];
+
+                return redirect()->action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'index'])->with('status', $output);
+            }
+
+            //Create Sell Transfer transaction
+            $production_sell = Transaction::where('business_id', $business_id)
+                                    ->where('type', 'production_sell')
+                                    ->with('sell_lines', 'sell_lines.product', 'sell_lines.variations')
+                                    ->where('mfg_parent_production_purchase_id', $transaction->id)
+                                    ->first();
+
+            // Linhas de consumo montadas ANTES do total: o total da ordem sai delas, no servidor (UC-OP-19).
+            $sell_lines = [];
+            $ingredient_quantities = $request->input('ingredients');
+
+            foreach ($production_sell->sell_lines as $sell_line) {
+                $insumo = $sell_line->variations;
+
+                $line_sub_unit_id = ! empty($ingredient_quantities[$sell_line->id]['sub_unit_id']) ?
+                                $ingredient_quantities[$sell_line->id]['sub_unit_id'] : null;
+                $line_multiplier = 1;
+                if (! empty($line_sub_unit_id)) {
+                    $sub_units = $this->productUtil->getSubUnits($business_id, $sell_line->product->unit_id);
+                    $line_multiplier = ! empty($sub_units[$line_sub_unit_id]['multiplier']) ? $sub_units[$line_sub_unit_id]['multiplier'] : 1;
+                }
+
+                $mfg_waste_percent = ! empty($ingredient_quantities[$sell_line->id]['mfg_waste_percent']) ? $this->productUtil->num_uf($ingredient_quantities[$sell_line->id]['mfg_waste_percent']) : 0;
+
+                $mfg_ingredient_group_id = ! empty($ingredient_quantities[$sell_line->id]['mfg_ingredient_group_id']) ? $ingredient_quantities[$sell_line->id]['mfg_ingredient_group_id'] : null;
+
+                $sell_lines[] = [
+                    'product_id' => $insumo->product_id,
+                    'variation_id' => $insumo->id,
+                    'quantity' => $this->productUtil->num_uf($ingredient_quantities[$sell_line->id]['quantity']),
+                    'item_tax' => 0,
+                    'tax_id' => null,
+                    'unit_price' => $insumo->dpp_inc_tax * $line_multiplier,
+                    'unit_price_inc_tax' => $insumo->dpp_inc_tax * $line_multiplier,
+                    'enable_stock' => $sell_line->product->enable_stock,
+                    'product_unit_id' => $insumo->product->unit_id,
+                    'sub_unit_id' => $line_sub_unit_id,
+                    'base_unit_multiplier' => $line_multiplier,
+                    'mfg_waste_percent' => $mfg_waste_percent,
+                    'mfg_ingredient_group_id' => $mfg_ingredient_group_id,
+                ];
+            }
+
             $quantity = $request->input('quantity');
             $waste_units = $this->productUtil->num_uf($request->input('mfg_wasted_units'));
             $uf_qty = $this->productUtil->num_uf($quantity);
+            // SDD §4 / handoff §9: o cliente nunca é fonte de `final_total` (UC-OP-19).
+            $final_total = $this->totalDaOrdem($sell_lines, $uf_qty, $this->productUtil->num_uf($request->input('production_cost')), $request->input('mfg_production_cost_type'));
+            $transaction_data['final_total'] = $final_total;
             if (! empty($waste_units)) {
                 $new_qty = $uf_qty - $waste_units;
                 $uf_qty = $new_qty;
                 $quantity = $this->numeroParaCore($new_qty);
             }
 
-            $final_total_uf = $this->productUtil->num_uf($final_total);
+            $final_total_uf = $final_total;
 
             $unit_purchase_line_total = $final_total_uf / $uf_qty;
 
@@ -746,18 +806,6 @@ class ProductionController extends Controller
                 $purchase_line_data['sub_unit_id'] = $request->input('sub_unit_id');
             }
 
-            $transaction = Transaction::where('business_id', $business_id)
-                                    ->where('type', 'production_purchase')
-                                    ->findOrFail($id);
-
-            //Finalized production should not be editable
-            if ($transaction->mfg_is_final == 1) {
-                $output = ['success' => 0,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-
-                return redirect()->action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'index'])->with('status', $output);
-            }
             DB::beginTransaction();
 
             $transaction->update($transaction_data);
@@ -782,49 +830,7 @@ class ProductionController extends Controller
                 'final_total' => $transaction->final_total,
             ];
 
-            //Create Sell Transfer transaction
-            $production_sell = Transaction::where('business_id', $business_id)
-                                    ->where('type', 'production_sell')
-                                    ->with('sell_lines', 'sell_lines.product', 'sell_lines.variations')
-                                    ->where('mfg_parent_production_purchase_id', $transaction->id)
-                                    ->first();
-
             $production_sell->update($transaction_sell_data);
-
-            $sell_lines = [];
-            $ingredient_quantities = $request->input('ingredients');
-
-            foreach ($production_sell->sell_lines as $sell_line) {
-                $variation = $sell_line->variations;
-
-                $line_sub_unit_id = ! empty($ingredient_quantities[$sell_line->id]['sub_unit_id']) ?
-                                $ingredient_quantities[$sell_line->id]['sub_unit_id'] : null;
-                $line_multiplier = 1;
-                if (! empty($line_sub_unit_id)) {
-                    $sub_units = $this->productUtil->getSubUnits($business_id, $sell_line->product->unit_id);
-                    $line_multiplier = ! empty($sub_units[$line_sub_unit_id]['multiplier']) ? $sub_units[$line_sub_unit_id]['multiplier'] : 1;
-                }
-
-                $mfg_waste_percent = ! empty($ingredient_quantities[$sell_line->id]['mfg_waste_percent']) ? $this->productUtil->num_uf($ingredient_quantities[$sell_line->id]['mfg_waste_percent']) : 0;
-
-                $mfg_ingredient_group_id = ! empty($ingredient_quantities[$sell_line->id]['mfg_ingredient_group_id']) ? $ingredient_quantities[$sell_line->id]['mfg_ingredient_group_id'] : null;
-
-                $sell_lines[] = [
-                    'product_id' => $variation->product_id,
-                    'variation_id' => $variation->id,
-                    'quantity' => $this->productUtil->num_uf($ingredient_quantities[$sell_line->id]['quantity']),
-                    'item_tax' => 0,
-                    'tax_id' => null,
-                    'unit_price' => $variation->dpp_inc_tax * $line_multiplier,
-                    'unit_price_inc_tax' => $variation->dpp_inc_tax * $line_multiplier,
-                    'enable_stock' => $sell_line->product->enable_stock,
-                    'product_unit_id' => $variation->product->unit_id,
-                    'sub_unit_id' => $line_sub_unit_id,
-                    'base_unit_multiplier' => $line_multiplier,
-                    'mfg_waste_percent' => $mfg_waste_percent,
-                    'mfg_ingredient_group_id' => $mfg_ingredient_group_id,
-                ];
-            }
 
             if (! empty($sell_lines)) {
                 // As linhas já vêm em número (num_uf acima): sem uf_data=false o core relê e 0,125 vira 125 (UC-OP-20).
@@ -872,6 +878,32 @@ class ProductionController extends Controller
         }
 
         return redirect()->action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'index'])->with('status', $output);
+    }
+
+    /**
+     * Total da ordem calculado no servidor (SDD §4, handoff §9, UC-OP-19): o `final_total` do navegador não
+     * entra. Mesma conta do formulário da tela antiga e do painel (`ProductionService::detalheOrdem`):
+     * ingredientes = Σ consumo × custo do insumo × multiplicador da sub-unidade (o `unit_price_inc_tax` da linha
+     * já vem multiplicado); custo extra = % sobre os ingredientes, valor × quantidade produzida (com as
+     * perdidas) ou valor fixo.
+     *
+     * @param  array<int, array<string, mixed>>  $linhas
+     */
+    private function totalDaOrdem(array $linhas, float $quantidadeProduzida, float $custoExtra, ?string $tipo): float
+    {
+        $ingredientes = 0.0;
+        foreach ($linhas as $linha) {
+            $ingredientes += (float) $linha['quantity'] * (float) $linha['unit_price_inc_tax'];
+        }
+
+        $extra = $custoExtra;
+        if ($tipo === 'percentage') {
+            $extra = $ingredientes * $custoExtra / 100;
+        } elseif ($tipo === 'per_unit') {
+            $extra = $custoExtra * $quantidadeProduzida;
+        }
+
+        return $ingredientes + $extra;
     }
 
     /**
