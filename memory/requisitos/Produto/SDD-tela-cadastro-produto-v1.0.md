@@ -1203,6 +1203,12 @@ qual é o local padrão.
     decide onde guardar. Cada empresa pode dar, se quiser.
   - **Se o [W] mergear o PR desta proposta, vale a proposta** e a implementação vem num PR seguinte.
     Para mudar, basta comentar no PR.
+  - **Valendo (2026-11-12):** o merge do #10765 foi autorizado pelo [F], não pelo [W] (registrado no PR).
+  - **No servidor (2026-11-12):** permissão `product.armazenagem` na tela de papéis; rota
+    `PATCH /products/{id}/armazenagem`, que grava só locais, endereço e local padrão; histórico
+    `armazenagem_alterada` no log do produto, com o antes e o depois, também quando a mudança vem do
+    Editar completo. Caso `UC-PEDIT-22`. A tela (Editar aberto só com o bloco liberado para quem tem só
+    a permissão nova) vem no PR seguinte.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
