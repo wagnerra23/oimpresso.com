@@ -163,7 +163,7 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
     <button type="button" className="self-center text-sm text-muted-foreground underline-offset-4 hover:underline" onClick={() => setTela('config')}>Configurações e autorizações</button>
     <button type="button" className="self-center text-sm text-primary underline-offset-4 hover:underline" onClick={() => setTela('consultas')}>Minhas consultas</button>
     {props.envio_documentos && (
-      <button type="button" data-contract="fisio-portal-enviar-documento-convite" className="self-center text-sm text-primary underline-offset-4 hover:underline" onClick={() => setTela('documentos')}>Enviar exame ou receita</button>
+      <button type="button" data-contract="fisio-portal-enviar-documento-convite" className="self-center text-sm text-primary underline-offset-4 hover:underline" onClick={() => setTela('documentos')}>Enviar exame, receita ou atestado</button>
     )}
     </>
   );

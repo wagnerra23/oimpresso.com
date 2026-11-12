@@ -24,7 +24,7 @@ const AUTORIZACOES: { purpose: string; titulo: string; detalhe: (clinica: string
   { purpose: 'teleatendimento', titulo: 'Meu tratamento', detalhe: (c) => `Meus dados de saúde (dor, exercícios, recados) para ${c} acompanhar meu tratamento.` },
   { purpose: 'whatsapp', titulo: 'Lembretes no WhatsApp', detalhe: () => 'Um lembrete por dia com o link dos exercícios.' },
   { purpose: 'camera', titulo: 'Câmera para contar repetições', detalhe: () => 'Liga só quando você escolher. A imagem fica no seu celular; só a contagem sobe.' },
-  { purpose: 'documentos', titulo: 'Enviar exames e receitas', detalhe: (c) => `Mandar foto de exame ou receita para ${c} conferir e guardar no prontuário.` },
+  { purpose: 'documentos', titulo: 'Enviar exames, receitas e atestados', detalhe: (c) => `Mandar foto de exame, receita ou atestado para ${c} conferir e guardar no prontuário.` },
 ];
 
 /** Estudo que o paciente aceitou (TCLE do estudo), como vem do servidor. */

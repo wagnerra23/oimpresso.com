@@ -89,9 +89,10 @@ return [
         // pelo CEP daquele estudo (`fisio_studies.tcle_version`, etapa 07 P-02). A antiga
         // `pesquisa_ia` saiu da lista: os aceites antigos ficam no banco e não valem para nada.
         'treino_ia' => 'v1',
-        // Enviar foto de exame ou receita pelo portal (US-FISIO-063, parte 4). Separado do
-        // teleatendimento: sem ele o portal não recebe o envio.
-        'documentos' => 'v1',
+        // Enviar foto de exame, receita ou atestado pelo portal (US-FISIO-063, parte 4). Separado do
+        // teleatendimento: sem ele o portal não recebe o envio. v2 (2026-11-12): o termo passou a
+        // nomear o atestado médico (UC-FER-21); quem aceitou a v1 aceita de novo antes do próximo envio.
+        'documentos' => 'v2',
     ],
 
     /*
