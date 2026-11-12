@@ -54,15 +54,15 @@ export function EditarSoArmazenagem({ product: p, rackDetails, businessLocations
       <Head title={`Locais de armazenagem · ${p.name}`} />
       <div className="min-h-screen text-foreground">
         <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
-          <div className="px-6 pt-4 pb-3 flex items-center justify-between">
+          <Inline justify="between" gap={4} className="px-6 pt-4 pb-3">
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+              <Inline gap={1} className="text-[12px] text-muted-foreground">
                 <Link href="/products" className="hover:underline">
                   Produtos
                 </Link>
                 <span className="text-muted-foreground">›</span>
                 <span className="text-foreground font-medium">Locais de armazenagem</span>
-              </div>
+              </Inline>
               <h1 className="mt-1 text-[24px] font-semibold tracking-tight truncate">{p.name}</h1>
               <div className="mt-1 font-mono text-[12px] text-muted-foreground">{p.sku}</div>
             </div>
@@ -72,7 +72,7 @@ export function EditarSoArmazenagem({ product: p, rackDetails, businessLocations
                 Voltar à lista
               </Link>
             </Button>
-          </div>
+          </Inline>
         </header>
 
         <form id="produto-armazenagem-form" onSubmit={salvar} className="pb-16 px-6 mt-4" data-testid="editar-so-armazenagem">
