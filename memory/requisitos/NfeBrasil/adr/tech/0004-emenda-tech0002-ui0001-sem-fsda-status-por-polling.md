@@ -4,7 +4,7 @@ id: requisitos-nfe-brasil-adr-tech-0004-emenda-tech0002-ui0001-sem-fsda-status-p
 
 # ADR TECH-0004 (NfeBrasil) · Emenda de TECH-0002 e UI-0001: sem FS-DA, status por polling
 
-- **Status**: proposto (ratificação do [W])
+- **Status**: accepted (ratificada pelo [W] em 2026-11-12)
 - **Data**: 2026-11-11
 - **Decisores**: Wagner (ratifica)
 - **Categoria**: tech
