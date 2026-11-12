@@ -102,6 +102,7 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
 | UC-PIDX-45 | Excluir sem perder e restaurar | must | `ProductController::destroy` / `massDestroy` / `restaurar` + `consultaListaProdutos` (`deleted_at`) + `AcoesProduto.tsx` | `ProdutoExcluirRestaurarTest` (lane Estoque · MySQL) + `produto-excluir-restaurar.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-46 | "O que é" no painel e a coluna Tipo fora do padrão (resto da CV1) | should | `ProductController::buildProdutoDetalhe` (`uso`) + `oQueE` em `tipos.ts` + `PainelDetalhe.tsx` + `colunasOpcionais` | `ProdutoListaUsoTest` (lane Estoque · MySQL) + `produto-o-que-e.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-47 | "Locais de armazenagem" para quem só pode mexer nos locais | should | `CU-PROD-20` (proposta #10765, autorizada pelo [F] em 2026-11-12) · `ProductController::index` (`permissions.armazenagem`) + `AcoesProduto.tsx` + `PainelDetalhe.tsx`: com `product.armazenagem` sem `product.update`, o menu da linha e o rodapé do painel trazem "Locais de armazenagem" (abre o Editar só com os locais) no lugar de "Editar"; com `product.update` segue "Editar"; produto sem estoque controlado ou excluído não tem o item | `ProdutoArmazenagemPermissaoTest` (Pest) + `produto-locais-armazenagem-acesso.test.tsx` (Vitest) | ✅ verde no CI (job 131372610661 Pest + Frontend / Vite build) |
+| UC-PIDX-48 | Receita da Fabricação no painel, só leitura (D-29) | should | `ProductController::receitasDoProduto` + `App\Contracts\Fabricacao\ReceitaDoProduto` (`RecipeBomService::fichasDoProduto`) + `PainelDetalhe.tsx` | `ProdutoReceitaNoPainelTest` (lane Estoque · MySQL) + `produto-receita-no-painel.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -620,6 +621,14 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
 - **Gates:** o mesmo do painel (`product.view`). Tier 0: a receita e a natureza são lidas só da empresa do usuário, pelos mesmos contratos do filtro.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-48 · Receita da Fabricação no painel, só leitura (D-29) · `should`
+- **Persona:** quem vende ou orça um produto feito sob encomenda e quer saber, sem sair da consulta, de que material ele é feito, quanto custa pela receita e qual a margem.
+- **Aceite:** Dado um banner feito de 2 de lona (lona a 10), custo de produção de 10% e preço final da receita 44 · Quando abro o painel do banner · Então aparece a aba Receita com a lona e a quantidade 2 · E o custo da receita 22, o custo por unidade 22 e a margem 50% — os mesmos números da tela de Receitas · E "Abrir receita" leva à receita na Fabricação · Sem ver o preço de compra, custo e margem aparecem como "—" (o servidor nem envia) · Sem abrir receitas, não há "Abrir receita" · Produto sem receita não tem a aba · A receita não se edita aqui.
+- **Teste:** [`ProdutoReceitaNoPainelTest`](../../../../tests/Feature/Produto/ProdutoReceitaNoPainelTest.php) — `UC-PIDX-48` (o número por três caminhos: a conta à mão, a tela de Receitas e o painel; custo, margem e link conforme a permissão; sem receita; a receita só para a empresa dona — lane Estoque · MySQL) e [`produto-receita-no-painel.test.tsx`](../../../../tests/js/produto-receita-no-painel.test.tsx) — `UC-PIDX-48` (a aba só com receita; insumos, custo e margem; "Abrir receita"; sem permissão — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-12: tirar a aba e o botão derruba os 4 casos de tela.
+- **Contrato:** D-29 (decisão [F] 2026-11-12) — resumo só leitura com "Abrir receita"; a edição continua na Fabricação. A receita é a fonte do material (`_DECISOES-W-2026-10-15.md`). O Non-Goal do charter passou a dizer que o que fica fora é editar a ficha técnica na consulta. Os números saem de `RecipeBomService::presentRecipe`, a mesma conta da tela de Receitas: o painel não recalcula.
+- **Gates:** o painel (`product.view`); a aba só com a Fabricação no pacote da empresa (`manufacturing_module`, a mesma regra do Roteiro); custo, custo por unidade e margem só com `view_purchase_price`; "Abrir receita" só com `manufacturing.access_recipe`. Tier 0: a receita sai pelo `products.business_id` do produto.
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -805,12 +814,7 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
   revenda (D5) mostra a mesma tabela sem OS e sem "já usado". Depende da reserva por m² existir na
   venda da CV, que o UC-FLX-14 ainda lista como falta.
 - Saldo do material em rolos e em m² (CV2) saiu deste backlog em 2026-11-04: virou UC-PIDX-39, com teste, usando as subunidades que a empresa já cadastra.
-- **[BACKLOG] Composição com a receita da Fabricação no painel (CV6)** — hoje o painel mostra só
-  os itens de um produto do tipo Composição. Aceite: Dado um produto com receita na Fabricação,
-  Quando abro o painel, Então vejo materiais e quantidades da receita. ⚠️ Conferir com o charter: o
-  Non-Goal "Sub-views de BOM/Insumos ficam em `/products/unificado`" pode valer aqui — decisão [W].
-  Fonte: shopVOX (lista de materiais, mão de obra e máquina do produto).
-  Decidido em 2026-11-12 (D-29): resumo só leitura no painel, com "Abrir receita".
+- A receita da Fabricação no painel (CV6) saiu deste backlog em 2026-11-12: virou UC-PIDX-48, com teste, pela decisão D-29.
 - **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — cada rolo é um lote, e o
   relatório de Lotes já mostra em que OS cada rolo foi usado (US-COM-025 · UC-FLX-18, parcial). A
   consulta seria a porta de entrada: a aba Rolos do painel lista os rolos e leva ao relatório de
@@ -926,6 +930,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Campo "Compra com nota" no lançamento — Sai antes, mas é um campo novo na compra, e o saldo fica tão certo quanto quem marca o campo.
 
 ## Trilha do tempo
+- 2026-11-12 · [F+C] **UC-PIDX-48**: a aba Receita no painel mostra a receita da Fabricação, só leitura (insumos, custo e margem da tela de Receitas), com "Abrir receita" (D-29).
 - 2026-11-12 · [F+C] **UC-PIDX-46**: o painel diz "O que é" o produto (Para vender, Material ou Serviço, pela regra do filtro "Uso") e a coluna Tipo deixa de vir ligada (resto da CV1).
 - 2026-11-12 · [F+C] **UC-PIDX-45**: o servidor passa a recusar (409) Editar, Preços por grupo e Estoque inicial do excluído, e as ações em lote deixam o excluído de fora. Antes só a tela escondia essas ações.
 - 2026-11-12 · [F+C] Decisões D-19 (juntar produtos é outra tela, do responsável, com histórico), D-29 (receita no painel, só leitura), D-30 (kits seguem "Permitir vender sem estoque") e D-31 (o "entrou com nota" vem da compra criada a partir da nota).

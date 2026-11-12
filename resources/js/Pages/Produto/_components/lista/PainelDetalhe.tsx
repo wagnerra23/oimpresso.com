@@ -16,7 +16,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import { TIPO_ROTULO, dataBr, oQueE, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
+import { TIPO_ROTULO, dataBr, type ReceitaDoProdutoNoPainel, oQueE, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
 import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 
 type Aba = AbaDoDetalhe;
@@ -262,6 +262,68 @@ function PrecosPropostos({ itens, irPara }: { itens: PrecoPropostoDoProduto[]; i
  * UC-FLX-07 · UC-FLX-08). O responsável não aparece: ele é escolhido na OS, entre os operadores do
  * posto (US-PCP-030).
  */
+/**
+ * UC-PIDX-48 (D-29): a receita da Fabricação, só leitura — insumos, quantidades, custo e margem, com
+ * "Abrir receita" na Fabricação, que é onde ela se edita. Nada é calculado aqui: os números chegam do
+ * servidor, pela mesma conta da tela de Receitas.
+ */
+function ReceitaDoProdutoSecao({ r, irPara }: { r: ReceitaDoProdutoNoPainel; irPara: (url: string) => void }) {
+  const semPermissao = 'sem permissão para ver o custo';
+  return (
+    <div className="space-y-3" data-contract="produto-detalhe-receita">
+      <TituloDaSecao>{`Receita: ${r.nome}`}</TituloDaSecao>
+      <p className="pb-help">{`Rende ${qtd(r.rendimento)}${r.unidade ? ` ${r.unidade}` : ''}. A receita se edita na Fabricação.`}</p>
+      <Grid cols={3} className="gap-[10px]">
+        <div className="pb-kpi">
+          <small>Custo da receita</small>
+          <b>{dinheiro(r.custo_total)}</b>
+          <div className="ln">{r.custo_total === null ? semPermissao : 'insumos e custo de produção'}</div>
+        </div>
+        <div className="pb-kpi">
+          <small>Custo por unidade</small>
+          <b>{dinheiro(r.custo_unitario)}</b>
+          <div className="ln">{r.custo_unitario === null ? semPermissao : 'custo da receita ÷ rendimento'}</div>
+        </div>
+        <div className="pb-kpi">
+          <small>Margem</small>
+          <b>{r.margem === null ? '—' : `${r.margem.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`}</b>
+          <div className="ln">{r.margem === null ? semPermissao : 'a mesma da tela de Receitas'}</div>
+        </div>
+      </Grid>
+      {r.insumos.length === 0 ? (
+        <p className="pb-help">A receita não tem insumos cadastrados.</p>
+      ) : (
+        <table className="pb-tbl">
+          <caption className="sr-only">Insumos da receita</caption>
+          <thead>
+            <tr>
+              <th>Insumo</th>
+              <th>SKU</th>
+              <th className="r">Qtd</th>
+            </tr>
+          </thead>
+          <tbody>
+            {r.insumos.map((i, n) => (
+              <tr key={`${n}-${i.sku}`}>
+                <td>
+                  <b>{i.nome}</b>
+                </td>
+                <td className="m">{i.sku}</td>
+                <td className="r">{qtdComUnidade(i.quantidade, i.unidade)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {r.link && (
+        <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(r.link as string)}>
+          Abrir receita
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function RoteiroDoProdutoSecao({ r }: { r: RoteiroDoProduto }) {
   return (
     <div data-contract="produto-detalhe-roteiro">
@@ -371,6 +433,10 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
         // Produto que não controla estoque também tem a aba, com o aviso (protótipo). Sem a
         // permissão de ver o relatório de estoque, a aba segue fora.
         ...(d.estoque !== null || !d.dados.controla_estoque ? [{ key: 'estoque', label: 'Estoque', href: '#' }] : []),
+        // UC-PIDX-48 (D-29): só aparece quando o produto tem receita na Fabricação.
+        ...(d.receitas && d.receitas.length > 0
+          ? [{ key: 'receita', label: 'Receita', href: '#', badge: d.receitas.reduce((n, r) => n + r.insumos.length, 0) }]
+          : []),
         // UC-PIDX-29: só aparece quando o produto tem roteiro de produção.
         ...(d.roteiro ? [{ key: 'roteiro', label: 'Roteiro', href: '#', badge: d.roteiro.etapas.length }] : []),
         // NCM, CEST, CFOP e origem só servem a quem emite nota: a mesma regra do botão "Abrir no
@@ -499,6 +565,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <PrecosPropostos itens={d.precos_propostos ?? []} irPara={irPara} />
                 </Grid>
               )}
+
+              {abaAtiva === 'receita' && (d.receitas ?? []).map((r) => <ReceitaDoProdutoSecao key={r.sku} r={r} irPara={irPara} />)}
 
               {abaAtiva === 'roteiro' && d.roteiro && <RoteiroDoProdutoSecao r={d.roteiro} />}
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Manufacturing\Services;
 
+use App\Contracts\Fabricacao\ReceitaDoProduto;
 use App\Util\OtelHelper;
 use App\Variation;
 use Illuminate\Support\Collection;
@@ -27,7 +28,7 @@ use Modules\Manufacturing\Entities\MfgRecipeIngredient;
  * @see Modules\Manufacturing\Utils\ManufacturingUtil
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
-class RecipeBomService
+class RecipeBomService implements ReceitaDoProduto
 {
     /**
      * Resolve o BOM completo de uma recipe — ingredients ordenados + variation chain pre-carregada.
@@ -504,7 +505,43 @@ class RecipeBomService
     public function listRecipesWithCost(int $businessId): array
     {
         return OtelHelper::spanBiz('manufacturing.recipe.list_with_cost', function () use ($businessId) {
-            $recipes = MfgRecipe::query()
+            $recipes = $this->consultaReceitasComCusto($businessId)
+                ->orderBy('p.name', 'asc')
+                ->get();
+
+            return $recipes->map(function (MfgRecipe $recipe) {
+                return $this->presentRecipe($recipe);
+            })->all();
+        }, [
+            'module' => 'Manufacturing',
+        ]);
+    }
+
+    /**
+     * UC-PIDX-48 (D-29): as fichas das receitas de UM produto, para o painel da consulta de produto. A mesma
+     * consulta e a mesma conta (`presentRecipe`) da tela de Receitas: o painel mostra o número dela.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function fichasDoProduto(int $productId, int $businessId): array
+    {
+        $recipes = $this->consultaReceitasComCusto($businessId)
+            ->where('p.id', $productId)
+            ->orderBy('v.id', 'asc')
+            ->get();
+
+        return array_values($recipes->map(fn (MfgRecipe $recipe) => $this->presentRecipe($recipe))->all());
+    }
+
+    /**
+     * A consulta das receitas da empresa com o que `presentRecipe` lê. Tier 0 ({@see ADR 0093}): pelo
+     * `products.business_id` do produto da receita.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder<MfgRecipe>
+     */
+    private function consultaReceitasComCusto(int $businessId): \Illuminate\Database\Eloquent\Builder
+    {
+        return MfgRecipe::query()
                 ->join('variations as v', 'mfg_recipes.variation_id', '=', 'v.id')
                 ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
                 ->join('products as p', 'v.product_id', '=', 'p.id')
@@ -529,16 +566,7 @@ class RecipeBomService
                     'c.name as category',
                     'sc.name as sub_category',
                     'u.short_name as unit_name'
-                )
-                ->orderBy('p.name', 'asc')
-                ->get();
-
-            return $recipes->map(function (MfgRecipe $recipe) {
-                return $this->presentRecipe($recipe);
-            })->all();
-        }, [
-            'module' => 'Manufacturing',
-        ]);
+                );
     }
 
     /** Colunas ordenáveis da tela (§4.2) e a chave de cada uma — as mesmas do cliente até 2026-10-02. */
