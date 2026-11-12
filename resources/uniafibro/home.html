@@ -35,6 +35,7 @@
             --texto: #2a2135;
             --texto-suave: #5d5270;
             --borda: #e6ddf2;
+            --banda: #f1e9fb;
             --sombra: 0 10px 30px rgba(75, 36, 119, 0.10);
         }
         @media (prefers-color-scheme: dark) {
@@ -46,6 +47,7 @@
                 --texto: #f1ecf7;
                 --texto-suave: #c3b8d3;
                 --borda: #3a2f48;
+                --banda: #1c1525;
                 --sombra: 0 10px 30px rgba(0, 0, 0, 0.35);
             }
         }
@@ -82,16 +84,21 @@
         .marca { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 700; }
         .marca img { width: 34px; height: 34px; background: #fff; border-radius: 50%; padding: 3px; }
         .nav ul { list-style: none; margin: 0 0 0 auto; padding: 0; display: flex; gap: 4px 18px; flex-wrap: wrap; }
-        .nav ul a { color: #f3ecfc; text-decoration: none; font-size: 0.95rem; }
+        /* Alvo de toque >= 44px (público com dor crônica, muitas vezes com dor nas mãos). */
+        .nav ul a { display: inline-block; padding: 12px 6px; color: #f3ecfc; text-decoration: none; font-size: 1rem; }
         .nav ul a:hover { text-decoration: underline; }
 
         /* Topo */
         .topo {
+            position: relative;
             background:
-                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.18), transparent 40%),
+                radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.22), transparent 38%),
+                radial-gradient(circle at 88% 78%, rgba(255, 255, 255, 0.12), transparent 42%),
                 linear-gradient(135deg, #a78bdb 0%, #6b3fa0 55%, #4b2477 100%);
             color: #fff;
         }
+        /* Camada: a onda que "derrete" o topo na página. */
+        .onda { display: block; width: 100%; height: 56px; color: var(--fundo); margin-top: -1px; }
         .topo-in {
             max-width: 1040px; margin: 0 auto; padding: 56px 16px 64px;
             display: grid; grid-template-columns: 1fr; gap: 32px; align-items: center; text-align: center;
@@ -115,24 +122,39 @@
         .topo-logo img {
             width: min(280px, 60vw); height: auto; aspect-ratio: 1;
             background: #fff; border-radius: 50%; padding: 20px;
-            box-shadow: 0 18px 48px rgba(30, 10, 60, 0.35);
+            outline: 10px solid rgba(255, 255, 255, 0.16); outline-offset: 0;
+            box-shadow: 0 18px 48px rgba(30, 10, 60, 0.35), 0 0 0 26px rgba(255, 255, 255, 0.07);
         }
 
         /* Seções */
         .secao { max-width: 1040px; margin: 0 auto; padding: 56px 16px 8px; }
         .secao > h2 { margin: 0 0 6px; font-size: clamp(1.6rem, 3.5vw, 2rem); color: var(--roxo); }
-        .secao > .sub { margin: 0 0 24px; color: var(--texto-suave); max-width: 720px; }
+        .secao > .sub { margin: 0 0 24px; color: var(--texto-suave); max-width: 68ch; }
+        /* Camada: faixa de fundo em largura total, sem wrapper extra no HTML. */
+        .banda {
+            background: var(--banda);
+            box-shadow: 0 0 0 100vmax var(--banda);
+            clip-path: inset(0 -100vmax);
+            margin-top: 56px; padding-bottom: 56px;
+        }
+        /* Leitura confortável: nenhuma linha de texto corrido passa de ~70 caracteres. */
+        .fundadora p, .linha p, .faixa p, .app p, .cartao p { max-width: 70ch; }
         .grade { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
         .cartao {
             background: var(--superficie); border: 1px solid var(--borda); border-radius: 16px;
             padding: 22px 22px 20px; box-shadow: var(--sombra);
         }
         .grade + .cartao { margin-top: 16px; }
+        /* Camada: cartões ganham profundidade ao passar o mouse (só com movimento liberado). */
+        @media (prefers-reduced-motion: no-preference) {
+            .cartao, .numeros > div { transition: transform .18s ease, box-shadow .18s ease; }
+            .cartao:hover, .numeros > div:hover { transform: translateY(-3px); box-shadow: 0 16px 36px rgba(75, 36, 119, 0.16); }
+        }
         .cartao h3 { margin: 0 0 8px; font-size: 1.12rem; }
         .cartao p { margin: 0 0 10px; }
         .cartao p:last-child { margin-bottom: 0; }
         .rotulo {
-            display: inline-block; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em;
+            display: inline-block; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.04em;
             text-transform: uppercase; color: var(--roxo); background: var(--lilas-claro);
             padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
         }
@@ -165,7 +187,7 @@
         .linha .ano { font-weight: 800; color: var(--roxo); }
         .linha p { margin: 2px 0 0; }
 
-        .linha .fonte { display: block; margin-top: 4px; font-size: 0.88rem; }
+        .linha .fonte { display: block; padding: 4px 0; margin-top: 2px; font-size: 0.92rem; }
         .linha .fonte::before { content: "Fonte: "; color: var(--texto-suave); }
         .linha .relato { color: var(--texto-suave); font-style: italic; }
         .numeros { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 0 0 28px; }
@@ -175,7 +197,7 @@
         }
         .numeros strong { font-size: 2rem; line-height: 1.1; color: var(--roxo); }
         .numeros span { color: var(--texto); }
-        .numeros a { font-size: 0.82rem; margin-top: auto; }
+        .numeros a { display: inline-block; padding: 6px 0; font-size: 0.9rem; margin-top: auto; }
 
         /* App */
         .app {
@@ -230,6 +252,7 @@
                 <img src="/uniafibro/logo.png" alt="Logo da Uniafibro: seis pessoas de mãos dadas em roda, com o laço roxo da fibromialgia ao centro" width="280" height="280">
             </div>
         </div>
+        <svg class="onda" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 44 C240 84 480 4 720 34 C960 64 1200 14 1440 44 L1440 80 L0 80 Z" fill="currentColor"/></svg>
     </header>
 
     <main id="conteudo">
@@ -269,7 +292,7 @@
             </div>
         </section>
 
-        <section class="secao" id="quem-somos" aria-labelledby="t-quem">
+        <section class="secao banda" id="quem-somos" aria-labelledby="t-quem">
             <h2 id="t-quem">Quem somos</h2>
             <!-- Fonte (Wagner, 2026-11-12): docs "AGFESC — Diagnóstico crítico e plano de expansão"
                  e "Exposição de motivos – Estatuto da UNIAFIBRO-SC". Grafia "Giselli" confirmada pelo [W] em 2026-11-12 (a Unesc escreve "Gisele"). CONFIRMAR [W]:
@@ -445,7 +468,7 @@
             </div>
         </section>
 
-        <section class="secao" id="app" aria-labelledby="t-app">
+        <section class="secao banda" id="app" aria-labelledby="t-app">
             <h2 id="t-app">App Uniafibro</h2>
             <div class="app">
                 <img src="/uniafibro/logo.png" alt="Ícone do app Uniafibro" width="120" height="120">
