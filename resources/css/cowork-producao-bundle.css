@@ -1,8 +1,8 @@
 /* cowork-producao-bundle.css — Produção (PCP) · telas do Modules/Producao (ADR 0431)
  *
  * PROVENIENCIA: copia INTEIRA e VERBATIM de `prototipo-ui/cowork/Wagner/producao-cv.css`, versao
- * `pcv15` (o host `oimpresso.com.html` carrega `producao-cv.css?v=pcv15`), blob git c242a5ddf9f1,
- * 2026-11-06. Nada foi escrito a mao; so este cabecalho foi acrescentado.
+ * `pcv17` (o host `oimpresso.com.html` carrega `producao-cv.css?v=pcv17`), blob git 3f3b1845140d,
+ * 2026-11-12. Nada foi escrito a mao; so este cabecalho foi acrescentado.
  * Regra do bundle Cowork (proibicoes §Design System / Pacote Cowork novo): entra inteiro primeiro,
  * customizacao nas ondas seguintes. Todas as telas do Modules/Producao importam este mesmo arquivo.
  *
@@ -10,6 +10,9 @@
  * traz as classes da Ficha da OS que a pcv11 nao tinha (auditoria lote 3.1): `.pcv-baixa`,
  * `.pcv-sit`, `.pcv-org`, `.pcv-mot*`, `.pcv-falta`, `.pcv-dp-*`, `.pcv-chip`, `.pcv-rot-chips`,
  * `.pcv-orc-ops`, `.pcv-prova-erro`, e as do Terminal, Tarefas, Qualidade e despesas.
+ * A recopia pcv17 (2026-11-12) traz 3 correcoes do protótipo: `.pcv-root` rola por dentro (#10673),
+ * a ultima hora da regua da Linha do tempo nao sai da borda (`span:last-child`, #10705) e os botoes
+ * de um mesmo aviso ficam a 8px (`.pcv-al-a`, #10705).
  * A correcao G3 de 2026-10-15 (ADR 0433: `--color-destructive` como superficie, nunca o `-fg`)
  * continua na propria fonte; este corpo segue igual a ela.
  *
@@ -20,7 +23,9 @@
  * (o mesmo utilitario do Tailwind) e `body.pcv-arrastando` (estado de arraste da linha do tempo).
  */
 /* producao-cv.css — módulo Produção (comunicação visual). Tokens do DS; sem cor crua fora de oklch de domínio dos setores. */
-.pcv-root{display:flex;flex-direction:column;min-height:100%;background:var(--bg)}
+/* A tela rola por dentro: no protótipo o .main-body tem overflow:hidden e cada tela é o único filho que rola
+   (como .pd-page, .fx-page, .bkp-page). Sem isso, tudo abaixo da janela ficava inalcançável. */
+.pcv-root{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;background:var(--bg)}
 .pcv-root>*{flex:none}
 .pcv-ph{padding:0 24px}
 .pcv-body{padding:18px 24px 32px;display:flex;flex-direction:column;gap:16px}
@@ -37,7 +42,7 @@
 .pcv-link:hover{text-decoration:underline;text-underline-offset:3px}
 .pcv-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 .pcv-alertas{display:flex;flex-direction:column;gap:10px}
-.pcv-al-a{margin-top:8px}
+.pcv-al-a{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px} /* dois botões no mesmo aviso não podem encostar */
 /* carga + encaixe */
 .pcv-carga{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .pcv-carga li{display:grid;grid-template-columns:170px minmax(0,1fr) 100px;gap:12px;align-items:center;font-size:13px}
@@ -82,6 +87,8 @@
 .pcv-g-lab small{font-size:11.5px;color:var(--text-mute)}
 .pcv-g-track{position:relative}
 .pcv-g-head .pcv-g-track span{position:absolute;top:8px;transform:translateX(-50%);font:400 11px var(--font-mono);color:var(--text-mute)}
+/* A última hora da régua (19h) encosta na borda direita: centralizada, metade dela saía da linha do tempo e criava rolagem lateral. */
+.pcv-g-head .pcv-g-track span:last-child{transform:translateX(-100%)}
 .pcv-g-now{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);z-index:1}
 .pcv-g-blk{all:unset;box-sizing:border-box;cursor:pointer;position:absolute;top:8px;bottom:8px;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:0 8px;overflow:hidden;border-radius:6px;font-size:11.5px;background:color-mix(in oklch,var(--c) 18%,var(--surface));border:1px solid color-mix(in oklch,var(--c) 45%,transparent);color:var(--text)}
 .pcv-g-blk span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-dim)}
