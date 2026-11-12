@@ -14,6 +14,8 @@ import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { AcoesDoCadastro } from './_components/formulario/AcoesDoCadastro';
 import { BlocoProducao } from './_components/formulario/BlocoProducao';
+import { EditarSoArmazenagem } from './_components/EditarSoArmazenagem';
+import type { ProdutoSoArmazenagem } from './_components/EditarSoArmazenagem';
 import type { ProducaoDoProduto } from './_components/formulario/BlocoProducao';
 import { tipoDeEnvio } from './_components/formulario/envio';
 import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
@@ -106,9 +108,29 @@ export interface ProdutoEditPageProps {
   enderecoNoEstoque?: EnderecoNoEstoque;
   /** CU-PROD-20: o saldo do produto em cada local (coluna "Em estoque", só leitura). */
   saldoPorLocal?: SaldoPorLocal;
+  /**
+   * UC-PEDIT-23: a pessoa tem `product.armazenagem` sem `product.update`. O servidor manda só o que
+   * o bloco de locais precisa, e a tela mostra só ele.
+   */
+  somenteArmazenagem?: boolean;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
+  if (props.somenteArmazenagem) {
+    return (
+      <EditarSoArmazenagem
+        product={props.product as unknown as ProdutoSoArmazenagem}
+        rackDetails={props.rackDetails}
+        businessLocations={props.businessLocations}
+        enderecoNoEstoque={props.enderecoNoEstoque}
+        saldoPorLocal={props.saldoPorLocal}
+      />
+    );
+  }
+  return <EditarCompleto {...props} />;
+}
+
+function EditarCompleto(props: ProdutoEditPageProps) {
   const p = props.product;
   // UC-PEDIT-11: o NCM gravado, só dígitos. Só vai no envio se a pessoa mexeu nele: um NCM antigo
   // fora do formato não pode impedir a edição de outro campo.

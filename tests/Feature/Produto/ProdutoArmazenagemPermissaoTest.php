@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Cobre UC-PEDIT-22 (resources/js/Pages/Produto/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PEDIT-22 e UC-PEDIT-23 (resources/js/Pages/Produto/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -182,4 +182,59 @@ it('UC-PEDIT-22 · o histórico registra quem mudou, com o antes e o depois; sal
     $props = json_decode((string) $log->properties, true);
     expect($props['old']['enderecos'][$this->deposito]['prateleira'])->toBe('A');
     expect($props['attributes']['enderecos'][$this->deposito]['prateleira'])->toBe('D');
+});
+
+// ─── UC-PEDIT-23 · o Editar de quem só pode mexer nos locais ───────────────
+
+function paVisitaInertia(): array
+{
+    return [
+        'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Version' => (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
+    ];
+}
+
+it('UC-PEDIT-23 · só com product.armazenagem o Editar abre só com os locais, sem preço nem imposto', function () {
+    paEntrar($this, paUsuario((int) $this->business->id, ['product.armazenagem']));
+
+    $r = $this->withHeaders(paVisitaInertia())->get("/products/{$this->produto->productId}/edit");
+    $r->assertOk()->assertJsonPath('component', 'Produto/Edit')->assertJsonPath('props.somenteArmazenagem', true);
+    expect(array_keys($r->json('props.product')))->toBe(['id', 'name', 'sku', 'localPadraoId']);
+    expect((int) $r->json('props.product.localPadraoId'))->toBe($this->deposito);
+    // Nada além do que o bloco de locais precisa sai do servidor.
+    foreach (['taxes', 'taxAttributes', 'categories', 'brands', 'units', 'metodoCusto', 'margemMinima', 'permissions'] as $prop) {
+        expect($r->json('props.' . $prop))->toBeNull();
+    }
+    expect($r->json('props.businessLocations'))->not->toBeEmpty();
+});
+
+it('UC-PEDIT-23 · com product.update o Editar segue o completo', function () {
+    paEntrar($this, paUsuario((int) $this->business->id, ['product.update']));
+    session(['currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']]);
+
+    $r = $this->withHeaders(paVisitaInertia())->get("/products/{$this->produto->productId}/edit");
+    $r->assertOk();
+    expect($r->json('props.somenteArmazenagem'))->toBeNull();
+    expect($r->json('props.product.name'))->not->toBeNull();
+    expect($r->json('props.permissions'))->not->toBeNull();
+});
+
+it('UC-PEDIT-23 · sem nenhuma das duas o Editar é 403; produto sem estoque controlado também', function () {
+    paEntrar($this, paUsuario((int) $this->business->id, ['product.view']));
+    $this->get("/products/{$this->produto->productId}/edit")->assertForbidden();
+
+    DB::table('products')->where('id', $this->produto->productId)->update(['enable_stock' => 0]);
+    paEntrar($this, paUsuario((int) $this->business->id, ['product.armazenagem']));
+    $this->get("/products/{$this->produto->productId}/edit")->assertForbidden();
+});
+
+it('UC-PEDIT-23 · produto de outro negócio dá 404 no Editar só de locais [T0]', function () {
+    $outra = EstoqueFixture::secondBusinessId();
+    if ($outra === null || $outra === (int) $this->business->id) {
+        $this->markTestSkipped('Segundo tenant não semeado.');
+    }
+    $alheio = EstoqueFixture::singleProduct($outra);
+    paEntrar($this, paUsuario((int) $this->business->id, ['product.armazenagem']));
+
+    $this->get("/products/{$alheio->productId}/edit")->assertNotFound();
 });
