@@ -8,7 +8,9 @@ use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 use Modules\Manufacturing\Services\ProductionService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
+require_once __DIR__.'/../Support/receita-empresa-fixtures.php';
 
 /**
  * Wave 25 — D5 Customer Journey biz=1 RECEITA REAL (2026-05-16).
@@ -39,20 +41,12 @@ beforeEach(function () {
 });
 
 it('journey real biz=1: receita Camiseta Personalizada com 3 ingredientes', function () {
-    $variationBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', 1)
-        ->select('v.id', 'v.product_id')
-        ->first();
-
-    if (! $variationBiz1) {
-        $this->markTestSkipped('Sem variation biz=1.');
-    }
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
     // Receita pai: "Camiseta Personalizada" — representa Modules/Vestuario real
     $recipe = MfgRecipe::create([
-        'product_id'           => $variationBiz1->product_id,
-        'variation_id'         => $variationBiz1->id,
+        'product_id'           => $variacao->product_id,
+        'variation_id'         => $variacao->id,
         'instructions'         => 'wave25-camiseta-personalizada-real',
         'waste_percent'        => 5, // desperdício tecido típico
         'ingredients_cost'     => 18.50,
@@ -72,7 +66,7 @@ it('journey real biz=1: receita Camiseta Personalizada com 3 ingredientes', func
     foreach ($ingredientes as $ing) {
         MfgRecipeIngredient::create([
             'mfg_recipe_id' => $recipe->id,
-            'variation_id'  => $variationBiz1->id,
+            'variation_id'  => $variacao->id,
             'quantity'      => $ing['qty'],
             'sort_order'    => $ing['sort'],
         ]);
@@ -118,21 +112,13 @@ it('journey real biz=99: cross-tenant isolation produces empty/zero (Tier 0 ADR 
 });
 
 it('journey real biz=1: cleanup append-only — só remove rows que criamos', function () {
-    $variationBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', 1)
-        ->select('v.id', 'v.product_id')
-        ->first();
-
-    if (! $variationBiz1) {
-        $this->markTestSkipped('Sem variation biz=1.');
-    }
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
     $countBefore = MfgRecipe::count();
 
     $recipe = MfgRecipe::create([
-        'product_id'           => $variationBiz1->product_id,
-        'variation_id'         => $variationBiz1->id,
+        'product_id'           => $variacao->product_id,
+        'variation_id'         => $variacao->id,
         'instructions'         => 'wave25-cleanup-marker',
         'waste_percent'        => 0,
         'ingredients_cost'     => 0,

@@ -43,19 +43,64 @@ class CatalogueService
      */
     public function buildIndexPayload(int $businessId, int $locationId): array
     {
-        return OtelHelper::spanBiz('product_catalogue.build_index_payload', fn () => [
-            'products' => $this->repository->listProductsByLocation($businessId, $locationId),
-            'business' => $business = $this->repository->findBusinessWithCurrency($businessId),
-            'business_location' => $this->repository->findLocationForBusiness($businessId, $locationId),
-            'discounts' => $this->anexarSelo(
-                $this->repository->activeDiscounts($businessId, $locationId),
-                $business,
-            ),
-            'categories' => $this->repository->categoriesDropdown($businessId),
-        ], [
+        return OtelHelper::spanBiz('product_catalogue.build_index_payload', function () use ($businessId, $locationId): array {
+            $products = $this->repository->listProductsByLocation($businessId, $locationId);
+            $business = $this->repository->findBusinessWithCurrency($businessId);
+            $discounts = $this->repository->activeDiscounts($businessId, $locationId);
+
+            $this->anexarDescontoDoPdv($products, $business, $businessId, $locationId, $discounts->isNotEmpty());
+
+            return [
+                'products' => $products,
+                'business' => $business,
+                'business_location' => $this->repository->findLocationForBusiness($businessId, $locationId),
+                'discounts' => $discounts,
+                'categories' => $this->repository->categoriesDropdown($businessId),
+            ];
+        }, [
             'business_id'  => $businessId,
             'location_id'  => $locationId,
         ]);
+    }
+
+    /**
+     * Põe em cada produto da listagem (`desconto_vitrine`) o desconto que o PDV aplicaria.
+     *
+     * Usa o próprio ProductUtil::getProductDiscount, sem grupo de preço (o mesmo que o detalhe
+     * chama): marca e categoria juntas, prioridade, `spg` nulo e desconto por variação. Para
+     * produto não variável passa a variação única, como o PDV ao vender; produto variável fica
+     * com o desconto do produto e o detalhe mostra o de cada variação.
+     *
+     * Uma consulta por produto — só quando há algum desconto vigente no local. Sem desconto
+     * vigente (o caso comum) a listagem não paga nada.
+     */
+    private function anexarDescontoDoPdv(
+        \Illuminate\Support\Collection $porCategoria,
+        \App\Business $business,
+        int $businessId,
+        int $locationId,
+        bool $haDescontoVigente,
+    ): void {
+        if (! $haDescontoVigente) {
+            return;
+        }
+
+        $formato = new FormatoVitrine($business);
+        foreach ($porCategoria as $produtos) {
+            foreach ($produtos as $product) {
+                $variationId = $product->type !== 'variable' ? $product->variations->first()?->id : null;
+                // getProductDiscount devolve o Discount ou null (é um `->first()`), mas o docblock
+                // dele declara `obj`, que o PHPStan lê como classe inexistente.
+                /** @var \App\Discount|null $desconto */
+                $desconto = $this->productUtil->getProductDiscount($product, $businessId, $locationId, false, null, $variationId);
+                if ($desconto instanceof \App\Discount) {
+                    $desconto->setAttribute('selo', $formato->seloDesconto($desconto));
+                    $product->desconto_vitrine = $desconto;
+                } else {
+                    $product->desconto_vitrine = null;
+                }
+            }
+        }
     }
 
     /**

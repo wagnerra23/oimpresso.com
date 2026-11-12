@@ -158,6 +158,18 @@ related_us: [US-FISIO-060]
   sai em branco, inclusive a conclusão; área sem profissional sai com a linha para preencher.
   Laudo em rascunho traz o aviso "Documento de apoio, não finalizado". O rodapé cita a deliberação e
   diz que a emissão do laudo cabe à APS e a da carteira, à FCEE.
+  Revisão de 2026-11-11 (impresso profissional): cabeçalho com a clínica da sessão (nome, CNPJ,
+  cidade e telefone da primeira unidade, nunca de outra empresa), número do laudo, situação e data
+  de emissão; as seis seções numeradas na ordem do modelo (1 identificação · 2 matriz · 3 fatores
+  contextuais · 4 conclusão · 5 equipe · 6 local e data); quadro com o menor valor de cada domínio
+  e o total; equipe em tabela com área, nome, registro e linha de assinatura e carimbo; rodapé que
+  diz que a conclusão e a decisão são da equipe e do fluxo oficial, e "Laudo nº N · Página X de Y"
+  em todas as páginas.
+  Base comum (2026-11-11, depois do #10782): o laudo usa o cabeçalho, o rodapé e a numeração dos
+  outros impressos do Fisio (pdf/_base, IdentidadeClinica, ImpressoPdf). O cabeçalho traz a clínica
+  com documento, endereço e contato da unidade ativa e, à direita, "Laudo nº N · rascunho" ou
+  "finalizado em …"; o rodapé repete a clínica e um aviso curto, com "Página X de Y" em todas as
+  páginas. O texto completo sobre a deliberação e o fluxo da APS e da FCEE fica no fim do documento.
 - **Âncora:** Deliberação 500/CIB/2026, arts. 1º a 3º; modelo versão 1.0 de 26/10/2026.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php`
 - **Status: 🧪**
@@ -176,7 +188,11 @@ related_us: [US-FISIO-060]
   por prop deferida (grupo próprio), o mais recente primeiro, com formulário, pontuação e equipe. O
   cartão "Laudo biopsicossocial" (`Fisio/_components/LaudoBiopsicossocial.tsx`, protótipo
   `LaudoBiopsicossocial.dc.html`) mostra o aviso de que a emissão é da Atenção Primária e a carteira
-  segue o fluxo da FCEE; abre um domínio da matriz por vez com 100/75/50/25; mostra o apoio da
+  segue o fluxo da FCEE; numera as seções como o PDF (1 a 6); mostra a pontuação de cada domínio e
+  o total enquanto a matriz é marcada, pela mesma regra do serviço (menor valor de cada domínio, sem
+  total com item faltando); lista o que falta para finalizar (as quatro regras do UC-FBP-06) e só
+  habilita "Finalizar" com as quatro cumpridas, salvando antes o que estiver pendente; abre um
+  domínio da matriz por vez com 100/75/50/25; mostra o apoio da
   fisioterapia; deixa a conclusão sem resposta até a equipe marcar; monta a equipe; salva, finaliza,
   baixa o PDF e abre nova versão de laudo finalizado. Usuário da outra empresa recebe 404 na ficha.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php`

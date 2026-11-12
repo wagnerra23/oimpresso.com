@@ -43,7 +43,9 @@ on:
   # se nada do módulo mudou, pula o pesado e conclui verde (mesmo padrão de
   # acessos-pest/essentials-pest — required-ready sem deadlock).
   pull_request:
-    types: [opened, reopened, ready_for_review]
+    # `synchronize` desde o lote 3.1 da auditoria (aprovado por [W] em 2026-11-09): sem ele o
+    # veredito ficava no 1º SHA do PR e o 2º push que mexesse no módulo só aparecia no push de main.
+    types: [opened, reopened, ready_for_review, synchronize]
     branches: [main]
     # paths-ignore FAIL-CLOSED: PR que toca SÓ memory/, prototipo-ui/ ou o estado do
     # design-sync não sobe esta lane. O paths-filter interno já pularia tudo (veredito
@@ -59,6 +61,10 @@ on:
     paths:
       - 'Modules/Manufacturing/**'
       - 'resources/js/Pages/Manufacturing/**'
+      # Estoque e num_uf da ordem moram aqui (decreaseProductQuantity, mapPurchaseSell, num_uf),
+      # chamados pelo ProductionController: mexer neles tem de acordar a lane que os exercita.
+      - 'app/Utils/ProductUtil.php'
+      - 'app/Utils/TransactionUtil.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/manufacturing-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -97,6 +103,8 @@ jobs:
             manufacturing:
               - 'Modules/Manufacturing/**'
               - 'resources/js/Pages/Manufacturing/**'
+              - 'app/Utils/ProductUtil.php'
+              - 'app/Utils/TransactionUtil.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/manufacturing-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -143,6 +151,12 @@ jobs:
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
         if: always()
         run: node scripts/tests/junit-summary.mjs test-results/pest-manufacturing-junit.xml --out test-results/pest-manufacturing-junit-summary.json || true
+
+      # Armado no lote 3.1 da auditoria: com o `|| true` acima sozinho, uma rodada com 0
+      # asserções saía verde. Só roda quando o Pest rodou (no skip-as-pass não há XML).
+      - name: Suíte provou algo? (--check-assertions · LC-13)
+        if: ${{ !cancelled() && steps.changes.outputs.manufacturing == 'true' }}
+        run: node scripts/tests/junit-summary.mjs test-results/pest-manufacturing-junit.xml --check-assertions
 
       - name: Upload sumário JUnit (pest-manufacturing-junit-summary)
         if: always()
