@@ -623,6 +623,7 @@ jobs:
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
             tests/Feature/Sells/SellsShipmentsContratoTest.php \
             tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
+            tests/Feature/Sells/BuscaProdutoVariasPalavrasTest.php \
             tests/Feature/Sells/SalesOrderIndexContratoTest.php \
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \

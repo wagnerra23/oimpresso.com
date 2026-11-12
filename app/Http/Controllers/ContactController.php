@@ -885,19 +885,25 @@ class ContactController extends Controller
         // encontrava clientes da página atual. Agora `q` bate no banco via LIKE
         // em colunas indexáveis (name/tax_number/mobile/fantasia). Multi-tenant
         // Tier 0 OK — scope `business_id` já aplicado acima ([ADR 0093]).
+        // Cada palavra casa em separado (E entre palavras, OU entre as colunas), como a
+        // busca de cliente da venda (#10719): o texto inteiro num LIKE só não achava
+        // "NOME SOBRENOME" quando o cadastro tinha nome do meio ou espaço duplo.
         $q = trim((string) request()->input('q', ''));
         if ($q !== '') {
-            $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';
             $hasFantasia = $hasWaveBCols; // fantasia veio na Wave B junto com tipo.
-            $contactsQuery->where(function ($w) use ($like, $hasFantasia) {
-                $w->where('contacts.name', 'like', $like)
-                    ->orWhere('contacts.tax_number', 'like', $like)
-                    ->orWhere('contacts.mobile', 'like', $like)
-                    ->orWhere('contacts.contact_id', 'like', $like);
-                if ($hasFantasia) {
-                    $w->orWhere('contacts.fantasia', 'like', $like);
-                }
-            });
+            $palavras = preg_split('/[\s\p{Z}]+/u', $q, -1, PREG_SPLIT_NO_EMPTY) ?: [$q];
+            foreach ($palavras as $palavra) {
+                $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $palavra).'%';
+                $contactsQuery->where(function ($w) use ($like, $hasFantasia) {
+                    $w->where('contacts.name', 'like', $like)
+                        ->orWhere('contacts.tax_number', 'like', $like)
+                        ->orWhere('contacts.mobile', 'like', $like)
+                        ->orWhere('contacts.contact_id', 'like', $like);
+                    if ($hasFantasia) {
+                        $w->orWhere('contacts.fantasia', 'like', $like);
+                    }
+                });
+            }
         }
 
         // Sort server-side (ligado 2026-06-12 · bug Wagner "alfabético → lixo de
@@ -2697,7 +2703,8 @@ class ContactController extends Controller
             // e o cliente que aparecia com "NOME" sumia ao digitar o começo do sobrenome
             // (ROTA LIVRE, 2026-11-10). O resultado é sempre um superconjunto do anterior:
             // quem casava o termo inteiro casa cada palavra dele.
-            $palavras = preg_split('/[\s\p{Z}]+/u', trim((string) $term), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            // Texto só de espaços não vira "sem filtro" (devolveria tudo): segue como veio.
+            $palavras = preg_split('/[\s\p{Z}]+/u', trim((string) $term), -1, PREG_SPLIT_NO_EMPTY) ?: [(string) $term];
             foreach ($palavras as $palavra) {
                 $contacts->where(function ($query) use ($palavra) {
                     $query->where('contacts.name', 'like', '%'.$palavra.'%')
