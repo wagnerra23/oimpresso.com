@@ -3,13 +3,14 @@
 // Documento do prontuário não se apaga: "Tirar da lista" pede o motivo e o servidor grava quem
 // tirou. O arquivo é servido por rota que confere a empresa; a tela nunca recebe caminho de disco.
 import { useState } from 'react';
-import { FileText, ImageIcon, Paperclip } from 'lucide-react';
+import { FileText, ImageIcon, Paperclip, Sparkles } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Segmented } from '@/Components/ui/segmented';
 import MedicamentosEmUso, { type Medicamento } from './MedicamentosEmUso';
+import ConferirTranscricao, { TranscricaoConferida, type Transcricao } from './ConferirTranscricao';
 import { mandar } from './salvarSecao';
 
 export interface DocumentoFicha {
@@ -23,6 +24,8 @@ export interface DocumentoFicha {
   url: string;
   anexado_por: string | null;
   anexado_em: string | null;
+  transcrevivel: boolean;
+  transcricao: Transcricao | null;
 }
 
 const ACEITOS = 'image/jpeg,image/png,image/webp,application/pdf';
@@ -87,11 +90,22 @@ function Anexar({ pacienteId, tipos }: { pacienteId: number; tipos: Record<strin
   );
 }
 
-function Linha({ doc, tipos, podeEditar }: { doc: DocumentoFicha; tipos: Record<string, string>; podeEditar: boolean }) {
+function Linha({ doc, tipos, podeEditar, transcricaoIa }: { doc: DocumentoFicha; tipos: Record<string, string>; podeEditar: boolean; transcricaoIa: boolean }) {
   const [tirando, setTirando] = useState(false);
   const [motivo, setMotivo] = useState('');
   const [erro, setErro] = useState<string | null>(null);
+  const [lendo, setLendo] = useState(false);
   const Icone = doc.formato === 'pdf' ? FileText : ImageIcon;
+  const receita = doc.tipo === 'receita';
+  const t = doc.transcricao;
+
+  const sugerir = () => {
+    setLendo(true);
+    void mandar('POST', `/fisio/documentos/${doc.id}/transcricao`).then((e) => {
+      setLendo(false);
+      if (e) setErro(e.transcricao ?? e.geral ?? 'Não foi possível ler o documento.');
+    });
+  };
 
   const tirar = async () => {
     const e = await mandar('POST', `/fisio/documentos/${doc.id}/tirar`, { motivo });
@@ -109,12 +123,22 @@ function Linha({ doc, tipos, podeEditar }: { doc: DocumentoFicha; tipos: Record<
           <Button size="sm" variant="outline" asChild>
             <a href={doc.url} target="_blank" rel="noopener noreferrer"><Icone className="size-4" aria-hidden="true" /> Abrir</a>
           </Button>
+          {podeEditar && transcricaoIa && doc.transcrevivel && !t && (
+            <Button size="sm" variant="outline" disabled={lendo} onClick={sugerir}>
+              <Sparkles className="size-4" aria-hidden="true" /> {lendo ? 'Lendo a foto…' : 'Sugerir campos pela IA'}
+            </Button>
+          )}
           {podeEditar && doc.status === 'prontuario' && !tirando && (
             <Button size="sm" variant="ghost" onClick={() => setTirando(true)}>Tirar da lista</Button>
           )}
         </span>
       </div>
       {doc.observacao && <p className="text-sm">{doc.observacao}</p>}
+      {t?.status === 'pendente' && (podeEditar
+        ? <ConferirTranscricao t={t} receita={receita} />
+        : <p className="text-xs text-muted-foreground">Transcrição sugerida aguardando conferência.</p>)}
+      {t?.status === 'conferida' && <TranscricaoConferida t={t} receita={receita} />}
+      {!tirando && erro && <p className="text-xs text-destructive">{erro}</p>}
       {tirando && (
         <div className="flex flex-col gap-2">
           <Label htmlFor={`doc-motivo-${doc.id}`}>Por que sai da lista?</Label>
@@ -131,22 +155,46 @@ function Linha({ doc, tipos, podeEditar }: { doc: DocumentoFicha; tipos: Record<
   );
 }
 
-export default function ExamesReceitas({ pacienteId, tipos, documentos, medicamentos, podeEditar }: {
+function ChaveTranscricao({ ligada }: { ligada: boolean }) {
+  const [confirmando, setConfirmando] = useState(false);
+  const trocar = () => void mandar('POST', '/fisio/documentos/transcricao-ia', { ligado: !ligada }, ['transcricao_ia', 'documentos']).then(() => setConfirmando(false));
+  return (
+    <div className="flex flex-col gap-2 rounded-md bg-muted px-3 py-2 text-xs" data-contract="fisio-transcricao-chave">
+      <div className="flex flex-wrap items-center gap-2">
+        <span>Transcrição pela IA: <strong>{ligada ? 'ligada' : 'desligada'}</strong> nesta clínica.</span>
+        <Button size="sm" variant="outline" className="ml-auto" onClick={() => (ligada ? trocar() : setConfirmando(true))}>{ligada ? 'Desligar' : 'Ligar'}</Button>
+      </div>
+      {confirmando && (
+        <div className="flex flex-col gap-2">
+          <p>A foto vai para o provedor de IA configurado, que não usa o conteúdo para treino. A IA só copia o que está escrito; cada campo é conferido por alguém da clínica antes de ir ao prontuário.</p>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={trocar}>Ligar</Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirmando(false)}>Cancelar</Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function ExamesReceitas({ pacienteId, tipos, documentos, medicamentos, podeEditar, transcricaoIa = false }: {
   pacienteId: number;
   tipos: Record<string, string>;
   documentos: DocumentoFicha[];
   medicamentos: Medicamento[];
   podeEditar: boolean;
+  transcricaoIa?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-4" data-contract="fisio-exames-receitas">
       <p className="text-sm text-muted-foreground">Documentos que o paciente trouxe. Fazem parte do prontuário: tirar da lista não apaga o arquivo.</p>
+      {podeEditar && <ChaveTranscricao ligada={transcricaoIa} />}
       {podeEditar && <Anexar pacienteId={pacienteId} tipos={tipos} />}
       {documentos.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhum exame ou receita anexado.</p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {documentos.map((d) => <Linha key={d.id} doc={d} tipos={tipos} podeEditar={podeEditar} />)}
+          {documentos.map((d) => <Linha key={d.id} doc={d} tipos={tipos} podeEditar={podeEditar} transcricaoIa={transcricaoIa} />)}
         </ul>
       )}
       <MedicamentosEmUso pacienteId={pacienteId} medicamentos={medicamentos} podeEditar={podeEditar} />
