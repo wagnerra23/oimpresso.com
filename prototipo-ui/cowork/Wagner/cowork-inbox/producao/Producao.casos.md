@@ -125,6 +125,13 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-10 · Ficha da OS · `must` · ✅
 - **Aceite:** Abrir a OS mostra progresso, tempo apontado/previsto, custo real/orçado e as abas Etapas · Arte e arquivos · Materiais · Custo · Refugo · Histórico · Em Etapas cada linha traz setor, máquina, responsável, previsto × apontado (vermelho quando passa) e situação.
 - **Forma:** drawer lateral de 760px (PT-02), não modal.
+- **Decisão pendente [W] (2026-11-12):** no sistema a Ficha virou **página** (`/producao/ordens/{id}`), declarado no charter `Os/Show.charter.md`, para o Quadro e a Linha abrirem a Ficha por endereço. Pela UI-0029 o protótipo manda na forma e não se abre exceção por tela, então um dos dois precisa mudar.
+  - **Exemplo.** O Diego vê um problema na OS-2611 e manda o link para a Ana no WhatsApp.
+    - *Página:* o link abre direto a Ficha da OS-2611; F5 continua nela; "voltar" do navegador volta para o Quadro.
+    - *Painel lateral:* o link abre o Quadro, e a Ana precisa achar a OS-2611 e clicar nela. F5 fecha o painel.
+  - **(A) — recomendada:** a Ficha é página nos dois. O protótipo passa a desenhar a Ficha como página, com o mesmo conteúdo e as mesmas abas.
+  - **(B):** o sistema volta ao painel lateral de 760px, como o protótipo. Perde o link direto para a OS.
+  - **Merge deste PR = (A).** Para (B), comente no PR.
 
 ### UC-PCV-51 · Tarefas da OS · `should` · ✅
 - **Origem:** P-099, comparação com concorrentes de 2026-10-23 (Printavo). Backlog em `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md`.
