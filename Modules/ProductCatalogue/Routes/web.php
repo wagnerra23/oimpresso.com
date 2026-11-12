@@ -21,7 +21,9 @@ Route::middleware('throttle:30,1')->group(function () {
 // Rotas autenticadas (auth web) — throttle limita abuso por usuario logado
 // (ex: brute-force install, scraping de QR generation, varredura de configs).
 // Public scraping ja coberto por throttle:30,1 acima (rotas /catalogue/* sem auth).
-Route::middleware('throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->prefix('product-catalogue')->group(function () {
+// CheckUserLogin (2026-11-12, lote 4): usuário com allow_login=0 ou user_type != 'user'
+// tem a sessão recusada aqui, como no resto da stack admin do UltimatePOS.
+Route::middleware('throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin')->prefix('product-catalogue')->group(function () {
     Route::get('catalogue-qr', [\Modules\ProductCatalogue\Http\Controllers\ProductCatalogueController::class, 'generateQr']);
 
     Route::get('install', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'index']);
