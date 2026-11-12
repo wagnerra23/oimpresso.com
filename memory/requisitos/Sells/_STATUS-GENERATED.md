@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 279 |
-| UC com teste que os cita | 273 |
+| UC declarados | 288 |
+| UC com teste que os cita | 282 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -163,6 +163,7 @@ authority: generated
 | UC-QUO-10 | Quotations | 🧪 aguarda veredito da lane |
 | UC-QUO-11 | Index | 🧪 aguarda veredito da lane |
 | UC-QUO-12 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-13 | Quotations | 🧪 aguarda veredito da lane |
 | UC-REM-01 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-02 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-03 | Shipments/Index | 🧪 aguarda veredito da lane |
@@ -248,6 +249,7 @@ authority: generated
 | UC-SIDX-05 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-06 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-07 | Index | 🧪 aguarda veredito da lane |
+| UC-SIDX-08 | Index | 🧪 aguarda veredito da lane |
 | UC-SRP-01 | Create | 🧪 aguarda veredito da lane |
 | UC-SRP-02 | Create | 🧪 aguarda veredito da lane |
 | UC-SRP-03 | Create | 🧪 aguarda veredito da lane |
@@ -343,6 +345,13 @@ authority: generated
 | UC-VCAN-07 | Show | 🧪 aguarda veredito da lane |
 | UC-VCAN-08 | Show | 🧪 aguarda veredito da lane |
 | UC-VCAN-09 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-10 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-11 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-12 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-13 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-14 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-15 | Show | 🧪 aguarda veredito da lane |
+| UC-VCAN-16 | Show | 🧪 aguarda veredito da lane |
 | UC-VCOB-01 | Show | 🧪 aguarda veredito da lane |
 | UC-VCOB-02 | Show | 🧪 aguarda veredito da lane |
 | UC-VCOB-03 | Show | 🧪 aguarda veredito da lane |

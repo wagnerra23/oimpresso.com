@@ -177,6 +177,16 @@ last_run: "2026-11-05"
 
 ---
 
+## UC-SIDX-08 · Excluir pelo menu da linha avisa quando o servidor recusa `[must]`
+- **Persona:** Larissa / Guilherme — exclui uma venda ou um rascunho pelo menu ⋮ e precisa saber se excluiu ou não.
+- **Como usa:** menu ⋮ da linha → **Excluir** (ou **Excluir rascunho**) → confirma.
+- **Aceite:** Dado o destroy respondendo 200 com `{success:false, msg}` (ex.: venda que já teve devolução) · Quando a pessoa confirma a exclusão · Então a tela mostra a mensagem do servidor e não recarrega a lista · E o mesmo vale para rascunho · E com 403 (sem permissão) também avisa · Controle: com `{success:true}` a lista recarrega e nenhum aviso aparece.
+- **Âncora de contrato:** `SellController::destroy` → `TransactionUtil::deleteSale`, que devolve `success:false` em vez de erro HTTP (`lang_v1.return_exist`) · mesmo tratamento do Excluir do detalhe da venda (`Show.tsx`), da tela de Rascunhos (`Drafts.tsx`) e da lista de POS (`Pos/Index.tsx`). Antes de 2026-11-12 a lista olhava só o status HTTP e a recusa passava calada.
+- **Teste:** `tests/js/sells-index-excluir-recusa.test.tsx` — `UC-SIDX-08 …` (lane Vitest do `Frontend / Vite build`).
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane Vitest.
+
+---
+
 ## UC-SDUP-04 · A venda duplicada mostra na linha de qual venda veio `[must]`
 - **Persona:** vendedor que repete o pedido de um cliente (recompra) — Sabor Brasil, Zoom, Techpress.
 - **Como usa:** no menu ⋮ da linha escolhe **Duplicar**; a venda nova aparece na lista com "Duplicada de #V-150" embaixo do número.
@@ -591,6 +601,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-11-12 · [F+C] **UC-SIDX-08** — o Excluir do menu ⋮ passa a avisar quando o servidor recusa (resposta 200 com `success:false`, ex.: venda com devolução). Antes a linha ficava sem explicação. Teste `tests/js/sells-index-excluir-recusa.test.tsx`.
 - 2026-10-30 · [W+C] P-154: a bonificação fica fora do rodapé da lista, do faturado do dia, dos relatórios de venda e lucro e do saldo do cliente (UC-SBON-06..09).
 - 2026-10-30 · [W+C] P-154: a bonificação aparece na lista, no drawer e na impressão/exportação em lote (UC-SBON-02..05). Pagamento rápido, criar OS, Caixa do dia e os totais de cliente na IA seguem só com venda comum.
 - 2026-10-29 · [W+C] **UC-SDUP-04..06** (P-031): duplicar guarda a origem em `transactions.duplicated_from_id`; a linha mostra "Duplicada de" e o drawer mostra o vínculo nos dois sentidos, escopado por empresa. Menu ⋮ ganha **Duplicar**. Teste `SellsDuplicarContratoTest.php`.

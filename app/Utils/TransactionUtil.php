@@ -4862,7 +4862,8 @@ class TransactionUtil extends Util
      *
      * Vale só para rascunho comum (status `draft`, fora cotação) da empresa da sessão; com
      * `draft.view_own` sem `draft.view_all`, só o rascunho que o próprio usuário criou. Venda
-     * finalizada e cotação seguem exigindo as permissões de antes. Não mexe em valor nem estoque:
+     * finalizada segue exigindo as permissões de antes; cotação tem regra própria em
+     * `podeExcluirComoCotacao`. Não mexe em valor nem estoque:
      * só decide se o `destroy` prossegue; quem apaga continua sendo `deleteSale`.
      */
     public function podeExcluirComoRascunho($user, $business_id, $transaction_id): bool
@@ -4885,6 +4886,34 @@ class TransactionUtil extends Util
         }
 
         return $user->can('draft.view_all') || (int) $rascunho->created_by === (int) $user->id;
+    }
+
+    /**
+     * Mesmo caso do `podeExcluirComoRascunho`, para cotação: a lista de cotações mostra Excluir
+     * para quem tem `quotation.delete`, e os dois `destroy` recusavam essa permissão (403).
+     *
+     * Vale só para cotação (status `draft`, `sub_status` `quotation`) da empresa da sessão; com
+     * `quotation.view_own` sem `quotation.view_all`, só a cotação que o próprio usuário criou —
+     * o mesmo recorte da lista. Não mexe em valor nem estoque: só decide se o `destroy` prossegue.
+     */
+    public function podeExcluirComoCotacao($user, $business_id, $transaction_id): bool
+    {
+        if (empty($user) || ! $user->can('quotation.delete')) {
+            return false;
+        }
+
+        $cotacao = Transaction::where('business_id', $business_id)
+            ->where('id', $transaction_id)
+            ->where('type', 'sell')
+            ->where('status', 'draft')
+            ->where('sub_status', 'quotation')
+            ->first(['id', 'created_by']);
+
+        if (empty($cotacao)) {
+            return false;
+        }
+
+        return $user->can('quotation.view_all') || (int) $cotacao->created_by === (int) $user->id;
     }
 
     public function deleteSale($business_id, $transaction_id)
