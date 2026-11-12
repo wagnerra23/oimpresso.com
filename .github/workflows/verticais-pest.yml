@@ -700,6 +700,8 @@ jobs:
         # ENTRA 2026-11-11 — Fisio/FisioDocumentosPacienteTest (US-FISIO-063 · UC-FER-01..07): exames e receitas
         # anexados ao prontuário pelo Modules/Arquivos; abrir confere a empresa (99 → 404, sem log); tirar da lista
         # exige motivo e não apaga; trigger recusa DELETE.
+        # E FisioMedicamentosPacienteTest (UC-FER-08..11): medicamentos em uso estruturados, alteração com antes/depois
+        # no activity_log, tirar da lista com motivo, 98×99.
         #
         # ENTRA 2026-11-11 — Fisio/FisioCobrancaAvaliacaoTest (etapa 07 P-05 · UC-FPP-59..61): aviso da avaliação
         # do estudo no portal e pelo WhatsApp (uma vez por momento, com consentimento), 98×99.
@@ -905,6 +907,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioLaudoBpsPdfTest.php \
             Modules/Fisio/Tests/Feature/FisioLaudoBpsTelaTest.php \
             Modules/Fisio/Tests/Feature/FisioDocumentosPacienteTest.php \
+            Modules/Fisio/Tests/Feature/FisioMedicamentosPacienteTest.php \
             Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \

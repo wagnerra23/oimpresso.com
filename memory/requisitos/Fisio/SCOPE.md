@@ -47,6 +47,7 @@ contains:
   - "PesquisaController — estudo, participantes (código sem nome nem CPF), momentos de avaliação e pendências, com a permissão fisio.pesquisa (etapa 07 P-04)"
   - "Exames e receitas do paciente (fisio_patient_documents): foto ou PDF guardado pelo Modules/Arquivos, servido por rota que confere a empresa; não se apaga, sai da lista com motivo (US-FISIO-063)"
   - "DocumentosPacienteController — anexar, abrir e tirar da lista os exames e receitas na ficha (US-FISIO-063)"
+  - "MedicamentosPacienteController — medicamentos em uso estruturados (fisio_patient_medications): incluir, alterar com antes/depois no activity_log e tirar da lista com motivo (US-FISIO-063)"
   - "DadosSociaisController — dados sociais do paciente, todos opcionais, em fisio_patient_social; nascimento, município e bairro no contato (US-FISIO-061)"
   - "RelatorioAssociacaoController — relatório agregado da associação por período, tela e PDF, só contagem e média com grupo < 5 como \"<5\" (RelatorioAssociacao, permissão fisio.relatorio — US-FISIO-062)"
 not_contains:
