@@ -567,7 +567,10 @@ class ProductUtil extends Util
     public function calculateComboQuantity($location_id, $combo_variations)
     {
         //get stock of the items and calcuate accordingly.
-        $combo_qty = 0;
+        // D-30 (decisão [F] 2026-11-12): `null` é "nenhum componente com estoque ainda". Antes o `0` fazia
+        // esse papel, e um componente zerado tinha a conta sobrescrita pelo seguinte — o kit aparecia com
+        // saldo que não existe. Zero agora é zero, em qualquer ordem (a mesma conta do painel, UC-PIDX-40).
+        $combo_qty = null;
         foreach ($combo_variations as $key => $value) {
             $variation = Variation::with(['product', 'variation_location_details' => function ($q) use ($location_id) {
                 $q->where('location_id', $location_id);
@@ -586,14 +589,12 @@ class ProductUtil extends Util
             $variation_qty = ! empty($vld) ? $vld->qty_available : 0;
             $multiplier = $this->getMultiplierOf2Units($product->unit_id, $value['unit_id']);
 
-            if ($combo_qty == 0) {
-                $combo_qty = ($variation_qty / $multiplier) / $combo_variations[$key]['quantity'];
-            } else {
-                $combo_qty = min($combo_qty, ($variation_qty / $multiplier) / $combo_variations[$key]['quantity']);
-            }
+            $kits = ($variation_qty / $multiplier) / $combo_variations[$key]['quantity'];
+            $combo_qty = $combo_qty === null ? $kits : min($combo_qty, $kits);
         }
 
-        return floor($combo_qty);
+        // Nenhum componente controla estoque: segue devolvendo 0, como antes (fora do escopo da D-30).
+        return floor($combo_qty ?? 0);
     }
 
     /**
