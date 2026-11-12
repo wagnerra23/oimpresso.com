@@ -154,8 +154,9 @@ export default function DocumentsTab({
             Accept: 'application/json',
           },
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        // O servidor responde 200 com {success: false} quando não grava.
         const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.success) throw new Error(data?.msg ?? `HTTP ${res.status}`);
         if (data?.note?.id && !noteId) setNoteId(data.note.id);
         setAutosaveStatus('saved');
         setTimeout(() => setAutosaveStatus('idle'), 2000);

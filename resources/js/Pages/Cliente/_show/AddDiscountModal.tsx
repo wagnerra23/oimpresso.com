@@ -68,8 +68,9 @@ export default function AddDiscountModal({
           Accept: 'application/json',
         },
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
+      // O servidor responde 200 com {success: 0, msg} quando não grava o desconto.
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
         throw new Error(data?.msg ?? `HTTP ${res.status}`);
       }
       onSuccess();

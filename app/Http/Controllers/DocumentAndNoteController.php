@@ -242,6 +242,9 @@ class DocumentAndNoteController extends Controller
             $output = [
                 'success' => true,
                 'msg' => __('lang_v1.success'),
+                // A aba Documentos da ficha React salva a anotação sozinha enquanto se digita: com o id,
+                // os salvamentos seguintes atualizam esta nota. Sem ele, cada pausa criava uma nota nova.
+                'note' => ['id' => $model_note->id],
             ];
         } catch (Exception $e) {
             DB::rollBack();

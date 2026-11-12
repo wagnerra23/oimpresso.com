@@ -122,10 +122,12 @@ export default function LedgerTab({
       const csrf = csrfMeta?.content ?? '';
       const formData = new FormData();
       formData.append('contact_id', String(contactId));
-      formData.append('email', emailValue);
+      // Nomes que ContactController::sendLedger lê (os mesmos do modal Blade). Assunto e texto
+      // vêm do modelo "Enviar razão" da empresa, que o servidor completa quando não vêm aqui.
+      formData.append('to_email', emailValue);
       if (startDate) formData.append('start_date', startDate);
       if (endDate) formData.append('end_date', endDate);
-      if (format) formData.append('format', format);
+      if (format) formData.append('ledger_format', format);
       if (locationId) formData.append('location_id', locationId);
 
       const res = await fetch('/contacts/send-ledger', {
@@ -138,7 +140,9 @@ export default function LedgerTab({
           Accept: 'application/json',
         },
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // O servidor responde 200 com {success: 0, msg} quando o envio falha.
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) throw new Error(json?.msg ?? `HTTP ${res.status}`);
       setEmailFeedback('Extrato enviado por e-mail.');
       setTimeout(() => setEmailModal(false), 1500);
     } catch (e) {
