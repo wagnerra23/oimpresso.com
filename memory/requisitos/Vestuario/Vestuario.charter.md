@@ -4,7 +4,7 @@ module: Vestuario
 charter_type: module
 status: piloto
 piloto: ROTA LIVRE biz=4 (LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME, Gravatal/SC)
-last_review: 2026-05-10
+last_review: 2026-11-12
 owner: wagner
 parent_adr: 0121
 related_adrs: [0011, 0093, 0094, 0105, 0121]
@@ -14,7 +14,7 @@ charter_version: 1
 
 # Module Charter — Modules/Vestuario
 
-> **Status piloto:** ROTA LIVRE valida o vertical **hoje rodando no núcleo** (Sells/Stock/Financeiro). Módulo formal `Modules/Vestuario/` ainda **a extrair** — esta charter é o contrato de produto que guia a extração + serve como template canônico pros próximos módulos verticais (ComunicacaoVisual, OficinaAuto).
+> **Status piloto:** ROTA LIVRE valida o vertical rodando quase todo no **núcleo** (Sells/Stock/Financeiro). A pasta `Modules/Vestuario/` existe desde 2026-05 e guarda o que é só do ramo (etiqueta, curva de compra, remarcação); esta charter é o contrato de produto do módulo e serve de template pros próximos verticais (ComunicacaoVisual, OficinaAuto).
 >
 > Charter de **módulo inteiro** (não de página). Diferente de `*.charter.md` ao lado de `.tsx` (que é tela). Aqui o objeto governado é o módulo vertical inteiro do oimpresso conforme [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md).
 
@@ -42,7 +42,7 @@ Add-on vertical de moda/vestuário sobre o núcleo oimpresso — entrega estoque
 
 > Cada item evita escopo gourmet. Onde o trabalho realmente vive está apontado.
 
-- ❌ **Emissão fiscal NFC-e/NFe** → vive em `Modules/NfeBrasil` (módulo consome o evento `NFCeAutorizada`)
+- ❌ **Emissão fiscal NFC-e/NFe** → vive em `Modules/NfeBrasil` (o Vestuario não escuta evento fiscal hoje)
 - ❌ **Visão financeira AR/AP unificada** → vive em `Modules/Financeiro`
 - ❌ **Boleto/assinatura/cobrança recorrente** → vive em `Modules/RecurringBilling`
 - ❌ **Multi-tenant `business_id` global scope** → infraestrutura núcleo Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
@@ -84,7 +84,7 @@ Validação: ROTA LIVRE biz=4, 17.251+ vendas, 99% volume sistema, em prod desde
 
 ### Targets duros
 - p95 first-paint < 1500ms (admin) / < 800ms (Cockpit dashboard)
-- 0 erros JS console em smoke biz=1 (Wagner WR2 SC) — nunca biz=4 em smoke ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md))
+- 0 erros JS console em smoke biz=1 — nunca biz=4 em smoke (regra R6 de [`proibicoes.md`](../../proibicoes.md); teste automatizado no tenant 98, [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
 - **Monitor 1280px sem scroll horizontal** em todas telas — quirk crítico ROTA LIVRE
 - Mobile responsivo (≥768px) pra conferência de estoque no celular caminhando na loja
 - Tipografia canon ADR 0110 — h1 22-24px / pill 12px / badge 11px
@@ -124,7 +124,7 @@ Validação: ROTA LIVRE biz=4, 17.251+ vendas, 99% volume sistema, em prod desde
 
 | Módulo núcleo | Como Vestuario consome | Direção |
 |---|---|---|
-| `Modules/NfeBrasil` | Listener `NFCeAutorizada` ao finalizar venda; pipeline TransactionBuilder | consome |
+| `Modules/NfeBrasil` | NFC-e da venda pelo pipeline do núcleo; nenhum listener do Vestuario hoje | consome (indireto) |
 | `Modules/Financeiro` | Visão unificada AR/AP de boletos da loja, DRE simplificado | consome |
 | `Modules/Jana` (Jana) | Chat contextual + alertas + brief diário | consome |
 | `Modules/RecurringBilling` | Plano mensal da loja (assinatura oimpresso) — não vendas finais | consome |
