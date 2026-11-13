@@ -65,5 +65,8 @@ final readonly class TributoCalculado
         // Thread 29 · R-NFE-035: explica um corte que o motor fez (ex. DIFAL do Simples na UF não
         // marcada). Null = nada a dizer.
         public ?string $aviso = null,
+        // R-NFE-025b: CST de PIS/COFINS da regra. Null = a regra não diz; o XML segue com 07.
+        public ?string $cst_pis = null,
+        public ?string $cst_cofins = null,
     ) {}
 }

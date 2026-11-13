@@ -233,3 +233,67 @@ it('R-NFE-025c · idempotência com itens reais: venda autorizada devolve a mesm
         NfeEmissao::withoutGlobalScopes()->withTrashed()->where('business_id', $biz)->where('transaction_id', $txId)->forceDelete();
     }
 });
+
+/**
+ * R-NFE-025b com CST na regra. Motor falso devolvendo o CST e as alíquotas do Sabor Brasil
+ * (tempero: CST 01, PIS 0,65%, COFINS 3%; alho: CST 06).
+ *
+ * Prova de valor à mão, itens de 100,00 e 200,00:
+ *   PIS 01:    vBC 100,00 / 200,00 · pPIS 0,65 · vPIS 0,65 + 1,30 = 1,95
+ *   COFINS 01: vBC 100,00 / 200,00 · pCOFINS 3  · vCOFINS 3,00 + 6,00 = 9,00
+ *   CST 06 (não tributado): vBC 0 · p 0 · v 0, e o total também 0.
+ */
+function motorFakeCst17(?string $cstPis, ?string $cstCofins, float $aliqPis, float $aliqCofins): MotorTributarioService
+{
+    return new class($cstPis, $cstCofins, $aliqPis, $aliqCofins) extends MotorTributarioService {
+        public function __construct(private ?string $cp, private ?string $cc, private float $ap, private float $ac) {}
+
+        public function calcular(ProdutoFiscalContext $produto, int $businessId, string $ufOrigem, string $ufDestino): TributoCalculado
+        {
+            return new TributoCalculado(
+                cfop: '5405', csosn: '500', cst: null,
+                aliquota_icms: 0.0, aliquota_pis: $this->ap, aliquota_cofins: $this->ac, aliquota_ipi: 0.0,
+                valor_icms: 0.0,
+                valor_pis: round($produto->valor * $this->ap, 2),
+                valor_cofins: round($produto->valor * $this->ac, 2),
+                valor_ipi: 0.0,
+                nivel_usado: 2,
+                cst_pis: $this->cp,
+                cst_cofins: $this->cc,
+            );
+        }
+    };
+}
+
+it('R-NFE-025b · CST 01 da regra: item com base, percentual e valor; total soma os itens', function () {
+    Log::spy();
+    $r = montar17([linha17(1, 1, 100.00, '21039021'), linha17(2, 2, 100.00, '21039021')], 300.00, 0,
+        motorFakeCst17('01', '01', 0.0065, 0.03));
+
+    expect(array_map(fn ($d) => [$d['pis']['cst'], $d['pis']['vbc'], $d['pis']['ppis'], $d['pis']['vpis']], $r['dets']))
+        ->toBe([['01', 100.0, 0.65, 0.65], ['01', 200.0, 0.65, 1.3]]);
+    expect(array_map(fn ($d) => [$d['cofins']['cst'], $d['cofins']['vbc'], $d['cofins']['pcofins'], $d['cofins']['vcofins']], $r['dets']))
+        ->toBe([['01', 100.0, 3.0, 3.0], ['01', 200.0, 3.0, 6.0]]);
+    expect($r['total']['v_pis'])->toBe(1.95);
+    expect($r['total']['v_cofins'])->toBe(9.0);
+    Log::shouldNotHaveReceived('info', fn ($msg) => $msg === 'pis_cofins_cst_fallback');
+});
+
+it('R-NFE-025b · CST 06 (não tributado): item e total sem PIS/COFINS, mesmo com alíquota na regra', function () {
+    $r = montar17([linha17(1, 1, 100.00, '07032090'), linha17(2, 2, 100.00, '07032090')], 300.00, 0,
+        motorFakeCst17('06', '06', 0.0065, 0.03));
+
+    expect(array_map(fn ($d) => [$d['pis']['cst'], $d['pis']['vbc'], $d['pis']['vpis'], $d['cofins']['vcofins']], $r['dets']))
+        ->toBe([['06', 0.0, 0.0, 0.0], ['06', 0.0, 0.0, 0.0]]);
+    // O ICMSTot tem de bater com a soma dos itens (a SEFAZ confere): itens sem PIS ⇒ total sem PIS.
+    expect($r['total']['v_pis'])->toBe(0.0);
+    expect($r['total']['v_cofins'])->toBe(0.0);
+});
+
+it('R-NFE-025b · controle positivo: regra sem CST segue 07 com os números de antes', function () {
+    $r = montar17([linha17(1, 1, 100.00, '21039021')], 100.00, 0, motorFakeCst17(null, null, 0.0065, 0.03));
+
+    expect([$r['dets'][0]['pis']['cst'], $r['dets'][0]['pis']['vbc'], $r['dets'][0]['pis']['ppis'], $r['dets'][0]['pis']['vpis']])
+        ->toBe(['07', 0.0, 0.65, 0.65]);
+    expect($r['total']['v_pis'])->toBe(0.65);
+});
