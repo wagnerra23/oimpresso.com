@@ -87,10 +87,10 @@ class PainelDaRedeController extends Controller
             ->orderBy('nome')
             ->get(['id', 'nome', 'cidade'])
             ->map(fn ($a) => [
-                'id' => (int) $a->id,
-                'nome' => (string) $a->nome,
-                'cidade' => (string) $a->cidade,
-                'ativas' => (int) ($ativas[$a->id] ?? 0),
+                'id' => (int) $a->getAttribute('id'),
+                'nome' => (string) $a->getAttribute('nome'),
+                'cidade' => (string) $a->getAttribute('cidade'),
+                'ativas' => (int) ($ativas[$a->getAttribute('id')] ?? 0),
             ])
             ->values()
             ->all();
