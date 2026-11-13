@@ -7,6 +7,9 @@ contains:
   - "InstallController"
   - "AssociacoesAcesso + AssociacoesLiberado — regra única de acesso: pacote, associacoes.access e alcance por associação (rede inteira com associacoes.rede; senão só onde é representante em assoc_representantes) — ADR 0451 D4"
   - "Associações-membro (assoc_associacoes) e documentos delas que não se apagam (assoc_documentos) — US-ASSOC-001"
+  - "AssociacoesController — lista PT-01 e ficha das associações, representantes e mudança de diretoria (US-ASSOC-002)"
+  - "DocumentosAssociacaoController + DocumentosDaAssociacao — documentos com arquivo no Arquivos, tirar da lista com motivo (US-ASSOC-002)"
+  - "PendenciaDiretoria — cálculo único da pendência de ata da diretoria (em dia, pendente, atrasada) — ADR 0451 D7"
   - "Associadas como contacts do núcleo, sem CPF (assoc_associadas) e consentimento LGPD por finalidade que o banco não deixa apagar (assoc_consentimentos) — US-ASSOC-001"
 not_contains:
   - "Prontuário, laudo e programa de exercícios → Modules/Fisio (outra empresa: a clínica; sem ligação entre empresas)"
@@ -18,7 +21,8 @@ depends_on:
 owner: wagner
 status: em construção
 url_prefixes:
-  - /associacoes/install (instalação 1-clique; as telas chegam nas ondas 3 a 5 da ADR 0451)
+  - /associacoes/install (instalação 1-clique)
+  - /associacoes/lista (lista e ficha das associações, documentos — US-ASSOC-002)
 ---
 
 # Modules/Associacoes

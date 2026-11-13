@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 39,
-    "nodes": 984,
-    "edges": 1320,
+    "nodes": 988,
+    "edges": 1324,
     "by_node_type": {
       "module": 44,
       "table": 116,
       "adr": 155,
-      "component": 576,
-      "api": 93
+      "component": 579,
+      "api": 94
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 96,
+      "providesApi": 97,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 576,
+      "hasComponent": 579,
       "dependsOn": 144,
       "delegatesTo": 131,
       "migratesTo": 1,
@@ -1294,6 +1294,14 @@
       ]
     },
     {
+      "id": "api:/associacoes/lista",
+      "type": "api",
+      "prefix": "/associacoes/lista",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/atendimento/*",
       "type": "api",
       "prefix": "/atendimento/*",
@@ -2034,6 +2042,13 @@
       "desc": "regra única de acesso: pacote, associacoes.access e alcance por associação (rede inteira com associacoes.rede; senão só onde é representante em assoc_representantes) — ADR 0451 D4"
     },
     {
+      "id": "component:Associacoes/AssociacoesController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociacoesController",
+      "desc": "lista PT-01 e ficha das associações, representantes e mudança de diretoria (US-ASSOC-002)"
+    },
+    {
       "id": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
       "type": "component",
       "module": "Associacoes",
@@ -2048,11 +2063,25 @@
       "desc": ""
     },
     {
+      "id": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "desc": "documentos com arquivo no Arquivos, tirar da lista com motivo (US-ASSOC-002)"
+    },
+    {
       "id": "component:Associacoes/InstallController",
       "type": "component",
       "module": "Associacoes",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Associacoes/PendenciaDiretoria",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PendenciaDiretoria",
+      "desc": "cálculo único da pendência de ata da diretoria (em dia, pendente, atrasada) — ADR 0451 D7"
     },
     {
       "id": "component:Auditoria/AuditEntryService",
@@ -8902,6 +8931,12 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociacoesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
       "type": "hasComponent",
       "source": "contains"
@@ -8914,13 +8949,31 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/InstallController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/PendenciaDiretoria",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "api:/associacoes/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/lista",
       "type": "providesApi",
       "source": "url_prefixes"
     },
