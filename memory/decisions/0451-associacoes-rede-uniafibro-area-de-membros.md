@@ -29,8 +29,8 @@ review_triggers:
 # ADR 0451 · Associações: área de membros da rede Uniafibro
 
 > **Status `proposto`.** [W] decidiu o modelo de empresa em 2026-11-13, textual: *"Sim, 1 empresa"*.
-> As decisões D4 e D5 seguem a recomendação feita a ele no mesmo dia e ainda não foram
-> respondidas uma a uma; estão marcadas **(a confirmar)**. O merge desta ADR é o ato de ratificação.
+> D4 e D5 confirmados por [W] no mesmo dia, textual: *"Confirmo os dois"*. O merge desta ADR é o
+> ato de ratificação.
 
 ## Contexto
 
@@ -66,11 +66,11 @@ O que existe no oimpresso em 2026-11-13 (medido em `origin/main` `5869c93093`):
    - `associadas`: associação, contato do núcleo, data de entrada e situação (ativa ou desligada).
    - `associada_consentimentos`: finalidade, versão e `revoked_at`, sem DELETE — o mesmo desenho
      dos consentimentos do Fisio (`Modules/Fisio/Services/Consentimentos.php`).
-4. **D4 — Quem acessa (a confirmar).** A diretoria da Uniafibro vê a rede inteira. O
+4. **D4 — Quem acessa.** A diretoria da Uniafibro vê a rede inteira. O
    representante de cada associação entra no sistema e vê **só** a associação dele (permissão mais
    filtro por associação, com teste). A associada não entra no sistema: vê o próprio cadastro pelo
    app (D6).
-5. **D5 — Dados da associada (a confirmar).** Nome, celular e cidade. **Sem CPF** enquanto o
+5. **D5 — Dados da associada.** Nome, celular e cidade. **Sem CPF** enquanto o
    estatuto não exigir. "Pessoa com fibromialgia" é dado de saúde, sensível pela LGPD (art. 11):
    o cadastro exige consentimento explícito por finalidade — ser associada, receber mensagens
    pelo WhatsApp, ter o nome visível para a Uniafibro. Diagnóstico, laudo e CID não entram neste
