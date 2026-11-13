@@ -1,6 +1,6 @@
 ---
 owner: W
-last_validated: "2026-10-01"
+last_validated: "2026-11-13"
 slug: site-runbook-privacidade
 title: "Site — Runbook da política de privacidade pública do app oimpresso (ERP + ponto)"
 type: runbook
@@ -47,3 +47,22 @@ divergir). A parte do ponto **aponta** para `/privacidade/ponto` em vez de repet
 
 - Pest: `tests/Feature/Site/PrivacidadeAppContratoTest.php` (lane sqlite per-PR, `.github/ci-sqlite-pest.list`).
 - Smoke pós-deploy: `curl -sv https://oimpresso.com/privacidade 2>&1 | grep '^< HTTP'` → `200`, sem login.
+
+## 5. Política do Portal do Paciente do Fisio e do app Uniafibro (2026-11-13)
+
+Decisão [W] 2026-11-13: o app do paciente na Google Play (`com.oimpresso.fisio`, nome "Uniafibro",
+TWA de `oimpresso.com/fisio/app`) trata **dado de saúde** e precisa de política própria; `/privacidade`
+cobre só o ERP e o ponto. A URL fica em `oimpresso.com/fisio/privacidade` (decisão [W]: domínio onde o
+app roda hoje, assinada pelo operador que aparece no Play).
+
+| Rota | Nome | Tela |
+|---|---|---|
+| `GET /fisio/privacidade` | `publico.privacidade.fisio` | `Site/PrivacidadeFisio` |
+
+- Texto aprovado pelo [W] em 2026-11-13, derivado do código de `Modules/Fisio` (origin/main `885d90bcf4`):
+  acesso por link + PIN, consentimentos por finalidade, transcrição por IA opcional (anthropic/openai),
+  guarda de 20 anos (Lei 13.787/2018, `SemExclusaoDeDadoClinico`), sem vídeo.
+- Pendente: revisão jurídica da Eliana [E]; confirmar o país dos servidores da hospedagem; tirar
+  "Teleconsulta por vídeo" da ficha do Play para não contradizer a política.
+- Pest: `tests/Feature/Site/PrivacidadeFisioContratoTest.php` (lane sqlite).
+- Smoke pós-deploy: `curl -sv https://oimpresso.com/fisio/privacidade 2>&1 | grep '^< HTTP'` → `200`, sem login.

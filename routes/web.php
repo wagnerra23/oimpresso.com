@@ -483,6 +483,9 @@ Route::domain('uniafibro.com.br')->middleware('throttle:60,1')->group(function (
 Route::middleware(['web', 'throttle:60,1'])->group(function () {
     Route::get('/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'app'])
         ->name('publico.privacidade');
+    // Portal do Paciente do Fisio + app Uniafibro (com.oimpresso.fisio): dado de saúde, política própria.
+    Route::get('/fisio/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'fisio'])
+        ->name('publico.privacidade.fisio');
 });
 
 Route::middleware(['setData'])->group(function () {
