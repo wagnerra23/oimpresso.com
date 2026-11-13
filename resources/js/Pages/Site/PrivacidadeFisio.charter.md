@@ -4,7 +4,7 @@ component: resources/js/Pages/Site/PrivacidadeFisio.tsx
 owner: wagner
 status: draft
 parent_module: Site
-related_us: []
+related_us: [US-FISIO-007]
 related_prototype: n/a (página pública de texto legal — bespoke; não segue um dos 5 Padrões de Tela)
 runbook: memory/requisitos/Site/RUNBOOK-privacidade.md
 alcance:
