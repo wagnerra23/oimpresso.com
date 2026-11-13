@@ -109,7 +109,10 @@ class CorrigirTipoLegadoCommand extends Command
 
         $alterados = DB::transaction(fn () => $alvo()->update([
             'tipo' => 'receber',
-            'metadata' => DB::raw('JSON_SET(metadata, '.DB::getPdo()->quote('$.tipo_corrigido').', CAST('.DB::getPdo()->quote($marca).' AS JSON))'),
+            // JSON_EXTRACT(?, '$') e não CAST(? AS JSON): produção é MariaDB, que não tem CAST AS
+            // JSON (medido 2026-11-13, MariaDB 11.8: erro 1064). As duas formas dão o mesmo
+            // objeto no MySQL do CI; só esta roda nos dois.
+            'metadata' => DB::raw('JSON_SET(COALESCE(metadata, '.DB::getPdo()->quote('{}').'), '.DB::getPdo()->quote('$.tipo_corrigido').', JSON_EXTRACT('.DB::getPdo()->quote($marca).', '.DB::getPdo()->quote('$').'))'),
             'updated_at' => now(),
         ]));
 
