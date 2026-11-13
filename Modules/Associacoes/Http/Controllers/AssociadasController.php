@@ -49,10 +49,7 @@ class AssociadasController extends Controller
             'pode_editar' => $this->podeEditar($request),
             'situacoes' => Associada::SITUACOES,
             'termos' => $this->consentimentos->textos(),
-            'associacoes' => Inertia::defer(fn () => $this->acesso->restringir(Associacao::query(), $user, 'id')
-                ->orderBy('nome')->get(['id', 'nome', 'cidade'])
-                ->map(fn (Associacao $a) => ['id' => (int) $a->id, 'nome' => (string) $a->nome, 'cidade' => (string) $a->cidade])
-                ->all()),
+            'associacoes' => Inertia::defer(fn () => $this->associacoesVisiveis($request)),
             'associadas' => Inertia::defer(fn () => $this->listar($request, $associacaoId, $situacao)),
         ]);
     }
@@ -149,12 +146,27 @@ class AssociadasController extends Controller
         return redirect()->route('associacoes.associadas.index')->with('success', 'Associada cadastrada.');
     }
 
+    /** @return list<array{id: int, nome: string, cidade: string}> */
+    private function associacoesVisiveis(Request $request): array
+    {
+        $query = Associacao::query()->where('assoc_associacoes.business_id', $this->businessId($request));
+        $this->acesso->restringir($query, $request->user(), 'id');
+
+        return $query->orderBy('nome')->get(['id', 'nome', 'cidade'])
+            ->map(fn ($a) => ['id' => (int) $a->getAttribute('id'), 'nome' => (string) $a->getAttribute('nome'), 'cidade' => (string) $a->getAttribute('cidade')])
+            ->values()->all();
+    }
+
     /** Desligar: situação + data. Nunca apaga; repetir não muda a data do primeiro desligamento. */
     public function desligar(Request $request, int $id): RedirectResponse
     {
         $this->exigirEdicao($request);
         $dados = $request->validate(['desligada_em' => ['required', 'date', 'before_or_equal:today']]);
-        $associada = $this->acesso->restringir(Associada::query(), $request->user())->findOrFail($id);
+        // business_id explícito além do HasBusinessScope (ADR 0093), e o alcance por associação (D4).
+        $query = Associada::query()->where('assoc_associadas.business_id', $this->businessId($request));
+        $this->acesso->restringir($query, $request->user());
+        /** @var Associada $associada */
+        $associada = $query->findOrFail($id);
 
         if ($associada->situacao !== 'desligada') {
             $associada->fill(['situacao' => 'desligada', 'desligada_em' => $dados['desligada_em']])->save();
@@ -167,7 +179,10 @@ class AssociadasController extends Controller
     private function listar(Request $request, ?int $associacaoId, string $situacao): array
     {
         $user = $request->user();
-        $linhas = $this->acesso->restringir(Associada::query(), $user)
+        // business_id explícito além do HasBusinessScope (ADR 0093), e o alcance por associação (D4).
+        $query = Associada::query()->where('assoc_associadas.business_id', $this->businessId($request));
+        $this->acesso->restringir($query, $user);
+        $linhas = $query
             ->with(['contato:id,name,mobile,city', 'associacao:id,nome,cidade'])
             ->when($associacaoId !== null, fn ($q) => $q->where('associacao_id', $associacaoId))
             ->when($situacao !== '', fn ($q) => $q->where('situacao', $situacao))
@@ -179,15 +194,17 @@ class AssociadasController extends Controller
         $representadas = Representante::query()->where('user_id', (int) $user->id)->pluck('associacao_id')->map(static fn ($v) => (int) $v)->all();
         $comAceiteRede = $this->consentimentos->comVigente($this->businessId($request), $linhas->pluck('id')->map(static fn ($v) => (int) $v)->all(), Consentimentos::VISIVEL_REDE);
 
-        return $linhas->map(function (Associada $a) use ($representadas, $comAceiteRede) {
+        return $linhas->map(function ($a) use ($representadas, $comAceiteRede) {
+            /** @var Associada $a */
+            $contato = $a->contato;
             $nomeVisivel = in_array((int) $a->associacao_id, $representadas, true) || in_array((int) $a->id, $comAceiteRede, true);
 
             return [
                 'id' => (int) $a->id,
-                'nome' => $nomeVisivel ? (string) $a->contato?->name : null,
-                'celular' => self::mascarar((string) $a->contato?->mobile),
-                'cidade' => (string) ($a->contato?->city ?: $a->associacao?->cidade),
-                'associacao' => (string) $a->associacao?->nome,
+                'nome' => $nomeVisivel ? (string) $contato?->getAttribute('name') : null,
+                'celular' => self::mascarar((string) $contato?->getAttribute('mobile')),
+                'cidade' => (string) ($contato?->getAttribute('city') ?: $a->associacao?->getAttribute('cidade')),
+                'associacao' => (string) $a->associacao?->getAttribute('nome'),
                 'situacao' => (string) $a->situacao,
                 'entrou_em' => $a->entrou_em?->format('Y-m-d'),
                 'desligada_em' => $a->desligada_em?->format('Y-m-d'),
