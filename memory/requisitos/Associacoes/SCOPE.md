@@ -8,6 +8,8 @@ contains:
   - "AssociacoesAcesso + AssociacoesLiberado — regra única de acesso: pacote, associacoes.access e alcance por associação (rede inteira com associacoes.rede; senão só onde é representante em assoc_representantes) — ADR 0451 D4"
   - "Associações-membro (assoc_associacoes) e documentos delas que não se apagam (assoc_documentos) — US-ASSOC-001"
   - "Associadas como contacts do núcleo, sem CPF (assoc_associadas) e consentimento LGPD por finalidade que o banco não deixa apagar (assoc_consentimentos) — US-ASSOC-001"
+  - "AssociadasController — lista de associadas com celular mascarado, cadastro pelo contato do núcleo e desligamento (onda 4) — US-ASSOC-003"
+  - "Consentimentos — conceder, revogar e vigente por finalidade e versão da config; usado pelo cadastro e pelo app da onda 6 — US-ASSOC-003"
 not_contains:
   - "Prontuário, laudo e programa de exercícios → Modules/Fisio (outra empresa: a clínica; sem ligação entre empresas)"
   - "Site público uniafibro.com.br → resources/uniafibro + routes/web.php (HTML estático, sem banco)"
@@ -19,6 +21,7 @@ owner: wagner
 status: em construção
 url_prefixes:
   - /associacoes/install (instalação 1-clique; as telas chegam nas ondas 3 a 5 da ADR 0451)
+  - /associacoes/associadas (associadas e consentimentos — US-ASSOC-003)
 ---
 
 # Modules/Associacoes

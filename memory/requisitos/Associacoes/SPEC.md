@@ -34,9 +34,15 @@ Cadastro e lista das associações-membro (nome, cidade, região, CNPJ, represen
 
 ### US-ASSOC-003 · Associadas com consentimento — **P0**
 
-**Implementado em:** _pendente_ — onda 4 da ADR 0451.
+**Implementado em:** `Modules/Associacoes/Http/Controllers/AssociadasController.php` · `Modules/Associacoes/Services/Consentimentos.php` · `Modules/Associacoes/Resources/js/Pages/Associacoes/Associadas.tsx` · teste `Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php`
 
 Cadastro da associada pelo contato do núcleo (nome, celular, cidade; sem CPF), com consentimento explícito por finalidade e celular mascarado nas listas.
+
+- Lista em `/associacoes/associadas` com filtro por associação e situação; o celular sai mascarado do servidor e o nome só aparece para a diretoria da rede se a associada aceitou `visivel_rede` (D5).
+- Cadastro pelo contato do núcleo: busca no servidor ou contato novo pelo `ContactUtil`, sem duplicar celular na empresa.
+- Aceite por finalidade no cadastro (`associada` obrigatório; `whatsapp` e `visivel_rede` opcionais), na versão de `config('associacoes.consentimento_versoes')`. O Service `Consentimentos` (conceder, revogar, vigente) é o mesmo que o app da onda 6 vai usar.
+- Desligar guarda situação e data; nada se apaga.
+- Casos: `Associadas.casos.md` (UC-ASSOCI-00..07).
 
 ### US-ASSOC-004 · Painel da rede — **P1**
 
