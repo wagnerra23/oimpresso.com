@@ -19,4 +19,12 @@ return [
         'whatsapp' => '1',
         'visivel_rede' => '1',
     ],
+
+    // D6 da ADR 0451 (onda 6): área da associada no app, por link + PIN. Mesmos números do
+    // portal do paciente do Fisio (config('fisio.portal')).
+    'portal' => [
+        'validade_dias' => 30,
+        'max_tentativas' => 5,
+        'lockout_minutos' => 30,
+    ],
 ];

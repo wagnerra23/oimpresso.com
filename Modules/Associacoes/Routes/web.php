@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Associacoes\Http\Controllers\InstallController;
+use Modules\Associacoes\Http\Controllers\PortalAssociadaController;
+use Modules\Associacoes\Http\Controllers\PortalLinkController;
 use Modules\Associacoes\Http\Middleware\AssociacoesLiberado;
 
 /*
@@ -31,4 +33,36 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         // ── onda 4 · associadas e consentimentos (US-ASSOC-003) ──
 
         // ── onda 5 · painel da rede (US-ASSOC-004) ──
+    });
+
+/*
+ * ── onda 6 · área da associada no app (US-ASSOC-005 · ADR 0451 D6) ──
+ *
+ * 6a) Gerar e revogar o link + PIN. Mesmo portão das telas (pacote + `associacoes.access`); o
+ *     controller exige `associacoes.editar` e o alcance D4 sobre a associação da associada.
+ *     O botão entra na tela de associadas da onda 4 depois do merge.
+ */
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', AssociacoesLiberado::class])
+    ->prefix('associacoes')
+    ->name('associacoes.')
+    ->group(function () {
+        Route::post('associadas/{id}/portal', [PortalLinkController::class, 'store'])->whereNumber('id')->name('associadas.portal.store');
+        Route::delete('associadas/{id}/portal', [PortalLinkController::class, 'destroy'])->whereNumber('id')->name('associadas.portal.destroy');
+    });
+
+/*
+ * 6b) Área PÚBLICA da associada: sem auth, sem SetSessionData, sem o middleware do pacote — a
+ *     associada não é usuária do sistema. O business viaja ASSINADO no token e cada leitura
+ *     filtra por ele (PortalAssociadaService, que também confere o pacote). Throttle por IP contra
+ *     força bruta, além da trava de 5 PINs errados por 30 min que mora na linha do token.
+ */
+Route::middleware(['web', 'throttle:60,1'])
+    ->prefix('associacoes/m/{token}')
+    ->name('associacoes.membro.')
+    ->where(['token' => '[A-Za-z0-9_\-\.]{1,512}'])
+    ->group(function () {
+        Route::get('/', [PortalAssociadaController::class, 'show'])->name('show');
+        Route::post('pin', [PortalAssociadaController::class, 'pin'])->name('pin');
+        Route::delete('consentimentos/{finalidade}', [PortalAssociadaController::class, 'revogarConsentimento'])
+            ->where('finalidade', '[a-z_]{1,40}')->name('consentimentos.destroy');
     });

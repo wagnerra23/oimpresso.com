@@ -46,9 +46,15 @@ Quantas associações, cidades e associadas ativas, e as pendências de document
 
 ### US-ASSOC-005 · Área da associada no app — **P1**
 
-**Implementado em:** _pendente_ — onda 6 da ADR 0451.
+**Implementado em:** `Modules/Associacoes/Services/PortalAssociadaService.php`, `Modules/Associacoes/Http/Controllers/PortalAssociadaController.php`, `Modules/Associacoes/Http/Controllers/PortalLinkController.php`, `Modules/Associacoes/Resources/js/Pages/Associacoes/Public/Membro.tsx`
 
 Link + PIN no padrão do portal do Fisio, no domínio que o app da Play já abre. A associada vê o próprio cadastro e os consentimentos, e pode revogar.
+
+- Rota pública `/associacoes/m/{token}` (sem login, throttle): PIN → "Meus dados" (nome, associação, situação, data de entrada) → autorizações com "Retirar". Retirar grava `revoked_at`; `associada` só a associação encerra.
+- Gerar/revogar: `POST|DELETE /associacoes/associadas/{id}/portal` (`associacoes.editar` + alcance D4). O botão entra na tela de associadas da onda 4.
+- Token HMAC com o business assinado, PIN de 4 dígitos com trava de 5 erros / 30 min, só hashes em `assoc_portal_tokens`. "Lembrar este aparelho" ainda não existe.
+- Abre dentro do app só depois de o TWA da Play aceitar `/associacoes/m/` no intent-filter (hoje só `/fisio/p/`); até lá abre no navegador.
+- Casos: `Modules/Associacoes/Resources/js/Pages/Associacoes/Public/Membro.casos.md` (UC-AMB-01..06) · Teste: `Modules/Associacoes/Tests/Feature/AssociacoesPortalMembroContratoTest.php`.
 
 ## Histórico
 
