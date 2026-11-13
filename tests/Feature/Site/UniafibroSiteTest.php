@@ -36,7 +36,7 @@ it('a página traz nome, lema, app "em breve" e logo do próprio domínio', func
     $html = uniafibroHtml();
 
     expect($html)->toStartWith('<!DOCTYPE html>');
-    expect($html)->toContain('União das Associações de Fibromialgia de SC');
+    expect($html)->toContain('União das Associações de Fibromiálgicos de Santa Catarina');
     expect($html)->toContain('Juntas somos mais fortes.');
     expect($html)->toContain('Em breve na Google Play');
     // A imagem vem do próprio domínio (caminho relativo), não de oimpresso.com.
