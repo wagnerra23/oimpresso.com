@@ -57,6 +57,9 @@ PRODUTO_COLS = [
     "CODIGO", "DESCRICAO", "UNIDADE", "CODPRODUTO_GRUPO", "VALOR",
     "VALOR_PRAZO", "CUSTO_LOJA", "CUSTO_FABR", "ESTOQUE", "ATIVO",
     "CODNF_NCM", "CODFABRICA",
+    # Sabor Brasil 2026-11-13: NCM e origem eram lidos e nunca gravados — os 141 produtos da
+    # empresa 199 ficaram com o default da coluna (ncm='0'), e a NF-e não acha regra fiscal.
+    "ORIGEM_MERCADORIA",
     # Sabor Brasil 2026-11-04: código de barras e CEST vão para a NF-e (UC-FNFE-61/62).
     "CODIGOEAN", "CODNF_CEST",
 ]
@@ -76,6 +79,23 @@ def cest_valido(raw) -> str | None:
     """NF_CEST.CODIGO é o próprio CEST (7 dígitos, Convênio ICMS 142/2018)."""
     c = "".join(ch for ch in str(raw or "") if ch.isdigit())
     return c if len(c) == 7 else None
+
+
+def ncm_valido(raw) -> str | None:
+    """NCM tem 8 dígitos (TIPI). O Delphi guarda com espaço no fim ('07129090 ') e tem lixo
+    ('0', '7606', '06912', vazio). Só os 8 dígitos vão para a nota; o resto fica sem NCM e
+    aparece em "Produtos ativos sem NCM válido" na Saúde fiscal, para cadastrar à mão."""
+    n = "".join(ch for ch in str(raw or "") if ch.isdigit())
+    return n if len(n) == 8 and n != "00000000" else None
+
+
+def origem_valida(raw) -> int | None:
+    """Origem da mercadoria da NF-e (0 a 8, tabela A do CST)."""
+    try:
+        o = int(str(raw).strip())
+    except (TypeError, ValueError):
+        return None
+    return o if 0 <= o <= 8 else None
 
 
 def get_existing_cols(con, table: str) -> set[str]:
@@ -131,6 +151,8 @@ def map_produto(prod: dict, business_id: int, unit_lookup: dict[str, int], defau
         "alert_quantity": 0,
         "tax_type": "exclusive",
         "cest": cest_valido(prod.get("CODNF_CEST")),
+        "ncm": ncm_valido(prod.get("CODNF_NCM")),
+        "origem_mercadoria": origem_valida(prod.get("ORIGEM_MERCADORIA")),
     }, valor  # retorna (data, valor) — valor usado pro variation default sell_price
 
 
@@ -143,6 +165,9 @@ def main() -> int:
     # Itens de venda antigos apontam para produto que hoje está inativo; sem ele o item
     # se perde. Inativo entra com not_for_selling=1.
     parser.add_argument("--incluir-inativos", dest="only_ativo", action="store_false")
+    # Só NCM, CEST e origem, em produto que já existe: não toca nome, preço, unidade nem
+    # variação (o que alguém já ajustou no oimpresso fica). Produto que não existe é pulado.
+    parser.add_argument("--so-fiscal", action="store_true")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--batch-size", type=int, default=500)
     parser.add_argument("--mysql-host", default=os.environ.get("MYSQL_HOST", "127.0.0.1"))
@@ -166,7 +191,8 @@ def main() -> int:
     print(f"  Target MySQL     : {args.target}")
 
     stats = {"lidos": 0, "inserts": 0, "updates": 0, "skipped": 0, "errors": 0,
-             "variations_inserts": 0, "variations_existing": 0, "ean_validos": 0, "ean_aplicados": 0, "cest": 0}
+             "variations_inserts": 0, "variations_existing": 0, "ean_validos": 0, "ean_aplicados": 0, "cest": 0,
+             "ncm": 0, "ncm_invalido": []}
 
     with firebird_connect(args.alias, password_override=args.firebird_password) as fb_con:
         cols_existentes = get_existing_cols(fb_con, "PRODUTO")
@@ -242,6 +268,9 @@ def main() -> int:
                 ean = gtin_valido(prod.get("CODIGOEAN"))
                 stats["ean_validos"] += 1 if ean else 0
                 stats["cest"] += 1 if data.get("cest") else 0
+                stats["ncm"] += 1 if data.get("ncm") else 0
+                if not data.get("ncm"):
+                    stats["ncm_invalido"].append(f"{data['sku']}={str(prod.get('CODNF_NCM') or '').strip() or '(vazio)'}")
 
                 if args.target == "dry-run":
                     stats["inserts"] += 1
@@ -259,22 +288,38 @@ def main() -> int:
                         product_id = int(existing["id"])
                         update_fields = {k: v for k, v in data.items()
                                           if k not in ("business_id", "sku", "type")}
+                        if args.so_fiscal:
+                            update_fields = {k: v for k, v in update_fields.items()
+                                             if k in ("cest", "ncm", "origem_mercadoria")}
                         # CEST vazio no Delphi não apaga o que alguém cadastrou no oimpresso.
-                        if update_fields.get("cest") is None:
-                            update_fields.pop("cest", None)
-                        set_clause = ", ".join(f"{k}=%s" for k in update_fields)
-                        wcur.execute(
-                            f"UPDATE products SET {set_clause}, updated_at=NOW() WHERE id=%s",
-                            (*update_fields.values(), product_id),
-                        )
-                        stats["updates"] += 1
+                        # Mesma regra para NCM e origem: o Delphi sem valor válido não apaga o cadastro.
+                        for campo in ("cest", "ncm", "origem_mercadoria"):
+                            if update_fields.get(campo) is None:
+                                update_fields.pop(campo, None)
+                        if update_fields:
+                            set_clause = ", ".join(f"{k}=%s" for k in update_fields)
+                            wcur.execute(
+                                f"UPDATE products SET {set_clause}, updated_at=NOW() WHERE id=%s",
+                                (*update_fields.values(), product_id),
+                            )
+                            stats["updates"] += 1
+                        if args.so_fiscal:
+                            # sem isto o commit no fim nunca roda (ele só olha batch_count)
+                            batch_count += 1
+                            continue
+                    elif args.so_fiscal:
+                        stats["skipped"] += 1
+                        continue
                     else:
-                        cols = list(data.keys()) + ["created_by"]
+                        # products.ncm é NOT NULL (default '0'): sem NCM válido, deixa o default.
+                        novo = {k: v for k, v in data.items()
+                                if not (k in ("ncm", "origem_mercadoria") and v is None)}
+                        cols = list(novo.keys()) + ["created_by"]
                         placeholders = ", ".join(["%s"] * len(cols))
                         wcur.execute(
                             f"INSERT INTO products ({', '.join(cols)}, created_at, updated_at) "
                             f"VALUES ({placeholders}, NOW(), NOW())",
-                            (*data.values(), args.created_by),
+                            (*novo.values(), args.created_by),
                         )
                         product_id = wcur.lastrowid
                         stats["inserts"] += 1
@@ -367,6 +412,9 @@ def main() -> int:
     print(f"  Variations INSERT  : {stats['variations_inserts']}")
     print(f"  Variations existing: {stats['variations_existing']}")
     print(f"  Skipped            : {stats['skipped']}")
+    print(f"  NCM válido         : {stats['ncm']}")
+    print(f"  NCM inválido/vazio : {len(stats['ncm_invalido'])}"
+          + (f" ({', '.join(stats['ncm_invalido'][:20])})" if stats['ncm_invalido'] else ""))
     print(f"  Errors             : {stats['errors']}")
     print(f"[OK] PRODUTO concluido (v{IMPORTER_VERSION}, target={args.target})")
     return 0
