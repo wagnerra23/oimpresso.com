@@ -48,6 +48,10 @@ Quantas associações, cidades e associadas ativas, e as pendências de document
 
 **Implementado em:** `Modules/Associacoes/Services/PortalAssociadaService.php`, `Modules/Associacoes/Http/Controllers/PortalAssociadaController.php`, `Modules/Associacoes/Http/Controllers/PortalLinkController.php`, `Modules/Associacoes/Resources/js/Pages/Associacoes/Public/Membro.tsx`
 
+**Testado em:** `Modules/Associacoes/Tests/Feature/AssociacoesPortalMembroContratoTest.php`
+
+**DoD:** link válido pede o PIN e não entrega dado antes dele; link de outra empresa, adulterado ou substituído é o mesmo estado vazio; 5 PINs errados travam por 30 min; PIN certo mostra nome, associação, situação, data de entrada e as autorizações; retirar autorização grava `revoked_at` sem apagar e `associada` não se retira pelo app; gerar e revogar o link exige `associacoes.editar` e alcance D4, nunca de outra empresa (98 × 99).
+
 Link + PIN no padrão do portal do Fisio, no domínio que o app da Play já abre. A associada vê o próprio cadastro e os consentimentos, e pode revogar.
 
 - Rota pública `/associacoes/m/{token}` (sem login, throttle): PIN → "Meus dados" (nome, associação, situação, data de entrada) → autorizações com "Retirar". Retirar grava `revoked_at`; `associada` só a associação encerra.
