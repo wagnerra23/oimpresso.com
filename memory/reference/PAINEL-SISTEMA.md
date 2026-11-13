@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-11**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-13**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -24,10 +24,11 @@ lente: [construir]
 |---|---|---|
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-10-26 |
+| Associacoes | [BRIEFING](../requisitos/Associacoes/BRIEFING.md) | 2026-11-13 |
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-11-10 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-11-09 |
-| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-10-28 |
+| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-11-11 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-10-27 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-10-27 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-10-27 |
@@ -41,19 +42,19 @@ lente: [construir]
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-10-26 |
 | Marketplaces | [BRIEFING](../requisitos/Marketplaces/BRIEFING.md) | 2026-10-27 |
-| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-10-29 |
+| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-11-12 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-10-13 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-11-05 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-27 |
 | Producao | [BRIEFING](../requisitos/Producao/BRIEFING.md) | 2026-10-28 |
-| ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
+| ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-11-12 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-10-27 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-10-13 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
-| Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
+| Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-11-12 |
 | VozDoCliente | [BRIEFING](../requisitos/VozDoCliente/BRIEFING.md) | 2026-10-28 |
 | Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-10-27 |
 | Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-10-27 |
@@ -62,8 +63,8 @@ lente: [construir]
 
 > Contagem DERIVADA da árvore (contrato `implements`, não pasta). Isto conta **arquivo que implementa contrato** — não é nota, não é status e não prova que a peça roda. O que cada agente faz e se está ligado vive no BRIEFING do módulo e na config; aqui só existe o censo. Antes disto, estes números viviam à mão num diagrama e já tinham errado (`16 provedores` era 15).
 
-- **Agentes** (`implements Agent`, fora de `Tests/`): **21** — todos em `Ai/Agents/`, convenção íntegra.
-  - por módulo: Jana 15 · Crm 3 · Fisio 1 · Forja 1 · Whatsapp 1
+- **Agentes** (`implements Agent`, fora de `Tests/`): **22** — todos em `Ai/Agents/`, convenção íntegra.
+  - por módulo: Jana 15 · Crm 3 · Fisio 2 · Forja 1 · Whatsapp 1
 - **Tools MCP registradas** no `OimpressoMcpServer`: **44** — Jana 39 · Forja 5. Bate com os arquivos `*Tool.php` em `Modules/*/Mcp/Tools/`. _Registrada ≠ exposta_: a exposição é gated por `MCP_TOOLS_EXPOSED` (`config/mcp.php`), estado de runtime que a árvore não sabe.
 - **Provedores** declarados em `config/ai.php`: **15** · default = `openai` — anthropic, azure, bedrock, cohere, deepseek, eleven, gemini, groq, jina, mistral, ollama, openai, openrouter, voyageai, xai. _Declarado ≠ com chave_: a credencial mora no ambiente.
 - **Implementações de `MemoriaContrato`**: McpMemoriaDriver · MeilisearchDriver · NullMemoriaDriver · RetrievalTelemetryDecorator
@@ -149,8 +150,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **454** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 389 · superseded: 28 · proposto: 23 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- **456** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 389 · superseded: 28 · proposto: 25 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **6** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -441,4 +442,4 @@ lente: [construir]
   - `2026-10-20-arte-casos-de-uso-fabricacao`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-11-11 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-11-13 · deriva das fontes canônicas, não as substitui._
