@@ -64,6 +64,9 @@ class PortalLinkController extends Controller
         abort_if($biz <= 0, 403);
         $query = Associada::query()->where('assoc_associadas.business_id', $biz)->whereKey($id);
 
-        return $this->acesso->restringir($query, $user)->firstOrFail();
+        /** @var Associada $associada */
+        $associada = $this->acesso->restringir($query, $user)->firstOrFail();
+
+        return $associada;
     }
 }
