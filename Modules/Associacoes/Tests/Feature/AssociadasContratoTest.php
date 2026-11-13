@@ -107,7 +107,9 @@ it('UC-ASSOCI-00 · o item "Associadas" aparece no menu para quem tem acesso, e 
         Menu::create('admin-sidebar-menu', fn ($m) => $m);
         (new DataController())->modifyAdminMenu();
 
-        return json_encode((new LegacyMenuAdapter())->build());
+        // Sem escapar as barras: com o json_encode padrão o href vira "\/associacoes\/associadas" e o
+        // assert positivo cai enquanto o negativo passa vazio (medido na 1ª rodada da lane).
+        return json_encode((new LegacyMenuAdapter())->build(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     };
 
     expect($menu($this->repA))->toContain('/associacoes/associadas');
