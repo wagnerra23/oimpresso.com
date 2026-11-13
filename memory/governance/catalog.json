@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 39,
-    "nodes": 984,
-    "edges": 1320,
+    "nodes": 986,
+    "edges": 1322,
     "by_node_type": {
       "module": 44,
       "table": 116,
       "adr": 155,
-      "component": 576,
-      "api": 93
+      "component": 577,
+      "api": 94
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 96,
+      "providesApi": 97,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 576,
+      "hasComponent": 577,
       "dependsOn": 144,
       "delegatesTo": 131,
       "migratesTo": 1,
@@ -1286,6 +1286,14 @@
       ]
     },
     {
+      "id": "api:/associacoes",
+      "type": "api",
+      "prefix": "/associacoes",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/associacoes/install",
       "type": "api",
       "prefix": "/associacoes/install",
@@ -2053,6 +2061,13 @@
       "module": "Associacoes",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PainelDaRedeController + PendenciasDaRede",
+      "desc": "painel da rede em /associacoes: números por situação, cidades, associadas ativas e pendências de documentação, no alcance D4 — US-ASSOC-004"
     },
     {
       "id": "component:Auditoria/AuditEntryService",
@@ -8920,7 +8935,19 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "api:/associacoes/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes",
       "type": "providesApi",
       "source": "url_prefixes"
     },
