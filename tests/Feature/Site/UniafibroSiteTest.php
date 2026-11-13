@@ -130,6 +130,54 @@ it('conquistas: cada marco da luta pelas leis aponta o documento oficial', funct
     }
 });
 
+it('cuidado em equipe: lista as seis áreas e diz que tem tratamento mas não tem cura', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('id="cuidado"');
+    foreach (['Médico', 'Fisioterapia', 'Educação física', 'Psicologia', 'Nutrição', 'Assistência social'] as $area) {
+        expect($html)->toContain('<h3>'.$area.'</h3>');
+    }
+    expect($html)->toContain('tem tratamento, mas não tem cura');
+});
+
+it('a rede: associação mantém nome, diretoria e CNPJ e sabe como entrar', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('id="rede"');
+    expect($html)->toContain('continua com seu nome, sua diretoria e seu CNPJ');
+    expect($html)->toContain('Lei estadual 18.162/2021');
+    expect($html)->toContain('Sua associação quer entrar na rede?');
+});
+
+it('app: descreve o portal (check-in, FIQR, link + PIN) sem prometer teleconsulta', function () {
+    $html = uniafibroHtml();
+    $ini = strpos($html, 'id="app"');
+    $secao = substr($html, $ini, strpos($html, '</section>', $ini) - $ini);
+
+    expect($secao)->toContain('check-in');
+    expect($secao)->toContain('FIQR');
+    expect($secao)->toContain('PIN');
+    expect($secao)->not->toMatch('/teleconsulta|videochamada|consulta por vídeo/i');
+});
+
+it('perguntas frequentes e o aviso de que o site não substitui orientação médica', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('id="duvidas"');
+    preg_match_all('/<details>/', $html, $m);
+    expect(count($m[0]))->toBeGreaterThanOrEqual(5);
+    expect($html)->toContain('Este site não substitui orientação médica.');
+});
+
+it('SEO: description e Open Graph próprios', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toMatch('/<meta name="description" content="[^"]{80,}">/');
+    expect($html)->toContain('<meta property="og:title"');
+    expect($html)->toContain('<meta property="og:description"');
+    expect($html)->toContain('<link rel="canonical" href="https://uniafibro.com.br/">');
+});
+
 it('atendimento: começa pelo posto de saúde e lista os serviços de referência com fonte', function () {
     $html = uniafibroHtml();
 

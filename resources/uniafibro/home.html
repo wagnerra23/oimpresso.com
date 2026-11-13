@@ -14,12 +14,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Uniafibro — União das Associações de Fibromialgia de SC</title>
-    <meta name="description" content="A Uniafibro reúne as associações de fibromialgia de Santa Catarina. Informação sobre a fibromialgia, os direitos de quem tem fibromialgia e o app Uniafibro. Juntas somos mais fortes.">
+    <meta name="description" content="Uniafibro, a união das associações de fibromialgia de Santa Catarina: o que é a fibromialgia, cuidado em equipe, seus direitos (Lei 14.705/2023, carteirinha da FCEE), onde buscar atendimento pelo SUS em SC e como sua associação entra na rede.">
     <meta name="theme-color" content="#6b3fa0">
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Uniafibro">
     <meta property="og:title" content="Uniafibro — União das Associações de Fibromialgia de SC">
-    <meta property="og:description" content="Juntas somos mais fortes.">
+    <meta property="og:description" content="Informação, acolhimento e defesa de direitos para quem convive com a fibromialgia em Santa Catarina. Juntas somos mais fortes.">
     <meta property="og:image" content="https://uniafibro.com.br/uniafibro/logomarca.png">
+    <meta property="og:image:alt" content="Logomarca da Uniafibro">
+    <meta name="twitter:card" content="summary">
     <meta property="og:url" content="https://uniafibro.com.br/">
     <meta property="og:locale" content="pt_BR">
     <link rel="canonical" href="https://uniafibro.com.br/">
@@ -247,6 +250,18 @@
             border: 2px solid var(--roxo); color: var(--roxo); font-weight: 700;
         }
 
+        /* Listas, rede e dúvidas */
+        .lista { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+        .passos-rede { list-style: none; counter-reset: passo; margin: 0 0 22px; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+        .passos-rede li { counter-increment: passo; background: var(--superficie); border: 1px solid var(--borda); border-radius: 16px; padding: 18px; box-shadow: var(--sombra); }
+        .passos-rede li::before { content: counter(passo); display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--roxo); color: #fff; font-weight: 800; margin-bottom: 8px; }
+        .passos-rede strong { display: block; margin-bottom: 4px; }
+        .duvidas details { background: var(--superficie); border: 1px solid var(--borda); border-radius: 14px; padding: 4px 18px; margin-bottom: 10px; }
+        .duvidas summary { cursor: pointer; font-weight: 700; padding: 12px 0; min-height: 24px; }
+        .duvidas details p { margin: 0 0 14px; max-width: 70ch; }
+        .duvidas details p a { display: inline-block; padding: 2px 0; }
+        .app .lista { text-align: left; }
+
         footer { margin-top: 64px; background: #2a1840; color: #e7dcf6; }
         .rodape {
             max-width: 1040px; margin: 0 auto; padding: 28px 16px;
@@ -263,11 +278,13 @@
             <a class="marca" href="#topo"><img src="/uniafibro/simbolo-180.png" alt="" width="34" height="34">Uniafibro</a>
             <ul>
                 <li><a href="#fibromialgia">Fibromialgia</a></li>
-                <li><a href="#vozes">Vozes</a></li>
+                <li><a href="#cuidado">Cuidado</a></li>
                 <li><a href="#quem-somos">Quem somos</a></li>
-                <li><a href="#conquistas">Conquistas</a></li>
+                <li><a href="#rede">A rede</a></li>
                 <li><a href="#direitos">Direitos</a></li>
                 <li><a href="#atendimento">Atendimento</a></li>
+                <li><a href="#app">App</a></li>
+                <li><a href="#duvidas">Dúvidas</a></li>
                 <li><a href="#contato">Contato</a></li>
             </ul>
         </div>
@@ -300,7 +317,13 @@
                 <div class="cartao">
                     <span class="rotulo">O que é</span>
                     <h3>Dor crônica espalhada pelo corpo</h3>
-                    <p>Muitas vezes vem junto com cansaço, sono que não descansa e dificuldade de concentração. Não deforma nem destrói as articulações: o sistema nervoso passa a processar a dor de forma amplificada.</p>
+                    <p>Não deforma nem destrói as articulações: o sistema nervoso passa a processar a dor de forma amplificada. Os sinais mais comuns:</p>
+                    <ul class="lista">
+                        <li>dor espalhada pelo corpo, que muda de lugar e de intensidade;</li>
+                        <li>cansaço que não passa com o descanso;</li>
+                        <li>sono que não restaura: a pessoa acorda cansada;</li>
+                        <li>dificuldade de memória e de concentração, a chamada "névoa mental".</li>
+                    </ul>
                     <a class="fonte-card" href="https://www.fai2r.org/wp-content/uploads/2018/11/Anx_tuto_fibromyalgie_FAI2R-wolfe2016.pdf" rel="noopener">Critérios ACR, Wolfe 2016</a>
                 </div>
                 <div class="cartao">
@@ -323,9 +346,48 @@
                 </div>
             </div>
             <div class="faixa">
-                <p><strong>Cuidado com promessas.</strong> Não há cura conhecida, mas os sintomas podem melhorar.
-                    Desconfie de quem promete cura rápida. Antes de começar ou parar qualquer tratamento, converse
-                    com seu médico. Este conteúdo é informativo e não substitui a consulta com profissional de saúde.</p>
+                <p><strong>Cuidado com promessas.</strong> A fibromialgia tem tratamento, mas não tem cura conhecida.
+                    Os sintomas podem melhorar, e cada pessoa responde de um jeito. Desconfie de quem promete cura
+                    rápida. Antes de começar ou parar qualquer tratamento, converse com seu médico. Este conteúdo é
+                    informativo e não substitui a consulta com profissional de saúde.</p>
+            </div>
+        </section>
+
+        <section class="secao" id="cuidado" aria-labelledby="t-cuidado">
+            <h2 id="t-cuidado">Cuidado em equipe</h2>
+            <p class="sub">A fibromialgia mexe com o corpo, o sono, o humor e a rotina. Por isso a Uniafibro
+                defende que o cuidado seja feito por uma equipe, e não por um profissional sozinho. É o que a
+                Lei 14.705/2023 prevê para o SUS.</p>
+            <div class="grade">
+                <div class="cartao">
+                    <h3>Médico</h3>
+                    <p>Faz o diagnóstico, descarta outras doenças e acompanha o tratamento, incluindo remédios quando forem necessários.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Fisioterapia</h3>
+                    <p>Ajuda a voltar a se movimentar com segurança, no solo ou na água, no ritmo que o corpo aguenta.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Educação física</h3>
+                    <p>Transforma o movimento em hábito: caminhada, alongamento, exercícios leves que crescem aos poucos.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Psicologia</h3>
+                    <p>Ajuda a lidar com a dor do dia a dia, a ansiedade e a tristeza que muitas vezes vêm junto.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Nutrição</h3>
+                    <p>Orienta a alimentação para dar energia, cuidar do peso e do intestino, sem dietas milagrosas.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Assistência social</h3>
+                    <p>Orienta sobre direitos, benefícios, trabalho e a rede de apoio da família e do município.</p>
+                </div>
+            </div>
+            <div class="faixa">
+                <p><strong>Para a família:</strong> acreditar na dor de quem você ama já é parte do tratamento.
+                    Ir junto à consulta, dividir tarefas nos dias piores e incentivar o movimento ajudam mais do
+                    que parece.</p>
             </div>
         </section>
 
@@ -518,6 +580,67 @@
             </div>
         </section>
 
+        <!-- Fonte: material da reunião das lideranças da Uniafibro ([W], 2026-11-12). Sem prazos
+             nem valores: só o que vale para qualquer associação que entra na rede. -->
+        <section class="secao" id="rede" aria-labelledby="t-rede">
+            <h2 id="t-rede">A rede: como a Uniafibro funciona</h2>
+            <p class="sub">A Uniafibro não substitui as associações de cada cidade: ela as une. Cada associação
+                continua com seu nome, sua diretoria e seu CNPJ, e ganha uma voz só diante do Estado.</p>
+            <div class="grade">
+                <div class="cartao">
+                    <span class="rotulo">Para as associações</span>
+                    <h3>Projetos e ofícios</h3>
+                    <p>A rede ajuda a escrever projetos e ofícios para editais, prefeituras e o governo do estado.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Para as associações</span>
+                    <h3>Documentação em ordem</h3>
+                    <p>Apoio para adequar o estatuto e manter certidões em dia, o que é exigido para fazer parcerias com o poder público.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Para as associações</span>
+                    <h3>Mapa da região</h3>
+                    <p>Levantamento dos serviços de saúde, das leis e das fontes de recursos de cada cidade.</p>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Para as pessoas</span>
+                    <h3>Carteirinha estadual</h3>
+                    <p>As associações da rede ajudam quem tem fibromialgia a pedir a carteirinha da FCEE.</p>
+                </div>
+            </div>
+
+            <h3 class="titulo-linha">Uma voz só</h3>
+            <ol class="passos-rede">
+                <li><strong>Cada associação conta</strong>o que falta na sua cidade.</li>
+                <li><strong>A Uniafibro reúne</strong>as demandas de todo o estado num pedido só.</li>
+                <li><strong>Leva aonde se decide</strong>a parlamentares, ao governo e a editais.</li>
+                <li><strong>O resultado volta</strong>em atendimento e estrutura nas cidades da rede.</li>
+            </ol>
+
+            <h3 class="titulo-linha">Bandeiras comuns</h3>
+            <div class="grade">
+                <div class="cartao">
+                    <h3>Reabilitação em cada região</h3>
+                    <p>Uma equipe de reabilitação para dor crônica em toda região de saúde de SC, a começar pelas que ainda não têm.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Programa estadual funcionando</h3>
+                    <p>Cobrar que a estrutura prevista na Lei estadual 18.162/2021 saia do papel.</p>
+                </div>
+                <div class="cartao">
+                    <h3>Carteirinha em toda SC</h3>
+                    <p>Levar a carteirinha estadual a todos os municípios, com o apoio das associações.</p>
+                </div>
+            </div>
+
+            <div class="faixa">
+                <p><strong>Sua associação quer entrar na rede?</strong> Entrar não custa nada enquanto a
+                    associação não tiver receita própria. Para começar, separe o CNPJ, o estatuto, a ata da
+                    diretoria atual e o nome de uma representante, e fale com a Uniafibro pelo contato abaixo. A rede
+                    funciona fora da política partidária.</p>
+            </div>
+        </section>
+
         <section class="secao" id="conquistas" aria-labelledby="t-conquistas">
             <h2 id="t-conquistas">Conquistas: a luta pelas leis</h2>
             <p class="sub">Leis são propostas por vereadores e deputados. O que a associação faz é levar a
@@ -628,12 +751,71 @@
 
         <section class="secao banda" id="app" aria-labelledby="t-app">
             <h2 id="t-app">App Uniafibro</h2>
+            <!-- Recursos conferidos no portal do paciente (Modules/Fisio, rotas fisio.portal.*):
+                 check-in, questionários (FIQR), agenda e documentos; acesso por link + PIN.
+                 NÃO prometer atendimento a distância nem cuidado interdisciplinar no app: hoje é fisioterapia. -->
             <div class="app">
                 <img src="/uniafibro/logo.png" alt="Ícone do app Uniafibro" width="120" height="120">
                 <div>
-                    <p>O app Uniafibro para Android está em fase de testes.</p>
+                    <p>O app Uniafibro é o espaço do paciente que faz acompanhamento de fisioterapia. Com ele,
+                        você:</p>
+                    <ul class="lista">
+                        <li>registra como está a dor, o sono e o cansaço em cada dia (o check-in);</li>
+                        <li>responde questionários como o FIQR, que mede o impacto da fibromialgia na sua rotina;</li>
+                        <li>vê a agenda dos atendimentos e os documentos que o profissional compartilhou.</li>
+                    </ul>
+                    <p style="margin-top:10px">Não tem senha para decorar: o profissional que acompanha você envia um
+                        link pessoal e um código (PIN). A versão para Android está em fase de testes.</p>
                     <span class="selo">Em breve na Google Play</span>
                 </div>
+            </div>
+        </section>
+
+        <section class="secao" id="duvidas" aria-labelledby="t-duvidas">
+            <h2 id="t-duvidas">Perguntas frequentes</h2>
+            <div class="duvidas">
+                <details>
+                    <summary>Fibromialgia é "coisa da cabeça"?</summary>
+                    <p>Não. A dor é real. O sistema nervoso passa a amplificar os sinais de dor, e isso é estudado
+                        e reconhecido pela medicina. Os exames costumam vir normais porque a fibromialgia não
+                        inflama nem deforma as articulações.</p>
+                </details>
+                <details>
+                    <summary>Que exame confirma a fibromialgia?</summary>
+                    <p>Nenhum. O diagnóstico é clínico: o médico avalia a dor, há quanto tempo ela dura e os outros
+                        sintomas. Os exames servem para descartar outras doenças com sintomas parecidos.</p>
+                </details>
+                <details>
+                    <summary>Tem cura?</summary>
+                    <p>Não há cura conhecida, mas há tratamento, e muita gente melhora bastante. O que mais ajuda,
+                        segundo as diretrizes, é o movimento regular, começando devagar, junto com o cuidado da
+                        equipe de saúde.</p>
+                </details>
+                <details>
+                    <summary>Quem tem fibromialgia é pessoa com deficiência?</summary>
+                    <p>Pode ser reconhecida como tal, mas não automaticamente. Pela Lei federal 15.176/2025, depende de
+                        avaliação biopsicossocial. Em Santa Catarina, a carteirinha estadual também pede o laudo dessa
+                        avaliação. Veja a seção <a href="#direitos">Seus direitos</a>.</p>
+                </details>
+                <details>
+                    <summary>Como peço a carteirinha da fibromialgia em SC?</summary>
+                    <p>Pelo FCEE Digital, com CPF, documento com foto e o laudo de avaliação biopsicossocial. A
+                        associação da sua cidade pode ajudar no pedido.</p>
+                </details>
+                <details>
+                    <summary>Onde começo o tratamento pelo SUS?</summary>
+                    <p>Na Unidade Básica de Saúde do seu bairro. De lá, o médico pode encaminhar você à equipe
+                        especializada da sua região. Veja a seção <a href="#atendimento">Onde buscar atendimento</a>.</p>
+                </details>
+                <details>
+                    <summary>Preciso pagar para participar de uma associação?</summary>
+                    <p>Cada associação tem as próprias regras. Procure a associação da sua cidade para saber como
+                        participar dos grupos e das atividades.</p>
+                </details>
+            </div>
+            <div class="faixa">
+                <p><strong>Este site não substitui orientação médica.</strong> As informações aqui ajudam a entender a
+                    fibromialgia e os seus direitos, mas cada caso deve ser avaliado por um profissional de saúde.</p>
             </div>
         </section>
 
