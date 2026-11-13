@@ -54,7 +54,7 @@ function SeloPendencia({ p, prazo }: { p: Pendencia; prazo: number }) {
   return <Badge variant="neutral">Pendente</Badge>;
 }
 
-export default function Painel({ alcance, prazoAtaDias, kpis, associadasPorAssociacao, pendencias }: Props) {
+export default function PainelDaRede({ alcance, prazoAtaDias, kpis, associadasPorAssociacao, pendencias }: Props) {
   const subtitulo = alcance === 'rede'
     ? 'Números da rede inteira e pendências de documentação'
     : 'Números da sua associação e pendências de documentação';
