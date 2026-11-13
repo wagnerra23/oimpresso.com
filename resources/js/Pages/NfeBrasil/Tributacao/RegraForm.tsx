@@ -233,7 +233,7 @@ function RegraForm({ regra }: Props) {
                   error={form.errors.aliquota_ipi}
                 />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <Grid cols={4} gap={4}>
                 <FieldCodigo
                   id="cst_pis" label="CST PIS (opcional)" digitos={2} placeholder="07"
                   value={form.data.cst_pis}
@@ -249,7 +249,7 @@ function RegraForm({ regra }: Props) {
                 <p className="col-span-2 self-end text-xs text-muted-foreground">
                   01 tributado · 06 alíquota zero · 49 outras. Vazio: a nota sai com 07 (isento).
                 </p>
-              </div>
+              </Grid>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <FieldDecimal
                   id="mva" label="MVA (opcional)"
