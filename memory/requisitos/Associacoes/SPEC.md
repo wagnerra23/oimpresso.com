@@ -16,6 +16,8 @@ owner: [W]
 
 > Convenção do ID: `US-ASSOC-NNN`. A ordem segue as ondas da [ADR 0451](../../decisions/0451-associacoes-rede-uniafibro-area-de-membros.md).
 
+## User stories
+
 ### US-ASSOC-001 · Camada de dados da rede — **P0**
 
 **Implementado em:** `Modules/Associacoes/Database/Migrations/2026_11_13_000001_create_assoc_tables.php` · `Modules/Associacoes/Entities/` · `Modules/Associacoes/Tests/Feature/AssociacoesEsquemaContratoTest.php`
@@ -47,3 +49,14 @@ Quantas associações, cidades e associadas ativas, e as pendências de document
 **Implementado em:** _pendente_ — onda 6 da ADR 0451.
 
 Link + PIN no padrão do portal do Fisio, no domínio que o app da Play já abre. A associada vê o próprio cadastro e os consentimentos, e pode revogar.
+
+## Histórico
+
+- 2026-11-13 · v1.0 — criado com a onda 2 da ADR 0451; US-ASSOC-001 entregue (camada de dados), 002 a 005 planejadas.
+
+## Referências
+
+- [ADR 0451 — área de membros da rede Uniafibro](../../decisions/0451-associacoes-rede-uniafibro-area-de-membros.md)
+- [ADR 0093 — multi-tenant Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0358 — doutrina de teste tenant 98](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
+- [SCOPE](SCOPE.md) · [BRIEFING](BRIEFING.md)
