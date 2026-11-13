@@ -186,3 +186,9 @@ it('atendimento: começa pelo posto de saúde e lista os serviços de referênci
     expect($html)->toContain('<table class="servicos">');
     expect($html)->toContain('saude.sc.gov.br');
 });
+
+it('diz que a Uniafibro está em formação enquanto o registro não sai', function () {
+    $html = uniafibroHtml();
+    expect($html)->toContain('Em formação · registro em andamento');
+    expect($html)->toContain('A Uniafibro-SC está em formação');
+});
