@@ -15,10 +15,12 @@ use Illuminate\Support\Facades\Schema;
  *  - `assoc_consentimentos` guarda a prova do consentimento LGPD (D5): o banco recusa DELETE;
  *    revogar preenche `revoked_at`.
  *  - Documento da associação não se apaga: sai da lista com `removido_em` + motivo (D3).
+ *  - `assoc_representantes` liga o USUÁRIO do sistema à associação que ele representa (D4):
+ *    sem `associacoes.rede`, ele só vê as associações listadas aqui.
  */
 return new class extends Migration
 {
-    private const TABELAS = ['assoc_consentimentos', 'assoc_associadas', 'assoc_documentos', 'assoc_associacoes'];
+    private const TABELAS = ['assoc_consentimentos', 'assoc_associadas', 'assoc_documentos', 'assoc_representantes', 'assoc_associacoes'];
 
     public function up(): void
     {
@@ -39,6 +41,21 @@ return new class extends Migration
                 $t->unique(['business_id', 'nome'], 'assoc_assoc_biz_nome_unique');
                 $t->foreign('business_id')->references('id')->on('business');
                 $t->foreign('representante_contact_id')->references('id')->on('contacts')->nullOnDelete();
+            });
+        }
+
+        if (! Schema::hasTable('assoc_representantes')) {
+            Schema::create('assoc_representantes', function (Blueprint $t) {
+                $t->id();
+                $t->unsignedInteger('business_id')->index();
+                $t->unsignedBigInteger('associacao_id');
+                $t->unsignedInteger('user_id');
+                $t->timestamps();
+                $t->unique(['business_id', 'associacao_id', 'user_id'], 'assoc_rep_biz_assoc_user_unique');
+                $t->index(['business_id', 'user_id'], 'assoc_rep_biz_user_idx');
+                $t->foreign('business_id')->references('id')->on('business');
+                $t->foreign('associacao_id')->references('id')->on('assoc_associacoes');
+                $t->foreign('user_id')->references('id')->on('users');
             });
         }
 

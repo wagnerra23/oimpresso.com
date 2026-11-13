@@ -3,6 +3,7 @@
 namespace Modules\Associacoes\Http\Controllers;
 
 use Illuminate\Routing\Controller;
+use Modules\Associacoes\Services\AssociacoesAcesso;
 
 /**
  * DataController — Modules/Associacoes (ADR 0451).
@@ -12,12 +13,12 @@ use Illuminate\Routing\Controller;
  * tela (onda 3).
  *
  * Papéis (D4 da ADR 0451): `associacoes.rede` é da diretoria da rede (vê todas as associações);
- * sem ela, quem tem `associacoes.access` vê só a associação de que é representante — o filtro
- * por associação entra com as telas, com teste próprio.
+ * sem ela, quem tem `associacoes.access` vê só as associações em que é representante
+ * (`assoc_representantes`). A regra mora em {@see AssociacoesAcesso}, usada por menu, rota e lista.
  */
 class DataController extends Controller
 {
-    public const PACOTE = 'associacoes_module';
+    public const PACOTE = AssociacoesAcesso::PACOTE;
 
     public function superadmin_package(): array
     {

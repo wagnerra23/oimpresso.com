@@ -5,6 +5,7 @@ migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
 contains:
   - "DataController"
   - "InstallController"
+  - "AssociacoesAcesso + AssociacoesLiberado — regra única de acesso: pacote, associacoes.access e alcance por associação (rede inteira com associacoes.rede; senão só onde é representante em assoc_representantes) — ADR 0451 D4"
   - "Associações-membro (assoc_associacoes) e documentos delas que não se apagam (assoc_documentos) — US-ASSOC-001"
   - "Associadas como contacts do núcleo, sem CPF (assoc_associadas) e consentimento LGPD por finalidade que o banco não deixa apagar (assoc_consentimentos) — US-ASSOC-001"
 not_contains:

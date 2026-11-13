@@ -21,7 +21,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *
  * ⚠️ SKIP em SQLite: schema UltimatePOS + trigger MySQL (LC-13). A lane é verticais-pest (MySQL).
  */
-const ASSOC_TABELAS = ['assoc_associacoes', 'assoc_documentos', 'assoc_associadas', 'assoc_consentimentos'];
+const ASSOC_TABELAS = ['assoc_associacoes', 'assoc_representantes', 'assoc_documentos', 'assoc_associadas', 'assoc_consentimentos'];
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -90,7 +90,7 @@ it('US-ASSOC-001 · toda tabela do módulo tem business_id com FK para business'
     }
 });
 
-it('US-ASSOC-001 · sessão da 98 enxerga só a 98 nas quatro tabelas', function () {
+it('US-ASSOC-001 · sessão da 98 enxerga só a 98 nas tabelas do módulo', function () {
     $a98 = assocSemear($this->b98, (int) $this->u98->id);
     $a99 = assocSemear($this->b99, (int) $this->u99->id);
 

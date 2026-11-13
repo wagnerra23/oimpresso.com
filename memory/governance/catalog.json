@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 39,
-    "nodes": 983,
-    "edges": 1319,
+    "nodes": 984,
+    "edges": 1320,
     "by_node_type": {
       "module": 44,
       "table": 116,
       "adr": 155,
-      "component": 575,
+      "component": 576,
       "api": 93
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 96,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 575,
+      "hasComponent": 576,
       "dependsOn": 144,
       "delegatesTo": 131,
       "migratesTo": 1,
@@ -2025,6 +2025,13 @@
       "module": "Associacoes",
       "name": "Associações-membro",
       "desc": "US-ASSOC-001"
+    },
+    {
+      "id": "component:Associacoes/AssociacoesAcesso + AssociacoesLiberado",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociacoesAcesso + AssociacoesLiberado",
+      "desc": "regra única de acesso: pacote, associacoes.access e alcance por associação (rede inteira com associacoes.rede; senão só onde é representante em assoc_representantes) — ADR 0451 D4"
     },
     {
       "id": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
@@ -8884,6 +8891,12 @@
     {
       "from": "module:Associacoes",
       "to": "component:Associacoes/Associações-membro",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociacoesAcesso + AssociacoesLiberado",
       "type": "hasComponent",
       "source": "contains"
     },

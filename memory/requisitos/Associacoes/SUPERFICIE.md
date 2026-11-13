@@ -14,19 +14,28 @@ module: Associacoes
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Associacoes/**` + `resources/js/Pages/Associacoes/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 16 arquivos em 8 papéis.
+**Total mapeado:** 20 arquivos em 10 papéis.
 
 ## Controllers — 2
 
 - [DataController.php](../../../Modules/Associacoes/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Associacoes/Http/Controllers/InstallController.php)
 
-## Models / Entities — 4
+## Middleware — 1
+
+- [AssociacoesLiberado.php](../../../Modules/Associacoes/Http/Middleware/AssociacoesLiberado.php)
+
+## Services — 1
+
+- [AssociacoesAcesso.php](../../../Modules/Associacoes/Services/AssociacoesAcesso.php)
+
+## Models / Entities — 5
 
 - [Associacao.php](../../../Modules/Associacoes/Entities/Associacao.php)
 - [Associada.php](../../../Modules/Associacoes/Entities/Associada.php)
 - [ConsentimentoAssociada.php](../../../Modules/Associacoes/Entities/ConsentimentoAssociada.php)
 - [DocumentoAssociacao.php](../../../Modules/Associacoes/Entities/DocumentoAssociacao.php)
+- [Representante.php](../../../Modules/Associacoes/Entities/Representante.php)
 
 ## Providers — 2
 
@@ -45,9 +54,9 @@ module: Associacoes
 
 - [config.php](../../../Modules/Associacoes/Config/config.php)
 
-## Testes (Pest) — 1
+## Testes (Pest) — 2
 
-- 1 em [Modules/Associacoes/Tests/Feature/](../../../Modules/Associacoes/Tests/Feature)
+- 2 em [Modules/Associacoes/Tests/Feature/](../../../Modules/Associacoes/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4

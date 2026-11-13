@@ -20,11 +20,11 @@ owner: [W]
 
 ### US-ASSOC-001 · Camada de dados da rede — **P0**
 
-**Implementado em:** `Modules/Associacoes/Database/Migrations/2026_11_13_000001_create_assoc_tables.php` · `Modules/Associacoes/Entities/` · `Modules/Associacoes/Tests/Feature/AssociacoesEsquemaContratoTest.php`
+**Implementado em:** `Modules/Associacoes/Database/Migrations/2026_11_13_000001_create_assoc_tables.php` · `Modules/Associacoes/Entities/` · `Modules/Associacoes/Services/AssociacoesAcesso.php` · `Modules/Associacoes/Tests/Feature/AssociacoesEsquemaContratoTest.php`
 
-**Testado em:** `Modules/Associacoes/Tests/Feature/AssociacoesEsquemaContratoTest.php`
+**Testado em:** `Modules/Associacoes/Tests/Feature/AssociacoesEsquemaContratoTest.php` · `Modules/Associacoes/Tests/Feature/AssociacoesAcessoContratoTest.php`
 
-**DoD:** as quatro tabelas têm business_id com FK; os models filtram por empresa (98 não vê 99); a mesma pessoa não entra duas vezes na rede; consentimento não se apaga (banco e Model) e se revoga com `revoked_at`; documento não se apaga pelo Model.
+**DoD:** as cinco tabelas têm business_id com FK; a regra de acesso (`AssociacoesAcesso`) libera só com o pacote e `associacoes.access`, e o representante vê só a associação dele, a diretoria (`associacoes.rede`) vê a rede; os models filtram por empresa (98 não vê 99); a mesma pessoa não entra duas vezes na rede; consentimento não se apaga (banco e Model) e se revoga com `revoked_at`; documento não se apaga pelo Model.
 
 ### US-ASSOC-002 · Associações e documentos, com a pendência de 30 dias — **P0**
 
