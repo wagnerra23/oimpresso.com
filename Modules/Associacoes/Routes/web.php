@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Associacoes\Http\Controllers\InstallController;
+use Modules\Associacoes\Http\Controllers\PainelDaRedeController;
 use Modules\Associacoes\Http\Middleware\AssociacoesLiberado;
 
 /*
@@ -31,4 +32,5 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         // ── onda 4 · associadas e consentimentos (US-ASSOC-003) ──
 
         // ── onda 5 · painel da rede (US-ASSOC-004) ──
+        Route::get('/', [PainelDaRedeController::class, 'index'])->name('painel');
     });

@@ -40,7 +40,11 @@ Cadastro da associada pelo contato do núcleo (nome, celular, cidade; sem CPF), 
 
 ### US-ASSOC-004 · Painel da rede — **P1**
 
-**Implementado em:** _pendente_ — onda 5 da ADR 0451.
+**Implementado em:** `Modules/Associacoes/Http/Controllers/PainelDaRedeController.php` · `Modules/Associacoes/Services/PendenciasDaRede.php` · `resources/js/Pages/Associacoes/Painel.tsx`
+
+**Testado em:** `Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php`
+
+**DoD:** `/associacoes` (menu Associações → Painel, PT-04) mostra associações por situação, cidades, associadas ativas (total e por associação) e as pendências de documentação: sem estatuto, sem ata da diretoria, certidão vencida, e diretoria que mudou sem ata nova (no prazo até `associacoes.prazo_ata_diretoria_dias`, depois atrasada). Só números e nomes de associação, nenhum dado pessoal de associada (D5). A diretoria vê a rede; o representante vê só os números da associação dele (D4); nada vaza entre empresas (98 × 99). Props com `Inertia::defer`.
 
 Quantas associações, cidades e associadas ativas, e as pendências de documentação.
 

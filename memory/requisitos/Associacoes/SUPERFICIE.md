@@ -14,20 +14,22 @@ module: Associacoes
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Associacoes/**` + `resources/js/Pages/Associacoes/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 20 arquivos em 10 papéis.
+**Total mapeado:** 26 arquivos em 13 papéis.
 
-## Controllers — 2
+## Controllers — 3
 
 - [DataController.php](../../../Modules/Associacoes/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Associacoes/Http/Controllers/InstallController.php)
+- [PainelDaRedeController.php](../../../Modules/Associacoes/Http/Controllers/PainelDaRedeController.php)
 
 ## Middleware — 1
 
 - [AssociacoesLiberado.php](../../../Modules/Associacoes/Http/Middleware/AssociacoesLiberado.php)
 
-## Services — 1
+## Services — 2
 
 - [AssociacoesAcesso.php](../../../Modules/Associacoes/Services/AssociacoesAcesso.php)
+- [PendenciasDaRede.php](../../../Modules/Associacoes/Services/PendenciasDaRede.php)
 
 ## Models / Entities — 5
 
@@ -54,9 +56,21 @@ module: Associacoes
 
 - [config.php](../../../Modules/Associacoes/Config/config.php)
 
-## Testes (Pest) — 2
+## Telas (Inertia/React) — 1
 
-- 2 em [Modules/Associacoes/Tests/Feature/](../../../Modules/Associacoes/Tests/Feature)
+- [Painel.tsx](../../../resources/js/Pages/Associacoes/Painel.tsx)
+
+## Charters (lei da tela) — 1
+
+- [Painel.charter.md](../../../resources/js/Pages/Associacoes/Painel.charter.md)
+
+## Casos (contrato UC) — 1
+
+- [Painel.casos.md](../../../resources/js/Pages/Associacoes/Painel.casos.md)
+
+## Testes (Pest) — 3
+
+- 3 em [Modules/Associacoes/Tests/Feature/](../../../Modules/Associacoes/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4
