@@ -111,6 +111,7 @@ class AssociacoesController extends Controller
             $query->where(fn ($w) => $w->where('nome', 'like', "%{$q}%")
                 ->orWhere('sigla', 'like', "%{$q}%")->orWhere('cidade', 'like', "%{$q}%"));
         }
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Associacao> $associacoes */
         $associacoes = $query->limit(500)->get();
         $reps = $this->nomesRepresentantes($associacoes->pluck('id')->all());
         $contatos = $this->nomesContatos($associacoes->pluck('representante_contact_id')->filter()->unique()->all());
@@ -123,7 +124,7 @@ class AssociacoesController extends Controller
             'regiao' => $a->regiao,
             'situacao' => $a->situacao,
             'representante' => $contatos[$a->representante_contact_id] ?? ($reps[$a->id][0] ?? null),
-            'documentos' => (int) $a->documentos_na_lista,
+            'documentos' => (int) $a->getAttribute('documentos_na_lista'),
             'pendencia' => $this->pendencia->situacao($a),
         ])->values()->all();
     }
@@ -225,7 +226,7 @@ class AssociacoesController extends Controller
             ->orderBy('users.first_name')
             ->get(['assoc_representantes.associacao_id', 'users.first_name', 'users.last_name'])
             ->each(function ($r) use (&$porAssoc) {
-                $porAssoc[(int) $r->associacao_id][] = trim($r->first_name.' '.$r->last_name);
+                $porAssoc[(int) $r->getAttribute('associacao_id')][] = trim($r->getAttribute('first_name').' '.$r->getAttribute('last_name'));
             });
 
         return $porAssoc;
