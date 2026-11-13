@@ -1,0 +1,7 @@
+# Nada enviado por usuário é executado como código (vale para todas as subpastas de uploads).
+# Origem: invasão de 2026-11-12, por um webshell em public/uploads/media (ver app/Media.php,
+# nomeDeArquivoSeguro). Mesmo se um .php passar pelo upload, o servidor não o executa.
+<FilesMatch "\.([Pp][Hh][Pp][0-9]*|[Pp][Hh][Tt][Mm][Ll]|[Pp][Hh][Tt]|[Pp][Hh][Aa][Rr]|[Pp][Hh][Pp][Ss]|[Pp][Hh][0-9]+|[Ss][Hh][Tt][Mm][Ll]?|[Cc][Gg][Ii])(\.|$)">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
