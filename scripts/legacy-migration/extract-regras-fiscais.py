@@ -34,7 +34,16 @@ from firebird_reader import firebird_connect, query  # noqa: E402
 CST_VALIDOS = {"00", "10", "20", "30", "40", "41", "50", "51", "60", "70", "90"}
 CSOSN_VALIDOS = {"101", "102", "103", "201", "202", "203", "300", "400", "500", "900"}
 COLUNAS = ["ncm", "uf_origem", "uf_destino", "cfop", "csosn", "cst", "aliquota_icms",
-           "aliquota_pis", "aliquota_cofins", "aliquota_ipi", "crt", "reducao_base", "mva", "operacao"]
+           "aliquota_pis", "aliquota_cofins", "aliquota_ipi", "crt", "reducao_base", "mva", "operacao",
+           "cst_pis", "cst_cofins"]
+# R-NFE-025b: CST de saída do PIS/COFINS que a emissão monta. PIS_ST/COFINS_ST do Delphi é esse CST.
+CST_PIS_COFINS_SAIDA = {"01", "02", "04", "05", "06", "07", "08", "09", "49", "99"}
+
+
+def cst_pis(v) -> str:
+    c = str(v or "").strip()
+    c = c.zfill(2) if c.isdigit() else c
+    return c if c in CST_PIS_COFINS_SAIDA else ""
 
 
 def frac(v) -> str:
@@ -72,7 +81,7 @@ def main() -> int:
         linhas, vistos = [], {}
         for nat, (crt, operacao) in escolhidas.items():
             for r in query(con, "SELECT TRIM(CODPRODUTO_GRUPO) G, TRIM(CODNF_CST) CST, TRIM(CODNF_CFOP) CFOP, "
-                                "PREDBC, PICMS, CALCULA_ICMS, CALCULA_ICMS_ST, PMVAST, PIS_PPIS, COFINS_PCOFINS, IPI_PIPI FROM NF_NATUREZA_OPERACAO_PRODGRUPO "
+                                "PREDBC, PICMS, CALCULA_ICMS, CALCULA_ICMS_ST, PMVAST, PIS_PPIS, COFINS_PCOFINS, IPI_PIPI, PIS_ST, COFINS_ST FROM NF_NATUREZA_OPERACAO_PRODGRUPO "
                                 "WHERE CODNF_NATUREZA_OPERACAO = ? AND ATIVO = 'S'", (nat,)):
                 codigo, cfop = r["CST"] or "", r["CFOP"] or ""
                 valido = (codigo in CST_VALIDOS) if crt == 3 else (codigo in CSOSN_VALIDOS)
@@ -93,7 +102,10 @@ def main() -> int:
                         "aliquota_icms": "0" if sem_icms else (frac(r["PICMS"]) or "0"), "aliquota_pis": frac(r["PIS_PPIS"]) or "0",
                         "aliquota_cofins": frac(r["COFINS_PCOFINS"]) or "0", "aliquota_ipi": frac(r["IPI_PIPI"]) or "0", "crt": str(crt), "reducao_base": "" if sem_icms else frac(r["PREDBC"]),
                         "mva": frac(r["PMVAST"]) if st else "", "operacao": operacao,
+                        "cst_pis": cst_pis(r["PIS_ST"]), "cst_cofins": cst_pis(r["COFINS_ST"]),
                     })
+                    if (r["PIS_ST"] or r["COFINS_ST"]) and not (linhas[-1]["cst_pis"] and linhas[-1]["cst_cofins"]):
+                        print(f"  nat {nat} grupo {r['G']}: CST PIS/COFINS {r['PIS_ST']}/{r['COFINS_ST']} fora da saída — vai vazio (07)")
 
     with open(a.out, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=COLUNAS, lineterminator="\n")
