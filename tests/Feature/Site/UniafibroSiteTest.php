@@ -86,13 +86,41 @@ it('direitos: cita as leis com número e não promete equiparação automática'
     expect($html)->toContain('não substitui orientação jurídica');
 });
 
-it('quem somos destaca a fundadora Giselli Cunha e a história desde 2019', function () {
+it('quem somos: só entidades, sem nome de dirigente, com as cinco associações em destaque equivalente', function () {
     $html = uniafibroHtml();
 
-    expect($html)->toContain('Quem começou tudo');
-    expect($html)->toContain('Giselli Cunha');
+    expect($html)->not->toContain('Giselli');
     expect($html)->toContain('Nossa história');
     expect($html)->toContain('AMASF');
+    $ini = strpos($html, 'class="membros"');
+    $lista = substr($html, $ini, strpos($html, '</ul>', $ini) - $ini);
+    foreach (['AGFESC', 'AFIBROMAR', 'AFICOR', 'AREFI', 'ACPFA'] as $sigla) {
+        expect($lista)->toContain('<strong>'.$sigla.'</strong>');
+    }
+});
+
+it('AFICOR cita a Lei estadual 19.025/2024, não o projeto de lei', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('Lei 19.025');
+    expect($html)->toContain('leis.alesc.sc.gov.br/ato-normativo/22526');
+    expect($html)->not->toContain('PL 113/2024');
+});
+
+it('prevalência vem de estudo de prevalência e não repete o número sem fonte', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('scielo.br/j/brjp/a/P4BYQRctt5MDZPRSQ8t7mCD');
+    expect($html)->not->toContain('2,5%');
+    expect($html)->not->toContain('perto de 3%');
+});
+
+it('texto: nada de "portadoras" visível nem de palavras coladas', function () {
+    $html = uniafibroHtml();
+    $visivel = preg_replace('/href="[^"]*"/', '', $html);
+
+    expect($visivel)->not->toMatch('/portador/i');
+    expect($html)->not->toMatch('/associaçãoda|regiãooutras|Cunhafundadora/');
 });
 
 it('vozes: só falas publicadas, cada uma com o link da matéria', function () {
