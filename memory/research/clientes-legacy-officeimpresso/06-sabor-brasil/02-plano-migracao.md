@@ -249,3 +249,41 @@ Conta 11 do Delphi ("BANCO DO BRASIL - EDC FOODS"), única de boleto ativa (a co
 | até 15/01/2027 | acompanhamento; conferência dos 581 títulos abertos com o Ricardo | [M] |
 
 Se o [W] escolher a API do BB, ela entra antes da homologação e empurra a virada em cerca de uma semana.
+
+### Conferência fiscal (2026-11-13, pedido da [M])
+
+> Pergunta da [M]: *onde vejo os impostos do Ricardo depois da migração, e isso não é pré-requisito para dizer que a migração deu certo?* É, sim. A conferência abaixo compara o que de fato sai nas notas do Ricardo com o que o oimpresso geraria.
+
+**Gabarito: XML das notas autorizadas no Delphi desde 2024** (222 notas). Não usei o cadastro, que tem regra sem uso; usei o que foi para a SEFAZ.
+
+| NCM | Itens | CFOP | ICMS | PIS/COFINS no XML | Regra na 199 (CRT 1) | Situação |
+|---|---:|---|---|---|---|---|
+| 21039021 (tempero com ST) | 2.366 | 5405 | CSOSN 500, sem ST destacado | CST 01 (2.031) ou 49 (335), 0,65% / 3% | 5405 · CSOSN 500 · 0,65% / 3% | ICMS bate. **PIS/COFINS não:** o oimpresso grava CST 07 fixo (R-NFE-025b, pendente) |
+| 07032090 (alho) | 129 | 5102 | CSOSN 400 (e 102/101 em 17) | CST 06, sem alíquota | 5102 · CSOSN 400 | ICMS bate. PIS/COFINS sai 07, o Delphi manda 06 |
+| 07129090 (desidratados) | 83 | 5102 | CSOSN 400 | CST 06 | 5102 · CSOSN 400 | idem |
+| Devolução (finNFe 4) | 28 | 1411 / 1202 | CSOSN 500 / 400 | 01 / 06 | não há operação de devolução cadastrada | **falta** |
+
+Fatos que mudam o plano:
+
+- **Desde 2024 nenhuma nota saiu pelo regime normal.** As 222 têm CRT 1, inclusive a única da empresa 4. Os CST 10/20 que aparecem nas vendas da empresa 4 são de venda sem nota emitida por este Delphi. A decisão "a empresa 4 ainda emite" precisa dizer **por qual sistema e com que regime**, antes de configurar o local emissor de regime normal.
+- **ICMS-ST nunca é destacado**: o CSOSN 500 é "ST já retida", e o motor do oimpresso também não recalcula nesse caso. Na prática, MVA e alíquota interna não pesam no Simples.
+- **Os 42 produtos vendidos em 12 meses usam só 3 NCMs**, e os três têm regra na 199.
+
+**O que trava a primeira nota real, medido em produção:**
+
+| # | Falta | Onde corrige | Estado |
+|---|---|---|---|
+| 1 | NCM dos 141 produtos (hoje "0") | importador, `--so-fiscal` | PR #10876, aplicar com ok [W] |
+| 2 | CST de PIS/COFINS da regra (hoje 07 fixo) | R-NFE-025b: coluna na regra + motor + XML | pendente (playbook fiscal, thread 17) |
+| 3 | Operação de devolução (CFOP 1411/1202) | Tributação → operações | não cadastrada |
+| 4 | Regime e NCM padrão da empresa | Tributação → Configuração padrão | vazio (Saúde fiscal: bloqueante) |
+| 5 | Certificado A1 e local emissor | Certificado · Locais | vazio (Saúde fiscal: bloqueante) |
+| 6 | Pacote com `fiscal_module` | superadmin | pendente |
+
+**Onde a [M] vê tudo isso**, depois que o pacote fiscal estiver ativo (sem ele, toda tela `/nfe-brasil/*` fica bloqueada para a 199):
+
+- `/nfe-brasil/tributacao`: as regras por NCM e regime, a aba **Saúde fiscal** (o que bloqueia a emissão) e o **Simulador de nota** (`/nfe-brasil/tributacao/simular`), que mostra CFOP, CST e valores de um produto sem emitir.
+- `/nfe-brasil/tributacao/config-default`: regime e NCM padrão.
+- No cadastro do produto: NCM, CEST e origem. A lista de produtos filtra "sem NCM".
+
+**Critério de aceite fiscal da migração:** Saúde fiscal com "pronto" sem bloqueante, e o simulador reproduzindo a tabela de gabarito acima nos 3 NCMs, mais a devolução. A conferência final é emitir em homologação uma nota de cada linha e comparar o XML com o de uma nota real do Delphi.
