@@ -15,7 +15,7 @@ related_adrs:
 
 ## 1. Por que existe
 
-Decisão [W] 2026-11-12: a Uniafibro (União das Associações de Fibromialgia de SC), que usa o
+Decisão [W] 2026-11-12: a Uniafibro (União das Associações de Fibromiálgicos de Santa Catarina), que usa o
 módulo Fisio, ganha uma página inicial em `uniafibro.com.br`, **hospedada no mesmo servidor e no
 mesmo app Laravel do oimpresso.com** (Hostinger — INFRA.md §1), sem site separado nem WordPress.
 O app Android do paciente (`com.oimpresso.fisio`) foi renomeado para "Uniafibro" no mesmo dia.
