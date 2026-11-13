@@ -40,7 +40,6 @@ class AssociadasController extends Controller
 
     public function index(Request $request): Response
     {
-        $user = $request->user();
         $associacaoId = ctype_digit((string) $request->query('associacao', '')) ? (int) $request->query('associacao') : null;
         $situacao = in_array($request->query('situacao'), Associada::SITUACOES, true) ? (string) $request->query('situacao') : '';
 
