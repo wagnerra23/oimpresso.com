@@ -43,6 +43,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFRF-07 | Editar a regra também grava IBS/CBS (não só criar) | must `[fiscal]` | US-FISCAL-021 · `TributacaoController::update` | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
 | UC-NFRF-06 | Formato de IBS/CBS inválido é recusado sem gravar | must `[fiscal]` | NT 2025.002 · padrão decimal das alíquotas (UC-NFCD-04) | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
 | UC-NFRF-08 | Os campos de IBS/CBS aparecem e salvam pela tela | should `[fiscal]` | US-FISCAL-021 · charter §Goals (alíquota decimal) · UC-NFRF-05 | `RegraTributariaIbsCbsValidacaoTest` · e2e `nfe-tributacao-regra.spec.ts` | 🧪 |
+| UC-NFRF-09 | A regra grava e reabre o CST de PIS e de COFINS | must `[fiscal]` | SPEC NfeBrasil R-NFE-025b · leiaute NF-e 4.00 grupos Q e S | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFRF-04 nasceu `❌` (o achado de 2026-07-28)
 > e saiu dele em 2026-10-06, com o gate no `destroy` (playbook Fiscal thread 18).
@@ -212,6 +213,20 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   `e2e-gate`.
 
 ---
+
+## UC-NFRF-09 · A regra grava e reabre o CST de PIS e de COFINS · `must` `[fiscal]`
+
+- **Persona:** quem cadastra a regra do tempero do Sabor Brasil (PIS/COFINS CST 01, 0,65% e 3%).
+- **Aceite:** Dado um usuário com `nfe.tributacao.manage` · Quando ele cria a regra com `cst_pis=01`
+  e `cst_cofins=01` · Então a linha em `nfe_fiscal_rules` tem os dois, **lidos do banco**, e a edição
+  reabre com eles. CST fora da lista de saída (ex. `03`, `50`) é recusado sem gravar. Controle
+  positivo: regra sem CST continua sendo criada, com os dois nulos (a nota sai com 07).
+- **Teste:** [`RegraTributariaIbsCbsValidacaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php)
+  — `UC-NFRF-09 · regra grava, recusa e reabre o CST de PIS/COFINS`.
+- **Contrato:** SPEC NfeBrasil R-NFE-025b · migration `2026_11_13_000001`.
+- **Regressão que defende:** o FormRequest não declarar os dois (somem do `validated()`) ou a prop
+  da edição não trazê-los (o "Atualizar" grava nulo por cima, a armadilha do UC-NFRF-08).
+- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ## Backlog — sem UC até ganhar teste ou contrato
 

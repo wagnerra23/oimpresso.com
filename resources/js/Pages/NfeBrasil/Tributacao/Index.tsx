@@ -33,6 +33,8 @@ interface Regra {
   aliquota_pis: number;
   aliquota_cofins: number;
   aliquota_ipi: number;
+  cst_pis?: string | null;
+  cst_cofins?: string | null;
   mva: number | null;
   fcp: number | null;
 }
@@ -374,8 +376,14 @@ function Index({ regras, config, templates, localPadrao, produtoInicial, saude }
                         <td className="px-3 py-2 font-mono">{r.cfop}</td>
                         <td className="px-3 py-2 font-mono">{r.csosn ?? r.cst}</td>
                         <td className="px-3 py-2 text-right font-mono">{pct(r.aliquota_icms)}</td>
-                        <td className="px-3 py-2 text-right font-mono">{pct(r.aliquota_pis)}</td>
-                        <td className="px-3 py-2 text-right font-mono">{pct(r.aliquota_cofins)}</td>
+                        <td className="px-3 py-2 text-right font-mono">
+                          {pct(r.aliquota_pis)}
+                          <CstPisCofins cst={r.cst_pis} />
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono">
+                          {pct(r.aliquota_cofins)}
+                          <CstPisCofins cst={r.cst_cofins} />
+                        </td>
                         <td className="px-6 py-2 text-right whitespace-nowrap">
                           <Button asChild size="sm" variant="ghost">
                             <Link href={`/nfe-brasil/tributacao/regras/${r.id}/edit`}>
@@ -420,5 +428,14 @@ Index.layout = (page: React.ReactNode) => (
     {page}
   </AppShellV2>
 );
+
+/** R-NFE-025b: CST de PIS/COFINS da regra; sem ele, a nota sai com 07 (isento). */
+function CstPisCofins({ cst }: { cst?: string | null }) {
+  return (
+    <span className="block text-[11px] text-muted-foreground">
+      {cst ? `CST ${cst}` : 'CST 07 (padrão)'}
+    </span>
+  );
+}
 
 export default Index;
