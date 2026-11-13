@@ -853,8 +853,14 @@ class Util
                 }
             }
 
+            // O MIME acima vem do navegador e é escolhido por quem envia: a extensão é que decide.
+            $nome_seguro = \App\Media::nomeDeArquivoSeguro($request->$file_name->getClientOriginalName());
+            if ($nome_seguro === null) {
+                throw new \Exception('Invalid file');
+            }
+
             if ($request->$file_name->getSize() <= config('constants.document_size_limit')) {
-                $new_file_name = time().'_'.$request->$file_name->getClientOriginalName();
+                $new_file_name = time().'_'.$nome_seguro;
                 if ($request->$file_name->storeAs($dir_name, $new_file_name)) {
                     $uploaded_file_name = $new_file_name;
                 }
