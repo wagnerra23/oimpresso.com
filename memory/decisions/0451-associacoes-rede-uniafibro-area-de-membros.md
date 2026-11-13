@@ -34,8 +34,9 @@ review_triggers:
 
 ## Contexto
 
-A Uniafibro (União das Associações de Fibromialgia de SC) une associações de cidades
-catarinenses. Hoje são AGFESC (Criciúma) e AFIBROMAR (Maravilha). Cada associação mantém nome,
+A Uniafibro-SC (União das Associações de Fibromiálgicos de Santa Catarina, nome do estatuto)
+une associações de cidades catarinenses. Em 2026-11-13 ela está **em formação**: o registro em
+cartório está em andamento (decisão [W] no site, PR #10867), então ainda não tem CNPJ próprio. Hoje são AGFESC (Criciúma) e AFIBROMAR (Maravilha). Cada associação mantém nome,
 diretoria e CNPJ; a Uniafibro ajuda com projetos, documentação e voz junto ao Estado. O estatuto
 da rede exige que a associação avise mudança de diretoria em 30 dias.
 
@@ -111,4 +112,5 @@ O que existe no oimpresso em 2026-11-13 (medido em `origin/main` `5869c93093`):
 ## Consequências
 
 - Mais um módulo com pacote próprio; empresas sem o pacote não veem nada.
-- A Uniafibro precisa de uma empresa criada no superadmin antes da onda 2 ir para produção.
+- A Uniafibro precisa de uma empresa criada no superadmin antes da onda 2 ir para produção. Enquanto
+  o registro não sair, a empresa existe sem CNPJ; nenhuma tela diz que a entidade já está formalizada.
