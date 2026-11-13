@@ -25,26 +25,26 @@
     "supersededBy"
   ],
   "stats": {
-    "modules": 38,
-    "nodes": 977,
-    "edges": 1309,
+    "modules": 39,
+    "nodes": 983,
+    "edges": 1319,
     "by_node_type": {
-      "module": 43,
+      "module": 44,
       "table": 116,
       "adr": 155,
-      "component": 571,
-      "api": 92
+      "component": 575,
+      "api": 93
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 95,
+      "providesApi": 96,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 571,
-      "dependsOn": 141,
-      "delegatesTo": 129,
+      "hasComponent": 575,
+      "dependsOn": 144,
+      "delegatesTo": 131,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 79,
@@ -1286,6 +1286,14 @@
       ]
     },
     {
+      "id": "api:/associacoes/install",
+      "type": "api",
+      "prefix": "/associacoes/install",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/atendimento/*",
       "type": "api",
       "prefix": "/atendimento/*",
@@ -2009,6 +2017,34 @@
       "type": "component",
       "module": "AssetManagement",
       "name": "RevokeAllocatedAssetController",
+      "desc": ""
+    },
+    {
+      "id": "component:Associacoes/Associações-membro",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "Associações-membro",
+      "desc": "US-ASSOC-001"
+    },
+    {
+      "id": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "Associadas como contacts do núcleo, sem CPF",
+      "desc": "US-ASSOC-001"
+    },
+    {
+      "id": "component:Associacoes/DataController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Associacoes/InstallController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "InstallController",
       "desc": ""
     },
     {
@@ -5941,6 +5977,19 @@
       "catalog_status": "catalogued"
     },
     {
+      "id": "module:Associacoes",
+      "type": "module",
+      "module": "Associacoes",
+      "purpose": "Rede de associações (primeira: Uniafibro-SC, associações de pessoas com fibromialgia de SC): cadastro das associações-membro e da documentação delas, das associadas com consentimento LGPD por finalidade, e visão consolidada da rede. A rede inteira é uma empresa. Decidido pela ADR 0451 em 2026-11-13.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Associacoes/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
       "id": "module:Auditoria",
       "type": "module",
       "module": "Auditoria",
@@ -8795,6 +8844,70 @@
     {
       "from": "module:AssetManagement",
       "to": "api:/asset/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "module:Arquivos",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Arquivo do documento (estatuto, ata, certidão)"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "module:Fisio",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Prontuário, laudo e programa de exercícios"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Arquivo do documento (estatuto, ata, certidão)"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "module:Fisio",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Prontuário, laudo e programa de exercícios"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/Associações-membro",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/install",
       "type": "providesApi",
       "source": "url_prefixes"
     },
