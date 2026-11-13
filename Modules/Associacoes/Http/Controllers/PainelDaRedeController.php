@@ -86,7 +86,7 @@ class PainelDaRedeController extends Controller
             ->where('situacao', '!=', 'desligada')
             ->orderBy('nome')
             ->get(['id', 'nome', 'cidade'])
-            ->map(fn (Associacao $a) => [
+            ->map(fn ($a) => [
                 'id' => (int) $a->id,
                 'nome' => (string) $a->nome,
                 'cidade' => (string) $a->cidade,
