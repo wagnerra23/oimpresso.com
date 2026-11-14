@@ -162,7 +162,7 @@ it('UC-CQR-15 · trocar título, subtítulo ou cor limpa o QR até gerar de novo
     cqrEsperarSemQr($page);
 
     cqrGerar($page);
-    $page->click('[aria-label="Cor rgb(35, 94, 169)"]');
+    $page->click('[aria-label="Cor do QR: azul"]');
     cqrEsperarSemQr($page);
     $page->assertSee('Nenhum QR gerado ainda.');
 });
