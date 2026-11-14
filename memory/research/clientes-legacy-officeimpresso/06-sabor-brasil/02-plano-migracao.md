@@ -185,3 +185,105 @@ Os itens 5 a 11 (não travam) entram depois da virada, na ordem que a Maiara ped
 | 3 | O manifesto de NF-e de entrada ainda é usado? O último é de 2023 | [M] / Ricardo | Etapa 1 |
 | 4 | O BB em 2026 é a conta nova ou um teste? Inter continua? | Ricardo | Etapa 3 |
 | 5 | Comissão: sempre pela parcela recebida, ou alguma pelo faturamento? | [M] / Ricardo | Etapa 2 |
+
+## Revisão de 2026-11-13: medições, decisões e cronograma novo
+
+> Fato datado. Delphi lido por `SELECT` na cópia `Camargo` (`VERSAO_BANCO` agora **1525**; a cópia vai até 2026-10-26). Empresa 199 lida em produção pelo `tinker`, só leitura. As seções acima ficam como estavam em 29/10; onde discordam, vale esta.
+
+### O que o cliente usa nos últimos 12 meses (Delphi)
+
+| Função | Medido | No oimpresso |
+|---|---|---|
+| Venda/pedido B2B | 385 vendas, prazos 14 a 45 dias | tela existe |
+| NF-e 55 | 276 notas, quase todas da empresa 5 (Simples); a empresa 4 emitiu a última em 23/03 | código existe; nenhuma NF-e autorizada pelo oimpresso em produção até hoje |
+| Cancelamento de NF-e | 41 em 12 meses | existe, nunca usado em produção |
+| Tabela de preço | 54% das vendas | existe (P-087) |
+| Boleto BB | ver "Boleto BB" abaixo | só CNAB |
+| Balanço de estoque | todo mês (11 em 12 meses, 30 a 50 produtos) | sem tela: só o `ContagemInventarioService` (backend) e o ajuste de estoque |
+| Fora de uso | manifesto (2023), entrada/compras (0), contas a pagar (1), fechamento de comissão (parou 09/2022), produção, CC-e, NFC-e | não precisa para a virada |
+
+### Boleto BB: CNAB ou API?
+
+Conta 11 do Delphi ("BANCO DO BRASIL - EDC FOODS"), única de boleto ativa (a conta Inter está inativa):
+
+- **Registro: indica API, não remessa.** A conta tem `TEM_WS`, `CLIENTID`, `CLIENTSECRET`, `APPKEY`, `WS_SCOPO` e `API_AMBIENTE = P` preenchidos (as credenciais da API de cobrança do BB). Nenhum arquivo de remessa foi gerado para ela (`FINANCEIRO_BOLETO`: 0 remessas), e os 45 boletos pagos em 2026 têm `REMESSA` vazio. Boleto BB só é pago se estiver registrado; sem remessa, o registro saiu pela API. É inferência pelas fontes, não leitura do código do Delphi.
+- **Baixa: arquivo de retorno CNAB 240.** Um arquivo de retorno em 14/10/2026 baixou os 45 títulos (`BAIXA_ORIGEM = RETORNO_CNAB`).
+- **oimpresso:** para o BB só existe o `BBCnabDriver` (remessa 240, PDF e retorno, P-157). Não há driver da API do BB. Inter, Sicoob, C6 e Asaas têm API; o BB não.
+- **Consequência:** dá para virar com o BB por CNAB, mas o Ricardo passa a subir o arquivo de remessa no portal do BB, o que hoje ele não faz. Manter o fluxo dele exige um driver da API de cobrança do BB. Decisão pendente: [W].
+
+### Decisões do [W] em 2026-11-13
+
+| Assunto | Decisão |
+|---|---|
+| Pacote fiscal | renovar a assinatura da 199 com o `fiscal_module` (o pacote 182 só tem `auditoria_module`; a assinatura venceu em 2026-04-23) |
+| Empresa 4 (Regime Normal) | ainda emite: configurar os dois locais emissores, cada um com o seu regime (P-155) |
+| 581 títulos a receber em aberto (desde 2019) | importar como estão. Provavelmente o Ricardo esqueceu de baixar. **Lembrete:** na Etapa 8, a [M] confere a lista com o Ricardo e baixa o que já foi pago |
+| Balanço de estoque | não trava a virada: o Ricardo não controla estoque no oimpresso |
+| Financeiro migrado | corrigir os títulos `RECEBIDA` gravados como "pagar" |
+
+### Dados já migrados na 199 (medido 2026-11-13)
+
+| Item | Estado |
+|---|---|
+| Vendas | 4.212, igual ao Delphi |
+| Títulos `RECEBIDA` como "pagar" | 2.099. Importador corrigido em #10868; comando de correção em #10870 e #10871 |
+| Itens de venda | 16.768 de 18.337; 15 vendas finalizadas sem item; imposto zerado em todos |
+| Produtos | 141, todos sem CEST e sem controle de estoque |
+| Tabelas de preço | 0 de 74 |
+| Clientes | 253 (o Delphi tem 434 pessoas); % de comissão e desconto de pontualidade vazios; nenhum título ligado a cliente (`cliente_id` vazio, só o nome em `cliente_descricao`) |
+| Regras fiscais | 12 de 22 |
+| NF-e históricas | 1.604 de 2.881 |
+| Configuração | 1 usuário de 4; 0 certificado; 0 local emissor; 0 configuração fiscal |
+
+### Cronograma revisado
+
+| Quando | O quê | Dono |
+|---|---|---|
+| 13/11 | corrigir os 2.099 títulos | Claude · ok [W] dado |
+| 16–18/11 | renovar o pacote fiscal; decidir BB por CNAB ou por API; cópia nova do Delphi | [W] · Ricardo |
+| 16–20/11 | importadores: CEST, itens com imposto, tabelas de preço, clientes ligados aos títulos; dry-run com antes→depois | Claude · [W] |
+| 23–27/11 | reimportação aprovada; configuração da 199 (certificados dos dois CNPJs, dois locais, regras, usuários, BB) | Claude · [M] confere |
+| 30/11–04/12 | homologação SEFAZ nos dois CNPJs, com cancelamento; boleto BB de ponta a ponta | [M] · Ricardo |
+| 07–11/12 | uma semana em paralelo | Ricardo · [M] |
+| **14/12** | virada (se a homologação falhar: 05/01/2027) | [W] · [M] |
+| até 15/01/2027 | acompanhamento; conferência dos 581 títulos abertos com o Ricardo | [M] |
+
+Se o [W] escolher a API do BB, ela entra antes da homologação e empurra a virada em cerca de uma semana.
+
+### Conferência fiscal (2026-11-13, pedido da [M])
+
+> Pergunta da [M]: *onde vejo os impostos do Ricardo depois da migração, e isso não é pré-requisito para dizer que a migração deu certo?* É, sim. A conferência abaixo compara o que de fato sai nas notas do Ricardo com o que o oimpresso geraria.
+
+**Gabarito: XML das notas autorizadas no Delphi desde 2024** (222 notas). Não usei o cadastro, que tem regra sem uso; usei o que foi para a SEFAZ.
+
+| NCM | Itens | CFOP | ICMS | PIS/COFINS no XML | Regra na 199 (CRT 1) | Situação |
+|---|---:|---|---|---|---|---|
+| 21039021 (tempero com ST) | 2.366 | 5405 | CSOSN 500, sem ST destacado | CST 01 (2.031) ou 49 (335), 0,65% / 3% | 5405 · CSOSN 500 · 0,65% / 3% | ICMS bate. **PIS/COFINS não:** o oimpresso grava CST 07 fixo (R-NFE-025b, pendente) |
+| 07032090 (alho) | 129 | 5102 | CSOSN 400 (e 102/101 em 17) | CST 06, sem alíquota | 5102 · CSOSN 400 | ICMS bate. PIS/COFINS sai 07, o Delphi manda 06 |
+| 07129090 (desidratados) | 83 | 5102 | CSOSN 400 | CST 06 | 5102 · CSOSN 400 | idem |
+| Devolução (finNFe 4) | 28 | 1411 / 1202 | CSOSN 500 / 400 | 01 / 06 | não há operação de devolução cadastrada | **falta** |
+
+Fatos que mudam o plano:
+
+- **Desde 2024 nenhuma nota saiu pelo regime normal.** As 222 têm CRT 1, inclusive a única da empresa 4. Os CST 10/20 que aparecem nas vendas da empresa 4 são de venda sem nota emitida por este Delphi. A decisão "a empresa 4 ainda emite" precisa dizer **por qual sistema e com que regime**, antes de configurar o local emissor de regime normal.
+- **ICMS-ST nunca é destacado**: o CSOSN 500 é "ST já retida", e o motor do oimpresso também não recalcula nesse caso. Na prática, MVA e alíquota interna não pesam no Simples.
+- **Os 42 produtos vendidos em 12 meses usam só 3 NCMs**, e os três têm regra na 199.
+
+**O que trava a primeira nota real, medido em produção:**
+
+| # | Falta | Onde corrige | Estado |
+|---|---|---|---|
+| 1 | NCM dos 141 produtos (hoje "0") | importador, `--so-fiscal` | PR #10876, aplicar com ok [W] |
+| 2 | CST de PIS/COFINS da regra (hoje 07 fixo) | R-NFE-025b: coluna na regra + motor + XML | pendente (playbook fiscal, thread 17) |
+| 3 | Operação de devolução (CFOP 1411/1202) | Tributação → operações | não cadastrada |
+| 4 | Regime e NCM padrão da empresa | Tributação → Configuração padrão | vazio (Saúde fiscal: bloqueante) |
+| 5 | Certificado A1 e local emissor | Certificado · Locais | vazio (Saúde fiscal: bloqueante) |
+| 6 | Pacote com `fiscal_module` | superadmin | pendente |
+
+**Onde a [M] vê tudo isso**, depois que o pacote fiscal estiver ativo (sem ele, toda tela `/nfe-brasil/*` fica bloqueada para a 199):
+
+- `/nfe-brasil/tributacao`: as regras por NCM e regime, a aba **Saúde fiscal** (o que bloqueia a emissão) e o **Simulador de nota** (`/nfe-brasil/tributacao/simular`), que mostra CFOP, CST e valores de um produto sem emitir.
+- `/nfe-brasil/tributacao/config-default`: regime e NCM padrão.
+- No cadastro do produto: NCM, CEST e origem. A lista de produtos filtra "sem NCM".
+
+**Critério de aceite fiscal da migração:** Saúde fiscal com "pronto" sem bloqueante, e o simulador reproduzindo a tabela de gabarito acima nos 3 NCMs, mais a devolução. A conferência final é emitir em homologação uma nota de cada linha e comparar o XML com o de uma nota real do Delphi.
