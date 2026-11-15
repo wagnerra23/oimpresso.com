@@ -30,6 +30,8 @@ use Modules\NfeBrasil\Services\Tributacao\RevisaoContadorService;
  * @property \Illuminate\Support\Carbon|null $valida_de
  * @property \Illuminate\Support\Carbon|null $valida_ate
  * @property int|null $versao_origem_id
+ * @property string|null $cst_pis    R-NFE-025b · CST de saída do PIS (nulo = a nota sai com 07)
+ * @property string|null $cst_cofins R-NFE-025b · CST de saída da COFINS (nulo = a nota sai com 07)
  */
 class NfeFiscalRule extends Model
 {

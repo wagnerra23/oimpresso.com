@@ -25,6 +25,8 @@ interface Regra {
   aliquota_pis: number;
   aliquota_cofins: number;
   aliquota_ipi: number;
+  cst_pis: string | null;
+  cst_cofins: string | null;
   mva: number | null;
   fcp: number | null;
   c_class_trib: string | null;
@@ -57,6 +59,9 @@ function RegraForm({ regra }: Props) {
     aliquota_pis:    regra?.aliquota_pis ?? 0,
     aliquota_cofins: regra?.aliquota_cofins ?? 0,
     aliquota_ipi:    regra?.aliquota_ipi ?? 0,
+    // R-NFE-025b: CST de PIS/COFINS da regra. Vazio = a nota sai com 07, como antes.
+    cst_pis:         regra?.cst_pis ?? '',
+    cst_cofins:      regra?.cst_cofins ?? '',
     mva:             regra?.mva ?? null,
     fcp:             regra?.fcp ?? null,
     // Reforma tributária (US-FISCAL-021 · UC-NFRF-08). Vazio sai como null pelo
@@ -228,6 +233,23 @@ function RegraForm({ regra }: Props) {
                   error={form.errors.aliquota_ipi}
                 />
               </div>
+              <Grid cols={4} gap={4}>
+                <FieldCodigo
+                  id="cst_pis" label="CST PIS (opcional)" digitos={2} placeholder="07"
+                  value={form.data.cst_pis}
+                  onChange={(v) => form.setData('cst_pis', v)}
+                  error={form.errors.cst_pis}
+                />
+                <FieldCodigo
+                  id="cst_cofins" label="CST COFINS (opcional)" digitos={2} placeholder="07"
+                  value={form.data.cst_cofins}
+                  onChange={(v) => form.setData('cst_cofins', v)}
+                  error={form.errors.cst_cofins}
+                />
+                <p className="col-span-2 self-end text-xs text-muted-foreground">
+                  01 tributado · 06 alíquota zero · 49 outras. Vazio: a nota sai com 07 (isento).
+                </p>
+              </Grid>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <FieldDecimal
                   id="mva" label="MVA (opcional)"
