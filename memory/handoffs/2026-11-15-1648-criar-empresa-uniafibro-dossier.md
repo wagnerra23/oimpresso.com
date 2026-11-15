@@ -135,9 +135,8 @@ Pré-condição: onda 2 do Associacoes mergeada, backup do banco conferido (RUNB
 ## 6. Divergências encontradas
 
 - **A rede no site já tem 5 associações** (ACPFA Joinville, AFIBROMAR, AFICOR Concórdia,
-  AGFESC, AREFI Indaial); a ADR 0451 e o seed falam de 2 (AGFESC, AFIBROMAR). Decidir se o seed
-  inclui as outras 3 — o site diz que só lista associações confirmadas.
-- O seed grava a sigla como nome. O nome oficial da AGFESC está no site; dá para gravar o nome completo.
+  AGFESC, AREFI Indaial); a ADR 0451 fala de 2. **Resolvido** ([W] 2026-11-15, *"Sim"*): o seed
+  (#10891) grava as 5, com nome oficial para AGFESC, AFICOR e AREFI e sigla para AFIBROMAR e ACPFA.
 
 ## Estado MCP no momento do fechamento
 

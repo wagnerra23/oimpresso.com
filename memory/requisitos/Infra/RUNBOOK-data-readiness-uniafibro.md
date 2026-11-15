@@ -45,7 +45,7 @@ related_adrs:
 | Telefone, e-mail, endereço da empresa | da sede da rede | **perguntar** |
 | Diretoria da rede (usuários com `associacoes.rede`) | quem são, e-mail de cada | **perguntar** |
 | Representantes por associação | 1 usuário por associação (AGFESC, AFIBROMAR) ou ainda não? | **perguntar** |
-| Nome completo de cada associação-membro | estatuto de AGFESC e AFIBROMAR (o seed grava a sigla como nome) | **perguntar** |
+| Nome completo de cada associação-membro | AGFESC, AFICOR e AREFI já com nome oficial (site); falta AFIBROMAR e ACPFA (o seed grava a sigla) | **perguntar** |
 
 ## 2. Migrations — ordem de execução
 
@@ -100,14 +100,16 @@ esquema e isolamento (`AssociacoesEsquemaContratoTest`, `AssociacoesAcessoContra
 9. Seed das associações-membro (seção 6): primeiro simulação, depois `--aplicar`.
 10. [W] na empresa nova: papel "Diretoria da rede" com `associacoes.access` + `associacoes.rede` + `associacoes.editar`; papel "Representante" só com `associacoes.access` (+ `associacoes.editar` se for cadastrar).
 11. Ondas 3, 4, 5 em ordem; depois onda 6 (aplica a migration 2) e auditoria de novo.
-12. Smoke: logar como diretoria → `/associacoes` mostra AGFESC e AFIBROMAR; logar com usuário de **outra** empresa → 403.
+12. Smoke: logar como diretoria → `/associacoes` mostra as 5 associações; logar com usuário de **outra** empresa → 403.
 
 ## 6. Dados iniciais (seed versionado)
 
 Comando `associacoes:semear-rede` (`Modules/Associacoes/Console/SemearRedeCommand.php`, PR empilhado na onda 2):
 
-- grava **AGFESC (Criciúma)** e **AFIBROMAR (Maravilha)** em `assoc_associacoes`, situação `ativa`;
-- `--business` obrigatório; sem `--aplicar` só simula; idempotente (pula o que já existe, não sobrescreve);
+- grava as **5 associações confirmadas no site** ([W] 2026-11-15): AGFESC (Criciúma), AFIBROMAR
+  (Maravilha), AFICOR (Concórdia), AREFI (Indaial) e ACPFA (Joinville), situação `ativa`; nome
+  oficial quando o site traz (AGFESC, AFICOR, AREFI), senão a sigla;
+- `--business` obrigatório; sem `--aplicar` só simula; idempotente por nome **ou** sigla (pula o que já existe, não sobrescreve);
 - **não** grava associada (dado pessoal com consentimento, D5 — só pela tela).
 
 Pelo Actions (Run workflow em `main`, `skip_migrate = true`), artisan extra:
