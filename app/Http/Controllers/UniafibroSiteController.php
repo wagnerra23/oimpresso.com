@@ -8,7 +8,7 @@ use Illuminate\Routing\Controller;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Página inicial da Uniafibro (União das Associações de Fibromialgia de SC), servida em
+ * Página inicial da Uniafibro (União das Associações de Fibromiálgicos de Santa Catarina), servida em
  * https://uniafibro.com.br pelo mesmo app do oimpresso.com.
  *
  * Entrega um HTML estático (resources/uniafibro/home.html): não lê banco, sessão nem tenant, e

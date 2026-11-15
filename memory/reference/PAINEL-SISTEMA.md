@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-13**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-15**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -151,7 +151,7 @@ lente: [construir]
 ## Decisões (ADRs)
 
 - **456** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 389 · superseded: 28 · proposto: 25 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- Por status: aceito: 390 · superseded: 28 · proposto: 24 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **6** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -442,4 +442,4 @@ lente: [construir]
   - `2026-10-20-arte-casos-de-uso-fabricacao`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-11-13 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-11-15 · deriva das fontes canônicas, não as substitui._
