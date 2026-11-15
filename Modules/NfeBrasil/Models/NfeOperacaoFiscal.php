@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property bool $pede_nota_referenciada
  * @property string|null $tipo_destinatario
  * @property array<string,mixed>|null $regra_geral
+ * @property array<string,mixed>|null $config_tela  tributos como a tela edita (motor lê a partir da onda 4)
  * @property bool $padrao
  */
 class NfeOperacaoFiscal extends Model
@@ -44,15 +45,29 @@ class NfeOperacaoFiscal extends Model
         'tipo_destinatario', 'regra_geral', 'padrao',
         // Onda 2 das naturezas (tela da Tributação). O motor ainda não lê estes campos.
         'tipo', 'ativa', 'pede_nota_referenciada', 'cfop_interestadual', 'cfop_exterior',
+        'config_tela',
     ];
 
     protected $casts = [
         'regra_geral' => 'array',
+        'config_tela' => 'array',
         'padrao'      => 'boolean',
         'ativa'                  => 'boolean',
         'pede_nota_referenciada' => 'boolean',
         'finalidade'  => 'integer',
     ];
+
+    /**
+     * A tela de naturezas só edita o que o motor ainda não usa para calcular (onda 3).
+     *
+     * O motor lê a operação padrão (Venda) e as que têm `regra_geral` (vindas do CSV): editar uma
+     * delas pela tela mudaria imposto antes da onda 4. As outras não têm o que calcular — o motor
+     * recusa uma operação não padrão sem `regra_geral` — então gravá-las não muda valor.
+     */
+    public function editavelPelaTela(): bool
+    {
+        return ! $this->padrao && empty($this->regra_geral);
+    }
 
     /**
      * CFOP com "?" no 1º dígito vira 5 (mesma UF), 6 (outra UF) ou 7 (exterior, `EX`).

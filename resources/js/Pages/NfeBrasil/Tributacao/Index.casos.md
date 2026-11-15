@@ -610,6 +610,42 @@ last_run: "2026-10-20"
 - **Contrato:** `SaudeFiscalService` (`emitido_com_cst_cfop_incoerente`).
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-44 · A conferência da natureza repete a do protótipo aprovado · `must` `[fiscal]`
+
+- **Aceite:** **Dado** a natureza vazia do protótipo (`vazia()`) com CFOP 5102/6102 **Quando** conferida **Então**
+  não há erro; **e** devolução sem nota referenciada, CFOP de saída com 1º dígito trocado de destino, 5405/6404
+  sem CST 60 (ou CSOSN 500) e nome igual a outra ativa são **erro**, com o texto da tela.
+- **Teste:** [`ConferenciaNaturezaServiceTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ConferenciaNaturezaServiceTest.php) — `UC-NFTR-44 …`.
+- **Contrato:** `ConferenciaNaturezaService::conferir` (porte de `validar()` de `prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`). ⚠️ Regras sem revisão fiscal (RUNBOOK-tributacao §Naturezas).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-45 · Com a flag desligada a seção de naturezas não existe · `must` `[T0]`
+
+- **Aceite:** **Dado** `useV2NfeNaturezas` desligada para a empresa **Quando** listo ou salvo natureza **Então** 404 e nada é gravado.
+- **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-45 …`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-46 · Salvar natureza grava a forma da tela; erro de conferência não grava · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma devolução sem nota referenciada **Quando** salvo **Então** 422 com os alertas e nada
+  gravado; **Dado** uma natureza sem erro chamada "Bonificacao" **Quando** salvo **Então** 201, `slug`
+  `tela-bonificacao` (nunca o `bonificacao` que a emissão procura), `regra_geral` nula e os tributos em `config_tela`.
+- **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-46 …`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-47 · Natureza que o cálculo já usa não é editada pela tela antes da onda 4 · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma operação com `regra_geral` (vinda do CSV) **Quando** tento editá-la pela tela **Então** 409 e a linha fica idêntica.
+- **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-47 …`.
+- **Contrato:** `NfeOperacaoFiscal::editavelPelaTela`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-48 · Natureza de outra empresa não aparece nem é editada · `must` `[T0]`
+
+- **Aceite:** **Dado** uma natureza da empresa 99 **Quando** a empresa 98 lista ou edita **Então** ela não aparece e a edição dá 404.
+- **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-48 …`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).

@@ -12,6 +12,7 @@ use Modules\NfeBrasil\Http\Controllers\NfeStatusController;
 use Modules\NfeBrasil\Http\Controllers\RevisaoContadorController;
 use Modules\NfeBrasil\Http\Controllers\RevisaoContadorLinkController;
 use Modules\NfeBrasil\Http\Controllers\SugestaoFiscalController;
+use Modules\NfeBrasil\Http\Controllers\NaturezaOperacaoController;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
 use Modules\Fiscal\Http\Middleware\FiscalLiberado;
 use Modules\NfeBrasil\Http\Middleware\PermissaoNfe;
@@ -130,6 +131,15 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->where('slug', '[a-z0-9\-]+')
             ->middleware(PermissaoNfe::class.':'.PermissaoNfe::TRIBUTACAO)
             ->name('templates.aplicar');
+
+        // Naturezas de operação (RUNBOOK-tributacao §Naturezas · onda 3a) — atrás da flag
+        // useV2NfeNaturezas; com ela desligada o controller responde 404.
+        Route::middleware(PermissaoNfe::class.':'.PermissaoNfe::TRIBUTACAO)->group(function () {
+            Route::get('naturezas', [NaturezaOperacaoController::class, 'index'])->name('naturezas.index');
+            Route::post('naturezas', [NaturezaOperacaoController::class, 'store'])->name('naturezas.store');
+            Route::put('naturezas/{id}', [NaturezaOperacaoController::class, 'update'])
+                ->whereNumber('id')->name('naturezas.update');
+        });
 
         // CRUD regras
         Route::get('regras/create', [TributacaoController::class, 'create'])->name('regras.create');
