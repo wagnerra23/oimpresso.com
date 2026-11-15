@@ -139,6 +139,16 @@ class MotorTributarioService
             $aliquotaInternaDestino, $destinatarioContribuinte, null, null, $crtEmitente,
         );
 
+        // Natureza criada pela tela (onda 4): o resultado dela é nível 4 por construção, e a recusa
+        // é o aviso de que falta fonte. Cair na venda aqui calcularia a nota como venda em silêncio.
+        $operacao = NfeFiscalRule::temVersionamento() ? $this->resolverOperacao($businessId, $operacaoId) : null;
+        if ($operacao !== null && empty($operacao->regra_geral) && ! empty($operacao->config_tela)) {
+            return $this->calcularComCrt(
+                $produto, $businessId, $ufOrigem, $ufDestino,
+                $aliquotaInternaDestino, $destinatarioContribuinte, $operacaoId, null, $crtEmitente,
+            );
+        }
+
         try {
             $tributo = $this->calcularComCrt(
                 $produto, $businessId, $ufOrigem, $ufDestino,
@@ -253,6 +263,12 @@ class MotorTributarioService
         // Nível 4 — regra geral da operação. Fora da padrão, NÃO cai no default de venda: a
         // operação sem regra geral é erro de configuração, não "use a da venda" (R-NFE-020b).
         if ($operacao && ! $operacao->padrao) {
+            // Natureza criada pela tela da Tributação (onda 4): guarda a ORIGEM das alíquotas em
+            // `config_tela`, não números. Antes desta onda este caminho lançava a exceção abaixo,
+            // então nenhuma nota que já sai passa por aqui.
+            if (empty($operacao->regra_geral) && ! empty($operacao->config_tela)) {
+                return $this->aplicarNaturezaTela($operacao, $produto, $businessId, $ufOrigem, $ufDestino, $destino, $data);
+            }
             if (empty($operacao->regra_geral)) {
                 throw new TributacaoNaoConfiguradaException(
                     'Operação fiscal "' . $operacao->nome . '" sem regra geral. Cadastre a regra '
@@ -535,6 +551,219 @@ class MotorTributarioService
             'valor_difal' => $valorDifal,
             'aviso'       => $aviso,
         ];
+    }
+
+    /** PIS e COFINS do regime, em decimal. */
+    private const PIS_COFINS_DO_REGIME = [
+        // Cumulativo (Lucro Presumido): PIS 0,65% — Lei 9.715/1998, art. 8º, I; COFINS 3% — Lei 9.718/1998, art. 8º.
+        'LP' => ['pis' => 0.0065, 'cofins' => 0.03],
+        // Não cumulativo (Lucro Real): PIS 1,65% — Lei 10.637/2002, art. 2º; COFINS 7,6% — Lei 10.833/2003, art. 2º.
+        'LR' => ['pis' => 0.0165, 'cofins' => 0.076],
+    ];
+
+    /** IBS e CBS do período de teste — Lei Complementar 214/2025 (2026: IBS 0,1%, CBS 0,9%). Ano sem linha = sem padrão. */
+    private const IBS_CBS_DO_ANO = [
+        2026 => ['ibs' => 0.001, 'cbs' => 0.009],
+    ];
+
+    /** CST/CSOSN sem ICMS próprio destacado (isento, não tributado, suspenso, ST retida antes, só ST…). */
+    private const SEM_ICMS_PROPRIO = ['30', '40', '41', '50', '60', '102', '103', '202', '203', '300', '400', '500'];
+
+    /**
+     * Origem da mercadoria (tabela A do CST) que leva a alíquota interestadual de 4%:
+     * Resolução do Senado Federal 13/2012 — importado (1, 2) e nacional com conteúdo de importação
+     * acima de 40% (3, 8). Fora: 6 e 7, importado sem similar nacional (lista CAMEX), e 0, 4, 5.
+     */
+    private const ORIGEM_QUATRO_POR_CENTO = [1, 2, 3, 8];
+
+    /**
+     * Calcula pela natureza criada na tela da Tributação (RUNBOOK-tributacao §Naturezas · onda 4).
+     *
+     * A natureza guarda CÓDIGOS e a ORIGEM de cada alíquota; aqui a origem vira número:
+     *   - fixa      → o percentual da natureza;
+     *   - uf        → ICMS: interna da UF de origem dentro do estado, interestadual da `nfe_icms_uf`
+     *                 fora (4% para a origem da mercadoria da Resolução SF 13/2012);
+     *   - produto   → IPI e MVA da regra por NCM (a mesma `nfe_fiscal_rules` da tela de regras);
+     *   - regime    → PIS/COFINS do regime (constante com a lei citada; Simples = 0, recolhe no DAS);
+     *   - padrao    → IBS/CBS do ano da emissão (constante com a lei citada);
+     *   - origem    → da nota de origem: o motor não enxerga a nota referenciada → recusa.
+     * Faltou a fonte do número? Recusa com o motivo (TributacaoNaoConfiguradaException). Nunca zero em silêncio.
+     *
+     * Fora desta onda, declarado: a exclusão do ICMS da base do PIS/COFINS (exige o vBC do PIS no
+     * XML) e o CST/cEnq do IPI (o XML segue montando como antes). ST e DIFAL sobre a base cheia,
+     * como em `aplicarRegra`.
+     *
+     * @param array{uf_origem?:string,uf_destino?:string,interna?:float|null,contribuinte?:bool|null,crt?:int|null} $destino
+     */
+    private function aplicarNaturezaTela(
+        NfeOperacaoFiscal $natureza,
+        ProdutoFiscalContext $produto,
+        int $businessId,
+        string $ufOrigem,
+        string $ufDestino,
+        array $destino,
+        string $data,
+    ): TributoCalculado {
+        $t = (array) $natureza->config_tela;
+        $icms = (array) ($t['icms'] ?? []);
+        $ipi = (array) ($t['ipi'] ?? []);
+        $ibs = (array) ($t['ibs'] ?? []);
+        $nome = '"' . $natureza->nome . '"';
+        $recusa = fn (string $motivo) => new TributacaoNaoConfiguradaException("Natureza {$nome}: {$motivo}");
+
+        $crt = isset($destino['crt']) ? (int) $destino['crt'] : null;
+        $simples = $crt === null ? $this->ehSimples($businessId) : $crt !== 3;
+        $regime = $simples ? 'SN' : (((string) ($this->buscarConfig($businessId)?->regime ?? '')) === 'lucro_real' ? 'LR' : 'LP');
+
+        // CFOP pelo destino.
+        $exterior = strtoupper($ufDestino) === 'EX';
+        $dentro = ! $exterior && strtoupper($ufDestino) === strtoupper($ufOrigem);
+        $cfop = (string) ($exterior ? $natureza->cfop_exterior : ($dentro ? $natureza->cfop : $natureza->cfop_interestadual));
+        if ($cfop === '') {
+            throw $recusa('sem CFOP para ' . ($exterior ? 'o exterior' : ($dentro ? 'dentro do estado' : 'outro estado')) . '.');
+        }
+
+        // Regra por NCM (operação padrão): fonte de IPI e MVA "da regra do NCM".
+        $regraNcm = fn () => $this->buscarRegra($businessId, (string) $produto->ncm, $ufOrigem, $ufDestino, null, $data, $crt)
+            ?? $this->buscarRegra($businessId, (string) $produto->ncm, $ufOrigem, null, null, $data, $crt);
+
+        // ICMS próprio.
+        $codigo = (string) ($simples ? ($icms['csosn'] ?? '') : ($icms['cst'] ?? ''));
+        $semProprio = in_array($codigo, self::SEM_ICMS_PROPRIO, true) || ($simples && $codigo !== '900');
+        $aliqIcms = 0.0;
+        if (! $semProprio) {
+            $aliqIcms = match ((string) ($icms['origem'] ?? 'uf')) {
+                'fixa'   => (float) ($icms['p'] ?? 0) / 100,
+                'origem' => throw $recusa('ICMS "da nota de origem" só existe na devolução, que tem fluxo próprio.'),
+                default  => $this->icmsPelaUf($businessId, $ufOrigem, $ufDestino, $exterior, $dentro, $produto, $data, $recusa),
+            };
+        }
+        $reducao = (! $simples && in_array($codigo, ['20', '70'], true)) ? (float) ($icms['red'] ?? 0) / 100 : 0.0;
+        $baseIcms = $reducao > 0 ? $this->fmt($produto->valor * (1 - $reducao)) : null;
+        $valorIcms = $this->fmt(($baseIcms ?? $produto->valor) * $aliqIcms);
+
+        // IPI.
+        $aliqIpi = 0.0;
+        if (! empty($ipi['on'])) {
+            $aliqIpi = match ((string) ($ipi['origem'] ?? 'produto')) {
+                'fixa'   => (float) ($ipi['p'] ?? 0) / 100,
+                'origem' => throw $recusa('IPI "da nota de origem" só existe na devolução, que tem fluxo próprio.'),
+                default  => (float) (($regraNcm() ?? throw $recusa('IPI "da regra do NCM", mas o NCM ' . $produto->ncm . ' não tem regra.'))->aliquota_ipi),
+            };
+        }
+
+        // MVA (só com CST/CSOSN de ST).
+        $mva = null;
+        if (in_array($codigo, ['10', '30', '70', '201', '202', '203'], true)) {
+            $st = (array) ($icms['st'] ?? []);
+            $mva = ($st['mvaOrig'] ?? 'produto') === 'fixa'
+                ? (float) ($st['mva'] ?? 0) / 100
+                : (($regraNcm() ?? throw $recusa('MVA "da regra do NCM", mas o NCM ' . $produto->ncm . ' não tem regra.'))->mva);
+            $mva = $mva !== null ? (float) $mva : null;
+        }
+
+        // DIFAL e FCP: desligados na natureza → o motor não calcula (o grupo sai zerado).
+        $destinoSt = $destino;
+        if (empty($icms['difal'])) {
+            $destinoSt['contribuinte'] = null;
+        }
+        $fcp = ! empty($icms['fcp']) && ! $dentro && ! $exterior
+            ? \Modules\NfeBrasil\Models\NfeIcmsUf::fcp($businessId, $ufOrigem, $ufDestino, $data)
+            : null;
+        $extra = $this->calcularStFcpDifal([
+            'business_id'   => $businessId,
+            'aliquota_icms' => $aliqIcms,
+            'aliquota_ipi'  => $aliqIpi,
+            'mva'           => $mva,
+            'fcp'           => $fcp,
+            'csosn'         => $simples ? $codigo : null,
+            'cst'           => $simples ? null : $codigo,
+        ], $produto, $destinoSt);
+
+        // PIS e COFINS.
+        $pc = [];
+        foreach (['pis', 'cofins'] as $k) {
+            $x = (array) ($t[$k] ?? []);
+            $cst = (string) ($simples ? ($x['cstSN'] ?? '') : ($x['cst'] ?? ''));
+            $tributado = in_array($cst, ['01', '02', '50'], true);
+            $aliq = ! $tributado ? 0.0 : match ((string) ($x['origem'] ?? 'regime')) {
+                'fixa'   => (float) ($x['p'] ?? 0) / 100,
+                'origem' => throw $recusa(strtoupper($k) . ' "da nota de origem" só existe na devolução, que tem fluxo próprio.'),
+                default  => self::PIS_COFINS_DO_REGIME[$regime][$k] ?? 0.0,
+            };
+            $pc[$k] = ['cst' => $cst, 'aliq' => $aliq];
+        }
+
+        // IBS e CBS.
+        $aliqIbs = 0.0;
+        $aliqCbs = 0.0;
+        if (! empty($ibs['on'])) {
+            if (($ibs['origem'] ?? 'padrao') === 'fixa') {
+                $aliqIbs = ((float) ($ibs['pUF'] ?? 0) + (float) ($ibs['pMun'] ?? 0)) / 100;
+                $aliqCbs = (float) ($ibs['pCBS'] ?? 0) / 100;
+            } else {
+                $ano = (int) substr($data, 0, 4);
+                $padrao = self::IBS_CBS_DO_ANO[$ano] ?? throw $recusa("IBS/CBS pelo padrão do ano, mas {$ano} não tem padrão cadastrado.");
+                [$aliqIbs, $aliqCbs] = [$padrao['ibs'], $padrao['cbs']];
+            }
+            if (($ibs['cst'] ?? '') === '200') {
+                $fator = 1 - (float) ($ibs['pRed'] ?? 0) / 100;
+                [$aliqIbs, $aliqCbs] = [$aliqIbs * $fator, $aliqCbs * $fator];
+            }
+        }
+
+        return new TributoCalculado(
+            cfop:            $cfop,
+            csosn:           $simples ? $codigo : null,
+            cst:             $simples ? null : $codigo,
+            aliquota_icms:   $aliqIcms,
+            aliquota_pis:    $pc['pis']['aliq'],
+            aliquota_cofins: $pc['cofins']['aliq'],
+            aliquota_ipi:    $aliqIpi,
+            valor_icms:      $valorIcms,
+            valor_pis:       $this->fmt($produto->valor * $pc['pis']['aliq']),
+            valor_cofins:    $this->fmt($produto->valor * $pc['cofins']['aliq']),
+            valor_ipi:       $this->fmt($produto->valor * $aliqIpi),
+            nivel_usado:     4,
+            regra_id:        null,
+            mva:             $mva,
+            fcp:             $fcp,
+            c_class_trib:    ! empty($ibs['on']) ? (string) ($ibs['cClass'] ?? '') : null,
+            cst_ibs:         ! empty($ibs['on']) ? (string) ($ibs['cst'] ?? '') : null,
+            cst_cbs:         ! empty($ibs['on']) ? (string) ($ibs['cst'] ?? '') : null,
+            aliquota_ibs:    $aliqIbs,
+            aliquota_cbs:    $aliqCbs,
+            valor_ibs:       $this->fmt($produto->valor * $aliqIbs),
+            valor_cbs:       $this->fmt($produto->valor * $aliqCbs),
+            base_st:         $extra['base_st'],
+            valor_st:        $extra['valor_st'],
+            valor_fcp:       $extra['valor_fcp'],
+            valor_difal:     $extra['valor_difal'],
+            aviso:           $extra['aviso'],
+            reducao_base:    $reducao,
+            base_icms:       $baseIcms,
+            cst_pis:         $this->cstPisCofins($pc['pis']['cst']),
+            cst_cofins:      $this->cstPisCofins($pc['cofins']['cst']),
+        );
+    }
+
+    /** ICMS "pela UF": interna da origem dentro do estado; interestadual (ou 4% de importado) fora. */
+    private function icmsPelaUf(
+        int $businessId, string $ufOrigem, string $ufDestino, bool $exterior, bool $dentro,
+        ProdutoFiscalContext $produto, string $data, \Closure $recusa,
+    ): float {
+        if ($exterior) {
+            throw $recusa('exportação com ICMS "pela UF": use um CST sem ICMS próprio ou alíquota fixa.');
+        }
+        if ($dentro) {
+            return \Modules\NfeBrasil\Models\NfeIcmsUf::aliquotaInterna($businessId, $ufOrigem, $ufOrigem, $data);
+        }
+        if (in_array((int) ($produto->origem_mercadoria ?? -1), self::ORIGEM_QUATRO_POR_CENTO, true)) {
+            return 0.04;
+        }
+
+        return \Modules\NfeBrasil\Models\NfeIcmsUf::aliquotaInterestadual($businessId, $ufOrigem, $ufDestino, $data)
+            ?? throw $recusa('alíquota interestadual ' . strtoupper($ufOrigem) . '→' . strtoupper($ufDestino) . ' não cadastrada.');
     }
 
     /** Optante do Simples (ou MEI) pelo regime cadastrado em `nfe_business_configs`. */
