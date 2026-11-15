@@ -14,8 +14,8 @@ import { Switch } from '@/Components/ui/switch';
 import { Grid, Inline } from '@/Components/layout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import {
-  CSOSN, CST_COM_ST, CST_IBS, CST_ICMS, CST_IPI_E, CST_IPI_S, CST_PC_E, CST_PC_S, FINS, MODBC, MODBCST,
-  ORIG_IBS, ORIG_ICMS, ORIG_IPI, ORIG_MVA, ORIG_PC, TIPOS, conferir, salvar,
+  CSOSN, CST_COM_ST, CST_IBS, CST_ICMS_NATUREZA, CST_IPI_E, CST_IPI_S, CST_PC_E, CST_PC_S, FINS, MODBC, MODBCST,
+  ORIG_IBS, ORIG_ICMS, ORIG_IPI, ORIG_MVA, ORIG_PC, TIPOS_NOTA, conferir, salvar,
   type Alerta, type Natureza, type Opcao, type Regime,
 } from './natureza';
 
@@ -175,7 +175,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                       onChange={(e) => muda((x) => ({ ...x, nome: e.target.value }))} />
                   </Campo>
                 </div>
-                <Escolha id="nat-tipo" rotulo="Tipo da nota" valor={n.tipo} opcoes={TIPOS} disabled={ro}
+                <Escolha id="nat-tipo" rotulo="Tipo da nota" valor={n.tipo} opcoes={TIPOS_NOTA} disabled={ro}
                   onChange={(v) => muda((x) => {
                     const e = v === 'E';
                     x.tipo = v as Natureza['tipo'];
@@ -217,7 +217,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                     {sn
                       ? <Escolha id="icms-csosn" rotulo="CSOSN" valor={n.icms.csosn} opcoes={CSOSN} disabled={ro}
                           onChange={(v) => muda((x) => { x.icms.csosn = v; return x; })} />
-                      : <Escolha id="icms-cst" rotulo="CST" valor={n.icms.cst} opcoes={CST_ICMS} disabled={ro}
+                      : <Escolha id="icms-cst" rotulo="CST" valor={n.icms.cst} opcoes={CST_ICMS_NATUREZA} disabled={ro}
                           onChange={(v) => muda((x) => { x.icms.cst = v; return x; })} />}
                     <Escolha id="icms-modbc" rotulo="Modalidade da base" valor={n.icms.modbc} opcoes={MODBC} disabled={ro}
                       onChange={(v) => muda((x) => { x.icms.modbc = v; return x; })} />

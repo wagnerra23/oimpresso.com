@@ -71,9 +71,9 @@ export function completar(parcial: LinhaNatureza['natureza']): Natureza {
   };
 }
 
-export const TIPOS: readonly Opcao[] = [['S', 'Saída'], ['E', 'Entrada']];
+export const TIPOS_NOTA: readonly Opcao[] = [['S', 'Saída'], ['E', 'Entrada']];
 export const FINS: readonly Opcao[] = [['1', '1 · Normal'], ['2', '2 · Complementar'], ['3', '3 · Ajuste'], ['4', '4 · Devolução']];
-export const CST_ICMS: readonly Opcao[] = [['00', '00 · Tributada integralmente'], ['10', '10 · Tributada e com ICMS-ST'], ['20', '20 · Com redução de base'], ['30', '30 · Isenta ou não tributada, com ST'], ['40', '40 · Isenta'], ['41', '41 · Não tributada'], ['50', '50 · Suspensão'], ['51', '51 · Diferimento'], ['60', '60 · ICMS cobrado antes por ST'], ['70', '70 · Redução de base e ST'], ['90', '90 · Outras']];
+export const CST_ICMS_NATUREZA: readonly Opcao[] = [['00', '00 · Tributada integralmente'], ['10', '10 · Tributada e com ICMS-ST'], ['20', '20 · Com redução de base'], ['30', '30 · Isenta ou não tributada, com ST'], ['40', '40 · Isenta'], ['41', '41 · Não tributada'], ['50', '50 · Suspensão'], ['51', '51 · Diferimento'], ['60', '60 · ICMS cobrado antes por ST'], ['70', '70 · Redução de base e ST'], ['90', '90 · Outras']];
 export const CSOSN: readonly Opcao[] = [['101', '101 · Com permissão de crédito'], ['102', '102 · Sem permissão de crédito'], ['103', '103 · Isenção por faixa de receita'], ['201', '201 · Com crédito e com ST'], ['202', '202 · Sem crédito e com ST'], ['203', '203 · Isenção por faixa e com ST'], ['300', '300 · Imune'], ['400', '400 · Não tributada'], ['500', '500 · ICMS cobrado antes por ST'], ['900', '900 · Outros']];
 export const MODBC: readonly Opcao[] = [['3', '3 · Valor da operação'], ['0', '0 · Margem de valor agregado'], ['1', '1 · Pauta'], ['2', '2 · Preço tabelado máximo']];
 export const MODBCST: readonly Opcao[] = [['4', '4 · MVA (margem)'], ['0', '0 · Preço tabelado ou máximo sugerido'], ['1', '1 · Lista negativa'], ['2', '2 · Lista positiva'], ['3', '3 · Lista neutra'], ['5', '5 · Pauta'], ['6', '6 · Valor da operação']];
