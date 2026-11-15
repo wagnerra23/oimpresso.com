@@ -89,7 +89,7 @@ related:
 - NFe: CST da regra fiscal (fallback 07) — ver PR #10877
 
 **Usabilidade.**
-- Valor sempre em `R$ 1.234,56` com separador BR
+- Valor sempre no formato brasileiro: prefixo `R$`, ponto no milhar e vírgula no decimal
 - Status fiscal com badge colorido (autorizada/rejeitada/cancelada)
 - Prestação de contas em 1 clique (PDF + CSV)
 
