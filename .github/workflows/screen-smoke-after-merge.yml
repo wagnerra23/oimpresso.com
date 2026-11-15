@@ -336,7 +336,13 @@ jobs:
             if [ "$CODE" = "200" ] || [ "$CODE" = "302" ]; then OK=1; break; fi
             sleep 10
           done
-          [ -z "$OK" ] && { echo "::error::ALERT smoke-clientes cliente=todos prod não respondeu 200/302 em /login."; exit 1; }
+          # `if` e não `[ -z ] && {…}`: como última linha, o `&&` devolve 1 quando OK=1 e
+          # reprovava o passo com produção respondendo 200 (pego no dispatch run 43777006880).
+          if [ -z "$OK" ]; then
+            echo "::error::ALERT smoke-clientes cliente=todos prod não respondeu 200/302 em /login."
+            exit 1
+          fi
+          echo "→ prod alcançável."
 
       - name: Baixar o build deste deploy (manifest)
         if: github.event_name == 'workflow_run'
