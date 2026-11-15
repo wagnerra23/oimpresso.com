@@ -148,7 +148,9 @@ class InvoiceLayoutController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $invoice_layout = InvoiceLayout::findOrFail($id);
+        // Só layout da empresa da sessão (Tier 0, ADR 0093).
+        $invoice_layout = InvoiceLayout::where('business_id', request()->session()->get('user.business_id'))
+            ->findOrFail($id);
 
         //Module info
         $invoice_layout->module_info = json_decode($invoice_layout->module_info, true);

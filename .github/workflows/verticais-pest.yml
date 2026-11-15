@@ -825,6 +825,7 @@ jobs:
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Cms/Tests/Feature/SitePublicoContratoTest.php \
+            Modules/Cms/Tests/Feature/ContatoPublicoTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php \
@@ -931,6 +932,8 @@ jobs:
             Modules/Marketplaces/Tests/Feature/MarketplacesEsquemaContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesEsquemaContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesAcessoContratoTest.php \
+            Modules/Associacoes/Tests/Feature/AssociacoesTelaContratoTest.php \
+            Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php \

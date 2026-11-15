@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 39,
-    "nodes": 986,
-    "edges": 1322,
+    "nodes": 995,
+    "edges": 1331,
     "by_node_type": {
       "module": 44,
       "table": 116,
       "adr": 155,
-      "component": 577,
-      "api": 94
+      "component": 584,
+      "api": 96
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 97,
+      "providesApi": 99,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 577,
+      "hasComponent": 584,
       "dependsOn": 144,
       "delegatesTo": 131,
       "migratesTo": 1,
@@ -1294,9 +1294,25 @@
       ]
     },
     {
+      "id": "api:/associacoes/associadas",
+      "type": "api",
+      "prefix": "/associacoes/associadas",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/associacoes/install",
       "type": "api",
       "prefix": "/associacoes/install",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
+      "id": "api:/associacoes/lista",
+      "type": "api",
+      "prefix": "/associacoes/lista",
       "providers": [
         "Associacoes"
       ]
@@ -2042,6 +2058,13 @@
       "desc": "regra única de acesso: pacote, associacoes.access e alcance por associação (rede inteira com associacoes.rede; senão só onde é representante em assoc_representantes) — ADR 0451 D4"
     },
     {
+      "id": "component:Associacoes/AssociacoesController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociacoesController",
+      "desc": "lista PT-01 e ficha das associações, representantes e mudança de diretoria (US-ASSOC-002)"
+    },
+    {
       "id": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
       "type": "component",
       "module": "Associacoes",
@@ -2049,11 +2072,32 @@
       "desc": "US-ASSOC-001"
     },
     {
+      "id": "component:Associacoes/AssociadasController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociadasController",
+      "desc": "lista de associadas com celular mascarado, cadastro pelo contato do núcleo e desligamento (onda 4) — US-ASSOC-003"
+    },
+    {
+      "id": "component:Associacoes/Consentimentos",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "Consentimentos",
+      "desc": "conceder, revogar e vigente por finalidade e versão da config; usado pelo cadastro e pelo app da onda 6 — US-ASSOC-003"
+    },
+    {
       "id": "component:Associacoes/DataController",
       "type": "component",
       "module": "Associacoes",
       "name": "DataController",
       "desc": ""
+    },
+    {
+      "id": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "desc": "documentos com arquivo no Arquivos, tirar da lista com motivo (US-ASSOC-002)"
     },
     {
       "id": "component:Associacoes/InstallController",
@@ -2068,6 +2112,13 @@
       "module": "Associacoes",
       "name": "PainelDaRedeController + PendenciasDaRede",
       "desc": "painel da rede em /associacoes: números por situação, cidades, associadas ativas e pendências de documentação, no alcance D4 — US-ASSOC-004"
+    },
+    {
+      "id": "component:Associacoes/PendenciaDiretoria",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PendenciaDiretoria",
+      "desc": "cálculo único da pendência de ata da diretoria (em dia, pendente, atrasada) — ADR 0451 D7"
     },
     {
       "id": "component:Auditoria/AuditEntryService",
@@ -3174,6 +3225,13 @@
       "module": "Financeiro",
       "name": "ContaReceberController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/CorrigirTipoLegadoCommand",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CorrigirTipoLegadoCommand",
+      "desc": "financeiro:corrigir-tipo-legado --business=N corrige título do Delphi com TIPO=RECEBIDA importado como pagar (metadata.delphi_tipo_raw); só mostra por padrão, --apply grava e marca metadata.tipo_corrigido"
     },
     {
       "id": "component:Financeiro/CoworkSidebarController",
@@ -4490,6 +4548,13 @@
       "module": "NfeBrasil",
       "name": "Middleware PermissaoNfe",
       "desc": "permissão por rota nas ações fiscais que só exigiam login (lote 3.2 da auditoria, #10728)"
+    },
+    {
+      "id": "component:NfeBrasil/NaturezaOperacaoController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "NaturezaOperacaoController",
+      "desc": "naturezas de operação na Tributação, atrás da flag useV2NfeNaturezas (RUNBOOK-tributacao §Naturezas, onda 3a)"
     },
     {
       "id": "component:NfeBrasil/NfeEmissaoController",
@@ -8917,13 +8982,37 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociacoesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociadasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/Consentimentos",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8941,7 +9030,25 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/PendenciaDiretoria",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/associadas",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "api:/associacoes/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/lista",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10572,6 +10679,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/ContaReceberController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/CorrigirTipoLegadoCommand",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13397,6 +13510,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/Middleware PermissaoNfe",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/NaturezaOperacaoController",
       "type": "hasComponent",
       "source": "contains"
     },

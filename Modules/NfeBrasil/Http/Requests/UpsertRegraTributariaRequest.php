@@ -6,6 +6,7 @@ namespace Modules\NfeBrasil\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 
 class UpsertRegraTributariaRequest extends FormRequest
 {
@@ -37,6 +38,10 @@ class UpsertRegraTributariaRequest extends FormRequest
             'aliquota_pis'    => ['required', 'numeric', 'min:0', 'max:1'],
             'aliquota_cofins' => ['required', 'numeric', 'min:0', 'max:1'],
             'aliquota_ipi'    => ['required', 'numeric', 'min:0', 'max:1'],
+
+            // R-NFE-025b: CST de saída do PIS/COFINS. Vazio = a nota sai com 07, como antes.
+            'cst_pis'    => ['nullable', 'string', Rule::in(ImportRegrasCsvService::CST_PIS_COFINS_SAIDA)],
+            'cst_cofins' => ['nullable', 'string', Rule::in(ImportRegrasCsvService::CST_PIS_COFINS_SAIDA)],
 
             'mva' => ['nullable', 'numeric', 'min:0', 'max:5'],
             'fcp' => ['nullable', 'numeric', 'min:0', 'max:1'],

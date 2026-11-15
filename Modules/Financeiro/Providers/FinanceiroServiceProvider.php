@@ -151,6 +151,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\ImportarExtratoOfxCommand::class,
                 // 2026-11-03 — devoluções antigas abatem o título da venda (dry-run por padrão).
                 \Modules\Financeiro\Console\Commands\DevolucoesAbaterCommand::class,
+                // 2026-11-13 — títulos RECEBIDA do Delphi gravados como pagar (dry-run por padrão).
+                \Modules\Financeiro\Console\Commands\CorrigirTipoLegadoCommand::class,
             ]);
         }
     }

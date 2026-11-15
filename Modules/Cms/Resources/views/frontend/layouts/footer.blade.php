@@ -49,7 +49,7 @@
                 </div>
             @endif
             <p class="block-41__copyrights col col-md-8 text-xxl-end text-xl-end text-lg-end text-md-end text-sm-center">
-                &copy; &nbsp;{{ date('Y')}} &nbsp;{{config('app.name', 'ultimatePOS')}}. &nbsp;All Rights Reserved.
+                &copy; &nbsp;{{ date('Y')}} &nbsp;{{config('app.name', 'ultimatePOS')}}. &nbsp;Todos os direitos reservados.
             </p>
         </div>
     </div>

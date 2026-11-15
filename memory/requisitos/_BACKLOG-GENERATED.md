@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1079 tarefas abertas** em **60 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1084 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -52,6 +52,7 @@
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
 | [`Repair`](#repair) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
+| [`Associacoes`](#associacoes) | 5 | 0 | 0 | 0 | 5 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`Auditoria`](#auditoria) | 4 | 0 | 0 | 0 | 4 |
@@ -1428,6 +1429,17 @@
 - **US-SRS-004** — Search hybrid (FULLTEXT + chat)
 - **US-SRS-005** — Audit log SRS (validation runs)
 - **US-SRS-006** — Memcofre legacy prefix (compat layer)
+
+## Associacoes
+
+
+### todo
+
+- **US-ASSOC-001** — Camada de dados da rede — **P0**
+- **US-ASSOC-002** — Associações e documentos, com a pendência de 30 dias — **P0**
+- **US-ASSOC-003** — Associadas com consentimento — **P0**
+- **US-ASSOC-004** — Painel da rede — **P1**
+- **US-ASSOC-005** — Área da associada no app — **P1**
 
 ## LaravelAI
 

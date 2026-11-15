@@ -7,6 +7,7 @@ contains:
   - "InstallController"
   - "CertificadoController"
   - "TributacaoController — CRUD regras NCM (US-NFE-010 fase 2)"
+  - "NaturezaOperacaoController — naturezas de operação na Tributação, atrás da flag useV2NfeNaturezas (RUNBOOK-tributacao §Naturezas, onda 3a)"
   - "ConfigDefaultController — Nível 4 cascade (defaults business)"
   - "ImportRegrasController — import CSV bulk (US-NFE-010 fase 3)"
   - "NfeStatusController — endpoint JSON polling + Page Inertia (US-NFE-002 fase 2C)"

@@ -36,7 +36,7 @@ it('a página traz nome, lema, app "em breve" e logo do próprio domínio', func
     $html = uniafibroHtml();
 
     expect($html)->toStartWith('<!DOCTYPE html>');
-    expect($html)->toContain('União das Associações de Fibromialgia de SC');
+    expect($html)->toContain('União das Associações de Fibromiálgicos de Santa Catarina');
     expect($html)->toContain('Juntas somos mais fortes.');
     expect($html)->toContain('Em breve na Google Play');
     // A imagem vem do próprio domínio (caminho relativo), não de oimpresso.com.
@@ -86,13 +86,41 @@ it('direitos: cita as leis com número e não promete equiparação automática'
     expect($html)->toContain('não substitui orientação jurídica');
 });
 
-it('quem somos destaca a fundadora Giselli Cunha e a história desde 2019', function () {
+it('quem somos: só entidades, sem nome de dirigente, com as cinco associações em destaque equivalente', function () {
     $html = uniafibroHtml();
 
-    expect($html)->toContain('Quem começou tudo');
-    expect($html)->toContain('Giselli Cunha');
+    expect($html)->not->toContain('Giselli');
     expect($html)->toContain('Nossa história');
     expect($html)->toContain('AMASF');
+    $ini = strpos($html, 'class="membros"');
+    $lista = substr($html, $ini, strpos($html, '</ul>', $ini) - $ini);
+    foreach (['AGFESC', 'AFIBROMAR', 'AFICOR', 'AREFI', 'ACPFA'] as $sigla) {
+        expect($lista)->toContain('<strong>'.$sigla.'</strong>');
+    }
+});
+
+it('AFICOR cita a Lei estadual 19.025/2024, não o projeto de lei', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('Lei 19.025');
+    expect($html)->toContain('leis.alesc.sc.gov.br/ato-normativo/22526');
+    expect($html)->not->toContain('PL 113/2024');
+});
+
+it('prevalência vem de estudo de prevalência e não repete o número sem fonte', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('scielo.br/j/brjp/a/P4BYQRctt5MDZPRSQ8t7mCD');
+    expect($html)->not->toContain('2,5%');
+    expect($html)->not->toContain('perto de 3%');
+});
+
+it('texto: nada de "portadoras" visível nem de palavras coladas', function () {
+    $html = uniafibroHtml();
+    $visivel = preg_replace('/href="[^"]*"/', '', $html);
+
+    expect($visivel)->not->toMatch('/portador/i');
+    expect($html)->not->toMatch('/associaçãoda|regiãooutras|Cunhafundadora/');
 });
 
 it('vozes: só falas publicadas, cada uma com o link da matéria', function () {
@@ -130,6 +158,54 @@ it('conquistas: cada marco da luta pelas leis aponta o documento oficial', funct
     }
 });
 
+it('cuidado em equipe: lista as seis áreas e diz que tem tratamento mas não tem cura', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('id="cuidado"');
+    foreach (['Médico', 'Fisioterapia', 'Educação física', 'Psicologia', 'Nutrição', 'Assistência social'] as $area) {
+        expect($html)->toContain('<h3>'.$area.'</h3>');
+    }
+    expect($html)->toContain('tem tratamento, mas não tem cura');
+});
+
+it('a rede: associação mantém nome, diretoria e CNPJ e sabe como entrar', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('id="rede"');
+    expect($html)->toContain('continua com seu nome, sua diretoria e seu CNPJ');
+    expect($html)->toContain('Lei estadual 18.162/2021');
+    expect($html)->toContain('Sua associação quer entrar na rede?');
+});
+
+it('app: descreve o portal (check-in, FIQR, link + PIN) sem prometer teleconsulta', function () {
+    $html = uniafibroHtml();
+    $ini = strpos($html, 'id="app"');
+    $secao = substr($html, $ini, strpos($html, '</section>', $ini) - $ini);
+
+    expect($secao)->toContain('check-in');
+    expect($secao)->toContain('FIQR');
+    expect($secao)->toContain('PIN');
+    expect($secao)->not->toMatch('/teleconsulta|videochamada|consulta por vídeo/i');
+});
+
+it('perguntas frequentes e o aviso de que o site não substitui orientação médica', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('id="duvidas"');
+    preg_match_all('/<details>/', $html, $m);
+    expect(count($m[0]))->toBeGreaterThanOrEqual(5);
+    expect($html)->toContain('Este site não substitui orientação médica.');
+});
+
+it('SEO: description e Open Graph próprios', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toMatch('/<meta name="description" content="[^"]{80,}">/');
+    expect($html)->toContain('<meta property="og:title"');
+    expect($html)->toContain('<meta property="og:description"');
+    expect($html)->toContain('<link rel="canonical" href="https://uniafibro.com.br/">');
+});
+
 it('atendimento: começa pelo posto de saúde e lista os serviços de referência com fonte', function () {
     $html = uniafibroHtml();
 
@@ -137,4 +213,10 @@ it('atendimento: começa pelo posto de saúde e lista os serviços de referênci
     expect($html)->toContain('Unidade Básica de Saúde');
     expect($html)->toContain('<table class="servicos">');
     expect($html)->toContain('saude.sc.gov.br');
+});
+
+it('diz que a Uniafibro está em formação enquanto o registro não sai', function () {
+    $html = uniafibroHtml();
+    expect($html)->toContain('Em formação · registro em andamento');
+    expect($html)->toContain('A Uniafibro-SC está em formação');
 });

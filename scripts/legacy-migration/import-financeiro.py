@@ -154,9 +154,20 @@ def parse_parcela(raw) -> tuple[int | None, int | None]:
 
 
 def map_tipo(raw: str) -> str:
-    """FINANCEIRO.TIPO Delphi → fin_titulos.tipo enum."""
+    """FINANCEIRO.TIPO Delphi → fin_titulos.tipo enum.
+
+    O Delphi grava 4 valores: 'A RECEBER' e 'RECEBIDA' (receber), 'A PAGAR' e 'PAGA' (pagar).
+    Mesma regra do caminho SQL do Martinho (sql-martinho-financeiro/03-load-csv-to-staging.sql:
+    LIKE '%RECEBER%' OR LIKE 'RECEBIDA%').
+
+    Bug corrigido em 2026-11-13: só 'RECEBER' era testado, e 'RECEBIDA' não contém 'RECEBER'.
+    Todo título já recebido caía em 'pagar'. Na empresa 199 (Sabor Brasil) foram 2.099 títulos
+    (1.959 quitados, 139 cancelados, 1 aberto), medidos por metadata.delphi_tipo_raw.
+    O UPSERT deste importador não atualiza `tipo` de linha existente: rodar de novo NÃO corrige
+    o que já foi gravado — isso pede correção de dados à parte, com antes→depois aprovado.
+    """
     s = (raw or "").upper().strip()
-    if "RECEBER" in s: return "receber"
+    if "RECEBER" in s or s.startswith("RECEBIDA"): return "receber"
     return "pagar"
 
 

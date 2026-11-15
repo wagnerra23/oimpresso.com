@@ -5,7 +5,7 @@ irmaos: CatalogueQr.charter.md (lei) · CatalogueQr.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o QR publica preço de um local sem login; QR apontando pro negócio errado ou aberto a quem não vê produto é vazamento.
 owner: wagner
-last_run: "2026-11-10"
+last_run: "2026-11-12"
 ---
 
 # Casos de Uso & Aceite — Catálogo QR
@@ -87,6 +87,28 @@ last_run: "2026-11-10"
 ## UC-CQR-17 · O logo só liga quando existe
 - **Aceite:** Dado um negócio sem logo · Quando abro a tela · Então o switch está desabilitado e a tela diz que o QR sai
   limpo · E com logo cadastrado o switch abre ligado.
+- **Status: 🧪**
+
+## UC-CQR-18 · Cada cor é anunciada pelo nome
+- **Persona:** quem usa leitor de tela.
+- **Origem:** scorecard da tela, 2026-11-12. O swatch era anunciado como "Cor rgb(17, 17, 17)".
+- **Aceite:** Dado a tela aberta · Quando navego pelas cores · Então ouço "Cor do QR: preto", "roxo", "azul" e "rosa"
+  · E a cor escolhida é anunciada como pressionada.
+- **Teste:** [`tests/js/catalogue-qr-anuncio.test.tsx`](../../../../tests/js/catalogue-qr-anuncio.test.tsx), lane `ci.yml`.
+- **Status: 🧪**
+
+## UC-CQR-19 · Gerar e copiar são anunciados
+- **Origem:** scorecard da tela, 2026-11-12. O QR gerado e o "Link copiado" mudavam em silêncio.
+- **Aceite:** Dado um local escolhido · Quando gero o QR · Então a região de status anuncia "QR code gerado para {local}."
+  · E ao copiar anuncia "Link copiado." · E ao mudar uma opção o anúncio some junto com o QR.
+- **Teste:** [`tests/js/catalogue-qr-anuncio.test.tsx`](../../../../tests/js/catalogue-qr-anuncio.test.tsx), lane `ci.yml`.
+- **Status: 🧪**
+
+## UC-CQR-20 · Enquanto o gerador baixa, o botão diz que está gerando
+- **Origem:** scorecard da tela, 2026-11-12. O script do gerador baixa no primeiro clique e o botão não dava sinal.
+- **Aceite:** Dado que o gerador ainda não carregou · Quando clico em gerar · Então o botão diz "Gerando QR code…", fica
+  desabilitado e ocupado (`aria-busy`) · E quando o gerador chega o QR aparece e o botão volta a "Gerar QR code".
+- **Teste:** [`tests/js/catalogue-qr-anuncio.test.tsx`](../../../../tests/js/catalogue-qr-anuncio.test.tsx), lane `ci.yml`.
 - **Status: 🧪**
 
 > UC-CQR-13 a 17 são exercitados em Chromium real por
