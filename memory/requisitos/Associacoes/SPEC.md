@@ -28,9 +28,13 @@ owner: [W]
 
 ### US-ASSOC-002 · Associações e documentos, com a pendência de 30 dias — **P0**
 
-**Implementado em:** _pendente_ — onda 3 da ADR 0451.
+**Implementado em:** `Modules/Associacoes/Http/Controllers/AssociacoesController.php` · `Modules/Associacoes/Http/Controllers/DocumentosAssociacaoController.php` · `Modules/Associacoes/Services/PendenciaDiretoria.php` · `Modules/Associacoes/Services/DocumentosDaAssociacao.php` · `Modules/Associacoes/Resources/js/Pages/Associacoes/Index.tsx`
+
+**Testado em:** `Modules/Associacoes/Tests/Feature/AssociacoesTelaContratoTest.php`
 
 Cadastro e lista das associações-membro (nome, cidade, região, CNPJ, representante, situação) e dos documentos (estatuto, ata da diretoria, certidão). Mudança de diretoria abre pendência; sem ata nova em 30 dias, ela aparece como atrasada. O representante vê só a associação dele (D4).
+
+**DoD:** a lista e a ficha passam por `AssociacoesAcesso::restringir()` (diretoria vê a rede, representante só a dele, 98 não vê 99); gravar exige `associacoes.editar`, e criar associação e trocar representantes exige também `associacoes.rede`; documento com arquivo no `Modules/Arquivos`, sai da lista com motivo e nunca se apaga; mudança de diretoria abre pendência, ata da diretoria enviada fecha, e passado `associacoes.prazo_ata_diretoria_dias` ela fica atrasada (cálculo único em `PendenciaDiretoria`, que o painel da onda 5 reusa). Casos: `Modules/Associacoes/Resources/js/Pages/Associacoes/Index.casos.md` (UC-ASSOC-00..07).
 
 ### US-ASSOC-003 · Associadas com consentimento — **P0**
 

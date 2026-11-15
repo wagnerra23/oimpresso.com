@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Associacoes\Http\Controllers\AssociacoesController;
+use Modules\Associacoes\Http\Controllers\DocumentosAssociacaoController;
 use Modules\Associacoes\Http\Controllers\InstallController;
 use Modules\Associacoes\Http\Middleware\AssociacoesLiberado;
 
@@ -27,6 +29,13 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
     ->name('associacoes.')
     ->group(function () {
         // ── onda 3 · associações e documentos (US-ASSOC-002) ──
+        Route::get('lista', [AssociacoesController::class, 'index'])->name('lista');
+        Route::post('lista', [AssociacoesController::class, 'store'])->name('store');
+        Route::put('{id}', [AssociacoesController::class, 'update'])->whereNumber('id')->name('update');
+        Route::post('{id}/diretoria', [AssociacoesController::class, 'diretoria'])->whereNumber('id')->name('diretoria');
+        Route::post('{id}/documentos', [DocumentosAssociacaoController::class, 'store'])->whereNumber('id')->name('documentos.store');
+        Route::post('documentos/{documento}/tirar', [DocumentosAssociacaoController::class, 'tirar'])->whereNumber('documento')->name('documentos.tirar');
+        Route::get('documentos/{documento}/arquivo', [DocumentosAssociacaoController::class, 'arquivo'])->whereNumber('documento')->name('documentos.arquivo');
 
         // ── onda 4 · associadas e consentimentos (US-ASSOC-003) ──
 
