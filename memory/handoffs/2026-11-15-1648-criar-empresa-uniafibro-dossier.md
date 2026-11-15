@@ -9,7 +9,7 @@ related_adrs:
   - 0093-multi-tenant-isolation-tier-0
 next_steps:
   - "[W] informa o endereço da AGFESC (sede provisória); dono da conta = [W] (decidido), com e-mail e usuário novos"
-  - "[W] escolhe o pacote (seção 4) ou manda criar um"
+  - "Pacote: criar \"Contrato Uniafibro Semestral\" copiando o #4 da ROTA LIVRE + Modulo Associacoes (seção 4) — [W] decide o preço"
   - "[W] roda as consultas da seção 3 (só leitura) e confirma que não existe empresa duplicada"
   - "[W] cria a empresa pela tela (seção 5) depois do merge da onda 2"
 ---
@@ -104,14 +104,31 @@ linha pertence a outra empresa (ADR 0093). Leia o endereço e digite na tela.
 
 ## 4. Pacote
 
-Não deu para listar os pacotes (sem banco). Proposta:
+**Decisão [W] (2026-11-15):** *"Pacote seis meses acho igual a Rotalivre"* — mesmo formato do
+contrato da ROTA LIVRE.
 
-- Se a consulta 3c mostrar um pacote interno/parceiro/cortesia, usar esse e **editar** marcando
-  `Modulo Associacoes` (e depois `captacao_module`).
-- Se não houver, criar em Superadmin → Pacotes: **"Parceiro — rede de associações"**, preço 0,
-  privado, com `Modulo Associacoes` marcado. O checkbox só aparece **depois** que o código da
-  onda 2 estiver em produção e o módulo instalado. O de Captação, depois da onda 1 da Captação
-  (`claude/captacao-onda1`, ADR 0452 proposta).
+O pacote da ROTA LIVRE é o **#4 "Contrato Rota Livre Semestral"**, e ele é **exclusivo** dela
+(`memory/reference/feedback-habilitar-modulo-por-business.md`, levantamento de 2026-05-18; em
+produção o padrão é um pacote "Contrato <cliente>" por empresa). Por isso:
+
+- **Não usar o #4 na Uniafibro.** Marcar `Modulo Associacoes` nele com "Atualizar inscrições
+  existentes" ligaria o módulo para a ROTA LIVRE também.
+- **Criar um pacote novo copiando o #4:** **"Contrato Uniafibro Semestral"**, privado, mesma
+  duração (6 meses), mesmos limites de locais e usuários, e as mesmas permissões que fizerem
+  sentido para uma associação, **mais** `Modulo Associacoes`. Preço: [W] decide (o do #4 ou cortesia).
+- Para copiar, ler o #4 antes (consulta 3e) ou abrir `/superadmin/packages/4/edit` só para olhar, sem salvar.
+- O checkbox `Modulo Associacoes` só aparece **depois** que a onda 2 estiver em produção e o
+  módulo instalado. O de Captação, depois da onda 1 da Captação (`claude/captacao-onda1`, ADR 0452
+  proposta): aí editar **este** pacote e marcar "Atualizar inscrições existentes".
+- A assinatura guarda uma cópia das permissões do pacote (`subscriptions.package_details`).
+  Mudou o pacote depois de criada a empresa? Só chega na Uniafibro com "Atualizar inscrições existentes".
+
+```sql
+-- e) formato do pacote da ROTA LIVRE, para copiar (só leitura)
+SELECT id, name, `interval`, interval_count, trial_days, location_count, user_count, price,
+       is_private, is_active, custom_permissions
+FROM packages WHERE id = 4;
+```
 - Editar pacote existente com outras empresas nele liga o módulo para elas também: conferir
   quem usa antes (`SELECT business_id FROM subscriptions WHERE package_id = <id> AND status = 'approved'`).
 
