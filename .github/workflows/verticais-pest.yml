@@ -929,6 +929,7 @@ jobs:
             Modules/Associacoes/Tests/Feature/AssociacoesEsquemaContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesAcessoContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesTelaContratoTest.php \
+            Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php \

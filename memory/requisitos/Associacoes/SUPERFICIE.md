@@ -14,11 +14,12 @@ module: Associacoes
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Associacoes/**` + `resources/js/Pages/Associacoes/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 30 arquivos em 14 papéis.
+**Total mapeado:** 36 arquivos em 14 papéis.
 
-## Controllers — 4
+## Controllers — 5
 
 - [AssociacoesController.php](../../../Modules/Associacoes/Http/Controllers/AssociacoesController.php)
+- [AssociadasController.php](../../../Modules/Associacoes/Http/Controllers/AssociadasController.php)
 - [DataController.php](../../../Modules/Associacoes/Http/Controllers/DataController.php)
 - [DocumentosAssociacaoController.php](../../../Modules/Associacoes/Http/Controllers/DocumentosAssociacaoController.php)
 - [InstallController.php](../../../Modules/Associacoes/Http/Controllers/InstallController.php)
@@ -27,9 +28,10 @@ module: Associacoes
 
 - [AssociacoesLiberado.php](../../../Modules/Associacoes/Http/Middleware/AssociacoesLiberado.php)
 
-## Services — 3
+## Services — 4
 
 - [AssociacoesAcesso.php](../../../Modules/Associacoes/Services/AssociacoesAcesso.php)
+- [Consentimentos.php](../../../Modules/Associacoes/Services/Consentimentos.php)
 - [DocumentosDaAssociacao.php](../../../Modules/Associacoes/Services/DocumentosDaAssociacao.php)
 - [PendenciaDiretoria.php](../../../Modules/Associacoes/Services/PendenciaDiretoria.php)
 
@@ -58,25 +60,28 @@ module: Associacoes
 
 - [config.php](../../../Modules/Associacoes/Config/config.php)
 
-## Telas (Inertia/React) — 1
+## Telas (Inertia/React) — 2
 
+- [Associadas.tsx](../../../Modules/Associacoes/Resources/js/Pages/Associacoes/Associadas.tsx)
 - [Index.tsx](../../../Modules/Associacoes/Resources/js/Pages/Associacoes/Index.tsx)
 
 ## Componentes / apoio de tela — 1
 
 - [FichaAssociacao.tsx](../../../Modules/Associacoes/Resources/js/Pages/Associacoes/_components/FichaAssociacao.tsx)
 
-## Charters (lei da tela) — 1
+## Charters (lei da tela) — 2
 
+- [Associadas.charter.md](../../../Modules/Associacoes/Resources/js/Pages/Associacoes/Associadas.charter.md)
 - [Index.charter.md](../../../Modules/Associacoes/Resources/js/Pages/Associacoes/Index.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
+- [Associadas.casos.md](../../../Modules/Associacoes/Resources/js/Pages/Associacoes/Associadas.casos.md)
 - [Index.casos.md](../../../Modules/Associacoes/Resources/js/Pages/Associacoes/Index.casos.md)
 
-## Testes (Pest) — 3
+## Testes (Pest) — 4
 
-- 3 em [Modules/Associacoes/Tests/Feature/](../../../Modules/Associacoes/Tests/Feature)
+- 4 em [Modules/Associacoes/Tests/Feature/](../../../Modules/Associacoes/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 5

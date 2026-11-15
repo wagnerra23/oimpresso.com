@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 39,
-    "nodes": 990,
-    "edges": 1326,
+    "nodes": 993,
+    "edges": 1329,
     "by_node_type": {
       "module": 44,
       "table": 116,
       "adr": 155,
-      "component": 581,
-      "api": 94
+      "component": 583,
+      "api": 95
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 97,
+      "providesApi": 98,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 581,
+      "hasComponent": 583,
       "dependsOn": 144,
       "delegatesTo": 131,
       "migratesTo": 1,
@@ -1286,6 +1286,14 @@
       ]
     },
     {
+      "id": "api:/associacoes/associadas",
+      "type": "api",
+      "prefix": "/associacoes/associadas",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/associacoes/install",
       "type": "api",
       "prefix": "/associacoes/install",
@@ -2054,6 +2062,20 @@
       "module": "Associacoes",
       "name": "Associadas como contacts do núcleo, sem CPF",
       "desc": "US-ASSOC-001"
+    },
+    {
+      "id": "component:Associacoes/AssociadasController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociadasController",
+      "desc": "lista de associadas com celular mascarado, cadastro pelo contato do núcleo e desligamento (onda 4) — US-ASSOC-003"
+    },
+    {
+      "id": "component:Associacoes/Consentimentos",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "Consentimentos",
+      "desc": "conceder, revogar e vigente por finalidade e versão da config; usado pelo cadastro e pelo app da onda 6 — US-ASSOC-003"
     },
     {
       "id": "component:Associacoes/DataController",
@@ -8957,6 +8979,18 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociadasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/Consentimentos",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -8978,6 +9012,12 @@
       "to": "component:Associacoes/PendenciaDiretoria",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/associadas",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Associacoes",

@@ -37,6 +37,11 @@ class DataController extends Controller
         ];
     }
 
+    /**
+     * Dropdown "Associações". A mesma regra do middleware das rotas ({@see AssociacoesAcesso::liberado}),
+     * para menu e rota nunca discordarem. A onda 3 (US-ASSOC-002) é dona do dropdown e acrescenta
+     * as linhas dela; a onda 4 (US-ASSOC-003) é dona só da linha "Associadas".
+     */
     public function modifyAdminMenu(): void
     {
         // Mesma regra de rota e lista (AssociacoesAcesso): pacote + `associacoes.access`.
@@ -53,7 +58,11 @@ class DataController extends Controller
                     'icon' => 'fa fa-sitemap',
                     'active' => request()->segment(1) === 'associacoes' && request()->segment(2) === 'lista',
                 ]);
-                // onda 4 · associadas (US-ASSOC-003) — uma linha aqui.
+                // onda 4 · US-ASSOC-003
+                $sub->url(url('/associacoes/associadas'), 'Associadas', [
+                    'icon' => 'fa fa-users',
+                    'active' => request()->segment(1) === 'associacoes' && request()->segment(2) === 'associadas',
+                ]);
                 // onda 5 · painel da rede em /associacoes (US-ASSOC-004) — uma linha aqui.
             }, ['icon' => 'fa fa-hands-helping', 'active' => $ativo]);
         });

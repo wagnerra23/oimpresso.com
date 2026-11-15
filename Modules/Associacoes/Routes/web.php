@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Associacoes\Http\Controllers\AssociacoesController;
 use Modules\Associacoes\Http\Controllers\DocumentosAssociacaoController;
+use Modules\Associacoes\Http\Controllers\AssociadasController;
 use Modules\Associacoes\Http\Controllers\InstallController;
 use Modules\Associacoes\Http\Middleware\AssociacoesLiberado;
 
@@ -38,6 +39,10 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('documentos/{documento}/arquivo', [DocumentosAssociacaoController::class, 'arquivo'])->whereNumber('documento')->name('documentos.arquivo');
 
         // ── onda 4 · associadas e consentimentos (US-ASSOC-003) ──
+        Route::get('associadas', [AssociadasController::class, 'index'])->name('associadas.index');
+        Route::get('associadas/contatos', [AssociadasController::class, 'contatos'])->name('associadas.contatos');
+        Route::post('associadas', [AssociadasController::class, 'store'])->name('associadas.store');
+        Route::post('associadas/{id}/desligar', [AssociadasController::class, 'desligar'])->whereNumber('id')->name('associadas.desligar');
 
         // ── onda 5 · painel da rede (US-ASSOC-004) ──
     });
