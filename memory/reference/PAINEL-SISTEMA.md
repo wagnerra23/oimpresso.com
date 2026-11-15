@@ -432,14 +432,14 @@ lente: [construir]
 
 ## Rastro
 
-- **626** handoffs · **804** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **627** handoffs · **805** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-11-14-runbook-deploy-producao`
   - `2026-11-05-refutacao-gt-g5-lote-10376-r1`
   - `2026-10-30-session-04`
   - `2026-10-30-session-02-venda-v3-edicao`
   - `2026-10-26-fase0-nsu-dfe-seco-medicao`
   - `2026-10-20-pesquisa-consulta-venda-concorrentes-cv`
-  - `2026-10-20-arte-casos-de-uso-fabricacao`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-11-15 · deriva das fontes canônicas, não as substitui._
