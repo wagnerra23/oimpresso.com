@@ -78,7 +78,7 @@ export function TelaAgendar({ token, remarcar, onVoltar, onPronto }: {
           {dados.tipos.map((t) => (
             <button key={t.id} type="button" aria-pressed={tipo === t.id} className={opcao(tipo === t.id)} onClick={() => setTipo(t.id)}>
               <span className="font-medium">{t.nome} · {t.duracao} min</span>
-              {t.teleconsulta && <span className="text-sm text-muted-foreground">Por vídeo, aqui no app.</span>}
+              {t.teleconsulta && <span className="text-sm text-muted-foreground">A distância. A clínica combina com você como será o contato.</span>}
             </button>
           ))}
           <Button disabled={!tipo} onClick={() => setPasso(2)}>Continuar</Button>

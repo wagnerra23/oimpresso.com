@@ -775,7 +775,7 @@ E com base reduzida (benefício) a base é a do motor; Simples, CST sem ICMS ou 
 **Contrato:** NF-e leiaute 4.00 — `pICMS`, `pPIS` e `pCOFINS` são percentuais (TDec_0302a04); `UpsertRegraTributariaRequest` guarda fração ("0.18 = 18%").
 **Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`montarItensNfe`, `emitirParaInvoice`, `baseIcmsDoItem`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeAliquotaPercentualTest.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
-**Fora deste item:** CST de PIS/COFINS do regime normal com base (hoje `07` fixo, R-NFE-025b) e o ICMS-ST.
+**Fora deste item:** CST de PIS/COFINS (era `07` fixo até 2026-11-13; agora vem da regra, R-NFE-025b) e o ICMS-ST.
 
 ### R-NFE-032 · Série e numeração são do local emissor (o certificado segue o do business)
 
@@ -903,6 +903,22 @@ E sem ST o vNF segue igual ao total da venda
 **Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`stDoItem`, `preencherSt`, `montarItensNfe`, `buildXml`, `emitirParaTransaction`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** FCP-ST; ST em operação interna (a interna da própria UF ainda não chega ao motor — só a do destino interestadual); a venda continua com `final_total` sem o ST, então a nota com ST vale mais que a venda no caixa e o título do Financeiro.
+
+### R-NFE-025b · PIS/COFINS com o CST da regra; 07 só como fallback logado
+
+```gherkin
+Dado uma regra com CST de PIS e de COFINS 01, PIS 0,65% e COFINS 3% (Sabor Brasil, tempero)
+Quando itens de 100,00 e 200,00 vão à NF-e
+Então cada item leva CST 01, vBC igual à base do item, pPIS 0,65 e pCOFINS 3
+E vPIS 0,65 + 1,30 = 1,95 e vCOFINS 3,00 + 6,00 = 9,00 no ICMSTot
+E com CST 04 a 09 (não tributado) o item vai sem base nem valor, e o total também
+E sem CST na regra o item sai com 07 e os números de antes, com o log pis_cofins_cst_fallback
+```
+
+**Contrato:** leiaute NF-e 4.00, grupos Q (PIS) e S (COFINS): CST 01/02 no grupo de alíquota (vBC × p), 04 a 09 no grupo não tributado, 49/99 no grupo outras; regra W16 (o ICMSTot é a soma dos itens). Gabarito do Sabor Brasil: XML das notas autorizadas no Delphi em setembro e outubro de 2026 (tempero CST 01, alho e desidratados CST 06) e `NF_NATUREZA_OPERACAO_PRODGRUPO.PIS_ST/COFINS_ST`.
+**Implementação:** migração `2026_11_13_000001_add_cst_pis_cofins_to_nfe_fiscal_rules` · `Modules/NfeBrasil/Services/MotorTributarioService.php` (`aplicarRegra`, `aplicarDefaults`) · `Modules/NfeBrasil/Services/NfeService.php` (`pisCofinsDoItem`, `montarItensNfe`, `emitirParaInvoice`) · `Modules/NfeBrasil/Services/Tributacao/ImportRegrasCsvService.php` (colunas `cst_pis`, `cst_cofins`) · `scripts/legacy-migration/extract-regras-fiscais.py`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php` · `Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o CST por quantidade (03); a tela de regra (formulário e lista) ainda não mostra nem edita o CST, ele entra pelo CSV.
 
 ### R-NFE-046 · Destinatário e CFOP informados por quem emite (pedido de marketplace)
 

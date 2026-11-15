@@ -5,9 +5,14 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-11-13"
 ---
 
+> ℹ️ **`last_run` 2026-10-20 → 2026-11-13 (G-6), sem re-execução.** A mudança no `Index.tsx` é o R-NFE-025b
+> (PR #10879): a lista passa a mostrar o CST de PIS/COFINS embaixo do percentual, e o payload da listagem leva
+> `cst_pis`/`cst_cofins`. Nenhum UC desta tela asserta essas células: o CST é contrato do `RegraForm`
+> (UC-NFRF-09). O bump marca o trio reconciliado com a tela nesta data; os Status seguem do manifesto G-7.
+>
 > ℹ️ **`last_run` 2026-10-14 → 2026-10-20 (G-6), sem re-execução.** A única mudança no `Index.tsx` depois de
 > 2026-10-14 é o [#9450](https://github.com/wagnerra23/oimpresso.com/pull/9450) (2026-10-15): a prop
 > `produtoInicial` repassada ao simulador, que é o UC-NFTR-29 (escrito no mesmo PR). Conferido no diff do
