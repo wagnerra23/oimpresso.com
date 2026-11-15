@@ -166,7 +166,8 @@ it('as páginas de lei abrem e citam a fonte oficial de cada lei', function () {
     $federal = $this->get('http://uniafibro.com.br/direitos/lei-federal')->assertOk()->getContent();
     expect($federal)->toContain('planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14705.htm');
     expect($federal)->toContain('planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/L15176.htm');
-    expect($federal)->toContain('não é automático');
+    // No .md a frase quebra de linha ("não é\nautomático"); o HTML mantém a quebra.
+    expect($federal)->toMatch('/não é\s+automático/u');
 
     $sc = $this->get('http://uniafibro.com.br/direitos/lei-estadual-sc')->assertOk()->getContent();
     expect($sc)->toContain('ADI 5033647-81.2025.8.24.0000');
