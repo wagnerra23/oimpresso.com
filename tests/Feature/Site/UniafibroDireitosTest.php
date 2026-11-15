@@ -171,3 +171,26 @@ it('nenhum texto afirma validade da carteira que a lei e a FCEE não informam', 
     expect((string) file_get_contents(resource_path('uniafibro/home.html')))->not->toContain('Vale por 5 anos');
     expect((string) file_get_contents(resource_path('uniafibro/direitos/lei-estadual-sc.md')))->not->toMatch('/vale por \d+ anos/i');
 });
+
+it('INSS: diz que não há isenção de IR para fibromialgia e aponta a lista oficial', function () {
+    config(['uniafibro.pasta_conteudo' => resource_path('uniafibro/direitos')]);
+
+    $html = $this->get('http://uniafibro.com.br/direitos/inss')->assertOk()->getContent();
+
+    expect($html)->toContain('Imposto de renda: não há isenção para fibromialgia');
+    expect($html)->toContain('planalto.gov.br/ccivil_03/leis/l7713.htm');
+    expect($html)->toContain('não é');
+    expect($html)->toContain('garantido');
+    // INSS é federal: a Defensoria é a da União.
+    expect($html)->toContain('Defensoria Pública da União');
+});
+
+it('trabalho: estabilidade só no caso acidentário, sem prometê-la pela fibromialgia', function () {
+    config(['uniafibro.pasta_conteudo' => resource_path('uniafibro/direitos')]);
+
+    $html = $this->get('http://uniafibro.com.br/direitos/trabalho')->assertOk()->getContent();
+
+    expect($html)->toContain('acidente do trabalho');
+    expect($html)->toContain('A fibromialgia, por si só, <strong>não</strong> dá estabilidade');
+    expect($html)->toContain('planalto.gov.br/ccivil_03/leis/l9029.htm');
+});
