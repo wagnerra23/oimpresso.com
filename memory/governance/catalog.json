@@ -25,26 +25,26 @@
     "supersededBy"
   ],
   "stats": {
-    "modules": 38,
-    "nodes": 978,
-    "edges": 1310,
+    "modules": 39,
+    "nodes": 986,
+    "edges": 1323,
     "by_node_type": {
-      "module": 43,
+      "module": 45,
       "table": 116,
       "adr": 155,
-      "component": 572,
-      "api": 92
+      "component": 577,
+      "api": 93
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 95,
+      "providesApi": 96,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 572,
-      "dependsOn": 141,
-      "delegatesTo": 129,
+      "hasComponent": 577,
+      "dependsOn": 145,
+      "delegatesTo": 132,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 79,
@@ -1310,6 +1310,14 @@
       ]
     },
     {
+      "id": "api:/captacao/install",
+      "type": "api",
+      "prefix": "/captacao/install",
+      "providers": [
+        "Captacao"
+      ]
+    },
+    {
       "id": "api:/catalogue/*",
       "type": "api",
       "prefix": "/catalogue/*",
@@ -2101,6 +2109,41 @@
       "module": "Auditoria",
       "name": "unrevertibleRegistry()",
       "desc": "whitelist do que NUNCA reverte (append-only legal/fiscal)"
+    },
+    {
+      "id": "component:Captacao/Aportes de dinheiro, bens, serviços ou horas de voluntário",
+      "type": "component",
+      "module": "Captacao",
+      "name": "Aportes de dinheiro, bens, serviços ou horas de voluntário",
+      "desc": "US-CAPT-001"
+    },
+    {
+      "id": "component:Captacao/CaptacaoAcesso + CaptacaoLiberado",
+      "type": "component",
+      "module": "Captacao",
+      "name": "CaptacaoAcesso + CaptacaoLiberado",
+      "desc": "regra única de acesso: pacote captacao_module e permissão captacao.access — ADR 0452 D1"
+    },
+    {
+      "id": "component:Captacao/DataController",
+      "type": "component",
+      "module": "Captacao",
+      "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Captacao/Fontes de recurso",
+      "type": "component",
+      "module": "Captacao",
+      "name": "Fontes de recurso",
+      "desc": "US-CAPT-001"
+    },
+    {
+      "id": "component:Captacao/InstallController",
+      "type": "component",
+      "module": "Captacao",
+      "name": "InstallController",
+      "desc": ""
     },
     {
       "id": "component:Cms/CmsController",
@@ -5948,6 +5991,19 @@
       "catalog_status": "catalogued"
     },
     {
+      "id": "module:Associacoes",
+      "type": "module",
+      "module": "Associacoes",
+      "purpose": "",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": null,
+      "catalog_kind": "referenced-only",
+      "catalog_status": "referenced-only"
+    },
+    {
       "id": "module:Auditoria",
       "type": "module",
       "module": "Auditoria",
@@ -5957,6 +6013,19 @@
       "permission_prefix": "auditoria.*",
       "charter_adr": "0094",
       "path": "memory/requisitos/Auditoria/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Captacao",
+      "type": "module",
+      "module": "Captacao",
+      "purpose": "Projetos de captação de recursos de ONGs e associações (primeira: Uniafibro-SC e associações-membro): fontes (edital, lei de incentivo, fundo, doação, parceria, voluntariado), projetos com proponente, aportes recebidos e comprovantes de despesa para prestação de contas. Decidido pela ADR 0452 em 2026-11-14.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Captacao/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -8966,6 +9035,90 @@
     {
       "from": "module:Auditoria",
       "to": "api:/reports/activity-log",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Arquivos",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Arquivo do comprovante"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Associacoes",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Cadastro da rede de associações e das associadas"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Título a receber e despesa no caixa"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Arquivo do comprovante"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Associacoes",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cadastro da rede de associações e das associadas"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Título a receber e despesa no caixa"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/Aportes de dinheiro, bens, serviços ou horas de voluntário",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/CaptacaoAcesso + CaptacaoLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/Fontes de recurso",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "api:/captacao/install",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -15869,6 +16022,10 @@
       },
       {
         "module": "Admin",
+        "reason": "referenciado por SCOPE, sem descritor próprio"
+      },
+      {
+        "module": "Associacoes",
         "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {
