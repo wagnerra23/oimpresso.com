@@ -130,7 +130,7 @@ class Component extends DCLogic {
     const s = this.state, P = 'oklch(0.55 0.15 295)', INK = 'oklch(0.22 0.01 80)', LINE = 'oklch(0.90 0.004 90)';
     const sel = (on) => ({ on: on ? 'true' : 'false', bd: on ? '2px solid ' + P : '1px solid ' + LINE, bg: on ? 'oklch(0.95 0.04 295)' : '#FFFFFF' });
     const PESSOAS = { eu: ['Eu', 8, 10], mae: ['[NOME] (mãe)', 0, 0] };
-    const TIPOS = { retorno: ['Sessão do pacote', '50 min', 'Consome 1 sessão do pacote. Sem sinal.'], tele: ['Teleconsulta', '30 min', 'Por vídeo, aqui no app.'], aval: ['Reavaliação', '60 min', 'Revisa o programa e as metas.'] };
+    const TIPOS = { retorno: ['Sessão do pacote', '50 min', 'Consome 1 sessão do pacote. Sem sinal.'], tele: ['Teleconsulta', '30 min', 'A distância. A clínica combina com você como será o contato.'], aval: ['Reavaliação', '60 min', 'Revisa o programa e as metas.'] };
     const PROFS = { dj: ['Dra. Dejeane', 'Fisioterapeuta · acompanha você', 'DR', P, 'amanhã'], rf: ['Dr. [NOME]', 'Fisioterapeuta', 'DN', 'oklch(0.45 0.08 220)', 'qua'] };
     const DIAS = [['seg', '20', false], ['ter', '21', true], ['qua', '22', true], ['qui', '23', true], ['sex', '24', true], ['sáb', '25', false]];
     const HORAS = ['08:30', '10:00', '14:00', '15:30', '17:30', '18:00'];

@@ -50,8 +50,13 @@ class ImportRegrasCsvService
      *   - `operacao`     slug da operação fiscal da empresa (ex. `bonificacao`); entra na CHAVE.
      *                    Vazio = sem operação (a padrão). Slug que a empresa não cadastrou = falha
      *                    da linha, nunca regra órfã.
+     *   - `cst_pis` / `cst_cofins`  CST de saída do PIS e da COFINS (R-NFE-025b): 01, 02, 04 a 09,
+     *                    49 ou 99. Vazio = a nota sai com 07, como antes.
      */
-    public const COLUNAS_OPCIONAIS = ['crt', 'reducao_base', 'mva', 'operacao'];
+    public const COLUNAS_OPCIONAIS = ['crt', 'reducao_base', 'mva', 'operacao', 'cst_pis', 'cst_cofins'];
+
+    /** R-NFE-025b · CST de PIS/COFINS de saída que a emissão monta (o 03, por quantidade, não). */
+    public const CST_PIS_COFINS_SAIDA = ['01', '02', '04', '05', '06', '07', '08', '09', '49', '99'];
 
     private const UFS_VALIDAS = [
         'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
@@ -217,6 +222,12 @@ class ImportRegrasCsvService
         if (($row['crt'] ?? '') !== '' && ! in_array((string) $row['crt'], ['1', '2', '3'], true)) {
             return 'CRT deve ser 1 (Simples), 2 ou 3 (Regime Normal)';
         }
+        foreach (['cst_pis', 'cst_cofins'] as $field) {
+            $cst = trim((string) ($row[$field] ?? ''));
+            if ($cst !== '' && ! in_array(str_pad($cst, 2, '0', STR_PAD_LEFT), self::CST_PIS_COFINS_SAIDA, true)) {
+                return "{$field} deve ser um CST de saída: " . implode(', ', self::CST_PIS_COFINS_SAIDA);
+            }
+        }
         foreach (['reducao_base' => 1, 'mva' => 5] as $field => $teto) {
             if (($row[$field] ?? '') === '') {
                 continue;
@@ -267,6 +278,7 @@ class ImportRegrasCsvService
                     : match ($field) {
                         'crt'      => (int) $row[$field],
                         'operacao' => (string) $row[$field],
+                        'cst_pis', 'cst_cofins' => str_pad(trim((string) $row[$field]), 2, '0', STR_PAD_LEFT),
                         default    => (float) $row[$field],
                     };
             }

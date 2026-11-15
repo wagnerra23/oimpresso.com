@@ -433,6 +433,8 @@ class MotorTributarioService
             reducao_base:    $reducao > 0 ? $reducao : 0.0,
             base_icms:       $baseIcms,
             c_benef:         $cBenef !== '' ? $cBenef : null,
+            cst_pis:         $this->cstPisCofins($regra->cst_pis ?? null),
+            cst_cofins:      $this->cstPisCofins($regra->cst_cofins ?? null),
         );
     }
 
@@ -626,7 +628,17 @@ class MotorTributarioService
             valor_fcp:       $extra['valor_fcp'],
             valor_difal:     $extra['valor_difal'],
             aviso:           $extra['aviso'],
+            cst_pis:         $this->cstPisCofins($defaults['cst_pis'] ?? null),
+            cst_cofins:      $this->cstPisCofins($defaults['cst_cofins'] ?? null),
         );
+    }
+
+    /** R-NFE-025b: '1' vira '01'; vazio vira null (a emissão cai no 07 de antes). */
+    private function cstPisCofins(mixed $valor): ?string
+    {
+        $cst = trim((string) ($valor ?? ''));
+
+        return $cst === '' ? null : str_pad($cst, 2, '0', STR_PAD_LEFT);
     }
 
     /** Arredonda em 2 casas (padrão SEFAZ pra valores monetários) */

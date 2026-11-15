@@ -44,6 +44,8 @@ class NfeFiscalRule extends Model
         'ncm', 'uf_origem', 'uf_destino',
         'cfop', 'csosn', 'cst',
         'aliquota_icms', 'aliquota_pis', 'aliquota_cofins', 'aliquota_ipi',
+        // R-NFE-025b · CST de PIS/COFINS da regra (nulo = 07, como antes)
+        'cst_pis', 'cst_cofins',
         'mva', 'fcp',
         'metadata',
         // GAP-FISCAL-004 / US-FISCAL-021 — Reforma Tributária NT 2025.002

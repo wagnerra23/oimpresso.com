@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 977,
-    "edges": 1309,
+    "nodes": 978,
+    "edges": 1310,
     "by_node_type": {
       "module": 43,
       "table": 116,
       "adr": 155,
-      "component": 571,
+      "component": 572,
       "api": 92
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 95,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 571,
+      "hasComponent": 572,
       "dependsOn": 141,
       "delegatesTo": 129,
       "migratesTo": 1,
@@ -3116,6 +3116,13 @@
       "module": "Financeiro",
       "name": "ContaReceberController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/CorrigirTipoLegadoCommand",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CorrigirTipoLegadoCommand",
+      "desc": "financeiro:corrigir-tipo-legado --business=N corrige título do Delphi com TIPO=RECEBIDA importado como pagar (metadata.delphi_tipo_raw); só mostra por padrão, --apply grava e marca metadata.tipo_corrigido"
     },
     {
       "id": "component:Financeiro/CoworkSidebarController",
@@ -10419,6 +10426,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/ContaReceberController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/CorrigirTipoLegadoCommand",
       "type": "hasComponent",
       "source": "contains"
     },

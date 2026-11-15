@@ -134,13 +134,44 @@ class Media extends Model
     }
 
     /**
+     * Nome de arquivo enviado pelo usuário que pode ser gravado em public/uploads, ou null.
+     *
+     * Recusa qualquer extensão que o servidor executaria, em QUALQUER posição do nome
+     * (pega `x.php5`, `x.phtml` e a dupla `db.php.jpg`), e arquivos ocultos (`.htaccess`,
+     * `.user.ini`). O tipo MIME vindo do navegador não serve de defesa: quem envia escolhe.
+     *
+     * Origem: invasão de 2026-11-12. Um webshell disfarçado de JPEG (`bolela.php`) estava em
+     * public/uploads/media desde 2024 e serviu para plantar spam e outros webshells.
+     */
+    public static function nomeDeArquivoSeguro(?string $nomeOriginal): ?string
+    {
+        $nome = basename(str_replace('\\', '/', (string) $nomeOriginal));
+
+        if ($nome === '' || str_starts_with($nome, '.')) {
+            return null;
+        }
+
+        foreach (array_slice(explode('.', strtolower($nome)), 1) as $extensao) {
+            if (preg_match('/^(php\d*|phtml|pht|phar|phps|ph\d+|shtml?|cgi|pl|py|sh|asp|aspx|jsp|exe)$/', trim($extensao))) {
+                return null;
+            }
+        }
+
+        return $nome;
+    }
+
+    /**
      * Uploads requested file to storage.
      */
     public static function uploadFile($file)
     {
         $file_name = null;
+        $nome_seguro = self::nomeDeArquivoSeguro($file->getClientOriginalName());
+        if ($nome_seguro === null) {
+            return null;
+        }
         if ($file->getSize() <= config('constants.document_size_limit')) {
-            $new_file_name = time().'_'.mt_rand().'_'.$file->getClientOriginalName();
+            $new_file_name = time().'_'.mt_rand().'_'.$nome_seguro;
             if ($file->storeAs('/media', $new_file_name)) {
                 $file_name = $new_file_name;
             }

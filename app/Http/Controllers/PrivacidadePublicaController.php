@@ -21,4 +21,13 @@ class PrivacidadePublicaController extends Controller
     {
         return Inertia::render('Site/PrivacidadeApp');
     }
+
+    /**
+     * Política do Portal do Paciente do Fisio e do app Uniafibro (com.oimpresso.fisio) — a URL que o
+     * Google Play exige para app com dado de saúde. Também só texto (RUNBOOK-privacidade §5).
+     */
+    public function fisio(): Response
+    {
+        return Inertia::render('Site/PrivacidadeFisio');
+    }
 }

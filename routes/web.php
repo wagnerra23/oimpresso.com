@@ -457,7 +457,7 @@ if (app()->environment(['local', 'testing', 'staging'])) {
     })->middleware('web')->name('visreg.state');
 }
 
-// Uniafibro (União das Associações de Fibromialgia de SC) — página da associação em
+// Uniafibro (União das Associações de Fibromiálgicos de Santa Catarina) — página da associação em
 // https://uniafibro.com.br, servida por este mesmo app (domínio-alias no hPanel). Sem login,
 // sem banco. Fica ANTES do `/` sem domínio: o roteador devolve a 1ª rota registrada que casa.
 // O portal do paciente continua em oimpresso.com/fisio — nada do Fisio vem para cá.
@@ -483,6 +483,9 @@ Route::domain('uniafibro.com.br')->middleware('throttle:60,1')->group(function (
 Route::middleware(['web', 'throttle:60,1'])->group(function () {
     Route::get('/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'app'])
         ->name('publico.privacidade');
+    // Portal do Paciente do Fisio + app Uniafibro (com.oimpresso.fisio): dado de saúde, política própria.
+    Route::get('/fisio/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'fisio'])
+        ->name('publico.privacidade.fisio');
 });
 
 Route::middleware(['setData'])->group(function () {
