@@ -29,7 +29,11 @@ beforeEach(function () {
 function siteMenuMedida(): string
 {
     return <<<'JS'
-        () => {
+        async () => {
+            // O topo é React (Inertia): espera montar antes de medir — ler cedo dá "ausente".
+            for (let i = 0; i < 80 && !document.querySelector('button[aria-controls="menu-site-mobile"]'); i++) {
+                await new Promise((r) => setTimeout(r, 100));
+            }
             const vis = (el) => {
                 if (!el) return false;
                 const s = getComputedStyle(el), r = el.getBoundingClientRect();
@@ -88,7 +92,10 @@ it('no desktop (1280) o botão de menu não aparece e os links do topo sim', fun
     $page = visit('/login')->resize(1280, 800);
 
     $r = json_decode((string) $page->script(<<<'JS'
-        () => {
+        async () => {
+            for (let i = 0; i < 80 && !document.querySelector('button[aria-controls="menu-site-mobile"]'); i++) {
+                await new Promise((r) => setTimeout(r, 100));
+            }
             const b = document.querySelector('button[aria-controls="menu-site-mobile"]');
             const nav = document.querySelector('header nav[aria-label="Navegação principal"]');
             return JSON.stringify({
