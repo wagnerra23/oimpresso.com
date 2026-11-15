@@ -6,6 +6,7 @@ namespace Modules\Fisio\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Modules\Fisio\Jobs\CobrarAvaliacaoDoEstudoJob;
 use Modules\Fisio\Jobs\EnviarLembreteDiarioJob;
 use Modules\Fisio\Services\FisioAcesso;
 
@@ -31,6 +32,11 @@ class LembretesCommand extends Command
                 continue;
             }
             EnviarLembreteDiarioJob::dispatch($biz);
+            // Etapa 07 P-05: aviso da avaliação do estudo, só onde há participante em estudo.
+            if (DB::getSchemaBuilder()->hasTable('fisio_study_participants')
+                && DB::table('fisio_study_participants')->where('business_id', $biz)->whereNull('exited_on')->exists()) {
+                CobrarAvaliacaoDoEstudoJob::dispatch($biz);
+            }
             $enfileirados++;
         }
 

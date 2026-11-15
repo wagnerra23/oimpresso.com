@@ -5,8 +5,8 @@ irmaos: AprovacaoPublica.charter.md (lei) · ../../../../memory/requisitos/Ofici
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-11-06"
-last_run_ci: "UC-OAP-08..10 revalidados contra o .tsx de 2026-11-06 (orçamento só depois do PIN); veredito pela lane oficinaauto-pest"
+last_run: "2026-11-09"
+last_run_ci: "UC-OAP-11..12 revalidados contra o .tsx de 2026-11-09: Pest na run 42696198529 (lane oficinaauto-pest) e vitest no Frontend da run 42709584363; o último commit da tela só troca a cor do ícone"
 related_us: [US-OFICINA-014, US-AUTO-009]
 related_cu: [CU-OFI-12, CU-OFI-15]
 ---
@@ -131,6 +131,24 @@ related_cu: [CU-OFI-12, CU-OFI-15]
   uma OS da oficina B · Então o orçamento de B segue fechado e aprovar B sem PIN é recusado.
 - **Regressão que defende:** a liberação de uma OS vazar para outra.
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php`
+- **Status: 🧪**
+
+## UC-OAP-11 · Sem aviso não há faixa, e PIN errado aparece na tela
+- **Persona:** cliente final no link público.
+- **Aceite:** Dado o link aberto sem nenhuma ação · Então a tela não mostra faixa de aviso. Dado
+  um PIN errado · Quando o cliente confere · Então a tela diz quantas tentativas restam.
+- **Regressão que defende:** faixa branca vazia em toda abertura e erro de PIN mudo: o controller
+  gravava `flash` com `type`/`message`, formato que o `HandleInertiaRequests` não entrega.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php` · `tests/js/oficina-aprovacao-publica-aviso.test.tsx`
+- **Status: 🧪**
+
+## UC-OAP-12 · Quem decide recebe a confirmação
+- **Persona:** cliente final que aprova ou recusa.
+- **Aceite:** Dado o orçamento aprovado · Quando a tela volta · Então mostra a confirmação, e não
+  "Link inválido", embora o link tenha deixado de valer. Dado o orçamento recusado · Então mostra o
+  aviso de rejeição e o link segue aberto.
+- **Regressão que defende:** o cliente aprovar e ler que o link expirou.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php` · `tests/js/oficina-aprovacao-publica-aviso.test.tsx`
 - **Status: 🧪**
 
 ---

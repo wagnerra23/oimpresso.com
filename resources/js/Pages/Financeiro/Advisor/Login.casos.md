@@ -17,23 +17,27 @@ last_run: "2026-08-17"
 Charter em **draft**. Tela de auth isolada (fora do AppShellV2), guard `web-advisor`.
 
 ## UC-ADVL-01 — Entrar com credencial válida
-Status: 🧪 (`Advisor/Onda31AdvisorPortalTest`)
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
 Quando o contador envia email+senha válidos · Então autentica no guard `web-advisor` e cai em `/advisor`.
 
 ## UC-ADVL-02 — Credencial inválida volta com erro, sem vazar dado
-Status: 🧪 (`Onda31AdvisorPortalTest`)
-Credencial errada · Então `back()` com `flash.error`; a tela pré-auth nunca mostra dado de cliente.
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
+Senha errada, e-mail inexistente e conta inativa recebem o mesmo `flash.error`; a tela pré-auth nunca mostra dado de cliente.
 
-## [BACKLOG] "Lembrar de mim" é opcional
-Status: ⬜ sem prova — "lembrar de mim" não é exercitado por nenhum teste. Vira `UC-ADVL-03` quando existir teste citando o id (G-2).
-Marcar mantém a sessão; desmarcar encerra ao fechar.
+## UC-ADVL-03 — "Lembrar de mim" é opcional
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
+O cookie de lembrar só nasce quando o contador marca a opção.
+
+## UC-ADVL-04 — Limite de tentativas contra força bruta
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
+5 erros na mesma conta e IP travam a conta por 1 minuto, mesmo com a senha certa depois; 20 erros do mesmo IP travam o IP. O acerto zera a conta e o aviso aparece na própria tela.
 
 ## Backlog de casos (sem id — dependem de backend novo)
 - **[BACKLOG] Reset de senha** — NÃO existe rota no guard `web-advisor`; o link só entra na tela depois da rota (Anti-hook do charter).
-- **[BACKLOG] Throttle no POST** — `RateLimiter::for('advisor-login')` está marcado como pendente no Controller. **Risco de força-bruta enquanto não existir.**
 
 ## Trilha do tempo
 - 2026-08-17 · [CC] criado no espelho Cowork (leva 4).
+- 2026-11-09 · lote 3.2 da auditoria: limite de tentativas e testes pelas rotas.
 
 [ADR 0264]: ../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0093]: ../../memory/decisions/0093-multi-tenant-isolation-tier-0.md

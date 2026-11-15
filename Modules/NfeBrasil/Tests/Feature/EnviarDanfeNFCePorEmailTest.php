@@ -39,6 +39,7 @@ beforeEach(function () {
         test()->markTestSkipped('Tabelas transactions/contacts/nfe_emissoes ausentes — rode migrations.');
     }
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
     config(['nfebrasil.email_danfe_nfce_on_autorizada' => true]);
 });
 

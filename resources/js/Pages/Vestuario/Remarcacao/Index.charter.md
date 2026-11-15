@@ -7,7 +7,7 @@ related_runbook: memory/requisitos/Vestuario/RUNBOOK-remarcacao.md
 related_casos: resources/js/Pages/Vestuario/Remarcacao/Index.casos.md
 owner: wagner
 status: draft
-last_validated: "2026-10-27"
+last_validated: "2026-11-09"
 parent_module: Vestuario
 related_us: [US-VEST-032]
 related_adrs: [93, 104, 121, 438]
@@ -20,6 +20,7 @@ charter_version: 2
 > **Status:** draft. Wagner aprova **Non-Goals + Anti-hooks** antes de virar `status: live`.
 > Backend: `Modules/Vestuario/Http/Controllers/RemarcacaoController` + `Services/Remarcacao`.
 > Decisão [W] 2026-10-27 (US-VEST-032). Desligada por padrão: setting `remarcacao.enabled` por empresa.
+> Acesso: permissão própria `vestuario.remarcacao.aplicar`, não `product.update` (decisão [W] 2026-11-09).
 
 ---
 
@@ -35,6 +36,7 @@ depois e imprimir as etiquetas novas.
 
 - Filtro por categoria, subcategoria, marca e trecho do nome (coleção)
 - Novo preço por percentual ou valor fixo, com prévia por variação
+- A prévia avisa quantas peças têm preço de grupo: o fixo não muda e o percentual acompanha o preço novo
 - Gravação com confirmação e nome do lote; lista de remarcações anteriores
 - Reverter um lote; imprimir as etiquetas do lote (PDF da tela de etiquetas)
 

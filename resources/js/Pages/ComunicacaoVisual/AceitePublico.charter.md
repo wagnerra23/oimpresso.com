@@ -22,7 +22,8 @@ mandou. Quer conferir o que vai pagar e responder sem criar conta.
 2. **Aceitar** — um botão; o orçamento vira OS na gráfica.
 3. **Pedir ajuste** — um texto obrigatório dizendo o que mudar; o orçamento volta para a gráfica.
 4. **Saber quando não dá** — link vencido, já usado, orçamento fora da validade ou indisponível
-   mostram o motivo e não mostram os botões.
+   mostram o motivo e não mostram os botões. Link fechado porque a gráfica editou o orçamento aparece como vencido.
+5. **Provar o que foi aceito** — a decisão guarda o retrato do orçamento; o aceite guarda também IP e navegador (UC-CVACEP-05..06).
 
 Contrato comportamental: [`AceitePublico.casos.md`](AceitePublico.casos.md).
 

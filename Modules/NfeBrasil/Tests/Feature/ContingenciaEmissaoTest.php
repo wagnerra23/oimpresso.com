@@ -182,6 +182,7 @@ beforeEach(function () {
         test()->markTestSkipped('Schema da contingência ausente — rode as migrations do NfeBrasil.');
     }
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
 });
 
 afterEach(function () {
@@ -224,7 +225,7 @@ describe('US-NFE-006 · emitir em contingência (ADR TECH-0002)', function () {
 
         expect($emissao->status)->toBe('contingencia');
         expect($emissao->xml_path)->not->toBeNull();
-        Storage::assertExists($emissao->xml_path);
+        Storage::disk('nfe_fiscal')->assertExists($emissao->xml_path);
     });
 
     it('UC-CONT-32 · o XML sobrevive à SEFAZ FORA DO AR (exigência literal da ADR)', function () {
@@ -237,8 +238,8 @@ describe('US-NFE-006 · emitir em contingência (ADR TECH-0002)', function () {
             ->emitir($biz, contDados(EMIS_VALOR));
 
         expect($emissao->status)->toBe('contingencia');
-        Storage::assertExists($emissao->xml_path);
-        expect(Storage::get($emissao->xml_path))->not->toBeEmpty();
+        Storage::disk('nfe_fiscal')->assertExists($emissao->xml_path);
+        expect(Storage::disk('nfe_fiscal')->get($emissao->xml_path))->not->toBeEmpty();
     });
 
     it('UC-CONT-33 · contingência NÃO fabrica dado fiscal (sem chave, cStat ou protocolo)', function () {

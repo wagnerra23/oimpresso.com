@@ -21,20 +21,20 @@ uses(Tests\TestCase::class);
  *
  * Cobre:
  *   1. Filtro box='Box 1' retorna só os veículos cuja OS ativa está nesse box
- *   2. Multi-tenant Tier 0 — box 'Box 1' do biz=2 NÃO vaza pro biz=1
+ *   2. Multi-tenant Tier 0 — box 'Box 1' do biz=99 NÃO vaza pro biz=98
  *   3. buildFilterOptions: boxes distintos só das OS ativas (terminal não entra)
  *
- * Pattern: skip SQLite (ADR 0101 — schema MySQL UltimatePOS). Validação na query.
+ * Pattern: skip SQLite (ADR 0358 — schema MySQL UltimatePOS). Validação na query.
  *
  * @see Modules/OficinaAuto/Http/Controllers/ProducaoOficinaController.php
  */
 
-const BIZ_BOX_TEST = 1;
-const BIZ_BOX_FICTICIO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
+const BIZ_BOX_TEST = 98;
+const BIZ_BOX_FICTICIO = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasColumn('service_orders', 'box_label')) {
         $this->markTestSkipped('service_orders.box_label ausente — rode migrate primeiro');
@@ -97,7 +97,7 @@ it('1. filtro box="Box 1" retorna só veículos cuja OS ativa está nesse box', 
     expect($filtered)->toBe(2);
 })->after(fn () => boxCleanup(BIZ_BOX_TEST));
 
-it('2. multi-tenant Tier 0 — box "Box 1" do biz=2 NÃO vaza pro biz=1', function () {
+it('2. multi-tenant Tier 0 — box "Box 1" do biz=99 NÃO vaza pro biz=98', function () {
     session(['user.business_id' => BIZ_BOX_TEST]);
 
     $ids = [
@@ -105,7 +105,7 @@ it('2. multi-tenant Tier 0 — box "Box 1" do biz=2 NÃO vaza pro biz=1', functi
         boxCreateVehicleWithOs(BIZ_BOX_FICTICIO, 'Box 1')->id,
     ];
 
-    // Global scope do Vehicle filtra biz=1 automaticamente — o veículo do biz=2 está no
+    // Global scope do Vehicle filtra biz=98 automaticamente — o veículo do biz=99 está no
     // universo do whereIn e mesmo assim tem de ficar de fora.
     $filtered = Vehicle::query()
         ->whereIn('id', $ids)

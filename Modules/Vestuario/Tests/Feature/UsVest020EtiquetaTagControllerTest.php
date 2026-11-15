@@ -67,6 +67,7 @@ it('ZPL contém instrução ^BQ quando qr_enabled=true via settings', function (
 
     $result = $svc->gerarEtiqueta(42, 7, [
         'nome'       => 'Camiseta QR',
+        'sku'        => 'QR-1',
         'tamanho'    => 'M',
         'preco'      => 49.90,
         'businessId' => 1,
@@ -84,6 +85,7 @@ it('ZPL NÃO contém ^BQ por default (qr_enabled=false)', function () {
 
     $result = $svc->gerarEtiqueta(42, 7, [
         'nome'    => 'Camiseta Sem QR',
+        'sku'     => 'QR-2',
         'tamanho' => 'M',
         'preco'   => 49.90,
     ]);
@@ -124,7 +126,7 @@ it('width/height/dpi vêm de vestuario_settings quando setados', function () {
     expect($cfg['dpi'])->toBe(300);
 
     // ZPL output deve usar essas dimensões
-    $r = $svc->gerarEtiqueta(1, 1, ['nome' => 'X', 'businessId' => 1]);
+    $r = $svc->gerarEtiqueta(1, 1, ['nome' => 'X', 'sku' => 'DIM-1', 'businessId' => 1]);
     expect($r['zpl'])->toContain('^PW600');
     expect($r['zpl'])->toContain('^LL360');
 

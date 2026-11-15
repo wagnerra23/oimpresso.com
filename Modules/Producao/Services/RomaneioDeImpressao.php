@@ -2,7 +2,6 @@
 
 namespace Modules\Producao\Services;
 
-use App\Scopes\ScopeByBusiness;
 use Illuminate\Support\Facades\DB;
 use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Entities\Romaneio;
@@ -29,7 +28,7 @@ final class RomaneioDeImpressao
         return DB::transaction(function () use ($businessId, $osId, $programacaoId, $userId): Romaneio {
             $os = DB::table('comvis_os')->where('business_id', $businessId)->where('id', $osId)->whereNull('deleted_at')
                 ->lockForUpdate()->first(['id', 'numero', 'orcamento_id']);
-            $etapa = Programacao::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+            $etapa = Programacao::query()->where('business_id', $businessId)
                 ->where('os_tipo', self::OS_TIPO)->where('os_id', $osId)->find($programacaoId);
             if ($os === null || $etapa === null) {
                 throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS ou etapa não encontrada.');
@@ -44,7 +43,7 @@ final class RomaneioDeImpressao
                 throw new ApontamentoRecusado(ApontamentoRecusado::QUANTIDADE_INVALIDA, 'A OS não tem peças para enviar à impressão.');
             }
 
-            $versao = 1 + (int) Romaneio::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+            $versao = 1 + (int) Romaneio::query()->where('business_id', $businessId)
                 ->where('os_tipo', self::OS_TIPO)->where('os_id', $osId)->max('versao');
             $posto = DB::table('pcp_postos')->where('business_id', $businessId)->where('id', (int) $etapa->posto_id)->first(['id', 'nome']);
 
@@ -68,7 +67,7 @@ final class RomaneioDeImpressao
     /** @return array<string, mixed> */
     public function ler(int $businessId, int $romaneioId): array
     {
-        $r = Romaneio::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('linhas')->find($romaneioId)
+        $r = Romaneio::query()->where('business_id', $businessId)->with('linhas')->find($romaneioId)
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'Romaneio não encontrado.');
 
         // Peça que já saiu numa versão anterior da mesma OS: sinalizada com o número daquele romaneio.

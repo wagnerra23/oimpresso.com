@@ -381,6 +381,14 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
+                {!! Form::checkbox('permissions[]', 'product.armazenagem', in_array('product.armazenagem', $role_permissions), 
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.product.armazenagem' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
                 {!! Form::checkbox('permissions[]', 'product.delete', in_array('product.delete', $role_permissions), 
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.product.delete' ) }}
               </label>

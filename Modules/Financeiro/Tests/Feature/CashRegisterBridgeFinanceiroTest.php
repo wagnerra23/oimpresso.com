@@ -102,9 +102,9 @@ it('cria fin_titulo quando caixa fecha com vendas', function () {
         ->and($titulo->status)->toBe('quitado')
         ->and($titulo->tipo)->toBe('receber')
         ->and($titulo->numero)->toBe('CX-' . $cr->id)
-        ->and($titulo->metadata['breakdown']['cash'])->toBe(100.0)
-        ->and($titulo->metadata['breakdown']['card'])->toBe(200.0)
-        ->and($titulo->metadata['breakdown']['cheque'])->toBe(50.0)
+        ->and((float) $titulo->metadata['breakdown']['cash'])->toBe(100.0)
+        ->and((float) $titulo->metadata['breakdown']['card'])->toBe(200.0)
+        ->and((float) $titulo->metadata['breakdown']['cheque'])->toBe(50.0)
         ->and($titulo->metadata['caixa_id'])->toBe($cr->id);
 });
 

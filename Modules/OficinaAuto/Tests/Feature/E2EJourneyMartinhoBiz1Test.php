@@ -15,7 +15,7 @@ use Modules\OficinaAuto\Services\VehicleQueryService;
 uses(Tests\TestCase::class);
 
 /**
- * Wave 18 saturation D5/D9 — E2E journey Martinho biz=1 (Wagner dev).
+ * Wave 18 saturation D5/D9 — E2E journey Martinho biz=98 (Wagner dev).
  *
  * Smoke do journey README:
  *  - Criar veículo caçamba
@@ -24,13 +24,13 @@ uses(Tests\TestCase::class);
  *  - Validar token + PIN
  *  - Verificar capacidade ocupada após nova OS
  *
- * Multi-tenant Tier 0 (ADR 0101 — biz=1 nunca cliente real).
+ * Multi-tenant Tier 0 (ADR 0358 — biz=98 nunca cliente real).
  *
  * @see memory/requisitos/OficinaAuto/README.md
  */
 
-const E2E_OFICINA_BIZ_WAGNER = 1;
-const E2E_OFICINA_BIZ_OUTRO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
+const E2E_OFICINA_BIZ_WAGNER = 98;
+const E2E_OFICINA_BIZ_OUTRO = 99;
 
 beforeEach(function () {
     config()->set('otel.enabled', false);
@@ -51,7 +51,7 @@ afterEach(function () {
 function skipIfNoMysqlOficinaE2E(): void
 {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        test()->markTestSkipped('SQLite-incompatível: requer schema MySQL (ADR 0101)');
+        test()->markTestSkipped('SQLite-incompatível: requer schema MySQL (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasTable('vehicles')) {
         test()->markTestSkipped('service_orders/vehicles tables missing');
@@ -129,7 +129,7 @@ it('cenario E2E 2: 3 OS abertas + 1 em_servico → capacidade ocupada 18h (4+4+4
         'entered_at'  => now(),
     ])->id;
 
-    // Bypass global scope pra que test enxergue dados (test session pode nao ter biz=1).
+    // Bypass global scope pra que test enxergue dados (test session pode nao ter biz=98).
     // Sobre as 4 OS deste teste: sem o whereIn a conta somava as OS de TODOS os tenants
     // do banco (medido: 512 em vez de 18 no 1º run da lane).
     $minhas = fn () => ServiceOrder::withoutGlobalScopes()->whereIn('id', $this->e2eOsIds);
@@ -141,7 +141,7 @@ it('cenario E2E 2: 3 OS abertas + 1 em_servico → capacidade ocupada 18h (4+4+4
 
 it('cenario E2E 3: contagem global por status reflete realidade cross-biz isolada', function () {
     skipIfNoMysqlOficinaE2E();
-    // biz=1: 2 abertas, 1 concluida
+    // biz=98: 2 abertas, 1 concluida
     foreach (['aberta', 'aberta', 'concluida'] as $s) {
         $v = Vehicle::withoutGlobalScopes()->create([
             'business_id' => E2E_OFICINA_BIZ_WAGNER,
@@ -155,7 +155,7 @@ it('cenario E2E 3: contagem global por status reflete realidade cross-biz isolad
             'entered_at'  => now(),
         ])->id;
     }
-    // biz=2: 5 abertas (NÃO devem aparecer)
+    // biz=99: 5 abertas (NÃO devem aparecer)
     for ($i = 0; $i < 5; $i++) {
         $v = Vehicle::withoutGlobalScopes()->create([
             'business_id' => E2E_OFICINA_BIZ_OUTRO,

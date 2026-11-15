@@ -24,6 +24,9 @@ use Modules\Financeiro\Tests\Feature\FinanceiroTestCase;
  *
  * Multi-tenant Tier 0 ADR 0093 + biz=1 ADR 0101 (NUNCA biz=4 cliente real).
  *
+ * Estes casos provam schema e Model. Os UCs do portal e da tela Contador são provados
+ * pelas rotas em AdvisorRotasContratoTest (lote 3.2 da auditoria, 2026-11-09).
+ *
  * @see Modules\Financeiro\Http\Middleware\AdvisorViewScope
  */
 class Onda31AdvisorPortalTest extends FinanceiroTestCase
@@ -51,7 +54,6 @@ class Onda31AdvisorPortalTest extends FinanceiroTestCase
         }
     }
 
-    /** UC-CTD-04 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_tabela_advisor_business_access_existe_com_schema_correto(): void
     {
         $this->assertTrue(Schema::hasTable('advisor_business_access'));
@@ -72,7 +74,6 @@ class Onda31AdvisorPortalTest extends FinanceiroTestCase
         $this->assertMatchesRegularExpression('/^[A-Z0-9]{8}$/', $code);
     }
 
-    /** UC-CTD-05 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_advisor_cnpj_masked_protege_pii(): void
     {
         $advisor = new Advisor(['cnpj_contador' => '12345678000190']);
@@ -83,7 +84,6 @@ class Onda31AdvisorPortalTest extends FinanceiroTestCase
         $this->assertStringNotContainsString('90', $masked, 'DV deve estar mascarado');
     }
 
-    /** UC-ADVL-01 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_advisor_login_isolado_guard_web_advisor(): void
     {
         $this->actAsAdmin(); // só pra ter session válida; vamos logout abaixo
@@ -105,7 +105,6 @@ class Onda31AdvisorPortalTest extends FinanceiroTestCase
         $this->assertNull(Auth::guard('web')->user());
     }
 
-    /** UC-ADVL-02 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_advisor_login_falha_com_senha_errada(): void
     {
         $this->criarAdvisorComSenha('contador2@test.local', 'senha-correta');
@@ -119,7 +118,6 @@ class Onda31AdvisorPortalTest extends FinanceiroTestCase
         $this->assertNull(Auth::guard('web-advisor')->user());
     }
 
-    /** UC-ADVD-01 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_grant_access_cria_row_em_advisor_business_access(): void
     {
         $this->actAsAdmin();
@@ -151,7 +149,6 @@ class Onda31AdvisorPortalTest extends FinanceiroTestCase
         $this->assertTrue($access->hasConsent());
     }
 
-    /** UC-ADVD-04 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_revoke_soft_deleta_e_seta_revoked_at(): void
     {
         $this->actAsAdmin();
@@ -186,7 +183,6 @@ class Onda31AdvisorPortalTest extends FinanceiroTestCase
         $this->assertNotNull($hist->revoked_at);
     }
 
-    /** UC-CTD-03 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_cross_tenant_advisor_biz1_nao_acessa_biz99(): void
     {
         $this->actAsAdmin();
@@ -210,7 +206,6 @@ class Onda31AdvisorPortalTest extends FinanceiroTestCase
         $this->assertFalse($hasAccessTo99, 'Advisor com grant biz=1 NÃO deve ter access biz=99.');
     }
 
-    /** UC-ADVD-03 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_readonly_enforce_post_retorna_403_com_advisor_view(): void
     {
         $this->actAsAdmin();
@@ -246,7 +241,6 @@ class Onda31AdvisorPortalTest extends FinanceiroTestCase
         $this->assertNotEquals(200, $response->status());
     }
 
-    /** UC-CTD-01 — contrato em resources/js/Pages/Financeiro (casos.md). */
     public function test_advisor_view_sem_grant_retorna_403(): void
     {
         $this->actAsAdmin();

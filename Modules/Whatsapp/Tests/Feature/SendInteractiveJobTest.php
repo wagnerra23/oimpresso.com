@@ -232,13 +232,8 @@ it('Meta Cloud list → POST messages type=interactive subtype=list', function (
         ->and($msg->payload['type'])->toBe('list');
 });
 
-it('Baileys interactive → POST /instances/:id/interactive daemon', function () {
-    Http::fake([
-        'daemon.test/instances/ch-baileys-1/interactive' => Http::response(
-            ['message_id' => 'BAE5INT', 'status' => 'sent'],
-            200,
-        ),
-    ]);
+it('Baileys descontinuado (ADR 0202): interactive é recusado sem chamar o daemon', function () {
+    Http::fake();
 
     $job = new SendInteractiveJob(
         businessId: 1,
@@ -257,17 +252,13 @@ it('Baileys interactive → POST /instances/:id/interactive daemon', function ()
         ],
     );
 
-    $job->handle();
+    expect(fn () => $job->handle())->toThrow(\InvalidArgumentException::class, 'forbidden_drivers');
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), '/instances/ch-baileys-1/interactive'));
-
-    $msg = WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->first();
-    expect($msg->status)->toBe('sent')
-        ->and($msg->provider_message_id)->toBe('BAE5INT');
+    Http::assertNothingSent();
 });
 
-it('Baileys CTA URL → DriverDoesNotSupport, status=failed sem retry', function () {
-    Event::fake([WhatsappMessageFailed::class]);
+it('Baileys descontinuado (ADR 0202): CTA URL também é recusado sem chamar o daemon', function () {
+    Http::fake();
 
     $job = new SendInteractiveJob(
         businessId: 1,
@@ -281,16 +272,9 @@ it('Baileys CTA URL → DriverDoesNotSupport, status=failed sem retry', function
         ],
     );
 
-    // Não deve fazer throw — DriverDoesNotSupport é permanent failure
-    $job->handle();
+    expect(fn () => $job->handle())->toThrow(\InvalidArgumentException::class, 'forbidden_drivers');
 
-    Event::assertDispatched(WhatsappMessageFailed::class, function ($event) {
-        return $event->errorCode === 'driver_does_not_support';
-    });
-
-    $msg = WhatsappMessage::withoutGlobalScope(ScopeByBusiness::class)->first();
-    expect($msg->status)->toBe('failed')
-        ->and($msg->failed_reason)->toContain('cta_url');
+    Http::assertNothingSent();
 });
 
 it('Z-API CTA URL → DriverDoesNotSupport (igual Baileys)', function () {

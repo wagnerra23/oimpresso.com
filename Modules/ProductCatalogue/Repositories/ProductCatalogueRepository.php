@@ -11,6 +11,7 @@ use App\Discount;
 use App\Product;
 use App\SellingPriceGroup;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Wave 16 D4 Architecture — Repository pattern pra ProductCatalogue.
@@ -20,11 +21,12 @@ use Illuminate\Support\Collection;
  * filtros multi-tenant (`business_id`) e relações eager-loaded num único lugar,
  * permitindo Services chamarem métodos semânticos em vez de queries inline.
  *
- * Pattern canônico inspirado em Modules/Jana/Services + ADR 0011 (padrão Jana/Repair).
+ * Pattern canônico: ADR 0011 (padrão de módulo do projeto).
  *
- * Multi-tenant Tier 0 (ADR 0093): toda query filtra por `business_id` explícito —
- * App\Product já tem global scope mas reforçamos defensivamente no catálogo público
- * (rota SEM AUTH onde atacante pode enumerar tenants).
+ * Multi-tenant Tier 0 (ADR 0093): toda query filtra por `business_id` explícito, e
+ * esse filtro é a ÚNICA defesa — `App\Product` NÃO tem global scope de `business_id`.
+ * A rota é pública (sem auth) e o ID é numérico, então um atacante pode tentar
+ * outras empresas pela URL. Tirar um `where('business_id', ...)` daqui vaza dado.
  *
  * @see Modules\ProductCatalogue\Services\CatalogueService
  * @see Modules\ProductCatalogue\Services\CatalogueQrService
@@ -41,6 +43,7 @@ class ProductCatalogueRepository
             ->whereHas('product_locations', function ($q) use ($locationId) {
                 $q->where('product_locations.location_id', $locationId);
             })
+            ->active()
             ->ProductForSales()
             ->with(['variations', 'variations.product_variation', 'category'])
             ->get()
@@ -49,9 +52,11 @@ class ProductCatalogueRepository
 
     /**
      * Busca produto com TODAS as relações usadas na tela de detalhe (catalogue.show).
-     * Throws ModelNotFoundException se product_id não pertence ao business_id (anti-enumeration).
+     * Throws ModelNotFoundException se product_id não pertence ao business_id (anti-enumeration),
+     * se o produto está desativado ou marcado como "não vender". Com $locationId (o modal da
+     * vitrine sempre manda), o produto também precisa ser vendido naquele local.
      */
-    public function findProductWithDetails(int $businessId, int $productId): Product
+    public function findProductWithDetails(int $businessId, int $productId, ?int $locationId = null): Product
     {
         return Product::with([
             'brand',
@@ -67,6 +72,13 @@ class ProductCatalogueRepository
             'warranty',
         ])
             ->where('business_id', $businessId)
+            ->active()
+            ->ProductForSales()
+            ->when($locationId !== null, function ($query) use ($locationId) {
+                $query->whereIn('products.id', DB::table('product_locations')
+                    ->where('location_id', $locationId)
+                    ->select('product_id'));
+            })
             ->findOrFail($productId);
     }
 
@@ -104,10 +116,14 @@ class ProductCatalogueRepository
 
     /**
      * Categorias 'product' do business no formato dropdown (id => name).
+     *
+     * `forDropdown()` devolve `Collection`, apesar do `@return array` dele. Sem a conversão o
+     * tipo de retorno estourava TypeError e a vitrine `/catalogue` dava 500 (medido em produção
+     * em 2026-11-10). Mesmo caso do `locationsDropdown()` abaixo.
      */
     public function categoriesDropdown(int $businessId): array
     {
-        return Category::forDropdown($businessId, 'product');
+        return collect(Category::forDropdown($businessId, 'product'))->all();
     }
 
     /**

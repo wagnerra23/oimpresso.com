@@ -6,8 +6,8 @@ namespace Modules\NfeBrasil\Services;
 
 use DOMDocument;
 use DOMElement;
-use Illuminate\Support\Facades\Storage;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Support\ArquivoFiscal;
 use RuntimeException;
 
 /**
@@ -75,8 +75,8 @@ class DevolucaoService
         if ($origem->status !== 'autorizada' || strlen((string) $origem->chave_44) !== 44 || empty($origem->xml_path)) {
             throw new RuntimeException("Só se devolve nota autorizada com XML guardado (nota {$origem->numero}: {$origem->status}).");
         }
-        $xml = Storage::get($origem->xml_path);
-        if (! is_string($xml) || $xml === '') {
+        $xml = ArquivoFiscal::ler($origem->xml_path);
+        if ($xml === null || $xml === '') {
             throw new RuntimeException("XML da nota {$origem->numero} não foi encontrado em {$origem->xml_path}.");
         }
 

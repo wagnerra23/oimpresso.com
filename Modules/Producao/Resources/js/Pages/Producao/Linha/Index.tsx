@@ -37,7 +37,8 @@ interface Bloco {
 }
 interface Ponta { posto_id: number; nome: string; horas: number; depois: number; capacidade: number; inicio: string }
 interface Sugestao { programacao_id: number; numero: string; etapa: string | null; horas: number; de: Ponta; para: Ponta }
-interface Linha { postos: Posto[]; blocos: Bloco[]; sugestao: Sugestao | null }
+interface Agrupamento { programacao_id: number; numero: string; junto_de: string; midia: string; posto_id: number; posto: string; inicio: string }
+interface Linha { postos: Posto[]; blocos: Bloco[]; sugestao: Sugestao | null; agrupamento: Agrupamento | null }
 interface Evento { quando: string; texto: string; etapa: string | null; quem: string | null; os: string | null; posto_id: number | null }
 interface Props {
   hoje: string; dias: { hoje: string; proximo: string }; dia: 'hoje' | 'proximo'; turno: { inicio: string; fim: string };
@@ -60,6 +61,7 @@ function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Even
   const [msg, setMsg] = useState<Msg | null>(null);
   const [escolha, setEscolha] = useState<Escolha | null>(null);
   const [maqEv, setMaqEv] = useState<number | null>(null);
+  const [agrupado, setAgrupado] = useState<string | null>(null);
   const [arraste, setArraste] = useState<Arraste | null>(null);
   const arrasteRef = useRef<Arraste | null>(null);
   const arrastouRef = useRef(false);
@@ -159,6 +161,17 @@ function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Even
     if (await reprogramar(b, para, horaDe(s.para.inicio))) {
       setMsg({ tom: 'ok', texto: `${s.numero} foi para a ${para.nome} às ${hhmm(horaDe(s.para.inicio))}. A ${de.nome} fecha o dia com ${h1(s.de.depois)} de ${h1(s.de.capacidade)} h.`,
         desfazer: () => { void reprogramar({ ...b, posto_id: para.id, inicio: s.para.inicio, fim: `${diaIso}T${hhmm(horaDe(s.para.inicio) + s.horas)}` }, de, horaDe(s.de.inicio)); } });
+    }
+  };
+  // UC-PCLIN-01: agrupar é a mesma reprogramação do arrastar; o resultado aparece no lugar do aviso.
+  const g = linha.agrupamento;
+  const agrupar = async () => {
+    const b = g && linha.blocos.find((x) => x.id === g.programacao_id);
+    const maq = g && posto(g.posto_id);
+    if (!g || !b || !maq) return;
+    if (await reprogramar(b, maq, horaDe(g.inicio))) {
+      setMsg(null);
+      setAgrupado(`${g.numero} entrou logo depois da ${g.junto_de} na ${g.posto}, com a mesma ${g.midia}. Uma troca de mídia a menos.`);
     }
   };
   const estourados = linha.postos.filter((x) => x.capacidade > 0 && x.horas > x.capacidade);
@@ -273,6 +286,20 @@ function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Even
           </CardContent>
         </Card>
       )}
+      {p.dia === 'hoje' && (agrupado ? (
+        <Alert data-contract="producao-linha-midia">
+          <AlertTitle>Agrupado por mídia</AlertTitle>
+          <AlertDescription>{agrupado}</AlertDescription>
+        </Alert>
+      ) : g && (
+        <Alert data-contract="producao-linha-midia">
+          <AlertTitle>Mesma mídia: dá para agrupar</AlertTitle>
+          <AlertDescription>
+            {g.junto_de} e {g.numero} usam {g.midia} na {g.posto}. Programar a {g.numero} logo depois ({hhmm(horaDe(g.inicio))}) evita uma troca de mídia. Regra simples; o encaixe na bobina é da versão 2.
+            {p.pode_mover && <div className="pcv-al-a"><Button size="sm" onClick={() => void agrupar()}>Agrupar</Button></div>}
+          </AlertDescription>
+        </Alert>
+      ))}
       {s ? (
         <Alert data-contract="producao-linha-sugestao">
           <AlertTitle>Sugestão de reprogramação</AlertTitle>
@@ -296,7 +323,7 @@ export default function LinhaIndex(props: Props) {
     <div className="pcv-root" data-screen-label="Produção · Linha do tempo">
       <div className="pcv-ph"><PageHeader title="Produção" suffix=" · Linha do tempo" below={<ProducaoAbas ativa="/producao/linha" />} /></div>
       <Deferred data={['linha', 'eventos']} fallback={<div className="pcv-body"><Skeleton className="h-64 w-full" /></div>}>
-        <Conteudo p={props} linha={props.linha ?? { postos: [], blocos: [], sugestao: null }} eventos={props.eventos ?? []} />
+        <Conteudo p={props} linha={props.linha ?? { postos: [], blocos: [], sugestao: null, agrupamento: null }} eventos={props.eventos ?? []} />
       </Deferred>
     </div>
   );

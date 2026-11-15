@@ -21,8 +21,8 @@ const TR_NIVEIS = [
 const TR_REGRAS = [
   { id: "r1", ncm: "39219019", desc: "Lona e laminados plásticos", op: "Venda", ufD: null, cfop: "5102", csosn: "102", icms: 0, pis: 0, cofins: 0, ipi: 0, cClass: "000001", ibs: 0.001, cbs: 0.009, prod: 38, nivel: 3, vigDe: "01/01/2026", vigAte: null, fonte: "CSV" },
   { id: "r2", ncm: "39219019", desc: "Lona e laminados plásticos", op: "Venda", ufD: "RJ", cfop: "6102", csosn: "102", icms: 0, pis: 0, cofins: 0, ipi: 0, cClass: "000001", ibs: 0.001, cbs: 0.009, prod: 38, nivel: 2, vigDe: "01/01/2026", vigAte: null, fonte: "Manual", fcp: 0.02 },
-  { id: "r3", ncm: "49119900", desc: "Impressos gráficos diversos", op: "Venda", ufD: null, cfop: "5101", csosn: "101", icms: 0.0186, reducao: 0.3333, cBenef: "informado pelo contador (tabela da UF)", pis: 0, cofins: 0, ipi: 0, cClass: null, ibs: 0, cbs: 0, prod: 112, nivel: 3, vigDe: "01/03/2025", vigAte: null, fonte: "CSV", alerta: "Sem cClassTrib — necessário se mudar pro regime normal e, no Simples, a partir de 2027" },
-  { id: "r4", ncm: "94056000", desc: "Letreiros e placas luminosas", op: "Venda", ufD: null, cfop: "5405", csosn: "500", icms: 0, pis: 0, cofins: 0, ipi: 0.0325, cClass: "000001", ibs: 0.001, cbs: 0.009, prod: 9, nivel: 3, vigDe: "01/01/2026", vigAte: null, fonte: "Manual", mva: 0.4 },
+  { id: "r3", ncm: "49119900", desc: "Impressos gráficos diversos", op: "Venda", ufD: null, cfop: "5101", csosn: "101", icms: 0, pCredSN: 0.0186, pis: 0, cofins: 0, ipi: 0, cClass: null, ibs: 0, cbs: 0, prod: 112, nivel: 3, vigDe: "01/03/2025", vigAte: null, fonte: "CSV", alerta: "Sem cClassTrib — necessário se mudar pro regime normal e, no Simples, a partir de 2027" },
+  { id: "r4", ncm: "94056000", desc: "Letreiros e placas luminosas", op: "Venda", ufD: null, cfop: "5405", csosn: "500", icms: 0, pis: 0, cofins: 0, ipi: 0.0325, cClass: "000001", ibs: 0.001, cbs: 0.009, prod: 9, nivel: 3, vigDe: "01/01/2026", vigAte: null, fonte: "Manual" },
   { id: "r5", ncm: "32151900", desc: "Tintas de impressão", op: "Venda", ufD: "MG", cfop: "6102", csosn: "102", icms: 0, pis: 0, cofins: 0, ipi: 0, cClass: "000001", ibs: 0.001, cbs: 0.009, prod: 14, nivel: 2, vigDe: "01/01/2026", vigAte: "31/12/2026", fonte: "IA aceita" },
   { id: "r6", ncm: "39199090", desc: "Adesivo vinil autoadesivo", op: "Venda", ufD: null, cfop: "5102", csosn: "102", icms: 0, pis: 0, cofins: 0, ipi: 0, cClass: "000001", ibs: 0.001, cbs: 0.009, prod: 26, nivel: 3, vigDe: "01/01/2026", vigAte: null, fonte: "CSV" },
   { id: "r7", ncm: "39219019", desc: "Lona — devolução de venda", op: "Devolução", ufD: null, cfop: "1202", csosn: "900", icms: 0, pis: 0, cofins: 0, ipi: 0, cClass: "000001", ibs: 0.001, cbs: 0.009, prod: 38, nivel: 3, vigDe: "01/01/2026", vigAte: null, fonte: "Manual", espelho: true },
@@ -30,14 +30,22 @@ const TR_REGRAS = [
   { id: "r9", ncm: "48211000", desc: "Etiqueta personalizada — cliente Horizonte", op: "Venda", ufD: null, cfop: "5101", csosn: "103", icms: 0, pis: 0, cofins: 0, ipi: 0, cClass: "000001", ibs: 0.001, cbs: 0.009, prod: 1, nivel: 1, vigDe: "01/06/2026", vigAte: null, fonte: "Manual" },
 ];
 TR_REGRAS.forEach(r => { r.opId = { "Venda": "venda", "Devolução": "devol", "Importação": "import" }[r.op]; });
+// Só entram no "e se?" em Lucro presumido: nele a empresa usa CST e pode ser substituta. A regra CSOSN não carrega
+// redução de base nem MVA: o grupo ICMSSN101 não tem base nem redução, e no CSOSN 500 a ST já veio retida pelo fornecedor.
+const TR_ESE_NORMAL = {
+  "49119900": { reducao: 0.3333, cBenef: "informado pelo contador (tabela da UF)" },
+  "94056000": { mva: 0.4 },
+};
+// CSOSN 101: o percentual é o crédito que o comprador pode aproveitar (pCredSN), não ICMS destacado.
+const trIcmsTexto = (r) => r.pCredSN != null ? "crédito " + trPct(r.pCredSN) : trPct(r.icms);
 
 // Naturezas de operação — porta de entrada (padrão Bling · Tiny/Olist · Conta Azul; Omie chama de "cenário fiscal").
 // "?" no CFOP vira 5 (mesma UF), 6 (outra UF) ou 7 (exportação) na hora da nota.
 const TR_GERAL = { csosn: "102", icms: 0, pis: 0, cofins: 0, ipi: 0, cClass: "000001", ibs: 0.001, cbs: 0.009 };
 const TR_OPS = [
   { id: "venda", nome: "Venda de mercadoria", tipo: "Saída", fin: "1 · normal", cfop: "?102", dest: "Contribuinte (com IE)", docs: "NF-e", geral: TR_GERAL, rev: true },
-  { id: "venda-cf", nome: "Venda a consumidor final", tipo: "Saída", fin: "1 · normal", cfop: "?102", dest: "Não contribuinte", docs: "NF-e · NFC-e", geral: TR_GERAL, rev: true, obs: "Partilha do ICMS (DIFAL) quando for pra outra UF" },
-  { id: "venda-prod", nome: "Venda de produção própria", tipo: "Saída", fin: "1 · normal", cfop: "?101", dest: "Contribuinte (com IE)", docs: "NF-e", geral: { ...TR_GERAL, csosn: "101", icms: 0.0186 }, rev: false },
+  { id: "venda-cf", nome: "Venda a consumidor final", tipo: "Saída", fin: "1 · normal", cfop: "?102", dest: "Não contribuinte", docs: "NFC-e na mesma UF · NF-e pra outra UF", geral: TR_GERAL, rev: true, obs: "NFC-e só em operação interna: a SEFAZ rejeita a interestadual (rejeição 707). Pra outra UF sai NF-e, com DIFAL conforme o regime." },
+  { id: "venda-prod", nome: "Venda de produção própria", tipo: "Saída", fin: "1 · normal", cfop: "?101", dest: "Contribuinte (com IE)", docs: "NF-e", geral: { ...TR_GERAL, csosn: "101", pCredSN: 0.0186 }, rev: false },
   { id: "remessa", nome: "Remessa pra instalação", tipo: "Saída", fin: "1 · normal", cfop: "?949", dest: "Qualquer", docs: "NF-e", geral: { ...TR_GERAL, csosn: "400" }, rev: false, obs: "Sem valor comercial; volta com nota de retorno" },
   { id: "devol", nome: "Devolução de venda", tipo: "Entrada", fin: "4 · devolução", cfop: "?202", dest: "Quem devolveu", docs: "NF-e", geral: { ...TR_GERAL, csosn: "900" }, rev: true, obs: "Copia base e alíquotas da nota de origem" },
   { id: "import", nome: "Compra por importação", tipo: "Entrada", fin: "1 · normal", cfop: "3102", dest: "Fornecedor exterior", docs: "NF-e", geral: { ...TR_GERAL, csosn: "900", icms: 0.18 }, rev: true, obs: "Câmbio da DI/DUIMP gravado na nota" },
@@ -111,9 +119,18 @@ const TR_SAUDE = [
 ];
 const TR_MOTIVOS = [["Rejeição por cadastro (IE, NCM, endereço)", 38], ["Por que saiu esse imposto?", 24], ["Configuração inicial", 18], ["Certificado", 11], ["Outros", 9]];
 
+// O cenário de certificado é o mesmo do cabeçalho Fiscal (window.fxCert): uma régua só em todas as telas.
+function trSaudeCert(s, c, validoAte) {
+  if (s.id !== "s6") return s;
+  if (c.cen === "ausente") return { ...s, sev: "bad", t: "Nenhum certificado A1 cadastrado", d: "Nenhuma NF-e, NFC-e ou evento sai até o envio. As regras continuam editáveis e o simulador segue funcionando, porque ele não assina XML.", acao: "Enviar certificado" };
+  if (c.cen === "vencido") return { ...s, sev: "bad", t: "Certificado A1 vencido em " + validoAte, d: "A SEFAZ recusa XML assinado com certificado vencido. As regras continuam editáveis; as notas ficam paradas até a troca." };
+  return { ...s, sev: c.nivel === "crit" ? "bad" : "warn", t: "Certificado A1 vence em " + c.dias + " dias" };
+}
+
 function TrSaude({ ir }) {
   const [feito, setFeito] = useStateTr({});
-  const abertas = TR_SAUDE.filter(s => !feito[s.id]);
+  const st = window.useFiscalStore(); const cert = window.fxCert(st);
+  const abertas = TR_SAUDE.map(s => trSaudeCert(s, cert, st.config.cert.validoAte)).filter(s => !feito[s.id]);
   const resolve = (s, msg, t) => { setFeito({ ...feito, [s.id]: true }); trToast(msg, t); };
   return (
     <div className="trb-saude">
@@ -188,7 +205,7 @@ function TrRegraDrawer({ regra, onClose }) {
             <dl className="fx-kv"><dt>Operação</dt><dd>{r.op}{r.espelho ? " · copia alíquotas da nota de origem" : ""}</dd><dt>UF origem → destino</dt><dd>{TR_ORIGEM} → {r.ufD || "qualquer"}</dd><dt>Vigência</dt><dd>{r.vigDe} até {r.vigAte || "sem fim"}</dd><dt>Origem da regra</dt><dd>{r.fonte}</dd></dl>
           </section>
           <section className="fx-sec"><h3>ICMS</h3>
-            <dl className="fx-kv"><dt>CFOP</dt><dd className="trb-mono">{r.cfop}</dd><dt>CSOSN (Simples)</dt><dd className="trb-mono">{r.csosn}</dd><dt>Alíquota</dt><dd>{trPct(r.icms)}</dd>{r.mva != null && <><dt>MVA (ST)</dt><dd>{trPct(r.mva)}</dd></>}{r.fcp != null && <><dt>FCP</dt><dd>{trPct(r.fcp)}</dd></>}</dl>
+            <dl className="fx-kv"><dt>CFOP</dt><dd className="trb-mono">{r.cfop}</dd><dt>CSOSN (Simples)</dt><dd className="trb-mono">{r.csosn}</dd>{r.pCredSN != null ? <><dt>Crédito permitido (pCredSN)</dt><dd>{trPct(r.pCredSN)} · não é ICMS destacado</dd></> : <><dt>Alíquota</dt><dd>{trPct(r.icms)}</dd></>}{r.csosn === "500" && <><dt>ICMS-ST</dt><dd>Retido pelo fornecedor na compra (substituído)</dd></>}{r.fcp != null && <><dt>FCP</dt><dd>{trPct(r.fcp)}</dd></>}</dl>
           </section>
           <section className="fx-sec"><h3>Federais</h3>
             <dl className="fx-kv"><dt>PIS</dt><dd>{trPct(r.pis)}</dd><dt>COFINS</dt><dd>{trPct(r.cofins)}</dd><dt>IPI</dt><dd>{trPct(r.ipi)}</dd>{r.ii != null && <><dt>Imposto de importação</dt><dd>{trPct(r.ii)}</dd></>}</dl>
@@ -210,7 +227,7 @@ function TrRegraDrawer({ regra, onClose }) {
   );
 }
 
-function TrRegras({ onOpen }) {
+function TrRegras({ onOpen, onImport }) {
   const [q, setQ] = useStateTr(""); const [op, setOp] = useStateTr("todas");
   const rows = TR_REGRAS.filter(r => (op === "todas" || r.op === op || r.op === "Todas") && (r.ncm + r.desc + r.cfop).toLowerCase().includes(q.toLowerCase()));
   return (
@@ -221,7 +238,7 @@ function TrRegras({ onOpen }) {
         <select className="fx-select" value={op} onChange={e => setOp(e.target.value)} aria-label="Operação">
           <option value="todas">Todas as operações</option><option>Venda</option><option>Devolução</option><option>Importação</option>
         </select>
-        <button className="fx-btn" onClick={() => trToast("Modelo CSV: ncm, uf_origem, uf_destino, cfop, csosn|cst, alíquotas, ibs, cbs")}><TrI name="upload" /> Importar CSV</button>
+        <button className="fx-btn" onClick={onImport}><TrI name="upload" /> Importar CSV</button>
         <button className="fx-btn primary" onClick={() => onOpen(TR_REGRAS[0])}><TrI name="plus" /> Nova regra</button>
       </div>
       <div className="fx-table" data-contract="regras">
@@ -233,7 +250,7 @@ function TrRegras({ onOpen }) {
                 <td><TrNivel n={r.nivel} /></td>
                 <td className="cli"><b className="trb-mono">{r.ncm}</b><div>{r.desc}</div>{r.alerta && <div className="fx-rej">{r.alerta}</div>}</td>
                 <td>{r.op}</td><td className="trb-mono">{r.ufD || "todas"}</td><td className="trb-mono">{r.cfop}</td><td className="trb-mono">{r.csosn}</td>
-                <td className="val">{trPct(r.icms)}</td><td className="val">{trPct(r.ipi)}</td>
+                <td className="val">{trIcmsTexto(r)}</td><td className="val">{trPct(r.ipi)}</td>
                 <td className="val">{r.ibs || r.cbs ? trPct(r.ibs) + " / " + trPct(r.cbs) : <span className="fx-sefaz bad">vazio</span>}</td>
                 <td className="trb-mono">{r.vigDe}{r.vigAte ? " – " + r.vigAte : ""}</td>
                 <td className="val">{r.prod}</td>
@@ -301,7 +318,7 @@ function trCalcular({ opId, pid, qtd, uf, dest, regime, emitente = "matriz", tom
   if (!p.ncm) return { doc, passos, regra: null, cfop: "—", linhas, total: 0, base, bloqueio: "Produto sem NCM — NF-e de mercadoria não sai sem NCM", avisos };
   const regra = ov || n2 || n3 || n4;
   const cfop = regra.geral ? regra.cfop.replace("?", sufixo) : regra.cfop.replace(/^[567]/, sufixo);
-  const contrib = dest === "contribuinte";
+  const contrib = dest === "contribuinte"; const eSe = TR_ESE_NORMAL[regra.ncm] || {};
   if (ext) {
     linhas.push({ t: "ICMS", b: base, a: 0, v: 0, obs: "Exportação — imune" });
     if (regime !== "simples") linhas.push({ t: "PIS / COFINS", b: base, a: 0, v: 0, obs: "Exportação — não incidem" });
@@ -315,22 +332,23 @@ function trCalcular({ opId, pid, qtd, uf, dest, regime, emitente = "matriz", tom
   }
   if (regime === "simples") {
     linhas.push({ t: "ICMS", b: base, a: null, v: 0, obs: "CSOSN " + regra.csosn + " — recolhido no DAS, sem destaque" });
+    if (regra.pCredSN != null) avisos.push("Crédito ao comprador: " + trPct(regra.pCredSN) + " = " + trBrl(base * regra.pCredSN) + " (pCredSN/vCredICMSSN). Não é ICMS destacado e vale pra quem compra pra revender ou industrializar (LC 123/2006, art. 23 §1º)");
     if (regra.ipi) linhas.push({ t: "IPI", b: base, a: null, v: 0, obs: "Simples — IPI dentro do DAS, sem destaque" });
     if (!interna && !contrib) avisos.push(ufI0 && ufI0.difalSimples ? "DIFAL: " + uf + " cobra do Simples por lei própria (marcado pelo contador) — gerar guia" : "Simples não recolhe DIFAL na venda a consumidor de outra UF (STF ADI 5.464). O contador marca na aba Por estado se " + uf + " cobra por lei própria (STF Tema 1284)");
   } else {
-    const a = interna ? ufI.interno : ufI.inter; const bIcms = regra.reducao ? base * (1 - regra.reducao) : base;
-    linhas.push({ t: "ICMS", b: bIcms, a, v: bIcms * a, obs: regra.reducao ? "Base reduzida em " + trPct(regra.reducao) + " · cBenef " + regra.cBenef : "" });
-    if (regra.reducao) avisos.push("Benefício fiscal: o XML exige o cBenef da UF neste item");
+    const a = interna ? ufI.interno : ufI.inter; const bIcms = eSe.reducao ? base * (1 - eSe.reducao) : base;
+    linhas.push({ t: "ICMS", b: bIcms, a, v: bIcms * a, obs: eSe.reducao ? "Base reduzida em " + trPct(eSe.reducao) + " · cBenef " + eSe.cBenef : "" });
+    if (eSe.reducao) avisos.push("Benefício fiscal: o XML exige o cBenef da UF neste item");
     if (!interna && !contrib) { linhas.push({ t: "DIFAL (destino)", b: base, a: ufI.interno - ufI.inter, v: base * (ufI.interno - ufI.inter), obs: "Não contribuinte em outra UF — base simples (conferir base dupla da UF)" });
       if (ufI.fcp) linhas.push({ t: "FCP " + uf, b: base, a: ufI.fcp, v: base * ufI.fcp }); }
     linhas.push({ t: "PIS", b: base, a: 0.0065, v: base * 0.0065, obs: "Lucro presumido" }, { t: "COFINS", b: base, a: 0.03, v: base * 0.03 });
     if (regra.ipi) linhas.push({ t: "IPI", b: base, a: regra.ipi, v: base * regra.ipi });
   }
-  if (regra.mva != null) {
+  if (eSe.mva != null) {
     if (regra.csosn === "500" && regime === "simples") linhas.push({ t: "ICMS-ST", b: base, a: null, v: 0, obs: "CSOSN 500 — ST já retida pelo fornecedor na compra" });
     else if (!contrib) linhas.push({ t: "ICMS-ST", b: base, a: null, v: 0, obs: "Consumidor final — não há ST a reter" });
-    else { const bst = base * (1 + (regime === "simples" ? 0 : (regra.ipi || 0))) * (1 + regra.mva); const proprio = regime === "simples" ? 0 : base * (interna ? ufI.interno : ufI.inter);
-      linhas.push({ t: "ICMS-ST", b: bst, a: ufI.interno, v: Math.max(0, bst * ufI.interno - proprio), obs: "Base = (valor + IPI) × (1 + MVA " + trPct(regra.mva) + ") − ICMS próprio" }); }
+    else { const bst = base * (1 + (regime === "simples" ? 0 : (regra.ipi || 0))) * (1 + eSe.mva); const proprio = regime === "simples" ? 0 : base * (interna ? ufI.interno : ufI.inter);
+      linhas.push({ t: "ICMS-ST", b: bst, a: ufI.interno, v: Math.max(0, bst * ufI.interno - proprio), obs: "Base = (valor + IPI) × (1 + MVA " + trPct(eSe.mva) + ") − ICMS próprio" }); }
   }
   if (regime === "simples") linhas.push({ t: "CBS / IBS", b: base, a: null, v: 0, obs: "Simples não destaca em 2026 — previsto pra 2027" });
   else linhas.push({ t: "CBS", b: base, a: regra.cbs, v: base * regra.cbs, obs: "Ano-teste 2026 · CST 000 · cClassTrib " + (regra.cClass || "—") }, { t: "IBS", b: base, a: regra.ibs, v: base * regra.ibs });
@@ -475,8 +493,8 @@ function trCasosContador(m) {
 }
 const TR_CT_ESPERADO = { CT01: true, CT02: false, CT03: true, CT04: true, CT05: true, CT06: false, CT07: false, CT08: false, CT09: false, CT10: false };
 const TR_REVISAO = [
-  { id: "v1", o: "Template aplicado · Simples SP comércio", de: "—", para: "CSOSN 102 · CFOP 5102/6102 · NCM padrão 3921.90.19", por: "Wagner · 01/10", origem: "template" },
-  { id: "v2", o: "Exceção NCM 4911.99.00 → todas as UF", de: "ICMS base cheia", para: "base reduzida 33,33% · cBenef a informar", por: "Larissa · 03/10", origem: "manual" },
+  { id: "v1", o: "Template aplicado · Simples SP comércio", de: "—", para: "CSOSN 102 · CFOP 5102/6102 · NCM padrão 3921.90.19", por: "Administrador · 01/10", origem: "template" },
+  { id: "v2", o: "Exceção NCM 4911.99.00 → todas as UF", de: "CSOSN 102 · sem crédito", para: "CSOSN 101 · crédito permitido 1,86%", por: "Financeiro · 03/10", origem: "manual" },
   { id: "v3", o: "Natureza do banner personalizado", de: "mercadoria (ICMS)", para: "pedido de decisão", por: "Jana · 04/10", origem: "Jana" },
 ];
 function TrContador() {
@@ -815,8 +833,8 @@ function TrIA() {
 }
 
 const TR_LIDO = [
-  { campo: "CNPJ", valor: "04.982.117/0001-45", fonte: "certificado" },
-  { campo: "Razão social", valor: "OFFICE IMPRESSO COMUNICACAO VISUAL LTDA", fonte: "SEFAZ-SP" },
+  { campo: "CNPJ", valor: "12.345.678/0001-95", fonte: "certificado" },
+  { campo: "Razão social", valor: "EMPRESA EXEMPLO COMUNICACAO VISUAL LTDA", fonte: "SEFAZ-SP" },
   { campo: "UF", valor: "SP", fonte: "SEFAZ-SP" },
   { campo: "Inscrição estadual", valor: "123.456.789.110", fonte: "SEFAZ-SP" },
   { campo: "Situação", valor: "Habilitado", fonte: "SEFAZ-SP" },
@@ -829,7 +847,7 @@ const TR_TEMPLATES_SUG = [
   { slug: "industria-grafica-simples-sp", nome: "Indústria gráfica · Simples · SP", casa: "regime + UF", valores: "CFOP ?101 · CSOSN 101 · crédito ICMS 1,86%" },
   { slug: "industria-grafica-presumido-sp", nome: "Indústria gráfica · Lucro presumido · SP", casa: "UF (regime não bate)", valores: "CFOP ?101 · CST 00 · ICMS 18% · PIS 0,65% · COFINS 3%" },
 ];
-function TrOnboarding({ open, onClose }) {
+function TrOnboarding({ open, onClose, cert }) {
   const xRef = useRefTr(null);
   const [passo, setPasso] = useStateTr(1);
   const [regime, setRegime] = useStateTr(null);
@@ -857,7 +875,8 @@ function TrOnboarding({ open, onClose }) {
         <div className="fx-dr-b">
           {passo === 1 && (
             <section className="fx-sec"><h3>Certificado A1</h3>
-              <dl className="fx-kv"><dt>Arquivo</dt><dd className="trb-mono">office-impresso-2026.pfx</dd><dt>Titular</dt><dd>OFFICE IMPRESSO COMUNICACAO VISUAL LTDA</dd><dt>CNPJ</dt><dd className="trb-mono">04.982.117/0001-45</dd><dt>Válido até</dt><dd>04/07/2027</dd></dl>
+              {cert.valido ? <dl className="fx-kv"><dt>Arquivo</dt><dd className="trb-mono">empresa-exemplo-2026.pfx</dd><dt>Titular</dt><dd>EMPRESA EXEMPLO COMUNICACAO VISUAL LTDA</dd><dt>CNPJ</dt><dd className="trb-mono">12.345.678/0001-95</dd><dt>Válido até</dt><dd>04/07/2027</dd></dl>
+                : <div className="fx-recipe"><b>{cert.cen === "ausente" ? "Nenhum certificado cadastrado" : "O certificado cadastrado está vencido"}</b><button className="fx-btn" style={{ alignSelf: "flex-start" }} onClick={() => trU().go("fiscal-config")}>Enviar certificado</button></div>}
               <p className="fx-nota-rodape">Com o próprio certificado consultamos a SEFAZ do seu estado (RS, SP, PR, MG, BA e SC). Nos outros estados, inscrição estadual e regime são digitados.</p>
             </section>)}
           {passo === 2 && (
@@ -897,7 +916,7 @@ function TrOnboarding({ open, onClose }) {
         </div>
         <div className="fx-dr-f">
           {passo > 1 && <button className="fx-btn" onClick={() => setPasso(passo - 1)}>Voltar</button>}
-          {passo < 4 && <button className="fx-btn primary" disabled={(passo === 2 && !regime) || (passo === 3 && !ncmOk)} onClick={() => setPasso(passo + 1)}>Continuar</button>}
+          {passo < 4 && <button className="fx-btn primary" disabled={(passo === 1 && !cert.valido) || (passo === 2 && !regime) || (passo === 3 && !ncmOk)} onClick={() => setPasso(passo + 1)}>Continuar</button>}
           {passo === 4 && <button className="fx-btn primary" onClick={() => { trToast("Template aplicado — operações criadas, aguardando aceite do contador"); onClose(); }}><TrI name="check" /> Aplicar template</button>}
           {passo === 2 && !regime && <small className="trb-sub">Escolha o regime pra continuar.</small>}
         </div>
@@ -908,8 +927,11 @@ function TrOnboarding({ open, onClose }) {
 
 function TrComecar({ ir }) {
   const [onb, setOnb] = useStateTr(false);
+  const cert = window.fxCert(window.useFiscalStore());
   const passos = [
-    { ok: true, t: "Certificado lido", d: "CNPJ, UF, IE e situação vieram da SEFAZ-SP; CNAEs e Simples, da BrasilAPI. O regime foi confirmado por você." },
+    cert.valido
+      ? { ok: true, t: "Certificado lido", d: "CNPJ, UF, IE e situação vieram da SEFAZ-SP; CNAEs e Simples, da BrasilAPI. O regime foi confirmado por você." }
+      : { ok: false, t: cert.cen === "ausente" ? "Certificado não enviado" : "Certificado vencido", d: "Sem certificado válido nenhuma nota sai. As regras podem ser ajustadas enquanto isso.", rota: "fiscal-config", cta: "Enviar certificado" },
     { ok: true, t: "Template aplicado", d: "Simples Nacional — mesmo mecanismo dos templates L1 da produção; gerou " + TR_OPS.length + " operações" },
     { ok: false, t: "Produtos com NCM", d: TR_PRODUTOS.filter(p => !p.ncm && p.tipo !== "serviço").length + " sem NCM bloqueiam a nota", aba: "produtos", cta: "Resolver" },
     { ok: false, t: "Serviços com código municipal", d: TR_SERV.filter(s => !s.cMun).length + " sem código — a NFS-e seria rejeitada", aba: "servicos", cta: "Resolver" },
@@ -924,11 +946,11 @@ function TrComecar({ ir }) {
           <li key={i} data-ok={p.ok ? "true" : "false"}>
             <span className="trb-step-n" aria-hidden="true">{p.ok ? <TrI name="check" size={12} /> : i + 1}</span>
             <div><b>{p.t}</b><small>{p.d}</small></div>
-            {!p.ok && p.cta && <button className="fx-btn" onClick={() => p.aba ? ir(p.aba) : trToast("Convite enviado — o contador entra só com acesso de revisão")}>{p.cta}</button>}
+            {!p.ok && p.cta && <button className="fx-btn" onClick={() => p.aba ? ir(p.aba) : p.rota ? trU().go(p.rota) : trToast("Convite enviado — o contador entra só com acesso de revisão")}>{p.cta}</button>}
           </li>
         ))}
       </ol>
-      <TrOnboarding open={onb} onClose={() => setOnb(false)} />
+      <TrOnboarding open={onb} onClose={() => setOnb(false)} cert={cert} />
     </section>
   );
 }
@@ -945,7 +967,7 @@ function TrOperacoes({ onOpen, ir }) {
               <tr key={o.id} onClick={() => onOpen(o)} tabIndex={0} onKeyDown={e => e.key === "Enter" && onOpen(o)}>
                 <td className="cli"><b>{o.nome}</b><div>{o.tipo} · finalidade {o.fin}</div></td>
                 <td className="trb-mono">{o.cfop}</td><td>{o.dest}</td><td>{o.docs}</td>
-                <td className="trb-mono">{o.geral ? "CSOSN " + o.geral.csosn + (o.geral.icms ? " · ICMS " + trPct(o.geral.icms) : "") : "por item LC 116"}</td>
+                <td className="trb-mono">{o.geral ? "CSOSN " + o.geral.csosn + (o.geral.pCredSN != null ? " · crédito " + trPct(o.geral.pCredSN) : o.geral.icms ? " · ICMS " + trPct(o.geral.icms) : "") : "por item LC 116"}</td>
                 <td className="val">{TR_REGRAS.filter(r => r.opId === o.id).length || "—"}</td>
                 <td><span className={"fx-sefaz " + (o.rev ? "ok" : "warn")}>{o.rev ? "Aceita" : "Aguarda aceite"}</span>{o.rev && <div className="trb-sub">{TR_ACEITE}</div>}</td>
               </tr>
@@ -980,7 +1002,7 @@ function TrOperacaoDrawer({ op, onClose, onRegra }) {
         <div className="fx-dr-b">
           {op.obs && <div className="fx-decisao"><small>{op.obs}</small></div>}
           <section className="fx-sec"><h3>Regra geral (N4)</h3>
-            {g ? <dl className="fx-kv"><dt>CSOSN</dt><dd className="trb-mono">{g.csosn}</dd><dt>ICMS</dt><dd>{trPct(g.icms)}</dd><dt>PIS / COFINS</dt><dd>{trPct(g.pis)} / {trPct(g.cofins)}</dd><dt>IPI</dt><dd>{trPct(g.ipi)}</dd><dt>cClassTrib</dt><dd className="trb-mono">{g.cClass}</dd><dt>IBS / CBS</dt><dd>{trPct(g.ibs)} / {trPct(g.cbs)} · não destaca no Simples em 2026</dd></dl>
+            {g ? <dl className="fx-kv"><dt>CSOSN</dt><dd className="trb-mono">{g.csosn}</dd>{g.pCredSN != null ? <><dt>Crédito permitido (pCredSN)</dt><dd>{trPct(g.pCredSN)} · não é ICMS destacado</dd></> : <><dt>ICMS</dt><dd>{trPct(g.icms)}</dd></>}<dt>PIS / COFINS</dt><dd>{trPct(g.pis)} / {trPct(g.cofins)}</dd><dt>IPI</dt><dd>{trPct(g.ipi)}</dd><dt>cClassTrib</dt><dd className="trb-mono">{g.cClass}</dd><dt>IBS / CBS</dt><dd>{trPct(g.ibs)} / {trPct(g.cbs)} · não destaca no Simples em 2026</dd></dl>
               : <p className="fx-nota-rodape">Serviço não usa NCM: o imposto vem do item da LC 116 do serviço.</p>}
           </section>
           <section className="fx-sec"><h3>Exceções · a primeira que casar vence</h3>
@@ -1001,10 +1023,111 @@ function TrOperacaoDrawer({ op, onClose, onRegra }) {
   );
 }
 
+// Fluxo mínimo do import CSV. Colunas, limite e motivos são os da tela viva (ImportCsv.tsx + ImportRegrasCsvService).
+const TR_CSV_COLUNAS = "ncm,uf_origem,uf_destino,cfop,csosn,cst,aliquota_icms,aliquota_pis,aliquota_cofins,aliquota_ipi";
+const TR_CSV_PREVIA = {
+  validas: 12,
+  amostra: [
+    { ncm: "39219019", ufO: "SP", ufD: null, cfop: "5102", cod: "102", icms: 0, ipi: 0 },
+    { ncm: "39199090", ufO: "SP", ufD: "RJ", cfop: "6102", cod: "102", icms: 0, ipi: 0 },
+    { ncm: "94056000", ufO: "SP", ufD: null, cfop: "5405", cod: "500", icms: 0, ipi: 0.0325 },
+  ],
+  erros: [
+    { linha: 4, motivo: "NCM deve ter 8 dígitos" },
+    { linha: 7, motivo: "CSOSN e CST mutuamente exclusivos — preencha só um" },
+    { linha: 11, motivo: 'UF destino inválida (deixe vazio pra "todas")' },
+  ],
+};
+function TrImportCsv({ open, onClose }) {
+  const xRef = useRefTr(null);
+  const [passo, setPasso] = useStateTr(1); const [arq, setArq] = useStateTr(null);
+  const [erro, setErro] = useStateTr(""); const [proc, setProc] = useStateTr(false);
+  useEffectTr(() => {
+    if (!open) return; setPasso(1); setArq(null); setErro(""); setProc(false);
+    const k = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", k); xRef.current && xRef.current.focus();
+    return () => document.removeEventListener("keydown", k);
+  }, [open]);
+  if (!open) return null;
+  const p = TR_CSV_PREVIA;
+  const escolhe = (f) => {
+    setArq(null); setErro(""); if (!f) return;
+    const nome = f.name.toLowerCase();
+    if (!nome.endsWith(".csv") && !nome.endsWith(".txt")) return setErro("Envie um arquivo .csv ou .txt.");
+    if (f.size > 5 * 1024 * 1024) return setErro("O arquivo passa de 5 MB.");
+    setArq(f);
+  };
+  const conferir = () => { setProc(true); setTimeout(() => { setProc(false); setPasso(2); }, 700); };
+  const PASSOS = ["Arquivo", "Conferir", "Pronto"];
+  return (
+    <>
+      <div className="fx-scrim" onClick={onClose}></div>
+      <aside className="fx-drawer" role="dialog" aria-modal="true" aria-labelledby="trb-csv-t" data-contract="importar-csv">
+        <div className="fx-dr-h">
+          <div><h2 id="trb-csv-t">Importar regras por CSV</h2><p>Confira as linhas antes de aplicar. Nada muda até o seu clique.</p></div>
+          <button ref={xRef} className="fx-dr-x" onClick={onClose} aria-label="Fechar">×</button>
+        </div>
+        <ol className="trb-onb-steps" aria-label="Etapas">{PASSOS.map((t, i) => <li key={t} data-st={i + 1 < passo ? "ok" : i + 1 === passo ? "cur" : "next"}><span>{i + 1}</span>{t}</li>)}</ol>
+        <div className="fx-dr-b">
+          {passo === 1 && (<>
+            <section className="fx-sec"><h3>Arquivo</h3>
+              <label className="trb-f"><span>Arquivo CSV (até 5 MB)</span><input className="fx-select" type="file" accept=".csv,.txt" aria-invalid={!!erro} onChange={e => escolhe(e.target.files[0])} /></label>
+              {arq && <small className="trb-sub">Selecionado: {arq.name}</small>}
+              {erro && <div className="fx-rej" role="alert">{erro}</div>}
+            </section>
+            <section className="fx-sec"><h3>Cabeçalho esperado (1ª linha)</h3>
+              <p className="trb-mono" style={{ margin: 0, fontSize: "var(--fs-2)", overflowWrap: "anywhere" }}>{TR_CSV_COLUNAS}</p>
+              <dl className="fx-kv"><dt>uf_destino vazio</dt><dd>vale pra todas as UF (nível 3)</dd><dt>csosn ou cst</dt><dd>preencha só um</dd><dt>Alíquotas</dt><dd>em decimal: 0.18 = 18%</dd></dl>
+            </section>
+          </>)}
+          {passo === 2 && (<>
+            <div className="fx-chips" aria-live="polite"><span className="fx-sefaz ok">{p.validas} válidas</span><span className="fx-sefaz bad">{p.erros.length} com erro</span></div>
+            <section className="fx-sec"><h3>Linhas com erro · não serão importadas</h3>
+              <div className="fx-list">{p.erros.map(e => <div className="fx-list-i" key={e.linha}><b className="trb-mono">Linha {e.linha}</b><span>{e.motivo}</span></div>)}</div>
+            </section>
+            <section className="fx-sec"><h3>Amostra das válidas · {p.amostra.length} de {p.validas}</h3>
+              <div className="fx-table"><table>
+                <thead><tr><th>NCM</th><th>Destino</th><th>CFOP</th><th>CSOSN</th><th style={{ textAlign: "right" }}>ICMS</th><th style={{ textAlign: "right" }}>IPI</th></tr></thead>
+                <tbody>{p.amostra.map(l => <tr key={l.ncm}><td className="trb-mono">{l.ncm}</td><td className="trb-mono">{l.ufO} → {l.ufD || "todas"}</td><td className="trb-mono">{l.cfop}</td><td className="trb-mono">{l.cod}</td><td className="val">{trPct(l.icms)}</td><td className="val">{trPct(l.ipi)}</td></tr>)}</tbody>
+              </table></div>
+            </section>
+            <div className="fx-decisao"><b>Linha com a mesma chave atualiza a regra existente</b><small>A chave é NCM + UF origem + UF destino. Reimportar o mesmo arquivo não duplica regra.</small></div>
+          </>)}
+          {passo === 3 && <div className="fx-empty" role="status"><b>{p.validas} regras aplicadas</b><small>As {p.erros.length} linhas com erro ficaram de fora. Corrija no arquivo e importe de novo.</small></div>}
+        </div>
+        <div className="fx-dr-f">
+          {passo === 1 && <>
+            <button className="fx-btn primary" disabled={!arq || proc} onClick={conferir}>{proc ? "Processando…" : "Pré-visualizar"}</button>
+            <button className="fx-btn" onClick={() => { setErro(""); setArq({ name: "regras-exemplo.csv" }); }}>Usar arquivo de exemplo</button>
+          </>}
+          {passo === 2 && <>
+            <button className="fx-btn primary" onClick={() => { setPasso(3); trToast(p.validas + " regras aplicadas"); }}>Aplicar {p.validas} regras</button>
+            <button className="fx-btn" onClick={() => setPasso(1)}>Voltar</button>
+          </>}
+          {passo === 3 && <button className="fx-btn primary" onClick={onClose}>Fechar</button>}
+        </div>
+      </aside>
+    </>
+  );
+}
+
+// Carregando e erro valem pra qualquer aba: cabeçalho e abas ficam, só o conteúdo troca.
+function TrCarga({ estado, onRetry, children }) {
+  if (estado === "carregando") {
+    const { Skeleton } = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+    return <div aria-busy="true" aria-label="Carregando a tributação">{Skeleton ? <Skeleton variant="row" count={6} /> : <p>Carregando…</p>}</div>;
+  }
+  if (estado === "erro") return <div className="fx-empty" role="alert"><b>Não foi possível carregar a tributação</b><small>As regras salvas não foram alteradas. Tente de novo; se continuar, avise o suporte.</small><button className="fx-btn" style={{ marginTop: 8 }} onClick={onRetry}>Tentar de novo</button></div>;
+  return children;
+}
+
 function FxTributacaoPage() {
   const U = trU();
   const [aba, setAba] = useStateTr(() => U.ls("fx.trib.aba3") || "saude");
   const [regra, setRegra] = useStateTr(null); const [op, setOp] = useStateTr(null);
+  const [carga, setCarga] = useStateTr("ok"); const [csv, setCsv] = useStateTr(false);
+  const emissao = window.fxEstadoEmissao(window.useFiscalStore());
+  const tentar = () => { setCarga("carregando"); setTimeout(() => setCarga("ok"), 900); };
   const troca = (id) => { setAba(id); U.ls("fx.trib.aba3", id); };
   const conta = { saude: TR_SAUDE.length, operacoes: TR_OPS.length, regras: TR_REGRAS.length, produtos: TR_PRODUTOS.filter(p => !p.ncm && p.tipo !== "serviço").length, ia: TR_IA.length };
   return (
@@ -1016,20 +1139,38 @@ function FxTributacaoPage() {
       <div className="fx-chips" role="tablist" aria-label="Abas de tributação">
         {TR_ABAS.map(a => <button key={a.id} role="tab" className="fx-chip" data-tone={a.id === "produtos" && conta.produtos ? "bad" : null} aria-selected={aba === a.id} aria-pressed={aba === a.id} onClick={() => troca(a.id)}>{a.label}{conta[a.id] != null && <b>{conta[a.id]}</b>}</button>)}
       </div>
-      {aba === "saude" && <TrSaude ir={troca} />}
-      {aba === "operacoes" && <TrOperacoes onOpen={setOp} ir={troca} />}
-      {aba === "regras" && <TrRegras onOpen={setRegra} />}
-      {aba === "simulador" && <TrSimulador />}
-      {aba === "bateria" && <TrBateria />}
-      {aba === "contador" && <TrContador />}
-      {aba === "produtos" && <TrProdutos />}
-      {aba === "uf" && <TrUF />}
-      {aba === "servicos" && <TrServicos />}
-      {aba === "importacao" && <TrImportacao />}
-      {aba === "devolucoes" && <TrDevolucoes />}
-      {aba === "entradas" && <TrEntradas />}
-      {aba === "ia" && <TrIA />}
+      <label className="fx-cenario" data-contract="carga-demo" style={{ alignSelf: "flex-end" }}>
+        <span>Carga (demo)</span>
+        <select className="fx-select" value={carga} onChange={e => setCarga(e.target.value)}><option value="ok">Carregada</option><option value="carregando">Carregando</option><option value="erro">Erro ao carregar</option></select>
+      </label>
+      {emissao.length > 0 && (
+        <div className="fx-alerts" data-contract="estado-emissao" role="status">
+          {emissao.map(a => (
+            <div className="fx-alert" data-level={a.nivel} key={a.titulo}>
+              <span className="fx-alert-ic"><TrI name={a.nivel === "crit" ? "lock" : "alert"} size={14} /></span>
+              <span className="fx-alert-t"><b>{a.titulo}</b><small>{a.sub}</small></span>
+              <button className="fx-btn" onClick={() => U.go(a.goto)}>{a.acao}</button>
+            </div>
+          ))}
+        </div>
+      )}
+      <TrCarga estado={carga} onRetry={tentar}>
+        {aba === "saude" && <TrSaude ir={troca} />}
+        {aba === "operacoes" && <TrOperacoes onOpen={setOp} ir={troca} />}
+        {aba === "regras" && <TrRegras onOpen={setRegra} onImport={() => setCsv(true)} />}
+        {aba === "simulador" && <TrSimulador />}
+        {aba === "bateria" && <TrBateria />}
+        {aba === "contador" && <TrContador />}
+        {aba === "produtos" && <TrProdutos />}
+        {aba === "uf" && <TrUF />}
+        {aba === "servicos" && <TrServicos />}
+        {aba === "importacao" && <TrImportacao />}
+        {aba === "devolucoes" && <TrDevolucoes />}
+        {aba === "entradas" && <TrEntradas />}
+        {aba === "ia" && <TrIA />}
+      </TrCarga>
       <p className="fx-nota-rodape">Quem define CST, CFOP e alíquota é o contador; o sistema aplica e mostra de onde veio cada número. Alíquotas desta tela são exemplo.</p>
+      <TrImportCsv open={csv} onClose={() => setCsv(false)} />
       <TrRegraDrawer regra={regra} onClose={() => setRegra(null)} />
       <TrOperacaoDrawer op={op} onClose={() => setOp(null)} onRegra={(r) => { setOp(null); setRegra(r); }} />
     </div>

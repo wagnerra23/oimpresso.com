@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /fisio/pacientes/{id}/pacote
 //   module: Fisio
-//   stories: US-FISIO-021 (UC-FPK-01..06) · US-FISIO-020
+//   stories: US-FISIO-021 (UC-FPK-01..06, UC-FPK-10 comprovante) · US-FISIO-020
 //   permissao: fisio.access · abrir pacote, registrar e devolver sessão exigem fisio.editar
 //
 // Aba "Pacote e cobrança" da ficha (fonte: prototipo-ui/cowork/Wagner/prototipos/fisio/Financeiro.dc.html).
@@ -10,7 +10,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router, useForm } from '@inertiajs/react';
 import type { FormEvent, ReactNode } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Printer } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -69,9 +69,16 @@ function Sessoes({ pacote, podeEditar }: { pacote: PacoteAtual; podeEditar: bool
           <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pacote atual</h2>
           <p className="text-base font-medium">{pacote.title}</p>
         </div>
-        <p className="font-mono text-2xl tabular-nums" aria-label="Sessões usadas de contratadas">
-          {pacote.sessions_total - pacote.saldo} / {pacote.sessions_total}
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="font-mono text-2xl tabular-nums" aria-label="Sessões usadas de contratadas">
+            {pacote.sessions_total - pacote.saldo} / {pacote.sessions_total}
+          </p>
+          <Button size="sm" variant="outline" asChild>
+            <a href={`/fisio/pacotes/${pacote.id}/comprovante.pdf`} target="_blank" rel="noopener" data-contract="fisio-pacote-comprovante">
+              <Printer className="size-4" aria-hidden="true" /> Imprimir comprovante
+            </a>
+          </Button>
+        </div>
       </div>
       <p className="text-sm text-muted-foreground">Validade: {data(pacote.validade)} · saldo {pacote.saldo}</p>
       <ul className="divide-y rounded-md border">

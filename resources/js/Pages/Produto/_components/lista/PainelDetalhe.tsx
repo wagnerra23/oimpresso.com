@@ -16,7 +16,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import { TIPO_ROTULO, dataBr, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
+import { TIPO_ROTULO, dataBr, type ReceitaDoProdutoNoPainel, oQueE, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
 import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 
 type Aba = AbaDoDetalhe;
@@ -262,6 +262,68 @@ function PrecosPropostos({ itens, irPara }: { itens: PrecoPropostoDoProduto[]; i
  * UC-FLX-07 · UC-FLX-08). O responsável não aparece: ele é escolhido na OS, entre os operadores do
  * posto (US-PCP-030).
  */
+/**
+ * UC-PIDX-48 (D-29): a receita da Fabricação, só leitura — insumos, quantidades, custo e margem, com
+ * "Abrir receita" na Fabricação, que é onde ela se edita. Nada é calculado aqui: os números chegam do
+ * servidor, pela mesma conta da tela de Receitas.
+ */
+function ReceitaDoProdutoSecao({ r, irPara }: { r: ReceitaDoProdutoNoPainel; irPara: (url: string) => void }) {
+  const semPermissao = 'sem permissão para ver o custo';
+  return (
+    <div className="space-y-3" data-contract="produto-detalhe-receita">
+      <TituloDaSecao>{`Receita: ${r.nome}`}</TituloDaSecao>
+      <p className="pb-help">{`Rende ${qtd(r.rendimento)}${r.unidade ? ` ${r.unidade}` : ''}. A receita se edita na Fabricação.`}</p>
+      <Grid cols={3} className="gap-[10px]">
+        <div className="pb-kpi">
+          <small>Custo da receita</small>
+          <b>{dinheiro(r.custo_total)}</b>
+          <div className="ln">{r.custo_total === null ? semPermissao : 'insumos e custo de produção'}</div>
+        </div>
+        <div className="pb-kpi">
+          <small>Custo por unidade</small>
+          <b>{dinheiro(r.custo_unitario)}</b>
+          <div className="ln">{r.custo_unitario === null ? semPermissao : 'custo da receita ÷ rendimento'}</div>
+        </div>
+        <div className="pb-kpi">
+          <small>Margem</small>
+          <b>{r.margem === null ? '—' : `${r.margem.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`}</b>
+          <div className="ln">{r.margem === null ? semPermissao : 'a mesma da tela de Receitas'}</div>
+        </div>
+      </Grid>
+      {r.insumos.length === 0 ? (
+        <p className="pb-help">A receita não tem insumos cadastrados.</p>
+      ) : (
+        <table className="pb-tbl">
+          <caption className="sr-only">Insumos da receita</caption>
+          <thead>
+            <tr>
+              <th>Insumo</th>
+              <th>SKU</th>
+              <th className="r">Qtd</th>
+            </tr>
+          </thead>
+          <tbody>
+            {r.insumos.map((i, n) => (
+              <tr key={`${n}-${i.sku}`}>
+                <td>
+                  <b>{i.nome}</b>
+                </td>
+                <td className="m">{i.sku}</td>
+                <td className="r">{qtdComUnidade(i.quantidade, i.unidade)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {r.link && (
+        <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(r.link as string)}>
+          Abrir receita
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function RoteiroDoProdutoSecao({ r }: { r: RoteiroDoProduto }) {
   return (
     <div data-contract="produto-detalhe-roteiro">
@@ -337,13 +399,15 @@ interface Props {
   aoMudarAba: (aba: AbaDoDetalhe) => void;
   aoFechar: () => void;
   podeEditar: boolean;
+  /** UC-PIDX-47 (#10765): só `product.armazenagem`: o rodapé leva ao Editar só com os locais. */
+  podeArmazenagem?: boolean;
   podePrecos: boolean;
   /** A empresa emite nota (módulo Fiscal no pacote): só então a aba Fiscal existe. */
   emiteNota: boolean;
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podePrecos, emiteNota, irPara }: Props) {
+export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podeArmazenagem, podePrecos, emiteNota, irPara }: Props) {
   // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
@@ -369,6 +433,10 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
         // Produto que não controla estoque também tem a aba, com o aviso (protótipo). Sem a
         // permissão de ver o relatório de estoque, a aba segue fora.
         ...(d.estoque !== null || !d.dados.controla_estoque ? [{ key: 'estoque', label: 'Estoque', href: '#' }] : []),
+        // UC-PIDX-48 (D-29): só aparece quando o produto tem receita na Fabricação.
+        ...(d.receitas && d.receitas.length > 0
+          ? [{ key: 'receita', label: 'Receita', href: '#', badge: d.receitas.reduce((n, r) => n + r.insumos.length, 0) }]
+          : []),
         // UC-PIDX-29: só aparece quando o produto tem roteiro de produção.
         ...(d.roteiro ? [{ key: 'roteiro', label: 'Roteiro', href: '#', badge: d.roteiro.etapas.length }] : []),
         // NCM, CEST, CFOP e origem só servem a quem emite nota: a mesma regra do botão "Abrir no
@@ -406,8 +474,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
             <Inline className={TOPO}>
               <Inline wrap gap={2}>
                 <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[var(--text-dim)]">{d.sku}</span>
-                <span className={`pb-pill ${d.tipo}`}>{TIPO_ROTULO[d.tipo] ?? d.tipo}</span>
-                {d.inativo && <span className="pb-pill off">Inativo</span>}
+                {/* UC-PIDX-46: o "O que é" no lugar do tipo do cadastro (a cor do selo segue a do tipo). */}
+                <span className={`pb-pill ${d.tipo}`} title={`O que é · cadastro: ${TIPO_ROTULO[d.tipo] ?? d.tipo}`} data-contract="produto-detalhe-o-que-e">
+                  {oQueE(d.uso, d.tipo, d.variacoes.length, d.composicao.length)}
+                </span>
+                {d.excluido ? <span className="pb-pill off">Excluído</span> : d.inativo && <span className="pb-pill off">Inativo</span>}
               </Inline>
               <Fechar />
             </Inline>
@@ -494,6 +565,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <PrecosPropostos itens={d.precos_propostos ?? []} irPara={irPara} />
                 </Grid>
               )}
+
+              {abaAtiva === 'receita' && (d.receitas ?? []).map((r) => <ReceitaDoProdutoSecao key={r.sku} r={r} irPara={irPara} />)}
 
               {abaAtiva === 'roteiro' && d.roteiro && <RoteiroDoProdutoSecao r={d.roteiro} />}
 
@@ -852,13 +925,19 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
             </div>
 
             <SheetFooter className="mt-0 flex-row flex-wrap justify-end gap-2 border-t border-[var(--border)] px-[18px] py-3 [&_button]:h-[30px] [&_button]:px-3 [&_button]:text-[12.5px]">
-              {podeEditar && (
+              {/* UC-PIDX-45: excluído não se edita aqui — restaura primeiro (decisão [F] 2026-11-11). */}
+              {podeEditar && !d.excluido && (
                 <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
                   <Pencil size={13} aria-hidden /> Editar produto
                 </Button>
               )}
+              {!podeEditar && podeArmazenagem && !d.excluido && d.dados.controla_estoque && (
+                <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
+                  <Pencil size={13} aria-hidden /> Locais de armazenagem
+                </Button>
+              )}
               {/* Sem "Comprar": a consulta não é a tela de compras (decisão [F] 2026-10-26, UC-PIDX-11). */}
-              {podePrecos && (
+              {podePrecos && !d.excluido && (
                 <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/products/add-selling-prices/${d.id}`)}>
                   Preços por grupo
                 </Button>

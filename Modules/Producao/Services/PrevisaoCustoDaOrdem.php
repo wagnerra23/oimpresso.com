@@ -7,7 +7,6 @@ namespace Modules\Producao\Services;
 use App\Contracts\Compras\CustoDoInsumo;
 use App\Domain\Fsm\Modelos\RegrasCompra;
 use App\Domain\Fsm\Modelos\RegrasDaEmpresa;
-use App\Scopes\ScopeByBusiness;
 use Illuminate\Support\Facades\DB;
 use Modules\Producao\Entities\Ordem;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
@@ -51,7 +50,7 @@ final class PrevisaoCustoDaOrdem
     /** @return array<string, mixed> */
     public function daOrdem(int $businessId, int $ordemId): array
     {
-        $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->find($ordemId)
+        $ordem = Ordem::query()->where('business_id', $businessId)->with('currentStage')->find($ordemId)
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS não encontrada.');
         $situacao = $ordem->currentStage?->key;
         $base = ['ordem_id' => (int) $ordem->id, 'situacao' => $situacao, 'aberta_em' => $ordem->created_at?->toDateString(),

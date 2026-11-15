@@ -66,7 +66,7 @@ function payloadBase(array $overrides = [], array $itemOverrides = []): array
 // area=4.5, subtotal=270, total=600
 // ------------------------------------------------------------------
 
-it('Cenário 1 — banner 3x1.5 R$ [redacted Tier 0]/m²: area=4.5, subtotal=270, total=600', function () {
+it('UC-CV-01 · Cenário 1 — banner 3x1.5 R$ [redacted Tier 0]/m²: area=4.5, subtotal=270, total=600', function () {
     $calc      = new OrcamentoCalculator();
     $resultado = $calc->calcular(payloadBase());
 
@@ -91,7 +91,7 @@ it('Cenário 1 — banner 3x1.5 R$ [redacted Tier 0]/m²: area=4.5, subtotal=270
 // area = 2 × 0.8 × 10 = 16, subtotal = 16 × 45 = 720
 // ------------------------------------------------------------------
 
-it('Cenário 2 — vinil 2x0.8 qtd=10 R$ [redacted Tier 0]/m²: area=16.000, subtotal=720', function () {
+it('UC-CV-01 · Cenário 2 — vinil 2x0.8 qtd=10 R$ [redacted Tier 0]/m²: area=16.000, subtotal=720', function () {
     $calc    = new OrcamentoCalculator();
     $payload = payloadBase(
         ['desconto' => 0, 'extras' => 0, 'custo_instalacao' => 0, 'custo_entrega' => 0],
@@ -110,7 +110,7 @@ it('Cenário 2 — vinil 2x0.8 qtd=10 R$ [redacted Tier 0]/m²: area=16.000, sub
 // Cenário 3: ACM com material_id (preco_unitario_m2 null → resolve do material)
 // ------------------------------------------------------------------
 
-it('Cenário 3 — ACM com material_id sem preco override: resolve do catálogo', function () {
+it('UC-CV-03 · Cenário 3 — ACM com material_id sem preco override: resolve do catálogo', function () {
     // CI SQLite :memory: — pula gracioso se migrate não criou tabela.
     if (! Schema::hasTable('comvis_materiais')) {
         $this->markTestSkipped('Tabela comvis_materiais ausente — rode migrate primeiro.');
@@ -158,7 +158,7 @@ it('Cenário 3 — ACM com material_id sem preco override: resolve do catálogo'
 // Cenário 4: desconto absoluto > 0
 // ------------------------------------------------------------------
 
-it('Cenário 4 — desconto absoluto: total = subtotal - desconto + demais', function () {
+it('UC-CV-01 · Cenário 4 — desconto absoluto: total = subtotal - desconto + demais', function () {
     $calc    = new OrcamentoCalculator();
     $payload = payloadBase(['desconto' => 30.00, 'extras' => 0, 'custo_instalacao' => 0, 'custo_entrega' => 0]);
 
@@ -173,7 +173,7 @@ it('Cenário 4 — desconto absoluto: total = subtotal - desconto + demais', fun
 // Cenário 5: múltiplos itens (3 banners diferentes) — soma correta
 // ------------------------------------------------------------------
 
-it('Cenário 5 — múltiplos itens: soma de subtotais calculada corretamente', function () {
+it('UC-CV-01 · Cenário 5 — múltiplos itens: soma de subtotais calculada corretamente', function () {
     $calc = new OrcamentoCalculator();
 
     $payload = [
@@ -209,7 +209,7 @@ it('Cenário 5 — múltiplos itens: soma de subtotais calculada corretamente', 
 // Cenário 6: validação throw quando largura ≤ 0
 // ------------------------------------------------------------------
 
-it('Cenário 6 — throw quando largura_m <= 0', function () {
+it('UC-CV-02 · Cenário 6 — throw quando largura_m <= 0', function () {
     $calc    = new OrcamentoCalculator();
     $payload = payloadBase([], ['largura_m' => 0]);
 
@@ -217,7 +217,7 @@ it('Cenário 6 — throw quando largura_m <= 0', function () {
         ->toThrow(\InvalidArgumentException::class, 'largura_m deve ser maior que zero');
 });
 
-it('Cenário 6b — throw quando altura_m <= 0', function () {
+it('UC-CV-02 · Cenário 6b — throw quando altura_m <= 0', function () {
     $calc    = new OrcamentoCalculator();
     $payload = payloadBase([], ['altura_m' => -1]);
 
@@ -229,7 +229,7 @@ it('Cenário 6b — throw quando altura_m <= 0', function () {
 // Cenário 7: throw quando preco_unitario_m2 null E material sem preco_venda_m2
 // ------------------------------------------------------------------
 
-it('Cenário 7 — throw quando sem material_id e sem preco_unitario_m2', function () {
+it('UC-CV-03 · Cenário 7 — throw quando sem material_id e sem preco_unitario_m2', function () {
     $calc    = new OrcamentoCalculator();
     $payload = payloadBase(
         [],

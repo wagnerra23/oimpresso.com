@@ -17,24 +17,28 @@ last_run: "2026-08-17"
 Charter em **draft** (US-FIN-037). Dono concede acesso **somente-leitura** ao contador, com trilha LGPD.
 
 ## UC-CTD-01 — Conceder acesso ao contador por CNPJ+email
-Status: 🧪 (`Modules/Financeiro/Tests/Feature/Advisor/Onda31AdvisorPortalTest.php`)
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
 Quando o dono informa CNPJ+email e o escopo (Visão Unificada e/ou Relatórios) · Então nasce o grant ativo e o contador passa a ver o business no portal dele.
 
-## [BACKLOG] Consentimento LGPD é opt-in obrigatório
-Status: ⬜ sem prova — nenhum teste tenta criar grant SEM consentimento pra provar a recusa. Vira `UC-CTD-02` quando existir teste citando o id (G-2).
+## UC-CTD-02 — Consentimento LGPD é opt-in obrigatório
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
 Sem o consentimento explícito marcado, o grant **não** é criado (nunca opt-out por omissão).
 
 ## UC-CTD-03 — Revogar acesso é deliberado e imediato
-Status: 🧪 (`Onda31AdvisorPortalTest` — grant revogado perde acesso)
-Quando o dono revoga (via AlertDialog, nunca `window.confirm`) · Então `revoked_at` é gravado e o contador perde o acesso na hora.
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
+Quando o dono revoga (via AlertDialog, nunca `window.confirm`) · Então `revoked_at` é gravado e o contador perde o acesso na hora. Acesso de outra empresa devolve 404.
 
 ## UC-CTD-04 — Grant é sempre read-only
-Status: 🧪 (`Onda31AdvisorPortalTest` + middleware `AdvisorViewScope`)
-Nenhum escopo concedido permite escrita, mesmo com `advisor_view=1`.
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
+Nenhum escopo concedido permite escrita, mesmo com `advisor_view=1`. Hoje a barreira é o login do ERP, não o `AdvisorViewScope`, que não está montado em rota nenhuma (ver UC-ADVD-03).
 
 ## UC-CTD-05 — CNPJ nunca aparece inteiro
-Status: 🧪 (`test_advisor_cnpj_masked_protege_pii`)
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
 A lista de acessos mostra o CNPJ mascarado; o front não recebe nem persiste o valor cheio.
+
+## UC-CTD-06 — Só quem tem a permissão gerencia o contador
+Status: 🧪 (`Advisor/AdvisorRotasContratoTest`)
+Sem `financeiro.advisor.grant`, tela, concessão e revogação devolvem 403.
 
 ## Backlog de casos (sem id)
 - **[BACKLOG] Trilha de auditoria da concessão/revogação** visível ao dono.

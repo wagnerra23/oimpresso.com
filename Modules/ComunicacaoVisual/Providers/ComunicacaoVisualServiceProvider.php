@@ -2,6 +2,7 @@
 
 namespace Modules\ComunicacaoVisual\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Modules\ComunicacaoVisual\Console\Commands\ComvisHealthCommand;
 use Modules\ComunicacaoVisual\Console\Commands\DemoSeedCommand;
@@ -38,6 +39,11 @@ class ComunicacaoVisualServiceProvider extends ServiceProvider
                 ComvisHealthCommand::class,
             ]);
         }
+
+        // UC-CVHIG-03: o health-check diário, que até aqui dizia rodar em cron e não estava agendado.
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+            $schedule->command('comvis:health --notify')->dailyAt('06:40')->environments(['live'])->withoutOverlapping();
+        });
     }
 
     public function register(): void

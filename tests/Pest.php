@@ -36,6 +36,23 @@ if ($fiscalFeatureDir !== false) {
     })->in($fiscalFeatureDir);
 }
 
+// NfeBrasil — mesmo motivo do Fiscal acima: as rotas autenticadas de /nfe-brasil/* passaram a
+// exigir o pacote `fiscal_module` (FiscalLiberado, lote 3.3 da auditoria NfeBrasil). Os testes do
+// módulo provam permissão e isolamento por tela; sem o pacote ativo, o 403 deles viria do pacote
+// e um teste de isolamento ficaria verde sem chegar ao controller (§5 2026-09-27). Quem testa o
+// pacote (PacoteFiscalRotasContratoTest) religa o FiscalPacote real.
+$nfeBrasilFeatureDir = realpath(__DIR__ . '/../Modules/NfeBrasil/Tests/Feature');
+if ($nfeBrasilFeatureDir !== false) {
+    uses()->beforeEach(function () {
+        app()->instance(\Modules\Fiscal\Services\FiscalPacote::class, new class extends \Modules\Fiscal\Services\FiscalPacote {
+            public function ativo($businessId): bool
+            {
+                return true;
+            }
+        });
+    })->in($nfeBrasilFeatureDir);
+}
+
 // RecurringBilling — Spatie LogsActivity está ATIVO em Plan/Subscription/Invoice, mas
 // vários testes do módulo montam schema sqlite manual sem `activity_log`, quebrando com
 // "no such table: activity_log" no 1º create de model logável. Garante a tabela

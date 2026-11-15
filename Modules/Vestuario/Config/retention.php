@@ -26,8 +26,9 @@ declare(strict_types=1);
  * `activity_log` (Spatie/LogsActivity) é AUDITORIA — NUNCA purgado, mesmo que
  * settings vivo seja deletado. Audit append-only sobrevive purge.
  *
- * Status atual (2026-05-16): declaração canônica. Job `vestuario:retention-purge`
- * fica em backlog pra próxima onda Governance (sinal qualificado ADR 0105).
+ * Status (2026-11-12): só declaração. NÃO haverá job `vestuario:retention-purge`:
+ * num ERP o dado tem dever de guarda e o controle é por permissão de acesso, não
+ * por prazo (decisão [W], lápide §5 2026-07-27 em memory/proibicoes.md).
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md §P7
@@ -40,8 +41,8 @@ return [
     |--------------------------------------------------------------------------
     | Habilitar política de retenção
     |--------------------------------------------------------------------------
-    | Default false até job `vestuario:retention-purge` estar implementado +
-    | aprovado por Wagner em canary (regra ADR 0105 — sinal qualificado).
+    | Fica false. Não existe job de purga e não deve existir (lápide §5
+    | 2026-07-27); ligar exigiria decisão [W] nova.
     */
     'enabled' => env('VESTUARIO_RETENTION_ENABLED', false),
 

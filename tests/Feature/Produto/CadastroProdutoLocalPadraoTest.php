@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Cobre UC-PCAD-22 (resources/js/Pages/Produto/Create.casos.md) e UC-PEDIT-19
+// Cobre UC-PCAD-22 (resources/js/Pages/Produto/Create.casos.md), UC-PEDIT-19 e UC-PEDIT-21
 // (resources/js/Pages/Produto/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
@@ -58,6 +58,16 @@ function clpEnderecos(int $productId): array
 {
     return DB::table('product_racks')->where('product_id', $productId)->orderBy('location_id')->get()
         ->mapWithKeys(fn ($r) => [(int) $r->location_id => [$r->rack, $r->row, $r->position]])->all();
+}
+
+/** Saldo conhecido do produto num local, gravado direto (estado de partida, não pelo código sob teste). */
+function clpDarSaldo(int $productId, int $locationId, float $qty): void
+{
+    $v = DB::table('variations')->where('product_id', $productId)->orderBy('id')->first();
+    DB::table('variation_location_details')->updateOrInsert(
+        ['product_id' => $productId, 'variation_id' => $v->id, 'product_variation_id' => $v->product_variation_id, 'location_id' => $locationId],
+        ['qty_available' => $qty, 'created_at' => now(), 'updated_at' => now()],
+    );
 }
 
 function clpSaldoTotal(int $productId): float
@@ -207,4 +217,82 @@ it('UC-PEDIT-19 · a tela Editar recebe o local padrão e as partes do endereço
     $r->assertOk();
     expect($r->json('props.product.localPadraoId'))->toBe($this->deposito);
     expect($r->json('props.enderecoNoEstoque'))->toBe(['prateleira' => true, 'fileira' => false, 'posicao' => true]);
+});
+
+// ─── UC-PEDIT-21 · Em estoque e tirar local sem saldo ──────────────────────
+
+it('UC-PEDIT-21 · local sem saldo sai: some o endereço, o padrão passa ao local enviado e o saldo não muda', function () {
+    $produto = clpCriar($this, [
+        'product_racks' => [
+            $this->deposito => ['rack' => 'A', 'row' => '', 'position' => ''],
+            $this->loja => ['rack' => 'B', 'row' => '', 'position' => ''],
+        ],
+        'local_padrao_id' => $this->deposito,
+    ]);
+    clpDarSaldo((int) $produto->id, $this->loja, 7);
+    $saldoAntes = clpSaldoTotal((int) $produto->id);
+
+    clpEditar($this, $produto, [
+        'product_racks_update' => [$this->loja => ['rack' => 'B', 'row' => '', 'position' => '']],
+        'product_racks_remover' => [$this->deposito],
+        'local_padrao_id' => $this->loja,
+    ])->assertSessionHasNoErrors();
+
+    expect(array_keys(clpEnderecos((int) $produto->id)))->toBe([$this->loja]);
+    expect((int) DB::table('products')->where('id', $produto->id)->value('local_padrao_id'))->toBe($this->loja);
+    // REGRA MESTRE de estoque: tirar o local não mexe em saldo nenhum.
+    expect(clpSaldoTotal((int) $produto->id))->toBe($saldoAntes);
+});
+
+it('UC-PEDIT-21 · local com saldo não sai e nada muda', function () {
+    $produto = clpCriar($this, [
+        'product_racks' => [$this->deposito => ['rack' => 'A', 'row' => '', 'position' => '']],
+        'local_padrao_id' => $this->deposito,
+    ]);
+    clpDarSaldo((int) $produto->id, $this->deposito, 3);
+
+    clpEditar($this, $produto, ['product_racks_remover' => [$this->deposito], 'local_padrao_id' => ''])
+        ->assertSessionHasErrors(['product_racks_remover']);
+
+    expect(array_keys(clpEnderecos((int) $produto->id)))->toBe([$this->deposito]);
+    expect((int) DB::table('products')->where('id', $produto->id)->value('local_padrao_id'))->toBe($this->deposito);
+    expect(clpSaldoTotal((int) $produto->id))->toBe(3.0);
+});
+
+it('UC-PEDIT-21 · saldo negativo também impede tirar o local', function () {
+    $produto = clpCriar($this, ['product_racks' => [$this->deposito => ['rack' => '', 'row' => '', 'position' => '']]]);
+    clpDarSaldo((int) $produto->id, $this->deposito, -2);
+
+    clpEditar($this, $produto, ['product_racks_remover' => [$this->deposito]])->assertSessionHasErrors(['product_racks_remover']);
+    expect(array_keys(clpEnderecos((int) $produto->id)))->toBe([$this->deposito]);
+});
+
+it('UC-PEDIT-21 · o padrão não pode ser um local que está saindo', function () {
+    $produto = clpCriar($this, [
+        'product_racks' => [$this->deposito => ['rack' => '', 'row' => '', 'position' => '']],
+        'local_padrao_id' => $this->deposito,
+    ]);
+
+    clpEditar($this, $produto, ['product_racks_remover' => [$this->deposito], 'local_padrao_id' => $this->deposito])
+        ->assertSessionHasErrors(['local_padrao_id']);
+    expect(array_keys(clpEnderecos((int) $produto->id)))->toBe([$this->deposito]);
+});
+
+it('UC-PEDIT-21 · tirar local que o produto não tem é recusado [T0]', function () {
+    $produto = clpCriar($this, ['product_racks' => [$this->deposito => ['rack' => '', 'row' => '', 'position' => '']]]);
+    $outra = EstoqueFixture::secondBusinessId();
+    $alheio = $outra !== null && $outra !== (int) $this->business->id ? EstoqueFixture::locationId($outra, 'CLP-ALHEIO-R') : $this->loja;
+
+    clpEditar($this, $produto, ['product_racks_remover' => [$alheio]])->assertSessionHasErrors(['product_racks_remover']);
+    expect(array_keys(clpEnderecos((int) $produto->id)))->toBe([$this->deposito]);
+});
+
+it('UC-PEDIT-21 · a tela Editar recebe o saldo por local', function () {
+    $produto = clpCriar($this, ['product_racks' => [$this->deposito => ['rack' => '', 'row' => '', 'position' => '']]]);
+    clpDarSaldo((int) $produto->id, $this->deposito, 4.5);
+
+    $versao = (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $r = $this->get("/products/{$produto->id}/edit", ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => $versao]);
+    $r->assertOk();
+    expect((float) $r->json('props.saldoPorLocal.' . $this->deposito))->toBe(4.5);
 });

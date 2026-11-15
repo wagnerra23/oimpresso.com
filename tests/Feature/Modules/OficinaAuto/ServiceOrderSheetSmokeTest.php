@@ -137,7 +137,8 @@ it('ServiceOrderFsmActionPanel integra toast sonner (substitui alert() legacy)',
     expect($src)->toContain("from 'sonner'");
     expect($src)->toContain('toast.success');
     expect($src)->toContain('toast.error');
-    expect($src)->not->toContain('alert(');
+    // Comentário pode citar o alert antigo; o que não pode é chamá-lo.
+    expect(preg_replace('#//[^\n]*#', '', $src))->not->toContain('alert(');
 });
 
 it('ServiceOrderFsmActionPanel usa useMemo nos derivados (anti-regressão PR #717)', function () {

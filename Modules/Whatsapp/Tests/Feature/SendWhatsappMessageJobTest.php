@@ -123,8 +123,9 @@ beforeEach(function () {
         $table->timestamp('updated_at')->nullable();
     });
 
-    // Cria phone ZAPI pra business=1
-    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+    // Cria phone ZAPI pra business=1. forceCreate: o model tem $guarded = ['id'], então
+    // create() descartava o id 10 e o job procurava um telefone inexistente.
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->forceCreate([
         'id' => 10,
         'business_id' => 1,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),
@@ -265,7 +266,7 @@ it('Tier 0 — businessId + phoneId no constructor isolam do session()', functio
 
 it('Tier 0 defensive — phone de outro business é rejeitado com firstOrFail', function () {
     // Cria phone em outro business
-    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->create([
+    WhatsappBusinessPhone::withoutGlobalScope(ScopeByBusiness::class)->forceCreate([
         'id' => 99,
         'business_id' => 999,
         'phone_uuid' => \Illuminate\Support\Str::uuid()->toString(),

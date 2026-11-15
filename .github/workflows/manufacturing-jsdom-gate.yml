@@ -33,6 +33,9 @@ name: "Manufacturing jsdom Gate — specs jsdom do módulo (UC-OP-06 · UC-INGRE
 #
 # Comando local (vitest não é Pest; roda fora do CT 100 sem violar a ADR 0062):
 #   npx vitest run tests/js/manufacturing-index-datas.test.tsx tests/js/manufacturing-ingredientes-editor.test.tsx
+#
+# Entrou em 2026-11-11 (lote 3.1 da auditoria) `tests/js/manufacturing-gaveta.test.tsx`, que o
+# `Insumos.casos.md` cita como prova e que nenhum workflow rodava.
 
 on:
   workflow_dispatch:
@@ -48,6 +51,8 @@ on:
       - 'resources/js/Pages/Manufacturing/_components/OrdemDrawer.tsx'
       - 'resources/css/cowork-manufacturing-bundle.css'
       - 'tests/js/manufacturing-ordem-drawer.test.tsx'
+      - 'resources/js/Pages/Manufacturing/_components/Gaveta.tsx'
+      - 'tests/js/manufacturing-gaveta.test.tsx'
       - '.github/workflows/manufacturing-jsdom-gate.yml'
   push:
     branches: [main]
@@ -61,6 +66,8 @@ on:
       - 'resources/js/Pages/Manufacturing/_components/OrdemDrawer.tsx'
       - 'resources/css/cowork-manufacturing-bundle.css'
       - 'tests/js/manufacturing-ordem-drawer.test.tsx'
+      - 'resources/js/Pages/Manufacturing/_components/Gaveta.tsx'
+      - 'tests/js/manufacturing-gaveta.test.tsx'
 
 concurrency:
   group: manufacturing-jsdom-gate-${{ github.ref }}
@@ -81,12 +88,12 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: UC-OP-06 · UC-OP-10 · UC-OP-11 · UC-INGRED-08..13 (vitest/jsdom)
+      - name: UC-OP-06 · UC-OP-10 · UC-OP-11 · UC-INGRED-08..13 · gaveta (vitest/jsdom)
         run: |
           npx vitest run \
             tests/js/manufacturing-index-datas.test.tsx \
             tests/js/manufacturing-ingredientes-editor.test.tsx \
-            tests/js/manufacturing-ordem-drawer.test.tsx \
+            tests/js/manufacturing-ordem-drawer.test.tsx             tests/js/manufacturing-gaveta.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-manufacturing-jsdom-junit.xml

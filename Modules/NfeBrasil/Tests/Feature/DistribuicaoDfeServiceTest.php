@@ -131,6 +131,7 @@ it('processa lote com 1 resNFe e persiste em nfe_dfe_recebidos', function () {
     NfeDfeRecebido::where('business_id', $business->id)->where('chave_44', $chave)->delete();
 
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
 
     $resNFe = fakeResNFeXml($chave);
     $loteXml = fakeDistDFeXmlComResNFe(101, 101, $resNFe);
@@ -174,6 +175,7 @@ it('idempotência — 2ª chamada com mesma chave não duplica', function () {
     NfeDfeRecebido::where('business_id', $business->id)->where('chave_44', $chave)->delete();
 
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
 
     $resNFe = fakeResNFeXml($chave);
     $loteXml = fakeDistDFeXmlComResNFe(202, 202, $resNFe);

@@ -97,7 +97,16 @@ last_run: "2026-07-02"
 - **Fluxo:** montar um kit / produzir um acabado consome o saldo de cada componente pela quantidade da receita (`decreaseProductQuantityCombo`) e entra o saldo do acabado (`updateProductQuantity`).
 - **Aceite:** Dado compA=20 e compB=20 · Quando fabrica com receita [A×2, B×1] · Então A=18, B=19 (quantidades distintas). E: produzir 5 do acabado → acabado=5.
 - **Teste:** `tests/Feature/Estoque/EstoqueFabricacaoTest.php`.
-- **Status: 🧪** _(decomposição de combo/kit; fluxo completo Modules/Manufacturing = UC-EST-08b follow-up)._
+- **Status: 🧪** _(decomposição de combo/kit; fluxo completo Modules/Manufacturing = UC-EST-08B follow-up)._
+
+---
+
+## UC-EST-08B · Ordem de fabricação: finalizar dá entrada no acabado e baixa os insumos; rascunho não mexe
+- **Fluxo:** a ordem de produção da Fabricação (`Modules/Manufacturing`, `ProductionController` store e update) grava a ordem; só ao finalizar o acabado entra no local (`createOrUpdatePurchaseLines` → `updateProductQuantity`), cada insumo baixa no mesmo local (`decreaseProductQuantity`) e a compra de onde ele sai registra o consumo (`mapPurchaseSell` → `purchase_lines.mfg_quantity_used`). Unidades perdidas na ordem não entram no estoque.
+- **Aceite:** Dado insumo com 20 em estoque · Quando finalizo uma ordem de 3 que consome 6 (POST, ou PUT de um rascunho) · Então acabado=3, insumo=14 e a compra do insumo registra 6 consumidos · Quando gravo como rascunho · Então nada muda · Dado 5 produzidas e 1 perdida · Então acabado=4.
+- **Fonte:** handoff Fabricação §6 regra 3 e §9 (finalizar é atômico: ordem + entrada + baixa).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemFinalizarEstoqueTest.php`.
+- **Status: 🧪**
 
 ---
 
@@ -148,7 +157,6 @@ last_run: "2026-07-02"
 > não esquecidos, sem virar dívida no baseline.
 
 - **[BACKLOG] UC-EST-02b — Compra RASCUNHO não entra / RECEIVED entra (decisão de status via `createOrUpdatePurchaseLines`)** — reforço não-tautológico do UC-EST-02: provar que só o status terminal `received` movimenta. Exige fixture de purchase Transaction + purchase_lines.
-- **[BACKLOG] UC-EST-08b — Fabricação fluxo completo (`Modules/Manufacturing/ProductionController`)** — receita/BOM real consome ingredientes + produz acabado end-to-end (UC-EST-08 cobre a decomposição via `decreaseProductQuantityCombo`).
 - **[BACKLOG] OS OficinaAuto → baixa peça ao concluir** — já coberto por `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemStockBaixaTest.php` (skip-gracioso; roda no CT 100).
 - **[BACKLOG] INV-1/INV-4** — já cobertas: INV-1 (saldo só por caminho auditável) por `ProductStockLogsActivityTest`/`ConsumirEstoqueAuditTest`; INV-4 (reserva ≠ baixa) por `StockReservationsTest` (caso 9).
 

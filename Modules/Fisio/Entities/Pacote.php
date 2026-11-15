@@ -25,6 +25,8 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property int|null $transaction_id
  * @property string $status
  * @property int $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  */
 class Pacote extends Model
 {

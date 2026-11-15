@@ -4,23 +4,39 @@ slug: modules-auditoria-spec
 title: "Modules/Auditoria — SPEC"
 type: spec
 module: Auditoria
-version: "1.0"
-last_updated: "2026-07-02"
+version: "1.1"
+last_updated: "2026-11-09"
 anchor_format: "v1"
 owner: wagner
 status: ativo
 authority: canonical
-related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0127-modules-auditoria-undo-activity-log, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0156-module-grade-v3-errata-otel-helper-na-justified]
-na_justified:
-  D5: "Governança transversal cross-tenant — módulo de audit log opera sobre todos businesses (activity_log reusado). Exceção formal ao Tier 0 multi-tenant ([ADR 0127](../../decisions/0127-modules-auditoria-undo-activity-log.md) §SUPERADMIN exception + Constituição v2 Art. 6 [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md))."
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0127-modules-auditoria-undo-activity-log, 0358-doutrina-de-teste-tenant-98-supersede-0101]
 pii: false
-updated_at: 2026-05-16
 ---
 
 # Modules/Auditoria — SPEC
 
-> Status: **accepted** ([ADR 0127](../../decisions/0127-modules-auditoria-undo-activity-log.md) accepted 2026-05-10)
-> Última atualização: 2026-05-10
+> Status: **accepted** ([ADR 0127](../../decisions/0127-modules-auditoria-undo-activity-log.md) accepted 2026-05-10). As seções abaixo descrevem o desenho da ADR. Onde desenho e código divergem, vale o [Estado real](#estado-real-medido-em-2026-11-09).
+
+## Estado real (medido em 2026-11-09)
+
+Foto do `main` em `ec3b2fa`. É fato datado: para saber o estado de hoje, rode de novo os comandos da coluna "Como medir".
+
+| Capacidade | Estado | Como medir |
+|---|---|---|
+| Listar e abrir a trilha, com filtro e sem ver outro business | Entregue | `AuditoriaTelasContratoTest` (UC-AUDI-01..03, UC-AUDD-01..02) |
+| Reverter pela rota | Não entregue. `POST /auditoria/{id}/revert` respondia 501 e a tela não tinha botão | `AuditoriaController::revert` · `grep -n revert resources/js/Pages/Auditoria/*.tsx` |
+| `RevertService` | Existia e o controller não o chamava | `grep -n RevertService Modules/Auditoria/Http/Controllers/AuditoriaController.php` (só comentário) |
+| Bloqueio de irreversíveis | Efetivo em 1 de 5 chaves (`App\Transaction`). `PontoWr2\Models\Marcacao`, `NfeBrasil\Models\NfeTransaction` e `Repair\Models\OS` eram classes inexistentes. `TituloBaixa` existia, mas a condição lia `origem`, coluna ausente de `fin_titulo_baixas` | `ls` dos paths · `database/schema/mysql-schema.sql` |
+| Separar usuário de IA | Parcial. `causer_kind=agent` não tinha produtor: dependia do bind `jana.agent_run_id`, que nenhum código de produção fazia | `git grep -n "jana.agent_run_id" -- '*.php' ':!tests'` (só o observer) |
+| Permissão `auditoria.view` | Só escondia o item de menu. `index` e `show` não a checavam | `DataController.php` · `AuditoriaController.php` |
+| Métricas de saúde desta SPEC | Nenhuma existia. O que existia era `auditoria:health`, sem agendamento | ver [Métricas](#métricas-de-saúde) |
+| Notas, export e ação em lote | Sem rota. `AuditNote` e os Requests `BulkRevertActivity`, `ExportAuditEntries`, `StoreAuditNote` e `UpdateAuditNote` só eram usados em testes. `index()` recebia `Request` puro, sem `FilterAuditEntriesRequest` | `git grep -l <classe> -- '*.php'` |
+| Expurgo por prazo | Nenhum. `delete_records_older_than_days=365` era só valor de config, e `activitylog:clean` não rodava em lugar nenhum | `git grep -n "activitylog:clean"` (0 ocorrências) |
+
+**O que mudou depois da foto (2026-11-10, `main` em `810bd61`).** O `RevertService` passou a bloquear pelas classes reais: `Marcacao` e `BancoHorasMovimento` do Ponto, os documentos fiscais (`NfeEmissao`, `NfeEvento`, `NfeInutilizacao`, os dois `NfseEmissao`) e `TituloBaixa` sempre, `JobSheet` quando há NFSe ([#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674)). Passou também a conferir a empresa do registro e a negar a segunda reversão ([#10675](https://github.com/wagnerra23/oimpresso.com/pull/10675)), e a negar campo de valor ou estoque ([#10676](https://github.com/wagnerra23/oimpresso.com/pull/10676)). Nessa data a rota ainda respondia 501 e a tela não tinha botão, logo nada disso era alcançável por HTTP.
+
+**Decisão pendente de [W] (D1).** A ADR 0127 prevê reverter dentro de `/auditoria`. A decisão `E-AUDIT-REVERT` (índice do playbook `lote-trio-medida`, delegada em 2026-10-05) diz que a Auditoria é só leitura e que reverter acontece na tela de origem do registro. Esta SPEC registra o conflito e não escolhe.
 
 ## O que é
 
@@ -94,13 +110,11 @@ Migration `2026_05_NN_add_causer_kind_and_revert_to_activity_log.php` — adicio
 
 **Implementado em:** `database/migrations/2026_05_10_160000_add_causer_kind_and_revert_to_activity_log.php` · verificado@dad0b11 (2026-07-02)
 
-### US-AUDIT-006 · Resolver de causer (user/agent/system/api) `done`
-
-> status: done
+### US-AUDIT-006 · Resolver de causer (user/agent/system/api) `parcial`
 
 Resolve contexto: User logado padrão; se request veio de tool MCP `Modules/Jana/Ai/Agents/*` (detect via container binding ou middleware), seta `causer_kind=agent` + `agent_run_id=<id da Jana run>`. Hook em Activity::saving event. Pest: ação Jana grava `agent`; ação Controller grava `user`. Prio p0 · ~2h IA-pair · Dep: US-AUDIT-005. _Nota: entregue como Observer `ActivityCauserKindObserver` (registrado em AppServiceProvider) em vez do `CauserResolver` Service originalmente cogitado — mesmo contrato (saving hook, 4 causer_kind), path abaixo._
 
-**Implementado em:** `app/Observers/ActivityCauserKindObserver.php` · `App\Providers\AppServiceProvider` · verificado@dad0b11 (2026-07-02)
+**Implementado em:** _parcial_ · `app/Observers/ActivityCauserKindObserver.php` · `App\Providers\AppServiceProvider` · verificado@ec3b2fa (2026-11-09) — o caminho `agent` só existe com o bind `jana.agent_run_id`, que em 2026-11-09 só os testes faziam; depende do módulo Jana
 
 **Subtotal Sprint 2 — ~3h IA-pair**
 
@@ -114,33 +128,31 @@ Scaffold `Modules/Auditoria/` via skill `criar-modulo` (8 peças obrigatórias +
 
 **Implementado em:** `Modules/Auditoria/Providers/AuditoriaServiceProvider.php` · `Modules/Auditoria/Http/Controllers/InstallController.php` · verificado@dad0b11 (2026-07-02)
 
-### US-AUDIT-008 · RevertService com registry UNREVERTIBLE `done`
-
-> status: done
+### US-AUDIT-008 · RevertService com registry UNREVERTIBLE `parcial`
 
 `Modules/Auditoria/Services/RevertService.php` com registry `UNREVERTIBLE` (5 categorias do ADR 0127 §princípio 4). Métodos `canRevert(Activity, User): RevertCheck` + `revert(Activity, User, string $reason): Activity`. Pest test cobrindo: (a) Marcacao bloqueada, (b) Transaction NFe autorizada bloqueada, (c) TituloBaixa Asaas-paid bloqueada, (d) OS com NFSe bloqueada, (e) Transaction com payment posterior bloqueada, (f) revert válido restaura state via `properties.old → fill() + save()` em DB::transaction. Prio p0 · ~4h IA-pair · Dep: US-AUDIT-005, US-AUDIT-006
 
-**Implementado em:** `Modules/Auditoria/Services/RevertService.php` · `Modules/Auditoria/Tests/Feature/AuditEntryReversibilityTest.php` · verificado@dad0b11 (2026-07-02)
+**Implementado em:** _parcial_ · `Modules/Auditoria/Services/RevertService.php` · `Modules/Auditoria/Tests/Feature/AuditEntryReversibilityTest.php` · `tests/Feature/Auditoria/RevertServiceTest.php` · verificado@810bd61 (2026-11-10) — o serviço existe, mas nenhuma rota o chama (HTTP respondia 501 nessa data; decisão D1 pendente). Até 2026-11-09 os testes só conferiam a forma do registry. Desde [#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674) o `RevertServiceTest` chama `canRevert` e `revert` com linha real nos casos (a) a (f)
 
 ### US-AUDIT-009 · Pages Inertia Index + Detail `parcial`
 
 Pages Inertia: `Auditoria/Index.tsx` (filtros: data range, causer_kind, subject_type, event, só-irrevertíveis; tabela paginada DataTable) + `Auditoria/Detail.tsx` (diff old↔new side-by-side, botão Reverter com modal `revert_reason` mín 10 chars). Cada Page com `*.charter.md` ao lado ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §3). Gate F1.5 + F3 ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)) — Wagner aprova screenshot ANTES do PR final. Prio p0 · ~5h IA-pair · Dep: US-AUDIT-007, US-AUDIT-008
 
-**Implementado em:** _parcial_ · `resources/js/Pages/Auditoria/Index.tsx` · `resources/js/Pages/Auditoria/Detail.tsx` · verificado@dad0b11 (2026-07-02) — falta `Detail.charter.md` (só `Index.charter.md` existe)
+**Implementado em:** _parcial_ · `resources/js/Pages/Auditoria/Index.tsx` · `resources/js/Pages/Auditoria/Detail.tsx` · verificado@ec3b2fa (2026-11-09) — os dois charters existem em `draft`. Faltam o botão Reverter com modal (decisão D1) e os filtros de data e só-irrevertíveis: `AuditEntryService` aceita só `causer_kind`, `subject_type` e `event`
 
-### US-AUDIT-010 · AuditoriaController + permissões + redirect 301 `done`
-
-> status: done
+### US-AUDIT-010 · AuditoriaController + permissões + redirect 301 `parcial`
 
 `Modules/Auditoria/Http/Controllers/AuditoriaController.php` (index + show + revert) + permissões Spatie (`auditoria.view`, `auditoria.revert.own`, `auditoria.revert.any`, `auditoria.revert.unlimited`) + redirect 301 `/reports/activity-log` → `/auditoria` mantendo querystring. Pest: multi-tenant isolation, 3 níveis permissão, revert ação >24h sem `revert.any` retorna 403. Prio p0 · ~2h IA-pair · Dep: US-AUDIT-009
 
-**Implementado em:** `Modules/Auditoria/Http/Controllers/AuditoriaController.php` · `Modules/Auditoria/Routes/web.php` · verificado@dad0b11 (2026-07-02)
+**Implementado em:** _parcial_ · `Modules/Auditoria/Http/Controllers/AuditoriaController.php` · `Modules/Auditoria/Routes/web.php` · verificado@ec3b2fa (2026-11-09) — `index`, `show` e o redirect 301 entregues. `revert` responde 501 (decisão D1 pendente), logo o 403 por nível de permissão nunca é alcançado pela rota. `auditoria.view` só filtrava o menu
 
 **Subtotal Sprint 3 — ~12h IA-pair**
 
 ## Total — ~21h IA-pair (1 sprint pequeno, 3 sub-sprints sequenciais)
 
 ## Whitelist UNREVERTIBLE (registry inicial)
+
+Bloco abaixo: desenho da ADR 0127, em 2026-05-10. A lista viva é `RevertService::unrevertibleRegistry()`, e o estado dela está no [Estado real](#estado-real-medido-em-2026-11-09). Desde 2026-11-10 ela usa as classes reais, e os nomes abaixo ficam só como histórico do desenho.
 
 ```php
 const UNREVERTIBLE = [
@@ -181,45 +193,55 @@ Sprint 1 cobre 100% dos paths críticos do piloto Vestuario (ROTA LIVRE biz=4) �
 
 Modules legacy ainda em log manual (Repair/Stock/Purchase) migram **opt-in** quando cada módulo for tocado em sprint futuro. Não-disruptivo.
 
-## Métricas de saúde (jana:health-check + Admin Center widget)
+## Métricas de saúde
+
+Desenho original, para `jana:health-check` e widget do Admin Center. **Em 2026-11-09 nenhuma das quatro existia no código** (`git grep -l <nome> -- '*.php'`; `pii_leak_in_activity_log` aparecia só no docblock de um teste).
 
 - `activity_log_growth_24h` — alerta se crescer > 50k entries/dia (algo bugado gerando log spam)
-- `pct_ia_actions_reverted_30d` — % de ações com `causer_kind=agent` que foram revertidas; subir = Jana errando muito
-- `revert_attempts_blocked_24h` — quantos revert tentados foram bloqueados pela whitelist; subir = operador confuso, treinar UX
+- `pct_ia_actions_reverted_30d` — % de ações com `causer_kind=agent` que foram revertidas. Depende do produtor de `agent` e do revert, que não existiam
+- `revert_attempts_blocked_24h` — quantos revert tentados foram bloqueados pela whitelist. Depende do revert
 - `pii_leak_in_activity_log` — query checando se `properties` JSON contém regex CPF (`\d{3}\.\d{3}\.\d{3}-\d{2}`) ou CNPJ (`\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}`); deve ser **0**
+
+O que existia em 2026-11-09 são dois comandos manuais, sem agendamento (`git grep -n "auditoria:health"` e `"auditoria:backfill-business-id"` não acham `Kernel` nem `schedule`):
+
+- `php artisan auditoria:health [--alert] [--json]` — 4 sinais: tabela `activity_log`, atividade em 24h, colunas de revert, taxa de revert em 7 dias.
+- `php artisan auditoria:backfill-business-id` — preenche `business_id` NULL pelo registro auditado. Sem `--apply`, só dry-run.
 
 ## Validação Sprint 1
 
-- ✅ Pest: `Activity::query()->count()` em context biz=1 não retorna activity de biz=4 (Tier 0)
-- ✅ Pest: CRUD em `App\Transaction` gera entries com `properties.old`/`properties.new` corretas
-- ✅ Pest: `properties` JSON não contém senha/token/CPF/CNPJ
-- ✅ Smoke biz=1 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)): criar venda → entry visível em `/auditoria` (Sprint 3) ou query direta `SELECT * FROM activity_log ORDER BY id DESC LIMIT 1` (Sprint 1 standalone)
+Revisão de 2026-11-09 das três listas a seguir: ✅ tem teste que prova, 🟡 prova só parte, ❌ não existe, ⬜ sem recibo versionado.
+
+- ✅ Pest: activity de um business não aparece na query de outro (`MultiTenantIsolationTest`, 1 × 99)
+- ✅ Pest: CRUD em `App\Transaction` gera entries com `properties.old`/`properties.new` corretas (`TransactionLogsActivityTest`)
+- ✅ Pest: `properties` JSON não contém CPF/CNPJ (`ContactPiiLogsActivityTest`, `PiiLeakActivityLogEnforceTest`)
+- ⬜ Smoke manual: criar venda e ver a entry em `/auditoria` ou por query direta. O teste automatizado usa o tenant fictício 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
 
 ## Validação Sprint 2
 
-- ✅ Pest: ação por tool MCP grava `causer_kind=agent` + `agent_run_id` preenchido
-- ✅ Pest: ação por Controller grava `causer_kind=user` + `agent_run_id=NULL`
-- ✅ `jana:health-check` aceita nova métrica `pct_ia_actions_reverted_30d`
+- 🟡 Pest: `causer_kind=agent` + `agent_run_id` (`CauserKindResolverTest` cenário 1) só com o bind feito pelo próprio teste. Nenhum código de produção faz o bind
+- ✅ Pest: ação web sem bind grava `causer_kind=user` (`CauserKindResolverTest` cenário 3)
+- ❌ `jana:health-check` com `pct_ia_actions_reverted_30d`: a métrica não existe
 
 ## Validação Sprint 3
 
-- ✅ Pest: `RevertService::canRevert()` retorna `{allowed:false, reason: <texto da lei/regra>}` pras 5 categorias UNREVERTIBLE
-- ✅ Pest: revert válido restaura `properties.old` em `DB::transaction` + cria entry `event=reverted` linkada via `batch_uuid`
-- ✅ Pest: 403 sem permissão `auditoria.revert.any` tentando reverter ação alheia
-- ✅ Pest: 403 com só `auditoria.revert.own` tentando reverter ação > 24h
-- ✅ Smoke: redirect 301 `/reports/activity-log?start_date=X&end_date=Y` → `/auditoria?start_date=X&end_date=Y`
-- ✅ Gate F1.5 + F3 ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)): Wagner aprova screenshot Index + Detail antes de merge
+- ✅ `RevertService::canRevert()` nas 5 categorias: `RevertServiceTest` chama com linha real de cada uma (cenários 3 a 3d, lane `auditoria-pest`, [#10674](https://github.com/wagnerra23/oimpresso.com/pull/10674))
+- ✅ Revert válido restaura `properties.old` e cria entry `event=reverted`: `RevertServiceTest` cenários 5c e 5f, no serviço ([#10675](https://github.com/wagnerra23/oimpresso.com/pull/10675)). Pela rota não, que respondia 501 em 2026-11-10
+- ❌ 403 sem `auditoria.revert.any` e 403 com só `auditoria.revert.own` em ação > 24h: a rota responde 501 e não há teste dos níveis de permissão
+- ✅ Redirect 301 `/reports/activity-log?...` mantém a querystring (UC-AUDI-03). `start_date` e `end_date` ficam na URL, mas `normalizeFilters` os descarta
+- ⬜ Gate F1.5 + F3 ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)): sem recibo de aprovação de screenshot. Os dois charters seguem em `draft`
 
 ## Riscos e mitigações
+
+Os riscos de revert só valem se a rota for ligada (decisão D1).
 
 | Risco | Mitigação |
 |---|---|
 | `properties` é TEXT (não JSON nativo) — queries lentas em volume | Filtros UI usam só `subject_type` + `event` + `business_id` (todos indexados). Queries `JSON_EXTRACT` só em diff individual (1 row) |
-| `LogsActivity` em Model com campo sensível vaza PII em `properties` | Pest test `pii_leak_in_activity_log` obrigatório + `logOnly([...])` enxuto + `$hidden` Model |
-| Revert pode quebrar cascading FK | `RevertService::revert()` em `DB::transaction` com try/catch — se falhar, rollback + 422 mensagem específica |
-| Volume de `activity_log` cresce demais | `delete_records_older_than_days=365` continua + observabilidade `activity_log_growth_24h` |
-| Operador clica Reverter por engano | Modal de confirmação obriga `revert_reason ≥ 10 chars` (não dá pra clicar inadvertidamente) |
-| Revert de ação Jana sem aprovação extra é "fácil demais" | Métrica `pct_ia_actions_reverted_30d` — se passar de threshold (5%? definir), reabrir decisão (ADR amendada) |
+| `LogsActivity` em Model com campo sensível vaza PII em `properties` | `PiiLeakActivityLogEnforceTest` + `logOnly([...])` enxuto + `$hidden` Model |
+| Revert pode quebrar cascading FK | Desenho: `RevertService::revert()` em `DB::transaction` |
+| Volume de `activity_log` cresce demais | Sem mitigação automática em 2026-11-09: nada é expurgado por prazo, e num ERP o dado tem dever de guarda (decisão [W] de 2026-07-27, `proibicoes.md` §5) |
+| Operador clica Reverter por engano | Desenho: modal com `revert_reason ≥ 10 chars`. O `RevertActivityRequest` valida o mínimo; a tela não tem o botão |
+| Revert de ação Jana sem aprovação extra é "fácil demais" | Desenho: métrica `pct_ia_actions_reverted_30d`, que não existe |
 
 ## Dependências
 
@@ -230,5 +252,7 @@ Modules legacy ainda em log manual (Repair/Stock/Purchase) migram **opt-in** qua
 
 ## Charter F1.5 (apenas Pages do Sprint 3)
 
-- `Modules/Auditoria/Pages/Index.charter.md` — Mission: dar visibilidade de TODA alteração em registros de negócio com filtros rápidos. Goals: (1) achar ação suspeita em < 30s, (2) distinguir IA vs humano em 1 clique. Non-goals: análise estatística (BI), auditoria de leitura PII
-- `Modules/Auditoria/Pages/Detail.charter.md` — Mission: explicar UMA alteração com diff inequívoco e permitir reverter quando seguro. Goals: (1) operador entende o que mudou em < 10s, (2) reverter exige confirmação consciente. Non-goals: editar valores diretamente (não é form de edição), redo
+Os charters vivem em `resources/js/Pages/Auditoria/`. Abaixo, a intenção original; reverter na tela depende da decisão D1.
+
+- `Index.charter.md` — Mission: dar visibilidade de TODA alteração em registros de negócio com filtros rápidos. Goals: (1) achar ação suspeita em < 30s, (2) distinguir IA vs humano em 1 clique. Non-goals: análise estatística (BI), auditoria de leitura PII
+- `Detail.charter.md` — Mission: explicar UMA alteração com diff inequívoco e permitir reverter quando seguro. Goals: (1) operador entende o que mudou em < 10s, (2) reverter exige confirmação consciente. Non-goals: editar valores diretamente (não é form de edição), redo

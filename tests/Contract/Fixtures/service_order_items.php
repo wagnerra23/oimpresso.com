@@ -111,7 +111,7 @@ return [
             // $item->product_id direto, sem coerce). Sem teste, bug silencioso
             // se Controller fizer (int) $item->product_id e virar 0.
             // Valor sintetico: 1 (id integer valido, sem validar FK exists pq
-            // validator nao tem rule `exists` em product_id — schema legacy varia).
+            // o valor real vem do teste: o validator so aceita produto da propria empresa (#10493).
             ['send' => 'product_id', 'value' => 1, 'recv' => 'product_id', 'match' => 'int'],
 
             // notes — nullable string ate 1000. CRITICO pra CAPTERRA G1:

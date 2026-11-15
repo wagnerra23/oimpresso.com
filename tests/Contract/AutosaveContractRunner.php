@@ -188,7 +188,7 @@ class AutosaveContractRunner
      *
      * @return array{business: \App\Business, user: \App\User, contactId: int}
      */
-    public static function setupContext(object $testCase): array
+    public static function setupContext(object $testCase, ?\App\Business $business = null): array
     {
         if (! Schema::hasTable('contacts')) {
             $testCase->markTestSkipped('Schema UltimatePOS ausente — rode com DB_CONNECTION=mysql.');
@@ -197,7 +197,7 @@ class AutosaveContractRunner
             $testCase->markTestSkipped('Migration drawer Wave B nao rodou.');
         }
 
-        $business = \App\Business::first();
+        $business = $business ?? \App\Business::first();
         if (! $business) {
             $testCase->markTestSkipped('Sem business em DB.');
         }

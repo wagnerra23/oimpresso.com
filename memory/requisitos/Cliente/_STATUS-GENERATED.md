@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 15 |
 | Telas (.tsx) | 8 |
 | Telas com `casos.md` | 8 |
-| UC declarados | 33 |
-| UC com teste que os cita | 33 |
+| UC declarados | 43 |
+| UC com teste que os cita | 43 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -82,6 +82,15 @@ authority: generated
 | UC-CIDX-03 | Index | 🧪 aguarda veredito da lane |
 | UC-CIDX-04 | Index | 🧪 aguarda veredito da lane |
 | UC-CIDX-05 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-06 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-07 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-08 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-09 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-10 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-11 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-12 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-13 | Index | 🧪 aguarda veredito da lane |
+| UC-CIDX-14 | Index | 🧪 aguarda veredito da lane |
 | UC-CIMP-01 | Import | 🧪 aguarda veredito da lane |
 | UC-CLED-01 | Ledger | 🧪 aguarda veredito da lane |
 | UC-CLED-02 | Ledger | 🧪 aguarda veredito da lane |
@@ -96,6 +105,7 @@ authority: generated
 | UC-CSHW-01 | Show | 🧪 aguarda veredito da lane |
 | UC-CSHW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-CSHW-03 | Show | 🧪 aguarda veredito da lane |
+| UC-DESC-02 | Index | 🧪 aguarda veredito da lane |
 | UC-FLX-28 | Index | 🧪 aguarda veredito da lane |
 
 ---

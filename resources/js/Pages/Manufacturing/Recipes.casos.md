@@ -85,7 +85,8 @@ last_run: "2026-10-27"
   quem serve `GET manufacturing/recipe` · Então existe uma rota, e a ação dela é o `RecipeController`.
   O `Inertia::render('Manufacturing/Recipes'` com `recipes`/`permissions`/`producao`/`settings`
   está no mesmo teste, pelo assert estrutural do UC-RECIPE-06.
-- ⚠️ **O que este teste NÃO prova:** que a resposta HTTP real traz o payload. Ver UC-RECIPE-08.
+- ⚠️ **O que este teste NÃO prova:** que a resposta HTTP real traz o payload. Nenhum caso prova isso hoje
+  (até 2026-11-11 esta linha apontava para um caso "08" de receitas que nunca existiu neste arquivo).
 - **Fonte:** decisão [W] 2026-09-02 (o endereço) + §15.2 do handoff (o conteúdo da tela).
 - **Teste:** `Modules/Manufacturing/Tests/Feature/Wave29RecipeInertiaTest.php`
 - **Regressão que defende:** alguém "consertar" o controller devolvendo a view Blade e a tela
@@ -167,7 +168,7 @@ last_run: "2026-10-27"
   bug de 2026-09-04 deixa de existir neste endereço.
 - **Teste:** `Wave29RecipeInertiaTest.php`
 - **Regressão que defende:** alguém recolocar um ramo DataTables e reabrir o bug do JSON no Inertia.
-- ⚠️ **O que este teste NÃO prova:** uma navegação real. Mesma limitação de fixture do UC-RECIPE-08.
+- ⚠️ **O que este teste NÃO prova:** uma navegação real. Nenhum caso faz a navegação pelo navegador hoje.
 - **Status: 🧪**
 
 ---
@@ -322,6 +323,21 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-RECIPE-21 · Atualizar preço pela receita só alcança receita da minha empresa
+- **Persona:** Wagner — atualiza o custo do produto a partir da ficha.
+- **Aceite:** Dado uma receita da minha empresa · Quando mando o preço (POST
+  `/manufacturing/update-product-prices`) · Então a variação dela grava custo e margem, mantendo o preço
+  de venda · Dado o id de uma receita de outra empresa, sozinho ou junto de uma minha · Quando mando o
+  preço · Então a variação dela fica como estava e a minha muda normalmente.
+- **Fonte:** SPEC US-MANU-008 H3 · handoff §9 ("`business_id` pela cadeia
+  `mfg_recipes → variations → products` em toda query") · ADR 0093.
+- **Teste:** `AtualizarPrecoReceitaEmpresaTest.php`
+- **Regressão que defende:** o `updateRecipeProductPrices` buscar a receita só pelo id. Este endpoint não
+  tem botão na tela React (charter: a lista não escreve); o caso existe porque a rota está no ar.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - ~~**[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** e uma requisição **ajax real** recebe o
@@ -341,8 +357,10 @@ last_run: "2026-10-27"
   A4 por receita (R-23).
 
 > Fora o da paginação (Pest com fixture HTTP) e o primeiro, os seis acima são comportamento de
-> **navegador** (eram oito até 2026-10-02; busca, KPI-filtro e ordenação viraram UC) — o lugar deles é o spec Playwright
-> (`e2e/manufacturing-recipes.spec.ts`), não Pest. Entram como UC quando o teste existir e citar o id.
+> **navegador** (eram oito até 2026-10-02; busca, KPI-filtro e ordenação viraram UC). Até 2026-11-11 o lugar
+> deles era um spec Playwright que nenhum workflow executava, todo em `test.fixme`; desde então R-14 e R-22
+> têm caso em `tests/Browser/Manufacturing/TelasFabricacaoTest.php` (Pest Browser, step advisory do
+> `visual-regression`). Entram como UC depois do primeiro verde que executou.
 
 ## Ambiguidade declarada (não inventei desempate)
 
@@ -397,3 +415,5 @@ decisão de quem escreveu o §4.2, não minha. Fica registrado em vez de silenci
   cartão e o filtro "Desperdício ≥ 8%" e a linha "Desperdício" da gaveta; Quantidade, gaveta e ficha
   mostram a quantidade produzida. UC-RECIPE-10 reescrito, UC-RECIPE-20 novo. O `waste_percent` gravado
   não é apagado (a ordem Blade ainda o usa para sugerir as unidades perdidas).
+- 2026-11-09 · [C] Isolamento do `POST /manufacturing/update-product-prices` (US-MANU-008 H3): UC-RECIPE-21
+  + `AtualizarPrecoReceitaEmpresaTest.php`. A tela não mudou; a fórmula do preço também não.

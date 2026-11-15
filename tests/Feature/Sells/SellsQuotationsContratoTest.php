@@ -284,3 +284,85 @@ it('UC-QUO-12 [T0] a lista de orçamentos mostra de qual orçamento a cópia vei
 
     expect(quoOrigensNaLista($this))->toBe(['qA' => null, 'qB' => null, 'qC' => 'qA', 'qF' => null]);
 });
+
+/*
+ * UC-QUO-13 — excluir cotação com `quotation.delete` (TransactionUtil::podeExcluirComoCotacao).
+ * Antes de 2026-11-12 a lista Blade mostrava Excluir para quem tinha `quotation.delete` e os dois
+ * `destroy` respondiam 403: aceitavam só as permissões de excluir venda (e `draft.delete`, só para
+ * rascunho comum).
+ */
+
+function quoId(object $test, string $sufixo): int
+{
+    return (int) DB::table('transactions')->where('invoice_no', $test->prefixo . $sufixo)->value('id');
+}
+
+/** DELETE como a tela manda (XHR + JSON): `/sells/{id}` (SellController) ou `/pos/{id}` (SellPosController, lista Blade). */
+function quoExcluir(object $test, int $id, string $rota = 'sells')
+{
+    return $test->withHeaders(['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'])
+        ->delete("/{$rota}/{$id}");
+}
+
+/** HTML da coluna Ações da lista de cotações, por sufixo do invoice_no. */
+function quoAcoes(object $test, string $sufixo): ?string
+{
+    $json = $test->withHeaders(['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/sells/draft-dt?is_quotation=1')->assertOk()->json();
+    expect($json['error'] ?? null)->toBeNull();
+    $linha = collect($json['data'])->first(
+        fn ($r) => str_starts_with(trim(strip_tags(explode('<', (string) $r['invoice_no'])[0])), $test->prefixo . $sufixo)
+    );
+
+    return $linha === null ? null : (string) $linha['action'];
+}
+
+it('UC-QUO-13 [T0] quotation.delete exclui a cotação da própria empresa — com só view_own, só a própria; rascunho comum e venda ficam', function () {
+    $loc = EstoqueFixture::locationId($this->bizId);
+    $vendedor = quoUsuario($this->bizId, ['quotation.view_own', 'quotation.delete', 'access_all_locations']);
+    quoLogin($this, $vendedor);
+
+    quoTx($this, $this->bizId, $loc, $vendedor->id, 'qV', 'draft', 'quotation');
+    quoTx($this, $this->bizId, $loc, $vendedor->id, 'qW', 'draft', 'quotation');
+    quoTx($this, $this->bizId, $loc, $vendedor->id, 'rV', 'draft', null);
+
+    // A lista Blade mostra Excluir na cotação dele.
+    expect(quoAcoes($this, 'qV'))->toContain('delete-sale');
+
+    // Recusados: cotação do colega, cotação de outra empresa, rascunho comum e venda final.
+    foreach (['qB', 'qX', 'rV', 'fA'] as $sufixo) {
+        $id = quoId($this, $sufixo);
+        expect($id)->toBeGreaterThan(0);
+        quoExcluir($this, $id)->assertStatus(403);
+        expect(DB::table('transactions')->where('id', $id)->exists())->toBeTrue();
+    }
+
+    // Controle positivo pelos dois caminhos: /sells/{id} (tela React) e /pos/{id} (lista Blade).
+    $propria = quoId($this, 'qV');
+    quoExcluir($this, $propria)->assertOk()->assertJsonPath('success', true);
+    expect(DB::table('transactions')->where('id', $propria)->exists())->toBeFalse();
+
+    $outra = quoId($this, 'qW');
+    quoExcluir($this, $outra, 'pos')->assertOk()->assertJsonPath('success', true);
+    expect(DB::table('transactions')->where('id', $outra)->exists())->toBeFalse();
+
+    // Com quotation.view_all, a do colega também sai — mas nunca a de outra empresa.
+    quoLogin($this, quoUsuario($this->bizId, ['quotation.view_all', 'quotation.delete', 'access_all_locations']));
+    quoExcluir($this, quoId($this, 'qX'))->assertStatus(403);
+    $doColega = quoId($this, 'qB');
+    quoExcluir($this, $doColega)->assertOk()->assertJsonPath('success', true);
+    expect(DB::table('transactions')->where('id', $doColega)->exists())->toBeFalse();
+});
+
+it('UC-QUO-13 só draft.delete não mostra Excluir na cotação nem a exclui', function () {
+    quoLogin($this, quoUsuario($this->bizId, ['quotation.view_all', 'draft.delete', 'access_all_locations']));
+
+    $acoes = quoAcoes($this, 'qA');
+    expect($acoes)->not->toBeNull();
+    // Controle: a coluna de ações veio (o item de imprimir está sempre lá).
+    expect($acoes)->toContain('print-invoice');
+    expect($acoes)->not->toContain('delete-sale');
+
+    quoExcluir($this, quoId($this, 'qA'))->assertStatus(403);
+    expect(DB::table('transactions')->where('id', quoId($this, 'qA'))->exists())->toBeTrue();
+});

@@ -1,6 +1,6 @@
 ---
 id: requisitos-vestuario-telas-curva-de-compra-casos
-casos: Sugestão de compra por tamanho pela curva de venda · GET /vestuario/curva-compra (a tela da compra consome)
+casos: Sugestão de compra por tamanho pela curva de venda · GET /vestuario/curva-compra (consumido pelo botão "Sugerir pela curva" em /purchases/create)
 irmaos: ../SPEC.md (US-VEST-031)
 tecnica: Caso de uso = narrativa de quem compra + critério de aceite verificável (Dado/Quando/Então)
 por_que: a sugestão decide quanto comprar de cada tamanho; a conta e o isolamento por empresa não podem mudar sem querer.
@@ -12,8 +12,8 @@ related_us: [US-VEST-031]
 
 # Casos de Uso & Aceite — Sugestão de compra pela curva de venda
 
-> **2ª casa do contrato** (`memory/requisitos/<Mod>/_telas/`): nesta etapa o fluxo é o endpoint e o
-> serviço; o botão na tela da compra vem num PR seguinte, que trará o caso de tela.
+> **2ª casa do contrato** (`memory/requisitos/<Mod>/_telas/`): aqui ficam o endpoint e o serviço; o
+> caso de tela do botão está em `resources/js/Pages/Purchase/Create.casos.md` (UC-PURCRE-16..19).
 > Deriva da US-VEST-031 (decisão [W] 2026-10-26), nunca do código.
 >
 > ⚠️ Afeta a ROTA LIVRE (biz=4), que usa o Vestuário em produção. Os testes rodam no tenant 98; nada
@@ -26,6 +26,7 @@ related_us: [US-VEST-031]
 | UC-VCUR-01 | o total se divide pela proporção vendida do produto em 90 dias, somando o total | must | US-VEST-031 | `CurvaDeCompraContratoTest` |
 | UC-VCUR-02 | produto novo usa a curva da categoria, pelo nome da variação | must | US-VEST-031 | `CurvaDeCompraContratoTest` |
 | UC-VCUR-03 | sem venda não sugere; outra empresa não entra; sugerir não grava nada | must `[T0]` | US-VEST-031 | `CurvaDeCompraContratoTest` |
+| UC-VCUR-04 | quem vê só algumas lojas soma só as vendas delas | must `[T0]` | US-VEST-031 · ADR 0093 | `CurvaDeCompraContratoTest` |
 
 ## UC-VCUR-01 · O total se divide pela proporção vendida do produto em 90 dias
 - **Persona:** quem compra para a loja, decidindo a grade da próxima reposição.
@@ -47,5 +48,13 @@ related_us: [US-VEST-031]
 - **Aceite:** Dado um produto sem venda nele nem na categoria · Então a resposta diz o motivo e não
   traz linhas. Venda e produto de outra empresa não entram na conta (produto alheio = não encontrado).
   Pedir a sugestão não cria venda, compra nem movimento de estoque.
+- **Teste:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php`
+- **Status: 🧪**
+
+## UC-VCUR-04 · Quem vê só algumas lojas soma só as vendas delas
+- **Persona:** gerente de uma loja, que não pode ver quanto as outras lojas venderam.
+- **Aceite:** Dado um usuário com acesso a uma loja e vendas em duas lojas · Quando pede a sugestão ·
+  Então só as vendas da loja dele entram na proporção, no produto e na categoria. Sem venda na loja
+  dele, a resposta diz o motivo. Quem vê todas as lojas soma todas.
 - **Teste:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php`
 - **Status: 🧪**

@@ -326,6 +326,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         abrirDetalhe(l.id, 'fiscal');
         return;
       case 'editar':
+      case 'armazenagem':
         irPara(`/products/${l.id}/edit`);
         return;
       case 'historico':
@@ -913,6 +914,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         aoMudarAba={setAbaDoPainel}
         aoFechar={fecharDetalhe}
         podeEditar={pode('update')}
+        podeArmazenagem={!pode('update') && pode('armazenagem')}
         podePrecos={pode('create') && contexto.grupos_de_preco > 0}
         emiteNota={contexto.emite_nota}
         irPara={irPara}

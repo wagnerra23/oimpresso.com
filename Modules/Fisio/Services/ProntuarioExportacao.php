@@ -22,6 +22,8 @@ use Modules\Fisio\Entities\Record;
  */
 class ProntuarioExportacao
 {
+    public function __construct(private readonly IdentidadeClinica $identidade) {}
+
     /** Rótulos dos campos do corpo do registro — os mesmos da ficha (Show.tsx). */
     public const ROTULO_CAMPO = [
         'queixa_principal' => 'Queixa principal',
@@ -56,7 +58,7 @@ class ProntuarioExportacao
 
     private const FORMATO = 'd/m/Y H:i';
 
-    /** @return array{paciente: array<string, mixed>, registros: list<array<string, mixed>>, empresa: string, emitido_em: string} */
+    /** @return array{paciente: array<string, mixed>, registros: list<array<string, mixed>>, empresa: string, clinica: array<string, ?string>, emitido_em: string} */
     public function montar(Patient $paciente, int $businessId): array
     {
         $paciente->loadMissing('contact:id,name,mobile');
@@ -95,6 +97,7 @@ class ProntuarioExportacao
             ],
             'registros' => $registros,
             'empresa' => (string) DB::table('business')->where('id', $businessId)->value('name'),
+            'clinica' => $this->identidade->montar($businessId),
             'emitido_em' => now()->format(self::FORMATO),
         ];
     }

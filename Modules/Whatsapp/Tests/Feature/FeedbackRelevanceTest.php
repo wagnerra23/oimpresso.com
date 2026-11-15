@@ -176,13 +176,13 @@ it('R-WA-FR-004 — dedup: 2ª captura mesma signature em 90d → recorrente_cou
 
     // 1ª captura
     $req1 = Request::create('/atendimento/feedback/capture', 'POST', $payload);
-    $req1->setLaravelSession(session());
+    $req1->setLaravelSession(app('session.store'));
     $resp1 = app(ClientFeedbackController::class)->capture($req1);
     $data1 = $resp1->getData(true);
 
     // 2ª captura idêntica
     $req2 = Request::create('/atendimento/feedback/capture', 'POST', $payload);
-    $req2->setLaravelSession(session());
+    $req2->setLaravelSession(app('session.store'));
     $resp2 = app(ClientFeedbackController::class)->capture($req2);
     $data2 = $resp2->getData(true);
 
@@ -212,7 +212,7 @@ it('R-WA-FR-005 — pattern_emergente vira true quando recorrente >= 3', functio
 
     foreach (range(1, 3) as $i) {
         $req = Request::create('/atendimento/feedback/capture', 'POST', $payload);
-        $req->setLaravelSession(session());
+        $req->setLaravelSession(app('session.store'));
         app(ClientFeedbackController::class)->capture($req);
     }
 
@@ -245,6 +245,9 @@ it('R-WA-FR-006 — classify HOT/WARM/COLD baseado em score boundary', function 
         'severity_nng' => 1, 'recorrente_count' => 1,
         'status' => 'novo',
     ]);
+    // Recém-criado ainda soma 10 pontos de recência e fica em WARM; COLD é o feedback
+    // de baixa severidade que parou de aparecer.
+    $fb_cold->forceFill(['relevance_score' => null, 'last_seen_at' => now()->subYear()]);
     expect($svc->classify($fb_cold))->toBe('COLD');
 });
 

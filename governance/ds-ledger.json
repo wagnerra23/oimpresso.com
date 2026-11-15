@@ -178,7 +178,7 @@
     },
     {
       "screen": "Fisio",
-      "note": "44 arquivo(s)",
+      "note": "54 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -442,7 +442,7 @@
     },
     {
       "screen": "Site",
-      "note": "3 arquivo(s)",
+      "note": "4 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "no",
@@ -497,7 +497,7 @@
     },
     {
       "screen": "Vestuario",
-      "note": "2 arquivo(s)",
+      "note": "4 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -618,7 +618,7 @@
     },
     {
       "screen": "Produto",
-      "note": "63 arquivo(s)",
+      "note": "68 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -629,7 +629,7 @@
     },
     {
       "screen": "Purchase",
-      "note": "10 arquivo(s)",
+      "note": "12 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -719,8 +719,8 @@
   "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "06ffd48e3a",
-  "generatedAt": "2026-11-08T16:12:59.234Z",
+  "measuredAgainstSha": "20040dde34",
+  "generatedAt": "2026-11-15T16:31:54.183Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

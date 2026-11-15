@@ -1,0 +1,47 @@
+# Scorecard de tela — primeira medição (lote 4 da auditoria ComunicacaoVisual, achado A8, 2026-11-11).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), skill screen-grade.
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + casos + controller, SEM browser de produção. Nenhuma
+# dimensão foi medida em runtime. Evidências citam resources/js/Pages/ComunicacaoVisual/AceitePublico.tsx.
+# Persona: o cliente final da gráfica, sem login, no celular. Peso uniforme, nota = média das 16
+# dims arredondada (1264/16 = 79).
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ComunicacaoVisual/AceitePublico
+path: resources/js/Pages/ComunicacaoVisual/AceitePublico.tsx
+archetype: detail      # página pública de decisão, fora do AppShellV2
+persona: cliente-final-sem-login
+nota: 79
+nivel: "Advanced"
+baseline_anterior: 79   # ratchet — primeira medição, baseline = a própria nota
+peso_real: 1.0
+source: leitura-codigo-lote4-auditoria-2026-11-11
+graded_at: "2026-11-11"
+resumo: "Página curta e de uma decisão só: itens, total e dois botões (aceitar ou pedir ajuste), com aviso para link vencido, já usado ou fora da validade. Perde em: aceitar cria a OS num clique, sem confirmação; a marca é o nome da empresa em texto e o rodapé leva 'oimpresso.com'."
+dimensoes: { density: 80, discoverability: 82, speed_to_task: 84, error_recovery: 66, cognitive_load: 86, aesthetic_usability: 76, affordance: 80, brand_confidence: 66, mobile_fit: 82, a11y_wcag: 78, i18n_ptbr: 88, performance_perceived: 82, information_hierarchy: 82, microcopy: 82, internal_consistency: 78, preflight_conformance: 72 }
+evidencias:
+  density: "AceitePublico.tsx:108-140 itens com medida e quantidade, e linhas de total só quando diferentes de zero"
+  discoverability: "AceitePublico.tsx:143-152 as duas ações lado a lado"
+  speed_to_task: "AceitePublico.tsx:148 aceitar num clique"
+  error_recovery: "AceitePublico.tsx:148 aceitar posta direto, sem confirmação — vira OS (OrcamentoAceitePublicoController::aceitar); AceitePublico.tsx:101-105 erro de decisão aparece em alerta"
+  cognitive_load: "uma coluna max-w-xl, uma decisão (AceitePublico.tsx:75)"
+  aesthetic_usability: "AceitePublico.tsx:76-83 cabeçalho centrado com ícone primary"
+  affordance: "AceitePublico.tsx:181 'Enviar pedido' desabilitado até haver texto"
+  brand_confidence: "AceitePublico.tsx:80 empresa em texto, sem logo; AceitePublico.tsx:188 rodapé 'oimpresso.com' na página do cliente da gráfica"
+  mobile_fit: "AceitePublico.tsx:75 max-w-xl w-full, px-4 — não medido em viewport"
+  a11y_wcag: "h1 único; section com aria-labelledby; Textarea com aria-invalid e aria-describedby no erro (AceitePublico.tsx:172-176)"
+  i18n_ptbr: "AceitePublico.tsx:44-45 BRL e medida pt-BR; avisos em PT-BR (AceitePublico.tsx:47-52)"
+  performance_perceived: "página sem prop deferida, um request"
+  information_hierarchy: "empresa → número → validade → itens → total → ações"
+  microcopy: "AceitePublico.tsx:47-52 cada situação diz o que fazer ('Peça um novo à gráfica')"
+  internal_consistency: "Button, Alert, Label, Textarea do DS; mesmo padrão da aprovação pública da Oficina (charter)"
+  preflight_conformance: "charter draft + AceitePublico.casos.md (UC-CVACEP-01..06) + RUNBOOK-aceite-publico.md; related_prototype n/a declarado (sem protótipo)"
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "DocuSign/Stripe Checkout: decisão que não se desfaz pede um passo de confirmação"
+    fix: "Confirmar o aceite antes do POST, dizendo o total e que vira pedido para a gráfica"
+    esforco: baixo
+    origin: leitura-codigo-lote4-2026-11-11
+  - dim: "Brand-confidence"
+    best_of_class: "PandaDoc: página do cliente com a marca de quem envia"
+    fix: "Mostrar o logo da empresa (business.logo) no cabeçalho e tirar 'oimpresso.com' do rodapé (decisão [W] sobre a marca)"
+    esforco: baixo
+    origin: leitura-codigo-lote4-2026-11-11

@@ -173,7 +173,7 @@ it('R-WA-CHAN-SYNC-007 — multi-tenant Tier 0: business_id propagado corretamen
 it('R-WA-CHAN-SYNC-008 — NÃO dispatch quando channel sem channel_uuid (defensivo)', function () {
     // Caso patológico: channel criado sem UUID (não deveria acontecer, mas
     // o booted() sempre gera um). Cobrimos pelo defensive guard no observer.
-    $ch = Channel::withoutGlobalScope(ScopeByBusiness::class)->newInstance([
+    $ch = (new Channel())->newInstance([
         'business_id' => 1,
         'label' => 'Sem UUID',
         'type' => Channel::TYPE_WHATSAPP_BAILEYS,

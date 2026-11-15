@@ -2,6 +2,7 @@
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Auditoria\Services\RevertCheck;
 use Modules\Auditoria\Services\RevertService;
@@ -13,7 +14,7 @@ use Spatie\Activitylog\Models\Activity;
  * Valida (per SPEC + ADR 0127):
  *   1. Activity de outro business -> deny (Tier 0)
  *   2. Subject_type Marcacao -> deny ('Portaria 671 append-only')
- *   3. Subject_type NfeTransaction com cstat=100 -> deny ('NFe autorizada SEFAZ')
+ *   3. Cada categoria irreversivel, com a classe real e linha real -> deny
  *   4. Sem permissao auditoria.revert.* -> deny
  *   5. Janela 24h expirada com so revert.own -> deny
  *   6. Reason < 10 chars -> InvalidArgumentException
@@ -56,15 +57,133 @@ it('cenario 2: RevertCheck allow() retorna allowed=true sem reason', function ()
     expect($check->reason)->toBeNull();
 });
 
-it('cenario 3: registry UNREVERTIBLE contem 5 categorias canonicas', function () {
-    $registry = $this->service->unrevertibleRegistry();
-    $keys = array_keys($registry);
+/**
+ * Insere uma linha real preenchendo só as colunas obrigatórias sem default, para o
+ * teste não depender do schema inteiro de cada módulo. FK desligada só no INSERT: o
+ * que se mede é a trava do canRevert, não a árvore de cadastros de cada tabela.
+ */
+function revertLinha(string $tabela, array $valores): mixed
+{
+    foreach (Schema::getColumns($tabela) as $c) {
+        if (array_key_exists($c['name'], $valores) || $c['nullable'] || $c['default'] !== null
+            || $c['auto_increment'] || $c['generation'] !== null) {
+            continue;
+        }
+        $tipo = strtolower($c['type_name']);
+        preg_match("/^enum\('([^']*)'/", (string) $c['type'], $enum);
+        preg_match('/\((\d+)\)/', (string) $c['type'], $tam);
+        $valores[$c['name']] = match (true) {
+            $tipo === 'enum' => $enum[1],
+            in_array($tipo, ['tinyint', 'smallint', 'bit'], true) => 1,
+            in_array($tipo, ['int', 'bigint', 'mediumint'], true) => random_int(1000000, 9999999),
+            in_array($tipo, ['decimal', 'float', 'double'], true) => 0,
+            $tipo === 'date' => '2026-01-15',
+            in_array($tipo, ['datetime', 'timestamp'], true) => '2026-01-15 10:00:00',
+            $tipo === 'time' => '10:00:00',
+            $tipo === 'json' => '{}',
+            str_contains($tipo, 'text') || str_contains($tipo, 'blob') => '',
+            default => substr(md5(uniqid('', true)), 0, min((int) ($tam[1] ?? 32), 32)),
+        };
+    }
 
-    expect($keys)->toContain(\Modules\PontoWr2\Models\Marcacao::class);
-    expect($keys)->toContain(\Modules\NfeBrasil\Models\NfeTransaction::class);
-    expect($keys)->toContain(\Modules\Financeiro\Models\TituloBaixa::class);
-    expect($keys)->toContain(\Modules\Repair\Models\OS::class);
-    expect($keys)->toContain(\App\Transaction::class);
+    Schema::disableForeignKeyConstraints();
+    try {
+        if (array_key_exists('id', $valores)) {
+            DB::table($tabela)->insert($valores);
+
+            return $valores['id'];
+        }
+
+        return DB::table($tabela)->insertGetId($valores);
+    } finally {
+        Schema::enableForeignKeyConstraints();
+    }
+}
+
+function revertLog(string $classe, mixed $id, int $businessId, array $old = ['campo' => 'antes']): Activity
+{
+    $log = new Activity();
+    $log->business_id = $businessId;
+    $log->subject_type = $classe;
+    $log->subject_id = $id;
+    $log->properties = ['old' => $old];
+    $log->created_at = now()->subMinute();
+
+    return $log;
+}
+
+it('cenario 3: canRevert nega cada categoria sempre irreversivel, pela trava da classe real', function (string $classe, string $tabela, string $trechoMotivo, bool $idUuid) {
+    $valores = ['business_id' => $this->business->id];
+    if ($idUuid) {
+        $valores['id'] = (string) Illuminate\Support\Str::uuid();
+    }
+    $id = revertLinha($tabela, $valores);
+
+    $check = $this->service->canRevert(
+        revertLog($classe, $id, $this->business->id),
+        $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business),
+    );
+
+    expect($check->allowed)->toBeFalse();
+    expect($check->modelClass)->toBe($classe);
+    expect($check->reason)->toContain($trechoMotivo);
+})->with([
+    'marcacao de ponto'   => [\Modules\Ponto\Entities\Marcacao::class, 'ponto_marcacoes', 'Portaria MTP 671/2021', true],
+    'banco de horas'      => [\Modules\Ponto\Entities\BancoHorasMovimento::class, 'ponto_banco_horas_movimentos', 'append-only', true],
+    'NFe emitida'         => [\Modules\NfeBrasil\Models\NfeEmissao::class, 'nfe_emissoes', 'SEFAZ', false],
+    'evento NFe'          => [\Modules\NfeBrasil\Models\NfeEvento::class, 'nfe_eventos', 'SEFAZ', false],
+    'inutilizacao NFe'    => [\Modules\NfeBrasil\Models\NfeInutilizacao::class, 'nfe_inutilizacoes', 'SEFAZ', false],
+    'NFSe (modulo NFSe)'  => [\Modules\NFSe\Models\NfseEmissao::class, 'nfse_emissoes', 'prefeitura', false],
+    'NFSe (NfeBrasil)'    => [\Modules\NfeBrasil\Models\NfseEmissao::class, 'nfse_emissoes', 'prefeitura', false],
+    'baixa financeira'    => [\Modules\Financeiro\Models\TituloBaixa::class, 'fin_titulo_baixas', 'Estornar do Financeiro', false],
+]);
+
+it('cenario 3b: OS com NFSe emitida e negada; a mesma OS com nota cancelada e liberada', function () {
+    $os = revertLinha('repair_job_sheets', ['business_id' => $this->business->id]);
+    $venda = revertLinha('transactions', ['business_id' => $this->business->id, 'repair_job_sheet_id' => $os]);
+    $nota = revertLinha('nfse_emissoes', ['business_id' => $this->business->id, 'transaction_id' => $venda, 'status' => 'emitida']);
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+    $log = revertLog(\Modules\Repair\Entities\JobSheet::class, $os, $this->business->id, ['defects' => 'antes']);
+
+    $negado = $this->service->canRevert($log, $user);
+    expect($negado->allowed)->toBeFalse();
+    expect($negado->modelClass)->toBe(\Modules\Repair\Entities\JobSheet::class);
+    expect($negado->reason)->toContain('NFSe');
+
+    DB::table('nfse_emissoes')->where('id', $nota)->update(['status' => 'cancelada']);
+
+    expect($this->service->canRevert($log, $user)->allowed)->toBeTrue();
+});
+
+it('cenario 3c: venda com pagamento depois do log e negada; sem pagamento posterior e liberada', function () {
+    $venda = revertLinha('transactions', ['business_id' => $this->business->id]);
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+    $log = revertLog(\App\Transaction::class, $venda, $this->business->id, ['additional_notes' => 'antes']);
+
+    expect($this->service->canRevert($log, $user)->allowed)->toBeTrue();
+
+    revertLinha('transaction_payments', ['transaction_id' => $venda, 'business_id' => $this->business->id, 'created_at' => now()]);
+
+    $negado = $this->service->canRevert($log, $user);
+    expect($negado->allowed)->toBeFalse();
+    expect($negado->modelClass)->toBe(\App\Transaction::class);
+    expect($negado->reason)->toContain('pagamento');
+});
+
+it('cenario 3d: mudanca de etapa FSM e negada; a mesma OS em campo comum e liberada', function () {
+    $os = revertLinha('repair_job_sheets', ['business_id' => $this->business->id]);
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    $negado = $this->service->canRevert(
+        revertLog(\Modules\Repair\Entities\JobSheet::class, $os, $this->business->id, ['current_stage_id' => 7]),
+        $user,
+    );
+    expect($negado->allowed)->toBeFalse();
+    expect($negado->modelClass)->toBe(\App\Domain\Fsm\Concerns\GuardsFsmTransitions::class);
+    expect($negado->reason)->toContain('pipeline');
+
+    $comum = revertLog(\Modules\Repair\Entities\JobSheet::class, $os, $this->business->id, ['defects' => 'antes']);
+    expect($this->service->canRevert($comum, $user)->allowed)->toBeTrue();
 });
 
 it('cenario 4: canRevert deny quando Activity de outro business (Tier 0)', function () {
@@ -84,6 +203,109 @@ it('cenario 5: canRevert deny quando subject_type sem subject_id', function () {
 
     $check = $this->service->canRevert($log, $this->user);
     expect($check->allowed)->toBeFalse();
+});
+
+/** Contato fictício do tenant, com o e-mail dado, editado para gerar um log 'updated' real. */
+function revertContatoEditado(int $businessId, int $criadoPor, string $emailAntes): array
+{
+    $id = DB::table('contacts')->insertGetId([
+        'business_id' => $businessId, 'type' => 'customer', 'name' => 'Contato Revert', 'mobile' => '',
+        'email' => $emailAntes, 'contact_id' => 'AUD-REV-'.uniqid(), 'created_by' => $criadoPor,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $contato = \App\Contact::query()->withoutGlobalScopes()->findOrFail($id); // SUPERADMIN: fixture do teste
+    $contato->email = 'depois@example.test';
+    $contato->save();
+
+    $log = Activity::query()->where('subject_type', \App\Contact::class)->where('subject_id', $id)
+        ->where('event', 'updated')->latest('id')->firstOrFail();
+
+    return [$contato, $log];
+}
+
+it('cenario 5b: log do tenant 98 apontando para registro do 99 e negado', function () {
+    $biz99 = $this->seededSupportClientTenant();
+    $id99 = DB::table('contacts')->insertGetId([
+        'business_id' => $biz99->id, 'type' => 'customer', 'name' => 'Contato 99', 'mobile' => '',
+        'contact_id' => 'AUD-REV-'.uniqid(), 'created_by' => $biz99->owner_id,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $user98 = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    // A linha de log diz 98 (o tenant da sessão, como antes do PR #8384); o registro é do 99.
+    $log = new Activity();
+    $log->business_id = $this->business->id;
+    $log->subject_type = \App\Contact::class;
+    $log->subject_id = $id99;
+    $log->properties = ['old' => ['name' => 'antes']];
+
+    $check = $this->service->canRevert($log, $user98);
+
+    expect($check->allowed)->toBeFalse();
+    expect($check->reason)->toContain('Registro pertence a outro business');
+});
+
+it('cenario 5c: revert restaura o valor, e a segunda reversao da mesma Activity e negada', function () {
+    [$contato, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, 'antes@example.test');
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    expect($contato->fresh()->email)->toBe('antes@example.test');
+    expect($log->fresh()->reverted_at)->not->toBeNull();
+    expect(fn () => $this->service->revert($log->fresh(), $user, 'motivo com tamanho valido'))
+        ->toThrow(\DomainException::class, 'ja foi revertida');
+});
+
+it('cenario 5d: instancia velha da Activity nao fura a trava, porque revert rele o banco', function () {
+    [$contato, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, 'antes@example.test');
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+    $velha = Activity::query()->findOrFail($log->id);
+
+    $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    expect($velha->reverted_at)->toBeNull();
+    expect(fn () => $this->service->revert($velha, $user, 'motivo com tamanho valido'))
+        ->toThrow(\DomainException::class, 'ja foi revertida');
+});
+
+it('cenario 5e: revert le a Activity e o registro com lock dentro da transacao', function () {
+    [, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, 'antes@example.test');
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+    $sqls = [];
+    DB::listen(function ($q) use (&$sqls) {
+        $sqls[] = strtolower($q->sql);
+    });
+
+    $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    $travadas = array_values(array_filter($sqls, fn ($s) => str_contains($s, 'for update')));
+    expect(implode(' | ', $travadas))->toContain('`activity_log`');
+    expect(implode(' | ', $travadas))->toContain('`contacts`');
+});
+
+it('cenario 5f: entry updated do save e entry reverted saem no mesmo batch_uuid', function () {
+    [$contato, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, 'antes@example.test');
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    $revertida = $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    $updated = Activity::query()->where('subject_type', \App\Contact::class)->where('subject_id', $contato->id)
+        ->where('event', 'updated')->where('id', '>', $log->id)->latest('id')->firstOrFail();
+    expect($revertida->batch_uuid)->not->toBeEmpty();
+    expect($updated->batch_uuid)->toBe($revertida->batch_uuid);
+});
+
+it('cenario 5g: restored_attributes nao copia dado pessoal, e o registro recebe o valor real', function () {
+    $email = 'titular.ficticio@example.test';
+    [$contato, $log] = revertContatoEditado($this->business->id, $this->business->owner_id, $email);
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    $revertida = $this->service->revert($log, $user, 'motivo com tamanho valido');
+
+    expect(json_encode($revertida->properties['restored_attributes']))->not->toContain($email);
+    expect($revertida->properties['restored_attributes'])->toHaveKey('email');
+    expect($contato->fresh()->email)->toBe($email);
 });
 
 it('cenario 6: revert() lanca InvalidArgumentException se reason < 10 chars', function () {
@@ -118,4 +340,80 @@ it('cenario 6: revert() lanca InvalidArgumentException se reason < 10 chars', fu
 
     expect(fn () => $this->service->revert($log, $this->user->fresh(), 'curto'))
         ->toThrow(\InvalidArgumentException::class, 'no minimo 10 caracteres');
+});
+
+function valorLog(string $classe, mixed $id, int $businessId, array $old, bool $salvar = false): Activity
+{
+    $log = new Activity();
+    $log->business_id = $businessId;
+    $log->subject_type = $classe;
+    $log->subject_id = $id;
+    $log->properties = ['old' => $old];
+    $log->created_at = now()->subMinute();
+    $log->description = 'updated';
+    if ($salvar) {
+        $log->save();
+    }
+
+    return $log;
+}
+
+it('cenario 7: canRevert nega snapshot com campo de valor ou estoque, citando o campo', function (string $classe, string $campo) {
+    $check = $this->service->canRevert(valorLog($classe, 1, $this->business->id, ['observacao' => 'x', $campo => 10]), $this->user);
+
+    expect($check->allowed)->toBeFalse();
+    expect($check->reason)->toContain("O campo {$campo} nao pode ser revertido");
+})->with([
+    'total da venda'  => [\App\Transaction::class, 'final_total'],
+    'base da venda'   => [\App\Transaction::class, 'total_before_tax'],
+    'status da venda' => [\App\Transaction::class, 'status'],
+    'comissao'        => [\App\Transaction::class, 'commission_agent'],
+    'pagamento'       => [\App\TransactionPayment::class, 'amount'],
+    'preco'           => [\App\Variation::class, 'default_sell_price'],
+    'estoque'         => [\App\VariationLocationDetails::class, 'qty_available'],
+    'quantidade'      => [\App\TransactionSellLine::class, 'quantity'],
+    'valor em aberto' => [\Modules\Financeiro\Models\Titulo::class, 'valor_aberto'],
+    'status do titulo' => [\Modules\Financeiro\Models\Titulo::class, 'status'],
+    'empresa'         => [\App\Contact::class, 'business_id'],
+]);
+
+it('cenario 7b: status em model sem efeito de valor nao e barrado pela lista', function () {
+    $check = $this->service->canRevert(valorLog(\App\Contact::class, 1, $this->business->id, ['status' => 'x']), $this->user);
+
+    expect($check->reason ?? '')->not->toContain('nao pode ser revertido via undo');
+});
+
+it('cenario 7c: revert de total da venda nao altera o valor gravado', function () {
+    Schema::disableForeignKeyConstraints();
+    try {
+        $venda = DB::table('transactions')->insertGetId([
+            'business_id' => $this->business->id, 'status' => 'final', 'transaction_date' => now(),
+            'created_by' => $this->user->id, 'essentials_duration' => 0, 'final_total' => 150,
+        ]);
+    } finally {
+        Schema::enableForeignKeyConstraints();
+    }
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    expect(fn () => $this->service->revert(valorLog(\App\Transaction::class, $venda, $this->business->id, ['final_total' => 100], true), $user, 'motivo com tamanho valido'))
+        ->toThrow(\DomainException::class, 'O campo final_total nao pode ser revertido');
+
+    expect((float) DB::table('transactions')->where('id', $venda)->value('final_total'))->toBe(150.0);
+});
+
+it('cenario 7d: revert de estoque nao altera a quantidade gravada', function () {
+    Schema::disableForeignKeyConstraints();
+    try {
+        $saldo = DB::table('variation_location_details')->insertGetId([
+            'product_id' => 1, 'product_variation_id' => 1, 'variation_id' => 1, 'location_id' => 1, 'qty_available' => 7,
+        ]);
+    } finally {
+        Schema::enableForeignKeyConstraints();
+    }
+    $user = $this->usuarioComPermissoes(['auditoria.revert.unlimited'], $this->business);
+
+    expect(fn () => $this->service->revert(valorLog(\App\VariationLocationDetails::class, $saldo, $this->business->id, ['qty_available' => 2], true), $user, 'motivo com tamanho valido'))
+        ->toThrow(\DomainException::class, 'O campo qty_available nao pode ser revertido');
+
+    expect((float) DB::table('variation_location_details')->where('id', $saldo)->value('qty_available'))->toBe(7.0);
 });

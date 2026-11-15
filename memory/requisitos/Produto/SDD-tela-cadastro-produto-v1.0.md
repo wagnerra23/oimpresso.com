@@ -1174,6 +1174,50 @@ qual é o local padrão.
   `products.local_padrao_id`; o `store()` e o `update()` gravam o padrão e o endereço (`product_racks`)
   sem mexer em saldo e recusam local de outra empresa. Casos `UC-PCAD-22` e `UC-PEDIT-19`. O bloco
   "Locais de armazenagem" da tela vem no PR seguinte.
+- **Na tela (2026-11-10):** o bloco "Locais de armazenagem" está no Novo e no Editar (#10628). No
+  Editar entrou a coluna "Em estoque", só leitura, e o local gravado sai só sem saldo, como a [M]
+  decidiu: o envio leva `product_racks_remover`, e o servidor confere o saldo de novo, apaga só o
+  endereço e não mexe em quantidade. Caso `UC-PEDIT-21`.
+- 🔶 **Quem edita os locais de armazenagem — proposta de 2026-11-11.** Pergunta do [F]: quem deveria
+  mudar esse dado, o estoquista, o vendedor ou o administrador?
+  - **Hoje (medido em 2026-11-11):** quem tem `product.update` edita os locais, junto com o resto do
+    produto (nome, preço, impostos). O estoquista que só precisa acertar a prateleira teria de receber
+    acesso a preço e imposto. O dado em si não é sensível (não é dado pessoal nem valor em dinheiro); o
+    que pede controle é o acesso que vem junto com ele.
+  - **Proposta:**
+    1. **Permissão nova `product.armazenagem`**, "Editar locais de armazenagem do produto", na tela de
+       papéis junto das de Produtos. Nasce sem ninguém, como `sell.aprovar_margem_baixa`: o
+       administrador já passa por tudo, e cada empresa marca a permissão no papel do estoquista.
+    2. **`product.update` continua bastando.** Quem já edita produto segue editando os locais; ninguém
+       perde acesso no dia em que isto entrar.
+    3. **Só com `product.armazenagem`, só os locais.** O Editar abre com o resto bloqueado e o bloco
+       "Locais de armazenagem" liberado. O envio vai a uma rota própria, que grava só locais, endereço
+       e local padrão (as mesmas regras de `UC-PEDIT-19` e `UC-PEDIT-21`, incluindo a de saldo) e ignora
+       qualquer outro campo, mesmo que venha.
+    4. **Histórico de quem mudou.** Hoje o log do produto (`inventory.product`) não guarda o local padrão,
+       e o endereço fica em outra tabela (`product_racks`), sem log. A proposta registra no histórico
+       cada troca de endereço, de local padrão e cada local tirado, com quem fez e quando.
+    5. **O saldo segue só leitura para todos.** Estoque só muda por compra, venda, ajuste ou
+       transferência.
+  - **O vendedor** não recebe a permissão por padrão: ele usa o endereço para achar o produto, não
+    decide onde guardar. Cada empresa pode dar, se quiser.
+  - **Se o [W] mergear o PR desta proposta, vale a proposta** e a implementação vem num PR seguinte.
+    Para mudar, basta comentar no PR.
+  - **Valendo (2026-11-12):** o merge do #10765 foi autorizado pelo [F], não pelo [W] (registrado no PR).
+  - **No servidor (2026-11-12):** permissão `product.armazenagem` na tela de papéis; rota
+    `PATCH /products/{id}/armazenagem`, que grava só locais, endereço e local padrão; histórico
+    `armazenagem_alterada` no log do produto, com o antes e o depois, também quando a mudança vem do
+    Editar completo. Caso `UC-PEDIT-22`. A tela (Editar aberto só com o bloco liberado para quem tem só
+    a permissão nova) vem no PR seguinte.
+  - **Na tela (2026-11-12):** quem tem só `product.armazenagem` abre o Editar com o nome, o código e o
+    bloco "Locais de armazenagem". **Mudança em relação à proposta:** o resto do produto não aparece,
+    em vez de aparecer bloqueado, porque o Editar completo mostra preço de compra e de venda, e o
+    servidor mandaria esses valores mesmo com os campos travados. Assim o servidor nem envia preço e
+    imposto para quem não pode editá-los. Caso `UC-PEDIT-23`. Ainda falta o caminho até a tela: a lista e
+    a ficha só mostram "Editar" para quem tem `product.update`.
+  - **O caminho até a tela (2026-11-12):** para quem tem só `product.armazenagem`, o menu da linha e o
+    painel da lista (`UC-PIDX-47`) e a ficha (`UC-PSHOW-08`) mostram "Locais de armazenagem" no lugar de
+    "Editar", só em produto com estoque controlado.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
@@ -1249,7 +1293,15 @@ volta para uma margem alvo.
     comunicação visual. Com isso não sobra pergunta para o [W]: os quatro pontos estão respondidos.
   - **Antes de ligar** (REGRA MESTRE de valor): a implementação mostra o antes e o depois do preço numa
     compra de exemplo, conferido por dois caminhos, e só liga com a aprovação do [W].
-- **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+- **Casos de uso:** `UC-PCAD-23` (`Create.casos.md`) e `UC-PEDIT-20` (`Edit.casos.md`).
+- **Na tela e no servidor (2026-11-10), só a escolha:** colunas `products.politica_preco` (padrão
+  `fixo`) e `margem_alvo_pct`; o `store()` e o `update()` gravam as duas, e o campo "Política de preço"
+  entrou no card "Impostos e preços" do Novo e do Editar, com "Margem alvo (%)" só na opção Margem
+  alvo. **Nenhum preço muda neste passo:** o recebimento da compra ainda não lê a política. Isso é o
+  passo seguinte, que mexe em valor e liga só depois do antes e depois aprovado pelo [W]. Atenção para
+  ele: o padrão da regra da compra em Fluxos já é `regraEm = produto`, então, quando o recebimento
+  passar a ler a política, as empresas no padrão deixam de receber proposta de preço para todo produto
+  que estiver em Preço fixo, que é o que todo produto existente tem hoje.
 
 #### CU-PROD-22 — Card Produção: o roteiro do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
@@ -1504,6 +1556,7 @@ de produção ele segue, e um link para a tela de Roteiros.
 
 **Histórico:**
 
+- 2026-11-11 — **`CU-PROD-20`: proposta de quem edita os locais de armazenagem** (v1.0.18): permissão nova `product.armazenagem` só para os locais, sem dar acesso a preço e imposto; `product.update` continua bastando; rota própria que grava só os locais; histórico de quem mudou. Vale se o [W] mergear o PR. Pergunta do [F]. [F+C]
 - 2026-10-22 — **`CU-PROD-21`: política de preço do produto** (v1.0.17): três opções com os nomes de Fluxos e da Fabricação (Preço fixo · Acompanha o custo · Margem alvo), produto novo com Preço fixo, só no protótipo. Registrado que a US-PROD-030 usa outros nomes e ficou atrás do fluxo decidido depois (ADR 0435 e regra da compra no código). [M+C]
 - 2026-10-27 — **Estoque mínimo: o comprador e o cálculo** (v1.0.16), a partir do comentário do [W] no #9930: `CU-PROD-04` item 2 passa a dizer que o item abaixo do mínimo já aparece na lista Necessidade de compra (US-COM-030, #9878), que falta gerar a requisição ou a cotação dali (US-COM-031), e como calcular o mínimo (consumo médio × prazo total de reposição, com margem de segurança proposta). Registra o que falta para o sistema sugerir o mínimo e o conflito com o "Pedir até" do MRP. Texto sobreposto com autorização da [M]. Na mesma versão, revisão da [M] a partir de um caso do [L]: o **estoque máximo volta, opcional por produto**, como teto da compra (barra de pouco giro enferruja parada); substitui a decisão de 2026-10-22 de não ter máximo. [F+C] [M+C]
 - 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]

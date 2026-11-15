@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * comvis:health — health-check diário do módulo ComunicacaoVisual (D9 observability v3).
  *
- * Roda em cron schedule (ex: 06:30 BRT após jana:health-check). Reporta pra log estruturado
+ * Agendado todo dia às 06:40, só em produção, pelo ComunicacaoVisualServiceProvider (UC-CVHIG-03). Reporta pra log estruturado
  * (canal padrão) métricas chave do módulo: orçamentos ativos, apontamentos drift>20%,
  * tabelas presentes.
  *

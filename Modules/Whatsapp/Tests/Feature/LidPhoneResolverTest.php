@@ -34,6 +34,29 @@ beforeEach(function () {
     }
     Schema::dropIfExists('whatsapp_lid_pn_map');
 
+    // O observer do LidPhoneMap enfileira BackfillLidConversationsJob, que roda síncrono
+    // no teste e varre conversations; o observer de Message denormaliza a última mensagem
+    // nela. Sem a tabela o teste depende de outro arquivo da lane tê-la deixado criada.
+    Schema::dropIfExists('conversations');
+    Schema::create('conversations', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('channel_id')->nullable();
+        $table->unsignedInteger('contact_id')->nullable();
+        $table->string('customer_external_id', 150)->nullable();
+        $table->string('lid', 100)->nullable();
+        $table->string('contact_name', 120)->nullable();
+        $table->string('status', 20)->default('open');
+        $table->boolean('is_blocked')->default(false);
+        $table->timestamp('last_inbound_at')->nullable();
+        $table->timestamp('last_outbound_at')->nullable();
+        $table->timestamp('last_message_at')->nullable();
+        $table->unsignedInteger('unread_count')->default(0);
+        $table->string('last_message_preview', 120)->nullable();
+        $table->string('last_message_direction', 10)->nullable();
+        $table->timestamps();
+    });
+
     Schema::create('whatsapp_lid_pn_map', function ($table) {
         $table->id();
         $table->unsignedInteger('business_id');

@@ -163,18 +163,12 @@ class CertificadoService
             return $this->carregarCertificado($cert);
         }
 
-        // Fallback ADR 0090 — lê do legado business.certificado durante coexistência
-        $legado = $this->lerCertLegado($businessId);
-        if ($legado) {
-            Log::warning('CertificadoService: FALLBACK_LEGACY usado', [
-                'business_id' => $businessId,
-                'todo'        => 'Rode `php artisan nfe:migrate-cert-business ' . $businessId . '` pra subir o cert pra nfe_certificados (encrypted)',
-            ]);
-            return $legado;
-        }
-
+        // ADR 0449 (Fase 4 da ADR 0090, lote 1.5 · N5-08): o fallback para `business.certificado`
+        // (pfx em claro, senha em base64) saiu. Medido em produção em 2026-11-10: 40 empresas com
+        // cert legado, nenhum utilizável (39 ilegíveis pelo NFePHP, 1 vencido) e nenhum uso no log.
+        // Quem tem só o legado envia o A1 de novo na tela do certificado.
         throw new RuntimeException(
-            "Business {$businessId} não tem certificado A1 ativo (nem em nfe_certificados nem em business.certificado legado)."
+            "Business {$businessId} não tem certificado A1 ativo. Envie o certificado em /nfe-brasil/configuracao/certificado."
         );
     }
 
@@ -217,7 +211,7 @@ class CertificadoService
      *
      * Chain:
      *   1. cert primário business (`nfe_certificados`)
-     *   2. cert legado `business.certificado` BLOB (ADR 0090)
+     *   2. (removida pela ADR 0449: cert legado `business.certificado`)
      *   3. cert institucional (config fiscal.fallback_business_id)
      *   4. RuntimeException — caller renderiza badge UI "configure cert"
      *
@@ -231,7 +225,7 @@ class CertificadoService
      */
     public function carregarParaSefazComFallback(int $businessId, ?string $contextoConsulta = null): array
     {
-        // Camada 1+2: cert primário ou legado (delega pro método existente).
+        // Camada 1: cert primário (a camada 2, legado, saiu pela ADR 0449).
         try {
             $cert = $this->carregarParaSefaz($businessId);
             $cert['cert_business_id'] = $businessId;
@@ -316,6 +310,9 @@ class CertificadoService
     /**
      * Lê cert do legado `business.certificado` (BLOB) + `business.senha_certificado` (base64).
      * Retorna null se ausente. ADR 0090.
+     *
+     * Desde a ADR 0449 nenhum caminho de emissão usa isto: o `carregarParaSefaz` não cai mais no
+     * legado. Fica só como leitor da linha antiga, para inspeção e migração.
      *
      * @return array{pfx_binary: string, senha: string, valido_ate: ?\DateTimeInterface, source: string}|null
      */

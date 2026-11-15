@@ -62,6 +62,11 @@ beforeEach(function () {
 
     Schema::create('clients_feedbacks', function ($table) {
         $table->id();
+        // O observer de ClientFeedback grava assinatura e relevância ao criar.
+        $table->string('signature', 40)->nullable();
+        $table->decimal('relevance_score', 5, 2)->default(0);
+        $table->timestamp('relevance_score_at')->nullable();
+        $table->timestamp('last_seen_at')->nullable();
         $table->unsignedInteger('business_id')->index();
         $table->unsignedBigInteger('contact_id')->nullable()->index();
         $table->unsignedBigInteger('source_message_id')->nullable()->index();
@@ -126,7 +131,7 @@ it('R-WA-FB-DEV-001 — pagante (customer) + sev=3 + create_dev_task → dev_tas
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -150,7 +155,7 @@ it('R-WA-FB-DEV-002 — pagante + sev=1 → bloqueado, reason=severity_below_thr
         'severity_nng' => 1,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -171,7 +176,7 @@ it('R-WA-FB-DEV-003 — não-pagante (type=lead) + sev=3 → bloqueado, reason=n
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -190,7 +195,7 @@ it('R-WA-FB-DEV-004 — sem contact_id + sev=3 → bloqueado, reason=no_contact_
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -217,7 +222,7 @@ it('R-WA-FB-DEV-005 — cross-tenant: contact biz=99 não qualifica em sessão b
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
 
     $resp = app(ClientFeedbackController::class)->capture($req);
     expect($resp->getStatusCode())->toBe(201);
@@ -246,10 +251,18 @@ it('R-WA-FB-DEV-006 — HasBusinessScope: feedback de biz=1 não visível em biz
         'severity_nng' => 3,
         'create_dev_task' => true,
     ]));
-    $req->setLaravelSession(session());
+    $req->setLaravelSession(app('session.store'));
     app(ClientFeedbackController::class)->capture($req);
 
-    // Troca pra biz=99 — não deve enxergar
+    // Troca pra biz=99 — não deve enxergar. O ScopeByBusiness só filtra com usuário autenticado.
+    $user = new class extends \Illuminate\Foundation\Auth\User {
+        protected $table = 'users';
+        protected $guarded = [];
+        public function can($abilities, $arguments = []): bool { return false; }
+    };
+    $user->id = 7;
+    $user->business_id = 99;
+    auth()->setUser($user);
     session()->put('user.business_id', 99);
     expect(ClientFeedback::count())->toBe(0);
 });

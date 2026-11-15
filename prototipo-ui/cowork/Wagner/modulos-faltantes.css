@@ -163,10 +163,11 @@
 
 /* PCP miniatura (US-COMVIS-003) */
 .cvi-pcp{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
-.cvi-pcp-h{display:flex;flex-direction:column;gap:2px;margin-bottom:12px}
+.cvi-pcp-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.cvi-pcp-h-t{display:flex;flex-direction:column;gap:2px}
 .cvi-pcp-h h2{margin:0;font-size:13.5px;font-weight:600;color:var(--text)}
 .cvi-pcp-h small{font-size:11.5px;color:var(--text-mute)}
-.cvi-pcp-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.cvi-pcp-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .cvi-pcp-col{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:10px;background:var(--bg-2);border-top:2px solid color-mix(in oklch,var(--accent) 45%,transparent)}
 .cvi-pcp-col-h{display:flex;justify-content:space-between;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim)}
 .cvi-pcp-col-h span{color:var(--text-mute)}

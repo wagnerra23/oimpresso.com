@@ -77,6 +77,9 @@ beforeEach(function () {
         $table->timestamp('last_inbound_at')->nullable();
         $table->timestamp('last_outbound_at')->nullable();
         $table->timestamp('last_message_at')->nullable();
+        // US-WA-072 — o observer de Message denormaliza a última mensagem aqui.
+        $table->string('last_message_preview', 120)->nullable();
+        $table->string('last_message_direction', 10)->nullable();
         $table->unsignedInteger('unread_count')->default(0);
         $table->timestamps();
     });

@@ -6,8 +6,8 @@ type: sdd
 module: NfeBrasil
 status: ativo
 owner: W
-version: 1.0.0
-last_updated: "2026-07-28"
+version: 1.1.0
+last_updated: "2026-11-11"
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -60,6 +60,28 @@ related_us:
 > [passo 5](../_Governanca/programa-ondas/passo-5-sdd-por-modulo.md).
 > **Nenhum CU nasce `✅`** — os que têm teste nascem `🧪` (aguardando veredito da lane); os sem
 > teste nascem `⬜`.
+
+> ### 🔖 Changelog v1.1.0 (2026-11-11) — auditoria NfeBrasil, lotes 0 a 4 no código
+> As seções `curado` abaixo seguem sendo a foto de 2026-07-28; o que mudou no código desde então está
+> aqui, com o PR que fez a mudança. Conferido em `origin/main` `444b248e60`. Nenhum CU mudou de estado
+> por esta errata: estado de CU vem de veredito de lane, não de leitura.
+>
+> | Fluxo | Hoje | PR |
+> |---|---|---|
+> | Arquivo fiscal | XML, DANFE e DF-e no disco privado `nfe_fiscal`, fora de `public/uploads` | [#10692](https://github.com/wagnerra23/oimpresso.com/pull/10692) |
+> | XML guardado | o XML autorizado leva o protocolo (`nfeProc`) | [#10696](https://github.com/wagnerra23/oimpresso.com/pull/10696) |
+> | Duplicidade | antes de liberar o número de um `erro_envio`, consulta a chave na SEFAZ; `denegada` mantém o status | [#10698](https://github.com/wagnerra23/oimpresso.com/pull/10698) |
+> | Inutilização | não sobrescreve nota autorizada ou cancelada | [#10701](https://github.com/wagnerra23/oimpresso.com/pull/10701) |
+> | "Detalhes" da venda | abre a nota certa, em NF-e e NFC-e; "Baixar DANFE" usa a rota que existe (R3, R4, R5) | [#10702](https://github.com/wagnerra23/oimpresso.com/pull/10702) |
+> | Cancelar a venda | cancela a NF-e autorizada; a nota fica no banco como `cancelada` | [#10697](https://github.com/wagnerra23/oimpresso.com/pull/10697) |
+> | Nota autorizada | `NFeAutorizada`/`NFCeAutorizada` saem do `NfeService::processarRetorno`, depois do commit, em todo caminho | [#10723](https://github.com/wagnerra23/oimpresso.com/pull/10723) |
+> | Emissão concorrente | `Cache::lock` por empresa+venda no `NfeService::emitir` + `EmitirNfceJob` `ShouldBeUnique` (CU-NFE-01) | [#10725](https://github.com/wagnerra23/oimpresso.com/pull/10725) |
+> | DF-e | depois de "nada novo" (137) ou de 656, o cursor espera 1 h (`proxima_consulta_em`) | [#10729](https://github.com/wagnerra23/oimpresso.com/pull/10729) |
+> | CC-e | ambiente, UF e CNPJ do emitente pelas fontes do emitente (a UF era sempre SP) | [#10731](https://github.com/wagnerra23/oimpresso.com/pull/10731) |
+> | Certificado | só de `nfe_certificados`, sem fallback para `business.certificado` ([ADR 0449](../../decisions/0449-nfebrasil-certificado-sem-fallback-legado.md), **proposta**) | [#10733](https://github.com/wagnerra23/oimpresso.com/pull/10733) |
+> | Permissões | emitir exige `nfebrasil.emit.manage` (papéis que criam venda receberam a permissão); toggle, template, testar certificado, DANFE, reenviar, status, lista e inutilizações ganharam permissão (§5.4.1, R1) | [#10722](https://github.com/wagnerra23/oimpresso.com/pull/10722) · [#10728](https://github.com/wagnerra23/oimpresso.com/pull/10728) |
+> | Pacote | toda rota `/nfe-brasil/*` com login exige `fiscal_module`; link do contador e DANFE assinado seguem públicos | [#10732](https://github.com/wagnerra23/oimpresso.com/pull/10732) |
+> | Testes | 16 arquivos entram na lane MySQL; isolamento 98×99 de contadores, envios e cursor NSU; render e axe das telas | [#10734](https://github.com/wagnerra23/oimpresso.com/pull/10734) · [#10727](https://github.com/wagnerra23/oimpresso.com/pull/10727) · [#10730](https://github.com/wagnerra23/oimpresso.com/pull/10730) · [#10726](https://github.com/wagnerra23/oimpresso.com/pull/10726) |
 
 ---
 
@@ -194,7 +216,7 @@ de 2s e lá há cache de 60s. Confundir os dois é o vetor das telas competindo 
 | **[ADR 0093] multi-tenant** | Models com `HasBusinessScope`: `NfeEmissao`, `NfeEvento`, `NfeDfeRecebido`, `NfeDfeEvento`, `NfeDfeNsuState`, `NfeCertificado`, `NfeFiscalRule`, `NfeBusinessConfig`. **Assimetria medida (§5.4.2):** parte dos Controllers faz `where('business_id', …)` explícito (defesa em profundidade) e parte confia só no scope — e o `ScopeByBusiness` faz early-return quando `! auth()->check()`. |
 | **[ADR 0101] biz=1, nunca biz=4** | biz=1 e biz=2 são os semeados pelo `pest-mysql-setup`. biz=4 é a Larissa em produção — **jamais** em teste. |
 | **REGRA MESTRE valor/estoque `[V0]`** | `MotorTributarioService` e a cascade `ProdutoFiscalContext` decidem **alíquota, CST/CSOSN e CFOP** de cada item — erro ali vira multa fiscal, não bug de tela. `NfeFiscalRule` e `NfeBusinessConfig` são superfícies `[V0]`. |
-| **Numeração fiscal** | NFe cancelada via SEFAZ **nunca** sofre `forceDelete()` — o número permanece usado oficialmente (CONFAZ Ajuste SINIEF 07/2005 Art. 14). Só `rejeitada`/`denegada`/`erro_envio` viram `inutilizada`. Ver [adr/tech/0001](adr/tech/0001-numeracao-com-lockForUpdate.md) e [adr/tech/0003](adr/tech/0003-retencao-xml-5-anos-write-once.md). |
+| **Numeração fiscal** | NFe cancelada via SEFAZ **nunca** sofre `forceDelete()` — o número permanece usado oficialmente (CONFAZ Ajuste SINIEF 07/2005 Art. 14). Só `rejeitada`/`erro_envio` viram `inutilizada`; `denegada` está registrada na SEFAZ e mantém o status. Ver [adr/tech/0001](adr/tech/0001-numeracao-com-lockForUpdate.md) e [adr/tech/0003](adr/tech/0003-retencao-xml-5-anos-write-once.md). |
 | **PII / LGPD** | `NfeCertificado.encrypted_password` é `$hidden`. O XML da NF-e carrega **CPF/CNPJ e endereço do consumidor** — [PII-LGPD-FISCAL.md](PII-LGPD-FISCAL.md) é o documento dono. Anti-hook de charter: *"não loga PII — conteúdo XML não vai em log plain text"*. |
 | **[ADR 0062] runtime** | Pest deste módulo roda no CI / CT 100 — **nunca** local. E o `oimpresso-staging` **não tem as tabelas do NfeBrasil** (§8.2), então a lane de CI é o único lugar que executa de verdade. |
 
@@ -372,6 +394,11 @@ Varredura contada em `Modules/NfeBrasil/Http/Controllers/TributacaoController.ph
 > verde (recibo no [`RegraForm.casos.md`](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)).
 > A tabela acima é a varredura de 2026-07-28 e fica como estava. `@toggleAutoEmission` e
 > `@aplicarTemplate` seguem sem gate.
+>
+> ↳ **2026-11-11 (auditoria NfeBrasil, lote 3.2):** `@toggleAutoEmission` e `@aplicarTemplate` passaram a
+> exigir `nfe.tributacao.manage` pelo middleware `PermissaoNfe` na rota ([#10728](https://github.com/wagnerra23/oimpresso.com/pull/10728)). As cinco mutações
+> agora têm gate. Os GETs da tributação seguem sem permissão própria; o grupo inteiro exige o pacote
+> `fiscal_module` desde [#10732](https://github.com/wagnerra23/oimpresso.com/pull/10732).
 
 O rota-group é `['web','auth','SetSessionData','language','timezone','AdminSidebarMenu']` — **sem**
 middleware de permissão. E o docblock da classe **afirma o contrário**: *"Permissão:
@@ -536,6 +563,9 @@ naturezas diferentes, e confundi-los faria a lista parecer um placar de falha:
 4. `[must]` sem `business.id` na sessão → **400**
 5. ⬜ **sem teste** — o throttle 30/min (proteção do webservice; `RetencaoLoopE2ETest` só prova que
    a rota está registrada)
+6. `[must]` duas emissões da mesma venda ao mesmo tempo não viram duas notas: a segunda espera o
+   `Cache::lock` por empresa+venda ([#10725](https://github.com/wagnerra23/oimpresso.com/pull/10725), `EmissaoTravaDaVendaContratoTest`)
+7. `[T0]` emitir exige `nfebrasil.emit.manage` ([#10722](https://github.com/wagnerra23/oimpresso.com/pull/10722))
 
 #### CU-NFE-02 — Acompanhar o resultado da emissão até o estado terminal `[must]` 🧪
 *Dado* uma venda que acabou de ser finalizada; *quando* a operadora abre a tela de status; *então*
@@ -555,7 +585,8 @@ ela vê o desfecho SEFAZ da nota **daquela venda** e a consulta para sozinha qua
 
 #### CU-NFE-04 — O número fiscal nunca é reaproveitado nem apagado `[must]` `[T0]` `[reg]` 🧪
 *Dado* uma nota que precisou ser retransmitida; *quando* a nova sai; *então* a antiga **permanece
-no banco** (marcada `inutilizada`, `transaction_id` liberado) e a nova recebe número novo.
+no banco** (marcada `inutilizada`, ou mantida `denegada`, com `transaction_id` liberado) e a nova
+recebe número novo. Antes de liberar um `erro_envio`, o sistema consulta a chave na SEFAZ.
 > 🔗 Contrato canônico: [`CU-FISC-11`](../Fiscal/SDD-cockpit-fiscal-v1.0.md). Base legal: CONFAZ
 > Ajuste SINIEF 07/2005 Art. 14 + [adr/tech/0001](adr/tech/0001-numeracao-com-lockForUpdate.md).
 > Testes deste lado: `NfeServiceRetransmitirTest`, `NfeServiceIdempotenciaRetryTest`.
@@ -755,18 +786,18 @@ A trilha Gold (`US-NFE-042..048`) está 🔒 dormente.
 
 | # | Risco | Severidade | Estado |
 |---|---|---|---|
-| R1 | **3 de 5 mutações de tributação sem gate de permissão** — incluindo o toggle da auto-emissão (§5.4.1) | **alta** (fiscal ×150) | 🔴 teste failing-first nesta corrida |
+| R1 | **3 de 5 mutações de tributação sem gate de permissão** — incluindo o toggle da auto-emissão (§5.4.1) | **alta** (fiscal ×150) | ✅ fechado em 2026-11-11 ([#10728](https://github.com/wagnerra23/oimpresso.com/pull/10728); o `destroy` já em 2026-10-06) |
 | R2 | **Import CSV resolve o tenant duas vezes** — troca de business entre preview e aplicar grava no lugar errado (§5.3 F8) | alta (`[V0]` `[T0]`) | ✅ fechado em 2026-10-06 (playbook Fiscal thread 19) — recusa por carimbo do business |
-| R3 | **Tela de status só enxerga NFC-e 65** — NF-e 55 fica eternamente "aguardando" (§5.3 F3) | média (confiança) | ⬜ decisão [W] |
-| R4 | **Link "Baixar DANFE" aponta para rota inexistente** (§5.4.3) | média | ⬜ decisão [W] |
-| R5 | **"Detalhes" no Sells passa id de emissão onde a rota espera id de transaction** (§5.4.3) | média | ⬜ fora da área deste chip |
+| R3 | **Tela de status só enxerga NFC-e 65** — NF-e 55 fica eternamente "aguardando" (§5.3 F3) | média (confiança) | ✅ a tela lista todas as emissões da venda ([#10702](https://github.com/wagnerra23/oimpresso.com/pull/10702)); o endpoint de polling do POS segue só NFC-e, por desenho |
+| R4 | **Link "Baixar DANFE" aponta para rota inexistente** (§5.4.3) | média | ✅ fechado em 2026-11-10 ([#10702](https://github.com/wagnerra23/oimpresso.com/pull/10702)) |
+| R5 | **"Detalhes" no Sells passa id de emissão onde a rota espera id de transaction** (§5.4.3) | média | ✅ fechado em 2026-11-10 ([#10702](https://github.com/wagnerra23/oimpresso.com/pull/10702)) |
 | R6 | **Duas chaves de sessão para o mesmo tenant** no mesmo módulo (§5.4.2) | média | 🟡 contornado nos testes novos |
 | R7 | **Charter de Manifestação com `status` contraditório** (§5.4.5) | média | ⬜ decisão [W] |
 | R8 | **Non-Goals do `NfceStatus` conflitam com o `.tsx`** (§6.6 nota ¹) | média | ⬜ decisão [W] |
 | R9 | **`oimpresso-staging` sem as tabelas do módulo** — a suíte SKIPa e o verde não prova nada (§8.2) | alta (gate mudo) | 🟡 conhecido, reportado |
 | R10 | **A 1ª nota real nunca foi emitida** — `US-NFE-054`/`059` `todo` | alta (negócio) | ⬜ humano-limitado |
 | R11 | **`Manifestacao` não usa `Inertia::defer`** — desvio consciente por regressão de render (§5.3 F9) | baixa | 🟡 documentado no código |
-| R12 | **Contingência EPEC, MDF-e/CT-e** ausentes ([BRIEFING](BRIEFING.md) §Gaps) | média | ⬜ backlog |
+| R12 | **Contingência EPEC, MDF-e/CT-e** ausentes ([BRIEFING](BRIEFING.md) §Gaps) | média | 🟡 em 2026-11-11: SVC-AN, SVC-RS, EPEC e off-line NFC-e existem (US-NFE-006/071); **FS-DA não existe**; MDF-e/CT-e seguem ausentes (ADR 0444 **proposta**) |
 
 ---
 

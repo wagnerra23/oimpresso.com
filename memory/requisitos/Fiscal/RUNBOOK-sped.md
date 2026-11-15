@@ -91,9 +91,11 @@ HTTP/2 200
 Content-Type: text/plain; charset=UTF-8
 Content-Disposition: attachment; filename="EFD-ICMS-IPI-2026-05.txt"
 Content-Length: ...
-X-Sped-Layout-Version: 018
+X-Sped-Layout-Version: 020
 X-Robots-Tag: noindex
 ```
+
+`X-Sped-Layout-Version` é o `COD_VER` do ano do período (`EfdIcmsIpiLeiaute::codVer`), o mesmo do registro `0000`: `019` em 2025, `020` em 2026.
 
 Controller `SpedController::gerar` thin delegate — Service faz o trabalho.
 

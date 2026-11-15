@@ -12,9 +12,28 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { ArrowLeft, FileText, Plus, Search } from 'lucide-react';
+import { ArrowLeft, FileText, MoreVertical, Plus, Printer, Search, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
+import { printSaleReceipt } from '@/Lib/printSaleReceipt';
+import { Grid } from '@/Components/layout';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 
@@ -27,6 +46,8 @@ interface DraftRow {
   total_items: number;
   total_quantity: number;
   added_by: string | null;
+  /** Total gravado do rascunho (`transactions.final_total`, decimal cru do MySQL). */
+  final_total: number;
 }
 
 export interface SellsDraftsPageProps {
@@ -36,7 +57,8 @@ export interface SellsDraftsPageProps {
     customers?: Record<number, string>;  // deferred
     salesRepresentative: Record<number, string>;
   };
-  permissions: { view_all: boolean; view_own: boolean };
+  /** `delete` = `draft.delete` (P-076 — Excluir no menu Ações da linha). */
+  permissions: { view_all: boolean; view_own: boolean; delete?: boolean };
   urls: { datatable: string; back: string };
 }
 
@@ -45,6 +67,14 @@ export interface SellsDraftsPageProps {
 function quantidadePtBR(v: unknown): number {
   if (typeof v === 'number') return v;
   const n = Number(String(v ?? '').replace(/\./g, '').replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+}
+
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+// `final_total` chega como decimal do MySQL ("389.7000") — ponto é decimal aqui, não milhar.
+function valorDoBanco(v: unknown): number {
+  const n = typeof v === 'number' ? v : Number(String(v ?? ''));
   return Number.isFinite(n) ? n : 0;
 }
 
@@ -83,10 +113,14 @@ function draftAgeLabel(days: number | null): string {
 }
 
 export default function SellsDrafts(props: SellsDraftsPageProps) {
-  const { kpis, urls } = props;
+  const { kpis, urls, permissions } = props;
+  const podeExcluir = Boolean(permissions?.delete);
   const [rows, setRows] = useState<DraftRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
+  // P-076 — rascunho escolhido no menu Ações para excluir (abre a confirmação).
+  const [aExcluir, setAExcluir] = useState<DraftRow | null>(null);
+  const [excluindo, setExcluindo] = useState<boolean>(false);
 
   // Fetch DataTables endpoint AJAX legacy (preservado back-compat).
   const fetchDrafts = useCallback(async () => {
@@ -111,6 +145,7 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
         total_items: quantidadePtBR(r.total_items),
         total_quantity: quantidadePtBR(r.total_quantity),
         added_by: r.added_by ? String(r.added_by) : null,
+        final_total: valorDoBanco(r.final_total),
       }));
       setRows(items);
     } catch {
@@ -145,6 +180,48 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [urls.back]);
+
+  const imprimir = async (r: DraftRow) => {
+    try {
+      await printSaleReceipt({ printUrl: `/sells/${r.id}/print`, invoiceNo: r.invoice_no });
+    } catch (e) {
+      toast.error(`Não foi possível imprimir o rascunho ${r.invoice_no}: ${(e as Error).message}`);
+    }
+  };
+
+  // Mesmo endpoint da pílula Rascunhos de /sells: DELETE /sells/{id}
+  // (SellController@destroy). Responde 200 com {success:false} quando recusa.
+  const confirmarExclusao = async () => {
+    if (!aExcluir) return;
+    const r = aExcluir;
+    setExcluindo(true);
+    try {
+      const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+      const res = await fetch(`/sells/${r.id}`, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        credentials: 'same-origin',
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        toast.error(json?.msg ?? `Não foi possível excluir o rascunho ${r.invoice_no}.`);
+        return;
+      }
+      toast.success(`Rascunho ${r.invoice_no} excluído.`);
+      setAExcluir(null);
+      // Lista e total vêm do servidor de novo — o total do topo não é contado no navegador.
+      await fetchDrafts();
+      router.reload({ only: ['kpis'] });
+    } catch (e) {
+      toast.error(`Erro ao excluir: ${(e as Error).message}`);
+    } finally {
+      setExcluindo(false);
+    }
+  };
 
   const filteredRows = search.trim()
     ? rows.filter(
@@ -250,6 +327,7 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
                   <th className="text-left px-3 py-2 font-medium">Cliente</th>
                   <th className="text-left px-3 py-2 font-medium">Local</th>
                   <th className="text-right px-3 py-2 font-medium">Itens</th>
+                  <th className="text-right px-3 py-2 font-medium">Valor</th>
                   <th className="text-right px-5 py-2 font-medium">Ações</th>
                 </tr>
               </thead>
@@ -275,15 +353,54 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
                       <td className="px-3 py-3">{r.customer_name ?? '—'}</td>
                       <td className="px-3 py-3 text-muted-foreground">{r.business_location}</td>
                       <td className="px-3 py-3 text-right tabular-nums">{r.total_items}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{BRL.format(r.final_total)}</td>
                       <td className="px-5 py-3 text-right">
-                        <Link
-                          href={`/sells/${r.id}/edit`}
-                          className="vd-draft-continue-btn"
-                          aria-label={`Continuar venda ${r.invoice_no}`}
-                        >
-                          <FileText className="h-3 w-3" />
-                          Continuar venda
-                        </Link>
+                        <div className="inline-flex items-center justify-end gap-1.5">
+                          <Link
+                            href={`/sells/${r.id}/edit`}
+                            className="vd-draft-continue-btn"
+                            aria-label={`Continuar venda ${r.invoice_no}`}
+                          >
+                            <FileText className="h-3 w-3" />
+                            Continuar venda
+                          </Link>
+                          {/* P-076 — menu Ações (aprovado por [M] 2026-11-10): Imprimir · Excluir. */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-7 w-7"
+                                aria-label={`Ações do rascunho ${r.invoice_no}`}
+                              >
+                                <MoreVertical className="h-3.5 w-3.5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-64">
+                              <DropdownMenuItem onSelect={() => imprimir(r)}>
+                                <Printer className="h-4 w-4" />
+                                Imprimir rascunho
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              {podeExcluir ? (
+                                <DropdownMenuItem variant="destructive" onSelect={() => setAExcluir(r)}>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir rascunho
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem disabled className="flex-col items-start gap-0.5">
+                                  <span className="inline-flex items-center">
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir rascunho
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Seu perfil não tem permissão para excluir rascunho. Peça ao administrador.
+                                  </span>
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -292,6 +409,43 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
             </table>
           )}
         </section>
+
+        {/* P-076 — confirmação de exclusão: cliente, itens e valor, sem volta. */}
+        <AlertDialog
+          open={aExcluir !== null}
+          onOpenChange={(aberto) => {
+            if (!aberto && !excluindo) setAExcluir(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir rascunho {aExcluir?.invoice_no}</AlertDialogTitle>
+              <AlertDialogDescription>
+                O rascunho será apagado. Não dá para desfazer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {aExcluir && (
+              <Grid asChild gap={2} className="grid-cols-[auto_1fr] gap-x-4 rounded-md bg-muted/40 px-3 py-2.5 text-sm">
+                <dl>
+                  <dt className="text-muted-foreground">Cliente</dt>
+                  <dd>{aExcluir.customer_name ?? '—'}</dd>
+                  <dt className="text-muted-foreground">Itens</dt>
+                  <dd className="tabular-nums">
+                    {aExcluir.total_items} {aExcluir.total_items === 1 ? 'item' : 'itens'}
+                  </dd>
+                  <dt className="text-muted-foreground">Valor</dt>
+                  <dd className="tabular-nums">{BRL.format(aExcluir.final_total)}</dd>
+                </dl>
+              </Grid>
+            )}
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={excluindo}>Cancelar</AlertDialogCancel>
+              <Button variant="destructive" onClick={confirmarExclusao} disabled={excluindo}>
+                {excluindo ? 'Excluindo…' : 'Excluir rascunho'}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Deferred customers — pre-load dropdown grande pra filtros futuros */}
         <Deferred data="customers" fallback={null}>

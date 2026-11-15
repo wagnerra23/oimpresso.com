@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Producao\Http\Controllers\Concerns\ExigePacoteProducao;
+use Modules\Producao\Services\CustoHoraDecimal;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
@@ -66,7 +67,7 @@ class PostosController extends Controller
         $posto = Posto::query()->where('business_id', $biz)->findOrFail($id);
         $dados = $this->validarPosto($request, $biz, $posto->id);
         // Custo-hora digitado é o direto: se mudou, a parcela do custeio RKW sai até aplicar de novo.
-        if (round((float) $dados['custo_hora'], 2) !== round((float) $posto->custo_hora, 2)) {
+        if (CustoHoraDecimal::emCentavos($dados['custo_hora']) !== CustoHoraDecimal::emCentavos($posto->custo_hora)) {
             $dados['custo_hora_direto'] = null;
         }
         $posto->update($dados);
@@ -105,7 +106,7 @@ class PostosController extends Controller
             'tipo_custo' => ['required', Rule::in([Posto::MAQUINA, Posto::PESSOA])],
             'veiculo' => ['boolean'],
             'placa' => ['nullable', 'required_if:veiculo,true', 'string', 'max:10'],
-            'custo_hora' => ['required', 'numeric', 'min:0', 'max:99999'],
+            'custo_hora' => ['required', 'numeric', 'not_regex:/e/i', 'min:0', 'max:99999'],
             'custo_km' => ['nullable', 'numeric', 'min:0', 'max:9999'],
             'capacidade_por_hora' => ['nullable', 'numeric', 'min:0'],
             'unidade_capacidade' => ['nullable', 'string', 'max:10'],

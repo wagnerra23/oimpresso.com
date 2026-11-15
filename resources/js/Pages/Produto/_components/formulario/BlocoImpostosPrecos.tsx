@@ -16,6 +16,8 @@ import { Grid } from '@/Components/layout';
 import { CamposPreco } from './CamposPreco';
 import { metodoDaEmpresa, opcoesDoMetodo } from './metodoCusto';
 import type { MetodoCustoDoFormulario } from './metodoCusto';
+import { OPCOES_DE_POLITICA } from './politicaPreco';
+import type { EstadoPolitica, PoliticaPreco } from './politicaPreco';
 import type { PrecoSimples } from './precos';
 import type { CamposProduto, DefinirCampo, ModoFormulario, OpcoesProduto, TipoProduto } from './tipos';
 import { URL_CADASTRO_CLASSICO, opcoesDe, tipoSemEditor } from './tipos';
@@ -31,6 +33,8 @@ interface Props {
   preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number; margemMinima?: number | null };
   /** Método de custo (US-COM-024): só quando o módulo Compras está no pacote da empresa. */
   metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
+  /** Política de preço (CU-PROD-21) e os erros do servidor para os dois campos. */
+  politica?: { valor: EstadoPolitica; mudar: (e: EstadoPolitica) => void; erros?: { politica?: string; margem?: string } };
 }
 
 /**
@@ -39,7 +43,7 @@ interface Props {
  */
 const SEM_IMPOSTO = 'sem-imposto';
 
-export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, metodoCusto }: Props) {
+export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, metodoCusto, politica }: Props) {
   const novo = modo === 'novo';
 
   return (
@@ -138,6 +142,54 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
               Vale quando a empresa escolheu “por insumo” em Fluxos → Compra. Vale para todas as variações do
               produto. Hoje a empresa usa: {metodoDaEmpresa(metodoCusto.dados.empresa)}.
             </p>
+          </div>
+        )}
+        {politica && (
+          <div data-testid="campo-politica-preco">
+            <Label htmlFor="politica_preco">Política de preço</Label>
+            <Select
+              value={politica.valor.politica}
+              onValueChange={(v) => politica.mudar({ ...politica.valor, politica: v as PoliticaPreco })}
+            >
+              <SelectTrigger id="politica_preco">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {OPCOES_DE_POLITICA.map((o) => (
+                  <SelectItem key={o.valor} value={o.valor}>
+                    {o.rotulo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="mt-1 text-[12px] text-muted-foreground">
+              O que acontece com o preço de venda quando o custo dos insumos muda na compra. Se o preço novo entra
+              sozinho ou vai para aprovação, quem decide é a regra da compra em Fluxos.
+            </p>
+            {politica.erros?.politica && (
+              <p role="alert" className="mt-1 text-[12px] text-destructive">
+                {politica.erros.politica}
+              </p>
+            )}
+          </div>
+        )}
+        {politica?.valor.politica === 'margem' && (
+          <div>
+            <Label htmlFor="margem_alvo_pct">Margem alvo (%)</Label>
+            <Input
+              id="margem_alvo_pct"
+              inputMode="decimal"
+              className="text-right tabular-nums"
+              value={politica.valor.margemAlvo}
+              onChange={(e) => politica.mudar({ ...politica.valor, margemAlvo: e.target.value })}
+              aria-invalid={politica.erros?.margem ? true : undefined}
+            />
+            <p className="mt-1 text-[12px] text-muted-foreground">Sobre o preço de venda, não sobre o custo.</p>
+            {politica.erros?.margem && (
+              <p role="alert" className="mt-1 text-[12px] text-destructive">
+                {politica.erros.margem}
+              </p>
+            )}
           </div>
         )}
         {preco && (

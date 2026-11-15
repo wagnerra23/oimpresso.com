@@ -462,6 +462,20 @@ class CockpitController extends Controller
             ];
         }
 
+        // Crit: a venda cancelou e a NF-e não (CancelarNfeJob::failed). O prazo legal maior é de
+        // 7 dias: depois disso cancelar já não é opção e o alerta para de aparecer.
+        $falhaCancelamento = $this->ultimaFalhaCancelamentoNfe($this->businessIdDaSessao());
+        if ($falhaCancelamento !== null) {
+            $alerts[] = [
+                'level'  => 'crit',
+                'icon'   => 'receipt',
+                'title'  => 'Venda cancelada com NF-e ainda autorizada',
+                'sub'    => mb_strimwidth((string) $falhaCancelamento->descricao, 0, 140, '…'),
+                'action' => 'Abrir notas',
+                'goto'   => 'nfe',
+            ];
+        }
+
         // Info: DF-e pendente manifestação (reusa $dfeCount do contexto)
         $dfeCount = $contexto['dfeCount'];
         if ($dfeCount > 0) {
@@ -490,6 +504,22 @@ class CockpitController extends Controller
             ->where('tipo', \Modules\NfeBrasil\Jobs\BuscarDfesRecebidosJob::TIPO_ALERTA)
             ->whereIn('status', ['aberto', 'notificado'])
             ->where('criado_em', '>=', now()->subDays(3))
+            ->orderByDesc('criado_em')
+            ->first(['descricao', 'criado_em']);
+    }
+
+    /** Alerta aberto mais recente de NF-e que não cancelou depois da venda cancelada, só da empresa. */
+    protected function ultimaFalhaCancelamentoNfe(int $businessId): ?object
+    {
+        if ($businessId <= 0 || ! \Illuminate\Support\Facades\Schema::hasTable('mcp_alertas_eventos')) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\DB::table('mcp_alertas_eventos')
+            ->where('business_id', $businessId)
+            ->where('tipo', \Modules\NfeBrasil\Jobs\CancelarNfeJob::TIPO_ALERTA)
+            ->whereIn('status', ['aberto', 'notificado'])
+            ->where('criado_em', '>=', now()->subDays(7))
             ->orderByDesc('criado_em')
             ->first(['descricao', 'criado_em']);
     }

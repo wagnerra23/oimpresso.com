@@ -70,18 +70,6 @@ it('validateEan13 aceita EAN-13 válido e rejeita inválido', function () {
     expect($svc->validateEan13('123'))->toBeFalse(); // curto
 });
 
-it('generateEan13FromSku produz EAN-13 sempre válido (round-trip)', function () {
-    $svc = new EtiquetaTagService();
-
-    $skus = ['VST-1-M-C01', 'ABC123', '999999', 'COR-AZUL-G', '42'];
-    foreach ($skus as $sku) {
-        $ean = $svc->generateEan13FromSku($sku);
-        expect(strlen($ean))->toBe(13, "EAN gerado de '{$sku}' deveria ter 13 chars: '{$ean}'");
-        expect($svc->validateEan13($ean))->toBeTrue("EAN gerado de '{$sku}' deveria validar: '{$ean}'");
-        expect(str_starts_with($ean, '789'))->toBeTrue("EAN deveria começar com 789 (BR): '{$ean}'");
-    }
-});
-
 it('normalizeEan13 aceita 12 ou 13 digitos', function () {
     $svc = new EtiquetaTagService();
 
@@ -118,12 +106,9 @@ it('gerarEtiqueta retorna ZPL com campos obrigatórios', function () {
     expect($result['zpl'])->toContain('COR: Azul Marinho');
     expect($result['zpl'])->toContain('Verão 2026');
     expect($result['zpl'])->toContain('R$ 89,90');
-    expect($result['zpl'])->toContain('^BEN'); // EAN-13 barcode marker
-    expect($result['zpl'])->toContain($result['ean13']);
-    expect($result['zpl'])->toContain('CAMI-042-M-AZU');
-
-    expect(strlen($result['ean13']))->toBe(13);
-    expect($svc->validateEan13($result['ean13']))->toBeTrue();
+    expect($result['zpl'])->toContain('^BCN'); // SKU alfanumérico sai em Code128
+    expect($result['zpl'])->toContain('^FDCAMI-042-M-AZU^FS');
+    expect($result['ean13'])->toBeNull();
 
     expect($result['meta']['business_id'])->toBe(1);
     expect($result['meta']['product_id'])->toBe(42);
@@ -148,9 +133,9 @@ it('gerarLote concatena múltiplas etiquetas ZPL', function () {
     $svc = new EtiquetaTagService();
 
     $items = [
-        ['product_id' => 1, 'variation_id' => 1, 'opts' => ['nome' => 'P1', 'tamanho' => 'P']],
-        ['product_id' => 2, 'variation_id' => 1, 'opts' => ['nome' => 'P2', 'tamanho' => 'M']],
-        ['product_id' => 3, 'variation_id' => 1, 'opts' => ['nome' => 'P3', 'tamanho' => 'G']],
+        ['product_id' => 1, 'variation_id' => 1, 'opts' => ['nome' => 'P1', 'tamanho' => 'P', 'sku' => 'LOTE-P1']],
+        ['product_id' => 2, 'variation_id' => 1, 'opts' => ['nome' => 'P2', 'tamanho' => 'M', 'sku' => 'LOTE-P2']],
+        ['product_id' => 3, 'variation_id' => 1, 'opts' => ['nome' => 'P3', 'tamanho' => 'G', 'sku' => 'LOTE-P3']],
     ];
 
     $zpl = $svc->gerarLote($items);

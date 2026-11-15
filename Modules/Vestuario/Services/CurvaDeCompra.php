@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\DB;
  * A soma sempre bate com o total. É só sugestão: este serviço não grava nada (pedido e estoque só
  * mudam quando quem compra confirma na tela da compra).
  *
- * Tier 0 (ADR 0093): produto, variações e vendas filtrados pelo `$businessId` recebido.
+ * Tier 0 (ADR 0093): produto, variações e vendas filtrados pelo `$businessId` recebido. As vendas
+ * também ficam nas lojas que o usuário pode ver (`$locais`, de `permitted_locations`): 'all' soma
+ * todas; lista vazia não soma nenhuma. O parâmetro é obrigatório para ninguém esquecê-lo.
  * A curva do GradeCurvaService (proporção fixa por grade, em configuração) é outra coisa: aquela é
  * a grade padrão do cadastro; esta é a medida da venda real.
  */
@@ -31,10 +33,11 @@ final class CurvaDeCompra
     public const DIAS = 90;
 
     /**
+     * @param  'all'|list<int>  $locais  lojas que entram na conta
      * @return array{base: ?string, motivo: ?string, dias: int, total: int,
      *               linhas: list<array{variation_id: int, nome: string, vendidas: float, proporcao_pct: float, sugerida: int}>}
      */
-    public function sugerir(int $businessId, int $productId, int $total, ?Carbon $hoje = null): array
+    public function sugerir(int $businessId, int $productId, int $total, string|array $locais, ?Carbon $hoje = null): array
     {
         $hoje ??= Carbon::now();
         $vazio = fn (?string $motivo) => ['base' => null, 'motivo' => $motivo, 'dias' => self::DIAS, 'total' => $total, 'linhas' => []];
@@ -50,7 +53,7 @@ final class CurvaDeCompra
         }
 
         $desde = $hoje->copy()->subDays(self::DIAS)->startOfDay();
-        $porVariacao = $this->vendidoPor('tsl.variation_id', $businessId, $desde, $hoje, fn ($q) => $q->where('tsl.product_id', $productId));
+        $porVariacao = $this->vendidoPor('tsl.variation_id', $businessId, $locais, $desde, $hoje, fn ($q) => $q->where('tsl.product_id', $productId));
         $base = 'produto';
         $vendidas = $variacoes->mapWithKeys(fn ($v) => [$v->id => (float) ($porVariacao[$v->id] ?? 0)]);
 
@@ -58,7 +61,7 @@ final class CurvaDeCompra
             if ($produto->category_id === null) {
                 return $vazio('sem_venda_no_produto');
             }
-            $porNome = $this->vendidoPor('v.name', $businessId, $desde, $hoje, fn ($q) => $q
+            $porNome = $this->vendidoPor('v.name', $businessId, $locais, $desde, $hoje, fn ($q) => $q
                 ->where('p.category_id', $produto->category_id)->where('p.id', '!=', $productId));
             $porNome = collect($porNome)->mapWithKeys(fn ($q, $nome) => [mb_strtolower(trim((string) $nome)) => (float) $q]);
             $vendidas = $variacoes->mapWithKeys(fn ($v) => [$v->id => (float) ($porNome[mb_strtolower(trim((string) $v->name))] ?? 0)]);
@@ -89,7 +92,7 @@ final class CurvaDeCompra
     }
 
     /** @return array<int|string, float> chave => vendido no período (quantidade − devolvida) */
-    private function vendidoPor(string $chave, int $businessId, Carbon $desde, Carbon $ate, callable $filtro): array
+    private function vendidoPor(string $chave, int $businessId, string|array $locais, Carbon $desde, Carbon $ate, callable $filtro): array
     {
         $q = DB::table('transaction_sell_lines as tsl')
             ->join('transactions as t', 't.id', '=', 'tsl.transaction_id')
@@ -98,7 +101,8 @@ final class CurvaDeCompra
             ->where('t.business_id', $businessId)->where('p.business_id', $businessId)
             ->where('t.type', 'sell')->where('t.status', 'final')
             ->whereBetween('t.transaction_date', [$desde, $ate])
-            ->whereNull('tsl.parent_sell_line_id');
+            ->whereNull('tsl.parent_sell_line_id')
+            ->when($locais !== 'all', fn ($w) => $w->whereIn('t.location_id', $locais));
         $filtro($q);
 
         return $q->groupBy($chave)->selectRaw($chave.' as chave, SUM(tsl.quantity - tsl.quantity_returned) as qtd')

@@ -4,6 +4,7 @@ namespace Modules\Vestuario\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
  * Seeder Modules/Repair `business.repair_settings` per-vertical Vestuario.
@@ -28,12 +29,16 @@ use Illuminate\Support\Facades\DB;
 class RepairSettingsSeeder extends Seeder
 {
     /**
-     * Roda em business específico (default: business_id=4 ROTA LIVRE).
-     * Override via env VESTUARIO_SEEDER_BUSINESS_ID se quiser testar outro.
+     * Sobrescreve o `repair_settings` inteiro da empresa, então a empresa é sempre explícita:
+     * passada no `run()` ou respondida na pergunta do `db:seed`. Sem ela, para sem gravar.
      */
-    public function run(): void
+    public function run(?int $businessId = null): void
     {
-        $businessId = env('VESTUARIO_SEEDER_BUSINESS_ID', 4);
+        $businessId ??= (int) $this->command?->ask('business_id da empresa que recebe o vocabulário de Vestuário');
+
+        if ($businessId <= 0 || ! DB::table('business')->where('id', $businessId)->exists()) {
+            throw new InvalidArgumentException('Informe o business_id de uma empresa existente.');
+        }
 
         $settings = [
             'slots' => [

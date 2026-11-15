@@ -1,6 +1,7 @@
 # Quarentena da lane "PHP / Pest (OficinaAuto · MySQL)" — .github/workflows/oficinaauto-pest.yml
 #
-# COMO A LANE SELECIONA: run-set = TUDO em Modules/OficinaAuto/Tests/**/*Test.php
+# COMO A LANE SELECIONA: run-set = TUDO em Modules/OficinaAuto/Tests/**/*Test.php,
+# tests/Feature/Modules/OficinaAuto/**/*Test.php e os 7 arquivos nomeados no step,
 # MENOS (1) quem tem dono em outra lane (sells-pest.yml, .github/ci-sqlite-pest.list),
 # (2) quem tem construto destrutivo em código (derivado pelo step) e (3) este arquivo.
 # Arquivo NOVO entra rodando.

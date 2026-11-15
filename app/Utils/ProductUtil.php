@@ -567,7 +567,10 @@ class ProductUtil extends Util
     public function calculateComboQuantity($location_id, $combo_variations)
     {
         //get stock of the items and calcuate accordingly.
-        $combo_qty = 0;
+        // D-30 (decisão [F] 2026-11-12): `null` é "nenhum componente com estoque ainda". Antes o `0` fazia
+        // esse papel, e um componente zerado tinha a conta sobrescrita pelo seguinte — o kit aparecia com
+        // saldo que não existe. Zero agora é zero, em qualquer ordem (a mesma conta do painel, UC-PIDX-40).
+        $combo_qty = null;
         foreach ($combo_variations as $key => $value) {
             $variation = Variation::with(['product', 'variation_location_details' => function ($q) use ($location_id) {
                 $q->where('location_id', $location_id);
@@ -586,14 +589,12 @@ class ProductUtil extends Util
             $variation_qty = ! empty($vld) ? $vld->qty_available : 0;
             $multiplier = $this->getMultiplierOf2Units($product->unit_id, $value['unit_id']);
 
-            if ($combo_qty == 0) {
-                $combo_qty = ($variation_qty / $multiplier) / $combo_variations[$key]['quantity'];
-            } else {
-                $combo_qty = min($combo_qty, ($variation_qty / $multiplier) / $combo_variations[$key]['quantity']);
-            }
+            $kits = ($variation_qty / $multiplier) / $combo_variations[$key]['quantity'];
+            $combo_qty = $combo_qty === null ? $kits : min($combo_qty, $kits);
         }
 
-        return floor($combo_qty);
+        // Nenhum componente controla estoque: segue devolvendo 0, como antes (fora do escopo da D-30).
+        return floor($combo_qty ?? 0);
     }
 
     /**
@@ -1654,37 +1655,46 @@ class ProductUtil extends Util
         if (! empty($search_term)) {
 
             //Search with like condition
+            // Cada palavra digitada casa em separado (E entre palavras, OU entre os campos
+            // escolhidos). Com o texto inteiro num LIKE só, "camisa azul" não achava
+            // "CAMISA POLO AZUL" (pedido da ROTA LIVRE, 2026-11-11, irmão da busca de
+            // cliente). Quem casava o texto inteiro casa cada palavra dele, então o
+            // resultado é superconjunto do anterior. A busca exata (abaixo) não muda.
             if ($search_type == 'like') {
-                $query->where(function ($query) use ($search_term, $search_fields) {
-                    if (in_array('name', $search_fields)) {
-                        $query->where('products.name', 'like', '%'.$search_term.'%');
-                    }
+                // Texto só de espaços não vira "sem filtro" (devolveria tudo): segue como veio.
+                $palavras = preg_split('/[\s\p{Z}]+/u', trim((string) $search_term), -1, PREG_SPLIT_NO_EMPTY) ?: [(string) $search_term];
+                foreach ($palavras as $palavra) {
+                    $query->where(function ($query) use ($palavra, $search_fields) {
+                        if (in_array('name', $search_fields)) {
+                            $query->where('products.name', 'like', '%'.$palavra.'%');
+                        }
 
-                    if (in_array('sku', $search_fields)) {
-                        $query->orWhere('sku', 'like', '%'.$search_term.'%');
-                    }
+                        if (in_array('sku', $search_fields)) {
+                            $query->orWhere('sku', 'like', '%'.$palavra.'%');
+                        }
 
-                    if (in_array('sub_sku', $search_fields)) {
-                        $query->orWhere('sub_sku', 'like', '%'.$search_term.'%');
-                    }
+                        if (in_array('sub_sku', $search_fields)) {
+                            $query->orWhere('sub_sku', 'like', '%'.$palavra.'%');
+                        }
 
-                    if (in_array('lot', $search_fields)) {
-                        $query->orWhere('pl.lot_number', 'like', '%'.$search_term.'%');
-                    }
+                        if (in_array('lot', $search_fields)) {
+                            $query->orWhere('pl.lot_number', 'like', '%'.$palavra.'%');
+                        }
 
-                    if (in_array('product_custom_field1', $search_fields)) {
-                        $query->orWhere('product_custom_field1', 'like', '%'.$search_term.'%');
-                    }
-                    if (in_array('product_custom_field2', $search_fields)) {
-                        $query->orWhere('product_custom_field2', 'like', '%'.$search_term.'%');
-                    }
-                    if (in_array('product_custom_field3', $search_fields)) {
-                        $query->orWhere('product_custom_field3', 'like', '%'.$search_term.'%');
-                    }
-                    if (in_array('product_custom_field4', $search_fields)) {
-                        $query->orWhere('product_custom_field4', 'like', '%'.$search_term.'%');
-                    }
-                });
+                        if (in_array('product_custom_field1', $search_fields)) {
+                            $query->orWhere('product_custom_field1', 'like', '%'.$palavra.'%');
+                        }
+                        if (in_array('product_custom_field2', $search_fields)) {
+                            $query->orWhere('product_custom_field2', 'like', '%'.$palavra.'%');
+                        }
+                        if (in_array('product_custom_field3', $search_fields)) {
+                            $query->orWhere('product_custom_field3', 'like', '%'.$palavra.'%');
+                        }
+                        if (in_array('product_custom_field4', $search_fields)) {
+                            $query->orWhere('product_custom_field4', 'like', '%'.$palavra.'%');
+                        }
+                    });
+                }
             }
 
             //Search with exact condition

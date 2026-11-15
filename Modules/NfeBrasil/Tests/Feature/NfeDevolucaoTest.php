@@ -204,6 +204,7 @@ it('R-NFE-026 · CFOP espelho e CFOP desconhecido recusa', function () {
 it('R-NFE-026 · emitirDevolucao manda finNFe 4, refNFe e a base da origem, sem pagamento', function () {
     dev20MySql();
     Storage::fake();
+    Storage::fake('nfe_fiscal');
     $biz = test()->seededTenant()->id;
     $xml = dev20Xml($biz, [], [['5102', 2.0, 50.00, 100.00, 18.00, 18.00, 1.65]]);
     $chave = preg_match('#Id="NFe(\d{44})"#', $xml, $mm) ? $mm[1] : '';
@@ -233,6 +234,7 @@ it('R-NFE-026 · emitirDevolucao manda finNFe 4, refNFe e a base da origem, sem 
 it('R-NFE-026 · nota de outra empresa ou não autorizada não é devolvida', function () {
     dev20MySql();
     Storage::fake();
+    Storage::fake('nfe_fiscal');
     $biz = test()->seededTenant()->id;
     $outro = test()->seededSupportClientTenant()->id;
     $chave = str_repeat('3', 44);

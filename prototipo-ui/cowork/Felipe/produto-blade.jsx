@@ -379,7 +379,8 @@ const PB_COLS = [
   { id: "sku", l: "SKU" }, { id: "serie", l: "IMEI / série" }, { id: "cf1", l: "Campo personalizado 1" },
 ];
 // Imposto nasce desligada ([F] 2026-10-26): quem precisa liga no menu Colunas.
-const PB_COLS_PADRAO = { imagem: true, locais: true, compra: true, venda: true, estoque: true, tipo: true, categoria: true, marca: true, imposto: false, sku: true, serie: false, cf1: false };
+// UC-PIDX-46 (resto da CV1, 2026-11-12): o Tipo nasce desligado — o painel diz o que o produto é; segue no menu Colunas.
+const PB_COLS_PADRAO = { imagem: true, locais: true, compra: true, venda: true, estoque: true, tipo: false, categoria: true, marca: true, imposto: false, sku: true, serie: false, cf1: false };
 // A coluna Imposto só existe se a empresa tem alíquota cadastrada — na grade, no menu Colunas e na
 // exportação. Não é permissão: imposto não é segredo, sai impresso na nota.
 const colunaExiste = (id, empresa) => id !== "imposto" || empresa.temAliquota;

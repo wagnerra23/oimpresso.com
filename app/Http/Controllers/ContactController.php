@@ -6,6 +6,7 @@ use App\Business;
 use App\BusinessLocation;
 use App\Contact;
 use App\CustomerGroup;
+use App\NotificationTemplate;
 use App\Notifications\CustomerNotification;
 use App\PurchaseLine;
 use App\Transaction;
@@ -885,19 +886,25 @@ class ContactController extends Controller
         // encontrava clientes da página atual. Agora `q` bate no banco via LIKE
         // em colunas indexáveis (name/tax_number/mobile/fantasia). Multi-tenant
         // Tier 0 OK — scope `business_id` já aplicado acima ([ADR 0093]).
+        // Cada palavra casa em separado (E entre palavras, OU entre as colunas), como a
+        // busca de cliente da venda (#10719): o texto inteiro num LIKE só não achava
+        // "NOME SOBRENOME" quando o cadastro tinha nome do meio ou espaço duplo.
         $q = trim((string) request()->input('q', ''));
         if ($q !== '') {
-            $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';
             $hasFantasia = $hasWaveBCols; // fantasia veio na Wave B junto com tipo.
-            $contactsQuery->where(function ($w) use ($like, $hasFantasia) {
-                $w->where('contacts.name', 'like', $like)
-                    ->orWhere('contacts.tax_number', 'like', $like)
-                    ->orWhere('contacts.mobile', 'like', $like)
-                    ->orWhere('contacts.contact_id', 'like', $like);
-                if ($hasFantasia) {
-                    $w->orWhere('contacts.fantasia', 'like', $like);
-                }
-            });
+            $palavras = preg_split('/[\s\p{Z}]+/u', $q, -1, PREG_SPLIT_NO_EMPTY) ?: [$q];
+            foreach ($palavras as $palavra) {
+                $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $palavra).'%';
+                $contactsQuery->where(function ($w) use ($like, $hasFantasia) {
+                    $w->where('contacts.name', 'like', $like)
+                        ->orWhere('contacts.tax_number', 'like', $like)
+                        ->orWhere('contacts.mobile', 'like', $like)
+                        ->orWhere('contacts.contact_id', 'like', $like);
+                    if ($hasFantasia) {
+                        $w->orWhere('contacts.fantasia', 'like', $like);
+                    }
+                });
+            }
         }
 
         // Sort server-side (ligado 2026-06-12 · bug Wagner "alfabético → lixo de
@@ -2691,12 +2698,20 @@ class ContactController extends Controller
                 $contacts->onlyCustomers();
             }
 
-            if (! empty($term)) {
-                $contacts->where(function ($query) use ($term) {
-                    $query->where('contacts.name', 'like', '%'.$term.'%')
-                            ->orWhere('supplier_business_name', 'like', '%'.$term.'%')
-                            ->orWhere('mobile', 'like', '%'.$term.'%')
-                            ->orWhere('contacts.contact_id', 'like', '%'.$term.'%');
+            // Cada palavra digitada casa em separado (E entre palavras, OU entre colunas).
+            // Com o termo inteiro num LIKE só, "NOME SOBRE" não achava o cadastro gravado
+            // com espaço duplo, nome do meio ou espaço não-separável vindo de importação —
+            // e o cliente que aparecia com "NOME" sumia ao digitar o começo do sobrenome
+            // (ROTA LIVRE, 2026-11-10). O resultado é sempre um superconjunto do anterior:
+            // quem casava o termo inteiro casa cada palavra dele.
+            // Texto só de espaços não vira "sem filtro" (devolveria tudo): segue como veio.
+            $palavras = preg_split('/[\s\p{Z}]+/u', trim((string) $term), -1, PREG_SPLIT_NO_EMPTY) ?: [(string) $term];
+            foreach ($palavras as $palavra) {
+                $contacts->where(function ($query) use ($palavra) {
+                    $query->where('contacts.name', 'like', '%'.$palavra.'%')
+                            ->orWhere('supplier_business_name', 'like', '%'.$palavra.'%')
+                            ->orWhere('mobile', 'like', '%'.$palavra.'%')
+                            ->orWhere('contacts.contact_id', 'like', '%'.$palavra.'%');
                 });
             }
 
@@ -3256,11 +3271,30 @@ class ContactController extends Controller
         }
 
         try {
-            $data = $request->only(['to_email', 'subject', 'email_body', 'cc', 'bcc', 'ledger_format']);
-            $emails_array = array_map('trim', explode(',', $data['to_email']));
+            $business_id = request()->session()->get('business.id');
+
+            // A aba Extrato da ficha React pede só o e-mail: assunto, texto e cópias vêm do modelo
+            // "Enviar razão" da empresa, como o modal Blade já fazia ao abrir (NotificationController@getTemplate).
+            // O modelo é o padrão; o que o pedido trouxer preenchido tem prioridade.
+            $modelo = NotificationTemplate::getTemplate($business_id, 'send_ledger');
+            $padrao = [
+                'subject' => $modelo['subject'] ?: __('lang_v1.send_ledger'),
+                'email_body' => $modelo['email_body'],
+                'cc' => $modelo['cc'],
+                'bcc' => $modelo['bcc'],
+                'ledger_format' => 'format_1',
+            ];
+            $data = array_merge($padrao, array_filter(
+                $request->only(['to_email', 'subject', 'email_body', 'cc', 'bcc', 'ledger_format']),
+                fn ($valor) => filled($valor)
+            ));
+
+            $emails_array = array_values(array_filter(array_map('trim', explode(',', (string) ($data['to_email'] ?? '')))));
+            if (empty($emails_array)) {
+                return ['success' => 0, 'msg' => __('validation.required', ['attribute' => 'e-mail'])];
+            }
 
             $contact_id = $request->input('contact_id');
-            $business_id = request()->session()->get('business.id');
 
             $start_date = request()->input('start_date');
             $end_date = request()->input('end_date');
@@ -3315,8 +3349,9 @@ class ContactController extends Controller
         } catch (\Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
+            // O detalhe fica no log; a tela recebe a mensagem genérica (antes ia caminho e linha do arquivo).
             $output = ['success' => 0,
-                'msg' => 'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage(),
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
 

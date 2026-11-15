@@ -17,8 +17,10 @@ uses(Tests\TestCase::class);
  *
  * NOTA — multi-tenant: ProductCatalogue é catálogo público (sem Eloquent Models/Entities
  * próprios — usa App\Product, App\Business, App\Discount herdados do core UltimatePOS).
- * Portanto NÃO há `MultiTenantIsolationTest` pra este módulo — isolamento é
- * coberto pelos testes dos models core (App\Product já tem business_id global scope).
+ * Portanto NÃO há `MultiTenantIsolationTest` pra este módulo. `App\Product` NÃO tem
+ * global scope de business_id: o isolamento é o `where('business_id', ...)` de cada
+ * consulta do ProductCatalogueRepository, provado em 98x99 por
+ * tests/Feature/Sells/CatalogoPublicoSituacaoContratoTest.php (lane sells-pest).
  * Controllers recebem $business_id como parâmetro de rota pública (catálogo
  * compartilhável via QR code), respeitando filtro `Product::where('business_id', $bid)`.
  *

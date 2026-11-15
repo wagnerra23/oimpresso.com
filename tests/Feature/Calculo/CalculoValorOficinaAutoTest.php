@@ -67,13 +67,13 @@ use Tests\TestCase;
  *    (dupla confirmação + antes→depois + OK [W]), nunca pega carona no PR do teste.
  *
  * ⛔ CT100 only (memory/proibicoes.md): teste nunca roda local nem Hostinger.
- * Tests biz=1 conforme ADR 0101 (biz=99 só isolamento cross-tenant).
+ * Tests biz=98 conforme ADR 0358 (biz=99 só isolamento cross-tenant).
  */
 class CalculoValorOficinaAutoTest extends TestCase
 {
     use DatabaseTransactions;
 
-    private const BIZ = 1;
+    private const BIZ = 98;
 
     private const PLATE_PREFIX = 'CALCOA';
 
@@ -86,7 +86,7 @@ class CalculoValorOficinaAutoTest extends TestCase
         parent::setUp();
 
         if (DB::connection()->getDriverName() === 'sqlite') {
-            $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+            $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
         }
         if (! Schema::hasTable('oficina_service_order_items') || ! Schema::hasTable('oa_inspection_items')) {
             $this->markTestSkipped('Rode migrations oficina_service_order_items + oa_inspection_items primeiro');
@@ -478,7 +478,7 @@ class CalculoValorOficinaAutoTest extends TestCase
             $rejeitou = true;
         }
 
-        $this->assertTrue($rejeitou, 'addItem cross-tenant (biz=99 em OS biz=1) deveria ter sido rejeitado — Tier 0 ADR 0093.');
+        $this->assertTrue($rejeitou, 'addItem cross-tenant (biz=99 em OS biz=98) deveria ter sido rejeitado — Tier 0 ADR 0093.');
         $this->assertEqualsWithDelta(
             100.00,
             $this->itemService->recalcularTotal($os->id),

@@ -31,6 +31,16 @@ beforeEach(function () {
     if (config('database.default') !== 'sqlite') {
         $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
     }
+    // O alarme cross-tenant de ban soma números (phones) e configs legacy.
+    Schema::dropIfExists('whatsapp_business_phones');
+    Schema::create('whatsapp_business_phones', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->string('driver_health', 20)->default('never_checked');
+        $table->timestamp('last_health_check_at')->nullable();
+        $table->timestamps();
+    });
+
     Schema::dropIfExists('whatsapp_business_configs');
     Schema::create('whatsapp_business_configs', function ($table) {
         $table->bigIncrements('id');
@@ -87,7 +97,7 @@ it('ping bem-sucedido marca driver_health=healthy + reset failures', function ()
         'api.z-api.io/*' => Http::response(['connected' => true, 'smartphoneConnected' => true, 'phone' => '+5511987654321'], 200),
     ]);
 
-    (new WhatsappDriverHealthCheckJob(4))->handle();
+    (new WhatsappDriverHealthCheckJob(1))->handle();
 
     $config->refresh();
     expect($config->driver_health)->toBe('healthy');
@@ -113,7 +123,7 @@ it('5 falhas consecutivas marca driver_health=degraded (fallback ativo)', functi
         'api.z-api.io/*' => Http::response(['error' => 'service unavailable'], 500),
     ]);
 
-    (new WhatsappDriverHealthCheckJob(4))->handle();
+    (new WhatsappDriverHealthCheckJob(1))->handle();
 
     $config->refresh();
     expect($config->driver_health)->toBe('degraded');
@@ -138,7 +148,7 @@ it('ban detectado (HTTP 403) marca driver_health=banned imediato', function () {
         'api.z-api.io/*' => Http::response(['error' => 'banned'], 403),
     ]);
 
-    (new WhatsappDriverHealthCheckJob(4))->handle();
+    (new WhatsappDriverHealthCheckJob(1))->handle();
 
     $config->refresh();
     expect($config->driver_health)->toBe('banned');
@@ -156,7 +166,7 @@ it('driver=meta_cloud é PULADO (não checa, Meta oficial não bane)', function 
     ]);
 
     // Sem Http::fake — se chamasse, estouraria. Job deve pular meta_cloud.
-    (new WhatsappDriverHealthCheckJob(4))->handle();
+    (new WhatsappDriverHealthCheckJob(1))->handle();
 
     $config->refresh();
     expect($config->driver_health)->toBe('never_checked'); // não mudou

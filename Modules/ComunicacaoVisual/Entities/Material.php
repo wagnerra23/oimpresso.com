@@ -95,7 +95,8 @@ class Material extends Model
         // Escopo por empresa: trait EscopoPorNegocioDaSessao (mesmo filtro, movido para trait).
         static::creating(function (Material $row) {
             if ($row->business_id === null) {
-                $row->business_id = session('user.business_id') ?? session('business.id') ?? 0;
+                $row->business_id = session('user.business_id') ?? session('business.id')
+                    ?? throw new \LogicException('Comunicação Visual: sem business_id para criar '.$row::class.' (sem sessão). Passe o business_id explícito.');
             }
         });
     }

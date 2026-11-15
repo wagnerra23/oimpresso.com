@@ -107,6 +107,21 @@ last_run: "2026-10-06"
 
 ---
 
+## UC-REPORT-05 · Receita em sub-unidade: o custo não é multiplicado pelo multiplicador
+- **Persona:** Wagner — lê o custo do período de um produto feito em pacotes.
+- **Aceite:** Dado uma receita que rende 1 pacote de 10 a 15 por pacote e uma ordem que gravou 30 na base
+  (3 pacotes) · Quando o relatório soma · Então o custo é 3 × 15 = 45 (não 30 × 15), a quantidade segue na
+  base (30) e o custo médio é por unidade base (1,5) · Dado uma receita na própria unidade, sem multiplicador
+  gravado (o caso que existe em produção) · Então o custo é quantidade × custo da receita.
+- **Fonte:** handoff Fabricação §7 ponto 4 (multiplicador da sub-unidade) · UC-REPORT-03 (custo unitário da
+  receita × quantidade produzida, na mesma unidade).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/ProducaoSubUnidadeTest.php` — à mão e pela soma dos
+  ingredientes.
+- **Regressão que defende:** o custo unitário da receita (por pacote) multiplicado pela quantidade na base.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Custo **congelado** por ordem finalizada (`custoSnap`) — não existe ainda;
@@ -137,3 +152,4 @@ last_run: "2026-10-06"
   `Modules/Manufacturing/Tests/Feature/CutoverRotasCanonicasTest.php` (9 asserts). Nenhum UC
   acima mudou de comportamento; os asserts de ROTA de Wave30/31/33 foram reapontados pro
   canônico porque o `/v2/` agora responde `RedirectController`, não o controller da tela.
+- 2026-11-11 · [C] UC-REPORT-05 (lote 1.4 da auditoria): receita em sub-unidade. Medido em produção: nenhuma linha de ordem com sub-unidade; as receitas apontam a própria unidade. A tela não mudou.

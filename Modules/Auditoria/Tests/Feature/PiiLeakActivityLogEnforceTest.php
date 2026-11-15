@@ -14,11 +14,8 @@ uses(Tests\TestCase::class);
  * via `revert_reason` ou audit notes — `PiiRedactor` Jana DEVE ser invocado
  * antes da escrita.
  *
- * Cobertura unit-level (não toca DB):
- *   1. PiiRedactor existe + tem método redact
- *   2. RevertService importa PiiRedactor (assert via reflection/file content)
- *   3. RevertService::revert chama redact() ANTES de log.save (assert source code)
- *   4. modo placeholder mantém legibilidade (NÃO replace tudo por *)
+ * O que o RevertService grava de verdade fica em RevertRedacaoContratoTest, que roda o
+ * revert. Aqui ficam o PiiRedactor, o ActionGate e as regras do FormRequest.
  *
  * Se Jana for opcional no ambiente, fall back fail-open documentado
  * (ActionGate::logViolation idem) mas a Auditoria É obrigatória — PiiRedactor
@@ -35,35 +32,6 @@ it('PiiRedactor Jana existe + tem método redact(string,mode)', function () {
     expect(method_exists(PiiRedactor::class, 'redact'))->toBeTrue();
 });
 
-it('RevertService importa PiiRedactor (use statement obrigatório)', function () {
-    $path = base_path('Modules/Auditoria/Services/RevertService.php');
-    expect(file_exists($path))->toBeTrue();
-
-    $content = file_get_contents($path);
-    expect($content)->toContain('use App\\Support\\Privacy\\PiiRedactor;');
-});
-
-it('RevertService::revert invoca PiiRedactor sobre revert_reason (ANTES de save)', function () {
-    $path = base_path('Modules/Auditoria/Services/RevertService.php');
-    $content = file_get_contents($path);
-
-    // Pattern canônico (placeholder mantém legibilidade — ADR 0127):
-    expect($content)->toContain("app(PiiRedactor::class)->redact(\$reason, 'placeholder')");
-
-    // Garantir ordem: redact ANTES do log->save()
-    $redactPos = strpos($content, '->redact($reason');
-    $savePos = strpos($content, '$log->save();');
-    expect($redactPos)->toBeLessThan($savePos, 'redact precisa rodar ANTES de log->save');
-});
-
-it('RevertService trata reason min:10 chars (defesa entrada — InvalidArgumentException)', function () {
-    $path = base_path('Modules/Auditoria/Services/RevertService.php');
-    $content = file_get_contents($path);
-
-    expect($content)->toContain('strlen($reason) < 10');
-    expect($content)->toContain('InvalidArgumentException');
-});
-
 it('AuditNote NÃO loga o campo `note` em activity_log (Wave 18 D7 PII residual)', function () {
     $note = new \Modules\Auditoria\Entities\AuditNote();
     $options = $note->getActivitylogOptions();
@@ -73,28 +41,27 @@ it('AuditNote NÃO loga o campo `note` em activity_log (Wave 18 D7 PII residual)
     expect($options->logAttributes)->not->toContain('note');
 });
 
-it('ActionGate Governance também invoca PiiRedactor em logViolation (cintura+suspensório)', function () {
-    $path = base_path('Modules/Governance/Http/Middleware/ActionGate.php');
-    expect(file_exists($path))->toBeTrue();
+it('ActionGate redige PII no payload do log de violação', function () {
+    $payload = null;
+    \Illuminate\Support\Facades\Log::shouldReceive('channel')->andReturnSelf();
+    \Illuminate\Support\Facades\Log::shouldReceive('warning')->once()->withArgs(function ($msg, $dados) use (&$payload) {
+        $payload = $dados;
 
-    $content = file_get_contents($path);
-    // PiiRedactor pode estar via FQCN ou import — aceitar ambos
-    expect(
-        str_contains($content, 'PiiRedactor')
-        || str_contains($content, 'App\\Support\\Privacy\\PiiRedactor')
-    )->toBeTrue('Governance ActionGate precisa importar PiiRedactor');
+        return $msg === 'ActionGate violation';
+    });
+
+    $gate = app(\Modules\Governance\Http\Middleware\ActionGate::class);
+    $request = \Illuminate\Http\Request::create('/qualquer', 'GET');
+    $rota = 'rota com CPF 123.456.789-09'; # pii-allowlist
+
+    (fn () => $this->logViolation('no_actor', $rota, null, $request))->call($gate);
+
+    expect($payload['route'])->toContain('[REDACTED:CPF]');
+    expect($payload['route'])->not->toContain('123.456.789-09'); # pii-allowlist
 });
 
-it('config governance.pii_redaction_enabled tem default true (ADR 0094 §PII)', function () {
-    // Wave 18 adicionou flag em config('governance.pii_redaction_enabled').
-    // Não force boot da Application — leia config file estaticamente.
-    $path = base_path('Modules/Governance/Config/retention.php');
-    if (! file_exists($path)) {
-        $this->markTestSkipped('Modules/Governance/Config/retention.php não encontrado (Wave 18 pode estar pendente)');
-    }
-
-    $content = file_get_contents($path);
-    expect($content)->toContain('pii_redaction_enabled');
+it('config governance.pii_redaction_enabled liga a redação por padrão', function () {
+    expect(config('governance.pii_redaction_enabled'))->toBeTrue();
 });
 
 // ------------------------------------------------------------------
@@ -134,22 +101,6 @@ it('PiiRedactor é idempotente — redact(redact(x)) == redact(x)', function () 
     expect($pass1)->toBe($pass2, 'redact deve ser idempotente — segunda chamada não altera');
 });
 
-it('RevertService NUNCA persiste reason raw em activity_log (sempre via PiiRedactor)', function () {
-    $path = base_path('Modules/Auditoria/Services/RevertService.php');
-    $content = file_get_contents($path);
-
-    // Garantir que NÃO existe pattern `revert_reason' => $reason` (raw direto)
-    // mas sim a versão `PiiRedactor::class)->redact($reason, ...)` na atribuição.
-    expect($content)->toMatch('/redact\(\$reason/');
-
-    // Sanidade: assign de revert_reason aparece DEPOIS do redact (ordem importa)
-    $redactPos = strpos($content, '->redact($reason');
-    $reasonAssign = strpos($content, "'revert_reason'");
-    if ($reasonAssign !== false) {
-        expect($redactPos)->toBeLessThan($reasonAssign, 'redact precisa rodar ANTES de atribuir revert_reason');
-    }
-});
-
 it('AuditNote casts não expõem note como searchable (defesa LGPD)', function () {
     $note = new \Modules\Auditoria\Entities\AuditNote();
     $casts = $note->getCasts();
@@ -159,12 +110,9 @@ it('AuditNote casts não expõem note como searchable (defesa LGPD)', function (
     // não há cast acidental tipo `'note' => 'encrypted'` que mudaria o storage.
     expect($casts)->not->toHaveKey('note');
 });
+it('ExportAuditEntriesRequest aceita include_properties opcional e exige motivo', function () {
+    $rules = (new \Modules\Auditoria\Http\Requests\ExportAuditEntriesRequest())->rules();
 
-it('ExportAuditEntriesRequest tem flag include_properties default false (Wave 25 D8)', function () {
-    $path = base_path('Modules/Auditoria/Http/Requests/ExportAuditEntriesRequest.php');
-    expect(file_exists($path))->toBeTrue('FormRequest Wave 25 export deve existir');
-
-    $content = file_get_contents($path);
-    expect($content)->toContain("'include_properties' => ['nullable', 'boolean']");
-    expect($content)->toContain("'motivo'        => ['required', 'string', 'min:10'");
+    expect($rules['include_properties'])->toBe(['nullable', 'boolean']);
+    expect($rules['motivo'])->toContain('required', 'string', 'min:10');
 });

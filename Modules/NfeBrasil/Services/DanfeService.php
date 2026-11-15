@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\Arquivos\Services\VaultEncryptionService;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Support\ArquivoFiscal;
 use NFePHP\DA\NFe\Danfe;
 use RuntimeException;
 
@@ -108,12 +109,13 @@ class DanfeService
                 "NfeEmissao {$emissao->id} sem xml_path — nem arquivos backbone nem coluna legacy."
             );
         }
-        if (! Storage::exists($emissao->xml_path)) {
+        $xml = ArquivoFiscal::ler($emissao->xml_path);
+        if ($xml === null) {
             throw new RuntimeException(
                 "XML não encontrado em storage: {$emissao->xml_path}"
             );
         }
-        return Storage::get($emissao->xml_path);
+        return $xml;
     }
 
     /**
@@ -209,7 +211,7 @@ class DanfeService
             $emissao->business_id,
             $emissao->chave_44,
         );
-        Storage::put($danfePath, $pdfBytes);
+        ArquivoFiscal::gravar($danfePath, $pdfBytes);
 
         $emissao->update(['danfe_path' => $danfePath]);
 
@@ -257,7 +259,7 @@ class DanfeService
                 'business_id'         => $emissao->business_id,
                 'arquivable_type'     => $arquivableType,
                 'arquivable_id'       => $emissao->id,
-                'disk'                => 'local',
+                'disk'                => ArquivoFiscal::DISCO,
                 'storage_path'        => $danfePath,
                 'original_name'       => basename($danfePath),
                 'mime_type'           => 'application/pdf',
@@ -298,13 +300,14 @@ class DanfeService
      */
     public function lerOuGerar(NfeEmissao $emissao): ?string
     {
-        if ($emissao->danfe_path && Storage::exists($emissao->danfe_path)) {
-            return Storage::get($emissao->danfe_path);
+        $pronto = ArquivoFiscal::ler($emissao->danfe_path);
+        if ($pronto !== null) {
+            return $pronto;
         }
 
         $path = $this->salvar($emissao);
         if (! $path) return null;
 
-        return Storage::get($path);
+        return ArquivoFiscal::ler($path);
     }
 }

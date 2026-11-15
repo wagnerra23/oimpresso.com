@@ -23,13 +23,13 @@ uses(Tests\TestCase::class);
  * Pesado (commit real + idempotência) entra em W28 quando script python existir.
  */
 
-const BIZ_W27_IMP = 1;
+const BIZ_W27_IMP = 98;
 const PLATE_W27_IMP_PREFIX = 'W27FB';
 const TMP_JSON_DIR = 'firebird-test-w27';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('oficina_service_order_items')) {
         $this->markTestSkipped('Rode migration 2026_05_17_000010 primeiro');

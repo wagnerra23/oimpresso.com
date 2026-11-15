@@ -47,6 +47,20 @@ beforeEach(function () {
         Schema::dropIfExists($t);
     }
 
+    // O InboxController confere a ACL canal = fila antes de mexer na conversa.
+    Schema::dropIfExists('channel_user_access');
+    Schema::create('channel_user_access', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('channel_id');
+        $table->unsignedInteger('user_id');
+        $table->unsignedInteger('granted_by_user_id');
+        $table->timestamp('granted_at');
+        $table->timestamp('revoked_at')->nullable();
+        $table->unsignedInteger('revoked_by_user_id')->nullable();
+        $table->timestamps();
+    });
+
     Schema::create('channels', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');
@@ -392,6 +406,10 @@ it('Integration — POST send com is_internal_note=true + /lembrar X cria fact +
     app('session.store')->put('user.business_id', 1);
     app('session.store')->put('user.id', 7);
 
+    DB::table('channel_user_access')->insert([
+        'business_id' => 1, 'channel_id' => $conv->channel_id, 'user_id' => 7,
+        'granted_by_user_id' => 1, 'granted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $controller = new InboxController();
     $response = $controller->send($request, $conv->id);
 
@@ -443,6 +461,10 @@ it('Integration — POST send com is_internal_note=false + /lembrar X NÃO cria 
     app('session.store')->put('user.business_id', 1);
     app('session.store')->put('user.id', 7);
 
+    DB::table('channel_user_access')->insert([
+        'business_id' => 1, 'channel_id' => $conv->channel_id, 'user_id' => 7,
+        'granted_by_user_id' => 1, 'granted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
     $controller = new InboxController();
     $controller->send($request, $conv->id);
 

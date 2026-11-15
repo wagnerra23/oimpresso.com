@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Producao\Services;
 
-use App\Scopes\ScopeByBusiness;
 use Illuminate\Support\Facades\DB;
 use Modules\Producao\Entities\Ordem;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
@@ -26,7 +25,7 @@ final class FichaDaOrdem
     /** @return array{os: array<string, mixed>, etapas: list<array<string, mixed>>} */
     public function montar(int $businessId, int $ordemId): array
     {
-        $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->find($ordemId)
+        $ordem = Ordem::query()->where('business_id', $businessId)->with('currentStage')->find($ordemId)
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS não encontrada.');
 
         $cab = DB::table('pcp_ordens as po')
@@ -73,7 +72,7 @@ final class FichaDaOrdem
     /** @return array{itens: list<array<string, mixed>>, falta: list<array<string, mixed>>} */
     public function materiais(int $businessId, int $ordemId, ?int $programacaoId): array
     {
-        $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->findOrFail($ordemId);
+        $ordem = Ordem::query()->where('business_id', $businessId)->with('currentStage')->findOrFail($ordemId);
         $lista = $programacaoId === null ? [] : ($this->materiais->paraEtapas($businessId, [$programacaoId])[$programacaoId] ?? []);
         $itens = array_map(function (array $m) {
             $saldo = $m['previsto'] === null ? null : $this->dm($m['previsto']) - $this->dm($m['apontado']);

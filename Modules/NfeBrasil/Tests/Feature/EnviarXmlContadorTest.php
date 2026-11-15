@@ -27,6 +27,7 @@ beforeEach(function () {
         $this->markTestSkipped('precisa do schema MySQL de nfe_emissoes, nfe_contadores e nfe_envios_contador');
     }
     Storage::fake();
+    Storage::fake('nfe_fiscal');
     Mail::fake();
     $this->a = $this->seededTenant()->id;
     $this->b = $this->seededSupportClientTenant()->id;

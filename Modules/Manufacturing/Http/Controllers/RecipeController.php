@@ -496,7 +496,10 @@ class RecipeController extends Controller
             $unit_prices = $request->input('unit_prices');
 
             if (! empty($recipe_ids)) {
+                // Tier 0 (ADR 0093, US-MANU-008 H3): MfgRecipe não tem global scope; sem a cadeia de
+                // empresa, o id de uma receita alheia gravava preço na variação dela (UC-RECIPE-21).
                 $recipes = MfgRecipe::with(['variation', 'sub_unit', 'variation.product', 'variation.product.product_tax'])
+                                ->forBusinessViaProductChain($business_id)
                                 ->whereIn('id', $recipe_ids)
                                 ->get();
 

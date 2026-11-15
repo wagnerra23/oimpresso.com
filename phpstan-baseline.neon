@@ -9048,12 +9048,6 @@ parameters:
 			path: Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php
 
 		-
-			message: '#^Static method Illuminate\\Support\\Facades\\Route\:\:middleware\(\) invoked with 8 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: Modules/ProductCatalogue/Routes/web.php
-
-		-
 			message: '#^Access to an undefined property App\\Product\:\:\$variations\.$#'
 			identifier: property.notFound
 			count: 1
@@ -12532,12 +12526,6 @@ parameters:
 			path: Modules/Vestuario/Config/retention.php
 
 		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: Modules/Vestuario/Database/Seeders/RepairSettingsSeeder.php
-
-		-
 			message: '#^PHPDoc tag @var above a method has no effect\.$#'
 			identifier: varTag.misplaced
 			count: 1
@@ -16010,30 +15998,6 @@ parameters:
 			identifier: larastan.relationExistence
 			count: 2
 			path: app/Http/Controllers/DiscountController.php
-
-		-
-			message: '#^Call to method getFile\(\) on an unknown class App\\Http\\Controllers\\Exception\.$#'
-			identifier: class.notFound
-			count: 4
-			path: app/Http/Controllers/DocumentAndNoteController.php
-
-		-
-			message: '#^Call to method getLine\(\) on an unknown class App\\Http\\Controllers\\Exception\.$#'
-			identifier: class.notFound
-			count: 4
-			path: app/Http/Controllers/DocumentAndNoteController.php
-
-		-
-			message: '#^Call to method getMessage\(\) on an unknown class App\\Http\\Controllers\\Exception\.$#'
-			identifier: class.notFound
-			count: 4
-			path: app/Http/Controllers/DocumentAndNoteController.php
-
-		-
-			message: '#^Caught class App\\Http\\Controllers\\Exception not found\.$#'
-			identifier: class.notFound
-			count: 4
-			path: app/Http/Controllers/DocumentAndNoteController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\DocumentAndNoteController\:\:__getPermission\(\) should return array but return statement is missing\.$#'

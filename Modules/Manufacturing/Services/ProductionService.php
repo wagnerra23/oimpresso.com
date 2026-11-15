@@ -73,8 +73,11 @@ class ProductionService
                 ->where('business_id', $businessId)
                 ->where('type', 'production_purchase')
                 ->with([
+                    // A sub-unidade da linha vem no mesmo SELECT (sem query a mais, UC-OP-03): a linha grava a
+                    // quantidade na base e a lista fala a unidade da ordem, como o painel (UC-OP-09).
                     'purchase_lines' => function ($q) {
-                        $q->select('id', 'transaction_id', 'variation_id', 'quantity');
+                        $q->leftJoin('units as su', 'su.id', '=', 'purchase_lines.sub_unit_id')
+                            ->select('purchase_lines.id', 'purchase_lines.transaction_id', 'purchase_lines.variation_id', 'purchase_lines.quantity', 'su.base_unit_multiplier as sub_mult', 'su.short_name as sub_un');
                     },
                     // Eager-load do local: sem isto, `optional($ordem->location)->name` no
                     // enriquecimento dispara UMA query POR LINHA (N+1 que existia desde a
@@ -184,7 +187,10 @@ class ProductionService
                 $produto = $variationId ? $produtos->get($variationId) : null;
                 $usuario = $ordem->created_by ? $usuarios->get($ordem->created_by) : null;
 
-                $quantidade = (float) ($linha?->quantity ?? 0);
+                // Mesma conta do painel (detalheOrdem) e da tela antiga: a linha grava na base; divide pelo
+                // multiplicador da sub-unidade e fala a unidade da ordem. As perdidas já estão nela (UC-OP-09).
+                $multiplicador = (float) ($linha?->getAttribute('sub_mult') ?? 0) > 0 ? (float) $linha->getAttribute('sub_mult') : 1.0;
+                $quantidade = (float) ($linha?->quantity ?? 0) / $multiplicador;
                 $total = (float) $ordem->final_total;
 
                 return [
@@ -210,7 +216,7 @@ class ProductionService
                     // model (property.notFound). Acesso explícito, mesma linha das outras.
                     'mfg_is_final' => (int) $ordem->getAttribute('mfg_is_final'),
                     'produto' => $produto?->getAttribute('product_name') ?: '—',
-                    'unidade' => $produto?->getAttribute('unit_name') ?: '',
+                    'unidade' => $linha?->getAttribute('sub_un') ?: ($produto?->getAttribute('unit_name') ?: ''),
                     'n_ingredientes' => (int) ($ingredientes[$ordem->id] ?? 0),
                     'criado_por' => $usuario ? trim("{$usuario->surname} {$usuario->first_name} {$usuario->last_name}") : '',
                     // Líquida: o que entrou no estoque (o `store()` grava produzida − perdidas).
@@ -554,7 +560,7 @@ class ProductionService
                 ->leftJoin('units as u', 'p.unit_id', '=', 'u.id')
                 ->whereIn('mfg_recipes.variation_id', $variationIds)
                 ->where('p.business_id', $businessId) // Tier 0 — defesa em profundidade
-                ->with(['ingredients', 'ingredients.variation', 'ingredients.sub_unit'])
+                ->with(['ingredients', 'ingredients.variation', 'ingredients.sub_unit', 'sub_unit'])
                 ->select('mfg_recipes.*', 'p.name as product_name', 'u.short_name as unit_name')
                 ->get()
                 ->keyBy('variation_id');
@@ -569,7 +575,13 @@ class ProductionService
                     }
 
                     $qty = (float) $line->quantity;
-                    $custo = $this->bomService->calculateUnitCost($recipe) * $qty;
+                    // O custo unitário da receita é por unidade DA RECEITA (`total_quantity` na sub-unidade
+                    // dela); a linha grava na base. Converte antes de multiplicar (UC-REPORT-05). Receita sem
+                    // multiplicador gravado (aponta a própria unidade, caso de produção) fica em 1.
+                    $multReceita = $recipe->relationLoaded('sub_unit') && (float) optional($recipe->getRelation('sub_unit'))->base_unit_multiplier > 0
+                        ? (float) $recipe->getRelation('sub_unit')->base_unit_multiplier
+                        : 1.0;
+                    $custo = $this->bomService->calculateUnitCost($recipe) / $multReceita * $qty;
 
                     // `??=`, não `if (!isset)` — este é acumulador (1ª ocorrência da chave
                     // inicia o balde), não fallback silencioso de input ausente. PHPStan

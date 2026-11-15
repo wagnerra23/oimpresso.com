@@ -45,7 +45,8 @@ const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, emite_nota: 
  * As colunas de saída do arrasto medido em 2026-10-13, com Imposto ligada: até 2026-10-26 ela nascia
  * ligada (desde então nasce desligada, UC-PIDX-34). O arrasto é o mesmo com ou sem ela.
  */
-const COM_IMPOSTO = { ...visibilidadePadrao(colunasOpcionais({})), imposto: true };
+// O Tipo também estava ligado na medição; desde o UC-PIDX-46 ele nasce desligado e é ligado aqui.
+const COM_IMPOSTO = { ...visibilidadePadrao(colunasOpcionais({})), tipo: true, imposto: true };
 const PADRAO = ['Ação', 'Imagem', 'Produto', 'Locais', 'Preço de compra un.', 'Preço de venda', 'Estoque atual', 'Tipo', 'Categoria', 'Marca', 'Imposto', 'SKU'];
 const COM_ALCA = ['Produto', 'Locais', 'Preço de compra un.', 'Preço de venda', 'Estoque atual', 'Tipo', 'Categoria', 'Marca', 'Imposto'];
 const SEM_ALCA = ['Ação', 'Imagem', 'SKU'];

@@ -96,7 +96,8 @@ beforeEach(function () {
 
     nfstLimpar();
 
-    $user = User::where('business_id', nfstBiz())->firstOrFail();
+    // Lote 3.2: o nfe-status exige quem vê a venda ou a nota (PermissaoNfe::CONSULTA).
+    $user = $this->usuarioComPermissoes(['nfebrasil.consult.view'], \App\Business::findOrFail(nfstBiz()));
     $this->actingAs($user);
 
     // As DUAS chaves: `business.id` (Controller) e `user.business_id` (ScopeByBusiness).

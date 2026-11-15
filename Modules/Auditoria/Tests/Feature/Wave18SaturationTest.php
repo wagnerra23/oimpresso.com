@@ -13,7 +13,7 @@ use Modules\Auditoria\Services\AuditEntryService;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, \Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Wave 18 Auditoria SATURATION — D1 + D2 + D6 + D8.
@@ -108,12 +108,24 @@ it('AuditEntryService.normalizeFilters preserva empty payload vazio', function (
 // D6 — AuditoriaController Inertia::defer (smoke)
 // ------------------------------------------------------------------
 
-it('AuditoriaController usa Inertia::defer em activities (Wave 18 D6.a)', function () {
-    $path = base_path('Modules/Auditoria/Http/Controllers/AuditoriaController.php');
-    expect(file_exists($path))->toBeTrue();
-    $content = file_get_contents($path);
-    expect($content)->toContain('Inertia::defer');
-    expect($content)->toContain("'activities' => Inertia::defer");
+it('AuditoriaController entrega activities como prop deferida (Wave 18 D6.a)', function () {
+    if (\Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompativel: usuário de teste requer schema MySQL UltimatePOS');
+    }
+
+    $user = $this->usuarioComPermissoes(['auditoria.view']);
+    $this->actingAs($user);
+    session(['user.business_id' => $user->business_id]);
+
+    $request = \Illuminate\Http\Request::create('/auditoria', 'GET');
+    $request->setLaravelSession(app('session.store'));
+    $request->setUserResolver(fn () => $user);
+
+    $response = app(\Modules\Auditoria\Http\Controllers\AuditoriaController::class)->index($request);
+    $props = (fn () => $this->props)->call($response);
+
+    expect($props['activities'])->toBeInstanceOf(\Inertia\DeferProp::class);
+    expect($props['filters'])->toBe([]);
 });
 
 // ------------------------------------------------------------------

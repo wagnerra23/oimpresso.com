@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-NFE-005 — CC-e (evento 110110): limites de texto e sequência, isolamento por empresa.
+
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\NfeCartaCorrecaoService;

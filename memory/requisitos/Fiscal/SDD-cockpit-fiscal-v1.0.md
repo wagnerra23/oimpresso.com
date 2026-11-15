@@ -337,7 +337,7 @@ whitelist server-side.
 `fiscal.sped_simples_only_lock` → **503** explicativo se `true` e não-superadmin; (3)
 `SpedIcmsIpiGeneratorService::gerar($businessId, $ano, $mes)` com cross-tenant guard **antes de
 qualquer query**; (4) resposta `text/plain` com `Content-Disposition: attachment` +
-`X-Sped-Layout-Version: 018`. 23 registros canônicos (Blocos 0 · C · E · H · 9), throttle 3/min.
+`X-Sped-Layout-Version` com o `COD_VER` do ano do período (o mesmo do registro `0000`). 23 registros canônicos (Blocos 0 · C · E · H · 9), throttle 3/min.
 O motor tributário entra por **DI opcional**: com regra configurada devolve CST/CFOP/alíquota reais;
 sem ela cai no **fallback Simples** (CSOSN 102, alíq 0) **diferenciando CFOP interno 5102 ×
 interestadual 6102** — foi esse diferencial que eliminou o risco R1 do audit sênior.

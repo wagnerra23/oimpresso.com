@@ -292,6 +292,13 @@ class HandleInertiaRequests extends Middleware
      */
     protected function userPermissions($user): array
     {
+        // O contador do portal (`Advisor`, guard `web-advisor`) não tem permissões Spatie. O
+        // `auth:web-advisor` roda antes deste middleware, então ele chega aqui como usuário e
+        // `can()` derrubava o painel `/advisor` com 500 (auditoria Financeiro 2026-11-05).
+        if (! $user instanceof \Illuminate\Contracts\Auth\Access\Authorizable) {
+            return [];
+        }
+
         $checks = [
             'ponto.access',
             'ponto.colaboradores.manage',

@@ -1,7 +1,7 @@
 # Modules/ProductCatalogue
 
 > Catálogo público de produtos via QR code — cliente final escaneia QR na loja/cardápio/vitrine, abre URL pública `/catalogue/{business_id}/{location_id}` SEM auth, navega produtos com fotos+preços+descontos vigentes.
-> **Tier 0:** Multi-tenant `business_id` global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — defesa em profundidade (rota pública, atacante pode tentar enumerar tenants via QR scan brute-force).
+> **Tier 0:** isolamento por `business_id` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) feito no Repository: `App\Product` **não** tem global scope de `business_id`, então cada consulta filtra a empresa com `where('business_id', ...)` em `Modules/ProductCatalogue/Repositories/ProductCatalogueRepository.php` (listagem, detalhe, local e descontos). A rota é pública e o ID é numérico, então um atacante pode tentar outras empresas pela URL.
 
 ## Como cliente (Wagner/Larissa/Martinho) usa
 
@@ -20,7 +20,6 @@
 - **Multi-tenant Tier 0 IRREVOGÁVEIS** — toda query filtra `business_id` no Repository (defesa em profundidade — rota é pública e atacante pode iterar IDs)
 - **Sem PII de cliente** — consumidor escaneia QR ANÔNIMO, não cria conta, não há `Contact` envolvido na rota pública
 - **Read-only** — rota pública apenas lê, nunca escreve (segurança contra SSRF/XSS no payload)
-- **Schema-aware fail-soft** — colunas opcionais (`product_catalogue_version`) ausentes não quebram página pública
 - **Telemetria observável** — `OtelHelper::spanBiz` em `buildIndexPayload` + `buildShowPayload` (D9 hot-path catálogo)
 
 ## Observabilidade D9.a ([ADR 0155](../../decisions/0155-module-grade-v3-tier-a-d9-otel.md))
@@ -50,10 +49,9 @@ Atributos sempre `business_id` Tier 0 + `location_id` + `product_id`. NUNCA IP d
 ```
 Modules/ProductCatalogue/
 ├── Console/Commands/ProductCatalogueHealthCommand.php  # canon `--detail` flag
-├── Database/Migrations/                                # add_product_catalogue_version (audit history)
+├── Database/Migrations/                                # grava a versão do módulo na tabela `system` (sem tabela própria)
 ├── Http/
-│   ├── Controllers/ProductCatalogueController.php      # Magro (<200 linhas) — Wave 16 D4
-│   └── Requests/                                       # ShowPublicCatalogue, ShowProduct, GenerateQr (FormRequest validation)
+│   └── Controllers/ProductCatalogueController.php      # Magro (<200 linhas) — Wave 16 D4
 ├── Repositories/ProductCatalogueRepository.php         # TODA query DB (multi-tenant Tier 0)
 ├── Resources/
 │   ├── assets/plugins/easy.qrcode.min.js              # Gerador QR client-side
@@ -69,7 +67,7 @@ Modules/ProductCatalogue/
 
 ## Entidades (intencionalmente vazias)
 
-`Modules/ProductCatalogue/Entities/` está vazia por design: o catálogo apenas LÊ entities core UltimatePOS (`App\Product`, `App\Variation`, `App\Category`, `App\BusinessLocation`, `App\Discount`). Tabela própria é apenas `product_catalogue_version` (audit history).
+`Modules/ProductCatalogue/Entities/` está vazia por design: o catálogo apenas LÊ entities core UltimatePOS (`App\Product`, `App\Variation`, `App\Category`, `App\BusinessLocation`, `App\Discount`). O módulo **não tem tabela própria**: a única migration grava a linha `productcatalogue_version` na tabela `system` do núcleo (versão do módulo instalado).
 
 Razão: catálogo é **projeção read-only** de dados que já vivem no core — duplicar Entity violaria SoC. Pattern documentado em ADR 0011 (padrão Jana/Repair: imitar antes de criar).
 
@@ -78,7 +76,7 @@ Razão: catálogo é **projeção read-only** de dados que já vivem no core —
 - `pii_fields_tracked`: nenhum no schema próprio (consumidor escaneia QR anônimo)
 - `pii_redactor_enabled`: n/a (sem PII)
 - `activity_log_enabled`: n/a (catálogo é read-only, audit é responsabilidade do core ao mudar produtos)
-- `retention`: `product_catalogue_version=1095d` (3 anos histórico catálogo pra rollback)
+- `retention`: nada a reter. O `Config/retention.php` cita uma entidade `product_catalogue_version`, que não é tabela; nenhum código de produção lê esse arquivo.
 
 ## Referências
 

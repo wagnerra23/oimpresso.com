@@ -13,6 +13,8 @@ use Illuminate\Validation\Rule;
  * Preserva validação fiscal SEFAZ:
  *   - modelo: 55 (NFe B2B) ou 65 (NFC-e B2C) — único conjunto válido CONFAZ.
  *
+ * Permissão: `nfebrasil.emit.manage` (authorize abaixo).
+ *
  * NÃO relaxar regras — compliance fiscal. Multi-tenant guard segue no Controller
  * (business_id da sessão + cross-tenant guard via Transaction lookup).
  */
@@ -20,8 +22,10 @@ class StoreEmissaoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Auth web stack já é aplicado via middleware. Aqui só valida sessão.
-        return $this->user() !== null;
+        // Lote 3.1 da auditoria NfeBrasil (N5-03, decisão [W] B-02 2026-11-10): emitir nota é ato
+        // fiscal e exige a permissão própria. Antes bastava estar logado. Quem já criava venda
+        // recebeu a permissão pela migration 2026_11_10_000001 — ninguém perde acesso no dia.
+        return (bool) $this->user()?->can('nfebrasil.emit.manage');
     }
 
     public function rules(): array

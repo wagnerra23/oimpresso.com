@@ -344,6 +344,10 @@ class AdminSidebarMenu
                   </svg>', 'id' => 'tour_step6']
                 )->order(25);
             }
+            // Mesma guarda da rota /product-catalogue/catalogue-qr (lote 4, 2026-11-12).
+            $catalogue_qr_visible = class_exists(\Modules\ProductCatalogue\Services\CatalogueQrService::class)
+                && app(\Modules\ProductCatalogue\Services\CatalogueQrService::class)
+                    ->authorizeAccess((int) session('user.business_id'), auth()->user());
             //Sell dropdown
             if ($is_admin || auth()->user()->hasAnyPermission(['sell.view', 'sell.create', 'direct_sell.access', 'view_own_sell_only', 'view_commission_agent_sell', 'access_shipping', 'access_own_shipping', 'access_commission_agent_shipping', 'access_sell_return', 'direct_sell.view', 'direct_sell.update', 'access_own_sell_return'])) {
                 $menu->dropdown(
@@ -476,10 +480,16 @@ class AdminSidebarMenu
                         // Modules/Woocommerce DataController.modifyAdminMenu
                         // viraram NO-OP nesta mesma onda.
                         'group'  => 'comercial',
-                        'ghosts' => [
-                            ['key' => 'catalogue-qr', 'label' => 'Catálogo QR', 'href' => '/product-catalogue/catalogue-qr'],
+                        // Catálogo QR só aparece para quem a rota deixa entrar: a guarda é a
+                        // mesma do controller (CatalogueQrService::authorizeAccess — pacote
+                        // productcatalogue_module + product.view). Antes o item aparecia para
+                        // todo mundo do hub Vendas e levava a 403 (lote 4, 2026-11-12).
+                        'ghosts' => array_values(array_filter([
+                            $catalogue_qr_visible
+                                ? ['key' => 'catalogue-qr', 'label' => 'Catálogo QR', 'href' => '/product-catalogue/catalogue-qr']
+                                : null,
                             ['key' => 'woocommerce',  'label' => 'WooCommerce', 'href' => '/woocommerce'],
-                        ],
+                        ])),
                     ]
                 )->order(30);
             }

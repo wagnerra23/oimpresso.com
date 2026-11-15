@@ -77,7 +77,9 @@ function makeMetricsTestChannel(): Channel
 it('R-WA-METRICS-001 — chunk_failed emite log com metric_name + business_id + labels canônicos', function () {
     $ch = makeMetricsTestChannel();
 
-    Log::spy();
+    // O job chama Log::channel('single')->error(): o spy precisa devolver a si mesmo.
+    $log = Log::spy();
+    $log->shouldReceive('channel')->andReturn($log);
 
     $job = new PersistHistorySyncBatchJob(
         businessId: 1,

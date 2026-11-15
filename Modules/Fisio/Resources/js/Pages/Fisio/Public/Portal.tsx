@@ -15,17 +15,19 @@
 // aparelho lembrado (o servidor decide pelo cabeçalho X-Fisio-Offline)  → _components/Instalar.tsx
 // Nada clínico aparece antes do PIN e do consentimento: isso é garantido no servidor.
 import { Head, router } from '@inertiajs/react';
-import { HeartPulse, ShieldCheck } from 'lucide-react';
+import { FileText, HeartPulse, ShieldCheck } from 'lucide-react';
+import { Button } from '@/Components/ui/button';
 import { useEffect, useState, type ReactNode } from 'react';
 import { TelaCheckin, InstrucaoDaFisio } from './_components/Checkin';
 import { EtapaConsentimento, EtapaPin } from './_components/Entrada';
 import { CartaoConstancia } from './_components/Constancia';
 import { TelaCrise, TelaHoje } from './_components/Hoje';
 import { ConviteInstalar } from './_components/Instalar';
-import { TelaConfiguracoes } from './_components/Configuracoes';
+import { TelaConfiguracoes, type EstudoAceito } from './_components/Configuracoes';
 import { TelaPreAnamnese, type OpcoesPreAnamnese } from './_components/PreAnamnese';
 import { TelaAgendar } from './_components/Agendar';
 import { TelaConsultas } from './_components/Consultas';
+import { TelaEnviarDocumento, type EnvioDocumentos } from './_components/EnviarDocumento';
 import type { ConsultaPortal } from './_components/agendaPortal';
 import { enviarFila, limparFila, registrarAppDoPortal, type Constancia, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
 
@@ -50,7 +52,17 @@ interface Props {
   red_flags?: string[];
   consentimentos?: Record<string, boolean>;
   pre_anamnese?: OpcoesPreAnamnese | null;
+  avaliacoes_estudo?: AvaliacaoEstudo[];
+  envio_documentos?: EnvioDocumentos;
+  estudos_pesquisa?: EstudoAceito[];
+  laudos_bps?: LaudoDoPortal[];
 }
+
+/** Laudo biopsicossocial finalizado e vigente (UC-FBP-16): o paciente baixa o PDF para levar à unidade de saúde. */
+interface LaudoDoPortal { id: number; finalizado_em: string }
+
+/** Avaliação do estudo em aberto (etapa 07 P-05). A clínica aplica na sessão; o portal só avisa. */
+interface AvaliacaoEstudo { moment_id: number; momento: string; ate: string; questionarios: string[] }
 
 function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica?: string | null; token?: string; children: ReactNode }) {
   return (
@@ -72,7 +84,7 @@ function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica
   );
 }
 
-type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise' | 'config' | 'pre-anamnese' | 'consultas' | 'agendar';
+type Tela = 'hoje' | 'checkin' | 'crise' | 'checkin-crise' | 'config' | 'pre-anamnese' | 'consultas' | 'agendar' | 'documentos';
 
 function vezesIniciais(itens: ItemHoje[], relato: Relato | null | undefined): Record<number, number> {
   const out: Record<number, number> = {};
@@ -96,11 +108,14 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
   if (tela === 'agendar') {
     return <TelaAgendar token={token} remarcar={remarcar} onVoltar={() => setTela('consultas')} onPronto={() => setTela('consultas')} />;
   }
+  if (tela === 'documentos' && props.envio_documentos) {
+    return <TelaEnviarDocumento token={token} clinica={props.clinica ?? null} envio={props.envio_documentos} onVoltar={() => setTela('hoje')} />;
+  }
   if (tela === 'pre-anamnese' && props.pre_anamnese) {
     return <TelaPreAnamnese token={token} clinica={props.clinica ?? null} opcoes={props.pre_anamnese} onVoltar={() => setTela('hoje')} />;
   }
   if (tela === 'config') {
-    return <TelaConfiguracoes token={token} clinica={props.clinica ?? null} consentimentos={props.consentimentos ?? {}} onVoltar={() => setTela('hoje')} />;
+    return <TelaConfiguracoes token={token} clinica={props.clinica ?? null} consentimentos={props.consentimentos ?? {}} estudos={props.estudos_pesquisa ?? []} onVoltar={() => setTela('hoje')} />;
   }
   if (tela === 'crise') {
     return <TelaCrise itens={crise} sequencia={jogo.sequencia} onVoltar={() => setTela('hoje')} onComecar={() => setTela('checkin-crise')} />;
@@ -129,6 +144,15 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
         <span className="text-sm text-muted-foreground">Três perguntas rápidas sobre a sua dor. Leva uns 2 minutos.</span>
       </button>
     )}
+    {(props.avaliacoes_estudo ?? []).map((a) => (
+      <section key={a.moment_id} data-contract="fisio-portal-avaliacao-estudo" aria-label={`Avaliação do estudo · ${a.momento}`}
+        className="flex flex-col gap-1 rounded-lg border border-primary/30 bg-primary/5 p-4">
+        <span className="font-semibold">Avaliação do estudo · {a.momento}</span>
+        <span className="text-sm text-muted-foreground">
+          Até {new Date(`${a.ate}T12:00:00`).toLocaleDateString('pt-BR')}. {props.clinica ?? 'A clínica'} aplica com você na próxima sessão.
+        </span>
+      </section>
+    ))}
     <TelaHoje
       itens={itens}
       jogo={jogo}
@@ -140,9 +164,24 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
       onCrise={() => setTela('crise')}
       constancia={props.constancia && <CartaoConstancia token={token} inicial={props.constancia} />}
     />
+    {(props.laudos_bps ?? []).map((l) => (
+      <section key={l.id} data-contract="fisio-portal-laudo-bps" aria-label="Seu laudo biopsicossocial"
+        className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4">
+        <span className="font-semibold">Seu laudo biopsicossocial</span>
+        <span className="text-sm text-muted-foreground">
+          Finalizado em {new Date(`${l.finalizado_em}T12:00:00`).toLocaleDateString('pt-BR')}. Você pode imprimir e levar à unidade de saúde. A carteira de fibromialgia segue o fluxo da FCEE.
+        </span>
+        <Button asChild variant="outline" className="h-12">
+          <a href={`/fisio/p/${token}/laudos-bps/${l.id}/pdf`}><FileText className="size-4" aria-hidden="true" /> Baixar o laudo (PDF)</a>
+        </Button>
+      </section>
+    ))}
     <ConviteInstalar diasCumpridos={jogo.dias_cumpridos} />
     <button type="button" className="self-center text-sm text-muted-foreground underline-offset-4 hover:underline" onClick={() => setTela('config')}>Configurações e autorizações</button>
     <button type="button" className="self-center text-sm text-primary underline-offset-4 hover:underline" onClick={() => setTela('consultas')}>Minhas consultas</button>
+    {props.envio_documentos && (
+      <button type="button" data-contract="fisio-portal-enviar-documento-convite" className="self-center text-sm text-primary underline-offset-4 hover:underline" onClick={() => setTela('documentos')}>Enviar exame, receita ou atestado</button>
+    )}
     </>
   );
 }

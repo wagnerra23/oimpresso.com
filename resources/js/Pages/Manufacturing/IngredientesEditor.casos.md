@@ -170,6 +170,21 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-INGRED-15 · Grupo de ingredientes de outra empresa não é renomeado nem reaproveitado
+- **Persona:** qualquer tenant — Tier 0.
+- **Aceite:** Dado o id de um grupo de ingredientes de outra empresa no formulário · Quando salvo a receita ·
+  Então o grupo da outra empresa fica com o nome que tinha e a linha passa a um grupo da minha empresa ·
+  Dado um grupo da minha empresa usado só por esta receita · Quando salvo com outro nome · Então ele é
+  renomeado no lugar.
+- **Fonte:** ADR 0093 · decisão [W] 2026-10-06 (a cópia não renomeia o grupo da original) · auditoria do
+  Manufacturing 2026-11-09, eixo 1 §5 (sem caso de grupo de outra empresa).
+- **Teste:** `IsolamentoEscritasEmpresaTest.php`
+- **Regressão que defende:** `grupoProprioDaReceita` aceitar o grupo pelo id sem conferir a empresa e o
+  salvar renomear o grupo de outro tenant.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D2 · decisão [W] 2026-10-13) Salvar a composição grava em `product_bom` e `mfg_recipes` passa a ler dela, sem mudar a resposta de `ProductController`, `ProdutoUnificadoController` e `ProductUtil`. Mexe em estoque/valor: REGRA MESTRE (dupla prova + antes→depois). Depende do ADR.

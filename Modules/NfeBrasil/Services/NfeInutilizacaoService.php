@@ -34,8 +34,8 @@ use RuntimeException;
  *
  * Side-effects:
  *   - Persiste em nfe_inutilizacoes (status=autorizado se cstat=102)
- *   - Atualiza nfe_emissoes da faixa com status='inutilizada' (preserva
- *     registro pra rastreabilidade fiscal)
+ *   - Atualiza para status='inutilizada' só as emissões da faixa sem uso na SEFAZ
+ *     (rejeitada/erro_envio), preservando o registro. Faixa com nota válida é recusada.
  *
  * Refs:
  *   - CASOS-USO-PIPELINE-VENDAS.md §CU-01 G2
@@ -44,6 +44,9 @@ use RuntimeException;
  */
 class NfeInutilizacaoService
 {
+    /** Número que a SEFAZ não usou: só estes viram `inutilizada`. */
+    private const STATUS_SEM_USO_NA_SEFAZ = ['rejeitada', 'erro_envio'];
+
     public function __construct(
         private readonly CertificadoService $certificadoService,
         /**
@@ -86,6 +89,7 @@ class NfeInutilizacaoService
     ): NfeInutilizacao {
         // ── Validações ──────────────────────────────────────────────────────
         $this->validarEntrada($businessId, $modelo, $serie, $numeroDe, $numeroAte, $justificativa);
+        $this->recusarFaixaComNotaValida($businessId, $modelo, $serie, $numeroDe, $numeroAte);
 
         // ── SEFAZ inutilização ──────────────────────────────────────────────
         $cstat = null;
@@ -148,11 +152,12 @@ class NfeInutilizacaoService
 
         // ── Marca emissões da faixa como inutilizada ────────────────────────
         if ($status === 'autorizado') {
-            NfeEmissao::withTrashed()
+            NfeEmissao::query()
                 ->where('business_id', $businessId)
                 ->where('modelo', $modelo)
                 ->where('serie', $serie)
                 ->whereBetween('numero', [$numeroDe, $numeroAte])
+                ->whereIn('status', self::STATUS_SEM_USO_NA_SEFAZ)
                 ->update(['status' => 'inutilizada']);
 
             Log::info('NfeInutilizacaoService: faixa autorizada', [
@@ -197,6 +202,35 @@ class NfeInutilizacaoService
         if ($sessionBiz !== null && (int) $sessionBiz !== $businessId) {
             throw new UnauthorizedActionException(
                 "Cross-tenant attempt: session biz={$sessionBiz} tentou inutilizar biz={$businessId}"
+            );
+        }
+    }
+
+    /**
+     * Nota autorizada, cancelada, denegada ou em andamento ocupa o número de verdade: a faixa
+     * inteira é recusada antes de ir à SEFAZ. Conta também as apagadas, porque apagar a linha
+     * daqui não desfaz o que a SEFAZ registrou.
+     */
+    private function recusarFaixaComNotaValida(
+        int $businessId,
+        string $modelo,
+        string $serie,
+        int $numeroDe,
+        int $numeroAte,
+    ): void {
+        $ocupada = NfeEmissao::withTrashed()
+            ->where('business_id', $businessId)
+            ->where('modelo', $modelo)
+            ->where('serie', $serie)
+            ->whereBetween('numero', [$numeroDe, $numeroAte])
+            ->whereNotIn('status', [...self::STATUS_SEM_USO_NA_SEFAZ, 'inutilizada'])
+            ->orderBy('numero')
+            ->first();
+
+        if ($ocupada !== null) {
+            throw new InvalidArgumentException(
+                "A faixa [{$numeroDe}..{$numeroAte}] contém a nota {$ocupada->numero}, com status "
+                . "{$ocupada->status}. Esse número não pode ser inutilizado."
             );
         }
     }

@@ -75,7 +75,8 @@ return [
             // o gate de schema sem disparar FSM (que move via ExecuteStageActionService).
             ['send' => 'completed_at', 'value' => '2026-05-29 16:00:00', 'recv' => 'completed_at', 'match' => 'partial'],
 
-            ['send' => 'delivered_at', 'value' => '2026-05-30 09:30:00', 'recv' => 'delivered_at', 'match' => 'partial'],
+            // delivered_at não sai no JSON do show: a persistência se confere no banco.
+            ['send' => 'delivered_at', 'value' => '2026-05-30 09:30:00', 'recv' => 'delivered_at', 'match' => 'partial', 'no_banco' => true],
         ],
     ],
 ];

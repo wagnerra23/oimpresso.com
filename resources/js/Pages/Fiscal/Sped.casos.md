@@ -172,11 +172,12 @@ Dado nenhuma configuração explícita · Quando o app lê `fiscal.sped_simples_
 **Pronto quando:** default true, chave no arquivo canônico, e o Controller referencia a flag.
 
 ## UC-FSPED-11 — O COD_VER do 0000 é o do leiaute do ano do período
-Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-11` — 2 casos, rodam sem banco)
+Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-11` — 2 casos, rodam sem banco · `SpedControllerTest::UC-FSPED-11` — o cabeçalho do download)
 Dado uma competência de 2025 ou de 2026 · Quando o gerador monta o `0000` · Então `COD_VER` é `019` e
-`020`, respectivamente — a tabela 3.1.1 da **NT 2025.001 v1.0**. Ano sem leiaute mapeado (2027, leiaute
-021 da NT 2026.001) é **recusado**, não gerado com a versão de outro ano. Âncora: NT 2025.001 §3.1.1.
-**Pronto quando:** o código sai por período, e não fixo em `018` (que só vale para 2024).
+`020`, respectivamente — a tabela 3.1.1 da **NT 2025.001 v1.0**, e o cabeçalho `X-Sped-Layout-Version`
+do download declara o mesmo valor. Ano sem leiaute mapeado (2027, leiaute 021 da NT 2026.001) é
+**recusado**, não gerado com a versão de outro ano. Âncora: NT 2025.001 §3.1.1.
+**Pronto quando:** o código sai por período, e não fixo em `018` (que só vale para 2024), no arquivo e no cabeçalho.
 
 ## UC-FSPED-12 — Os 10 blocos obrigatórios saem, na ordem do Guia Prático
 Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-12`)

@@ -11,7 +11,9 @@ use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 use Modules\Manufacturing\Services\ProductionService;
 use Modules\Manufacturing\Services\RecipeBomService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
+require_once __DIR__.'/../Support/receita-empresa-fixtures.php';
 
 /**
  * Wave 30 — o relatório de produção do período (Manufacturing/Report) em
@@ -173,15 +175,38 @@ describe('UC-REPORT-01/02 — a rota e o isolamento de tenant (schema MySQL real
         expect($rota->getActionName())->toContain('ProductionController');
     });
 
-    // UC-REPORT-02 — Tier 0 + §7.3. Tenant fictício sem produção nenhuma: o relatório TEM
-    // que voltar vazio, sem NaN nem erro — nunca vazamento de outro business.
+    // UC-REPORT-02 — Tier 0 + §7.3. A empresa 99 TEM uma ordem final com receita; a 98 não
+    // pode vê-la. Âncora positiva: a mesma chamada pela 99 traz a linha. Período sem produção
+    // devolve `linhas: []` e `total: 0.0`, finito.
     it('UC-REPORT-02 reportByProduct nao vaza producao de outro business e devolve 0 sem dado', function () {
+        $dono = (int) DB::table('users')->min('id');
+        [$receitaOutra, $acabadoOutra] = mfgEmpReceita(MFG_EMP_OUTRO, $dono, 'Insumo do relatorio');
+        $ordem = DB::table('transactions')->insertGetId([
+            'business_id' => MFG_EMP_OUTRO, 'type' => 'production_purchase', 'status' => 'received',
+            'transaction_date' => '2026-10-01 10:00:00', 'created_by' => $dono, 'essentials_duration' => 0,
+            'ref_no' => 'OP-REP-'.random_int(1000, 9999), 'final_total' => 0, 'mfg_is_final' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('purchase_lines')->insert([
+            'transaction_id' => $ordem, 'variation_id' => $acabadoOutra,
+            'product_id' => DB::table('variations')->where('id', $acabadoOutra)->value('product_id'),
+            'quantity' => 4, 'purchase_price' => 0, 'purchase_price_inc_tax' => 0, 'item_tax' => 0,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
         $service = new ProductionService(null, new RecipeBomService());
 
-        $resultado = $service->reportByProduct(BIZ_FICTICIO_MFG, ['is_final' => true]);
+        $daDona = $service->reportByProduct(MFG_EMP_OUTRO, ['is_final' => true]);
+        expect(collect($daDona['linhas'])->pluck('recipe_id')->all())->toContain($receitaOutra);
 
-        expect($resultado['linhas'])->toBe([]);
-        expect($resultado['total'])->toBe(0.0);
-        expect(is_finite($resultado['total']))->toBeTrue();
+        $daOutra = $service->reportByProduct(MFG_EMP_BIZ, ['is_final' => true]);
+        expect(collect($daOutra['linhas'])->pluck('recipe_id')->all())->not->toContain($receitaOutra);
+        expect(is_finite($daOutra['total']))->toBeTrue();
+
+        $semProducao = $service->reportByProduct(MFG_EMP_OUTRO, [
+            'is_final' => true, 'start_date' => '2001-01-01', 'end_date' => '2001-01-31',
+        ]);
+        expect($semProducao['linhas'])->toBe([]);
+        expect($semProducao['total'])->toBe(0.0);
     });
 });

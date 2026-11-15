@@ -115,7 +115,7 @@ jobs:
         # phpunit.xml declara DB_CONNECTION=sqlite (sem force=true) — exportar aqui
         # faz a suíte rodar no MySQL real semeado, não no :memory:.
         #
-        # ── ALLOWLIST (22 arquivos · burn-down da quarentena era-sqlite começou 2026-08-07) ──
+        # ── ALLOWLIST (34 arquivos em 2026-11-06 · a contagem vive na lista abaixo, não aqui · burn-down da quarentena era-sqlite começou 2026-08-07) ──
         # RegisterWhatsappPermissionsCommandTest: 1º convertido. PROVADO VERDE contra MySQL
         # real no CT 100 antes do merge — 10 passed / 34 assertions (ADR 0062: teste roda no
         # CT 100, nunca local). O run anterior, com o checkout velho do container (pré-#5381,
@@ -147,6 +147,8 @@ jobs:
         # Idempotency-Key, tenant 98 x 2. Daemon falso (Http::fake) - nenhuma mensagem real sai.
         # 2026-10-26 — + NotificadorClienteWhatsappContratoTest (US-WA-319): aviso automatico por WhatsApp
         # com anexo. CT 100 MySQL: 5 passed / 25 assertions; mutante sem filtro business_id no contato -> 1 failed.
+        # 2026-11-06 — + IsolamentoTabelasSemCoberturaContratoTest (auditoria Whatsapp lote 1): isolamento entre
+        # empresas de whatsapp_lid_pn_map, whatsapp_reminders e whatsapp_jana_correcoes. Tenant 98 x outro tenant.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -165,6 +167,7 @@ jobs:
             Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php \
             Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php \
             Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/IsolamentoTabelasSemCoberturaContratoTest.php \
             Modules/Whatsapp/Tests/Feature/RecebimentoOmnicanalContratoTest.php \
             Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php \
             Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php \
@@ -196,6 +199,13 @@ jobs:
       - name: Sumario JUnit (prova de EXECUÇÃO — skip sai exit 0, leia assertions)
         if: always() && steps.changes.outputs.whatsapp == 'true'
         run: node scripts/tests/junit-summary.mjs test-results/pest-whatsapp-junit.xml --out test-results/pest-whatsapp-summary.json
+
+      # Sumário acima só REPORTA (if: always()). Este step MORDE: suíte que sai exit 0 sem
+      # assertion nenhuma é ausência de execução, não sucesso (LC-13). Sem always(), vale o
+      # success() implícito: se o Pest já falhou, a lane está vermelha e este step não duplica.
+      - name: Suite provou algo? (--check-assertions · LC-13)
+        if: steps.changes.outputs.whatsapp == 'true'
+        run: node scripts/tests/junit-summary.mjs test-results/pest-whatsapp-junit.xml --check-assertions
 
       - name: Upload artefatos
         if: always() && steps.changes.outputs.whatsapp == 'true'

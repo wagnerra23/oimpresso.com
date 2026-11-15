@@ -12,6 +12,7 @@ use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
+use Modules\Whatsapp\Http\Controllers\Admin\CaixaUnificadaController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 
 uses(Tests\TestCase::class);
@@ -222,7 +223,7 @@ function cfiGrant(int $businessId, int $channelId, int $userId): void
  * renderizar view real e falhar em ambiente Pest (view cache path). Reflection
  * pega o array de props ANTES da serialização HTTP.
  */
-function cfiIndexConvIds(InboxController $controller, Request $request): array
+function cfiIndexConvIds(CaixaUnificadaController $controller, Request $request): array
 {
     $token = Mockery::mock(\Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer::class);
     $token->shouldReceive('issue')->andReturn(null);
@@ -234,15 +235,23 @@ function cfiIndexConvIds(InboxController $controller, Request $request): array
     $propsProp->setAccessible(true);
     $renderedProps = $propsProp->getValue($response);
 
-    $convs = $renderedProps['conversations']['data'] ?? [];
-    if (is_callable($convs)) {
-        $convs = $convs();
-    }
-    if ($convs instanceof \Illuminate\Support\Collection) {
-        $convs = $convs->all();
-    }
+    $convs = cfiResolveDefer($renderedProps['conversations'] ?? null)['data'] ?? [];
 
     return collect($convs)->pluck('id')->map(fn ($id) => (int) $id)->all();
+}
+
+/**
+ * O index do InboxController virou 301 para a Caixa Unificada; este teste passou a
+ * exercitar o CaixaUnificadaController, que tem os mesmos filtros e a mesma ACL.
+ * Lá as props caras são deferidas: este helper as resolve.
+ */
+function cfiResolveDefer($prop): array
+{
+    if ($prop instanceof \Inertia\DeferProp || $prop instanceof \Inertia\OptionalProp) {
+        $prop = $prop();
+    }
+
+    return is_array($prop) ? $prop : [];
 }
 
 function cfiBuildRequest(): Request
@@ -264,12 +273,12 @@ it('R-WA-069-001 — 2 users com acessos disjuntos veem APENAS conversas do cana
 
     // user_suporte → só vê C1
     cfiSetUser(1, 10);
-    $idsSuporte = cfiIndexConvIds(new InboxController(), cfiBuildRequest());
+    $idsSuporte = cfiIndexConvIds(new CaixaUnificadaController(), cfiBuildRequest());
     expect($idsSuporte)->toEqual([$c1->id]);
 
     // user_financeiro → só vê C2
     cfiSetUser(1, 11);
-    $idsFinanc = cfiIndexConvIds(new InboxController(), cfiBuildRequest());
+    $idsFinanc = cfiIndexConvIds(new CaixaUnificadaController(), cfiBuildRequest());
     expect($idsFinanc)->toEqual([$c2->id]);
 });
 
@@ -279,7 +288,7 @@ it('R-WA-069-002 — User sem ACL em nenhum canal recebe inbox vazia (não 500)'
 
     cfiSetUser(1, 42); // user sem nenhum grant
 
-    $ids = cfiIndexConvIds(new InboxController(), cfiBuildRequest());
+    $ids = cfiIndexConvIds(new CaixaUnificadaController(), cfiBuildRequest());
     expect($ids)->toBe([]);
 });
 
@@ -292,7 +301,7 @@ it('R-WA-069-003 — Superadmin Gate whatsapp.view-all-phones bypassa filtro per
     // User admin sem nenhum grant explícito mas com Gate true
     cfiSetUser(1, 99, canSeeAll: true);
 
-    $ids = cfiIndexConvIds(new InboxController(), cfiBuildRequest());
+    $ids = cfiIndexConvIds(new CaixaUnificadaController(), cfiBuildRequest());
     expect(count($ids))->toBe(2);
     expect($ids)->toContain($ca->id);
     expect($ids)->toContain($cb->id);
@@ -316,7 +325,7 @@ it('R-WA-069-004 — Cross-tenant rígido: biz=1 nunca vê conv de biz=99 mesmo 
     ]);
 
     cfiSetUser(1, 50);
-    $ids = cfiIndexConvIds(new InboxController(), cfiBuildRequest());
+    $ids = cfiIndexConvIds(new CaixaUnificadaController(), cfiBuildRequest());
 
     // Global scope business_id IRREVOGÁVEL bloqueia c99 mesmo com ACL bugada
     expect($ids)->not->toContain($c99->id);
@@ -338,7 +347,7 @@ it('R-WA-069-005 — Acesso revogado (revoked_at != null) NÃO conta como acesso
     ]);
 
     cfiSetUser(1, 20);
-    $ids = cfiIndexConvIds(new InboxController(), cfiBuildRequest());
+    $ids = cfiIndexConvIds(new CaixaUnificadaController(), cfiBuildRequest());
 
     expect($ids)->toBe([]); // revoked → não vê
 });
@@ -415,7 +424,7 @@ it('R-WA-069-008 — Re-grant após revoke restaura acesso (UNIQUE permite N row
     // 1. Grant ativo
     cfiGrant(1, $ch->id, 40);
     cfiSetUser(1, 40);
-    expect(cfiIndexConvIds(new InboxController(), cfiBuildRequest()))->toEqual([$conv->id]);
+    expect(cfiIndexConvIds(new CaixaUnificadaController(), cfiBuildRequest()))->toEqual([$conv->id]);
 
     // 2. Revogar
     $access = ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)
@@ -425,13 +434,13 @@ it('R-WA-069-008 — Re-grant após revoke restaura acesso (UNIQUE permite N row
     $access->save();
 
     cfiSetUser(1, 40); // re-init session/auth
-    expect(cfiIndexConvIds(new InboxController(), cfiBuildRequest()))->toBe([]);
+    expect(cfiIndexConvIds(new CaixaUnificadaController(), cfiBuildRequest()))->toBe([]);
 
     // 3. Re-grant — nova row (revoked_at=NULL coexiste com a histórica)
     cfiGrant(1, $ch->id, 40);
 
     cfiSetUser(1, 40);
-    expect(cfiIndexConvIds(new InboxController(), cfiBuildRequest()))->toEqual([$conv->id]);
+    expect(cfiIndexConvIds(new CaixaUnificadaController(), cfiBuildRequest()))->toEqual([$conv->id]);
 
     // Histórico preservado — 2 rows (1 revoked + 1 ativa)
     $rows = ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)

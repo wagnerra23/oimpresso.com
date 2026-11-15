@@ -71,7 +71,9 @@ class ExecuteStageActionService
             );
         }
 
-        if (($subject->business_id ?? null) !== $action->stage->process->business_id) {
+        // `process` vem do escopo da empresa da sessão: em sessão de outra empresa ele é null,
+        // e o nullsafe faz disso a recusa abaixo, em vez de um ErrorException.
+        if (($subject->business_id ?? null) !== $action->stage->process?->business_id) {
             throw new UnauthorizedActionException(
                 'Cross-tenant attempt: subject.business_id != process.business_id'
             );

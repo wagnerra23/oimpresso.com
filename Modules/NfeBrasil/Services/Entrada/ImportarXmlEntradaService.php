@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Modules\NfeBrasil\Models\NfeDfeItem;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
+use Modules\NfeBrasil\Support\ArquivoFiscal;
 use Modules\NfeBrasil\Support\CnpjDoEmitente;
 
 /**
@@ -50,7 +51,7 @@ final class ImportarXmlEntradaService
 
         return DB::transaction(function () use ($businessId, $nota, $xml) {
             $path = sprintf('nfe-brasil/%d/dfes-recebidos/%s.xml', $businessId, $nota['chave_44']);
-            Storage::disk(config('nfebrasil.dfes_recebidos_disk', 'local'))->put($path, $xml);
+            Storage::disk(config('nfebrasil.dfes_recebidos_disk', ArquivoFiscal::DISCO))->put($path, $xml);
 
             $recebido = NfeDfeRecebido::create([
                 'business_id'         => $businessId,

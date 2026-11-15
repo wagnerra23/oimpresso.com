@@ -22,6 +22,7 @@ final class OsDaVenda
     /** @return Collection<int, Ordem> */
     public function daVenda(int $businessId, int $transactionId): Collection
     {
+        // SUPERADMIN: chamado pelo gancho Transaction::updating; a empresa vem da venda, não da sessão de quem salvou.
         return Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
             ->where('transaction_id', $transactionId)->with('currentStage')->orderBy('id')->get();
     }

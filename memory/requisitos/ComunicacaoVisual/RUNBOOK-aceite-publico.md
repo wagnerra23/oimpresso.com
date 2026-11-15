@@ -27,6 +27,8 @@ owner: W
   (backend do PR anterior da US-COMVIS-023). Depois da decisão, redireciona para a própria página com a
   mensagem de sucesso; recusa volta com o erro em `decisao`.
 - A página não calcula nada: mostra os números gravados no orçamento (`paraCliente`).
+- A decisão grava o retrato do orçamento em `retrato_json`; o aceite grava também `ip` e `user_agent`.
+  Salvar uma alteração no orçamento fecha o link aberto (`fecharLinksAbertos`), na mesma transação.
 - Token com 48 caracteres alfanuméricos (`where` na rota); desconhecido = 404, sem dizer por quê.
 - Cabeçalhos `X-Robots-Tag: noindex, nofollow` e `Referrer-Policy: no-referrer`. Por causa do
   `no-referrer`, o controller nunca usa `back()`: o navegador não manda o Referer.

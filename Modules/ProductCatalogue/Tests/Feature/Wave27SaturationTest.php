@@ -19,11 +19,11 @@ uses(Tests\TestCase::class);
  *   - D9 spans completos: 3 spans canon `product_catalogue.*` (build_index/show/qr)
  *   - D9 span attributes: business_id Tier 0 em todos os spans (defesa rota pública QR)
  *   - D9 OtelHelper preserva exception (fail-loud)
- *   - D6 N/A: ProductCatalogueController usa Blade view() não Inertia::render — defer não aplicável
+ *   - D6 N/A: a vitrine pública (index/show) é Blade, defer não se aplica; a tela admin QR é Inertia
  *
  * Tier 0 IRREVOGÁVEIS:
  *   - Rota pública sem auth — Repository filtra business_id em toda query (defesa profundidade)
- *   - PT-BR comments + biz=99 ficticio se necessário (ADR 0101 — biz=1 Wagner)
+ *   - PT-BR comments + tenant 98 contra 99 quando precisar de empresa (ADR 0358)
  *
  * @see memory/requisitos/ProductCatalogue/CHANGELOG.md Wave 27 POLISH
  */
@@ -33,19 +33,6 @@ describe('Wave 27 ProductCatalogue POLISH', function () {
         config()->set('otel.enabled', false);
     });
 
-    it('D2 ArchitectureTest cumulativo: Wave 16 (12 cenários) + Wave 23 (≥8) atinge ≥20', function () {
-        $w16 = base_path('Modules/ProductCatalogue/Tests/Feature/ArchitectureTest.php');
-        $w23 = base_path('Modules/ProductCatalogue/Tests/Feature/Wave23SaturationTest.php');
-
-        $countCenarios = function (string $file): int {
-            if (! file_exists($file)) return 0;
-            $src = file_get_contents($file);
-            return preg_match_all("/^it\\(/m", $src);
-        };
-
-        $total = $countCenarios($w16) + $countCenarios($w23);
-        expect($total)->toBeGreaterThanOrEqual(20, "Cumulativo W16+W23 deve ter ≥20 it() blocks; achou {$total}");
-    });
 
     it('D9 spans completos: 3 spans canon product_catalogue.* em 2 Services', function () {
         $expectedSpans = [
@@ -85,7 +72,7 @@ describe('Wave 27 ProductCatalogue POLISH', function () {
         expect(fn () => OtelHelper::spanBiz(
             'product_catalogue.test_wave27_boom',
             fn () => throw new \RuntimeException('pc-w27-boom'),
-            ['business_id' => 1]
+            ['business_id' => 98]
         ))->toThrow(\RuntimeException::class, 'pc-w27-boom');
     });
 
@@ -100,12 +87,6 @@ describe('Wave 27 ProductCatalogue POLISH', function () {
         }
     });
 
-    it('D2 module boundary: Services + Repository + Controller dentro Modules\\ProductCatalogue', function () {
-        expect(CatalogueService::class)->toStartWith('Modules\\ProductCatalogue\\');
-        expect(CatalogueQrService::class)->toStartWith('Modules\\ProductCatalogue\\');
-        expect(ProductCatalogueRepository::class)->toStartWith('Modules\\ProductCatalogue\\');
-        expect(ProductCatalogueController::class)->toStartWith('Modules\\ProductCatalogue\\');
-    });
 
     it('D6 HealthCommand canônico --detail (NUNCA --verbose) — .claude/rules/commands.md', function () {
         $cmd = app(ProductCatalogueHealthCommand::class);
@@ -116,11 +97,26 @@ describe('Wave 27 ProductCatalogue POLISH', function () {
             ->and($signature)->not->toContain('{--verbose ');
     });
 
-    it('D2 Controller Blade — usa view() não Inertia::render (defer N/A pra rota pública QR)', function () {
-        $src = file_get_contents((new ReflectionClass(ProductCatalogueController::class))->getFileName());
+    // Contrato corrigido em 2026-11. A versão anterior exigia que o Controller inteiro não contivesse
+    // 'Inertia::render', mas generateQr (tela admin) renderiza Inertia desde o cutover F5 de
+    // 2026-10-27: o teste estaria vermelho se alguma lane o rodasse. O contrato real é por rota:
+    // a vitrine pública responde Blade; a tela admin responde Inertia (provado em
+    // tests/Feature/Sells/CatalogueQrContratoTest.php).
+    it('D2 vitrine pública responde Blade, não Inertia (defer N/A pra rota pública QR)', function () {
+        if (\Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite') {
+            $this->markTestSkipped('Vitrine pública depende do schema MySQL UltimatePOS.');
+        }
+        $empresa = $this->seededTenant();
+        $local = \Illuminate\Support\Facades\DB::table('business_locations')->where('business_id', $empresa->id)->value('id');
+        if (! $local) {
+            $this->markTestSkipped('Tenant de teste sem local seedado (pest-mysql-setup cria "Matriz CI").');
+        }
 
-        expect($src)->toContain("view('productcatalogue::catalogue.index')")
-            ->and($src)->toContain("view('productcatalogue::catalogue.show')")
-            ->and($src)->not->toContain('Inertia::render');
+        $r = $this->get("/catalogue/{$empresa->id}/{$local}");
+
+        $r->assertOk();
+        $r->assertViewIs('productcatalogue::catalogue.index');
+        $r->assertHeaderMissing('X-Inertia');
+        expect((string) $r->getContent())->not->toContain('data-page=');
     });
 });

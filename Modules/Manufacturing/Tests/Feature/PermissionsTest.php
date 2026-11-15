@@ -3,11 +3,12 @@
 declare(strict_types=1);
 
 use App\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * R-MANU-002 a R-MANU-005 (SPEC.md §4) — autorização Spatie por recurso do módulo
@@ -16,60 +17,52 @@ uses(Tests\TestCase::class);
  * Regra base:
  *   Dado que um usuário NÃO tem a permissão `manufacturing.{recurso}`
  *   Quando ele tenta acessar a funcionalidade correspondente
- *   Então recebe 403 (o controller faz `abort(403, ...)` atrás de um OR com o gate de
- *   subscription `manufacturing_module` — "sem a permissão" pode estourar por qualquer um
- *   dos dois lados, e o teste aceita qualquer status != 200, igual ao irmão do Ponto).
+ *   Então recebe 403; e com a permissão, a mesma rota responde 200 (âncora positiva).
  *
- * R-MANU-001 (isolamento multi-tenant) já está coberto por MultiTenantIsolationTest —
- * não duplicado aqui (§5 2026-07-09 "duplica régua consolidada").
+ * O controller faz `abort(403)` se faltar (superadmin OU pacote `manufacturing_module`) OU a
+ * permissão do recurso. Até 2026-11-11 este arquivo usava "o primeiro usuário da empresa" e
+ * aceitava qualquer status != 200 sem permissão e < 500 com: um 403 do pacote passava pelos dois
+ * lados, e o caso com permissão pulava quando o pacote barrava. Agora o usuário é criado aqui e
+ * entra na lista de administradores, o que resolve o lado do pacote (Gate `superadmin`) sem dar a
+ * permissão do recurso: o `Gate::before` só libera `superadmin`, `backup`, `manage_modules` e as
+ * permissões de plataforma (AuthServiceProvider). Assim o 403 só pode vir da permissão testada.
  *
- * Tenant: resolvido pelo trait `WithSeededTenant` (`test()->seededTenant()`) — biz=98, a
- * empresa FICTÍCIA não-operadora que a [ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)
- * tornou canônica; sem o seed, cai no primeiro business. NUNCA biz de cliente real.
+ * R-MANU-001 (isolamento multi-tenant) é do MultiTenantIsolationTest e dos testes 98×99.
  *
- * Roda só na lane MySQL (schema UltimatePOS real) — auto-skip em sqlite, igual ao bloco de
- * rota do Wave29RecipeInertiaTest.
+ * Tenant 98 (fictício, ADR 0358). NUNCA biz=4. Tudo dentro de transação desfeita.
  *
  * @covers-us US-MANU-001
  *
  * @see memory/requisitos/Manufacturing/SPEC.md R-MANU-002..005
  */
-function mfgPermissionsBootstrap(): array
+function mfgPermUsuario(string $sufixo): User
 {
     if (DB::connection()->getDriverName() === 'sqlite') {
         test()->markTestSkipped('SQLite-incompatível: depende do schema MySQL UltimatePOS (business/users/roles).');
     }
 
-    // Tenant canônico de teste — trait `WithSeededTenant`, aplicado em `Tests\TestCase`.
-    // Resolve biz=98 (empresa FICTÍCIA, ADR 0358) quando o seed canônico rodou e cai no
-    // primeiro business quando não rodou, que era exatamente o comportamento anterior; o
-    // skip que ele já traz diz COMO seedar, em vez de "sem business no banco". Por isso as
-    // duas guardas abaixo saíram: viraram redundantes, não foram afrouxadas.
-    try {
-        $business = test()->seededTenant();
-    } catch (\Illuminate\Database\QueryException $e) {
-        test()->markTestSkipped('Tabela business indisponível: '.$e->getMessage());
+    $biz = 98;
+    if (! DB::table('business')->where('id', $biz)->exists()) {
+        $dono = (int) DB::table('users')->min('id');
+        (new App\Business)->forceFill(['id' => $biz, 'name' => 'Tenant fictício mfg 98', 'currency_id' => 1, 'owner_id' => $dono])->save();
     }
 
-    try {
-        $user = User::where('business_id', $business->id)->first();
-    } catch (\Throwable $e) {
-        test()->markTestSkipped('Tabela users indisponível: '.$e->getMessage());
-    }
-
-    if (! $user) {
-        test()->markTestSkipped('Sem user no business.');
-    }
-
-    session([
-        'user.business_id' => $business->id,
-        'user.id'          => $user->id,
-        'business.id'      => $business->id,
-        'business.name'    => $business->name,
-        'is_admin'         => false,
+    $username = 'mfg_perm_'.$sufixo;
+    $user = User::firstOrCreate(['username' => $username], [
+        'email' => $username.'@test.local', 'password' => bcrypt('secret'),
+        'business_id' => $biz, 'first_name' => 'Permissao', 'last_name' => 'Fabricacao',
+        'user_type' => 'user', 'allow_login' => 1,
     ]);
+    config(['constants.administrator_usernames' => $username]);
 
-    return [$business, $user];
+    return $user;
+}
+
+function mfgPermGet(User $user, string $url)
+{
+    $sessao = ['currency' => ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']];
+
+    return test()->actingAs($user)->withSession($sessao)->get($url);
 }
 
 dataset('manufacturing_permission_routes', [
@@ -80,68 +73,34 @@ dataset('manufacturing_permission_routes', [
     'R-MANU-005 manufacturing.access_production (GET /manufacturing/production)' => ['manufacturing.access_production', '/manufacturing/production'],
 ]);
 
-it('usuário SEM a permissão não vê 200 na rota protegida', function (string $permission, string $url) {
-    [, $user] = mfgPermissionsBootstrap();
-
+it('usuário SEM a permissão recebe 403 na rota protegida', function (string $permission, string $url) {
+    $user = mfgPermUsuario('sem');
     Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
 
-    if ($user->hasPermissionTo($permission)) {
-        $user->revokePermissionTo($permission);
-    }
-    foreach ($user->roles as $role) {
-        if ($role->hasPermissionTo($permission)) {
-            $role->revokePermissionTo($permission);
-        }
-    }
+    expect($user->fresh()->can($permission))->toBeFalse();
 
-    if ($user->fresh()->can('superadmin')) {
-        test()->markTestSkipped("User de teste é superadmin — o controller dá bypass explícito (can('superadmin')), fora do que esta regra testa.");
-    }
-
-    $response = test()->actingAs($user)->get($url);
-
-    expect($response->status())->not->toBe(
-        200,
-        "Rota {$url} respondeu 200 pra user sem permissão '{$permission}' — vazamento de autorização (SPEC.md R-MANU §4)."
-    );
+    mfgPermGet($user, $url)->assertForbidden();
 })->with('manufacturing_permission_routes');
 
-it('usuário COM a permissão não recebe erro de servidor', function (string $permission, string $url) {
-    [, $user] = mfgPermissionsBootstrap();
+it('usuário COM a permissão recebe 200 na mesma rota', function (string $permission, string $url) {
+    $user = mfgPermUsuario('com');
+    $user->givePermissionTo(Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']));
 
-    Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
-    if (! $user->hasPermissionTo($permission)) {
-        $user->givePermissionTo($permission);
-    }
-
-    $response = test()->actingAs($user)->get($url);
-
-    if ($response->status() === 403) {
-        test()->markTestSkipped("Gate de subscription 'manufacturing_module' bloqueia neste ambiente — a permissão em si foi concedida; não é o que esta regra testa.");
-    }
-
-    expect($response->status())->toBeLessThan(
-        500,
-        "Rota {$url} deu erro de servidor pra user com a permissão '{$permission}' concedida."
-    );
+    mfgPermGet($user, $url)->assertOk();
 })->with('manufacturing_permission_routes');
 
-// R-MANU-004 · manufacturing.edit_recipe — achado, não suposição: Routes/web.php:19 faz
+// R-MANU-004 · manufacturing.edit_recipe — achado, não suposição: Routes/web.php faz
 // `Route::resource('/recipe', ...)->except('edit', 'update')`, e nenhuma outra rota do módulo
-// referencia UpdateRecipeRequest (grep confirma: só Wave18FormRequestsTest, via reflection).
-// O gate em UpdateRecipeRequest::authorize() é código real — só não tem porta HTTP que o
-// alcance hoje. Testar via rota seria inventar um caminho que não existe (§5 2026-06-05,
-// teste tautológico); o teste honesto é o par permission+can(), como o "com_permissao_acessa"
-// do Ponto, mais uma trava que avisa se a rota reaparecer.
+// referencia UpdateRecipeRequest. O gate em UpdateRecipeRequest::authorize() é código real — só
+// não tem porta HTTP que o alcance hoje. Testar via rota seria inventar um caminho que não existe
+// (§5 2026-06-05, teste tautológico); o teste honesto é o par permission+can(), mais uma trava
+// que avisa se a rota reaparecer.
 it('R-MANU-004 manufacturing.edit_recipe é permissão Spatie real, hoje sem rota que a alcance', function () {
-    [, $user] = mfgPermissionsBootstrap();
+    $user = mfgPermUsuario('edit');
 
     $permission = 'manufacturing.edit_recipe';
     Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
 
-    if ($user->hasPermissionTo($permission)) {
-        $user->revokePermissionTo($permission);
-    }
     expect($user->fresh()->can($permission))->toBeFalse();
 
     $user->givePermissionTo($permission);

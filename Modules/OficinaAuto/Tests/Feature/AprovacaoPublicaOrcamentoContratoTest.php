@@ -150,3 +150,44 @@ it('UC-OAP-10 · PIN conferido numa OS não abre o orçamento de OS de outra emp
     $this->post('/aprovar-os/' . $gDali['token'], ['decisao' => 'aprovar'])->assertSessionHasErrors('pin');
     expect(ServiceOrder::withoutGlobalScopes()->find($dali->id)->status)->toBe('orcamento');
 });
+
+it('UC-OAP-11 · link sem aviso não traz mensagem e PIN errado chega à tela', function () {
+    $os = ($this->osComItens)($this->biz);
+    $g = app(AprovacaoOsService::class)->gerarTokenAprovacao($os);
+    $url = '/aprovar-os/' . $g['token'];
+
+    $limpa = $this->get($url)->viewData('page')['props']['flash'];
+    expect($limpa['success'])->toBeNull()
+        ->and($limpa['error'])->toBeNull()
+        ->and($limpa['info'])->toBeNull();
+
+    $pinErrado = $g['pin'] === '0000' ? '1111' : '0000';
+    $this->post($url, ['pin' => $pinErrado, 'decisao' => 'conferir'])->assertRedirect();
+
+    $flash = $this->get($url)->viewData('page')['props']['flash'];
+    expect($flash['error'])->toBe('PIN inválido. Você tem 4 tentativa(s) restante(s).');
+});
+
+it('UC-OAP-12 · quem aprova recebe a confirmação na tela mesmo com o link já encerrado', function () {
+    $os = ($this->osComItens)($this->biz);
+    $g = app(AprovacaoOsService::class)->gerarTokenAprovacao($os);
+    $url = '/aprovar-os/' . $g['token'];
+
+    $this->post($url, ['pin' => $g['pin'], 'decisao' => 'aprovar'])->assertRedirect();
+
+    $props = $this->get($url)->viewData('page')['props'];
+    expect($props['erro'])->toBe('link_invalido')
+        ->and($props['flash']['success'])->toBe('Aprovação registrada! A oficina foi avisada e iniciará o serviço.');
+});
+
+it('UC-OAP-12 · quem recusa recebe o aviso e o link segue aberto', function () {
+    $os = ($this->osComItens)($this->biz);
+    $g = app(AprovacaoOsService::class)->gerarTokenAprovacao($os);
+    $url = '/aprovar-os/' . $g['token'];
+
+    $this->post($url, ['pin' => $g['pin'], 'decisao' => 'rejeitar'])->assertRedirect();
+
+    $props = $this->get($url)->viewData('page')['props'];
+    expect($props['erro'])->toBeNull()
+        ->and($props['flash']['info'])->toBe('Rejeição registrada. A oficina entrará em contato.');
+});

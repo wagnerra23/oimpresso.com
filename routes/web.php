@@ -457,12 +457,35 @@ if (app()->environment(['local', 'testing', 'staging'])) {
     })->middleware('web')->name('visreg.state');
 }
 
+// Uniafibro (União das Associações de Fibromiálgicos de Santa Catarina) — página da associação em
+// https://uniafibro.com.br, servida por este mesmo app (domínio-alias no hPanel). Sem login,
+// sem banco. Fica ANTES do `/` sem domínio: o roteador devolve a 1ª rota registrada que casa.
+// O portal do paciente continua em oimpresso.com/fisio — nada do Fisio vem para cá.
+// Ver memory/requisitos/Site/RUNBOOK-uniafibro.md.
+Route::domain('www.uniafibro.com.br')->group(function () {
+    Route::permanentRedirect('/{caminho?}', 'https://uniafibro.com.br/')
+        ->where('caminho', '.*')
+        ->name('uniafibro.www');
+});
+Route::domain('uniafibro.com.br')->middleware('throttle:60,1')->group(function () {
+    Route::get('/', [\App\Http\Controllers\UniafibroSiteController::class, 'home'])
+        ->name('uniafibro.home');
+    // Qualquer outro caminho no domínio da associação volta para a página inicial, em vez de
+    // cair numa tela do ERP.
+    Route::redirect('/{caminho}', 'https://uniafibro.com.br/')
+        ->where('caminho', '.*')
+        ->name('uniafibro.outros');
+});
+
 // Política de privacidade PÚBLICA do app oimpresso (ERP + ponto) — sem login. As lojas
 // (Google Play / App Store) exigem URL estável. Só texto: não lê banco nem sessão.
 // Ver memory/requisitos/Site/RUNBOOK-privacidade.md.
 Route::middleware(['web', 'throttle:60,1'])->group(function () {
     Route::get('/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'app'])
         ->name('publico.privacidade');
+    // Portal do Paciente do Fisio + app Uniafibro (com.oimpresso.fisio): dado de saúde, política própria.
+    Route::get('/fisio/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'fisio'])
+        ->name('publico.privacidade.fisio');
 });
 
 Route::middleware(['setData'])->group(function () {
@@ -750,6 +773,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('products.unificado.index');
 
     Route::get('/products/stock-history/{id}', [ProductController::class, 'productStockHistory']);
+    // CU-PROD-20 (#10765): só os locais de armazenagem; product.update ou product.armazenagem.
+    Route::patch('/products/{id}/armazenagem', [ProductController::class, 'atualizarArmazenagem'])->whereNumber('id');
     Route::get('/delete-media/{media_id}', [ProductController::class, 'deleteMedia']);
     Route::post('/products/mass-deactivate', [ProductController::class, 'massDeactivate']);
     Route::get('/products/activate/{id}', [ProductController::class, 'activate']);

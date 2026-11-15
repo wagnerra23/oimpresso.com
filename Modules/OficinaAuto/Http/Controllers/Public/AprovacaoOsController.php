@@ -102,10 +102,7 @@ class AprovacaoOsController extends Controller
 
         $os = $this->service->validarToken($token);
         if ($os === null) {
-            return back()->with('flash', [
-                'type'    => 'error',
-                'message' => 'Link expirou ou é inválido.',
-            ]);
+            return back()->with('error', 'Link expirou ou é inválido.');
         }
 
         // Decidir exige o orçamento já aberto por PIN nesta sessão, ou o PIN no próprio POST.
@@ -118,12 +115,9 @@ class AprovacaoOsController extends Controller
         if (! $jaLiberada && ! $this->service->validarPin($os, (string) $data['pin'])) {
             $restantes = $this->service->tentativasRestantes($os);
 
-            return back()->with('flash', [
-                'type'    => 'error',
-                'message' => $restantes === 0
-                    ? 'Muitas tentativas inválidas. Aguarde 30 minutos pra tentar novamente.'
-                    : "PIN inválido. Você tem {$restantes} tentativa(s) restante(s).",
-            ]);
+            return back()->with('error', $restantes === 0
+                ? 'Muitas tentativas inválidas. Aguarde 30 minutos pra tentar novamente.'
+                : "PIN inválido. Você tem {$restantes} tentativa(s) restante(s).");
         }
 
         if ($data['decisao'] === 'conferir') {
@@ -141,10 +135,7 @@ class AprovacaoOsController extends Controller
         if ($data['decisao'] === 'aprovar') {
             $this->aprovar($os);
 
-            return back()->with('flash', [
-                'type'    => 'success',
-                'message' => 'Aprovação registrada! A oficina foi avisada e iniciará o serviço.',
-            ]);
+            return back()->with('success', 'Aprovação registrada! A oficina foi avisada e iniciará o serviço.');
         }
 
         // Rejeitar: cenário 5 do test — preserva em orcamento (idempotente).
@@ -159,10 +150,7 @@ class AprovacaoOsController extends Controller
             'ip'          => $request->ip(),
         ]);
 
-        return back()->with('flash', [
-            'type'    => 'info',
-            'message' => 'Rejeição registrada. A oficina entrará em contato.',
-        ]);
+        return back()->with('info', 'Rejeição registrada. A oficina entrará em contato.');
     }
 
     /**

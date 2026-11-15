@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 // @covers-us US-VEST-020
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Modules\Vestuario\Http\Controllers\EtiquetaTagController;
 use Modules\Vestuario\Services\EtiquetaTagService;
 use Modules\Vestuario\Services\VestuarioSettingsResolver;
 
@@ -21,6 +23,8 @@ uses(Tests\TestCase::class);
  *   UC-VET-03 ← CU-VEST-03  (EAN-13 que a leitora do balcão aceita)
  *   UC-VET-05 ← CU-VEST-04  (etiqueta cabe na mídia 50×30mm + acento legível)
  *   UC-VET-06 ← CU-VEST-07  [V0] gerar etiqueta NÃO grava nada
+ *   UC-VET-20 ← CU-VEST-03  (o código impresso é o sub_sku que o caixa procura)
+ *   UC-VET-21 ← CU-VEST-02  (texto do cadastro não vira comando ZPL)
  *
  * DESENHO PARA A LANE (importa): o job `Pest Vestuario` (modules-pest.yml, matrix)
  * roda sqlite :memory: SEM migrar — teste que depende de tabela PULA, e teste que pula
@@ -58,24 +62,15 @@ function ucVet03CheckDigitPelaDireita(string $payload12): int
     return (10 - ($soma % 10)) % 10;
 }
 
-it('UC-VET-03: todo EAN-13 emitido passa no check GS1 recalculado por caminho independente', function () {
+it('UC-VET-03: todo EAN-13 impresso passa no check GS1 recalculado por caminho independente', function () {
     $svc = new EtiquetaTagService();
 
-    // SKUs que a loja de vestuário produz de verdade: numérico, alfanumérico,
-    // 100% alfabético (fallback CRC32) e curto.
-    $skus = ['CAMI-042-M-AZU', 'VESTIDO', '77', 'BL0001-PP-PRETO', 'çãoAcentuado'];
+    foreach (['789100000001', '590123412345', '400638133393'] as $payload) {
+        $ean = $payload.ucVet03CheckDigitPelaDireita($payload);
+        $r = $svc->gerarEtiqueta(1, 1, ['nome' => 'Peça', 'sku' => $ean]);
 
-    foreach ($skus as $sku) {
-        $ean = $svc->generateEan13FromSku($sku);
-
-        expect(strlen($ean))->toBe(13, "SKU '{$sku}' gerou EAN de tamanho errado: '{$ean}'");
-        expect(ctype_digit($ean))->toBeTrue("EAN de '{$sku}' tem caractere não-numérico: '{$ean}'");
-
-        $esperado = ucVet03CheckDigitPelaDireita(substr($ean, 0, 12));
-        expect((int) $ean[12])->toBe(
-            $esperado,
-            "check digit de '{$sku}' ('{$ean}') não fecha pelo cálculo independente"
-        );
+        expect($r['zpl'])->toContain('^BEN');
+        expect($r['zpl'])->toContain('^FD'.$ean.'^FS');
     }
 });
 
@@ -92,15 +87,105 @@ it('UC-VET-03: EAN informado com 12 dígitos ganha o check; com 13 inválido é 
     expect(fn () => $svc->normalizeEan13($errado))->toThrow(InvalidArgumentException::class);
 });
 
-it('UC-VET-03: o EAN que aparece no ZPL é o mesmo que o service declara ter usado', function () {
+/** Controller de verdade, com usuário fictício: a lane sqlite não sobe request autenticada. */
+function ucVetPost(array $body, string $formato = 'zpl')
+{
+    $user = new class {
+        public function can(string $perm): bool { return true; }
+        public function getAuthIdentifier(): int { return 98; }
+    };
+    $request = Request::create('/vestuario/etiquetas/lote/'.$formato, 'POST', $body);
+    $request->setUserResolver(fn () => $user);
+    $controller = new EtiquetaTagController(new EtiquetaTagService());
+
+    return $formato === 'zpl' ? $controller->storeZpl($request) : $controller->storePdf($request);
+}
+
+it('UC-VET-03: EAN informado com letra ou dígito errado devolve 422, não 500', function () {
+    foreach (['78910000000A4', '7891000000015'] as $ean) {
+        $res = ucVetPost(['items' => [['product_id' => 1, 'sku' => 'X-1', 'ean13' => $ean]]]);
+
+        expect($res->getStatusCode())->toBe(422);
+        expect(json_decode($res->getContent(), true)['message'])->toContain('EAN-13');
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UC-VET-20 · O código impresso é o que o caixa bipa  (CU-VEST-03)
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('UC-VET-20: tamanhos do mesmo produto saem com códigos diferentes, cada um o próprio sub_sku', function () {
     $svc = new EtiquetaTagService();
 
-    $r = $svc->gerarEtiqueta(42, 7, ['nome' => 'Camiseta', 'sku' => 'CAMI-042-M-AZU']);
+    $m = $svc->gerarEtiqueta(42, 7, ['nome' => 'Camiseta', 'sku' => 'CAMI-042-M-AZU'])['zpl'];
+    $g = $svc->gerarEtiqueta(42, 8, ['nome' => 'Camiseta', 'sku' => 'CAMI-042-G-AZU'])['zpl'];
 
-    // Contrato de COMPORTAMENTO: o código impresso é o código emitido — não é sobre
-    // qual chave do array o carrega.
-    expect($r['zpl'])->toContain($r['ean13']);
-    expect($svc->validateEan13($r['ean13']))->toBeTrue();
+    expect($m)->toContain('^BCN')->toContain('^FDCAMI-042-M-AZU^FS')->not->toContain('^BEN');
+    expect($g)->toContain('^BCN')->toContain('^FDCAMI-042-G-AZU^FS')->not->toContain('^BEN');
+    expect($m)->not->toContain('7890000000420');
+});
+
+it('UC-VET-20: sub_sku EAN-13 válido sai como EAN-13; 13 dígitos com check errado saem em Code128', function () {
+    $svc = new EtiquetaTagService();
+
+    expect($svc->gerarEtiqueta(1, 1, ['sku' => '7891000000014'])['zpl'])->toContain('^BEN')->toContain('^FD7891000000014^FS');
+    expect($svc->gerarEtiqueta(1, 1, ['sku' => '7891000000015'])['zpl'])->toContain('^BCN')->toContain('^FD7891000000015^FS');
+});
+
+it('UC-VET-20: item vindo da remarcação (sem ean13) imprime o sub_sku', function () {
+    $res = ucVetPost(['items' => [[
+        'product_id' => 42, 'variation_id' => 7, 'nome' => 'Vestido', 'tamanho' => 'M',
+        'preco' => 10.5, 'sku' => 'REM-123456-P',
+    ]]]);
+
+    expect($res->getStatusCode())->toBe(200);
+    expect($res->getContent())->toContain('^BCN')->toContain('^FDREM-123456-P^FS');
+});
+
+it('UC-VET-20: o PDF desenha o Code128 do sub_sku e o EAN-13 do sub_sku EAN', function () {
+    $svc = new EtiquetaTagService();
+    $etiquetas = array_map(fn (array $r) => $r['meta'] + ['ean13' => $r['ean13'], 'sku' => $r['sku']], [
+        $svc->gerarEtiqueta(1, 1, ['nome' => 'A', 'sku' => 'CAMI-042-M-AZU']),
+        $svc->gerarEtiqueta(1, 2, ['nome' => 'B', 'sku' => '7891000000014']),
+    ]);
+
+    $html = view('vestuario::etiquetas.pdf', ['etiquetas' => $etiquetas, 'business_id' => null])->render();
+
+    expect(substr_count($html, 'data:image/png;base64'))->toBe(2);
+    expect($html)->toContain('alt="CAMI-042-M-AZU"')->toContain('alt="7891000000014"');
+});
+
+it('UC-VET-20: sem SKU, com acento ou comprido demais para a etiqueta devolve 422', function () {
+    foreach ([null, 'CAMISETA-AÇAÍ', str_repeat('A', 32)] as $sku) {
+        $res = ucVetPost(['items' => [array_filter(['product_id' => 1, 'sku' => $sku])]]);
+
+        expect($res->getStatusCode())->toBe(422);
+        expect(json_decode($res->getContent(), true)['message'])->toContain('SKU');
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UC-VET-21 · Texto do cadastro não vira comando de impressora  (CU-VEST-02)
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('UC-VET-21: ^ e ~ nos campos de texto não abrem comando ZPL', function () {
+    $r = (new EtiquetaTagService())->gerarEtiqueta(1, 1, [
+        'nome' => '^XZ^XA^JUF^XZ', 'tamanho' => '~JA', 'cor' => '^PQ9', 'colecao' => '~JR', 'sku' => 'INJ^XZ',
+    ]);
+
+    expect(substr_count($r['zpl'], '^XA'))->toBe(1);
+    expect(substr_count($r['zpl'], '^XZ'))->toBe(1);
+    expect($r['zpl'])->not->toContain('^JUF')->not->toContain('~JA')->not->toContain('^PQ9')->not->toContain('~JR');
+    $bs = chr(92);
+    expect($r['zpl'])->toContain($bs.'5EXZ'.$bs.'5EXA');
+});
+
+it('UC-VET-21: barra invertida e quebra de linha no texto não desmontam o campo', function () {
+    $bs = chr(92);
+    $r = (new EtiquetaTagService())->gerarEtiqueta(1, 1, ['nome' => "Linha{$bs}5E\n^XZ", 'sku' => 'BS-1']);
+
+    expect(substr_count($r['zpl'], '^XZ'))->toBe(1);
+    expect($r['zpl'])->toContain("Linha{$bs}5C5E");
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -191,8 +276,8 @@ it('UC-VET-06: gerar lote NÃO emite nenhuma escrita no banco (etiqueta é saíd
     DB::select('select 1 as sentinela');
 
     $zpl = $svc->gerarLote([
-        ['product_id' => 1, 'variation_id' => 1, 'opts' => ['nome' => 'P1', 'preco' => 10.5, 'businessId' => 1]],
-        ['product_id' => 2, 'variation_id' => 1, 'opts' => ['nome' => 'P2', 'preco' => 20.0, 'businessId' => 1]],
+        ['product_id' => 1, 'variation_id' => 1, 'opts' => ['nome' => 'P1', 'preco' => 10.5, 'sku' => 'V-1', 'businessId' => 1]],
+        ['product_id' => 2, 'variation_id' => 1, 'opts' => ['nome' => 'P2', 'preco' => 20.0, 'sku' => 'V-2', 'businessId' => 1]],
     ]);
 
     // GUARDA ANTI-VÁCUO: a operação aconteceu de fato (2 etiquetas saíram).
