@@ -8,6 +8,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Segmented } from '@/Components/ui/segmented';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Inline } from '@/Components/layout';
 import NaturezaEditor from './NaturezaEditor';
 import { FINS, completar, listar, rotulo, vazia, type LinhaNatureza, type Natureza, type Regime } from './natureza';
 
@@ -66,15 +67,17 @@ export default function NaturezasSecao() {
   return (
     <Card id="naturezas" data-contract="naturezas">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2">
-            Naturezas de operação
-            {linhas && <Badge variant="secondary">{linhas.length}</Badge>}
-          </span>
-          <Button size="sm" variant="outline" onClick={() => setAberta({ natureza: vazia(), editavel: true })}>
-            <FilePlus2 className="h-4 w-4 mr-1.5" />
-            Nova natureza
-          </Button>
+        <CardTitle className="text-base">
+          <Inline justify="between" gap={2}>
+            <Inline gap={2}>
+              Naturezas de operação
+              {linhas && <Badge variant="secondary">{linhas.length}</Badge>}
+            </Inline>
+            <Button size="sm" variant="outline" onClick={() => setAberta({ natureza: vazia(), editavel: true })}>
+              <FilePlus2 className="h-4 w-4 mr-1.5" />
+              Nova natureza
+            </Button>
+          </Inline>
         </CardTitle>
         <p className="text-xs text-muted-foreground">
           No lançamento da nota, a natureza escolhida preenche CFOP, {sn ? 'CSOSN' : 'CST'} e a origem das alíquotas de
@@ -82,7 +85,7 @@ export default function NaturezasSecao() {
         </p>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3">
+        <Inline wrap justify="between" gap={3} className="pb-3">
           <Segmented value={filtro} onValueChange={(v) => v && setFiltro(v as Filtro)} options={FILTROS} />
           <Input
             className="max-w-xs"
@@ -91,7 +94,7 @@ export default function NaturezasSecao() {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
-        </div>
+        </Inline>
 
         {erro && <p className="text-sm text-destructive py-4">{erro}</p>}
         {!linhas && !erro && <Skeleton className="h-32 w-full" />}

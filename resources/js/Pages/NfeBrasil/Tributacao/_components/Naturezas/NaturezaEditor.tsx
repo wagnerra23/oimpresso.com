@@ -11,6 +11,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Segmented } from '@/Components/ui/segmented';
 import { Switch } from '@/Components/ui/switch';
+import { Grid, Inline } from '@/Components/layout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import {
   CSOSN, CST_COM_ST, CST_IBS, CST_ICMS, CST_IPI_E, CST_IPI_S, CST_PC_E, CST_PC_S, FINS, MODBC, MODBCST,
@@ -87,10 +88,10 @@ function Liga({ id, rotulo, valor, onChange, disabled }: {
   id: string; rotulo: string; valor: boolean; onChange: (v: boolean) => void; disabled?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <Inline gap={2}>
       <Switch id={id} checked={valor} onCheckedChange={onChange} disabled={disabled} />
       <Label htmlFor={id}>{rotulo}</Label>
-    </div>
+    </Inline>
   );
 }
 
@@ -139,20 +140,22 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
   return (
     <Card id="naturezas" data-contract="naturezas-editor">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2">
+        <CardTitle className="text-base">
+          <Inline justify="between" gap={2}>
+          <Inline gap={2}>
             <Button size="sm" variant="ghost" aria-label="Voltar para a lista" onClick={() => onFechar(false)}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             {n.id ? n.nome || 'Natureza sem nome' : 'Nova natureza'}
             {ro && <Badge variant="info">Só leitura</Badge>}
-          </span>
+          </Inline>
           {!ro && (
             <Button size="sm" onClick={gravar} disabled={salvando || erros > 0 || alertas === null}>
               <Save className="h-4 w-4 mr-1.5" />
               {erros > 0 ? `${erros} ${erros === 1 ? 'erro' : 'erros'} para salvar` : 'Salvar natureza'}
             </Button>
           )}
+          </Inline>
         </CardTitle>
         {ro && (
           <p className="text-xs text-muted-foreground">
@@ -162,10 +165,10 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
         <Segmented value={passo} onValueChange={(v) => v && setPasso(v)} options={PASSOS} />
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Grid cols={1} gap={6} className="lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
             {passo === '0' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Grid cols={1} gap={4} className="sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <Campo id="nat-nome" rotulo="Nome" ajuda="Vai no campo natOp da nota.">
                     <Input id="nat-nome" value={n.nome} disabled={ro} maxLength={80}
@@ -189,11 +192,11 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                   onChange={(v) => muda((x) => ({ ...x, ref: v }))} />
                 <Liga id="nat-ativo" rotulo="Ativa" valor={n.ativo} disabled={ro}
                   onChange={(v) => muda((x) => ({ ...x, ativo: v }))} />
-              </div>
+              </Grid>
             )}
 
             {passo === '1' && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Grid cols={1} gap={4} className="sm:grid-cols-3">
                 {([['in', 'Dentro do estado'], ['out', 'Outro estado'], ['ext', 'Exterior (opcional)']] as const).map(([k, r]) => (
                   <Campo key={k} id={`nat-cfop-${k}`} rotulo={r}>
                     <Input id={`nat-cfop-${k}`} className="font-mono" inputMode="numeric" maxLength={4} disabled={ro}
@@ -202,7 +205,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                       onChange={(e) => muda((x) => { x.cfop[k] = e.target.value.replace(/\D/g, ''); return x; })} />
                   </Campo>
                 ))}
-              </div>
+              </Grid>
             )}
 
             {passo === '2' && (
@@ -210,7 +213,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                 <Segmented value={aba} onValueChange={(v) => v && setAba(v)} options={ABAS} />
 
                 {aba === 'icms' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Grid cols={1} gap={4} className="sm:grid-cols-2">
                     {sn
                       ? <Escolha id="icms-csosn" rotulo="CSOSN" valor={n.icms.csosn} opcoes={CSOSN} disabled={ro}
                           onChange={(v) => muda((x) => { x.icms.csosn = v; return x; })} />
@@ -228,14 +231,14 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                       onChange={(v) => muda((x) => { x.icms.pDif = v; return x; })} />}
                     {sn && ['101', '201'].includes(n.icms.csosn) && <Percentual id="icms-cred" rotulo="Crédito do Simples" valor={n.icms.pCredSN} disabled={ro}
                       onChange={(v) => muda((x) => { x.icms.pCredSN = v; return x; })} />}
-                    <div className="sm:col-span-2 flex flex-wrap gap-4">
+                    <Inline wrap gap={4} className="sm:col-span-2">
                       <Liga id="icms-frete" rotulo="Frete e despesas na base" valor={n.icms.bFrete} disabled={ro}
                         onChange={(v) => muda((x) => { x.icms.bFrete = v; return x; })} />
                       <Liga id="icms-ipi" rotulo="IPI na base" valor={n.icms.bIPI} disabled={ro}
                         onChange={(v) => muda((x) => { x.icms.bIPI = v; return x; })} />
                       <Liga id="icms-desc" rotulo="Desconta o desconto da base" valor={n.icms.bDesc} disabled={ro}
                         onChange={(v) => muda((x) => { x.icms.bDesc = v; return x; })} />
-                    </div>
+                    </Inline>
                     {temSt && (
                       <>
                         <Escolha id="st-modbc" rotulo="Modalidade da base do ST" valor={n.icms.st.modbcst} opcoes={MODBCST} disabled={ro}
@@ -249,18 +252,18 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                       </>
                     )}
                     {!entrada && n.fin !== '4' && (
-                      <div className="sm:col-span-2 flex flex-wrap gap-4">
+                      <Inline wrap gap={4} className="sm:col-span-2">
                         <Liga id="icms-difal" rotulo="Calcular DIFAL" valor={n.icms.difal} disabled={ro}
                           onChange={(v) => muda((x) => { x.icms.difal = v; return x; })} />
                         <Liga id="icms-fcp" rotulo="Calcular FCP" valor={n.icms.fcp} disabled={ro}
                           onChange={(v) => muda((x) => { x.icms.fcp = v; return x; })} />
-                      </div>
+                      </Inline>
                     )}
-                  </div>
+                  </Grid>
                 )}
 
                 {aba === 'ipi' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Grid cols={1} gap={4} className="sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <Liga id="ipi-on" rotulo="Destacar IPI" valor={n.ipi.on} disabled={ro}
                         onChange={(v) => muda((x) => { x.ipi.on = v; return x; })} />
@@ -279,11 +282,11 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                           onChange={(v) => muda((x) => { x.ipi.p = v; return x; })} />}
                       </>
                     )}
-                  </div>
+                  </Grid>
                 )}
 
                 {aba === 'pc' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <Grid cols={1} gap={6} className="sm:grid-cols-2">
                     {(['pis', 'cofins'] as const).map((k) => (
                       <div key={k} className="space-y-4">
                         <p className="text-sm font-medium">{k === 'pis' ? 'PIS' : 'COFINS'}</p>
@@ -299,11 +302,11 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                           onChange={(v) => muda((x) => { x[k].exclICMS = v; return x; })} />
                       </div>
                     ))}
-                  </div>
+                  </Grid>
                 )}
 
                 {aba === 'ibs' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Grid cols={1} gap={4} className="sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <Liga id="ibs-on" rotulo="Informar IBS e CBS" valor={n.ibs.on} disabled={ro}
                         onChange={(v) => muda((x) => { x.ibs.on = v; return x; })} />
@@ -322,7 +325,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
                           onChange={(v) => muda((x) => { x.ibs.pRed = v; return x; })} />}
                       </>
                     )}
-                  </div>
+                  </Grid>
                 )}
               </div>
             )}
@@ -344,14 +347,16 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
             )}
             <ul className="space-y-2">
               {visiveis.map((a, i) => (
-                <li key={i} className="text-sm flex gap-2 items-start">
-                  <Badge variant={VARIANTE[a.nivel]}>{NOME_NIVEL[a.nivel]}</Badge>
-                  <span>{a.mensagem}</span>
-                </li>
+                <Inline key={i} asChild gap={2} align="start" className="text-sm">
+                  <li>
+                    <Badge variant={VARIANTE[a.nivel]}>{NOME_NIVEL[a.nivel]}</Badge>
+                    <span>{a.mensagem}</span>
+                  </li>
+                </Inline>
               ))}
             </ul>
           </aside>
-        </div>
+        </Grid>
       </CardContent>
     </Card>
   );
