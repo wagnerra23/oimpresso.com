@@ -63,6 +63,12 @@
       "anchor": "Wagner 2026-07-11: 'fazer na mão é sorteio e não garante funcionamento'. Máquina de nascimento de tela (ADR proposta 2026-07-11-maquina-nascimento-tela): toda tela nasce carimbada do PT (criar-tela.mjs) + este gate garante o ciclo obrigatório. Estado @seed: 3/279 completas (276 débito legado absorvido). Advisory por ADR 0314 (cobertura de ciclo é quality, não Tier-0); promote_by força a decisão em 14d.",
       "promote_by_razao": "0 falhas em >=100 runs (medido 2026-08-05) — catraca do ciclo-de-tela, não Tier-0. (prazo anterior: 2026-07-25; decisão [W] 2026-08-05, ADR 0369 §Decisão)"
     },
+    "affects-clientes-label.yml": {
+      "nome": "Label affects/<cliente> — rotula o PR com affects/rota-livre e/ou affects/wr2 quando ele altera o source de uma tela marcada com `clientes` em scripts/screen-smoke/routes.json; remove quando deixa de tocar",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "decisão [W] 2026-11-15 (sessão guardião dos clientes vivos ROTA LIVRE + WR2): cruzar cada PR com impacto nesses 2 clientes por label automático, sem comentário em PR. Fonte = mesmo campo `clientes` que o job smoke-clientes do screen-smoke-after-merge abre em todo deploy. Nunca reprova PR (automação, não gate); NÃO MEDIDO não mexe em label."
+    },
     "screen-smoke-after-merge.yml": {
       "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
       "classe": "automacao",
