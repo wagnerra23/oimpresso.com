@@ -152,3 +152,22 @@ it('a pasta real de conteúdo só tem arquivos com frontmatter completo', functi
     }
     expect(Conteudo::existe('_LEIA-ME'))->toBeFalse();
 });
+
+it('as páginas de lei abrem e citam a fonte oficial de cada lei', function () {
+    config(['uniafibro.pasta_conteudo' => resource_path('uniafibro/direitos')]);
+
+    $federal = $this->get('http://uniafibro.com.br/direitos/lei-federal')->assertOk()->getContent();
+    expect($federal)->toContain('planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14705.htm');
+    expect($federal)->toContain('planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/L15176.htm');
+    expect($federal)->toContain('não é automático');
+
+    $sc = $this->get('http://uniafibro.com.br/direitos/lei-estadual-sc')->assertOk()->getContent();
+    expect($sc)->toContain('ADI 5033647-81.2025.8.24.0000');
+    expect($sc)->toContain('fcee.sc.gov.br');
+});
+
+it('nenhum texto afirma validade da carteira que a lei e a FCEE não informam', function () {
+    // A Lei 18.928/2024 sancionada não traz prazo; o "5 anos" era do projeto original (PL 068/2023).
+    expect((string) file_get_contents(resource_path('uniafibro/home.html')))->not->toContain('Vale por 5 anos');
+    expect((string) file_get_contents(resource_path('uniafibro/direitos/lei-estadual-sc.md')))->not->toMatch('/vale por \d+ anos/i');
+});
