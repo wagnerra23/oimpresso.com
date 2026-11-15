@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 441 arquivos em 22 papéis.
+**Total mapeado:** 443 arquivos em 22 papéis.
 
 ## Controllers — 27
 
@@ -143,11 +143,12 @@ module: Financeiro
 - [OnTituloCriadoLog.php](../../../Modules/Financeiro/Listeners/OnTituloCriadoLog.php)
 - [ProcessAsaasPixWebhookListener.php](../../../Modules/Financeiro/Listeners/ProcessAsaasPixWebhookListener.php)
 
-## Console / Commands — 15
+## Console / Commands — 16
 
 - [BackfillExtratoOfxCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillExtratoOfxCommand.php)
 - [BackfillPlanoContaCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillPlanoContaCommand.php)
 - [BridgeExpenseToTitulosCommand.php](../../../Modules/Financeiro/Console/Commands/BridgeExpenseToTitulosCommand.php)
+- [CorrigirTipoLegadoCommand.php](../../../Modules/Financeiro/Console/Commands/CorrigirTipoLegadoCommand.php)
 - [CusteioRkwCommand.php](../../../Modules/Financeiro/Console/Commands/CusteioRkwCommand.php)
 - [DdaSyncCommand.php](../../../Modules/Financeiro/Console/Commands/DdaSyncCommand.php)
 - [DevolucoesAbaterCommand.php](../../../Modules/Financeiro/Console/Commands/DevolucoesAbaterCommand.php)
@@ -355,9 +356,9 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 116
+## Testes (Pest) — 117
 
-- 110 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 111 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 2 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

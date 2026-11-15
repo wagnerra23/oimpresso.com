@@ -159,6 +159,8 @@ class NfeService
             ufOrigem:   $ufOrigem,
             ufDestino:  $ufDestino,
         );
+        $pisInv    = $this->pisCofinsDoItem($tributo->cst_pis, (float) $invoice->valor, $tributo->aliquota_pis, $tributo->valor_pis);
+        $cofinsInv = $this->pisCofinsDoItem($tributo->cst_cofins, (float) $invoice->valor, $tributo->aliquota_cofins, $tributo->valor_cofins);
 
         $dadosNfe = [
             'transaction_id' => $invoice->id,
@@ -201,17 +203,18 @@ class NfeService
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
                 ],
+                // R-NFE-025b: CST da regra; sem ele, '07' (isenta) como antes.
                 'pis'     => [
-                    'cst'   => '07', // 07 = isenta — default seguro Simples Nacional
-                    'vbc'   => 0,
-                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
-                    'vpis'  => $tributo->valor_pis,
+                    'cst'   => $pisInv['cst'],
+                    'vbc'   => $pisInv['vbc'],
+                    'ppis'  => $pisInv['p'],
+                    'vpis'  => $pisInv['v'],
                 ],
                 'cofins'  => [
-                    'cst'      => '07',
-                    'vbc'      => 0,
-                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
-                    'vcofins'  => $tributo->valor_cofins,
+                    'cst'      => $cofinsInv['cst'],
+                    'vbc'      => $cofinsInv['vbc'],
+                    'pcofins'  => $cofinsInv['p'],
+                    'vcofins'  => $cofinsInv['v'],
                 ],
                 // IBS/CBS (Reforma · US-FISCAL-021 PR-D). Serializado só quando o business
                 // está em modo full/hybrid (schema PL_010); Simples/legado → alíquota 0 +
@@ -231,8 +234,8 @@ class NfeService
                 'v_prod'    => (float) $invoice->valor,
                 'v_bc_icms' => $this->baseIcmsDoItem($tributo, (float) $invoice->valor), // R-NFE-040
                 'v_icms'    => $tributo->valor_icms,
-                'v_pis'     => $tributo->valor_pis,
-                'v_cofins'  => $tributo->valor_cofins,
+                'v_pis'     => $pisInv['v'],
+                'v_cofins'  => $cofinsInv['v'],
                 'v_nf'      => (float) $invoice->valor,
                 'v_desc'    => 0,
                 'v_frete'   => 0,
@@ -665,6 +668,35 @@ class NfeService
         ], fn ($v) => $v !== null);
     }
 
+    /** R-NFE-025b · CST de PIS/COFINS que não tributam: o grupo PISNT/COFINSNT não leva base nem valor. */
+    private const CST_PIS_COFINS_SEM_TRIBUTO = ['04', '05', '06', '07', '08', '09'];
+
+    /**
+     * R-NFE-025b · PIS (ou COFINS) do item com o CST da regra.
+     *
+     * Leiaute NF-e 4.00 (MOC, grupos Q e S): CST 01 e 02 vão no grupo de alíquota, com
+     * vBC × pPIS; 04 a 09 vão no grupo "não tributado", sem base nem valor; 49 e 99 vão no
+     * grupo "outras", aqui também por alíquota. O valor do item é o do motor (base × alíquota),
+     * e o total da nota soma esse mesmo valor, para o ICMSTot bater com os itens.
+     *
+     * Regra sem CST: '07' com os números de antes (fallback, logado por quem chama). O XML de
+     * quem nunca cadastrou CST não muda.
+     *
+     * @return array{cst:string, vbc:float, p:float, v:float, fallback:bool}
+     */
+    private function pisCofinsDoItem(?string $cst, float $base, float $aliquota, float $valor): array
+    {
+        $cst = trim((string) $cst);
+        if ($cst === '') {
+            return ['cst' => '07', 'vbc' => 0.0, 'p' => round($aliquota * 100, 4), 'v' => $valor, 'fallback' => true];
+        }
+        if (in_array($cst, self::CST_PIS_COFINS_SEM_TRIBUTO, true)) {
+            return ['cst' => $cst, 'vbc' => 0.0, 'p' => 0.0, 'v' => 0.0, 'fallback' => false];
+        }
+
+        return ['cst' => $cst, 'vbc' => round($base, 2), 'p' => round($aliquota * 100, 4), 'v' => $valor, 'fallback' => false];
+    }
+
     /** R-NFE-043 · grava no grupo ICMS do item os campos do ST (modBCST, pMVAST, vBCST, pICMSST, vICMSST). */
     private function preencherSt(\stdClass $std, ?array $st): void
     {
@@ -893,6 +925,7 @@ class NfeService
         // 2. motor por item
         $dets = [];
         $ncmPadraoUsado = [];
+        $itensFallback = 0; // R-NFE-025b
         $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0,
             'v_icms_uf_dest' => 0.0, 'v_fcp_uf_dest' => 0.0, 'v_bc_st' => 0.0, 'v_st' => 0.0];
         $temDifal = $internaDestino !== null && $destinatarioContribuinte === false && $ufOrigem !== $ufDestino;
@@ -952,6 +985,10 @@ class NfeService
             $codigoIcms = $crtEmitente === 3
                 ? ($tributo->cst ?? $tributo->csosn ?? '102')
                 : ($tributo->csosn ?? $tributo->cst ?? '102');
+            // R-NFE-025b: PIS/COFINS do item com o CST da regra (helper pisCofinsDoItem).
+            $pis    = $this->pisCofinsDoItem($tributo->cst_pis, $base, $tributo->aliquota_pis, $tributo->valor_pis);
+            $cofins = $this->pisCofinsDoItem($tributo->cst_cofins, $base, $tributo->aliquota_cofins, $tributo->valor_cofins);
+            $itensFallback += ($pis['fallback'] || $cofins['fallback']) ? 1 : 0;
             $dets[] = [
                 'cprod'   => substr((string) $it['cprod'], 0, 60),
                 'xprod'   => substr((string) $it['xprod'], 0, 120),
@@ -991,19 +1028,18 @@ class NfeService
                     // R-NFE-043: ICMS-ST do motor (R-NFE-015) no grupo do CST/CSOSN com ST.
                     'st'        => $this->stDoItem($tributo, $internaDestino, $codigoIcms),
                 ],
-                // R-NFE-025b: `nfe_fiscal_rules` não guarda CST de PIS/COFINS hoje — o
-                // motor não devolve. '07' segue como fallback, logado abaixo.
+                // R-NFE-025b: CST de PIS/COFINS da regra; sem ele, '07' como antes (logado abaixo).
                 'pis'     => [
-                    'cst'   => '07',
-                    'vbc'   => 0,
-                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
-                    'vpis'  => $tributo->valor_pis,
+                    'cst'   => $pis['cst'],
+                    'vbc'   => $pis['vbc'],
+                    'ppis'  => $pis['p'],
+                    'vpis'  => $pis['v'],
                 ],
                 'cofins'  => [
-                    'cst'      => '07',
-                    'vbc'      => 0,
-                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
-                    'vcofins'  => $tributo->valor_cofins,
+                    'cst'      => $cofins['cst'],
+                    'vbc'      => $cofins['vbc'],
+                    'pcofins'  => $cofins['p'],
+                    'vcofins'  => $cofins['v'],
                 ],
                 'ibscbs'  => [
                     'cst'          => $tributo->cst_ibs,
@@ -1038,17 +1074,19 @@ class NfeService
 
             $tot['v_bc_icms'] += $this->baseIcmsDoItem($tributo, $base, $crtEmitente); // R-NFE-040 (thread 25: benefício)
             $tot['v_icms']   += $tributo->valor_icms;
-            $tot['v_pis']    += $tributo->valor_pis;
-            $tot['v_cofins'] += $tributo->valor_cofins;
+            $tot['v_pis']    += $pis['v'];
+            $tot['v_cofins'] += $cofins['v'];
             $tot['v_ibs']    += $tributo->valor_ibs;
             $tot['v_cbs']    += $tributo->valor_cbs;
         }
 
-        Log::info('pis_cofins_cst_fallback', [
-            'business_id' => $businessId,
-            'itens'       => count($dets),
-            'cst'         => '07',
-        ]);
+        if ($itensFallback > 0) {
+            Log::info('pis_cofins_cst_fallback', [
+                'business_id' => $businessId,
+                'itens'       => $itensFallback,
+                'cst'         => '07',
+            ]);
+        }
 
         return [
             'dets'  => $dets,

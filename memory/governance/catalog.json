@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 39,
-    "nodes": 987,
-    "edges": 1323,
+    "nodes": 992,
+    "edges": 1328,
     "by_node_type": {
       "module": 44,
       "table": 116,
       "adr": 155,
-      "component": 578,
-      "api": 94
+      "component": 582,
+      "api": 95
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 97,
+      "providesApi": 98,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 578,
+      "hasComponent": 582,
       "dependsOn": 144,
       "delegatesTo": 131,
       "migratesTo": 1,
@@ -1302,6 +1302,14 @@
       ]
     },
     {
+      "id": "api:/associacoes/lista",
+      "type": "api",
+      "prefix": "/associacoes/lista",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/atendimento/*",
       "type": "api",
       "prefix": "/atendimento/*",
@@ -2042,6 +2050,13 @@
       "desc": "regra única de acesso: pacote, associacoes.access e alcance por associação (rede inteira com associacoes.rede; senão só onde é representante em assoc_representantes) — ADR 0451 D4"
     },
     {
+      "id": "component:Associacoes/AssociacoesController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociacoesController",
+      "desc": "lista PT-01 e ficha das associações, representantes e mudança de diretoria (US-ASSOC-002)"
+    },
+    {
       "id": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
       "type": "component",
       "module": "Associacoes",
@@ -2070,11 +2085,25 @@
       "desc": ""
     },
     {
+      "id": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "desc": "documentos com arquivo no Arquivos, tirar da lista com motivo (US-ASSOC-002)"
+    },
+    {
       "id": "component:Associacoes/InstallController",
       "type": "component",
       "module": "Associacoes",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Associacoes/PendenciaDiretoria",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PendenciaDiretoria",
+      "desc": "cálculo único da pendência de ata da diretoria (em dia, pendente, atrasada) — ADR 0451 D7"
     },
     {
       "id": "component:Auditoria/AuditEntryService",
@@ -3181,6 +3210,13 @@
       "module": "Financeiro",
       "name": "ContaReceberController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/CorrigirTipoLegadoCommand",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CorrigirTipoLegadoCommand",
+      "desc": "financeiro:corrigir-tipo-legado --business=N corrige título do Delphi com TIPO=RECEBIDA importado como pagar (metadata.delphi_tipo_raw); só mostra por padrão, --apply grava e marca metadata.tipo_corrigido"
     },
     {
       "id": "component:Financeiro/CoworkSidebarController",
@@ -8924,6 +8960,12 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociacoesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
       "type": "hasComponent",
       "source": "contains"
@@ -8948,7 +8990,19 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PendenciaDiretoria",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8961,6 +9015,12 @@
     {
       "from": "module:Associacoes",
       "to": "api:/associacoes/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/lista",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10585,6 +10645,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/ContaReceberController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/CorrigirTipoLegadoCommand",
       "type": "hasComponent",
       "source": "contains"
     },

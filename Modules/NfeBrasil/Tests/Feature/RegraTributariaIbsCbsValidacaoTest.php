@@ -284,3 +284,41 @@ it('UC-NFRF-08 · a edição reabre com os 5 campos de IBS/CBS gravados', functi
             expect((float) $r['aliquota_cbs'])->toBe(0.0);
         });
 });
+
+// ---------------------------------------------------------------------------------------
+// UC-NFRF-09 · A regra grava e reabre o CST de PIS e de COFINS (R-NFE-025b)  [fiscal]
+// ---------------------------------------------------------------------------------------
+it('UC-NFRF-09 · regra grava, recusa e reabre o CST de PIS/COFINS', function () {
+    if (! Schema::hasColumn('nfe_fiscal_rules', 'cst_pis')) {
+        $this->markTestSkipped('Migração 2026_11_13_000001 (cst_pis/cst_cofins) não rodou.');
+    }
+    ibsvLogar();
+    $ler = fn (string $ncm) => (array) DB::table('nfe_fiscal_rules')
+        ->where('business_id', ibsvBiz())->where('ncm', $ncm)->whereNull('deleted_at')
+        ->orderByDesc('id')->first(['id', 'cst_pis', 'cst_cofins']);
+
+    $this->post('/nfe-brasil/tributacao/regras', ibsvPayload(['ncm' => '21039021', 'cst_pis' => '01', 'cst_cofins' => '01']))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+    $tempero = $ler('21039021');
+    expect([$tempero['cst_pis'], $tempero['cst_cofins']])->toBe(['01', '01']);
+
+    $this->get("/nfe-brasil/tributacao/regras/{$tempero['id']}/edit")
+        ->assertOk()
+        ->assertInertia(function ($page) {
+            $r = $page->toArray()['props']['regra'] ?? [];
+            expect([$r['cst_pis'] ?? null, $r['cst_cofins'] ?? null])->toBe(['01', '01']);
+        });
+
+    // CST de entrada (50) e por quantidade (03) não são CST de saída que a emissão monta.
+    $antes = ibsvContar();
+    $this->post('/nfe-brasil/tributacao/regras', ibsvPayload(['ncm' => '07032090', 'cst_pis' => '50', 'cst_cofins' => '03']))
+        ->assertSessionHasErrors(['cst_pis', 'cst_cofins']);
+    expect(ibsvContar())->toBe($antes);
+
+    // CONTROLE POSITIVO — sem CST a regra nasce com os dois nulos (a nota sai com 07, como antes).
+    $this->post('/nfe-brasil/tributacao/regras', ibsvPayload(['ncm' => '07129090']))
+        ->assertSessionHasNoErrors();
+    $semCst = $ler('07129090');
+    expect([$semCst['cst_pis'], $semCst['cst_cofins']])->toBe([null, null]);
+});

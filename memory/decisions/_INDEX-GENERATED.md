@@ -7,7 +7,7 @@
 ## Resumo
 - **456** arquivos · **441** números únicos · máx **0451**
 - **ADRs ATIVOS (lifecycle ativo): 408** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 389 · superseded 28 · proposto 25 · deprecated 11 · recusado 2 · rascunho 1
+- Por status: aceito 390 · superseded 28 · proposto 24 · deprecated 11 · recusado 2 · rascunho 1
 - Por lifecycle: ativo 408 · substituido 28 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -494,4 +494,4 @@ _(nenhuma)_
 | 0448 | aceito | ativo | decision | Fabricação é cadastro, Produção é execução e product_bom é a fonte única da comp |
 | 0449 | proposto | ativo | decision | NfeBrasil: o certificado A1 vem só de nfe_certificados — sai o fallback para bus |
 | 0450 | proposto | ativo | decision | Fisio: notificar à Anvisa um componente clínico separado como SaMD classe II, e  |
-| 0451 | proposto | ativo | decision | Associações: área de membros da rede Uniafibro — uma empresa só, associações e a |
+| 0451 | aceito | ativo | decision | Associações: área de membros da rede Uniafibro — uma empresa só, associações e a |

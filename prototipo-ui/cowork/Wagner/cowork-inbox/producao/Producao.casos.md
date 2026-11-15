@@ -125,6 +125,14 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 ### UC-PCV-10 · Ficha da OS · `must` · ✅
 - **Aceite:** Abrir a OS mostra progresso, tempo apontado/previsto, custo real/orçado e as abas Etapas · Arte e arquivos · Materiais · Custo · Refugo · Histórico · Em Etapas cada linha traz setor, máquina, responsável, previsto × apontado (vermelho quando passa) e situação.
 - **Forma:** drawer lateral de 760px (PT-02), não modal.
+- **Decisão pendente [W] (2026-11-12):** no sistema a Ficha virou **página** (`/producao/ordens/{id}`), declarado no charter `Os/Show.charter.md`, para o Quadro e a Linha abrirem a Ficha por endereço. Pela UI-0029 o protótipo manda na forma e não se abre exceção por tela, então o sistema segue o protótipo, a não ser que o [W] mude o próprio protótipo.
+  - **Exemplo.** O Diego vê um problema na OS-2611 e manda o link para a Ana no WhatsApp.
+    - *Hoje no sistema (página):* o link abre a Ficha da OS-2611 numa tela separada, fora do Quadro.
+    - *Hoje no protótipo (painel lateral):* abrir o painel não muda o endereço, então o link abre a tela inicial da Produção e a Ana precisa achar a OS-2611. F5 fecha o painel (medido no protótipo em 2026-11-12).
+    - *Com (B):* o link abre o Quadro com o painel da OS-2611 já aberto, e o F5 mantém o painel aberto. Fica a forma do protótipo e o link continua funcionando.
+  - **(B) — recomendada:** o sistema segue o protótipo. A Ficha abre no painel lateral de 760px, por cima do Quadro e da Linha, e o endereço guarda a OS aberta (por exemplo `/producao/quadro?os=2611`). O endereço de hoje, `/producao/ordens/{id}`, passa a levar ao Quadro com o painel aberto, para os links já enviados continuarem valendo.
+  - **(A):** o [W] muda o próprio protótipo para desenhar a Ficha como página, e o sistema fica como está.
+  - **Merge deste PR = (B).** Para (A), comente no PR.
 
 ### UC-PCV-51 · Tarefas da OS · `should` · ✅
 - **Origem:** P-099, comparação com concorrentes de 2026-10-23 (Printavo). Backlog em `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md`.
@@ -169,6 +177,10 @@ Nenhum UC tem backend: ✅ quer dizer "pronto para virar Page", não "pronto em 
 - **Aceite (campo):** Dado uma instalação fora da cidade · Quando o instalador lança o estacionamento pelo celular sem a foto do recibo · Então o lançamento fica bloqueado · E com a foto a despesa entra na OS como "Aguardando conferência", com o nome dele.
 - **Aceite (escritório):** Dado uma despesa aguardando conferência · Quando quem cuida do custo marca "Cobrar do cliente" ou "Só no custo" · Então ela sai de "Aguardando conferência" e soma no total escolhido · E a marcada "cobrar do cliente" vai para o faturamento da venda, separada do serviço · E a não reembolsável entra no custo real · E despesa aguardando não entra em nenhum dos dois totais.
 - **Falta (decisão [W]):** como a despesa reembolsável aparece na nota. Se entrar no total da venda, a regra A de 2026-10-21 (`Fiscal/Nfse.casos.md`) divide pelo bruto entre NF-e e NFS-e.
+  - **Exemplo (valores de exemplo, 2026-11-12).** Venda de fachada: placa 800 (mercadoria, NF-e) + instalação 200 (serviço, NFS-e) = 1.000. O instalador paga 20 de estacionamento, e o escritório marca "Cobrar do cliente".
+  - **(A) Entra na venda como acréscimo:** a venda passa a 1.020. Pela regra A, os 20 se dividem pelo bruto: 80% na NF-e e 20% na NFS-e. Ficam NF-e 816 e NFS-e 204. O cliente recebe uma cobrança só, mas a despesa passa a fazer parte do valor das notas, e o imposto delas é calculado sobre esse valor.
+  - **(B) Fica fora das notas:** as notas continuam NF-e 800 e NFS-e 200. Os 20 viram uma cobrança separada no financeiro, "Reembolso de despesa da OS", com o recibo anexado. O cliente recebe dois valores.
+  - **Merge não escolhe:** mexe em valor e em imposto. Comente (A) ou (B) no PR; vale conferir com a contabilidade antes. O código só nasce depois, com o antes → depois do faturamento mostrado ao [W].
 - **Valor:** regra mestre. A soma dos dois totais tem de bater com a soma das despesas lançadas (dupla prova), e o antes → depois do faturamento vai ao [W] antes de ligar.
 
 ### UC-PCV-17 · Refugo com motivo · `must` valor · ✅
