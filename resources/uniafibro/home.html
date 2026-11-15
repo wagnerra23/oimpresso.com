@@ -90,6 +90,7 @@
         /* Alvo de toque >= 44px (público com dor crônica, muitas vezes com dor nas mãos). */
         .nav ul a { display: inline-block; padding: 12px 6px; color: #f3ecfc; text-decoration: none; font-size: 1rem; }
         .nav ul a:hover { text-decoration: underline; }
+        .nav ul a.destaque { background: #fff; color: #4b2477; border-radius: 999px; padding: 12px 16px; font-weight: 700; }
 
         /* Topo */
         .topo {
@@ -122,6 +123,7 @@
             text-decoration: none; font-size: 1rem;
         }
         .btn-claro { background: #fff; color: #4b2477; }
+        .btn-grande { padding: 16px 32px; font-size: 1.2rem; }
         .btn-contorno { border: 2px solid rgba(255, 255, 255, 0.85); color: #fff; }
         /* A logomarca tem fundo branco e o nome embaixo: vai num cartão quadrado, nunca num círculo que a corte. */
         .topo-logo img {
@@ -277,15 +279,13 @@
     <nav class="nav" aria-label="Seções da página">
         <div class="nav-in">
             <a class="marca" href="#topo"><img src="/uniafibro/simbolo-180.png" alt="" width="34" height="34">Uniafibro</a>
+            <!-- Menu aprovado por [W] em 2026-11-14. O Portal da Associada entra quando a onda 6 da ADR 0451 existir. -->
             <ul>
-                <li><a href="#fibromialgia">Fibromialgia</a></li>
-                <li><a href="#cuidado">Cuidado</a></li>
-                <li><a href="#quem-somos">Quem somos</a></li>
-                <li><a href="#rede">A rede</a></li>
-                <li><a href="#direitos">Direitos</a></li>
-                <li><a href="#atendimento">Atendimento</a></li>
-                <li><a href="#app">App</a></li>
-                <li><a href="#duvidas">Dúvidas</a></li>
+                <li><a href="#topo">Início</a></li>
+                <li><a href="#quem-somos">A Uniafibro</a></li>
+                <li><a class="destaque" href="/direitos">Seus Direitos</a></li>
+                <li><a href="/direitos#guias">Guias Práticos</a></li>
+                <li><a href="#rede">Associações-Membro</a></li>
                 <li><a href="#contato">Contato</a></li>
             </ul>
         </div>
@@ -300,7 +300,7 @@
                 <p class="em-formacao">Em formação · registro em andamento</p>
                 <p class="lema">Juntas somos mais fortes.</p>
                 <div class="topo-acoes">
-                    <a class="btn btn-claro" href="#direitos">Conheça seus direitos</a>
+                    <a class="btn btn-claro btn-grande" href="/direitos">Seus Direitos</a>
                     <a class="btn btn-contorno" href="#contato">Fale com a associação</a>
                 </div>
             </div>

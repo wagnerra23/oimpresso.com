@@ -1,0 +1,131 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Support\Uniafibro\Conteudo;
+use App\Support\Uniafibro\Layout;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+/**
+ * /direitos da Uniafibro (https://uniafibro.com.br/direitos): páginas geradas de Markdown.
+ * Ver memory/requisitos/Site/RUNBOOK-uniafibro.md §6.
+ *
+ * Sem tenant e sem banco (sqlite-safe). Os testes apontam uma pasta de exemplo, para não
+ * depender do texto real das páginas, que muda a cada revisão.
+ */
+beforeEach(function () {
+    config(['uniafibro.pasta_conteudo' => base_path('tests/fixtures/uniafibro-direitos')]);
+    config(['uniafibro.whatsapp' => '']);
+});
+
+function uniafibroDireitosRota(string $url): ?string
+{
+    try {
+        return Route::getRoutes()->match(Request::create($url))->getName();
+    } catch (\Symfony\Component\HttpKernel\Exception\HttpException) {
+        return null;
+    }
+}
+
+it('o índice /direitos abre sem login, com as duas seções, a busca e o aviso', function () {
+    $this->assertGuest();
+
+    $html = $this->get('http://uniafibro.com.br/direitos')->assertOk()->getContent();
+
+    expect($html)->toStartWith('<!DOCTYPE html>');
+    expect($html)->toContain('id="direitos"');
+    expect($html)->toContain('id="guias"');
+    expect($html)->toContain('href="/direitos/exemplo-direito"');
+    expect($html)->toContain('href="/direitos/exemplo-guia"');
+    expect($html)->toContain('role="search"');
+    expect($html)->toContain('não é consultoria jurídica');
+});
+
+it('a página traz título, data de revisão, PDF, índice lateral, aviso e fontes', function () {
+    $html = $this->get('http://uniafibro.com.br/direitos/exemplo-direito')->assertOk()->getContent();
+
+    expect($html)->toContain('<h1>Exemplo de direito</h1>');
+    expect($html)->toContain('Revisado em 15/11/2026');
+    expect($html)->toContain('href="/direitos/exemplo-direito.pdf"');
+    expect($html)->toContain('<h2 id="atendimento-no-sus">');
+    expect($html)->toContain('<a href="#atendimento-no-sus">Atendimento no SUS</a>');
+    expect($html)->toContain('não é consultoria jurídica');
+    expect($html)->toContain('Fontes oficiais');
+    expect($html)->toContain('https://www.planalto.gov.br/exemplo');
+});
+
+it('não carrega script nem rastreador, nem o que vier escrito como HTML no .md', function () {
+    foreach (['/direitos', '/direitos/exemplo-direito', '/direitos?q=sus'] as $caminho) {
+        $html = $this->get('http://uniafibro.com.br'.$caminho)->getContent();
+
+        expect($html)->not->toContain('<script');
+        expect($html)->not->toMatch('/googletagmanager|google-analytics|gtag\(|fbq\(/i');
+    }
+});
+
+it('slug sem arquivo, ou com caractere fora do padrão, volta para /direitos', function () {
+    $this->get('http://uniafibro.com.br/direitos/nao-existe')->assertRedirect('https://uniafibro.com.br/direitos');
+    $this->get('http://uniafibro.com.br/direitos/nao-existe.pdf')->assertRedirect('https://uniafibro.com.br/direitos');
+    // "_LEIA-ME" não casa o slug: cai no redirect geral do domínio.
+    $this->get('http://uniafibro.com.br/direitos/_LEIA-ME')->assertRedirect('https://uniafibro.com.br');
+});
+
+it('o PDF da página é gerado no servidor', function () {
+    $r = $this->get('http://uniafibro.com.br/direitos/exemplo-direito.pdf');
+
+    $r->assertOk();
+    expect((string) $r->headers->get('Content-Type'))->toContain('application/pdf');
+    expect((string) $r->headers->get('Content-Disposition'))->toContain('uniafibro-exemplo-direito.pdf');
+});
+
+it('a busca acha palavra sem acento nem maiúscula e mostra o trecho', function () {
+    $html = $this->get('http://uniafibro.com.br/direitos?q=CARTEIRINHA%20catarinense')->assertOk()->getContent();
+
+    expect($html)->toContain('Resultado para');
+    expect($html)->toContain('href="/direitos/exemplo-direito"');
+    expect(Conteudo::buscar('limitacoes'))->toHaveCount(1);
+    expect(Conteudo::buscar('palavra-que-nao-existe'))->toBe([]);
+});
+
+it('o botão do WhatsApp só aparece com número configurado', function () {
+    expect($this->get('http://uniafibro.com.br/direitos')->getContent())->not->toContain('wa.me');
+
+    config(['uniafibro.whatsapp' => '+55 (48) 99999-0000']);
+
+    expect(Layout::whatsapp())->toContain('href="https://wa.me/5548999990000"');
+    expect($this->get('http://uniafibro.com.br/direitos')->getContent())->toContain('wa.me/5548999990000');
+});
+
+it('as rotas /direitos não capturam oimpresso.com', function () {
+    expect(uniafibroDireitosRota('http://uniafibro.com.br/direitos'))->toBe('uniafibro.direitos');
+    expect(uniafibroDireitosRota('http://uniafibro.com.br/direitos/exemplo-direito'))->toBe('uniafibro.direitos.pagina');
+    expect(uniafibroDireitosRota('http://uniafibro.com.br/direitos/exemplo-direito.pdf'))->toBe('uniafibro.direitos.pdf');
+    expect((string) uniafibroDireitosRota('https://oimpresso.com/direitos'))->not->toStartWith('uniafibro.');
+    expect(uniafibroDireitosRota('https://oimpresso.com/privacidade'))->toBe('publico.privacidade');
+});
+
+it('a home leva a Seus Direitos em um clique, no menu e no botão do topo', function () {
+    $home = (string) file_get_contents(resource_path('uniafibro/home.html'));
+
+    expect($home)->toContain('<a class="destaque" href="/direitos">Seus Direitos</a>');
+    expect($home)->toContain('href="/direitos">Seus Direitos</a>');
+    expect($home)->toContain('href="/direitos#guias">Guias Práticos</a>');
+    // Portal da Associada só entra quando existir (onda 6 da ADR 0451).
+    expect($home)->not->toContain('Portal da Associada');
+});
+
+it('a pasta real de conteúdo só tem arquivos com frontmatter completo', function () {
+    config(['uniafibro.pasta_conteudo' => resource_path('uniafibro/direitos')]);
+
+    foreach (Conteudo::todas() as $secao => $paginas) {
+        foreach ($paginas as $p) {
+            foreach (['title', 'resumo', 'secao', 'ordem', 'updated_at', 'disclaimer_version', 'fontes'] as $campo) {
+                expect($p['meta'])->toHaveKey($campo);
+            }
+            expect($p['meta']['fontes'])->not->toBeEmpty();
+            expect((int) $p['meta']['disclaimer_version'])->toBe(Layout::AVISO_VERSAO);
+        }
+    }
+    expect(Conteudo::existe('_LEIA-ME'))->toBeFalse();
+});
