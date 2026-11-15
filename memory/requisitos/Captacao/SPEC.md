@@ -24,7 +24,7 @@ owner: [W]
 
 **Testado em:** `Modules/Captacao/Tests/Feature/CaptacaoEsquemaContratoTest.php`
 
-**DoD:** as quatro tabelas têm business_id com FK; os models filtram por empresa (98 não vê 99); aporte e comprovante não se apagam pelo Model e saem da lista com `removido_em` + motivo; a regra de acesso (`CaptacaoAcesso`) libera só com o pacote `captacao_module` e `captacao.access`.
+**DoD:** as quatro tabelas têm business_id com FK; os models filtram por empresa (98 não vê 99); um projeto aceita proponente sem CNPJ (grupo em formação) e líder que é contato do núcleo, com FK que recusa líder inexistente; aporte e comprovante não se apagam pelo Model e saem da lista com `removido_em` + motivo; a regra de acesso (`CaptacaoAcesso`) libera só com o pacote `captacao_module` e `captacao.access`.
 
 ### US-CAPT-002 · Fontes e projetos — **P0**
 

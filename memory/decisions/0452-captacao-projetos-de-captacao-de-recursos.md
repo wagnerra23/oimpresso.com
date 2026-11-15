@@ -53,6 +53,10 @@ em `memory/` e `Modules/`: zero).
 **Restrição medida:** Lei Rouanet, FIA e FUMPROAD exigem proponente com CNPJ. A Uniafibro ainda não
 tem CNPJ (registro em cartório em andamento, ADR 0451); hoje quem pode inscrever é a associação-membro.
 
+**Primeiro caso real (informado por [W] em 2026-11-14):** um grupo vinculado à rede em Capivari de
+Baixo (SC), com uma líder, tocando um projeto da área da saúde. O grupo pode ainda não ter CNPJ. A
+natureza do projeto não está definida, por isso tipo e área nascem com "outro".
+
 ## Decisão
 
 1. **D1 — Módulo novo `Modules/Captacao`, liberado pelo pacote `captacao_module`** no superadmin e
@@ -60,14 +64,21 @@ tem CNPJ (registro em cartório em andamento, ADR 0451); hoje quem pode inscreve
    nada. O nome é genérico de propósito: a Uniafibro é a primeira empresa a usar.
 2. **D2 — Tier 0.** Toda tabela tem `business_id` NOT NULL, indexado, com FK para `business` e escopo
    global no Model (ADR 0093). Para a Uniafibro é a mesma empresa das Associações (0451 D1).
-3. **D3 — Proponente é dado do projeto:** nome e CNPJ em texto no próprio projeto. Sem FK para
-   `assoc_associacoes`: Captação não depende do módulo Associações e serve entidade que não é rede.
+3. **D3 — Proponente e líder são dados do projeto.** O proponente é nome e CNPJ em texto no próprio
+   projeto, com o CNPJ vazio quando o grupo ainda está em formação. Sem FK para `assoc_associacoes`:
+   Captação não depende do módulo Associações e serve entidade que não é rede. O cadastro do grupo em
+   si, inclusive a situação "em formação", é do `Modules/Associacoes`. O **líder do projeto** é um
+   `contact` do núcleo (`lider_contact_id`), que não precisa ser usuário do sistema.
 4. **D4 — Dados.**
-   - `captacao_fontes`: catálogo de fontes da empresa — tipo (`edital`, `lei_incentivo`, `fundo`,
-     `doacao_pj`, `doacao_pf`, `parceria`, `voluntariado`), nome, órgão, número do edital e prazo de
-     inscrição.
-   - `captacao_projetos`: título, objetivo, proponente (D3), situação, valor solicitado e aprovado,
-     período de execução e prazo da prestação de contas.
+   - `captacao_fontes`: catálogo de fontes da empresa — tipo (`edital`, `lei_incentivo`,
+     `emenda_parlamentar`, `convenio_sus`, `fundo`, `doacao_pj`, `doacao_pf`, `parceria`,
+     `voluntariado`, `outro`), nome, órgão, número do edital e prazo de inscrição.
+   - `captacao_projetos`: título, objetivo, proponente e líder (D3), tipo (`edital_municipal`,
+     `edital_estadual`, `lei_incentivo`, `emenda_parlamentar`, `convenio_sus`, `captacao_privada`,
+     `voluntariado`, `formalizacao_juridica`, `outro`), área (`saude`, `assistencia_social`,
+     `direitos`, `cultura`, `educacao`, `esporte`, `outro`), situação, valor solicitado e aprovado,
+     período de execução e prazo da prestação de contas. Tipo e área são listas no Model, não enum
+     do banco: acrescentar um valor não exige migration.
    - `captacao_aportes`: cada recurso que entra num projeto, ligado à fonte. Natureza `financeiro`,
      `bens`, `servicos` ou `horas_voluntarias` (com as horas e o valor estimado). O doador, quando
      houver, é um `contact` do núcleo. Aporte não se apaga: sai da lista com motivo.
@@ -81,8 +92,10 @@ tem CNPJ (registro em cartório em andamento, ADR 0451); hoje quem pode inscreve
    vencendo aparece em alerta; vencido, aparece como atrasado. O sistema avisa; não bloqueia nada.
 7. **D7 — Financeiro fica de fora nesta decisão.** Aporte não vira título e comprovante não vira
    despesa no `Modules/Financeiro`. A integração é onda própria, opcional e atrás de flag.
-8. **D8 — Dado pessoal.** Doador pessoa física entra só como contato do núcleo (nome e contato), sem
-   CPF próprio do módulo e sem dado de saúde. Voluntário não tem cadastro: o aporte guarda horas e
+8. **D8 — Dado pessoal.** Doador pessoa física e líder do projeto entram só como contato do núcleo
+   (nome e contato), sem CPF próprio do módulo e sem dado de saúde. A FK para `contacts` não garante
+   a mesma empresa: toda gravação de `contact_id` ou `lider_contact_id` valida que o contato é do
+   `business_id` da sessão (Tier 0, a partir da onda 2). Voluntário não tem cadastro: o aporte guarda horas e
    descrição. Nenhum dado pessoal ou valor de doação em log, commit ou PR.
 
 ## Fora desta decisão

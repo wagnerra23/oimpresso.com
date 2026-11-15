@@ -24,7 +24,7 @@ return new class extends Migration
             Schema::create('captacao_fontes', function (Blueprint $t) {
                 $t->id();
                 $t->unsignedInteger('business_id')->index();
-                $t->string('tipo', 20)->comment('edital|lei_incentivo|fundo|doacao_pj|doacao_pf|parceria|voluntariado');
+                $t->string('tipo', 30)->comment('lista em Fonte::TIPOS (edital, lei_incentivo, emenda_parlamentar, ... outro)');
                 $t->string('nome', 191);
                 $t->string('orgao', 191)->nullable();
                 $t->string('numero_edital', 60)->nullable();
@@ -44,7 +44,10 @@ return new class extends Migration
                 $t->string('titulo', 191);
                 $t->text('objetivo')->nullable();
                 $t->string('proponente_nome', 191);
-                $t->string('proponente_cnpj', 18)->nullable();
+                $t->string('proponente_cnpj', 18)->nullable()->comment('vazio = grupo ainda sem CNPJ (em formação)');
+                $t->unsignedInteger('lider_contact_id')->nullable()->comment('líder do projeto: contact do núcleo, não precisa ser usuário (D3)');
+                $t->string('tipo', 30)->default('outro')->comment('lista em Projeto::TIPOS');
+                $t->string('area', 30)->nullable()->comment('lista em Projeto::AREAS (saude, ...)');
                 $t->string('situacao', 20)->default('ideia')
                     ->comment('ideia|elaboracao|inscrito|aprovado|reprovado|captando|execucao|prestacao_contas|encerrado');
                 $t->date('situacao_desde')->nullable();
@@ -57,6 +60,7 @@ return new class extends Migration
                 $t->timestamps();
                 $t->index(['business_id', 'situacao'], 'capt_proj_biz_sit_idx');
                 $t->foreign('business_id')->references('id')->on('business');
+                $t->foreign('lider_contact_id')->references('id')->on('contacts');
             });
         }
 

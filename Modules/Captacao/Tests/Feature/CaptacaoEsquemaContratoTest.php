@@ -4,6 +4,7 @@ declare(strict_types=1);
 // @covers-us US-CAPT-001
 
 use App\Utils\ModuleUtil;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -111,6 +112,31 @@ it('US-CAPT-001 · aporte e comprovante não se apagam pelo Model', function () 
     // Tirar da lista é preencher removido_em + motivo — a linha continua lá.
     $c['comprovante']->forceFill(['removido_em' => now(), 'removido_motivo' => 'lançado em duplicidade'])->save();
     expect(DB::table('captacao_comprovantes')->where('id', $c['comprovante']->id)->whereNotNull('removido_em')->exists())->toBeTrue();
+});
+
+it('US-CAPT-001 · projeto de grupo sem CNPJ, com líder que é contato e não usuária', function () {
+    // contacts.created_by é FK NOT NULL -> users.id. Nome fictício: nenhum dado real em teste.
+    $liderId = (int) DB::table('contacts')->insertGetId([
+        'business_id' => $this->b98, 'type' => 'customer', 'name' => 'Lider Fixture '.uniqid(),
+        'mobile' => '48999990000', 'contact_status' => 'active', 'created_by' => (int) $this->u98->id,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    captComo($this, $this->u98);
+    $projeto = Projeto::query()->create([
+        'business_id' => $this->b98, 'titulo' => 'Projeto Grupo Fixture', 'proponente_nome' => 'Grupo em formação Fixture',
+        'proponente_cnpj' => null, 'lider_contact_id' => $liderId, 'tipo' => 'outro', 'area' => 'saude',
+    ]);
+
+    $lido = Projeto::query()->findOrFail($projeto->id);
+    expect($lido->proponente_cnpj)->toBeNull()
+        ->and((int) $lido->lider->id)->toBe($liderId)
+        ->and($lido->area)->toBe('saude');
+
+    // O banco recusa líder que não existe (FK para contacts).
+    expect(fn () => Projeto::query()->create([
+        'business_id' => $this->b98, 'titulo' => 'Projeto FK Fixture', 'proponente_nome' => 'X', 'lider_contact_id' => 2147483000,
+    ]))->toThrow(QueryException::class);
 });
 
 it('US-CAPT-001 · sem o pacote da empresa ninguém entra, nem com a permissão', function () {
