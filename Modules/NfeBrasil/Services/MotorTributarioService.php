@@ -630,27 +630,22 @@ class MotorTributarioService
         // ICMS próprio.
         $codigo = (string) ($simples ? ($icms['csosn'] ?? '') : ($icms['cst'] ?? ''));
         $semProprio = in_array($codigo, self::SEM_ICMS_PROPRIO, true) || ($simples && $codigo !== '900');
-        $aliqIcms = 0.0;
-        if (! $semProprio) {
-            $aliqIcms = match ((string) ($icms['origem'] ?? 'uf')) {
-                'fixa'   => (float) ($icms['p'] ?? 0) / 100,
-                'origem' => throw $recusa('ICMS "da nota de origem" só existe na devolução, que tem fluxo próprio.'),
-                default  => $this->icmsPelaUf($businessId, $ufOrigem, $ufDestino, $exterior, $dentro, $produto, $data, $recusa),
-            };
-        }
+        $aliqIcms = $semProprio ? 0.0 : match ((string) ($icms['origem'] ?? 'uf')) {
+            'fixa'   => (float) ($icms['p'] ?? 0) / 100,
+            'origem' => throw $recusa('ICMS "da nota de origem" só existe na devolução, que tem fluxo próprio.'),
+            default  => $this->icmsPelaUf($businessId, $ufOrigem, $ufDestino, $exterior, $dentro, $produto, $data, $recusa),
+        };
         $reducao = (! $simples && in_array($codigo, ['20', '70'], true)) ? (float) ($icms['red'] ?? 0) / 100 : 0.0;
         $baseIcms = $reducao > 0 ? $this->fmt($produto->valor * (1 - $reducao)) : null;
         $valorIcms = $this->fmt(($baseIcms ?? $produto->valor) * $aliqIcms);
 
         // IPI.
-        $aliqIpi = 0.0;
-        if (! empty($ipi['on'])) {
-            $aliqIpi = match ((string) ($ipi['origem'] ?? 'produto')) {
-                'fixa'   => (float) ($ipi['p'] ?? 0) / 100,
-                'origem' => throw $recusa('IPI "da nota de origem" só existe na devolução, que tem fluxo próprio.'),
-                default  => (float) (($regraNcm() ?? throw $recusa('IPI "da regra do NCM", mas o NCM ' . $produto->ncm . ' não tem regra.'))->aliquota_ipi),
-            };
-        }
+        $ipiLigado = (bool) ($ipi['on'] ?? false);
+        $aliqIpi = ! $ipiLigado ? 0.0 : match ((string) ($ipi['origem'] ?? 'produto')) {
+            'fixa'   => (float) ($ipi['p'] ?? 0) / 100,
+            'origem' => throw $recusa('IPI "da nota de origem" só existe na devolução, que tem fluxo próprio.'),
+            default  => (float) (($regraNcm() ?? throw $recusa('IPI "da regra do NCM", mas o NCM ' . $produto->ncm . ' não tem regra.'))->aliquota_ipi),
+        };
 
         // MVA (só com CST/CSOSN de ST).
         $mva = null;
@@ -663,11 +658,9 @@ class MotorTributarioService
         }
 
         // DIFAL e FCP: desligados na natureza → o motor não calcula (o grupo sai zerado).
-        $destinoSt = $destino;
-        if (empty($icms['difal'])) {
-            $destinoSt['contribuinte'] = null;
-        }
-        $fcp = ! empty($icms['fcp']) && ! $dentro && ! $exterior
+        // Sem o "contribuinte = false" o calcularStFcpDifal não calcula DIFAL (é a condição dele).
+        $destinoSt = (bool) ($icms['difal'] ?? false) ? $destino : array_merge($destino, ['contribuinte' => null]);
+        $fcp = (bool) ($icms['fcp'] ?? false) && ! $dentro && ! $exterior
             ? \Modules\NfeBrasil\Models\NfeIcmsUf::fcp($businessId, $ufOrigem, $ufDestino, $data)
             : null;
         $extra = $this->calcularStFcpDifal([
@@ -695,22 +688,8 @@ class MotorTributarioService
         }
 
         // IBS e CBS.
-        $aliqIbs = 0.0;
-        $aliqCbs = 0.0;
-        if (! empty($ibs['on'])) {
-            if (($ibs['origem'] ?? 'padrao') === 'fixa') {
-                $aliqIbs = ((float) ($ibs['pUF'] ?? 0) + (float) ($ibs['pMun'] ?? 0)) / 100;
-                $aliqCbs = (float) ($ibs['pCBS'] ?? 0) / 100;
-            } else {
-                $ano = (int) substr($data, 0, 4);
-                $padrao = self::IBS_CBS_DO_ANO[$ano] ?? throw $recusa("IBS/CBS pelo padrão do ano, mas {$ano} não tem padrão cadastrado.");
-                [$aliqIbs, $aliqCbs] = [$padrao['ibs'], $padrao['cbs']];
-            }
-            if (($ibs['cst'] ?? '') === '200') {
-                $fator = 1 - (float) ($ibs['pRed'] ?? 0) / 100;
-                [$aliqIbs, $aliqCbs] = [$aliqIbs * $fator, $aliqCbs * $fator];
-            }
-        }
+        $ibsLigado = (bool) ($ibs['on'] ?? false);
+        [$aliqIbs, $aliqCbs] = $ibsLigado ? $this->ibsCbsDaNatureza($ibs, $data, $recusa) : [0.0, 0.0];
 
         return new TributoCalculado(
             cfop:            $cfop,
@@ -728,9 +707,9 @@ class MotorTributarioService
             regra_id:        null,
             mva:             $mva,
             fcp:             $fcp,
-            c_class_trib:    ! empty($ibs['on']) ? (string) ($ibs['cClass'] ?? '') : null,
-            cst_ibs:         ! empty($ibs['on']) ? (string) ($ibs['cst'] ?? '') : null,
-            cst_cbs:         ! empty($ibs['on']) ? (string) ($ibs['cst'] ?? '') : null,
+            c_class_trib:    $ibsLigado ? (string) ($ibs['cClass'] ?? '') : null,
+            cst_ibs:         $ibsLigado ? (string) ($ibs['cst'] ?? '') : null,
+            cst_cbs:         $ibsLigado ? (string) ($ibs['cst'] ?? '') : null,
             aliquota_ibs:    $aliqIbs,
             aliquota_cbs:    $aliqCbs,
             valor_ibs:       $this->fmt($produto->valor * $aliqIbs),
@@ -745,6 +724,23 @@ class MotorTributarioService
             cst_pis:         $this->cstPisCofins($pc['pis']['cst']),
             cst_cofins:      $this->cstPisCofins($pc['cofins']['cst']),
         );
+    }
+
+    /**
+     * IBS e CBS da natureza (decimal): fixos, ou o padrão do ano da emissão; CST 200 reduz pelo pRed.
+     *
+     * @param array<string,mixed> $ibs
+     * @return array{0:float,1:float}
+     */
+    private function ibsCbsDaNatureza(array $ibs, string $data, \Closure $recusa): array
+    {
+        $ano = (int) substr($data, 0, 4);
+        [$aliqIbs, $aliqCbs] = ($ibs['origem'] ?? 'padrao') === 'fixa'
+            ? [((float) ($ibs['pUF'] ?? 0) + (float) ($ibs['pMun'] ?? 0)) / 100, (float) ($ibs['pCBS'] ?? 0) / 100]
+            : array_values(self::IBS_CBS_DO_ANO[$ano] ?? throw $recusa("IBS/CBS pelo padrão do ano, mas {$ano} não tem padrão cadastrado."));
+        $fator = ($ibs['cst'] ?? '') === '200' ? 1 - (float) ($ibs['pRed'] ?? 0) / 100 : 1.0;
+
+        return [(float) $aliqIbs * $fator, (float) $aliqCbs * $fator];
     }
 
     /** ICMS "pela UF": interna da origem dentro do estado; interestadual (ou 4% de importado) fora. */
