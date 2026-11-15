@@ -9,6 +9,7 @@ import KpiCard from '@/Components/shared/KpiCard';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid, Inline } from '@/Components/layout';
 
 interface Kpis {
   associacoes: number;
@@ -67,7 +68,7 @@ export default function PainelDaRede({ alcance, prazoAtaDias, kpis, associadasPo
         <PageHeader title="Painel da rede" subtitle={subtitulo} />
       </div>
       <div data-contract="kpis">
-        <Deferred data="kpis" fallback={<Skeleton className="h-28 w-full rounded-xl" />}>
+        <Deferred data="kpis" fallback={<Skeleton className="h-28 w-full rounded-lg" />}>
           <KpiGrid cols={4}>
             <KpiCard
               label="Associações"
@@ -88,7 +89,7 @@ export default function PainelDaRede({ alcance, prazoAtaDias, kpis, associadasPo
         </Deferred>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <Grid fit="lg" gap={6} className="mt-6">
         <Card>
           <CardHeader><CardTitle>Associadas ativas por associação</CardTitle></CardHeader>
           <CardContent>
@@ -128,20 +129,22 @@ export default function PainelDaRede({ alcance, prazoAtaDias, kpis, associadasPo
               ) : (
                 <ul className="divide-y divide-border">
                   {(pendencias ?? []).map((p) => (
-                    <li key={`${p.associacao_id}-${p.tipo}`} className="flex items-center justify-between gap-3 py-2 text-sm">
-                      <span>
-                        <span className="font-medium">{p.associacao}</span>
-                        <span className="text-muted-foreground"> · {ROTULO_PENDENCIA[p.tipo]}</span>
-                      </span>
-                      <SeloPendencia p={p} prazo={prazoAtaDias} />
-                    </li>
+                    <Inline asChild key={`${p.associacao_id}-${p.tipo}`} gap={3} justify="between" className="py-2 text-sm">
+                      <li>
+                        <span>
+                          <span className="font-medium">{p.associacao}</span>
+                          <span className="text-muted-foreground"> · {ROTULO_PENDENCIA[p.tipo]}</span>
+                        </span>
+                        <SeloPendencia p={p} prazo={prazoAtaDias} />
+                      </li>
+                    </Inline>
                   ))}
                 </ul>
               )}
             </Deferred>
           </CardContent>
         </Card>
-      </div>
+      </Grid>
     </AppShellV2>
   );
 }
