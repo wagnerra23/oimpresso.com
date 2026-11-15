@@ -1,5 +1,6 @@
 # 08 — Handoff (índice)
 
+- [2026-11-14 12:00 BRT — **Captação: ADR 0452 e esqueleto do módulo**](handoffs/2026-11-14-1200-captacao-onda1-adr-esqueleto.md) (PR #10895 · 4 tabelas captacao_* + teste 98×99 · merge ratifica a ADR · próximo: fontes e projetos)
 - [2026-10-30 — Venda V3: fechamento da onda 2 preparado](handoffs/2026-10-30-1655-venda-v3-fechamento-onda2.md) (domínio isolado de imposto/despesas/ST/sinal/adiantamento/parcelas · 55 testes verdes · sem integração da Page · dependências da onda 1 e persistência do plano no Financeiro no RUNBOOK)
 - [2026-10-30 — Venda V3: preparação da edição, onda 1](handoffs/2026-10-30-1700-venda-v3-edicao-onda1.md) (guards por empresa antes do prazo · base preservada · adaptador sem alteração da Page · 19 testes JS · CT100 56 pass/2 falhas de reparo reproduzidas no main · PHPStan verde; integração e homologação pendentes)
 
