@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import ConfigurarPeloCertificado from './_components/ConfigurarPeloCertificado';
 import SimuladorNota from './_components/SimuladorNota';
+import NaturezasSecao from './_components/Naturezas/NaturezasSecao';
 import type { ProductSearchResult } from '@/Pages/Sells/_components/ProductSearchAutocomplete';
 import SaudeFiscal, { type SaudePayload } from './_components/SaudeFiscal';
 import { Inline } from '@/Components/layout';
@@ -70,6 +71,8 @@ interface Props {
   produtoInicial?: ProductSearchResult | null;
   // Saúde fiscal (thread 14) — deferida.
   saude?: SaudePayload;
+  // Seção Naturezas de operação (RUNBOOK-tributacao §Naturezas) — flag useV2NfeNaturezas por empresa. Eager.
+  naturezasLiberado?: boolean;
 }
 
 interface FlashProps {
@@ -98,7 +101,7 @@ function formatNcm(ncm: string): string {
   return `${ncm.slice(0, 4)}.${ncm.slice(4, 6)}.${ncm.slice(6)}`;
 }
 
-function Index({ regras, config, templates, localPadrao, produtoInicial, saude }: Props) {
+function Index({ regras, config, templates, localPadrao, produtoInicial, saude, naturezasLiberado }: Props) {
   const { props } = usePage<FlashProps>();
   const success = props.flash?.success;
   const error = props.flash?.error;
@@ -314,6 +317,8 @@ function Index({ regras, config, templates, localPadrao, produtoInicial, saude }
 
         {/* Simulador read-only (thread 08 · D-SIM) — o cálculo é o da emissão, no backend. */}
         <SimuladorNota localPadrao={localPadrao ?? null} produtoInicial={produtoInicial ?? null} />
+
+        {naturezasLiberado ? <NaturezasSecao /> : null}
 
         {/* Regras NCM (Níveis 2 e 3) */}
         <Deferred data="regras" fallback={<Skeleton className="h-64 w-full" />}>

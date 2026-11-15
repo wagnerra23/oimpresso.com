@@ -60,6 +60,10 @@ class TributacaoController extends Controller
             ] : null,
 
             // EAGER (1 linha): local padrão pro autocomplete de produto do simulador (thread 08).
+            // EAGER (flag em cache 60s): seção Naturezas de operação (RUNBOOK-tributacao §Naturezas).
+            'naturezasLiberado' => app(\App\Services\FeatureFlagService::class)
+                ->isOn(\Modules\NfeBrasil\Http\Controllers\NaturezaOperacaoController::FLAG, ['business_id' => $businessId]),
+
             'localPadrao' => DB::table('business_locations')
                 ->where('business_id', $businessId)->orderBy('id')->value('id'),
 
