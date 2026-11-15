@@ -5,8 +5,14 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-11-13"
+last_run: "2026-11-15"
 ---
+
+> ℹ️ **`last_run` 2026-11-13 → 2026-11-15 (G-6).** A tela ganhou a seção Naturezas de operação (PR #10896,
+> atrás da flag `useV2NfeNaturezas`) e a onda 4 (PR #10919) só troca dois rótulos de opção do editor ("Da regra do
+> NCM"). Re-executado nesta data: o Vitest da seção (UC-NFTR-51/52, `tests/js/nfe-naturezas-lista.test.tsx`, 2 de
+> 2). Os UCs de backend (UC-NFTR-44..50, 53..59) têm o veredito da lane `PHP / Pest (NfeBrasil · MySQL)`; os
+> Status seguem do manifesto G-7.
 
 > ℹ️ **`last_run` 2026-10-20 → 2026-11-13 (G-6), sem re-execução.** A mudança no `Index.tsx` é o R-NFE-025b
 > (PR #10879): a lista passa a mostrar o CST de PIS/COFINS embaixo do percentual, e o payload da listagem leva
