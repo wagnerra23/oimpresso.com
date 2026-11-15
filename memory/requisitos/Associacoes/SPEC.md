@@ -48,6 +48,10 @@ Cadastro da associada pelo contato do núcleo (nome, celular, cidade; sem CPF), 
 - Desligar guarda situação e data; nada se apaga.
 - Casos: `Associadas.casos.md` (UC-ASSOCI-00..07).
 
+**Testado em:** `Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php`
+
+**DoD:** a lista e o cadastro passam por `AssociacoesAcesso::restringir()` (diretoria vê a rede, representante só a associação dele, 98 não vê 99); o celular sai mascarado do servidor e o nome só aparece para a diretoria com o aceite `visivel_rede`; sem o aceite `associada` o cadastro é recusado, e a versão gravada vem da config, nunca do request; gravar e desligar exigem `associacoes.editar`; desligar guarda situação e data, e consentimento não se apaga, só se revoga. Casos: `Modules/Associacoes/Resources/js/Pages/Associacoes/Associadas.casos.md` (UC-ASSOCI-00..07).
+
 ### US-ASSOC-004 · Painel da rede — **P1**
 
 **Implementado em:** _pendente_ — onda 5 da ADR 0451.
