@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1079 tarefas abertas** em **60 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1084 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -52,6 +52,7 @@
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
 | [`Repair`](#repair) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
+| [`Captacao`](#captacao) | 5 | 0 | 0 | 0 | 5 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`Auditoria`](#auditoria) | 4 | 0 | 0 | 0 | 4 |
@@ -1428,6 +1429,17 @@
 - **US-SRS-004** — Search hybrid (FULLTEXT + chat)
 - **US-SRS-005** — Audit log SRS (validation runs)
 - **US-SRS-006** — Memcofre legacy prefix (compat layer)
+
+## Captacao
+
+
+### todo
+
+- **US-CAPT-001** — Camada de dados dos projetos de captação — **P0**
+- **US-CAPT-002** — Fontes e projetos — **P0**
+- **US-CAPT-003** — Aportes — **P0**
+- **US-CAPT-004** — Comprovantes e prestação de contas — **P1**
+- **US-CAPT-005** — Integração com o Financeiro — **P2**
 
 ## LaravelAI
 
