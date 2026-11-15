@@ -4,7 +4,7 @@ irmaos: Painel.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-11-13"
+last_run: "2026-11-15"
 ---
 
 # Casos de Uso & Aceite — Associacoes/Painel
@@ -20,7 +20,7 @@ last_run: "2026-11-13"
   Então o dropdown "Associações" tem o item "Painel", que leva a `/associacoes` (rota `associacoes.painel`).
 - **Teste:** `Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php` — `UC-PAINEL-00` (lê o código do menu, não o menu renderizado; o resto é smoke).
 - **Regressão que defende:** a tela responder 200 e ninguém alcançar — `modifyAdminMenu()` no-op.
-- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43492749888, 2026-11-13.
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43764702981, 2026-11-15 (revalidado depois da troca de layout por Grid e Inline).
 
 ---
 
@@ -31,7 +31,7 @@ last_run: "2026-11-13"
   as linhas por associação só carregam id, nome, cidade e total (nenhum dado pessoal, D5).
 - **Teste:** `Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php` — `UC-PAINEL-01` (lê as props deferidas pelo partial reload).
 - **Regressão que defende:** contagem sem escopo de empresa vazando a rede de outro cliente (ADR 0093).
-- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43492749888, 2026-11-13.
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43764702981, 2026-11-15 (revalidado depois da troca de layout por Grid e Inline).
 
 ---
 
@@ -42,7 +42,7 @@ last_run: "2026-11-13"
   (desligada não conta), e as pendências são todas da associação dele.
 - **Teste:** `Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php` — `UC-PAINEL-02`.
 - **Regressão que defende:** consulta do painel sem `AssociacoesAcesso::restringir()`.
-- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43492749888, 2026-11-13.
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43764702981, 2026-11-15 (revalidado depois da troca de layout por Grid e Inline).
 
 ---
 
@@ -53,7 +53,7 @@ last_run: "2026-11-13"
   Ata da diretoria enviada depois da mudança resolve a pendência. Atrasada avisa, não bloqueia.
 - **Teste:** `Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php` — `UC-PAINEL-03` (data fixa, 10 · 30 · 31 · 40 dias).
 - **Regressão que defende:** prazo contado errado (fora de um) ou ata nova ignorada.
-- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43492749888, 2026-11-13.
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43764702981, 2026-11-15 (revalidado depois da troca de layout por Grid e Inline).
 
 ---
 
@@ -64,7 +64,7 @@ last_run: "2026-11-13"
   associação desligada não aparece; alcance vazio não devolve nada; pedir pela outra empresa não devolve nada.
 - **Teste:** `Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php` — `UC-PAINEL-04`.
 - **Regressão que defende:** documento removido (`removido_em`, D3) contando como presente.
-- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43492749888, 2026-11-13.
+- **Status: 🧪** — passou na lane `verticais-pest` (MySQL), run 43764702981, 2026-11-15 (revalidado depois da troca de layout por Grid e Inline).
 
 ---
 
