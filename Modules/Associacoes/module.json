@@ -1,0 +1,11 @@
+{
+    "name": "Associacoes",
+    "alias": "associacoes",
+    "description": "Associações — rede de associações (primeira: Uniafibro-SC): cadastro das associações-membro e da documentação delas, das associadas com consentimento LGPD por finalidade e visão da rede (ADR 0451).",
+    "keywords": ["associacoes", "uniafibro", "rede", "associadas", "lgpd"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Associacoes\\Providers\\AssociacoesServiceProvider"
+    ],
+    "files": []
+}

@@ -12,7 +12,7 @@ const NAV_FIXO = [
 ];
 
 const NAV_TAIL = [
-  { label: 'Ajuda', href: '/ajuda/' },
+  { label: 'Ajuda', href: '/ajuda' },
   { label: 'Contato', href: '/c/contact-us' },
 ];
 

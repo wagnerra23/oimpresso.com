@@ -486,6 +486,9 @@ Route::middleware(['web', 'throttle:60,1'])->group(function () {
     // Portal do Paciente do Fisio + app Uniafibro (com.oimpresso.fisio): dado de saúde, política própria.
     Route::get('/fisio/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'fisio'])
         ->name('publico.privacidade.fisio');
+    // "Ajuda" do topo e do rodapé do site: ainda não há central de ajuda pública, então leva ao
+    // Fale conosco. 302 (temporário) porque a central vai existir — decisão [W] 2026-11-14.
+    Route::redirect('/ajuda', '/c/contact-us', 302)->name('publico.ajuda');
 });
 
 Route::middleware(['setData'])->group(function () {
