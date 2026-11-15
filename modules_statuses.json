@@ -1,5 +1,6 @@
 {
     "Arquivos": true,
+    "Associacoes": true,
     "AssetManagement": true,
     "Auditoria": true,
     "Cms": true,
