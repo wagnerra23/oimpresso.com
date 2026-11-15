@@ -41,7 +41,7 @@ pessoa com deficiência), editais municipais e estaduais de saúde, doação de 
 parceria privada e trabalho voluntário. Cada projeto tem proponente, fontes, valor pedido e aprovado,
 período de execução e, no fim, prestação de contas com comprovante de cada despesa.
 
-A [ADR 0451](0451-associacoes-rede-uniafibro-area-de-membros.md) (cadastro da rede) deixou mensalidade
+A ADR 0451 (cadastro da rede, ainda em revisão no PR #10862) deixou mensalidade
 e repasse de dinheiro fora da decisão. Captação também é dinheiro, mas com outro ciclo (projeto →
 fonte → aporte → despesa → prestação de contas) e serve qualquer ONG, associação ou instituto, não
 só redes de associações.

@@ -11,6 +11,10 @@ outcomes:
 
 # Captação: ADR 0452 e esqueleto do módulo
 
+## TL;DR
+
+ADR 0452 (proposto) e o esqueleto do `Modules/Captacao` estão no PR #10895: 4 tabelas `captacao_*` com escopo por empresa e o teste de isolamento 98×99. O primeiro caso real é um grupo vinculado à rede em Capivari de Baixo (SC), com líder e um projeto da área da saúde.
+
 ## O que foi feito
 
 [W] pediu um módulo para os projetos de captação de recursos da Uniafibro-SC e das associações-membro: edital, lei de incentivo, fundo, doação, parceria e voluntariado. A ADR 0451 (Associações) deixou dinheiro de fora; Captação ficou como módulo próprio.
