@@ -176,6 +176,19 @@ return [
     | Integração com UltimatePOS (bridge)
     |--------------------------------------------------------------------------
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Smoke diário dos clientes vivos (sells:smoke-daily → checkClientesVivos)
+    |--------------------------------------------------------------------------
+    | wr2_business_id: business da WR2 no oimpresso. PLACEHOLDER = 1 (demo) até o [W]
+    | informar o business real; enquanto isso a contagem de marcações é só informativa.
+    */
+    'smoke' => [
+        'wr2_business_id'        => (int) env('SMOKE_WR2_BIZ', 1),
+        'rota_livre_business_id' => (int) env('SMOKE_ROTA_LIVRE_BIZ', 4),
+        'venda_janela_dias'      => (int) env('SMOKE_ROTA_LIVRE_JANELA_DIAS', 5),
+    ],
+
     'ultimatepos' => [
         'user_model'            => \App\User::class,          // padrão UltimatePOS
         'business_model'        => \App\Business::class,      // multi-empresa

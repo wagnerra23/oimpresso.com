@@ -52,13 +52,14 @@ class SmokeDailyCommand extends Command
 
     public function handle(): int
     {
-        $this->info('[sells:smoke-daily] início — 5 checks Cowork');
+        $this->info('[sells:smoke-daily] início — checks Cowork + clientes vivos');
 
         $this->checkSchemaEssencial();
         $this->checkMultiTenantScope();
         $this->checkViteManifest();
         $this->checkCssScopedImports();
         $this->checkCoworkAggregatesSchema();
+        $this->checkClientesVivos();
 
         if (! empty($this->failures)) {
             $msg = '[sells:smoke-daily] FALHOU — '.count($this->failures).' check(s): '
@@ -72,7 +73,7 @@ class SmokeDailyCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info('[sells:smoke-daily] OK — 5/5 checks passaram');
+        $this->info('[sells:smoke-daily] OK — todos os checks passaram');
 
         return self::SUCCESS;
     }
@@ -232,6 +233,79 @@ class SmokeDailyCommand extends Command
         }
 
         $this->line('  · coworkAggregates: '.(empty($missing) ? 'shape canônico OK' : 'drift detectado'));
+    }
+
+    public const VENDA_JANELA_DIAS = 5;
+
+    /**
+     * Clientes vivos em produção (ROTA LIVRE e WR2): o sistema que eles usam continua de pé?
+     * Só leitura e só contagem: nenhum valor, nenhum dado de cliente.
+     *
+     * ROTA LIVRE: a janela de 30 dias do checkMultiTenantScope leva até 4 semanas para
+     * acusar que as vendas pararam. Aqui a janela é de VENDA_JANELA_DIAS. Medido em
+     * 2026-11-15 em produção, contando dias com venda nos 365 dias anteriores: 332 dias com
+     * venda, maior lacuna sem venda = 3 dias. Uma janela de 5 dias teria dado zero alarme
+     * falso naquele ano. Se a rotina da loja mudar (férias), a janela é config.
+     *
+     * WR2: o business da Eliana ainda não está registrado; usa pontowr2.smoke.wr2_business_id
+     * (env SMOKE_WR2_BIZ, padrão 1 = demo). Por ser placeholder, a contagem de marcações é só
+     * informativa. Reprova só se o Ponto estiver habilitado e a tabela de marcações sumir.
+     */
+    protected function checkClientesVivos(): void
+    {
+        if (! app()->environment('live', 'production')) {
+            $this->line('  · clientes vivos: só em produção (ambiente '.app()->environment().')');
+
+            return;
+        }
+
+        $r = self::avaliarClientesVivos(
+            (int) config('pontowr2.smoke.rota_livre_business_id', 4),
+            (int) config('pontowr2.smoke.venda_janela_dias', self::VENDA_JANELA_DIAS),
+            (int) config('pontowr2.smoke.wr2_business_id', 1),
+        );
+        foreach ($r['linhas'] as $linha) {
+            $this->line('  · '.$linha);
+        }
+        foreach ($r['falhas'] as $falha) {
+            $this->failures[] = $falha;
+        }
+    }
+
+    /**
+     * Lógica do check sem o gate de ambiente, para o teste rodar no tenant fictício.
+     *
+     * @return array{falhas: array<int, string>, linhas: array<int, string>}
+     */
+    public static function avaliarClientesVivos(int $rotaLivreBiz, int $janelaDias, int $wr2Biz): array
+    {
+        $falhas = [];
+        $linhas = [];
+
+        $vendas = \App\Transaction::where('business_id', $rotaLivreBiz)
+            ->where('type', 'sell')
+            ->where('status', 'final')
+            ->whereDate('transaction_date', '>=', now()->subDays($janelaDias))
+            ->count();
+        $linhas[] = "clientes vivos: rota-livre biz={$rotaLivreBiz} vendas em {$janelaDias}d={$vendas}";
+        if ($vendas === 0) {
+            $falhas[] = "ALERT cliente=rota-livre: biz={$rotaLivreBiz} zero vendas em {$janelaDias} dias";
+        }
+
+        $ponto = \Nwidart\Modules\Facades\Module::find('Ponto');
+        if ($ponto === null || ! $ponto->isEnabled()) {
+            $linhas[] = 'clientes vivos: wr2 — módulo Ponto desabilitado, nada a medir';
+        } elseif (! Schema::hasTable('ponto_marcacoes')) {
+            $falhas[] = 'ALERT cliente=wr2: Ponto habilitado e tabela ponto_marcacoes ausente';
+        } else {
+            $marcacoes = \Illuminate\Support\Facades\DB::table('ponto_marcacoes')
+                ->where('business_id', $wr2Biz)
+                ->where('momento', '>=', now()->subDays(7))
+                ->count();
+            $linhas[] = "clientes vivos: wr2 biz={$wr2Biz} marcações em 7d={$marcacoes} (informativo — business placeholder)";
+        }
+
+        return ['falhas' => $falhas, 'linhas' => $linhas];
     }
 
     /**
