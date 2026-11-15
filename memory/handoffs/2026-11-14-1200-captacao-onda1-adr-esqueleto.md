@@ -11,7 +11,7 @@ next_steps:
   - "Conferir a lane verticais-pest do #10895 com assertions > 0 no CaptacaoEsquemaContratoTest antes do merge"
   - "[W] mergeia o #10895 (= ratifica a ADR 0452) e liga o pacote captacao_module para a empresa da Uniafibro"
   - "Onda 2: CRUD de fontes e projetos (US-CAPT-002), tela PT-01 via criar-tela.mjs"
-  - "Primeiro caso real: edital municipal de Capivari de Baixo (SC), confirmado por [W]; pedir número, prazo e proponente"
+  - "Capivari de Baixo (SC) é grupo vinculado à rede (corrigido por [W]; não é edital). Perguntar se tem CNPJ: sem CNPJ, entra como beneficiário, não como proponente"
 related_adrs: ["0452-captacao-projetos-de-captacao-de-recursos", "0451-associacoes-rede-uniafibro-area-de-membros", "0093-multi-tenant-isolation-tier-0"]
 ---
 
@@ -66,7 +66,7 @@ related_adrs: ["0452-captacao-projetos-de-captacao-de-recursos", "0451-associaco
 1. Ver a lane verticais-pest do #10895 com `CaptacaoEsquemaContratoTest` executado (assertions > 0).
 2. Depois do merge, smoke: `curl -sv https://oimpresso.com/captacao/install` deve dar `302` sem sessão.
 3. Onda 2 (US-CAPT-002): fontes e projetos, com charter e casos.md.
-4. Primeiro caso real, confirmado por [W] em 2026-11-14: **edital municipal de Capivari de Baixo (SC)**. Pedir nome, número, prazo e associação proponente para cadastrar como a primeira fonte.
+4. Capivari de Baixo (SC) é um **grupo vinculado** à rede, segundo [W] em 2026-11-14; a leitura anterior, "edital municipal", foi corrigida por ele. Perguntar se o grupo tem CNPJ: sem CNPJ, ele é beneficiário de projeto inscrito por associação com CNPJ. O cadastro do grupo em si é do `Modules/Associacoes`, não daqui.
 
 ## Estado MCP no momento do fechamento
 

@@ -24,7 +24,7 @@ despesa para a prestação de contas. A primeira empresa a usar é a Uniafibro-S
 
 ## O que depende de [W]
 
-- Dados do primeiro caso real: um **edital municipal de Capivari de Baixo (SC)**, confirmado por [W] em 2026-11-14. Faltam nome, número, órgão, prazo de inscrição e qual associação será a proponente (o edital provavelmente exige CNPJ). Entra como fonte do tipo `edital` quando a tela da onda 2 existir.
+- Papel de **Capivari de Baixo (SC)** na captação: [W] informou em 2026-11-14 que é um **grupo vinculado** à rede. A primeira leitura ("edital municipal") foi corrigida por ele no mesmo dia. Falta saber se o grupo tem CNPJ: sem CNPJ ele não pode ser proponente em Rouanet, FIA ou FUMPROAD, e entra como beneficiário de um projeto inscrito por uma associação com CNPJ. Nada no módulo muda: proponente e objetivo são texto no projeto (ADR 0452 D3).
 - Ligar o pacote `captacao_module` para a empresa da Uniafibro-SC no superadmin.
 
 ## Regras que não mudam
