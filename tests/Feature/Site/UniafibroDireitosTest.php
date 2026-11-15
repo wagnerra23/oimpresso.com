@@ -105,12 +105,17 @@ it('as rotas /direitos não capturam oimpresso.com', function () {
     expect(uniafibroDireitosRota('https://oimpresso.com/privacidade'))->toBe('publico.privacidade');
 });
 
-it('a home leva a Seus Direitos em um clique, no menu e no botão do topo', function () {
+it('a home mantém os 9 itens do menu, destaca Direitos e tem o botão grande no topo', function () {
     $home = (string) file_get_contents(resource_path('uniafibro/home.html'));
+    $ini = strpos($home, '<nav class="nav"');
+    $menu = substr($home, $ini, strpos($home, '</nav>', $ini) - $ini);
 
-    expect($home)->toContain('<a class="destaque" href="/direitos">Seus Direitos</a>');
-    expect($home)->toContain('href="/direitos">Seus Direitos</a>');
-    expect($home)->toContain('href="/direitos#guias">Guias Práticos</a>');
+    preg_match_all('/<li>/', $menu, $m);
+    expect(count($m[0]))->toBe(9);
+    expect($menu)->toMatch('/<a class="destaque" href="\/direitos">.*Direitos<\/a>/');
+    expect($home)->toMatch('/class="btn btn-claro btn-grande" href="\/direitos">.*Seus Direitos<\/a>/');
+    // O botão vem antes do lema, no topo.
+    expect(strpos($home, 'btn-grande'))->toBeLessThan(strpos($home, 'Juntas somos mais fortes.'));
     // Portal da Associada só entra quando existir (onda 6 da ADR 0451).
     expect($home)->not->toContain('Portal da Associada');
 });

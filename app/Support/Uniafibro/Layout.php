@@ -52,25 +52,27 @@ final class Layout
         HTML;
     }
 
-    /** Menu aprovado por [W] em 2026-11-14. O Portal da Associada entra quando a onda 6 da ADR 0451 existir. */
+    /**
+     * Mesmo menu da home (9 itens, [W] 2026-11-15), com "Direitos" em destaque. O Portal da
+     * Associada entra quando a onda 6 da ADR 0451 existir.
+     */
     public static function nav(): string
     {
-        return <<<'HTML'
-        <nav class="nav" aria-label="Menu do site">
-            <div class="nav-in">
-                <a class="marca" href="/"><img src="/uniafibro/simbolo-180.png" alt="" width="34" height="34">Uniafibro</a>
-                <ul>
-                    <li><a href="/">Início</a></li>
-                    <li><a href="/#quem-somos">A Uniafibro</a></li>
-                    <li><a class="destaque" href="/direitos">Seus Direitos</a></li>
-                    <li><a href="/direitos#guias">Guias Práticos</a></li>
-                    <li><a href="/#rede">Associações-Membro</a></li>
-                    <li><a href="/#contato">Contato</a></li>
-                </ul>
-            </div>
-        </nav>
-        HTML;
+        $itens = '';
+        foreach (['fibromialgia' => 'Fibromialgia', 'cuidado' => 'Cuidado', 'quem-somos' => 'Quem somos', 'rede' => 'A rede'] as $id => $nome) {
+            $itens .= '<li><a href="/#'.$id.'">'.$nome.'</a></li>';
+        }
+        $itens .= '<li><a class="destaque" href="/direitos" aria-current="page">'.self::ESCUDO.'Direitos</a></li>';
+        foreach (['atendimento' => 'Atendimento', 'app' => 'App', 'duvidas' => 'Dúvidas', 'contato' => 'Contato'] as $id => $nome) {
+            $itens .= '<li><a href="/#'.$id.'">'.$nome.'</a></li>';
+        }
+
+        return '<nav class="nav" aria-label="Menu do site"><div class="nav-in">'
+            .'<a class="marca" href="/"><img src="/uniafibro/simbolo-180.png" alt="" width="34" height="34">Uniafibro</a>'
+            .'<ul>'.$itens.'</ul></div></nav>';
     }
+
+    public const ESCUDO = '<svg class="escudo" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z" fill="currentColor"/></svg>';
 
     public static function busca(string $valor = ''): string
     {
