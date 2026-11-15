@@ -18,7 +18,7 @@ uses(Tests\TestCase::class);
  * REGRA MESTRE DE VALOR — cada valor tem dois caminhos: o motor (`calcularComDestino`) e a conta à
  * mão escrita ao lado do assert. Os números de lei vêm do motor com a lei citada (PIS/COFINS do
  * regime, IBS/CBS do ano, 4% da Resolução SF 13/2012); os da UF, da `nfe_icms_uf` semeada aqui.
- * MySQL-only · tenant fictício 98 (ADR 0358). Item de R$ 1.000,00 em todos os casos.
+ * MySQL-only · tenant fictício 98 (ADR 0358). Item de valor 1.000,00 (fictício) em todos os casos.
  */
 
 const NTM_NCM = '77071004';

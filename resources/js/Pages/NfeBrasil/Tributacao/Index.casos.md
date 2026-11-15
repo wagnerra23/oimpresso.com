@@ -681,7 +681,7 @@ last_run: "2026-11-13"
 
 ## UC-NFTR-53 · O motor calcula pela natureza da tela: ICMS pela UF, PIS/COFINS do regime, IBS/CBS do ano · `must` `[fiscal]`
 
-- **Aceite:** **Dado** uma natureza da tela (Presumido, ICMS pela UF, interna de SC 17%) **Quando** calculo R$ 1.000,00 de SC para SC em 2026 **Então** CFOP 5102, ICMS 170,00, PIS 6,50, COFINS 30,00, IBS 1,00, CBS 9,00.
+- **Aceite:** **Dado** uma natureza da tela (Presumido, ICMS pela UF, interna de SC 17%) **Quando** calculo um item de 1.000,00 de SC para SC em 2026 **Então** CFOP 5102, ICMS 170,00, PIS 6,50, COFINS 30,00, IBS 1,00, CBS 9,00.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-53 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
