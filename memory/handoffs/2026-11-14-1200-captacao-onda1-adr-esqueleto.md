@@ -11,6 +11,7 @@ next_steps:
   - "Conferir a lane verticais-pest do #10895 com assertions > 0 no CaptacaoEsquemaContratoTest antes do merge"
   - "[W] mergeia o #10895 (= ratifica a ADR 0452) e liga o pacote captacao_module para a empresa da Uniafibro"
   - "Onda 2: CRUD de fontes e projetos (US-CAPT-002), tela PT-01 via criar-tela.mjs"
+  - "Primeiro caso real: edital municipal de Capivari de Baixo (SC), confirmado por [W]; pedir número, prazo e proponente"
 related_adrs: ["0452-captacao-projetos-de-captacao-de-recursos", "0451-associacoes-rede-uniafibro-area-de-membros", "0093-multi-tenant-isolation-tier-0"]
 ---
 
@@ -65,6 +66,7 @@ related_adrs: ["0452-captacao-projetos-de-captacao-de-recursos", "0451-associaco
 1. Ver a lane verticais-pest do #10895 com `CaptacaoEsquemaContratoTest` executado (assertions > 0).
 2. Depois do merge, smoke: `curl -sv https://oimpresso.com/captacao/install` deve dar `302` sem sessão.
 3. Onda 2 (US-CAPT-002): fontes e projetos, com charter e casos.md.
+4. Primeiro caso real, confirmado por [W] em 2026-11-14: **edital municipal de Capivari de Baixo (SC)**. Pedir nome, número, prazo e associação proponente para cadastrar como a primeira fonte.
 
 ## Estado MCP no momento do fechamento
 

@@ -24,6 +24,7 @@ despesa para a prestação de contas. A primeira empresa a usar é a Uniafibro-S
 
 ## O que depende de [W]
 
+- Dados do primeiro caso real: um **edital municipal de Capivari de Baixo (SC)**, confirmado por [W] em 2026-11-14. Faltam nome, número, órgão, prazo de inscrição e qual associação será a proponente (o edital provavelmente exige CNPJ). Entra como fonte do tipo `edital` quando a tela da onda 2 existir.
 - Ligar o pacote `captacao_module` para a empresa da Uniafibro-SC no superadmin.
 
 ## Regras que não mudam
