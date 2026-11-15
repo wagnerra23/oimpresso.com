@@ -15,6 +15,17 @@ declare(strict_types=1);
  * Página-alvo: /login — usa o SiteLayout (mesmo SiteHeader da home e de /pricing) e não
  * depende de dado de tenant.
  */
+beforeEach(function () {
+    // Mesmo realinhamento do AuthBridgeSmokeTest: o servidor do browser roda no processo do
+    // teste, que o phpunit.xml põe em sqlite :memory: sem schema — e o /login lê `system`.
+    // Aponta para o MySQL `oimpresso_test` (schema-squash) que o job já sobe.
+    config([
+        'database.default' => 'mysql',
+        'database.connections.mysql.database' => 'oimpresso_test',
+    ]);
+    \Illuminate\Support\Facades\DB::purge('mysql');
+});
+
 function siteMenuMedida(): string
 {
     return <<<'JS'

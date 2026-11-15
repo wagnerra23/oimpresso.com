@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { Menu, X } from 'lucide-react';
+import { Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 
 type PublicRoutes = {
@@ -107,24 +108,30 @@ export default function SiteHeader() {
           aria-label="Navegação principal"
           className="border-t border-border/40 bg-background px-4 pb-4 md:hidden"
         >
-          <ul className="flex flex-col py-2">
-            {NAV.map((item) => (
-              <li key={item.href}>
-                <a
-                  href={item.href}
-                  onClick={() => setAberto(false)}
-                  className="flex min-h-11 items-center text-base font-medium text-foreground"
-                >
-                  {item.label}
-                </a>
+          <Stack asChild gap={0} className="py-2">
+            <ul>
+              {NAV.map((item) => (
+                <li key={item.href}>
+                  <Inline asChild gap={0}>
+                    <a
+                      href={item.href}
+                      onClick={() => setAberto(false)}
+                      className="min-h-11 text-base font-medium text-foreground"
+                    >
+                      {item.label}
+                    </a>
+                  </Inline>
+                </li>
+              ))}
+              <li>
+                <Inline asChild gap={0}>
+                  <a href="/login" className="min-h-11 text-base font-medium text-foreground">
+                    Entrar
+                  </a>
+                </Inline>
               </li>
-            ))}
-            <li>
-              <a href="/login" className="flex min-h-11 items-center text-base font-medium text-foreground">
-                Entrar
-              </a>
-            </li>
-          </ul>
+            </ul>
+          </Stack>
           <Button asChild className="h-11 w-full">
             <a href="/login">Começar grátis</a>
           </Button>
