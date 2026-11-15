@@ -68,12 +68,23 @@ test('--aplicar grava a rede inicial só na empresa pedida', function () {
 
 test('segunda rodada não duplica nem sobrescreve o que a tela editou', function () {
     $this->artisan('associacoes:semear-rede', ['--business' => $this->b98, '--aplicar' => true])->assertSuccessful();
-    DB::table('assoc_associacoes')->where('business_id', $this->b98)->where('nome', 'AGFESC')->update(['cnpj' => '00.000.000/0000-00']);
+    // A diretoria troca o nome e preenche o CNPJ pela tela; a sigla fica.
+    DB::table('assoc_associacoes')->where('business_id', $this->b98)->where('sigla', 'AGFESC')
+        ->update(['nome' => 'Girassóis Fixture', 'cnpj' => '00.000.000/0000-00']);
     $depoisPrimeira = semearContar($this->b98);
 
     $this->artisan('associacoes:semear-rede', ['--business' => $this->b98, '--aplicar' => true])->assertSuccessful();
 
+    $agfesc = DB::table('assoc_associacoes')->where('business_id', $this->b98)->where('sigla', 'AGFESC')->first();
     expect(semearContar($this->b98))->toBe($depoisPrimeira)
-        ->and(DB::table('assoc_associacoes')->where('business_id', $this->b98)->where('nome', 'AGFESC')->value('cnpj'))
-        ->toBe('00.000.000/0000-00');
+        ->and($agfesc->nome)->toBe('Girassóis Fixture')
+        ->and($agfesc->cnpj)->toBe('00.000.000/0000-00');
+});
+
+test('a rede inicial tem as 5 associações do site, sem sigla repetida', function () {
+    $siglas = array_column(SemearRedeCommand::REDE_INICIAL, 'sigla');
+
+    expect($siglas)->toHaveCount(5)
+        ->and(array_unique($siglas))->toHaveCount(5)
+        ->and($siglas)->toContain('AGFESC', 'AFIBROMAR', 'AFICOR', 'AREFI', 'ACPFA');
 });

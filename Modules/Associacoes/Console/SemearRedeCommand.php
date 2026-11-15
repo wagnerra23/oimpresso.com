@@ -18,8 +18,7 @@ use Illuminate\Support\Facades\Schema;
  *  - Só associações. Associada é dado pessoal com consentimento (D5) e entra pela tela, nunca por
  *    seed. Finalidades de consentimento não são linhas: vivem em config('associacoes.consentimento_versoes').
  *
- * Nome, CNPJ e representante ficam para a diretoria completar pela tela (onda 3): enquanto o
- * estatuto de cada uma não for conferido, o nome gravado é a sigla.
+ * CNPJ e representante ficam para a diretoria completar pela tela (onda 3).
  */
 class SemearRedeCommand extends Command
 {
@@ -29,10 +28,17 @@ class SemearRedeCommand extends Command
 
     protected $description = 'Associações: grava as associações-membro iniciais da rede (simulação por padrão)';
 
-    /** Rede em 2026-11-13 (ADR 0451, Contexto). Região = mesorregião IBGE. */
+    /**
+     * Rede confirmada no site (`resources/uniafibro/home.html`, "Associações da rede", que só lista
+     * associação confirmada) — [W] em 2026-11-15 mandou incluir as 5. Nome oficial onde o site traz;
+     * senão a sigla, e a diretoria completa pela tela. Região = mesorregião IBGE.
+     */
     public const REDE_INICIAL = [
-        ['nome' => 'AGFESC', 'sigla' => 'AGFESC', 'cidade' => 'Criciúma', 'regiao' => 'Sul Catarinense'],
+        ['nome' => 'Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense', 'sigla' => 'AGFESC', 'cidade' => 'Criciúma', 'regiao' => 'Sul Catarinense'],
         ['nome' => 'AFIBROMAR', 'sigla' => 'AFIBROMAR', 'cidade' => 'Maravilha', 'regiao' => 'Oeste Catarinense'],
+        ['nome' => 'Associação de Fibromiálgicos de Concórdia e Região do Alto Uruguai Catarinense', 'sigla' => 'AFICOR', 'cidade' => 'Concórdia', 'regiao' => 'Oeste Catarinense'],
+        ['nome' => 'Associação dos Fibromiálgicos de Indaial e Região', 'sigla' => 'AREFI', 'cidade' => 'Indaial', 'regiao' => 'Vale do Itajaí'],
+        ['nome' => 'ACPFA', 'sigla' => 'ACPFA', 'cidade' => 'Joinville', 'regiao' => 'Norte Catarinense'],
     ];
 
     public function handle(): int
@@ -60,16 +66,17 @@ class SemearRedeCommand extends Command
 
         $criadas = 0;
         foreach (self::REDE_INICIAL as $assoc) {
+            // Mesma associação = mesmo nome OU mesma sigla na empresa (a diretoria pode ter trocado o nome pela tela).
             $existe = DB::table('assoc_associacoes')
                 ->where('business_id', $businessId)
-                ->where('nome', $assoc['nome'])
+                ->where(fn ($q) => $q->where('nome', $assoc['nome'])->orWhere('sigla', $assoc['sigla']))
                 ->exists();
             if ($existe) {
-                $this->line("  = {$assoc['nome']} ({$assoc['cidade']}) já cadastrada — pulada");
+                $this->line("  = {$assoc['sigla']} ({$assoc['cidade']}) já cadastrada — pulada");
 
                 continue;
             }
-            $this->line("  + {$assoc['nome']} ({$assoc['cidade']})");
+            $this->line("  + {$assoc['sigla']} ({$assoc['cidade']})");
             if ($aplicar) {
                 DB::table('assoc_associacoes')->insert($assoc + [
                     'business_id' => $businessId,
