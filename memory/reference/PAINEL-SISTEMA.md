@@ -24,7 +24,7 @@ lente: [construir]
 |---|---|---|
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-10-26 |
-| Associacoes | [BRIEFING](../requisitos/Associacoes/BRIEFING.md) | 2026-11-15 |
+| Associacoes | [BRIEFING](../requisitos/Associacoes/BRIEFING.md) | 2026-11-13 |
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-11-10 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-11-09 |
