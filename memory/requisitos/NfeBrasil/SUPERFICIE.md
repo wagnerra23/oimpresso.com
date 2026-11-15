@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 363 arquivos em 20 papéis.
+**Total mapeado:** 365 arquivos em 20 papéis.
 
 ## Controllers — 16
 
@@ -164,7 +164,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 42
+## Migrations (schema) — 43
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -208,6 +208,7 @@ module: NfeBrasil
 - [2026_11_10_000001_add_proxima_consulta_em_to_nfe_dfe_nsu_state.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_10_000001_add_proxima_consulta_em_to_nfe_dfe_nsu_state.php)
 - [2026_11_10_000001_grant_nfebrasil_emit_manage_to_sellers.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_10_000001_grant_nfebrasil_emit_manage_to_sellers.php)
 - [2026_11_13_000001_add_cst_pis_cofins_to_nfe_fiscal_rules.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_13_000001_add_cst_pis_cofins_to_nfe_fiscal_rules.php)
+- [2026_11_15_000001_add_campos_da_tela_naturezas_to_nfe_operacoes_fiscais.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_15_000001_add_campos_da_tela_naturezas_to_nfe_operacoes_fiscais.php)
 
 ## Seeders — 2
 
@@ -261,9 +262,9 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 120
+## Testes (Pest) — 121
 
-- 120 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 121 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 52

@@ -23,6 +23,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $nome
  * @property int $finalidade
  * @property string|null $cfop
+ * @property string|null $cfop_interestadual
+ * @property string|null $cfop_exterior
+ * @property string|null $tipo                     saida · entrada · null = pelo 1º dígito do cfop
+ * @property bool $ativa
+ * @property bool $pede_nota_referenciada
  * @property string|null $tipo_destinatario
  * @property array<string,mixed>|null $regra_geral
  * @property bool $padrao
@@ -37,11 +42,15 @@ class NfeOperacaoFiscal extends Model
     protected $fillable = [
         'business_id', 'slug', 'nome', 'finalidade', 'cfop',
         'tipo_destinatario', 'regra_geral', 'padrao',
+        // Onda 2 das naturezas (tela da Tributação). O motor ainda não lê estes campos.
+        'tipo', 'ativa', 'pede_nota_referenciada', 'cfop_interestadual', 'cfop_exterior',
     ];
 
     protected $casts = [
         'regra_geral' => 'array',
         'padrao'      => 'boolean',
+        'ativa'                  => 'boolean',
+        'pede_nota_referenciada' => 'boolean',
         'finalidade'  => 'integer',
     ];
 
