@@ -16,7 +16,7 @@
 import { chromium } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { selectSmokeRoutes } from './select-routes.mjs';
+import { selectSmokeRoutes, clientesDa, alertasPorCliente } from './select-routes.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const cfg = JSON.parse(fs.readFileSync(path.join(HERE, 'routes.json'), 'utf8'));
@@ -30,6 +30,9 @@ const OUT = process.env.SMOKE_OUT_DIR || 'storage/screen-smoke';
 const SCREENS = process.env.SCREENS || '__NAV__';
 const RUN_ID = process.env.GITHUB_RUN_ID || 'local';
 const TS = new Date().toISOString();
+// Modo clientes vivos (job smoke-clientes): roda em todo deploy, então NÃO escreve review.md
+// (cada deploy abriria um PR de round) e, se falhar, imprime ALERT com cliente e tela.
+const MODO_CLIENTES = SCREENS === '__CLIENTES__';
 const VIEWPORTS = cfg.viewports || [{ tag: '1440', width: 1440, height: 900 }, { tag: '1280', width: 1280, height: 720 }];
 
 const log = (...a) => console.log('[smoke]', ...a);
@@ -206,7 +209,7 @@ async function run() {
     const verdict = broken ? 'QUEBRADO' : (vision.severidade === 'aviso' ? 'AVISO' : 'OK');
 
     const res = { ...route, pathUrl: route.path, det, consoleErrors, vision, verdict, loadErr };
-    if (route.source) res.reviewPath = appendReview(route.source, route.label, res);
+    if (route.source && !MODO_CLIENTES) res.reviewPath = appendReview(route.source, route.label, res);
     results.push(res);
     log(`${route.label}: ${verdict}${loadErr ? ' (' + loadErr + ')' : ''} · console=${consoleErrors.length} · openai=${vision.severidade}`);
   }
@@ -225,17 +228,17 @@ async function run() {
   const credsConfigured = Boolean(USER && PASS);
   const summaryPath = path.join(OUT, `smoke-${RUN_ID}.md`);
   const lines = [
-    `# Smoke visual pós-deploy — run ${RUN_ID}`,
+    `# ${MODO_CLIENTES ? 'Smoke clientes vivos' : 'Smoke visual pós-deploy'} — run ${RUN_ID}`,
     ``,
     `- **quando:** ${TS}`,
     `- **base:** ${BASE} · **login:** ${loggedIn ? 'ok' : 'não'} · **modelo:** ${MODEL}`,
     `- **veredito geral:** ${worst}${skipped.length ? ` · ⚠️ ${skipped.length} rota(s) NAO exercida(s) — canario` : ''}`,
     ``,
-    `| rota | veredito | console | openai | resumo |`,
-    `|---|---|---:|---|---|`,
+    `| rota | cliente | veredito | console | openai | resumo |`,
+    `|---|---|---|---:|---|---|`,
     ...results.map((r) => r.skipped
-      ? `| ${r.label} | PULADA (sem login) | – | – | rota auth sem credencial |`
-      : `| ${r.label} | ${r.verdict} | ${r.consoleErrors.length} | ${r.vision.severidade} | ${r.vision.resumo} |`),
+      ? `| ${r.label} | ${clientesDa(r).join(', ') || '–'} | PULADA (sem login) | – | – | rota auth sem credencial |`
+      : `| ${r.label} | ${clientesDa(r).join(', ') || '–'} | ${r.verdict} | ${r.consoleErrors.length} | ${r.vision.severidade} | ${r.vision.resumo} |`),
     ``,
     `_Screenshots 1440+1280 no artifact \`screen-smoke-${RUN_ID}\`. review.md por tela (append round) ao lado do .tsx._`,
     ``,
@@ -245,6 +248,12 @@ async function run() {
 
   // GitHub step summary (aparece no run)
   if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n'));
+
+  // ALERT por cliente (decisão [W] 2026-11-15: ALERT no log + job vermelho; sem canal externo
+  // até a sessão de monitoramento propor um). Uma linha por cliente afetado, grep-ável.
+  if (MODO_CLIENTES) {
+    for (const linha of alertasPorCliente(results, RUN_ID)) console.error(linha);
+  }
 
   if (worst === 'QUEBRADO') {
     console.error('[smoke] ::error::Smoke QUEBRADO — ao menos uma tela não renderizou. Ver review.md + artifact.');
