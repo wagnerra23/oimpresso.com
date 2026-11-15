@@ -12,6 +12,8 @@ class AssociacoesServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'associacoes');
         // ADR 0451 onda 2: tabelas assoc_* novas e vazias — sem efeito em empresa sem o pacote.
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        // Dados iniciais da rede, simulação por padrão (RUNBOOK-data-readiness-uniafibro).
+        $this->commands([\Modules\Associacoes\Console\SemearRedeCommand::class]);
     }
 
     public function register(): void
