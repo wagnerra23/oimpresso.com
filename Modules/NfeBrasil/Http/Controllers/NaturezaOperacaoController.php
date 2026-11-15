@@ -68,7 +68,7 @@ class NaturezaOperacaoController extends Controller
         $businessId = $this->liberado($request);
         $n = $request->validated();
 
-        $alertas = $this->conferir($n, $businessId, null);
+        $alertas = $this->alertas($n, $businessId, null);
         if (ConferenciaNaturezaService::temErro($alertas)) {
             return response()->json(['alertas' => $alertas], 422);
         }
@@ -84,6 +84,21 @@ class NaturezaOperacaoController extends Controller
         return response()->json(['id' => $op->id, 'alertas' => $alertas], 201);
     }
 
+    /**
+     * POST /nfe-brasil/tributacao/naturezas/conferir — a conferência sem gravar.
+     *
+     * A tela chama a cada alteração (como o protótipo faz): a regra fica num lugar só, no servidor,
+     * em vez de uma cópia em TypeScript que divergiria. `id` opcional: a própria natureza não conta
+     * como "outra ativa com o mesmo nome".
+     */
+    public function conferir(UpsertNaturezaRequest $request): JsonResponse
+    {
+        $businessId = $this->liberado($request);
+        $id = $request->integer('id') ?: null;
+
+        return response()->json(['alertas' => $this->alertas($request->validated(), $businessId, $id)]);
+    }
+
     /** PUT /nfe-brasil/tributacao/naturezas/{id} */
     public function update(UpsertNaturezaRequest $request, int $id): JsonResponse
     {
@@ -97,7 +112,7 @@ class NaturezaOperacaoController extends Controller
         }
 
         $n = $request->validated();
-        $alertas = $this->conferir($n, $businessId, $op->id);
+        $alertas = $this->alertas($n, $businessId, $op->id);
         if (ConferenciaNaturezaService::temErro($alertas)) {
             return response()->json(['alertas' => $alertas], 422);
         }
@@ -130,7 +145,7 @@ class NaturezaOperacaoController extends Controller
     }
 
     /** @return list<array{nivel:string,secao:string,mensagem:string}> */
-    private function conferir(array $n, int $businessId, ?int $proprioId): array
+    private function alertas(array $n, int $businessId, ?int $proprioId): array
     {
         return $this->conferencia->conferir(
             $n,

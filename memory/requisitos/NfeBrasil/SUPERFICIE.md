@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 371 arquivos em 20 papéis.
+**Total mapeado:** 374 arquivos em 20 papéis.
 
 ## Controllers — 17
 
@@ -239,12 +239,14 @@ module: NfeBrasil
 - [Index.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.tsx)
 - [RegraForm.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.tsx)
 
-## Componentes / apoio de tela — 6
+## Componentes / apoio de tela — 8
 
 - [LinkedFornecedor.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedFornecedor.tsx)
 - [LinkedHistorico.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedHistorico.tsx)
 - [LinkedItens.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedItens.tsx)
 - [ConfigurarPeloCertificado.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/ConfigurarPeloCertificado.tsx)
+- [NaturezaEditor.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/Naturezas/NaturezaEditor.tsx)
+- [NaturezasSecao.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/Naturezas/NaturezasSecao.tsx)
 - [SaudeFiscal.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/SaudeFiscal.tsx)
 - [SimuladorNota.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/SimuladorNota.tsx)
 
@@ -271,7 +273,7 @@ module: NfeBrasil
 - 123 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 52
+## Demais arquivos (manifestos, docs, assets e misc) — 53
 
 - [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
@@ -325,3 +327,4 @@ module: NfeBrasil
 - [composer.json](../../../Modules/NfeBrasil/composer.json)
 - [module.json](../../../Modules/NfeBrasil/module.json)
 - [SCOPE.md](../../../memory/requisitos/NfeBrasil/SCOPE.md)
+- [natureza.ts](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/Naturezas/natureza.ts)

@@ -646,9 +646,41 @@ last_run: "2026-10-20"
 - **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-48 …`.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-49 · A tela confere a natureza no servidor, sem gravar · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma devolução sem nota referenciada **Quando** a tela pede a conferência **Então** recebe os
+  alertas e nada é gravado; com a flag desligada, 404.
+- **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-49 …`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-50 · A página só mostra a seção de naturezas com a flag ligada · `must` `[T0]`
+
+- **Aceite:** **Dado** `useV2NfeNaturezas` desligada **Quando** abro `/nfe-brasil/tributacao` **Então** `naturezasLiberado`
+  é `false`; ligada, `true`.
+- **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-50 …`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-51 · A lista mostra a situação, e a natureza do cálculo abre só para leitura · `must`
+
+- **Aceite:** **Dado** a Venda padrão, uma natureza com 1 pendência e uma inativa **Quando** a seção abre **Então**
+  aparecem "Usada no cálculo" e "1 pendência", a inativa só no filtro Inativas, e a Venda abre "Só leitura", sem salvar.
+- **Teste:** [`nfe-naturezas-lista.test.tsx`](../../../../../tests/js/nfe-naturezas-lista.test.tsx) — `UC-NFTR-51 …`.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+
+## UC-NFTR-52 · O salvar trava enquanto a conferência do servidor apontar erro · `must` `[fiscal]`
+
+- **Aceite:** **Dado** a conferência devolvendo 1 erro **Quando** edito a natureza **Então** o botão diz "1 erro para
+  salvar" e fica desabilitado, e a conferência foi pedida ao servidor.
+- **Teste:** [`nfe-naturezas-lista.test.tsx`](../../../../../tests/js/nfe-naturezas-lista.test.tsx) — `UC-NFTR-52 …` (mutação: sem a trava, reprova).
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
+
+- `[BACKLOG]` **"Como fica no lançamento" (prévia por destino: CFOP, CST e origem das alíquotas)**, do protótipo de
+  naturezas. Fica para a onda 4, quando o motor passar a ler a origem — antes disso a prévia mostraria uma regra que a
+  nota não segue.
 
 - `[BACKLOG]` **Venda com mercadoria e serviço sai em duas notas: NF-e com as mercadorias, NFS-e com os
   serviços, e a soma das duas fecha o total da venda** (US-NFE-069 · UC-FLX-31). Hoje a NF-e recusa a

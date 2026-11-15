@@ -118,3 +118,29 @@ it('UC-NFTR-48 · rota: natureza de outra empresa não aparece nem é editada', 
     $this->putJson(NOT_URL . "/{$daOutra}", notrNatureza())->assertNotFound();
     expect(DB::table('nfe_operacoes_fiscais')->where('id', $daOutra)->value('nome'))->toBe('Da vizinha');
 });
+
+it('UC-NFTR-49 · rota: conferir devolve os alertas e não grava nada', function () {
+    config(['feature-flags.forced_on' => 'useV2NfeNaturezas']);
+    $biz = $this->seededTenant()->id;
+    $antes = DB::table('nfe_operacoes_fiscais')->where('business_id', $biz)->count();
+
+    $alertas = $this->postJson(NOT_URL . '/conferir', notrNatureza(['fin' => '4', 'cfop' => ['in' => '5202', 'out' => '6202']]))
+        ->assertOk()->json('alertas');
+
+    expect(collect($alertas)->pluck('mensagem')->all())
+        ->toContain('Devolução exige nota referenciada. Marque "Pede a chave da nota de origem".');
+    expect(DB::table('nfe_operacoes_fiscais')->where('business_id', $biz)->count())->toBe($antes);
+
+    config(['feature-flags.forced_on' => '']);
+    $this->postJson(NOT_URL . '/conferir', notrNatureza())->assertNotFound();
+});
+
+it('UC-NFTR-50 · rota: a página da Tributação diz à tela se a seção de naturezas está liberada', function () {
+    config(['feature-flags.forced_on' => '']);
+    $this->get('/nfe-brasil/tributacao')->assertOk()
+        ->assertInertia(fn ($page) => $page->component('NfeBrasil/Tributacao/Index')->where('naturezasLiberado', false));
+
+    config(['feature-flags.forced_on' => 'useV2NfeNaturezas']);
+    $this->get('/nfe-brasil/tributacao')->assertOk()
+        ->assertInertia(fn ($page) => $page->where('naturezasLiberado', true));
+});

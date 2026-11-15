@@ -25,6 +25,7 @@ class UpsertNaturezaRequest extends FormRequest
         $cod = fn (int $max) => ['nullable', 'string', "max:{$max}", 'regex:/^[0-9]*$/'];
 
         return [
+            'id'    => ['nullable', 'integer'],
             'nome'  => ['present', 'nullable', 'string', 'max:80'],
             'tipo'  => ['required', Rule::in(['S', 'E'])],
             'fin'   => ['required', Rule::in(['1', '2', '3', '4'])],

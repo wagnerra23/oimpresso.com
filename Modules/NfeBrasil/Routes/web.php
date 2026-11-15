@@ -137,6 +137,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::middleware(PermissaoNfe::class.':'.PermissaoNfe::TRIBUTACAO)->group(function () {
             Route::get('naturezas', [NaturezaOperacaoController::class, 'index'])->name('naturezas.index');
             Route::post('naturezas', [NaturezaOperacaoController::class, 'store'])->name('naturezas.store');
+            Route::post('naturezas/conferir', [NaturezaOperacaoController::class, 'conferir'])->name('naturezas.conferir');
             Route::put('naturezas/{id}', [NaturezaOperacaoController::class, 'update'])
                 ->whereNumber('id')->name('naturezas.update');
         });
