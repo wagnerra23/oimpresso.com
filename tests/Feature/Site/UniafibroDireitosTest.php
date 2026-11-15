@@ -16,7 +16,10 @@ use Illuminate\Support\Facades\Route;
  */
 beforeEach(function () {
     config(['uniafibro.pasta_conteudo' => base_path('tests/fixtures/uniafibro-direitos')]);
-    config(['uniafibro.whatsapp' => '']);
+    config(['uniafibro.contatos' => [
+        'wagner' => ['whatsapp' => '', 'email' => ''],
+        'giselli' => ['whatsapp' => '', 'email' => ''],
+    ]]);
 });
 
 function uniafibroDireitosRota(string $url): ?string
@@ -88,13 +91,28 @@ it('a busca acha palavra sem acento nem maiúscula e mostra o trecho', function 
     expect(Conteudo::buscar('palavra-que-nao-existe'))->toBe([]);
 });
 
-it('o botão do WhatsApp só aparece com número configurado', function () {
-    expect($this->get('http://uniafibro.com.br/direitos')->getContent())->not->toContain('wa.me');
+it('contatos vazios: nem botão do WhatsApp nem bloco de contato no rodapé', function () {
+    $html = $this->get('http://uniafibro.com.br/direitos')->getContent();
 
-    config(['uniafibro.whatsapp' => '+55 (48) 99999-0000']);
+    expect($html)->not->toContain('wa.me');
+    expect($html)->not->toContain('mailto:');
+    expect($html)->not->toContain('id="t-contato"');
+});
+
+it('contatos preenchidos aparecem sem o nome da pessoa e e-mail inválido é ignorado', function () {
+    config(['uniafibro.contatos' => [
+        'wagner' => ['whatsapp' => '', 'email' => 'contato@exemplo.org'],
+        'giselli' => ['whatsapp' => '+55 (48) 99999-0000', 'email' => 'isto nao e email'],
+    ]]);
+
+    $html = $this->get('http://uniafibro.com.br/direitos')->getContent();
 
     expect(Layout::whatsapp())->toContain('href="https://wa.me/5548999990000"');
-    expect($this->get('http://uniafibro.com.br/direitos')->getContent())->toContain('wa.me/5548999990000');
+    expect($html)->toContain('id="t-contato"');
+    expect($html)->toContain('href="mailto:contato@exemplo.org"');
+    expect($html)->not->toContain('isto nao e email');
+    // A chave do slot é só interna: o site não mostra nome de dirigente.
+    expect($html)->not->toMatch('/wagner|giselli/i');
 });
 
 it('as rotas /direitos não capturam oimpresso.com', function () {

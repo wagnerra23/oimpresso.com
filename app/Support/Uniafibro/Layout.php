@@ -93,10 +93,12 @@ final class Layout
 
     public static function rodape(): string
     {
+        $contato = self::blocoContato();
         $zap = self::whatsapp();
 
         return <<<HTML
         <footer class="rodape">
+            {$contato}
             <p>Uniafibro-SC — União das Associações de Fibromiálgicos de Santa Catarina · em formação.</p>
             <p>Este site não usa rastreadores nem publicidade.</p>
         </footer>
@@ -104,15 +106,53 @@ final class Layout
         HTML;
     }
 
-    /** Botão flutuante só aparece com número configurado (config/uniafibro.php). */
-    public static function whatsapp(): string
+    /**
+     * Slots de contato preenchidos (config/uniafibro.php). Número só com dígitos, e-mail só se válido.
+     * A chave do slot nunca aparece na página.
+     *
+     * @return list<array{whatsapp: string, email: string}>
+     */
+    public static function contatos(): array
     {
-        $numero = preg_replace('/\D+/', '', (string) config('uniafibro.whatsapp'));
-        if ($numero === '' || $numero === null) {
-            return '';
+        $saida = [];
+        foreach ((array) config('uniafibro.contatos', []) as $slot) {
+            $zap = preg_replace('/\D+/', '', (string) ($slot['whatsapp'] ?? '')) ?? '';
+            $email = trim((string) ($slot['email'] ?? ''));
+            $email = filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : '';
+            if ($zap !== '' || $email !== '') {
+                $saida[] = ['whatsapp' => $zap, 'email' => $email];
+            }
         }
 
-        return '<a class="zap" href="https://wa.me/'.e($numero).'" rel="noopener noreferrer">Fale pelo WhatsApp</a>';
+        return $saida;
+    }
+
+    /** Bloco "Contato" do rodapé: não é renderizado enquanto os slots estão vazios. */
+    public static function blocoContato(): string
+    {
+        $itens = '';
+        foreach (self::contatos() as $c) {
+            if ($c['whatsapp'] !== '') {
+                $itens .= '<li><a href="https://wa.me/'.e($c['whatsapp']).'" rel="noopener noreferrer">WhatsApp</a></li>';
+            }
+            if ($c['email'] !== '') {
+                $itens .= '<li><a href="mailto:'.e($c['email']).'">'.e($c['email']).'</a></li>';
+            }
+        }
+
+        return $itens === '' ? '' : '<section class="contato" aria-labelledby="t-contato"><h2 id="t-contato">Contato</h2><ul>'.$itens.'</ul></section>';
+    }
+
+    /** Botão flutuante: primeiro slot com WhatsApp. Sem número, não aparece. */
+    public static function whatsapp(): string
+    {
+        foreach (self::contatos() as $c) {
+            if ($c['whatsapp'] !== '') {
+                return '<a class="zap" href="https://wa.me/'.e($c['whatsapp']).'" rel="noopener noreferrer">Fale pelo WhatsApp</a>';
+            }
+        }
+
+        return '';
     }
 
     public static function data(mixed $valor): string

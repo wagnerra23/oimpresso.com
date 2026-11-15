@@ -85,9 +85,13 @@ topo e item destacado no menu).
   com que foi revisado; o teste reprova página com versão diferente.
 - **Fonte ajustável:** rádio A / A+ / A++ com `:has()` (18, 20 e 23px). Sem cookie e sem
   JavaScript, a escolha não fica salva entre páginas.
-- **WhatsApp flutuante:** `config('uniafibro.whatsapp')` (`UNIAFIBRO_WHATSAPP` no `.env`). Vazio
-  = botão oculto. Decisão [W] 2026-11-14: fica vazio até haver número. A home é arquivo estático e
-  não lê config: quando houver número, o botão entra no `home.html` à mão.
+- **Contatos (WhatsApp e e-mail):** `config('uniafibro.contatos')`, com dois slots, `wagner` e
+  `giselli`, lidos de `UNIAFIBRO_WAGNER_WHATSAPP`, `UNIAFIBRO_WAGNER_EMAIL`,
+  `UNIAFIBRO_GISELLI_WHATSAPP` e `UNIAFIBRO_GISELLI_EMAIL`. Decisão [W] 2026-11-15: *"preenche
+  depois"*, então ficam vazios. Slot vazio não aparece; com os dois vazios, nem o botão flutuante
+  nem o bloco "Contato" do rodapé são renderizados. A chave do slot é interna: o site não mostra
+  nome de pessoa. A home é arquivo estático e não lê config: quando houver contato, ele entra no
+  `home.html` à mão.
 - **Portal da Associada:** fora do menu até existir a onda 6 da ADR 0451.
 - **Revisão do texto:** escrito a partir de fonte oficial (Planalto, INSS, Alesc, FCEE, TJSC),
   com link em cada ponto. Jurisprudência nova só com o [W]. Cada mudança de texto atualiza
