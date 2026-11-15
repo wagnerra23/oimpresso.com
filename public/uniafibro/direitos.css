@@ -99,7 +99,8 @@ h3 { font-size: 1.15rem; margin: 1.5em 0 0.4em; }
     .pagina aside { order: 0; }
     .indice { position: sticky; top: 76px; }
 }
-.texto { max-width: 68ch; }
+/* overflow-wrap: as linhas de preencher (____) dos modelos não têm onde quebrar e vazariam no celular. */
+.texto { max-width: 68ch; overflow-wrap: anywhere; }
 .texto li { margin: 0.35em 0; }
 .texto table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
 .texto th, .texto td { border: 1px solid var(--borda); padding: 8px; text-align: left; vertical-align: top; }
