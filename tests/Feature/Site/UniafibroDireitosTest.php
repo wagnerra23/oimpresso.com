@@ -139,8 +139,10 @@ it('a home mantém os 9 itens do menu, destaca Direitos e tem o botão grande no
     expect($botao)->toBeInt();
     expect($lema)->toBeInt();
     expect($botao)->toBeLessThan($lema);
-    // Portal da Associada só entra quando existir (onda 6 da ADR 0451).
-    expect($home)->not->toContain('Portal da Associada');
+    // Portal da Associada só entra quando existir (onda 6 da ADR 0451). Olha só a lista de links:
+    // o comentário HTML acima do menu cita o Portal de propósito.
+    $links = substr($menu, strpos($menu, '<ul>'), strpos($menu, '</ul>') - strpos($menu, '<ul>'));
+    expect($links)->not->toMatch('/portal/i');
 });
 
 it('a pasta real de conteúdo só tem arquivos com frontmatter completo', function () {
