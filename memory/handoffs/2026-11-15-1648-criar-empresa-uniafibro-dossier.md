@@ -8,7 +8,7 @@ related_adrs:
   - 0451-associacoes-rede-uniafibro-area-de-membros
   - 0093-multi-tenant-isolation-tier-0
 next_steps:
-  - "[W] informa o endereço da AGFESC (sede provisória) e quem será o dono da conta"
+  - "[W] informa o endereço da AGFESC (sede provisória); dono da conta = [W] (decidido), com e-mail e usuário novos"
   - "[W] escolhe o pacote (seção 4) ou manda criar um"
   - "[W] roda as consultas da seção 3 (só leitura) e confirma que não existe empresa duplicada"
   - "[W] cria a empresa pela tela (seção 5) depois do merge da onda 2"
@@ -56,7 +56,7 @@ grava empresa, **um** local (endereço) e o usuário dono. Não tem campo de nom
 | CEP, endereço (landmark) | **[W] informa** — endereço da AGFESC | AGFESC, **provisório** |
 | Celular / telefone do local | vazio | [W]: *"preenche depois"* |
 | Site | `https://uniafibro.com.br` | site da rede |
-| Dono: nome, sobrenome *(obrigatório)* | **[W] digita** — responsável da AGFESC ou [W] como responsável do projeto | ver nota |
+| Dono: nome, sobrenome *(obrigatório)* | **[W]** — decidido por [W] em 2026-11-15 (*"Eu"*), provisório até a diretoria assumir | ver nota |
 | Dono: usuário, e-mail *(obrigatórios, únicos)* | **[W] digita** | ver nota |
 | Dono: senha *(obrigatória)* | **[W] digita** na tela | nunca em git/chat |
 | Pacote | seção 4 | [W] escolhe |
@@ -64,9 +64,10 @@ grava empresa, **um** local (endereço) e o usuário dono. Não tem campo de nom
 
 **Nota sobre o dono.** Nome, e-mail e celular de pessoa são dado pessoal: ficam **fora** deste
 arquivo, do commit e do PR (ADR 0451 D5) — [W] digita direto na tela. O e-mail do dono tem de ser
-**único** em `users`: o e-mail do próprio [W] já tem conta, então "Wagner como responsável" exige
-outro e-mail (ex.: um endereço da rede). O dono vira o primeiro admin da empresa; trocar depois é
-possível, mas dá trabalho — melhor já ser alguém da diretoria.
+**único** em `users`, e o e-mail do próprio [W] já tem conta. Como [W] é o dono (decisão
+2026-11-15), usar um e-mail novo: um alias do e-mail dele com `+` (o provedor entrega na mesma
+caixa, e para o sistema é outro endereço) ou um endereço da rede. O usuário também precisa ser novo.
+Quando a diretoria assumir, ela ganha usuário próprio com papel Admin e [W] sai ou fica como apoio.
 
 **Marcar como provisório.** Depois de criar, anotar no session log do dia: "endereço do local =
 AGFESC, provisório até a sede da Uniafibro". Nenhuma tela pública mostra o endereço do local.
