@@ -1,5 +1,5 @@
 import { chromium, type FullConfig } from '@playwright/test';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 
 // Login uma vez e salva o storageState pra os specs (a tela ProducaoOficina é auth-gated,
 // stack UltimatePOS). Dois caminhos (harness, NÃO assert — não afrouxa spec, L-24):
@@ -16,6 +16,13 @@ export default async function globalSetup(_config: FullConfig) {
   const bypassId = process.env.E2E_BYPASS_LOGIN_ID;
 
   mkdirSync('e2e/.auth', { recursive: true });
+
+  // Job noturno só com páginas públicas, contra o site real: não há ERP para logar.
+  // Grava um state vazio para os projetos que o referenciam não falharem ao abrir.
+  if (process.env.E2E_SKIP_LOGIN === '1') {
+    writeFileSync('e2e/.auth/state.json', JSON.stringify({ cookies: [], origins: [] }));
+    return;
+  }
 
   const browser = await chromium.launch();
   const page = await browser.newPage();
