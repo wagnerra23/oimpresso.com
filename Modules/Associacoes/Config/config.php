@@ -49,6 +49,8 @@ return [
         'lockout_minutos' => 30,
         // Endereço em que o link abre (D6, emenda de 2026-11-14): o site da rede. A rota existe
         // também no endereço do app; aqui só se escolhe qual vai no link que a diretoria envia.
-        'url_base' => env('ASSOCIACOES_PORTAL_URL', 'https://uniafibro.com.br'),
+        // Literal, sem env(): o Larastan recusa env() fora de config/ da raiz
+        // (noEnvCallsOutsideOfConfig), e o endereço é decisão fixa da D6, não de ambiente.
+        'url_base' => 'https://uniafibro.com.br',
     ],
 ];
