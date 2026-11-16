@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: roteiro fora da regra vira OS com etapas que ninguém treina; roteiro de outra empresa visível é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-20"
-last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando a lane verticais-pest rodar o ProducaoRoteirosContratoTest."
+last_run: "2026-11-16"
+last_run_ci: "2026-11-15 — Status por UC lido do manifesto scripts/casos-test-results.json (#10900, JUnit das lanes). UC sem entrada lá segue 🧪."
 ---
 
 # Casos de Uso & Aceite — Produção · Roteiros (`/producao/roteiros`)
@@ -20,7 +20,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Aceite:** O roteiro aceita até 2 trilhas em paralelo, e elas sempre terminam numa etapa de junção nomeada · Uma 3ª trilha ou trilha sem junção é recusada ao salvar. A junção é a etapa logo depois do bloco; nome diferente também é recusado.
 - **Tenant:** roteiro da empresa 98 não aparece nem é alterado pela 99.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php`.
-- **Status: ⬜** — teste escrito, aguarda a lane MySQL.
+- **Status: ✅**
 
 ---
 
@@ -39,21 +39,21 @@ ele pela tela de Roteiros **Quando** a venda é aprovada **Então** a OS do item
 Impressão no posto Roland, e cada previsão dura o tempo da etapa, uma começando quando a anterior termina.
 Ligar o produto a este roteiro o tira do roteiro em que estava.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCROT-02 · Produto sem roteiro não vira OS · `must`
 
 **Dado** a venda com um item ligado a roteiro e outro sem **Quando** é aprovada **Então** só o item com roteiro
 ganha OS. Não há roteiro padrão da empresa: é o comportamento de antes.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCROT-03 · Editar o roteiro não muda a OS já criada · `must`
 
 **Dado** a OS criada com as etapas do roteiro **Quando** o gestor troca as etapas do roteiro **Então** o roteiro
 passa a ter as etapas novas e a OS segue com as etapas, os postos e as previsões do dia da aprovação.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCROT-04 · Roteiro e produto de outra empresa nunca entram · `must`
 
@@ -61,7 +61,7 @@ Status: 🧪
 é recusado. **Dado** um vínculo da 98 apontando roteiro da 99 **Quando** a venda é aprovada **Então** nenhuma OS
 nasce. A 99 não cria OS a partir da venda da 98.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCROT-05 · O roteiro mostra os produtos que usam ele · `must`
 
@@ -71,7 +71,7 @@ outra empresa não aparece. Tirar o produto pelo chip grava na hora.
 **Fonte:** bloco `pcv-rot-prod` da vista Roteiros (`producao-cv-os.jsx`, #9517) · UC-FLX-07.
 **Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteiroProdutosTelaContratoTest.php`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCROT-06 · "Ligar produto" busca só produto ativo da empresa · `must`
 
@@ -80,7 +80,7 @@ empresa dele e avisa quando o produto já está em outro roteiro ("sai do roteir
 produto da 98; sem `producao.access`, 403.
 **Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteiroProdutosTelaContratoTest.php`.
 
-Status: 🧪
+Status: ✅
 
 - **[BACKLOG]** Roteiro padrão da empresa para produto sem roteiro (decisão [W]).
 

@@ -180,13 +180,13 @@ module: Superadmin
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.casos.md)
 - [Show.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.casos.md)
 
-## Testes (Pest) — 28
+## Testes (Pest) — 29
 
-- 27 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
+- 28 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
 - 1 em [Modules/Superadmin/Tests/Feature/Lgpd/](../../../Modules/Superadmin/Tests/Feature/Lgpd)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 47
+## Demais arquivos (manifestos, docs, assets e misc) — 46
 
 - [.gitkeep](../../../Modules/Superadmin/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Superadmin/Console/.gitkeep)
@@ -205,7 +205,6 @@ module: Superadmin
 - [SendSubscriptionExpiryAlert.php](../../../Modules/Superadmin/Notifications/SendSubscriptionExpiryAlert.php)
 - [SubscriptionOfflinePaymentActivationConfirmation.php](../../../Modules/Superadmin/Notifications/SubscriptionOfflinePaymentActivationConfirmation.php)
 - [SuperadminCommunicator.php](../../../Modules/Superadmin/Notifications/SuperadminCommunicator.php)
-- [PackagePolicy.php](../../../Modules/Superadmin/Policies/PackagePolicy.php)
 - [.gitkeep](../../../Modules/Superadmin/Providers/.gitkeep)
 - [.gitkeep](../../../Modules/Superadmin/Resources/assets/.gitkeep)
 - [app.js](../../../Modules/Superadmin/Resources/assets/js/app.js)
