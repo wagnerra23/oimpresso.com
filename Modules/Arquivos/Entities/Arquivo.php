@@ -6,13 +6,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Arquivos\Entities\Concerns\EscopoDeEmpresa;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Arquivo — model do DMS backbone (ADR 0123).
  *
- * Multi-tenant Tier 0 (ADR 0093): global scope por business_id na sessão.
+ * Multi-tenant Tier 0 (ADR 0093): global scope `business_id` na trait EscopoDeEmpresa, que
+ * lê o ContextoEmpresa (ADR 0453) — sessão no modo `aberto`; job/comando/API em `log`/`fechado`.
  * Quebra do scope só com `withoutGlobalScopes(['business_id'])` E comentário
  * `// SUPERADMIN: <razão>` mandatório.
  *
@@ -34,6 +36,7 @@ class Arquivo extends Model
 {
     use SoftDeletes;
     use LogsActivity;
+    use EscopoDeEmpresa;
 
     /**
      * D7 LGPD — campos rastreados em activity_log. Filename/path/MD5 ficam
@@ -85,26 +88,6 @@ class Arquivo extends Model
         'size_bytes'      => 'integer',
         'business_id'     => 'integer',
     ];
-
-    /**
-     * Global scope multi-tenant Tier 0 (ADR 0093).
-     */
-    protected static function booted(): void
-    {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('arquivos.business_id', $businessId);
-            }
-        });
-
-        // Auto-fill business_id no create se não passado explícito.
-        static::creating(function (Arquivo $arquivo) {
-            if ($arquivo->business_id === null) {
-                $arquivo->business_id = session('user.business_id') ?? session('business.id') ?? 0;
-            }
-        });
-    }
 
     public function arquivable(): MorphTo
     {

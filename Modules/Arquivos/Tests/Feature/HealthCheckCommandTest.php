@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * arquivos:health-check — Pest tests Sprint 2 ADR 0123 (compliance LGPD + integridade DMS).
@@ -117,11 +118,8 @@ afterEach(function () {
     // Limpa apenas rows de teste — nunca afeta dados reais de outros suites
     DB::table('arquivos')->where('classified_by', HC_TEST_MARKER)->delete();
 
-    if (Schema::hasTable('arquivos_audit_log')) {
-        DB::table('arquivos_audit_log')
-            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.test_marker')) = ?", [HC_TEST_MARKER])
-            ->delete();
-    }
+    // A trilha (`arquivos_audit_log`) não é limpa por DELETE: ela ganha trigger append-only
+    // (lote L2) e o arquivo roda em DatabaseTransactions, que desfaz o que o teste gravou.
 
     if (Schema::hasTable('arquivos_dedupe')) {
         // Limpa qualquer md5 que comece com 'pr28hc' — prefixo exclusivo deste suite

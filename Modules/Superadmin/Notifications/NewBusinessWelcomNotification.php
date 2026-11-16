@@ -3,11 +3,14 @@
 namespace Modules\Superadmin\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewBusinessWelcomNotification extends Notification
+class NewBusinessWelcomNotification extends Notification implements ShouldQueue, ShouldBeEncrypted
 {
+    use NaFilaDoSuperadmin;
     use Queueable;
 
     protected $email_data;
@@ -19,6 +22,7 @@ class NewBusinessWelcomNotification extends Notification
      */
     public function __construct($email_data)
     {
+        $this->irParaFilaDoSuperadmin();
         $this->email_data = $email_data;
     }
 
