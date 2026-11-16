@@ -184,3 +184,29 @@ test('UC-RLT-06 Tier 0 — a linha traz o id do lote; o rastreio abre o meu e re
             ->assertJsonPath('lote.id', $pl)->assertJsonPath('fracoes', []);
     }
 });
+
+test('UC-RLT-07 — os lotes de um produto (vindo do painel da consulta); produto de outra empresa não traz nada', function () {
+    $local = EstoqueFixture::locationId($this->business->id, '-RLT7');
+    rltCenario($this->business->id, $local, $this->user->id, [['RLT7-A1', 10, 0, 0, 0], ['RLT7-A2', 20, 0, 0, 0]]);
+    [$plB] = rltCenario($this->business->id, $local, $this->user->id, [['RLT7-B1', 30, 0, 0, 0]]);
+    $produtoB = (int) DB::table('purchase_lines')->where('id', $plB)->value('product_id');
+
+    $pagina = fn (array $q) => $this->withHeaders($this->inertia)
+        ->get('/reports/lot-report?'.http_build_query(['tela' => 'nova', 'location_id' => $local] + $q))
+        ->assertOk()->json('props');
+
+    // Controle: sem o filtro, os dois produtos aparecem.
+    expect(array_column($pagina([])['linhas'], 'lote'))->toEqualCanonicalizing(['RLT7-A1', 'RLT7-A2', 'RLT7-B1']);
+
+    $filtrada = $pagina(['product_id' => $produtoB]);
+    expect(array_column($filtrada['linhas'], 'lote'))->toBe(['RLT7-B1']);
+    expect($filtrada['filtros']['product_id'])->toBe((string) $produtoB);
+    expect($filtrada['produto'])->toBe(DB::table('products')->where('id', $produtoB)->value('name'));
+
+    // Tier 0: o id de um produto de outra empresa só esvazia a lista, e o nome não vem.
+    $alheio = $this->seededSupportClientTenant();
+    $produtoAlheio = EstoqueFixture::singleProduct($alheio->id)->productId;
+    $vazia = $pagina(['product_id' => $produtoAlheio]);
+    expect($vazia['linhas'])->toBe([]);
+    expect($vazia['produto'])->toBeNull();
+});

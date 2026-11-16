@@ -15,8 +15,8 @@ import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { AcoesDoCadastro } from './_components/formulario/AcoesDoCadastro';
 import { tipoDeEnvio } from './_components/formulario/envio';
-import { definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/tipos';
-import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
+import { camposPersonalizadosGravados, definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/tipos';
+import type { CampoDaEmpresa, OptionMap, OptionStringMap, SubUnidade } from './_components/formulario/tipos';
 import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
@@ -53,6 +53,8 @@ interface ProdutoDuplicate {
   weight: number | null;
   product_description: string | null;
   type: 'single' | 'variable' | 'combo';
+  sub_unit_ids?: number[];
+  enable_sr_no?: number;
 }
 
 export interface ProdutoCreatePageProps {
@@ -85,6 +87,12 @@ export interface ProdutoCreatePageProps {
   margemMinima?: number | null;
   /** `product.opening_stock`: mostra "Salvar e adicionar estoque inicial", como o Blade. */
   podeEstoqueInicial?: boolean;
+  /** UC-PCAD-24: os campos personalizados com o nome que a empresa deu. */
+  camposDaEmpresa?: CampoDaEmpresa[];
+  /** UC-PCAD-25: categoria => {subcategoria => nome}; vazio sem subcategoria na empresa. */
+  subcategoriasPorCategoria?: Record<string, Record<string, string>>;
+  /** UC-PCAD-26: unidade => sub-unidades; vazio sem sub-unidades na empresa. */
+  subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
 }
 
 function ProdutoCreate(props: ProdutoCreatePageProps) {
@@ -124,17 +132,18 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     altura_cm: dup?.altura_cm ?? '',
     comprimento_cm: dup?.comprimento_cm ?? '',
     product_description: dup?.product_description ?? '',
-    sub_unit_ids: [] as number[],
+    sub_unit_ids: (dup?.sub_unit_ids ?? []) as number[],
     // Um local só: já vem marcado, como no Blade (`$default_location`). Mais de um: quem cadastra escolhe.
     product_locations: localUnico(props.businessLocations),
     warranty_id: '' as number | '',
     expiry_period: validadeNaCompra ? '12' : '',
     expiry_period_type: 'months',
-    enable_sr_no: 0,
-    product_custom_field1: '',
-    product_custom_field2: '',
-    product_custom_field3: '',
-    product_custom_field4: '',
+    enable_sr_no: dup?.enable_sr_no ? 1 : 0,
+    // UC-PCAD-29: imagem e folheto escolhidos. Com arquivo, o envio vira multipart sozinho.
+    image: null as File | null,
+    product_brochure: null as File | null,
+    // UC-PCAD-24: os 20 campos personalizados; a tela mostra os que a empresa nomeou.
+    ...camposPersonalizadosGravados(null),
   });
 
   // CU-PROD-20: locais de armazenagem. Começa no local único (ou no primeiro), que é o padrão;

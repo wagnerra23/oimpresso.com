@@ -83,8 +83,8 @@ export const CST_PC_S: readonly Opcao[] = [['01', '01 · Alíquota básica'], ['
 export const CST_PC_E: readonly Opcao[] = [['50', '50 · Com direito a crédito'], ['70', '70 · Aquisição sem direito a crédito'], ['98', '98 · Outras entradas'], ['99', '99 · Outras operações']];
 export const CST_IBS: readonly Opcao[] = [['000', '000 · Tributação integral'], ['200', '200 · Alíquota reduzida'], ['410', '410 · Imunidade e não incidência']];
 export const ORIG_ICMS: readonly Opcao[] = [['uf', 'Pela UF (interna ou interestadual)'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
-export const ORIG_MVA: readonly Opcao[] = [['produto', 'Do cadastro do produto (NCM/CEST)'], ['fixa', 'Fixa nesta natureza']];
-export const ORIG_IPI: readonly Opcao[] = [['produto', 'Da TIPI, pelo NCM do produto'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
+export const ORIG_MVA: readonly Opcao[] = [['produto', 'Da regra do NCM (Tributação › Regras NCM)'], ['fixa', 'Fixa nesta natureza']];
+export const ORIG_IPI: readonly Opcao[] = [['produto', 'Da regra do NCM (Tributação › Regras NCM)'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
 export const ORIG_PC: readonly Opcao[] = [['regime', 'Padrão do regime da empresa'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
 export const ORIG_IBS: readonly Opcao[] = [['padrao', 'Padrão do ano (teste em 2026)'], ['fixa', 'Fixa nesta natureza']];
 

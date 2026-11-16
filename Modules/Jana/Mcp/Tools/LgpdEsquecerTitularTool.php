@@ -87,6 +87,12 @@ class LgpdEsquecerTitularTool extends Tool
             return Response::error('Parâmetro "mode" inválido. Use "anonymize" (default) ou "hard".');
         }
 
+        // Tier 0 (ADR 0093): só a empresa do próprio usuário, salvo superadmin de plataforma
+        // (gate `superadmin` = administrator_usernames, AuthServiceProvider).
+        if ($deny = $this->negaEmpresaDeOutroUsuario($request, $businessId)) {
+            return $deny;
+        }
+
         try {
             /** @var DsrService $dsrService */
             $dsrService = app(DsrService::class);
@@ -125,6 +131,29 @@ class LgpdEsquecerTitularTool extends Tool
 
             return Response::error('Falha na execução DSR: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Nega quando o business_id pedido não é o do usuário autenticado e ele não é superadmin
+     * de plataforma. Fail-closed: usuário sem business_id ou sem can() só passa como superadmin.
+     */
+    protected function negaEmpresaDeOutroUsuario(Request $request, int $businessId): ?Response
+    {
+        $user = $request->user();
+        $isSuperadmin = $user !== null && method_exists($user, 'can') && $user->can('superadmin');
+        $bizDoUsuario = (int) ($user->business_id ?? 0);
+
+        if ($isSuperadmin || ($bizDoUsuario > 0 && $bizDoUsuario === $businessId)) {
+            return null;
+        }
+
+        Log::channel('copiloto-ai')->warning('LgpdEsquecerTitularTool negado: business_id fora da empresa do usuário', [
+            'user_id' => $user?->getAuthIdentifier(),
+            'business_id_usuario' => $bizDoUsuario,
+            'business_id_pedido' => $businessId,
+        ]);
+
+        return Response::error('⛔ Sem permissão: só é possível atender titular da empresa do próprio usuário (Tier 0).');
     }
 
     protected function renderDryRunHint(string $doc, int $businessId, string $mode): string
