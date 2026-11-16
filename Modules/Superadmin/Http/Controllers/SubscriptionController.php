@@ -329,7 +329,8 @@ class SubscriptionController extends BaseController
             // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
             $this->_log_emergency_redacted($e, 'SubscriptionController');
 
-            $output = ['success' => 0, 'msg' => 'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage()];
+            // A tela recebe mensagem genérica; o detalhe fica só no log redigido acima.
+            $output = ['success' => 0, 'msg' => __('messages.something_went_wrong')];
 
             return redirect()
                 ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
@@ -539,7 +540,7 @@ class SubscriptionController extends BaseController
             // SUPERADMIN: cobrança SaaS é sempre de Wagner (biz=1); resolve credencial BCB cross-tenant a partir do contexto do tenant pagador
             $credBcb = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
                 ->withoutGlobalScopes()
-                ->where('business_id', 1)
+                ->where('business_id', (int) config('app.saas_owner_business_id'))
                 ->where('gateway_key', 'bcb_pix')
                 ->where('ativo', true)
                 ->whereNotNull('conta_bancaria_id')
@@ -558,7 +559,7 @@ class SubscriptionController extends BaseController
             // 3. Emite PIX Automático (mandato recorrente BCB)
             $contact = $this->resolveTenantPayerContact($business_id);
             $input = new \Modules\PaymentGateway\Dto\EmitirCobrancaInput(
-                businessId: 1, // Wagner é dono da cobrança (ADR 0170 §G)
+                businessId: (int) config('app.saas_owner_business_id'), // empresa operadora é dona da cobrança (ADR 0170 §G)
                 contactId: $contact?->id ?? 0,
                 valorCentavos: (int) round(((float) $package->price) * 100),
                 vencimento: new \DateTimeImmutable('+7 days'),
@@ -591,7 +592,7 @@ class SubscriptionController extends BaseController
 
             return redirect()
                 ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
-                ->with('status', ['success' => 0, 'msg' => 'Falha ao emitir cobrança PIX Automático: ' . $e->getMessage()]);
+                ->with('status', ['success' => 0, 'msg' => 'Falha ao emitir cobrança PIX Automático. Tente de novo ou fale com o suporte.']);
         }
     }
 
@@ -615,7 +616,7 @@ class SubscriptionController extends BaseController
 
         // SUPERADMIN: localiza o Contact do tenant dentro da carteira de Wagner (biz=1) cross-tenant pra vincular o pagador
         return \App\Contact::withoutGlobalScopes()
-            ->where('business_id', 1)
+            ->where('business_id', (int) config('app.saas_owner_business_id'))
             ->where('tax_number', $tax)
             ->first();
     }

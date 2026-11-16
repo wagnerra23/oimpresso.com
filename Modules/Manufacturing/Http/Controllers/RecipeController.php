@@ -597,6 +597,14 @@ class RecipeController extends Controller
     {
         // Tier 0 (ADR 0093): antes respondia por qualquer variação, de qualquer empresa.
         $business_id = (int) request()->session()->get('user.business_id');
+
+        // Lote 2.1 da auditoria (UC-RECIPE-22): era a única rota do módulo sem gate. Quem pergunta é o
+        // formulário de ordem; a resposta é dado de receita — vale acesso a uma das duas.
+        $user = auth()->user();
+        if (! ($user->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))
+            || ! ($user->can('manufacturing.access_recipe') || $user->can('manufacturing.access_production'))) {
+            abort(403, 'Unauthorized action.');
+        }
         $exists = MfgRecipe::query()
                             ->forBusinessViaProductChain($business_id)
                             ->where('mfg_recipes.variation_id', $variation_id)
