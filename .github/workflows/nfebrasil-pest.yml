@@ -380,6 +380,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesCancelarEscopoTest.php \
             Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitAtalhoNaturezasTest.php \
             Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php \
             Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
             Modules/Fiscal/Tests/Feature/MenuPermissaoTest.php \

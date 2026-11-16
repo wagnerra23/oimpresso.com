@@ -16,7 +16,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import { TIPO_ROTULO, dataBr, type ReceitaDoProdutoNoPainel, oQueE, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
+import { TIPO_ROTULO, dataBr, type LotesDoProdutoNoPainel, type ReceitaDoProdutoNoPainel, oQueE, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
 import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 
 type Aba = AbaDoDetalhe;
@@ -324,6 +324,47 @@ function ReceitaDoProdutoSecao({ r, irPara }: { r: ReceitaDoProdutoNoPainel; irP
   );
 }
 
+/**
+ * UC-PIDX-49 (CV3): os lotes do produto que têm saldo (numa comunicação visual, cada rolo é um lote), com o
+ * botão que abre o relatório de Lotes já filtrado no produto, onde ficam os lotes zerados e o rastreio do
+ * lote por OS. Nada é calculado aqui: o saldo é o do relatório.
+ */
+function LotesDoProdutoSecao({ l, irPara }: { l: LotesDoProdutoNoPainel; irPara: (url: string) => void }) {
+  const comVariacao = l.lotes.some((x) => x.variacao !== null);
+  return (
+    <div className="space-y-3" data-contract="produto-detalhe-lotes">
+      <TituloDaSecao>Lotes com saldo</TituloDaSecao>
+      <table className="pb-tbl">
+        <caption className="sr-only">Lotes do produto com saldo</caption>
+        <thead>
+          <tr>
+            <th>Lote</th>
+            {comVariacao && <th>Variação</th>}
+            <th>Validade</th>
+            <th className="r">Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {l.lotes.map((x) => (
+            <tr key={`${x.variacao ?? ''}-${x.lote}`}>
+              <td className="m">{x.lote}</td>
+              {comVariacao && <td>{x.variacao ?? '—'}</td>}
+              <td>
+                {x.validade || '—'} {x.vencido && <span className="pb-pill off">Vencido</span>}
+              </td>
+              <td className="r">{qtdComUnidade(x.estoque, x.unidade)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {l.mais && <p className="pb-help">Há mais lotes com saldo. O relatório mostra todos.</p>}
+      <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(l.link)}>
+        Abrir no relatório de Lotes
+      </Button>
+    </div>
+  );
+}
+
 function RoteiroDoProdutoSecao({ r }: { r: RoteiroDoProduto }) {
   return (
     <div data-contract="produto-detalhe-roteiro">
@@ -433,6 +474,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
         // Produto que não controla estoque também tem a aba, com o aviso (protótipo). Sem a
         // permissão de ver o relatório de estoque, a aba segue fora.
         ...(d.estoque !== null || !d.dados.controla_estoque ? [{ key: 'estoque', label: 'Estoque', href: '#' }] : []),
+        // UC-PIDX-49 (CV3): só aparece quando o produto tem lote com saldo.
+        ...(d.lotes && d.lotes.lotes.length > 0 ? [{ key: 'lotes', label: 'Lotes', href: '#', badge: d.lotes.lotes.length }] : []),
         // UC-PIDX-48 (D-29): só aparece quando o produto tem receita na Fabricação.
         ...(d.receitas && d.receitas.length > 0
           ? [{ key: 'receita', label: 'Receita', href: '#', badge: d.receitas.reduce((n, r) => n + r.insumos.length, 0) }]
@@ -565,6 +608,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <PrecosPropostos itens={d.precos_propostos ?? []} irPara={irPara} />
                 </Grid>
               )}
+
+              {abaAtiva === 'lotes' && d.lotes && <LotesDoProdutoSecao l={d.lotes} irPara={irPara} />}
 
               {abaAtiva === 'receita' && (d.receitas ?? []).map((r) => <ReceitaDoProdutoSecao key={r.sku} r={r} irPara={irPara} />)}
 

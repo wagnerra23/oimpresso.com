@@ -82,6 +82,21 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
             </Inline>
           </div>
         )}
+        {/* UC-PCAD-27 · UC-PEDIT-27: IMEI / nº de série, no Novo e no Editar, como no protótipo. */}
+        <div>
+          <Label aria-hidden className="invisible">
+            Série
+          </Label>
+          <Inline gap={2} className="h-[30px]">
+            <Checkbox
+              id="enable_sr_no"
+              checked={data.enable_sr_no === 1}
+              onCheckedChange={(v) => definir('enable_sr_no', v === true ? 1 : 0)}
+            />
+            <Label htmlFor="enable_sr_no" className="text-[13px] font-normal">Habilitar IMEI / nº de série</Label>
+          </Inline>
+          <p className="text-[12px] text-muted-foreground mt-1">Cada peça é rastreada individualmente na venda.</p>
+        </div>
         {/* O formulário do Editar não envia "não está à venda": a caixa só existe no Novo. */}
         {modo === 'novo' && (
           <div>

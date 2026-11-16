@@ -5,6 +5,7 @@ namespace Modules\Fiscal\Http\Controllers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Fiscal\Services\NotasUnifiedService;
@@ -100,6 +101,9 @@ class CockpitController extends Controller
             'eventosMock'    => $this->mockEventos(),
             'contabilData'   => $this->mockContabilData(),
             'procedencia'     => $this->procedencia(),
+            // Atalho "Naturezas de operação" no topo (RUNBOOK-tributacao §Naturezas): a seção
+            // mora na Tributação; aqui é só o caminho até ela. null = botão não aparece.
+            'naturezasUrl'    => $this->naturezasUrl($businessId),
         ]);
     }
 
@@ -251,6 +255,23 @@ class CockpitController extends Controller
     }
 
     /** Empresa ativa — a mesma chave de sessão que o ScopeByBusiness lê. 0 = sem empresa. */
+    /**
+     * URL da seção Naturezas de operação, ou null quando o atalho não deve aparecer: flag
+     * `useV2NfeNaturezas` desligada para a empresa, usuário sem `nfe.tributacao.manage`
+     * (a mesma permissão que a rota da Tributação exige) ou rota ausente.
+     */
+    protected function naturezasUrl(int $businessId): ?string
+    {
+        $user = auth()->user();
+        $podeTributacao = $user->can('superadmin') || $user->can('nfe.tributacao.manage');
+        $liberado = app(\App\Services\FeatureFlagService::class)
+            ->isOn('useV2NfeNaturezas', ['business_id' => $businessId]);
+
+        return $podeTributacao && $liberado && Route::has('nfe-brasil.tributacao.index')
+            ? route('nfe-brasil.tributacao.index').'#naturezas'
+            : null;
+    }
+
     protected function businessIdDaSessao(): int
     {
         return (int) (session('user.business_id') ?? 0);
