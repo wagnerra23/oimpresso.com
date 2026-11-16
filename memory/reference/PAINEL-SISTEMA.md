@@ -433,14 +433,14 @@ lente: [construir]
 
 ## Rastro
 
-- **629** handoffs · **807** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **632** handoffs · **809** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-11-15-smoke-clientes-vivos`
   - `2026-11-14-runbook-deploy-producao`
   - `2026-11-14-captacao-onda1-adr-esqueleto`
+  - `2026-11-14-auditoria-observabilidade`
+  - `2026-11-14-2239-data-readiness-uniafibro`
   - `2026-11-05-refutacao-gt-g5-lote-10376-r1`
-  - `2026-10-30-session-04`
-  - `2026-10-30-session-02-venda-v3-edicao`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-11-16 · deriva das fontes canônicas, não as substitui._
