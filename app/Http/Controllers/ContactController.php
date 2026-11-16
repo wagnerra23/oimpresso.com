@@ -2610,7 +2610,7 @@ class ContactController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed>|null JSON {success, msg} no pedido AJAX; nada fora dele.
      */
     public function destroy($id)
     {
@@ -2667,6 +2667,8 @@ class ContactController extends Controller
 
             return $output;
         }
+
+        return null;
     }
 
     /**
