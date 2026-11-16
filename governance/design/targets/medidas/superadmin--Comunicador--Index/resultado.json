@@ -1,0 +1,24 @@
+{
+  "id": "superadmin/Comunicador/Index",
+  "module": "Superadmin",
+  "source": "superadmin-page.jsx",
+  "target": "Modules/Superadmin/Resources/js/Pages/superadmin/Comunicador/Index.tsx",
+  "token": "sa-comunicador",
+  "rota": "/superadmin/communicator",
+  "lado": "ambos",
+  "tema": "light",
+  "contrato": "governance/design/contracts/superadmin-comunicador.contract.json",
+  "compare": {
+    "rc": 0,
+    "divergeBug": 0,
+    "divergeFonte": 0,
+    "shellAClassificar": 28,
+    "naoMedi": 1
+  },
+  "veredito": "MEDIDO · sem divergência de tela (shell a classificar)",
+  "medidoEm": "2026-11-16T19:07:46.589Z",
+  "baseUrl": "https://oimpresso.com (sessão de superadmin no Chrome do [W]; lido, nada escrito)",
+  "metodo": "mesma sonda (design-diff --probe) nos dois lados, no mesmo Chrome; prod -> postMessage -> ponte 127.0.0.1 -> disco (sha256 conferido); design servido de prototipo-ui/ local. Texto de produção redigido na página: assinatura só com a copy do contrato; dígitos, e-mail e valor mascarados em label/texto/rotulo.",
+  "prodSha": "d67785166f852df0f9c38923141ddecdcdc25b378c898ad9e70a7b04ffd42761",
+  "designSha": "7178d0341f178e5f6178d0b08fec00c6e22029726b81f6882894e7cd739ffbdf"
+}
