@@ -5,6 +5,7 @@
 .github/cliente-pest-quarantine.list merge=union
 .github/oficinaauto-pest-quarantine.list merge=union
 .github/paymentgateway-pest-quarantine.list merge=union
+.github/nfse-pest-quarantine.list merge=union
 
 # ── Índices append-no-topo: conflito estrutural entre sessões paralelas ──────────
 # O ARQUIVO de handoff nunca conflita (nome único por sessão, `YYYY-MM-DD-HHMM-slug`).

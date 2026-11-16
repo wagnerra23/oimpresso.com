@@ -43,11 +43,12 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
             ->and($src)->toContain('return;'); // early return quando ausente
     });
 
-    it('D1 cross-tenant: NfseBusinessScope respeita superadmin bypass (auth user can superadmin)', function () {
+    it('D1 cross-tenant: NfseBusinessScope NÃO tem bypass de superadmin (decisão [W] 2026-08-26)', function () {
         $file = (new ReflectionClass(\Modules\NFSe\Models\Concerns\NfseBusinessScope::class))->getFileName();
         $src = file_get_contents($file);
 
-        expect($src)->toContain("auth()->user()->can('superadmin')");
+        // O bypass foi removido por [W] em 2026-08-26 ("só da empresa selecionada").
+        expect($src)->not->toContain("can('superadmin')");
     });
 
     it('D1 cross-tenant: NfseBusinessScope auto-popula business_id em creating', function () {

@@ -51,7 +51,7 @@ related:
 **Como tratar.**
 - Tabela `associada_consentimentos` com `finalidade` enum (`ser_associada`, `receber_whatsapp`, `nome_visivel_rede`, etc.) + `versao` + `revoked_at`. Nunca DELETE.
 - Mascaramento automático em log (CPF/celular/email via regex)
-- Policy de retenção: anonimizar após X dias de revogação
+- Sem anonimização nem apagamento por prazo: num ERP o dado tem dever de guarda e o controle é por permissão de acesso (lápide §5 2026-07-27; a reabertura no Patrimônio foi revogada em 2026-10-13). Revogar encerra o uso para aquela finalidade, a linha fica
 - Sem CPF/diagnóstico/laudo/CID no módulo Associações (ADR 0451 D5)
 - Direito de portabilidade: endpoint `/exportar-meus-dados` gera JSON+PDF
 
@@ -59,7 +59,7 @@ related:
 - Checkbox por finalidade no cadastro (não "aceito tudo")
 - Página "Meus consentimentos" com toggle on/off
 - Confirmação 2-step pra revogar + mostra impacto
-- Botão "Esquecer-me" com delay 30d (rollback possível)
+- Sem botão "Esquecer-me": pedido de exclusão do titular vai para decisão humana, não para rotina automática (§5 2026-07-27)
 
 ## 4. Portal público sem conta — link+PIN (ADR 0451 D6)
 
@@ -80,10 +80,10 @@ related:
 
 ## 5. Fiscal / Financeiro (ROTA LIVRE, Martinho, indústrias futuras)
 
-**Regra.** Valores em centavos (int), nunca float. Append-only em movimentação de banco de horas, marcações de ponto, consentimentos. Blocos K SPED pra indústria.
+**Regra.** Valores em `decimal` no banco (é o tipo do schema; não guardamos centavos inteiros), nunca float na aritmética. Append-only em movimentação de banco de horas, marcações de ponto, consentimentos. Blocos K SPED pra indústria.
 
 **Como tratar.**
-- `bcmath` ou int cents em toda aritmética financeira
+- `bcmath` em toda aritmética financeira; o frontend arredonda a 2 casas antes de enviar (incidente `num_uf` de 2026-06-05)
 - Trigger MySQL de imutabilidade em `ponto_marcacoes` (ADR PontoWr2)
 - CNAB 240 contra retorno real do banco (Btg, Itaú, Banrisul, C6, Sicredi, Unicred)
 - NFe: CST da regra fiscal (fallback 07) — ver PR #10877
@@ -153,7 +153,7 @@ related:
 | ADR 0451 hierarquia Uniafibro | Associações merge-train |
 | LGPD / dado sensível | Security review + Permissões |
 | Portal link+PIN | Associações onda 6 + Security + E2E Playwright |
-| Fiscal / Financeiro | Gerente de Merge (#10879 NFe) + Smoke Eliana/Larissa |
+| Fiscal / Financeiro | Gerente de Merge (#10879 NFe) + smoke na empresa 1 |
 | Mobile/responsivo | Site + Uniafibro direitos + A11y Lighthouse |
 | Disclaimer legal | Uniafibro direitos |
 | Captação (Cirlei) | Captação de Recursos |
