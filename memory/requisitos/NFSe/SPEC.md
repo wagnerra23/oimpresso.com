@@ -18,13 +18,15 @@ na_justified:
   D5: "Cliente único biz=1 oimpresso interno (empresa Wagner em Tubarão-SC) — NÃO ROTA LIVRE/Larissa biz=4. Módulo standalone single-tenant intencional [adr/arq/0001-cliente-oimpresso-modulo-standalone.md](adr/arq/0001-cliente-oimpresso-modulo-standalone.md) — sem cliente externo qualificado [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)."
 pii: false
 version: "1.0.0"
-last_updated: "2026-06-03"
-updated_at: 2026-05-16
+last_updated: "2026-11-16"
+updated_at: 2026-11-16
 ---
 
 # NFSe — SPEC + Lista de tarefas
 
-> **Status**: Sprint A concluída · Sprint B em progresso (2026-05-01) · US-001 ✅ · US-002 ✅ · US-003 ✅ · US-004 ✅ parcial (Service+Adapter stub)
+> **Status (medido 2026-11-16 em `origin/main`)**: Sprints A–C têm código (US-001…010). A 1ª emissão real (US-013) não foi feita, o DANFSe não é gerado (US-016) e o rascunho criado pela recorrência não tem como ser emitido (US-007). A âncora `**Implementado em:**` de cada US é o estado; esta linha não restateia porcentagem.
+> _Em 2026-05-01 esta linha dizia: Sprint B em progresso · US-004 parcial (Service+Adapter stub)._
+> **Dono da tabela (2026-11-16):** `nfse_emissoes` é compartilhada com o NfeBrasil, e a decisão [W] de 2026-10-13 de consolidar a NFS-e no NfeBrasil (D-NFSE-CONSOLIDA) ainda não tem ADR. Ver [SCOPE.md](SCOPE.md).
 > **Owner**: Eliana[E]
 > **Paralelo a**: Cycle 01 (foco Copiloto/Larissa) — não bloqueia
 > **Cliente**: oimpresso (empresa Wagner) — **NÃO** ROTA LIVRE
@@ -128,24 +130,25 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 > owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-NFSE-004
 
-**Implementado em:** `Modules/NFSe/Jobs/EmitirNfseJob.php` · `EmitirNfseJob@handle` · verificado@0bb65dd (2026-07-02) — SPEC ainda não marcada done, mas Job existe com tries=3/backoff + idempotência via `NfseEmissaoService::montarPayload`
+**Implementado em:** `Modules/NFSe/Jobs/EmitirNfseJob.php` · `EmitirNfseJob@handle` · verificado@0bb65dd (2026-07-02) — Job existe com tries=3/backoff + idempotência via `NfseEmissaoService::montarPayload`
 
-- [ ] `EmitirNfseJob` (queue `nfse` separada — não bloqueia outras filas)
-- [ ] Retry policy: 3 tentativas com backoff exponencial
-- [ ] Idempotência: `idempotency_key = hash(business_id + tomador + valor + descricao + data)`
+- [x] `EmitirNfseJob` (queue `nfse` separada — não bloqueia outras filas) — `NfseEmissaoService` despacha com `->onQueue('nfse')`
+- [x] Retry policy: 3 tentativas — `$tries = 3`. ⚠️ o backoff é **fixo** (`$backoff = 60`), não exponencial (2026-11-16)
+- [x] Idempotência: `NfseEmissaoPayload::idempotencyKey()` = sha256 de business + tomador + valor + descrição + **competência (Y-m)**, não a data do dia (2026-11-16)
 
 ### US-NFSE-006 · HTTP Controller + rotas
 
 > owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-NFSE-004
 
-**Implementado em:** `Modules/NFSe/Http/Controllers/NfseController.php` · `Modules/NFSe/Routes/web.php` · `Modules/NFSe/Http/Controllers/DataController.php` · verificado@0bb65dd (2026-07-02) — controller vivo (rotas index, create, store, show, cancelar, pdf) + permissions nfse.emit, nfse.cancel, nfse.view no DataController
+**Implementado em:** `Modules/NFSe/Http/Controllers/NfseController.php` · `Modules/NFSe/Routes/web.php` · `Modules/NFSe/Http/Controllers/DataController.php` · verificado@0bb65dd (2026-07-02) — controller vivo (rotas index, create, store, show, cancelar, pdf; + `NfseController@emitirParaTransaction`, acrescentada 2026-11-16) + permissions nfse.emit, nfse.cancel, nfse.view no DataController
 
-- [ ] `POST /nfse/emitir` (cria registro + dispara job)
-- [ ] `GET /nfse/{id}` (detalhe + status)
-- [ ] `POST /nfse/{id}/cancelar` (motivo)
-- [ ] `GET /nfse/{id}/pdf` (proxy PDF do provider)
-- [ ] Spatie permissions: `nfse.emit`, `nfse.cancel`, `nfse.view`
+- [x] `POST /nfse/emitir` (cria registro + dispara job)
+- [x] `GET /nfse/{id}` (detalhe + status)
+- [x] `POST /nfse/{id}/cancelar` (motivo) — ⚠️ o motivo vai só para o log `nfse`; a nota não tem coluna de motivo (2026-11-16)
+- [x] `GET /nfse/{id}/pdf` — a rota existe, mas dá 404 em toda nota nova: o adapter grava `pdf_url` nulo (ver US-NFSE-016)
+- [x] Spatie permissions: `nfse.emit`, `nfse.cancel`, `nfse.view` (`DataController`)
+- [x] Emissão a partir da venda, JSON (`POST /nfse/transactions/{tx}/emitir` → `NfseController@emitirParaTransaction`, TRAVA-SEGUNDA CU-4, desde 2026-06-02; chamada por `resources/js/Pages/Sells/_components/VdNfseEmitModal.tsx`): só venda (`type = sell`) da empresa da sessão; sem configuração NFS-e dá 422 `nfse_nao_configurada`; tomador vem do contato da venda; venda separada (`separada=1`, US-NFE-069) emite só a parte serviço com o total da separação. _Item acrescentado em 2026-11-16: a rota não estava em nenhuma US._
 
 ### US-NFSE-007 · Bridge recurring nativo UPOS
 
@@ -155,6 +158,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 **Implementado em:** _parcial_ · `Modules/NFSe/Observers/TransactionNfseObserver.php` · verificado@0bb65dd (2026-07-02) — observer cria rascunho NFSe no recurring invoice; falta mapeamento item→LC 116 por produto e botão "Emitir NFSe" no detalhe do recurring (legacy Blade)
 
 🟡 opcional Sprint B (pode adiar pra Sprint D se travar).
+
+> ⚠️ **Não está pronta, apesar do `status: done` (anotado 2026-11-16, auditoria NFSe).** O observer cria a nota em `rascunho`, mas nada emite um rascunho: o botão "Emitir rascunho" da lista (`resources/js/Pages/Nfse/Index.tsx`, coluna de ações) só abre `/nfse/{id}`; o `Show.tsx` só reemite nota em `erro`; e `Modules/NFSe/Routes/web.php` não tem rota que emita um rascunho existente. O rascunho fica sem saída. O status fica como está até [E]/[W] decidirem reabrir — este SPEC não o rebaixa sozinho.
 
 - [ ] Listener no evento de geração de `recurring_invoice` UPOS → cria NFSe `rascunho`
 - [ ] Mapeamento item venda → código serviço LC 116 (config no produto)
@@ -169,11 +174,11 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 **Implementado em:** `resources/js/Pages/Nfse/Index.tsx` · `Modules/NFSe/Http/Controllers/NfseController.php` · `NfseController@index` · verificado@0bb65dd (2026-07-02) — Page renderizada por controller vivo (Inertia render Nfse/Index no NfseController@index)
 
-- [ ] AppShellV2 + breadcrumb `[{ label: 'Fiscal' }, { label: 'NFSe' }]`
-- [ ] DataTable com colunas: número, data, tomador, valor, status (StatusBadge), ações
-- [ ] PageFilters: status (rascunho/processando/emitida/cancelada/erro), período
-- [ ] EmptyState "Nenhuma NFSe emitida ainda"
-- [ ] Componentes shared (PageHeader, KpiGrid, DataTable, StatusBadge)
+- [x] AppShellV2 (breadcrumb não conferido em 2026-11-16)
+- [x] DataTable com colunas: número, data, tomador, valor, status (StatusBadge), ações
+- [x] PageFilters: status e período (`de`/`ate`) + busca
+- [x] EmptyState — o texto em produção é "Nenhuma nota encontrada"
+- [ ] Componentes shared: DataTable, StatusBadge, EmptyState e PageFilters em uso; KpiGrid não está na tela (2026-11-16)
 
 ### US-NFSE-009 · Pages/Nfse/Emitir.tsx
 
@@ -182,10 +187,10 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 **Implementado em:** `resources/js/Pages/Nfse/Emitir.tsx` · `Modules/NFSe/Http/Controllers/NfseController.php` · `NfseController@create` · `Modules/NFSe/Http/Requests/StoreNfseRequest.php` · verificado@0bb65dd (2026-07-02) — Page renderizada por controller vivo (Inertia render Nfse/Emitir no NfseController@create); submit em NfseController@store
 
-- [ ] Form: tomador (CNPJ ou CPF + razão social + endereço), serviço (descrição + cód LC 116 + valor), retenções opcionais
-- [ ] Auto-preenchimento por busca de cliente (autocomplete contacts UPOS)
-- [ ] Submit → POST /nfse/emitir → toast "NFSe sendo processada" + redirect lista
-- [ ] Validação react-hook-form + zod
+- [x] Form: tomador, serviço (descrição + cód LC 116 + valor), retenções opcionais
+- [ ] Auto-preenchimento por busca de cliente — não encontrado na tela em 2026-11-16
+- [x] Submit → POST /nfse/emitir (`useForm` do Inertia)
+- [ ] Validação react-hook-form + zod — a tela usa `useForm` do Inertia e a validação fica no `StoreNfseRequest` (2026-11-16)
 
 ### US-NFSE-010 · Action "Imprimir DANFSE"
 
@@ -194,9 +199,9 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 **Implementado em:** `resources/js/Pages/Nfse/Show.tsx` · `resources/js/Pages/Nfse/Index.tsx` · `Modules/NFSe/Http/Controllers/NfseController.php` · `NfseController@pdf` · verificado@0bb65dd (2026-07-02) — botão "Baixar DANFSE" (abre `/nfse/{id}/pdf`) + ação "Cancelar nota" via `NfseController@cancelar`
 
-- [ ] Botão na linha de cada NFSe emitida → abre PDF em nova aba
+- [ ] Botão na linha de cada NFSe emitida → abre PDF em nova aba — o botão existe na lista e no detalhe, mas só aparece com `pdf_url`, que o adapter grava nulo em toda nota nova (2026-11-16). Sem DANFSe não há o que abrir: depende da US-NFSE-016
 - [ ] Fallback: download se provider só dá base64
-- [ ] Action "Cancelar" com modal motivo (NFSe ainda no prazo legal de cancelamento)
+- [x] Action "Cancelar" com modal motivo (mínimo 15 caracteres) — o prazo legal não é checado na tela
 
 ### Sprint D — Validação + produção (2-3 dias)
 
@@ -211,6 +216,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 - [ ] Mock provider Focus/SN-NFSe
 - [ ] Cobertura: idempotência, retry, contingência (provider down)
 - [ ] Coverage mínimo: 80% das linhas do `NfseEmissaoService`
+
+> ⚠️ **Fora de lane (anotado 2026-11-16).** Os testes de `Modules/NFSe/Tests/` estão no `phpunit.xml`, mas nenhuma lane de CI os executa — `.github/ci-sqlite-pest.list` registra que o único teste NFSe que roda é `tests/Feature/Modules/NFSe/NfseTelasContratoTest.php`. "Coberto" aqui significa "escrito", não "verde no CI".
 
 ### US-NFSE-012 · Deploy sandbox
 
@@ -300,7 +307,7 @@ Refs: PR #2147, `Modules/NFSe/Adapters/SnNfseAdapter.php`, `memory/reference/pro
 - Substitutiva
 - Importação XML de outras NFSe
 - Multi-tenant complexo (foco oimpresso primeiro, depois opcional pros clientes ERP)
-- Integração com `Modules/RecurringBilling/` (que nem existe)
+- Integração com `Modules/RecurringBilling/` (em 2026-05 o módulo não existia; hoje existe, e a integração segue fora do MVP)
 
 ---
 
@@ -327,6 +334,8 @@ Refs: PR #2147, `Modules/NFSe/Adapters/SnNfseAdapter.php`, `memory/reference/pro
 > owner: eliana · priority: p0 · estimate: 12h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — `Modules/NFSe/Adapters/SnNfseAdapter.php` grava `pdfUrl: null` em toda emissão e `NfseController@pdf` responde 404 sem `pdf_url`; nenhum gerador de DANFSe no repo (medido 2026-11-16)
+
 🔴 **Prazo regulatório LIVE: 15/07/2026** (NT 008/2026, SE/CGNFS-e — prorrogado de 01/07). A API do ADN que gera o DANFSe é descontinuada; a responsabilidade de gerar o DANFSe (PDF) passa ao **sistema emissor**. Hoje o oimpresso NÃO gera — depende de `data['urlDanfse']` do provider (`SnNfseAdapter.php:71`, `NfseController:261` só proxia). Gap C05 da CAPTERRA-FICHA (nota 1/10).
 
 **Aceite:**
@@ -342,6 +351,10 @@ Refs: PR #2147, `Modules/NFSe/Adapters/SnNfseAdapter.php`, `memory/reference/pro
 > owner: eliana · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — o aceite 3 (emissão em produção-restrita sem rejeição) não foi feito. O que já existe: `Modules/NFSe/Adapters/SnNfseAdapter.php` + `Modules/NfeBrasil/Services/Nfse/DpsXml.php`, e `Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php` valida a DPS contra o XSD; desde 2026-10-13 (#9226, R-NFSE-005) a DPS sai em XML assinado no leiaute dos XSD oficiais v1.01, e o teste valida o XML contra `DPS_v1.01.xsd` (roda na lane `nfebrasil-pest`); falta a emissão em produção-restrita sem rejeição
+
+> ⚠️ **O texto abaixo é de 2026-07-03 e envelheceu.** O `buildDps()` não monta mais JSON à mão: monta a estrutura na ordem do XSD, e a `DpsXml` serializa, assina com o A1 e empacota em GZip+Base64. A lib `nfse-nacional/nfse-php` não foi integrada — a serialização própria do NfeBrasil ocupou o lugar dela. O aceite que segue aberto é o 3º.
+
 Pré-requisito da 1ª emissão real (US-NFSE-013). O `SnNfseAdapter::buildDps()` monta um `infDps` **simplificado à mão** (comentário diz "TODO US-NFSE-004: integrar lib nfse-nacional/nfse-php"). Os 13 Pest passam com `Http::fake` — NÃO validam o payload contra o XSD/leiaute oficial. Um DPS incompleto é rejeitado pela SEFIN na 1ª emissão real. Gap C01 (nota 5/10, PARCIAL).
 
 **Aceite:**
@@ -355,6 +368,8 @@ Pré-requisito da 1ª emissão real (US-NFSE-013). O `SnNfseAdapter::buildDps()`
 
 > owner: eliana · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — sem evento de substituição em `Modules/NFSe` (2026-11-16)
 
 Gap C09 (nota 0/10, AUSENTE). O padrão nacional tem o evento de "cancelamento por substituição" — corrige uma nota emitida mantendo o vínculo original↔nova (janela: emissão original ≤730 dias / ≤6 meses do fato gerador). Concorrentes (Focus/PlugNotas/SP) têm. Hoje só cancela — grep 0 matches.
 
@@ -371,6 +386,8 @@ Gap C09 (nota 0/10, AUSENTE). O padrão nacional tem o evento de "cancelamento p
 > owner: eliana · priority: p1 · estimate: 10h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — sem receiver de callback; status só por `consultar()` (2026-11-16)
+
 Gap C10 (nota 1/10, AUSENTE). Hoje o status só atualiza via polling (`consultar()`); não há callback assíncrono quando a nota é autorizada/rejeitada/cancelada. `retention.php` já prevê log `webhook_municipal` (365d) mas não existe dispatcher/receiver. Concorrentes (Focus/eNotas/Notaas) entregam webhook até no plano free.
 
 **Aceite:**
@@ -386,6 +403,8 @@ Gap C10 (nota 1/10, AUSENTE). Hoje o status só atualiza via polling (`consultar
 > owner: eliana · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — `nfse:health` detecta o vencimento, mas não há cron nem notificação (2026-11-16)
+
 Gap C18 (nota 4/10, PARCIAL). O `NfseHealthCommand::checkCertVencimento():144` já detecta cert vencendo em 30d (WARN), mas é health-check CLI — não notifica o usuário. Cert A1 vence anual; sem alerta, a emissão para sem aviso (risk 🔴 do BRIEFING).
 
 **Aceite:**
@@ -400,6 +419,8 @@ Gap C18 (nota 4/10, PARCIAL). O `NfseHealthCommand::checkCertVencimento():144` j
 > owner: eliana · priority: p2 · estimate: 6h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — sem dashboard de métricas NFSe (2026-11-16)
+
 Gap C16 (nota 2/10, AUSENTE). Concorrentes têm painel/relatórios de emissão. Hoje há só `NfseHealthCommand` (health CLI), sem dashboard. BRIEFING gap #3.
 
 **Aceite:**
@@ -413,6 +434,8 @@ Gap C16 (nota 2/10, AUSENTE). Concorrentes têm painel/relatórios de emissão. 
 
 > owner: eliana · priority: p2 · estimate: 6h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — sem evento de carta de correção (2026-11-16)
 
 Gap C14 (nota 0/10, AUSENTE). No padrão nacional/municipal a carta de correção regulariza erro/omissão apenas no campo DISCRIMINAÇÃO DOS SERVIÇOS (não altera valor/tomador). Concorrentes (Focus/SP) têm. Hoje ausente (grep 0 matches).
 

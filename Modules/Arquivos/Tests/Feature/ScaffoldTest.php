@@ -68,13 +68,8 @@ class ScaffoldTest extends TestCase
         $this->assertSame('no_rule_matched', $result['rule_matched']);
     }
 
-    /**
-     * @todo US-ARQ-007 — ParityTest JS×PHP com fixtures comuns
-     *   tests/Fixtures/CuradorParity/*.jsonl (input) + expected_*.json (output JS)
-     *   Asserta classify_match >= 95 E mean_abs_confidence_delta < 0.05.
-     */
-    public function test_todo_parity_test_js_php(): void
-    {
-        $this->markTestSkipped('US-ARQ-007 — implementar com fixtures comuns Sprint 1 dia 3.');
-    }
+    // O placeholder `test_todo_parity_test_js_php` (markTestSkipped permanente desde a
+    // Sprint 1) saiu em 2026-11-16: a US-ARQ-007 foi entregue em CuradorParityTest, com
+    // tests/Fixtures/CuradorParity/fixtures.json, e esse arquivo roda na lane MySQL do
+    // Arquivos. O skip só somava um "skipped" por run sem nada a prover.
 }

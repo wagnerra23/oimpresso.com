@@ -2,6 +2,10 @@
 
 Append-only. Cada PR mergeado que toca `Modules/Superadmin/` deve adicionar 1 linha na entrada do Wave/data.
 
+## 2026-11-16 — Lote L4 da auditoria (fila e agendamento)
+
+- As 7 notificações de `Notifications/` passam a ir para a fila própria `superadmin-mail`, com payload criptografado (`ShouldQueue` + `ShouldBeEncrypted`, trait `NaFilaDoSuperadmin`); o worker da fila é agendado no `registerScheduleCommands()` (só `live`). O Comunicador deixa de mandar um e-mail por dono dentro do request. Teste: `Tests/Feature/SuperadminNotificacoesNaFilaTest.php`.
+
 ## Wave 27 polish final — 2026-05-17 (target cross_cutting ≥92)
 
 - `Tests/Feature/Wave27CrossTenantSaturationTest.php` (NOVO) — **50 cenários
