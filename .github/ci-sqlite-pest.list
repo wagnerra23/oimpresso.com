@@ -819,3 +819,6 @@ tests/Unit/Tenancy/ContextoEmpresaEscopoArquivoTest.php
 # Superadmin L1 (2026-11-16) — sem banco: traits/config LGPD e o registry do Artisan.
 Modules/Superadmin/Tests/Feature/Lgpd/SuperadminLgpdComplianceTest.php
 tests/Feature/Architecture/SuperadminScheduledCommandsRegisteredTest.php
+# Guarda dos listeners de pagamento por dispatcher (2026-11-16): sem banco, e o
+# caso repetido em 3 apps do mesmo processo prova que a ordem aleatoria nao tira o listener.
+Modules/Financeiro/Tests/Feature/ListenersPorDispatcherContratoTest.php

@@ -39,34 +39,52 @@ use Modules\Superadmin\Entities\Subscription;
 class SubscriptionLifecycleService
 {
     /**
+     * Campos que quem aprova pode gravar junto da transição, na mesma transação.
+     * Lista fechada: status e datas são do serviço, não de quem chama.
+     */
+    public const CAMPOS_EXTRAS_APROVACAO = ['paid_via', 'payment_transaction_id', 'trial_end_date'];
+
+    /**
      * Aprova subscription pendente. Calcula end_date conforme package + gera audit.
      *
+     * @param  Carbon|null  $endDate  fim já calculado por quem conhece o pacote. Sem ele o
+     *                                fim sai de `package_details`, que o `_add_subscription`
+     *                                grava SEM `interval`/`interval_count` — aí vale o
+     *                                default de 1 mês. O listener de pagamento passa o fim
+     *                                calculado da tabela `packages` para não encurtar pacote
+     *                                anual ou por dias.
+     * @param  array<string, mixed>  $extras  só as chaves de CAMPOS_EXTRAS_APROVACAO.
      * @return bool  true se transição efetuada; false se status incompatível.
      */
-    public function approve(Subscription $subscription, ?Carbon $startDate = null): bool
+    public function approve(Subscription $subscription, ?Carbon $startDate = null, ?Carbon $endDate = null, array $extras = []): bool
     {
-        return OtelHelper::spanBiz('superadmin.subscription.approve', function () use ($subscription, $startDate): bool {
+        return OtelHelper::spanBiz('superadmin.subscription.approve', function () use ($subscription, $startDate, $endDate, $extras): bool {
             if ($subscription->status !== 'waiting' && $subscription->status !== 'waiting_approval') {
                 return false;
             }
 
             $startDate = $startDate ?? now();
 
-            return DB::transaction(function () use ($subscription, $startDate) {
-                $packageDetails = (array) ($subscription->package_details ?? []);
-                $intervalType = $packageDetails['interval'] ?? 'months';
-                $intervalCount = (int) ($packageDetails['interval_count'] ?? 1);
+            return DB::transaction(function () use ($subscription, $startDate, $endDate, $extras) {
+                if ($endDate === null) {
+                    $packageDetails = (array) ($subscription->package_details ?? []);
+                    $intervalType = $packageDetails['interval'] ?? 'months';
+                    $intervalCount = (int) ($packageDetails['interval_count'] ?? 1);
 
-                $endDate = match ($intervalType) {
-                    'days'   => $startDate->copy()->addDays($intervalCount),
-                    'months' => $startDate->copy()->addMonths($intervalCount),
-                    'years'  => $startDate->copy()->addYears($intervalCount),
-                    default  => $startDate->copy()->addMonth(),
-                };
+                    $endDate = match ($intervalType) {
+                        'days'   => $startDate->copy()->addDays($intervalCount),
+                        'months' => $startDate->copy()->addMonths($intervalCount),
+                        'years'  => $startDate->copy()->addYears($intervalCount),
+                        default  => $startDate->copy()->addMonth(),
+                    };
+                }
 
                 $subscription->status = 'approved';
                 $subscription->start_date = $startDate;
                 $subscription->end_date = $endDate;
+                foreach (array_intersect_key($extras, array_flip(self::CAMPOS_EXTRAS_APROVACAO)) as $campo => $valor) {
+                    $subscription->{$campo} = $valor;
+                }
                 $subscription->save();
 
                 return true;
