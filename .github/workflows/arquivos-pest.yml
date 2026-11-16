@@ -198,6 +198,12 @@ jobs:
         # Se algum dos dois vier VERMELHO: ou o defeito e real e se conserta, ou sai
         # daqui com a divida datada. Vermelho permanente em lane advisory so ensina o
         # time a ignora-la — foi o que este bloco decidiu em 2026-08-10.
+        #
+        # +2 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.1):
+        #   CuradorEngineTest + CuradorParityTest (US-ARQ-006/007). Logica pura: so
+        #   instanciam Arquivo em memoria e leem tests/Fixtures/CuradorParity/
+        #   fixtures.json, zero escrita no banco. Antes so rodavam na lane sqlite,
+        #   onde o guard Schema::hasTable('arquivos') os pulava em 100% das runs.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -216,7 +222,9 @@ jobs:
             Modules/Arquivos/Tests/Feature/DedupeMultiOwnerTest.php \
             Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php \
             Modules/Arquivos/Tests/Feature/ArquivosSuperadminOnlyTest.php \
-            Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php
+            Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php \
+            Modules/Arquivos/Tests/Feature/CuradorEngineTest.php \
+            Modules/Arquivos/Tests/Feature/CuradorParityTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
