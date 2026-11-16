@@ -991,7 +991,7 @@ class ProductionController extends Controller
             'end_date' => request()->get('end_date'),
             'is_final' => request()->has('is_final'),
             // UC-OP-22 (lote 2.5 da auditoria): a lista só traz ordem de local que o usuário pode.
-            'locais_permitidos' => auth()->user()->permitted_locations(),
+            'locais_permitidos' => $this->locaisPermitidos(),
         ];
         $ordemId = (int) request()->get('ordem');
 
@@ -1162,16 +1162,29 @@ class ProductionController extends Controller
      */
     private function exigirLocalPermitido($locationId): void
     {
-        $permitidos = auth()->user()->permitted_locations();
+        $permitidos = $this->locaisPermitidos();
         if ($permitidos !== 'all' && ! in_array((int) $locationId, array_map('intval', (array) $permitidos), true)) {
             abort(403, 'Unauthorized action.');
         }
     }
 
+    /**
+     * `User::permitted_locations()`, com uma exceção: o superadmin da plataforma alcança todos os locais,
+     * como o papel `Admin#` da empresa já alcança pelo `Gate::before` (e como ele vê custo, lote 2.6).
+     *
+     * @return 'all'|array<int, int>
+     */
+    private function locaisPermitidos()
+    {
+        $user = auth()->user();
+
+        return $user->can('superadmin') ? 'all' : $user->permitted_locations();
+    }
+
     /** O painel lateral (`?ordem=`) não mostra ordem de local que o usuário não pode (UC-OP-22). */
     private function ordemEmLocalPermitido(int $businessId, int $ordemId): bool
     {
-        $permitidos = auth()->user()->permitted_locations();
+        $permitidos = $this->locaisPermitidos();
         if ($permitidos === 'all') {
             return true;
         }
