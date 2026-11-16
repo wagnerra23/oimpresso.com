@@ -15,6 +15,8 @@ use Modules\Superadmin\Notifications\SendSubscriptionExpiryAlert;
 use Modules\Superadmin\Notifications\SubscriptionOfflinePaymentActivationConfirmation;
 use Modules\Superadmin\Notifications\SuperadminCommunicator;
 
+uses(Tests\TestCase::class);
+
 /**
  * As notificações do Superadmin saem do request HTTP e vão pra fila própria (lote L4, 2026-11-16).
  *
