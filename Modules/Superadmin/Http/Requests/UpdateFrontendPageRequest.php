@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Superadmin\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 /**
  * FormRequest — superadmin atualiza página frontend.
@@ -24,6 +25,18 @@ class UpdateFrontendPageRequest extends FormRequest
         }
 
         return $user->can('superadmin');
+    }
+
+    /**
+     * O controller sempre gravou `Str::slug()` do que foi digitado ("Sobre Nós" vira "sobre-nos").
+     * Normaliza ANTES de validar para a tela continuar aceitando texto livre; a regra abaixo
+     * barra só o que não sobra nada depois de normalizado.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('slug')) {
+            $this->merge(['slug' => Str::slug((string) $this->input('slug'))]);
+        }
     }
 
     public function rules(): array

@@ -8,6 +8,8 @@ gerado_em: 2026-09-06
 
 # GAP-SPEC — superadmin/Dashboard/Index
 
+> ⚠️ **Datado (anotado em 2026-11-16, lote L6 da auditoria):** este GAP-SPEC é **leitura de código de 2026-09-06**, não medição de render. "PARIDADE" e "VIVO-À-FRENTE" abaixo são juízo daquela leitura, não prova de igualdade. Depois desta data o MRR ganhou query e fonte própria (SPEC US-SUPER-011). A comparação medida (mesma sonda nos dois lados) é o `*-visual-comparison.md` do lote L7, que ainda não existe nesta data.
+
 > Protótipo = porte do Blade legado (superadmin-page.jsx:1-9), anterior às telas React (SA-O1..O3, 2026-08). Charter: `Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.charter.md` (Non-Goals/Anti-hooks respeitados, nunca reabertos).
 
 **Veredito:** MOCKUP-STALE nos blocos de número inventado (funil, churn, receita por pacote, "O que fazer primeiro" — Anti-hook do charter + `UC-SADASH-05`), VIVO-À-FRENTE em período/skeleton/vazio/nota do MRR, PARIDADE nas 4 seções do contrato, fila "Vencendo" já registrada como SA-O1b — **2 itens a decidir** (subtítulo com contagens no header; colunas extras dos cadastros recentes).
