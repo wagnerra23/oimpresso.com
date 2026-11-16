@@ -202,3 +202,15 @@ it('trabalho: estabilidade só no caso acidentário, sem prometê-la pela fibrom
     expect($html)->toContain('A fibromialgia, por si só, <strong>não</strong> dá estabilidade');
     expect($html)->toContain('planalto.gov.br/ccivil_03/leis/l9029.htm');
 });
+
+it('como pedir: Meu INSS, CadÚnico antes do BPC, FCEE Digital e ajuda gratuita', function () {
+    config(['uniafibro.pasta_conteudo' => resource_path('uniafibro/direitos')]);
+
+    $html = $this->get('http://uniafibro.com.br/direitos/como-pedir')->assertOk()->getContent();
+
+    expect($html)->toContain('Pedir Benefício por Incapacidade');
+    expect($html)->toContain('Primeiro o CadÚnico');
+    expect($html)->toContain('FCEE Digital');
+    expect($html)->toContain('dpu.def.br/previdencia');
+    expect($html)->toContain('defensoria.sc.def.br');
+});

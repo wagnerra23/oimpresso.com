@@ -164,6 +164,22 @@ Status: 🧪
 
 ---
 
+## UC-SAPAC-12 · Pacote inválido é recusado antes de gravar · `must` `[T0]`
+
+**Dado** um pacote sem nome, ou com preço negativo, com letra ou com separador de milhar ("-5",
+"abc", "1.234,56"), ou com intervalo fora de dias/meses/anos
+**Quando** o superadmin tenta criar ou editar
+**Então** a resposta é erro de validação no campo (422 em JSON; erro de campo no drawer) e **nenhuma**
+linha de `packages` é criada ou alterada.
+
+> Auditoria do Superadmin (2026-11-05, eixo 5 §6): os FormRequests de pacote existiam e nenhum
+> controller os usava — o preço ia direto para o `num_uf`. O preço é o valor cobrado de todas as
+> empresas do pacote. Formato aceito: o que o drawer envia (ponto e 2 casas) ou vírgula decimal.
+
+Status: 🧪
+
+---
+
 ## Testes mínimos (do F1 §2)
 
 - **DQE:** 1 pacote sem assinante · 1 pacote inativo · 1 pacote privado · 1 com limite `0`.

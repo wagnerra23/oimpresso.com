@@ -43,7 +43,10 @@ class StorePackageRequest extends FormRequest
             'interval'          => ['required', 'string', 'in:days,months,years'],
             'interval_count'    => ['required', 'integer', 'min:1', 'max:365'],
             'trial_days'        => ['nullable', 'integer', 'min:0', 'max:365'],
-            'price'             => ['required', 'string', 'max:32'],
+            // Preço: o que a tela manda (`precoParaEnvio`: ponto e 2 casas) ou vírgula decimal.
+            // Sem separador de milhar e sem sinal: o `num_uf` lê ponto seguido de 3 casas como
+            // milhar ("1.000" vira mil) e "-5" passaria. Decisão [W] 2026-10-05 (RUNBOOK-pacotes §5.1).
+            'price'             => ['required', 'regex:/^\d{1,10}([.,]\d{1,2})?$/'],
             'sort_order'        => ['nullable', 'integer'],
             'is_active'         => ['nullable'],
             'custom_permissions' => ['nullable', 'array'],
