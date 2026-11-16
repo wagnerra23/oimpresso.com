@@ -12,7 +12,9 @@ use Tests\Support\EstoqueFixture;
 /**
  * D-30 (decisão [F] 2026-11-12), a parte da venda: o kit segue "Permitir vender sem estoque" como qualquer
  * produto. Desligada, a venda não passa de quantos kits os componentes permitem; ligada, passa e os
- * componentes ficam negativos.
+ * componentes ficam negativos. E o kit não tem estoque próprio (aprovado pelo [F] em 2026-11-16): mesmo
+ * com "Controlar estoque" ligado no cadastro, a venda não casa a linha do kit com compra nem mexe no
+ * saldo do kit, e excluir a venda devolve só os componentes (Util::temSaldoProprio).
  *
  * A venda é a do Blade (`sale_pos/product_row.blade.php` manda a linha do kit com `product_type=combo` e a
  * lista `combo` dos componentes), gravada por `/pos` (SellPosController@store, o caminho de produção). A
@@ -85,6 +87,36 @@ function kitvVenderSemEstoque(object $test, bool $liga): void
     $atual = json_decode((string) DB::table('business')->where('id', $test->bizId)->value('pos_settings'), true) ?: [];
     $atual['allow_overselling'] = $liga ? 1 : 0;
     DB::table('business')->where('id', $test->bizId)->update(['pos_settings' => json_encode($atual)]);
+}
+
+/**
+ * O saldo do próprio kit no local e as linhas do kit casadas com compra. Os dois ficam em zero: o kit não
+ * tem estoque próprio (D-30).
+ *
+ * @return array{saldo: float, casadas: int}
+ */
+function kitvSaldoDoKit(object $test, object $kit): array
+{
+    return [
+        'saldo' => EstoqueFixture::currentStock($kit, 0, $test->locationId),
+        'casadas' => DB::table('transaction_sell_lines_purchase_lines as m')
+            ->join('transaction_sell_lines as l', 'l.id', '=', 'm.sell_line_id')
+            ->join('transactions as t', 't.id', '=', 'l.transaction_id')
+            ->where('t.business_id', $test->bizId)
+            ->where('l.product_id', $kit->productId)
+            ->count(),
+    ];
+}
+
+/** A venda gravada com o kit, a mais recente da empresa do teste. */
+function kitvVendaDoKit(object $test, object $kit): int
+{
+    return (int) DB::table('transactions')
+        ->join('transaction_sell_lines', 'transaction_sell_lines.transaction_id', '=', 'transactions.id')
+        ->where('transactions.business_id', $test->bizId)
+        ->where('transaction_sell_lines.product_id', $kit->productId)
+        ->orderByDesc('transactions.id')
+        ->value('transactions.id');
 }
 
 /**
@@ -222,16 +254,40 @@ it('UC-PIDX-50 · com vender sem estoque: 4 kits gravam e os componentes ficam n
     expect($quatro['saldos'])->toBe([-2.0, 1.0]);
 });
 
-it('UC-PIDX-50 · o kit com "Controlar estoque" ligado (o padrão do cadastro) segue a mesma regra', function () {
+it('UC-PIDX-50 · o kit com "Controlar estoque" ligado (o padrão do cadastro) segue a mesma regra e não tem saldo próprio', function () {
     kitvVenderSemEstoque($this, false);
     $kit = kitvKit($this, $this->a, $this->b, true);
 
     $quatro = kitvVender($this, $kit, $this->a, $this->b, 4, true);
     expect($quatro['gravou'])->toBeFalse('o store gravou 4 kits sem vender sem estoque');
-    expect(kitvRecusaPorEstoque($quatro['msg'], $this->a, $this->b))->toBeTrue('a recusa não foi por estoque: ' . $quatro['msg']);
+    // A recusa cita o componente que falta. Antes da correção ela citava o próprio kit, que pedia compra do kit.
+    expect(kitvRecusaPorEstoque($quatro['msg'], $this->a, $this->b))->toBeTrue('a recusa não foi pelo componente: ' . $quatro['msg']);
     expect($quatro['saldos'])->toBe([6.0, 5.0]);
 
     $tres = kitvVender($this, $kit, $this->a, $this->b, 3, true);
     expect($tres['gravou'])->toBeTrue('o store recusou 3 kits: ' . $tres['msg']);
     expect($tres['saldos'])->toBe([0.0, 2.0]);
+    expect(kitvSaldoDoKit($this, $kit))->toBe(['saldo' => 0.0, 'casadas' => 0]);
+});
+
+it('UC-PIDX-50 · kit com "Controlar estoque" e vender sem estoque: o kit não fica negativo, e excluir a venda devolve só os componentes', function () {
+    kitvVenderSemEstoque($this, true);
+    $kit = kitvKit($this, $this->a, $this->b, true);
+
+    $quatro = kitvVender($this, $kit, $this->a, $this->b, 4, true);
+    expect($quatro['gravou'])->toBeTrue('o store recusou 4 kits com vender sem estoque: ' . $quatro['msg']);
+    // Caminho 1 — à mão: A 6 − 8 = −2; B 5 − 4 = 1; o kit fica em 0 (antes da correção ia a −4).
+    expect($quatro['saldos'])->toBe([-2.0, 1.0]);
+    expect(kitvSaldoDoKit($this, $kit))->toBe(['saldo' => 0.0, 'casadas' => 0]);
+    // Caminho 2 — o saldo do kit lido por outra via: nenhuma linha do kit com saldo em variation_location_details.
+    expect(DB::table('variation_location_details')->where('product_id', $kit->productId)->where('qty_available', '<>', 0)->count())->toBe(0);
+
+    // Excluir a venda passa por TransactionUtil::adjustQuantity: os componentes voltam e o kit segue em 0.
+    $saida = app(\App\Utils\TransactionUtil::class)->deleteSale($this->bizId, kitvVendaDoKit($this, $kit));
+    expect($saida['success'] ?? null)->toBeTrue((string) ($saida['msg'] ?? ''));
+    expect([
+        EstoqueFixture::currentStock($this->a, 0, $this->locationId),
+        EstoqueFixture::currentStock($this->b, 0, $this->locationId),
+    ])->toBe([6.0, 5.0]);
+    expect(kitvSaldoDoKit($this, $kit)['saldo'])->toBe(0.0);
 });
