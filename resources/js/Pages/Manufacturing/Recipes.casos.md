@@ -338,6 +338,19 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-RECIPE-24 · O menu e as abas da Fabricação só mostram o que a permissão abre
+- **Persona:** usuário que tem só receitas, ou só produção.
+- **Aceite:** Dado só `access_recipe` · Então o menu lateral e as abas mostram Receitas e Insumos, sem "Nova
+  ordem" · Dado só `access_production` · Então mostram Ordens de produção, Relatório e Configurações, e o item do
+  menu abre as ordens · Dado as duas · Então os cinco. Insumos está no menu lateral.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (Relatório e Configurações usam `access_production`) · auditoria do
+  Manufacturing, lote 2.4 (item que dá 403 ao clicar).
+- **Teste:** `MenuPorPermissaoTest.php` (menu, pelo `shell.menu`) · `tests/js/manufacturing-abas.test.tsx` (abas).
+- **Regressão que defende:** item visível que dá 403 ao clicar, e Insumos só alcançável pela aba.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - ~~**[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** e uma requisição **ajax real** recebe o
