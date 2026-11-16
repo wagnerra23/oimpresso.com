@@ -32,3 +32,10 @@ Modules/NFSe/Tests/Feature/MultiTenantIsolationTest.php  # :154 sessão 99 devol
 # observer); contrato em resources/js/Pages/Nfse/Show.charter.md:73. Saída: trava no Model
 # (lote 4 da auditoria) e tirar esta linha no MESMO PR.
 tests/Feature/Modules/NFSe/NfseCanceladaNaoSomeDoBancoTest.php  # forceDelete apaga nota fiscal (run 43931224157) — lote 4
+# Saíram no lote 1 PR 1.1 (2026-11-16), causa medida e consertada no teste:
+#  - MultiTenantIsolationTest: rps_numero é varchar(20) e o teste gravava 22 caracteres
+#    ('RPS-TESTE-ISOL-CROSS-F'); o valor era truncado e a busca exata devolvia 0 linhas (:154).
+#  - NfseCertificadoMultiTenantIsolationTest: colunas antigas de nfe_certificados (1054) e
+#    SHOW COLUMNS ... LIKE com binding (1064); além disso, sem login o ScopeByBusiness não
+#    filtra no modo aberto, então o "não vaza" nunca tinha sido exercitado.
+# Os dois foram reescritos em 98×99. Nenhum arquivo em quarentena agora.
