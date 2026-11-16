@@ -355,3 +355,54 @@ it('UC-SAUX-06 · listar não grava acesso, e admin de negócio barrado também 
     expect($barrado->getStatusCode())->toBeIn([302, 403]);
     expect(u360Acessos($alvo->id)->count())->toBe(0);
 });
+
+// ── Show · UC-SAUX-07 · trancar e destrancar entram na mesma trilha ─────────
+
+it('UC-SAUX-07 · trancar e destrancar gravam 1 registro cada, no business do afetado e sem o motivo', function () {
+    if (! Schema::hasTable('activity_log') || ! Schema::hasColumn('activity_log', 'business_id')) {
+        $this->markTestSkipped('activity_log com business_id ausente.');
+    }
+
+    $alvo = u360Alvo('u360trilha_lock', BIZ_U360_OUTRO);
+    u360Acessos($alvo->id)->delete();
+    $super = u360Superadmin();
+    $motivo = 'Motivo sigiloso u360 que nao pode vazar';
+
+    $this->actingAs($super)
+        ->post("/superadmin/usuarios/{$alvo->id}/lock", ['reason' => $motivo])
+        ->assertSessionHasNoErrors();
+
+    $lock = u360Acessos($alvo->id)->where('event', 'usuario360_trancado')->get();
+    expect($lock)->toHaveCount(1);
+    expect((int) $lock[0]->causer_id)->toBe($super->id);
+    expect((int) $lock[0]->business_id)->toBe(BIZ_U360_OUTRO);
+    $props = json_decode((string) $lock[0]->properties, true);
+    $lockoutId = DB::table('user_lockouts')->where('user_id', $alvo->id)->whereNull('unlocked_at')->value('id');
+    expect((int) ($props['lockout_id'] ?? 0))->toBe((int) $lockoutId);
+    expect((string) $lock[0]->properties)->not->toContain('sigiloso');
+
+    $this->actingAs($super)
+        ->post("/superadmin/usuarios/{$alvo->id}/unlock", ['note' => 'liberado (teste u360)'])
+        ->assertSessionHasNoErrors();
+
+    $unlock = u360Acessos($alvo->id)->where('event', 'usuario360_destrancado')->get();
+    expect($unlock)->toHaveCount(1);
+    expect((int) $unlock[0]->business_id)->toBe(BIZ_U360_OUTRO);
+    expect(u360Acessos($alvo->id)->count())->toBe(2);
+});
+
+it('UC-SAUX-07 · trancar sem motivo não tranca e não grava rastro', function () {
+    if (! Schema::hasTable('activity_log')) {
+        $this->markTestSkipped('activity_log ausente.');
+    }
+
+    $alvo = u360Alvo('u360trilha_semmotivo', BIZ_U360_OUTRO);
+    u360Acessos($alvo->id)->delete();
+
+    $this->actingAs(u360Superadmin())
+        ->post("/superadmin/usuarios/{$alvo->id}/lock", ['reason' => ''])
+        ->assertSessionHasErrors('reason');
+
+    expect(DB::table('users')->where('id', $alvo->id)->value('status'))->toBe('active');
+    expect(u360Acessos($alvo->id)->count())->toBe(0);
+});
