@@ -31,7 +31,7 @@ interface Props {
  * 2026-11-09). As duas chaves vêm no prop `permissions` das cinco telas; a que faltar não esconde nada,
  * para tela antiga não perder a barra — quem barra de verdade é a rota.
  */
-function permissoesDaTela(): { receita?: boolean; prod?: boolean } {
+function usePermissoesDaTela(): { receita?: boolean; prod?: boolean } {
   const props = usePage().props as { permissions?: { receita?: boolean; prod?: boolean } };
 
   return props.permissions ?? {};
@@ -43,7 +43,7 @@ export default function FabricacaoAbas({
   producao,
   podeProduzir = true,
 }: Props) {
-  const permissoes = permissoesDaTela();
+  const permissoes = usePermissoesDaTela();
   const podeReceitas = permissoes.receita !== false;
   const podeProducao = podeProduzir && permissoes.prod !== false;
 
