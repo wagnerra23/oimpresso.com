@@ -92,6 +92,50 @@ describe('Sidebar · item com filhos abre inline', () => {
     expect(atuais[0].textContent).toBe('Agenda');
   });
 
+  // Medido em prod 2026-11-16 (biz=1, /sells): Vendas, Conector, Jana e Atendimento
+  // têm `children` E `ghosts` no shell.menu, e os 16 atalhos não chegavam ao DOM.
+  // Protótipo (`sidebar.jsx`, MenuGroup): o item com filhos desenha a cascata e,
+  // logo depois, a `GhostList` quando o item está ativo.
+  it('item com filhos E ghosts mostra os ghosts quando está ativo', () => {
+    irPara('/sells');
+    render(
+      <SidebarMenu
+        items={[
+          {
+            label: 'Vendas',
+            href: '/sells',
+            children: [{ label: 'Todas as vendas', href: '/sells' }],
+            ghosts: [{ key: 'catalogue-qr', label: 'Catálogo QR', href: '/product-catalogue/qr' }],
+          },
+          { label: 'Auditoria', href: '/auditoria' },
+        ]}
+      />,
+    );
+
+    const qr = screen.getByRole('link', { name: 'Catálogo QR' });
+    expect(qr.classList.contains('sb-ghost')).toBe(true);
+    expect(qr.getAttribute('href')).toBe('/product-catalogue/qr');
+  });
+
+  it('item com filhos E ghosts não mostra os ghosts fora da rota dele', () => {
+    irPara('/auditoria');
+    render(
+      <SidebarMenu
+        items={[
+          {
+            label: 'Vendas',
+            href: '/sells',
+            children: [{ label: 'Todas as vendas', href: '/sells' }],
+            ghosts: [{ key: 'catalogue-qr', label: 'Catálogo QR', href: '/product-catalogue/qr' }],
+          },
+          { label: 'Auditoria', href: '/auditoria' },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Catálogo QR' })).toBeNull();
+  });
+
   it('ghost que é prefixo de outro não divide o aria-current com ele', () => {
     irPara('/financeiro/contas-receber');
     render(
