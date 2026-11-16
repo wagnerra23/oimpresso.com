@@ -49,6 +49,15 @@
 #   função só `line`/`linhas` (+1); os números citados dentro de `nota` NÃO foram deslocados. NÃO é
 #   revalidação delas.
 #
+# Rejulgamento parcial 2026-11-16 [F+C] (PR #10920): a fonte mudou em 3 linhas, todas `whereRaw` de
+#   createVariableProductVariations (96 e 147) e updateVariableProductVariations (251): o nome digitado
+#   passou a ir como parâmetro (`LOWER(name) = ?`) em vez de interpolado na string. `git diff --numstat`
+#   = 3/3, sem linha deslocada. Rejulgados só o C6 (discordo → concordo) e o C8 dessas duas funções: o
+#   #10920 trouxe ProdutoVariacaoNomeCaracteresTest, que chama as duas diretamente e rodou verde na lane
+#   Estoque · MySQL (job 133005102960). Os outros vereditos delas e as demais funções NÃO foram revistos.
+#   `totals` recontado dos vereditos: estava 80/32/21/237, atrasado desde o #10843 (o C2 de
+#   calculateComboQuantity saiu de incerto para concordo e o total não acompanhou); agora 83/30/20/237.
+#
 # validation_status: pareceres-ancorados-nao-validados — os vereditos são PARECER ancorado em
 #   evidência+intenção externa, NÃO achados provados. O INSTRUMENTO (juiz) foi calibrado em fixture
 #   sintética não-circular (método §5 rodada 3, κ=1,0), mas isso NÃO re-valida estes vereditos sobre a
@@ -58,7 +67,7 @@ file: app/Utils/ProductUtil.php
 module: Produto
 rubric: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
 rubric_version: "1.1"
-source_blob_sha: "d6b9ea8d9e730ed7f84841aa6ba8862fc7eee20c"
+source_blob_sha: "0c1487e73f248ddc5117bf1035bb8f30657a6845"
 judged_at: "2026-07-21"
 judge: "claude-opus-4-8"
 source: full-sweep-2026-07-21
@@ -83,7 +92,7 @@ ancoras_externas_usadas:
 # leituras de PREÇO/IMPOSTO (VariationGroupPrice/TaxRate) NÃO têm âncora equivalente e tax_rates
 # TEM business_id (revisão central). Sem âncora → discordo/incerto; com âncora → concordo.
 # ─────────────────────────────────────────────────────────────────────────────
-totals: { concordo: 80, discordo: 32, incerto: 21, na: 237 }   # contagem (§0.2 — sem nota agregada); 37 funções × 10 critérios (C8 não tem status) = 370
+totals: { concordo: 83, discordo: 30, incerto: 20, na: 237 }   # contagem (§0.2 — sem nota agregada); 37 funções × 10 critérios (C8 não tem status) = 370
 functions:
   - function: createSingleProductVariation
     line: 39
@@ -107,12 +116,12 @@ functions:
       C3: { status: n/a, motivo: "função de escrita; não retorna dado consumido" }
       C4: { status: incerto, evidencia: { quote: "$variations = $product_variation->variations()->createMany($variation_data)", linhas: "177" }, ancora: "0093 (atomicidade)", nota: "createMany + VariationTemplate::create + VariationValueTemplate::create sem tx interna; ProductController envolve (verificado) mas ModifierSets:149/Import:676 não verificados" }
       C5: { status: discordo, evidencia: { quote: "$variation_value = VariationValueTemplate::where('variation_template_id', $variation_template->id)->whereRaw(...)->first()", linhas: "146-148" }, ancora: "Eloquent N+1", nota: "query de template/value POR item dentro do foreach de variações; forma set-based (preload) existe" }
-      C6: { status: discordo, evidencia: { quote: "VariationTemplate::where('business_id', $business_id)->whereRaw('LOWER(name)=\"'.strtolower($variation_template_name).'\"')", linhas: "95-96, 147" }, ancora: "Laravel security", nota: "nome vindo de input interpolado em whereRaw SEM binding (96 e 147)" }
+      C6: { status: concordo, evidencia: { quote: "->whereRaw('LOWER(name) = ?', [strtolower($variation_template_name)])", linhas: "96, 147" }, ancora: "Laravel security", nota: "desde o #10920 (2026-11-16) o nome digitado vai como parâmetro nos dois whereRaw (96 e 147); antes era interpolado" }
       C7a: { status: discordo, evidencia: { quote: "@return bool", linhas: "76" }, ancora: "§5 2026-07-15", nota: "docblock diz bool mas função cai no fim sem return (void/null)" }
       C7b: { status: n/a, motivo: "sem retorno polimórfico declarado em caminhos" }
       C7c: { status: n/a, motivo: "o problema observado é mentira do docblock, não contrato nullable" }
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
-      C8: { consumidores: 4, testes_diretos: 0, nota: "ImportProductsController:676, ProductController:728/1120, Restaurant/ModifierSetsController:149; ZERO teste direto" }
+      C8: { consumidores: 4, testes_diretos: 1, nota: "ImportProductsController:676, ProductController:728/1120, Restaurant/ModifierSetsController:149; teste direto: tests/Feature/Produto/ProdutoVariacaoNomeCaracteresTest.php (1 arquivo, 2 invocações: 50, 67)" }
   - function: updateVariableProductVariations
     line: 195
     vereditos:
@@ -121,12 +130,12 @@ functions:
       C3: { status: n/a, motivo: "função de escrita; lança Exception no caminho de erro" }
       C4: { status: incerto, evidencia: { quote: "Variation::where('id', $removed_variation_id)->delete(); ... throw new \\Exception", linhas: "324-329, 332-334" }, ancora: "0093 (atomicidade)", nota: "create+update+delete multi-escrita com throw no meio; ProductController@update envolve (verificado 976/1169) mas ModifierSets:268 não verificado — write parcial se caller não envolver" }
       C5: { status: discordo, evidencia: { quote: "$count_purchase = PurchaseLine::join(...)->count(); $count_sell = TransactionSellLine::join(...)->count()", linhas: "295-319" }, ancora: "Eloquent N+1", nota: "2 COUNTs POR removed_variation dentro do foreach (293); forma set-based (whereIn) existe" }
-      C6: { status: discordo, evidencia: { quote: "VariationValueTemplate::where(...)->whereRaw('LOWER(name)=\"'.$v['value'].'\"')", linhas: "250-251" }, ancora: "Laravel security", nota: "valor de input interpolado em whereRaw sem binding" }
+      C6: { status: concordo, evidencia: { quote: "->whereRaw('LOWER(name) = ?', [$v['value']])", linhas: "251" }, ancora: "Laravel security", nota: "desde o #10920 (2026-11-16) o valor digitado vai como parâmetro; antes era interpolado" }
       C7a: { status: discordo, evidencia: { quote: "@return bool", linhas: "193" }, ancora: "§5 2026-07-15", nota: "docblock diz bool mas retorna void" }
       C7b: { status: n/a, motivo: "sem retorno polimórfico" }
       C7c: { status: n/a, motivo: "sem nullabilidade" }
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
-      C8: { consumidores: 2, testes_diretos: 0, nota: "ProductController:1114, Restaurant/ModifierSetsController:268; ZERO teste direto" }
+      C8: { consumidores: 2, testes_diretos: 1, nota: "ProductController:1114, Restaurant/ModifierSetsController:268; teste direto: tests/Feature/Produto/ProdutoVariacaoNomeCaracteresTest.php (1 arquivo, 1 invocação: 77)" }
   - function: updateProductQuantity
     line: 350
     vereditos:
@@ -607,8 +616,7 @@ functions:
 # §5 2026-07-15: varredura contada + âncora + teste vermelho; + REGRA MESTRE se valor/estoque):
 pendencias:
   # === SQL cru interpolado (superfície de injeção) ===
-  - "createVariableProductVariations: C6 — nome de input em whereRaw sem binding (96, 147)"
-  - "updateVariableProductVariations: C6 — valor de input em whereRaw sem binding (251)"
+  # createVariableProductVariations / updateVariableProductVariations: C6 resolvido no #10920 (2026-11-16).
   - "getProductStockDetails: C6 — $location_id/$locations_imploded interpolados em DB::raw (1766/1774/1826)"
   - "getVariationStockMisMatch: C6 — $location_id (request) interpolado em ~11 subqueries DB::raw (2212+)"
   # === Contrato de dado-ausente silencioso (C3) ===

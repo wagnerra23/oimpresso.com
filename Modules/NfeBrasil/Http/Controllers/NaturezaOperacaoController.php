@@ -62,6 +62,30 @@ class NaturezaOperacaoController extends Controller
         ]);
     }
 
+    /**
+     * GET /nfe-brasil/tributacao/naturezas/lancamento — as naturezas que se escolhem ao emitir a NF-e
+     * (onda 5). Mesmo filtro que a emissão aceita (`NfeService::naturezaDoLancamento`): criadas pela
+     * tela, ativas, de saída, finalidade normal e sem nota referenciada. Permissão de EMITIR, não de
+     * configurar a tributação — quem emite é o vendedor.
+     */
+    public function paraLancamento(Request $request): JsonResponse
+    {
+        $businessId = $this->liberado($request);
+
+        $naturezas = $this->daEmpresa($businessId)
+            ->whereNotNull('config_tela')
+            ->where(fn ($q) => $q->whereNull('ativa')->orWhere('ativa', true))
+            ->where(fn ($q) => $q->whereNull('tipo')->orWhere('tipo', 'saida'))
+            ->where('finalidade', 1)
+            ->where(fn ($q) => $q->whereNull('pede_nota_referenciada')->orWhere('pede_nota_referenciada', false))
+            ->orderBy('nome')
+            ->get(['id', 'nome', 'cfop', 'cfop_interestadual']);
+
+        return response()->json(['naturezas' => $naturezas->map(fn (NfeOperacaoFiscal $n) => [
+            'id' => $n->id, 'nome' => $n->nome, 'cfop' => $n->cfop, 'cfop_interestadual' => $n->cfop_interestadual,
+        ])->values()]);
+    }
+
     /** POST /nfe-brasil/tributacao/naturezas */
     public function store(UpsertNaturezaRequest $request): JsonResponse
     {

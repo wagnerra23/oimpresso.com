@@ -752,6 +752,8 @@ class ContactController extends Controller
             // protege server-side, mas evita o no-op confuso). Wagner 2026-06-08.
             'contacts.is_default',
             'contacts.created_at',
+            // Filtro "Excluídos" (UC-CIDX-16): data em que o cadastro foi excluído; null nos demais.
+            'contacts.deleted_at',
             // Endereço completo — sem isso, router.reload({only:['rows']}) pós lookup
             // CNPJ/CEP zera campos no EnderecoTab (undefined → setState('')) e a UI
             // some apesar do DB ter os dados. Wagner 2026-05-27.
@@ -877,7 +879,11 @@ class ContactController extends Controller
         }
 
         // ADR 0188 — filtra por papel (`is_X`) se a coluna existir, fallback `type` enum.
-        $contactsQuery = Contact::where('contacts.business_id', $business_id);
+        // UC-CIDX-16 — filtro "Excluídos": só os cadastros excluídos (deleted_at), para consulta e
+        // restauração. Excluir nunca apaga a linha (soft delete); sem o filtro eles ficam fora da lista.
+        $contactsQuery = request()->boolean('excluidos')
+            ? Contact::onlyTrashed()->where('contacts.business_id', $business_id)
+            : Contact::where('contacts.business_id', $business_id);
         $contactsQuery = $this->applyContactTypeFilter($contactsQuery, $type);
         $contactsQuery = $this->applyViewOwnFilter($contactsQuery, $type);
 
@@ -1063,6 +1069,8 @@ class ContactController extends Controller
                     : null,
                 // Consumidor/fornecedor padrão (walk-in) — front esconde "Excluir".
                 'is_default' => (bool) $contact->is_default,
+                // UC-CIDX-16 — data da exclusão (só no filtro "Excluídos").
+                'excluido_em' => $contact->deleted_at ? $contact->deleted_at->format('Y-m-d H:i') : null,
                 // Wave G novos campos cadastrais.
                 // avatar_hash_seed = name (HSL hash determinístico Pages/Cliente/_components/Avatar.tsx).
                 // Frontend usa name por default mas seed explícito permite estabilidade
@@ -2669,6 +2677,29 @@ class ContactController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * UC-CIDX-16 — restaura um cadastro excluído (o filtro "Excluídos" da lista de clientes).
+     * Mesma permissão de excluir; só cadastro da empresa da sessão (Tier 0, ADR 0093).
+     */
+    public function restore($id)
+    {
+        if (! auth()->user()->can('supplier.delete') && ! auth()->user()->can('customer.delete')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->user()->business_id;
+        $contact = Contact::onlyTrashed()->where('business_id', $business_id)->findOrFail($id);
+
+        $contact->restore();
+        $this->contactUtil->activityLog($contact, 'contact_restored', [
+            'id' => $contact->id,
+            'name' => $contact->name,
+        ]);
+        event(new ContactCreatedOrModified($contact, 'updated'));
+
+        return ['success' => true, 'msg' => 'Cadastro restaurado.'];
     }
 
     /**

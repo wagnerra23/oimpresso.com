@@ -36,6 +36,7 @@ import {
   Paperclip,
   Phone,
   Plus,
+  RotateCcw,
   Search,
   Sparkles,
   Star,
@@ -123,6 +124,8 @@ interface ClienteRow {
   valor_aberto: number;
   status: 'late' | 'active' | 'idle';
   last_os_at: string | null;
+  // UC-CIDX-16 — data da exclusão ('AAAA-MM-DD HH:MM'); só vem no filtro "Excluídos".
+  excluido_em?: string | null;
   // Thread cliente/02 — venda mais recente (coluna "Última OS"). null = sem venda.
   last_os?: { id: number; invoice_no: string } | null;
   // Wave C — campos cadastrais opcionais propagados pelo ContactController::index
@@ -274,7 +277,9 @@ export interface ClienteIndexPageProps {
   oficinaauto_enabled?: boolean;
 }
 
-type StatusFilter = '' | 'late' | 'active' | 'idle';
+// 'excluidos' (UC-CIDX-16) não fica em STATUS_FILTER_VALUES: não volta pelo ?status= nem pelo
+// localStorage — só pelo ?excluidos=1 que o próprio filtro põe na URL ao recarregar do servidor.
+type StatusFilter = '' | 'late' | 'active' | 'idle' | 'excluidos';
 type SortKey = 'recent' | 'name' | 'total_os' | 'valor_aberto' | 'last_os_at';
 type SortDir = 'asc' | 'desc';
 
@@ -312,6 +317,7 @@ function readStoredStatusFilter(): StatusFilter {
   if (typeof window === 'undefined') return '';
   try {
     const params = new URLSearchParams(window.location.search);
+    if (params.get('excluidos') === '1') return 'excluidos';
     const fromUrl = params.get('status');
     if (fromUrl !== null && (STATUS_FILTER_VALUES as readonly string[]).includes(fromUrl)) {
       return fromUrl as StatusFilter;
@@ -558,6 +564,46 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     } catch (_) { /* localStorage indisponível */ }
   }, [statusFilter]);
 
+  // UC-CIDX-16 — "Excluídos" vem do servidor (cadastros com deleted_at). Entrar ou sair do
+  // filtro recarrega a lista; `excluidos: undefined` tira o parâmetro da URL.
+  const modoExcluidos = statusFilter === 'excluidos';
+  const modoExcluidosMontado = useRef(false);
+  useEffect(() => {
+    if (!modoExcluidosMontado.current) {
+      modoExcluidosMontado.current = true;
+      return;
+    }
+    router.reload({
+      only: ['customers'],
+      data: { excluidos: modoExcluidos ? 1 : undefined, page: 1 },
+    });
+  }, [modoExcluidos]);
+
+  const [restaurando, setRestaurando] = useState<number | null>(null);
+  const restaurar = useCallback(async (row: ClienteRow) => {
+    if (restaurando !== null) return;
+    setRestaurando(row.id);
+    try {
+      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+      const r = await fetch(`/contacts/${row.id}/restore`, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+      });
+      const json = await r.json().catch(() => null);
+      if (r.ok && json?.success) {
+        toast.success(json.msg || 'Cadastro restaurado.');
+        router.reload({ only: ['customers', 'kpis', 'tab_counts'] });
+      } else {
+        toast.error(json?.msg || 'Não foi possível restaurar este cadastro.');
+      }
+    } catch {
+      toast.error('Falha de rede ao restaurar. Verifique a conexão e tente de novo.');
+    } finally {
+      setRestaurando(null);
+    }
+  }, [restaurando]);
+
   useEffect(() => {
     setPage(1);
   }, [statusFilter, search, sortKey, sortDir, perPage, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
@@ -651,7 +697,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
 
   const filteredRows = useMemo(() => {
     let r = rows;
-    if (statusFilter) r = r.filter((x) => x.status === statusFilter);
+    // "Excluídos" é filtro do servidor (onlyTrashed); os demais filtram a página em memória.
+    if (statusFilter && statusFilter !== 'excluidos') r = r.filter((x) => x.status === statusFilter);
     // Fix 2026-05-26 — busca por nome/tax_number/mobile MIGROU pro backend
     // (useEffect [search] acima dispara router.reload com `q`). Aqui rows
     // já vem filtrado server-side; filtro client-side seria duplicado e
@@ -767,7 +814,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       if (e.key === 'Enter' && focusedIndex !== null) {
         e.preventDefault();
         const row = filteredRows[focusedIndex];
-        if (row) openDrawer(row.id);
+        if (row && !row.excluido_em) openDrawer(row.id);
         return;
       }
 
@@ -1014,6 +1061,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                   { value: 'active', label: 'Ativo (com OS aberta)' },
                   { value: 'late', label: 'Atrasado' },
                   { value: 'idle', label: 'Sem OS' },
+                  { value: 'excluidos', label: 'Excluídos' },
                 ]}
               />
               <FilterDropdown
@@ -1188,7 +1236,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           }
                           onClick={() => {
                             setFocusedIndex(idx);
-                            openDrawer(row.id);
+                            // Cadastro excluído não abre a gaveta (os endpoints dela não o enxergam);
+                            // a ação dele é Restaurar, no menu ⋮.
+                            if (!row.excluido_em) openDrawer(row.id);
                           }}
                         >
                           <td className="px-4 py-2.5">
@@ -1204,6 +1254,11 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                             <div className="min-w-0">
                             <div className="text-foreground font-medium leading-tight flex items-center gap-1.5">
                               {row.name}
+                              {row.excluido_em && (
+                                <span className="inline-flex items-center rounded bg-destructive-soft px-1 py-0 text-[9px] font-semibold text-destructive-fg">
+                                  Excluído em {formatDate(row.excluido_em.replace(' ', 'T'))}
+                                </span>
+                              )}
                               {row.vip && (
                                 <span
                                   className="inline-flex items-center rounded bg-yellow-100 px-1 py-0 text-[9px] font-semibold text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300"
@@ -1330,6 +1385,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                               onEdit={() => openDrawer(row.id, 'identificacao')}
                               onExtrato={() => openDrawer(row.id, 'operacoes')}
                               onDelete={() => setDeleteTarget(row)}
+                              onRestore={() => restaurar(row)}
+                              restoring={restaurando === row.id}
                             />
                           </td>
                         </tr>
@@ -1423,9 +1480,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             <AlertDialogDescription>
               {deleteTarget ? (
                 <>
-                  <strong>{deleteTarget.name || 'Este contato'}</strong> será excluído.
-                  Contatos com venda, compra ou OS lançada não podem ser excluídos —
-                  nesse caso o sistema avisa e nada é apagado.
+                  <strong>{deleteTarget.name || 'Este contato'}</strong> será excluído e
+                  continua guardado: aparece no filtro Status › Excluídos, de onde pode ser restaurado.
+                  Contatos com venda, compra, OS, assinatura, cobrança, veículo ou crédito não podem
+                  ser excluídos — nesse caso o sistema avisa e nada muda.
                 </>
               ) : null}
             </AlertDialogDescription>
@@ -1761,6 +1819,8 @@ function ActionsMenu({
   onEdit,
   onExtrato,
   onDelete,
+  onRestore,
+  restoring = false,
 }: {
   row: ClienteRow;
   canDelete: boolean;
@@ -1768,8 +1828,20 @@ function ActionsMenu({
   onEdit: () => void;
   onExtrato: () => void;
   onDelete: () => void;
+  onRestore?: () => void;
+  restoring?: boolean;
 }) {
   const showDelete = canDelete && !row.is_default;
+  // UC-CIDX-16 — cadastro excluído: a única ação é Restaurar (mesma permissão de excluir).
+  if (row.excluido_em) {
+    if (!canDelete || !onRestore) return null;
+    return (
+      <Button type="button" variant="outline" size="sm" onClick={onRestore} disabled={restoring}>
+        <RotateCcw size={14} className="mr-1.5" />
+        {restoring ? 'Restaurando…' : 'Restaurar'}
+      </Button>
+    );
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

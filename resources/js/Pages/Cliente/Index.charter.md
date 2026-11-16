@@ -309,3 +309,17 @@ Sem backfill (nenhum cadastro existente é "Outros"). Migration Wave 30 (importe
 
 - UC-CIDX-15 em `Index.casos.md` · testes `tests/Feature/Cliente/ClienteExcluirRegrasTest.php` (Pest) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest).
 - Restaurar e consultar os excluídos pela tela (Non-Goal da v9) entra em PR próprio, a pedido do Felipe na mesma conversa.
+
+## v11 · 2026-11-16 · Consultar e restaurar os excluídos (append-only)
+
+**Trigger:** Felipe 2026-11-16, na mesma conversa da v10: *"Excluir aplica o status de excluído no registro para eventuais consultas"* e *"faz os quatro, com restaurar"*. Fecha o Non-Goal da v9 *"Restaurar excluído pela tela (Onda futura se demanda aparecer)"*: a demanda apareceu.
+
+- **Filtro Status › Excluídos.** Opção nova no filtro Status que já existia. Diferente das outras opções, que filtram a página em memória, esta recarrega a lista do servidor com `excluidos=1`: `buildClienteIndexCustomers` usa `Contact::onlyTrashed()` com o mesmo escopo de empresa, de papel e de "ver os próprios". Cada linha traz `excluido_em`.
+- **Linha excluída.** Mostra "Excluído em dd/mm/aa", não abre a gaveta (os endpoints dela não enxergam cadastro excluído) e troca o menu ⋮ pelo botão **Restaurar**, só para quem tem `customer.delete`/`supplier.delete`.
+- **Restaurar.** `POST /contacts/{id}/restore` (`ContactController::restore`): mesma permissão de excluir, só cadastro excluído da empresa da sessão (404 fora disso), registra `contact_restored` no histórico.
+- **Texto do diálogo de excluir.** Diz que o cadastro continua guardado e onde encontrá-lo.
+- **Fora do protótipo.** O protótipo (`clientes-page.jsx`) não tem a opção Excluídos nem o Restaurar; a tela fica à frente dele neste ponto, por pedido explícito.
+
+### Refs v11
+
+- UC-CIDX-16 em `Index.casos.md` · teste `tests/Feature/Cliente/ClienteExcluidosTest.php`.

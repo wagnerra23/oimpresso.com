@@ -881,6 +881,12 @@
       "classe": "automacao",
       "terminal": "cron",
       "anchor": "RUNBOOK-route-hits passo 3 · custo medido: export manual parou 2x (2026-07-25 religado #6155; 2026-08-22 religado #9765) e nas duas o eixo entrega do cron-watchdog (G6, 60d) avermelhou todo PR — a coleta (tabela route_hits) nunca parou"
+    },
+    "load-test.yml": {
+      "nome": "Load test k6 (manual, só staging)",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "pedido [W] 2026-11-15 (teste de carga antes da Uniafibro em produção); workflow_dispatch apenas, nunca required; RUNBOOK memory/requisitos/Infra/RUNBOOK-load-test.md."
     }
   }
 }
