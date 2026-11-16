@@ -849,6 +849,18 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Vestuario/VestuarioTelasBrowserTest.php
 
+      # ── E2E DE COMPORTAMENTO — Producao (NASCE ADVISORY) ────────────────────────────
+      # As 7 telas Inertia (Painel, Quadro, Linha, Apontamento, Postos, Roteiros e Ficha da OS)
+      # em Chromium real, com axe CRITICAL. Auditoria Producao 2026-11-05, eixo 1 P4 (item 5.3):
+      # nenhuma tela do módulo tinha Pest Browser nem axe. Tenant 98 (ADR 0358); sem pixel
+      # (ADR 0445). Promover = remover o `continue-on-error` depois de 2 verdes que EXECUTARAM,
+      # lidos no log; é flip [W].
+      - name: E2E de comportamento · Producao (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-producao
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Producao/ProducaoTelasBrowserTest.php
+
       # ── E2E DE COMPORTAMENTO — Catálogo QR (NASCE ADVISORY) ─────────────────────────
       # O QR nasce no navegador (easy.qrcode), então nenhuma suíte Feature o alcança: gerar,
       # invalidar, copiar, vazio e axe em Chromium real. Auditoria ProductCatalogue 2026-11-09:
@@ -900,6 +912,7 @@ jobs:
           A_REPAIR_PRODUCAO: ${{ steps.e2e-repair-producao.outcome }}
           A_OFICINA_AUTO: ${{ steps.e2e-oficina-auto.outcome }}
           A_COMUNICACAO_VISUAL: ${{ steps.e2e-comunicacao-visual.outcome }}
+          A_PRODUCAO: ${{ steps.e2e-producao.outcome }}
           A_VESTUARIO: ${{ steps.e2e-vestuario.outcome }}
           A_CATALOGO_QR: ${{ steps.e2e-catalogo-qr.outcome }}
           A_PATR_ALOCACOES: ${{ steps.e2e-patrimonio-alocacoes.outcome }}
@@ -945,6 +958,7 @@ jobs:
           registrar "E2E de render · Repair/ProducaoOficina" "$A_REPAIR_PRODUCAO"
           registrar "E2E de comportamento · OficinaAuto" "$A_OFICINA_AUTO"
           registrar "E2E de comportamento · ComunicacaoVisual" "$A_COMUNICACAO_VISUAL"
+          registrar "E2E de comportamento · Producao" "$A_PRODUCAO"
           registrar "E2E de comportamento · Vestuario" "$A_VESTUARIO"
           registrar "E2E de comportamento · Catálogo QR" "$A_CATALOGO_QR"
           registrar "E2E de render · Patrimonio/Alocacoes" "$A_PATR_ALOCACOES"
