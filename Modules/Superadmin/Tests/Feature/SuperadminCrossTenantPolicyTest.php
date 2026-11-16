@@ -46,7 +46,8 @@ function requiresMySQLSchema(): void
     }
 }
 
-const BIZ_WAGNER_POLICY = 1;
+// Tenant fictício de teste (ADR 0358): 98. Era 1 (WR2 Sistemas, empresa real) até 2026-11-16.
+const BIZ_TENANT_POLICY = 98;
 const BIZ_FICTICIO_POLICY = 99;
 
 // ---------- Cenário 1: withoutGlobalScopes retorna entities cross-tenant ----------
@@ -162,7 +163,7 @@ it('usuário SEM permission `superadmin` recebe 403/302 em /superadmin/business 
 it('superadmin NÃO pode deletar próprio business_id (self-destroy guard)', function () {
     requiresMySQLSchema();
     Business::firstOrCreate(
-        ['id' => BIZ_WAGNER_POLICY],
+        ['id' => BIZ_TENANT_POLICY],
         ['name' => 'Wagner Teste Policy', 'currency_id' => 1]
     );
 
@@ -171,7 +172,7 @@ it('superadmin NÃO pode deletar próprio business_id (self-destroy guard)', fun
         [
             'email'       => 'policy_admin@test.local',
             'password'    => bcrypt('secret'),
-            'business_id' => BIZ_WAGNER_POLICY,
+            'business_id' => BIZ_TENANT_POLICY,
             'first_name'  => 'Policy',
             'last_name'   => 'Admin',
         ]
@@ -186,17 +187,17 @@ it('superadmin NÃO pode deletar próprio business_id (self-destroy guard)', fun
     }
 
     // Simula session com business_id próprio
-    session(['user.business_id' => BIZ_WAGNER_POLICY]);
+    session(['user.business_id' => BIZ_TENANT_POLICY]);
     session(['user.id' => $admin->id]);
 
-    // Tenta deletar o próprio biz=1 — Controller responde 4xx ou redirect, NUNCA hard delete
-    $response = $this->actingAs($admin)->delete('/superadmin/business/'.BIZ_WAGNER_POLICY); // o alias GET /destroy saiu (2026-11-16)
+    // Tenta deletar o próprio business — Controller responde 4xx ou redirect, NUNCA hard delete
+    $response = $this->actingAs($admin)->delete('/superadmin/business/'.BIZ_TENANT_POLICY); // o alias GET /destroy saiu (2026-11-16)
 
-    // Aceita: 302 (redirect com status erro), 403, 200 (com mensagem) — desde que biz=1 ainda exista
-    $stillExists = Business::find(BIZ_WAGNER_POLICY) !== null;
+    // Aceita: 302 (redirect com status erro), 403, 200 (com mensagem) — desde que o business ainda exista
+    $stillExists = Business::find(BIZ_TENANT_POLICY) !== null;
 
     expect($stillExists)->toBeTrue(
-        'Self-destroy guard deve preservar Business::find(1) mesmo após tentativa de destroy próprio biz_id'
+        'Self-destroy guard deve preservar o business da sessão mesmo após tentativa de destroy próprio biz_id'
     );
     expect($response->status())->toBeLessThan(500, 'Self-destroy não pode quebrar com 5xx');
 });

@@ -87,14 +87,14 @@ it('Business::create biz=1 (Wagner) NÃO dispara auto-Subscription', function ()
     $package = onda5b_pkg();
     onda5b_setProperty($package->id);
 
-    Business::withoutGlobalScopes()->where('id', 1)->first();
-    // biz=1 já existe em prod; pra teste, vou simular create com id=1 via firstOrCreate
-    // mas garantir que NÃO há subscription com nosso package_id
+    // O id 1 aqui é o que o PRÓPRIO observer isenta (`$business->id === 1`), então o teste
+    // precisa dele. Mas não lê nem cria o business 1 no banco (empresa real — ADR 0358):
+    // o observer só olha o id, e uma instância não salva basta para exercitá-lo.
     $initialCount = Subscription::where('business_id', 1)->where('package_id', $package->id)->count();
 
-    // Skip cleanup-creating — apenas valida que observer não cria sub pra biz=1 quando rodado
     $observer = new \Modules\Superadmin\Observers\BusinessAutoSubscriptionObserver();
-    $bizWagner = Business::withoutGlobalScopes()->find(1) ?? Business::create(['id' => 1, 'name' => 'Wagner', 'currency_id' => 1]);
+    $bizWagner = new Business();
+    $bizWagner->id = 1;
     $observer->created($bizWagner);
 
     $finalCount = Subscription::where('business_id', 1)->where('package_id', $package->id)->count();
