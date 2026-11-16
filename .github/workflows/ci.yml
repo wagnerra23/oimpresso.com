@@ -192,6 +192,9 @@ jobs:
       - name: Produto — receita da Fabricação no painel (UC-PIDX-48)
         run: npx vitest run tests/js/produto-receita-no-painel.test.tsx
 
+      - name: Produto — lotes com saldo no painel (UC-PIDX-49)
+        run: npx vitest run tests/js/produto-lotes-no-painel.test.tsx
+
       - name: Caixinha (Checkbox) igual à do DS
         run: npx vitest run tests/js/checkbox-igual-ds.test.tsx
 

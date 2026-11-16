@@ -700,6 +700,41 @@ class ProductController extends Controller
         }, app(\App\Contracts\Fabricacao\ReceitaDoProduto::class)->fichasDoProduto($id, $business_id));
     }
 
+    /**
+     * UC-PIDX-49 (CV3): os lotes do produto que ainda têm saldo (numa comunicação visual, cada rolo é um lote),
+     * pela MESMA consulta do relatório de Lotes (ConsultaDeLotes): o painel não recalcula. O link abre o
+     * relatório já filtrado no produto, onde ficam os lotes zerados e o rastreio do lote por OS (UC-RLT-06).
+     * null = sem `stock_report.view` (a permissão do relatório) ou produto que não controla estoque.
+     *
+     * @return array{lotes: list<array<string, mixed>>, mais: bool, link: string}|null
+     */
+    protected function lotesDoProduto(int $business_id, int $id, bool $controlaEstoque): ?array
+    {
+        if (! $controlaEstoque || ! auth()->user()->can('stock_report.view')) {
+            return null;
+        }
+        $limite = 50;
+        $linhas = app(\App\Services\Estoque\ConsultaDeLotes::class)
+            ->consulta($business_id, ['product_id' => $id])
+            ->havingRaw('stock > 0')
+            ->orderBy('sub_sku', 'asc')->orderBy('pl.lot_number', 'asc')
+            ->limit($limite + 1)
+            ->toBase()->get();
+
+        return [
+            'lotes' => $linhas->take($limite)->map(fn (\stdClass $r): array => [
+                'lote' => (string) $r->lot_number,
+                'variacao' => $r->variation_name !== 'DUMMY' ? (string) $r->variation_name : null,
+                'validade' => ! empty($r->exp_date) ? (string) $this->productUtil->format_date($r->exp_date) : '',
+                'vencido' => ! empty($r->exp_date) && \Carbon::now()->diffInDays(\Carbon::createFromFormat('Y-m-d', $r->exp_date), false) < 0,
+                'estoque' => (float) $r->stock,
+                'unidade' => (string) ($r->unit ?? ''),
+            ])->values()->all(),
+            'mais' => $linhas->count() > $limite,
+            'link' => '/reports/lot-report?' . http_build_query(['tela' => 'nova', 'product_id' => $id]),
+        ];
+    }
+
     protected function buildProdutoDetalhe(int $business_id, int $id): ?array
     {
         $produto = Product::where('business_id', $business_id)->find($id);
@@ -858,6 +893,7 @@ class ProductController extends Controller
             'sku' => (string) $produto->sku,
             'tipo' => $tipo,
             'receitas' => $this->receitasDoProduto($business_id, $id),
+            'lotes' => $this->lotesDoProduto($business_id, $id, $controlaEstoque),
             'uso' => $uso === [] ? ['vender'] : $uso,
             'inativo' => (bool) $produto->is_inactive,
             // UC-PIDX-45: excluído (AR-PROD-022). O painel tira Editar e Preços por grupo, como o menu da linha.
