@@ -73,7 +73,7 @@ Formulário de emissão de uma NFS-e: o operador informa competência, tomador (
 
 ## Anti-hooks (NÃO faz automaticamente)
 
-- ❌ NÃO emite **nota nova** automaticamente depois de um erro ("Nova emissão" é ação explícita no detalhe). A fila retenta o **mesmo envio** até 3 vezes, 60 s entre tentativas (`EmitirNfseJob::$tries`/`$backoff`), antes de a nota ficar em `erro` *(errata 2026-11-16: dizia "NÃO reenvia/retenta emissão automaticamente em erro", e a fila retenta)*
+- ❌ NÃO emite **nota nova** automaticamente depois de um erro ("Nova emissão" é ação explícita no detalhe). A fila retenta a emissão até 3 vezes, 60 s entre tentativas (`EmitirNfseJob::$tries`/`$backoff`); o que cada tentativa reenvia (linha e nº de DPS) é do serviço de emissão — ver lote 2, #11025 *(errata 2026-11-16: dizia "NÃO reenvia/retenta emissão automaticamente em erro", e a fila retenta)*
 - ❌ NÃO salva rascunho automático do formulário
 - ❌ NÃO dispara emissão sem submit explícito do operador
 
