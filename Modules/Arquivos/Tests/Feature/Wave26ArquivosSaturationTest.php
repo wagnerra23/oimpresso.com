@@ -36,9 +36,10 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
         expect(in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, $traits, true))->toBeTrue();
         expect(in_array(\Spatie\Activitylog\Traits\LogsActivity::class, $traits, true))->toBeTrue();
 
-        // Global scope multi-tenant Tier 0
-        $src = file_get_contents((new ReflectionClass(Arquivo::class))->getFileName());
-        expect($src)->toContain("addGlobalScope('business_id'");
+        // Global scope multi-tenant Tier 0. Desde 2026-11-16 (ADR 0453, auditoria L2) o scope
+        // mora na trait EscopoDeEmpresa, não no fonte do Arquivo: confere o scope REGISTRADO,
+        // não a string no arquivo.
+        expect(Arquivo::hasGlobalScope('business_id'))->toBeTrue();
     });
 
     it('D1: HasArquivos trait expoe API canônica (arquivos, attachArquivo, arquivosClassificados)', function () {
