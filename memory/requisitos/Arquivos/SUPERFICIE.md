@@ -47,9 +47,10 @@ module: Arquivos
 - [RetencaoStatsReader.php](../../../Modules/Arquivos/Services/RetencaoStatsReader.php)
 - [VaultEncryptionService.php](../../../Modules/Arquivos/Services/VaultEncryptionService.php)
 
-## Models / Entities — 1
+## Models / Entities — 2
 
 - [Arquivo.php](../../../Modules/Arquivos/Entities/Arquivo.php)
+- [EscopoDeEmpresa.php](../../../Modules/Arquivos/Entities/Concerns/EscopoDeEmpresa.php)
 
 ## Jobs — 2
 
