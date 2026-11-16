@@ -67,6 +67,19 @@ function kitvKit(object $test, object $a, object $b, bool $controla): object
     return $kit;
 }
 
+/** A recusa é a de estoque (PurchaseSellMismatch), que cita o componente — não qualquer erro. */
+function kitvRecusaPorEstoque(string $msg, object $a, object $b): bool
+{
+    foreach ([$a, $b] as $p) {
+        $nome = (string) DB::table('products')->where('id', $p->productId)->value('name');
+        if ($nome !== '' && str_contains($msg, $nome)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function kitvVenderSemEstoque(object $test, bool $liga): void
 {
     $atual = json_decode((string) DB::table('business')->where('id', $test->bizId)->value('pos_settings'), true) ?: [];
@@ -84,14 +97,28 @@ function kitvVender(object $test, object $kit, object $a, object $b, int $kits, 
 {
     $total = 10.0 * $kits;
     $pagamento = [['amount' => $total, 'method' => 'cash', 'paid_on' => '', 'account_id' => null, 'note' => '']];
+    // O que o servidor registrar como erro vai para a mensagem do teste: sem isso uma recusa por payload
+    // incompleto parece recusa por estoque.
+    $erros = [];
+    \Illuminate\Support\Facades\Event::listen(\Illuminate\Log\Events\MessageLogged::class, function ($e) use (&$erros) {
+        if (in_array($e->level, ['emergency', 'alert', 'critical', 'error'], true)) {
+            $erros[] = mb_substr((string) $e->message, 0, 300);
+        }
+    });
+    // As chaves do payload da venda (as mesmas do SellsCreateV3GravarContratoTest): o store lê algumas delas
+    // (tax_rate_id, rp_redeemed…) antes de abrir a transação, e a falta de uma desfaz até o setup do teste.
     $response = $test->post('/pos', [
         'location_id' => $test->locationId, 'contact_id' => $test->contactId,
         'transaction_date' => now()->format('d/m/Y H:i'), 'status' => 'final',
-        'invoice_no' => '', 'pay_term_number' => '', 'pay_term_type' => 'days',
+        'invoice_scheme_id' => null, 'invoice_no' => '', 'pay_term_number' => '', 'pay_term_type' => 'days',
+        'sinal_minimo_pct' => null, 'price_group_id' => null, 'commission_agent_id' => null,
+        'tax_rate_id' => null, 'vehicle_id' => null,
         'products' => [[
             'product_id' => $kit->productId, 'variation_id' => $kit->variationId(),
-            'quantity' => $kits, 'unit_price' => 10, 'unit_price_inc_tax' => 10, 'item_tax' => 0, 'tax_id' => null,
-            'line_discount_type' => 'fixed', 'line_discount_amount' => 0,
+            'name' => 'kit', 'variation' => null, 'sku' => 'kit',
+            'quantity' => $kits, 'unit_price' => 10, 'discount' => 0, 'discount_type' => 'percentage',
+            'imei_number' => '', 'unit_price_inc_tax' => 10, 'item_tax' => 0, 'tax_id' => null,
+            'line_discount_type' => 'percentage', 'line_discount_amount' => 0,
             'enable_stock' => $kitControla ? 1 : 0, 'product_type' => 'combo',
             // A lista que o product_row.blade.php manda: a quantidade de cada componente já multiplicada pelos kits.
             'combo' => [
@@ -99,9 +126,18 @@ function kitvVender(object $test, object $kit, object $a, object $b, int $kits, 
                 ['product_id' => $b->productId, 'variation_id' => $b->variationId(), 'quantity' => 1 * $kits],
             ],
         ]],
-        'payment' => $pagamento,
+        'payments' => $pagamento, 'payment' => $pagamento,
         'discount_type' => 'fixed', 'discount_amount' => 0,
-        'is_direct_sale' => 1, 'final_total' => $total,
+        'rp_redeemed' => 0, 'rp_redeemed_amount' => '0.00', 'notes' => '', 'staff_note' => '',
+        'is_recurring' => 0, 'customer_secondary_address' => '', 'sell_document' => null,
+        'shipping' => ['details' => '', 'address' => '', 'cost' => 0, 'status' => '', 'deliver_to' => ''],
+        'is_direct_sale' => 1, 'is_save_and_print' => 0,
+        'commission_agent' => null, 'price_group' => null, 'default_price_group' => null,
+        'sale_note' => '', 'additional_notes' => '',
+        'shipping_details' => '', 'shipping_address' => '', 'shipping_charges' => 0,
+        'shipping_status' => '', 'delivered_to' => '',
+        'additional_expense_key_1' => '', 'additional_expense_value_1' => 0,
+        'final_total' => $total,
     ]);
 
     $gravou = DB::table('transaction_sell_lines')
@@ -113,7 +149,7 @@ function kitvVender(object $test, object $kit, object $a, object $b, int $kits, 
 
     return [
         'gravou' => $gravou,
-        'msg' => is_array($status) ? (string) ($status['msg'] ?? '') : ('http ' . $response->status()),
+        'msg' => (is_array($status) ? (string) ($status['msg'] ?? '') : ('http ' . $response->status())) . ($erros ? ' · log: ' . implode(' | ', $erros) : ''),
         'saldos' => [EstoqueFixture::currentStock($a, 0, $test->locationId), EstoqueFixture::currentStock($b, 0, $test->locationId)],
     ];
 }
@@ -167,6 +203,7 @@ it('UC-PIDX-50 · sem vender sem estoque: 3 kits gravam e baixam os componentes;
 
     $quatro = kitvVender($this, $kit, $this->a, $this->b, 4, false);
     expect($quatro['gravou'])->toBeFalse('o store gravou 4 kits sem vender sem estoque');
+    expect(kitvRecusaPorEstoque($quatro['msg'], $this->a, $this->b))->toBeTrue('a recusa não foi por estoque: ' . $quatro['msg']);
     expect($quatro['saldos'])->toBe([6.0, 5.0]);
 
     // Caminho 1 — à mão: 3 kits = 6 de A e 3 de B.
@@ -191,6 +228,7 @@ it('UC-PIDX-50 · o kit com "Controlar estoque" ligado (o padrão do cadastro) s
 
     $quatro = kitvVender($this, $kit, $this->a, $this->b, 4, true);
     expect($quatro['gravou'])->toBeFalse('o store gravou 4 kits sem vender sem estoque');
+    expect(kitvRecusaPorEstoque($quatro['msg'], $this->a, $this->b))->toBeTrue('a recusa não foi por estoque: ' . $quatro['msg']);
     expect($quatro['saldos'])->toBe([6.0, 5.0]);
 
     $tres = kitvVender($this, $kit, $this->a, $this->b, 3, true);
