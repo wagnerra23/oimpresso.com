@@ -36,6 +36,9 @@ beforeEach(function () {
     $mu = Mockery::mock(ModuleUtil::class)->makePartial();
     $mu->shouldReceive('hasThePermissionInSubscription')->andReturn(true);
     app()->instance(ModuleUtil::class, $mu);
+    // O menu de um módulo só entra se ele constar instalado (`ModuleUtil::getModuleData` →
+    // `isModuleInstalled` lê `system.manufacturing_version`). O seed da lane só grava o do Repair.
+    DB::table('system')->updateOrInsert(['key' => 'manufacturing_version'], ['value' => '1.0']);
 });
 
 /** O item da Fabricação no menu serializado: o que tem ghost apontando para /manufacturing/. */
