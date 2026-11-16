@@ -156,7 +156,9 @@ describe('Wave 26 NFSe SATURATION', function () {
 
         foreach ([
             'emissoes_table', 'provider_config_table', 'certificado_table',
-            'providers_ativos', 'cert_vencimento_alarme', 'rejeitadas_recentes',
+            // erros_recentes: até 2026-11-16 era 'rejeitadas_recentes', que contava um
+            // status que o módulo nunca grava. O comportamento está em NfseHealthCommandTest.
+            'providers_ativos', 'cert_vencimento_alarme', 'erros_recentes',
         ] as $check) {
             expect($src)->toContain($check);
         }
