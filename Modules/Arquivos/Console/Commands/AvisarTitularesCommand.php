@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Arquivos\Console\Commands;
 
+use App\Tenancy\ContextoEmpresa;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Modules\Arquivos\Jobs\AvisarTitularJob;
@@ -102,6 +103,9 @@ class AvisarTitularesCommand extends Command
 
     private function enviar(int $biz, AvisoTitularService $avisos, bool $dryRun): void
     {
+        // ADR 0453: comando sem sessão — cada negócio roda com a empresa dele no contexto.
+        app(ContextoEmpresa::class)->definir($biz);
+
         $elegiveis = $avisos->elegiveis($biz);
         $this->info("business {$biz}: {$elegiveis->count()} arquivo(s) na janela de aviso.");
 
