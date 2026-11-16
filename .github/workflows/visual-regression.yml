@@ -578,6 +578,22 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/NfeBrasil/
 
+      # ── E2E DE RENDER + AXE — NFSe (3 telas) (NASCE ADVISORY) ──────────────────────
+      # Buraco medido em 2026-11-16 (auditoria NFSe, lote 1 PR 1.3): nenhum teste em
+      # tests/Browser/ citava Pages/Nfse; Index, Emitir e Show só tinham o contrato DB-less.
+      # Prova no DOM a 1280: UC-NFSL-01 (lista só a empresa do harness), UC-NFSD-01/04 (detalhe
+      # da própria nota, rótulo Cancelada, id alheio não mostra a nota), UC-NFSEM-01 (campos) e
+      # axe CRITICAL nas 3. Grava as próprias notas e apaga pelo id no ->after(); não captura
+      # imagem (sem baseline de pixel, ADR 0445). Fora do visreg-screens.json pelo motivo do
+      # NfeBrasil acima. ADVISORY no nascimento: Pest Browser é CI-only e não pôde rodar antes
+      # do PR. Promoção = remover o `continue-on-error` depois de 2 verdes que EXECUTARAM,
+      # lidos no log; é flip [W].
+      - name: E2E de render + axe · NFSe (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-nfse
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Nfse/NfseTelasRenderTest.php
+
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
       # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
       # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive
@@ -934,6 +950,7 @@ jobs:
           A_FISCAL_DAS: ${{ steps.e2e-fiscal-das.outcome }}
           A_SUPERADMIN_ASSINANTE: ${{ steps.e2e-superadmin-assinante.outcome }}
           A_ARQUIVOS_INDEX: ${{ steps.e2e-arquivos-index.outcome }}
+          A_NFSE: ${{ steps.e2e-nfse.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -981,6 +998,7 @@ jobs:
           registrar "E2E de render · Fiscal/Das" "$A_FISCAL_DAS"
           registrar "E2E de render · Superadmin assinante" "$A_SUPERADMIN_ASSINANTE"
           registrar "E2E de render · Arquivos/Index" "$A_ARQUIVOS_INDEX"
+          registrar "E2E de render + axe · NFSe" "$A_NFSE"
 
           {
             echo ""
