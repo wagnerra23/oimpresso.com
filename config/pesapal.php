@@ -33,5 +33,5 @@ return [
      * The route name is "paymentsuccess"
      */
     //'callback_route'  => env('PESAPAL_CALLBACK_ROUTE'),
-    'callback_route' => 'subscription-confirm',
+    'callback_route' => 'subscription-confirm-retorno',
 ];
