@@ -940,6 +940,7 @@ jobs:
             Modules/Associacoes/Tests/Feature/AssociacoesAcessoContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesTelaContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php \
+            Modules/Associacoes/Tests/Feature/SemearRedeCommandTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php \
             Modules/Captacao/Tests/Feature/CaptacaoEsquemaContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php \

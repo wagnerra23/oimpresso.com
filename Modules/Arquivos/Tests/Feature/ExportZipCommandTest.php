@@ -56,14 +56,8 @@ afterEach(function () {
         return;
     }
 
-    // Limpa apenas rows de teste — não afeta dados de outros suites
-    DB::table('arquivos_audit_log')
-        ->whereIn('arquivo_id', function ($q) {
-            $q->select('id')
-              ->from('arquivos')
-              ->where('classified_by', 'test-pr36-export-zip');
-        })
-        ->delete();
+    // A trilha (`arquivos_audit_log`) não é limpa por DELETE: ela ganha trigger append-only
+    // (lote L2) e o arquivo roda em DatabaseTransactions, que desfaz o que o teste gravou.
 
     DB::table('arquivos')->where('classified_by', 'test-pr36-export-zip')->delete();
 });

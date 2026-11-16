@@ -2,6 +2,7 @@
 
 namespace Modules\Arquivos\Services\Curador;
 
+use App\Tenancy\ContextoEmpresa;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -35,11 +36,16 @@ class CuradorStatsReader
         // dedupe_stats) pra detectar slow DB. Zero-cost se otel.enabled=false.
         return OtelHelper::spanBiz('admin.curador_stats.fetch', function () {
         try {
+            // Sem empresa não há estatística: antes caía para a empresa 1 e mostrava os
+            // números dela a quem estivesse sem sessão (auditoria L2, 2026-11-16).
+            $businessId = app(ContextoEmpresa::class)->atual() ?? ((int) session('business.id') ?: null);
+            if ($businessId === null) {
+                return $this->stub('sem_empresa_no_contexto');
+            }
+
             if (! Schema::hasTable('arquivos')) {
                 return $this->stub('arquivos_table_missing');
             }
-
-            $businessId = session('user.business_id') ?? session('business.id') ?? 1;
 
             // Count por bucket (multi-tenant Tier 0 preservado)
             $byBucket = DB::table('arquivos')
