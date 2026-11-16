@@ -25,3 +25,10 @@ Modules/NFSe/Tests/Feature/NfseCertificadoMultiTenantIsolationTest.php  # fixtur
 # criada sem erro). Causa não medida ainda (contexto de empresa × sessão no teste); usa
 # biz=1 (empresa real) como lado A. Reescrever em 98×99 no lote 1.
 Modules/NFSe/Tests/Feature/MultiTenantIsolationTest.php  # :154 sessão 99 devolve 0 linhas (run 43865896173) — lote 1
+#
+# Entrou no lote 1 PR 1.2 (2026-11-16) — DEFEITO DE PRODUTO, não do teste. Run 43931224157:
+# "forceDelete() apagou fisicamente uma NFS-e cancelada/emitida" (:66 e :80, 2 failed).
+# O model Modules/NFSe/Models/NfseEmissao.php não tem trava (sem deleting/forceDeleting nem
+# observer); contrato em resources/js/Pages/Nfse/Show.charter.md:73. Saída: trava no Model
+# (lote 4 da auditoria) e tirar esta linha no MESMO PR.
+tests/Feature/Modules/NFSe/NfseCanceladaNaoSomeDoBancoTest.php  # forceDelete apaga nota fiscal (run 43931224157) — lote 4

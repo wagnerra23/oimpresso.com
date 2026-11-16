@@ -116,6 +116,22 @@ function nfsecompPayload(?string $pfx, ?string $senha): NfseEmissaoPayload
     );
 }
 
+/**
+ * Roda a emissão e devolve a CertificadoInvalidoException lançada. A mensagem dessa exceção é FIXA
+ * ("Certificado A1 inválido ou expirado…"); o motivo de verdade vai em `->detalhe`, e é ele que
+ * separa vencido × senha errada × certificado ausente. Medido no 1º run da lane (PR #11031).
+ */
+function nfsecompRecusa(callable $emitir): CertificadoInvalidoException
+{
+    try {
+        $emitir();
+    } catch (CertificadoInvalidoException $e) {
+        return $e;
+    }
+
+    throw new \RuntimeException('A emissão deveria ter sido recusada por certificado e passou.');
+}
+
 function nfsecompNotaCancelada(): int
 {
     return (int) DB::table('nfse_emissoes')->insertGetId([
@@ -174,8 +190,8 @@ it('US-NFSE-004 · certificado vencido bloqueia a emissao antes de criar nota e 
 
     $service = new NfseEmissaoService(new SnNfseAdapter('homologacao'));
 
-    expect(fn () => $service->emitir(nfsecompPayload(nfsecompPfx('senha'), 'senha')))
-        ->toThrow(CertificadoInvalidoException::class, 'expirado');
+    $recusa = nfsecompRecusa(fn () => $service->emitir(nfsecompPayload(nfsecompPfx('senha'), 'senha')));
+    expect((string) $recusa->detalhe)->toContain('expirado em');
 
     Http::assertNothingSent();
     expect(DB::table('nfse_emissoes')->where('business_id', NFSECOMP_TENANT)->count())->toBe($antes);
@@ -190,8 +206,8 @@ it('US-NFSE-004 · senha errada do A1 bloqueia a emissao: nada vai para a Sefin 
     $service = new NfseEmissaoService(new SnNfseAdapter('homologacao'));
     $payload = nfsecompPayload(nfsecompPfx('senha-certa'), 'senha-errada');
 
-    expect(fn () => $service->emitir($payload))
-        ->toThrow(CertificadoInvalidoException::class, 'assinar');
+    $recusa = nfsecompRecusa(fn () => $service->emitir($payload));
+    expect((string) $recusa->detalhe)->toContain('assinar a DPS');
 
     Http::assertNothingSent();
     $nota = NfseEmissao::where('idempotency_key', $payload->idempotencyKey())->first();
@@ -222,8 +238,10 @@ it('[T0] US-NFSE-004 · config da 98 apontando para certificado da 99 nao usa o 
     expect(NfseProviderConfig::find($config->id)->certificado)->toBeNull();
 
     $service = new NfseEmissaoService(new SnNfseAdapter('homologacao'));
-    expect(fn () => $service->emitir(nfsecompPayload(nfsecompPfx('senha'), 'senha')))
-        ->toThrow(CertificadoInvalidoException::class, 'Nenhum certificado');
+    $antes = DB::table('nfse_emissoes')->where('business_id', NFSECOMP_TENANT)->count();
+    $recusa = nfsecompRecusa(fn () => $service->emitir(nfsecompPayload(nfsecompPfx('senha'), 'senha')));
+    expect((string) $recusa->detalhe)->toContain('Nenhum certificado');
+    expect(DB::table('nfse_emissoes')->where('business_id', NFSECOMP_TENANT)->count())->toBe($antes);
     Http::assertNothingSent();
 
     // Controle positivo: com o certificado da própria empresa o relacionamento resolve.
