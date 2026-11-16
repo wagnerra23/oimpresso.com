@@ -85,6 +85,7 @@ it('aviso-titular 1 · janela: entra quem vence em ≤30d; fica fora vencido, lo
     expect($ids)->toBe([$dentro, $limite]);
 });
 
+// @covers-us US-ARQ-030
 it('aviso-titular 2 · registrar grava titular_avisado_at + notice na trilha, sem PII e idempotente', function () {
     $id = avisoTitularArquivo(98, 15);
     $svc = app(AvisoTitularService::class);

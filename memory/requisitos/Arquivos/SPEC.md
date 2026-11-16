@@ -197,6 +197,49 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 - CMS feature_image (trait + accessor `feature_image_arquivo` já landed em `CmsPage.php` L13 + coberto no `ConsumersTraitTest`; resta remover fallback da coluna legacy)
 - Jana McpMemoryDocuments embedding vetores (caso especial — pode ficar em Meilisearch sem ir pra `arquivos` table)
 
+## Funcionalidades entregues fora dos sprints (US registradas em 2026-11-16)
+
+> Estas funcionalidades entraram no código entre 2026-08 e 2026-11 sem US no SPEC. A auditoria de 2026-11-05 (lote L3) as registrou; cada aceite vem do teste citado, que declara `@covers-us` da US.
+
+### US-ARQ-027 · Classificar um arquivo pela tela `/arquivos`, com motivo na trilha `p1`
+**Implementado em:** `Modules/Arquivos/Http/Controllers/ArquivosAdminController.php` · `Modules/Arquivos/Http/Requests/ReclassifyArquivoRequest.php` · verificado@580be57 (2026-11-16)
+**Aceite:** a rota é POST, numérica e exige `arquivos.access`; classificar passa pela Request de motivo e pelo `ArquivosService`, grava `classified_at` e a trilha guarda o motivo na empresa do arquivo; arquivo de outra empresa e `force_bucket` são recusados.
+**Testado em:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php`
+
+### US-ARQ-028 · Excluir (soft-delete) e restaurar dentro do grace pela tela `/arquivos` `p1`
+**Implementado em:** `Modules/Arquivos/Http/Controllers/ArquivosAdminController.php` · `Modules/Arquivos/Http/Requests/DeleteArquivoRequest.php` · `Modules/Arquivos/Http/Requests/RestoreArquivoRequest.php` · verificado@580be57 (2026-11-16)
+**Aceite:** excluir é soft-delete com motivo na trilha, nunca hard-delete nem purge; restaurar só vale dentro do grace, só para superadmin, e preserva a linha da exclusão na trilha; fora do grace é recusado e nada muda; arquivo de outra empresa é recusado.
+**Testado em:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php`
+
+### US-ARQ-029 · Simular a retenção em dry-run, só superadmin `p1`
+**Implementado em:** `Modules/Arquivos/Http/Controllers/RetencaoSimulacaoController.php` · `Modules/Arquivos/Jobs/SimularRetencaoJob.php` · verificado@580be57 (2026-11-16)
+**Aceite:** a rota exige `can:superadmin`; o controller força `dry_run=true`, usa a empresa da sessão e recusa `purge`; a simulação lista só arquivos da própria empresa, com id, data e motivo, e não escreve em `arquivos` nem na trilha.
+**Testado em:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php`
+
+### US-ARQ-030 · Aviso ao titular antes do vencimento, por e-mail e WhatsApp ([ADR 0421](../../decisions/0421-arquivos-aviso-ao-titular-registro-e-janela.md) e [ADR 0422](../../decisions/0422-arquivos-aviso-titular-canal-email-whatsapp.md)) `p1`
+**Implementado em:** `Modules/Arquivos/Services/AvisoTitularService.php` · `Modules/Arquivos/Jobs/AvisarTitularJob.php` · `Modules/Arquivos/Console/Commands/AvisarTitularesCommand.php` · verificado@580be57 (2026-11-16)
+**Aceite:** entra na janela quem vence em até 30 dias e é sensível com titular; o aviso grava `titular_avisado_at` e uma linha `notice` na trilha, sem PII, e não reenvia; avisar não apaga nem expira; os canais nascem desligados e respeitam o opt-out de cada um; uma empresa não avisa nem marca arquivo de outra.
+**Testado em:** `Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php` · `Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php`
+
+### US-ARQ-031 · API de anexos da OS para o app (`/api/app/os/{id}/arquivos`) `p1`
+**Implementado em:** `app/Http/Controllers/Api/App/OsArquivosController.php` · `Modules/Arquivos/Services/AnexosDoAppService.php` · verificado@580be57 (2026-11-16)
+**Aceite:** o envio de foto cria a linha em `arquivos` ligada à OS, na empresa da OS e com o usuário que enviou; a lista vem do mais novo para o mais antigo com URL assinada; OS de outra empresa responde 404 sem gravar; sem permissão de editar a OS o envio dá 403.
+**Testado em:** `tests/Feature/Sells/AppOsArquivosApiContratoTest.php`
+
+### US-ARQ-032 · Exportar o acervo de uma empresa em ZIP (`arquivos:export-zip`) `p2`
+**Implementado em:** `Modules/Arquivos/Console/Commands/ExportZipCommand.php` · verificado@580be57 (2026-11-16)
+**Aceite:** gera o ZIP com os arquivos da empresa pedida e um `_MANIFEST.json` com empresa, total e lista de arquivos; `--dry-run` não cria o ZIP nem grava na trilha; `--include-vault` decifra os arquivos do cofre; não exporta arquivo de outra empresa.
+**Testado em:** `Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php`
+
+### US-ARQ-033 · Re-cifrar o cofre após trocar a `APP_KEY` (`arquivos:reencrypt-vault`) `p1`
+**Implementado em:** `Modules/Arquivos/Console/Commands/ReencryptVaultCommand.php` · verificado@580be57 (2026-11-16)
+**Aceite:** com `--old-key`, cada arquivo do cofre cifrado com a chave antiga passa a abrir com a chave atual sem perder conteúdo; `--dry-run` não altera bytes; rodar de novo pula o que já foi re-cifrado; arquivo ausente no disco conta como pulado, não como erro.
+**Testado em:** `Modules/Arquivos/Tests/Feature/ReencryptVaultCommandTest.php`
+
+### US-ARQ-034 · Revogar de papéis e usuários as permissões que passaram a ser só de superadmin (`arquivos:revogar-permissoes-superadmin`) `p2`
+**Implementado em:** `Modules/Arquivos/Console/Commands/RevogarPermissoesSuperadminCommand.php` · verificado@580be57 (2026-11-16)
+**Aceite:** `--dry-run` lista os vínculos e não escreve; sem a flag remove os vínculos de papel e de usuário e as permissões `arquivos.restore` e `arquivos.governanca`; rodar de novo não muda nada.
+**Testado em:** `Modules/Arquivos/Tests/Feature/ArquivosSuperadminOnlyTest.php`
 ## Sprint Future — observability + features avançadas
 
 - Meilisearch full-text indexing (Jana recall on-demand)

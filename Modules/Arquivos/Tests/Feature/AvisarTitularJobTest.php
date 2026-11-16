@@ -135,6 +135,7 @@ it('aviso-envio 1 · canais desligados (default) → nada sai e nada é registra
     expect(DB::table('arquivos')->where('id', $id)->value('titular_avisado_at'))->toBeNull();
 });
 
+// @covers-us US-ARQ-030
 it('aviso-envio 2 · e-mail ligado + opt-in → e-mail ao titular e aviso registrado com canal=email', function () {
     app(AvisoTitularCanais::class)->definir(98, true, null);
     $id = avisarTitularArquivo(98, avisarTitularContato(98, $this->user98));
